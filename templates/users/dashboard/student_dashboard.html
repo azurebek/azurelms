@@ -1,8 +1,31 @@
 {% extends "base.html" %}
 {% block title %}Dashboard{% endblock %}
 {% block content %}
-<h1 class="h4 mb-2">Salom, {{ request.user.profile.display_name|default:request.user.email }} 👋</h1>
-<p class="text-muted">Bu yerda Resume Learning, streak, daily goals bo‘ladi.</p>
+<div class="dashboard-card">
+  <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-3">
+    <div>
+      <div class="section-eyebrow">Student panel</div>
+      <h1 class="h4 mb-1">Salom, {{ request.user.profile.display_name|default:request.user.email }} 👋</h1>
+      <p class="text-muted mb-0">Bugungi maqsadlaringizni ko‘zdan kechiring va o‘qishni davom ettiring.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{% url 'users:logout' %}">Chiqish</a>
+  </div>
 
-<a class="btn btn-outline-secondary w-100" href="{% url 'users:logout' %}">Chiqish</a>
+  <div class="row g-3">
+    <div class="col-12 col-md-6">
+      <div class="p-3 border rounded-4 h-100">
+        <div class="text-muted">Haftalik o‘sish</div>
+        <div class="dashboard-card__stat">+12%</div>
+        <div class="text-secondary small">Darslarni davom ettirish tezligi.</div>
+      </div>
+    </div>
+    <div class="col-12 col-md-6">
+      <div class="p-3 border rounded-4 h-100">
+        <div class="text-muted">Bugungi reja</div>
+        <div class="dashboard-card__stat">3 ta dars</div>
+        <div class="text-secondary small">15 daqiqadan 45 daqiqagacha.</div>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

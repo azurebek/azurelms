@@ -1,14 +1,14 @@
 <section class="py-4 py-md-5">
-  <div class="p-4 p-md-5 rounded-4 bg-white border">
+  <div class="section-card p-4 p-md-5">
     <div class="row align-items-center g-4">
       <div class="col-md-7">
-        <div class="text-uppercase small text-muted mb-2">Hero</div>
+        <div class="section-eyebrow mb-2">Hero</div>
         <h1 class="display-6 fw-bold mb-3">{{ block.title }}</h1>
         <div class="fs-5 text-secondary">
           {{ block.content_html|safe }}
         </div>
 
-        <div class="mt-4 d-flex gap-2">
+        <div class="mt-4 d-flex flex-wrap gap-2">
           <a class="btn btn-primary btn-lg" href="{% url 'users:signup' %}">Boshlash</a>
           <a class="btn btn-outline-secondary btn-lg" href="{% url 'users:login' %}">Kirish</a>
         </div>
