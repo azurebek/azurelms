@@ -2,7 +2,9 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
+from django.http import HttpResponse
 from django.shortcuts import redirect, render
+from django.utils import timezone
 from django.urls import reverse
 
 from .models import CustomUser, Profile
@@ -42,14 +44,31 @@ def login_view(request):
     if request.method == "POST":
         email = (request.POST.get("email") or "").strip().lower()
         password = request.POST.get("password") or ""
+        remember_me = request.POST.get("remember_me") == "on"
         user = authenticate(request, email=email, password=password)
         if user is None:
             messages.error(request, "Email yoki parol noto‘g‘ri.")
             return render(request, "users/auth/login.html")
         login(request, user)
+        if not remember_me:
+            request.session.set_expiry(0)
         return redirect("users:dashboard")
 
     return render(request, "users/auth/login.html")
+
+
+def forgot_password_view(request):
+    if request.user.is_authenticated:
+        return redirect("users:dashboard")
+
+    if request.method == "POST":
+        messages.success(
+            request,
+            "Agar bu email mavjud bo‘lsa, tiklash havolasi yuborildi.",
+        )
+        return render(request, "users/auth/forgot_password.html")
+
+    return render(request, "users/auth/forgot_password.html")
 
 
 @login_required
@@ -99,4 +118,26 @@ def dashboard_view(request):
     has_enrollment = request.user.enrollments.exists()
     if not has_enrollment:
         return render(request, "users/dashboard/sales_dashboard.html")
-    return render(request, "users/dashboard/student_dashboard.html")
+    now = timezone.localtime()
+    if now.hour < 12:
+        greeting = "Xayrli tong"
+    elif now.hour < 18:
+        greeting = "Xayrli kun"
+    else:
+        greeting = "Xayrli kech"
+    return render(
+        request,
+        "users/dashboard/student_dashboard.html",
+        {
+            "greeting": greeting,
+        },
+    )
+
+
+def check_email_view(request):
+    email = (request.GET.get("email") or "").strip().lower()
+    if not email:
+        return HttpResponse("")
+    if CustomUser.objects.filter(email=email).exists():
+        return HttpResponse('<div class="text-danger small mt-1">Bu email band.</div>')
+    return HttpResponse('<div class="text-success small mt-1">Email bo‘sh.</div>')

@@ -1,33 +1,89 @@
 {% extends "base.html" %}
 {% block title %}Dashboard{% endblock %}
 {% block content %}
-<div class="container">
+<div class="container dashboard-wrap">
   <div class="dashboard-card">
-    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-3">
+    <div class="dashboard-header">
       <div>
-        <div class="section-eyebrow">Student panel</div>
-        <h1 class="h4 mb-1">Salom, {{ request.user.profile.display_name|default:request.user.email }} 👋</h1>
-        <p class="text-muted mb-0">Bugungi maqsadlaringizni ko‘zdan kechiring va o‘qishni davom ettiring.</p>
+        <div class="section-eyebrow">Boshqaruv markazi</div>
+        <h1 class="h4 mb-1">{{ greeting }}, {{ request.user.profile.display_name|default:request.user.email }} 👋</h1>
+        <p class="text-muted mb-0">Bugungi progressni kuzating va darsni davom ettiring.</p>
       </div>
-      <a class="btn btn-outline-secondary" href="{% url 'users:logout' %}">Chiqish</a>
+      <div class="d-flex align-items-center gap-2">
+        <div class="streak-badge">
+          🔥 <span>{{ request.user.profile.streak_days }}</span> kun
+        </div>
+        <button class="btn btn-outline-secondary btn-icon" type="button" aria-label="Notifications">
+          <i class="bi bi-bell"></i>
+        </button>
+      </div>
     </div>
 
-    <div class="row g-3">
-      <div class="col-12 col-md-6">
+    <div class="resume-card mt-4">
+      <div>
+        <div class="text-muted small">Resume Learning</div>
+        <div class="h5 mb-1">Essential Speaking: Lesson 4</div>
+        <div class="text-muted">So‘nggi dars: Greetings & Introductions</div>
+      </div>
+      <button class="btn btn-primary btn-lg">
+        <i class="bi bi-play-fill"></i>
+        Play
+      </button>
+    </div>
+
+    <div class="row g-3 mt-3">
+      <div class="col-12 col-lg-6">
         <div class="p-3 border rounded-4 h-100">
-          <div class="text-muted">Haftalik o‘sish</div>
-          <div class="dashboard-card__stat">+12%</div>
-          <div class="text-secondary small">Darslarni davom ettirish tezligi.</div>
+          <div class="text-muted">XP Points</div>
+          <div class="dashboard-card__stat">{{ request.user.profile.xp_points }}</div>
+          <div class="text-secondary small">Bugungi faoliyatingizdan yig‘ilgan ballar.</div>
         </div>
       </div>
-      <div class="col-12 col-md-6">
+      <div class="col-12 col-lg-6">
         <div class="p-3 border rounded-4 h-100">
-          <div class="text-muted">Bugungi reja</div>
-          <div class="dashboard-card__stat">3 ta dars</div>
-          <div class="text-secondary small">15 daqiqadan 45 daqiqagacha.</div>
+          <div class="text-muted">Kunlik reja</div>
+          <div class="dashboard-card__stat">3 ta vazifa</div>
+          <div class="text-secondary small">15-30 daqiqalik fokus sessiya.</div>
         </div>
+      </div>
+    </div>
+
+    <div class="daily-goals mt-4">
+      <div class="daily-goals__title">Daily Goals</div>
+      <div class="daily-goals__list">
+        <label class="goal-item">
+          <input class="form-check-input" type="checkbox">
+          <span>Video dars</span>
+        </label>
+        <label class="goal-item">
+          <input class="form-check-input" type="checkbox">
+          <span>Quiz</span>
+        </label>
+        <label class="goal-item">
+          <input class="form-check-input" type="checkbox">
+          <span>Uy vazifa</span>
+        </label>
       </div>
     </div>
   </div>
+
+  <nav class="bottom-nav">
+    <a class="bottom-nav__item is-active" href="{% url 'users:dashboard' %}">
+      <i class="bi bi-house"></i>
+      <span>Home</span>
+    </a>
+    <a class="bottom-nav__item" href="#">
+      <i class="bi bi-book"></i>
+      <span>Courses</span>
+    </a>
+    <a class="bottom-nav__item" href="#">
+      <i class="bi bi-bar-chart"></i>
+      <span>Leaderboard</span>
+    </a>
+    <a class="bottom-nav__item" href="#">
+      <i class="bi bi-person"></i>
+      <span>Profile</span>
+    </a>
+  </nav>
 </div>
 {% endblock %}

@@ -12,11 +12,26 @@
           {% csrf_token %}
           <div>
             <label class="form-label">Email</label>
-            <input type="email" name="email" class="form-control form-control-lg" required>
+            <input
+              type="email"
+              name="email"
+              class="form-control form-control-lg"
+              required
+              hx-get="{% url 'users:check_email' %}"
+              hx-trigger="keyup changed delay:400ms"
+              hx-target="#email-feedback"
+              hx-include="[name='email']"
+            >
+            <div id="email-feedback"></div>
           </div>
           <div>
             <label class="form-label">Parol</label>
-            <input type="password" name="password" class="form-control form-control-lg" required>
+            <div class="input-group input-group-lg">
+              <input type="password" name="password" class="form-control" id="signup-password" required>
+              <button class="btn btn-outline-secondary" type="button" id="toggle-signup-password">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
           </div>
           <button class="btn btn-primary btn-lg w-100">Davom etish</button>
         </form>
@@ -28,4 +43,15 @@
     </div>
   </div>
 </div>
+<script>
+  const toggleSignup = document.getElementById("toggle-signup-password");
+  const signupPassword = document.getElementById("signup-password");
+  if (toggleSignup && signupPassword) {
+    toggleSignup.addEventListener("click", () => {
+      const isHidden = signupPassword.type === "password";
+      signupPassword.type = isHidden ? "text" : "password";
+      toggleSignup.innerHTML = isHidden ? '<i class="bi bi-eye-slash"></i>' : '<i class="bi bi-eye"></i>';
+    });
+  }
+</script>
 {% endblock %}
