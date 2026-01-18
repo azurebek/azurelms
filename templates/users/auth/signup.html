@@ -1,22 +1,29 @@
 {% extends "base.html" %}
 {% block title %}Sign up{% endblock %}
 {% block content %}
-<h1 class="h3 mb-3">Ro‘yxatdan o‘tish</h1>
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-5">
+    <div class="auth-card">
+      <div class="auth-card__title">Ro‘yxatdan o‘tish</div>
+      <div class="auth-card__subtitle">Bir necha daqiqada yangi o‘quvchilaringizni boshqarishni boshlang.</div>
 
-<form method="post" class="vstack gap-3">
-  {% csrf_token %}
-  <div>
-    <label class="form-label">Email</label>
-    <input type="email" name="email" class="form-control form-control-lg" required>
-  </div>
-  <div>
-    <label class="form-label">Parol</label>
-    <input type="password" name="password" class="form-control form-control-lg" required>
-  </div>
-  <button class="btn btn-primary btn-lg w-100">Davom etish</button>
-</form>
+      <form method="post" class="vstack gap-3">
+        {% csrf_token %}
+        <div>
+          <label class="form-label">Email</label>
+          <input type="email" name="email" class="form-control form-control-lg" required>
+        </div>
+        <div>
+          <label class="form-label">Parol</label>
+          <input type="password" name="password" class="form-control form-control-lg" required>
+        </div>
+        <button class="btn btn-primary btn-lg w-100">Davom etish</button>
+      </form>
 
-<p class="mt-3 mb-0 text-muted">
-  Akkaunting bormi? <a href="{% url 'users:login' %}">Kirish</a>
-</p>
+      <p class="mt-3 mb-0 text-muted">
+        Akkaunting bormi? <a href="{% url 'users:login' %}">Kirish</a>
+      </p>
+    </div>
+  </div>
+</div>
 {% endblock %}
