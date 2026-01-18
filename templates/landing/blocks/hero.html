@@ -1,0 +1,23 @@
+<section class="py-4 py-md-5">
+  <div class="p-4 p-md-5 rounded-4 bg-white border">
+    <div class="row align-items-center g-4">
+      <div class="col-md-7">
+        <div class="text-uppercase small text-muted mb-2">Hero</div>
+        <h1 class="display-6 fw-bold mb-3">{{ block.title }}</h1>
+        <div class="fs-5 text-secondary">
+          {{ block.content_html|safe }}
+        </div>
+
+        <div class="mt-4 d-flex gap-2">
+          <a class="btn btn-primary btn-lg" href="{% url 'users:signup' %}">Boshlash</a>
+          <a class="btn btn-outline-secondary btn-lg" href="{% url 'users:login' %}">Kirish</a>
+        </div>
+      </div>
+
+      <div class="col-md-5">
+        <div class="ratio ratio-16x9 rounded-4 bg-light border"></div>
+        <div class="small text-muted mt-2">Rasm joyi (keyin ImageField qo‘shamiz)</div>
+      </div>
+    </div>
+  </div>
+</section>
