@@ -2,11 +2,11 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-{% if site.announcement %}
-  <div class="alert alert-warning">{{ site.announcement }}</div>
-{% endif %}
-
 {% for block in blocks %}
-  {% include "landing/blocks/"|add:block.block_type|add:".html" with block=block %}
+  {% include "landing/blocks/"|add:block.block_type|lower|add:".html" with block=block %}
 {% endfor %}
+
+<div class="fixed-cta d-md-none">
+  <a class="btn btn-primary btn-lg" href="{% url 'users:signup' %}">Sotib olish</a>
+</div>
 {% endblock %}

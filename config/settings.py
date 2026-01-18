@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "billing",
     "communication",
     "django_ckeditor_5",
+    "adminsortable2",
     "sorl.thumbnail",
 ]
 
@@ -72,6 +73,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'landing.context_processors.site_config',
             ],
         },
     },
@@ -140,6 +142,19 @@ CKEDITOR_5_CONFIGS = {
             "bold", "italic", "link",
             "|",
             "bulletedList", "numberedList",
+            "|",
+            "undo", "redo",
+        ],
+    },
+    "full": {
+        "toolbar": [
+            "heading",
+            "|",
+            "bold", "italic", "link", "blockQuote",
+            "|",
+            "bulletedList", "numberedList",
+            "|",
+            "insertTable", "imageUpload",
             "|",
             "undo", "redo",
         ],

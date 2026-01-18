@@ -27,6 +27,20 @@ body {
   letter-spacing: 0.02em;
 }
 
+.announcement-bar {
+  background: #0f172a;
+  color: #fff;
+}
+
+.brand-logo {
+  height: 32px;
+  width: auto;
+}
+
+.brand-logo--dark {
+  display: none;
+}
+
 .site-main {
   padding: 2.5rem 0 4rem;
   background: radial-gradient(circle at top, #ffffff 0%, #f5f7fb 45%, #eef2ff 100%);
@@ -36,6 +50,35 @@ body {
   background: #ffffff;
   border: 1px solid var(--brand-border);
   border-radius: 1.5rem;
+  box-shadow: var(--brand-shadow);
+}
+
+.marketing-banner {
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+}
+
+.pricing-row > * {
+  min-width: 260px;
+}
+
+.course-feed {
+  scroll-snap-type: x mandatory;
+  padding-bottom: 0.5rem;
+}
+
+.course-card {
+  min-width: 260px;
+  scroll-snap-align: start;
+}
+
+.fixed-cta {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 1040;
+}
+
+.fixed-cta .btn {
   box-shadow: var(--brand-shadow);
 }
 
@@ -98,6 +141,35 @@ body {
   color: var(--brand-muted);
 }
 
+[data-bs-theme="dark"] body {
+  background: #0b1120;
+  color: #e2e8f0;
+}
+
+[data-bs-theme="dark"] .announcement-bar {
+  background: #1e293b;
+}
+
+[data-bs-theme="dark"] .brand-logo--light {
+  display: none;
+}
+
+[data-bs-theme="dark"] .brand-logo--dark {
+  display: inline-block;
+}
+
+[data-bs-theme="dark"] .section-card,
+[data-bs-theme="dark"] .auth-card,
+[data-bs-theme="dark"] .dashboard-card {
+  background: #0f172a;
+  border-color: #1e293b;
+  box-shadow: none;
+}
+
+[data-bs-theme="dark"] .site-main {
+  background: radial-gradient(circle at top, #0f172a 0%, #0b1120 55%, #020617 100%);
+}
+
 @media (max-width: 768px) {
   .site-main {
     padding: 2rem 0 3rem;
@@ -105,5 +177,14 @@ body {
 
   .auth-card {
     padding: 1.5rem;
+  }
+
+  .pricing-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  .pricing-row > * {
+    flex: 0 0 auto;
   }
 }

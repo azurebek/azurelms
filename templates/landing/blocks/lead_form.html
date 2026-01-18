@@ -1,0 +1,20 @@
+<section class="py-3 py-md-4 {{ block.bg_class }}">
+  <div class="{{ block.container_class }}">
+    <div class="section-card p-4 p-md-5">
+      <div class="row align-items-center g-4">
+        <div class="col-md-6">
+          <div class="section-eyebrow">Lead Magnet</div>
+          <h2 class="h4 fw-bold mb-2">{{ block.title }}</h2>
+          <div class="text-secondary mb-3">
+            {{ block.content_html|safe }}
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div id="lead-form-wrapper">
+            {% include "landing/partials/lead_form.html" with form=lead_form %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

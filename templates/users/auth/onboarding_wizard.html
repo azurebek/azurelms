@@ -1,45 +1,47 @@
 {% extends "base.html" %}
 {% block title %}Onboarding{% endblock %}
 {% block content %}
-<h1 class="h3 mb-3">Onboarding</h1>
+<div class="container">
+  <h1 class="h3 mb-3">Onboarding</h1>
 
-<form method="post" class="vstack gap-3">
-  {% csrf_token %}
+  <form method="post" class="vstack gap-3">
+    {% csrf_token %}
 
-  <div>
-    <label class="form-label">Ism (display name)</label>
-    <input type="text" name="display_name" class="form-control form-control-lg" placeholder="Azurebek" required>
-  </div>
+    <div>
+      <label class="form-label">Ism (display name)</label>
+      <input type="text" name="display_name" class="form-control form-control-lg" placeholder="Azurebek" required>
+    </div>
 
-  <div>
-    <label class="form-label">Maqsad</label>
-    <select name="goal" class="form-select form-select-lg" required>
-      <option value="">Tanlang...</option>
-      <option value="study">🎓 Magistratura</option>
-      <option value="work">💼 Ish</option>
-      <option value="travel">✈️ Sayohat</option>
-    </select>
-  </div>
+    <div>
+      <label class="form-label">Maqsad</label>
+      <select name="goal" class="form-select form-select-lg" required>
+        <option value="">Tanlang...</option>
+        <option value="study">🎓 Magistratura</option>
+        <option value="work">💼 Ish</option>
+        <option value="travel">✈️ Sayohat</option>
+      </select>
+    </div>
 
-  <div>
-    <label class="form-label">Daraja</label>
-    <select name="level" class="form-select form-select-lg" required>
-      <option value="">Tanlang...</option>
-      <option value="zero">🐣 Noldan</option>
-      <option value="a1">A1</option>
-      <option value="b1">B1</option>
-    </select>
-  </div>
+    <div>
+      <label class="form-label">Daraja</label>
+      <select name="level" class="form-select form-select-lg" required>
+        <option value="">Tanlang...</option>
+        <option value="zero">🐣 Noldan</option>
+        <option value="a1">A1</option>
+        <option value="b1">B1</option>
+      </select>
+    </div>
 
-  <div>
-    <label class="form-label">Kuniga necha daqiqa?</label>
-    <select name="daily_commitment" class="form-select form-select-lg" required>
-      <option value="15">15</option>
-      <option value="30">30</option>
-      <option value="60">60</option>
-    </select>
-  </div>
+    <div>
+      <label class="form-label">Kuniga necha daqiqa?</label>
+      <select name="daily_commitment" class="form-select form-select-lg" required>
+        <option value="15">15</option>
+        <option value="30">30</option>
+        <option value="60">60</option>
+      </select>
+    </div>
 
-  <button class="btn btn-success btn-lg w-100">Tugatish</button>
-</form>
+    <button class="btn btn-success btn-lg w-100">Tugatish</button>
+  </form>
+</div>
 {% endblock %}

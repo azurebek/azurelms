@@ -1,22 +1,28 @@
-<section class="py-4 py-md-5">
-  <div class="section-card p-4 p-md-5">
-    <div class="row align-items-center g-4">
-      <div class="col-md-7">
-        <div class="section-eyebrow mb-2">Hero</div>
-        <h1 class="display-6 fw-bold mb-3">{{ block.title }}</h1>
-        <div class="fs-5 text-secondary">
-          {{ block.content_html|safe }}
+<section class="py-4 py-md-5 {{ block.bg_class }}">
+  <div class="{{ block.container_class }}">
+    <div class="section-card p-4 p-md-5">
+      <div class="row align-items-center g-4 flex-column-reverse flex-md-row">
+        <div class="col-md-7 {{ block.style_config.text_order|default:'order-md-1' }}">
+          <div class="section-eyebrow mb-2">Hero</div>
+          <h1 class="display-6 fw-bold mb-3">{{ block.title }}</h1>
+          <div class="fs-5 text-secondary">
+            {{ block.content_html|safe }}
+          </div>
+
+          <div class="mt-4 d-flex flex-wrap gap-2">
+            <a class="btn btn-primary btn-lg" href="{{ block.cta_url|default:'#' }}">{{ block.cta_label|default:"Boshlash" }}</a>
+            <a class="btn btn-outline-secondary btn-lg" href="{% url 'users:login' %}">Kirish</a>
+          </div>
         </div>
 
-        <div class="mt-4 d-flex flex-wrap gap-2">
-          <a class="btn btn-primary btn-lg" href="{% url 'users:signup' %}">Boshlash</a>
-          <a class="btn btn-outline-secondary btn-lg" href="{% url 'users:login' %}">Kirish</a>
+        <div class="col-md-5 {{ block.style_config.image_order|default:'order-md-2' }}">
+          {% if block.image %}
+            <img src="{{ block.image.url }}" alt="{{ block.title }}" class="img-fluid rounded-4 shadow-sm">
+          {% else %}
+            <div class="ratio ratio-16x9 rounded-4 bg-light border"></div>
+            <div class="small text-muted mt-2">Rasm joyi (keyin ImageField qo‘shamiz)</div>
+          {% endif %}
         </div>
-      </div>
-
-      <div class="col-md-5">
-        <div class="ratio ratio-16x9 rounded-4 bg-light border"></div>
-        <div class="small text-muted mt-2">Rasm joyi (keyin ImageField qo‘shamiz)</div>
       </div>
     </div>
   </div>

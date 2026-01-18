@@ -1,0 +1,25 @@
+<section class="py-3 py-md-4 {{ block.bg_class }}">
+  <div class="{{ block.container_class }}">
+    <div class="section-card p-4 p-md-5">
+      <div class="section-eyebrow">Courses</div>
+      <h2 class="h4 fw-bold mb-3">{{ block.title }}</h2>
+      <div class="d-flex gap-3 overflow-auto course-feed">
+        {% for batch in batches %}
+          <div class="card shadow-sm border-0 course-card">
+            <div class="card-body">
+              <div class="small text-muted">{{ batch.course.title }}</div>
+              <h3 class="h5 fw-bold">{{ batch.title|default:"Yangi batch" }}</h3>
+              <p class="text-secondary small mb-3">Boshlanish: {{ batch.start_date|date:"M d, Y" }}</p>
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="fw-bold">${{ batch.price }}</span>
+                <a class="btn btn-sm btn-primary" href="{% url 'users:signup' %}">Ro‘yxatdan o‘tish</a>
+              </div>
+            </div>
+          </div>
+        {% empty %}
+          <div class="text-muted">Hozircha faol kurslar yo‘q.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>

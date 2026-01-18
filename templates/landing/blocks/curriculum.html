@@ -1,0 +1,11 @@
+<section class="py-3 py-md-4 {{ block.bg_class }}">
+  <div class="{{ block.container_class }}">
+    <div class="section-card p-4 p-md-5">
+      <div class="section-eyebrow">Curriculum</div>
+      <h2 class="h4 fw-bold mb-3">{{ block.title }}</h2>
+      <div class="accordion" id="curriculum-{{ block.id }}">
+        {{ block.content_html|safe }}
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,23 @@
+<section class="py-3 py-md-4 {{ block.bg_class }}">
+  <div class="{{ block.container_class }}">
+    <div class="section-card p-4 p-md-5">
+      <div class="section-eyebrow">Reviews</div>
+      <h2 class="h4 fw-bold mb-3">{{ block.title }}</h2>
+      <div class="row g-3">
+        {{ block.content_html|safe }}
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="modal fade" id="reviewVideoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-body p-0">
+        <div class="ratio ratio-16x9">
+          <iframe id="reviewVideoFrame" src="" title="Review video" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

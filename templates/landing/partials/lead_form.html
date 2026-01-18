@@ -1,0 +1,16 @@
+<form
+  hx-post="{% url 'landing:lead_capture' %}"
+  hx-target="#lead-form-wrapper"
+  hx-swap="innerHTML"
+  class="vstack gap-3"
+>
+  {% csrf_token %}
+  {{ form.source }}
+  <div class="input-group input-group-lg">
+    {{ form.email }}
+    <button class="btn btn-primary" type="submit">Yuborish</button>
+  </div>
+  {% if form.errors %}
+    <div class="text-danger small">Email manzilingizni tekshiring.</div>
+  {% endif %}
+</form>
