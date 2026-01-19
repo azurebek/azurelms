@@ -1,0 +1,16 @@
+{% if message.sender == user %}
+  <div class="d-flex justify-content-end">
+    <div class="bg-primary text-white rounded-3 px-3 py-2 shadow-sm" style="max-width: 75%;">
+      <div class="small">{{ message.content }}</div>
+      <div class="text-end small opacity-75">{{ message.created_at|date:"H:i" }}</div>
+    </div>
+  </div>
+{% else %}
+  <div class="d-flex justify-content-start">
+    <div class="bg-light border rounded-3 px-3 py-2 shadow-sm" style="max-width: 75%;">
+      <div class="small fw-semibold">{{ message.sender.get_full_name|default:message.sender.email }}</div>
+      <div class="small">{{ message.content }}</div>
+      <div class="text-end small text-muted">{{ message.created_at|date:"H:i" }}</div>
+    </div>
+  </div>
+{% endif %}

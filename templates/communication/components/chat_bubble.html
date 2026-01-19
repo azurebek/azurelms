@@ -1,0 +1,57 @@
+<div class="chat-bubble-wrapper" x-data="{ open: false }">
+  <button
+    class="chat-bubble-button btn btn-primary rounded-circle"
+    type="button"
+    @click="open = !open"
+    :aria-expanded="open.toString()"
+    aria-controls="chat-panel"
+    aria-label="Messenger oynasini ochish"
+  >
+    <i class="bi bi-chat-dots"></i>
+    {% with unread=chat_unread_count|default:0 %}
+      {% if unread %}
+        <span class="chat-bubble-badge" x-show="!open" x-cloak>{{ unread }}</span>
+      {% endif %}
+    {% endwith %}
+  </button>
+
+  <section
+    id="chat-panel"
+    class="chat-panel"
+    role="dialog"
+    aria-label="Messenger"
+    x-show="open"
+    x-cloak
+    x-transition
+    @click.outside="open = false"
+  >
+    <header class="chat-panel__header">
+      <div>
+        <div class="fw-semibold">Messenger</div>
+        <small class="text-muted">Guruh, DM va AI bo'limlari</small>
+      </div>
+      <button class="btn btn-sm btn-light" type="button" @click="open = false" aria-label="Yopish">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </header>
+    <div class="chat-panel__body">
+      <aside class="chat-panel__contacts">
+        {% include "communication/components/chat_contacts.html" %}
+      </aside>
+      <div class="chat-panel__messages">
+        <div
+          class="chat-message-stream"
+          hx-get="{% url 'communication:message_stream' %}"
+          hx-trigger="load, every 8s"
+          hx-swap="innerHTML"
+          aria-live="polite"
+        >
+          {% include "communication/components/message_list.html" %}
+        </div>
+        <div class="chat-panel__input">
+          {% include "communication/components/message_input.html" %}
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

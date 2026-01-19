@@ -1,6 +1,14 @@
 <div class="d-flex flex-column h-100">
   <div class="flex-grow-1 p-4">
-    {% include "communication/components/message_bubble.html" %}
+    <div
+      class="chat-message-stream"
+      hx-get="{% url 'communication:message_stream' %}"
+      hx-trigger="load, every 8s"
+      hx-swap="innerHTML"
+      aria-live="polite"
+    >
+      {% include "communication/components/message_list.html" %}
+    </div>
   </div>
   <div class="border-top p-3">
     {% include "communication/components/message_input.html" %}
