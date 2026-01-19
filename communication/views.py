@@ -48,3 +48,21 @@ def check_new_messages(request, room_id):
         'messages': messages,
         'selected_room': room
     })
+
+@login_required
+def message_stream(request):
+    room_id = request.GET.get('room')
+    messages = []
+    selected_room = None
+    
+    if room_id:
+        try:
+            selected_room = request.user.chat_rooms.get(id=room_id)
+            messages = selected_room.messages.select_related('sender').order_by('created_at')
+        except ChatRoom.DoesNotExist:
+            pass
+            
+    return render(request, 'communication/components/message_list.html', {
+        'messages': messages,
+        'selected_room': selected_room
+    })
