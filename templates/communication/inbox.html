@@ -15,7 +15,7 @@
                 <a href="?room={{ room.id }}" class="list-group-item list-group-item-action {% if selected_room.id == room.id %}active{% endif %}">
                     <div class="d-flex w-100 justify-content-between">
                         <h6 class="mb-1">
-                            {% if room.room_type == 'GROUP' %}
+                            {% if room.type == 'GROUP' %}
                                 📢 {{ room.batch.title|default:"Guruh Chat" }}
                             {% else %}
                                 👤 Direct
@@ -37,7 +37,7 @@
                 <div class="p-3 border-bottom bg-white d-flex align-items-center">
                     <a href="{% url 'communication:inbox' %}" class="btn btn-sm btn-light me-2 d-md-none"><i class="bi bi-arrow-left"></i></a>
                     <h6 class="mb-0">
-                        {% if selected_room.room_type == 'GROUP' %}
+                        {% if selected_room.type == 'GROUP' %}
                             {{ selected_room.batch.title }} (Guruh)
                         {% else %}
                             Suhbat #{{ selected_room.id }}
@@ -59,6 +59,7 @@
                 <div class="p-3 border-top bg-white">
                     <form method="post" action="{% url 'communication:send_message' selected_room.id %}">
                         {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
                         <div class="input-group">
                             <input type="text" name="content" class="form-control" placeholder="Xabar yozing..." required autocomplete="off">
                             <button class="btn btn-primary" type="submit"><i class="bi bi-send"></i></button>

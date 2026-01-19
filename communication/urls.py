@@ -5,6 +5,7 @@ app_name = 'communication'
 
 urlpatterns = [
     path('', views.inbox, name='inbox'),
+    path('messenger/', views.messenger, name='messenger'),
     path('stream/', views.message_stream, name='message_stream'),
     path('send/<int:room_id>/', views.send_message, name='send_message'),
     path('poll/<int:room_id>/', views.check_new_messages, name='poll_messages'),

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
@@ -65,4 +66,26 @@ def message_stream(request):
     return render(request, 'communication/components/message_list.html', {
         'messages': messages,
         'selected_room': selected_room
+    })
+
+@login_required
+def messenger(request):
+    rooms = request.user.chat_rooms.select_related('batch').prefetch_related('participants')
+    
+    selected_room = None
+    messages = []
+    
+    room_id = request.GET.get('room')
+    if room_id:
+        try:
+            selected_room = rooms.get(id=room_id)
+            messages = selected_room.messages.select_related('sender').order_by('created_at')
+            selected_room.messages.filter(is_read=False).exclude(sender=request.user).update(is_read=True)
+        except ChatRoom.DoesNotExist:
+            pass
+
+    return render(request, 'communication/messenger_layout.html', {
+        'rooms': rooms,
+        'selected_room': selected_room,
+        'messages': messages,
     })

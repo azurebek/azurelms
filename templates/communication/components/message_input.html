@@ -1,6 +1,17 @@
-<form class="d-flex gap-2" autocomplete="off">
-  <input type="text" class="form-control" placeholder="Xabar yozing...">
-  <button class="btn btn-primary" type="submit">
-    <i class="bi bi-send"></i>
-  </button>
-</form>
+﻿{% if room %}
+  <form class="d-flex gap-2" method="post" action="{% url 'communication:send_message' room.id %}" autocomplete="off">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <input type="text" name="content" class="form-control" placeholder="Xabar yozing..." required>
+    <button class="btn btn-primary" type="submit">
+      <i class="bi bi-send"></i>
+    </button>
+  </form>
+{% else %}
+  <form class="d-flex gap-2" autocomplete="off">
+    <input type="text" class="form-control" placeholder="Suhbatni tanlang..." disabled>
+    <button class="btn btn-primary" type="submit" disabled>
+      <i class="bi bi-send"></i>
+    </button>
+  </form>
+{% endif %}

@@ -36,20 +36,24 @@
     </header>
     <div class="chat-panel__body">
       <aside class="chat-panel__contacts">
-        {% include "communication/components/chat_contacts.html" %}
+        {% include "communication/components/contact_list.html" %}
       </aside>
       <div class="chat-panel__messages">
-        <div
-          class="chat-message-stream"
-          hx-get="{% url 'communication:message_stream' %}"
-          hx-trigger="load, every 8s"
-          hx-swap="innerHTML"
-          aria-live="polite"
-        >
-          {% include "communication/components/message_list.html" %}
-        </div>
+        {% if selected_room %}
+          <div
+            class="chat-message-stream"
+            hx-get="{% url 'communication:poll_messages' selected_room.id %}"
+            hx-trigger="load, every 8s"
+            hx-swap="innerHTML"
+            aria-live="polite"
+          >
+            {% include "communication/components/message_list.html" %}
+          </div>
+        {% else %}
+          <div class="text-center text-muted small py-4">Suhbatni tanlang</div>
+        {% endif %}
         <div class="chat-panel__input">
-          {% include "communication/components/message_input.html" %}
+          {% include "communication/components/message_input.html" with room=selected_room %}
         </div>
       </div>
     </div>

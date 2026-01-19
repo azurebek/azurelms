@@ -1,57 +1,29 @@
-<div class="p-3">
+﻿<div class="p-3">
   <div class="d-flex align-items-center justify-content-between mb-3">
-    <h2 class="h6 text-uppercase text-muted mb-0">Guruhlar</h2>
-    <span class="badge rounded-pill text-bg-primary">2</span>
-  </div>
-  <div class="list-group list-group-flush mb-4">
-    <button class="list-group-item list-group-item-action active">
-      <div class="d-flex w-100 justify-content-between">
-        <h6 class="mb-1">Frontend guruh #1</h6>
-        <small>Hozir</small>
-      </div>
-      <p class="mb-1 small">Mentor dars rejasini yubordi.</p>
-    </button>
-    <button class="list-group-item list-group-item-action">
-      <div class="d-flex w-100 justify-content-between">
-        <h6 class="mb-1">Backend guruh #2</h6>
-        <small>1 soat oldin</small>
-      </div>
-      <p class="mb-1 small text-muted">Jadval yangilandi.</p>
-    </button>
-  </div>
-
-  <div class="d-flex align-items-center justify-content-between mb-3">
-    <h2 class="h6 text-uppercase text-muted mb-0">DM</h2>
-    <span class="badge rounded-pill text-bg-secondary">1</span>
-  </div>
-  <div class="list-group list-group-flush mb-4">
-    <button class="list-group-item list-group-item-action">
-      <div class="d-flex w-100 justify-content-between">
-        <h6 class="mb-1">Aziza (Teacher)</h6>
-        <small>3 daqiqa oldin</small>
-      </div>
-      <p class="mb-1 small text-muted">Vazifani ko'rib chiqyapman.</p>
-    </button>
-    <button class="list-group-item list-group-item-action">
-      <div class="d-flex w-100 justify-content-between">
-        <h6 class="mb-1">Rahim (Guruhdoshingiz)</h6>
-        <small>Kecha</small>
-      </div>
-      <p class="mb-1 small text-muted">Bugun dars bormi?</p>
-    </button>
-  </div>
-
-  <div class="d-flex align-items-center justify-content-between mb-3">
-    <h2 class="h6 text-uppercase text-muted mb-0">AI</h2>
-    <span class="badge rounded-pill text-bg-info">Bot</span>
+    <h2 class="h6 text-uppercase text-muted mb-0">Suhbatlar</h2>
+    <span class="badge rounded-pill text-bg-primary">{{ rooms|length }}</span>
   </div>
   <div class="list-group list-group-flush">
-    <button class="list-group-item list-group-item-action">
-      <div class="d-flex w-100 justify-content-between">
-        <h6 class="mb-1">@azure Assistant</h6>
-        <small>Onlayn</small>
-      </div>
-      <p class="mb-1 small text-muted">Savollaringizni yuboring.</p>
-    </button>
+    {% for room in rooms %}
+      <a
+        href="?room={{ room.id }}"
+        class="list-group-item list-group-item-action {% if selected_room and selected_room.id == room.id %}active{% endif %}"
+      >
+        <div class="d-flex w-100 justify-content-between">
+          <h6 class="mb-1">
+            {% if room.type == 'GROUP' %}
+               {{ room.batch.title|default:"Guruh Chat" }}
+            {% elif room.type == 'BOT' %}
+               @azure Assistant
+            {% else %}
+               Direct
+            {% endif %}
+          </h6>
+          <small>{{ room.last_activity|timesince }}</small>
+        </div>
+      </a>
+    {% empty %}
+      <div class="py-4 text-center text-muted small">Hozircha suhbatlar yo'q</div>
+    {% endfor %}
   </div>
 </div>
