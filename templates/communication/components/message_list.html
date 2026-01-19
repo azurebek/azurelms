@@ -1,14 +1,7 @@
-<<<<<<< ours
 {% if messages %}
   <div class="d-flex flex-column gap-2">
     {% for message in messages %}
-      <div class="chat-message {% if message.sender_id == user.id %}chat-message--outgoing{% else %}chat-message--incoming{% endif %}">
-        <div class="chat-message__meta">
-          <span class="fw-semibold">{{ message.sender.profile.display_name|default:message.sender.email }}</span>
-          <small class="text-muted">{{ message.created_at|date:"H:i" }}</small>
-        </div>
-        <div class="chat-message__bubble">{{ message.content }}</div>
-      </div>
+      {% include "communication/components/message_item.html" with message=message %}
     {% endfor %}
   </div>
 {% else %}
@@ -17,12 +10,3 @@
     <p class="mt-2 mb-0">Hozircha xabarlar yo'q. Guruhingizga salom yuboring!</p>
   </div>
 {% endif %}
-=======
-<div class="d-flex flex-column gap-2">
-  {% for message in messages %}
-    {% include "communication/components/message_item.html" with message=message %}
-  {% empty %}
-    <div class="text-center text-muted small">Hozircha xabarlar yo'q.</div>
-  {% endfor %}
-</div>
->>>>>>> theirs

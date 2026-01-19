@@ -3,101 +3,94 @@
 {% block title %}Xabarlar{% endblock %}
 
 {% block content %}
-<<<<<<< ours
-<section class="container py-4">
-  <div class="row g-0 border rounded overflow-hidden" style="min-height: 70vh;">
-    <aside class="col-lg-4 border-end bg-body-tertiary">
-      {% include "communication/components/contact_list.html" %}
-    </aside>
-    <main class="col-lg-8">
-      {% include "communication/components/chat_window.html" %}
-    </main>
-=======
-<section class="container-fluid py-4">
-  <div class="row g-0 border rounded overflow-hidden" style="min-height: 75vh;">
-    <aside class="col-12 col-md-4 col-lg-3 border-end bg-body-tertiary {% if selected_room %}d-none d-md-block{% endif %}">
-      <div class="p-3 border-bottom">
-        <h5 class="mb-0">Suhbatlar</h5>
-        <small class="text-muted">Batchingizdagi suhbatlar</small>
-      </div>
-      <div class="list-group list-group-flush">
-        {% for card in room_cards %}
-          <a
-            href="{% url 'communication:chat_detail' card.room.pk %}"
-            class="list-group-item list-group-item-action {% if selected_room and card.room.pk == selected_room.pk %}active{% endif %}"
-          >
-            <div class="d-flex align-items-center gap-2">
-              {% if card.avatar_url %}
-                <img src="{{ card.avatar_url }}" alt="{{ card.display_name }}" class="rounded-circle" width="40" height="40">
-              {% else %}
-                <div class="rounded-circle bg-secondary-subtle text-secondary-emphasis d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                  <i class="bi bi-chat-dots"></i>
+<div class="container-fluid py-0 px-0 h-100" style="height: calc(100vh - 120px); min-height: 500px;">
+    <div class="row g-0 h-100">
+        <!-- Sidebar (Chatlar ro'yxati) -->
+        <div class="col-md-4 col-lg-3 border-end bg-white h-100 overflow-auto {% if selected_room %}d-none d-md-block{% endif %}">
+            <div class="p-3 border-bottom bg-light">
+                <h5 class="mb-0">Suhbatlar</h5>
+            </div>
+            <div class="list-group list-group-flush">
+                {% for room in rooms %}
+                <a href="?room={{ room.id }}" class="list-group-item list-group-item-action {% if selected_room.id == room.id %}active{% endif %}">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">
+                            {% if room.room_type == 'GROUP' %}
+                                📢 {{ room.batch.title|default:"Guruh Chat" }}
+                            {% else %}
+                                👤 Direct
+                            {% endif %}
+                        </h6>
+                        <small>{{ room.last_activity|timesince }}</small>
+                    </div>
+                </a>
+                {% empty %}
+                <div class="p-3 text-center text-muted">Hozircha suhbatlar yo'q</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Chat oynasi -->
+        <div class="col-md-8 col-lg-9 h-100 d-flex flex-column {% if not selected_room %}d-none d-md-flex{% endif %}">
+            {% if selected_room %}
+                <!-- Chat Header -->
+                <div class="p-3 border-bottom bg-white d-flex align-items-center">
+                    <a href="{% url 'communication:inbox' %}" class="btn btn-sm btn-light me-2 d-md-none"><i class="bi bi-arrow-left"></i></a>
+                    <h6 class="mb-0">
+                        {% if selected_room.room_type == 'GROUP' %}
+                            {{ selected_room.batch.title }} (Guruh)
+                        {% else %}
+                            Suhbat #{{ selected_room.id }}
+                        {% endif %}
+                    </h6>
                 </div>
-              {% endif %}
-              <div class="flex-grow-1">
-                <div class="d-flex justify-content-between align-items-center">
-                  <strong class="small">{{ card.display_name }}</strong>
-                  <small class="text-muted">{{ card.room.last_activity|timesince }} ago</small>
+
+                <!-- Messages Area (Scrollable) -->
+                <div class="flex-grow-1 p-3 overflow-auto bg-light" 
+                     id="message-container"
+                     hx-get="{% url 'communication:poll_messages' selected_room.id %}"
+                     hx-trigger="every 5s">
+                    
+                    {% include "communication/components/message_list.html" %}
+                    
                 </div>
-                <div class="small text-muted">{{ card.subtitle }}</div>
-              </div>
-            </div>
-          </a>
-        {% empty %}
-          <div class="p-3 text-muted">Hozircha suhbatlar yo'q.</div>
-        {% endfor %}
-      </div>
-    </aside>
 
-    <section class="col-12 col-md-8 col-lg-9 d-flex flex-column {% if not selected_room %}d-none d-md-flex{% endif %}">
-      {% if selected_room %}
-        <div class="d-flex align-items-center justify-content-between border-bottom p-3">
-          <div class="d-flex align-items-center gap-2">
-            <a href="{% url 'communication:inbox' %}" class="btn btn-sm btn-outline-secondary d-md-none">Orqaga</a>
-            <div>
-              <h6 class="mb-0">{{ selected_room_card.display_name }}</h6>
-              <small class="text-muted">{{ selected_room_card.subtitle }}</small>
-            </div>
-          </div>
+                <!-- Input Area -->
+                <div class="p-3 border-top bg-white">
+                    <form method="post" action="{% url 'communication:send_message' selected_room.id %}">
+                        {% csrf_token %}
+                        <div class="input-group">
+                            <input type="text" name="content" class="form-control" placeholder="Xabar yozing..." required autocomplete="off">
+                            <button class="btn btn-primary" type="submit"><i class="bi bi-send"></i></button>
+                        </div>
+                    </form>
+                </div>
+            {% else %}
+                <div class="m-auto text-center text-muted">
+                    <i class="bi bi-chat-square-text display-1"></i>
+                    <p class="mt-3">Suhbatni tanlang</p>
+                </div>
+            {% endif %}
         </div>
+    </div>
+</div>
+<script>
+    // Avtomatik pastga tushirish
+    function scrollToBottom() {
+        const container = document.getElementById('message-container');
+        if (container) {
+            container.scrollTop = container.scrollHeight;
+        }
+    }
+    
+    // Har safar yangi xabar kelganda (HTMX orqali) pastga tushirish
+    document.body.addEventListener('htmx:afterOnLoad', function(evt) {
+        if (evt.detail.target.id === 'message-container') {
+            scrollToBottom();
+        }
+    });
 
-        <div class="flex-grow-1 overflow-auto p-3 bg-body-secondary">
-          <div
-            id="message-list"
-            hx-get="{% url 'communication:chat_detail' selected_room.pk %}"
-            hx-trigger="every 5s"
-            hx-swap="innerHTML"
-          >
-            {% include "communication/components/message_list.html" with messages=messages room=selected_room %}
-          </div>
-        </div>
-
-        <div class="border-top p-3">
-          <form
-            method="post"
-            action="{% url 'communication:send_message' selected_room.pk %}"
-            hx-post="{% url 'communication:send_message' selected_room.pk %}"
-            hx-target="#message-list"
-            hx-swap="beforeend"
-            hx-on::after-request="this.reset()"
-          >
-            {% csrf_token %}
-            <div class="input-group">
-              <input type="text" name="content" class="form-control" placeholder="Xabar yozing...">
-              <button class="btn btn-primary" type="submit">Yuborish</button>
-            </div>
-          </form>
-        </div>
-      {% else %}
-        <div class="flex-grow-1 d-flex align-items-center justify-content-center text-muted">
-          <div class="text-center">
-            <i class="bi bi-chat-dots display-4"></i>
-            <p class="mt-2 mb-0">Suhbatni tanlang.</p>
-          </div>
-        </div>
-      {% endif %}
-    </section>
->>>>>>> theirs
-  </div>
-</section>
+    // Sahifa yuklanganda ham
+    scrollToBottom();
+</script>
 {% endblock %}
