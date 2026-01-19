@@ -8,6 +8,10 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("landing.urls", namespace="landing")),
     path("", include("users.urls", namespace="users")),
+    path("courses/", include("courses.urls", namespace="courses")),
+    path("messenger/", include("communication.urls", namespace="communication")),
+    path("", include("education.urls", namespace="education")),
+    path("", include("billing.urls", namespace="billing")),
 ]
 
 if settings.DEBUG:

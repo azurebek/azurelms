@@ -1,0 +1,7 @@
+<form class="card p-4 shadow-sm" method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <label class="form-label">Avatar yuklash</label>
+  <input type="file" name="avatar" class="form-control" accept="image/*">
+  <div class="form-text">Rasmni tanlang va crop qiling.</div>
+  <button class="btn btn-outline-primary mt-3" type="submit">Yangilash</button>
+</form>

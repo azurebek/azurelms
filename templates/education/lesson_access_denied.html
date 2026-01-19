@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Darsga kirish cheklangan | AzureLMS{% endblock %}
+
+{% block content %}
+<section class="container py-5">
+  <div class="alert alert-warning">
+    <h4 class="alert-heading">Kirish cheklangan</h4>
+    <p>Ushbu darsga kirish uchun faol guruhga a'zo bo'lishingiz kerak.</p>
+  </div>
+  <a class="btn btn-outline-secondary" href="{% url 'users:dashboard' %}">Dashboardga qaytish</a>
+</section>
+{% endblock %}

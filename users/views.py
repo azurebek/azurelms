@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -8,6 +10,7 @@ from django.utils import timezone
 from django.urls import reverse
 
 from .models import CustomUser, Profile
+from billing.models import BillingAccount
 
 
 def signup_view(request):
@@ -118,7 +121,19 @@ def dashboard_view(request):
     has_enrollment = request.user.enrollments.exists()
     if not has_enrollment:
         return render(request, "users/dashboard/sales_dashboard.html")
+
+    billing_account, _ = BillingAccount.objects.get_or_create(user=request.user)
+    if billing_account.status == BillingAccount.FROZEN:
+        return render(
+            request,
+            "users/dashboard/frozen_dashboard.html",
+            {"account": billing_account},
+        )
     now = timezone.localtime()
+    grace_days_left = None
+    if billing_account.status == BillingAccount.GRACE and billing_account.next_due_date:
+        grace_end = billing_account.next_due_date + timedelta(days=3)
+        grace_days_left = max(0, (grace_end - now.date()).days)
     if now.hour < 12:
         greeting = "Xayrli tong"
     elif now.hour < 18:
@@ -130,6 +145,8 @@ def dashboard_view(request):
         "users/dashboard/student_dashboard.html",
         {
             "greeting": greeting,
+            "billing_account": billing_account,
+            "grace_days_left": grace_days_left,
         },
     )
 

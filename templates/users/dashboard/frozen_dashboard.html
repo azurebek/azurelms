@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Muzlatilgan hisob{% endblock %}
+{% block content %}
+<div class="container dashboard-wrap">
+  <div class="dashboard-card">
+    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-3">
+      <div>
+        <div class="section-eyebrow">Hisob muzlatilgan</div>
+        <h1 class="h4 mb-1">Darslar vaqtincha yopildi</h1>
+        <p class="text-muted mb-0">
+          To‘lov muddati o‘tib ketdi. Darslarga kirish uchun to‘lovni yangilang.
+        </p>
+      </div>
+      <a class="btn btn-primary" href="{% url 'billing:payment_center' %}">
+        To‘lovni davom ettirish
+      </a>
+    </div>
+
+    <div class="paywall-card">
+      <div class="paywall-card__icon">
+        <i class="bi bi-lock"></i>
+      </div>
+      <div class="paywall-card__body">
+        <h2 class="h5 mb-2">Paywall faollashdi</h2>
+        <p class="text-muted mb-3">
+          To‘lov qabul qilingach, darslar avtomatik tarzda ochiladi.
+        </p>
+        <div class="d-flex flex-column flex-sm-row gap-2">
+          <a class="btn btn-outline-secondary" href="{% url 'users:logout' %}">Chiqish</a>
+          <a class="btn btn-primary" href="{% url 'billing:payment_center' %}">Chek yuborish</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

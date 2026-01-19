@@ -1,0 +1,12 @@
+<form class="card p-4 shadow-sm" method="post">
+  {% csrf_token %}
+  <div class="mb-3">
+    <label class="form-label">Ism</label>
+    <input type="text" name="full_name" class="form-control" value="{{ request.user.get_full_name }}">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Bio</label>
+    <textarea name="bio" class="form-control" rows="3" placeholder="Qisqacha...">{{ profile.bio }}</textarea>
+  </div>
+  <button type="submit" class="btn btn-primary">Saqlash</button>
+</form>

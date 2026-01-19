@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}To‘lov markazi{% endblock %}
+{% block content %}
+<div class="container dashboard-wrap">
+  <div class="dashboard-card">
+    {% if messages %}
+      <div class="mb-3">
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }} mb-2" role="alert">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3 mb-4">
+      <div>
+        <div class="section-eyebrow">To‘lov markazi</div>
+        <h1 class="h4 mb-1">Chek yuklash</h1>
+        <p class="text-muted mb-0">To‘lovni tasdiqlash uchun chekingizni yuboring.</p>
+      </div>
+      <a class="btn btn-outline-secondary" href="{% url 'users:dashboard' %}">
+        <i class="bi bi-house"></i>
+        Dashboard
+      </a>
+    </div>
+
+    <div class="payment-card row g-4 align-items-start">
+      <div class="col-12 col-lg-6">
+        <div class="payment-info">
+          <div class="payment-info__label">Karta raqami</div>
+          <div class="payment-info__value">8600 1234 5678 9012</div>
+          <div class="text-muted small mb-3">O‘quv markazi hisob raqami.</div>
+          <div class="payment-info__label">To‘lov rejimi</div>
+          <div class="payment-info__value">{{ account.get_payment_mode_display }}</div>
+          <div class="text-muted small">Status: {{ account.get_status_display }}</div>
+        </div>
+      </div>
+      <div class="col-12 col-lg-6">
+        <form class="payment-form" method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">To‘lov summasi</label>
+            <input class="form-control" type="number" step="0.01" min="0" name="amount" placeholder="Masalan, 500000">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Oy raqami (ixtiyoriy)</label>
+            <input class="form-control" type="number" min="1" name="month_number" placeholder="Masalan, 2">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Chek skrinshoti</label>
+            <label class="upload-card">
+              <input type="file" name="receipt_image" accept="image/*" class="d-none">
+              <span class="upload-card__icon"><i class="bi bi-camera"></i></span>
+              <span class="upload-card__text">Rasmni yuklash uchun bosing</span>
+            </label>
+          </div>
+          <button class="btn btn-primary w-100" type="submit">Chekni yuborish</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <h2 class="h6 mb-3">To‘lovlar tarixi</h2>
+      <div class="list-group">
+        {% for item in transactions %}
+          <div class="list-group-item d-flex flex-column flex-md-row justify-content-between gap-2">
+            <div>
+              <div class="fw-semibold">Oy {{ item.month_number }} — {{ item.amount }} so‘m</div>
+              <div class="text-muted small">{{ item.created_at|date:"d M Y, H:i" }}</div>
+            </div>
+            <span class="badge {% if item.status == 'APPROVED' %}text-bg-success{% elif item.status == 'REJECTED' %}text-bg-danger{% else %}text-bg-warning{% endif %}">
+              {% if item.status == 'APPROVED' %}✅ Tasdiqlandi{% elif item.status == 'REJECTED' %}❌ Rad etildi{% else %}⏳ Tekshiruvda{% endif %}
+            </span>
+          </div>
+        {% empty %}
+          <div class="list-group-item text-muted">Hali to‘lovlar yo‘q.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Offline{% endblock %}
+{% block content %}
+<section class="container py-5 text-center">
+  <h1 class="mb-3">Internet ulanishi yo'q</h1>
+  <p class="text-muted">Offline rejimdasiz. Avvalgi sahifalarni ko‘rishingiz yoki ulanish qaytgach yangilashingiz mumkin.</p>
+  <div class="d-flex justify-content-center gap-2">
+    <a class="btn btn-outline-secondary" href="/">Bosh sahifa</a>
+    <button class="btn btn-primary" onclick="location.reload()">Qayta yuklash</button>
+  </div>
+</section>
+{% endblock %}

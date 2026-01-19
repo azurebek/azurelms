@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Messenger{% endblock %}
+{% block content %}
+<section class="container-fluid py-4">
+  <div class="row g-0 border rounded overflow-hidden" style="min-height: 70vh;">
+    <aside class="col-lg-3 border-end bg-body-tertiary">
+      {% include "communication/components/contact_list.html" %}
+    </aside>
+    <main class="col-lg-9">
+      {% include "communication/components/chat_window.html" %}
+    </main>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Reyting{% endblock %}
+{% block content %}
+<section class="container py-5">
+  <h1 class="mb-3">Guruh reytingi</h1>
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Ism</th>
+          <th>Ball</th>
+          <th>Holat</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>Aziza</td><td>98</td><td><span class="badge bg-success">Top</span></td></tr>
+        <tr><td>2</td><td>Javohir</td><td>92</td><td><span class="badge bg-primary">Active</span></td></tr>
+        <tr><td>3</td><td>Malika</td><td>88</td><td><span class="badge bg-warning">Rivojlanmoqda</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <a href="/classroom/" class="link-secondary">Classroomga qaytish</a>
+</section>
+{% endblock %}

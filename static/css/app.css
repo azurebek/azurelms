@@ -156,6 +156,10 @@ body {
   font-weight: 700;
 }
 
+.payment-alert {
+  border-radius: 1rem;
+}
+
 .dashboard-header {
   display: flex;
   align-items: center;
@@ -192,6 +196,92 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
+}
+
+.lead-banner {
+  border-radius: 1.25rem;
+  padding: 1.5rem;
+  border: 1px solid var(--brand-border);
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.08), rgba(14, 165, 233, 0.08));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.lead-banner__title {
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.payment-card {
+  padding: 1.5rem;
+  border-radius: 1.25rem;
+  border: 1px solid var(--brand-border);
+  background: #fff;
+}
+
+.payment-info__label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--brand-muted);
+  margin-bottom: 0.25rem;
+}
+
+.payment-info__value {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.upload-card {
+  border: 2px dashed var(--brand-border);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  color: var(--brand-muted);
+  background: #f8fafc;
+}
+
+.upload-card__icon {
+  font-size: 2rem;
+  color: var(--brand-primary);
+}
+
+.upload-card__text {
+  font-weight: 600;
+}
+
+.paywall-card {
+  display: flex;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  border-radius: 1.25rem;
+  border: 1px solid var(--brand-border);
+  background: #fff;
+  align-items: center;
+}
+
+.paywall-card__icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 1rem;
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+}
+
+.paywall-card__body {
+  flex: 1;
 }
 
 .daily-goals {
@@ -425,6 +515,18 @@ body {
   border-color: #1e293b;
 }
 
+[data-bs-theme="dark"] .payment-card,
+[data-bs-theme="dark"] .paywall-card,
+[data-bs-theme="dark"] .lead-banner {
+  background: #0f172a;
+  border-color: #1e293b;
+}
+
+[data-bs-theme="dark"] .upload-card {
+  background: #111827;
+  border-color: #1e293b;
+}
+
 [data-bs-theme="dark"] .range-card {
   background: #111827;
 }
@@ -472,6 +574,12 @@ body {
   }
 
   .resume-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .lead-banner,
+  .paywall-card {
     flex-direction: column;
     align-items: flex-start;
   }

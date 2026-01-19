@@ -36,6 +36,8 @@ class Lesson(TimeStampedModel):
 
     homework_description = models.TextField(blank=True)  # keyin CKEditor5Field qilamiz
     notes_html = models.TextField(blank=True)
+    quiz_required = models.BooleanField(default=False)
+    quiz_pass_score = models.PositiveIntegerField(default=0)
 
     class Meta:
         ordering = ["order"]

@@ -3,6 +3,14 @@
 {% block content %}
 <div class="container dashboard-wrap">
   <div class="dashboard-card">
+    {% if grace_days_left is not None %}
+      <div class="alert alert-warning alert-dismissible fade show payment-alert" role="alert">
+        <strong>To‘lov muddati yaqin!</strong>
+        {{ grace_days_left }} kun qoldi. Iltimos, chekni yuklang.
+        <a class="alert-link ms-2" href="{% url 'billing:payment_center' %}">To‘lov markazi</a>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endif %}
     <div class="dashboard-header">
       <div>
         <div class="section-eyebrow">Boshqaruv markazi</div>
@@ -29,6 +37,13 @@
         <i class="bi bi-play-fill"></i>
         Play
       </button>
+    </div>
+
+    <div class="d-flex flex-column flex-md-row gap-3 mt-3">
+      <a class="btn btn-outline-secondary" href="{% url 'billing:payment_center' %}">
+        <i class="bi bi-receipt"></i>
+        To‘lov markazi
+      </a>
     </div>
 
     <div class="row g-3 mt-3">
@@ -72,17 +87,17 @@
       <i class="bi bi-house"></i>
       <span>Home</span>
     </a>
-    <a class="bottom-nav__item" href="#">
+    <a class="bottom-nav__item" href="{% url 'billing:payment_center' %}">
       <i class="bi bi-book"></i>
-      <span>Courses</span>
+      <span>To‘lov</span>
     </a>
-    <a class="bottom-nav__item" href="#">
+    <a class="bottom-nav__item" href="{% url 'users:dashboard' %}">
       <i class="bi bi-bar-chart"></i>
-      <span>Leaderboard</span>
+      <span>Progress</span>
     </a>
-    <a class="bottom-nav__item" href="#">
+    <a class="bottom-nav__item" href="{% url 'users:logout' %}">
       <i class="bi bi-person"></i>
-      <span>Profile</span>
+      <span>Chiqish</span>
     </a>
   </nav>
 </div>

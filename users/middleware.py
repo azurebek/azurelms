@@ -19,7 +19,7 @@ class CheckOnboardingMiddleware:
                     reverse("users:logout"),
                 }
                 # onboardingning ichidagi htmx postlar ham shu URLga tushadi
-                if request.path not in allowed:
+                if request.path not in allowed and not request.path.startswith("/legal/"):
                     return redirect("users:onboarding")
 
         return self.get_response(request)

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}To‘lov{% endblock %}
+{% block content %}
+<section class="container py-5" style="max-width: 720px;">
+  <h1 class="mb-3">To‘lov sahifasi</h1>
+  <p class="text-muted">Karta rekvizitlarini kiriting va chekni yuklang.</p>
+  <div class="card p-4 shadow-sm">
+    <div class="mb-3">
+      <label class="form-label">Karta raqam</label>
+      <input type="text" class="form-control" placeholder="8600 0000 0000 0000">
+    </div>
+    {% include "billing/partials/receipt_upload_form.html" %}
+    <button class="btn btn-primary mt-3" type="button">To‘lovni yuborish</button>
+  </div>
+  <div class="mt-4">
+    <h2 class="h6">To‘lovlar tarixi</h2>
+    <div class="table-responsive">
+      <table class="table">
+        <tbody>
+          {% include "billing/partials/payment_history_row.html" %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}

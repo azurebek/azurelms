@@ -34,6 +34,7 @@ class LessonProgress(TimeStampedModel):
 
     assignment_status = models.CharField(max_length=20, choices=ASSIGNMENT_STATUS_CHOICES, default=NOT_SUBMITTED)
     assignment_file = models.FileField(upload_to="homeworks/", blank=True, null=True)
+    assignment_text = models.TextField(blank=True)
     assignment_admin_feedback = models.TextField(blank=True)
 
     class Meta:
@@ -41,7 +42,24 @@ class LessonProgress(TimeStampedModel):
 
     @property
     def is_completed(self):
-        return self.is_video_watched and self.assignment_status == self.APPROVED
+        quiz_passed = True
+        if self.lesson.quiz_required:
+            quiz_passed = self.quiz_score >= self.lesson.quiz_pass_score
+        return self.is_video_watched and quiz_passed and self.assignment_status == self.APPROVED
 
     def __str__(self):
         return f"{self.enrollment} / {self.lesson}"
+
+
+class AttendanceRecord(TimeStampedModel):
+    enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE, related_name="attendance_records")
+    date = models.DateField()
+    is_present = models.BooleanField(default=True)
+    xp_awarded = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        unique_together = [("enrollment", "date")]
+
+    def __str__(self):
+        status = "Present" if self.is_present else "Absent"
+        return f"{self.enrollment} / {self.date} ({status})"

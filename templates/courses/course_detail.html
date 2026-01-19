@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Kurs tafsilotlari{% endblock %}
+{% block content %}
+<section class="container py-5">
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <h1 class="mb-3">{{ course.title|default:"Kurs nomi" }}</h1>
+      <p class="text-muted">{{ course.level|default:"Ma'lumot mavjud emas" }}</p>
+      <div class="card p-4 shadow-sm mb-3">
+        <h2 class="h6">Syllabus</h2>
+        <ul class="mb-0">
+          <li>1-modul: Kirish</li>
+          <li>2-modul: Amaliy darslar</li>
+          <li>3-modul: Yakuniy loyiha</li>
+        </ul>
+      </div>
+      <a class="btn btn-primary" href="{% url 'billing:payment_center' %}">To‘lov qilish</a>
+    </div>
+    <div class="col-lg-4">
+      <div class="card p-4 shadow-sm">
+        <h3 class="h6">Ochiq guruhlar</h3>
+        {% include "courses/partials/batch_card.html" %}
+      </div>
+    </div>
+  </div>
+  <div class="mt-4">
+    <a href="/courses/" class="link-secondary">Katalogga qaytish</a>
+  </div>
+</section>
+{% endblock %}
