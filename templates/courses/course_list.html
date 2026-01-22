@@ -7,26 +7,26 @@
       <h1 class="mb-1">Kurslar katalogi</h1>
       <p class="text-muted">Filtrlar va ochiq guruhlar ro‘yxati.</p>
     </div>
-    <div class="input-group" style="max-width: 320px;">
-      <input type="text" class="form-control" placeholder="Kurs qidirish">
-      <button class="btn btn-outline-secondary" type="button">Filter</button>
-    </div>
+    <form class="input-group" style="max-width: 320px;" method="get" action="{% url 'courses:course_list' %}">
+      <input type="text" class="form-control" name="q" placeholder="Kurs qidirish" value="{{ query|default:'' }}">
+      <button class="btn btn-outline-secondary" type="submit">Qidirish</button>
+    </form>
   </div>
   <div class="row g-4">
     {% for course in courses %}
-      <div class="col-md-4">
-        <div class="card h-100 shadow-sm">
-          <div class="card-body">
-            <h3 class="h5">{{ course.title }}</h3>
-            <p class="text-muted">{{ course.level|default:"Boshlovchilar uchun" }}</p>
-            <a class="btn btn-sm btn-primary" href="{% url 'courses:course_detail' course.pk %}">Batafsil</a>
-          </div>
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h3 class="h5">{{ course.title }}</h3>
+          <p class="text-muted">{{ course.level|default:"Boshlovchilar uchun" }}</p>
+          <a class="btn btn-sm btn-primary" href="{% url 'courses:course_detail' course.pk %}">Batafsil</a>
         </div>
       </div>
+    </div>
     {% empty %}
-      <div class="col-12">
-        <div class="alert alert-info">Kurslar tez orada qo‘shiladi.</div>
-      </div>
+    <div class="col-12">
+      <div class="alert alert-info">Kurslar tez orada qo‘shiladi.</div>
+    </div>
     {% endfor %}
   </div>
   <div class="mt-4">

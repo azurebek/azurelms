@@ -27,6 +27,15 @@ def approve_transactions(modeladmin, request, queryset):
             account.next_due_date = (account.next_due_date or timezone.localdate()) + timedelta(days=30)
         account.status = BillingAccount.ACTIVE
         account.save(update_fields=["paid_so_far", "next_due_date", "status"])
+        if transaction.batch:
+             # Create enrollment
+             from education.models import Enrollment
+             Enrollment.objects.get_or_create(
+                 user=account.user, 
+                 batch=transaction.batch,
+                 defaults={"is_active": True}
+             )
+
         updated_count += 1
     if updated_count:
         modeladmin.message_user(

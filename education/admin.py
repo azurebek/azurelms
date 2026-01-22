@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.html import format_html
 from users.models import Profile
 from .models import AttendanceRecord, Enrollment, LessonProgress
 
@@ -25,12 +26,19 @@ class LessonProgressAdmin(admin.ModelAdmin):
         "lesson",
         "enrollment",
         "assignment_status",
+        "assignment_file_link",
         "is_video_watched",
         "quiz_score",
     )
     list_filter = ("assignment_status", "lesson__module__course")
     search_fields = ("lesson__title", "enrollment__user__email")
     actions = [approve_assignments, reject_assignments]
+
+    @admin.display(description="File")
+    def assignment_file_link(self, obj):
+        if obj.assignment_file:
+            return format_html('<a href="{}" target="_blank">Download</a>', obj.assignment_file.url)
+        return "-"
 
 
 @admin.register(Enrollment)

@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from core.models import TimeStampedModel
+from courses.models import Batch
 
 class BillingAccount(TimeStampedModel):
     MONTHLY = "MONTHLY"
@@ -34,6 +35,7 @@ class Transaction(TimeStampedModel):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=PENDING)
     month_number = models.PositiveIntegerField(default=1)
     admin_note = models.TextField(blank=True)
+    batch = models.ForeignKey(Batch, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return f"{self.account.user} {self.amount} {self.status}"

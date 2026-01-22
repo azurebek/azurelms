@@ -10,25 +10,35 @@
       <div class="text-muted">{{ lesson.module.title }} • {{ lesson.module.course.title }}</div>
     </div>
     {% if next_lesson %}
-      <a class="btn btn-success" href="{% url 'education:lesson_detail' next_lesson.id %}">
-        Keyingi darsga o'tish
-      </a>
+    <a class="btn btn-success" href="{% url 'education:lesson_detail' next_lesson.id %}">
+      Keyingi darsga o'tish
+    </a>
     {% else %}
-      <span class="badge text-bg-secondary">Keyingi dars ochilmagan</span>
+    <div class="d-flex flex-column align-items-end">
+      <button class="btn btn-secondary" disabled>Keyingi dars yopiq 🔒</button>
+      {% if not progress.is_completed %}
+      <small class="text-danger mt-1 text-end" style="max-width: 250px;">
+        Ochish uchun:
+        {% if not progress.is_video_watched %}Videoni ko'ring, {% endif %}
+        {% if lesson.quiz_required and progress.quiz_score < lesson.quiz_pass_score %}Quiz topshiring, {% endif %} {% if
+          progress.assignment_status !="APPROVED" %}Vazifa tasdiqlanishi kerak{% endif %} </small>
+          {% endif %}
+    </div>
     {% endif %}
   </div>
 
   {% if messages %}
-    <div class="mb-3">
-      {% for message in messages %}
-        <div class="alert alert-info" role="alert">{{ message }}</div>
-      {% endfor %}
-    </div>
+  <div class="mb-3">
+    {% for message in messages %}
+    <div class="alert alert-info" role="alert">{{ message }}</div>
+    {% endfor %}
+  </div>
   {% endif %}
 
   <ul class="nav nav-tabs" id="lessonTabs" role="tablist">
     <li class="nav-item" role="presentation">
-      <button class="nav-link active" id="video-tab" data-bs-toggle="tab" data-bs-target="#video" type="button" role="tab">
+      <button class="nav-link active" id="video-tab" data-bs-toggle="tab" data-bs-target="#video" type="button"
+        role="tab">
         📺 Video Dars
       </button>
     </li>
@@ -43,7 +53,8 @@
       </button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link" id="homework-tab" data-bs-toggle="tab" data-bs-target="#homework" type="button" role="tab">
+      <button class="nav-link" id="homework-tab" data-bs-toggle="tab" data-bs-target="#homework" type="button"
+        role="tab">
         📤 Homework
       </button>
     </li>
@@ -52,17 +63,18 @@
   <div class="tab-content border border-top-0 bg-white p-4" id="lessonTabsContent">
     <div class="tab-pane fade show active" id="video" role="tabpanel">
       {% if lesson.video_source == "YOUTUBE" %}
-        <div class="ratio ratio-16x9 mb-3">
-          <iframe src="https://www.youtube.com/embed/{{ lesson.video_id }}" title="YouTube video" allowfullscreen></iframe>
-        </div>
+      <div class="ratio ratio-16x9 mb-3">
+        <iframe src="https://www.youtube.com/embed/{{ lesson.video_id }}" title="YouTube video"
+          allowfullscreen></iframe>
+      </div>
       {% else %}
-        <div class="alert alert-warning d-flex align-items-center gap-2">
-          <i class="bi bi-telegram"></i>
-          <div>Darsni Telegramda ko'rish uchun tugmani bosing.</div>
-        </div>
-        <a class="btn btn-primary" href="{{ lesson.video_id }}" target="_blank" rel="noopener">
-          Telegramda ko'rish
-        </a>
+      <div class="alert alert-warning d-flex align-items-center gap-2">
+        <i class="bi bi-telegram"></i>
+        <div>Darsni Telegramda ko'rish uchun tugmani bosing.</div>
+      </div>
+      <a class="btn btn-primary" href="{{ lesson.video_id }}" target="_blank" rel="noopener">
+        Telegramda ko'rish
+      </a>
       {% endif %}
 
       <form method="post" class="mt-4">
@@ -71,25 +83,25 @@
           Ko'rib bo'ldim
         </button>
         {% if progress.is_video_watched %}
-          <span class="badge text-bg-success ms-2">Video ko'rilgan</span>
+        <span class="badge text-bg-success ms-2">Video ko'rilgan</span>
         {% endif %}
       </form>
     </div>
 
     <div class="tab-pane fade" id="notes" role="tabpanel">
       {% if lesson.notes_html %}
-        <div class="prose">{{ lesson.notes_html|safe }}</div>
+      <div class="prose">{{ lesson.notes_html|safe }}</div>
       {% else %}
-        <p class="text-muted">Konspekt hali kiritilmagan.</p>
+      <p class="text-muted">Konspekt hali kiritilmagan.</p>
       {% endif %}
     </div>
 
     <div class="tab-pane fade" id="quiz" role="tabpanel">
       {% if lesson.quiz_required %}
-        <p class="mb-2">Quiz ballari: <strong>{{ progress.quiz_score }}</strong></p>
-        <p class="text-muted">Quiz natijasini admin yoki avtomatik tizim yangilaydi.</p>
+      <p class="mb-2">Quiz ballari: <strong>{{ progress.quiz_score }}</strong></p>
+      <p class="text-muted">Quiz natijasini admin yoki avtomatik tizim yangilaydi.</p>
       {% else %}
-        <p class="text-muted">Ushbu dars uchun quiz mavjud emas.</p>
+      <p class="text-muted">Ushbu dars uchun quiz mavjud emas.</p>
       {% endif %}
     </div>
 
@@ -102,18 +114,18 @@
       <div class="mb-3">
         <h6>Status</h6>
         {% if progress.assignment_status == "NOT_SUBMITTED" %}
-          <span class="badge text-bg-secondary">Topshirilmagan</span>
+        <span class="badge text-bg-secondary">Topshirilmagan</span>
         {% elif progress.assignment_status == "PENDING" %}
-          <span class="badge text-bg-warning">Tekshirilmoqda</span>
-          <p class="small text-muted mt-2">Admin javobini kuting.</p>
+        <span class="badge text-bg-warning">Tekshirilmoqda</span>
+        <p class="small text-muted mt-2">Admin javobini kuting.</p>
         {% elif progress.assignment_status == "APPROVED" %}
-          <span class="badge text-bg-success">Qabul qilindi</span>
-          <p class="small text-success mt-2">+20 XP berildi. Keyingi dars ochildi!</p>
+        <span class="badge text-bg-success">Qabul qilindi</span>
+        <p class="small text-success mt-2">+20 XP berildi. Keyingi dars ochildi!</p>
         {% else %}
-          <span class="badge text-bg-danger">Rad etildi</span>
-          {% if progress.assignment_admin_feedback %}
-            <p class="small text-danger mt-2">Sababi: {{ progress.assignment_admin_feedback }}</p>
-          {% endif %}
+        <span class="badge text-bg-danger">Rad etildi</span>
+        {% if progress.assignment_admin_feedback %}
+        <p class="small text-danger mt-2">Sababi: {{ progress.assignment_admin_feedback }}</p>
+        {% endif %}
         {% endif %}
       </div>
 

@@ -4,22 +4,81 @@
 <section class="container py-5">
   <div class="row g-4">
     <div class="col-lg-8">
-      <h1 class="mb-3">{{ course.title|default:"Kurs nomi" }}</h1>
-      <p class="text-muted">{{ course.level|default:"Ma'lumot mavjud emas" }}</p>
-      <div class="card p-4 shadow-sm mb-3">
-        <h2 class="h6">Syllabus</h2>
-        <ul class="mb-0">
-          <li>1-modul: Kirish</li>
-          <li>2-modul: Amaliy darslar</li>
-          <li>3-modul: Yakuniy loyiha</li>
-        </ul>
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h1 class="mb-1">{{ course.title|default:"Kurs nomi" }}</h1>
+          <p class="text-muted mb-0">{{ course.level|default:"Ma'lumot mavjud emas" }}</p>
+        </div>
       </div>
-      <a class="btn btn-primary" href="{% url 'billing:payment_center' %}">To‘lov qilish</a>
+
+      <div class="card p-4 shadow-sm mb-3">
+        <h2 class="h6 mb-3">Dastur (Syllabus)</h2>
+        {% if course.modules.exists %}
+        <div class="accordion" id="syllabusAccordion">
+          {% for module in course.modules.all %}
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="heading{{ module.id }}">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapse{{ module.id }}" aria-expanded="false" aria-controls="collapse{{ module.id }}">
+                {{ module.title }}
+              </button>
+            </h2>
+            <div id="collapse{{ module.id }}" class="accordion-collapse collapse"
+              aria-labelledby="heading{{ module.id }}" data-bs-parent="#syllabusAccordion">
+              <div class="accordion-body">
+                <ul class="list-unstyled mb-0">
+                  {% for lesson in module.lessons.all %}
+                  <li class="d-flex align-items-center py-1">
+                    <i class="bi bi-play-circle me-2 text-muted"></i>
+                    <a href="{% url 'education:lesson_detail' lesson.id %}"
+                      class="text-decoration-none text-dark stretched-link">
+                      {{ lesson.title }}
+                    </a>
+                  </li>
+                  {% empty %}
+                  <li class="text-muted small">Darslar yo'q</li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted">Hozircha modul va darslar qo'shilmagan.</p>
+        {% endif %}
+      </div>
     </div>
     <div class="col-lg-4">
-      <div class="card p-4 shadow-sm">
-        <h3 class="h6">Ochiq guruhlar</h3>
-        {% include "courses/partials/batch_card.html" %}
+      <div class="card p-4 shadow-sm sticky-top" style="top: 2rem;">
+        <h3 class="h6 mb-3">Ochiq guruhlar</h3>
+        {% if batches %}
+        <div class="d-flex flex-column gap-3">
+          {% for batch in batches %}
+          <div class="border rounded p-3 bg-light">
+            <h5 class="h6 mb-1">{{ batch.title|default:"Guruh" }}</h5>
+            <div class="small text-muted mb-2">
+              <i class="bi bi-calendar-event me-1"></i> Boshlanishi: {{ batch.start_date|date:"d-M, Y"|default:"Tez
+              orada" }}
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="fw-bold text-primary">{{ batch.price|floatformat:0 }} so'm</span>
+              {% if batch.status == 'enrolling' %}
+              <a href="{% url 'billing:payment_center' %}?batch_id={{ batch.id }}"
+                class="btn btn-sm btn-primary">Ro'yxatdan o'tish</a>
+              {% else %}
+              <span class="badge bg-secondary">Qabul yopiq</span>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-3">
+          <i class="bi bi-calendar-x display-6 d-block mb-2"></i>
+          Hozircha ochiq guruhlar yo'q.
+        </div>
+        {% endif %}
       </div>
     </div>
   </div>
