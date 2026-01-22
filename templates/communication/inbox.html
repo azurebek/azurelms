@@ -57,7 +57,13 @@
 
                 <!-- Input Area -->
                 <div class="p-3 border-top bg-white">
-                    <form method="post" action="{% url 'communication:send_message' selected_room.id %}">
+                    <form
+                        method="post"
+                        action="{% url 'communication:send_message' selected_room.id %}"
+                        hx-post="{% url 'communication:send_message' selected_room.id %}"
+                        hx-target="#message-container"
+                        hx-swap="innerHTML"
+                    >
                         {% csrf_token %}
                         <input type="hidden" name="next" value="{{ request.get_full_path }}">
                         <div class="input-group">

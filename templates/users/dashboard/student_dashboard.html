@@ -30,13 +30,25 @@
     <div class="resume-card mt-4">
       <div>
         <div class="text-muted small">Resume Learning</div>
-        <div class="h5 mb-1">Essential Speaking: Lesson 4</div>
-        <div class="text-muted">So‘nggi dars: Greetings & Introductions</div>
+        {% if resume_lesson %}
+          <div class="h5 mb-1">{{ resume_lesson.module.course.title }}: {{ resume_lesson.title }}</div>
+          <div class="text-muted">Guruh: {{ resume_batch.title|default:"Faol guruh" }}</div>
+        {% else %}
+          <div class="h5 mb-1">Darslar tayinlanmagan</div>
+          <div class="text-muted">Mentoringiz darslarni tez orada qo'shadi.</div>
+        {% endif %}
       </div>
-      <button class="btn btn-primary btn-lg">
-        <i class="bi bi-play-fill"></i>
-        Play
-      </button>
+      {% if resume_lesson %}
+        <a class="btn btn-primary btn-lg" href="{% url 'education:lesson_detail' resume_lesson.id %}">
+          <i class="bi bi-play-fill"></i>
+          Play
+        </a>
+      {% else %}
+        <button class="btn btn-primary btn-lg" type="button" disabled>
+          <i class="bi bi-play-fill"></i>
+          Play
+        </button>
+      {% endif %}
     </div>
 
     <div class="d-flex flex-column flex-md-row gap-3 mt-3">
@@ -57,8 +69,8 @@
       <div class="col-12 col-lg-6">
         <div class="p-3 border rounded-4 h-100">
           <div class="text-muted">Kunlik reja</div>
-          <div class="dashboard-card__stat">3 ta vazifa</div>
-          <div class="text-secondary small">15-30 daqiqalik fokus sessiya.</div>
+          <div class="dashboard-card__stat">{{ daily_goal_completed }} / {{ daily_goal_total }} ta vazifa</div>
+          <div class="text-secondary small">Bugungi dars bo'yicha bajarilishi kerak bo'lganlar.</div>
         </div>
       </div>
     </div>
@@ -66,18 +78,16 @@
     <div class="daily-goals mt-4">
       <div class="daily-goals__title">Daily Goals</div>
       <div class="daily-goals__list">
-        <label class="goal-item">
-          <input class="form-check-input" type="checkbox">
-          <span>Video dars</span>
-        </label>
-        <label class="goal-item">
-          <input class="form-check-input" type="checkbox">
-          <span>Quiz</span>
-        </label>
-        <label class="goal-item">
-          <input class="form-check-input" type="checkbox">
-          <span>Uy vazifa</span>
-        </label>
+        {% if daily_goals %}
+          {% for goal in daily_goals %}
+            <label class="goal-item">
+              <input class="form-check-input" type="checkbox" {% if goal.done %}checked{% endif %} disabled>
+              <span>{{ goal.label }}</span>
+            </label>
+          {% endfor %}
+        {% else %}
+          <div class="text-muted small">Bugungi reja hali shakllanmagan.</div>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -91,10 +101,17 @@
       <i class="bi bi-book"></i>
       <span>To‘lov</span>
     </a>
-    <a class="bottom-nav__item" href="{% url 'users:dashboard' %}">
-      <i class="bi bi-bar-chart"></i>
-      <span>Progress</span>
-    </a>
+    {% if resume_lesson %}
+      <a class="bottom-nav__item" href="{% url 'education:lesson_detail' resume_lesson.id %}">
+        <i class="bi bi-bar-chart"></i>
+        <span>Progress</span>
+      </a>
+    {% else %}
+      <a class="bottom-nav__item" href="{% url 'users:dashboard' %}">
+        <i class="bi bi-bar-chart"></i>
+        <span>Progress</span>
+      </a>
+    {% endif %}
     <a class="bottom-nav__item" href="{% url 'users:logout' %}">
       <i class="bi bi-person"></i>
       <span>Chiqish</span>

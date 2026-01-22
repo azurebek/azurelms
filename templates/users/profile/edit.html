@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Profilni tahrirlash{% endblock %}
+{% block content %}
+<section class="container py-5">
+  <div class="row g-4">
+    <div class="col-lg-8">
+      {% include "users/profile/edit_form.html" %}
+    </div>
+    <div class="col-lg-4">
+      {% include "users/profile/avatar_upload.html" %}
+    </div>
+  </div>
+</section>
+{% endblock %}

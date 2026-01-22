@@ -1,29 +1,71 @@
-﻿<div class="p-3">
+﻿{% load chat_tags %}
+<div class="p-3">
   <div class="d-flex align-items-center justify-content-between mb-3">
-    <h2 class="h6 text-uppercase text-muted mb-0">Suhbatlar</h2>
-    <span class="badge rounded-pill text-bg-primary">{{ rooms|length }}</span>
+    <h2 class="h6 text-uppercase text-muted mb-0">Guruhlar</h2>
+    <span class="badge rounded-pill text-bg-primary">{{ group_rooms|length }}</span>
+  </div>
+  <div class="list-group list-group-flush mb-4">
+    {% for room in group_rooms %}
+    {% with last_message=room.recent_messages.0 %}
+    <a href="{% url 'communication:inbox' %}?room={{ room.id }}"
+      class="list-group-item list-group-item-action {% if selected_room.id == room.id %}active{% endif %}">
+      <div class="d-flex w-100 justify-content-between">
+        <h6 class="mb-1">{{ room|display_name_for:user }}</h6>
+        <small>{{ room.last_activity|timesince }}</small>
+      </div>
+      <p class="mb-1 small {% if not last_message %}text-muted{% endif %}">
+        {{ last_message.content|default:"Hozircha xabar yo'q" }}
+      </p>
+    </a>
+    {% endwith %}
+    {% empty %}
+    <div class="text-center text-muted small py-2">Guruh chatlari topilmadi.</div>
+    {% endfor %}
+  </div>
+
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h2 class="h6 text-uppercase text-muted mb-0">DM</h2>
+    <span class="badge rounded-pill text-bg-secondary">{{ direct_rooms|length }}</span>
+  </div>
+  <div class="list-group list-group-flush mb-4">
+    {% for room in direct_rooms %}
+    {% with last_message=room.recent_messages.0 %}
+    <a href="{% url 'communication:inbox' %}?room={{ room.id }}"
+      class="list-group-item list-group-item-action {% if selected_room.id == room.id %}active{% endif %}">
+      <div class="d-flex w-100 justify-content-between">
+        <h6 class="mb-1">{{ room|display_name_for:user }}</h6>
+        <small>{{ room.last_activity|timesince }}</small>
+      </div>
+      <p class="mb-1 small {% if not last_message %}text-muted{% endif %}">
+        {{ last_message.content|default:"Hozircha xabar yo'q" }}
+      </p>
+    </a>
+    {% endwith %}
+    {% empty %}
+    <div class="text-center text-muted small py-2">DM topilmadi.</div>
+    {% endfor %}
+  </div>
+
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h2 class="h6 text-uppercase text-muted mb-0">AI</h2>
+    <span class="badge rounded-pill text-bg-info">Bot</span>
   </div>
   <div class="list-group list-group-flush">
-    {% for room in rooms %}
-      <a
-        href="?room={{ room.id }}"
-        class="list-group-item list-group-item-action {% if selected_room and selected_room.id == room.id %}active{% endif %}"
-      >
-        <div class="d-flex w-100 justify-content-between">
-          <h6 class="mb-1">
-            {% if room.type == 'GROUP' %}
-               {{ room.batch.title|default:"Guruh Chat" }}
-            {% elif room.type == 'BOT' %}
-               @azure Assistant
-            {% else %}
-               Direct
-            {% endif %}
-          </h6>
-          <small>{{ room.last_activity|timesince }}</small>
-        </div>
-      </a>
+    {% for room in bot_rooms %}
+    {% with last_message=room.recent_messages.0 %}
+    <a href="{% url 'communication:inbox' %}?room={{ room.id }}"
+      class="list-group-item list-group-item-action {% if selected_room.id == room.id %}active{% endif %}">
+      <div class="d-flex w-100 justify-content-between">
+        <h6 class="mb-1">{{ room|display_name_for:user }}</h6>
+        <small>{{ room.last_activity|timesince }}</small>
+      </div>
+      <p class="mb-1 small {% if not last_message %}text-muted{% endif %}">
+        {{ last_message.content|default:"Savollaringizni yuboring." }}
+      </p>
+    </a>
+    {% endwith %}
     {% empty %}
-      <div class="py-4 text-center text-muted small">Hozircha suhbatlar yo'q</div>
+    <div class="text-center text-muted small py-2">Bot chatlari yo'q.</div>
     {% endfor %}
   </div>
 </div>

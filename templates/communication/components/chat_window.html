@@ -1,34 +1,32 @@
-﻿<div class="d-flex flex-column h-100">
+<div class="d-flex flex-column h-100">
   {% if selected_room %}
-    <div class="border-bottom p-3">
-      <div class="fw-semibold">
-        {% if selected_room.type == 'GROUP' %}
-          {{ selected_room.batch.title }} (Guruh)
-        {% elif selected_room.type == 'BOT' %}
-          @azure Assistant
-        {% else %}
-          Suhbat #{{ selected_room.id }}
-        {% endif %}
-      </div>
+  <div class="border-bottom p-3">
+    <div class="fw-semibold">
+      {% if selected_room.type == 'GROUP' %}
+      {{ selected_room.batch.title }} (Guruh)
+      {% elif selected_room.type == 'BOT' %}
+      @azure Assistant
+      {% else %}
+      Suhbat #{{ selected_room.id }}
+      {% endif %}
     </div>
-    <div class="flex-grow-1 p-4">
-      <div
-        class="chat-message-stream"
-        hx-get="{% url 'communication:poll_messages' selected_room.id %}"
-        hx-trigger="load, every 8s"
-        hx-swap="innerHTML"
-        aria-live="polite"
-      >
-        {% include "communication/components/message_list.html" %}
-      </div>
+  </div>
+  <div class="flex-grow-1 p-4">
+    {% with active_room=selected_room|default:default_room %}
+    <div class="chat-message-stream" {% if active_room %}
+      hx-get="{% url 'communication:message_stream' %}?room={{ active_room.id }}" {% endif %}
+      hx-trigger="load, every 8s" hx-swap="innerHTML" aria-live="polite">
+      {% include "communication/components/message_list.html" %}
     </div>
-    <div class="border-top p-3">
-      {% include "communication/components/message_input.html" with room=selected_room %}
-    </div>
+    {% endwith %}
+  </div>
+  <div class="border-top p-3">
+    {% include "communication/components/message_input.html" with room=selected_room %}
+  </div>
   {% else %}
-    <div class="m-auto text-center text-muted">
-      <i class="bi bi-chat-square-text display-6"></i>
-      <p class="mt-2 mb-0">Suhbatni tanlang</p>
-    </div>
+  <div class="m-auto text-center text-muted">
+    <i class="bi bi-chat-square-text display-6"></i>
+    <p class="mt-2 mb-0">Suhbatni tanlang</p>
+  </div>
   {% endif %}
 </div>

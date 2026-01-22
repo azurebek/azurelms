@@ -42,6 +42,13 @@ class CustomUser(AbstractUser):
 
     objects = CustomUserManager()
 
+    @property
+    def display_name(self):
+        if hasattr(self, "profile") and self.profile.display_name:
+            return self.profile.display_name
+        full_name = self.get_full_name()
+        return full_name or self.email
+
     def __str__(self):
         return self.email
 

@@ -17,6 +17,16 @@ class ChatRoom(TimeStampedModel):
     def __str__(self):
         return f"{self.type} room"
 
+    def display_name_for(self, user):
+        if self.type == self.GROUP:
+            return self.batch.title if self.batch and self.batch.title else "Guruh chat"
+        if self.type == self.DIRECT:
+            other = self.participants.exclude(id=user.id).first()
+            return getattr(other, "display_name", None) or (other.email if other else "Direct chat")
+        if self.type == self.BOT:
+            return "@azure Assistant"
+        return "Chat"
+
 class Message(TimeStampedModel):
     room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name="messages")
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="sent_messages")
