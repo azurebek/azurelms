@@ -1,11 +1,7 @@
 {% with active_room=selected_room|default:default_room %}
-<form class="d-flex gap-2" autocomplete="off" method="post"
-  action="{% if active_room %}{% url 'communication:send_message' active_room.id %}{% endif %}" {% if active_room %}
-  hx-post="{% url 'communication:send_message' active_room.id %}" hx-target=".chat-message-stream" hx-swap="innerHTML"
-  {% endif %}>
+<form class="d-flex gap-2" autocomplete="off" method="post" action="{% if active_room %}{% url 'communication:send_message' active_room.id %}{% endif %}" {% if active_room %}hx-post="{% url 'communication:send_message' active_room.id %}" hx-target=".chat-message-stream" hx-swap="innerHTML"{% endif %}>
   {% csrf_token %}
-  <input type="text" class="form-control" name="content" placeholder="Xabar yozing..." {% if not active_room
-    %}disabled{% endif %}>
+  <input type="text" class="form-control" name="content" placeholder="Xabar yozing..." {% if not active_room %}disabled{% endif %}>
   <button class="btn btn-primary" type="submit" {% if not active_room %}disabled{% endif %}>
     <i class="bi bi-send"></i>
   </button>

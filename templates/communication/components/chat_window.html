@@ -2,20 +2,12 @@
   {% if selected_room %}
   <div class="border-bottom p-3">
     <div class="fw-semibold">
-      {% if selected_room.type == 'GROUP' %}
-      {{ selected_room.batch.title }} (Guruh)
-      {% elif selected_room.type == 'BOT' %}
-      @azure Assistant
-      {% else %}
-      Suhbat #{{ selected_room.id }}
-      {% endif %}
+      {% if selected_room.type == 'GROUP' %}{{ selected_room.batch.title }} (Guruh){% elif selected_room.type == 'BOT' %}@azure Assistant{% else %}Suhbat #{{ selected_room.id }}{% endif %}
     </div>
   </div>
   <div class="flex-grow-1 p-4">
     {% with active_room=selected_room|default:default_room %}
-    <div class="chat-message-stream" {% if active_room %}
-      hx-get="{% url 'communication:message_stream' %}?room={{ active_room.id }}" {% endif %}
-      hx-trigger="load, every 8s" hx-swap="innerHTML" aria-live="polite">
+    <div class="chat-message-stream" {% if active_room %}hx-get="{% url 'communication:message_stream' %}?room={{ active_room.id }}"{% endif %} hx-trigger="load, every 8s" hx-swap="innerHTML" aria-live="polite">
       {% include "communication/components/message_list.html" %}
     </div>
     {% endwith %}
