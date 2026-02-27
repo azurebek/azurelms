@@ -1,0 +1,7 @@
+django
+google-generativeai
+python-dotenv
+pillow
+django-jazzmin
+django-ckeditor-5
+psycopg2-binary

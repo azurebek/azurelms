@@ -1,0 +1,82 @@
+# ========================
+# Python
+# ========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+
+# ========================
+# Virtual Environment
+# ========================
+venv/
+env/
+ENV/
+.venv/
+.env/
+
+# ========================
+# Django
+# ========================
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+
+# Static files (collectstatic)
+staticfiles/
+static_root/
+
+# ========================
+# Environment Variables
+# ========================
+.env
+.env.local
+.env.production
+.env.*.local
+
+# ========================
+# IDEs & Editors
+# ========================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ========================
+# OS generated
+# ========================
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ========================
+# Pytest & Coverage
+# ========================
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# ========================
+# Migrations (ixtiyoriy - odatda saqlanadi)
+# ========================
+# */migrations/*.py  ← Bu satrni faqat xohlasangiz yoqing
+# */migrations/*.pyc
