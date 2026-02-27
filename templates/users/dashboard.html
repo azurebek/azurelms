@@ -1,0 +1,751 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - AzureLMS{% endblock %}
+{% block meta_description %}AzureLMS dashboard - sizning ta'lim jarayoningizni boshqaring{% endblock %}
+
+{% block extra_css %}
+    :root {
+        --primary: #E30A17;
+        --primary-dark: #B8000F;
+        --secondary: #00A1DE;
+        --accent: #FFD700;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --dark: #1a1a2e;
+        --muted: #6c757d;
+        --light: #f8f9fa;
+        --border: #e5e7eb;
+        --card-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    /* Mobile-First Layout */
+    .dashboard {
+        display: flex;
+        flex-direction: column;
+        min-height: calc(100vh - 80px);
+        padding: 1rem;
+        gap: 1rem;
+        background: var(--light);
+    }
+
+    /* Welcome Card */
+    .welcome-card {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 1rem;
+    }
+
+    .welcome-card h1 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        color: white; /* Har ehtimolga qarshi to'g'ridan-to'g'ri rangni beramiz */
+    }
+
+    .welcome-card p {
+        opacity: 0.9;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+        color: white;
+    }
+
+    .streak-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255,255,255,0.2);
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: white;
+    }
+
+    .streak-badge i { color: var(--accent); }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 1rem;
+        border-radius: 0.75rem;
+        box-shadow: var(--card-shadow);
+        text-align: center;
+    }
+
+    .stat-card .icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 0.5rem;
+        font-size: 1.25rem;
+    }
+
+    .stat-card .icon.red { background: #fee2e2; color: var(--primary); }
+    .stat-card .icon.blue { background: #dbeafe; color: var(--secondary); }
+    .stat-card .icon.green { background: #d1fae5; color: var(--success); }
+    .stat-card .icon.yellow { background: #fef3c7; color: var(--warning); }
+
+    .stat-card .value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--dark);
+    }
+
+    .stat-card .label {
+        font-size: 0.75rem;
+        color: var(--muted);
+    }
+
+    /* Cards */
+    .card-section {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+    }
+
+    .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .card-header h2 {
+        font-size: 1rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0;
+    }
+
+    .card-header h2 i { color: var(--primary); }
+
+    .card-header .view-all {
+        font-size: 0.8rem;
+        color: var(--secondary);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .card-body { padding: 1rem; }
+
+    /* Daily Tasks */
+    .task-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        margin-bottom: 0.5rem;
+        background: var(--light);
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .task-item:last-child { margin-bottom: 0; }
+    .task-item.completed { opacity: 0.6; }
+    .task-item.completed .task-text { text-decoration: line-through; }
+
+    .task-check {
+        width: 22px;
+        height: 22px;
+        min-width: 22px;
+        border: 2px solid var(--border);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .task-check.checked {
+        background: var(--success);
+        border-color: var(--success);
+        color: white;
+    }
+
+    .task-info { flex: 1; }
+    .task-text { font-size: 0.9rem; font-weight: 500; margin-bottom: 0.25rem; }
+    .task-meta { font-size: 0.75rem; color: var(--muted); }
+
+    .task-priority {
+        padding: 0.15rem 0.5rem;
+        border-radius: 1rem;
+        font-size: 0.65rem;
+        font-weight: 600;
+    }
+
+    .task-priority.high { background: #fee2e2; color: #dc2626; }
+    .task-priority.medium { background: #fef3c7; color: #d97706; }
+    .task-priority.low { background: #d1fae5; color: #059669; }
+
+    .add-task-btn {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px dashed var(--border);
+        border-radius: 0.5rem;
+        background: transparent;
+        color: var(--muted);
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .add-task-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* Leaderboard */
+    .leader-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .leader-item:last-child { margin-bottom: 0; }
+    .leader-item.top-1 { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
+    .leader-item.top-2 { background: #f1f5f9; }
+    .leader-item.top-3 { background: #fef3c7; }
+    .leader-item.current { background: #ecfdf5; border: 2px solid var(--success); }
+
+    .leader-rank {
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.8rem;
+    }
+
+    .leader-item.top-1 .leader-rank { background: var(--accent); color: #92400e; }
+    .leader-item.top-2 .leader-rank { background: #cbd5e1; color: #475569; }
+    .leader-item.top-3 .leader-rank { background: #fed7aa; color: #9a3412; }
+    .leader-item.current .leader-rank { background: var(--success); color: white; }
+
+    .leader-avatar {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        border-radius: 50%;
+        background: var(--secondary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .leader-item.current .leader-avatar { background: var(--primary); }
+
+    .leader-info { flex: 1; }
+    .leader-name { font-weight: 600; font-size: 0.9rem; }
+    .leader-points { font-size: 0.75rem; color: var(--muted); }
+    .leader-xp { font-weight: 700; color: var(--success); font-size: 0.85rem; }
+
+    /* Course Progress */
+    .course-item {
+        display: flex;
+        gap: 1rem;
+        padding: 1rem;
+        border-radius: 0.75rem;
+        background: var(--light);
+        margin-bottom: 0.75rem;
+    }
+
+    .course-item:last-child { margin-bottom: 0; }
+
+    .course-icon {
+        width: 50px;
+        height: 50px;
+        min-width: 50px;
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        font-weight: 700;
+    }
+
+    .course-icon.a1 { background: #dbeafe; color: var(--secondary); }
+    .course-icon.a2 { background: #d1fae5; color: var(--success); }
+    .course-icon.b1 { background: #fef3c7; color: var(--warning); }
+
+    .course-info { flex: 1; }
+    .course-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.25rem; }
+    .course-meta { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.5rem; }
+
+    .progress-bar {
+        height: 6px;
+        background: var(--border);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .progress-fill { height: 100%; border-radius: 3px; }
+    .progress-fill.blue { background: var(--secondary); }
+    .progress-fill.green { background: var(--success); }
+    .progress-fill.yellow { background: var(--warning); }
+
+    .course-percent { font-size: 0.75rem; font-weight: 600; margin-top: 0.25rem; }
+
+    /* Events */
+    .event-item {
+        display: flex;
+        gap: 1rem;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        background: var(--light);
+        margin-bottom: 0.5rem;
+    }
+
+    .event-item:last-child { margin-bottom: 0; }
+
+    .event-date {
+        width: 45px;
+        min-width: 45px;
+        text-align: center;
+        padding: 0.5rem;
+        background: var(--primary);
+        color: white;
+        border-radius: 0.5rem;
+    }
+
+    .event-date .day { font-size: 1.25rem; font-weight: 700; line-height: 1; }
+    .event-date .month { font-size: 0.65rem; text-transform: uppercase; }
+
+    .event-info { flex: 1; }
+    .event-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.25rem; }
+    .event-time { font-size: 0.75rem; color: var(--muted); }
+
+    .event-type {
+        padding: 0.2rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.65rem;
+        font-weight: 600;
+        background: #dbeafe;
+        color: var(--secondary);
+        align-self: flex-start;
+    }
+
+    /* Achievements */
+    .achievements-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+    }
+
+    .achievement-item {
+        text-align: center;
+        padding: 1rem 0.5rem;
+        background: var(--light);
+        border-radius: 0.75rem;
+    }
+
+    .achievement-item.locked { opacity: 0.5; }
+
+    .achievement-icon {
+        width: 45px;
+        height: 45px;
+        margin: 0 auto 0.5rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+
+    .achievement-icon.gold { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #b45309; }
+    .achievement-icon.silver { background: linear-gradient(135deg, #f1f5f9, #e2e8f0); color: #475569; }
+    .achievement-icon.bronze { background: linear-gradient(135deg, #fed7aa, #fdba74); color: #c2410c; }
+    .achievement-icon.locked { background: #e5e7eb; color: #9ca3af; }
+
+    .achievement-name { font-size: 0.7rem; font-weight: 600; }
+
+    /* Activity */
+    .activity-item {
+        display: flex;
+        gap: 0.75rem;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .activity-item:last-child { border-bottom: none; }
+
+    .activity-icon {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+    }
+
+    .activity-icon.lesson { background: #dbeafe; color: var(--secondary); }
+    .activity-icon.quiz { background: #d1fae5; color: var(--success); }
+    .activity-icon.badge { background: #fef3c7; color: var(--warning); }
+
+    .activity-text { font-size: 0.85rem; }
+    .activity-text strong { color: var(--dark); }
+    .activity-time { font-size: 0.7rem; color: var(--muted); margin-top: 0.25rem; }
+
+    /* Mobile Sidebar Toggle */
+    .sidebar-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem;
+        background: white;
+        border-radius: 1rem;
+        box-shadow: var(--card-shadow);
+        cursor: pointer;
+    }
+
+    .sidebar-toggle h3 {
+        font-size: 1rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0;
+    }
+
+    .sidebar-toggle .badge {
+        background: var(--primary);
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 1rem;
+        font-size: 0.7rem;
+    }
+
+    .sidebar-toggle i.chevron { transition: transform 0.3s; }
+    .sidebar-toggle.open i.chevron { transform: rotate(180deg); }
+
+    .sidebar-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+    }
+
+    .sidebar-content.open { max-height: 2000px; }
+
+    /* Desktop Layout */
+    @media (min-width: 992px) {
+        .dashboard {
+            flex-direction: row;
+            padding: 2rem;
+            gap: 1.5rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .sidebar-area { width: 340px; min-width: 340px; }
+        .sidebar-toggle { display: none; }
+
+        .sidebar-content {
+            max-height: none;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .welcome-card { padding: 2rem; }
+        .welcome-card h1 { font-size: 1.5rem; }
+
+        .stats-grid { grid-template-columns: repeat(4, 1fr); }
+        .stat-card .value { font-size: 1.75rem; }
+
+        .achievements-grid { grid-template-columns: repeat(6, 1fr); }
+
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+    }
+
+    @media (min-width: 768px) and (max-width: 991px) {
+        .dashboard { padding: 1.5rem; }
+        .stats-grid { grid-template-columns: repeat(4, 1fr); }
+        .achievements-grid { grid-template-columns: repeat(6, 1fr); }
+    }
+{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- Main Area -->
+    <div class="main-area">
+        <!-- Welcome Card -->
+        <div class="welcome-card">
+            <h1>Assalomu alaykum, {{ user.first_name|default:"Foydalanuvchi" }}!</h1>
+            <p>Bugungi maqsadingizga erishing. Kelajak sizning qo'lingizda!</p>
+            <div class="streak-badge">
+                <i class="bi bi-fire"></i>
+                <span>{{ streak_days|default:"0" }} kunlik streak</span>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="icon red"><i class="bi bi-play-circle"></i></div>
+                <div class="value">{{ completed_lessons|default:"0" }}</div>
+                <div class="label">Dars tugatildi</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon blue"><i class="bi bi-clock"></i></div>
+                <div class="value">{{ study_hours|default:"0" }}</div>
+                <div class="label">Soat o'qildi</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon green"><i class="bi bi-trophy"></i></div>
+                <div class="value">{{ xp_points|default:"0" }}</div>
+                <div class="label">XP ball</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon yellow"><i class="bi bi-star"></i></div>
+                <div class="value">{{ achievements_count|default:"0" }}</div>
+                <div class="label">Yutuqlar</div>
+            </div>
+        </div>
+
+        <!-- Mobile Sidebar Toggle -->
+        <div class="sidebar-toggle d-lg-none" onclick="toggleSidebar()">
+            <h3>
+                <i class="bi bi-list-check"></i>
+                Bugungi vazifalar
+                <span class="badge">{{ tasks_count|default:"0" }}</span>
+            </h3>
+            <i class="bi bi-chevron-down chevron"></i>
+        </div>
+
+        <!-- Mobile Sidebar Content -->
+        <div class="sidebar-content d-lg-none" id="mobileSidebar">
+            <!-- Tasks Card -->
+            <div class="card-section mt-3">
+                <div class="card-header">
+                    <h2><i class="bi bi-list-check"></i> Bugungi vazifalar</h2>
+                </div>
+                <div class="card-body">
+                    {% for task in tasks %}
+                    <div class="task-item {% if task.completed %}completed{% endif %}" onclick="toggleTask(this)">
+                        <div class="task-check {% if task.completed %}checked{% endif %}"><i class="bi bi-check"></i></div>
+                        <div class="task-info">
+                            <div class="task-text">{{ task.title }}</div>
+                            <div class="task-meta">{{ task.description }}</div>
+                        </div>
+                        <span class="task-priority {{ task.priority }}">{{ task.priority_display }}</span>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center py-3">Hozircha vazifalar yo'q</p>
+                    {% endfor %}
+                    <button class="add-task-btn mt-2">
+                        <i class="bi bi-plus-circle me-2"></i>Yangi vazifa qo'shish
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Course Progress -->
+        <div class="card-section">
+            <div class="card-header">
+                <h2><i class="bi bi-book"></i> Kurs progressi</h2>
+                <a href="#" class="view-all">Barchasi</a>
+            </div>
+            <div class="card-body">
+                {% for course in courses %}
+                <div class="course-item">
+                    <div class="course-icon {{ course.level|lower }}">{{ course.level }}</div>
+                    <div class="course-info">
+                        <div class="course-title">{{ course.title }}</div>
+                        <div class="course-meta">{{ course.completed_lessons }}/{{ course.total_lessons }} dars tugatildi</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill {{ course.color }}" style="width: {{ course.progress }}%"></div>
+                        </div>
+                        <div class="course-percent">{{ course.progress }}% tugatildi</div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted text-center py-3">Hozircha kurslar yo'q</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Two Columns -->
+        <div class="two-columns">
+            <!-- Upcoming Events -->
+            <div class="card-section">
+                <div class="card-header">
+                    <h2><i class="bi bi-calendar-event"></i> Yaqinlashayotgan darslar</h2>
+                </div>
+                <div class="card-body">
+                    {% for event in events %}
+                    <div class="event-item">
+                        <div class="event-date">
+                            <div class="day">{{ event.date|date:"d" }}</div>
+                            <div class="month">{{ event.date|date:"M" }}</div>
+                        </div>
+                        <div class="event-info">
+                            <div class="event-title">{{ event.title }}</div>
+                            <div class="event-time"><i class="bi bi-clock me-1"></i>{{ event.time }}</div>
+                        </div>
+                        <span class="event-type">{{ event.type }}</span>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center py-3">Yaqinlashayotgan tadbirlar yo'q</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Activity Feed -->
+            <div class="card-section">
+                <div class="card-header">
+                    <h2><i class="bi bi-activity"></i> So'nggi faoliyat</h2>
+                </div>
+                <div class="card-body">
+                    {% for activity in activities %}
+                    <div class="activity-item">
+                        <div class="activity-icon {{ activity.type }}"><i class="bi bi-{{ activity.icon }}"></i></div>
+                        <div>
+                            <div class="activity-text">{{ activity.text|safe }}</div>
+                            <div class="activity-time">{{ activity.time }}</div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center py-3">Faoliyat yo'q</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Achievements -->
+        <div class="card-section">
+            <div class="card-header">
+                <h2><i class="bi bi-award"></i> Yutuqlar</h2>
+                <a href="#" class="view-all">Barchasi</a>
+            </div>
+            <div class="card-body">
+                <div class="achievements-grid">
+                    {% for achievement in achievements %}
+                    <div class="achievement-item {% if achievement.locked %}locked{% endif %}">
+                        <div class="achievement-icon {{ achievement.level }}"><i class="bi bi-{{ achievement.icon }}"></i></div>
+                        <div class="achievement-name">{{ achievement.name }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Area (Desktop) -->
+    <div class="sidebar-area d-none d-lg-block">
+        <div class="sidebar-content open">
+            <!-- Tasks Card -->
+            <div class="card-section">
+                <div class="card-header">
+                    <h2><i class="bi bi-list-check"></i> Bugungi vazifalar</h2>
+                </div>
+                <div class="card-body">
+                    {% for task in tasks %}
+                    <div class="task-item {% if task.completed %}completed{% endif %}" onclick="toggleTask(this)">
+                        <div class="task-check {% if task.completed %}checked{% endif %}"><i class="bi bi-check"></i></div>
+                        <div class="task-info">
+                            <div class="task-text">{{ task.title }}</div>
+                            <div class="task-meta">{{ task.description }}</div>
+                        </div>
+                        <span class="task-priority {{ task.priority }}">{{ task.priority_display }}</span>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center py-3">Hozircha vazifalar yo'q</p>
+                    {% endfor %}
+                    <button class="add-task-btn mt-2">
+                        <i class="bi bi-plus-circle me-2"></i>Yangi vazifa qo'shish
+                    </button>
+                </div>
+            </div>
+
+            <!-- Leaderboard -->
+            <div class="card-section">
+                <div class="card-header">
+                    <h2><i class="bi bi-bar-chart"></i> Haftalik reyting</h2>
+                </div>
+                <div class="card-body">
+                    {% for leader in leaderboard %}
+                    <div class="leader-item {% if leader.rank == 1 %}top-1{% elif leader.rank == 2 %}top-2{% elif leader.rank == 3 %}top-3{% endif %} {% if leader.is_current_user %}current{% endif %}">
+                        <div class="leader-rank">{{ leader.rank }}</div>
+                        <div class="leader-avatar">{{ leader.initials }}</div>
+                        <div class="leader-info">
+                            <div class="leader-name">{{ leader.name }}{% if leader.is_current_user %} (Siz){% endif %}</div>
+                            <div class="leader-points">Level {{ leader.level }}</div>
+                        </div>
+                        <div class="leader-xp">{{ leader.xp }} XP</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card-section">
+                <div class="card-header">
+                    <h2><i class="bi bi-lightning"></i> Tezkor harakatlar</h2>
+                </div>
+                <div class="card-body">
+                    <a href="#" class="btn btn-danger w-100 mb-2">
+                        <i class="bi bi-play-fill me-2"></i>Darsni davom ettirish
+                    </a>
+                    <a href="#" class="btn btn-outline-secondary w-100 mb-2">
+                        <i class="bi bi-file-text me-2"></i>Test yechish
+                    </a>
+                    <a href="#" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-chat-dots me-2"></i>O'qituvchi bilan bog'lanish
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleSidebar() {
+        const toggle = document.querySelector('.sidebar-toggle');
+        const sidebar = document.getElementById('mobileSidebar');
+        toggle.classList.toggle('open');
+        sidebar.classList.toggle('open');
+    }
+
+    function toggleTask(item) {
+        const check = item.querySelector('.task-check');
+        check.classList.toggle('checked');
+        item.classList.toggle('completed');
+    }
+</script>
+{% endblock %}

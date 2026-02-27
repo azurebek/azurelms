@@ -1,0 +1,358 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Profilim - AzureLMS{% endblock %}
+
+{% block extra_css %}
+    /* Asosiy ranglar va fon */
+    body { background: #f4f6f9; }
+    
+    .profile-wrapper { max-width: 800px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
+
+    /* Profil Kartochkasi */
+    .profile-card {
+        display: flex;
+        align-items: center;
+        background: #fff;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+        gap: 2rem;
+    }
+
+    /* Avatar qismi */
+    .avatar {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: #f8f9fa;
+        flex-shrink: 0;
+    }
+    .avatar-img {
+        width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
+    }
+    .avatar-btn {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background: #fff;
+        color: var(--secondary-color, #00A1DE);
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .avatar-btn:hover {
+        background: var(--secondary-color, #00A1DE);
+        color: #fff;
+    }
+
+    .profile-meta h2 {
+        font-weight: 700;
+        color: var(--dark-color, #16213e);
+    }
+
+    /* Statistika */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    .stat-box {
+        background: #fff;
+        padding: 1.5rem 1rem;
+        border-radius: 1rem;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    .stat-box .num { 
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--secondary-color, #00A1DE); 
+        margin-bottom: 0.5rem;
+    }
+    .stat-box .lbl {
+        font-size: 0.875rem;
+        color: var(--text-muted, #6c757d);
+    }
+
+    /* Accordion / Tablar */
+    .acc-item {
+        background: #fff;
+        border-radius: 1rem;
+        margin-bottom: 1rem;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    .acc-trigger { 
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.25rem 1.5rem;
+        background: none;
+        border: none;
+        font-weight: 600;
+        color: var(--dark-color, #16213e);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+    }
+    .acc-trigger .left {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    .icon-wrap {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: rgba(0, 161, 222, 0.1);
+        color: var(--secondary-color, #00A1DE);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .acc-trigger .chevron {
+        transition: transform 0.3s ease;
+    }
+    .acc-trigger.open .chevron {
+        transform: rotate(180deg);
+    }
+
+    .acc-body {
+        padding: 0 1.5rem 1.5rem;
+        display: none;
+    }
+    .acc-body.open {
+        display: block;
+    }
+
+    /* Form & Progress */
+    .form-row-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+    .field label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: var(--dark-color, #16213e);
+    }
+    
+    .course-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border-radius: 0.75rem;
+        border: 1px solid #eee;
+    }
+    .course-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 0.5rem;
+        background: rgba(0, 161, 222, 0.1);
+        color: var(--secondary-color, #00A1DE);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+    .course-title {
+        font-weight: 600;
+        color: var(--dark-color, #16213e);
+    }
+    .progress-track { 
+        height: 6px;
+        background: #eee;
+        border-radius: 3px;
+        overflow: hidden;
+    }
+    .progress-fill { 
+        height: 100%;
+        background: linear-gradient(90deg, var(--secondary-color, #00A1DE), #00d4ff); 
+        border-radius: 3px;
+    }
+
+    /* Media Queries */
+    @media (max-width: 768px) {
+        .stats-row {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+    @media (max-width: 480px) {
+        .profile-card { flex-direction: column; text-align: center; gap: 1rem; }
+        .avatar-btn { right: 50%; bottom: 0; transform: translateX(30px) translateY(-5px); }
+        .form-row-2 { grid-template-columns: 1fr; }
+    }
+{% endblock %}
+
+{% block content %}
+<div class="profile-wrapper">
+
+    <div class="profile-card">
+        <div class="avatar shadow-sm">
+            {% if user.avatar %}
+                <img src="{{ user.avatar.url }}" class="avatar-img" alt="Avatar">
+            {% else %}
+                <span class="d-flex align-items-center justify-content-center h-100 bg-primary text-white fs-1">{{ user.first_name|slice:":1"|upper }}</span>
+            {% endif %}
+            <label for="avatar-input" class="avatar-btn shadow-sm">
+                <i class="bi bi-camera-fill"></i>
+                <input type="file" id="avatar-input" hidden>
+            </label>
+        </div>
+        <div class="profile-meta">
+            <h2 class="mb-1">{{ user.get_full_name|default:user.username }}</h2>
+            <p class="text-muted small"><i class="bi bi-envelope me-1"></i> {{ user.email }}</p>
+            <p class="small mt-1"><i class="bi bi-geo-alt text-danger"></i> O'zbekiston</p>
+        </div>
+    </div>
+
+    <!-- Error/Success Messages -->
+    {% if messages %}
+        <div class="mt-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="stats-row">
+        <div class="stat-box border-0">
+            <div class="num">12</div>
+            <div class="lbl fw-bold">Kurslar</div>
+        </div>
+        <div class="stat-box border-0">
+            <div class="num">85</div>
+            <div class="lbl fw-bold">Soatlar</div>
+        </div>
+        <div class="stat-box border-0">
+            <div class="num">3</div>
+            <div class="lbl fw-bold">Yutuqlar</div>
+        </div>
+        <div class="stat-box border-0">
+            <div class="num">68%</div>
+            <div class="lbl fw-bold">Natija</div>
+        </div>
+    </div>
+
+    <div class="acc-item border-0">
+        <button class="acc-trigger open" onclick="toggleAcc(this)">
+            <span class="left">
+                <span class="icon-wrap"><i class="bi bi-person-fill"></i></span>
+                <span>Shaxsiy ma'lumotlar</span>
+            </span>
+            <i class="bi bi-chevron-down chevron"></i>
+        </button>
+        <div class="acc-body open">
+            <form method="POST" action="{% url 'profile' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="form-row-2">
+                    <div class="field">
+                        <label>Ism</label>
+                        <input type="text" name="first_name" value="{{ user.first_name }}" class="form-control shadow-none">
+                    </div>
+                    <div class="field">
+                        <label>Familiya</label>
+                        <input type="text" name="last_name" value="{{ user.last_name }}" class="form-control shadow-none">
+                    </div>
+                </div>
+                <!-- Optional inputs if form is modified to accept these -->
+                 <div class="field mt-3">
+                    <label>Telefon raqami</label>
+                    <input type="text" name="phone_number" value="{{ user.phone_number|default_if_none:'' }}" class="form-control shadow-none">
+                </div>
+                <div class="field mt-3">
+                    <label>Bio (O'zingiz haqizda qisqacha)</label>
+                    <textarea name="bio" rows="2" class="form-control shadow-none">{{ user.bio|default_if_none:'' }}</textarea>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3 w-100">Saqlash</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="acc-item border-0">
+        <button class="acc-trigger" onclick="toggleAcc(this)">
+            <span class="left">
+                <span class="icon-wrap"><i class="bi bi-journal-bookmark-fill"></i></span>
+                <span>Mening kurslarim</span>
+            </span>
+            <i class="bi bi-chevron-down chevron"></i>
+        </button>
+        <div class="acc-body">
+            <div class="course-item shadow-sm mb-3">
+                <div class="course-icon shadow-sm"><i class="bi bi-translate"></i></div>
+                <div class="flex-grow-1 ms-2">
+                    <div class="d-flex justify-content-between">
+                        <span class="course-title">Turk tili A1</span>
+                        <span class="small fw-bold text-secondary">75%</span>
+                    </div>
+                    <div class="progress-track mt-2"><div class="progress-fill" style="width: 75%"></div></div>
+                </div>
+            </div>
+            </div>
+    </div>
+
+    <div class="mt-4 px-2">
+        <a href="{% url 'logout' %}" class="btn btn-outline-danger w-100 border-2 fw-bold rounded-3">
+            <i class="bi bi-box-arrow-right me-2"></i> Tizimdan chiqish
+        </a>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleAcc(btn) {
+        const item = btn.closest('.acc-item');
+        const body = item.querySelector('.acc-body');
+        
+        // Boshqa barcha accordionlarni yopish (optional)
+        document.querySelectorAll('.acc-trigger').forEach(el => {
+            if(el !== btn) {
+                el.classList.remove('open');
+                el.nextElementSibling.style.display = 'none';
+            }
+        });
+
+        // Hozirgisini toggle qilish
+        btn.classList.toggle('open');
+        body.style.display = body.style.display === 'block' ? 'none' : 'block';
+    }
+
+    // Avatar upload preview (optional client-side handling, actual logic requires backend)
+    document.getElementById('avatar-input').addEventListener('change', function(e) {
+        if(e.target.files && e.target.files[0]) {
+            // Option 1: auto-submit the form
+            // e.target.closest('form').submit(); 
+            // Warning: there's no form wrapping the avatar input right now.
+            // Option 2: create a form dynamically and submit to a specific view
+            const formData = new FormData();
+            formData.append('avatar', e.target.files[0]);
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+            
+            fetch("{% url 'profile' %}", {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if(response.ok) {
+                    window.location.reload();
+                }
+            });
+        }
+    });
+
+</script>
+{% endblock %}

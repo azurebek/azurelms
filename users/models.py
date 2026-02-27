@@ -13,6 +13,7 @@ class CustomUser(AbstractUser):
     # Profil uchun
     phone_number = models.CharField(max_length=20, blank=True, null=True)
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
+    bio = models.TextField(blank=True, null=True, help_text="O'zingiz haqida qisqacha ma'lumot")
 
     # O'quvchining umumiy XP (Tajriba) ballari
     total_xp = models.IntegerField(default=0, help_text="O'quvchining jami to'plagan XP ballari")

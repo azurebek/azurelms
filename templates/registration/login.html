@@ -1,0 +1,276 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Kirish - AzureLMS{% endblock %}
+{% block meta_description %}AzureLMS platformasiga kiring va turk tilini o'rganishni davom ettiring{% endblock %}
+
+{% block extra_css %}
+    .login-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        background: #f8f9fa;
+    }
+
+    .login-card {
+        width: 100%;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .login-header .icon {
+        font-size: 3rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+
+    .login-header h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--dark-color);
+    }
+
+    .login-header p {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: var(--dark-color);
+        margin-bottom: 0.5rem;
+        display: block;
+        font-size: 0.95rem;
+    }
+
+    .form-control {
+        height: 48px;
+        border-radius: 0.5rem;
+        border: 2px solid #e0e0e0;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(227, 10, 23, 0.1);
+    }
+
+    .password-wrapper {
+        position: relative;
+    }
+
+    .toggle-password {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        padding: 0.25rem;
+    }
+
+    .toggle-password:hover {
+        color: var(--primary-color);
+    }
+
+    .form-check {
+        margin-bottom: 1rem;
+    }
+
+    .form-check-input {
+        width: 18px;
+        height: 18px;
+        margin-top: 0.25rem;
+        cursor: pointer;
+    }
+
+    .form-check-input:checked {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .forgot-link {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .forgot-link:hover {
+        text-decoration: underline;
+    }
+
+    .btn-login {
+        height: 48px;
+        font-size: 1rem;
+        font-weight: 600;
+        width: 100%;
+        margin-top: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .divider {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin: 1.5rem 0;
+        color: var(--text-muted);
+    }
+
+    .divider::before,
+    .divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: #e0e0e0;
+    }
+
+    .btn-social {
+        height: 48px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+
+    .signup-link {
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    .signup-link a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .signup-link a:hover {
+        text-decoration: underline;
+    }
+
+    @media (max-width: 480px) {
+        .login-container {
+            padding: 0.75rem;
+        }
+
+        .login-header h1 {
+            font-size: 1.5rem;
+        }
+
+        .form-control {
+            height: 44px;
+            font-size: 16px;
+        }
+
+        .btn-login {
+            height: 44px;
+        }
+    }
+{% endblock %}
+
+{% block content %}
+<main class="login-container">
+    <div class="login-card">
+        <!-- Header -->
+        <div class="login-header">
+            <div class="icon">
+                <i class="bi bi-box-arrow-in-right"></i>
+            </div>
+            <h1>Kirish</h1>
+            <p>AzureLMS platformasiga kiring</p>
+        </div>
+
+        <!-- Error Messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Login Form -->
+        <form method="POST" action="{% url 'login' %}" class="needs-validation">
+            {% csrf_token %}
+
+            <!-- Email/Username -->
+            <div class="form-group">
+                <label for="identifier">Email yoki Username</label>
+                <input type="text" class="form-control" id="identifier" name="username" 
+                       placeholder="Email yoki username" required>
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+                <label for="password">Parol</label>
+                <div class="password-wrapper">
+                    <input type="password" class="form-control" id="password" name="password" 
+                           placeholder="Parolni kiriting" required>
+                    <button type="button" class="toggle-password" onclick="togglePassword('password', this)">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Remember Me & Forgot Password -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="form-check mb-0">
+                    <input class="form-check-input" type="checkbox" id="remember" name="remember">
+                    <label class="form-check-label" for="remember">Meni eslab qol</label>
+                </div>
+                <a href="{% url 'password_reset' %}" class="forgot-link">Parolni unutdingizmi?</a>
+            </div>
+
+            <!-- Login Button -->
+            <button type="submit" class="btn btn-danger btn-login">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Kirish
+            </button>
+        </form>
+
+        <!-- Divider -->
+        <div class="divider">yoki</div>
+
+        <!-- Google Login -->
+        <button type="button" class="btn btn-outline-secondary btn-social">
+            <i class="bi bi-google me-2"></i>Google bilan kirish
+        </button>
+
+        <!-- Sign Up Link -->
+        <p class="signup-link mt-4">
+            Hisobingiz yo'qmi? <a href="{% url 'register' %}">Ro'yxatdan o'ting</a>
+        </p>
+    </div>
+</main>
+
+<script>
+    function togglePassword(inputId, button) {
+        const input = document.getElementById(inputId);
+        const icon = button.querySelector('i');
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+        }
+    }
+</script>
+{% endblock %}

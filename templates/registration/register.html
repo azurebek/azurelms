@@ -1,0 +1,445 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ro'yxatdan o'tish - AzureLMS{% endblock %}
+{% block meta_description %}AzureLMS platformasiga ro'yxatdan o'ting va turk tilini o'rganishni boshlang{% endblock %}
+
+{% block extra_css %}
+    .auth-section {
+        min-height: calc(100vh - 80px);
+        display: flex;
+        align-items: center;
+        padding: 3rem 0;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+
+    .auth-card {
+        background: #fff;
+        border-radius: 1.5rem;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .auth-left {
+        background: linear-gradient(135deg, var(--secondary-color) 0%, #0080b3 100%);
+        padding: 3rem;
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-height: 600px;
+    }
+
+    .auth-left h2 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+
+    .auth-left p {
+        opacity: 0.9;
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+    }
+
+    .auth-features {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .auth-features li {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        font-size: 1rem;
+    }
+
+    .auth-features li i {
+        width: 24px;
+        height: 24px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+    }
+
+    .auth-right {
+        padding: 3rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .auth-right h3 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--dark-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .auth-right .subtitle {
+        color: var(--text-muted);
+        margin-bottom: 2rem;
+    }
+
+    .form-floating {
+        margin-bottom: 1rem;
+    }
+
+    .form-floating .form-control {
+        height: 56px;
+        border-radius: 0.75rem;
+        border: 2px solid var(--border-color);
+        padding: 1rem 1rem;
+    }
+
+    .form-floating .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(227, 10, 23, 0.15);
+    }
+
+    .form-floating label {
+        padding: 1rem;
+    }
+
+    .form-check {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-check-input:checked {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .btn-register {
+        height: 50px;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 0.75rem;
+    }
+
+    .divider {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin: 1.5rem 0;
+        color: var(--text-muted);
+    }
+
+    .divider::before,
+    .divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--border-color);
+    }
+
+    .social-login {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .social-login .btn {
+        flex: 1;
+        height: 46px;
+        border-radius: 0.75rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .btn-google {
+        background: #fff;
+        border: 2px solid var(--border-color);
+        color: var(--text-color);
+    }
+
+    .btn-google:hover {
+        background: #f8f9fa;
+        border-color: #dee2e6;
+    }
+
+    .auth-footer {
+        text-align: center;
+        color: var(--text-muted);
+    }
+
+    .auth-footer a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .auth-footer a:hover {
+        text-decoration: underline;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        z-index: 10;
+    }
+
+    .password-toggle:hover {
+        color: var(--primary-color);
+    }
+
+    .input-group-password {
+        position: relative;
+    }
+
+    .password-strength {
+        height: 4px;
+        background: var(--border-color);
+        border-radius: 2px;
+        margin-top: 0.5rem;
+        overflow: hidden;
+    }
+
+    .password-strength-bar {
+        height: 100%;
+        width: 0%;
+        transition: all 0.3s;
+        border-radius: 2px;
+    }
+
+    .password-strength-text {
+        font-size: 0.8rem;
+        margin-top: 0.25rem;
+    }
+
+    .terms-text {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+
+    .terms-text a {
+        color: var(--primary-color);
+        text-decoration: none;
+    }
+
+    .terms-text a:hover {
+        text-decoration: underline;
+    }
+
+    @media (max-width: 991px) {
+        .auth-left {
+            min-height: auto;
+            padding: 2rem;
+        }
+        
+        .auth-right {
+            padding: 2rem;
+        }
+    }
+{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="container">
+        <div class="auth-card">
+            <div class="row g-0">
+                <!-- Left Side - Info -->
+                <div class="col-lg-5 d-none d-lg-block">
+                    <div class="auth-left">
+                        <h2>Turk tilini o'rganing!</h2>
+                        <p>AzureLMS platformasiga qo'shiling va professional o'qituvchilar bilan tilni mukammal o'rganing.</p>
+                        <ul class="auth-features">
+                            <li>
+                                <i class="bi bi-check"></i>
+                                <span>Bepul boshlang'ich darslar</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check"></i>
+                                <span>A1 dan C1 gacha barcha darajalar</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check"></i>
+                                <span>Professional sertifikat</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check"></i>
+                                <span>24/7 qo'llab-quvvatlash</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check"></i>
+                                <span>Mobil ilovadan foydalanish</span>
+                            </li>
+                        </ul>
+                        <div class="mt-auto pt-4">
+                            <p class="mb-2" style="opacity: 0.7; font-size: 0.9rem;">Allaqachon hisobingiz bormi?</p>
+                            <a href="#" class="btn btn-outline-light">Kirish</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Side - Form -->
+                <div class="col-lg-7">
+                    <div class="auth-right">
+                        <h3>Ro'yxatdan o'tish</h3>
+                        <p class="subtitle">Bepul hisob yarating va o'rganishni boshlang</p>
+                        
+                        <!-- Register Form -->
+                        <form method="POST" action="{% url 'register' %}">
+                            {% csrf_token %}
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="first_name" name="first_name" placeholder="Ismingiz" required>
+                                        <label for="first_name"><i class="bi bi-person me-2"></i>Ismingiz</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="last_name" name="last_name" placeholder="Familiyangiz" required>
+                                        <label for="last_name"><i class="bi bi-person me-2"></i>Familiyangiz</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-floating">
+                                <input type="email" class="form-control" id="email" name="email" placeholder="Email manzilingiz" required>
+                                <label for="email"><i class="bi bi-envelope me-2"></i>Email manzilingiz</label>
+                            </div>
+                            
+                            <div class="form-floating">
+                                <input type="tel" class="form-control" id="phone_number" name="phone_number" placeholder="Telefon raqamingiz">
+                                <label for="phone_number"><i class="bi bi-phone me-2"></i>Telefon raqamingiz (ixtiyoriy)</label>
+                            </div>
+                            
+                            <div class="form-floating input-group-password">
+                                <input type="password" class="form-control" id="password" name="password1" placeholder="Parol yarating" required onkeyup="checkPasswordStrength(this.value)">
+                                <label for="password"><i class="bi bi-lock me-2"></i>Parol yarating</label>
+                                <button type="button" class="password-toggle" onclick="togglePassword('password', this)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength">
+                                <div class="password-strength-bar" id="strengthBar"></div>
+                            </div>
+                            <p class="password-strength-text" id="strengthText"></p>
+                            
+                            <div class="form-floating input-group-password mt-3">
+                                <input type="password" class="form-control" id="password2" name="password2" placeholder="Parolni tasdiqlang" required>
+                                <label for="password2"><i class="bi bi-lock-fill me-2"></i>Parolni tasdiqlang</label>
+                                <button type="button" class="password-toggle" onclick="togglePassword('password2', this)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="form-check mt-3">
+                                <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
+                                <label class="form-check-label terms-text" for="terms">
+                                    Men <a href="#">foydalanish shartlari</a> va <a href="#">maxfiylik siyosati</a>ga roziman
+                                </label>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary btn-register w-100">
+                                <i class="bi bi-person-plus me-2"></i>Ro'yxatdan o'tish
+                            </button>
+                        </form>
+                        
+                        <div class="divider">yoki</div>
+                        
+                        <!-- Social Login -->
+                        <div class="social-login">
+                            <button class="btn btn-google">
+                                <svg width="18" height="18" viewBox="0 0 18 18">
+                                    <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
+                                    <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+                                    <path fill="#FBBC05" d="M3.964 10.71c-.18-.54-.282-1.117-.282-1.71s.102-1.17.282-1.71V4.958H.957C.347 6.173 0 7.548 0 9s.348 2.827.957 4.042l3.007-2.332z"/>
+                                    <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/>
+                                </svg>
+                                Google bilan ro'yxatdan o'tish
+                            </button>
+                        </div>
+                        
+                        <div class="auth-footer d-lg-none">
+                            <p>Allaqachon hisobingiz bormi? <a href="#">Kirish</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function togglePassword(inputId, button) {
+        const input = document.getElementById(inputId);
+        const icon = button.querySelector('i');
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+        }
+    }
+
+    function checkPasswordStrength(password) {
+        const strengthBar = document.getElementById('strengthBar');
+        const strengthText = document.getElementById('strengthText');
+        
+        let strength = 0;
+        let text = '';
+        let color = '';
+        
+        if (password.length >= 8) strength++;
+        if (password.match(/[a-z]/)) strength++;
+        if (password.match(/[A-Z]/)) strength++;
+        if (password.match(/[0-9]/)) strength++;
+        if (password.match(/[^a-zA-Z0-9]/)) strength++;
+        
+        switch(strength) {
+            case 0:
+            case 1:
+                text = 'Juda zaif';
+                color = '#dc3545';
+                break;
+            case 2:
+                text = 'Zaif';
+                color = '#fd7e14';
+                break;
+            case 3:
+                text = 'O\'rtacha';
+                color = '#ffc107';
+                break;
+            case 4:
+                text = 'Kuchli';
+                color = '#20c997';
+                break;
+            case 5:
+                text = 'Juda kuchli';
+                color = '#198754';
+                break;
+        }
+        
+        strengthBar.style.width = (strength * 20) + '%';
+        strengthBar.style.background = color;
+        strengthText.textContent = password.length > 0 ? text : '';
+        strengthText.style.color = color;
+    }
+</script>
+{% endblock %}
