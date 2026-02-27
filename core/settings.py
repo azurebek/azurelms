@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,7 +24,7 @@ GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-2a_%)$5#7wb)p8^-1p)l72@ezd$pbxha$!bvemcbo_%!iyx3hl"
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -84,21 +84,19 @@ WSGI_APPLICATION = "core.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-import os as _os
-
 # PostgreSQL ishlatish (production uchun)
 # Agar PostgreSQL o'rnatilmagan bo'lsa, SQLite ishlatiladi
-_USE_POSTGRES = _os.getenv('USE_POSTGRES', 'false').lower() == 'true'
+_USE_POSTGRES = os.getenv('USE_POSTGRES', 'false').lower() == 'true'
 
 if _USE_POSTGRES:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': _os.getenv('DB_NAME', 'azure_lms'),
-            'USER': _os.getenv('DB_USER', 'azurebek'),
-            'PASSWORD': _os.getenv('DB_PASSWORD', 'admin'),
-            'HOST': _os.getenv('DB_HOST', 'localhost'),
-            'PORT': _os.getenv('DB_PORT', '5432'),
+            'NAME': os.getenv('DB_NAME', 'azure_lms'),
+            'USER': os.getenv('DB_USER', 'azurebek'),
+            'PASSWORD': os.getenv('DB_PASSWORD', 'admin'),
+            'HOST': os.getenv('DB_HOST', 'localhost'),
+            'PORT': os.getenv('DB_PORT', '5432'),
         }
     }
 else:
