@@ -10,13 +10,13 @@
         display: flex;
         align-items: center;
         padding: 3rem 0;
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        background: transparent;
     }
 
     .auth-card {
-        background: #fff;
+        background: var(--card-bg);
         border-radius: 1.5rem;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--card-shadow);
         overflow: hidden;
         max-width: 1000px;
         margin: 0 auto;
@@ -79,7 +79,7 @@
     .auth-right h3 {
         font-size: 1.75rem;
         font-weight: 700;
-        color: var(--dark-color);
+        color: var(--text-color);
         margin-bottom: 0.5rem;
     }
 
@@ -96,6 +96,8 @@
         height: 56px;
         border-radius: 0.75rem;
         border: 2px solid var(--border-color);
+        background-color: var(--input-bg);
+        color: var(--text-color);
         padding: 1rem 1rem;
     }
 
@@ -158,14 +160,14 @@
     }
 
     .btn-google {
-        background: #fff;
+        background: var(--input-bg);
         border: 2px solid var(--border-color);
         color: var(--text-color);
     }
 
     .btn-google:hover {
-        background: #f8f9fa;
-        border-color: #dee2e6;
+        background: var(--border-color);
+        border-color: var(--border-color);
     }
 
     .auth-footer {

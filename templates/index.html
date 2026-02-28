@@ -62,10 +62,10 @@
                     Interaktiv darslar va jonli muloqot.
                 </p>
                 <div class="hero-buttons">
-                    <a href="#" class="btn btn-primary btn-lg mb-2 mb-sm-0">
+                    <a href="{% url 'register' %}" class="btn btn-primary btn-lg mb-2 mb-sm-0">
                         <i class="bi bi-play-circle me-2"></i>Boshlash
                     </a>
-                    <a href="#" class="btn btn-outline-light btn-lg ms-sm-2">
+                    <a href="{% url 'courses' %}" class="btn btn-outline-light btn-lg ms-sm-2">
                         <i class="bi bi-collection-play me-2"></i>Kurslar
                     </a>
                 </div>
@@ -95,7 +95,7 @@
     </div>
 </section>
 
-<section class="courses-section bg-light">
+<section class="courses-section" style="background-color: var(--light-color);">
     <div class="container py-5">
         <div class="section-title text-center mb-5">
             <h2 class="fw-bold">Mashhur kurslar</h2>
@@ -104,29 +104,29 @@
         <div class="row g-4">
             {% for course in popular_courses %}
             <div class="col-12 col-md-6 col-lg-4">
-                <div class="course-card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-white">
-                    <div class="course-image p-5 text-center bg-danger text-white position-relative" style="background: linear-gradient(135deg, var(--primary-color), #ff6b6b)!important;">
+                <div class="course-card card h-100 border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="course-image p-5 text-center position-relative" style="background: linear-gradient(135deg, var(--primary-color), #ff6b6b)!important; color: white;">
                         <span class="badge bg-warning text-dark position-absolute top-0 start-0 m-3">{{ course.get_level_display }}</span>
                         <i class="bi bi-book display-4"></i>
                     </div>
                     <div class="course-body p-4">
                         <h5 class="fw-bold">{{ course.title }}</h5>
                         <p class="small text-muted mb-3">{{ course.description|truncatewords:12 }}</p>
-                        <div class="d-flex justify-content-between small text-muted mb-3 border-top pt-2">
+                        <div class="d-flex justify-content-between small text-muted mb-3 border-top pt-2" style="border-color: var(--border-color) !important;">
                             <span><i class="bi bi-play-circle text-primary me-1"></i> {{ course.lessons_count }} dars</span>
                             <span><i class="bi bi-clock text-primary me-1"></i> {{ course.duration }} soat</span>
                         </div>
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="h5 fw-bold text-primary mb-0">{{ course.price|floatformat:0 }} so'm</span>
-                            <a href="#" class="btn btn-outline-primary btn-sm rounded-pill px-3">Batafsil</a>
+                            <a href="{% url 'course_detail' course.pk %}" class="btn btn-outline-primary btn-sm rounded-pill px-3">Batafsil</a>
                         </div>
                     </div>
                 </div>
             </div>
             {% empty %}
             <div class="col-12 col-md-6 col-lg-4">
-                <div class="course-card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-white">
-                    <div class="course-image p-5 text-center bg-primary text-white" style="background: linear-gradient(135deg, var(--secondary-color), #00d4ff)!important;">
+                <div class="course-card card h-100 border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="course-image p-5 text-center text-white" style="background: linear-gradient(135deg, var(--secondary-color), #00d4ff)!important;">
                         <i class="bi bi-translate display-4"></i>
                     </div>
                     <div class="p-4 text-center">
@@ -176,12 +176,12 @@
     </div>
 </section>
 
-<section class="cta-section py-5 bg-primary text-white">
+<section class="cta-section py-5" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); color: white;">
     <div class="container">
-        <div class="bg-white text-dark p-4 p-md-5 rounded-5 shadow-lg text-center">
+        <div class="card border-0 p-4 p-md-5 rounded-5 shadow-lg text-center">
             <h2 class="fw-bold">Sayohatni boshlaymizmi?</h2>
             <p class="text-muted mb-4">Hoziroq ro'yxatdan o'ting va birinchi darsga bepul kiring.</p>
-            <a href="#" class="btn btn-primary btn-lg px-5 rounded-pill">Bepul boshlash</a>
+            <a href="{% url 'register' %}" class="btn btn-primary btn-lg px-5 rounded-pill">Bepul boshlash</a>
         </div>
     </div>
 </section>

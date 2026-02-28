@@ -10,7 +10,7 @@
         display: flex;
         align-items: center;
         padding: 1rem;
-        background: #f8f9fa;
+        background: transparent;
     }
 
     .login-card {
@@ -33,7 +33,7 @@
     .login-header h1 {
         font-size: 1.75rem;
         font-weight: 700;
-        color: var(--dark-color);
+        color: var(--text-color);
     }
 
     .login-header p {
@@ -47,7 +47,7 @@
 
     .form-group label {
         font-weight: 600;
-        color: var(--dark-color);
+        color: var(--text-color);
         margin-bottom: 0.5rem;
         display: block;
         font-size: 0.95rem;
@@ -56,7 +56,9 @@
     .form-control {
         height: 48px;
         border-radius: 0.5rem;
-        border: 2px solid #e0e0e0;
+        border: 2px solid var(--border-color);
+        background-color: var(--input-bg);
+        color: var(--text-color);
         padding: 0.75rem 1rem;
         font-size: 1rem;
     }
@@ -135,7 +137,7 @@
         content: '';
         flex: 1;
         height: 1px;
-        background: #e0e0e0;
+        background: var(--border-color);
     }
 
     .btn-social {

@@ -6,16 +6,16 @@
 
 {% block extra_css %}
     :root {
-        --primary: #E30A17;
+        --primary: var(--primary-color);
         --primary-dark: #B8000F;
-        --secondary: #00A1DE;
-        --accent: #FFD700;
+        --secondary: var(--secondary-color);
+        --accent: var(--accent-color);
         --success: #10b981;
         --warning: #f59e0b;
-        --dark: #1a1a2e;
-        --muted: #6c757d;
-        --light: #f8f9fa;
-        --border: #e5e7eb;
+        --dark: var(--text-color);
+        --muted: var(--text-muted);
+        --light: var(--bg-color);
+        --border: var(--border-color);
         --card-shadow: 0 2px 12px rgba(0,0,0,0.08);
     }
 
@@ -26,13 +26,13 @@
         min-height: calc(100vh - 80px);
         padding: 1rem;
         gap: 1rem;
-        background: var(--light);
+        background: var(--bg-color);
     }
 
     /* Welcome Card */
     .welcome-card {
         background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-        color: white;
+        color: #fff;
         padding: 1.5rem;
         border-radius: 1rem;
     }
@@ -41,14 +41,14 @@
         font-size: 1.25rem;
         font-weight: 700;
         margin-bottom: 0.25rem;
-        color: white; /* Har ehtimolga qarshi to'g'ridan-to'g'ri rangni beramiz */
+        color: #fff; /* Always white due to the solid dark red gradient */
     }
 
     .welcome-card p {
         opacity: 0.9;
         font-size: 0.9rem;
         margin-bottom: 1rem;
-        color: white;
+        color: rgba(255, 255, 255, 0.9);
     }
 
     .streak-badge {
@@ -60,7 +60,7 @@
         border-radius: 2rem;
         font-size: 0.85rem;
         font-weight: 600;
-        color: white;
+        color: #fff;
     }
 
     .streak-badge i { color: var(--accent); }
@@ -73,7 +73,7 @@
     }
 
     .stat-card {
-        background: white;
+        background: var(--card-bg);
         padding: 1rem;
         border-radius: 0.75rem;
         box-shadow: var(--card-shadow);
@@ -91,10 +91,10 @@
         font-size: 1.25rem;
     }
 
-    .stat-card .icon.red { background: #fee2e2; color: var(--primary); }
-    .stat-card .icon.blue { background: #dbeafe; color: var(--secondary); }
-    .stat-card .icon.green { background: #d1fae5; color: var(--success); }
-    .stat-card .icon.yellow { background: #fef3c7; color: var(--warning); }
+    .stat-card .icon.red { background: rgba(227, 10, 23, 0.1); color: var(--primary); }
+    .stat-card .icon.blue { background: rgba(0, 161, 222, 0.1); color: var(--secondary); }
+    .stat-card .icon.green { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+    .stat-card .icon.yellow { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
 
     .stat-card .value {
         font-size: 1.5rem;
@@ -109,7 +109,8 @@
 
     /* Cards */
     .card-section {
-        background: white;
+        background: var(--card-bg);
+        color: var(--text-color);
         border-radius: 1rem;
         box-shadow: var(--card-shadow);
         overflow: hidden;
@@ -218,10 +219,10 @@
     }
 
     .leader-item:last-child { margin-bottom: 0; }
-    .leader-item.top-1 { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
-    .leader-item.top-2 { background: #f1f5f9; }
-    .leader-item.top-3 { background: #fef3c7; }
-    .leader-item.current { background: #ecfdf5; border: 2px solid var(--success); }
+    .leader-item.top-1 { background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); }
+    .leader-item.top-2 { background: var(--border); }
+    .leader-item.top-3 { background: rgba(245, 158, 11, 0.05); }
+    .leader-item.current { background: rgba(16, 185, 129, 0.1); border: 2px solid var(--success); }
 
     .leader-rank {
         width: 28px;
@@ -285,9 +286,9 @@
         font-weight: 700;
     }
 
-    .course-icon.a1 { background: #dbeafe; color: var(--secondary); }
-    .course-icon.a2 { background: #d1fae5; color: var(--success); }
-    .course-icon.b1 { background: #fef3c7; color: var(--warning); }
+    .course-icon.a1 { background: rgba(0, 161, 222, 0.1); color: var(--secondary); }
+    .course-icon.a2 { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+    .course-icon.b1 { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
 
     .course-info { flex: 1; }
     .course-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.25rem; }

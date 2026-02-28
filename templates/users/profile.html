@@ -5,15 +5,14 @@
 
 {% block extra_css %}
     /* Asosiy ranglar va fon */
-    body { background: #f4f6f9; }
-    
     .profile-wrapper { max-width: 800px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
 
     /* Profil Kartochkasi */
     .profile-card {
         display: flex;
         align-items: center;
-        background: #fff;
+        background: var(--card-bg);
+        color: var(--text-color);
         padding: 2rem;
         border-radius: 1rem;
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
@@ -27,7 +26,7 @@
         width: 120px;
         height: 120px;
         border-radius: 50%;
-        background: #f8f9fa;
+        background: var(--light-color);
         flex-shrink: 0;
     }
     .avatar-img {
@@ -37,8 +36,8 @@
         position: absolute;
         bottom: 0;
         right: 0;
-        background: #fff;
-        color: var(--secondary-color, #00A1DE);
+        background: var(--card-bg);
+        color: var(--secondary-color);
         width: 36px;
         height: 36px;
         border-radius: 50%;
@@ -49,13 +48,13 @@
         transition: all 0.3s ease;
     }
     .avatar-btn:hover {
-        background: var(--secondary-color, #00A1DE);
+        background: var(--secondary-color);
         color: #fff;
     }
 
     .profile-meta h2 {
         font-weight: 700;
-        color: var(--dark-color, #16213e);
+        color: var(--text-color);
     }
 
     /* Statistika */
@@ -66,7 +65,8 @@
         margin-bottom: 2rem;
     }
     .stat-box {
-        background: #fff;
+        background: var(--card-bg);
+        color: var(--text-color);
         padding: 1.5rem 1rem;
         border-radius: 1rem;
         text-align: center;
@@ -75,17 +75,18 @@
     .stat-box .num { 
         font-size: 1.5rem;
         font-weight: 700;
-        color: var(--secondary-color, #00A1DE); 
+        color: var(--secondary-color); 
         margin-bottom: 0.5rem;
     }
     .stat-box .lbl {
         font-size: 0.875rem;
-        color: var(--text-muted, #6c757d);
+        color: var(--text-muted);
     }
 
     /* Accordion / Tablar */
     .acc-item {
-        background: #fff;
+        background: var(--card-bg);
+        color: var(--text-color);
         border-radius: 1rem;
         margin-bottom: 1rem;
         overflow: hidden;
@@ -100,7 +101,7 @@
         background: none;
         border: none;
         font-weight: 600;
-        color: var(--dark-color, #16213e);
+        color: var(--text-color);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
     }
     .acc-trigger .left {
@@ -113,7 +114,7 @@
         height: 32px;
         border-radius: 8px;
         background: rgba(0, 161, 222, 0.1);
-        color: var(--secondary-color, #00A1DE);
+        color: var(--secondary-color);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -143,7 +144,7 @@
         font-size: 0.875rem;
         font-weight: 500;
         margin-bottom: 0.5rem;
-        color: var(--dark-color, #16213e);
+        color: var(--text-color);
     }
     
     .course-item {
@@ -151,14 +152,14 @@
         align-items: center;
         padding: 1rem;
         border-radius: 0.75rem;
-        border: 1px solid #eee;
+        border: 1px solid var(--border-color);
     }
     .course-icon {
         width: 48px;
         height: 48px;
         border-radius: 0.5rem;
         background: rgba(0, 161, 222, 0.1);
-        color: var(--secondary-color, #00A1DE);
+        color: var(--secondary-color);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -167,17 +168,17 @@
     }
     .course-title {
         font-weight: 600;
-        color: var(--dark-color, #16213e);
+        color: var(--text-color);
     }
     .progress-track { 
         height: 6px;
-        background: #eee;
+        background: var(--border-color);
         border-radius: 3px;
         overflow: hidden;
     }
     .progress-fill { 
         height: 100%;
-        background: linear-gradient(90deg, var(--secondary-color, #00A1DE), #00d4ff); 
+        background: linear-gradient(90deg, var(--secondary-color), #00d4ff); 
         border-radius: 3px;
     }
 

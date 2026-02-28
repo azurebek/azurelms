@@ -13,6 +13,9 @@ urlpatterns = [
     # Users (Auth)
     path('users/', include('users.urls')),
     
+    # Courses
+    path('courses/', include('courses.urls')),
+    
     # CKEditor rasm yuklash manzili
     path("ckeditor5/", include('django_ckeditor_5.urls'), name="ck_editor_5_upload_file"),
 ]
