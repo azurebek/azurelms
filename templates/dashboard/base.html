@@ -126,8 +126,8 @@
                 <div class="dropdown">
                     <button class="btn btn-light dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown">
                         <div class="avatar avatar-sm">
-                            {% if user.profile.avatar %}
-                            <img src="{{ user.profile.avatar.url }}" alt="{{ user.first_name }}">
+                            {% if user.avatar %}
+                            <img src="{{ user.avatar.url }}" alt="{{ user.first_name }}">
                             {% else %}
                             <span>{{ user.first_name|default:"U"|slice:":1" }}{{ user.last_name|default:"U"|slice:":1" }}</span>
                             {% endif %}
@@ -153,16 +153,7 @@
         
         <!-- Dashboard Content -->
         <div class="dashboard-content">
-            {% if messages %}
-            <div class="alert-container mb-4">
-                {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
+
             
             {% block dashboard_content %}{% endblock %}
         </div>
