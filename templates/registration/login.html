@@ -1,278 +1,183 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Kirish - AzureLMS{% endblock %}
-{% block meta_description %}AzureLMS platformasiga kiring va turk tilini o'rganishni davom ettiring{% endblock %}
+{% block title %}Kirish | AzureLMS{% endblock %}
 
 {% block extra_css %}
-    .login-container {
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        padding: 1rem;
-        background: transparent;
+<style>
+    body {
+        background-color: var(--lms-bg);
     }
-
-    .login-card {
-        width: 100%;
-        max-width: 500px;
-        margin: 0 auto;
-    }
-
-    .login-header {
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-
-    .login-header .icon {
-        font-size: 3rem;
-        color: var(--primary-color);
-        margin-bottom: 1rem;
-    }
-
-    .login-header h1 {
-        font-size: 1.75rem;
-        font-weight: 700;
-        color: var(--text-color);
-    }
-
-    .login-header p {
-        color: var(--text-muted);
-        font-size: 0.95rem;
-    }
-
-    .form-group {
-        margin-bottom: 1.5rem;
-    }
-
-    .form-group label {
-        font-weight: 600;
-        color: var(--text-color);
-        margin-bottom: 0.5rem;
-        display: block;
-        font-size: 0.95rem;
-    }
-
-    .form-control {
-        height: 48px;
-        border-radius: 0.5rem;
-        border: 2px solid var(--border-color);
-        background-color: var(--input-bg);
-        color: var(--text-color);
-        padding: 0.75rem 1rem;
-        font-size: 1rem;
-    }
-
-    .form-control:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(227, 10, 23, 0.1);
-    }
-
-    .password-wrapper {
-        position: relative;
-    }
-
-    .toggle-password {
-        position: absolute;
-        right: 1rem;
-        top: 50%;
-        transform: translateY(-50%);
-        background: none;
-        border: none;
-        color: var(--text-muted);
-        cursor: pointer;
-        padding: 0.25rem;
-    }
-
-    .toggle-password:hover {
-        color: var(--primary-color);
-    }
-
-    .form-check {
-        margin-bottom: 1rem;
-    }
-
-    .form-check-input {
-        width: 18px;
-        height: 18px;
-        margin-top: 0.25rem;
-        cursor: pointer;
-    }
-
-    .form-check-input:checked {
-        background-color: var(--primary-color);
-        border-color: var(--primary-color);
-    }
-
-    .forgot-link {
-        color: var(--primary-color);
-        text-decoration: none;
-        font-weight: 500;
-        font-size: 0.9rem;
-    }
-
-    .forgot-link:hover {
-        text-decoration: underline;
-    }
-
-    .btn-login {
-        height: 48px;
-        font-size: 1rem;
-        font-weight: 600;
-        width: 100%;
-        margin-top: 1.5rem;
-        margin-bottom: 1rem;
-    }
-
-    .divider {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        margin: 1.5rem 0;
-        color: var(--text-muted);
-    }
-
-    .divider::before,
-    .divider::after {
-        content: '';
-        flex: 1;
-        height: 1px;
-        background: var(--border-color);
-    }
-
-    .btn-social {
-        height: 48px;
-        font-size: 0.95rem;
-        font-weight: 500;
-        width: 100%;
-        margin-bottom: 1rem;
-    }
-
-    .signup-link {
-        text-align: center;
-        color: var(--text-muted);
-        font-size: 0.9rem;
-    }
-
-    .signup-link a {
-        color: var(--primary-color);
-        text-decoration: none;
-        font-weight: 600;
-    }
-
-    .signup-link a:hover {
-        text-decoration: underline;
-    }
-
-    @media (max-width: 480px) {
-        .login-container {
-            padding: 0.75rem;
-        }
-
-        .login-header h1 {
-            font-size: 1.5rem;
-        }
-
-        .form-control {
-            height: 44px;
-            font-size: 16px;
-        }
-
-        .btn-login {
-            height: 44px;
-        }
-    }
+</style>
 {% endblock %}
 
 {% block content %}
-<main class="login-container">
-    <div class="login-card">
-        <!-- Header -->
-        <div class="login-header">
-            <div class="icon">
-                <i class="bi bi-box-arrow-in-right"></i>
+<div class="auth-container">
+    <!-- Left Side - Branding -->
+    <div class="auth-branding d-none d-lg-flex">
+        <div class="auth-branding-content">
+            <a href="{% url 'home' %}" class="auth-logo text-decoration-none text-white">
+                <i class="bi bi-mortarboard-fill"></i>
+                <span>AzureLMS</span>
+            </a>
+            <h1>Xush kelibsiz!</h1>
+            <p>Hisobingizga kiring va turk tilini o'rganishni davom eting.</p>
+            
+            <div class="auth-features">
+                <div class="auth-feature">
+                    <i class="bi bi-check-circle"></i>
+                    <span>50+ professional kurslar</span>
+                </div>
+                <div class="auth-feature">
+                    <i class="bi bi-check-circle"></i>
+                    <span>Interaktiv darsliklar</span>
+                </div>
+                <div class="auth-feature">
+                    <i class="bi bi-check-circle"></i>
+                    <span>Sertifikatli ta'lim</span>
+                </div>
             </div>
-            <h1>Kirish</h1>
-            <p>AzureLMS platformasiga kiring</p>
         </div>
-
-        <!-- Error Messages -->
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
+    </div>
+    
+    <!-- Right Side - Form -->
+    <div class="auth-form-side">
+        <div class="auth-form-wrapper">
+            <!-- Mobile Logo -->
+            <a href="{% url 'home' %}" class="auth-mobile-logo d-lg-none text-decoration-none">
+                <i class="bi bi-mortarboard-fill"></i>
+                <span>AzureLMS</span>
+            </a>
+            
+            <div class="auth-form-header">
+                <h2>Hisobga kirish</h2>
+                <p>Email (yoki username) va parolingizni kiriting</p>
+            </div>
+            
+            {% if form.non_field_errors %}
+            <div class="alert-container">
+                {% for error in form.non_field_errors %}
+                <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-3" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i> {{ error }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
-            {% endfor %}
-        {% endif %}
-
-        <!-- Login Form -->
-        <form method="POST" action="{% url 'login' %}" class="needs-validation">
-            {% csrf_token %}
-
-            <!-- Email/Username -->
-            <div class="form-group">
-                <label for="identifier">Email yoki Username</label>
-                <input type="text" class="form-control" id="identifier" name="username" 
-                       placeholder="Email yoki username" required>
+                {% endfor %}
             </div>
+            {% endif %}
 
-            <!-- Password -->
-            <div class="form-group">
-                <label for="password">Parol</label>
-                <div class="password-wrapper">
-                    <input type="password" class="form-control" id="password" name="password" 
-                           placeholder="Parolni kiriting" required>
-                    <button type="button" class="toggle-password" onclick="togglePassword('password', this)">
-                        <i class="bi bi-eye"></i>
-                    </button>
+            {% if messages %}
+            <div class="alert-container mb-4">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show border-0 shadow-sm rounded-3" role="alert">
+                    <i class="bi bi-info-circle me-2"></i> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
+                {% endfor %}
             </div>
-
-            <!-- Remember Me & Forgot Password -->
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="form-check mb-0">
+            {% endif %}
+            
+            <form class="auth-form" method="post" action="{% url 'login' %}">
+                {% csrf_token %}
+                
+                <div class="form-group mb-4">
+                    <label for="id_username" class="form-label">Email yoki Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text border-end-0 bg-transparent text-muted">
+                            <i class="bi bi-person"></i>
+                        </span>
+                        <input 
+                            type="text" 
+                            class="form-control border-start-0 ps-0 {% if form.username.errors %}is-invalid{% endif %}" 
+                            id="id_username" 
+                            name="username"
+                            value="{{ form.username.value|default:'' }}"
+                            placeholder="Email yoki username kiriting"
+                            required
+                        >
+                    </div>
+                    {% if form.username.errors %}
+                    <div class="invalid-feedback d-block">{{ form.username.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label for="id_password" class="form-label mb-0">Parol</label>
+                        <a href="{% url 'password_reset' %}" class="text-decoration-none small fw-medium" style="color: var(--lms-primary);">Parolni unutdingizmi?</a>
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-text border-end-0 bg-transparent text-muted">
+                            <i class="bi bi-lock"></i>
+                        </span>
+                        <input 
+                            type="password" 
+                            class="form-control border-start-0 border-end-0 px-0 {% if form.password.errors %}is-invalid{% endif %}" 
+                            id="id_password" 
+                            name="password"
+                            placeholder="Parolingiz"
+                            required
+                        >
+                        <button class="btn border border-start-0 bg-transparent text-muted" type="button" id="togglePassword">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                    {% if form.password.errors %}
+                    <div class="invalid-feedback d-block">{{ form.password.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-check mb-4">
                     <input class="form-check-input" type="checkbox" id="remember" name="remember">
-                    <label class="form-check-label" for="remember">Meni eslab qol</label>
+                    <label class="form-check-label text-muted" for="remember">
+                        Meni eslab qol
+                    </label>
                 </div>
-                <a href="{% url 'password_reset' %}" class="forgot-link">Parolni unutdingizmi?</a>
+                
+                <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold">
+                    Kirish
+                </button>
+            </form>
+            
+            <div class="auth-divider">
+                <span>yoki</span>
             </div>
-
-            <!-- Login Button -->
-            <button type="submit" class="btn btn-danger btn-login">
-                <i class="bi bi-box-arrow-in-right me-2"></i>Kirish
-            </button>
-        </form>
-
-        <!-- Divider -->
-        <div class="divider">yoki</div>
-
-        <!-- Google Login -->
-        <button type="button" class="btn btn-outline-secondary btn-social">
-            <i class="bi bi-google me-2"></i>Google bilan kirish
-        </button>
-
-        <!-- Sign Up Link -->
-        <p class="signup-link mt-4">
-            Hisobingiz yo'qmi? <a href="{% url 'register' %}">Ro'yxatdan o'ting</a>
-        </p>
+            
+            <div class="social-auth d-flex flex-column gap-3">
+                <button type="button" class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center p-2 rounded-pill">
+                    <i class="bi bi-google me-2 fs-5 text-danger"></i>
+                    Google orqali kirish
+                </button>
+            </div>
+            
+            <div class="auth-footer mt-4">
+                <p class="text-muted">Hali hisobingiz yo'qmi? <a href="{% url 'register' %}" class="fw-bold" style="color: var(--lms-primary);">Ro'yxatdan o'ting</a></p>
+            </div>
+        </div>
     </div>
-</main>
+</div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
-    function togglePassword(inputId, button) {
-        const input = document.getElementById(inputId);
-        const icon = button.querySelector('i');
+    // Password visibility toggle
+    document.addEventListener('DOMContentLoaded', function() {
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('id_password');
         
-        if (input.type === 'password') {
-            input.type = 'text';
-            icon.classList.remove('bi-eye');
-            icon.classList.add('bi-eye-slash');
-        } else {
-            input.type = 'password';
-            icon.classList.remove('bi-eye-slash');
-            icon.classList.add('bi-eye');
+        if (togglePassword && passwordInput) {
+            togglePassword.addEventListener('click', function() {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                const icon = this.querySelector('i');
+                if (type === 'text') {
+                    icon.classList.remove('bi-eye');
+                    icon.classList.add('bi-eye-slash');
+                } else {
+                    icon.classList.remove('bi-eye-slash');
+                    icon.classList.add('bi-eye');
+                }
+            });
         }
-    }
+    });
 </script>
 {% endblock %}

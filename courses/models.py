@@ -4,8 +4,11 @@ from django_ckeditor_5.fields import CKEditor5Field
 
 class Course(models.Model):
     # Kursning asosiy ma'lumotlari
+    from django.conf import settings
+    
     title = models.CharField(max_length=200, verbose_name="Kurs nomi")
     description = CKEditor5Field(verbose_name="Kurs tavsifi", config_name='default')
+    instructor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='courses', verbose_name="O'qituvchi")
     is_active = models.BooleanField(default=True, verbose_name="Faolmi?")
     created_at = models.DateTimeField(auto_now_add=True)
 

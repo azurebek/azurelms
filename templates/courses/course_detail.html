@@ -1,837 +1,58 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load humanize %}
 
 {% block title %}{{ course.title }} | AzureLMS{% endblock %}
-{% block meta_description %}{{ course.description|striptags|truncatewords:20 }}{% endblock %}
-
-{% block extra_css %}
-<style>
-    /* Hero Section */
-    .course-hero {
-        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-        color: white;
-        padding: 1.5rem 0 2rem;
-    }
-
-    .course-breadcrumb {
-        font-size: 0.85rem;
-        margin-bottom: 1rem;
-    }
-
-    .course-breadcrumb a {
-        color: rgba(255,255,255,0.7);
-        text-decoration: none;
-    }
-
-    .course-breadcrumb a:hover {
-        color: white;
-    }
-
-    .course-badge {
-        display: inline-block;
-        padding: 0.35rem 0.75rem;
-        border-radius: 2rem;
-        font-size: 0.75rem;
-        font-weight: 600;
-        margin-bottom: 1rem;
-    }
-
-    .badge-level {
-        background: var(--secondary-color);
-        color: white;
-    }
-
-    .badge-bestseller {
-        background: var(--accent-color);
-        color: var(--dark-color);
-    }
-
-    .course-hero h1 {
-        font-size: 1.75rem;
-        font-weight: 700;
-        margin-bottom: 1rem;
-        line-height: 1.3;
-        color: white; /* Important for gradient bg */
-    }
-
-    .course-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-        font-size: 0.9rem;
-        margin-bottom: 1.5rem;
-        color: rgba(255,255,255,0.9);
-    }
-
-    .course-meta-item {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .course-meta-item i {
-        color: var(--accent-color);
-    }
-
-    .course-rating .stars {
-        color: var(--accent-color);
-    }
-
-    .instructor-mini {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        margin-top: 1rem;
-    }
-
-    .instructor-mini img {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        object-fit: cover;
-    }
-
-    .instructor-mini-info {
-        font-size: 0.85rem;
-    }
-
-    .instructor-mini-info span {
-        opacity: 0.7;
-    }
-
-    /* Video Preview */
-    .video-preview {
-        position: relative;
-        border-radius: 1rem;
-        overflow: hidden;
-        background: #000;
-        aspect-ratio: 16/9;
-        margin-bottom: 1.5rem;
-    }
-
-    .video-preview iframe {
-        width: 100%;
-        height: 100%;
-        border: none;
-    }
-
-    .video-placeholder {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(135deg, #1a1a2e, #16213e);
-        color: white;
-        cursor: pointer;
-    }
-
-    .play-btn {
-        width: 80px;
-        height: 80px;
-        background: var(--primary-color);
-        color: white;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2rem;
-        margin-bottom: 1rem;
-        transition: transform 0.3s, background 0.3s;
-    }
-
-    .video-placeholder:hover .play-btn {
-        transform: scale(1.1);
-    }
-
-    /* CTA Box */
-    .cta-box {
-        background: var(--card-bg);
-        border-radius: 1rem;
-        padding: 1.5rem;
-        box-shadow: var(--card-shadow);
-        border: 1px solid var(--border-color);
-    }
-
-    .cta-price {
-        margin-bottom: 1rem;
-    }
-
-    .price-current {
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--primary-color);
-    }
-
-    .price-original {
-        font-size: 1.1rem;
-        color: var(--text-muted);
-        text-decoration: line-through;
-        margin-left: 0.5rem;
-    }
-
-    .price-discount {
-        display: inline-block;
-        background: #28a745;
-        color: white;
-        padding: 0.25rem 0.5rem;
-        border-radius: 0.25rem;
-        font-size: 0.75rem;
-        font-weight: 600;
-        margin-left: 0.5rem;
-    }
-
-    .price-period {
-        display: block;
-        font-size: 0.85rem;
-        color: var(--text-muted);
-        margin-top: 0.25rem;
-    }
-
-    .btn-enroll {
-        width: 100%;
-        padding: 1rem;
-        font-size: 1.1rem;
-        font-weight: 600;
-        border-radius: 0.75rem;
-        margin-bottom: 0.75rem;
-    }
-
-    .btn-wishlist {
-        width: 100%;
-        padding: 0.75rem;
-        font-weight: 500;
-        border-radius: 0.75rem;
-        color: var(--text-color);
-        border-color: var(--border-color);
-    }
-    
-    .btn-wishlist:hover {
-        background: var(--bg-color);
-        color: var(--primary-color);
-        border-color: var(--primary-color);
-    }
-
-    .cta-features {
-        margin-top: 1.5rem;
-        padding-top: 1.5rem;
-        border-top: 1px solid var(--border-color);
-    }
-
-    .cta-feature {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        margin-bottom: 0.75rem;
-        font-size: 0.9rem;
-        color: var(--text-color);
-    }
-
-    .cta-feature i {
-        color: #28a745;
-        font-size: 1.1rem;
-    }
-
-    .guarantee {
-        text-align: center;
-        margin-top: 1rem;
-        padding-top: 1rem;
-        border-top: 1px solid var(--border-color);
-        font-size: 0.8rem;
-        color: var(--text-muted);
-    }
-
-    .guarantee i {
-        color: #28a745;
-    }
-
-    /* Content Sections */
-    .content-section {
-        background: var(--card-bg);
-        border-radius: 1rem;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: var(--card-shadow);
-        border: 1px solid var(--border-color);
-    }
-
-    .section-title {
-        font-size: 1.25rem;
-        font-weight: 700;
-        margin-bottom: 1.25rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: var(--text-color);
-    }
-
-    .section-title i {
-        color: var(--primary-color);
-    }
-
-    /* Learning Outcomes */
-    .outcomes-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 1rem;
-    }
-
-    .outcome-item {
-        display: flex;
-        align-items: flex-start;
-        gap: 0.75rem;
-        color: var(--text-color);
-    }
-
-    .outcome-icon {
-        width: 24px;
-        height: 24px;
-        min-width: 24px;
-        background: rgba(40, 167, 69, 0.1);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #28a745;
-        font-size: 0.75rem;
-    }
-
-    /* Curriculum */
-    .curriculum-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1rem;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-
-    .curriculum-stats {
-        font-size: 0.85rem;
-        color: var(--text-muted);
-    }
-
-    .module-accordion {
-        border: 1px solid var(--border-color);
-        border-radius: 0.75rem;
-        overflow: hidden;
-        margin-bottom: 0.75rem;
-    }
-
-    .module-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 1rem 1.25rem;
-        background: var(--bg-color);
-        color: var(--text-color);
-        cursor: pointer;
-        transition: background 0.3s;
-    }
-
-    .module-header:hover {
-        background: var(--input-bg);
-    }
-
-    .module-header.active {
-        background: var(--primary-color);
-        color: white;
-    }
-
-    .module-title {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        font-weight: 600;
-    }
-
-    .module-title i {
-        font-size: 0.85rem;
-        transition: transform 0.3s;
-    }
-
-    .module-header.active .module-title i {
-        transform: rotate(180deg);
-    }
-
-    .module-meta {
-        font-size: 0.8rem;
-        opacity: 0.8;
-    }
-
-    .module-content {
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.3s ease;
-        background: var(--card-bg);
-    }
-
-    .module-content.active {
-        max-height: 2000px;
-    }
-
-    .lesson-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0.85rem 1.25rem;
-        border-top: 1px solid var(--border-color);
-        font-size: 0.9rem;
-        transition: background 0.3s;
-        color: var(--text-color);
-    }
-
-    .lesson-item:hover {
-        background: var(--bg-color);
-    }
-
-    .lesson-info {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-
-    .lesson-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.85rem;
-    }
-
-    .lesson-icon.video {
-        background: rgba(0, 161, 222, 0.1);
-        color: var(--secondary-color);
-    }
-
-    .lesson-icon.quiz {
-        background: rgba(255, 193, 7, 0.1);
-        color: var(--accent-color);
-    }
-
-    .lesson-icon.locked {
-        background: rgba(108, 117, 125, 0.1);
-        color: var(--text-muted);
-    }
-
-    .lesson-icon.completed {
-        background: rgba(40, 167, 69, 0.1);
-        color: #28a745;
-    }
-
-    .lesson-title {
-        font-weight: 500;
-    }
-
-    .lesson-meta {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        font-size: 0.8rem;
-        color: var(--text-muted);
-    }
-
-    .lesson-preview {
-        font-size: 0.75rem;
-        color: var(--secondary-color);
-        font-weight: 500;
-    }
-
-    /* Instructor Section */
-    .instructor-card {
-        display: flex;
-        gap: 1.5rem;
-        flex-direction: column;
-    }
-
-    .instructor-avatar {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 4px solid var(--primary-color);
-    }
-
-    .instructor-info h4 {
-        font-weight: 700;
-        margin-bottom: 0.25rem;
-        color: var(--text-color);
-    }
-
-    .instructor-title {
-        color: var(--text-muted);
-        font-size: 0.9rem;
-        margin-bottom: 1rem;
-    }
-
-    .instructor-stats {
-        display: flex;
-        gap: 1.5rem;
-        margin-bottom: 1rem;
-        flex-wrap: wrap;
-        color: var(--text-color);
-    }
-
-    .instructor-stat {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.9rem;
-    }
-
-    .instructor-stat i {
-        color: var(--primary-color);
-    }
-
-    .instructor-bio {
-        color: var(--text-muted);
-        font-size: 0.95rem;
-    }
-
-    /* Reviews Section */
-    .reviews-summary {
-        display: flex;
-        gap: 2rem;
-        margin-bottom: 1.5rem;
-        padding-bottom: 1.5rem;
-        border-bottom: 1px solid var(--border-color);
-        flex-wrap: wrap;
-    }
-
-    .rating-big {
-        text-align: center;
-    }
-
-    .rating-number {
-        font-size: 3rem;
-        font-weight: 700;
-        color: var(--primary-color);
-        line-height: 1;
-    }
-
-    .rating-stars {
-        color: var(--accent-color);
-        font-size: 1.1rem;
-        margin: 0.5rem 0;
-    }
-
-    .rating-count {
-        font-size: 0.85rem;
-        color: var(--text-muted);
-    }
-
-    .rating-bars {
-        flex: 1;
-        min-width: 200px;
-    }
-
-    .rating-bar-item {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        margin-bottom: 0.5rem;
-        font-size: 0.85rem;
-        color: var(--text-color);
-    }
-
-    .rating-bar-item span:first-child {
-        width: 50px;
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-    }
-
-    .bar-track {
-        flex: 1;
-        height: 8px;
-        background: var(--border-color);
-        border-radius: 4px;
-        overflow: hidden;
-    }
-
-    .bar-fill {
-        height: 100%;
-        background: var(--accent-color);
-    }
-
-    .rating-bar-item span:last-child {
-        width: 35px;
-        text-align: right;
-        color: var(--text-muted);
-    }
-
-    .review-item {
-        padding: 1.25rem 0;
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    .review-item:last-child {
-        border-bottom: none;
-    }
-
-    .review-header {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        margin-bottom: 0.75rem;
-    }
-
-    .review-avatar {
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        background: var(--secondary-color);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: 600;
-        font-size: 1.1rem;
-    }
-
-    .review-author {
-        font-weight: 600;
-        margin-bottom: 0.25rem;
-        color: var(--text-color);
-    }
-
-    .review-meta {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        font-size: 0.8rem;
-        color: var(--text-muted);
-    }
-
-    .review-stars {
-        color: var(--accent-color);
-    }
-
-    .review-text {
-        color: var(--text-muted);
-        font-size: 0.95rem;
-    }
-
-    .btn-more-reviews {
-        width: 100%;
-        margin-top: 1rem;
-    }
-
-    /* Mobile CTA Fixed */
-    .mobile-cta {
-        display: none;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: var(--card-bg);
-        border-top: 1px solid var(--border-color);
-        padding: 1rem;
-        box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
-        z-index: 1000;
-    }
-
-    @media (prefers-color-scheme: dark) {
-        .mobile-cta {
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
-        }
-    }
-
-    .mobile-cta-inner {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1rem;
-    }
-
-    .mobile-cta-price .price-current {
-        font-size: 1.5rem;
-        color: var(--primary-color);
-    }
-
-    .mobile-cta .btn-enroll {
-        margin-bottom: 0;
-        white-space: nowrap;
-        padding: 0.75rem 1.5rem;
-        width: auto;
-    }
-
-    /* Sticky Sidebar */
-    .sticky-sidebar {
-        position: sticky;
-        top: 1.5rem;
-    }
-
-    /* Course Description Output */
-    .course-description-content, .course-description-content * {
-        color: var(--text-color) !important;
-        background-color: transparent !important;
-    }
-
-    /* Responsive */
-    @media (min-width: 768px) {
-        .course-hero {
-            padding: 2rem 0 3rem;
-        }
-
-        .course-hero h1 {
-            font-size: 2.25rem;
-        }
-
-        .outcomes-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .instructor-card {
-            flex-direction: row;
-            align-items: flex-start;
-        }
-    }
-
-    @media (min-width: 992px) {
-        .mobile-cta {
-            display: none !important;
-        }
-
-        .course-hero h1 {
-            font-size: 2.5rem;
-        }
-    }
-
-    @media (max-width: 991px) {
-        .desktop-cta {
-            display: none;
-        }
-
-        .mobile-cta {
-            display: block;
-        }
-
-        .main-content {
-            padding-bottom: 100px;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .course-hero {
-            padding: 1rem 0 1.5rem;
-        }
-
-        .course-hero h1 {
-            font-size: 1.5rem;
-        }
-
-        .course-meta {
-            font-size: 0.8rem;
-        }
-
-        .content-section {
-            padding: 1.25rem;
-            border-radius: 0.75rem;
-        }
-
-        .section-title {
-            font-size: 1.1rem;
-        }
-
-        .module-header {
-            padding: 0.85rem 1rem;
-        }
-
-        .lesson-item {
-            padding: 0.75rem 1rem;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.5rem;
-        }
-
-        .lesson-meta {
-            margin-left: 2.5rem;
-        }
-
-        .reviews-summary {
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .rating-big {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            text-align: left;
-        }
-    }
-</style>
-{% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
-<section class="course-hero">
+<!-- COURSE HEADER -->
+<section class="py-4 py-lg-5 text-white" style="background: linear-gradient(135deg, var(--lms-primary) 0%, var(--lms-primary-hover) 100%);">
     <div class="container">
-        <div class="row">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-white text-decoration-none opacity-75 hover-opacity-100">Bosh sahifa</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'courses' %}" class="text-white text-decoration-none opacity-75 hover-opacity-100">Kurslar</a></li>
+                <li class="breadcrumb-item text-white active" aria-current="page">{{ course.title }}</li>
+            </ol>
+        </nav>
+        
+        <div class="row g-4 g-lg-5">
             <div class="col-lg-8">
-                <!-- Breadcrumb -->
-                <nav class="course-breadcrumb">
-                    <a href="{% url 'home' %}">Bosh sahifa</a>
-                    <span class="mx-2">/</span>
-                    <a href="{% url 'courses' %}">Kurslar</a>
-                    <span class="mx-2">/</span>
-                    <span>{{ course.title }}</span>
-                </nav>
-
-                <!-- Badges -->
-                <span class="course-badge badge-level">{{ course.level|default:"Boshlang'ich" }}</span>
-                {% if course.is_bestseller %}
-                <span class="course-badge badge-bestseller ms-2">Bestseller</span>
-                {% endif %}
-
-                <!-- Title -->
-                <h1>{{ course.title }}</h1>
-
-                <!-- Meta Info -->
-                <div class="course-meta">
-                    <div class="course-meta-item course-rating">
-                        <span class="stars">
-                            {% for i in "12345" %}
-                                {% if forloop.counter <= course.rating|default:5 %}
-                                    <i class="bi bi-star-fill"></i>
-                                {% else %}
-                                    <i class="bi bi-star"></i>
-                                {% endif %}
-                            {% endfor %}
-                        </span>
-                        <span>{{ course.rating|default:"4.9" }}</span>
-                        <span style="opacity: 0.7;">({{ course.reviews_count|default:"10" }} baho)</span>
-                    </div>
-                    <div class="course-meta-item">
-                        <i class="bi bi-people-fill"></i>
-                        <span>{{ course.students_count|default:"50+" }} o'quvchi</span>
-                    </div>
-                    <div class="course-meta-item">
-                        <i class="bi bi-clock-fill"></i>
-                        <span>{{ course.duration|default:"12" }} soat video</span>
-                    </div>
-                    <div class="course-meta-item">
-                        <i class="bi bi-calendar-check"></i>
-                        <span>So'nggi yangilanish: {{ course.updated_at|default:course.created_at|date:"F Y" }}</span>
-                    </div>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span class="badge bg-warning fw-bold px-3 py-2 rounded-pill">{{ course.get_level_display|default:"Barcha uchun" }}</span>
+                    <span class="badge bg-white bg-opacity-25 text-white px-3 py-2 rounded-pill"><i class="bi bi-clock me-1"></i>{{ course.duration|default:"20" }} soat</span>
+                    <span class="badge bg-white bg-opacity-25 text-white px-3 py-2 rounded-pill"><i class="bi bi-play-circle me-1"></i>{{ course.lessons_count|default:"0" }} video</span>
                 </div>
-
-                <!-- Instructor Mini -->
-                <div class="instructor-mini">
-                    {% if course.instructor.avatar %}
-                    <img src="{{ course.instructor.avatar.url }}" alt="{{ course.instructor.name }}">
-                    {% else %}
-                    <div class="instructor-avatar-placeholder" style="width:40px;height:40px;border-radius:50%;background:var(--secondary-color);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;">
-                        {{ course.instructor.name|default:"A"|slice:":1" }}
+                
+                <h1 class="display-5 fw-bold mb-3">{{ course.title }}</h1>
+                <p class="fs-5 opacity-75 mb-4">{{ course.description|striptags|truncatewords:20 }}</p>
+                
+                <div class="d-flex flex-wrap align-items-center gap-4 mb-4">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="avatar avatar-md rounded-circle border border-2 border-white overflow-hidden shadow-sm" style="width: 48px; height: 48px;">
+                            {% if course.instructor.profile.avatar %}
+                            <img src="{{ course.instructor.profile.avatar.url }}" alt="{{ course.instructor.get_full_name }}" class="w-100 h-100 object-fit-cover">
+                            {% else %}
+                            <div class="w-100 h-100 bg-white text-primary d-flex justify-content-center align-items-center fw-bold fs-5">
+                                {{ course.instructor.first_name|default:course.instructor.username|slice:":1"|upper }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <div class="fw-bold">{{ course.instructor.get_full_name|default:"O'qituvchi" }}</div>
+                            <small class="opacity-75">Professional O'qituvchi</small>
+                        </div>
                     </div>
-                    {% endif %}
-                    <div class="instructor-mini-info">
-                        <span>O'qituvchi:</span>
-                        <strong>{{ course.instructor.name|default:"AzureLMS Team" }}</strong>
+                    <div class="rating d-flex align-items-center gap-1">
+                        {% for i in "12345" %}
+                        <i class="bi bi-star-fill text-warning"></i>
+                        {% endfor %}
+                        <span class="fw-bold ms-2">5.0</span>
+                        <span class="opacity-75 small">(124 sharh)</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-1 opacity-75">
+                        <i class="bi bi-people"></i>
+                        <span>{{ course.students_count|default:"850"|intcomma }} o'quvchi</span>
                     </div>
                 </div>
             </div>
@@ -839,408 +60,306 @@
     </div>
 </section>
 
-<!-- Main Content -->
-<main class="main-content py-4">
+<!-- COURSE CONTENT -->
+<section class="py-5">
     <div class="container">
-        <div class="row">
-            <!-- Left Column - Course Content -->
+        <div class="row g-4 g-lg-5">
+            <!-- Main Content -->
             <div class="col-lg-8">
                 <!-- Video Preview -->
-                <div class="video-preview">
-                    {% if course.preview_video %}
-                    <iframe src="{{ course.preview_video }}" allowfullscreen></iframe>
-                    {% else %}
-                    <div class="video-placeholder" onclick="loadVideo(this, '{{ course.preview_video_id|default:"dQw4w9WgXcQ" }}')">
-                        <div class="play-btn">
-                            <i class="bi bi-play-fill"></i>
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
+                    <div class="ratio ratio-16x9 bg-dark position-relative">
+                        {% if course.preview_video %}
+                        <video controls poster="{{ course.thumbnail.url|default:'' }}" class="w-100 h-100 object-fit-cover">
+                            <source src="{{ course.preview_video.url }}" type="video/mp4">
+                        </video>
+                        {% else %}
+                            {% if course.thumbnail %}
+                            <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" class="w-100 h-100 object-fit-cover opacity-75">
+                            {% else %}
+                            <div class="d-flex align-items-center justify-content-center h-100 w-100">
+                                <i class="bi bi-play-circle display-1 text-white opacity-50"></i>
+                            </div>
+                            {% endif %}
+                        {% endif %}
+                        
+                        {% if not course.preview_video %}
+                        <div class="position-absolute top-50 start-50 translate-middle">
+                            <button class="btn btn-primary rounded-circle shadow-lg" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                                <i class="bi bi-play-fill fs-1 ms-1"></i>
+                            </button>
                         </div>
-                        <span>Kurs haqida tanishtiruv videosi</span>
+                        {% endif %}
                     </div>
-                    {% endif %}
                 </div>
-
-                <!-- Course Description -->
-                <section class="content-section">
-                    <h2 class="section-title">
-                        <i class="bi bi-info-circle-fill"></i>
-                        Kurs haqida
-                    </h2>
-                    <div class="course-description-content" style="color:var(--text-muted); line-height: 1.6;">
-                        {{ course.description|safe }}
-                    </div>
-                </section>
-
-                <!-- Learning Outcomes -->
-                <section class="content-section">
-                    <h2 class="section-title">
-                        <i class="bi bi-check-circle-fill"></i>
-                        Nimalarni o'rganasiz?
-                    </h2>
-                    <div class="outcomes-grid">
-                        {% for outcome in course.outcomes.all %}
-                        <div class="outcome-item">
-                            <div class="outcome-icon">
-                                <i class="bi bi-check"></i>
-                            </div>
-                            <span>{{ outcome.text }}</span>
+                
+                <!-- Tabs -->
+                <ul class="nav nav-pills mb-4 p-2 bg-white rounded-pill shadow-sm d-inline-flex" id="courseTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active rounded-pill px-4 fw-medium" data-bs-toggle="pill" data-bs-target="#overview" type="button" role="tab" aria-selected="true">Umumiy ma'lumot</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-pill px-4 fw-medium" data-bs-toggle="pill" data-bs-target="#curriculum" type="button" role="tab" aria-selected="false">Dastur va Darslar</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-pill px-4 fw-medium" data-bs-toggle="pill" data-bs-target="#instructor" type="button" role="tab" aria-selected="false">O'qituvchi</button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content bg-white p-4 p-md-5 rounded-4 shadow-sm">
+                    <!-- Overview Tab -->
+                    <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                        <h3 class="h4 fw-bold mb-4">Kurs haqida</h3>
+                        <div class="text-secondary lh-lg mb-5" style="font-size: 1.05rem;">
+                            {{ course.description|safe }}
                         </div>
-                        {% empty %}
-                        <div class="outcome-item">
-                            <div class="outcome-icon"><i class="bi bi-check"></i></div>
-                            <span>Kundalik hayotda turk tilida erkin muloqot qilish</span>
-                        </div>
-                        <div class="outcome-item">
-                            <div class="outcome-icon"><i class="bi bi-check"></i></div>
-                            <span>2000+ so'z va iboralarni o'zlashtirish</span>
-                        </div>
-                        <div class="outcome-item">
-                            <div class="outcome-icon"><i class="bi bi-check"></i></div>
-                            <span>Grammatika asoslarini mukammal bilish</span>
-                        </div>
-                        <div class="outcome-item">
-                            <div class="outcome-icon"><i class="bi bi-check"></i></div>
-                            <span>Turk seriallari va filmlarni tushunish</span>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </section>
-
-                <!-- Course Curriculum -->
-                <section class="content-section">
-                    <div class="curriculum-header">
-                        <h2 class="section-title mb-0">
-                            <i class="bi bi-list-check"></i>
-                            Kurs dasturi
-                        </h2>
-                        <div class="curriculum-stats">
-                            {{ course.modules.count }} modul | {{ course.lessons_count|default:"45" }} dars
-                        </div>
-                    </div>
-
-                    {% for module in course.modules.all %}
-                    <div class="module-accordion">
-                        <div class="module-header {% if forloop.first %}active{% endif %}" onclick="toggleModule(this)">
-                            <div class="module-title">
-                                <i class="bi bi-chevron-down"></i>
-                                <span>Modul {{ module.order }}: {{ module.title }}</span>
-                            </div>
-                            <div class="module-meta">{{ module.lessons.count }} dars</div>
-                        </div>
-                        <div class="module-content {% if forloop.first %}active{% endif %}">
-                            {% for lesson in module.lessons.all %}
-                            <div class="lesson-item">
-                                <div class="lesson-info">
-                                    {% if user_enrolled and lesson.is_completed %}
-                                    <div class="lesson-icon completed">
-                                        <i class="bi bi-check-circle-fill"></i>
-                                    </div>
-                                    {% elif lesson.is_free or user_enrolled %}
-                                    <div class="lesson-icon video">
-                                        <i class="bi bi-play-circle"></i>
-                                    </div>
-                                    {% else %}
-                                    <div class="lesson-icon locked">
-                                        <i class="bi bi-lock"></i>
-                                    </div>
-                                    {% endif %}
-                                    <span class="lesson-title">{{ lesson.title }}</span>
+                        
+                        <h4 class="h5 fw-bold mb-4">Nimalarni o'rganasiz?</h4>
+                        <div class="row g-4 mb-5">
+                            <div class="col-md-6">
+                                <div class="d-flex gap-3 align-items-start">
+                                    <i class="bi bi-check2-circle text-success fs-4"></i>
+                                    <span class="text-secondary">Turk tilida to'g'ri va ravon so'zlashishni</span>
                                 </div>
-                                <div class="lesson-meta">
-                                    {% if lesson.is_free and not user_enrolled %}
-                                    <span class="lesson-preview">Bepul ko'rish</span>
-                                    {% endif %}
-                                    <span><i class="bi bi-clock"></i> {{ lesson.duration|default:"10:00" }}</span>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex gap-3 align-items-start">
+                                    <i class="bi bi-check2-circle text-success fs-4"></i>
+                                    <span class="text-secondary">Grammatika qoidalarini amalda erkin qollashni</span>
                                 </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex gap-3 align-items-start">
+                                    <i class="bi bi-check2-circle text-success fs-4"></i>
+                                    <span class="text-secondary">Katta lug'at boyligiga va kundalik iboralarga ega bo'lasiz</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex gap-3 align-items-start">
+                                    <i class="bi bi-check2-circle text-success fs-4"></i>
+                                    <span class="text-secondary">Turk filmlari va seriallarini tarjimasiz tushunishni</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Curriculum Tab -->
+                    <div class="tab-pane fade" id="curriculum" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h3 class="h4 fw-bold mb-0">Kurs dasturi</h3>
+                            <span class="badge bg-primary bg-opacity-10 text-primary fs-6">{{ course.modules.count|default:"0" }} bo'lim, {{ course.lessons_count|default:"0" }} dars</span>
+                        </div>
+                        
+                        <div class="accordion custom-accordion" id="curriculumAccordion">
+                            {% for module in course.modules.all %}
+                            <div class="accordion-item border-0 mb-3 rounded-4 overflow-hidden shadow-sm">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button {% if not forloop.first %}collapsed{% endif %} fw-bold" type="button" 
+                                            data-bs-toggle="collapse" data-bs-target="#module{{ module.id }}">
+                                        <div class="d-flex flex-column flex-md-row justify-content-md-between w-100 me-3 gap-2">
+                                            <span>Modul {{ module.order|default:forloop.counter }}: {{ module.title }}</span>
+                                            <span class="badge bg-white border fw-medium px-3">{{ module.lessons.count }} dars</span>
+                                        </div>
+                                    </button>
+                                </h2>
+                                <div id="module{{ module.id }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" 
+                                     data-bs-parent="#curriculumAccordion">
+                                    <div class="accordion-body p-0 border border-top-0 rounded-bottom-4">
+                                        <ul class="list-group list-group-flush rounded-bottom-4">
+                                            {% for lesson in module.lessons.all %}
+                                            <li class="list-group-item d-flex justify-content-between align-items-center p-3 px-4 border-light hover-bg-light transition-all">
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                        <i class="bi bi-play-fill"></i>
+                                                    </div>
+                                                    <span class="fw-medium">{{ lesson.title }}</span>
+                                                </div>
+                                                <div class="d-flex align-items-center gap-3">
+                                                    {% if forloop.parentloop.first and forloop.first %}
+                                                    <span class="badge bg-success bg-opacity-10 text-success fw-bold px-2 py-1">Ochiq dars</span>
+                                                    {% else %}
+                                                    <i class="bi bi-lock-fill text-muted opacity-50"></i>
+                                                    {% endif %}
+                                                    <span class="text-muted small fw-medium">{{ lesson.duration|default:"10:00" }}</span>
+                                                </div>
+                                            </li>
+                                            {% empty %}
+                                            <li class="list-group-item text-center text-muted py-4">Hozircha bu modulda darslar yo'q.</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="alert alert-light text-center py-5 border rounded-4">
+                                <i class="bi bi-journal-x display-4 text-muted mb-3 d-block"></i>
+                                Ushbu kurs uchun hali dastur kiritilmagan.
                             </div>
                             {% endfor %}
                         </div>
                     </div>
-                    {% empty %}
-                    <!-- Demo modules for preview if none exist -->
-                    <div class="module-accordion">
-                        <div class="module-header active" onclick="toggleModule(this)">
-                            <div class="module-title">
-                                <i class="bi bi-chevron-down"></i>
-                                <span>Modul 1: Tanishish va salomlashish</span>
+                    
+                    <!-- Instructor Tab -->
+                    <div class="tab-pane fade" id="instructor" role="tabpanel">
+                        <div class="d-flex flex-column flex-md-row gap-4 align-items-md-center mb-4">
+                            <div class="avatar border border-4 border-white shadow rounded-circle overflow-hidden" style="width: 120px; height: 120px; flex-shrink: 0;">
+                                {% if course.instructor.profile.avatar %}
+                                <img src="{{ course.instructor.profile.avatar.url }}" alt="{{ course.instructor.get_full_name }}" class="w-100 h-100 object-fit-cover">
+                                {% else %}
+                                <div class="w-100 h-100 bg-primary text-white d-flex justify-content-center align-items-center display-4 fw-bold">
+                                    {{ course.instructor.first_name|default:course.instructor.username|slice:":1"|upper }}
+                                </div>
+                                {% endif %}
                             </div>
-                            <div class="module-meta">6 dars | 2 soat</div>
-                        </div>
-                        <div class="module-content active">
-                            <div class="lesson-item">
-                                <div class="lesson-info">
-                                    <div class="lesson-icon video"><i class="bi bi-play-circle"></i></div>
-                                    <span class="lesson-title">Salom va xayr aytish</span>
-                                </div>
-                                <div class="lesson-meta">
-                                    <span class="lesson-preview">Bepul ko'rish</span>
-                                    <span><i class="bi bi-clock"></i> 12:30</span>
-                                </div>
-                            </div>
-                            <div class="lesson-item">
-                                <div class="lesson-info">
-                                    <div class="lesson-icon locked"><i class="bi bi-lock"></i></div>
-                                    <span class="lesson-title">O'zingizni tanishtirish</span>
-                                </div>
-                                <div class="lesson-meta">
-                                    <span><i class="bi bi-clock"></i> 15:20</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </section>
-
-                <!-- Instructor Section -->
-                <section class="content-section">
-                    <h2 class="section-title">
-                        <i class="bi bi-person-badge"></i>
-                        O'qituvchi haqida
-                    </h2>
-                    <div class="instructor-card">
-                        {% if course.instructor.avatar %}
-                        <img src="{{ course.instructor.avatar.url }}" alt="{{ course.instructor.name }}" class="instructor-avatar">
-                        {% else %}
-                        <div class="instructor-avatar" style="display: flex; align-items: center; justify-content: center; background: var(--primary-color); color: white; font-size: 2.5rem; flex-shrink: 0;">
-                            {{ course.instructor.name|default:"A"|slice:":1" }}
-                        </div>
-                        {% endif %}
-                        <div class="instructor-info">
-                            <h4>{{ course.instructor.name|default:"Sardor Rahimov" }}</h4>
-                            <p class="instructor-title">{{ course.instructor.title|default:"Turk tili mutaxassisi | 8+ yillik tajriba" }}</p>
-                            <div class="instructor-stats">
-                                <div class="instructor-stat">
-                                    <i class="bi bi-star-fill"></i>
-                                    <span>{{ course.instructor.rating|default:"4.9" }} reyting</span>
-                                </div>
-                                <div class="instructor-stat">
-                                    <i class="bi bi-people-fill"></i>
-                                    <span>{{ course.instructor.students_count|default:"25,000" }}+ o'quvchi</span>
-                                </div>
-                                <div class="instructor-stat">
-                                    <i class="bi bi-play-circle-fill"></i>
-                                    <span>{{ course.instructor.courses_count|default:"12" }} kurs</span>
-                                </div>
-                            </div>
-                            <p class="instructor-bio">{{ course.instructor.bio|default:"Turkiyada 5 yil yashagan va ta'lim olgan. Istanbul Universitetida Xalqaro munosabatlar yo'nalishi bo'yicha bakalavr darajasiga ega." }}</p>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Reviews Section -->
-                <section class="content-section">
-                    <h2 class="section-title">
-                        <i class="bi bi-chat-quote-fill"></i>
-                        O'quvchilar fikri
-                    </h2>
-
-                    <!-- Rating Summary -->
-                    <div class="reviews-summary">
-                        <div class="rating-big">
                             <div>
-                                <div class="rating-number">{{ course.rating|default:"4.8" }}</div>
-                                <div class="rating-stars">
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-fill"></i>
-                                    <i class="bi bi-star-half"></i>
-                                </div>
-                                <div class="rating-count">{{ course.reviews_count|default:"2,547" }} baho</div>
-                            </div>
-                        </div>
-                        <div class="rating-bars">
-                            <div class="rating-bar-item">
-                                <span><i class="bi bi-star-fill text-warning"></i> 5</span>
-                                <div class="bar-track"><div class="bar-fill" style="width: 75%;"></div></div>
-                                <span>75%</span>
-                            </div>
-                            <div class="rating-bar-item">
-                                <span><i class="bi bi-star-fill text-warning"></i> 4</span>
-                                <div class="bar-track"><div class="bar-fill" style="width: 18%;"></div></div>
-                                <span>18%</span>
-                            </div>
-                            <div class="rating-bar-item">
-                                <span><i class="bi bi-star-fill text-warning"></i> 3</span>
-                                <div class="bar-track"><div class="bar-fill" style="width: 5%;"></div></div>
-                                <span>5%</span>
-                            </div>
-                            <div class="rating-bar-item">
-                                <span><i class="bi bi-star-fill text-warning"></i> 2</span>
-                                <div class="bar-track"><div class="bar-fill" style="width: 1%;"></div></div>
-                                <span>1%</span>
-                            </div>
-                            <div class="rating-bar-item">
-                                <span><i class="bi bi-star-fill text-warning"></i> 1</span>
-                                <div class="bar-track"><div class="bar-fill" style="width: 1%;"></div></div>
-                                <span>1%</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Review Items -->
-                    <div class="reviews-list">
-                        {% for review in reviews %}
-                        <div class="review-item">
-                            <div class="review-header">
-                                <div class="review-avatar">{{ review.user.first_name|slice:":1" }}</div>
-                                <div>
-                                    <div class="review-author">{{ review.user.get_full_name }}</div>
-                                    <div class="review-meta">
-                                        <span class="review-stars">
-                                            {% for i in "12345" %}
-                                                {% if forloop.counter <= review.rating %}
-                                                    <i class="bi bi-star-fill"></i>
-                                                {% else %}
-                                                    <i class="bi bi-star"></i>
-                                                {% endif %}
-                                            {% endfor %}
-                                        </span>
-                                        <span>{{ review.created_at|timesince }} oldin</span>
+                                <h3 class="h4 fw-bold mb-1">{{ course.instructor.get_full_name|default:"Professional O'qituvchi" }}</h3>
+                                <p class="text-primary fw-medium mb-3">Asosiy O'qituvchi</p>
+                                
+                                <div class="d-flex flex-wrap gap-4">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="bg-warning bg-opacity-25 text-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                            <i class="bi bi-star-fill"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold lh-1">4.9</div>
+                                            <div class="small text-muted">O'rtacha reyting</div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                            <i class="bi bi-people-fill"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold lh-1">12K+</div>
+                                            <div class="small text-muted">O'quvchilar</div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                            <i class="bi bi-play-circle-fill"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold lh-1">5+</div>
+                                            <div class="small text-muted">Kurslari</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <p class="review-text">{{ review.text }}</p>
                         </div>
-                        {% empty %}
-                        <!-- Demo reviews -->
-                        <div class="review-item">
-                            <div class="review-header">
-                                <div class="review-avatar">D</div>
-                                <div>
-                                    <div class="review-author">Dilnoza Karimova</div>
-                                    <div class="review-meta">
-                                        <span class="review-stars">
-                                            <i class="bi bi-star-fill"></i>
-                                            <i class="bi bi-star-fill"></i>
-                                            <i class="bi bi-star-fill"></i>
-                                            <i class="bi bi-star-fill"></i>
-                                            <i class="bi bi-star-fill"></i>
-                                        </span>
-                                        <span>2 hafta oldin</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <p class="review-text">Ajoyib kurs! Men 3 oy ichida Turkiyaga borib, erkin muloqot qila oldim.</p>
-                        </div>
-                        {% endfor %}
-                    </div>
-
-                    <button class="btn btn-outline-primary btn-more-reviews mt-3">
-                        <i class="bi bi-chat-dots me-2"></i>Barcha fikrlarni ko'rish
-                    </button>
-                </section>
-            </div>
-
-            <!-- Right Column - CTA Box (Desktop) -->
-            <div class="col-lg-4 desktop-cta">
-                <div class="sticky-sidebar">
-                    <div class="cta-box">
-                        <div class="cta-price">
-                            <span class="price-current">{{ course.price|default:"99,000" }} so'm</span>
-                            {% if course.original_price %}
-                            <span class="price-original">{{ course.original_price }} so'm</span>
-                            <span class="price-discount">-{{ course.discount_percent|default:"50" }}%</span>
-                            {% endif %}
-                            <span class="price-period">
-                                {% if course.is_subscription %}oyiga{% else %}bir martalik to'lov{% endif %}
-                            </span>
-                        </div>
-
-                        {% if user_enrolled %}
-                        <a href="#" class="btn btn-success btn-enroll text-white">
-                            <i class="bi bi-play-fill me-2"></i>O'qishni davom ettirish
-                        </a>
-                        {% else %}
-                        <button class="btn btn-danger btn-enroll">
-                            <i class="bi bi-cart-plus me-2"></i>Hozir sotib olish
-                        </button>
-                        <button class="btn btn-outline-secondary btn-wishlist">
-                            <i class="bi bi-heart me-2"></i>Sevimlilariga qo'shish
-                        </button>
-                        {% endif %}
-
-                        <div class="cta-features">
-                            <div class="cta-feature">
-                                <i class="bi bi-infinity"></i>
-                                <span>Umrbod kirish huquqi</span>
-                            </div>
-                            <div class="cta-feature">
-                                <i class="bi bi-phone"></i>
-                                <span>Mobil va kompyuterda ko'rish</span>
-                            </div>
-                            <div class="cta-feature">
-                                <i class="bi bi-download"></i>
-                                <span>Yuklab olish imkoniyati</span>
-                            </div>
-                            <div class="cta-feature">
-                                <i class="bi bi-patch-check"></i>
-                                <span>Sertifikat beriladi</span>
-                            </div>
-                            <div class="cta-feature">
-                                <i class="bi bi-translate"></i>
-                                <span>O'zbek tilida</span>
-                            </div>
-                        </div>
-
-                        <div class="guarantee">
-                            <i class="bi bi-shield-check me-1"></i>
-                            30 kunlik pulni qaytarish kafolati
+                        
+                        <div class="text-secondary lh-lg">
+                            <p>{{ course.instructor.profile.bio|default:"Ushbu o'qituvchi o'zining ko'p yillik tajribasi asosida turk tilini mukammal va tez o'rganishingizga yordam beradi. Darslar intensiv tarzda amaliyot bilan birgalikda kafolatli olib boriladi." }}</p>
                         </div>
                     </div>
                 </div>
             </div>
+            
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-lg rounded-4 sticky-top overflow-hidden" style="top: 100px;">
+                    <div class="card-body p-4 p-xl-5">
+                        <div class="text-center mb-4 pb-4 border-bottom border-light">
+                            {% if course.is_free or course.price == 0 %}
+                            <div class="display-5 fw-bold text-success mb-2">Bepul</div>
+                            {% else %}
+                            <div class="display-5 fw-bold mb-1">{{ course.price|default:0|intcomma }}<span class="fs-4 text-muted ms-1">so'm</span></div>
+                                {% if course.old_price %}
+                                <div class="text-decoration-line-through text-muted">{{ course.old_price|intcomma }} so'm</div>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid gap-3 mb-4">
+                            {% if user.is_authenticated %}
+                                <a href="#" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">
+                                    {% if course.is_free or course.price == 0 %}Kursni Boshlash{% else %}Sotib Olish{% endif %}
+                                </a>
+                                <button class="btn btn-outline-secondary btn-lg rounded-pill fw-medium">
+                                    <i class="bi bi-heart me-2"></i>Saqlab qo'yish
+                                </button>
+                            {% else %}
+                                <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">
+                                    Tizimga Kiring
+                                </a>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="text-center mb-4">
+                            <span class="badge bg-success bg-opacity-10 text-success fw-medium py-2 px-3 rounded-pill">
+                                <i class="bi bi-shield-check me-1"></i>30 kunlik pul qaytarish kafolati
+                            </span>
+                        </div>
+                        
+                        <h6 class="fw-bold mb-3">Kurs o'z ichiga oladi:</h6>
+                        <ul class="list-unstyled d-flex flex-column gap-3 mb-0 text-secondary">
+                            <li class="d-flex align-items-center gap-3">
+                                <i class="bi bi-camera-video text-primary fs-5"></i>
+                                <span>{{ course.duration|default:"20" }} soatlik video darslar</span>
+                            </li>
+                            <li class="d-flex align-items-center gap-3">
+                                <i class="bi bi-file-earmark-text text-primary fs-5"></i>
+                                <span>{{ course.lessons_count|default:"50" }} ta amaliy mashqlar</span>
+                            </li>
+                            <li class="d-flex align-items-center gap-3">
+                                <i class="bi bi-cloud-arrow-down text-primary fs-5"></i>
+                                <span>Yuklab olinadigan materiallar</span>
+                            </li>
+                            <li class="d-flex align-items-center gap-3">
+                                <i class="bi bi-infinity text-primary fs-5"></i>
+                                <span>Cheksiz kirish huquqi</span>
+                            </li>
+                            <li class="d-flex align-items-center gap-3">
+                                <i class="bi bi-phone text-primary fs-5"></i>
+                                <span>Mobil qurilmada ishlaydi</span>
+                            </li>
+                            <li class="d-flex align-items-center gap-3">
+                                <i class="bi bi-award text-primary fs-5"></i>
+                                <span>Tugatish sertifikati kafolatlanadi</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <!-- Card Footer Decor -->
+                    <div style="height: 6px; background: linear-gradient(90deg, var(--lms-primary) 0%, var(--lms-secondary) 100%);"></div>
+                </div>
+            </div>
         </div>
     </div>
-</main>
+</section>
 
-<!-- Mobile CTA -->
-<div class="mobile-cta d-lg-none"> <!-- Explicitly hidden on large screens via bootstrap if CSS fails -->
-    <div class="mobile-cta-inner">
-        <div class="mobile-cta-price">
-            <span class="price-current fw-bold text-primary fs-4">{{ course.price|default:"99,000" }} so'm</span>
-        </div>
-        {% if user_enrolled %}
-        <a href="#" class="btn btn-success btn-enroll text-white">
-            <i class="bi bi-play-fill me-2"></i>Davom ettirish
-        </a>
-        {% else %}
-        <button class="btn btn-danger btn-enroll">
-            <i class="bi bi-cart-plus me-2"></i>Sotib olish
-        </button>
-        {% endif %}
-    </div>
-</div>
+{% block extra_css %}
+<style>
+    .hover-bg-light:hover {
+        background-color: var(--lms-gray-100) !important;
+    }
+    .custom-accordion .accordion-button:not(.collapsed) {
+        background-color: var(--lms-primary-light);
+        color: var(--lms-primary);
+        box-shadow: none;
+    }
+    .custom-accordion .accordion-button:not(.collapsed)::after {
+        filter: invert(36%) sepia(50%) saturate(6015%) hue-rotate(189deg) brightness(97%) contrast(98%);
+    }
+    .custom-accordion .accordion-button:focus {
+        box-shadow: none;
+        border-color: rgba(0,0,0,.125);
+    }
+    .nav-pills .nav-link.active, .nav-pills .show>.nav-link {
+        background-color: var(--lms-primary);
+    }
+    .nav-pills .nav-link {
+        color: var(--lms-gray-600);
+    }
+    .nav-pills .nav-link:hover:not(.active) {
+        color: var(--lms-primary);
+        background-color: var(--lms-primary-light);
+    }
+    .hover-opacity-100 {
+        transition: opacity 0.2s;
+    }
+    .hover-opacity-100:hover {
+        opacity: 1 !important;
+    }
+</style>
 {% endblock %}
 
-{% block extra_js %}
-<script>
-    // Toggle Module Accordion
-    function toggleModule(header) {
-        const content = header.nextElementSibling;
-        const isActive = header.classList.contains('active');
-
-        // Close all modules
-        document.querySelectorAll('.module-header').forEach(h => {
-            h.classList.remove('active');
-            h.nextElementSibling.classList.remove('active');
-        });
-
-        // Open clicked module if it was closed
-        if (!isActive) {
-            header.classList.add('active');
-            content.classList.add('active');
-        }
-    }
-
-    // Load Video
-    function loadVideo(placeholder, videoId) {
-        placeholder.innerHTML = `
-            <iframe 
-                src="https://www.youtube.com/embed/${videoId}?autoplay=1" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowfullscreen>
-            </iframe>
-        `;
-    }
-</script>
 {% endblock %}

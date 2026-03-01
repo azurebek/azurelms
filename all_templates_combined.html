@@ -1,0 +1,4949 @@
+{% comment %} <!-- base.html -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="description"
+        content="{% block meta_description %}Turk tili online kurslari - professional o'qituvchilar bilan samarali ta'lim{% endblock %}">
+
+    <title>{% block title %}Turk Tili Online{% endblock %} | AzureLMS</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* Semantic Color Tokens - Light Mode */
+            --bg-body: #DFE9ED;
+            --bg-surface: #DFE9ED;
+            --text-main: #5A638A;
+            --text-muted: #5A638A;
+            --border-color: #5A638A;
+            --accent-color: #0A76CB;
+
+            /* Additional variables */
+            --primary-dark: #0A76CB;
+            --primary-light: #0A76CB;
+            --secondary-color: #A79561;
+            --secondary-dark: #A79561;
+            --card-shadow: 0 2px 15px rgba(10, 118, 203, 0.1);
+            --card-shadow-hover: 0 5px 25px rgba(10, 118, 203, 0.2);
+            
+            /* Footer Variables (Light Mode) */
+            --footer-bg: #DFE9ED;
+            --footer-text: #5A638A;
+            --footer-text-muted: #5A638A;
+        }
+
+        [data-theme="dark"], .dark-mode {
+            /* Semantic Color Tokens - Dark Mode */
+            --bg-body: #23343B;
+            --bg-surface: #23343B;
+            --text-main: #C5CFDE;
+            --text-muted: #C5CFDE;
+            --border-color: #C5CFDE;
+            --accent-color: #4275BC;
+
+            --card-shadow: 0 2px 15px rgba(66, 117, 188, 0.3);
+            --card-shadow-hover: 0 5px 25px rgba(66, 117, 188, 0.5);
+            
+            /* Footer Variables (Dark Mode) */
+            --footer-bg: #23343B;
+            --footer-text: #C5CFDE;
+            --footer-text-muted: #C5CFDE;
+        }
+
+        .dark-mode .footer {
+            background-color: var(--footer-bg) !important;
+            color: var(--footer-text) !important;
+            border-top-color: var(--border-color) !important;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text-main);
+            background-color: var(--bg-body);
+            transition: background-color 0.3s, color 0.3s;
+            line-height: 1.6;
+            -webkit-text-size-adjust: 100%;
+            overflow-x: hidden;
+        }
+
+        .navbar {
+            background-color: var(--bg-surface);
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        /* Navigatsiya elementlari uchun qo'shimcha stil */
+        .navbar-brand { font-weight: 700; color: var(--accent-color) !important; }
+        .nav-link { font-weight: 500; color: var(--text-main); transition: color 0.3s; }
+        .nav-link:hover, .nav-link.active { color: var(--accent-color) !important; }
+
+        /* General dark mode resets */
+        .card, .form-control {
+            background-color: var(--bg-surface);
+            color: var(--text-main);
+            border-color: var(--border-color);
+        }
+        
+        .form-control:focus {
+            background-color: var(--bg-surface);
+            color: var(--text-main);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.25rem rgba(10, 118, 203, 0.25);
+        }
+
+        /* Global Button Overrides */
+        .btn-primary {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+            color: var(--bg-body);
+        }
+        .btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+            color: var(--bg-body);
+        }
+        .btn-outline-primary {
+            color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+        .btn-outline-primary:hover, .btn-outline-primary:focus, .btn-outline-primary:active {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+            color: var(--bg-body);
+        }
+
+        /* Remove static classes and just apply globally or rely on vars */
+        .text-dark {
+            color: var(--text-main) !important;
+        }
+        .text-white {
+            color: var(--bg-body) !important;
+        }
+        .bg-light {
+            background-color: var(--bg-body) !important;
+        }
+        .bg-dark {
+            background-color: var(--text-main) !important;
+        }
+
+        .text-muted {
+            color: var(--text-muted) !important;
+        }
+        
+        #darkModeToggle {
+            color: var(--text-main);
+            transition: color 0.3s;
+        }
+        
+        #darkModeToggle:hover {
+            color: var(--accent-color);
+        }
+
+        .dropdown-menu {
+            background-color: var(--bg-surface);
+            border-color: var(--border-color);
+        }
+        
+        .dropdown-item {
+            color: var(--text-main);
+        }
+        
+        .dropdown-item:hover {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+        }
+
+        /* Mobile First Media Queries */
+        @media (max-width: 991px) {
+            .navbar-collapse {
+                background: var(--bg-surface);
+                padding: 1.5rem;
+                margin-top: 0.75rem;
+                border-radius: 0.75rem;
+                box-shadow: var(--card-shadow);
+                border: 1px solid var(--border-color);
+            }
+            .btn-auth-mobile { width: 100%; margin-top: 0.5rem; }
+        }
+
+        /* Footer Styles */
+        .footer {
+            background: var(--footer-bg);
+            color: var(--footer-text);
+            padding: 4rem 0 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+        .footer h5 { color: var(--footer-text); font-weight: 600; margin-bottom: 1.5rem; }
+        .footer-links li { margin-bottom: 0.75rem; }
+        .footer-bottom { border-top: 1px solid var(--border-color); }
+        .footer-text-muted { color: var(--footer-text-muted); }
+        .footer-icon { color: var(--footer-text); transition: color 0.3s; }
+        .footer-icon:hover { color: var(--accent-color); }
+
+        /* Bootstrap utility classes overrides to enforce only 4 colors */
+        .text-primary { color: var(--accent-color) !important; }
+        .bg-primary { background-color: var(--accent-color) !important; }
+        .text-secondary { color: var(--secondary-color) !important; }
+        .bg-secondary { background-color: var(--secondary-color) !important; }
+        .text-success { color: var(--secondary-color) !important; } /* mapped to secondary */
+        .bg-success { background-color: var(--secondary-color) !important; }
+        .text-warning { color: var(--secondary-color) !important; }
+        .bg-warning { background-color: var(--secondary-color) !important; }
+        .text-danger { color: var(--accent-color) !important; } /* mapped to primary/accent */
+        .bg-danger { background-color: var(--accent-color) !important; }
+        .text-info { color: var(--accent-color) !important; }
+        .bg-info { background-color: var(--accent-color) !important; }
+        .border-primary { border-color: var(--accent-color) !important; }
+        .border-secondary { border-color: var(--secondary-color) !important; }
+        .border-success { border-color: var(--secondary-color) !important; }
+        .border-danger { border-color: var(--accent-color) !important; }
+        .border-warning { border-color: var(--secondary-color) !important; }
+        .border-info { border-color: var(--accent-color) !important; }
+        .border-dark { border-color: var(--text-main) !important; }
+        .border-light { border-color: var(--bg-body) !important; }
+        .border-white { border-color: var(--bg-body) !important; }
+
+        {% block extra_css %}{% endblock %}
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg sticky-top shadow-sm">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}">
+                <i class="bi bi-translate fs-4 text-secondary"></i> AzureLMS
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% block nav_home %}{% endblock %}" href="{% url 'home' %}">Bosh sahifa</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% block nav_courses %}{% endblock %}" href="{% url 'courses' %}">Kurslar</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% block nav_about %}{% endblock %}" href="#">Biz haqimizda</a>
+                    </li>
+                </ul>
+
+                <div class="d-flex gap-2 align-items-center">
+                    <button class="btn btn-link text-decoration-none p-2" id="darkModeToggle" aria-label="Toggle Dark Mode">
+                        <i class="bi bi-moon-stars fs-5" id="darkModeIcon"></i>
+                    </button>
+                    {% if user.is_authenticated %}
+                    <div class="dropdown w-100">
+                        <button class="btn btn-link text-decoration-none dropdown-toggle d-flex align-items-center gap-2 p-0" type="button" data-bs-toggle="dropdown">
+                            {% if user.avatar %}
+                                <img src="{{ user.avatar.url }}" alt="{{ user.get_full_name }}" class="rounded-circle" style="width:36px; height:36px; object-fit:cover;">
+                            {% else %}
+                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white" style="width:36px; height:36px; background-color: var(--accent-color) !important;">
+                                    {{ user.first_name|slice:":1"|upper }}
+                                </div>
+                            {% endif %}
+                            <span class="d-lg-inline fw-semibold" style="color: var(--text-main);">{{ user.first_name }}</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm">
+                            <li><a class="dropdown-item" href="{% url 'dashboard' %}"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{% url 'profile' %}"><i class="bi bi-person me-2"></i> Profil</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right me-2"></i> Chiqish</a></li>
+                        </ul>
+                    </div>
+                    {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-outline-primary btn-auth-mobile">Kirish</a>
+                    <a href="{% url 'register' %}" class="btn btn-primary btn-auth-mobile">Ro'yxatdan o'tish</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    {% if messages %}
+    <div class="container mt-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show border-0 shadow-sm" role="alert" style="border-radius: 0.75rem;">
+            <i class="bi bi-info-circle me-2"></i> {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <main class="min-vh-100">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer mt-5">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-12 col-lg-4 text-center text-lg-start">
+                    <h5>AzureLMS</h5>
+                    <p class="footer-text-muted small">Professional o'qituvchilar bilan turk tilini samarali o'rganing.</p>
+                </div>
+                <div class="col-6 col-lg-2">
+                    <h5>Sahifalar</h5>
+                    <ul class="list-unstyled footer-links">
+                        <li><a href="{% url 'courses' %}" class="footer-text-muted text-decoration-none">Kurslar</a></li>
+                        <li><a href="#" class="footer-text-muted text-decoration-none">Aloqa</a></li>
+                    </ul>
+                </div>
+                <div class="col-6 col-lg-2">
+                    <h5>Ijtimoiy</h5>
+                    <div class="d-flex gap-2 justify-content-start">
+                        <a href="#" class="footer-icon fs-5"><i class="bi bi-telegram"></i></a>
+                        <a href="#" class="footer-icon fs-5"><i class="bi bi-instagram"></i></a>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-4 text-lg-end">
+                    <h5>Aloqa</h5>
+                    <p class="footer-text-muted small"><i class="bi bi-envelope me-2"></i>info@azurelms.uz</p>
+                </div>
+            </div>
+            <div class="footer-bottom mt-4 pt-3 border-top text-center" style="border-color: var(--border-color) !important;">
+                <p class="mb-0 small footer-text-muted">&copy; {% now "Y" %} AzureLMS. Barcha huquqlar himoyalangan.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggleBtn = document.getElementById('darkModeToggle');
+            const toggleIcon = document.getElementById('darkModeIcon');
+            const body = document.body;
+            
+            // Initial check
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                body.classList.add('dark-mode');
+                if (toggleIcon) toggleIcon.classList.replace('bi-moon', 'bi-sun');
+            }
+            
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', () => {
+                    body.classList.toggle('dark-mode');
+                    
+                    if (body.classList.contains('dark-mode')) {
+                        localStorage.setItem('theme', 'dark');
+                        toggleIcon.classList.replace('bi-moon', 'bi-sun');
+                    } else {
+                        localStorage.setItem('theme', 'light');
+                        toggleIcon.classList.replace('bi-sun', 'bi-moon');
+                    }
+                });
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+
+
+<!-- index.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Bosh sahifa{% endblock %}
+{% block nav_home %}active{% endblock %}
+
+{% block extra_css %}
+    /* Siz yozgan Mobile-First CSS strukturasini to'liq saqlab qoldim */
+    .hero-section {
+        background: var(--bg-body);
+        color: var(--text-main);
+        padding: 3rem 0;
+        position: relative;
+        overflow: hidden;
+        text-align: center;
+    }
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0; right: 0;
+        width: 100%; height: 100%;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="80" cy="20" r="40" fill="%230A76CB" opacity="0.08"/><circle cx="90" cy="80" r="30" fill="%23A79561" opacity="0.08"/></svg>');
+        background-size: cover;
+    }
+
+    /* Tablet va Desktop uchun media so'rovlar bazaviy CSS'dan keyin keladi */
+    @media (min-width: 992px) {
+        .hero-section { padding: 5rem 0; text-align: left; }
+        .hero-buttons { justify-content: flex-start; }
+        .hero-stats { justify-content: flex-start; gap: 3rem; }
+        .step-arrow { display: block; position: absolute; top: 30px; right: -30px; font-size: 2rem; color: var(--accent-color); opacity: 0.5; }
+    }
+
+    /* Course Card hover effektlari */
+    .course-card { transition: transform 0.3s ease; }
+    .course-card:hover { transform: translateY(-5px); }
+
+    /* Step numbers */
+    .step-number {
+        width: 50px;
+        height: 50px;
+        background: var(--accent-color);
+        color: var(--bg-body);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.25rem;
+    }
+{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-5 fw-bold">Turk tilini <span>professional</span> darajada o'rganing</h1>
+                <p class="lead mb-4">
+                    Tajribali ustozlar bilan birga turk tilini noldan mukammal darajagacha o'rganing. 
+                    Interaktiv darslar va jonli muloqot.
+                </p>
+                <div class="hero-buttons">
+                    <a href="{% url 'register' %}" class="btn btn-primary btn-lg mb-2 mb-sm-0">
+                        <i class="bi bi-play-circle me-2"></i>Boshlash
+                    </a>
+                    <a href="{% url 'courses' %}" class="btn btn-outline-light btn-lg ms-sm-2">
+                        <i class="bi bi-collection-play me-2"></i>Kurslar
+                    </a>
+                </div>
+                <div class="hero-stats mt-4 mt-lg-5 d-flex justify-content-center">
+                    <div class="hero-stat mx-3">
+                        <h3 class="fw-bold">5,000+</h3>
+                        <p class="small opacity-75">O'quvchilar</p>
+                    </div>
+                    <div class="hero-stat mx-3">
+                        <h3 class="fw-bold">50+</h3>
+                        <p class="small opacity-75">Darslar</p>
+                    </div>
+                    <div class="hero-stat mx-3">
+                        <h3 class="fw-bold">4.9</h3>
+                        <p class="small opacity-75">Reyting</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 d-none d-lg-block text-center">
+                <div class="hero-image">
+                    <div class="hero-image-placeholder shadow-lg rounded-4 p-5 bg-dark border">
+                        <i class="bi bi-mortarboard display-1 text-white-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="courses-section" style="background-color: var(--bg-surface);">
+    <div class="container py-5">
+        <div class="section-title text-center mb-5">
+            <h2 class="fw-bold">Mashhur kurslar</h2>
+            <p class="text-muted">Sizga mos darajadagi eng yaxshi kurslarimiz</p>
+        </div>
+        <div class="row g-4">
+            {% for course in popular_courses %}
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="course-card card h-100 border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="course-image p-5 text-center position-relative" style="background: var(--accent-color); color: var(--bg-body);">
+                        <span class="badge bg-warning position-absolute top-0 start-0 m-3">{{ course.get_level_display }}</span>
+                        <i class="bi bi-book display-4"></i>
+                    </div>
+                    <div class="course-body p-4">
+                        <h5 class="fw-bold">{{ course.title }}</h5>
+                        <p class="small text-muted mb-3">{{ course.description|truncatewords:12 }}</p>
+                        <div class="d-flex justify-content-between small text-muted mb-3 border-top pt-2" style="border-color: var(--border-color) !important;">
+                            <span><i class="bi bi-play-circle text-primary me-1"></i> {{ course.lessons_count }} dars</span>
+                            <span><i class="bi bi-clock text-primary me-1"></i> {{ course.duration }} soat</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="h5 fw-bold text-primary mb-0">{{ course.price|floatformat:0 }} so'm</span>
+                            <a href="{% url 'course_detail' course.pk %}" class="btn btn-outline-primary btn-sm rounded-pill px-3">Batafsil</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="course-card card h-100 border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="course-image p-5 text-center" style="background: var(--secondary-color); color: var(--bg-body);">
+                        <i class="bi bi-translate display-4"></i>
+                    </div>
+                    <div class="p-4 text-center">
+                        <h5>Tez orada...</h5>
+                        <p class="small text-muted">Yangi kurslar ustida ishlayapmiz.</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="how-it-works py-5">
+    <div class="container py-lg-4">
+        <div class="section-title text-center mb-5">
+            <h2 class="fw-bold">Qanday ishlaydi?</h2>
+            <p class="text-muted">O'rganishni boshlash juda oson</p>
+        </div>
+        <div class="row g-4 text-center">
+            <div class="col-6 col-md-3">
+                <div class="step-card position-relative">
+                    <div class="step-number shadow mx-auto">1</div>
+                    <h6 class="fw-bold mt-3">Ro'yxatdan o'tish</h6>
+                    <span class="step-arrow d-none d-lg-block"><i class="bi bi-chevron-right"></i></span>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="step-card">
+                    <div class="step-number shadow mx-auto" style="background:var(--secondary-color);">2</div>
+                    <h6 class="fw-bold mt-3">Kursni tanlash</h6>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="step-number shadow mx-auto" style="background:var(--secondary-color); color:var(--bg-body);">3</div>
+                <h5 class="fw-bold mt-4">Sertifikat oling</h5>
+                <p class="text-muted small">Kursni muvaffaqiyatli yakunlab, maxsus sertifikatga ega bo'ling.</p>
+            </div>
+            <div class="col-md-3">
+                <div class="step-number shadow mx-auto" style="background:var(--accent-color); color:var(--bg-body);">4</div>
+                <h5 class="fw-bold mt-4">Turkiyaga safar</h5>
+                <p class="text-muted small">Turk tilida erkin so'zlashib, o'z maqsadlaringizga erishing.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="cta-section py-5" style="background: var(--accent-color); color: var(--bg-body);">
+    <div class="container">
+        <div class="card border-0 p-4 p-md-5 rounded-5 shadow-lg text-center">
+            <h2 class="fw-bold">Sayohatni boshlaymizmi?</h2>
+            <p class="text-muted mb-4">Hoziroq ro'yxatdan o'ting va birinchi darsga bepul kiring.</p>
+            <a href="{% url 'register' %}" class="btn btn-primary btn-lg px-5 rounded-pill">Bepul boshlash</a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+
+<!-- courses/course_detail.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ course.title }} | AzureLMS{% endblock %}
+{% block meta_description %}{{ course.description|striptags|truncatewords:20 }}{% endblock %}
+
+{% block extra_css %}
+    /* Hero Section */
+    .course-hero {
+        background: var(--accent-color);
+        color: var(--bg-body);
+        padding: 1.5rem 0 2rem;
+    }
+
+    .course-breadcrumb {
+        font-size: 0.85rem;
+        margin-bottom: 1rem;
+    }
+
+    .course-breadcrumb a {
+        color: rgba(255,255,255,0.7);
+        text-decoration: none;
+    }
+
+    .course-breadcrumb a:hover {
+        color: white;
+    }
+
+    .course-badge {
+        display: inline-block;
+        padding: 0.35rem 0.75rem;
+        border-radius: 2rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .badge-level {
+        background: var(--secondary-color);
+        color: white;
+    }
+
+    .badge-bestseller {
+        background: var(--accent-color);
+        color: var(--dark-color);
+    }
+
+    .course-hero h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        line-height: 1.3;
+        color: var(--bg-body); /* Important for gradient bg */
+    }
+
+    .course-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+        color: rgba(255,255,255,0.9);
+    }
+
+    .course-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .course-meta-item i {
+        color: var(--accent-color);
+    }
+
+    .course-rating .stars {
+        color: var(--accent-color);
+    }
+
+    .instructor-mini {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+
+    .instructor-mini img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .instructor-mini-info {
+        font-size: 0.85rem;
+    }
+
+    .instructor-mini-info span {
+        opacity: 0.7;
+    }
+
+    /* Video Preview */
+    .video-preview {
+        position: relative;
+        border-radius: 1rem;
+        overflow: hidden;
+        background: var(--text-main);
+        aspect-ratio: 16/9;
+        margin-bottom: 1.5rem;
+    }
+
+    .video-preview iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+
+    .video-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: var(--text-main);
+        color: var(--bg-body);
+        cursor: pointer;
+    }
+
+    .play-btn {
+        width: 80px;
+        height: 80px;
+        background: var(--accent-color);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        transition: transform 0.3s, background 0.3s;
+    }
+
+    .video-placeholder:hover .play-btn {
+        transform: scale(1.1);
+    }
+
+    /* CTA Box */
+    .cta-box {
+        background: var(--bg-surface);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: var(--card-shadow);
+        border: 1px solid var(--border-color);
+    }
+
+    .cta-price {
+        margin-bottom: 1rem;
+    }
+
+    .price-current {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--accent-color);
+    }
+
+    .price-original {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        text-decoration: line-through;
+        margin-left: 0.5rem;
+    }
+
+    .price-discount {
+        display: inline-block;
+        background: var(--secondary-color);
+        color: var(--bg-body);
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-left: 0.5rem;
+    }
+
+    .price-period {
+        display: block;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-top: 0.25rem;
+    }
+
+    .btn-enroll {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .btn-wishlist {
+        width: 100%;
+        padding: 0.75rem;
+        font-weight: 500;
+        border-radius: 0.75rem;
+        color: var(--text-main);
+        border-color: var(--border-color);
+    }
+    
+    .btn-wishlist:hover {
+        background: var(--bg-body);
+        color: var(--accent-color);
+        border-color: var(--accent-color);
+    }
+
+    .cta-features {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .cta-feature {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+        font-size: 0.9rem;
+        color: var(--text-main);
+    }
+
+    .cta-feature i {
+        color: var(--secondary-color);
+        font-size: 1.1rem;
+    }
+
+    .guarantee {
+        text-align: center;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border-color);
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+
+    .guarantee i {
+        color: var(--secondary-color);
+    }
+
+    /* Content Sections */
+    .content-section {
+        background: var(--bg-surface);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--card-shadow);
+        border: 1px solid var(--border-color);
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-main);
+    }
+
+    .section-title i {
+        color: var(--accent-color);
+    }
+
+    /* Learning Outcomes */
+    .outcomes-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .outcome-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        color: var(--text-main);
+    }
+
+    .outcome-icon {
+        width: 24px;
+        height: 24px;
+        min-width: 24px;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--secondary-color);
+        font-size: 0.75rem;
+    }
+
+    /* Curriculum */
+    .curriculum-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .curriculum-stats {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+
+    .module-accordion {
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
+        overflow: hidden;
+        margin-bottom: 0.75rem;
+    }
+
+    .module-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.25rem;
+        background: var(--bg-body);
+        color: var(--text-main);
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+
+    .module-header:hover {
+        background: var(--bg-surface);
+    }
+
+    .module-header.active {
+        background: var(--accent-color);
+        color: white;
+    }
+
+    .module-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 600;
+    }
+
+    .module-title i {
+        font-size: 0.85rem;
+        transition: transform 0.3s;
+    }
+
+    .module-header.active .module-title i {
+        transform: rotate(180deg);
+    }
+
+    .module-meta {
+        font-size: 0.8rem;
+        opacity: 0.8;
+    }
+
+    .module-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+        background: var(--bg-surface);
+    }
+
+    .module-content.active {
+        max-height: 2000px;
+    }
+
+    .lesson-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.85rem 1.25rem;
+        border-top: 1px solid var(--border-color);
+        font-size: 0.9rem;
+        transition: background 0.3s;
+        color: var(--text-main);
+    }
+
+    .lesson-item:hover {
+        background: var(--bg-body);
+    }
+
+    .lesson-info {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .lesson-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+    }
+
+    .lesson-icon.video {
+        background: rgba(0, 161, 222, 0.1);
+        color: var(--secondary-color);
+    }
+
+    .lesson-icon.quiz {
+        background: rgba(255, 193, 7, 0.1);
+        color: var(--accent-color);
+    }
+
+    .lesson-icon.locked {
+        background: rgba(108, 117, 125, 0.1);
+        color: var(--text-muted);
+    }
+
+    .lesson-icon.completed {
+        background: var(--bg-body);
+        border: 1px solid var(--border-color);
+        color: var(--secondary-color);
+    }
+
+    .lesson-title {
+        font-weight: 500;
+    }
+
+    .lesson-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+
+    .lesson-preview {
+        font-size: 0.75rem;
+        color: var(--secondary-color);
+        font-weight: 500;
+    }
+
+    /* Instructor Section */
+    .instructor-card {
+        display: flex;
+        gap: 1.5rem;
+        flex-direction: column;
+    }
+
+    .instructor-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid var(--accent-color);
+    }
+
+    .instructor-info h4 {
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        color: var(--text-main);
+    }
+
+    .instructor-title {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+
+    .instructor-stats {
+        display: flex;
+        gap: 1.5rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        color: var(--text-main);
+    }
+
+    .instructor-stat {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .instructor-stat i {
+        color: var(--accent-color);
+    }
+
+    .instructor-bio {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+    }
+
+    /* Reviews Section */
+    .reviews-summary {
+        display: flex;
+        gap: 2rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        flex-wrap: wrap;
+    }
+
+    .rating-big {
+        text-align: center;
+    }
+
+    .rating-number {
+        font-size: 3rem;
+        font-weight: 700;
+        color: var(--accent-color);
+        line-height: 1;
+    }
+
+    .rating-stars {
+        color: var(--accent-color);
+        font-size: 1.1rem;
+        margin: 0.5rem 0;
+    }
+
+    .rating-count {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+
+    .rating-bars {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .rating-bar-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.5rem;
+        font-size: 0.85rem;
+        color: var(--text-main);
+    }
+
+    .rating-bar-item span:first-child {
+        width: 50px;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .bar-track {
+        flex: 1;
+        height: 8px;
+        background: var(--border-color);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .bar-fill {
+        height: 100%;
+        background: var(--accent-color);
+    }
+
+    .rating-bar-item span:last-child {
+        width: 35px;
+        text-align: right;
+        color: var(--text-muted);
+    }
+
+    .review-item {
+        padding: 1.25rem 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .review-item:last-child {
+        border-bottom: none;
+    }
+
+    .review-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .review-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: var(--secondary-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+
+    .review-author {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+        color: var(--text-main);
+    }
+
+    .review-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+
+    .review-stars {
+        color: var(--accent-color);
+    }
+
+    .review-text {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+    }
+
+    .btn-more-reviews {
+        width: 100%;
+        margin-top: 1rem;
+    }
+
+    /* Mobile CTA Fixed */
+    .mobile-cta {
+        display: none;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--bg-surface);
+        border-top: 1px solid var(--border-color);
+        padding: 1rem;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+        z-index: 1000;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .mobile-cta {
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
+        }
+    }
+
+    .mobile-cta-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+
+    .mobile-cta-price .price-current {
+        font-size: 1.5rem;
+        color: var(--accent-color);
+    }
+
+    .mobile-cta .btn-enroll {
+        margin-bottom: 0;
+        white-space: nowrap;
+        padding: 0.75rem 1.5rem;
+        width: auto;
+    }
+
+    /* Sticky Sidebar */
+    .sticky-sidebar {
+        position: sticky;
+        top: 1.5rem;
+    }
+
+    /* Course Description Output */
+    .course-description-content, .course-description-content * {
+        color: var(--text-main) !important;
+        background-color: transparent !important;
+    }
+
+    /* Responsive */
+    @media (min-width: 768px) {
+        .course-hero {
+            padding: 2rem 0 3rem;
+        }
+
+        .course-hero h1 {
+            font-size: 2.25rem;
+        }
+
+        .outcomes-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .instructor-card {
+            flex-direction: row;
+            align-items: flex-start;
+        }
+    }
+
+    @media (min-width: 992px) {
+        .mobile-cta {
+            display: none !important;
+        }
+
+        .course-hero h1 {
+            font-size: 2.5rem;
+        }
+    }
+
+    @media (max-width: 991px) {
+        .desktop-cta {
+            display: none;
+        }
+
+        .mobile-cta {
+            display: block;
+        }
+
+        .main-content {
+            padding-bottom: 100px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .course-hero {
+            padding: 1rem 0 1.5rem;
+        }
+
+        .course-hero h1 {
+            font-size: 1.5rem;
+        }
+
+        .course-meta {
+            font-size: 0.8rem;
+        }
+
+        .content-section {
+            padding: 1.25rem;
+            border-radius: 0.75rem;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+        }
+
+        .module-header {
+            padding: 0.85rem 1rem;
+        }
+
+        .lesson-item {
+            padding: 0.75rem 1rem;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .lesson-meta {
+            margin-left: 2.5rem;
+        }
+
+        .reviews-summary {
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .rating-big {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-align: left;
+        }
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="course-hero">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- Breadcrumb -->
+                <nav class="course-breadcrumb">
+                    <a href="{% url 'home' %}">Bosh sahifa</a>
+                    <span class="mx-2">/</span>
+                    <a href="{% url 'courses' %}">Kurslar</a>
+                    <span class="mx-2">/</span>
+                    <span>{{ course.title }}</span>
+                </nav>
+
+                <!-- Badges -->
+                <span class="course-badge badge-level">{{ course.level|default:"Boshlang'ich" }}</span>
+                {% if course.is_bestseller %}
+                <span class="course-badge badge-bestseller ms-2">Bestseller</span>
+                {% endif %}
+
+                <!-- Title -->
+                <h1>{{ course.title }}</h1>
+
+                <!-- Meta Info -->
+                <div class="course-meta">
+                    <div class="course-meta-item course-rating">
+                        <span class="stars">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= course.rating|default:5 %}
+                                    <i class="bi bi-star-fill"></i>
+                                {% else %}
+                                    <i class="bi bi-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </span>
+                        <span>{{ course.rating|default:"4.9" }}</span>
+                        <span style="opacity: 0.7;">({{ course.reviews_count|default:"10" }} baho)</span>
+                    </div>
+                    <div class="course-meta-item">
+                        <i class="bi bi-people-fill"></i>
+                        <span>{{ course.students_count|default:"50+" }} o'quvchi</span>
+                    </div>
+                    <div class="course-meta-item">
+                        <i class="bi bi-clock-fill"></i>
+                        <span>{{ course.duration|default:"12" }} soat video</span>
+                    </div>
+                    <div class="course-meta-item">
+                        <i class="bi bi-calendar-check"></i>
+                        <span>So'nggi yangilanish: {{ course.updated_at|default:course.created_at|date:"F Y" }}</span>
+                    </div>
+                </div>
+
+                <!-- Instructor Mini -->
+                <div class="instructor-mini">
+                    {% if course.instructor.avatar %}
+                    <img src="{{ course.instructor.avatar.url }}" alt="{{ course.instructor.name }}">
+                    {% else %}
+                    <div class="instructor-avatar-placeholder" style="width:40px;height:40px;border-radius:50%;background:var(--secondary-color);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;">
+                        {{ course.instructor.name|default:"A"|slice:":1" }}
+                    </div>
+                    {% endif %}
+                    <div class="instructor-mini-info">
+                        <span>O'qituvchi:</span>
+                        <strong>{{ course.instructor.name|default:"AzureLMS Team" }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Main Content -->
+<main class="main-content py-4">
+    <div class="container">
+        <div class="row">
+            <!-- Left Column - Course Content -->
+            <div class="col-lg-8">
+                <!-- Video Preview -->
+                <div class="video-preview">
+                    {% if course.preview_video %}
+                    <iframe src="{{ course.preview_video }}" allowfullscreen></iframe>
+                    {% else %}
+                    <div class="video-placeholder" onclick="loadVideo(this, '{{ course.preview_video_id|default:"dQw4w9WgXcQ" }}')">
+                        <div class="play-btn">
+                            <i class="bi bi-play-fill"></i>
+                        </div>
+                        <span>Kurs haqida tanishtiruv videosi</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Course Description -->
+                <section class="content-section">
+                    <h2 class="section-title">
+                        <i class="bi bi-info-circle-fill"></i>
+                        Kurs haqida
+                    </h2>
+                    <div class="course-description-content" style="color:var(--text-muted); line-height: 1.6;">
+                        {{ course.description|safe }}
+                    </div>
+                </section>
+
+                <!-- Learning Outcomes -->
+                <section class="content-section">
+                    <h2 class="section-title">
+                        <i class="bi bi-check-circle-fill"></i>
+                        Nimalarni o'rganasiz?
+                    </h2>
+                    <div class="outcomes-grid">
+                        {% for outcome in course.outcomes.all %}
+                        <div class="outcome-item">
+                            <div class="outcome-icon">
+                                <i class="bi bi-check"></i>
+                            </div>
+                            <span>{{ outcome.text }}</span>
+                        </div>
+                        {% empty %}
+                        <div class="outcome-item">
+                            <div class="outcome-icon"><i class="bi bi-check"></i></div>
+                            <span>Kundalik hayotda turk tilida erkin muloqot qilish</span>
+                        </div>
+                        <div class="outcome-item">
+                            <div class="outcome-icon"><i class="bi bi-check"></i></div>
+                            <span>2000+ so'z va iboralarni o'zlashtirish</span>
+                        </div>
+                        <div class="outcome-item">
+                            <div class="outcome-icon"><i class="bi bi-check"></i></div>
+                            <span>Grammatika asoslarini mukammal bilish</span>
+                        </div>
+                        <div class="outcome-item">
+                            <div class="outcome-icon"><i class="bi bi-check"></i></div>
+                            <span>Turk seriallari va filmlarni tushunish</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </section>
+
+                <!-- Course Curriculum -->
+                <section class="content-section">
+                    <div class="curriculum-header">
+                        <h2 class="section-title mb-0">
+                            <i class="bi bi-list-check"></i>
+                            Kurs dasturi
+                        </h2>
+                        <div class="curriculum-stats">
+                            {{ course.modules.count }} modul | {{ course.lessons_count|default:"45" }} dars
+                        </div>
+                    </div>
+
+                    {% for module in course.modules.all %}
+                    <div class="module-accordion">
+                        <div class="module-header {% if forloop.first %}active{% endif %}" onclick="toggleModule(this)">
+                            <div class="module-title">
+                                <i class="bi bi-chevron-down"></i>
+                                <span>Modul {{ module.order }}: {{ module.title }}</span>
+                            </div>
+                            <div class="module-meta">{{ module.lessons.count }} dars</div>
+                        </div>
+                        <div class="module-content {% if forloop.first %}active{% endif %}">
+                            {% for lesson in module.lessons.all %}
+                            <div class="lesson-item">
+                                <div class="lesson-info">
+                                    {% if user_enrolled and lesson.is_completed %}
+                                    <div class="lesson-icon completed">
+                                        <i class="bi bi-check-circle-fill"></i>
+                                    </div>
+                                    {% elif lesson.is_free or user_enrolled %}
+                                    <div class="lesson-icon video">
+                                        <i class="bi bi-play-circle"></i>
+                                    </div>
+                                    {% else %}
+                                    <div class="lesson-icon locked">
+                                        <i class="bi bi-lock"></i>
+                                    </div>
+                                    {% endif %}
+                                    <span class="lesson-title">{{ lesson.title }}</span>
+                                </div>
+                                <div class="lesson-meta">
+                                    {% if lesson.is_free and not user_enrolled %}
+                                    <span class="lesson-preview">Bepul ko'rish</span>
+                                    {% endif %}
+                                    <span><i class="bi bi-clock"></i> {{ lesson.duration|default:"10:00" }}</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <!-- Demo modules for preview if none exist -->
+                    <div class="module-accordion">
+                        <div class="module-header active" onclick="toggleModule(this)">
+                            <div class="module-title">
+                                <i class="bi bi-chevron-down"></i>
+                                <span>Modul 1: Tanishish va salomlashish</span>
+                            </div>
+                            <div class="module-meta">6 dars | 2 soat</div>
+                        </div>
+                        <div class="module-content active">
+                            <div class="lesson-item">
+                                <div class="lesson-info">
+                                    <div class="lesson-icon video"><i class="bi bi-play-circle"></i></div>
+                                    <span class="lesson-title">Salom va xayr aytish</span>
+                                </div>
+                                <div class="lesson-meta">
+                                    <span class="lesson-preview">Bepul ko'rish</span>
+                                    <span><i class="bi bi-clock"></i> 12:30</span>
+                                </div>
+                            </div>
+                            <div class="lesson-item">
+                                <div class="lesson-info">
+                                    <div class="lesson-icon locked"><i class="bi bi-lock"></i></div>
+                                    <span class="lesson-title">O'zingizni tanishtirish</span>
+                                </div>
+                                <div class="lesson-meta">
+                                    <span><i class="bi bi-clock"></i> 15:20</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </section>
+
+                <!-- Instructor Section -->
+                <section class="content-section">
+                    <h2 class="section-title">
+                        <i class="bi bi-person-badge"></i>
+                        O'qituvchi haqida
+                    </h2>
+                    <div class="instructor-card">
+                        {% if course.instructor.avatar %}
+                        <img src="{{ course.instructor.avatar.url }}" alt="{{ course.instructor.name }}" class="instructor-avatar">
+                        {% else %}
+                        <div class="instructor-avatar" style="display: flex; align-items: center; justify-content: center; background: var(--accent-color); color: white; font-size: 2.5rem; flex-shrink: 0;">
+                            {{ course.instructor.name|default:"A"|slice:":1" }}
+                        </div>
+                        {% endif %}
+                        <div class="instructor-info">
+                            <h4>{{ course.instructor.name|default:"Sardor Rahimov" }}</h4>
+                            <p class="instructor-title">{{ course.instructor.title|default:"Turk tili mutaxassisi | 8+ yillik tajriba" }}</p>
+                            <div class="instructor-stats">
+                                <div class="instructor-stat">
+                                    <i class="bi bi-star-fill"></i>
+                                    <span>{{ course.instructor.rating|default:"4.9" }} reyting</span>
+                                </div>
+                                <div class="instructor-stat">
+                                    <i class="bi bi-people-fill"></i>
+                                    <span>{{ course.instructor.students_count|default:"25,000" }}+ o'quvchi</span>
+                                </div>
+                                <div class="instructor-stat">
+                                    <i class="bi bi-play-circle-fill"></i>
+                                    <span>{{ course.instructor.courses_count|default:"12" }} kurs</span>
+                                </div>
+                            </div>
+                            <p class="instructor-bio">{{ course.instructor.bio|default:"Turkiyada 5 yil yashagan va ta'lim olgan. Istanbul Universitetida Xalqaro munosabatlar yo'nalishi bo'yicha bakalavr darajasiga ega." }}</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Reviews Section -->
+                <section class="content-section">
+                    <h2 class="section-title">
+                        <i class="bi bi-chat-quote-fill"></i>
+                        O'quvchilar fikri
+                    </h2>
+
+                    <!-- Rating Summary -->
+                    <div class="reviews-summary">
+                        <div class="rating-big">
+                            <div>
+                                <div class="rating-number">{{ course.rating|default:"4.8" }}</div>
+                                <div class="rating-stars">
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-half"></i>
+                                </div>
+                                <div class="rating-count">{{ course.reviews_count|default:"2,547" }} baho</div>
+                            </div>
+                        </div>
+                        <div class="rating-bars">
+                            <div class="rating-bar-item">
+                                <span><i class="bi bi-star-fill text-warning"></i> 5</span>
+                                <div class="bar-track"><div class="bar-fill" style="width: 75%;"></div></div>
+                                <span>75%</span>
+                            </div>
+                            <div class="rating-bar-item">
+                                <span><i class="bi bi-star-fill text-warning"></i> 4</span>
+                                <div class="bar-track"><div class="bar-fill" style="width: 18%;"></div></div>
+                                <span>18%</span>
+                            </div>
+                            <div class="rating-bar-item">
+                                <span><i class="bi bi-star-fill text-warning"></i> 3</span>
+                                <div class="bar-track"><div class="bar-fill" style="width: 5%;"></div></div>
+                                <span>5%</span>
+                            </div>
+                            <div class="rating-bar-item">
+                                <span><i class="bi bi-star-fill text-warning"></i> 2</span>
+                                <div class="bar-track"><div class="bar-fill" style="width: 1%;"></div></div>
+                                <span>1%</span>
+                            </div>
+                            <div class="rating-bar-item">
+                                <span><i class="bi bi-star-fill text-warning"></i> 1</span>
+                                <div class="bar-track"><div class="bar-fill" style="width: 1%;"></div></div>
+                                <span>1%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Review Items -->
+                    <div class="reviews-list">
+                        {% for review in reviews %}
+                        <div class="review-item">
+                            <div class="review-header">
+                                <div class="review-avatar">{{ review.user.first_name|slice:":1" }}</div>
+                                <div>
+                                    <div class="review-author">{{ review.user.get_full_name }}</div>
+                                    <div class="review-meta">
+                                        <span class="review-stars">
+                                            {% for i in "12345" %}
+                                                {% if forloop.counter <= review.rating %}
+                                                    <i class="bi bi-star-fill"></i>
+                                                {% else %}
+                                                    <i class="bi bi-star"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </span>
+                                        <span>{{ review.created_at|timesince }} oldin</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="review-text">{{ review.text }}</p>
+                        </div>
+                        {% empty %}
+                        <!-- Demo reviews -->
+                        <div class="review-item">
+                            <div class="review-header">
+                                <div class="review-avatar">D</div>
+                                <div>
+                                    <div class="review-author">Dilnoza Karimova</div>
+                                    <div class="review-meta">
+                                        <span class="review-stars">
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                        </span>
+                                        <span>2 hafta oldin</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="review-text">Ajoyib kurs! Men 3 oy ichida Turkiyaga borib, erkin muloqot qila oldim.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <button class="btn btn-outline-primary btn-more-reviews mt-3">
+                        <i class="bi bi-chat-dots me-2"></i>Barcha fikrlarni ko'rish
+                    </button>
+                </section>
+            </div>
+
+            <!-- Right Column - CTA Box (Desktop) -->
+            <div class="col-lg-4 desktop-cta">
+                <div class="sticky-sidebar">
+                    <div class="cta-box">
+                        <div class="cta-price">
+                            <span class="price-current">{{ course.price|default:"99,000" }} so'm</span>
+                            {% if course.original_price %}
+                            <span class="price-original">{{ course.original_price }} so'm</span>
+                            <span class="price-discount">-{{ course.discount_percent|default:"50" }}%</span>
+                            {% endif %}
+                            <span class="price-period">
+                                {% if course.is_subscription %}oyiga{% else %}bir martalik to'lov{% endif %}
+                            </span>
+                        </div>
+
+                        {% if user_enrolled %}
+                        <a href="#" class="btn btn-success btn-enroll text-white">
+                            <i class="bi bi-play-fill me-2"></i>O'qishni davom ettirish
+                        </a>
+                        {% else %}
+                        <button class="btn btn-danger btn-enroll">
+                            <i class="bi bi-cart-plus me-2"></i>Hozir sotib olish
+                        </button>
+                        <button class="btn btn-outline-secondary btn-wishlist">
+                            <i class="bi bi-heart me-2"></i>Sevimlilariga qo'shish
+                        </button>
+                        {% endif %}
+
+                        <div class="cta-features">
+                            <div class="cta-feature">
+                                <i class="bi bi-infinity"></i>
+                                <span>Umrbod kirish huquqi</span>
+                            </div>
+                            <div class="cta-feature">
+                                <i class="bi bi-phone"></i>
+                                <span>Mobil va kompyuterda ko'rish</span>
+                            </div>
+                            <div class="cta-feature">
+                                <i class="bi bi-download"></i>
+                                <span>Yuklab olish imkoniyati</span>
+                            </div>
+                            <div class="cta-feature">
+                                <i class="bi bi-patch-check"></i>
+                                <span>Sertifikat beriladi</span>
+                            </div>
+                            <div class="cta-feature">
+                                <i class="bi bi-translate"></i>
+                                <span>O'zbek tilida</span>
+                            </div>
+                        </div>
+
+                        <div class="guarantee">
+                            <i class="bi bi-shield-check me-1"></i>
+                            30 kunlik pulni qaytarish kafolati
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Mobile CTA -->
+<div class="mobile-cta d-lg-none"> <!-- Explicitly hidden on large screens via bootstrap if CSS fails -->
+    <div class="mobile-cta-inner">
+        <div class="mobile-cta-price">
+            <span class="price-current fw-bold text-primary fs-4">{{ course.price|default:"99,000" }} so'm</span>
+        </div>
+        {% if user_enrolled %}
+        <a href="#" class="btn btn-success btn-enroll text-white">
+            <i class="bi bi-play-fill me-2"></i>Davom ettirish
+        </a>
+        {% else %}
+        <button class="btn btn-danger btn-enroll">
+            <i class="bi bi-cart-plus me-2"></i>Sotib olish
+        </button>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Toggle Module Accordion
+    function toggleModule(header) {
+        const content = header.nextElementSibling;
+        const isActive = header.classList.contains('active');
+
+        // Close all modules
+        document.querySelectorAll('.module-header').forEach(h => {
+            h.classList.remove('active');
+            h.nextElementSibling.classList.remove('active');
+        });
+
+        // Open clicked module if it was closed
+        if (!isActive) {
+            header.classList.add('active');
+            content.classList.add('active');
+        }
+    }
+
+    // Load Video
+    function loadVideo(placeholder, videoId) {
+        placeholder.innerHTML = `
+            <iframe 
+                src="https://www.youtube.com/embed/${videoId}?autoplay=1" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen>
+            </iframe>
+        `;
+    }
+</script>
+{% endblock %}
+
+
+<!-- courses/course_list.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Kurslar - AzureLMS{% endblock %}
+{% block meta_description %}AzureLMS platformasidagi barcha turk tili kurslari. 50+ professional kurslar orasidan o'zingizga mosini toping.{% endblock %}
+
+{% block extra_css %}
+    /* Use common variables from base.html already mapping for day/night mode */
+
+    /* Page Header */
+    .page-header {
+        background-color: var(--accent-color) !important;
+        color: white;
+        padding: 2rem 1rem;
+        text-align: center;
+    }
+
+    .page-header h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: white !important; /* Critical for gradient bg */
+    }
+
+    .page-header p {
+        opacity: 0.9;
+        font-size: 0.95rem;
+        margin: 0;
+        color: white !important;
+    }
+
+    /* Search Section */
+    .search-section {
+        background: var(--bg-surface);
+        padding: 1rem;
+        position: sticky;
+        top: 70px;
+        z-index: 100;
+        box-shadow: var(--card-shadow);
+    }
+
+    .search-box {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .search-box input {
+        flex: 1;
+        height: 44px;
+        border: 2px solid var(--border-color);
+        border-radius: 0.5rem;
+        padding: 0 1rem;
+        font-size: 16px;
+        background: var(--bg-surface);
+        color: var(--text-main);
+    }
+
+    .search-box input:focus {
+        outline: none;
+        border-color: var(--accent-color);
+    }
+
+    .search-box button {
+        height: 44px;
+        width: 44px;
+        border: none;
+        background: var(--accent-color);
+        color: white;
+        border-radius: 0.5rem;
+        cursor: pointer;
+    }
+
+    .filter-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        height: 44px;
+        width: 100%;
+        border: 2px solid var(--border-color);
+        background: var(--bg-surface);
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-weight: 500;
+        color: var(--text-main);
+    }
+
+    .filter-btn.active {
+        border-color: var(--accent-color);
+        color: var(--accent-color);
+    }
+
+    /* Filter Panel */
+    .filter-panel {
+        background: var(--bg-surface);
+        padding: 1rem;
+        border-top: 1px solid var(--border-color);
+        display: none;
+    }
+
+    .filter-panel.active {
+        display: block;
+    }
+
+    .filter-group {
+        margin-bottom: 1rem;
+    }
+
+    .filter-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .filter-group label {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--text-main);
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .filter-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .filter-tag {
+        padding: 0.4rem 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: 2rem;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        background: var(--bg-surface);
+        color: var(--text-main);
+    }
+
+    .filter-tag:hover,
+    .filter-tag.active {
+        background: var(--accent-color);
+        color: white;
+        border-color: var(--accent-color);
+    }
+
+    /* Results Info */
+    .results-info {
+        padding: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+
+    .view-toggle {
+        display: flex;
+        gap: 0.25rem;
+    }
+
+    .view-toggle button {
+        width: 36px;
+        height: 36px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-surface);
+        border-radius: 0.25rem;
+        cursor: pointer;
+        color: var(--text-muted);
+    }
+
+    .view-toggle button.active {
+        background: var(--accent-color);
+        color: white;
+        border-color: var(--accent-color);
+    }
+
+    /* Courses Container */
+    .courses-container {
+        padding: 0 1rem 2rem;
+    }
+
+    /* Course Card */
+    .courses-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .course-card {
+        background: var(--bg-surface);
+        border-radius: 1rem;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+        transition: all 0.3s;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        border: 1px solid var(--border-color);
+    }
+
+    .course-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--card-shadow-hover);
+        color: inherit;
+    }
+
+    .course-image {
+        position: relative;
+        height: 160px;
+        background: var(--secondary-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .course-image i {
+        font-size: 3rem;
+        color: white;
+        opacity: 0.9;
+    }
+
+    .course-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .course-badge {
+        position: absolute;
+        top: 0.75rem;
+        left: 0.75rem;
+        padding: 0.25rem 0.6rem;
+        border-radius: 0.25rem;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .badge-new { background: var(--secondary-color); color: var(--bg-body); }
+    .badge-popular { background: var(--accent-color); color: var(--bg-body); }
+    .badge-sale { background: var(--accent-color); color: white; }
+
+    .course-level {
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+        padding: 0.25rem 0.6rem;
+        background: rgba(0,0,0,0.6);
+        color: white;
+        border-radius: 0.25rem;
+        font-size: 0.7rem;
+        font-weight: 500;
+    }
+
+    .course-content {
+        padding: 1rem;
+    }
+
+    .course-category {
+        font-size: 0.75rem;
+        color: var(--secondary-color);
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 0.25rem;
+    }
+
+    .course-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 0.5rem;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .course-instructor {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-bottom: 0.75rem;
+    }
+
+    .instructor-avatar {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--accent-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+
+    .course-meta {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin-bottom: 0.75rem;
+    }
+
+    .course-meta span {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .course-rating {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .stars { color: var(--secondary-color); font-size: 0.85rem; }
+    .rating-score { font-weight: 600; color: var(--text-main); font-size: 0.85rem; }
+    .rating-count { color: var(--text-muted); font-size: 0.8rem; }
+
+    .course-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .course-price {
+        display: flex;
+        align-items: baseline;
+        gap: 0.5rem;
+    }
+
+    .price-current { font-size: 1.25rem; font-weight: 700; color: var(--accent-color); }
+    .price-old { font-size: 0.85rem; color: var(--text-muted); text-decoration: line-through; }
+    .price-free { font-size: 1.25rem; font-weight: 700; color: var(--secondary-color); }
+
+    .course-action {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        color: var(--accent-color);
+        font-weight: 600;
+    }
+
+    /* List View */
+    .courses-grid.list-view { grid-template-columns: 1fr; }
+
+    .courses-grid.list-view .course-card {
+        display: flex;
+        flex-direction: row;
+    }
+
+    .courses-grid.list-view .course-image {
+        width: 120px;
+        min-width: 120px;
+        height: auto;
+        min-height: 120px;
+    }
+
+    .courses-grid.list-view .course-image i { font-size: 2rem; }
+
+    .courses-grid.list-view .course-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .courses-grid.list-view .course-footer { margin-top: auto; }
+
+    /* Categories */
+    .categories-scroll {
+        display: flex;
+        gap: 0.75rem;
+        overflow-x: auto;
+        padding: 1rem;
+        background: var(--bg-body);
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .categories-scroll::-webkit-scrollbar { display: none; }
+
+    .category-chip {
+        flex-shrink: 0;
+        padding: 0.6rem 1rem;
+        border: 2px solid var(--border-color);
+        border-radius: 2rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+        background: var(--bg-surface);
+        color: var(--text-main);
+    }
+
+    .category-chip:hover,
+    .category-chip.active {
+        background: var(--accent-color);
+        color: white;
+        border-color: var(--accent-color);
+    }
+
+    /* Load More */
+    .load-more {
+        text-align: center;
+        padding: 2rem 1rem;
+    }
+
+    .load-more button {
+        padding: 0.75rem 2rem;
+        border: 2px solid var(--accent-color);
+        background: var(--bg-surface);
+        color: var(--accent-color);
+        border-radius: 0.5rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .load-more button:hover {
+        background: var(--accent-color);
+        color: white;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: var(--border-color);
+        margin-bottom: 1rem;
+    }
+
+    .empty-state h3 {
+        font-size: 1.25rem;
+        color: var(--text-main);
+        margin-bottom: 0.5rem;
+    }
+
+    /* Responsive - Tablet */
+    @media (min-width: 576px) {
+        .courses-grid { grid-template-columns: repeat(2, 1fr); }
+        .courses-grid.list-view { grid-template-columns: 1fr; }
+        .courses-grid.list-view .course-image { width: 180px; min-width: 180px; }
+    }
+
+    /* Responsive - Desktop */
+    @media (min-width: 992px) {
+        .page-header { padding: 3rem 2rem; }
+        .page-header h1 { font-size: 2.25rem; }
+        .search-section { padding: 1.5rem 2rem; }
+        .search-box { max-width: 600px; margin: 0 auto 1rem; }
+        .filter-btn { width: auto; padding: 0 1.5rem; }
+        .courses-container { padding: 0 2rem 3rem; max-width: 1400px; margin: 0 auto; }
+        .courses-grid { grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+        .courses-grid.list-view { grid-template-columns: 1fr; }
+        .courses-grid.list-view .course-image { width: 240px; min-width: 240px; height: 160px; }
+        .course-image { height: 180px; }
+    }
+
+    @media (min-width: 1200px) {
+        .courses-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<header class="page-header">
+    <h1>Barcha Kurslar</h1>
+    <p>50+ professional kurslar orasidan o'zingizga mosini toping</p>
+</header>
+
+<!-- Categories Scroll (Hidden until backend supports it) -->
+<div class="categories-scroll" style="display: none;">
+    <!-- Reserved for future categories -->
+</div>
+
+<!-- Search Section -->
+<section class="search-section">
+    <form method="GET" action="{% url 'courses' %}" class="search-box">
+        <input type="text" name="q" placeholder="Kurs qidirish..." value="{{ search_query }}" id="searchInput">
+        <button type="submit"><i class="bi bi-search"></i></button>
+    </form>
+    <!-- Removed static layout filters until backend fully supports them -->
+</section>
+
+<!-- Results Info -->
+<div class="results-info">
+    <span>
+        {% if search_query %}
+            <strong>"{{ search_query }}"</strong> bo'yicha qidiruv natijalari:
+        {% endif %}
+        <strong>{% if is_paginated %}{{ paginator.count }}{% else %}{{ courses|length }}{% endif %}</strong> ta kurs topildi
+    </span>
+    <div class="view-toggle">
+        <button class="active" onclick="setView('grid', this)" title="Grid ko'rinish">
+            <i class="bi bi-grid-3x3-gap"></i>
+        </button>
+        <button onclick="setView('list', this)" title="Ro'yxat ko'rinish">
+            <i class="bi bi-list-ul"></i>
+        </button>
+    </div>
+</div>
+
+<!-- Courses Container -->
+<main class="courses-container">
+    <div class="courses-grid" id="coursesGrid">
+        {% for course in courses %}
+        <a href="{% url 'course_detail' course.pk %}" class="course-card">
+            <div class="course-image" style="background: var(--accent-color); color: var(--bg-body);">
+                {% if course.thumbnail %}
+                <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}">
+                {% else %}
+                <i class="bi bi-{{ course.icon|default:'book' }}"></i>
+                {% endif %}
+                {% if course.is_new %}
+                <span class="course-badge badge-new">Yangi</span>
+                {% elif course.is_popular %}
+                <span class="course-badge badge-popular">Mashhur</span>
+                {% elif course.discount_percent %}
+                <span class="course-badge badge-sale">-{{ course.discount_percent }}%</span>
+                {% endif %}
+                <span class="course-level">{{ course.level }}</span>
+            </div>
+            <div class="course-content">
+                <div class="course-category">{{ course.category }}</div>
+                <h3 class="course-title">{{ course.title }}</h3>
+                <div class="course-instructor">
+                    <span class="instructor-avatar">{{ course.instructor.initials }}</span>
+                    <span>{{ course.instructor.name }}</span>
+                </div>
+                <div class="course-meta">
+                    <span><i class="bi bi-play-circle"></i> {{ course.lessons_count }} dars</span>
+                    <span><i class="bi bi-clock"></i> {{ course.duration }} soat</span>
+                </div>
+                <div class="course-rating">
+                    <span class="stars">
+                        {% for i in "12345" %}
+                        {% if forloop.counter <= course.rating %}
+                        <i class="bi bi-star-fill"></i>
+                        {% elif forloop.counter <= course.rating|add:"0.5" %}
+                        <i class="bi bi-star-half"></i>
+                        {% else %}
+                        <i class="bi bi-star"></i>
+                        {% endif %}
+                        {% endfor %}
+                    </span>
+                    <span class="rating-score">{{ course.rating }}</span>
+                    <span class="rating-count">({{ course.reviews_count }})</span>
+                </div>
+                <div class="course-footer">
+                    <div class="course-price">
+                        {% if course.is_free %}
+                        <span class="price-free">Bepul</span>
+                        {% else %}
+                        <span class="price-current">{{ course.price|floatformat:0 }} so'm</span>
+                        {% if course.old_price %}
+                        <span class="price-old">{{ course.old_price|floatformat:0 }}</span>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                    <span class="course-action">
+                        Ko'rish <i class="bi bi-arrow-right"></i>
+                    </span>
+                </div>
+            </div>
+        </a>
+        {% empty %}
+        <!-- Demo Courses -->
+        <a href="#" class="course-card">
+            <div class="course-image" style="background: var(--accent-color); color: var(--bg-body);">
+                <i class="bi bi-alphabet-uppercase"></i>
+                <span class="course-badge badge-popular">Mashhur</span>
+                <span class="course-level">A1</span>
+            </div>
+            <div class="course-content">
+                <div class="course-category">Boshlang'ich</div>
+                <h3 class="course-title">Turk tili A1 - Noldan Boshlash</h3>
+                <div class="course-instructor">
+                    <span class="instructor-avatar">AK</span>
+                    <span>Ayse Koc</span>
+                </div>
+                <div class="course-meta">
+                    <span><i class="bi bi-play-circle"></i> 45 dars</span>
+                    <span><i class="bi bi-clock"></i> 12 soat</span>
+                </div>
+                <div class="course-rating">
+                    <span class="stars">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-half"></i>
+                    </span>
+                    <span class="rating-score">4.8</span>
+                    <span class="rating-count">(2,456)</span>
+                </div>
+                <div class="course-footer">
+                    <div class="course-price">
+                        <span class="price-current">199,000 so'm</span>
+                        <span class="price-old">349,000</span>
+                    </div>
+                    <span class="course-action">
+                        Ko'rish <i class="bi bi-arrow-right"></i>
+                    </span>
+                </div>
+            </div>
+        </a>
+
+        <a href="#" class="course-card">
+            <div class="course-image" style="background: var(--secondary-color); color: var(--bg-body);">
+                <i class="bi bi-chat-quote"></i>
+                <span class="course-badge badge-new">Yangi</span>
+                <span class="course-level">A2</span>
+            </div>
+            <div class="course-content">
+                <div class="course-category">So'zlashuv</div>
+                <h3 class="course-title">Turk tilida Erkin So'zlashish A2</h3>
+                <div class="course-instructor">
+                    <span class="instructor-avatar">MY</span>
+                    <span>Mehmet Yilmaz</span>
+                </div>
+                <div class="course-meta">
+                    <span><i class="bi bi-play-circle"></i> 38 dars</span>
+                    <span><i class="bi bi-clock"></i> 10 soat</span>
+                </div>
+                <div class="course-rating">
+                    <span class="stars">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                    </span>
+                    <span class="rating-score">4.9</span>
+                    <span class="rating-count">(1,892)</span>
+                </div>
+                <div class="course-footer">
+                    <div class="course-price">
+                        <span class="price-current">249,000 so'm</span>
+                    </div>
+                    <span class="course-action">
+                        Ko'rish <i class="bi bi-arrow-right"></i>
+                    </span>
+                </div>
+            </div>
+        </a>
+
+        <a href="#" class="course-card">
+            <div class="course-image" style="background: var(--accent-color); color: var(--bg-body);">
+                <i class="bi bi-gift"></i>
+                <span class="course-badge badge-sale">Bepul</span>
+                <span class="course-level">A1</span>
+            </div>
+            <div class="course-content">
+                <div class="course-category">Boshlang'ich</div>
+                <h3 class="course-title">Turk Alifbosi va Talaffuz Asoslari</h3>
+                <div class="course-instructor">
+                    <span class="instructor-avatar">ZA</span>
+                    <span>Zeynep Aksoy</span>
+                </div>
+                <div class="course-meta">
+                    <span><i class="bi bi-play-circle"></i> 15 dars</span>
+                    <span><i class="bi bi-clock"></i> 3 soat</span>
+                </div>
+                <div class="course-rating">
+                    <span class="stars">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star"></i>
+                    </span>
+                    <span class="rating-score">4.6</span>
+                    <span class="rating-count">(5,234)</span>
+                </div>
+                <div class="course-footer">
+                    <div class="course-price">
+                        <span class="price-free">Bepul</span>
+                    </div>
+                    <span class="course-action">
+                        Ko'rish <i class="bi bi-arrow-right"></i>
+                    </span>
+                </div>
+            </div>
+        </a>
+
+        <a href="#" class="course-card">
+            <div class="course-image" style="background: var(--secondary-color); color: var(--bg-body);">
+                <i class="bi bi-book"></i>
+                <span class="course-level">B1</span>
+            </div>
+            <div class="course-content">
+                <div class="course-category">Grammatika</div>
+                <h3 class="course-title">Turk tili Grammatikasi B1 - To'liq Kurs</h3>
+                <div class="course-instructor">
+                    <span class="instructor-avatar">EK</span>
+                    <span>Elif Kaya</span>
+                </div>
+                <div class="course-meta">
+                    <span><i class="bi bi-play-circle"></i> 62 dars</span>
+                    <span><i class="bi bi-clock"></i> 18 soat</span>
+                </div>
+                <div class="course-rating">
+                    <span class="stars">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-half"></i>
+                    </span>
+                    <span class="rating-score">4.7</span>
+                    <span class="rating-count">(987)</span>
+                </div>
+                <div class="course-footer">
+                    <div class="course-price">
+                        <span class="price-current">299,000 so'm</span>
+                    </div>
+    <div class="empty-state w-100 mt-5">
+        <i class="bi bi-search"></i>
+        <h3>Hech narsa topilmadi</h3>
+        <p class="text-muted">Boshqa so'z bilan qidirib ko'ring yoki barcha kurslarni ko'ring.</p>
+        <a href="{% url 'courses' %}" class="btn btn-primary mt-3">Barcha kurslar</a>
+    </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav class="mt-5" aria-label="Sahifalash">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}" aria-label="Oldingi">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+            {% endif %}
+
+            {% for num in paginator.page_range %}
+                {% if page_obj.number == num %}
+                <li class="page-item active" style="--bs-pagination-active-bg: var(--accent-color); --bs-pagination-active-border-color: var(--accent-color);">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}">{{ num }}</a>
+                </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}" aria-label="Keyingi">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    <!-- Load More -->
+    {% if has_more %}
+    <div class="load-more">
+        <button type="button" onclick="loadMore()">
+            <i class="bi bi-plus-lg me-2"></i>Ko'proq kurslar
+        </button>
+    </div>
+    {% endif %}
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Toggle Filter Panel
+    function toggleFilter() {
+        const panel = document.getElementById('filterPanel');
+        const btn = document.querySelector('.filter-btn');
+        panel.classList.toggle('active');
+        btn.classList.toggle('active');
+    }
+
+    // Set View (Grid/List)
+    function setView(view, btn) {
+        const grid = document.getElementById('coursesGrid');
+        const buttons = document.querySelectorAll('.view-toggle button');
+        
+        buttons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        if (view === 'list') {
+            grid.classList.add('list-view');
+        } else {
+            grid.classList.remove('list-view');
+        }
+        
+        localStorage.setItem('coursesView', view);
+    }
+
+    // Category Filter
+    document.querySelectorAll('.category-chip').forEach(chip => {
+        chip.addEventListener('click', function() {
+            document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            // Add AJAX filtering or form submission here
+        });
+    });
+
+    // Filter Tags
+    document.querySelectorAll('.filter-tag').forEach(tag => {
+        tag.addEventListener('click', function() {
+            const group = this.closest('.filter-tags');
+            group.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+
+    // Load saved view preference
+    document.addEventListener('DOMContentLoaded', function() {
+        const savedView = localStorage.getItem('coursesView');
+        if (savedView === 'list') {
+            const listBtn = document.querySelector('.view-toggle button:last-child');
+            setView('list', listBtn);
+        }
+    });
+</script>
+{% endblock %}
+
+
+<!-- registration/login.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Kirish - AzureLMS{% endblock %}
+{% block meta_description %}AzureLMS platformasiga kiring va turk tilini o'rganishni davom ettiring{% endblock %}
+
+{% block extra_css %}
+    .login-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        background: transparent;
+    }
+
+    .login-card {
+        width: 100%;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .login-header .icon {
+        font-size: 3rem;
+        color: var(--accent-color);
+        margin-bottom: 1rem;
+    }
+
+    .login-header h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-main);
+    }
+
+    .login-header p {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: var(--text-main);
+        margin-bottom: 0.5rem;
+        display: block;
+        font-size: 0.95rem;
+    }
+
+    .form-control {
+        height: 48px;
+        border-radius: 0.5rem;
+        border: 2px solid var(--border-color);
+        background-color: var(--bg-surface);
+        color: var(--text-main);
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+    }
+
+    .form-control:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 3px rgba(227, 10, 23, 0.1);
+    }
+
+    .password-wrapper {
+        position: relative;
+    }
+
+    .toggle-password {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        padding: 0.25rem;
+    }
+
+    .toggle-password:hover {
+        color: var(--accent-color);
+    }
+
+    .form-check {
+        margin-bottom: 1rem;
+    }
+
+    .form-check-input {
+        width: 18px;
+        height: 18px;
+        margin-top: 0.25rem;
+        cursor: pointer;
+    }
+
+    .form-check-input:checked {
+        background-color: var(--accent-color);
+        border-color: var(--accent-color);
+    }
+
+    .forgot-link {
+        color: var(--accent-color);
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .forgot-link:hover {
+        text-decoration: underline;
+    }
+
+    .btn-login {
+        height: 48px;
+        font-size: 1rem;
+        font-weight: 600;
+        width: 100%;
+        margin-top: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .divider {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin: 1.5rem 0;
+        color: var(--text-muted);
+    }
+
+    .divider::before,
+    .divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--border-color);
+    }
+
+    .btn-social {
+        height: 48px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+
+    .signup-link {
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    .signup-link a {
+        color: var(--accent-color);
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .signup-link a:hover {
+        text-decoration: underline;
+    }
+
+    @media (max-width: 480px) {
+        .login-container {
+            padding: 0.75rem;
+        }
+
+        .login-header h1 {
+            font-size: 1.5rem;
+        }
+
+        .form-control {
+            height: 44px;
+            font-size: 16px;
+        }
+
+        .btn-login {
+            height: 44px;
+        }
+    }
+{% endblock %}
+
+{% block content %}
+<main class="login-container">
+    <div class="login-card">
+        <!-- Header -->
+        <div class="login-header">
+            <div class="icon">
+                <i class="bi bi-box-arrow-in-right"></i>
+            </div>
+            <h1>Kirish</h1>
+            <p>AzureLMS platformasiga kiring</p>
+        </div>
+
+        <!-- Error Messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Login Form -->
+        <form method="POST" action="{% url 'login' %}" class="needs-validation">
+            {% csrf_token %}
+
+            <!-- Email/Username -->
+            <div class="form-group">
+                <label for="identifier">Email yoki Username</label>
+                <input type="text" class="form-control" id="identifier" name="username" 
+                       placeholder="Email yoki username" required>
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+                <label for="password">Parol</label>
+                <div class="password-wrapper">
+                    <input type="password" class="form-control" id="password" name="password" 
+                           placeholder="Parolni kiriting" required>
+                    <button type="button" class="toggle-password" onclick="togglePassword('password', this)">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Remember Me & Forgot Password -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="form-check mb-0">
+                    <input class="form-check-input" type="checkbox" id="remember" name="remember">
+                    <label class="form-check-label" for="remember">Meni eslab qol</label>
+                </div>
+                <a href="{% url 'password_reset' %}" class="forgot-link">Parolni unutdingizmi?</a>
+            </div>
+
+            <!-- Login Button -->
+            <button type="submit" class="btn btn-danger btn-login">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Kirish
+            </button>
+        </form>
+
+        <!-- Divider -->
+        <div class="divider">yoki</div>
+
+        <!-- Google Login -->
+        <button type="button" class="btn btn-outline-secondary btn-social">
+            <i class="bi bi-google me-2"></i>Google bilan kirish
+        </button>
+
+        <!-- Sign Up Link -->
+        <p class="signup-link mt-4">
+            Hisobingiz yo'qmi? <a href="{% url 'register' %}">Ro'yxatdan o'ting</a>
+        </p>
+    </div>
+</main>
+
+<script>
+    function togglePassword(inputId, button) {
+        const input = document.getElementById(inputId);
+        const icon = button.querySelector('i');
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+        }
+    }
+</script>
+{% endblock %}
+
+
+<!-- registration/password_reset_complete.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Parol yangilandi - AzureLMS{% endblock %}
+
+{% block extra_css %}
+    .auth-section {
+        min-height: calc(100vh - 80px);
+        display: flex;
+        align-items: center;
+        padding: 3rem 0;
+        background: transparent;
+    }
+
+    .reset-card {
+        background: var(--bg-surface);
+        border-radius: 1.5rem;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 3rem;
+    }
+
+    .success-state {
+        text-align: center;
+        padding: 2rem 0;
+    }
+
+    .success-icon {
+        width: 80px;
+        height: 80px;
+        background: var(--secondary-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        font-size: 2.5rem;
+        color: var(--bg-body);
+    }
+
+    .success-state h4 {
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 1rem;
+    }
+
+    .success-state p {
+        color: var(--text-muted);
+        margin-bottom: 2rem;
+    }
+{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="container">
+        <div class="reset-card">
+            <div class="text-center mb-4">
+                <div class="success-icon" style="background: var(--success) !important;">
+                    <i class="bi bi-check-circle text-white"></i>
+                </div>
+                
+                <h4>Parol o'zgartirildi!</h4>
+                <p>
+                    Tabriklaymiz! Parolingiz muvaffaqiyatli yangilandi. 
+                    Endi yangi parol bilan tizimga kirishingiz mumkin.
+                </p>
+                
+                <a href="{% url 'login' %}" class="btn btn-primary btn-reset w-100">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Kirish
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+
+<!-- registration/password_reset_confirm.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Yangi parol o'rnatish - AzureLMS{% endblock %}
+
+{% block extra_css %}
+    .auth-section {
+        min-height: calc(100vh - 80px);
+        display: flex;
+        align-items: center;
+        padding: 3rem 0;
+        background: transparent;
+    }
+
+    .reset-card {
+        background: var(--bg-surface);
+        border-radius: 1.5rem;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 3rem;
+    }
+
+    .reset-icon {
+        width: 80px;
+        height: 80px;
+        background: var(--accent-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        font-size: 2rem;
+        color: var(--bg-body);
+    }
+
+    .reset-card h3 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 0.5rem;
+        text-align: center;
+    }
+
+    .reset-card .subtitle {
+        color: var(--text-muted);
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .form-floating {
+        margin-bottom: 1rem;
+    }
+
+    .form-floating .form-control {
+        height: 56px;
+        border-radius: 0.75rem;
+        border: 2px solid var(--border-color);
+        background-color: var(--bg-surface);
+        color: var(--text-main);
+        padding: 1rem 1rem;
+    }
+
+    .btn-reset {
+        height: 50px;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 0.75rem;
+    }
+{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="container">
+        <div class="reset-card">
+            <div class="reset-icon" style="background: var(--accent-color) !important;">
+                <i class="bi bi-shield-lock"></i>
+            </div>
+            
+            <h3>Yangi parol</h3>
+            <p class="subtitle">Iltimos, yangi parolingizni kiriting</p>
+            
+            {% if validlink %}
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="form-floating">
+                    <input type="password" class="form-control" id="id_new_password1" name="new_password1" placeholder="Yangi parol" required>
+                    <label for="id_new_password1"><i class="bi bi-lock me-2"></i>Yangi parol</label>
+                </div>
+
+                <div class="form-floating">
+                    <input type="password" class="form-control" id="id_new_password2" name="new_password2" placeholder="Parolni tasdiqlang" required>
+                    <label for="id_new_password2"><i class="bi bi-lock-fill me-2"></i>Parolni tasdiqlang</label>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-reset w-100">
+                    <i class="bi bi-check2-circle me-2"></i>Parolni saqlash
+                </button>
+            </form>
+            {% else %}
+            <div class="alert alert-danger text-center">
+                <p class="mb-0">Parolni tiklash havolasi noto'g'ri yoki allaqachon ishlatilgan.</p>
+            </div>
+            <div class="text-center mt-3">
+                <a href="{% url 'password_reset' %}" class="btn btn-outline-primary">Qayta urinish</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+
+<!-- registration/password_reset_done.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Email yuborildi - AzureLMS{% endblock %}
+
+{% block extra_css %}
+    .auth-section {
+        min-height: calc(100vh - 80px);
+        display: flex;
+        align-items: center;
+        padding: 3rem 0;
+        background: transparent;
+    }
+
+    .reset-card {
+        background: var(--bg-surface);
+        border-radius: 1.5rem;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 3rem;
+    }
+
+    .success-state {
+        text-align: center;
+        padding: 2rem 0;
+    }
+
+    .success-icon {
+        width: 80px;
+        height: 80px;
+        background: var(--secondary-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        font-size: 2.5rem;
+        color: var(--bg-body);
+    }
+
+    .success-state h4 {
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 1rem;
+    }
+
+    .success-state p {
+        color: var(--text-muted);
+        margin-bottom: 0;
+    }
+
+    .resend-section {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .resend-section p {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        margin-bottom: 0.75rem;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        margin-bottom: 2rem;
+        transition: color 0.3s;
+    }
+
+    .back-link:hover {
+        color: var(--accent-color);
+    }
+{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="container">
+        <div class="reset-card">
+            <a href="{% url 'login' %}" class="back-link">
+                <i class="bi bi-arrow-left"></i> Kirishga qaytish
+            </a>
+            
+            <div class="text-center mb-4">
+                <div class="success-icon" style="background: var(--success) !important;">
+                    <i class="bi bi-envelope-check text-white"></i>
+                </div>
+                
+                <h4>Email yuborildi!</h4>
+                <p>
+                    Parolni tiklash havolasi email manzilingizga yuborildi. 
+                    Iltimos, pochta qutingizni tekshiring.
+                </p>
+                
+                <div class="resend-section">
+                    <p>Email kelmadimi? Spam papkasini ham tekshiring.</p>
+                    <a href="{% url 'password_reset' %}" class="btn btn-outline-primary btn-resend">
+                        <i class="bi bi-arrow-repeat me-2"></i>Qayta urinish
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+
+<!-- registration/password_reset_form.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Parolni tiklash - AzureLMS{% endblock %}
+{% block meta_description %}AzureLMS platformasida parolingizni tiklang{% endblock %}
+
+{% block extra_css %}
+    .auth-section {
+        min-height: calc(100vh - 80px);
+        display: flex;
+        align-items: center;
+        padding: 3rem 0;
+        background: transparent;
+    }
+
+    .reset-card {
+        background: var(--bg-surface);
+        border-radius: 1.5rem;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 3rem;
+    }
+
+    .reset-icon {
+        width: 80px;
+        height: 80px;
+        background: var(--accent-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        font-size: 2rem;
+        color: var(--bg-body);
+    }
+
+    .reset-card h3 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 0.5rem;
+        text-align: center;
+    }
+
+    .reset-card .subtitle {
+        color: var(--text-muted);
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    .form-floating {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-floating .form-control {
+        height: 56px;
+        border-radius: 0.75rem;
+        border: 2px solid var(--border-color);
+        background-color: var(--bg-surface);
+        color: var(--text-main);
+        padding: 1rem 1rem;
+    }
+
+    .form-floating .form-control:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 3px rgba(227, 10, 23, 0.15);
+    }
+
+    .form-floating label {
+        padding: 1rem;
+    }
+
+    .btn-reset {
+        height: 50px;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 0.75rem;
+    }
+
+    .auth-footer {
+        text-align: center;
+        color: var(--text-muted);
+        margin-top: 1.5rem;
+    }
+
+    .auth-footer a {
+        color: var(--accent-color);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .auth-footer a:hover {
+        text-decoration: underline;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--text-muted);
+        text-decoration: none;
+        margin-bottom: 2rem;
+        transition: color 0.3s;
+    }
+
+    .back-link:hover {
+        color: var(--accent-color);
+    }
+{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="container">
+        <div class="reset-card">
+            <a href="{% url 'login' %}" class="back-link">
+                <i class="bi bi-arrow-left"></i> Kirishga qaytish
+            </a>
+            
+            <div class="reset-icon" style="background: var(--accent-color) !important;">
+                <i class="bi bi-key"></i>
+            </div>
+            
+            <h3>Parolni tiklash</h3>
+            <p class="subtitle">Email manzilingizni kiriting va biz sizga parolni tiklash havolasini yuboramiz</p>
+            
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="form-floating">
+                    <input type="email" class="form-control" id="email" name="email" placeholder="Email manzilingiz" required>
+                    <label for="email"><i class="bi bi-envelope me-2"></i>Email manzilingiz</label>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-reset w-100">
+                    <i class="bi bi-send me-2"></i>Tiklash havolasini yuborish
+                </button>
+            </form>
+            
+            <div class="auth-footer">
+                <p>Parolingiz esga tushdimi? <a href="{% url 'login' %}">Kirish</a></p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+
+<!-- registration/register.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ro'yxatdan o'tish - AzureLMS{% endblock %}
+{% block meta_description %}AzureLMS platformasiga ro'yxatdan o'ting va turk tilini o'rganishni boshlang{% endblock %}
+
+{% block extra_css %}
+    .auth-section {
+        min-height: calc(100vh - 80px);
+        display: flex;
+        align-items: center;
+        padding: 3rem 0;
+        background: transparent;
+    }
+
+    .auth-card {
+        background: var(--bg-surface);
+        border-radius: 1.5rem;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .auth-left {
+        background: var(--secondary-color);
+        padding: 3rem;
+        color: var(--bg-body);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-height: 600px;
+    }
+
+    .auth-left h2 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+
+    .auth-left p {
+        opacity: 0.9;
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+    }
+
+    .auth-features {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .auth-features li {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        font-size: 1rem;
+    }
+
+    .auth-features li i {
+        width: 24px;
+        height: 24px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+    }
+
+    .auth-right {
+        padding: 3rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .auth-right h3 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 0.5rem;
+    }
+
+    .auth-right .subtitle {
+        color: var(--text-muted);
+        margin-bottom: 2rem;
+    }
+
+    .form-floating {
+        margin-bottom: 1rem;
+    }
+
+    .form-floating .form-control {
+        height: 56px;
+        border-radius: 0.75rem;
+        border: 2px solid var(--border-color);
+        background-color: var(--bg-surface);
+        color: var(--text-main);
+        padding: 1rem 1rem;
+    }
+
+    .form-floating .form-control:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 3px rgba(227, 10, 23, 0.15);
+    }
+
+    .form-floating label {
+        padding: 1rem;
+    }
+
+    .form-check {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-check-input:checked {
+        background-color: var(--accent-color);
+        border-color: var(--accent-color);
+    }
+
+    .btn-register {
+        height: 50px;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 0.75rem;
+    }
+
+    .divider {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin: 1.5rem 0;
+        color: var(--text-muted);
+    }
+
+    .divider::before,
+    .divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--border-color);
+    }
+
+    .social-login {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .social-login .btn {
+        flex: 1;
+        height: 46px;
+        border-radius: 0.75rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .btn-google {
+        background: var(--bg-surface);
+        border: 2px solid var(--border-color);
+        color: var(--text-main);
+    }
+
+    .btn-google:hover {
+        background: var(--border-color);
+        border-color: var(--border-color);
+    }
+
+    .auth-footer {
+        text-align: center;
+        color: var(--text-muted);
+    }
+
+    .auth-footer a {
+        color: var(--accent-color);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .auth-footer a:hover {
+        text-decoration: underline;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        z-index: 10;
+    }
+
+    .password-toggle:hover {
+        color: var(--accent-color);
+    }
+
+    .input-group-password {
+        position: relative;
+    }
+
+    .password-strength {
+        height: 4px;
+        background: var(--border-color);
+        border-radius: 2px;
+        margin-top: 0.5rem;
+        overflow: hidden;
+    }
+
+    .password-strength-bar {
+        height: 100%;
+        width: 0%;
+        transition: all 0.3s;
+        border-radius: 2px;
+    }
+
+    .password-strength-text {
+        font-size: 0.8rem;
+        margin-top: 0.25rem;
+    }
+
+    .terms-text {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+    }
+
+    .terms-text a {
+        color: var(--accent-color);
+        text-decoration: none;
+    }
+
+    .terms-text a:hover {
+        text-decoration: underline;
+    }
+
+    @media (max-width: 991px) {
+        .auth-left {
+            min-height: auto;
+            padding: 2rem;
+        }
+        
+        .auth-right {
+            padding: 2rem;
+        }
+    }
+{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="container">
+        <div class="auth-card">
+            <div class="row g-0">
+                <!-- Left Side - Info -->
+                <div class="col-lg-5 d-none d-lg-block">
+                    <div class="auth-left">
+                        <h2>Turk tilini o'rganing!</h2>
+                        <p>AzureLMS platformasiga qo'shiling va professional o'qituvchilar bilan tilni mukammal o'rganing.</p>
+                        <ul class="auth-features">
+                            <li>
+                                <i class="bi bi-check"></i>
+                                <span>Bepul boshlang'ich darslar</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check"></i>
+                                <span>A1 dan C1 gacha barcha darajalar</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check"></i>
+                                <span>Professional sertifikat</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check"></i>
+                                <span>24/7 qo'llab-quvvatlash</span>
+                            </li>
+                            <li>
+                                <i class="bi bi-check"></i>
+                                <span>Mobil ilovadan foydalanish</span>
+                            </li>
+                        </ul>
+                        <div class="mt-auto pt-4">
+                            <p class="mb-2" style="opacity: 0.7; font-size: 0.9rem;">Allaqachon hisobingiz bormi?</p>
+                            <a href="#" class="btn btn-outline-light">Kirish</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Side - Form -->
+                <div class="col-lg-7">
+                    <div class="auth-right">
+                        <h3>Ro'yxatdan o'tish</h3>
+                        <p class="subtitle">Bepul hisob yarating va o'rganishni boshlang</p>
+                        
+                        <!-- Register Form -->
+                        <form method="POST" action="{% url 'register' %}">
+                            {% csrf_token %}
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="first_name" name="first_name" placeholder="Ismingiz" required>
+                                        <label for="first_name"><i class="bi bi-person me-2"></i>Ismingiz</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-floating">
+                                        <input type="text" class="form-control" id="last_name" name="last_name" placeholder="Familiyangiz" required>
+                                        <label for="last_name"><i class="bi bi-person me-2"></i>Familiyangiz</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-floating">
+                                <input type="email" class="form-control" id="email" name="email" placeholder="Email manzilingiz" required>
+                                <label for="email"><i class="bi bi-envelope me-2"></i>Email manzilingiz</label>
+                            </div>
+                            
+                            <div class="form-floating">
+                                <input type="tel" class="form-control" id="phone_number" name="phone_number" placeholder="Telefon raqamingiz">
+                                <label for="phone_number"><i class="bi bi-phone me-2"></i>Telefon raqamingiz (ixtiyoriy)</label>
+                            </div>
+                            
+                            <div class="form-floating input-group-password">
+                                <input type="password" class="form-control" id="password" name="password1" placeholder="Parol yarating" required onkeyup="checkPasswordStrength(this.value)">
+                                <label for="password"><i class="bi bi-lock me-2"></i>Parol yarating</label>
+                                <button type="button" class="password-toggle" onclick="togglePassword('password', this)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength">
+                                <div class="password-strength-bar" id="strengthBar"></div>
+                            </div>
+                            <p class="password-strength-text" id="strengthText"></p>
+                            
+                            <div class="form-floating input-group-password mt-3">
+                                <input type="password" class="form-control" id="password2" name="password2" placeholder="Parolni tasdiqlang" required>
+                                <label for="password2"><i class="bi bi-lock-fill me-2"></i>Parolni tasdiqlang</label>
+                                <button type="button" class="password-toggle" onclick="togglePassword('password2', this)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="form-check mt-3">
+                                <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
+                                <label class="form-check-label terms-text" for="terms">
+                                    Men <a href="#">foydalanish shartlari</a> va <a href="#">maxfiylik siyosati</a>ga roziman
+                                </label>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary btn-register w-100">
+                                <i class="bi bi-person-plus me-2"></i>Ro'yxatdan o'tish
+                            </button>
+                        </form>
+                        
+                        <div class="divider">yoki</div>
+                        
+                        <!-- Social Login -->
+                        <div class="social-login">
+                            <button class="btn btn-google">
+                                <svg width="18" height="18" viewBox="0 0 18 18">
+                                    <path fill="var(--accent-color)" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
+                                    <path fill="var(--secondary-color)" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+                                    <path fill="var(--text-main)" d="M3.964 10.71c-.18-.54-.282-1.117-.282-1.71s.102-1.17.282-1.71V4.958H.957C.347 6.173 0 7.548 0 9s.348 2.827.957 4.042l3.007-2.332z"/>
+                                    <path fill="var(--accent-color)" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/>
+                                </svg>
+                                Google bilan ro'yxatdan o'tish
+                            </button>
+                        </div>
+                        
+                        <div class="auth-footer d-lg-none">
+                            <p>Allaqachon hisobingiz bormi? <a href="#">Kirish</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function togglePassword(inputId, button) {
+        const input = document.getElementById(inputId);
+        const icon = button.querySelector('i');
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+        }
+    }
+
+    function checkPasswordStrength(password) {
+        const strengthBar = document.getElementById('strengthBar');
+        const strengthText = document.getElementById('strengthText');
+        
+        let strength = 0;
+        let text = '';
+        let color = '';
+        
+        if (password.length >= 8) strength++;
+        if (password.match(/[a-z]/)) strength++;
+        if (password.match(/[A-Z]/)) strength++;
+        if (password.match(/[0-9]/)) strength++;
+        if (password.match(/[^a-zA-Z0-9]/)) strength++;
+        
+        switch(strength) {
+            case 0:
+            case 1:
+                text = 'Juda zaif';
+                color = 'var(--accent-color)';
+                break;
+            case 2:
+                text = 'Zaif';
+                color = 'var(--text-main)';
+                break;
+            case 3:
+                text = 'O\'rtacha';
+                color = 'var(--secondary-color)';
+                break;
+            case 4:
+                text = 'Kuchli';
+                color = 'var(--secondary-color)';
+                break;
+            case 5:
+                text = 'Juda kuchli';
+                color = 'var(--secondary-color)';
+                break;
+        }
+        
+        strengthBar.style.width = (strength * 20) + '%';
+        strengthBar.style.background = color;
+        strengthText.textContent = password.length > 0 ? text : '';
+        strengthText.style.color = color;
+    }
+</script>
+{% endblock %}
+
+
+<!-- users/dashboard.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - AzureLMS{% endblock %}
+{% block meta_description %}AzureLMS dashboard - sizning ta'lim jarayoningizni boshqaring{% endblock %}
+
+{% block extra_css %}
+    :root {
+        --primary: var(--accent-color);
+        --primary-dark: var(--accent-color);
+        --secondary: var(--secondary-color);
+        --accent: var(--accent-color);
+        --success: var(--secondary-color);
+        --warning: var(--secondary-color);
+        --dark: var(--text-main);
+        --muted: var(--text-muted);
+        --light: var(--bg-body);
+        --border: var(--border-color);
+        --card-shadow: 0 2px 12px rgba(10,118,203,0.1);
+    }
+
+    /* Mobile-First Layout */
+    .dashboard {
+        display: flex;
+        flex-direction: column;
+        min-height: calc(100vh - 80px);
+        padding: 1rem;
+        gap: 1rem;
+        background: var(--bg-body);
+    }
+
+    /* Welcome Card */
+    .welcome-card {
+        background: var(--accent-color);
+        color: var(--bg-body);
+        padding: 1.5rem;
+        border-radius: 1rem;
+    }
+
+    .welcome-card h1 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        color: var(--bg-body);
+    }
+
+    .welcome-card p {
+        opacity: 0.9;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+        color: var(--bg-body);
+    }
+
+    .streak-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--bg-surface);
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-main);
+    }
+
+    .streak-badge i { color: var(--accent); }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+
+    .stat-card {
+        background: var(--bg-surface);
+        padding: 1rem;
+        border-radius: 0.75rem;
+        box-shadow: var(--card-shadow);
+        text-align: center;
+    }
+
+    .stat-card .icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 0.5rem;
+        font-size: 1.25rem;
+    }
+
+    .stat-card .icon.red { background: var(--bg-body); border: 1px solid var(--border-color); color: var(--primary); }
+    .stat-card .icon.blue { background: var(--bg-body); border: 1px solid var(--border-color); color: var(--secondary); }
+    .stat-card .icon.green { background: var(--bg-body); border: 1px solid var(--border-color); color: var(--success); }
+    .stat-card .icon.yellow { background: var(--bg-body); border: 1px solid var(--border-color); color: var(--warning); }
+
+    .stat-card .value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--dark);
+    }
+
+    .stat-card .label {
+        font-size: 0.75rem;
+        color: var(--muted);
+    }
+
+    /* Cards */
+    .card-section {
+        background: var(--bg-surface);
+        color: var(--text-main);
+        border-radius: 1rem;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+    }
+
+    .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .card-header h2 {
+        font-size: 1rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0;
+    }
+
+    .card-header h2 i { color: var(--primary); }
+
+    .card-header .view-all {
+        font-size: 0.8rem;
+        color: var(--secondary);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .card-body { padding: 1rem; }
+
+    /* Daily Tasks */
+    .task-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        margin-bottom: 0.5rem;
+        background: var(--light);
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .task-item:last-child { margin-bottom: 0; }
+    .task-item.completed { opacity: 0.6; }
+    .task-item.completed .task-text { text-decoration: line-through; }
+
+    .task-check {
+        width: 22px;
+        height: 22px;
+        min-width: 22px;
+        border: 2px solid var(--border);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .task-check.checked {
+        background: var(--success);
+        border-color: var(--success);
+        color: var(--bg-body);
+    }
+
+    .task-info { flex: 1; }
+    .task-text { font-size: 0.9rem; font-weight: 500; margin-bottom: 0.25rem; }
+    .task-meta { font-size: 0.75rem; color: var(--muted); }
+
+    .task-priority {
+        padding: 0.15rem 0.5rem;
+        border-radius: 1rem;
+        font-size: 0.65rem;
+        font-weight: 600;
+    }
+
+    /* Tashkil qilingan ranglar */
+    .task-priority.high { background: var(--bg-body); border: 1px solid var(--border-color); color: var(--accent-color); }
+    .task-priority.medium { background: var(--bg-body); border: 1px solid var(--border-color); color: var(--accent-color); }
+    .task-priority.low { background: var(--bg-body); border: 1px solid var(--border-color); color: var(--secondary-color); }
+
+    .add-task-btn {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px dashed var(--border);
+        border-radius: 0.5rem;
+        background: transparent;
+        color: var(--muted);
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .add-task-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* Leaderboard */
+    .leader-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .leader-item:last-child { margin-bottom: 0; }
+    .leader-item.top-1 { background: var(--bg-body); border: 1px solid var(--accent-color); }
+    .leader-item.top-2 { background: var(--border); }
+    .leader-item.top-3 { background: var(--bg-body); border: 1px dashed var(--accent-color); }
+    .leader-item.current { background: var(--bg-body); border: 2px solid var(--success); }
+
+    .leader-rank {
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.8rem;
+    }
+
+    .leader-item.top-1 .leader-rank { background: var(--accent-color); color: var(--bg-body); }
+    .leader-item.top-2 .leader-rank { background: var(--border-color); color: var(--text-main); }
+    .leader-item.top-3 .leader-rank { background: var(--secondary-color); color: var(--bg-body); }
+    .leader-item.current .leader-rank { background: var(--success); color: var(--bg-body); }
+
+    .leader-avatar {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        border-radius: 50%;
+        background: var(--secondary);
+        color: var(--bg-body);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .leader-item.current .leader-avatar { background: var(--primary); }
+
+    .leader-info { flex: 1; }
+    .leader-name { font-weight: 600; font-size: 0.9rem; }
+    .leader-points { font-size: 0.75rem; color: var(--muted); }
+    .leader-xp { font-weight: 700; color: var(--success); font-size: 0.85rem; }
+
+    /* Course Progress */
+    .course-item {
+        display: flex;
+        gap: 1rem;
+        padding: 1rem;
+        border-radius: 0.75rem;
+        background: var(--light);
+        margin-bottom: 0.75rem;
+    }
+
+    .course-item:last-child { margin-bottom: 0; }
+
+    .course-icon {
+        width: 50px;
+        height: 50px;
+        min-width: 50px;
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        font-weight: 700;
+    }
+
+    .course-icon.a1 { background: var(--bg-body); border: 1px solid var(--border-color); color: var(--secondary); }
+    .course-icon.a2 { background: var(--bg-body); border: 1px solid var(--border-color); color: var(--success); }
+    .course-icon.b1 { background: var(--bg-body); border: 1px solid var(--border-color); color: var(--warning); }
+
+    .course-info { flex: 1; }
+    .course-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.25rem; }
+    .course-meta { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.5rem; }
+
+    .progress-bar {
+        height: 6px;
+        background: var(--border);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .progress-fill { height: 100%; border-radius: 3px; }
+    .progress-fill.blue { background: var(--secondary); }
+    .progress-fill.green { background: var(--success); }
+    .progress-fill.yellow { background: var(--warning); }
+
+    .course-percent { font-size: 0.75rem; font-weight: 600; margin-top: 0.25rem; }
+
+    /* Events */
+    .event-item {
+        display: flex;
+        gap: 1rem;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        background: var(--light);
+        margin-bottom: 0.5rem;
+    }
+
+    .event-item:last-child { margin-bottom: 0; }
+
+    .event-date {
+        width: 45px;
+        min-width: 45px;
+        text-align: center;
+        padding: 0.5rem;
+        background: var(--primary);
+        color: white;
+        border-radius: 0.5rem;
+    }
+
+    .event-date .day { font-size: 1.25rem; font-weight: 700; line-height: 1; }
+    .event-date .month { font-size: 0.65rem; text-transform: uppercase; }
+
+    .event-info { flex: 1; }
+    .event-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.25rem; }
+    .event-time { font-size: 0.75rem; color: var(--muted); }
+
+    .event-type {
+        padding: 0.2rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.65rem;
+        font-weight: 600;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        color: var(--secondary);
+        align-self: flex-start;
+    }
+
+    /* Achievements */
+    .achievements-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+    }
+
+    .achievement-item {
+        text-align: center;
+        padding: 1rem 0.5rem;
+        background: var(--light);
+        border-radius: 0.75rem;
+    }
+
+    .achievement-item.locked { opacity: 0.5; }
+
+    .achievement-icon {
+        width: 45px;
+        height: 45px;
+        margin: 0 auto 0.5rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+
+    /* Yutuq ranglari */
+    .achievement-icon.gold { background: var(--secondary-color); color: var(--bg-body); }
+    .achievement-icon.silver { background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-main); }
+    .achievement-icon.bronze { background: var(--accent-color); color: var(--bg-body); }
+    .achievement-icon.locked { background: var(--bg-surface); color: var(--text-muted); }
+
+    .achievement-name { font-size: 0.7rem; font-weight: 600; }
+
+    /* Activity */
+    .activity-item {
+        display: flex;
+        gap: 0.75rem;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .activity-item:last-child { border-bottom: none; }
+
+    .activity-icon {
+        width: 36px; height: 36px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+        font-size: 1rem;
+    }
+    .activity-icon.lesson { background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--secondary-color); }
+    .activity-icon.quiz { background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--secondary-color); }
+    .activity-icon.badge { background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--accent-color); }
+
+    .activity-text { font-size: 0.85rem; }
+    .activity-text strong { color: var(--dark); }
+    .activity-time { font-size: 0.7rem; color: var(--muted); margin-top: 0.25rem; }
+
+    /* Mobile Sidebar Toggle */
+    .sidebar-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem;
+        background: var(--bg-body);
+        border-radius: 1rem;
+        box-shadow: var(--card-shadow);
+        cursor: pointer;
+    }
+
+    .sidebar-toggle h3 {
+        font-size: 1rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0;
+    }
+
+    .sidebar-toggle .badge {
+        background: var(--primary);
+        color: var(--bg-body);
+        padding: 0.2rem 0.6rem;
+        border-radius: 1rem;
+        font-size: 0.7rem;
+    }
+
+    .sidebar-toggle i.chevron { transition: transform 0.3s; }
+    .sidebar-toggle.open i.chevron { transform: rotate(180deg); }
+
+    .sidebar-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+    }
+
+    .sidebar-content.open { max-height: 2000px; }
+
+    /* Desktop Layout */
+    @media (min-width: 992px) {
+        .dashboard {
+            flex-direction: row;
+            padding: 2rem;
+            gap: 1.5rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .sidebar-area { width: 340px; min-width: 340px; }
+        .sidebar-toggle { display: none; }
+
+        .sidebar-content {
+            max-height: none;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .welcome-card { padding: 2rem; }
+        .welcome-card h1 { font-size: 1.5rem; }
+
+        .stats-grid { grid-template-columns: repeat(4, 1fr); }
+        .stat-card .value { font-size: 1.75rem; }
+
+        .achievements-grid { grid-template-columns: repeat(6, 1fr); }
+
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+    }
+
+    @media (min-width: 768px) and (max-width: 991px) {
+        .dashboard { padding: 1.5rem; }
+        .stats-grid { grid-template-columns: repeat(4, 1fr); }
+        .achievements-grid { grid-template-columns: repeat(6, 1fr); }
+    }
+{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- Main Area -->
+    <div class="main-area">
+        <!-- Welcome Card -->
+        <div class="welcome-card">
+            <h1>Assalomu alaykum, {{ user.first_name|default:"Foydalanuvchi" }}!</h1>
+            <p>Bugungi maqsadingizga erishing. Kelajak sizning qo'lingizda!</p>
+            <div class="streak-badge">
+                <i class="bi bi-fire"></i>
+                <span>{{ streak_days|default:"0" }} kunlik streak</span>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="icon red"><i class="bi bi-play-circle"></i></div>
+                <div class="value">{{ completed_lessons|default:"0" }}</div>
+                <div class="label">Dars tugatildi</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon blue"><i class="bi bi-clock"></i></div>
+                <div class="value">{{ study_hours|default:"0" }}</div>
+                <div class="label">Soat o'qildi</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon green"><i class="bi bi-trophy"></i></div>
+                <div class="value">{{ xp_points|default:"0" }}</div>
+                <div class="label">XP ball</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon yellow"><i class="bi bi-star"></i></div>
+                <div class="value">{{ achievements_count|default:"0" }}</div>
+                <div class="label">Yutuqlar</div>
+            </div>
+        </div>
+
+        <!-- Mobile Sidebar Toggle -->
+        <div class="sidebar-toggle d-lg-none" onclick="toggleSidebar()">
+            <h3>
+                <i class="bi bi-list-check"></i>
+                Bugungi vazifalar
+                <span class="badge">{{ tasks_count|default:"0" }}</span>
+            </h3>
+            <i class="bi bi-chevron-down chevron"></i>
+        </div>
+
+        <!-- Mobile Sidebar Content -->
+        <div class="sidebar-content d-lg-none" id="mobileSidebar">
+            <!-- Tasks Card -->
+            <div class="card-section mt-3">
+                <div class="card-header">
+                    <h2><i class="bi bi-list-check"></i> Bugungi vazifalar</h2>
+                </div>
+                <div class="card-body">
+                    {% for task in tasks %}
+                    <div class="task-item {% if task.completed %}completed{% endif %}" onclick="toggleTask(this)">
+                        <div class="task-check {% if task.completed %}checked{% endif %}"><i class="bi bi-check"></i></div>
+                        <div class="task-info">
+                            <div class="task-text">{{ task.title }}</div>
+                            <div class="task-meta">{{ task.description }}</div>
+                        </div>
+                        <span class="task-priority {{ task.priority }}">{{ task.priority_display }}</span>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center py-3">Hozircha vazifalar yo'q</p>
+                    {% endfor %}
+                    <button class="add-task-btn mt-2">
+                        <i class="bi bi-plus-circle me-2"></i>Yangi vazifa qo'shish
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Course Progress -->
+        <div class="card-section">
+            <div class="card-header">
+                <h2><i class="bi bi-book"></i> Kurs progressi</h2>
+                <a href="#" class="view-all">Barchasi</a>
+            </div>
+            <div class="card-body">
+                {% for course in courses %}
+                <div class="course-item">
+                    <div class="course-icon {{ course.level|lower }}">{{ course.level }}</div>
+                    <div class="course-info">
+                        <div class="course-title">{{ course.title }}</div>
+                        <div class="course-meta">{{ course.completed_lessons }}/{{ course.total_lessons }} dars tugatildi</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill {{ course.color }}" style="width: {{ course.progress }}%"></div>
+                        </div>
+                        <div class="course-percent">{{ course.progress }}% tugatildi</div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-muted text-center py-3">Hozircha kurslar yo'q</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Two Columns -->
+        <div class="two-columns">
+            <!-- Upcoming Events -->
+            <div class="card-section">
+                <div class="card-header">
+                    <h2><i class="bi bi-calendar-event"></i> Yaqinlashayotgan darslar</h2>
+                </div>
+                <div class="card-body">
+                    {% for event in events %}
+                    <div class="event-item">
+                        <div class="event-date">
+                            <div class="day">{{ event.date|date:"d" }}</div>
+                            <div class="month">{{ event.date|date:"M" }}</div>
+                        </div>
+                        <div class="event-info">
+                            <div class="event-title">{{ event.title }}</div>
+                            <div class="event-time"><i class="bi bi-clock me-1"></i>{{ event.time }}</div>
+                        </div>
+                        <span class="event-type">{{ event.type }}</span>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center py-3">Yaqinlashayotgan tadbirlar yo'q</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Activity Feed -->
+            <div class="card-section">
+                <div class="card-header">
+                    <h2><i class="bi bi-activity"></i> So'nggi faoliyat</h2>
+                </div>
+                <div class="card-body">
+                    {% for activity in activities %}
+                    <div class="activity-item">
+                        <div class="activity-icon {{ activity.type }}"><i class="bi bi-{{ activity.icon }}"></i></div>
+                        <div>
+                            <div class="activity-text">{{ activity.text|safe }}</div>
+                            <div class="activity-time">{{ activity.time }}</div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center py-3">Faoliyat yo'q</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Achievements -->
+        <div class="card-section">
+            <div class="card-header">
+                <h2><i class="bi bi-award"></i> Yutuqlar</h2>
+                <a href="#" class="view-all">Barchasi</a>
+            </div>
+            <div class="card-body">
+                <div class="achievements-grid">
+                    {% for achievement in achievements %}
+                    <div class="achievement-item {% if achievement.locked %}locked{% endif %}">
+                        <div class="achievement-icon {{ achievement.level }}"><i class="bi bi-{{ achievement.icon }}"></i></div>
+                        <div class="achievement-name">{{ achievement.name }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Area (Desktop) -->
+    <div class="sidebar-area d-none d-lg-block">
+        <div class="sidebar-content open">
+            <!-- Tasks Card -->
+            <div class="card-section">
+                <div class="card-header">
+                    <h2><i class="bi bi-list-check"></i> Bugungi vazifalar</h2>
+                </div>
+                <div class="card-body">
+                    {% for task in tasks %}
+                    <div class="task-item {% if task.completed %}completed{% endif %}" onclick="toggleTask(this)">
+                        <div class="task-check {% if task.completed %}checked{% endif %}"><i class="bi bi-check"></i></div>
+                        <div class="task-info">
+                            <div class="task-text">{{ task.title }}</div>
+                            <div class="task-meta">{{ task.description }}</div>
+                        </div>
+                        <span class="task-priority {{ task.priority }}">{{ task.priority_display }}</span>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center py-3">Hozircha vazifalar yo'q</p>
+                    {% endfor %}
+                    <button class="add-task-btn mt-2">
+                        <i class="bi bi-plus-circle me-2"></i>Yangi vazifa qo'shish
+                    </button>
+                </div>
+            </div>
+
+            <!-- Leaderboard -->
+            <div class="card-section">
+                <div class="card-header">
+                    <h2><i class="bi bi-bar-chart"></i> Haftalik reyting</h2>
+                </div>
+                <div class="card-body">
+                    {% for leader in leaderboard %}
+                    <div class="leader-item {% if leader.rank == 1 %}top-1{% elif leader.rank == 2 %}top-2{% elif leader.rank == 3 %}top-3{% endif %} {% if leader.is_current_user %}current{% endif %}">
+                        <div class="leader-rank">{{ leader.rank }}</div>
+                        <div class="leader-avatar">{{ leader.initials }}</div>
+                        <div class="leader-info">
+                            <div class="leader-name">{{ leader.name }}{% if leader.is_current_user %} (Siz){% endif %}</div>
+                            <div class="leader-points">Level {{ leader.level }}</div>
+                        </div>
+                        <div class="leader-xp">{{ leader.xp }} XP</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card-section">
+                <div class="card-header">
+                    <h2><i class="bi bi-lightning"></i> Tezkor harakatlar</h2>
+                </div>
+                <div class="card-body">
+                    <a href="#" class="btn btn-danger w-100 mb-2">
+                        <i class="bi bi-play-fill me-2"></i>Darsni davom ettirish
+                    </a>
+                    <a href="#" class="btn btn-outline-secondary w-100 mb-2">
+                        <i class="bi bi-file-text me-2"></i>Test yechish
+                    </a>
+                    <a href="#" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-chat-dots me-2"></i>O'qituvchi bilan bog'lanish
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleSidebar() {
+        const toggle = document.querySelector('.sidebar-toggle');
+        const sidebar = document.getElementById('mobileSidebar');
+        toggle.classList.toggle('open');
+        sidebar.classList.toggle('open');
+    }
+
+    function toggleTask(item) {
+        const check = item.querySelector('.task-check');
+        check.classList.toggle('checked');
+        item.classList.toggle('completed');
+    }
+</script>
+{% endblock %}
+
+
+<!-- users/profile.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Profilim - AzureLMS{% endblock %}
+
+{% block extra_css %}
+    /* Asosiy ranglar va fon */
+    .profile-wrapper { max-width: 800px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
+
+    /* Profil Kartochkasi */
+    .profile-card {
+        display: flex;
+        align-items: center;
+        background: var(--bg-surface);
+        color: var(--text-main);
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        margin-bottom: 2rem;
+        gap: 2rem;
+    }
+
+    /* Avatar qismi */
+    .avatar {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: var(--light-color);
+        flex-shrink: 0;
+    }
+    .avatar-img {
+        width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
+    }
+    .avatar-btn {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background: var(--bg-surface);
+        color: var(--secondary-color);
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .avatar-btn:hover {
+        background: var(--secondary-color);
+        color: var(--bg-body);
+    }
+
+    .profile-meta h2 {
+        font-weight: 700;
+        color: var(--text-main);
+    }
+
+    /* Statistika */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    .stat-box {
+        background: var(--bg-surface);
+        color: var(--text-main);
+        padding: 1.5rem 1rem;
+        border-radius: 1rem;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    .stat-box .num { 
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--secondary-color); 
+        margin-bottom: 0.5rem;
+    }
+    .stat-box .lbl {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+    }
+
+    /* Accordion / Tablar */
+    .acc-item {
+        background: var(--bg-surface);
+        color: var(--text-main);
+        border-radius: 1rem;
+        margin-bottom: 1rem;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    .acc-trigger { 
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.25rem 1.5rem;
+        background: none;
+        border: none;
+        font-weight: 600;
+        color: var(--text-main);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+    }
+    .acc-trigger .left {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    .icon-wrap {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: var(--bg-body);
+        border: 1px solid var(--border-color);
+        color: var(--secondary-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .acc-trigger .chevron {
+        transition: transform 0.3s ease;
+    }
+    .acc-trigger.open .chevron {
+        transform: rotate(180deg);
+    }
+
+    .acc-body {
+        padding: 0 1.5rem 1.5rem;
+        display: none;
+    }
+    .acc-body.open {
+        display: block;
+    }
+
+    /* Form & Progress */
+    .form-row-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+    .field label {
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: var(--text-main);
+    }
+    
+    .course-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border-radius: 0.75rem;
+        border: 1px solid var(--border-color);
+    }
+    .course-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 0.5rem;
+        background: var(--bg-body);
+        border: 1px solid var(--border-color);
+        color: var(--secondary-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+    .course-title {
+        font-weight: 600;
+        color: var(--text-main);
+    }
+    .progress-track { 
+        height: 6px;
+        background: var(--border-color);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+    .progress-fill { 
+        height: 100%;
+        background: var(--secondary-color); 
+        border-radius: 3px;
+    }
+
+    /* Media Queries */
+    @media (max-width: 768px) {
+        .stats-row {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+    @media (max-width: 480px) {
+        .profile-card { flex-direction: column; text-align: center; gap: 1rem; }
+        .avatar-btn { right: 50%; bottom: 0; transform: translateX(30px) translateY(-5px); }
+        .form-row-2 { grid-template-columns: 1fr; }
+    }
+{% endblock %}
+
+{% block content %}
+<div class="profile-wrapper">
+
+    <div class="profile-card">
+        <div class="avatar shadow-sm">
+            {% if user.avatar %}
+                <img src="{{ user.avatar.url }}" class="avatar-img" alt="Avatar">
+            {% else %}
+                <span class="d-flex align-items-center justify-content-center h-100 bg-primary text-white fs-1">{{ user.first_name|slice:":1"|upper }}</span>
+            {% endif %}
+            <label for="avatar-input" class="avatar-btn shadow-sm">
+                <i class="bi bi-camera-fill"></i>
+                <input type="file" id="avatar-input" hidden>
+            </label>
+        </div>
+        <div class="profile-meta">
+            <h2 class="mb-1">{{ user.get_full_name|default:user.username }}</h2>
+            <p class="text-muted small"><i class="bi bi-envelope me-1"></i> {{ user.email }}</p>
+            <p class="small mt-1"><i class="bi bi-geo-alt text-danger"></i> O'zbekiston</p>
+        </div>
+    </div>
+
+    <!-- Error/Success Messages -->
+    {% if messages %}
+        <div class="mt-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="stats-row">
+        <div class="stat-box border-0">
+            <div class="num">12</div>
+            <div class="lbl fw-bold">Kurslar</div>
+        </div>
+        <div class="stat-box border-0">
+            <div class="num">85</div>
+            <div class="lbl fw-bold">Soatlar</div>
+        </div>
+        <div class="stat-box border-0">
+            <div class="num">3</div>
+            <div class="lbl fw-bold">Yutuqlar</div>
+        </div>
+        <div class="stat-box border-0">
+            <div class="num">68%</div>
+            <div class="lbl fw-bold">Natija</div>
+        </div>
+    </div>
+
+    <div class="acc-item border-0">
+        <button class="acc-trigger open" onclick="toggleAcc(this)">
+            <span class="left">
+                <span class="icon-wrap"><i class="bi bi-person-fill"></i></span>
+                <span>Shaxsiy ma'lumotlar</span>
+            </span>
+            <i class="bi bi-chevron-down chevron"></i>
+        </button>
+        <div class="acc-body open">
+            <form method="POST" action="{% url 'profile' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="form-row-2">
+                    <div class="field">
+                        <label>Ism</label>
+                        <input type="text" name="first_name" value="{{ user.first_name }}" class="form-control shadow-none">
+                    </div>
+                    <div class="field">
+                        <label>Familiya</label>
+                        <input type="text" name="last_name" value="{{ user.last_name }}" class="form-control shadow-none">
+                    </div>
+                </div>
+                <!-- Optional inputs if form is modified to accept these -->
+                 <div class="field mt-3">
+                    <label>Telefon raqami</label>
+                    <input type="text" name="phone_number" value="{{ user.phone_number|default_if_none:'' }}" class="form-control shadow-none">
+                </div>
+                <div class="field mt-3">
+                    <label>Bio (O'zingiz haqizda qisqacha)</label>
+                    <textarea name="bio" rows="2" class="form-control shadow-none">{{ user.bio|default_if_none:'' }}</textarea>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3 w-100">Saqlash</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="acc-item border-0">
+        <button class="acc-trigger" onclick="toggleAcc(this)">
+            <span class="left">
+                <span class="icon-wrap"><i class="bi bi-journal-bookmark-fill"></i></span>
+                <span>Mening kurslarim</span>
+            </span>
+            <i class="bi bi-chevron-down chevron"></i>
+        </button>
+        <div class="acc-body">
+            <div class="course-item shadow-sm mb-3">
+                <div class="course-icon shadow-sm"><i class="bi bi-translate"></i></div>
+                <div class="flex-grow-1 ms-2">
+                    <div class="d-flex justify-content-between">
+                        <span class="course-title">Turk tili A1</span>
+                        <span class="small fw-bold text-secondary">75%</span>
+                    </div>
+                    <div class="progress-track mt-2"><div class="progress-fill" style="width: 75%"></div></div>
+                </div>
+            </div>
+            </div>
+    </div>
+
+    <div class="mt-4 px-2">
+        <a href="{% url 'logout' %}" class="btn btn-outline-danger w-100 border-2 fw-bold rounded-3">
+            <i class="bi bi-box-arrow-right me-2"></i> Tizimdan chiqish
+        </a>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleAcc(btn) {
+        const item = btn.closest('.acc-item');
+        const body = item.querySelector('.acc-body');
+        
+        // Boshqa barcha accordionlarni yopish (optional)
+        document.querySelectorAll('.acc-trigger').forEach(el => {
+            if(el !== btn) {
+                el.classList.remove('open');
+                el.nextElementSibling.style.display = 'none';
+            }
+        });
+
+        // Hozirgisini toggle qilish
+        btn.classList.toggle('open');
+        body.style.display = body.style.display === 'block' ? 'none' : 'block';
+    }
+
+    // Avatar upload preview (optional client-side handling, actual logic requires backend)
+    document.getElementById('avatar-input').addEventListener('change', function(e) {
+        if(e.target.files && e.target.files[0]) {
+            // Option 1: auto-submit the form
+            // e.target.closest('form').submit(); 
+            // Warning: there's no form wrapping the avatar input right now.
+            // Option 2: create a form dynamically and submit to a specific view
+            const formData = new FormData();
+            formData.append('avatar', e.target.files[0]);
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+            
+            fetch("{% url 'profile' %}", {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if(response.ok) {
+                    window.location.reload();
+                }
+            });
+        }
+    });
+
+</script>
+{% endblock %}
+
+ {% endcomment %}

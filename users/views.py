@@ -1,8 +1,11 @@
-from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
-from django.views.generic import CreateView
+from django.views.generic import CreateView, UpdateView, TemplateView
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
+
 from .forms import CustomUserCreationForm
+from .models import CustomUser
+
 
 class RegisterView(CreateView):
     form_class = CustomUserCreationForm
@@ -18,9 +21,6 @@ class RegisterView(CreateView):
         messages.error(self.request, "Xatolik yuz berdi. Iltimos, ma'lumotlarni tekshirib qaytadan kiriting.")
         return super().form_invalid(form)
 
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import UpdateView, TemplateView
-from .models import CustomUser
 
 class ProfileView(LoginRequiredMixin, UpdateView):
     model = CustomUser
@@ -39,7 +39,6 @@ class ProfileView(LoginRequiredMixin, UpdateView):
         messages.error(self.request, "Xatolik yuz berdi. Iltimos, ma'lumotlarni tekshiring.")
         return super().form_invalid(form)
 
-from django.views.generic import TemplateView
 
 class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = 'users/dashboard.html'

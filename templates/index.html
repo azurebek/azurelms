@@ -1,93 +1,80 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static humanize %}
 
 {% block title %}Bosh sahifa{% endblock %}
 {% block nav_home %}active{% endblock %}
 
-{% block extra_css %}
-    /* Siz yozgan Mobile-First CSS strukturasini to'liq saqlab qoldim */
-    .hero-section {
-        background: linear-gradient(135deg, var(--dark-color) 0%, #16213e 100%);
-        color: #fff;
-        padding: 3rem 0;
-        position: relative;
-        overflow: hidden;
-        text-align: center;
-    }
-
-    .hero-section::before {
-        content: '';
-        position: absolute;
-        top: 0; right: 0;
-        width: 100%; height: 100%;
-        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="80" cy="20" r="40" fill="%23E30A17" opacity="0.08"/><circle cx="90" cy="80" r="30" fill="%2300A1DE" opacity="0.08"/></svg>');
-        background-size: cover;
-    }
-
-    /* Tablet va Desktop uchun media so'rovlar bazaviy CSS'dan keyin keladi */
-    @media (min-width: 992px) {
-        .hero-section { padding: 5rem 0; text-align: left; }
-        .hero-buttons { justify-content: flex-start; }
-        .hero-stats { justify-content: flex-start; gap: 3rem; }
-        .step-arrow { display: block; position: absolute; top: 30px; right: -30px; font-size: 2rem; color: var(--accent-color); opacity: 0.5; }
-    }
-
-    /* Course Card hover effektlari */
-    .course-card { transition: transform 0.3s ease; }
-    .course-card:hover { transform: translateY(-5px); }
-
-    /* Step numbers */
-    .step-number {
-        width: 50px;
-        height: 50px;
-        background: var(--primary-color);
-        color: white;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        font-size: 1.25rem;
-    }
-{% endblock %}
-
 {% block content %}
+<!-- HERO SECTION -->
 <section class="hero-section">
     <div class="container">
-        <div class="row align-items-center">
+        <div class="row align-items-center g-5">
             <div class="col-lg-6">
-                <h1 class="display-5 fw-bold">Turk tilini <span>professional</span> darajada o'rganing</h1>
-                <p class="lead mb-4">
-                    Tajribali ustozlar bilan birga turk tilini noldan mukammal darajagacha o'rganing. 
-                    Interaktiv darslar va jonli muloqot.
+                <span class="badge badge-secondary mb-3">
+                    <i class="bi bi-stars me-1"></i>
+                    {% now "Y" %} yilning eng yaxshi platformasi
+                </span>
+                <h1 class="hero-title">
+                    Turk tilini <span class="text-primary">professional</span> darajada o'rganing
+                </h1>
+                <p class="hero-subtitle">
+                    Tajribali o'qituvchilar, interaktiv darslar va sertifikatlar bilan turk tilini A1 dan C1 gacha o'rganing. {{ total_students|default:"5000" }}+ o'quvchi allaqachon bizga ishondi.
                 </p>
-                <div class="hero-buttons">
-                    <a href="{% url 'register' %}" class="btn btn-primary btn-lg mb-2 mb-sm-0">
-                        <i class="bi bi-play-circle me-2"></i>Boshlash
+                <div class="d-flex flex-column flex-sm-row gap-3 mb-4">
+                    <a href="{% url 'register' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-rocket-takeoff me-2"></i>
+                        Bepul boshlash
                     </a>
-                    <a href="{% url 'courses' %}" class="btn btn-outline-light btn-lg ms-sm-2">
-                        <i class="bi bi-collection-play me-2"></i>Kurslar
+                    <a href="{% url 'courses' %}" class="btn btn-outline-primary btn-lg">
+                        <i class="bi bi-play-circle me-2"></i>
+                        Kurslarni ko'rish
                     </a>
                 </div>
-                <div class="hero-stats mt-4 mt-lg-5 d-flex justify-content-center">
-                    <div class="hero-stat mx-3">
-                        <h3 class="fw-bold">5,000+</h3>
-                        <p class="small opacity-75">O'quvchilar</p>
+                <div class="d-flex align-items-center gap-4">
+                    <div class="d-flex">
+                        {% for student in recent_students|slice:":4" %}
+                        <div class="avatar avatar-md" style="margin-left: {% if forloop.first %}0{% else %}-12px{% endif %}; border: 2px solid white;">
+                            {% if student.avatar %}
+                            <img src="{{ student.avatar.url }}" alt="{{ student.get_full_name }}">
+                            {% else %}
+                            {{ student.first_name|slice:":1"|upper }}
+                            {% endif %}
+                        </div>
+                        {% empty %}
+                        <div class="avatar avatar-md" style="border: 2px solid white; background-color: var(--lms-primary); color: white;">A</div>
+                        <div class="avatar avatar-md" style="margin-left: -12px; border: 2px solid white; background-color: var(--lms-secondary); color: white;">B</div>
+                        <div class="avatar avatar-md" style="margin-left: -12px; border: 2px solid white; background-color: var(--lms-success); color: white;">C</div>
+                        {% endfor %}
                     </div>
-                    <div class="hero-stat mx-3">
-                        <h3 class="fw-bold">50+</h3>
-                        <p class="small opacity-75">Darslar</p>
-                    </div>
-                    <div class="hero-stat mx-3">
-                        <h3 class="fw-bold">4.9</h3>
-                        <p class="small opacity-75">Reyting</p>
+                    <div>
+                        <div class="rating">
+                            <i class="bi bi-star-fill star text-warning"></i>
+                            <i class="bi bi-star-fill star text-warning"></i>
+                            <i class="bi bi-star-fill star text-warning"></i>
+                            <i class="bi bi-star-fill star text-warning"></i>
+                            <i class="bi bi-star-half star text-warning"></i>
+                            <span class="rating-value ms-1 fw-bold">{{ average_rating|default:"4.9" }}</span>
+                        </div>
+                        <small class="text-muted-custom">{{ total_students|default:"5000" }}+ o'quvchi</small>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-6 d-none d-lg-block text-center">
-                <div class="hero-image">
-                    <div class="hero-image-placeholder shadow-lg rounded-4 p-5 bg-dark border border-secondary">
-                        <i class="bi bi-mortarboard display-1 text-white-50"></i>
+            <div class="col-lg-6">
+                <div class="position-relative">
+                    <div class="rounded-4 shadow-lg d-flex align-items-center justify-content-center" style="height: 400px; overflow: hidden; position: relative;">
+                        <!-- Using a placeholder or an existing image since static 'images/hero-image.jpg' might not exist yet -->
+                        <div style="width: 100%; height: 100%; background: linear-gradient(135deg, var(--lms-primary-light) 0%, var(--lms-primary) 100%); display: flex; align-items: center; justify-content: center; color: white;">
+                             <i class="bi bi-mortarboard display-1 opacity-50"></i>
+                        </div>
+                    </div>
+                    <div class="position-absolute bottom-0 start-0 translate-middle-y ms-3 card p-3 shadow border-0" style="max-width: 200px; z-index: 2;">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <div class="avatar avatar-sm bg-success text-white">
+                                <i class="bi bi-check-lg"></i>
+                            </div>
+                            <span class="fw-semibold">Sertifikat</span>
+                        </div>
+                        <small class="text-muted-custom">Kursni tugatib, rasmiy sertifikat oling</small>
                     </div>
                 </div>
             </div>
@@ -95,28 +82,68 @@
     </div>
 </section>
 
-<section class="courses-section" style="background-color: var(--light-color);">
-    <div class="container py-5">
-        <div class="section-title text-center mb-5">
-            <h2 class="fw-bold">Mashhur kurslar</h2>
-            <p class="text-muted">Sizga mos darajadagi eng yaxshi kurslarimiz</p>
+<!-- STATS SECTION -->
+<section class="section bg-white">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-6 col-md-3">
+                <div class="stat-card">
+                    <div class="stat-value text-primary">{{ total_students|default:"5,000" }}+</div>
+                    <div class="stat-label">Faol o'quvchilar</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card">
+                    <div class="stat-value text-primary">{{ total_courses|default:"50" }}+</div>
+                    <div class="stat-label">Kurslar</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card">
+                    <div class="stat-value text-primary">{{ total_teachers|default:"25" }}+</div>
+                    <div class="stat-label">O'qituvchilar</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card">
+                    <div class="stat-value text-primary">{{ satisfaction_rate|default:"98" }}%</div>
+                    <div class="stat-label">Qoniqish darajasi</div>
+                </div>
+            </div>
         </div>
+    </div>
+</section>
+
+<!-- COURSES SECTION -->
+<section class="section">
+    <div class="container">
+        <div class="section-title">
+            <h2>Mashhur kurslar</h2>
+            <p>Eng ko'p tanlanadigan va yuqori baholangan kurslarimiz bilan turk tilini o'rganing</p>
+        </div>
+        
         <div class="row g-4">
             {% for course in popular_courses %}
-            <div class="col-12 col-md-6 col-lg-4">
-                <div class="course-card card h-100 border-0 shadow-sm rounded-4 overflow-hidden">
-                    <div class="course-image p-5 text-center position-relative" style="background: linear-gradient(135deg, var(--primary-color), #ff6b6b)!important; color: white;">
-                        <span class="badge bg-warning text-dark position-absolute top-0 start-0 m-3">{{ course.get_level_display }}</span>
-                        <i class="bi bi-book display-4"></i>
+            <div class="col-md-6 col-lg-4">
+                <div class="card course-card h-100 border-0 shadow-sm rounded-4">
+                    <div class="course-image rounded-top-4" style="height: 200px; background: var(--lms-primary-light); display: flex; align-items: center; justify-content: center;">
+                        {% if course.thumbnail %}
+                        <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        {% else %}
+                        <i class="bi bi-book display-4 text-primary opacity-50"></i>
+                        {% endif %}
+                        <span class="badge bg-warning position-absolute top-0 start-0 m-3">{{ course.get_level_display }}</span>
                     </div>
-                    <div class="course-body p-4">
-                        <h5 class="fw-bold">{{ course.title }}</h5>
-                        <p class="small text-muted mb-3">{{ course.description|truncatewords:12 }}</p>
-                        <div class="d-flex justify-content-between small text-muted mb-3 border-top pt-2" style="border-color: var(--border-color) !important;">
-                            <span><i class="bi bi-play-circle text-primary me-1"></i> {{ course.lessons_count }} dars</span>
-                            <span><i class="bi bi-clock text-primary me-1"></i> {{ course.duration }} soat</span>
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title fw-bold mb-2">{{ course.title }}</h5>
+                        <p class="text-muted small mb-4 flex-grow-1">{{ course.description|truncatewords:15 }}</p>
+                        
+                        <div class="d-flex justify-content-between small text-muted mb-3 border-top pt-3">
+                            <span><i class="bi bi-play-circle text-primary me-1"></i> {{ course.lessons_count|default:"0" }} dars</span>
+                            <span><i class="bi bi-clock text-primary me-1"></i> {{ course.duration|default:"0" }} soat</span>
                         </div>
-                        <div class="d-flex justify-content-between align-items-center">
+                        
+                        <div class="d-flex justify-content-between align-items-center mt-auto">
                             <span class="h5 fw-bold text-primary mb-0">{{ course.price|floatformat:0 }} so'm</span>
                             <a href="{% url 'course_detail' course.pk %}" class="btn btn-outline-primary btn-sm rounded-pill px-3">Batafsil</a>
                         </div>
@@ -124,14 +151,153 @@
                 </div>
             </div>
             {% empty %}
-            <div class="col-12 col-md-6 col-lg-4">
-                <div class="course-card card h-100 border-0 shadow-sm rounded-4 overflow-hidden">
-                    <div class="course-image p-5 text-center text-white" style="background: linear-gradient(135deg, var(--secondary-color), #00d4ff)!important;">
-                        <i class="bi bi-translate display-4"></i>
+            <div class="col-12 col-md-6 col-lg-4 mx-auto">
+                <div class="card course-card h-100 border-0 shadow-sm rounded-4 text-center p-5">
+                    <i class="bi bi-emoji-smile display-4 text-muted mb-3"></i>
+                    <h5 class="text-muted">Tez orada...</h5>
+                    <p class="small text-muted mb-0">Yangi kurslar ustida ishlayapmiz.</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="text-center mt-5">
+            <a href="{% url 'courses' %}" class="btn btn-outline-primary btn-lg rounded-pill px-4">
+                Barcha kurslarni ko'rish
+                <i class="bi bi-arrow-right ms-2"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- HOW IT WORKS SECTION -->
+<section class="section bg-white">
+    <div class="container">
+        <div class="section-title">
+            <h2>Qanday ishlaydi?</h2>
+            <p>4 ta oddiy qadamda o'rganishni boshlang</p>
+        </div>
+        
+        <div class="row g-4 text-center">
+            <div class="col-md-6 col-lg-3">
+                <div class="step-card">
+                    <div class="step-number shadow mx-auto mb-3">1</div>
+                    <h5 class="fw-bold">Ro'yxatdan o'ting</h5>
+                    <p class="text-muted small">Bepul hisob yarating va platformaga kiring</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="step-card">
+                    <div class="step-number shadow mx-auto mb-3" style="background:var(--lms-secondary);">2</div>
+                    <h5 class="fw-bold">Kurs tanlang</h5>
+                    <p class="text-muted small">Darajangizga mos kursni tanlang</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="step-card">
+                    <div class="step-number shadow mx-auto mb-3" style="background:var(--lms-success);">3</div>
+                    <h5 class="fw-bold">O'rganishni boshlang</h5>
+                    <p class="text-muted small">Video darslar va mashqlar bilan o'rganing</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="step-card">
+                    <div class="step-number shadow mx-auto mb-3" style="background:var(--lms-danger);">4</div>
+                    <h5 class="fw-bold">Sertifikat oling</h5>
+                    <p class="text-muted small">Kursni tugatib, sertifikat oling</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- TESTIMONIALS SECTION -->
+<section class="section">
+    <div class="container">
+        <div class="section-title">
+            <h2>O'quvchilarimiz fikri</h2>
+            <p>Minglab o'quvchilar bizning kurslarimiz orqali turk tilini o'rganishdi</p>
+        </div>
+        
+        <div class="row g-4">
+            {% for testimonial in testimonials|slice:":3" %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card testimonial-card h-100 border-0 shadow-sm rounded-4 p-4">
+                    <div class="card-body p-0">
+                        <div class="rating mb-3 text-warning">
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                        <p class="fst-italic text-muted mb-4">"{{ testimonial.text|default:'Ajoyib platforma, qisqa vaqt ichida turk tilini ancha yaxshilab oldim. Hammaga tavsiya qilaman!' }}"</p>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="avatar avatar-md rounded-circle overflow-hidden bg-primary text-white d-flex align-items-center justify-content-center" style="width:48px; height:48px;">
+                                {% if testimonial.user.avatar %}
+                                <img src="{{ testimonial.user.avatar.url }}" alt="{{ testimonial.user.get_full_name }}" style="width:100%; height:100%; object-fit:cover;">
+                                {% else %}
+                                {{ testimonial.user.first_name|default:"A"|slice:":1" }}
+                                {% endif %}
+                            </div>
+                            <div>
+                                <div class="fw-bold">{{ testimonial.user.get_full_name|default:"Azamat Qo'ysin" }}</div>
+                                <div class="small text-muted">{{ testimonial.user.profile.occupation|default:"Talaba" }}</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="p-4 text-center">
-                        <h5>Tez orada...</h5>
-                        <p class="small text-muted">Yangi kurslar ustida ishlayapmiz.</p>
+                </div>
+            </div>
+            {% empty %}
+            <!-- Dummy Testimonials if no context provided -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card testimonial-card h-100 border-0 shadow-sm rounded-4 p-4">
+                    <div class="card-body p-0">
+                        <div class="rating mb-3 text-warning">
+                            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                        </div>
+                        <p class="fst-italic text-muted mb-4">"Juda zo'r platforma! Darslar qiziqarli va tushunarli. Ustozlar har doim yordam berishga tayyor."</p>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="avatar avatar-md rounded-circle bg-primary text-white d-flex justify-content-center align-items-center" style="width:48px;height:48px;">S</div>
+                            <div>
+                                <div class="fw-bold">Sardor Aliyev</div>
+                                <div class="small text-muted">Dasturchi</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="card testimonial-card h-100 border-0 shadow-sm rounded-4 p-4">
+                    <div class="card-body p-0">
+                        <div class="rating mb-3 text-warning">
+                            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i>
+                        </div>
+                        <p class="fst-italic text-muted mb-4">"A1 darajadan boshladim, hozir B1 darajadaman. Natijalarimdan juda xursandman."</p>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="avatar avatar-md rounded-circle bg-secondary text-white d-flex justify-content-center align-items-center" style="width:48px;height:48px;">D</div>
+                            <div>
+                                <div class="fw-bold">Dilafruz Karimova</div>
+                                <div class="small text-muted">Talaba</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+             <div class="col-md-6 col-lg-4">
+                <div class="card testimonial-card h-100 border-0 shadow-sm rounded-4 p-4">
+                    <div class="card-body p-0">
+                        <div class="rating mb-3 text-warning">
+                            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                        </div>
+                        <p class="fst-italic text-muted mb-4">"Turk tilida erkin gapirish mening orzu qildim va bu platforma orqali amalga oshdi kattakon rahmat."</p>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="avatar avatar-md rounded-circle bg-success text-white d-flex justify-content-center align-items-center" style="width:48px;height:48px;">O</div>
+                            <div>
+                                <div class="fw-bold">Otabek To'rayev</div>
+                                <div class="small text-muted">Tadbirkor</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -140,48 +306,20 @@
     </div>
 </section>
 
-<section class="how-it-works py-5">
-    <div class="container py-lg-4">
-        <div class="section-title text-center mb-5">
-            <h2 class="fw-bold">Qanday ishlaydi?</h2>
-            <p class="text-muted">O'rganishni boshlash juda oson</p>
-        </div>
-        <div class="row g-4 text-center">
-            <div class="col-6 col-md-3">
-                <div class="step-card position-relative">
-                    <div class="step-number shadow mx-auto">1</div>
-                    <h6 class="fw-bold mt-3">Ro'yxatdan o'tish</h6>
-                    <span class="step-arrow d-none d-lg-block"><i class="bi bi-chevron-right"></i></span>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="step-card">
-                    <div class="step-number shadow mx-auto" style="background:var(--secondary-color);">2</div>
-                    <h6 class="fw-bold mt-3">Kursni tanlash</h6>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="step-card">
-                    <div class="step-number shadow mx-auto" style="background:#28a745;">3</div>
-                    <h6 class="fw-bold mt-3">O'rganish</h6>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="step-card">
-                    <div class="step-number shadow mx-auto" style="background:var(--accent-color); color:#000;">4</div>
-                    <h6 class="fw-bold mt-3">Sertifikat</h6>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="cta-section py-5" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); color: white;">
-    <div class="container">
-        <div class="card border-0 p-4 p-md-5 rounded-5 shadow-lg text-center">
-            <h2 class="fw-bold">Sayohatni boshlaymizmi?</h2>
-            <p class="text-muted mb-4">Hoziroq ro'yxatdan o'ting va birinchi darsga bepul kiring.</p>
-            <a href="{% url 'register' %}" class="btn btn-primary btn-lg px-5 rounded-pill">Bepul boshlash</a>
+<!-- CTA SECTION -->
+<section class="cta-section" style="background: linear-gradient(135deg, var(--lms-primary) 0%, var(--lms-primary-hover) 100%);">
+    <div class="container text-center py-4">
+        <h2 class="mb-3 text-white fw-bold">Bugun o'rganishni boshlang!</h2>
+        <p class="mb-4 mx-auto text-white opacity-75" style="max-width: 600px;">{{ total_students|default:"5000" }}+ o'quvchi safiga qo'shiling va turk tilini professional darajada o'rganing.</p>
+        <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
+            <a href="{% url 'register' %}" class="btn btn-light btn-lg text-primary fw-bold px-4 rounded-pill">
+                <i class="bi bi-rocket-takeoff me-2"></i>
+                Bepul boshlash
+            </a>
+            <a href="{% url 'courses' %}" class="btn btn-outline-light btn-lg border-2 fw-bold px-4 rounded-pill">
+                <i class="bi bi-play-circle me-2"></i>
+                Kurslarni ko'rish
+            </a>
         </div>
     </div>
 </section>

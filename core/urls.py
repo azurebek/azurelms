@@ -9,12 +9,16 @@ urlpatterns = [
     
     # Bosh sahifa
     path('', TemplateView.as_view(template_name='index.html'), name='home'),
+    path('about/', TemplateView.as_view(template_name='about.html'), name='about'),
     
     # Users (Auth)
     path('users/', include('users.urls')),
     
     # Courses
     path('courses/', include('courses.urls')),
+    
+    # Pricing/Subscriptions
+    path('pricing/', include('subscriptions.urls', namespace='subscriptions')),
     
     # CKEditor rasm yuklash manzili
     path("ckeditor5/", include('django_ckeditor_5.urls'), name="ck_editor_5_upload_file"),

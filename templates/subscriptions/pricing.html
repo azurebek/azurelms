@@ -1,0 +1,286 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Narxlar{% endblock %}
+{% block nav_pricing %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+    .pricing-header {
+        background: linear-gradient(135deg, var(--lms-primary-light) 0%, var(--lms-bg-white) 100%);
+        padding: 5rem 0;
+        text-align: center;
+        border-bottom: 1px solid var(--lms-border);
+    }
+    .pricing-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--lms-text);
+        margin-bottom: 1rem;
+    }
+    .pricing-subtitle {
+        color: var(--lms-text-muted);
+        font-size: 1.125rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .pricing-card {
+        background: #fff;
+        border: 1px solid var(--lms-border);
+        border-radius: var(--lms-radius-xl);
+        padding: 2.5rem 2rem;
+        text-align: center;
+        transition: var(--lms-transition);
+        position: relative;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .pricing-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--lms-shadow-lg);
+        border-color: var(--lms-primary-light);
+    }
+    
+    .pricing-card.popular {
+        border: 2px solid var(--lms-primary);
+        box-shadow: var(--lms-shadow-md);
+        transform: scale(1.02);
+    }
+    
+    .pricing-card.popular:hover {
+        transform: scale(1.02) translateY(-8px);
+        box-shadow: 0 20px 25px -5px rgba(10, 118, 203, 0.1), 0 8px 10px -6px rgba(10, 118, 203, 0.1);
+    }
+    
+    .popular-badge {
+        position: absolute;
+        top: -15px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: var(--lms-secondary);
+        color: #fff;
+        padding: 0.5rem 1.5rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 700;
+        box-shadow: var(--lms-shadow-sm);
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+    
+    .plan-name {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--lms-text);
+        margin-bottom: 0.5rem;
+    }
+    
+    .plan-desc {
+        color: var(--lms-text-muted);
+        font-size: 0.875rem;
+        margin-bottom: 2rem;
+        min-height: 42px;
+    }
+    
+    .plan-price-box {
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: baseline;
+        justify-content: center;
+    }
+    
+    .plan-price-currency {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--lms-text);
+        margin-right: 0.25rem;
+    }
+    
+    .plan-price {
+        font-size: 3.5rem;
+        font-weight: 800;
+        color: var(--lms-text);
+        line-height: 1;
+    }
+    
+    .plan-price-period {
+        color: var(--lms-text-muted);
+        font-weight: 500;
+        margin-left: 0.25rem;
+    }
+    
+    .plan-features {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 2.5rem 0;
+        text-align: left;
+        flex-grow: 1;
+    }
+    
+    .plan-features li {
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        font-size: 0.95rem;
+    }
+    
+    .feature-included i {
+        color: var(--lms-success);
+        font-size: 1.25rem;
+        margin-top: -2px;
+    }
+    
+    .feature-excluded i {
+        color: var(--lms-border-hover);
+        font-size: 1.25rem;
+        margin-top: -2px;
+    }
+    
+    .feature-excluded span {
+        color: var(--lms-text-light);
+        text-decoration: line-through;
+    }
+    
+    .faq-section {
+        background-color: var(--lms-bg-white);
+        padding: 5rem 0;
+    }
+    
+    .accordion-button:not(.collapsed) {
+        background-color: var(--lms-primary-light);
+        color: var(--lms-primary);
+        box-shadow: none;
+    }
+    
+    .accordion-button:focus {
+        box-shadow: none;
+        border-color: rgba(0,0,0,.125);
+    }
+    
+    .accordion-item {
+        border: 1px solid var(--lms-border);
+        border-radius: var(--lms-radius) !important;
+        margin-bottom: 1rem;
+        overflow: hidden;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<section class="pricing-header">
+    <div class="container">
+        <h1 class="pricing-title">O'zingizga mos tarifni tanlang</h1>
+        <p class="pricing-subtitle">Yashirin to'lovlarsiz, shaffof va hamyonbop oylik obunalar. Turk tilini professional o'rganishni bugunoq boshlang.</p>
+    </div>
+</section>
+
+<!-- Pricing Cards -->
+<section class="section py-5 my-3">
+    <div class="container">
+        <div class="row justify-content-center g-4">
+            
+            {% for plan in plans %}
+            <div class="col-lg-4 col-md-6">
+                <div class="pricing-card {% if plan.is_popular %}popular{% endif %}">
+                    {% if plan.is_popular %}
+                    <div class="popular-badge"><i class="bi bi-star-fill me-1"></i> Ommabop</div>
+                    {% endif %}
+                    
+                    <h2 class="plan-name">{{ plan.name }}</h2>
+                    <p class="plan-desc">{{ plan.description }}</p>
+                    
+                    <div class="plan-price-box">
+                        <span class="plan-price">{{ plan.price|intcomma }}</span>
+                        <span class="plan-price-currency">so'm</span>
+                        <span class="plan-price-period">/oy</span>
+                    </div>
+                    
+                    <ul class="plan-features">
+                        {% for feature in plan.features.all %}
+                        <li class="{% if feature.is_included %}feature-included{% else %}feature-excluded{% endif %}">
+                            <i class="bi {% if feature.is_included %}bi-check-circle-fill{% else %}bi-x-circle{% endif %}"></i>
+                            <span>{{ feature.name }}</span>
+                        </li>
+                        {% empty %}
+                        <li class="text-muted text-center w-100 italic">Hozircha imkoniyatlar qo'shilmagan</li>
+                        {% endfor %}
+                    </ul>
+                    
+                    <a href="{% url 'register' %}" class="btn {% if plan.is_popular %}btn-primary{% else %}btn-outline-primary{% endif %} btn-lg w-100 rounded-pill fw-bold">
+                        {{ plan.button_text }}
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <i class="bi bi-tags text-muted" style="font-size: 4rem;"></i>
+                <h3 class="mt-3 text-muted">Hozircha tariflar kiritilmagan</h3>
+                <p>Tez orada tariflarimiz e'lon qilinadi!</p>
+            </div>
+            {% endfor %}
+            
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="faq-section">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Ko'p beriladigan savollar</h2>
+            <p class="text-muted">To'lovlar va obuna haqida qo'shimcha ma'lumotlar</p>
+        </div>
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="accordion" id="pricingFAQ">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                Obunani qanday bekor qilsam bo'ladi?
+                            </button>
+                        </h2>
+                        <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#pricingFAQ">
+                            <div class="accordion-body text-muted">
+                                Obunani istalgan vaqtda shaxsiy profilingizdagi "Sozlamalar" bo'limi orqali bekor qilishingiz mumkin. Bekor qilingandan so'ng, to'langan oyingiz oxirigacha platformadan foydalanishda davom etasiz.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                Bepul sinov muddati qancha davom etadi?
+                            </button>
+                        </h2>
+                        <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#pricingFAQ">
+                            <div class="accordion-body text-muted">
+                                Saytimizdagi ayrim darsliklarning birinchi modullari (Demo) to'liq bepul ochiq holatda taqdim etiladi. Shu orqali o'qitish sifatiga baho berib, so'ngra tariflardan birini tanlashingiz mumkin.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                Qanday to'lov usullari mavjud?
+                            </button>
+                        </h2>
+                        <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#pricingFAQ">
+                            <div class="accordion-body text-muted">
+                                Biz Uzcard, Humo, Visa va Mastercard plastik kartalarini qabul qilamiz. To'lovlar Click va Payme tizimlari orqali 100% xavfsiz tarzda amalga oshiriladi.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
