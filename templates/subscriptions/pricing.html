@@ -193,7 +193,7 @@
                     {% endif %}
                     
                     <h2 class="plan-name">{{ plan.name }}</h2>
-                    <p class="plan-desc">{{ plan.description }}</p>
+                    <div class="plan-desc">{{ plan.description|safe }}</div>
                     
                     <div class="plan-price-box">
                         <span class="plan-price">{{ plan.price|intcomma }}</span>

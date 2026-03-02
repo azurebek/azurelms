@@ -30,8 +30,8 @@
                 <div class="d-flex flex-wrap align-items-center gap-4 mb-4">
                     <div class="d-flex align-items-center gap-2">
                         <div class="avatar avatar-md rounded-circle border border-2 border-white overflow-hidden shadow-sm" style="width: 48px; height: 48px;">
-                            {% if course.instructor.profile.avatar %}
-                            <img src="{{ course.instructor.profile.avatar.url }}" alt="{{ course.instructor.get_full_name }}" class="w-100 h-100 object-fit-cover">
+                            {% if course.instructor.avatar %}
+                            <img src="{{ course.instructor.avatar.url }}" alt="{{ course.instructor.get_full_name }}" class="w-100 h-100 object-fit-cover">
                             {% else %}
                             <div class="w-100 h-100 bg-white text-primary d-flex justify-content-center align-items-center fw-bold fs-5">
                                 {{ course.instructor.first_name|default:course.instructor.username|slice:":1"|upper }}
@@ -43,16 +43,10 @@
                             <small class="opacity-75">Professional O'qituvchi</small>
                         </div>
                     </div>
-                    <div class="rating d-flex align-items-center gap-1">
-                        {% for i in "12345" %}
-                        <i class="bi bi-star-fill text-warning"></i>
-                        {% endfor %}
-                        <span class="fw-bold ms-2">5.0</span>
-                        <span class="opacity-75 small">(124 sharh)</span>
-                    </div>
+
                     <div class="d-flex align-items-center gap-1 opacity-75">
                         <i class="bi bi-people"></i>
-                        <span>{{ course.students_count|default:"850"|intcomma }} o'quvchi</span>
+                        <span>{{ course.students_count|intcomma }} o'quvchi</span>
                     </div>
                 </div>
             </div>
@@ -114,33 +108,7 @@
                             {{ course.description|safe }}
                         </div>
                         
-                        <h4 class="h5 fw-bold mb-4">Nimalarni o'rganasiz?</h4>
-                        <div class="row g-4 mb-5">
-                            <div class="col-md-6">
-                                <div class="d-flex gap-3 align-items-start">
-                                    <i class="bi bi-check2-circle text-success fs-4"></i>
-                                    <span class="text-secondary">Turk tilida to'g'ri va ravon so'zlashishni</span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="d-flex gap-3 align-items-start">
-                                    <i class="bi bi-check2-circle text-success fs-4"></i>
-                                    <span class="text-secondary">Grammatika qoidalarini amalda erkin qollashni</span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="d-flex gap-3 align-items-start">
-                                    <i class="bi bi-check2-circle text-success fs-4"></i>
-                                    <span class="text-secondary">Katta lug'at boyligiga va kundalik iboralarga ega bo'lasiz</span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="d-flex gap-3 align-items-start">
-                                    <i class="bi bi-check2-circle text-success fs-4"></i>
-                                    <span class="text-secondary">Turk filmlari va seriallarini tarjimasiz tushunishni</span>
-                                </div>
-                            </div>
-                        </div>
+
                     </div>
                     
                     <!-- Curriculum Tab -->
@@ -203,8 +171,8 @@
                     <div class="tab-pane fade" id="instructor" role="tabpanel">
                         <div class="d-flex flex-column flex-md-row gap-4 align-items-md-center mb-4">
                             <div class="avatar border border-4 border-white shadow rounded-circle overflow-hidden" style="width: 120px; height: 120px; flex-shrink: 0;">
-                                {% if course.instructor.profile.avatar %}
-                                <img src="{{ course.instructor.profile.avatar.url }}" alt="{{ course.instructor.get_full_name }}" class="w-100 h-100 object-fit-cover">
+                                {% if course.instructor.avatar %}
+                                <img src="{{ course.instructor.avatar.url }}" alt="{{ course.instructor.get_full_name }}" class="w-100 h-100 object-fit-cover">
                                 {% else %}
                                 <div class="w-100 h-100 bg-primary text-white d-flex justify-content-center align-items-center display-4 fw-bold">
                                     {{ course.instructor.first_name|default:course.instructor.username|slice:":1"|upper }}
@@ -217,29 +185,11 @@
                                 
                                 <div class="d-flex flex-wrap gap-4">
                                     <div class="d-flex align-items-center gap-2">
-                                        <div class="bg-warning bg-opacity-25 text-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                            <i class="bi bi-star-fill"></i>
-                                        </div>
-                                        <div>
-                                            <div class="fw-bold lh-1">4.9</div>
-                                            <div class="small text-muted">O'rtacha reyting</div>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                            <i class="bi bi-people-fill"></i>
-                                        </div>
-                                        <div>
-                                            <div class="fw-bold lh-1">12K+</div>
-                                            <div class="small text-muted">O'quvchilar</div>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex align-items-center gap-2">
                                         <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
                                             <i class="bi bi-play-circle-fill"></i>
                                         </div>
                                         <div>
-                                            <div class="fw-bold lh-1">5+</div>
+                                            <div class="fw-bold lh-1">{{ course.instructor.courses.count }}</div>
                                             <div class="small text-muted">Kurslari</div>
                                         </div>
                                     </div>
@@ -248,7 +198,7 @@
                         </div>
                         
                         <div class="text-secondary lh-lg">
-                            <p>{{ course.instructor.profile.bio|default:"Ushbu o'qituvchi o'zining ko'p yillik tajribasi asosida turk tilini mukammal va tez o'rganishingizga yordam beradi. Darslar intensiv tarzda amaliyot bilan birgalikda kafolatli olib boriladi." }}</p>
+                            <p>{{ course.instructor.bio|default:"Ushbu o'qituvchi o'zining tajribasi asosida turk tilini mukammal o'rganishingizga yordam beradi. Darslar intensiv tarzda amaliyot bilan kafolatli olib boriladi."|safe }}</p>
                         </div>
                     </div>
                 </div>
@@ -259,26 +209,20 @@
                 <div class="card border-0 shadow-lg rounded-4 sticky-top overflow-hidden" style="top: 100px;">
                     <div class="card-body p-4 p-xl-5">
                         <div class="text-center mb-4 pb-4 border-bottom border-light">
-                            {% if course.is_free or course.price == 0 %}
-                            <div class="display-5 fw-bold text-success mb-2">Bepul</div>
-                            {% else %}
-                            <div class="display-5 fw-bold mb-1">{{ course.price|default:0|intcomma }}<span class="fs-4 text-muted ms-1">so'm</span></div>
-                                {% if course.old_price %}
-                                <div class="text-decoration-line-through text-muted">{{ course.old_price|intcomma }} so'm</div>
-                                {% endif %}
-                            {% endif %}
+                            <div class="display-6 fw-bold text-primary mb-2">Cheksiz Ta'lim</div>
+                            <div class="text-muted small px-3">Platformadagi barcha kurslarga yagona oylik obuna orqali cheksiz kirish huquqini qo'lga kiriting.</div>
                         </div>
                         
                         <div class="d-grid gap-3 mb-4">
                             {% if user.is_authenticated %}
-                                <a href="#" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">
-                                    {% if course.is_free or course.price == 0 %}Kursni Boshlash{% else %}Sotib Olish{% endif %}
+                                <a href="{% url 'subscriptions:pricing' %}" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">
+                                    O'quv rejasini tanlash
                                 </a>
                                 <button class="btn btn-outline-secondary btn-lg rounded-pill fw-medium">
                                     <i class="bi bi-heart me-2"></i>Saqlab qo'yish
                                 </button>
                             {% else %}
-                                <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">
+                                <a href="{% url 'login' %}?next={% url 'subscriptions:pricing' %}" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">
                                     Tizimga Kiring
                                 </a>
                             {% endif %}

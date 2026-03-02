@@ -1,9 +1,11 @@
 from django.db import models
+from django_ckeditor_5.fields import CKEditor5Field
+from django_ckeditor_5.fields import CKEditor5Field
 
 class Plan(models.Model):
     name = models.CharField(max_length=100, verbose_name="Ta'rif nomi (Masalan: Oddiy)")
     price = models.DecimalField(max_digits=10, decimal_places=0, verbose_name="Oylik to'lov (so'm)")
-    description = models.TextField(verbose_name="Qisqa izoh", help_text="Ta'rif haqida qisqacha ma'lumot")
+    description = CKEditor5Field(verbose_name="Qisqa izoh", help_text="Ta'rif haqida qisqacha ma'lumot", config_name='default')
     is_popular = models.BooleanField(default=False, verbose_name="Ommabopmi?")
     button_text = models.CharField(max_length=50, default="Boshlash", verbose_name="Tugma matni")
     order = models.PositiveIntegerField(default=0, verbose_name="Tartibi")

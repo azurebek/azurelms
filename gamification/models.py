@@ -1,4 +1,5 @@
 from django.db import models
+from django_ckeditor_5.fields import CKEditor5Field
 from django.conf import settings
 import uuid
 from courses.models import Course
@@ -21,7 +22,7 @@ class Level(models.Model):
 class Badge(models.Model):
     # Yutuqlar (Masalan: "Birinchi qon!", "7 kun qatorasiga dars qildi", "100% test ishladi")
     name = models.CharField(max_length=100, verbose_name="Yutuq nomi")
-    description = models.TextField(verbose_name="Ta'rifi (Qanday olinadi?)")
+    description = CKEditor5Field(verbose_name="Ta'rifi (Qanday olinadi?)", config_name='default')
     icon = models.ImageField(upload_to='badges/', verbose_name="Yutuq rasmi (Ikonka)")
 
     class Meta:

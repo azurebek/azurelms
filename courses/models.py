@@ -6,11 +6,32 @@ class Course(models.Model):
     # Kursning asosiy ma'lumotlari
     from django.conf import settings
     
+    LEVEL_CHOICES = (
+        ('beginner', 'Boshlang\'ich (A1-A2)'),
+        ('intermediate', 'O\'rta (B1-B2)'),
+        ('advanced', 'Mukammal (C1-C2)'),
+    )
     title = models.CharField(max_length=200, verbose_name="Kurs nomi")
     description = CKEditor5Field(verbose_name="Kurs tavsifi", config_name='default')
     instructor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='courses', verbose_name="O'qituvchi")
+    
+    level = models.CharField(max_length=20, choices=LEVEL_CHOICES, default='beginner', verbose_name="Daraja")
+    duration = models.PositiveIntegerField(default=20, help_text="Kursning taxminiy davomiyligi (soatlarda)")
+    thumbnail = models.ImageField(upload_to='courses/thumbnails/', blank=True, null=True, verbose_name="Kurs rasmi")
+    preview_video = models.FileField(upload_to='courses/previews/', blank=True, null=True, verbose_name="Tanishtiruv videosi")
+    
     is_active = models.BooleanField(default=True, verbose_name="Faolmi?")
     created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def lessons_count(self):
+        return Lesson.objects.filter(module__course=self).count()
+
+    @property
+    def students_count(self):
+        # We can count unique users enrolled in active cohorts for this course
+        from cohorts.models import Enrollment
+        return Enrollment.objects.filter(cohort__course=self).values('student').distinct().count()
 
     def __str__(self):
         return self.title

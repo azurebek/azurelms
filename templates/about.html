@@ -183,8 +183,8 @@
 <!-- Hero Section -->
 <section class="about-hero text-center">
     <div class="container">
-        <h1 class="about-title">Sifatli ta'lim orqali <span>maqsad sari</span></h1>
-        <p class="about-subtitle">AzureLMS — turk tilini zamonaviy, interaktiv va qulay usulda o'rganishni xohlovchilar uchun yaratilgan maxsus onlayn platformadir. Bizning maqsadimiz har bir o'quvchiga tilni professional darajada o'zlashtirishga yordam berish.</p>
+        <h1 class="about-title">{{ page.hero_title_start|default:"Sifatli ta'lim orqali" }} <span>{{ page.hero_title_highlight|default:"maqsad sari" }}</span></h1>
+        <p class="about-subtitle">{{ page.hero_subtitle|default:"AzureLMS — turk tilini zamonaviy, interaktiv va qulay usulda o'rganishni xohlovchilar uchun yaratilgan maxsus onlayn platformadir. Bizning maqsadimiz har bir o'quvchiga tilni professional darajada o'zlashtirishga yordam berish." }}</p>
     </div>
 </section>
 
@@ -197,10 +197,10 @@
                     <div class="mission-icon">
                         <i class="bi bi-bullseye"></i>
                     </div>
-                    <h3 class="mission-title">Bizning maqsadimiz (Missiya)</h3>
-                    <p class="mission-text">
-                        Turk tilini o'rganish jarayonini dunyo standartlari darajasida tashkil etish, o'quvchilarga eng zamonaviy interaktiv metodlarni taqdim etish va ularni ta'lim jarayonida zerikib qolmasliklarini ta'minlashdir. Sifatli va hamyonbop ta'lim — bizning asosiy shiorimiz.
-                    </p>
+                    <h3 class="mission-title">{{ page.mission_title|default:"Bizning maqsadimiz (Missiya)" }}</h3>
+                    <div class="mission-text">
+                        {{ page.mission_text|default:"Turk tilini o'rganish jarayonini dunyo standartlari darajasida tashkil etish, o'quvchilarga eng zamonaviy interaktiv metodlarni taqdim etish va ularni ta'lim jarayonida zerikib qolmasliklarini ta'minlashdir. Sifatli va hamyonbop ta'lim — bizning asosiy shiorimiz."|safe }}
+                    </div>
                 </div>
             </div>
             <div class="col-md-6">
@@ -208,10 +208,10 @@
                     <div class="mission-icon" style="background-color: var(--lms-secondary-light); color: var(--lms-secondary);">
                         <i class="bi bi-eye"></i>
                     </div>
-                    <h3 class="mission-title">Bizning qarashimiz (Vision)</h3>
-                    <p class="mission-text">
-                        AzureLMS kelajakda butun O'rta Osiyo bo'ylab eng oldi va ishonchli onlayn til o'rgatish maktabiga aylanishi va har yili minglab talabalarning til o'rganib, o'z kasbiy va ta'lim sohasidagi rejalari amalga oshishida ko'prik vazifasini o'tashi kutilmoqda.
-                    </p>
+                    <h3 class="mission-title">{{ page.vision_title|default:"Bizning qarashimiz (Vision)" }}</h3>
+                    <div class="mission-text">
+                        {{ page.vision_text|default:"AzureLMS kelajakda butun O'rta Osiyo bo'ylab eng oldi va ishonchli onlayn til o'rgatish maktabiga aylanishi va har yili minglab talabalarning til o'rganib, o'z kasbiy va ta'lim sohasidagi rejalari amalga oshishida ko'prik vazifasini o'tashi kutilmoqda."|safe }}
+                    </div>
                 </div>
             </div>
         </div>
@@ -222,6 +222,14 @@
 <section class="stats-section">
     <div class="container">
         <div class="row g-4 text-center">
+            {% for stat in statistics %}
+            <div class="col-sm-6 col-md-3">
+                <div class="stat-item">
+                    <div class="stat-number">{{ stat.value }}</div>
+                    <div class="stat-label">{{ stat.label }}</div>
+                </div>
+            </div>
+            {% empty %}
             <div class="col-sm-6 col-md-3">
                 <div class="stat-item">
                     <div class="stat-number">5+</div>
@@ -246,6 +254,7 @@
                     <div class="stat-label">Doimiy platforma</div>
                 </div>
             </div>
+            {% endfor %}
         </div>
     </div>
 </section>
@@ -259,6 +268,23 @@
         </div>
         
         <div class="row justify-content-center">
+            {% for member in team %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="team-card h-100">
+                    <div class="team-header"></div>
+                    <div class="team-avatar">
+                        {% if member.avatar %}
+                        <img src="{{ member.avatar.url }}" alt="{{ member.name }}">
+                        {% else %}
+                        <i class="bi bi-person-workspace"></i>
+                        {% endif %}
+                    </div>
+                    <h3 class="team-name">{{ member.name }}</h3>
+                    <p class="team-role">{{ member.role_1 }} {% if member.role_2 %}| {{ member.role_2 }}{% endif %}</p>
+                    <div class="team-bio">{{ member.bio|safe }}</div>
+                </div>
+            </div>
+            {% empty %}
             <div class="col-md-6 col-lg-4">
                 <div class="team-card">
                     <div class="team-header"></div>
@@ -273,6 +299,7 @@
                     </p>
                 </div>
             </div>
+            {% endfor %}
         </div>
     </div>
 </section>

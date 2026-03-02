@@ -40,28 +40,18 @@
                     
                     <div class="card border-0 shadow-sm rounded-4 mb-4 text-muted opacity-75">
                         <div class="card-body p-4">
-                            <h5 class="mb-3 h6 fw-bold opacity-50">Daraja (Tez orada)</h5>
-                            <!-- Mock Data simply to keep the layout -->
+                            <h5 class="mb-3 h6 fw-bold">Daraja</h5>
+                            {% for level_value, level_label in level_choices %}
                             <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" disabled>
-                                <label class="form-check-label">A1 (Boshlang'ich)</label>
+                                <input class="form-check-input" type="checkbox" name="level" value="{{ level_value }}" id="level_{{ level_value }}" 
+                                       {% if level_value in selected_levels %}checked{% endif %} 
+                                       onchange="document.getElementById('filterForm').submit();">
+                                <label class="form-check-label" for="level_{{ level_value }}">{{ level_label }}</label>
                             </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" disabled>
-                                <label class="form-check-label">A2 (Boshlang'ich-O'rta)</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" disabled>
-                                <label class="form-check-label">B1 (O'rta)</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" disabled>
-                                <label class="form-check-label">B2 (Yuqori O'rta)</label>
-                            </div>
-                            <div class="form-check mb-0">
-                                <input class="form-check-input" type="checkbox" disabled>
-                                <label class="form-check-label">C1 (Yuqori)</label>
-                            </div>
+                            {% endfor %}
+                            
+                            <!-- Boshqa joylardagi o'zgarishlarni saqlab qolish uchun yashirin fieldlar -->
+                            <input type="hidden" name="sort" id="sortInput" value="{{ current_sort }}">
                         </div>
                     </div>
                 </form>
@@ -77,8 +67,10 @@
                     <div class="d-flex align-items-center gap-2">
                         <label class="text-muted small text-nowrap">Saralash:</label>
                         <select class="form-select border-0 fw-medium" style="width: auto; cursor: pointer;" 
-                                onchange="window.location.href=this.value">
-                            <option value="?sort=newest" {% if request.GET.sort == 'newest' %}selected{% endif %}>Eng yangi</option>
+                                onchange="document.getElementById('sortInput').value=this.value; document.getElementById('filterForm').submit();">
+                            <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Eng yangi</option>
+                            <option value="oldest" {% if current_sort == 'oldest' %}selected{% endif %}>Eng eski</option>
+                            <option value="popular" {% if current_sort == 'popular' %}selected{% endif %}>Ommabop</option>
                         </select>
                     </div>
                 </div>
@@ -99,7 +91,7 @@
                                         <i class="bi bi-star-fill me-1 small"></i>Ommabop
                                     </span>
                                     <span class="badge bg-white position-absolute bottom-0 end-0 m-3 px-2 py-1 shadow-sm rounded-pill fw-bold">
-                                        {{ course.level|default:"Barcha uchun" }}
+                                        {{ course.get_level_display }}
                                     </span>
                                 </div>
                                 <div class="card-body d-flex flex-column p-4">
@@ -111,8 +103,8 @@
                                     
                                     <div class="d-flex align-items-center gap-2 mb-3">
                                         <div class="avatar avatar-sm bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
-                                            {% if course.instructor.profile.avatar %}
-                                            <img src="{{ course.instructor.profile.avatar.url }}" alt="{{ course.instructor.get_full_name }}" class="w-100 h-100 rounded-circle object-fit-cover">
+                                            {% if course.instructor.avatar %}
+                                            <img src="{{ course.instructor.avatar.url }}" alt="{{ course.instructor.get_full_name }}" class="w-100 h-100 rounded-circle object-fit-cover">
                                             {% else %}
                                             <span class="small fw-bold">{{ course.instructor.first_name|default:course.instructor.username|slice:":1"|upper }}</span>
                                             {% endif %}
@@ -120,26 +112,13 @@
                                         <span class="small fw-medium text-muted mt-1">{{ course.instructor.get_full_name|default:"Professional O'qituvchi" }}</span>
                                     </div>
                                     
-                                    <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom border-light">
-                                        <div class="rating text-warning small">
-                                            {% for i in "12345" %}
-                                                <i class="bi bi-star-fill text-warning"></i>
-                                            {% endfor %}
-                                            <span class="ms-1 fw-bold">5.0</span>
-                                        </div>
+                                    <div class="d-flex justify-content-between align-items-center mt-auto mb-1">
                                         <div class="d-flex align-items-center gap-1 text-muted small">
                                             <i class="bi bi-people text-primary opacity-75"></i>
-                                            <span>{{ course.students_count|default:"50+" }} a'zo</span>
+                                            <span>{{ course.students_count|intcomma }} a'zo</span>
                                         </div>
-                                    </div>
-                                    
-                                    <div class="d-flex align-items-center justify-content-between mt-auto">
                                         <div>
-                                            {% if course.is_free or course.price == 0 %}
-                                            <span class="fs-5 fw-bold text-success">Bepul darslar</span>
-                                            {% else %}
-                                            <span class="fs-5 fw-bold">{{ course.price|default:0|intcomma }} so'm</span>
-                                            {% endif %}
+                                            <span class="fs-6 fw-bold text-primary">Obunaga kiritilgan</span>
                                         </div>
                                     </div>
                                 </div>
@@ -162,7 +141,7 @@
                     <ul class="pagination justify-content-center">
                         {% if page_obj.has_previous %}
                         <li class="page-item">
-                            <a class="page-link rounded-circle mx-1 border-0 shadow-sm" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}"><i class="bi bi-chevron-left"></i></a>
+                            <a class="page-link rounded-circle mx-1 border-0 shadow-sm" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% for l in selected_levels %}&level={{ l }}{% endfor %}&sort={{ current_sort }}"><i class="bi bi-chevron-left"></i></a>
                         </li>
                         {% else %}
                         <li class="page-item disabled">
@@ -174,13 +153,13 @@
                         {% if page_obj.number == num %}
                         <li class="page-item active"><span class="page-link rounded-circle mx-1 bg-primary border-primary shadow-sm">{{ num }}</span></li>
                         {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                        <li class="page-item"><a class="page-link rounded-circle mx-1 border-0 shadow-sm" href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">{{ num }}</a></li>
+                        <li class="page-item"><a class="page-link rounded-circle mx-1 border-0 shadow-sm" href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}{% for l in selected_levels %}&level={{ l }}{% endfor %}&sort={{ current_sort }}">{{ num }}</a></li>
                         {% endif %}
                         {% endfor %}
                         
                         {% if page_obj.has_next %}
                         <li class="page-item">
-                            <a class="page-link rounded-circle mx-1 border-0 shadow-sm" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}"><i class="bi bi-chevron-right"></i></a>
+                            <a class="page-link rounded-circle mx-1 border-0 shadow-sm" href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% for l in selected_levels %}&level={{ l }}{% endfor %}&sort={{ current_sort }}"><i class="bi bi-chevron-right"></i></a>
                         </li>
                         {% else %}
                         <li class="page-item disabled">

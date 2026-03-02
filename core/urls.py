@@ -4,14 +4,14 @@ from django.views.generic import TemplateView
 from django.conf import settings
 from django.conf.urls.static import static
 
-from users.views import home_view
+from frontend.views import home_view, about_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     
     # Bosh sahifa (Home / Landing)
     path('', home_view, name='home'),
-    path('about/', TemplateView.as_view(template_name='about.html'), name='about'),
+    path('about/', about_view, name='about'),
     
     # Users (Auth)
     path('users/', include('users.urls')),

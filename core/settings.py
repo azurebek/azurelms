@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'messenger',
     'gamification',
     'subscriptions',
+    'frontend',
 ]
 
 MIDDLEWARE = [
@@ -221,7 +222,7 @@ JAZZMIN_SETTINGS = {
     "order_with_respect_to": ["users", "courses", "cohorts", "gamification", "bot", "azure_ai"],
 
     # UI Builder: O'zingiz sayt ichidan ranglarni o'zgartira olishingiz uchun tugma!
-    "show_ui_builder": True,
+    "show_ui_builder": False,
 }
 
 # Ranglar va ko'rinish (Azure - havorang va zamonaviy uslubda)
