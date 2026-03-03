@@ -171,6 +171,34 @@
                 </div>
             </div>
             {% endfor %}
+            
+            {% if course_exams.exists %}
+            <div class="accordion-item" style="border-top: 2px solid #ffc107;">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed fw-bold text-dark" 
+                            type="button" data-bs-toggle="collapse" 
+                            data-bs-target="#examCollapse">
+                        <i class="bi bi-award-fill text-warning me-2"></i> Kurs Imtihonlari
+                    </button>
+                </h2>
+                <div id="examCollapse" 
+                     class="accordion-collapse collapse" 
+                     data-bs-parent="#courseAccordion">
+                    <div class="accordion-body p-0">
+                        <ul class="list-group list-group-flush">
+                            {% for e in course_exams %}
+                            <li class="list-group-item px-4 py-3 border-start border-4 border-warning">
+                                <a href="{% url 'exam_detail' course_id=course.id exam_id=e.id %}" class="d-flex align-items-center gap-2 fw-medium">
+                                    <i class="bi bi-file-earmark-text"></i>
+                                    {{ e.get_exam_type_display }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 

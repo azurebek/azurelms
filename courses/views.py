@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 
-from .models import Course, Lesson, Certificate
+from .models import Course, Lesson, Certificate, Exam
 from cohorts.models import Enrollment
 
 
@@ -130,6 +130,7 @@ class LessonDetailView(LoginRequiredMixin, DetailView):
         
         # Load all modules and lessons for the sidebar Accordion ToC
         context['modules'] = course.modules.all().prefetch_related('lessons')
+        context['course_exams'] = course.exams.all().order_by('id')
         
         # Load any assignments or quizzes attached to this lesson
         context['assignments'] = self.object.assignments.all()
@@ -145,6 +146,35 @@ class LessonDetailView(LoginRequiredMixin, DetailView):
         if current_index < len(all_lessons) - 1:
             context['next_lesson'] = all_lessons[current_index + 1]
             
+        return context
+
+class ExamDetailView(LoginRequiredMixin, DetailView):
+    model = Exam
+    template_name = 'courses/exam_detail.html'
+    context_object_name = 'exam'
+    pk_url_kwarg = 'exam_id'
+
+    def get_queryset(self):
+        course_id = self.kwargs.get('course_id')
+        return Exam.objects.filter(course_id=course_id)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        course = self.object.course
+        user = self.request.user
+        
+        is_enrolled = Enrollment.objects.filter(
+            student=user,
+            cohort__course=course,
+            status='active'
+        ).exists()
+        
+        context['is_enrolled'] = is_enrolled
+        context['course'] = course
+        context['modules'] = course.modules.all().prefetch_related('lessons')
+        context['course_exams'] = course.exams.all().order_by('id')
+        context['sections'] = self.object.sections.all().order_by('order')
+        
         return context
 
 class CertificateDetailView(DetailView):
