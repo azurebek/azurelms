@@ -24,23 +24,39 @@
                             </div>
                         </div>
 
-                        <form method="POST" enctype="multipart/form-data">
-                            {% csrf_token %}
-                            <div class="mb-4">
-                                <label class="form-label fw-semibold">To'lov summasi (so'm)</label>
-                                <input type="number" name="amount" class="form-control form-control-lg bg-light" placeholder="Masalan: 100000" required>
+                        {% if has_pending_receipt %}
+                            <div class="alert alert-warning text-center rounded-4 shadow-sm py-4">
+                                <div class="mb-3">
+                                    <i class="bi bi-hourglass-split display-4 text-warning"></i>
+                                </div>
+                                <h5 class="fw-bold">Tasdiqlanish kutilmoqda</h5>
+                                <p class="mb-0">Sizda mutaxassislarimiz tomonidan tekshirilayotgan to'lov cheki mavjud. Iltimos tekshiruv yakunlanmaguniga qadar kuting.</p>
                             </div>
-                            
-                            <div class="mb-4">
-                                <label class="form-label fw-semibold">To'lov cheki (Skrinshot)</label>
-                                <input class="form-control form-control-lg bg-light" type="file" name="receipt_image" accept="image/*" required>
-                                <div class="form-text mt-2"><i class="bi bi-info-circle me-1"></i> Iltimos, faqat rasm formatidagi (.jpg, .png) aniq chekni yuklang.</div>
-                            </div>
+                        {% else %}
+                            <form method="POST" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                
+                                <div class="alert alert-info bg-opacity-10 rounded-4 border-info border-opacity-25 mb-4">
+                                    <h6 class="fw-bold mb-2"><i class="bi bi-calendar-check me-2"></i>To'lanayotgan davr</h6>
+                                    <p class="small mb-0">Ushbu to'lov <strong>{{ period_start|date:"d-F, Y" }}</strong> dan <strong>{{ period_end|date:"d-F, Y" }}</strong> gacha bo'lgan 30 o'quv kunini o'z ichiga oladi.</p>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">To'lov summasi (so'm)</label>
+                                    <input type="number" name="amount" class="form-control form-control-lg bg-light" placeholder="Masalan: 100000" required>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">To'lov cheki (Skrinshot)</label>
+                                    <input class="form-control form-control-lg bg-light" type="file" name="receipt_image" accept="image/*" required>
+                                    <div class="form-text mt-2"><i class="bi bi-info-circle me-1"></i> Iltimos, faqat rasm formatidagi (.jpg, .png) aniq chekni yuklang.</div>
+                                </div>
 
-                            <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm rounded-pill transition-hover">
-                                Yuklash va Yuborish <i class="bi bi-arrow-right ms-2"></i>
-                            </button>
-                        </form>
+                                <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm rounded-pill transition-hover">
+                                    Yuklash va Yuborish <i class="bi bi-arrow-right ms-2"></i>
+                                </button>
+                            </form>
+                        {% endif %}
                     </div>
                     
                     <div class="card-footer bg-white border-0 text-center p-4">

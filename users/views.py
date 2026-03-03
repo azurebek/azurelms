@@ -1,11 +1,14 @@
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, UpdateView, TemplateView
+from django.views.generic import CreateView, UpdateView, TemplateView, ListView
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import update_session_auth_hash
+from django.utils import timezone
+import datetime
 from .forms import CustomUserCreationForm
 from .models import CustomUser
 from django.shortcuts import redirect, render
+from cohorts.models import Enrollment
 
 def home_view(request):
     """
@@ -95,8 +98,22 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Haqiqiy obunalarni bazadan olish
         user = self.request.user
+        
+        # --- Grace Period Check Logging ---
+        today = timezone.now().date()
+        grace_limit = today - datetime.timedelta(days=2)
+        
+        # Find all active enrollments where deadline passed grace limit
+        expired_enrollments = user.enrollments.filter(
+            status='active',
+            next_payment_deadline__lt=grace_limit
+        )
+        for en in expired_enrollments:
+            en.status = 'expired'
+            en.save()
+        
+        # Haqiqiy obunalarni bazadan olish (using updated statuses)
         context['active_enrollments'] = user.enrollments.all().order_by('-joined_at')
         
         # Hozircha statik ma'lumotlar bilan ta'minlaymiz, keyin bazadan olinadigan qilinishi mumkin
@@ -106,3 +123,11 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context['xp_points'] = user.total_xp if hasattr(user, 'total_xp') else 1250
         context['achievements_count'] = 3
         return context
+
+class SubscriptionHistoryView(LoginRequiredMixin, ListView):
+    model = Enrollment
+    template_name = 'users/subscriptions.html'
+    context_object_name = 'enrollments'
+    
+    def get_queryset(self):
+        return self.request.user.enrollments.all().order_by('-joined_at')

@@ -1,5 +1,7 @@
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
+import datetime
 from courses.models import Course, Lesson
 
 
@@ -54,6 +56,11 @@ class PaymentReceipt(models.Model):
                                    verbose_name="O'quvchi obunasi")
     receipt_image = models.ImageField(upload_to='receipts/%Y/%m/', verbose_name="Chek rasmi")
     amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="To'lov summasi")
+    
+    # Qaysi oy (interval) uchun to'lov qilinayotgani
+    period_start = models.DateField(null=True, blank=True, verbose_name="To'lov davri boshlanishi")
+    period_end = models.DateField(null=True, blank=True, verbose_name="To'lov davri tugashi")
+    
     submitted_at = models.DateTimeField(auto_now_add=True)
     is_verified = models.BooleanField(default=False, verbose_name="Tasdiqlandi")
 
@@ -61,11 +68,25 @@ class PaymentReceipt(models.Model):
         return f"Chek: {self.enrollment.student.username} - {self.amount} UZS"
 
     def save(self, *args, **kwargs):
-        # Agar to'lov cheki admin tomonidan tasdiqlansa, avtomatik ravishda obunani FAOL holatiga o'tkazamiz
+        is_new_verification = False
+        if self.pk:
+            old_receipt = PaymentReceipt.objects.get(pk=self.pk)
+            if not old_receipt.is_verified and self.is_verified:
+                is_new_verification = True
+        elif self.is_verified:
+            is_new_verification = True
+            
         super().save(*args, **kwargs)
-        if self.is_verified and self.enrollment.status != 'active':
-            self.enrollment.status = 'active'
-            self.enrollment.save()
+        
+        if is_new_verification:
+            enrollment = self.enrollment
+            enrollment.status = 'active'
+            enrollment.last_payment_date = timezone.now().date()
+            if self.period_end:
+                 enrollment.next_payment_deadline = self.period_end
+            else:
+                 enrollment.next_payment_deadline = timezone.now().date() + datetime.timedelta(days=30)
+            enrollment.save()
 
     class Meta:
         verbose_name = "To'lov cheki"
