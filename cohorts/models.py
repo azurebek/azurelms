@@ -60,6 +60,13 @@ class PaymentReceipt(models.Model):
     def __str__(self):
         return f"Chek: {self.enrollment.student.username} - {self.amount} UZS"
 
+    def save(self, *args, **kwargs):
+        # Agar to'lov cheki admin tomonidan tasdiqlansa, avtomatik ravishda obunani FAOL holatiga o'tkazamiz
+        super().save(*args, **kwargs)
+        if self.is_verified and self.enrollment.status != 'active':
+            self.enrollment.status = 'active'
+            self.enrollment.save()
+
     class Meta:
         verbose_name = "To'lov cheki"
         verbose_name_plural = "To'lov cheklari"

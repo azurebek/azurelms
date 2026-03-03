@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}To'lov | {{ course.title }}{% endblock %}
+
+{% block content %}
+<section class="py-5 bg-light-custom" style="min-height: 80vh;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-xl-5">
+                <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                    <div class="card-header bg-primary text-white p-4 text-center border-0">
+                        <h4 class="fw-bold mb-1">Kursga yozilish</h4>
+                        <p class="mb-0 opacity-75 small">{{ course.title }}</p>
+                    </div>
+                    
+                    <div class="card-body p-4 p-md-5">
+                        <div class="text-center mb-4 pb-4 border-bottom">
+                            <h5 class="fw-bold mb-3">To'lov uchun rekvizitlar</h5>
+                            <div class="bg-light p-3 rounded-4 d-inline-block shadow-sm">
+                                <div class="text-muted small mb-1">Karta raqami</div>
+                                <div class="fs-4 fw-bold text-dark font-monospace tracking-wide mb-1">8600 1234 5678 9012</div>
+                                <div class="fw-semibold text-primary">Azizbek</div>
+                            </div>
+                        </div>
+
+                        <form method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">To'lov summasi (so'm)</label>
+                                <input type="number" name="amount" class="form-control form-control-lg bg-light" placeholder="Masalan: 100000" required>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">To'lov cheki (Skrinshot)</label>
+                                <input class="form-control form-control-lg bg-light" type="file" name="receipt_image" accept="image/*" required>
+                                <div class="form-text mt-2"><i class="bi bi-info-circle me-1"></i> Iltimos, faqat rasm formatidagi (.jpg, .png) aniq chekni yuklang.</div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm rounded-pill transition-hover">
+                                Yuklash va Yuborish <i class="bi bi-arrow-right ms-2"></i>
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div class="card-footer bg-white border-0 text-center p-4">
+                        <a href="{% url 'course_detail' course.id %}" class="text-muted text-decoration-none small">
+                            <i class="bi bi-arrow-left me-1"></i> Bekor qilish va orqaga qaytish
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

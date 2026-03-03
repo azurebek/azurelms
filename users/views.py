@@ -22,6 +22,11 @@ class RegisterView(CreateView):
     template_name = 'registration/register.html'
     success_url = reverse_lazy('login')
 
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect('dashboard')
+        return super().dispatch(request, *args, **kwargs)
+
     def form_valid(self, form):
         response = super().form_valid(form)
         messages.success(self.request, "Muvaffaqiyatli ro'yxatdan o'tdingiz! Iltimos tizimga kiring.")
@@ -90,10 +95,14 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        # Haqiqiy obunalarni bazadan olish
+        user = self.request.user
+        context['active_enrollments'] = user.enrollments.all().order_by('-joined_at')
+        
         # Hozircha statik ma'lumotlar bilan ta'minlaymiz, keyin bazadan olinadigan qilinishi mumkin
         context['streak_days'] = 5
         context['completed_lessons'] = 12
         context['study_hours'] = 85
-        context['xp_points'] = self.request.user.total_xp if hasattr(self.request.user, 'total_xp') else 1250
+        context['xp_points'] = user.total_xp if hasattr(user, 'total_xp') else 1250
         context['achievements_count'] = 3
         return context

@@ -22,6 +22,9 @@ urlpatterns = [
     # Pricing/Subscriptions
     path('pricing/', include('subscriptions.urls', namespace='subscriptions')),
     
+    # Cohorts / Checkout
+    path('checkout/', include('cohorts.urls', namespace='cohorts')),
+    
     # Messenger / Chat
     path('messenger/', include('messenger.urls', namespace='messenger')),
     

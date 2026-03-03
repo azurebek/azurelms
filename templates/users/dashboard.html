@@ -98,17 +98,17 @@
         <div class="col-12 col-md-6 col-xl-4">
             <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
                 <div class="position-relative" style="height: 160px; display: flex; align-items: center; justify-content: center;">
-                    {% if enrollment.course.thumbnail %}
-                    <img src="{{ enrollment.course.thumbnail.url }}" alt="{{ enrollment.course.title }}" class="w-100 h-100" style="object-fit: cover;">
+                    {% if enrollment.cohort.course.thumbnail %}
+                    <img src="{{ enrollment.cohort.course.thumbnail.url }}" alt="{{ enrollment.cohort.course.title }}" class="w-100 h-100" style="object-fit: cover;">
                     {% else %}
                     <i class="bi bi-translate display-4 text-primary opacity-50"></i>
                     {% endif %}
-                    <span class="badge bg-{{ enrollment.course.get_level_color|default:'primary' }} position-absolute top-0 start-0 m-3">{{ enrollment.course.get_level_display|default:enrollment.course.level }}</span>
+                    <span class="badge bg-{{ enrollment.cohort.course.get_level_color|default:'primary' }} position-absolute top-0 start-0 m-3">{{ enrollment.cohort.course.get_level_display|default:enrollment.cohort.course.level }}</span>
                 </div>
                 <div class="card-body d-flex flex-column">
-                    <h3 class="h6 fw-bold mb-1 line-clamp-2">{{ enrollment.course.title }}</h3>
+                    <h3 class="h6 fw-bold mb-1 line-clamp-2">{{ enrollment.cohort.course.title }}</h3>
                     <p class="text-muted small mb-3">
-                        <i class="bi bi-person me-1"></i>{{ enrollment.course.instructor.get_full_name|default:"O'qituvchi" }}
+                        <i class="bi bi-person me-1"></i>{{ enrollment.cohort.course.instructor.get_full_name|default:"O'qituvchi" }}
                     </p>
                     
                     <div class="mt-auto">
@@ -120,25 +120,21 @@
                             <div class="progress-bar bg-primary rounded-pill" style="width: {{ enrollment.progress|default:'0' }}%"></div>
                         </div>
                         
-                        {% if enrollment.next_lesson %}
-                        <p class="small text-muted mb-3 line-clamp-1">
-                            <i class="bi bi-play-circle me-1 text-primary"></i>Keyingi: {{ enrollment.next_lesson.title }}
-                        </p>
-                        {% endif %}
-                        
-                        {% if enrollment.is_completed %}
-                        <a href="#" class="btn btn-outline-primary btn-sm w-100 rounded-pill fw-medium">
-                            <i class="bi bi-award me-1"></i> Sertifikatni ko'rish
-                        </a>
-                        {% elif enrollment.next_lesson %}
-                        <a href="#" class="btn btn-primary btn-sm w-100 rounded-pill fw-medium">
-                            Davom etish
-                        </a>
+                        <div class="d-flex gap-2">
+                        {% if enrollment.status == 'pending' %}
+                            <span class="badge bg-warning text-dark px-3 py-2 w-100 rounded-pill"><i class="bi bi-clock-history me-1"></i> Tasdiqlanish kutilmoqda</span>
                         {% else %}
-                        <a href="{% url 'course_detail' enrollment.course.pk %}" class="btn btn-primary btn-sm w-100 rounded-pill fw-medium">
-                            Kursga o'tish
-                        </a>
+                            {% if enrollment.next_lesson %}
+                            <a href="#" class="btn btn-primary btn-sm w-100 rounded-pill fw-medium">
+                                Davom etish
+                            </a>
+                            {% else %}
+                            <a href="{% url 'course_detail' enrollment.cohort.course.pk %}" class="btn btn-primary btn-sm w-100 rounded-pill fw-medium">
+                                Kursga o'tish
+                            </a>
+                            {% endif %}
                         {% endif %}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -188,11 +184,7 @@
                     
                     <div class="d-flex justify-content-between align-items-center border-top pt-3">
                         <div class="course-price">
-                            {% if course.is_free or course.price == 0 %}
-                            <span class="fw-bold text-success">Bepul</span>
-                            {% else %}
-                            <span class="fw-bold">{{ course.price|floatformat:0 }} so'm</span>
-                            {% endif %}
+                            <span class="fw-bold text-primary">Obunaga kiritilgan</span>
                         </div>
                         <div class="text-warning small fw-bold">
                             <i class="bi bi-star-fill me-1"></i>{{ course.rating|default:"5.0" }}

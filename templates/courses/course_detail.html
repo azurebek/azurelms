@@ -209,20 +209,20 @@
                 <div class="card border-0 shadow-lg rounded-4 sticky-top overflow-hidden" style="top: 100px;">
                     <div class="card-body p-4 p-xl-5">
                         <div class="text-center mb-4 pb-4 border-bottom border-light">
-                            <div class="display-6 fw-bold text-primary mb-2">Cheksiz Ta'lim</div>
-                            <div class="text-muted small px-3">Platformadagi barcha kurslarga yagona oylik obuna orqali cheksiz kirish huquqini qo'lga kiriting.</div>
+                            <div class="display-6 fw-bold text-primary mb-2">Qabul ochiq</div>
+                            <div class="text-muted small px-3">Kurs guruhiga qo'shilish orqali turk tilini mukammal tarzda o'rganishni boshlang!</div>
                         </div>
                         
                         <div class="d-grid gap-3 mb-4">
                             {% if user.is_authenticated %}
-                                <a href="{% url 'subscriptions:pricing' %}" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">
-                                    O'quv rejasini tanlash
+                                <a href="{% url 'cohorts:checkout' course.id %}" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">
+                                    Kursga yozilish
                                 </a>
                                 <button class="btn btn-outline-secondary btn-lg rounded-pill fw-medium">
                                     <i class="bi bi-heart me-2"></i>Saqlab qo'yish
                                 </button>
                             {% else %}
-                                <a href="{% url 'login' %}?next={% url 'subscriptions:pricing' %}" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">
+                                <a href="{% url 'login' %}?next={% url 'cohorts:checkout' course.id %}" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">
                                     Tizimga Kiring
                                 </a>
                             {% endif %}
