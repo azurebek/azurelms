@@ -1,4 +1,5 @@
 import re
+import uuid
 from django.db import models
 from django_ckeditor_5.fields import CKEditor5Field
 
@@ -202,3 +203,98 @@ class Choice(models.Model):
     class Meta:
         verbose_name = "Variant"
         verbose_name_plural = "Variantlar"
+
+
+# --- SERTIFIKAT VA IMTIHON NATIJALARI ---
+
+class ExamSubmission(models.Model):
+    # O'quvchining imtihondagi natijasini saqlash
+    from django.conf import settings
+    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='exam_submissions', verbose_name="O'quvchi")
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE, related_name='submissions', verbose_name="Imtihon")
+    score = models.PositiveIntegerField(help_text="Olingan ball (foizda, 0-100)")
+    passed = models.BooleanField(default=False, verbose_name="O'tdi")
+    submitted_at = models.DateTimeField(auto_now_add=True, verbose_name="Topshirilgan vaqt")
+
+    def save(self, *args, **kwargs):
+        # Avtomatik holatni aniqlash
+        self.passed = self.score >= self.exam.passing_score
+        super().save(*args, **kwargs)
+        
+        # Sertifikat berish shartini tekshirish
+        if self.passed:
+            self.check_and_issue_certificate()
+
+    def check_and_issue_certificate(self):
+        course = self.exam.course
+        student = self.student
+        
+        # Barcha muvaffaqiyatli imtihonlarni olish
+        passing_submissions = ExamSubmission.objects.filter(
+            student=student,
+            exam__course=course,
+            passed=True
+        )
+        
+        has_visa = False
+        has_final = False
+        visa_score = 0
+        final_score = 0
+        visa_weight = 0
+        final_weight = 0
+        
+        for sub in passing_submissions:
+            if sub.exam.exam_type == 'visa':
+                has_visa = True
+                visa_score = sub.score
+                visa_weight = sub.exam.weight_percentage
+            elif sub.exam.exam_type == 'final':
+                has_final = True
+                final_score = sub.score
+                final_weight = sub.exam.weight_percentage
+                
+        # Agar ikkalasidan ham o'tgan bo'lsa
+        if has_visa and has_final:
+            total_weight = visa_weight + final_weight
+            final_grade = 0
+            if total_weight > 0:
+                final_grade = int((visa_score * visa_weight + final_score * final_weight) / total_weight)
+            else:
+                final_grade = int((visa_score + final_score) / 2)
+                
+            # Sertifikatni yaratish
+            certificate_id = f"AZ-{course.id}-{student.id}-{uuid.uuid4().hex[:6].upper()}"
+            Certificate.objects.get_or_create(
+                student=student,
+                course=course,
+                defaults={
+                    'final_score': final_grade,
+                    'certificate_id': certificate_id
+                }
+            )
+
+    def __str__(self):
+        return f"{self.student.username} - {self.exam.title} ({self.score}%)"
+
+    class Meta:
+        verbose_name = "Imtihon Natijasi"
+        verbose_name_plural = "Imtihon Natijalari"
+        unique_together = ('student', 'exam')
+
+
+class Certificate(models.Model):
+    # Dasturni yakunlagandagi sertifikat hujjati
+    from django.conf import settings
+    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='course_certificates', verbose_name="O'quvchi")
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='certificates', verbose_name="Kurs darajasi")
+    issued_at = models.DateTimeField(auto_now_add=True, verbose_name="Berilgan sana")
+    certificate_id = models.CharField(max_length=50, unique=True, verbose_name="Sertifikat ID")
+    final_score = models.PositiveIntegerField(verbose_name="Yakuniy ball")
+
+    def __str__(self):
+        return f"{self.student.username} - {self.course.title} Sertifikati"
+
+    class Meta:
+        verbose_name = "Sertifikat"
+        verbose_name_plural = "Sertifikatlar"
+        unique_together = ('student', 'course')

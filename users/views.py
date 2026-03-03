@@ -9,6 +9,8 @@ from .forms import CustomUserCreationForm
 from .models import CustomUser
 from django.shortcuts import redirect, render
 from cohorts.models import Enrollment
+from courses.models import Certificate as CourseCertificate
+from gamification.models import EarnedBadge
 
 def home_view(request):
     """
@@ -131,3 +133,19 @@ class SubscriptionHistoryView(LoginRequiredMixin, ListView):
     
     def get_queryset(self):
         return self.request.user.enrollments.all().order_by('-joined_at')
+
+class CertificateListView(LoginRequiredMixin, TemplateView):
+    template_name = 'users/certificates.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        context['active_nav'] = 'certificates'
+        
+        # Gamification badges
+        context['earned_badges'] = EarnedBadge.objects.filter(student=user).order_by('-earned_at')
+        
+        # Course Completion Certificates
+        context['course_certificates'] = CourseCertificate.objects.filter(student=user).order_by('-issued_at')
+        
+        return context

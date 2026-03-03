@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 
-from .models import Course, Lesson
+from .models import Course, Lesson, Certificate
 from cohorts.models import Enrollment
 
 
@@ -146,3 +146,16 @@ class LessonDetailView(LoginRequiredMixin, DetailView):
             context['next_lesson'] = all_lessons[current_index + 1]
             
         return context
+
+class CertificateDetailView(DetailView):
+    """
+    Renders the professional certificate for printing/downloading.
+    Publicly accessible to verify the certificate if one has the exact ID.
+    """
+    model = Certificate
+    template_name = 'courses/certificate.html'
+    context_object_name = 'certificate'
+    
+    def get_object(self, queryset=None):
+        certificate_id = self.kwargs.get('certificate_id')
+        return get_object_or_404(Certificate, certificate_id=certificate_id)
