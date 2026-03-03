@@ -1,0 +1,352 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ lesson.title }} | {{ course.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+    
+    .study-layout {
+        display: flex;
+        min-height: calc(100vh - 76px); /* minus navbar */
+    }
+
+    /* Sidebar Styles */
+    .study-sidebar {
+        width: 320px;
+        flex-shrink: 0;
+        background-color: #fff;
+        border-right: 1px solid #e9ecef;
+        overflow-y: auto;
+        height: calc(100vh - 76px);
+        position: sticky;
+        top: 76px;
+    }
+
+    .study-main {
+        flex-grow: 1;
+        padding: 2rem;
+        overflow-y: auto;
+    }
+
+    @media (max-width: 991.98px) {
+        .study-layout {
+            flex-direction: column;
+        }
+        .study-sidebar {
+            width: 100%;
+            height: auto;
+            position: relative;
+            top: 0;
+            border-right: none;
+            border-bottom: 1px solid #e9ecef;
+        }
+    }
+
+    /* Accordion customizations */
+    .study-sidebar .accordion-button {
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        color: #495057;
+        background-color: #f8f9fa;
+        box-shadow: none;
+    }
+    
+    .study-sidebar .accordion-button:not(.collapsed) {
+        color: #0d6efd;
+        background-color: #e7f1ff;
+    }
+
+    .study-sidebar .list-group-item {
+        border-left: 3px solid transparent;
+        transition: all 0.2s;
+    }
+
+    .study-sidebar .list-group-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .study-sidebar .list-group-item.active {
+        background-color: #e7f1ff;
+        border-color: #e7f1ff;
+        border-left-color: #0d6efd;
+        color: #0d6efd;
+    }
+
+    .study-sidebar .list-group-item.active a {
+        color: #0d6efd;
+        font-weight: 600;
+    }
+
+    .study-sidebar .list-group-item a {
+        color: #495057;
+        text-decoration: none;
+        display: block;
+    }
+
+    /* Video Container */
+    .video-container {
+        position: relative;
+        padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+        height: 0;
+        overflow: hidden;
+        border-radius: 0.5rem;
+        background-color: #000;
+    }
+
+    .video-container iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    /* Content Area Styles */
+    .lesson-content img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 0.5rem;
+        margin: 1rem 0;
+    }
+
+    .lesson-content pre {
+        background-color: #212529;
+        color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        overflow-x: auto;
+    }
+
+    .lesson-content blockquote {
+        border-left: 4px solid #0d6efd;
+        padding-left: 1rem;
+        color: #6c757d;
+        font-style: italic;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="study-layout">
+    <!-- Sidebar / Table of Contents -->
+    <div class="study-sidebar shadow-sm">
+        <div class="p-4 border-bottom">
+            <h5 class="fw-bold mb-1">{{ course.title }}</h5>
+            <div class="text-muted small">Mundarija</div>
+        </div>
+
+        <div class="accordion accordion-flush" id="courseAccordion">
+            {% for module in modules %}
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button {% if lesson.module != module %}collapsed{% endif %}" 
+                            type="button" data-bs-toggle="collapse" 
+                            data-bs-target="#moduleCollapse{{ module.id }}">
+                        Modul {{ module.order|default:forloop.counter }}: {{ module.title }}
+                    </button>
+                </h2>
+                <div id="moduleCollapse{{ module.id }}" 
+                     class="accordion-collapse collapse {% if lesson.module == module %}show{% endif %}" 
+                     data-bs-parent="#courseAccordion">
+                    <div class="accordion-body p-0">
+                        <ul class="list-group list-group-flush">
+                            {% for l in module.lessons.all %}
+                            <li class="list-group-item px-4 py-3 {% if l == lesson %}active{% endif %}">
+                                <a href="{% url 'lesson_detail' course_id=course.id lesson_id=l.id %}" class="d-flex align-items-center gap-2">
+                                    {% if l == lesson %}
+                                    <i class="bi bi-play-circle-fill text-primary"></i>
+                                    {% else %}
+                                    <i class="bi bi-journal-text text-muted"></i>
+                                    {% endif %}
+                                    {{ l.title }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Main Study Area -->
+    <div class="study-main">
+        <div class="container-fluid max-w-1000 mx-auto w-100" style="max-width: 900px;">
+            
+            <!-- Breadcrumb & Header -->
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb mb-0 small">
+                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}" class="text-decoration-none">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'course_detail' course.id %}" class="text-decoration-none">{{ course.title }}</a></li>
+                    <li class="breadcrumb-item active">{{ lesson.module.title }}</li>
+                </ol>
+            </nav>
+
+            <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+                <h1 class="h2 fw-bold mb-0">{{ lesson.title }}</h1>
+                <div class="badge bg-warning text-dark px-3 py-2 rounded-pill shadow-sm">
+                    <i class="bi bi-star-fill me-1"></i> +{{ lesson.xp_reward }} XP
+                </div>
+            </div>
+
+            {% if not is_enrolled %}
+            <div class="alert alert-danger d-flex align-items-center shadow-sm rounded-4 border-0 mb-4" role="alert">
+                <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+                <div>
+                    <strong>Siz ushbu darsni ko'ra olmaysiz.</strong><br>
+                    Davom etish uchun kursga obuna bo'lishingiz kerak!
+                </div>
+            </div>
+            {% else %}
+
+            <!-- Tab Navigation -->
+            <ul class="nav nav-pills mb-4 bg-white p-2 rounded-4 shadow-sm border" id="studyTabs" role="tablist">
+                {% if lesson.video_url %}
+                <li class="nav-item flex-fill text-center" role="presentation">
+                    <button class="nav-link w-100 active fw-medium py-2 rounded-pill" id="video-tab" data-bs-toggle="pill" data-bs-target="#video" type="button" role="tab">
+                        <i class="bi bi-play-btn me-2"></i>Видео дарс
+                    </button>
+                </li>
+                {% endif %}
+                
+                {% if lesson.content %}
+                <li class="nav-item flex-fill text-center" role="presentation">
+                    <button class="nav-link w-100 {% if not lesson.video_url %}active{% endif %} fw-medium py-2 rounded-pill" id="text-tab" data-bs-toggle="pill" data-bs-target="#text" type="button" role="tab">
+                        <i class="bi bi-card-text me-2"></i>Дарс баёни
+                    </button>
+                </li>
+                {% endif %}
+
+                {% if assignments.exists %}
+                <li class="nav-item flex-fill text-center" role="presentation">
+                    <button class="nav-link w-100 fw-medium py-2 rounded-pill {% if not lesson.video_url and not lesson.content %}active{% endif %}" id="homework-tab" data-bs-toggle="pill" data-bs-target="#homework" type="button" role="tab">
+                        <i class="bi bi-journal-check me-2"></i>Вазифа
+                    </button>
+                </li>
+                {% endif %}
+
+                {% if quizzes.exists %}
+                <li class="nav-item flex-fill text-center" role="presentation">
+                    <button class="nav-link w-100 fw-medium py-2 rounded-pill {% if not lesson.video_url and not lesson.content and not assignments.exists %}active{% endif %}" id="quiz-tab" data-bs-toggle="pill" data-bs-target="#quiz" type="button" role="tab">
+                        <i class="bi bi-ui-checks me-2"></i>Тест
+                    </button>
+                </li>
+                {% endif %}
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content" id="studyTabsContent">
+                
+                <!-- Video Tab -->
+                {% if lesson.video_url %}
+                <div class="tab-pane fade show active" id="video" role="tabpanel">
+                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                        <div class="video-container">
+                            <!-- Helper function to extract correct embed URL format needed for YouTube -->
+                            <iframe src="{{ lesson.video_url|default:'' }}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Text Content Tab -->
+                {% if lesson.content %}
+                <div class="tab-pane fade {% if not lesson.video_url %}show active{% endif %}" id="text" role="tabpanel">
+                    <div class="card border-0 shadow-sm rounded-4 mb-4">
+                        <div class="card-body p-4 p-md-5 lesson-content">
+                            {{ lesson.content|safe }}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Homework Tab -->
+                {% if assignments.exists %}
+                <div class="tab-pane fade {% if not lesson.video_url and not lesson.content %}show active{% endif %}" id="homework" role="tabpanel">
+                    {% for assignment in assignments %}
+                    <div class="card border-0 shadow-sm rounded-4 mb-4 border-start border-4 border-warning">
+                        <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                            <h4 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                                <i class="bi bi-pencil-square text-warning"></i>
+                                {{ assignment.title }}
+                            </h4>
+                            <span class="badge bg-warning text-dark mt-2">Max: {{ assignment.max_xp }} XP</span>
+                        </div>
+                        <div class="card-body p-4 lesson-content">
+                            {{ assignment.description|safe }}
+                            
+                            <!-- Placeholder form for submission UI -->
+                            <div class="mt-4 p-4 bg-light rounded-3 border">
+                                <h6 class="fw-bold mb-3">Javobni yuklash</h6>
+                                <div class="mb-3">
+                                    <textarea class="form-control" rows="4" placeholder="Vazifa javobini yozing yoki link qoldiring..."></textarea>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <input class="form-control form-control-sm w-50" type="file" id="formFile">
+                                    <button class="btn btn-primary px-4 fw-medium">Yuborish</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Quiz Tab -->
+                {% if quizzes.exists %}
+                <div class="tab-pane fade {% if not lesson.video_url and not lesson.content and not assignments.exists %}show active{% endif %}" id="quiz" role="tabpanel">
+                    {% for quiz in quizzes %}
+                    <div class="card border-0 shadow-sm rounded-4 mb-4 border-start border-4 border-danger">
+                        <div class="card-body p-4 p-md-5">
+                            <div class="text-center mb-4">
+                                <div class="d-inline-flex bg-danger bg-opacity-10 p-3 rounded-circle text-danger mb-3">
+                                    <i class="bi bi-ui-checks display-6"></i>
+                                </div>
+                                <h3 class="fw-bold">{{ quiz.title }}</h3>
+                                <p class="text-muted">Testni yakunlang va +{{ quiz.xp_reward }} XP yig'ing!</p>
+                            </div>
+                            
+                            <div class="d-grid col-md-6 mx-auto">
+                                <button class="btn btn-danger btn-lg rounded-pill fw-bold shadow-sm" disabled>
+                                    Tez Kunda Ishga Tushadi
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+            </div>
+
+            <!-- Footer Navigation (Next/Prev) -->
+            <div class="d-flex justify-content-between align-items-center mt-5 mb-5 pt-4 border-top">
+                {% if prev_lesson %}
+                <a href="{% url 'lesson_detail' course_id=course.id lesson_id=prev_lesson.id %}" class="btn btn-outline-secondary rounded-pill fw-medium px-4">
+                    <i class="bi bi-arrow-left me-2"></i>Oldingi dars
+                </a>
+                {% else %}
+                <div></div>
+                {% endif %}
+
+                {% if next_lesson %}
+                <a href="{% url 'lesson_detail' course_id=course.id lesson_id=next_lesson.id %}" class="btn btn-primary rounded-pill fw-bold px-4 shadow-sm">
+                    Keyingi dars<i class="bi bi-arrow-right ms-2"></i>
+                </a>
+                {% else %}
+                <a href="{% url 'course_detail' course.id %}" class="btn btn-success rounded-pill fw-bold px-4 shadow-sm">
+                    Modulni yakunlash<i class="bi bi-check-circle ms-2"></i>
+                </a>
+                {% endif %}
+            </div>
+
+            {% endif %}<!-- End if is_enrolled -->
+        </div>
+    </div>
+</div>
+{% endblock %}

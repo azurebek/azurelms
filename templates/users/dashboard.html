@@ -125,11 +125,11 @@
                             <span class="badge bg-warning text-dark px-3 py-2 w-100 rounded-pill"><i class="bi bi-clock-history me-1"></i> Tasdiqlanish kutilmoqda</span>
                         {% else %}
                             {% if enrollment.next_lesson %}
-                            <a href="#" class="btn btn-primary btn-sm w-100 rounded-pill fw-medium">
+                            <a href="{% url 'course_study' enrollment.cohort.course.id %}" class="btn btn-primary btn-sm w-100 rounded-pill fw-medium">
                                 Davom etish
                             </a>
                             {% else %}
-                            <a href="{% url 'course_detail' enrollment.cohort.course.pk %}" class="btn btn-primary btn-sm w-100 rounded-pill fw-medium">
+                            <a href="{% url 'course_study' enrollment.cohort.course.id %}" class="btn btn-primary btn-sm w-100 rounded-pill fw-medium">
                                 Kursga o'tish
                             </a>
                             {% endif %}
