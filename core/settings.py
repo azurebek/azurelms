@@ -12,12 +12,14 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
-from dotenv import load_dotenv 
+import sys
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+from dotenv import load_dotenv
 load_dotenv(os.path.join(BASE_DIR, '.env'))
+
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 
 # Quick-start development settings - unsuitable for production
@@ -35,6 +37,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'jazzmin',
     "django.contrib.admin",
     "django.contrib.auth",
@@ -44,6 +47,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.humanize",
     'django_ckeditor_5',
+    'channels',
     'users',
     'courses',
     'cohorts',
@@ -194,6 +198,13 @@ CKEDITOR_5_CONFIGS = {
         'language': 'uz',
     }
 }
+
+# Channels Layer configuration (In-Memory for MVP development)
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
 # ==========================================
 # JAZZMIN ADMIN PANEL SOZLAMALARI
 # ==========================================
@@ -250,3 +261,6 @@ JAZZMIN_UI_TWEAKS = {
         "success": "btn-success"
     }
 }
+
+# ASGI configs
+ASGI_APPLICATION = "core.asgi.application"

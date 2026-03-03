@@ -2,9 +2,14 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
 from cohorts.models import Cohort, Enrollment
-from .models import ChatRoom, Message
-import google.generativeai as genai
+from .models import ChatRoom, Message, AILongTermMemory
+from google import genai
 from django.conf import settings
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+import re
+import threading
+from django.db import close_old_connections
 
 User = get_user_model()
 
@@ -66,36 +71,81 @@ def trigger_azure_ai(sender, instance, created, **kwargs):
         text = instance.text.lower()
 
         if instance.room.room_type == 'ai' or '@azure' in text:
-            user_question = text.replace('@azure', '').strip()
+            def process_ai_response():
+                try:
+                    # Identify the student who sent the message
+                    student = instance.sender
+                    user_question = text.replace('@azure', '').strip()
+                    
+                    # --- 1. Short-Term Memory ---
+                    recent_msgs = Message.objects.filter(room=instance.room).order_by('-created_at')[:10]
+                    dialogue = "\n".join([f"{msg.sender.username if msg.sender else 'Azure AI'}: {msg.text}" for msg in reversed(recent_msgs)])
+                    
+                    # --- 2. Long-Term Memory ---
+                    long_term_memory, _ = AILongTermMemory.objects.get_or_create(user=student)
 
-            context_info = ""
-            if instance.context_lesson and instance.context_lesson.content:
-                context_info = f"\nO'quvchi hozir o'qiyotgan dars matni: {instance.context_lesson.content}"
+                    context_info = ""
+                    if instance.context_lesson and instance.context_lesson.content:
+                        context_info = f"\nO'quvchi hozir o'qiyotgan dars matni: {instance.context_lesson.content}"
 
-            try:
-                # Yangi, zamonaviy usulda ulanish
-                client = genai.Client(api_key=settings.GEMINI_API_KEY)
+                    # Yangi google-genai SDK orqali ulanish
+                    client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
-                prompt = (
-                    "Sen AzureLMS platformasining aqlli yordamchisi va tajribali Turk tili ustozisan. "
-                    "Sening isming Azure AI. O'quvchiga o'zbek tilida, do'stona, qisqa va aniq javob ber. "
-                    f"O'quvchining savoli: {user_question} {context_info}"
+                    prompt = (
+                        "Sen AzureLMS platformasining aqlli yordamchisi va tajribali ustozisan. "
+                        "Sening isming Azure AI. O'quvchiga doimo o'zbek tilida, do'stona, qisqa va aniq javob ber. "
+                        "Sen AzureLMS qoidalarini yaxshi bilasan, kodlash va til o'rganishda professorsan.\n\n"
+                        f"O'quvchi haqida joriy faktlar (Uzoq muddatli xotira):\n{long_term_memory.learned_facts}\n\n"
+                        "Agar suhbat davomida o'quvchi haqida YANGI va MUHIM fakt (qiziqishi, yoshi, ishlash vaqti, kodi va hokazo) o'rgansang, uni albatta javobing oxirida <SAVE_MEMORY>...fakt...</SAVE_MEMORY> tegida qoldir. "
+                        "Masalan: <SAVE_MEMORY>O'quvchi Pythonni asosan tunda o'rganishni yaxshi ko'radi.</SAVE_MEMORY>\n\n"
+                        f"Suhbat tarixi (Qisqa muddatli xotira - oxirgi 10 xabar):\n{dialogue}\n\n"
+                        f"O'quvchi hozirgi ochgan dars konteksti: {context_info}\n\n"
+                        f"Yangi xabar: {user_question}"
+                    )
+
+                    # Eng yangi flash modelidan foydalanamiz
+                    response = client.models.generate_content(
+                        model='gemini-2.5-flash',
+                        contents=prompt,
+                    )
+                    ai_reply_raw = response.text
+                    ai_reply = ai_reply_raw
+                    
+                    # --- 3. Parse <SAVE_MEMORY> tag ---
+                    memory_match = re.search(r'<SAVE_MEMORY>(.*?)</SAVE_MEMORY>', ai_reply_raw, re.DOTALL)
+                    if memory_match:
+                        new_fact = memory_match.group(1).strip()
+                        long_term_memory.learned_facts += f"\n- {new_fact}"
+                        long_term_memory.save()
+                        ai_reply = ai_reply_raw.replace(memory_match.group(0), "").strip()
+
+                except Exception as e:
+                    print(f"\n❌ GEMINI XATOSI: {e}\n")
+                    ai_reply = "Kechirasiz, hozircha ulanishda xatolik yuz berdi. Iltimos, birozdan so'ng qayta urinib ko'ring."
+
+                ai_message = Message.objects.create(
+                    room=instance.room,
+                    text=ai_reply,
+                    is_ai_response=True,
+                    context_lesson=instance.context_lesson
                 )
-
-                # Eng yangi "gemini-2.0-flash" modelidan foydalanamiz
-                response = client.models.generate_content(
-                    model='gemini-2.5-flash',
-                    contents=prompt,
+                
+                # --- 4. WebSocket Broadcast ---
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    f"chat_{instance.room.id}",
+                    {
+                        "type": "chat_message",
+                        "id": ai_message.id,
+                        "message": ai_message.text,
+                        "sender_name": "Azure AI",
+                        "sender_id": None,
+                        "created_at": ai_message.created_at.strftime('%H:%M')
+                    }
                 )
-                ai_reply = response.text
+                
+                # Close DB connections created by thread
+                close_old_connections()
 
-            except Exception as e:
-                print(f"\n❌ GEMINI XATOSI: {e}\n")
-                ai_reply = "Kechirasiz, hozircha ulanishda xatolik yuz berdi. Iltimos, birozdan so'ng qayta urinib ko'ring."
-
-            Message.objects.create(
-                room=instance.room,
-                text=ai_reply,
-                is_ai_response=True,
-                context_lesson=instance.context_lesson
-            )
+            # Background thread to avoid blocking WebSocket from broadcasting the user's message
+            threading.Thread(target=process_ai_response).start()

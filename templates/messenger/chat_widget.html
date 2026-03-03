@@ -1,0 +1,260 @@
+{% load static %}
+<div id="azure-messenger-widget" class="azure-messenger-collapsed shadow-lg">
+    <div class="messenger-header bg-primary text-white p-3 d-flex justify-content-between align-items-center" onclick="toggleMessenger()">
+        <h6 class="mb-0 fw-bold"><i class="bi bi-chat-dots-fill me-2"></i> Xabarlar</h6>
+        <i class="bi bi-chevron-up" id="messenger-toggle-icon"></i>
+    </div>
+    
+    <div class="messenger-body" style="display: none;">
+        <!-- Tabs -->
+        <ul class="nav nav-tabs nav-fill border-bottom-0 bg-light" id="chatTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active small fw-bold py-2" id="group-tab" data-bs-toggle="tab" data-bs-target="#group-pane" type="button" role="tab" onclick="loadRoom('group')">Guruh</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link small fw-bold py-2" id="tutor-tab" data-bs-toggle="tab" data-bs-target="#tutor-pane" type="button" role="tab" onclick="loadRoom('private')">Tutor</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link small fw-bold py-2 text-primary" id="ai-tab" data-bs-toggle="tab" data-bs-target="#ai-pane" type="button" role="tab" onclick="loadRoom('ai')"><i class="bi bi-robot"></i> AzureAI</button>
+            </li>
+        </ul>
+        
+        <!-- Tab Panes -->
+        <div class="tab-content bg-white" id="chatTabsContent">
+            <!-- Universal Chat Container -->
+            <div class="chat-messages-container p-3" id="main-chat-window" style="height: 300px; overflow-y: auto; background-color: #f8f9fa;">
+                <div class="text-center text-muted small mt-4" id="chat-loading">Xonalar yuklanmoqda...</div>
+            </div>
+        </div>
+        
+        <!-- Input Area -->
+        <div class="messenger-footer p-2 border-top bg-white d-flex" id="chat-input-area">
+            <input type="text" id="chat-input-field" class="form-control rounded-pill border-0 bg-light me-2" placeholder="Xabar yozing...">
+            <button class="btn btn-primary rounded-circle" id="chat-send-btn" onclick="sendMessage()" style="width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center;">
+                <i class="bi bi-send-fill" style="margin-left: -2px;"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    #azure-messenger-widget {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 350px;
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        z-index: 1050;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    
+    .messenger-header {
+        cursor: pointer;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+    }
+    
+    #chatTabs .nav-link {
+        color: #6c757d;
+        border: none;
+        border-bottom: 2px solid transparent;
+        border-radius: 0;
+    }
+    
+    #chatTabs .nav-link.active {
+        color: var(--lms-primary);
+        background: white;
+        border-bottom: 2px solid var(--lms-primary);
+    }
+    
+    /* Chat Bubbles */
+    .msg-bubble {
+        max-width: 85%;
+        padding: 8px 12px;
+        border-radius: 16px;
+        font-size: 0.9rem;
+        word-wrap: break-word;
+    }
+    
+    .msg-sent {
+        background-color: var(--lms-primary);
+        color: white;
+        border-bottom-right-radius: 4px;
+    }
+    
+    .msg-rcvd {
+        background-color: white;
+        color: #333;
+        border: 1px solid #e9ecef;
+        border-bottom-left-radius: 4px;
+    }
+    
+    .msg-meta {
+        font-size: 0.7rem;
+        opacity: 0.7;
+    }
+    
+    #chat-input-field:focus {
+        box-shadow: none;
+        border: 1px solid var(--lms-primary);
+    }
+</style>
+
+<script>
+    let chatSocket = null;
+    let currentRoomId = null;
+    let availableRooms = [];
+    const userId = "{{ request.user.id }}";
+    const userName = "{{ request.user.first_name|default:request.user.username }}";
+
+    function toggleMessenger() {
+        const body = document.querySelector('.messenger-body');
+        const icon = document.getElementById('messenger-toggle-icon');
+        if (body.style.display === 'none') {
+            body.style.display = 'block';
+            icon.classList.remove('bi-chevron-up');
+            icon.classList.add('bi-chevron-down');
+            if (availableRooms.length === 0) fetchRooms();
+        } else {
+            body.style.display = 'none';
+            icon.classList.remove('bi-chevron-down');
+            icon.classList.add('bi-chevron-up');
+        }
+    }
+
+    async function fetchRooms() {
+        try {
+            const res = await fetch("{% url 'messenger:get_user_rooms' %}");
+            const data = await res.json();
+            if (data.status === 'success') {
+                availableRooms = data.rooms;
+                loadRoom('group'); // Default to group chat
+            }
+        } catch (e) {
+            console.error("Xonalarni olishda xatolik", e);
+            document.getElementById('chat-loading').innerText = "Ulanishda xatolik yuz berdi.";
+        }
+    }
+
+    async function loadRoom(roomType) {
+        const mainWin = document.getElementById('main-chat-window');
+        const inputArea = document.getElementById('chat-input-area');
+        
+        mainWin.style.display = 'block';
+        inputArea.style.display = 'flex';
+        
+        // AI oynasi uchun sal boshqacha fon (uxshab turishi uchun)
+        if (roomType === 'ai') {
+            mainWin.style.background = 'linear-gradient(135deg, #f0f8ff, #e6f2ff)';
+        } else {
+            mainWin.style.background = '#f8f9fa';
+        }
+
+        mainWin.innerHTML = '<div class="text-center text-muted small mt-4">Xabarlar yuklanmoqda...</div>';
+
+        const room = availableRooms.find(r => r.type === roomType);
+        if (!room) {
+            mainWin.innerHTML = '<div class="text-center text-muted small mt-4">Hozircha bu xona mavjud emas.</div>';
+            inputArea.style.display = 'none';
+            if (chatSocket) chatSocket.close();
+            return;
+        }
+
+        currentRoomId = room.id;
+        
+        // Fetch historical messages
+        try {
+            const res = await fetch(`/messenger/api/messages/${currentRoomId}/`);
+            const data = await res.json();
+            if (data.status === 'success') {
+                renderMessages(data.messages);
+                connectWebSocket(currentRoomId);
+            }
+        } catch(e) {
+            mainWin.innerHTML = '<div class="text-center text-danger small mt-4">Xabarlarni yuklash imkonsiz.</div>';
+        }
+    }
+
+    function renderMessages(messages) {
+        const win = document.getElementById('main-chat-window');
+        win.innerHTML = '';
+        if (messages.length === 0) {
+            win.innerHTML = '<div class="text-center text-muted small mt-4" id="empty-chat-state">Suhbatni birinchi bo\'lib boshlang!</div>';
+            return;
+        }
+        
+        messages.forEach(msg => appendMessage(msg));
+        scrollToBottom();
+    }
+
+    function appendMessage(msg) {
+        const win = document.getElementById('main-chat-window');
+        const emptyState = document.getElementById('empty-chat-state');
+        if (emptyState) emptyState.remove();
+
+        const isMe = msg.sender_id == userId;
+        const msgHtml = `
+            <div class="d-flex flex-column align-items-${isMe ? 'end' : 'start'} mb-3">
+                ${!isMe ? `<span class="small text-muted mb-1 ms-1">${msg.sender_name}</span>` : ''}
+                <div class="msg-bubble ${isMe ? 'msg-sent' : 'msg-rcvd'} shadow-sm">
+                    ${msg.text}
+                </div>
+                <span class="msg-meta mt-1 mx-1 text-muted">${msg.created_at || 'Hozirgina'}</span>
+            </div>
+        `;
+        win.insertAdjacentHTML('beforeend', msgHtml);
+        scrollToBottom();
+    }
+
+    function scrollToBottom() {
+        const win = document.getElementById('main-chat-window');
+        win.scrollTop = win.scrollHeight;
+    }
+
+    function connectWebSocket(roomId) {
+        if (chatSocket) {
+            chatSocket.close();
+        }
+        
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        chatSocket = new WebSocket(`${protocol}//${window.location.host}/ws/chat/${roomId}/`);
+
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            appendMessage({
+                text: data.message,
+                sender_id: data.sender_id,
+                sender_name: data.sender_name,
+                created_at: 'Hozirgina'
+            });
+        };
+
+        chatSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+        };
+    }
+
+    function sendMessage() {
+        const input = document.getElementById('chat-input-field');
+        const message = input.value.trim();
+        
+        if (message && chatSocket && currentRoomId) {
+            chatSocket.send(JSON.stringify({
+                'message': message,
+                'sender_id': userId
+            }));
+            input.value = '';
+        }
+    }
+
+    // Enter bosilganda yuborish
+    document.getElementById('chat-input-field').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+
+</script>

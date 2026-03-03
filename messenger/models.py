@@ -2,6 +2,9 @@ from django.db import models
 from django.conf import settings
 from cohorts.models import Cohort
 from courses.models import Lesson
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class ChatRoom(models.Model):
@@ -55,3 +58,12 @@ class Message(models.Model):
         ordering = ['created_at']  # Xabarlar doim vaqti bo'yicha ketma-ket chiqadi
         verbose_name = "Xabar"
         verbose_name_plural = "Xabarlar"
+
+
+class AILongTermMemory(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='ai_memory')
+    learned_facts = models.TextField(blank=True, default="")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"AI Memory for {self.user.username}"

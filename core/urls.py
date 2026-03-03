@@ -22,6 +22,9 @@ urlpatterns = [
     # Pricing/Subscriptions
     path('pricing/', include('subscriptions.urls', namespace='subscriptions')),
     
+    # Messenger / Chat
+    path('messenger/', include('messenger.urls', namespace='messenger')),
+    
     # CKEditor rasm yuklash manzili
     path("ckeditor5/", include('django_ckeditor_5.urls'), name="ck_editor_5_upload_file"),
 ]
