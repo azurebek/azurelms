@@ -209,7 +209,7 @@
                 {% if lesson.video_url %}
                 <li class="nav-item flex-fill text-center" role="presentation">
                     <button class="nav-link w-100 active fw-medium py-2 rounded-pill" id="video-tab" data-bs-toggle="pill" data-bs-target="#video" type="button" role="tab">
-                        <i class="bi bi-play-btn me-2"></i>Видео дарс
+                        <i class="bi bi-play-btn me-2"></i>Video dars
                     </button>
                 </li>
                 {% endif %}
@@ -217,7 +217,7 @@
                 {% if lesson.content %}
                 <li class="nav-item flex-fill text-center" role="presentation">
                     <button class="nav-link w-100 {% if not lesson.video_url %}active{% endif %} fw-medium py-2 rounded-pill" id="text-tab" data-bs-toggle="pill" data-bs-target="#text" type="button" role="tab">
-                        <i class="bi bi-card-text me-2"></i>Дарс баёни
+                        <i class="bi bi-card-text me-2"></i>Dars bayoni
                     </button>
                 </li>
                 {% endif %}
@@ -225,7 +225,7 @@
                 {% if assignments.exists %}
                 <li class="nav-item flex-fill text-center" role="presentation">
                     <button class="nav-link w-100 fw-medium py-2 rounded-pill {% if not lesson.video_url and not lesson.content %}active{% endif %}" id="homework-tab" data-bs-toggle="pill" data-bs-target="#homework" type="button" role="tab">
-                        <i class="bi bi-journal-check me-2"></i>Вазифа
+                        <i class="bi bi-journal-check me-2"></i>Vazifa
                     </button>
                 </li>
                 {% endif %}
@@ -233,7 +233,7 @@
                 {% if quizzes.exists %}
                 <li class="nav-item flex-fill text-center" role="presentation">
                     <button class="nav-link w-100 fw-medium py-2 rounded-pill {% if not lesson.video_url and not lesson.content and not assignments.exists %}active{% endif %}" id="quiz-tab" data-bs-toggle="pill" data-bs-target="#quiz" type="button" role="tab">
-                        <i class="bi bi-ui-checks me-2"></i>Тест
+                        <i class="bi bi-ui-checks me-2"></i>Test
                     </button>
                 </li>
                 {% endif %}
@@ -248,7 +248,7 @@
                     <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
                         <div class="video-container">
                             <!-- Helper function to extract correct embed URL format needed for YouTube -->
-                            <iframe src="{{ lesson.video_url|default:'' }}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                            <iframe src="{{ lesson.embed_video_url|default:'' }}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                         </div>
                     </div>
                 </div>

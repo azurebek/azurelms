@@ -1,3 +1,4 @@
+import re
 from django.db import models
 from django_ckeditor_5.fields import CKEditor5Field
 
@@ -68,6 +69,17 @@ class Lesson(models.Model):
 
     order = models.PositiveIntegerField(default=0, verbose_name="Dars tartibi")
     xp_reward = models.PositiveIntegerField(default=10, help_text="Darsga kirgani uchun beriladigan XP")
+
+    @property
+    def embed_video_url(self):
+        if not self.video_url:
+            return None
+        # Extract video ID from youtube.com/watch?v=ID or youtu.be/ID
+        match = re.search(r'(?:v=|youtu\.be/|youtube\.com/embed/)([^&?]+)', self.video_url)
+        if match:
+            video_id = match.group(1)
+            return f"https://www.youtube.com/embed/{video_id}"
+        return self.video_url
 
     def __str__(self):
         return f"{self.module.title} -> {self.title}"
