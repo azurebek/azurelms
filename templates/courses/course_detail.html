@@ -208,6 +208,25 @@
             <div class="col-lg-4">
                 <div class="card border-0 shadow-lg rounded-4 sticky-top overflow-hidden" style="top: 100px;">
                     <div class="card-body p-4 p-xl-5">
+                        {% if is_enrolled %}
+                        <div class="text-center mb-4 pb-4 border-bottom border-light">
+                            <div class="display-6 fw-bold text-success mb-2">Siz kursdasiz</div>
+                            <div class="text-muted small px-3">O'qishni davom ettiring va maqsadlaringiz sari olg'a qadam tashlang!</div>
+                        </div>
+                        
+                        <div class="d-grid gap-3 mb-4">
+                            <a href="{% url 'course_study' course.id %}" class="btn btn-success btn-lg rounded-pill fw-bold shadow-sm d-flex justify-content-center align-items-center gap-2" style="padding: 1rem;">
+                                <i class="bi bi-play-circle-fill fs-5"></i> O'qishni davom ettirish
+                            </a>
+                        </div>
+                        
+                        <div class="p-4 bg-light rounded-4 text-center mt-4">
+                            <i class="bi bi-mortarboard text-primary display-4 mb-3"></i>
+                            <h6 class="fw-bold">Omad yor bo'lsin!</h6>
+                            <p class="text-muted small mb-0">Biz sizga ishonamiz, muntazamlik - muvaffaqiyat garovidir.</p>
+                        </div>
+                        
+                        {% else %}
                         <div class="text-center mb-4 pb-4 border-bottom border-light">
                             <div class="display-6 fw-bold text-primary mb-2">Qabul ochiq</div>
                             <div class="text-muted small px-3">Kurs guruhiga qo'shilish orqali turk tilini mukammal tarzda o'rganishni boshlang!</div>
@@ -215,18 +234,12 @@
                         
                         <div class="d-grid gap-3 mb-4">
                             {% if user.is_authenticated %}
-                                {% if is_enrolled %}
-                                <a href="{% url 'course_study' course.id %}" class="btn btn-success btn-lg rounded-pill fw-bold shadow-sm d-flex justify-content-center align-items-center gap-2">
-                                    <i class="bi bi-play-circle-fill"></i> O'qishni davom ettirish
-                                </a>
-                                {% else %}
                                 <a href="{% url 'cohorts:checkout' course.id %}" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">
                                     Kursga yozilish
                                 </a>
                                 <button class="btn btn-outline-secondary btn-lg rounded-pill fw-medium">
                                     <i class="bi bi-heart me-2"></i>Saqlab qo'yish
                                 </button>
-                                {% endif %}
                             {% else %}
                                 <a href="{% url 'login' %}?next={% url 'cohorts:checkout' course.id %}" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">
                                     Tizimga Kiring
@@ -267,6 +280,7 @@
                                 <span>Tugatish sertifikati kafolatlanadi</span>
                             </li>
                         </ul>
+                        {% endif %}
                     </div>
                     <!-- Card Footer Decor -->
                     <div style="height: 6px; background: linear-gradient(90deg, var(--lms-primary) 0%, var(--lms-secondary) 100%);"></div>
