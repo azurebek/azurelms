@@ -78,7 +78,8 @@ class Lesson(models.Model):
         match = re.search(r'(?:v=|youtu\.be/|youtube\.com/embed/)([^&?]+)', self.video_url)
         if match:
             video_id = match.group(1)
-            return f"https://www.youtube.com/embed/{video_id}"
+            # Use youtube-nocookie.com to prevent "Error 153 Video player configuration error" 
+            return f"https://www.youtube-nocookie.com/embed/{video_id}?rel=0"
         return self.video_url
 
     def __str__(self):
