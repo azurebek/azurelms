@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load bleach_tags %}
 {% load static %}
 {% load humanize %}
 
@@ -105,7 +106,7 @@
                     <div class="tab-pane fade show active" id="overview" role="tabpanel">
                         <h3 class="h4 fw-bold mb-4">Kurs haqida</h3>
                         <div class="text-secondary lh-lg mb-5" style="font-size: 1.05rem;">
-                            {{ course.description|safe }}
+                            {{ course.description|sanitize }}
                         </div>
                         
 
@@ -198,7 +199,7 @@
                         </div>
                         
                         <div class="text-secondary lh-lg">
-                            <p>{{ course.instructor.bio|default:"Ushbu o'qituvchi o'zining tajribasi asosida turk tilini mukammal o'rganishingizga yordam beradi. Darslar intensiv tarzda amaliyot bilan kafolatli olib boriladi."|safe }}</p>
+                            <p>{{ course.instructor.bio|default:"Ushbu o'qituvchi o'zining tajribasi asosida turk tilini mukammal o'rganishingizga yordam beradi. Darslar intensiv tarzda amaliyot bilan kafolatli olib boriladi."|sanitize }}</p>
                         </div>
                     </div>
                 </div>

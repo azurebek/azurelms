@@ -8,8 +8,19 @@ User = get_user_model()
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        self.user = self.scope.get('user')
         self.room_id = self.scope['url_route']['kwargs']['room_id']
         self.room_group_name = f'chat_{self.room_id}'
+
+        # 1. Autentifikatsiya tekshiruvi
+        if not self.user or not self.user.is_authenticated:
+            await self.close()
+            return
+
+        # 2. Avtorizatsiya tekshiruvi (Xonaga kirish ruxsati)
+        if not await self.is_authorized():
+            await self.close()
+            return
 
         # Guruhga obuna bo'lish
         await self.channel_layer.group_add(
@@ -21,19 +32,22 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         # Guruhdan chiqish
-        await self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
+        if hasattr(self, 'room_group_name'):
+            await self.channel_layer.group_discard(
+                self.room_group_name,
+                self.channel_name
+            )
 
     # Socketdan xabar qabul qilish
     async def receive(self, text_data):
         data = json.loads(text_data)
         message = data.get('message')
-        sender_id = data.get('sender_id')
+        
+        # Xavfsizlik: sender_id ni clientdan emas, scopeden olamiz
+        user = self.scope['user']
 
         # Bazaga saqlash
-        saved_msg = await self.save_message(sender_id, self.room_id, message)
+        saved_msg = await self.save_message(user, self.room_id, message)
 
         if saved_msg:
             # Guruhga tarqatish
@@ -42,8 +56,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 {
                     'type': 'chat_message',
                     'message': message,
-                    'sender_id': sender_id,
-                    'sender_name': saved_msg.sender.get_full_name() or saved_msg.sender.username if saved_msg.sender else "Noma'lum"
+                    'sender_id': user.id,
+                    'sender_name': user.get_full_name() or user.username
                 }
             )
 
@@ -60,10 +74,31 @@ class ChatConsumer(AsyncWebsocketConsumer):
         }))
 
     @database_sync_to_async
-    def save_message(self, user_id, room_id, text):
+    def is_authorized(self):
+        try:
+            room = ChatRoom.objects.get(id=self.room_id)
+            
+            # Agar user xona ishtirokchisi bo'lsa
+            if room.participants.filter(id=self.user.id).exists():
+                return True
+            
+            # Agar guruh chati bo'lsa, cohort a'zoligini tekshirish
+            if room.room_type == 'group' and room.cohort:
+                from cohorts.models import Enrollment
+                return Enrollment.objects.filter(
+                    student=self.user, 
+                    cohort=room.cohort, 
+                    status='active'
+                ).exists()
+            
+            return False
+        except ChatRoom.DoesNotExist:
+            return False
+
+    @database_sync_to_async
+    def save_message(self, user, room_id, text):
         try:
             room = ChatRoom.objects.get(id=room_id)
-            user = User.objects.get(id=user_id) if user_id else None
             msg = Message.objects.create(room=room, sender=user, text=text)
             return msg
         except Exception as e:

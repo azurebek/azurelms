@@ -19,6 +19,7 @@ class Course(models.Model):
     
     level = models.CharField(max_length=20, choices=LEVEL_CHOICES, default='beginner', verbose_name="Daraja")
     duration = models.PositiveIntegerField(default=20, help_text="Kursning taxminiy davomiyligi (soatlarda)")
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Kurs narxi (UZS)")
     thumbnail = models.ImageField(upload_to='courses/thumbnails/', blank=True, null=True, verbose_name="Kurs rasmi")
     preview_video = models.FileField(upload_to='courses/previews/', blank=True, null=True, verbose_name="Tanishtiruv videosi")
     
@@ -27,13 +28,16 @@ class Course(models.Model):
 
     @property
     def lessons_count(self):
+        if hasattr(self, 'annotated_lessons_count'):
+            return self.annotated_lessons_count
         return Lesson.objects.filter(module__course=self).count()
 
     @property
     def students_count(self):
-        # We can count unique users enrolled in active cohorts for this course
+        if hasattr(self, 'annotated_students_count'):
+            return self.annotated_students_count
         from cohorts.models import Enrollment
-        return Enrollment.objects.filter(cohort__course=self).values('student').distinct().count()
+        return Enrollment.objects.filter(cohort__course=self, status='active').values('student').distinct().count()
 
     def __str__(self):
         return self.title
@@ -148,6 +152,7 @@ class ExamSection(models.Model):
 
     media_url = models.URLField(blank=True, null=True, help_text="Listening uchun YouTube/Audio link")
     max_score = models.PositiveIntegerField(help_text="Ushbu bo'lim uchun beriladigan maksimal ball")
+    time_limit_minutes = models.PositiveIntegerField(default=30, help_text="Ushbu bo'limni ishlash uchun beriladigan vaqt (daqiqa)")
     order = models.PositiveIntegerField(default=0, verbose_name="Tartib raqami")
 
     def __str__(self):
@@ -172,13 +177,22 @@ class Quiz(models.Model):
     def __str__(self):
         return self.title
 
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.lesson and self.exam_section:
+            raise ValidationError("Quiz imtihon qismlari bilan birga darsga ham birdaniga biriktirilishi mumkin emas.")
+        if not self.lesson and not self.exam_section:
+            raise ValidationError("Quiz kamida bitta dars yoki imtihon bo'limiga biriktirilishi shart.")
+
     class Meta:
         verbose_name = "Quiz"
         verbose_name_plural = "Quizlar"
 
 
 class Question(models.Model):
-    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='questions')
+    # Questions can belong either to a Quiz or to an ExamSection. 
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='questions', null=True, blank=True)
+    exam_section = models.ForeignKey(ExamSection, on_delete=models.CASCADE, related_name='questions', null=True, blank=True)
 
     # Savol matnini ham CKEditor qildik, mabodo savol ichida rasm yoki qalin yozuv kerak bo'lib qolsa.
     text = CKEditor5Field(verbose_name="Savol matni", config_name='default')
@@ -207,21 +221,54 @@ class Choice(models.Model):
 
 # --- SERTIFIKAT VA IMTIHON NATIJALARI ---
 
-class ExamSubmission(models.Model):
-    # O'quvchining imtihondagi natijasini saqlash
+class ExamAttempt(models.Model):
+    """
+    Tracks a student's live attempt at an Exam.
+    Replaces the simple ExamSubmission by tracking time and cheat warnings.
+    """
     from django.conf import settings
-    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='exam_submissions', verbose_name="O'quvchi")
-    exam = models.ForeignKey(Exam, on_delete=models.CASCADE, related_name='submissions', verbose_name="Imtihon")
-    score = models.PositiveIntegerField(help_text="Olingan ball (foizda, 0-100)")
+    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='exam_attempts', verbose_name="O'quvchi")
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE, related_name='attempts', verbose_name="Imtihon")
+    
+    start_time = models.DateTimeField(auto_now_add=True)
+    completed_time = models.DateTimeField(null=True, blank=True)
+    is_completed = models.BooleanField(default=False)
+    
+    blur_warnings = models.PositiveIntegerField(default=0, help_text="Sahifadan chiqib ketishlar soni (Anti-Cheat)")
+    
+    # Grading fields
+    score = models.DecimalField(max_digits=5, decimal_places=2, default=0, help_text="Olingan jami ball")
     passed = models.BooleanField(default=False, verbose_name="O'tdi")
-    submitted_at = models.DateTimeField(auto_now_add=True, verbose_name="Topshirilgan vaqt")
+    
+    def __str__(self):
+        return f"{self.student.username} - {self.exam.title} Attempt"
+    
+    class Meta:
+        verbose_name = "Imtihon Urinishi (Attempt)"
+        verbose_name_plural = "Imtihon Urinishlari"
+        unique_together = ('student', 'exam')
 
-    def save(self, *args, **kwargs):
-        # Avtomatik holatni aniqlash
-        self.passed = self.score >= self.exam.passing_score
-        super().save(*args, **kwargs)
+    def calculate_total_score(self):
+        """
+        Sums up the manual and auto-graded points from all related StudentAnswers,
+        determines if passed, and attempts certificate generation.
+        """
+        from django.db.models import Sum
+        aggregation = self.answers.aggregate(total_score=Sum('awarded_score'))
+        total = aggregation['total_score'] or 0
         
-        # Sertifikat berish shartini tekshirish
+        # Convert total raw score into percentage based on Exam max score (assuming sum of section max_scores)
+        exam_max = sum(sec.max_score for sec in self.exam.sections.all())
+        
+        if exam_max > 0:
+            percentage_score = (total / exam_max) * 100
+        else:
+            percentage_score = 0
+            
+        self.score = percentage_score
+        self.passed = self.score >= self.exam.passing_score
+        self.save()
+        
         if self.passed:
             self.check_and_issue_certificate()
 
@@ -230,7 +277,7 @@ class ExamSubmission(models.Model):
         student = self.student
         
         # Barcha muvaffaqiyatli imtihonlarni olish
-        passing_submissions = ExamSubmission.objects.filter(
+        passing_attempts = ExamAttempt.objects.filter(
             student=student,
             exam__course=course,
             passed=True
@@ -243,15 +290,15 @@ class ExamSubmission(models.Model):
         visa_weight = 0
         final_weight = 0
         
-        for sub in passing_submissions:
-            if sub.exam.exam_type == 'visa':
+        for attempt in passing_attempts:
+            if attempt.exam.exam_type == 'visa':
                 has_visa = True
-                visa_score = sub.score
-                visa_weight = sub.exam.weight_percentage
-            elif sub.exam.exam_type == 'final':
+                visa_score = attempt.score
+                visa_weight = attempt.exam.weight_percentage
+            elif attempt.exam.exam_type == 'final':
                 has_final = True
-                final_score = sub.score
-                final_weight = sub.exam.weight_percentage
+                final_score = attempt.score
+                final_weight = attempt.exam.weight_percentage
                 
         # Agar ikkalasidan ham o'tgan bo'lsa
         if has_visa and has_final:
@@ -273,13 +320,26 @@ class ExamSubmission(models.Model):
                 }
             )
 
-    def __str__(self):
-        return f"{self.student.username} - {self.exam.title} ({self.score}%)"
 
-    class Meta:
-        verbose_name = "Imtihon Natijasi"
-        verbose_name_plural = "Imtihon Natijalari"
-        unique_together = ('student', 'exam')
+class StudentAnswer(models.Model):
+    """
+    Granular answer tracking per question for an ExamAttempt.
+    Handles Text (Writing), Audio URL (Speaking), or Choice ID (Reading/Listening).
+    """
+    attempt = models.ForeignKey(ExamAttempt, on_delete=models.CASCADE, related_name='answers')
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='student_answers')
+    
+    # Support different answer types based on ExamSection type
+    answer_text = models.TextField(blank=True, null=True, help_text="Writing yoki ochiq savollar uchun javob")
+    selected_choice = models.ForeignKey(Choice, on_delete=models.SET_NULL, null=True, blank=True)
+    audio_file_url = models.URLField(blank=True, null=True, help_text="Speaking yozuvi havolasi (S3/DigitalOcean)")
+    
+    # Grading
+    awarded_score = models.DecimalField(max_digits=5, decimal_places=2, default=0, help_text="O'qituvchi qo'ygan yoki avto tekshirilgan ball")
+    is_graded = models.BooleanField(default=False, help_text="O'qituvchi tekshirib balldan qoniqdimi?")
+    
+    def __str__(self):
+        return f"Answer by {self.attempt.student.username} for Q: {self.question.id}"
 
 
 class Certificate(models.Model):

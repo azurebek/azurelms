@@ -74,6 +74,43 @@ class ExamSectionAdmin(admin.ModelAdmin):
     list_display = ('title', 'exam', 'section_type', 'max_score', 'order')
     list_filter = ('exam', 'section_type')
 
+# --- Exam Attempts & Grading ---
+from .models import ExamAttempt, StudentAnswer
+
+class StudentAnswerInline(admin.StackedInline):
+    model = StudentAnswer
+    extra = 0
+    fields = ('question', 'get_question_type', 'answer_text', 'audio_file_url', 'selected_choice', 'is_correct_choice', 'awarded_score', 'is_graded')
+    readonly_fields = ('question', 'get_question_type', 'answer_text', 'audio_file_url', 'selected_choice', 'is_correct_choice')
+    
+    @admin.display(description='Bo\'lim turi')
+    def get_question_type(self, obj):
+        if obj.question.exam_section:
+            return obj.question.exam_section.get_section_type_display()
+        return "Noma'lum"
+    
+    @admin.display(description='Test yechimi to\'g\'rimi?')
+    def is_correct_choice(self, obj):
+        if obj.selected_choice:
+            return obj.selected_choice.is_correct
+        return None
+
+@admin.register(ExamAttempt)
+class ExamAttemptAdmin(admin.ModelAdmin):
+    list_display = ('student', 'exam', 'score', 'passed', 'blur_warnings', 'is_completed', 'completed_time')
+    list_filter = ('passed', 'is_completed', 'exam__course', 'exam')
+    search_fields = ('student__username', 'student__email', 'exam__title')
+    inlines = [StudentAnswerInline]
+    readonly_fields = ('start_time', 'blur_warnings')
+    
+    actions = ['recalculate_scores']
+    
+    @admin.action(description="Tanlangan urinishlar ballarini qaytadan hisoblash")
+    def recalculate_scores(self, request, queryset):
+        for attempt in queryset:
+            attempt.calculate_total_score()
+        self.message_user(request, "Ballar muvaffaqiyatli qayta hisoblandi va sertifikatlar yangilandi.")
+
 # --- Quizlar va Savollar ---
 
 @admin.register(Quiz)
@@ -88,6 +125,7 @@ class QuestionAdmin(admin.ModelAdmin):
     list_display = ('get_short_text', 'quiz', 'points')
     inlines = [ChoiceInline] # Savolning ichidayoq uning Variantlarini qo'shish!
 
+    @admin.display(description='Savol matni')
     def get_short_text(self, obj):
-        return str(obj.text)[:50] + "..." # Matn juda uzun bo'lib ketmasligi uchun
-    get_short_text.short_description = 'Savol matni'
+        text_str = str(obj.text)
+        return text_str[:50] + "..." if len(text_str) > 50 else text_str

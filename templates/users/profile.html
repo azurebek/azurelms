@@ -308,10 +308,8 @@
                 <h5 class="modal-title fw-bold">Profil rasmini o'zgartirish</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="post" action="{% url 'profile' %}" enctype="multipart/form-data">
+            <form method="post" action="{% url 'update_avatar' %}" enctype="multipart/form-data">
                 {% csrf_token %}
-                <!-- A hidden field to let the backend know this is an avatar update -->
-                <input type="hidden" name="update_avatar" value="1">
                 
                 <div class="modal-body py-4">
                     <div class="text-center mb-4">

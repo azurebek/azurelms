@@ -3,7 +3,8 @@ from django.contrib.auth.models import AbstractUser
 
 
 class CustomUser(AbstractUser):
-    # Django'ning standart User modelini kengaytiramiz (Ism, familiya, email o'zida bor)
+    # Django'ning standart User modelini kengaytiramiz
+    email = models.EmailField('email address', unique=True)
 
     # Telegram bilan bog'lash uchun eng muhim maydonlar
     telegram_id = models.BigIntegerField(unique=True, blank=True, null=True,
@@ -12,7 +13,14 @@ class CustomUser(AbstractUser):
 
     # Profil uchun
     phone_number = models.CharField(max_length=20, blank=True, null=True)
-    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
+    
+    from core.utils import validate_file_size, validate_image_extension
+    avatar = models.ImageField(
+        upload_to='avatars/', 
+        blank=True, 
+        null=True,
+        validators=[validate_file_size, validate_image_extension]
+    )
     bio = models.TextField(blank=True, null=True, help_text="O'zingiz haqida qisqacha ma'lumot")
 
     # O'quvchining umumiy XP (Tajriba) ballari

@@ -15,7 +15,11 @@ def home_view(request):
         
     page_content = LandingPage.load()
     statistics = Statistic.objects.all()
-    testimonials = Testimonial.objects.filter(is_active=True).order_by('?')[:3]
+    
+    # Optimize: Avoid slow SQL `ORDER BY RAND()`/`RANDOM()` which kills performance on large DBs
+    import random
+    active_testis = list(Testimonial.objects.filter(is_active=True))
+    testimonials = random.sample(active_testis, min(len(active_testis), 3)) if active_testis else []
     
     # Try to get top 3 popular courses (for now we can just order by id or published date)
     popular_courses = Course.objects.all()[:3]

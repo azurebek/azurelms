@@ -48,9 +48,10 @@ def checkout_view(request, course_id):
             
         # Chekni saqlaymiz
         receipt_image = request.FILES.get('receipt_image')
-        amount_paid = request.POST.get('amount')
+        # Security: Do not trust client's amount. Use course.price.
+        amount_paid = course.price
         
-        if not receipt_image or not amount_paid:
+        if not receipt_image:
             messages.error(request, "Iltimos, to'lov summasi va chek rasmini yuklang.")
             return render(request, 'cohorts/checkout.html', {
                 'course': course, 

@@ -45,6 +45,6 @@ def generate_certificate_image(certificate_instance):
     buffer = BytesIO()
     img.save(buffer, format='JPEG')
 
-    # Rasmni Sertifikat jadvalidagi "file" maydoniga biriktirish
+    # Rasmni Sertifikat jadvalidagi "file" maydoniga biriktirish va bazaga saqlash
     file_name = f"{student_name}_{course_name}_cert.jpg".replace(" ", "_")
-    certificate_instance.file.save(file_name, ContentFile(buffer.getvalue()), save=False)
+    certificate_instance.file.save(file_name, ContentFile(buffer.getvalue()), save=True)

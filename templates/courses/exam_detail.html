@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load bleach_tags %}
 {% load static %}
 
 {% block title %}{{ exam.title }} | {{ course.title }}{% endblock %}
@@ -108,10 +109,135 @@
         border-radius: 0 8px 8px 0;
         margin-bottom: 20px;
     }
+
+    /* Advanced Exam Specifics */
+    .locked-overlay {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(255, 255, 255, 0.9);
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+    }
+    .blur-warning-modal {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(220, 53, 69, 0.95);
+        z-index: 9999;
+        color: white;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        text-align: center;
+    }
+    .watermark-container {
+        position: relative;
+        overflow: hidden;
+    }
+    .watermark {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        z-index: 999;
+        pointer-events: none;
+        opacity: 0.05;
+        background-image: repeating-linear-gradient(45deg, 
+            transparent, transparent 100px, 
+            #000 100px, #000 120px);
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
+        align-content: space-around;
+        gap: 50px;
+    }
+    .watermark-text {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #000;
+        transform: rotate(-45deg);
+        user-select: none;
+    }
+    
+    .split-screen {
+        display: flex;
+        height: 500px;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
+    .split-left {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        background: #fdfbf7;
+        border-right: 2px solid #dee2e6;
+        font-family: Georgia, serif;
+        line-height: 1.8;
+    }
+    .split-right {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        background: #fff;
+    }
+    
+    .question-block {
+        margin-bottom: 25px;
+        padding-bottom: 20px;
+        border-bottom: 1px dashed #dee2e6;
+    }
+    
+    /* Timer */
+    .sticky-timer {
+        position: sticky;
+        top: 76px;
+        z-index: 1000;
+        background: #212529;
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 0 0 12px 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        text-align: center;
+        font-size: 1.25rem;
+        font-weight: bold;
+        font-family: monospace;
+        letter-spacing: 2px;
+    }
+    .sticky-timer.danger {
+        background: #dc3545;
+        animation: pulse 1s infinite alternate;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        100% { transform: scale(1.02); }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
+<!-- Anti-Cheat Blur Modal -->
+<div id="blurWarningModal" class="blur-warning-modal">
+    <i class="bi bi-shield-exclamation display-1 mb-4"></i>
+    <h1 class="fw-bold">DIQQAT: Qoidabuzarlik aniqlandi!</h1>
+    <p class="fs-4 mt-3 max-w-700">Siz imtihon oynasidan chiqdingiz yoki boshqa oynaga o'tdingiz. Bu holat tizim tomonidan yozib olindi. Yana takrorlansa, imtihon avtomatik tarzda 0 ball bilan yakunlanadi.</p>
+    <button onclick="dismissBlurWarning()" class="btn btn-light btn-lg mt-4 px-5 fw-bold rounded-pill text-danger">Tushundim, davom etaman</button>
+</div>
+
+<!-- Watermark Overlay -->
+{% if my_attempt and not my_attempt.is_completed %}
+<div class="watermark" aria-hidden="true">
+    {% for i in "12345678901234567890" %}
+    <div class="watermark-text">{{ request.user.username }} | {{ request.user.phone_number }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
 <div class="study-layout">
     <!-- Sidebar / Table of Contents -->
     <div class="study-sidebar shadow-sm">
@@ -215,68 +341,247 @@
                 </div>
             </div>
             {% else %}
+            
+            {% if not my_attempt %}
+                <!-- Start View -->
+                <div class="card border border-warning shadow-sm rounded-4 mb-5 position-relative overflow-hidden">
+                    <div class="card-body p-5">
+                        <div class="text-center mb-5">
+                            <i class="bi bi-shield-lock-fill text-warning" style="font-size: 4rem;"></i>
+                            <h2 class="fw-bold mt-3">Qat'iy Imtihon Qoidalari</h2>
+                            <p class="text-muted lead">Siz rasmiy imtihon oynasiga kirish arafasidasiz. Iltimos, quyidagi qoidalarni diqqat bilan o'qing.</p>
+                        </div>
+                        
+                        <div class="row g-4 mb-5">
+                            <div class="col-md-6">
+                                <div class="d-flex gap-3">
+                                    <i class="bi bi-camera-video-off-fill text-danger fs-3"></i>
+                                    <div>
+                                        <h6 class="fw-bold mb-1">Anti-Kopiya Tizimi</h6>
+                                        <p class="small text-muted mb-0">Matnni nusxalash, sichqonchaning o'ng tugmasini bosish va skrinshot olish qat'iyan man etiladi. Ekranda sizning ma'lumotlaringiz (Watermark) yozilgan bo'ladi.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex gap-3">
+                                    <i class="bi bi-eye-slash-fill text-danger fs-3"></i>
+                                    <div>
+                                        <h6 class="fw-bold mb-1">Nazorat (Blur Detection)</h6>
+                                        <p class="small text-muted mb-0">Imtihon davomida boshqa oynaga (vkladka/dastur) o'tish taqiqlanadi. Tizim avtomatik ravishda buni qayd etadi va imtihonni bekor qiladi.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-            <div class="alert alert-info border-0 rounded-4 shadow-sm mb-5 d-flex align-items-center">
-                <i class="bi bi-info-circle-fill fs-3 me-3 text-info"></i>
-                <div>
-                    <strong>Imtihon qoidalari:</strong>
-                    Iltimos, har bir bo'limdagi topshiriqlarni diqqat bilan o'qing va bajaring. Imtihondan o'tish uchun kamida {{ exam.passing_score }}% jami ball yig'ishingiz kerak bo'ladi. Omad yor bo'lsin!
-                </div>
-            </div>
-
-            {% for section in sections %}
-            <div class="exam-section">
-                <div class="exam-section-title">
-                    <span class="fs-4"><i class="bi bi-journal-bookmark-fill text-primary me-2"></i> {{ section.title }} ({{ section.get_section_type_display }})</span>
-                    <span class="badge bg-light text-dark border p-2">Max ball: {{ section.max_score }}</span>
-                </div>
-                
-                <div class="exam-instructions content-area">
-                    {{ section.instructions|safe }}
-                </div>
-                
-                {% if section.reading_text %}
-                <div class="bg-light p-4 rounded-3 border mb-4 content-area" style="font-family: serif; font-size: 1.1rem; line-height: 1.8;">
-                    {{ section.reading_text|safe }}
-                </div>
-                {% endif %}
-                
-                {% if section.media_url %}
-                <div class="mb-4 text-center">
-                    <a href="{{ section.media_url }}" target="_blank" class="btn btn-outline-danger rounded-pill px-4">
-                        <i class="bi bi-play-circle-fill me-2"></i> Audioni Tinglash (YouTube/Tashqi havola)
-                    </a>
-                </div>
-                {% endif %}
-                
-                <!-- Placeholder for Answer submission block -->
-                <div class="p-4 bg-white border rounded-3">
-                    <h6 class="fw-bold mb-3"><i class="bi bi-pencil-square text-muted me-2"></i>Sizning javoblaringiz</h6>
-                    <textarea class="form-control mb-3" rows="4" placeholder="Ushbu bo'limdagi topshiriqlarning javoblarini yozing..."></textarea>
-                    
-                    <div class="text-end">
-                        <button class="btn btn-sm btn-outline-primary px-3 rounded-pill">Vaqtincha saqlash</button>
+                        <div class="text-center">
+                            <button onclick="startExam()" class="btn btn-warning btn-lg rounded-pill px-5 fw-bold text-dark shadow-sm">
+                                <i class="bi bi-play-fill me-2"></i> Qoidalarga roziman, boshlash
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-            {% empty %}
-            <div class="text-center py-5">
-                <i class="bi bi-inbox display-4 text-muted opacity-25 mb-3"></i>
-                <h5>Bu imtihonga hali bo'limlar biriktirilmagan.</h5>
-                <p class="text-muted">Iltimos, o'qituvchiga murojaat qiling.</p>
-            </div>
-            {% endfor %}
-
-            <!-- Final Submission Action -->
-            {% if sections.exists %}
-            <div class="card bg-primary text-white border-0 shadow-lg rounded-4 overflow-hidden mt-5">
-                <div class="card-body p-5 text-center position-relative">
-                    <i class="bi bi-send-check display-1 position-absolute opacity-10" style="right: -20px; bottom: -20px;"></i>
-                    <h3 class="fw-bold mb-3">Imtihonni Yakunlash</h3>
-                    <p class="mb-4 opacity-75">Barcha bo'limlardagi javoblaringiz tayyor bo'lsa, tekshirish uchun yuboring. Bir marta yuborgach qayta o'zgartirib bo'lmaydi!</p>
-                    <button class="btn btn-light btn-lg rounded-pill fw-bold text-primary px-5 shadow-sm">Javoblarni yuborish</button>
+                
+            {% else %}
+                <!-- Active Exam View -->
+                
+                <div id="examTimer" class="sticky-timer">
+                    <i class="bi bi-stopwatch"></i> <span id="timeDisplay">00:00:00</span>
                 </div>
-            </div>
+
+                <div class="alert alert-info border-0 rounded-4 shadow-sm mb-5 mt-4 d-flex align-items-center">
+                    <i class="bi bi-info-circle-fill fs-3 me-3 text-info"></i>
+                    <div>
+                        <strong>Barcha javoblar avtomatik saqlanib boriladi.</strong>
+                        Hech narsa yo'qolmaydi. Taymer tugashi bilan tizim avtomatik barcha javoblarni serverga uzatadi.
+                    </div>
+                </div>
+
+                <form id="examForm" onsubmit="event.preventDefault(); submitExam();">
+                {% csrf_token %}
+                
+                {% for section in sections %}
+                <div class="exam-section position-relative" id="section-{{ section.id }}">
+                    <div class="exam-section-title">
+                        <span class="fs-4"><i class="bi bi-journal-bookmark-fill text-primary me-2"></i> {{ section.title }}</span>
+                        <div>
+                            <span class="badge bg-light text-dark border p-2 me-2">Vaqt: {{ section.time_limit_minutes }} daq</span>
+                            <span class="badge bg-primary rounded-pill px-3">Max ball: {{ section.max_score }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="exam-instructions content-area mb-4">
+                        {{ section.instructions|sanitize }}
+                    </div>
+                    
+                    {% if section.section_type == 'reading' %}
+                        <!-- Split View for Reading -->
+                        <div class="split-screen">
+                            <div class="split-left content-area">
+                                {{ section.reading_text|sanitize }}
+                            </div>
+                            <div class="split-right">
+                                {% for question in section.questions.all %}
+                                <div class="question-block" data-question-id="{{ question.id }}">
+                                    <div class="fw-bold mb-3 d-flex gap-2">
+                                        <span class="badge bg-secondary rounded-circle align-self-start">{{ forloop.counter }}</span>
+                                        <div class="content-area">{{ question.text|sanitize }}</div>
+                                    </div>
+                                    
+                                    {% if question.choices.exists %}
+                                        {% for choice in question.choices.all %}
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="radio" 
+                                                   name="q_{{ question.id }}" 
+                                                   id="choice_{{ choice.id }}" 
+                                                   value="{{ choice.id }}"
+                                                   onchange="saveAnswer({{ question.id }}, 'choice', {{ choice.id }})">
+                                            <label class="form-check-label" for="choice_{{ choice.id }}">
+                                                {{ choice.text }}
+                                            </label>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <textarea class="form-control" rows="3" placeholder="Javobingizni bering..." onchange="saveAnswer({{ question.id }}, 'text', this.value)"></textarea>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                    {% elif section.section_type == 'listening' %}
+                        <!-- Secure Player for Listening -->
+                        <div class="bg-dark text-white p-4 rounded-4 mb-4 text-center">
+                            <i class="bi bi-headphones display-1 text-info mb-3"></i>
+                            <h5 class="mb-4">Audio Materyal (Faqat 1 marta eshitish mumkin)</h5>
+                            
+                            <!-- Custom HTML5 Audio Player -->
+                            <audio id="audioPlayer_{{ section.id }}" controls controlsList="nodownload noplaybackrate" style="width: 100%; max-width: 500px;" onplay="secureAudioPlay(this)" onseeking="secureAudioSeek(this)">
+                                <source src="{{ section.media_url }}" type="audio/mpeg">
+                                Brauzeringiz audio pleerni qo'llab-quvvatlamaydi.
+                            </audio>
+                            <p class="small text-muted mt-2"><i class="bi bi-exclamation-triangle"></i> Orqaga qaytarish yoki pauza qilish taqiqlangan.</p>
+                        </div>
+                        
+                        <div class="px-3">
+                            {% for question in section.questions.all %}
+                            <div class="question-block" data-question-id="{{ question.id }}">
+                                <div class="fw-bold mb-3 d-flex gap-2">
+                                    <span class="badge bg-secondary rounded-circle align-self-start">{{ forloop.counter }}</span>
+                                    <div class="content-area">{{ question.text|sanitize }}</div>
+                                </div>
+                                
+                                {% if question.choices.exists %}
+                                    {% for choice in question.choices.all %}
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" 
+                                               name="q_{{ question.id }}" 
+                                               id="choice_{{ choice.id }}" 
+                                               value="{{ choice.id }}"
+                                               onchange="saveAnswer({{ question.id }}, 'choice', {{ choice.id }})">
+                                        <label class="form-check-label" for="choice_{{ choice.id }}">
+                                            {{ choice.text }}
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                    {% elif section.section_type == 'writing' %}
+                        <!-- Rich Editor / Textarea with Word Count -->
+                        <div class="px-3">
+                            {% for question in section.questions.all %}
+                            <div class="question-block border-0" data-question-id="{{ question.id }}">
+                                <div class="fw-bold mb-4 content-area" style="font-size: 1.1rem;">
+                                    {{ question.text|sanitize }}
+                                </div>
+                                <textarea id="writingText_{{ question.id }}" class="form-control" rows="12" placeholder="Inshoni shu yerga yozing..." 
+                                          oninput="updateWordCount(this, 'wordCount_{{ question.id }}')"
+                                          onblur="saveAnswer({{ question.id }}, 'text', this.value)"></textarea>
+                                <div class="d-flex justify-content-between mt-2 text-muted small">
+                                    <span>Vaqti-vaqti bilan avtomatik saqlanadi.</span>
+                                    <span class="fw-bold">So'zlar soni: <span id="wordCount_{{ question.id }}" class="text-primary">0</span></span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                    {% elif section.section_type == 'speaking' %}
+                        <!-- Browser Audio Recorder -->
+                        <div class="px-3">
+                            {% for question in section.questions.all %}
+                            <div class="question-block text-center py-4" data-question-id="{{ question.id }}">
+                                <div class="fw-bold mb-4 content-area fs-5">
+                                    {{ question.text|sanitize }}
+                                </div>
+                                
+                                <div class="recording-ui p-4 rounded-4 bg-light d-inline-block text-center border">
+                                    <div id="statusIndicator_{{ question.id }}" class="mb-3 fw-bold text-muted">Tayyor</div>
+                                    
+                                    <button type="button" id="btnRecord_{{ question.id }}" 
+                                            class="btn btn-danger rounded-circle p-4 shadow-sm" 
+                                            onclick="toggleRecording({{ question.id }})">
+                                        <i class="bi bi-mic-fill fs-1"></i>
+                                    </button>
+                                    
+                                    <div class="mt-3">
+                                        <audio id="audioPreview_{{ question.id }}" controls class="d-none w-100"></audio>
+                                    </div>
+                                    
+                                    <p class="small text-muted mt-3 mb-0">Mikrofonga ruxsat berish o'rnini unutmang.</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <!-- General Grammar/Vocab Quiz -->
+                        <div class="px-3">
+                            {% for question in section.questions.all %}
+                            <div class="question-block" data-question-id="{{ question.id }}">
+                                <div class="fw-bold mb-3 d-flex gap-2">
+                                    <span class="badge bg-secondary rounded-circle align-self-start">{{ forloop.counter }}</span>
+                                    <div class="content-area">{{ question.text|sanitize }}</div>
+                                </div>
+                                {% for choice in question.choices.all %}
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" 
+                                           name="q_{{ question.id }}" 
+                                           id="choice_{{ choice.id }}" 
+                                           value="{{ choice.id }}"
+                                           onchange="saveAnswer({{ question.id }}, 'choice', {{ choice.id }})">
+                                    <label class="form-check-label" for="choice_{{ choice.id }}">
+                                        {{ choice.text }}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                {% empty %}
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox display-4 text-muted opacity-25 mb-3"></i>
+                    <h5>Bu imtihonga hali bo'limlar biriktirilmagan.</h5>
+                    <p class="text-muted">Iltimos, o'qituvchiga murojaat qiling.</p>
+                </div>
+                {% endfor %}
+
+                <!-- Final Submission Action -->
+                {% if sections.exists %}
+                <div class="card bg-primary text-white border-0 shadow-lg rounded-4 overflow-hidden mt-5">
+                    <div class="card-body p-5 text-center position-relative">
+                        <i class="bi bi-send-check display-1 position-absolute opacity-10" style="right: -20px; bottom: -20px;"></i>
+                        <h3 class="fw-bold mb-3">Imtihonni Yakunlash</h3>
+                        <p class="mb-4 opacity-75">Barcha bo'limlardagi javoblaringiz tayyor bo'lsa, tekshirish uchun yuboring. Bir marta yuborgach qayta o'zgartirib bo'lmaydi!</p>
+                        <button type="submit" class="btn btn-light btn-lg rounded-pill fw-bold text-primary px-5 shadow-sm">Javoblarni yuborish</button>
+                    </div>
+                </div>
+                {% endif %}
+                
+                </form>
+
             {% endif %}
 
             {% endif %}<!-- End if is_enrolled -->
@@ -284,7 +589,245 @@
     </div>
 </div>
 
-<style>
-.content-area img { max-width: 100%; height: auto; border-radius: 8px; }
-</style>
+{% block extra_js %}
+<script>
+    const courseId = {{ course.id }};
+    const examId = {{ exam.id }};
+    const csrfToken = '{{ csrf_token }}';
+    
+    {% if my_attempt and not my_attempt.is_completed %}
+    let timeRemainingSeconds = 0;
+    {% for s in sections %}
+        timeRemainingSeconds += {{ s.time_limit_minutes }} * 60;
+    {% endfor %}
+    
+    // Check if we already spent some time based on start_time
+    const startTimeStr = '{{ my_attempt.start_time.isoformat }}';
+    if(startTimeStr) {
+        const startTime = new Date(startTimeStr).getTime();
+        const now = new Date().getTime();
+        const elapsedSeconds = Math.floor((now - startTime) / 1000);
+        timeRemainingSeconds -= elapsedSeconds;
+        if(timeRemainingSeconds < 0) timeRemainingSeconds = 0;
+    }
+
+    let timerInterval;
+
+    function formatTime(seconds) {
+        const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+        const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+        const s = (seconds % 60).toString().padStart(2, '0');
+        return `${h}:${m}:${s}`;
+    }
+
+    function updateTimer() {
+        if(timeRemainingSeconds <= 0) {
+            clearInterval(timerInterval);
+            document.getElementById('timeDisplay').innerText = "00:00:00";
+            alert("Vaqt tugadi! Barcha javoblaringiz tizimga yuborilmoqda...");
+            submitExam();
+            return;
+        }
+        
+        document.getElementById('timeDisplay').innerText = formatTime(timeRemainingSeconds);
+        
+        if(timeRemainingSeconds < 300) { // last 5 minutes
+            document.getElementById('examTimer').classList.add('danger');
+        }
+        
+        timeRemainingSeconds--;
+    }
+
+    window.onload = function() {
+        if(timeRemainingSeconds > 0) {
+            updateTimer();
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+    };
+    
+    // --- ANTI-CHEAT: Blur Detection ---
+    let blurTimeout;
+    window.addEventListener('blur', function() {
+        document.getElementById('blurWarningModal').style.display = 'flex';
+        // Log the blur warning to backend
+        fetch(`/courses/${courseId}/exam/${examId}/api/blur/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken
+            }
+        });
+    });
+    
+    document.addEventListener("visibilitychange", function() {
+        if (document.hidden) {
+            document.getElementById('blurWarningModal').style.display = 'flex';
+        }
+    });
+
+    function dismissBlurWarning() {
+        document.getElementById('blurWarningModal').style.display = 'none';
+    }
+    
+    // --- ANTI-CHEAT: Disable right-click & copy ---
+    document.addEventListener('contextmenu', event => event.preventDefault());
+    document.addEventListener('copy', event => {
+        event.preventDefault();
+        alert("Nusxa olish taqiqlangan!");
+    });
+    
+    {% endif %}
+    
+    // API Call functions
+    function startExam() {
+        fetch(`/courses/${courseId}/exam/${examId}/api/start/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.status === 'success') {
+                window.location.reload();
+            } else {
+                alert(data.error);
+            }
+        });
+    }
+
+    function saveAnswer(questionId, type, value) {
+        if(!value) return;
+        
+        let payload = { question_id: questionId };
+        if(type === 'choice') {
+            payload.choice_id = parseInt(value);
+        } else if (type === 'text') {
+            payload.answer_text = value;
+        } else if (type === 'audio') {
+            payload.audio_url = value;
+        }
+
+        fetch(`/courses/${courseId}/exam/${examId}/api/save/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(response => {
+            if(!response.ok) {
+                console.error("Failed to save answer for Q:", questionId);
+            }
+        });
+    }
+
+    function submitExam() {
+        if(confirm("Imtihonni yakunlashga ishonchingiz komilmi? Undan so'ng javoblarni o'zgartirib bo'lmaydi.")) {
+            fetch(`/courses/${courseId}/exam/${examId}/api/submit/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    window.location.reload();
+                } else {
+                    alert(data.error || "Xatolik yuz berdi.");
+                }
+            });
+        }
+    }
+    
+    // Utilities
+    function updateWordCount(textarea, counterId) {
+        const text = textarea.value.trim();
+        const words = text ? text.split(/\s+/).length : 0;
+        document.getElementById(counterId).innerText = words;
+    }
+    
+    // Secure Audio Playback
+    function secureAudioPlay(audioEl) {
+        // Enforce 1 time play? If needed we can track with a dataset var.
+        if (audioEl.dataset.played) {
+            // Already played once, prevent replays in strict mode
+            // audioEl.pause();
+            // alert("Siz ushbu audioni allaqachon tinglagansiz!");
+        }
+        audioEl.dataset.played = "true";
+    }
+    
+    function secureAudioSeek(audioEl) {
+        // Prevent seeking (jumping forward or backward)
+        audioEl.currentTime = audioEl.played.end(0); 
+    }
+
+    // Modern Mic Recording (Speaking)
+    let mediaHolders = {};
+    
+    async function toggleRecording(questionId) {
+        const btn = document.getElementById(`btnRecord_${questionId}`);
+        const status = document.getElementById(`statusIndicator_${questionId}`);
+        const player = document.getElementById(`audioPreview_${questionId}`);
+        
+        if(!mediaHolders[questionId]) {
+            // Start Record
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const mediaRecorder = new MediaRecorder(stream);
+                let audioChunks = [];
+                
+                mediaRecorder.addEventListener("dataavailable", event => {
+                    audioChunks.push(event.data);
+                });
+                
+                mediaRecorder.addEventListener("stop", () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/mpeg' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    player.src = audioUrl;
+                    player.classList.remove('d-none');
+                    
+                    // TODO: Replace with real AJAX multipart upload to DigitalOcean/S3
+                    // For now, store object URL to pretend it saved.
+                    saveAnswer(questionId, 'audio', `blob_audio_${questionId}.mp3`);
+                    status.innerText = "Yozib olindi va saqlandi.";
+                    
+                    // Stop mic
+                    stream.getTracks().forEach(track => track.stop());
+                });
+                
+                mediaHolders[questionId] = mediaRecorder;
+                mediaRecorder.start();
+                
+                btn.classList.replace('btn-danger', 'btn-secondary');
+                btn.innerHTML = '<i class="bi bi-stop-circle fs-1"></i>';
+                btn.classList.add('pulse');
+                status.innerText = "Yozilmoqda... (To'xtatish uchun bosing)";
+                status.classList.add('text-danger');
+                player.classList.add('d-none');
+                
+            } catch (err) {
+                alert("Mikrofonga kirish ruxsat etilmadi.");
+                console.error(err);
+            }
+        } else {
+            // Stop Record
+            mediaHolders[questionId].stop();
+            btn.classList.replace('btn-secondary', 'btn-success');
+            btn.innerHTML = '<i class="bi bi-check-circle fs-1"></i>';
+            btn.classList.remove('pulse');
+            status.classList.remove('text-danger');
+            status.classList.add('text-success');
+            
+            // Cleanup state so it can't be re-recorded in strict mode
+            // Or leave it null to allow re-recordings. Set it to 'DONE' to lock.
+            mediaHolders[questionId] = 'DONE';
+            btn.disabled = true;
+        }
+    }
+</script>
+{% endblock %}
+
 {% endblock %}

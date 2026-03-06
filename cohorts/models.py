@@ -54,7 +54,13 @@ class PaymentReceipt(models.Model):
     # To'lov cheklarini saqlash
     enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE, related_name='receipts',
                                    verbose_name="O'quvchi obunasi")
-    receipt_image = models.ImageField(upload_to='receipts/%Y/%m/', verbose_name="Chek rasmi")
+    
+    from core.utils import validate_file_size, validate_image_extension
+    receipt_image = models.ImageField(
+        upload_to='receipts/%Y/%m/', 
+        verbose_name="Chek rasmi",
+        validators=[validate_file_size, validate_image_extension]
+    )
     amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="To'lov summasi")
     
     # Qaysi oy (interval) uchun to'lov qilinayotgani

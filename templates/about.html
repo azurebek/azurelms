@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load bleach_tags %}
 {% load static %}
 
 {% block title %}Biz haqimizda | AzureLMS{% endblock %}
@@ -199,7 +200,7 @@
                     </div>
                     <h3 class="mission-title">{{ page.mission_title|default:"Bizning maqsadimiz (Missiya)" }}</h3>
                     <div class="mission-text">
-                        {{ page.mission_text|default:"Turk tilini o'rganish jarayonini dunyo standartlari darajasida tashkil etish, o'quvchilarga eng zamonaviy interaktiv metodlarni taqdim etish va ularni ta'lim jarayonida zerikib qolmasliklarini ta'minlashdir. Sifatli va hamyonbop ta'lim — bizning asosiy shiorimiz."|safe }}
+                        {{ page.mission_text|default:"Turk tilini o'rganish jarayonini dunyo standartlari darajasida tashkil etish, o'quvchilarga eng zamonaviy interaktiv metodlarni taqdim etish va ularni ta'lim jarayonida zerikib qolmasliklarini ta'minlashdir. Sifatli va hamyonbop ta'lim — bizning asosiy shiorimiz."|sanitize }}
                     </div>
                 </div>
             </div>
@@ -210,7 +211,7 @@
                     </div>
                     <h3 class="mission-title">{{ page.vision_title|default:"Bizning qarashimiz (Vision)" }}</h3>
                     <div class="mission-text">
-                        {{ page.vision_text|default:"AzureLMS kelajakda butun O'rta Osiyo bo'ylab eng oldi va ishonchli onlayn til o'rgatish maktabiga aylanishi va har yili minglab talabalarning til o'rganib, o'z kasbiy va ta'lim sohasidagi rejalari amalga oshishida ko'prik vazifasini o'tashi kutilmoqda."|safe }}
+                        {{ page.vision_text|default:"AzureLMS kelajakda butun O'rta Osiyo bo'ylab eng oldi va ishonchli onlayn til o'rgatish maktabiga aylanishi va har yili minglab talabalarning til o'rganib, o'z kasbiy va ta'lim sohasidagi rejalari amalga oshishida ko'prik vazifasini o'tashi kutilmoqda."|sanitize }}
                     </div>
                 </div>
             </div>
@@ -281,7 +282,7 @@
                     </div>
                     <h3 class="team-name">{{ member.name }}</h3>
                     <p class="team-role">{{ member.role_1 }} {% if member.role_2 %}| {{ member.role_2 }}{% endif %}</p>
-                    <div class="team-bio">{{ member.bio|safe }}</div>
+                    <div class="team-bio">{{ member.bio|sanitize }}</div>
                 </div>
             </div>
             {% empty %}

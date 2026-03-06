@@ -7,5 +7,13 @@ urlpatterns = [
     path('<int:course_id>/study/', views.CourseStudyRedirectView.as_view(), name='course_study'),
     path('<int:course_id>/lesson/<int:lesson_id>/', views.LessonDetailView.as_view(), name='lesson_detail'),
     path('<int:course_id>/exam/<int:exam_id>/', views.ExamDetailView.as_view(), name='exam_detail'),
+    path('<int:course_id>/exam/<int:exam_id>/result/', views.ExamResultView.as_view(), name='exam_result'),
+    
+    # Exam API Endpoints
+    path('<int:course_id>/exam/<int:exam_id>/api/start/', views.StartExamView.as_view(), name='api_exam_start'),
+    path('<int:course_id>/exam/<int:exam_id>/api/save/', views.SaveExamAnswerView.as_view(), name='api_exam_save'),
+    path('<int:course_id>/exam/<int:exam_id>/api/blur/', views.LogBlurWarningView.as_view(), name='api_exam_blur'),
+    path('<int:course_id>/exam/<int:exam_id>/api/submit/', views.SubmitExamView.as_view(), name='api_exam_submit'),
+    
     path('certificate/<str:certificate_id>/', views.CertificateDetailView.as_view(), name='certificate_detail'),
 ]

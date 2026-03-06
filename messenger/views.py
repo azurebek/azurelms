@@ -29,7 +29,8 @@ def get_room_messages(request, room_id):
     """
     try:
         room = ChatRoom.objects.get(id=room_id, participants=request.user)
-        messages = room.messages.order_by('created_at')[:100]  # oxirgi 100 ta xabar
+        # Optimize: Fetch sender information in the same query to prevent N+1 loop
+        messages = room.messages.select_related('sender').order_by('created_at')[:100]  # oxirgi 100 ta xabar
         
         msgs_data = []
         for m in messages:

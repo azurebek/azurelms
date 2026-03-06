@@ -1,16 +1,19 @@
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, UpdateView, TemplateView, ListView
+from django.views.generic import CreateView, UpdateView, TemplateView, ListView, View
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import update_session_auth_hash
 from django.utils import timezone
 import datetime
+import base64
 from .forms import CustomUserCreationForm
 from .models import CustomUser
 from django.shortcuts import redirect, render
 from cohorts.models import Enrollment
 from courses.models import Certificate as CourseCertificate
 from gamification.models import EarnedBadge
+from django.core.signing import TimestampSigner
+from django.conf import settings
 
 def home_view(request):
     """
@@ -50,41 +53,54 @@ class ProfileView(LoginRequiredMixin, UpdateView):
 
     def get_object(self, queryset=None):
         return self.request.user
-        
-    def post(self, request, *args, **kwargs):
-        # 1. Avatar Update
-        if 'update_avatar' in request.POST:
-            user = self.get_object()
-            if 'avatar' in request.FILES:
-                user.avatar = request.FILES['avatar']
-                user.save()
-                messages.success(request, "Profil rasmi muvaffaqiyatli yangilandi.")
-            else:
-                messages.error(request, "Rasm tanlanmadi.")
-            return redirect(self.success_url)
-            
-        # 2. Password Change
-        if 'change_password' in request.POST:
-            user = self.get_object()
-            old_pass = request.POST.get('old_password')
-            new_pass1 = request.POST.get('new_password1')
-            new_pass2 = request.POST.get('new_password2')
-            
-            if not user.check_password(old_pass):
-                messages.error(request, "Joriy parol noto'g'ri.")
-                return redirect(self.success_url)
-            if new_pass1 != new_pass2:
-                messages.error(request, "Yangi parollar mos kelmadi.")
-                return redirect(self.success_url)
-                
-            user.set_password(new_pass1)
-            user.save()
-            update_session_auth_hash(request, user)
-            messages.success(request, "Parol muvaffaqiyatli o'zgartirildi.")
-            return redirect(self.success_url)
 
-        # 3. Default Profile Information Update
-        return super().post(request, *args, **kwargs)
+    def form_valid(self, form):
+        messages.success(self.request, "Profil ma'lumotlari muvaffaqiyatli yangilandi.")
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, "Xatolik yuz berdi. Iltimos, barcha maydonlarni tekshiring.")
+        return super().form_invalid(form)
+
+class AvatarUpdateView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        if 'avatar' in request.FILES:
+            user.avatar = request.FILES['avatar']
+            user.save()
+            messages.success(request, "Profil rasmi muvaffaqiyatli yangilandi.")
+        else:
+            messages.error(request, "Rasm tanlanmadi.")
+        return redirect('profile')
+
+class PasswordUpdateView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        from django.contrib.auth.password_validation import validate_password
+        from django.core.exceptions import ValidationError
+        
+        user = request.user
+        old_pass = request.POST.get('old_password')
+        new_pass1 = request.POST.get('new_password1')
+        new_pass2 = request.POST.get('new_password2')
+        
+        if not user.check_password(old_pass):
+            messages.error(request, "Joriy parol noto'g'ri.")
+            return redirect('profile')
+        if new_pass1 != new_pass2:
+            messages.error(request, "Yangi parollar mos kelmadi.")
+            return redirect('profile')
+            
+        try:
+            validate_password(new_pass1, user)
+        except ValidationError as e:
+            messages.error(request, f"Parol juda oddiy: {' '.join(e.messages)}")
+            return redirect('profile')
+            
+        user.set_password(new_pass1)
+        user.save()
+        update_session_auth_hash(request, user)
+        messages.success(request, "Parol muvaffaqiyatli o'zgartirildi.")
+        return redirect('profile')
 
     def form_valid(self, form):
         messages.success(self.request, "Profil ma'lumotlari yordamida muvaffaqiyatli yangilandi.")
@@ -111,19 +127,48 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             status='active',
             next_payment_deadline__lt=grace_limit
         )
-        for en in expired_enrollments:
-            en.status = 'expired'
-            en.save()
+        
+        # Optimize: Avoid N+1 query by doing a single bulk update
+        if expired_enrollments.exists():
+            expired_enrollments.update(status='expired')
         
         # Haqiqiy obunalarni bazadan olish (using updated statuses)
         context['active_enrollments'] = user.enrollments.all().order_by('-joined_at')
         
-        # Hozircha statik ma'lumotlar bilan ta'minlaymiz, keyin bazadan olinadigan qilinishi mumkin
-        context['streak_days'] = 5
-        context['completed_lessons'] = 12
-        context['study_hours'] = 85
-        context['xp_points'] = user.total_xp if hasattr(user, 'total_xp') else 1250
-        context['achievements_count'] = 3
+        from courses.models import ExamAttempt
+        
+        # Calculate real dynamic statistics
+        passed_exams_count = ExamAttempt.objects.filter(student=user, passed=True).count()
+        context['completed_lessons'] = passed_exams_count # Masalan, nechta dars/imtihon yakunlaganini bildiradi
+        context['streak_days'] = user.streak_days if hasattr(user, 'streak_days') else 0
+        context['study_hours'] = passed_exams_count * 2 # Taxminan har bir dars 2 soat
+        context['xp_points'] = user.total_xp if hasattr(user, 'total_xp') else passed_exams_count * 50
+        
+        from gamification.models import EarnedBadge
+        context['achievements_count'] = EarnedBadge.objects.filter(student=user).count()
+        
+        # O'quvchining joriy telegram holati
+        if user.telegram_id:
+            context['telegram_linked'] = True
+            context['telegram_username'] = user.telegram_username
+        else:
+            # Token generate for telegram bot binding
+            # Use standard Signer because TimestampSigner produces too large a payload for Base64ing 64-chars Telegram limit
+            from django.core.signing import Signer
+            import base64
+            
+            signer = Signer()
+            raw_token = signer.sign(str(user.id))
+            token = base64.urlsafe_b64encode(raw_token.encode()).decode().rstrip('=')
+            
+            context['telegram_linked'] = False
+            # Construct the deep link URL format: https://t.me/BOT_USERNAME?start=PAYLOAD
+            bot_username = getattr(settings, 'BOT_USERNAME', '')
+            if bot_username:
+                context['telegram_bot_link'] = f"https://t.me/{bot_username.strip('@')}?start={token}"
+            else:
+                context['telegram_bot_link'] = f"https://t.me/lmsazurebot?start={token}"
+            
         return context
 
 class SubscriptionHistoryView(LoginRequiredMixin, ListView):

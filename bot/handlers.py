@@ -1,0 +1,63 @@
+from aiogram import Router, types
+from aiogram.filters import CommandStart, CommandObject
+from django.core.signing import Signer, BadSignature
+from asgiref.sync import sync_to_async
+from users.models import CustomUser
+import base64
+
+router = Router()
+
+@router.message(CommandStart())
+async def cmd_start_handler(message: types.Message, command: CommandObject):
+    print(f"[DEBUG] Received start command msg: {message.text}")
+    print(f"[DEBUG] Command args: {command.args}")
+    token = command.args # The part after ?start=
+    
+    if not token:
+        await message.answer("Xush kelibsiz! Botdan toliq foydalanish uchun LMS saytidagi profilingizga ulang.")
+        return
+        
+    try:
+        # Re-add padding if needed, then decode
+        padded_token = token + "=" * ((4 - len(token) % 4) % 4)
+        raw_token = base64.urlsafe_b64decode(padded_token.encode()).decode()
+        
+        signer = Signer()
+        user_id = signer.unsign(raw_token)
+        
+        # We need sync_to_async for Django ORM operations
+        @sync_to_async
+        def get_user_and_check(uid, telegram_id):
+            try:
+                user = CustomUser.objects.get(id=uid)
+                if user.telegram_id:
+                    return user, "already_linked"
+                    
+                exists = CustomUser.objects.filter(telegram_id=telegram_id).exists()
+                if exists:
+                    return user, "telegram_used"
+                    
+                user.telegram_id = telegram_id
+                # user.telegram_username = message.from_user.username
+                user.save()
+                return user, "success"
+                
+            except CustomUser.DoesNotExist:
+                return None, "not_found"
+                
+        user, status = await get_user_and_check(user_id, message.from_user.id)
+        
+        if status == "already_linked":
+            await message.answer("Sizning profilingizga allaqachon Telegram hisob ulangan. O'zgartirish uchun adminga murojaat qiling.")
+        elif status == "telegram_used":
+            await message.answer("Bu Telegram akkaunt boshqa o'quvchi profiliga ulangan!")
+        elif status == "success":
+            await message.answer(f"Tabriklaymiz! Hisobingiz muvaffaqiyatli ulandi, {user.first_name or user.username}!")
+        elif status == "not_found":
+            await message.answer("Foydalanuvchi topilmadi!")
+
+
+    except BadSignature:
+        await message.answer("Xatolik: havola yaroqsiz yoki buzilgan!")
+    except Exception as e:
+        await message.answer(f"Tizim xatiligi: {str(e)}")

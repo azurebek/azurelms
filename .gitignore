@@ -80,3 +80,7 @@ htmlcov/
 # ========================
 # */migrations/*.py  ← Bu satrni faqat xohlasangiz yoqing
 # */migrations/*.pyc
+
+# Ngrok
+ngrok.exe
+ngrok.zip
