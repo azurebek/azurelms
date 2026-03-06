@@ -342,6 +342,48 @@ class StudentAnswer(models.Model):
         return f"Answer by {self.attempt.student.username} for Q: {self.question.id}"
 
 
+# --- QUIZ NATIJALARI ---
+
+class QuizAttempt(models.Model):
+    """
+    Tracks a student's attempt at a lesson Quiz.
+    """
+    from django.conf import settings
+    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='quiz_attempts')
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='attempts')
+    score = models.DecimalField(max_digits=5, decimal_places=2, default=0, help_text="Foizdagi ball (0-100)")
+    total_correct = models.PositiveIntegerField(default=0)
+    total_questions = models.PositiveIntegerField(default=0)
+    xp_earned = models.PositiveIntegerField(default=0)
+    completed_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.student.username} - {self.quiz.title} ({self.score}%)"
+
+    class Meta:
+        verbose_name = "Quiz Urinishi"
+        verbose_name_plural = "Quiz Urinishlari"
+        ordering = ['-completed_at']
+
+
+class QuizAnswer(models.Model):
+    """
+    Individual answer for each question in a QuizAttempt.
+    """
+    attempt = models.ForeignKey(QuizAttempt, on_delete=models.CASCADE, related_name='answers')
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    selected_choice = models.ForeignKey(Choice, on_delete=models.CASCADE)
+    is_correct = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Q{self.question.id}: {'✅' if self.is_correct else '❌'}"
+
+    class Meta:
+        verbose_name = "Quiz Javobi"
+        verbose_name_plural = "Quiz Javoblari"
+        unique_together = ('attempt', 'question')
+
+
 class Certificate(models.Model):
     # Dasturni yakunlagandagi sertifikat hujjati
     from django.conf import settings

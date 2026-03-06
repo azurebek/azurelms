@@ -330,20 +330,88 @@
                 {% if quizzes.exists %}
                 <div class="tab-pane fade {% if not lesson.video_url and not lesson.content and not assignments.exists %}show active{% endif %}" id="quiz" role="tabpanel">
                     {% for quiz in quizzes %}
-                    <div class="card border-0 shadow-sm rounded-4 mb-4 border-start border-4 border-danger">
+                    <div class="card border-0 shadow-sm rounded-4 mb-4 border-start border-4 border-danger" id="quiz-card-{{ quiz.id }}">
                         <div class="card-body p-4 p-md-5">
                             <div class="text-center mb-4">
                                 <div class="d-inline-flex bg-danger bg-opacity-10 p-3 rounded-circle text-danger mb-3">
                                     <i class="bi bi-ui-checks display-6"></i>
                                 </div>
                                 <h3 class="fw-bold">{{ quiz.title }}</h3>
-                                <p class="text-muted">Testni yakunlang va +{{ quiz.xp_reward }} XP yig'ing!</p>
+                                <p class="text-muted">{{ quiz.questions.count }} ta savol &middot; +{{ quiz.xp_reward }} XP</p>
                             </div>
-                            
-                            <div class="d-grid col-md-6 mx-auto">
-                                <button class="btn btn-danger btn-lg rounded-pill fw-bold shadow-sm" disabled>
-                                    Tez Kunda Ishga Tushadi
-                                </button>
+
+                            {% with attempt=quiz_attempts|default:"" %}
+                            {% if quiz.id in quiz_attempts %}
+                            <!-- Oldingi natija -->
+                            <div class="text-center mb-4" id="quiz-result-{{ quiz.id }}">
+                                <div class="alert alert-success rounded-4 py-4">
+                                    <h5 class="fw-bold mb-2">
+                                        <i class="bi bi-check-circle-fill me-2"></i>Siz bu testni topshirgansiz
+                                    </h5>
+                                    <button class="btn btn-outline-danger rounded-pill mt-2 fw-medium" onclick="startQuiz({{ quiz.id }})">
+                                        <i class="bi bi-arrow-repeat me-1"></i>Qayta topshirish
+                                    </button>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% endwith %}
+
+                            <!-- Quiz savollari -->
+                            <div class="quiz-questions" id="quiz-questions-{{ quiz.id }}" {% if quiz.id in quiz_attempts %}style="display:none"{% endif %}>
+                                {% for question in quiz.questions.all %}
+                                <div class="mb-4 p-4 bg-light rounded-4" id="question-{{ question.id }}">
+                                    <h5 class="fw-bold mb-3">
+                                        <span class="badge bg-danger rounded-pill me-2">{{ forloop.counter }}</span>
+                                        {{ question.text|safe }}
+                                    </h5>
+                                    <div class="list-group list-group-flush">
+                                        {% for choice in question.choices.all %}
+                                        <label class="list-group-item list-group-item-action border-0 rounded-3 mb-2 px-3 py-3 d-flex align-items-center cursor-pointer choice-label"
+                                               id="choice-label-{{ choice.id }}"
+                                               style="cursor:pointer; transition: all 0.2s;">
+                                            <input type="radio"
+                                                   name="quiz_{{ quiz.id }}_question_{{ question.id }}"
+                                                   value="{{ choice.id }}"
+                                                   class="form-check-input me-3 flex-shrink-0"
+                                                   data-quiz-id="{{ quiz.id }}"
+                                                   data-question-id="{{ question.id }}"
+                                                   style="width: 1.2em; height: 1.2em;">
+                                            <span>{{ choice.text }}</span>
+                                        </label>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+
+                                <div class="d-grid col-md-6 mx-auto mt-4">
+                                    <button class="btn btn-danger btn-lg rounded-pill fw-bold shadow-sm"
+                                            id="quiz-submit-btn-{{ quiz.id }}"
+                                            onclick="submitQuiz({{ quiz.id }}, {{ course.id }}, {{ lesson.id }})">
+                                        <i class="bi bi-send-fill me-2"></i>Testni yuborish
+                                    </button>
+                                </div>
+
+                                <div class="text-center mt-3 d-none" id="quiz-loading-{{ quiz.id }}">
+                                    <div class="spinner-border text-danger" role="status">
+                                        <span class="visually-hidden">Yuklanmoqda...</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Natija ko'rsatish joyi -->
+                            <div class="quiz-results d-none" id="quiz-results-{{ quiz.id }}">
+                                <div class="text-center mb-4">
+                                    <div id="quiz-score-icon-{{ quiz.id }}"></div>
+                                    <h4 class="fw-bold mt-3" id="quiz-score-text-{{ quiz.id }}"></h4>
+                                    <p class="text-muted" id="quiz-xp-text-{{ quiz.id }}"></p>
+                                </div>
+                                <div id="quiz-answers-detail-{{ quiz.id }}"></div>
+                                <div class="d-grid col-md-6 mx-auto mt-4">
+                                    <button class="btn btn-outline-danger btn-lg rounded-pill fw-bold"
+                                            onclick="startQuiz({{ quiz.id }})">
+                                        <i class="bi bi-arrow-repeat me-2"></i>Qayta topshirish
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -378,4 +446,138 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function startQuiz(quizId) {
+    const questionsDiv = document.getElementById('quiz-questions-' + quizId);
+    const resultsDiv = document.getElementById('quiz-results-' + quizId);
+    const resultBanner = document.getElementById('quiz-result-' + quizId);
+
+    // Tanlashlarni tozalash
+    questionsDiv.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+    questionsDiv.querySelectorAll('.choice-label').forEach(el => {
+        el.classList.remove('list-group-item-success', 'list-group-item-danger');
+        el.style.pointerEvents = '';
+    });
+
+    if (resultBanner) resultBanner.style.display = 'none';
+    resultsDiv.classList.add('d-none');
+    questionsDiv.style.display = '';
+
+    const submitBtn = document.getElementById('quiz-submit-btn-' + quizId);
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '<i class="bi bi-send-fill me-2"></i>Testni yuborish';
+}
+
+function submitQuiz(quizId, courseId, lessonId) {
+    const submitBtn = document.getElementById('quiz-submit-btn-' + quizId);
+    const loadingDiv = document.getElementById('quiz-loading-' + quizId);
+
+    // Javoblarni yig'ish
+    const answers = {};
+    const radios = document.querySelectorAll('input[data-quiz-id="' + quizId + '"]:checked');
+    radios.forEach(r => {
+        answers[r.dataset.questionId] = r.value;
+    });
+
+    // Hech bo'lmasa bitta javob tekshiruvi
+    const totalQuestions = document.querySelectorAll('#quiz-questions-' + quizId + ' .mb-4.p-4').length;
+    if (Object.keys(answers).length === 0) {
+        alert('Iltimos, kamida bitta savolga javob bering!');
+        return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Tekshirilmoqda...';
+
+    const url = '/courses/' + courseId + '/lesson/' + lessonId + '/quiz/' + quizId + '/submit/';
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: JSON.stringify({answers: answers}),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="bi bi-send-fill me-2"></i>Testni yuborish';
+            return;
+        }
+        showResults(quizId, data);
+    })
+    .catch(err => {
+        alert('Xatolik yuz berdi. Qayta urinib ko\'ring.');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="bi bi-send-fill me-2"></i>Testni yuborish';
+    });
+}
+
+function showResults(quizId, data) {
+    const questionsDiv = document.getElementById('quiz-questions-' + quizId);
+    const resultsDiv = document.getElementById('quiz-results-' + quizId);
+    const scoreIcon = document.getElementById('quiz-score-icon-' + quizId);
+    const scoreText = document.getElementById('quiz-score-text-' + quizId);
+    const xpText = document.getElementById('quiz-xp-text-' + quizId);
+
+    // Savol ranglarini o'zgartirish
+    data.results.forEach(r => {
+        // To'g'ri javob rang
+        if (r.correct_choice_id) {
+            const correctLabel = document.getElementById('choice-label-' + r.correct_choice_id);
+            if (correctLabel) correctLabel.classList.add('list-group-item-success');
+        }
+        // Xato javob rang
+        if (r.selected_choice_id && !r.is_correct) {
+            const wrongLabel = document.getElementById('choice-label-' + r.selected_choice_id);
+            if (wrongLabel) wrongLabel.classList.add('list-group-item-danger');
+        }
+    });
+
+    // Radioboxlarni o'chirib qo'yish
+    questionsDiv.querySelectorAll('.choice-label').forEach(el => {
+        el.style.pointerEvents = 'none';
+    });
+    document.getElementById('quiz-submit-btn-' + quizId).classList.add('d-none');
+
+    // Natija ikonkasi
+    const percent = data.score;
+    if (percent >= 80) {
+        scoreIcon.innerHTML = '<div class="d-inline-flex bg-success bg-opacity-10 p-3 rounded-circle text-success"><i class="bi bi-trophy-fill display-4"></i></div>';
+    } else if (percent >= 50) {
+        scoreIcon.innerHTML = '<div class="d-inline-flex bg-warning bg-opacity-10 p-3 rounded-circle text-warning"><i class="bi bi-emoji-smile-fill display-4"></i></div>';
+    } else {
+        scoreIcon.innerHTML = '<div class="d-inline-flex bg-danger bg-opacity-10 p-3 rounded-circle text-danger"><i class="bi bi-emoji-frown-fill display-4"></i></div>';
+    }
+
+    scoreText.textContent = data.total_correct + ' / ' + data.total_questions + ' to\'g\'ri (' + percent + '%)';
+    xpText.innerHTML = '<i class="bi bi-star-fill text-warning me-1"></i>+' + data.xp_earned + ' XP qo\'shildi!';
+
+    resultsDiv.classList.remove('d-none');
+
+    // Natijagacha scroll
+    resultsDiv.scrollIntoView({behavior: 'smooth', block: 'center'});
+}
+</script>
 {% endblock %}

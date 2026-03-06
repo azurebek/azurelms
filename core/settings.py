@@ -69,6 +69,8 @@ INSTALLED_APPS = [
     'frontend',
     'bot',
     'corsheaders',
+    'nested_admin',
+    'storages',
 ]
 
 MIDDLEWARE = [
@@ -108,29 +110,39 @@ WSGI_APPLICATION = "core.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-# PostgreSQL ishlatish (production uchun)
-# Agar PostgreSQL o'rnatilmagan bo'lsa, SQLite ishlatiladi
-_USE_POSTGRES = os.getenv('USE_POSTGRES', 'false').lower() == 'true'
+import dj_database_url
 
-if _USE_POSTGRES:
+db_url = os.getenv('DATABASE_URL')
+
+if db_url:
+    # DigitalOcean App Platform (or any env with DATABASE_URL)
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('DB_NAME', 'azure_lms'),
-            'USER': os.getenv('DB_USER', 'azurebek'),
-            'PASSWORD': os.getenv('DB_PASSWORD', 'admin'),
-            'HOST': os.getenv('DB_HOST', 'localhost'),
-            'PORT': os.getenv('DB_PORT', '5432'),
-        }
+        'default': dj_database_url.config(default=db_url, conn_max_age=600)
     }
 else:
-    # Development uchun SQLite (PostgreSQL kerak emas)
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+    # PostgreSQL ishlatish (production uchun)
+    # Agar PostgreSQL o'rnatilmagan bo'lsa, SQLite ishlatiladi
+    _USE_POSTGRES = os.getenv('USE_POSTGRES', 'false').lower() == 'true'
+
+    if _USE_POSTGRES:
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': os.getenv('DB_NAME', 'azure_lms'),
+                'USER': os.getenv('DB_USER', 'azurebek'),
+                'PASSWORD': os.getenv('DB_PASSWORD', 'admin'),
+                'HOST': os.getenv('DB_HOST', 'localhost'),
+                'PORT': os.getenv('DB_PORT', '5432'),
+            }
         }
-    }
+    else:
+        # Development uchun SQLite (PostgreSQL kerak emas)
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+        }
 
 
 # Password validation
@@ -225,8 +237,20 @@ LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'home'
 
 # Media fayllar (Rasmlar, PDFlar) uchun sozlama
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+if os.getenv('USE_S3') == 'True':
+    # DigitalOcean Spaces (yoki AWS S3) sozlamalari
+    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+    AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
+    AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
+    AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL') # masalan: https://fra1.digitaloceanspaces.com
+    AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
+    
+    # Media fayllar S3(Spaces)ga tushadi
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/media/'
+else:
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = BASE_DIR / 'media'
 
 # CKEditor 5 upload manzili nomi
 CKEDITOR_5_UPLOAD_FILE_VIEW_NAME = "ck_editor_5_upload_file"

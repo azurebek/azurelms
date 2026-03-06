@@ -1,4 +1,5 @@
 from django.contrib import admin
+import nested_admin
 from .models import Course, Module, Lesson, Assignment, Exam, ExamSection, Quiz, Question, Choice
 
 # ==========================================
@@ -28,6 +29,18 @@ class ChoiceInline(admin.TabularInline):
 class QuestionInline(admin.StackedInline):
     model = Question
     extra = 1
+
+# --- Quiz uchun Nested Inlines (1 sahifada Quiz + Savol + Variant) ---
+
+class NestedChoiceInline(nested_admin.NestedTabularInline):
+    model = Choice
+    extra = 4
+    min_num = 2  # Kamida 2 ta variant bo'lishi kerak
+
+class NestedQuestionInline(nested_admin.NestedStackedInline):
+    model = Question
+    extra = 1
+    inlines = [NestedChoiceInline]
 
 
 # ==========================================
@@ -114,16 +127,20 @@ class ExamAttemptAdmin(admin.ModelAdmin):
 # --- Quizlar va Savollar ---
 
 @admin.register(Quiz)
-class QuizAdmin(admin.ModelAdmin):
-    list_display = ('title', 'lesson', 'exam_section', 'xp_reward')
+class QuizAdmin(nested_admin.NestedModelAdmin):
+    list_display = ('title', 'lesson', 'exam_section', 'xp_reward', 'get_questions_count')
     list_filter = ('lesson__module__course', 'exam_section__exam')
     search_fields = ('title',)
-    inlines = [QuestionInline] # Quiz ichida Savollarni qo'shib ketish
+    inlines = [NestedQuestionInline]  # 1 sahifada: Quiz → Savol → Variant
+
+    @admin.display(description='Savollar soni')
+    def get_questions_count(self, obj):
+        return obj.questions.count()
 
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ('get_short_text', 'quiz', 'points')
-    inlines = [ChoiceInline] # Savolning ichidayoq uning Variantlarini qo'shish!
+    inlines = [ChoiceInline]  # Savolning ichidayoq uning Variantlarini qo'shish!
 
     @admin.display(description='Savol matni')
     def get_short_text(self, obj):

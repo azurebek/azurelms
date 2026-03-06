@@ -31,6 +31,8 @@ ALLOWED_STYLES = [
     'border', 'border-radius', 'float', 'display'
 ]
 
+from django.utils.safestring import mark_safe
+
 @register.filter(name='sanitize')
 def sanitize(value):
     """
@@ -41,10 +43,11 @@ def sanitize(value):
         
     css_sanitizer = CSSSanitizer(allowed_css_properties=ALLOWED_STYLES)
         
-    return bleach.clean(
+    cleaned_html = bleach.clean(
         value,
         tags=ALLOWED_TAGS,
         attributes=ALLOWED_ATTRIBUTES,
         css_sanitizer=css_sanitizer,
         strip=True
     )
+    return mark_safe(cleaned_html)

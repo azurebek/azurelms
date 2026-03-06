@@ -58,7 +58,7 @@
             </div>
             <div>
                 <h4 class="h6 fw-bold mb-0">Telegram hisob ulandi</h4>
-                <p class="mb-0 small text-muted">Sizning profilingiz @{{ telegram_username }} bilan bog'langan.</p>
+                <p class="mb-0 small text-muted">{% if telegram_username %}Sizning profilingiz @{{ telegram_username }} bilan bog'langan.{% else %}Sizning profilingiz Telegram bilan bog'langan.{% endif %}</p>
             </div>
         </div>
     </div>

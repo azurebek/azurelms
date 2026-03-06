@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 
-from .models import Course, Lesson, Certificate, Exam
+from .models import Course, Lesson, Certificate, Exam, Quiz, QuizAttempt, QuizAnswer
 from cohorts.models import Enrollment
 
 
@@ -19,7 +19,7 @@ class CourseListView(ListView):
         
         queryset = Course.objects.filter(is_active=True).annotate(
             annotated_lessons_count=Count('modules__lessons', distinct=True),
-            annotated_students_count=Count('cohorts__members', filter=Q_obj(cohorts__enrollments__status='active'), distinct=True)
+            annotated_students_count=Count('cohorts__members', filter=Q_obj(cohorts__members__status='active'), distinct=True)
         )
         
         # Qidiruv filtering
@@ -153,7 +153,15 @@ class LessonDetailView(LoginRequiredMixin, DetailView):
         
         # Load any assignments or quizzes attached to this lesson
         context['assignments'] = self.object.assignments.all()
-        context['quizzes'] = self.object.quizzes.all()
+        context['quizzes'] = self.object.quizzes.prefetch_related('questions__choices').all()
+        
+        # Oldingi quiz urinishlarini yuklash
+        quiz_ids = list(self.object.quizzes.values_list('id', flat=True))
+        context['quiz_attempts'] = {
+            a.quiz_id: a for a in QuizAttempt.objects.filter(
+                student=user, quiz_id__in=quiz_ids
+            ).order_by('-completed_at')
+        } if quiz_ids else {}
         
         # Determine previous and next lessons
         all_lessons = list(Lesson.objects.filter(module__course=course).order_by('module__order', 'order'))
@@ -344,6 +352,103 @@ class SubmitExamView(LoginRequiredMixin, View):
         attempt.calculate_total_score()
         
         return JsonResponse({'status': 'success', 'final_score': attempt.score, 'passed': attempt.passed})
+
+class SubmitQuizView(LoginRequiredMixin, View):
+    """Dars ichidagi quiz javoblarni qabul qilish va natija hisoblash."""
+    def post(self, request, course_id, lesson_id, quiz_id):
+        quiz = get_object_or_404(Quiz, id=quiz_id, lesson_id=lesson_id, lesson__module__course_id=course_id)
+        
+        # Enrollment tekshiruvi
+        if not Enrollment.objects.filter(student=request.user, cohort__course_id=course_id, status='active').exists():
+            return JsonResponse({'error': 'Kursga obuna bo\'lmagansiz.'}, status=403)
+        
+        try:
+            data = json.loads(request.body)
+            answers = data.get('answers', {})  # {question_id: choice_id}
+        except (json.JSONDecodeError, AttributeError):
+            return JsonResponse({'error': 'Noto\'g\'ri ma\'lumot formati.'}, status=400)
+        
+        if not answers:
+            return JsonResponse({'error': 'Javoblar bo\'sh.'}, status=400)
+        
+        # Barcha savollarni olish
+        questions = quiz.questions.prefetch_related('choices').all()
+        total_questions = questions.count()
+        
+        if total_questions == 0:
+            return JsonResponse({'error': 'Quizda savollar yo\'q.'}, status=400)
+        
+        # Javoblarni tekshirish
+        total_correct = 0
+        results = []  # Har bir savol natijasi
+        
+        # QuizAttempt yaratish
+        attempt = QuizAttempt.objects.create(
+            student=request.user,
+            quiz=quiz,
+            total_questions=total_questions,
+        )
+        
+        for question in questions:
+            q_id_str = str(question.id)
+            selected_choice_id = answers.get(q_id_str)
+            
+            correct_choice = question.choices.filter(is_correct=True).first()
+            is_correct = False
+            selected_choice = None
+            
+            if selected_choice_id:
+                try:
+                    selected_choice = question.choices.get(id=int(selected_choice_id))
+                    is_correct = selected_choice.is_correct
+                except (Choice.DoesNotExist, ValueError):
+                    pass
+            
+            if is_correct:
+                total_correct += 1
+            
+            # Javobni saqlash
+            if selected_choice:
+                QuizAnswer.objects.create(
+                    attempt=attempt,
+                    question=question,
+                    selected_choice=selected_choice,
+                    is_correct=is_correct,
+                )
+            
+            results.append({
+                'question_id': question.id,
+                'selected_choice_id': int(selected_choice_id) if selected_choice_id else None,
+                'correct_choice_id': correct_choice.id if correct_choice else None,
+                'is_correct': is_correct,
+            })
+        
+        # Ball hisoblash
+        score = round((total_correct / total_questions) * 100, 1)
+        
+        # XP hisoblash — to'g'ri javoblar nisbatiga qarab
+        xp_earned = round(quiz.xp_reward * (total_correct / total_questions))
+        
+        # Attempt yangilash
+        attempt.score = score
+        attempt.total_correct = total_correct
+        attempt.xp_earned = xp_earned
+        attempt.save()
+        
+        # Foydalanuvchiga XP qo'shish
+        if xp_earned > 0:
+            request.user.total_xp += xp_earned
+            request.user.save(update_fields=['total_xp'])
+        
+        return JsonResponse({
+            'status': 'success',
+            'score': score,
+            'total_correct': total_correct,
+            'total_questions': total_questions,
+            'xp_earned': xp_earned,
+            'results': results,
+        })
+
 
 class CertificateDetailView(DetailView):
     """
