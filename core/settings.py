@@ -115,51 +115,72 @@ import logging
 
 # Database configuration
 DATABASE_URL = os.getenv('DATABASE_URL')
-# Mahalliy kompyuterda ekanligingizni bildirish uchun (Local dev only)
+# Individual variables (Manual entry)
+DB_NAME = os.getenv('DB_NAME')
+DB_USER = os.getenv('DB_USER')
+DB_PASSWORD = os.getenv('DB_PASSWORD')
+DB_HOST = os.getenv('DB_HOST')
+DB_PORT = os.getenv('DB_PORT', '25060')
+
 IS_LOCAL = os.getenv('LOCAL_DEV', 'false').lower() == 'true'
 
 # --- DIAGNOSTICS LOG ---
-print("--- [SYSTEM] ENVIRONMENT CHECK ---")
-print(f"DEBUG Mode: {DEBUG}")
-print(f"Available Env Keys: {list(os.environ.keys())}")
-if DATABASE_URL:
-    print(f"DATABASE_URL: FOUND (Starting with: {DATABASE_URL[:10]}...)")
+print("--- [SYSTEM] DATABASE VARS CHECK ---")
+if DB_NAME and DB_USER:
+    print(f"Found Individual Vars: DB_NAME={DB_NAME}, DB_USER={DB_USER}, HOST={DB_HOST}")
+elif DATABASE_URL:
+    print(f"Found DATABASE_URL (Starting with: {DATABASE_URL[:15]}...)")
 else:
-    print("DATABASE_URL: NOT FOUND!")
+    print("Warning: No database environment variables found!")
 print("--- [SYSTEM] END CHECK ---")
 
-if DATABASE_URL:
-    # Tozalash: postgres:// yoki postgresql:// qayerda kelsa o'shandan kesamiz
+if DB_NAME and DB_USER:
+    # Manual individual variables provided by user
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': DB_NAME,
+            'USER': DB_USER,
+            'PASSWORD': DB_PASSWORD,
+            'HOST': DB_HOST,
+            'PORT': DB_PORT,
+            'OPTIONS': {
+                'sslmode': 'require',
+            }
+        }
+    }
+elif DATABASE_URL:
+    # Fallback to DATABASE_URL if available
+    DATABASE_URL = DATABASE_URL.strip().strip('"').strip("'")
     candidate_start = -1
     for scheme in ['postgresql://', 'postgres://']:
         pos = DATABASE_URL.find(scheme)
         if pos != -1:
             candidate_start = pos
             break
-            
     if candidate_start != -1:
         DATABASE_URL = DATABASE_URL[candidate_start:]
-        print(f"DATABASE_URL to'g'rilandi (Boshlanishi: {DATABASE_URL[:15]}...)")
     
     DATABASES = {
         'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
     }
 elif not IS_LOCAL:
-    # Productionda har qanday holatda ham PostgreSQL ishlatiladi
-    print("INFO: Production mode detected. Using PostgreSQL configuration.")
+    # Default/Emergency production settings
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('DB_NAME', 'defaultdb'),
-            'USER': os.getenv('DB_USER', 'doadmin'),
-            'PASSWORD': os.getenv('DB_PASSWORD', ''),
-            'HOST': os.getenv('DB_HOST', ''),
-            'PORT': os.getenv('DB_PORT', '25060'),
+            'NAME': 'defaultdb',
+            'USER': 'doadmin',
+            'PASSWORD': '',
+            'HOST': '',
+            'PORT': '25060',
+            'OPTIONS': {
+                'sslmode': 'require',
+            }
         }
     }
 else:
-    # Faqat LOCAL_DEV=true bo'lgandagina SQLite ishlatiladi
-    print("INFO: Local development mode (SQLite).")
+    # Local development SQLite
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
