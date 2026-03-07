@@ -34,10 +34,15 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = ['*']
+# Domain sozlamalari
+APP_DOMAIN = os.getenv('APP_DOMAIN', 'azurelms-app-aoib9.ondigitalocean.app')
+ALLOWED_HOSTS = [APP_DOMAIN, 'localhost', '127.0.0.1', '*']
+
+# CSRF xavfsizligi uchun ishonchli domenlar (bu juda muhim!)
+CSRF_TRUSTED_ORIGINS = [f'https://{APP_DOMAIN}', 'http://localhost', 'http://127.0.0.1']
 
 # Security settings (Enforce HTTPS in production)
-if not DEBUG and (os.getenv('USE_POSTGRES', 'False') == 'True' or os.getenv('DATABASE_URL')):
+if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SESSION_COOKIE_SECURE = True
