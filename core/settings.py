@@ -247,25 +247,24 @@ WHITENOISE_IGNORE_MISSING_FILES = True
 USE_S3 = os.getenv('USE_S3', 'False') == 'True'
 
 if USE_S3:
-    # DigitalOcean Spaces sozlamalari
+    # DigitalOcean Spaces (fra1 - Frankfurt) sozlamalari
     AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
     AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
-    AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL')
+    AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL')  # https://fra1.digitaloceanspaces.com
     AWS_S3_REGION_NAME = 'fra1'
     AWS_S3_SIGNATURE_VERSION = 's3v4'
-    AWS_S3_FILE_OVERWRITE = False
-    AWS_QUERYSTRING_AUTH = False
+    AWS_QUERYSTRING_AUTH = False  # Ochiq URL lar uchun
     AWS_DEFAULT_ACL = 'public-read'
-    
-    # Custom domain for cleaner URLs
-    # Example: bucket-name.fra1.digitaloceanspaces.com
-    endpoint_host = AWS_S3_ENDPOINT_URL.replace('https://', '').replace('http://', '')
-    AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.{endpoint_host}'
-    
+
+    # Clean CDN-style URL for media files
+    _endpoint_host = AWS_S3_ENDPOINT_URL.replace('https://', '').replace('http://', '')
+    AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.{_endpoint_host}'
+
     STORAGES = {
+        # Media fayllar uchun maxsus storage klassi
         "default": {
-            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+            "BACKEND": "core.custom_storage.MediaStorage",
         },
         "staticfiles": {
             "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
@@ -283,14 +282,6 @@ else:
     }
     MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR / 'media'
-
-print(f"--- [SYSTEM] STORAGE DIAGNOSTICS ---")
-print(f"USE_S3: {USE_S3}")
-if USE_S3:
-    print(f"Bucket: {AWS_STORAGE_BUCKET_NAME}")
-    print(f"Custom Domain: {AWS_S3_CUSTOM_DOMAIN}")
-print(f"MEDIA_URL: {MEDIA_URL}")
-print(f"------------------------------------")
 
 # CKEditor 5 upload manzili nomi
 CKEDITOR_5_UPLOAD_FILE_VIEW_NAME = "ck_editor_5_upload_file"
@@ -319,15 +310,23 @@ CKEDITOR_5_CONFIGS = {
     }
 }
 
-# Channels Layer configuration (Redis for Production readiness)
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/1')],
-        },
+# Channels Layer - Redis mavjud bo'lsa ishlatiladi, aks holda xotiradan foydalanadi
+REDIS_URL = os.getenv('REDIS_URL')
+if REDIS_URL:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
+                "hosts": [REDIS_URL],
+            },
+        }
     }
-}
+else:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels.layers.InMemoryChannelLayer",
+        }
+    }
 # ==========================================
 # JAZZMIN ADMIN PANEL SOZLAMALARI
 # ==========================================
