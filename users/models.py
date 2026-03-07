@@ -26,6 +26,22 @@ class CustomUser(AbstractUser):
     # O'quvchining umumiy XP (Tajriba) ballari
     total_xp = models.IntegerField(default=0, help_text="O'quvchining jami to'plagan XP ballari")
 
+    # To'qnashuvni (clash) oldini olish uchun
+    groups = models.ManyToManyField(
+        'auth.Group',
+        related_name='customuser_set',
+        blank=True,
+        help_text='The groups this user belongs to.',
+        verbose_name='groups',
+    )
+    user_permissions = models.ManyToManyField(
+        'auth.Permission',
+        related_name='customuser_permissions_set',
+        blank=True,
+        help_text='Specific permissions for this user.',
+        verbose_name='user permissions',
+    )
+
     def __str__(self):
         # Admin panelda o'quvchining ismi va username'i chiroyli chiqib turishi uchun
         if self.first_name and self.last_name:
