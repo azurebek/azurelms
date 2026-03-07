@@ -114,29 +114,24 @@ WSGI_APPLICATION = "core.wsgi.application"
 
 import dj_database_url
 
-# DigitalOcean App Platform (or any env with DATABASE_URL)
 DATABASE_URL = os.getenv('DATABASE_URL')
 
+# Diagnostika (Logda ko'rish uchun)
 if DATABASE_URL:
-    # Cleanup possible copy-paste artifacts like quotes or leading spaces
-    DATABASE_URL = DATABASE_URL.strip().strip('"').strip("'")
-    if '://' in DATABASE_URL:
-        DATABASES = {
-            'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
-        }
-    else:
-        # Fallback if URL is malformed but variable exists
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / 'db.sqlite3',
-            }
-        }
+    print("DATABASE_URL topildi. Ulanish boshlanmoqda...")
 else:
-    # PostgreSQL ishlatish (production uchun) - Old logic
-    _USE_POSTGRES = os.getenv('USE_POSTGRES', 'false').lower() == 'true'
+    print("DIQQAT: DATABASE_URL topilmadi!")
 
-    if _USE_POSTGRES:
+if DATABASE_URL:
+    # Bo'shliqlar va qo'shtirnoqlarni tozalash
+    DATABASE_URL = DATABASE_URL.strip().strip('"').strip("'")
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+    }
+else:
+    _USE_POSTGRES = os.getenv('USE_POSTGRES', 'false').lower() == 'true'
+    if _USE_POSTGRES or not DEBUG:
+        # Productionda yoki Postgres so'ralganda
         DATABASES = {
             'default': {
                 'ENGINE': 'django.db.backends.postgresql',
@@ -148,7 +143,7 @@ else:
             }
         }
     else:
-        # Development uchun SQLite
+        # Faqat mahalliy (local) development uchun SQLite
         DATABASES = {
             'default': {
                 'ENGINE': 'django.db.backends.sqlite3',
