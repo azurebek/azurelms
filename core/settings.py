@@ -113,23 +113,20 @@ import os
 import dj_database_url
 import logging
 
-logger = logging.getLogger(__name__)
-
 # Database configuration
 DATABASE_URL = os.getenv('DATABASE_URL')
-USE_POSTGRES = os.getenv('USE_POSTGRES', 'false').lower() == 'true'
+# Mahalliy kompyuterda ekanligingizni bildirish uchun (Local dev only)
+IS_LOCAL = os.getenv('LOCAL_DEV', 'false').lower() == 'true'
 
-# DEBUG LOGGING (Will show up in DigitalOcean Runtime Logs)
-print("--- DATABASE ENVIRONMENT DIAGNOSTICS ---")
-print(f"Current DEBUG value: {DEBUG}")
-for key in os.environ:
-    if any(x in key.upper() for x in ['DATABASE', 'URL', 'DB_']):
-        val = os.environ[key]
-        if val:
-            print(f"Found Env Var: {key} (Len: {len(val)}, Start: {val[:15]}...)")
-        else:
-            print(f"Found Env Var: {key} (EMPTY)")
-print("---------------------------------------")
+# --- DIAGNOSTICS LOG ---
+print("--- [SYSTEM] ENVIRONMENT CHECK ---")
+print(f"DEBUG Mode: {DEBUG}")
+print(f"Available Env Keys: {list(os.environ.keys())}")
+if DATABASE_URL:
+    print(f"DATABASE_URL: FOUND (Starting with: {DATABASE_URL[:10]}...)")
+else:
+    print("DATABASE_URL: NOT FOUND!")
+print("--- [SYSTEM] END CHECK ---")
 
 if DATABASE_URL:
     # Sanitize the input
@@ -137,12 +134,12 @@ if DATABASE_URL:
     if 'postgresql://' in DATABASE_URL:
         DATABASE_URL = DATABASE_URL[DATABASE_URL.find('postgresql://'):]
     
-    print(f"INFO: Connecting to database using DATABASE_URL...")
     DATABASES = {
         'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
     }
-elif USE_POSTGRES or not DEBUG:
-    print("INFO: DATABASE_URL not found. Using manual PostgreSQL settings.")
+elif not IS_LOCAL:
+    # Productionda har qanday holatda ham PostgreSQL ishlatiladi
+    print("INFO: Production mode detected. Using PostgreSQL configuration.")
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -154,7 +151,8 @@ elif USE_POSTGRES or not DEBUG:
         }
     }
 else:
-    print("INFO: No production DB variables found. Using local SQLite.")
+    # Faqat LOCAL_DEV=true bo'lgandagina SQLite ishlatiladi
+    print("INFO: Local development mode (SQLite).")
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
