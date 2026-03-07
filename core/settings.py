@@ -229,6 +229,14 @@ USE_I18N = True
 
 USE_TZ = True
 
+# Default primary key field type
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+AUTH_USER_MODEL = 'users.CustomUser'
+
+# Auth Redirects
+LOGIN_REDIRECT_URL = 'dashboard'
+LOGOUT_REDIRECT_URL = 'home'
+
 
 # Static and Media Storage configuration
 STATIC_URL = "static/"
