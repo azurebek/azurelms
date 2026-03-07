@@ -120,45 +120,40 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Database configuration
 DATABASE_URL = os.getenv('DATABASE_URL')
+USE_POSTGRES = os.getenv('USE_POSTGRES', 'false').lower() == 'true'
 
-# PRODUCTION DATABASE LOGIC
-if not DEBUG:
-    if DATABASE_URL:
-        # Tozalash
-        DATABASE_URL = DATABASE_URL.strip().strip('"').strip("'")
-        if 'postgresql://' in DATABASE_URL:
-            DATABASE_URL = DATABASE_URL[DATABASE_URL.find('postgresql://'):]
-            print(f"INFO: Bazaga ulanish kodi topildi (Boshlanishi: {DATABASE_URL[:15]}...)")
-        
-        DATABASES = {
-            'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+if DATABASE_URL:
+    # Sanitize the input
+    DATABASE_URL = DATABASE_URL.strip().strip('"').strip("'")
+    if 'postgresql://' in DATABASE_URL:
+        DATABASE_URL = DATABASE_URL[DATABASE_URL.find('postgresql://'):]
+    
+    print(f"INFO: Bazaga ulanish kodi (DATABASE_URL) topildi. Ulanish boshlanmoqda...")
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+    }
+elif USE_POSTGRES or (not DEBUG and not os.getenv('LOCAL_DEV')):
+    print("INFO: DATABASE_URL yo'q, lekin manual PostgreSQL sozlamalari ishlatiladi.")
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('DB_NAME', 'defaultdb'),
+            'USER': os.getenv('DB_USER', 'doadmin'),
+            'PASSWORD': os.getenv('DB_PASSWORD', ''),
+            'HOST': os.getenv('DB_HOST', ''),
+            'PORT': os.getenv('DB_PORT', '25060'),
         }
-    else:
-        # Agar DATABASE_URL yo'q bo'lsa, qat'iy xatolik beramiz
-        print("CRITICAL: DATABASE_URL topilmadi! Productionda baza majburiy.")
-        # Manual ulanishga harakat (Eski env vars orqali)
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.postgresql',
-                'NAME': os.getenv('DB_NAME', 'defaultdb'),
-                'USER': os.getenv('DB_USER', 'doadmin'),
-                'PASSWORD': os.getenv('DB_PASSWORD', ''),
-                'HOST': os.getenv('DB_HOST', ''),
-                'PORT': os.getenv('DB_PORT', '25060'),
-            }
-        }
+    }
 else:
-    # Faqat LOCAL development uchun SQLite
-    if DATABASE_URL and 'postgresql://' in DATABASE_URL:
-        DATABASES = {'default': dj_database_url.parse(DATABASE_URL)}
-    else:
-        DATABASES = {
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': BASE_DIR / 'db.sqlite3',
-            }
+    print("INFO: Hech qanday baza o'zgaruvchisi topilmadi. SQLite (Local) ishlatiladi.")
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
         }
+    }
 
 
 # Password validation
