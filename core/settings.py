@@ -129,10 +129,17 @@ else:
 print("--- [SYSTEM] END CHECK ---")
 
 if DATABASE_URL:
-    # Sanitize the input
-    DATABASE_URL = DATABASE_URL.strip().strip('"').strip("'")
-    if 'postgresql://' in DATABASE_URL:
-        DATABASE_URL = DATABASE_URL[DATABASE_URL.find('postgresql://'):]
+    # Tozalash: postgres:// yoki postgresql:// qayerda kelsa o'shandan kesamiz
+    candidate_start = -1
+    for scheme in ['postgresql://', 'postgres://']:
+        pos = DATABASE_URL.find(scheme)
+        if pos != -1:
+            candidate_start = pos
+            break
+            
+    if candidate_start != -1:
+        DATABASE_URL = DATABASE_URL[candidate_start:]
+        print(f"DATABASE_URL to'g'rilandi (Boshlanishi: {DATABASE_URL[:15]}...)")
     
     DATABASES = {
         'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
