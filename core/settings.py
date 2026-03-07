@@ -234,6 +234,7 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+WHITENOISE_IGNORE_MISSING_FILES = True
 
 USE_S3 = os.getenv('USE_S3', 'False') == 'True'
 
