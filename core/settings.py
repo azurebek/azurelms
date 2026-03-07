@@ -113,16 +113,26 @@ WSGI_APPLICATION = "core.wsgi.application"
 
 import dj_database_url
 
-db_url = os.getenv('DATABASE_URL')
+# DigitalOcean App Platform (or any env with DATABASE_URL)
+DATABASE_URL = os.getenv('DATABASE_URL')
 
-if db_url:
-    # DigitalOcean App Platform (or any env with DATABASE_URL)
-    DATABASES = {
-        'default': dj_database_url.config(default=db_url, conn_max_age=600)
-    }
+if DATABASE_URL:
+    # Cleanup possible copy-paste artifacts like quotes or leading spaces
+    DATABASE_URL = DATABASE_URL.strip().strip('"').strip("'")
+    if '://' in DATABASE_URL:
+        DATABASES = {
+            'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+        }
+    else:
+        # Fallback if URL is malformed but variable exists
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+        }
 else:
-    # PostgreSQL ishlatish (production uchun)
-    # Agar PostgreSQL o'rnatilmagan bo'lsa, SQLite ishlatiladi
+    # PostgreSQL ishlatish (production uchun) - Old logic
     _USE_POSTGRES = os.getenv('USE_POSTGRES', 'false').lower() == 'true'
 
     if _USE_POSTGRES:
@@ -137,7 +147,7 @@ else:
             }
         }
     else:
-        # Development uchun SQLite (PostgreSQL kerak emas)
+        # Development uchun SQLite
         DATABASES = {
             'default': {
                 'ENGINE': 'django.db.backends.sqlite3',
