@@ -66,10 +66,14 @@ class AvatarUpdateView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         user = request.user
         if 'avatar' in request.FILES:
-            user.avatar = request.FILES['avatar']
+            avatar_file = request.FILES['avatar']
+            print(f"DEBUG: Rasm qabul qilindi: {avatar_file.name} (Size: {avatar_file.size})")
+            user.avatar = avatar_file
             user.save()
+            print(f"DEBUG: User saqlandi. Avatar URL: {user.avatar.url}")
             messages.success(request, "Profil rasmi muvaffaqiyatli yangilandi.")
         else:
+            print("DEBUG: Rasm topilmadi request.FILES ichida.")
             messages.error(request, "Rasm tanlanmadi.")
         return redirect('profile')
 

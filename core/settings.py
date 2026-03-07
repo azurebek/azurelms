@@ -230,93 +230,58 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
-
+# Static and Media Storage configuration
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Logging configuration
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
-        },
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
-        },
-    },
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple',
-        },
-        'file': {
-            'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'django.log',
-            'formatter': 'verbose',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console', 'file'],
-            'level': 'INFO',
-        },
-        'azure_lms': {
-            'handlers': ['console', 'file'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-    },
-}
+USE_S3 = os.getenv('USE_S3', 'False') == 'True'
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-AUTH_USER_MODEL = 'users.CustomUser'
-
-# Auth Redirects
-LOGIN_REDIRECT_URL = 'dashboard'
-LOGOUT_REDIRECT_URL = 'home'
-
-# Media fayllar (Rasmlar, PDFlar) uchun sozlama
-USE_S3 = os.getenv('USE_S3') == 'True'
 if USE_S3:
-    # DigitalOcean Spaces (FRA1 region) sozlamalari
+    # DigitalOcean Spaces sozlamalari
     AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
     AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
-    AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL') # https://fra1.digitaloceanspaces.com
-    AWS_S3_REGION_NAME = 'fra1'  # Frankfurt
+    AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL')
+    AWS_S3_REGION_NAME = 'fra1'
     AWS_S3_SIGNATURE_VERSION = 's3v4'
     AWS_S3_FILE_OVERWRITE = False
-    AWS_QUERYSTRING_AUTH = False  # Fayllarga ochiq link berish uchun (muhim!)
+    AWS_QUERYSTRING_AUTH = False
+    AWS_DEFAULT_ACL = 'public-read'
     
-    AWS_S3_OBJECT_PARAMETERS = {
-        'CacheControl': 'max-age=86400',
-        'ACL': 'public-read',  # Fayllar ochiq o'qilishi uchun
+    # Custom domain for cleaner URLs
+    # Example: bucket-name.fra1.digitaloceanspaces.com
+    endpoint_host = AWS_S3_ENDPOINT_URL.replace('https://', '').replace('http://', '')
+    AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.{endpoint_host}'
+    
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
     }
-
-    # Media fayllar S3(Spaces)ga tushadi
-    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-    # Media URL formatini to'g'rilaymiz
-    MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.{AWS_S3_REGION_NAME}.digitaloceanspaces.com/media/'
-    
-    print(f"--- [SYSTEM] S3 CHECK ---")
-    print(f"USE_S3: {USE_S3}")
-    print(f"Bucket: {AWS_STORAGE_BUCKET_NAME}")
-    print(f"Media URL: {MEDIA_URL}")
-    print(f"-------------------------")
+    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
 else:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
     MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR / 'media'
+
+print(f"--- [SYSTEM] STORAGE DIAGNOSTICS ---")
+print(f"USE_S3: {USE_S3}")
+if USE_S3:
+    print(f"Bucket: {AWS_STORAGE_BUCKET_NAME}")
+    print(f"Custom Domain: {AWS_S3_CUSTOM_DOMAIN}")
+print(f"MEDIA_URL: {MEDIA_URL}")
+print(f"------------------------------------")
 
 # CKEditor 5 upload manzili nomi
 CKEDITOR_5_UPLOAD_FILE_VIEW_NAME = "ck_editor_5_upload_file"
