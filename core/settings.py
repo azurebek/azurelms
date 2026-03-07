@@ -37,8 +37,9 @@ DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 ALLOWED_HOSTS = ['*']
 
 # Security settings (Enforce HTTPS in production)
-if os.getenv('USE_POSTGRES', 'False') == 'True':
+if not DEBUG and (os.getenv('USE_POSTGRES', 'False') == 'True' or os.getenv('DATABASE_URL')):
     SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_HSTS_SECONDS = 31536000 # 1 year
