@@ -287,17 +287,33 @@ LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'home'
 
 # Media fayllar (Rasmlar, PDFlar) uchun sozlama
-if os.getenv('USE_S3') == 'True':
-    # DigitalOcean Spaces (yoki AWS S3) sozlamalari
+USE_S3 = os.getenv('USE_S3') == 'True'
+if USE_S3:
+    # DigitalOcean Spaces (FRA1 region) sozlamalari
     AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
     AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
-    AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL') # masalan: https://fra1.digitaloceanspaces.com
-    AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
+    AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL') # https://fra1.digitaloceanspaces.com
+    AWS_S3_REGION_NAME = 'fra1'  # Frankfurt
+    AWS_S3_SIGNATURE_VERSION = 's3v4'
+    AWS_S3_FILE_OVERWRITE = False
+    AWS_QUERYSTRING_AUTH = False  # Fayllarga ochiq link berish uchun (muhim!)
     
+    AWS_S3_OBJECT_PARAMETERS = {
+        'CacheControl': 'max-age=86400',
+        'ACL': 'public-read',  # Fayllar ochiq o'qilishi uchun
+    }
+
     # Media fayllar S3(Spaces)ga tushadi
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-    MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/media/'
+    # Media URL formatini to'g'rilaymiz
+    MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.{AWS_S3_REGION_NAME}.digitaloceanspaces.com/media/'
+    
+    print(f"--- [SYSTEM] S3 CHECK ---")
+    print(f"USE_S3: {USE_S3}")
+    print(f"Bucket: {AWS_STORAGE_BUCKET_NAME}")
+    print(f"Media URL: {MEDIA_URL}")
+    print(f"-------------------------")
 else:
     MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR / 'media'
