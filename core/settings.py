@@ -109,20 +109,21 @@ TEMPLATES = [
 WSGI_APPLICATION = "core.wsgi.application"
 
 
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-import dj_database_url
-import logging
-
-logger = logging.getLogger(__name__)
-
 # Database configuration
 DATABASE_URL = os.getenv('DATABASE_URL')
 USE_POSTGRES = os.getenv('USE_POSTGRES', 'false').lower() == 'true'
+
+# DEBUG LOGGING (Will show up in DigitalOcean Runtime Logs)
+print("--- DATABASE ENVIRONMENT DIAGNOSTICS ---")
+print(f"Current DEBUG value: {DEBUG}")
+for key in os.environ:
+    if any(x in key.upper() for x in ['DATABASE', 'URL', 'DB_']):
+        val = os.environ[key]
+        if val:
+            print(f"Found Env Var: {key} (Len: {len(val)}, Start: {val[:15]}...)")
+        else:
+            print(f"Found Env Var: {key} (EMPTY)")
+print("---------------------------------------")
 
 if DATABASE_URL:
     # Sanitize the input
@@ -130,12 +131,12 @@ if DATABASE_URL:
     if 'postgresql://' in DATABASE_URL:
         DATABASE_URL = DATABASE_URL[DATABASE_URL.find('postgresql://'):]
     
-    print(f"INFO: Bazaga ulanish kodi (DATABASE_URL) topildi. Ulanish boshlanmoqda...")
+    print(f"INFO: Connecting to database using DATABASE_URL...")
     DATABASES = {
         'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
     }
-elif USE_POSTGRES or (not DEBUG and not os.getenv('LOCAL_DEV')):
-    print("INFO: DATABASE_URL yo'q, lekin manual PostgreSQL sozlamalari ishlatiladi.")
+elif USE_POSTGRES or not DEBUG:
+    print("INFO: DATABASE_URL not found. Using manual PostgreSQL settings.")
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
@@ -147,7 +148,7 @@ elif USE_POSTGRES or (not DEBUG and not os.getenv('LOCAL_DEV')):
         }
     }
 else:
-    print("INFO: Hech qanday baza o'zgaruvchisi topilmadi. SQLite (Local) ishlatiladi.")
+    print("INFO: No production DB variables found. Using local SQLite.")
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
