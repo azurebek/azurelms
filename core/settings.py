@@ -109,6 +109,12 @@ TEMPLATES = [
 WSGI_APPLICATION = "core.wsgi.application"
 
 
+import os
+import dj_database_url
+import logging
+
+logger = logging.getLogger(__name__)
+
 # Database configuration
 DATABASE_URL = os.getenv('DATABASE_URL')
 USE_POSTGRES = os.getenv('USE_POSTGRES', 'false').lower() == 'true'
