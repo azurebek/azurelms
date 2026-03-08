@@ -9,7 +9,7 @@ class MediaStorage(S3Boto3Storage):
     - ACL: Bucket darajasida boshqariladi (File Listing = Enabled), per-object ACL o'rnatilmaydi
     """
     location = 'media'
-    file_overwrite = True
+    file_overwrite = False
     object_parameters = {
         'CacheControl': 'max-age=86400',
     }
