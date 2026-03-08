@@ -255,7 +255,6 @@ if USE_S3:
     AWS_S3_REGION_NAME = 'fra1'
     AWS_S3_SIGNATURE_VERSION = 's3v4'
     AWS_QUERYSTRING_AUTH = False  # Ochiq URL lar uchun
-    AWS_DEFAULT_ACL = 'public-read'
 
     # Clean CDN-style URL for media files
     _endpoint_host = AWS_S3_ENDPOINT_URL.replace('https://', '').replace('http://', '')
