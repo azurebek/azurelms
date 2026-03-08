@@ -193,6 +193,29 @@ else:
         }
     }
 
+# Cache backend (DigitalOcean Valkey/Redis)
+VALKEY_URL = os.getenv('VALKEY_URL')
+REDIS_URL = os.getenv('REDIS_URL')
+CACHE_URL = VALKEY_URL or REDIS_URL
+
+if CACHE_URL:
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": CACHE_URL,
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            }
+        }
+    }
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "azurelms-default-cache",
+        }
+    }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -311,13 +334,13 @@ CKEDITOR_5_CONFIGS = {
 }
 
 # Channels Layer - Redis mavjud bo'lsa ishlatiladi, aks holda xotiradan foydalanadi
-REDIS_URL = os.getenv('REDIS_URL')
-if REDIS_URL:
+CHANNELS_REDIS_URL = CACHE_URL
+if CHANNELS_REDIS_URL:
     CHANNEL_LAYERS = {
         "default": {
             "BACKEND": "channels_redis.core.RedisChannelLayer",
             "CONFIG": {
-                "hosts": [REDIS_URL],
+                "hosts": [CHANNELS_REDIS_URL],
             },
         }
     }

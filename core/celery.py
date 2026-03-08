@@ -13,8 +13,9 @@ app = Celery('core')
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
 # Base settings for Redis
-app.conf.broker_url = os.getenv('CELERY_BROKER_URL', 'redis://127.0.0.1:6379/1')
-app.conf.result_backend = os.getenv('CELERY_RESULT_BACKEND', 'redis://127.0.0.1:6379/1')
+default_redis_url = os.getenv('VALKEY_URL') or os.getenv('REDIS_URL') or 'redis://127.0.0.1:6379/1'
+app.conf.broker_url = os.getenv('CELERY_BROKER_URL', default_redis_url)
+app.conf.result_backend = os.getenv('CELERY_RESULT_BACKEND', default_redis_url)
 app.conf.accept_content = ['application/json']
 app.conf.task_serializer = 'json'
 app.conf.result_serializer = 'json'
