@@ -1,2 +1,2 @@
 release: python manage.py migrate --noinput
-web: gunicorn core.wsgi --bind 0.0.0.0:$PORT
+web: daphne -b 0.0.0.0 -p $PORT core.asgi:application
