@@ -14,6 +14,8 @@ from courses.models import Certificate as CourseCertificate
 from gamification.models import EarnedBadge
 from django.core.signing import TimestampSigner
 from django.conf import settings
+import os
+import uuid
 
 def home_view(request):
     """
@@ -67,13 +69,21 @@ class AvatarUpdateView(LoginRequiredMixin, View):
         user = request.user
         if 'avatar' in request.FILES:
             avatar_file = request.FILES['avatar']
-            print(f"DEBUG: Rasm qabul qilindi: {avatar_file.name} (Size: {avatar_file.size})")
+            old_avatar_name = user.avatar.name if user.avatar else None
+
+            # Cache muammosini oldini olish uchun har safar yangi, unikal fayl nomi beramiz.
+            ext = os.path.splitext(avatar_file.name)[1].lower() or '.jpg'
+            avatar_file.name = f'user_{user.id}_{uuid.uuid4().hex}{ext}'
+
             user.avatar = avatar_file
-            user.save()
-            print(f"DEBUG: User saqlandi. Avatar URL: {user.avatar.url}")
+            user.save(update_fields=['avatar'])
+
+            # Yangi avatar saqlangandan keyin eski faylni tozalash (agar mavjud bo'lsa)
+            if old_avatar_name and old_avatar_name != user.avatar.name:
+                user.avatar.storage.delete(old_avatar_name)
+
             messages.success(request, "Profil rasmi muvaffaqiyatli yangilandi.")
         else:
-            print("DEBUG: Rasm topilmadi request.FILES ichida.")
             messages.error(request, "Rasm tanlanmadi.")
         return redirect('profile')
 
