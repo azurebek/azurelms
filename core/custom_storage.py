@@ -8,7 +8,9 @@ class MediaStorage(S3Boto3Storage):
     """
     location = 'media'
     default_acl = 'public-read'
-    file_overwrite = False  # Bir xil nomli fayllar ustiga yozmaslik uchun
+    # file_overwrite=True: HeadObject so'rovini o'tkazib yuboradi (403 xatosini oldini oladi)
+    # Django o'zi fayl nomiga avtomat ravishda qo'shimcha qo'shadi, shuning uchun ustiga yozilmaydi
+    file_overwrite = True
     object_parameters = {
         'CacheControl': 'max-age=86400',
     }
