@@ -12,4 +12,5 @@ class MediaStorage(S3Boto3Storage):
     file_overwrite = False
     object_parameters = {
         'CacheControl': 'max-age=86400',
+        'ACL': 'public-read',
     }
