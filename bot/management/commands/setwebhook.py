@@ -18,6 +18,7 @@ class Command(BaseCommand):
 
     async def setup_webhook(self, webhook_url):
         bot = Bot(token=settings.TELEGRAM_BOT_TOKEN)
+        secret_token = getattr(settings, 'TELEGRAM_WEBHOOK_SECRET', None)
         
         self.stdout.write(f"Setting webhook to: {webhook_url}")
         
@@ -30,7 +31,16 @@ class Command(BaseCommand):
                 
             # Set new webhook
             # We add drop_pending_updates=True to ignore old messages while testing
-            await bot.set_webhook(url=webhook_url, drop_pending_updates=True)
+            set_kwargs = {
+                "url": webhook_url,
+                "drop_pending_updates": True,
+            }
+            if secret_token:
+                set_kwargs["secret_token"] = secret_token
+            else:
+                self.stdout.write(self.style.WARNING("TELEGRAM_WEBHOOK_SECRET topilmadi. Webhook himoyasi zaif bo'ladi."))
+
+            await bot.set_webhook(**set_kwargs)
             self.stdout.write(self.style.SUCCESS(f'Successfully set webhook to {webhook_url}'))
             
         except Exception as e:
