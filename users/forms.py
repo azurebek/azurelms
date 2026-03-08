@@ -11,6 +11,10 @@ class CustomUserCreationForm(UserCreationForm):
         'class': 'form-control',
         'placeholder': 'Familiyangiz'
     }))
+    username = forms.CharField(max_length=150, required=True, widget=forms.TextInput(attrs={
+        'class': 'form-control',
+        'placeholder': 'Foydalanuvchi nomi'
+    }))
     email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={
         'class': 'form-control',
         'placeholder': 'Email manzilingiz'
@@ -22,11 +26,10 @@ class CustomUserCreationForm(UserCreationForm):
 
     class Meta(UserCreationForm.Meta):
         model = CustomUser
-        fields = ('first_name', 'last_name', 'email', 'phone_number',)
+        fields = ('first_name', 'last_name', 'username', 'email', 'phone_number',)
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.username = self.cleaned_data['email']  # Emailni username sifatida saqlaymiz
         user.first_name = self.cleaned_data['first_name']
         user.last_name = self.cleaned_data['last_name']
         user.email = self.cleaned_data['email']

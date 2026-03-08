@@ -133,7 +133,7 @@
                     <button class="btn btn-light dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown">
                         <div class="avatar avatar-sm">
                             {% if user.avatar %}
-                            <img src="{{ user.avatar.url }}?t={{ user.date_joined|date:'U' }}" alt="{{ user.first_name }}">
+                            <img src="{{ user.avatar.url }}?t={% now 'U' %}" alt="{{ user.first_name }}">
                             {% else %}
                             <span>{{ user.first_name|default:"U"|slice:":1" }}{{ user.last_name|default:"U"|slice:":1" }}</span>
                             {% endif %}
