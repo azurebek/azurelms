@@ -87,5 +87,15 @@ def trigger_azure_ai(sender, instance, created, **kwargs):
                         context_lesson_id=context_lesson_id
                     )
                 except Exception as e:
-                    # Celery vaqtincha ishlamasa ham user xabari saqlanib qolishi kerak.
-                    print(f"Celery dispatch error (AI task skipped): {e}")
+                    # Celery vaqtincha ishlamasa ham user xabari saqlanib qolishi va AI javob qaytishi kerak.
+                    print(f"Celery dispatch error. Falling back to local thread: {e}")
+                    threading.Thread(
+                        target=generate_ai_response.run,
+                        kwargs={
+                            "room_id": instance.room.id,
+                            "student_id": student_id,
+                            "user_question": user_question,
+                            "context_lesson_id": context_lesson_id,
+                        },
+                        daemon=True,
+                    ).start()
