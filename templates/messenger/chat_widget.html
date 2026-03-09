@@ -5,7 +5,7 @@
         <i class="bi bi-chevron-up" id="messenger-toggle-icon"></i>
     </div>
     
-    <div class="messenger-body">
+    <div class="messenger-body" style="display: none;">
         <!-- Tabs -->
         <ul class="nav nav-tabs nav-fill border-bottom-0 bg-light" id="chatTabs" role="tablist">
             <li class="nav-item" role="presentation">
@@ -20,9 +20,9 @@
         </ul>
         
         <!-- Tab Panes -->
-        <div class="tab-content bg-white flex-grow-1 d-flex" id="chatTabsContent">
+        <div class="tab-content bg-white" id="chatTabsContent">
             <!-- Universal Chat Container -->
-            <div class="chat-messages-container p-3 w-100" id="main-chat-window" style="height: 100%; overflow-y: auto; background-color: #f8f9fa;">
+            <div class="chat-messages-container p-3" id="main-chat-window" style="height: 300px; overflow-y: auto; background-color: #f8f9fa;">
                 <div class="text-center text-muted small mt-4" id="chat-loading">Xonalar yuklanmoqda...</div>
             </div>
         </div>
@@ -35,7 +35,6 @@
             </button>
         </div>
     </div>
-    <div id="messenger-resize-handle" title="O'lchamni o'zgartirish"></div>
 </div>
 
 <style>
@@ -43,38 +42,19 @@
         position: fixed;
         bottom: 20px;
         right: 20px;
-        width: min(520px, calc(100vw - 32px));
+        width: 350px;
         background: white;
         border-radius: 12px;
         overflow: hidden;
         z-index: 1050;
         transition: all 0.3s ease;
         box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-        min-width: 380px;
-        max-width: 720px;
-        height: auto;
-        min-height: 0;
-    }
-
-    #azure-messenger-widget.is-open {
-        height: min(640px, 88vh);
-        min-height: 480px;
     }
     
     .messenger-header {
         cursor: pointer;
         border-top-left-radius: 12px;
         border-top-right-radius: 12px;
-    }
-
-    .messenger-body {
-        display: none;
-        flex-direction: column;
-        height: calc(100% - 58px);
-    }
-
-    #azure-messenger-widget.is-open .messenger-body {
-        display: flex;
     }
     
     #chatTabs .nav-link {
@@ -123,40 +103,6 @@
         box-shadow: none;
         border: 1px solid var(--lms-primary);
     }
-
-    #messenger-resize-handle {
-        position: absolute;
-        left: 0;
-        bottom: 0;
-        width: 18px;
-        height: 18px;
-        cursor: nesw-resize;
-        background: linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.18) 50%);
-        z-index: 2;
-        display: none;
-    }
-
-    #azure-messenger-widget.is-open #messenger-resize-handle {
-        display: block;
-    }
-
-    @media (max-width: 768px) {
-        #azure-messenger-widget {
-            width: calc(100vw - 16px);
-            right: 8px;
-            bottom: 8px;
-            min-width: 0;
-            max-width: calc(100vw - 16px);
-            height: auto;
-        }
-        #azure-messenger-widget.is-open {
-            height: min(560px, 86vh);
-            min-height: 360px;
-        }
-        #messenger-resize-handle {
-            display: none;
-        }
-    }
 </style>
 
 <script>
@@ -165,36 +111,17 @@
     let availableRooms = [];
     const userId = "{{ request.user.id }}";
     const userName = "{{ request.user.first_name|default:request.user.username }}";
-    const widget = document.getElementById('azure-messenger-widget');
-    const resizeHandle = document.getElementById('messenger-resize-handle');
-    let isResizing = false;
-    let startX = 0;
-    let startY = 0;
-    let startWidth = 0;
-    let startHeight = 0;
-
-    function applySavedWidgetSize() {
-        try {
-            const savedWidth = parseInt(localStorage.getItem('messenger_widget_width') || '', 10);
-            const savedHeight = parseInt(localStorage.getItem('messenger_widget_height') || '', 10);
-            if (savedWidth && savedHeight && window.innerWidth > 768) {
-                widget.style.width = `${savedWidth}px`;
-                widget.style.height = `${savedHeight}px`;
-            }
-        } catch (e) {}
-    }
 
     function toggleMessenger() {
+        const body = document.querySelector('.messenger-body');
         const icon = document.getElementById('messenger-toggle-icon');
-        if (!widget.classList.contains('is-open')) {
-            widget.classList.add('is-open');
-            applySavedWidgetSize();
+        if (body.style.display === 'none') {
+            body.style.display = 'block';
             icon.classList.remove('bi-chevron-up');
             icon.classList.add('bi-chevron-down');
             if (availableRooms.length === 0) fetchRooms();
         } else {
-            widget.classList.remove('is-open');
-            widget.style.height = '';
+            body.style.display = 'none';
             icon.classList.remove('bi-chevron-down');
             icon.classList.add('bi-chevron-up');
         }
@@ -340,38 +267,5 @@
             sendMessage();
         }
     });
-
-    // Desktop resize (bottom-left handle)
-    if (resizeHandle && widget) {
-        resizeHandle.addEventListener('mousedown', function(e) {
-            if (window.innerWidth <= 768 || !widget.classList.contains('is-open')) return;
-            isResizing = true;
-            startX = e.clientX;
-            startY = e.clientY;
-            startWidth = widget.offsetWidth;
-            startHeight = widget.offsetHeight;
-            document.body.style.userSelect = 'none';
-            e.preventDefault();
-        });
-
-        window.addEventListener('mousemove', function(e) {
-            if (!isResizing) return;
-
-            const width = Math.min(720, Math.max(360, startWidth - (e.clientX - startX)));
-            const height = Math.min(window.innerHeight - 24, Math.max(420, startHeight + (e.clientY - startY)));
-            widget.style.width = `${width}px`;
-            widget.style.height = `${height}px`;
-        });
-
-        window.addEventListener('mouseup', function() {
-            if (!isResizing) return;
-            isResizing = false;
-            document.body.style.userSelect = '';
-            try {
-                localStorage.setItem('messenger_widget_width', String(widget.offsetWidth));
-                localStorage.setItem('messenger_widget_height', String(widget.offsetHeight));
-            } catch (e) {}
-        });
-    }
 
 </script>
