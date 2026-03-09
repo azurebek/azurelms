@@ -21,5 +21,5 @@ COPY . .
 # Statik fayllarni yig'ish (Baza ulanishi talab etilmasligi uchun dummy DATABASE_URL beramiz)
 RUN DATABASE_URL=sqlite:///:memory: SECRET_KEY=build_pure_secret python manage.py collectstatic --noinput
 
-# 7. Django-ni yoqish (App Platform buni o'zi boshqaradi, lekin bu yerda turishi zarar qilmaydi)
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "core.wsgi:application"]
+# 7. ASGI server (WebSocket qo'llab-quvvatlashi uchun)
+CMD ["daphne", "-b", "0.0.0.0", "-p", "8080", "core.asgi:application"]
