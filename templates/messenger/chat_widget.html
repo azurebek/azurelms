@@ -77,6 +77,8 @@
         border-radius: 16px;
         font-size: 0.9rem;
         word-wrap: break-word;
+        white-space: pre-wrap;
+        line-height: 1.45;
     }
     
     .msg-sent {
@@ -196,17 +198,26 @@
         if (emptyState) emptyState.remove();
 
         const isMe = msg.sender_id == userId;
+        const safeText = formatMessageText(msg.text || '');
         const msgHtml = `
             <div class="d-flex flex-column align-items-${isMe ? 'end' : 'start'} mb-3">
                 ${!isMe ? `<span class="small text-muted mb-1 ms-1">${msg.sender_name}</span>` : ''}
                 <div class="msg-bubble ${isMe ? 'msg-sent' : 'msg-rcvd'} shadow-sm">
-                    ${msg.text}
+                    ${safeText}
                 </div>
                 <span class="msg-meta mt-1 mx-1 text-muted">${msg.created_at || 'Hozirgina'}</span>
             </div>
         `;
         win.insertAdjacentHTML('beforeend', msgHtml);
         scrollToBottom();
+    }
+
+    function formatMessageText(text) {
+        const escaped = text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+        return escaped.replace(/\n/g, '<br>');
     }
 
     function scrollToBottom() {
