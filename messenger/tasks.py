@@ -66,7 +66,7 @@ def generate_ai_response(room_id, student_id, user_question, context_lesson_id=N
 
         raw_models = os.getenv(
             "GEMINI_MODEL_FALLBACKS",
-            "gemini-3-flash,gemini-2.5-flash-lite,gemini-2.5-flash,gemini-2.5-pro"
+            "gemini-3-flash,gemini-2.5-flash-lite,gemini-2.5-flash,gemini-2.5-pro,gemini-3.1-pro-preview,gemini-3.1-pro,gemini-3-flash-lite"
         )
         model_candidates = [m.strip() for m in raw_models.split(",") if m.strip()]
         if not model_candidates:
