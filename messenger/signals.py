@@ -79,9 +79,13 @@ def trigger_azure_ai(sender, instance, created, **kwargs):
             context_lesson_id = instance.context_lesson.id if instance.context_lesson else None
             
             if student_id:
-                generate_ai_response.delay(
-                    room_id=instance.room.id,
-                    student_id=student_id,
-                    user_question=user_question,
-                    context_lesson_id=context_lesson_id
-                )
+                try:
+                    generate_ai_response.delay(
+                        room_id=instance.room.id,
+                        student_id=student_id,
+                        user_question=user_question,
+                        context_lesson_id=context_lesson_id
+                    )
+                except Exception as e:
+                    # Celery vaqtincha ishlamasa ham user xabari saqlanib qolishi kerak.
+                    print(f"Celery dispatch error (AI task skipped): {e}")

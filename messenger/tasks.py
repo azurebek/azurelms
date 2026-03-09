@@ -11,7 +11,7 @@ from courses.models import Lesson
 
 User = get_user_model()
 
-@shared_task
+@shared_task(ignore_result=True)
 def generate_ai_response(room_id, student_id, user_question, context_lesson_id=None):
     try:
         room = ChatRoom.objects.get(id=room_id)
