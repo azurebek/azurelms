@@ -11,20 +11,27 @@ from courses.models import Lesson
 
 User = get_user_model()
 
+
 @shared_task(ignore_result=True)
 def generate_ai_response(room_id, student_id, user_question, context_lesson_id=None):
+    room = ChatRoom.objects.filter(id=room_id).first()
+    if not room:
+        return
+
+    context_lesson = None
     try:
-        room = ChatRoom.objects.get(id=room_id)
         student = User.objects.get(id=student_id)
-        
-        context_lesson = None
+
         if context_lesson_id:
             context_lesson = Lesson.objects.get(id=context_lesson_id)
-            
+
         # --- 1. Short-Term Memory ---
         recent_msgs = Message.objects.filter(room=room).order_by('-created_at')[:10]
-        dialogue = "\n".join([f"{msg.sender.username if msg.sender else 'Azure AI'}: {msg.text}" for msg in reversed(recent_msgs)])
-        
+        dialogue = "\n".join([
+            f"{msg.sender.username if msg.sender else 'Azure AI'}: {msg.text}"
+            for msg in reversed(recent_msgs)
+        ])
+
         # --- 2. Long-Term Memory ---
         long_term_memory, _ = AILongTermMemory.objects.get_or_create(user=student)
 
@@ -32,12 +39,14 @@ def generate_ai_response(room_id, student_id, user_question, context_lesson_id=N
         if context_lesson and context_lesson.content:
             context_info = f"\nO'quvchi hozir o'qiyotgan dars matni: {context_lesson.content}"
 
-        # Yangi google-genai SDK orqali ulanish
-        client = genai.Client(api_key=settings.GEMINI_API_KEY)
+        api_key = getattr(settings, 'GEMINI_API_KEY', None)
+        if not api_key:
+            raise ValueError("GEMINI_API_KEY topilmadi")
+        client = genai.Client(api_key=api_key)
 
         # --- Security: AI Memory Poisoning Prevention ---
         safe_user_question = user_question.replace("<SAVE_MEMORY>", "").replace("</SAVE_MEMORY>", "")
-        
+
         prompt = (
             "Sen AzureLMS platformasining doimiy AI o'qituvchi-yordamchisisan. Isming: Azure AI. "
             "Sening maqsading: o'quvchining savolini tez, aniq va amaliy yechim bilan hal qilish. "
@@ -62,13 +71,27 @@ def generate_ai_response(room_id, student_id, user_question, context_lesson_id=N
             f"O'quvchi xabari:\n+++++\n{safe_user_question}\n+++++"
         )
 
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=prompt,
-        )
+        model_candidates = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-1.5-flash-8b']
+        response = None
+        last_error = None
+
+        for model_name in model_candidates:
+            try:
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                )
+                if response and getattr(response, 'text', None):
+                    break
+            except Exception as model_error:
+                last_error = model_error
+
+        if not response or not getattr(response, 'text', None):
+            raise RuntimeError(f"Model javob bermadi. Last error: {last_error}")
+
         ai_reply_raw = response.text
         ai_reply = ai_reply_raw
-        
+
         # --- 3. Parse <SAVE_MEMORY> tag ---
         memory_match = re.search(r'<SAVE_MEMORY>(.*?)</SAVE_MEMORY>', ai_reply_raw, re.DOTALL)
         if memory_match:
@@ -78,7 +101,7 @@ def generate_ai_response(room_id, student_id, user_question, context_lesson_id=N
             ai_reply = ai_reply_raw.replace(memory_match.group(0), "").strip()
 
     except Exception as e:
-        print(f"\n❌ GEMINI XATOSI: {e}\n")
+        print(f"\nGEMINI XATOSI: {e}\n")
         ai_reply = "Kechirasiz, hozircha ulanishda xatolik yuz berdi. Iltimos, birozdan so'ng qayta urinib ko'ring."
 
     ai_message = Message.objects.create(
@@ -87,7 +110,7 @@ def generate_ai_response(room_id, student_id, user_question, context_lesson_id=N
         is_ai_response=True,
         context_lesson=context_lesson
     )
-    
+
     # --- 4. WebSocket Broadcast ---
     channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)(
