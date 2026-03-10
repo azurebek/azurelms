@@ -9,14 +9,15 @@ import datetime
 import base64
 import calendar
 from .forms import CustomUserCreationForm
-from .models import CustomUser
-from django.shortcuts import redirect, render
+from .models import CustomUser, Notification
+from django.shortcuts import redirect, render, get_object_or_404
 from cohorts.models import Enrollment, Attendance, Cohort
 from courses.models import Certificate as CourseCertificate
 from gamification.models import EarnedBadge
 from django.core.signing import TimestampSigner
 from django.conf import settings
 from courses.models import Lesson
+from .notification_service import ensure_subscription_notifications_for_user
 import os
 import uuid
 
@@ -261,6 +262,35 @@ class LeaderboardView(LoginRequiredMixin, TemplateView):
         context['active_nav'] = 'leaderboard'
         context.update(get_cohort_leaderboard_context(self.request.user))
         return context
+
+
+class NotificationCenterView(LoginRequiredMixin, TemplateView):
+    template_name = "users/notifications.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        ensure_subscription_notifications_for_user(self.request.user)
+        all_notifications = Notification.objects.filter(recipient=self.request.user).order_by("-created_at")
+        context["active_nav"] = "notifications"
+        context["unread_notifications"] = all_notifications.filter(is_read=False)
+        context["read_notifications"] = all_notifications.filter(is_read=True)[:50]
+        return context
+
+
+class NotificationOpenView(LoginRequiredMixin, View):
+    def get(self, request, notification_id):
+        notification = get_object_or_404(Notification, id=notification_id, recipient=request.user)
+        notification.mark_read()
+        return redirect(notification.url or "notifications")
+
+
+class NotificationReadAllView(LoginRequiredMixin, View):
+    def post(self, request):
+        Notification.objects.filter(recipient=request.user, is_read=False).update(
+            is_read=True,
+            read_at=timezone.now(),
+        )
+        return redirect("notifications")
 
 
 class UserProfileView(LoginRequiredMixin, TemplateView):

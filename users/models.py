@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.conf import settings
+from django.utils import timezone
 
 
 class CustomUser(AbstractUser):
@@ -51,3 +53,77 @@ class CustomUser(AbstractUser):
     class Meta:
         verbose_name = "Foydalanuvchi"
         verbose_name_plural = "Foydalanuvchilar"
+
+
+class Notification(models.Model):
+    CATEGORY_MANUAL = "manual"
+    CATEGORY_SUBSCRIPTION = "subscription"
+    CATEGORY_SYSTEM = "system"
+    CATEGORY_CHOICES = (
+        (CATEGORY_MANUAL, "Manual"),
+        (CATEGORY_SUBSCRIPTION, "Subscription"),
+        (CATEGORY_SYSTEM, "System"),
+    )
+
+    recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications")
+    title = models.CharField(max_length=180, blank=True, default="")
+    message = models.TextField()
+    icon = models.CharField(max_length=40, default="bell")
+    url = models.CharField(max_length=255, blank=True, default="")
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default=CATEGORY_SYSTEM)
+    external_key = models.CharField(max_length=120, blank=True, null=True)
+    is_read = models.BooleanField(default=False)
+    read_at = models.DateTimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Bildirishnoma"
+        verbose_name_plural = "Bildirishnomalar"
+        unique_together = ("recipient", "external_key")
+
+    def __str__(self):
+        return f"{self.recipient} | {self.message[:40]}"
+
+    def mark_read(self):
+        if not self.is_read:
+            self.is_read = True
+            self.read_at = timezone.now()
+            self.save(update_fields=["is_read", "read_at"])
+
+
+class NotificationBroadcast(models.Model):
+    TARGET_ALL = "all"
+    TARGET_USERS = "users"
+    TARGET_COHORTS = "cohorts"
+    TARGET_CHOICES = (
+        (TARGET_ALL, "Barchaga"),
+        (TARGET_USERS, "Tanlangan foydalanuvchilarga"),
+        (TARGET_COHORTS, "Tanlangan cohort a'zolariga"),
+    )
+
+    title = models.CharField(max_length=180, blank=True, default="")
+    message = models.TextField()
+    icon = models.CharField(max_length=40, default="megaphone")
+    url = models.CharField(max_length=255, blank=True, default="")
+    target_type = models.CharField(max_length=20, choices=TARGET_CHOICES, default=TARGET_ALL)
+    recipients = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name="manual_notification_broadcasts")
+    cohorts = models.ManyToManyField("cohorts.Cohort", blank=True, related_name="notification_broadcasts")
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="created_notification_broadcasts",
+    )
+    is_sent = models.BooleanField(default=False)
+    sent_at = models.DateTimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Bildirishnoma jo'natish"
+        verbose_name_plural = "Bildirishnoma jo'natishlar"
+
+    def __str__(self):
+        return f"{self.get_target_type_display()} | {self.message[:50]}"

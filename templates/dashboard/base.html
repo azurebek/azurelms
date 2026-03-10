@@ -48,6 +48,15 @@
                         <span>Davomat</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if active_nav == 'notifications' %}active{% endif %}" href="{% url 'notifications' %}">
+                        <i class="bi bi-bell"></i>
+                        <span>Bildirishnomalar</span>
+                        {% if unread_notifications_count %}
+                        <span class="badge bg-danger">{{ unread_notifications_count }}</span>
+                        {% endif %}
+                    </a>
+                </li>
                 {% if user.is_staff or user.is_superuser %}
                 <li class="nav-item">
                     <a class="nav-link {% if active_nav == 'attendance_manage' %}active{% endif %}" href="{% url 'attendance_manage' %}">
@@ -136,9 +145,10 @@
                     <li class="dropdown-header">Bildirishnomalar</li>
                     {% for notification in notifications %}
                     <li>
-                        <a class="dropdown-item {% if not notification.is_read %}unread{% endif %}" href="{{ notification.url }}">
+                        <a class="dropdown-item {% if not notification.is_read %}unread{% endif %}" href="{% url 'notification_open' notification.id %}">
                             <i class="bi bi-{{ notification.icon }}"></i>
                             <div>
+                                {% if notification.title %}<p class="mb-1 fw-semibold">{{ notification.title }}</p>{% endif %}
                                 <p>{{ notification.message }}</p>
                                 <small>{{ notification.created_at|timesince }} oldin</small>
                             </div>
@@ -147,6 +157,8 @@
                     {% empty %}
                     <li class="dropdown-item text-center text-muted">Bildirishnomalar yo'q</li>
                     {% endfor %}
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-center fw-medium" href="{% url 'notifications' %}">Barchasini ko'rish</a></li>
                 </ul>
                 
                 <div class="dropdown">
