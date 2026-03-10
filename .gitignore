@@ -48,6 +48,8 @@ static_root/
 .env
 .env.local
 .env.production
+.env.local.example
+.env.production.example
 .env.*.local
 
 # ========================

@@ -11,7 +11,7 @@ def telegram_webhook(request):
     """
     Webhook endpoint for Telegram bot.
     """
-    # Simple security check to make sure the request comes from Telegram
+    # Simple security check
     if request.headers.get('content-type') != 'application/json':
         return HttpResponseForbidden()
         
@@ -19,16 +19,21 @@ def telegram_webhook(request):
     secret_token = request.headers.get('X-Telegram-Bot-Api-Secret-Token')
     expected_token = getattr(settings, 'TELEGRAM_WEBHOOK_SECRET', None)
     
-    if not expected_token or secret_token != expected_token:
+    # Localda webhook test qilinsa, flag orqali vaqtinchalik yumshatish mumkin.
+    allow_insecure_local = (
+        getattr(settings, "APP_ENV", "production") == "local"
+        and getattr(settings, "TELEGRAM_ALLOW_INSECURE_LOCAL_WEBHOOK", False)
+    )
+    if allow_insecure_local and not secret_token:
+        print("Local mode: skipping webhook secret token check.")
+    elif not expected_token or secret_token != expected_token:
         print(f"Unauthorized Webhook Access! Token mismatch. Received: {secret_token}")
         return HttpResponseForbidden()
         
     try:
-        # Get the update from request
         update_dict = json.loads(request.body.decode('utf-8'))
         update = types.Update(**update_dict)
         
-        # Process the update asynchronously using async_to_sync
         async def process_update():
             await dp.feed_update(bot, update)
             
@@ -37,5 +42,4 @@ def telegram_webhook(request):
         return JsonResponse({"status": "ok"})
     except Exception as e:
         print(f"Error processing update: {e}")
-        # Security: Do not expose detailed internal stack traces/errors to clients.
         return JsonResponse({"error": "Internal server error"}, status=500)

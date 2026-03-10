@@ -10,6 +10,13 @@ class Command(BaseCommand):
         parser.add_argument('url', type=str, help='The base URL (e.g. https://xyz.ngrok-free.app)')
 
     def handle(self, *args, **options):
+        if getattr(settings, "TELEGRAM_MODE", "webhook") != "webhook":
+            self.stdout.write(
+                self.style.WARNING(
+                    "TELEGRAM_MODE webhook emas. Bu komandani staging/production uchun ishlating."
+                )
+            )
+
         base_url = options['url'].rstrip('/')
         webhook_url = f"{base_url}/bot/webhook/"
         

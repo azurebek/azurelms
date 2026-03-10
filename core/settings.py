@@ -13,41 +13,74 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 import os
 import sys
+import dj_database_url
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-from dotenv import load_dotenv
-load_dotenv(os.path.join(BASE_DIR, '.env'))
 
-GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
-TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', 'YOUR_BOT_TOKEN_HERE')
-BOT_USERNAME = os.getenv('BOT_USERNAME', 'AzureLMS_bot')
-TELEGRAM_WEBHOOK_SECRET = os.getenv('TELEGRAM_WEBHOOK_SECRET', 'YOUR_SECRET_TOKEN_HERE')
+def env_bool(name, default=False):
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def env_list(name, default=None):
+    value = os.getenv(name, "")
+    if not value.strip():
+        return default or []
+    return [item.strip() for item in value.split(",") if item.strip()]
+
+
+# Load base env, then environment-specific file.
+load_dotenv(BASE_DIR / ".env")
+_raw_env = os.getenv("APP_ENV", "").strip().lower()
+if not _raw_env:
+    _raw_env = "local" if env_bool("LOCAL_DEV", False) else "production"
+APP_ENV = _raw_env
+ENV_FILE = BASE_DIR / f".env.{APP_ENV}"
+if ENV_FILE.exists():
+    load_dotenv(ENV_FILE, override=True)
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "YOUR_BOT_TOKEN_HERE")
+BOT_USERNAME = os.getenv("BOT_USERNAME", "AzureLMS_bot")
+TELEGRAM_WEBHOOK_SECRET = os.getenv("TELEGRAM_WEBHOOK_SECRET", "YOUR_SECRET_TOKEN_HERE")
+TELEGRAM_MODE = os.getenv("TELEGRAM_MODE", "polling" if APP_ENV == "local" else "webhook").strip().lower()
+TELEGRAM_ALLOW_INSECURE_LOCAL_WEBHOOK = env_bool("TELEGRAM_ALLOW_INSECURE_LOCAL_WEBHOOK", False)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
+DEBUG = env_bool("DEBUG", APP_ENV == "local")
 
 # Domain sozlamalari
-APP_DOMAIN = os.getenv('APP_DOMAIN', 'azurelms-app-aoib9.ondigitalocean.app')
-ALLOWED_HOSTS = [APP_DOMAIN, 'azurebek.me', 'localhost', '127.0.0.1', '*']
+APP_DOMAIN = os.getenv("APP_DOMAIN", "azurelms-app-aoib9.ondigitalocean.app")
+default_allowed_hosts = [APP_DOMAIN, "azurebek.me", "localhost", "127.0.0.1"]
+if APP_ENV == "local":
+    default_allowed_hosts.append("*")
+ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", default_allowed_hosts)
 
 # CSRF xavfsizligi uchun ishonchli domenlar (bu juda muhim!)
-CSRF_TRUSTED_ORIGINS = [f'https://{APP_DOMAIN}', 'https://azurebek.me', 'http://localhost', 'http://127.0.0.1']
+CSRF_TRUSTED_ORIGINS = env_list(
+    "CSRF_TRUSTED_ORIGINS",
+    [f"https://{APP_DOMAIN}", "https://azurebek.me", "http://localhost", "http://127.0.0.1"],
+)
 
 # Security settings (Enforce HTTPS in production)
-if not DEBUG:
+SECURITY_STRICT = env_bool("SECURITY_STRICT", APP_ENV != "local")
+if SECURITY_STRICT:
     SECURE_SSL_REDIRECT = True
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SECURE_HSTS_SECONDS = 31536000 # 1 year
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
 
@@ -91,7 +124,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True  # Note: Adjust for strict origin checking in production.
+CORS_ALLOW_ALL_ORIGINS = env_bool("CORS_ALLOW_ALL_ORIGINS", APP_ENV == "local")
 
 ROOT_URLCONF = "core.urls"
 
@@ -113,21 +146,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "core.wsgi.application"
 
-
-import os
-import dj_database_url
-import logging
-
 # Database configuration
-DATABASE_URL = os.getenv('DATABASE_URL')
+DATABASE_URL = os.getenv("DATABASE_URL")
 # Individual variables (Manual entry)
-DB_NAME = os.getenv('DB_NAME')
-DB_USER = os.getenv('DB_USER')
-DB_PASSWORD = os.getenv('DB_PASSWORD')
-DB_HOST = os.getenv('DB_HOST')
-DB_PORT = os.getenv('DB_PORT', '25060')
+DB_NAME = os.getenv("DB_NAME")
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+DB_HOST = os.getenv("DB_HOST")
+DB_PORT = os.getenv("DB_PORT", "25060")
 
-IS_LOCAL = os.getenv('LOCAL_DEV', 'false').lower() == 'true'
+IS_LOCAL = APP_ENV == "local"
 
 # --- DIAGNOSTICS LOG ---
 print("--- [SYSTEM] DATABASE VARS CHECK ---")
@@ -158,7 +186,7 @@ elif DATABASE_URL:
     # Fallback to DATABASE_URL if available
     DATABASE_URL = DATABASE_URL.strip().strip('"').strip("'")
     candidate_start = -1
-    for scheme in ['postgresql://', 'postgres://']:
+    for scheme in ["postgresql://", "postgres://"]:
         pos = DATABASE_URL.find(scheme)
         if pos != -1:
             candidate_start = pos
@@ -169,7 +197,7 @@ elif DATABASE_URL:
     DATABASES = {
         'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
     }
-elif not IS_LOCAL:
+elif APP_ENV == "production":
     # Default/Emergency production settings
     DATABASES = {
         'default': {
@@ -196,7 +224,16 @@ else:
 # Cache backend (DigitalOcean Valkey/Redis)
 VALKEY_URL = os.getenv('VALKEY_URL')
 REDIS_URL = os.getenv('REDIS_URL')
-CACHE_URL = VALKEY_URL or REDIS_URL
+REDIS_USER = os.getenv('REDIS_USER')
+REDIS_PASSWORD = os.getenv('REDIS_PASSWORD')
+REDIS_HOST = os.getenv('REDIS_HOST')
+REDIS_PORT = os.getenv('REDIS_PORT')
+
+REDIS_COMPONENT_URL = None
+if REDIS_USER and REDIS_PASSWORD and REDIS_HOST and REDIS_PORT:
+    REDIS_COMPONENT_URL = f"rediss://{REDIS_USER}:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/0"
+
+CACHE_URL = REDIS_COMPONENT_URL or VALKEY_URL or REDIS_URL
 
 if CACHE_URL:
     CACHES = {
@@ -205,6 +242,7 @@ if CACHE_URL:
             "LOCATION": CACHE_URL,
             "OPTIONS": {
                 "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "CONNECTION_POOL_KWARGS": {"ssl_cert_reqs": None},
             }
         }
     }
