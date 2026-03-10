@@ -1,0 +1,354 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Sozlamalar | AzureLMS{% endblock %}
+
+{% block dashboard_content %}
+<div class="row g-4">
+    <!-- Profile Card -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 text-center overflow-hidden h-100">
+            <!-- Header Background -->
+            <div style="height: 120px; background: linear-gradient(135deg, var(--lms-primary) 0%, var(--lms-primary-hover) 100%); position: relative;">
+                 <!-- Optional cover edit button -->
+                 <button class="btn btn-sm btn-light position-absolute top-0 end-0 m-2 rounded-circle shadow-sm" style="width:32px; height:32px; display:flex; align-items:center; justify-content:center;">
+                     <i class="bi bi-pencil"></i>
+                 </button>
+            </div>
+            
+            <div class="card-body px-4 pb-4" style="margin-top: -60px;">
+                <div class="position-relative d-inline-block mb-3">
+                    <div class="rounded-circle overflow-hidden shadow" style="width: 120px; height: 120px; border: 4px solid white; background-color: var(--lms-bg-white);">
+                        {% if user.avatar %}
+                            <!-- Avatar URL: {{ user.avatar.url }} -->
+                            <img src="{{ user.avatar.url }}?t={% now 'U' %}" alt="{{ user.get_full_name|default:user.username }}" class="w-100 h-100" style="object-fit: cover;">
+                        {% else %}
+                            <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-primary text-white display-4 fw-bold">
+                                {{ user.first_name|default:user.username|slice:":1"|upper }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <button class="btn btn-primary rounded-circle position-absolute bottom-0 end-0 shadow-sm" title="Rasmni o'zgartirish" data-bs-toggle="modal" data-bs-target="#avatarModal" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; transform: translate(-5px, -5px);">
+                        <i class="bi bi-camera"></i>
+                    </button>
+                </div>
+                
+                <h3 class="h5 fw-bold mb-1">{{ user.get_full_name|default:user.username }}</h3>
+                <p class="text-muted small mb-3">{{ user.email }}</p>
+                
+                {% if user.profile.is_premium %}
+                    <span class="badge bg-warning px-3 py-2 rounded-pill fw-medium mb-4"><i class="bi bi-star-fill me-1"></i> Premium a'zo</span>
+                {% else %}
+                    <span class="badge bg-secondary bg-opacity-10 text-secondary px-3 py-2 rounded-pill fw-medium mb-4">Oddiy a'zo</span>
+                {% endif %}
+                
+                <!-- Quick Stats -->
+                <div class="d-flex justify-content-center gap-4 mb-4 border-top border-bottom py-3">
+                    <div class="text-center">
+                        <div class="h5 fw-bold mb-0">{{ active_courses_count|default:"0" }}</div>
+                        <div class="small text-muted">Kurslar</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="h5 fw-bold mb-0">{{ certificates_count|default:"0" }}</div>
+                        <div class="small text-muted">Sertifikatlar</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="h5 fw-bold mb-0">{{ total_hours|default:"0" }}</div>
+                        <div class="small text-muted">Soatlar</div>
+                    </div>
+                </div>
+                
+                <!-- Info List -->
+                <div class="d-flex flex-column gap-3 text-start mt-2">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="text-muted rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                            <i class="bi bi-calendar3"></i>
+                        </div>
+                        <div>
+                            <div class="small text-muted lh-1">A'zo bo'lgan sana</div>
+                            <div class="fw-medium">{{ user.date_joined|date:"j F, Y" }}</div>
+                        </div>
+                    </div>
+                    
+                    {% if user.profile.address %}
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="text-muted rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                            <i class="bi bi-geo-alt"></i>
+                        </div>
+                        <div>
+                            <div class="small text-muted lh-1">Manzil</div>
+                            <div class="fw-medium line-clamp-1">{{ user.profile.address }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if user.phone_number %}
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="text-muted rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                            <i class="bi bi-telephone"></i>
+                        </div>
+                        <div>
+                            <div class="small text-muted lh-1">Telefon</div>
+                            <div class="fw-medium">{{ user.phone_number }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Profile Form -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-header bg-transparent border-0 pt-4 pb-0 px-4">
+                <h3 class="h5 fw-bold mb-1">Shaxsiy ma'lumotlar</h3>
+                <p class="text-muted small">Hisobingiz ma'lumotlarini yangilang</p>
+            </div>
+            
+            <div class="card-body p-4 pt-3">
+                <form method="post" action="{% url 'settings' %}">
+                    {% csrf_token %}
+                    
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Ism</label>
+                            <input type="text" name="first_name" class="form-control" 
+                                   value="{{ user.first_name }}" placeholder="Ismingiz" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Familiya</label>
+                            <input type="text" name="last_name" class="form-control" 
+                                   value="{{ user.last_name }}" placeholder="Familiyangiz" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Email manzil</label>
+                            <input type="email" name="email" class="form-control" 
+                                   value="{{ user.email }}" placeholder="email@example.com" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Telefon raqam</label>
+                            <div class="input-group">
+                                <span class="input-group-text text-muted border-end-0">
+                                    <i class="bi bi-phone"></i>
+                                </span>
+                                <input type="tel" name="phone_number" class="form-control border-start-0 ps-0" 
+                                       value="{{ user.phone_number|default:'' }}" placeholder="+998 XX XXX XX XX">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Tug'ilgan sana</label>
+                            <div class="input-group">
+                                <span class="input-group-text text-muted border-end-0">
+                                    <i class="bi bi-calendar"></i>
+                                </span>
+                                <input type="date" name="birth_date" class="form-control border-start-0 ps-0" 
+                                       value="{{ user.profile.birth_date|date:'Y-m-d'|default:'' }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Jinsi</label>
+                            <select name="gender" class="form-select">
+                                <option value="">Tanlang</option>
+                                <option value="M" {% if user.profile.gender == 'M' %}selected{% endif %}>Erkak</option>
+                                <option value="F" {% if user.profile.gender == 'F' %}selected{% endif %}>Ayol</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-medium">Manzil</label>
+                            <div class="input-group">
+                                <span class="input-group-text text-muted border-end-0">
+                                    <i class="bi bi-geo-alt"></i>
+                                </span>
+                                <input type="text" name="address" class="form-control border-start-0 ps-0" 
+                                       value="{{ user.profile.address|default:'' }}" placeholder="To'liq manzilingiz">
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-medium">O'zingiz haqingizda (Bio)</label>
+                            <textarea name="bio" class="form-control" rows="4" 
+                                      placeholder="Qiziqishlaringiz, maqsadlaringiz haqida qisqacha ma'lumot...">{{ user.bio|default:'' }}</textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2 mt-4 pt-3 border-top justify-content-end">
+                        <button type="reset" class="btn btn-light px-4 rounded-pill">Bekor qilish</button>
+                        <button type="submit" name="update_profile" class="btn btn-primary px-4 rounded-pill fw-medium">
+                            <i class="bi bi-check-lg me-2"></i>Saqlash
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Change Password Card -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-header bg-transparent border-0 pt-4 pb-0 px-4">
+                <h3 class="h5 fw-bold mb-1">Parolni o'zgartirish</h3>
+                <p class="text-muted small">Hisobingiz xavfsizligi uchun kuchli parol tanlang</p>
+            </div>
+            
+            <div class="card-body p-4 pt-3">
+                <form method="post" action="{% url 'update_password' %}">
+                    {% csrf_token %}
+                    
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <label class="form-label fw-medium">Joriy parol</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-transparent text-muted border-end-0">
+                                    <i class="bi bi-key"></i>
+                                </span>
+                                <input type="password" name="old_password" class="form-control border-start-0 border-end-0 px-0" 
+                                       placeholder="Jori parolingizni kiriting" required>
+                                <button class="btn bg-transparent border border-start-0 text-muted password-toggle" type="button">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Yangi parol</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-transparent text-muted border-end-0">
+                                    <i class="bi bi-lock"></i>
+                                </span>
+                                <input type="password" name="new_password1" class="form-control border-start-0 border-end-0 px-0" 
+                                       placeholder="Yangi parol yarating" required>
+                                <button class="btn bg-transparent border border-start-0 text-muted password-toggle" type="button">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <div class="form-text small">Kamida 8 ta belgi, katta harf va raqam qatnashishi tavsiya etiladi.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Parolni tasdiqlang</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-transparent text-muted border-end-0">
+                                    <i class="bi bi-lock-fill"></i>
+                                </span>
+                                <input type="password" name="new_password2" class="form-control border-start-0 border-end-0 px-0" 
+                                       placeholder="Parolni qayta kiriting" required>
+                                <button class="btn bg-transparent border border-start-0 text-muted password-toggle" type="button">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end mt-4 pt-3 border-top">
+                        <button type="submit" name="change_password" class="btn btn-warning px-4 rounded-pill fw-medium">
+                            <i class="bi bi-shield-lock me-2"></i>Parolni yangilash
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        
+    </div>
+</div>
+
+<!-- Avatar Upload Modal -->
+<div class="modal fade" id="avatarModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold">Profil rasmini o'zgartirish</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'update_avatar' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="modal-body py-4">
+                    <div class="text-center mb-4">
+                        <div class="position-relative d-inline-block">
+                            <div class="rounded-circle overflow-hidden shadow-sm border border-2 border-light" style="width: 150px; height: 150px; background-color: var(--lms-gray-100);" id="avatarPreviewContainer">
+                                {% if user.avatar %}
+                                    <img src="{{ user.avatar.url }}" alt="Preview" id="avatarPreview" class="w-100 h-100 object-fit-cover">
+                                {% else %}
+                                    <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-primary text-white display-3 fw-bold" id="avatarInitials">
+                                        {{ user.first_name|default:user.username|slice:":1"|upper }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">Yangi rasm tanlang</label>
+                        <input type="file" name="avatar" class="form-control" accept="image/png, image/jpeg, image/jpg, image/webp" id="avatarInput" required>
+                        <div class="form-text small opacity-75">Tavsiya etilgan formatlar: JPG, PNG. Maksimal hajm: 2MB</div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Bekor qilish</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-medium">Joylash</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Password visibility toggle
+    document.querySelectorAll('.password-toggle').forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Find the input field relative to the button inside the input-group
+            const inputGroup = this.closest('.input-group');
+            if (inputGroup) {
+                const input = inputGroup.querySelector('input');
+                const icon = this.querySelector('i');
+                if (input && icon) {
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        icon.classList.remove('bi-eye');
+                        icon.classList.add('bi-eye-slash');
+                    } else {
+                        input.type = 'password';
+                        icon.classList.remove('bi-eye-slash');
+                        icon.classList.add('bi-eye');
+                    }
+                }
+            }
+        });
+    });
+    
+    // Avatar Preview inside Modal
+    const avatarInput = document.getElementById('avatarInput');
+    if (avatarInput) {
+        avatarInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                // Determine valid extensions and file size limit on client-side
+                const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+                if(!validTypes.includes(file.type)) {
+                    alert('Iltimos, faqat JPG, PNG yoki WEBP formatidagi rasm yuklang.');
+                    this.value = '';
+                    return;
+                }
+                if(file.size > 2 * 1024 * 1024) { // 2MB
+                    alert('Rasm hajmi qabul qilinadigan so\'ngi me\'yor (2MB) dan katta.');
+                    this.value = '';
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    const previewContainer = document.getElementById('avatarPreviewContainer');
+                    const previewImage = document.getElementById('avatarPreview');
+                    const initials = document.getElementById('avatarInitials');
+                    
+                    if (previewImage) {
+                        previewImage.src = evt.target.result;
+                    } else {
+                        // We have initials displaying, let's swap for image
+                        previewContainer.innerHTML = `<img src="${evt.target.result}" alt="Preview" id="avatarPreview" class="w-100 h-100 object-fit-cover">`;
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+</script>
+{% endblock %}

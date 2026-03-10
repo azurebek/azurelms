@@ -100,15 +100,39 @@ class PaymentReceipt(models.Model):
 
 
 class Attendance(models.Model):
-    # Davomat (Bot orqali avtomat to'ldiriladi)
+    # Davomat (manual yoki integratsiya orqali to'ldiriladi)
+    STATUS_PRESENT = 'present'
+    STATUS_ABSENT = 'absent'
+    STATUS_PARTIAL = 'partial'
+    STATUS_CHOICES = (
+        (STATUS_PRESENT, "Keldi"),
+        (STATUS_ABSENT, "Kelmadi"),
+        (STATUS_PARTIAL, "Qisman kirdi"),
+    )
+
     enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE, verbose_name="O'quvchi")
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, verbose_name="Dars")
-    date = models.DateField(auto_now_add=True)
-    is_present = models.BooleanField(default=True, verbose_name="Qatnashdi")
+    date = models.DateField(default=timezone.now)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_PRESENT, verbose_name="Davomat holati")
+    xp_awarded = models.PositiveIntegerField(default=0, verbose_name="Berilgan XP")
+    marked_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='marked_attendance_records',
+        verbose_name="Belgilagan xodim",
+    )
+    marked_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.enrollment.student.username} - {self.lesson.title}"
+        return f"{self.enrollment.student.username} - {self.lesson.title} - {self.get_status_display()}"
+
+    @property
+    def is_present(self):
+        return self.status in {self.STATUS_PRESENT, self.STATUS_PARTIAL}
 
     class Meta:
         verbose_name = "Davomat"
         verbose_name_plural = "Davomatlar"
+        unique_together = ('enrollment', 'lesson', 'date')

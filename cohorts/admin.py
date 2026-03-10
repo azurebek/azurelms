@@ -57,6 +57,6 @@ class PaymentReceiptAdmin(admin.ModelAdmin):
 
 @admin.register(Attendance)
 class AttendanceAdmin(admin.ModelAdmin):
-    list_display = ('enrollment', 'lesson', 'date', 'is_present')
-    list_filter = ('is_present', 'date', 'lesson')
+    list_display = ('enrollment', 'lesson', 'date', 'status', 'xp_awarded', 'marked_by', 'marked_at')
+    list_filter = ('status', 'date', 'lesson')
     search_fields = ('enrollment__student__username',)

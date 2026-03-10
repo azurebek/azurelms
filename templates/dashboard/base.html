@@ -43,6 +43,20 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link {% if active_nav == 'attendance_calendar' %}active{% endif %}" href="{% url 'attendance_calendar' %}">
+                        <i class="bi bi-calendar-check"></i>
+                        <span>Davomat</span>
+                    </a>
+                </li>
+                {% if user.is_staff or user.is_superuser %}
+                <li class="nav-item">
+                    <a class="nav-link {% if active_nav == 'attendance_manage' %}active{% endif %}" href="{% url 'attendance_manage' %}">
+                        <i class="bi bi-clipboard2-check"></i>
+                        <span>Davomat Boshqaruv</span>
+                    </a>
+                </li>
+                {% endif %}
+                <li class="nav-item">
                     <a class="nav-link {% if active_nav == 'certificates' %}active{% endif %}" href="{% url 'certificates' %}">
                         <i class="bi bi-award"></i>
                         <span>Sertifikatlar</span>
@@ -55,7 +69,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if active_nav == 'settings' %}active{% endif %}" href="#">
+                    <a class="nav-link {% if active_nav == 'settings' %}active{% endif %}" href="{% url 'settings' %}">
                         <i class="bi bi-gear"></i>
                         <span>Sozlamalar</span>
                     </a>
@@ -148,7 +162,7 @@
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><a class="dropdown-item" href="{% url 'profile' %}"><i class="bi bi-person me-2"></i>Profil</a></li>
-                        <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Sozlamalar</a></li>
+                        <li><a class="dropdown-item" href="{% url 'settings' %}"><i class="bi bi-gear me-2"></i>Sozlamalar</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
                             <form action="{% url 'logout' %}" method="post" class="d-inline">

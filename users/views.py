@@ -1,19 +1,22 @@
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView, TemplateView, ListView, View
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth import update_session_auth_hash
 from django.utils import timezone
+from django.db import transaction
 import datetime
 import base64
+import calendar
 from .forms import CustomUserCreationForm
 from .models import CustomUser
 from django.shortcuts import redirect, render
-from cohorts.models import Enrollment
+from cohorts.models import Enrollment, Attendance, Cohort
 from courses.models import Certificate as CourseCertificate
 from gamification.models import EarnedBadge
 from django.core.signing import TimestampSigner
 from django.conf import settings
+from courses.models import Lesson
 import os
 import uuid
 
@@ -47,14 +50,27 @@ class RegisterView(CreateView):
         return super().form_invalid(form)
 
 
-class ProfileView(LoginRequiredMixin, UpdateView):
+class SettingsView(LoginRequiredMixin, UpdateView):
     model = CustomUser
-    template_name = 'users/profile.html'
+    template_name = 'users/settings.html'
     fields = ['first_name', 'last_name', 'phone_number', 'bio']
-    success_url = reverse_lazy('profile')
+    success_url = reverse_lazy('settings')
 
     def get_object(self, queryset=None):
         return self.request.user
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        context['active_nav'] = 'settings'
+        context['active_courses_count'] = user.enrollments.filter(status='active').count()
+        context['certificates_count'] = CourseCertificate.objects.filter(student=user).count()
+        passed_lessons_count = Attendance.objects.filter(
+            enrollment__student=user,
+            status__in=[Attendance.STATUS_PRESENT, Attendance.STATUS_PARTIAL],
+        ).count()
+        context['total_hours'] = passed_lessons_count * 2
+        return context
 
     def form_valid(self, form):
         messages.success(self.request, "Profil ma'lumotlari muvaffaqiyatli yangilandi.")
@@ -85,7 +101,7 @@ class AvatarUpdateView(LoginRequiredMixin, View):
             messages.success(request, "Profil rasmi muvaffaqiyatli yangilandi.")
         else:
             messages.error(request, "Rasm tanlanmadi.")
-        return redirect('profile')
+        return redirect('settings')
 
 class PasswordUpdateView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
@@ -99,22 +115,22 @@ class PasswordUpdateView(LoginRequiredMixin, View):
         
         if not user.check_password(old_pass):
             messages.error(request, "Joriy parol noto'g'ri.")
-            return redirect('profile')
+            return redirect('settings')
         if new_pass1 != new_pass2:
             messages.error(request, "Yangi parollar mos kelmadi.")
-            return redirect('profile')
+            return redirect('settings')
             
         try:
             validate_password(new_pass1, user)
         except ValidationError as e:
             messages.error(request, f"Parol juda oddiy: {' '.join(e.messages)}")
-            return redirect('profile')
+            return redirect('settings')
             
         user.set_password(new_pass1)
         user.save()
         update_session_auth_hash(request, user)
         messages.success(request, "Parol muvaffaqiyatli o'zgartirildi.")
-        return redirect('profile')
+        return redirect('settings')
 
     def form_valid(self, form):
         messages.success(self.request, "Profil ma'lumotlari yordamida muvaffaqiyatli yangilandi.")
@@ -149,18 +165,24 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         
         # Haqiqiy obunalarni bazadan olish (using updated statuses)
         context['active_enrollments'] = user.enrollments.select_related('cohort', 'cohort__course').all().order_by('-joined_at')
-        
-        from courses.models import ExamAttempt
-        
-        # Calculate real dynamic statistics
-        passed_exams_count = ExamAttempt.objects.filter(student=user, passed=True).count()
-        context['completed_lessons'] = passed_exams_count # Masalan, nechta dars/imtihon yakunlaganini bildiradi
+        active_enrollment_qs = user.enrollments.filter(status='active')
+        context['active_courses_count'] = active_enrollment_qs.count()
+
+        # Dashboard metriclar: o'tilgan darslar soni attendance asosida hisoblanadi.
+        passed_lessons_count = Attendance.objects.filter(
+            enrollment__student=user,
+            status__in=[Attendance.STATUS_PRESENT, Attendance.STATUS_PARTIAL],
+        ).count()
+        context['completed_lessons_count'] = passed_lessons_count
+        context['completed_lessons'] = passed_lessons_count
+        context['average_progress'] = passed_lessons_count
+        context['total_hours'] = passed_lessons_count * 2
+        context['study_hours'] = context['total_hours']
+        context['xp_points'] = user.total_xp if hasattr(user, 'total_xp') else 0
         context['streak_days'] = user.streak_days if hasattr(user, 'streak_days') else 0
-        context['study_hours'] = passed_exams_count * 2 # Taxminan har bir dars 2 soat
-        context['xp_points'] = user.total_xp if hasattr(user, 'total_xp') else passed_exams_count * 50
-        
-        from gamification.models import EarnedBadge
+
         context['achievements_count'] = EarnedBadge.objects.filter(student=user).count()
+        context['certificates_count'] = CourseCertificate.objects.filter(student=user).count()
 
         # O'quvchining joriy telegram holati
         if user.telegram_id:
@@ -239,6 +261,245 @@ class LeaderboardView(LoginRequiredMixin, TemplateView):
         context['active_nav'] = 'leaderboard'
         context.update(get_cohort_leaderboard_context(self.request.user))
         return context
+
+
+class UserProfileView(LoginRequiredMixin, TemplateView):
+    template_name = 'users/profile.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        context['active_nav'] = 'profile'
+        context['earned_badges'] = EarnedBadge.objects.filter(student=user).order_by('-earned_at')
+        context['course_certificates'] = CourseCertificate.objects.filter(student=user).order_by('-issued_at')
+        return context
+
+
+def attendance_xp_for_status(base_xp, status):
+    multipliers = {
+        Attendance.STATUS_PRESENT: 1.0,
+        Attendance.STATUS_PARTIAL: 0.3,
+        Attendance.STATUS_ABSENT: 0.0,
+    }
+    return round(base_xp * multipliers.get(status, 0.0))
+
+
+@transaction.atomic
+def upsert_attendance_and_xp(*, enrollment, lesson, date, status, marked_by):
+    attendance, _ = Attendance.objects.select_for_update().get_or_create(
+        enrollment=enrollment,
+        lesson=lesson,
+        date=date,
+        defaults={
+            'status': status,
+            'xp_awarded': 0,
+            'marked_by': marked_by,
+        },
+    )
+
+    old_xp = attendance.xp_awarded
+    new_xp = attendance_xp_for_status(lesson.xp_reward, status)
+    xp_diff = new_xp - old_xp
+
+    if xp_diff != 0:
+        student = enrollment.student
+        student.total_xp = max(0, student.total_xp + xp_diff)
+        student.save(update_fields=['total_xp'])
+
+    attendance.status = status
+    attendance.xp_awarded = new_xp
+    attendance.marked_by = marked_by
+    attendance.save(update_fields=['status', 'xp_awarded', 'marked_by', 'marked_at'])
+    return attendance
+
+
+class AttendanceCalendarView(LoginRequiredMixin, TemplateView):
+    template_name = 'users/attendance_calendar.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        context['active_nav'] = 'attendance_calendar'
+
+        today = timezone.localdate()
+        try:
+            year = int(self.request.GET.get('year', today.year))
+            month = int(self.request.GET.get('month', today.month))
+            datetime.date(year, month, 1)
+        except (ValueError, TypeError):
+            year = today.year
+            month = today.month
+
+        selected_month = datetime.date(year, month, 1)
+        prev_month = (selected_month.replace(day=1) - datetime.timedelta(days=1)).replace(day=1)
+        next_month = (selected_month.replace(day=28) + datetime.timedelta(days=4)).replace(day=1)
+
+        active_enrollment = (
+            user.enrollments.filter(status='active')
+            .select_related('cohort')
+            .order_by('-joined_at')
+            .first()
+        )
+
+        context['selected_month'] = selected_month
+        context['prev_month'] = prev_month
+        context['next_month'] = next_month
+        context['attendance_cohort'] = active_enrollment.cohort if active_enrollment else None
+        raw_weeks = calendar.Calendar(firstweekday=0).monthdayscalendar(year, month)
+        context['calendar_weeks'] = [[{'day': day, 'status': None} for day in week] for week in raw_weeks]
+        context['attendance_day_status'] = {}
+        context['attendance_summary'] = {'present': 0, 'partial': 0, 'absent': 0}
+
+        if not active_enrollment:
+            return context
+
+        records = Attendance.objects.filter(
+            enrollment=active_enrollment,
+            date__year=year,
+            date__month=month,
+        ).order_by('date')
+
+        day_status = {}
+        for item in records:
+            day = item.date.day
+            current = day_status.get(day)
+            if current == Attendance.STATUS_PRESENT:
+                continue
+            if item.status == Attendance.STATUS_PRESENT:
+                day_status[day] = Attendance.STATUS_PRESENT
+            elif item.status == Attendance.STATUS_PARTIAL:
+                day_status[day] = Attendance.STATUS_PARTIAL
+            elif current is None:
+                day_status[day] = Attendance.STATUS_ABSENT
+
+        for status in day_status.values():
+            context['attendance_summary'][status] += 1
+
+        context['attendance_day_status'] = day_status
+        context['calendar_weeks'] = [
+            [
+                {'day': day, 'status': day_status.get(day) if day else None}
+                for day in week
+            ]
+            for week in raw_weeks
+        ]
+        return context
+
+
+class AttendanceManageView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
+    template_name = 'users/attendance_manage.html'
+
+    def test_func(self):
+        user = self.request.user
+        return user.is_staff or user.is_superuser
+
+    def get_allowed_cohorts(self):
+        if self.request.user.is_superuser:
+            return Cohort.objects.filter(is_active=True).select_related('course').order_by('name')
+        return Cohort.objects.filter(
+            is_active=True,
+            course__instructor=self.request.user,
+        ).select_related('course').order_by('name')
+
+    def _safe_int(self, value):
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+    def build_context(self):
+        context = {
+            'active_nav': 'attendance_manage',
+        }
+
+        cohorts = self.get_allowed_cohorts()
+        context['cohorts'] = cohorts
+
+        selected_cohort_id = self._safe_int(self.request.GET.get('cohort_id'))
+        selected_lesson_id = self._safe_int(self.request.GET.get('lesson_id'))
+        selected_date_raw = self.request.GET.get('date')
+
+        selected_cohort = cohorts.filter(id=selected_cohort_id).first() if selected_cohort_id else cohorts.first()
+        context['selected_cohort'] = selected_cohort
+
+        lessons = Lesson.objects.none()
+        members = Enrollment.objects.none()
+        selected_lesson = None
+        selected_date = timezone.localdate()
+
+        if selected_date_raw:
+            try:
+                selected_date = datetime.date.fromisoformat(selected_date_raw)
+            except ValueError:
+                selected_date = timezone.localdate()
+
+        if selected_cohort:
+            lessons = Lesson.objects.filter(module__course=selected_cohort.course).order_by('module__order', 'order')
+            members = Enrollment.objects.filter(cohort=selected_cohort, status='active').select_related('student').order_by(
+                'student__first_name', 'student__last_name', 'student__username'
+            )
+            selected_lesson = lessons.filter(id=selected_lesson_id).first() if selected_lesson_id else lessons.first()
+
+        existing_map = {}
+        if selected_lesson and members.exists():
+            existing_attendance = Attendance.objects.filter(
+                enrollment__in=members,
+                lesson=selected_lesson,
+                date=selected_date,
+            )
+            existing_map = {row.enrollment_id: row for row in existing_attendance}
+
+        member_rows = []
+        for enrollment in members:
+            existing = existing_map.get(enrollment.id)
+            member_rows.append(
+                {
+                    'enrollment': enrollment,
+                    'status': existing.status if existing else Attendance.STATUS_ABSENT,
+                }
+            )
+
+        context['lessons'] = lessons
+        context['members'] = members
+        context['member_rows'] = member_rows
+        context['selected_lesson'] = selected_lesson
+        context['selected_date'] = selected_date
+        context['existing_attendance_map'] = existing_map
+        context['status_choices'] = Attendance.STATUS_CHOICES
+        return context
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(self.build_context())
+        return context
+
+    def post(self, request, *args, **kwargs):
+        context = self.build_context()
+        selected_lesson = context.get('selected_lesson')
+        selected_date = context.get('selected_date')
+        members = context.get('members')
+
+        if not selected_lesson or not members.exists():
+            messages.error(request, "Cohort va darsni to'g'ri tanlang.")
+            return redirect(request.get_full_path())
+
+        valid_statuses = {choice[0] for choice in Attendance.STATUS_CHOICES}
+        updated = 0
+
+        for enrollment in members:
+            raw_status = request.POST.get(f"status_{enrollment.id}", "").strip()
+            status = raw_status if raw_status in valid_statuses else Attendance.STATUS_ABSENT
+            upsert_attendance_and_xp(
+                enrollment=enrollment,
+                lesson=selected_lesson,
+                date=selected_date,
+                status=status,
+                marked_by=request.user,
+            )
+            updated += 1
+
+        messages.success(request, f"Davomat saqlandi: {updated} ta o'quvchi.")
+        return redirect(request.get_full_path())
 
 class SubscriptionHistoryView(LoginRequiredMixin, ListView):
     model = Enrollment
