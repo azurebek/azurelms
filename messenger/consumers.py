@@ -61,6 +61,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 }
             )
 
+            # --- Yangi: Adminga Telegram notification yuborish ---
+            # AI chatlariga admin aralashmaydi, shuning uchun room_type 'ai' bo'lmasa jo'natamiz
+            room = await database_sync_to_async(ChatRoom.objects.get)(id=self.room_id)
+            if room.room_type != 'ai':
+                from .tasks import send_telegram_notification
+                send_telegram_notification.delay(saved_msg.id)
+
     # Guruhdan kelgan xabarni WebSocket orqali jo'natish
     async def chat_message(self, event):
         message = event['message']

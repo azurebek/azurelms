@@ -143,3 +143,47 @@ def generate_ai_response(room_id, student_id, user_question, context_lesson_id=N
             "created_at": ai_message.created_at.strftime('%H:%M')
         }
     )
+
+@shared_task(ignore_result=True)
+def send_telegram_notification(message_id):
+    try:
+        msg = Message.objects.get(id=message_id)
+        room = msg.room
+        sender = msg.sender
+        
+        if not sender:
+            return # AI kabi tizim yozsa ignor
+
+        # Faqat o'zidan boshqa qatnashchilarga jo'natamiz
+        recipients = room.participants.exclude(id=sender.id)
+        
+        # Guruh bo'lsa ustozlar ham xabar topishi uchun:
+        # Guruh ishtirokchilarining hammasiga emas, balki faqat admin (is_staff) larga 
+        # va bevosita ishtirokchilarga (1-ga-1 chat bo'lsa) jo'natamiz
+        
+        for user in recipients:
+            if user.telegram_id:
+                # Agar guruh chati bo'lsa va bu foydalanuvchi talaba bo'lsa, bildirishnoma shart emas
+                # Faqat adminlarga va guruh o'qituvchilariga xabar borsa yaxshiroq:
+                # Keling, hozircha hammaga / adminlarga telegram_id bo'lsa yuboraylik. 
+                # (Sizning barcha "ko'rishi kerak bo'lgan" foydalanuvchilarga notification).
+                
+                # Asosan Admin ko'rishi muhim deyildiku:
+                if user.is_staff or room.room_type == 'private':
+                    notification_text = f"🔔 <b>Yangi xabar ({room.name or 'Chat'}):</b>\n"
+                    notification_text += f"👤 <b>{sender.get_full_name() or sender.username}:</b>\n\n"
+                    notification_text += f"{msg.text}"
+                    
+                    try:
+                        import requests
+                        url = f"https://api.telegram.org/bot{settings.TELEGRAM_BOT_TOKEN}/sendMessage"
+                        payload = {
+                            "chat_id": user.telegram_id,
+                            "text": notification_text,
+                            "parse_mode": "HTML"
+                        }
+                        requests.post(url, json=payload, timeout=5)
+                    except Exception as bot_err:
+                        print(f"Telegram yuborishda xato ({user.username}): {bot_err}")
+    except Exception as e:
+        print(f"send_telegram_notification xatosi: {e}")
