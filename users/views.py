@@ -131,6 +131,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
+        context['active_nav'] = 'dashboard'
         
         # --- Grace Period Check Logging ---
         today = timezone.now().date()
@@ -147,7 +148,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             expired_enrollments.update(status='expired')
         
         # Haqiqiy obunalarni bazadan olish (using updated statuses)
-        context['active_enrollments'] = user.enrollments.all().order_by('-joined_at')
+        context['active_enrollments'] = user.enrollments.select_related('cohort', 'cohort__course').all().order_by('-joined_at')
         
         from courses.models import ExamAttempt
         
@@ -160,7 +161,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         
         from gamification.models import EarnedBadge
         context['achievements_count'] = EarnedBadge.objects.filter(student=user).count()
-        
+
         # O'quvchining joriy telegram holati
         if user.telegram_id:
             context['telegram_linked'] = True
@@ -183,6 +184,60 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             else:
                 context['telegram_bot_link'] = f"https://t.me/lmsazurebot?start={token}"
             
+        return context
+
+
+def get_cohort_leaderboard_context(user):
+    context = {
+        'leaderboard_cohort': None,
+        'leaderboard_top': [],
+        'leaderboard_my_row': None,
+    }
+
+    current_active_enrollment = (
+        user.enrollments.filter(status='active')
+        .select_related('cohort')
+        .order_by('-joined_at')
+        .first()
+    )
+    context['leaderboard_cohort'] = current_active_enrollment.cohort if current_active_enrollment else None
+
+    if not current_active_enrollment:
+        return context
+
+    leaderboard_qs = (
+        Enrollment.objects.filter(
+            cohort=current_active_enrollment.cohort,
+            status='active',
+        )
+        .select_related('student')
+        .order_by('-student__total_xp', 'joined_at', 'student__id')
+    )
+
+    for rank, enrollment in enumerate(leaderboard_qs, start=1):
+        row = {
+            'rank': rank,
+            'student': enrollment.student,
+            'xp': enrollment.student.total_xp,
+            'is_me': enrollment.student_id == user.id,
+        }
+        if rank <= 10:
+            context['leaderboard_top'].append(row)
+        if row['is_me']:
+            context['leaderboard_my_row'] = row
+        if rank > 10 and context['leaderboard_my_row']:
+            break
+
+    return context
+
+
+class LeaderboardView(LoginRequiredMixin, TemplateView):
+    template_name = 'users/leaderboard.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['active_nav'] = 'leaderboard'
+        context.update(get_cohort_leaderboard_context(self.request.user))
         return context
 
 class SubscriptionHistoryView(LoginRequiredMixin, ListView):

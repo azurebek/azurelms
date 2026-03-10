@@ -37,6 +37,12 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link {% if active_nav == 'leaderboard' %}active{% endif %}" href="{% url 'leaderboard' %}">
+                        <i class="bi bi-trophy"></i>
+                        <span>Leaderboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link {% if active_nav == 'certificates' %}active{% endif %}" href="{% url 'certificates' %}">
                         <i class="bi bi-award"></i>
                         <span>Sertifikatlar</span>
