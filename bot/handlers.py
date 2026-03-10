@@ -2,7 +2,7 @@ from aiogram import Router, types
 from aiogram.filters import CommandStart, CommandObject
 from django.core.signing import Signer, BadSignature
 from asgiref.sync import sync_to_async
-from users.models import CustomUser
+from users.models import CustomUser, Notification
 import base64
 
 router = Router()
@@ -61,6 +61,18 @@ async def cmd_start_handler(message: types.Message, command: CommandObject):
                 user.telegram_id = telegram_id
                 # user.telegram_username = message.from_user.username
                 user.save()
+
+                Notification.objects.get_or_create(
+                    recipient=user,
+                    external_key=f"telegram-linked-{user.id}-{telegram_id}",
+                    defaults={
+                        "title": "Telegram hisobi ulandi",
+                        "message": "Profilingiz Telegram botiga muvaffaqiyatli bog'landi.",
+                        "icon": "telegram",
+                        "url": "/users/settings/",
+                        "category": Notification.CATEGORY_SYSTEM,
+                    },
+                )
                 return user, "success"
                 
             except CustomUser.DoesNotExist:
