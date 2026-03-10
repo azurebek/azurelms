@@ -278,6 +278,28 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
+# Email settings (password reset, notifications)
+_email_backend_env = os.getenv("EMAIL_BACKEND", "").strip()
+if _email_backend_env:
+    EMAIL_BACKEND = _email_backend_env
+else:
+    if APP_ENV == "local":
+        EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+    else:
+        EMAIL_BACKEND = (
+            "django.core.mail.backends.smtp.EmailBackend"
+            if os.getenv("EMAIL_HOST")
+            else "django.core.mail.backends.console.EmailBackend"
+        )
+
+EMAIL_HOST = os.getenv("EMAIL_HOST", "localhost")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", True)
+EMAIL_USE_SSL = env_bool("EMAIL_USE_SSL", False)
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "no-reply@azurelms.local")
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
