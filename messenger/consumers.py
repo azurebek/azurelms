@@ -1,6 +1,7 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
+from asgiref.sync import sync_to_async
 from django.contrib.auth import get_user_model
 from .models import ChatRoom, Message
 
@@ -61,12 +62,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 }
             )
 
-            # --- Yangi: Adminga Telegram notification yuborish ---
-            # AI chatlariga admin aralashmaydi, shuning uchun room_type 'ai' bo'lmasa jo'natamiz
-            room = await database_sync_to_async(ChatRoom.objects.get)(id=self.room_id)
-            if room.room_type != 'ai':
-                from .tasks import send_telegram_notification
-                send_telegram_notification.delay(saved_msg.id)
+            # Chat real-time oqimi buzilmasligi uchun Telegram dispatch xatolarini yutamiz.
+            room_type = await self.get_room_type(self.room_id)
+            if room_type != 'ai':
+                await self.dispatch_telegram_notification(saved_msg.id)
 
     # Guruhdan kelgan xabarni WebSocket orqali jo'natish
     async def chat_message(self, event):
@@ -111,3 +110,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
         except Exception as e:
             print(f"WebSocket saqlashda xatolik: {e}")
             return None
+
+    @database_sync_to_async
+    def get_room_type(self, room_id):
+        room = ChatRoom.objects.filter(id=room_id).only('room_type').first()
+        return room.room_type if room else None
+
+    @sync_to_async
+    def dispatch_telegram_notification(self, message_id):
+        try:
+            from .tasks import send_telegram_notification
+            send_telegram_notification.delay(message_id)
+        except Exception as e:
+            print(f"Telegram task dispatch xatosi: {e}")

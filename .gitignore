@@ -76,6 +76,8 @@ Desktop.ini
 .coverage
 htmlcov/
 .tox/
+test_s3.py
+test_s3_v2.py
 
 # ========================
 # Migrations (ixtiyoriy - odatda saqlanadi)
