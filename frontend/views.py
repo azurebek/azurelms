@@ -1,7 +1,15 @@
 from django.shortcuts import render, redirect
 from courses.models import Course
 from django.contrib.auth import get_user_model
-from .models import LandingPage, Statistic, Testimonial, AboutPage, AboutStatistic, TeamMember
+from .models import (
+    LandingPage,
+    Statistic,
+    Testimonial,
+    AboutPage,
+    AboutStatistic,
+    TeamMember,
+    LegalPage,
+)
 
 User = get_user_model()
 
@@ -47,3 +55,24 @@ def about_view(request):
     }
     
     return render(request, 'about.html', context)
+
+
+def _get_legal_page(page_type):
+    defaults = LegalPage.defaults_for(page_type)
+    page, _ = LegalPage.objects.get_or_create(
+        page_type=page_type,
+        defaults=defaults,
+    )
+    return page
+
+
+def legal_page_view(request, page_type):
+    page = _get_legal_page(page_type)
+    return render(
+        request,
+        "legal_page.html",
+        {
+            "legal_page": page,
+            "active_legal_page": page_type,
+        },
+    )

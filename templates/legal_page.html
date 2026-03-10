@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load bleach_tags %}
+
+{% block title %}{{ legal_page.title }}{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="mx-auto" style="max-width: 900px;">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-body p-4 p-md-5">
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <a href="{% url 'privacy_policy' %}" class="btn btn-sm {% if active_legal_page == 'privacy' %}btn-primary{% else %}btn-outline-primary{% endif %} rounded-pill">Privacy Policy</a>
+                        <a href="{% url 'terms_of_service' %}" class="btn btn-sm {% if active_legal_page == 'terms' %}btn-primary{% else %}btn-outline-primary{% endif %} rounded-pill">Terms of Service</a>
+                        <a href="{% url 'faq_page' %}" class="btn btn-sm {% if active_legal_page == 'faq' %}btn-primary{% else %}btn-outline-primary{% endif %} rounded-pill">FAQ</a>
+                    </div>
+
+                    <h1 class="h3 fw-bold mb-4">{{ legal_page.title }}</h1>
+                    <div class="text-muted">
+                        {{ legal_page.content|sanitize }}
+                    </div>
+                    <p class="small text-muted mt-4 mb-0">Oxirgi yangilanish: {{ legal_page.updated_at|date:"d.m.Y H:i" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

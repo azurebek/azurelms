@@ -14,6 +14,7 @@ from django.shortcuts import redirect, render, get_object_or_404
 from cohorts.models import Enrollment, Attendance, Cohort
 from courses.models import Certificate as CourseCertificate
 from gamification.models import EarnedBadge
+from frontend.models import LegalPage
 from django.core.signing import TimestampSigner
 from django.conf import settings
 from courses.models import Lesson
@@ -291,6 +292,18 @@ class NotificationReadAllView(LoginRequiredMixin, View):
             read_at=timezone.now(),
         )
         return redirect("notifications")
+
+
+class HelpCenterView(LoginRequiredMixin, TemplateView):
+    template_name = "users/help_center.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["active_nav"] = "help_center"
+        for page_type in [LegalPage.PAGE_PRIVACY, LegalPage.PAGE_TERMS, LegalPage.PAGE_FAQ]:
+            defaults = LegalPage.defaults_for(page_type)
+            LegalPage.objects.get_or_create(page_type=page_type, defaults=defaults)
+        return context
 
 
 class UserProfileView(LoginRequiredMixin, TemplateView):

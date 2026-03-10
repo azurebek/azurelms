@@ -11,7 +11,7 @@ from .views import (
     RegisterView, UserProfileView, SettingsView, AvatarUpdateView, PasswordUpdateView, 
     DashboardView, SubscriptionHistoryView, CertificateListView, LeaderboardView,
     AttendanceCalendarView, AttendanceManageView,
-    NotificationCenterView, NotificationOpenView, NotificationReadAllView
+    NotificationCenterView, NotificationOpenView, NotificationReadAllView, HelpCenterView
 )
 
 urlpatterns = [
@@ -31,6 +31,7 @@ urlpatterns = [
     path('attendance/manage/', AttendanceManageView.as_view(), name='attendance_manage'),
     path('subscriptions/', SubscriptionHistoryView.as_view(), name='subscriptions'),
     path('certificates/', CertificateListView.as_view(), name='certificates'),
+    path('help/', HelpCenterView.as_view(), name='help_center'),
     
     # Password Reset
     path('password-reset/', PasswordResetView.as_view(), name='password_reset'),

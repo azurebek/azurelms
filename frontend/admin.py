@@ -1,5 +1,14 @@
 from django.contrib import admin
-from .models import LandingPage, Statistic, Testimonial, AboutPage, AboutStatistic, TeamMember
+from .models import (
+    LandingPage,
+    Statistic,
+    Testimonial,
+    AboutPage,
+    AboutStatistic,
+    TeamMember,
+    SiteSettings,
+    LegalPage,
+)
 
 @admin.register(LandingPage)
 class LandingPageAdmin(admin.ModelAdmin):
@@ -32,3 +41,15 @@ class AboutStatisticAdmin(admin.ModelAdmin):
 class TeamMemberAdmin(admin.ModelAdmin):
     list_display = ('name', 'role_1', 'order')
     list_editable = ('order',)
+
+
+@admin.register(SiteSettings)
+class SiteSettingsAdmin(admin.ModelAdmin):
+    def has_add_permission(self, request):
+        return not SiteSettings.objects.exists()
+
+
+@admin.register(LegalPage)
+class LegalPageAdmin(admin.ModelAdmin):
+    list_display = ("page_type", "title", "updated_at")
+    readonly_fields = ("updated_at",)

@@ -114,3 +114,79 @@ class TeamMember(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class SiteSettings(SingletonModel):
+    company_description = models.TextField(
+        default="Professional o'qituvchilar bilan turk tilini samarali o'rganing. A1 dan C1 gacha barcha darajalar.",
+        verbose_name="Kompaniya qisqacha matni",
+    )
+    contact_phone = models.CharField(max_length=50, default="+998 90 123 45 67", verbose_name="Telefon")
+    contact_email = models.EmailField(default="info@azurelms.uz", verbose_name="Email")
+    contact_address = models.CharField(max_length=255, blank=True, verbose_name="Manzil")
+    support_url = models.URLField(blank=True, verbose_name="Qo'llab-quvvatlash havolasi")
+
+    telegram_url = models.URLField(blank=True, verbose_name="Telegram URL")
+    instagram_url = models.URLField(blank=True, verbose_name="Instagram URL")
+    youtube_url = models.URLField(blank=True, verbose_name="YouTube URL")
+    facebook_url = models.URLField(blank=True, verbose_name="Facebook URL")
+
+    class Meta:
+        verbose_name = "Platforma sozlamasi"
+        verbose_name_plural = "7. Platforma sozlamalari"
+
+    def __str__(self):
+        return "Platforma sozlamalari"
+
+
+class LegalPage(models.Model):
+    PAGE_PRIVACY = "privacy"
+    PAGE_TERMS = "terms"
+    PAGE_FAQ = "faq"
+    PAGE_CHOICES = [
+        (PAGE_PRIVACY, "Privacy Policy"),
+        (PAGE_TERMS, "Terms of Service"),
+        (PAGE_FAQ, "FAQ"),
+    ]
+
+    page_type = models.CharField(max_length=20, choices=PAGE_CHOICES, unique=True, verbose_name="Sahifa turi")
+    title = models.CharField(max_length=150, verbose_name="Sarlavha")
+    content = CKEditor5Field(config_name="default", verbose_name="Kontent")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Huquqiy sahifa"
+        verbose_name_plural = "8. Huquqiy sahifalar"
+
+    def __str__(self):
+        return self.get_page_type_display()
+
+    @classmethod
+    def defaults_for(cls, page_type):
+        defaults = {
+            cls.PAGE_PRIVACY: {
+                "title": "Privacy Policy",
+                "content": (
+                    "<h3>Ma'lumotlarni yig'ish</h3><p>Platforma foydalanuvchi hisobini yuritish uchun zarur "
+                    "ma'lumotlarni yig'adi.</p><h3>Ma'lumotlardan foydalanish</h3><p>Ma'lumotlar xizmat sifatini "
+                    "oshirish va tizimni ishlatish uchun foydalaniladi.</p>"
+                ),
+            },
+            cls.PAGE_TERMS: {
+                "title": "Terms of Service",
+                "content": (
+                    "<h3>Umumiy qoidalar</h3><p>Platformadan foydalanish orqali siz xizmat shartlariga rozilik "
+                    "bildirasiz.</p><h3>Foydalanuvchi majburiyatlari</h3><p>Hisob ma'lumotlarini xavfsiz saqlash "
+                    "foydalanuvchi zimmasida.</p>"
+                ),
+            },
+            cls.PAGE_FAQ: {
+                "title": "FAQ",
+                "content": (
+                    "<h3>Qanday ro'yxatdan o'taman?</h3><p>Bosh sahifadagi ro'yxatdan o'tish tugmasini bosing va "
+                    "formani to'ldiring.</p><h3>To'lov qanday ishlaydi?</h3><p>Obuna tarifini tanlab, mavjud to'lov "
+                    "usuli orqali to'lovni amalga oshirasiz.</p>"
+                ),
+            },
+        }
+        return defaults[page_type]
