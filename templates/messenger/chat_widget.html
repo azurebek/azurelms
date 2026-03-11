@@ -110,9 +110,22 @@
 <script>
     let chatSocket = null;
     let currentRoomId = null;
+    let currentRoomType = 'group';
     let availableRooms = [];
     const userId = "{{ request.user.id }}";
     const userName = "{{ request.user.first_name|default:request.user.username }}";
+    const roomTypeStorageKey = `azure_messenger_last_room_type_${userId}`;
+
+    function setActiveTab(roomType) {
+        const tabMap = {
+            group: 'group-tab',
+            private: 'tutor-tab',
+            ai: 'ai-tab',
+        };
+        document.querySelectorAll('#chatTabs .nav-link').forEach((btn) => btn.classList.remove('active'));
+        const activeBtn = document.getElementById(tabMap[roomType] || tabMap.group);
+        if (activeBtn) activeBtn.classList.add('active');
+    }
 
     function toggleMessenger() {
         const body = document.querySelector('.messenger-body');
@@ -135,7 +148,9 @@
             const data = await res.json();
             if (data.status === 'success') {
                 availableRooms = data.rooms;
-                loadRoom('group'); // Default to group chat
+                const savedRoomType = localStorage.getItem(roomTypeStorageKey);
+                const initialRoomType = savedRoomType || 'group';
+                loadRoom(initialRoomType);
             }
         } catch (e) {
             console.error("Xonalarni olishda xatolik", e);
@@ -144,6 +159,10 @@
     }
 
     async function loadRoom(roomType) {
+        currentRoomType = roomType;
+        localStorage.setItem(roomTypeStorageKey, roomType);
+        setActiveTab(roomType);
+
         const mainWin = document.getElementById('main-chat-window');
         const inputArea = document.getElementById('chat-input-area');
         
@@ -161,6 +180,9 @@
 
         const room = availableRooms.find(r => r.type === roomType);
         if (!room) {
+            if (roomType !== 'group') {
+                return loadRoom('group');
+            }
             mainWin.innerHTML = '<div class="text-center text-muted small mt-4">Hozircha bu xona mavjud emas.</div>';
             inputArea.style.display = 'none';
             if (chatSocket) chatSocket.close();

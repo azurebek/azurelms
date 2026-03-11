@@ -1,5 +1,7 @@
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
+from django.db.models import Max, Count
+from cohorts.models import Enrollment
 from .models import ChatRoom, Message
 
 @login_required
@@ -7,16 +9,60 @@ def get_user_rooms(request):
     """
     Foydalanuvchining barcha chat xonalarini qaytaradi (Guruh, Tutor, AzureAI).
     """
-    rooms = ChatRoom.objects.filter(participants=request.user)
-    
+    rooms = list(
+        ChatRoom.objects.filter(participants=request.user)
+        .select_related("cohort")
+        .annotate(
+            last_message_at=Max("messages__created_at"),
+            message_count=Count("messages"),
+        )
+    )
+
+    rooms_by_type = {}
+    for room in rooms:
+        rooms_by_type.setdefault(room.room_type, []).append(room)
+
+    active_cohort_id = (
+        Enrollment.objects.filter(student=request.user, status="active")
+        .order_by("-joined_at")
+        .values_list("cohort_id", flat=True)
+        .first()
+    )
+
+    def room_rank(item):
+        return (item.last_message_at or item.created_at, item.created_at, item.id)
+
+    selected_rooms = []
+
+    # Group: avval aktiv cohort xonasi, bo'lmasa eng oxirgi faol xona.
+    group_candidates = rooms_by_type.get("group", [])
+    if group_candidates:
+        preferred_group = None
+        if active_cohort_id:
+            preferred_group = next(
+                (g for g in group_candidates if g.cohort_id == active_cohort_id),
+                None,
+            )
+        selected_rooms.append(preferred_group or max(group_candidates, key=room_rank))
+
+    # Private va AI: eng oxirgi faol xona.
+    for room_type in ("private", "ai"):
+        candidates = rooms_by_type.get(room_type, [])
+        if candidates:
+            selected_rooms.append(max(candidates, key=room_rank))
+
     data = []
-    for r in rooms:
-        data.append({
-            'id': r.id,
-            'name': r.name,
-            'type': r.room_type,
-            'cohort_id': r.cohort.id if r.cohort else None
-        })
+    for r in selected_rooms:
+        data.append(
+            {
+                "id": r.id,
+                "name": r.name,
+                "type": r.room_type,
+                "cohort_id": r.cohort.id if r.cohort else None,
+                "message_count": r.message_count,
+                "last_message_at": r.last_message_at.isoformat() if r.last_message_at else None,
+            }
+        )
         
     return JsonResponse({'status': 'success', 'rooms': data})
 
