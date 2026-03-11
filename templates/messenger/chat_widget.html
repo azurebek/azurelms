@@ -144,7 +144,10 @@
 
     async function fetchRooms() {
         try {
-            const res = await fetch("{% url 'messenger:get_user_rooms' %}");
+            const res = await fetch("{% url 'messenger:get_user_rooms' %}", {
+                cache: 'no-store',
+                headers: { 'Cache-Control': 'no-cache' }
+            });
             const data = await res.json();
             if (data.status === 'success') {
                 availableRooms = data.rooms;
@@ -193,7 +196,10 @@
         
         // Fetch historical messages
         try {
-            const res = await fetch(`/messenger/api/messages/${currentRoomId}/`);
+            const res = await fetch(`/messenger/api/messages/${currentRoomId}/?_=${Date.now()}`, {
+                cache: 'no-store',
+                headers: { 'Cache-Control': 'no-cache' }
+            });
             const data = await res.json();
             if (data.status === 'success') {
                 renderMessages(data.messages);

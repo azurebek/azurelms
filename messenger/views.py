@@ -1,10 +1,12 @@
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.db.models import Max, Count
+from django.views.decorators.cache import never_cache
 from cohorts.models import Enrollment
 from .models import ChatRoom, Message
 
 @login_required
+@never_cache
 def get_user_rooms(request):
     """
     Foydalanuvchining barcha chat xonalarini qaytaradi (Guruh, Tutor, AzureAI).
@@ -68,6 +70,7 @@ def get_user_rooms(request):
 
 
 @login_required
+@never_cache
 def get_room_messages(request, room_id):
     """
     Ma'lum bir chat xonasining eski xabarlarini qaytaradi.
