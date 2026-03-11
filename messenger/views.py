@@ -29,11 +29,14 @@ def get_room_messages(request, room_id):
     """
     try:
         room = ChatRoom.objects.get(id=room_id, participants=request.user)
-        # Optimize: Fetch sender information in the same query to prevent N+1 loop
-        messages = room.messages.select_related('sender').order_by('created_at')[:100]  # oxirgi 100 ta xabar
+        # Oxirgi 100 ta xabarni olib, keyin UI uchun kronologik tartibda qaytaramiz.
+        recent_messages = list(
+            room.messages.select_related('sender').order_by('-created_at')[:100]
+        )
+        recent_messages.reverse()
         
         msgs_data = []
-        for m in messages:
+        for m in recent_messages:
             msgs_data.append({
                 'id': m.id,
                 'text': m.text,
