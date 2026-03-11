@@ -13,9 +13,30 @@ app = Celery('core')
 #   should have a `CELERY_` prefix.
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
-# Base settings for Redis
-default_redis_url = os.getenv('VALKEY_URL') or os.getenv('REDIS_URL') or 'redis://127.0.0.1:6379/1'
-app.conf.broker_url = os.getenv('CELERY_BROKER_URL', default_redis_url)
+# Broker tanlovi:
+# - Localda default tarzda production Redis/Valkeyga ulanmaymiz.
+# - Agar ataylab kerak bo'lsa LOCAL_USE_REMOTE_SERVICES=true qo'yiladi.
+def _env_bool(name, default=False):
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+is_local = (os.getenv("APP_ENV", "").strip().lower() == "local") or _env_bool("LOCAL_DEV", False)
+local_use_remote_services = _env_bool("LOCAL_USE_REMOTE_SERVICES", False)
+
+explicit_broker = os.getenv("CELERY_BROKER_URL")
+remote_redis_url = os.getenv("VALKEY_URL") or os.getenv("REDIS_URL")
+local_default_broker = "redis://127.0.0.1:6379/1"
+
+if explicit_broker:
+    app.conf.broker_url = explicit_broker
+elif is_local and not local_use_remote_services:
+    app.conf.broker_url = local_default_broker
+else:
+    app.conf.broker_url = remote_redis_url or local_default_broker
+
 app.conf.result_backend = os.getenv('CELERY_RESULT_BACKEND') or None
 app.conf.accept_content = ['application/json']
 app.conf.task_serializer = 'json'

@@ -230,12 +230,21 @@ REDIS_USER = os.getenv('REDIS_USER')
 REDIS_PASSWORD = os.getenv('REDIS_PASSWORD')
 REDIS_HOST = os.getenv('REDIS_HOST')
 REDIS_PORT = os.getenv('REDIS_PORT')
+LOCAL_USE_REMOTE_SERVICES = env_bool("LOCAL_USE_REMOTE_SERVICES", False)
 
 REDIS_COMPONENT_URL = None
 if REDIS_USER and REDIS_PASSWORD and REDIS_HOST and REDIS_PORT:
     REDIS_COMPONENT_URL = f"rediss://{REDIS_USER}:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/0"
 
-CACHE_URL = REDIS_COMPONENT_URL or VALKEY_URL or REDIS_URL
+# Local muhitda production redisga tasodifiy ulanishni oldini olamiz.
+REMOTE_CACHE_URL = REDIS_COMPONENT_URL or VALKEY_URL or REDIS_URL
+if APP_ENV == "local" and not LOCAL_USE_REMOTE_SERVICES:
+    CACHE_URL = None
+else:
+    CACHE_URL = REMOTE_CACHE_URL
+
+if APP_ENV == "local" and REMOTE_CACHE_URL and not LOCAL_USE_REMOTE_SERVICES:
+    print("--- [SYSTEM] Local mode: external Redis/Valkey disabled to isolate from production. ---")
 
 if CACHE_URL:
     CACHES = {
