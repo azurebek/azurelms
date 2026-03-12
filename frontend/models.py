@@ -1,3 +1,4 @@
+from django.core.validators import FileExtensionValidator
 from django.db import models
 from django_ckeditor_5.fields import CKEditor5Field
 
@@ -23,6 +24,44 @@ class LandingPage(SingletonModel):
     hero_subtitle = CKEditor5Field(default="Tajribali o'qituvchilar, interaktiv darslar va sertifikatlar bilan turk tilini A1 dan C1 gacha o'rganing.", verbose_name="Kichik matn (Subtitle)", config_name='default')
     
     hero_image = models.ImageField(upload_to='landing/', blank=True, null=True, verbose_name="Asosiy rasm (Hero Image)")
+    hero_video = models.FileField(
+        upload_to='landing/videos/',
+        blank=True,
+        null=True,
+        verbose_name="Asosiy video (Hero Video)",
+        help_text="MP4, WebM, OGV yoki MOV fayl yuklang. Video bo'lsa, hero qismida rasm o'rniga video ko'rsatiladi.",
+        validators=[FileExtensionValidator(allowed_extensions=['mp4', 'webm', 'ogv', 'mov'])],
+    )
+    how_it_works_background_image = models.ImageField(
+        upload_to='landing/sections/',
+        blank=True,
+        null=True,
+        verbose_name='"Qanday ishlaydi?" bo\'limi foni',
+        help_text='Ushbu rasm shaffof overlay bilan "Qanday ishlaydi?" bo\'limi orqasida chiqadi.',
+    )
+    how_it_works_background_video = models.FileField(
+        upload_to='landing/sections/videos/',
+        blank=True,
+        null=True,
+        verbose_name='"Qanday ishlaydi?" bo\'limi fon videosi',
+        help_text='MP4, WebM, OGV yoki MOV yuklang. Video bo\'lsa, shu bo\'limda rasm o\'rniga video ishlatiladi.',
+        validators=[FileExtensionValidator(allowed_extensions=['mp4', 'webm', 'ogv', 'mov'])],
+    )
+    footer_background_image = models.ImageField(
+        upload_to='landing/footer/',
+        blank=True,
+        null=True,
+        verbose_name='Footer fon rasmi',
+        help_text='Footer orqasida transparency overlay bilan ko\'rinadigan rasm.',
+    )
+    footer_background_video = models.FileField(
+        upload_to='landing/footer/videos/',
+        blank=True,
+        null=True,
+        verbose_name='Footer fon videosi',
+        help_text='MP4, WebM, OGV yoki MOV yuklang. Video bo\'lsa, footerda rasm o\'rniga video ishlatiladi.',
+        validators=[FileExtensionValidator(allowed_extensions=['mp4', 'webm', 'ogv', 'mov'])],
+    )
     
     # CTA Section
     cta_title = models.CharField(max_length=100, default="Bugun o'rganishni boshlang!", verbose_name="Bottom CTA Sarlavhasi")

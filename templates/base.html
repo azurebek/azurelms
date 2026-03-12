@@ -105,8 +105,25 @@
 
     {% block footer %}
     <!-- FOOTER -->
-    <footer class="footer mt-5 py-5 border-top" style="background-color: #f8f9fa;">
-        <div class="container">
+    <footer
+        class="footer mt-5 py-5 border-top {% if page.footer_background_video or page.footer_background_image %}footer-media{% endif %}"
+        {% if page.footer_background_image %}
+        style="--footer-bg: url('{{ page.footer_background_image.url }}');"
+        {% endif %}
+    >
+        {% if page.footer_background_video %}
+        <video
+            class="footer-bg-video"
+            autoplay
+            muted
+            loop
+            playsinline
+        >
+            <source src="{{ page.footer_background_video.url }}">
+            Brauzeringiz video ko'rsatishni qo'llab-quvvatlamaydi.
+        </video>
+        {% endif %}
+        <div class="container footer-content">
             <div class="row g-4 mb-4">
                 <div class="col-lg-4 col-md-6">
                     <h5 class="fw-bold mb-3 text-primary">AzureLMS</h5>
