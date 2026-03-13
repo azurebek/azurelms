@@ -263,6 +263,8 @@
     <div class="action-buttons d-flex gap-2">
         <a href="{% url 'certificates' %}" class="btn btn-dark rounded-pill"><i class="bi bi-arrow-left me-1"></i> Orqaga</a>
         <button onclick="window.print()" class="btn btn-primary rounded-pill"><i class="bi bi-printer me-1"></i> Chop etish / PDF</button>
+        <a href="{% url 'certificate_detail' certificate.certificate_id %}?download=1" class="btn btn-outline-primary rounded-pill"><i class="bi bi-download me-1"></i> Yuklab olish</a>
+        <a href="{% url 'certificate_appendix' certificate.certificate_id %}" class="btn btn-outline-dark rounded-pill"><i class="bi bi-journal-text me-1"></i> Ilova</a>
     </div>
 
     <div class="certificate-wrapper">
@@ -324,4 +326,11 @@
     </div>
 
 </body>
+{% if auto_print %}
+<script>
+    window.addEventListener('load', function() {
+        window.print();
+    });
+</script>
+{% endif %}
 </html>

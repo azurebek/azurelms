@@ -265,7 +265,14 @@ class ExamResultView(LoginRequiredMixin, DetailView):
         context['course_exams'] = course.exams.all().order_by('id')
         
         from .models import ExamAttempt
-        context['attempt'] = ExamAttempt.objects.filter(student=self.request.user, exam=self.object).first()
+        attempt = ExamAttempt.objects.filter(student=self.request.user, exam=self.object).first()
+        context['attempt'] = attempt
+        context['course_certificate'] = None
+        if attempt and attempt.is_reviewed and attempt.passed:
+            context['course_certificate'] = Certificate.objects.filter(
+                student=self.request.user,
+                course=course,
+            ).first()
         return context
 
 import json
@@ -294,6 +301,8 @@ class StartExamView(LoginRequiredMixin, View):
         
         if not created and attempt.is_completed:
              return JsonResponse({'error': 'Siz bu imtihonni avval topshirgansiz.'}, status=400)
+
+        attempt.ensure_section_reviews()
              
         return JsonResponse({'status': 'success', 'attempt_id': attempt.id, 'start_time': attempt.start_time.isoformat()})
 
@@ -346,12 +355,18 @@ class SubmitExamView(LoginRequiredMixin, View):
         attempt = get_object_or_404(ExamAttempt, student=request.user, exam_id=exam_id, is_completed=False)
         attempt.is_completed = True
         attempt.completed_time = timezone.now()
-        attempt.save()
+        attempt.is_reviewed = False
+        attempt.reviewed_at = None
+        attempt.reviewed_by = None
+        attempt.passed = False
+        attempt.score = 0
+        attempt.save(update_fields=['is_completed', 'completed_time', 'is_reviewed', 'reviewed_at', 'reviewed_by', 'passed', 'score'])
+
+        # Prepare section-level scores so the instructor can review and approve them.
+        attempt.ensure_section_reviews()
+        attempt.prefill_section_scores_from_answers()
         
-        # Calculate auto-grades (for reading/listening) and overall score so far
-        attempt.calculate_total_score()
-        
-        return JsonResponse({'status': 'success', 'final_score': attempt.score, 'passed': attempt.passed})
+        return JsonResponse({'status': 'success', 'pending_review': True})
 
 class SubmitQuizView(LoginRequiredMixin, View):
     """Dars ichidagi quiz javoblarni qabul qilish va natija hisoblash."""
@@ -462,3 +477,38 @@ class CertificateDetailView(DetailView):
     def get_object(self, queryset=None):
         certificate_id = self.kwargs.get('certificate_id')
         return get_object_or_404(Certificate, certificate_id=certificate_id)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['auto_print'] = self.request.GET.get('download') == '1'
+        return context
+
+
+class CertificateAppendixView(DetailView):
+    model = Certificate
+    template_name = 'courses/certificate_appendix.html'
+    context_object_name = 'certificate'
+
+    def get_object(self, queryset=None):
+        certificate_id = self.kwargs.get('certificate_id')
+        return get_object_or_404(Certificate, certificate_id=certificate_id)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        certificate = self.object
+        from .models import ExamAttempt
+
+        reviewed_attempts = (
+            ExamAttempt.objects
+            .filter(
+                student=certificate.student,
+                exam__course=certificate.course,
+                is_reviewed=True,
+            )
+            .select_related('exam')
+            .prefetch_related('section_reviews__section')
+            .order_by('exam__exam_type', 'exam__title')
+        )
+        context['reviewed_attempts'] = reviewed_attempts
+        context['auto_print'] = self.request.GET.get('download') == '1'
+        return context

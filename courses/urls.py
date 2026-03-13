@@ -20,4 +20,5 @@ urlpatterns = [
     path('<int:course_id>/exam/<int:exam_id>/api/submit/', views.SubmitExamView.as_view(), name='api_exam_submit'),
     
     path('certificate/<str:certificate_id>/', views.CertificateDetailView.as_view(), name='certificate_detail'),
+    path('certificate/<str:certificate_id>/appendix/', views.CertificateAppendixView.as_view(), name='certificate_appendix'),
 ]

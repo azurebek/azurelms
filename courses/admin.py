@@ -1,6 +1,20 @@
 from django.contrib import admin
 import nested_admin
-from .models import Course, Module, Lesson, Assignment, Exam, ExamSection, Quiz, Question, Choice
+from .models import (
+    Course,
+    Module,
+    Lesson,
+    Assignment,
+    Exam,
+    ExamSection,
+    Quiz,
+    Question,
+    Choice,
+    ExamAttempt,
+    StudentAnswer,
+    ExamSectionReview,
+    Certificate,
+)
 
 # ==========================================
 # 1. INLINES (Ichma-ich ochiladigan oynalar)
@@ -87,9 +101,6 @@ class ExamSectionAdmin(admin.ModelAdmin):
     list_display = ('title', 'exam', 'section_type', 'max_score', 'order')
     list_filter = ('exam', 'section_type')
 
-# --- Exam Attempts & Grading ---
-from .models import ExamAttempt, StudentAnswer
-
 class StudentAnswerInline(admin.StackedInline):
     model = StudentAnswer
     extra = 0
@@ -108,21 +119,82 @@ class StudentAnswerInline(admin.StackedInline):
             return obj.selected_choice.is_correct
         return None
 
+
+class ExamSectionReviewInline(admin.TabularInline):
+    model = ExamSectionReview
+    extra = 0
+    fields = ('section', 'section_max_score', 'awarded_score', 'feedback', 'updated_at')
+    readonly_fields = ('section', 'section_max_score', 'updated_at')
+
+    @admin.display(description='Max ball')
+    def section_max_score(self, obj):
+        return obj.section.max_score
+
 @admin.register(ExamAttempt)
 class ExamAttemptAdmin(admin.ModelAdmin):
-    list_display = ('student', 'exam', 'score', 'passed', 'blur_warnings', 'is_completed', 'completed_time')
-    list_filter = ('passed', 'is_completed', 'exam__course', 'exam')
+    list_display = ('student', 'exam', 'review_state', 'score', 'passed', 'blur_warnings', 'is_completed', 'completed_time')
+    list_filter = ('passed', 'is_completed', 'is_reviewed', 'exam__course', 'exam')
     search_fields = ('student__username', 'student__email', 'exam__title')
-    inlines = [StudentAnswerInline]
-    readonly_fields = ('start_time', 'blur_warnings')
+    inlines = [ExamSectionReviewInline, StudentAnswerInline]
+    readonly_fields = ('start_time', 'blur_warnings', 'completed_time', 'reviewed_at', 'reviewed_by')
     
-    actions = ['recalculate_scores']
+    actions = ['prepare_reviews', 'approve_selected_attempts', 'recalculate_scores']
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request).select_related('student', 'exam', 'exam__course', 'reviewed_by')
+        if request.user.is_superuser:
+            return qs
+        return qs.filter(exam__course__instructor=request.user)
+
+    def get_inline_instances(self, request, obj=None):
+        if obj:
+            obj.ensure_section_reviews()
+        return super().get_inline_instances(request, obj)
+
+    @admin.display(description='Review holati')
+    def review_state(self, obj):
+        return obj.review_status_label
+
+    @admin.action(description="Tanlangan urinishlar uchun bo'lim ballarini tayyorlash")
+    def prepare_reviews(self, request, queryset):
+        count = 0
+        for attempt in queryset:
+            attempt.ensure_section_reviews()
+            attempt.prefill_section_scores_from_answers()
+            count += 1
+        self.message_user(request, f"{count} ta urinish uchun bo'lim ballari tayyorlandi.")
+
+    @admin.action(description="Tanlangan urinishlarni tasdiqlash va sertifikatni yaratish")
+    def approve_selected_attempts(self, request, queryset):
+        approved_count = 0
+        certificate_count = 0
+        for attempt in queryset:
+            if not attempt.is_completed:
+                continue
+            certificate, created = attempt.finalize_review(reviewed_by=request.user)
+            approved_count += 1
+            if created and certificate:
+                certificate_count += 1
+        self.message_user(
+            request,
+            f"{approved_count} ta urinish tasdiqlandi. {certificate_count} ta yangi sertifikat yaratildi.",
+        )
     
     @admin.action(description="Tanlangan urinishlar ballarini qaytadan hisoblash")
     def recalculate_scores(self, request, queryset):
         for attempt in queryset:
-            attempt.calculate_total_score()
-        self.message_user(request, "Ballar muvaffaqiyatli qayta hisoblandi va sertifikatlar yangilandi.")
+            if attempt.is_reviewed:
+                attempt.finalize_review(reviewed_by=request.user)
+            else:
+                attempt.prefill_section_scores_from_answers()
+        self.message_user(request, "Ballar muvaffaqiyatli yangilandi.")
+
+
+@admin.register(Certificate)
+class CertificateAdmin(admin.ModelAdmin):
+    list_display = ('student', 'course', 'final_score', 'certificate_id', 'issued_at')
+    list_filter = ('course', 'issued_at')
+    search_fields = ('student__username', 'student__email', 'course__title', 'certificate_id')
 
 # --- Quizlar va Savollar ---
 

@@ -2,6 +2,8 @@ import re
 import uuid
 from django.db import models
 from django_ckeditor_5.fields import CKEditor5Field
+from django.db.models import Sum
+from django.urls import reverse
 
 
 class Course(models.Model):
@@ -239,6 +241,17 @@ class ExamAttempt(models.Model):
     # Grading fields
     score = models.DecimalField(max_digits=5, decimal_places=2, default=0, help_text="Olingan jami ball")
     passed = models.BooleanField(default=False, verbose_name="O'tdi")
+    is_reviewed = models.BooleanField(default=False, verbose_name="O'qituvchi tasdiqlaganmi?")
+    reviewed_at = models.DateTimeField(null=True, blank=True, verbose_name="Tekshirilgan vaqt")
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reviewed_exam_attempts',
+        verbose_name="Tekshirgan o'qituvchi",
+    )
+    review_notes = models.TextField(blank=True, verbose_name="Yakuniy izoh")
     
     def __str__(self):
         return f"{self.student.username} - {self.exam.title} Attempt"
@@ -248,12 +261,64 @@ class ExamAttempt(models.Model):
         verbose_name_plural = "Imtihon Urinishlari"
         unique_together = ('student', 'exam')
 
+    @property
+    def review_status(self):
+        if self.is_reviewed:
+            return "approved"
+        if self.is_completed:
+            return "pending"
+        return "in_progress"
+
+    @property
+    def review_status_label(self):
+        labels = {
+            "approved": "Tasdiqlangan",
+            "pending": "Tekshiruv kutilmoqda",
+            "in_progress": "Jarayonda",
+        }
+        return labels[self.review_status]
+
+    def ensure_section_reviews(self):
+        created_reviews = []
+        existing_section_ids = set(self.section_reviews.values_list('section_id', flat=True))
+        for section in self.exam.sections.all():
+            if section.id in existing_section_ids:
+                continue
+            created_reviews.append(
+                ExamSectionReview(
+                    attempt=self,
+                    section=section,
+                    awarded_score=0,
+                )
+            )
+        if created_reviews:
+            ExamSectionReview.objects.bulk_create(created_reviews)
+        return self.section_reviews.select_related('section').order_by('section__order')
+
+    def prefill_section_scores_from_answers(self):
+        self.ensure_section_reviews()
+        answer_totals = (
+            self.answers
+            .filter(question__exam_section__isnull=False)
+            .values('question__exam_section')
+            .annotate(total_score=Sum('awarded_score'))
+        )
+        totals_by_section = {
+            row['question__exam_section']: row['total_score'] or 0
+            for row in answer_totals
+        }
+        for review in self.section_reviews.select_related('section').all():
+            auto_total = totals_by_section.get(review.section_id, 0)
+            clamped_score = min(auto_total, review.section.max_score)
+            if review.awarded_score != clamped_score:
+                review.awarded_score = clamped_score
+                review.save(update_fields=['awarded_score', 'updated_at'])
+
     def calculate_total_score(self):
         """
         Sums up the manual and auto-graded points from all related StudentAnswers,
         determines if passed, and attempts certificate generation.
         """
-        from django.db.models import Sum
         aggregation = self.answers.aggregate(total_score=Sum('awarded_score'))
         total = aggregation['total_score'] or 0
         
@@ -272,7 +337,34 @@ class ExamAttempt(models.Model):
         if self.passed:
             self.check_and_issue_certificate()
 
+    def finalize_review(self, reviewed_by):
+        from django.utils import timezone
+
+        self.ensure_section_reviews()
+        section_total = self.section_reviews.aggregate(total_score=Sum('awarded_score'))['total_score'] or 0
+        exam_max = sum(sec.max_score for sec in self.exam.sections.all())
+
+        if exam_max > 0:
+            percentage_score = (section_total / exam_max) * 100
+        else:
+            percentage_score = 0
+
+        self.score = round(percentage_score, 2)
+        self.passed = self.score >= self.exam.passing_score
+        self.is_reviewed = True
+        self.reviewed_by = reviewed_by
+        self.reviewed_at = timezone.now()
+        self.save(update_fields=['score', 'passed', 'is_reviewed', 'reviewed_by', 'reviewed_at', 'updated_at'] if hasattr(self, 'updated_at') else ['score', 'passed', 'is_reviewed', 'reviewed_by', 'reviewed_at'])
+
+        certificate = None
+        certificate_created = False
+        if self.passed:
+            certificate, certificate_created = self.check_and_issue_certificate()
+        return certificate, certificate_created
+
     def check_and_issue_certificate(self):
+        from users.notification_service import create_notification
+
         course = self.exam.course
         student = self.student
         
@@ -280,7 +372,8 @@ class ExamAttempt(models.Model):
         passing_attempts = ExamAttempt.objects.filter(
             student=student,
             exam__course=course,
-            passed=True
+            passed=True,
+            is_reviewed=True,
         )
         
         has_visa = False
@@ -310,15 +403,61 @@ class ExamAttempt(models.Model):
                 final_grade = int((visa_score + final_score) / 2)
                 
             # Sertifikatni yaratish
-            certificate_id = f"AZ-{course.id}-{student.id}-{uuid.uuid4().hex[:6].upper()}"
-            Certificate.objects.get_or_create(
+            existing_certificate = Certificate.objects.filter(student=student, course=course).first()
+            certificate_id = (
+                existing_certificate.certificate_id
+                if existing_certificate
+                else f"AZ-{course.id}-{student.id}-{uuid.uuid4().hex[:6].upper()}"
+            )
+            certificate, created = Certificate.objects.update_or_create(
                 student=student,
                 course=course,
                 defaults={
                     'final_score': final_grade,
-                    'certificate_id': certificate_id
+                    'certificate_id': certificate_id,
                 }
             )
+            if created:
+                create_notification(
+                    recipient=student,
+                    title="Sertifikat tayyor",
+                    message=(
+                        f"{course.title} kursi bo'yicha sertifikatingiz tayyor bo'ldi. "
+                        "Uni ko'rishingiz yoki yuklab olishingiz mumkin."
+                    ),
+                    icon="award",
+                    url=reverse('certificate_detail', kwargs={'certificate_id': certificate.certificate_id}),
+                    external_key=f"certificate-issued-{certificate.id}",
+                )
+            return certificate, created
+        return None, False
+
+
+class ExamSectionReview(models.Model):
+    attempt = models.ForeignKey(
+        ExamAttempt,
+        on_delete=models.CASCADE,
+        related_name='section_reviews',
+        verbose_name="Imtihon urinishi",
+    )
+    section = models.ForeignKey(
+        ExamSection,
+        on_delete=models.CASCADE,
+        related_name='attempt_reviews',
+        verbose_name="Imtihon bo'limi",
+    )
+    awarded_score = models.DecimalField(max_digits=6, decimal_places=2, default=0, verbose_name="Berilgan ball")
+    feedback = models.TextField(blank=True, verbose_name="O'qituvchi izohi")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Imtihon bo'limi bali"
+        verbose_name_plural = "Imtihon bo'limi ballari"
+        unique_together = ('attempt', 'section')
+        ordering = ['section__order']
+
+    def __str__(self):
+        return f"{self.attempt.student.username} - {self.section.title}"
 
 
 class StudentAnswer(models.Model):
