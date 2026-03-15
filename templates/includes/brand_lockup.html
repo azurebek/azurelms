@@ -1,0 +1,7 @@
+<a href="{{ href }}" class="brand-lockup {{ brand_class|default:'' }}">
+    <span class="brand-mark {{ mark_class|default:'' }}">{{ mark_text|default:"AL" }}</span>
+    <span class="brand-copy">
+        {% if eyebrow %}<small>{{ eyebrow }}</small>{% endif %}
+        <strong>{{ title }}</strong>
+    </span>
+</a>

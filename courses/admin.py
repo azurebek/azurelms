@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.html import format_html, format_html_join
 import nested_admin
 from .models import (
     Course,
@@ -15,6 +16,7 @@ from .models import (
     ExamSectionReview,
     Certificate,
 )
+from .cover_art import GRADIENT_PRESETS, build_cover_data_uri
 
 # ==========================================
 # 1. INLINES (Ichma-ich ochiladigan oynalar)
@@ -63,10 +65,78 @@ class NestedQuestionInline(nested_admin.NestedStackedInline):
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
-    list_display = ('title', 'is_active', 'created_at') # Jadvalda ko'rinadigan ustunlar
+    list_display = ('title', 'cover_mode', 'gradient_preset', 'is_active', 'created_at') # Jadvalda ko'rinadigan ustunlar
     list_filter = ('is_active',) # O'ng tomondagi filtr
     search_fields = ('title', 'description') # Qidiruv qutisi
     inlines = [ModuleInline] # Kursning ichidayoq Modullarni qo'shib ketish mumkin!
+    readonly_fields = ('cover_preview', 'gradient_gallery')
+    fieldsets = (
+        (
+            "Asosiy ma'lumotlar",
+            {
+                "fields": (
+                    "title",
+                    "description",
+                    "instructor",
+                    ("level", "duration", "price"),
+                    "is_active",
+                )
+            },
+        ),
+        (
+            "Kurs cover'i",
+            {
+                "description": "Rasm yuklashingiz yoki tayyor gradient preset ishlatishingiz mumkin.",
+                "fields": (
+                    ("cover_mode", "gradient_preset"),
+                    ("gradient_cover_title", "gradient_cover_label"),
+                    "thumbnail",
+                    "cover_preview",
+                    "gradient_gallery",
+                    "preview_video",
+                ),
+            },
+        ),
+    )
+
+    @admin.display(description="Hozirgi cover preview")
+    def cover_preview(self, obj):
+        title = obj.cover_display_title if obj else "Turk tili A2"
+        image_url = obj.cover_media_url if obj else build_cover_data_uri(title=title, preset_key="midnight_wave", kicker="A1-A2")
+        return format_html(
+            '<div style="max-width: 360px; border-radius: 24px; overflow: hidden; border: 1px solid rgba(17, 36, 60, 0.08); box-shadow: 0 18px 40px rgba(10, 55, 97, 0.14);">'
+            '<img src="{}" alt="Cover preview" style="display:block; width:100%; height:auto;" />'
+            "</div>",
+            image_url,
+        )
+
+    @admin.display(description="Tayyor gradient presetlar")
+    def gradient_gallery(self, obj):
+        sample_title = obj.cover_display_title if obj else "GPT-5.3-Codex"
+        sample_label = obj.cover_display_label if obj else "A1-A2"
+        cards = format_html_join(
+            "",
+            (
+                '<div style="width: 148px;">'
+                '<div style="overflow:hidden; border-radius:18px; box-shadow:0 12px 28px rgba(10, 55, 97, 0.12); border:1px solid rgba(17, 36, 60, 0.06);">'
+                '<img src="{}" alt="{}" style="display:block; width:100%; height:auto;" />'
+                "</div>"
+                '<div style="margin-top:8px; font-size:12px; font-weight:700; color:#1c3551;">{}</div>'
+                "</div>"
+            ),
+            (
+                (
+                    build_cover_data_uri(sample_title, preset["key"], kicker=sample_label),
+                    preset["label"],
+                    preset["label"],
+                )
+                for preset in GRADIENT_PRESETS
+            ),
+        )
+        return format_html(
+            '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(148px, 1fr)); gap:14px;">{}</div>',
+            cards,
+        )
 
 @admin.register(Module)
 class ModuleAdmin(admin.ModelAdmin):

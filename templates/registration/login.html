@@ -1,183 +1,72 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends 'auth/base.html' %}
 
 {% block title %}Kirish | AzureLMS{% endblock %}
+{% block auth_kicker %}{{ auth_page_settings.login_visual_kicker }}{% endblock %}
+{% block auth_visual_title %}{{ auth_page_settings.login_visual_title }}{% endblock %}
+{% block auth_visual_description %}{{ auth_page_settings.login_visual_description }}{% endblock %}
+{% block auth_panel_badge %}{{ auth_page_settings.login_panel_badge }}{% endblock %}
+{% block auth_heading %}{{ auth_page_settings.login_panel_heading }}{% endblock %}
+{% block auth_intro %}{{ auth_page_settings.login_panel_intro }}{% endblock %}
 
-{% block extra_css %}
-<style>
-    body {
-        background-color: var(--lms-bg);
-    }
-</style>
-{% endblock %}
+{% block auth_content %}
+<form method="post" action="{% url 'login' %}" class="auth-form-grid">
+    {% csrf_token %}
+    {% if next or request.GET.next %}
+        <input type="hidden" name="next" value="{{ next|default:request.GET.next }}">
+    {% endif %}
 
-{% block content %}
-<div class="auth-container">
-    <!-- Left Side - Branding -->
-    <div class="auth-branding d-none d-lg-flex">
-        <div class="auth-branding-content">
-            <a href="{% url 'home' %}" class="auth-logo text-decoration-none text-white">
-                <i class="bi bi-mortarboard-fill"></i>
-                <span>AzureLMS</span>
-            </a>
-            <h1>Xush kelibsiz!</h1>
-            <p>Hisobingizga kiring va turk tilini o'rganishni davom eting.</p>
-            
-            <div class="auth-features">
-                <div class="auth-feature">
-                    <i class="bi bi-check-circle"></i>
-                    <span>50+ professional kurslar</span>
-                </div>
-                <div class="auth-feature">
-                    <i class="bi bi-check-circle"></i>
-                    <span>Interaktiv darsliklar</span>
-                </div>
-                <div class="auth-feature">
-                    <i class="bi bi-check-circle"></i>
-                    <span>Sertifikatli ta'lim</span>
-                </div>
-            </div>
+    <div class="auth-field">
+        <label for="id_username">Email yoki username</label>
+        <div class="auth-input-wrap {% if form.username.errors %}has-error{% endif %}">
+            <i class="bi bi-person"></i>
+            <input
+                type="text"
+                id="id_username"
+                name="username"
+                value="{{ form.username.value|default:'' }}"
+                placeholder="Email yoki username kiriting"
+                required
+            >
         </div>
+        {% if form.username.errors %}<div class="auth-error">{{ form.username.errors.0 }}</div>{% endif %}
     </div>
-    
-    <!-- Right Side - Form -->
-    <div class="auth-form-side">
-        <div class="auth-form-wrapper">
-            <!-- Mobile Logo -->
-            <a href="{% url 'home' %}" class="auth-mobile-logo d-lg-none text-decoration-none">
-                <i class="bi bi-mortarboard-fill"></i>
-                <span>AzureLMS</span>
-            </a>
-            
-            <div class="auth-form-header">
-                <h2>Hisobga kirish</h2>
-                <p>Email (yoki username) va parolingizni kiriting</p>
-            </div>
-            
-            {% if form.non_field_errors %}
-            <div class="alert-container">
-                {% for error in form.non_field_errors %}
-                <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-3" role="alert">
-                    <i class="bi bi-exclamation-triangle me-2"></i> {{ error }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
 
-            {% if messages %}
-            <div class="alert-container mb-4">
-                {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show border-0 shadow-sm rounded-3" role="alert">
-                    <i class="bi bi-info-circle me-2"></i> {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
-            
-            <form class="auth-form" method="post" action="{% url 'login' %}">
-                {% csrf_token %}
-                
-                <div class="form-group mb-4">
-                    <label for="id_username" class="form-label">Email yoki Username</label>
-                    <div class="input-group">
-                        <span class="input-group-text border-end-0 bg-transparent text-muted">
-                            <i class="bi bi-person"></i>
-                        </span>
-                        <input 
-                            type="text" 
-                            class="form-control border-start-0 ps-0 {% if form.username.errors %}is-invalid{% endif %}" 
-                            id="id_username" 
-                            name="username"
-                            value="{{ form.username.value|default:'' }}"
-                            placeholder="Email yoki username kiriting"
-                            required
-                        >
-                    </div>
-                    {% if form.username.errors %}
-                    <div class="invalid-feedback d-block">{{ form.username.errors.0 }}</div>
-                    {% endif %}
-                </div>
-                
-                <div class="form-group mb-4">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <label for="id_password" class="form-label mb-0">Parol</label>
-                        <a href="{% url 'password_reset' %}" class="text-decoration-none small fw-medium" style="color: var(--lms-primary);">Parolni unutdingizmi?</a>
-                    </div>
-                    <div class="input-group">
-                        <span class="input-group-text border-end-0 bg-transparent text-muted">
-                            <i class="bi bi-lock"></i>
-                        </span>
-                        <input 
-                            type="password" 
-                            class="form-control border-start-0 border-end-0 px-0 {% if form.password.errors %}is-invalid{% endif %}" 
-                            id="id_password" 
-                            name="password"
-                            placeholder="Parolingiz"
-                            required
-                        >
-                        <button class="btn border border-start-0 bg-transparent text-muted" type="button" id="togglePassword">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                    </div>
-                    {% if form.password.errors %}
-                    <div class="invalid-feedback d-block">{{ form.password.errors.0 }}</div>
-                    {% endif %}
-                </div>
-                
-                <div class="form-check mb-4">
-                    <input class="form-check-input" type="checkbox" id="remember" name="remember">
-                    <label class="form-check-label text-muted" for="remember">
-                        Meni eslab qol
-                    </label>
-                </div>
-                
-                <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold">
-                    Kirish
-                </button>
-            </form>
-            
-            <div class="auth-divider">
-                <span>yoki</span>
-            </div>
-            
-            <div class="social-auth d-flex flex-column gap-3">
-                <button type="button" class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center p-2 rounded-pill">
-                    <i class="bi bi-google me-2 fs-5 text-danger"></i>
-                    Google orqali kirish
-                </button>
-            </div>
-            
-            <div class="auth-footer mt-4">
-                <p class="text-muted">Hali hisobingiz yo'qmi? <a href="{% url 'register' %}" class="fw-bold" style="color: var(--lms-primary);">Ro'yxatdan o'ting</a></p>
-            </div>
+    <div class="auth-field">
+        <div class="auth-help-row">
+            <label for="id_password">Parol</label>
+            <a href="{% url 'password_reset' %}" class="auth-text-link">Parolni unutdingizmi?</a>
         </div>
+        <div class="auth-input-wrap has-toggle {% if form.password.errors %}has-error{% endif %}">
+            <i class="bi bi-lock"></i>
+            <input
+                type="password"
+                id="id_password"
+                name="password"
+                placeholder="Parolingiz"
+                required
+            >
+            <button type="button" class="auth-toggle-btn" data-password-toggle="#id_password">
+                <i class="bi bi-eye"></i>
+            </button>
+        </div>
+        {% if form.password.errors %}<div class="auth-error">{{ form.password.errors.0 }}</div>{% endif %}
     </div>
+
+    <div class="auth-aux-row">
+        <label class="auth-checkbox-row">
+            <input type="checkbox" name="remember" id="remember">
+            <span>Meni shu qurilmada eslab qol</span>
+        </label>
+        <span class="text-muted">Secure session</span>
+    </div>
+
+    <button type="submit" class="auth-primary-btn">Kirish</button>
+</form>
+
+<div class="auth-divider"><span>yoki</span></div>
+
+<div class="auth-aux-row">
+    <span class="text-muted">{{ auth_page_settings.login_footer_prompt }}</span>
+    <a href="{% url 'register' %}" class="auth-text-link">{{ auth_page_settings.login_footer_link_label }}</a>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    // Password visibility toggle
-    document.addEventListener('DOMContentLoaded', function() {
-        const togglePassword = document.getElementById('togglePassword');
-        const passwordInput = document.getElementById('id_password');
-        
-        if (togglePassword && passwordInput) {
-            togglePassword.addEventListener('click', function() {
-                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-                passwordInput.setAttribute('type', type);
-                const icon = this.querySelector('i');
-                if (type === 'text') {
-                    icon.classList.remove('bi-eye');
-                    icon.classList.add('bi-eye-slash');
-                } else {
-                    icon.classList.remove('bi-eye-slash');
-                    icon.classList.add('bi-eye');
-                }
-            });
-        }
-    });
-</script>
 {% endblock %}

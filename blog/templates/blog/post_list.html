@@ -1,0 +1,166 @@
+{% extends "blog/base.html" %}
+{% load humanize %}
+
+{% block title %}Azure Journal | Blog{% endblock %}
+{% block meta_description %}Medium uslubidagi AzureLMS blogi: chuqur maqolalar, notes va amaliy fikrlar.{% endblock %}
+
+{% block content %}
+<section class="blog-hero">
+    <div class="container">
+        <div class="blog-hero-grid blog-hero-grid-refined">
+            <div class="blog-hero-copy blog-hero-copy-refined">
+                <span class="blog-kicker">{{ landing_settings.hero_kicker }}</span>
+                <h1 class="blog-list-title">{{ landing_settings.hero_title }}</h1>
+                <p>{{ landing_settings.hero_description }}</p>
+
+                <form method="get" class="blog-search-card">
+                    <label class="form-label" for="id_q">{{ landing_settings.search_label }}</label>
+                    <div class="blog-search-row">
+                        <input id="id_q" class="form-control" type="search" name="q" value="{{ search_query }}" placeholder="{{ landing_settings.search_placeholder }}">
+                        <button class="btn blog-btn blog-btn-primary" type="submit">Qidirish</button>
+                    </div>
+                </form>
+
+                {% if top_tags %}
+                    <div class="blog-tag-cloud">
+                        {% for tag in top_tags %}
+                            <a href="{% url 'blog:list' %}?tag={{ tag.slug }}" class="blog-chip {% if active_tag == tag.slug %}is-active{% endif %}">
+                                #{{ tag.name }}
+                                <span>{{ tag.post_total }}</span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <aside class="blog-carousel-card">
+                <div class="blog-carousel-head">
+                    <div>
+                        <span class="blog-panel-label">{{ landing_settings.carousel_kicker }}</span>
+                        <h2>{{ landing_settings.carousel_title }}</h2>
+                    </div>
+                    {% if carousel_posts|length > 1 %}
+                        <div class="blog-carousel-controls">
+                            <button class="carousel-control-btn" type="button" data-bs-target="#blogLatestCarousel" data-bs-slide="prev">
+                                <i class="bi bi-arrow-left"></i>
+                            </button>
+                            <button class="carousel-control-btn" type="button" data-bs-target="#blogLatestCarousel" data-bs-slide="next">
+                                <i class="bi bi-arrow-right"></i>
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+
+                {% if carousel_posts %}
+                    <div id="blogLatestCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel">
+                        <div class="carousel-inner">
+                            {% for post in carousel_posts %}
+                                <div class="carousel-item {% if post.carousel_active %}active{% endif %}">
+                                    <article class="blog-carousel-slide">
+                                        <a class="blog-carousel-media" href="{{ post.get_absolute_url }}">
+                                            {% if post.cover_image %}
+                                                <img src="{{ post.cover_image.url }}" alt="{{ post.cover_alt_text|default:post.title }}">
+                                            {% else %}
+                                                <div class="blog-cover-placeholder">
+                                                    <span>{{ post.title|truncatechars:30 }}</span>
+                                                </div>
+                                            {% endif %}
+                                        </a>
+                                        <div class="blog-carousel-copy">
+                                            <div class="blog-inline-tags">
+                                                {% for tag in post.tags.all|slice:":2" %}
+                                                    <a href="{% url 'blog:list' %}?tag={{ tag.slug }}">#{{ tag.name }}</a>
+                                                {% endfor %}
+                                            </div>
+                                            <h3><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h3>
+                                            <p>{{ post.excerpt|truncatechars:150 }}</p>
+                                            <div class="blog-meta-row">
+                                                <span>{{ post.published_at|date:"d M Y" }}</span>
+                                                <span>{{ post.reading_time_minutes }} min</span>
+                                                <span>{{ post.view_count|intcomma }} o'qish</span>
+                                            </div>
+                                        </div>
+                                    </article>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="blog-panel-card">
+                        <h3>Hali post yo'q</h3>
+                        <p>Blog Studio orqali birinchi postni yozishingiz mumkin.</p>
+                    </div>
+                {% endif %}
+            </aside>
+        </div>
+    </div>
+</section>
+
+<section class="blog-index-section">
+    <div class="container">
+        <div class="blog-index-header">
+            <div>
+                <span class="blog-kicker">{{ landing_settings.stories_kicker }}</span>
+                <h2>{{ landing_settings.stories_title }}</h2>
+                <p class="blog-section-copy">{{ landing_settings.stories_description }}</p>
+            </div>
+            {% if search_query or active_tag %}
+                <a class="blog-reset-link" href="{% url 'blog:list' %}">Filtrni tozalash</a>
+            {% endif %}
+        </div>
+
+        {% if posts %}
+            <div class="blog-story-stream">
+                {% for post in posts %}
+                    <article class="blog-story-card">
+                        <a class="blog-story-media" href="{{ post.get_absolute_url }}">
+                            {% if post.cover_image %}
+                                <img src="{{ post.cover_image.url }}" alt="{{ post.cover_alt_text|default:post.title }}">
+                            {% else %}
+                                <div class="blog-cover-placeholder">
+                                    <span>{{ post.title|truncatechars:26 }}</span>
+                                </div>
+                            {% endif %}
+                        </a>
+                        <div class="blog-story-body">
+                            <div class="blog-inline-tags">
+                                {% for tag in post.tags.all|slice:":3" %}
+                                    <a href="{% url 'blog:list' %}?tag={{ tag.slug }}">#{{ tag.name }}</a>
+                                {% endfor %}
+                            </div>
+                            <h3 class="blog-story-title"><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h3>
+                            <p class="blog-story-description">{{ post.excerpt|truncatechars:220 }}</p>
+                            <div class="blog-story-footer">
+                                <div class="blog-meta-row">
+                                    <span>{{ post.author.get_full_name|default:post.author.username }}</span>
+                                    <span>{{ post.published_at|date:"d M Y" }}</span>
+                                    <span>{{ post.reading_time_minutes }} min</span>
+                                    <span>{{ post.comment_count|intcomma }} comment</span>
+                                </div>
+                                <a class="blog-read-link" href="{{ post.get_absolute_url }}">O'qish <i class="bi bi-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="blog-empty-state">
+                <h3>Hali post topilmadi</h3>
+                <p>Qidiruvni o'zgartiring yoki keyinroq qayta kiring.</p>
+            </div>
+        {% endif %}
+
+        {% if is_paginated %}
+            <div class="blog-pagination">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if active_tag %}&tag={{ active_tag }}{% endif %}">Oldingi</a>
+                {% endif %}
+                <span>{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if active_tag %}&tag={{ active_tag }}{% endif %}">Keyingi</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

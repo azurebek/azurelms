@@ -24,6 +24,9 @@ urlpatterns = [
     
     # Pricing/Subscriptions
     path('pricing/', include('subscriptions.urls', namespace='subscriptions')),
+
+    # Public blog
+    path('blog/', include(('blog.urls', 'blog'), namespace='blog')),
     
     # Cohorts / Checkout
     path('checkout/', include('cohorts.urls', namespace='cohorts')),

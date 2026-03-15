@@ -119,11 +119,7 @@
         <div class="col-12 col-md-6 col-xl-4">
             <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
                 <div class="position-relative" style="height: 160px; display: flex; align-items: center; justify-content: center;">
-                    {% if enrollment.cohort.course.thumbnail %}
-                    <img src="{{ enrollment.cohort.course.thumbnail.url }}" alt="{{ enrollment.cohort.course.title }}" class="w-100 h-100" style="object-fit: cover;">
-                    {% else %}
-                    <i class="bi bi-translate display-4 text-primary opacity-50"></i>
-                    {% endif %}
+                    <img src="{{ enrollment.cohort.course.cover_media_url }}" alt="{{ enrollment.cohort.course.title }}" class="w-100 h-100" style="object-fit: cover;">
                     <span class="badge bg-{{ enrollment.cohort.course.get_level_color|default:'primary' }} position-absolute top-0 start-0 m-3">{{ enrollment.cohort.course.get_level_display|default:enrollment.cohort.course.level }}</span>
                 </div>
                 <div class="card-body d-flex flex-column">
@@ -187,11 +183,7 @@
         <div class="col-12 col-md-6 col-lg-4">
             <div class="card course-card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
                 <div class="position-relative" style="height: 180px; display: flex; align-items: center; justify-content: center;">
-                    {% if course.thumbnail %}
-                    <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" class="w-100 h-100" style="object-fit: cover;">
-                    {% else %}
-                    <i class="bi bi-camera-video display-4 text-secondary opacity-50"></i>
-                    {% endif %}
+                    <img src="{{ course.cover_media_url }}" alt="{{ course.title }}" class="w-100 h-100" style="object-fit: cover;">
                     <span class="badge bg-warning position-absolute top-0 start-0 m-3">{{ course.get_level_display|default:course.level }}</span>
                 </div>
                 <div class="card-body d-flex flex-column">

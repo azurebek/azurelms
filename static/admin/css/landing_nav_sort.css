@@ -1,0 +1,23 @@
+.nav-drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.4rem;
+  cursor: grab;
+  color: #0a76cb;
+  font-size: 1.1rem;
+  letter-spacing: -0.18em;
+  user-select: none;
+}
+
+.nav-drag-handle:active {
+  cursor: grabbing;
+}
+
+#result_list tbody tr.nav-sort-row.is-dragging {
+  opacity: 0.45;
+}
+
+#result_list tbody tr.nav-sort-row:hover .nav-drag-handle {
+  color: #085ea2;
+}

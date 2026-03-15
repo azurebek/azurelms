@@ -106,6 +106,7 @@ INSTALLED_APPS = [
     'gamification',
     'subscriptions',
     'frontend',
+    'blog',
     'bot',
     'corsheaders',
     'nested_admin',
@@ -328,6 +329,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = 'users.CustomUser'
 
 # Auth Redirects
+LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'home'
 

@@ -79,51 +79,7 @@
                 <div class="row g-4">
                     {% for course in courses %}
                     <div class="col-md-6 col-xl-4">
-                        <a href="{% url 'course_detail' course.pk %}" class="text-decoration-none">
-                            <div class="card course-card border-0 shadow-sm rounded-4 h-100 overflow-hidden card-hover">
-                                <div class="course-image position-relative bg-dark" style="height: 180px; display: flex; align-items: center; justify-content: center;">
-                                    {% if course.thumbnail %}
-                                    <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" class="w-100 h-100 object-fit-cover opacity-75">
-                                    {% else %}
-                                    <i class="bi bi-camera-video display-1 text-white opacity-25"></i>
-                                    {% endif %}
-                                    <span class="badge bg-warning position-absolute top-0 start-0 m-3 fs-6">
-                                        <i class="bi bi-star-fill me-1 small"></i>Ommabop
-                                    </span>
-                                    <span class="badge bg-white position-absolute bottom-0 end-0 m-3 px-2 py-1 shadow-sm rounded-pill fw-bold">
-                                        {{ course.get_level_display }}
-                                    </span>
-                                </div>
-                                <div class="card-body d-flex flex-column p-4">
-                                    <!-- Category badge -->
-                                    <span class="badge bg-primary bg-opacity-10 text-primary mb-2 align-self-start py-1 px-2 rounded-2 fw-medium">Turk tili</span>
-                                    
-                                    <h5 class="card-title h6 fw-bold mb-2">{{ course.title }}</h5>
-                                    <p class="text-muted small mb-3 flex-grow-1 line-clamp-2">{{ course.description|striptags|truncatewords:15 }}</p>
-                                    
-                                    <div class="d-flex align-items-center gap-2 mb-3">
-                                        <div class="avatar avatar-sm bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;">
-                                            {% if course.instructor.avatar %}
-                                            <img src="{{ course.instructor.avatar.url }}" alt="{{ course.instructor.get_full_name }}" class="w-100 h-100 rounded-circle object-fit-cover">
-                                            {% else %}
-                                            <span class="small fw-bold">{{ course.instructor.first_name|default:course.instructor.username|slice:":1"|upper }}</span>
-                                            {% endif %}
-                                        </div>
-                                        <span class="small fw-medium text-muted mt-1">{{ course.instructor.get_full_name|default:"Professional O'qituvchi" }}</span>
-                                    </div>
-                                    
-                                    <div class="d-flex justify-content-between align-items-center mt-auto mb-1">
-                                        <div class="d-flex align-items-center gap-1 text-muted small">
-                                            <i class="bi bi-people text-primary opacity-75"></i>
-                                            <span>{{ course.students_count|intcomma }} a'zo</span>
-                                        </div>
-                                        <div>
-                                            <span class="fs-6 fw-bold text-primary">Obunaga kiritilgan</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
+                        {% include "includes/course_showcase_card.html" with course=course %}
                     </div>
                     {% empty %}
                     <div class="col-12 text-center py-5 bg-white border-0 shadow-sm rounded-4">
@@ -173,27 +129,5 @@
         </div>
     </div>
 </section>
-
-{% block extra_css %}
-<!-- Only define additional specific CSS to the page if needed, otherwise base style is mostly sufficient for new Bootstrap 5 classes -->
-<style>
-    .card-hover {
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .card-hover:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
-    }
-    .line-clamp-2 {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;  
-        overflow: hidden;
-    }
-    .object-fit-cover {
-        object-fit: cover;
-    }
-</style>
-{% endblock %}
 
 {% endblock %}

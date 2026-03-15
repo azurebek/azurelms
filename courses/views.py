@@ -17,9 +17,13 @@ class CourseListView(ListView):
     def get_queryset(self):
         from django.db.models import Count, Q as Q_obj
         
-        queryset = Course.objects.filter(is_active=True).annotate(
-            annotated_lessons_count=Count('modules__lessons', distinct=True),
-            annotated_students_count=Count('cohorts__members', filter=Q_obj(cohorts__members__status='active'), distinct=True)
+        queryset = (
+            Course.objects.filter(is_active=True)
+            .select_related("instructor")
+            .annotate(
+                annotated_lessons_count=Count('modules__lessons', distinct=True),
+                annotated_students_count=Count('cohorts__members', filter=Q_obj(cohorts__members__status='active'), distinct=True)
+            )
         )
         
         # Qidiruv filtering
@@ -40,10 +44,7 @@ class CourseListView(ListView):
         if sort_by == 'oldest':
             queryset = queryset.order_by('created_at')
         elif sort_by == 'popular':
-            # Har bir kursning studentlar sonini hisoblash mumkin, 
-            # ammo oddiylik uchun hozircha default newest. 
-            # Keyinroq annotation qo'shsa bo'ladi: annotate(num_students=Count('cohorts__members')).order_by('-num_students')
-            queryset = queryset.order_by('-created_at')
+            queryset = queryset.order_by('-annotated_students_count', '-created_at')
         else:
             # Default = newest
             queryset = queryset.order_by('-created_at')

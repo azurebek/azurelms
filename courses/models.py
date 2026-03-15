@@ -4,6 +4,9 @@ from django.db import models
 from django_ckeditor_5.fields import CKEditor5Field
 from django.db.models import Sum
 from django.urls import reverse
+from django.utils.functional import cached_property
+
+from .cover_art import GRADIENT_PRESET_CHOICES, build_cover_data_uri
 
 
 class Course(models.Model):
@@ -23,6 +26,34 @@ class Course(models.Model):
     duration = models.PositiveIntegerField(default=20, help_text="Kursning taxminiy davomiyligi (soatlarda)")
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="Kurs narxi (UZS)")
     thumbnail = models.ImageField(upload_to='courses/thumbnails/', blank=True, null=True, verbose_name="Kurs rasmi")
+    cover_mode = models.CharField(
+        max_length=20,
+        choices=(
+            ("image", "Yuklangan rasm"),
+            ("gradient", "Gradient cover"),
+        ),
+        default="image",
+        verbose_name="Cover turi",
+        help_text="Agar rasm yuklamasangiz, tanlangan gradient preset avtomatik ishlaydi.",
+    )
+    gradient_preset = models.CharField(
+        max_length=40,
+        choices=GRADIENT_PRESET_CHOICES,
+        default="aurora_blush",
+        verbose_name="Gradient preset",
+    )
+    gradient_cover_title = models.CharField(
+        max_length=80,
+        blank=True,
+        verbose_name="Gradient markaziy yozuvi",
+        help_text="Bo'sh qoldirilsa kurs nomi ishlatiladi.",
+    )
+    gradient_cover_label = models.CharField(
+        max_length=48,
+        blank=True,
+        verbose_name="Gradient kichik badge matni",
+        help_text="Bo'sh qoldirilsa kurs darajasi ishlatiladi.",
+    )
     preview_video = models.FileField(upload_to='courses/previews/', blank=True, null=True, verbose_name="Tanishtiruv videosi")
     
     is_active = models.BooleanField(default=True, verbose_name="Faolmi?")
@@ -40,6 +71,40 @@ class Course(models.Model):
             return self.annotated_students_count
         from cohorts.models import Enrollment
         return Enrollment.objects.filter(cohort__course=self, status='active').values('student').distinct().count()
+
+    @property
+    def instructor_display_name(self):
+        if not self.instructor:
+            return "AzureLMS Instructor"
+        full_name = self.instructor.get_full_name().strip()
+        return full_name or self.instructor.username
+
+    @property
+    def instructor_initial(self):
+        return self.instructor_display_name[:1].upper()
+
+    @property
+    def cover_display_title(self):
+        return (self.gradient_cover_title or "").strip() or self.title
+
+    @property
+    def cover_display_label(self):
+        return (self.gradient_cover_label or "").strip() or self.get_level_display()
+
+    @property
+    def uses_gradient_cover(self):
+        return self.cover_mode == "gradient" or not bool(self.thumbnail)
+
+    @cached_property
+    def cover_media_url(self):
+        if self.thumbnail and self.cover_mode == "image":
+            return self.thumbnail.url
+        return build_cover_data_uri(
+            title=self.cover_display_title,
+            preset_key=self.gradient_preset,
+            kicker=self.cover_display_label,
+            footer="AzureLMS Course",
+        )
 
     def __str__(self):
         return self.title

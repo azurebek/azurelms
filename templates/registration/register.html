@@ -1,260 +1,95 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends 'auth/base.html' %}
 
 {% block title %}Ro'yxatdan O'tish | AzureLMS{% endblock %}
+{% block body_class %}auth-register{% endblock %}
+{% block auth_kicker %}{{ auth_page_settings.register_visual_kicker }}{% endblock %}
+{% block auth_visual_title %}{{ auth_page_settings.register_visual_title }}{% endblock %}
+{% block auth_visual_description %}{{ auth_page_settings.register_visual_description }}{% endblock %}
+{% block auth_panel_badge %}{{ auth_page_settings.register_panel_badge }}{% endblock %}
+{% block auth_heading %}{{ auth_page_settings.register_panel_heading }}{% endblock %}
+{% block auth_intro %}{{ auth_page_settings.register_panel_intro }}{% endblock %}
 
-{% block extra_css %}
-<style>
-    body {
-        background-color: var(--lms-bg);
-    }
-</style>
-{% endblock %}
+{% block auth_content %}
+<form method="post" action="{% url 'register' %}" class="auth-form-grid">
+    {% csrf_token %}
 
-{% block content %}
-<div class="auth-container">
-    <!-- Left Side - Branding -->
-    <div class="auth-branding d-none d-lg-flex">
-        <div class="auth-branding-content">
-            <a href="{% url 'home' %}" class="auth-logo text-decoration-none text-white">
-                <i class="bi bi-mortarboard-fill"></i>
-                <span>AzureLMS</span>
-            </a>
-            <h1>Bepul ro'yxatdan o'ting</h1>
-            <p>Turk tilini professional o'qituvchilar bilan o'rganing.</p>
-            
-            <div class="auth-features">
-                <div class="auth-feature">
-                    <i class="bi bi-gift text-white"></i>
-                    <span>Bepul darsliklar mavjud</span>
-                </div>
-                <div class="auth-feature">
-                    <i class="bi bi-shield-check text-white"></i>
-                    <span>Xavfsiz to'lov tizimi</span>
-                </div>
-                <div class="auth-feature">
-                    <i class="bi bi-award text-white"></i>
-                    <span>Rasmiy sertifikatlar</span>
-                </div>
+    <div class="auth-form-grid auth-form-grid-2">
+        <div class="auth-field">
+            <label for="id_first_name">Ism</label>
+            <div class="auth-input-wrap {% if form.first_name.errors %}has-error{% endif %}">
+                <i class="bi bi-person-badge"></i>
+                <input type="text" id="id_first_name" name="first_name" value="{{ form.first_name.value|default:'' }}" placeholder="Ismingiz" required>
             </div>
+            {% if form.first_name.errors %}<div class="auth-error">{{ form.first_name.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="auth-field">
+            <label for="id_last_name">Familiya</label>
+            <div class="auth-input-wrap {% if form.last_name.errors %}has-error{% endif %}">
+                <i class="bi bi-person-vcard"></i>
+                <input type="text" id="id_last_name" name="last_name" value="{{ form.last_name.value|default:'' }}" placeholder="Familiyangiz" required>
+            </div>
+            {% if form.last_name.errors %}<div class="auth-error">{{ form.last_name.errors.0 }}</div>{% endif %}
         </div>
     </div>
-    
-    <!-- Right Side - Form -->
-    <div class="auth-form-side">
-        <div class="auth-form-wrapper" style="max-width: 500px;">
-            <!-- Mobile Logo -->
-            <a href="{% url 'home' %}" class="auth-mobile-logo d-lg-none text-decoration-none">
-                <i class="bi bi-mortarboard-fill"></i>
-                <span>AzureLMS</span>
-            </a>
-            
-            <div class="auth-form-header">
-                <h2>Hisob yaratish</h2>
-                <p>Barcha ma'lumotlarni to'ldiring</p>
-            </div>
-            
-            {% if form.non_field_errors %}
-            <div class="alert-container">
-                {% for error in form.non_field_errors %}
-                <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-3" role="alert">
-                    <i class="bi bi-exclamation-triangle me-2"></i> {{ error }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
 
-            {% if messages %}
-            <div class="alert-container mb-4">
-                {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show border-0 shadow-sm rounded-3" role="alert">
-                    <i class="bi bi-info-circle me-2"></i> {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
-            
-            <form class="auth-form" method="post" action="{% url 'register' %}">
-                {% csrf_token %}
-                
-                <div class="row">
-                    <div class="col-sm-6 mb-3">
-                        <div class="form-group mb-0">
-                            <label for="id_first_name" class="form-label">Ism</label>
-                            <input 
-                                type="text" 
-                                class="form-control {% if form.first_name.errors %}is-invalid{% endif %}" 
-                                id="id_first_name" 
-                                name="first_name"
-                                value="{{ form.first_name.value|default:'' }}"
-                                placeholder="Ismingiz"
-                                required
-                            >
-                            {% if form.first_name.errors %}
-                            <div class="invalid-feedback d-block">{{ form.first_name.errors.0 }}</div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="col-sm-6 mb-3">
-                        <div class="form-group mb-0">
-                            <label for="id_last_name" class="form-label">Familiya</label>
-                            <input 
-                                type="text" 
-                                class="form-control {% if form.last_name.errors %}is-invalid{% endif %}" 
-                                id="id_last_name" 
-                                name="last_name"
-                                value="{{ form.last_name.value|default:'' }}"
-                                placeholder="Familiyangiz"
-                                required
-                            >
-                            {% if form.last_name.errors %}
-                            <div class="invalid-feedback d-block">{{ form.last_name.errors.0 }}</div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="form-group mb-3">
-                    <label for="id_username" class="form-label">Foydalanuvchi nomi</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-transparent text-muted">
-                            <i class="bi bi-person"></i>
-                        </span>
-                        <input 
-                            type="text" 
-                            class="form-control border-start-0 ps-0 {% if form.username.errors %}is-invalid{% endif %}" 
-                            id="id_username" 
-                            name="username"
-                            value="{{ form.username.value|default:'' }}"
-                            placeholder="username"
-                            required
-                        >
-                    </div>
-                    {% if form.username.errors %}
-                    <div class="invalid-feedback d-block">{{ form.username.errors.0 }}</div>
-                    {% endif %}
-                </div>
-
-                <div class="form-group mb-3">
-                    <label for="id_email" class="form-label">Email manzil</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-transparent text-muted">
-                            <i class="bi bi-envelope"></i>
-                        </span>
-                        <input 
-                            type="email" 
-                            class="form-control border-start-0 ps-0 {% if form.email.errors %}is-invalid{% endif %}" 
-                            id="id_email" 
-                            name="email"
-                            value="{{ form.email.value|default:'' }}"
-                            placeholder="email@example.com"
-                            required
-                        >
-                    </div>
-                    {% if form.email.errors %}
-                    <div class="invalid-feedback d-block">{{ form.email.errors.0 }}</div>
-                    {% endif %}
-                </div>
-                
-                <div class="form-group mb-3">
-                    <label for="id_password1" class="form-label">Parol</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-transparent text-muted">
-                            <i class="bi bi-lock"></i>
-                        </span>
-                        <input 
-                            type="password" 
-                            class="form-control border-start-0 border-end-0 px-0 {% if form.password1.errors %}is-invalid{% endif %}" 
-                            id="id_password1" 
-                            name="password1"
-                            placeholder="Kamida 8 ta belgi"
-                            required
-                        >
-                        <button class="btn border border-start-0 bg-transparent text-muted toggle-password" type="button">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                    </div>
-                    {% if form.password1.errors %}
-                    <div class="invalid-feedback d-block">{{ form.password1.errors.0 }}</div>
-                    {% endif %}
-                </div>
-                
-                <div class="form-group mb-4">
-                    <label for="id_password2" class="form-label">Parolni tasdiqlang</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-transparent text-muted">
-                            <i class="bi bi-lock-fill"></i>
-                        </span>
-                        <input 
-                            type="password" 
-                            class="form-control border-start-0 border-end-0 px-0 {% if form.password2.errors %}is-invalid{% endif %}" 
-                            id="id_password2" 
-                            name="password2"
-                            placeholder="Parolni qaytaring"
-                            required
-                        >
-                        <button class="btn border border-start-0 bg-transparent text-muted toggle-password" type="button">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                    </div>
-                    {% if form.password2.errors %}
-                    <div class="invalid-feedback d-block">{{ form.password2.errors.0 }}</div>
-                    {% endif %}
-                </div>
-                
-                <div class="form-check mb-4">
-                    <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
-                    <label class="form-check-label text-muted" for="terms">
-                        Men <a href="#" class="text-decoration-none fw-medium" style="color: var(--lms-primary);">Foydalanish shartlari</a> va 
-                        <a href="#" class="text-decoration-none fw-medium" style="color: var(--lms-primary);">Maxfiylik siyosati</a>ga roziman
-                    </label>
-                </div>
-                
-                <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold">
-                    Ro'yxatdan o'tish
-                </button>
-            </form>
-            
-            <div class="auth-divider">
-                <span>yoki</span>
-            </div>
-            
-            <div class="social-auth d-flex flex-column gap-3">
-                <button type="button" class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center p-2 rounded-pill">
-                    <i class="bi bi-google me-2 fs-5 text-danger"></i>
-                    Google orqali ro'yxatdan o'tish
-                </button>
-            </div>
-            
-            <div class="auth-footer mt-4">
-                <p class="text-muted">Allaqachon hisobingiz bormi? <a href="{% url 'login' %}" class="fw-bold" style="color: var(--lms-primary);">Kirish</a></p>
-            </div>
+    <div class="auth-field">
+        <label for="id_username">Foydalanuvchi nomi</label>
+        <div class="auth-input-wrap {% if form.username.errors %}has-error{% endif %}">
+            <i class="bi bi-at"></i>
+            <input type="text" id="id_username" name="username" value="{{ form.username.value|default:'' }}" placeholder="username" required>
         </div>
+        {% if form.username.errors %}<div class="auth-error">{{ form.username.errors.0 }}</div>{% endif %}
     </div>
+
+    <div class="auth-field">
+        <label for="id_email">Email</label>
+        <div class="auth-input-wrap {% if form.email.errors %}has-error{% endif %}">
+            <i class="bi bi-envelope"></i>
+            <input type="email" id="id_email" name="email" value="{{ form.email.value|default:'' }}" placeholder="email@example.com" required>
+        </div>
+        {% if form.email.errors %}<div class="auth-error">{{ form.email.errors.0 }}</div>{% endif %}
+    </div>
+
+    <div class="auth-field">
+        <label for="id_password1">Parol</label>
+        <div class="auth-input-wrap has-toggle {% if form.password1.errors %}has-error{% endif %}">
+            <i class="bi bi-lock"></i>
+            <input type="password" id="id_password1" name="password1" placeholder="Kamida 8 ta belgi" required>
+            <button type="button" class="auth-toggle-btn" data-password-toggle="#id_password1">
+                <i class="bi bi-eye"></i>
+            </button>
+        </div>
+        {% if form.password1.errors %}<div class="auth-error">{{ form.password1.errors.0 }}</div>{% endif %}
+    </div>
+
+    <div class="auth-field">
+        <label for="id_password2">Parolni tasdiqlang</label>
+        <div class="auth-input-wrap has-toggle {% if form.password2.errors %}has-error{% endif %}">
+            <i class="bi bi-shield-lock"></i>
+            <input type="password" id="id_password2" name="password2" placeholder="Parolni qaytaring" required>
+            <button type="button" class="auth-toggle-btn" data-password-toggle="#id_password2">
+                <i class="bi bi-eye"></i>
+            </button>
+        </div>
+        {% if form.password2.errors %}<div class="auth-error">{{ form.password2.errors.0 }}</div>{% endif %}
+    </div>
+
+    <label class="auth-checkbox-row">
+        <input type="checkbox" id="terms" required>
+        <span>
+            Men <a href="{% url 'terms_of_service' %}" class="auth-text-link">Foydalanish shartlari</a> va
+            <a href="{% url 'privacy_policy' %}" class="auth-text-link">Maxfiylik siyosati</a>ga roziman.
+        </span>
+    </label>
+
+    <button type="submit" class="auth-primary-btn">Ro'yxatdan o'tish</button>
+</form>
+
+<div class="auth-divider"><span>tayyormisiz?</span></div>
+
+<div class="auth-aux-row">
+    <span class="text-muted">{{ auth_page_settings.register_footer_prompt }}</span>
+    <a href="{% url 'login' %}" class="auth-text-link">{{ auth_page_settings.register_footer_link_label }}</a>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    // Password visibility toggle
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.toggle-password').forEach(button => {
-            button.addEventListener('click', function() {
-                const input = this.closest('.input-group').querySelector('input');
-                const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
-                input.setAttribute('type', type);
-                const icon = this.querySelector('i');
-                if (type === 'text') {
-                    icon.classList.remove('bi-eye');
-                    icon.classList.add('bi-eye-slash');
-                } else {
-                    icon.classList.remove('bi-eye-slash');
-                    icon.classList.add('bi-eye');
-                }
-            });
-        });
-    });
-</script>
 {% endblock %}

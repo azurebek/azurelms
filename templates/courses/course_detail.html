@@ -65,17 +65,11 @@
                 <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
                     <div class="ratio ratio-16x9 bg-dark position-relative">
                         {% if course.preview_video %}
-                        <video controls poster="{{ course.thumbnail.url|default:'' }}" class="w-100 h-100 object-fit-cover">
+                        <video controls poster="{{ course.cover_media_url }}" class="w-100 h-100 object-fit-cover">
                             <source src="{{ course.preview_video.url }}" type="video/mp4">
                         </video>
                         {% else %}
-                            {% if course.thumbnail %}
-                            <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" class="w-100 h-100 object-fit-cover opacity-75">
-                            {% else %}
-                            <div class="d-flex align-items-center justify-content-center h-100 w-100">
-                                <i class="bi bi-play-circle display-1 text-white opacity-50"></i>
-                            </div>
-                            {% endif %}
+                            <img src="{{ course.cover_media_url }}" alt="{{ course.title }}" class="w-100 h-100 object-fit-cover opacity-75">
                         {% endif %}
                         
                         {% if not course.preview_video %}
