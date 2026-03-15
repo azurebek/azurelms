@@ -116,8 +116,6 @@ class Course(models.Model):
         return build_cover_data_uri(
             title=self.cover_display_title,
             preset_key=self.gradient_preset,
-            kicker=self.cover_display_label,
-            footer="AzureLMS Course",
         )
 
     def _thumbnail_needs_normalization(self):

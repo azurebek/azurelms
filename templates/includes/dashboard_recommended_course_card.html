@@ -4,8 +4,6 @@
             <img src="{{ course.cover_media_url }}" alt="{{ course.title }}" class="dashboard-reco-card__cover">
             {% if course.show_cover_text_overlay %}
             {% include "includes/course_cover_overlay.html" with title=course.cover_display_title label=course.cover_display_label overlay_class="course-cover-overlay--reco" %}
-            {% else %}
-            <span class="dashboard-card-pill">{{ course.get_level_display }}</span>
             {% endif %}
         </div>
         <div class="dashboard-reco-card__body">

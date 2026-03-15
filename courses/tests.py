@@ -1,5 +1,6 @@
 import datetime
 import json
+import base64
 import shutil
 import tempfile
 from io import BytesIO
@@ -251,6 +252,26 @@ class CourseDetailPageRenderTests(TestCase):
         self.assertContains(response, "AzureLMS Signature Course")
         self.assertContains(response, "Faqat video emas, to'liq o'quv sistemasi")
         self.assertContains(response, "Kursni olib boradigan o'qituvchi")
+
+
+class CourseGradientCoverTests(TestCase):
+    def test_gradient_cover_keeps_only_center_title_text(self):
+        course = Course.objects.create(
+            title="Turk tili B2",
+            description="Gradient cover test",
+            level="advanced",
+            cover_mode="gradient",
+            gradient_preset="midnight_wave",
+            gradient_cover_label="Mukammal (C1-C2)",
+        )
+
+        prefix = "data:image/svg+xml;base64,"
+        self.assertTrue(course.cover_media_url.startswith(prefix))
+        svg = base64.b64decode(course.cover_media_url[len(prefix):]).decode("utf-8")
+
+        self.assertIn("Turk tili B2", svg)
+        self.assertNotIn("Mukammal (C1-C2)", svg)
+        self.assertNotIn("AZURELMS COURSE", svg)
 
 
 @override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)

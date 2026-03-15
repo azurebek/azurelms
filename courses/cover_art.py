@@ -866,9 +866,7 @@ def build_cover_svg(title, preset_key="aurora_blush", kicker="", footer="AzureLM
         <g filter="url(#soft-shadow)">
             {artwork["body"]}
         </g>
-        {_badge_block(kicker, artwork["badge_fill"], artwork["badge_text"])}
         {_title_block(title, artwork["title_fill"], artwork["title_stroke"])}
-        {_footer_block(footer, artwork["footer_fill"])}
     </svg>
     """
     return dedent(svg).strip()
