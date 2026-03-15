@@ -1,216 +1,125 @@
 {% extends 'dashboard/base.html' %}
-{% load static %}
 
 {% block title %}Dashboard | AzureLMS{% endblock %}
-
-{% block page_title %}Dashboard{% endblock %}
+{% block page_eyebrow %}O'quv maydoni{% endblock %}
+{% block page_title %}Salom, {{ user.first_name|default:user.username }}{% endblock %}
+{% block page_description %}Progress va keyingi action bitta joyda.{% endblock %}
 
 {% block dashboard_content %}
-<!-- Welcome Section -->
-<div class="welcome-card text-white p-4 rounded-4 mb-4" style="background: linear-gradient(135deg, var(--lms-primary) 0%, var(--lms-primary-hover) 100%);">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4">
-        <div class="welcome-text">
-            <h1 class="h3 fw-bold mb-2">Xush kelibsiz, {{ user.first_name|default:user.username }}!</h1>
-            <p class="mb-0 opacity-75">O'rganishni davom eting va turk tilida erkin gapirish maqsadlaringizga erishing.</p>
-        </div>
-        <div class="welcome-stats d-flex gap-3 bg-white bg-opacity-25 p-3 rounded-3">
-            <div class="text-center px-2 border-end border-white border-opacity-25">
-                <div class="fs-4 fw-bold">{{ active_courses_count|default:"0" }}</div>
-                <div class="small opacity-75">Faol kurs</div>
+<div class="dashboard-flow">
+    <section id="my-courses" class="dashboard-focus-layout">
+        <article class="dashboard-focus-card">
+            {% if primary_enrollment %}
+            <div class="dashboard-focus-card__media">
+                <img src="{{ primary_enrollment.cohort.course.cover_media_url }}" alt="{{ primary_enrollment.cohort.course.title }}" class="dashboard-focus-cover">
+                {% if primary_enrollment.cohort.course.show_cover_text_overlay %}
+                {% include "includes/course_cover_overlay.html" with title=primary_enrollment.cohort.course.cover_display_title label=primary_enrollment.cohort.course.cover_display_label overlay_class="course-cover-overlay--focus" %}
+                {% else %}
+                <span class="dashboard-card-pill">{{ primary_enrollment.cohort.course.get_level_display }}</span>
+                {% endif %}
             </div>
-            <div class="text-center px-2 border-end border-white border-opacity-25">
-                <div class="fs-4 fw-bold">{{ completed_lessons_count|default:"0" }}</div>
-                <div class="small opacity-75">O'tgan darslar</div>
-            </div>
-            <div class="text-center px-2">
-                <div class="fs-4 fw-bold">{{ total_hours|default:"0" }}</div>
-                <div class="small opacity-75">Vaqt (s)</div>
-            </div>
-        </div>
-    </div>
-</div>
+            <div class="dashboard-focus-card__body">
+                <div class="dashboard-focus-head">
+                    <div>
+                        <span class="dashboard-section-kicker">Davom etayotgan kurs</span>
+                        <h2 class="dashboard-focus-title">{{ primary_enrollment.cohort.course.title }}</h2>
+                    </div>
+                    <span class="dashboard-status dashboard-status--{{ primary_enrollment.dashboard_status_tone }}">{{ primary_enrollment.dashboard_status_label }}</span>
+                </div>
 
-<!-- Telegram Link Section -->
-{% if not telegram_linked %}
-<div class="card border-0 shadow-sm rounded-4 mb-4 bg-primary bg-opacity-10 border border-primary border-opacity-25">
-    <div class="card-body p-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4">
-        <div class="d-flex align-items-center gap-3">
-            <div class="bg-white text-primary rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 56px; height: 56px;">
-                <i class="bi bi-telegram fs-3"></i>
-            </div>
-            <div>
-                <h4 class="h5 fw-bold mb-1">Telegram botimizga ulaning!</h4>
-                <p class="mb-0 text-muted">Telegram orqali platformamizdan to'g'ridan to'g'ri xabarlar oling va darslarni boshqaring.</p>
-            </div>
-        </div>
-        <a href="{{ telegram_bot_link }}" target="_blank" class="btn btn-primary rounded-pill px-4 py-2 fw-medium shadow-sm d-flex align-items-center gap-2">
-            <i class="bi bi-link-45deg"></i>
-            Hozir ulanish
-        </a>
-</div>
-</div>
-{% endif %}
+                <p class="dashboard-focus-text">
+                    {% if primary_enrollment.status == 'active' %}
+                    Asosiy kurs shu yerda. Qisqa session bilan ritmni ushlab qoling.
+                    {% elif primary_enrollment.status == 'pending' %}
+                    Tasdiqlanish tugashi bilan shu yerdan darslarni boshlaysiz.
+                    {% else %}
+                    Kurs holatini tekshirib, learning flow'ni qayta yoqing.
+                    {% endif %}
+                </p>
 
-<!-- Stats Cards -->
-<div class="row g-4 mb-4">
-    <div class="col-6 col-lg-3">
-        <div class="card border-0 shadow-sm rounded-4 h-100">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                    <i class="bi bi-book fs-4"></i>
+                <div class="dashboard-chip-row">
+                    <span><i class="bi bi-people"></i>{{ primary_enrollment.cohort.name }}</span>
+                    <span><i class="bi bi-person"></i>{{ primary_enrollment.cohort.course.instructor_display_name }}</span>
+                    <span><i class="bi bi-collection-play"></i>{{ primary_enrollment.dashboard_completed_lessons }}/{{ primary_enrollment.dashboard_total_lessons|default:0 }} dars</span>
                 </div>
-                <div>
-                    <h3 class="h4 fw-bold mb-0">{{ active_courses_count|default:"0" }}</h3>
-                    <p class="text-muted small mb-0">Faol kurslar</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 col-lg-3">
-        <div class="card border-0 shadow-sm rounded-4 h-100">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                    <i class="bi bi-check-circle fs-4"></i>
-                </div>
-                <div>
-                    <h3 class="h4 fw-bold mb-0">{{ completed_lessons_count|default:"0" }}</h3>
-                    <p class="text-muted small mb-0">Tugallangan darslar</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 col-lg-3">
-        <div class="card border-0 shadow-sm rounded-4 h-100">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                    <i class="bi bi-trophy fs-4"></i>
-                </div>
-                <div>
-                    <h3 class="h4 fw-bold mb-0">{{ certificates_count|default:"0" }}</h3>
-                    <p class="text-muted small mb-0">Sertifikatlar</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 col-lg-3">
-        <div class="card border-0 shadow-sm rounded-4 h-100">
-            <div class="card-body d-flex align-items-center gap-3">
-                <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                    <i class="bi bi-clock fs-4"></i>
-                </div>
-                <div>
-                    <h3 class="h4 fw-bold mb-0">{{ total_hours|default:"0" }}</h3>
-                    <p class="text-muted small mb-0">O'rganish vaqti (s)</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Continue Learning -->
-<section id="my-courses" class="mb-5">
-    <div class="d-flex justify-content-between align-items-end mb-3">
-        <h2 class="h4 fw-bold mb-0">Davom eting</h2>
-        <a href="#" class="text-decoration-none fw-medium" style="color: var(--lms-primary);">Barchasini ko'rish</a>
-    </div>
-    
-    <div class="row g-4">
-        {% for enrollment in active_enrollments %}
-        <div class="col-12 col-md-6 col-xl-4">
-            <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
-                <div class="position-relative" style="height: 160px; display: flex; align-items: center; justify-content: center;">
-                    <img src="{{ enrollment.cohort.course.cover_media_url }}" alt="{{ enrollment.cohort.course.title }}" class="w-100 h-100" style="object-fit: cover;">
-                    <span class="badge bg-{{ enrollment.cohort.course.get_level_color|default:'primary' }} position-absolute top-0 start-0 m-3">{{ enrollment.cohort.course.get_level_display|default:enrollment.cohort.course.level }}</span>
-                </div>
-                <div class="card-body d-flex flex-column">
-                    <h3 class="h6 fw-bold mb-1 line-clamp-2">{{ enrollment.cohort.course.title }}</h3>
-                    <p class="text-muted small mb-3">
-                        <i class="bi bi-person me-1"></i>{{ enrollment.cohort.course.instructor.get_full_name|default:"O'qituvchi" }}
-                    </p>
-                    
-                    <div class="mt-auto">
-                        <div class="d-flex justify-content-between align-items-center mb-1 small text-muted">
-                            <span>Progress</span>
-                            <span class="fw-bold">{{ enrollment.progress|default:"0" }}%</span>
-                        </div>
-                        <div class="progress mb-3" style="height: 6px;">
-                            <div class="progress-bar bg-primary rounded-pill" style="width: {{ enrollment.progress|default:'0' }}%"></div>
-                        </div>
-                        
-                        <div class="d-flex gap-2">
-                        {% if enrollment.status == 'pending' %}
-                            <span class="badge bg-warning text-dark px-3 py-2 w-100 rounded-pill"><i class="bi bi-clock-history me-1"></i> Tasdiqlanish kutilmoqda</span>
-                        {% else %}
-                            {% if enrollment.next_lesson %}
-                            <a href="{% url 'course_study' enrollment.cohort.course.id %}" class="btn btn-primary btn-sm w-100 rounded-pill fw-medium">
-                                Davom etish
-                            </a>
-                            {% else %}
-                            <a href="{% url 'course_study' enrollment.cohort.course.id %}" class="btn btn-primary btn-sm w-100 rounded-pill fw-medium">
-                                Kursga o'tish
-                            </a>
-                            {% endif %}
-                        {% endif %}
-                        </div>
+                <div class="dashboard-focus-progress">
+                    <div class="dashboard-focus-progress__row">
+                        <span>Umumiy progress</span>
+                        <strong>{{ primary_enrollment.dashboard_progress }}%</strong>
+                    </div>
+                    <div class="progress dashboard-progress">
+                        <div class="progress-bar" style="width: {{ primary_enrollment.dashboard_progress }}%"></div>
                     </div>
                 </div>
-            </div>
-        </div>
-        {% empty %}
-        <div class="col-12">
-            <div class="card border-0 shadow-sm rounded-4 text-center p-5">
-                <i class="bi bi-journal-x display-4 text-muted mb-3"></i>
-                <h3 class="h5 fw-bold">Hali kurslar yo'q</h3>
-                <p class="text-muted">Birinchi kursingizni tanlang va o'rganishni boshlang.</p>
-                <div class="mt-2">
-                    <a href="{% url 'courses' %}" class="btn btn-primary rounded-pill px-4 fw-medium">Kurslarni ko'rish</a>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-</section>
 
-<!-- Recommended Courses -->
-<section>
-    <div class="d-flex justify-content-between align-items-end mb-3">
-        <h2 class="h4 fw-bold mb-0">Sizga tavsiya etamiz</h2>
-        <a href="{% url 'courses' %}" class="text-decoration-none fw-medium" style="color: var(--lms-primary);">Barchasi</a>
-    </div>
-    
-    <div class="row g-4">
-        {% for course in recommended_courses|slice:":3" %}
-        <div class="col-12 col-md-6 col-lg-4">
-            <div class="card course-card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
-                <div class="position-relative" style="height: 180px; display: flex; align-items: center; justify-content: center;">
-                    <img src="{{ course.cover_media_url }}" alt="{{ course.title }}" class="w-100 h-100" style="object-fit: cover;">
-                    <span class="badge bg-warning position-absolute top-0 start-0 m-3">{{ course.get_level_display|default:course.level }}</span>
+                <div class="dashboard-focus-actions">
+                    {% if primary_enrollment.status == 'active' %}
+                    <a href="{% url 'course_study' primary_enrollment.cohort.course.id %}" class="btn btn-primary rounded-pill px-4">Davom etish</a>
+                    {% else %}
+                    <a href="{% url 'subscriptions' %}" class="btn btn-primary rounded-pill px-4">Holatni ko'rish</a>
+                    {% endif %}
+                    <a href="{% url 'courses' %}" class="btn btn-outline-primary rounded-pill px-4">Katalog</a>
                 </div>
-                <div class="card-body d-flex flex-column">
-                    <span class="badge bg-primary bg-opacity-10 text-primary small d-inline-block mb-2 align-self-start">{{ course.category.name|default:"Turk tili" }}</span>
-                    <h3 class="h6 fw-bold mb-2 line-clamp-2">{{ course.title }}</h3>
-                    
-                    <div class="d-flex gap-3 small text-muted mb-3 mt-auto">
-                        <span><i class="bi bi-play-circle text-primary me-1"></i> {{ course.lessons_count|default:"0" }} dars</span>
-                        <span><i class="bi bi-clock text-primary me-1"></i> {{ course.duration|default:"0" }} soat</span>
-                    </div>
-                    
-                    <div class="d-flex justify-content-between align-items-center border-top pt-3">
-                        <div class="course-price">
-                            <span class="fw-bold text-primary">Obunaga kiritilgan</span>
-                        </div>
-                        <div class="text-warning small fw-bold">
-                            <i class="bi bi-star-fill me-1"></i>{{ course.rating|default:"5.0" }}
-                        </div>
-                    </div>
-                </div>
-                <a href="{% url 'course_detail' course.pk %}" class="stretched-link"></a>
             </div>
+            {% else %}
+            <div class="dashboard-focus-empty">
+                <span class="dashboard-section-kicker">Start Here</span>
+                <h2 class="dashboard-focus-title">Birinchi kursni tanlang.</h2>
+                <p class="dashboard-focus-text">Dashboard shu zahoti progress va obuna holati bilan to'lib boradi.</p>
+                <div class="dashboard-focus-actions">
+                    <a href="{% url 'courses' %}" class="btn btn-primary rounded-pill px-4">Kurslarni ko'rish</a>
+                    <a href="{% url 'subscriptions:pricing' %}" class="btn btn-outline-primary rounded-pill px-4">Tariflar</a>
+                </div>
+            </div>
+            {% endif %}
+        </article>
+
+        <div class="dashboard-side-grid">
+            <article class="dashboard-surface dashboard-surface--overview">
+                <div class="dashboard-surface-head dashboard-surface-head--overview">
+                    <div>
+                        <span class="dashboard-section-kicker">Umumiy ko'rinish</span>
+                        <h2 class="dashboard-surface-title">Bugungi snapshot</h2>
+                    </div>
+                    <span class="dashboard-badge">Jonli</span>
+                </div>
+                <div class="dashboard-overview-hero">
+                    <span class="dashboard-overview-label">O'qish ritmi</span>
+                    <strong>{{ xp_points|default:"0" }}</strong>
+                    <p>{{ active_courses_count|default:"0" }} faol kurs, {{ completed_lessons_count|default:"0" }} tugallangan dars va o'sishda davom etayotgan ritm.</p>
+                </div>
+                <div class="dashboard-mini-stats">
+                    <div class="dashboard-mini-stat">
+                        <span>Faol kurs</span>
+                        <strong>{{ active_courses_count|default:"0" }}</strong>
+                    </div>
+                    <div class="dashboard-mini-stat">
+                        <span>Darslar</span>
+                        <strong>{{ completed_lessons_count|default:"0" }}</strong>
+                    </div>
+                    <div class="dashboard-mini-stat">
+                        <span>XP</span>
+                        <strong>{{ xp_points|default:"0" }}</strong>
+                    </div>
+                    <div class="dashboard-mini-stat">
+                        <span>Seriya</span>
+                        <strong>{{ streak_days|default:"0" }}</strong>
+                    </div>
+                </div>
+                <div class="dashboard-overview-meta">
+                    <div class="dashboard-overview-meta__item">
+                        <span>O'rin</span>
+                        <strong>{% if leaderboard_my_row %}#{{ leaderboard_my_row.rank }}{% else %}-{% endif %}</strong>
+                    </div>
+                    <div class="dashboard-overview-meta__item">
+                        <span>Profil</span>
+                        <strong>{{ profile_completion }}%</strong>
+                    </div>
+                </div>
+                <a href="{% url 'leaderboard' %}" class="dashboard-overview-link">Leaderboardni ochish</a>
+            </article>
         </div>
-        {% empty %}
-         <!-- Fallback standard content based on the user's design when 'recommended_courses' is empty -->
-         <p class="text-muted">Hozircha tavsiyalar yo'q.</p>
-        {% endfor %}
-    </div>
-</section>
+    </section>
+</div>
 {% endblock %}

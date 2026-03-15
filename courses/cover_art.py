@@ -16,6 +16,13 @@ GRADIENT_PRESETS = [
     {"key": "peach_glow", "label": "Peach Glow", "renderer": "peach_glow"},
     {"key": "violet_satin", "label": "Violet Satin", "renderer": "violet_satin"},
     {"key": "golden_haze", "label": "Golden Haze", "renderer": "golden_haze"},
+    {"key": "brand_horizon", "label": "Brand Horizon", "renderer": "brand_horizon"},
+    {"key": "bronze_nocturne", "label": "Bronze Nocturne", "renderer": "bronze_nocturne"},
+    {"key": "emerald_glass", "label": "Emerald Glass", "renderer": "emerald_glass"},
+    {"key": "paper_sunrise", "label": "Paper Sunrise", "renderer": "paper_sunrise"},
+    {"key": "crimson_silk", "label": "Crimson Silk", "renderer": "crimson_silk"},
+    {"key": "ice_circuit", "label": "Ice Circuit", "renderer": "ice_circuit"},
+    {"key": "noir_orchid", "label": "Noir Orchid", "renderer": "noir_orchid"},
 ]
 
 GRADIENT_PRESET_CHOICES = [(preset["key"], preset["label"]) for preset in GRADIENT_PRESETS]
@@ -513,6 +520,320 @@ def _render_golden_haze():
     }
 
 
+def _render_brand_horizon():
+    return {
+        "title_fill": "#ffffff",
+        "title_stroke": "#16324c",
+        "badge_fill": "#ffffff",
+        "badge_text": "#1c3551",
+        "footer_fill": "#eef6ff",
+        "defs": dedent(
+            """
+            <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#0a76cb" />
+                <stop offset="58%" stop-color="#0a76cb" />
+                <stop offset="100%" stop-color="#b8860b" />
+            </linearGradient>
+            <radialGradient id="top-glow" cx="22%" cy="18%" r="42%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.56" />
+                <stop offset="48%" stop-color="#d7ecff" stop-opacity="0.18" />
+                <stop offset="100%" stop-color="#d7ecff" stop-opacity="0" />
+            </radialGradient>
+            <radialGradient id="gold-glow" cx="90%" cy="88%" r="36%">
+                <stop offset="0%" stop-color="#ffd98a" stop-opacity="0.86" />
+                <stop offset="58%" stop-color="#ffd98a" stop-opacity="0.28" />
+                <stop offset="100%" stop-color="#ffd98a" stop-opacity="0" />
+            </radialGradient>
+            <linearGradient id="veil-a" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.34" />
+                <stop offset="100%" stop-color="#ffffff" stop-opacity="0.02" />
+            </linearGradient>
+            <linearGradient id="veil-b" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#0f5ca8" stop-opacity="0.12" />
+                <stop offset="55%" stop-color="#ffffff" stop-opacity="0.22" />
+                <stop offset="100%" stop-color="#ffd98a" stop-opacity="0.16" />
+            </linearGradient>
+            """
+        ),
+        "body": dedent(
+            """
+            <rect width="1200" height="1100" fill="url(#bg)" />
+            <circle cx="230" cy="170" r="250" fill="url(#top-glow)" filter="url(#blur-120)" />
+            <circle cx="1040" cy="930" r="280" fill="url(#gold-glow)" filter="url(#blur-120)" />
+            <path d="M-140 1036 L280 130 C448 262 610 392 820 532 C976 636 1102 702 1320 774 L1320 1220 L-140 1220 Z" fill="url(#veil-a)" opacity="0.82" filter="url(#blur-40)" />
+            <path d="M-110 812 C144 664 380 620 626 648 C852 674 1046 774 1320 616" fill="none" stroke="url(#veil-b)" stroke-width="198" stroke-linecap="round" opacity="0.84" filter="url(#blur-72)" />
+            <path d="M-40 450 C180 326 406 300 612 360 C792 414 974 510 1210 448" stroke="#ffffff" stroke-opacity="0.18" stroke-width="52" stroke-linecap="round" fill="none" filter="url(#blur-40)" />
+            <path d="M88 930 C310 830 544 820 786 858 C950 884 1070 868 1206 810" stroke="#f8df9f" stroke-opacity="0.18" stroke-width="34" stroke-linecap="round" fill="none" filter="url(#blur-40)" />
+            """
+        ),
+    }
+
+
+def _render_bronze_nocturne():
+    return {
+        "title_fill": "#fff7eb",
+        "title_stroke": "#1a2436",
+        "badge_fill": "#fff7eb",
+        "badge_text": "#3c2a13",
+        "footer_fill": "#f6ead5",
+        "defs": dedent(
+            """
+            <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#081524" />
+                <stop offset="54%" stop-color="#102a47" />
+                <stop offset="100%" stop-color="#8c5b13" />
+            </linearGradient>
+            <radialGradient id="bronze-core" cx="88%" cy="82%" r="42%">
+                <stop offset="0%" stop-color="#ffc96a" stop-opacity="0.92" />
+                <stop offset="58%" stop-color="#ffc96a" stop-opacity="0.26" />
+                <stop offset="100%" stop-color="#ffc96a" stop-opacity="0" />
+            </radialGradient>
+            <radialGradient id="navy-glow" cx="20%" cy="16%" r="38%">
+                <stop offset="0%" stop-color="#d9edff" stop-opacity="0.56" />
+                <stop offset="100%" stop-color="#d9edff" stop-opacity="0" />
+            </radialGradient>
+            <linearGradient id="arc-a" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#fff1cf" stop-opacity="0.58" />
+                <stop offset="100%" stop-color="#ffb84d" stop-opacity="0.08" />
+            </linearGradient>
+            <linearGradient id="arc-b" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#4c8bff" stop-opacity="0.08" />
+                <stop offset="56%" stop-color="#ffffff" stop-opacity="0.24" />
+                <stop offset="100%" stop-color="#f5c067" stop-opacity="0.22" />
+            </linearGradient>
+            """
+        ),
+        "body": dedent(
+            """
+            <rect width="1200" height="1100" fill="url(#bg)" />
+            <circle cx="1030" cy="900" r="300" fill="url(#bronze-core)" filter="url(#blur-120)" />
+            <circle cx="220" cy="150" r="230" fill="url(#navy-glow)" filter="url(#blur-120)" />
+            <path d="M-80 968 C150 756 362 670 598 678 C820 686 1042 762 1310 560" fill="none" stroke="url(#arc-a)" stroke-width="198" stroke-linecap="round" opacity="0.82" filter="url(#blur-72)" />
+            <path d="M-110 730 C118 558 338 510 562 534 C790 560 998 646 1260 458" fill="none" stroke="url(#arc-b)" stroke-width="110" stroke-linecap="round" opacity="0.7" filter="url(#blur-40)" />
+            <ellipse cx="880" cy="260" rx="330" ry="86" fill="#ffffff" opacity="0.12" transform="rotate(-20 880 260)" filter="url(#blur-72)" />
+            """
+        ),
+    }
+
+
+def _render_emerald_glass():
+    return {
+        "title_fill": "#ffffff",
+        "title_stroke": "#0b2f2b",
+        "badge_fill": "#ffffff",
+        "badge_text": "#11413a",
+        "footer_fill": "#ecfffb",
+        "defs": dedent(
+            """
+            <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#0e6e68" />
+                <stop offset="52%" stop-color="#22b8a8" />
+                <stop offset="100%" stop-color="#97f3c7" />
+            </linearGradient>
+            <linearGradient id="glass" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.54" />
+                <stop offset="100%" stop-color="#d8fff5" stop-opacity="0.08" />
+            </linearGradient>
+            <linearGradient id="beam" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#0d7268" stop-opacity="0.08" />
+                <stop offset="55%" stop-color="#ffffff" stop-opacity="0.2" />
+                <stop offset="100%" stop-color="#d1ff92" stop-opacity="0.24" />
+            </linearGradient>
+            <radialGradient id="mint-core" cx="18%" cy="18%" r="38%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.72" />
+                <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+            </radialGradient>
+            """
+        ),
+        "body": dedent(
+            """
+            <rect width="1200" height="1100" fill="url(#bg)" />
+            <circle cx="210" cy="160" r="240" fill="url(#mint-core)" filter="url(#blur-120)" />
+            <rect x="126" y="116" width="340" height="252" rx="46" fill="url(#glass)" stroke="#ffffff" stroke-opacity="0.32" />
+            <rect x="744" y="172" width="284" height="214" rx="40" fill="url(#glass)" stroke="#ffffff" stroke-opacity="0.22" />
+            <rect x="572" y="540" width="444" height="286" rx="52" fill="url(#glass)" stroke="#ffffff" stroke-opacity="0.22" />
+            <path d="M-120 996 L314 136 C540 292 728 430 932 626 C1036 726 1126 810 1320 920 L1320 1220 L-120 1220 Z" fill="url(#beam)" opacity="0.84" filter="url(#blur-40)" />
+            <path d="M0 742 C236 640 470 632 716 684 C904 722 1050 726 1200 678" stroke="#ffffff" stroke-opacity="0.16" stroke-width="42" stroke-linecap="round" fill="none" filter="url(#blur-40)" />
+            """
+        ),
+    }
+
+
+def _render_paper_sunrise():
+    return {
+        "title_fill": "#1a2c45",
+        "title_stroke": "#fffaf4",
+        "badge_fill": "#ffffff",
+        "badge_text": "#374a63",
+        "footer_fill": "#374a63",
+        "defs": dedent(
+            """
+            <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#fff8ef" />
+                <stop offset="54%" stop-color="#ffe6d2" />
+                <stop offset="100%" stop-color="#ffd19d" />
+            </linearGradient>
+            <radialGradient id="sun" cx="20%" cy="22%" r="36%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95" />
+                <stop offset="48%" stop-color="#ffe9bb" stop-opacity="0.42" />
+                <stop offset="100%" stop-color="#ffe9bb" stop-opacity="0" />
+            </radialGradient>
+            <linearGradient id="sheet-a" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.78" />
+                <stop offset="100%" stop-color="#fff4e6" stop-opacity="0.12" />
+            </linearGradient>
+            <linearGradient id="sheet-b" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#ffc88f" stop-opacity="0.12" />
+                <stop offset="50%" stop-color="#ffffff" stop-opacity="0.38" />
+                <stop offset="100%" stop-color="#ffb784" stop-opacity="0.18" />
+            </linearGradient>
+            """
+        ),
+        "body": dedent(
+            """
+            <rect width="1200" height="1100" fill="url(#bg)" />
+            <circle cx="220" cy="180" r="240" fill="url(#sun)" filter="url(#blur-120)" />
+            <rect x="-30" y="556" width="760" height="360" rx="76" fill="url(#sheet-a)" transform="rotate(-9 -30 556)" filter="url(#blur-40)" />
+            <rect x="420" y="180" width="840" height="350" rx="82" fill="url(#sheet-b)" transform="rotate(9 420 180)" filter="url(#blur-40)" />
+            <ellipse cx="808" cy="772" rx="430" ry="124" fill="#ffffff" opacity="0.14" transform="rotate(-14 808 772)" filter="url(#blur-72)" />
+            <path d="M-80 830 C182 688 418 666 668 718 C888 762 1046 744 1250 634" stroke="#ffcb8c" stroke-opacity="0.2" stroke-width="46" stroke-linecap="round" fill="none" filter="url(#blur-40)" />
+            """
+        ),
+    }
+
+
+def _render_crimson_silk():
+    return {
+        "title_fill": "#fff6fb",
+        "title_stroke": "#4f1235",
+        "badge_fill": "#ffffff",
+        "badge_text": "#6f1748",
+        "footer_fill": "#fff1f8",
+        "defs": dedent(
+            """
+            <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ffc3d8" />
+                <stop offset="46%" stop-color="#df3d74" />
+                <stop offset="100%" stop-color="#7d1238" />
+            </linearGradient>
+            <linearGradient id="silk-a" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.42" />
+                <stop offset="100%" stop-color="#ff7aa6" stop-opacity="0.08" />
+            </linearGradient>
+            <linearGradient id="silk-b" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#ff8db6" stop-opacity="0.08" />
+                <stop offset="50%" stop-color="#b40f4f" stop-opacity="0.72" />
+                <stop offset="100%" stop-color="#fff0f7" stop-opacity="0.36" />
+            </linearGradient>
+            <radialGradient id="rose-flare" cx="18%" cy="18%" r="34%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.74" />
+                <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+            </radialGradient>
+            """
+        ),
+        "body": dedent(
+            """
+            <rect width="1200" height="1100" fill="url(#bg)" />
+            <circle cx="214" cy="174" r="220" fill="url(#rose-flare)" filter="url(#blur-120)" />
+            <path d="M80 1170 C150 924 284 726 450 536 C622 336 790 176 900 -66" stroke="url(#silk-a)" stroke-width="256" stroke-linecap="round" fill="none" opacity="0.9" filter="url(#blur-40)" />
+            <path d="M-100 1028 C162 858 344 698 520 516 C704 326 886 168 1140 -70" stroke="url(#silk-b)" stroke-width="182" stroke-linecap="round" fill="none" opacity="0.9" filter="url(#blur-72)" />
+            <path d="M10 802 C236 712 430 714 652 766 C860 814 1048 792 1226 692" stroke="#ffffff" stroke-opacity="0.16" stroke-width="40" stroke-linecap="round" fill="none" filter="url(#blur-40)" />
+            """
+        ),
+    }
+
+
+def _render_ice_circuit():
+    return {
+        "title_fill": "#183456",
+        "title_stroke": "#ffffff",
+        "badge_fill": "#ffffff",
+        "badge_text": "#21456d",
+        "footer_fill": "#21456d",
+        "defs": dedent(
+            """
+            <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#eef7ff" />
+                <stop offset="52%" stop-color="#cde9ff" />
+                <stop offset="100%" stop-color="#97d4ff" />
+            </linearGradient>
+            <linearGradient id="beam-a" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.88" />
+                <stop offset="100%" stop-color="#c8ebff" stop-opacity="0.08" />
+            </linearGradient>
+            <linearGradient id="beam-b" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#88d0ff" stop-opacity="0.08" />
+                <stop offset="56%" stop-color="#1f7eff" stop-opacity="0.34" />
+                <stop offset="100%" stop-color="#ffffff" stop-opacity="0.24" />
+            </linearGradient>
+            <radialGradient id="ice-core" cx="18%" cy="18%" r="36%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.84" />
+                <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+            </radialGradient>
+            """
+        ),
+        "body": dedent(
+            """
+            <rect width="1200" height="1100" fill="url(#bg)" />
+            <circle cx="210" cy="170" r="230" fill="url(#ice-core)" filter="url(#blur-120)" />
+            <path d="M-140 950 L320 130 L940 500 L470 1310 Z" fill="url(#beam-a)" opacity="0.84" filter="url(#blur-40)" />
+            <path d="M82 1048 L562 164 L1120 520 L642 1370 Z" fill="url(#beam-b)" opacity="0.64" filter="url(#blur-72)" />
+            <path d="M154 218 H438 M438 218 V362 M438 362 H642 M642 362 V520 M642 520 H920" stroke="#ffffff" stroke-opacity="0.46" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" />
+            <circle cx="438" cy="218" r="18" fill="#ffffff" fill-opacity="0.72" />
+            <circle cx="642" cy="362" r="18" fill="#78baff" fill-opacity="0.88" />
+            <circle cx="920" cy="520" r="18" fill="#ffffff" fill-opacity="0.72" />
+            """
+        ),
+    }
+
+
+def _render_noir_orchid():
+    return {
+        "title_fill": "#f8f4ff",
+        "title_stroke": "#131426",
+        "badge_fill": "#ffffff",
+        "badge_text": "#2e2b5c",
+        "footer_fill": "#eae6ff",
+        "defs": dedent(
+            """
+            <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#0d1018" />
+                <stop offset="56%" stop-color="#23294e" />
+                <stop offset="100%" stop-color="#7f45ff" />
+            </linearGradient>
+            <radialGradient id="orchid-glow" cx="82%" cy="24%" r="34%">
+                <stop offset="0%" stop-color="#dcb4ff" stop-opacity="0.9" />
+                <stop offset="58%" stop-color="#dcb4ff" stop-opacity="0.22" />
+                <stop offset="100%" stop-color="#dcb4ff" stop-opacity="0" />
+            </radialGradient>
+            <radialGradient id="white-halo" cx="20%" cy="18%" r="30%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.64" />
+                <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+            </radialGradient>
+            <linearGradient id="wave-a" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.34" />
+                <stop offset="100%" stop-color="#b999ff" stop-opacity="0.06" />
+            </linearGradient>
+            <linearGradient id="wave-b" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#6c45ff" stop-opacity="0.08" />
+                <stop offset="50%" stop-color="#4424d6" stop-opacity="0.72" />
+                <stop offset="100%" stop-color="#f4ecff" stop-opacity="0.3" />
+            </linearGradient>
+            """
+        ),
+        "body": dedent(
+            """
+            <rect width="1200" height="1100" fill="url(#bg)" />
+            <circle cx="970" cy="220" r="240" fill="url(#orchid-glow)" filter="url(#blur-120)" />
+            <circle cx="210" cy="170" r="210" fill="url(#white-halo)" filter="url(#blur-120)" />
+            <path d="M-120 878 C132 706 364 648 608 684 C844 718 1030 802 1320 612" fill="none" stroke="url(#wave-a)" stroke-width="204" stroke-linecap="round" opacity="0.86" filter="url(#blur-72)" />
+            <path d="M-110 666 C122 524 340 492 560 524 C800 556 1012 648 1300 472" fill="none" stroke="url(#wave-b)" stroke-width="122" stroke-linecap="round" opacity="0.74" filter="url(#blur-40)" />
+            <ellipse cx="742" cy="790" rx="380" ry="100" fill="#ffffff" opacity="0.08" transform="rotate(-18 742 790)" filter="url(#blur-72)" />
+            """
+        ),
+    }
+
+
 RENDERERS = {
     "aurora_blush": _render_aurora_blush,
     "sky_lilac": _render_sky_lilac,
@@ -522,6 +843,13 @@ RENDERERS = {
     "peach_glow": _render_peach_glow,
     "violet_satin": _render_violet_satin,
     "golden_haze": _render_golden_haze,
+    "brand_horizon": _render_brand_horizon,
+    "bronze_nocturne": _render_bronze_nocturne,
+    "emerald_glass": _render_emerald_glass,
+    "paper_sunrise": _render_paper_sunrise,
+    "crimson_silk": _render_crimson_silk,
+    "ice_circuit": _render_ice_circuit,
+    "noir_orchid": _render_noir_orchid,
 }
 
 

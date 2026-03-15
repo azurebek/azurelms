@@ -1,0 +1,8 @@
+<div class="course-cover-overlay {{ overlay_class|default:'' }}">
+    <div class="course-cover-overlay__content">
+        {% if label %}
+        <span class="course-cover-overlay__eyebrow">{{ label }}</span>
+        {% endif %}
+        <span class="course-cover-overlay__title">{{ title }}</span>
+    </div>
+</div>

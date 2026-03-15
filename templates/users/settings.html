@@ -9,7 +9,7 @@
     <div class="col-lg-4">
         <div class="card border-0 shadow-sm rounded-4 text-center overflow-hidden h-100">
             <!-- Header Background -->
-            <div style="height: 120px; background: linear-gradient(135deg, var(--lms-primary) 0%, var(--lms-primary-hover) 100%); position: relative;">
+            <div style="height: 120px; background: linear-gradient(135deg, var(--lms-primary) 0%, var(--lms-secondary) 100%); position: relative;">
                  <!-- Optional cover edit button -->
                  <button class="btn btn-sm btn-light position-absolute top-0 end-0 m-2 rounded-circle shadow-sm" style="width:32px; height:32px; display:flex; align-items:center; justify-content:center;">
                      <i class="bi bi-pencil"></i>
@@ -23,8 +23,8 @@
                             <!-- Avatar URL: {{ user.avatar.url }} -->
                             <img src="{{ user.avatar.url }}?t={% now 'U' %}" alt="{{ user.get_full_name|default:user.username }}" class="w-100 h-100" style="object-fit: cover;">
                         {% else %}
-                            <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-primary text-white display-4 fw-bold">
-                                {{ user.first_name|default:user.username|slice:":1"|upper }}
+                            <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white display-4 fw-bold" style="background: linear-gradient(135deg, var(--lms-primary) 0%, var(--lms-secondary) 100%);">
+                                        {{ user.first_name|default:user.username|slice:":1"|upper }}
                             </div>
                         {% endif %}
                     </div>

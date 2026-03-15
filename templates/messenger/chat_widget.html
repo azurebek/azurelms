@@ -1,11 +1,17 @@
 {% load static %}
-<div id="azure-messenger-widget" class="azure-messenger-collapsed shadow-lg">
-    <div class="messenger-header bg-primary text-white p-3 d-flex justify-content-between align-items-center" onclick="toggleMessenger()">
-        <h6 class="mb-0 fw-bold"><i class="bi bi-chat-dots-fill me-2"></i> Xabarlar</h6>
-        <i class="bi bi-chevron-up" id="messenger-toggle-icon"></i>
-    </div>
+<div id="azure-messenger-widget" class="azure-messenger-widget">
+    <button type="button" class="messenger-toggle" onclick="toggleMessenger()" aria-expanded="false" aria-controls="azure-messenger-panel">
+        <span class="messenger-toggle-icon-shell">
+            <i class="bi bi-chat-dots-fill"></i>
+        </span>
+        <span class="messenger-toggle-copy">
+            <span class="messenger-toggle-label">Xabarlar</span>
+            <small>Guruh, tutor va AzureAI</small>
+        </span>
+        <i class="bi bi-chevron-down" id="messenger-toggle-icon"></i>
+    </button>
     
-    <div class="messenger-body" style="display: none;">
+    <div class="messenger-body" id="azure-messenger-panel" hidden>
         <!-- Tabs -->
         <ul class="nav nav-tabs nav-fill border-bottom-0 bg-light" id="chatTabs" role="tablist">
             <li class="nav-item" role="presentation">
@@ -42,19 +48,93 @@
         position: fixed;
         bottom: 20px;
         right: 20px;
-        width: 350px;
-        background: white;
-        border-radius: 12px;
-        overflow: hidden;
         z-index: 1050;
-        transition: all 0.3s ease;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        width: 68px;
+        transition: width 0.25s ease, transform 0.25s ease, filter 0.25s ease;
     }
     
-    .messenger-header {
-        cursor: pointer;
-        border-top-left-radius: 12px;
-        border-top-right-radius: 12px;
+    #azure-messenger-widget.is-open {
+        width: min(360px, calc(100vw - 24px));
+        border-radius: 24px;
+        overflow: hidden;
+        background: white;
+        box-shadow: 0 24px 70px rgba(17, 36, 60, 0.22);
+    }
+
+    .messenger-toggle {
+        width: 68px;
+        height: 68px;
+        border: none;
+        padding: 0;
+        border-radius: 999px;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background:
+            radial-gradient(circle at 28% 24%, rgba(255, 255, 255, 0.28), transparent 34%),
+            linear-gradient(135deg, var(--lms-primary) 0%, var(--lms-secondary) 100%);
+        box-shadow: 0 18px 36px rgba(10, 118, 203, 0.22);
+        transition: width 0.25s ease, height 0.25s ease, border-radius 0.25s ease, padding 0.25s ease;
+    }
+
+    .messenger-toggle-icon-shell {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        flex: 0 0 auto;
+    }
+
+    .messenger-toggle-copy,
+    #messenger-toggle-icon {
+        display: none;
+    }
+
+    .messenger-toggle-copy {
+        min-width: 0;
+        text-align: left;
+        margin-left: 0.85rem;
+    }
+
+    .messenger-toggle-label {
+        display: block;
+        font-size: 1rem;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+
+    .messenger-toggle-copy small {
+        display: block;
+        margin-top: 0.15rem;
+        color: rgba(255, 255, 255, 0.82);
+        font-size: 0.78rem;
+        line-height: 1.35;
+    }
+
+    #azure-messenger-widget.is-open .messenger-toggle {
+        width: 100%;
+        height: auto;
+        padding: 1rem 1rem 0.95rem;
+        border-radius: 24px 24px 0 0;
+        justify-content: space-between;
+    }
+
+    #azure-messenger-widget.is-open .messenger-toggle-copy,
+    #azure-messenger-widget.is-open #messenger-toggle-icon {
+        display: block;
+    }
+
+    .messenger-body {
+        background: white;
+    }
+
+    .messenger-body[hidden] {
+        display: none !important;
     }
     
     #chatTabs .nav-link {
@@ -105,6 +185,23 @@
         box-shadow: none;
         border: 1px solid var(--lms-primary);
     }
+
+    @media (max-width: 575px) {
+        #azure-messenger-widget {
+            right: 16px;
+            bottom: 16px;
+            width: 60px;
+        }
+
+        .messenger-toggle {
+            width: 60px;
+            height: 60px;
+        }
+
+        #azure-messenger-widget.is-open {
+            width: min(340px, calc(100vw - 20px));
+        }
+    }
 </style>
 
 <script>
@@ -128,17 +225,23 @@
     }
 
     function toggleMessenger() {
-        const body = document.querySelector('.messenger-body');
+        const widget = document.getElementById('azure-messenger-widget');
+        const toggle = widget.querySelector('.messenger-toggle');
+        const body = document.getElementById('azure-messenger-panel');
         const icon = document.getElementById('messenger-toggle-icon');
-        if (body.style.display === 'none') {
-            body.style.display = 'block';
-            icon.classList.remove('bi-chevron-up');
-            icon.classList.add('bi-chevron-down');
-            if (availableRooms.length === 0) fetchRooms();
-        } else {
-            body.style.display = 'none';
+        const willOpen = !widget.classList.contains('is-open');
+
+        widget.classList.toggle('is-open', willOpen);
+        toggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        body.hidden = !willOpen;
+
+        if (willOpen) {
             icon.classList.remove('bi-chevron-down');
             icon.classList.add('bi-chevron-up');
+            if (availableRooms.length === 0) fetchRooms();
+        } else {
+            icon.classList.remove('bi-chevron-up');
+            icon.classList.add('bi-chevron-down');
         }
     }
 

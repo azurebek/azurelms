@@ -1,12 +1,24 @@
+import shutil
+import tempfile
+from io import BytesIO
+
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
+from django.test.utils import override_settings
+from PIL import Image
 
 from courses.models import Course, Exam, ExamAttempt, ExamSection, ExamSectionReview, Module
 from users.models import Notification
 
 
 User = get_user_model()
+TEMP_MEDIA_ROOT = tempfile.mkdtemp()
+
+
+def tearDownModule():
+    shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
 
 
 class ExamReviewFlowTests(TestCase):
@@ -115,3 +127,48 @@ class ExamReviewFlowTests(TestCase):
         self.assertContains(response, 'Sertifikat Ilovasi')
         self.assertContains(response, 'Visa section')
         self.assertContains(response, 'Final section')
+
+
+@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
+class CourseCoverImageTests(TestCase):
+    def setUp(self):
+        self.instructor = User.objects.create_user(
+            username='cover-teacher',
+            email='cover-teacher@example.com',
+            password='testpass123',
+        )
+
+    def _build_uploaded_image(self, size=(700, 1400), color=(20, 118, 203)):
+        buffer = BytesIO()
+        Image.new("RGB", size, color).save(buffer, format="PNG")
+        return SimpleUploadedFile("portrait-cover.png", buffer.getvalue(), content_type="image/png")
+
+    def test_uploaded_image_is_normalized_to_standard_cover_size(self):
+        course = Course.objects.create(
+            title='Turk tili B1',
+            description='Cover normalization test',
+            instructor=self.instructor,
+            level='intermediate',
+            cover_mode='image',
+            thumbnail=self._build_uploaded_image(),
+        )
+
+        course.thumbnail.open("rb")
+        with Image.open(course.thumbnail) as normalized:
+            self.assertEqual(normalized.size, Course.STANDARD_COVER_SIZE)
+
+    def test_uploaded_image_cover_enables_text_overlay(self):
+        course = Course.objects.create(
+            title='Turk tili A2',
+            description='Overlay test',
+            instructor=self.instructor,
+            level='beginner',
+            cover_mode='image',
+            thumbnail=self._build_uploaded_image(size=(1400, 700), color=(184, 134, 11)),
+        )
+
+        self.assertTrue(course.show_cover_text_overlay)
+        response = self.client.get(reverse('courses'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'course-cover-overlay--showcase')
+        self.assertContains(response, course.cover_display_title)

@@ -70,6 +70,9 @@
                         </video>
                         {% else %}
                             <img src="{{ course.cover_media_url }}" alt="{{ course.title }}" class="w-100 h-100 object-fit-cover opacity-75">
+                            {% if course.show_cover_text_overlay %}
+                            {% include "includes/course_cover_overlay.html" with title=course.cover_display_title label=course.cover_display_label overlay_class="course-cover-overlay--detail" %}
+                            {% endif %}
                         {% endif %}
                         
                         {% if not course.preview_video %}

@@ -1,0 +1,58 @@
+<article class="dashboard-enrollment-card">
+    <div class="dashboard-enrollment-card__media">
+        <img src="{{ enrollment.cohort.course.cover_media_url }}" alt="{{ enrollment.cohort.course.title }}" class="dashboard-enrollment-card__cover">
+        {% if enrollment.cohort.course.show_cover_text_overlay %}
+        {% include "includes/course_cover_overlay.html" with title=enrollment.cohort.course.cover_display_title label=enrollment.cohort.course.cover_display_label overlay_class="course-cover-overlay--enrollment" %}
+        {% else %}
+        <span class="dashboard-card-pill">{{ enrollment.cohort.course.get_level_display }}</span>
+        {% endif %}
+    </div>
+    <div class="dashboard-enrollment-card__body">
+        <div class="dashboard-enrollment-card__top">
+            <div>
+                <span class="dashboard-enrollment-card__kicker">{{ enrollment.cohort.name }}</span>
+                <h3 class="dashboard-enrollment-card__title">{{ enrollment.cohort.course.title }}</h3>
+            </div>
+            <span class="dashboard-status dashboard-status--{{ enrollment.dashboard_status_tone }}">{{ enrollment.dashboard_status_label }}</span>
+        </div>
+
+        <div class="dashboard-enrollment-card__meta">
+            <span><i class="bi bi-person"></i>{{ enrollment.cohort.course.instructor_display_name }}</span>
+            <span><i class="bi bi-collection-play"></i>{{ enrollment.dashboard_completed_lessons }}/{{ enrollment.dashboard_total_lessons|default:0 }} dars</span>
+        </div>
+
+        <div class="dashboard-enrollment-card__progress">
+            <div class="dashboard-focus-progress__row">
+                <span>Progress</span>
+                <strong>{{ enrollment.dashboard_progress }}%</strong>
+            </div>
+            <div class="progress dashboard-progress">
+                <div class="progress-bar" style="width: {{ enrollment.dashboard_progress }}%"></div>
+            </div>
+        </div>
+
+        <div class="dashboard-enrollment-card__footer">
+            <p class="dashboard-enrollment-card__note">
+                {% if enrollment.dashboard_days_left != None %}
+                    {% if enrollment.dashboard_days_left < 0 %}
+                    To'lov muddati o'tgan
+                    {% elif enrollment.dashboard_days_left == 0 %}
+                    To'lov bugun tugaydi
+                    {% else %}
+                    {{ enrollment.dashboard_days_left }} kun qoldi
+                    {% endif %}
+                {% elif enrollment.status == 'pending' %}
+                    Tasdiqlanish kutilmoqda
+                {% else %}
+                    O'qishni davom ettirish mumkin
+                {% endif %}
+            </p>
+
+            {% if enrollment.status == 'active' %}
+            <a href="{% url 'course_study' enrollment.cohort.course.id %}" class="btn btn-sm btn-primary rounded-pill px-3">Davom etish</a>
+            {% else %}
+            <a href="{% url 'subscriptions' %}" class="btn btn-sm btn-outline-primary rounded-pill px-3">Holat</a>
+            {% endif %}
+        </div>
+    </div>
+</article>

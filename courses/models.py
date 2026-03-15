@@ -1,10 +1,15 @@
 import re
 import uuid
+from io import BytesIO
+from pathlib import Path
+
 from django.db import models
+from django.core.files.base import ContentFile
 from django_ckeditor_5.fields import CKEditor5Field
 from django.db.models import Sum
 from django.urls import reverse
 from django.utils.functional import cached_property
+from PIL import Image, ImageOps
 
 from .cover_art import GRADIENT_PRESET_CHOICES, build_cover_data_uri
 
@@ -58,6 +63,7 @@ class Course(models.Model):
     
     is_active = models.BooleanField(default=True, verbose_name="Faolmi?")
     created_at = models.DateTimeField(auto_now_add=True)
+    STANDARD_COVER_SIZE = (1200, 1100)
 
     @property
     def lessons_count(self):
@@ -95,6 +101,14 @@ class Course(models.Model):
     def uses_gradient_cover(self):
         return self.cover_mode == "gradient" or not bool(self.thumbnail)
 
+    @property
+    def uses_uploaded_image_cover(self):
+        return bool(self.thumbnail) and self.cover_mode == "image"
+
+    @property
+    def show_cover_text_overlay(self):
+        return self.uses_uploaded_image_cover
+
     @cached_property
     def cover_media_url(self):
         if self.thumbnail and self.cover_mode == "image":
@@ -105,6 +119,66 @@ class Course(models.Model):
             kicker=self.cover_display_label,
             footer="AzureLMS Course",
         )
+
+    def _thumbnail_needs_normalization(self):
+        if not self.thumbnail or self.cover_mode != "image":
+            return False
+
+        if not getattr(self.thumbnail, "_committed", True):
+            return True
+
+        if not self.pk:
+            return True
+
+        current = type(self).objects.filter(pk=self.pk).values("thumbnail", "cover_mode").first()
+        if not current:
+            return True
+
+        return current["cover_mode"] != "image"
+
+    def _build_normalized_thumbnail(self):
+        if not self.thumbnail:
+            return None
+
+        self.thumbnail.open("rb")
+        try:
+            with Image.open(self.thumbnail) as image:
+                image = ImageOps.exif_transpose(image)
+                if image.mode not in ("RGB", "RGBA"):
+                    image = image.convert("RGBA")
+
+                if image.mode == "RGBA":
+                    background = Image.new("RGB", image.size, "#ffffff")
+                    background.paste(image, mask=image.getchannel("A"))
+                    image = background
+                else:
+                    image = image.convert("RGB")
+
+                image = ImageOps.fit(
+                    image,
+                    self.STANDARD_COVER_SIZE,
+                    method=Image.Resampling.LANCZOS,
+                    centering=(0.5, 0.5),
+                )
+
+                buffer = BytesIO()
+                image.save(buffer, format="JPEG", quality=90, optimize=True)
+                buffer.seek(0)
+
+                stem = Path(self.thumbnail.name).stem[:40] or "course-cover"
+                filename = f"{stem}-{uuid.uuid4().hex[:8]}.jpg"
+                return ContentFile(buffer.getvalue(), name=filename)
+        finally:
+            self.thumbnail.close()
+
+    def save(self, *args, **kwargs):
+        if self._thumbnail_needs_normalization():
+            normalized_thumbnail = self._build_normalized_thumbnail()
+            if normalized_thumbnail is not None:
+                self.thumbnail = normalized_thumbnail
+
+        self.__dict__.pop("cover_media_url", None)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title

@@ -5,6 +5,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth import update_session_auth_hash
 from django.utils import timezone
 from django.db import transaction
+from django.db.models import Count, Q
 import datetime
 import base64
 import calendar
@@ -13,6 +14,7 @@ from .models import CustomUser, Notification
 from django.shortcuts import redirect, render, get_object_or_404
 from cohorts.models import Enrollment, Attendance, Cohort
 from courses.models import Certificate as CourseCertificate
+from courses.models import Course
 from gamification.models import EarnedBadge
 from frontend.models import LegalPage
 from django.core.signing import TimestampSigner
@@ -165,8 +167,53 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         if expired_enrollments.exists():
             expired_enrollments.update(status='expired')
         
-        # Haqiqiy obunalarni bazadan olish (using updated statuses)
-        context['active_enrollments'] = user.enrollments.select_related('cohort', 'cohort__course').all().order_by('-joined_at')
+        enrollments = list(
+            user.enrollments.select_related(
+                'cohort',
+                'cohort__course',
+                'cohort__course__instructor',
+            ).annotate(
+                total_lessons_count=Count('cohort__course__modules__lessons', distinct=True),
+                completed_attendance_count=Count(
+                    'attendance',
+                    filter=Q(attendance__status__in=[Attendance.STATUS_PRESENT, Attendance.STATUS_PARTIAL]),
+                    distinct=True,
+                ),
+            )
+        )
+
+        status_priority = {'active': 0, 'pending': 1, 'frozen': 2, 'expired': 3}
+        enrollments.sort(
+            key=lambda item: (
+                status_priority.get(item.status, 9),
+                -item.joined_at.timestamp(),
+            )
+        )
+
+        for enrollment in enrollments:
+            total_lessons = enrollment.total_lessons_count or 0
+            completed_lessons = enrollment.completed_attendance_count or 0
+            enrollment.dashboard_total_lessons = total_lessons
+            enrollment.dashboard_completed_lessons = completed_lessons
+            enrollment.dashboard_progress = (
+                int(round((completed_lessons / total_lessons) * 100))
+                if total_lessons
+                else 0
+            )
+            enrollment.dashboard_status_label = enrollment.get_status_display()
+            enrollment.dashboard_status_tone = {
+                'active': 'success',
+                'pending': 'warning',
+                'expired': 'danger',
+                'frozen': 'secondary',
+            }.get(enrollment.status, 'secondary')
+            enrollment.dashboard_days_left = None
+            if enrollment.next_payment_deadline:
+                enrollment.dashboard_days_left = (
+                    enrollment.next_payment_deadline - today
+                ).days
+
+        context['active_enrollments'] = enrollments
         active_enrollment_qs = user.enrollments.filter(status='active')
         context['active_courses_count'] = active_enrollment_qs.count()
 
@@ -185,6 +232,37 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
         context['achievements_count'] = EarnedBadge.objects.filter(student=user).count()
         context['certificates_count'] = CourseCertificate.objects.filter(student=user).count()
+        context.update(get_cohort_leaderboard_context(user))
+
+        profile_checks = [
+            bool(user.first_name),
+            bool(user.last_name),
+            bool(user.phone_number),
+            bool(user.avatar),
+            bool(user.bio),
+        ]
+        context['profile_completion'] = int(round((sum(profile_checks) / len(profile_checks)) * 100))
+
+        context['primary_enrollment'] = next(
+            (item for item in enrollments if item.status == 'active'),
+            enrollments[0] if enrollments else None,
+        )
+
+        enrolled_course_ids = {item.cohort.course_id for item in enrollments}
+        context['recommended_courses'] = (
+            Course.objects.filter(is_active=True)
+            .exclude(id__in=enrolled_course_ids)
+            .select_related('instructor')
+            .annotate(
+                annotated_lessons_count=Count('modules__lessons', distinct=True),
+                annotated_students_count=Count(
+                    'cohorts__members',
+                    filter=Q(cohorts__members__status='active'),
+                    distinct=True,
+                ),
+            )
+            .order_by('-annotated_students_count', '-created_at')[:3]
+        )
 
         # O'quvchining joriy telegram holati
         if user.telegram_id:
