@@ -5,13 +5,7 @@
             <img src="{{ course.cover_media_url }}" alt="{{ course.title }}" class="showcase-course-cover">
             {% if course.show_cover_text_overlay %}
             {% include "includes/course_cover_overlay.html" with title=course.cover_display_title label=course.cover_display_label overlay_class="course-cover-overlay--showcase" %}
-            {% else %}
-            <span class="showcase-course-pill showcase-course-pill--level">{{ course.get_level_display }}</span>
             {% endif %}
-            <span class="showcase-course-pill showcase-course-pill--meta">
-                <i class="bi bi-people"></i>
-                {{ course.students_count|default:0|intcomma }}
-            </span>
         </div>
 
         <div class="showcase-course-body">
@@ -24,6 +18,7 @@
             <div class="showcase-course-meta">
                 <span><i class="bi bi-collection-play"></i>{{ course.lessons_count|default:0 }} dars</span>
                 <span><i class="bi bi-clock-history"></i>{{ course.duration|default:0 }} soat</span>
+                <span><i class="bi bi-people"></i>{{ course.students_count|default:0|intcomma }} o'quvchi</span>
             </div>
 
             <div class="showcase-course-footer">
