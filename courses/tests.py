@@ -1,3 +1,5 @@
+import datetime
+import json
 import shutil
 import tempfile
 from io import BytesIO
@@ -9,7 +11,19 @@ from django.urls import reverse
 from django.test.utils import override_settings
 from PIL import Image
 
-from courses.models import Course, Exam, ExamAttempt, ExamSection, ExamSectionReview, Module
+from cohorts.models import Cohort, Enrollment
+from courses.models import (
+    Choice,
+    Course,
+    Exam,
+    ExamAttempt,
+    ExamSection,
+    ExamSectionReview,
+    Lesson,
+    Module,
+    Question,
+    Quiz,
+)
 from users.models import Notification
 
 
@@ -127,6 +141,116 @@ class ExamReviewFlowTests(TestCase):
         self.assertContains(response, 'Sertifikat Ilovasi')
         self.assertContains(response, 'Visa section')
         self.assertContains(response, 'Final section')
+
+
+class QuizXpAwardTests(TestCase):
+    def setUp(self):
+        self.student = User.objects.create_user(
+            username="quiz-student",
+            email="quiz-student@example.com",
+            password="testpass123",
+        )
+        self.course = Course.objects.create(
+            title="Quiz XP Course",
+            description="Quiz XP test",
+            level="beginner",
+        )
+        self.module = Module.objects.create(course=self.course, title="1-modul", order=1)
+        self.lesson = Lesson.objects.create(module=self.module, title="1-dars", order=1)
+        self.quiz = Quiz.objects.create(title="XP Quiz", lesson=self.lesson, xp_reward=20)
+        self.question_one = Question.objects.create(quiz=self.quiz, text="Savol 1", points=1)
+        self.question_two = Question.objects.create(quiz=self.quiz, text="Savol 2", points=1)
+        self.choice_one = Choice.objects.create(question=self.question_one, text="To'g'ri 1", is_correct=True)
+        self.choice_two = Choice.objects.create(question=self.question_two, text="To'g'ri 2", is_correct=True)
+        Choice.objects.create(question=self.question_one, text="Noto'g'ri 1", is_correct=False)
+        self.wrong_choice_two = Choice.objects.create(question=self.question_two, text="Noto'g'ri 2", is_correct=False)
+        self.cohort = Cohort.objects.create(
+            name="Quiz Cohort",
+            course=self.course,
+            start_date=datetime.date(2026, 3, 1),
+        )
+        Enrollment.objects.create(student=self.student, cohort=self.cohort, status="active")
+        self.client.force_login(self.student)
+        self.url = reverse(
+            "api_quiz_submit",
+            kwargs={
+                "course_id": self.course.id,
+                "lesson_id": self.lesson.id,
+                "quiz_id": self.quiz.id,
+            },
+        )
+
+    def submit_answers(self, answers):
+        return self.client.post(
+            self.url,
+            data=json.dumps({"answers": answers}),
+            content_type="application/json",
+        )
+
+    def test_repeat_submission_only_awards_missing_xp(self):
+        first = self.submit_answers(
+            {
+                str(self.question_one.id): self.choice_one.id,
+                str(self.question_two.id): self.wrong_choice_two.id,
+            }
+        )
+        self.student.refresh_from_db()
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(first.json()["xp_earned"], 10)
+        self.assertEqual(first.json()["attempt_xp"], 10)
+        self.assertEqual(self.student.total_xp, 10)
+
+        second = self.submit_answers(
+            {
+                str(self.question_one.id): self.choice_one.id,
+                str(self.question_two.id): self.choice_two.id,
+            }
+        )
+        self.student.refresh_from_db()
+        self.assertEqual(second.status_code, 200)
+        self.assertEqual(second.json()["xp_earned"], 10)
+        self.assertEqual(second.json()["attempt_xp"], 20)
+        self.assertEqual(self.student.total_xp, 20)
+
+        third = self.submit_answers(
+            {
+                str(self.question_one.id): self.choice_one.id,
+                str(self.question_two.id): self.choice_two.id,
+            }
+        )
+        self.student.refresh_from_db()
+        self.assertEqual(third.status_code, 200)
+        self.assertEqual(third.json()["xp_earned"], 0)
+        self.assertEqual(third.json()["attempt_xp"], 20)
+        self.assertEqual(self.student.total_xp, 20)
+
+
+class CourseDetailPageRenderTests(TestCase):
+    def setUp(self):
+        self.instructor = User.objects.create_user(
+            username="detail-teacher",
+            email="detail-teacher@example.com",
+            password="testpass123",
+            first_name="Azure",
+        )
+        self.course = Course.objects.create(
+            title="Detail Course",
+            description="<p>Professional course detail content.</p>",
+            instructor=self.instructor,
+            level="beginner",
+            duration=24,
+            price=350000,
+        )
+        module = Module.objects.create(course=self.course, title="1-modul", order=1)
+        Lesson.objects.create(module=module, title="Boshlanish darsi", order=1)
+
+    def test_course_detail_page_renders_redesigned_sections(self):
+        response = self.client.get(reverse("course_detail", kwargs={"pk": self.course.pk}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "AzureLMS Signature Course")
+        self.assertContains(response, "Faqat video emas, to'liq o'quv sistemasi")
+        self.assertContains(response, "Kursni olib boradigan o'qituvchi")
 
 
 @override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)

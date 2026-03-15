@@ -1,5 +1,5 @@
 from django.views.generic import ListView, DetailView, View
-from django.db.models import Q
+from django.db.models import Max, Q
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
@@ -64,9 +64,37 @@ class CourseDetailView(DetailView):
     model = Course
     template_name = 'courses/course_detail.html'
     context_object_name = 'course'
-    
+
+    def get_queryset(self):
+        return (
+            Course.objects.filter(is_active=True)
+            .select_related("instructor")
+            .prefetch_related("modules__lessons", "exams")
+        )
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        modules = list(self.object.modules.all())
+        preview_lesson = next(
+            (
+                lesson
+                for module in modules
+                for lesson in module.lessons.all()
+            ),
+            None,
+        )
+
+        context['modules'] = modules
+        context['preview_lesson'] = preview_lesson
+        context['course_lessons_count'] = self.object.lessons_count
+        context['course_students_count'] = self.object.students_count
+        context['active_cohort_count'] = self.object.cohorts.filter(is_active=True).count()
+        context['instructor_course_count'] = (
+            self.object.instructor.courses.filter(is_active=True).count()
+            if self.object.instructor_id
+            else 0
+        )
+        context['course_exam_count'] = self.object.exams.count()
         if self.request.user.is_authenticated:
             context['is_enrolled'] = Enrollment.objects.filter(
                 student=self.request.user,
@@ -399,6 +427,12 @@ class SubmitQuizView(LoginRequiredMixin, View):
         results = []  # Har bir savol natijasi
         
         # QuizAttempt yaratish
+        previous_best_xp = (
+            QuizAttempt.objects.filter(student=request.user, quiz=quiz)
+            .aggregate(best_xp=Max('xp_earned'))
+            .get('best_xp')
+            or 0
+        )
         attempt = QuizAttempt.objects.create(
             student=request.user,
             quiz=quiz,
@@ -443,17 +477,18 @@ class SubmitQuizView(LoginRequiredMixin, View):
         score = round((total_correct / total_questions) * 100, 1)
         
         # XP hisoblash — to'g'ri javoblar nisbatiga qarab
-        xp_earned = round(quiz.xp_reward * (total_correct / total_questions))
+        attempt_xp = round(quiz.xp_reward * (total_correct / total_questions))
+        awarded_xp = max(0, attempt_xp - previous_best_xp)
         
         # Attempt yangilash
         attempt.score = score
         attempt.total_correct = total_correct
-        attempt.xp_earned = xp_earned
+        attempt.xp_earned = attempt_xp
         attempt.save()
         
         # Foydalanuvchiga XP qo'shish
-        if xp_earned > 0:
-            request.user.total_xp += xp_earned
+        if awarded_xp > 0:
+            request.user.total_xp += awarded_xp
             request.user.save(update_fields=['total_xp'])
         
         return JsonResponse({
@@ -461,7 +496,8 @@ class SubmitQuizView(LoginRequiredMixin, View):
             'score': score,
             'total_correct': total_correct,
             'total_questions': total_questions,
-            'xp_earned': xp_earned,
+            'xp_earned': awarded_xp,
+            'attempt_xp': attempt_xp,
             'results': results,
         })
 

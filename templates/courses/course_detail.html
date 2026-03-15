@@ -1,327 +1,444 @@
 {% extends 'base.html' %}
 {% load bleach_tags %}
-{% load static %}
 {% load humanize %}
+{% load static %}
 
 {% block title %}{{ course.title }} | AzureLMS{% endblock %}
+{% block meta_description %}{{ course.description|striptags|truncatewords:26 }}{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/course-detail.css' %}" rel="stylesheet">
+{% endblock %}
 
 {% block content %}
-<!-- COURSE HEADER -->
-<section class="py-4 py-lg-5 text-white" style="background: linear-gradient(135deg, var(--lms-primary) 0%, var(--lms-primary-hover) 100%);">
-    <div class="container">
-        <nav aria-label="breadcrumb" class="mb-3">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-white text-decoration-none opacity-75 hover-opacity-100">Bosh sahifa</a></li>
-                <li class="breadcrumb-item"><a href="{% url 'courses' %}" class="text-white text-decoration-none opacity-75 hover-opacity-100">Kurslar</a></li>
-                <li class="breadcrumb-item text-white active" aria-current="page">{{ course.title }}</li>
-            </ol>
-        </nav>
-        
-        <div class="row g-4 g-lg-5">
-            <div class="col-lg-8">
-                <div class="d-flex flex-wrap gap-2 mb-3">
-                    <span class="badge bg-warning fw-bold px-3 py-2 rounded-pill">{{ course.get_level_display|default:"Barcha uchun" }}</span>
-                    <span class="badge bg-white bg-opacity-25 text-white px-3 py-2 rounded-pill"><i class="bi bi-clock me-1"></i>{{ course.duration|default:"20" }} soat</span>
-                    <span class="badge bg-white bg-opacity-25 text-white px-3 py-2 rounded-pill"><i class="bi bi-play-circle me-1"></i>{{ course.lessons_count|default:"0" }} video</span>
-                </div>
-                
-                <h1 class="display-5 fw-bold mb-3">{{ course.title }}</h1>
-                <p class="fs-5 opacity-75 mb-4">{{ course.description|striptags|truncatewords:20 }}</p>
-                
-                <div class="d-flex flex-wrap align-items-center gap-4 mb-4">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="avatar avatar-md rounded-circle border border-2 border-white overflow-hidden shadow-sm" style="width: 48px; height: 48px;">
-                            {% if course.instructor.avatar %}
-                            <img src="{{ course.instructor.avatar.url }}" alt="{{ course.instructor.get_full_name }}" class="w-100 h-100 object-fit-cover">
-                            {% else %}
-                            <div class="w-100 h-100 bg-white text-primary d-flex justify-content-center align-items-center fw-bold fs-5">
-                                {{ course.instructor.first_name|default:course.instructor.username|slice:":1"|upper }}
-                            </div>
-                            {% endif %}
+<div class="course-detail-page">
+    <section class="course-detail-hero">
+        <div class="container">
+            <div class="course-detail-hero-shell">
+                <nav aria-label="breadcrumb" class="course-detail-breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'home' %}">Bosh sahifa</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'courses' %}">Kurslar</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ course.title }}</li>
+                    </ol>
+                </nav>
+
+                <div class="course-detail-hero-grid">
+                    <div class="course-detail-hero-main">
+                        <span class="course-detail-eyebrow">
+                            <i class="bi bi-stars"></i>
+                            AzureLMS Signature Course
+                        </span>
+
+                        <div class="course-detail-pill-row">
+                            <span class="course-detail-pill course-detail-pill--accent">{{ course.get_level_display|default:"Barcha uchun" }}</span>
+                            <span class="course-detail-pill"><i class="bi bi-clock-history"></i>{{ course.duration|default:20 }} soat</span>
+                            <span class="course-detail-pill"><i class="bi bi-collection-play"></i>{{ course_lessons_count|default:0 }} dars</span>
+                            <span class="course-detail-pill"><i class="bi bi-people"></i>{{ course_students_count|default:0|intcomma }} o'quvchi</span>
                         </div>
-                        <div>
-                            <div class="fw-bold">{{ course.instructor.get_full_name|default:"O'qituvchi" }}</div>
-                            <small class="opacity-75">Professional O'qituvchi</small>
+
+                        <h1 class="course-detail-title">{{ course.title }}</h1>
+                        <p class="course-detail-summary">
+                            {{ course.description|striptags|truncatewords:34|default:"Ushbu kurs sizga mavzularni tizimli ritmda, mentor va cohort qo'llovi bilan bosqichma-bosqich egallashga yordam beradi." }}
+                        </p>
+
+                        <div class="course-detail-hero-stats">
+                            <div class="course-detail-stat">
+                                <span class="course-detail-stat-label">Modul oqimi</span>
+                                <strong>{{ modules|length }} bosqich</strong>
+                                <p>Soddadan murakkabga o'tadigan aniq progression.</p>
+                            </div>
+                            <div class="course-detail-stat">
+                                <span class="course-detail-stat-label">Baholash</span>
+                                <strong>{{ course_exam_count }} nazorat nuqtasi</strong>
+                                <p>Natija sertifikat trek bilan yopiladi.</p>
+                            </div>
+                            <div class="course-detail-stat">
+                                <span class="course-detail-stat-label">Faol cohort</span>
+                                <strong>{{ active_cohort_count }}</strong>
+                                <p>
+                                    {% if active_cohort_count %}
+                                    Hozir qabul qilayotgan oqim mavjud.
+                                    {% else %}
+                                    Yangi oqim tayyorlanmoqda.
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="course-detail-action-row">
+                            {% if is_enrolled %}
+                            <a href="{% url 'course_study' course.id %}" class="btn btn-primary btn-lg rounded-pill">
+                                <i class="bi bi-play-circle-fill"></i>
+                                O'qishni davom ettirish
+                            </a>
+                            <a href="#curriculum-full" class="btn btn-outline-primary btn-lg rounded-pill">
+                                <i class="bi bi-journal-richtext"></i>
+                                Dasturga o'tish
+                            </a>
+                            {% elif user.is_authenticated %}
+                            <a href="{% url 'cohorts:checkout' course.id %}" class="btn btn-primary btn-lg rounded-pill">
+                                <i class="bi bi-lightning-charge-fill"></i>
+                                Kursga yozilish
+                            </a>
+                            <a href="#curriculum-full" class="btn btn-outline-primary btn-lg rounded-pill">
+                                <i class="bi bi-list-check"></i>
+                                Dasturni ko'rish
+                            </a>
+                            {% else %}
+                            <a href="{% url 'login' %}?next={% url 'course_detail' course.id %}" class="btn btn-primary btn-lg rounded-pill">
+                                <i class="bi bi-box-arrow-in-right"></i>
+                                Kirib davom etish
+                            </a>
+                            <a href="{% url 'register' %}" class="btn btn-outline-primary btn-lg rounded-pill">
+                                <i class="bi bi-person-plus"></i>
+                                Hisob yaratish
+                            </a>
+                            {% endif %}
                         </div>
                     </div>
 
-                    <div class="d-flex align-items-center gap-1 opacity-75">
-                        <i class="bi bi-people"></i>
-                        <span>{{ course.students_count|intcomma }} o'quvchi</span>
+                    <div class="course-detail-hero-aside">
+                        <div class="course-detail-media-card">
+                            <div class="course-detail-price-chip">
+                                <span class="small text-uppercase">Kurs narxi</span>
+                                <strong>
+                                    {% if course.price %}
+                                    {{ course.price|floatformat:0|intcomma }} UZS
+                                    {% else %}
+                                    Bepul
+                                    {% endif %}
+                                </strong>
+                            </div>
+
+                            <div class="course-detail-media-frame">
+                                {% if course.preview_video %}
+                                <video controls poster="{{ course.cover_media_url }}" preload="metadata">
+                                    <source src="{{ course.preview_video.url }}" type="video/mp4">
+                                </video>
+                                {% else %}
+                                <img src="{{ course.cover_media_url }}" alt="{{ course.title }}">
+                                {% if course.show_cover_text_overlay %}
+                                {% include "includes/course_cover_overlay.html" with title=course.cover_display_title label=course.cover_display_label overlay_class="course-cover-overlay--detail" %}
+                                {% endif %}
+                                {% endif %}
+                            </div>
+
+                            <div class="course-detail-media-caption">
+                                <div>
+                                    <strong>
+                                        {% if preview_lesson %}
+                                        Start darsi: {{ preview_lesson.title }}
+                                        {% else %}
+                                        Kurs preview materiallari
+                                        {% endif %}
+                                    </strong>
+                                    <p>
+                                        {% if course.preview_video %}
+                                        Video preview orqali kurs uslubi va ritmini ko'rishingiz mumkin.
+                                        {% elif preview_lesson %}
+                                        Birinchi darsdan boshlab yo'nalish izchil va aniq progression bilan qurilgan.
+                                        {% else %}
+                                        Cover va struktura platformadagi premium o'quv tajribasiga moslangan.
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <span class="course-detail-chip">
+                                    <i class="bi bi-award"></i>
+                                    Sertifikat trek
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="course-detail-enroll-card" id="enroll">
+                            <div class="course-detail-enroll-head">
+                                <div>
+                                    <span class="course-detail-section-kicker">
+                                        <i class="bi bi-rocket-takeoff"></i>
+                                        Keyingi qadam
+                                    </span>
+                                    {% if is_enrolled %}
+                                    <h2 class="h3 mb-2">Siz allaqachon kurs ichidasiz</h2>
+                                    <p>Dars, cohort va platforma oqimi siz uchun ochiq. Shu sahifa endi start nuqtasi sifatida ishlaydi.</p>
+                                    {% elif user.is_authenticated %}
+                                    <h2 class="h3 mb-2">Bugunoq boshlash mumkin</h2>
+                                    <p>Checkout yakunlangach cohort, chat va dars oqimi darhol sizga ulanadi.</p>
+                                    {% else %}
+                                    <h2 class="h3 mb-2">Bir necha klikda start</h2>
+                                    <p>Avval hisob oching yoki tizimga kiring, keyin shu yerning o'zidan kursga ulanasiz.</p>
+                                    {% endif %}
+                                </div>
+                                <span class="course-detail-chip">
+                                    <i class="bi bi-shield-check"></i>
+                                    Secure flow
+                                </span>
+                            </div>
+
+                            <div class="course-detail-checklist">
+                                <div class="course-detail-checklist-item">
+                                    <i class="bi bi-check2-circle"></i>
+                                    <span>{{ course_lessons_count|default:0 }} lessonlik aniq o'quv yo'li</span>
+                                </div>
+                                <div class="course-detail-checklist-item">
+                                    <i class="bi bi-check2-circle"></i>
+                                    <span>{{ course_exam_count }} baholash bosqichi va sertifikat liniyasi</span>
+                                </div>
+                                <div class="course-detail-checklist-item">
+                                    <i class="bi bi-check2-circle"></i>
+                                    <span>Mentor, cohort va platforma support bir joyda</span>
+                                </div>
+                            </div>
+
+                            <div class="course-detail-enroll-actions">
+                                {% if is_enrolled %}
+                                <a href="{% url 'course_study' course.id %}" class="btn btn-primary rounded-pill">
+                                    <i class="bi bi-play-circle-fill"></i>
+                                    Darsni ochish
+                                </a>
+                                {% elif user.is_authenticated %}
+                                <a href="{% url 'cohorts:checkout' course.id %}" class="btn btn-primary rounded-pill">
+                                    <i class="bi bi-cart-check-fill"></i>
+                                    Hozir yozilish
+                                </a>
+                                {% else %}
+                                <a href="{% url 'login' %}?next={% url 'cohorts:checkout' course.id %}" class="btn btn-primary rounded-pill">
+                                    <i class="bi bi-box-arrow-in-right"></i>
+                                    Kirib yozilish
+                                </a>
+                                <a href="{% url 'register' %}" class="btn btn-outline-primary rounded-pill">
+                                    <i class="bi bi-person-plus"></i>
+                                    Ro'yxatdan o'tish
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
+                </div>
+
+                <div class="course-detail-hero-footer">
+                    <article class="course-detail-panel" id="mentor">
+                        <span class="course-detail-section-kicker">
+                            <i class="bi bi-person-workspace"></i>
+                            Kursni olib boradigan o'qituvchi
+                        </span>
+
+                        <div class="course-detail-instructor-panel">
+                            <div class="course-detail-instructor-avatar">
+                                {% if course.instructor and course.instructor.avatar %}
+                                <img src="{{ course.instructor.avatar.url }}" alt="{{ course.instructor_display_name }}">
+                                {% else %}
+                                {{ course.instructor_initial }}
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <h2 class="h3 mb-2">{{ course.instructor_display_name }}</h2>
+                                <p class="course-detail-note">
+                                    Strukturali dars oqimi, nazorat imtihonlari va platforma ichidagi qo'llab-quvvatlash bilan olib boriladi.
+                                </p>
+
+                                <div class="course-detail-inline-chips">
+                                    <span class="course-detail-chip"><i class="bi bi-journal-check"></i>{{ instructor_course_count }} faol kurs</span>
+                                    <span class="course-detail-chip"><i class="bi bi-people"></i>{{ course_students_count|default:0|intcomma }} o'quvchi</span>
+                                    <span class="course-detail-chip"><i class="bi bi-broadcast-pin"></i>{{ active_cohort_count }} faol cohort</span>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="course-detail-panel">
+                        <span class="course-detail-section-kicker">
+                            <i class="bi bi-diagram-3"></i>
+                            Curriculum snapshot
+                        </span>
+                        <div class="course-detail-panel-head">
+                            <div>
+                                <h2 class="h3 mb-2">Bitta qarashda kurs oqimi</h2>
+                                <p>Asosiy modul yo'li hero ichida ko'rinadi, to'liq breakdown esa pastdagi curriculum bo'limida ochiladi.</p>
+                            </div>
+                            <a href="#curriculum-full" class="btn btn-outline-primary rounded-pill">
+                                <i class="bi bi-arrow-down-right"></i>
+                                To'liq dastur
+                            </a>
+                        </div>
+
+                        <div class="course-detail-preview-list">
+                            {% for module in modules|slice:":3" %}
+                            <div class="course-detail-preview-item">
+                                <span class="course-detail-preview-order">{{ forloop.counter|stringformat:"02d" }}</span>
+                                <div>
+                                    <strong>{{ module.title }}</strong>
+                                    <p>{{ module.lessons.all|length }} darslik modul, ketma-ket progression asosida.</p>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="course-detail-preview-item">
+                                <span class="course-detail-preview-order">00</span>
+                                <div>
+                                    <strong>Dastur tayyorlanmoqda</strong>
+                                    <p>Modullar joylanishi bilan bu blok avtomatik yangilanadi.</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </article>
                 </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
 
-<!-- COURSE CONTENT -->
-<section class="py-5">
-    <div class="container">
-        <div class="row g-4 g-lg-5">
-            <!-- Main Content -->
-            <div class="col-lg-8">
-                <!-- Video Preview -->
-                <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-5">
-                    <div class="ratio ratio-16x9 bg-dark position-relative">
-                        {% if course.preview_video %}
-                        <video controls poster="{{ course.cover_media_url }}" class="w-100 h-100 object-fit-cover">
-                            <source src="{{ course.preview_video.url }}" type="video/mp4">
-                        </video>
-                        {% else %}
-                            <img src="{{ course.cover_media_url }}" alt="{{ course.title }}" class="w-100 h-100 object-fit-cover opacity-75">
-                            {% if course.show_cover_text_overlay %}
-                            {% include "includes/course_cover_overlay.html" with title=course.cover_display_title label=course.cover_display_label overlay_class="course-cover-overlay--detail" %}
-                            {% endif %}
-                        {% endif %}
-                        
-                        {% if not course.preview_video %}
-                        <div class="position-absolute top-50 start-50 translate-middle">
-                            <button class="btn btn-primary rounded-circle shadow-lg" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
-                                <i class="bi bi-play-fill fs-1 ms-1"></i>
-                            </button>
+    <section class="course-detail-body pb-5">
+        <div class="container">
+            <div class="row g-4 align-items-start">
+                <div class="col-12 col-lg-5">
+                    <article class="course-detail-section-card" id="overview">
+                        <span class="course-detail-section-kicker">
+                            <i class="bi bi-lightning-charge"></i>
+                            Nimalarni qo'lga kiritasiz
+                        </span>
+                        <div class="course-detail-section-head">
+                            <div>
+                                <h2 class="mb-2">Faqat video emas, to'liq o'quv sistemasi</h2>
+                                <p>Kurs individual video kutubxona sifatida emas, balki live cohort, nazorat va davomiylik bilan ishlaydigan tizim sifatida loyihalangan.</p>
+                            </div>
                         </div>
-                        {% endif %}
-                    </div>
-                </div>
-                
-                <!-- Tabs -->
-                <ul class="nav nav-pills mb-4 p-2 bg-white rounded-pill shadow-sm d-inline-flex" id="courseTab" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active rounded-pill px-4 fw-medium" data-bs-toggle="pill" data-bs-target="#overview" type="button" role="tab" aria-selected="true">Umumiy ma'lumot</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link rounded-pill px-4 fw-medium" data-bs-toggle="pill" data-bs-target="#curriculum" type="button" role="tab" aria-selected="false">Dastur va Darslar</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link rounded-pill px-4 fw-medium" data-bs-toggle="pill" data-bs-target="#instructor" type="button" role="tab" aria-selected="false">O'qituvchi</button>
-                    </li>
-                </ul>
-                
-                <div class="tab-content bg-white p-4 p-md-5 rounded-4 shadow-sm">
-                    <!-- Overview Tab -->
-                    <div class="tab-pane fade show active" id="overview" role="tabpanel">
-                        <h3 class="h4 fw-bold mb-4">Kurs haqida</h3>
-                        <div class="text-secondary lh-lg mb-5" style="font-size: 1.05rem;">
+
+                        <div class="course-detail-highlight-grid">
+                            <div class="course-detail-highlight-card">
+                                <div class="course-detail-highlight-icon"><i class="bi bi-diagram-3"></i></div>
+                                <h3 class="h5">Strukturali o'quv yo'li</h3>
+                                <p>{{ modules|length }} modul va {{ course_lessons_count|default:0 }} dars tasodifiy emas, mantiqan ulanadigan oqimda qurilgan.</p>
+                            </div>
+                            <div class="course-detail-highlight-card">
+                                <div class="course-detail-highlight-icon"><i class="bi bi-broadcast"></i></div>
+                                <h3 class="h5">Cohort ritmi</h3>
+                                <p>
+                                    {% if active_cohort_count %}
+                                    Hozirda {{ active_cohort_count }} ta faol cohort mavjud va kurs shu oqimlar orqali davom etadi.
+                                    {% else %}
+                                    Yangi cohort ochilishi bilan kurs live ritmda davom ettiriladi.
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="course-detail-highlight-card">
+                                <div class="course-detail-highlight-icon"><i class="bi bi-clipboard2-check"></i></div>
+                                <h3 class="h5">Nazorat va sertifikat</h3>
+                                <p>{{ course_exam_count }} ta baholash bosqichi orqali natija mustahkamlanadi va sertifikat liniyasi yopiladi.</p>
+                            </div>
+                            <div class="course-detail-highlight-card">
+                                <div class="course-detail-highlight-icon"><i class="bi bi-chat-dots"></i></div>
+                                <h3 class="h5">Mentor + support</h3>
+                                <p>Platforma ichidagi mentor oqimi, cohort muloqoti va support kursni tashlab qo'ymaslikka yordam beradi.</p>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="course-detail-section-card">
+                        <span class="course-detail-section-kicker">
+                            <i class="bi bi-journal-text"></i>
+                            Kurs tavsifi
+                        </span>
+                        <div class="course-detail-richtext">
                             {{ course.description|sanitize }}
                         </div>
-                        
+                    </article>
+                </div>
 
-                    </div>
-                    
-                    <!-- Curriculum Tab -->
-                    <div class="tab-pane fade" id="curriculum" role="tabpanel">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h3 class="h4 fw-bold mb-0">Kurs dasturi</h3>
-                            <span class="badge bg-primary bg-opacity-10 text-primary fs-6">{{ course.modules.count|default:"0" }} bo'lim, {{ course.lessons_count|default:"0" }} dars</span>
+                <div class="col-12 col-lg-7">
+                    <article class="course-detail-section-card" id="curriculum-full">
+                        <span class="course-detail-section-kicker">
+                            <i class="bi bi-journals"></i>
+                            To'liq kurs dasturi
+                        </span>
+                        <div class="course-detail-section-head">
+                            <div>
+                                <h2 class="mb-2">Moduldan modulga aniq progression</h2>
+                                <p>Har bir bo'lim avvalgi bilim ustiga quriladi. Talaba qaerdan boshlashi va qayerga chiqishi bir qarashda ko'rinadi.</p>
+                            </div>
                         </div>
-                        
-                        <div class="accordion custom-accordion" id="curriculumAccordion">
-                            {% for module in course.modules.all %}
-                            <div class="accordion-item border-0 mb-3 rounded-4 overflow-hidden shadow-sm">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button {% if not forloop.first %}collapsed{% endif %} fw-bold" type="button" 
-                                            data-bs-toggle="collapse" data-bs-target="#module{{ module.id }}">
-                                        <div class="d-flex flex-column flex-md-row justify-content-md-between w-100 me-3 gap-2">
-                                            <span>Modul {{ module.order|default:forloop.counter }}: {{ module.title }}</span>
-                                            <span class="badge bg-white border fw-medium px-3">{{ module.lessons.count }} dars</span>
+
+                        <div class="course-detail-curriculum-header">
+                            <span class="course-detail-chip"><i class="bi bi-grid"></i>{{ modules|length }} modul</span>
+                            <span class="course-detail-chip"><i class="bi bi-play-btn"></i>{{ course_lessons_count|default:0 }} dars</span>
+                            <span class="course-detail-chip"><i class="bi bi-clock"></i>{{ course.duration|default:20 }} soat</span>
+                            {% if preview_lesson %}
+                            <span class="course-detail-chip"><i class="bi bi-unlock"></i>Start darsi: {{ preview_lesson.title }}</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="accordion course-detail-accordion" id="courseCurriculumAccordion">
+                            {% for module in modules %}
+                            <div class="accordion-item">
+                                <h3 class="accordion-header" id="heading-module-{{ module.id }}">
+                                    <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#module-{{ module.id }}" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}">
+                                        <div class="w-100">
+                                            <div>Modul {{ module.order|default:forloop.counter }}. {{ module.title }}</div>
+                                            <div class="course-detail-module-meta">
+                                                <span><i class="bi bi-play-circle"></i>{{ module.lessons.all|length }} dars</span>
+                                                <span><i class="bi bi-flag"></i>Ketma-ket progression</span>
+                                            </div>
                                         </div>
                                     </button>
-                                </h2>
-                                <div id="module{{ module.id }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" 
-                                     data-bs-parent="#curriculumAccordion">
-                                    <div class="accordion-body p-0 border border-top-0 rounded-bottom-4">
-                                        <ul class="list-group list-group-flush rounded-bottom-4">
-                                            {% for lesson in module.lessons.all %}
-                                            <li class="list-group-item d-flex justify-content-between align-items-center p-3 px-4 border-light hover-bg-light transition-all">
-                                                <div class="d-flex align-items-center gap-3">
-                                                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                                        <i class="bi bi-play-fill"></i>
-                                                    </div>
-                                                    <span class="fw-medium">{{ lesson.title }}</span>
+                                </h3>
+                                <div id="module-{{ module.id }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" data-bs-parent="#courseCurriculumAccordion">
+                                    <div class="course-detail-lesson-list">
+                                        {% for lesson in module.lessons.all %}
+                                        <div class="course-detail-lesson-item">
+                                            <div class="course-detail-lesson-main">
+                                                <div class="course-detail-lesson-icon"><i class="bi bi-play-fill"></i></div>
+                                                <div class="course-detail-lesson-copy">
+                                                    <div class="course-detail-lesson-title">{{ lesson.title }}</div>
+                                                    <p>
+                                                        {% if forloop.first and forloop.parentloop.first %}
+                                                        Kursning start nuqtasi va ritmni his qilish uchun birinchi qadam.
+                                                        {% else %}
+                                                        Mavzuni mustahkamlovchi asosiy dars bloki.
+                                                        {% endif %}
+                                                    </p>
                                                 </div>
-                                                <div class="d-flex align-items-center gap-3">
-                                                    {% if forloop.parentloop.first and forloop.first %}
-                                                    <span class="badge bg-success bg-opacity-10 text-success fw-bold px-2 py-1">Ochiq dars</span>
-                                                    {% else %}
-                                                    <i class="bi bi-lock-fill text-muted opacity-50"></i>
-                                                    {% endif %}
-                                                    <span class="text-muted small fw-medium">{{ lesson.duration|default:"10:00" }}</span>
+                                            </div>
+                                            {% if forloop.first and forloop.parentloop.first %}
+                                            <span class="course-detail-lesson-state course-detail-lesson-state--open">
+                                                <i class="bi bi-unlock-fill"></i>
+                                                Start point
+                                            </span>
+                                            {% else %}
+                                            <span class="course-detail-lesson-state course-detail-lesson-state--locked">
+                                                <i class="bi bi-lock-fill"></i>
+                                                Track ichida
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                        {% empty %}
+                                        <div class="course-detail-lesson-item">
+                                            <div class="course-detail-lesson-main">
+                                                <div class="course-detail-lesson-icon"><i class="bi bi-journal-x"></i></div>
+                                                <div class="course-detail-lesson-copy">
+                                                    <div class="course-detail-lesson-title">Hozircha darslar kiritilmagan</div>
+                                                    <p>Bu modul kontenti tez orada to'ldiriladi.</p>
                                                 </div>
-                                            </li>
-                                            {% empty %}
-                                            <li class="list-group-item text-center text-muted py-4">Hozircha bu modulda darslar yo'q.</li>
-                                            {% endfor %}
-                                        </ul>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
                                     </div>
                                 </div>
                             </div>
                             {% empty %}
-                            <div class="alert alert-light text-center py-5 border rounded-4">
-                                <i class="bi bi-journal-x display-4 text-muted mb-3 d-block"></i>
-                                Ushbu kurs uchun hali dastur kiritilmagan.
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    
-                    <!-- Instructor Tab -->
-                    <div class="tab-pane fade" id="instructor" role="tabpanel">
-                        <div class="d-flex flex-column flex-md-row gap-4 align-items-md-center mb-4">
-                            <div class="avatar border border-4 border-white shadow rounded-circle overflow-hidden" style="width: 120px; height: 120px; flex-shrink: 0;">
-                                {% if course.instructor.avatar %}
-                                <img src="{{ course.instructor.avatar.url }}" alt="{{ course.instructor.get_full_name }}" class="w-100 h-100 object-fit-cover">
-                                {% else %}
-                                <div class="w-100 h-100 bg-primary text-white d-flex justify-content-center align-items-center display-4 fw-bold">
-                                    {{ course.instructor.first_name|default:course.instructor.username|slice:":1"|upper }}
-                                </div>
-                                {% endif %}
-                            </div>
-                            <div>
-                                <h3 class="h4 fw-bold mb-1">{{ course.instructor.get_full_name|default:"Professional O'qituvchi" }}</h3>
-                                <p class="text-primary fw-medium mb-3">Asosiy O'qituvchi</p>
-                                
-                                <div class="d-flex flex-wrap gap-4">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                            <i class="bi bi-play-circle-fill"></i>
-                                        </div>
-                                        <div>
-                                            <div class="fw-bold lh-1">{{ course.instructor.courses.count }}</div>
-                                            <div class="small text-muted">Kurslari</div>
-                                        </div>
+                            <div class="course-detail-lesson-item">
+                                <div class="course-detail-lesson-main">
+                                    <div class="course-detail-lesson-icon"><i class="bi bi-journal-x"></i></div>
+                                    <div class="course-detail-lesson-copy">
+                                        <div class="course-detail-lesson-title">Dastur tayyorlanmoqda</div>
+                                        <p>Ushbu kurs uchun modul va lesson oqimi hali admin tomonidan to'liq joylanmagan.</p>
                                     </div>
                                 </div>
                             </div>
+                            {% endfor %}
                         </div>
-                        
-                        <div class="text-secondary lh-lg">
-                            <div>{{ course.instructor.bio|default:"Ushbu o'qituvchi o'zining tajribasi asosida turk tilini mukammal o'rganishingizga yordam beradi. Darslar intensiv tarzda amaliyot bilan kafolatli olib boriladi."|sanitize }}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Sidebar -->
-            <div class="col-lg-4">
-                <div class="card border-0 shadow-lg rounded-4 sticky-top overflow-hidden" style="top: 100px;">
-                    <div class="card-body p-4 p-xl-5">
-                        {% if is_enrolled %}
-                        <div class="text-center mb-4 pb-4 border-bottom border-light">
-                            <div class="display-6 fw-bold text-success mb-2">Siz kursdasiz</div>
-                            <div class="text-muted small px-3">O'qishni davom ettiring va maqsadlaringiz sari olg'a qadam tashlang!</div>
-                        </div>
-                        
-                        <div class="d-grid gap-3 mb-4">
-                            <a href="{% url 'course_study' course.id %}" class="btn btn-success btn-lg rounded-pill fw-bold shadow-sm d-flex justify-content-center align-items-center gap-2" style="padding: 1rem;">
-                                <i class="bi bi-play-circle-fill fs-5"></i> O'qishni davom ettirish
-                            </a>
-                        </div>
-                        
-                        <div class="p-4 bg-light rounded-4 text-center mt-4">
-                            <i class="bi bi-mortarboard text-primary display-4 mb-3"></i>
-                            <h6 class="fw-bold">Omad yor bo'lsin!</h6>
-                            <p class="text-muted small mb-0">Biz sizga ishonamiz, muntazamlik - muvaffaqiyat garovidir.</p>
-                        </div>
-                        
-                        {% else %}
-                        <div class="text-center mb-4 pb-4 border-bottom border-light">
-                            <div class="display-6 fw-bold text-primary mb-2">Qabul ochiq</div>
-                            <div class="text-muted small px-3">Kurs guruhiga qo'shilish orqali turk tilini mukammal tarzda o'rganishni boshlang!</div>
-                        </div>
-                        
-                        <div class="d-grid gap-3 mb-4">
-                            {% if user.is_authenticated %}
-                                <a href="{% url 'cohorts:checkout' course.id %}" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">
-                                    Kursga yozilish
-                                </a>
-                                <button class="btn btn-outline-secondary btn-lg rounded-pill fw-medium">
-                                    <i class="bi bi-heart me-2"></i>Saqlab qo'yish
-                                </button>
-                            {% else %}
-                                <a href="{% url 'login' %}?next={% url 'cohorts:checkout' course.id %}" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">
-                                    Tizimga Kiring
-                                </a>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="text-center mb-4">
-                            <span class="badge bg-success bg-opacity-10 text-success fw-medium py-2 px-3 rounded-pill">
-                                <i class="bi bi-shield-check me-1"></i>30 kunlik pul qaytarish kafolati
-                            </span>
-                        </div>
-                        
-                        <h6 class="fw-bold mb-3">Kurs o'z ichiga oladi:</h6>
-                        <ul class="list-unstyled d-flex flex-column gap-3 mb-0 text-secondary">
-                            <li class="d-flex align-items-center gap-3">
-                                <i class="bi bi-camera-video text-primary fs-5"></i>
-                                <span>{{ course.duration|default:"20" }} soatlik video darslar</span>
-                            </li>
-                            <li class="d-flex align-items-center gap-3">
-                                <i class="bi bi-file-earmark-text text-primary fs-5"></i>
-                                <span>{{ course.lessons_count|default:"50" }} ta amaliy mashqlar</span>
-                            </li>
-                            <li class="d-flex align-items-center gap-3">
-                                <i class="bi bi-cloud-arrow-down text-primary fs-5"></i>
-                                <span>Yuklab olinadigan materiallar</span>
-                            </li>
-                            <li class="d-flex align-items-center gap-3">
-                                <i class="bi bi-infinity text-primary fs-5"></i>
-                                <span>Cheksiz kirish huquqi</span>
-                            </li>
-                            <li class="d-flex align-items-center gap-3">
-                                <i class="bi bi-phone text-primary fs-5"></i>
-                                <span>Mobil qurilmada ishlaydi</span>
-                            </li>
-                            <li class="d-flex align-items-center gap-3">
-                                <i class="bi bi-award text-primary fs-5"></i>
-                                <span>Tugatish sertifikati kafolatlanadi</span>
-                            </li>
-                        </ul>
-                        {% endif %}
-                    </div>
-                    <!-- Card Footer Decor -->
-                    <div style="height: 6px; background: linear-gradient(90deg, var(--lms-primary) 0%, var(--lms-secondary) 100%);"></div>
+                    </article>
                 </div>
             </div>
         </div>
-    </div>
-</section>
-
-{% block extra_css %}
-<style>
-    .hover-bg-light:hover {
-        background-color: var(--lms-gray-100) !important;
-    }
-    .custom-accordion .accordion-button:not(.collapsed) {
-        background-color: var(--lms-primary-light);
-        color: var(--lms-primary);
-        box-shadow: none;
-    }
-    .custom-accordion .accordion-button:not(.collapsed)::after {
-        filter: invert(36%) sepia(50%) saturate(6015%) hue-rotate(189deg) brightness(97%) contrast(98%);
-    }
-    .custom-accordion .accordion-button:focus {
-        box-shadow: none;
-        border-color: rgba(0,0,0,.125);
-    }
-    .nav-pills .nav-link.active, .nav-pills .show>.nav-link {
-        background-color: var(--lms-primary);
-    }
-    .nav-pills .nav-link {
-        color: var(--lms-gray-600);
-    }
-    .nav-pills .nav-link:hover:not(.active) {
-        color: var(--lms-primary);
-        background-color: var(--lms-primary-light);
-    }
-    .hover-opacity-100 {
-        transition: opacity 0.2s;
-    }
-    .hover-opacity-100:hover {
-        opacity: 1 !important;
-    }
-</style>
-{% endblock %}
-
+    </section>
+</div>
 {% endblock %}

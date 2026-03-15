@@ -15,7 +15,7 @@ def notification_context(request):
         Notification.objects.filter(recipient=request.user)
         .order_by("-created_at")[:8]
     )
-    unread_count = sum(1 for n in notifications if not n.is_read)
+    unread_count = Notification.objects.filter(recipient=request.user, is_read=False).count()
 
     return {
         "notifications": notifications,

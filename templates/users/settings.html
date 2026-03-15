@@ -6,7 +6,7 @@
 {% block dashboard_content %}
 <div class="row g-4">
     <!-- Profile Card -->
-    <div class="col-lg-4">
+    <div class="col-12 col-lg-4">
         <div class="card border-0 shadow-sm rounded-4 text-center overflow-hidden h-100">
             <!-- Header Background -->
             <div style="height: 120px; background: linear-gradient(135deg, var(--lms-primary) 0%, var(--lms-secondary) 100%); position: relative;">
@@ -45,7 +45,7 @@
                 {% endif %}
                 
                 <!-- Quick Stats -->
-                <div class="d-flex justify-content-center gap-4 mb-4 border-top border-bottom py-3">
+                <div class="d-flex justify-content-center gap-4 mb-4 border-top border-bottom py-3 settings-quick-stats">
                     <div class="text-center">
                         <div class="h5 fw-bold mb-0">{{ active_courses_count|default:"0" }}</div>
                         <div class="small text-muted">Kurslar</div>
@@ -101,7 +101,7 @@
     </div>
     
     <!-- Profile Form -->
-    <div class="col-lg-8">
+    <div class="col-12 col-lg-8">
         <div class="card border-0 shadow-sm rounded-4 mb-4">
             <div class="card-header bg-transparent border-0 pt-4 pb-0 px-4">
                 <h3 class="h5 fw-bold mb-1">Shaxsiy ma'lumotlar</h3>
@@ -113,22 +113,22 @@
                     {% csrf_token %}
                     
                     <div class="row g-4">
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">Ism</label>
                             <input type="text" name="first_name" class="form-control" 
                                    value="{{ user.first_name }}" placeholder="Ismingiz" required>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">Familiya</label>
                             <input type="text" name="last_name" class="form-control" 
                                    value="{{ user.last_name }}" placeholder="Familiyangiz" required>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">Email manzil</label>
                             <input type="email" name="email" class="form-control" 
                                    value="{{ user.email }}" placeholder="email@example.com" required>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">Telefon raqam</label>
                             <div class="input-group">
                                 <span class="input-group-text text-muted border-end-0">
@@ -138,7 +138,7 @@
                                        value="{{ user.phone_number|default:'' }}" placeholder="+998 XX XXX XX XX">
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">Tug'ilgan sana</label>
                             <div class="input-group">
                                 <span class="input-group-text text-muted border-end-0">
@@ -148,7 +148,7 @@
                                        value="{{ user.profile.birth_date|date:'Y-m-d'|default:'' }}">
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">Jinsi</label>
                             <select name="gender" class="form-select">
                                 <option value="">Tanlang</option>
@@ -208,7 +208,7 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">Yangi parol</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-transparent text-muted border-end-0">
@@ -222,7 +222,7 @@
                             </div>
                             <div class="form-text small">Kamida 8 ta belgi, katta harf va raqam qatnashishi tavsiya etiladi.</div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">Parolni tasdiqlang</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-transparent text-muted border-end-0">

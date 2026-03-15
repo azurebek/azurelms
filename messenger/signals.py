@@ -1,17 +1,10 @@
-from django.db.models.signals import post_save
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
-from django.contrib.auth import get_user_model
 from cohorts.models import Cohort, Enrollment
-from .models import ChatRoom, Message, AILongTermMemory
-from google import genai
-from django.conf import settings
-from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
-import re
 import threading
-from django.db import close_old_connections
 
-User = get_user_model()
+from .access import sync_student_chat_access
+from .models import ChatRoom, Message
 
 
 # ==========================================
@@ -20,7 +13,7 @@ User = get_user_model()
 @receiver(post_save, sender=Cohort)
 def create_cohort_group_chat(sender, instance, created, **kwargs):
     if created:
-        ChatRoom.objects.create(
+        ChatRoom.objects.get_or_create(
             room_type='group',
             name=f"{instance.name} - Muloqot Guruhi",
             cohort=instance
@@ -32,34 +25,12 @@ def create_cohort_group_chat(sender, instance, created, **kwargs):
 # ==========================================
 @receiver(post_save, sender=Enrollment)
 def setup_student_chats(sender, instance, created, **kwargs):
-    if created:
-        student = instance.student
+    sync_student_chat_access(instance.student)
 
-        # A) O'quvchini guruh chatiga avtomatik qo'shish
-        group_chat = ChatRoom.objects.filter(cohort=instance.cohort, room_type='group').first()
-        if group_chat:
-            group_chat.participants.add(student)
 
-        # B) AI Chatni tekshirish va yaratish (Bitta o'quvchiga 1 ta AI xonasi yetadi)
-        ai_chat, ai_created = ChatRoom.objects.get_or_create(
-            room_type='ai',
-            name=f"Azure AI - {student.username}"
-        )
-        if ai_created:
-            ai_chat.participants.add(student)
-
-        # C) Ustoz (Admin) bilan 1:1 chat yaratish
-        tutor_chat, tutor_created = ChatRoom.objects.get_or_create(
-            room_type='private',
-            name=f"Ustoz bilan aloqa - {student.username}"
-        )
-        if tutor_created:
-            tutor_chat.participants.add(student)
-
-            # Tizimdagi asosiy adminni (masalan, o'zingizni) shu chatga ustoz sifatida qo'shib qo'yish:
-            admin_user = User.objects.filter(is_superuser=True).first()
-            if admin_user:
-                tutor_chat.participants.add(admin_user)
+@receiver(post_delete, sender=Enrollment)
+def teardown_student_chats(sender, instance, **kwargs):
+    sync_student_chat_access(instance.student)
 
 
 # ==========================================

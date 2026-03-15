@@ -3,6 +3,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from asgiref.sync import sync_to_async
 from django.contrib.auth import get_user_model
+from .access import user_can_access_room
 from .models import ChatRoom, Message
 
 User = get_user_model()
@@ -83,21 +84,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def is_authorized(self):
         try:
             room = ChatRoom.objects.get(id=self.room_id)
-            
-            # Agar user xona ishtirokchisi bo'lsa
-            if room.participants.filter(id=self.user.id).exists():
-                return True
-            
-            # Agar guruh chati bo'lsa, cohort a'zoligini tekshirish
-            if room.room_type == 'group' and room.cohort:
-                from cohorts.models import Enrollment
-                return Enrollment.objects.filter(
-                    student=self.user, 
-                    cohort=room.cohort, 
-                    status='active'
-                ).exists()
-            
-            return False
+            return user_can_access_room(self.user, room)
         except ChatRoom.DoesNotExist:
             return False
 

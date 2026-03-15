@@ -25,7 +25,7 @@
   height: 360px;
   top: -120px;
   left: -80px;
-  background: rgba(10, 118, 203, 0.18);
+  background: rgba(var(--lms-primary-rgb), 0.18);
 }
 
 .auth-shell-backdrop-b {
@@ -33,7 +33,7 @@
   height: 300px;
   right: -40px;
   bottom: 10%;
-  background: rgba(184, 134, 11, 0.16);
+  background: rgba(var(--lms-secondary-rgb), 0.16);
 }
 
 .auth-shell-topbar {
@@ -47,7 +47,7 @@
 
 .auth-shell-brand {
   background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(17, 36, 60, 0.08);
+  border: 1px solid rgba(49, 68, 61, 0.08);
   border-radius: 999px;
   padding: 0.5rem 0.9rem 0.5rem 0.5rem;
   backdrop-filter: blur(12px);
@@ -74,7 +74,7 @@
   padding: 0.8rem 1rem;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(17, 36, 60, 0.08);
+  border: 1px solid rgba(49, 68, 61, 0.08);
   color: var(--lms-text);
   text-decoration: none;
   backdrop-filter: blur(12px);
@@ -92,8 +92,8 @@
 .auth-shell-aside,
 .auth-panel-card {
   background: rgba(255, 255, 255, 0.82);
-  border: 1px solid rgba(17, 36, 60, 0.08);
-  box-shadow: 0 18px 55px rgba(10, 55, 97, 0.1);
+  border: 1px solid rgba(49, 68, 61, 0.08);
+  box-shadow: 0 18px 55px rgba(60, 96, 88, 0.1);
   backdrop-filter: blur(18px);
 }
 
@@ -108,7 +108,7 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at top left, rgba(10, 118, 203, 0.12), transparent 32%),
+    radial-gradient(circle at top left, rgba(var(--lms-primary-rgb), 0.12), transparent 32%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.84));
   pointer-events: none;
 }
@@ -186,7 +186,7 @@
 .auth-alert {
   border: none;
   border-radius: 18px;
-  box-shadow: 0 10px 24px rgba(10, 55, 97, 0.08);
+  box-shadow: 0 10px 24px rgba(60, 96, 88, 0.08);
 }
 
 .auth-form-grid {
@@ -214,7 +214,7 @@
   grid-template-columns: 18px minmax(0, 1fr);
   align-items: center;
   gap: 0.75rem;
-  border: 1px solid rgba(17, 36, 60, 0.1);
+  border: 1px solid rgba(49, 68, 61, 0.1);
   border-radius: 18px;
   padding: 0.2rem 0.3rem 0.2rem 0.9rem;
   background: rgba(255, 255, 255, 0.86);
@@ -227,8 +227,8 @@
 }
 
 .auth-input-wrap:focus-within {
-  border-color: rgba(10, 118, 203, 0.45);
-  box-shadow: 0 0 0 4px rgba(10, 118, 203, 0.1);
+  border-color: rgba(var(--lms-primary-rgb), 0.45);
+  box-shadow: 0 0 0 4px rgba(var(--lms-primary-rgb), 0.1);
 }
 
 .auth-input-wrap i {
@@ -261,7 +261,7 @@
   height: 46px;
   border-radius: 14px;
   border: none;
-  background: rgba(10, 118, 203, 0.08);
+  background: rgba(var(--lms-primary-rgb), 0.08);
   color: var(--lms-primary);
   padding: 0;
   display: inline-flex;
@@ -316,15 +316,15 @@
 }
 
 .auth-primary-btn {
-  background: linear-gradient(135deg, var(--lms-primary), var(--lms-primary-hover));
+  background: linear-gradient(135deg, var(--lms-button-primary), var(--lms-button-primary-deep));
   color: #fff;
-  box-shadow: 0 16px 36px rgba(10, 118, 203, 0.2);
+  box-shadow: 0 16px 36px rgba(var(--lms-button-primary-rgb), 0.2);
 }
 
 .auth-secondary-btn {
   background: rgba(255, 255, 255, 0.72);
   color: var(--lms-text);
-  border: 1px solid rgba(17, 36, 60, 0.09);
+  border: 1px solid rgba(49, 68, 61, 0.09);
 }
 
 .auth-divider {
@@ -340,7 +340,7 @@
   right: 0;
   top: 50%;
   height: 1px;
-  background: rgba(17, 36, 60, 0.1);
+  background: rgba(49, 68, 61, 0.1);
 }
 
 .auth-divider span {
@@ -380,7 +380,7 @@
   align-items: center;
   justify-content: center;
   font-size: 2rem;
-  background: rgba(10, 118, 203, 0.12);
+  background: rgba(var(--lms-primary-rgb), 0.12);
   color: var(--lms-primary);
 }
 
@@ -392,7 +392,7 @@
 .auth-status-note {
   padding: 1rem 1.1rem;
   border-radius: 18px;
-  background: rgba(10, 118, 203, 0.08);
+  background: rgba(var(--lms-primary-rgb), 0.08);
   color: var(--lms-text-muted);
   text-align: left;
 }

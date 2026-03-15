@@ -572,7 +572,13 @@ function showResults(quizId, data) {
     }
 
     scoreText.textContent = data.total_correct + ' / ' + data.total_questions + ' to\'g\'ri (' + percent + '%)';
-    xpText.innerHTML = '<i class="bi bi-star-fill text-warning me-1"></i>+' + data.xp_earned + ' XP qo\'shildi!';
+    if (data.xp_earned > 0) {
+        xpText.innerHTML = '<i class="bi bi-star-fill text-warning me-1"></i>+' + data.xp_earned + ' XP qo\'shildi!';
+    } else if (data.attempt_xp > 0) {
+        xpText.innerHTML = '<i class="bi bi-shield-check text-secondary me-1"></i>Qo\'shimcha XP berilmadi. Eng yaxshi natijangiz allaqachon saqlangan.';
+    } else {
+        xpText.innerHTML = '<i class="bi bi-dash-circle text-secondary me-1"></i>Bu urinishda XP olinmadi.';
+    }
 
     resultsDiv.classList.remove('d-none');
 

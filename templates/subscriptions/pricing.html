@@ -187,7 +187,7 @@
         <div class="row justify-content-center g-4">
             
             {% for plan in plans %}
-            <div class="col-lg-4 col-md-6">
+            <div class="col-12 col-md-6 col-lg-4">
                 <div class="pricing-card {% if plan.is_popular %}popular{% endif %}">
                     {% if plan.is_popular %}
                     <div class="popular-badge"><i class="bi bi-star-fill me-1"></i> Ommabop</div>
@@ -239,7 +239,7 @@
         </div>
         
         <div class="row justify-content-center">
-            <div class="col-lg-8">
+            <div class="col-12 col-lg-8">
                 <div class="accordion" id="pricingFAQ">
                     <div class="accordion-item">
                         <h2 class="accordion-header">

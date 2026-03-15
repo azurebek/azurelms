@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Max, Count
 from django.views.decorators.cache import never_cache
 from cohorts.models import Enrollment
+from .access import user_can_access_room
 from .models import ChatRoom, Message
 
 @login_required
@@ -19,6 +20,7 @@ def get_user_rooms(request):
             message_count=Count("messages"),
         )
     )
+    rooms = [room for room in rooms if user_can_access_room(request.user, room)]
 
     rooms_by_type = {}
     for room in rooms:
@@ -77,7 +79,9 @@ def get_room_messages(request, room_id):
     Faqatgina o'qish huquqi bor xonalar ruxsat etiladi.
     """
     try:
-        room = ChatRoom.objects.get(id=room_id, participants=request.user)
+        room = ChatRoom.objects.get(id=room_id)
+        if not user_can_access_room(request.user, room):
+            return JsonResponse({'status': 'error', 'message': 'Chat xonasi topilmadi yoki huquq yo\'q'}, status=403)
         # Oxirgi 100 ta xabarni olib, keyin UI uchun kronologik tartibda qaytaramiz.
         recent_messages = list(
             room.messages.select_related('sender').order_by('-created_at')[:100]
