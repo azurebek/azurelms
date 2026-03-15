@@ -3,6 +3,8 @@
         <img src="{{ enrollment.cohort.course.cover_media_url }}" alt="{{ enrollment.cohort.course.title }}" class="dashboard-enrollment-card__cover">
         {% if enrollment.cohort.course.show_cover_text_overlay %}
         {% include "includes/course_cover_overlay.html" with title=enrollment.cohort.course.cover_display_title label=enrollment.cohort.course.cover_display_label overlay_class="course-cover-overlay--enrollment" %}
+        {% else %}
+        <span class="dashboard-card-pill">{{ enrollment.cohort.course.get_level_display }}</span>
         {% endif %}
     </div>
     <div class="dashboard-enrollment-card__body">

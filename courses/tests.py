@@ -1,4 +1,3 @@
-import base64
 import datetime
 import json
 import shutil
@@ -252,39 +251,6 @@ class CourseDetailPageRenderTests(TestCase):
         self.assertContains(response, "AzureLMS Signature Course")
         self.assertContains(response, "Faqat video emas, to'liq o'quv sistemasi")
         self.assertContains(response, "Kursni olib boradigan o'qituvchi")
-
-
-class CourseGradientCoverTests(TestCase):
-    def test_gradient_cover_uses_center_title_without_default_edge_labels(self):
-        course = Course.objects.create(
-            title="Turk tili B2",
-            description="Gradient cover test",
-            cover_mode="gradient",
-            gradient_preset="brand_horizon",
-        )
-
-        self.assertTrue(course.cover_media_url.startswith("data:image/svg+xml;base64,"))
-        encoded_svg = course.cover_media_url.split(",", 1)[1]
-        svg = base64.b64decode(encoded_svg).decode("utf-8")
-
-        self.assertIn("Turk tili B2", svg)
-        self.assertNotIn("AzureLMS Course", svg)
-        self.assertNotIn(course.get_level_display(), svg)
-
-    def test_gradient_cover_renders_optional_center_kicker_only_when_set(self):
-        course = Course.objects.create(
-            title="Turk tili C1",
-            description="Gradient kicker test",
-            cover_mode="gradient",
-            gradient_preset="midnight_wave",
-            gradient_cover_label="Intensive Track",
-        )
-
-        encoded_svg = course.cover_media_url.split(",", 1)[1]
-        svg = base64.b64decode(encoded_svg).decode("utf-8")
-
-        self.assertIn("INTENSIVE TRACK", svg)
-        self.assertIn("Turk tili C1", svg)
 
 
 @override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)

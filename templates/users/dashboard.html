@@ -14,6 +14,8 @@
                 <img src="{{ primary_enrollment.cohort.course.cover_media_url }}" alt="{{ primary_enrollment.cohort.course.title }}" class="dashboard-focus-cover">
                 {% if primary_enrollment.cohort.course.show_cover_text_overlay %}
                 {% include "includes/course_cover_overlay.html" with title=primary_enrollment.cohort.course.cover_display_title label=primary_enrollment.cohort.course.cover_display_label overlay_class="course-cover-overlay--focus" %}
+                {% else %}
+                <span class="dashboard-card-pill">{{ primary_enrollment.cohort.course.get_level_display }}</span>
                 {% endif %}
             </div>
             <div class="dashboard-focus-card__body">

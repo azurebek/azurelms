@@ -102,7 +102,7 @@ class CourseAdmin(admin.ModelAdmin):
     @admin.display(description="Hozirgi cover preview")
     def cover_preview(self, obj):
         title = obj.cover_display_title if obj else "Turk tili A2"
-        image_url = obj.cover_media_url if obj else build_cover_data_uri(title=title, preset_key="midnight_wave")
+        image_url = obj.cover_media_url if obj else build_cover_data_uri(title=title, preset_key="midnight_wave", kicker="A1-A2")
         return format_html(
             '<div style="max-width: 360px; border-radius: 24px; overflow: hidden; border: 1px solid rgba(17, 36, 60, 0.08); box-shadow: 0 18px 40px rgba(10, 55, 97, 0.14);">'
             '<img src="{}" alt="Cover preview" style="display:block; width:100%; height:auto;" />'
@@ -113,6 +113,7 @@ class CourseAdmin(admin.ModelAdmin):
     @admin.display(description="Tayyor gradient presetlar")
     def gradient_gallery(self, obj):
         sample_title = obj.cover_display_title if obj else "GPT-5.3-Codex"
+        sample_label = obj.cover_display_label if obj else "A1-A2"
         cards = format_html_join(
             "",
             (
@@ -125,7 +126,7 @@ class CourseAdmin(admin.ModelAdmin):
             ),
             (
                 (
-                    build_cover_data_uri(sample_title, preset["key"]),
+                    build_cover_data_uri(sample_title, preset["key"], kicker=sample_label),
                     preset["label"],
                     preset["label"],
                 )
