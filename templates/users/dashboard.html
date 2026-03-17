@@ -83,11 +83,19 @@
                     <span class="dashboard-badge">Jonli</span>
                 </div>
                 <div class="dashboard-overview-hero">
-                    <span class="dashboard-overview-label">O'qish ritmi</span>
-                    <strong>{{ xp_points|default:"0" }}</strong>
-                    <p>{{ active_courses_count|default:"0" }} faol kurs, {{ completed_lessons_count|default:"0" }} tugallangan dars va o'sishda davom etayotgan ritm.</p>
+                    <div class="dashboard-overview-hero__metric">
+                        <span class="dashboard-overview-label">O'qish ritmi</span>
+                        <div class="dashboard-overview-value">
+                            <strong>{{ xp_points|default:"0" }}</strong>
+                            <span class="dashboard-overview-unit">XP</span>
+                        </div>
+                    </div>
+                    <p>
+                        <span>{{ active_courses_count|default:"0" }} faol kurs</span>
+                        <span>{{ completed_lessons_count|default:"0" }} dars tugallangan</span>
+                    </p>
                 </div>
-                <div class="dashboard-mini-stats">
+                <div class="dashboard-mini-stats dashboard-mini-stats--compact">
                     <div class="dashboard-mini-stat">
                         <span>Faol kurs</span>
                         <strong>{{ active_courses_count|default:"0" }}</strong>
@@ -97,25 +105,18 @@
                         <strong>{{ completed_lessons_count|default:"0" }}</strong>
                     </div>
                     <div class="dashboard-mini-stat">
-                        <span>XP</span>
-                        <strong>{{ xp_points|default:"0" }}</strong>
-                    </div>
-                    <div class="dashboard-mini-stat">
                         <span>Seriya</span>
                         <strong>{{ streak_days|default:"0" }}</strong>
                     </div>
-                </div>
-                <div class="dashboard-overview-meta">
-                    <div class="dashboard-overview-meta__item">
-                        <span>O'rin</span>
-                        <strong>{% if leaderboard_my_row %}#{{ leaderboard_my_row.rank }}{% else %}-{% endif %}</strong>
-                    </div>
-                    <div class="dashboard-overview-meta__item">
+                    <div class="dashboard-mini-stat">
                         <span>Profil</span>
                         <strong>{{ profile_completion }}%</strong>
                     </div>
                 </div>
-                <a href="{% url 'leaderboard' %}" class="dashboard-overview-link">Leaderboardni ochish</a>
+                <div class="dashboard-overview-footer">
+                    <span class="dashboard-overview-rank">O'rin: {% if leaderboard_my_row %}#{{ leaderboard_my_row.rank }}{% else %}-{% endif %}</span>
+                    <a href="{% url 'leaderboard' %}" class="dashboard-overview-link">Leaderboard</a>
+                </div>
             </article>
         </div>
     </section>
