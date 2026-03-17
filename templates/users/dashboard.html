@@ -6,9 +6,9 @@
 {% block page_description %}Progress va keyingi action bitta joyda.{% endblock %}
 
 {% block dashboard_content %}
-<div class="dashboard-flow">
-    <section id="my-courses" class="dashboard-focus-layout">
-        <article class="dashboard-focus-card">
+<div class="dashboard-flow dashboard-home-flow">
+    <section id="my-courses" class="dashboard-focus-layout dashboard-home-focus">
+        <article class="dashboard-focus-card dashboard-home-focus-card">
             {% if primary_enrollment %}
             <div class="dashboard-focus-card__media">
                 <img src="{{ primary_enrollment.cohort.course.cover_media_url }}" alt="{{ primary_enrollment.cohort.course.title }}" class="dashboard-focus-cover">
@@ -73,8 +73,8 @@
             {% endif %}
         </article>
 
-        <div class="dashboard-side-grid">
-            <article class="dashboard-surface dashboard-surface--overview">
+        <div class="dashboard-side-grid dashboard-home-side-grid">
+            <article class="dashboard-surface dashboard-surface--overview dashboard-home-overview">
                 <div class="dashboard-surface-head dashboard-surface-head--overview">
                     <div>
                         <span class="dashboard-section-kicker">Umumiy ko'rinish</span>

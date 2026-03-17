@@ -5,7 +5,10 @@ from .models import (
     Course,
     Module,
     Lesson,
+    LessonProgress,
     Assignment,
+    AssignmentSubmission,
+    CohortLessonRelease,
     Exam,
     ExamSection,
     Quiz,
@@ -156,6 +159,116 @@ class AssignmentAdmin(admin.ModelAdmin):
     list_display = ('title', 'lesson', 'max_xp')
     search_fields = ('title',)
     list_filter = ('lesson__module__course',)
+
+
+@admin.register(AssignmentSubmission)
+class AssignmentSubmissionAdmin(admin.ModelAdmin):
+    list_display = (
+        "student",
+        "assignment",
+        "course_title",
+        "status",
+        "submitted_at",
+        "reviewed_at",
+    )
+    search_fields = (
+        "student__username",
+        "student__email",
+        "assignment__title",
+        "assignment__lesson__title",
+    )
+    list_filter = ("status", "assignment__lesson__module__course")
+    readonly_fields = ("submitted_at", "updated_at")
+    actions = ("mark_pending", "mark_approved", "mark_needs_revision")
+
+    @admin.display(description="Kurs")
+    def course_title(self, obj):
+        return obj.assignment.lesson.module.course.title
+
+    @admin.action(description="Tekshiruvga qaytarish (Pending)")
+    def mark_pending(self, request, queryset):
+        updated = queryset.update(
+            status=AssignmentSubmission.STATUS_PENDING,
+            reviewed_by=None,
+            reviewed_at=None,
+        )
+        self.message_user(request, f"{updated} ta submission pending holatga o'tkazildi.")
+
+    @admin.action(description="Tasdiqlash (Approved)")
+    def mark_approved(self, request, queryset):
+        from django.utils import timezone
+
+        updated = queryset.update(
+            status=AssignmentSubmission.STATUS_APPROVED,
+            reviewed_by=request.user,
+            reviewed_at=timezone.now(),
+        )
+        self.message_user(request, f"{updated} ta submission tasdiqlandi.")
+
+    @admin.action(description="Qayta ishlash kerak (Needs revision)")
+    def mark_needs_revision(self, request, queryset):
+        from django.utils import timezone
+
+        updated = queryset.update(
+            status=AssignmentSubmission.STATUS_NEEDS_REVISION,
+            reviewed_by=request.user,
+            reviewed_at=timezone.now(),
+        )
+        self.message_user(request, f"{updated} ta submission revision holatiga o'tdi.")
+
+    def save_model(self, request, obj, form, change):
+        from django.utils import timezone
+
+        if obj.status == AssignmentSubmission.STATUS_PENDING:
+            obj.reviewed_by = None
+            obj.reviewed_at = None
+        else:
+            obj.reviewed_by = request.user
+            obj.reviewed_at = timezone.now()
+        super().save_model(request, obj, form, change)
+
+
+@admin.register(CohortLessonRelease)
+class CohortLessonReleaseAdmin(admin.ModelAdmin):
+    list_display = ("cohort", "course_title", "lesson", "is_released", "released_at", "released_by")
+    list_filter = ("is_released", "cohort", "lesson__module__course")
+    search_fields = ("cohort__name", "lesson__title", "lesson__module__course__title")
+    actions = ("mark_released", "mark_locked")
+
+    @admin.display(description="Kurs")
+    def course_title(self, obj):
+        return obj.lesson.module.course.title
+
+    @admin.action(description="Tanlangan darslarni ochish")
+    def mark_released(self, request, queryset):
+        from django.utils import timezone
+
+        updated = queryset.update(
+            is_released=True,
+            released_by=request.user,
+            released_at=timezone.now(),
+        )
+        self.message_user(request, f"{updated} ta dars ochildi.")
+
+    @admin.action(description="Tanlangan darslarni qulflash")
+    def mark_locked(self, request, queryset):
+        updated = queryset.update(is_released=False)
+        self.message_user(request, f"{updated} ta dars qulflandi.")
+
+
+@admin.register(LessonProgress)
+class LessonProgressAdmin(admin.ModelAdmin):
+    list_display = ("student_username", "course_title", "lesson", "is_completed", "last_accessed_at")
+    list_filter = ("is_completed", "lesson__module__course")
+    search_fields = ("enrollment__student__username", "lesson__title", "lesson__module__course__title")
+
+    @admin.display(description="O'quvchi")
+    def student_username(self, obj):
+        return obj.enrollment.student.username
+
+    @admin.display(description="Kurs")
+    def course_title(self, obj):
+        return obj.lesson.module.course.title
 
 # --- Imtihonlar ---
 

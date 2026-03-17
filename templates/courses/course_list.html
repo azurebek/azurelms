@@ -3,14 +3,15 @@
 {% load humanize %}
 
 {% block title %}Kurslar | AzureLMS{% endblock %}
+{% block body_class %}catalog-page{% endblock %}
 
 {% block content %}
 <!-- PAGE HEADER -->
-<section class="bg-white py-4 border-bottom">
+<section class="catalog-header bg-white py-4 border-bottom">
     <div class="container">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-2">
-                <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-decoration-none" style="color: var(--lms-primary);">Bosh sahifa</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-decoration-none link-primary-soft">Bosh sahifa</a></li>
                 <li class="breadcrumb-item active">Kurslar</li>
             </ol>
         </nav>
@@ -20,13 +21,13 @@
 </section>
 
 <!-- FILTERS & COURSES -->
-<section class="py-5">
+<section class="catalog-section py-5">
     <div class="container">
         <div class="row g-4">
             <!-- SIDEBAR FILTERS (Disabled structurally as they are not currently supported fully by backend, but layout preserved) -->
             <div class="col-12 col-lg-3">
                 <form method="GET" action="{% url 'courses' %}" id="filterForm">
-                    <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card border-0 shadow-sm rounded-4 mb-4 catalog-filter-card">
                         <div class="card-body p-4">
                             <h5 class="mb-3 h6 fw-bold">Qidiruv</h5>
                             <div class="input-group">
@@ -38,7 +39,7 @@
                         </div>
                     </div>
                     
-                    <div class="card border-0 shadow-sm rounded-4 mb-4 text-muted opacity-75">
+                    <div class="card border-0 shadow-sm rounded-4 mb-4 text-muted opacity-75 catalog-filter-card catalog-filter-card--levels">
                         <div class="card-body p-4">
                             <h5 class="mb-3 h6 fw-bold">Daraja</h5>
                             {% for level_value, level_label in level_choices %}
@@ -60,13 +61,13 @@
             <!-- COURSES GRID -->
             <div class="col-12 col-lg-9">
                 <!-- Sort Bar -->
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4 bg-white p-3 rounded-4 shadow-sm">
+                <div class="catalog-toolbar d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4 bg-white p-3 rounded-4 shadow-sm">
                     <p class="text-muted mb-0">
                         <strong class="">{% if is_paginated %}{{ paginator.count }}{% else %}{{ courses|length }}{% endif %}</strong> ta kurs topildi
                     </p>
                     <div class="d-flex align-items-center gap-2">
                         <label class="text-muted small text-nowrap">Saralash:</label>
-                        <select class="form-select border-0 fw-medium" style="width: auto; cursor: pointer;" 
+                        <select class="form-select border-0 fw-medium course-sort-select" 
                                 onchange="document.getElementById('sortInput').value=this.value; document.getElementById('filterForm').submit();">
                             <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Eng yangi</option>
                             <option value="oldest" {% if current_sort == 'oldest' %}selected{% endif %}>Eng eski</option>
@@ -76,13 +77,13 @@
                 </div>
                 
                 <!-- Courses Grid -->
-                <div class="row g-4">
+                <div class="row g-4 catalog-grid">
                     {% for course in courses %}
-                    <div class="col-12 col-md-6 col-xl-4">
+                    <div class="col-12 col-md-6 col-xl-4 catalog-grid-item">
                         {% include "includes/course_showcase_card.html" with course=course %}
                     </div>
                     {% empty %}
-                    <div class="col-12 text-center py-5 bg-white border-0 shadow-sm rounded-4">
+                    <div class="col-12 text-center py-5 bg-white border-0 shadow-sm rounded-4 catalog-empty">
                         <i class="bi bi-search display-3 text-muted opacity-25 mb-4 d-block"></i>
                         <h4 class="h5 fw-bold">Kurs topilmadi</h4>
                         <p class="text-muted">Boshqa filtrlar bilan qayta urinib ko'ring yoki barcha qidiruvlarni tozalang.</p>

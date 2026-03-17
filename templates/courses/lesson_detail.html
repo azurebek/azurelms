@@ -1,455 +1,440 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load bleach_tags %}
+{% load humanize %}
 {% load static %}
 
 {% block title %}{{ lesson.title }} | {{ course.title }}{% endblock %}
 
 {% block extra_css %}
-<style>
-    body {
-        background-color: #f8f9fa;
-    }
-    
-    .study-layout {
-        display: flex;
-        min-height: calc(100vh - 76px); /* minus navbar */
-    }
-
-    /* Sidebar Styles */
-    .study-sidebar {
-        width: 320px;
-        flex-shrink: 0;
-        background-color: #fff;
-        border-right: 1px solid #e9ecef;
-        overflow-y: auto;
-        height: calc(100vh - 76px);
-        position: sticky;
-        top: 76px;
-    }
-
-    .study-main {
-        flex-grow: 1;
-        padding: 2rem;
-        overflow-y: auto;
-    }
-
-    @media (max-width: 991.98px) {
-        .study-layout {
-            flex-direction: column;
-        }
-        .study-sidebar {
-            width: 100%;
-            height: auto;
-            position: relative;
-            top: 0;
-            border-right: none;
-            border-bottom: 1px solid #e9ecef;
-        }
-    }
-
-    /* Accordion customizations */
-    .study-sidebar .accordion-button {
-        padding: 1rem 1.25rem;
-        font-weight: 600;
-        color: #495057;
-        background-color: #f8f9fa;
-        box-shadow: none;
-    }
-    
-    .study-sidebar .accordion-button:not(.collapsed) {
-        color: #0d6efd;
-        background-color: #e7f1ff;
-    }
-
-    .study-sidebar .list-group-item {
-        border-left: 3px solid transparent;
-        transition: all 0.2s;
-    }
-
-    .study-sidebar .list-group-item:hover {
-        background-color: #f8f9fa;
-    }
-
-    .study-sidebar .list-group-item.active {
-        background-color: #e7f1ff;
-        border-color: #e7f1ff;
-        border-left-color: #0d6efd;
-        color: #0d6efd;
-    }
-
-    .study-sidebar .list-group-item.active a {
-        color: #0d6efd;
-        font-weight: 600;
-    }
-
-    .study-sidebar .list-group-item a {
-        color: #495057;
-        text-decoration: none;
-        display: block;
-    }
-
-    /* Video Container */
-    .video-container {
-        position: relative;
-        padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
-        height: 0;
-        overflow: hidden;
-        border-radius: 0.5rem;
-        background-color: #000;
-    }
-
-    .video-container iframe {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-    }
-
-    /* Content Area Styles */
-    .lesson-content img {
-        max-width: 100%;
-        height: auto;
-        border-radius: 0.5rem;
-        margin: 1rem 0;
-    }
-
-    .lesson-content pre {
-        background-color: #212529;
-        color: #f8f9fa;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        overflow-x: auto;
-    }
-
-    .lesson-content blockquote {
-        border-left: 4px solid #0d6efd;
-        padding-left: 1rem;
-        color: #6c757d;
-        font-style: italic;
-    }
-</style>
+<link href="{% static 'css/lesson-detail.css' %}?v=4" rel="stylesheet">
 {% endblock %}
 
+{% block body_class %}dashboard-page lesson-course-shell{% endblock %}
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
 {% block content %}
-<div class="study-layout">
-    <!-- Sidebar / Table of Contents -->
-    <div class="study-sidebar shadow-sm">
-        <div class="p-4 border-bottom">
-            <h5 class="fw-bold mb-1">{{ course.title }}</h5>
-            <div class="text-muted small">Mundarija</div>
-        </div>
-
-        <div class="accordion accordion-flush" id="courseAccordion">
-            {% for module in modules %}
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button {% if lesson.module != module %}collapsed{% endif %}" 
-                            type="button" data-bs-toggle="collapse" 
-                            data-bs-target="#moduleCollapse{{ module.id }}">
-                        Modul {{ module.order|default:forloop.counter }}: {{ module.title }}
-                    </button>
-                </h2>
-                <div id="moduleCollapse{{ module.id }}" 
-                     class="accordion-collapse collapse {% if lesson.module == module %}show{% endif %}" 
-                     data-bs-parent="#courseAccordion">
-                    <div class="accordion-body p-0">
-                        <ul class="list-group list-group-flush">
-                            {% for l in module.lessons.all %}
-                            <li class="list-group-item px-4 py-3 {% if l == lesson %}active{% endif %}">
-                                <a href="{% url 'lesson_detail' course_id=course.id lesson_id=l.id %}" class="d-flex align-items-center gap-2">
-                                    {% if l == lesson %}
-                                    <i class="bi bi-play-circle-fill text-primary"></i>
-                                    {% else %}
-                                    <i class="bi bi-journal-text text-muted"></i>
-                                    {% endif %}
-                                    {{ l.title }}
-                                </a>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-            
-            {% if course_exams.exists %}
-            <div class="accordion-item" style="border-top: 2px solid #ffc107;">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed fw-bold text-dark" 
-                            type="button" data-bs-toggle="collapse" 
-                            data-bs-target="#examCollapse">
-                        <i class="bi bi-award-fill text-warning me-2"></i> Kurs Imtihonlari
-                    </button>
-                </h2>
-                <div id="examCollapse" 
-                     class="accordion-collapse collapse" 
-                     data-bs-parent="#courseAccordion">
-                    <div class="accordion-body p-0">
-                        <ul class="list-group list-group-flush">
-                            {% for e in course_exams %}
-                            <li class="list-group-item px-4 py-3 border-start border-4 border-warning">
-                                <a href="{% url 'exam_detail' course_id=course.id exam_id=e.id %}" class="d-flex align-items-center gap-2 fw-medium">
-                                    <i class="bi bi-file-earmark-text"></i>
-                                    {{ e.get_exam_type_display }}
-                                </a>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- Main Study Area -->
-    <div class="study-main">
-        <div class="container-fluid max-w-1000 mx-auto w-100" style="max-width: 900px;">
-            
-            <!-- Breadcrumb & Header -->
-            <nav aria-label="breadcrumb" class="mb-3">
-                <ol class="breadcrumb mb-0 small">
-                    <li class="breadcrumb-item"><a href="{% url 'dashboard' %}" class="text-decoration-none">Dashboard</a></li>
-                    <li class="breadcrumb-item"><a href="{% url 'course_detail' course.id %}" class="text-decoration-none">{{ course.title }}</a></li>
-                    <li class="breadcrumb-item active">{{ lesson.module.title }}</li>
-                </ol>
-            </nav>
-
-            <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
-                <h1 class="h2 fw-bold mb-0">{{ lesson.title }}</h1>
-                <div class="badge bg-warning text-dark px-3 py-2 rounded-pill shadow-sm">
-                    <i class="bi bi-star-fill me-1"></i> +{{ lesson.xp_reward }} XP
-                </div>
+<div class="dashboard-page lesson-course-page">
+    <div class="dashboard-container">
+        <aside class="dashboard-sidebar lesson-course-sidebar" id="lessonSidebar">
+            <div class="sidebar-header">
+                {% url 'home' as home_url %}
+                {% include "includes/brand_lockup.html" with href=home_url brand_class="sidebar-logo app-brand--sidebar" mark_text="AL" eyebrow="LEARNING" title="AzureLMS" %}
+                <button class="sidebar-close d-lg-none" id="lessonSidebarClose">
+                    <i class="bi bi-x-lg"></i>
+                </button>
             </div>
 
-            {% if not is_enrolled %}
-            <div class="alert alert-danger d-flex align-items-center shadow-sm rounded-4 border-0 mb-4" role="alert">
-                <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
-                <div>
-                    <strong>Siz ushbu darsni ko'ra olmaysiz.</strong><br>
-                    Davom etish uchun kursga obuna bo'lishingiz kerak!
-                </div>
-            </div>
-            {% else %}
-
-            <!-- Tab Navigation -->
-            <ul class="nav nav-pills mb-4 bg-white p-2 rounded-4 shadow-sm border" id="studyTabs" role="tablist">
-                {% if lesson.video_url %}
-                <li class="nav-item flex-fill text-center" role="presentation">
-                    <button class="nav-link w-100 active fw-medium py-2 rounded-pill" id="video-tab" data-bs-toggle="pill" data-bs-target="#video" type="button" role="tab">
-                        <i class="bi bi-play-btn me-2"></i>Video dars
-                    </button>
-                </li>
-                {% endif %}
-                
-                {% if lesson.content %}
-                <li class="nav-item flex-fill text-center" role="presentation">
-                    <button class="nav-link w-100 {% if not lesson.video_url %}active{% endif %} fw-medium py-2 rounded-pill" id="text-tab" data-bs-toggle="pill" data-bs-target="#text" type="button" role="tab">
-                        <i class="bi bi-card-text me-2"></i>Dars bayoni
-                    </button>
-                </li>
-                {% endif %}
-
-                {% if assignments.exists %}
-                <li class="nav-item flex-fill text-center" role="presentation">
-                    <button class="nav-link w-100 fw-medium py-2 rounded-pill {% if not lesson.video_url and not lesson.content %}active{% endif %}" id="homework-tab" data-bs-toggle="pill" data-bs-target="#homework" type="button" role="tab">
-                        <i class="bi bi-journal-check me-2"></i>Vazifa
-                    </button>
-                </li>
-                {% endif %}
-
-                {% if quizzes.exists %}
-                <li class="nav-item flex-fill text-center" role="presentation">
-                    <button class="nav-link w-100 fw-medium py-2 rounded-pill {% if not lesson.video_url and not lesson.content and not assignments.exists %}active{% endif %}" id="quiz-tab" data-bs-toggle="pill" data-bs-target="#quiz" type="button" role="tab">
-                        <i class="bi bi-ui-checks me-2"></i>Test
-                    </button>
-                </li>
-                {% endif %}
-            </ul>
-
-            <!-- Tab Content -->
-            <div class="tab-content" id="studyTabsContent">
-                
-                <!-- Video Tab -->
-                {% if lesson.video_url %}
-                <div class="tab-pane fade show active" id="video" role="tabpanel">
-                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
-                        <div class="video-container">
-                            <!-- Helper function to extract correct embed URL format needed for YouTube -->
-                            <iframe src="{{ lesson.embed_video_url|default:'' }}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+            <div class="lesson-course-sidebar__body">
+                <div class="lesson-course-sidebar__intro">
+                    <div class="lesson-course-sidebar__progress">
+                        <div class="dashboard-focus-progress__row">
+                            <span>Umumiy progress</span>
+                            <strong>{{ course_progress_percent|default:0 }}%</strong>
+                        </div>
+                        <div class="progress dashboard-progress">
+                            <div class="progress-bar" style="width: {{ course_progress_percent|default:0 }}%"></div>
                         </div>
                     </div>
                 </div>
-                {% endif %}
 
-                <!-- Text Content Tab -->
-                {% if lesson.content %}
-                <div class="tab-pane fade {% if not lesson.video_url %}show active{% endif %}" id="text" role="tabpanel">
-                    <div class="card border-0 shadow-sm rounded-4 mb-4">
-                        <div class="card-body p-4 p-md-5 lesson-content">
-                            {{ lesson.content|sanitize }}
-                        </div>
-                    </div>
-                </div>
-                {% endif %}
-
-                <!-- Homework Tab -->
-                {% if assignments.exists %}
-                <div class="tab-pane fade {% if not lesson.video_url and not lesson.content %}show active{% endif %}" id="homework" role="tabpanel">
-                    {% for assignment in assignments %}
-                    <div class="card border-0 shadow-sm rounded-4 mb-4 border-start border-4 border-warning">
-                        <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
-                            <h4 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
-                                <i class="bi bi-pencil-square text-warning"></i>
-                                {{ assignment.title }}
-                            </h4>
-                            <span class="badge bg-warning text-dark mt-2">Max: {{ assignment.max_xp }} XP</span>
-                        </div>
-                        <div class="card-body p-4 lesson-content">
-                            {{ assignment.description|sanitize }}
-                            
-                            <!-- Placeholder form for submission UI -->
-                            <div class="mt-4 p-4 bg-light rounded-3 border">
-                                <h6 class="fw-bold mb-3">Javobni yuklash</h6>
-                                <div class="mb-3">
-                                    <textarea class="form-control" rows="4" placeholder="Vazifa javobini yozing yoki link qoldiring..."></textarea>
+                <div class="accordion lesson-course-sidebar__accordion" id="courseAccordion">
+                    {% for module in modules %}
+                    <div class="accordion-item">
+                        <h3 class="accordion-header">
+                            <button class="accordion-button {% if lesson.module != module %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#moduleCollapse{{ module.id }}" aria-expanded="{% if lesson.module == module %}true{% else %}false{% endif %}">
+                                <div class="lesson-module-copy">
+                                    <span>Modul {{ module.order|default:forloop.counter }}</span>
+                                    <strong>{{ module.title }}</strong>
+                                    <small>{{ module.lessons.all|length }} dars</small>
                                 </div>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <input class="form-control form-control-sm w-50" type="file" id="formFile">
-                                    <button class="btn btn-primary px-4 fw-medium">Yuborish</button>
+                            </button>
+                        </h3>
+                        <div id="moduleCollapse{{ module.id }}" class="accordion-collapse collapse {% if lesson.module == module %}show{% endif %}" data-bs-parent="#courseAccordion">
+                            <div class="lesson-link-list">
+                                {% for l in module.lesson_items %}
+                                {% if l.is_locked %}
+                                <div class="lesson-link lesson-link--locked">
+                                    <span class="lesson-link__icon">
+                                        <i class="bi bi-lock-fill"></i>
+                                    </span>
+                                    <span class="lesson-link__copy">
+                                        <strong>{{ l.title }}</strong>
+                                        <small>{{ l.lock_reason|default:"Bu dars hozircha yopiq." }}</small>
+                                    </span>
                                 </div>
+                                {% else %}
+                                <a href="{% url 'lesson_detail' course_id=course.id lesson_id=l.id %}" class="lesson-link {% if l == lesson %}is-active{% endif %}">
+                                    <span class="lesson-link__icon">
+                                        {% if l == lesson %}
+                                        <i class="bi bi-play-circle-fill"></i>
+                                        {% else %}
+                                        <i class="bi bi-journal-text"></i>
+                                        {% endif %}
+                                    </span>
+                                    <span class="lesson-link__copy">
+                                        <strong>{{ l.title }}</strong>
+                                        <small>{% if l == lesson %}Hozir shu dars ichidasiz{% else %}Modul ichidagi navbatdagi qadam{% endif %}</small>
+                                    </span>
+                                </a>
+                                {% endif %}
+                                {% endfor %}
                             </div>
                         </div>
                     </div>
                     {% endfor %}
                 </div>
-                {% endif %}
 
-                <!-- Quiz Tab -->
-                {% if quizzes.exists %}
-                <div class="tab-pane fade {% if not lesson.video_url and not lesson.content and not assignments.exists %}show active{% endif %}" id="quiz" role="tabpanel">
-                    {% for quiz in quizzes %}
-                    <div class="card border-0 shadow-sm rounded-4 mb-4 border-start border-4 border-danger" id="quiz-card-{{ quiz.id }}">
-                        <div class="card-body p-4 p-md-5">
-                            <div class="text-center mb-4">
-                                <div class="d-inline-flex bg-danger bg-opacity-10 p-3 rounded-circle text-danger mb-3">
-                                    <i class="bi bi-ui-checks display-6"></i>
-                                </div>
-                                <h3 class="fw-bold">{{ quiz.title }}</h3>
-                                <p class="text-muted">{{ quiz.questions.count }} ta savol &middot; +{{ quiz.xp_reward }} XP</p>
+                {% if has_course_exams %}
+                <div class="lesson-course-sidebar__exams">
+                    <span class="dashboard-section-kicker">Baholash</span>
+                    <div class="lesson-exam-list">
+                        {% for e in course_exams %}
+                        <a href="{% url 'exam_detail' course_id=course.id exam_id=e.id %}" class="lesson-exam-link">
+                            <span class="lesson-link__icon"><i class="bi bi-award"></i></span>
+                            <span class="lesson-link__copy">
+                                <strong>{{ e.get_exam_type_display }}</strong>
+                                <small>{{ e.title }}</small>
+                            </span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="sidebar-footer lesson-course-sidebar__footer">
+                <a href="{% url 'course_detail' course.id %}" class="btn btn-outline-primary w-100 rounded-pill">Kurs overview</a>
+            </div>
+        </aside>
+
+        <main class="dashboard-main">
+            <header class="dashboard-header lesson-course-header">
+                <div class="dashboard-header-top">
+                    <div class="dashboard-header-intro">
+                        <button class="btn btn-light d-lg-none dashboard-menu-toggle" id="lessonSidebarToggle">
+                            <i class="bi bi-list"></i>
+                        </button>
+                        <div class="dashboard-header-copy">
+                            <span class="dashboard-header-kicker">{{ course.title }}</span>
+                            <h1 class="dashboard-page-title">{{ lesson.title }}</h1>
+                            <p class="dashboard-page-description">{{ current_module.title }} ichidagi {{ module_lesson_position|default:1 }}/{{ module_lesson_count|default:1 }} dars. Ixcham workspace va aniq navigator shu yerda.</p>
+                        </div>
+                    </div>
+
+                    <div class="lesson-course-header__actions">
+                        <span class="dashboard-badge">{{ course_progress_percent|default:0 }}% done</span>
+                        {% if prev_lesson %}
+                        <a href="{% url 'lesson_detail' course_id=course.id lesson_id=prev_lesson.id %}" class="btn btn-outline-primary rounded-pill px-4">Oldingi</a>
+                        {% else %}
+                        <a href="{% url 'course_detail' course.id %}" class="btn btn-outline-primary rounded-pill px-4">Overview</a>
+                        {% endif %}
+
+                        {% if next_lesson %}
+                        <a href="{% url 'lesson_detail' course_id=course.id lesson_id=next_lesson.id %}" class="btn btn-primary rounded-pill px-4">Keyingi dars</a>
+                        {% elif next_lesson_locked %}
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" disabled title="{{ next_lesson_lock_reason }}">Keyingi dars qulflangan</button>
+                        {% elif has_course_exams %}
+                        <a href="{% url 'exam_detail' course_id=course.id exam_id=first_course_exam.id %}" class="btn btn-primary rounded-pill px-4">Imtihon</a>
+                        {% else %}
+                        <a href="{% url 'course_detail' course.id %}" class="btn btn-primary rounded-pill px-4">Modulni yakunlash</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </header>
+
+            <div class="dashboard-content">
+                {% if not is_enrolled %}
+                <div class="dashboard-empty-state">
+                    <h3>Bu dars faqat faol enrollment bilan ochiladi.</h3>
+                    <p>Davom etish uchun kursga qaytib, faol obuna holatini tekshiring.</p>
+                    <a href="{% url 'course_detail' course.id %}" class="btn btn-primary rounded-pill px-4">Kursga qaytish</a>
+                </div>
+                {% else %}
+                <div class="lesson-workspace">
+                    <article class="dashboard-surface lesson-workspace__panel">
+                        <div class="lesson-workspace__panel-head">
+                            <div>
+                                <span class="dashboard-section-kicker">Workspace</span>
+                                <h2 class="dashboard-surface-title">Dars materiallari</h2>
+                                <p class="dashboard-focus-text">Bir vaqtda bitta bo'lim ko'rinadi. Pagination orqali videodars, note, vazifa va quiz orasida tez yurasiz.</p>
+                            </div>
+                        </div>
+
+                        <div class="lesson-pagination">
+                            <div class="lesson-pagination__rail" role="tablist" aria-label="Lesson sections">
+                                {% for section in lesson_sections %}
+                                <button class="lesson-pagination__item {% if section.key == default_study_tab %}active{% endif %}"
+                                        id="section-tab-{{ section.key }}"
+                                        type="button"
+                                        role="tab"
+                                        data-bs-toggle="pill"
+                                        data-bs-target="#workspace-{{ section.key }}"
+                                        aria-controls="workspace-{{ section.key }}"
+                                        aria-selected="{% if section.key == default_study_tab %}true{% else %}false{% endif %}"
+                                        data-section-index="{{ forloop.counter0 }}"
+                                        data-section-label="{{ section.label }}">
+                                    <span class="lesson-pagination__step">{{ forloop.counter|stringformat:"02d" }}</span>
+                                    <span class="lesson-pagination__copy">
+                                        <strong>{{ section.label }}</strong>
+                                        <small>{{ section.meta }}</small>
+                                    </span>
+                                </button>
+                                {% endfor %}
                             </div>
 
-                            {% with attempt=quiz_attempts|default:"" %}
-                            {% if quiz.id in quiz_attempts %}
-                            <!-- Oldingi natija -->
-                            <div class="text-center mb-4" id="quiz-result-{{ quiz.id }}">
-                                <div class="alert alert-success rounded-4 py-4">
-                                    <h5 class="fw-bold mb-2">
-                                        <i class="bi bi-check-circle-fill me-2"></i>Siz bu testni topshirgansiz
-                                    </h5>
-                                    <button class="btn btn-outline-danger rounded-pill mt-2 fw-medium" onclick="startQuiz({{ quiz.id }})">
-                                        <i class="bi bi-arrow-repeat me-1"></i>Qayta topshirish
-                                    </button>
+                            <div class="lesson-pagination__meta">
+                                <span class="dashboard-badge"><span id="lessonSectionCurrent">1</span>/{{ lesson_section_count|default:0 }}</span>
+                                <strong id="lessonSectionLabel">{{ lesson_sections.0.label|default:"Bo'lim" }}</strong>
+                            </div>
+                        </div>
+
+                        <div class="tab-content lesson-pagination__content">
+                            {% if has_video %}
+                            <div class="tab-pane fade {% if default_study_tab == 'video' %}show active{% endif %}" id="workspace-video" role="tabpanel" aria-labelledby="section-tab-video">
+                                <div class="lesson-panel-body">
+                                    <div class="lesson-video-frame">
+                                        <iframe src="{{ lesson.embed_video_url|default:'' }}" title="{{ lesson.title }}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
+                                    </div>
                                 </div>
                             </div>
                             {% endif %}
-                            {% endwith %}
 
-                            <!-- Quiz savollari -->
-                            <div class="quiz-questions" id="quiz-questions-{{ quiz.id }}" {% if quiz.id in quiz_attempts %}style="display:none"{% endif %}>
-                                {% for question in quiz.questions.all %}
-                                <div class="mb-4 p-4 bg-light rounded-4" id="question-{{ question.id }}">
-                                    <h5 class="fw-bold mb-3">
-                                        <span class="badge bg-danger rounded-pill me-2">{{ forloop.counter }}</span>
-                                        {{ question.text|safe }}
-                                    </h5>
-                                    <div class="list-group list-group-flush">
-                                        {% for choice in question.choices.all %}
-                                        <label class="list-group-item list-group-item-action border-0 rounded-3 mb-2 px-3 py-3 d-flex align-items-center cursor-pointer choice-label"
-                                               id="choice-label-{{ choice.id }}"
-                                               style="cursor:pointer; transition: all 0.2s;">
-                                            <input type="radio"
-                                                   name="quiz_{{ quiz.id }}_question_{{ question.id }}"
-                                                   value="{{ choice.id }}"
-                                                   class="form-check-input me-3 flex-shrink-0"
-                                                   data-quiz-id="{{ quiz.id }}"
-                                                   data-question-id="{{ question.id }}"
-                                                   style="width: 1.2em; height: 1.2em;">
-                                            <span>{{ choice.text }}</span>
-                                        </label>
+                            {% if has_content %}
+                            <div class="tab-pane fade {% if default_study_tab == 'text' %}show active{% endif %}" id="workspace-text" role="tabpanel" aria-labelledby="section-tab-text">
+                                <div class="lesson-panel-body lesson-panel-body--scroll">
+                                    <div class="lesson-richtext">{{ lesson.content|sanitize }}</div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if has_assignments %}
+                            <div class="tab-pane fade {% if default_study_tab == 'homework' %}show active{% endif %}" id="workspace-homework" role="tabpanel" aria-labelledby="section-tab-homework">
+                                <div class="lesson-panel-body lesson-panel-body--scroll">
+                                    <div class="lesson-stack">
+                                        {% for assignment in assignments %}
+                                        <article class="lesson-task-card">
+                                            <div class="lesson-task-card__head">
+                                                <div>
+                                                    <span class="dashboard-section-kicker">Vazifa {{ forloop.counter|stringformat:"02d" }}</span>
+                                                    <h4>{{ assignment.title }}</h4>
+                                                </div>
+                                                {% if assignment.current_submission %}
+                                                <span class="dashboard-status dashboard-status--{% if assignment.current_submission.status == 'approved' %}success{% elif assignment.current_submission.status == 'needs_revision' %}danger{% else %}warning{% endif %}">
+                                                    {{ assignment.current_submission.get_status_display }}
+                                                </span>
+                                                {% else %}
+                                                <span class="dashboard-badge">Max {{ assignment.max_xp }} XP</span>
+                                                {% endif %}
+                                            </div>
+                                            <div class="lesson-richtext">{{ assignment.description|sanitize }}</div>
+                                            {% if assignment.current_submission and assignment.current_submission.teacher_feedback %}
+                                            <div class="lesson-quiz-banner">
+                                                <div>
+                                                    <strong>O'qituvchi izohi</strong>
+                                                    <p>{{ assignment.current_submission.teacher_feedback }}</p>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            <form class="lesson-submit-box" method="post" enctype="multipart/form-data" action="{% url 'assignment_submit' course_id=course.id lesson_id=lesson.id assignment_id=assignment.id %}">
+                                                {% csrf_token %}
+                                                <textarea class="form-control" name="answer_text" rows="4" placeholder="Javobni shu yerga yozing yoki link qoldiring...">{% if assignment.current_submission %}{{ assignment.current_submission.answer_text }}{% endif %}</textarea>
+                                                <div class="lesson-submit-box__actions">
+                                                    <input class="form-control" type="file" name="attachment">
+                                                    <button class="btn btn-primary rounded-pill px-4" type="submit">
+                                                        {% if assignment.current_submission %}Qayta yuborish{% else %}Yuborish{% endif %}
+                                                    </button>
+                                                </div>
+                                                {% if assignment.current_submission and assignment.current_submission.attachment %}
+                                                <p class="lesson-submit-file">
+                                                    Biriktirilgan fayl:
+                                                    <a href="{{ assignment.current_submission.attachment.url }}" target="_blank" rel="noopener">ochish</a>
+                                                </p>
+                                                {% endif %}
+                                            </form>
+                                        </article>
                                         {% endfor %}
                                     </div>
                                 </div>
-                                {% endfor %}
+                            </div>
+                            {% endif %}
 
-                                <div class="d-grid col-md-6 mx-auto mt-4">
-                                    <button class="btn btn-danger btn-lg rounded-pill fw-bold shadow-sm"
-                                            id="quiz-submit-btn-{{ quiz.id }}"
-                                            onclick="submitQuiz({{ quiz.id }}, {{ course.id }}, {{ lesson.id }})">
-                                        <i class="bi bi-send-fill me-2"></i>Testni yuborish
-                                    </button>
-                                </div>
+                            {% if has_quizzes %}
+                            <div class="tab-pane fade {% if default_study_tab == 'quiz' %}show active{% endif %}" id="workspace-quiz" role="tabpanel" aria-labelledby="section-tab-quiz">
+                                <div class="lesson-panel-body lesson-panel-body--scroll">
+                                    <div class="lesson-stack">
+                                        {% for quiz in quizzes %}
+                                        <article class="lesson-task-card" id="quiz-card-{{ quiz.id }}">
+                                            <div class="lesson-task-card__head">
+                                                <div>
+                                                    <span class="dashboard-section-kicker">Quiz {{ forloop.counter|stringformat:"02d" }}</span>
+                                                    <h4>{{ quiz.title }}</h4>
+                                                    <p class="dashboard-focus-text">{{ quiz.questions.count }} savol. XP faqat yaxshilangan natija bo'yicha qo'shiladi.</p>
+                                                </div>
+                                                <span class="dashboard-status dashboard-status--danger">+{{ quiz.xp_reward }} XP</span>
+                                            </div>
 
-                                <div class="text-center mt-3 d-none" id="quiz-loading-{{ quiz.id }}">
-                                    <div class="spinner-border text-danger" role="status">
-                                        <span class="visually-hidden">Yuklanmoqda...</span>
+                                            {% if quiz.id in quiz_attempts %}
+                                            <div class="lesson-quiz-banner" id="quiz-result-{{ quiz.id }}">
+                                                <div>
+                                                    <strong>Oldingi urinish mavjud.</strong>
+                                                    <p>Istasangiz shu joyning o'zidan qayta boshlaysiz.</p>
+                                                </div>
+                                                <button class="btn btn-outline-primary rounded-pill" type="button" onclick="startQuiz({{ quiz.id }})">Qayta boshlash</button>
+                                            </div>
+                                            {% endif %}
+
+                                            <div class="quiz-questions lesson-quiz-questions" id="quiz-questions-{{ quiz.id }}" {% if quiz.id in quiz_attempts %}style="display:none"{% endif %}>
+                                                {% for question in quiz.questions.all %}
+                                                <section class="lesson-question-card">
+                                                    <div class="lesson-question-card__head">
+                                                        <span class="lesson-question-index">{{ forloop.counter|stringformat:"02d" }}</span>
+                                                        <h5>{{ question.text|safe }}</h5>
+                                                    </div>
+                                                    <div class="lesson-choice-list">
+                                                        {% for choice in question.choices.all %}
+                                                        <label class="lesson-choice choice-label" id="choice-label-{{ choice.id }}">
+                                                            <input type="radio" name="quiz_{{ quiz.id }}_question_{{ question.id }}" value="{{ choice.id }}" class="form-check-input" data-quiz-id="{{ quiz.id }}" data-question-id="{{ question.id }}">
+                                                            <span>{{ choice.text }}</span>
+                                                        </label>
+                                                        {% endfor %}
+                                                    </div>
+                                                </section>
+                                                {% endfor %}
+                                                <div class="lesson-submit-row">
+                                                    <button class="btn btn-primary btn-lg rounded-pill" id="quiz-submit-btn-{{ quiz.id }}" type="button" onclick="submitQuiz({{ quiz.id }}, {{ course.id }}, {{ lesson.id }})">Testni yuborish</button>
+                                                    <div class="lesson-loading d-none" id="quiz-loading-{{ quiz.id }}"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span><span>Tekshirilmoqda...</span></div>
+                                                </div>
+                                            </div>
+
+                                            <div class="quiz-results d-none lesson-quiz-results" id="quiz-results-{{ quiz.id }}">
+                                                <div class="lesson-scorebox">
+                                                    <div id="quiz-score-icon-{{ quiz.id }}"></div>
+                                                    <h4 id="quiz-score-text-{{ quiz.id }}"></h4>
+                                                    <p id="quiz-xp-text-{{ quiz.id }}"></p>
+                                                </div>
+                                                <div class="lesson-submit-row">
+                                                    <button class="btn btn-outline-primary btn-lg rounded-pill" type="button" onclick="startQuiz({{ quiz.id }})">Qayta topshirish</button>
+                                                </div>
+                                            </div>
+                                        </article>
+                                        {% endfor %}
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- Natija ko'rsatish joyi -->
-                            <div class="quiz-results d-none" id="quiz-results-{{ quiz.id }}">
-                                <div class="text-center mb-4">
-                                    <div id="quiz-score-icon-{{ quiz.id }}"></div>
-                                    <h4 class="fw-bold mt-3" id="quiz-score-text-{{ quiz.id }}"></h4>
-                                    <p class="text-muted" id="quiz-xp-text-{{ quiz.id }}"></p>
-                                </div>
-                                <div id="quiz-answers-detail-{{ quiz.id }}"></div>
-                                <div class="d-grid col-md-6 mx-auto mt-4">
-                                    <button class="btn btn-outline-danger btn-lg rounded-pill fw-bold"
-                                            onclick="startQuiz({{ quiz.id }})">
-                                        <i class="bi bi-arrow-repeat me-2"></i>Qayta topshirish
-                                    </button>
-                                </div>
-                            </div>
+                            {% endif %}
                         </div>
-                    </div>
-                    {% endfor %}
+
+                        {% if lesson_section_count > 1 %}
+                        <div class="lesson-pagination__footer">
+                            <button type="button" class="btn btn-outline-primary rounded-pill px-4" id="lessonPrevSection">Oldingi bo'lim</button>
+                            <div class="lesson-pagination__footer-meta">
+                                <span class="dashboard-section-kicker">Section</span>
+                                <strong id="lessonSectionFooterLabel">{{ lesson_sections.0.label|default:"Bo'lim" }}</strong>
+                            </div>
+                            <button type="button" class="btn btn-primary rounded-pill px-4" id="lessonNextSection">Keyingi bo'lim</button>
+                        </div>
+                        {% endif %}
+                    </article>
+
+                    <article class="dashboard-surface lesson-workspace__summary lesson-workspace__summary--compact">
+                        <div class="lesson-workspace__summary-head">
+                            <div>
+                                <span class="dashboard-section-kicker">Current lesson</span>
+                                <p class="dashboard-focus-text">{{ current_module.title }} ichida {{ module_lesson_position|default:1 }}/{{ module_lesson_count|default:1 }}. Materiallar yuqoridagi panelda.</p>
+                            </div>
+                            <span class="dashboard-status dashboard-status--success">+{{ lesson.xp_reward }} XP</span>
+                        </div>
+
+                        <div class="dashboard-chip-row">
+                            <span><i class="bi bi-diagram-3"></i>{{ current_module.title }}</span>
+                            <span><i class="bi bi-compass"></i>{{ lesson_position|default:1 }}/{{ total_lessons|default:1 }} dars</span>
+                            <span><i class="bi bi-stack"></i>{{ resource_count|default:0 }} resurs</span>
+                            <span><i class="bi bi-journal-check"></i>{{ practice_count|default:0 }} practice</span>
+                        </div>
+                    </article>
                 </div>
                 {% endif %}
-
             </div>
-
-            <!-- Footer Navigation (Next/Prev) -->
-            <div class="d-flex justify-content-between align-items-center mt-5 mb-5 pt-4 border-top">
-                {% if prev_lesson %}
-                <a href="{% url 'lesson_detail' course_id=course.id lesson_id=prev_lesson.id %}" class="btn btn-outline-secondary rounded-pill fw-medium px-4">
-                    <i class="bi bi-arrow-left me-2"></i>Oldingi dars
-                </a>
-                {% else %}
-                <div></div>
-                {% endif %}
-
-                {% if next_lesson %}
-                <a href="{% url 'lesson_detail' course_id=course.id lesson_id=next_lesson.id %}" class="btn btn-primary rounded-pill fw-bold px-4 shadow-sm">
-                    Keyingi dars<i class="bi bi-arrow-right ms-2"></i>
-                </a>
-                {% else %}
-                <a href="{% url 'course_detail' course.id %}" class="btn btn-success rounded-pill fw-bold px-4 shadow-sm">
-                    Modulni yakunlash<i class="bi bi-check-circle ms-2"></i>
-                </a>
-                {% endif %}
-            </div>
-
-            {% endif %}<!-- End if is_enrolled -->
-        </div>
+        </main>
     </div>
+
+    <div class="sidebar-overlay" id="lessonSidebarOverlay"></div>
+    {% include 'messenger/chat_widget.html' %}
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+const lessonSidebar = document.getElementById('lessonSidebar');
+const lessonSidebarToggle = document.getElementById('lessonSidebarToggle');
+const lessonSidebarClose = document.getElementById('lessonSidebarClose');
+const lessonSidebarOverlay = document.getElementById('lessonSidebarOverlay');
+
+function openLessonSidebar() {
+    if (lessonSidebar) lessonSidebar.classList.add('show');
+    if (lessonSidebarOverlay) lessonSidebarOverlay.classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeLessonSidebar() {
+    if (lessonSidebar) lessonSidebar.classList.remove('show');
+    if (lessonSidebarOverlay) lessonSidebarOverlay.classList.remove('show');
+    document.body.style.overflow = '';
+}
+
+if (lessonSidebarToggle) lessonSidebarToggle.addEventListener('click', openLessonSidebar);
+if (lessonSidebarClose) lessonSidebarClose.addEventListener('click', closeLessonSidebar);
+if (lessonSidebarOverlay) lessonSidebarOverlay.addEventListener('click', closeLessonSidebar);
+
+const lessonSectionButtons = Array.from(document.querySelectorAll('.lesson-pagination__item'));
+const lessonPrevSection = document.getElementById('lessonPrevSection');
+const lessonNextSection = document.getElementById('lessonNextSection');
+const lessonSectionCurrent = document.getElementById('lessonSectionCurrent');
+const lessonSectionLabel = document.getElementById('lessonSectionLabel');
+const lessonSectionFooterLabel = document.getElementById('lessonSectionFooterLabel');
+
+function syncLessonPagination(activeButton) {
+    if (!activeButton) return;
+    const activeIndex = Number(activeButton.dataset.sectionIndex || 0);
+    const activeLabel = activeButton.dataset.sectionLabel || "Bo'lim";
+
+    if (lessonSectionCurrent) lessonSectionCurrent.textContent = String(activeIndex + 1);
+    if (lessonSectionLabel) lessonSectionLabel.textContent = activeLabel;
+    if (lessonSectionFooterLabel) lessonSectionFooterLabel.textContent = activeLabel;
+    if (lessonPrevSection) lessonPrevSection.disabled = activeIndex === 0;
+    if (lessonNextSection) lessonNextSection.disabled = activeIndex === lessonSectionButtons.length - 1;
+}
+
+if (lessonSectionButtons.length) {
+    lessonSectionButtons.forEach((button) => {
+        button.addEventListener('shown.bs.tab', () => {
+            syncLessonPagination(button);
+        });
+    });
+
+    const initialSectionButton = lessonSectionButtons.find((button) => button.classList.contains('active')) || lessonSectionButtons[0];
+    syncLessonPagination(initialSectionButton);
+
+    if (lessonPrevSection) {
+        lessonPrevSection.addEventListener('click', () => {
+            const activeIndex = lessonSectionButtons.findIndex((button) => button.classList.contains('active'));
+            if (activeIndex > 0) {
+                bootstrap.Tab.getOrCreateInstance(lessonSectionButtons[activeIndex - 1]).show();
+            }
+        });
+    }
+
+    if (lessonNextSection) {
+        lessonNextSection.addEventListener('click', () => {
+            const activeIndex = lessonSectionButtons.findIndex((button) => button.classList.contains('active'));
+            if (activeIndex > -1 && activeIndex < lessonSectionButtons.length - 1) {
+                bootstrap.Tab.getOrCreateInstance(lessonSectionButtons[activeIndex + 1]).show();
+            }
+        });
+    }
+}
+
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -469,121 +454,110 @@ function startQuiz(quizId) {
     const questionsDiv = document.getElementById('quiz-questions-' + quizId);
     const resultsDiv = document.getElementById('quiz-results-' + quizId);
     const resultBanner = document.getElementById('quiz-result-' + quizId);
+    const submitBtn = document.getElementById('quiz-submit-btn-' + quizId);
+    const loadingDiv = document.getElementById('quiz-loading-' + quizId);
 
-    // Tanlashlarni tozalash
-    questionsDiv.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
-    questionsDiv.querySelectorAll('.choice-label').forEach(el => {
-        el.classList.remove('list-group-item-success', 'list-group-item-danger');
-        el.style.pointerEvents = '';
+    questionsDiv.querySelectorAll('input[type="radio"]').forEach((radio) => {
+        radio.checked = false;
+        radio.disabled = false;
+    });
+    questionsDiv.querySelectorAll('.choice-label').forEach((label) => {
+        label.classList.remove('is-correct', 'is-wrong');
+        label.style.pointerEvents = '';
     });
 
     if (resultBanner) resultBanner.style.display = 'none';
+    if (loadingDiv) loadingDiv.classList.add('d-none');
     resultsDiv.classList.add('d-none');
     questionsDiv.style.display = '';
-
-    const submitBtn = document.getElementById('quiz-submit-btn-' + quizId);
+    submitBtn.classList.remove('d-none');
+    submitBtn.textContent = 'Testni yuborish';
     submitBtn.disabled = false;
-    submitBtn.innerHTML = '<i class="bi bi-send-fill me-2"></i>Testni yuborish';
 }
 
 function submitQuiz(quizId, courseId, lessonId) {
     const submitBtn = document.getElementById('quiz-submit-btn-' + quizId);
     const loadingDiv = document.getElementById('quiz-loading-' + quizId);
-
-    // Javoblarni yig'ish
     const answers = {};
-    const radios = document.querySelectorAll('input[data-quiz-id="' + quizId + '"]:checked');
-    radios.forEach(r => {
-        answers[r.dataset.questionId] = r.value;
+    document.querySelectorAll('input[data-quiz-id="' + quizId + '"]:checked').forEach((radio) => {
+        answers[radio.dataset.questionId] = radio.value;
     });
 
-    // Hech bo'lmasa bitta javob tekshiruvi
-    const totalQuestions = document.querySelectorAll('#quiz-questions-' + quizId + ' .mb-4.p-4').length;
     if (Object.keys(answers).length === 0) {
-        alert('Iltimos, kamida bitta savolga javob bering!');
+        alert('Iltimos, kamida bitta savolga javob bering.');
         return;
     }
 
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Tekshirilmoqda...';
+    submitBtn.textContent = 'Tekshirilmoqda...';
+    if (loadingDiv) loadingDiv.classList.remove('d-none');
 
-    const url = '/courses/' + courseId + '/lesson/' + lessonId + '/quiz/' + quizId + '/submit/';
-
-    fetch(url, {
+    fetch('/courses/' + courseId + '/lesson/' + lessonId + '/quiz/' + quizId + '/submit/', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken'),
-        },
-        body: JSON.stringify({answers: answers}),
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        body: JSON.stringify({ answers: answers }),
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            alert(data.error);
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="bi bi-send-fill me-2"></i>Testni yuborish';
-            return;
-        }
+    .then((response) => response.json())
+    .then((data) => {
+        if (data.error) throw new Error(data.error);
         showResults(quizId, data);
     })
-    .catch(err => {
-        alert('Xatolik yuz berdi. Qayta urinib ko\'ring.');
+    .catch((error) => {
+        alert(error.message || 'Xatolik yuz berdi. Qayta urinib ko\'ring.');
         submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="bi bi-send-fill me-2"></i>Testni yuborish';
+        submitBtn.textContent = 'Testni yuborish';
+    })
+    .finally(() => {
+        if (loadingDiv) loadingDiv.classList.add('d-none');
     });
 }
 
 function showResults(quizId, data) {
     const questionsDiv = document.getElementById('quiz-questions-' + quizId);
     const resultsDiv = document.getElementById('quiz-results-' + quizId);
+    const submitBtn = document.getElementById('quiz-submit-btn-' + quizId);
     const scoreIcon = document.getElementById('quiz-score-icon-' + quizId);
     const scoreText = document.getElementById('quiz-score-text-' + quizId);
     const xpText = document.getElementById('quiz-xp-text-' + quizId);
 
-    // Savol ranglarini o'zgartirish
-    data.results.forEach(r => {
-        // To'g'ri javob rang
-        if (r.correct_choice_id) {
-            const correctLabel = document.getElementById('choice-label-' + r.correct_choice_id);
-            if (correctLabel) correctLabel.classList.add('list-group-item-success');
+    data.results.forEach((result) => {
+        if (result.correct_choice_id) {
+            const correctLabel = document.getElementById('choice-label-' + result.correct_choice_id);
+            if (correctLabel) correctLabel.classList.add('is-correct');
         }
-        // Xato javob rang
-        if (r.selected_choice_id && !r.is_correct) {
-            const wrongLabel = document.getElementById('choice-label-' + r.selected_choice_id);
-            if (wrongLabel) wrongLabel.classList.add('list-group-item-danger');
+        if (result.selected_choice_id && !result.is_correct) {
+            const wrongLabel = document.getElementById('choice-label-' + result.selected_choice_id);
+            if (wrongLabel) wrongLabel.classList.add('is-wrong');
         }
     });
 
-    // Radioboxlarni o'chirib qo'yish
-    questionsDiv.querySelectorAll('.choice-label').forEach(el => {
-        el.style.pointerEvents = 'none';
+    questionsDiv.querySelectorAll('.choice-label').forEach((label) => {
+        label.style.pointerEvents = 'none';
     });
-    document.getElementById('quiz-submit-btn-' + quizId).classList.add('d-none');
+    questionsDiv.querySelectorAll('input[type="radio"]').forEach((radio) => {
+        radio.disabled = true;
+    });
+    submitBtn.classList.add('d-none');
 
-    // Natija ikonkasi
-    const percent = data.score;
-    if (percent >= 80) {
-        scoreIcon.innerHTML = '<div class="d-inline-flex bg-success bg-opacity-10 p-3 rounded-circle text-success"><i class="bi bi-trophy-fill display-4"></i></div>';
-    } else if (percent >= 50) {
-        scoreIcon.innerHTML = '<div class="d-inline-flex bg-warning bg-opacity-10 p-3 rounded-circle text-warning"><i class="bi bi-emoji-smile-fill display-4"></i></div>';
+    if (data.score >= 80) {
+        scoreIcon.innerHTML = '<div class="lesson-scorebox__icon is-success"><i class="bi bi-trophy-fill"></i></div>';
+    } else if (data.score >= 50) {
+        scoreIcon.innerHTML = '<div class="lesson-scorebox__icon is-warning"><i class="bi bi-emoji-smile-fill"></i></div>';
     } else {
-        scoreIcon.innerHTML = '<div class="d-inline-flex bg-danger bg-opacity-10 p-3 rounded-circle text-danger"><i class="bi bi-emoji-frown-fill display-4"></i></div>';
+        scoreIcon.innerHTML = '<div class="lesson-scorebox__icon is-danger"><i class="bi bi-emoji-frown-fill"></i></div>';
     }
 
-    scoreText.textContent = data.total_correct + ' / ' + data.total_questions + ' to\'g\'ri (' + percent + '%)';
+    scoreText.textContent = data.total_correct + ' / ' + data.total_questions + ' to\'g\'ri (' + data.score + '%)';
     if (data.xp_earned > 0) {
-        xpText.innerHTML = '<i class="bi bi-star-fill text-warning me-1"></i>+' + data.xp_earned + ' XP qo\'shildi!';
+        xpText.innerHTML = '<i class="bi bi-star-fill"></i> +' + data.xp_earned + ' XP qo\'shildi.';
     } else if (data.attempt_xp > 0) {
-        xpText.innerHTML = '<i class="bi bi-shield-check text-secondary me-1"></i>Qo\'shimcha XP berilmadi. Eng yaxshi natijangiz allaqachon saqlangan.';
+        xpText.innerHTML = '<i class="bi bi-shield-check"></i> Eng yaxshi natija saqlangan, qo\'shimcha XP berilmadi.';
     } else {
-        xpText.innerHTML = '<i class="bi bi-dash-circle text-secondary me-1"></i>Bu urinishda XP olinmadi.';
+        xpText.innerHTML = '<i class="bi bi-dash-circle"></i> Bu urinishda XP olinmadi.';
     }
 
     resultsDiv.classList.remove('d-none');
-
-    // Natijagacha scroll
-    resultsDiv.scrollIntoView({behavior: 'smooth', block: 'center'});
+    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 </script>
 {% endblock %}

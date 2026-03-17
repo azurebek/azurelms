@@ -6,9 +6,9 @@
 {% block navbar %}{% endblock %}
 
 {% block content %}
-<div class="dashboard-container">
+<div class="dashboard-container dashboard-shell">
     <!-- Sidebar -->
-    <aside class="dashboard-sidebar" id="sidebar">
+    <aside class="dashboard-sidebar dashboard-shell-sidebar" id="sidebar">
         <div class="sidebar-header">
             {% url 'home' as home_url %}
             {% include "includes/brand_lockup.html" with href=home_url brand_class="sidebar-logo app-brand--sidebar" mark_text="AL" eyebrow="LEARNING" title="AzureLMS" %}
@@ -17,109 +17,188 @@
             </button>
         </div>
         
-        <nav class="sidebar-nav">
-            <ul class="nav flex-column">
-                <li class="nav-item">
-                    <a class="nav-link {% if active_nav == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
-                        <i class="bi bi-grid-1x2"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if active_nav == 'my_courses' %}active{% endif %}" href="{% url 'dashboard' %}#my-courses">
-                        <i class="bi bi-book"></i>
-                        <span>Mening kurslarim</span>
-                        {% if active_courses_count %}
-                        <span class="badge bg-primary">{{ active_courses_count }}</span>
-                        {% endif %}
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if active_nav == 'leaderboard' %}active{% endif %}" href="{% url 'leaderboard' %}">
-                        <i class="bi bi-trophy"></i>
-                        <span>Leaderboard</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if active_nav == 'attendance_calendar' %}active{% endif %}" href="{% url 'attendance_calendar' %}">
-                        <i class="bi bi-calendar-check"></i>
-                        <span>Davomat</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if active_nav == 'notifications' %}active{% endif %}" href="{% url 'notifications' %}">
-                        <i class="bi bi-bell"></i>
-                        <span>Bildirishnomalar</span>
-                        {% if unread_notifications_count %}
-                        <span class="badge bg-danger">{{ unread_notifications_count }}</span>
-                        {% endif %}
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.namespace == 'blog' and request.resolver_match.url_name != 'studio' and request.resolver_match.url_name != 'studio_create' and request.resolver_match.url_name != 'studio_edit' %}active{% endif %}" href="{% url 'blog:list' %}">
-                        <i class="bi bi-journal-richtext"></i>
-                        <span>Blog</span>
-                    </a>
-                </li>
-                {% if user.is_staff or user.is_superuser %}
-                <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.namespace == 'blog' and request.resolver_match.url_name == 'studio' or request.resolver_match.namespace == 'blog' and request.resolver_match.url_name == 'studio_create' or request.resolver_match.namespace == 'blog' and request.resolver_match.url_name == 'studio_edit' %}active{% endif %}" href="{% url 'blog:studio' %}">
-                        <i class="bi bi-pencil-square"></i>
-                        <span>Blog Studio</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if active_nav == 'attendance_manage' %}active{% endif %}" href="{% url 'attendance_manage' %}">
-                        <i class="bi bi-clipboard2-check"></i>
-                        <span>Davomat Boshqaruv</span>
-                    </a>
-                </li>
-                {% endif %}
-                <li class="nav-item">
-                    <a class="nav-link {% if active_nav == 'certificates' %}active{% endif %}" href="{% url 'certificates' %}">
-                        <i class="bi bi-award"></i>
-                        <span>Sertifikatlar</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if active_nav == 'profile' %}active{% endif %}" href="{% url 'profile' %}">
-                        <i class="bi bi-person"></i>
-                        <span>Profil</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if active_nav == 'settings' %}active{% endif %}" href="{% url 'settings' %}">
-                        <i class="bi bi-gear"></i>
-                        <span>Sozlamalar</span>
-                    </a>
-                </li>
-            </ul>
-            
-            <div class="sidebar-divider"></div>
-            
-            <ul class="nav flex-column">
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'courses' %}">
-                        <i class="bi bi-collection-play"></i>
-                        <span>Barcha kurslar</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == 'subscriptions' %}active{% endif %}" href="{% url 'subscriptions' %}">
-                        <i class="bi bi-clock-history"></i>
-                        <span>Mening Obunalarim</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if active_nav == 'help_center' %}active{% endif %}" href="{% url 'help_center' %}">
-                        <i class="bi bi-question-circle"></i>
-                        <span>Yordam</span>
-                    </a>
-                </li>
-            </ul>
+        <nav class="sidebar-nav dashboard-shell-nav accordion accordion-flush" id="sidebarNavGroups">
+            <div class="sidebar-nav-group accordion-item">
+                <h2 class="accordion-header" id="sidebar-learning-heading">
+                    <button class="accordion-button sidebar-group-toggle {% if active_nav != 'dashboard' and active_nav != 'my_courses' and active_nav != 'leaderboard' and active_nav != 'attendance_calendar' and active_nav != 'notifications' %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-learning" aria-expanded="{% if active_nav == 'dashboard' or active_nav == 'my_courses' or active_nav == 'leaderboard' or active_nav == 'attendance_calendar' or active_nav == 'notifications' %}true{% else %}false{% endif %}">
+                        <span class="sidebar-group-copy">
+                            <strong>Learning</strong>
+                            <small>Asosiy o'quv oqimi</small>
+                        </span>
+                    </button>
+                </h2>
+                <div id="sidebar-learning" class="accordion-collapse collapse {% if active_nav == 'dashboard' or active_nav == 'my_courses' or active_nav == 'leaderboard' or active_nav == 'attendance_calendar' or active_nav == 'notifications' %}show{% endif %}" data-bs-parent="#sidebarNavGroups">
+                    <div class="accordion-body sidebar-group-body">
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link {% if active_nav == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
+                                    <i class="bi bi-grid-1x2"></i>
+                                    <span>Dashboard</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if active_nav == 'my_courses' %}active{% endif %}" href="{% url 'dashboard' %}#my-courses">
+                                    <i class="bi bi-book"></i>
+                                    <span>Mening kurslarim</span>
+                                    {% if active_courses_count %}
+                                    <span class="badge bg-primary">{{ active_courses_count }}</span>
+                                    {% endif %}
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if active_nav == 'leaderboard' %}active{% endif %}" href="{% url 'leaderboard' %}">
+                                    <i class="bi bi-trophy"></i>
+                                    <span>Leaderboard</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if active_nav == 'attendance_calendar' %}active{% endif %}" href="{% url 'attendance_calendar' %}">
+                                    <i class="bi bi-calendar-check"></i>
+                                    <span>Davomat</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if active_nav == 'notifications' %}active{% endif %}" href="{% url 'notifications' %}">
+                                    <i class="bi bi-bell"></i>
+                                    <span>Bildirishnomalar</span>
+                                    {% if unread_notifications_count %}
+                                    <span class="badge bg-danger">{{ unread_notifications_count }}</span>
+                                    {% endif %}
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-nav-group accordion-item">
+                <h2 class="accordion-header" id="sidebar-platform-heading">
+                    <button class="accordion-button sidebar-group-toggle {% if request.resolver_match.url_name != 'subscriptions' and active_nav != 'help_center' %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-platform" aria-expanded="{% if request.resolver_match.url_name == 'subscriptions' or active_nav == 'help_center' %}true{% else %}false{% endif %}">
+                        <span class="sidebar-group-copy">
+                            <strong>Platform</strong>
+                            <small>Katalog va support</small>
+                        </span>
+                    </button>
+                </h2>
+                <div id="sidebar-platform" class="accordion-collapse collapse {% if request.resolver_match.url_name == 'subscriptions' or active_nav == 'help_center' %}show{% endif %}" data-bs-parent="#sidebarNavGroups">
+                    <div class="accordion-body sidebar-group-body">
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'courses' %}">
+                                    <i class="bi bi-collection-play"></i>
+                                    <span>Barcha kurslar</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.resolver_match.url_name == 'subscriptions' %}active{% endif %}" href="{% url 'subscriptions' %}">
+                                    <i class="bi bi-clock-history"></i>
+                                    <span>Mening obunalarim</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if active_nav == 'help_center' %}active{% endif %}" href="{% url 'help_center' %}">
+                                    <i class="bi bi-question-circle"></i>
+                                    <span>Yordam</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-nav-group accordion-item">
+                <h2 class="accordion-header" id="sidebar-content-heading">
+                    <button class="accordion-button sidebar-group-toggle {% if request.resolver_match.namespace != 'blog' %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-content" aria-expanded="{% if request.resolver_match.namespace == 'blog' %}true{% else %}false{% endif %}">
+                        <span class="sidebar-group-copy">
+                            <strong>Content</strong>
+                            <small>Blog va media</small>
+                        </span>
+                    </button>
+                </h2>
+                <div id="sidebar-content" class="accordion-collapse collapse {% if request.resolver_match.namespace == 'blog' %}show{% endif %}" data-bs-parent="#sidebarNavGroups">
+                    <div class="accordion-body sidebar-group-body">
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.resolver_match.namespace == 'blog' and request.resolver_match.url_name != 'studio' and request.resolver_match.url_name != 'studio_create' and request.resolver_match.url_name != 'studio_edit' %}active{% endif %}" href="{% url 'blog:list' %}">
+                                    <i class="bi bi-journal-richtext"></i>
+                                    <span>Blog</span>
+                                </a>
+                            </li>
+                            {% if user.is_staff or user.is_superuser %}
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.resolver_match.namespace == 'blog' and request.resolver_match.url_name == 'studio' or request.resolver_match.namespace == 'blog' and request.resolver_match.url_name == 'studio_create' or request.resolver_match.namespace == 'blog' and request.resolver_match.url_name == 'studio_edit' %}active{% endif %}" href="{% url 'blog:studio' %}">
+                                    <i class="bi bi-pencil-square"></i>
+                                    <span>Blog Studio</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-nav-group accordion-item">
+                <h2 class="accordion-header" id="sidebar-account-heading">
+                    <button class="accordion-button sidebar-group-toggle {% if active_nav != 'certificates' and active_nav != 'profile' and active_nav != 'settings' %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-account" aria-expanded="{% if active_nav == 'certificates' or active_nav == 'profile' or active_nav == 'settings' %}true{% else %}false{% endif %}">
+                        <span class="sidebar-group-copy">
+                            <strong>Account</strong>
+                            <small>Profil va sozlamalar</small>
+                        </span>
+                    </button>
+                </h2>
+                <div id="sidebar-account" class="accordion-collapse collapse {% if active_nav == 'certificates' or active_nav == 'profile' or active_nav == 'settings' %}show{% endif %}" data-bs-parent="#sidebarNavGroups">
+                    <div class="accordion-body sidebar-group-body">
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link {% if active_nav == 'certificates' %}active{% endif %}" href="{% url 'certificates' %}">
+                                    <i class="bi bi-award"></i>
+                                    <span>Sertifikatlar</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if active_nav == 'profile' %}active{% endif %}" href="{% url 'profile' %}">
+                                    <i class="bi bi-person"></i>
+                                    <span>Profil</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link {% if active_nav == 'settings' %}active{% endif %}" href="{% url 'settings' %}">
+                                    <i class="bi bi-gear"></i>
+                                    <span>Sozlamalar</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            {% if user.is_staff or user.is_superuser %}
+            <div class="sidebar-nav-group accordion-item">
+                <h2 class="accordion-header" id="sidebar-admin-heading">
+                    <button class="accordion-button sidebar-group-toggle {% if active_nav != 'attendance_manage' %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-admin" aria-expanded="{% if active_nav == 'attendance_manage' %}true{% else %}false{% endif %}">
+                        <span class="sidebar-group-copy">
+                            <strong>Admin</strong>
+                            <small>Boshqaruv vositalari</small>
+                        </span>
+                    </button>
+                </h2>
+                <div id="sidebar-admin" class="accordion-collapse collapse {% if active_nav == 'attendance_manage' %}show{% endif %}" data-bs-parent="#sidebarNavGroups">
+                    <div class="accordion-body sidebar-group-body">
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link {% if active_nav == 'attendance_manage' %}active{% endif %}" href="{% url 'attendance_manage' %}">
+                                    <i class="bi bi-clipboard2-check"></i>
+                                    <span>Davomat boshqaruv</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
         </nav>
         
-        <div class="sidebar-footer">
+        <div class="sidebar-footer dashboard-shell-footer">
             <div class="sidebar-account">
                 <div class="avatar avatar-md">
                     {% if user.avatar %}
@@ -144,9 +223,9 @@
     </aside>
     
     <!-- Main Content -->
-    <main class="dashboard-main">
+    <main class="dashboard-main dashboard-shell-main">
         <!-- Top Header -->
-        <header class="dashboard-header">
+        <header class="dashboard-header dashboard-shell-header">
             <div class="dashboard-header-top">
                 <div class="dashboard-header-intro">
                     <button class="btn btn-light d-lg-none dashboard-menu-toggle" id="sidebarToggle">
@@ -196,10 +275,10 @@
         </header>
         
         <!-- Dashboard Content -->
-        <div class="dashboard-content">
-
-            
-            {% block dashboard_content %}{% endblock %}
+        <div class="dashboard-content dashboard-shell-content">
+            <div class="dashboard-shell-content-inner">
+                {% block dashboard_content %}{% endblock %}
+            </div>
         </div>
     </main>
 </div>

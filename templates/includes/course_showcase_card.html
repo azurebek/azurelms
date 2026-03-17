@@ -1,5 +1,5 @@
 {% load humanize %}
-<article class="showcase-course-card h-100">
+<article class="showcase-course-card showcase-course-card--platform h-100">
     <a href="{% url 'course_detail' course.pk %}" class="showcase-course-link">
         <div class="showcase-course-media">
             <img src="{{ course.cover_media_url }}" alt="{{ course.title }}" class="showcase-course-cover">

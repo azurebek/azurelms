@@ -3,221 +3,10 @@
 {% load static %}
 
 {% block title %}{{ exam.title }} | {{ course.title }}{% endblock %}
+{% block body_class %}exam-workspace-shell{% endblock %}
 
 {% block extra_css %}
-<style>
-    body {
-        background-color: #f8f9fa;
-    }
-    
-    .study-layout {
-        display: flex;
-        min-height: calc(100vh - 76px); /* minus navbar */
-    }
-
-    /* Sidebar Styles */
-    .study-sidebar {
-        width: 320px;
-        flex-shrink: 0;
-        background-color: #fff;
-        border-right: 1px solid #e9ecef;
-        overflow-y: auto;
-        height: calc(100vh - 76px);
-        position: sticky;
-        top: 76px;
-    }
-
-    .study-main {
-        flex-grow: 1;
-        padding: 2rem;
-        overflow-y: auto;
-    }
-
-    @media (max-width: 991.98px) {
-        .study-layout {
-            flex-direction: column;
-        }
-        .study-sidebar {
-            width: 100%;
-            height: auto;
-            position: relative;
-            top: 0;
-            border-right: none;
-            border-bottom: 1px solid #e9ecef;
-        }
-    }
-
-    /* Accordion customizations */
-    .study-sidebar .accordion-button {
-        padding: 1rem 1.25rem;
-        font-weight: 600;
-        color: #495057;
-        background-color: #f8f9fa;
-        box-shadow: none;
-    }
-    
-    .study-sidebar .accordion-button:not(.collapsed) {
-        color: #0d6efd;
-        background-color: #e7f1ff;
-    }
-
-    .study-sidebar .list-group-item {
-        border-left: 3px solid transparent;
-        transition: all 0.2s;
-    }
-
-    .study-sidebar .list-group-item:hover {
-        background-color: #f8f9fa;
-    }
-
-    .study-sidebar .list-group-item.active {
-        background-color: #e7f1ff;
-        border-color: #e7f1ff;
-        border-left-color: #0d6efd;
-        color: #0d6efd;
-    }
-    
-    .study-sidebar .list-group-item a {
-        color: #495057;
-        text-decoration: none;
-        display: block;
-    }
-    
-    /* Exam Styles */
-    .exam-section {
-        background: #fff;
-        border: 1px solid #e9ecef;
-        border-radius: 12px;
-        padding: 25px;
-        margin-bottom: 25px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-    }
-    .exam-section-title {
-        font-weight: bold;
-        color: #212529;
-        margin-bottom: 15px;
-        padding-bottom: 10px;
-        border-bottom: 2px solid #f0f2f5;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .exam-instructions {
-        background-color: #f8f9fa;
-        border-left: 4px solid #0d6efd;
-        padding: 15px;
-        border-radius: 0 8px 8px 0;
-        margin-bottom: 20px;
-    }
-
-    /* Advanced Exam Specifics */
-    .locked-overlay {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(255, 255, 255, 0.9);
-        z-index: 100;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        border-radius: 12px;
-    }
-    .blur-warning-modal {
-        display: none;
-        position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(220, 53, 69, 0.95);
-        z-index: 9999;
-        color: white;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 2rem;
-        text-align: center;
-    }
-    .watermark-container {
-        position: relative;
-        overflow: hidden;
-    }
-    .watermark {
-        position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        z-index: 999;
-        pointer-events: none;
-        opacity: 0.05;
-        background-image: repeating-linear-gradient(45deg, 
-            transparent, transparent 100px, 
-            #000 100px, #000 120px);
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-around;
-        align-content: space-around;
-        gap: 50px;
-    }
-    .watermark-text {
-        font-size: 2rem;
-        font-weight: bold;
-        color: #000;
-        transform: rotate(-45deg);
-        user-select: none;
-    }
-    
-    .split-screen {
-        display: flex;
-        height: 500px;
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        overflow: hidden;
-    }
-    .split-left {
-        flex: 1;
-        overflow-y: auto;
-        padding: 20px;
-        background: #fdfbf7;
-        border-right: 2px solid #dee2e6;
-        font-family: Georgia, serif;
-        line-height: 1.8;
-    }
-    .split-right {
-        flex: 1;
-        overflow-y: auto;
-        padding: 20px;
-        background: #fff;
-    }
-    
-    .question-block {
-        margin-bottom: 25px;
-        padding-bottom: 20px;
-        border-bottom: 1px dashed #dee2e6;
-    }
-    
-    /* Timer */
-    .sticky-timer {
-        position: sticky;
-        top: 76px;
-        z-index: 1000;
-        background: #212529;
-        color: #fff;
-        padding: 10px 20px;
-        border-radius: 0 0 12px 12px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        text-align: center;
-        font-size: 1.25rem;
-        font-weight: bold;
-        font-family: monospace;
-        letter-spacing: 2px;
-    }
-    .sticky-timer.danger {
-        background: #dc3545;
-        animation: pulse 1s infinite alternate;
-    }
-    
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        100% { transform: scale(1.02); }
-    }
-</style>
+<link href="{% static 'css/exam-workspace.css' %}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -276,7 +65,7 @@
             {% endfor %}
             
             {% if course_exams.exists %}
-            <div class="accordion-item" style="border-top: 2px solid #ffc107;">
+            <div class="accordion-item exam-sidebar-highlight">
                 <h2 class="accordion-header">
                     <button class="accordion-button fw-bold text-dark" 
                             type="button" data-bs-toggle="collapse" 
@@ -293,7 +82,7 @@
                             <li class="list-group-item px-4 py-3 border-start border-4 border-warning {% if e.id == exam.id %}active{% endif %}">
                                 <a href="{% url 'exam_detail' course_id=course.id exam_id=e.id %}" class="d-flex align-items-center gap-2 fw-medium">
                                     {% if e.id == exam.id %}
-                                    <i class="bi bi-circle-fill text-warning" style="font-size: 0.5rem;"></i>
+                                    <i class="bi bi-circle-fill text-warning exam-dot"></i>
                                     {% else %}
                                     <i class="bi bi-file-earmark-text"></i>
                                     {% endif %}
@@ -311,7 +100,7 @@
 
     <!-- Main Study Area -->
     <div class="study-main">
-        <div class="container-fluid max-w-1000 mx-auto w-100" style="max-width: 900px;">
+        <div class="container-fluid max-w-1000 mx-auto w-100 exam-main-container">
             
             <!-- Breadcrumb & Header -->
             <nav aria-label="breadcrumb" class="mb-3">
@@ -347,7 +136,7 @@
                 <div class="card border border-warning shadow-sm rounded-4 mb-5 position-relative overflow-hidden">
                     <div class="card-body p-5">
                         <div class="text-center mb-5">
-                            <i class="bi bi-shield-lock-fill text-warning" style="font-size: 4rem;"></i>
+                            <i class="bi bi-shield-lock-fill text-warning exam-rule-icon"></i>
                             <h2 class="fw-bold mt-3">Qat'iy Imtihon Qoidalari</h2>
                             <p class="text-muted lead">Siz rasmiy imtihon oynasiga kirish arafasidasiz. Iltimos, quyidagi qoidalarni diqqat bilan o'qing.</p>
                         </div>
@@ -455,7 +244,7 @@
                             <h5 class="mb-4">Audio Materyal (Faqat 1 marta eshitish mumkin)</h5>
                             
                             <!-- Custom HTML5 Audio Player -->
-                            <audio id="audioPlayer_{{ section.id }}" controls controlsList="nodownload noplaybackrate" style="width: 100%; max-width: 500px;" onplay="secureAudioPlay(this)" onseeking="secureAudioSeek(this)">
+                            <audio id="audioPlayer_{{ section.id }}" controls controlsList="nodownload noplaybackrate" class="exam-audio-player" onplay="secureAudioPlay(this)" onseeking="secureAudioSeek(this)">
                                 <source src="{{ section.media_url }}" type="audio/mpeg">
                                 Brauzeringiz audio pleerni qo'llab-quvvatlamaydi.
                             </audio>
@@ -493,7 +282,7 @@
                         <div class="px-3">
                             {% for question in section.questions.all %}
                             <div class="question-block border-0" data-question-id="{{ question.id }}">
-                                <div class="fw-bold mb-4 content-area" style="font-size: 1.1rem;">
+                                <div class="fw-bold mb-4 content-area exam-writing-question">
                                     {{ question.text|sanitize }}
                                 </div>
                                 <textarea id="writingText_{{ question.id }}" class="form-control" rows="12" placeholder="Inshoni shu yerga yozing..." 
@@ -572,7 +361,7 @@
                 {% if sections.exists %}
                 <div class="card bg-primary text-white border-0 shadow-lg rounded-4 overflow-hidden mt-5">
                     <div class="card-body p-5 text-center position-relative">
-                        <i class="bi bi-send-check display-1 position-absolute opacity-10" style="right: -20px; bottom: -20px;"></i>
+                        <i class="bi bi-send-check display-1 position-absolute opacity-10 exam-submit-watermark"></i>
                         <h3 class="fw-bold mb-3">Imtihonni Yakunlash</h3>
                         <p class="mb-4 opacity-75">Barcha bo'limlardagi javoblaringiz tayyor bo'lsa, tekshirish uchun yuboring. Bir marta yuborgach qayta o'zgartirib bo'lmaydi!</p>
                         <button type="submit" class="btn btn-light btn-lg rounded-pill fw-bold text-primary px-5 shadow-sm">Javoblarni yuborish</button>

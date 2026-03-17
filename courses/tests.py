@@ -14,13 +14,17 @@ from PIL import Image
 
 from cohorts.models import Cohort, Enrollment
 from courses.models import (
+    Assignment,
+    AssignmentSubmission,
     Choice,
+    CohortLessonRelease,
     Course,
     Exam,
     ExamAttempt,
     ExamSection,
     ExamSectionReview,
     Lesson,
+    LessonProgress,
     Module,
     Question,
     Quiz,
@@ -272,6 +276,172 @@ class CourseGradientCoverTests(TestCase):
         self.assertIn("Turk tili B2", svg)
         self.assertNotIn("Mukammal (C1-C2)", svg)
         self.assertNotIn("AZURELMS COURSE", svg)
+
+
+class LessonDetailPageRenderTests(TestCase):
+    def setUp(self):
+        self.instructor = User.objects.create_user(
+            username="lesson-teacher",
+            email="lesson-teacher@example.com",
+            password="testpass123",
+            first_name="Aziz",
+        )
+        self.student = User.objects.create_user(
+            username="lesson-student",
+            email="lesson-student@example.com",
+            password="testpass123",
+            first_name="Ali",
+        )
+        self.course = Course.objects.create(
+            title="Lesson Flow Course",
+            description="<p>Structured lesson flow.</p>",
+            instructor=self.instructor,
+            level="beginner",
+            duration=18,
+        )
+        self.module = Module.objects.create(course=self.course, title="1-modul", order=1)
+        self.lesson = Lesson.objects.create(
+            module=self.module,
+            title="Boshlanish darsi",
+            order=1,
+            video_url="https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            content="<p>Dars bayoni</p>",
+        )
+        Lesson.objects.create(module=self.module, title="Keyingi dars", order=2)
+        Assignment.objects.create(
+            lesson=self.lesson,
+            title="Uyga vazifa",
+            description="<p>Vazifa matni</p>",
+            max_xp=30,
+        )
+        quiz = Quiz.objects.create(title="Lesson Quiz", lesson=self.lesson, xp_reward=20)
+        question = Question.objects.create(quiz=quiz, text="Savol", points=1)
+        Choice.objects.create(question=question, text="To'g'ri", is_correct=True)
+        Choice.objects.create(question=question, text="Noto'g'ri", is_correct=False)
+        cohort = Cohort.objects.create(
+            name="Lesson Cohort",
+            course=self.course,
+            start_date=datetime.date(2026, 3, 1),
+        )
+        Enrollment.objects.create(student=self.student, cohort=cohort, status="active")
+        self.client.force_login(self.student)
+
+    def test_lesson_detail_page_renders_redesigned_workspace(self):
+        response = self.client.get(
+            reverse("lesson_detail", kwargs={"course_id": self.course.id, "lesson_id": self.lesson.id})
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Umumiy progress")
+        self.assertContains(response, "Dars materiallari")
+        self.assertContains(response, "Videodars")
+
+    def test_lesson_detail_visit_marks_lesson_progress(self):
+        response = self.client.get(
+            reverse("lesson_detail", kwargs={"course_id": self.course.id, "lesson_id": self.lesson.id})
+        )
+
+        self.assertEqual(response.status_code, 200)
+        progress = LessonProgress.objects.filter(
+            enrollment__student=self.student,
+            enrollment__cohort__course=self.course,
+            lesson=self.lesson,
+            is_completed=True,
+        ).first()
+        self.assertIsNotNone(progress)
+
+
+class LessonAccessFlowTests(TestCase):
+    def setUp(self):
+        self.instructor = User.objects.create_user(
+            username="drip-teacher",
+            email="drip-teacher@example.com",
+            password="testpass123",
+            is_staff=True,
+        )
+        self.student = User.objects.create_user(
+            username="drip-student",
+            email="drip-student@example.com",
+            password="testpass123",
+        )
+        self.course = Course.objects.create(
+            title="Drip Course",
+            description="Drip access test",
+            instructor=self.instructor,
+            level="beginner",
+        )
+        self.module = Module.objects.create(course=self.course, title="1-modul", order=1)
+        self.lesson_1 = Lesson.objects.create(module=self.module, title="1-dars", order=1)
+        self.lesson_2 = Lesson.objects.create(module=self.module, title="2-dars", order=2)
+        self.lesson_3 = Lesson.objects.create(module=self.module, title="3-dars", order=3)
+        self.assignment = Assignment.objects.create(
+            lesson=self.lesson_1,
+            title="Uyga vazifa",
+            description="<p>Topshiriq</p>",
+            max_xp=20,
+        )
+        self.cohort = Cohort.objects.create(
+            name="Drip Cohort",
+            course=self.course,
+            start_date=datetime.date(2026, 3, 1),
+        )
+        Enrollment.objects.create(student=self.student, cohort=self.cohort, status="active")
+        self.client.force_login(self.student)
+
+    def test_next_lesson_stays_locked_until_previous_assignment_is_approved(self):
+        CohortLessonRelease.objects.create(cohort=self.cohort, lesson=self.lesson_1, is_released=True)
+        CohortLessonRelease.objects.create(cohort=self.cohort, lesson=self.lesson_2, is_released=True)
+
+        locked_response = self.client.get(
+            reverse("lesson_detail", kwargs={"course_id": self.course.id, "lesson_id": self.lesson_2.id})
+        )
+        self.assertEqual(locked_response.status_code, 302)
+        self.assertIn(
+            reverse("lesson_detail", kwargs={"course_id": self.course.id, "lesson_id": self.lesson_1.id}),
+            locked_response.url,
+        )
+
+        AssignmentSubmission.objects.create(
+            assignment=self.assignment,
+            student=self.student,
+            answer_text="Javob",
+            status=AssignmentSubmission.STATUS_APPROVED,
+        )
+        unlocked_response = self.client.get(
+            reverse("lesson_detail", kwargs={"course_id": self.course.id, "lesson_id": self.lesson_2.id})
+        )
+        self.assertEqual(unlocked_response.status_code, 200)
+        self.assertContains(unlocked_response, "Current lesson")
+
+    def test_sidebar_shows_lock_icon_for_unreleased_lessons(self):
+        CohortLessonRelease.objects.create(cohort=self.cohort, lesson=self.lesson_1, is_released=True)
+
+        response = self.client.get(
+            reverse("lesson_detail", kwargs={"course_id": self.course.id, "lesson_id": self.lesson_1.id})
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "bi-lock-fill")
+        self.assertContains(response, "o&#x27;qituvchi tomonidan ochilmagan")
+
+    def test_assignment_submission_endpoint_creates_pending_submission(self):
+        CohortLessonRelease.objects.create(cohort=self.cohort, lesson=self.lesson_1, is_released=True)
+
+        response = self.client.post(
+            reverse(
+                "assignment_submit",
+                kwargs={
+                    "course_id": self.course.id,
+                    "lesson_id": self.lesson_1.id,
+                    "assignment_id": self.assignment.id,
+                },
+            ),
+            data={"answer_text": "Ustoz, vazifa bajarildi"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        submission = AssignmentSubmission.objects.get(assignment=self.assignment, student=self.student)
+        self.assertEqual(submission.status, AssignmentSubmission.STATUS_PENDING)
+        self.assertEqual(submission.answer_text, "Ustoz, vazifa bajarildi")
 
 
 @override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)

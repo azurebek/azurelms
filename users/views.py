@@ -175,8 +175,13 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             ).annotate(
                 total_lessons_count=Count('cohort__course__modules__lessons', distinct=True),
                 completed_attendance_count=Count(
-                    'attendance',
+                    'attendance__lesson',
                     filter=Q(attendance__status__in=[Attendance.STATUS_PRESENT, Attendance.STATUS_PARTIAL]),
+                    distinct=True,
+                ),
+                completed_progress_count=Count(
+                    'lesson_progress',
+                    filter=Q(lesson_progress__is_completed=True),
                     distinct=True,
                 ),
             )
@@ -192,7 +197,10 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
         for enrollment in enrollments:
             total_lessons = enrollment.total_lessons_count or 0
-            completed_lessons = enrollment.completed_attendance_count or 0
+            completed_lessons = max(
+                enrollment.completed_attendance_count or 0,
+                enrollment.completed_progress_count or 0,
+            )
             enrollment.dashboard_total_lessons = total_lessons
             enrollment.dashboard_completed_lessons = completed_lessons
             enrollment.dashboard_progress = (
@@ -217,11 +225,21 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         active_enrollment_qs = user.enrollments.filter(status='active')
         context['active_courses_count'] = active_enrollment_qs.count()
 
-        # Dashboard metriclar: o'tilgan darslar soni attendance asosida hisoblanadi.
-        passed_lessons_count = Attendance.objects.filter(
+        # Dashboard metriclar: o'tilgan darslar soni attendance va LMS lesson progress asosida hisoblanadi.
+        attendance_lessons_count = Attendance.objects.filter(
             enrollment__student=user,
             status__in=[Attendance.STATUS_PRESENT, Attendance.STATUS_PARTIAL],
-        ).count()
+        ).values('lesson_id').distinct().count()
+        progress_lessons_count = user.enrollments.filter(
+            status='active',
+        ).aggregate(
+            total=Count(
+                'lesson_progress',
+                filter=Q(lesson_progress__is_completed=True),
+                distinct=True,
+            )
+        )['total'] or 0
+        passed_lessons_count = max(attendance_lessons_count, progress_lessons_count)
         context['completed_lessons_count'] = passed_lessons_count
         context['completed_lessons'] = passed_lessons_count
         context['average_progress'] = passed_lessons_count

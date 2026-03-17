@@ -13,9 +13,9 @@
     <div class="col-12 col-lg-4">
         <div class="card border-0 shadow-sm rounded-4 h-100">
             <div class="card-body p-4 text-center">
-                <div class="rounded-circle overflow-hidden shadow mx-auto mb-3" style="width: 110px; height: 110px; border: 4px solid #fff;">
+                <div class="rounded-circle overflow-hidden shadow mx-auto mb-3 profile-avatar-shell">
                     {% if user.avatar %}
-                    <img src="{{ user.avatar.url }}?t={% now 'U' %}" alt="{{ user.get_full_name|default:user.username }}" class="w-100 h-100" style="object-fit: cover;">
+                    <img src="{{ user.avatar.url }}?t={% now 'U' %}" alt="{{ user.get_full_name|default:user.username }}" class="avatar-image-cover">
                     {% else %}
                     <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-primary text-white display-5 fw-bold">
                         {{ user.first_name|default:user.username|slice:":1"|upper }}
@@ -108,7 +108,7 @@
                     <div class="col-6 col-md-4 col-lg-3">
                         <div class="p-3 rounded-3 border text-center h-100">
                             {% if earned.badge.icon %}
-                            <img src="{{ earned.badge.icon.url }}" alt="{{ earned.badge.name }}" style="height:48px;width:48px;object-fit:contain;" class="mb-2">
+                            <img src="{{ earned.badge.icon.url }}" alt="{{ earned.badge.name }}" class="mb-2 profile-badge-icon">
                             {% else %}
                             <i class="bi bi-patch-check-fill text-warning fs-3 d-block mb-2"></i>
                             {% endif %}

@@ -9,6 +9,7 @@ from django_ckeditor_5.fields import CKEditor5Field
 from django.db.models import Sum
 from django.urls import reverse
 from django.utils.functional import cached_property
+from django.utils import timezone
 from PIL import Image, ImageOps
 
 from .cover_art import GRADIENT_PRESET_CHOICES, build_cover_data_uri
@@ -248,6 +249,113 @@ class Assignment(models.Model):
     class Meta:
         verbose_name = "Vazifa"
         verbose_name_plural = "Vazifalar"
+
+
+class AssignmentSubmission(models.Model):
+    STATUS_PENDING = "pending"
+    STATUS_APPROVED = "approved"
+    STATUS_NEEDS_REVISION = "needs_revision"
+    STATUS_CHOICES = (
+        (STATUS_PENDING, "Tekshiruv kutilmoqda"),
+        (STATUS_APPROVED, "Tasdiqlangan"),
+        (STATUS_NEEDS_REVISION, "Qayta ishlash kerak"),
+    )
+
+    assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE, related_name="submissions")
+    student = models.ForeignKey(
+        "users.CustomUser",
+        on_delete=models.CASCADE,
+        related_name="assignment_submissions",
+        verbose_name="O'quvchi",
+    )
+    answer_text = models.TextField(blank=True, verbose_name="Javob matni")
+    attachment = models.FileField(
+        upload_to="assignments/submissions/%Y/%m/",
+        blank=True,
+        null=True,
+        verbose_name="Biriktirma",
+    )
+    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    teacher_feedback = models.TextField(blank=True, verbose_name="O'qituvchi izohi")
+    awarded_xp = models.PositiveIntegerField(default=0, verbose_name="Berilgan XP")
+    reviewed_by = models.ForeignKey(
+        "users.CustomUser",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reviewed_assignment_submissions",
+        verbose_name="Tekshirgan o'qituvchi",
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True, verbose_name="Tekshirilgan vaqt")
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("assignment", "student")
+        ordering = ["-updated_at"]
+        verbose_name = "Vazifa topshirig'i"
+        verbose_name_plural = "Vazifa topshiriqlari"
+
+    def __str__(self):
+        return f"{self.student.username} -> {self.assignment.title}"
+
+    @property
+    def is_approved(self):
+        return self.status == self.STATUS_APPROVED
+
+
+class CohortLessonRelease(models.Model):
+    cohort = models.ForeignKey("cohorts.Cohort", on_delete=models.CASCADE, related_name="lesson_releases")
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name="cohort_releases")
+    is_released = models.BooleanField(default=True, verbose_name="Ochilganmi")
+    released_by = models.ForeignKey(
+        "users.CustomUser",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="released_lessons",
+        verbose_name="Ochgan admin/o'qituvchi",
+    )
+    released_at = models.DateTimeField(default=timezone.now, verbose_name="Ochilgan vaqt")
+    release_note = models.CharField(max_length=255, blank=True, verbose_name="Izoh")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("cohort", "lesson")
+        ordering = ["lesson__module__order", "lesson__order"]
+        verbose_name = "Guruh dars accessi"
+        verbose_name_plural = "Guruh dars accesslari"
+
+    def __str__(self):
+        state = "open" if self.is_released else "locked"
+        return f"{self.cohort.name} -> {self.lesson.title} ({state})"
+
+
+class LessonProgress(models.Model):
+    enrollment = models.ForeignKey(
+        "cohorts.Enrollment",
+        on_delete=models.CASCADE,
+        related_name="lesson_progress",
+    )
+    lesson = models.ForeignKey(
+        Lesson,
+        on_delete=models.CASCADE,
+        related_name="progress_records",
+    )
+    is_completed = models.BooleanField(default=False, verbose_name="Yakunlanganmi")
+    started_at = models.DateTimeField(auto_now_add=True)
+    last_accessed_at = models.DateTimeField(auto_now=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ("enrollment", "lesson")
+        ordering = ["-last_accessed_at"]
+        verbose_name = "Dars progressi"
+        verbose_name_plural = "Dars progresslari"
+
+    def __str__(self):
+        return f"{self.enrollment.student.username} -> {self.lesson.title}"
 
 
 # --- IMTIHON (EXAM) TIZIMI ---

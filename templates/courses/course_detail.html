@@ -5,16 +5,17 @@
 
 {% block title %}{{ course.title }} | AzureLMS{% endblock %}
 {% block meta_description %}{{ course.description|striptags|truncatewords:26 }}{% endblock %}
+{% block body_class %}course-detail-shell{% endblock %}
 
 {% block extra_css %}
 <link href="{% static 'css/course-detail.css' %}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
-<div class="course-detail-page">
+<div class="course-detail-page course-detail-page--rework">
     <section class="course-detail-hero">
         <div class="container">
-            <div class="course-detail-hero-shell">
+            <div class="course-detail-hero-shell course-detail-hero-shell--rework">
                 <nav aria-label="breadcrumb" class="course-detail-breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="{% url 'home' %}">Bosh sahifa</a></li>
@@ -287,7 +288,7 @@
         </div>
     </section>
 
-    <section class="course-detail-body pb-5">
+    <section class="course-detail-body course-detail-body--rework pb-5">
         <div class="container">
             <div class="row g-4 align-items-start">
                 <div class="col-12 col-lg-5">

@@ -6,6 +6,11 @@ urlpatterns = [
     path('<int:pk>/', views.CourseDetailView.as_view(), name='course_detail'),
     path('<int:course_id>/study/', views.CourseStudyRedirectView.as_view(), name='course_study'),
     path('<int:course_id>/lesson/<int:lesson_id>/', views.LessonDetailView.as_view(), name='lesson_detail'),
+    path(
+        '<int:course_id>/lesson/<int:lesson_id>/assignment/<int:assignment_id>/submit/',
+        views.SubmitAssignmentView.as_view(),
+        name='assignment_submit',
+    ),
     
     # Quiz API Endpoint
     path('<int:course_id>/lesson/<int:lesson_id>/quiz/<int:quiz_id>/submit/', views.SubmitQuizView.as_view(), name='api_quiz_submit'),

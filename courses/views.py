@@ -1,11 +1,137 @@
+import json
+
 from django.views.generic import ListView, DetailView, View
 from django.db.models import Max, Q
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
+from django.urls import reverse
+from django.http import JsonResponse
+from django.utils import timezone
 
-from .models import Course, Lesson, Certificate, Exam, Quiz, QuizAttempt, QuizAnswer
+from .models import (
+    Assignment,
+    AssignmentSubmission,
+    Certificate,
+    CohortLessonRelease,
+    Course,
+    Exam,
+    LessonProgress,
+    Lesson,
+    Question,
+    Choice,
+    StudentAnswer,
+    ExamAttempt,
+    Quiz,
+    QuizAnswer,
+    QuizAttempt,
+)
 from cohorts.models import Enrollment
+
+
+def _get_active_enrollment_for_course(user, course):
+    return (
+        Enrollment.objects.filter(
+            student=user,
+            cohort__course=course,
+            status="active",
+        )
+        .select_related("cohort")
+        .order_by("-joined_at")
+        .first()
+    )
+
+
+def _build_lesson_access_bundle(course, user, enrollment):
+    lessons = list(
+        Lesson.objects.filter(module__course=course)
+        .select_related("module")
+        .prefetch_related("assignments")
+        .order_by("module__order", "order")
+    )
+    lesson_access_map = {}
+    first_accessible_lesson = None
+
+    drip_enabled = False
+    released_lesson_ids = set()
+    if enrollment:
+        release_qs = CohortLessonRelease.objects.filter(
+            cohort=enrollment.cohort,
+            lesson__module__course=course,
+        )
+        drip_enabled = release_qs.exists()
+        released_lesson_ids = set(
+            release_qs.filter(is_released=True).values_list("lesson_id", flat=True)
+        )
+
+    approved_assignment_ids = set()
+    if user and user.is_authenticated:
+        approved_assignment_ids = set(
+            AssignmentSubmission.objects.filter(
+                student=user,
+                assignment__lesson__module__course=course,
+                status=AssignmentSubmission.STATUS_APPROVED,
+            ).values_list("assignment_id", flat=True)
+        )
+
+    assignment_ids_by_lesson = {
+        lesson.id: [assignment.id for assignment in lesson.assignments.all()]
+        for lesson in lessons
+    }
+
+    for index, lesson in enumerate(lessons):
+        state = {
+            "is_accessible": True,
+            "is_released": True,
+            "lock_reason": "",
+        }
+
+        if not enrollment:
+            state["is_accessible"] = False
+            state["lock_reason"] = "Kursga faol obuna kerak."
+        else:
+            if drip_enabled and lesson.id not in released_lesson_ids:
+                state["is_accessible"] = False
+                state["is_released"] = False
+                state["lock_reason"] = "Bu dars hali o'qituvchi tomonidan ochilmagan."
+
+            if state["is_accessible"] and index > 0:
+                previous_lesson = lessons[index - 1]
+                previous_assignment_ids = assignment_ids_by_lesson.get(previous_lesson.id, [])
+                if previous_assignment_ids and any(
+                    assignment_id not in approved_assignment_ids
+                    for assignment_id in previous_assignment_ids
+                ):
+                    state["is_accessible"] = False
+                    state["lock_reason"] = (
+                        "Oldingi dars vazifasi tekshirilib tasdiqlanmaguncha keyingi dars ochilmaydi."
+                    )
+
+        lesson_access_map[lesson.id] = state
+        if state["is_accessible"] and first_accessible_lesson is None:
+            first_accessible_lesson = lesson
+
+    return {
+        "lessons": lessons,
+        "lesson_access_map": lesson_access_map,
+        "first_accessible_lesson": first_accessible_lesson,
+        "drip_enabled": drip_enabled,
+    }
+
+
+def _mark_lesson_progress_completed(enrollment, lesson):
+    progress, created = LessonProgress.objects.get_or_create(
+        enrollment=enrollment,
+        lesson=lesson,
+        defaults={
+            "is_completed": True,
+            "completed_at": timezone.now(),
+        },
+    )
+    if not created and not progress.is_completed:
+        progress.is_completed = True
+        progress.completed_at = timezone.now()
+        progress.save(update_fields=["is_completed", "completed_at", "last_accessed_at"])
 
 
 class CourseListView(ListView):
@@ -114,23 +240,19 @@ class CourseStudyRedirectView(LoginRequiredMixin, View):
         course = get_object_or_404(Course, id=course_id)
         
         # Check active enrollment
-        enrollment = Enrollment.objects.filter(
-            student=request.user,
-            cohort__course=course,
-            status='active'
-        ).first()
+        enrollment = _get_active_enrollment_for_course(request.user, course)
         
         if not enrollment:
             messages.warning(request, "Siz ushbu kursga obuna bo'lmagansiz yoki obunangiz faol emas.")
             return redirect('course_detail', pk=course.id)
-            
-        # Get the first lesson to start with (can be improved to save last watched lesson later)
-        first_lesson = Lesson.objects.filter(module__course=course).order_by('module__order', 'order').first()
-        
-        if first_lesson:
-            return redirect('lesson_detail', course_id=course.id, lesson_id=first_lesson.id)
+
+        access_bundle = _build_lesson_access_bundle(course, request.user, enrollment)
+        first_accessible_lesson = access_bundle["first_accessible_lesson"]
+
+        if first_accessible_lesson:
+            return redirect('lesson_detail', course_id=course.id, lesson_id=first_accessible_lesson.id)
         else:
-            messages.info(request, "Ushbu kursda hali darslar mavjud emas.")
+            messages.info(request, "Hozircha siz uchun ochiq dars mavjud emas.")
             return redirect('course_detail', pk=course.id)
 
 class LessonDetailView(LoginRequiredMixin, DetailView):
@@ -145,68 +267,251 @@ class LessonDetailView(LoginRequiredMixin, DetailView):
     def dispatch(self, request, *args, **kwargs):
         # Override dispatch to block access before hitting get_context_data
         if request.user.is_authenticated:
-            course_id = self.kwargs.get('course_id')
-            is_enrolled = Enrollment.objects.filter(
-                student=request.user,
-                cohort__course_id=course_id,
-                status='active'
-            ).exists()
-            if not is_enrolled:
+            course_id = self.kwargs.get("course_id")
+            lesson_id = self.kwargs.get("lesson_id")
+            course = get_object_or_404(Course, id=course_id)
+
+            enrollment = _get_active_enrollment_for_course(request.user, course)
+            if not enrollment:
                 messages.error(request, "Siz bu kursning darslarini ko'rish uchun obuna bo'lishingiz kerak.")
-                return redirect('course_detail', pk=course_id)
+                return redirect("course_detail", pk=course_id)
+            self._active_enrollment = enrollment
+
+            access_bundle = _build_lesson_access_bundle(course, request.user, enrollment)
+            self._lesson_access_bundle = access_bundle
+
+            lesson_state = access_bundle["lesson_access_map"].get(lesson_id)
+            if lesson_state and not lesson_state["is_accessible"]:
+                messages.warning(
+                    request,
+                    lesson_state["lock_reason"] or "Bu dars hozircha siz uchun yopiq.",
+                )
+                fallback_lesson = access_bundle["first_accessible_lesson"]
+                if fallback_lesson and fallback_lesson.id != lesson_id:
+                    return redirect(
+                        "lesson_detail",
+                        course_id=course_id,
+                        lesson_id=fallback_lesson.id,
+                    )
+                return redirect("course_detail", pk=course_id)
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
         # Only allow accessing lessons of the specified course
         course_id = self.kwargs.get('course_id')
-        return Lesson.objects.filter(module__course_id=course_id)
+        return Lesson.objects.filter(module__course_id=course_id).select_related(
+            'module',
+            'module__course',
+            'module__course__instructor',
+        )
         
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         course = self.object.module.course
         user = self.request.user
-        
-        # Security: Strictly verify active enrollment. Kick out if unauthorized.
-        is_enrolled = Enrollment.objects.filter(
-            student=user,
-            cohort__course=course,
-            status='active'
-        ).exists()
-        
-        context['is_enrolled'] = is_enrolled
+
+        enrollment = getattr(self, "_active_enrollment", None)
+        if enrollment is None:
+            enrollment = _get_active_enrollment_for_course(user, course)
+
+        if enrollment:
+            _mark_lesson_progress_completed(enrollment, self.object)
+
+        access_bundle = getattr(self, "_lesson_access_bundle", None)
+        if access_bundle is None:
+            access_bundle = _build_lesson_access_bundle(course, user, enrollment)
+        lesson_access_map = access_bundle["lesson_access_map"]
+        all_lessons = access_bundle["lessons"]
+
+        context['is_enrolled'] = bool(enrollment)
         context['course'] = course
-        
-        # Load all modules and lessons for the sidebar Accordion ToC
-        context['modules'] = course.modules.all().prefetch_related('lessons')
-        context['course_exams'] = course.exams.all().order_by('id')
-        
-        # Load any assignments or quizzes attached to this lesson
-        context['assignments'] = self.object.assignments.all()
-        context['quizzes'] = self.object.quizzes.prefetch_related('questions__choices').all()
-        
+
+        modules = list(course.modules.all().prefetch_related('lessons'))
+        course_exams = course.exams.all().order_by('id')
+        assignments = list(self.object.assignments.all())
+        quizzes = self.object.quizzes.prefetch_related('questions__choices').all()
+        current_module = next((module for module in modules if module.id == self.object.module_id), self.object.module)
+        module_lessons = list(current_module.lessons.all()) if hasattr(current_module, 'lessons') else [self.object]
+
+        assignment_submissions = {
+            submission.assignment_id: submission
+            for submission in AssignmentSubmission.objects.filter(
+                student=user,
+                assignment_id__in=[assignment.id for assignment in assignments],
+            ).select_related("reviewed_by")
+        }
+        for assignment in assignments:
+            assignment.current_submission = assignment_submissions.get(assignment.id)
+
+        for module in modules:
+            lesson_items = list(module.lessons.all())
+            for lesson_item in lesson_items:
+                state = lesson_access_map.get(lesson_item.id, {})
+                lesson_item.is_locked = not state.get("is_accessible", True)
+                lesson_item.lock_reason = state.get("lock_reason", "")
+                lesson_item.is_released_for_student = state.get("is_released", True)
+            module.lesson_items = lesson_items
+
+        has_video = bool(self.object.video_url)
+        has_content = bool((self.object.content or '').strip())
+        has_assignments = bool(assignments)
+        has_quizzes = quizzes.exists()
+
+        default_tab = None
+        if has_video:
+            default_tab = 'video'
+        elif has_content:
+            default_tab = 'text'
+        elif has_assignments:
+            default_tab = 'homework'
+        elif has_quizzes:
+            default_tab = 'quiz'
+
+        context['modules'] = modules
+        context['course_exams'] = course_exams
+        context['assignments'] = assignments
+        context['quizzes'] = quizzes
+        context['has_video'] = has_video
+        context['has_content'] = has_content
+        context['has_assignments'] = has_assignments
+        context['has_quizzes'] = has_quizzes
+        context['has_course_exams'] = course_exams.exists()
+        context['first_course_exam'] = course_exams.first()
+        context['default_study_tab'] = default_tab
+        context['total_lessons'] = len(all_lessons)
+        context['course_module_count'] = len(modules)
+        context['current_module'] = current_module
+        context['module_lesson_count'] = len(module_lessons)
+        context['resource_count'] = int(has_video) + int(has_content) + len(assignments) + quizzes.count()
+        context['practice_count'] = len(assignments) + quizzes.count()
+        context['active_nav'] = 'my_courses'
+        context['lesson_sections'] = [
+            section
+            for section in [
+                {
+                    'key': 'video',
+                    'label': 'Videodars',
+                    'meta': 'Asosiy video sessiya',
+                    'enabled': has_video,
+                },
+                {
+                    'key': 'text',
+                    'label': 'Notelar',
+                    'meta': 'Matnli bayon va tushuntirishlar',
+                    'enabled': has_content,
+                },
+                {
+                    'key': 'homework',
+                    'label': 'Vazifa',
+                    'meta': f"{len(assignments)} ta topshiriq",
+                    'enabled': has_assignments,
+                },
+                {
+                    'key': 'quiz',
+                    'label': 'Quiz',
+                    'meta': f"{quizzes.count()} ta test bloki",
+                    'enabled': has_quizzes,
+                },
+            ]
+            if section['enabled']
+        ]
+        requested_tab = self.request.GET.get("tab")
+        available_tabs = {section["key"] for section in context["lesson_sections"]}
+        if requested_tab in available_tabs:
+            context["default_study_tab"] = requested_tab
+        context['lesson_section_count'] = len(context['lesson_sections'])
+        context["drip_enabled"] = access_bundle["drip_enabled"]
+        context["lesson_access_map"] = lesson_access_map
+
         # Oldingi quiz urinishlarini yuklash
-        quiz_ids = list(self.object.quizzes.values_list('id', flat=True))
+        quiz_ids = list(quizzes.values_list('id', flat=True))
         context['quiz_attempts'] = {
             a.quiz_id: a for a in QuizAttempt.objects.filter(
                 student=user, quiz_id__in=quiz_ids
             ).order_by('-completed_at')
         } if quiz_ids else {}
-        
+
         # Determine previous and next lessons
-        all_lessons = list(Lesson.objects.filter(module__course=course).order_by('module__order', 'order'))
-        
         try:
             current_index = all_lessons.index(self.object)
+            module_index = module_lessons.index(self.object)
+
+            context['lesson_position'] = current_index + 1
+            context['module_lesson_position'] = module_index + 1
+            context['course_progress_percent'] = round(((current_index + 1) / max(len(all_lessons), 1)) * 100)
+            context['module_progress_percent'] = round(((module_index + 1) / max(len(module_lessons), 1)) * 100)
             
             if current_index > 0:
-                context['prev_lesson'] = all_lessons[current_index - 1]
+                previous_lesson = all_lessons[current_index - 1]
+                if lesson_access_map.get(previous_lesson.id, {}).get("is_accessible", True):
+                    context['prev_lesson'] = previous_lesson
             
             if current_index < len(all_lessons) - 1:
-                context['next_lesson'] = all_lessons[current_index + 1]
+                immediate_next = all_lessons[current_index + 1]
+                next_state = lesson_access_map.get(immediate_next.id, {})
+                if next_state.get("is_accessible", True):
+                    context['next_lesson'] = immediate_next
+                else:
+                    context["next_lesson_locked"] = True
+                    context["next_lesson_lock_reason"] = next_state.get(
+                        "lock_reason",
+                        "Keyingi dars hozircha yopiq.",
+                    )
         except ValueError:
-            pass # Lesson somehow not in list (e.g., drafted or mismatched module)
+            context['lesson_position'] = 1
+            context['module_lesson_position'] = 1
+            context['course_progress_percent'] = 100
+            context['module_progress_percent'] = 100
             
         return context
+
+
+class SubmitAssignmentView(LoginRequiredMixin, View):
+    def post(self, request, course_id, lesson_id, assignment_id):
+        assignment = get_object_or_404(
+            Assignment,
+            id=assignment_id,
+            lesson_id=lesson_id,
+            lesson__module__course_id=course_id,
+        )
+        course = assignment.lesson.module.course
+        enrollment = _get_active_enrollment_for_course(request.user, course)
+        redirect_url = (
+            f"{reverse('lesson_detail', kwargs={'course_id': course_id, 'lesson_id': lesson_id})}?tab=homework"
+        )
+
+        if not enrollment:
+            messages.error(request, "Vazifa yuborish uchun faol obuna kerak.")
+            return redirect("course_detail", pk=course_id)
+
+        submission, _ = AssignmentSubmission.objects.get_or_create(
+            assignment=assignment,
+            student=request.user,
+        )
+        answer_text = (request.POST.get("answer_text") or "").strip()
+        attachment = request.FILES.get("attachment")
+
+        if not answer_text and not attachment and not submission.attachment:
+            messages.error(request, "Kamida matn yoki fayl yuborishingiz kerak.")
+            return redirect(redirect_url)
+
+        if answer_text:
+            submission.answer_text = answer_text
+        if attachment:
+            submission.attachment = attachment
+
+        submission.status = AssignmentSubmission.STATUS_PENDING
+        submission.teacher_feedback = ""
+        submission.reviewed_by = None
+        submission.reviewed_at = None
+        submission.awarded_xp = 0
+        submission.save()
+
+        messages.success(
+            request,
+            "Vazifa yuborildi. O'qituvchi tekshiruvigacha keyingi dars yopiq qoladi.",
+        )
+        return redirect(redirect_url)
 
 class ExamDetailView(LoginRequiredMixin, DetailView):
     model = Exam
@@ -303,12 +608,6 @@ class ExamResultView(LoginRequiredMixin, DetailView):
                 course=course,
             ).first()
         return context
-
-import json
-from django.http import JsonResponse
-from django.views import View
-from django.utils import timezone
-from .models import ExamAttempt, StudentAnswer, Question, Choice
 
 class StartExamView(LoginRequiredMixin, View):
     def post(self, request, course_id, exam_id):
