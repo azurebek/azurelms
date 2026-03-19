@@ -1,7 +1,7 @@
 from django.db import models
 from django.conf import settings
 from cohorts.models import Cohort
-from courses.models import Lesson
+from courses.models import Course, Lesson
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -67,3 +67,31 @@ class AILongTermMemory(models.Model):
 
     def __str__(self):
         return f"AI Memory for {self.user.username}"
+
+
+class LessonRAGChunk(models.Model):
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name="rag_chunks")
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="rag_chunks")
+    chunk_index = models.PositiveIntegerField(default=0)
+    chunk_text = models.TextField()
+    chunk_hash = models.CharField(max_length=64)
+    content_hash = models.CharField(max_length=64)
+    token_count = models.PositiveIntegerField(default=0)
+    embedding = models.JSONField(default=list, blank=True)
+    embedding_model = models.CharField(max_length=80, default="gemini-embedding-001")
+    embedding_dim = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "RAG Chunk"
+        verbose_name_plural = "RAG Chunklar"
+        unique_together = ("lesson", "chunk_index", "embedding_model")
+        indexes = [
+            models.Index(fields=["course", "lesson"]),
+            models.Index(fields=["lesson", "embedding_model"]),
+            models.Index(fields=["updated_at"]),
+        ]
+
+    def __str__(self):
+        return f"Chunk {self.chunk_index} | {self.lesson.title}"

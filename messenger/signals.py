@@ -1,7 +1,12 @@
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
+from django.db import transaction
+from django.conf import settings
 from cohorts.models import Cohort, Enrollment
+from courses.models import Lesson
 import threading
+import sys
+import re
 
 from .access import sync_student_chat_access
 from .models import ChatRoom, Message
@@ -39,13 +44,14 @@ def teardown_student_chats(sender, instance, **kwargs):
 @receiver(post_save, sender=Message)
 def trigger_azure_ai(sender, instance, created, **kwargs):
     if created and not instance.is_ai_response:
-        text = instance.text.lower()
+        raw_text = instance.text or ""
+        text_lower = raw_text.lower()
 
-        if instance.room.room_type == 'ai' or '@azure' in text:
+        if instance.room.room_type == 'ai' or '@azure' in text_lower:
             # Delegate to Celery background task instead of native threading.Thread
             from .tasks import generate_ai_response
             
-            user_question = text.replace('@azure', '').strip()
+            user_question = re.sub(r"@azure", "", raw_text, flags=re.IGNORECASE).strip()
             student_id = instance.sender.id if instance.sender else None
             context_lesson_id = instance.context_lesson.id if instance.context_lesson else None
             
@@ -70,3 +76,27 @@ def trigger_azure_ai(sender, instance, created, **kwargs):
                         },
                         daemon=True,
                     ).start()
+
+
+@receiver(post_save, sender=Lesson)
+def reindex_lesson_chunks(sender, instance, **kwargs):
+    from .tasks import reindex_lesson_rag
+
+    if not getattr(settings, "GEMINI_API_KEY", None):
+        return
+
+    def _dispatch():
+        try:
+            reindex_lesson_rag.delay(lesson_id=instance.id)
+        except Exception as e:
+            print(f"Celery dispatch error for lesson reindex. Falling back to local execution: {e}")
+            if "test" in sys.argv:
+                reindex_lesson_rag.run(lesson_id=instance.id)
+                return
+            threading.Thread(
+                target=reindex_lesson_rag.run,
+                kwargs={"lesson_id": instance.id},
+                daemon=True,
+            ).start()
+
+    transaction.on_commit(_dispatch)

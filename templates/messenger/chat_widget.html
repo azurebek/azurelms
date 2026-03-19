@@ -50,6 +50,8 @@
     let availableRooms = [];
     const userId = "{{ request.user.id }}";
     const userName = "{{ request.user.first_name|default:request.user.username }}";
+    const currentLessonIdRaw = "{{ lesson.id|default_if_none:'' }}";
+    const currentLessonId = /^\d+$/.test(currentLessonIdRaw) ? Number(currentLessonIdRaw) : null;
     const roomTypeStorageKey = `azure_messenger_last_room_type_${userId}`;
 
     function setActiveTab(roomType) {
@@ -219,7 +221,8 @@
         if (message && chatSocket && currentRoomId) {
             chatSocket.send(JSON.stringify({
                 'message': message,
-                'sender_id': userId
+                'sender_id': userId,
+                'context_lesson_id': currentLessonId
             }));
             input.value = '';
         }

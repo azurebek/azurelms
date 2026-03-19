@@ -6,8 +6,9 @@ from django.test import TestCase
 from django.urls import reverse
 
 from cohorts.models import Cohort, Enrollment
-from courses.models import Course
-from messenger.models import ChatRoom, Message
+from courses.models import Course, Lesson, Module
+from messenger.models import ChatRoom, LessonRAGChunk, Message
+from messenger.rag import ensure_pgvector_schema, reindex_lessons, retrieve_relevant_chunks
 from messenger.tasks import generate_ai_response
 
 
@@ -123,3 +124,99 @@ class GenerateAiResponseTaskTests(TestCase):
         self.assertIn("Kechirasiz", ai_message.text)
         self.assertTrue(mocked_client.called)
         mocked_logger_exception.assert_called_once()
+
+
+class RagPipelineTests(TestCase):
+    def setUp(self):
+        self.student = User.objects.create_user(
+            username="rag-student",
+            email="rag-student@example.com",
+            password="testpass123",
+        )
+        self.course = Course.objects.create(
+            title="RAG Course",
+            description="RAG course",
+            level="beginner",
+        )
+        self.module = Module.objects.create(course=self.course, title="Module 1", order=1)
+        self.lesson = Lesson.objects.create(
+            module=self.module,
+            title="RAG Lesson",
+            content="<p>Python funksiyasi argument qabul qiladi va qiymat qaytaradi.</p>",
+            order=1,
+        )
+        self.cohort = Cohort.objects.create(
+            name="RAG Cohort",
+            course=self.course,
+            start_date=datetime.date(2026, 3, 1),
+        )
+        Enrollment.objects.create(student=self.student, cohort=self.cohort, status="active")
+
+    @patch("messenger.rag.embed_texts")
+    def test_reindex_creates_rag_chunks(self, mocked_embed_texts):
+        mocked_embed_texts.side_effect = lambda texts, embedding_model=None: [[1.0, 0.5] for _ in texts]
+
+        stats = reindex_lessons(lesson_ids=[self.lesson.id], force=True)
+
+        self.assertEqual(stats["indexed_lessons"], 1)
+        self.assertGreater(LessonRAGChunk.objects.filter(lesson=self.lesson).count(), 0)
+
+    @patch("messenger.rag.embed_texts")
+    def test_reindex_skips_unchanged_content_without_force(self, mocked_embed_texts):
+        mocked_embed_texts.side_effect = lambda texts, embedding_model=None: [[1.0, 0.5] for _ in texts]
+        first_stats = reindex_lessons(lesson_ids=[self.lesson.id], force=True)
+        self.assertEqual(first_stats["indexed_lessons"], 1)
+
+        with patch("messenger.rag.embed_texts", side_effect=AssertionError("embed_texts should not be called")):
+            second_stats = reindex_lessons(lesson_ids=[self.lesson.id], force=False)
+
+        self.assertEqual(second_stats["skipped_unchanged"], 1)
+
+    @patch("messenger.rag.embed_texts", return_value=[[1.0, 0.0]])
+    def test_retrieval_filters_chunks_by_student_active_courses(self, mocked_embed_texts):
+        other_course = Course.objects.create(
+            title="Other Course",
+            description="Other",
+            level="beginner",
+        )
+        other_module = Module.objects.create(course=other_course, title="Other Module", order=1)
+        other_lesson = Lesson.objects.create(module=other_module, title="Other Lesson", content="Other", order=1)
+
+        LessonRAGChunk.objects.create(
+            lesson=self.lesson,
+            course=self.course,
+            chunk_index=0,
+            chunk_text="Python funksiyasi argument qabul qiladi.",
+            chunk_hash="chunk-1",
+            content_hash="content-1",
+            token_count=6,
+            embedding=[1.0, 0.0],
+            embedding_model="gemini-embedding-001",
+            embedding_dim=2,
+        )
+        LessonRAGChunk.objects.create(
+            lesson=other_lesson,
+            course=other_course,
+            chunk_index=0,
+            chunk_text="Rust ownership qoidalari.",
+            chunk_hash="chunk-2",
+            content_hash="content-2",
+            token_count=4,
+            embedding=[1.0, 0.0],
+            embedding_model="gemini-embedding-001",
+            embedding_dim=2,
+        )
+
+        chunks = retrieve_relevant_chunks(
+            user=self.student,
+            question="funksiya nima qiladi",
+            top_k=3,
+        )
+
+        self.assertEqual(len(chunks), 1)
+        self.assertEqual(chunks[0]["course_id"], self.course.id)
+        self.assertTrue(mocked_embed_texts.called)
+
+    def test_pgvector_setup_skips_on_non_postgres(self):
+        result = ensure_pgvector_schema(backfill=False)
+        self.assertEqual(result.get("status"), "skipped_non_postgres")

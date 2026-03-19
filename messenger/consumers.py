@@ -3,6 +3,8 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from asgiref.sync import sync_to_async
 from django.contrib.auth import get_user_model
+from cohorts.models import Enrollment
+from courses.models import Lesson
 from .access import user_can_access_room
 from .models import ChatRoom, Message
 
@@ -44,12 +46,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         data = json.loads(text_data)
         message = data.get('message')
-        
+        context_lesson_id = data.get("context_lesson_id")
+
         # Xavfsizlik: sender_id ni clientdan emas, scopeden olamiz
         user = self.scope['user']
 
+        try:
+            context_lesson_id = int(context_lesson_id) if context_lesson_id is not None else None
+        except (TypeError, ValueError):
+            context_lesson_id = None
+
         # Bazaga saqlash
-        saved_msg = await self.save_message(user, self.room_id, message)
+        saved_msg = await self.save_message(user, self.room_id, message, context_lesson_id=context_lesson_id)
 
         if saved_msg:
             # Guruhga tarqatish
@@ -89,14 +97,28 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return False
 
     @database_sync_to_async
-    def save_message(self, user, room_id, text):
+    def save_message(self, user, room_id, text, context_lesson_id=None):
         try:
             room = ChatRoom.objects.get(id=room_id)
-            msg = Message.objects.create(room=room, sender=user, text=text)
+            context_lesson = None
+            if context_lesson_id:
+                lesson = Lesson.objects.filter(id=context_lesson_id).select_related("module__course").first()
+                if lesson and self._user_can_use_lesson_context(user, lesson):
+                    context_lesson = lesson
+            msg = Message.objects.create(room=room, sender=user, text=text, context_lesson=context_lesson)
             return msg
         except Exception as e:
             print(f"WebSocket saqlashda xatolik: {e}")
             return None
+
+    def _user_can_use_lesson_context(self, user, lesson):
+        if user.is_staff or user.is_superuser:
+            return True
+        return Enrollment.objects.filter(
+            student=user,
+            cohort__course=lesson.module.course,
+            status="active",
+        ).exists()
 
     @database_sync_to_async
     def get_room_type(self, room_id):
