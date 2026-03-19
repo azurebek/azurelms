@@ -97,6 +97,42 @@ class TeamMemberAdmin(admin.ModelAdmin):
 
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(admin.ModelAdmin):
+    fieldsets = (
+        (
+            "Asosiy kontaktlar",
+            {
+                "fields": (
+                    "company_description",
+                    ("contact_phone", "contact_email"),
+                    "contact_address",
+                    "support_url",
+                )
+            },
+        ),
+        (
+            "Checkout to'lov rekvizitlari",
+            {
+                "fields": (
+                    "payment_card_number",
+                    "payment_card_holder",
+                    "payment_provider_label",
+                    "payment_instruction",
+                )
+            },
+        ),
+        (
+            "Ijtimoiy tarmoqlar",
+            {
+                "fields": (
+                    "telegram_url",
+                    "instagram_url",
+                    "youtube_url",
+                    "facebook_url",
+                )
+            },
+        ),
+    )
+
     def has_add_permission(self, request):
         return not SiteSettings.objects.exists()
 

@@ -2,70 +2,79 @@
 {% load static humanize %}
 
 {% block title %}To'lov | {{ course.title }}{% endblock %}
+{% block body_class %}checkout-page{% endblock %}
 
 {% block content %}
-<section class="py-5 bg-light-custom" style="min-height: 80vh;">
+<section class="checkout-shell py-4 py-lg-5">
     <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-12 col-lg-6 col-xl-5">
-                <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
-                    <div class="card-header bg-primary text-white p-4 text-center border-0">
-                        <h4 class="fw-bold mb-1">Kursga yozilish</h4>
-                        <p class="mb-0 opacity-75 small">{{ course.title }}</p>
-                    </div>
-                    
-                    <div class="card-body p-4 p-md-5">
-                        <div class="text-center mb-4 pb-4 border-bottom">
-                            <h5 class="fw-bold mb-3">To'lov uchun rekvizitlar</h5>
-                            <div class="bg-light p-3 rounded-4 d-inline-block shadow-sm">
-                                <div class="text-muted small mb-1">Karta raqami</div>
-                                <div class="fs-4 fw-bold text-dark font-monospace tracking-wide mb-1">8600 1234 5678 9012</div>
-                                <div class="fw-semibold text-primary">Azizbek</div>
-                            </div>
-                        </div>
+        <div class="checkout-head">
+            <div>
+                <span class="checkout-kicker">Secure checkout</span>
+                <h1>To'lovni yakunlash</h1>
+                <p>{{ course.title }} kursiga yozilish uchun quyidagi rekvizitga to'lov qilib, chekni yuklang.</p>
+            </div>
+            <a href="{% url 'course_detail' course.id %}" class="btn btn-outline-primary rounded-pill px-4">Kursga qaytish</a>
+        </div>
 
-                        {% if has_pending_receipt %}
-                            <div class="alert alert-warning text-center rounded-4 shadow-sm py-4">
-                                <div class="mb-3">
-                                    <i class="bi bi-hourglass-split display-4 text-warning"></i>
-                                </div>
-                                <h5 class="fw-bold">Tasdiqlanish kutilmoqda</h5>
-                                <p class="mb-0">Sizda mutaxassislarimiz tomonidan tekshirilayotgan to'lov cheki mavjud. Iltimos tekshiruv yakunlanmaguniga qadar kuting.</p>
-                            </div>
-                        {% else %}
-                            <form method="POST" enctype="multipart/form-data">
-                                {% csrf_token %}
-                                
-                                <div class="alert alert-info bg-opacity-10 rounded-4 border-info border-opacity-25 mb-4">
-                                    <h6 class="fw-bold mb-2"><i class="bi bi-calendar-check me-2"></i>To'lanayotgan davr</h6>
-                                    <p class="small mb-0">Ushbu to'lov <strong>{{ period_start|date:"d-F, Y" }}</strong> dan <strong>{{ period_end|date:"d-F, Y" }}</strong> gacha bo'lgan 30 o'quv kunini o'z ichiga oladi.</p>
-                                </div>
-                                
-                                <div class="mb-4">
-                                    <label class="form-label fw-semibold">To'lov summasi (so'm)</label>
-                                    <input type="number" name="amount" class="form-control form-control-lg bg-light" placeholder="Masalan: 100000" required>
-                                </div>
-                                
-                                <div class="mb-4">
-                                    <label class="form-label fw-semibold">To'lov cheki (Skrinshot)</label>
-                                    <input class="form-control form-control-lg bg-light" type="file" name="receipt_image" accept="image/*" required>
-                                    <div class="form-text mt-2"><i class="bi bi-info-circle me-1"></i> Iltimos, faqat rasm formatidagi (.jpg, .png) aniq chekni yuklang.</div>
-                                </div>
+        <div class="checkout-grid">
+            <aside class="checkout-surface checkout-requisites">
+                <span class="checkout-kicker">To'lov rekvizitlari</span>
+                <h2>Karta orqali to'lov</h2>
 
-                                <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm rounded-pill transition-hover">
-                                    Yuklash va Yuborish <i class="bi bi-arrow-right ms-2"></i>
-                                </button>
-                            </form>
-                        {% endif %}
+                <div class="checkout-card-number">{{ site_settings.payment_card_number }}</div>
+
+                <div class="checkout-meta">
+                    <div class="checkout-meta-item">
+                        <span>Karta egasi</span>
+                        <strong>{{ site_settings.payment_card_holder }}</strong>
                     </div>
-                    
-                    <div class="card-footer bg-white border-0 text-center p-4">
-                        <a href="{% url 'course_detail' course.id %}" class="text-muted text-decoration-none small">
-                            <i class="bi bi-arrow-left me-1"></i> Bekor qilish va orqaga qaytish
-                        </a>
+                    <div class="checkout-meta-item">
+                        <span>To'lov turi</span>
+                        <strong>{{ site_settings.payment_provider_label }}</strong>
                     </div>
                 </div>
-            </div>
+
+                <div class="checkout-summary">
+                    <div class="checkout-summary-row">
+                        <span>To'lov davri</span>
+                        <strong>{{ period_start|date:"d M Y" }} - {{ period_end|date:"d M Y" }}</strong>
+                    </div>
+                    <div class="checkout-summary-row">
+                        <span>To'lov summasi</span>
+                        <strong>{{ course.price|floatformat:0|intcomma }} so'm</strong>
+                    </div>
+                </div>
+
+                <p class="checkout-note">{{ site_settings.payment_instruction }}</p>
+            </aside>
+
+            <section class="checkout-surface checkout-upload">
+                <span class="checkout-kicker">Chek yuklash</span>
+                <h2>To'lovni tasdiqlash</h2>
+
+                {% if has_pending_receipt %}
+                    <div class="checkout-pending">
+                        <div class="checkout-pending-icon"><i class="bi bi-hourglass-split"></i></div>
+                        <h3>Tasdiqlanish kutilmoqda</h3>
+                        <p>Sizda tekshiruvdagi to'lov cheki mavjud. Admin tasdiqlagach kursga kirish ochiladi.</p>
+                    </div>
+                {% else %}
+                    <form method="POST" enctype="multipart/form-data" class="checkout-form">
+                        {% csrf_token %}
+
+                        <div class="checkout-upload-box">
+                            <label for="id_receipt_image" class="form-label">To'lov cheki (rasm)</label>
+                            <input id="id_receipt_image" class="form-control form-control-lg" type="file" name="receipt_image" accept="image/*" required>
+                            <p class="checkout-help">Faqat aniq ko'rinadigan rasm yuklang: JPG, JPEG, PNG.</p>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg rounded-pill w-100">
+                            Chekni yuborish
+                            <i class="bi bi-arrow-right ms-2"></i>
+                        </button>
+                    </form>
+                {% endif %}
+            </section>
         </div>
     </div>
 </section>

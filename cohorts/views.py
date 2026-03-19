@@ -52,7 +52,7 @@ def checkout_view(request, course_id):
         amount_paid = course.price
         
         if not receipt_image:
-            messages.error(request, "Iltimos, to'lov summasi va chek rasmini yuklang.")
+            messages.error(request, "Iltimos, to'lov chek rasmini yuklang.")
             return render(request, 'cohorts/checkout.html', {
                 'course': course, 
                 'enrollment': enrollment,

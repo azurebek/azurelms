@@ -180,6 +180,26 @@ class SiteSettings(SingletonModel):
     contact_email = models.EmailField(default="info@azurelms.uz", verbose_name="Email")
     contact_address = models.CharField(max_length=255, blank=True, verbose_name="Manzil")
     support_url = models.URLField(blank=True, verbose_name="Qo'llab-quvvatlash havolasi")
+    payment_card_number = models.CharField(
+        max_length=32,
+        default="8600 1234 5678 9012",
+        verbose_name="To'lov karta raqami",
+    )
+    payment_card_holder = models.CharField(
+        max_length=120,
+        default="Azizbek Sirojiddinov",
+        verbose_name="Karta egasi",
+    )
+    payment_provider_label = models.CharField(
+        max_length=120,
+        default="Uzcard / Humo",
+        verbose_name="To'lov turi yoki bank",
+    )
+    payment_instruction = models.CharField(
+        max_length=255,
+        default="To'lovni ushbu kartaga o'tkazing va chekni aniq ko'rinadigan formatda yuklang.",
+        verbose_name="To'lov bo'yicha izoh",
+    )
 
     telegram_url = models.URLField(blank=True, verbose_name="Telegram URL")
     instagram_url = models.URLField(blank=True, verbose_name="Instagram URL")
