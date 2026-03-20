@@ -18,6 +18,9 @@ urlpatterns = [
     
     # Users (Auth)
     path('users/', include('users.urls')),
+
+    # New Backoffice (alternative admin panel)
+    path('backoffice/', include('backoffice.urls', namespace='backoffice')),
     
     # Courses
     path('courses/', include('courses.urls')),

@@ -1,0 +1,59 @@
+{% extends 'backoffice/base.html' %}
+{% load humanize %}
+
+{% block backoffice_title %}To'lovlar | Backoffice{% endblock %}
+{% block backoffice_kicker %}Finance{% endblock %}
+{% block backoffice_heading %}To'lovlar Monitoring{% endblock %}
+{% block backoffice_description %}Receipt holatlari, pending tekshiruvlar va verified tushumlar monitoringi.{% endblock %}
+
+{% block backoffice_content %}
+<section class="bo-filter-row">
+    <div class="bo-chip-row">
+        <a class="bo-chip {% if selected_status == 'all' %}is-active{% endif %}" href="{% url 'backoffice:payments' %}?status=all">Barchasi ({{ summary_all|intcomma }})</a>
+        <a class="bo-chip {% if selected_status == 'pending' %}is-active{% endif %}" href="{% url 'backoffice:payments' %}?status=pending">Pending ({{ summary_pending|intcomma }})</a>
+        <a class="bo-chip {% if selected_status == 'verified' %}is-active{% endif %}" href="{% url 'backoffice:payments' %}?status=verified">Verified ({{ summary_verified|intcomma }})</a>
+    </div>
+    <div class="bo-inline-stats">
+        <span>Verified summa: <strong>{{ summary_verified_amount|floatformat:0|intcomma }} UZS</strong></span>
+    </div>
+</section>
+
+<section class="bo-surface">
+    <div class="bo-table-wrap">
+        <table class="table bo-table">
+            <thead>
+                <tr>
+                    <th>Sana</th>
+                    <th>Talaba</th>
+                    <th>Cohort</th>
+                    <th>Kurs</th>
+                    <th>Summa</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for receipt in receipts %}
+                <tr>
+                    <td>{{ receipt.submitted_at|date:"Y-m-d H:i" }}</td>
+                    <td>{{ receipt.enrollment.student.username }}</td>
+                    <td>{{ receipt.enrollment.cohort.name }}</td>
+                    <td>{{ receipt.enrollment.cohort.course.title }}</td>
+                    <td>{{ receipt.amount|floatformat:0|intcomma }}</td>
+                    <td>
+                        {% if receipt.is_verified %}
+                        <span class="bo-pill bo-pill--success">Verified</span>
+                        {% else %}
+                        <span class="bo-pill bo-pill--warning">Pending</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">To'lovlar topilmadi.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

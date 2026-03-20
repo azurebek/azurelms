@@ -106,6 +106,7 @@ INSTALLED_APPS = [
     'gamification',
     'subscriptions',
     'frontend',
+    'backoffice',
     'blog',
     'bot',
     'corsheaders',

@@ -1,0 +1,68 @@
+{% extends 'backoffice/base.html' %}
+{% load humanize %}
+
+{% block backoffice_title %}Cohorts | Backoffice{% endblock %}
+{% block backoffice_kicker %}Cohort Ops{% endblock %}
+{% block backoffice_heading %}Cohort Boshqaruv{% endblock %}
+{% block backoffice_description %}Guruhlar bo'yicha talaba oqimi, holatlar va davomatga tez o'tish.{% endblock %}
+
+{% block backoffice_content %}
+<section class="bo-filter-row">
+    <form method="get" class="bo-search-form bo-search-form--triple">
+        <select name="course_id" class="form-select">
+            <option value="">Barcha kurslar</option>
+            {% for course in courses %}
+            <option value="{{ course.id }}" {% if selected_course_id == course.id %}selected{% endif %}>{{ course.title }}</option>
+            {% endfor %}
+        </select>
+        <select name="status" class="form-select">
+            <option value="active" {% if selected_status == 'active' %}selected{% endif %}>Faol cohortlar</option>
+            <option value="archived" {% if selected_status == 'archived' %}selected{% endif %}>Arxiv cohortlar</option>
+        </select>
+        <button class="btn btn-primary rounded-pill px-4" type="submit">Filtrlash</button>
+    </form>
+
+    <div class="bo-inline-stats">
+        <span>Faol cohortlar: <strong>{{ summary_active|intcomma }}</strong></span>
+        <span>Jami talabalar: <strong>{{ summary_total_students|intcomma }}</strong></span>
+        <span>Faol talabalar: <strong>{{ summary_active_students|intcomma }}</strong></span>
+    </div>
+</section>
+
+<section class="bo-surface">
+    <div class="bo-table-wrap">
+        <table class="table bo-table">
+            <thead>
+                <tr>
+                    <th>Cohort</th>
+                    <th>Kurs</th>
+                    <th>Boshlanish</th>
+                    <th>Faol</th>
+                    <th>Pending</th>
+                    <th>Jami</th>
+                    <th>Amallar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cohort in cohorts %}
+                <tr>
+                    <td>{{ cohort.name }}</td>
+                    <td>{{ cohort.course.title }}</td>
+                    <td>{{ cohort.start_date|date:"Y-m-d" }}</td>
+                    <td>{{ cohort.active_members|intcomma }}</td>
+                    <td>{{ cohort.pending_members|intcomma }}</td>
+                    <td>{{ cohort.total_members|intcomma }}</td>
+                    <td>
+                        <a class="btn btn-sm btn-outline-primary rounded-pill" href="{% url 'backoffice:attendance' %}?cohort_id={{ cohort.id }}">Davomat</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7">Cohortlar topilmadi.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

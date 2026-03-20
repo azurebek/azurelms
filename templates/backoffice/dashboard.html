@@ -1,0 +1,239 @@
+{% extends 'backoffice/base.html' %}
+{% load humanize %}
+
+{% block backoffice_title %}Backoffice Dashboard{% endblock %}
+{% block backoffice_kicker %}Live Metrics{% endblock %}
+{% block backoffice_heading %}Operations Dashboard{% endblock %}
+{% block backoffice_description %}Talabalar, to'lovlar, AI va o'quv oqimi bo'yicha real vaqtga yaqin ko'rinish.{% endblock %}
+
+{% block backoffice_content %}
+<section class="bo-kpi-grid">
+    <article class="bo-kpi-card">
+        <span>Talabalar</span>
+        <strong>{{ kpi.active_students|intcomma }}</strong>
+        <small>Faol / Jami: {{ kpi.active_students|intcomma }} / {{ kpi.total_students|intcomma }}</small>
+    </article>
+    <article class="bo-kpi-card">
+        <span>Kurs + Cohort</span>
+        <strong>{{ kpi.active_courses|intcomma }} / {{ kpi.active_cohorts|intcomma }}</strong>
+        <small>Faol kurslar va faol cohortlar</small>
+    </article>
+    <article class="bo-kpi-card">
+        <span>30 kunlik tushum</span>
+        <strong>{{ kpi.revenue_30d|floatformat:0|intcomma }} UZS</strong>
+        <small>Kutilayotgan chek: {{ kpi.pending_receipts|intcomma }}</small>
+    </article>
+    <article class="bo-kpi-card">
+        <span>Progress sifati</span>
+        <strong>{{ kpi.completion_rate }}%</strong>
+        <small>Imtihondan o'tish: {{ kpi.exam_pass_rate }}%</small>
+    </article>
+    <article class="bo-kpi-card">
+        <span>AI Aktivlik (24h)</span>
+        <strong>{{ kpi.ai_replies_24h|intcomma }}</strong>
+        <small>Azure AI javoblari</small>
+    </article>
+    <article class="bo-kpi-card">
+        <span>RAG Bazasi</span>
+        <strong>{{ kpi.rag_chunks_total|intcomma }}</strong>
+        <small>Indexlangan chunklar</small>
+    </article>
+</section>
+
+<section class="bo-grid bo-grid--charts">
+    <article class="bo-surface">
+        <div class="bo-surface-head">
+            <h2>Enrollment Trend</h2>
+            <span>Oxirgi 14 kun</span>
+        </div>
+        <div class="bo-chart-wrap">
+            <canvas id="boEnrollmentChart"></canvas>
+        </div>
+    </article>
+    <article class="bo-surface">
+        <div class="bo-surface-head">
+            <h2>Revenue Trend</h2>
+            <span>Verified paymentlar</span>
+        </div>
+        <div class="bo-chart-wrap">
+            <canvas id="boRevenueChart"></canvas>
+        </div>
+    </article>
+    <article class="bo-surface">
+        <div class="bo-surface-head">
+            <h2>Chat Volume</h2>
+            <span>Message oqimi</span>
+        </div>
+        <div class="bo-chart-wrap">
+            <canvas id="boMessageChart"></canvas>
+        </div>
+    </article>
+    <article class="bo-surface">
+        <div class="bo-surface-head">
+            <h2>Room Mix</h2>
+            <span>Chat xonalari tarkibi</span>
+        </div>
+        <div class="bo-chart-wrap">
+            <canvas id="boRoomMixChart"></canvas>
+        </div>
+    </article>
+</section>
+
+<section class="bo-grid bo-grid--tables">
+    <article class="bo-surface">
+        <div class="bo-surface-head">
+            <h2>Top Kurslar</h2>
+            <span>Faol talabalar bo'yicha</span>
+        </div>
+        <div class="bo-table-wrap">
+            <table class="table bo-table">
+                <thead>
+                    <tr>
+                        <th>Kurs</th>
+                        <th>Talaba</th>
+                        <th>Dars</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for course in top_courses %}
+                    <tr>
+                        <td>{{ course.title }}</td>
+                        <td>{{ course.active_students|intcomma }}</td>
+                        <td>{{ course.lessons_total|intcomma }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3">Kurslar topilmadi.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </article>
+
+    <article class="bo-surface">
+        <div class="bo-surface-head">
+            <h2>Yaqin To'lovlar</h2>
+            <span>So'nggi receiptlar</span>
+        </div>
+        <div class="bo-table-wrap">
+            <table class="table bo-table">
+                <thead>
+                    <tr>
+                        <th>Talaba</th>
+                        <th>Cohort</th>
+                        <th>Summa</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for receipt in recent_payments %}
+                    <tr>
+                        <td>{{ receipt.enrollment.student.username }}</td>
+                        <td>{{ receipt.enrollment.cohort.name }}</td>
+                        <td>{{ receipt.amount|floatformat:0|intcomma }}</td>
+                        <td>
+                            {% if receipt.is_verified %}
+                            <span class="bo-pill bo-pill--success">Verified</span>
+                            {% else %}
+                            <span class="bo-pill bo-pill--warning">Pending</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4">To'lovlar yo'q.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </article>
+</section>
+
+{{ chart_labels|json_script:"bo-labels" }}
+{{ chart_enrollments|json_script:"bo-enrollments" }}
+{{ chart_revenue|json_script:"bo-revenue" }}
+{{ chart_messages|json_script:"bo-messages" }}
+{{ chart_chat_room_labels|json_script:"bo-room-labels" }}
+{{ chart_chat_room_totals|json_script:"bo-room-values" }}
+{% endblock %}
+
+{% block backoffice_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+const labels = JSON.parse(document.getElementById('bo-labels').textContent);
+const enrollments = JSON.parse(document.getElementById('bo-enrollments').textContent);
+const revenues = JSON.parse(document.getElementById('bo-revenue').textContent);
+const messages = JSON.parse(document.getElementById('bo-messages').textContent);
+const roomLabels = JSON.parse(document.getElementById('bo-room-labels').textContent);
+const roomValues = JSON.parse(document.getElementById('bo-room-values').textContent);
+
+const axisStyle = {
+    ticks: { color: '#5d6c84', font: { size: 11 } },
+    grid: { color: 'rgba(55, 73, 102, 0.08)' }
+};
+
+new Chart(document.getElementById('boEnrollmentChart'), {
+    type: 'line',
+    data: {
+        labels: labels,
+        datasets: [{
+            label: 'Enrollment',
+            data: enrollments,
+            borderColor: '#1463e6',
+            backgroundColor: 'rgba(20, 99, 230, 0.14)',
+            fill: true,
+            tension: 0.35,
+            pointRadius: 2,
+        }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, scales: { x: axisStyle, y: axisStyle } }
+});
+
+new Chart(document.getElementById('boRevenueChart'), {
+    type: 'bar',
+    data: {
+        labels: labels,
+        datasets: [{
+            label: 'UZS',
+            data: revenues,
+            backgroundColor: 'rgba(17, 139, 106, 0.72)',
+            borderRadius: 8,
+        }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, scales: { x: axisStyle, y: axisStyle } }
+});
+
+new Chart(document.getElementById('boMessageChart'), {
+    type: 'line',
+    data: {
+        labels: labels,
+        datasets: [{
+            label: 'Message',
+            data: messages,
+            borderColor: '#5a43d6',
+            backgroundColor: 'rgba(90, 67, 214, 0.12)',
+            tension: 0.35,
+            fill: true,
+            pointRadius: 2,
+        }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, scales: { x: axisStyle, y: axisStyle } }
+});
+
+new Chart(document.getElementById('boRoomMixChart'), {
+    type: 'doughnut',
+    data: {
+        labels: roomLabels,
+        datasets: [{
+            data: roomValues,
+            backgroundColor: ['#1463e6', '#24a977', '#f29d33'],
+            borderColor: '#ffffff',
+            borderWidth: 2,
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } }
+    }
+});
+</script>
+{% endblock %}

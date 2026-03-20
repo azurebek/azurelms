@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% block backoffice_title %}Backoffice{% endblock %}{% endblock %}
+{% block body_class %}backoffice-page{% endblock %}
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/backoffice.css' %}?v=2" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="bo-shell">
+    <aside class="bo-sidebar" id="boSidebar">
+        <div class="bo-sidebar-head">
+            <a class="bo-brand" href="{% url 'backoffice:dashboard' %}">
+                <span class="bo-brand-mark">AL</span>
+                <span class="bo-brand-copy">
+                    <small>BACKOFFICE</small>
+                    <strong>AzureLMS</strong>
+                </span>
+            </a>
+            <button class="bo-sidebar-close d-lg-none" id="boSidebarClose" type="button" aria-label="Yopish">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <nav class="bo-nav">
+            <a class="bo-nav-link {% if request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}" href="{% url 'backoffice:dashboard' %}">
+                <i class="bi bi-speedometer2"></i>
+                <span>Dashboard</span>
+            </a>
+            <a class="bo-nav-link {% if request.resolver_match.url_name == 'students' %}is-active{% endif %}" href="{% url 'backoffice:students' %}">
+                <i class="bi bi-people"></i>
+                <span>Talabalar</span>
+            </a>
+            <a class="bo-nav-link {% if request.resolver_match.url_name == 'cohorts' %}is-active{% endif %}" href="{% url 'backoffice:cohorts' %}">
+                <i class="bi bi-diagram-3"></i>
+                <span>Cohorts</span>
+            </a>
+            <a class="bo-nav-link {% if request.resolver_match.url_name == 'attendance' %}is-active{% endif %}" href="{% url 'backoffice:attendance' %}">
+                <i class="bi bi-clipboard2-check"></i>
+                <span>Davomat</span>
+            </a>
+            <a class="bo-nav-link {% if request.resolver_match.url_name == 'payments' %}is-active{% endif %}" href="{% url 'backoffice:payments' %}">
+                <i class="bi bi-wallet2"></i>
+                <span>To'lovlar</span>
+            </a>
+            <a class="bo-nav-link" href="/admin/" target="_blank" rel="noopener">
+                <i class="bi bi-shield-lock"></i>
+                <span>Legacy Admin</span>
+            </a>
+        </nav>
+
+        <div class="bo-sidebar-foot">
+            <div class="bo-user">
+                <div class="bo-user-avatar">
+                    {% if request.user.avatar %}
+                    <img src="{{ request.user.avatar.url }}" alt="{{ request.user.username }}">
+                    {% else %}
+                    {{ request.user.first_name|default:request.user.username|slice:":1"|upper }}
+                    {% endif %}
+                </div>
+                <div class="bo-user-copy">
+                    <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
+                    <span>@{{ request.user.username }}</span>
+                </div>
+            </div>
+            <a class="btn btn-outline-primary w-100 rounded-pill" href="{% url 'dashboard' %}">User Dashboard</a>
+        </div>
+    </aside>
+
+    <main class="bo-main">
+        <header class="bo-topbar">
+            <button class="btn btn-light bo-topbar-menu d-lg-none" id="boSidebarToggle" type="button">
+                <i class="bi bi-list"></i>
+            </button>
+            <div class="bo-topbar-copy">
+                <span class="bo-kicker">{% block backoffice_kicker %}Control Center{% endblock %}</span>
+                <h1>{% block backoffice_heading %}Backoffice{% endblock %}</h1>
+                <p>{% block backoffice_description %}Alternative professional admin panel{% endblock %}</p>
+            </div>
+            <div class="bo-topbar-actions">
+                <a class="btn btn-outline-primary rounded-pill" href="{% url 'home' %}">Saytga o'tish</a>
+            </div>
+        </header>
+
+        <section class="bo-content">
+            {% if messages %}
+            <div class="bo-alert-stack">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} bo-alert">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% block backoffice_content %}{% endblock %}
+        </section>
+    </main>
+</div>
+
+<div class="bo-overlay" id="boSidebarOverlay"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const boSidebar = document.getElementById('boSidebar');
+const boSidebarToggle = document.getElementById('boSidebarToggle');
+const boSidebarClose = document.getElementById('boSidebarClose');
+const boSidebarOverlay = document.getElementById('boSidebarOverlay');
+
+function openBoSidebar() {
+    if (boSidebar) boSidebar.classList.add('show');
+    if (boSidebarOverlay) boSidebarOverlay.classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeBoSidebar() {
+    if (boSidebar) boSidebar.classList.remove('show');
+    if (boSidebarOverlay) boSidebarOverlay.classList.remove('show');
+    document.body.style.overflow = '';
+}
+
+if (boSidebarToggle) boSidebarToggle.addEventListener('click', openBoSidebar);
+if (boSidebarClose) boSidebarClose.addEventListener('click', closeBoSidebar);
+if (boSidebarOverlay) boSidebarOverlay.addEventListener('click', closeBoSidebar);
+</script>
+{% block backoffice_js %}{% endblock %}
+{% endblock %}

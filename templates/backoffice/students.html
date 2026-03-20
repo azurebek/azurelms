@@ -1,0 +1,59 @@
+{% extends 'backoffice/base.html' %}
+{% load humanize %}
+
+{% block backoffice_title %}Talabalar | Backoffice{% endblock %}
+{% block backoffice_kicker %}Students{% endblock %}
+{% block backoffice_heading %}Talabalar Reestri{% endblock %}
+{% block backoffice_description %}Qidiruv, enrollment holati va faollik kesimida tezkor ko'rinish.{% endblock %}
+
+{% block backoffice_content %}
+<section class="bo-filter-row">
+    <form method="get" class="bo-search-form">
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Username, email yoki ism..." class="form-control">
+        <button class="btn btn-primary rounded-pill px-4" type="submit">Qidirish</button>
+    </form>
+    <div class="bo-inline-stats">
+        <span>Jami: <strong>{{ total_students|intcomma }}</strong></span>
+        <span>Faol: <strong>{{ active_students|intcomma }}</strong></span>
+    </div>
+</section>
+
+<section class="bo-surface">
+    <div class="bo-table-wrap">
+        <table class="table bo-table">
+            <thead>
+                <tr>
+                    <th>Talaba</th>
+                    <th>Email</th>
+                    <th>Faol</th>
+                    <th>Pending</th>
+                    <th>Jami enrollment</th>
+                    <th>So'nggi qo'shilish</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in students %}
+                <tr>
+                    <td>{{ user.get_full_name|default:user.username }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.active_enrollments|intcomma }}</td>
+                    <td>{{ user.pending_enrollments|intcomma }}</td>
+                    <td>{{ user.total_enrollments|intcomma }}</td>
+                    <td>
+                        {% if user.last_joined %}
+                        {{ user.last_joined|date:"Y-m-d H:i" }}
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">Talabalar topilmadi.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

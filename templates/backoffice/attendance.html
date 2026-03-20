@@ -1,0 +1,89 @@
+{% extends 'backoffice/base.html' %}
+
+{% block backoffice_title %}Davomat | Backoffice{% endblock %}
+{% block backoffice_kicker %}Attendance{% endblock %}
+{% block backoffice_heading %}Davomat Marking{% endblock %}
+{% block backoffice_description %}Cohort, dars va sana bo'yicha davomatni shu paneldan saqlang.{% endblock %}
+
+{% block backoffice_content %}
+<section class="bo-surface">
+    <form method="get" class="bo-form-grid bo-form-grid--attendance">
+        <div>
+            <label class="form-label">Cohort</label>
+            <select name="cohort_id" class="form-select" onchange="this.form.submit()">
+                <option value="">Cohort tanlang</option>
+                {% for cohort in cohorts %}
+                <option value="{{ cohort.id }}" {% if selected_cohort and selected_cohort.id == cohort.id %}selected{% endif %}>
+                    {{ cohort.name }} - {{ cohort.course.title }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="form-label">Dars</label>
+            <select name="lesson_id" class="form-select">
+                <option value="">Dars tanlang</option>
+                {% for lesson in lessons %}
+                <option value="{{ lesson.id }}" {% if selected_lesson and selected_lesson.id == lesson.id %}selected{% endif %}>
+                    {{ lesson.module.title }} / {{ lesson.title }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="form-label">Sana</label>
+            <input type="date" name="date" class="form-control" value="{{ selected_date|date:'Y-m-d' }}">
+        </div>
+        <div class="bo-form-actions">
+            <button class="btn btn-primary rounded-pill px-4 w-100" type="submit">Yuklash</button>
+        </div>
+    </form>
+</section>
+
+{% if selected_cohort and selected_lesson %}
+<section class="bo-surface">
+    <div class="bo-surface-head">
+        <h2>{{ selected_cohort.name }} - {{ selected_lesson.title }}</h2>
+        <span>{{ selected_date|date:"Y-m-d" }}</span>
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <div class="bo-table-wrap">
+            <table class="table bo-table">
+                <thead>
+                    <tr>
+                        <th>Talaba</th>
+                        <th>Username</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in member_rows %}
+                    <tr>
+                        <td>{{ row.enrollment.student.get_full_name|default:row.enrollment.student.username }}</td>
+                        <td>@{{ row.enrollment.student.username }}</td>
+                        <td>
+                            <select class="form-select bo-status-select" name="status_{{ row.enrollment.id }}">
+                                {% for value, label in status_choices %}
+                                <option value="{{ value }}" {% if row.status == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3">Faol talaba yo'q.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if member_rows %}
+        <div class="bo-form-actions bo-form-actions--end">
+            <button class="btn btn-primary rounded-pill px-4" type="submit">Davomatni saqlash</button>
+        </div>
+        {% endif %}
+    </form>
+</section>
+{% endif %}
+{% endblock %}
