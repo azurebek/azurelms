@@ -39,6 +39,9 @@
                     <span><i class="bi bi-people"></i>{{ primary_enrollment.cohort.name }}</span>
                     <span><i class="bi bi-person"></i>{{ primary_enrollment.cohort.course.instructor_display_name }}</span>
                     <span><i class="bi bi-collection-play"></i>{{ primary_enrollment.dashboard_completed_lessons }}/{{ primary_enrollment.dashboard_total_lessons|default:0 }} dars</span>
+                    {% if primary_enrollment.plan %}
+                    <span><i class="bi bi-gem"></i>{{ primary_enrollment.plan.name }}</span>
+                    {% endif %}
                 </div>
 
                 <div class="dashboard-focus-progress">

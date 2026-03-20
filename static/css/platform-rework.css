@@ -380,6 +380,21 @@ h4 {
   padding: 0.95rem 1rem;
 }
 
+.dashboard-page .sidebar-plan-chip {
+  margin-top: 0.34rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.34rem;
+  padding: 0.22rem 0.58rem;
+  border-radius: 999px;
+  border: 1px solid rgba(var(--lms-primary-rgb), 0.24);
+  background: rgba(var(--lms-primary-rgb), 0.1);
+  color: var(--lms-primary);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
 .dashboard-page .dashboard-shell-main {
   background: #f4f7fb;
 }
@@ -910,6 +925,45 @@ h4 {
   border: 1px solid var(--platform-border);
   background: #fff;
   min-height: 46px;
+}
+
+.checkout-plan-list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.checkout-plan-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  border: 1px solid var(--platform-border-soft);
+  border-radius: 10px;
+  background: #fff;
+  padding: 0.58rem 0.62rem;
+  cursor: pointer;
+}
+
+.checkout-plan-item input {
+  margin-top: 0.16rem;
+}
+
+.checkout-plan-item.is-selected {
+  border-color: rgba(var(--lms-primary-rgb), 0.35);
+  background: rgba(var(--lms-primary-rgb), 0.06);
+}
+
+.checkout-plan-copy {
+  display: grid;
+  gap: 0.08rem;
+}
+
+.checkout-plan-copy strong {
+  font-size: 0.9rem;
+}
+
+.checkout-plan-copy small {
+  color: var(--platform-muted);
+  font-size: 0.76rem;
 }
 
 .checkout-help {

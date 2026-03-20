@@ -10,7 +10,7 @@ class EnrollmentInline(admin.TabularInline):
     # Guruhning ichida turib o'quvchilarni qo'shish uchun
     model = Enrollment
     extra = 1
-    fields = ('student', 'status', 'last_payment_date', 'next_payment_deadline')
+    fields = ('student', 'plan', 'status', 'last_payment_date', 'next_payment_deadline')
 
 
 class PaymentReceiptInline(admin.TabularInline):
@@ -34,15 +34,15 @@ class CohortAdmin(admin.ModelAdmin):
 
 @admin.register(Enrollment)
 class EnrollmentAdmin(admin.ModelAdmin):
-    list_display = ('student', 'cohort', 'status', 'next_payment_deadline')
-    list_filter = ('status', 'cohort')
+    list_display = ('student', 'cohort', 'plan', 'status', 'next_payment_deadline')
+    list_filter = ('status', 'cohort', 'plan')
     search_fields = ('student__username', 'student__first_name', 'student__last_name')
     inlines = [PaymentReceiptInline]
 
 
 @admin.register(PaymentReceipt)
 class PaymentReceiptAdmin(admin.ModelAdmin):
-    list_display = ('get_student', 'amount', 'is_verified', 'submitted_at')
+    list_display = ('get_student', 'get_plan', 'amount', 'is_verified', 'submitted_at')
     list_filter = ('is_verified', 'submitted_at')
     search_fields = ('enrollment__student__username',)
 
@@ -53,6 +53,13 @@ class PaymentReceiptAdmin(admin.ModelAdmin):
         return obj.enrollment.student.username
 
     get_student.short_description = "O'quvchi"
+
+    def get_plan(self, obj):
+        if obj.enrollment.plan:
+            return obj.enrollment.plan.name
+        return "-"
+
+    get_plan.short_description = "Tarif"
 
 
 @admin.register(Attendance)

@@ -172,6 +172,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 'cohort',
                 'cohort__course',
                 'cohort__course__instructor',
+                'plan',
             ).annotate(
                 total_lessons_count=Count('cohort__course__modules__lessons', distinct=True),
                 completed_attendance_count=Count(
@@ -264,6 +265,11 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context['primary_enrollment'] = next(
             (item for item in enrollments if item.status == 'active'),
             enrollments[0] if enrollments else None,
+        )
+        context['current_plan'] = (
+            context['primary_enrollment'].plan
+            if context['primary_enrollment'] and context['primary_enrollment'].plan_id
+            else next((item.plan for item in enrollments if item.plan_id), None)
         )
 
         enrolled_course_ids = {item.cohort.course_id for item in enrollments}
@@ -408,9 +414,23 @@ class UserProfileView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
+        current_plan_enrollment = (
+            user.enrollments.filter(status='active', plan__isnull=False)
+            .select_related('plan')
+            .order_by('-joined_at')
+            .first()
+        )
+        if not current_plan_enrollment:
+            current_plan_enrollment = (
+                user.enrollments.filter(plan__isnull=False)
+                .select_related('plan')
+                .order_by('-joined_at')
+                .first()
+            )
         context['active_nav'] = 'profile'
         context['earned_badges'] = EarnedBadge.objects.filter(student=user).order_by('-earned_at')
         context['course_certificates'] = CourseCertificate.objects.filter(student=user).order_by('-issued_at')
+        context['current_plan'] = current_plan_enrollment.plan if current_plan_enrollment else None
         return context
 
 
@@ -646,7 +666,10 @@ class SubscriptionHistoryView(LoginRequiredMixin, ListView):
     context_object_name = 'enrollments'
     
     def get_queryset(self):
-        return self.request.user.enrollments.all().order_by('-joined_at')
+        return (
+            self.request.user.enrollments.select_related('cohort', 'cohort__course', 'plan')
+            .order_by('-joined_at')
+        )
 
 class CertificateListView(LoginRequiredMixin, TemplateView):
     template_name = 'users/certificates.html'

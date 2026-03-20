@@ -6,6 +6,7 @@ from users.context_processors import notification_context
 from users.models import Notification
 from cohorts.models import Cohort, Enrollment
 from courses.models import Course, Lesson, LessonProgress, Module
+from subscriptions.models import Plan
 
 
 User = get_user_model()
@@ -35,6 +36,44 @@ class NotificationContextTests(TestCase):
 
         self.assertEqual(context["unread_notifications_count"], 10)
         self.assertEqual(len(context["notifications"]), 8)
+
+    def test_context_exposes_sidebar_current_plan(self):
+        teacher = User.objects.create_user(
+            username="notif-teacher",
+            email="notif-teacher@example.com",
+            password="testpass123",
+            is_staff=True,
+        )
+        course = Course.objects.create(
+            title="Notif Plan Course",
+            description="Plan context test",
+            instructor=teacher,
+            level="beginner",
+        )
+        cohort = Cohort.objects.create(
+            name="Notif Plan Cohort",
+            course=course,
+            start_date="2026-03-01",
+        )
+        plan = Plan.objects.create(
+            name="Standard",
+            price=99000,
+            description="Standart tarif",
+            order=1,
+        )
+        Enrollment.objects.create(
+            student=self.user,
+            cohort=cohort,
+            status="active",
+            plan=plan,
+        )
+
+        request = self.factory.get("/")
+        request.user = self.user
+
+        context = notification_context(request)
+
+        self.assertEqual(context["sidebar_current_plan"], plan)
 
 
 class DashboardProgressTests(TestCase):

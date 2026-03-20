@@ -210,6 +210,9 @@
                 <div class="sidebar-account-copy">
                     <strong>{{ user.get_full_name|default:user.username }}</strong>
                     <span>@{{ user.username }}</span>
+                    {% if sidebar_current_plan %}
+                    <span class="sidebar-plan-chip"><i class="bi bi-gem"></i>{{ sidebar_current_plan.name }}</span>
+                    {% endif %}
                 </div>
             </div>
             <form action="{% url 'logout' %}" method="post">

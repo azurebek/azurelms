@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.utils import timezone
 import datetime
 from courses.models import Course
+from subscriptions.models import Plan
 from .models import Cohort, Enrollment, PaymentReceipt
 
 @login_required
@@ -23,6 +24,15 @@ def checkout_view(request, course_id):
         cohort=cohort,
         defaults={'status': 'pending'}
     )
+
+    plans = Plan.objects.order_by('order', 'id')
+    if not plans.exists():
+        messages.error(request, "Hozircha obuna tariflari sozlanmagan. Iltimos, birozdan so'ng qayta urinib ko'ring.")
+        return redirect('subscriptions:pricing')
+
+    selected_plan = enrollment.plan if enrollment.plan_id else plans.first()
+    if selected_plan and not plans.filter(id=selected_plan.id).exists():
+        selected_plan = plans.first()
     
     # Check if there is already a pending receipt
     has_pending_receipt = PaymentReceipt.objects.filter(
@@ -42,24 +52,43 @@ def checkout_view(request, course_id):
     tentative_end = tentative_start + datetime.timedelta(days=30)
     
     if request.method == 'POST':
+        selected_plan = plans.filter(id=request.POST.get('plan_id')).first()
+        if not selected_plan:
+            messages.error(request, "Iltimos, mavjud tariflardan birini tanlang.")
+            return render(request, 'cohorts/checkout.html', {
+                'course': course,
+                'enrollment': enrollment,
+                'plans': plans,
+                'selected_plan': plans.first(),
+                'has_pending_receipt': has_pending_receipt,
+                'period_start': tentative_start,
+                'period_end': tentative_end
+            })
+
         if has_pending_receipt:
             messages.error(request, "Sizda allaqachon tasdiqlanmagan to'lov cheki mavjud. Iltimos, administrator tasdiqlashini kuting.")
             return redirect('cohorts:checkout', course_id=course.id)
             
         # Chekni saqlaymiz
         receipt_image = request.FILES.get('receipt_image')
-        # Security: Do not trust client's amount. Use course.price.
-        amount_paid = course.price
+        # Security: Do not trust client's amount. Use selected plan price.
+        amount_paid = selected_plan.price
         
         if not receipt_image:
             messages.error(request, "Iltimos, to'lov chek rasmini yuklang.")
             return render(request, 'cohorts/checkout.html', {
                 'course': course, 
                 'enrollment': enrollment,
+                'plans': plans,
+                'selected_plan': selected_plan,
                 'has_pending_receipt': has_pending_receipt,
                 'period_start': tentative_start,
                 'period_end': tentative_end
             })
+
+        if enrollment.plan_id != selected_plan.id:
+            enrollment.plan = selected_plan
+            enrollment.save(update_fields=['plan'])
             
         # Ma'lumotlarni saqlash
         PaymentReceipt.objects.create(
@@ -75,6 +104,8 @@ def checkout_view(request, course_id):
     return render(request, 'cohorts/checkout.html', {
         'course': course, 
         'enrollment': enrollment,
+        'plans': plans,
+        'selected_plan': selected_plan,
         'has_pending_receipt': has_pending_receipt,
         'period_start': tentative_start,
         'period_end': tentative_end

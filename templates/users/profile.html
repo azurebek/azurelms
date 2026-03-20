@@ -25,6 +25,13 @@
 
                 <h2 class="h5 fw-bold mb-1">{{ user.get_full_name|default:user.username }}</h2>
                 <p class="text-muted mb-3">@{{ user.username }}</p>
+                {% if current_plan %}
+                <div class="mb-3">
+                    <span class="badge bg-primary-subtle text-primary-emphasis rounded-pill px-3 py-2">
+                        <i class="bi bi-gem me-1"></i>{{ current_plan.name }} tarifi
+                    </span>
+                </div>
+                {% endif %}
                 <p class="small text-muted mb-4">{{ user.email }}</p>
 
                 <a href="{% url 'settings' %}" class="btn btn-primary rounded-pill px-4">Sozlamalarni ochish</a>

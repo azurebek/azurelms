@@ -35,6 +35,14 @@ class Enrollment(models.Model):
     student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='enrollments',
                                 verbose_name="O'quvchi")
     cohort = models.ForeignKey(Cohort, on_delete=models.CASCADE, related_name='members', verbose_name="Guruh")
+    plan = models.ForeignKey(
+        "subscriptions.Plan",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="enrollments",
+        verbose_name="Tarif",
+    )
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending', verbose_name="Holati")
 
     joined_at = models.DateTimeField(auto_now_add=True)

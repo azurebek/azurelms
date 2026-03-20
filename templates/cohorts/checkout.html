@@ -11,7 +11,7 @@
             <div>
                 <span class="checkout-kicker">Secure checkout</span>
                 <h1>To'lovni yakunlash</h1>
-                <p>{{ course.title }} kursiga yozilish uchun quyidagi rekvizitga to'lov qilib, chekni yuklang.</p>
+                <p>{{ course.title }} kursiga yozilish uchun tarifni tanlang, quyidagi rekvizitga to'lov qilib, chekni yuklang.</p>
             </div>
             <a href="{% url 'course_detail' course.id %}" class="btn btn-outline-primary rounded-pill px-4">Kursga qaytish</a>
         </div>
@@ -36,12 +36,22 @@
 
                 <div class="checkout-summary">
                     <div class="checkout-summary-row">
+                        <span>Tarif</span>
+                        <strong>{% if selected_plan %}{{ selected_plan.name }}{% else %}-{% endif %}</strong>
+                    </div>
+                    <div class="checkout-summary-row">
                         <span>To'lov davri</span>
                         <strong>{{ period_start|date:"d M Y" }} - {{ period_end|date:"d M Y" }}</strong>
                     </div>
                     <div class="checkout-summary-row">
                         <span>To'lov summasi</span>
-                        <strong>{{ course.price|floatformat:0|intcomma }} so'm</strong>
+                        <strong>
+                            {% if selected_plan %}
+                            {{ selected_plan.price|floatformat:0|intcomma }} so'm
+                            {% else %}
+                            0 so'm
+                            {% endif %}
+                        </strong>
                     </div>
                 </div>
 
@@ -61,6 +71,28 @@
                 {% else %}
                     <form method="POST" enctype="multipart/form-data" class="checkout-form">
                         {% csrf_token %}
+
+                        <div class="checkout-upload-box">
+                            <label class="form-label d-block">Obuna tarifi</label>
+                            <div class="checkout-plan-list">
+                                {% for plan in plans %}
+                                <label class="checkout-plan-item {% if selected_plan and selected_plan.id == plan.id %}is-selected{% endif %}">
+                                    <input
+                                        type="radio"
+                                        name="plan_id"
+                                        value="{{ plan.id }}"
+                                        class="form-check-input"
+                                        {% if selected_plan and selected_plan.id == plan.id %}checked{% endif %}
+                                        required
+                                    >
+                                    <span class="checkout-plan-copy">
+                                        <strong>{{ plan.name }}</strong>
+                                        <small>{{ plan.price|floatformat:0|intcomma }} so'm / oy</small>
+                                    </span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
 
                         <div class="checkout-upload-box">
                             <label for="id_receipt_image" class="form-label">To'lov cheki (rasm)</label>
