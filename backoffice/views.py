@@ -19,15 +19,20 @@ from courses.models import (
     Lesson,
     LessonProgress,
 )
+from frontend.models import AuthPageSettings, LegalPage, SiteSettings
+from blog.models import BlogComment, BlogPost
 from messenger.models import ChatRoom, LessonRAGChunk, Message
 from subscriptions.models import Plan, PlanFeature
 from users.models import Notification, NotificationBroadcast
 from users.notification_service import send_broadcast
 from users.views import upsert_attendance_and_xp
 from .forms import (
+    BackofficeAuthPageSettingsForm,
     BackofficeBroadcastForm,
+    BackofficeLegalPageForm,
     BackofficePlanFeatureForm,
     BackofficePlanForm,
+    BackofficeSiteSettingsForm,
     BackofficeUserUpdateForm,
 )
 
@@ -922,6 +927,238 @@ class BackofficeLearningExamsView(BackofficeAccessMixin, TemplateView):
                     attempt.prefill_section_scores_from_answers()
                 count += 1
             messages.success(request, f"{count} ta urinish uchun ballar yangilandi.")
+            return redirect(request.get_full_path())
+
+        messages.error(request, "Noma'lum action.")
+        return redirect(request.get_full_path())
+
+
+class BackofficeContentSettingsView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/content_settings.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        site_settings = SiteSettings.load()
+        auth_settings = AuthPageSettings.load()
+        context.update(
+            {
+                "site_form": kwargs.get("site_form") or BackofficeSiteSettingsForm(instance=site_settings, prefix="site"),
+                "auth_form": kwargs.get("auth_form") or BackofficeAuthPageSettingsForm(instance=auth_settings, prefix="auth"),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = (request.POST.get("action") or "").strip()
+        site_settings = SiteSettings.load()
+        auth_settings = AuthPageSettings.load()
+
+        if action == "update_site":
+            site_form = BackofficeSiteSettingsForm(request.POST, instance=site_settings, prefix="site")
+            if site_form.is_valid():
+                site_form.save()
+                messages.success(request, "Site settings yangilandi.")
+                return redirect("backoffice:content_settings")
+            messages.error(request, "Site settings formada xatolik bor.")
+            return self.render_to_response(
+                self.get_context_data(site_form=site_form, auth_form=BackofficeAuthPageSettingsForm(instance=auth_settings, prefix="auth"))
+            )
+
+        if action == "update_auth":
+            auth_form = BackofficeAuthPageSettingsForm(request.POST, instance=auth_settings, prefix="auth")
+            if auth_form.is_valid():
+                auth_form.save()
+                messages.success(request, "Auth page settings yangilandi.")
+                return redirect("backoffice:content_settings")
+            messages.error(request, "Auth settings formada xatolik bor.")
+            return self.render_to_response(
+                self.get_context_data(site_form=BackofficeSiteSettingsForm(instance=site_settings, prefix="site"), auth_form=auth_form)
+            )
+
+        messages.error(request, "Noma'lum action.")
+        return redirect("backoffice:content_settings")
+
+
+class BackofficeLegalPagesView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/legal_pages.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        for page_type in [LegalPage.PAGE_PRIVACY, LegalPage.PAGE_TERMS, LegalPage.PAGE_FAQ]:
+            defaults = LegalPage.defaults_for(page_type)
+            LegalPage.objects.get_or_create(page_type=page_type, defaults=defaults)
+
+        context.update(
+            {
+                "pages": LegalPage.objects.order_by("page_type"),
+            }
+        )
+        return context
+
+
+class BackofficeLegalPageDetailView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/legal_page_detail.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        self.page = get_object_or_404(LegalPage, id=kwargs["page_id"])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(
+            {
+                "page_obj": self.page,
+                "form": kwargs.get("form") or BackofficeLegalPageForm(instance=self.page),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        form = BackofficeLegalPageForm(request.POST, instance=self.page)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Legal page yangilandi.")
+            return redirect("backoffice:legal_page_detail", page_id=self.page.id)
+        messages.error(request, "Legal page formada xatolik bor.")
+        return self.render_to_response(self.get_context_data(form=form))
+
+
+class BackofficeBlogPostsView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/blog_posts.html"
+
+    def _queryset(self):
+        query = (self.request.GET.get("q") or "").strip()
+        status = (self.request.GET.get("status") or "all").strip().lower()
+        featured = (self.request.GET.get("featured") or "all").strip().lower()
+        posts = BlogPost.objects.select_related("author").prefetch_related("tags")
+
+        if query:
+            posts = posts.filter(
+                Q(title__icontains=query)
+                | Q(excerpt__icontains=query)
+                | Q(body__icontains=query)
+                | Q(author__username__icontains=query)
+            )
+
+        if status in {BlogPost.STATUS_DRAFT, BlogPost.STATUS_PUBLISHED}:
+            posts = posts.filter(status=status)
+        else:
+            status = "all"
+
+        if featured == "yes":
+            posts = posts.filter(featured=True)
+        elif featured == "no":
+            posts = posts.filter(featured=False)
+        else:
+            featured = "all"
+
+        return posts.order_by("-updated_at")[:220], query, status, featured
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        posts, query, status, featured = self._queryset()
+        context.update(
+            {
+                "posts": posts,
+                "search_query": query,
+                "selected_status": status,
+                "selected_featured": featured,
+                "summary_total": BlogPost.objects.count(),
+                "summary_published": BlogPost.objects.filter(status=BlogPost.STATUS_PUBLISHED).count(),
+                "summary_draft": BlogPost.objects.filter(status=BlogPost.STATUS_DRAFT).count(),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = (request.POST.get("action") or "").strip()
+        ids = request.POST.getlist("post_ids")
+        queryset = BlogPost.objects.filter(id__in=ids)
+        if not queryset.exists():
+            messages.error(request, "Kamida bitta post tanlang.")
+            return redirect(request.get_full_path())
+
+        if action == "mark_draft":
+            updated = queryset.update(status=BlogPost.STATUS_DRAFT)
+            messages.success(request, f"{updated} ta post qoralama holatga o'tdi.")
+            return redirect(request.get_full_path())
+
+        if action == "mark_published":
+            now = timezone.now()
+            updated = queryset.update(status=BlogPost.STATUS_PUBLISHED, published_at=now)
+            messages.success(request, f"{updated} ta post nashr qilindi.")
+            return redirect(request.get_full_path())
+
+        if action == "mark_featured_on":
+            updated = queryset.update(featured=True)
+            messages.success(request, f"{updated} ta post featured bo'ldi.")
+            return redirect(request.get_full_path())
+
+        if action == "mark_featured_off":
+            updated = queryset.update(featured=False)
+            messages.success(request, f"{updated} ta post featured holatdan olindi.")
+            return redirect(request.get_full_path())
+
+        messages.error(request, "Noma'lum action.")
+        return redirect(request.get_full_path())
+
+
+class BackofficeBlogCommentsView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/blog_comments.html"
+
+    def _queryset(self):
+        query = (self.request.GET.get("q") or "").strip()
+        deleted = (self.request.GET.get("deleted") or "all").strip().lower()
+        comments = BlogComment.objects.select_related("post", "user", "parent")
+
+        if query:
+            comments = comments.filter(
+                Q(content__icontains=query)
+                | Q(post__title__icontains=query)
+                | Q(user__username__icontains=query)
+                | Q(user__email__icontains=query)
+            )
+
+        if deleted == "yes":
+            comments = comments.filter(is_deleted=True)
+        elif deleted == "no":
+            comments = comments.filter(is_deleted=False)
+        else:
+            deleted = "all"
+
+        return comments.order_by("-created_at")[:220], query, deleted
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        comments, query, deleted = self._queryset()
+        context.update(
+            {
+                "comments": comments,
+                "search_query": query,
+                "selected_deleted": deleted,
+                "summary_total": BlogComment.objects.count(),
+                "summary_deleted": BlogComment.objects.filter(is_deleted=True).count(),
+                "summary_active": BlogComment.objects.filter(is_deleted=False).count(),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = (request.POST.get("action") or "").strip()
+        ids = request.POST.getlist("comment_ids")
+        queryset = BlogComment.objects.filter(id__in=ids)
+        if not queryset.exists():
+            messages.error(request, "Kamida bitta comment tanlang.")
+            return redirect(request.get_full_path())
+
+        if action == "mark_deleted":
+            updated = queryset.update(is_deleted=True)
+            messages.success(request, f"{updated} ta comment o'chirilgan holatga o'tdi.")
+            return redirect(request.get_full_path())
+
+        if action == "restore":
+            updated = queryset.update(is_deleted=False)
+            messages.success(request, f"{updated} ta comment tiklandi.")
             return redirect(request.get_full_path())
 
         messages.error(request, "Noma'lum action.")

@@ -71,6 +71,22 @@
                 <i class="bi bi-clipboard-data"></i>
                 <span>Exam Review</span>
             </a>
+            <a class="bo-nav-link {% if request.resolver_match.url_name == 'content_settings' %}is-active{% endif %}" href="{% url 'backoffice:content_settings' %}">
+                <i class="bi bi-sliders"></i>
+                <span>Content Settings</span>
+            </a>
+            <a class="bo-nav-link {% if request.resolver_match.url_name == 'legal_pages' or request.resolver_match.url_name == 'legal_page_detail' %}is-active{% endif %}" href="{% url 'backoffice:legal_pages' %}">
+                <i class="bi bi-file-earmark-text"></i>
+                <span>Legal Pages</span>
+            </a>
+            <a class="bo-nav-link {% if request.resolver_match.url_name == 'blog_posts' %}is-active{% endif %}" href="{% url 'backoffice:blog_posts' %}">
+                <i class="bi bi-journal-richtext"></i>
+                <span>Blog Posts</span>
+            </a>
+            <a class="bo-nav-link {% if request.resolver_match.url_name == 'blog_comments' %}is-active{% endif %}" href="{% url 'backoffice:blog_comments' %}">
+                <i class="bi bi-chat-left-text"></i>
+                <span>Blog Comments</span>
+            </a>
             <a class="bo-nav-link" href="/admin/" target="_blank" rel="noopener">
                 <i class="bi bi-shield-lock"></i>
                 <span>Legacy Admin</span>

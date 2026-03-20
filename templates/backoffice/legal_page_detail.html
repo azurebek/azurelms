@@ -1,0 +1,34 @@
+{% extends 'backoffice/base.html' %}
+
+{% block backoffice_title %}Legal Page Detail | Backoffice{% endblock %}
+{% block backoffice_kicker %}CMS{% endblock %}
+{% block backoffice_heading %}{{ page_obj.get_page_type_display }}{% endblock %}
+{% block backoffice_description %}Huquqiy sahifa kontentini yangilash.{% endblock %}
+
+{% block backoffice_content %}
+<section class="bo-surface">
+    <div class="bo-surface-head">
+        <h2>{{ page_obj.get_page_type_display }}</h2>
+        <a href="{% url 'backoffice:legal_pages' %}" class="btn btn-sm btn-outline-primary rounded-pill">Ro'yxatga qaytish</a>
+    </div>
+    <form method="post" class="bo-form-grid">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+        <div>
+            <label class="form-label" for="{{ form.title.id_for_label }}">Sarlavha</label>
+            {{ form.title }}
+            {% if form.title.errors %}<div class="bo-field-error">{{ form.title.errors|join:", " }}</div>{% endif %}
+        </div>
+        <div>
+            <label class="form-label" for="{{ form.content.id_for_label }}">Kontent</label>
+            {{ form.content }}
+            {% if form.content.errors %}<div class="bo-field-error">{{ form.content.errors|join:", " }}</div>{% endif %}
+        </div>
+        <div class="bo-form-actions bo-form-actions--end">
+            <button class="btn btn-primary rounded-pill px-4" type="submit">Saqlash</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

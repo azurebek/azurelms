@@ -394,6 +394,7 @@ body.backoffice-page {
 }
 
 .bo-action-select {
+  width: 100%;
   max-width: 340px;
 }
 
@@ -443,6 +444,13 @@ body.backoffice-page {
   margin-top: 0.25rem;
   color: #b42318;
   font-size: 0.78rem;
+}
+
+.bo-subheading {
+  margin: 0.4rem 0 0.1rem;
+  font-size: 0.95rem;
+  color: #2f415d;
+  letter-spacing: 0.02em;
 }
 
 .bo-check-stack {

@@ -5,6 +5,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from cohorts.models import Attendance, Cohort, Enrollment
+from blog.models import BlogComment, BlogPost
 from courses.models import (
     Assignment,
     AssignmentSubmission,
@@ -17,6 +18,7 @@ from courses.models import (
     Lesson,
     Module,
 )
+from frontend.models import LegalPage, SiteSettings
 from subscriptions.models import Plan, PlanFeature
 from users.models import Notification, NotificationBroadcast
 
@@ -102,6 +104,17 @@ class BackofficeAccessTests(TestCase):
             is_completed=True,
             completed_time=timezone.now(),
         )
+        self.blog_post = BlogPost.objects.create(
+            title="Test Blog Post",
+            author=self.staff,
+            body="Blog body text",
+            status=BlogPost.STATUS_DRAFT,
+        )
+        self.blog_comment = BlogComment.objects.create(
+            post=self.blog_post,
+            user=self.student,
+            content="Comment text",
+        )
 
     def test_dashboard_requires_login(self):
         response = self.client.get(reverse("backoffice:dashboard"))
@@ -128,11 +141,18 @@ class BackofficeAccessTests(TestCase):
             "backoffice:learning_assignments",
             "backoffice:learning_releases",
             "backoffice:learning_exams",
+            "backoffice:content_settings",
+            "backoffice:legal_pages",
+            "backoffice:blog_posts",
+            "backoffice:blog_comments",
         ):
             response = self.client.get(reverse(route_name))
             self.assertEqual(response.status_code, 200, route_name)
         detail_response = self.client.get(reverse("backoffice:user_detail", args=[self.student.id]))
         self.assertEqual(detail_response.status_code, 200)
+        legal_page = LegalPage.objects.first()
+        legal_detail = self.client.get(reverse("backoffice:legal_page_detail", args=[legal_page.id]))
+        self.assertEqual(legal_detail.status_code, 200)
 
     def test_staff_can_save_attendance_from_backoffice(self):
         self.client.force_login(self.staff)
@@ -285,3 +305,58 @@ class BackofficeAccessTests(TestCase):
         self.assertEqual(approve_response.status_code, 302)
         self.exam_attempt.refresh_from_db()
         self.assertTrue(self.exam_attempt.is_reviewed)
+
+    def test_staff_can_update_site_settings_from_backoffice(self):
+        self.client.force_login(self.staff)
+        url = reverse("backoffice:content_settings")
+        response = self.client.post(
+            url,
+            {
+                "action": "update_site",
+                "site-company_description": "Yangi company copy",
+                "site-contact_phone": "+998900000000",
+                "site-contact_email": "info@example.com",
+                "site-contact_address": "Tashkent",
+                "site-support_url": "https://example.com/support",
+                "site-payment_card_number": "8600 0000 0000 0000",
+                "site-payment_card_holder": "Azure Admin",
+                "site-payment_provider_label": "Uzcard",
+                "site-payment_instruction": "To'lov qilib chek yuboring",
+                "site-telegram_url": "https://t.me/example",
+                "site-instagram_url": "https://instagram.com/example",
+                "site-youtube_url": "https://youtube.com/example",
+                "site-facebook_url": "https://facebook.com/example",
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        settings_obj = SiteSettings.load()
+        self.assertEqual(settings_obj.company_description, "Yangi company copy")
+
+    def test_staff_can_publish_blog_posts_from_backoffice(self):
+        self.client.force_login(self.staff)
+        url = reverse("backoffice:blog_posts")
+        response = self.client.post(
+            url,
+            {
+                "action": "mark_published",
+                "post_ids": [str(self.blog_post.id)],
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        self.blog_post.refresh_from_db()
+        self.assertEqual(self.blog_post.status, BlogPost.STATUS_PUBLISHED)
+        self.assertIsNotNone(self.blog_post.published_at)
+
+    def test_staff_can_soft_delete_blog_comments_from_backoffice(self):
+        self.client.force_login(self.staff)
+        url = reverse("backoffice:blog_comments")
+        response = self.client.post(
+            url,
+            {
+                "action": "mark_deleted",
+                "comment_ids": [str(self.blog_comment.id)],
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        self.blog_comment.refresh_from_db()
+        self.assertTrue(self.blog_comment.is_deleted)

@@ -1,0 +1,149 @@
+{% extends 'backoffice/base.html' %}
+
+{% block backoffice_title %}Content Settings | Backoffice{% endblock %}
+{% block backoffice_kicker %}CMS{% endblock %}
+{% block backoffice_heading %}Platforma Kontent Sozlamalari{% endblock %}
+{% block backoffice_description %}SiteSettings va AuthPageSettings'ni yangi paneldan boshqarish.{% endblock %}
+
+{% block backoffice_content %}
+<section class="bo-grid bo-grid--notify">
+    <article class="bo-surface">
+        <div class="bo-surface-head">
+            <h2>Site Settings</h2>
+            <span>Landing + checkout</span>
+        </div>
+        <form method="post" class="bo-form-grid">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_site">
+            {% if site_form.non_field_errors %}
+            <div class="alert alert-danger">{{ site_form.non_field_errors }}</div>
+            {% endif %}
+            <div>
+                <label class="form-label" for="{{ site_form.company_description.id_for_label }}">Company description</label>
+                {{ site_form.company_description }}
+            </div>
+            <div class="bo-form-grid bo-form-grid--triple">
+                <div>
+                    <label class="form-label" for="{{ site_form.contact_phone.id_for_label }}">Telefon</label>
+                    {{ site_form.contact_phone }}
+                </div>
+                <div>
+                    <label class="form-label" for="{{ site_form.contact_email.id_for_label }}">Email</label>
+                    {{ site_form.contact_email }}
+                </div>
+                <div>
+                    <label class="form-label" for="{{ site_form.support_url.id_for_label }}">Support URL</label>
+                    {{ site_form.support_url }}
+                </div>
+            </div>
+            <div>
+                <label class="form-label" for="{{ site_form.contact_address.id_for_label }}">Manzil</label>
+                {{ site_form.contact_address }}
+            </div>
+            <div class="bo-form-grid bo-form-grid--triple">
+                <div>
+                    <label class="form-label" for="{{ site_form.payment_card_number.id_for_label }}">Karta raqami</label>
+                    {{ site_form.payment_card_number }}
+                </div>
+                <div>
+                    <label class="form-label" for="{{ site_form.payment_card_holder.id_for_label }}">Karta egasi</label>
+                    {{ site_form.payment_card_holder }}
+                </div>
+                <div>
+                    <label class="form-label" for="{{ site_form.payment_provider_label.id_for_label }}">Provider</label>
+                    {{ site_form.payment_provider_label }}
+                </div>
+            </div>
+            <div>
+                <label class="form-label" for="{{ site_form.payment_instruction.id_for_label }}">To'lov izohi</label>
+                {{ site_form.payment_instruction }}
+            </div>
+            <div class="bo-form-grid bo-form-grid--triple">
+                <div>
+                    <label class="form-label" for="{{ site_form.telegram_url.id_for_label }}">Telegram</label>
+                    {{ site_form.telegram_url }}
+                </div>
+                <div>
+                    <label class="form-label" for="{{ site_form.instagram_url.id_for_label }}">Instagram</label>
+                    {{ site_form.instagram_url }}
+                </div>
+                <div>
+                    <label class="form-label" for="{{ site_form.youtube_url.id_for_label }}">YouTube</label>
+                    {{ site_form.youtube_url }}
+                </div>
+            </div>
+            <div>
+                <label class="form-label" for="{{ site_form.facebook_url.id_for_label }}">Facebook</label>
+                {{ site_form.facebook_url }}
+            </div>
+            <div class="bo-form-actions bo-form-actions--end">
+                <button class="btn btn-primary rounded-pill px-4" type="submit">Saqlash</button>
+            </div>
+        </form>
+    </article>
+
+    <article class="bo-surface">
+        <div class="bo-surface-head">
+            <h2>Auth Page Settings</h2>
+            <span>Login / Register</span>
+        </div>
+        <form method="post" class="bo-form-grid">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_auth">
+            {% if auth_form.non_field_errors %}
+            <div class="alert alert-danger">{{ auth_form.non_field_errors }}</div>
+            {% endif %}
+
+            <div>
+                <label class="form-label" for="{{ auth_form.meta_description.id_for_label }}">Meta description</label>
+                {{ auth_form.meta_description }}
+            </div>
+            <div class="bo-form-grid bo-form-grid--triple">
+                <div>
+                    <label class="form-label" for="{{ auth_form.topbar_back_label.id_for_label }}">Topbar label</label>
+                    {{ auth_form.topbar_back_label }}
+                </div>
+                <div>
+                    <label class="form-label" for="{{ auth_form.help_prompt.id_for_label }}">Help prompt</label>
+                    {{ auth_form.help_prompt }}
+                </div>
+                <div>
+                    <label class="form-label" for="{{ auth_form.help_link_label.id_for_label }}">Help link</label>
+                    {{ auth_form.help_link_label }}
+                </div>
+            </div>
+
+            <h3 class="bo-subheading">Login</h3>
+            <div class="bo-form-grid bo-form-grid--triple">
+                <div>{{ auth_form.login_visual_kicker }}</div>
+                <div>{{ auth_form.login_panel_badge }}</div>
+                <div>{{ auth_form.login_panel_heading }}</div>
+            </div>
+            <div>{{ auth_form.login_visual_title }}</div>
+            <div>{{ auth_form.login_visual_description }}</div>
+            <div>{{ auth_form.login_panel_intro }}</div>
+            <div class="bo-form-grid bo-form-grid--triple">
+                <div>{{ auth_form.login_footer_prompt }}</div>
+                <div>{{ auth_form.login_footer_link_label }}</div>
+            </div>
+
+            <h3 class="bo-subheading">Register</h3>
+            <div class="bo-form-grid bo-form-grid--triple">
+                <div>{{ auth_form.register_visual_kicker }}</div>
+                <div>{{ auth_form.register_panel_badge }}</div>
+                <div>{{ auth_form.register_panel_heading }}</div>
+            </div>
+            <div>{{ auth_form.register_visual_title }}</div>
+            <div>{{ auth_form.register_visual_description }}</div>
+            <div>{{ auth_form.register_panel_intro }}</div>
+            <div class="bo-form-grid bo-form-grid--triple">
+                <div>{{ auth_form.register_footer_prompt }}</div>
+                <div>{{ auth_form.register_footer_link_label }}</div>
+            </div>
+            <div class="bo-form-actions bo-form-actions--end">
+                <button class="btn btn-primary rounded-pill px-4" type="submit">Saqlash</button>
+            </div>
+        </form>
+    </article>
+</section>
+{% endblock %}

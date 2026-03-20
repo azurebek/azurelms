@@ -1,0 +1,35 @@
+{% extends 'backoffice/base.html' %}
+
+{% block backoffice_title %}Legal Pages | Backoffice{% endblock %}
+{% block backoffice_kicker %}CMS{% endblock %}
+{% block backoffice_heading %}Legal Sahifalar{% endblock %}
+{% block backoffice_description %}Privacy, Terms va FAQ kontentlarini boshqarish.{% endblock %}
+
+{% block backoffice_content %}
+<section class="bo-surface">
+    <div class="bo-table-wrap">
+        <table class="table bo-table">
+            <thead>
+                <tr>
+                    <th>Page type</th>
+                    <th>Sarlavha</th>
+                    <th>Yangilangan</th>
+                    <th>Amal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for page in pages %}
+                <tr>
+                    <td>{{ page.get_page_type_display }}</td>
+                    <td>{{ page.title }}</td>
+                    <td>{{ page.updated_at|date:"Y-m-d H:i" }}</td>
+                    <td><a class="btn btn-sm btn-outline-primary rounded-pill" href="{% url 'backoffice:legal_page_detail' page.id %}">Tahrirlash</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4">Legal sahifalar topilmadi.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
