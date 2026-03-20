@@ -53,6 +53,7 @@
     const currentLessonIdRaw = "{{ lesson.id|default_if_none:'' }}";
     const currentLessonId = /^\d+$/.test(currentLessonIdRaw) ? Number(currentLessonIdRaw) : null;
     const roomTypeStorageKey = `azure_messenger_last_room_type_${userId}`;
+    const pendingMessages = new Map();
 
     function setActiveTab(roomType) {
         const tabMap = {
@@ -151,6 +152,7 @@
     function renderMessages(messages) {
         const win = document.getElementById('main-chat-window');
         win.innerHTML = '';
+        pendingMessages.clear();
         if (messages.length === 0) {
             win.innerHTML = '<div class="text-center text-muted small mt-4" id="empty-chat-state">Suhbatni birinchi bo\'lib boshlang!</div>';
             return;
@@ -160,17 +162,74 @@
         scrollToBottom();
     }
 
-    function appendMessage(msg) {
-        const win = document.getElementById('main-chat-window');
+    function createClientMessageId() {
+        if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+            return window.crypto.randomUUID();
+        }
+        return `msg_${Date.now()}_${Math.random().toString(16).slice(2, 10)}`;
+    }
+
+    function createMessageElement(msg) {
         const emptyState = document.getElementById('empty-chat-state');
         if (emptyState) emptyState.remove();
 
         const isMe = msg.sender_id == userId;
         const safeText = formatMessageText(msg.text || '');
         const senderRow = !isMe ? `<span class="small text-muted mb-1 ms-1">${msg.sender_name}</span>` : '';
-        const msgHtml = `<div class="d-flex flex-column align-items-${isMe ? 'end' : 'start'} mb-3">${senderRow}<div class="msg-bubble ${isMe ? 'msg-sent' : 'msg-rcvd'} shadow-sm">${safeText}</div><span class="msg-meta mt-1 mx-1 text-muted">${msg.created_at || 'Hozirgina'}</span></div>`;
-        win.insertAdjacentHTML('beforeend', msgHtml);
+        const metaText = msg.meta_text || msg.created_at || 'Hozirgina';
+        const wrapper = document.createElement('div');
+        wrapper.className = `d-flex flex-column align-items-${isMe ? 'end' : 'start'} mb-3`;
+        if (msg.client_message_id) wrapper.dataset.clientMessageId = msg.client_message_id;
+        if (msg.message_id) wrapper.dataset.messageId = String(msg.message_id);
+        if (msg.is_pending) wrapper.style.opacity = '0.72';
+        wrapper.innerHTML = `${senderRow}<div class="msg-bubble ${isMe ? 'msg-sent' : 'msg-rcvd'} shadow-sm">${safeText}</div><span class="msg-meta mt-1 mx-1 text-muted">${metaText}</span>`;
+        return wrapper;
+    }
+
+    function appendMessage(msg, opts = {}) {
+        const win = document.getElementById('main-chat-window');
+        const node = createMessageElement(msg);
+        if (opts.replaceNode) {
+            opts.replaceNode.replaceWith(node);
+        } else {
+            win.appendChild(node);
+        }
         scrollToBottom();
+        return node;
+    }
+
+    function handleIncomingMessage(data) {
+        const payload = {
+            message_id: data.message_id,
+            client_message_id: data.client_message_id,
+            text: data.message,
+            sender_id: data.sender_id,
+            sender_name: data.sender_name,
+            created_at: data.created_at || 'Hozirgina'
+        };
+
+        if (payload.client_message_id && pendingMessages.has(payload.client_message_id)) {
+            const pendingNode = pendingMessages.get(payload.client_message_id);
+            appendMessage(payload, { replaceNode: pendingNode });
+            pendingMessages.delete(payload.client_message_id);
+            return;
+        }
+
+        if (payload.message_id) {
+            const exists = document.querySelector(`[data-message-id="${payload.message_id}"]`);
+            if (exists) return;
+        }
+
+        appendMessage(payload);
+    }
+
+    function markPendingFailed(clientMessageId) {
+        const pendingNode = pendingMessages.get(clientMessageId);
+        if (!pendingNode) return;
+        pendingNode.style.opacity = '1';
+        const meta = pendingNode.querySelector('.msg-meta');
+        if (meta) meta.textContent = "Yuborilmadi";
+        pendingMessages.delete(clientMessageId);
     }
 
     function formatMessageText(text) {
@@ -201,12 +260,7 @@
 
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
-            appendMessage({
-                text: data.message,
-                sender_id: data.sender_id,
-                sender_name: data.sender_name,
-                created_at: 'Hozirgina'
-            });
+            handleIncomingMessage(data);
         };
 
         chatSocket.onclose = function(e) {
@@ -218,13 +272,29 @@
         const input = document.getElementById('chat-input-field');
         const message = input.value.trim();
         
-        if (message && chatSocket && currentRoomId) {
-            chatSocket.send(JSON.stringify({
-                'message': message,
-                'sender_id': userId,
-                'context_lesson_id': currentLessonId
-            }));
-            input.value = '';
+        if (message && chatSocket && currentRoomId && chatSocket.readyState === WebSocket.OPEN) {
+            const clientMessageId = createClientMessageId();
+            const pendingNode = appendMessage({
+                text: message,
+                sender_id: userId,
+                sender_name: userName,
+                client_message_id: clientMessageId,
+                meta_text: 'Yuborilmoqda...',
+                is_pending: true
+            });
+            pendingMessages.set(clientMessageId, pendingNode);
+
+            try {
+                chatSocket.send(JSON.stringify({
+                    'message': message,
+                    'sender_id': userId,
+                    'context_lesson_id': currentLessonId,
+                    'client_message_id': clientMessageId
+                }));
+                input.value = '';
+            } catch (err) {
+                markPendingFailed(clientMessageId);
+            }
         }
     }
 

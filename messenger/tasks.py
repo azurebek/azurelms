@@ -177,7 +177,7 @@ def generate_ai_response(room_id, student_id, user_question, context_lesson_id=N
             f"chat_{room.id}",
             {
                 "type": "chat_message",
-                "id": ai_message.id,
+                "message_id": ai_message.id,
                 "message": ai_message.text,
                 "sender_name": "Azure AI",
                 "sender_id": None,

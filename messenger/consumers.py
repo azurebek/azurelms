@@ -47,6 +47,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         data = json.loads(text_data)
         message = data.get('message')
         context_lesson_id = data.get("context_lesson_id")
+        client_message_id = data.get("client_message_id")
 
         # Xavfsizlik: sender_id ni clientdan emas, scopeden olamiz
         user = self.scope['user']
@@ -55,6 +56,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
             context_lesson_id = int(context_lesson_id) if context_lesson_id is not None else None
         except (TypeError, ValueError):
             context_lesson_id = None
+
+        if not isinstance(client_message_id, str):
+            client_message_id = None
+        elif client_message_id:
+            client_message_id = client_message_id.strip()[:80] or None
 
         # Bazaga saqlash
         saved_msg = await self.save_message(user, self.room_id, message, context_lesson_id=context_lesson_id)
@@ -66,8 +72,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 {
                     'type': 'chat_message',
                     'message': message,
+                    'message_id': saved_msg.id,
+                    'created_at': saved_msg.created_at.strftime("%H:%M"),
                     'sender_id': user.id,
-                    'sender_name': user.get_full_name() or user.username
+                    'sender_name': user.get_full_name() or user.username,
+                    'client_message_id': client_message_id,
                 }
             )
 
@@ -81,11 +90,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
         message = event['message']
         sender_id = event['sender_id']
         sender_name = event.get('sender_name', "User")
+        message_id = event.get('message_id') or event.get('id')
+        created_at = event.get('created_at')
+        client_message_id = event.get("client_message_id")
 
         await self.send(text_data=json.dumps({
             'message': message,
             'sender_id': sender_id,
-            'sender_name': sender_name
+            'sender_name': sender_name,
+            'message_id': message_id,
+            'created_at': created_at,
+            'client_message_id': client_message_id,
         }))
 
     @database_sync_to_async
