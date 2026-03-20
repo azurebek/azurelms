@@ -5,6 +5,7 @@ from django.urls import reverse
 
 from cohorts.models import Attendance, Cohort, Enrollment
 from courses.models import Course, Lesson, Module
+from subscriptions.models import Plan, PlanFeature
 from users.models import Notification, NotificationBroadcast
 
 
@@ -69,6 +70,7 @@ class BackofficeAccessTests(TestCase):
             "backoffice:students",
             "backoffice:users",
             "backoffice:payments",
+            "backoffice:subscriptions",
             "backoffice:cohorts",
             "backoffice:attendance",
             "backoffice:notifications",
@@ -144,3 +146,34 @@ class BackofficeAccessTests(TestCase):
         broadcast = NotificationBroadcast.objects.first()
         self.assertTrue(broadcast.is_sent)
         self.assertGreater(Notification.objects.count(), 0)
+
+    def test_staff_can_manage_subscription_plan_from_backoffice(self):
+        self.client.force_login(self.staff)
+        create_url = reverse("backoffice:subscriptions")
+        response = self.client.post(
+            create_url,
+            {
+                "name": "Standard",
+                "price": 99000,
+                "description": "Standart obuna",
+                "is_popular": "on",
+                "button_text": "Boshlash",
+                "order": 1,
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Plan.objects.count(), 1)
+        plan = Plan.objects.first()
+
+        detail_url = reverse("backoffice:subscription_plan_detail", args=[plan.id])
+        response_feature = self.client.post(
+            detail_url,
+            {
+                "action": "add_feature",
+                "name": "Barcha darslar",
+                "is_included": "on",
+                "order": 1,
+            },
+        )
+        self.assertEqual(response_feature.status_code, 302)
+        self.assertEqual(PlanFeature.objects.filter(plan=plan).count(), 1)

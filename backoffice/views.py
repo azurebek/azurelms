@@ -13,10 +13,16 @@ from django.views.generic import TemplateView
 from cohorts.models import Attendance, Cohort, Enrollment, PaymentReceipt
 from courses.models import Course, ExamAttempt, Lesson, LessonProgress
 from messenger.models import ChatRoom, LessonRAGChunk, Message
+from subscriptions.models import Plan, PlanFeature
 from users.models import Notification, NotificationBroadcast
 from users.notification_service import send_broadcast
 from users.views import upsert_attendance_and_xp
-from .forms import BackofficeBroadcastForm, BackofficeUserUpdateForm
+from .forms import (
+    BackofficeBroadcastForm,
+    BackofficePlanFeatureForm,
+    BackofficePlanForm,
+    BackofficeUserUpdateForm,
+)
 
 
 User = get_user_model()
@@ -295,6 +301,86 @@ class BackofficeUserDetailView(BackofficeAccessMixin, TemplateView):
             return redirect("backoffice:user_detail", user_id=self.target_user.id)
         messages.error(request, "Forma xatolik bilan to'ldirilgan. Iltimos, tekshiring.")
         return self.render_to_response(self.get_context_data(form=form))
+
+
+class BackofficeSubscriptionsView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/subscriptions.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        plans = Plan.objects.prefetch_related("features").order_by("order", "id")
+        context.update(
+            {
+                "plans": plans,
+                "plan_form": kwargs.get("plan_form") or BackofficePlanForm(),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        form = BackofficePlanForm(request.POST)
+        if form.is_valid():
+            plan = form.save()
+            messages.success(request, f"Tarif yaratildi: {plan.name}.")
+            return redirect("backoffice:subscription_plan_detail", plan_id=plan.id)
+        messages.error(request, "Tarif formasi xatolik bilan to'ldirilgan.")
+        return self.render_to_response(self.get_context_data(plan_form=form))
+
+
+class BackofficeSubscriptionPlanDetailView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/subscription_plan_detail.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        self.plan = get_object_or_404(Plan, id=kwargs["plan_id"])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(
+            {
+                "plan": self.plan,
+                "features": self.plan.features.order_by("order", "id"),
+                "plan_form": kwargs.get("plan_form") or BackofficePlanForm(instance=self.plan),
+                "feature_form": kwargs.get("feature_form") or BackofficePlanFeatureForm(),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = (request.POST.get("action") or "").strip()
+
+        if action == "update_plan":
+            plan_form = BackofficePlanForm(request.POST, instance=self.plan)
+            if plan_form.is_valid():
+                plan_form.save()
+                messages.success(request, "Tarif yangilandi.")
+                return redirect("backoffice:subscription_plan_detail", plan_id=self.plan.id)
+            messages.error(request, "Tarifni yangilashda xatolik bor.")
+            return self.render_to_response(self.get_context_data(plan_form=plan_form))
+
+        if action == "add_feature":
+            feature_form = BackofficePlanFeatureForm(request.POST)
+            if feature_form.is_valid():
+                feature = feature_form.save(commit=False)
+                feature.plan = self.plan
+                feature.save()
+                messages.success(request, "Imkoniyat qo'shildi.")
+                return redirect("backoffice:subscription_plan_detail", plan_id=self.plan.id)
+            messages.error(request, "Imkoniyat qo'shishda xatolik bor.")
+            return self.render_to_response(self.get_context_data(feature_form=feature_form))
+
+        if action == "delete_feature":
+            feature_id = request.POST.get("feature_id")
+            feature = self.plan.features.filter(id=feature_id).first()
+            if feature:
+                feature.delete()
+                messages.success(request, "Imkoniyat o'chirildi.")
+            else:
+                messages.error(request, "Imkoniyat topilmadi.")
+            return redirect("backoffice:subscription_plan_detail", plan_id=self.plan.id)
+
+        messages.error(request, "Noma'lum amal.")
+        return redirect("backoffice:subscription_plan_detail", plan_id=self.plan.id)
 
 
 class BackofficePaymentsView(BackofficeAccessMixin, TemplateView):

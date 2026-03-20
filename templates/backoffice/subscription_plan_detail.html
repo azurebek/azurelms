@@ -1,0 +1,132 @@
+{% extends 'backoffice/base.html' %}
+{% load humanize %}
+
+{% block backoffice_title %}Plan Detail | Backoffice{% endblock %}
+{% block backoffice_kicker %}Monetization{% endblock %}
+{% block backoffice_heading %}{{ plan.name }}{% endblock %}
+{% block backoffice_description %}Tarifning asosiy ma'lumotlari va feature'larini boshqarish.{% endblock %}
+
+{% block backoffice_content %}
+<section class="bo-grid bo-grid--notify">
+    <article class="bo-surface">
+        <div class="bo-surface-head">
+            <h2>Tarifni yangilash</h2>
+            <a href="{% url 'backoffice:subscriptions' %}" class="btn btn-sm btn-outline-primary rounded-pill">Ro'yxatga qaytish</a>
+        </div>
+        <form method="post" class="bo-form-grid">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_plan">
+
+            {% if plan_form.non_field_errors %}
+            <div class="alert alert-danger">{{ plan_form.non_field_errors }}</div>
+            {% endif %}
+
+            <div>
+                <label class="form-label" for="{{ plan_form.name.id_for_label }}">Nomi</label>
+                {{ plan_form.name }}
+                {% if plan_form.name.errors %}<div class="bo-field-error">{{ plan_form.name.errors|join:", " }}</div>{% endif %}
+            </div>
+            <div class="bo-form-grid bo-form-grid--triple">
+                <div>
+                    <label class="form-label" for="{{ plan_form.price.id_for_label }}">Narxi</label>
+                    {{ plan_form.price }}
+                </div>
+                <div>
+                    <label class="form-label" for="{{ plan_form.button_text.id_for_label }}">Button</label>
+                    {{ plan_form.button_text }}
+                </div>
+                <div>
+                    <label class="form-label" for="{{ plan_form.order.id_for_label }}">Order</label>
+                    {{ plan_form.order }}
+                </div>
+            </div>
+            <div>
+                <label class="form-label" for="{{ plan_form.description.id_for_label }}">Izoh</label>
+                {{ plan_form.description }}
+            </div>
+            <label class="form-check">
+                {{ plan_form.is_popular }}
+                <span class="form-check-label">Ommabop qilib belgilash</span>
+            </label>
+            <div class="bo-form-actions bo-form-actions--end">
+                <button class="btn btn-primary rounded-pill px-4" type="submit">Yangilash</button>
+            </div>
+        </form>
+    </article>
+
+    <article class="bo-surface">
+        <div class="bo-surface-head">
+            <h2>Yangi feature</h2>
+            <span>{{ features|length }} ta</span>
+        </div>
+        <form method="post" class="bo-form-grid">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_feature">
+            <div>
+                <label class="form-label" for="{{ feature_form.name.id_for_label }}">Feature nomi</label>
+                {{ feature_form.name }}
+                {% if feature_form.name.errors %}<div class="bo-field-error">{{ feature_form.name.errors|join:", " }}</div>{% endif %}
+            </div>
+            <div class="bo-form-grid bo-form-grid--triple">
+                <div>
+                    <label class="form-label" for="{{ feature_form.order.id_for_label }}">Order</label>
+                    {{ feature_form.order }}
+                </div>
+                <div class="bo-form-actions">
+                    <label class="form-check">
+                        {{ feature_form.is_included }}
+                        <span class="form-check-label">Kiritilgan</span>
+                    </label>
+                </div>
+            </div>
+            <div class="bo-form-actions bo-form-actions--end">
+                <button class="btn btn-primary rounded-pill px-4" type="submit">Qo'shish</button>
+            </div>
+        </form>
+    </article>
+</section>
+
+<section class="bo-surface">
+    <div class="bo-surface-head">
+        <h2>Feature ro'yxati</h2>
+        <span>Plan: {{ plan.price|floatformat:0|intcomma }} so'm</span>
+    </div>
+    <div class="bo-table-wrap">
+        <table class="table bo-table">
+            <thead>
+                <tr>
+                    <th>Order</th>
+                    <th>Feature</th>
+                    <th>Kiritilganmi</th>
+                    <th>Amal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for feature in features %}
+                <tr>
+                    <td>{{ feature.order }}</td>
+                    <td>{{ feature.name }}</td>
+                    <td>
+                        {% if feature.is_included %}
+                        <span class="bo-pill bo-pill--success">Ha</span>
+                        {% else %}
+                        <span class="bo-pill bo-pill--warning">Yo'q</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <form method="post" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete_feature">
+                            <input type="hidden" name="feature_id" value="{{ feature.id }}">
+                            <button class="btn btn-sm btn-outline-danger rounded-pill" type="submit">O'chirish</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4">Feature yo'q.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

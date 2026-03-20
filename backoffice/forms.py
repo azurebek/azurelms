@@ -1,6 +1,7 @@
 from django import forms
 
 from cohorts.models import Cohort
+from subscriptions.models import Plan, PlanFeature
 from users.models import CustomUser, NotificationBroadcast
 
 
@@ -71,3 +72,28 @@ class BackofficeBroadcastForm(forms.ModelForm):
         if target_type == NotificationBroadcast.TARGET_COHORTS and not cohorts:
             self.add_error("cohorts", "Tanlangan cohortlar ro'yxati bo'sh bo'lmasligi kerak.")
         return cleaned_data
+
+
+class BackofficePlanForm(forms.ModelForm):
+    class Meta:
+        model = Plan
+        fields = ("name", "price", "description", "is_popular", "button_text", "order")
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+            "price": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 5}),
+            "is_popular": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "button_text": forms.TextInput(attrs={"class": "form-control"}),
+            "order": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
+        }
+
+
+class BackofficePlanFeatureForm(forms.ModelForm):
+    class Meta:
+        model = PlanFeature
+        fields = ("name", "is_included", "order")
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Masalan: Barcha darslarga kirish"}),
+            "is_included": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "order": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
+        }

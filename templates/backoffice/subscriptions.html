@@ -1,0 +1,99 @@
+{% extends 'backoffice/base.html' %}
+{% load humanize %}
+
+{% block backoffice_title %}Subscriptions | Backoffice{% endblock %}
+{% block backoffice_kicker %}Monetization{% endblock %}
+{% block backoffice_heading %}Obuna Tariflari{% endblock %}
+{% block backoffice_description %}Tariflarni yaratish, narxini boshqarish va feature tarkibini tahrirlash.{% endblock %}
+
+{% block backoffice_content %}
+<section class="bo-grid bo-grid--notify">
+    <article class="bo-surface">
+        <div class="bo-surface-head">
+            <h2>Yangi tarif</h2>
+            <span>Plan create</span>
+        </div>
+        <form method="post" class="bo-form-grid">
+            {% csrf_token %}
+            {% if plan_form.non_field_errors %}
+            <div class="alert alert-danger">{{ plan_form.non_field_errors }}</div>
+            {% endif %}
+
+            <div>
+                <label class="form-label" for="{{ plan_form.name.id_for_label }}">Nomi</label>
+                {{ plan_form.name }}
+                {% if plan_form.name.errors %}<div class="bo-field-error">{{ plan_form.name.errors|join:", " }}</div>{% endif %}
+            </div>
+            <div class="bo-form-grid bo-form-grid--triple">
+                <div>
+                    <label class="form-label" for="{{ plan_form.price.id_for_label }}">Narxi</label>
+                    {{ plan_form.price }}
+                </div>
+                <div>
+                    <label class="form-label" for="{{ plan_form.button_text.id_for_label }}">Button</label>
+                    {{ plan_form.button_text }}
+                </div>
+                <div>
+                    <label class="form-label" for="{{ plan_form.order.id_for_label }}">Order</label>
+                    {{ plan_form.order }}
+                </div>
+            </div>
+            <div>
+                <label class="form-label" for="{{ plan_form.description.id_for_label }}">Izoh</label>
+                {{ plan_form.description }}
+            </div>
+            <label class="form-check">
+                {{ plan_form.is_popular }}
+                <span class="form-check-label">Ommabop qilib belgilash</span>
+            </label>
+            <div class="bo-form-actions bo-form-actions--end">
+                <button class="btn btn-primary rounded-pill px-4" type="submit">Yaratish</button>
+            </div>
+        </form>
+    </article>
+
+    <article class="bo-surface">
+        <div class="bo-surface-head">
+            <h2>Tariflar</h2>
+            <span>{{ plans|length }} ta</span>
+        </div>
+        <div class="bo-table-wrap">
+            <table class="table bo-table">
+                <thead>
+                    <tr>
+                        <th>Tarif</th>
+                        <th>Narx</th>
+                        <th>Order</th>
+                        <th>Popular</th>
+                        <th>Features</th>
+                        <th>Amal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for plan in plans %}
+                    <tr>
+                        <td>
+                            <div class="fw-semibold">{{ plan.name }}</div>
+                            <div class="small text-muted">{{ plan.description|striptags|truncatechars:70 }}</div>
+                        </td>
+                        <td>{{ plan.price|floatformat:0|intcomma }} so'm</td>
+                        <td>{{ plan.order }}</td>
+                        <td>
+                            {% if plan.is_popular %}
+                            <span class="bo-pill bo-pill--info">Ha</span>
+                            {% else %}
+                            <span class="bo-pill">Yo'q</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ plan.features.count }}</td>
+                        <td><a class="btn btn-sm btn-outline-primary rounded-pill" href="{% url 'backoffice:subscription_plan_detail' plan.id %}">Tahrirlash</a></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6">Tariflar topilmadi.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </article>
+</section>
+{% endblock %}
