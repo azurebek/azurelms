@@ -1,0 +1,82 @@
+{% extends 'backoffice/base.html' %}
+{% load humanize %}
+
+{% block backoffice_title %}Messenger Messages | Backoffice{% endblock %}
+{% block backoffice_kicker %}Messenger{% endblock %}
+{% block backoffice_heading %}Messages Moderation{% endblock %}
+{% block backoffice_description %}Chat xabarlarini filtrlash, read/unread holatini boshqarish va o'chirish.{% endblock %}
+
+{% block backoffice_content %}
+<section class="bo-filter-row">
+    <form method="get" class="bo-search-form bo-search-form--quad">
+        <input type="text" name="q" value="{{ search_query }}" class="form-control" placeholder="Text, sender, room...">
+        <select name="room_type" class="form-select">
+            <option value="all" {% if selected_room_type == 'all' %}selected{% endif %}>Room type: all</option>
+            <option value="group" {% if selected_room_type == 'group' %}selected{% endif %}>Group</option>
+            <option value="private" {% if selected_room_type == 'private' %}selected{% endif %}>Private</option>
+            <option value="ai" {% if selected_room_type == 'ai' %}selected{% endif %}>AI</option>
+        </select>
+        <select name="unread" class="form-select">
+            <option value="all" {% if selected_unread == 'all' %}selected{% endif %}>Read status: all</option>
+            <option value="yes" {% if selected_unread == 'yes' %}selected{% endif %}>Faqat unread</option>
+            <option value="no" {% if selected_unread == 'no' %}selected{% endif %}>Faqat read</option>
+        </select>
+        <select name="ai_only" class="form-select">
+            <option value="all" {% if selected_ai_only == 'all' %}selected{% endif %}>AI/User: all</option>
+            <option value="yes" {% if selected_ai_only == 'yes' %}selected{% endif %}>Faqat AI</option>
+            <option value="no" {% if selected_ai_only == 'no' %}selected{% endif %}>Faqat User</option>
+        </select>
+        <button class="btn btn-primary rounded-pill px-4" type="submit">Filtrlash</button>
+    </form>
+    <div class="bo-inline-stats">
+        <span>Jami: <strong>{{ summary_total|intcomma }}</strong></span>
+        <span>Unread: <strong>{{ summary_unread|intcomma }}</strong></span>
+        <span>AI messages: <strong>{{ summary_ai|intcomma }}</strong></span>
+    </div>
+</section>
+
+<section class="bo-surface">
+    <form method="post">
+        {% csrf_token %}
+        <div class="bo-action-bar bo-action-bar--wrap">
+            <select name="action" class="form-select bo-action-select">
+                <option value="">Action tanlang</option>
+                <option value="mark_read">Read qilish</option>
+                <option value="mark_unread">Unread qilish</option>
+                <option value="delete_messages">O'chirish</option>
+            </select>
+            <button class="btn btn-primary rounded-pill px-4" type="submit">Qo'llash</button>
+        </div>
+        <div class="bo-table-wrap">
+            <table class="table bo-table">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" class="form-check-input" data-select-all="message_ids"></th>
+                        <th>Sana</th>
+                        <th>Room</th>
+                        <th>Sender</th>
+                        <th>Text</th>
+                        <th>Read</th>
+                        <th>AI</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for message in messages_list %}
+                    <tr>
+                        <td><input type="checkbox" class="form-check-input" name="message_ids" value="{{ message.id }}"></td>
+                        <td>{{ message.created_at|date:"Y-m-d H:i" }}</td>
+                        <td>{{ message.room.name|default:"(No name)" }}</td>
+                        <td>{{ message.sender.username|default:"Azure AI" }}</td>
+                        <td>{{ message.text|truncatechars:110 }}</td>
+                        <td>{% if message.is_read %}<span class="bo-pill bo-pill--success">Read</span>{% else %}<span class="bo-pill bo-pill--warning">Unread</span>{% endif %}</td>
+                        <td>{% if message.is_ai_response %}<span class="bo-pill bo-pill--info">AI</span>{% else %}<span class="bo-pill">User</span>{% endif %}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7">Xabar topilmadi.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </form>
+</section>
+{% endblock %}

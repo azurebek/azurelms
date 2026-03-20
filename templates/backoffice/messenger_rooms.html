@@ -1,0 +1,101 @@
+{% extends 'backoffice/base.html' %}
+{% load humanize %}
+
+{% block backoffice_title %}Messenger Rooms | Backoffice{% endblock %}
+{% block backoffice_kicker %}Messenger{% endblock %}
+{% block backoffice_heading %}Chat Rooms{% endblock %}
+{% block backoffice_description %}Guruh, private va AI xonalarni ko'rish hamda yangi xona ochish.{% endblock %}
+
+{% block backoffice_content %}
+<section class="bo-filter-row">
+    <form method="get" class="bo-search-form bo-search-form--triple">
+        <input type="text" name="q" class="form-control" value="{{ search_query }}" placeholder="Room nomi, cohort yoki participant...">
+        <select name="room_type" class="form-select">
+            <option value="all" {% if selected_room_type == 'all' %}selected{% endif %}>Barcha turlar</option>
+            <option value="group" {% if selected_room_type == 'group' %}selected{% endif %}>Group</option>
+            <option value="private" {% if selected_room_type == 'private' %}selected{% endif %}>Private</option>
+            <option value="ai" {% if selected_room_type == 'ai' %}selected{% endif %}>AI</option>
+        </select>
+        <button class="btn btn-primary rounded-pill px-4" type="submit">Filtrlash</button>
+    </form>
+    <div class="bo-inline-stats">
+        <span>Jami: <strong>{{ summary_total|intcomma }}</strong></span>
+        <span>Group: <strong>{{ summary_group|intcomma }}</strong></span>
+        <span>Private: <strong>{{ summary_private|intcomma }}</strong></span>
+        <span>AI: <strong>{{ summary_ai|intcomma }}</strong></span>
+    </div>
+</section>
+
+<section class="bo-grid bo-grid--notify">
+    <article class="bo-surface">
+        <div class="bo-surface-head">
+            <h2>Yangi chat xona</h2>
+            <span>Create</span>
+        </div>
+        <form method="post" class="bo-form-grid">
+            {% csrf_token %}
+            {% if create_form.non_field_errors %}
+            <div class="alert alert-danger">{{ create_form.non_field_errors }}</div>
+            {% endif %}
+            <div class="bo-form-grid bo-form-grid--triple">
+                <div>
+                    <label class="form-label" for="{{ create_form.room_type.id_for_label }}">Room type</label>
+                    {{ create_form.room_type }}
+                </div>
+                <div>
+                    <label class="form-label" for="{{ create_form.name.id_for_label }}">Name</label>
+                    {{ create_form.name }}
+                </div>
+                <div>
+                    <label class="form-label" for="{{ create_form.cohort.id_for_label }}">Cohort (optional)</label>
+                    {{ create_form.cohort }}
+                </div>
+            </div>
+            <div>
+                <label class="form-label" for="{{ create_form.participants.id_for_label }}">Participants</label>
+                {{ create_form.participants }}
+            </div>
+            <div class="bo-form-actions bo-form-actions--end">
+                <button class="btn btn-primary rounded-pill px-4" type="submit">Yaratish</button>
+            </div>
+        </form>
+    </article>
+
+    <article class="bo-surface">
+        <div class="bo-surface-head">
+            <h2>Roomlar</h2>
+            <span>{{ rooms|length|intcomma }} ta</span>
+        </div>
+        <div class="bo-table-wrap">
+            <table class="table bo-table">
+                <thead>
+                    <tr>
+                        <th>Room</th>
+                        <th>Type</th>
+                        <th>Cohort</th>
+                        <th>Participants</th>
+                        <th>Messages</th>
+                        <th>Created</th>
+                        <th>Amal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for room in rooms %}
+                    <tr>
+                        <td>{{ room.name|default:"(No name)" }}</td>
+                        <td>{{ room.get_room_type_display }}</td>
+                        <td>{{ room.cohort.name|default:"-" }}</td>
+                        <td>{{ room.participant_count|intcomma }}</td>
+                        <td>{{ room.message_count|intcomma }}</td>
+                        <td>{{ room.created_at|date:"Y-m-d H:i" }}</td>
+                        <td><a class="btn btn-sm btn-outline-primary rounded-pill" href="{% url 'backoffice:messenger_room_detail' room.id %}">Ochish</a></td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7">Room topilmadi.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </article>
+</section>
+{% endblock %}

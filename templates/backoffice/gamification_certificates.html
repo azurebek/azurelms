@@ -1,0 +1,101 @@
+{% extends 'backoffice/base.html' %}
+{% load humanize %}
+
+{% block backoffice_title %}Gamification Certificates | Backoffice{% endblock %}
+{% block backoffice_kicker %}Gamification{% endblock %}
+{% block backoffice_heading %}Gamification Sertifikatlari{% endblock %}
+{% block backoffice_description %}Sertifikat yozuvlarini kuzatish, manual yaratish va tozalash.{% endblock %}
+
+{% block backoffice_content %}
+<section class="bo-filter-row">
+    <form method="get" class="bo-search-form bo-search-form--triple">
+        <input type="text" name="q" class="form-control" value="{{ search_query }}" placeholder="User, course yoki certificate id...">
+        <select name="course_id" class="form-select">
+            <option value="">Barcha kurslar</option>
+            {% for course in courses %}
+            <option value="{{ course.id }}" {% if selected_course_id == course.id %}selected{% endif %}>{{ course.title|truncatechars:60 }}</option>
+            {% endfor %}
+        </select>
+        <button class="btn btn-primary rounded-pill px-4" type="submit">Filtrlash</button>
+    </form>
+    <div class="bo-inline-stats">
+        <span>Jami: <strong>{{ summary_total|intcomma }}</strong></span>
+    </div>
+</section>
+
+<section class="bo-grid bo-grid--notify">
+    <article class="bo-surface">
+        <div class="bo-surface-head">
+            <h2>Manual sertifikat</h2>
+            <span>Create</span>
+        </div>
+        <form method="post" enctype="multipart/form-data" class="bo-form-grid">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create_certificate">
+            <div>
+                <label class="form-label" for="{{ create_form.student.id_for_label }}">Student</label>
+                {{ create_form.student }}
+            </div>
+            <div>
+                <label class="form-label" for="{{ create_form.course.id_for_label }}">Course</label>
+                {{ create_form.course }}
+            </div>
+            <div>
+                <label class="form-label" for="{{ create_form.file.id_for_label }}">File (optional)</label>
+                {{ create_form.file }}
+            </div>
+            <div class="bo-form-actions bo-form-actions--end">
+                <button class="btn btn-primary rounded-pill px-4" type="submit">Yaratish</button>
+            </div>
+        </form>
+    </article>
+
+    <article class="bo-surface">
+        <div class="bo-surface-head">
+            <h2>Sertifikat ro'yxati</h2>
+            <span>{{ certificates|length|intcomma }} ta</span>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <div class="bo-action-bar bo-action-bar--wrap">
+                <input type="hidden" name="action" value="delete_selected">
+                <button class="btn btn-outline-danger rounded-pill px-4" type="submit">Tanlanganlarni o'chirish</button>
+            </div>
+            <div class="bo-table-wrap">
+                <table class="table bo-table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" class="form-check-input" data-select-all="certificate_ids"></th>
+                            <th>User</th>
+                            <th>Course</th>
+                            <th>Certificate ID</th>
+                            <th>Sana</th>
+                            <th>File</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cert in certificates %}
+                        <tr>
+                            <td><input type="checkbox" class="form-check-input" name="certificate_ids" value="{{ cert.id }}"></td>
+                            <td>{{ cert.student.username }}</td>
+                            <td>{{ cert.course.title|truncatechars:55 }}</td>
+                            <td>{{ cert.certificate_id }}</td>
+                            <td>{{ cert.issued_at|date:"Y-m-d H:i" }}</td>
+                            <td>
+                                {% if cert.file %}
+                                <a href="{{ cert.file.url }}" target="_blank" rel="noopener">Open</a>
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6">Sertifikat topilmadi.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </form>
+    </article>
+</section>
+{% endblock %}

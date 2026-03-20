@@ -1,8 +1,11 @@
 from django.contrib.auth import get_user_model
 from datetime import date
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
+from PIL import Image
+from io import BytesIO
 
 from cohorts.models import Attendance, Cohort, Enrollment
 from blog.models import BlogComment, BlogCommentLike, BlogHomeSettings, BlogPost, BlogPostClap, BlogPostRead, BlogTag
@@ -29,6 +32,8 @@ from frontend.models import (
     TeamMember,
     Testimonial,
 )
+from gamification.models import Badge, Certificate as GamificationCertificate, EarnedBadge, Level
+from messenger.models import ChatRoom, LessonRAGChunk, Message
 from subscriptions.models import Plan, PlanFeature
 from users.models import Notification, NotificationBroadcast
 
@@ -160,11 +165,53 @@ class BackofficeAccessTests(TestCase):
             bio="Short bio",
             order=1,
         )
+        self.chat_room = ChatRoom.objects.create(
+            room_type="group",
+            name="Cohort chat",
+            cohort=self.cohort,
+        )
+        self.chat_room.participants.add(self.staff, self.student)
+        self.chat_message = Message.objects.create(
+            room=self.chat_room,
+            sender=self.student,
+            text="Salom backoffice",
+            is_ai_response=False,
+            context_lesson=self.lesson,
+        )
+        self.rag_chunk = LessonRAGChunk.objects.create(
+            lesson=self.lesson,
+            course=self.course,
+            chunk_index=0,
+            chunk_text="RAG test chunk text",
+            chunk_hash="h1",
+            content_hash="c1",
+            token_count=4,
+            embedding=[0.1, 0.2, 0.3],
+            embedding_model="gemini-embedding-001",
+            embedding_dim=3,
+        )
+        self.level = Level.objects.create(name="Bronze", min_xp=100)
+        self.badge = Badge.objects.create(
+            name="First Steps",
+            description="First lesson completed.",
+            icon="badges/test-icon.png",
+        )
+        self.earned_badge = EarnedBadge.objects.create(student=self.student, badge=self.badge)
+        self.game_certificate = GamificationCertificate.objects.create(
+            student=self.student,
+            course=self.course,
+        )
+
+    def _dummy_image(self, name="test.png"):
+        image = Image.new("RGB", (2, 2), color="#1f6feb")
+        output = BytesIO()
+        image.save(output, format="PNG")
+        return SimpleUploadedFile(name, output.getvalue(), content_type="image/png")
 
     def test_dashboard_requires_login(self):
         response = self.client.get(reverse("backoffice:dashboard"))
         self.assertEqual(response.status_code, 302)
-        self.assertIn(reverse("login"), response.url)
+        self.assertIn(reverse("backoffice:login"), response.url)
 
     def test_dashboard_denies_non_staff_user(self):
         self.client.force_login(self.student)
@@ -198,6 +245,13 @@ class BackofficeAccessTests(TestCase):
             "backoffice:legal_pages",
             "backoffice:blog_posts",
             "backoffice:blog_comments",
+            "backoffice:messenger_rooms",
+            "backoffice:messenger_messages",
+            "backoffice:messenger_rag_chunks",
+            "backoffice:gamification_levels",
+            "backoffice:gamification_badges",
+            "backoffice:gamification_earned_badges",
+            "backoffice:gamification_certificates",
         ):
             response = self.client.get(reverse(route_name))
             self.assertEqual(response.status_code, 200, route_name)
@@ -211,6 +265,10 @@ class BackofficeAccessTests(TestCase):
         self.assertEqual(testimonial_detail.status_code, 200)
         member_detail = self.client.get(reverse("backoffice:content_team_member_detail", args=[self.team_member.id]))
         self.assertEqual(member_detail.status_code, 200)
+        room_detail = self.client.get(reverse("backoffice:messenger_room_detail", args=[self.chat_room.id]))
+        self.assertEqual(room_detail.status_code, 200)
+        badge_detail = self.client.get(reverse("backoffice:gamification_badge_detail", args=[self.badge.id]))
+        self.assertEqual(badge_detail.status_code, 200)
 
     def test_staff_can_save_attendance_from_backoffice(self):
         self.client.force_login(self.staff)
@@ -657,3 +715,138 @@ class BackofficeAccessTests(TestCase):
         )
         self.assertEqual(delete_tag_response.status_code, 302)
         self.assertFalse(BlogTag.objects.filter(id=created_tag.id).exists())
+
+    def test_backoffice_login_works_for_staff_and_denies_student(self):
+        login_url = reverse("backoffice:login")
+
+        staff_response = self.client.post(
+            login_url,
+            {
+                "username": self.staff.username,
+                "password": "testpass123",
+            },
+        )
+        self.assertEqual(staff_response.status_code, 302)
+        self.assertIn(reverse("backoffice:dashboard"), staff_response.url)
+
+        self.client.logout()
+        student_response = self.client.post(
+            login_url,
+            {
+                "username": self.student.username,
+                "password": "testpass123",
+            },
+        )
+        self.assertEqual(student_response.status_code, 302)
+        self.assertIn(reverse("backoffice:login"), student_response.url)
+
+    def test_staff_can_manage_messenger_from_backoffice(self):
+        self.client.force_login(self.staff)
+
+        rooms_url = reverse("backoffice:messenger_rooms")
+        create_room_response = self.client.post(
+            rooms_url,
+            {
+                "room_type": "private",
+                "name": "Private Tutor Room",
+                "cohort": "",
+                "participants": [str(self.staff.id)],
+            },
+        )
+        self.assertEqual(create_room_response.status_code, 302)
+        created_room = ChatRoom.objects.get(name="Private Tutor Room")
+
+        room_detail_url = reverse("backoffice:messenger_room_detail", args=[created_room.id])
+        add_message_response = self.client.post(
+            room_detail_url,
+            {
+                "action": "add_message",
+                "sender": str(self.staff.id),
+                "text": "Manual message from staff",
+                "context_lesson": str(self.lesson.id),
+            },
+        )
+        self.assertEqual(add_message_response.status_code, 302)
+        self.assertTrue(Message.objects.filter(room=created_room, text="Manual message from staff").exists())
+
+        messages_url = reverse("backoffice:messenger_messages")
+        mark_read_response = self.client.post(
+            messages_url,
+            {
+                "action": "mark_read",
+                "message_ids": [str(self.chat_message.id)],
+            },
+        )
+        self.assertEqual(mark_read_response.status_code, 302)
+        self.chat_message.refresh_from_db()
+        self.assertTrue(self.chat_message.is_read)
+
+        rag_url = reverse("backoffice:messenger_rag_chunks")
+        rag_response = self.client.get(rag_url + f"?course_id={self.course.id}")
+        self.assertEqual(rag_response.status_code, 200)
+        self.assertContains(rag_response, self.course.title)
+
+    def test_staff_can_manage_gamification_from_backoffice(self):
+        self.client.force_login(self.staff)
+
+        levels_url = reverse("backoffice:gamification_levels")
+        create_level_response = self.client.post(
+            levels_url,
+            {
+                "action": "create_level",
+                "name": "Silver",
+                "min_xp": 250,
+            },
+        )
+        self.assertEqual(create_level_response.status_code, 302)
+        self.assertTrue(Level.objects.filter(name="Silver").exists())
+
+        badges_url = reverse("backoffice:gamification_badges")
+        create_badge_response = self.client.post(
+            badges_url,
+            {
+                "action": "create_badge",
+                "name": "Daily Streak",
+                "description": "7 kun ketma-ket dars.",
+                "icon": self._dummy_image("streak.png"),
+            },
+        )
+        self.assertEqual(create_badge_response.status_code, 302)
+        created_badge = Badge.objects.get(name="Daily Streak")
+
+        badge_detail_url = reverse("backoffice:gamification_badge_detail", args=[created_badge.id])
+        update_badge_response = self.client.post(
+            badge_detail_url,
+            {
+                "action": "update",
+                "name": "Daily Streak Plus",
+                "description": "10 kun ketma-ket dars.",
+                "icon": self._dummy_image("streak-plus.png"),
+            },
+        )
+        self.assertEqual(update_badge_response.status_code, 302)
+        created_badge.refresh_from_db()
+        self.assertEqual(created_badge.name, "Daily Streak Plus")
+
+        earned_url = reverse("backoffice:gamification_earned_badges")
+        revoke_response = self.client.post(
+            earned_url,
+            {
+                "action": "revoke_selected",
+                "earned_badge_ids": [str(self.earned_badge.id)],
+            },
+        )
+        self.assertEqual(revoke_response.status_code, 302)
+        self.assertFalse(EarnedBadge.objects.filter(id=self.earned_badge.id).exists())
+
+        certificates_url = reverse("backoffice:gamification_certificates")
+        create_cert_response = self.client.post(
+            certificates_url,
+            {
+                "action": "create_certificate",
+                "student": str(self.staff.id),
+                "course": str(self.course.id),
+            },
+        )
+        self.assertEqual(create_cert_response.status_code, 302)
+        self.assertTrue(GamificationCertificate.objects.filter(student=self.staff, course=self.course).exists())

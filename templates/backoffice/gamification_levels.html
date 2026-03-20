@@ -1,0 +1,65 @@
+{% extends 'backoffice/base.html' %}
+{% load humanize %}
+
+{% block backoffice_title %}Gamification Levels | Backoffice{% endblock %}
+{% block backoffice_kicker %}Gamification{% endblock %}
+{% block backoffice_heading %}Level Boshqaruvi{% endblock %}
+{% block backoffice_description %}XP darajalarini yaratish, yangilash va o'chirish.{% endblock %}
+
+{% block backoffice_content %}
+<section class="bo-grid bo-grid--notify">
+    <article class="bo-surface">
+        <div class="bo-surface-head">
+            <h2>Yangi level</h2>
+            <span>Create</span>
+        </div>
+        <form method="post" enctype="multipart/form-data" class="bo-form-grid">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create_level">
+            <div class="bo-form-grid bo-form-grid--triple">
+                <div>
+                    <label class="form-label" for="{{ create_form.name.id_for_label }}">Name</label>
+                    {{ create_form.name }}
+                </div>
+                <div>
+                    <label class="form-label" for="{{ create_form.min_xp.id_for_label }}">Min XP</label>
+                    {{ create_form.min_xp }}
+                </div>
+                <div>
+                    <label class="form-label" for="{{ create_form.badge_image.id_for_label }}">Badge image</label>
+                    {{ create_form.badge_image }}
+                </div>
+            </div>
+            <div class="bo-form-actions bo-form-actions--end">
+                <button class="btn btn-primary rounded-pill px-4" type="submit">Qo'shish</button>
+            </div>
+        </form>
+    </article>
+
+    <article class="bo-surface">
+        <div class="bo-surface-head">
+            <h2>Level ro'yxati</h2>
+            <span>{{ levels|length|intcomma }} ta</span>
+        </div>
+        <div class="bo-form-grid">
+            {% for level in levels %}
+            <form method="post" enctype="multipart/form-data" class="bo-form-grid">
+                {% csrf_token %}
+                <input type="hidden" name="level_id" value="{{ level.id }}">
+                <div class="bo-form-grid bo-form-grid--triple">
+                    <input type="text" class="form-control" name="name" value="{{ level.name }}">
+                    <input type="number" min="0" class="form-control" name="min_xp" value="{{ level.min_xp }}">
+                    <input type="file" class="form-control" name="badge_image">
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-sm btn-outline-primary rounded-pill" type="submit" name="action" value="update_level">Saqlash</button>
+                    <button class="btn btn-sm btn-outline-danger rounded-pill" type="submit" name="action" value="delete_level">O'chirish</button>
+                </div>
+            </form>
+            {% empty %}
+            <div class="small text-muted">Level topilmadi.</div>
+            {% endfor %}
+        </div>
+    </article>
+</section>
+{% endblock %}

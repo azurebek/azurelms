@@ -1,0 +1,77 @@
+{% extends 'backoffice/base.html' %}
+{% load humanize %}
+
+{% block backoffice_title %}Gamification Badges | Backoffice{% endblock %}
+{% block backoffice_kicker %}Gamification{% endblock %}
+{% block backoffice_heading %}Badge Boshqaruvi{% endblock %}
+{% block backoffice_description %}Yutuq badge yaratish, tahrirlash va monitoring qilish.{% endblock %}
+
+{% block backoffice_content %}
+<section class="bo-grid bo-grid--notify">
+    <article class="bo-surface">
+        <div class="bo-surface-head">
+            <h2>Yangi badge</h2>
+            <span>Create</span>
+        </div>
+        <form method="post" enctype="multipart/form-data" class="bo-form-grid">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create_badge">
+            <div>
+                <label class="form-label" for="{{ create_form.name.id_for_label }}">Name</label>
+                {{ create_form.name }}
+            </div>
+            <div>
+                <label class="form-label" for="{{ create_form.description.id_for_label }}">Description</label>
+                {{ create_form.description }}
+            </div>
+            <div>
+                <label class="form-label" for="{{ create_form.icon.id_for_label }}">Icon</label>
+                {{ create_form.icon }}
+            </div>
+            <div class="bo-form-actions bo-form-actions--end">
+                <button class="btn btn-primary rounded-pill px-4" type="submit">Qo'shish</button>
+            </div>
+        </form>
+    </article>
+
+    <article class="bo-surface">
+        <div class="bo-surface-head">
+            <h2>Badge ro'yxati</h2>
+            <span>{{ badges|length|intcomma }} ta</span>
+        </div>
+        <div class="bo-table-wrap">
+            <table class="table bo-table">
+                <thead>
+                    <tr>
+                        <th>Badge</th>
+                        <th>Earned count</th>
+                        <th>Amal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for badge in badges %}
+                    <tr>
+                        <td>
+                            <div class="fw-semibold">{{ badge.name }}</div>
+                            <div class="small text-muted">{{ badge.description|striptags|truncatechars:90 }}</div>
+                        </td>
+                        <td>{{ badge.earned_count|intcomma }}</td>
+                        <td class="d-flex gap-2">
+                            <a class="btn btn-sm btn-outline-primary rounded-pill" href="{% url 'backoffice:gamification_badge_detail' badge.id %}">Tahrirlash</a>
+                            <form method="post" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete_badge">
+                                <input type="hidden" name="badge_id" value="{{ badge.id }}">
+                                <button class="btn btn-sm btn-outline-danger rounded-pill" type="submit">O'chirish</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3">Badge topilmadi.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </article>
+</section>
+{% endblock %}

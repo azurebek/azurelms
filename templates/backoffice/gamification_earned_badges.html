@@ -1,0 +1,62 @@
+{% extends 'backoffice/base.html' %}
+{% load humanize %}
+
+{% block backoffice_title %}Earned Badges | Backoffice{% endblock %}
+{% block backoffice_kicker %}Gamification{% endblock %}
+{% block backoffice_heading %}Earned Badges{% endblock %}
+{% block backoffice_description %}Qaysi user qaysi badge olganini kuzatish va kerak bo'lsa revoke qilish.{% endblock %}
+
+{% block backoffice_content %}
+<section class="bo-filter-row">
+    <form method="get" class="bo-search-form bo-search-form--triple">
+        <input type="text" name="q" class="form-control" value="{{ search_query }}" placeholder="User yoki badge nomi...">
+        <select name="badge_id" class="form-select">
+            <option value="">Barcha badge lar</option>
+            {% for badge in badges %}
+            <option value="{{ badge.id }}" {% if selected_badge_id == badge.id %}selected{% endif %}>{{ badge.name }}</option>
+            {% endfor %}
+        </select>
+        <button class="btn btn-primary rounded-pill px-4" type="submit">Filtrlash</button>
+    </form>
+    <div class="bo-inline-stats">
+        <span>Jami earned badge: <strong>{{ summary_total|intcomma }}</strong></span>
+    </div>
+</section>
+
+<section class="bo-surface">
+    <form method="post">
+        {% csrf_token %}
+        <div class="bo-action-bar bo-action-bar--wrap">
+            <select name="action" class="form-select bo-action-select">
+                <option value="">Action tanlang</option>
+                <option value="revoke_selected">Tanlanganlarni revoke qilish</option>
+            </select>
+            <button class="btn btn-primary rounded-pill px-4" type="submit">Qo'llash</button>
+        </div>
+        <div class="bo-table-wrap">
+            <table class="table bo-table">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" class="form-check-input" data-select-all="earned_badge_ids"></th>
+                        <th>User</th>
+                        <th>Badge</th>
+                        <th>Sana</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for earned in earned_badges %}
+                    <tr>
+                        <td><input type="checkbox" class="form-check-input" name="earned_badge_ids" value="{{ earned.id }}"></td>
+                        <td>{{ earned.student.username }} <span class="text-muted small">{{ earned.student.email }}</span></td>
+                        <td>{{ earned.badge.name }}</td>
+                        <td>{{ earned.earned_at|date:"Y-m-d H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4">Earned badge yozuvi topilmadi.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </form>
+</section>
+{% endblock %}

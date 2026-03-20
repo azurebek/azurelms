@@ -2,6 +2,7 @@ from django import forms
 
 from cohorts.models import Cohort
 from blog.models import BlogHomeSettings, BlogTag
+from courses.models import Course, Lesson
 from frontend.models import (
     AboutPage,
     AboutStatistic,
@@ -14,6 +15,8 @@ from frontend.models import (
     TeamMember,
     Testimonial,
 )
+from gamification.models import Badge, Certificate as GamificationCertificate, Level
+from messenger.models import ChatRoom, Message
 from subscriptions.models import Plan, PlanFeature
 from users.models import CustomUser, NotificationBroadcast
 
@@ -370,3 +373,99 @@ class BackofficeBlogTagForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["slug"].required = False
+
+
+class BackofficeChatRoomForm(forms.ModelForm):
+    participants = forms.ModelMultipleChoiceField(
+        queryset=CustomUser.objects.filter(is_active=True).order_by("username"),
+        required=True,
+        widget=forms.SelectMultiple(attrs={"class": "form-select", "size": "7"}),
+    )
+
+    class Meta:
+        model = ChatRoom
+        fields = ("room_type", "name", "cohort", "participants")
+        widgets = {
+            "room_type": forms.Select(attrs={"class": "form-select"}),
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+            "cohort": forms.Select(attrs={"class": "form-select"}),
+        }
+
+    def save(self, commit=True):
+        participants = self.cleaned_data.pop("participants", [])
+        room = super().save(commit=commit)
+        if commit:
+            room.participants.set(participants)
+        return room
+
+
+class BackofficeMessageCreateForm(forms.ModelForm):
+    class Meta:
+        model = Message
+        fields = ("sender", "text", "is_ai_response", "context_lesson")
+        widgets = {
+            "sender": forms.Select(attrs={"class": "form-select"}),
+            "text": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
+            "is_ai_response": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "context_lesson": forms.Select(attrs={"class": "form-select"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        room = kwargs.pop("room", None)
+        super().__init__(*args, **kwargs)
+        self.fields["sender"].required = False
+        self.fields["context_lesson"].required = False
+        self.fields["sender"].queryset = CustomUser.objects.filter(is_active=True).order_by("username")
+        if room and room.cohort_id:
+            self.fields["context_lesson"].queryset = Lesson.objects.filter(module__course=room.cohort.course).order_by(
+                "module__order",
+                "order",
+            )
+        else:
+            self.fields["context_lesson"].queryset = Lesson.objects.order_by("-id")
+
+    def clean(self):
+        cleaned_data = super().clean()
+        sender = cleaned_data.get("sender")
+        is_ai_response = cleaned_data.get("is_ai_response")
+        if not is_ai_response and not sender:
+            self.add_error("sender", "AI javobi bo'lmasa yuboruvchi tanlanishi kerak.")
+        return cleaned_data
+
+
+class BackofficeLevelForm(forms.ModelForm):
+    class Meta:
+        model = Level
+        fields = ("name", "min_xp", "badge_image")
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+            "min_xp": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
+            "badge_image": forms.ClearableFileInput(attrs={"class": "form-control"}),
+        }
+
+
+class BackofficeBadgeForm(forms.ModelForm):
+    class Meta:
+        model = Badge
+        fields = ("name", "description", "icon")
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 5}),
+            "icon": forms.ClearableFileInput(attrs={"class": "form-control"}),
+        }
+
+
+class BackofficeGamificationCertificateForm(forms.ModelForm):
+    class Meta:
+        model = GamificationCertificate
+        fields = ("student", "course", "file")
+        widgets = {
+            "student": forms.Select(attrs={"class": "form-select"}),
+            "course": forms.Select(attrs={"class": "form-select"}),
+            "file": forms.ClearableFileInput(attrs={"class": "form-control"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["student"].queryset = CustomUser.objects.filter(is_active=True).order_by("username")
+        self.fields["course"].queryset = Course.objects.filter(is_active=True).order_by("title")

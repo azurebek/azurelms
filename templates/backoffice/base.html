@@ -119,6 +119,34 @@
                 <i class="bi bi-chat-left-text"></i>
                 <span>Blog Comments</span>
             </a>
+            <a class="bo-nav-link {% if request.resolver_match.url_name == 'messenger_rooms' or request.resolver_match.url_name == 'messenger_room_detail' %}is-active{% endif %}" href="{% url 'backoffice:messenger_rooms' %}">
+                <i class="bi bi-chat-dots"></i>
+                <span>Messenger Rooms</span>
+            </a>
+            <a class="bo-nav-link {% if request.resolver_match.url_name == 'messenger_messages' %}is-active{% endif %}" href="{% url 'backoffice:messenger_messages' %}">
+                <i class="bi bi-chat-square-text"></i>
+                <span>Messenger Messages</span>
+            </a>
+            <a class="bo-nav-link {% if request.resolver_match.url_name == 'messenger_rag_chunks' %}is-active{% endif %}" href="{% url 'backoffice:messenger_rag_chunks' %}">
+                <i class="bi bi-diagram-2"></i>
+                <span>RAG Chunks</span>
+            </a>
+            <a class="bo-nav-link {% if request.resolver_match.url_name == 'gamification_levels' %}is-active{% endif %}" href="{% url 'backoffice:gamification_levels' %}">
+                <i class="bi bi-bar-chart-steps"></i>
+                <span>Gamification Levels</span>
+            </a>
+            <a class="bo-nav-link {% if request.resolver_match.url_name == 'gamification_badges' or request.resolver_match.url_name == 'gamification_badge_detail' %}is-active{% endif %}" href="{% url 'backoffice:gamification_badges' %}">
+                <i class="bi bi-award"></i>
+                <span>Gamification Badges</span>
+            </a>
+            <a class="bo-nav-link {% if request.resolver_match.url_name == 'gamification_earned_badges' %}is-active{% endif %}" href="{% url 'backoffice:gamification_earned_badges' %}">
+                <i class="bi bi-patch-check"></i>
+                <span>Earned Badges</span>
+            </a>
+            <a class="bo-nav-link {% if request.resolver_match.url_name == 'gamification_certificates' %}is-active{% endif %}" href="{% url 'backoffice:gamification_certificates' %}">
+                <i class="bi bi-file-earmark-check"></i>
+                <span>Game Certificates</span>
+            </a>
             <a class="bo-nav-link" href="/admin/" target="_blank" rel="noopener">
                 <i class="bi bi-shield-lock"></i>
                 <span>Legacy Admin</span>

@@ -6,6 +6,7 @@ from . import views
 app_name = "backoffice"
 
 urlpatterns = [
+    path("login/", views.BackofficeLoginView.as_view(), name="login"),
     path("", views.BackofficeDashboardView.as_view(), name="dashboard"),
     path("students/", views.BackofficeStudentsView.as_view(), name="students"),
     path("users/", views.BackofficeUsersView.as_view(), name="users"),
@@ -42,4 +43,25 @@ urlpatterns = [
     path("content/legal/<int:page_id>/", views.BackofficeLegalPageDetailView.as_view(), name="legal_page_detail"),
     path("content/blog-posts/", views.BackofficeBlogPostsView.as_view(), name="blog_posts"),
     path("content/blog-comments/", views.BackofficeBlogCommentsView.as_view(), name="blog_comments"),
+    path("messenger/rooms/", views.BackofficeMessengerRoomsView.as_view(), name="messenger_rooms"),
+    path("messenger/rooms/<int:room_id>/", views.BackofficeMessengerRoomDetailView.as_view(), name="messenger_room_detail"),
+    path("messenger/messages/", views.BackofficeMessengerMessagesView.as_view(), name="messenger_messages"),
+    path("messenger/rag-chunks/", views.BackofficeMessengerRAGChunksView.as_view(), name="messenger_rag_chunks"),
+    path("gamification/levels/", views.BackofficeGamificationLevelsView.as_view(), name="gamification_levels"),
+    path("gamification/badges/", views.BackofficeGamificationBadgesView.as_view(), name="gamification_badges"),
+    path(
+        "gamification/badges/<int:badge_id>/",
+        views.BackofficeGamificationBadgeDetailView.as_view(),
+        name="gamification_badge_detail",
+    ),
+    path(
+        "gamification/earned-badges/",
+        views.BackofficeGamificationEarnedBadgesView.as_view(),
+        name="gamification_earned_badges",
+    ),
+    path(
+        "gamification/certificates/",
+        views.BackofficeGamificationCertificatesView.as_view(),
+        name="gamification_certificates",
+    ),
 ]

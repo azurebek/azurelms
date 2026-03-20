@@ -2,11 +2,13 @@ import datetime
 from decimal import Decimal
 
 from django.contrib import messages
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, logout
+from django.contrib.auth.views import LoginView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import Count, Max, Q, Sum
 from django.db.models.functions import TruncDate
 from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import TemplateView
 
@@ -40,6 +42,7 @@ from frontend.models import (
     TeamMember,
     Testimonial,
 )
+from gamification.models import Badge, Certificate as GamificationCertificate, EarnedBadge, Level
 from messenger.models import ChatRoom, LessonRAGChunk, Message
 from subscriptions.models import Plan, PlanFeature
 from users.models import Notification, NotificationBroadcast
@@ -49,12 +52,17 @@ from .forms import (
     BackofficeAboutPageForm,
     BackofficeAboutStatisticForm,
     BackofficeAuthPageSettingsForm,
+    BackofficeBadgeForm,
     BackofficeBlogHomeSettingsForm,
     BackofficeBlogTagForm,
     BackofficeBroadcastForm,
+    BackofficeChatRoomForm,
+    BackofficeGamificationCertificateForm,
     BackofficeLandingNavItemForm,
     BackofficeLandingPageForm,
     BackofficeLegalPageForm,
+    BackofficeLevelForm,
+    BackofficeMessageCreateForm,
     BackofficePlanFeatureForm,
     BackofficePlanForm,
     BackofficeSiteSettingsForm,
@@ -68,8 +76,38 @@ from .forms import (
 User = get_user_model()
 
 
+class BackofficeLoginView(LoginView):
+    template_name = "backoffice/login.html"
+    redirect_authenticated_user = True
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated and not (request.user.is_staff or request.user.is_superuser):
+            messages.error(request, "Backoffice faqat staff/admin foydalanuvchilar uchun.")
+            return redirect("dashboard")
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_success_url(self):
+        redirect_to = self.get_redirect_url()
+        if redirect_to:
+            return redirect_to
+        return reverse_lazy("backoffice:dashboard")
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        if not (self.request.user.is_staff or self.request.user.is_superuser):
+            logout(self.request)
+            messages.error(self.request, "Sizda backoffice panelga kirish huquqi yo'q.")
+            return redirect("backoffice:login")
+        return response
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["next_target"] = self.request.GET.get("next") or self.request.POST.get("next")
+        return context
+
+
 class BackofficeAccessMixin(LoginRequiredMixin, UserPassesTestMixin):
-    login_url = "login"
+    login_url = "backoffice:login"
 
     def test_func(self):
         user = self.request.user
@@ -1615,6 +1653,507 @@ class BackofficeBlogCommentsView(BackofficeAccessMixin, TemplateView):
         if action == "restore":
             updated = queryset.update(is_deleted=False)
             messages.success(request, f"{updated} ta comment tiklandi.")
+            return redirect(request.get_full_path())
+
+        messages.error(request, "Noma'lum action.")
+        return redirect(request.get_full_path())
+
+
+class BackofficeMessengerRoomsView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/messenger_rooms.html"
+
+    def _queryset(self):
+        query = (self.request.GET.get("q") or "").strip()
+        room_type = (self.request.GET.get("room_type") or "all").strip().lower()
+
+        rooms = ChatRoom.objects.select_related("cohort", "cohort__course").prefetch_related("participants").annotate(
+            message_count=Count("messages", distinct=True),
+            participant_count=Count("participants", distinct=True),
+        )
+
+        if query:
+            rooms = rooms.filter(
+                Q(name__icontains=query)
+                | Q(cohort__name__icontains=query)
+                | Q(cohort__course__title__icontains=query)
+                | Q(participants__username__icontains=query)
+            ).distinct()
+
+        if room_type in {"group", "private", "ai"}:
+            rooms = rooms.filter(room_type=room_type)
+        else:
+            room_type = "all"
+
+        return rooms.order_by("-created_at")[:220], query, room_type
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        rooms, query, room_type = self._queryset()
+        context.update(
+            {
+                "rooms": rooms,
+                "search_query": query,
+                "selected_room_type": room_type,
+                "create_form": kwargs.get("create_form") or BackofficeChatRoomForm(),
+                "summary_total": ChatRoom.objects.count(),
+                "summary_group": ChatRoom.objects.filter(room_type="group").count(),
+                "summary_private": ChatRoom.objects.filter(room_type="private").count(),
+                "summary_ai": ChatRoom.objects.filter(room_type="ai").count(),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        form = BackofficeChatRoomForm(request.POST)
+        if form.is_valid():
+            room = form.save()
+            messages.success(request, f"Yangi chat xona yaratildi: {room}.")
+            return redirect("backoffice:messenger_room_detail", room_id=room.id)
+        messages.error(request, "Chat xona formasida xatolik bor.")
+        return self.render_to_response(self.get_context_data(create_form=form))
+
+
+class BackofficeMessengerRoomDetailView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/messenger_room_detail.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        self.room = get_object_or_404(
+            ChatRoom.objects.select_related("cohort", "cohort__course").prefetch_related("participants"),
+            id=kwargs["room_id"],
+        )
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(
+            {
+                "room": self.room,
+                "room_form": kwargs.get("room_form") or BackofficeChatRoomForm(instance=self.room),
+                "message_form": kwargs.get("message_form") or BackofficeMessageCreateForm(room=self.room),
+                "messages_list": self.room.messages.select_related("sender", "context_lesson").order_by("-created_at")[:100],
+                "participants": self.room.participants.order_by("username"),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = (request.POST.get("action") or "").strip()
+
+        if action == "update_room":
+            room_form = BackofficeChatRoomForm(request.POST, instance=self.room)
+            if room_form.is_valid():
+                room_form.save()
+                messages.success(request, "Chat xona yangilandi.")
+                return redirect("backoffice:messenger_room_detail", room_id=self.room.id)
+            messages.error(request, "Chat xona yangilash formasida xatolik bor.")
+            return self.render_to_response(self.get_context_data(room_form=room_form))
+
+        if action == "add_message":
+            message_form = BackofficeMessageCreateForm(request.POST, room=self.room)
+            if message_form.is_valid():
+                new_message = message_form.save(commit=False)
+                new_message.room = self.room
+                new_message.save()
+                messages.success(request, "Xabar qo'shildi.")
+                return redirect("backoffice:messenger_room_detail", room_id=self.room.id)
+            messages.error(request, "Xabar formasida xatolik bor.")
+            return self.render_to_response(self.get_context_data(message_form=message_form))
+
+        if action == "mark_all_read":
+            updated = self.room.messages.filter(is_read=False).update(is_read=True)
+            messages.success(request, f"{updated} ta xabar o'qilgan deb belgilandi.")
+            return redirect("backoffice:messenger_room_detail", room_id=self.room.id)
+
+        if action == "clear_messages":
+            deleted, _ = self.room.messages.all().delete()
+            messages.success(request, f"{deleted} ta xabar o'chirildi.")
+            return redirect("backoffice:messenger_room_detail", room_id=self.room.id)
+
+        messages.error(request, "Noma'lum action.")
+        return redirect("backoffice:messenger_room_detail", room_id=self.room.id)
+
+
+class BackofficeMessengerMessagesView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/messenger_messages.html"
+
+    def _queryset(self):
+        query = (self.request.GET.get("q") or "").strip()
+        room_type = (self.request.GET.get("room_type") or "all").strip().lower()
+        unread = (self.request.GET.get("unread") or "all").strip().lower()
+        ai_only = (self.request.GET.get("ai_only") or "all").strip().lower()
+
+        messages_qs = Message.objects.select_related("room", "sender", "context_lesson")
+
+        if query:
+            messages_qs = messages_qs.filter(
+                Q(text__icontains=query)
+                | Q(sender__username__icontains=query)
+                | Q(room__name__icontains=query)
+                | Q(context_lesson__title__icontains=query)
+            )
+
+        if room_type in {"group", "private", "ai"}:
+            messages_qs = messages_qs.filter(room__room_type=room_type)
+        else:
+            room_type = "all"
+
+        if unread == "yes":
+            messages_qs = messages_qs.filter(is_read=False)
+        elif unread == "no":
+            messages_qs = messages_qs.filter(is_read=True)
+        else:
+            unread = "all"
+
+        if ai_only == "yes":
+            messages_qs = messages_qs.filter(is_ai_response=True)
+        elif ai_only == "no":
+            messages_qs = messages_qs.filter(is_ai_response=False)
+        else:
+            ai_only = "all"
+
+        return messages_qs.order_by("-created_at")[:260], query, room_type, unread, ai_only
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        messages_qs, query, room_type, unread, ai_only = self._queryset()
+        context.update(
+            {
+                "messages_list": messages_qs,
+                "search_query": query,
+                "selected_room_type": room_type,
+                "selected_unread": unread,
+                "selected_ai_only": ai_only,
+                "summary_total": Message.objects.count(),
+                "summary_unread": Message.objects.filter(is_read=False).count(),
+                "summary_ai": Message.objects.filter(is_ai_response=True).count(),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = (request.POST.get("action") or "").strip()
+        ids = request.POST.getlist("message_ids")
+        queryset = Message.objects.filter(id__in=ids)
+        if not queryset.exists():
+            messages.error(request, "Kamida bitta xabar tanlang.")
+            return redirect(request.get_full_path())
+
+        if action == "mark_read":
+            updated = queryset.update(is_read=True)
+            messages.success(request, f"{updated} ta xabar o'qilgan deb belgilandi.")
+            return redirect(request.get_full_path())
+
+        if action == "mark_unread":
+            updated = queryset.update(is_read=False)
+            messages.success(request, f"{updated} ta xabar o'qilmagan holatga qaytdi.")
+            return redirect(request.get_full_path())
+
+        if action == "delete_messages":
+            deleted, _ = queryset.delete()
+            messages.success(request, f"{deleted} ta xabar o'chirildi.")
+            return redirect(request.get_full_path())
+
+        messages.error(request, "Noma'lum action.")
+        return redirect(request.get_full_path())
+
+
+class BackofficeMessengerRAGChunksView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/messenger_rag_chunks.html"
+
+    def _safe_int(self, value):
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+    def _queryset(self):
+        query = (self.request.GET.get("q") or "").strip()
+        course_id = self._safe_int(self.request.GET.get("course_id"))
+        model_name = (self.request.GET.get("model") or "").strip()
+
+        chunks = LessonRAGChunk.objects.select_related("course", "lesson")
+
+        if query:
+            chunks = chunks.filter(
+                Q(chunk_text__icontains=query)
+                | Q(lesson__title__icontains=query)
+                | Q(course__title__icontains=query)
+            )
+
+        if course_id:
+            chunks = chunks.filter(course_id=course_id)
+
+        if model_name:
+            chunks = chunks.filter(embedding_model=model_name)
+
+        return chunks.order_by("-updated_at")[:280], query, course_id, model_name
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        chunks, query, course_id, model_name = self._queryset()
+        context.update(
+            {
+                "chunks": chunks,
+                "search_query": query,
+                "selected_course_id": course_id,
+                "selected_model": model_name,
+                "courses": Course.objects.filter(is_active=True).order_by("title"),
+                "models": LessonRAGChunk.objects.values_list("embedding_model", flat=True).distinct().order_by("embedding_model"),
+                "summary_total": LessonRAGChunk.objects.count(),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = (request.POST.get("action") or "").strip()
+        ids = request.POST.getlist("chunk_ids")
+        queryset = LessonRAGChunk.objects.filter(id__in=ids)
+        if not queryset.exists():
+            messages.error(request, "Kamida bitta chunk tanlang.")
+            return redirect(request.get_full_path())
+
+        if action == "delete_chunks":
+            deleted, _ = queryset.delete()
+            messages.success(request, f"{deleted} ta chunk o'chirildi.")
+            return redirect(request.get_full_path())
+
+        messages.error(request, "Noma'lum action.")
+        return redirect(request.get_full_path())
+
+
+class BackofficeGamificationLevelsView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/gamification_levels.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(
+            {
+                "levels": Level.objects.order_by("min_xp", "id"),
+                "create_form": kwargs.get("create_form") or BackofficeLevelForm(),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = (request.POST.get("action") or "").strip()
+
+        if action == "create_level":
+            create_form = BackofficeLevelForm(request.POST, request.FILES)
+            if create_form.is_valid():
+                create_form.save()
+                messages.success(request, "Yangi level qo'shildi.")
+                return redirect("backoffice:gamification_levels")
+            messages.error(request, "Level formasida xatolik bor.")
+            return self.render_to_response(self.get_context_data(create_form=create_form))
+
+        if action == "update_level":
+            level = get_object_or_404(Level, id=request.POST.get("level_id"))
+            form = BackofficeLevelForm(request.POST, request.FILES, instance=level)
+            if form.is_valid():
+                form.save()
+                messages.success(request, "Level yangilandi.")
+            else:
+                messages.error(request, "Level yangilashda xatolik bor.")
+            return redirect("backoffice:gamification_levels")
+
+        if action == "delete_level":
+            level = get_object_or_404(Level, id=request.POST.get("level_id"))
+            level.delete()
+            messages.success(request, "Level o'chirildi.")
+            return redirect("backoffice:gamification_levels")
+
+        messages.error(request, "Noma'lum action.")
+        return redirect("backoffice:gamification_levels")
+
+
+class BackofficeGamificationBadgesView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/gamification_badges.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        badges = Badge.objects.annotate(earned_count=Count("earnedbadge")).order_by("name")
+        context.update(
+            {
+                "badges": badges,
+                "create_form": kwargs.get("create_form") or BackofficeBadgeForm(),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = (request.POST.get("action") or "").strip()
+
+        if action == "create_badge":
+            create_form = BackofficeBadgeForm(request.POST, request.FILES)
+            if create_form.is_valid():
+                create_form.save()
+                messages.success(request, "Yangi badge qo'shildi.")
+                return redirect("backoffice:gamification_badges")
+            messages.error(request, "Badge formasida xatolik bor.")
+            return self.render_to_response(self.get_context_data(create_form=create_form))
+
+        if action == "delete_badge":
+            badge = get_object_or_404(Badge, id=request.POST.get("badge_id"))
+            badge.delete()
+            messages.success(request, "Badge o'chirildi.")
+            return redirect("backoffice:gamification_badges")
+
+        messages.error(request, "Noma'lum action.")
+        return redirect("backoffice:gamification_badges")
+
+
+class BackofficeGamificationBadgeDetailView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/gamification_badge_detail.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        self.badge = get_object_or_404(Badge, id=kwargs["badge_id"])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(
+            {
+                "badge_obj": self.badge,
+                "form": kwargs.get("form") or BackofficeBadgeForm(instance=self.badge),
+                "recent_earned": EarnedBadge.objects.select_related("student").filter(badge=self.badge).order_by("-earned_at")[:80],
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = (request.POST.get("action") or "update").strip()
+        if action == "delete":
+            self.badge.delete()
+            messages.success(request, "Badge o'chirildi.")
+            return redirect("backoffice:gamification_badges")
+
+        form = BackofficeBadgeForm(request.POST, request.FILES, instance=self.badge)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Badge yangilandi.")
+            return redirect("backoffice:gamification_badge_detail", badge_id=self.badge.id)
+        messages.error(request, "Badge formasida xatolik bor.")
+        return self.render_to_response(self.get_context_data(form=form))
+
+
+class BackofficeGamificationEarnedBadgesView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/gamification_earned_badges.html"
+
+    def _safe_int(self, value):
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+    def _queryset(self):
+        query = (self.request.GET.get("q") or "").strip()
+        badge_id = self._safe_int(self.request.GET.get("badge_id"))
+
+        earned = EarnedBadge.objects.select_related("student", "badge")
+        if query:
+            earned = earned.filter(
+                Q(student__username__icontains=query)
+                | Q(student__email__icontains=query)
+                | Q(badge__name__icontains=query)
+            )
+        if badge_id:
+            earned = earned.filter(badge_id=badge_id)
+
+        return earned.order_by("-earned_at")[:260], query, badge_id
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        earned, query, badge_id = self._queryset()
+        context.update(
+            {
+                "earned_badges": earned,
+                "search_query": query,
+                "selected_badge_id": badge_id,
+                "badges": Badge.objects.order_by("name"),
+                "summary_total": EarnedBadge.objects.count(),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = (request.POST.get("action") or "").strip()
+        ids = request.POST.getlist("earned_badge_ids")
+        queryset = EarnedBadge.objects.filter(id__in=ids)
+        if not queryset.exists():
+            messages.error(request, "Kamida bitta yozuv tanlang.")
+            return redirect(request.get_full_path())
+
+        if action == "revoke_selected":
+            deleted, _ = queryset.delete()
+            messages.success(request, f"{deleted} ta earned badge yozuvi o'chirildi.")
+            return redirect(request.get_full_path())
+
+        messages.error(request, "Noma'lum action.")
+        return redirect(request.get_full_path())
+
+
+class BackofficeGamificationCertificatesView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/gamification_certificates.html"
+
+    def _safe_int(self, value):
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+    def _queryset(self):
+        query = (self.request.GET.get("q") or "").strip()
+        course_id = self._safe_int(self.request.GET.get("course_id"))
+
+        certificates = GamificationCertificate.objects.select_related("student", "course")
+        if query:
+            certificates = certificates.filter(
+                Q(student__username__icontains=query)
+                | Q(student__email__icontains=query)
+                | Q(course__title__icontains=query)
+                | Q(certificate_id__icontains=query)
+            )
+        if course_id:
+            certificates = certificates.filter(course_id=course_id)
+
+        return certificates.order_by("-issued_at")[:260], query, course_id
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        certificates, query, course_id = self._queryset()
+        context.update(
+            {
+                "certificates": certificates,
+                "search_query": query,
+                "selected_course_id": course_id,
+                "courses": Course.objects.filter(is_active=True).order_by("title"),
+                "create_form": kwargs.get("create_form") or BackofficeGamificationCertificateForm(),
+                "summary_total": GamificationCertificate.objects.count(),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = (request.POST.get("action") or "").strip()
+
+        if action == "create_certificate":
+            create_form = BackofficeGamificationCertificateForm(request.POST, request.FILES)
+            if create_form.is_valid():
+                create_form.save()
+                messages.success(request, "Sertifikat yozuvi yaratildi.")
+                return redirect("backoffice:gamification_certificates")
+            messages.error(request, "Sertifikat formasida xatolik bor.")
+            return self.render_to_response(self.get_context_data(create_form=create_form))
+
+        ids = request.POST.getlist("certificate_ids")
+        queryset = GamificationCertificate.objects.filter(id__in=ids)
+        if not queryset.exists():
+            messages.error(request, "Kamida bitta sertifikat tanlang.")
+            return redirect(request.get_full_path())
+
+        if action == "delete_selected":
+            deleted, _ = queryset.delete()
+            messages.success(request, f"{deleted} ta sertifikat o'chirildi.")
             return redirect(request.get_full_path())
 
         messages.error(request, "Noma'lum action.")

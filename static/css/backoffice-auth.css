@@ -1,0 +1,180 @@
+:root {
+  --bo-auth-bg: #eaf2ff;
+  --bo-auth-surface: #ffffff;
+  --bo-auth-text: #172339;
+  --bo-auth-muted: #607088;
+  --bo-auth-primary: #145fe2;
+  --bo-auth-border: #d5e2f5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body.bo-auth-page {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Manrope", sans-serif;
+  color: var(--bo-auth-text);
+  background:
+    radial-gradient(circle at 10% 12%, rgba(20, 95, 226, 0.22), transparent 32%),
+    radial-gradient(circle at 88% 84%, rgba(14, 165, 233, 0.14), transparent 36%),
+    linear-gradient(180deg, #f6f9ff 0%, var(--bo-auth-bg) 100%);
+  padding: 24px;
+}
+
+.bo-auth-shell {
+  max-width: 1040px;
+  margin: 0 auto;
+  min-height: calc(100vh - 48px);
+  display: grid;
+  gap: 18px;
+  grid-template-columns: 1fr;
+}
+
+.bo-auth-aside,
+.bo-auth-card {
+  border: 1px solid var(--bo-auth-border);
+  border-radius: 22px;
+  background: var(--bo-auth-surface);
+  box-shadow: 0 16px 42px rgba(14, 43, 82, 0.1);
+}
+
+.bo-auth-aside {
+  padding: 24px;
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
+.bo-auth-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bo-auth-brand span {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 800;
+  background: linear-gradient(135deg, #145fe2, #1ea0d5);
+}
+
+.bo-auth-brand small {
+  color: var(--bo-auth-muted);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  font-weight: 800;
+  display: block;
+}
+
+.bo-auth-brand strong {
+  font-size: 28px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.bo-auth-aside h1 {
+  margin: 0;
+  font-size: clamp(30px, 5vw, 46px);
+  line-height: 0.98;
+}
+
+.bo-auth-aside p {
+  margin: 0;
+  color: var(--bo-auth-muted);
+  max-width: 46ch;
+}
+
+.bo-auth-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--bo-auth-primary);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.bo-auth-card {
+  padding: 24px;
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
+.bo-auth-head h2 {
+  margin: 6px 0 4px;
+  font-size: 32px;
+  letter-spacing: -0.02em;
+}
+
+.bo-auth-head p {
+  margin: 0;
+  color: var(--bo-auth-muted);
+}
+
+.bo-auth-kicker {
+  display: inline-block;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 12px;
+  color: var(--bo-auth-primary);
+  font-weight: 800;
+}
+
+.bo-auth-alert-stack {
+  display: grid;
+  gap: 8px;
+}
+
+.bo-auth-form {
+  display: grid;
+  gap: 12px;
+}
+
+.bo-auth-form .form-control {
+  border-radius: 12px;
+  border-color: var(--bo-auth-border);
+  min-height: 46px;
+}
+
+.bo-auth-form .form-control:focus {
+  border-color: #6da6ff;
+  box-shadow: 0 0 0 0.2rem rgba(20, 95, 226, 0.12);
+}
+
+.bo-auth-error {
+  color: #b42318;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.bo-auth-foot {
+  padding-top: 2px;
+}
+
+.bo-auth-foot a {
+  color: var(--bo-auth-muted);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.bo-auth-foot a:hover {
+  color: var(--bo-auth-primary);
+}
+
+@media (min-width: 960px) {
+  .bo-auth-shell {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    align-items: stretch;
+  }
+
+  .bo-auth-aside,
+  .bo-auth-card {
+    padding: 32px;
+  }
+}
