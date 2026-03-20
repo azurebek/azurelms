@@ -2,9 +2,21 @@ from django.contrib.auth import get_user_model
 from datetime import date
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from cohorts.models import Attendance, Cohort, Enrollment
-from courses.models import Course, Lesson, Module
+from courses.models import (
+    Assignment,
+    AssignmentSubmission,
+    CohortLessonRelease,
+    Course,
+    Exam,
+    ExamAttempt,
+    ExamSection,
+    ExamSectionReview,
+    Lesson,
+    Module,
+)
 from subscriptions.models import Plan, PlanFeature
 from users.models import Notification, NotificationBroadcast
 
@@ -51,6 +63,45 @@ class BackofficeAccessTests(TestCase):
             cohort=self.cohort,
             status="active",
         )
+        self.assignment = Assignment.objects.create(
+            lesson=self.lesson,
+            title="1-vazifa",
+            description="Vazifa matni",
+            max_xp=50,
+        )
+        self.submission = AssignmentSubmission.objects.create(
+            assignment=self.assignment,
+            student=self.student,
+            answer_text="Javob",
+            status=AssignmentSubmission.STATUS_PENDING,
+        )
+        self.release = CohortLessonRelease.objects.create(
+            cohort=self.cohort,
+            lesson=self.lesson,
+            is_released=True,
+            released_by=self.staff,
+        )
+        self.exam = Exam.objects.create(
+            course=self.course,
+            title="Backoffice Exam",
+            exam_type="final",
+            weight_percentage=60,
+            passing_score=60,
+        )
+        self.exam_section = ExamSection.objects.create(
+            exam=self.exam,
+            title="Reading",
+            section_type="reading",
+            instructions="Ko'rsatma",
+            max_score=20,
+            order=1,
+        )
+        self.exam_attempt = ExamAttempt.objects.create(
+            student=self.student,
+            exam=self.exam,
+            is_completed=True,
+            completed_time=timezone.now(),
+        )
 
     def test_dashboard_requires_login(self):
         response = self.client.get(reverse("backoffice:dashboard"))
@@ -74,6 +125,9 @@ class BackofficeAccessTests(TestCase):
             "backoffice:cohorts",
             "backoffice:attendance",
             "backoffice:notifications",
+            "backoffice:learning_assignments",
+            "backoffice:learning_releases",
+            "backoffice:learning_exams",
         ):
             response = self.client.get(reverse(route_name))
             self.assertEqual(response.status_code, 200, route_name)
@@ -177,3 +231,57 @@ class BackofficeAccessTests(TestCase):
         )
         self.assertEqual(response_feature.status_code, 302)
         self.assertEqual(PlanFeature.objects.filter(plan=plan).count(), 1)
+
+    def test_staff_can_moderate_assignments_from_backoffice(self):
+        self.client.force_login(self.staff)
+        url = reverse("backoffice:learning_assignments")
+        response = self.client.post(
+            url,
+            {
+                "action": "mark_approved",
+                "submission_ids": [str(self.submission.id)],
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        self.submission.refresh_from_db()
+        self.assertEqual(self.submission.status, AssignmentSubmission.STATUS_APPROVED)
+        self.assertEqual(self.submission.reviewed_by, self.staff)
+
+    def test_staff_can_toggle_lesson_releases_from_backoffice(self):
+        self.client.force_login(self.staff)
+        url = reverse("backoffice:learning_releases")
+        response = self.client.post(
+            url,
+            {
+                "action": "mark_locked",
+                "release_ids": [str(self.release.id)],
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        self.release.refresh_from_db()
+        self.assertFalse(self.release.is_released)
+
+    def test_staff_can_process_exam_reviews_from_backoffice(self):
+        self.client.force_login(self.staff)
+        url = reverse("backoffice:learning_exams")
+
+        prepare_response = self.client.post(
+            url,
+            {
+                "action": "prepare_reviews",
+                "attempt_ids": [str(self.exam_attempt.id)],
+            },
+        )
+        self.assertEqual(prepare_response.status_code, 302)
+        self.assertEqual(ExamSectionReview.objects.filter(attempt=self.exam_attempt).count(), 1)
+
+        approve_response = self.client.post(
+            url,
+            {
+                "action": "approve_selected_attempts",
+                "attempt_ids": [str(self.exam_attempt.id)],
+            },
+        )
+        self.assertEqual(approve_response.status_code, 302)
+        self.exam_attempt.refresh_from_db()
+        self.assertTrue(self.exam_attempt.is_reviewed)

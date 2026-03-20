@@ -11,7 +11,14 @@ from django.utils import timezone
 from django.views.generic import TemplateView
 
 from cohorts.models import Attendance, Cohort, Enrollment, PaymentReceipt
-from courses.models import Course, ExamAttempt, Lesson, LessonProgress
+from courses.models import (
+    AssignmentSubmission,
+    CohortLessonRelease,
+    Course,
+    ExamAttempt,
+    Lesson,
+    LessonProgress,
+)
 from messenger.models import ChatRoom, LessonRAGChunk, Message
 from subscriptions.models import Plan, PlanFeature
 from users.models import Notification, NotificationBroadcast
@@ -624,3 +631,298 @@ class BackofficeNotificationsView(BackofficeAccessMixin, TemplateView):
             return redirect("backoffice:notifications")
         messages.error(request, "Broadcast formasi xatolik bilan to'ldirilgan.")
         return self.render_to_response(self.get_context_data(broadcast_form=form))
+
+
+class BackofficeLearningAssignmentsView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/learning_assignments.html"
+
+    def _queryset(self):
+        query = (self.request.GET.get("q") or "").strip()
+        status = (self.request.GET.get("status") or "all").strip().lower()
+        course_id = self.request.GET.get("course_id")
+
+        submissions = AssignmentSubmission.objects.select_related(
+            "student",
+            "assignment__lesson__module__course",
+            "reviewed_by",
+        )
+
+        if query:
+            submissions = submissions.filter(
+                Q(student__username__icontains=query)
+                | Q(student__email__icontains=query)
+                | Q(assignment__title__icontains=query)
+                | Q(assignment__lesson__title__icontains=query)
+            )
+
+        valid_statuses = {
+            AssignmentSubmission.STATUS_PENDING,
+            AssignmentSubmission.STATUS_APPROVED,
+            AssignmentSubmission.STATUS_NEEDS_REVISION,
+        }
+        if status in valid_statuses:
+            submissions = submissions.filter(status=status)
+        else:
+            status = "all"
+
+        if course_id:
+            try:
+                submissions = submissions.filter(assignment__lesson__module__course_id=int(course_id))
+            except (TypeError, ValueError):
+                course_id = ""
+        else:
+            course_id = ""
+
+        return submissions.order_by("-updated_at")[:220], query, status, course_id
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        submissions, query, status, course_id = self._queryset()
+        context.update(
+            {
+                "submissions": submissions,
+                "search_query": query,
+                "selected_status": status,
+                "selected_course_id": int(course_id) if course_id else None,
+                "courses": Course.objects.filter(is_active=True).order_by("title"),
+                "summary_pending": AssignmentSubmission.objects.filter(
+                    status=AssignmentSubmission.STATUS_PENDING
+                ).count(),
+                "summary_approved": AssignmentSubmission.objects.filter(
+                    status=AssignmentSubmission.STATUS_APPROVED
+                ).count(),
+                "summary_revision": AssignmentSubmission.objects.filter(
+                    status=AssignmentSubmission.STATUS_NEEDS_REVISION
+                ).count(),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = (request.POST.get("action") or "").strip()
+        ids = request.POST.getlist("submission_ids")
+        queryset = AssignmentSubmission.objects.filter(id__in=ids)
+        if not queryset.exists():
+            messages.error(request, "Kamida bitta submission tanlang.")
+            return redirect(request.get_full_path())
+
+        now = timezone.now()
+        if action == "mark_pending":
+            updated = queryset.update(
+                status=AssignmentSubmission.STATUS_PENDING,
+                reviewed_by=None,
+                reviewed_at=None,
+            )
+            messages.success(request, f"{updated} ta submission pending holatga o'tdi.")
+            return redirect(request.get_full_path())
+
+        if action == "mark_approved":
+            updated = queryset.update(
+                status=AssignmentSubmission.STATUS_APPROVED,
+                reviewed_by=request.user,
+                reviewed_at=now,
+            )
+            messages.success(request, f"{updated} ta submission tasdiqlandi.")
+            return redirect(request.get_full_path())
+
+        if action == "mark_needs_revision":
+            updated = queryset.update(
+                status=AssignmentSubmission.STATUS_NEEDS_REVISION,
+                reviewed_by=request.user,
+                reviewed_at=now,
+            )
+            messages.success(request, f"{updated} ta submission revision holatiga o'tdi.")
+            return redirect(request.get_full_path())
+
+        messages.error(request, "Noma'lum action.")
+        return redirect(request.get_full_path())
+
+
+class BackofficeLearningReleasesView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/learning_releases.html"
+
+    def _queryset(self):
+        course_id = self.request.GET.get("course_id")
+        cohort_id = self.request.GET.get("cohort_id")
+        state = (self.request.GET.get("state") or "all").strip().lower()
+
+        releases = CohortLessonRelease.objects.select_related(
+            "cohort",
+            "lesson__module__course",
+            "released_by",
+        )
+
+        if course_id:
+            try:
+                releases = releases.filter(lesson__module__course_id=int(course_id))
+            except (TypeError, ValueError):
+                course_id = ""
+        else:
+            course_id = ""
+
+        if cohort_id:
+            try:
+                releases = releases.filter(cohort_id=int(cohort_id))
+            except (TypeError, ValueError):
+                cohort_id = ""
+        else:
+            cohort_id = ""
+
+        if state == "released":
+            releases = releases.filter(is_released=True)
+        elif state == "locked":
+            releases = releases.filter(is_released=False)
+        else:
+            state = "all"
+
+        return releases.order_by("-updated_at")[:240], course_id, cohort_id, state
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        releases, course_id, cohort_id, state = self._queryset()
+        context.update(
+            {
+                "releases": releases,
+                "selected_course_id": int(course_id) if course_id else None,
+                "selected_cohort_id": int(cohort_id) if cohort_id else None,
+                "selected_state": state,
+                "courses": Course.objects.filter(is_active=True).order_by("title"),
+                "cohorts": Cohort.objects.select_related("course").filter(is_active=True).order_by("name"),
+                "summary_total": CohortLessonRelease.objects.count(),
+                "summary_released": CohortLessonRelease.objects.filter(is_released=True).count(),
+                "summary_locked": CohortLessonRelease.objects.filter(is_released=False).count(),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = (request.POST.get("action") or "").strip()
+        ids = request.POST.getlist("release_ids")
+        queryset = CohortLessonRelease.objects.filter(id__in=ids)
+        if not queryset.exists():
+            messages.error(request, "Kamida bitta release tanlang.")
+            return redirect(request.get_full_path())
+
+        if action == "mark_released":
+            updated = queryset.update(
+                is_released=True,
+                released_by=request.user,
+                released_at=timezone.now(),
+            )
+            messages.success(request, f"{updated} ta dars ochildi.")
+            return redirect(request.get_full_path())
+
+        if action == "mark_locked":
+            updated = queryset.update(is_released=False)
+            messages.success(request, f"{updated} ta dars qulflandi.")
+            return redirect(request.get_full_path())
+
+        messages.error(request, "Noma'lum action.")
+        return redirect(request.get_full_path())
+
+
+class BackofficeLearningExamsView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/learning_exams.html"
+
+    def _queryset(self):
+        query = (self.request.GET.get("q") or "").strip()
+        course_id = self.request.GET.get("course_id")
+        review_state = (self.request.GET.get("review_state") or "all").strip().lower()
+
+        attempts = ExamAttempt.objects.select_related(
+            "student",
+            "exam",
+            "exam__course",
+            "reviewed_by",
+        )
+
+        if query:
+            attempts = attempts.filter(
+                Q(student__username__icontains=query)
+                | Q(student__email__icontains=query)
+                | Q(exam__title__icontains=query)
+                | Q(exam__course__title__icontains=query)
+            )
+
+        if course_id:
+            try:
+                attempts = attempts.filter(exam__course_id=int(course_id))
+            except (TypeError, ValueError):
+                course_id = ""
+        else:
+            course_id = ""
+
+        if review_state == "approved":
+            attempts = attempts.filter(is_reviewed=True)
+        elif review_state == "pending":
+            attempts = attempts.filter(is_completed=True, is_reviewed=False)
+        elif review_state == "in_progress":
+            attempts = attempts.filter(is_completed=False)
+        else:
+            review_state = "all"
+
+        return attempts.order_by("-start_time")[:220], query, course_id, review_state
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        attempts, query, course_id, review_state = self._queryset()
+        context.update(
+            {
+                "attempts": attempts,
+                "search_query": query,
+                "selected_course_id": int(course_id) if course_id else None,
+                "selected_review_state": review_state,
+                "courses": Course.objects.filter(is_active=True).order_by("title"),
+                "summary_total": ExamAttempt.objects.count(),
+                "summary_pending_review": ExamAttempt.objects.filter(is_completed=True, is_reviewed=False).count(),
+                "summary_approved": ExamAttempt.objects.filter(is_reviewed=True).count(),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = (request.POST.get("action") or "").strip()
+        ids = request.POST.getlist("attempt_ids")
+        queryset = ExamAttempt.objects.select_related("exam").filter(id__in=ids)
+        if not queryset.exists():
+            messages.error(request, "Kamida bitta exam attempt tanlang.")
+            return redirect(request.get_full_path())
+
+        if action == "prepare_reviews":
+            count = 0
+            for attempt in queryset:
+                attempt.ensure_section_reviews()
+                attempt.prefill_section_scores_from_answers()
+                count += 1
+            messages.success(request, f"{count} ta urinish uchun bo'lim ballari tayyorlandi.")
+            return redirect(request.get_full_path())
+
+        if action == "approve_selected_attempts":
+            approved_count = 0
+            certificate_count = 0
+            for attempt in queryset:
+                if not attempt.is_completed:
+                    continue
+                certificate, created = attempt.finalize_review(reviewed_by=request.user)
+                approved_count += 1
+                if created and certificate:
+                    certificate_count += 1
+            messages.success(
+                request,
+                f"{approved_count} ta urinish tasdiqlandi. {certificate_count} ta yangi sertifikat yaratildi.",
+            )
+            return redirect(request.get_full_path())
+
+        if action == "recalculate_scores":
+            count = 0
+            for attempt in queryset:
+                if attempt.is_reviewed:
+                    attempt.finalize_review(reviewed_by=request.user)
+                else:
+                    attempt.prefill_section_scores_from_answers()
+                count += 1
+            messages.success(request, f"{count} ta urinish uchun ballar yangilandi.")
+            return redirect(request.get_full_path())
+
+        messages.error(request, "Noma'lum action.")
+        return redirect(request.get_full_path())

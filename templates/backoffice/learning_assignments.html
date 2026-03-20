@@ -1,0 +1,82 @@
+{% extends 'backoffice/base.html' %}
+{% load humanize %}
+
+{% block backoffice_title %}Assignments | Backoffice{% endblock %}
+{% block backoffice_kicker %}Learning Ops{% endblock %}
+{% block backoffice_heading %}Assignment Moderation{% endblock %}
+{% block backoffice_description %}Vazifa topshiriqlarini pending/approved/revision holatlariga o'tkazish.{% endblock %}
+
+{% block backoffice_content %}
+<section class="bo-filter-row">
+    <form method="get" class="bo-search-form bo-search-form--quad">
+        <input type="text" name="q" class="form-control" value="{{ search_query }}" placeholder="Student, email, assignment...">
+        <select name="status" class="form-select">
+            <option value="all" {% if selected_status == 'all' %}selected{% endif %}>Barcha status</option>
+            <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>Pending</option>
+            <option value="approved" {% if selected_status == 'approved' %}selected{% endif %}>Approved</option>
+            <option value="needs_revision" {% if selected_status == 'needs_revision' %}selected{% endif %}>Needs revision</option>
+        </select>
+        <select name="course_id" class="form-select">
+            <option value="">Barcha kurslar</option>
+            {% for course in courses %}
+            <option value="{{ course.id }}" {% if selected_course_id == course.id %}selected{% endif %}>{{ course.title }}</option>
+            {% endfor %}
+        </select>
+        <button class="btn btn-primary rounded-pill px-4" type="submit">Filtrlash</button>
+    </form>
+    <div class="bo-inline-stats">
+        <span>Pending: <strong>{{ summary_pending|intcomma }}</strong></span>
+        <span>Approved: <strong>{{ summary_approved|intcomma }}</strong></span>
+        <span>Revision: <strong>{{ summary_revision|intcomma }}</strong></span>
+    </div>
+</section>
+
+<section class="bo-surface">
+    <form method="post">
+        {% csrf_token %}
+        <div class="bo-action-bar">
+            <select name="action" class="form-select bo-action-select">
+                <option value="">Action tanlang</option>
+                <option value="mark_pending">Pending ga o'tkazish</option>
+                <option value="mark_approved">Approved qilish</option>
+                <option value="mark_needs_revision">Needs revision qilish</option>
+            </select>
+            <button class="btn btn-primary rounded-pill px-4" type="submit">Qo'llash</button>
+        </div>
+        <div class="bo-table-wrap">
+            <table class="table bo-table">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" class="form-check-input" data-select-all="submission_ids"></th>
+                        <th>Sana</th>
+                        <th>Student</th>
+                        <th>Kurs / Assignment</th>
+                        <th>Status</th>
+                        <th>Reviewer</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in submissions %}
+                    <tr>
+                        <td><input type="checkbox" class="form-check-input" name="submission_ids" value="{{ item.id }}"></td>
+                        <td>{{ item.submitted_at|date:"Y-m-d H:i" }}</td>
+                        <td>
+                            <div class="fw-semibold">{{ item.student.get_full_name|default:item.student.username }}</div>
+                            <div class="small text-muted">@{{ item.student.username }}</div>
+                        </td>
+                        <td>
+                            <div class="fw-semibold">{{ item.assignment.lesson.module.course.title }}</div>
+                            <div class="small text-muted">{{ item.assignment.title }}</div>
+                        </td>
+                        <td>{{ item.get_status_display }}</td>
+                        <td>{% if item.reviewed_by %}{{ item.reviewed_by.username }}{% else %}-{% endif %}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6">Submissionlar topilmadi.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </form>
+</section>
+{% endblock %}

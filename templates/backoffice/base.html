@@ -59,6 +59,18 @@
                 <i class="bi bi-bell"></i>
                 <span>Notifications</span>
             </a>
+            <a class="bo-nav-link {% if request.resolver_match.url_name == 'learning_assignments' %}is-active{% endif %}" href="{% url 'backoffice:learning_assignments' %}">
+                <i class="bi bi-journal-check"></i>
+                <span>Assignments</span>
+            </a>
+            <a class="bo-nav-link {% if request.resolver_match.url_name == 'learning_releases' %}is-active{% endif %}" href="{% url 'backoffice:learning_releases' %}">
+                <i class="bi bi-unlock"></i>
+                <span>Lesson Release</span>
+            </a>
+            <a class="bo-nav-link {% if request.resolver_match.url_name == 'learning_exams' %}is-active{% endif %}" href="{% url 'backoffice:learning_exams' %}">
+                <i class="bi bi-clipboard-data"></i>
+                <span>Exam Review</span>
+            </a>
             <a class="bo-nav-link" href="/admin/" target="_blank" rel="noopener">
                 <i class="bi bi-shield-lock"></i>
                 <span>Legacy Admin</span>
@@ -136,6 +148,16 @@ function closeBoSidebar() {
 if (boSidebarToggle) boSidebarToggle.addEventListener('click', openBoSidebar);
 if (boSidebarClose) boSidebarClose.addEventListener('click', closeBoSidebar);
 if (boSidebarOverlay) boSidebarOverlay.addEventListener('click', closeBoSidebar);
+
+document.querySelectorAll('[data-select-all]').forEach(function(master) {
+    const targetName = master.getAttribute('data-select-all');
+    const items = Array.from(document.querySelectorAll('input[name="' + targetName + '"]'));
+    master.addEventListener('change', function() {
+        items.forEach(function(item) {
+            item.checked = master.checked;
+        });
+    });
+});
 </script>
 {% block backoffice_js %}{% endblock %}
 {% endblock %}

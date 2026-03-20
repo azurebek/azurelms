@@ -16,4 +16,7 @@ urlpatterns = [
     path("cohorts/", views.BackofficeCohortsView.as_view(), name="cohorts"),
     path("attendance/", views.BackofficeAttendanceView.as_view(), name="attendance"),
     path("notifications/", views.BackofficeNotificationsView.as_view(), name="notifications"),
+    path("learning/assignments/", views.BackofficeLearningAssignmentsView.as_view(), name="learning_assignments"),
+    path("learning/releases/", views.BackofficeLearningReleasesView.as_view(), name="learning_releases"),
+    path("learning/exams/", views.BackofficeLearningExamsView.as_view(), name="learning_exams"),
 ]

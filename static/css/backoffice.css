@@ -382,6 +382,21 @@ body.backoffice-page {
   gap: 0.65rem;
 }
 
+.bo-action-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.72rem;
+}
+
+.bo-action-bar--wrap {
+  flex-wrap: wrap;
+}
+
+.bo-action-select {
+  max-width: 340px;
+}
+
 .bo-search-form {
   display: grid;
   gap: 0.55rem;
@@ -545,6 +560,10 @@ body.backoffice-page {
 
   .bo-search-form .btn {
     width: auto;
+  }
+
+  .bo-action-bar {
+    justify-content: flex-start;
   }
 
   .bo-form-grid--triple {
