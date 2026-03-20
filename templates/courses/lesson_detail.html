@@ -6,7 +6,7 @@
 {% block title %}{{ lesson.title }} | {{ course.title }}{% endblock %}
 
 {% block extra_css %}
-<link href="{% static 'css/lesson-detail.css' %}?v=5" rel="stylesheet">
+<link href="{% static 'css/lesson-detail.css' %}?v=6" rel="stylesheet">
 {% endblock %}
 
 {% block body_class %}dashboard-page lesson-course-shell{% endblock %}
@@ -133,7 +133,10 @@
                         {% if next_lesson %}
                         <a href="{% url 'lesson_detail' course_id=course.id lesson_id=next_lesson.id %}" class="btn btn-primary rounded-pill px-4">Keyingi dars</a>
                         {% elif next_lesson_locked %}
-                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" disabled title="{{ next_lesson_lock_reason }}">Keyingi dars qulflangan</button>
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" disabled title="{{ next_lesson_lock_reason }}">
+                            <span class="d-none d-sm-inline">Keyingi dars qulflangan</span>
+                            <span class="d-inline d-sm-none">Qulflangan</span>
+                        </button>
                         {% elif has_course_exams %}
                         <a href="{% url 'exam_detail' course_id=course.id exam_id=first_course_exam.id %}" class="btn btn-primary rounded-pill px-4">Imtihon</a>
                         {% else %}

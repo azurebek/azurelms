@@ -3,6 +3,10 @@
   overflow-x: hidden;
 }
 
+body.lesson-course-shell {
+  overflow-x: hidden;
+}
+
 .lesson-course-page .dashboard-container {
   min-height: 100vh;
 }
@@ -652,6 +656,11 @@
     min-width: 0;
     width: 100%;
     padding-inline: 0.85rem !important;
+    min-height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
   }
 
   .lesson-course-header__actions,
@@ -692,26 +701,44 @@
   }
 
   .lesson-pagination {
-    gap: 0.7rem;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 0.7rem !important;
+    width: 100%;
   }
 
   .lesson-pagination__rail {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0.55rem;
-    overflow: visible;
-    padding-bottom: 0;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 0.55rem !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    padding-bottom: 0 !important;
+    width: 100%;
   }
 
   .lesson-pagination__item {
-    width: 100%;
-    min-width: 0;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
   }
 
   .lesson-pagination__meta,
   .lesson-pagination__footer-meta {
     min-width: 0;
     width: 100%;
+    justify-items: start;
+  }
+
+  .lesson-pagination__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.7rem;
+    padding: 0.5rem 0.68rem;
+    border: 1px solid rgba(49, 68, 61, 0.08);
+    border-radius: 14px;
+    background: rgba(248, 250, 252, 0.9);
   }
 
   .lesson-pagination__meta strong,
