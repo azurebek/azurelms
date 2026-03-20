@@ -1,5 +1,6 @@
 .lesson-course-page {
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 .lesson-course-page .dashboard-container {
@@ -22,6 +23,17 @@
 
 .lesson-course-page .dashboard-content {
   padding: 0.8rem 0.95rem 1rem;
+}
+
+.lesson-course-page .dashboard-main,
+.lesson-course-page .dashboard-content,
+.lesson-workspace,
+.lesson-workspace__panel,
+.lesson-panel-body,
+.lesson-pagination__content,
+.tab-content,
+.tab-pane {
+  min-width: 0;
 }
 
 .lesson-course-sidebar {
@@ -221,6 +233,7 @@
 .lesson-workspace__summary,
 .lesson-workspace__panel {
   padding: 0.9rem;
+  max-width: 100%;
 }
 
 .lesson-workspace__summary--compact {
@@ -350,6 +363,8 @@
 
 .lesson-panel-body {
   padding: 1rem 1.05rem 1.05rem;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .lesson-panel-body--scroll {
@@ -359,6 +374,7 @@
 }
 
 .lesson-video-frame {
+  width: 100%;
   overflow: hidden;
   border-radius: 22px;
   aspect-ratio: 16 / 9;
@@ -386,6 +402,12 @@
 .lesson-richtext iframe,
 .lesson-richtext table {
   max-width: 100%;
+}
+
+.lesson-richtext table {
+  display: block;
+  overflow-x: auto;
+  width: 100%;
 }
 
 .lesson-richtext pre {
@@ -588,6 +610,50 @@
 }
 
 @media (max-width: 767px) {
+  .lesson-course-page .dashboard-header {
+    padding: 0.65rem 0.78rem;
+  }
+
+  .lesson-course-page .dashboard-content {
+    padding: 0.65rem 0.7rem 5.8rem;
+  }
+
+  .lesson-course-header .dashboard-header-kicker {
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+  }
+
+  .lesson-course-header .dashboard-page-title {
+    font-size: clamp(1.45rem, 6vw, 1.9rem);
+    line-height: 0.95;
+  }
+
+  .lesson-course-header .dashboard-page-description {
+    margin-top: 0.22rem;
+    max-width: none;
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+
+  .lesson-course-header__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 0.55rem;
+    justify-content: stretch;
+  }
+
+  .lesson-course-header__actions .dashboard-badge {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
+  .lesson-course-header__actions .btn {
+    min-width: 0;
+    width: 100%;
+    padding-inline: 0.85rem !important;
+  }
+
   .lesson-course-header__actions,
   .lesson-workspace__summary-head,
   .lesson-workspace__panel-head,
@@ -603,14 +669,53 @@
   .lesson-course-header__actions .btn,
   .lesson-submit-row .btn,
   .lesson-quiz-banner .btn,
-  .lesson-pagination__footer .btn,
-  .lesson-pagination__item {
+  .lesson-pagination__footer .btn {
     width: 100%;
   }
 
   .lesson-panel-body--scroll {
     max-height: none;
     overflow: visible;
-    padding-right: 1.05rem;
+    padding-right: 0.4rem;
+  }
+
+  .lesson-workspace__panel,
+  .lesson-task-card,
+  .lesson-quiz-banner,
+  .lesson-question-card,
+  .lesson-scorebox {
+    border-radius: 16px;
+  }
+
+  .lesson-video-frame {
+    border-radius: 16px;
+  }
+
+  .lesson-pagination {
+    gap: 0.7rem;
+  }
+
+  .lesson-pagination__rail {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.55rem;
+    overflow: visible;
+    padding-bottom: 0;
+  }
+
+  .lesson-pagination__item {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .lesson-pagination__meta,
+  .lesson-pagination__footer-meta {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .lesson-pagination__meta strong,
+  .lesson-pagination__footer-meta strong {
+    overflow-wrap: anywhere;
   }
 }
