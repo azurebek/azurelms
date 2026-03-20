@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from cohorts.models import Attendance, Cohort, Enrollment
-from blog.models import BlogComment, BlogPost
+from blog.models import BlogComment, BlogCommentLike, BlogHomeSettings, BlogPost, BlogPostClap, BlogPostRead, BlogTag
 from courses.models import (
     Assignment,
     AssignmentSubmission,
@@ -18,7 +18,17 @@ from courses.models import (
     Lesson,
     Module,
 )
-from frontend.models import LegalPage, SiteSettings
+from frontend.models import (
+    AboutPage,
+    AboutStatistic,
+    LandingNavItem,
+    LandingPage,
+    LegalPage,
+    SiteSettings,
+    Statistic,
+    TeamMember,
+    Testimonial,
+)
 from subscriptions.models import Plan, PlanFeature
 from users.models import Notification, NotificationBroadcast
 
@@ -115,6 +125,41 @@ class BackofficeAccessTests(TestCase):
             user=self.student,
             content="Comment text",
         )
+        self.blog_tag = BlogTag.objects.create(name="Initial Tag")
+        self.blog_post.tags.add(self.blog_tag)
+        self.blog_read = BlogPostRead.objects.create(
+            post=self.blog_post,
+            viewer_key="viewer-1",
+            user=self.student,
+        )
+        self.blog_clap = BlogPostClap.objects.create(
+            post=self.blog_post,
+            viewer_key="viewer-1",
+            user=self.student,
+            clap_count=3,
+        )
+        self.blog_comment_like = BlogCommentLike.objects.create(
+            comment=self.blog_comment,
+            user=self.staff,
+        )
+        self.landing_page = LandingPage.load()
+        self.about_page = AboutPage.load()
+        self.statistic = Statistic.objects.create(value="1000+", label="Talaba", order=1)
+        self.testimonial = Testimonial.objects.create(
+            name="Ali Test",
+            role="Talaba",
+            text="Platforma yaxshi.",
+            rating=5,
+            is_active=True,
+        )
+        self.about_stat = AboutStatistic.objects.create(value="20+", label="Mentor", order=1)
+        self.team_member = TeamMember.objects.create(
+            name="Team User",
+            role_1="Mentor",
+            role_2="Lead",
+            bio="Short bio",
+            order=1,
+        )
 
     def test_dashboard_requires_login(self):
         response = self.client.get(reverse("backoffice:dashboard"))
@@ -142,17 +187,30 @@ class BackofficeAccessTests(TestCase):
             "backoffice:learning_releases",
             "backoffice:learning_exams",
             "backoffice:content_settings",
+            "backoffice:content_landing_page",
+            "backoffice:content_landing_blocks",
+            "backoffice:content_about_page",
+            "backoffice:content_about_blocks",
+            "backoffice:content_landing_nav",
+            "backoffice:content_blog_home",
+            "backoffice:content_blog_tags",
+            "backoffice:content_blog_signals",
             "backoffice:legal_pages",
             "backoffice:blog_posts",
             "backoffice:blog_comments",
         ):
             response = self.client.get(reverse(route_name))
             self.assertEqual(response.status_code, 200, route_name)
+
         detail_response = self.client.get(reverse("backoffice:user_detail", args=[self.student.id]))
         self.assertEqual(detail_response.status_code, 200)
         legal_page = LegalPage.objects.first()
         legal_detail = self.client.get(reverse("backoffice:legal_page_detail", args=[legal_page.id]))
         self.assertEqual(legal_detail.status_code, 200)
+        testimonial_detail = self.client.get(reverse("backoffice:content_testimonial_detail", args=[self.testimonial.id]))
+        self.assertEqual(testimonial_detail.status_code, 200)
+        member_detail = self.client.get(reverse("backoffice:content_team_member_detail", args=[self.team_member.id]))
+        self.assertEqual(member_detail.status_code, 200)
 
     def test_staff_can_save_attendance_from_backoffice(self):
         self.client.force_login(self.staff)
@@ -360,3 +418,242 @@ class BackofficeAccessTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.blog_comment.refresh_from_db()
         self.assertTrue(self.blog_comment.is_deleted)
+
+    def test_staff_can_manage_landing_content_from_backoffice(self):
+        self.client.force_login(self.staff)
+
+        landing_url = reverse("backoffice:content_landing_page")
+        landing_response = self.client.post(
+            landing_url,
+            {
+                "hero_badge": "Yangi badge",
+                "hero_title_start": "Turk tilini",
+                "hero_title_highlight": "tez",
+                "hero_title_end": "orgating",
+                "hero_subtitle": "Hero subtitle text",
+                "cta_title": "CTA title",
+                "cta_description": "CTA description text",
+            },
+        )
+        self.assertEqual(landing_response.status_code, 302)
+        self.landing_page.refresh_from_db()
+        self.assertEqual(self.landing_page.hero_badge, "Yangi badge")
+
+        blocks_url = reverse("backoffice:content_landing_blocks")
+        create_stat_response = self.client.post(
+            blocks_url,
+            {
+                "action": "create_statistic",
+                "value": "3000+",
+                "label": "Yangi stat",
+                "order": 10,
+            },
+        )
+        self.assertEqual(create_stat_response.status_code, 302)
+        created_stat = Statistic.objects.get(label="Yangi stat")
+        self.assertEqual(created_stat.value, "3000+")
+
+        update_stat_response = self.client.post(
+            blocks_url,
+            {
+                "action": "update_statistic",
+                "statistic_id": created_stat.id,
+                "value": "3500+",
+                "label": "Yangi stat",
+                "order": 11,
+            },
+        )
+        self.assertEqual(update_stat_response.status_code, 302)
+        created_stat.refresh_from_db()
+        self.assertEqual(created_stat.value, "3500+")
+
+        create_testimonial_response = self.client.post(
+            blocks_url,
+            {
+                "action": "create_testimonial",
+                "name": "Sara",
+                "role": "Talaba",
+                "text": "Yangi testimonial",
+                "rating": 4,
+                "is_active": "on",
+            },
+        )
+        self.assertEqual(create_testimonial_response.status_code, 302)
+        self.assertTrue(Testimonial.objects.filter(name="Sara").exists())
+
+        delete_testimonial_response = self.client.post(
+            blocks_url,
+            {
+                "action": "delete_testimonial",
+                "testimonial_id": self.testimonial.id,
+            },
+        )
+        self.assertEqual(delete_testimonial_response.status_code, 302)
+        self.assertFalse(Testimonial.objects.filter(id=self.testimonial.id).exists())
+
+    def test_staff_can_manage_about_content_from_backoffice(self):
+        self.client.force_login(self.staff)
+
+        about_url = reverse("backoffice:content_about_page")
+        about_response = self.client.post(
+            about_url,
+            {
+                "hero_title_start": "Sifatli ta'lim",
+                "hero_title_highlight": "hammasi",
+                "hero_subtitle": "About subtitle",
+                "mission_title": "Mission update",
+                "mission_text": "Mission text update",
+                "vision_title": "Vision update",
+                "vision_text": "Vision text update",
+            },
+        )
+        self.assertEqual(about_response.status_code, 302)
+        self.about_page.refresh_from_db()
+        self.assertEqual(self.about_page.mission_title, "Mission update")
+
+        blocks_url = reverse("backoffice:content_about_blocks")
+        create_stat_response = self.client.post(
+            blocks_url,
+            {
+                "action": "create_about_statistic",
+                "value": "40+",
+                "label": "Mentorlar",
+                "order": 3,
+            },
+        )
+        self.assertEqual(create_stat_response.status_code, 302)
+        created_about_stat = AboutStatistic.objects.get(value="40+")
+
+        delete_stat_response = self.client.post(
+            blocks_url,
+            {
+                "action": "delete_about_statistic",
+                "about_statistic_id": created_about_stat.id,
+            },
+        )
+        self.assertEqual(delete_stat_response.status_code, 302)
+        self.assertFalse(AboutStatistic.objects.filter(id=created_about_stat.id).exists())
+
+        create_member_response = self.client.post(
+            blocks_url,
+            {
+                "action": "create_team_member",
+                "name": "Team 2",
+                "role_1": "Teacher",
+                "role_2": "Advisor",
+                "bio": "Bio text",
+                "order": 2,
+            },
+        )
+        self.assertEqual(create_member_response.status_code, 302)
+        created_member = TeamMember.objects.get(name="Team 2")
+
+        member_detail_url = reverse("backoffice:content_team_member_detail", args=[created_member.id])
+        update_member_response = self.client.post(
+            member_detail_url,
+            {
+                "action": "update",
+                "name": "Team 2 updated",
+                "role_1": "Teacher",
+                "role_2": "Advisor",
+                "bio": "Updated bio",
+                "order": 5,
+            },
+        )
+        self.assertEqual(update_member_response.status_code, 302)
+        created_member.refresh_from_db()
+        self.assertEqual(created_member.name, "Team 2 updated")
+
+    def test_staff_can_manage_landing_nav_items_from_backoffice(self):
+        self.client.force_login(self.staff)
+        nav_url = reverse("backoffice:content_landing_nav")
+
+        get_response = self.client.get(nav_url)
+        self.assertEqual(get_response.status_code, 200)
+        nav_item = LandingNavItem.objects.order_by("order", "id").first()
+        self.assertIsNotNone(nav_item)
+
+        update_response = self.client.post(
+            nav_url,
+            {
+                "action": "update_nav_item",
+                "nav_item_id": nav_item.id,
+                "label": "Bosh sahifa update",
+                "is_visible": "on",
+                "order": 9,
+            },
+        )
+        self.assertEqual(update_response.status_code, 302)
+        nav_item.refresh_from_db()
+        self.assertEqual(nav_item.label, "Bosh sahifa update")
+        self.assertEqual(nav_item.order, 9)
+
+        normalize_response = self.client.post(
+            nav_url,
+            {
+                "action": "normalize_order",
+            },
+        )
+        self.assertEqual(normalize_response.status_code, 302)
+
+    def test_staff_can_manage_blog_home_tags_and_signals_from_backoffice(self):
+        self.client.force_login(self.staff)
+
+        blog_home_url = reverse("backoffice:content_blog_home")
+        home_response = self.client.post(
+            blog_home_url,
+            {
+                "hero_kicker": "Journal",
+                "hero_title": "Yangi blog sarlavha",
+                "hero_description": "Desc",
+                "search_label": "Search",
+                "search_placeholder": "Find",
+                "carousel_kicker": "Kicker",
+                "carousel_title": "Carousel title",
+                "stories_kicker": "Stories",
+                "stories_title": "Stories title",
+                "stories_description": "Stories desc",
+            },
+        )
+        self.assertEqual(home_response.status_code, 302)
+        self.assertEqual(BlogHomeSettings.load().hero_title, "Yangi blog sarlavha")
+
+        tags_url = reverse("backoffice:content_blog_tags")
+        create_tag_response = self.client.post(
+            tags_url,
+            {
+                "action": "create_tag",
+                "name": "Grammar",
+                "slug": "",
+            },
+        )
+        self.assertEqual(create_tag_response.status_code, 302)
+        created_tag = BlogTag.objects.get(name="Grammar")
+
+        update_tag_response = self.client.post(
+            tags_url,
+            {
+                "action": "update_tag",
+                "tag_id": created_tag.id,
+                "name": "Grammar Plus",
+                "slug": "grammar-plus",
+            },
+        )
+        self.assertEqual(update_tag_response.status_code, 302)
+        created_tag.refresh_from_db()
+        self.assertEqual(created_tag.slug, "grammar-plus")
+
+        signals_url = reverse("backoffice:content_blog_signals")
+        signals_response = self.client.get(signals_url + f"?kind=reads&post_id={self.blog_post.id}")
+        self.assertEqual(signals_response.status_code, 200)
+        self.assertContains(signals_response, self.blog_post.title)
+
+        delete_tag_response = self.client.post(
+            tags_url,
+            {
+                "action": "delete_tag",
+                "tag_id": created_tag.id,
+            },
+        )
+        self.assertEqual(delete_tag_response.status_code, 302)
+        self.assertFalse(BlogTag.objects.filter(id=created_tag.id).exists())

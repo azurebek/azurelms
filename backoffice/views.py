@@ -19,20 +19,48 @@ from courses.models import (
     Lesson,
     LessonProgress,
 )
-from frontend.models import AuthPageSettings, LegalPage, SiteSettings
-from blog.models import BlogComment, BlogPost
+from blog.models import (
+    BlogComment,
+    BlogCommentLike,
+    BlogHomeSettings,
+    BlogPost,
+    BlogPostClap,
+    BlogPostRead,
+    BlogTag,
+)
+from frontend.models import (
+    AboutPage,
+    AboutStatistic,
+    AuthPageSettings,
+    LandingNavItem,
+    LandingPage,
+    LegalPage,
+    SiteSettings,
+    Statistic,
+    TeamMember,
+    Testimonial,
+)
 from messenger.models import ChatRoom, LessonRAGChunk, Message
 from subscriptions.models import Plan, PlanFeature
 from users.models import Notification, NotificationBroadcast
 from users.notification_service import send_broadcast
 from users.views import upsert_attendance_and_xp
 from .forms import (
+    BackofficeAboutPageForm,
+    BackofficeAboutStatisticForm,
     BackofficeAuthPageSettingsForm,
+    BackofficeBlogHomeSettingsForm,
+    BackofficeBlogTagForm,
     BackofficeBroadcastForm,
+    BackofficeLandingNavItemForm,
+    BackofficeLandingPageForm,
     BackofficeLegalPageForm,
     BackofficePlanFeatureForm,
     BackofficePlanForm,
     BackofficeSiteSettingsForm,
+    BackofficeStatisticForm,
+    BackofficeTeamMemberForm,
+    BackofficeTestimonialForm,
     BackofficeUserUpdateForm,
 )
 
@@ -62,6 +90,22 @@ def _last_n_dates(days):
 def _series_from_rows(dates, rows):
     mapping = {row["day"]: float(row["total"] or 0) for row in rows}
     return [mapping.get(day, 0.0) for day in dates]
+
+
+def _ensure_landing_nav_items():
+    existing_keys = set(LandingNavItem.objects.values_list("key", flat=True))
+    missing_items = [
+        item
+        for item in LandingNavItem.default_items()
+        if item["key"] not in existing_keys
+    ]
+    for item in missing_items:
+        LandingNavItem.objects.create(
+            key=item["key"],
+            label=item["label"],
+            is_visible=item["is_visible"],
+            order=item["order"],
+        )
 
 
 class BackofficeDashboardView(BackofficeAccessMixin, TemplateView):
@@ -977,6 +1021,418 @@ class BackofficeContentSettingsView(BackofficeAccessMixin, TemplateView):
 
         messages.error(request, "Noma'lum action.")
         return redirect("backoffice:content_settings")
+
+
+class BackofficeLandingPageView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/content_landing_page.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        landing_page = LandingPage.load()
+        context.update(
+            {
+                "landing_page_obj": landing_page,
+                "form": kwargs.get("form") or BackofficeLandingPageForm(instance=landing_page),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        landing_page = LandingPage.load()
+        form = BackofficeLandingPageForm(request.POST, request.FILES, instance=landing_page)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Landing page sozlamalari yangilandi.")
+            return redirect("backoffice:content_landing_page")
+        messages.error(request, "Landing page formasida xatolik bor.")
+        return self.render_to_response(self.get_context_data(form=form))
+
+
+class BackofficeLandingBlocksView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/content_landing_blocks.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(
+            {
+                "statistics": Statistic.objects.order_by("order", "id"),
+                "testimonials": Testimonial.objects.order_by("-is_active", "name", "id"),
+                "stat_form": kwargs.get("stat_form") or BackofficeStatisticForm(),
+                "testimonial_form": kwargs.get("testimonial_form") or BackofficeTestimonialForm(),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = (request.POST.get("action") or "").strip()
+
+        if action == "create_statistic":
+            stat_form = BackofficeStatisticForm(request.POST)
+            if stat_form.is_valid():
+                stat_form.save()
+                messages.success(request, "Landing statistikasi qo'shildi.")
+                return redirect("backoffice:content_landing_blocks")
+            messages.error(request, "Statistic formasida xatolik bor.")
+            return self.render_to_response(self.get_context_data(stat_form=stat_form))
+
+        if action == "update_statistic":
+            statistic = get_object_or_404(Statistic, id=request.POST.get("statistic_id"))
+            stat_form = BackofficeStatisticForm(request.POST, instance=statistic)
+            if stat_form.is_valid():
+                stat_form.save()
+                messages.success(request, "Landing statistikasi yangilandi.")
+            else:
+                messages.error(request, "Statistic yangilashda xatolik bor.")
+            return redirect("backoffice:content_landing_blocks")
+
+        if action == "delete_statistic":
+            statistic = get_object_or_404(Statistic, id=request.POST.get("statistic_id"))
+            statistic.delete()
+            messages.success(request, "Landing statistikasi o'chirildi.")
+            return redirect("backoffice:content_landing_blocks")
+
+        if action == "create_testimonial":
+            testimonial_form = BackofficeTestimonialForm(request.POST, request.FILES)
+            if testimonial_form.is_valid():
+                testimonial_form.save()
+                messages.success(request, "Fikr (testimonial) qo'shildi.")
+                return redirect("backoffice:content_landing_blocks")
+            messages.error(request, "Testimonial formasida xatolik bor.")
+            return self.render_to_response(self.get_context_data(testimonial_form=testimonial_form))
+
+        if action == "delete_testimonial":
+            testimonial = get_object_or_404(Testimonial, id=request.POST.get("testimonial_id"))
+            testimonial.delete()
+            messages.success(request, "Testimonial o'chirildi.")
+            return redirect("backoffice:content_landing_blocks")
+
+        messages.error(request, "Noma'lum action.")
+        return redirect("backoffice:content_landing_blocks")
+
+
+class BackofficeLandingTestimonialDetailView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/content_testimonial_detail.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        self.testimonial = get_object_or_404(Testimonial, id=kwargs["testimonial_id"])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(
+            {
+                "testimonial_obj": self.testimonial,
+                "form": kwargs.get("form") or BackofficeTestimonialForm(instance=self.testimonial),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = (request.POST.get("action") or "update").strip()
+
+        if action == "delete":
+            self.testimonial.delete()
+            messages.success(request, "Testimonial o'chirildi.")
+            return redirect("backoffice:content_landing_blocks")
+
+        form = BackofficeTestimonialForm(request.POST, request.FILES, instance=self.testimonial)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Testimonial yangilandi.")
+            return redirect("backoffice:content_testimonial_detail", testimonial_id=self.testimonial.id)
+        messages.error(request, "Testimonial formasida xatolik bor.")
+        return self.render_to_response(self.get_context_data(form=form))
+
+
+class BackofficeAboutPageView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/content_about_page.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        about_page = AboutPage.load()
+        context.update(
+            {
+                "about_page_obj": about_page,
+                "form": kwargs.get("form") or BackofficeAboutPageForm(instance=about_page),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        about_page = AboutPage.load()
+        form = BackofficeAboutPageForm(request.POST, instance=about_page)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "About page sozlamalari yangilandi.")
+            return redirect("backoffice:content_about_page")
+        messages.error(request, "About page formasida xatolik bor.")
+        return self.render_to_response(self.get_context_data(form=form))
+
+
+class BackofficeAboutBlocksView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/content_about_blocks.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(
+            {
+                "about_statistics": AboutStatistic.objects.order_by("order", "id"),
+                "team_members": TeamMember.objects.order_by("order", "id"),
+                "about_stat_form": kwargs.get("about_stat_form") or BackofficeAboutStatisticForm(),
+                "team_form": kwargs.get("team_form") or BackofficeTeamMemberForm(),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = (request.POST.get("action") or "").strip()
+
+        if action == "create_about_statistic":
+            about_stat_form = BackofficeAboutStatisticForm(request.POST)
+            if about_stat_form.is_valid():
+                about_stat_form.save()
+                messages.success(request, "About statistikasi qo'shildi.")
+                return redirect("backoffice:content_about_blocks")
+            messages.error(request, "About statistic formasida xatolik bor.")
+            return self.render_to_response(self.get_context_data(about_stat_form=about_stat_form))
+
+        if action == "update_about_statistic":
+            statistic = get_object_or_404(AboutStatistic, id=request.POST.get("about_statistic_id"))
+            about_stat_form = BackofficeAboutStatisticForm(request.POST, instance=statistic)
+            if about_stat_form.is_valid():
+                about_stat_form.save()
+                messages.success(request, "About statistikasi yangilandi.")
+            else:
+                messages.error(request, "About statistic yangilashda xatolik bor.")
+            return redirect("backoffice:content_about_blocks")
+
+        if action == "delete_about_statistic":
+            statistic = get_object_or_404(AboutStatistic, id=request.POST.get("about_statistic_id"))
+            statistic.delete()
+            messages.success(request, "About statistikasi o'chirildi.")
+            return redirect("backoffice:content_about_blocks")
+
+        if action == "create_team_member":
+            team_form = BackofficeTeamMemberForm(request.POST, request.FILES)
+            if team_form.is_valid():
+                team_form.save()
+                messages.success(request, "Jamoa a'zosi qo'shildi.")
+                return redirect("backoffice:content_about_blocks")
+            messages.error(request, "Team member formasida xatolik bor.")
+            return self.render_to_response(self.get_context_data(team_form=team_form))
+
+        if action == "delete_team_member":
+            member = get_object_or_404(TeamMember, id=request.POST.get("member_id"))
+            member.delete()
+            messages.success(request, "Jamoa a'zosi o'chirildi.")
+            return redirect("backoffice:content_about_blocks")
+
+        messages.error(request, "Noma'lum action.")
+        return redirect("backoffice:content_about_blocks")
+
+
+class BackofficeTeamMemberDetailView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/content_team_member_detail.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        self.member = get_object_or_404(TeamMember, id=kwargs["member_id"])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(
+            {
+                "member_obj": self.member,
+                "form": kwargs.get("form") or BackofficeTeamMemberForm(instance=self.member),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = (request.POST.get("action") or "update").strip()
+
+        if action == "delete":
+            self.member.delete()
+            messages.success(request, "Jamoa a'zosi o'chirildi.")
+            return redirect("backoffice:content_about_blocks")
+
+        form = BackofficeTeamMemberForm(request.POST, request.FILES, instance=self.member)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Jamoa a'zosi yangilandi.")
+            return redirect("backoffice:content_team_member_detail", member_id=self.member.id)
+        messages.error(request, "Team member formasida xatolik bor.")
+        return self.render_to_response(self.get_context_data(form=form))
+
+
+class BackofficeLandingNavItemsView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/content_landing_nav.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        _ensure_landing_nav_items()
+        context.update(
+            {
+                "nav_items": LandingNavItem.objects.order_by("order", "id"),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        _ensure_landing_nav_items()
+        action = (request.POST.get("action") or "").strip()
+
+        if action == "update_nav_item":
+            nav_item = get_object_or_404(LandingNavItem, id=request.POST.get("nav_item_id"))
+            form = BackofficeLandingNavItemForm(request.POST, instance=nav_item)
+            if form.is_valid():
+                form.save()
+                messages.success(request, "Navbar elementi yangilandi.")
+            else:
+                messages.error(request, "Navbar elementi formasida xatolik bor.")
+            return redirect("backoffice:content_landing_nav")
+
+        if action == "normalize_order":
+            for index, item in enumerate(LandingNavItem.objects.order_by("order", "id"), start=1):
+                if item.order != index:
+                    item.order = index
+                    item.save(update_fields=["order"])
+            messages.success(request, "Navbar tartibi normalizatsiya qilindi.")
+            return redirect("backoffice:content_landing_nav")
+
+        messages.error(request, "Noma'lum action.")
+        return redirect("backoffice:content_landing_nav")
+
+
+class BackofficeBlogHomeSettingsView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/content_blog_home.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        settings_obj = BlogHomeSettings.load()
+        context.update(
+            {
+                "settings_obj": settings_obj,
+                "form": kwargs.get("form") or BackofficeBlogHomeSettingsForm(instance=settings_obj),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        settings_obj = BlogHomeSettings.load()
+        form = BackofficeBlogHomeSettingsForm(request.POST, instance=settings_obj)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Blog home settings yangilandi.")
+            return redirect("backoffice:content_blog_home")
+        messages.error(request, "Blog home settings formasida xatolik bor.")
+        return self.render_to_response(self.get_context_data(form=form))
+
+
+class BackofficeBlogTagsView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/content_blog_tags.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(
+            {
+                "tags": BlogTag.objects.order_by("name"),
+                "create_form": kwargs.get("create_form") or BackofficeBlogTagForm(),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = (request.POST.get("action") or "").strip()
+
+        if action == "create_tag":
+            create_form = BackofficeBlogTagForm(request.POST)
+            if create_form.is_valid():
+                create_form.save()
+                messages.success(request, "Blog tegi qo'shildi.")
+                return redirect("backoffice:content_blog_tags")
+            messages.error(request, "Tag formasida xatolik bor.")
+            return self.render_to_response(self.get_context_data(create_form=create_form))
+
+        if action == "update_tag":
+            tag = get_object_or_404(BlogTag, id=request.POST.get("tag_id"))
+            form = BackofficeBlogTagForm(request.POST, instance=tag)
+            if form.is_valid():
+                form.save()
+                messages.success(request, "Blog tegi yangilandi.")
+            else:
+                messages.error(request, "Tag yangilashda xatolik bor.")
+            return redirect("backoffice:content_blog_tags")
+
+        if action == "delete_tag":
+            tag = get_object_or_404(BlogTag, id=request.POST.get("tag_id"))
+            tag.delete()
+            messages.success(request, "Blog tegi o'chirildi.")
+            return redirect("backoffice:content_blog_tags")
+
+        messages.error(request, "Noma'lum action.")
+        return redirect("backoffice:content_blog_tags")
+
+
+class BackofficeBlogSignalsView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/content_blog_signals.html"
+
+    def _safe_int(self, value):
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        query = (self.request.GET.get("q") or "").strip()
+        selected_kind = (self.request.GET.get("kind") or "all").strip().lower()
+        selected_post_id = self._safe_int(self.request.GET.get("post_id"))
+
+        reads = BlogPostRead.objects.select_related("post", "user")
+        claps = BlogPostClap.objects.select_related("post", "user")
+        comment_likes = BlogCommentLike.objects.select_related("comment", "comment__post", "user")
+
+        if query:
+            reads = reads.filter(
+                Q(post__title__icontains=query)
+                | Q(viewer_key__icontains=query)
+                | Q(user__username__icontains=query)
+            )
+            claps = claps.filter(
+                Q(post__title__icontains=query)
+                | Q(viewer_key__icontains=query)
+                | Q(user__username__icontains=query)
+            )
+            comment_likes = comment_likes.filter(
+                Q(comment__post__title__icontains=query)
+                | Q(comment__content__icontains=query)
+                | Q(user__username__icontains=query)
+            )
+
+        if selected_post_id:
+            reads = reads.filter(post_id=selected_post_id)
+            claps = claps.filter(post_id=selected_post_id)
+            comment_likes = comment_likes.filter(comment__post_id=selected_post_id)
+
+        if selected_kind not in {"all", "reads", "claps", "comment_likes"}:
+            selected_kind = "all"
+
+        context.update(
+            {
+                "search_query": query,
+                "selected_kind": selected_kind,
+                "selected_post_id": selected_post_id,
+                "posts": BlogPost.objects.order_by("-updated_at")[:150],
+                "reads": reads.order_by("-last_seen_at")[:220],
+                "claps": claps.order_by("-updated_at")[:220],
+                "comment_likes": comment_likes.order_by("-created_at")[:220],
+                "summary_reads": BlogPostRead.objects.count(),
+                "summary_claps": BlogPostClap.objects.count(),
+                "summary_comment_likes": BlogCommentLike.objects.count(),
+            }
+        )
+        return context
 
 
 class BackofficeLegalPagesView(BackofficeAccessMixin, TemplateView):

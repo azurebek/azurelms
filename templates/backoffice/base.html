@@ -75,6 +75,38 @@
                 <i class="bi bi-sliders"></i>
                 <span>Content Settings</span>
             </a>
+            <a class="bo-nav-link {% if request.resolver_match.url_name == 'content_landing_page' %}is-active{% endif %}" href="{% url 'backoffice:content_landing_page' %}">
+                <i class="bi bi-house-gear"></i>
+                <span>Landing Page</span>
+            </a>
+            <a class="bo-nav-link {% if request.resolver_match.url_name == 'content_landing_blocks' or request.resolver_match.url_name == 'content_testimonial_detail' %}is-active{% endif %}" href="{% url 'backoffice:content_landing_blocks' %}">
+                <i class="bi bi-grid-3x3-gap"></i>
+                <span>Landing Blocks</span>
+            </a>
+            <a class="bo-nav-link {% if request.resolver_match.url_name == 'content_about_page' %}is-active{% endif %}" href="{% url 'backoffice:content_about_page' %}">
+                <i class="bi bi-person-lines-fill"></i>
+                <span>About Page</span>
+            </a>
+            <a class="bo-nav-link {% if request.resolver_match.url_name == 'content_about_blocks' or request.resolver_match.url_name == 'content_team_member_detail' %}is-active{% endif %}" href="{% url 'backoffice:content_about_blocks' %}">
+                <i class="bi bi-people-fill"></i>
+                <span>About Blocks</span>
+            </a>
+            <a class="bo-nav-link {% if request.resolver_match.url_name == 'content_landing_nav' %}is-active{% endif %}" href="{% url 'backoffice:content_landing_nav' %}">
+                <i class="bi bi-list-nested"></i>
+                <span>Landing Navbar</span>
+            </a>
+            <a class="bo-nav-link {% if request.resolver_match.url_name == 'content_blog_home' %}is-active{% endif %}" href="{% url 'backoffice:content_blog_home' %}">
+                <i class="bi bi-journals"></i>
+                <span>Blog Home</span>
+            </a>
+            <a class="bo-nav-link {% if request.resolver_match.url_name == 'content_blog_tags' %}is-active{% endif %}" href="{% url 'backoffice:content_blog_tags' %}">
+                <i class="bi bi-tags"></i>
+                <span>Blog Tags</span>
+            </a>
+            <a class="bo-nav-link {% if request.resolver_match.url_name == 'content_blog_signals' %}is-active{% endif %}" href="{% url 'backoffice:content_blog_signals' %}">
+                <i class="bi bi-activity"></i>
+                <span>Blog Signals</span>
+            </a>
             <a class="bo-nav-link {% if request.resolver_match.url_name == 'legal_pages' or request.resolver_match.url_name == 'legal_page_detail' %}is-active{% endif %}" href="{% url 'backoffice:legal_pages' %}">
                 <i class="bi bi-file-earmark-text"></i>
                 <span>Legal Pages</span>

@@ -1,0 +1,159 @@
+{% extends 'backoffice/base.html' %}
+{% load humanize %}
+
+{% block backoffice_title %}Landing Blocks | Backoffice{% endblock %}
+{% block backoffice_kicker %}CMS{% endblock %}
+{% block backoffice_heading %}Landing Blocks{% endblock %}
+{% block backoffice_description %}Statistika va testimonial kartalarini boshqarish.{% endblock %}
+
+{% block backoffice_content %}
+<section class="bo-grid bo-grid--notify">
+    <article class="bo-surface">
+        <div class="bo-surface-head">
+            <h2>Yangi statistika</h2>
+            <span>{{ statistics|length }} ta</span>
+        </div>
+        <form method="post" class="bo-form-grid">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create_statistic">
+            <div class="bo-form-grid bo-form-grid--triple">
+                <div>
+                    <label class="form-label" for="{{ stat_form.value.id_for_label }}">Value</label>
+                    {{ stat_form.value }}
+                </div>
+                <div>
+                    <label class="form-label" for="{{ stat_form.label.id_for_label }}">Label</label>
+                    {{ stat_form.label }}
+                </div>
+                <div>
+                    <label class="form-label" for="{{ stat_form.order.id_for_label }}">Order</label>
+                    {{ stat_form.order }}
+                </div>
+            </div>
+            <div class="bo-form-actions bo-form-actions--end">
+                <button class="btn btn-primary rounded-pill px-4" type="submit">Qo'shish</button>
+            </div>
+        </form>
+    </article>
+
+    <article class="bo-surface">
+        <div class="bo-surface-head">
+            <h2>Yangi testimonial</h2>
+            <span>Landing review</span>
+        </div>
+        <form method="post" enctype="multipart/form-data" class="bo-form-grid">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create_testimonial">
+            <div class="bo-form-grid bo-form-grid--triple">
+                <div>
+                    <label class="form-label" for="{{ testimonial_form.name.id_for_label }}">Ism</label>
+                    {{ testimonial_form.name }}
+                </div>
+                <div>
+                    <label class="form-label" for="{{ testimonial_form.role.id_for_label }}">Rol</label>
+                    {{ testimonial_form.role }}
+                </div>
+                <div>
+                    <label class="form-label" for="{{ testimonial_form.rating.id_for_label }}">Rating</label>
+                    {{ testimonial_form.rating }}
+                </div>
+            </div>
+            <div>
+                <label class="form-label" for="{{ testimonial_form.text.id_for_label }}">Matn</label>
+                {{ testimonial_form.text }}
+            </div>
+            <div class="bo-form-grid bo-form-grid--triple">
+                <div>
+                    <label class="form-label" for="{{ testimonial_form.avatar.id_for_label }}">Avatar</label>
+                    {{ testimonial_form.avatar }}
+                </div>
+                <div class="bo-form-actions">
+                    <label class="form-check">
+                        {{ testimonial_form.is_active }}
+                        <span class="form-check-label">Faol</span>
+                    </label>
+                </div>
+            </div>
+            <div class="bo-form-actions bo-form-actions--end">
+                <button class="btn btn-primary rounded-pill px-4" type="submit">Qo'shish</button>
+            </div>
+        </form>
+    </article>
+</section>
+
+<section class="bo-surface">
+    <div class="bo-surface-head">
+        <h2>Landing statistikalar</h2>
+        <span>Inline update</span>
+    </div>
+    <div class="bo-form-grid">
+        {% for statistic in statistics %}
+        <form method="post" class="bo-form-grid">
+            {% csrf_token %}
+            <input type="hidden" name="statistic_id" value="{{ statistic.id }}">
+            <div class="bo-form-grid bo-form-grid--triple">
+                <input type="text" name="value" value="{{ statistic.value }}" class="form-control">
+                <input type="text" name="label" value="{{ statistic.label }}" class="form-control">
+                <input type="number" min="0" name="order" value="{{ statistic.order }}" class="form-control">
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-primary rounded-pill" type="submit" name="action" value="update_statistic">Saqlash</button>
+                <button class="btn btn-sm btn-outline-danger rounded-pill" type="submit" name="action" value="delete_statistic">O'chirish</button>
+            </div>
+        </form>
+        {% empty %}
+        <div class="small text-muted">Landing statistikasi hali yo'q.</div>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="bo-surface">
+    <div class="bo-surface-head">
+        <h2>Testimonials</h2>
+        <span>{{ testimonials|length|intcomma }} ta</span>
+    </div>
+    <div class="bo-table-wrap">
+        <table class="table bo-table">
+            <thead>
+                <tr>
+                    <th>Ism</th>
+                    <th>Rol</th>
+                    <th>Rating</th>
+                    <th>Holat</th>
+                    <th>Amal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for testimonial in testimonials %}
+                <tr>
+                    <td>
+                        <div class="fw-semibold">{{ testimonial.name }}</div>
+                        <div class="small text-muted">{{ testimonial.text|truncatechars:80 }}</div>
+                    </td>
+                    <td>{{ testimonial.role }}</td>
+                    <td>{{ testimonial.rating }}</td>
+                    <td>
+                        {% if testimonial.is_active %}
+                        <span class="bo-pill bo-pill--success">Faol</span>
+                        {% else %}
+                        <span class="bo-pill bo-pill--warning">Nofaol</span>
+                        {% endif %}
+                    </td>
+                    <td class="d-flex gap-2">
+                        <a class="btn btn-sm btn-outline-primary rounded-pill" href="{% url 'backoffice:content_testimonial_detail' testimonial.id %}">Tahrirlash</a>
+                        <form method="post" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete_testimonial">
+                            <input type="hidden" name="testimonial_id" value="{{ testimonial.id }}">
+                            <button class="btn btn-sm btn-outline-danger rounded-pill" type="submit">O'chirish</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5">Testimonials topilmadi.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

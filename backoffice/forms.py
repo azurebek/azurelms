@@ -1,7 +1,19 @@
 from django import forms
 
 from cohorts.models import Cohort
-from frontend.models import AuthPageSettings, LegalPage, SiteSettings
+from blog.models import BlogHomeSettings, BlogTag
+from frontend.models import (
+    AboutPage,
+    AboutStatistic,
+    AuthPageSettings,
+    LandingNavItem,
+    LandingPage,
+    LegalPage,
+    SiteSettings,
+    Statistic,
+    TeamMember,
+    Testimonial,
+)
 from subscriptions.models import Plan, PlanFeature
 from users.models import CustomUser, NotificationBroadcast
 
@@ -192,3 +204,169 @@ class BackofficeLegalPageForm(forms.ModelForm):
             "title": forms.TextInput(attrs={"class": "form-control"}),
             "content": forms.Textarea(attrs={"class": "form-control", "rows": 12}),
         }
+
+
+class BackofficeLandingPageForm(forms.ModelForm):
+    class Meta:
+        model = LandingPage
+        fields = (
+            "hero_badge",
+            "hero_title_start",
+            "hero_title_highlight",
+            "hero_title_end",
+            "hero_subtitle",
+            "hero_background_image",
+            "hero_background_video",
+            "hero_image",
+            "hero_video",
+            "how_it_works_background_image",
+            "how_it_works_background_video",
+            "footer_background_image",
+            "footer_background_video",
+            "cta_title",
+            "cta_description",
+        )
+        widgets = {
+            "hero_badge": forms.TextInput(attrs={"class": "form-control"}),
+            "hero_title_start": forms.TextInput(attrs={"class": "form-control"}),
+            "hero_title_highlight": forms.TextInput(attrs={"class": "form-control"}),
+            "hero_title_end": forms.TextInput(attrs={"class": "form-control"}),
+            "hero_subtitle": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
+            "hero_background_image": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            "hero_background_video": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            "hero_image": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            "hero_video": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            "how_it_works_background_image": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            "how_it_works_background_video": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            "footer_background_image": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            "footer_background_video": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            "cta_title": forms.TextInput(attrs={"class": "form-control"}),
+            "cta_description": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
+        }
+
+
+class BackofficeStatisticForm(forms.ModelForm):
+    class Meta:
+        model = Statistic
+        fields = ("value", "label", "order")
+        widgets = {
+            "value": forms.TextInput(attrs={"class": "form-control"}),
+            "label": forms.TextInput(attrs={"class": "form-control"}),
+            "order": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
+        }
+
+
+class BackofficeTestimonialForm(forms.ModelForm):
+    class Meta:
+        model = Testimonial
+        fields = ("name", "role", "text", "rating", "avatar", "is_active")
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+            "role": forms.TextInput(attrs={"class": "form-control"}),
+            "text": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
+            "rating": forms.NumberInput(attrs={"class": "form-control", "min": "1", "max": "5"}),
+            "avatar": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        }
+
+
+class BackofficeAboutPageForm(forms.ModelForm):
+    class Meta:
+        model = AboutPage
+        fields = (
+            "hero_title_start",
+            "hero_title_highlight",
+            "hero_subtitle",
+            "mission_title",
+            "mission_text",
+            "vision_title",
+            "vision_text",
+        )
+        widgets = {
+            "hero_title_start": forms.TextInput(attrs={"class": "form-control"}),
+            "hero_title_highlight": forms.TextInput(attrs={"class": "form-control"}),
+            "hero_subtitle": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
+            "mission_title": forms.TextInput(attrs={"class": "form-control"}),
+            "mission_text": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
+            "vision_title": forms.TextInput(attrs={"class": "form-control"}),
+            "vision_text": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
+        }
+
+
+class BackofficeAboutStatisticForm(forms.ModelForm):
+    class Meta:
+        model = AboutStatistic
+        fields = ("value", "label", "order")
+        widgets = {
+            "value": forms.TextInput(attrs={"class": "form-control"}),
+            "label": forms.TextInput(attrs={"class": "form-control"}),
+            "order": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
+        }
+
+
+class BackofficeTeamMemberForm(forms.ModelForm):
+    class Meta:
+        model = TeamMember
+        fields = ("name", "role_1", "role_2", "bio", "avatar", "order")
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+            "role_1": forms.TextInput(attrs={"class": "form-control"}),
+            "role_2": forms.TextInput(attrs={"class": "form-control"}),
+            "bio": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
+            "avatar": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            "order": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
+        }
+
+
+class BackofficeLandingNavItemForm(forms.ModelForm):
+    class Meta:
+        model = LandingNavItem
+        fields = ("label", "is_visible", "order")
+        widgets = {
+            "label": forms.TextInput(attrs={"class": "form-control"}),
+            "is_visible": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "order": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
+        }
+
+
+class BackofficeBlogHomeSettingsForm(forms.ModelForm):
+    class Meta:
+        model = BlogHomeSettings
+        fields = (
+            "hero_kicker",
+            "hero_title",
+            "hero_description",
+            "search_label",
+            "search_placeholder",
+            "carousel_kicker",
+            "carousel_title",
+            "stories_kicker",
+            "stories_title",
+            "stories_description",
+        )
+        widgets = {
+            "hero_kicker": forms.TextInput(attrs={"class": "form-control"}),
+            "hero_title": forms.TextInput(attrs={"class": "form-control"}),
+            "hero_description": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+            "search_label": forms.TextInput(attrs={"class": "form-control"}),
+            "search_placeholder": forms.TextInput(attrs={"class": "form-control"}),
+            "carousel_kicker": forms.TextInput(attrs={"class": "form-control"}),
+            "carousel_title": forms.TextInput(attrs={"class": "form-control"}),
+            "stories_kicker": forms.TextInput(attrs={"class": "form-control"}),
+            "stories_title": forms.TextInput(attrs={"class": "form-control"}),
+            "stories_description": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+        }
+
+
+class BackofficeBlogTagForm(forms.ModelForm):
+    class Meta:
+        model = BlogTag
+        fields = ("name", "slug")
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+            "slug": forms.TextInput(attrs={"class": "form-control"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["slug"].required = False

@@ -1,0 +1,70 @@
+{% extends 'backoffice/base.html' %}
+
+{% block backoffice_title %}Blog Home Settings | Backoffice{% endblock %}
+{% block backoffice_kicker %}CMS{% endblock %}
+{% block backoffice_heading %}Blog Home Settings{% endblock %}
+{% block backoffice_description %}Blog listing sahifasidagi hero, search va section matnlarini boshqarish.{% endblock %}
+
+{% block backoffice_content %}
+<section class="bo-surface">
+    <form method="post" class="bo-form-grid">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+        <div class="bo-form-grid bo-form-grid--triple">
+            <div>
+                <label class="form-label" for="{{ form.hero_kicker.id_for_label }}">Hero kicker</label>
+                {{ form.hero_kicker }}
+            </div>
+            <div>
+                <label class="form-label" for="{{ form.search_label.id_for_label }}">Search label</label>
+                {{ form.search_label }}
+            </div>
+            <div>
+                <label class="form-label" for="{{ form.search_placeholder.id_for_label }}">Search placeholder</label>
+                {{ form.search_placeholder }}
+            </div>
+        </div>
+        <div>
+            <label class="form-label" for="{{ form.hero_title.id_for_label }}">Hero title</label>
+            {{ form.hero_title }}
+        </div>
+        <div>
+            <label class="form-label" for="{{ form.hero_description.id_for_label }}">Hero description</label>
+            {{ form.hero_description }}
+        </div>
+
+        <h3 class="bo-subheading">Carousel</h3>
+        <div class="bo-form-grid bo-form-grid--triple">
+            <div>
+                <label class="form-label" for="{{ form.carousel_kicker.id_for_label }}">Carousel kicker</label>
+                {{ form.carousel_kicker }}
+            </div>
+            <div>
+                <label class="form-label" for="{{ form.carousel_title.id_for_label }}">Carousel title</label>
+                {{ form.carousel_title }}
+            </div>
+        </div>
+
+        <h3 class="bo-subheading">Stories</h3>
+        <div class="bo-form-grid bo-form-grid--triple">
+            <div>
+                <label class="form-label" for="{{ form.stories_kicker.id_for_label }}">Stories kicker</label>
+                {{ form.stories_kicker }}
+            </div>
+            <div>
+                <label class="form-label" for="{{ form.stories_title.id_for_label }}">Stories title</label>
+                {{ form.stories_title }}
+            </div>
+        </div>
+        <div>
+            <label class="form-label" for="{{ form.stories_description.id_for_label }}">Stories description</label>
+            {{ form.stories_description }}
+        </div>
+        <div class="bo-form-actions bo-form-actions--end">
+            <button class="btn btn-primary rounded-pill px-4" type="submit">Saqlash</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

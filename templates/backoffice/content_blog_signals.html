@@ -1,0 +1,136 @@
+{% extends 'backoffice/base.html' %}
+{% load humanize %}
+
+{% block backoffice_title %}Blog Signals | Backoffice{% endblock %}
+{% block backoffice_kicker %}CMS{% endblock %}
+{% block backoffice_heading %}Blog Signals{% endblock %}
+{% block backoffice_description %}Reads, claps va comment likes analitikasini kuzatish.{% endblock %}
+
+{% block backoffice_content %}
+<section class="bo-filter-row">
+    <form method="get" class="bo-search-form bo-search-form--quad">
+        <input type="text" name="q" value="{{ search_query }}" class="form-control" placeholder="Post, viewer_key, user...">
+        <select name="kind" class="form-select">
+            <option value="all" {% if selected_kind == 'all' %}selected{% endif %}>Barcha signal</option>
+            <option value="reads" {% if selected_kind == 'reads' %}selected{% endif %}>Faqat reads</option>
+            <option value="claps" {% if selected_kind == 'claps' %}selected{% endif %}>Faqat claps</option>
+            <option value="comment_likes" {% if selected_kind == 'comment_likes' %}selected{% endif %}>Faqat comment likes</option>
+        </select>
+        <select name="post_id" class="form-select">
+            <option value="">Barcha postlar</option>
+            {% for post in posts %}
+            <option value="{{ post.id }}" {% if selected_post_id == post.id %}selected{% endif %}>{{ post.title|truncatechars:60 }}</option>
+            {% endfor %}
+        </select>
+        <button class="btn btn-primary rounded-pill px-4" type="submit">Filtrlash</button>
+    </form>
+    <div class="bo-inline-stats">
+        <span>Reads: <strong>{{ summary_reads|intcomma }}</strong></span>
+        <span>Claps: <strong>{{ summary_claps|intcomma }}</strong></span>
+        <span>Comment likes: <strong>{{ summary_comment_likes|intcomma }}</strong></span>
+    </div>
+</section>
+
+{% if selected_kind == 'all' or selected_kind == 'reads' %}
+<section class="bo-surface">
+    <div class="bo-surface-head">
+        <h2>Blog Reads</h2>
+        <span>{{ reads|length|intcomma }} ta ko'rinmoqda</span>
+    </div>
+    <div class="bo-table-wrap">
+        <table class="table bo-table">
+            <thead>
+                <tr>
+                    <th>Post</th>
+                    <th>Viewer key</th>
+                    <th>User</th>
+                    <th>First seen</th>
+                    <th>Last seen</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in reads %}
+                <tr>
+                    <td>{{ item.post.title|truncatechars:55 }}</td>
+                    <td>{{ item.viewer_key }}</td>
+                    <td>{{ item.user.username|default:"-" }}</td>
+                    <td>{{ item.first_seen_at|date:"Y-m-d H:i" }}</td>
+                    <td>{{ item.last_seen_at|date:"Y-m-d H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5">Read signal topilmadi.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+
+{% if selected_kind == 'all' or selected_kind == 'claps' %}
+<section class="bo-surface">
+    <div class="bo-surface-head">
+        <h2>Blog Claps</h2>
+        <span>{{ claps|length|intcomma }} ta ko'rinmoqda</span>
+    </div>
+    <div class="bo-table-wrap">
+        <table class="table bo-table">
+            <thead>
+                <tr>
+                    <th>Post</th>
+                    <th>Viewer key</th>
+                    <th>User</th>
+                    <th>Clap count</th>
+                    <th>Updated</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in claps %}
+                <tr>
+                    <td>{{ item.post.title|truncatechars:55 }}</td>
+                    <td>{{ item.viewer_key }}</td>
+                    <td>{{ item.user.username|default:"-" }}</td>
+                    <td>{{ item.clap_count|intcomma }}</td>
+                    <td>{{ item.updated_at|date:"Y-m-d H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5">Clap signal topilmadi.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+
+{% if selected_kind == 'all' or selected_kind == 'comment_likes' %}
+<section class="bo-surface">
+    <div class="bo-surface-head">
+        <h2>Comment Likes</h2>
+        <span>{{ comment_likes|length|intcomma }} ta ko'rinmoqda</span>
+    </div>
+    <div class="bo-table-wrap">
+        <table class="table bo-table">
+            <thead>
+                <tr>
+                    <th>Post</th>
+                    <th>Comment</th>
+                    <th>User</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in comment_likes %}
+                <tr>
+                    <td>{{ item.comment.post.title|truncatechars:50 }}</td>
+                    <td>{{ item.comment.content|truncatechars:80 }}</td>
+                    <td>{{ item.user.username }}</td>
+                    <td>{{ item.created_at|date:"Y-m-d H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4">Comment like signal topilmadi.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

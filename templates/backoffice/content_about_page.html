@@ -1,0 +1,53 @@
+{% extends 'backoffice/base.html' %}
+
+{% block backoffice_title %}About Page | Backoffice{% endblock %}
+{% block backoffice_kicker %}CMS{% endblock %}
+{% block backoffice_heading %}About Page Sozlamalari{% endblock %}
+{% block backoffice_description %}Biz haqimizda sahifasining hero, missiya va vision qismlarini boshqarish.{% endblock %}
+
+{% block backoffice_content %}
+<section class="bo-surface">
+    <form method="post" class="bo-form-grid">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="bo-form-grid bo-form-grid--triple">
+            <div>
+                <label class="form-label" for="{{ form.hero_title_start.id_for_label }}">Hero start</label>
+                {{ form.hero_title_start }}
+            </div>
+            <div>
+                <label class="form-label" for="{{ form.hero_title_highlight.id_for_label }}">Hero highlight</label>
+                {{ form.hero_title_highlight }}
+            </div>
+        </div>
+        <div>
+            <label class="form-label" for="{{ form.hero_subtitle.id_for_label }}">Hero subtitle</label>
+            {{ form.hero_subtitle }}
+        </div>
+        <div class="bo-form-grid bo-form-grid--triple">
+            <div>
+                <label class="form-label" for="{{ form.mission_title.id_for_label }}">Mission title</label>
+                {{ form.mission_title }}
+            </div>
+            <div>
+                <label class="form-label" for="{{ form.vision_title.id_for_label }}">Vision title</label>
+                {{ form.vision_title }}
+            </div>
+        </div>
+        <div>
+            <label class="form-label" for="{{ form.mission_text.id_for_label }}">Mission text</label>
+            {{ form.mission_text }}
+        </div>
+        <div>
+            <label class="form-label" for="{{ form.vision_text.id_for_label }}">Vision text</label>
+            {{ form.vision_text }}
+        </div>
+        <div class="bo-form-actions bo-form-actions--end">
+            <button class="btn btn-primary rounded-pill px-4" type="submit">Saqlash</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

@@ -1,0 +1,117 @@
+{% extends 'backoffice/base.html' %}
+
+{% block backoffice_title %}Landing Page | Backoffice{% endblock %}
+{% block backoffice_kicker %}CMS{% endblock %}
+{% block backoffice_heading %}Landing Page Sozlamalari{% endblock %}
+{% block backoffice_description %}Hero, background va CTA matnlarini boshqarish.{% endblock %}
+
+{% block backoffice_content %}
+<section class="bo-surface">
+    <form method="post" enctype="multipart/form-data" class="bo-form-grid">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div>
+            <label class="form-label" for="{{ form.hero_badge.id_for_label }}">Hero badge</label>
+            {{ form.hero_badge }}
+        </div>
+        <div class="bo-form-grid bo-form-grid--triple">
+            <div>
+                <label class="form-label" for="{{ form.hero_title_start.id_for_label }}">Hero title start</label>
+                {{ form.hero_title_start }}
+            </div>
+            <div>
+                <label class="form-label" for="{{ form.hero_title_highlight.id_for_label }}">Hero title highlight</label>
+                {{ form.hero_title_highlight }}
+            </div>
+            <div>
+                <label class="form-label" for="{{ form.hero_title_end.id_for_label }}">Hero title end</label>
+                {{ form.hero_title_end }}
+            </div>
+        </div>
+        <div>
+            <label class="form-label" for="{{ form.hero_subtitle.id_for_label }}">Hero subtitle</label>
+            {{ form.hero_subtitle }}
+        </div>
+
+        <h3 class="bo-subheading">Hero Media</h3>
+        <div class="bo-form-grid bo-form-grid--triple">
+            <div>
+                <label class="form-label" for="{{ form.hero_background_image.id_for_label }}">Hero bg image</label>
+                {{ form.hero_background_image }}
+                {% if landing_page_obj.hero_background_image %}
+                <div class="small text-muted mt-1">Current: {{ landing_page_obj.hero_background_image.name }}</div>
+                {% endif %}
+            </div>
+            <div>
+                <label class="form-label" for="{{ form.hero_background_video.id_for_label }}">Hero bg video</label>
+                {{ form.hero_background_video }}
+                {% if landing_page_obj.hero_background_video %}
+                <div class="small text-muted mt-1">Current: {{ landing_page_obj.hero_background_video.name }}</div>
+                {% endif %}
+            </div>
+            <div>
+                <label class="form-label" for="{{ form.hero_image.id_for_label }}">Hero image</label>
+                {{ form.hero_image }}
+                {% if landing_page_obj.hero_image %}
+                <div class="small text-muted mt-1">Current: {{ landing_page_obj.hero_image.name }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div>
+            <label class="form-label" for="{{ form.hero_video.id_for_label }}">Hero video</label>
+            {{ form.hero_video }}
+            {% if landing_page_obj.hero_video %}
+            <div class="small text-muted mt-1">Current: {{ landing_page_obj.hero_video.name }}</div>
+            {% endif %}
+        </div>
+
+        <h3 class="bo-subheading">Section Backgrounds</h3>
+        <div class="bo-form-grid bo-form-grid--triple">
+            <div>
+                <label class="form-label" for="{{ form.how_it_works_background_image.id_for_label }}">How it works image</label>
+                {{ form.how_it_works_background_image }}
+                {% if landing_page_obj.how_it_works_background_image %}
+                <div class="small text-muted mt-1">Current: {{ landing_page_obj.how_it_works_background_image.name }}</div>
+                {% endif %}
+            </div>
+            <div>
+                <label class="form-label" for="{{ form.how_it_works_background_video.id_for_label }}">How it works video</label>
+                {{ form.how_it_works_background_video }}
+                {% if landing_page_obj.how_it_works_background_video %}
+                <div class="small text-muted mt-1">Current: {{ landing_page_obj.how_it_works_background_video.name }}</div>
+                {% endif %}
+            </div>
+            <div>
+                <label class="form-label" for="{{ form.footer_background_image.id_for_label }}">Footer image</label>
+                {{ form.footer_background_image }}
+                {% if landing_page_obj.footer_background_image %}
+                <div class="small text-muted mt-1">Current: {{ landing_page_obj.footer_background_image.name }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div>
+            <label class="form-label" for="{{ form.footer_background_video.id_for_label }}">Footer video</label>
+            {{ form.footer_background_video }}
+            {% if landing_page_obj.footer_background_video %}
+            <div class="small text-muted mt-1">Current: {{ landing_page_obj.footer_background_video.name }}</div>
+            {% endif %}
+        </div>
+
+        <h3 class="bo-subheading">Bottom CTA</h3>
+        <div>
+            <label class="form-label" for="{{ form.cta_title.id_for_label }}">CTA title</label>
+            {{ form.cta_title }}
+        </div>
+        <div>
+            <label class="form-label" for="{{ form.cta_description.id_for_label }}">CTA description</label>
+            {{ form.cta_description }}
+        </div>
+        <div class="bo-form-actions bo-form-actions--end">
+            <button class="btn btn-primary rounded-pill px-4" type="submit">Saqlash</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

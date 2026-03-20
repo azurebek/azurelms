@@ -1,0 +1,52 @@
+{% extends 'backoffice/base.html' %}
+
+{% block backoffice_title %}Landing Navbar | Backoffice{% endblock %}
+{% block backoffice_kicker %}CMS{% endblock %}
+{% block backoffice_heading %}Landing Navbar{% endblock %}
+{% block backoffice_description %}Navbar label, visibility va tartibni boshqarish.{% endblock %}
+
+{% block backoffice_content %}
+<section class="bo-surface">
+    <div class="bo-surface-head">
+        <h2>Navbar tartibi</h2>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="normalize_order">
+            <button class="btn btn-sm btn-outline-primary rounded-pill" type="submit">Orderni tekislash</button>
+        </form>
+    </div>
+    <div class="bo-form-grid">
+        {% for nav_item in nav_items %}
+        <form method="post" class="bo-form-grid">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_nav_item">
+            <input type="hidden" name="nav_item_id" value="{{ nav_item.id }}">
+            <div class="bo-form-grid bo-form-grid--triple">
+                <div>
+                    <label class="form-label">Key</label>
+                    <input type="text" class="form-control" value="{{ nav_item.get_key_display }}" disabled>
+                </div>
+                <div>
+                    <label class="form-label">Label</label>
+                    <input type="text" name="label" value="{{ nav_item.label }}" class="form-control">
+                </div>
+                <div>
+                    <label class="form-label">Order</label>
+                    <input type="number" min="0" name="order" value="{{ nav_item.order }}" class="form-control">
+                </div>
+            </div>
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <label class="form-check m-0">
+                    <input type="checkbox" class="form-check-input" name="is_visible" {% if nav_item.is_visible %}checked{% endif %}>
+                    <span class="form-check-label">Ko'rinsin</span>
+                </label>
+                <div class="small text-muted">{{ nav_item.get_url }}</div>
+                <button class="btn btn-sm btn-outline-primary rounded-pill" type="submit">Saqlash</button>
+            </div>
+        </form>
+        {% empty %}
+        <div class="small text-muted">Navbar elementlari topilmadi.</div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
