@@ -6,14 +6,17 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import Count, Max, Q, Sum
 from django.db.models.functions import TruncDate
-from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
 from django.views.generic import TemplateView
 
 from cohorts.models import Attendance, Cohort, Enrollment, PaymentReceipt
 from courses.models import Course, ExamAttempt, Lesson, LessonProgress
 from messenger.models import ChatRoom, LessonRAGChunk, Message
+from users.models import Notification, NotificationBroadcast
+from users.notification_service import send_broadcast
 from users.views import upsert_attendance_and_xp
+from .forms import BackofficeBroadcastForm, BackofficeUserUpdateForm
 
 
 User = get_user_model()
@@ -204,6 +207,96 @@ class BackofficeStudentsView(BackofficeAccessMixin, TemplateView):
         return context
 
 
+class BackofficeUsersView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/users.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        query = (self.request.GET.get("q") or "").strip()
+        role = (self.request.GET.get("role") or "all").strip().lower()
+        status = (self.request.GET.get("status") or "all").strip().lower()
+
+        users = User.objects.all()
+        if query:
+            users = users.filter(
+                Q(username__icontains=query)
+                | Q(email__icontains=query)
+                | Q(first_name__icontains=query)
+                | Q(last_name__icontains=query)
+                | Q(telegram_username__icontains=query)
+            )
+
+        if role == "students":
+            users = users.filter(is_staff=False, is_superuser=False)
+        elif role == "staff":
+            users = users.filter(Q(is_staff=True) | Q(is_superuser=True))
+        else:
+            role = "all"
+
+        if status == "active":
+            users = users.filter(is_active=True)
+        elif status == "inactive":
+            users = users.filter(is_active=False)
+        else:
+            status = "all"
+
+        users = (
+            users.annotate(
+                active_enrollments=Count("enrollments", filter=Q(enrollments__status="active"), distinct=True),
+                unread_notifications=Count("notifications", filter=Q(notifications__is_read=False), distinct=True),
+            )
+            .order_by("-date_joined")[:200]
+        )
+
+        context.update(
+            {
+                "users": users,
+                "search_query": query,
+                "selected_role": role,
+                "selected_status": status,
+                "summary_total": User.objects.count(),
+                "summary_active": User.objects.filter(is_active=True).count(),
+                "summary_staff": User.objects.filter(Q(is_staff=True) | Q(is_superuser=True)).count(),
+            }
+        )
+        return context
+
+
+class BackofficeUserDetailView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/user_detail.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        self.target_user = get_object_or_404(User, id=kwargs["user_id"])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        form = kwargs.get("form") or BackofficeUserUpdateForm(instance=self.target_user)
+        recent_enrollments = (
+            self.target_user.enrollments.select_related("cohort", "cohort__course", "plan")
+            .order_by("-joined_at")[:8]
+        )
+        recent_notifications = self.target_user.notifications.order_by("-created_at")[:10]
+        context.update(
+            {
+                "target_user": self.target_user,
+                "form": form,
+                "recent_enrollments": recent_enrollments,
+                "recent_notifications": recent_notifications,
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        form = BackofficeUserUpdateForm(request.POST, instance=self.target_user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Foydalanuvchi ma'lumotlari yangilandi.")
+            return redirect("backoffice:user_detail", user_id=self.target_user.id)
+        messages.error(request, "Forma xatolik bilan to'ldirilgan. Iltimos, tekshiring.")
+        return self.render_to_response(self.get_context_data(form=form))
+
+
 class BackofficePaymentsView(BackofficeAccessMixin, TemplateView):
     template_name = "backoffice/payments.html"
 
@@ -392,3 +485,56 @@ class BackofficeAttendanceView(BackofficeAccessMixin, TemplateView):
 
         messages.success(request, f"Davomat saqlandi: {updated} ta o'quvchi.")
         return redirect(request.get_full_path())
+
+
+class BackofficeNotificationsView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/notifications.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        category = (self.request.GET.get("category") or "all").strip().lower()
+        read_state = (self.request.GET.get("read") or "all").strip().lower()
+
+        notifications = Notification.objects.select_related("recipient")
+        if category in {"manual", "subscription", "system"}:
+            notifications = notifications.filter(category=category)
+        else:
+            category = "all"
+
+        if read_state == "read":
+            notifications = notifications.filter(is_read=True)
+        elif read_state == "unread":
+            notifications = notifications.filter(is_read=False)
+        else:
+            read_state = "all"
+
+        notifications = notifications.order_by("-created_at")[:160]
+        broadcasts = NotificationBroadcast.objects.select_related("created_by").order_by("-created_at")[:30]
+
+        form = kwargs.get("broadcast_form") or BackofficeBroadcastForm()
+        context.update(
+            {
+                "notifications": notifications,
+                "broadcasts": broadcasts,
+                "broadcast_form": form,
+                "selected_category": category,
+                "selected_read": read_state,
+                "summary_total": Notification.objects.count(),
+                "summary_unread": Notification.objects.filter(is_read=False).count(),
+                "summary_broadcasts": NotificationBroadcast.objects.count(),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        form = BackofficeBroadcastForm(request.POST)
+        if form.is_valid():
+            broadcast = form.save(commit=False)
+            broadcast.created_by = request.user
+            broadcast.save()
+            form.save_m2m()
+            sent_count = send_broadcast(broadcast)
+            messages.success(request, f"Broadcast yuborildi: {sent_count} ta foydalanuvchi.")
+            return redirect("backoffice:notifications")
+        messages.error(request, "Broadcast formasi xatolik bilan to'ldirilgan.")
+        return self.render_to_response(self.get_context_data(broadcast_form=form))

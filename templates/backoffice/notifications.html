@@ -1,0 +1,185 @@
+{% extends 'backoffice/base.html' %}
+{% load humanize %}
+
+{% block backoffice_title %}Notifications | Backoffice{% endblock %}
+{% block backoffice_kicker %}Comms{% endblock %}
+{% block backoffice_heading %}Bildirishnomalar Markazi{% endblock %}
+{% block backoffice_description %}Manual broadcast yuborish, tarix va notification oqimini nazorat qilish.{% endblock %}
+
+{% block backoffice_content %}
+<section class="bo-filter-row">
+    <form method="get" class="bo-search-form bo-search-form--triple">
+        <select name="category" class="form-select">
+            <option value="all" {% if selected_category == 'all' %}selected{% endif %}>Barcha kategoriyalar</option>
+            <option value="manual" {% if selected_category == 'manual' %}selected{% endif %}>Manual</option>
+            <option value="subscription" {% if selected_category == 'subscription' %}selected{% endif %}>Subscription</option>
+            <option value="system" {% if selected_category == 'system' %}selected{% endif %}>System</option>
+        </select>
+        <select name="read" class="form-select">
+            <option value="all" {% if selected_read == 'all' %}selected{% endif %}>Read + Unread</option>
+            <option value="unread" {% if selected_read == 'unread' %}selected{% endif %}>Faqat unread</option>
+            <option value="read" {% if selected_read == 'read' %}selected{% endif %}>Faqat read</option>
+        </select>
+        <button class="btn btn-primary rounded-pill px-4" type="submit">Filtrlash</button>
+    </form>
+
+    <div class="bo-inline-stats">
+        <span>Jami notif: <strong>{{ summary_total|intcomma }}</strong></span>
+        <span>Unread: <strong>{{ summary_unread|intcomma }}</strong></span>
+        <span>Broadcastlar: <strong>{{ summary_broadcasts|intcomma }}</strong></span>
+    </div>
+</section>
+
+<section class="bo-grid bo-grid--notify">
+    <article class="bo-surface">
+        <div class="bo-surface-head">
+            <h2>Yangi broadcast</h2>
+            <span>Manual yuborish</span>
+        </div>
+        <form method="post" class="bo-form-grid">
+            {% csrf_token %}
+            {% if broadcast_form.non_field_errors %}
+            <div class="alert alert-danger">{{ broadcast_form.non_field_errors }}</div>
+            {% endif %}
+
+            <div>
+                <label class="form-label" for="{{ broadcast_form.title.id_for_label }}">Sarlavha</label>
+                {{ broadcast_form.title }}
+                {% if broadcast_form.title.errors %}<div class="bo-field-error">{{ broadcast_form.title.errors|join:", " }}</div>{% endif %}
+            </div>
+            <div>
+                <label class="form-label" for="{{ broadcast_form.message.id_for_label }}">Matn</label>
+                {{ broadcast_form.message }}
+                {% if broadcast_form.message.errors %}<div class="bo-field-error">{{ broadcast_form.message.errors|join:", " }}</div>{% endif %}
+            </div>
+            <div class="bo-form-grid bo-form-grid--triple">
+                <div>
+                    <label class="form-label" for="{{ broadcast_form.icon.id_for_label }}">Icon</label>
+                    {{ broadcast_form.icon }}
+                </div>
+                <div>
+                    <label class="form-label" for="{{ broadcast_form.url.id_for_label }}">URL</label>
+                    {{ broadcast_form.url }}
+                </div>
+                <div>
+                    <label class="form-label" for="{{ broadcast_form.target_type.id_for_label }}">Target</label>
+                    {{ broadcast_form.target_type }}
+                </div>
+            </div>
+
+            <div id="boRecipientsField">
+                <label class="form-label" for="{{ broadcast_form.recipients.id_for_label }}">Foydalanuvchilar (TARGET_USERS uchun)</label>
+                {{ broadcast_form.recipients }}
+                {% if broadcast_form.recipients.errors %}<div class="bo-field-error">{{ broadcast_form.recipients.errors|join:", " }}</div>{% endif %}
+            </div>
+            <div id="boCohortsField">
+                <label class="form-label" for="{{ broadcast_form.cohorts.id_for_label }}">Cohortlar (TARGET_COHORTS uchun)</label>
+                {{ broadcast_form.cohorts }}
+                {% if broadcast_form.cohorts.errors %}<div class="bo-field-error">{{ broadcast_form.cohorts.errors|join:", " }}</div>{% endif %}
+            </div>
+
+            <div class="bo-form-actions bo-form-actions--end">
+                <button class="btn btn-primary rounded-pill px-4" type="submit">Yuborish</button>
+            </div>
+        </form>
+    </article>
+
+    <article class="bo-surface">
+        <div class="bo-surface-head">
+            <h2>Broadcast tarixi</h2>
+            <span>Oxirgi 30 ta</span>
+        </div>
+        <div class="bo-table-wrap">
+            <table class="table bo-table">
+                <thead>
+                    <tr>
+                        <th>Sana</th>
+                        <th>Target</th>
+                        <th>Sarlavha</th>
+                        <th>Holat</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in broadcasts %}
+                    <tr>
+                        <td>{{ item.created_at|date:"Y-m-d H:i" }}</td>
+                        <td>{{ item.get_target_type_display }}</td>
+                        <td>{{ item.title|default:"-" }}</td>
+                        <td>
+                            {% if item.is_sent %}
+                            <span class="bo-pill bo-pill--success">Yuborildi</span>
+                            {% else %}
+                            <span class="bo-pill bo-pill--warning">Kutilmoqda</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4">Broadcast yo'q.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </article>
+</section>
+
+<section class="bo-surface">
+    <div class="bo-surface-head">
+        <h2>Notification oqimi</h2>
+        <span>Oxirgi 160 ta</span>
+    </div>
+    <div class="bo-table-wrap">
+        <table class="table bo-table">
+            <thead>
+                <tr>
+                    <th>Sana</th>
+                    <th>Recipient</th>
+                    <th>Category</th>
+                    <th>Sarlavha</th>
+                    <th>Matn</th>
+                    <th>Holat</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in notifications %}
+                <tr>
+                    <td>{{ item.created_at|date:"Y-m-d H:i" }}</td>
+                    <td>{{ item.recipient.username }}</td>
+                    <td>{{ item.get_category_display }}</td>
+                    <td>{{ item.title|default:"-" }}</td>
+                    <td>{{ item.message|truncatechars:110 }}</td>
+                    <td>
+                        {% if item.is_read %}
+                        <span class="bo-pill bo-pill--success">Read</span>
+                        {% else %}
+                        <span class="bo-pill bo-pill--warning">Unread</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6">Notification topilmadi.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
+
+{% block backoffice_js %}
+<script>
+const targetSelect = document.getElementById('id_target_type');
+const recipientsField = document.getElementById('boRecipientsField');
+const cohortsField = document.getElementById('boCohortsField');
+
+function syncTargetFields() {
+    if (!targetSelect) return;
+    const value = targetSelect.value;
+    if (recipientsField) recipientsField.style.display = value === 'users' ? '' : 'none';
+    if (cohortsField) cohortsField.style.display = value === 'cohorts' ? '' : 'none';
+}
+
+if (targetSelect) {
+    targetSelect.addEventListener('change', syncTargetFields);
+    syncTargetFields();
+}
+</script>
+{% endblock %}

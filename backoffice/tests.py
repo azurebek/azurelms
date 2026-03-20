@@ -5,6 +5,7 @@ from django.urls import reverse
 
 from cohorts.models import Attendance, Cohort, Enrollment
 from courses.models import Course, Lesson, Module
+from users.models import Notification, NotificationBroadcast
 
 
 User = get_user_model()
@@ -66,12 +67,16 @@ class BackofficeAccessTests(TestCase):
         for route_name in (
             "backoffice:dashboard",
             "backoffice:students",
+            "backoffice:users",
             "backoffice:payments",
             "backoffice:cohorts",
             "backoffice:attendance",
+            "backoffice:notifications",
         ):
             response = self.client.get(reverse(route_name))
             self.assertEqual(response.status_code, 200, route_name)
+        detail_response = self.client.get(reverse("backoffice:user_detail", args=[self.student.id]))
+        self.assertEqual(detail_response.status_code, 200)
 
     def test_staff_can_save_attendance_from_backoffice(self):
         self.client.force_login(self.staff)
@@ -95,3 +100,47 @@ class BackofficeAccessTests(TestCase):
             date=target_date,
         )
         self.assertEqual(attendance.status, Attendance.STATUS_PRESENT)
+
+    def test_staff_can_update_user_from_backoffice(self):
+        self.client.force_login(self.staff)
+        url = reverse("backoffice:user_detail", args=[self.student.id])
+        response = self.client.post(
+            url,
+            {
+                "username": self.student.username,
+                "email": self.student.email,
+                "first_name": "Aziz",
+                "last_name": "Siroj",
+                "phone_number": "+998901112233",
+                "telegram_id": "",
+                "telegram_username": "azizdev",
+                "total_xp": 777,
+                "is_active": "on",
+                "is_staff": "",
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        self.student.refresh_from_db()
+        self.assertEqual(self.student.first_name, "Aziz")
+        self.assertEqual(self.student.total_xp, 777)
+        self.assertEqual(self.student.telegram_username, "azizdev")
+
+    def test_staff_can_send_broadcast_from_backoffice(self):
+        self.client.force_login(self.staff)
+        url = reverse("backoffice:notifications")
+        response = self.client.post(
+            url,
+            {
+                "title": "Platform update",
+                "message": "Yangi funksiya ishga tushdi.",
+                "icon": "megaphone",
+                "url": "/users/dashboard/",
+                "target_type": NotificationBroadcast.TARGET_ALL,
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(NotificationBroadcast.objects.count(), 1)
+        broadcast = NotificationBroadcast.objects.first()
+        self.assertTrue(broadcast.is_sent)
+        self.assertGreater(Notification.objects.count(), 0)

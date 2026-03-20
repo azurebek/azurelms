@@ -1,0 +1,144 @@
+{% extends 'backoffice/base.html' %}
+{% load humanize %}
+
+{% block backoffice_title %}User Detail | Backoffice{% endblock %}
+{% block backoffice_kicker %}Identity{% endblock %}
+{% block backoffice_heading %}{{ target_user.get_full_name|default:target_user.username }}{% endblock %}
+{% block backoffice_description %}@{{ target_user.username }} akkaunti bo'yicha ma'lumot va tahrir.{% endblock %}
+
+{% block backoffice_content %}
+<section class="bo-grid bo-grid--user-detail">
+    <article class="bo-surface">
+        <div class="bo-surface-head">
+            <h2>Asosiy ma'lumotlar</h2>
+            <span>{{ target_user.date_joined|date:"Y-m-d H:i" }}</span>
+        </div>
+        <form method="post" class="bo-form-grid bo-form-grid--user-edit">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            <div>
+                <label class="form-label" for="{{ form.username.id_for_label }}">Username</label>
+                {{ form.username }}
+                {% if form.username.errors %}<div class="bo-field-error">{{ form.username.errors|join:", " }}</div>{% endif %}
+            </div>
+            <div>
+                <label class="form-label" for="{{ form.email.id_for_label }}">Email</label>
+                {{ form.email }}
+                {% if form.email.errors %}<div class="bo-field-error">{{ form.email.errors|join:", " }}</div>{% endif %}
+            </div>
+            <div>
+                <label class="form-label" for="{{ form.first_name.id_for_label }}">Ism</label>
+                {{ form.first_name }}
+            </div>
+            <div>
+                <label class="form-label" for="{{ form.last_name.id_for_label }}">Familiya</label>
+                {{ form.last_name }}
+            </div>
+            <div>
+                <label class="form-label" for="{{ form.phone_number.id_for_label }}">Telefon</label>
+                {{ form.phone_number }}
+            </div>
+            <div>
+                <label class="form-label" for="{{ form.telegram_id.id_for_label }}">Telegram ID</label>
+                {{ form.telegram_id }}
+            </div>
+            <div>
+                <label class="form-label" for="{{ form.telegram_username.id_for_label }}">Telegram username</label>
+                {{ form.telegram_username }}
+            </div>
+            <div>
+                <label class="form-label" for="{{ form.total_xp.id_for_label }}">Total XP</label>
+                {{ form.total_xp }}
+            </div>
+            <div class="bo-check-stack">
+                <label class="form-check">
+                    {{ form.is_active }}
+                    <span class="form-check-label">Faol</span>
+                </label>
+                <label class="form-check">
+                    {{ form.is_staff }}
+                    <span class="form-check-label">Staff</span>
+                </label>
+            </div>
+
+            <div class="bo-form-actions bo-form-actions--end">
+                <button class="btn btn-primary rounded-pill px-4" type="submit">Saqlash</button>
+            </div>
+        </form>
+    </article>
+
+    <article class="bo-surface">
+        <div class="bo-surface-head">
+            <h2>So'nggi enrollmentlar</h2>
+            <a href="{% url 'backoffice:users' %}" class="btn btn-sm btn-outline-primary rounded-pill">Ro'yxatga qaytish</a>
+        </div>
+        <div class="bo-table-wrap">
+            <table class="table bo-table">
+                <thead>
+                    <tr>
+                        <th>Kurs</th>
+                        <th>Cohort</th>
+                        <th>Tarif</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for enrollment in recent_enrollments %}
+                    <tr>
+                        <td>{{ enrollment.cohort.course.title }}</td>
+                        <td>{{ enrollment.cohort.name }}</td>
+                        <td>{% if enrollment.plan %}{{ enrollment.plan.name }}{% else %}-{% endif %}</td>
+                        <td>{{ enrollment.get_status_display }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4">Enrollment topilmadi.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </article>
+</section>
+
+<section class="bo-surface">
+    <div class="bo-surface-head">
+        <h2>So'nggi bildirishnomalar</h2>
+        <span>Oxirgi 10 ta</span>
+    </div>
+    <div class="bo-table-wrap">
+        <table class="table bo-table">
+            <thead>
+                <tr>
+                    <th>Sana</th>
+                    <th>Category</th>
+                    <th>Sarlavha</th>
+                    <th>Matn</th>
+                    <th>Holat</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in recent_notifications %}
+                <tr>
+                    <td>{{ item.created_at|date:"Y-m-d H:i" }}</td>
+                    <td>{{ item.get_category_display }}</td>
+                    <td>{{ item.title|default:"-" }}</td>
+                    <td>{{ item.message|truncatechars:90 }}</td>
+                    <td>
+                        {% if item.is_read %}
+                        <span class="bo-pill bo-pill--success">Read</span>
+                        {% else %}
+                        <span class="bo-pill bo-pill--warning">Unread</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5">Bildirishnoma yo'q.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

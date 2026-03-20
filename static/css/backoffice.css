@@ -353,6 +353,8 @@ body.backoffice-page {
   padding: 0.24rem 0.6rem;
   font-size: 0.72rem;
   font-weight: 700;
+  color: #3f4f66;
+  background: #edf3ff;
 }
 
 .bo-pill--success {
@@ -363,6 +365,16 @@ body.backoffice-page {
 .bo-pill--warning {
   color: var(--bo-warning);
   background: rgba(181, 117, 6, 0.15);
+}
+
+.bo-pill--danger {
+  color: #b42318;
+  background: rgba(244, 67, 54, 0.14);
+}
+
+.bo-pill--info {
+  color: #0b64c7;
+  background: rgba(14, 116, 201, 0.14);
 }
 
 .bo-filter-row {
@@ -379,6 +391,10 @@ body.backoffice-page {
   grid-template-columns: 1fr;
 }
 
+.bo-search-form--quad {
+  grid-template-columns: 1fr;
+}
+
 .bo-search-form .btn {
   width: 100%;
 }
@@ -386,6 +402,10 @@ body.backoffice-page {
 .bo-form-grid {
   display: grid;
   gap: 0.7rem;
+}
+
+.bo-form-grid--triple {
+  grid-template-columns: 1fr;
 }
 
 .bo-form-grid .form-label {
@@ -404,8 +424,37 @@ body.backoffice-page {
   justify-content: flex-end;
 }
 
+.bo-field-error {
+  margin-top: 0.25rem;
+  color: #b42318;
+  font-size: 0.78rem;
+}
+
+.bo-check-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.bo-check-stack .form-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+}
+
 .bo-status-select {
   min-width: 180px;
+}
+
+.bo-grid--user-detail,
+.bo-grid--notify {
+  grid-template-columns: 1fr;
+}
+
+.bo-form-grid--user-edit {
+  grid-template-columns: 1fr;
 }
 
 .bo-inline-stats {
@@ -489,13 +538,30 @@ body.backoffice-page {
     align-items: end;
   }
 
+  .bo-search-form--quad {
+    grid-template-columns: minmax(0, 1.1fr) minmax(190px, 0.55fr) minmax(190px, 0.55fr) auto;
+    align-items: end;
+  }
+
   .bo-search-form .btn {
     width: auto;
+  }
+
+  .bo-form-grid--triple {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .bo-form-grid--attendance {
     grid-template-columns: minmax(220px, 0.8fr) minmax(280px, 1.2fr) minmax(150px, 0.5fr) auto;
     align-items: end;
+  }
+
+  .bo-form-grid--user-edit {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bo-grid--notify {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
   }
 }
 
@@ -533,6 +599,10 @@ body.backoffice-page {
 
   .bo-grid--tables {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bo-grid--user-detail {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
   }
 
   .bo-overlay {

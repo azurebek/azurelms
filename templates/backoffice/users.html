@@ -1,0 +1,88 @@
+{% extends 'backoffice/base.html' %}
+{% load humanize %}
+
+{% block backoffice_title %}Users | Backoffice{% endblock %}
+{% block backoffice_kicker %}Identity{% endblock %}
+{% block backoffice_heading %}Foydalanuvchilar Boshqaruvi{% endblock %}
+{% block backoffice_description %}Staff va talaba akkauntlarini qidirish, filterlash va tahrirlash.{% endblock %}
+
+{% block backoffice_content %}
+<section class="bo-filter-row">
+    <form method="get" class="bo-search-form bo-search-form--quad">
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Username, email, ism..." class="form-control">
+        <select name="role" class="form-select">
+            <option value="all" {% if selected_role == 'all' %}selected{% endif %}>Barcha rollar</option>
+            <option value="students" {% if selected_role == 'students' %}selected{% endif %}>Talabalar</option>
+            <option value="staff" {% if selected_role == 'staff' %}selected{% endif %}>Staff/Admin</option>
+        </select>
+        <select name="status" class="form-select">
+            <option value="all" {% if selected_status == 'all' %}selected{% endif %}>Barcha holatlar</option>
+            <option value="active" {% if selected_status == 'active' %}selected{% endif %}>Faol</option>
+            <option value="inactive" {% if selected_status == 'inactive' %}selected{% endif %}>Nofaol</option>
+        </select>
+        <button class="btn btn-primary rounded-pill px-4" type="submit">Qidirish</button>
+    </form>
+
+    <div class="bo-inline-stats">
+        <span>Jami: <strong>{{ summary_total|intcomma }}</strong></span>
+        <span>Faol: <strong>{{ summary_active|intcomma }}</strong></span>
+        <span>Staff/Admin: <strong>{{ summary_staff|intcomma }}</strong></span>
+    </div>
+</section>
+
+<section class="bo-surface">
+    <div class="bo-table-wrap">
+        <table class="table bo-table">
+            <thead>
+                <tr>
+                    <th>Foydalanuvchi</th>
+                    <th>Email</th>
+                    <th>Rol</th>
+                    <th>Holat</th>
+                    <th>XP</th>
+                    <th>Faol enrollment</th>
+                    <th>Unread notif</th>
+                    <th>Amal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user_item in users %}
+                <tr>
+                    <td>
+                        <div class="fw-semibold">{{ user_item.get_full_name|default:user_item.username }}</div>
+                        <div class="small text-muted">@{{ user_item.username }}</div>
+                    </td>
+                    <td>{{ user_item.email }}</td>
+                    <td>
+                        {% if user_item.is_superuser %}
+                        <span class="bo-pill bo-pill--danger">Superuser</span>
+                        {% elif user_item.is_staff %}
+                        <span class="bo-pill bo-pill--info">Staff</span>
+                        {% else %}
+                        <span class="bo-pill">Student</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user_item.is_active %}
+                        <span class="bo-pill bo-pill--success">Faol</span>
+                        {% else %}
+                        <span class="bo-pill bo-pill--warning">Nofaol</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ user_item.total_xp|intcomma }}</td>
+                    <td>{{ user_item.active_enrollments|intcomma }}</td>
+                    <td>{{ user_item.unread_notifications|intcomma }}</td>
+                    <td>
+                        <a class="btn btn-sm btn-outline-primary rounded-pill" href="{% url 'backoffice:user_detail' user_item.id %}">Ochish</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8">Foydalanuvchilar topilmadi.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
