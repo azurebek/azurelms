@@ -4,9 +4,26 @@
 {% block backoffice_title %}Subscriptions | Backoffice{% endblock %}
 {% block backoffice_kicker %}Monetization{% endblock %}
 {% block backoffice_heading %}Obuna Tariflari{% endblock %}
-{% block backoffice_description %}Tariflarni yaratish, narxini boshqarish va feature tarkibini tahrirlash.{% endblock %}
+{% block backoffice_description %}Tariflarni yaratish, qidirish va operator-style boshqarish (popular/bulk/delete).{% endblock %}
 
 {% block backoffice_content %}
+<section class="bo-filter-row">
+    <form method="get" class="bo-search-form bo-search-form--triple">
+        <input type="text" name="q" value="{{ search_query }}" class="form-control" placeholder="Tarif nomi, izoh, button...">
+        <select name="popular" class="form-select">
+            <option value="all" {% if selected_popular == 'all' %}selected{% endif %}>Barcha tariflar</option>
+            <option value="popular" {% if selected_popular == 'popular' %}selected{% endif %}>Faqat ommabop</option>
+            <option value="regular" {% if selected_popular == 'regular' %}selected{% endif %}>Faqat oddiy</option>
+        </select>
+        <button class="btn btn-primary rounded-pill px-4" type="submit">Filtrlash</button>
+    </form>
+    <div class="bo-inline-stats">
+        <span>Jami tarif: <strong>{{ summary_total|intcomma }}</strong></span>
+        <span>Popular: <strong>{{ summary_popular|intcomma }}</strong></span>
+        <span>Faol obunalar: <strong>{{ summary_active_subscriptions|intcomma }}</strong></span>
+    </div>
+</section>
+
 <section class="bo-grid bo-grid--notify">
     <article class="bo-surface">
         <div class="bo-surface-head">
@@ -15,6 +32,7 @@
         </div>
         <form method="post" class="bo-form-grid">
             {% csrf_token %}
+            <input type="hidden" name="action" value="create_plan">
             {% if plan_form.non_field_errors %}
             <div class="alert alert-danger">{{ plan_form.non_field_errors }}</div>
             {% endif %}
@@ -55,45 +73,63 @@
     <article class="bo-surface">
         <div class="bo-surface-head">
             <h2>Tariflar</h2>
-            <span>{{ plans|length }} ta</span>
+            <span>{{ plans|length|intcomma }} ta</span>
         </div>
-        <div class="bo-table-wrap">
-            <table class="table bo-table">
-                <thead>
-                    <tr>
-                        <th>Tarif</th>
-                        <th>Narx</th>
-                        <th>Order</th>
-                        <th>Popular</th>
-                        <th>Features</th>
-                        <th>Amal</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for plan in plans %}
-                    <tr>
-                        <td>
-                            <div class="fw-semibold">{{ plan.name }}</div>
-                            <div class="small text-muted">{{ plan.description|striptags|truncatechars:70 }}</div>
-                        </td>
-                        <td>{{ plan.price|floatformat:0|intcomma }} so'm</td>
-                        <td>{{ plan.order }}</td>
-                        <td>
-                            {% if plan.is_popular %}
-                            <span class="bo-pill bo-pill--info">Ha</span>
-                            {% else %}
-                            <span class="bo-pill">Yo'q</span>
-                            {% endif %}
-                        </td>
-                        <td>{{ plan.features.count }}</td>
-                        <td><a class="btn btn-sm btn-outline-primary rounded-pill" href="{% url 'backoffice:subscription_plan_detail' plan.id %}">Tahrirlash</a></td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="6">Tariflar topilmadi.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+        <form method="post" action="?{{ request.GET.urlencode }}">
+            {% csrf_token %}
+            <div class="bo-action-bar bo-action-bar--wrap">
+                <select name="action" class="form-select bo-action-select">
+                    <option value="">Action tanlang</option>
+                    <option value="mark_popular_selected">Popular qilish</option>
+                    <option value="mark_regular_selected">Oddiy qilish</option>
+                    <option value="delete_selected_plans">O'chirish</option>
+                </select>
+                <button class="btn btn-primary rounded-pill px-4" type="submit">Qo'llash</button>
+            </div>
+            <div class="bo-table-wrap">
+                <table class="table bo-table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" class="form-check-input" data-select-all="plan_ids"></th>
+                            <th>Tarif</th>
+                            <th>Narx</th>
+                            <th>Order</th>
+                            <th>Popular</th>
+                            <th>Features</th>
+                            <th>Faol obuna</th>
+                            <th>Jami obuna</th>
+                            <th>Amal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for plan in plans %}
+                        <tr>
+                            <td><input type="checkbox" class="form-check-input" name="plan_ids" value="{{ plan.id }}"></td>
+                            <td>
+                                <div class="fw-semibold">{{ plan.name }}</div>
+                                <div class="small text-muted">{{ plan.description|striptags|truncatechars:70 }}</div>
+                            </td>
+                            <td>{{ plan.price|floatformat:0|intcomma }} so'm</td>
+                            <td>{{ plan.order }}</td>
+                            <td>
+                                {% if plan.is_popular %}
+                                <span class="bo-pill bo-pill--info">Ha</span>
+                                {% else %}
+                                <span class="bo-pill">Yo'q</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ plan.feature_count|intcomma }}</td>
+                            <td>{{ plan.active_enrollments|intcomma }}</td>
+                            <td>{{ plan.total_enrollments|intcomma }}</td>
+                            <td><a class="btn btn-sm btn-outline-primary rounded-pill" href="{% url 'backoffice:subscription_plan_detail' plan.id %}">Tahrirlash</a></td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="9">Tariflar topilmadi.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </form>
     </article>
 </section>
 {% endblock %}

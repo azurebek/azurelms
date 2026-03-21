@@ -410,25 +410,82 @@ class BackofficeUserDetailView(BackofficeAccessMixin, TemplateView):
 class BackofficeSubscriptionsView(BackofficeAccessMixin, TemplateView):
     template_name = "backoffice/subscriptions.html"
 
+    def _queryset(self):
+        query = (self.request.GET.get("q") or "").strip()
+        popular = (self.request.GET.get("popular") or "all").strip().lower()
+
+        plans = Plan.objects.prefetch_related("features").annotate(
+            feature_count=Count("features", distinct=True),
+            active_enrollments=Count("enrollments", filter=Q(enrollments__status="active"), distinct=True),
+            total_enrollments=Count("enrollments", distinct=True),
+        )
+        if query:
+            plans = plans.filter(
+                Q(name__icontains=query)
+                | Q(description__icontains=query)
+                | Q(button_text__icontains=query)
+            )
+
+        if popular == "popular":
+            plans = plans.filter(is_popular=True)
+        elif popular == "regular":
+            plans = plans.filter(is_popular=False)
+        else:
+            popular = "all"
+
+        return plans.order_by("order", "id"), query, popular
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        plans = Plan.objects.prefetch_related("features").order_by("order", "id")
+        plans, query, popular = self._queryset()
         context.update(
             {
                 "plans": plans,
+                "search_query": query,
+                "selected_popular": popular,
                 "plan_form": kwargs.get("plan_form") or BackofficePlanForm(),
+                "summary_total": Plan.objects.count(),
+                "summary_popular": Plan.objects.filter(is_popular=True).count(),
+                "summary_active_subscriptions": Enrollment.objects.filter(status="active", plan__isnull=False).count(),
             }
         )
         return context
 
     def post(self, request, *args, **kwargs):
-        form = BackofficePlanForm(request.POST)
-        if form.is_valid():
-            plan = form.save()
-            messages.success(request, f"Tarif yaratildi: {plan.name}.")
-            return redirect("backoffice:subscription_plan_detail", plan_id=plan.id)
-        messages.error(request, "Tarif formasi xatolik bilan to'ldirilgan.")
-        return self.render_to_response(self.get_context_data(plan_form=form))
+        action = (request.POST.get("action") or "").strip()
+
+        if action in {"", "create_plan"}:
+            form = BackofficePlanForm(request.POST)
+            if form.is_valid():
+                plan = form.save()
+                messages.success(request, f"Tarif yaratildi: {plan.name}.")
+                return redirect("backoffice:subscription_plan_detail", plan_id=plan.id)
+            messages.error(request, "Tarif formasi xatolik bilan to'ldirilgan.")
+            return self.render_to_response(self.get_context_data(plan_form=form))
+
+        ids = request.POST.getlist("plan_ids")
+        queryset = Plan.objects.filter(id__in=ids)
+        if not queryset.exists():
+            messages.error(request, "Kamida bitta tarif tanlang.")
+            return redirect(request.get_full_path())
+
+        if action == "mark_popular_selected":
+            updated = queryset.update(is_popular=True)
+            messages.success(request, f"{updated} ta tarif ommabop qilib belgilandi.")
+            return redirect(request.get_full_path())
+
+        if action == "mark_regular_selected":
+            updated = queryset.update(is_popular=False)
+            messages.success(request, f"{updated} ta tarif oddiy holatga qaytdi.")
+            return redirect(request.get_full_path())
+
+        if action == "delete_selected_plans":
+            deleted, _ = queryset.delete()
+            messages.success(request, f"{deleted} ta tarif yozuvi o'chirildi.")
+            return redirect(request.get_full_path())
+
+        messages.error(request, "Noma'lum action.")
+        return redirect(request.get_full_path())
 
 
 class BackofficeSubscriptionPlanDetailView(BackofficeAccessMixin, TemplateView):
@@ -440,12 +497,16 @@ class BackofficeSubscriptionPlanDetailView(BackofficeAccessMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        active_enrollments = Enrollment.objects.filter(plan=self.plan, status="active").count()
+        total_enrollments = Enrollment.objects.filter(plan=self.plan).count()
         context.update(
             {
                 "plan": self.plan,
                 "features": self.plan.features.order_by("order", "id"),
                 "plan_form": kwargs.get("plan_form") or BackofficePlanForm(instance=self.plan),
                 "feature_form": kwargs.get("feature_form") or BackofficePlanFeatureForm(),
+                "summary_active_enrollments": active_enrollments,
+                "summary_total_enrollments": total_enrollments,
             }
         )
         return context
@@ -473,6 +534,19 @@ class BackofficeSubscriptionPlanDetailView(BackofficeAccessMixin, TemplateView):
             messages.error(request, "Imkoniyat qo'shishda xatolik bor.")
             return self.render_to_response(self.get_context_data(feature_form=feature_form))
 
+        if action == "update_feature":
+            feature = self.plan.features.filter(id=request.POST.get("feature_id")).first()
+            if not feature:
+                messages.error(request, "Imkoniyat topilmadi.")
+                return redirect("backoffice:subscription_plan_detail", plan_id=self.plan.id)
+            feature_form = BackofficePlanFeatureForm(request.POST, instance=feature)
+            if feature_form.is_valid():
+                feature_form.save()
+                messages.success(request, "Imkoniyat yangilandi.")
+            else:
+                messages.error(request, "Imkoniyatni yangilashda xatolik bor.")
+            return redirect("backoffice:subscription_plan_detail", plan_id=self.plan.id)
+
         if action == "delete_feature":
             feature_id = request.POST.get("feature_id")
             feature = self.plan.features.filter(id=feature_id).first()
@@ -483,6 +557,12 @@ class BackofficeSubscriptionPlanDetailView(BackofficeAccessMixin, TemplateView):
                 messages.error(request, "Imkoniyat topilmadi.")
             return redirect("backoffice:subscription_plan_detail", plan_id=self.plan.id)
 
+        if action == "delete_plan":
+            plan_name = self.plan.name
+            self.plan.delete()
+            messages.success(request, f"Tarif o'chirildi: {plan_name}.")
+            return redirect("backoffice:subscriptions")
+
         messages.error(request, "Noma'lum amal.")
         return redirect("backoffice:subscription_plan_detail", plan_id=self.plan.id)
 
@@ -490,14 +570,44 @@ class BackofficeSubscriptionPlanDetailView(BackofficeAccessMixin, TemplateView):
 class BackofficePaymentsView(BackofficeAccessMixin, TemplateView):
     template_name = "backoffice/payments.html"
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+    def _safe_int(self, value):
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+    def _parse_date(self, value):
+        if not value:
+            return None
+        try:
+            return datetime.date.fromisoformat(value)
+        except ValueError:
+            return None
+
+    def _queryset(self):
+        query = (self.request.GET.get("q") or "").strip()
         status = (self.request.GET.get("status") or "all").strip().lower()
+        course_id = self._safe_int(self.request.GET.get("course_id"))
+        cohort_id = self._safe_int(self.request.GET.get("cohort_id"))
+        plan_id = self._safe_int(self.request.GET.get("plan_id"))
+        date_from = self._parse_date(self.request.GET.get("date_from"))
+        date_to = self._parse_date(self.request.GET.get("date_to"))
 
         receipts = PaymentReceipt.objects.select_related(
             "enrollment__student",
             "enrollment__cohort__course",
+            "enrollment__plan",
         )
+
+        if query:
+            receipts = receipts.filter(
+                Q(enrollment__student__username__icontains=query)
+                | Q(enrollment__student__email__icontains=query)
+                | Q(enrollment__student__first_name__icontains=query)
+                | Q(enrollment__student__last_name__icontains=query)
+                | Q(enrollment__cohort__name__icontains=query)
+                | Q(enrollment__cohort__course__title__icontains=query)
+            )
 
         if status == "verified":
             receipts = receipts.filter(is_verified=True)
@@ -506,12 +616,47 @@ class BackofficePaymentsView(BackofficeAccessMixin, TemplateView):
         else:
             status = "all"
 
-        receipts = receipts.order_by("-submitted_at")[:120]
+        if course_id:
+            receipts = receipts.filter(enrollment__cohort__course_id=course_id)
+        if cohort_id:
+            receipts = receipts.filter(enrollment__cohort_id=cohort_id)
+        if plan_id:
+            receipts = receipts.filter(enrollment__plan_id=plan_id)
+        if date_from:
+            receipts = receipts.filter(submitted_at__date__gte=date_from)
+        if date_to:
+            receipts = receipts.filter(submitted_at__date__lte=date_to)
+
+        return receipts, query, status, course_id, cohort_id, plan_id, date_from, date_to
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        (
+            filtered_receipts,
+            query,
+            status,
+            course_id,
+            cohort_id,
+            plan_id,
+            date_from,
+            date_to,
+        ) = self._queryset()
+        receipts_count = filtered_receipts.count()
+        receipts = filtered_receipts.order_by("-submitted_at")[:220]
 
         context.update(
             {
                 "receipts": receipts,
+                "search_query": query,
                 "selected_status": status,
+                "selected_course_id": course_id,
+                "selected_cohort_id": cohort_id,
+                "selected_plan_id": plan_id,
+                "selected_date_from": date_from,
+                "selected_date_to": date_to,
+                "courses": Course.objects.filter(is_active=True).order_by("title"),
+                "cohorts": Cohort.objects.select_related("course").order_by("name"),
+                "plans": Plan.objects.order_by("order", "id"),
                 "summary_all": PaymentReceipt.objects.count(),
                 "summary_verified": PaymentReceipt.objects.filter(is_verified=True).count(),
                 "summary_pending": PaymentReceipt.objects.filter(is_verified=False).count(),
@@ -519,9 +664,53 @@ class BackofficePaymentsView(BackofficeAccessMixin, TemplateView):
                     "total"
                 ]
                 or Decimal("0"),
+                "filtered_count": receipts_count,
+                "filtered_total_amount": filtered_receipts.aggregate(total=Sum("amount"))["total"] or Decimal("0"),
+                "filtered_verified_amount": filtered_receipts.filter(is_verified=True).aggregate(total=Sum("amount"))[
+                    "total"
+                ]
+                or Decimal("0"),
             }
         )
         return context
+
+    def post(self, request, *args, **kwargs):
+        action = (request.POST.get("action") or "").strip()
+        ids = request.POST.getlist("receipt_ids")
+        queryset = PaymentReceipt.objects.select_related("enrollment").filter(id__in=ids)
+        if not queryset.exists():
+            messages.error(request, "Kamida bitta receipt tanlang.")
+            return redirect(request.get_full_path())
+
+        if action == "mark_verified_selected":
+            updated = 0
+            for receipt in queryset:
+                if receipt.is_verified:
+                    continue
+                receipt.is_verified = True
+                receipt.save(update_fields=["is_verified"])
+                updated += 1
+            messages.success(request, f"{updated} ta receipt tasdiqlandi.")
+            return redirect(request.get_full_path())
+
+        if action == "mark_pending_selected":
+            updated = 0
+            for receipt in queryset:
+                if not receipt.is_verified:
+                    continue
+                receipt.is_verified = False
+                receipt.save(update_fields=["is_verified"])
+                updated += 1
+            messages.success(request, f"{updated} ta receipt pending holatga qaytdi.")
+            return redirect(request.get_full_path())
+
+        if action == "delete_selected":
+            deleted, _ = queryset.delete()
+            messages.success(request, f"{deleted} ta receipt yozuvi o'chirildi.")
+            return redirect(request.get_full_path())
+
+        messages.error(request, "Noma'lum action.")
+        return redirect(request.get_full_path())
 
 
 class BackofficeCohortsView(BackofficeAccessMixin, TemplateView):

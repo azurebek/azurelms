@@ -4,9 +4,17 @@
 {% block backoffice_title %}Plan Detail | Backoffice{% endblock %}
 {% block backoffice_kicker %}Monetization{% endblock %}
 {% block backoffice_heading %}{{ plan.name }}{% endblock %}
-{% block backoffice_description %}Tarifning asosiy ma'lumotlari va feature'larini boshqarish.{% endblock %}
+{% block backoffice_description %}Tarif ma'lumotlari, feature update va obuna statistikasi.{% endblock %}
 
 {% block backoffice_content %}
+<section class="bo-surface">
+    <div class="bo-inline-stats bo-inline-stats--stack">
+        <span>Tarif narxi: <strong>{{ plan.price|floatformat:0|intcomma }} so'm</strong></span>
+        <span>Faol obuna: <strong>{{ summary_active_enrollments|intcomma }}</strong></span>
+        <span>Jami obuna: <strong>{{ summary_total_enrollments|intcomma }}</strong></span>
+    </div>
+</section>
+
 <section class="bo-grid bo-grid--notify">
     <article class="bo-surface">
         <div class="bo-surface-head">
@@ -50,6 +58,7 @@
             </label>
             <div class="bo-form-actions bo-form-actions--end">
                 <button class="btn btn-primary rounded-pill px-4" type="submit">Yangilash</button>
+                <button class="btn btn-outline-danger rounded-pill px-4" type="submit" name="action" value="delete_plan">Tarifni o'chirish</button>
             </div>
         </form>
     </article>
@@ -91,42 +100,35 @@
         <h2>Feature ro'yxati</h2>
         <span>Plan: {{ plan.price|floatformat:0|intcomma }} so'm</span>
     </div>
-    <div class="bo-table-wrap">
-        <table class="table bo-table">
-            <thead>
-                <tr>
-                    <th>Order</th>
-                    <th>Feature</th>
-                    <th>Kiritilganmi</th>
-                    <th>Amal</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for feature in features %}
-                <tr>
-                    <td>{{ feature.order }}</td>
-                    <td>{{ feature.name }}</td>
-                    <td>
-                        {% if feature.is_included %}
-                        <span class="bo-pill bo-pill--success">Ha</span>
-                        {% else %}
-                        <span class="bo-pill bo-pill--warning">Yo'q</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        <form method="post" class="d-inline">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="delete_feature">
-                            <input type="hidden" name="feature_id" value="{{ feature.id }}">
-                            <button class="btn btn-sm btn-outline-danger rounded-pill" type="submit">O'chirish</button>
-                        </form>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="4">Feature yo'q.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="bo-form-grid">
+        {% for feature in features %}
+        <form method="post" class="bo-form-grid" style="border:1px solid rgba(23, 100, 245, 0.16); border-radius:14px; padding:14px;">
+            {% csrf_token %}
+            <input type="hidden" name="feature_id" value="{{ feature.id }}">
+            <div class="bo-form-grid bo-form-grid--triple">
+                <div>
+                    <label class="form-label">Feature</label>
+                    <input type="text" name="name" class="form-control" value="{{ feature.name }}" required>
+                </div>
+                <div>
+                    <label class="form-label">Order</label>
+                    <input type="number" name="order" class="form-control" min="0" value="{{ feature.order }}">
+                </div>
+                <div class="bo-form-actions bo-form-actions--end">
+                    <label class="form-check">
+                        <input type="checkbox" class="form-check-input" name="is_included" {% if feature.is_included %}checked{% endif %}>
+                        <span class="form-check-label">Kiritilgan</span>
+                    </label>
+                </div>
+            </div>
+            <div class="bo-form-actions bo-form-actions--end">
+                <button class="btn btn-outline-primary rounded-pill px-4" type="submit" name="action" value="update_feature">Saqlash</button>
+                <button class="btn btn-outline-danger rounded-pill px-4" type="submit" name="action" value="delete_feature">O'chirish</button>
+            </div>
+        </form>
+        {% empty %}
+        <div class="small text-muted">Feature yo'q.</div>
+        {% endfor %}
     </div>
 </section>
 {% endblock %}

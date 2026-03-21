@@ -12,7 +12,7 @@ from django.utils import timezone
 from PIL import Image
 from io import BytesIO
 
-from cohorts.models import Attendance, Cohort, Enrollment
+from cohorts.models import Attendance, Cohort, Enrollment, PaymentReceipt
 from blog.models import BlogComment, BlogCommentLike, BlogHomeSettings, BlogPost, BlogPostClap, BlogPostRead, BlogTag
 from courses.models import (
     Assignment,
@@ -391,6 +391,7 @@ class BackofficeAccessTests(TestCase):
         response = self.client.post(
             create_url,
             {
+                "action": "create_plan",
                 "name": "Standard",
                 "price": 99000,
                 "description": "Standart obuna",
@@ -415,6 +416,108 @@ class BackofficeAccessTests(TestCase):
         )
         self.assertEqual(response_feature.status_code, 302)
         self.assertEqual(PlanFeature.objects.filter(plan=plan).count(), 1)
+        feature = PlanFeature.objects.get(plan=plan, name="Barcha darslar")
+
+        update_feature_response = self.client.post(
+            detail_url,
+            {
+                "action": "update_feature",
+                "feature_id": str(feature.id),
+                "name": "Barcha darslar + AI",
+                "is_included": "on",
+                "order": 2,
+            },
+        )
+        self.assertEqual(update_feature_response.status_code, 302)
+        feature.refresh_from_db()
+        self.assertEqual(feature.name, "Barcha darslar + AI")
+        self.assertEqual(feature.order, 2)
+
+        second_plan = Plan.objects.create(
+            name="Lite",
+            price=59000,
+            description="Lite obuna",
+            button_text="Start",
+            order=2,
+        )
+        bulk_popular_response = self.client.post(
+            create_url,
+            {
+                "action": "mark_popular_selected",
+                "plan_ids": [str(second_plan.id)],
+            },
+        )
+        self.assertEqual(bulk_popular_response.status_code, 302)
+        second_plan.refresh_from_db()
+        self.assertTrue(second_plan.is_popular)
+
+        bulk_delete_response = self.client.post(
+            create_url,
+            {
+                "action": "delete_selected_plans",
+                "plan_ids": [str(second_plan.id)],
+            },
+        )
+        self.assertEqual(bulk_delete_response.status_code, 302)
+        self.assertFalse(Plan.objects.filter(id=second_plan.id).exists())
+
+    def test_staff_can_moderate_payments_from_backoffice(self):
+        self.client.force_login(self.staff)
+        payer = User.objects.create_user(
+            username="payer-user",
+            email="payer@example.com",
+            password="testpass123",
+        )
+        enrollment = Enrollment.objects.create(
+            student=payer,
+            cohort=self.cohort,
+            status="pending",
+        )
+        receipt = PaymentReceipt.objects.create(
+            enrollment=enrollment,
+            receipt_image=self._dummy_image("receipt-test.png"),
+            amount=120000,
+            is_verified=False,
+        )
+        group_rooms = ChatRoom.objects.filter(room_type="group", cohort=self.cohort).order_by("id")
+        if group_rooms.count() > 1:
+            group_rooms.exclude(id=group_rooms.first().id).delete()
+
+        payments_url = reverse("backoffice:payments")
+        verify_response = self.client.post(
+            payments_url,
+            {
+                "action": "mark_verified_selected",
+                "receipt_ids": [str(receipt.id)],
+            },
+        )
+        self.assertEqual(verify_response.status_code, 302)
+        receipt.refresh_from_db()
+        enrollment.refresh_from_db()
+        self.assertTrue(receipt.is_verified)
+        self.assertEqual(enrollment.status, "active")
+        self.assertIsNotNone(enrollment.last_payment_date)
+
+        pending_response = self.client.post(
+            payments_url,
+            {
+                "action": "mark_pending_selected",
+                "receipt_ids": [str(receipt.id)],
+            },
+        )
+        self.assertEqual(pending_response.status_code, 302)
+        receipt.refresh_from_db()
+        self.assertFalse(receipt.is_verified)
+
+        delete_response = self.client.post(
+            payments_url,
+            {
+                "action": "delete_selected",
+                "receipt_ids": [str(receipt.id)],
+            },
+        )
+        self.assertEqual(delete_response.status_code, 302)
+        self.assertFalse(PaymentReceipt.objects.filter(id=receipt.id).exists())
 
     def test_staff_can_moderate_assignments_from_backoffice(self):
         self.client.force_login(self.staff)
