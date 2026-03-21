@@ -53,6 +53,7 @@ from users.views import upsert_attendance_and_xp
 from .forms import (
     BackofficeAboutPageForm,
     BackofficeAboutStatisticForm,
+    BackofficeCohortForm,
     BackofficeAuthPageSettingsForm,
     BackofficeBadgeForm,
     BackofficeBlogHomeSettingsForm,
@@ -60,6 +61,7 @@ from .forms import (
     BackofficeBroadcastForm,
     BackofficeChatRoomForm,
     BackofficeCourseForm,
+    BackofficeEnrollmentCreateForm,
     BackofficeGamificationCertificateForm,
     BackofficeLandingNavItemForm,
     BackofficeLandingPageForm,
@@ -529,41 +531,221 @@ class BackofficeCohortsView(BackofficeAccessMixin, TemplateView):
         except (TypeError, ValueError):
             return None
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+    def _queryset(self):
+        query = (self.request.GET.get("q") or "").strip()
         course_id = self._safe_int(self.request.GET.get("course_id"))
         status = (self.request.GET.get("status") or "active").strip().lower()
 
-        courses = Course.objects.filter(is_active=True).order_by("title")
         cohorts = Cohort.objects.select_related("course").annotate(
             active_members=Count("members", filter=Q(members__status="active"), distinct=True),
             pending_members=Count("members", filter=Q(members__status="pending"), distinct=True),
             total_members=Count("members", distinct=True),
         )
 
+        if query:
+            cohorts = cohorts.filter(
+                Q(name__icontains=query)
+                | Q(course__title__icontains=query)
+                | Q(telegram_group_link__icontains=query)
+            )
+
         if course_id:
             cohorts = cohorts.filter(course_id=course_id)
 
-        if status == "archived":
-            cohorts = cohorts.filter(is_active=False)
-        else:
-            status = "active"
+        if status == "active":
             cohorts = cohorts.filter(is_active=True)
+        elif status in {"archived", "inactive"}:
+            cohorts = cohorts.filter(is_active=False)
+            status = "archived"
+        else:
+            status = "all"
 
-        cohorts = cohorts.order_by("course__title", "name")[:180]
+        return cohorts.order_by("-is_active", "course__title", "name")[:220], query, course_id, status
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        cohorts, query, course_id, status = self._queryset()
 
         context.update(
             {
-                "courses": courses,
+                "courses": Course.objects.filter(is_active=True).order_by("title"),
                 "cohorts": cohorts,
+                "search_query": query,
                 "selected_course_id": course_id,
                 "selected_status": status,
+                "create_form": kwargs.get("create_form") or BackofficeCohortForm(),
                 "summary_active": Cohort.objects.filter(is_active=True).count(),
+                "summary_total": Cohort.objects.count(),
                 "summary_total_students": Enrollment.objects.values("student_id").distinct().count(),
                 "summary_active_students": Enrollment.objects.filter(status="active").values("student_id").distinct().count(),
             }
         )
         return context
+
+    def post(self, request, *args, **kwargs):
+        action = (request.POST.get("action") or "").strip()
+
+        if action == "create_cohort":
+            create_form = BackofficeCohortForm(request.POST)
+            if create_form.is_valid():
+                cohort = create_form.save()
+                messages.success(request, f"Yangi cohort yaratildi: {cohort.name}.")
+                return redirect("backoffice:cohort_detail", cohort_id=cohort.id)
+            messages.error(request, "Cohort yaratish formasida xatolik bor.")
+            return self.render_to_response(self.get_context_data(create_form=create_form))
+
+        ids = request.POST.getlist("cohort_ids")
+        queryset = Cohort.objects.filter(id__in=ids)
+        if not queryset.exists():
+            messages.error(request, "Kamida bitta cohort tanlang.")
+            return redirect(request.get_full_path())
+
+        if action == "activate_selected":
+            updated = queryset.update(is_active=True)
+            messages.success(request, f"{updated} ta cohort faollashtirildi.")
+            return redirect(request.get_full_path())
+
+        if action == "archive_selected":
+            updated = queryset.update(is_active=False)
+            messages.success(request, f"{updated} ta cohort arxiv holatiga o'tdi.")
+            return redirect(request.get_full_path())
+
+        if action == "delete_selected":
+            deleted, _ = queryset.delete()
+            messages.success(request, f"{deleted} ta cohort yozuvi o'chirildi.")
+            return redirect(request.get_full_path())
+
+        messages.error(request, "Noma'lum action.")
+        return redirect(request.get_full_path())
+
+
+class BackofficeCohortDetailView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/cohort_detail.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        self.cohort = get_object_or_404(Cohort.objects.select_related("course"), id=kwargs["cohort_id"])
+        return super().dispatch(request, *args, **kwargs)
+
+    def _safe_int(self, value):
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+    def _parse_date(self, value):
+        if not value:
+            return None
+        try:
+            return datetime.date.fromisoformat(value)
+        except ValueError:
+            return None
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        enrollments = (
+            Enrollment.objects.filter(cohort=self.cohort)
+            .select_related("student", "plan")
+            .annotate(receipts_total=Count("receipts", distinct=True))
+            .order_by("student__username")
+        )
+        context.update(
+            {
+                "cohort_obj": self.cohort,
+                "cohort_form": kwargs.get("cohort_form") or BackofficeCohortForm(instance=self.cohort),
+                "enrollment_form": kwargs.get("enrollment_form") or BackofficeEnrollmentCreateForm(),
+                "enrollments": enrollments,
+                "plans": Plan.objects.order_by("order", "id"),
+                "status_choices": Enrollment.STATUS_CHOICES,
+                "summary_total": enrollments.count(),
+                "summary_active": enrollments.filter(status="active").count(),
+                "summary_pending": enrollments.filter(status="pending").count(),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = (request.POST.get("action") or "").strip()
+        valid_statuses = {choice[0] for choice in Enrollment.STATUS_CHOICES}
+
+        if action == "update_cohort":
+            cohort_form = BackofficeCohortForm(request.POST, instance=self.cohort)
+            if cohort_form.is_valid():
+                cohort_form.save()
+                messages.success(request, "Cohort ma'lumotlari yangilandi.")
+                return redirect("backoffice:cohort_detail", cohort_id=self.cohort.id)
+            messages.error(request, "Cohort formasida xatolik bor.")
+            return self.render_to_response(self.get_context_data(cohort_form=cohort_form))
+
+        if action == "add_enrollment":
+            enrollment_form = BackofficeEnrollmentCreateForm(request.POST)
+            if enrollment_form.is_valid():
+                enrollment = enrollment_form.save(commit=False)
+                enrollment.cohort = self.cohort
+                if Enrollment.objects.filter(cohort=self.cohort, student=enrollment.student).exists():
+                    enrollment_form.add_error("student", "Bu foydalanuvchi cohort ichida allaqachon mavjud.")
+                    messages.error(request, "Enrollment qo'shishda xatolik bor.")
+                    return self.render_to_response(self.get_context_data(enrollment_form=enrollment_form))
+                enrollment.save()
+                messages.success(request, "Cohortga yangi student qo'shildi.")
+                return redirect("backoffice:cohort_detail", cohort_id=self.cohort.id)
+            messages.error(request, "Enrollment formasida xatolik bor.")
+            return self.render_to_response(self.get_context_data(enrollment_form=enrollment_form))
+
+        if action == "update_enrollment":
+            enrollment = get_object_or_404(Enrollment, id=request.POST.get("enrollment_id"), cohort=self.cohort)
+            status = (request.POST.get("status") or "").strip()
+            if status in valid_statuses:
+                enrollment.status = status
+
+            plan_id = self._safe_int(request.POST.get("plan_id"))
+            enrollment.plan = Plan.objects.filter(id=plan_id).first() if plan_id else None
+            enrollment.last_payment_date = self._parse_date(request.POST.get("last_payment_date"))
+            enrollment.next_payment_deadline = self._parse_date(request.POST.get("next_payment_deadline"))
+            enrollment.save(
+                update_fields=["status", "plan", "last_payment_date", "next_payment_deadline"]
+            )
+            messages.success(request, "Enrollment yangilandi.")
+            return redirect("backoffice:cohort_detail", cohort_id=self.cohort.id)
+
+        if action == "delete_enrollment":
+            enrollment = get_object_or_404(Enrollment, id=request.POST.get("enrollment_id"), cohort=self.cohort)
+            enrollment.delete()
+            messages.success(request, "Enrollment o'chirildi.")
+            return redirect("backoffice:cohort_detail", cohort_id=self.cohort.id)
+
+        ids = request.POST.getlist("enrollment_ids")
+        queryset = Enrollment.objects.filter(id__in=ids, cohort=self.cohort)
+        if not queryset.exists():
+            messages.error(request, "Kamida bitta enrollment tanlang.")
+            return redirect("backoffice:cohort_detail", cohort_id=self.cohort.id)
+
+        if action == "mark_active_selected":
+            updated = queryset.update(status="active")
+            messages.success(request, f"{updated} ta enrollment faol qilindi.")
+            return redirect("backoffice:cohort_detail", cohort_id=self.cohort.id)
+
+        if action == "mark_pending_selected":
+            updated = queryset.update(status="pending")
+            messages.success(request, f"{updated} ta enrollment pending holatga o'tdi.")
+            return redirect("backoffice:cohort_detail", cohort_id=self.cohort.id)
+
+        if action == "mark_frozen_selected":
+            updated = queryset.update(status="frozen")
+            messages.success(request, f"{updated} ta enrollment muzlatildi.")
+            return redirect("backoffice:cohort_detail", cohort_id=self.cohort.id)
+
+        if action == "mark_expired_selected":
+            updated = queryset.update(status="expired")
+            messages.success(request, f"{updated} ta enrollment muddati tugagan holatga o'tdi.")
+            return redirect("backoffice:cohort_detail", cohort_id=self.cohort.id)
+
+        if action == "delete_selected_enrollments":
+            deleted, _ = queryset.delete()
+            messages.success(request, f"{deleted} ta enrollment o'chirildi.")
+            return redirect("backoffice:cohort_detail", cohort_id=self.cohort.id)
+
+        messages.error(request, "Noma'lum action.")
+        return redirect("backoffice:cohort_detail", cohort_id=self.cohort.id)
 
 
 class BackofficeAttendanceView(BackofficeAccessMixin, TemplateView):

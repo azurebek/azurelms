@@ -291,6 +291,8 @@ class BackofficeAccessTests(TestCase):
         self.assertEqual(badge_detail.status_code, 200)
         course_structure = self.client.get(reverse("backoffice:course_structure", args=[self.course.id]))
         self.assertEqual(course_structure.status_code, 200)
+        cohort_detail = self.client.get(reverse("backoffice:cohort_detail", args=[self.cohort.id]))
+        self.assertEqual(cohort_detail.status_code, 200)
 
     def test_staff_can_save_attendance_from_backoffice(self):
         self.client.force_login(self.staff)
@@ -823,6 +825,95 @@ class BackofficeAccessTests(TestCase):
         self.assertEqual(create_assignment_response.status_code, 302)
         assignment = Assignment.objects.get(lesson=lesson, title="Assignment A")
         self.assertEqual(assignment.max_xp, 80)
+
+    def test_staff_can_manage_cohorts_and_enrollments_from_backoffice(self):
+        self.client.force_login(self.staff)
+        new_student = User.objects.create_user(
+            username="cohort-student",
+            email="cohortstudent@example.com",
+            password="testpass123",
+        )
+
+        plan = Plan.objects.create(
+            name="Cohort Plan",
+            price=99000,
+            description="Plan for cohort tests",
+            is_popular=False,
+            button_text="Join",
+            order=1,
+        )
+
+        cohorts_url = reverse("backoffice:cohorts")
+        create_response = self.client.post(
+            cohorts_url,
+            {
+                "action": "create_cohort",
+                "name": "Backoffice New Cohort",
+                "course": str(self.course.id),
+                "start_date": "2026-03-15",
+                "telegram_group_link": "https://t.me/newcohort",
+                "is_active": "on",
+            },
+        )
+        self.assertEqual(create_response.status_code, 302)
+        new_cohort = Cohort.objects.get(name="Backoffice New Cohort")
+
+        detail_url = reverse("backoffice:cohort_detail", args=[new_cohort.id])
+        update_cohort_response = self.client.post(
+            detail_url,
+            {
+                "action": "update_cohort",
+                "name": "Backoffice New Cohort Updated",
+                "course": str(self.course.id),
+                "start_date": "2026-03-16",
+                "telegram_group_link": "https://t.me/newcohort2",
+                "is_active": "on",
+            },
+        )
+        self.assertEqual(update_cohort_response.status_code, 302)
+        new_cohort.refresh_from_db()
+        self.assertEqual(new_cohort.name, "Backoffice New Cohort Updated")
+
+        add_enrollment_response = self.client.post(
+            detail_url,
+            {
+                "action": "add_enrollment",
+                "student": str(new_student.id),
+                "plan": str(plan.id),
+                "status": "pending",
+                "last_payment_date": "2026-03-16",
+                "next_payment_deadline": "2026-04-16",
+            },
+        )
+        self.assertEqual(add_enrollment_response.status_code, 302)
+        enrollment = Enrollment.objects.get(cohort=new_cohort, student=new_student)
+        self.assertEqual(enrollment.status, "pending")
+
+        update_enrollment_response = self.client.post(
+            detail_url,
+            {
+                "action": "update_enrollment",
+                "enrollment_id": str(enrollment.id),
+                "status": "active",
+                "plan_id": str(plan.id),
+                "last_payment_date": "2026-03-20",
+                "next_payment_deadline": "2026-04-20",
+            },
+        )
+        self.assertEqual(update_enrollment_response.status_code, 302)
+        enrollment.refresh_from_db()
+        self.assertEqual(enrollment.status, "active")
+
+        bulk_response = self.client.post(
+            detail_url,
+            {
+                "action": "mark_frozen_selected",
+                "enrollment_ids": [str(enrollment.id)],
+            },
+        )
+        self.assertEqual(bulk_response.status_code, 302)
+        enrollment.refresh_from_db()
+        self.assertEqual(enrollment.status, "frozen")
 
     def test_backoffice_login_works_for_staff_and_denies_student(self):
         login_url = reverse("backoffice:login")

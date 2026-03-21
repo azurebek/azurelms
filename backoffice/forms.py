@@ -1,6 +1,6 @@
 from django import forms
 
-from cohorts.models import Cohort
+from cohorts.models import Cohort, Enrollment
 from blog.models import BlogHomeSettings, BlogTag
 from courses.models import Assignment, Course, Lesson, Module
 from frontend.models import (
@@ -542,3 +542,43 @@ class BackofficeAssignmentForm(forms.ModelForm):
             "description": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
             "max_xp": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
         }
+
+
+class BackofficeCohortForm(forms.ModelForm):
+    class Meta:
+        model = Cohort
+        fields = ("name", "course", "start_date", "telegram_group_link", "is_active")
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+            "course": forms.Select(attrs={"class": "form-select"}),
+            "start_date": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+            "telegram_group_link": forms.URLInput(attrs={"class": "form-control"}),
+            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["course"].queryset = Course.objects.order_by("title")
+
+
+class BackofficeEnrollmentCreateForm(forms.ModelForm):
+    class Meta:
+        model = Enrollment
+        fields = ("student", "plan", "status", "last_payment_date", "next_payment_deadline")
+        widgets = {
+            "student": forms.Select(attrs={"class": "form-select"}),
+            "plan": forms.Select(attrs={"class": "form-select"}),
+            "status": forms.Select(attrs={"class": "form-select"}),
+            "last_payment_date": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+            "next_payment_deadline": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["student"].queryset = (
+            CustomUser.objects.filter(is_active=True, is_staff=False, is_superuser=False).order_by("username")
+        )
+        self.fields["plan"].queryset = Plan.objects.order_by("order", "id")
+        self.fields["plan"].required = False
+        self.fields["last_payment_date"].required = False
+        self.fields["next_payment_deadline"].required = False

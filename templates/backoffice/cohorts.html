@@ -4,11 +4,12 @@
 {% block backoffice_title %}Cohorts | Backoffice{% endblock %}
 {% block backoffice_kicker %}Cohort Ops{% endblock %}
 {% block backoffice_heading %}Cohort Boshqaruv{% endblock %}
-{% block backoffice_description %}Guruhlar bo'yicha talaba oqimi, holatlar va davomatga tez o'tish.{% endblock %}
+{% block backoffice_description %}Guruhlar yaratish, holatini boshqarish va cohort ichidagi ishlarni detail sahifada yuritish.{% endblock %}
 
 {% block backoffice_content %}
 <section class="bo-filter-row">
-    <form method="get" class="bo-search-form bo-search-form--triple">
+    <form method="get" class="bo-search-form bo-search-form--quad">
+        <input type="text" name="q" value="{{ search_query }}" class="form-control" placeholder="Cohort nomi, kurs, telegram link...">
         <select name="course_id" class="form-select">
             <option value="">Barcha kurslar</option>
             {% for course in courses %}
@@ -16,6 +17,7 @@
             {% endfor %}
         </select>
         <select name="status" class="form-select">
+            <option value="all" {% if selected_status == 'all' %}selected{% endif %}>Barcha holatlar</option>
             <option value="active" {% if selected_status == 'active' %}selected{% endif %}>Faol cohortlar</option>
             <option value="archived" {% if selected_status == 'archived' %}selected{% endif %}>Arxiv cohortlar</option>
         </select>
@@ -23,46 +25,113 @@
     </form>
 
     <div class="bo-inline-stats">
-        <span>Faol cohortlar: <strong>{{ summary_active|intcomma }}</strong></span>
-        <span>Jami talabalar: <strong>{{ summary_total_students|intcomma }}</strong></span>
+        <span>Jami cohort: <strong>{{ summary_total|intcomma }}</strong></span>
+        <span>Faol cohort: <strong>{{ summary_active|intcomma }}</strong></span>
         <span>Faol talabalar: <strong>{{ summary_active_students|intcomma }}</strong></span>
     </div>
 </section>
 
-<section class="bo-surface">
-    <div class="bo-table-wrap">
-        <table class="table bo-table">
-            <thead>
-                <tr>
-                    <th>Cohort</th>
-                    <th>Kurs</th>
-                    <th>Boshlanish</th>
-                    <th>Faol</th>
-                    <th>Pending</th>
-                    <th>Jami</th>
-                    <th>Amallar</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for cohort in cohorts %}
-                <tr>
-                    <td>{{ cohort.name }}</td>
-                    <td>{{ cohort.course.title }}</td>
-                    <td>{{ cohort.start_date|date:"Y-m-d" }}</td>
-                    <td>{{ cohort.active_members|intcomma }}</td>
-                    <td>{{ cohort.pending_members|intcomma }}</td>
-                    <td>{{ cohort.total_members|intcomma }}</td>
-                    <td>
-                        <a class="btn btn-sm btn-outline-primary rounded-pill" href="{% url 'backoffice:attendance' %}?cohort_id={{ cohort.id }}">Davomat</a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="7">Cohortlar topilmadi.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+<section class="bo-grid bo-grid--notify">
+    <article class="bo-surface">
+        <div class="bo-surface-head">
+            <h2>Yangi cohort</h2>
+            <span>Create</span>
+        </div>
+        <form method="post" class="bo-form-grid">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create_cohort">
+            {% if create_form.non_field_errors %}
+            <div class="alert alert-danger">{{ create_form.non_field_errors }}</div>
+            {% endif %}
+            <div>
+                <label class="form-label" for="{{ create_form.name.id_for_label }}">Cohort nomi</label>
+                {{ create_form.name }}
+            </div>
+            <div>
+                <label class="form-label" for="{{ create_form.course.id_for_label }}">Kurs</label>
+                {{ create_form.course }}
+            </div>
+            <div class="bo-form-grid bo-form-grid--triple">
+                <div>
+                    <label class="form-label" for="{{ create_form.start_date.id_for_label }}">Boshlanish sana</label>
+                    {{ create_form.start_date }}
+                </div>
+                <div>
+                    <label class="form-label" for="{{ create_form.telegram_group_link.id_for_label }}">Telegram link</label>
+                    {{ create_form.telegram_group_link }}
+                </div>
+                <div class="bo-form-actions">
+                    <label class="form-check">
+                        {{ create_form.is_active }}
+                        <span class="form-check-label">Faol</span>
+                    </label>
+                </div>
+            </div>
+            <div class="bo-form-actions bo-form-actions--end">
+                <button class="btn btn-primary rounded-pill px-4" type="submit">Cohort yaratish</button>
+            </div>
+        </form>
+    </article>
+
+    <article class="bo-surface">
+        <div class="bo-surface-head">
+            <h2>Cohortlar</h2>
+            <span>{{ cohorts|length|intcomma }} ta</span>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <div class="bo-action-bar bo-action-bar--wrap">
+                <select name="action" class="form-select bo-action-select">
+                    <option value="">Action tanlang</option>
+                    <option value="activate_selected">Faollashtirish</option>
+                    <option value="archive_selected">Arxivlash</option>
+                    <option value="delete_selected">O'chirish</option>
+                </select>
+                <button class="btn btn-primary rounded-pill px-4" type="submit">Qo'llash</button>
+            </div>
+            <div class="bo-table-wrap">
+                <table class="table bo-table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" class="form-check-input" data-select-all="cohort_ids"></th>
+                            <th>Cohort</th>
+                            <th>Kurs</th>
+                            <th>Boshlanish</th>
+                            <th>Faol</th>
+                            <th>Pending</th>
+                            <th>Jami</th>
+                            <th>Amallar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cohort in cohorts %}
+                        <tr>
+                            <td><input type="checkbox" class="form-check-input" name="cohort_ids" value="{{ cohort.id }}"></td>
+                            <td>
+                                <div class="fw-semibold">{{ cohort.name }}</div>
+                                {% if cohort.telegram_group_link %}
+                                <div class="small text-muted">{{ cohort.telegram_group_link|truncatechars:42 }}</div>
+                                {% endif %}
+                            </td>
+                            <td>{{ cohort.course.title }}</td>
+                            <td>{{ cohort.start_date|date:"Y-m-d" }}</td>
+                            <td>{{ cohort.active_members|intcomma }}</td>
+                            <td>{{ cohort.pending_members|intcomma }}</td>
+                            <td>{{ cohort.total_members|intcomma }}</td>
+                            <td class="d-flex gap-2 flex-wrap">
+                                <a class="btn btn-sm btn-outline-primary rounded-pill" href="{% url 'backoffice:cohort_detail' cohort.id %}">Detail</a>
+                                <a class="btn btn-sm btn-outline-primary rounded-pill" href="{% url 'backoffice:attendance' %}?cohort_id={{ cohort.id }}">Davomat</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8">Cohort topilmadi.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </form>
+    </article>
 </section>
 {% endblock %}
