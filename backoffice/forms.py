@@ -2,7 +2,7 @@ from django import forms
 
 from cohorts.models import Cohort
 from blog.models import BlogHomeSettings, BlogTag
-from courses.models import Course, Lesson
+from courses.models import Assignment, Course, Lesson, Module
 from frontend.models import (
     AboutPage,
     AboutStatistic,
@@ -469,3 +469,76 @@ class BackofficeGamificationCertificateForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["student"].queryset = CustomUser.objects.filter(is_active=True).order_by("username")
         self.fields["course"].queryset = Course.objects.filter(is_active=True).order_by("title")
+
+
+class BackofficeCourseForm(forms.ModelForm):
+    class Meta:
+        model = Course
+        fields = (
+            "title",
+            "description",
+            "instructor",
+            "level",
+            "duration",
+            "price",
+            "cover_mode",
+            "gradient_preset",
+            "gradient_cover_title",
+            "gradient_cover_label",
+            "thumbnail",
+            "preview_video",
+            "is_active",
+        )
+        widgets = {
+            "title": forms.TextInput(attrs={"class": "form-control"}),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
+            "instructor": forms.Select(attrs={"class": "form-select"}),
+            "level": forms.Select(attrs={"class": "form-select"}),
+            "duration": forms.NumberInput(attrs={"class": "form-control", "min": "1"}),
+            "price": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
+            "cover_mode": forms.Select(attrs={"class": "form-select"}),
+            "gradient_preset": forms.Select(attrs={"class": "form-select"}),
+            "gradient_cover_title": forms.TextInput(attrs={"class": "form-control"}),
+            "gradient_cover_label": forms.TextInput(attrs={"class": "form-control"}),
+            "thumbnail": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            "preview_video": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["instructor"].queryset = CustomUser.objects.filter(is_active=True).order_by("username")
+
+
+class BackofficeModuleForm(forms.ModelForm):
+    class Meta:
+        model = Module
+        fields = ("title", "order")
+        widgets = {
+            "title": forms.TextInput(attrs={"class": "form-control"}),
+            "order": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
+        }
+
+
+class BackofficeLessonForm(forms.ModelForm):
+    class Meta:
+        model = Lesson
+        fields = ("title", "video_url", "content", "order", "xp_reward")
+        widgets = {
+            "title": forms.TextInput(attrs={"class": "form-control"}),
+            "video_url": forms.URLInput(attrs={"class": "form-control"}),
+            "content": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
+            "order": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
+            "xp_reward": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
+        }
+
+
+class BackofficeAssignmentForm(forms.ModelForm):
+    class Meta:
+        model = Assignment
+        fields = ("title", "description", "max_xp")
+        widgets = {
+            "title": forms.TextInput(attrs={"class": "form-control"}),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
+            "max_xp": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
+        }

@@ -14,12 +14,14 @@ from django.views.generic import TemplateView
 
 from cohorts.models import Attendance, Cohort, Enrollment, PaymentReceipt
 from courses.models import (
+    Assignment,
     AssignmentSubmission,
     CohortLessonRelease,
     Course,
     ExamAttempt,
     Lesson,
     LessonProgress,
+    Module,
 )
 from blog.models import (
     BlogComment,
@@ -57,12 +59,16 @@ from .forms import (
     BackofficeBlogTagForm,
     BackofficeBroadcastForm,
     BackofficeChatRoomForm,
+    BackofficeCourseForm,
     BackofficeGamificationCertificateForm,
     BackofficeLandingNavItemForm,
     BackofficeLandingPageForm,
     BackofficeLegalPageForm,
     BackofficeLevelForm,
     BackofficeMessageCreateForm,
+    BackofficeModuleForm,
+    BackofficeLessonForm,
+    BackofficeAssignmentForm,
     BackofficePlanFeatureForm,
     BackofficePlanForm,
     BackofficeSiteSettingsForm,
@@ -1013,6 +1019,225 @@ class BackofficeLearningExamsView(BackofficeAccessMixin, TemplateView):
 
         messages.error(request, "Noma'lum action.")
         return redirect(request.get_full_path())
+
+
+class BackofficeCoursesCatalogView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/courses_catalog.html"
+
+    def _safe_int(self, value):
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+    def _queryset(self):
+        query = (self.request.GET.get("q") or "").strip()
+        status = (self.request.GET.get("status") or "active").strip().lower()
+        instructor_id = self._safe_int(self.request.GET.get("instructor_id"))
+
+        courses = Course.objects.select_related("instructor").annotate(
+            module_count=Count("modules", distinct=True),
+            lesson_count=Count("modules__lessons", distinct=True),
+        )
+
+        if query:
+            courses = courses.filter(
+                Q(title__icontains=query)
+                | Q(description__icontains=query)
+                | Q(instructor__username__icontains=query)
+                | Q(instructor__email__icontains=query)
+            )
+
+        if status == "active":
+            courses = courses.filter(is_active=True)
+        elif status == "inactive":
+            courses = courses.filter(is_active=False)
+        else:
+            status = "all"
+
+        if instructor_id:
+            courses = courses.filter(instructor_id=instructor_id)
+
+        return courses.order_by("-created_at")[:220], query, status, instructor_id
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        courses, query, status, instructor_id = self._queryset()
+        context.update(
+            {
+                "courses": courses,
+                "search_query": query,
+                "selected_status": status,
+                "selected_instructor_id": instructor_id,
+                "instructors": User.objects.filter(Q(is_staff=True) | Q(is_superuser=True)).order_by("username"),
+                "create_form": kwargs.get("create_form") or BackofficeCourseForm(),
+                "summary_total": Course.objects.count(),
+                "summary_active": Course.objects.filter(is_active=True).count(),
+                "summary_inactive": Course.objects.filter(is_active=False).count(),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = (request.POST.get("action") or "").strip()
+
+        if action == "create_course":
+            create_form = BackofficeCourseForm(request.POST, request.FILES)
+            if create_form.is_valid():
+                course = create_form.save()
+                messages.success(request, f"Kurs yaratildi: {course.title}.")
+                return redirect("backoffice:course_structure", course_id=course.id)
+            messages.error(request, "Kurs yaratish formasida xatolik bor.")
+            return self.render_to_response(self.get_context_data(create_form=create_form))
+
+        ids = request.POST.getlist("course_ids")
+        queryset = Course.objects.filter(id__in=ids)
+        if not queryset.exists():
+            messages.error(request, "Kamida bitta kurs tanlang.")
+            return redirect(request.get_full_path())
+
+        if action == "activate_selected":
+            updated = queryset.update(is_active=True)
+            messages.success(request, f"{updated} ta kurs faollashtirildi.")
+            return redirect(request.get_full_path())
+
+        if action == "deactivate_selected":
+            updated = queryset.update(is_active=False)
+            messages.success(request, f"{updated} ta kurs nofaol holatga o'tdi.")
+            return redirect(request.get_full_path())
+
+        if action == "delete_selected":
+            deleted, _ = queryset.delete()
+            messages.success(request, f"{deleted} ta kursga oid yozuv o'chirildi.")
+            return redirect(request.get_full_path())
+
+        messages.error(request, "Noma'lum action.")
+        return redirect(request.get_full_path())
+
+
+class BackofficeCourseStructureView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/course_structure.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        self.course = get_object_or_404(Course.objects.select_related("instructor"), id=kwargs["course_id"])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        modules = (
+            Module.objects.filter(course=self.course)
+            .prefetch_related("lessons__assignments")
+            .order_by("order", "id")
+        )
+        context.update(
+            {
+                "course_obj": self.course,
+                "course_form": kwargs.get("course_form") or BackofficeCourseForm(instance=self.course),
+                "module_form": kwargs.get("module_form") or BackofficeModuleForm(),
+                "lesson_form": kwargs.get("lesson_form") or BackofficeLessonForm(),
+                "assignment_form": kwargs.get("assignment_form") or BackofficeAssignmentForm(),
+                "modules": modules,
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = (request.POST.get("action") or "").strip()
+
+        if action == "update_course":
+            course_form = BackofficeCourseForm(request.POST, request.FILES, instance=self.course)
+            if course_form.is_valid():
+                course_form.save()
+                messages.success(request, "Kurs ma'lumotlari yangilandi.")
+                return redirect("backoffice:course_structure", course_id=self.course.id)
+            messages.error(request, "Kurs formasida xatolik bor.")
+            return self.render_to_response(self.get_context_data(course_form=course_form))
+
+        if action == "create_module":
+            module_form = BackofficeModuleForm(request.POST)
+            if module_form.is_valid():
+                module = module_form.save(commit=False)
+                module.course = self.course
+                module.save()
+                messages.success(request, "Yangi modul qo'shildi.")
+                return redirect("backoffice:course_structure", course_id=self.course.id)
+            messages.error(request, "Modul formasida xatolik bor.")
+            return self.render_to_response(self.get_context_data(module_form=module_form))
+
+        if action == "update_module":
+            module = get_object_or_404(Module, id=request.POST.get("module_id"), course=self.course)
+            module_form = BackofficeModuleForm(request.POST, instance=module)
+            if module_form.is_valid():
+                module_form.save()
+                messages.success(request, "Modul yangilandi.")
+            else:
+                messages.error(request, "Modul yangilashda xatolik bor.")
+            return redirect("backoffice:course_structure", course_id=self.course.id)
+
+        if action == "delete_module":
+            module = get_object_or_404(Module, id=request.POST.get("module_id"), course=self.course)
+            module.delete()
+            messages.success(request, "Modul o'chirildi.")
+            return redirect("backoffice:course_structure", course_id=self.course.id)
+
+        if action == "create_lesson":
+            module = get_object_or_404(Module, id=request.POST.get("module_id"), course=self.course)
+            lesson_form = BackofficeLessonForm(request.POST)
+            if lesson_form.is_valid():
+                lesson = lesson_form.save(commit=False)
+                lesson.module = module
+                lesson.save()
+                messages.success(request, "Yangi dars qo'shildi.")
+                return redirect("backoffice:course_structure", course_id=self.course.id)
+            messages.error(request, "Dars formasida xatolik bor.")
+            return self.render_to_response(self.get_context_data(lesson_form=lesson_form))
+
+        if action == "update_lesson":
+            lesson = get_object_or_404(Lesson, id=request.POST.get("lesson_id"), module__course=self.course)
+            lesson_form = BackofficeLessonForm(request.POST, instance=lesson)
+            if lesson_form.is_valid():
+                lesson_form.save()
+                messages.success(request, "Dars yangilandi.")
+            else:
+                messages.error(request, "Dars yangilashda xatolik bor.")
+            return redirect("backoffice:course_structure", course_id=self.course.id)
+
+        if action == "delete_lesson":
+            lesson = get_object_or_404(Lesson, id=request.POST.get("lesson_id"), module__course=self.course)
+            lesson.delete()
+            messages.success(request, "Dars o'chirildi.")
+            return redirect("backoffice:course_structure", course_id=self.course.id)
+
+        if action == "create_assignment":
+            lesson = get_object_or_404(Lesson, id=request.POST.get("lesson_id"), module__course=self.course)
+            assignment_form = BackofficeAssignmentForm(request.POST)
+            if assignment_form.is_valid():
+                assignment = assignment_form.save(commit=False)
+                assignment.lesson = lesson
+                assignment.save()
+                messages.success(request, "Yangi vazifa qo'shildi.")
+                return redirect("backoffice:course_structure", course_id=self.course.id)
+            messages.error(request, "Vazifa formasida xatolik bor.")
+            return self.render_to_response(self.get_context_data(assignment_form=assignment_form))
+
+        if action == "update_assignment":
+            assignment = get_object_or_404(Assignment, id=request.POST.get("assignment_id"), lesson__module__course=self.course)
+            assignment_form = BackofficeAssignmentForm(request.POST, instance=assignment)
+            if assignment_form.is_valid():
+                assignment_form.save()
+                messages.success(request, "Vazifa yangilandi.")
+            else:
+                messages.error(request, "Vazifa yangilashda xatolik bor.")
+            return redirect("backoffice:course_structure", course_id=self.course.id)
+
+        if action == "delete_assignment":
+            assignment = get_object_or_404(Assignment, id=request.POST.get("assignment_id"), lesson__module__course=self.course)
+            assignment.delete()
+            messages.success(request, "Vazifa o'chirildi.")
+            return redirect("backoffice:course_structure", course_id=self.course.id)
+
+        messages.error(request, "Noma'lum action.")
+        return redirect("backoffice:course_structure", course_id=self.course.id)
 
 
 class BackofficeContentSettingsView(BackofficeAccessMixin, TemplateView):

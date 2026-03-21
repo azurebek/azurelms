@@ -71,6 +71,10 @@
                 <i class="bi bi-clipboard-data"></i>
                 <span>Exam Review</span>
             </a>
+            <a class="bo-nav-link {% if request.resolver_match.url_name == 'courses_catalog' or request.resolver_match.url_name == 'course_structure' %}is-active{% endif %}" href="{% url 'backoffice:courses_catalog' %}">
+                <i class="bi bi-book"></i>
+                <span>Course Authoring</span>
+            </a>
             <a class="bo-nav-link {% if request.resolver_match.url_name == 'content_settings' %}is-active{% endif %}" href="{% url 'backoffice:content_settings' %}">
                 <i class="bi bi-sliders"></i>
                 <span>Content Settings</span>

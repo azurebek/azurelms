@@ -1,7 +1,12 @@
-from django.contrib.auth import get_user_model
 from datetime import date
+import os
+import shutil
+import uuid
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.contrib.auth import get_user_model
+from django.conf import settings
 from django.test import TestCase
+from django.test.utils import override_settings
 from django.urls import reverse
 from django.utils import timezone
 from PIL import Image
@@ -42,6 +47,20 @@ User = get_user_model()
 
 
 class BackofficeAccessTests(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls._test_media_root = os.path.join(str(settings.BASE_DIR), f"bo_test_media_{uuid.uuid4().hex}")
+        os.makedirs(cls._test_media_root, exist_ok=True)
+        cls._media_override = override_settings(MEDIA_ROOT=cls._test_media_root)
+        cls._media_override.enable()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._media_override.disable()
+        shutil.rmtree(cls._test_media_root, ignore_errors=True)
+        super().tearDownClass()
+
     def setUp(self):
         self.student = User.objects.create_user(
             username="regular-user",
@@ -233,6 +252,7 @@ class BackofficeAccessTests(TestCase):
             "backoffice:learning_assignments",
             "backoffice:learning_releases",
             "backoffice:learning_exams",
+            "backoffice:courses_catalog",
             "backoffice:content_settings",
             "backoffice:content_landing_page",
             "backoffice:content_landing_blocks",
@@ -269,6 +289,8 @@ class BackofficeAccessTests(TestCase):
         self.assertEqual(room_detail.status_code, 200)
         badge_detail = self.client.get(reverse("backoffice:gamification_badge_detail", args=[self.badge.id]))
         self.assertEqual(badge_detail.status_code, 200)
+        course_structure = self.client.get(reverse("backoffice:course_structure", args=[self.course.id]))
+        self.assertEqual(course_structure.status_code, 200)
 
     def test_staff_can_save_attendance_from_backoffice(self):
         self.client.force_login(self.staff)
@@ -715,6 +737,92 @@ class BackofficeAccessTests(TestCase):
         )
         self.assertEqual(delete_tag_response.status_code, 302)
         self.assertFalse(BlogTag.objects.filter(id=created_tag.id).exists())
+
+    def test_staff_can_manage_course_authoring_from_backoffice(self):
+        self.client.force_login(self.staff)
+
+        catalog_url = reverse("backoffice:courses_catalog")
+        create_course_response = self.client.post(
+            catalog_url,
+            {
+                "action": "create_course",
+                "title": "Authoring Course",
+                "description": "Course description",
+                "instructor": str(self.staff.id),
+                "level": "beginner",
+                "duration": 30,
+                "price": 120000,
+                "cover_mode": "gradient",
+                "gradient_preset": "aurora_blush",
+                "gradient_cover_title": "Authoring",
+                "gradient_cover_label": "A1",
+                "is_active": "on",
+            },
+        )
+        self.assertEqual(create_course_response.status_code, 302)
+        created_course = Course.objects.get(title="Authoring Course")
+
+        structure_url = reverse("backoffice:course_structure", args=[created_course.id])
+        update_course_response = self.client.post(
+            structure_url,
+            {
+                "action": "update_course",
+                "title": "Authoring Course Updated",
+                "description": "Course description updated",
+                "instructor": str(self.staff.id),
+                "level": "intermediate",
+                "duration": 40,
+                "price": 150000,
+                "cover_mode": "gradient",
+                "gradient_preset": "aurora_blush",
+                "gradient_cover_title": "Updated",
+                "gradient_cover_label": "B1",
+                "is_active": "on",
+            },
+        )
+        self.assertEqual(update_course_response.status_code, 302)
+        created_course.refresh_from_db()
+        self.assertEqual(created_course.title, "Authoring Course Updated")
+
+        create_module_response = self.client.post(
+            structure_url,
+            {
+                "action": "create_module",
+                "title": "Module A",
+                "order": 1,
+            },
+        )
+        self.assertEqual(create_module_response.status_code, 302)
+        module = Module.objects.get(course=created_course, title="Module A")
+
+        create_lesson_response = self.client.post(
+            structure_url,
+            {
+                "action": "create_lesson",
+                "module_id": str(module.id),
+                "title": "Lesson A",
+                "video_url": "https://youtube.com/watch?v=test1",
+                "content": "Lesson content",
+                "order": 1,
+                "xp_reward": 12,
+            },
+        )
+        self.assertEqual(create_lesson_response.status_code, 302)
+        lesson = Lesson.objects.get(module=module, title="Lesson A")
+
+        create_assignment_response = self.client.post(
+            structure_url,
+            {
+                "action": "create_assignment",
+                "lesson_id": str(lesson.id),
+                "title": "Assignment A",
+                "description": "Assignment text",
+                "max_xp": 80,
+            },
+        )
+        self.assertEqual(create_assignment_response.status_code, 302)
+        assignment = Assignment.objects.get(lesson=lesson, title="Assignment A")
+        self.assertEqual(assignment.max_xp, 80)
 
     def test_backoffice_login_works_for_staff_and_denies_student(self):
         login_url = reverse("backoffice:login")
