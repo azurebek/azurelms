@@ -317,6 +317,30 @@ class BackofficeAccessTests(TestCase):
         )
         self.assertEqual(attendance.status, Attendance.STATUS_PRESENT)
 
+    def test_staff_can_export_attendance_csv_from_backoffice(self):
+        self.client.force_login(self.staff)
+        target_date = date(2026, 3, 20)
+        Attendance.objects.create(
+            enrollment=self.enrollment,
+            lesson=self.lesson,
+            date=target_date,
+            status=Attendance.STATUS_PRESENT,
+            xp_awarded=10,
+            marked_by=self.staff,
+        )
+        url = (
+            reverse("backoffice:attendance")
+            + f"?cohort_id={self.cohort.id}&lesson_id={self.lesson.id}&date={target_date.isoformat()}"
+            + f"&date_from={target_date.isoformat()}&date_to={target_date.isoformat()}&export=csv"
+        )
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("text/csv", response["Content-Type"])
+        self.assertIn("attachment;", response["Content-Disposition"])
+        self.assertContains(response, self.student.username)
+        self.assertContains(response, self.lesson.title)
+
     def test_staff_can_update_user_from_backoffice(self):
         self.client.force_login(self.staff)
         url = reverse("backoffice:user_detail", args=[self.student.id])

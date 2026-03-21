@@ -1,4 +1,5 @@
 import datetime
+import csv
 from decimal import Decimal
 
 from django.contrib import messages
@@ -7,6 +8,7 @@ from django.contrib.auth.views import LoginView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import Count, Max, Q, Sum
 from django.db.models.functions import TruncDate
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -757,8 +759,87 @@ class BackofficeAttendanceView(BackofficeAccessMixin, TemplateView):
         except (TypeError, ValueError):
             return None
 
+    def _parse_date(self, value):
+        if not value:
+            return None
+        try:
+            return datetime.date.fromisoformat(value)
+        except ValueError:
+            return None
+
     def get_allowed_cohorts(self):
         return Cohort.objects.filter(is_active=True).select_related("course").order_by("name")
+
+    def get(self, request, *args, **kwargs):
+        if (request.GET.get("export") or "").strip().lower() == "csv":
+            context = self.build_context()
+            return self._export_csv(context)
+        return super().get(request, *args, **kwargs)
+
+    def _export_csv(self, context):
+        selected_cohort = context.get("selected_cohort")
+        selected_lesson = context.get("selected_lesson")
+        range_start = context.get("range_start")
+        range_end = context.get("range_end")
+
+        if not selected_cohort:
+            messages.error(self.request, "Export uchun cohort tanlanishi kerak.")
+            return redirect("backoffice:attendance")
+
+        records = Attendance.objects.filter(enrollment__cohort=selected_cohort).select_related(
+            "enrollment__student",
+            "enrollment__cohort__course",
+            "lesson__module",
+            "marked_by",
+        )
+        if selected_lesson:
+            records = records.filter(lesson=selected_lesson)
+        records = records.filter(date__gte=range_start, date__lte=range_end).order_by(
+            "date",
+            "lesson__module__order",
+            "lesson__order",
+            "enrollment__student__username",
+        )
+
+        lesson_label = selected_lesson.title if selected_lesson else "all_lessons"
+        filename = (
+            f"attendance_{selected_cohort.id}_{lesson_label}_{range_start.isoformat()}_{range_end.isoformat()}.csv"
+        )
+        response = HttpResponse(content_type="text/csv; charset=utf-8")
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+        writer = csv.writer(response)
+        writer.writerow(
+            [
+                "Date",
+                "Cohort",
+                "Course",
+                "Lesson",
+                "Student Username",
+                "Student Name",
+                "Status",
+                "XP Awarded",
+                "Marked By",
+                "Marked At",
+            ]
+        )
+        for row in records:
+            student = row.enrollment.student
+            writer.writerow(
+                [
+                    row.date.isoformat(),
+                    row.enrollment.cohort.name,
+                    row.enrollment.cohort.course.title,
+                    row.lesson.title,
+                    student.username,
+                    student.get_full_name() or student.username,
+                    row.get_status_display(),
+                    row.xp_awarded,
+                    row.marked_by.username if row.marked_by else "",
+                    timezone.localtime(row.marked_at).strftime("%Y-%m-%d %H:%M:%S") if row.marked_at else "",
+                ]
+            )
+        return response
 
     def build_context(self):
         context = {}
@@ -767,15 +848,14 @@ class BackofficeAttendanceView(BackofficeAccessMixin, TemplateView):
 
         selected_cohort_id = self._safe_int(self.request.GET.get("cohort_id"))
         selected_lesson_id = self._safe_int(self.request.GET.get("lesson_id"))
-        selected_date_raw = self.request.GET.get("date")
+        selected_date = self._parse_date(self.request.GET.get("date")) or timezone.localdate()
+
+        range_end = self._parse_date(self.request.GET.get("date_to")) or selected_date
+        range_start = self._parse_date(self.request.GET.get("date_from")) or (range_end - datetime.timedelta(days=6))
+        if range_start > range_end:
+            range_start, range_end = range_end, range_start
 
         selected_cohort = cohorts.filter(id=selected_cohort_id).first() if selected_cohort_id else cohorts.first()
-        selected_date = timezone.localdate()
-        if selected_date_raw:
-            try:
-                selected_date = datetime.date.fromisoformat(selected_date_raw)
-            except ValueError:
-                selected_date = timezone.localdate()
 
         lessons = Lesson.objects.none()
         members = Enrollment.objects.none()
@@ -808,15 +888,60 @@ class BackofficeAttendanceView(BackofficeAccessMixin, TemplateView):
                 }
             )
 
+        analytics_qs = Attendance.objects.none()
+        if selected_cohort:
+            analytics_qs = Attendance.objects.filter(
+                enrollment__cohort=selected_cohort,
+                date__gte=range_start,
+                date__lte=range_end,
+            )
+            if selected_lesson:
+                analytics_qs = analytics_qs.filter(lesson=selected_lesson)
+
+        summary_total_records = analytics_qs.count()
+        summary_present = analytics_qs.filter(status=Attendance.STATUS_PRESENT).count()
+        summary_partial = analytics_qs.filter(status=Attendance.STATUS_PARTIAL).count()
+        summary_absent = analytics_qs.filter(status=Attendance.STATUS_ABSENT).count()
+        summary_xp = analytics_qs.aggregate(total=Sum("xp_awarded"))["total"] or 0
+        summary_presence_rate = (
+            round(((summary_present + summary_partial) / summary_total_records) * 100, 1)
+            if summary_total_records
+            else 0.0
+        )
+        summary_avg_xp = round(summary_xp / summary_total_records, 1) if summary_total_records else 0.0
+
+        daily_rows = (
+            analytics_qs.annotate(day=TruncDate("date"))
+            .values("day")
+            .annotate(
+                present=Count("id", filter=Q(status=Attendance.STATUS_PRESENT)),
+                partial=Count("id", filter=Q(status=Attendance.STATUS_PARTIAL)),
+                absent=Count("id", filter=Q(status=Attendance.STATUS_ABSENT)),
+                total=Count("id"),
+                xp_total=Sum("xp_awarded"),
+            )
+            .order_by("day")
+        )
+
         context.update(
             {
                 "selected_cohort": selected_cohort,
                 "selected_lesson": selected_lesson,
                 "selected_date": selected_date,
+                "range_start": range_start,
+                "range_end": range_end,
                 "lessons": lessons,
                 "members": members,
                 "member_rows": member_rows,
                 "status_choices": Attendance.STATUS_CHOICES,
+                "summary_total_records": summary_total_records,
+                "summary_present": summary_present,
+                "summary_partial": summary_partial,
+                "summary_absent": summary_absent,
+                "summary_xp": summary_xp,
+                "summary_presence_rate": summary_presence_rate,
+                "summary_avg_xp": summary_avg_xp,
+                "daily_rows": daily_rows,
             }
         )
         return context

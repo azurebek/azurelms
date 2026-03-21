@@ -1,9 +1,10 @@
 {% extends 'backoffice/base.html' %}
+{% load humanize %}
 
 {% block backoffice_title %}Davomat | Backoffice{% endblock %}
 {% block backoffice_kicker %}Attendance{% endblock %}
 {% block backoffice_heading %}Davomat Marking{% endblock %}
-{% block backoffice_description %}Cohort, dars va sana bo'yicha davomatni shu paneldan saqlang.{% endblock %}
+{% block backoffice_description %}Cohort, dars va vaqt oralig'i bo'yicha davomatni boshqaring, ko'rsatkichlarni kuzating va CSV eksport qiling.{% endblock %}
 
 {% block backoffice_content %}
 <section class="bo-surface">
@@ -31,14 +32,80 @@
             </select>
         </div>
         <div>
-            <label class="form-label">Sana</label>
+            <label class="form-label">Marking sana</label>
             <input type="date" name="date" class="form-control" value="{{ selected_date|date:'Y-m-d' }}">
+        </div>
+        <div>
+            <label class="form-label">Analytics from</label>
+            <input type="date" name="date_from" class="form-control" value="{{ range_start|date:'Y-m-d' }}">
+        </div>
+        <div>
+            <label class="form-label">Analytics to</label>
+            <input type="date" name="date_to" class="form-control" value="{{ range_end|date:'Y-m-d' }}">
         </div>
         <div class="bo-form-actions">
             <button class="btn btn-primary rounded-pill px-4 w-100" type="submit">Yuklash</button>
+            {% if selected_cohort %}
+            <a
+                class="btn btn-outline-primary rounded-pill px-4 w-100 mt-2"
+                href="?cohort_id={{ selected_cohort.id }}{% if selected_lesson %}&lesson_id={{ selected_lesson.id }}{% endif %}&date={{ selected_date|date:'Y-m-d' }}&date_from={{ range_start|date:'Y-m-d' }}&date_to={{ range_end|date:'Y-m-d' }}&export=csv"
+            >CSV export</a>
+            {% endif %}
         </div>
     </form>
 </section>
+
+{% if selected_cohort %}
+<section class="bo-surface">
+    <div class="bo-surface-head">
+        <h2>Attendance Analytics</h2>
+        <span>{{ range_start|date:"Y-m-d" }} -> {{ range_end|date:"Y-m-d" }}</span>
+    </div>
+    <div class="bo-inline-stats bo-inline-stats--stack">
+        <span>Yozuvlar: <strong>{{ summary_total_records|intcomma }}</strong></span>
+        <span>Present: <strong>{{ summary_present|intcomma }}</strong></span>
+        <span>Partial: <strong>{{ summary_partial|intcomma }}</strong></span>
+        <span>Absent: <strong>{{ summary_absent|intcomma }}</strong></span>
+        <span>Presence rate: <strong>{{ summary_presence_rate }}%</strong></span>
+        <span>Jami XP: <strong>{{ summary_xp|intcomma }}</strong> | O'rtacha XP: <strong>{{ summary_avg_xp }}</strong></span>
+    </div>
+</section>
+
+<section class="bo-surface">
+    <div class="bo-surface-head">
+        <h2>Kunlik trend</h2>
+        <span>{{ selected_cohort.name }}</span>
+    </div>
+    <div class="bo-table-wrap">
+        <table class="table bo-table">
+            <thead>
+                <tr>
+                    <th>Sana</th>
+                    <th>Present</th>
+                    <th>Partial</th>
+                    <th>Absent</th>
+                    <th>Jami</th>
+                    <th>XP</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in daily_rows %}
+                <tr>
+                    <td>{{ row.day|date:"Y-m-d" }}</td>
+                    <td>{{ row.present|intcomma }}</td>
+                    <td>{{ row.partial|intcomma }}</td>
+                    <td>{{ row.absent|intcomma }}</td>
+                    <td>{{ row.total|intcomma }}</td>
+                    <td>{{ row.xp_total|default:0|intcomma }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6">Tanlangan oralig'da attendance ma'lumoti yo'q.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
 
 {% if selected_cohort and selected_lesson %}
 <section class="bo-surface">
