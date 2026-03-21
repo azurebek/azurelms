@@ -7,8 +7,6 @@ from django.conf.urls.static import static
 from frontend.views import home_view, about_view, legal_page_view
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    
     # Bosh sahifa (Home / Landing)
     path('', home_view, name='home'),
     path('about/', about_view, name='about'),
@@ -19,8 +17,8 @@ urlpatterns = [
     # Users (Auth)
     path('users/', include('users.urls')),
 
-    # New Backoffice (alternative admin panel)
-    path('backoffice/', include('backoffice.urls', namespace='backoffice')),
+    # Hidden Backoffice route (configured via BACKOFFICE_PATH)
+    path(f"{settings.BACKOFFICE_PATH}/", include('backoffice.urls', namespace='backoffice')),
     
     # Courses
     path('courses/', include('courses.urls')),
@@ -43,6 +41,9 @@ urlpatterns = [
     # CKEditor rasm yuklash manzili
     path("ckeditor5/", include('django_ckeditor_5.urls'), name="ck_editor_5_upload_file"),
 ]
+
+if settings.ENABLE_LEGACY_ADMIN:
+    urlpatterns.insert(0, path('admin/', admin.site.urls))
 
 # Rivojlanish (Development) vaqtida rasmlarni brauzerda ko'rish uchun:
 if settings.DEBUG:

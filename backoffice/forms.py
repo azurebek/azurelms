@@ -1,8 +1,20 @@
 from django import forms
+from django.contrib.auth.models import Group, Permission
 
 from cohorts.models import Cohort, Enrollment
 from blog.models import BlogHomeSettings, BlogTag
-from courses.models import Assignment, Course, Lesson, Module
+from courses.models import (
+    Assignment,
+    Certificate as CourseCertificate,
+    Choice,
+    Course,
+    Exam,
+    ExamSection,
+    Lesson,
+    Module,
+    Question,
+    Quiz,
+)
 from frontend.models import (
     AboutPage,
     AboutStatistic,
@@ -32,6 +44,8 @@ class BackofficeUserUpdateForm(forms.ModelForm):
             "phone_number",
             "telegram_id",
             "telegram_username",
+            "bio",
+            "avatar",
             "total_xp",
             "is_active",
             "is_staff",
@@ -44,6 +58,8 @@ class BackofficeUserUpdateForm(forms.ModelForm):
             "phone_number": forms.TextInput(attrs={"class": "form-control"}),
             "telegram_id": forms.NumberInput(attrs={"class": "form-control"}),
             "telegram_username": forms.TextInput(attrs={"class": "form-control"}),
+            "bio": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
+            "avatar": forms.ClearableFileInput(attrs={"class": "form-control"}),
             "total_xp": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
             "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "is_staff": forms.CheckboxInput(attrs={"class": "form-check-input"}),
@@ -52,6 +68,28 @@ class BackofficeUserUpdateForm(forms.ModelForm):
     def clean_total_xp(self):
         value = self.cleaned_data.get("total_xp")
         return max(value or 0, 0)
+
+
+class BackofficeUserAccessForm(forms.ModelForm):
+    groups = forms.ModelMultipleChoiceField(
+        queryset=Group.objects.order_by("name"),
+        required=False,
+        widget=forms.SelectMultiple(attrs={"class": "form-select", "size": "7"}),
+    )
+    user_permissions = forms.ModelMultipleChoiceField(
+        queryset=Permission.objects.order_by("content_type__app_label", "codename"),
+        required=False,
+        widget=forms.SelectMultiple(attrs={"class": "form-select", "size": "10"}),
+    )
+
+    class Meta:
+        model = CustomUser
+        fields = ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")
+        widgets = {
+            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "is_staff": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "is_superuser": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        }
 
 
 class BackofficeBroadcastForm(forms.ModelForm):
@@ -508,6 +546,149 @@ class BackofficeCourseForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["instructor"].queryset = CustomUser.objects.filter(is_active=True).order_by("username")
+
+
+class BackofficeExamForm(forms.ModelForm):
+    class Meta:
+        model = Exam
+        fields = ("course", "title", "exam_type", "weight_percentage", "passing_score")
+        widgets = {
+            "course": forms.Select(attrs={"class": "form-select"}),
+            "title": forms.TextInput(attrs={"class": "form-control"}),
+            "exam_type": forms.Select(attrs={"class": "form-select"}),
+            "weight_percentage": forms.NumberInput(attrs={"class": "form-control", "min": "0", "max": "100"}),
+            "passing_score": forms.NumberInput(attrs={"class": "form-control", "min": "0", "max": "100"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["course"].queryset = Course.objects.order_by("title")
+
+
+class BackofficeExamSectionForm(forms.ModelForm):
+    class Meta:
+        model = ExamSection
+        fields = (
+            "exam",
+            "title",
+            "section_type",
+            "instructions",
+            "reading_text",
+            "media_url",
+            "max_score",
+            "time_limit_minutes",
+            "order",
+        )
+        widgets = {
+            "exam": forms.Select(attrs={"class": "form-select"}),
+            "title": forms.TextInput(attrs={"class": "form-control"}),
+            "section_type": forms.Select(attrs={"class": "form-select"}),
+            "media_url": forms.URLInput(attrs={"class": "form-control"}),
+            "max_score": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
+            "time_limit_minutes": forms.NumberInput(attrs={"class": "form-control", "min": "1"}),
+            "order": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["exam"].queryset = Exam.objects.select_related("course").order_by("course__title", "title")
+
+
+class BackofficeQuizForm(forms.ModelForm):
+    class Meta:
+        model = Quiz
+        fields = ("title", "lesson", "exam_section", "xp_reward")
+        widgets = {
+            "title": forms.TextInput(attrs={"class": "form-control"}),
+            "lesson": forms.Select(attrs={"class": "form-select"}),
+            "exam_section": forms.Select(attrs={"class": "form-select"}),
+            "xp_reward": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["lesson"].required = False
+        self.fields["exam_section"].required = False
+        self.fields["lesson"].queryset = Lesson.objects.select_related("module__course").order_by(
+            "module__course__title",
+            "module__order",
+            "order",
+        )
+        self.fields["exam_section"].queryset = ExamSection.objects.select_related("exam", "exam__course").order_by(
+            "exam__course__title",
+            "exam__title",
+            "order",
+        )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        lesson = cleaned_data.get("lesson")
+        exam_section = cleaned_data.get("exam_section")
+        if bool(lesson) == bool(exam_section):
+            raise forms.ValidationError("Quiz faqat bitta kontekstga birikadi: lesson yoki exam section.")
+        return cleaned_data
+
+
+class BackofficeQuestionForm(forms.ModelForm):
+    class Meta:
+        model = Question
+        fields = ("quiz", "exam_section", "text", "points")
+        widgets = {
+            "quiz": forms.Select(attrs={"class": "form-select"}),
+            "exam_section": forms.Select(attrs={"class": "form-select"}),
+            "points": forms.NumberInput(attrs={"class": "form-control", "min": "1"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["quiz"].required = False
+        self.fields["exam_section"].required = False
+        self.fields["quiz"].queryset = Quiz.objects.select_related("lesson", "exam_section").order_by("title")
+        self.fields["exam_section"].queryset = ExamSection.objects.select_related("exam", "exam__course").order_by(
+            "exam__course__title",
+            "exam__title",
+            "order",
+        )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        quiz = cleaned_data.get("quiz")
+        exam_section = cleaned_data.get("exam_section")
+        if bool(quiz) == bool(exam_section):
+            raise forms.ValidationError("Savol faqat bitta joyga bog'lanadi: quiz yoki exam section.")
+        return cleaned_data
+
+
+class BackofficeChoiceForm(forms.ModelForm):
+    class Meta:
+        model = Choice
+        fields = ("question", "text", "is_correct")
+        widgets = {
+            "question": forms.Select(attrs={"class": "form-select"}),
+            "text": forms.TextInput(attrs={"class": "form-control"}),
+            "is_correct": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["question"].queryset = Question.objects.select_related("quiz", "exam_section").order_by("-id")
+
+
+class BackofficeCourseCertificateForm(forms.ModelForm):
+    class Meta:
+        model = CourseCertificate
+        fields = ("student", "course", "certificate_id", "final_score")
+        widgets = {
+            "student": forms.Select(attrs={"class": "form-select"}),
+            "course": forms.Select(attrs={"class": "form-select"}),
+            "certificate_id": forms.TextInput(attrs={"class": "form-control"}),
+            "final_score": forms.NumberInput(attrs={"class": "form-control", "min": "0", "max": "100"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["student"].queryset = CustomUser.objects.filter(is_active=True).order_by("username")
+        self.fields["course"].queryset = Course.objects.order_by("title")
 
 
 class BackofficeModuleForm(forms.ModelForm):

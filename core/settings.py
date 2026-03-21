@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 import os
 import sys
+import hashlib
 import dj_database_url
 from dotenv import load_dotenv
 
@@ -59,6 +60,13 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env_bool("DEBUG", APP_ENV == "local")
+ENABLE_LEGACY_ADMIN = env_bool("ENABLE_LEGACY_ADMIN", False)
+
+_backoffice_seed = (SECRET_KEY or "azurelms-backoffice-path").encode("utf-8")
+_backoffice_hash = hashlib.sha256(_backoffice_seed).hexdigest()[:14]
+BACKOFFICE_PATH = os.getenv("BACKOFFICE_PATH", f"control-{_backoffice_hash}").strip().strip("/")
+if not BACKOFFICE_PATH:
+    BACKOFFICE_PATH = f"control-{_backoffice_hash}"
 
 # Domain sozlamalari
 APP_DOMAIN = os.getenv("APP_DOMAIN", "azurelms-app-aoib9.ondigitalocean.app")
@@ -143,6 +151,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "users.context_processors.notification_context",
                 "frontend.context_processors.site_settings_context",
+                "backoffice.context_processors.backoffice_flags",
             ],
         },
     },

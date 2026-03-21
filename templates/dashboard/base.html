@@ -191,6 +191,14 @@
                                     <span>Davomat boshqaruv</span>
                                 </a>
                             </li>
+                            {% if user.is_superuser %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'backoffice:dashboard' %}">
+                                    <i class="bi bi-shield-lock"></i>
+                                    <span>Admin panel</span>
+                                </a>
+                            </li>
+                            {% endif %}
                         </ul>
                     </div>
                 </div>

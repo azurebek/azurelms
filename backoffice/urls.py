@@ -8,6 +8,13 @@ app_name = "backoffice"
 urlpatterns = [
     path("login/", views.BackofficeLoginView.as_view(), name="login"),
     path("", views.BackofficeDashboardView.as_view(), name="dashboard"),
+    path("crud/", views.BackofficeGenericCRUDIndexView.as_view(), name="generic_crud_index"),
+    path("crud/<slug:resource>/", views.BackofficeGenericCRUDListView.as_view(), name="generic_crud_list"),
+    path(
+        "crud/<slug:resource>/<int:object_id>/",
+        views.BackofficeGenericCRUDDetailView.as_view(),
+        name="generic_crud_detail",
+    ),
     path("students/", views.BackofficeStudentsView.as_view(), name="students"),
     path("users/", views.BackofficeUsersView.as_view(), name="users"),
     path("users/<int:user_id>/", views.BackofficeUserDetailView.as_view(), name="user_detail"),
@@ -21,6 +28,18 @@ urlpatterns = [
     path("learning/assignments/", views.BackofficeLearningAssignmentsView.as_view(), name="learning_assignments"),
     path("learning/releases/", views.BackofficeLearningReleasesView.as_view(), name="learning_releases"),
     path("learning/exams/", views.BackofficeLearningExamsView.as_view(), name="learning_exams"),
+    path(
+        "learning/exams/<int:attempt_id>/",
+        views.BackofficeLearningExamAttemptDetailView.as_view(),
+        name="learning_exam_attempt_detail",
+    ),
+    path("learning/exam-authoring/", views.BackofficeLearningExamAuthoringView.as_view(), name="learning_exam_authoring"),
+    path("learning/quiz-authoring/", views.BackofficeLearningQuizAuthoringView.as_view(), name="learning_quiz_authoring"),
+    path(
+        "learning/course-certificates/",
+        views.BackofficeLearningCourseCertificatesView.as_view(),
+        name="learning_course_certificates",
+    ),
     path("learning/courses/", views.BackofficeCoursesCatalogView.as_view(), name="courses_catalog"),
     path("learning/courses/<int:course_id>/", views.BackofficeCourseStructureView.as_view(), name="course_structure"),
     path("content/settings/", views.BackofficeContentSettingsView.as_view(), name="content_settings"),

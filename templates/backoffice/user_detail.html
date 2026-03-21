@@ -13,60 +13,111 @@
             <h2>Asosiy ma'lumotlar</h2>
             <span>{{ target_user.date_joined|date:"Y-m-d H:i" }}</span>
         </div>
-        <form method="post" class="bo-form-grid bo-form-grid--user-edit">
+        <form method="post" enctype="multipart/form-data" class="bo-form-grid bo-form-grid--user-edit">
             {% csrf_token %}
+            <input type="hidden" name="action" value="update_profile">
 
-            {% if form.non_field_errors %}
-            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+            {% if profile_form.non_field_errors %}
+            <div class="alert alert-danger">{{ profile_form.non_field_errors }}</div>
             {% endif %}
 
             <div>
-                <label class="form-label" for="{{ form.username.id_for_label }}">Username</label>
-                {{ form.username }}
-                {% if form.username.errors %}<div class="bo-field-error">{{ form.username.errors|join:", " }}</div>{% endif %}
+                <label class="form-label" for="{{ profile_form.username.id_for_label }}">Username</label>
+                {{ profile_form.username }}
+                {% if profile_form.username.errors %}<div class="bo-field-error">{{ profile_form.username.errors|join:", " }}</div>{% endif %}
             </div>
             <div>
-                <label class="form-label" for="{{ form.email.id_for_label }}">Email</label>
-                {{ form.email }}
-                {% if form.email.errors %}<div class="bo-field-error">{{ form.email.errors|join:", " }}</div>{% endif %}
+                <label class="form-label" for="{{ profile_form.email.id_for_label }}">Email</label>
+                {{ profile_form.email }}
+                {% if profile_form.email.errors %}<div class="bo-field-error">{{ profile_form.email.errors|join:", " }}</div>{% endif %}
             </div>
             <div>
-                <label class="form-label" for="{{ form.first_name.id_for_label }}">Ism</label>
-                {{ form.first_name }}
+                <label class="form-label" for="{{ profile_form.first_name.id_for_label }}">Ism</label>
+                {{ profile_form.first_name }}
             </div>
             <div>
-                <label class="form-label" for="{{ form.last_name.id_for_label }}">Familiya</label>
-                {{ form.last_name }}
+                <label class="form-label" for="{{ profile_form.last_name.id_for_label }}">Familiya</label>
+                {{ profile_form.last_name }}
             </div>
             <div>
-                <label class="form-label" for="{{ form.phone_number.id_for_label }}">Telefon</label>
-                {{ form.phone_number }}
+                <label class="form-label" for="{{ profile_form.phone_number.id_for_label }}">Telefon</label>
+                {{ profile_form.phone_number }}
             </div>
             <div>
-                <label class="form-label" for="{{ form.telegram_id.id_for_label }}">Telegram ID</label>
-                {{ form.telegram_id }}
+                <label class="form-label" for="{{ profile_form.telegram_id.id_for_label }}">Telegram ID</label>
+                {{ profile_form.telegram_id }}
             </div>
             <div>
-                <label class="form-label" for="{{ form.telegram_username.id_for_label }}">Telegram username</label>
-                {{ form.telegram_username }}
+                <label class="form-label" for="{{ profile_form.telegram_username.id_for_label }}">Telegram username</label>
+                {{ profile_form.telegram_username }}
             </div>
             <div>
-                <label class="form-label" for="{{ form.total_xp.id_for_label }}">Total XP</label>
-                {{ form.total_xp }}
+                <label class="form-label" for="{{ profile_form.total_xp.id_for_label }}">Total XP</label>
+                {{ profile_form.total_xp }}
             </div>
-            <div class="bo-check-stack">
+            <div>
+                <label class="form-label" for="{{ profile_form.bio.id_for_label }}">Bio</label>
+                {{ profile_form.bio }}
+            </div>
+            <div>
+                <label class="form-label" for="{{ profile_form.avatar.id_for_label }}">Avatar</label>
+                {{ profile_form.avatar }}
+            </div>
+            <div class="bo-check-stack bo-span-full">
                 <label class="form-check">
-                    {{ form.is_active }}
+                    {{ profile_form.is_active }}
                     <span class="form-check-label">Faol</span>
                 </label>
                 <label class="form-check">
-                    {{ form.is_staff }}
+                    {{ profile_form.is_staff }}
                     <span class="form-check-label">Staff</span>
                 </label>
             </div>
 
-            <div class="bo-form-actions bo-form-actions--end">
+            <div class="bo-form-actions bo-form-actions--end bo-span-full">
                 <button class="btn btn-primary rounded-pill px-4" type="submit">Saqlash</button>
+            </div>
+        </form>
+    </article>
+
+    <article class="bo-surface">
+        <div class="bo-surface-head">
+            <h2>Access va Permission</h2>
+        </div>
+        <form method="post" class="bo-form-grid">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="update_access">
+            {% if access_form.non_field_errors %}
+            <div class="alert alert-danger">{{ access_form.non_field_errors }}</div>
+            {% endif %}
+
+            <div class="bo-check-stack">
+                <label class="form-check">
+                    {{ access_form.is_active }}
+                    <span class="form-check-label">Faol</span>
+                </label>
+                <label class="form-check">
+                    {{ access_form.is_staff }}
+                    <span class="form-check-label">Staff</span>
+                </label>
+                <label class="form-check">
+                    {{ access_form.is_superuser }}
+                    <span class="form-check-label">Superuser</span>
+                </label>
+            </div>
+
+            <div>
+                <label class="form-label" for="{{ access_form.groups.id_for_label }}">Groups</label>
+                {{ access_form.groups }}
+                {% if access_form.groups.errors %}<div class="bo-field-error">{{ access_form.groups.errors|join:", " }}</div>{% endif %}
+            </div>
+            <div>
+                <label class="form-label" for="{{ access_form.user_permissions.id_for_label }}">User permissions</label>
+                {{ access_form.user_permissions }}
+                {% if access_form.user_permissions.errors %}<div class="bo-field-error">{{ access_form.user_permissions.errors|join:", " }}</div>{% endif %}
+            </div>
+            <div class="bo-form-actions bo-form-actions--end">
+                <button class="btn btn-primary rounded-pill px-4" type="submit">Accessni saqlash</button>
             </div>
         </form>
     </article>

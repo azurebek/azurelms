@@ -1,14 +1,16 @@
 import datetime
 import csv
+from dataclasses import dataclass
 from decimal import Decimal
 
 from django.contrib import messages
+from django import forms as django_forms
 from django.contrib.auth import get_user_model, logout
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db.models import Count, Max, Q, Sum
 from django.db.models.functions import TruncDate
-from django.http import HttpResponse
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -18,12 +20,20 @@ from cohorts.models import Attendance, Cohort, Enrollment, PaymentReceipt
 from courses.models import (
     Assignment,
     AssignmentSubmission,
+    Certificate as CourseCertificate,
+    Choice,
     CohortLessonRelease,
     Course,
+    Exam,
     ExamAttempt,
+    ExamSection,
+    ExamSectionReview,
     Lesson,
     LessonProgress,
     Module,
+    Question,
+    Quiz,
+    StudentAnswer,
 )
 from blog.models import (
     BlogComment,
@@ -62,8 +72,12 @@ from .forms import (
     BackofficeBlogTagForm,
     BackofficeBroadcastForm,
     BackofficeChatRoomForm,
+    BackofficeChoiceForm,
     BackofficeCourseForm,
+    BackofficeCourseCertificateForm,
     BackofficeEnrollmentCreateForm,
+    BackofficeExamForm,
+    BackofficeExamSectionForm,
     BackofficeGamificationCertificateForm,
     BackofficeLandingNavItemForm,
     BackofficeLandingPageForm,
@@ -75,10 +89,13 @@ from .forms import (
     BackofficeAssignmentForm,
     BackofficePlanFeatureForm,
     BackofficePlanForm,
+    BackofficeQuestionForm,
+    BackofficeQuizForm,
     BackofficeSiteSettingsForm,
     BackofficeStatisticForm,
     BackofficeTeamMemberForm,
     BackofficeTestimonialForm,
+    BackofficeUserAccessForm,
     BackofficeUserUpdateForm,
 )
 
@@ -128,6 +145,408 @@ class BackofficeAccessMixin(LoginRequiredMixin, UserPassesTestMixin):
             messages.error(self.request, "Backoffice faqat staff/admin uchun ochiq.")
             return redirect("dashboard")
         return super().handle_no_permission()
+
+
+@dataclass(frozen=True)
+class BackofficeCRUDResource:
+    key: str
+    label: str
+    model: object
+    form_class: object | None
+    search_fields: tuple[str, ...]
+    list_fields: tuple[str, ...]
+    ordering: tuple[str, ...] = ("-id",)
+    description: str = ""
+
+
+BACKOFFICE_CRUD_RESOURCES = {
+    "plans": BackofficeCRUDResource(
+        key="plans",
+        label="Subscription Plans",
+        model=Plan,
+        form_class=BackofficePlanForm,
+        search_fields=("name", "description", "button_text"),
+        list_fields=("name", "price", "is_popular", "order"),
+        ordering=("order", "id"),
+        description="Obuna tariflarini tez CRUD boshqaruvi.",
+    ),
+    "plan-features": BackofficeCRUDResource(
+        key="plan-features",
+        label="Plan Features",
+        model=PlanFeature,
+        form_class=BackofficePlanFeatureForm,
+        search_fields=("name", "plan__name"),
+        list_fields=("plan", "name", "is_included", "order"),
+        ordering=("plan__order", "order", "id"),
+        description="Tarif featurelarini boshqarish.",
+    ),
+    "courses": BackofficeCRUDResource(
+        key="courses",
+        label="Courses",
+        model=Course,
+        form_class=BackofficeCourseForm,
+        search_fields=("title", "description", "instructor__username"),
+        list_fields=("title", "instructor", "level", "price", "is_active"),
+        ordering=("-created_at",),
+        description="Kurslar uchun universal CRUD.",
+    ),
+    "modules": BackofficeCRUDResource(
+        key="modules",
+        label="Modules",
+        model=Module,
+        form_class=BackofficeModuleForm,
+        search_fields=("title", "course__title"),
+        list_fields=("course", "title", "order"),
+        ordering=("course__title", "order", "id"),
+        description="Modul yozuvlarini boshqarish.",
+    ),
+    "lessons": BackofficeCRUDResource(
+        key="lessons",
+        label="Lessons",
+        model=Lesson,
+        form_class=BackofficeLessonForm,
+        search_fields=("title", "module__title", "module__course__title"),
+        list_fields=("module", "title", "order", "xp_reward"),
+        ordering=("module__course__title", "module__order", "order", "id"),
+        description="Darslar uchun umumiy CRUD.",
+    ),
+    "assignments": BackofficeCRUDResource(
+        key="assignments",
+        label="Assignments",
+        model=Assignment,
+        form_class=BackofficeAssignmentForm,
+        search_fields=("title", "lesson__title", "lesson__module__course__title"),
+        list_fields=("lesson", "title", "max_xp"),
+        ordering=("-id",),
+        description="Vazifalarni tez boshqarish.",
+    ),
+    "exams": BackofficeCRUDResource(
+        key="exams",
+        label="Exams",
+        model=Exam,
+        form_class=BackofficeExamForm,
+        search_fields=("title", "course__title"),
+        list_fields=("course", "title", "exam_type", "weight_percentage", "passing_score"),
+        ordering=("course__title", "title"),
+        description="Imtihonlar CRUD.",
+    ),
+    "exam-sections": BackofficeCRUDResource(
+        key="exam-sections",
+        label="Exam Sections",
+        model=ExamSection,
+        form_class=BackofficeExamSectionForm,
+        search_fields=("title", "exam__title", "exam__course__title"),
+        list_fields=("exam", "title", "section_type", "max_score", "order"),
+        ordering=("exam__course__title", "exam__title", "order", "id"),
+        description="Imtihon bo'limlari CRUD.",
+    ),
+    "quizzes": BackofficeCRUDResource(
+        key="quizzes",
+        label="Quizzes",
+        model=Quiz,
+        form_class=BackofficeQuizForm,
+        search_fields=("title", "lesson__title", "exam_section__title"),
+        list_fields=("title", "lesson", "exam_section", "xp_reward"),
+        ordering=("-id",),
+        description="Quizlar CRUD.",
+    ),
+    "questions": BackofficeCRUDResource(
+        key="questions",
+        label="Questions",
+        model=Question,
+        form_class=BackofficeQuestionForm,
+        search_fields=("text", "quiz__title", "exam_section__title"),
+        list_fields=("id", "quiz", "exam_section", "points"),
+        ordering=("-id",),
+        description="Savollar CRUD.",
+    ),
+    "choices": BackofficeCRUDResource(
+        key="choices",
+        label="Choices",
+        model=Choice,
+        form_class=BackofficeChoiceForm,
+        search_fields=("text", "question__text"),
+        list_fields=("question", "text", "is_correct"),
+        ordering=("-id",),
+        description="Savol variantlari CRUD.",
+    ),
+    "course-certificates": BackofficeCRUDResource(
+        key="course-certificates",
+        label="Course Certificates",
+        model=CourseCertificate,
+        form_class=BackofficeCourseCertificateForm,
+        search_fields=("certificate_id", "student__username", "course__title"),
+        list_fields=("student", "course", "certificate_id", "final_score", "issued_at"),
+        ordering=("-issued_at",),
+        description="Kurs yakuniy sertifikatlari CRUD.",
+    ),
+    "cohorts": BackofficeCRUDResource(
+        key="cohorts",
+        label="Cohorts",
+        model=Cohort,
+        form_class=BackofficeCohortForm,
+        search_fields=("name", "course__title"),
+        list_fields=("name", "course", "start_date", "is_active"),
+        ordering=("-start_date", "name"),
+        description="Cohort yozuvlari CRUD.",
+    ),
+    "enrollments": BackofficeCRUDResource(
+        key="enrollments",
+        label="Enrollments",
+        model=Enrollment,
+        form_class=BackofficeEnrollmentCreateForm,
+        search_fields=("student__username", "cohort__name", "plan__name"),
+        list_fields=("student", "cohort", "plan", "status", "next_payment_deadline"),
+        ordering=("-joined_at",),
+        description="Enrollment yozuvlarini tez boshqarish.",
+    ),
+    "levels": BackofficeCRUDResource(
+        key="levels",
+        label="Gamification Levels",
+        model=Level,
+        form_class=BackofficeLevelForm,
+        search_fields=("name",),
+        list_fields=("name", "min_xp"),
+        ordering=("min_xp",),
+        description="Level yozuvlari CRUD.",
+    ),
+    "badges": BackofficeCRUDResource(
+        key="badges",
+        label="Gamification Badges",
+        model=Badge,
+        form_class=BackofficeBadgeForm,
+        search_fields=("name", "description"),
+        list_fields=("name", "description"),
+        ordering=("name",),
+        description="Badge yozuvlari CRUD.",
+    ),
+    "game-certificates": BackofficeCRUDResource(
+        key="game-certificates",
+        label="Game Certificates",
+        model=GamificationCertificate,
+        form_class=BackofficeGamificationCertificateForm,
+        search_fields=("student__username", "course__title"),
+        list_fields=("student", "course", "certificate_id", "issued_at"),
+        ordering=("-issued_at",),
+        description="Gamification sertifikatlari CRUD.",
+    ),
+    "chat-rooms": BackofficeCRUDResource(
+        key="chat-rooms",
+        label="Chat Rooms",
+        model=ChatRoom,
+        form_class=BackofficeChatRoomForm,
+        search_fields=("name", "cohort__name"),
+        list_fields=("name", "room_type", "cohort", "created_at"),
+        ordering=("-created_at",),
+        description="Messenger roomlar CRUD.",
+    ),
+}
+
+_AUTO_RESOURCE_FORM_CACHE = {}
+
+
+def _crud_resource_or_404(resource_key):
+    resource = BACKOFFICE_CRUD_RESOURCES.get(resource_key)
+    if not resource:
+        raise Http404("Unknown CRUD resource.")
+    return resource
+
+
+def _crud_form_class(resource):
+    if resource.form_class:
+        return resource.form_class
+    cached = _AUTO_RESOURCE_FORM_CACHE.get(resource.key)
+    if cached:
+        return cached
+
+    meta_class = type(
+        "Meta",
+        (),
+        {
+            "model": resource.model,
+            "fields": "__all__",
+            "widgets": {},
+        },
+    )
+    auto_form = type(
+        f"BackofficeAuto{resource.model.__name__}Form",
+        (django_forms.ModelForm,),
+        {"Meta": meta_class},
+    )
+    _AUTO_RESOURCE_FORM_CACHE[resource.key] = auto_form
+    return auto_form
+
+
+def _crud_resolve_attr(obj, path):
+    current = obj
+    for part in path.split("__"):
+        current = getattr(current, part, None)
+        if callable(current):
+            try:
+                current = current()
+            except TypeError:
+                return "-"
+        if current is None:
+            return "-"
+    return current
+
+
+def _crud_format_value(value):
+    if value is None:
+        return "-"
+    if isinstance(value, bool):
+        return "Ha" if value else "Yo'q"
+    if isinstance(value, datetime.datetime):
+        return timezone.localtime(value).strftime("%Y-%m-%d %H:%M")
+    if isinstance(value, datetime.date):
+        return value.strftime("%Y-%m-%d")
+    return str(value)
+
+
+def _crud_field_label(model, field_path):
+    if "__" in field_path:
+        return field_path.replace("__", " / ").replace("_", " ").title()
+    try:
+        return model._meta.get_field(field_path).verbose_name.title()
+    except Exception:
+        return field_path.replace("_", " ").title()
+
+
+class BackofficeGenericCRUDIndexView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/generic_crud_index.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        resources = []
+        for resource in sorted(BACKOFFICE_CRUD_RESOURCES.values(), key=lambda item: item.label.lower()):
+            resources.append(
+                {
+                    "key": resource.key,
+                    "label": resource.label,
+                    "description": resource.description,
+                    "count": resource.model.objects.count(),
+                }
+            )
+        context["resources"] = resources
+        return context
+
+
+class BackofficeGenericCRUDListView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/generic_crud_list.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        self.resource = _crud_resource_or_404(kwargs["resource"])
+        return super().dispatch(request, *args, **kwargs)
+
+    def _queryset(self):
+        query = (self.request.GET.get("q") or "").strip()
+        queryset = self.resource.model.objects.all()
+        if query and self.resource.search_fields:
+            criteria = Q()
+            for field_name in self.resource.search_fields:
+                criteria |= Q(**{f"{field_name}__icontains": query})
+            queryset = queryset.filter(criteria)
+        if self.resource.ordering:
+            queryset = queryset.order_by(*self.resource.ordering)
+        return queryset, query
+
+    def _rows(self, queryset):
+        rows = []
+        for obj in queryset[:300]:
+            rows.append(
+                {
+                    "id": obj.id,
+                    "display": str(obj),
+                    "cells": [_crud_format_value(_crud_resolve_attr(obj, field_path)) for field_path in self.resource.list_fields],
+                }
+            )
+        return rows
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        queryset, query = self._queryset()
+        form_class = _crud_form_class(self.resource)
+        context.update(
+            {
+                "resource": self.resource,
+                "search_query": query,
+                "headers": [_crud_field_label(self.resource.model, field_path) for field_path in self.resource.list_fields],
+                "rows": self._rows(queryset),
+                "summary_total": self.resource.model.objects.count(),
+                "summary_filtered": queryset.count(),
+                "create_form": kwargs.get("create_form") or form_class(),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = (request.POST.get("action") or "create").strip()
+
+        if action == "create":
+            form_class = _crud_form_class(self.resource)
+            create_form = form_class(request.POST, request.FILES)
+            if create_form.is_valid():
+                obj = create_form.save()
+                messages.success(request, f"Yaratildi: {obj}.")
+                return redirect("backoffice:generic_crud_list", resource=self.resource.key)
+            messages.error(request, "Forma xatolik bilan to'ldirilgan.")
+            return self.render_to_response(self.get_context_data(create_form=create_form))
+
+        if action == "delete_selected":
+            ids = request.POST.getlist("object_ids")
+            queryset = self.resource.model.objects.filter(id__in=ids)
+            if not queryset.exists():
+                messages.error(request, "Kamida bitta yozuv tanlang.")
+                return redirect("backoffice:generic_crud_list", resource=self.resource.key)
+            deleted_count, _ = queryset.delete()
+            messages.success(request, f"{deleted_count} ta yozuv o'chirildi.")
+            return redirect("backoffice:generic_crud_list", resource=self.resource.key)
+
+        messages.error(request, "Noma'lum action.")
+        return redirect("backoffice:generic_crud_list", resource=self.resource.key)
+
+
+class BackofficeGenericCRUDDetailView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/generic_crud_detail.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        self.resource = _crud_resource_or_404(kwargs["resource"])
+        self.object_instance = get_object_or_404(self.resource.model, id=kwargs["object_id"])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        form_class = _crud_form_class(self.resource)
+        context.update(
+            {
+                "resource": self.resource,
+                "object_instance": self.object_instance,
+                "form": kwargs.get("form") or form_class(instance=self.object_instance),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = (request.POST.get("action") or "update").strip()
+
+        if action == "update":
+            form_class = _crud_form_class(self.resource)
+            form = form_class(request.POST, request.FILES, instance=self.object_instance)
+            if form.is_valid():
+                obj = form.save()
+                messages.success(request, f"Yangilandi: {obj}.")
+                return redirect("backoffice:generic_crud_detail", resource=self.resource.key, object_id=self.object_instance.id)
+            messages.error(request, "Forma xatolik bilan to'ldirilgan.")
+            return self.render_to_response(self.get_context_data(form=form))
+
+        if action == "delete":
+            display = str(self.object_instance)
+            self.object_instance.delete()
+            messages.success(request, f"O'chirildi: {display}.")
+            return redirect("backoffice:generic_crud_list", resource=self.resource.key)
+
+        messages.error(request, "Noma'lum action.")
+        return redirect("backoffice:generic_crud_detail", resource=self.resource.key, object_id=self.object_instance.id)
 
 
 def _last_n_dates(days):
@@ -381,7 +800,8 @@ class BackofficeUserDetailView(BackofficeAccessMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        form = kwargs.get("form") or BackofficeUserUpdateForm(instance=self.target_user)
+        profile_form = kwargs.get("profile_form") or BackofficeUserUpdateForm(instance=self.target_user)
+        access_form = kwargs.get("access_form") or BackofficeUserAccessForm(instance=self.target_user)
         recent_enrollments = (
             self.target_user.enrollments.select_related("cohort", "cohort__course", "plan")
             .order_by("-joined_at")[:8]
@@ -390,7 +810,8 @@ class BackofficeUserDetailView(BackofficeAccessMixin, TemplateView):
         context.update(
             {
                 "target_user": self.target_user,
-                "form": form,
+                "profile_form": profile_form,
+                "access_form": access_form,
                 "recent_enrollments": recent_enrollments,
                 "recent_notifications": recent_notifications,
             }
@@ -398,13 +819,38 @@ class BackofficeUserDetailView(BackofficeAccessMixin, TemplateView):
         return context
 
     def post(self, request, *args, **kwargs):
-        form = BackofficeUserUpdateForm(request.POST, instance=self.target_user)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Foydalanuvchi ma'lumotlari yangilandi.")
-            return redirect("backoffice:user_detail", user_id=self.target_user.id)
-        messages.error(request, "Forma xatolik bilan to'ldirilgan. Iltimos, tekshiring.")
-        return self.render_to_response(self.get_context_data(form=form))
+        action = (request.POST.get("action") or "update_profile").strip()
+
+        if action == "update_profile":
+            profile_form = BackofficeUserUpdateForm(request.POST, request.FILES, instance=self.target_user)
+            if profile_form.is_valid():
+                profile_form.save()
+                messages.success(request, "Foydalanuvchi profili yangilandi.")
+                return redirect("backoffice:user_detail", user_id=self.target_user.id)
+            messages.error(request, "Profil formasida xatolik bor.")
+            return self.render_to_response(
+                self.get_context_data(
+                    profile_form=profile_form,
+                    access_form=BackofficeUserAccessForm(instance=self.target_user),
+                )
+            )
+
+        if action == "update_access":
+            access_form = BackofficeUserAccessForm(request.POST, instance=self.target_user)
+            if access_form.is_valid():
+                access_form.save()
+                messages.success(request, "Permission va rol sozlamalari yangilandi.")
+                return redirect("backoffice:user_detail", user_id=self.target_user.id)
+            messages.error(request, "Access formasida xatolik bor.")
+            return self.render_to_response(
+                self.get_context_data(
+                    profile_form=BackofficeUserUpdateForm(instance=self.target_user),
+                    access_form=access_form,
+                )
+            )
+
+        messages.error(request, "Noma'lum action.")
+        return redirect("backoffice:user_detail", user_id=self.target_user.id)
 
 
 class BackofficeSubscriptionsView(BackofficeAccessMixin, TemplateView):
@@ -1515,6 +1961,472 @@ class BackofficeLearningExamsView(BackofficeAccessMixin, TemplateView):
 
         messages.error(request, "Noma'lum action.")
         return redirect(request.get_full_path())
+
+
+class BackofficeLearningExamAttemptDetailView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/learning_exam_attempt_detail.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        self.attempt = get_object_or_404(
+            ExamAttempt.objects.select_related("student", "exam", "exam__course", "reviewed_by"),
+            id=kwargs["attempt_id"],
+        )
+        self.attempt.ensure_section_reviews()
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        section_reviews = self.attempt.section_reviews.select_related("section").order_by("section__order", "id")
+        answers = self.attempt.answers.select_related(
+            "question",
+            "question__quiz",
+            "question__exam_section",
+            "selected_choice",
+        ).order_by("question__id", "id")
+        context.update(
+            {
+                "attempt_obj": self.attempt,
+                "section_reviews": section_reviews,
+                "answers": answers,
+            }
+        )
+        return context
+
+    def _safe_decimal(self, value, fallback=Decimal("0")):
+        try:
+            return Decimal(str(value))
+        except Exception:
+            return fallback
+
+    def post(self, request, *args, **kwargs):
+        action = (request.POST.get("action") or "").strip()
+
+        if action == "prepare_reviews":
+            self.attempt.ensure_section_reviews()
+            self.attempt.prefill_section_scores_from_answers()
+            messages.success(request, "Section review qiymatlari tayyorlandi.")
+            return redirect("backoffice:learning_exam_attempt_detail", attempt_id=self.attempt.id)
+
+        if action == "update_section_reviews":
+            updated = 0
+            for review in self.attempt.section_reviews.select_related("section").all():
+                score_key = f"section_score_{review.id}"
+                feedback_key = f"section_feedback_{review.id}"
+                submitted_score = self._safe_decimal(
+                    request.POST.get(score_key, review.awarded_score),
+                    fallback=review.awarded_score,
+                )
+                clamped_score = max(Decimal("0"), min(submitted_score, Decimal(str(review.section.max_score))))
+                submitted_feedback = (request.POST.get(feedback_key) or "").strip()
+
+                changed = False
+                if review.awarded_score != clamped_score:
+                    review.awarded_score = clamped_score
+                    changed = True
+                if review.feedback != submitted_feedback:
+                    review.feedback = submitted_feedback
+                    changed = True
+                if changed:
+                    review.save()
+                    updated += 1
+            messages.success(request, f"{updated} ta section review yangilandi.")
+            return redirect("backoffice:learning_exam_attempt_detail", attempt_id=self.attempt.id)
+
+        if action == "update_answers":
+            updated = 0
+            for answer in self.attempt.answers.select_related("question").all():
+                score_key = f"answer_score_{answer.id}"
+                graded_key = f"answer_graded_{answer.id}"
+                submitted_score = self._safe_decimal(
+                    request.POST.get(score_key, answer.awarded_score),
+                    fallback=answer.awarded_score,
+                )
+                max_points = Decimal(str(answer.question.points or 0))
+                clamped_score = max(Decimal("0"), min(submitted_score, max_points if max_points > 0 else submitted_score))
+                submitted_graded = request.POST.get(graded_key) == "on"
+
+                changed = False
+                if answer.awarded_score != clamped_score:
+                    answer.awarded_score = clamped_score
+                    changed = True
+                if answer.is_graded != submitted_graded:
+                    answer.is_graded = submitted_graded
+                    changed = True
+                if changed:
+                    answer.save(update_fields=["awarded_score", "is_graded"])
+                    updated += 1
+            messages.success(request, f"{updated} ta answer yangilandi.")
+            return redirect("backoffice:learning_exam_attempt_detail", attempt_id=self.attempt.id)
+
+        if action == "finalize_review":
+            certificate, created = self.attempt.finalize_review(reviewed_by=request.user)
+            if certificate and created:
+                messages.success(request, "Review tasdiqlandi va sertifikat yaratildi.")
+            else:
+                messages.success(request, "Review tasdiqlandi.")
+            return redirect("backoffice:learning_exam_attempt_detail", attempt_id=self.attempt.id)
+
+        if action == "recalculate_scores":
+            if self.attempt.is_reviewed:
+                self.attempt.finalize_review(reviewed_by=request.user)
+            else:
+                self.attempt.prefill_section_scores_from_answers()
+            messages.success(request, "Ballar qayta hisoblandi.")
+            return redirect("backoffice:learning_exam_attempt_detail", attempt_id=self.attempt.id)
+
+        messages.error(request, "Noma'lum action.")
+        return redirect("backoffice:learning_exam_attempt_detail", attempt_id=self.attempt.id)
+
+
+class BackofficeLearningExamAuthoringView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/learning_exam_authoring.html"
+
+    def _safe_int(self, value):
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        query = (self.request.GET.get("q") or "").strip()
+        selected_course_id = self._safe_int(self.request.GET.get("course_id"))
+        selected_exam_id = self._safe_int(self.request.GET.get("exam_id"))
+
+        exams = Exam.objects.select_related("course").annotate(
+            section_count=Count("sections", distinct=True),
+            attempt_count=Count("attempts", distinct=True),
+        )
+        sections = ExamSection.objects.select_related("exam", "exam__course")
+
+        if query:
+            exams = exams.filter(
+                Q(title__icontains=query)
+                | Q(course__title__icontains=query)
+            )
+            sections = sections.filter(
+                Q(title__icontains=query)
+                | Q(exam__title__icontains=query)
+                | Q(exam__course__title__icontains=query)
+            )
+
+        if selected_course_id:
+            exams = exams.filter(course_id=selected_course_id)
+            sections = sections.filter(exam__course_id=selected_course_id)
+
+        if selected_exam_id:
+            sections = sections.filter(exam_id=selected_exam_id)
+
+        context.update(
+            {
+                "search_query": query,
+                "selected_course_id": selected_course_id,
+                "selected_exam_id": selected_exam_id,
+                "exam_type_choices": Exam.EXAM_TYPES,
+                "section_type_choices": ExamSection.SECTION_TYPES,
+                "courses": Course.objects.order_by("title"),
+                "all_exams": Exam.objects.select_related("course").order_by("course__title", "title"),
+                "exams": exams.order_by("course__title", "exam_type", "title")[:260],
+                "sections": sections.order_by("exam__course__title", "exam__title", "order", "id")[:320],
+                "exam_form": kwargs.get("exam_form") or BackofficeExamForm(),
+                "section_form": kwargs.get("section_form") or BackofficeExamSectionForm(),
+                "summary_exams": Exam.objects.count(),
+                "summary_sections": ExamSection.objects.count(),
+                "summary_attempts": ExamAttempt.objects.count(),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = (request.POST.get("action") or "").strip()
+
+        if action == "create_exam":
+            exam_form = BackofficeExamForm(request.POST)
+            if exam_form.is_valid():
+                exam = exam_form.save()
+                messages.success(request, f"Imtihon yaratildi: {exam.title}.")
+                return redirect("backoffice:learning_exam_authoring")
+            messages.error(request, "Imtihon formasida xatolik bor.")
+            return self.render_to_response(self.get_context_data(exam_form=exam_form))
+
+        if action == "update_exam":
+            exam = get_object_or_404(Exam, id=request.POST.get("exam_id"))
+            exam_form = BackofficeExamForm(request.POST, instance=exam)
+            if exam_form.is_valid():
+                exam_form.save()
+                messages.success(request, "Imtihon yangilandi.")
+            else:
+                messages.error(request, "Imtihonni yangilashda xatolik bor.")
+            return redirect("backoffice:learning_exam_authoring")
+
+        if action == "delete_exam":
+            exam = get_object_or_404(Exam, id=request.POST.get("exam_id"))
+            exam.delete()
+            messages.success(request, "Imtihon o'chirildi.")
+            return redirect("backoffice:learning_exam_authoring")
+
+        if action == "create_section":
+            section_form = BackofficeExamSectionForm(request.POST)
+            if section_form.is_valid():
+                section = section_form.save()
+                messages.success(request, f"Bo'lim yaratildi: {section.title}.")
+                return redirect("backoffice:learning_exam_authoring")
+            messages.error(request, "Bo'lim formasida xatolik bor.")
+            return self.render_to_response(self.get_context_data(section_form=section_form))
+
+        if action == "update_section":
+            section = get_object_or_404(ExamSection, id=request.POST.get("section_id"))
+            section_form = BackofficeExamSectionForm(request.POST, instance=section)
+            if section_form.is_valid():
+                section_form.save()
+                messages.success(request, "Bo'lim yangilandi.")
+            else:
+                messages.error(request, "Bo'limni yangilashda xatolik bor.")
+            return redirect("backoffice:learning_exam_authoring")
+
+        if action == "delete_section":
+            section = get_object_or_404(ExamSection, id=request.POST.get("section_id"))
+            section.delete()
+            messages.success(request, "Bo'lim o'chirildi.")
+            return redirect("backoffice:learning_exam_authoring")
+
+        messages.error(request, "Noma'lum action.")
+        return redirect("backoffice:learning_exam_authoring")
+
+
+class BackofficeLearningQuizAuthoringView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/learning_quiz_authoring.html"
+
+    def _safe_int(self, value):
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        query = (self.request.GET.get("q") or "").strip()
+        selected_context = (self.request.GET.get("context") or "all").strip().lower()
+        selected_quiz_id = self._safe_int(self.request.GET.get("quiz_id"))
+
+        quizzes = Quiz.objects.select_related("lesson", "lesson__module__course", "exam_section", "exam_section__exam")
+        questions = Question.objects.select_related(
+            "quiz",
+            "exam_section",
+            "exam_section__exam",
+        ).annotate(choice_count=Count("choices", distinct=True))
+        choices = Choice.objects.select_related("question", "question__quiz", "question__exam_section")
+
+        if query:
+            quizzes = quizzes.filter(
+                Q(title__icontains=query)
+                | Q(lesson__title__icontains=query)
+                | Q(exam_section__title__icontains=query)
+            )
+            questions = questions.filter(
+                Q(text__icontains=query)
+                | Q(quiz__title__icontains=query)
+                | Q(exam_section__title__icontains=query)
+            )
+            choices = choices.filter(
+                Q(text__icontains=query)
+                | Q(question__text__icontains=query)
+            )
+
+        if selected_context == "lesson":
+            quizzes = quizzes.filter(lesson__isnull=False)
+            questions = questions.filter(quiz__lesson__isnull=False)
+            choices = choices.filter(question__quiz__lesson__isnull=False)
+        elif selected_context == "exam":
+            quizzes = quizzes.filter(exam_section__isnull=False)
+            questions = questions.filter(Q(exam_section__isnull=False) | Q(quiz__exam_section__isnull=False))
+            choices = choices.filter(Q(question__exam_section__isnull=False) | Q(question__quiz__exam_section__isnull=False))
+        else:
+            selected_context = "all"
+
+        if selected_quiz_id:
+            questions = questions.filter(quiz_id=selected_quiz_id)
+            choices = choices.filter(question__quiz_id=selected_quiz_id)
+
+        context.update(
+            {
+                "search_query": query,
+                "selected_context": selected_context,
+                "selected_quiz_id": selected_quiz_id,
+                "quizzes": quizzes.order_by("-id")[:220],
+                "questions": questions.order_by("-id")[:260],
+                "choices": choices.order_by("-id")[:320],
+                "all_lessons": Lesson.objects.select_related("module__course").order_by("module__course__title", "module__order", "order")[:320],
+                "all_exam_sections": ExamSection.objects.select_related("exam", "exam__course").order_by("exam__course__title", "exam__title", "order")[:320],
+                "all_quizzes": Quiz.objects.order_by("-id")[:320],
+                "all_questions": Question.objects.order_by("-id")[:420],
+                "quiz_form": kwargs.get("quiz_form") or BackofficeQuizForm(),
+                "question_form": kwargs.get("question_form") or BackofficeQuestionForm(),
+                "choice_form": kwargs.get("choice_form") or BackofficeChoiceForm(),
+                "summary_quizzes": Quiz.objects.count(),
+                "summary_questions": Question.objects.count(),
+                "summary_choices": Choice.objects.count(),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = (request.POST.get("action") or "").strip()
+
+        if action == "create_quiz":
+            quiz_form = BackofficeQuizForm(request.POST)
+            if quiz_form.is_valid():
+                quiz_form.save()
+                messages.success(request, "Quiz yaratildi.")
+                return redirect("backoffice:learning_quiz_authoring")
+            messages.error(request, "Quiz formasida xatolik bor.")
+            return self.render_to_response(self.get_context_data(quiz_form=quiz_form))
+
+        if action == "update_quiz":
+            quiz = get_object_or_404(Quiz, id=request.POST.get("quiz_id"))
+            quiz_form = BackofficeQuizForm(request.POST, instance=quiz)
+            if quiz_form.is_valid():
+                quiz_form.save()
+                messages.success(request, "Quiz yangilandi.")
+            else:
+                messages.error(request, "Quizni yangilashda xatolik bor.")
+            return redirect("backoffice:learning_quiz_authoring")
+
+        if action == "delete_quiz":
+            quiz = get_object_or_404(Quiz, id=request.POST.get("quiz_id"))
+            quiz.delete()
+            messages.success(request, "Quiz o'chirildi.")
+            return redirect("backoffice:learning_quiz_authoring")
+
+        if action == "create_question":
+            question_form = BackofficeQuestionForm(request.POST)
+            if question_form.is_valid():
+                question_form.save()
+                messages.success(request, "Savol yaratildi.")
+                return redirect("backoffice:learning_quiz_authoring")
+            messages.error(request, "Savol formasida xatolik bor.")
+            return self.render_to_response(self.get_context_data(question_form=question_form))
+
+        if action == "update_question":
+            question = get_object_or_404(Question, id=request.POST.get("question_id"))
+            question_form = BackofficeQuestionForm(request.POST, instance=question)
+            if question_form.is_valid():
+                question_form.save()
+                messages.success(request, "Savol yangilandi.")
+            else:
+                messages.error(request, "Savolni yangilashda xatolik bor.")
+            return redirect("backoffice:learning_quiz_authoring")
+
+        if action == "delete_question":
+            question = get_object_or_404(Question, id=request.POST.get("question_id"))
+            question.delete()
+            messages.success(request, "Savol o'chirildi.")
+            return redirect("backoffice:learning_quiz_authoring")
+
+        if action == "create_choice":
+            choice_form = BackofficeChoiceForm(request.POST)
+            if choice_form.is_valid():
+                choice_form.save()
+                messages.success(request, "Variant yaratildi.")
+                return redirect("backoffice:learning_quiz_authoring")
+            messages.error(request, "Variant formasida xatolik bor.")
+            return self.render_to_response(self.get_context_data(choice_form=choice_form))
+
+        if action == "update_choice":
+            choice = get_object_or_404(Choice, id=request.POST.get("choice_id"))
+            choice_form = BackofficeChoiceForm(request.POST, instance=choice)
+            if choice_form.is_valid():
+                choice_form.save()
+                messages.success(request, "Variant yangilandi.")
+            else:
+                messages.error(request, "Variantni yangilashda xatolik bor.")
+            return redirect("backoffice:learning_quiz_authoring")
+
+        if action == "delete_choice":
+            choice = get_object_or_404(Choice, id=request.POST.get("choice_id"))
+            choice.delete()
+            messages.success(request, "Variant o'chirildi.")
+            return redirect("backoffice:learning_quiz_authoring")
+
+        messages.error(request, "Noma'lum action.")
+        return redirect("backoffice:learning_quiz_authoring")
+
+
+class BackofficeLearningCourseCertificatesView(BackofficeAccessMixin, TemplateView):
+    template_name = "backoffice/learning_course_certificates.html"
+
+    def _safe_int(self, value):
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+    def _queryset(self):
+        query = (self.request.GET.get("q") or "").strip()
+        selected_course_id = self._safe_int(self.request.GET.get("course_id"))
+        certificates = CourseCertificate.objects.select_related("student", "course")
+
+        if query:
+            certificates = certificates.filter(
+                Q(student__username__icontains=query)
+                | Q(student__email__icontains=query)
+                | Q(course__title__icontains=query)
+                | Q(certificate_id__icontains=query)
+            )
+        if selected_course_id:
+            certificates = certificates.filter(course_id=selected_course_id)
+
+        return certificates.order_by("-issued_at"), query, selected_course_id
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        certificates, query, selected_course_id = self._queryset()
+        context.update(
+            {
+                "certificates": certificates[:260],
+                "search_query": query,
+                "selected_course_id": selected_course_id,
+                "courses": Course.objects.order_by("title"),
+                "students": User.objects.filter(is_active=True).order_by("username")[:420],
+                "create_form": kwargs.get("create_form") or BackofficeCourseCertificateForm(),
+                "summary_total": CourseCertificate.objects.count(),
+                "summary_recent": CourseCertificate.objects.filter(
+                    issued_at__gte=timezone.now() - datetime.timedelta(days=30)
+                ).count(),
+            }
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        action = (request.POST.get("action") or "").strip()
+
+        if action == "create_certificate":
+            create_form = BackofficeCourseCertificateForm(request.POST)
+            if create_form.is_valid():
+                create_form.save()
+                messages.success(request, "Kurs sertifikati yaratildi.")
+                return redirect("backoffice:learning_course_certificates")
+            messages.error(request, "Sertifikat formasida xatolik bor.")
+            return self.render_to_response(self.get_context_data(create_form=create_form))
+
+        if action == "update_certificate":
+            certificate = get_object_or_404(CourseCertificate, id=request.POST.get("certificate_pk"))
+            update_form = BackofficeCourseCertificateForm(request.POST, instance=certificate)
+            if update_form.is_valid():
+                update_form.save()
+                messages.success(request, "Sertifikat yangilandi.")
+            else:
+                messages.error(request, "Sertifikatni yangilashda xatolik bor.")
+            return redirect("backoffice:learning_course_certificates")
+
+        if action == "delete_certificate":
+            certificate = get_object_or_404(CourseCertificate, id=request.POST.get("certificate_pk"))
+            certificate.delete()
+            messages.success(request, "Sertifikat o'chirildi.")
+            return redirect("backoffice:learning_course_certificates")
+
+        messages.error(request, "Noma'lum action.")
+        return redirect("backoffice:learning_course_certificates")
 
 
 class BackofficeCoursesCatalogView(BackofficeAccessMixin, TemplateView):

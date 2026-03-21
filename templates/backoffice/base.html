@@ -7,7 +7,7 @@
 {% block footer %}{% endblock %}
 
 {% block extra_css %}
-<link href="{% static 'css/backoffice.css' %}?v=3" rel="stylesheet">
+<link href="{% static 'css/backoffice.css' %}?v=5" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -31,130 +31,127 @@
                 <i class="bi bi-speedometer2"></i>
                 <span>Dashboard</span>
             </a>
-            <a class="bo-nav-link {% if request.resolver_match.url_name == 'students' %}is-active{% endif %}" href="{% url 'backoffice:students' %}">
-                <i class="bi bi-people"></i>
-                <span>Talabalar</span>
-            </a>
-            <a class="bo-nav-link {% if request.resolver_match.url_name == 'users' or request.resolver_match.url_name == 'user_detail' %}is-active{% endif %}" href="{% url 'backoffice:users' %}">
-                <i class="bi bi-person-gear"></i>
-                <span>Users</span>
-            </a>
-            <a class="bo-nav-link {% if request.resolver_match.url_name == 'cohorts' or request.resolver_match.url_name == 'cohort_detail' %}is-active{% endif %}" href="{% url 'backoffice:cohorts' %}">
-                <i class="bi bi-diagram-3"></i>
-                <span>Cohorts</span>
-            </a>
-            <a class="bo-nav-link {% if request.resolver_match.url_name == 'attendance' %}is-active{% endif %}" href="{% url 'backoffice:attendance' %}">
-                <i class="bi bi-clipboard2-check"></i>
-                <span>Davomat</span>
-            </a>
-            <a class="bo-nav-link {% if request.resolver_match.url_name == 'payments' %}is-active{% endif %}" href="{% url 'backoffice:payments' %}">
-                <i class="bi bi-wallet2"></i>
-                <span>To'lovlar</span>
-            </a>
-            <a class="bo-nav-link {% if request.resolver_match.url_name == 'subscriptions' or request.resolver_match.url_name == 'subscription_plan_detail' %}is-active{% endif %}" href="{% url 'backoffice:subscriptions' %}">
-                <i class="bi bi-gem"></i>
-                <span>Subscriptions</span>
-            </a>
-            <a class="bo-nav-link {% if request.resolver_match.url_name == 'notifications' %}is-active{% endif %}" href="{% url 'backoffice:notifications' %}">
-                <i class="bi bi-bell"></i>
-                <span>Notifications</span>
-            </a>
-            <a class="bo-nav-link {% if request.resolver_match.url_name == 'learning_assignments' %}is-active{% endif %}" href="{% url 'backoffice:learning_assignments' %}">
-                <i class="bi bi-journal-check"></i>
-                <span>Assignments</span>
-            </a>
-            <a class="bo-nav-link {% if request.resolver_match.url_name == 'learning_releases' %}is-active{% endif %}" href="{% url 'backoffice:learning_releases' %}">
-                <i class="bi bi-unlock"></i>
-                <span>Lesson Release</span>
-            </a>
-            <a class="bo-nav-link {% if request.resolver_match.url_name == 'learning_exams' %}is-active{% endif %}" href="{% url 'backoffice:learning_exams' %}">
-                <i class="bi bi-clipboard-data"></i>
-                <span>Exam Review</span>
-            </a>
-            <a class="bo-nav-link {% if request.resolver_match.url_name == 'courses_catalog' or request.resolver_match.url_name == 'course_structure' %}is-active{% endif %}" href="{% url 'backoffice:courses_catalog' %}">
-                <i class="bi bi-book"></i>
-                <span>Course Authoring</span>
-            </a>
-            <a class="bo-nav-link {% if request.resolver_match.url_name == 'content_settings' %}is-active{% endif %}" href="{% url 'backoffice:content_settings' %}">
-                <i class="bi bi-sliders"></i>
-                <span>Content Settings</span>
-            </a>
-            <a class="bo-nav-link {% if request.resolver_match.url_name == 'content_landing_page' %}is-active{% endif %}" href="{% url 'backoffice:content_landing_page' %}">
-                <i class="bi bi-house-gear"></i>
-                <span>Landing Page</span>
-            </a>
-            <a class="bo-nav-link {% if request.resolver_match.url_name == 'content_landing_blocks' or request.resolver_match.url_name == 'content_testimonial_detail' %}is-active{% endif %}" href="{% url 'backoffice:content_landing_blocks' %}">
-                <i class="bi bi-grid-3x3-gap"></i>
-                <span>Landing Blocks</span>
-            </a>
-            <a class="bo-nav-link {% if request.resolver_match.url_name == 'content_about_page' %}is-active{% endif %}" href="{% url 'backoffice:content_about_page' %}">
-                <i class="bi bi-person-lines-fill"></i>
-                <span>About Page</span>
-            </a>
-            <a class="bo-nav-link {% if request.resolver_match.url_name == 'content_about_blocks' or request.resolver_match.url_name == 'content_team_member_detail' %}is-active{% endif %}" href="{% url 'backoffice:content_about_blocks' %}">
-                <i class="bi bi-people-fill"></i>
-                <span>About Blocks</span>
-            </a>
-            <a class="bo-nav-link {% if request.resolver_match.url_name == 'content_landing_nav' %}is-active{% endif %}" href="{% url 'backoffice:content_landing_nav' %}">
-                <i class="bi bi-list-nested"></i>
-                <span>Landing Navbar</span>
-            </a>
-            <a class="bo-nav-link {% if request.resolver_match.url_name == 'content_blog_home' %}is-active{% endif %}" href="{% url 'backoffice:content_blog_home' %}">
-                <i class="bi bi-journals"></i>
-                <span>Blog Home</span>
-            </a>
-            <a class="bo-nav-link {% if request.resolver_match.url_name == 'content_blog_tags' %}is-active{% endif %}" href="{% url 'backoffice:content_blog_tags' %}">
-                <i class="bi bi-tags"></i>
-                <span>Blog Tags</span>
-            </a>
-            <a class="bo-nav-link {% if request.resolver_match.url_name == 'content_blog_signals' %}is-active{% endif %}" href="{% url 'backoffice:content_blog_signals' %}">
-                <i class="bi bi-activity"></i>
-                <span>Blog Signals</span>
-            </a>
-            <a class="bo-nav-link {% if request.resolver_match.url_name == 'legal_pages' or request.resolver_match.url_name == 'legal_page_detail' %}is-active{% endif %}" href="{% url 'backoffice:legal_pages' %}">
-                <i class="bi bi-file-earmark-text"></i>
-                <span>Legal Pages</span>
-            </a>
-            <a class="bo-nav-link {% if request.resolver_match.url_name == 'blog_posts' %}is-active{% endif %}" href="{% url 'backoffice:blog_posts' %}">
-                <i class="bi bi-journal-richtext"></i>
-                <span>Blog Posts</span>
-            </a>
-            <a class="bo-nav-link {% if request.resolver_match.url_name == 'blog_comments' %}is-active{% endif %}" href="{% url 'backoffice:blog_comments' %}">
-                <i class="bi bi-chat-left-text"></i>
-                <span>Blog Comments</span>
-            </a>
-            <a class="bo-nav-link {% if request.resolver_match.url_name == 'messenger_rooms' or request.resolver_match.url_name == 'messenger_room_detail' %}is-active{% endif %}" href="{% url 'backoffice:messenger_rooms' %}">
-                <i class="bi bi-chat-dots"></i>
-                <span>Messenger Rooms</span>
-            </a>
-            <a class="bo-nav-link {% if request.resolver_match.url_name == 'messenger_messages' %}is-active{% endif %}" href="{% url 'backoffice:messenger_messages' %}">
-                <i class="bi bi-chat-square-text"></i>
-                <span>Messenger Messages</span>
-            </a>
-            <a class="bo-nav-link {% if request.resolver_match.url_name == 'messenger_rag_chunks' %}is-active{% endif %}" href="{% url 'backoffice:messenger_rag_chunks' %}">
-                <i class="bi bi-diagram-2"></i>
-                <span>RAG Chunks</span>
-            </a>
-            <a class="bo-nav-link {% if request.resolver_match.url_name == 'gamification_levels' %}is-active{% endif %}" href="{% url 'backoffice:gamification_levels' %}">
-                <i class="bi bi-bar-chart-steps"></i>
-                <span>Gamification Levels</span>
-            </a>
-            <a class="bo-nav-link {% if request.resolver_match.url_name == 'gamification_badges' or request.resolver_match.url_name == 'gamification_badge_detail' %}is-active{% endif %}" href="{% url 'backoffice:gamification_badges' %}">
-                <i class="bi bi-award"></i>
-                <span>Gamification Badges</span>
-            </a>
-            <a class="bo-nav-link {% if request.resolver_match.url_name == 'gamification_earned_badges' %}is-active{% endif %}" href="{% url 'backoffice:gamification_earned_badges' %}">
-                <i class="bi bi-patch-check"></i>
-                <span>Earned Badges</span>
-            </a>
-            <a class="bo-nav-link {% if request.resolver_match.url_name == 'gamification_certificates' %}is-active{% endif %}" href="{% url 'backoffice:gamification_certificates' %}">
-                <i class="bi bi-file-earmark-check"></i>
-                <span>Game Certificates</span>
-            </a>
-            <a class="bo-nav-link" href="/admin/" target="_blank" rel="noopener">
-                <i class="bi bi-shield-lock"></i>
-                <span>Legacy Admin</span>
-            </a>
+
+            <details
+                class="bo-nav-group"
+                {% if request.resolver_match.url_name == 'students' or request.resolver_match.url_name == 'users' or request.resolver_match.url_name == 'user_detail' or request.resolver_match.url_name == 'cohorts' or request.resolver_match.url_name == 'cohort_detail' or request.resolver_match.url_name == 'attendance' or request.resolver_match.url_name == 'notifications' %}open{% endif %}
+            >
+                <summary class="bo-nav-group-summary">
+                    <span class="bo-nav-group-title"><i class="bi bi-people"></i>People Ops</span>
+                    <i class="bi bi-chevron-down bo-nav-group-chevron"></i>
+                </summary>
+                <div class="bo-nav-group-links">
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'students' %}is-active{% endif %}" href="{% url 'backoffice:students' %}"><span>Talabalar</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'users' or request.resolver_match.url_name == 'user_detail' %}is-active{% endif %}" href="{% url 'backoffice:users' %}"><span>Users</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'cohorts' or request.resolver_match.url_name == 'cohort_detail' %}is-active{% endif %}" href="{% url 'backoffice:cohorts' %}"><span>Cohorts</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'attendance' %}is-active{% endif %}" href="{% url 'backoffice:attendance' %}"><span>Davomat</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'notifications' %}is-active{% endif %}" href="{% url 'backoffice:notifications' %}"><span>Notifications</span></a>
+                </div>
+            </details>
+
+            <details
+                class="bo-nav-group"
+                {% if request.resolver_match.url_name == 'learning_assignments' or request.resolver_match.url_name == 'learning_releases' or request.resolver_match.url_name == 'learning_exams' or request.resolver_match.url_name == 'learning_exam_attempt_detail' or request.resolver_match.url_name == 'learning_exam_authoring' or request.resolver_match.url_name == 'learning_quiz_authoring' or request.resolver_match.url_name == 'learning_course_certificates' or request.resolver_match.url_name == 'courses_catalog' or request.resolver_match.url_name == 'course_structure' %}open{% endif %}
+            >
+                <summary class="bo-nav-group-summary">
+                    <span class="bo-nav-group-title"><i class="bi bi-mortarboard"></i>Learning</span>
+                    <i class="bi bi-chevron-down bo-nav-group-chevron"></i>
+                </summary>
+                <div class="bo-nav-group-links">
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'learning_assignments' %}is-active{% endif %}" href="{% url 'backoffice:learning_assignments' %}"><span>Assignments</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'learning_releases' %}is-active{% endif %}" href="{% url 'backoffice:learning_releases' %}"><span>Lesson Release</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'learning_exams' or request.resolver_match.url_name == 'learning_exam_attempt_detail' %}is-active{% endif %}" href="{% url 'backoffice:learning_exams' %}"><span>Exam Review</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'learning_exam_authoring' %}is-active{% endif %}" href="{% url 'backoffice:learning_exam_authoring' %}"><span>Exam Authoring</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'learning_quiz_authoring' %}is-active{% endif %}" href="{% url 'backoffice:learning_quiz_authoring' %}"><span>Quiz Authoring</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'learning_course_certificates' %}is-active{% endif %}" href="{% url 'backoffice:learning_course_certificates' %}"><span>Course Certificates</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'courses_catalog' or request.resolver_match.url_name == 'course_structure' %}is-active{% endif %}" href="{% url 'backoffice:courses_catalog' %}"><span>Course Authoring</span></a>
+                </div>
+            </details>
+
+            <details
+                class="bo-nav-group"
+                {% if request.resolver_match.url_name == 'payments' or request.resolver_match.url_name == 'subscriptions' or request.resolver_match.url_name == 'subscription_plan_detail' %}open{% endif %}
+            >
+                <summary class="bo-nav-group-summary">
+                    <span class="bo-nav-group-title"><i class="bi bi-wallet2"></i>Finance</span>
+                    <i class="bi bi-chevron-down bo-nav-group-chevron"></i>
+                </summary>
+                <div class="bo-nav-group-links">
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'payments' %}is-active{% endif %}" href="{% url 'backoffice:payments' %}"><span>To'lovlar</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'subscriptions' or request.resolver_match.url_name == 'subscription_plan_detail' %}is-active{% endif %}" href="{% url 'backoffice:subscriptions' %}"><span>Subscriptions</span></a>
+                </div>
+            </details>
+
+            <details
+                class="bo-nav-group"
+                {% if request.resolver_match.url_name == 'messenger_rooms' or request.resolver_match.url_name == 'messenger_room_detail' or request.resolver_match.url_name == 'messenger_messages' or request.resolver_match.url_name == 'messenger_rag_chunks' %}open{% endif %}
+            >
+                <summary class="bo-nav-group-summary">
+                    <span class="bo-nav-group-title"><i class="bi bi-chat-dots"></i>Messenger & AI</span>
+                    <i class="bi bi-chevron-down bo-nav-group-chevron"></i>
+                </summary>
+                <div class="bo-nav-group-links">
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'messenger_rooms' or request.resolver_match.url_name == 'messenger_room_detail' %}is-active{% endif %}" href="{% url 'backoffice:messenger_rooms' %}"><span>Messenger Rooms</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'messenger_messages' %}is-active{% endif %}" href="{% url 'backoffice:messenger_messages' %}"><span>Messenger Messages</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'messenger_rag_chunks' %}is-active{% endif %}" href="{% url 'backoffice:messenger_rag_chunks' %}"><span>RAG Chunks</span></a>
+                </div>
+            </details>
+
+            <details
+                class="bo-nav-group"
+                {% if request.resolver_match.url_name == 'gamification_levels' or request.resolver_match.url_name == 'gamification_badges' or request.resolver_match.url_name == 'gamification_badge_detail' or request.resolver_match.url_name == 'gamification_earned_badges' or request.resolver_match.url_name == 'gamification_certificates' %}open{% endif %}
+            >
+                <summary class="bo-nav-group-summary">
+                    <span class="bo-nav-group-title"><i class="bi bi-trophy"></i>Gamification</span>
+                    <i class="bi bi-chevron-down bo-nav-group-chevron"></i>
+                </summary>
+                <div class="bo-nav-group-links">
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'gamification_levels' %}is-active{% endif %}" href="{% url 'backoffice:gamification_levels' %}"><span>Gamification Levels</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'gamification_badges' or request.resolver_match.url_name == 'gamification_badge_detail' %}is-active{% endif %}" href="{% url 'backoffice:gamification_badges' %}"><span>Gamification Badges</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'gamification_earned_badges' %}is-active{% endif %}" href="{% url 'backoffice:gamification_earned_badges' %}"><span>Earned Badges</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'gamification_certificates' %}is-active{% endif %}" href="{% url 'backoffice:gamification_certificates' %}"><span>Game Certificates</span></a>
+                </div>
+            </details>
+
+            <details
+                class="bo-nav-group"
+                {% if request.resolver_match.url_name == 'content_settings' or request.resolver_match.url_name == 'content_landing_page' or request.resolver_match.url_name == 'content_landing_blocks' or request.resolver_match.url_name == 'content_testimonial_detail' or request.resolver_match.url_name == 'content_about_page' or request.resolver_match.url_name == 'content_about_blocks' or request.resolver_match.url_name == 'content_team_member_detail' or request.resolver_match.url_name == 'content_landing_nav' or request.resolver_match.url_name == 'content_blog_home' or request.resolver_match.url_name == 'content_blog_tags' or request.resolver_match.url_name == 'content_blog_signals' or request.resolver_match.url_name == 'legal_pages' or request.resolver_match.url_name == 'legal_page_detail' or request.resolver_match.url_name == 'blog_posts' or request.resolver_match.url_name == 'blog_comments' %}open{% endif %}
+            >
+                <summary class="bo-nav-group-summary">
+                    <span class="bo-nav-group-title"><i class="bi bi-layout-text-window-reverse"></i>Content</span>
+                    <i class="bi bi-chevron-down bo-nav-group-chevron"></i>
+                </summary>
+                <div class="bo-nav-group-links">
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'content_settings' %}is-active{% endif %}" href="{% url 'backoffice:content_settings' %}"><span>Content Settings</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'content_landing_page' %}is-active{% endif %}" href="{% url 'backoffice:content_landing_page' %}"><span>Landing Page</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'content_landing_blocks' or request.resolver_match.url_name == 'content_testimonial_detail' %}is-active{% endif %}" href="{% url 'backoffice:content_landing_blocks' %}"><span>Landing Blocks</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'content_about_page' %}is-active{% endif %}" href="{% url 'backoffice:content_about_page' %}"><span>About Page</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'content_about_blocks' or request.resolver_match.url_name == 'content_team_member_detail' %}is-active{% endif %}" href="{% url 'backoffice:content_about_blocks' %}"><span>About Blocks</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'content_landing_nav' %}is-active{% endif %}" href="{% url 'backoffice:content_landing_nav' %}"><span>Landing Navbar</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'content_blog_home' %}is-active{% endif %}" href="{% url 'backoffice:content_blog_home' %}"><span>Blog Home</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'content_blog_tags' %}is-active{% endif %}" href="{% url 'backoffice:content_blog_tags' %}"><span>Blog Tags</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'content_blog_signals' %}is-active{% endif %}" href="{% url 'backoffice:content_blog_signals' %}"><span>Blog Signals</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'legal_pages' or request.resolver_match.url_name == 'legal_page_detail' %}is-active{% endif %}" href="{% url 'backoffice:legal_pages' %}"><span>Legal Pages</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'blog_posts' %}is-active{% endif %}" href="{% url 'backoffice:blog_posts' %}"><span>Blog Posts</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'blog_comments' %}is-active{% endif %}" href="{% url 'backoffice:blog_comments' %}"><span>Blog Comments</span></a>
+                </div>
+            </details>
+
+            <details
+                class="bo-nav-group"
+                {% if request.resolver_match.url_name == 'generic_crud_index' or request.resolver_match.url_name == 'generic_crud_list' or request.resolver_match.url_name == 'generic_crud_detail' %}open{% endif %}
+            >
+                <summary class="bo-nav-group-summary">
+                    <span class="bo-nav-group-title"><i class="bi bi-sliders"></i>Platform Dev</span>
+                    <i class="bi bi-chevron-down bo-nav-group-chevron"></i>
+                </summary>
+                <div class="bo-nav-group-links">
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'generic_crud_index' or request.resolver_match.url_name == 'generic_crud_list' or request.resolver_match.url_name == 'generic_crud_detail' %}is-active{% endif %}" href="{% url 'backoffice:generic_crud_index' %}"><span>Generic CRUD</span></a>
+                    {% if ENABLE_LEGACY_ADMIN %}
+                    <a class="bo-nav-link bo-nav-sublink" href="/admin/" target="_blank" rel="noopener"><span>Legacy Admin</span></a>
+                    {% endif %}
+                </div>
+            </details>
         </nav>
 
         <div class="bo-sidebar-foot">
@@ -228,6 +225,12 @@ function closeBoSidebar() {
 if (boSidebarToggle) boSidebarToggle.addEventListener('click', openBoSidebar);
 if (boSidebarClose) boSidebarClose.addEventListener('click', closeBoSidebar);
 if (boSidebarOverlay) boSidebarOverlay.addEventListener('click', closeBoSidebar);
+
+document.querySelectorAll('.bo-nav-group').forEach(function(group) {
+    if (group.querySelector('.bo-nav-link.is-active')) {
+        group.setAttribute('open', '');
+    }
+});
 
 document.querySelectorAll('[data-select-all]').forEach(function(master) {
     const targetName = master.getAttribute('data-select-all');
