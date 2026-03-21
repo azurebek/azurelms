@@ -85,7 +85,7 @@
             <h2>Top Kurslar</h2>
             <span>Faol talabalar bo'yicha</span>
         </div>
-        <div class="bo-table-wrap">
+        <div class="bo-table-wrap bo-table-wrap--dashboard">
             <table class="table bo-table">
                 <thead>
                     <tr>
@@ -114,7 +114,7 @@
             <h2>Yaqin To'lovlar</h2>
             <span>So'nggi receiptlar</span>
         </div>
-        <div class="bo-table-wrap">
+        <div class="bo-table-wrap bo-table-wrap--dashboard">
             <table class="table bo-table">
                 <thead>
                     <tr>
@@ -165,75 +165,81 @@ const messages = JSON.parse(document.getElementById('bo-messages').textContent);
 const roomLabels = JSON.parse(document.getElementById('bo-room-labels').textContent);
 const roomValues = JSON.parse(document.getElementById('bo-room-values').textContent);
 
-const axisStyle = {
-    ticks: { color: '#5d6c84', font: { size: 11 } },
-    grid: { color: 'rgba(55, 73, 102, 0.08)' }
-};
+if (window.Chart) {
+    const axisStyle = {
+        ticks: { color: '#5d6c84', font: { size: 11 } },
+        grid: { color: 'rgba(55, 73, 102, 0.08)' }
+    };
 
-new Chart(document.getElementById('boEnrollmentChart'), {
-    type: 'line',
-    data: {
-        labels: labels,
-        datasets: [{
-            label: 'Enrollment',
-            data: enrollments,
-            borderColor: '#1463e6',
-            backgroundColor: 'rgba(20, 99, 230, 0.14)',
-            fill: true,
-            tension: 0.35,
-            pointRadius: 2,
-        }]
-    },
-    options: { responsive: true, maintainAspectRatio: false, scales: { x: axisStyle, y: axisStyle } }
-});
+    new Chart(document.getElementById('boEnrollmentChart'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Enrollment',
+                data: enrollments,
+                borderColor: '#1463e6',
+                backgroundColor: 'rgba(20, 99, 230, 0.14)',
+                fill: true,
+                tension: 0.35,
+                pointRadius: 2,
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { x: axisStyle, y: axisStyle } }
+    });
 
-new Chart(document.getElementById('boRevenueChart'), {
-    type: 'bar',
-    data: {
-        labels: labels,
-        datasets: [{
-            label: 'UZS',
-            data: revenues,
-            backgroundColor: 'rgba(17, 139, 106, 0.72)',
-            borderRadius: 8,
-        }]
-    },
-    options: { responsive: true, maintainAspectRatio: false, scales: { x: axisStyle, y: axisStyle } }
-});
+    new Chart(document.getElementById('boRevenueChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'UZS',
+                data: revenues,
+                backgroundColor: 'rgba(17, 139, 106, 0.72)',
+                borderRadius: 8,
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { x: axisStyle, y: axisStyle } }
+    });
 
-new Chart(document.getElementById('boMessageChart'), {
-    type: 'line',
-    data: {
-        labels: labels,
-        datasets: [{
-            label: 'Message',
-            data: messages,
-            borderColor: '#5a43d6',
-            backgroundColor: 'rgba(90, 67, 214, 0.12)',
-            tension: 0.35,
-            fill: true,
-            pointRadius: 2,
-        }]
-    },
-    options: { responsive: true, maintainAspectRatio: false, scales: { x: axisStyle, y: axisStyle } }
-});
+    new Chart(document.getElementById('boMessageChart'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Message',
+                data: messages,
+                borderColor: '#5a43d6',
+                backgroundColor: 'rgba(90, 67, 214, 0.12)',
+                tension: 0.35,
+                fill: true,
+                pointRadius: 2,
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, scales: { x: axisStyle, y: axisStyle } }
+    });
 
-new Chart(document.getElementById('boRoomMixChart'), {
-    type: 'doughnut',
-    data: {
-        labels: roomLabels,
-        datasets: [{
-            data: roomValues,
-            backgroundColor: ['#1463e6', '#24a977', '#f29d33'],
-            borderColor: '#ffffff',
-            borderWidth: 2,
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom' } }
-    }
-});
+    new Chart(document.getElementById('boRoomMixChart'), {
+        type: 'doughnut',
+        data: {
+            labels: roomLabels,
+            datasets: [{
+                data: roomValues,
+                backgroundColor: ['#1463e6', '#24a977', '#f29d33'],
+                borderColor: '#ffffff',
+                borderWidth: 2,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom' } }
+        }
+    });
+} else {
+    document.querySelectorAll('.bo-chart-wrap').forEach(function(wrap) {
+        wrap.innerHTML = '<div class="small text-muted">Chart yuklanmadi (CDN bloklangan bo‘lishi mumkin).</div>';
+    });
+}
 </script>
 {% endblock %}

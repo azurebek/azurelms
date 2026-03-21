@@ -289,6 +289,11 @@ body.backoffice-page {
   gap: 0.72rem;
 }
 
+.bo-grid--charts,
+.bo-grid--tables {
+  align-items: start;
+}
+
 .bo-surface {
   padding: 0.9rem;
   min-width: 0;
@@ -327,6 +332,11 @@ body.backoffice-page {
 
 .bo-table-wrap {
   overflow-x: auto;
+}
+
+.bo-table-wrap--dashboard {
+  max-height: 360px;
+  overflow: auto;
 }
 
 .bo-table {
