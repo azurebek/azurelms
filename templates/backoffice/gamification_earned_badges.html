@@ -24,6 +24,43 @@
 </section>
 
 <section class="bo-surface">
+    <div class="bo-surface-head">
+        <h2>Badge berish</h2>
+        <span>Manual assignment</span>
+    </div>
+    <form method="post" class="bo-form-grid bo-form-grid--triple">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="award_badges">
+        {% if award_form.non_field_errors %}
+        <div class="alert alert-danger">{{ award_form.non_field_errors }}</div>
+        {% endif %}
+        <div>
+            <label class="form-label" for="{{ award_form.badge.id_for_label }}">Badge</label>
+            {{ award_form.badge }}
+            {% if award_form.badge.errors %}<div class="bo-field-error">{{ award_form.badge.errors|join:", " }}</div>{% endif %}
+        </div>
+        <div>
+            <label class="form-label" for="{{ award_form.target_type.id_for_label }}">Qayerga beriladi</label>
+            {{ award_form.target_type }}
+            {% if award_form.target_type.errors %}<div class="bo-field-error">{{ award_form.target_type.errors|join:", " }}</div>{% endif %}
+        </div>
+        <div data-award-users>
+            <label class="form-label" for="{{ award_form.students.id_for_label }}">Foydalanuvchilar</label>
+            {{ award_form.students }}
+            {% if award_form.students.errors %}<div class="bo-field-error">{{ award_form.students.errors|join:", " }}</div>{% endif %}
+        </div>
+        <div data-award-cohort style="display:none;">
+            <label class="form-label" for="{{ award_form.cohort.id_for_label }}">Cohort</label>
+            {{ award_form.cohort }}
+            {% if award_form.cohort.errors %}<div class="bo-field-error">{{ award_form.cohort.errors|join:", " }}</div>{% endif %}
+        </div>
+        <div class="bo-form-actions bo-form-actions--end">
+            <button class="btn btn-primary rounded-pill px-4" type="submit">Badge berish</button>
+        </div>
+    </form>
+</section>
+
+<section class="bo-surface">
     <form method="post">
         {% csrf_token %}
         <div class="bo-action-bar bo-action-bar--wrap">
@@ -48,7 +85,18 @@
                     <tr>
                         <td><input type="checkbox" class="form-check-input" name="earned_badge_ids" value="{{ earned.id }}"></td>
                         <td>{{ earned.student.username }} <span class="text-muted small">{{ earned.student.email }}</span></td>
-                        <td>{{ earned.badge.name }}</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                {% if earned.badge.uses_google_icon %}
+                                <span class="{{ earned.badge.material_symbol_class }} bo-google-badge-icon">{{ earned.badge.google_icon_slug }}</span>
+                                {% elif earned.badge.icon %}
+                                <img src="{{ earned.badge.icon.url }}" alt="{{ earned.badge.name }}" class="bo-badge-thumb">
+                                {% else %}
+                                <i class="bi bi-award text-warning"></i>
+                                {% endif %}
+                                <span>{{ earned.badge.name }}</span>
+                            </div>
+                        </td>
                         <td>{{ earned.earned_at|date:"Y-m-d H:i" }}</td>
                     </tr>
                     {% empty %}
@@ -59,4 +107,27 @@
         </div>
     </form>
 </section>
+{% endblock %}
+
+{% block backoffice_js %}
+<script>
+function toggleAwardTargets() {
+    const targetInput = document.getElementById('id_award_target_type');
+    if (!targetInput) return;
+    const isCohort = targetInput.value === 'cohort';
+    document.querySelectorAll('[data-award-users]').forEach(function(el) {
+        el.style.display = isCohort ? 'none' : '';
+    });
+    document.querySelectorAll('[data-award-cohort]').forEach(function(el) {
+        el.style.display = isCohort ? '' : 'none';
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const targetInput = document.getElementById('id_award_target_type');
+    if (!targetInput) return;
+    toggleAwardTargets();
+    targetInput.addEventListener('change', toggleAwardTargets);
+});
+</script>
 {% endblock %}

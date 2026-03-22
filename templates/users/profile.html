@@ -114,7 +114,9 @@
                     {% for earned in earned_badges %}
                     <div class="col-6 col-md-4 col-lg-3">
                         <div class="p-3 rounded-3 border text-center h-100">
-                            {% if earned.badge.icon %}
+                            {% if earned.badge.uses_google_icon %}
+                            <span class="{{ earned.badge.material_symbol_class }} mb-2 d-inline-block" style="font-size: 42px; line-height: 1; color: #0d6efd;">{{ earned.badge.google_icon_slug }}</span>
+                            {% elif earned.badge.icon %}
                             <img src="{{ earned.badge.icon.url }}" alt="{{ earned.badge.name }}" class="mb-2 profile-badge-icon">
                             {% else %}
                             <i class="bi bi-patch-check-fill text-warning fs-3 d-block mb-2"></i>

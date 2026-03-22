@@ -485,12 +485,87 @@ class BackofficeLevelForm(forms.ModelForm):
 class BackofficeBadgeForm(forms.ModelForm):
     class Meta:
         model = Badge
-        fields = ("name", "description", "icon")
+        fields = ("name", "description", "icon_source", "google_icon_name", "google_icon_style", "icon")
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control"}),
             "description": forms.Textarea(attrs={"class": "form-control", "rows": 5}),
+            "icon_source": forms.Select(attrs={"class": "form-select"}),
+            "google_icon_name": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "workspace_premium"}
+            ),
+            "google_icon_style": forms.Select(attrs={"class": "form-select"}),
             "icon": forms.ClearableFileInput(attrs={"class": "form-control"}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["icon_source"].required = False
+        self.fields["google_icon_style"].required = False
+        self.fields["icon_source"].initial = getattr(
+            self.instance,
+            "icon_source",
+            Badge.ICON_SOURCE_UPLOAD,
+        ) or Badge.ICON_SOURCE_UPLOAD
+        self.fields["google_icon_style"].initial = getattr(
+            self.instance,
+            "google_icon_style",
+            Badge.GOOGLE_STYLE_OUTLINED,
+        ) or Badge.GOOGLE_STYLE_OUTLINED
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if not cleaned_data.get("icon_source"):
+            cleaned_data["icon_source"] = (
+                getattr(self.instance, "icon_source", Badge.ICON_SOURCE_UPLOAD)
+                or Badge.ICON_SOURCE_UPLOAD
+            )
+        if not cleaned_data.get("google_icon_style"):
+            cleaned_data["google_icon_style"] = (
+                getattr(self.instance, "google_icon_style", Badge.GOOGLE_STYLE_OUTLINED)
+                or Badge.GOOGLE_STYLE_OUTLINED
+            )
+        return cleaned_data
+
+
+class BackofficeAwardBadgeForm(forms.Form):
+    TARGET_USERS = "users"
+    TARGET_COHORT = "cohort"
+    TARGET_CHOICES = (
+        (TARGET_USERS, "Tanlangan foydalanuvchilarga"),
+        (TARGET_COHORT, "Tanlangan cohortdagi aktiv userlarga"),
+    )
+
+    badge = forms.ModelChoiceField(
+        queryset=Badge.objects.order_by("name"),
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+    target_type = forms.ChoiceField(
+        choices=TARGET_CHOICES,
+        initial=TARGET_USERS,
+        widget=forms.Select(attrs={"class": "form-select", "id": "id_award_target_type"}),
+    )
+    students = forms.ModelMultipleChoiceField(
+        queryset=CustomUser.objects.filter(is_active=True, is_staff=False, is_superuser=False).order_by("username"),
+        required=False,
+        widget=forms.SelectMultiple(attrs={"class": "form-select", "size": "7", "id": "id_award_students"}),
+    )
+    cohort = forms.ModelChoiceField(
+        queryset=Cohort.objects.filter(is_active=True).select_related("course").order_by("name"),
+        required=False,
+        widget=forms.Select(attrs={"class": "form-select", "id": "id_award_cohort"}),
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        target_type = cleaned_data.get("target_type")
+        students = cleaned_data.get("students")
+        cohort = cleaned_data.get("cohort")
+
+        if target_type == self.TARGET_USERS and not students:
+            self.add_error("students", "Kamida bitta foydalanuvchini tanlang.")
+        if target_type == self.TARGET_COHORT and not cohort:
+            self.add_error("cohort", "Cohort tanlang.")
+        return cleaned_data
 
 
 class BackofficeGamificationCertificateForm(forms.ModelForm):

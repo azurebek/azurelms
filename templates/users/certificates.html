@@ -69,7 +69,11 @@
     <div class="col-6 col-md-4 col-lg-3">
         <div class="card border-0 shadow-sm rounded-4 h-100 text-center p-4 cert-card border border-light">
             <div class="mb-3 d-flex justify-content-center">
-                {% if earned.badge.icon %}
+                {% if earned.badge.uses_google_icon %}
+                <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 80px; height: 80px;">
+                    <span class="{{ earned.badge.material_symbol_class }}" style="font-size: 46px; line-height: 1;">{{ earned.badge.google_icon_slug }}</span>
+                </div>
+                {% elif earned.badge.icon %}
                 <img src="{{ earned.badge.icon.url }}" alt="{{ earned.badge.name }}" class="img-fluid drop-shadow" style="height: 80px; width: 80px; object-fit: contain;">
                 {% else %}
                 <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center mx-auto" style="width: 80px; height: 80px;">

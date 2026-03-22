@@ -25,8 +25,30 @@
                 {{ form.description }}
             </div>
             <div>
+                <label class="form-label" for="{{ form.icon_source.id_for_label }}">Icon source</label>
+                {{ form.icon_source }}
+            </div>
+            <div data-badge-google-fields>
+                <label class="form-label" for="{{ form.google_icon_name.id_for_label }}">Google icon name</label>
+                {{ form.google_icon_name }}
+            </div>
+            <div data-badge-google-fields>
+                <label class="form-label" for="{{ form.google_icon_style.id_for_label }}">Google icon style</label>
+                {{ form.google_icon_style }}
+            </div>
+            <div data-badge-upload-fields>
                 <label class="form-label" for="{{ form.icon.id_for_label }}">Icon</label>
                 {{ form.icon }}
+            </div>
+            <div>
+                <span class="form-label d-block">Hozirgi ikonka</span>
+                {% if badge_obj.uses_google_icon %}
+                <span class="{{ badge_obj.material_symbol_class }} bo-google-badge-icon bo-google-badge-icon--large">{{ badge_obj.google_icon_slug }}</span>
+                {% elif badge_obj.icon %}
+                <img src="{{ badge_obj.icon.url }}" alt="{{ badge_obj.name }}" class="bo-badge-thumb bo-badge-thumb--large">
+                {% else %}
+                <span class="text-muted">Ikonka yo'q</span>
+                {% endif %}
             </div>
             <div class="bo-form-actions bo-form-actions--end">
                 <button class="btn btn-primary rounded-pill px-4" type="submit">Saqlash</button>
@@ -68,4 +90,31 @@
         </div>
     </article>
 </section>
+{% endblock %}
+
+{% block backoffice_js %}
+<script>
+function toggleBadgeIconInputs(scope) {
+    const sourceInput = scope.querySelector('#id_icon_source');
+    if (!sourceInput) return;
+    const showGoogle = sourceInput.value === 'google';
+    scope.querySelectorAll('[data-badge-google-fields]').forEach(function(el) {
+        el.style.display = showGoogle ? '' : 'none';
+    });
+    scope.querySelectorAll('[data-badge-upload-fields]').forEach(function(el) {
+        el.style.display = showGoogle ? 'none' : '';
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form[enctype="multipart/form-data"]');
+    if (!form) return;
+    const sourceInput = form.querySelector('#id_icon_source');
+    if (!sourceInput) return;
+    toggleBadgeIconInputs(form);
+    sourceInput.addEventListener('change', function() {
+        toggleBadgeIconInputs(form);
+    });
+});
+</script>
 {% endblock %}

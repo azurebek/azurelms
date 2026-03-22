@@ -67,6 +67,7 @@ from .forms import (
     BackofficeAboutStatisticForm,
     BackofficeCohortForm,
     BackofficeAuthPageSettingsForm,
+    BackofficeAwardBadgeForm,
     BackofficeBadgeForm,
     BackofficeBlogHomeSettingsForm,
     BackofficeBlogTagForm,
@@ -3704,12 +3705,56 @@ class BackofficeGamificationEarnedBadgesView(BackofficeAccessMixin, TemplateView
                 "selected_badge_id": badge_id,
                 "badges": Badge.objects.order_by("name"),
                 "summary_total": EarnedBadge.objects.count(),
+                "award_form": kwargs.get("award_form") or BackofficeAwardBadgeForm(),
             }
         )
         return context
 
     def post(self, request, *args, **kwargs):
         action = (request.POST.get("action") or "").strip()
+
+        if action == "award_badges":
+            award_form = BackofficeAwardBadgeForm(request.POST)
+            if not award_form.is_valid():
+                messages.error(request, "Badge berish formasida xatolik bor.")
+                return self.render_to_response(self.get_context_data(award_form=award_form))
+
+            badge = award_form.cleaned_data["badge"]
+            target_type = award_form.cleaned_data["target_type"]
+
+            if target_type == BackofficeAwardBadgeForm.TARGET_USERS:
+                recipients = list(award_form.cleaned_data["students"])
+            else:
+                cohort = award_form.cleaned_data["cohort"]
+                recipients = list(
+                    User.objects.filter(
+                        enrollments__cohort=cohort,
+                        enrollments__status="active",
+                        is_active=True,
+                        is_staff=False,
+                        is_superuser=False,
+                    ).distinct()
+                )
+
+            if not recipients:
+                messages.error(request, "Badge berish uchun foydalanuvchi topilmadi.")
+                return redirect(request.get_full_path())
+
+            created_count = 0
+            existing_count = 0
+            for student in recipients:
+                _, created = EarnedBadge.objects.get_or_create(student=student, badge=badge)
+                if created:
+                    created_count += 1
+                else:
+                    existing_count += 1
+
+            messages.success(
+                request,
+                f"Badge berildi: {created_count} ta yangi, {existing_count} ta oldindan mavjud.",
+            )
+            return redirect(request.get_full_path())
+
         ids = request.POST.getlist("earned_badge_ids")
         queryset = EarnedBadge.objects.filter(id__in=ids)
         if not queryset.exists():

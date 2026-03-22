@@ -25,6 +25,18 @@
                 {{ create_form.description }}
             </div>
             <div>
+                <label class="form-label" for="{{ create_form.icon_source.id_for_label }}">Icon source</label>
+                {{ create_form.icon_source }}
+            </div>
+            <div data-badge-google-fields>
+                <label class="form-label" for="{{ create_form.google_icon_name.id_for_label }}">Google icon name</label>
+                {{ create_form.google_icon_name }}
+            </div>
+            <div data-badge-google-fields>
+                <label class="form-label" for="{{ create_form.google_icon_style.id_for_label }}">Google icon style</label>
+                {{ create_form.google_icon_style }}
+            </div>
+            <div data-badge-upload-fields>
                 <label class="form-label" for="{{ create_form.icon.id_for_label }}">Icon</label>
                 {{ create_form.icon }}
             </div>
@@ -52,7 +64,16 @@
                     {% for badge in badges %}
                     <tr>
                         <td>
-                            <div class="fw-semibold">{{ badge.name }}</div>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                {% if badge.uses_google_icon %}
+                                <span class="{{ badge.material_symbol_class }} bo-google-badge-icon">{{ badge.google_icon_slug }}</span>
+                                {% elif badge.icon %}
+                                <img src="{{ badge.icon.url }}" alt="{{ badge.name }}" class="bo-badge-thumb">
+                                {% else %}
+                                <i class="bi bi-award text-warning"></i>
+                                {% endif %}
+                                <div class="fw-semibold">{{ badge.name }}</div>
+                            </div>
                             <div class="small text-muted">{{ badge.description|striptags|truncatechars:90 }}</div>
                         </td>
                         <td>{{ badge.earned_count|intcomma }}</td>
@@ -74,4 +95,31 @@
         </div>
     </article>
 </section>
+{% endblock %}
+
+{% block backoffice_js %}
+<script>
+function toggleBadgeIconInputs(scope) {
+    const sourceInput = scope.querySelector('#id_icon_source');
+    if (!sourceInput) return;
+    const showGoogle = sourceInput.value === 'google';
+    scope.querySelectorAll('[data-badge-google-fields]').forEach(function(el) {
+        el.style.display = showGoogle ? '' : 'none';
+    });
+    scope.querySelectorAll('[data-badge-upload-fields]').forEach(function(el) {
+        el.style.display = showGoogle ? 'none' : '';
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    if (!form) return;
+    const sourceInput = form.querySelector('#id_icon_source');
+    if (!sourceInput) return;
+    toggleBadgeIconInputs(form);
+    sourceInput.addEventListener('change', function() {
+        toggleBadgeIconInputs(form);
+    });
+});
+</script>
 {% endblock %}

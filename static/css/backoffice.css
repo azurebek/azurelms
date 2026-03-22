@@ -528,6 +528,29 @@ body.backoffice-page {
   display: none;
 }
 
+.bo-badge-thumb {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.bo-badge-thumb--large {
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+}
+
+.bo-google-badge-icon {
+  font-size: 1.4rem;
+  color: #1263e7;
+  line-height: 1;
+}
+
+.bo-google-badge-icon--large {
+  font-size: 3rem;
+}
+
 .bo-field-error {
   margin-top: 0.25rem;
   color: #b42318;
