@@ -97,7 +97,7 @@
                 <tbody>
                     {% for course in top_courses %}
                     <tr>
-                        <td>{{ course.title }}</td>
+                        <td><a class="text-decoration-none" href="{% url 'backoffice:course_structure' course.id %}">{{ course.title }}</a></td>
                         <td>{{ course.active_students|intcomma }}</td>
                         <td>{{ course.lessons_total|intcomma }}</td>
                     </tr>
@@ -127,8 +127,8 @@
                 <tbody>
                     {% for receipt in recent_payments %}
                     <tr>
-                        <td>{{ receipt.enrollment.student.username }}</td>
-                        <td>{{ receipt.enrollment.cohort.name }}</td>
+                        <td><a class="text-decoration-none" href="{% url 'backoffice:user_detail' receipt.enrollment.student.id %}">{{ receipt.enrollment.student.username }}</a></td>
+                        <td><a class="text-decoration-none" href="{% url 'backoffice:cohort_detail' receipt.enrollment.cohort.id %}">{{ receipt.enrollment.cohort.name }}</a></td>
                         <td>{{ receipt.amount|floatformat:0|intcomma }}</td>
                         <td>
                             {% if receipt.is_verified %}

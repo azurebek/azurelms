@@ -77,8 +77,8 @@
                         {% for cert in certificates %}
                         <tr>
                             <td><input type="checkbox" class="form-check-input" name="certificate_ids" value="{{ cert.id }}"></td>
-                            <td>{{ cert.student.username }}</td>
-                            <td>{{ cert.course.title|truncatechars:55 }}</td>
+                            <td><a class="text-decoration-none" href="{% url 'backoffice:user_detail' cert.student.id %}">{{ cert.student.username }}</a></td>
+                            <td><a class="text-decoration-none" href="{% url 'backoffice:course_structure' cert.course.id %}">{{ cert.course.title|truncatechars:55 }}</a></td>
                             <td>{{ cert.certificate_id }}</td>
                             <td>{{ cert.issued_at|date:"Y-m-d H:i" }}</td>
                             <td>

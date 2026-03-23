@@ -62,8 +62,8 @@
                     {% for row in releases %}
                     <tr>
                         <td><input type="checkbox" class="form-check-input" name="release_ids" value="{{ row.id }}"></td>
-                        <td>{{ row.cohort.name }}</td>
-                        <td>{{ row.lesson.module.course.title }}</td>
+                        <td><a class="text-decoration-none" href="{% url 'backoffice:cohort_detail' row.cohort.id %}">{{ row.cohort.name }}</a></td>
+                        <td><a class="text-decoration-none" href="{% url 'backoffice:course_structure' row.lesson.module.course.id %}">{{ row.lesson.module.course.title }}</a></td>
                         <td>{{ row.lesson.title }}</td>
                         <td>
                             {% if row.is_released %}

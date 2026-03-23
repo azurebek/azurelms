@@ -137,9 +137,9 @@
                     <td>{{ quiz.title }}</td>
                     <td>
                         {% if quiz.lesson %}
-                        <div class="small">Dars: {{ quiz.lesson.module.course.title }} / {{ quiz.lesson.title }}</div>
+                        <div class="small">Dars: <a class="text-decoration-none" href="{% url 'backoffice:course_structure' quiz.lesson.module.course.id %}">{{ quiz.lesson.module.course.title }}</a> / {{ quiz.lesson.title }}</div>
                         {% elif quiz.exam_section %}
-                        <div class="small">Imtihon: {{ quiz.exam_section.exam.course.title }} / {{ quiz.exam_section.title }}</div>
+                        <div class="small">Imtihon: <a class="text-decoration-none" href="{% url 'backoffice:course_structure' quiz.exam_section.exam.course.id %}">{{ quiz.exam_section.exam.course.title }}</a> / {{ quiz.exam_section.title }}</div>
                         {% else %}
                         -
                         {% endif %}

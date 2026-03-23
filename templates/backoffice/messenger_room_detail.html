@@ -42,7 +42,7 @@
         <div class="bo-inline-stats mt-3">
             <span>Ishtirokchilar: <strong>{{ participants|length|intcomma }}</strong></span>
             <span>Xonadagi xabarlar: <strong>{{ messages_list|length|intcomma }}</strong></span>
-            <span>Guruh: <strong>{{ room.cohort.name|default:"-" }}</strong></span>
+            <span>Guruh: <strong>{% if room.cohort %}<a class="text-decoration-none" href="{% url 'backoffice:cohort_detail' room.cohort.id %}">{{ room.cohort.name }}</a>{% else %}-{% endif %}</strong></span>
         </div>
     </article>
 

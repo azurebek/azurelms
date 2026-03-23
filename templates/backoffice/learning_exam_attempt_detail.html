@@ -8,8 +8,8 @@
 
 {% block backoffice_content %}
 <section class="bo-inline-stats">
-    <span>Talaba: <strong>{{ attempt_obj.student.get_full_name|default:attempt_obj.student.username }}</strong></span>
-    <span>Kurs: <strong>{{ attempt_obj.exam.course.title }}</strong></span>
+    <span>Talaba: <strong><a class="text-decoration-none" href="{% url 'backoffice:user_detail' attempt_obj.student.id %}">{{ attempt_obj.student.get_full_name|default:attempt_obj.student.username }}</a></strong></span>
+    <span>Kurs: <strong><a class="text-decoration-none" href="{% url 'backoffice:course_structure' attempt_obj.exam.course.id %}">{{ attempt_obj.exam.course.title }}</a></strong></span>
     <span>Imtihon: <strong>{{ attempt_obj.exam.title }}</strong></span>
     <span>Holat: <strong>{{ attempt_obj.review_status_label }}</strong></span>
     <span>Score: <strong>{{ attempt_obj.score|floatformat:2 }}%</strong></span>

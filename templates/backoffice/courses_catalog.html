@@ -145,7 +145,7 @@
                         <tr>
                             <td><input type="checkbox" class="form-check-input" name="course_ids" value="{{ course.id }}"></td>
                             <td>
-                                <div class="fw-semibold">{{ course.title }}</div>
+                                <div class="fw-semibold"><a class="text-decoration-none" href="{% url 'backoffice:course_structure' course.id %}">{{ course.title }}</a></div>
                                 <div class="small text-muted">{{ course.get_level_display }}</div>
                             </td>
                             <td>{{ course.instructor.username|default:"-" }}</td>

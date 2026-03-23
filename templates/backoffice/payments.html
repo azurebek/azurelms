@@ -82,9 +82,9 @@
                     <tr>
                         <td><input type="checkbox" class="form-check-input" name="receipt_ids" value="{{ receipt.id }}"></td>
                         <td>{{ receipt.submitted_at|date:"Y-m-d H:i" }}</td>
-                        <td>{{ receipt.enrollment.student.username }}</td>
-                        <td>{{ receipt.enrollment.cohort.name }}</td>
-                        <td>{{ receipt.enrollment.cohort.course.title }}</td>
+                        <td><a class="text-decoration-none" href="{% url 'backoffice:user_detail' receipt.enrollment.student.id %}">{{ receipt.enrollment.student.username }}</a></td>
+                        <td><a class="text-decoration-none" href="{% url 'backoffice:cohort_detail' receipt.enrollment.cohort.id %}">{{ receipt.enrollment.cohort.name }}</a></td>
+                        <td><a class="text-decoration-none" href="{% url 'backoffice:course_structure' receipt.enrollment.cohort.course.id %}">{{ receipt.enrollment.cohort.course.title }}</a></td>
                         <td>{{ receipt.enrollment.plan.name|default:"-" }}</td>
                         <td>
                             {% if receipt.period_start or receipt.period_end %}

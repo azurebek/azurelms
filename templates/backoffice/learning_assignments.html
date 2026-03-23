@@ -61,11 +61,11 @@
                         <td><input type="checkbox" class="form-check-input" name="submission_ids" value="{{ item.id }}"></td>
                         <td>{{ item.submitted_at|date:"Y-m-d H:i" }}</td>
                         <td>
-                            <div class="fw-semibold">{{ item.student.get_full_name|default:item.student.username }}</div>
-                            <div class="small text-muted">@{{ item.student.username }}</div>
+                            <div class="fw-semibold"><a class="text-decoration-none" href="{% url 'backoffice:user_detail' item.student.id %}">{{ item.student.get_full_name|default:item.student.username }}</a></div>
+                            <div class="small text-muted"><a class="text-decoration-none text-muted" href="{% url 'backoffice:user_detail' item.student.id %}">@{{ item.student.username }}</a></div>
                         </td>
                         <td>
-                            <div class="fw-semibold">{{ item.assignment.lesson.module.course.title }}</div>
+                            <div class="fw-semibold"><a class="text-decoration-none" href="{% url 'backoffice:course_structure' item.assignment.lesson.module.course.id %}">{{ item.assignment.lesson.module.course.title }}</a></div>
                             <div class="small text-muted">{{ item.assignment.title }}</div>
                         </td>
                         <td>{{ item.get_status_display }}</td>

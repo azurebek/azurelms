@@ -145,7 +145,7 @@
             <tbody>
                 {% for exam in exams %}
                 <tr>
-                    <td>{{ exam.course.title }}</td>
+                    <td><a class="text-decoration-none" href="{% url 'backoffice:course_structure' exam.course.id %}">{{ exam.course.title }}</a></td>
                     <td>{{ exam.title }}</td>
                     <td>{{ exam.get_exam_type_display }}</td>
                     <td>{{ exam.weight_percentage }}%</td>
@@ -216,7 +216,7 @@
                 {% for section in sections %}
                 <tr>
                     <td>
-                        <div class="fw-semibold">{{ section.exam.course.title }}</div>
+                        <div class="fw-semibold"><a class="text-decoration-none" href="{% url 'backoffice:course_structure' section.exam.course.id %}">{{ section.exam.course.title }}</a></div>
                         <div class="small text-muted">{{ section.exam.title }}</div>
                     </td>
                     <td>{{ section.title }}</td>

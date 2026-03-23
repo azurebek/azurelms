@@ -49,8 +49,8 @@
                 {% for user_item in users %}
                 <tr>
                     <td>
-                        <div class="fw-semibold">{{ user_item.get_full_name|default:user_item.username }}</div>
-                        <div class="small text-muted">@{{ user_item.username }}</div>
+                        <div class="fw-semibold"><a class="text-decoration-none" href="{% url 'backoffice:user_detail' user_item.id %}">{{ user_item.get_full_name|default:user_item.username }}</a></div>
+                        <div class="small text-muted"><a class="text-decoration-none text-muted" href="{% url 'backoffice:user_detail' user_item.id %}">@{{ user_item.username }}</a></div>
                     </td>
                     <td>{{ user_item.email }}</td>
                     <td>

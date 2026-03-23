@@ -55,7 +55,7 @@
                     {% for chunk in chunks %}
                     <tr>
                         <td><input type="checkbox" class="form-check-input" name="chunk_ids" value="{{ chunk.id }}"></td>
-                        <td>{{ chunk.course.title|truncatechars:38 }}</td>
+                        <td><a class="text-decoration-none" href="{% url 'backoffice:course_structure' chunk.course.id %}">{{ chunk.course.title|truncatechars:38 }}</a></td>
                         <td>{{ chunk.lesson.title|truncatechars:38 }}</td>
                         <td>{{ chunk.embedding_model }}</td>
                         <td>{{ chunk.chunk_index }}</td>

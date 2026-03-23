@@ -75,8 +75,8 @@
             <tbody>
                 {% for certificate in certificates %}
                 <tr>
-                    <td>{{ certificate.student.get_full_name|default:certificate.student.username }}</td>
-                    <td>{{ certificate.course.title }}</td>
+                    <td><a class="text-decoration-none" href="{% url 'backoffice:user_detail' certificate.student.id %}">{{ certificate.student.get_full_name|default:certificate.student.username }}</a></td>
+                    <td><a class="text-decoration-none" href="{% url 'backoffice:course_structure' certificate.course.id %}">{{ certificate.course.title }}</a></td>
                     <td>{{ certificate.certificate_id }}</td>
                     <td>{{ certificate.final_score }}%</td>
                     <td>{{ certificate.issued_at|date:"Y-m-d H:i" }}</td>

@@ -113,7 +113,7 @@
                                 <div class="small text-muted">{{ cohort.telegram_group_link|truncatechars:42 }}</div>
                                 {% endif %}
                             </td>
-                            <td>{{ cohort.course.title }}</td>
+                            <td><a class="text-decoration-none" href="{% url 'backoffice:course_structure' cohort.course.id %}">{{ cohort.course.title }}</a></td>
                             <td>{{ cohort.start_date|date:"Y-m-d" }}</td>
                             <td>{{ cohort.active_members|intcomma }}</td>
                             <td>{{ cohort.pending_members|intcomma }}</td>

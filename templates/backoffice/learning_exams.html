@@ -61,11 +61,11 @@
                     <tr>
                         <td><input type="checkbox" class="form-check-input" name="attempt_ids" value="{{ row.id }}"></td>
                         <td>
-                            <div class="fw-semibold">{{ row.student.get_full_name|default:row.student.username }}</div>
-                            <div class="small text-muted">@{{ row.student.username }}</div>
+                            <div class="fw-semibold"><a class="text-decoration-none" href="{% url 'backoffice:user_detail' row.student.id %}">{{ row.student.get_full_name|default:row.student.username }}</a></div>
+                            <div class="small text-muted"><a class="text-decoration-none text-muted" href="{% url 'backoffice:user_detail' row.student.id %}">@{{ row.student.username }}</a></div>
                         </td>
                         <td>
-                            <div class="fw-semibold">{{ row.exam.course.title }}</div>
+                            <div class="fw-semibold"><a class="text-decoration-none" href="{% url 'backoffice:course_structure' row.exam.course.id %}">{{ row.exam.course.title }}</a></div>
                             <div class="small text-muted">{{ row.exam.title }}</div>
                         </td>
                         <td>{{ row.review_status_label }}</td>
