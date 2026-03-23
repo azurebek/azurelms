@@ -1,15 +1,15 @@
-{% extends 'backoffice/base.html' %}
+﻿{% extends 'backoffice/base.html' %}
 {% load humanize %}
 
-{% block backoffice_title %}Course Certificates | Backoffice{% endblock %}
-{% block backoffice_kicker %}Learning Ops{% endblock %}
-{% block backoffice_heading %}Course Certificates{% endblock %}
-{% block backoffice_description %}Eski adminga teng ravishda kurs yakuniy sertifikatlarini boshqarish.{% endblock %}
+{% block backoffice_title %}Kurs sertifikatlari | Boshqaruv paneli{% endblock %}
+{% block backoffice_kicker %}Ta'lim boshqaruvi{% endblock %}
+{% block backoffice_heading %}Kurs sertifikatlari{% endblock %}
+{% block backoffice_description %}Eski admin bilan bir xil tarzda kurs yakuniy sertifikatlarini boshqarish.{% endblock %}
 
 {% block backoffice_content %}
 <section class="bo-filter-row">
     <form method="get" class="bo-search-form bo-search-form--triple">
-        <input type="text" name="q" class="form-control" value="{{ search_query }}" placeholder="Student, course, certificate ID...">
+        <input type="text" name="q" class="form-control" value="{{ search_query }}" placeholder="Talaba, kurs, sertifikat ID...">
         <select name="course_id" class="form-select">
             <option value="">Barcha kurslar</option>
             {% for course in courses %}
@@ -26,7 +26,7 @@
 
 <section class="bo-surface">
     <div class="bo-surface-head">
-        <h2>Yangi Sertifikat</h2>
+        <h2>Yangi sertifikat</h2>
     </div>
     <form method="post" class="bo-form-grid bo-form-grid--triple">
         {% csrf_token %}
@@ -35,7 +35,7 @@
         <div class="alert alert-danger">{{ create_form.non_field_errors }}</div>
         {% endif %}
         <div>
-            <label class="form-label" for="{{ create_form.student.id_for_label }}">Student</label>
+            <label class="form-label" for="{{ create_form.student.id_for_label }}">Talaba</label>
             {{ create_form.student }}
         </div>
         <div>
@@ -43,11 +43,11 @@
             {{ create_form.course }}
         </div>
         <div>
-            <label class="form-label" for="{{ create_form.certificate_id.id_for_label }}">Certificate ID</label>
+            <label class="form-label" for="{{ create_form.certificate_id.id_for_label }}">Sertifikat ID</label>
             {{ create_form.certificate_id }}
         </div>
         <div>
-            <label class="form-label" for="{{ create_form.final_score.id_for_label }}">Final score</label>
+            <label class="form-label" for="{{ create_form.final_score.id_for_label }}">Yakuniy ball</label>
             {{ create_form.final_score }}
         </div>
         <div class="bo-form-actions bo-form-actions--end">
@@ -64,11 +64,11 @@
         <table class="table bo-table">
             <thead>
                 <tr>
-                    <th>Student</th>
+                    <th>Talaba</th>
                     <th>Kurs</th>
-                    <th>Certificate ID</th>
+                    <th>Sertifikat ID</th>
                     <th>Ball</th>
-                    <th>Issued</th>
+                    <th>Berilgan sana</th>
                     <th></th>
                 </tr>
             </thead>
@@ -82,7 +82,7 @@
                     <td>{{ certificate.issued_at|date:"Y-m-d H:i" }}</td>
                     <td class="text-end">
                         <details class="bo-inline-details">
-                            <summary class="btn btn-sm btn-outline-secondary rounded-pill">Edit</summary>
+                            <summary class="btn btn-sm btn-outline-secondary rounded-pill">Tahrirlash</summary>
                             <div class="mt-2 d-grid gap-2">
                                 <form method="post" class="bo-form-grid">
                                     {% csrf_token %}
@@ -120,3 +120,8 @@
     </div>
 </section>
 {% endblock %}
+
+
+
+
+

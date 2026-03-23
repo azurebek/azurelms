@@ -1,9 +1,9 @@
-{% extends 'backoffice/base.html' %}
+﻿{% extends 'backoffice/base.html' %}
 {% load humanize %}
 
-{% block backoffice_title %}Gamification Badges | Backoffice{% endblock %}
+{% block backoffice_title %}Nishonlar | Boshqaruv paneli{% endblock %}
 {% block backoffice_kicker %}Gamification{% endblock %}
-{% block backoffice_heading %}Badge Boshqaruvi{% endblock %}
+{% block backoffice_heading %}Nishonlar boshqaruvi{% endblock %}
 {% block backoffice_description %}Yutuq badge yaratish, tahrirlash va monitoring qilish.{% endblock %}
 
 {% block backoffice_content %}
@@ -11,13 +11,13 @@
     <article class="bo-surface">
         <div class="bo-surface-head">
             <h2>Yangi badge</h2>
-            <span>Create</span>
+            <span>Yaratish</span>
         </div>
         <form method="post" enctype="multipart/form-data" class="bo-form-grid">
             {% csrf_token %}
             <input type="hidden" name="action" value="create_badge">
             <div>
-                <label class="form-label" for="{{ create_form.name.id_for_label }}">Name</label>
+                <label class="form-label" for="{{ create_form.name.id_for_label }}">Nomi</label>
                 {{ create_form.name }}
             </div>
             <div>
@@ -123,3 +123,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 {% endblock %}
+
+
+

@@ -1,10 +1,10 @@
-{% load static %}
+﻿{% load static %}
 <!DOCTYPE html>
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Backoffice Login | AzureLMS</title>
+    <title>Boshqaruv paneliga kirish | AzureLMS</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -18,12 +18,12 @@
             <div class="bo-auth-brand">
                 <span>AL</span>
                 <div>
-                    <small>BACKOFFICE</small>
+                    <small>BOSHQARUV</small>
                     <strong>AzureLMS</strong>
                 </div>
             </div>
-            <h1>Operations panelga xavfsiz kirish</h1>
-            <p>Staff va adminlar uchun maxsus boshqaruv oynasi. Platforma, kontent, AI va monetizatsiya oqimlari shu yerda boshqariladi.</p>
+            <h1>Boshqaruv paneliga xavfsiz kirish</h1>
+            <p>Xodim va adminlar uchun maxsus boshqaruv oynasi. Platforma, kontent, AI va monetizatsiya oqimlari shu yerda boshqariladi.</p>
             <a href="{% url 'home' %}" class="bo-auth-link">
                 <i class="bi bi-arrow-left"></i>
                 Saytga qaytish
@@ -32,9 +32,9 @@
 
         <section class="bo-auth-card">
             <div class="bo-auth-head">
-                <span class="bo-auth-kicker">Secure Access</span>
-                <h2>Backoffice Login</h2>
-                <p>Username/email va parolni kiriting.</p>
+                <span class="bo-auth-kicker">Xavfsiz kirish</span>
+                <h2>Boshqaruv paneliga kirish</h2>
+                <p>Foydalanuvchi nomi yoki email va parolni kiriting.</p>
             </div>
 
             {% if form.non_field_errors %}
@@ -57,14 +57,14 @@
                 <input type="hidden" name="next" value="{{ next_target }}">
                 {% endif %}
                 <div>
-                    <label for="id_username" class="form-label">Username yoki email</label>
+                    <label for="id_username" class="form-label">Foydalanuvchi nomi yoki email</label>
                     <input
                         type="text"
                         id="id_username"
                         name="username"
                         value="{{ form.username.value|default:'' }}"
                         class="form-control"
-                        placeholder="staff username"
+                        placeholder="staff foydalanuvchi nomi"
                         required
                     >
                     {% if form.username.errors %}<div class="bo-auth-error">{{ form.username.errors.0 }}</div>{% endif %}
@@ -85,9 +85,12 @@
             </form>
 
             <div class="bo-auth-foot">
-                <a href="{% url 'login' %}">Oddiy user login sahifasi</a>
+                <a href="{% url 'login' %}">Oddiy foydalanuvchi kirish sahifasi</a>
             </div>
         </section>
     </main>
 </body>
 </html>
+
+
+

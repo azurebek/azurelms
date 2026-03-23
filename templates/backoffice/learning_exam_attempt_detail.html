@@ -1,14 +1,14 @@
-{% extends 'backoffice/base.html' %}
+﻿{% extends 'backoffice/base.html' %}
 {% load humanize %}
 
-{% block backoffice_title %}Exam Attempt Detail | Backoffice{% endblock %}
-{% block backoffice_kicker %}Learning Ops{% endblock %}
-{% block backoffice_heading %}Exam Attempt Detail{% endblock %}
-{% block backoffice_description %}Attemptni bo'lim va javob darajasida tekshirish, baholash va tasdiqlash.{% endblock %}
+{% block backoffice_title %}Imtihon urinish tafsiloti | Boshqaruv paneli{% endblock %}
+{% block backoffice_kicker %}Ta'lim boshqaruvi{% endblock %}
+{% block backoffice_heading %}Imtihon urinish tafsiloti{% endblock %}
+{% block backoffice_description %}Urinishni bo'lim va javob darajasida tekshirish, baholash va tasdiqlash.{% endblock %}
 
 {% block backoffice_content %}
 <section class="bo-inline-stats">
-    <span>Student: <strong>{{ attempt_obj.student.get_full_name|default:attempt_obj.student.username }}</strong></span>
+    <span>Talaba: <strong>{{ attempt_obj.student.get_full_name|default:attempt_obj.student.username }}</strong></span>
     <span>Kurs: <strong>{{ attempt_obj.exam.course.title }}</strong></span>
     <span>Imtihon: <strong>{{ attempt_obj.exam.title }}</strong></span>
     <span>Holat: <strong>{{ attempt_obj.review_status_label }}</strong></span>
@@ -17,7 +17,7 @@
 </section>
 
 <section class="bo-action-bar bo-action-bar--wrap">
-    <a href="{% url 'backoffice:learning_exams' %}" class="btn btn-outline-primary rounded-pill px-4">Exam Reviewga qaytish</a>
+    <a href="{% url 'backoffice:learning_exams' %}" class="btn btn-outline-primary rounded-pill px-4">Imtihon tekshiruviga qaytish</a>
     <form method="post" class="d-inline">
         {% csrf_token %}
         <input type="hidden" name="action" value="prepare_reviews">
@@ -37,7 +37,7 @@
 
 <section class="bo-surface">
     <div class="bo-surface-head">
-        <h2>Section Review</h2>
+        <h2>Bo'lim tekshiruvi</h2>
         <span>{{ section_reviews|length }} ta bo'lim</span>
     </div>
     <form method="post">
@@ -77,20 +77,20 @@
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="4">Section review yozuvlari topilmadi.</td></tr>
+                    <tr><td colspan="4">Bo'lim tekshiruvi yozuvlari topilmadi.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
         <div class="bo-form-actions bo-form-actions--end">
-            <button class="btn btn-primary rounded-pill px-4" type="submit">Section reviewlarni saqlash</button>
+            <button class="btn btn-primary rounded-pill px-4" type="submit">Bo'lim tekshiruvlarini saqlash</button>
         </div>
     </form>
 </section>
 
 <section class="bo-surface">
     <div class="bo-surface-head">
-        <h2>Student Answers</h2>
+        <h2>Talaba javoblari</h2>
         <span>{{ answers|length }} ta javob</span>
     </div>
     <form method="post">
@@ -102,9 +102,9 @@
                     <tr>
                         <th>Savol</th>
                         <th>Javob</th>
-                        <th>Tanlangan variant</th>
+                        <th>Tanlangan javob</th>
                         <th>Ball</th>
-                        <th>Graded</th>
+                        <th>Baholangan</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -165,8 +165,12 @@
             </table>
         </div>
         <div class="bo-form-actions bo-form-actions--end">
-            <button class="btn btn-primary rounded-pill px-4" type="submit">Answer baholarini saqlash</button>
+            <button class="btn btn-primary rounded-pill px-4" type="submit">Javob baholarini saqlash</button>
         </div>
     </form>
 </section>
 {% endblock %}
+
+
+
+

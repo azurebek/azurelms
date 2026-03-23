@@ -1,18 +1,18 @@
-{% extends 'backoffice/base.html' %}
+﻿{% extends 'backoffice/base.html' %}
 {% load humanize %}
 
-{% block backoffice_title %}Davomat | Backoffice{% endblock %}
-{% block backoffice_kicker %}Attendance{% endblock %}
-{% block backoffice_heading %}Davomat Marking{% endblock %}
-{% block backoffice_description %}Cohort, dars va vaqt oralig'i bo'yicha davomatni boshqaring, ko'rsatkichlarni kuzating va CSV eksport qiling.{% endblock %}
+{% block backoffice_title %}Davomat | Boshqaruv paneli{% endblock %}
+{% block backoffice_kicker %}Davomat{% endblock %}
+{% block backoffice_heading %}Davomatni belgilash{% endblock %}
+{% block backoffice_description %}Guruh, dars va vaqt oralig'i bo'yicha davomatni boshqaring, ko'rsatkichlarni kuzating va CSV eksport qiling.{% endblock %}
 
 {% block backoffice_content %}
 <section class="bo-surface">
     <form method="get" class="bo-form-grid bo-form-grid--attendance">
         <div>
-            <label class="form-label">Cohort</label>
+            <label class="form-label">Guruh</label>
             <select name="cohort_id" class="form-select" onchange="this.form.submit()">
-                <option value="">Cohort tanlang</option>
+                <option value="">Guruh tanlang</option>
                 {% for cohort in cohorts %}
                 <option value="{{ cohort.id }}" {% if selected_cohort and selected_cohort.id == cohort.id %}selected{% endif %}>
                     {{ cohort.name }} - {{ cohort.course.title }}
@@ -32,15 +32,15 @@
             </select>
         </div>
         <div>
-            <label class="form-label">Marking sana</label>
+            <label class="form-label">Belgilash sanasi</label>
             <input type="date" name="date" class="form-control" value="{{ selected_date|date:'Y-m-d' }}">
         </div>
         <div>
-            <label class="form-label">Analytics from</label>
+            <label class="form-label">Tahlil boshlanishi</label>
             <input type="date" name="date_from" class="form-control" value="{{ range_start|date:'Y-m-d' }}">
         </div>
         <div>
-            <label class="form-label">Analytics to</label>
+            <label class="form-label">Tahlil tugashi</label>
             <input type="date" name="date_to" class="form-control" value="{{ range_end|date:'Y-m-d' }}">
         </div>
         <div class="bo-form-actions">
@@ -49,7 +49,7 @@
             <a
                 class="btn btn-outline-primary rounded-pill px-4 w-100 mt-2"
                 href="?cohort_id={{ selected_cohort.id }}{% if selected_lesson %}&lesson_id={{ selected_lesson.id }}{% endif %}&date={{ selected_date|date:'Y-m-d' }}&date_from={{ range_start|date:'Y-m-d' }}&date_to={{ range_end|date:'Y-m-d' }}&export=csv"
-            >CSV export</a>
+            >CSV eksport</a>
             {% endif %}
         </div>
     </form>
@@ -58,15 +58,15 @@
 {% if selected_cohort %}
 <section class="bo-surface">
     <div class="bo-surface-head">
-        <h2>Attendance Analytics</h2>
+        <h2>Davomat tahlili</h2>
         <span>{{ range_start|date:"Y-m-d" }} -> {{ range_end|date:"Y-m-d" }}</span>
     </div>
     <div class="bo-inline-stats bo-inline-stats--stack">
         <span>Yozuvlar: <strong>{{ summary_total_records|intcomma }}</strong></span>
-        <span>Present: <strong>{{ summary_present|intcomma }}</strong></span>
-        <span>Partial: <strong>{{ summary_partial|intcomma }}</strong></span>
-        <span>Absent: <strong>{{ summary_absent|intcomma }}</strong></span>
-        <span>Presence rate: <strong>{{ summary_presence_rate }}%</strong></span>
+        <span>Kelgan: <strong>{{ summary_present|intcomma }}</strong></span>
+        <span>Qisman: <strong>{{ summary_partial|intcomma }}</strong></span>
+        <span>Kelmagan: <strong>{{ summary_absent|intcomma }}</strong></span>
+        <span>Davomat foizi: <strong>{{ summary_presence_rate }}%</strong></span>
         <span>Jami XP: <strong>{{ summary_xp|intcomma }}</strong> | O'rtacha XP: <strong>{{ summary_avg_xp }}</strong></span>
     </div>
 </section>
@@ -81,9 +81,9 @@
             <thead>
                 <tr>
                     <th>Sana</th>
-                    <th>Present</th>
-                    <th>Partial</th>
-                    <th>Absent</th>
+                    <th>Kelgan</th>
+                    <th>Qisman</th>
+                    <th>Kelmagan</th>
                     <th>Jami</th>
                     <th>XP</th>
                 </tr>
@@ -99,7 +99,7 @@
                     <td>{{ row.xp_total|default:0|intcomma }}</td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="6">Tanlangan oralig'da attendance ma'lumoti yo'q.</td></tr>
+                <tr><td colspan="6">Tanlangan oralig'da davomat ma'lumoti yo'q.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -120,8 +120,8 @@
                 <thead>
                     <tr>
                         <th>Talaba</th>
-                        <th>Username</th>
-                        <th>Status</th>
+                        <th>Foydalanuvchi nomi</th>
+                        <th>Holat</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -154,3 +154,8 @@
 </section>
 {% endif %}
 {% endblock %}
+
+
+
+
+

@@ -1,10 +1,10 @@
-{% extends 'backoffice/base.html' %}
+﻿{% extends 'backoffice/base.html' %}
 {% load humanize %}
 
-{% block backoffice_title %}Lesson Releases | Backoffice{% endblock %}
-{% block backoffice_kicker %}Learning Ops{% endblock %}
-{% block backoffice_heading %}Lesson Release Control{% endblock %}
-{% block backoffice_description %}Cohort bo'yicha darslarni ochish va qulflash holatini boshqarish.{% endblock %}
+{% block backoffice_title %}Dars ochishlar | Boshqaruv paneli{% endblock %}
+{% block backoffice_kicker %}Ta'lim boshqaruvi{% endblock %}
+{% block backoffice_heading %}Dars ochishni boshqarish{% endblock %}
+{% block backoffice_description %}Guruh bo'yicha darslarni ochish va qulflash holatini boshqarish.{% endblock %}
 
 {% block backoffice_content %}
 <section class="bo-filter-row">
@@ -16,22 +16,22 @@
             {% endfor %}
         </select>
         <select name="cohort_id" class="form-select">
-            <option value="">Barcha cohortlar</option>
+            <option value="">Barcha guruhlar</option>
             {% for cohort in cohorts %}
             <option value="{{ cohort.id }}" {% if selected_cohort_id == cohort.id %}selected{% endif %}>{{ cohort.name }}</option>
             {% endfor %}
         </select>
         <select name="state" class="form-select">
             <option value="all" {% if selected_state == 'all' %}selected{% endif %}>Barcha holatlar</option>
-            <option value="released" {% if selected_state == 'released' %}selected{% endif %}>Released</option>
-            <option value="locked" {% if selected_state == 'locked' %}selected{% endif %}>Locked</option>
+            <option value="released" {% if selected_state == 'released' %}selected{% endif %}>Ochilgan</option>
+            <option value="locked" {% if selected_state == 'locked' %}selected{% endif %}>Qulflangan</option>
         </select>
         <button class="btn btn-primary rounded-pill px-4" type="submit">Filtrlash</button>
     </form>
     <div class="bo-inline-stats">
         <span>Jami: <strong>{{ summary_total|intcomma }}</strong></span>
-        <span>Released: <strong>{{ summary_released|intcomma }}</strong></span>
-        <span>Locked: <strong>{{ summary_locked|intcomma }}</strong></span>
+        <span>Ochilgan: <strong>{{ summary_released|intcomma }}</strong></span>
+        <span>Qulflangan: <strong>{{ summary_locked|intcomma }}</strong></span>
     </div>
 </section>
 
@@ -40,7 +40,7 @@
         {% csrf_token %}
         <div class="bo-action-bar">
             <select name="action" class="form-select bo-action-select">
-                <option value="">Action tanlang</option>
+                <option value="">Amalni tanlang</option>
                 <option value="mark_released">Tanlanganlarni ochish</option>
                 <option value="mark_locked">Tanlanganlarni qulflash</option>
             </select>
@@ -51,11 +51,11 @@
                 <thead>
                     <tr>
                         <th><input type="checkbox" class="form-check-input" data-select-all="release_ids"></th>
-                        <th>Cohort</th>
+                        <th>Guruh</th>
                         <th>Kurs</th>
-                        <th>Lesson</th>
+                        <th>Dars</th>
                         <th>Holat</th>
-                        <th>Updated by</th>
+                        <th>Yangilagan</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -67,15 +67,15 @@
                         <td>{{ row.lesson.title }}</td>
                         <td>
                             {% if row.is_released %}
-                            <span class="bo-pill bo-pill--success">Released</span>
+                            <span class="bo-pill bo-pill--success">Ochilgan</span>
                             {% else %}
-                            <span class="bo-pill bo-pill--warning">Locked</span>
+                            <span class="bo-pill bo-pill--warning">Qulflangan</span>
                             {% endif %}
                         </td>
                         <td>{% if row.released_by %}{{ row.released_by.username }}{% else %}-{% endif %}</td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="6">Lesson release yozuvlari topilmadi.</td></tr>
+                    <tr><td colspan="6">Dars ochish yozuvlari topilmadi.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -83,3 +83,8 @@
     </form>
 </section>
 {% endblock %}
+
+
+
+
+

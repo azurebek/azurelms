@@ -1,9 +1,9 @@
-{% extends 'backoffice/base.html' %}
+﻿{% extends 'backoffice/base.html' %}
 {% load humanize %}
 
-{% block backoffice_title %}RAG Chunks | Backoffice{% endblock %}
+{% block backoffice_title %}RAG bo'laklar | Boshqaruv paneli{% endblock %}
 {% block backoffice_kicker %}Messenger{% endblock %}
-{% block backoffice_heading %}RAG Chunklar{% endblock %}
+{% block backoffice_heading %}RAG bo'laklar{% endblock %}
 {% block backoffice_description %}Darslardan indekslangan chunklar, embedding modeli va sinxronizatsiya holatini nazorat qilish.{% endblock %}
 
 {% block backoffice_content %}
@@ -42,13 +42,13 @@
                     <tr>
                         <th><input type="checkbox" class="form-check-input" data-select-all="chunk_ids"></th>
                         <th>Course</th>
-                        <th>Lesson</th>
+                        <th>Dars</th>
                         <th>Model</th>
                         <th>Chunk index</th>
                         <th>Dim</th>
                         <th>Tokens</th>
-                        <th>Updated</th>
-                        <th>Text</th>
+                        <th>Yangilangan</th>
+                        <th>Matn</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -73,3 +73,7 @@
     </form>
 </section>
 {% endblock %}
+
+
+
+

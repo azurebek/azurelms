@@ -1,9 +1,9 @@
-{% extends 'backoffice/base.html' %}
+﻿{% extends 'backoffice/base.html' %}
 {% load humanize %}
 
-{% block backoffice_title %}Backoffice Dashboard{% endblock %}
-{% block backoffice_kicker %}Live Metrics{% endblock %}
-{% block backoffice_heading %}Operations Dashboard{% endblock %}
+{% block backoffice_title %}Boshqaruv paneli | Bosh panel{% endblock %}
+{% block backoffice_kicker %}Jonli ko'rsatkichlar{% endblock %}
+{% block backoffice_heading %}Operatsion bosh panel{% endblock %}
 {% block backoffice_description %}Talabalar, to'lovlar, AI va o'quv oqimi bo'yicha real vaqtga yaqin ko'rinish.{% endblock %}
 
 {% block backoffice_content %}
@@ -14,9 +14,9 @@
         <small>Faol / Jami: {{ kpi.active_students|intcomma }} / {{ kpi.total_students|intcomma }}</small>
     </article>
     <article class="bo-kpi-card">
-        <span>Kurs + Cohort</span>
+        <span>Kurs + Guruh</span>
         <strong>{{ kpi.active_courses|intcomma }} / {{ kpi.active_cohorts|intcomma }}</strong>
-        <small>Faol kurslar va faol cohortlar</small>
+        <small>Faol kurslar va faol guruhlar</small>
     </article>
     <article class="bo-kpi-card">
         <span>30 kunlik tushum</span>
@@ -43,17 +43,17 @@
 <section class="bo-grid bo-grid--charts">
     <article class="bo-surface">
         <div class="bo-surface-head">
-            <h2>Enrollment Trend</h2>
+            <h2>Yozilishlar trendi</h2>
             <span>Oxirgi 14 kun</span>
         </div>
         <div class="bo-chart-wrap">
-            <canvas id="boEnrollmentChart"></canvas>
+            <canvas id="boYozilishChart"></canvas>
         </div>
     </article>
     <article class="bo-surface">
         <div class="bo-surface-head">
-            <h2>Revenue Trend</h2>
-            <span>Verified paymentlar</span>
+            <h2>Tushum trendi</h2>
+            <span>Tasdiqlangan to'lovlar</span>
         </div>
         <div class="bo-chart-wrap">
             <canvas id="boRevenueChart"></canvas>
@@ -61,8 +61,8 @@
     </article>
     <article class="bo-surface">
         <div class="bo-surface-head">
-            <h2>Chat Volume</h2>
-            <span>Message oqimi</span>
+            <h2>Chat hajmi</h2>
+            <span>Xabar oqimi</span>
         </div>
         <div class="bo-chart-wrap">
             <canvas id="boMessageChart"></canvas>
@@ -70,7 +70,7 @@
     </article>
     <article class="bo-surface">
         <div class="bo-surface-head">
-            <h2>Room Mix</h2>
+            <h2>Xonalar tarkibi</h2>
             <span>Chat xonalari tarkibi</span>
         </div>
         <div class="bo-chart-wrap">
@@ -112,16 +112,16 @@
     <article class="bo-surface">
         <div class="bo-surface-head">
             <h2>Yaqin To'lovlar</h2>
-            <span>So'nggi receiptlar</span>
+            <span>So'nggi to'lovlar</span>
         </div>
         <div class="bo-table-wrap bo-table-wrap--dashboard">
             <table class="table bo-table">
                 <thead>
                     <tr>
                         <th>Talaba</th>
-                        <th>Cohort</th>
+                        <th>Guruh</th>
                         <th>Summa</th>
-                        <th>Status</th>
+                        <th>Holat</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -132,9 +132,9 @@
                         <td>{{ receipt.amount|floatformat:0|intcomma }}</td>
                         <td>
                             {% if receipt.is_verified %}
-                            <span class="bo-pill bo-pill--success">Verified</span>
+                            <span class="bo-pill bo-pill--success">Tasdiqlangan</span>
                             {% else %}
-                            <span class="bo-pill bo-pill--warning">Pending</span>
+                            <span class="bo-pill bo-pill--warning">Kutilmoqda</span>
                             {% endif %}
                         </td>
                     </tr>
@@ -171,12 +171,12 @@ if (window.Chart) {
         grid: { color: 'rgba(55, 73, 102, 0.08)' }
     };
 
-    new Chart(document.getElementById('boEnrollmentChart'), {
+    new Chart(document.getElementById('boYozilishChart'), {
         type: 'line',
         data: {
             labels: labels,
             datasets: [{
-                label: 'Enrollment',
+                label: 'Yozilishlar',
                 data: enrollments,
                 borderColor: '#1463e6',
                 backgroundColor: 'rgba(20, 99, 230, 0.14)',
@@ -207,7 +207,7 @@ if (window.Chart) {
         data: {
             labels: labels,
             datasets: [{
-                label: 'Message',
+                label: 'Xabarlar',
                 data: messages,
                 borderColor: '#5a43d6',
                 backgroundColor: 'rgba(90, 67, 214, 0.12)',
@@ -238,8 +238,13 @@ if (window.Chart) {
     });
 } else {
     document.querySelectorAll('.bo-chart-wrap').forEach(function(wrap) {
-        wrap.innerHTML = '<div class="small text-muted">Chart yuklanmadi (CDN bloklangan bo‘lishi mumkin).</div>';
+        wrap.innerHTML = '<div class="small text-muted">Grafik yuklanmadi (CDN bloklangan bo'lishi mumkin).</div>';
     });
 }
 </script>
 {% endblock %}
+
+
+
+
+

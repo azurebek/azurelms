@@ -1,19 +1,19 @@
-{% extends 'backoffice/base.html' %}
+﻿{% extends 'backoffice/base.html' %}
 {% load humanize %}
 
-{% block backoffice_title %}To'lovlar | Backoffice{% endblock %}
-{% block backoffice_kicker %}Finance{% endblock %}
-{% block backoffice_heading %}To'lovlar Monitoring{% endblock %}
-{% block backoffice_description %}Receipt qidirish, filterlash, tasdiqlash va bulk operator actionlar.{% endblock %}
+{% block backoffice_title %}To'lovlar | Boshqaruv paneli{% endblock %}
+{% block backoffice_kicker %}Moliya{% endblock %}
+{% block backoffice_heading %}To'lovlar monitoringi{% endblock %}
+{% block backoffice_description %}To'lov cheklari bo'yicha qidirish, filtrlash, tasdiqlash va ommaviy amallar.{% endblock %}
 
 {% block backoffice_content %}
 <section class="bo-filter-row">
     <form method="get" class="bo-search-form bo-search-form--quad">
-        <input type="text" name="q" value="{{ search_query }}" class="form-control" placeholder="Talaba, cohort, kurs...">
+        <input type="text" name="q" value="{{ search_query }}" class="form-control" placeholder="Talaba, guruh, kurs...">
         <select name="status" class="form-select">
             <option value="all" {% if selected_status == 'all' %}selected{% endif %}>Barchasi</option>
-            <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>Pending</option>
-            <option value="verified" {% if selected_status == 'verified' %}selected{% endif %}>Verified</option>
+            <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>Kutilmoqda</option>
+            <option value="verified" {% if selected_status == 'verified' %}selected{% endif %}>Tasdiqlangan</option>
         </select>
         <select name="course_id" class="form-select">
             <option value="">Barcha kurslar</option>
@@ -24,7 +24,7 @@
         <button class="btn btn-primary rounded-pill px-4" type="submit">Filtrlash</button>
 
         <select name="cohort_id" class="form-select">
-            <option value="">Barcha cohortlar</option>
+            <option value="">Barcha guruhlar</option>
             {% for cohort in cohorts %}
             <option value="{{ cohort.id }}" {% if selected_cohort_id == cohort.id %}selected{% endif %}>{{ cohort.name }}</option>
             {% endfor %}
@@ -42,10 +42,10 @@
 
 <section class="bo-surface">
     <div class="bo-inline-stats bo-inline-stats--stack">
-        <span>Global verified: <strong>{{ summary_verified_amount|floatformat:0|intcomma }} UZS</strong></span>
-        <span>Filtered receipts: <strong>{{ filtered_count|intcomma }}</strong></span>
-        <span>Filtered total: <strong>{{ filtered_total_amount|floatformat:0|intcomma }} UZS</strong></span>
-        <span>Filtered verified: <strong>{{ filtered_verified_amount|floatformat:0|intcomma }} UZS</strong></span>
+        <span>Umumiy tasdiqlangan: <strong>{{ summary_verified_amount|floatformat:0|intcomma }} UZS</strong></span>
+        <span>Filtrlangan cheklar: <strong>{{ filtered_count|intcomma }}</strong></span>
+        <span>Filtrlangan jami: <strong>{{ filtered_total_amount|floatformat:0|intcomma }} UZS</strong></span>
+        <span>Filtrlangan tasdiqlangan: <strong>{{ filtered_verified_amount|floatformat:0|intcomma }} UZS</strong></span>
     </div>
 </section>
 
@@ -54,9 +54,9 @@
         {% csrf_token %}
         <div class="bo-action-bar bo-action-bar--wrap">
             <select name="action" class="form-select bo-action-select">
-                <option value="">Action tanlang</option>
-                <option value="mark_verified_selected">Verified qilish</option>
-                <option value="mark_pending_selected">Pendingga qaytarish</option>
+                <option value="">Amalni tanlang</option>
+                <option value="mark_verified_selected">Tasdiqlash</option>
+                <option value="mark_pending_selected">Kutilmoqda holatiga qaytarish</option>
                 <option value="delete_selected">O'chirish</option>
             </select>
             <button class="btn btn-primary rounded-pill px-4" type="submit">Qo'llash</button>
@@ -68,12 +68,12 @@
                         <th><input type="checkbox" class="form-check-input" data-select-all="receipt_ids"></th>
                         <th>Sana</th>
                         <th>Talaba</th>
-                        <th>Cohort</th>
+                        <th>Guruh</th>
                         <th>Kurs</th>
                         <th>Tarif</th>
-                        <th>Period</th>
+                        <th>Davr</th>
                         <th>Summa</th>
-                        <th>Status</th>
+                        <th>Holat</th>
                         <th>Chek</th>
                     </tr>
                 </thead>
@@ -96,9 +96,9 @@
                         <td>{{ receipt.amount|floatformat:0|intcomma }}</td>
                         <td>
                             {% if receipt.is_verified %}
-                            <span class="bo-pill bo-pill--success">Verified</span>
+                            <span class="bo-pill bo-pill--success">Tasdiqlangan</span>
                             {% else %}
-                            <span class="bo-pill bo-pill--warning">Pending</span>
+                            <span class="bo-pill bo-pill--warning">Kutilmoqda</span>
                             {% endif %}
                         </td>
                         <td>
@@ -120,3 +120,7 @@
     </form>
 </section>
 {% endblock %}
+
+
+
+

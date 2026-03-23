@@ -1,18 +1,18 @@
-{% extends 'backoffice/base.html' %}
+﻿{% extends 'backoffice/base.html' %}
 
-{% block backoffice_title %}Landing Navbar | Backoffice{% endblock %}
+{% block backoffice_title %}Landing menyusi | Boshqaruv paneli{% endblock %}
 {% block backoffice_kicker %}CMS{% endblock %}
-{% block backoffice_heading %}Landing Navbar{% endblock %}
-{% block backoffice_description %}Navbar label, visibility va tartibni boshqarish.{% endblock %}
+{% block backoffice_heading %}Landing menyusi{% endblock %}
+{% block backoffice_description %}Menyu yorlig'i, ko'rinish va tartibni boshqarish.{% endblock %}
 
 {% block backoffice_content %}
 <section class="bo-surface">
     <div class="bo-surface-head">
-        <h2>Navbar tartibi</h2>
+        <h2>Menyu tartibi</h2>
         <form method="post">
             {% csrf_token %}
             <input type="hidden" name="action" value="normalize_order">
-            <button class="btn btn-sm btn-outline-primary rounded-pill" type="submit">Orderni tekislash</button>
+            <button class="btn btn-sm btn-outline-primary rounded-pill" type="submit">Tartibni tekislash</button>
         </form>
     </div>
     <div class="bo-form-grid">
@@ -23,15 +23,15 @@
             <input type="hidden" name="nav_item_id" value="{{ nav_item.id }}">
             <div class="bo-form-grid bo-form-grid--triple">
                 <div>
-                    <label class="form-label">Key</label>
+                    <label class="form-label">Kalit</label>
                     <input type="text" class="form-control" value="{{ nav_item.get_key_display }}" disabled>
                 </div>
                 <div>
-                    <label class="form-label">Label</label>
+                    <label class="form-label">Yorliq</label>
                     <input type="text" name="label" value="{{ nav_item.label }}" class="form-control">
                 </div>
                 <div>
-                    <label class="form-label">Order</label>
+                    <label class="form-label">Tartib</label>
                     <input type="number" min="0" name="order" value="{{ nav_item.order }}" class="form-control">
                 </div>
             </div>
@@ -45,8 +45,12 @@
             </div>
         </form>
         {% empty %}
-        <div class="small text-muted">Navbar elementlari topilmadi.</div>
+        <div class="small text-muted">Menyu elementlari topilmadi.</div>
         {% endfor %}
     </div>
 </section>
 {% endblock %}
+
+
+
+

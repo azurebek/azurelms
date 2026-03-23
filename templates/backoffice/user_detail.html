@@ -1,8 +1,8 @@
-{% extends 'backoffice/base.html' %}
+﻿{% extends 'backoffice/base.html' %}
 {% load humanize %}
 
-{% block backoffice_title %}User Detail | Backoffice{% endblock %}
-{% block backoffice_kicker %}Identity{% endblock %}
+{% block backoffice_title %}Foydalanuvchi tafsiloti | Boshqaruv paneli{% endblock %}
+{% block backoffice_kicker %}Identifikatsiya{% endblock %}
 {% block backoffice_heading %}{{ target_user.get_full_name|default:target_user.username }}{% endblock %}
 {% block backoffice_description %}@{{ target_user.username }} akkaunti bo'yicha ma'lumot va tahrir.{% endblock %}
 
@@ -22,7 +22,7 @@
             {% endif %}
 
             <div>
-                <label class="form-label" for="{{ profile_form.username.id_for_label }}">Username</label>
+                <label class="form-label" for="{{ profile_form.username.id_for_label }}">Foydalanuvchi nomi</label>
                 {{ profile_form.username }}
                 {% if profile_form.username.errors %}<div class="bo-field-error">{{ profile_form.username.errors|join:", " }}</div>{% endif %}
             </div>
@@ -48,15 +48,15 @@
                 {{ profile_form.telegram_id }}
             </div>
             <div>
-                <label class="form-label" for="{{ profile_form.telegram_username.id_for_label }}">Telegram username</label>
+                <label class="form-label" for="{{ profile_form.telegram_username.id_for_label }}">Telegram foydalanuvchi nomi</label>
                 {{ profile_form.telegram_username }}
             </div>
             <div>
-                <label class="form-label" for="{{ profile_form.total_xp.id_for_label }}">Total XP</label>
+                <label class="form-label" for="{{ profile_form.total_xp.id_for_label }}">Jami XP</label>
                 {{ profile_form.total_xp }}
             </div>
             <div>
-                <label class="form-label" for="{{ profile_form.bio.id_for_label }}">Bio</label>
+                <label class="form-label" for="{{ profile_form.bio.id_for_label }}">Biografiya</label>
                 {{ profile_form.bio }}
             </div>
             <div>
@@ -70,7 +70,7 @@
                 </label>
                 <label class="form-check">
                     {{ profile_form.is_staff }}
-                    <span class="form-check-label">Staff</span>
+                    <span class="form-check-label">Xodim</span>
                 </label>
             </div>
 
@@ -82,7 +82,7 @@
 
     <article class="bo-surface">
         <div class="bo-surface-head">
-            <h2>Access va Permission</h2>
+            <h2>Kirish va ruxsatlar</h2>
         </div>
         <form method="post" class="bo-form-grid">
             {% csrf_token %}
@@ -98,33 +98,33 @@
                 </label>
                 <label class="form-check">
                     {{ access_form.is_staff }}
-                    <span class="form-check-label">Staff</span>
+                    <span class="form-check-label">Xodim</span>
                 </label>
                 <label class="form-check">
                     {{ access_form.is_superuser }}
-                    <span class="form-check-label">Superuser</span>
+                    <span class="form-check-label">Superadmin</span>
                 </label>
             </div>
 
             <div>
-                <label class="form-label" for="{{ access_form.groups.id_for_label }}">Groups</label>
+                <label class="form-label" for="{{ access_form.groups.id_for_label }}">Guruhlar</label>
                 {{ access_form.groups }}
                 {% if access_form.groups.errors %}<div class="bo-field-error">{{ access_form.groups.errors|join:", " }}</div>{% endif %}
             </div>
             <div>
-                <label class="form-label" for="{{ access_form.user_permissions.id_for_label }}">User permissions</label>
+                <label class="form-label" for="{{ access_form.user_permissions.id_for_label }}">Foydalanuvchi ruxsatlari</label>
                 {{ access_form.user_permissions }}
                 {% if access_form.user_permissions.errors %}<div class="bo-field-error">{{ access_form.user_permissions.errors|join:", " }}</div>{% endif %}
             </div>
             <div class="bo-form-actions bo-form-actions--end">
-                <button class="btn btn-primary rounded-pill px-4" type="submit">Accessni saqlash</button>
+                <button class="btn btn-primary rounded-pill px-4" type="submit">Ruxsatlarni saqlash</button>
             </div>
         </form>
     </article>
 
     <article class="bo-surface">
         <div class="bo-surface-head">
-            <h2>So'nggi enrollmentlar</h2>
+            <h2>So'nggi yozilishlar</h2>
             <a href="{% url 'backoffice:users' %}" class="btn btn-sm btn-outline-primary rounded-pill">Ro'yxatga qaytish</a>
         </div>
         <div class="bo-table-wrap">
@@ -132,9 +132,9 @@
                 <thead>
                     <tr>
                         <th>Kurs</th>
-                        <th>Cohort</th>
+                        <th>Guruh</th>
                         <th>Tarif</th>
-                        <th>Status</th>
+                        <th>Holat</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -146,7 +146,7 @@
                         <td>{{ enrollment.get_status_display }}</td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="4">Enrollment topilmadi.</td></tr>
+                    <tr><td colspan="4">Yozilish topilmadi.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -164,7 +164,7 @@
             <thead>
                 <tr>
                     <th>Sana</th>
-                    <th>Category</th>
+                    <th>Kategoriya</th>
                     <th>Sarlavha</th>
                     <th>Matn</th>
                     <th>Holat</th>
@@ -179,9 +179,9 @@
                     <td>{{ item.message|truncatechars:90 }}</td>
                     <td>
                         {% if item.is_read %}
-                        <span class="bo-pill bo-pill--success">Read</span>
+                        <span class="bo-pill bo-pill--success">O'qilgan</span>
                         {% else %}
-                        <span class="bo-pill bo-pill--warning">Unread</span>
+                        <span class="bo-pill bo-pill--warning">O'qilmagan</span>
                         {% endif %}
                     </td>
                 </tr>
@@ -193,3 +193,8 @@
     </div>
 </section>
 {% endblock %}
+
+
+
+
+

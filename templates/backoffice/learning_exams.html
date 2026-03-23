@@ -1,15 +1,15 @@
-{% extends 'backoffice/base.html' %}
+﻿{% extends 'backoffice/base.html' %}
 {% load humanize %}
 
-{% block backoffice_title %}Exam Review | Backoffice{% endblock %}
-{% block backoffice_kicker %}Learning Ops{% endblock %}
-{% block backoffice_heading %}Exam Review Console{% endblock %}
-{% block backoffice_description %}Imtihon urinishlarini tekshirish, section score tayyorlash va yakuniy tasdiqlash.{% endblock %}
+{% block backoffice_title %}Imtihon tekshiruvi | Boshqaruv paneli{% endblock %}
+{% block backoffice_kicker %}Ta'lim boshqaruvi{% endblock %}
+{% block backoffice_heading %}Imtihon tekshiruv konsoli{% endblock %}
+{% block backoffice_description %}Imtihon urinishlarini tekshirish, bo'lim ballarini tayyorlash va yakuniy tasdiqlash.{% endblock %}
 
 {% block backoffice_content %}
 <section class="bo-filter-row">
     <form method="get" class="bo-search-form bo-search-form--quad">
-        <input type="text" name="q" class="form-control" value="{{ search_query }}" placeholder="Student, exam, course...">
+        <input type="text" name="q" class="form-control" value="{{ search_query }}" placeholder="Talaba, imtihon, kurs...">
         <select name="course_id" class="form-select">
             <option value="">Barcha kurslar</option>
             {% for course in courses %}
@@ -18,16 +18,16 @@
         </select>
         <select name="review_state" class="form-select">
             <option value="all" {% if selected_review_state == 'all' %}selected{% endif %}>Barcha holatlar</option>
-            <option value="pending" {% if selected_review_state == 'pending' %}selected{% endif %}>Pending review</option>
-            <option value="approved" {% if selected_review_state == 'approved' %}selected{% endif %}>Approved</option>
-            <option value="in_progress" {% if selected_review_state == 'in_progress' %}selected{% endif %}>In progress</option>
+            <option value="pending" {% if selected_review_state == 'pending' %}selected{% endif %}>Kutilayotgan tekshiruv</option>
+            <option value="approved" {% if selected_review_state == 'approved' %}selected{% endif %}>Tasdiqlangan</option>
+            <option value="in_progress" {% if selected_review_state == 'in_progress' %}selected{% endif %}>Jarayonda</option>
         </select>
         <button class="btn btn-primary rounded-pill px-4" type="submit">Filtrlash</button>
     </form>
     <div class="bo-inline-stats">
         <span>Jami: <strong>{{ summary_total|intcomma }}</strong></span>
-        <span>Pending review: <strong>{{ summary_pending_review|intcomma }}</strong></span>
-        <span>Approved: <strong>{{ summary_approved|intcomma }}</strong></span>
+        <span>Kutilayotgan tekshiruv: <strong>{{ summary_pending_review|intcomma }}</strong></span>
+        <span>Tasdiqlangan: <strong>{{ summary_approved|intcomma }}</strong></span>
     </div>
 </section>
 
@@ -36,7 +36,7 @@
         {% csrf_token %}
         <div class="bo-action-bar bo-action-bar--wrap">
             <select name="action" class="form-select bo-action-select">
-                <option value="">Action tanlang</option>
+                <option value="">Amalni tanlang</option>
                 <option value="prepare_reviews">Bo'lim ballarini tayyorlash</option>
                 <option value="approve_selected_attempts">Tanlanganlarni tasdiqlash</option>
                 <option value="recalculate_scores">Ballarni qayta hisoblash</option>
@@ -48,11 +48,11 @@
                 <thead>
                     <tr>
                         <th><input type="checkbox" class="form-check-input" data-select-all="attempt_ids"></th>
-                        <th>Student</th>
+                        <th>Talaba</th>
                         <th>Kurs / Imtihon</th>
                         <th>Holat</th>
-                        <th>Score</th>
-                        <th>Reviewed by</th>
+                        <th>Ball</th>
+                        <th>Tekshirgan</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -76,7 +76,7 @@
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="7">Exam attemptlar topilmadi.</td></tr>
+                    <tr><td colspan="7">Imtihon urinishlari topilmadi.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -84,3 +84,8 @@
     </form>
 </section>
 {% endblock %}
+
+
+
+
+

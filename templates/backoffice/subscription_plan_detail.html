@@ -1,8 +1,8 @@
-{% extends 'backoffice/base.html' %}
+﻿{% extends 'backoffice/base.html' %}
 {% load humanize %}
 
-{% block backoffice_title %}Plan Detail | Backoffice{% endblock %}
-{% block backoffice_kicker %}Monetization{% endblock %}
+{% block backoffice_title %}Tarif tafsiloti | Boshqaruv paneli{% endblock %}
+{% block backoffice_kicker %}Monetizatsiya{% endblock %}
 {% block backoffice_heading %}{{ plan.name }}{% endblock %}
 {% block backoffice_description %}Tarif ma'lumotlari, feature update va obuna statistikasi.{% endblock %}
 
@@ -40,11 +40,11 @@
                     {{ plan_form.price }}
                 </div>
                 <div>
-                    <label class="form-label" for="{{ plan_form.button_text.id_for_label }}">Button</label>
+                    <label class="form-label" for="{{ plan_form.button_text.id_for_label }}">Tugma matni</label>
                     {{ plan_form.button_text }}
                 </div>
                 <div>
-                    <label class="form-label" for="{{ plan_form.order.id_for_label }}">Order</label>
+                    <label class="form-label" for="{{ plan_form.order.id_for_label }}">Tartib</label>
                     {{ plan_form.order }}
                 </div>
             </div>
@@ -78,7 +78,7 @@
             </div>
             <div class="bo-form-grid bo-form-grid--triple">
                 <div>
-                    <label class="form-label" for="{{ feature_form.order.id_for_label }}">Order</label>
+                    <label class="form-label" for="{{ feature_form.order.id_for_label }}">Tartib</label>
                     {{ feature_form.order }}
                 </div>
                 <div class="bo-form-actions">
@@ -111,7 +111,7 @@
                     <input type="text" name="name" class="form-control" value="{{ feature.name }}" required>
                 </div>
                 <div>
-                    <label class="form-label">Order</label>
+                    <label class="form-label">Tartib</label>
                     <input type="number" name="order" class="form-control" min="0" value="{{ feature.order }}">
                 </div>
                 <div class="bo-form-actions bo-form-actions--end">
@@ -132,3 +132,7 @@
     </div>
 </section>
 {% endblock %}
+
+
+
+

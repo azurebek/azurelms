@@ -1,8 +1,8 @@
-{% extends 'backoffice/base.html' %}
+﻿{% extends 'backoffice/base.html' %}
 {% load humanize %}
 
-{% block backoffice_title %}Course Structure | Backoffice{% endblock %}
-{% block backoffice_kicker %}Learning Ops{% endblock %}
+{% block backoffice_title %}Kurs tuzilmasi | Boshqaruv paneli{% endblock %}
+{% block backoffice_kicker %}Ta'lim boshqaruvi{% endblock %}
 {% block backoffice_heading %}{{ course_obj.title }}{% endblock %}
 {% block backoffice_description %}Kurs, modul, dars va vazifalarni bitta joydan boshqarish.{% endblock %}
 
@@ -19,7 +19,7 @@
         <div class="alert alert-danger">{{ course_form.non_field_errors }}</div>
         {% endif %}
         <div>
-            <label class="form-label" for="{{ course_form.title.id_for_label }}">Title</label>
+            <label class="form-label" for="{{ course_form.title.id_for_label }}">Sarlavha</label>
             {{ course_form.title }}
         </div>
         <div>
@@ -193,7 +193,7 @@
                     <thead>
                         <tr>
                             <th>Dars</th>
-                            <th>Order</th>
+                            <th>Tartib</th>
                             <th>XP</th>
                             <th>Video URL</th>
                             <th>Vazifalar</th>
@@ -267,3 +267,6 @@
     </div>
 </section>
 {% endblock %}
+
+
+

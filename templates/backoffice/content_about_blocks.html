@@ -1,10 +1,10 @@
-{% extends 'backoffice/base.html' %}
+﻿{% extends 'backoffice/base.html' %}
 {% load humanize %}
 
-{% block backoffice_title %}About Blocks | Backoffice{% endblock %}
+{% block backoffice_title %}Biz haqimizda bloklari | Boshqaruv paneli{% endblock %}
 {% block backoffice_kicker %}CMS{% endblock %}
-{% block backoffice_heading %}About Blocks{% endblock %}
-{% block backoffice_description %}About statistikasi va jamoa a'zolarini boshqarish.{% endblock %}
+{% block backoffice_heading %}Biz haqimizda bloklari{% endblock %}
+{% block backoffice_description %}Biz haqimizda statistikasi va jamoa a'zolarini boshqarish.{% endblock %}
 
 {% block backoffice_content %}
 <section class="bo-grid bo-grid--notify">
@@ -22,11 +22,11 @@
                     {{ about_stat_form.value }}
                 </div>
                 <div>
-                    <label class="form-label" for="{{ about_stat_form.label.id_for_label }}">Label</label>
+                    <label class="form-label" for="{{ about_stat_form.label.id_for_label }}">Yorliq</label>
                     {{ about_stat_form.label }}
                 </div>
                 <div>
-                    <label class="form-label" for="{{ about_stat_form.order.id_for_label }}">Order</label>
+                    <label class="form-label" for="{{ about_stat_form.order.id_for_label }}">Tartib</label>
                     {{ about_stat_form.order }}
                 </div>
             </div>
@@ -68,7 +68,7 @@
                     {{ team_form.avatar }}
                 </div>
                 <div>
-                    <label class="form-label" for="{{ team_form.order.id_for_label }}">Order</label>
+                    <label class="form-label" for="{{ team_form.order.id_for_label }}">Tartib</label>
                     {{ team_form.order }}
                 </div>
             </div>
@@ -117,7 +117,7 @@
                     <th>Ism</th>
                     <th>Role 1</th>
                     <th>Role 2</th>
-                    <th>Order</th>
+                    <th>Tartib</th>
                     <th>Amal</th>
                 </tr>
             </thead>
@@ -149,3 +149,7 @@
     </div>
 </section>
 {% endblock %}
+
+
+
+

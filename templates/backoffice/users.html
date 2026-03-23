@@ -1,19 +1,19 @@
-{% extends 'backoffice/base.html' %}
+﻿{% extends 'backoffice/base.html' %}
 {% load humanize %}
 
-{% block backoffice_title %}Users | Backoffice{% endblock %}
-{% block backoffice_kicker %}Identity{% endblock %}
+{% block backoffice_title %}Foydalanuvchilar | Boshqaruv paneli{% endblock %}
+{% block backoffice_kicker %}Identifikatsiya{% endblock %}
 {% block backoffice_heading %}Foydalanuvchilar Boshqaruvi{% endblock %}
-{% block backoffice_description %}Staff va talaba akkauntlarini qidirish, filterlash va tahrirlash.{% endblock %}
+{% block backoffice_description %}Xodim va talaba akkauntlarini qidirish, filtrlash va tahrirlash.{% endblock %}
 
 {% block backoffice_content %}
 <section class="bo-filter-row">
     <form method="get" class="bo-search-form bo-search-form--quad">
-        <input type="text" name="q" value="{{ search_query }}" placeholder="Username, email, ism..." class="form-control">
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Foydalanuvchi nomi, email, ism..." class="form-control">
         <select name="role" class="form-select">
             <option value="all" {% if selected_role == 'all' %}selected{% endif %}>Barcha rollar</option>
             <option value="students" {% if selected_role == 'students' %}selected{% endif %}>Talabalar</option>
-            <option value="staff" {% if selected_role == 'staff' %}selected{% endif %}>Staff/Admin</option>
+            <option value="staff" {% if selected_role == 'staff' %}selected{% endif %}>Xodim/Admin</option>
         </select>
         <select name="status" class="form-select">
             <option value="all" {% if selected_status == 'all' %}selected{% endif %}>Barcha holatlar</option>
@@ -26,7 +26,7 @@
     <div class="bo-inline-stats">
         <span>Jami: <strong>{{ summary_total|intcomma }}</strong></span>
         <span>Faol: <strong>{{ summary_active|intcomma }}</strong></span>
-        <span>Staff/Admin: <strong>{{ summary_staff|intcomma }}</strong></span>
+        <span>Xodim/Admin: <strong>{{ summary_staff|intcomma }}</strong></span>
     </div>
 </section>
 
@@ -40,8 +40,8 @@
                     <th>Rol</th>
                     <th>Holat</th>
                     <th>XP</th>
-                    <th>Faol enrollment</th>
-                    <th>Unread notif</th>
+                    <th>Faol yozilish</th>
+                    <th>O'qilmagan bildirishnoma</th>
                     <th>Amal</th>
                 </tr>
             </thead>
@@ -55,11 +55,11 @@
                     <td>{{ user_item.email }}</td>
                     <td>
                         {% if user_item.is_superuser %}
-                        <span class="bo-pill bo-pill--danger">Superuser</span>
+                        <span class="bo-pill bo-pill--danger">Superadmin</span>
                         {% elif user_item.is_staff %}
-                        <span class="bo-pill bo-pill--info">Staff</span>
+                        <span class="bo-pill bo-pill--info">Xodim</span>
                         {% else %}
-                        <span class="bo-pill">Student</span>
+                        <span class="bo-pill">Talaba</span>
                         {% endif %}
                     </td>
                     <td>
@@ -86,3 +86,7 @@
     </div>
 </section>
 {% endblock %}
+
+
+
+

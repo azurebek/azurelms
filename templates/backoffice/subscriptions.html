@@ -1,15 +1,15 @@
-{% extends 'backoffice/base.html' %}
+﻿{% extends 'backoffice/base.html' %}
 {% load humanize %}
 
-{% block backoffice_title %}Subscriptions | Backoffice{% endblock %}
-{% block backoffice_kicker %}Monetization{% endblock %}
+{% block backoffice_title %}Obunalar | Boshqaruv paneli{% endblock %}
+{% block backoffice_kicker %}Monetizatsiya{% endblock %}
 {% block backoffice_heading %}Obuna Tariflari{% endblock %}
-{% block backoffice_description %}Tariflarni yaratish, qidirish va operator-style boshqarish (popular/bulk/delete).{% endblock %}
+{% block backoffice_description %}Tariflarni yaratish, qidirish va ommaviy boshqarish (ommabop/batch/o'chirish).{% endblock %}
 
 {% block backoffice_content %}
 <section class="bo-filter-row">
     <form method="get" class="bo-search-form bo-search-form--triple">
-        <input type="text" name="q" value="{{ search_query }}" class="form-control" placeholder="Tarif nomi, izoh, button...">
+        <input type="text" name="q" value="{{ search_query }}" class="form-control" placeholder="Tarif nomi, izoh, tugma matni...">
         <select name="popular" class="form-select">
             <option value="all" {% if selected_popular == 'all' %}selected{% endif %}>Barcha tariflar</option>
             <option value="popular" {% if selected_popular == 'popular' %}selected{% endif %}>Faqat ommabop</option>
@@ -19,7 +19,7 @@
     </form>
     <div class="bo-inline-stats">
         <span>Jami tarif: <strong>{{ summary_total|intcomma }}</strong></span>
-        <span>Popular: <strong>{{ summary_popular|intcomma }}</strong></span>
+        <span>Ommabop: <strong>{{ summary_popular|intcomma }}</strong></span>
         <span>Faol obunalar: <strong>{{ summary_active_subscriptions|intcomma }}</strong></span>
     </div>
 </section>
@@ -28,7 +28,7 @@
     <article class="bo-surface">
         <div class="bo-surface-head">
             <h2>Yangi tarif</h2>
-            <span>Plan create</span>
+            <span>Tarif yaratish</span>
         </div>
         <form method="post" class="bo-form-grid">
             {% csrf_token %}
@@ -48,11 +48,11 @@
                     {{ plan_form.price }}
                 </div>
                 <div>
-                    <label class="form-label" for="{{ plan_form.button_text.id_for_label }}">Button</label>
+                    <label class="form-label" for="{{ plan_form.button_text.id_for_label }}">Tugma matni</label>
                     {{ plan_form.button_text }}
                 </div>
                 <div>
-                    <label class="form-label" for="{{ plan_form.order.id_for_label }}">Order</label>
+                    <label class="form-label" for="{{ plan_form.order.id_for_label }}">Tartib</label>
                     {{ plan_form.order }}
                 </div>
             </div>
@@ -79,8 +79,8 @@
             {% csrf_token %}
             <div class="bo-action-bar bo-action-bar--wrap">
                 <select name="action" class="form-select bo-action-select">
-                    <option value="">Action tanlang</option>
-                    <option value="mark_popular_selected">Popular qilish</option>
+                    <option value="">Amalni tanlang</option>
+                    <option value="mark_popular_selected">Ommabop qilish</option>
                     <option value="mark_regular_selected">Oddiy qilish</option>
                     <option value="delete_selected_plans">O'chirish</option>
                 </select>
@@ -93,8 +93,8 @@
                             <th><input type="checkbox" class="form-check-input" data-select-all="plan_ids"></th>
                             <th>Tarif</th>
                             <th>Narx</th>
-                            <th>Order</th>
-                            <th>Popular</th>
+                            <th>Tartib</th>
+                            <th>Ommabop</th>
                             <th>Features</th>
                             <th>Faol obuna</th>
                             <th>Jami obuna</th>
@@ -133,3 +133,7 @@
     </article>
 </section>
 {% endblock %}
+
+
+
+

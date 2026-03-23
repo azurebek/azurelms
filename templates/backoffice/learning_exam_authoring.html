@@ -1,15 +1,15 @@
-{% extends 'backoffice/base.html' %}
+﻿{% extends 'backoffice/base.html' %}
 {% load humanize %}
 
-{% block backoffice_title %}Exam Authoring | Backoffice{% endblock %}
-{% block backoffice_kicker %}Learning Ops{% endblock %}
-{% block backoffice_heading %}Exam Authoring{% endblock %}
-{% block backoffice_description %}Exam va exam sectionlarni to'liq boshqarish: yaratish, tahrirlash, o'chirish.{% endblock %}
+{% block backoffice_title %}Imtihon tuzish | Boshqaruv paneli{% endblock %}
+{% block backoffice_kicker %}Ta'lim boshqaruvi{% endblock %}
+{% block backoffice_heading %}Imtihon tuzish{% endblock %}
+{% block backoffice_description %}Imtihon va bo'limlarni to'liq boshqarish: yaratish, tahrirlash, o'chirish.{% endblock %}
 
 {% block backoffice_content %}
 <section class="bo-filter-row">
     <form method="get" class="bo-search-form bo-search-form--triple">
-        <input type="text" name="q" class="form-control" value="{{ search_query }}" placeholder="Exam yoki course qidirish...">
+        <input type="text" name="q" class="form-control" value="{{ search_query }}" placeholder="Imtihon yoki kurs qidirish...">
         <select name="course_id" class="form-select">
             <option value="">Barcha kurslar</option>
             {% for course in courses %}
@@ -19,16 +19,16 @@
         <button class="btn btn-primary rounded-pill px-4" type="submit">Filtrlash</button>
     </form>
     <div class="bo-inline-stats">
-        <span>Exams: <strong>{{ summary_exams|intcomma }}</strong></span>
-        <span>Sections: <strong>{{ summary_sections|intcomma }}</strong></span>
-        <span>Attempts: <strong>{{ summary_attempts|intcomma }}</strong></span>
+        <span>Imtihonlar: <strong>{{ summary_exams|intcomma }}</strong></span>
+        <span>Bo'limlar: <strong>{{ summary_sections|intcomma }}</strong></span>
+        <span>Urinishlar: <strong>{{ summary_attempts|intcomma }}</strong></span>
     </div>
 </section>
 
 <section class="bo-grid bo-grid--charts">
     <article class="bo-surface">
         <div class="bo-surface-head">
-            <h2>Yangi Exam</h2>
+            <h2>Yangi imtihon</h2>
         </div>
         <form method="post" class="bo-form-grid">
             {% csrf_token %}
@@ -53,23 +53,23 @@
                     {{ exam_form.exam_type }}
                 </div>
                 <div>
-                    <label class="form-label" for="{{ exam_form.weight_percentage.id_for_label }}">Weight %</label>
+                    <label class="form-label" for="{{ exam_form.weight_percentage.id_for_label }}">Ulush %</label>
                     {{ exam_form.weight_percentage }}
                 </div>
                 <div>
-                    <label class="form-label" for="{{ exam_form.passing_score.id_for_label }}">Passing %</label>
+                    <label class="form-label" for="{{ exam_form.passing_score.id_for_label }}">O'tish %</label>
                     {{ exam_form.passing_score }}
                 </div>
             </div>
             <div class="bo-form-actions bo-form-actions--end">
-                <button class="btn btn-primary rounded-pill px-4" type="submit">Exam yaratish</button>
+                <button class="btn btn-primary rounded-pill px-4" type="submit">Imtihon yaratish</button>
             </div>
         </form>
     </article>
 
     <article class="bo-surface">
         <div class="bo-surface-head">
-            <h2>Yangi Section</h2>
+            <h2>Yangi bo'lim</h2>
         </div>
         <form method="post" class="bo-form-grid">
             {% csrf_token %}
@@ -79,16 +79,16 @@
             {% endif %}
 
             <div>
-                <label class="form-label" for="{{ section_form.exam.id_for_label }}">Exam</label>
+                <label class="form-label" for="{{ section_form.exam.id_for_label }}">Imtihon</label>
                 {{ section_form.exam }}
             </div>
             <div>
-                <label class="form-label" for="{{ section_form.title.id_for_label }}">Section nomi</label>
+                <label class="form-label" for="{{ section_form.title.id_for_label }}">Bo'lim nomi</label>
                 {{ section_form.title }}
             </div>
             <div class="bo-form-grid bo-form-grid--triple">
                 <div>
-                    <label class="form-label" for="{{ section_form.section_type.id_for_label }}">Section turi</label>
+                    <label class="form-label" for="{{ section_form.section_type.id_for_label }}">Bo'lim turi</label>
                     {{ section_form.section_type }}
                 </div>
                 <div>
@@ -101,23 +101,23 @@
                 </div>
             </div>
             <div>
-                <label class="form-label" for="{{ section_form.media_url.id_for_label }}">Media URL</label>
+                <label class="form-label" for="{{ section_form.media_url.id_for_label }}">Media havola</label>
                 {{ section_form.media_url }}
             </div>
             <div>
-                <label class="form-label" for="{{ section_form.instructions.id_for_label }}">Instructions</label>
+                <label class="form-label" for="{{ section_form.instructions.id_for_label }}">Ko'rsatmalar</label>
                 {{ section_form.instructions }}
             </div>
             <div>
-                <label class="form-label" for="{{ section_form.reading_text.id_for_label }}">Reading text</label>
+                <label class="form-label" for="{{ section_form.reading_text.id_for_label }}">O'qish matni</label>
                 {{ section_form.reading_text }}
             </div>
             <div>
-                <label class="form-label" for="{{ section_form.order.id_for_label }}">Order</label>
+                <label class="form-label" for="{{ section_form.order.id_for_label }}">Tartib</label>
                 {{ section_form.order }}
             </div>
             <div class="bo-form-actions bo-form-actions--end">
-                <button class="btn btn-primary rounded-pill px-4" type="submit">Section yaratish</button>
+                <button class="btn btn-primary rounded-pill px-4" type="submit">Bo'lim yaratish</button>
             </div>
         </form>
     </article>
@@ -125,20 +125,20 @@
 
 <section class="bo-surface">
     <div class="bo-surface-head">
-        <h2>Exams</h2>
-        <a href="{% url 'backoffice:learning_exams' %}" class="btn btn-sm btn-outline-primary rounded-pill">Review Console</a>
+        <h2>Imtihonlar</h2>
+        <a href="{% url 'backoffice:learning_exams' %}" class="btn btn-sm btn-outline-primary rounded-pill">Tekshiruv konsoli</a>
     </div>
     <div class="bo-table-wrap">
         <table class="table bo-table">
             <thead>
                 <tr>
                     <th>Kurs</th>
-                    <th>Exam</th>
-                    <th>Type</th>
-                    <th>Weight</th>
-                    <th>Passing</th>
-                    <th>Sections</th>
-                    <th>Attempts</th>
+                    <th>Imtihon</th>
+                    <th>Tur</th>
+                    <th>Ulush</th>
+                    <th>O'tish</th>
+                    <th>Bo'limlar</th>
+                    <th>Urinishlar</th>
                     <th></th>
                 </tr>
             </thead>
@@ -154,7 +154,7 @@
                     <td>{{ exam.attempt_count }}</td>
                     <td class="text-end">
                         <details class="bo-inline-details">
-                            <summary class="btn btn-sm btn-outline-secondary rounded-pill">Edit</summary>
+                            <summary class="btn btn-sm btn-outline-secondary rounded-pill">Tahrirlash</summary>
                             <div class="mt-2 d-grid gap-2">
                                 <form method="post" class="bo-form-grid">
                                     {% csrf_token %}
@@ -188,7 +188,7 @@
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="8">Examlar topilmadi.</td></tr>
+                <tr><td colspan="8">Imtihonlar topilmadi.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -197,18 +197,18 @@
 
 <section class="bo-surface">
     <div class="bo-surface-head">
-        <h2>Exam Sections</h2>
+        <h2>Imtihon bo'limlari</h2>
     </div>
     <div class="bo-table-wrap">
         <table class="table bo-table">
             <thead>
                 <tr>
-                    <th>Kurs / Exam</th>
-                    <th>Section</th>
-                    <th>Type</th>
-                    <th>Max</th>
-                    <th>Time</th>
-                    <th>Order</th>
+                    <th>Kurs / Imtihon</th>
+                    <th>Bo'lim</th>
+                    <th>Tur</th>
+                    <th>Maks</th>
+                    <th>Vaqt</th>
+                    <th>Tartib</th>
                     <th></th>
                 </tr>
             </thead>
@@ -226,7 +226,7 @@
                     <td>{{ section.order }}</td>
                     <td class="text-end">
                         <details class="bo-inline-details">
-                            <summary class="btn btn-sm btn-outline-secondary rounded-pill">Edit</summary>
+                            <summary class="btn btn-sm btn-outline-secondary rounded-pill">Tahrirlash</summary>
                             <div class="mt-2 d-grid gap-2">
                                 <form method="post" class="bo-form-grid">
                                     {% csrf_token %}
@@ -248,7 +248,7 @@
                                         <input type="number" name="time_limit_minutes" min="1" class="form-control" value="{{ section.time_limit_minutes }}">
                                         <input type="number" name="order" min="0" class="form-control" value="{{ section.order }}">
                                     </div>
-                                    <input type="url" name="media_url" class="form-control" value="{{ section.media_url|default:'' }}" placeholder="Media URL">
+                                    <input type="url" name="media_url" class="form-control" value="{{ section.media_url|default:'' }}" placeholder="Media havola">
                                     <textarea name="instructions" rows="3" class="form-control">{{ section.instructions|striptags }}</textarea>
                                     <textarea name="reading_text" rows="3" class="form-control">{{ section.reading_text|striptags }}</textarea>
                                     <button type="submit" class="btn btn-sm btn-primary rounded-pill">Saqlash</button>
@@ -264,10 +264,14 @@
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="7">Sectionlar topilmadi.</td></tr>
+                <tr><td colspan="7">Bo'limlar topilmadi.</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </section>
 {% endblock %}
+
+
+
+

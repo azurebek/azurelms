@@ -1,15 +1,15 @@
-{% extends 'backoffice/base.html' %}
+﻿{% extends 'backoffice/base.html' %}
 {% load humanize %}
 
-{% block backoffice_title %}Earned Badges | Backoffice{% endblock %}
+{% block backoffice_title %}Olingan nishonlar | Boshqaruv paneli{% endblock %}
 {% block backoffice_kicker %}Gamification{% endblock %}
-{% block backoffice_heading %}Earned Badges{% endblock %}
+{% block backoffice_heading %}Olingan nishonlar{% endblock %}
 {% block backoffice_description %}Qaysi user qaysi badge olganini kuzatish va kerak bo'lsa revoke qilish.{% endblock %}
 
 {% block backoffice_content %}
 <section class="bo-filter-row">
     <form method="get" class="bo-search-form bo-search-form--triple">
-        <input type="text" name="q" class="form-control" value="{{ search_query }}" placeholder="User yoki badge nomi...">
+        <input type="text" name="q" class="form-control" value="{{ search_query }}" placeholder="Foydalanuvchi yoki badge nomi...">
         <select name="badge_id" class="form-select">
             <option value="">Barcha badge lar</option>
             {% for badge in badges %}
@@ -65,7 +65,7 @@
         {% csrf_token %}
         <div class="bo-action-bar bo-action-bar--wrap">
             <select name="action" class="form-select bo-action-select">
-                <option value="">Action tanlang</option>
+                <option value="">Amalni tanlang</option>
                 <option value="revoke_selected">Tanlanganlarni revoke qilish</option>
             </select>
             <button class="btn btn-primary rounded-pill px-4" type="submit">Qo'llash</button>
@@ -75,7 +75,7 @@
                 <thead>
                     <tr>
                         <th><input type="checkbox" class="form-check-input" data-select-all="earned_badge_ids"></th>
-                        <th>User</th>
+                        <th>Foydalanuvchi</th>
                         <th>Badge</th>
                         <th>Sana</th>
                     </tr>
@@ -131,3 +131,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 {% endblock %}
+
+
+

@@ -1,15 +1,15 @@
-{% extends 'backoffice/base.html' %}
+﻿{% extends 'backoffice/base.html' %}
 {% load humanize %}
 
-{% block backoffice_title %}Cohorts | Backoffice{% endblock %}
-{% block backoffice_kicker %}Cohort Ops{% endblock %}
-{% block backoffice_heading %}Cohort Boshqaruv{% endblock %}
-{% block backoffice_description %}Guruhlar yaratish, holatini boshqarish va cohort ichidagi ishlarni detail sahifada yuritish.{% endblock %}
+{% block backoffice_title %}Guruhlar | Boshqaruv paneli{% endblock %}
+{% block backoffice_kicker %}Guruh boshqaruvi{% endblock %}
+{% block backoffice_heading %}Guruhlar boshqaruvi{% endblock %}
+{% block backoffice_description %}Guruhlarni yaratish, holatini boshqarish va guruh ichidagi ishlarni tafsilot sahifasida yuritish.{% endblock %}
 
 {% block backoffice_content %}
 <section class="bo-filter-row">
     <form method="get" class="bo-search-form bo-search-form--quad">
-        <input type="text" name="q" value="{{ search_query }}" class="form-control" placeholder="Cohort nomi, kurs, telegram link...">
+        <input type="text" name="q" value="{{ search_query }}" class="form-control" placeholder="Guruh nomi, kurs, Telegram havola...">
         <select name="course_id" class="form-select">
             <option value="">Barcha kurslar</option>
             {% for course in courses %}
@@ -18,15 +18,15 @@
         </select>
         <select name="status" class="form-select">
             <option value="all" {% if selected_status == 'all' %}selected{% endif %}>Barcha holatlar</option>
-            <option value="active" {% if selected_status == 'active' %}selected{% endif %}>Faol cohortlar</option>
-            <option value="archived" {% if selected_status == 'archived' %}selected{% endif %}>Arxiv cohortlar</option>
+            <option value="active" {% if selected_status == 'active' %}selected{% endif %}>Faol guruhlar</option>
+            <option value="archived" {% if selected_status == 'archived' %}selected{% endif %}>Arxiv guruhlar</option>
         </select>
         <button class="btn btn-primary rounded-pill px-4" type="submit">Filtrlash</button>
     </form>
 
     <div class="bo-inline-stats">
-        <span>Jami cohort: <strong>{{ summary_total|intcomma }}</strong></span>
-        <span>Faol cohort: <strong>{{ summary_active|intcomma }}</strong></span>
+        <span>Jami guruh: <strong>{{ summary_total|intcomma }}</strong></span>
+        <span>Faol guruh: <strong>{{ summary_active|intcomma }}</strong></span>
         <span>Faol talabalar: <strong>{{ summary_active_students|intcomma }}</strong></span>
     </div>
 </section>
@@ -34,8 +34,8 @@
 <section class="bo-grid bo-grid--notify">
     <article class="bo-surface">
         <div class="bo-surface-head">
-            <h2>Yangi cohort</h2>
-            <span>Create</span>
+            <h2>Yangi guruh</h2>
+            <span>Yaratish</span>
         </div>
         <form method="post" class="bo-form-grid">
             {% csrf_token %}
@@ -44,7 +44,7 @@
             <div class="alert alert-danger">{{ create_form.non_field_errors }}</div>
             {% endif %}
             <div>
-                <label class="form-label" for="{{ create_form.name.id_for_label }}">Cohort nomi</label>
+                <label class="form-label" for="{{ create_form.name.id_for_label }}">Guruh nomi</label>
                 {{ create_form.name }}
             </div>
             <div>
@@ -68,21 +68,21 @@
                 </div>
             </div>
             <div class="bo-form-actions bo-form-actions--end">
-                <button class="btn btn-primary rounded-pill px-4" type="submit">Cohort yaratish</button>
+                <button class="btn btn-primary rounded-pill px-4" type="submit">Guruh yaratish</button>
             </div>
         </form>
     </article>
 
     <article class="bo-surface">
         <div class="bo-surface-head">
-            <h2>Cohortlar</h2>
+            <h2>Guruhlar</h2>
             <span>{{ cohorts|length|intcomma }} ta</span>
         </div>
         <form method="post">
             {% csrf_token %}
             <div class="bo-action-bar bo-action-bar--wrap">
                 <select name="action" class="form-select bo-action-select">
-                    <option value="">Action tanlang</option>
+                    <option value="">Amalni tanlang</option>
                     <option value="activate_selected">Faollashtirish</option>
                     <option value="archive_selected">Arxivlash</option>
                     <option value="delete_selected">O'chirish</option>
@@ -94,11 +94,11 @@
                     <thead>
                         <tr>
                             <th><input type="checkbox" class="form-check-input" data-select-all="cohort_ids"></th>
-                            <th>Cohort</th>
+                            <th>Guruh</th>
                             <th>Kurs</th>
                             <th>Boshlanish</th>
                             <th>Faol</th>
-                            <th>Pending</th>
+                            <th>Kutilmoqda</th>
                             <th>Jami</th>
                             <th>Amallar</th>
                         </tr>
@@ -119,13 +119,13 @@
                             <td>{{ cohort.pending_members|intcomma }}</td>
                             <td>{{ cohort.total_members|intcomma }}</td>
                             <td class="d-flex gap-2 flex-wrap">
-                                <a class="btn btn-sm btn-outline-primary rounded-pill" href="{% url 'backoffice:cohort_detail' cohort.id %}">Detail</a>
+                                <a class="btn btn-sm btn-outline-primary rounded-pill" href="{% url 'backoffice:cohort_detail' cohort.id %}">Tafsilot</a>
                                 <a class="btn btn-sm btn-outline-primary rounded-pill" href="{% url 'backoffice:attendance' %}?cohort_id={{ cohort.id }}">Davomat</a>
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="8">Cohort topilmadi.</td>
+                            <td colspan="8">Guruh topilmadi.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -135,3 +135,7 @@
     </article>
 </section>
 {% endblock %}
+
+
+
+

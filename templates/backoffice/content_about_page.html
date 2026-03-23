@@ -1,8 +1,8 @@
-{% extends 'backoffice/base.html' %}
+﻿{% extends 'backoffice/base.html' %}
 
-{% block backoffice_title %}About Page | Backoffice{% endblock %}
+{% block backoffice_title %}Biz haqimizda sahifasi | Boshqaruv paneli{% endblock %}
 {% block backoffice_kicker %}CMS{% endblock %}
-{% block backoffice_heading %}About Page Sozlamalari{% endblock %}
+{% block backoffice_heading %}Biz haqimizda sahifasi Sozlamalari{% endblock %}
 {% block backoffice_description %}Biz haqimizda sahifasining hero, missiya va vision qismlarini boshqarish.{% endblock %}
 
 {% block backoffice_content %}
@@ -24,7 +24,7 @@
             </div>
         </div>
         <div>
-            <label class="form-label" for="{{ form.hero_subtitle.id_for_label }}">Hero subtitle</label>
+            <label class="form-label" for="{{ form.hero_subtitle.id_for_label }}">Hero ostsarlavhasi</label>
             {{ form.hero_subtitle }}
         </div>
         <div class="bo-form-grid bo-form-grid--triple">
@@ -51,3 +51,7 @@
     </form>
 </section>
 {% endblock %}
+
+
+
+

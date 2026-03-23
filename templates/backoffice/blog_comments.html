@@ -1,19 +1,19 @@
-{% extends 'backoffice/base.html' %}
+﻿{% extends 'backoffice/base.html' %}
 {% load humanize %}
 
-{% block backoffice_title %}Blog Comments | Backoffice{% endblock %}
+{% block backoffice_title %}Blog izohlari | Boshqaruv paneli{% endblock %}
 {% block backoffice_kicker %}CMS{% endblock %}
-{% block backoffice_heading %}Blog Comment Moderation{% endblock %}
-{% block backoffice_description %}Commentlarni soft-delete va restore qilishni boshqarish.{% endblock %}
+{% block backoffice_heading %}Blog izohlarini moderatsiya qilish{% endblock %}
+{% block backoffice_description %}Izohlarni yumshoq o'chirish va tiklashni boshqarish.{% endblock %}
 
 {% block backoffice_content %}
 <section class="bo-filter-row">
     <form method="get" class="bo-search-form bo-search-form--triple">
-        <input type="text" name="q" class="form-control" value="{{ search_query }}" placeholder="Comment, post yoki user...">
+        <input type="text" name="q" class="form-control" value="{{ search_query }}" placeholder="Izoh, maqola yoki foydalanuvchi...">
         <select name="deleted" class="form-select">
             <option value="all" {% if selected_deleted == 'all' %}selected{% endif %}>Barcha holatlar</option>
-            <option value="no" {% if selected_deleted == 'no' %}selected{% endif %}>Faol commentlar</option>
-            <option value="yes" {% if selected_deleted == 'yes' %}selected{% endif %}>O'chirilgan commentlar</option>
+            <option value="no" {% if selected_deleted == 'no' %}selected{% endif %}>Faol izohlar</option>
+            <option value="yes" {% if selected_deleted == 'yes' %}selected{% endif %}>O'chirilgan izohlar</option>
         </select>
         <button class="btn btn-primary rounded-pill px-4" type="submit">Filtrlash</button>
     </form>
@@ -29,9 +29,9 @@
         {% csrf_token %}
         <div class="bo-action-bar bo-action-bar--wrap">
             <select name="action" class="form-select bo-action-select">
-                <option value="">Action tanlang</option>
-                <option value="mark_deleted">Delete (soft)</option>
-                <option value="restore">Restore</option>
+                <option value="">Amalni tanlang</option>
+                <option value="mark_deleted">O'chirish (yumshoq)</option>
+                <option value="restore">Tiklash</option>
             </select>
             <button class="btn btn-primary rounded-pill px-4" type="submit">Qo'llash</button>
         </div>
@@ -41,8 +41,8 @@
                     <tr>
                         <th><input type="checkbox" class="form-check-input" data-select-all="comment_ids"></th>
                         <th>Sana</th>
-                        <th>User</th>
-                        <th>Post</th>
+                        <th>Foydalanuvchi</th>
+                        <th>Maqola</th>
                         <th>Matn</th>
                         <th>Like</th>
                         <th>Holat</th>
@@ -59,14 +59,14 @@
                         <td>{{ comment.like_count|intcomma }}</td>
                         <td>
                             {% if comment.is_deleted %}
-                            <span class="bo-pill bo-pill--warning">Deleted</span>
+                            <span class="bo-pill bo-pill--warning">O'chirilgan</span>
                             {% else %}
-                            <span class="bo-pill bo-pill--success">Active</span>
+                            <span class="bo-pill bo-pill--success">Faol</span>
                             {% endif %}
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="7">Commentlar topilmadi.</td></tr>
+                    <tr><td colspan="7">Izohlar topilmadi.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -74,3 +74,7 @@
     </form>
 </section>
 {% endblock %}
+
+
+
+

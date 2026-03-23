@@ -1,9 +1,9 @@
-{% extends 'backoffice/base.html' %}
+﻿{% extends 'backoffice/base.html' %}
 {% load humanize %}
 
-{% block backoffice_title %}Landing Blocks | Backoffice{% endblock %}
+{% block backoffice_title %}Landing bloklari | Boshqaruv paneli{% endblock %}
 {% block backoffice_kicker %}CMS{% endblock %}
-{% block backoffice_heading %}Landing Blocks{% endblock %}
+{% block backoffice_heading %}Landing bloklari{% endblock %}
 {% block backoffice_description %}Statistika va testimonial kartalarini boshqarish.{% endblock %}
 
 {% block backoffice_content %}
@@ -22,11 +22,11 @@
                     {{ stat_form.value }}
                 </div>
                 <div>
-                    <label class="form-label" for="{{ stat_form.label.id_for_label }}">Label</label>
+                    <label class="form-label" for="{{ stat_form.label.id_for_label }}">Yorliq</label>
                     {{ stat_form.label }}
                 </div>
                 <div>
-                    <label class="form-label" for="{{ stat_form.order.id_for_label }}">Order</label>
+                    <label class="form-label" for="{{ stat_form.order.id_for_label }}">Tartib</label>
                     {{ stat_form.order }}
                 </div>
             </div>
@@ -157,3 +157,7 @@
     </div>
 </section>
 {% endblock %}
+
+
+
+

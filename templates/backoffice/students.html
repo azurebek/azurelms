@@ -1,15 +1,15 @@
-{% extends 'backoffice/base.html' %}
+﻿{% extends 'backoffice/base.html' %}
 {% load humanize %}
 
-{% block backoffice_title %}Talabalar | Backoffice{% endblock %}
-{% block backoffice_kicker %}Students{% endblock %}
+{% block backoffice_title %}Talabalar | Boshqaruv paneli{% endblock %}
+{% block backoffice_kicker %}Talabalar{% endblock %}
 {% block backoffice_heading %}Talabalar Reestri{% endblock %}
-{% block backoffice_description %}Qidiruv, enrollment holati va faollik kesimida tezkor ko'rinish.{% endblock %}
+{% block backoffice_description %}Qidiruv, yozilish holati va faollik kesimida tezkor ko'rinish.{% endblock %}
 
 {% block backoffice_content %}
 <section class="bo-filter-row">
     <form method="get" class="bo-search-form">
-        <input type="text" name="q" value="{{ search_query }}" placeholder="Username, email yoki ism..." class="form-control">
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Foydalanuvchi nomi, email yoki ism..." class="form-control">
         <button class="btn btn-primary rounded-pill px-4" type="submit">Qidirish</button>
     </form>
     <div class="bo-inline-stats">
@@ -26,8 +26,8 @@
                     <th>Talaba</th>
                     <th>Email</th>
                     <th>Faol</th>
-                    <th>Pending</th>
-                    <th>Jami enrollment</th>
+                    <th>Kutilmoqda</th>
+                    <th>Jami yozilish</th>
                     <th>So'nggi qo'shilish</th>
                 </tr>
             </thead>
@@ -57,3 +57,7 @@
     </div>
 </section>
 {% endblock %}
+
+
+
+

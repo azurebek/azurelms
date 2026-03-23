@@ -1,9 +1,9 @@
-{% extends 'backoffice/base.html' %}
+﻿{% extends 'backoffice/base.html' %}
 {% load humanize %}
 
-{% block backoffice_title %}Gamification Levels | Backoffice{% endblock %}
+{% block backoffice_title %}Darajalar | Boshqaruv paneli{% endblock %}
 {% block backoffice_kicker %}Gamification{% endblock %}
-{% block backoffice_heading %}Level Boshqaruvi{% endblock %}
+{% block backoffice_heading %}Darajalar boshqaruvi{% endblock %}
 {% block backoffice_description %}XP darajalarini yaratish, yangilash va o'chirish.{% endblock %}
 
 {% block backoffice_content %}
@@ -11,14 +11,14 @@
     <article class="bo-surface">
         <div class="bo-surface-head">
             <h2>Yangi level</h2>
-            <span>Create</span>
+            <span>Yaratish</span>
         </div>
         <form method="post" enctype="multipart/form-data" class="bo-form-grid">
             {% csrf_token %}
             <input type="hidden" name="action" value="create_level">
             <div class="bo-form-grid bo-form-grid--triple">
                 <div>
-                    <label class="form-label" for="{{ create_form.name.id_for_label }}">Name</label>
+                    <label class="form-label" for="{{ create_form.name.id_for_label }}">Nomi</label>
                     {{ create_form.name }}
                 </div>
                 <div>
@@ -63,3 +63,6 @@
     </article>
 </section>
 {% endblock %}
+
+
+

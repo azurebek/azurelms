@@ -1,9 +1,9 @@
-{% extends 'backoffice/base.html' %}
+﻿{% extends 'backoffice/base.html' %}
 
-{% block backoffice_title %}Landing Page | Backoffice{% endblock %}
+{% block backoffice_title %}Landing sahifasi | Boshqaruv paneli{% endblock %}
 {% block backoffice_kicker %}CMS{% endblock %}
-{% block backoffice_heading %}Landing Page Sozlamalari{% endblock %}
-{% block backoffice_description %}Hero, background va CTA matnlarini boshqarish.{% endblock %}
+{% block backoffice_heading %}Landing sahifasi sozlamalari{% endblock %}
+{% block backoffice_description %}Hero, fon va CTA matnlarini boshqarish.{% endblock %}
 
 {% block backoffice_content %}
 <section class="bo-surface">
@@ -14,99 +14,99 @@
         {% endif %}
 
         <div>
-            <label class="form-label" for="{{ form.hero_badge.id_for_label }}">Hero badge</label>
+            <label class="form-label" for="{{ form.hero_badge.id_for_label }}">Hero belgisi</label>
             {{ form.hero_badge }}
         </div>
         <div class="bo-form-grid bo-form-grid--triple">
             <div>
-                <label class="form-label" for="{{ form.hero_title_start.id_for_label }}">Hero title start</label>
+                <label class="form-label" for="{{ form.hero_title_start.id_for_label }}">Hero sarlavha boshi</label>
                 {{ form.hero_title_start }}
             </div>
             <div>
-                <label class="form-label" for="{{ form.hero_title_highlight.id_for_label }}">Hero title highlight</label>
+                <label class="form-label" for="{{ form.hero_title_highlight.id_for_label }}">Hero sarlavha ajratmasi</label>
                 {{ form.hero_title_highlight }}
             </div>
             <div>
-                <label class="form-label" for="{{ form.hero_title_end.id_for_label }}">Hero title end</label>
+                <label class="form-label" for="{{ form.hero_title_end.id_for_label }}">Hero sarlavha oxiri</label>
                 {{ form.hero_title_end }}
             </div>
         </div>
         <div>
-            <label class="form-label" for="{{ form.hero_subtitle.id_for_label }}">Hero subtitle</label>
+            <label class="form-label" for="{{ form.hero_subtitle.id_for_label }}">Hero ostsarlavhasi</label>
             {{ form.hero_subtitle }}
         </div>
 
-        <h3 class="bo-subheading">Hero Media</h3>
+        <h3 class="bo-subheading">Hero media</h3>
         <div class="bo-form-grid bo-form-grid--triple">
             <div>
-                <label class="form-label" for="{{ form.hero_background_image.id_for_label }}">Hero bg image</label>
+                <label class="form-label" for="{{ form.hero_background_image.id_for_label }}">Hero fon rasmi</label>
                 {{ form.hero_background_image }}
                 {% if landing_page_obj.hero_background_image %}
-                <div class="small text-muted mt-1">Current: {{ landing_page_obj.hero_background_image.name }}</div>
+                <div class="small text-muted mt-1">Joriy: {{ landing_page_obj.hero_background_image.name }}</div>
                 {% endif %}
             </div>
             <div>
-                <label class="form-label" for="{{ form.hero_background_video.id_for_label }}">Hero bg video</label>
+                <label class="form-label" for="{{ form.hero_background_video.id_for_label }}">Hero fon videosi</label>
                 {{ form.hero_background_video }}
                 {% if landing_page_obj.hero_background_video %}
-                <div class="small text-muted mt-1">Current: {{ landing_page_obj.hero_background_video.name }}</div>
+                <div class="small text-muted mt-1">Joriy: {{ landing_page_obj.hero_background_video.name }}</div>
                 {% endif %}
             </div>
             <div>
-                <label class="form-label" for="{{ form.hero_image.id_for_label }}">Hero image</label>
+                <label class="form-label" for="{{ form.hero_image.id_for_label }}">Hero rasmi</label>
                 {{ form.hero_image }}
                 {% if landing_page_obj.hero_image %}
-                <div class="small text-muted mt-1">Current: {{ landing_page_obj.hero_image.name }}</div>
+                <div class="small text-muted mt-1">Joriy: {{ landing_page_obj.hero_image.name }}</div>
                 {% endif %}
             </div>
         </div>
         <div>
-            <label class="form-label" for="{{ form.hero_video.id_for_label }}">Hero video</label>
+            <label class="form-label" for="{{ form.hero_video.id_for_label }}">Hero videosi</label>
             {{ form.hero_video }}
             {% if landing_page_obj.hero_video %}
-            <div class="small text-muted mt-1">Current: {{ landing_page_obj.hero_video.name }}</div>
+            <div class="small text-muted mt-1">Joriy: {{ landing_page_obj.hero_video.name }}</div>
             {% endif %}
         </div>
 
-        <h3 class="bo-subheading">Section Backgrounds</h3>
+        <h3 class="bo-subheading">Bo'lim fonlari</h3>
         <div class="bo-form-grid bo-form-grid--triple">
             <div>
-                <label class="form-label" for="{{ form.how_it_works_background_image.id_for_label }}">How it works image</label>
+                <label class="form-label" for="{{ form.how_it_works_background_image.id_for_label }}">Qanday ishlaydi rasmi</label>
                 {{ form.how_it_works_background_image }}
                 {% if landing_page_obj.how_it_works_background_image %}
-                <div class="small text-muted mt-1">Current: {{ landing_page_obj.how_it_works_background_image.name }}</div>
+                <div class="small text-muted mt-1">Joriy: {{ landing_page_obj.how_it_works_background_image.name }}</div>
                 {% endif %}
             </div>
             <div>
-                <label class="form-label" for="{{ form.how_it_works_background_video.id_for_label }}">How it works video</label>
+                <label class="form-label" for="{{ form.how_it_works_background_video.id_for_label }}">Qanday ishlaydi videosi</label>
                 {{ form.how_it_works_background_video }}
                 {% if landing_page_obj.how_it_works_background_video %}
-                <div class="small text-muted mt-1">Current: {{ landing_page_obj.how_it_works_background_video.name }}</div>
+                <div class="small text-muted mt-1">Joriy: {{ landing_page_obj.how_it_works_background_video.name }}</div>
                 {% endif %}
             </div>
             <div>
-                <label class="form-label" for="{{ form.footer_background_image.id_for_label }}">Footer image</label>
+                <label class="form-label" for="{{ form.footer_background_image.id_for_label }}">Footer rasmi</label>
                 {{ form.footer_background_image }}
                 {% if landing_page_obj.footer_background_image %}
-                <div class="small text-muted mt-1">Current: {{ landing_page_obj.footer_background_image.name }}</div>
+                <div class="small text-muted mt-1">Joriy: {{ landing_page_obj.footer_background_image.name }}</div>
                 {% endif %}
             </div>
         </div>
         <div>
-            <label class="form-label" for="{{ form.footer_background_video.id_for_label }}">Footer video</label>
+            <label class="form-label" for="{{ form.footer_background_video.id_for_label }}">Footer videosi</label>
             {{ form.footer_background_video }}
             {% if landing_page_obj.footer_background_video %}
-            <div class="small text-muted mt-1">Current: {{ landing_page_obj.footer_background_video.name }}</div>
+            <div class="small text-muted mt-1">Joriy: {{ landing_page_obj.footer_background_video.name }}</div>
             {% endif %}
         </div>
 
-        <h3 class="bo-subheading">Bottom CTA</h3>
+        <h3 class="bo-subheading">Pastki CTA</h3>
         <div>
-            <label class="form-label" for="{{ form.cta_title.id_for_label }}">CTA title</label>
+            <label class="form-label" for="{{ form.cta_title.id_for_label }}">CTA sarlavhasi</label>
             {{ form.cta_title }}
         </div>
         <div>
-            <label class="form-label" for="{{ form.cta_description.id_for_label }}">CTA description</label>
+            <label class="form-label" for="{{ form.cta_description.id_for_label }}">CTA tavsifi</label>
             {{ form.cta_description }}
         </div>
         <div class="bo-form-actions bo-form-actions--end">
@@ -115,3 +115,7 @@
     </form>
 </section>
 {% endblock %}
+
+
+
+

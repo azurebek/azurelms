@@ -1,8 +1,8 @@
-{% extends 'backoffice/base.html' %}
+﻿{% extends 'backoffice/base.html' %}
 {% load humanize %}
 
 {% block backoffice_title %}{{ resource.label }} | CRUD{% endblock %}
-{% block backoffice_kicker %}Platform Dev{% endblock %}
+{% block backoffice_kicker %}Platforma dev{% endblock %}
 {% block backoffice_heading %}{{ resource.label }}{% endblock %}
 {% block backoffice_description %}{{ resource.description }}{% endblock %}
 
@@ -72,7 +72,7 @@
                         <td>{{ value }}</td>
                         {% endfor %}
                         <td class="text-end">
-                            <a class="btn btn-sm btn-outline-primary rounded-pill" href="{% url 'backoffice:generic_crud_detail' resource.key row.id %}">Edit</a>
+                            <a class="btn btn-sm btn-outline-primary rounded-pill" href="{% url 'backoffice:generic_crud_detail' resource.key row.id %}">Tahrirlash</a>
                         </td>
                     </tr>
                     {% empty %}
@@ -84,3 +84,6 @@
     </form>
 </section>
 {% endblock %}
+
+
+

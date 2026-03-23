@@ -1,16 +1,16 @@
-{% extends 'backoffice/base.html' %}
+﻿{% extends 'backoffice/base.html' %}
 
-{% block backoffice_title %}Content Settings | Backoffice{% endblock %}
+{% block backoffice_title %}Kontent sozlamalari | Boshqaruv paneli{% endblock %}
 {% block backoffice_kicker %}CMS{% endblock %}
 {% block backoffice_heading %}Platforma Kontent Sozlamalari{% endblock %}
-{% block backoffice_description %}SiteSettings va AuthPageSettings'ni yangi paneldan boshqarish.{% endblock %}
+{% block backoffice_description %}Sayt va autentifikatsiya sahifasi sozlamalarini yangi paneldan boshqarish.{% endblock %}
 
 {% block backoffice_content %}
 <section class="bo-grid bo-grid--notify">
     <article class="bo-surface">
         <div class="bo-surface-head">
-            <h2>Site Settings</h2>
-            <span>Landing + checkout</span>
+            <h2>Sayt sozlamalari</h2>
+            <span>Landing va to'lov</span>
         </div>
         <form method="post" class="bo-form-grid">
             {% csrf_token %}
@@ -19,7 +19,7 @@
             <div class="alert alert-danger">{{ site_form.non_field_errors }}</div>
             {% endif %}
             <div>
-                <label class="form-label" for="{{ site_form.company_description.id_for_label }}">Company description</label>
+                <label class="form-label" for="{{ site_form.company_description.id_for_label }}">Kompaniya tavsifi</label>
                 {{ site_form.company_description }}
             </div>
             <div class="bo-form-grid bo-form-grid--triple">
@@ -32,7 +32,7 @@
                     {{ site_form.contact_email }}
                 </div>
                 <div>
-                    <label class="form-label" for="{{ site_form.support_url.id_for_label }}">Support URL</label>
+                    <label class="form-label" for="{{ site_form.support_url.id_for_label }}">Yordam havolasi</label>
                     {{ site_form.support_url }}
                 </div>
             </div>
@@ -50,7 +50,7 @@
                     {{ site_form.payment_card_holder }}
                 </div>
                 <div>
-                    <label class="form-label" for="{{ site_form.payment_provider_label.id_for_label }}">Provider</label>
+                    <label class="form-label" for="{{ site_form.payment_provider_label.id_for_label }}">To'lov provayderi</label>
                     {{ site_form.payment_provider_label }}
                 </div>
             </div>
@@ -84,8 +84,8 @@
 
     <article class="bo-surface">
         <div class="bo-surface-head">
-            <h2>Auth Page Settings</h2>
-            <span>Login / Register</span>
+            <h2>Kirish sahifasi sozlamalari</h2>
+            <span>Kirish / Ro'yxatdan o'tish</span>
         </div>
         <form method="post" class="bo-form-grid">
             {% csrf_token %}
@@ -95,25 +95,25 @@
             {% endif %}
 
             <div>
-                <label class="form-label" for="{{ auth_form.meta_description.id_for_label }}">Meta description</label>
+                <label class="form-label" for="{{ auth_form.meta_description.id_for_label }}">Meta tavsif</label>
                 {{ auth_form.meta_description }}
             </div>
             <div class="bo-form-grid bo-form-grid--triple">
                 <div>
-                    <label class="form-label" for="{{ auth_form.topbar_back_label.id_for_label }}">Topbar label</label>
+                    <label class="form-label" for="{{ auth_form.topbar_back_label.id_for_label }}">Yuqori panel yorlig'i</label>
                     {{ auth_form.topbar_back_label }}
                 </div>
                 <div>
-                    <label class="form-label" for="{{ auth_form.help_prompt.id_for_label }}">Help prompt</label>
+                    <label class="form-label" for="{{ auth_form.help_prompt.id_for_label }}">Yordam matni</label>
                     {{ auth_form.help_prompt }}
                 </div>
                 <div>
-                    <label class="form-label" for="{{ auth_form.help_link_label.id_for_label }}">Help link</label>
+                    <label class="form-label" for="{{ auth_form.help_link_label.id_for_label }}">Yordam havolasi</label>
                     {{ auth_form.help_link_label }}
                 </div>
             </div>
 
-            <h3 class="bo-subheading">Login</h3>
+            <h3 class="bo-subheading">Kirish</h3>
             <div class="bo-form-grid bo-form-grid--triple">
                 <div>{{ auth_form.login_visual_kicker }}</div>
                 <div>{{ auth_form.login_panel_badge }}</div>
@@ -127,7 +127,7 @@
                 <div>{{ auth_form.login_footer_link_label }}</div>
             </div>
 
-            <h3 class="bo-subheading">Register</h3>
+            <h3 class="bo-subheading">Ro'yxatdan o'tish</h3>
             <div class="bo-form-grid bo-form-grid--triple">
                 <div>{{ auth_form.register_visual_kicker }}</div>
                 <div>{{ auth_form.register_panel_badge }}</div>
@@ -147,3 +147,7 @@
     </article>
 </section>
 {% endblock %}
+
+
+
+

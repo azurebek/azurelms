@@ -1,15 +1,15 @@
-{% extends 'backoffice/base.html' %}
+﻿{% extends 'backoffice/base.html' %}
 {% load humanize %}
 
-{% block backoffice_title %}Gamification Certificates | Backoffice{% endblock %}
+{% block backoffice_title %}O'yinlashtirish sertifikatlari | Boshqaruv paneli{% endblock %}
 {% block backoffice_kicker %}Gamification{% endblock %}
-{% block backoffice_heading %}Gamification Sertifikatlari{% endblock %}
+{% block backoffice_heading %}O'yinlashtirish sertifikatlari{% endblock %}
 {% block backoffice_description %}Sertifikat yozuvlarini kuzatish, manual yaratish va tozalash.{% endblock %}
 
 {% block backoffice_content %}
 <section class="bo-filter-row">
     <form method="get" class="bo-search-form bo-search-form--triple">
-        <input type="text" name="q" class="form-control" value="{{ search_query }}" placeholder="User, course yoki certificate id...">
+        <input type="text" name="q" class="form-control" value="{{ search_query }}" placeholder="Foydalanuvchi, course yoki certificate id...">
         <select name="course_id" class="form-select">
             <option value="">Barcha kurslar</option>
             {% for course in courses %}
@@ -27,13 +27,13 @@
     <article class="bo-surface">
         <div class="bo-surface-head">
             <h2>Manual sertifikat</h2>
-            <span>Create</span>
+            <span>Yaratish</span>
         </div>
         <form method="post" enctype="multipart/form-data" class="bo-form-grid">
             {% csrf_token %}
             <input type="hidden" name="action" value="create_certificate">
             <div>
-                <label class="form-label" for="{{ create_form.student.id_for_label }}">Student</label>
+                <label class="form-label" for="{{ create_form.student.id_for_label }}">Talaba</label>
                 {{ create_form.student }}
             </div>
             <div>
@@ -66,7 +66,7 @@
                     <thead>
                         <tr>
                             <th><input type="checkbox" class="form-check-input" data-select-all="certificate_ids"></th>
-                            <th>User</th>
+                            <th>Foydalanuvchi</th>
                             <th>Course</th>
                             <th>Certificate ID</th>
                             <th>Sana</th>
@@ -99,3 +99,6 @@
     </article>
 </section>
 {% endblock %}
+
+
+

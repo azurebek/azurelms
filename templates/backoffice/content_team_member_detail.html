@@ -1,8 +1,8 @@
-{% extends 'backoffice/base.html' %}
+﻿{% extends 'backoffice/base.html' %}
 
-{% block backoffice_title %}Team Member Detail | Backoffice{% endblock %}
+{% block backoffice_title %}Jamoa a'zosi tafsiloti | Boshqaruv paneli{% endblock %}
 {% block backoffice_kicker %}CMS{% endblock %}
-{% block backoffice_heading %}Team Member: {{ member_obj.name }}{% endblock %}
+{% block backoffice_heading %}Jamoa a'zosi: {{ member_obj.name }}{% endblock %}
 {% block backoffice_description %}Jamoa a'zosi ma'lumotlarini tahrirlash yoki o'chirish.{% endblock %}
 
 {% block backoffice_content %}
@@ -41,7 +41,7 @@
                 {{ form.avatar }}
             </div>
             <div>
-                <label class="form-label" for="{{ form.order.id_for_label }}">Order</label>
+                <label class="form-label" for="{{ form.order.id_for_label }}">Tartib</label>
                 {{ form.order }}
             </div>
         </div>
@@ -62,3 +62,7 @@
     </form>
 </section>
 {% endblock %}
+
+
+
+

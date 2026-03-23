@@ -1,15 +1,15 @@
-{% extends 'backoffice/base.html' %}
+﻿{% extends 'backoffice/base.html' %}
 {% load humanize %}
 
-{% block backoffice_title %}Cohort Detail | Backoffice{% endblock %}
-{% block backoffice_kicker %}Cohort Ops{% endblock %}
+{% block backoffice_title %}Guruh tafsiloti | Boshqaruv paneli{% endblock %}
+{% block backoffice_kicker %}Guruh boshqaruvi{% endblock %}
 {% block backoffice_heading %}{{ cohort_obj.name }}{% endblock %}
-{% block backoffice_description %}Cohort sozlamalari, enrollments va davomatga tez boshqaruv.{% endblock %}
+{% block backoffice_description %}Guruh sozlamalari, yozilishlar va davomatni tez boshqarish.{% endblock %}
 
 {% block backoffice_content %}
 <section class="bo-surface">
     <div class="bo-surface-head">
-        <h2>Cohort sozlamalari</h2>
+        <h2>Guruh sozlamalari</h2>
         <div class="d-flex gap-2">
             <a class="btn btn-sm btn-outline-primary rounded-pill" href="{% url 'backoffice:cohorts' %}">Katalogga qaytish</a>
             <a class="btn btn-sm btn-outline-primary rounded-pill" href="{% url 'backoffice:attendance' %}?cohort_id={{ cohort_obj.id }}">Davomatga o'tish</a>
@@ -22,7 +22,7 @@
         <div class="alert alert-danger">{{ cohort_form.non_field_errors }}</div>
         {% endif %}
         <div>
-            <label class="form-label" for="{{ cohort_form.name.id_for_label }}">Cohort nomi</label>
+            <label class="form-label" for="{{ cohort_form.name.id_for_label }}">Guruh nomi</label>
             {{ cohort_form.name }}
         </div>
         <div>
@@ -46,7 +46,7 @@
             </div>
         </div>
         <div class="bo-form-actions bo-form-actions--end">
-            <button class="btn btn-primary rounded-pill px-4" type="submit">Cohortni saqlash</button>
+            <button class="btn btn-primary rounded-pill px-4" type="submit">Guruhni saqlash</button>
         </div>
     </form>
 </section>
@@ -54,8 +54,8 @@
 <section class="bo-grid bo-grid--notify">
     <article class="bo-surface">
         <div class="bo-surface-head">
-            <h2>Yangi enrollment</h2>
-            <span>Add</span>
+            <h2>Yangi yozilish</h2>
+            <span>Qo'shish</span>
         </div>
         <form method="post" class="bo-form-grid">
             {% csrf_token %}
@@ -73,7 +73,7 @@
                     {{ enrollment_form.plan }}
                 </div>
                 <div>
-                    <label class="form-label" for="{{ enrollment_form.status.id_for_label }}">Status</label>
+                    <label class="form-label" for="{{ enrollment_form.status.id_for_label }}">Holat</label>
                     {{ enrollment_form.status }}
                 </div>
                 <div>
@@ -82,11 +82,11 @@
                 </div>
             </div>
             <div>
-                <label class="form-label" for="{{ enrollment_form.next_payment_deadline.id_for_label }}">Keyingi deadline</label>
+                <label class="form-label" for="{{ enrollment_form.next_payment_deadline.id_for_label }}">Keyingi muddat</label>
                 {{ enrollment_form.next_payment_deadline }}
             </div>
             <div class="bo-form-actions bo-form-actions--end">
-                <button class="btn btn-primary rounded-pill px-4" type="submit">Enrollment qo'shish</button>
+                <button class="btn btn-primary rounded-pill px-4" type="submit">Yozilish qo'shish</button>
             </div>
         </form>
     </article>
@@ -97,27 +97,27 @@
             <span>Live</span>
         </div>
         <div class="bo-inline-stats bo-inline-stats--stack">
-            <span>Jami enrollment: <strong>{{ summary_total|intcomma }}</strong></span>
+            <span>Jami yozilish: <strong>{{ summary_total|intcomma }}</strong></span>
             <span>Faol: <strong>{{ summary_active|intcomma }}</strong></span>
-            <span>Pending: <strong>{{ summary_pending|intcomma }}</strong></span>
+            <span>Kutilmoqda: <strong>{{ summary_pending|intcomma }}</strong></span>
         </div>
     </article>
 </section>
 
 <section class="bo-surface">
     <div class="bo-surface-head">
-        <h2>Bulk enrollment actions</h2>
+        <h2>Ommaviy yozilish amallari</h2>
         <span>{{ enrollments|length|intcomma }} ta</span>
     </div>
     <form method="post">
         {% csrf_token %}
         <div class="bo-action-bar bo-action-bar--wrap">
             <select name="action" class="form-select bo-action-select">
-                <option value="">Action tanlang</option>
+                <option value="">Amalni tanlang</option>
                 <option value="mark_active_selected">Faol qilish</option>
-                <option value="mark_pending_selected">Pending qilish</option>
+                <option value="mark_pending_selected">Kutilmoqda qilish</option>
                 <option value="mark_frozen_selected">Muzlatish</option>
-                <option value="mark_expired_selected">Expired qilish</option>
+                <option value="mark_expired_selected">Muddati tugagan qilish</option>
                 <option value="delete_selected_enrollments">O'chirish</option>
             </select>
             <button class="btn btn-primary rounded-pill px-4" type="submit">Qo'llash</button>
@@ -128,7 +128,7 @@
                     <tr>
                         <th><input type="checkbox" class="form-check-input" data-select-all="enrollment_ids"></th>
                         <th>Talaba</th>
-                        <th>Status</th>
+                        <th>Holat</th>
                         <th>Tarif</th>
                         <th>So'nggi to'lov</th>
                         <th>Deadline</th>
@@ -150,7 +150,7 @@
                         <td>{{ enrollment.receipts_total|intcomma }}</td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="7">Hozircha enrollment yo'q.</td></tr>
+                    <tr><td colspan="7">Hozircha yozilish yo'q.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -160,8 +160,8 @@
 
 <section class="bo-surface">
     <div class="bo-surface-head">
-        <h2>Enrollment quick edit</h2>
-        <span>Row-level update</span>
+        <h2>Yozilishni tez tahrirlash</h2>
+        <span>Qator bo'yicha yangilash</span>
     </div>
     <div class="bo-form-grid">
         {% for enrollment in enrollments %}
@@ -174,7 +174,7 @@
                     <div class="form-control bg-light">{{ enrollment.student.get_full_name|default:enrollment.student.username }} (@{{ enrollment.student.username }})</div>
                 </div>
                 <div>
-                    <label class="form-label">Status</label>
+                    <label class="form-label">Holat</label>
                     <select name="status" class="form-select">
                         {% for value, label in status_choices %}
                         <option value="{{ value }}" {% if enrollment.status == value %}selected{% endif %}>{{ label }}</option>
@@ -197,7 +197,7 @@
                     <input type="date" name="last_payment_date" class="form-control" value="{{ enrollment.last_payment_date|date:'Y-m-d' }}">
                 </div>
                 <div>
-                    <label class="form-label">Keyingi deadline</label>
+                    <label class="form-label">Keyingi muddat</label>
                     <input type="date" name="next_payment_deadline" class="form-control" value="{{ enrollment.next_payment_deadline|date:'Y-m-d' }}">
                 </div>
                 <div class="bo-form-actions bo-form-actions--end">
@@ -207,8 +207,12 @@
             </div>
         </form>
         {% empty %}
-        <div class="small text-muted">Quick edit uchun enrollment yo'q.</div>
+        <div class="small text-muted">Tez tahrirlash uchun yozilish yo'q.</div>
         {% endfor %}
     </div>
 </section>
 {% endblock %}
+
+
+
+

@@ -1,7 +1,7 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{% block backoffice_title %}Backoffice{% endblock %}{% endblock %}
+{% block title %}{% block backoffice_title %}Boshqaruv paneli{% endblock %}{% endblock %}
 {% block body_class %}backoffice-page{% endblock %}
 {% block navbar %}{% endblock %}
 {% block footer %}{% endblock %}
@@ -17,7 +17,7 @@
             <a class="bo-brand" href="{% url 'backoffice:dashboard' %}">
                 <span class="bo-brand-mark">AL</span>
                 <span class="bo-brand-copy">
-                    <small>BACKOFFICE</small>
+                    <small>BOSHQARUV</small>
                     <strong>AzureLMS</strong>
                 </span>
             </a>
@@ -29,7 +29,7 @@
         <nav class="bo-nav">
             <a class="bo-nav-link {% if request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}" href="{% url 'backoffice:dashboard' %}">
                 <i class="bi bi-speedometer2"></i>
-                <span>Dashboard</span>
+                <span>Bosh panel</span>
             </a>
 
             <details
@@ -37,15 +37,15 @@
                 {% if request.resolver_match.url_name == 'students' or request.resolver_match.url_name == 'users' or request.resolver_match.url_name == 'user_detail' or request.resolver_match.url_name == 'cohorts' or request.resolver_match.url_name == 'cohort_detail' or request.resolver_match.url_name == 'attendance' or request.resolver_match.url_name == 'notifications' %}open{% endif %}
             >
                 <summary class="bo-nav-group-summary">
-                    <span class="bo-nav-group-title"><i class="bi bi-people"></i>People Ops</span>
+                    <span class="bo-nav-group-title"><i class="bi bi-people"></i>Foydalanuvchilar</span>
                     <i class="bi bi-chevron-down bo-nav-group-chevron"></i>
                 </summary>
                 <div class="bo-nav-group-links">
                     <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'students' %}is-active{% endif %}" href="{% url 'backoffice:students' %}"><span>Talabalar</span></a>
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'users' or request.resolver_match.url_name == 'user_detail' %}is-active{% endif %}" href="{% url 'backoffice:users' %}"><span>Users</span></a>
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'cohorts' or request.resolver_match.url_name == 'cohort_detail' %}is-active{% endif %}" href="{% url 'backoffice:cohorts' %}"><span>Cohorts</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'users' or request.resolver_match.url_name == 'user_detail' %}is-active{% endif %}" href="{% url 'backoffice:users' %}"><span>Foydalanuvchilar</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'cohorts' or request.resolver_match.url_name == 'cohort_detail' %}is-active{% endif %}" href="{% url 'backoffice:cohorts' %}"><span>Guruhlar</span></a>
                     <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'attendance' %}is-active{% endif %}" href="{% url 'backoffice:attendance' %}"><span>Davomat</span></a>
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'notifications' %}is-active{% endif %}" href="{% url 'backoffice:notifications' %}"><span>Notifications</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'notifications' %}is-active{% endif %}" href="{% url 'backoffice:notifications' %}"><span>Bildirishnomalar</span></a>
                 </div>
             </details>
 
@@ -54,17 +54,17 @@
                 {% if request.resolver_match.url_name == 'learning_assignments' or request.resolver_match.url_name == 'learning_releases' or request.resolver_match.url_name == 'learning_exams' or request.resolver_match.url_name == 'learning_exam_attempt_detail' or request.resolver_match.url_name == 'learning_exam_authoring' or request.resolver_match.url_name == 'learning_quiz_authoring' or request.resolver_match.url_name == 'learning_course_certificates' or request.resolver_match.url_name == 'courses_catalog' or request.resolver_match.url_name == 'course_structure' %}open{% endif %}
             >
                 <summary class="bo-nav-group-summary">
-                    <span class="bo-nav-group-title"><i class="bi bi-mortarboard"></i>Learning</span>
+                    <span class="bo-nav-group-title"><i class="bi bi-mortarboard"></i>Ta'lim</span>
                     <i class="bi bi-chevron-down bo-nav-group-chevron"></i>
                 </summary>
                 <div class="bo-nav-group-links">
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'learning_assignments' %}is-active{% endif %}" href="{% url 'backoffice:learning_assignments' %}"><span>Assignments</span></a>
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'learning_releases' %}is-active{% endif %}" href="{% url 'backoffice:learning_releases' %}"><span>Lesson Release</span></a>
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'learning_exams' or request.resolver_match.url_name == 'learning_exam_attempt_detail' %}is-active{% endif %}" href="{% url 'backoffice:learning_exams' %}"><span>Exam Review</span></a>
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'learning_exam_authoring' %}is-active{% endif %}" href="{% url 'backoffice:learning_exam_authoring' %}"><span>Exam Authoring</span></a>
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'learning_quiz_authoring' %}is-active{% endif %}" href="{% url 'backoffice:learning_quiz_authoring' %}"><span>Quiz Authoring</span></a>
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'learning_course_certificates' %}is-active{% endif %}" href="{% url 'backoffice:learning_course_certificates' %}"><span>Course Certificates</span></a>
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'courses_catalog' or request.resolver_match.url_name == 'course_structure' %}is-active{% endif %}" href="{% url 'backoffice:courses_catalog' %}"><span>Course Authoring</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'learning_assignments' %}is-active{% endif %}" href="{% url 'backoffice:learning_assignments' %}"><span>Vazifalar</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'learning_releases' %}is-active{% endif %}" href="{% url 'backoffice:learning_releases' %}"><span>Dars ochish</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'learning_exams' or request.resolver_match.url_name == 'learning_exam_attempt_detail' %}is-active{% endif %}" href="{% url 'backoffice:learning_exams' %}"><span>Imtihon tekshiruvi</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'learning_exam_authoring' %}is-active{% endif %}" href="{% url 'backoffice:learning_exam_authoring' %}"><span>Imtihon tuzish</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'learning_quiz_authoring' %}is-active{% endif %}" href="{% url 'backoffice:learning_quiz_authoring' %}"><span>Test tuzish</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'learning_course_certificates' %}is-active{% endif %}" href="{% url 'backoffice:learning_course_certificates' %}"><span>Kurs sertifikatlari</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'courses_catalog' or request.resolver_match.url_name == 'course_structure' %}is-active{% endif %}" href="{% url 'backoffice:courses_catalog' %}"><span>Kurs tuzish</span></a>
                 </div>
             </details>
 
@@ -73,12 +73,12 @@
                 {% if request.resolver_match.url_name == 'payments' or request.resolver_match.url_name == 'subscriptions' or request.resolver_match.url_name == 'subscription_plan_detail' %}open{% endif %}
             >
                 <summary class="bo-nav-group-summary">
-                    <span class="bo-nav-group-title"><i class="bi bi-wallet2"></i>Finance</span>
+                    <span class="bo-nav-group-title"><i class="bi bi-wallet2"></i>Moliya</span>
                     <i class="bi bi-chevron-down bo-nav-group-chevron"></i>
                 </summary>
                 <div class="bo-nav-group-links">
                     <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'payments' %}is-active{% endif %}" href="{% url 'backoffice:payments' %}"><span>To'lovlar</span></a>
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'subscriptions' or request.resolver_match.url_name == 'subscription_plan_detail' %}is-active{% endif %}" href="{% url 'backoffice:subscriptions' %}"><span>Subscriptions</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'subscriptions' or request.resolver_match.url_name == 'subscription_plan_detail' %}is-active{% endif %}" href="{% url 'backoffice:subscriptions' %}"><span>Obunalar</span></a>
                 </div>
             </details>
 
@@ -87,13 +87,13 @@
                 {% if request.resolver_match.url_name == 'messenger_rooms' or request.resolver_match.url_name == 'messenger_room_detail' or request.resolver_match.url_name == 'messenger_messages' or request.resolver_match.url_name == 'messenger_rag_chunks' %}open{% endif %}
             >
                 <summary class="bo-nav-group-summary">
-                    <span class="bo-nav-group-title"><i class="bi bi-chat-dots"></i>Messenger & AI</span>
+                    <span class="bo-nav-group-title"><i class="bi bi-chat-dots"></i>Messenger va AI</span>
                     <i class="bi bi-chevron-down bo-nav-group-chevron"></i>
                 </summary>
                 <div class="bo-nav-group-links">
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'messenger_rooms' or request.resolver_match.url_name == 'messenger_room_detail' %}is-active{% endif %}" href="{% url 'backoffice:messenger_rooms' %}"><span>Messenger Rooms</span></a>
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'messenger_messages' %}is-active{% endif %}" href="{% url 'backoffice:messenger_messages' %}"><span>Messenger Messages</span></a>
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'messenger_rag_chunks' %}is-active{% endif %}" href="{% url 'backoffice:messenger_rag_chunks' %}"><span>RAG Chunks</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'messenger_rooms' or request.resolver_match.url_name == 'messenger_room_detail' %}is-active{% endif %}" href="{% url 'backoffice:messenger_rooms' %}"><span>Chat xonalari</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'messenger_messages' %}is-active{% endif %}" href="{% url 'backoffice:messenger_messages' %}"><span>Chat xabarlari</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'messenger_rag_chunks' %}is-active{% endif %}" href="{% url 'backoffice:messenger_rag_chunks' %}"><span>RAG bo'laklar</span></a>
                 </div>
             </details>
 
@@ -102,14 +102,14 @@
                 {% if request.resolver_match.url_name == 'gamification_levels' or request.resolver_match.url_name == 'gamification_badges' or request.resolver_match.url_name == 'gamification_badge_detail' or request.resolver_match.url_name == 'gamification_earned_badges' or request.resolver_match.url_name == 'gamification_certificates' %}open{% endif %}
             >
                 <summary class="bo-nav-group-summary">
-                    <span class="bo-nav-group-title"><i class="bi bi-trophy"></i>Gamification</span>
+                    <span class="bo-nav-group-title"><i class="bi bi-trophy"></i>O'yinlashtirish</span>
                     <i class="bi bi-chevron-down bo-nav-group-chevron"></i>
                 </summary>
                 <div class="bo-nav-group-links">
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'gamification_levels' %}is-active{% endif %}" href="{% url 'backoffice:gamification_levels' %}"><span>Gamification Levels</span></a>
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'gamification_badges' or request.resolver_match.url_name == 'gamification_badge_detail' %}is-active{% endif %}" href="{% url 'backoffice:gamification_badges' %}"><span>Gamification Badges</span></a>
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'gamification_earned_badges' %}is-active{% endif %}" href="{% url 'backoffice:gamification_earned_badges' %}"><span>Earned Badges</span></a>
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'gamification_certificates' %}is-active{% endif %}" href="{% url 'backoffice:gamification_certificates' %}"><span>Game Certificates</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'gamification_levels' %}is-active{% endif %}" href="{% url 'backoffice:gamification_levels' %}"><span>Darajalar</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'gamification_badges' or request.resolver_match.url_name == 'gamification_badge_detail' %}is-active{% endif %}" href="{% url 'backoffice:gamification_badges' %}"><span>Nishonlar</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'gamification_earned_badges' %}is-active{% endif %}" href="{% url 'backoffice:gamification_earned_badges' %}"><span>Olingan nishonlar</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'gamification_certificates' %}is-active{% endif %}" href="{% url 'backoffice:gamification_certificates' %}"><span>Sertifikatlar</span></a>
                 </div>
             </details>
 
@@ -118,22 +118,22 @@
                 {% if request.resolver_match.url_name == 'content_settings' or request.resolver_match.url_name == 'content_landing_page' or request.resolver_match.url_name == 'content_landing_blocks' or request.resolver_match.url_name == 'content_testimonial_detail' or request.resolver_match.url_name == 'content_about_page' or request.resolver_match.url_name == 'content_about_blocks' or request.resolver_match.url_name == 'content_team_member_detail' or request.resolver_match.url_name == 'content_landing_nav' or request.resolver_match.url_name == 'content_blog_home' or request.resolver_match.url_name == 'content_blog_tags' or request.resolver_match.url_name == 'content_blog_signals' or request.resolver_match.url_name == 'legal_pages' or request.resolver_match.url_name == 'legal_page_detail' or request.resolver_match.url_name == 'blog_posts' or request.resolver_match.url_name == 'blog_comments' %}open{% endif %}
             >
                 <summary class="bo-nav-group-summary">
-                    <span class="bo-nav-group-title"><i class="bi bi-layout-text-window-reverse"></i>Content</span>
+                    <span class="bo-nav-group-title"><i class="bi bi-layout-text-window-reverse"></i>Kontent</span>
                     <i class="bi bi-chevron-down bo-nav-group-chevron"></i>
                 </summary>
                 <div class="bo-nav-group-links">
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'content_settings' %}is-active{% endif %}" href="{% url 'backoffice:content_settings' %}"><span>Content Settings</span></a>
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'content_landing_page' %}is-active{% endif %}" href="{% url 'backoffice:content_landing_page' %}"><span>Landing Page</span></a>
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'content_landing_blocks' or request.resolver_match.url_name == 'content_testimonial_detail' %}is-active{% endif %}" href="{% url 'backoffice:content_landing_blocks' %}"><span>Landing Blocks</span></a>
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'content_about_page' %}is-active{% endif %}" href="{% url 'backoffice:content_about_page' %}"><span>About Page</span></a>
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'content_about_blocks' or request.resolver_match.url_name == 'content_team_member_detail' %}is-active{% endif %}" href="{% url 'backoffice:content_about_blocks' %}"><span>About Blocks</span></a>
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'content_landing_nav' %}is-active{% endif %}" href="{% url 'backoffice:content_landing_nav' %}"><span>Landing Navbar</span></a>
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'content_blog_home' %}is-active{% endif %}" href="{% url 'backoffice:content_blog_home' %}"><span>Blog Home</span></a>
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'content_blog_tags' %}is-active{% endif %}" href="{% url 'backoffice:content_blog_tags' %}"><span>Blog Tags</span></a>
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'content_blog_signals' %}is-active{% endif %}" href="{% url 'backoffice:content_blog_signals' %}"><span>Blog Signals</span></a>
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'legal_pages' or request.resolver_match.url_name == 'legal_page_detail' %}is-active{% endif %}" href="{% url 'backoffice:legal_pages' %}"><span>Legal Pages</span></a>
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'blog_posts' %}is-active{% endif %}" href="{% url 'backoffice:blog_posts' %}"><span>Blog Posts</span></a>
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'blog_comments' %}is-active{% endif %}" href="{% url 'backoffice:blog_comments' %}"><span>Blog Comments</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'content_settings' %}is-active{% endif %}" href="{% url 'backoffice:content_settings' %}"><span>Kontent sozlamalari</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'content_landing_page' %}is-active{% endif %}" href="{% url 'backoffice:content_landing_page' %}"><span>Landing sahifasi</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'content_landing_blocks' or request.resolver_match.url_name == 'content_testimonial_detail' %}is-active{% endif %}" href="{% url 'backoffice:content_landing_blocks' %}"><span>Landing bloklari</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'content_about_page' %}is-active{% endif %}" href="{% url 'backoffice:content_about_page' %}"><span>Biz haqimizda sahifasi</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'content_about_blocks' or request.resolver_match.url_name == 'content_team_member_detail' %}is-active{% endif %}" href="{% url 'backoffice:content_about_blocks' %}"><span>Biz haqimizda bloklari</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'content_landing_nav' %}is-active{% endif %}" href="{% url 'backoffice:content_landing_nav' %}"><span>Landing menyusi</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'content_blog_home' %}is-active{% endif %}" href="{% url 'backoffice:content_blog_home' %}"><span>Blog bosh sahifasi</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'content_blog_tags' %}is-active{% endif %}" href="{% url 'backoffice:content_blog_tags' %}"><span>Blog teglari</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'content_blog_signals' %}is-active{% endif %}" href="{% url 'backoffice:content_blog_signals' %}"><span>Blog signalari</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'legal_pages' or request.resolver_match.url_name == 'legal_page_detail' %}is-active{% endif %}" href="{% url 'backoffice:legal_pages' %}"><span>Huquqiy sahifalar</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'blog_posts' %}is-active{% endif %}" href="{% url 'backoffice:blog_posts' %}"><span>Blog maqolalari</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'blog_comments' %}is-active{% endif %}" href="{% url 'backoffice:blog_comments' %}"><span>Blog izohlari</span></a>
                 </div>
             </details>
 
@@ -142,13 +142,13 @@
                 {% if request.resolver_match.url_name == 'generic_crud_index' or request.resolver_match.url_name == 'generic_crud_list' or request.resolver_match.url_name == 'generic_crud_detail' %}open{% endif %}
             >
                 <summary class="bo-nav-group-summary">
-                    <span class="bo-nav-group-title"><i class="bi bi-sliders"></i>Platform Dev</span>
+                    <span class="bo-nav-group-title"><i class="bi bi-sliders"></i>Platforma dev</span>
                     <i class="bi bi-chevron-down bo-nav-group-chevron"></i>
                 </summary>
                 <div class="bo-nav-group-links">
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'generic_crud_index' or request.resolver_match.url_name == 'generic_crud_list' or request.resolver_match.url_name == 'generic_crud_detail' %}is-active{% endif %}" href="{% url 'backoffice:generic_crud_index' %}"><span>Generic CRUD</span></a>
+                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'generic_crud_index' or request.resolver_match.url_name == 'generic_crud_list' or request.resolver_match.url_name == 'generic_crud_detail' %}is-active{% endif %}" href="{% url 'backoffice:generic_crud_index' %}"><span>Universal CRUD</span></a>
                     {% if ENABLE_LEGACY_ADMIN %}
-                    <a class="bo-nav-link bo-nav-sublink" href="/admin/" target="_blank" rel="noopener"><span>Legacy Admin</span></a>
+                    <a class="bo-nav-link bo-nav-sublink" href="/admin/" target="_blank" rel="noopener"><span>Eski admin</span></a>
                     {% endif %}
                 </div>
             </details>
@@ -168,7 +168,7 @@
                     <span>@{{ request.user.username }}</span>
                 </div>
             </div>
-            <a class="btn btn-outline-primary w-100 rounded-pill" href="{% url 'dashboard' %}">User Dashboard</a>
+            <a class="btn btn-outline-primary w-100 rounded-pill" href="{% url 'dashboard' %}">Foydalanuvchi paneli</a>
         </div>
     </aside>
 
@@ -178,9 +178,9 @@
                 <i class="bi bi-list"></i>
             </button>
             <div class="bo-topbar-copy">
-                <span class="bo-kicker">{% block backoffice_kicker %}Control Center{% endblock %}</span>
-                <h1>{% block backoffice_heading %}Backoffice{% endblock %}</h1>
-                <p>{% block backoffice_description %}Alternative professional admin panel{% endblock %}</p>
+                <span class="bo-kicker">{% block backoffice_kicker %}Boshqaruv markazi{% endblock %}</span>
+                <h1>{% block backoffice_heading %}Boshqaruv paneli{% endblock %}</h1>
+                <p>{% block backoffice_description %}Muqobil professional admin panel{% endblock %}</p>
             </div>
             <div class="bo-topbar-actions">
                 <a class="btn btn-outline-primary rounded-pill" href="{% url 'home' %}">Saytga o'tish</a>
@@ -233,8 +233,8 @@ document.querySelectorAll('.bo-nav-group').forEach(function(group) {
 });
 
 document.querySelectorAll('[data-select-all]').forEach(function(master) {
-    const targetName = master.getAttribute('data-select-all');
-    const items = Array.from(document.querySelectorAll('input[name="' + targetName + '"]'));
+    const targetNomi = master.getAttribute('data-select-all');
+    const items = Array.from(document.querySelectorAll('input[name="' + targetNomi + '"]'));
     master.addEventListener('change', function() {
         items.forEach(function(item) {
             item.checked = master.checked;
@@ -244,3 +244,6 @@ document.querySelectorAll('[data-select-all]').forEach(function(master) {
 </script>
 {% block backoffice_js %}{% endblock %}
 {% endblock %}
+
+
+
