@@ -91,8 +91,8 @@
                     <i class="bi bi-chevron-down bo-nav-group-chevron"></i>
                 </summary>
                 <div class="bo-nav-group-links">
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'messenger_rooms' or request.resolver_match.url_name == 'messenger_room_detail' %}is-active{% endif %}" href="{% url 'backoffice:messenger_rooms' %}"><span>Chat xonalari</span></a>
-                    <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'messenger_messages' %}is-active{% endif %}" href="{% url 'backoffice:messenger_messages' %}"><span>Chat xabarlari</span></a>
+                        <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'messenger_rooms' or request.resolver_match.url_name == 'messenger_room_detail' %}is-active{% endif %}" href="{% url 'backoffice:messenger_rooms' %}"><span>Muloqot xonalari</span></a>
+                        <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'messenger_messages' %}is-active{% endif %}" href="{% url 'backoffice:messenger_messages' %}"><span>Muloqot xabarlari</span></a>
                     <a class="bo-nav-link bo-nav-sublink {% if request.resolver_match.url_name == 'messenger_rag_chunks' %}is-active{% endif %}" href="{% url 'backoffice:messenger_rag_chunks' %}"><span>RAG bo'laklar</span></a>
                 </div>
             </details>

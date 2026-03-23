@@ -2,15 +2,15 @@
 {% load humanize %}
 
 {% block backoffice_title %}Nishonlar | Boshqaruv paneli{% endblock %}
-{% block backoffice_kicker %}Gamification{% endblock %}
+{% block backoffice_kicker %}O'yinlashtirish{% endblock %}
 {% block backoffice_heading %}Nishonlar boshqaruvi{% endblock %}
-{% block backoffice_description %}Yutuq badge yaratish, tahrirlash va monitoring qilish.{% endblock %}
+{% block backoffice_description %}Yutuq nishonlarini yaratish, tahrirlash va monitoring qilish.{% endblock %}
 
 {% block backoffice_content %}
 <section class="bo-grid bo-grid--notify">
     <article class="bo-surface">
         <div class="bo-surface-head">
-            <h2>Yangi badge</h2>
+            <h2>Yangi nishon</h2>
             <span>Yaratish</span>
         </div>
         <form method="post" enctype="multipart/form-data" class="bo-form-grid">
@@ -21,23 +21,23 @@
                 {{ create_form.name }}
             </div>
             <div>
-                <label class="form-label" for="{{ create_form.description.id_for_label }}">Description</label>
+                <label class="form-label" for="{{ create_form.description.id_for_label }}">Tavsif</label>
                 {{ create_form.description }}
             </div>
             <div>
-                <label class="form-label" for="{{ create_form.icon_source.id_for_label }}">Icon source</label>
+                <label class="form-label" for="{{ create_form.icon_source.id_for_label }}">Ikonka manbasi</label>
                 {{ create_form.icon_source }}
             </div>
             <div data-badge-google-fields>
-                <label class="form-label" for="{{ create_form.google_icon_name.id_for_label }}">Google icon name</label>
+                <label class="form-label" for="{{ create_form.google_icon_name.id_for_label }}">Google ikonka nomi</label>
                 {{ create_form.google_icon_name }}
             </div>
             <div data-badge-google-fields>
-                <label class="form-label" for="{{ create_form.google_icon_style.id_for_label }}">Google icon style</label>
+                <label class="form-label" for="{{ create_form.google_icon_style.id_for_label }}">Google ikonka uslubi</label>
                 {{ create_form.google_icon_style }}
             </div>
             <div data-badge-upload-fields>
-                <label class="form-label" for="{{ create_form.icon.id_for_label }}">Icon</label>
+                <label class="form-label" for="{{ create_form.icon.id_for_label }}">Ikonka</label>
                 {{ create_form.icon }}
             </div>
             <div class="bo-form-actions bo-form-actions--end">
@@ -48,15 +48,15 @@
 
     <article class="bo-surface">
         <div class="bo-surface-head">
-            <h2>Badge ro'yxati</h2>
+            <h2>Nishonlar ro'yxati</h2>
             <span>{{ badges|length|intcomma }} ta</span>
         </div>
         <div class="bo-table-wrap">
             <table class="table bo-table">
                 <thead>
                     <tr>
-                        <th>Badge</th>
-                        <th>Earned count</th>
+                        <th>Nishon</th>
+                        <th>Olinganlar soni</th>
                         <th>Amal</th>
                     </tr>
                 </thead>
@@ -88,7 +88,7 @@
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="3">Badge topilmadi.</td></tr>
+                    <tr><td colspan="3">Nishon topilmadi.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>

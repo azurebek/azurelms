@@ -3,7 +3,7 @@
 
 {% block backoffice_title %}Universal CRUD | Boshqaruv paneli{% endblock %}
 {% block backoffice_kicker %}Platforma dev{% endblock %}
-{% block backoffice_heading %}Universal CRUD Builder{% endblock %}
+{% block backoffice_heading %}Universal CRUD{% endblock %}
 {% block backoffice_description %}Yangi model qo'shilganda alohida HTML yozmasdan CRUD qilish uchun universal panel.{% endblock %}
 
 {% block backoffice_content %}
@@ -21,7 +21,7 @@
             <a class="btn btn-sm btn-outline-primary rounded-pill mt-2" href="{% url 'backoffice:generic_crud_list' item.key %}">Ochish</a>
         </article>
         {% empty %}
-        <p>Hozircha resource yo'q.</p>
+        <p>Hozircha resurs yo'q.</p>
         {% endfor %}
     </div>
 </section>

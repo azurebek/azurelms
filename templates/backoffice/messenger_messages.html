@@ -1,28 +1,28 @@
 ﻿{% extends 'backoffice/base.html' %}
 {% load humanize %}
 
-{% block backoffice_title %}Chat xabarlari | Boshqaruv paneli{% endblock %}
+{% block backoffice_title %}Muloqot xabarlari | Boshqaruv paneli{% endblock %}
 {% block backoffice_kicker %}Messenger{% endblock %}
 {% block backoffice_heading %}Xabarlar moderatsiyasi{% endblock %}
-{% block backoffice_description %}Chat xabarlarini filtrlash, read/unread holatini boshqarish va o'chirish.{% endblock %}
+{% block backoffice_description %}Muloqot xabarlarini filtrlash, o'qilgan/o'qilmagan holatini boshqarish va o'chirish.{% endblock %}
 
 {% block backoffice_content %}
 <section class="bo-filter-row">
     <form method="get" class="bo-search-form bo-search-form--quad">
-        <input type="text" name="q" value="{{ search_query }}" class="form-control" placeholder="Matn, sender, room...">
+        <input type="text" name="q" value="{{ search_query }}" class="form-control" placeholder="Matn, yuboruvchi, xona...">
         <select name="room_type" class="form-select">
-            <option value="all" {% if selected_room_type == 'all' %}selected{% endif %}>Xona turi: all</option>
+            <option value="all" {% if selected_room_type == 'all' %}selected{% endif %}>Xona turi: barchasi</option>
             <option value="group" {% if selected_room_type == 'group' %}selected{% endif %}>Guruh</option>
             <option value="private" {% if selected_room_type == 'private' %}selected{% endif %}>Shaxsiy</option>
             <option value="ai" {% if selected_room_type == 'ai' %}selected{% endif %}>AI</option>
         </select>
         <select name="unread" class="form-select">
-            <option value="all" {% if selected_unread == 'all' %}selected{% endif %}>O'qilgan status: all</option>
-            <option value="yes" {% if selected_unread == 'yes' %}selected{% endif %}>Faqat unread</option>
-            <option value="no" {% if selected_unread == 'no' %}selected{% endif %}>Faqat read</option>
+            <option value="all" {% if selected_unread == 'all' %}selected{% endif %}>O'qilgan holati: barchasi</option>
+            <option value="yes" {% if selected_unread == 'yes' %}selected{% endif %}>Faqat o'qilmagan</option>
+            <option value="no" {% if selected_unread == 'no' %}selected{% endif %}>Faqat o'qilgan</option>
         </select>
         <select name="ai_only" class="form-select">
-            <option value="all" {% if selected_ai_only == 'all' %}selected{% endif %}>AI/Foydalanuvchi: all</option>
+            <option value="all" {% if selected_ai_only == 'all' %}selected{% endif %}>AI/Foydalanuvchi: barchasi</option>
             <option value="yes" {% if selected_ai_only == 'yes' %}selected{% endif %}>Faqat AI</option>
             <option value="no" {% if selected_ai_only == 'no' %}selected{% endif %}>Faqat Foydalanuvchi</option>
         </select>
@@ -31,7 +31,7 @@
     <div class="bo-inline-stats">
         <span>Jami: <strong>{{ summary_total|intcomma }}</strong></span>
         <span>O'qilmagan: <strong>{{ summary_unread|intcomma }}</strong></span>
-        <span>AI messages: <strong>{{ summary_ai|intcomma }}</strong></span>
+        <span>AI xabarlari: <strong>{{ summary_ai|intcomma }}</strong></span>
     </div>
 </section>
 

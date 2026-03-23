@@ -9,7 +9,7 @@
 {% block backoffice_content %}
 <section class="bo-filter-row">
     <form method="get" class="bo-search-form bo-search-form--quad">
-        <input type="text" name="q" class="form-control" value="{{ search_query }}" placeholder="Talaba, email, vazifa...">
+        <input type="text" name="q" class="form-control" value="{{ search_query }}" placeholder="Talaba, e-pochta, vazifa...">
         <select name="status" class="form-select">
             <option value="all" {% if selected_status == 'all' %}selected{% endif %}>Barcha holatlar</option>
             <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>Kutilmoqda</option>

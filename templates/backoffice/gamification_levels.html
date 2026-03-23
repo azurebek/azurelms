@@ -2,7 +2,7 @@
 {% load humanize %}
 
 {% block backoffice_title %}Darajalar | Boshqaruv paneli{% endblock %}
-{% block backoffice_kicker %}Gamification{% endblock %}
+{% block backoffice_kicker %}O'yinlashtirish{% endblock %}
 {% block backoffice_heading %}Darajalar boshqaruvi{% endblock %}
 {% block backoffice_description %}XP darajalarini yaratish, yangilash va o'chirish.{% endblock %}
 
@@ -10,7 +10,7 @@
 <section class="bo-grid bo-grid--notify">
     <article class="bo-surface">
         <div class="bo-surface-head">
-            <h2>Yangi level</h2>
+            <h2>Yangi daraja</h2>
             <span>Yaratish</span>
         </div>
         <form method="post" enctype="multipart/form-data" class="bo-form-grid">
@@ -22,11 +22,11 @@
                     {{ create_form.name }}
                 </div>
                 <div>
-                    <label class="form-label" for="{{ create_form.min_xp.id_for_label }}">Min XP</label>
+                    <label class="form-label" for="{{ create_form.min_xp.id_for_label }}">Minimal XP</label>
                     {{ create_form.min_xp }}
                 </div>
                 <div>
-                    <label class="form-label" for="{{ create_form.badge_image.id_for_label }}">Badge image</label>
+                    <label class="form-label" for="{{ create_form.badge_image.id_for_label }}">Nishon rasmi</label>
                     {{ create_form.badge_image }}
                 </div>
             </div>
@@ -38,7 +38,7 @@
 
     <article class="bo-surface">
         <div class="bo-surface-head">
-            <h2>Level ro'yxati</h2>
+            <h2>Daraja ro'yxati</h2>
             <span>{{ levels|length|intcomma }} ta</span>
         </div>
         <div class="bo-form-grid">
@@ -57,7 +57,7 @@
                 </div>
             </form>
             {% empty %}
-            <div class="small text-muted">Level topilmadi.</div>
+            <div class="small text-muted">Daraja topilmadi.</div>
             {% endfor %}
         </div>
     </article>

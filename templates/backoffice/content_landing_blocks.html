@@ -18,7 +18,7 @@
             <input type="hidden" name="action" value="create_statistic">
             <div class="bo-form-grid bo-form-grid--triple">
                 <div>
-                    <label class="form-label" for="{{ stat_form.value.id_for_label }}">Value</label>
+                    <label class="form-label" for="{{ stat_form.value.id_for_label }}">Qiymat</label>
                     {{ stat_form.value }}
                 </div>
                 <div>
@@ -38,8 +38,8 @@
 
     <article class="bo-surface">
         <div class="bo-surface-head">
-            <h2>Yangi testimonial</h2>
-            <span>Landing review</span>
+            <h2>Yangi fikr-mulohaza</h2>
+            <span>Landing sharhi</span>
         </div>
         <form method="post" enctype="multipart/form-data" class="bo-form-grid">
             {% csrf_token %}
@@ -54,7 +54,7 @@
                     {{ testimonial_form.role }}
                 </div>
                 <div>
-                    <label class="form-label" for="{{ testimonial_form.rating.id_for_label }}">Rating</label>
+                    <label class="form-label" for="{{ testimonial_form.rating.id_for_label }}">Baho</label>
                     {{ testimonial_form.rating }}
                 </div>
             </div>
@@ -83,8 +83,8 @@
 
 <section class="bo-surface">
     <div class="bo-surface-head">
-        <h2>Landing statistikalar</h2>
-        <span>Inline update</span>
+        <h2>Landing statistikasi</h2>
+        <span>Joyida yangilash</span>
     </div>
     <div class="bo-form-grid">
         {% for statistic in statistics %}
@@ -109,7 +109,7 @@
 
 <section class="bo-surface">
     <div class="bo-surface-head">
-        <h2>Testimonials</h2>
+        <h2>Fikr-mulohazalar</h2>
         <span>{{ testimonials|length|intcomma }} ta</span>
     </div>
     <div class="bo-table-wrap">
@@ -118,7 +118,7 @@
                 <tr>
                     <th>Ism</th>
                     <th>Rol</th>
-                    <th>Rating</th>
+                    <th>Baho</th>
                     <th>Holat</th>
                     <th>Amal</th>
                 </tr>
@@ -150,7 +150,7 @@
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="5">Testimonials topilmadi.</td></tr>
+                <tr><td colspan="5">Fikr-mulohazalar topilmadi.</td></tr>
                 {% endfor %}
             </tbody>
         </table>

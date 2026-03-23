@@ -24,19 +24,19 @@
         <small>Kutilayotgan chek: {{ kpi.pending_receipts|intcomma }}</small>
     </article>
     <article class="bo-kpi-card">
-        <span>Progress sifati</span>
+        <span>Rivojlanish sifati</span>
         <strong>{{ kpi.completion_rate }}%</strong>
         <small>Imtihondan o'tish: {{ kpi.exam_pass_rate }}%</small>
     </article>
     <article class="bo-kpi-card">
-        <span>AI Aktivlik (24h)</span>
+        <span>AI faolligi (24h)</span>
         <strong>{{ kpi.ai_replies_24h|intcomma }}</strong>
         <small>Azure AI javoblari</small>
     </article>
     <article class="bo-kpi-card">
-        <span>RAG Bazasi</span>
+        <span>RAG bazasi</span>
         <strong>{{ kpi.rag_chunks_total|intcomma }}</strong>
-        <small>Indexlangan chunklar</small>
+        <small>Indekslangan bo'laklar</small>
     </article>
 </section>
 
@@ -61,7 +61,7 @@
     </article>
     <article class="bo-surface">
         <div class="bo-surface-head">
-            <h2>Chat hajmi</h2>
+            <h2>Muloqot hajmi</h2>
             <span>Xabar oqimi</span>
         </div>
         <div class="bo-chart-wrap">
@@ -71,7 +71,7 @@
     <article class="bo-surface">
         <div class="bo-surface-head">
             <h2>Xonalar tarkibi</h2>
-            <span>Chat xonalari tarkibi</span>
+            <span>Muloqot xonalari tarkibi</span>
         </div>
         <div class="bo-chart-wrap">
             <canvas id="boRoomMixChart"></canvas>
@@ -82,7 +82,7 @@
 <section class="bo-grid bo-grid--tables">
     <article class="bo-surface">
         <div class="bo-surface-head">
-            <h2>Top Kurslar</h2>
+            <h2>Eng yaxshi kurslar</h2>
             <span>Faol talabalar bo'yicha</span>
         </div>
         <div class="bo-table-wrap bo-table-wrap--dashboard">
@@ -111,7 +111,7 @@
 
     <article class="bo-surface">
         <div class="bo-surface-head">
-            <h2>Yaqin To'lovlar</h2>
+            <h2>Yaqin to'lovlar</h2>
             <span>So'nggi to'lovlar</span>
         </div>
         <div class="bo-table-wrap bo-table-wrap--dashboard">
@@ -163,7 +163,7 @@ const enrollments = JSON.parse(document.getElementById('bo-enrollments').textCon
 const revenues = JSON.parse(document.getElementById('bo-revenue').textContent);
 const messages = JSON.parse(document.getElementById('bo-messages').textContent);
 const roomLabels = JSON.parse(document.getElementById('bo-room-labels').textContent);
-const roomValues = JSON.parse(document.getElementById('bo-room-values').textContent);
+const roomQiymats = JSON.parse(document.getElementById('bo-room-values').textContent);
 
 if (window.Chart) {
     const axisStyle = {
@@ -224,7 +224,7 @@ if (window.Chart) {
         data: {
             labels: roomLabels,
             datasets: [{
-                data: roomValues,
+                data: roomQiymats,
                 backgroundColor: ['#1463e6', '#24a977', '#f29d33'],
                 borderColor: '#ffffff',
                 borderWidth: 2,

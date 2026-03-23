@@ -2,15 +2,15 @@
 {% load humanize %}
 
 {% block backoffice_title %}Nishon tafsiloti | Boshqaruv paneli{% endblock %}
-{% block backoffice_kicker %}Gamification{% endblock %}
-{% block backoffice_heading %}Badge: {{ badge_obj.name }}{% endblock %}
-{% block backoffice_description %}Badge matni, ikonka va oxirgi olgan userlarni ko'rish.{% endblock %}
+{% block backoffice_kicker %}O'yinlashtirish{% endblock %}
+{% block backoffice_heading %}Nishon: {{ badge_obj.name }}{% endblock %}
+{% block backoffice_description %}Nishon matni, ikonka va oxirgi olgan foydalanuvchilarni ko'rish.{% endblock %}
 
 {% block backoffice_content %}
 <section class="bo-grid bo-grid--notify">
     <article class="bo-surface">
         <div class="bo-surface-head">
-            <h2>Badge tahrirlash</h2>
+            <h2>Nishonni tahrirlash</h2>
             <a class="btn btn-sm btn-outline-primary rounded-pill" href="{% url 'backoffice:gamification_badges' %}">Ro'yxatga qaytish</a>
         </div>
         <form method="post" enctype="multipart/form-data" class="bo-form-grid">
@@ -21,23 +21,23 @@
                 {{ form.name }}
             </div>
             <div>
-                <label class="form-label" for="{{ form.description.id_for_label }}">Description</label>
+                <label class="form-label" for="{{ form.description.id_for_label }}">Tavsif</label>
                 {{ form.description }}
             </div>
             <div>
-                <label class="form-label" for="{{ form.icon_source.id_for_label }}">Icon source</label>
+                <label class="form-label" for="{{ form.icon_source.id_for_label }}">Ikonka manbasi</label>
                 {{ form.icon_source }}
             </div>
             <div data-badge-google-fields>
-                <label class="form-label" for="{{ form.google_icon_name.id_for_label }}">Google icon name</label>
+                <label class="form-label" for="{{ form.google_icon_name.id_for_label }}">Google ikonka nomi</label>
                 {{ form.google_icon_name }}
             </div>
             <div data-badge-google-fields>
-                <label class="form-label" for="{{ form.google_icon_style.id_for_label }}">Google icon style</label>
+                <label class="form-label" for="{{ form.google_icon_style.id_for_label }}">Google ikonka uslubi</label>
                 {{ form.google_icon_style }}
             </div>
             <div data-badge-upload-fields>
-                <label class="form-label" for="{{ form.icon.id_for_label }}">Icon</label>
+                <label class="form-label" for="{{ form.icon.id_for_label }}">Ikonka</label>
                 {{ form.icon }}
             </div>
             <div>
@@ -57,7 +57,7 @@
         <form method="post" class="mt-2">
             {% csrf_token %}
             <input type="hidden" name="action" value="delete">
-            <button class="btn btn-outline-danger rounded-pill px-4" type="submit">Badge ni o'chirish</button>
+            <button class="btn btn-outline-danger rounded-pill px-4" type="submit">Nishonni o'chirish</button>
         </form>
     </article>
 
@@ -71,7 +71,7 @@
                 <thead>
                     <tr>
                         <th>Foydalanuvchi</th>
-                        <th>Email</th>
+                        <th>E-pochta</th>
                         <th>Sana</th>
                     </tr>
                 </thead>
@@ -83,7 +83,7 @@
                         <td>{{ earned.earned_at|date:"Y-m-d H:i" }}</td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="3">Hali hech kim bu badgeni olmagan.</td></tr>
+                    <tr><td colspan="3">Hali hech kim bu nishonni olmagan.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>

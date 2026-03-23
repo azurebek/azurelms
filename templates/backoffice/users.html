@@ -9,7 +9,7 @@
 {% block backoffice_content %}
 <section class="bo-filter-row">
     <form method="get" class="bo-search-form bo-search-form--quad">
-        <input type="text" name="q" value="{{ search_query }}" placeholder="Foydalanuvchi nomi, email, ism..." class="form-control">
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Foydalanuvchi nomi, e-pochta, ism..." class="form-control">
         <select name="role" class="form-select">
             <option value="all" {% if selected_role == 'all' %}selected{% endif %}>Barcha rollar</option>
             <option value="students" {% if selected_role == 'students' %}selected{% endif %}>Talabalar</option>
@@ -36,7 +36,7 @@
             <thead>
                 <tr>
                     <th>Foydalanuvchi</th>
-                    <th>Email</th>
+                    <th>E-pochta</th>
                     <th>Rol</th>
                     <th>Holat</th>
                     <th>XP</th>

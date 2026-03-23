@@ -2,16 +2,16 @@
 {% load humanize %}
 
 {% block backoffice_title %}Olingan nishonlar | Boshqaruv paneli{% endblock %}
-{% block backoffice_kicker %}Gamification{% endblock %}
+{% block backoffice_kicker %}O'yinlashtirish{% endblock %}
 {% block backoffice_heading %}Olingan nishonlar{% endblock %}
-{% block backoffice_description %}Qaysi user qaysi badge olganini kuzatish va kerak bo'lsa revoke qilish.{% endblock %}
+{% block backoffice_description %}Qaysi foydalanuvchi qaysi nishonni olganini kuzatish va kerak bo'lsa bekor qilish.{% endblock %}
 
 {% block backoffice_content %}
 <section class="bo-filter-row">
     <form method="get" class="bo-search-form bo-search-form--triple">
-        <input type="text" name="q" class="form-control" value="{{ search_query }}" placeholder="Foydalanuvchi yoki badge nomi...">
+        <input type="text" name="q" class="form-control" value="{{ search_query }}" placeholder="Foydalanuvchi yoki nishon nomi...">
         <select name="badge_id" class="form-select">
-            <option value="">Barcha badge lar</option>
+            <option value="">Barcha nishonlar</option>
             {% for badge in badges %}
             <option value="{{ badge.id }}" {% if selected_badge_id == badge.id %}selected{% endif %}>{{ badge.name }}</option>
             {% endfor %}
@@ -19,14 +19,14 @@
         <button class="btn btn-primary rounded-pill px-4" type="submit">Filtrlash</button>
     </form>
     <div class="bo-inline-stats">
-        <span>Jami earned badge: <strong>{{ summary_total|intcomma }}</strong></span>
+        <span>Jami olingan nishon: <strong>{{ summary_total|intcomma }}</strong></span>
     </div>
 </section>
 
 <section class="bo-surface">
     <div class="bo-surface-head">
-        <h2>Badge berish</h2>
-        <span>Manual assignment</span>
+        <h2>Nishon berish</h2>
+        <span>Qo'lda biriktirish</span>
     </div>
     <form method="post" class="bo-form-grid bo-form-grid--triple">
         {% csrf_token %}
@@ -35,7 +35,7 @@
         <div class="alert alert-danger">{{ award_form.non_field_errors }}</div>
         {% endif %}
         <div>
-            <label class="form-label" for="{{ award_form.badge.id_for_label }}">Badge</label>
+            <label class="form-label" for="{{ award_form.badge.id_for_label }}">Nishon</label>
             {{ award_form.badge }}
             {% if award_form.badge.errors %}<div class="bo-field-error">{{ award_form.badge.errors|join:", " }}</div>{% endif %}
         </div>
@@ -50,12 +50,12 @@
             {% if award_form.students.errors %}<div class="bo-field-error">{{ award_form.students.errors|join:", " }}</div>{% endif %}
         </div>
         <div data-award-cohort style="display:none;">
-            <label class="form-label" for="{{ award_form.cohort.id_for_label }}">Cohort</label>
+            <label class="form-label" for="{{ award_form.cohort.id_for_label }}">Guruh</label>
             {{ award_form.cohort }}
             {% if award_form.cohort.errors %}<div class="bo-field-error">{{ award_form.cohort.errors|join:", " }}</div>{% endif %}
         </div>
         <div class="bo-form-actions bo-form-actions--end">
-            <button class="btn btn-primary rounded-pill px-4" type="submit">Badge berish</button>
+            <button class="btn btn-primary rounded-pill px-4" type="submit">Nishon berish</button>
         </div>
     </form>
 </section>
@@ -66,7 +66,7 @@
         <div class="bo-action-bar bo-action-bar--wrap">
             <select name="action" class="form-select bo-action-select">
                 <option value="">Amalni tanlang</option>
-                <option value="revoke_selected">Tanlanganlarni revoke qilish</option>
+                <option value="revoke_selected">Tanlanganlarni bekor qilish</option>
             </select>
             <button class="btn btn-primary rounded-pill px-4" type="submit">Qo'llash</button>
         </div>
@@ -76,7 +76,7 @@
                     <tr>
                         <th><input type="checkbox" class="form-check-input" data-select-all="earned_badge_ids"></th>
                         <th>Foydalanuvchi</th>
-                        <th>Badge</th>
+                        <th>Nishon</th>
                         <th>Sana</th>
                     </tr>
                 </thead>
@@ -100,7 +100,7 @@
                         <td>{{ earned.earned_at|date:"Y-m-d H:i" }}</td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="4">Earned badge yozuvi topilmadi.</td></tr>
+                    <tr><td colspan="4">Olingan nishon yozuvi topilmadi.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>

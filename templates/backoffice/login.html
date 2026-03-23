@@ -34,7 +34,7 @@
             <div class="bo-auth-head">
                 <span class="bo-auth-kicker">Xavfsiz kirish</span>
                 <h2>Boshqaruv paneliga kirish</h2>
-                <p>Foydalanuvchi nomi yoki email va parolni kiriting.</p>
+                <p>Foydalanuvchi nomi yoki e-pochta va parolni kiriting.</p>
             </div>
 
             {% if form.non_field_errors %}
@@ -57,14 +57,14 @@
                 <input type="hidden" name="next" value="{{ next_target }}">
                 {% endif %}
                 <div>
-                    <label for="id_username" class="form-label">Foydalanuvchi nomi yoki email</label>
+                    <label for="id_username" class="form-label">Foydalanuvchi nomi yoki e-pochta</label>
                     <input
                         type="text"
                         id="id_username"
                         name="username"
                         value="{{ form.username.value|default:'' }}"
                         class="form-control"
-                        placeholder="staff foydalanuvchi nomi"
+                        placeholder="xodim foydalanuvchi nomi"
                         required
                     >
                     {% if form.username.errors %}<div class="bo-auth-error">{{ form.username.errors.0 }}</div>{% endif %}

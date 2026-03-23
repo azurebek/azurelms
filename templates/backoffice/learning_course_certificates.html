@@ -9,7 +9,7 @@
 {% block backoffice_content %}
 <section class="bo-filter-row">
     <form method="get" class="bo-search-form bo-search-form--triple">
-        <input type="text" name="q" class="form-control" value="{{ search_query }}" placeholder="Talaba, kurs, sertifikat ID...">
+        <input type="text" name="q" class="form-control" value="{{ search_query }}" placeholder="Talaba, kurs, sertifikat raqami...">
         <select name="course_id" class="form-select">
             <option value="">Barcha kurslar</option>
             {% for course in courses %}
@@ -43,7 +43,7 @@
             {{ create_form.course }}
         </div>
         <div>
-            <label class="form-label" for="{{ create_form.certificate_id.id_for_label }}">Sertifikat ID</label>
+            <label class="form-label" for="{{ create_form.certificate_id.id_for_label }}">Sertifikat raqami</label>
             {{ create_form.certificate_id }}
         </div>
         <div>
@@ -66,7 +66,7 @@
                 <tr>
                     <th>Talaba</th>
                     <th>Kurs</th>
-                    <th>Sertifikat ID</th>
+                    <th>Sertifikat raqami</th>
                     <th>Ball</th>
                     <th>Berilgan sana</th>
                     <th></th>
