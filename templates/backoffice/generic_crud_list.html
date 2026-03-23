@@ -19,6 +19,21 @@
     </div>
 </section>
 
+{% if workflow_hint %}
+<section class="bo-surface">
+    <div class="bo-surface-head">
+        <h2>{{ workflow_hint.title }}</h2>
+    </div>
+    <p class="mb-3">{{ workflow_hint.description }}</p>
+    <div class="bo-action-bar bo-action-bar--wrap">
+        <a href="{{ workflow_hint.primary_url }}" class="btn btn-sm btn-outline-primary rounded-pill px-4">{{ workflow_hint.primary_label }}</a>
+        {% if workflow_hint.secondary_url %}
+        <a href="{{ workflow_hint.secondary_url }}" class="btn btn-sm btn-outline-secondary rounded-pill px-4">{{ workflow_hint.secondary_label }}</a>
+        {% endif %}
+    </div>
+</section>
+{% endif %}
+
 <section class="bo-surface">
     <div class="bo-surface-head">
         <h2>Yangi yozuv</h2>

@@ -953,6 +953,26 @@ class BackofficeAccessTests(TestCase):
         assignment = Assignment.objects.get(lesson=lesson, title="Assignment A")
         self.assertEqual(assignment.max_xp, 80)
 
+    def test_generic_lesson_crud_list_shows_course_workflow_hint(self):
+        self.client.force_login(self.staff)
+        url = reverse("backoffice:generic_crud_list", args=["lessons"])
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Tezkor ish oqimi")
+        self.assertContains(response, reverse("backoffice:courses_catalog"))
+        self.assertContains(response, "Kurslar ro&#x27;yxatini ochish")
+
+    def test_generic_lesson_crud_detail_shows_course_structure_shortcut(self):
+        self.client.force_login(self.staff)
+        url = reverse("backoffice:generic_crud_detail", args=["lessons", self.lesson.id])
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Tavsiya etilgan boshqaruv sahifasi")
+        self.assertContains(response, reverse("backoffice:course_structure", args=[self.course.id]))
+        self.assertContains(response, self.course.title)
+
     def test_staff_can_manage_cohorts_and_enrollments_from_backoffice(self):
         self.client.force_login(self.staff)
         new_student = User.objects.create_user(

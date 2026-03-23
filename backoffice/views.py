@@ -12,7 +12,7 @@ from django.db.models import Count, Max, Q, Sum
 from django.db.models.functions import TruncDate
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.views.generic import TemplateView
 
@@ -163,7 +163,7 @@ class BackofficeCRUDResource:
 BACKOFFICE_CRUD_RESOURCES = {
     "plans": BackofficeCRUDResource(
         key="plans",
-        label="Subscription Plans",
+        label="Obuna tariflari",
         model=Plan,
         form_class=BackofficePlanForm,
         search_fields=("name", "description", "button_text"),
@@ -173,7 +173,7 @@ BACKOFFICE_CRUD_RESOURCES = {
     ),
     "plan-features": BackofficeCRUDResource(
         key="plan-features",
-        label="Plan Features",
+        label="Tarif imkoniyatlari",
         model=PlanFeature,
         form_class=BackofficePlanFeatureForm,
         search_fields=("name", "plan__name"),
@@ -183,7 +183,7 @@ BACKOFFICE_CRUD_RESOURCES = {
     ),
     "courses": BackofficeCRUDResource(
         key="courses",
-        label="Courses",
+        label="Kurslar",
         model=Course,
         form_class=BackofficeCourseForm,
         search_fields=("title", "description", "instructor__username"),
@@ -193,7 +193,7 @@ BACKOFFICE_CRUD_RESOURCES = {
     ),
     "modules": BackofficeCRUDResource(
         key="modules",
-        label="Modules",
+        label="Modullar",
         model=Module,
         form_class=BackofficeModuleForm,
         search_fields=("title", "course__title"),
@@ -203,7 +203,7 @@ BACKOFFICE_CRUD_RESOURCES = {
     ),
     "lessons": BackofficeCRUDResource(
         key="lessons",
-        label="Lessons",
+        label="Darslar",
         model=Lesson,
         form_class=BackofficeLessonForm,
         search_fields=("title", "module__title", "module__course__title"),
@@ -213,7 +213,7 @@ BACKOFFICE_CRUD_RESOURCES = {
     ),
     "assignments": BackofficeCRUDResource(
         key="assignments",
-        label="Assignments",
+        label="Vazifalar",
         model=Assignment,
         form_class=BackofficeAssignmentForm,
         search_fields=("title", "lesson__title", "lesson__module__course__title"),
@@ -223,7 +223,7 @@ BACKOFFICE_CRUD_RESOURCES = {
     ),
     "exams": BackofficeCRUDResource(
         key="exams",
-        label="Exams",
+        label="Imtihonlar",
         model=Exam,
         form_class=BackofficeExamForm,
         search_fields=("title", "course__title"),
@@ -233,7 +233,7 @@ BACKOFFICE_CRUD_RESOURCES = {
     ),
     "exam-sections": BackofficeCRUDResource(
         key="exam-sections",
-        label="Exam Sections",
+        label="Imtihon bo'limlari",
         model=ExamSection,
         form_class=BackofficeExamSectionForm,
         search_fields=("title", "exam__title", "exam__course__title"),
@@ -243,7 +243,7 @@ BACKOFFICE_CRUD_RESOURCES = {
     ),
     "quizzes": BackofficeCRUDResource(
         key="quizzes",
-        label="Quizzes",
+        label="Testlar",
         model=Quiz,
         form_class=BackofficeQuizForm,
         search_fields=("title", "lesson__title", "exam_section__title"),
@@ -253,7 +253,7 @@ BACKOFFICE_CRUD_RESOURCES = {
     ),
     "questions": BackofficeCRUDResource(
         key="questions",
-        label="Questions",
+        label="Savollar",
         model=Question,
         form_class=BackofficeQuestionForm,
         search_fields=("text", "quiz__title", "exam_section__title"),
@@ -263,7 +263,7 @@ BACKOFFICE_CRUD_RESOURCES = {
     ),
     "choices": BackofficeCRUDResource(
         key="choices",
-        label="Choices",
+        label="Variantlar",
         model=Choice,
         form_class=BackofficeChoiceForm,
         search_fields=("text", "question__text"),
@@ -273,7 +273,7 @@ BACKOFFICE_CRUD_RESOURCES = {
     ),
     "course-certificates": BackofficeCRUDResource(
         key="course-certificates",
-        label="Course Certificates",
+        label="Kurs sertifikatlari",
         model=CourseCertificate,
         form_class=BackofficeCourseCertificateForm,
         search_fields=("certificate_id", "student__username", "course__title"),
@@ -283,7 +283,7 @@ BACKOFFICE_CRUD_RESOURCES = {
     ),
     "cohorts": BackofficeCRUDResource(
         key="cohorts",
-        label="Cohorts",
+        label="Guruhlar",
         model=Cohort,
         form_class=BackofficeCohortForm,
         search_fields=("name", "course__title"),
@@ -293,7 +293,7 @@ BACKOFFICE_CRUD_RESOURCES = {
     ),
     "enrollments": BackofficeCRUDResource(
         key="enrollments",
-        label="Enrollments",
+        label="Yozilishlar",
         model=Enrollment,
         form_class=BackofficeEnrollmentCreateForm,
         search_fields=("student__username", "cohort__name", "plan__name"),
@@ -303,7 +303,7 @@ BACKOFFICE_CRUD_RESOURCES = {
     ),
     "levels": BackofficeCRUDResource(
         key="levels",
-        label="Gamification Levels",
+        label="O'yin darajalari",
         model=Level,
         form_class=BackofficeLevelForm,
         search_fields=("name",),
@@ -313,7 +313,7 @@ BACKOFFICE_CRUD_RESOURCES = {
     ),
     "badges": BackofficeCRUDResource(
         key="badges",
-        label="Gamification Badges",
+        label="Nishonlar",
         model=Badge,
         form_class=BackofficeBadgeForm,
         search_fields=("name", "description"),
@@ -323,7 +323,7 @@ BACKOFFICE_CRUD_RESOURCES = {
     ),
     "game-certificates": BackofficeCRUDResource(
         key="game-certificates",
-        label="Game Certificates",
+        label="O'yin sertifikatlari",
         model=GamificationCertificate,
         form_class=BackofficeGamificationCertificateForm,
         search_fields=("student__username", "course__title"),
@@ -333,7 +333,7 @@ BACKOFFICE_CRUD_RESOURCES = {
     ),
     "chat-rooms": BackofficeCRUDResource(
         key="chat-rooms",
-        label="Chat Rooms",
+        label="Muloqot xonalari",
         model=ChatRoom,
         form_class=BackofficeChatRoomForm,
         search_fields=("name", "cohort__name"),
@@ -413,6 +413,57 @@ def _crud_field_label(model, field_path):
         return field_path.replace("_", " ").title()
 
 
+def _crud_related_course(resource_key, obj):
+    if resource_key == "courses":
+        return obj
+    if resource_key == "modules":
+        return getattr(obj, "course", None)
+    if resource_key == "lessons":
+        module = getattr(obj, "module", None)
+        return getattr(module, "course", None)
+    if resource_key == "assignments":
+        lesson = getattr(obj, "lesson", None)
+        module = getattr(lesson, "module", None) if lesson else None
+        return getattr(module, "course", None)
+    return None
+
+
+def _crud_list_workflow_hint(resource_key):
+    if resource_key in {"modules", "lessons", "assignments"}:
+        return {
+            "title": "Tezkor ish oqimi",
+            "description": "Modul, dars va vazifani kundalik boshqarish uchun kursning ichki tuzilma sahifasidan foydalaning.",
+            "primary_url": reverse("backoffice:courses_catalog"),
+            "primary_label": "Kurslar ro'yxatini ochish",
+            "secondary_url": reverse("backoffice:learning_assignments"),
+            "secondary_label": "Topshirilgan vazifalarni tekshirish",
+        }
+    return None
+
+
+def _crud_detail_workflow_hint(resource_key, obj):
+    if resource_key not in {"courses", "modules", "lessons", "assignments"}:
+        return None
+
+    course = _crud_related_course(resource_key, obj)
+    if not course:
+        return None
+
+    if resource_key == "courses":
+        description = "Kurs ichidagi modul, dars va vazifalarni bitta sahifadan boshqarish uchun kurs tuzilmasiga o'ting."
+    else:
+        description = "Bu texnik CRUD sahifa. Dars yaratish va vazifa biriktirishni bir joyda boshqarish uchun kurs tuzilmasiga o'ting."
+
+    return {
+        "title": "Tavsiya etilgan boshqaruv sahifasi",
+        "description": description,
+        "primary_url": reverse("backoffice:course_structure", args=[course.id]),
+        "primary_label": f"Kurs tuzilmasini ochish: {course.title}",
+        "secondary_url": reverse("backoffice:courses_catalog"),
+        "secondary_label": "Barcha kurslar",
+    }
+
+
 class BackofficeGenericCRUDIndexView(BackofficeAccessMixin, TemplateView):
     template_name = "backoffice/generic_crud_index.html"
 
@@ -476,6 +527,7 @@ class BackofficeGenericCRUDListView(BackofficeAccessMixin, TemplateView):
                 "summary_total": self.resource.model.objects.count(),
                 "summary_filtered": queryset.count(),
                 "create_form": kwargs.get("create_form") or form_class(),
+                "workflow_hint": _crud_list_workflow_hint(self.resource.key),
             }
         )
         return context
@@ -523,6 +575,7 @@ class BackofficeGenericCRUDDetailView(BackofficeAccessMixin, TemplateView):
                 "resource": self.resource,
                 "object_instance": self.object_instance,
                 "form": kwargs.get("form") or form_class(instance=self.object_instance),
+                "workflow_hint": _crud_detail_workflow_hint(self.resource.key, self.object_instance),
             }
         )
         return context
