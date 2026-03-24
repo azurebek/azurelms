@@ -1,0 +1,148 @@
+/* AzureLMS Admin polish on top of Jazzmin */
+
+:root {
+  --jlms-sidebar-bg-1: #1b2432;
+  --jlms-sidebar-bg-2: #253348;
+  --jlms-sidebar-border: rgba(255, 255, 255, 0.08);
+  --jlms-text: #e8eef8;
+  --jlms-muted: #9fb1cc;
+  --jlms-accent-1: #1f7cff;
+  --jlms-accent-2: #2cb0ff;
+}
+
+body:not(.login-page) .main-header.navbar {
+  background: linear-gradient(90deg, #0f2238 0%, #143559 48%, #1b4c77 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+body:not(.login-page) .main-sidebar {
+  background: linear-gradient(180deg, var(--jlms-sidebar-bg-1) 0%, var(--jlms-sidebar-bg-2) 100%);
+}
+
+body:not(.login-page) .brand-link {
+  border-bottom: 1px solid var(--jlms-sidebar-border);
+  padding-top: 0.9rem;
+  padding-bottom: 0.9rem;
+}
+
+body:not(.login-page) .brand-link .brand-text {
+  color: #f1f5ff;
+  font-weight: 700;
+}
+
+body:not(.login-page) .user-panel {
+  border-bottom: 1px solid var(--jlms-sidebar-border);
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+body:not(.login-page) .main-sidebar .nav-header {
+  color: var(--jlms-muted);
+  font-size: 0.68rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  margin-top: 0.8rem;
+  margin-bottom: 0.2rem;
+}
+
+body:not(.login-page) .nav-sidebar > .nav-item > .nav-link {
+  border-radius: 12px;
+  margin: 0.1rem 0.5rem;
+  padding: 0.64rem 0.72rem;
+  color: var(--jlms-text);
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+body:not(.login-page) .nav-sidebar > .nav-item > .nav-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+body:not(.login-page) .nav-sidebar > .nav-item > .nav-link.active {
+  color: #fff;
+  border-color: rgba(44, 176, 255, 0.6);
+  background: linear-gradient(90deg, rgba(31, 124, 255, 0.42), rgba(44, 176, 255, 0.28));
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+}
+
+body:not(.login-page) .nav-sidebar .nav-link .nav-icon {
+  width: 1.25rem;
+  margin-right: 0.55rem;
+  color: #c8d7ef;
+}
+
+body:not(.login-page) .nav-sidebar .nav-link p {
+  white-space: normal;
+  line-height: 1.25;
+}
+
+body:not(.login-page) .nav-sidebar .menu-open > .nav-link {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+body:not(.login-page) .nav-sidebar .nav-treeview > .nav-item > .nav-link {
+  margin: 0.06rem 0.5rem 0.06rem 1.2rem;
+  border-radius: 10px;
+  color: #d6e2f3;
+  font-size: 0.95rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+body:not(.login-page) .nav-sidebar .nav-treeview > .nav-item > .nav-link.active {
+  color: #fff;
+  background: rgba(31, 124, 255, 0.35);
+}
+
+body:not(.login-page) .nav-sidebar .nav-treeview .nav-icon.far.fa-circle {
+  font-size: 0.42rem;
+  color: #86a1c5;
+}
+
+body:not(.login-page) .content-wrapper {
+  background:
+    radial-gradient(circle at 3% 3%, rgba(31, 124, 255, 0.12), transparent 28%),
+    linear-gradient(180deg, #f8fbff 0%, #eef4fb 100%);
+}
+
+body:not(.login-page) .card,
+body:not(.login-page) .small-box {
+  border-radius: 14px;
+  border: 1px solid #e1eaf6;
+  box-shadow: 0 14px 30px rgba(17, 53, 100, 0.08);
+}
+
+body:not(.login-page) .content-header h1 {
+  font-weight: 700;
+  color: #0f2b4a;
+}
+
+body:not(.login-page) .btn-primary {
+  background: linear-gradient(90deg, var(--jlms-accent-1), var(--jlms-accent-2));
+  border: none;
+}
+
+body:not(.login-page) .btn-primary:hover,
+body:not(.login-page) .btn-primary:focus {
+  filter: brightness(0.95);
+}
+
+@media (min-width: 992px) {
+  body:not(.sidebar-collapse) .main-sidebar,
+  body:not(.sidebar-collapse) .main-sidebar::before {
+    width: 290px;
+  }
+
+  body:not(.sidebar-collapse) .content-wrapper,
+  body:not(.sidebar-collapse) .main-footer,
+  body:not(.sidebar-collapse) .main-header {
+    margin-left: 290px;
+  }
+
+  body.sidebar-collapse .main-sidebar,
+  body.sidebar-collapse .main-sidebar::before {
+    margin-left: -290px;
+  }
+}
