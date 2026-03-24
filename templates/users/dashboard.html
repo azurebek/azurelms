@@ -77,6 +77,29 @@
         </article>
 
         <div class="dashboard-side-grid dashboard-home-side-grid">
+            {% if not telegram_linked %}
+            <article class="dashboard-surface dashboard-home-telegram">
+                <div class="dashboard-surface-head dashboard-surface-head--overview">
+                    <div>
+                        <span class="dashboard-section-kicker">Telegram</span>
+                        <h2 class="dashboard-surface-title">Botga ulaning</h2>
+                    </div>
+                    <span class="dashboard-badge">Tez start</span>
+                </div>
+                <div class="dashboard-overview-hero">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="rounded-circle bg-white text-primary d-inline-flex align-items-center justify-content-center shadow-sm flex-shrink-0" style="width: 56px; height: 56px;">
+                            <i class="bi bi-telegram fs-3"></i>
+                        </div>
+                        <div>
+                            <p class="mb-2 fw-semibold text-dark">Telegram botimizga ulanib, bildirishnomalarni tezroq oling.</p>
+                            <p class="mb-0">Profilingizni bir marta bog'lasangiz, keyingi eslatmalar va tizim xabarlari bot orqali ham yetib boradi.</p>
+                        </div>
+                    </div>
+                    <a href="{{ telegram_bot_link }}" target="_blank" rel="noopener" class="btn btn-primary rounded-pill w-100">Telegramga ulanish</a>
+                </div>
+            </article>
+            {% endif %}
             <article class="dashboard-surface dashboard-surface--overview dashboard-home-overview">
                 <div class="dashboard-surface-head dashboard-surface-head--overview">
                     <div>

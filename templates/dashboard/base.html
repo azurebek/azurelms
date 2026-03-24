@@ -191,9 +191,9 @@
                                     <span>Davomat boshqaruv</span>
                                 </a>
                             </li>
-                            {% if user.is_superuser %}
+                            {% if user.is_superuser and ENABLE_LEGACY_ADMIN %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'backoffice:dashboard' %}">
+                                <a class="nav-link" href="{% url 'admin:index' %}">
                                     <i class="bi bi-shield-lock"></i>
                                     <span>Admin panel</span>
                                 </a>
