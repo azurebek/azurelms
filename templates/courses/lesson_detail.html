@@ -64,7 +64,7 @@
                                     </span>
                                 </div>
                                 {% else %}
-                                <a href="{% url 'lesson_detail' course_id=course.id lesson_id=l.id %}" class="lesson-link {% if l == lesson %}is-active{% endif %}">
+                                <a href="{% url 'lesson_detail' course_id=course.id lesson_id=l.id %}{{ cohort_query }}" class="lesson-link {% if l == lesson %}is-active{% endif %}">
                                     <span class="lesson-link__icon">
                                         {% if l == lesson %}
                                         <i class="bi bi-play-circle-fill"></i>
@@ -90,7 +90,7 @@
                     <span class="dashboard-section-kicker">Baholash</span>
                     <div class="lesson-exam-list">
                         {% for e in course_exams %}
-                        <a href="{% url 'exam_detail' course_id=course.id exam_id=e.id %}" class="lesson-exam-link">
+                        <a href="{% url 'exam_detail' course_id=course.id exam_id=e.id %}{{ cohort_query }}" class="lesson-exam-link">
                             <span class="lesson-link__icon"><i class="bi bi-award"></i></span>
                             <span class="lesson-link__copy">
                                 <strong>{{ e.get_exam_type_display }}</strong>
@@ -125,20 +125,20 @@
                     <div class="lesson-course-header__actions">
                         <span class="dashboard-badge">{{ course_progress_percent|default:0 }}% done</span>
                         {% if prev_lesson %}
-                        <a href="{% url 'lesson_detail' course_id=course.id lesson_id=prev_lesson.id %}" class="btn btn-outline-primary rounded-pill px-4">Oldingi</a>
+                        <a href="{% url 'lesson_detail' course_id=course.id lesson_id=prev_lesson.id %}{{ cohort_query }}" class="btn btn-outline-primary rounded-pill px-4">Oldingi</a>
                         {% else %}
                         <a href="{% url 'course_detail' course.id %}" class="btn btn-outline-primary rounded-pill px-4">Overview</a>
                         {% endif %}
 
                         {% if next_lesson %}
-                        <a href="{% url 'lesson_detail' course_id=course.id lesson_id=next_lesson.id %}" class="btn btn-primary rounded-pill px-4">Keyingi dars</a>
+                        <a href="{% url 'lesson_detail' course_id=course.id lesson_id=next_lesson.id %}{{ cohort_query }}" class="btn btn-primary rounded-pill px-4">Keyingi dars</a>
                         {% elif next_lesson_locked %}
                         <button type="button" class="btn btn-outline-secondary rounded-pill px-4" disabled title="{{ next_lesson_lock_reason }}">
                             <span class="d-none d-sm-inline">Keyingi dars qulflangan</span>
                             <span class="d-inline d-sm-none">Qulflangan</span>
                         </button>
                         {% elif has_course_exams %}
-                        <a href="{% url 'exam_detail' course_id=course.id exam_id=first_course_exam.id %}" class="btn btn-primary rounded-pill px-4">Imtihon</a>
+                        <a href="{% url 'exam_detail' course_id=course.id exam_id=first_course_exam.id %}{{ cohort_query }}" class="btn btn-primary rounded-pill px-4">Imtihon</a>
                         {% else %}
                         <a href="{% url 'course_detail' course.id %}" class="btn btn-primary rounded-pill px-4">Modulni yakunlash</a>
                         {% endif %}
@@ -239,7 +239,7 @@
                                                 </div>
                                             </div>
                                             {% endif %}
-                                            <form class="lesson-submit-box" method="post" enctype="multipart/form-data" action="{% url 'assignment_submit' course_id=course.id lesson_id=lesson.id assignment_id=assignment.id %}">
+                                            <form class="lesson-submit-box" method="post" enctype="multipart/form-data" action="{% url 'assignment_submit' course_id=course.id lesson_id=lesson.id assignment_id=assignment.id %}{{ cohort_query }}">
                                                 {% csrf_token %}
                                                 <textarea class="form-control" name="answer_text" rows="4" placeholder="Javobni shu yerga yozing yoki link qoldiring...">{% if assignment.current_submission %}{{ assignment.current_submission.answer_text }}{% endif %}</textarea>
                                                 <div class="lesson-submit-box__actions">

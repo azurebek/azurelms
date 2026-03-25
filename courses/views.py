@@ -1,4 +1,5 @@
 import json
+from urllib.parse import urlencode
 
 from django.views.generic import ListView, DetailView, View
 from django.db.models import Max, Q
@@ -29,17 +30,39 @@ from .models import (
 from cohorts.models import Enrollment
 
 
-def _get_active_enrollment_for_course(user, course):
-    return (
+def _safe_int(value):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _requested_cohort_id(request):
+    return _safe_int(request.GET.get("cohort"))
+
+
+def _build_url_with_query(base_url, **params):
+    query = {key: value for key, value in params.items() if value not in (None, "", [], ())}
+    if not query:
+        return base_url
+    return f"{base_url}?{urlencode(query)}"
+
+
+def _get_active_enrollment_for_course(user, course, cohort_id=None):
+    queryset = (
         Enrollment.objects.filter(
             student=user,
             cohort__course=course,
             status="active",
         )
         .select_related("cohort")
-        .order_by("-joined_at")
-        .first()
+        .order_by("-joined_at", "-id")
     )
+    if cohort_id:
+        selected = queryset.filter(cohort_id=cohort_id).first()
+        if selected:
+            return selected
+    return queryset.first()
 
 
 def _build_lesson_access_bundle(course, user, enrollment):
@@ -238,9 +261,10 @@ class CourseStudyRedirectView(LoginRequiredMixin, View):
     """
     def get(self, request, course_id):
         course = get_object_or_404(Course, id=course_id)
+        selected_cohort_id = _requested_cohort_id(request)
         
         # Check active enrollment
-        enrollment = _get_active_enrollment_for_course(request.user, course)
+        enrollment = _get_active_enrollment_for_course(request.user, course, selected_cohort_id)
         
         if not enrollment:
             messages.warning(request, "Siz ushbu kursga obuna bo'lmagansiz yoki obunangiz faol emas.")
@@ -250,7 +274,12 @@ class CourseStudyRedirectView(LoginRequiredMixin, View):
         first_accessible_lesson = access_bundle["first_accessible_lesson"]
 
         if first_accessible_lesson:
-            return redirect('lesson_detail', course_id=course.id, lesson_id=first_accessible_lesson.id)
+            return redirect(
+                _build_url_with_query(
+                    reverse('lesson_detail', kwargs={'course_id': course.id, 'lesson_id': first_accessible_lesson.id}),
+                    cohort=enrollment.cohort_id,
+                )
+            )
         else:
             messages.info(request, "Hozircha siz uchun ochiq dars mavjud emas.")
             return redirect('course_detail', pk=course.id)
@@ -270,12 +299,14 @@ class LessonDetailView(LoginRequiredMixin, DetailView):
             course_id = self.kwargs.get("course_id")
             lesson_id = self.kwargs.get("lesson_id")
             course = get_object_or_404(Course, id=course_id)
+            selected_cohort_id = _requested_cohort_id(request)
 
-            enrollment = _get_active_enrollment_for_course(request.user, course)
+            enrollment = _get_active_enrollment_for_course(request.user, course, selected_cohort_id)
             if not enrollment:
                 messages.error(request, "Siz bu kursning darslarini ko'rish uchun obuna bo'lishingiz kerak.")
                 return redirect("course_detail", pk=course_id)
             self._active_enrollment = enrollment
+            self._selected_cohort_id = enrollment.cohort_id
 
             access_bundle = _build_lesson_access_bundle(course, request.user, enrollment)
             self._lesson_access_bundle = access_bundle
@@ -289,9 +320,13 @@ class LessonDetailView(LoginRequiredMixin, DetailView):
                 fallback_lesson = access_bundle["first_accessible_lesson"]
                 if fallback_lesson and fallback_lesson.id != lesson_id:
                     return redirect(
-                        "lesson_detail",
-                        course_id=course_id,
-                        lesson_id=fallback_lesson.id,
+                        _build_url_with_query(
+                            reverse(
+                                "lesson_detail",
+                                kwargs={"course_id": course_id, "lesson_id": fallback_lesson.id},
+                            ),
+                            cohort=enrollment.cohort_id,
+                        )
                     )
                 return redirect("course_detail", pk=course_id)
         return super().dispatch(request, *args, **kwargs)
@@ -312,7 +347,12 @@ class LessonDetailView(LoginRequiredMixin, DetailView):
 
         enrollment = getattr(self, "_active_enrollment", None)
         if enrollment is None:
-            enrollment = _get_active_enrollment_for_course(user, course)
+            enrollment = _get_active_enrollment_for_course(
+                user,
+                course,
+                getattr(self, "_selected_cohort_id", None) or _requested_cohort_id(self.request),
+            )
+        active_cohort_id = enrollment.cohort_id if enrollment else getattr(self, "_selected_cohort_id", None)
 
         if enrollment:
             _mark_lesson_progress_completed(enrollment, self.object)
@@ -325,6 +365,9 @@ class LessonDetailView(LoginRequiredMixin, DetailView):
 
         context['is_enrolled'] = bool(enrollment)
         context['course'] = course
+        context['active_enrollment'] = enrollment
+        context['active_cohort_id'] = active_cohort_id
+        context['cohort_query'] = f"?cohort={active_cohort_id}" if active_cohort_id else ""
 
         modules = list(course.modules.all().prefetch_related('lessons'))
         course_exams = course.exams.all().order_by('id')
@@ -475,9 +518,12 @@ class SubmitAssignmentView(LoginRequiredMixin, View):
             lesson__module__course_id=course_id,
         )
         course = assignment.lesson.module.course
-        enrollment = _get_active_enrollment_for_course(request.user, course)
-        redirect_url = (
-            f"{reverse('lesson_detail', kwargs={'course_id': course_id, 'lesson_id': lesson_id})}?tab=homework"
+        selected_cohort_id = _requested_cohort_id(request)
+        enrollment = _get_active_enrollment_for_course(request.user, course, selected_cohort_id)
+        redirect_url = _build_url_with_query(
+            reverse('lesson_detail', kwargs={'course_id': course_id, 'lesson_id': lesson_id}),
+            tab='homework',
+            cohort=enrollment.cohort_id if enrollment else selected_cohort_id,
         )
 
         if not enrollment:

@@ -16,6 +16,7 @@ from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.views.generic import TemplateView
 
+from cohorts.attendance_service import upsert_attendance_and_xp
 from cohorts.models import Attendance, Cohort, Enrollment, PaymentReceipt
 from courses.models import (
     Assignment,
@@ -61,7 +62,6 @@ from messenger.models import ChatRoom, LessonRAGChunk, Message
 from subscriptions.models import Plan, PlanFeature
 from users.models import Notification, NotificationBroadcast
 from users.notification_service import send_broadcast
-from users.views import upsert_attendance_and_xp
 from .forms import (
     BackofficeAboutPageForm,
     BackofficeAboutStatisticForm,

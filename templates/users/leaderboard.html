@@ -6,15 +6,28 @@
 {% block dashboard_content %}
 <div class="mb-4">
     <h1 class="h3 fw-bold mb-1">Cohort Leaderboard</h1>
-    <p class="text-muted mb-0">Faqat sizning joriy cohortingizdagi active talabalar reytingi.</p>
+    <p class="text-muted mb-0">Faqat sizning joriy cohortingizdagi active talabalar cohort progressi bo'yicha reytingi.</p>
 </div>
 
 <div class="card border-0 shadow-sm rounded-4">
     <div class="card-body p-0">
         {% if leaderboard_cohort %}
-        <div class="px-3 px-md-4 py-3 border-bottom d-flex align-items-center justify-content-between gap-2">
+        <div class="px-3 px-md-4 py-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
             <div class="small text-muted">Joriy cohort</div>
+            {% if leaderboard_cohort_choices|length > 1 %}
+            <div class="d-flex flex-wrap gap-2">
+                {% for enrollment in leaderboard_cohort_choices %}
+                <a
+                    href="?cohort={{ enrollment.cohort_id }}"
+                    class="btn btn-sm rounded-pill {% if selected_leaderboard_cohort_id == enrollment.cohort_id %}btn-primary{% else %}btn-light{% endif %}"
+                >
+                    {{ enrollment.cohort.name }}
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
             <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2">{{ leaderboard_cohort.name }}</span>
+            {% endif %}
         </div>
         {% endif %}
 
@@ -31,8 +44,8 @@
                         </div>
                     </div>
                     <div class="text-end">
-                        <div class="fw-bold text-primary">{{ row.xp }}</div>
-                        <div class="small text-muted">XP</div>
+                        <div class="fw-bold text-primary">{{ row.cohort_score }}</div>
+                        <div class="small text-muted">Cohort XP</div>
                     </div>
                 </div>
             </li>
@@ -51,8 +64,8 @@
                     </div>
                 </div>
                 <div class="text-end">
-                    <div class="fw-bold text-primary">{{ leaderboard_my_row.xp }}</div>
-                    <div class="small text-muted">XP</div>
+                    <div class="fw-bold text-primary">{{ leaderboard_my_row.cohort_score }}</div>
+                    <div class="small text-muted">Cohort XP</div>
                 </div>
             </div>
         </div>

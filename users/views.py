@@ -4,8 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth import update_session_auth_hash
 from django.utils import timezone
-from django.db import transaction
-from django.db.models import Count, Q
+from django.db.models import Count, Prefetch, Q
 import datetime
 import base64
 import calendar
@@ -13,8 +12,9 @@ from .forms import CustomUserCreationForm
 from .models import CustomUser, Notification
 from django.shortcuts import redirect, render, get_object_or_404
 from cohorts.models import Enrollment, Attendance, Cohort
+from cohorts.attendance_service import upsert_attendance_and_xp
 from courses.models import Certificate as CourseCertificate
-from courses.models import Course
+from courses.models import Course, LessonProgress
 from gamification.models import EarnedBadge
 from frontend.models import LegalPage
 from django.core.signing import TimestampSigner
@@ -154,7 +154,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context['active_nav'] = 'dashboard'
         
         # --- Grace Period Check Logging ---
-        today = timezone.now().date()
+        today = timezone.localdate()
         grace_limit = today - datetime.timedelta(days=2)
         
         # Find all active enrollments where deadline passed grace limit
@@ -266,6 +266,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             (item for item in enrollments if item.status == 'active'),
             enrollments[0] if enrollments else None,
         )
+        active_dashboard_enrollments = [item for item in enrollments if item.status == 'active']
+        context['active_dashboard_enrollments'] = active_dashboard_enrollments
         context['current_plan'] = (
             context['primary_enrollment'].plan
             if context['primary_enrollment'] and context['primary_enrollment'].plan_id
@@ -313,39 +315,96 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         return context
 
 
-def get_cohort_leaderboard_context(user):
+def get_cohort_leaderboard_context(user, cohort_id=None):
     context = {
         'leaderboard_cohort': None,
+        'leaderboard_cohort_choices': [],
+        'selected_leaderboard_cohort_id': None,
         'leaderboard_top': [],
         'leaderboard_my_row': None,
     }
 
-    current_active_enrollment = (
+    active_enrollments = list(
         user.enrollments.filter(status='active')
         .select_related('cohort')
-        .order_by('-joined_at')
-        .first()
+        .order_by('-joined_at', '-id')
+    )
+    context['leaderboard_cohort_choices'] = active_enrollments
+    current_active_enrollment = next(
+        (item for item in active_enrollments if item.cohort_id == cohort_id),
+        active_enrollments[0] if active_enrollments else None,
+    )
+    context['selected_leaderboard_cohort_id'] = (
+        current_active_enrollment.cohort_id if current_active_enrollment else None
     )
     context['leaderboard_cohort'] = current_active_enrollment.cohort if current_active_enrollment else None
 
     if not current_active_enrollment:
         return context
 
-    leaderboard_qs = (
+    leaderboard_qs = list(
         Enrollment.objects.filter(
             cohort=current_active_enrollment.cohort,
             status='active',
         )
         .select_related('student')
-        .order_by('-student__total_xp', 'joined_at', 'student__id')
+        .prefetch_related(
+            Prefetch(
+                'lesson_progress',
+                queryset=LessonProgress.objects.filter(is_completed=True).select_related('lesson'),
+            ),
+            Prefetch(
+                'attendance_set',
+                queryset=Attendance.objects.select_related('lesson'),
+            ),
+        )
     )
 
-    for rank, enrollment in enumerate(leaderboard_qs, start=1):
+    def cohort_score(enrollment):
+        lesson_scores = {}
+
+        for progress in enrollment.lesson_progress.all():
+            if not progress.is_completed:
+                continue
+            lesson_scores[progress.lesson_id] = max(
+                lesson_scores.get(progress.lesson_id, 0),
+                progress.lesson.xp_reward,
+            )
+
+        for attendance in enrollment.attendance_set.all():
+            lesson_scores[attendance.lesson_id] = max(
+                lesson_scores.get(attendance.lesson_id, 0),
+                attendance.xp_awarded,
+            )
+
+        return sum(lesson_scores.values())
+
+    leaderboard_rows = []
+    for enrollment in leaderboard_qs:
+        leaderboard_rows.append(
+            {
+                'student': enrollment.student,
+                'cohort_score': cohort_score(enrollment),
+                'is_me': enrollment.student_id == user.id,
+                'joined_at': enrollment.joined_at,
+                'student_id': enrollment.student_id,
+            }
+        )
+
+    leaderboard_rows.sort(
+        key=lambda row: (
+            -row['cohort_score'],
+            row['joined_at'],
+            row['student_id'],
+        )
+    )
+
+    for rank, row in enumerate(leaderboard_rows, start=1):
         row = {
             'rank': rank,
-            'student': enrollment.student,
-            'xp': enrollment.student.total_xp,
-            'is_me': enrollment.student_id == user.id,
+            'student': row['student'],
+            'cohort_score': row['cohort_score'],
+            'is_me': row['is_me'],
         }
         if rank <= 10:
             context['leaderboard_top'].append(row)
@@ -363,7 +422,11 @@ class LeaderboardView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['active_nav'] = 'leaderboard'
-        context.update(get_cohort_leaderboard_context(self.request.user))
+        try:
+            selected_cohort_id = int(self.request.GET.get('cohort', '') or 0)
+        except (TypeError, ValueError):
+            selected_cohort_id = None
+        context.update(get_cohort_leaderboard_context(self.request.user, selected_cohort_id))
         return context
 
 
@@ -433,45 +496,6 @@ class UserProfileView(LoginRequiredMixin, TemplateView):
         context['current_plan'] = current_plan_enrollment.plan if current_plan_enrollment else None
         return context
 
-
-def attendance_xp_for_status(base_xp, status):
-    multipliers = {
-        Attendance.STATUS_PRESENT: 1.0,
-        Attendance.STATUS_PARTIAL: 0.3,
-        Attendance.STATUS_ABSENT: 0.0,
-    }
-    return round(base_xp * multipliers.get(status, 0.0))
-
-
-@transaction.atomic
-def upsert_attendance_and_xp(*, enrollment, lesson, date, status, marked_by):
-    attendance, _ = Attendance.objects.select_for_update().get_or_create(
-        enrollment=enrollment,
-        lesson=lesson,
-        date=date,
-        defaults={
-            'status': status,
-            'xp_awarded': 0,
-            'marked_by': marked_by,
-        },
-    )
-
-    old_xp = attendance.xp_awarded
-    new_xp = attendance_xp_for_status(lesson.xp_reward, status)
-    xp_diff = new_xp - old_xp
-
-    if xp_diff != 0:
-        student = enrollment.student
-        student.total_xp = max(0, student.total_xp + xp_diff)
-        student.save(update_fields=['total_xp'])
-
-    attendance.status = status
-    attendance.xp_awarded = new_xp
-    attendance.marked_by = marked_by
-    attendance.save(update_fields=['status', 'xp_awarded', 'marked_by', 'marked_at'])
-    return attendance
-
-
 class AttendanceCalendarView(LoginRequiredMixin, TemplateView):
     template_name = 'users/attendance_calendar.html'
 
@@ -493,27 +517,39 @@ class AttendanceCalendarView(LoginRequiredMixin, TemplateView):
         prev_month = (selected_month.replace(day=1) - datetime.timedelta(days=1)).replace(day=1)
         next_month = (selected_month.replace(day=28) + datetime.timedelta(days=4)).replace(day=1)
 
-        active_enrollment = (
+        active_enrollments = list(
             user.enrollments.filter(status='active')
-            .select_related('cohort')
-            .order_by('-joined_at')
-            .first()
+            .select_related('cohort', 'cohort__course', 'plan')
+            .order_by('-joined_at', '-id')
         )
+        try:
+            selected_cohort_id = int(self.request.GET.get('cohort', '') or 0)
+        except (TypeError, ValueError):
+            selected_cohort_id = 0
+
+        selected_enrollment = next(
+            (item for item in active_enrollments if item.cohort_id == selected_cohort_id),
+            active_enrollments[0] if active_enrollments else None,
+        )
+        if selected_enrollment:
+            selected_cohort_id = selected_enrollment.cohort_id
 
         context['selected_month'] = selected_month
         context['prev_month'] = prev_month
         context['next_month'] = next_month
-        context['attendance_cohort'] = active_enrollment.cohort if active_enrollment else None
+        context['attendance_cohort_choices'] = active_enrollments
+        context['selected_attendance_cohort_id'] = selected_cohort_id or None
+        context['attendance_cohort'] = selected_enrollment.cohort if selected_enrollment else None
         raw_weeks = calendar.Calendar(firstweekday=0).monthdayscalendar(year, month)
         context['calendar_weeks'] = [[{'day': day, 'status': None} for day in week] for week in raw_weeks]
         context['attendance_day_status'] = {}
         context['attendance_summary'] = {'present': 0, 'partial': 0, 'absent': 0}
 
-        if not active_enrollment:
+        if not selected_enrollment:
             return context
 
         records = Attendance.objects.filter(
-            enrollment=active_enrollment,
+            enrollment=selected_enrollment,
             date__year=year,
             date__month=month,
         ).order_by('date')

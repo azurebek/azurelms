@@ -14,6 +14,8 @@ class Cohort(models.Model):
 
     # Telegram guruh linki (O'quvchi to'lov qilgach ko'rinadi)
     telegram_group_link = models.URLField(blank=True, null=True, verbose_name="Telegram guruh havolasi")
+    telegram_chat_id = models.BigIntegerField(blank=True, null=True, unique=True, verbose_name="Telegram chat ID")
+    telegram_chat_title = models.CharField(max_length=255, blank=True, default="", verbose_name="Telegram chat nomi")
 
     def __str__(self):
         return f"{self.name} ({self.course.title})"
@@ -95,11 +97,11 @@ class PaymentReceipt(models.Model):
         if is_new_verification:
             enrollment = self.enrollment
             enrollment.status = 'active'
-            enrollment.last_payment_date = timezone.now().date()
+            enrollment.last_payment_date = timezone.localdate()
             if self.period_end:
                  enrollment.next_payment_deadline = self.period_end
             else:
-                 enrollment.next_payment_deadline = timezone.now().date() + datetime.timedelta(days=30)
+                 enrollment.next_payment_deadline = timezone.localdate() + datetime.timedelta(days=30)
             enrollment.save()
 
     class Meta:
@@ -120,7 +122,7 @@ class Attendance(models.Model):
 
     enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE, verbose_name="O'quvchi")
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, verbose_name="Dars")
-    date = models.DateField(default=timezone.now)
+    date = models.DateField(default=timezone.localdate)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_PRESENT, verbose_name="Davomat holati")
     xp_awarded = models.PositiveIntegerField(default=0, verbose_name="Berilgan XP")
     marked_by = models.ForeignKey(

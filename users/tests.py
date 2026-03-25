@@ -1,10 +1,11 @@
 from django.contrib.auth import get_user_model
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from users.context_processors import notification_context
 from users.models import Notification
-from cohorts.models import Cohort, Enrollment
+from cohorts.models import Attendance, Cohort, Enrollment
 from courses.models import Course, Lesson, LessonProgress, Module
 from subscriptions.models import Plan
 
@@ -149,3 +150,133 @@ class DashboardProgressTests(TestCase):
         self.assertTrue(response.context["telegram_linked"])
         self.assertNotContains(response, "Telegram botimizga ulanib")
         self.assertContains(response, "Telegram hisobi ulandi")
+
+    def test_dashboard_lists_all_active_cohorts_for_multi_cohort_student(self):
+        second_cohort = Cohort.objects.create(
+            name="Second Dashboard Cohort",
+            course=self.course,
+            start_date="2026-03-15",
+        )
+        Enrollment.objects.create(
+            student=self.user,
+            cohort=second_cohort,
+            status="active",
+        )
+
+        response = self.client.get(reverse("dashboard"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.context["active_dashboard_enrollments"]), 2)
+        self.assertContains(response, "Dashboard Cohort")
+        self.assertContains(response, "Second Dashboard Cohort")
+        self.assertNotContains(response, "Davom etayotgan kurs")
+        self.assertContains(response, "Barcha guruhlaringiz")
+
+    def test_dashboard_keeps_primary_focus_card_for_single_active_cohort(self):
+        response = self.client.get(reverse("dashboard"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Davom etayotgan kurs")
+
+    def test_attendance_calendar_allows_switching_between_active_cohorts(self):
+        second_cohort = Cohort.objects.create(
+            name="Attendance Switch Cohort",
+            course=self.course,
+            start_date="2026-03-15",
+        )
+        second_enrollment = Enrollment.objects.create(
+            student=self.user,
+            cohort=second_cohort,
+            status="active",
+        )
+        Attendance.objects.create(
+            enrollment=second_enrollment,
+            lesson=self.lesson_1,
+            date=timezone.localdate().replace(day=5),
+            status=Attendance.STATUS_PRESENT,
+        )
+
+        response = self.client.get(
+            reverse("attendance_calendar"),
+            {"year": timezone.localdate().year, "month": timezone.localdate().month, "cohort": second_cohort.id},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["attendance_cohort"], second_cohort)
+        self.assertEqual(response.context["attendance_summary"]["present"], 1)
+        self.assertContains(response, "Dashboard Cohort")
+        self.assertContains(response, "Attendance Switch Cohort")
+
+    def test_leaderboard_allows_switching_between_active_cohorts(self):
+        second_cohort = Cohort.objects.create(
+            name="Leaderboard Cohort 2",
+            course=self.course,
+            start_date="2026-03-15",
+        )
+        Enrollment.objects.create(
+            student=self.user,
+            cohort=second_cohort,
+            status="active",
+        )
+        second_student = User.objects.create_user(
+            username="leaderboard-peer",
+            email="leaderboard-peer@example.com",
+            password="testpass123",
+            total_xp=120,
+        )
+        Enrollment.objects.create(
+            student=second_student,
+            cohort=second_cohort,
+            status="active",
+        )
+
+        response = self.client.get(reverse("leaderboard"), {"cohort": second_cohort.id})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["leaderboard_cohort"], second_cohort)
+        self.assertEqual(response.context["selected_leaderboard_cohort_id"], second_cohort.id)
+        self.assertContains(response, "Dashboard Cohort")
+        self.assertContains(response, "Leaderboard Cohort 2")
+        self.assertContains(response, "leaderboard-peer")
+
+    def test_leaderboard_uses_cohort_specific_score_not_global_total_xp(self):
+        second_cohort = Cohort.objects.create(
+            name="Leaderboard Cohort Score 2",
+            course=self.course,
+            start_date="2026-03-20",
+        )
+        second_enrollment = Enrollment.objects.create(
+            student=self.user,
+            cohort=second_cohort,
+            status="active",
+        )
+        self.user.total_xp = 999
+        self.user.save(update_fields=["total_xp"])
+
+        LessonProgress.objects.create(
+            enrollment=self.enrollment,
+            lesson=self.lesson_1,
+            is_completed=True,
+        )
+        LessonProgress.objects.create(
+            enrollment=self.enrollment,
+            lesson=self.lesson_2,
+            is_completed=True,
+        )
+        LessonProgress.objects.create(
+            enrollment=second_enrollment,
+            lesson=self.lesson_1,
+            is_completed=True,
+        )
+
+        cohort_one_response = self.client.get(reverse("leaderboard"), {"cohort": self.enrollment.cohort_id})
+        cohort_two_response = self.client.get(reverse("leaderboard"), {"cohort": second_cohort.id})
+
+        self.assertEqual(cohort_one_response.status_code, 200)
+        self.assertEqual(cohort_two_response.status_code, 200)
+        self.assertEqual(cohort_one_response.context["leaderboard_my_row"]["cohort_score"], self.lesson_1.xp_reward + self.lesson_2.xp_reward)
+        self.assertEqual(cohort_two_response.context["leaderboard_my_row"]["cohort_score"], self.lesson_1.xp_reward)
+        self.assertNotEqual(
+            cohort_one_response.context["leaderboard_my_row"]["cohort_score"],
+            self.user.total_xp,
+        )

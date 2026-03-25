@@ -1,0 +1,41 @@
+from django.db import transaction
+
+from cohorts.models import Attendance
+
+
+def attendance_xp_for_status(base_xp, status):
+    multipliers = {
+        Attendance.STATUS_PRESENT: 1.0,
+        Attendance.STATUS_PARTIAL: 0.3,
+        Attendance.STATUS_ABSENT: 0.0,
+    }
+    return round(base_xp * multipliers.get(status, 0.0))
+
+
+@transaction.atomic
+def upsert_attendance_and_xp(*, enrollment, lesson, date, status, marked_by):
+    attendance, _ = Attendance.objects.select_for_update().get_or_create(
+        enrollment=enrollment,
+        lesson=lesson,
+        date=date,
+        defaults={
+            "status": status,
+            "xp_awarded": 0,
+            "marked_by": marked_by,
+        },
+    )
+
+    old_xp = attendance.xp_awarded
+    new_xp = attendance_xp_for_status(lesson.xp_reward, status)
+    xp_diff = new_xp - old_xp
+
+    if xp_diff != 0:
+        student = enrollment.student
+        student.total_xp = max(0, student.total_xp + xp_diff)
+        student.save(update_fields=["total_xp"])
+
+    attendance.status = status
+    attendance.xp_awarded = new_xp
+    attendance.marked_by = marked_by
+    attendance.save(update_fields=["status", "xp_awarded", "marked_by", "marked_at"])
+    return attendance

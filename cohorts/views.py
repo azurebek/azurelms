@@ -41,7 +41,7 @@ def checkout_view(request, course_id):
     ).exists()
     
     # Calculate period_start and period_end for this payment
-    today = timezone.now().date()
+    today = timezone.localdate()
     if enrollment.status == 'active' and enrollment.next_payment_deadline and enrollment.next_payment_deadline > today:
         # Extend from current deadline
         tentative_start = enrollment.next_payment_deadline

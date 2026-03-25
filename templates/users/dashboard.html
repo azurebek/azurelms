@@ -7,6 +7,77 @@
 
 {% block dashboard_content %}
 <div class="dashboard-flow dashboard-home-flow">
+    {% if active_dashboard_enrollments|length > 1 %}
+    <section class="dashboard-side-grid dashboard-home-side-grid mb-4">
+        {% if not telegram_linked %}
+        <article class="dashboard-surface dashboard-home-telegram">
+            <div class="dashboard-surface-head dashboard-surface-head--overview">
+                <div>
+                    <span class="dashboard-section-kicker">Telegram</span>
+                    <h2 class="dashboard-surface-title">Botga ulaning</h2>
+                </div>
+                <span class="dashboard-badge">Tez start</span>
+            </div>
+            <div class="dashboard-overview-hero">
+                <div class="d-flex align-items-start gap-3">
+                    <div class="rounded-circle bg-white text-primary d-inline-flex align-items-center justify-content-center shadow-sm flex-shrink-0" style="width: 56px; height: 56px;">
+                        <i class="bi bi-telegram fs-3"></i>
+                    </div>
+                    <div>
+                        <p class="mb-2 fw-semibold text-dark">Telegram botimizga ulanib, bildirishnomalarni tezroq oling.</p>
+                        <p class="mb-0">Profilingizni bir marta bog'lasangiz, keyingi eslatmalar va tizim xabarlari bot orqali ham yetib boradi.</p>
+                    </div>
+                </div>
+                <a href="{{ telegram_bot_link }}" target="_blank" rel="noopener" class="btn btn-primary rounded-pill w-100">Telegramga ulanish</a>
+            </div>
+        </article>
+        {% endif %}
+        <article class="dashboard-surface dashboard-surface--overview dashboard-home-overview">
+            <div class="dashboard-surface-head dashboard-surface-head--overview">
+                <div>
+                    <span class="dashboard-section-kicker">Umumiy ko'rinish</span>
+                    <h2 class="dashboard-surface-title">Bugungi snapshot</h2>
+                </div>
+                <span class="dashboard-badge">Jonli</span>
+            </div>
+            <div class="dashboard-overview-hero">
+                <div class="dashboard-overview-hero__metric">
+                    <span class="dashboard-overview-label">O'qish ritmi</span>
+                    <div class="dashboard-overview-value">
+                        <strong>{{ xp_points|default:"0" }}</strong>
+                        <span class="dashboard-overview-unit">XP</span>
+                    </div>
+                </div>
+                <p>
+                    <span>{{ active_courses_count|default:"0" }} faol kurs</span>
+                    <span>{{ completed_lessons_count|default:"0" }} dars tugallangan</span>
+                </p>
+            </div>
+            <div class="dashboard-mini-stats dashboard-mini-stats--compact">
+                <div class="dashboard-mini-stat">
+                    <span>Faol kurs</span>
+                    <strong>{{ active_courses_count|default:"0" }}</strong>
+                </div>
+                <div class="dashboard-mini-stat">
+                    <span>Darslar</span>
+                    <strong>{{ completed_lessons_count|default:"0" }}</strong>
+                </div>
+                <div class="dashboard-mini-stat">
+                    <span>Seriya</span>
+                    <strong>{{ streak_days|default:"0" }}</strong>
+                </div>
+                <div class="dashboard-mini-stat">
+                    <span>Profil</span>
+                    <strong>{{ profile_completion }}%</strong>
+                </div>
+            </div>
+            <div class="dashboard-overview-footer">
+                <span class="dashboard-overview-rank">O'rin: {% if leaderboard_my_row %}#{{ leaderboard_my_row.rank }}{% else %}-{% endif %}</span>
+                <a href="{% url 'leaderboard' %}{% if primary_enrollment %}?cohort={{ primary_enrollment.cohort_id }}{% endif %}" class="dashboard-overview-link">Leaderboard</a>
+            </div>
+        </article>
+    </section>
+    {% else %}
     <section id="my-courses" class="dashboard-focus-layout dashboard-home-focus">
         <article class="dashboard-focus-card dashboard-home-focus-card">
             {% if primary_enrollment %}
@@ -56,7 +127,7 @@
 
                 <div class="dashboard-focus-actions">
                     {% if primary_enrollment.status == 'active' %}
-                    <a href="{% url 'course_study' primary_enrollment.cohort.course.id %}" class="btn btn-primary rounded-pill px-4">Davom etish</a>
+                    <a href="{% url 'course_study' primary_enrollment.cohort.course.id %}?cohort={{ primary_enrollment.cohort_id }}" class="btn btn-primary rounded-pill px-4">Davom etish</a>
                     {% else %}
                     <a href="{% url 'subscriptions' %}" class="btn btn-primary rounded-pill px-4">Holatni ko'rish</a>
                     {% endif %}
@@ -141,10 +212,66 @@
                 </div>
                 <div class="dashboard-overview-footer">
                     <span class="dashboard-overview-rank">O'rin: {% if leaderboard_my_row %}#{{ leaderboard_my_row.rank }}{% else %}-{% endif %}</span>
-                    <a href="{% url 'leaderboard' %}" class="dashboard-overview-link">Leaderboard</a>
+                    <a href="{% url 'leaderboard' %}{% if primary_enrollment %}?cohort={{ primary_enrollment.cohort_id }}{% endif %}" class="dashboard-overview-link">Leaderboard</a>
                 </div>
             </article>
         </div>
     </section>
+    {% endif %}
+
+    {% if active_dashboard_enrollments|length > 1 %}
+    <section class="dashboard-surface mt-4">
+        <div class="dashboard-surface-head dashboard-surface-head--overview">
+            <div>
+                <span class="dashboard-section-kicker">Faol cohortlar</span>
+                <h2 class="dashboard-surface-title">Barcha guruhlaringiz</h2>
+            </div>
+            <span class="dashboard-badge">{{ active_dashboard_enrollments|length }} ta</span>
+        </div>
+
+        <div class="row g-3">
+            {% for enrollment in active_dashboard_enrollments %}
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                            <div>
+                                <div class="small text-uppercase text-muted fw-semibold mb-1">{{ enrollment.cohort.course.title }}</div>
+                                <h3 class="h5 fw-bold mb-1">{{ enrollment.cohort.name }}</h3>
+                                <div class="small text-muted">{{ enrollment.cohort.course.instructor_display_name }}</div>
+                            </div>
+                            {% if primary_enrollment and enrollment.id == primary_enrollment.id %}
+                            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill">Asosiy</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2 mb-3 small">
+                            <span class="badge bg-light text-dark rounded-pill px-3 py-2">{{ enrollment.dashboard_status_label }}</span>
+                            <span class="badge bg-light text-dark rounded-pill px-3 py-2">{{ enrollment.dashboard_completed_lessons }}/{{ enrollment.dashboard_total_lessons|default:0 }} dars</span>
+                            {% if enrollment.plan %}
+                            <span class="badge bg-light text-dark rounded-pill px-3 py-2">{{ enrollment.plan.name }}</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="progress dashboard-progress">
+                            <div class="progress-bar" style="width: {{ enrollment.dashboard_progress }}%"></div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center small text-muted mt-2">
+                            <span>{{ enrollment.dashboard_progress }}% progress</span>
+                            {% if enrollment.next_payment_deadline %}
+                            <span>{{ enrollment.dashboard_days_left }} kun qoldi</span>
+                            {% endif %}
+                        </div>
+                        <div class="d-flex flex-wrap gap-2 mt-3">
+                            <a href="{% url 'course_study' enrollment.cohort.course.id %}?cohort={{ enrollment.cohort_id }}" class="btn btn-primary rounded-pill px-3">Davom etish</a>
+                            <a href="{% url 'leaderboard' %}?cohort={{ enrollment.cohort_id }}" class="btn btn-outline-primary rounded-pill px-3">Leaderboard</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
 </div>
 {% endblock %}

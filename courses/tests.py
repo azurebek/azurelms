@@ -444,6 +444,102 @@ class LessonAccessFlowTests(TestCase):
         self.assertEqual(submission.answer_text, "Ustoz, vazifa bajarildi")
 
 
+class MultiCohortStudySelectionTests(TestCase):
+    def setUp(self):
+        self.instructor = User.objects.create_user(
+            username="multi-teacher",
+            email="multi-teacher@example.com",
+            password="testpass123",
+            is_staff=True,
+        )
+        self.student = User.objects.create_user(
+            username="multi-student",
+            email="multi-student@example.com",
+            password="testpass123",
+        )
+        self.course = Course.objects.create(
+            title="Shared Course",
+            description="Multi cohort study flow test",
+            instructor=self.instructor,
+            level="beginner",
+        )
+        self.module = Module.objects.create(course=self.course, title="1-modul", order=1)
+        self.lesson_1 = Lesson.objects.create(module=self.module, title="1-dars", order=1)
+        self.lesson_2 = Lesson.objects.create(module=self.module, title="2-dars", order=2)
+        self.cohort_one = Cohort.objects.create(
+            name="1-guruh",
+            course=self.course,
+            start_date=datetime.date(2026, 3, 1),
+        )
+        self.cohort_two = Cohort.objects.create(
+            name="2-guruh",
+            course=self.course,
+            start_date=datetime.date(2026, 3, 15),
+        )
+        self.enrollment_one = Enrollment.objects.create(
+            student=self.student,
+            cohort=self.cohort_one,
+            status="active",
+        )
+        self.enrollment_two = Enrollment.objects.create(
+            student=self.student,
+            cohort=self.cohort_two,
+            status="active",
+        )
+        self.client.force_login(self.student)
+
+    def test_course_study_redirect_preserves_requested_cohort(self):
+        response = self.client.get(
+            reverse("course_study", kwargs={"course_id": self.course.id}),
+            {"cohort": self.cohort_one.id},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(
+            f"{reverse('lesson_detail', kwargs={'course_id': self.course.id, 'lesson_id': self.lesson_1.id})}?cohort={self.cohort_one.id}",
+            response.url,
+        )
+
+    def test_lesson_access_and_progress_follow_selected_cohort(self):
+        CohortLessonRelease.objects.create(cohort=self.cohort_one, lesson=self.lesson_1, is_released=True)
+        CohortLessonRelease.objects.create(cohort=self.cohort_two, lesson=self.lesson_1, is_released=True)
+        CohortLessonRelease.objects.create(cohort=self.cohort_two, lesson=self.lesson_2, is_released=True)
+
+        locked_response = self.client.get(
+            reverse("lesson_detail", kwargs={"course_id": self.course.id, "lesson_id": self.lesson_2.id}),
+            {"cohort": self.cohort_one.id},
+        )
+        self.assertEqual(locked_response.status_code, 302)
+        self.assertIn(
+            f"{reverse('lesson_detail', kwargs={'course_id': self.course.id, 'lesson_id': self.lesson_1.id})}?cohort={self.cohort_one.id}",
+            locked_response.url,
+        )
+
+        unlocked_response = self.client.get(
+            reverse("lesson_detail", kwargs={"course_id": self.course.id, "lesson_id": self.lesson_2.id}),
+            {"cohort": self.cohort_two.id},
+        )
+        self.assertEqual(unlocked_response.status_code, 200)
+        self.assertContains(
+            unlocked_response,
+            f"{reverse('lesson_detail', kwargs={'course_id': self.course.id, 'lesson_id': self.lesson_1.id})}?cohort={self.cohort_two.id}",
+        )
+        self.assertTrue(
+            LessonProgress.objects.filter(
+                enrollment=self.enrollment_two,
+                lesson=self.lesson_2,
+                is_completed=True,
+            ).exists()
+        )
+        self.assertFalse(
+            LessonProgress.objects.filter(
+                enrollment=self.enrollment_one,
+                lesson=self.lesson_2,
+                is_completed=True,
+            ).exists()
+        )
+
+
 @override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class CourseCoverImageTests(TestCase):
     def setUp(self):
