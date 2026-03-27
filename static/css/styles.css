@@ -1125,6 +1125,23 @@ h6 { font-size: 1rem; }
   z-index: 1;
 }
 
+.footer-contact-link {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  max-width: 100%;
+  line-height: 1.5;
+}
+
+.footer-contact-link i {
+  flex: 0 0 auto;
+  margin-top: 0.15rem;
+}
+
+.footer-contact-link span {
+  overflow-wrap: anywhere;
+}
+
 /* ===== SIDEBAR ===== */
 .sidebar {
   background-color: var(--lms-bg-white);

@@ -165,8 +165,18 @@
                 <div class="col-lg-2 col-md-6 col-6">
                     <h5 class="fw-semibold mb-3">Aloqa</h5>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><a href="tel:{{ site_settings.contact_phone|cut:' ' }}" class="text-muted text-decoration-none hover-primary"><i class="bi bi-telephone me-2"></i>{{ site_settings.contact_phone }}</a></li>
-                        <li class="mb-2"><a href="mailto:{{ site_settings.contact_email }}" class="text-muted text-decoration-none hover-primary"><i class="bi bi-envelope me-2"></i>{{ site_settings.contact_email }}</a></li>
+                        <li class="mb-2">
+                            <a href="tel:{{ site_settings.contact_phone|cut:' ' }}" class="text-muted text-decoration-none hover-primary footer-contact-link">
+                                <i class="bi bi-telephone"></i>
+                                <span>{{ site_settings.contact_phone }}</span>
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="mailto:{{ site_settings.contact_email }}" class="text-muted text-decoration-none hover-primary footer-contact-link">
+                                <i class="bi bi-envelope"></i>
+                                <span>{{ site_settings.contact_email }}</span>
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>
