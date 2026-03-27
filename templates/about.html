@@ -222,9 +222,17 @@
   padding: 1.2rem;
 }
 
+.about-contact-card--hero {
+  margin-top: 1rem;
+}
+
 .about-contact-list {
   display: grid;
   gap: 0.85rem;
+}
+
+.about-contact-list--hero {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .about-contact-item {
@@ -552,6 +560,10 @@
   .about-testimonial-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .about-contact-list--hero {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 991px) {
@@ -569,6 +581,10 @@
 
   .about-cta-actions {
     justify-content: flex-start;
+  }
+
+  .about-contact-list--hero {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -654,39 +670,39 @@
               {% endfor %}
             </div>
           </article>
-
-          <article class="about-panel about-contact-card">
-            <div class="about-kicker mb-0">Aloqa</div>
-            <div class="about-contact-list">
-              <div class="about-contact-item">
-                <div class="about-contact-icon"><i class="bi bi-envelope-paper"></i></div>
-                <div>
-                  <span>Email</span>
-                  <a href="mailto:{{ site_settings.contact_email|default:'info@azurelms.uz' }}">{{ site_settings.contact_email|default:"info@azurelms.uz" }}</a>
-                </div>
-              </div>
-              <div class="about-contact-item">
-                <div class="about-contact-icon"><i class="bi bi-headset"></i></div>
-                <div>
-                  <span>Qo'llab-quvvatlash</span>
-                  {% if site_settings.support_url %}
-                  <a href="{{ site_settings.support_url }}">Yordam markazini ochish</a>
-                  {% else %}
-                  <strong>{{ site_settings.contact_phone|default:"+998 90 123 45 67" }}</strong>
-                  {% endif %}
-                </div>
-              </div>
-              <div class="about-contact-item">
-                <div class="about-contact-icon"><i class="bi bi-geo-alt"></i></div>
-                <div>
-                  <span>Format</span>
-                  <strong>{% if site_settings.contact_address %}{{ site_settings.contact_address }}{% else %}Onlayn va moslashuvchan ta'lim tajribasi{% endif %}</strong>
-                </div>
-              </div>
-            </div>
-          </article>
         </div>
       </div>
+
+      <article class="about-panel about-contact-card about-contact-card--hero">
+        <div class="about-kicker mb-0">Aloqa</div>
+        <div class="about-contact-list about-contact-list--hero">
+          <div class="about-contact-item">
+            <div class="about-contact-icon"><i class="bi bi-envelope-paper"></i></div>
+            <div>
+              <span>Email</span>
+              <a href="mailto:{{ site_settings.contact_email|default:'info@azurelms.uz' }}">{{ site_settings.contact_email|default:"info@azurelms.uz" }}</a>
+            </div>
+          </div>
+          <div class="about-contact-item">
+            <div class="about-contact-icon"><i class="bi bi-headset"></i></div>
+            <div>
+              <span>Qo'llab-quvvatlash</span>
+              {% if site_settings.support_url %}
+              <a href="{{ site_settings.support_url }}">Yordam markazini ochish</a>
+              {% else %}
+              <strong>{{ site_settings.contact_phone|default:"+998 90 123 45 67" }}</strong>
+              {% endif %}
+            </div>
+          </div>
+          <div class="about-contact-item">
+            <div class="about-contact-icon"><i class="bi bi-geo-alt"></i></div>
+            <div>
+              <span>Format</span>
+              <strong>{% if site_settings.contact_address %}{{ site_settings.contact_address }}{% else %}Onlayn va moslashuvchan ta'lim tajribasi{% endif %}</strong>
+            </div>
+          </div>
+        </div>
+      </article>
     </div>
   </section>
 
