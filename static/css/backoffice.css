@@ -500,6 +500,10 @@ body.backoffice-page {
   grid-template-columns: 1fr;
 }
 
+.bo-form-grid--double {
+  grid-template-columns: 1fr;
+}
+
 .bo-form-grid .form-label {
   font-size: 0.82rem;
   color: var(--bo-muted);
@@ -687,6 +691,10 @@ body.backoffice-page {
 
   .bo-form-grid--triple {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .bo-form-grid--double {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .bo-form-grid--attendance {

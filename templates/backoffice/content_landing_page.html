@@ -69,6 +69,16 @@
         </div>
 
         <h3 class="bo-subheading">Bo'lim fonlari</h3>
+        <div class="bo-form-grid bo-form-grid--double">
+            <div>
+                <label class="form-label" for="{{ form.how_it_works_title.id_for_label }}">Qanday ishlaydi sarlavhasi</label>
+                {{ form.how_it_works_title }}
+            </div>
+            <div>
+                <label class="form-label" for="{{ form.how_it_works_subtitle.id_for_label }}">Qanday ishlaydi ostsarlavhasi</label>
+                {{ form.how_it_works_subtitle }}
+            </div>
+        </div>
         <div class="bo-form-grid bo-form-grid--triple">
             <div>
                 <label class="form-label" for="{{ form.how_it_works_background_image.id_for_label }}">Qanday ishlaydi rasmi</label>
@@ -98,6 +108,46 @@
             {% if landing_page_obj.footer_background_video %}
             <div class="small text-muted mt-1">Joriy: {{ landing_page_obj.footer_background_video.name }}</div>
             {% endif %}
+        </div>
+        <div class="bo-form-grid bo-form-grid--double">
+            <div>
+                <label class="form-label" for="{{ form.how_it_works_step_one_title.id_for_label }}">1-qadam sarlavhasi</label>
+                {{ form.how_it_works_step_one_title }}
+            </div>
+            <div>
+                <label class="form-label" for="{{ form.how_it_works_step_one_description.id_for_label }}">1-qadam tavsifi</label>
+                {{ form.how_it_works_step_one_description }}
+            </div>
+        </div>
+        <div class="bo-form-grid bo-form-grid--double">
+            <div>
+                <label class="form-label" for="{{ form.how_it_works_step_two_title.id_for_label }}">2-qadam sarlavhasi</label>
+                {{ form.how_it_works_step_two_title }}
+            </div>
+            <div>
+                <label class="form-label" for="{{ form.how_it_works_step_two_description.id_for_label }}">2-qadam tavsifi</label>
+                {{ form.how_it_works_step_two_description }}
+            </div>
+        </div>
+        <div class="bo-form-grid bo-form-grid--double">
+            <div>
+                <label class="form-label" for="{{ form.how_it_works_step_three_title.id_for_label }}">3-qadam sarlavhasi</label>
+                {{ form.how_it_works_step_three_title }}
+            </div>
+            <div>
+                <label class="form-label" for="{{ form.how_it_works_step_three_description.id_for_label }}">3-qadam tavsifi</label>
+                {{ form.how_it_works_step_three_description }}
+            </div>
+        </div>
+        <div class="bo-form-grid bo-form-grid--double">
+            <div>
+                <label class="form-label" for="{{ form.how_it_works_step_four_title.id_for_label }}">4-qadam sarlavhasi</label>
+                {{ form.how_it_works_step_four_title }}
+            </div>
+            <div>
+                <label class="form-label" for="{{ form.how_it_works_step_four_description.id_for_label }}">4-qadam tavsifi</label>
+                {{ form.how_it_works_step_four_description }}
+            </div>
         </div>
 
         <h3 class="bo-subheading">Pastki CTA</h3>

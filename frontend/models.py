@@ -63,6 +63,56 @@ class LandingPage(SingletonModel):
         help_text='MP4, WebM, OGV yoki MOV yuklang. Video bo\'lsa, shu bo\'limda rasm o\'rniga video ishlatiladi.',
         validators=[FileExtensionValidator(allowed_extensions=['mp4', 'webm', 'ogv', 'mov'])],
     )
+    how_it_works_title = models.CharField(
+        max_length=120,
+        default="Qanday ishlaydi?",
+        verbose_name='"Qanday ishlaydi?" sarlavhasi',
+    )
+    how_it_works_subtitle = models.CharField(
+        max_length=220,
+        default="4 ta oddiy qadamda o'rganishni boshlang",
+        verbose_name='"Qanday ishlaydi?" ostsarlavhasi',
+    )
+    how_it_works_step_one_title = models.CharField(
+        max_length=120,
+        default="Ro'yxatdan o'ting",
+        verbose_name="1-qadam sarlavhasi",
+    )
+    how_it_works_step_one_description = models.CharField(
+        max_length=220,
+        default="Bepul hisob yarating va platformaga kiring",
+        verbose_name="1-qadam tavsifi",
+    )
+    how_it_works_step_two_title = models.CharField(
+        max_length=120,
+        default="Kurs tanlang",
+        verbose_name="2-qadam sarlavhasi",
+    )
+    how_it_works_step_two_description = models.CharField(
+        max_length=220,
+        default="Darajangizga mos kursni tanlang",
+        verbose_name="2-qadam tavsifi",
+    )
+    how_it_works_step_three_title = models.CharField(
+        max_length=120,
+        default="O'rganishni boshlang",
+        verbose_name="3-qadam sarlavhasi",
+    )
+    how_it_works_step_three_description = models.CharField(
+        max_length=220,
+        default="Video darslar va mashqlar bilan o'rganing",
+        verbose_name="3-qadam tavsifi",
+    )
+    how_it_works_step_four_title = models.CharField(
+        max_length=120,
+        default="Sertifikat oling",
+        verbose_name="4-qadam sarlavhasi",
+    )
+    how_it_works_step_four_description = models.CharField(
+        max_length=220,
+        default="Kursni tugatib, sertifikat oling",
+        verbose_name="4-qadam tavsifi",
+    )
     footer_background_image = models.ImageField(
         upload_to='landing/footer/',
         blank=True,

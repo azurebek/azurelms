@@ -199,39 +199,20 @@
     {% endif %}
     <div class="container">
         <div class="section-title">
-            <h2>Qanday ishlaydi?</h2>
-            <p>4 ta oddiy qadamda o'rganishni boshlang</p>
+            <h2>{{ page.how_it_works_title|default:"Qanday ishlaydi?" }}</h2>
+            <p>{{ page.how_it_works_subtitle|default:"4 ta oddiy qadamda o'rganishni boshlang" }}</p>
         </div>
         
         <div class="row g-4 text-center">
+            {% for step in how_it_works_steps %}
             <div class="col-12 col-md-6 col-lg-3">
                 <div class="step-card">
-                    <div class="step-number shadow mx-auto mb-3">1</div>
-                    <h5 class="fw-bold">Ro'yxatdan o'ting</h5>
-                    <p class="text-muted small">Bepul hisob yarating va platformaga kiring</p>
+                    <div class="step-number {% if step.number_class %}{{ step.number_class }} {% endif %}shadow mx-auto mb-3">{{ step.number }}</div>
+                    <h5 class="fw-bold">{{ step.title }}</h5>
+                    <p class="text-muted small">{{ step.description }}</p>
                 </div>
             </div>
-            <div class="col-12 col-md-6 col-lg-3">
-                <div class="step-card">
-                    <div class="step-number step-number--secondary shadow mx-auto mb-3">2</div>
-                    <h5 class="fw-bold">Kurs tanlang</h5>
-                    <p class="text-muted small">Darajangizga mos kursni tanlang</p>
-                </div>
-            </div>
-            <div class="col-12 col-md-6 col-lg-3">
-                <div class="step-card">
-                    <div class="step-number step-number--success shadow mx-auto mb-3">3</div>
-                    <h5 class="fw-bold">O'rganishni boshlang</h5>
-                    <p class="text-muted small">Video darslar va mashqlar bilan o'rganing</p>
-                </div>
-            </div>
-            <div class="col-12 col-md-6 col-lg-3">
-                <div class="step-card">
-                    <div class="step-number step-number--danger shadow mx-auto mb-3">4</div>
-                    <h5 class="fw-bold">Sertifikat oling</h5>
-                    <p class="text-muted small">Kursni tugatib, sertifikat oling</p>
-                </div>
-            </div>
+            {% endfor %}
         </div>
     </div>
 </section>

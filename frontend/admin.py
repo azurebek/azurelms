@@ -45,9 +45,16 @@ class LandingPageAdmin(admin.ModelAdmin):
             },
         ),
         (
-            "\"Qanday ishlaydi?\" bo'limi foni",
+            "\"Qanday ishlaydi?\" bo'limi",
             {
-                "fields": ("how_it_works_background_image", "how_it_works_background_video"),
+                "fields": (
+                    ("how_it_works_title", "how_it_works_subtitle"),
+                    ("how_it_works_background_image", "how_it_works_background_video"),
+                    ("how_it_works_step_one_title", "how_it_works_step_one_description"),
+                    ("how_it_works_step_two_title", "how_it_works_step_two_description"),
+                    ("how_it_works_step_three_title", "how_it_works_step_three_description"),
+                    ("how_it_works_step_four_title", "how_it_works_step_four_description"),
+                ),
             },
         ),
         (

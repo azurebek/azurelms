@@ -45,6 +45,32 @@ def home_view(request):
         .order_by("-annotated_students_count", "-created_at")[:3]
     )
     recent_students = User.objects.filter(is_superuser=False).order_by('-date_joined')[:4]
+    how_it_works_steps = [
+        {
+            "number": 1,
+            "title": page_content.how_it_works_step_one_title,
+            "description": page_content.how_it_works_step_one_description,
+            "number_class": "",
+        },
+        {
+            "number": 2,
+            "title": page_content.how_it_works_step_two_title,
+            "description": page_content.how_it_works_step_two_description,
+            "number_class": "step-number--secondary",
+        },
+        {
+            "number": 3,
+            "title": page_content.how_it_works_step_three_title,
+            "description": page_content.how_it_works_step_three_description,
+            "number_class": "step-number--success",
+        },
+        {
+            "number": 4,
+            "title": page_content.how_it_works_step_four_title,
+            "description": page_content.how_it_works_step_four_description,
+            "number_class": "step-number--danger",
+        },
+    ]
     
     context = {
         'page': page_content,
@@ -52,6 +78,7 @@ def home_view(request):
         'testimonials': testimonials,
         'popular_courses': popular_courses,
         'recent_students': recent_students,
+        'how_it_works_steps': how_it_works_steps,
     }
     
     return render(request, 'index.html', context)
