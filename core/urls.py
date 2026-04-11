@@ -43,7 +43,8 @@ urlpatterns = [
 ]
 
 if settings.ENABLE_LEGACY_ADMIN:
-    urlpatterns.insert(0, path('admin/', admin.site.urls))
+    urlpatterns.insert(0, path('', include('django_prometheus.urls')),
+    path('admin/', admin.site.urls))
 
 # Rivojlanish (Development) vaqtida rasmlarni brauzerda ko'rish uchun:
 if settings.DEBUG:

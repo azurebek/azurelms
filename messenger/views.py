@@ -1,10 +1,11 @@
+from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.db.models import Max, Count
 from django.views.decorators.cache import never_cache
 from cohorts.models import Enrollment
 from .access import user_can_access_room
-from .models import ChatRoom, Message
+from .models import ChatRoom, Message, AIFeedback
 
 @login_required
 @never_cache
@@ -103,3 +104,33 @@ def get_room_messages(request, room_id):
         
     except ChatRoom.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Chat xonasi topilmadi yoki huquq yo\'q'}, status=403)
+
+@login_required
+@require_POST
+def submit_ai_feedback(request, message_id):
+    try:
+        msg = Message.objects.get(id=message_id, is_ai_response=True)
+        # Check if student is in the same room
+        if not msg.room.participants.filter(id=request.user.id).exists():
+            return JsonResponse({'status': 'error', 'message': 'Forbidden'}, status=403)
+
+        data = json.loads(request.body)
+        rating = data.get('rating')
+        comment = data.get('comment', '')
+
+        if rating not in [1, -1]:
+            return JsonResponse({'status': 'error', 'message': 'Invalid rating'}, status=400)
+
+        AIFeedback.objects.update_or_create(
+            message=msg,
+            defaults={
+                'student': request.user,
+                'rating': rating,
+                'comment': comment
+            }
+        )
+        return JsonResponse({'status': 'success'})
+    except Message.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Message not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

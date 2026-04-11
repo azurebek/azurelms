@@ -91,6 +91,22 @@ if SECURITY_STRICT:
     SECURE_HSTS_SECONDS = 31536000  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+# Production Security Headers
+if SECURITY_STRICT:
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+
+    # Content Security Policy (Bootstrap, Google Fonts, YouTube, Google Analytics)
+    MIDDLEWARE.insert(0, 'csp.middleware.CSPMiddleware')
+    CSP_DEFAULT_SRC = ("'self'",)
+    CSP_SCRIPT_SRC = ("'self'", "https://cdn.jsdelivr.net", "https://www.googletagmanager.com", "https://www.google-analytics.com", "'unsafe-inline'")
+    CSP_STYLE_SRC = ("'self'", "https://cdn.jsdelivr.net", "https://fonts.googleapis.com", "'unsafe-inline'")
+    CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net")
+    CSP_IMG_SRC = ("'self'", "data:", "https://*.digitaloceanspaces.com", "https://www.google-analytics.com")
+    CSP_FRAME_SRC = ("'self'", "https://www.youtube.com", "https://player.vimeo.com")
+    CSP_CONNECT_SRC = ("'self'", "https://www.google-analytics.com", f"wss://{APP_DOMAIN}" if APP_DOMAIN else "ws://localhost:8000")
+
 
 
 # Application definition
@@ -116,6 +132,7 @@ INSTALLED_APPS = [
     'frontend',
     'backoffice',
     'blog',
+    'django_prometheus',
     'bot',
     'corsheaders',
     'nested_admin',

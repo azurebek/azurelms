@@ -296,28 +296,51 @@ def _build_embedding_client():
 
 
 def embed_texts(texts: Iterable[str], embedding_model: str = DEFAULT_EMBEDDING_MODEL):
+    from django.core.cache import cache
+
     content_list = [text for text in texts if (text or "").strip()]
     if not content_list:
         return []
 
-    client = _build_embedding_client()
-    try:
-        response = client.models.embed_content(
-            model=embedding_model,
-            contents=content_list,
-            config=types.EmbedContentConfig(output_dimensionality=DEFAULT_EMBEDDING_DIM),
-        )
-    except Exception:
-        # Ba'zi provider versiyalarida output_dimensionality qabul qilinmasligi mumkin.
-        response = client.models.embed_content(
-            model=embedding_model,
-            contents=content_list,
-        )
-    embeddings = []
-    for item in (response.embeddings or []):
-        values = list(item.values or [])
-        embeddings.append([float(v) for v in values])
-    return embeddings
+    results = [None] * len(content_list)
+    to_embed = []
+    to_embed_indices = []
+
+    for i, text in enumerate(content_list):
+        text_hash = _text_sha(f"{embedding_model}:{text}")
+        cache_key = f"emb:{text_hash}"
+        cached = cache.get(cache_key)
+        if cached:
+            results[i] = cached
+        else:
+            to_embed.append(text)
+            to_embed_indices.append(i)
+
+    if to_embed:
+        client = _build_embedding_client()
+        try:
+            response = client.models.embed_content(
+                model=embedding_model,
+                contents=to_embed,
+                config=types.EmbedContentConfig(output_dimensionality=DEFAULT_EMBEDDING_DIM),
+            )
+        except Exception:
+            response = client.models.embed_content(
+                model=embedding_model,
+                contents=to_embed,
+            )
+
+        for i, item in enumerate(response.embeddings or []):
+            values = list(item.values or [])
+            vector = [float(v) for v in values]
+            idx = to_embed_indices[i]
+            results[idx] = vector
+
+            # Cache for 7 days
+            text_hash = _text_sha(f"{embedding_model}:{to_embed[i]}")
+            cache.set(f"emb:{text_hash}", vector, timeout=60*60*24*7)
+
+    return results
 
 
 def _active_course_ids_for_user(user):

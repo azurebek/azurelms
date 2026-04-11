@@ -197,6 +197,13 @@
                             <div class="tab-pane fade {% if default_study_tab == 'video' %}show active{% endif %}" id="workspace-video" role="tabpanel" aria-labelledby="section-tab-video">
                                 <div class="lesson-panel-body">
                                     <div class="lesson-video-frame">
+                                    <div id="video-skeleton" class="placeholder-glow w-100 h-100 position-absolute top-0 start-0 z-3" style="background: #111;">
+                                        <div class="placeholder w-100 h-100 opacity-25"></div>
+                                        <div class="position-absolute top-50 start-50 translate-middle text-center text-white opacity-50">
+                                            <div class="spinner-border text-primary mb-2" role="status"></div>
+                                            <div>Video yuklanmoqda...</div>
+                                        </div>
+                                    </div>
                                         <iframe src="{{ lesson.embed_video_url|default:'' }}" title="{{ lesson.title }}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>
                                     </div>
                                 </div>
@@ -372,7 +379,18 @@
 const lessonSidebar = document.getElementById('lessonSidebar');
 const lessonSidebarToggle = document.getElementById('lessonSidebarToggle');
 const lessonSidebarClose = document.getElementById('lessonSidebarClose');
+
 const lessonSidebarOverlay = document.getElementById('lessonSidebarOverlay');
+
+// Video loading skeleton
+const videoIframe = document.querySelector('.lesson-video-frame iframe');
+const videoSkeleton = document.getElementById('video-skeleton');
+if (videoIframe && videoSkeleton) {
+    videoIframe.onload = function() {
+        videoSkeleton.style.display = 'none';
+    };
+}
+
 
 function openLessonSidebar() {
     if (lessonSidebar) lessonSidebar.classList.add('show');

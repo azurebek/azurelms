@@ -58,6 +58,10 @@ class Enrollment(models.Model):
         unique_together = ('student', 'cohort')  # Bir o'quvchi bitta guruhga faqat bir marta a'zo bo'la oladi
         verbose_name = "Obuna (A'zolik)"
         verbose_name_plural = "Obunalar"
+        indexes = [
+            models.Index(fields=['status']),
+            models.Index(fields=['student', 'status']),
+        ]
 
 
 class PaymentReceipt(models.Model):
@@ -146,3 +150,7 @@ class Attendance(models.Model):
         verbose_name = "Davomat"
         verbose_name_plural = "Davomatlar"
         unique_together = ('enrollment', 'lesson', 'date')
+        indexes = [
+            models.Index(fields=['date']),
+            models.Index(fields=['enrollment', 'date']),
+        ]

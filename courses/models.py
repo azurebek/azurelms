@@ -353,6 +353,10 @@ class LessonProgress(models.Model):
         ordering = ["-last_accessed_at"]
         verbose_name = "Dars progressi"
         verbose_name_plural = "Dars progresslari"
+        indexes = [
+            models.Index(fields=['enrollment', 'is_completed']),
+            models.Index(fields=['last_accessed_at']),
+        ]
 
     def __str__(self):
         return f"{self.enrollment.student.username} -> {self.lesson.title}"
