@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import importlib.util
 import os
 import sys
 import hashlib
@@ -35,6 +36,10 @@ def env_list(name, default=None):
     return [item.strip() for item in value.split(",") if item.strip()]
 
 
+def module_available(module_name):
+    return importlib.util.find_spec(module_name) is not None
+
+
 # Load base env, then environment-specific file.
 load_dotenv(BASE_DIR / ".env")
 _raw_env = os.getenv("APP_ENV", "").strip().lower()
@@ -44,6 +49,11 @@ APP_ENV = _raw_env
 ENV_FILE = BASE_DIR / f".env.{APP_ENV}"
 if ENV_FILE.exists():
     load_dotenv(ENV_FILE, override=True)
+
+_prometheus_requested = env_bool("PROMETHEUS_ENABLED", False)
+PROMETHEUS_ENABLED = _prometheus_requested and module_available("django_prometheus")
+if _prometheus_requested and not PROMETHEUS_ENABLED:
+    print("Warning: PROMETHEUS_ENABLED is set, but django_prometheus is not installed.")
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "YOUR_BOT_TOKEN_HERE")
@@ -97,16 +107,6 @@ if SECURITY_STRICT:
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY'
 
-    # Content Security Policy (Bootstrap, Google Fonts, YouTube, Google Analytics)
-    MIDDLEWARE.insert(0, 'csp.middleware.CSPMiddleware')
-    CSP_DEFAULT_SRC = ("'self'",)
-    CSP_SCRIPT_SRC = ("'self'", "https://cdn.jsdelivr.net", "https://www.googletagmanager.com", "https://www.google-analytics.com", "'unsafe-inline'")
-    CSP_STYLE_SRC = ("'self'", "https://cdn.jsdelivr.net", "https://fonts.googleapis.com", "'unsafe-inline'")
-    CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net")
-    CSP_IMG_SRC = ("'self'", "data:", "https://*.digitaloceanspaces.com", "https://www.google-analytics.com")
-    CSP_FRAME_SRC = ("'self'", "https://www.youtube.com", "https://player.vimeo.com")
-    CSP_CONNECT_SRC = ("'self'", "https://www.google-analytics.com", f"wss://{APP_DOMAIN}" if APP_DOMAIN else "ws://localhost:8000")
-
 
 
 # Application definition
@@ -132,12 +132,14 @@ INSTALLED_APPS = [
     'frontend',
     'backoffice',
     'blog',
-    'django_prometheus',
     'bot',
     'corsheaders',
     'nested_admin',
     'storages',
 ]
+
+if PROMETHEUS_ENABLED:
+    INSTALLED_APPS.append('django_prometheus')
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -150,6 +152,19 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+if SECURITY_STRICT:
+    if module_available("csp"):
+        MIDDLEWARE.insert(0, "csp.middleware.CSPMiddleware")
+        CSP_DEFAULT_SRC = ("'self'",)
+        CSP_SCRIPT_SRC = ("'self'", "https://cdn.jsdelivr.net", "https://www.googletagmanager.com", "https://www.google-analytics.com", "'unsafe-inline'")
+        CSP_STYLE_SRC = ("'self'", "https://cdn.jsdelivr.net", "https://fonts.googleapis.com", "'unsafe-inline'")
+        CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net")
+        CSP_IMG_SRC = ("'self'", "data:", "https://*.digitaloceanspaces.com", "https://www.google-analytics.com")
+        CSP_FRAME_SRC = ("'self'", "https://www.youtube.com", "https://player.vimeo.com")
+        CSP_CONNECT_SRC = ("'self'", "https://www.google-analytics.com", f"wss://{APP_DOMAIN}" if APP_DOMAIN else "ws://localhost:8000")
+    else:
+        print("Warning: SECURITY_STRICT is enabled, but django-csp is not installed; skipping CSP middleware.")
 
 CORS_ALLOW_ALL_ORIGINS = env_bool("CORS_ALLOW_ALL_ORIGINS", APP_ENV == "local")
 

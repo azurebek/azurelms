@@ -42,9 +42,11 @@ urlpatterns = [
     path("ckeditor5/", include('django_ckeditor_5.urls'), name="ck_editor_5_upload_file"),
 ]
 
+if settings.PROMETHEUS_ENABLED:
+    urlpatterns.insert(0, path('', include('django_prometheus.urls')))
+
 if settings.ENABLE_LEGACY_ADMIN:
-    urlpatterns.insert(0, path('', include('django_prometheus.urls')),
-    path('admin/', admin.site.urls))
+    urlpatterns.insert(0, path('admin/', admin.site.urls))
 
 # Rivojlanish (Development) vaqtida rasmlarni brauzerda ko'rish uchun:
 if settings.DEBUG:
