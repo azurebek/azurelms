@@ -52,7 +52,27 @@
     </nav>
 
     <!-- Chat Body -->
+
     <div class="messenger-body">
+        <div id="messenger-skeleton" class="p-3 overflow-hidden d-flex flex-column gap-3" style="display: none;">
+            <!-- AI Bubble -->
+            <div class="d-flex align-items-start gap-2">
+                <div class="rounded-circle flex-shrink-0" style="width: 32px; height: 32px; background: #8957e5; opacity: 0.2;"></div>
+                <div class="placeholder-glow flex-grow-1" style="max-width: 80%;">
+                    <div class="placeholder col-10 rounded-3 mb-1" style="height: 14px;"></div>
+                    <div class="placeholder col-8 rounded-3" style="height: 14px;"></div>
+                </div>
+            </div>
+            <!-- User Bubble -->
+            <div class="d-flex flex-row-reverse align-items-start gap-2">
+                <div class="rounded-circle flex-shrink-0" style="width: 32px; height: 32px; background: #0d6efd; opacity: 0.2;"></div>
+                <div class="placeholder-glow flex-grow-1 d-flex flex-column align-items-end" style="max-width: 80%;">
+                    <div class="placeholder col-8 rounded-3 mb-1" style="height: 14px; background: #0d6efd; opacity: 0.3;"></div>
+                    <div class="placeholder col-5 rounded-3" style="height: 14px; background: #0d6efd; opacity: 0.3;"></div>
+                </div>
+            </div>
+        </div>
+
         <div class="messenger-chat-window" id="main-chat-window">
             <div class="text-center text-muted small mt-4" id="chat-loading">Xonalar yuklanmoqda...</div>
         </div>
@@ -261,7 +281,11 @@
 
         const mainWin = document.getElementById('main-chat-window');
         mainWin.classList.toggle('messenger-chat-window--ai', roomType === 'ai');
-        mainWin.innerHTML = '<div class="text-center text-muted small mt-4">Xabarlar yuklanmoqda...</div>';
+
+        const skeleton = document.getElementById('messenger-skeleton');
+        mainWin.innerHTML = '';
+        if (skeleton) skeleton.style.display = 'block';
+
 
         const room = availableRooms.find(r => r.type === roomType);
         if (!room) {
@@ -288,7 +312,11 @@
 
     function renderMessages(messages) {
         const win = document.getElementById('main-chat-window');
+
         win.innerHTML = '';
+        const skeleton = document.getElementById('messenger-skeleton');
+        if (skeleton) skeleton.style.display = 'none';
+
         if (messages.length === 0) {
             win.innerHTML = '<div class="text-center text-muted small mt-4">Suhbatni boshlang!</div>';
             return;
@@ -384,7 +412,43 @@
         if (e.key === 'Enter') sendMessage();
     });
 
-    // Initialize
+
+async function rateAI(msgId, rating) {
+    const feedbackRow = document.querySelector(`.ai-feedback-row[data-msg-id="${msgId}"]`);
+    if (feedbackRow) {
+        feedbackRow.innerHTML = '<span class="small text-muted">Rahmat!</span>';
+    }
+
+    try {
+        await fetch(`/messenger/api/ai-feedback/${msgId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ rating: rating })
+        });
+    } catch (e) {
+        console.error("Feedback error", e);
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Initialize
     window.addEventListener('load', () => {
         loadState();
         applyState();

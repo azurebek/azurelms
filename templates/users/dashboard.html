@@ -127,7 +127,7 @@
 
                 <div class="dashboard-focus-actions">
                     {% if primary_enrollment.status == 'active' %}
-                    <a href="{% url 'course_study' primary_enrollment.cohort.course.id %}?cohort={{ primary_enrollment.cohort_id }}" class="btn btn-primary rounded-pill px-4">Davom etish</a>
+                    <a href="{% url 'course_study' primary_enrollment.cohort.course.id %}?cohort={{ primary_enrollment.cohort_id }}" class="btn btn-primary rounded-pill px-5 py-2 fs-5"><i class="bi bi-play-fill me-1"></i>Darsga kirish</a>
                     {% else %}
                     <a href="{% url 'subscriptions' %}" class="btn btn-primary rounded-pill px-4">Holatni ko'rish</a>
                     {% endif %}

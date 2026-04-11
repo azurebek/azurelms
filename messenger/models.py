@@ -58,6 +58,10 @@ class Message(models.Model):
         ordering = ['created_at']  # Xabarlar doim vaqti bo'yicha ketma-ket chiqadi
         verbose_name = "Xabar"
         verbose_name_plural = "Xabarlar"
+        indexes = [
+            models.Index(fields=['created_at']),
+            models.Index(fields=['room', 'created_at']),
+        ]
 
 
 class AILongTermMemory(models.Model):
@@ -95,3 +99,23 @@ class LessonRAGChunk(models.Model):
 
     def __str__(self):
         return f"Chunk {self.chunk_index} | {self.lesson.title}"
+
+class AIFeedback(models.Model):
+    # AI javoblari uchun feedback (Thumbs up/down)
+    RATING_CHOICES = (
+        (1, 'Ijobiy (Thumbs Up)'),
+        (-1, 'Salbiy (Thumbs Down)'),
+    )
+
+    message = models.OneToOneField(Message, on_delete=models.CASCADE, related_name='feedback')
+    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    rating = models.SmallIntegerField(choices=RATING_CHOICES)
+    comment = models.TextField(blank=True, null=True, help_text="Qo'shimcha izoh")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Feedback for {self.message.id} | {self.rating}"
+
+    class Meta:
+        verbose_name = "AI Feedback"
+        verbose_name_plural = "AI Feedbacklar"
