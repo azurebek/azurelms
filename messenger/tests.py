@@ -7,7 +7,7 @@ from django.urls import reverse
 
 from cohorts.models import Cohort, Enrollment
 from courses.models import Course, Lesson, Module
-from messenger.models import ChatRoom, LessonRAGChunk, Message
+from messenger.models import AIFeedback, ChatRoom, LessonRAGChunk, Message
 from messenger.rag import ensure_pgvector_schema, reindex_lessons, retrieve_relevant_chunks
 from messenger.tasks import generate_ai_response
 
@@ -124,6 +124,102 @@ class GenerateAiResponseTaskTests(TestCase):
         self.assertIn("Kechirasiz", ai_message.text)
         self.assertTrue(mocked_client.called)
         mocked_logger_exception.assert_called_once()
+
+
+class AIFeedbackApiTests(TestCase):
+    def setUp(self):
+        self.student = User.objects.create_user(
+            username="feedback-student",
+            email="feedback-student@example.com",
+            password="testpass123",
+        )
+        self.peer = User.objects.create_user(
+            username="feedback-peer",
+            email="feedback-peer@example.com",
+            password="testpass123",
+        )
+        self.course = Course.objects.create(
+            title="Feedback Course",
+            description="Feedback course",
+            level="beginner",
+        )
+        self.cohort = Cohort.objects.create(
+            name="Feedback Cohort",
+            course=self.course,
+            start_date=datetime.date(2026, 3, 1),
+        )
+        Enrollment.objects.create(student=self.student, cohort=self.cohort, status="active")
+        Enrollment.objects.create(student=self.peer, cohort=self.cohort, status="active")
+
+        self.room = ChatRoom.objects.create(room_type="ai", name=f"Azure AI - {self.student.username}")
+        self.room.participants.add(self.student, self.peer)
+        self.ai_message = Message.objects.create(
+            room=self.room,
+            text="Bu AI javobi.",
+            is_ai_response=True,
+        )
+
+    def test_submit_ai_feedback_saves_comment_and_returns_totals(self):
+        self.client.force_login(self.student)
+
+        response = self.client.post(
+            reverse("messenger:submit_ai_feedback", args=[self.ai_message.id]),
+            data='{"rating": 1, "comment": "Grammar xatosi bor"}',
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["feedback"]["rating"], 1)
+        self.assertEqual(payload["feedback"]["comment"], "Grammar xatosi bor")
+        self.assertEqual(payload["feedback_totals"]["positive"], 1)
+        self.assertEqual(payload["feedback_totals"]["negative"], 0)
+
+        feedback = AIFeedback.objects.get(message=self.ai_message, student=self.student)
+        self.assertEqual(feedback.comment, "Grammar xatosi bor")
+
+    def test_submit_ai_feedback_keeps_rows_separate_per_student(self):
+        self.client.force_login(self.student)
+        self.client.post(
+            reverse("messenger:submit_ai_feedback", args=[self.ai_message.id]),
+            data='{"rating": 1, "comment": "Like"}',
+            content_type="application/json",
+        )
+        self.client.force_login(self.peer)
+        response = self.client.post(
+            reverse("messenger:submit_ai_feedback", args=[self.ai_message.id]),
+            data='{"rating": -1, "comment": "Noto\'g\'ri javob"}',
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(AIFeedback.objects.filter(message=self.ai_message).count(), 2)
+        self.assertEqual(response.json()["feedback_totals"]["positive"], 1)
+        self.assertEqual(response.json()["feedback_totals"]["negative"], 1)
+
+    def test_get_room_messages_returns_my_feedback_and_totals_for_ai_messages(self):
+        AIFeedback.objects.create(
+            message=self.ai_message,
+            student=self.student,
+            rating=AIFeedback.RATING_NEGATIVE,
+            comment="Mana shu joyini tuzatish kerak",
+        )
+        AIFeedback.objects.create(
+            message=self.ai_message,
+            student=self.peer,
+            rating=AIFeedback.RATING_POSITIVE,
+            comment="Menga foydali bo'ldi",
+        )
+        self.client.force_login(self.student)
+
+        response = self.client.get(reverse("messenger:get_room_messages", args=[self.room.id]))
+
+        self.assertEqual(response.status_code, 200)
+        message_payload = response.json()["messages"][0]
+        self.assertEqual(message_payload["feedback"]["rating"], AIFeedback.RATING_NEGATIVE)
+        self.assertEqual(message_payload["feedback"]["comment"], "Mana shu joyini tuzatish kerak")
+        self.assertEqual(message_payload["feedback_totals"]["positive"], 1)
+        self.assertEqual(message_payload["feedback_totals"]["negative"], 1)
 
 
 class RagPipelineTests(TestCase):

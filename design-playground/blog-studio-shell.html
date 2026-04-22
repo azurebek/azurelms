@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog Studio Shell Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/css/tokens.css">
+  <link rel="stylesheet" href="./assets/css/foundation.css">
+  <link rel="stylesheet" href="./assets/css/app.css">
+  <link rel="stylesheet" href="./assets/css/blog.css">
+</head>
+<body class="shell-app shell-blog-studio">
+  <div class="app-layout">
+    <aside class="app-sidebar">
+      <div class="app-sidebar-brand">
+        <div class="brand-mark brand-mark--app">AJ</div>
+        <div class="app-brand-copy">
+          <strong>Azure Journal</strong>
+          <span>Editorial studio</span>
+        </div>
+      </div>
+
+      <div class="app-sidebar-title">Kontent boshqaruvi</div>
+
+      <section class="app-accordion">
+        <div class="app-sidebar-group is-open">
+          <button class="app-group-toggle" type="button" aria-expanded="true">
+            <span class="app-group-copy">
+              <strong>Editorial</strong>
+              <small>Posts va review</small>
+            </span>
+            <i class="bi bi-chevron-down"></i>
+          </button>
+          <nav class="app-nav">
+            <a class="is-active" href="#"><i class="bi bi-grid"></i><span>Overview</span></a>
+            <a href="#"><i class="bi bi-file-earmark-text"></i><span>Posts</span></a>
+            <a href="#"><i class="bi bi-eye"></i><span>Preview queue</span></a>
+            <a href="#"><i class="bi bi-calendar3"></i><span>Schedule</span></a>
+          </nav>
+        </div>
+
+        <div class="app-sidebar-group">
+          <button class="app-group-toggle" type="button" aria-expanded="false">
+            <span class="app-group-copy">
+              <strong>Metadata</strong>
+              <small>Tags va SEO</small>
+            </span>
+            <i class="bi bi-chevron-down"></i>
+          </button>
+          <nav class="app-nav app-nav--secondary">
+            <a href="#"><i class="bi bi-tags"></i><span>Tag map</span></a>
+            <a href="#"><i class="bi bi-graph-up-arrow"></i><span>SEO signals</span></a>
+          </nav>
+        </div>
+
+        <div class="app-sidebar-group">
+          <button class="app-group-toggle" type="button" aria-expanded="false">
+            <span class="app-group-copy">
+              <strong>Distribution</strong>
+              <small>Newsletter va social</small>
+            </span>
+            <i class="bi bi-chevron-down"></i>
+          </button>
+          <nav class="app-nav app-nav--secondary">
+            <a href="#"><i class="bi bi-envelope"></i><span>Digest</span></a>
+            <a href="#"><i class="bi bi-megaphone"></i><span>Channels</span></a>
+          </nav>
+        </div>
+      </section>
+
+      <div class="app-user-card">
+        <div class="app-user-avatar">AS</div>
+        <div class="app-user-copy">
+          <strong>Azizbek</strong>
+          <span>Editor in chief</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="app-main">
+      <header class="app-topbar">
+        <div class="app-term">
+          <i class="bi bi-list"></i>
+          <span>Editorial desk / Issue 14</span>
+        </div>
+        <div class="app-topbar-actions">
+          <button class="app-icon-btn"><i class="bi bi-house-door"></i></button>
+          <button class="app-icon-btn app-icon-btn--badge"><i class="bi bi-bell"></i><em>3</em></button>
+          <div class="app-topbar-user">
+            <div class="app-topbar-avatar">A</div>
+            <span>AZURE JOURNAL STUDIO</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="app-workspace">
+        <div class="app-alert app-alert--success">
+          <strong>Editorial update</strong>
+          <span>2 ta draft review kutmoqda, 1 ta maqola bugun 18:00 da publish navbatida.</span>
+          <button class="app-close-btn"><i class="bi bi-x-lg"></i></button>
+        </div>
+
+        <section class="journal-shell-switcher">
+          <nav class="journal-switcher-nav">
+            <a href="./blog-public-shell.html"><i class="bi bi-grid"></i>Public list shell</a>
+            <a href="./blog-article-shell.html"><i class="bi bi-file-earmark-text"></i>Article shell</a>
+            <a class="is-active" href="./blog-studio-shell.html"><i class="bi bi-layout-sidebar-inset"></i>Studio shell</a>
+          </nav>
+        </section>
+
+        <section class="journal-studio-stat-grid">
+          <article class="journal-panel journal-studio-stat">
+            <p class="section-kicker">Published</p>
+            <strong>24</strong>
+            <span>Publicda tirik maqolalar</span>
+          </article>
+          <article class="journal-panel journal-studio-stat">
+            <p class="section-kicker">Drafts</p>
+            <strong>06</strong>
+            <span>Edit va review kutayotganlar</span>
+          </article>
+          <article class="journal-panel journal-studio-stat">
+            <p class="section-kicker">Comments</p>
+            <strong>128</strong>
+            <span>Oxirgi 30 kun ichida</span>
+          </article>
+          <article class="journal-panel journal-studio-stat">
+            <p class="section-kicker">Read time</p>
+            <strong>07m</strong>
+            <span>O'rtacha maqola davomiyligi</span>
+          </article>
+        </section>
+
+        <section class="journal-desk-grid">
+          <div class="journal-review-stack">
+            <article class="journal-panel journal-editor-panel">
+              <div class="journal-panel-head">
+                <div class="journal-copy">
+                  <p class="section-kicker">Desk queue</p>
+                  <h2>Bugungi navbat</h2>
+                  <p>Studio shell public blogdan alohida bo'ladi, chunki bu yerda writing, review, metadata va publishing oqimi boshqariladi.</p>
+                </div>
+                <button class="button button--primary">Yangi post</button>
+              </div>
+
+              <div class="journal-story-stream">
+                <article class="journal-draft-card">
+                  <div class="journal-status-row">
+                    <span class="journal-status-badge is-active">Ready for review</span>
+                    <span class="journal-status-badge is-muted">#Architecture</span>
+                  </div>
+                  <h3>Blog shellni public shell ichida qoldirish kerakmi?</h3>
+                  <p class="journal-story-snippet">Title, excerpt va featured quote tayyor. Faqat body polish va SEO summary qolgan.</p>
+                  <div class="journal-meta-row">
+                    <span>Yangilangan: 17:40</span>
+                    <span>08 min read</span>
+                    <span>12 clap preview</span>
+                  </div>
+                  <div class="journal-mini-actions">
+                    <button class="button button--secondary">Edit</button>
+                    <button class="button button--ghost">Preview</button>
+                    <button class="button button--ghost">Assign</button>
+                  </div>
+                </article>
+
+                <article class="journal-draft-card">
+                  <div class="journal-status-row">
+                    <span class="journal-status-badge is-warm">Needs rewrite</span>
+                    <span class="journal-status-badge is-muted">#Support</span>
+                  </div>
+                  <h3>Messenger va help center uchun editorial guideline</h3>
+                  <p class="journal-story-snippet">Maqola foydali, lekin message juda tarqoq. Section hierarchy qayta yig'ilishi kerak.</p>
+                  <div class="journal-meta-row">
+                    <span>Muallif: Team notes</span>
+                    <span>05 min read</span>
+                    <span>3 comment</span>
+                  </div>
+                  <div class="journal-mini-actions">
+                    <button class="button button--secondary">Rewrite</button>
+                    <button class="button button--ghost">Notes</button>
+                  </div>
+                </article>
+
+                <article class="journal-draft-card">
+                  <div class="journal-status-row">
+                    <span class="journal-status-badge is-muted">Scheduled</span>
+                    <span class="journal-status-badge is-muted">#Pricing</span>
+                  </div>
+                  <h3>Pricing sahifani soddalashtirish bo'yicha qisqa note</h3>
+                  <p class="journal-story-snippet">Bugun 18:00 da publish qilinadi. CTA va repeated heading misollari bilan qisqa post.</p>
+                  <div class="journal-meta-row">
+                    <span>Publish: 18:00</span>
+                    <span>04 min read</span>
+                    <span>Digestga qo'shiladi</span>
+                  </div>
+                  <div class="journal-mini-actions">
+                    <button class="button button--secondary">Schedule</button>
+                    <button class="button button--ghost">Open</button>
+                  </div>
+                </article>
+              </div>
+            </article>
+
+            <article class="journal-panel journal-calendar-panel">
+              <div class="journal-panel-head">
+                <div class="journal-copy">
+                  <p class="section-kicker">Calendar</p>
+                  <h2>Issue cadence</h2>
+                </div>
+                <a class="journal-read-link" href="#">To'liq kalendar <i class="bi bi-arrow-right"></i></a>
+              </div>
+
+              <div class="journal-calendar-grid">
+                <article class="journal-calendar-card">
+                  <span>Bugun / 18:00</span>
+                  <h3>Pricing simplification note</h3>
+                  <strong>Digest + blog</strong>
+                </article>
+                <article class="journal-calendar-card">
+                  <span>Ertaga / 11:00</span>
+                  <h3>Learning shell migration walkthrough</h3>
+                  <strong>Featured story</strong>
+                </article>
+                <article class="journal-calendar-card">
+                  <span>Juma / 09:00</span>
+                  <h3>Studio workflow update</h3>
+                  <strong>Ops brief</strong>
+                </article>
+              </div>
+            </article>
+          </div>
+
+          <div class="journal-review-stack">
+            <article class="journal-panel journal-review-panel">
+              <div class="journal-panel-head">
+                <div class="journal-copy">
+                  <p class="section-kicker">Editor surface</p>
+                  <h2>Post form prototipi</h2>
+                  <p>Bu preview blog `studio_form` replacement'i uchun ishlatiladi: title, excerpt, body, tags, publish state va SEO bloklari bitta operational layerda turadi.</p>
+                </div>
+              </div>
+
+              <article class="journal-editor-card">
+                <div class="journal-form-stack">
+                  <div class="journal-field">
+                    <label for="editor-title">Sarlavha</label>
+                    <input class="journal-input" id="editor-title" type="text" value="Blog shell ham alohida editorial zone bo'lishi kerakmi?">
+                  </div>
+
+                  <div class="journal-field">
+                    <label for="editor-excerpt">Excerpt</label>
+                    <textarea class="journal-textarea" id="editor-excerpt">Blog foydalanuvchiga product qarorlarini tushuntiradigan, landingdan sokinroq va maqola o'qishga qulay alohida qatlam bo'lishi kerak.</textarea>
+                  </div>
+
+                  <div class="journal-inline-grid">
+                    <div class="journal-field">
+                      <label for="editor-status">Status</label>
+                      <select class="journal-select" id="editor-status">
+                        <option>Draft</option>
+                        <option selected>Ready for review</option>
+                        <option>Live</option>
+                      </select>
+                    </div>
+                    <div class="journal-field">
+                      <label for="editor-time">Publish time</label>
+                      <input class="journal-input" id="editor-time" type="text" value="15 Apr 2026 / 18:00">
+                    </div>
+                  </div>
+
+                  <div class="journal-field">
+                    <label for="editor-seo">SEO summary</label>
+                    <textarea class="journal-textarea" id="editor-seo">Azure Journal uchun public list, article detail va studio shell ni ajratish sabablari haqida concise meta description.</textarea>
+                  </div>
+                </div>
+
+                <div class="journal-mini-actions">
+                  <button class="button button--primary">Saqlash</button>
+                  <button class="button button--ghost">Preview</button>
+                  <button class="button button--ghost">Public open</button>
+                </div>
+              </article>
+            </article>
+
+            <article class="journal-panel journal-review-panel">
+              <div class="journal-panel-head">
+                <div class="journal-copy">
+                  <p class="section-kicker">Quality gate</p>
+                  <h2>Publish checklist</h2>
+                </div>
+              </div>
+
+              <ul class="journal-checklist">
+                <li><i class="bi bi-check-circle-fill"></i> Title va excerpt editorial tilda.</li>
+                <li><i class="bi bi-check-circle-fill"></i> Tags public taxonomy bilan mos.</li>
+                <li><i class="bi bi-check-circle-fill"></i> Article detail TOC'ga mos headinglar mavjud.</li>
+                <li><i class="bi bi-check-circle-fill"></i> Share copy va preview title tayyor.</li>
+              </ul>
+
+              <div class="journal-metrics-row">
+                <article class="journal-metric-tile">
+                  <strong>72</strong>
+                  <span>SEO score</span>
+                </article>
+                <article class="journal-metric-tile">
+                  <strong>8m</strong>
+                  <span>Read time</span>
+                </article>
+                <article class="journal-metric-tile">
+                  <strong>3</strong>
+                  <span>Internal links</span>
+                </article>
+              </div>
+            </article>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

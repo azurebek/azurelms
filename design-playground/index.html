@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AzureLMS Design Playground</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/css/tokens.css">
+  <link rel="stylesheet" href="./assets/css/foundation.css">
+  <link rel="stylesheet" href="./assets/css/component-catalog.css">
+</head>
+<body class="components-page">
+  <header class="catalog-shell catalog-header">
+    <div class="catalog-heading">
+      <p class="eyebrow">AzureLMS Redesign Lab</p>
+      <h1>Shelllar, tokenlar va komponentlar</h1>
+      <p>Bu yerda Django templatesiz, faqat frontend prototype ko'rinishida public, app, learning va exam muhitlarini quramiz. Standardlar, tokenlar va component katalog ham shu joyda yig'iladi.</p>
+    </div>
+  </header>
+
+  <main class="catalog-shell catalog-main">
+    <section class="catalog-card-grid">
+      <a class="catalog-link-card" href="./public-shell.html">
+        <p class="eyebrow">01</p>
+        <h2>Public Shell</h2>
+        <p>Landing, pricing, legal va boshqa authsiz sahifalar uchun institutional portal yo'nalishi.</p>
+        <span>Public shellni ochish</span>
+      </a>
+
+      <a class="catalog-link-card" href="./about.html">
+        <p class="eyebrow">01B</p>
+        <h2>About Page</h2>
+        <p>Missiya, vision, statistikalar va jamoani toza, institutsional ritmda ko'rsatadigan alohida informational page.</p>
+        <span>About prototipini ochish</span>
+      </a>
+
+      <a class="catalog-link-card" href="./legal-privacy.html">
+        <p class="eyebrow">01A</p>
+        <h2>Legal Family</h2>
+        <p>Privacy, terms va FAQ uchun public-first, lekin app ichida ham yashay oladigan document surface oilasi.</p>
+        <span>Legal prototiplarini ochish</span>
+      </a>
+
+      <a class="catalog-link-card" href="./app-shell.html">
+        <p class="eyebrow">02</p>
+        <h2>App Shell</h2>
+        <p>Dashboard, profil va student platform experience uchun dense operational shell.</p>
+        <span>App shellni ochish</span>
+      </a>
+
+      <a class="catalog-link-card" href="./learning-shell.html">
+        <p class="eyebrow">03</p>
+        <h2>Learning Shell</h2>
+        <p>Dars va fokus talab qiladigan o'quv muhiti uchun compact workspace yo'nalishi.</p>
+        <span>Learning shellni ochish</span>
+      </a>
+
+      <a class="catalog-link-card" href="./exam-shell.html">
+        <p class="eyebrow">04</p>
+        <h2>Exam Shell</h2>
+        <p>Butun ekranni egallaydigan, tashqi navigationsiz, secure exam workspace prototipi.</p>
+        <span>Exam shellni ochish</span>
+      </a>
+
+      <a class="catalog-link-card" href="./auth-login.html">
+        <p class="eyebrow">05</p>
+        <h2>Auth Shell</h2>
+        <p>Public’dan ajralgan, Figma usulidagi split auth family: login, register, recovery va verification.</p>
+        <span>Auth prototiplarini ochish</span>
+      </a>
+
+      <a class="catalog-link-card" href="./components/index.html">
+        <p class="eyebrow">06</p>
+        <h2>Component Catalog</h2>
+        <p>Buttons, navigation, cards, forms, learning va messenger komponentlari uchun alohida sahifalar.</p>
+        <span>Katalogni ochish</span>
+      </a>
+
+      <a class="catalog-link-card" href="./blog-public-shell.html">
+        <p class="eyebrow">07</p>
+        <h2>Blog Shells</h2>
+        <p>Editorial public list, article detail va studio workspace uchun alohida prototype oilasi.</p>
+        <span>Blog prototiplarini ochish</span>
+      </a>
+
+      <a class="catalog-link-card" href="./messenger-shell.html">
+        <p class="eyebrow">08</p>
+        <h2>Messenger Shell</h2>
+        <p>AI coach, tutor va group flow uchun popupdan kattaroq, alohida focused workspace prototipi.</p>
+        <span>Messenger shellni ochish</span>
+      </a>
+    </section>
+
+    <section class="catalog-section">
+      <div class="catalog-section-head">
+        <h2>Legal document family</h2>
+        <p>Yagona `legal_page.html` template ichidan chiqadigan, lekin page-type bo'yicha farqlanadigan policy oilasi. Public footer va app settings/help ichida bir xil content, turli shell context bilan yashashi mumkin.</p>
+      </div>
+      <div class="catalog-demo">
+        <div class="catalog-grid-3">
+          <a class="catalog-link-card" href="./legal-privacy.html">
+            <h2>Privacy Policy</h2>
+            <p>Data, learning telemetry, payment receipt va support context bo'yicha hujjatga yaqin long-form prototype.</p>
+            <span>Privacy prototipini ochish</span>
+          </a>
+          <a class="catalog-link-card" href="./legal-terms.html">
+            <h2>Terms of Service</h2>
+            <p>Enrollment, exam conduct, certificate issuance va platforma qoidalarini productga yaqin ohangda yig'adigan hujjat.</p>
+            <span>Terms prototipini ochish</span>
+          </a>
+          <a class="catalog-link-card" href="./legal-faq.html">
+            <h2>Legal FAQ</h2>
+            <p>Long-form policy'ni support-oriented, scan-friendly card stack ko'rinishida ochadigan FAQ surface.</p>
+            <span>FAQ prototipini ochish</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="catalog-section">
+      <div class="catalog-section-head">
+        <h2>Messenger family</h2>
+        <p>Messenger ikki qavatda yashaydi: quick widget app/learning ichida qoladi, chuqur AI ishlash esa alohida shellga ochiladi.</p>
+      </div>
+      <div class="catalog-demo">
+        <div class="catalog-grid-3">
+          <a class="catalog-link-card" href="./messenger-shell.html">
+            <h2>Messenger Shell</h2>
+            <p>Thread rail, AI coach stage, citations, prompt dock va context panel bilan to'liq workspace.</p>
+            <span>Messenger shellni ochish</span>
+          </a>
+          <a class="catalog-link-card" href="./components/messenger.html">
+            <h2>Messenger Components</h2>
+            <p>Launcher, quick panel va full messenger component reference'lari bir joyda.</p>
+            <span>Component reference'ni ochish</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="catalog-section">
+      <div class="catalog-section-head">
+        <h2>App shell modes</h2>
+        <p>Dashboard oilasi ichidagi compact operational sahifalar. Katalog va course detail auth bo'lgan user uchun landingdan ajralgan continuity'ni ushlab turadi.</p>
+      </div>
+      <div class="catalog-demo">
+        <div class="catalog-grid-3">
+          <a class="catalog-link-card" href="./app-shell.html">
+            <h2>App Dashboard</h2>
+            <p>Learning, platform, content va account navigation bilan asosiy workspace.</p>
+            <span>Dashboard prototipini ochish</span>
+          </a>
+          <a class="catalog-link-card" href="./app-course-list.html">
+            <h2>App Course List</h2>
+            <p>Dashboard ichidagi katalog, filter stack va compact cohort kartalari bilan course browse oqimi.</p>
+            <span>Course listni ochish</span>
+          </a>
+          <a class="catalog-link-card" href="./app-course-detail.html">
+            <h2>App Course Detail</h2>
+            <p>Course hero, module map va enrollment paneli app shell ichida qoladigan detail ko'rinishi.</p>
+            <span>Course detailni ochish</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="catalog-section">
+      <div class="catalog-section-head">
+        <h2>Auth shell family</h2>
+        <p>Landing navigationidan tozalangan, mini auth chrome va right-side preview bilan qurilgan yangi auth oilasi.</p>
+      </div>
+      <div class="catalog-demo">
+        <div class="catalog-grid-3">
+          <a class="catalog-link-card" href="./auth-login.html">
+            <h2>Login</h2>
+            <p>Mini auth chrome, focused form va dashboard preview bilan kirish sahifasi.</p>
+            <span>Login prototipini ochish</span>
+          </a>
+          <a class="catalog-link-card" href="./auth-register.html">
+            <h2>Register</h2>
+            <p>Split onboarding shell ichidagi register oqimi va product preview.</p>
+            <span>Register prototipini ochish</span>
+          </a>
+          <a class="catalog-link-card" href="./auth-recovery.html">
+            <h2>Recovery</h2>
+            <p>Minimal recovery pane va secure recovery preview bilan access tiklash oqimi.</p>
+            <span>Recovery prototipini ochish</span>
+          </a>
+          <a class="catalog-link-card" href="./auth-verify.html">
+            <h2>Verification</h2>
+            <p>OTP-focused verify pane va professional secure checkpoint preview'i.</p>
+            <span>Verification prototipini ochish</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="catalog-section">
+      <div class="catalog-section-head">
+        <h2>Exam modes</h2>
+        <p>Secure exam oilasi uchun alohida fullscreen ko'rinishlar. Har biri bir xil qat'iy shellga tayanadi, lekin task turi o'zgargan sari markaziy stage moslashadi.</p>
+      </div>
+      <div class="catalog-demo">
+        <div class="catalog-grid-3">
+          <a class="catalog-link-card" href="./exam-shell.html">
+            <h2>Reading Mode</h2>
+            <p>Passage, savol va compact question map bilan o'qib javoblash muhiti.</p>
+            <span>Reading prototipini ochish</span>
+          </a>
+          <a class="catalog-link-card" href="./exam-writing.html">
+            <h2>Writing Mode</h2>
+            <p>Prompt, editor va rubric bilan yozma topshiriq muhiti.</p>
+            <span>Writing prototipini ochish</span>
+          </a>
+          <a class="catalog-link-card" href="./exam-listening.html">
+            <h2>Listening Mode</h2>
+            <p>Audio player markazda turadigan, replay cheklovli listening muhiti.</p>
+            <span>Listening prototipini ochish</span>
+          </a>
+          <a class="catalog-link-card" href="./exam-speaking.html">
+            <h2>Speaking Mode</h2>
+            <p>Prompt va recording atrofida qurilgan speaking muhiti.</p>
+            <span>Speaking prototipini ochish</span>
+          </a>
+          <a class="catalog-link-card" href="./exam-review.html">
+            <h2>Results / Review</h2>
+            <p>Section natijalari, flagged savollar va yakuniy tavsiyalar ko'rinishi.</p>
+            <span>Review prototipini ochish</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="catalog-section">
+      <div class="catalog-section-head">
+        <h2>Blog shell family</h2>
+        <p>Blog public landingdan farqli, studio esa app'ga yaqin operational qatlam. Shu sabab list, detail va studio alohida reference sifatida chizildi.</p>
+      </div>
+      <div class="catalog-demo">
+        <div class="catalog-grid-3">
+          <a class="catalog-link-card" href="./blog-public-shell.html">
+            <h2>Blog Public List</h2>
+            <p>Search, tag cloud, featured story va story stream bilan editorial portal ko'rinishi.</p>
+            <span>Public listni ochish</span>
+          </a>
+          <a class="catalog-link-card" href="./blog-article-shell.html">
+            <h2>Blog Article</h2>
+            <p>Title, excerpt, body column, action rail, TOC va related posts bilan maqola detail shelli.</p>
+            <span>Article shellni ochish</span>
+          </a>
+          <a class="catalog-link-card" href="./blog-studio-shell.html">
+            <h2>Blog Studio</h2>
+            <p>Draft queue, publish cadence va editor form uchun operational workspace prototipi.</p>
+            <span>Studio shellni ochish</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="catalog-section">
+      <div class="catalog-section-head">
+        <h2>System docs</h2>
+        <p>Bu hujjatlar keyingi migratsiya ishlarida source of truth bo'lib turadi.</p>
+      </div>
+      <div class="catalog-demo">
+        <div class="catalog-grid-3">
+          <a class="catalog-link-card" href="./DESIGN_STANDARDS.md">
+            <h2>Design Standards</h2>
+            <p>Shell qoidalari, umumiy vizual yo'nalish va product mood qarorlari.</p>
+            <span>MD faylni ochish</span>
+          </a>
+          <a class="catalog-link-card" href="./DESIGN_TOKENS.md">
+            <h2>Design Tokens</h2>
+            <p>Rang, spacing, radius, shadow, typography va layout tokenlari.</p>
+            <span>MD faylni ochish</span>
+          </a>
+          <a class="catalog-link-card" href="./COMPONENT_CATALOG.md">
+            <h2>Component Catalog Doc</h2>
+            <p>Qaysi component qayerda ishlatilishi va qaysi patternlarni saqlash kerakligi.</p>
+            <span>MD faylni ochish</span>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

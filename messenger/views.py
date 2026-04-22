@@ -1,9 +1,11 @@
+import json
+
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
-from django.db.models import Max, Count
+from django.db.models import Max, Count, Q
 from django.views.decorators.cache import never_cache
-from cohorts.models import Enrollment
+from cohorts.models import Enrollment, enrollment_active_access_q
 from .access import user_can_access_room
 from .models import ChatRoom, Message, AIFeedback
 
@@ -28,7 +30,7 @@ def get_user_rooms(request):
         rooms_by_type.setdefault(room.room_type, []).append(room)
 
     active_cohort_id = (
-        Enrollment.objects.filter(student=request.user, status="active")
+        Enrollment.objects.filter(enrollment_active_access_q(), student=request.user)
         .order_by("-joined_at")
         .values_list("cohort_id", flat=True)
         .first()
@@ -88,16 +90,48 @@ def get_room_messages(request, room_id):
             room.messages.select_related('sender').order_by('-created_at')[:100]
         )
         recent_messages.reverse()
+
+        ai_message_ids = [message.id for message in recent_messages if message.is_ai_response]
+        feedback_map = {
+            feedback.message_id: feedback
+            for feedback in AIFeedback.objects.filter(
+                message_id__in=ai_message_ids,
+                student=request.user,
+            )
+        }
+        feedback_totals = {
+            row["message_id"]: {
+                "positive": row["positive_count"],
+                "negative": row["negative_count"],
+            }
+            for row in AIFeedback.objects.filter(message_id__in=ai_message_ids)
+            .values("message_id")
+            .annotate(
+                positive_count=Count("id", filter=Q(rating=AIFeedback.RATING_POSITIVE)),
+                negative_count=Count("id", filter=Q(rating=AIFeedback.RATING_NEGATIVE)),
+            )
+        }
         
         msgs_data = []
         for m in recent_messages:
+            user_feedback = feedback_map.get(m.id)
+            totals = feedback_totals.get(m.id, {"positive": 0, "negative": 0})
             msgs_data.append({
                 'id': m.id,
                 'text': m.text,
                 'sender_id': m.sender.id if m.sender else None,
                 'sender_name': m.sender.get_full_name() or m.sender.username if m.sender else "Azure AI",
                 'is_ai': m.is_ai_response,
-                'created_at': m.created_at.strftime('%H:%M')
+                'created_at': m.created_at.strftime('%H:%M'),
+                'feedback': (
+                    {
+                        'rating': user_feedback.rating,
+                        'comment': user_feedback.comment,
+                    }
+                    if user_feedback
+                    else None
+                ),
+                'feedback_totals': totals if m.is_ai_response else None,
             })
             
         return JsonResponse({'status': 'success', 'messages': msgs_data})
@@ -109,28 +143,45 @@ def get_room_messages(request, room_id):
 @require_POST
 def submit_ai_feedback(request, message_id):
     try:
-        msg = Message.objects.get(id=message_id, is_ai_response=True)
-        # Check if student is in the same room
-        if not msg.room.participants.filter(id=request.user.id).exists():
+        msg = Message.objects.select_related("room").get(id=message_id, is_ai_response=True)
+        if not user_can_access_room(request.user, msg.room):
             return JsonResponse({'status': 'error', 'message': 'Forbidden'}, status=403)
 
         data = json.loads(request.body)
         rating = data.get('rating')
-        comment = data.get('comment', '')
+        comment = str(data.get('comment', '') or '').strip()
 
-        if rating not in [1, -1]:
+        if rating not in [AIFeedback.RATING_POSITIVE, AIFeedback.RATING_NEGATIVE]:
             return JsonResponse({'status': 'error', 'message': 'Invalid rating'}, status=400)
 
-        AIFeedback.objects.update_or_create(
+        feedback, _ = AIFeedback.objects.update_or_create(
             message=msg,
+            student=request.user,
             defaults={
-                'student': request.user,
                 'rating': rating,
                 'comment': comment
             }
         )
-        return JsonResponse({'status': 'success'})
+        totals = AIFeedback.objects.filter(message=msg).aggregate(
+            positive_count=Count("id", filter=Q(rating=AIFeedback.RATING_POSITIVE)),
+            negative_count=Count("id", filter=Q(rating=AIFeedback.RATING_NEGATIVE)),
+        )
+        return JsonResponse(
+            {
+                'status': 'success',
+                'feedback': {
+                    'rating': feedback.rating,
+                    'comment': feedback.comment,
+                },
+                'feedback_totals': {
+                    'positive': totals["positive_count"],
+                    'negative': totals["negative_count"],
+                },
+            }
+        )
     except Message.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Message not found'}, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AzureLMS Forms</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/public.css">
+  <link rel="stylesheet" href="../assets/css/component-catalog.css">
+</head>
+<body class="components-page">
+  <header class="catalog-shell catalog-header">
+    <a class="catalog-back" href="./index.html"><i class="bi bi-arrow-left"></i>Component katalogiga qaytish</a>
+    <div class="catalog-heading">
+      <p class="eyebrow">Forms</p>
+      <h1>Form va input patternlari</h1>
+      <p>Hozircha formal form system hali qurilmagan, lekin public qidiruv va compact profile/settings form ritmi allaqachon aniq bo‘lib qoldi.</p>
+    </div>
+    <nav class="catalog-nav">
+      <a href="./index.html">Katalog</a>
+      <a href="./buttons.html">Buttons</a>
+      <a href="./navigation.html">Navigation</a>
+      <a href="./cards.html">Cards</a>
+      <a class="is-active" href="./forms.html">Forms</a>
+      <a href="./learning.html">Learning</a>
+      <a href="./messenger.html">Messenger</a>
+      <a href="./exam.html">Exam</a>
+    </nav>
+  </header>
+
+  <main class="catalog-shell catalog-main">
+    <section class="catalog-section">
+      <div class="catalog-section-head">
+        <h2>Public search strip</h2>
+        <p>Landing va katalogga kirishda ishlatiladigan eng muhim form patterni shu. Bitta katta input va o'ngda keskin, dark action button.</p>
+      </div>
+      <div class="catalog-demo catalog-demo--public">
+        <section class="search-strip">
+          <input type="text" placeholder="Turk tili, B2, sertifikat yoki blog qidiring">
+          <button class="search-button" type="button"><i class="bi bi-search"></i></button>
+        </section>
+      </div>
+    </section>
+
+    <section class="catalog-section">
+      <div class="catalog-section-head">
+        <h2>Compact settings form</h2>
+        <p>App va support sahifalari uchun taklif qilinadigan bazaviy compact form ritmi. Keraksiz yumshoqlik yo'q, faqat aniq input va actionlar.</p>
+      </div>
+      <div class="catalog-demo">
+        <form class="catalog-form-grid">
+          <label class="catalog-field">
+            <span>Ism</span>
+            <input type="text" value="Azizbek">
+          </label>
+          <label class="catalog-field">
+            <span>Familiya</span>
+            <input type="text" value="Sirojiddinov">
+          </label>
+          <label class="catalog-field">
+            <span>Email</span>
+            <input type="email" value="support@azurelms.uz">
+          </label>
+          <label class="catalog-field">
+            <span>Daraja</span>
+            <select>
+              <option>A1</option>
+              <option selected>B1</option>
+              <option>B2</option>
+              <option>C1</option>
+            </select>
+          </label>
+          <label class="catalog-field catalog-field--full">
+            <span>Izoh</span>
+            <textarea>Profil va sertifikat statusini bir sahifada ko'rsatadigan compact account page kerak.</textarea>
+          </label>
+        </form>
+        <div class="catalog-form-actions">
+          <button class="button button--primary" type="button">Saqlash</button>
+          <button class="button button--ghost" type="button">Bekor qilish</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="catalog-section">
+      <div class="catalog-section-head">
+        <h2>Support request form</h2>
+        <p>Help center yoki aloqa sahifasida ishlatiladigan uzunroq form patterni. Bu ham compact qoladi, lekin full-width textarea qo‘llanadi.</p>
+      </div>
+      <div class="catalog-demo">
+        <form class="catalog-form-grid">
+          <label class="catalog-field">
+            <span>Mavzu</span>
+            <input type="text" placeholder="Masalan: sertifikat statusi">
+          </label>
+          <label class="catalog-field">
+            <span>Bo'lim</span>
+            <select>
+              <option>Kurslar</option>
+              <option selected>Sertifikat</option>
+              <option>To'lov</option>
+              <option>Texnik yordam</option>
+            </select>
+          </label>
+          <label class="catalog-field catalog-field--full">
+            <span>Xabar</span>
+            <textarea placeholder="Muammoni qisqa va aniq yozing"></textarea>
+          </label>
+        </form>
+        <div class="catalog-form-actions">
+          <button class="button button--primary" type="button">Yuborish</button>
+          <button class="button button--secondary" type="button">Draft saqlash</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

@@ -6,13 +6,16 @@ import tempfile
 from io import BytesIO
 
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 from django.test.utils import override_settings
+from django.utils import timezone
 from PIL import Image
 
 from cohorts.models import Cohort, Enrollment
+from courses.completion_service import evaluate_course_completion
 from courses.models import (
     Assignment,
     AssignmentSubmission,
@@ -28,6 +31,12 @@ from courses.models import (
     Module,
     Question,
     Quiz,
+    ReadingAcceptedAnswer,
+    ReadingItem,
+    ReadingOption,
+    ReadingPassage,
+    ReadingResponse,
+    ReadingTask,
 )
 from users.models import Notification
 
@@ -60,6 +69,16 @@ class ExamReviewFlowTests(TestCase):
             level='beginner',
         )
         Module.objects.create(course=self.course, title='1-modul', order=1)
+        self.cohort = Cohort.objects.create(
+            name='A1 Cohort',
+            course=self.course,
+            start_date=datetime.date(2026, 3, 1),
+        )
+        self.enrollment = Enrollment.objects.create(
+            student=self.student,
+            cohort=self.cohort,
+            status=Enrollment.STATUS_ACTIVE,
+        )
 
         self.visa = Exam.objects.create(
             course=self.course,
@@ -115,12 +134,21 @@ class ExamReviewFlowTests(TestCase):
         self.assertIsNone(certificate)
         self.assertFalse(created)
         self.assertEqual(self.student.course_certificates.count(), 0)
+        self.enrollment.refresh_from_db()
+        self.assertEqual(self.enrollment.completion_state, Enrollment.COMPLETION_STATE_IN_PROGRESS)
 
         certificate, created = final_attempt.finalize_review(reviewed_by=self.instructor)
         self.assertIsNotNone(certificate)
         self.assertTrue(created)
         self.assertEqual(self.student.course_certificates.count(), 1)
         self.assertEqual(Notification.objects.filter(recipient=self.student).count(), 1)
+        self.enrollment.refresh_from_db()
+        self.assertEqual(
+            self.enrollment.completion_state,
+            Enrollment.COMPLETION_STATE_PROMOTION_READY,
+        )
+        self.assertIsNotNone(self.enrollment.completed_at)
+        self.assertIsNotNone(self.enrollment.promotion_ready_at)
 
     def test_review_approval_sets_attempt_score_and_marks_reviewed(self):
         attempt = self._create_attempt_with_review(self.visa, self.visa_section, 35)
@@ -228,6 +256,765 @@ class QuizXpAwardTests(TestCase):
         self.assertEqual(third.json()["xp_earned"], 0)
         self.assertEqual(third.json()["attempt_xp"], 20)
         self.assertEqual(self.student.total_xp, 20)
+
+
+class ExamAttemptPolicyTests(TestCase):
+    def setUp(self):
+        self.instructor = User.objects.create_user(
+            username="attempt-teacher",
+            email="attempt-teacher@example.com",
+            password="testpass123",
+            is_staff=True,
+        )
+        self.student = User.objects.create_user(
+            username="attempt-student",
+            email="attempt-student@example.com",
+            password="testpass123",
+        )
+        self.course = Course.objects.create(
+            title="Attempt Course",
+            description="Attempt policy test",
+            instructor=self.instructor,
+            level="beginner",
+        )
+        self.cohort = Cohort.objects.create(
+            name="Attempt Cohort",
+            course=self.course,
+            start_date=datetime.date(2026, 3, 1),
+        )
+        Enrollment.objects.create(
+            student=self.student,
+            cohort=self.cohort,
+            status=Enrollment.STATUS_ACTIVE,
+        )
+        self.exam = Exam.objects.create(
+            course=self.course,
+            title="Final",
+            exam_type="final",
+            weight_percentage=100,
+            passing_score=60,
+            max_attempts=2,
+        )
+        self.section = ExamSection.objects.create(
+            exam=self.exam,
+            title="Essay",
+            section_type="writing",
+            instructions="Write something",
+            max_score=50,
+            time_limit_minutes=1,
+            order=1,
+        )
+        self.start_url = reverse(
+            "api_exam_start",
+            kwargs={"course_id": self.course.id, "exam_id": self.exam.id},
+        )
+        self.client.force_login(self.student)
+
+    def _create_attempt(self, **overrides):
+        data = {
+            "student": self.student,
+            "exam": self.exam,
+            "attempt_number": 1,
+        }
+        data.update(overrides)
+        attempt = ExamAttempt.objects.create(**data)
+        if attempt.is_completed:
+            attempt.ensure_section_reviews()
+        return attempt
+
+    def test_failed_review_allows_next_attempt_until_limit(self):
+        self._create_attempt(
+            is_completed=True,
+            is_reviewed=True,
+            passed=False,
+            score=45,
+            completed_time=timezone.now(),
+        )
+
+        response = self.client.post(self.start_url)
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["attempt_number"], 2)
+        self.assertEqual(ExamAttempt.objects.filter(student=self.student, exam=self.exam).count(), 2)
+
+    def test_pending_review_blocks_new_attempt(self):
+        self._create_attempt(
+            is_completed=True,
+            is_reviewed=False,
+            passed=False,
+            completed_time=timezone.now(),
+        )
+
+        response = self.client.post(self.start_url)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["code"], "pending_review")
+        self.assertEqual(ExamAttempt.objects.filter(student=self.student, exam=self.exam).count(), 1)
+
+    def test_passed_attempt_blocks_new_attempt(self):
+        self._create_attempt(
+            is_completed=True,
+            is_reviewed=True,
+            passed=True,
+            score=82,
+            completed_time=timezone.now(),
+        )
+
+        response = self.client.post(self.start_url)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["code"], "already_passed")
+
+    def test_attempt_limit_blocks_after_last_failed_attempt(self):
+        self._create_attempt(
+            attempt_number=1,
+            is_completed=True,
+            is_reviewed=True,
+            passed=False,
+            score=30,
+            completed_time=timezone.now() - datetime.timedelta(days=1),
+        )
+        self._create_attempt(
+            attempt_number=2,
+            is_completed=True,
+            is_reviewed=True,
+            passed=False,
+            score=45,
+            completed_time=timezone.now(),
+        )
+
+        response = self.client.post(self.start_url)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["code"], "attempt_limit_reached")
+
+    def test_time_limit_expiry_auto_submits_existing_attempt(self):
+        attempt = self._create_attempt(is_completed=False, is_reviewed=False, passed=False)
+        attempt.start_time = timezone.now() - datetime.timedelta(minutes=2)
+        attempt.save(update_fields=["start_time"])
+
+        response = self.client.post(self.start_url)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["code"], "pending_review")
+        attempt.refresh_from_db()
+        self.assertTrue(attempt.is_completed)
+        self.assertFalse(attempt.is_reviewed)
+        self.assertIsNotNone(attempt.completed_time)
+
+
+class ReadingSectionEngineTests(TestCase):
+    def setUp(self):
+        self.instructor = User.objects.create_user(
+            username="reading-teacher",
+            email="reading-teacher@example.com",
+            password="testpass123",
+            is_staff=True,
+        )
+        self.student = User.objects.create_user(
+            username="reading-student",
+            email="reading-student@example.com",
+            password="testpass123",
+        )
+        self.course = Course.objects.create(
+            title="Reading Course",
+            description="Reading engine tests",
+            instructor=self.instructor,
+            level="beginner",
+        )
+        self.cohort = Cohort.objects.create(
+            name="Reading Cohort",
+            course=self.course,
+            start_date=datetime.date(2026, 3, 1),
+        )
+        Enrollment.objects.create(
+            student=self.student,
+            cohort=self.cohort,
+            status=Enrollment.STATUS_ACTIVE,
+        )
+        self.exam = Exam.objects.create(
+            course=self.course,
+            title="Reading Final",
+            exam_type="final",
+            weight_percentage=100,
+            passing_score=60,
+            max_attempts=2,
+        )
+        self.section = ExamSection.objects.create(
+            exam=self.exam,
+            title="Reading section",
+            section_type="reading",
+            instructions="Read carefully",
+            reading_text="<p>Legacy passage</p>",
+            max_score=20,
+            time_limit_minutes=20,
+            order=1,
+        )
+        self.passage = ReadingPassage.objects.create(
+            section=self.section,
+            title="Passage 1",
+            body="<p>Yusuf kutubxonaga kirdi.</p>",
+            paragraph_labels=["A", "B"],
+            order=1,
+        )
+        self.start_url = reverse(
+            "api_exam_start",
+            kwargs={"course_id": self.course.id, "exam_id": self.exam.id},
+        )
+        self.section_state_url = reverse(
+            "api_exam_section_state",
+            kwargs={
+                "course_id": self.course.id,
+                "exam_id": self.exam.id,
+                "section_id": self.section.id,
+            },
+        )
+        self.save_url = reverse(
+            "api_exam_save",
+            kwargs={"course_id": self.course.id, "exam_id": self.exam.id},
+        )
+        self.flag_url = reverse(
+            "api_exam_review_flag",
+            kwargs={"course_id": self.course.id, "exam_id": self.exam.id},
+        )
+        self.submit_url = reverse(
+            "api_exam_submit",
+            kwargs={"course_id": self.course.id, "exam_id": self.exam.id},
+        )
+        self.client.force_login(self.student)
+
+    def _start_attempt(self):
+        response = self.client.post(self.start_url)
+        self.assertEqual(response.status_code, 200)
+        return ExamAttempt.objects.get(id=response.json()["attempt_id"])
+
+    def _create_single_choice_item(self):
+        task = ReadingTask.objects.create(
+            section=self.section,
+            passage=self.passage,
+            title="Single choice",
+            task_type="single_choice",
+            order=1,
+        )
+        item = ReadingItem.objects.create(
+            task=task,
+            prompt="<p>Yusuf qayerga kirdi?</p>",
+            short_label="01",
+            order=1,
+            points=2,
+        )
+        ReadingOption.objects.create(item=item, label="A", text="Kutubxona", order=1, is_correct=True)
+        ReadingOption.objects.create(item=item, label="B", text="Park", order=2, is_correct=False)
+        return item
+
+    def _create_multiple_choice_item(self):
+        task = ReadingTask.objects.create(
+            section=self.section,
+            passage=self.passage,
+            title="Multi choice",
+            task_type="multiple_choice",
+            max_selections_per_item=2,
+            order=2,
+        )
+        item = ReadingItem.objects.create(
+            task=task,
+            prompt="<p>Ikki to'g'ri javobni tanlang.</p>",
+            short_label="02",
+            order=1,
+            points=3,
+        )
+        option_a = ReadingOption.objects.create(item=item, label="A", text="Kutubxona", order=1, is_correct=True)
+        option_b = ReadingOption.objects.create(item=item, label="B", text="Yangi kitob", order=2, is_correct=True)
+        option_c = ReadingOption.objects.create(item=item, label="C", text="Bozor", order=3, is_correct=False)
+        return item, option_a, option_b, option_c
+
+    def _create_matching_item(self):
+        task = ReadingTask.objects.create(
+            section=self.section,
+            passage=self.passage,
+            title="Matching headings",
+            task_type="matching",
+            display_variant="matching_headings",
+            order=3,
+        )
+        option_a = ReadingOption.objects.create(task=task, label="A", option_key="a", text="Kutubxona", order=1)
+        option_b = ReadingOption.objects.create(task=task, label="B", option_key="b", text="Ertalabki kelish", order=2)
+        item = ReadingItem.objects.create(
+            task=task,
+            prompt="<p>Paragraph A uchun headingni tanlang.</p>",
+            short_label="03",
+            order=1,
+            points=2,
+        )
+        ReadingAcceptedAnswer.objects.create(item=item, value="b", order=1)
+        return item, option_a, option_b
+
+    def _create_tfng_item(self):
+        task = ReadingTask.objects.create(
+            section=self.section,
+            passage=self.passage,
+            title="TFNG",
+            task_type="true_false_not_given",
+            order=4,
+        )
+        option_true = ReadingOption.objects.create(task=task, label="True", option_key="true", text="True", order=1)
+        option_false = ReadingOption.objects.create(task=task, label="False", option_key="false", text="False", order=2)
+        option_ng = ReadingOption.objects.create(task=task, label="NG", option_key="not_given", text="Not Given", order=3)
+        item = ReadingItem.objects.create(
+            task=task,
+            prompt="<p>Yusuf bozorga bordi.</p>",
+            short_label="04",
+            order=1,
+            points=2,
+        )
+        ReadingAcceptedAnswer.objects.create(item=item, value="not_given", order=1)
+        return item, option_true, option_false, option_ng
+
+    def _create_text_input_item(self):
+        task = ReadingTask.objects.create(
+            section=self.section,
+            passage=self.passage,
+            title="Sentence completion",
+            task_type="text_input",
+            display_variant="sentence_completion",
+            max_words_per_answer=2,
+            order=5,
+        )
+        item = ReadingItem.objects.create(
+            task=task,
+            prompt="<p>Yusuf ____ga kirdi.</p>",
+            short_label="05",
+            order=1,
+            points=2,
+        )
+        ReadingAcceptedAnswer.objects.create(item=item, value="kutubxona", order=1)
+        return item
+
+    def _create_structured_gap_fill_item(self):
+        task = ReadingTask.objects.create(
+            section=self.section,
+            passage=self.passage,
+            title="Summary completion",
+            task_type="structured_gap_fill",
+            display_variant="summary_completion",
+            max_words_per_answer=2,
+            order=6,
+        )
+        item = ReadingItem.objects.create(
+            task=task,
+            prompt="<p>Yusuf yangi ____ oldi.</p>",
+            short_label="06",
+            order=1,
+            points=2,
+        )
+        ReadingAcceptedAnswer.objects.create(item=item, value="kitob", order=1)
+        return item
+
+    def test_reading_section_state_returns_passages_tasks_and_question_map(self):
+        self._create_single_choice_item()
+        self._create_matching_item()
+        self._start_attempt()
+
+        response = self.client.get(self.section_state_url)
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["status"], "success")
+        self.assertEqual(len(payload["passages"]), 1)
+        self.assertEqual(len(payload["tasks"]), 2)
+        self.assertEqual(payload["tasks"][0]["task_type"], "single_choice")
+        self.assertEqual(payload["tasks"][1]["task_type"], "matching")
+        self.assertEqual(payload["state"]["counts"]["current"], 1)
+        self.assertEqual(len(payload["state"]["question_map"]), 2)
+
+    def test_single_choice_answer_auto_grades_and_updates_question_map(self):
+        item = self._create_single_choice_item()
+        correct_option = item.options.get(is_correct=True)
+        self._start_attempt()
+
+        response = self.client.post(
+            self.save_url,
+            data=json.dumps({"reading_item_id": item.id, "option_id": correct_option.id}),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["saved_response"]["awarded_score"], 2.0)
+        self.assertEqual(payload["section_state"]["counts"]["done"], 1)
+        reading_response = ReadingResponse.objects.get(item=item)
+        self.assertEqual(reading_response.selected_option_id, correct_option.id)
+        self.assertTrue(reading_response.is_graded)
+
+    def test_multiple_choice_requires_exact_correct_set(self):
+        item, option_a, option_b, option_c = self._create_multiple_choice_item()
+        self._start_attempt()
+
+        wrong = self.client.post(
+            self.save_url,
+            data=json.dumps({"reading_item_id": item.id, "option_ids": [option_a.id, option_c.id]}),
+            content_type="application/json",
+        )
+        self.assertEqual(wrong.status_code, 200)
+        self.assertEqual(wrong.json()["saved_response"]["awarded_score"], 0.0)
+
+        correct = self.client.post(
+            self.save_url,
+            data=json.dumps({"reading_item_id": item.id, "option_ids": [option_a.id, option_b.id]}),
+            content_type="application/json",
+        )
+        self.assertEqual(correct.status_code, 200)
+        self.assertEqual(correct.json()["saved_response"]["awarded_score"], 3.0)
+
+    def test_matching_and_tfng_tasks_use_shared_options_and_accepted_answer_keys(self):
+        matching_item, _, matching_correct = self._create_matching_item()
+        tfng_item, _, _, not_given = self._create_tfng_item()
+        self._start_attempt()
+
+        matching_response = self.client.post(
+            self.save_url,
+            data=json.dumps({"reading_item_id": matching_item.id, "option_id": matching_correct.id}),
+            content_type="application/json",
+        )
+        tfng_response = self.client.post(
+            self.save_url,
+            data=json.dumps({"reading_item_id": tfng_item.id, "option_id": not_given.id}),
+            content_type="application/json",
+        )
+
+        self.assertEqual(matching_response.status_code, 200)
+        self.assertEqual(tfng_response.status_code, 200)
+        self.assertEqual(matching_response.json()["saved_response"]["awarded_score"], 2.0)
+        self.assertEqual(tfng_response.json()["saved_response"]["awarded_score"], 2.0)
+
+    def test_text_tasks_enforce_word_limit_and_auto_grade(self):
+        text_item = self._create_text_input_item()
+        structured_item = self._create_structured_gap_fill_item()
+        self._start_attempt()
+
+        too_long = self.client.post(
+            self.save_url,
+            data=json.dumps({"reading_item_id": text_item.id, "text_answer": "juda uzun javob"}),
+            content_type="application/json",
+        )
+        self.assertEqual(too_long.status_code, 400)
+        self.assertContains(too_long, "2 ta so'zdan oshmasligi kerak", status_code=400)
+
+        text_ok = self.client.post(
+            self.save_url,
+            data=json.dumps({"reading_item_id": text_item.id, "text_answer": "kutubxona"}),
+            content_type="application/json",
+        )
+        structured_ok = self.client.post(
+            self.save_url,
+            data=json.dumps({"reading_item_id": structured_item.id, "text_answer": "kitob"}),
+            content_type="application/json",
+        )
+
+        self.assertEqual(text_ok.status_code, 200)
+        self.assertEqual(structured_ok.status_code, 200)
+        self.assertEqual(text_ok.json()["saved_response"]["awarded_score"], 2.0)
+        self.assertEqual(structured_ok.json()["saved_response"]["awarded_score"], 2.0)
+
+    def test_review_flag_endpoint_marks_item_for_follow_up(self):
+        item = self._create_single_choice_item()
+        self._start_attempt()
+
+        response = self.client.post(
+            self.flag_url,
+            data=json.dumps({"reading_item_id": item.id, "flagged": True}),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["is_flagged_for_review"])
+        reading_response = ReadingResponse.objects.get(item=item)
+        self.assertTrue(reading_response.is_flagged_for_review)
+
+    def test_submit_for_review_prefills_section_score_from_reading_responses(self):
+        item_one = self._create_single_choice_item()
+        item_two = self._create_structured_gap_fill_item()
+        self._start_attempt()
+
+        self.client.post(
+            self.save_url,
+            data=json.dumps(
+                {
+                    "reading_item_id": item_one.id,
+                    "option_id": item_one.options.get(is_correct=True).id,
+                }
+            ),
+            content_type="application/json",
+        )
+        self.client.post(
+            self.save_url,
+            data=json.dumps({"reading_item_id": item_two.id, "text_answer": "kitob"}),
+            content_type="application/json",
+        )
+
+        submit_response = self.client.post(self.submit_url)
+
+        self.assertEqual(submit_response.status_code, 200)
+        attempt = ExamAttempt.objects.get(student=self.student, exam=self.exam)
+        attempt.refresh_from_db()
+        self.assertTrue(attempt.is_completed)
+        review = ExamSectionReview.objects.get(attempt=attempt, section=self.section)
+        self.assertEqual(float(review.awarded_score), 4.0)
+
+
+class ExamEntryPolicyTests(TestCase):
+    def setUp(self):
+        self.instructor = User.objects.create_user(
+            username="policy-teacher",
+            email="policy-teacher@example.com",
+            password="testpass123",
+            is_staff=True,
+        )
+        self.student = User.objects.create_user(
+            username="policy-student",
+            email="policy-student@example.com",
+            password="testpass123",
+        )
+        self.course = Course.objects.create(
+            title="Policy Course",
+            description="Exam policy test",
+            instructor=self.instructor,
+            level="beginner",
+        )
+        self.module = Module.objects.create(course=self.course, title="1-modul", order=1)
+        self.lesson_1 = Lesson.objects.create(module=self.module, title="1-dars", order=1)
+        self.lesson_2 = Lesson.objects.create(module=self.module, title="2-dars", order=2)
+        self.assignment = Assignment.objects.create(
+            lesson=self.lesson_1,
+            title="Policy homework",
+            description="<p>Homework</p>",
+            max_xp=20,
+        )
+        self.cohort = Cohort.objects.create(
+            name="Policy Cohort",
+            course=self.course,
+            start_date=datetime.date(2026, 3, 1),
+        )
+        self.enrollment = Enrollment.objects.create(
+            student=self.student,
+            cohort=self.cohort,
+            status=Enrollment.STATUS_ACTIVE,
+        )
+        self.visa = Exam.objects.create(
+            course=self.course,
+            title="Policy Visa",
+            exam_type="visa",
+            weight_percentage=40,
+            passing_score=60,
+        )
+        self.final = Exam.objects.create(
+            course=self.course,
+            title="Policy Final",
+            exam_type="final",
+            weight_percentage=60,
+            passing_score=60,
+            prerequisite_exam=self.visa,
+            requires_all_assignments_approved=True,
+            minimum_lesson_completion_percent=100,
+        )
+        ExamSection.objects.create(
+            exam=self.visa,
+            title="Visa section",
+            section_type="reading",
+            instructions="Read",
+            max_score=50,
+            order=1,
+        )
+        ExamSection.objects.create(
+            exam=self.final,
+            title="Final section",
+            section_type="writing",
+            instructions="Write",
+            max_score=50,
+            order=1,
+        )
+        self.client.force_login(self.student)
+        self.start_url = reverse(
+            "api_exam_start",
+            kwargs={"course_id": self.course.id, "exam_id": self.final.id},
+        )
+
+    def test_exam_start_blocks_until_prerequisite_exam_passed(self):
+        response = self.client.post(self.start_url)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["code"], "prerequisite_exam")
+
+        visa_attempt = ExamAttempt.objects.create(
+            student=self.student,
+            exam=self.visa,
+            is_completed=True,
+            is_reviewed=True,
+            passed=True,
+            score=80,
+            completed_time=timezone.now(),
+        )
+        visa_attempt.ensure_section_reviews()
+        AssignmentSubmission.objects.create(
+            assignment=self.assignment,
+            student=self.student,
+            answer_text="Javob",
+            status=AssignmentSubmission.STATUS_APPROVED,
+        )
+        LessonProgress.objects.create(enrollment=self.enrollment, lesson=self.lesson_1, is_completed=True)
+        LessonProgress.objects.create(enrollment=self.enrollment, lesson=self.lesson_2, is_completed=True)
+
+        response = self.client.post(self.start_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["attempt_number"], 1)
+
+    def test_exam_start_blocks_until_assignment_and_lesson_requirements_met(self):
+        ExamAttempt.objects.create(
+            student=self.student,
+            exam=self.visa,
+            is_completed=True,
+            is_reviewed=True,
+            passed=True,
+            score=80,
+            completed_time=timezone.now(),
+        ).ensure_section_reviews()
+
+        response = self.client.post(self.start_url)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["code"], "assignment_prerequisite")
+
+        AssignmentSubmission.objects.create(
+            assignment=self.assignment,
+            student=self.student,
+            answer_text="Approved answer",
+            status=AssignmentSubmission.STATUS_APPROVED,
+        )
+
+        response = self.client.post(self.start_url)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["code"], "lesson_completion_prerequisite")
+
+        LessonProgress.objects.create(enrollment=self.enrollment, lesson=self.lesson_1, is_completed=True)
+        LessonProgress.objects.create(enrollment=self.enrollment, lesson=self.lesson_2, is_completed=True)
+
+        response = self.client.post(self.start_url)
+        self.assertEqual(response.status_code, 200)
+
+
+class CertificatePolicyTests(TestCase):
+    def setUp(self):
+        self.instructor = User.objects.create_user(
+            username="cert-policy-teacher",
+            email="cert-policy-teacher@example.com",
+            password="testpass123",
+            is_staff=True,
+        )
+        self.student = User.objects.create_user(
+            username="cert-policy-student",
+            email="cert-policy-student@example.com",
+            password="testpass123",
+        )
+        self.course = Course.objects.create(
+            title="Certificate Policy Course",
+            description="Certificate policy test",
+            instructor=self.instructor,
+            level="beginner",
+            certificate_requires_all_assignments_approved=True,
+        )
+        self.module = Module.objects.create(course=self.course, title="1-modul", order=1)
+        self.lesson = Lesson.objects.create(module=self.module, title="1-dars", order=1)
+        self.assignment = Assignment.objects.create(
+            lesson=self.lesson,
+            title="Certificate homework",
+            description="<p>Homework</p>",
+            max_xp=20,
+        )
+        self.cohort = Cohort.objects.create(
+            name="Certificate Cohort",
+            course=self.course,
+            start_date=datetime.date(2026, 3, 1),
+        )
+        self.enrollment = Enrollment.objects.create(
+            student=self.student,
+            cohort=self.cohort,
+            status=Enrollment.STATUS_ACTIVE,
+        )
+        self.visa = Exam.objects.create(
+            course=self.course,
+            title="Certificate Visa",
+            exam_type="visa",
+            weight_percentage=40,
+            passing_score=60,
+        )
+        self.final = Exam.objects.create(
+            course=self.course,
+            title="Certificate Final",
+            exam_type="final",
+            weight_percentage=60,
+            passing_score=60,
+        )
+        self.visa_section = ExamSection.objects.create(
+            exam=self.visa,
+            title="Visa section",
+            section_type="reading",
+            instructions="Read",
+            max_score=50,
+            order=1,
+        )
+        self.final_section = ExamSection.objects.create(
+            exam=self.final,
+            title="Final section",
+            section_type="writing",
+            instructions="Write",
+            max_score=50,
+            order=1,
+        )
+
+    def _create_reviewed_attempt(self, exam, section, score):
+        attempt = ExamAttempt.objects.create(
+            student=self.student,
+            exam=exam,
+            is_completed=True,
+            completed_time=timezone.now(),
+        )
+        ExamSectionReview.objects.create(
+            attempt=attempt,
+            section=section,
+            awarded_score=score,
+        )
+        return attempt
+
+    def test_certificate_waits_until_course_policy_is_satisfied(self):
+        visa_attempt = self._create_reviewed_attempt(self.visa, self.visa_section, 40)
+        final_attempt = self._create_reviewed_attempt(self.final, self.final_section, 45)
+
+        visa_attempt.finalize_review(reviewed_by=self.instructor)
+        certificate, created = final_attempt.finalize_review(reviewed_by=self.instructor)
+
+        self.assertIsNone(certificate)
+        self.assertFalse(created)
+        self.enrollment.refresh_from_db()
+        self.assertEqual(self.enrollment.completion_state, Enrollment.COMPLETION_STATE_IN_PROGRESS)
+
+        AssignmentSubmission.objects.create(
+            assignment=self.assignment,
+            student=self.student,
+            answer_text="Done",
+            status=AssignmentSubmission.STATUS_APPROVED,
+        )
+
+        certificate, created, enrollment = evaluate_course_completion(
+            student=self.student,
+            course=self.course,
+        )
+
+        self.assertIsNotNone(certificate)
+        self.assertTrue(created)
+        self.assertEqual(enrollment.id, self.enrollment.id)
+        self.enrollment.refresh_from_db()
+        self.assertEqual(self.enrollment.completion_state, Enrollment.COMPLETION_STATE_PROMOTION_READY)
 
 
 class CourseDetailPageRenderTests(TestCase):
@@ -444,7 +1231,7 @@ class LessonAccessFlowTests(TestCase):
         self.assertEqual(submission.answer_text, "Ustoz, vazifa bajarildi")
 
 
-class MultiCohortStudySelectionTests(TestCase):
+class CourseEnrollmentSelectionTests(TestCase):
     def setUp(self):
         self.instructor = User.objects.create_user(
             username="multi-teacher",
@@ -484,11 +1271,34 @@ class MultiCohortStudySelectionTests(TestCase):
         self.enrollment_two = Enrollment.objects.create(
             student=self.student,
             cohort=self.cohort_two,
-            status="active",
+            status="frozen",
         )
         self.client.force_login(self.student)
 
-    def test_course_study_redirect_preserves_requested_cohort(self):
+    def test_second_active_enrollment_for_same_course_is_not_allowed(self):
+        with self.assertRaisesMessage(
+            ValidationError,
+            "Talabada ushbu kurs uchun allaqachon faol enrollment mavjud.",
+        ):
+            Enrollment.objects.create(
+                student=self.student,
+                cohort=self.cohort_two,
+                status="active",
+            )
+
+    def test_course_study_redirect_ignores_requested_inactive_same_course_history(self):
+        response = self.client.get(
+            reverse("course_study", kwargs={"course_id": self.course.id}),
+            {"cohort": self.cohort_two.id},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(
+            f"{reverse('lesson_detail', kwargs={'course_id': self.course.id, 'lesson_id': self.lesson_1.id})}?cohort={self.cohort_one.id}",
+            response.url,
+        )
+
+    def test_course_study_redirect_preserves_requested_active_cohort(self):
         response = self.client.get(
             reverse("course_study", kwargs={"course_id": self.course.id}),
             {"cohort": self.cohort_one.id},
@@ -498,45 +1308,6 @@ class MultiCohortStudySelectionTests(TestCase):
         self.assertIn(
             f"{reverse('lesson_detail', kwargs={'course_id': self.course.id, 'lesson_id': self.lesson_1.id})}?cohort={self.cohort_one.id}",
             response.url,
-        )
-
-    def test_lesson_access_and_progress_follow_selected_cohort(self):
-        CohortLessonRelease.objects.create(cohort=self.cohort_one, lesson=self.lesson_1, is_released=True)
-        CohortLessonRelease.objects.create(cohort=self.cohort_two, lesson=self.lesson_1, is_released=True)
-        CohortLessonRelease.objects.create(cohort=self.cohort_two, lesson=self.lesson_2, is_released=True)
-
-        locked_response = self.client.get(
-            reverse("lesson_detail", kwargs={"course_id": self.course.id, "lesson_id": self.lesson_2.id}),
-            {"cohort": self.cohort_one.id},
-        )
-        self.assertEqual(locked_response.status_code, 302)
-        self.assertIn(
-            f"{reverse('lesson_detail', kwargs={'course_id': self.course.id, 'lesson_id': self.lesson_1.id})}?cohort={self.cohort_one.id}",
-            locked_response.url,
-        )
-
-        unlocked_response = self.client.get(
-            reverse("lesson_detail", kwargs={"course_id": self.course.id, "lesson_id": self.lesson_2.id}),
-            {"cohort": self.cohort_two.id},
-        )
-        self.assertEqual(unlocked_response.status_code, 200)
-        self.assertContains(
-            unlocked_response,
-            f"{reverse('lesson_detail', kwargs={'course_id': self.course.id, 'lesson_id': self.lesson_1.id})}?cohort={self.cohort_two.id}",
-        )
-        self.assertTrue(
-            LessonProgress.objects.filter(
-                enrollment=self.enrollment_two,
-                lesson=self.lesson_2,
-                is_completed=True,
-            ).exists()
-        )
-        self.assertFalse(
-            LessonProgress.objects.filter(
-                enrollment=self.enrollment_one,
-                lesson=self.lesson_2,
-                is_completed=True,
-            ).exists()
         )
 
 

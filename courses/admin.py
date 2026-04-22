@@ -11,12 +11,19 @@ from .models import (
     CohortLessonRelease,
     Exam,
     ExamSection,
+    ExamSectionAttemptState,
     Quiz,
     Question,
     Choice,
     ExamAttempt,
     StudentAnswer,
     ExamSectionReview,
+    ReadingPassage,
+    ReadingTask,
+    ReadingItem,
+    ReadingOption,
+    ReadingAcceptedAnswer,
+    ReadingResponse,
     Certificate,
 )
 from .cover_art import GRADIENT_PRESETS, build_cover_data_uri
@@ -62,6 +69,56 @@ class NestedQuestionInline(nested_admin.NestedStackedInline):
     inlines = [NestedChoiceInline]
 
 
+class NestedReadingAcceptedAnswerInline(nested_admin.NestedTabularInline):
+    model = ReadingAcceptedAnswer
+    extra = 1
+
+
+class NestedReadingOptionInline(nested_admin.NestedTabularInline):
+    model = ReadingOption
+    extra = 2
+    fk_name = "item"
+    fields = ("label", "option_key", "text", "order", "is_correct")
+
+
+class NestedReadingSharedOptionInline(nested_admin.NestedTabularInline):
+    model = ReadingOption
+    extra = 3
+    fk_name = "task"
+    fields = ("label", "option_key", "text", "order")
+
+
+class NestedReadingItemInline(nested_admin.NestedStackedInline):
+    model = ReadingItem
+    extra = 1
+    inlines = [NestedReadingOptionInline, NestedReadingAcceptedAnswerInline]
+
+
+class NestedReadingTaskInline(nested_admin.NestedStackedInline):
+    model = ReadingTask
+    extra = 1
+    inlines = [NestedReadingSharedOptionInline, NestedReadingItemInline]
+    fields = (
+        "title",
+        ("task_type", "display_variant"),
+        "passage",
+        "instructions",
+        "body",
+        ("question_from", "question_to"),
+        ("max_selections_per_item", "max_words_per_answer"),
+        ("allow_option_reuse", "allow_review_flag"),
+        ("case_sensitive_grading", "punctuation_sensitive"),
+        "metadata",
+        "order",
+    )
+
+
+class NestedReadingPassageInline(nested_admin.NestedStackedInline):
+    model = ReadingPassage
+    extra = 1
+    fields = ("title", "body", "paragraph_labels", "order")
+
+
 # ==========================================
 # 2. ASOSIY ADMIN PANEL SOZLAMALARI
 # ==========================================
@@ -82,6 +139,11 @@ class CourseAdmin(admin.ModelAdmin):
                     "description",
                     "instructor",
                     ("level", "duration", "price"),
+                    (
+                        "certificate_requires_all_assignments_approved",
+                        "certificate_min_lesson_completion_percent",
+                        "certificate_min_attendance_percent",
+                    ),
                     "is_active",
                 )
             },
@@ -274,14 +336,52 @@ class LessonProgressAdmin(admin.ModelAdmin):
 
 @admin.register(Exam)
 class ExamAdmin(admin.ModelAdmin):
-    list_display = ('title', 'course', 'exam_type', 'weight_percentage', 'passing_score')
+    list_display = (
+        'title',
+        'course',
+        'exam_type',
+        'weight_percentage',
+        'passing_score',
+        'max_attempts',
+        'prerequisite_exam',
+    )
     list_filter = ('course', 'exam_type')
+    fields = (
+        'course',
+        'title',
+        'exam_type',
+        ('weight_percentage', 'passing_score', 'max_attempts'),
+        'prerequisite_exam',
+        (
+            'requires_all_assignments_approved',
+            'minimum_lesson_completion_percent',
+            'minimum_attendance_percent',
+        ),
+    )
     inlines = [ExamSectionInline] # Imtihon ichida ro'yxat (Reading, Listening) qo'shish
 
 @admin.register(ExamSection)
-class ExamSectionAdmin(admin.ModelAdmin):
-    list_display = ('title', 'exam', 'section_type', 'max_score', 'order')
+class ExamSectionAdmin(nested_admin.NestedModelAdmin):
+    list_display = ('title', 'exam', 'section_type', 'max_score', 'order', 'reading_task_count', 'reading_item_count')
     list_filter = ('exam', 'section_type')
+    inlines = [NestedReadingPassageInline, NestedReadingTaskInline]
+    fields = (
+        "exam",
+        "title",
+        ("section_type", "order"),
+        "instructions",
+        "reading_text",
+        "media_url",
+        ("max_score", "time_limit_minutes"),
+    )
+
+    @admin.display(description="Reading tasklar")
+    def reading_task_count(self, obj):
+        return obj.reading_tasks.count()
+
+    @admin.display(description="Reading itemlar")
+    def reading_item_count(self, obj):
+        return ReadingItem.objects.filter(task__section=obj).count()
 
 class StudentAnswerInline(admin.StackedInline):
     model = StudentAnswer
@@ -312,13 +412,44 @@ class ExamSectionReviewInline(admin.TabularInline):
     def section_max_score(self, obj):
         return obj.section.max_score
 
+
+class ReadingResponseInline(admin.StackedInline):
+    model = ReadingResponse
+    extra = 0
+    fields = (
+        "item",
+        "task_summary",
+        "selected_option",
+        "selected_option_ids",
+        "text_answer",
+        "is_flagged_for_review",
+        "awarded_score",
+        "is_graded",
+        "updated_at",
+    )
+    readonly_fields = ("item", "task_summary", "updated_at")
+
+    @admin.display(description="Task")
+    def task_summary(self, obj):
+        return f"{obj.item.task.get_task_type_display()} / {obj.item.task.title or obj.item.task.section.title}"
+
 @admin.register(ExamAttempt)
 class ExamAttemptAdmin(admin.ModelAdmin):
-    list_display = ('student', 'exam', 'review_state', 'score', 'passed', 'blur_warnings', 'is_completed', 'completed_time')
+    list_display = (
+        'student',
+        'exam',
+        'attempt_number',
+        'review_state',
+        'score',
+        'passed',
+        'blur_warnings',
+        'is_completed',
+        'completed_time',
+    )
     list_filter = ('passed', 'is_completed', 'is_reviewed', 'exam__course', 'exam')
     search_fields = ('student__username', 'student__email', 'exam__title')
-    inlines = [ExamSectionReviewInline, StudentAnswerInline]
-    readonly_fields = ('start_time', 'blur_warnings', 'completed_time', 'reviewed_at', 'reviewed_by')
+    inlines = [ExamSectionReviewInline, StudentAnswerInline, ReadingResponseInline]
+    readonly_fields = ('attempt_number', 'start_time', 'blur_warnings', 'completed_time', 'reviewed_at', 'reviewed_by')
     
     actions = ['prepare_reviews', 'approve_selected_attempts', 'recalculate_scores']
 
@@ -400,3 +531,58 @@ class QuestionAdmin(admin.ModelAdmin):
     def get_short_text(self, obj):
         text_str = str(obj.text)
         return text_str[:50] + "..." if len(text_str) > 50 else text_str
+
+
+@admin.register(ReadingPassage)
+class ReadingPassageAdmin(admin.ModelAdmin):
+    list_display = ("title", "section", "order")
+    list_filter = ("section__exam",)
+    search_fields = ("title", "section__title", "section__exam__title")
+
+
+@admin.register(ReadingTask)
+class ReadingTaskAdmin(admin.ModelAdmin):
+    list_display = ("title", "section", "task_type", "display_variant", "order")
+    list_filter = ("task_type", "display_variant", "section__exam")
+    search_fields = ("title", "section__title", "section__exam__title")
+
+
+@admin.register(ReadingItem)
+class ReadingItemAdmin(admin.ModelAdmin):
+    list_display = ("display_label", "task", "points", "order")
+    list_filter = ("task__task_type", "task__section__exam")
+    search_fields = ("short_label", "task__title", "task__section__title")
+
+
+@admin.register(ReadingOption)
+class ReadingOptionAdmin(admin.ModelAdmin):
+    list_display = ("text", "label", "option_key", "parent_summary", "is_correct", "order")
+    list_filter = ("task__task_type", "item__task__task_type")
+    search_fields = ("text", "label", "option_key")
+
+    @admin.display(description="Parent")
+    def parent_summary(self, obj):
+        if obj.item_id:
+            return f"Item: {obj.item}"
+        return f"Task: {obj.task}"
+
+
+@admin.register(ReadingAcceptedAnswer)
+class ReadingAcceptedAnswerAdmin(admin.ModelAdmin):
+    list_display = ("value", "item", "order")
+    list_filter = ("item__task__task_type",)
+    search_fields = ("value", "item__short_label", "item__task__title")
+
+
+@admin.register(ReadingResponse)
+class ReadingResponseAdmin(admin.ModelAdmin):
+    list_display = ("attempt", "item", "is_flagged_for_review", "awarded_score", "is_graded", "updated_at")
+    list_filter = ("item__task__task_type", "item__task__section__exam", "is_flagged_for_review", "is_graded")
+    search_fields = ("attempt__student__username", "item__short_label", "item__task__title")
+
+
+@admin.register(ExamSectionAttemptState)
+class ExamSectionAttemptStateAdmin(admin.ModelAdmin):
+    list_display = ("attempt", "section", "started_at", "updated_at")
+    list_filter = ("section__exam", "section__section_type")
+    search_fields = ("attempt__student__username", "section__title")

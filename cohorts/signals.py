@@ -19,6 +19,8 @@ def cache_old_status(sender, instance, **kwargs):
 def create_status_change_notifications(sender, instance, created, **kwargs):
     if created:
         return
+    if getattr(instance, "_suppress_status_change_notifications", False):
+        return
 
     old_status = getattr(instance, "_old_status", None)
     if old_status == instance.status:

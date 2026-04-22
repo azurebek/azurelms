@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AzureLMS Buttons</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/public.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/component-catalog.css">
+</head>
+<body class="components-page">
+  <header class="catalog-shell catalog-header">
+    <a class="catalog-back" href="./index.html"><i class="bi bi-arrow-left"></i>Component katalogiga qaytish</a>
+    <div class="catalog-heading">
+      <p class="eyebrow">Buttons</p>
+      <h1>Action komponentlari</h1>
+      <p>Hozirgi public va app shell yo'nalishida ishlatiladigan tugmalar shu yerda jamlangan. Asosiy qoida: flat, compact va signal-driven.</p>
+    </div>
+    <nav class="catalog-nav">
+      <a href="./index.html">Katalog</a>
+      <a class="is-active" href="./buttons.html">Buttons</a>
+      <a href="./navigation.html">Navigation</a>
+      <a href="./cards.html">Cards</a>
+      <a href="./forms.html">Forms</a>
+      <a href="./learning.html">Learning</a>
+      <a href="./messenger.html">Messenger</a>
+      <a href="./exam.html">Exam</a>
+    </nav>
+  </header>
+
+  <main class="catalog-shell catalog-main">
+    <section class="catalog-section">
+      <div class="catalog-section-head">
+        <h2>Foundation buttons</h2>
+        <p>Global bazaviy variantlar. Bular keyin shell-specific stillar bilan yanada moslashadi.</p>
+      </div>
+      <div class="catalog-demo">
+        <div class="button-row">
+          <button class="button button--primary">Asosiy action</button>
+          <button class="button button--secondary">Ikkinchi daraja</button>
+          <button class="button button--ghost">Ghost action</button>
+          <button class="button button--icon"><i class="bi bi-plus-lg"></i></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="catalog-section">
+      <div class="catalog-section-head">
+        <h2>Public shell actions</h2>
+        <p>Landing va authsiz zonalarda ishlatiladigan tugmalar. Gloss yo'q, flat va jiddiy ko'rinish saqlanadi.</p>
+      </div>
+      <div class="catalog-demo catalog-demo--public">
+        <div class="shell-public">
+          <div class="catalog-stack">
+            <div class="button-row">
+              <button class="button button--primary">Ro'yxatdan o'tish</button>
+              <button class="button button--ghost">Kirish</button>
+            </div>
+            <div class="button-row">
+              <button class="button button--light">Kurslarni ko'rish</button>
+              <button class="button button--outline-light">Platformani ko'rish</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="catalog-section">
+      <div class="catalog-section-head">
+        <h2>App shell actions</h2>
+        <p>Operational zonadagi actions kichikroq, zichroq va kam bezakli bo'ladi.</p>
+      </div>
+      <div class="catalog-demo catalog-demo--app">
+        <div class="catalog-stack">
+          <div class="button-row">
+            <button class="button button--primary">Saqlash</button>
+            <button class="button button--ghost">Bekor qilish</button>
+          </div>
+          <div class="shell-app catalog-app-inline">
+            <div class="app-topbar-actions">
+              <button class="app-icon-btn"><i class="bi bi-house-door"></i></button>
+              <button class="app-icon-btn app-icon-btn--badge"><i class="bi bi-megaphone"></i><em>2</em></button>
+              <button class="app-icon-btn"><i class="bi bi-search"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

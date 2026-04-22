@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog Public Shell Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/css/tokens.css">
+  <link rel="stylesheet" href="./assets/css/foundation.css">
+  <link rel="stylesheet" href="./assets/css/public.css">
+  <link rel="stylesheet" href="./assets/css/blog.css">
+</head>
+<body class="shell-public shell-blog-public">
+  <div class="public-utility">
+    <div class="public-wrap public-utility-inner">
+      <nav class="public-utility-links">
+        <a href="./index.html"><i class="bi bi-house-door-fill"></i>Playground</a>
+        <a href="#">Kurslar</a>
+        <a href="#">Narxlar</a>
+        <a href="#">Blog</a>
+        <a href="#">Yordam</a>
+      </nav>
+      <div class="public-utility-meta">
+        <a href="#">Editorial desk</a>
+        <a href="#">info@azurelms.uz</a>
+      </div>
+    </div>
+  </div>
+
+  <header class="public-header">
+    <div class="public-wrap public-header-inner">
+      <a class="public-brand" href="./index.html">
+        <div class="brand-mark brand-mark--public">AL</div>
+        <div class="public-brand-copy">
+          <strong>Azure Journal</strong>
+          <span>AzureLMS editorial layer</span>
+        </div>
+      </a>
+
+      <nav class="public-main-nav">
+        <a href="#">Stories</a>
+        <a href="#">Notes</a>
+        <a href="#">Learning ops</a>
+        <a href="#">Case studies</a>
+        <a href="#">Authors</a>
+      </nav>
+
+      <div class="public-header-actions">
+        <button class="button button--ghost">Kirish</button>
+        <button class="button button--primary">Platformaga o'tish</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="journal-main">
+    <section class="public-wrap journal-shell-switcher">
+      <nav class="journal-switcher-nav">
+        <a class="is-active" href="./blog-public-shell.html"><i class="bi bi-grid"></i>Public list shell</a>
+        <a href="./blog-article-shell.html"><i class="bi bi-file-earmark-text"></i>Article shell</a>
+        <a href="./blog-studio-shell.html"><i class="bi bi-layout-sidebar-inset"></i>Studio shell</a>
+      </nav>
+    </section>
+
+    <section class="public-wrap journal-masthead">
+      <div class="journal-masthead-grid">
+        <article class="journal-panel journal-masthead-copy">
+          <div class="journal-copy">
+            <p class="section-kicker">Azure Journal</p>
+            <h1>O'qishga qulay, lekin productga bog'langan editorial portal</h1>
+            <p>Blog public shell landingga qarindosh bo'ladi, lekin uning vazifasi marketing emas. Bu yerda asosiy urg'u readability, tartibli story stream, taglar va chuqur maqola oqimiga tushadi.</p>
+          </div>
+
+          <div class="journal-search-card">
+            <label for="blog-search">Maqola qidiring</label>
+            <div class="journal-search-row">
+              <input class="journal-input" id="blog-search" type="search" placeholder="Platform strategy, study flow, case study...">
+              <button class="button button--primary" type="button">Qidirish</button>
+            </div>
+          </div>
+
+          <div class="journal-chip-row">
+            <span class="journal-chip is-active">#LearningOps</span>
+            <span class="journal-chip">#Certification</span>
+            <span class="journal-chip">#ProductNotes</span>
+            <span class="journal-chip">#StudentFlow</span>
+            <span class="journal-chip">#TeamUpdates</span>
+          </div>
+        </article>
+
+        <aside class="journal-panel journal-issue-card">
+          <p class="section-kicker section-kicker--light">Issue board</p>
+          <h2>Bu haftalik editorial navbat</h2>
+          <p>Public blog shell ichida featured story, tezkor notes va tizimli topic arxivi bitta editorial ritmda yig'iladi.</p>
+
+          <div class="journal-issue-grid">
+            <div class="journal-issue-line">
+              <strong>Featured essay</strong>
+              <span>Student journey va dashboard ritmi</span>
+              <em>08 min</em>
+            </div>
+            <div class="journal-issue-line">
+              <strong>Case note</strong>
+              <span>Course onboardingdagi friction nuqtalari</span>
+              <em>05 min</em>
+            </div>
+            <div class="journal-issue-line">
+              <strong>Ops brief</strong>
+              <span>Support, messenger va help center o'rtasidagi rol</span>
+              <em>04 min</em>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="public-wrap journal-feature-grid">
+      <article class="journal-panel journal-feature-story">
+        <div class="journal-feature-media">
+          <div class="journal-feature-poster">
+            <p class="section-kicker section-kicker--light">Featured story</p>
+            <strong>03 layer</strong>
+            <p>Course, learning va exam flow o'rtasidagi aniq aloqani tushuntiradigan katta editorial material.</p>
+          </div>
+          <div class="journal-feature-bars">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+
+        <div class="journal-feature-copy">
+          <div class="journal-tag-row">
+            <span class="journal-tag">#CaseStudy</span>
+            <span class="journal-tag">#Architecture</span>
+          </div>
+          <h2>Legacy restyle'dan replacement migration'gacha bo'lgan yo'l</h2>
+          <p>Bu maqola product redesign qarorlarining ichki sababini, shelllar nega ajratilayotganini va foydalanuvchi tajribasiga bu qanday ta'sir qilishini editorial tilda tushuntiradi.</p>
+          <div class="journal-meta-row">
+            <span><i class="bi bi-calendar3"></i>15 Apr 2026</span>
+            <span><i class="bi bi-clock"></i>8 min read</span>
+            <span><i class="bi bi-chat-left-text"></i>12 comment</span>
+          </div>
+          <ul class="journal-feature-list">
+            <li>
+              <strong>Shell-first thinking</strong>
+              <p>Marketing bloklaridan ko'ra product zones muhimroq ekanini ko'rsatadi.</p>
+            </li>
+            <li>
+              <strong>Readable hierarchy</strong>
+              <p>Sarlavha, excerpt, meta va CTA bir oqimda, ortiqcha bezaksiz turadi.</p>
+            </li>
+            <li>
+              <strong>Migration reference</strong>
+              <p>Keyin real `post_list` va `post_detail` template'lar uchun source sifatida ishlatiladi.</p>
+            </li>
+          </ul>
+          <a class="journal-read-link" href="./blog-article-shell.html">Maqolani ochish <i class="bi bi-arrow-right"></i></a>
+        </div>
+      </article>
+
+      <div class="journal-side-stack">
+        <aside class="journal-panel journal-side-card">
+          <p class="section-kicker">Trending</p>
+          <h3>Hozir ko'p o'qilayotganlar</h3>
+          <div class="journal-mini-post">
+            <strong>Student dashboardni minimal qilishda nimalar olib tashlanadi?</strong>
+            <p>Dense app shell uchun qaysi signal bloklar kerak, qaysilari ortiqcha.</p>
+          </div>
+          <div class="journal-mini-post">
+            <strong>Certificate page hujjat shell sifatida nega alohida turishi kerak</strong>
+            <p>Print va verification flow oddiy public sahifadan nimasi bilan farq qiladi.</p>
+          </div>
+          <div class="journal-mini-post">
+            <strong>Help center va messenger o'rtasidagi chegarani belgilash</strong>
+            <p>Support tizimida qaysi kanal qaysi vazifa uchun ishlatiladi.</p>
+          </div>
+        </aside>
+
+        <aside class="journal-panel journal-side-card">
+          <p class="section-kicker">Editorial rules</p>
+          <h3>Blog public shell qoidalari</h3>
+          <ul class="journal-bullet-list">
+            <li>Hero marketing emas, issue-board hissini berishi kerak.</li>
+            <li>Maqola kartalari landingdan sokinroq va typographic bo'lishi kerak.</li>
+            <li>Featured story va regular story ritmi aniq ajralib turishi kerak.</li>
+            <li>Taglar filtering signal sifatida ishlaydi, dekor emas.</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <section class="public-wrap journal-stream-layout">
+      <div>
+        <div class="journal-section-head">
+          <div class="journal-copy">
+            <p class="section-kicker">Latest stories</p>
+            <h2>Editorial stream</h2>
+            <p>Bu oqim real blog list sahifasidagi `posts`, `top_tags`, qidiruv va pagination bloklarini replacement qilish uchun reference bo'ladi.</p>
+          </div>
+          <a class="journal-read-link" href="#">Barcha maqolalar <i class="bi bi-arrow-right"></i></a>
+        </div>
+
+        <div class="journal-story-stream">
+          <article class="journal-panel journal-story-card">
+            <div class="journal-story-media" data-label="Case note"></div>
+            <div class="journal-story-body">
+              <div class="journal-tag-row">
+                <span class="journal-tag">#LearningOps</span>
+                <span class="journal-tag">#StudentFlow</span>
+              </div>
+              <h3>My courses sahifasini dashboarddan qanday ajratish kerak?</h3>
+              <p class="journal-story-snippet">Course catalog, study selection va active cohort signallarini bir joyga jamlaganda qaysi bloklar qolishi, qaysilari boshqa shellga ko'chishi kerakligi haqida amaliy maqola.</p>
+              <div class="journal-meta-row">
+                <span>Azizbek</span>
+                <span>12 Apr 2026</span>
+                <span>7 min</span>
+                <span>18 clap</span>
+              </div>
+              <a class="journal-read-link" href="./blog-article-shell.html">O'qish <i class="bi bi-arrow-right"></i></a>
+            </div>
+          </article>
+
+          <article class="journal-panel journal-story-card">
+            <div class="journal-story-media" data-label="Ops brief"></div>
+            <div class="journal-story-body">
+              <div class="journal-tag-row">
+                <span class="journal-tag">#Support</span>
+                <span class="journal-tag">#Messenger</span>
+              </div>
+              <h3>Support qismi nega app shellga aralashmasligi kerak</h3>
+              <p class="journal-story-snippet">Messenger va help center productga yaqin, lekin bir xil shell ichiga majburlab tiqish keyin scale paytida chalkashlik beradi.</p>
+              <div class="journal-meta-row">
+                <span>Editorial desk</span>
+                <span>10 Apr 2026</span>
+                <span>5 min</span>
+                <span>6 comment</span>
+              </div>
+              <a class="journal-read-link" href="./blog-article-shell.html">O'qish <i class="bi bi-arrow-right"></i></a>
+            </div>
+          </article>
+
+          <article class="journal-panel journal-story-card">
+            <div class="journal-story-media" data-label="Guideline"></div>
+            <div class="journal-story-body">
+              <div class="journal-tag-row">
+                <span class="journal-tag">#DesignSystem</span>
+                <span class="journal-tag">#Components</span>
+              </div>
+              <h3>Blue CTA qayerda ishlaydi, qayerda ishlamaydi?</h3>
+              <p class="journal-story-snippet">Public, app va editorial qavatlarda tugma kontrasti bir xil qoidaga emas, zone-specific discipline bilan boshqarilishi kerak.</p>
+              <div class="journal-meta-row">
+                <span>UI board</span>
+                <span>09 Apr 2026</span>
+                <span>6 min</span>
+                <span>24 clap</span>
+              </div>
+              <a class="journal-read-link" href="./blog-article-shell.html">O'qish <i class="bi bi-arrow-right"></i></a>
+            </div>
+          </article>
+
+          <article class="journal-panel journal-story-card">
+            <div class="journal-story-media" data-label="Platform"></div>
+            <div class="journal-story-body">
+              <div class="journal-tag-row">
+                <span class="journal-tag">#PublicShell</span>
+                <span class="journal-tag">#Blog</span>
+              </div>
+              <h3>Landing'dan blogga o'tishda visual ritm qanday o'zgaradi?</h3>
+              <p class="journal-story-snippet">Bir xil brand oilasi saqlanadi, lekin blogda diqqati tortuvchi hero emas, o'qituvchi-editorial ohang va toza reading column ustun bo'ladi.</p>
+              <div class="journal-meta-row">
+                <span>Journal team</span>
+                <span>07 Apr 2026</span>
+                <span>4 min</span>
+                <span>11 comment</span>
+              </div>
+              <a class="journal-read-link" href="./blog-article-shell.html">O'qish <i class="bi bi-arrow-right"></i></a>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <aside class="journal-sidebar-stack">
+        <div class="journal-panel journal-side-card">
+          <p class="section-kicker">Newsletter</p>
+          <h3>Editorial digest</h3>
+          <p>Haftadagi eng foydali 3 maqola, product notes va support kuzatuvlari email orqali keladi.</p>
+          <div class="journal-search-row">
+            <input class="journal-input" type="email" placeholder="Email manzilingiz">
+            <button class="button button--primary" type="button">Obuna bo'lish</button>
+          </div>
+        </div>
+
+        <div class="journal-panel journal-side-card">
+          <p class="section-kicker">Topic map</p>
+          <h3>Asosiy kategoriyalar</h3>
+          <div class="journal-stat-grid">
+            <div class="journal-stat-line">
+              <span>LearningOps</span>
+              <strong>14</strong>
+            </div>
+            <div class="journal-stat-line">
+              <span>Design system</span>
+              <strong>09</strong>
+            </div>
+            <div class="journal-stat-line">
+              <span>Platform notes</span>
+              <strong>07</strong>
+            </div>
+            <div class="journal-stat-line">
+              <span>Case study</span>
+              <strong>05</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="journal-panel journal-side-card">
+          <p class="section-kicker">Why separate shell?</p>
+          <h3>Blog landing emas</h3>
+          <ul class="journal-bullet-list">
+            <li>O'qish uchun long-form rhythm kerak.</li>
+            <li>Search, tag va pagination bu yerda first-class citizen.</li>
+            <li>Detail sahifada body column va right rail barqaror bo'lishi kerak.</li>
+          </ul>
+        </div>
+      </aside>
+    </section>
+  </main>
+</body>
+</html>

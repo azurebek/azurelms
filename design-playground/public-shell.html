@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Public Shell Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/css/tokens.css">
+  <link rel="stylesheet" href="./assets/css/foundation.css">
+  <link rel="stylesheet" href="./assets/css/public.css">
+</head>
+<body class="shell-public">
+  <div class="public-utility">
+    <div class="public-wrap public-utility-inner">
+      <nav class="public-utility-links">
+        <a href="#"><i class="bi bi-house-door-fill"></i>Bosh sahifa</a>
+        <a href="#">Kurslar</a>
+        <a href="#">Narxlar</a>
+        <a href="#">Blog</a>
+        <a href="#">Yordam</a>
+      </nav>
+      <div class="public-utility-meta">
+        <a href="#">TR</a>
+        <a href="#">EN</a>
+        <a href="#">Kirish</a>
+      </div>
+    </div>
+  </div>
+
+  <header class="public-header">
+    <div class="public-wrap public-header-inner">
+      <a class="public-brand" href="#">
+        <div class="brand-mark brand-mark--public">AL</div>
+        <div class="public-brand-copy">
+          <strong>AzureLMS</strong>
+          <span>Turk tili va sertifikat platformasi</span>
+        </div>
+      </a>
+
+      <nav class="public-main-nav">
+        <a href="#">Universitet modeli</a>
+        <a href="#">Dasturlar</a>
+        <a href="#">Sertifikatlar</a>
+        <a href="#">Qabul</a>
+        <a href="#">Xalqaro</a>
+        <a href="#">Aloqa</a>
+      </nav>
+
+      <div class="public-header-actions">
+        <button class="button button--ghost">Kirish</button>
+        <button class="button button--primary">Ro'yxatdan o'tish</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="public-main">
+    <section class="public-billboard" data-carousel>
+      <div class="public-billboard-carousel">
+        <article class="public-billboard-slide is-active" data-carousel-slide>
+          <div class="public-wrap public-billboard-grid">
+            <div class="billboard-stage">
+              <article class="billboard-poster billboard-poster--main">
+                <div class="billboard-poster-head">
+                  <span>Academic bulletin</span>
+                  <strong>2026</strong>
+                </div>
+                <div class="billboard-poster-body">
+                  <div class="poster-chart">
+                    <span style="height: 36%;"></span>
+                    <span style="height: 52%;"></span>
+                    <span style="height: 70%;"></span>
+                    <span style="height: 86%;"></span>
+                  </div>
+                  <div class="poster-copy">
+                    <strong>3 oy</strong>
+                    <p>Tartibli track, lesson workspace va dashboard bitta oqimda.</p>
+                  </div>
+                </div>
+                <div class="billboard-poster-foot">
+                  <span>A1-C1 flow</span>
+                  <span>Sertifikat track</span>
+                  <span>Live support</span>
+                </div>
+              </article>
+
+              <article class="billboard-poster billboard-poster--side">
+                <span class="poster-side-label">TR</span>
+                <strong>A1-C1</strong>
+                <p>Turk tili, dashboard va exam flow yagona tizimda.</p>
+              </article>
+            </div>
+
+            <div class="billboard-copy">
+              <p class="billboard-kicker">Turk tili platformasi</p>
+              <h1>Akademik ruhdagi, lekin amaliy o'quv portali</h1>
+              <p class="billboard-text">Universitet portalidagi ishonch hissini saqlab, AzureLMSning kurs katalogi, sertifikat yo'li va o'quv muhitini bitta landing ichida tartibli ko'rsatish.</p>
+              <div class="billboard-actions">
+                <button class="button button--light">Kurslarni ko'rish</button>
+                <button class="button button--outline-light">Platformani ko'rish</button>
+              </div>
+              <div class="billboard-points">
+                <div>
+                  <strong>6 track</strong>
+                  <span>A1 dan C1 gacha</span>
+                </div>
+                <div>
+                  <strong>10 haftalik yo'l</strong>
+                  <span>Lesson, exam va chat</span>
+                </div>
+                <div>
+                  <strong>Doimiy support</strong>
+                  <span>Telegram va dashboard</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="public-billboard-slide" data-carousel-slide>
+          <div class="public-wrap public-billboard-grid">
+            <div class="billboard-stage">
+              <article class="billboard-poster billboard-poster--main">
+                <div class="billboard-poster-head">
+                  <span>Course catalog</span>
+                  <strong>2026</strong>
+                </div>
+                <div class="billboard-poster-body">
+                  <div class="poster-chart">
+                    <span style="height: 44%;"></span>
+                    <span style="height: 58%;"></span>
+                    <span style="height: 72%;"></span>
+                    <span style="height: 78%;"></span>
+                  </div>
+                  <div class="poster-copy">
+                    <strong>24 dars</strong>
+                    <p>Har modul uchun aniq lesson ritmi, material va progress oqimi.</p>
+                  </div>
+                </div>
+                <div class="billboard-poster-foot">
+                  <span>Modul katalogi</span>
+                  <span>Weekly rhythm</span>
+                  <span>Study roadmap</span>
+                </div>
+              </article>
+
+              <article class="billboard-poster billboard-poster--side">
+                <span class="poster-side-label">B2</span>
+                <strong>Track</strong>
+                <p>Katalog, lesson plan va student dashboard bir-biriga bog'langan.</p>
+              </article>
+            </div>
+
+            <div class="billboard-copy">
+              <p class="billboard-kicker">Kurs arxitekturasi</p>
+              <h1>Katalogdan lesson workspacegacha bir xil tartib</h1>
+              <p class="billboard-text">Eski landingdagi kurs bloklari endi portal tuzilmasiga moslab yig'iladi: kurs preview, modul ritmi va qaysi yo'l bilan sertifikatga borish aniq ko'rinadi.</p>
+              <div class="billboard-actions">
+                <button class="button button--light">Katalogni ochish</button>
+                <button class="button button--outline-light">Yo'l xaritasi</button>
+              </div>
+              <div class="billboard-points">
+                <div>
+                  <strong>18-24 dars</strong>
+                  <span>Har kurs uchun aniq ritm</span>
+                </div>
+                <div>
+                  <strong>Weekly plan</strong>
+                  <span>Modul va homework oqimi</span>
+                </div>
+                <div>
+                  <strong>Progress</strong>
+                  <span>Dashboard bilan bog'langan</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="public-billboard-slide" data-carousel-slide>
+          <div class="public-wrap public-billboard-grid">
+            <div class="billboard-stage">
+              <article class="billboard-poster billboard-poster--main">
+                <div class="billboard-poster-head">
+                  <span>Certification flow</span>
+                  <strong>2026</strong>
+                </div>
+                <div class="billboard-poster-body">
+                  <div class="poster-chart">
+                    <span style="height: 30%;"></span>
+                    <span style="height: 48%;"></span>
+                    <span style="height: 66%;"></span>
+                    <span style="height: 92%;"></span>
+                  </div>
+                  <div class="poster-copy">
+                    <strong>Final</strong>
+                    <p>Imtihon, tasdiqlash va sertifikat chiqarish bitta aniq yo'lda.</p>
+                  </div>
+                </div>
+                <div class="billboard-poster-foot">
+                  <span>Exam workspace</span>
+                  <span>Certificate ready</span>
+                  <span>Admin review</span>
+                </div>
+              </article>
+
+              <article class="billboard-poster billboard-poster--side">
+                <span class="poster-side-label">Live</span>
+                <strong>Support</strong>
+                <p>Telegram, mentor va help center bilan doimiy aloqa mavjud.</p>
+              </article>
+            </div>
+
+            <div class="billboard-copy">
+              <p class="billboard-kicker">Sertifikat yo'li</p>
+              <h1>Imtihon va sertifikatni bir tizimda yuritish</h1>
+              <p class="billboard-text">Universitet portalidagi jiddiy ko'rinish bilan birga, real product flow ko'rinishi ham saqlanadi: exam workspace, verification va final certificate status bitta tizimda yuradi.</p>
+              <div class="billboard-actions">
+                <button class="button button--light">Sertifikat yo'li</button>
+                <button class="button button--outline-light">Yordam markazi</button>
+              </div>
+              <div class="billboard-points">
+                <div>
+                  <strong>Exam flow</strong>
+                  <span>Secure workspace</span>
+                </div>
+                <div>
+                  <strong>Verification</strong>
+                  <span>Admin va status tracking</span>
+                </div>
+                <div>
+                  <strong>Ready output</strong>
+                  <span>Certificate va history</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="public-wrap public-billboard-controls">
+        <div class="billboard-dots" role="tablist" aria-label="Billboard slides">
+          <button class="billboard-dot is-active" type="button" aria-label="1-slide" data-carousel-dot></button>
+          <button class="billboard-dot" type="button" aria-label="2-slide" data-carousel-dot></button>
+          <button class="billboard-dot" type="button" aria-label="3-slide" data-carousel-dot></button>
+        </div>
+        <div class="billboard-nav">
+          <button class="billboard-control" type="button" aria-label="Oldingi slide" data-carousel-prev>
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <button class="billboard-control" type="button" aria-label="Keyingi slide" data-carousel-next>
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="public-wrap portal-grid">
+      <article class="portal-card portal-card--media">
+        <div class="portal-card-head">
+          <span>Platforma preview</span>
+        </div>
+        <div class="portal-preview">
+          <div class="portal-preview-window">
+            <div class="portal-preview-bar">
+              <span></span><span></span><span></span>
+            </div>
+            <div class="portal-preview-body">
+              <div class="portal-preview-sidebar"></div>
+              <div class="portal-preview-content">
+                <div class="preview-ribbon"></div>
+                <div class="preview-cards">
+                  <span></span><span></span><span></span>
+                </div>
+                <div class="preview-table">
+                  <span></span><span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="portal-card portal-card--program">
+        <div class="portal-card-tabs">
+          <a class="is-active" href="#">Lisans</a>
+          <a href="#">Yuqori daraja</a>
+          <a href="#">Doktora</a>
+        </div>
+        <div class="portal-program-grid">
+          <div class="portal-program-cover">
+            <div class="portal-program-label">AzureLMS model</div>
+            <strong>TR A1-C1</strong>
+          </div>
+          <div class="portal-program-copy">
+            <h2>Eski landingdagi kerakli bo'laklar endi tartibli portal oqimiga ko'chadi</h2>
+            <ul class="portal-list">
+              <li>Mashhur kurslar</li>
+              <li>Qanday ishlaydi</li>
+              <li>O'quvchilar fikri</li>
+              <li>Sertifikat va qabul yo'li</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="public-wrap search-strip">
+      <input type="text" placeholder="Turk tili, B2, sertifikat yoki blog qidiring">
+      <button class="search-button" type="button"><i class="bi bi-search"></i></button>
+    </section>
+
+    <section class="public-wrap public-section">
+      <div class="section-head">
+        <div>
+          <p class="section-kicker">Katalog</p>
+          <h2>Mashhur kurslar</h2>
+        </div>
+        <a class="section-link" href="#">Barcha kurslarni ko'rish</a>
+      </div>
+
+      <div class="course-grid">
+        <article class="course-card">
+          <div class="course-cover course-cover--violet">
+            <span>Turk tili - C1</span>
+          </div>
+          <div class="course-body">
+            <p class="course-kicker">AzureLMS course</p>
+            <h3>Turk tili - C1</h3>
+            <p>Imtihon va sertifikatga yaqinlashgan o'quvchilar uchun chuqur akademik track.</p>
+            <div class="course-chips">
+              <span>24 dars</span>
+              <span>10 hafta</span>
+              <span>Jonli support</span>
+            </div>
+            <div class="course-meta">
+              <span>Azizbek Sirojiddinov</span>
+              <a href="#">Kursni ochish</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="course-card">
+          <div class="course-cover course-cover--sand">
+            <span>Turk tili - B2</span>
+          </div>
+          <div class="course-body">
+            <p class="course-kicker">AzureLMS course</p>
+            <h3>Turk tili - B2</h3>
+            <p>O'rta va yuqori bosqich o'rtasidagi ko'prik bo'ladigan muvozanatli sertifikat yo'li.</p>
+            <div class="course-chips">
+              <span>20 dars</span>
+              <span>8 hafta</span>
+              <span>Sertifikat</span>
+            </div>
+            <div class="course-meta">
+              <span>Kursanti ochiq</span>
+              <a href="#">Batafsil</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="course-card">
+          <div class="course-cover course-cover--navy">
+            <span>Turk tili - B1</span>
+          </div>
+          <div class="course-body">
+            <p class="course-kicker">AzureLMS course</p>
+            <h3>Turk tili - B1</h3>
+            <p>Kundalik foydalanishdan tartibli grammatik o'sishga olib kiradigan asosiy modul.</p>
+            <div class="course-chips">
+              <span>18 dars</span>
+              <span>7 hafta</span>
+              <span>Chat</span>
+            </div>
+            <div class="course-meta">
+              <span>Kursanti ochiq</span>
+              <a href="#">Batafsil</a>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="public-process">
+      <div class="public-wrap">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">Jarayon</p>
+            <h2>Qanday ishlaydi?</h2>
+          </div>
+        </div>
+
+        <div class="process-grid">
+          <article class="process-card">
+            <span class="process-step">1</span>
+            <h3>Ro'yxatdan o'ting</h3>
+            <p>Hisob ochib, qaysi darajadan boshlashingizni tanlaysiz.</p>
+          </article>
+          <article class="process-card">
+            <span class="process-step">2</span>
+            <h3>Yo'lni ko'ring</h3>
+            <p>Kurs, modul va sertifikat oqimi sizga aniq ko'rinadi.</p>
+          </article>
+          <article class="process-card">
+            <span class="process-step">3</span>
+            <h3>O'rganishni boshlang</h3>
+            <p>Lesson workspace, chat va dashboard bitta ritmda ishlaydi.</p>
+          </article>
+          <article class="process-card">
+            <span class="process-step">4</span>
+            <h3>Sertifikat oling</h3>
+            <p>Track tugagach imtihon va tasdiqlash oqimiga o'tasiz.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="public-wrap public-section">
+      <div class="section-head">
+        <div>
+          <p class="section-kicker">Fikrlar</p>
+          <h2>O'quvchilar fikri</h2>
+        </div>
+      </div>
+
+      <div class="testimonial-grid">
+        <article class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p>"Oldingi landingdagi issiq hissi qolgan, lekin hozir ko'proq tartib va ishonch bor."</p>
+          <div class="testimonial-meta">
+            <strong>Nigor Soliyeva</strong>
+            <span>Pedagog</span>
+          </div>
+        </article>
+
+        <article class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p>"Kurs kartalari va sertifikat yo'li ancha tushunarli bo'ldi. Universitet portali ruhini sezsa bo'ladi."</p>
+          <div class="testimonial-meta">
+            <strong>Rohila Ergashova</strong>
+            <span>Talaba</span>
+          </div>
+        </article>
+
+        <article class="testimonial-card">
+          <div class="testimonial-stars">★★★★★</div>
+          <p>"Marketing hissi kamayib, real platformaga o'xshab qoldi. Aynan shu narsa kerak edi."</p>
+          <div class="testimonial-meta">
+            <strong>Rayhona Abdullayeva</strong>
+            <span>Imtihon topshiruvchi</span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="public-wrap cta-strip">
+      <div class="cta-copy">
+        <p class="section-kicker section-kicker--light">Boshlash</p>
+        <h2>Bugun o'rganishni boshlang</h2>
+        <p>Platformadagi kurslar, dashboard va sertifikat yo'lini bir joyda ko'ring.</p>
+      </div>
+      <div class="cta-actions">
+        <button class="button button--light">Bepul boshlash</button>
+        <button class="button button--outline-light">Kurslarni ko'rish</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="public-footer">
+    <div class="public-wrap public-footer-grid">
+      <div>
+        <h4>Platforma</h4>
+        <a href="#">Kurslar</a>
+        <a href="#">Narxlar</a>
+        <a href="#">Sertifikatlar</a>
+        <a href="#">Qabul yo'li</a>
+      </div>
+      <div>
+        <h4>Kompaniya</h4>
+        <a href="#">Biz haqimizda</a>
+        <a href="#">Blog</a>
+        <a href="#">Hamkorlik</a>
+        <a href="#">Yordam markazi</a>
+      </div>
+      <div>
+        <h4>Huquqiy</h4>
+        <a href="#">Foydalanish shartlari</a>
+        <a href="#">Maxfiylik</a>
+        <a href="#">KVKK</a>
+        <a href="#">Sertifikat qoidalari</a>
+      </div>
+      <div>
+        <h4>Aloqa</h4>
+        <p>AzureLMS Markaziy kampus</p>
+        <p>Tel: +998 xx xxx xx xx</p>
+        <p>Email: support@azurelms.uz</p>
+      </div>
+    </div>
+    <div class="public-wrap public-footer-bottom">
+      <span>© 2026 AzureLMS. Barcha huquqlar himoyalangan.</span>
+    </div>
+  </footer>
+  <script src="./assets/js/public-shell.js"></script>
+</body>
+</html>

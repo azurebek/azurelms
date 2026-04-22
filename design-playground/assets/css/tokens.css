@@ -1,0 +1,78 @@
+:root {
+  --ink-900: #152133;
+  --ink-850: #16263c;
+  --ink-800: #172334;
+  --ink-700: #18263c;
+  --ink-600: #24344f;
+  --ink-500: #6d7c92;
+
+  --surface-page-public: #f3f5f8;
+  --surface-page-app: #edf1f5;
+  --surface-workspace: #f7f9fc;
+  --surface-base: #ffffff;
+  --surface-soft: #eef3f8;
+
+  --border-strong: #cfd8e3;
+  --border-main: #d7dfea;
+  --border-soft: #d9e1ea;
+  --border-subtle: #dde4ee;
+  --border-light: #e0e7f0;
+
+  --interactive-primary: #16263c;
+  --interactive-link: #1e5ab4;
+  --interactive-brand: #173b73;
+
+  --hero-burgundy: #3d102e;
+  --hero-violet: #2b173f;
+  --hero-navy: #22395f;
+  --hero-gold: #ffdd74;
+
+  --signal-danger: #e83b45;
+  --signal-utility-red: #cf1f1f;
+  --signal-success: #2ea84b;
+  --signal-success-deep: #27885e;
+  --signal-warm: #c96f3b;
+  --signal-warm-soft: #f0d7c5;
+
+  --font-body: "Plus Jakarta Sans", sans-serif;
+  --font-display: "IBM Plex Sans", sans-serif;
+
+  --text-xs: 0.72rem;
+  --text-sm: 0.8rem;
+  --text-md: 0.9rem;
+  --text-body: 0.92rem;
+  --text-lg: 1.16rem;
+  --text-xl: 1.92rem;
+  --text-hero: clamp(2.15rem, 3.7vw, 3.25rem);
+  --text-auth-title: 1.52rem;
+  --text-auth-spotlight: clamp(1.8rem, 2.5vw, 2.3rem);
+
+  --space-2: 4px;
+  --space-4: 8px;
+  --space-6: 12px;
+  --space-8: 16px;
+  --space-10: 20px;
+  --space-12: 24px;
+  --space-14: 28px;
+  --space-16: 32px;
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-pill: 999px;
+
+  --shadow-soft: 0 10px 22px rgba(13, 24, 42, 0.05);
+  --shadow-panel: 0 10px 26px rgba(13, 24, 42, 0.08);
+  --shadow-hero: 0 18px 40px rgba(9, 17, 30, 0.24);
+
+  --public-wrap-max: 1440px;
+  --content-max: 1440px;
+  --auth-layout-max: 1030px;
+  --auth-aside-width: 388px;
+  --auth-card-width: 620px;
+  --auth-panel-padding: 22px;
+  --auth-input-height: 44px;
+  --auth-code-cell-height: 56px;
+  --app-sidebar-width: 264px;
+  --app-topbar-height: 42px;
+}

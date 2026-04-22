@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Legal FAQ - AzureLMS Legal Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/css/tokens.css">
+  <link rel="stylesheet" href="./assets/css/foundation.css">
+  <link rel="stylesheet" href="./assets/css/legal.css">
+</head>
+<body class="legal-doc-body">
+  <main class="legal-doc-main">
+    <div class="legal-doc-wrap">
+      <div class="legal-doc-topbar">
+        <button class="legal-back-button" type="button" data-legal-back>
+          <i class="bi bi-arrow-left"></i>
+          <span data-legal-back-label>Orqaga qaytish</span>
+        </button>
+        <div class="legal-context-badges">
+          <span class="legal-context-badge"><i class="bi bi-patch-question"></i> AzureLMS Legal Center</span>
+          <span class="legal-context-badge" data-legal-context>Public document</span>
+        </div>
+      </div>
+
+      <section class="legal-doc-sheet">
+        <header class="legal-doc-head">
+          <span class="legal-doc-stamp"><i class="bi bi-journal-richtext"></i> Support-Oriented Document</span>
+          <div class="legal-doc-head-grid">
+            <div>
+              <p class="legal-doc-kicker">Legal FAQ</p>
+              <h1>Tez-tez so‘raladigan savollar</h1>
+              <p class="legal-doc-lead">FAQ sahifasi policy matnini to‘liq o‘qishni istamagan foydalanuvchilar uchun savol-javob markazidagi kirish nuqtasi bo‘lib xizmat qiladi. U publicda ham, app ichidagi help centerda ham bir xil rasmiy oilaning qisqa ko‘rinishi sifatida ishlay oladi.</p>
+            </div>
+            <div class="legal-doc-meta">
+              <span><i class="bi bi-life-preserver"></i>Support-led</span>
+              <span><i class="bi bi-journal-check"></i>Shared source</span>
+              <span><i class="bi bi-chat-dots"></i>Fast lookup</span>
+            </div>
+          </div>
+
+          <nav class="legal-tab-strip" aria-label="Legal documents">
+            <a class="legal-tab-link" href="./legal-privacy.html" data-legal-tab><i class="bi bi-shield-lock"></i>Privacy</a>
+            <a class="legal-tab-link" href="./legal-terms.html" data-legal-tab><i class="bi bi-file-earmark-text"></i>Terms</a>
+            <a class="legal-tab-link" href="./legal-faq.html" data-legal-tab><i class="bi bi-patch-question"></i>FAQ</a>
+          </nav>
+        </header>
+
+        <div class="legal-doc-grid">
+          <article class="legal-doc-prose">
+            <div class="legal-faq-cluster">
+              <section class="legal-faq-card" id="accounts">
+                <div class="legal-faq-card-head">
+                  <span>Accounts and data</span>
+                  <h2>Profile, account va privacy savollari</h2>
+                </div>
+                <div class="legal-faq-items" data-accordion-group>
+                  <details class="legal-accordion-item" data-accordion-item>
+                    <summary>
+                      <h3>Qanday ma'lumotlarim saqlanadi?</h3>
+                    </summary>
+                    <div class="legal-accordion-content">
+                      <p>AzureLMS hisob ma'lumotlari, enrollment history, lesson progress, exam attempts va support yozishmalarining kerakli qismlarini saqlashi mumkin. Batafsil izoh Privacy Policy sahifasida turadi.</p>
+                    </div>
+                  </details>
+                  <details class="legal-accordion-item" data-accordion-item>
+                    <summary>
+                      <h3>Profil ma'lumotlarini o'zgartira olamanmi?</h3>
+                    </summary>
+                    <div class="legal-accordion-content">
+                      <p>Ha. Profile va settings orqali asosiy ma'lumotlarni yangilash mumkin, ayrim rasmiy yozuvlar esa support orqali review qilinadi.</p>
+                    </div>
+                  </details>
+                </div>
+              </section>
+
+              <section class="legal-faq-card" id="payments">
+                <div class="legal-faq-card-head">
+                  <span>Payments and plans</span>
+                  <h2>Checkout, receipt va promo savollari</h2>
+                </div>
+                <div class="legal-faq-items" data-accordion-group>
+                  <details class="legal-accordion-item" data-accordion-item>
+                    <summary>
+                      <h3>To'lovni yuborganimdan keyin access qachon ochiladi?</h3>
+                    </summary>
+                    <div class="legal-accordion-content">
+                      <p>Receipt verification tasdiqlangandan keyin enrollment active bo'ladi. Pending paytda access darhol ochilmasligi mumkin.</p>
+                    </div>
+                  </details>
+                  <details class="legal-accordion-item" data-accordion-item>
+                    <summary>
+                      <h3>Promo code ishlatilganini keyin ham ko'ra olamanmi?</h3>
+                    </summary>
+                    <div class="legal-accordion-content">
+                      <p>Ha. Checkout va payment history ichida original amount, discount amount va final amount snapshot sifatida saqlanishi mumkin.</p>
+                    </div>
+                  </details>
+                </div>
+              </section>
+
+              <section class="legal-faq-card" id="exam">
+                <div class="legal-faq-card-head">
+                  <span>Exam and results</span>
+                  <h2>Imtihon, review va certificate savollari</h2>
+                </div>
+                <div class="legal-faq-items" data-accordion-group>
+                  <details class="legal-accordion-item" data-accordion-item>
+                    <summary>
+                      <h3>Submit qilganimdan keyin natija darhol chiqadimi?</h3>
+                    </summary>
+                    <div class="legal-accordion-content">
+                      <p>Yo'q, official natija review approval'dan keyin e'lon qilinishi mumkin. Reading auto-score ichki yordamchi hisob bo'lishi mumkin, lekin final qaror review bosqichida beriladi.</p>
+                    </div>
+                  </details>
+                  <details class="legal-accordion-item" data-accordion-item>
+                    <summary>
+                      <h3>Sertifikat qachon yaratiladi?</h3>
+                    </summary>
+                    <div class="legal-accordion-content">
+                      <p>Course policy'dagi talablar va review statuslari to'liq yopilgach certificate issuance bo'ladi. Bu oddiy UI event emas, official output hisoblanadi.</p>
+                    </div>
+                  </details>
+                </div>
+              </section>
+
+              <section class="legal-faq-card" id="support">
+                <div class="legal-faq-card-head">
+                  <span>Support and escalation</span>
+                  <h2>Yordam qayerdan olinadi?</h2>
+                </div>
+                <div class="legal-faq-items" data-accordion-group>
+                  <details class="legal-accordion-item" data-accordion-item>
+                    <summary>
+                      <h3>Legal yoki account bo'yicha savolim bo'lsa qayerga murojaat qilaman?</h3>
+                    </summary>
+                    <div class="legal-accordion-content">
+                      <p>Help center, messenger support yoki operations desk orqali yozish mumkin. FAQ tez topish uchun, support esa individual holatlarni ko'rib chiqish uchun ishlatiladi.</p>
+                    </div>
+                  </details>
+                  <details class="legal-accordion-item" data-accordion-item>
+                    <summary>
+                      <h3>FAQ va policy matni bir-biridan farq qiladimi?</h3>
+                    </summary>
+                    <div class="legal-accordion-content">
+                      <p>FAQ qisqaroq va support-oriented. Long-form policy esa rasmiy tafsilotlar va to'liq hujjat tuzilmasini beradi.</p>
+                    </div>
+                  </details>
+                </div>
+              </section>
+            </div>
+          </article>
+
+          <aside class="legal-side-stack">
+            <section class="legal-side-card">
+              <h3>Quick topics</h3>
+              <ul class="legal-side-links">
+                <li><a href="#accounts">Accounts and data</a></li>
+                <li><a href="#payments">Payments and plans</a></li>
+                <li><a href="#exam">Exam and results</a></li>
+                <li><a href="#support">Support and escalation</a></li>
+              </ul>
+            </section>
+
+            <section class="legal-side-card">
+              <h3>Document facts</h3>
+              <ul class="legal-side-list">
+                <li><strong>Page type</strong>FAQ</li>
+                <li><strong>Primary mode</strong>Scan-friendly</li>
+                <li><strong>Secondary mode</strong>Help center reuse</li>
+                <li><strong>Tone</strong>Supportive, not promotional</li>
+              </ul>
+            </section>
+
+            <section class="legal-side-card">
+              <h3>Typical entry points</h3>
+              <div class="legal-mini-routes">
+                <div class="legal-mini-route">
+                  <strong>Public footer</strong>
+                  <span>Auth qilmagan foydalanuvchi savolga tez javob topish uchun kiradi.</span>
+                </div>
+                <div class="legal-mini-route">
+                  <strong>Help center</strong>
+                  <span>Auth qilingan foydalanuvchi app ichidagi support oqimidan shu sahifaga qayta kiradi.</span>
+                </div>
+              </div>
+            </section>
+          </aside>
+        </div>
+      </section>
+    </div>
+  </main>
+  <script src="./assets/js/legal-docs.js"></script>
+</body>
+</html>

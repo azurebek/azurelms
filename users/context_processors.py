@@ -1,5 +1,5 @@
 from users.models import Notification
-from users.notification_service import ensure_subscription_notifications_for_user
+from cohorts.models import enrollment_active_access_q
 
 
 def notification_context(request):
@@ -10,8 +10,6 @@ def notification_context(request):
             "sidebar_current_plan": None,
         }
 
-    ensure_subscription_notifications_for_user(request.user)
-
     notifications = list(
         Notification.objects.filter(recipient=request.user)
         .order_by("-created_at")[:8]
@@ -19,7 +17,7 @@ def notification_context(request):
     unread_count = Notification.objects.filter(recipient=request.user, is_read=False).count()
 
     sidebar_plan_enrollment = (
-        request.user.enrollments.filter(status="active", plan__isnull=False)
+        request.user.enrollments.filter(enrollment_active_access_q(), plan__isnull=False)
         .select_related("plan")
         .order_by("-joined_at")
         .first()

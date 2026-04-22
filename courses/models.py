@@ -1,18 +1,39 @@
+import datetime
 import re
 import uuid
 from io import BytesIO
 from pathlib import Path
 
 from django.db import models
+from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django_ckeditor_5.fields import CKEditor5Field
 from django.db.models import Sum
-from django.urls import reverse
 from django.utils.functional import cached_property
 from django.utils import timezone
 from PIL import Image, ImageOps
 
 from .cover_art import GRADIENT_PRESET_CHOICES, build_cover_data_uri
+
+
+READING_TASK_OPTION_TYPES = {"single_choice", "multiple_choice"}
+READING_TASK_SHARED_OPTION_TYPES = {
+    "true_false_not_given",
+    "yes_no_not_given",
+    "matching",
+}
+READING_TASK_TEXT_TYPES = {"text_input", "structured_gap_fill", "diagram_label"}
+
+
+def normalize_reading_value(value, *, case_sensitive=False, punctuation_sensitive=False):
+    text = (value or "").strip()
+    if not punctuation_sensitive:
+        text = re.sub(r"[^\w\s-]", " ", text, flags=re.UNICODE)
+    text = re.sub(r"\s+", " ", text).strip()
+    if not case_sensitive:
+        text = text.casefold()
+    return text
 
 
 class Course(models.Model):
@@ -61,6 +82,20 @@ class Course(models.Model):
         help_text="Bo'sh qoldirilsa kurs darajasi ishlatiladi.",
     )
     preview_video = models.FileField(upload_to='courses/previews/', blank=True, null=True, verbose_name="Tanishtiruv videosi")
+    certificate_requires_all_assignments_approved = models.BooleanField(
+        default=False,
+        verbose_name="Sertifikat uchun barcha assignmentlar tasdiqlansin",
+    )
+    certificate_min_lesson_completion_percent = models.PositiveIntegerField(
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        verbose_name="Sertifikat uchun minimal lesson completion (%)",
+    )
+    certificate_min_attendance_percent = models.PositiveIntegerField(
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        verbose_name="Sertifikat uchun minimal attendance (%)",
+    )
     
     is_active = models.BooleanField(default=True, verbose_name="Faolmi?")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -77,7 +112,7 @@ class Course(models.Model):
         if hasattr(self, 'annotated_students_count'):
             return self.annotated_students_count
         from cohorts.models import Enrollment
-        return Enrollment.objects.filter(cohort__course=self, status='active').values('student').distinct().count()
+        return Enrollment.objects.with_active_access().filter(cohort__course=self).values('student').distinct().count()
 
     @property
     def instructor_display_name(self):
@@ -375,9 +410,53 @@ class Exam(models.Model):
     exam_type = models.CharField(max_length=10, choices=EXAM_TYPES, verbose_name="Imtihon turi")
     weight_percentage = models.PositiveIntegerField(help_text="Umumiy bahodagi o'rni (Masalan: Visa=40, Final=60)")
     passing_score = models.PositiveIntegerField(default=60, help_text="O'tish uchun kerakli minimal foiz")
+    max_attempts = models.PositiveIntegerField(
+        default=2,
+        help_text="O'quvchi ushbu imtihonni maksimal necha marta topshira oladi.",
+    )
+    prerequisite_exam = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="unlocked_exams",
+        verbose_name="Talab qilinadigan oldingi imtihon",
+    )
+    requires_all_assignments_approved = models.BooleanField(
+        default=False,
+        verbose_name="Imtihon uchun barcha assignmentlar tasdiqlansin",
+    )
+    minimum_lesson_completion_percent = models.PositiveIntegerField(
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        verbose_name="Imtihon uchun minimal lesson completion (%)",
+    )
+    minimum_attendance_percent = models.PositiveIntegerField(
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        verbose_name="Imtihon uchun minimal attendance (%)",
+    )
 
     def __str__(self):
         return f"{self.course.title} - {self.get_exam_type_display()}"
+
+    def clean(self):
+        super().clean()
+        if not self.prerequisite_exam_id:
+            return
+        if self.prerequisite_exam_id == self.id:
+            raise ValidationError(
+                {"prerequisite_exam": "Imtihon o'zini o'zi prerequisite qila olmaydi."}
+            )
+        if self.course_id and self.prerequisite_exam.course_id != self.course_id:
+            raise ValidationError(
+                {"prerequisite_exam": "Prerequisite imtihon shu kurs ichida bo'lishi kerak."}
+            )
+
+    @property
+    def total_time_limit_minutes(self):
+        section_limits = self.sections.values_list("time_limit_minutes", flat=True)
+        return sum(section_limits)
 
     class Meta:
         verbose_name = "Imtihon"
@@ -413,6 +492,433 @@ class ExamSection(models.Model):
         ordering = ['order']
         verbose_name = "Imtihon Bo'limi"
         verbose_name_plural = "Imtihon Bo'limlari"
+
+
+class ExamSectionAttemptState(models.Model):
+    attempt = models.ForeignKey(
+        "ExamAttempt",
+        on_delete=models.CASCADE,
+        related_name="section_states",
+        verbose_name="Imtihon urinishi",
+    )
+    section = models.ForeignKey(
+        ExamSection,
+        on_delete=models.CASCADE,
+        related_name="attempt_states",
+        verbose_name="Bo'lim",
+    )
+    state = models.JSONField(default=dict, blank=True, verbose_name="Runtime state")
+    started_at = models.DateTimeField(auto_now_add=True, verbose_name="Boshlangan vaqt")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Yangilangan vaqt")
+
+    class Meta:
+        unique_together = ("attempt", "section")
+        ordering = ["section__order", "id"]
+        verbose_name = "Imtihon bo'limi runtime state"
+        verbose_name_plural = "Imtihon bo'limi runtime statelari"
+
+    def clean(self):
+        super().clean()
+        if self.attempt_id and self.section_id and self.attempt.exam_id != self.section.exam_id:
+            raise ValidationError(
+                {"section": "Bo'lim ushbu urinishdagi imtihonga tegishli emas."}
+            )
+
+    def __str__(self):
+        return f"{self.attempt} | {self.section.title}"
+
+
+class ReadingPassage(models.Model):
+    section = models.ForeignKey(
+        ExamSection,
+        on_delete=models.CASCADE,
+        related_name="reading_passages",
+        verbose_name="Reading bo'limi",
+    )
+    title = models.CharField(max_length=200, blank=True, verbose_name="Passage sarlavhasi")
+    body = CKEditor5Field(
+        blank=True,
+        null=True,
+        config_name="default",
+        verbose_name="Passage matni",
+    )
+    paragraph_labels = models.JSONField(
+        default=list,
+        blank=True,
+        verbose_name="Paragraf label ro'yxati",
+        help_text="Masalan: ['A', 'B', 'C']",
+    )
+    order = models.PositiveIntegerField(default=0, verbose_name="Tartib")
+
+    class Meta:
+        ordering = ["order", "id"]
+        verbose_name = "Reading passage"
+        verbose_name_plural = "Reading passagelar"
+
+    def clean(self):
+        super().clean()
+        if self.section_id and self.section.section_type != "reading":
+            raise ValidationError(
+                {"section": "Reading passage faqat reading section ichida bo'lishi mumkin."}
+            )
+        if self.paragraph_labels and not isinstance(self.paragraph_labels, list):
+            raise ValidationError(
+                {"paragraph_labels": "Paragraf label ro'yxati list ko'rinishida bo'lishi kerak."}
+            )
+
+    def __str__(self):
+        return self.title or f"{self.section.title} passage #{self.order + 1}"
+
+
+class ReadingTask(models.Model):
+    TASK_TYPES = (
+        ("single_choice", "Multiple choice (single)"),
+        ("multiple_choice", "Multiple choice (multi-select)"),
+        ("true_false_not_given", "True / False / Not Given"),
+        ("yes_no_not_given", "Yes / No / Not Given"),
+        ("matching", "Matching"),
+        ("text_input", "Sentence completion / short answer"),
+        ("structured_gap_fill", "Summary / Note / Table / Flow-chart"),
+        ("diagram_label", "Diagram label completion"),
+    )
+    DISPLAY_VARIANTS = (
+        ("", "Default"),
+        ("matching_information", "Matching information"),
+        ("matching_headings", "Matching headings"),
+        ("matching_features", "Matching features"),
+        ("matching_sentence_endings", "Matching sentence endings"),
+        ("sentence_completion", "Sentence completion"),
+        ("short_answer", "Short-answer"),
+        ("summary_completion", "Summary completion"),
+        ("note_completion", "Note completion"),
+        ("table_completion", "Table completion"),
+        ("flowchart_completion", "Flow-chart completion"),
+        ("diagram_labels", "Diagram labels"),
+    )
+
+    section = models.ForeignKey(
+        ExamSection,
+        on_delete=models.CASCADE,
+        related_name="reading_tasks",
+        verbose_name="Reading bo'limi",
+    )
+    passage = models.ForeignKey(
+        ReadingPassage,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="tasks",
+        verbose_name="Passage",
+    )
+    title = models.CharField(max_length=200, blank=True, verbose_name="Task sarlavhasi")
+    task_type = models.CharField(max_length=32, choices=TASK_TYPES, verbose_name="Task engine turi")
+    display_variant = models.CharField(
+        max_length=40,
+        choices=DISPLAY_VARIANTS,
+        blank=True,
+        verbose_name="UI ko'rinishi",
+    )
+    instructions = CKEditor5Field(
+        blank=True,
+        null=True,
+        config_name="default",
+        verbose_name="Task ko'rsatmasi",
+    )
+    body = CKEditor5Field(
+        blank=True,
+        null=True,
+        config_name="default",
+        verbose_name="Task body / layout",
+        help_text="Summary, table yoki diagram uchun asosiy HTML/tuzilma shu yerda saqlanadi.",
+    )
+    order = models.PositiveIntegerField(default=0, verbose_name="Tartib")
+    question_from = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Boshlanish raqami",
+    )
+    question_to = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        verbose_name="Tugash raqami",
+    )
+    max_selections_per_item = models.PositiveIntegerField(
+        default=1,
+        verbose_name="Item uchun maksimal tanlov",
+    )
+    max_words_per_answer = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Javobdagi maksimal so'z soni",
+        help_text="0 bo'lsa cheklov yo'q.",
+    )
+    allow_option_reuse = models.BooleanField(
+        default=True,
+        verbose_name="Variantlarni qayta ishlatish mumkinmi",
+    )
+    allow_review_flag = models.BooleanField(
+        default=True,
+        verbose_name="Review flag ruxsat etilsin",
+    )
+    case_sensitive_grading = models.BooleanField(
+        default=False,
+        verbose_name="Text gradingda katta-kichik harf farqi hisobga olinsin",
+    )
+    punctuation_sensitive = models.BooleanField(
+        default=False,
+        verbose_name="Text gradingda tinish belgilari hisobga olinsin",
+    )
+    metadata = models.JSONField(default=dict, blank=True, verbose_name="Qo'shimcha task metadata")
+
+    class Meta:
+        ordering = ["order", "id"]
+        verbose_name = "Reading task"
+        verbose_name_plural = "Reading tasklar"
+
+    @property
+    def uses_shared_options(self):
+        return self.task_type in READING_TASK_SHARED_OPTION_TYPES
+
+    @property
+    def expects_item_options(self):
+        return self.task_type in READING_TASK_OPTION_TYPES
+
+    @property
+    def expects_text_answers(self):
+        return self.task_type in READING_TASK_TEXT_TYPES
+
+    def clean(self):
+        super().clean()
+        if self.section_id and self.section.section_type != "reading":
+            raise ValidationError(
+                {"section": "Reading task faqat reading section ichida bo'lishi mumkin."}
+            )
+        if self.passage_id and self.passage.section_id != self.section_id:
+            raise ValidationError(
+                {"passage": "Passage shu reading section ichida bo'lishi kerak."}
+            )
+        if self.question_from and self.question_to and self.question_from > self.question_to:
+            raise ValidationError(
+                {"question_to": "Tugash raqami boshlanish raqamidan kichik bo'lishi mumkin emas."}
+            )
+        if self.task_type == "multiple_choice" and self.max_selections_per_item < 2:
+            raise ValidationError(
+                {"max_selections_per_item": "Multi-select task uchun kamida 2 tanlov ruxsat etilishi kerak."}
+            )
+        if self.task_type != "multiple_choice" and self.max_selections_per_item < 1:
+            raise ValidationError(
+                {"max_selections_per_item": "Kamida 1 ta tanlov ruxsat etilishi kerak."}
+            )
+        if self.expects_text_answers and self.max_words_per_answer < 0:
+            raise ValidationError(
+                {"max_words_per_answer": "Max words manfiy bo'lishi mumkin emas."}
+            )
+
+    def __str__(self):
+        return self.title or f"{self.section.title} | {self.get_task_type_display()}"
+
+
+class ReadingItem(models.Model):
+    task = models.ForeignKey(
+        ReadingTask,
+        on_delete=models.CASCADE,
+        related_name="items",
+        verbose_name="Task",
+    )
+    prompt = CKEditor5Field(
+        blank=True,
+        null=True,
+        config_name="default",
+        verbose_name="Item prompt",
+    )
+    short_label = models.CharField(
+        max_length=32,
+        blank=True,
+        verbose_name="Qisqa label",
+        help_text="Masalan: 12, A yoki Blank 3",
+    )
+    helper_text = models.CharField(max_length=255, blank=True, verbose_name="Yordamchi matn")
+    order = models.PositiveIntegerField(default=0, verbose_name="Tartib")
+    points = models.PositiveIntegerField(default=1, verbose_name="Ball")
+    metadata = models.JSONField(default=dict, blank=True, verbose_name="Qo'shimcha item metadata")
+
+    class Meta:
+        ordering = ["order", "id"]
+        verbose_name = "Reading item"
+        verbose_name_plural = "Reading itemlar"
+
+    @property
+    def display_label(self):
+        return self.short_label or str(self.order + 1)
+
+    def __str__(self):
+        return self.short_label or f"{self.task} / item #{self.order + 1}"
+
+
+class ReadingOption(models.Model):
+    task = models.ForeignKey(
+        ReadingTask,
+        on_delete=models.CASCADE,
+        related_name="shared_options",
+        null=True,
+        blank=True,
+        verbose_name="Shared option task",
+    )
+    item = models.ForeignKey(
+        ReadingItem,
+        on_delete=models.CASCADE,
+        related_name="options",
+        null=True,
+        blank=True,
+        verbose_name="Item option",
+    )
+    option_key = models.CharField(
+        max_length=64,
+        blank=True,
+        verbose_name="Option key",
+        help_text="Matching yoki TF/NG tasklarda accepted answer shu key bilan solishtiriladi.",
+    )
+    label = models.CharField(max_length=16, blank=True, verbose_name="Ko'rinadigan label")
+    text = models.CharField(max_length=255, verbose_name="Variant matni")
+    order = models.PositiveIntegerField(default=0, verbose_name="Tartib")
+    is_correct = models.BooleanField(
+        default=False,
+        verbose_name="To'g'ri javobmi",
+        help_text="Faqat item-specific choice tasklarda ishlatiladi.",
+    )
+    metadata = models.JSONField(default=dict, blank=True, verbose_name="Qo'shimcha metadata")
+
+    class Meta:
+        ordering = ["order", "id"]
+        verbose_name = "Reading option"
+        verbose_name_plural = "Reading optionlar"
+
+    @property
+    def parent_task(self):
+        return self.item.task if self.item_id else self.task
+
+    @property
+    def normalized_key(self):
+        source = self.option_key or self.label or self.text
+        return normalize_reading_value(source)
+
+    def clean(self):
+        super().clean()
+        if bool(self.task_id) == bool(self.item_id):
+            raise ValidationError(
+                "Reading option faqat bitta parentga tegishli bo'lishi kerak: task yoki item."
+            )
+        if self.task_id and self.is_correct:
+            raise ValidationError(
+                {"is_correct": "Shared optionlarda to'g'ri javob item accepted answer orqali belgilanadi."}
+            )
+        if self.task_id and self.task.task_type not in READING_TASK_SHARED_OPTION_TYPES:
+            raise ValidationError(
+                {"task": "Shared option faqat matching yoki claim-evaluation tasklarida ishlatiladi."}
+            )
+        if self.item_id and self.item.task.task_type not in READING_TASK_OPTION_TYPES:
+            raise ValidationError(
+                {"item": "Item option faqat multiple choice tasklarida ishlatiladi."}
+            )
+
+    def __str__(self):
+        return self.label or self.option_key or self.text
+
+
+class ReadingAcceptedAnswer(models.Model):
+    item = models.ForeignKey(
+        ReadingItem,
+        on_delete=models.CASCADE,
+        related_name="accepted_answers",
+        verbose_name="Reading item",
+    )
+    value = models.CharField(
+        max_length=255,
+        verbose_name="Qabul qilinadigan javob",
+        help_text="Text tasklarda to'liq javob, matching/claim tasklarda option key yoki label yoziladi.",
+    )
+    order = models.PositiveIntegerField(default=0, verbose_name="Tartib")
+
+    class Meta:
+        ordering = ["order", "id"]
+        verbose_name = "Qabul qilinadigan javob"
+        verbose_name_plural = "Qabul qilinadigan javoblar"
+
+    def __str__(self):
+        return self.value
+
+
+class ReadingResponse(models.Model):
+    attempt = models.ForeignKey(
+        "ExamAttempt",
+        on_delete=models.CASCADE,
+        related_name="reading_responses",
+        verbose_name="Imtihon urinishi",
+    )
+    item = models.ForeignKey(
+        ReadingItem,
+        on_delete=models.CASCADE,
+        related_name="responses",
+        verbose_name="Reading item",
+    )
+    selected_option = models.ForeignKey(
+        ReadingOption,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name="Tanlangan bitta variant",
+    )
+    selected_option_ids = models.JSONField(
+        default=list,
+        blank=True,
+        verbose_name="Tanlangan bir nechta variant IDlari",
+    )
+    text_answer = models.TextField(blank=True, verbose_name="Matnli javob")
+    is_flagged_for_review = models.BooleanField(default=False, verbose_name="Review uchun belgilangan")
+    awarded_score = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        default=0,
+        verbose_name="Berilgan ball",
+    )
+    is_graded = models.BooleanField(default=False, verbose_name="Baholangan")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("attempt", "item")
+        ordering = ["item__task__order", "item__order", "id"]
+        verbose_name = "Reading javob"
+        verbose_name_plural = "Reading javoblar"
+        indexes = [
+            models.Index(fields=["attempt", "item"]),
+        ]
+
+    @property
+    def is_answered(self):
+        return bool(
+            self.selected_option_id
+            or self.selected_option_ids
+            or (self.text_answer or "").strip()
+        )
+
+    def clean(self):
+        super().clean()
+        if self.attempt_id and self.item_id and self.attempt.exam_id != self.item.task.section.exam_id:
+            raise ValidationError({"item": "Item ushbu urinishdagi imtihonga tegishli emas."})
+        task_type = self.item.task.task_type if self.item_id else None
+        if task_type in READING_TASK_OPTION_TYPES:
+            if self.selected_option_id and self.selected_option.item_id != self.item_id:
+                raise ValidationError({"selected_option": "Tanlangan option shu itemga tegishli emas."})
+        elif task_type in READING_TASK_SHARED_OPTION_TYPES:
+            if self.selected_option_id and self.selected_option.task_id != self.item.task_id:
+                raise ValidationError({"selected_option": "Tanlangan option shu taskga tegishli emas."})
+        elif task_type in READING_TASK_TEXT_TYPES:
+            if self.selected_option_id or self.selected_option_ids:
+                raise ValidationError("Text tasklarda option tanlab bo'lmaydi.")
+
+    def __str__(self):
+        return f"{self.attempt.student.username} -> {self.item}"
 
 
 # --- QUIZ TIZIMI ---
@@ -480,6 +986,7 @@ class ExamAttempt(models.Model):
     from django.conf import settings
     student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='exam_attempts', verbose_name="O'quvchi")
     exam = models.ForeignKey(Exam, on_delete=models.CASCADE, related_name='attempts', verbose_name="Imtihon")
+    attempt_number = models.PositiveIntegerField(default=1, verbose_name="Urinish raqami")
     
     start_time = models.DateTimeField(auto_now_add=True)
     completed_time = models.DateTimeField(null=True, blank=True)
@@ -503,12 +1010,21 @@ class ExamAttempt(models.Model):
     review_notes = models.TextField(blank=True, verbose_name="Yakuniy izoh")
     
     def __str__(self):
-        return f"{self.student.username} - {self.exam.title} Attempt"
+        return f"{self.student.username} - {self.exam.title} Attempt #{self.attempt_number}"
     
     class Meta:
         verbose_name = "Imtihon Urinishi (Attempt)"
         verbose_name_plural = "Imtihon Urinishlari"
-        unique_together = ('student', 'exam')
+        ordering = ['-attempt_number', '-id']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['student', 'exam', 'attempt_number'],
+                name='courses_examattempt_student_exam_attempt_uniq',
+            ),
+        ]
+        indexes = [
+            models.Index(fields=['student', 'exam', '-attempt_number']),
+        ]
 
     @property
     def review_status(self):
@@ -526,6 +1042,22 @@ class ExamAttempt(models.Model):
             "in_progress": "Jarayonda",
         }
         return labels[self.review_status]
+
+    @property
+    def time_limit_minutes(self):
+        return self.exam.total_time_limit_minutes
+
+    def get_deadline(self):
+        if not self.start_time or not self.time_limit_minutes:
+            return None
+        return self.start_time + datetime.timedelta(minutes=self.time_limit_minutes)
+
+    def is_time_limit_exceeded(self, *, now=None):
+        deadline = self.get_deadline()
+        if not deadline:
+            return False
+        now = now or timezone.now()
+        return now >= deadline
 
     def ensure_section_reviews(self):
         created_reviews = []
@@ -556,6 +1088,14 @@ class ExamAttempt(models.Model):
             row['question__exam_section']: row['total_score'] or 0
             for row in answer_totals
         }
+        reading_totals = (
+            self.reading_responses
+            .values('item__task__section')
+            .annotate(total_score=Sum('awarded_score'))
+        )
+        for row in reading_totals:
+            section_id = row['item__task__section']
+            totals_by_section[section_id] = totals_by_section.get(section_id, 0) + (row['total_score'] or 0)
         for review in self.section_reviews.select_related('section').all():
             auto_total = totals_by_section.get(review.section_id, 0)
             clamped_score = min(auto_total, review.section.max_score)
@@ -586,9 +1126,31 @@ class ExamAttempt(models.Model):
         if self.passed:
             self.check_and_issue_certificate()
 
-    def finalize_review(self, reviewed_by):
-        from django.utils import timezone
+    def submit_for_review(self, *, submitted_at=None):
+        submitted_at = submitted_at or timezone.now()
+        self.is_completed = True
+        self.completed_time = submitted_at
+        self.is_reviewed = False
+        self.reviewed_at = None
+        self.reviewed_by = None
+        self.passed = False
+        self.score = 0
+        self.save(
+            update_fields=[
+                'is_completed',
+                'completed_time',
+                'is_reviewed',
+                'reviewed_at',
+                'reviewed_by',
+                'passed',
+                'score',
+            ]
+        )
+        # Prepare section-level scores so the instructor can review and approve them.
+        self.ensure_section_reviews()
+        self.prefill_section_scores_from_answers()
 
+    def finalize_review(self, reviewed_by):
         self.ensure_section_reviews()
         section_total = self.section_reviews.aggregate(total_score=Sum('awarded_score'))['total_score'] or 0
         exam_max = sum(sec.max_score for sec in self.exam.sections.all())
@@ -612,74 +1174,13 @@ class ExamAttempt(models.Model):
         return certificate, certificate_created
 
     def check_and_issue_certificate(self):
-        from users.notification_service import create_notification
+        from .completion_service import evaluate_course_completion
 
-        course = self.exam.course
-        student = self.student
-        
-        # Barcha muvaffaqiyatli imtihonlarni olish
-        passing_attempts = ExamAttempt.objects.filter(
-            student=student,
-            exam__course=course,
-            passed=True,
-            is_reviewed=True,
+        certificate, created, _ = evaluate_course_completion(
+            student=self.student,
+            course=self.exam.course,
         )
-        
-        has_visa = False
-        has_final = False
-        visa_score = 0
-        final_score = 0
-        visa_weight = 0
-        final_weight = 0
-        
-        for attempt in passing_attempts:
-            if attempt.exam.exam_type == 'visa':
-                has_visa = True
-                visa_score = attempt.score
-                visa_weight = attempt.exam.weight_percentage
-            elif attempt.exam.exam_type == 'final':
-                has_final = True
-                final_score = attempt.score
-                final_weight = attempt.exam.weight_percentage
-                
-        # Agar ikkalasidan ham o'tgan bo'lsa
-        if has_visa and has_final:
-            total_weight = visa_weight + final_weight
-            final_grade = 0
-            if total_weight > 0:
-                final_grade = int((visa_score * visa_weight + final_score * final_weight) / total_weight)
-            else:
-                final_grade = int((visa_score + final_score) / 2)
-                
-            # Sertifikatni yaratish
-            existing_certificate = Certificate.objects.filter(student=student, course=course).first()
-            certificate_id = (
-                existing_certificate.certificate_id
-                if existing_certificate
-                else f"AZ-{course.id}-{student.id}-{uuid.uuid4().hex[:6].upper()}"
-            )
-            certificate, created = Certificate.objects.update_or_create(
-                student=student,
-                course=course,
-                defaults={
-                    'final_score': final_grade,
-                    'certificate_id': certificate_id,
-                }
-            )
-            if created:
-                create_notification(
-                    recipient=student,
-                    title="Sertifikat tayyor",
-                    message=(
-                        f"{course.title} kursi bo'yicha sertifikatingiz tayyor bo'ldi. "
-                        "Uni ko'rishingiz yoki yuklab olishingiz mumkin."
-                    ),
-                    icon="award",
-                    url=reverse('certificate_detail', kwargs={'certificate_id': certificate.certificate_id}),
-                    external_key=f"certificate-issued-{certificate.id}",
-                )
-            return certificate, created
-        return None, False
+        return certificate, created
 
 
 class ExamSectionReview(models.Model):

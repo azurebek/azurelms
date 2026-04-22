@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AzureLMS Navigation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/public.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/component-catalog.css">
+</head>
+<body class="components-page">
+  <header class="catalog-shell catalog-header">
+    <a class="catalog-back" href="./index.html"><i class="bi bi-arrow-left"></i>Component katalogiga qaytish</a>
+    <div class="catalog-heading">
+      <p class="eyebrow">Navigation</p>
+      <h1>Yo'naltirish komponentlari</h1>
+      <p>Public va app shell uchun ishlatiladigan nav patternlari. Bunda asosiy urg'u tartib, alignment va kam bezakka qaratiladi.</p>
+    </div>
+    <nav class="catalog-nav">
+      <a href="./index.html">Katalog</a>
+      <a href="./buttons.html">Buttons</a>
+      <a class="is-active" href="./navigation.html">Navigation</a>
+      <a href="./cards.html">Cards</a>
+      <a href="./forms.html">Forms</a>
+      <a href="./learning.html">Learning</a>
+      <a href="./messenger.html">Messenger</a>
+      <a href="./exam.html">Exam</a>
+    </nav>
+  </header>
+
+  <main class="catalog-shell catalog-main">
+    <section class="catalog-section">
+      <div class="catalog-section-head">
+        <h2>Public utility + header</h2>
+        <p>Landing boshida ishlatiladigan ikki qavatli navigation. Utility strip signallik qiladi, asosiy header esa tinchroq turadi.</p>
+      </div>
+      <div class="catalog-demo catalog-demo--public">
+        <div class="catalog-preview-surface shell-public">
+          <div class="public-utility">
+            <div class="public-wrap public-utility-inner">
+              <nav class="public-utility-links">
+                <a href="#"><i class="bi bi-house-door-fill"></i>Bosh sahifa</a>
+                <a href="#">Kurslar</a>
+                <a href="#">Narxlar</a>
+                <a href="#">Blog</a>
+              </nav>
+              <div class="public-utility-meta">
+                <a href="#">TR</a>
+                <a href="#">EN</a>
+              </div>
+            </div>
+          </div>
+          <header class="public-header">
+            <div class="public-wrap public-header-inner">
+              <a class="public-brand" href="#">
+                <div class="brand-mark brand-mark--public">AL</div>
+                <div class="public-brand-copy">
+                  <strong>AzureLMS</strong>
+                  <span>Turk tili va sertifikat platformasi</span>
+                </div>
+              </a>
+              <nav class="public-main-nav">
+                <a href="#">Universitet modeli</a>
+                <a href="#">Dasturlar</a>
+                <a href="#">Sertifikatlar</a>
+                <a href="#">Qabul</a>
+              </nav>
+              <div class="public-header-actions">
+                <button class="button button--ghost">Kirish</button>
+                <button class="button button--primary">Ro'yxatdan o'tish</button>
+              </div>
+            </div>
+          </header>
+        </div>
+      </div>
+    </section>
+
+    <section class="catalog-section">
+      <div class="catalog-section-head">
+        <h2>Tabbed navigation</h2>
+        <p>Portal ichidagi ichki bo'limlar uchun ishlatiladigan tabs. Active state ko'k top-border bilan signal beradi.</p>
+      </div>
+      <div class="catalog-demo catalog-demo--public">
+        <article class="portal-card">
+          <div class="portal-card-tabs">
+            <a class="is-active" href="#">Lisans</a>
+            <a href="#">Yuqori daraja</a>
+            <a href="#">Doktora</a>
+            <a href="#">International</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="catalog-section">
+      <div class="catalog-section-head">
+        <h2>App sidebar + topbar</h2>
+        <p>App shell uchun eng muhim navigatsiya patterni. Sidebar grouped accordion bo'ladi, topbar esa ikkinchi darajali system chrome sifatida ishlaydi.</p>
+      </div>
+      <div class="catalog-demo catalog-demo--app">
+        <div class="catalog-grid-2">
+          <div class="catalog-app-sidebar-frame shell-app">
+            <aside class="app-sidebar">
+              <div class="app-sidebar-brand">
+                <div class="brand-mark brand-mark--app">AL</div>
+                <div class="app-brand-copy">
+                  <strong>AzureLMS</strong>
+                  <span>Student platform</span>
+                </div>
+              </div>
+              <div class="app-sidebar-title">O'quv paneli</div>
+              <section class="app-accordion">
+                <div class="app-sidebar-group is-open">
+                  <button class="app-group-toggle" type="button" aria-expanded="true">
+                    <span class="app-group-copy">
+                      <strong>Learning</strong>
+                      <small>Asosiy oqim</small>
+                    </span>
+                    <i class="bi bi-chevron-down"></i>
+                  </button>
+                  <nav class="app-nav">
+                    <a class="is-active" href="#"><i class="bi bi-grid"></i><span>Dashboard</span></a>
+                    <a href="#"><i class="bi bi-collection-play"></i><span>Mening kurslarim</span></a>
+                    <a href="#"><i class="bi bi-bell"></i><span>Bildirishnomalar</span><em>1</em></a>
+                  </nav>
+                </div>
+                <div class="app-sidebar-group">
+                  <button class="app-group-toggle" type="button" aria-expanded="false">
+                    <span class="app-group-copy">
+                      <strong>Account</strong>
+                      <small>Profil va sozlamalar</small>
+                    </span>
+                    <i class="bi bi-chevron-down"></i>
+                  </button>
+                </div>
+              </section>
+              <div class="app-user-card">
+                <div class="app-user-avatar">AS</div>
+                <div class="app-user-copy">
+                  <strong>Azizbek Sirojiddinov</strong>
+                  <span>@azurebek</span>
+                </div>
+              </div>
+            </aside>
+          </div>
+
+          <div class="catalog-app-topbar-frame shell-app">
+            <header class="app-topbar">
+              <div class="app-term">
+                <i class="bi bi-list"></i>
+                <span>2025-2026 Bahar</span>
+              </div>
+              <div class="app-topbar-actions">
+                <button class="app-icon-btn"><i class="bi bi-house-door"></i></button>
+                <button class="app-icon-btn app-icon-btn--badge"><i class="bi bi-megaphone"></i><em>1</em></button>
+                <div class="app-topbar-user">
+                  <div class="app-topbar-avatar">A</div>
+                  <span>2510505504 - AZIZBEK</span>
+                </div>
+              </div>
+            </header>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

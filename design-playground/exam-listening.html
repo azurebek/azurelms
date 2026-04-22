@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exam Listening Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/css/tokens.css">
+  <link rel="stylesheet" href="./assets/css/foundation.css">
+  <link rel="stylesheet" href="./assets/css/exam.css">
+</head>
+<body class="shell-exam">
+  <div class="exam-shell">
+    <header class="exam-topbar">
+      <div class="exam-identity">
+        <div class="exam-lock-badge">
+          <i class="bi bi-shield-lock"></i>
+          <span>Secure exam</span>
+        </div>
+        <div class="exam-identity-copy">
+          <strong>Turk tili sertifikat imtihoni / Listening section</strong>
+          <span>Audio nazorati imtihon qoidalariga bo'ysunadi. Faqat ruxsat etilgan playback ichki exam hududida ishlaydi.</span>
+        </div>
+      </div>
+
+      <div class="exam-topbar-meta">
+        <div class="exam-chip">
+          <i class="bi bi-ui-checks-grid"></i>
+          <span>07 / 20 savol</span>
+        </div>
+        <div class="exam-chip exam-chip--warning">
+          <i class="bi bi-clock-history"></i>
+          <span>14:08 qoldi</span>
+        </div>
+        <div class="exam-chip">
+          <i class="bi bi-volume-up"></i>
+          <span>1 replay qolgan</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="exam-workspace">
+      <main class="exam-main">
+        <section class="exam-stage">
+          <div class="exam-stage-head">
+            <div class="exam-stage-copy">
+              <p class="exam-kicker">Listening / Audio + choice</p>
+              <strong>Audio yozuvni tinglang va savolga mos javobni tanlang</strong>
+              <span>Bu mode’da markaziy fokus audio player, keyin esa savolda qoladi. Transcript yoki tashqi material ko'rsatilmaydi.</span>
+            </div>
+
+            <div class="exam-stage-tools">
+              <button class="exam-tool-btn" type="button"><i class="bi bi-volume-mute"></i></button>
+              <button class="exam-tool-btn" type="button"><i class="bi bi-ear"></i></button>
+            </div>
+          </div>
+
+          <div class="exam-audio-player">
+            <div class="exam-audio-top">
+              <strong>Audio 03 / Kundalik suhbat</strong>
+              <span>Replay: 1/2</span>
+            </div>
+            <div class="exam-wave-row">
+              <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <div class="exam-audio-controls">
+              <button class="exam-audio-btn" type="button"><i class="bi bi-play-fill"></i></button>
+              <div class="exam-audio-progress">
+                <div class="exam-audio-progress-bar"></div>
+              </div>
+              <span class="exam-audio-time">01:18 / 02:10</span>
+            </div>
+          </div>
+
+          <article class="exam-panel">
+            <div class="exam-panel-head">
+              <strong>07-savol</strong>
+              <span>Single choice</span>
+            </div>
+            <div class="exam-question-copy">
+              <h1>Suhbatdagi ayol nima sotib olmoqchi?</h1>
+              <p>Audio tugagach javob tanlang. Agar qayta eshitish huquqi qolgan bo'lsa, replay ishlatishingiz mumkin.</p>
+            </div>
+            <div class="exam-options">
+              <label class="exam-option">
+                <input type="radio" name="listening-question">
+                <span>Qalam va daftar</span>
+              </label>
+              <label class="exam-option">
+                <input type="radio" name="listening-question">
+                <span>Ko'ylak</span>
+              </label>
+              <label class="exam-option is-selected">
+                <input type="radio" name="listening-question" checked>
+                <span>Kitob</span>
+              </label>
+              <label class="exam-option">
+                <input type="radio" name="listening-question">
+                <span>Telefon</span>
+              </label>
+            </div>
+          </article>
+        </section>
+
+        <footer class="exam-footer-bar">
+          <div class="exam-footer-copy">
+            <strong>Holat</strong>
+            <span>Audio bir marta tinglandi. Javob tanlandi va save navbatida turibdi.</span>
+          </div>
+          <div class="exam-footer-actions">
+            <button class="button button--ghost" type="button">Replay</button>
+            <button class="button button--ghost" type="button">Review uchun belgilash</button>
+            <button class="button button--primary" type="button">Keyingi savol</button>
+          </div>
+        </footer>
+      </main>
+
+      <aside class="exam-sidepanel">
+        <section class="exam-side-card">
+          <div class="exam-panel-head">
+            <strong>Listening status</strong>
+            <span>Jonli</span>
+          </div>
+          <div class="exam-status-grid">
+            <div class="exam-status-card">
+              <strong>07</strong>
+              <span>Joriy savol</span>
+            </div>
+            <div class="exam-status-card">
+              <strong>1x</strong>
+              <span>Replay qoldi</span>
+            </div>
+            <div class="exam-status-card">
+              <strong>14m</strong>
+              <span>Qolgan vaqt</span>
+            </div>
+            <div class="exam-status-card">
+              <strong>Saved</strong>
+              <span>Holat</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="exam-side-card">
+          <div class="exam-panel-head">
+            <strong>Question map</strong>
+            <span>Listening</span>
+          </div>
+          <div class="exam-question-map">
+            <button type="button" class="is-done">01</button>
+            <button type="button" class="is-done">02</button>
+            <button type="button" class="is-done">03</button>
+            <button type="button" class="is-done">04</button>
+            <button type="button" class="is-done">05</button>
+            <button type="button" class="is-done">06</button>
+            <button type="button" class="is-current">07</button>
+            <button type="button">08</button>
+            <button type="button">09</button>
+            <button type="button">10</button>
+          </div>
+        </section>
+
+        <section class="exam-side-card">
+          <div class="exam-panel-head">
+            <strong>Qoidalar</strong>
+            <span>Listening mode</span>
+          </div>
+          <ul class="exam-checklist">
+            <li><i class="bi bi-check-circle-fill"></i> Audio volume exam ichida sozlanadi</li>
+            <li><i class="bi bi-circle"></i> Replay soni cheklangan</li>
+            <li><i class="bi bi-circle"></i> Transcript ko'rsatilmaydi</li>
+          </ul>
+          <button class="exam-submit-btn" type="button">Listening sectionni yakunlash</button>
+        </section>
+      </aside>
+    </div>
+  </div>
+</body>
+</html>

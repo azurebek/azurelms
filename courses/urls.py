@@ -20,7 +20,13 @@ urlpatterns = [
     
     # Exam API Endpoints
     path('<int:course_id>/exam/<int:exam_id>/api/start/', views.StartExamView.as_view(), name='api_exam_start'),
+    path(
+        '<int:course_id>/exam/<int:exam_id>/api/section/<int:section_id>/state/',
+        views.ExamSectionStateView.as_view(),
+        name='api_exam_section_state',
+    ),
     path('<int:course_id>/exam/<int:exam_id>/api/save/', views.SaveExamAnswerView.as_view(), name='api_exam_save'),
+    path('<int:course_id>/exam/<int:exam_id>/api/review-flag/', views.ToggleExamReviewFlagView.as_view(), name='api_exam_review_flag'),
     path('<int:course_id>/exam/<int:exam_id>/api/blur/', views.LogBlurWarningView.as_view(), name='api_exam_blur'),
     path('<int:course_id>/exam/<int:exam_id>/api/submit/', views.SubmitExamView.as_view(), name='api_exam_submit'),
     

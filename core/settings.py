@@ -14,7 +14,6 @@ from pathlib import Path
 import importlib.util
 import os
 import sys
-import hashlib
 import dj_database_url
 from dotenv import load_dotenv
 
@@ -72,12 +71,6 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = env_bool("DEBUG", APP_ENV == "local")
 ENABLE_LEGACY_ADMIN = env_bool("ENABLE_LEGACY_ADMIN", False)
 
-_backoffice_seed = (SECRET_KEY or "azurelms-backoffice-path").encode("utf-8")
-_backoffice_hash = hashlib.sha256(_backoffice_seed).hexdigest()[:14]
-BACKOFFICE_PATH = os.getenv("BACKOFFICE_PATH", f"control-{_backoffice_hash}").strip().strip("/")
-if not BACKOFFICE_PATH:
-    BACKOFFICE_PATH = f"control-{_backoffice_hash}"
-
 # Domain sozlamalari
 APP_DOMAIN = os.getenv("APP_DOMAIN", "azurelms-app-aoib9.ondigitalocean.app")
 default_allowed_hosts = [APP_DOMAIN, "azurebek.me", "localhost", "127.0.0.1"]
@@ -130,7 +123,6 @@ INSTALLED_APPS = [
     'gamification',
     'subscriptions',
     'frontend',
-    'backoffice',
     'blog',
     'bot',
     'corsheaders',
@@ -183,7 +175,6 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "users.context_processors.notification_context",
                 "frontend.context_processors.site_settings_context",
-                "backoffice.context_processors.backoffice_flags",
             ],
         },
     },
@@ -512,6 +503,7 @@ JAZZMIN_SETTINGS = {
         "messenger": "fas fa-comments",
         "messenger.ChatRoom": "fas fa-comments",
         "messenger.Message": "fas fa-comment-dots",
+        "messenger.AIFeedback": "fas fa-thumbs-up",
         "messenger.LessonRAGChunk": "fas fa-brain",
         "gamification": "fas fa-trophy",
         "gamification.Level": "fas fa-signal",

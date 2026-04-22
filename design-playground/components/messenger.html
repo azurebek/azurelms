@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AzureLMS Messenger Components</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/component-catalog.css">
+  <link rel="stylesheet" href="../assets/css/messenger-catalog.css">
+</head>
+<body class="components-page">
+  <header class="catalog-shell catalog-header">
+    <a class="catalog-back" href="./index.html"><i class="bi bi-arrow-left"></i>Component katalogiga qaytish</a>
+    <div class="catalog-heading">
+      <p class="eyebrow">Messenger</p>
+      <h1>Launcher, quick panel va full messenger</h1>
+      <p>Messenger producti ikki qavatda ishlaydi: tez savol va mini threadlar uchun quick panel, uzun yozishma va tarix uchun esa alohida full messenger workspace. Ikkalasi ham bir xil vizual tizimga tayanadi.</p>
+    </div>
+    <nav class="catalog-nav">
+      <a href="./index.html">Katalog</a>
+      <a href="./buttons.html">Buttons</a>
+      <a href="./navigation.html">Navigation</a>
+      <a href="./cards.html">Cards</a>
+      <a href="./forms.html">Forms</a>
+      <a href="./learning.html">Learning</a>
+      <a class="is-active" href="./messenger.html">Messenger</a>
+      <a href="./exam.html">Exam</a>
+    </nav>
+  </header>
+
+  <main class="catalog-shell catalog-main">
+    <section class="catalog-section">
+      <div class="catalog-section-head">
+        <h2>Widget flow</h2>
+        <p>Launcher doim o'ng pastda turadi. Dashboardda u quick panelni ochadi, learning viewda esa fokusni buzmaydigan tarzda yig'ilgan bo'lib qoladi.</p>
+      </div>
+      <div class="catalog-demo catalog-demo--app">
+        <div class="catalog-grid-2">
+          <article class="messenger-preview-card">
+            <div class="messenger-preview-head">
+              <strong>App shell / quick panel ochiq</strong>
+              <span>Dashboard ichida</span>
+            </div>
+            <div class="messenger-surface messenger-surface--app">
+              <div class="messenger-fake-topbar">
+                <span>2025-2026 Bahar</span>
+                <div class="messenger-fake-icons"><i class="bi bi-bell"></i><i class="bi bi-person-circle"></i></div>
+              </div>
+
+              <div class="messenger-fake-grid">
+                <div class="messenger-fake-card is-wide"></div>
+                <div class="messenger-fake-card"></div>
+                <div class="messenger-fake-card"></div>
+                <div class="messenger-fake-card is-short"></div>
+              </div>
+
+              <section id="quick-panel-demo" class="messenger-quick-panel is-open" aria-label="Quick messenger panel">
+                <header class="messenger-quick-head">
+                  <div class="messenger-quick-title">
+                    <strong>Azure Messenger</strong>
+                    <span>Tez savol va so'nggi threadlar</span>
+                  </div>
+                  <button class="messenger-quick-close" type="button" data-close-panel="quick-panel-demo" aria-label="Panelni yopish">
+                    <i class="bi bi-x-lg"></i>
+                  </button>
+                </header>
+
+                <div class="messenger-quick-tabs">
+                  <button class="is-active" type="button">AzureAI</button>
+                  <button type="button">Tutor</button>
+                  <button type="button">Guruh</button>
+                </div>
+
+                <div class="messenger-quick-body">
+                  <div class="messenger-snippet messenger-snippet--incoming">
+                    <small>AzureAI</small>
+                    <p>Dars bo'yicha 2 ta qisqa misol tayyorlab berdim. Davom etamizmi?</p>
+                  </div>
+                  <div class="messenger-snippet messenger-snippet--outgoing">
+                    <small>Siz</small>
+                    <p>Hozirgi lesson uchun 3 ta oddiy savol kerak.</p>
+                  </div>
+                </div>
+
+                <div class="messenger-quick-actions">
+                  <input type="text" value="Tez savol yozing..." readonly>
+                  <button class="messenger-send-btn" type="button"><i class="bi bi-send-fill"></i></button>
+                </div>
+
+                <div class="messenger-quick-footer">
+                  <a href="#full-messenger" class="button button--ghost">Katta oynada ochish</a>
+                </div>
+              </section>
+
+              <button class="messenger-launcher is-app" type="button" data-toggle-panel="quick-panel-demo" aria-expanded="true" aria-controls="quick-panel-demo">
+                <i class="bi bi-chat-dots-fill"></i>
+                <em>2</em>
+              </button>
+            </div>
+          </article>
+
+          <article class="messenger-preview-card">
+            <div class="messenger-preview-head">
+              <strong>Learning shell / launcher yig'ilgan</strong>
+              <span>Fokus saqlanadi</span>
+            </div>
+            <div class="messenger-surface messenger-surface--learning">
+              <div class="messenger-learning-stage">
+                <div class="messenger-learning-chip">Dars 03</div>
+                <strong>Video stage / konspekt / mashq</strong>
+                <span>Messenger bu yerda sukunatli helper bo'lib turadi, alohida katta blok bo'lib chiqmaydi.</span>
+              </div>
+
+              <button class="messenger-launcher is-learning" type="button" aria-label="Messenger launcher">
+                <i class="bi bi-chat-dots-fill"></i>
+                <em>AI</em>
+              </button>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="catalog-section" id="full-messenger">
+      <div class="catalog-section-head">
+        <h2>Full messenger workspace</h2>
+        <p>Yozishma cho'zilib ketsa yoki history/context kerak bo'lsa, user alohida messenger sahifaga o'tadi. Bu yerda thread list, conversation va context panel birga ishlaydi.</p>
+      </div>
+      <div class="catalog-demo catalog-demo--app">
+        <div class="messenger-full-shell">
+          <aside class="messenger-thread-column">
+            <div class="messenger-column-head">
+              <strong>Threads</strong>
+              <button class="button button--ghost" type="button">Yangi chat</button>
+            </div>
+            <div class="messenger-search">
+              <i class="bi bi-search"></i>
+              <input type="text" value="Chat qidirish..." readonly>
+            </div>
+            <div class="messenger-thread-list">
+              <button class="messenger-thread-item is-active" type="button">
+                <strong>AzureAI / Lesson 03</strong>
+                <span>3 ta savol tayyor...</span>
+                <em>Hozir</em>
+              </button>
+              <button class="messenger-thread-item" type="button">
+                <strong>Tutor / Imtihon tayyorlov</strong>
+                <span>Checklist yuborildi</span>
+                <em>12:48</em>
+              </button>
+              <button class="messenger-thread-item" type="button">
+                <strong>Guruh / A1 cohort</strong>
+                <span>Ertangi lesson vaqti</span>
+                <em>Kecha</em>
+              </button>
+            </div>
+          </aside>
+
+          <section class="messenger-chat-column">
+            <header class="messenger-chat-head">
+              <div class="messenger-chat-title">
+                <strong>AzureAI / Lesson 03</strong>
+                <span>Joriy lesson contexti bo'yicha tez yordam</span>
+              </div>
+              <div class="messenger-chat-tabs">
+                <button class="is-active" type="button">AzureAI</button>
+                <button type="button">Tutor</button>
+                <button type="button">Guruh</button>
+              </div>
+            </header>
+
+            <div class="messenger-chat-body">
+              <div class="messenger-bubble messenger-bubble--incoming">
+                <small>AzureAI</small>
+                <p>Bugungi lesson bo'yicha 3 ta qisqa tanishtiruv savolini tayyorlab berdim. Xohlasangiz birga mashq qilamiz.</p>
+              </div>
+              <div class="messenger-bubble messenger-bubble--outgoing">
+                <small>Siz</small>
+                <p>Oddiyroq variantini ber, A1 uchun juda sodda bo'lsin.</p>
+              </div>
+              <div class="messenger-bubble messenger-bubble--incoming">
+                <small>AzureAI</small>
+                <p>1. Adingiz nima? 2. Qayerdansiz? 3. Nima o'rganayapsiz? Shu savollarga birgalikda javob tuzib chiqamiz.</p>
+              </div>
+            </div>
+
+            <footer class="messenger-compose">
+              <div class="messenger-compose-input">
+                <i class="bi bi-chat-left-text"></i>
+                <input type="text" value="Xabar yozing..." readonly>
+              </div>
+              <button class="button button--ghost" type="button">Promptlar</button>
+              <button class="button button--primary" type="button">Yuborish</button>
+            </footer>
+          </section>
+
+          <aside class="messenger-context-column">
+            <div class="messenger-column-head">
+              <strong>Context</strong>
+              <span>Lesson 03</span>
+            </div>
+            <div class="messenger-context-card">
+              <strong>Joriy fokus</strong>
+              <p>O'zingizni tanishtirish, oddiy savol-javob, qisqa gap tuzish.</p>
+            </div>
+            <div class="messenger-context-card">
+              <strong>Tez promptlar</strong>
+              <ul>
+                <li>Menga sodda misol ber</li>
+                <li>Xatoni tuzatib ber</li>
+                <li>Turkchaga tarjima qil</li>
+              </ul>
+            </div>
+            <div class="messenger-context-card">
+              <strong>Status</strong>
+              <div class="messenger-status-grid">
+                <div><em>Mode</em><span>AzureAI</span></div>
+                <div><em>Track</em><span>A1</span></div>
+                <div><em>Progress</em><span>72%</span></div>
+                <div><em>Next</em><span>Mashq</span></div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="catalog-section">
+      <div class="catalog-section-head">
+        <h2>Decision rule</h2>
+        <p>Qaysi holatda quick panel, qaysi holatda full messenger ishlatilishi kerakligi shu yerda aniqlanadi.</p>
+      </div>
+      <div class="catalog-demo">
+        <div class="catalog-grid-3">
+          <article class="catalog-link-card">
+            <h2>Quick panel</h2>
+            <p>Dashboard yoki learning sahifasini tark etmasdan, bitta tez savol berish, so'nggi javobni ko'rish va AI coach bilan mini aloqa qilish uchun.</p>
+          </article>
+          <article class="catalog-link-card">
+            <h2>Full messenger</h2>
+            <p>Thread history, uzun yozishma, tutor bilan jiddiy chat yoki guruh oqimini normal boshqarish kerak bo'lganda.</p>
+          </article>
+          <article class="catalog-link-card">
+            <h2>Launcher</h2>
+            <p>Har ikki shellda o'ng pastda turadi. Lekin visual og'irligi kam bo'ladi, sahifa ustidan qichqirib chiqmaydi.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="../assets/js/messenger-catalog.js"></script>
+</body>
+</html>

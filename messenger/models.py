@@ -102,20 +102,36 @@ class LessonRAGChunk(models.Model):
 
 class AIFeedback(models.Model):
     # AI javoblari uchun feedback (Thumbs up/down)
+    RATING_POSITIVE = 1
+    RATING_NEGATIVE = -1
     RATING_CHOICES = (
-        (1, 'Ijobiy (Thumbs Up)'),
-        (-1, 'Salbiy (Thumbs Down)'),
+        (RATING_POSITIVE, 'Ijobiy (Thumbs Up)'),
+        (RATING_NEGATIVE, 'Salbiy (Thumbs Down)'),
     )
 
-    message = models.OneToOneField(Message, on_delete=models.CASCADE, related_name='feedback')
-    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    message = models.ForeignKey(Message, on_delete=models.CASCADE, related_name='feedback_entries')
+    student = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='ai_feedback_entries',
+    )
     rating = models.SmallIntegerField(choices=RATING_CHOICES)
-    comment = models.TextField(blank=True, null=True, help_text="Qo'shimcha izoh")
+    comment = models.TextField(blank=True, default="", help_text="Qo'shimcha izoh")
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Feedback for {self.message.id} | {self.rating}"
+        return f"{self.student} -> message {self.message_id} | {self.rating}"
+
+    @property
+    def is_positive(self):
+        return self.rating == self.RATING_POSITIVE
 
     class Meta:
         verbose_name = "AI Feedback"
         verbose_name_plural = "AI Feedbacklar"
+        unique_together = ("message", "student")
+        indexes = [
+            models.Index(fields=["rating", "created_at"]),
+            models.Index(fields=["student", "created_at"]),
+        ]

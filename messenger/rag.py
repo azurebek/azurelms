@@ -13,7 +13,7 @@ from django.utils.html import strip_tags
 from google import genai
 from google.genai import types
 
-from cohorts.models import Enrollment
+from cohorts.models import Enrollment, enrollment_active_access_q
 from courses.models import Course, Lesson
 from .models import LessonRAGChunk
 
@@ -349,7 +349,7 @@ def _active_course_ids_for_user(user):
     if getattr(user, "is_staff", False) or getattr(user, "is_superuser", False):
         return None
     return list(
-        Enrollment.objects.filter(student=user, status="active")
+        Enrollment.objects.filter(enrollment_active_access_q(), student=user)
         .values_list("cohort__course_id", flat=True)
         .distinct()
     )

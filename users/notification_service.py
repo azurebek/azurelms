@@ -61,11 +61,12 @@ def ensure_subscription_notifications_for_user(user):
     )
 
     for enrollment in enrollments:
+        effective_status = enrollment.get_effective_status(today=today)
         deadline = enrollment.next_payment_deadline
         if deadline:
             days_left = (deadline - today).days
 
-            if enrollment.status == "active" and days_left in {3, 1, 0}:
+            if effective_status == Enrollment.STATUS_ACTIVE and days_left in {3, 1, 0}:
                 key = f"sub-due-{enrollment.id}-{deadline.isoformat()}-{days_left}"
                 create_notification(
                     recipient=user,
@@ -77,7 +78,7 @@ def ensure_subscription_notifications_for_user(user):
                     external_key=key,
                 )
 
-        if enrollment.status == "frozen":
+        if effective_status == Enrollment.STATUS_FROZEN:
             key = f"sub-frozen-{enrollment.id}"
             create_notification(
                 recipient=user,
@@ -92,7 +93,7 @@ def ensure_subscription_notifications_for_user(user):
                 external_key=key,
             )
 
-        if enrollment.status == "expired":
+        if effective_status == Enrollment.STATUS_EXPIRED:
             key = f"sub-expired-{enrollment.id}-{enrollment.next_payment_deadline or today}"
             create_notification(
                 recipient=user,

@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from bot.models import TelegramLessonCheckIn, TelegramLessonSession
 from cohorts.attendance_service import upsert_attendance_and_xp
-from cohorts.models import Attendance, Cohort, Enrollment
+from cohorts.models import Attendance, Cohort, Enrollment, enrollment_active_access_q
 from courses.models import Lesson
 from users.models import CustomUser, Notification
 
@@ -45,7 +45,7 @@ def get_user_role(telegram_id):
         return "Mehmon"
     if user.is_staff or user.is_superuser:
         return "Admin"
-    is_student = Enrollment.objects.filter(student=user, status="active").exists()
+    is_student = Enrollment.objects.filter(enrollment_active_access_q(), student=user).exists()
     if is_student:
         return "Talaba"
     return "Mehmon"
@@ -340,7 +340,7 @@ def register_checkin(*, session_id, telegram_user_id, telegram_username=""):
 
     enrollment = (
         Enrollment.objects.select_related("student")
-        .filter(student=user, cohort=session.cohort, status="active")
+        .filter(enrollment_active_access_q(), student=user, cohort=session.cohort)
         .first()
     )
     if not enrollment:
@@ -411,7 +411,7 @@ def close_lesson_session(*, chat_id, actor_telegram_id):
 
     enrollments = list(
         Enrollment.objects.select_related("student")
-        .filter(cohort=session.cohort, status="active")
+        .filter(enrollment_active_access_q(), cohort=session.cohort)
         .order_by("student__first_name", "student__last_name", "student__username")
     )
     checkins = {

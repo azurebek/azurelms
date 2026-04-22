@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 
-from cohorts.models import Cohort, Enrollment
+from cohorts.models import Cohort, Enrollment, enrollment_active_access_q
 
 from .models import ChatRoom
 
@@ -13,7 +13,7 @@ def user_has_active_enrollment(user):
         return False
     if user.is_staff or user.is_superuser:
         return True
-    return Enrollment.objects.filter(student=user, status="active").exists()
+    return Enrollment.objects.filter(enrollment_active_access_q(), student=user).exists()
 
 
 def user_can_access_room(user, room):
@@ -26,9 +26,9 @@ def user_can_access_room(user, room):
         if user.is_staff or user.is_superuser:
             return participant_exists
         return Enrollment.objects.filter(
+            enrollment_active_access_q(),
             student=user,
             cohort_id=room.cohort_id,
-            status="active",
         ).exists()
 
     if room.room_type in {"ai", "private"} and not (user.is_staff or user.is_superuser):
@@ -39,7 +39,7 @@ def user_can_access_room(user, room):
 
 def sync_student_chat_access(student):
     active_cohort_ids = list(
-        Enrollment.objects.filter(student=student, status="active").values_list("cohort_id", flat=True)
+        Enrollment.objects.filter(enrollment_active_access_q(), student=student).values_list("cohort_id", flat=True)
     )
 
     active_cohorts = Cohort.objects.filter(id__in=active_cohort_ids)

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Messenger Shell Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/css/tokens.css">
+  <link rel="stylesheet" href="./assets/css/foundation.css">
+  <link rel="stylesheet" href="./assets/css/app.css">
+  <link rel="stylesheet" href="./assets/css/messenger-shell.css">
+</head>
+<body class="shell-app messenger-shell-page">
+  <div class="app-layout messenger-layout">
+    <aside class="app-sidebar messenger-sidebar">
+      <div class="app-sidebar-brand messenger-sidebar-brand">
+        <div class="brand-mark brand-mark--app">AL</div>
+        <div class="app-brand-copy">
+          <strong>AzureAI coach</strong>
+          <span>Coach workspace</span>
+        </div>
+      </div>
+
+      <div class="messenger-sidebar-body">
+        <button class="messenger-new-chat" type="button">
+          <i class="bi bi-pencil-square"></i>
+          <span>Yangi chat</span>
+        </button>
+
+        <label class="messenger-search">
+          <i class="bi bi-search"></i>
+          <input type="text" value="Sessiya qidirish..." readonly>
+        </label>
+
+        <nav class="messenger-pinned">
+          <a class="messenger-pinned-link" href="#">
+            <i class="bi bi-person-video3"></i>
+            <span>Tutor</span>
+          </a>
+          <a class="messenger-pinned-link" href="#">
+            <i class="bi bi-people"></i>
+            <span>Group chat</span>
+          </a>
+        </nav>
+
+        <div class="messenger-session-divider"></div>
+
+        <div class="messenger-session-list">
+          <a class="messenger-session-link is-active" href="#">Lesson 03 guided study</a>
+          <a class="messenger-session-link" href="#">Vocabulary warmup</a>
+          <a class="messenger-session-link" href="#">Reading summary helper</a>
+          <a class="messenger-session-link" href="#">Writing starter prompts</a>
+          <a class="messenger-session-link" href="#">Source-based answer loop</a>
+          <a class="messenger-session-link" href="#">Grammar correction practice</a>
+          <a class="messenger-session-link" href="#">Short answer drill</a>
+        </div>
+      </div>
+
+      <div class="app-user-card messenger-user-card">
+        <div class="app-user-avatar">AS</div>
+        <div class="app-user-copy">
+          <strong>Azizbek Sirojiddinov</strong>
+          <span>@azurebek</span>
+        </div>
+      </div>
+      <button class="app-logout-btn" type="button">
+        <i class="bi bi-box-arrow-right"></i>
+        <span>Chiqish</span>
+      </button>
+    </aside>
+
+    <main class="app-main messenger-main">
+      <header class="app-topbar">
+        <div class="app-term">
+          <i class="bi bi-list"></i>
+          <span>Lesson 03 guided study</span>
+        </div>
+        <div class="app-topbar-actions">
+          <a class="app-icon-btn" href="./app-shell.html" aria-label="Dashboard prototype">
+            <i class="bi bi-house-door"></i>
+          </a>
+          <button class="app-icon-btn app-icon-btn--badge"><i class="bi bi-bell"></i><em>0</em></button>
+          <div class="app-topbar-user">
+            <div class="app-topbar-avatar">A</div>
+            <span>2510505504 - AZIZBEK</span>
+          </div>
+        </div>
+      </header>
+
+      <section class="messenger-workspace">
+        <div class="messenger-thread-scroll">
+          <div class="messenger-thread-shell">
+            <div class="messenger-thread-context">Lesson 03 active · self-introduction practice · A2 bridge</div>
+
+            <article class="messenger-message messenger-message--assistant">
+              <div class="messenger-message-body">
+                <p>Bugungi lesson uchun avval 3 ta juda sodda savol tayyorlaymiz, keyin ularga A2 darajada natural javob yozamiz.</p>
+                <p>1. Adingiz nima? 2. Qayerdansiz? 3. Hozir nima o'rganyapsiz?</p>
+              </div>
+              <div class="messenger-message-footnote">Chunk 03.14 · Chunk 03.19 · Memory loaded</div>
+            </article>
+
+            <article class="messenger-message messenger-message--user">
+              <div class="messenger-user-bubble">
+                Bugungi lesson uchun juda sodda, lekin natural chiqadigan 3 ta tanishtiruv savoli va javob namunasi kerak.
+              </div>
+            </article>
+
+            <article class="messenger-message messenger-message--assistant">
+              <div class="messenger-message-body">
+                <p>Model javobni ham soddalashtirib beraman:</p>
+                <p>Merhaba, benim adim Azizbek. Ben Ozbekistan'dan geliyorum. Su anda Turkce ogreniyorum.</p>
+              </div>
+              <div class="messenger-message-footnote">Rewrite available · Pronunciation next</div>
+            </article>
+
+            <article class="messenger-message messenger-message--user">
+              <div class="messenger-user-bubble">
+                Model javobni yozib ber, lekin juda rasmiy bo'lmasin. Men A2 darajadaman.
+              </div>
+            </article>
+
+            <article class="messenger-message messenger-message--assistant">
+              <div class="messenger-message-body">
+                <p>Yaxshi. Men buni rasmiy emas, lekin toza qilib qoldirdim. Xohlasangiz keyingi qadamda siz yozgan variantni ham tekshirib beraman.</p>
+              </div>
+              <div class="messenger-message-actions">
+                <button type="button"><i class="bi bi-files"></i></button>
+                <button type="button"><i class="bi bi-hand-thumbs-up"></i></button>
+                <button type="button"><i class="bi bi-arrow-repeat"></i></button>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <footer class="messenger-compose">
+          <div class="messenger-compose-shell">
+            <div class="messenger-compose-placeholder">Reply...</div>
+            <div class="messenger-compose-bar">
+              <button class="messenger-compose-attach" type="button" aria-label="Attach">
+                <i class="bi bi-plus-lg"></i>
+              </button>
+              <div class="messenger-compose-tools">
+                <button class="messenger-compose-mode" type="button">
+                  <span>AzureAI 4.6</span>
+                  <i class="bi bi-chevron-down"></i>
+                </button>
+                <button class="messenger-compose-send" type="button" aria-label="Voice">
+                  <i class="bi bi-mic"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </footer>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

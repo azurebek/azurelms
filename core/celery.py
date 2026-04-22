@@ -1,6 +1,7 @@
 import os
 import ssl
 from celery import Celery
+from celery.schedules import crontab
 
 # Set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
@@ -23,6 +24,16 @@ def _env_bool(name, default=False):
     return value.strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _env_int(name, default):
+    value = os.getenv(name)
+    if value is None:
+        return default
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
 is_local = (os.getenv("APP_ENV", "").strip().lower() == "local") or _env_bool("LOCAL_DEV", False)
 local_use_remote_services = _env_bool("LOCAL_USE_REMOTE_SERVICES", False)
 
@@ -41,7 +52,7 @@ app.conf.result_backend = os.getenv('CELERY_RESULT_BACKEND') or None
 app.conf.accept_content = ['application/json']
 app.conf.task_serializer = 'json'
 app.conf.result_serializer = 'json'
-app.conf.timezone = 'UTC'
+app.conf.timezone = os.getenv("TIME_ZONE", "Asia/Tashkent").strip() or "Asia/Tashkent"
 app.conf.task_ignore_result = True
 
 # DigitalOcean Valkey (rediss) uchun TLS sozlamasi
@@ -53,6 +64,18 @@ if app.conf.result_backend and str(app.conf.result_backend).startswith('rediss:/
 
 # Load task modules from all registered Django apps.
 app.autodiscover_tasks()
+
+subscription_lifecycle_beat_enabled = _env_bool("ENABLE_SUBSCRIPTION_LIFECYCLE_BEAT", not is_local)
+beat_schedule = dict(getattr(app.conf, "beat_schedule", {}) or {})
+if subscription_lifecycle_beat_enabled:
+    beat_schedule["subscription-lifecycle-daily"] = {
+        "task": "cohorts.tasks.run_subscription_lifecycle",
+        "schedule": crontab(
+            hour=_env_int("SUBSCRIPTION_LIFECYCLE_HOUR", 3),
+            minute=_env_int("SUBSCRIPTION_LIFECYCLE_MINUTE", 5),
+        ),
+    }
+app.conf.beat_schedule = beat_schedule
 
 @app.task(bind=True, ignore_result=True)
 def debug_task(self):

@@ -1,10 +1,14 @@
+import datetime
+
 from django.contrib.auth import get_user_model
+from django.core.management import call_command
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
 from users.context_processors import notification_context
 from users.models import Notification
+from users.views import NotificationCenterView
 from cohorts.models import Attendance, Cohort, Enrollment
 from courses.models import Course, Lesson, LessonProgress, Module
 from subscriptions.models import Plan
@@ -75,6 +79,71 @@ class NotificationContextTests(TestCase):
         context = notification_context(request)
 
         self.assertEqual(context["sidebar_current_plan"], plan)
+
+    def test_context_does_not_create_subscription_notifications_on_render(self):
+        teacher = User.objects.create_user(
+            username="notif-render-teacher",
+            email="notif-render-teacher@example.com",
+            password="testpass123",
+            is_staff=True,
+        )
+        course = Course.objects.create(
+            title="Notif Render Course",
+            description="Render should stay read-only",
+            instructor=teacher,
+            level="beginner",
+        )
+        cohort = Cohort.objects.create(
+            name="Notif Render Cohort",
+            course=course,
+            start_date="2026-03-01",
+        )
+        Enrollment.objects.create(
+            student=self.user,
+            cohort=cohort,
+            status=Enrollment.STATUS_ACTIVE,
+            next_payment_deadline=timezone.localdate(),
+        )
+
+        request = self.factory.get("/")
+        request.user = self.user
+        notification_context(request)
+
+        self.assertEqual(Notification.objects.filter(recipient=self.user).count(), 0)
+
+    def test_notification_center_context_does_not_create_notifications(self):
+        teacher = User.objects.create_user(
+            username="notif-page-teacher",
+            email="notif-page-teacher@example.com",
+            password="testpass123",
+            is_staff=True,
+        )
+        course = Course.objects.create(
+            title="Notif Page Course",
+            description="Notification center should stay read-only",
+            instructor=teacher,
+            level="beginner",
+        )
+        cohort = Cohort.objects.create(
+            name="Notif Page Cohort",
+            course=course,
+            start_date="2026-03-01",
+        )
+        Enrollment.objects.create(
+            student=self.user,
+            cohort=cohort,
+            status=Enrollment.STATUS_ACTIVE,
+            next_payment_deadline=timezone.localdate(),
+        )
+
+        request = self.factory.get("/users/notifications/")
+        request.user = self.user
+        view = NotificationCenterView()
+        view.setup(request)
+        context = view.get_context_data()
+
+        self.assertEqual(list(context["unread_notifications"]), [])
+        self.assertEqual(Notification.objects.filter(recipient=self.user).count(), 0)
 
 
 class DashboardProgressTests(TestCase):
@@ -152,9 +221,15 @@ class DashboardProgressTests(TestCase):
         self.assertContains(response, "Telegram hisobi ulandi")
 
     def test_dashboard_lists_all_active_cohorts_for_multi_cohort_student(self):
+        second_course = Course.objects.create(
+            title="Dashboard Progress Course 2",
+            description="Second dashboard course",
+            instructor=self.teacher,
+            level="beginner",
+        )
         second_cohort = Cohort.objects.create(
             name="Second Dashboard Cohort",
-            course=self.course,
+            course=second_course,
             start_date="2026-03-15",
         )
         Enrollment.objects.create(
@@ -179,9 +254,17 @@ class DashboardProgressTests(TestCase):
         self.assertContains(response, "Davom etayotgan kurs")
 
     def test_attendance_calendar_allows_switching_between_active_cohorts(self):
+        second_course = Course.objects.create(
+            title="Attendance Course 2",
+            description="Second attendance course",
+            instructor=self.teacher,
+            level="beginner",
+        )
+        second_module = Module.objects.create(course=second_course, title="2-modul", order=1)
+        second_lesson = Lesson.objects.create(module=second_module, title="2-dars", order=1)
         second_cohort = Cohort.objects.create(
             name="Attendance Switch Cohort",
-            course=self.course,
+            course=second_course,
             start_date="2026-03-15",
         )
         second_enrollment = Enrollment.objects.create(
@@ -191,7 +274,7 @@ class DashboardProgressTests(TestCase):
         )
         Attendance.objects.create(
             enrollment=second_enrollment,
-            lesson=self.lesson_1,
+            lesson=second_lesson,
             date=timezone.localdate().replace(day=5),
             status=Attendance.STATUS_PRESENT,
         )
@@ -208,9 +291,15 @@ class DashboardProgressTests(TestCase):
         self.assertContains(response, "Attendance Switch Cohort")
 
     def test_leaderboard_allows_switching_between_active_cohorts(self):
+        second_course = Course.objects.create(
+            title="Leaderboard Course 2",
+            description="Second leaderboard course",
+            instructor=self.teacher,
+            level="beginner",
+        )
         second_cohort = Cohort.objects.create(
             name="Leaderboard Cohort 2",
-            course=self.course,
+            course=second_course,
             start_date="2026-03-15",
         )
         Enrollment.objects.create(
@@ -240,9 +329,17 @@ class DashboardProgressTests(TestCase):
         self.assertContains(response, "leaderboard-peer")
 
     def test_leaderboard_uses_cohort_specific_score_not_global_total_xp(self):
+        second_course = Course.objects.create(
+            title="Leaderboard Score Course 2",
+            description="Second score course",
+            instructor=self.teacher,
+            level="beginner",
+        )
+        second_module = Module.objects.create(course=second_course, title="2-modul", order=1)
+        second_lesson = Lesson.objects.create(module=second_module, title="2-dars", order=1)
         second_cohort = Cohort.objects.create(
             name="Leaderboard Cohort Score 2",
-            course=self.course,
+            course=second_course,
             start_date="2026-03-20",
         )
         second_enrollment = Enrollment.objects.create(
@@ -265,7 +362,7 @@ class DashboardProgressTests(TestCase):
         )
         LessonProgress.objects.create(
             enrollment=second_enrollment,
-            lesson=self.lesson_1,
+            lesson=second_lesson,
             is_completed=True,
         )
 
@@ -275,8 +372,59 @@ class DashboardProgressTests(TestCase):
         self.assertEqual(cohort_one_response.status_code, 200)
         self.assertEqual(cohort_two_response.status_code, 200)
         self.assertEqual(cohort_one_response.context["leaderboard_my_row"]["cohort_score"], self.lesson_1.xp_reward + self.lesson_2.xp_reward)
-        self.assertEqual(cohort_two_response.context["leaderboard_my_row"]["cohort_score"], self.lesson_1.xp_reward)
+        self.assertEqual(cohort_two_response.context["leaderboard_my_row"]["cohort_score"], second_lesson.xp_reward)
         self.assertNotEqual(
             cohort_one_response.context["leaderboard_my_row"]["cohort_score"],
             self.user.total_xp,
+        )
+
+
+class SubscriptionLifecycleCommandTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="expired-user",
+            email="expired-user@example.com",
+            password="testpass123",
+        )
+        self.teacher = User.objects.create_user(
+            username="expired-teacher",
+            email="expired-teacher@example.com",
+            password="testpass123",
+            is_staff=True,
+        )
+        course = Course.objects.create(
+            title="Expired Course",
+            description="Expired lifecycle test",
+            instructor=self.teacher,
+            level="beginner",
+        )
+        cohort = Cohort.objects.create(
+            name="Expired Cohort",
+            course=course,
+            start_date="2026-03-01",
+        )
+        self.enrollment = Enrollment.objects.create(
+            student=self.user,
+            cohort=cohort,
+            status=Enrollment.STATUS_ACTIVE,
+            next_payment_deadline=timezone.localdate() - datetime.timedelta(days=3),
+        )
+
+    def test_notification_command_expires_overdue_enrollment_before_notifying(self):
+        call_command("generate_subscription_notifications")
+
+        self.enrollment.refresh_from_db()
+
+        self.assertEqual(self.enrollment.status, Enrollment.STATUS_EXPIRED)
+        self.assertTrue(
+            Notification.objects.filter(
+                recipient=self.user,
+                external_key__startswith=f"sub-expired-{self.enrollment.id}-",
+            ).exists()
+        )
+        self.assertFalse(
+            Notification.objects.filter(
+                recipient=self.user,
+                external_key__startswith=f"sub-due-{self.enrollment.id}-",
+            ).exists()
         )

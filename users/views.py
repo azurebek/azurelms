@@ -11,7 +11,7 @@ import calendar
 from .forms import CustomUserCreationForm
 from .models import CustomUser, Notification
 from django.shortcuts import redirect, render, get_object_or_404
-from cohorts.models import Enrollment, Attendance, Cohort
+from cohorts.models import Enrollment, Attendance, Cohort, enrollment_active_access_q
 from cohorts.attendance_service import upsert_attendance_and_xp
 from courses.models import Certificate as CourseCertificate
 from courses.models import Course, LessonProgress
@@ -20,7 +20,6 @@ from frontend.models import LegalPage
 from django.core.signing import TimestampSigner
 from django.conf import settings
 from courses.models import Lesson
-from .notification_service import ensure_subscription_notifications_for_user
 import os
 import uuid
 
@@ -67,7 +66,7 @@ class SettingsView(LoginRequiredMixin, UpdateView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         context['active_nav'] = 'settings'
-        context['active_courses_count'] = user.enrollments.filter(status='active').count()
+        context['active_courses_count'] = user.enrollments.filter(enrollment_active_access_q()).count()
         context['certificates_count'] = CourseCertificate.objects.filter(student=user).count()
         passed_lessons_count = Attendance.objects.filter(
             enrollment__student=user,
@@ -152,20 +151,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         context['active_nav'] = 'dashboard'
-        
-        # --- Grace Period Check Logging ---
         today = timezone.localdate()
-        grace_limit = today - datetime.timedelta(days=2)
-        
-        # Find all active enrollments where deadline passed grace limit
-        expired_enrollments = user.enrollments.filter(
-            status='active',
-            next_payment_deadline__lt=grace_limit
-        )
-        
-        # Optimize: Avoid N+1 query by doing a single bulk update
-        if expired_enrollments.exists():
-            expired_enrollments.update(status='expired')
         
         enrollments = list(
             user.enrollments.select_related(
@@ -191,12 +177,13 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         status_priority = {'active': 0, 'pending': 1, 'frozen': 2, 'expired': 3}
         enrollments.sort(
             key=lambda item: (
-                status_priority.get(item.status, 9),
+                status_priority.get(item.get_effective_status(today=today), 9),
                 -item.joined_at.timestamp(),
             )
         )
 
         for enrollment in enrollments:
+            effective_status = enrollment.get_effective_status(today=today)
             total_lessons = enrollment.total_lessons_count or 0
             completed_lessons = max(
                 enrollment.completed_attendance_count or 0,
@@ -209,13 +196,14 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 if total_lessons
                 else 0
             )
-            enrollment.dashboard_status_label = enrollment.get_status_display()
+            enrollment.dashboard_effective_status = effective_status
+            enrollment.dashboard_status_label = enrollment.get_effective_status_display(today=today)
             enrollment.dashboard_status_tone = {
                 'active': 'success',
                 'pending': 'warning',
                 'expired': 'danger',
                 'frozen': 'secondary',
-            }.get(enrollment.status, 'secondary')
+            }.get(effective_status, 'secondary')
             enrollment.dashboard_days_left = None
             if enrollment.next_payment_deadline:
                 enrollment.dashboard_days_left = (
@@ -223,7 +211,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 ).days
 
         context['active_enrollments'] = enrollments
-        active_enrollment_qs = user.enrollments.filter(status='active')
+        active_enrollment_qs = user.enrollments.filter(enrollment_active_access_q())
         context['active_courses_count'] = active_enrollment_qs.count()
 
         # Dashboard metriclar: o'tilgan darslar soni attendance va LMS lesson progress asosida hisoblanadi.
@@ -231,9 +219,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             enrollment__student=user,
             status__in=[Attendance.STATUS_PRESENT, Attendance.STATUS_PARTIAL],
         ).values('lesson_id').distinct().count()
-        progress_lessons_count = user.enrollments.filter(
-            status='active',
-        ).aggregate(
+        progress_lessons_count = user.enrollments.filter(enrollment_active_access_q()).aggregate(
             total=Count(
                 'lesson_progress',
                 filter=Q(lesson_progress__is_completed=True),
@@ -263,10 +249,12 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context['profile_completion'] = int(round((sum(profile_checks) / len(profile_checks)) * 100))
 
         context['primary_enrollment'] = next(
-            (item for item in enrollments if item.status == 'active'),
+            (item for item in enrollments if item.dashboard_effective_status == Enrollment.STATUS_ACTIVE),
             enrollments[0] if enrollments else None,
         )
-        active_dashboard_enrollments = [item for item in enrollments if item.status == 'active']
+        active_dashboard_enrollments = [
+            item for item in enrollments if item.dashboard_effective_status == Enrollment.STATUS_ACTIVE
+        ]
         context['active_dashboard_enrollments'] = active_dashboard_enrollments
         context['current_plan'] = (
             context['primary_enrollment'].plan
@@ -283,7 +271,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 annotated_lessons_count=Count('modules__lessons', distinct=True),
                 annotated_students_count=Count(
                     'cohorts__members',
-                    filter=Q(cohorts__members__status='active'),
+                    filter=enrollment_active_access_q(prefix='cohorts__members__'),
                     distinct=True,
                 ),
             )
@@ -325,7 +313,7 @@ def get_cohort_leaderboard_context(user, cohort_id=None):
     }
 
     active_enrollments = list(
-        user.enrollments.filter(status='active')
+        user.enrollments.filter(enrollment_active_access_q())
         .select_related('cohort')
         .order_by('-joined_at', '-id')
     )
@@ -344,8 +332,8 @@ def get_cohort_leaderboard_context(user, cohort_id=None):
 
     leaderboard_qs = list(
         Enrollment.objects.filter(
+            enrollment_active_access_q(),
             cohort=current_active_enrollment.cohort,
-            status='active',
         )
         .select_related('student')
         .prefetch_related(
@@ -435,7 +423,6 @@ class NotificationCenterView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        ensure_subscription_notifications_for_user(self.request.user)
         all_notifications = Notification.objects.filter(recipient=self.request.user).order_by("-created_at")
         context["active_nav"] = "notifications"
         context["unread_notifications"] = all_notifications.filter(is_read=False)
@@ -478,7 +465,7 @@ class UserProfileView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         current_plan_enrollment = (
-            user.enrollments.filter(status='active', plan__isnull=False)
+            user.enrollments.filter(enrollment_active_access_q(), plan__isnull=False)
             .select_related('plan')
             .order_by('-joined_at')
             .first()
@@ -518,7 +505,7 @@ class AttendanceCalendarView(LoginRequiredMixin, TemplateView):
         next_month = (selected_month.replace(day=28) + datetime.timedelta(days=4)).replace(day=1)
 
         active_enrollments = list(
-            user.enrollments.filter(status='active')
+            user.enrollments.filter(enrollment_active_access_q())
             .select_related('cohort', 'cohort__course', 'plan')
             .order_by('-joined_at', '-id')
         )
@@ -630,7 +617,10 @@ class AttendanceManageView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
 
         if selected_cohort:
             lessons = Lesson.objects.filter(module__course=selected_cohort.course).order_by('module__order', 'order')
-            members = Enrollment.objects.filter(cohort=selected_cohort, status='active').select_related('student').order_by(
+            members = Enrollment.objects.filter(
+                enrollment_active_access_q(),
+                cohort=selected_cohort,
+            ).select_related('student').order_by(
                 'student__first_name', 'student__last_name', 'student__username'
             )
             selected_lesson = lessons.filter(id=selected_lesson_id).first() if selected_lesson_id else lessons.first()

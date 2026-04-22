@@ -3,7 +3,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from asgiref.sync import sync_to_async
 from django.contrib.auth import get_user_model
-from cohorts.models import Enrollment
+from cohorts.models import Enrollment, enrollment_active_access_q
 from courses.models import Lesson
 from .access import user_can_access_room
 from .models import ChatRoom, Message
@@ -130,9 +130,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if user.is_staff or user.is_superuser:
             return True
         return Enrollment.objects.filter(
+            enrollment_active_access_q(),
             student=user,
             cohort__course=lesson.module.course,
-            status="active",
         ).exists()
 
     @database_sync_to_async

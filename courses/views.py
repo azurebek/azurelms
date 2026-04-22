@@ -1,13 +1,14 @@
 import json
 from urllib.parse import urlencode
 
+from django.core.exceptions import ValidationError
 from django.views.generic import ListView, DetailView, View
 from django.db.models import Max, Q
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.urls import reverse
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.utils import timezone
 
 from .models import (
@@ -17,17 +18,33 @@ from .models import (
     CohortLessonRelease,
     Course,
     Exam,
+    ExamSection,
     LessonProgress,
     Lesson,
     Question,
     Choice,
+    ReadingItem,
     StudentAnswer,
     ExamAttempt,
     Quiz,
     QuizAnswer,
     QuizAttempt,
 )
-from cohorts.models import Enrollment
+from cohorts.models import Enrollment, enrollment_active_access_q
+from .exam_service import (
+    ExamAttemptStartBlocked,
+    expire_attempt_if_time_limit_reached,
+    get_in_progress_exam_attempt,
+    get_latest_exam_attempt,
+    get_latest_exam_attempt_for_exam_id,
+    start_exam_attempt,
+)
+from .policy_service import check_exam_entry_policy
+from .reading_service import (
+    build_reading_section_payload,
+    save_reading_response,
+    toggle_reading_review_flag,
+)
 
 
 def _safe_int(value):
@@ -51,9 +68,9 @@ def _build_url_with_query(base_url, **params):
 def _get_active_enrollment_for_course(user, course, cohort_id=None):
     queryset = (
         Enrollment.objects.filter(
+            enrollment_active_access_q(),
             student=user,
             cohort__course=course,
-            status="active",
         )
         .select_related("cohort")
         .order_by("-joined_at", "-id")
@@ -171,7 +188,11 @@ class CourseListView(ListView):
             .select_related("instructor")
             .annotate(
                 annotated_lessons_count=Count('modules__lessons', distinct=True),
-                annotated_students_count=Count('cohorts__members', filter=Q_obj(cohorts__members__status='active'), distinct=True)
+                annotated_students_count=Count(
+                    'cohorts__members',
+                    filter=enrollment_active_access_q(prefix='cohorts__members__'),
+                    distinct=True,
+                )
             )
         )
         
@@ -246,9 +267,9 @@ class CourseDetailView(DetailView):
         context['course_exam_count'] = self.object.exams.count()
         if self.request.user.is_authenticated:
             context['is_enrolled'] = Enrollment.objects.filter(
+                enrollment_active_access_q(),
                 student=self.request.user,
                 cohort__course=self.object,
-                status='active'
             ).exists()
         else:
             context['is_enrolled'] = False
@@ -570,16 +591,15 @@ class ExamDetailView(LoginRequiredMixin, DetailView):
             course_id = self.kwargs.get('course_id')
             exam_id = self.kwargs.get('exam_id')
             is_enrolled = Enrollment.objects.filter(
+                enrollment_active_access_q(),
                 student=request.user,
                 cohort__course_id=course_id,
-                status='active'
             ).exists()
             if not is_enrolled:
                 messages.error(request, "Siz bu imtihonni ko'rish uchun kursga obuna bo'lishingiz kerak.")
                 return redirect('course_detail', pk=course_id)
                 
-            from .models import ExamAttempt
-            attempt = ExamAttempt.objects.filter(student=request.user, exam_id=exam_id).first()
+            attempt = get_latest_exam_attempt_for_exam_id(student=request.user, exam_id=exam_id)
             if attempt and attempt.is_completed:
                 return redirect('exam_result', course_id=course_id, exam_id=exam_id)
                 
@@ -595,9 +615,9 @@ class ExamDetailView(LoginRequiredMixin, DetailView):
         user = self.request.user
         
         is_enrolled = Enrollment.objects.filter(
+            enrollment_active_access_q(),
             student=user,
             cohort__course=course,
-            status='active'
         ).exists()
         
         context['is_enrolled'] = is_enrolled
@@ -606,8 +626,15 @@ class ExamDetailView(LoginRequiredMixin, DetailView):
         context['course_exams'] = course.exams.all().order_by('id')
         context['sections'] = self.object.sections.all().order_by('order')
         
-        from .models import ExamAttempt
-        context['my_attempt'] = ExamAttempt.objects.filter(student=user, exam=self.object).first()
+        latest_attempt = get_latest_exam_attempt(student=user, exam=self.object)
+        context['my_attempt'] = latest_attempt
+        if latest_attempt:
+            context['remaining_attempts'] = max(self.object.max_attempts - latest_attempt.attempt_number, 0)
+        else:
+            context['remaining_attempts'] = self.object.max_attempts
+        entry_policy = check_exam_entry_policy(student=user, exam=self.object) if is_enrolled else None
+        context['exam_entry_policy'] = entry_policy
+        context['can_start_exam'] = bool(entry_policy and entry_policy.is_allowed)
         
         return context
 
@@ -621,13 +648,16 @@ class ExamResultView(LoginRequiredMixin, DetailView):
         if request.user.is_authenticated:
             course_id = self.kwargs.get('course_id')
             exam_id = self.kwargs.get('exam_id')
-            is_enrolled = Enrollment.objects.filter(student=request.user, cohort__course_id=course_id, status='active').exists()
+            is_enrolled = Enrollment.objects.filter(
+                enrollment_active_access_q(),
+                student=request.user,
+                cohort__course_id=course_id,
+            ).exists()
             if not is_enrolled:
                 messages.error(request, "Iltimos, kursga a'zo bo'ling.")
                 return redirect('course_detail', pk=course_id)
                 
-            from .models import ExamAttempt
-            attempt = ExamAttempt.objects.filter(student=request.user, exam_id=exam_id).first()
+            attempt = get_latest_exam_attempt_for_exam_id(student=request.user, exam_id=exam_id)
             if not attempt or not attempt.is_completed:
                 return redirect('exam_detail', course_id=course_id, exam_id=exam_id)
                 
@@ -644,8 +674,7 @@ class ExamResultView(LoginRequiredMixin, DetailView):
         context['modules'] = course.modules.all().prefetch_related('lessons')
         context['course_exams'] = course.exams.all().order_by('id')
         
-        from .models import ExamAttempt
-        attempt = ExamAttempt.objects.filter(student=self.request.user, exam=self.object).first()
+        attempt = get_latest_exam_attempt(student=self.request.user, exam=self.object)
         context['attempt'] = attempt
         context['course_certificate'] = None
         if attempt and attempt.is_reviewed and attempt.passed:
@@ -653,55 +682,115 @@ class ExamResultView(LoginRequiredMixin, DetailView):
                 student=self.request.user,
                 course=course,
             ).first()
+        context['remaining_attempts'] = max(
+            self.object.max_attempts - (attempt.attempt_number if attempt else 0),
+            0,
+        )
+        context['can_retake'] = bool(
+            attempt
+            and attempt.is_completed
+            and attempt.is_reviewed
+            and not attempt.passed
+            and attempt.attempt_number < self.object.max_attempts
+        )
         return context
 
 class StartExamView(LoginRequiredMixin, View):
     def post(self, request, course_id, exam_id):
         exam = get_object_or_404(Exam, id=exam_id, course_id=course_id)
-        
-        # Check active enrollment
-        if not Enrollment.objects.filter(student=request.user, cohort__course=exam.course, status='active').exists():
-            return JsonResponse({'error': 'Siz ushbu kursga a\'zo emassiz.'}, status=403)
-            
-        from django.db import IntegrityError
-        try:
-            attempt, created = ExamAttempt.objects.get_or_create(
-                student=request.user, 
-                exam=exam
-            )
-        except IntegrityError:
-            attempt = ExamAttempt.objects.get(student=request.user, exam=exam)
-            created = False
-        
-        if not created and attempt.is_completed:
-             return JsonResponse({'error': 'Siz bu imtihonni avval topshirgansiz.'}, status=400)
 
-        attempt.ensure_section_reviews()
-             
-        return JsonResponse({'status': 'success', 'attempt_id': attempt.id, 'start_time': attempt.start_time.isoformat()})
+        try:
+            attempt, created = start_exam_attempt(student=request.user, exam=exam)
+        except ExamAttemptStartBlocked as exc:
+            status_code = 403 if exc.code == "not_enrolled" else 400
+            return JsonResponse({'error': str(exc), 'code': exc.code}, status=status_code)
+
+        deadline = attempt.get_deadline()
+        return JsonResponse(
+            {
+                'status': 'success',
+                'attempt_id': attempt.id,
+                'attempt_number': attempt.attempt_number,
+                'start_time': attempt.start_time.isoformat(),
+                'created': created,
+                'time_limit_minutes': attempt.time_limit_minutes,
+                'deadline': deadline.isoformat() if deadline else None,
+                'remaining_attempts': max(exam.max_attempts - attempt.attempt_number, 0),
+            }
+        )
+
+class ExamSectionStateView(LoginRequiredMixin, View):
+    def get(self, request, course_id, exam_id, section_id):
+        section = get_object_or_404(ExamSection, id=section_id, exam_id=exam_id)
+        attempt = get_in_progress_exam_attempt(student=request.user, exam_id=exam_id)
+        if not attempt:
+            return JsonResponse({'error': 'Faol imtihon urinishi topilmadi.'}, status=404)
+        if expire_attempt_if_time_limit_reached(attempt):
+            return JsonResponse(
+                {'error': 'Imtihon vaqti tugadi. Urinish tekshiruvga yuborildi.'},
+                status=400,
+            )
+        if section.section_type != "reading":
+            return JsonResponse(
+                {'error': 'Section state endpoint hozircha faqat reading section uchun ishlaydi.'},
+                status=400,
+            )
+
+        payload = build_reading_section_payload(attempt=attempt, section=section)
+        return JsonResponse({'status': 'success', **payload})
+
 
 class SaveExamAnswerView(LoginRequiredMixin, View):
     def post(self, request, course_id, exam_id):
         try:
             data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': "JSON formati noto'g'ri."}, status=400)
+
+        try:
+            attempt = get_in_progress_exam_attempt(student=request.user, exam_id=exam_id)
+            if not attempt:
+                return JsonResponse({'error': 'Faol imtihon urinishi topilmadi.'}, status=404)
+            if expire_attempt_if_time_limit_reached(attempt):
+                return JsonResponse(
+                    {'error': 'Imtihon vaqti tugadi. Urinish tekshiruvga yuborildi.'},
+                    status=400,
+                )
+
+            reading_item_id = data.get('reading_item_id')
+            if reading_item_id not in (None, ""):
+                item = ReadingItem.objects.select_related('task__section').filter(id=reading_item_id).first()
+                if not item or item.task.section.exam_id != attempt.exam_id:
+                    raise Http404("Reading item topilmadi.")
+                response = save_reading_response(attempt=attempt, item=item, payload=data)
+                payload = build_reading_section_payload(attempt=attempt, section=item.task.section)
+                return JsonResponse(
+                    {
+                        'status': 'success',
+                        'section_state': payload['state'],
+                        'saved_response': {
+                            'item_id': response.item_id,
+                            'awarded_score': float(response.awarded_score),
+                            'is_graded': response.is_graded,
+                            'is_flagged_for_review': response.is_flagged_for_review,
+                        },
+                    }
+                )
+
             question_id = data.get('question_id')
             answer_text = data.get('answer_text')
             choice_id = data.get('choice_id')
             audio_url = data.get('audio_url')
-            
-            attempt = get_object_or_404(ExamAttempt, student=request.user, exam_id=exam_id)
-            if attempt.is_completed:
-                return JsonResponse({'error': 'Imtihon yakunlangan, javob qabul qilinmaydi.'}, status=400)
-                
+
             question = get_object_or_404(Question, id=question_id)
-            
+
             # Security: Ensure question actually belongs to this exam
             if question.exam_section and question.exam_section.exam_id != attempt.exam_id:
                 return JsonResponse({'error': 'Xatolik: Bu savol ushbu imtihonga tegishli emas.'}, status=400)
-            
+
             # Upsert student answer
-            ans, created = StudentAnswer.objects.get_or_create(attempt=attempt, question=question)
-            
+            ans, _ = StudentAnswer.objects.get_or_create(attempt=attempt, question=question)
+
             if choice_id:
                 choice = get_object_or_404(Choice, id=choice_id, question=question)
                 ans.selected_choice = choice
@@ -711,34 +800,86 @@ class SaveExamAnswerView(LoginRequiredMixin, View):
                 ans.answer_text = answer_text
             if audio_url:
                 ans.audio_file_url = audio_url
-                
+
             ans.save()
             return JsonResponse({'status': 'success'})
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=400)
+        except Http404 as exc:
+            return JsonResponse({'error': str(exc)}, status=404)
+        except (ValidationError, ValueError) as exc:
+            message = exc.message if isinstance(exc, ValidationError) and hasattr(exc, "message") else str(exc)
+            if isinstance(exc, ValidationError) and exc.messages:
+                message = exc.messages[0]
+            return JsonResponse({'error': message}, status=400)
+
+
+class ToggleExamReviewFlagView(LoginRequiredMixin, View):
+    def post(self, request, course_id, exam_id):
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': "JSON formati noto'g'ri."}, status=400)
+
+        attempt = get_in_progress_exam_attempt(student=request.user, exam_id=exam_id)
+        if not attempt:
+            return JsonResponse({'error': 'Faol imtihon urinishi topilmadi.'}, status=404)
+        if expire_attempt_if_time_limit_reached(attempt):
+            return JsonResponse(
+                {'error': 'Imtihon vaqti tugadi. Urinish tekshiruvga yuborildi.'},
+                status=400,
+            )
+
+        reading_item_id = data.get("reading_item_id")
+        if reading_item_id in (None, ""):
+            return JsonResponse({'error': "reading_item_id yuborilishi shart."}, status=400)
+
+        try:
+            item = ReadingItem.objects.select_related('task__section').get(id=reading_item_id)
+            if item.task.section.exam_id != attempt.exam_id:
+                raise Http404("Reading item topilmadi.")
+            response = toggle_reading_review_flag(
+                attempt=attempt,
+                item=item,
+                flagged=data.get("flagged"),
+            )
+            payload = build_reading_section_payload(attempt=attempt, section=item.task.section)
+            return JsonResponse(
+                {
+                    'status': 'success',
+                    'is_flagged_for_review': response.is_flagged_for_review,
+                    'section_state': payload['state'],
+                }
+            )
+        except Http404 as exc:
+            return JsonResponse({'error': str(exc)}, status=404)
+        except (ReadingItem.DoesNotExist, ValidationError) as exc:
+            message = exc.messages[0] if isinstance(exc, ValidationError) and exc.messages else str(exc)
+            return JsonResponse({'error': message}, status=400)
 
 class LogBlurWarningView(LoginRequiredMixin, View):
     def post(self, request, course_id, exam_id):
-        attempt = get_object_or_404(ExamAttempt, student=request.user, exam_id=exam_id, is_completed=False)
+        attempt = get_in_progress_exam_attempt(student=request.user, exam_id=exam_id)
+        if not attempt:
+            return JsonResponse({'error': 'Faol imtihon urinishi topilmadi.'}, status=404)
+        if expire_attempt_if_time_limit_reached(attempt):
+            return JsonResponse(
+                {'error': 'Imtihon vaqti tugadi. Urinish tekshiruvga yuborildi.'},
+                status=400,
+            )
         attempt.blur_warnings += 1
         attempt.save()
         return JsonResponse({'status': 'logged', 'warnings': attempt.blur_warnings})
 
 class SubmitExamView(LoginRequiredMixin, View):
     def post(self, request, course_id, exam_id):
-        attempt = get_object_or_404(ExamAttempt, student=request.user, exam_id=exam_id, is_completed=False)
-        attempt.is_completed = True
-        attempt.completed_time = timezone.now()
-        attempt.is_reviewed = False
-        attempt.reviewed_at = None
-        attempt.reviewed_by = None
-        attempt.passed = False
-        attempt.score = 0
-        attempt.save(update_fields=['is_completed', 'completed_time', 'is_reviewed', 'reviewed_at', 'reviewed_by', 'passed', 'score'])
-
-        # Prepare section-level scores so the instructor can review and approve them.
-        attempt.ensure_section_reviews()
-        attempt.prefill_section_scores_from_answers()
+        attempt = get_in_progress_exam_attempt(student=request.user, exam_id=exam_id)
+        if not attempt:
+            return JsonResponse({'error': 'Faol imtihon urinishi topilmadi.'}, status=404)
+        if expire_attempt_if_time_limit_reached(attempt):
+            return JsonResponse(
+                {'error': 'Imtihon vaqti tugadi. Urinish tekshiruvga yuborildi.'},
+                status=400,
+            )
+        attempt.submit_for_review()
         
         return JsonResponse({'status': 'success', 'pending_review': True})
 
@@ -748,7 +889,11 @@ class SubmitQuizView(LoginRequiredMixin, View):
         quiz = get_object_or_404(Quiz, id=quiz_id, lesson_id=lesson_id, lesson__module__course_id=course_id)
         
         # Enrollment tekshiruvi
-        if not Enrollment.objects.filter(student=request.user, cohort__course_id=course_id, status='active').exists():
+        if not Enrollment.objects.filter(
+            enrollment_active_access_q(),
+            student=request.user,
+            cohort__course_id=course_id,
+        ).exists():
             return JsonResponse({'error': 'Kursga obuna bo\'lmagansiz.'}, status=403)
         
         try:

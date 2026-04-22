@@ -17,9 +17,6 @@ urlpatterns = [
     # Users (Auth)
     path('users/', include('users.urls')),
 
-    # Hidden Backoffice route (configured via BACKOFFICE_PATH)
-    path(f"{settings.BACKOFFICE_PATH}/", include('backoffice.urls', namespace='backoffice')),
-    
     # Courses
     path('courses/', include('courses.urls')),
     
