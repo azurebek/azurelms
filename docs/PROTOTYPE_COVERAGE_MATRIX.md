@@ -1,265 +1,225 @@
 # Prototype Coverage Matrix
 
-Bu hujjat `docs/FRONTEND_REBUILD_TARGETS.md` ichidagi HTML targetlarni hozirgi `design-playground/` coverage bilan solishtiradi.
+Bu hujjat `design-playground/` ichidagi prototype oilalarini bitta flow matrixga yig'adi. Maqsad: qaysi flow qaysi sahifalardan, qaysi component reference'lardan, qaysi CSS qatlamlardan va qaysi migration targetlardan tuzilganini bir joyda ko'rsatish.
 
-## Important Modeling Rule
+## Coverage Legend
 
-Bu matrixdagi `Shell` ustuni sahifaning **asosiy yoki birinchi prototype surface**ini bildiradi, lekin u har doim `faqat shu yerda bo'ladi` degani emas.
+- `ready`: current prototype freeze ichida ishlatishga tayyor reference.
+- `shell-ready`: shell/base reference tayyor, child page shu shell ichida yig'iladi.
+- `component-ready`: component reference tayyor va sahifaga ko'chirish mumkin.
+- `future-scope`: current prototype freeze tashqarisidagi keyingi release yoki operator/document surface.
 
-Ba'zi sahifalar bitta maqsadga ega bo'lib, ikki xil surface'da yashashi mumkin:
+## Source Of Truth Chain
 
-- `public surface`
-  acquisition, trust, discovery, onboarding
-- `app surface`
-  current user contexti, personalized actions, operational continuity
-- `document surface`
-  print, certificate, appendix, receipt kabi hujjatga o'xshash ko'rinishlar
+| Layer | Source | Vazifasi |
+| --- | --- | --- |
+| Playground map | `design-playground/index.html` | Barcha prototype oilalarini flow bo'yicha ochadi |
+| Standards | `design-playground/DESIGN_STANDARDS.md` | Shell, CSS ownership va page creation qoidalari |
+| Tokens | `design-playground/DESIGN_TOKENS.md` | Rang, typography, spacing, radius, shadow va layout tokenlari |
+| Components | `design-playground/COMPONENT_CATALOG.md` | Reusable component patternlar |
+| Mobile readiness | `docs/MOBILE_FIRST_READINESS.md` | Mobile-first viewport, overflow va flow gate qoidalari |
+| Migration | `design-playground/MIGRATION_READINESS.md` | Prototype -> Django template mapping |
+| Coverage | `docs/PROTOTYPE_COVERAGE_MATRIX.md` | Flow, page, CSS, component va status matrix |
+| Final gate | `docs/PLAYGROUND_READINESS_GATE.md` | Uchta asosiy savolga yakuniy readiness javobi |
 
-Masalan:
+## Flow Coverage Summary
 
-- `pricing` public'da marketing/acquisition ko'rinishida bo'lishi mumkin
-- shu bilan birga app ichida `upgrade / renew / compare plans` ko'rinishida ham yashashi mumkin
-- `course list` va `course detail` ham public discovery varianti va auth qilingan user uchun app varianti sifatida ikkita surface'ga ega bo'lishi mumkin
+| Flow | Entry Page | Child Pages | Status |
+| --- | --- | --- | --- |
+| Public Discovery | `design-playground/public/public-shell.html` | `public/about.html`, `public/public-course-list.html`, `public/public-course-detail.html`, `public/pricing.html` | `ready` |
+| Auth & Billing | `design-playground/auth/auth-login.html` | `auth/auth-register.html`, `auth/auth-recovery.html`, `auth/auth-verify.html`, `auth/checkout.html` | `ready` |
+| Student App | `design-playground/app/app-shell.html` | `app/app-course-list.html`, `app/app-course-detail.html`, `app/app-attendance.html`, `app/app-leaderboard.html`, `app/notifications.html`, `app/subscriptions.html`, `app/app-profile.html`, `app/app-settings.html` | `ready` |
+| Learning | `design-playground/learning/learning-shell.html` | `components/learning.html` | `ready` |
+| Exam | `design-playground/exam/exam-shell.html` | `exam/exam-writing.html`, `exam/exam-listening.html`, `exam/exam-speaking.html`, `exam/exam-review.html` | `ready` |
+| Messenger | `design-playground/messenger/messenger-shell.html` | `components/messenger.html` | `ready` |
+| Blog Reading | `design-playground/blog/blog-public-shell.html` | `blog/blog-article-shell.html` | `ready` |
+| Blog Studio | `design-playground/blog-studio/blog-studio-shell.html` | `blog-studio/blog-studio-new-post.html`, `blog-studio/blog-studio-analytics.html`, `blog-studio/blog-studio-tags.html`, `blog-studio/blog-studio-sections.html` | `ready` |
+| Legal Documents | `design-playground/legal/legal-privacy.html` | `legal/legal-terms.html`, `legal/legal-faq.html` | `ready` |
+| Error | `design-playground/error/error-shell.html` | `error/error-400.html`, `error/error-401.html`, `error/error-403.html`, `error/error-404.html`, `error/error-419.html`, `error/error-429.html`, `error/error-500.html`, `error/error-503.html` | `ready` |
+| Component Reference | `design-playground/components/index.html` | `buttons.html`, `navigation.html`, `cards.html`, `forms.html`, `learning.html`, `exam.html`, `messenger.html` | `ready` |
 
-Shu sabab `Shell` ustunini `exclusive ownership` emas, `primary prototype family` deb o'qish kerak.
+## Flow Detail Matrix
 
-## Status Legend
+### Public Discovery
 
-- `page-ready`: shu sahifa uchun alohida prototype HTML bor
-- `shell-only`: sahifa tegishli shell ichida ko'rinadi, lekin alohida page prototype hali yo'q
-- `component-only`: component/reference darajasida bor, lekin yakuniy page ko'rinishi hali yo'q
-- `missing`: hozircha aniq prototype yo'q
-- `dual-surface`: bu page tabiatan bir nechta shell/surface varianti bilan yashashi mumkin
+| Item | Value |
+| --- | --- |
+| Purpose | Authsiz discovery, trust, course browse, course detail, subscription decision |
+| Entry | `design-playground/public/public-shell.html` |
+| Pages | `public/about.html`, `public/public-course-list.html`, `public/public-course-detail.html`, `public/pricing.html` |
+| CSS | `tokens.css`, `foundation.css`, `public.css`, `about.css`, `public-course-list.css`, `public-course-detail.css`, `public-shell-polish.css`, `billing.css` |
+| Components | Utility Strip, Public Header, Hero Carousel, Portal Blocks, Public Course Card, Public Course Detail Fact Bar, Public Tabs, Pricing Plan Card, Public Footer |
+| Standards | `DESIGN_STANDARDS.md` -> Public Discovery, Central Color Rules, CSS Ownership |
+| Migration Targets | `templates/index.html`, `templates/about.html`, `templates/courses/course_list.html`, `templates/courses/course_detail.html`, `templates/subscriptions/pricing.html` |
+| Status | `ready` |
 
-## Public Shell
+### Auth & Billing
 
-| Target | Shell | Status | Prototype source | Notes |
-|---|---|---|---|---|
-| `templates/base.html` | Public | `shell-only` | `design-playground/public-shell.html` | Header, hero, portal, footer yo'nalishi bor |
-| `templates/index.html` | Public | `page-ready` | `design-playground/public-shell.html` | Landing asosiy reference sifatida yetarlicha kuchli |
-| `templates/about.html` | Public | `page-ready` | `design-playground/about.html` | Mission, vision, statistics va team content uchun alohida prototype tayyor |
-| `templates/legal_page.html` | Public + App / Document | `page-ready` | `design-playground/legal-privacy.html`, `design-playground/legal-terms.html`, `design-playground/legal-faq.html` | Shared legal template uchun uchta page-type reference tayyor: privacy, terms va FAQ |
-| `templates/subscriptions/pricing.html` | Public + App / Commerce | `dual-surface` | - | Public acquisition varianti va app ichidagi upgrade/renew varianti bo'lishi mumkin; ikkalasi ham hali yo'q |
-| `templates/courses/course_list.html` | Public + App / Catalog | `dual-surface` | `design-playground/public-shell.html`, `design-playground/app-course-list.html` | Public discovery va auth user katalogi ikkisi ham kerak bo'lishi mumkin |
-| `templates/courses/course_detail.html` | Public + App / Catalog | `dual-surface` | `design-playground/public-shell.html`, `design-playground/app-course-detail.html` | Public detail va app ichidagi cohort-aware detail ikkisi ham kerak bo'lishi mumkin |
+| Item | Value |
+| --- | --- |
+| Purpose | Login, register, recovery, verification, secure checkout |
+| Entry | `design-playground/auth/auth-login.html` |
+| Pages | `auth/auth-register.html`, `auth/auth-recovery.html`, `auth/auth-verify.html`, `auth/checkout.html` |
+| CSS | `tokens.css`, `foundation.css`, `auth.css`, `billing.css` |
+| Components | Auth Mini Chrome, Auth Split Shell, Auth Form Surface, Verification Code Row, Checkout Payment Surface |
+| Standards | `DESIGN_STANDARDS.md` -> Auth & Billing, Auth And Checkout |
+| Migration Targets | `templates/auth/base.html`, `templates/registration/login.html`, `templates/registration/register.html`, password reset templates, `templates/subscriptions/checkout.html`, `templates/subscriptions/checkout_success.html` |
+| Status | `ready` |
 
-## Auth Shell
+### Student App
 
-| Target | Shell | Status | Prototype source | Notes |
-|---|---|---|---|---|
-| `templates/auth/base.html` | Auth | `page-ready` | `design-playground/auth-login.html` | Split auth shell yaxshi aniqlangan |
-| `templates/registration/login.html` | Auth | `page-ready` | `design-playground/auth-login.html` | Tayyor reference bor |
-| `templates/registration/register.html` | Auth | `page-ready` | `design-playground/auth-register.html` | Tayyor reference bor |
-| `templates/registration/password_reset_form.html` | Auth | `shell-only` | `design-playground/auth-recovery.html` | Recovery family ichida moslashadi |
-| `templates/registration/password_reset_confirm.html` | Auth | `shell-only` | `design-playground/auth-verify.html` | Verify family ichida moslashadi |
-| `templates/registration/password_reset_done.html` | Auth | `shell-only` | `design-playground/auth-recovery.html` | Intermediate confirmation state kerak |
-| `templates/registration/password_reset_complete.html` | Auth | `shell-only` | `design-playground/auth-recovery.html` | Final success state hali alohida chizilmagan |
+| Item | Value |
+| --- | --- |
+| Purpose | Auth qilingan student workspace: dashboard, catalog, tracking, account |
+| Entry | `design-playground/app/app-shell.html` |
+| Pages | `app/app-course-list.html`, `app/app-course-detail.html`, `app/app-attendance.html`, `app/app-leaderboard.html`, `app/notifications.html`, `app/subscriptions.html`, `app/app-profile.html`, `app/app-settings.html` |
+| CSS | `tokens.css`, `foundation.css`, `app.css`, `app-course-list.css`, `app-attendance.css`, `app-leaderboard.css`, `app-notifications.css`, `app-subscriptions.css`, `app-account.css` |
+| Components | App Sidebar, App Topbar, App Workspace, App Filter Bar, App Course Card, App Data Panel, Subscription Status Card |
+| Standards | `DESIGN_STANDARDS.md` -> Student App, App Shell, CSS Ownership |
+| Migration Targets | `templates/dashboard/base.html`, `templates/users/dashboard.html`, `templates/courses/app_course_list.html`, `templates/courses/app_course_detail.html`, `templates/users/attendance_calendar.html`, `templates/users/leaderboard.html`, `templates/users/notifications.html`, `templates/users/subscriptions.html`, `templates/users/profile.html`, `templates/users/settings.html` |
+| Status | `ready` |
 
-## App Shell
+### Learning
 
-| Target | Shell | Status | Prototype source | Notes |
-|---|---|---|---|---|
-| `templates/dashboard/base.html` | App | `page-ready` | `design-playground/app-shell.html` | Base shell pishgan |
-| `templates/users/dashboard.html` | App | `page-ready` | `design-playground/app-shell.html` | Dashboard reference bor |
-| `templates/users/leaderboard.html` | App | `missing` | - | Alohida ranking page prototype kerak |
-| `templates/users/attendance_calendar.html` | App | `missing` | - | Calendar page hali yo'q |
-| `templates/users/attendance_manage.html` | App | `missing` | - | Manage/operator ko'rinishi ham yo'q |
-| `templates/users/notifications.html` | App | `missing` | - | Notification center page kerak |
-| `templates/users/profile.html` | App | `missing` | - | Profile page prototype kerak |
-| `templates/users/settings.html` | App | `missing` | - | Settings page prototype kerak |
-| `templates/users/subscriptions.html` | App | `missing` | - | App ichidagi subscription center yo'q |
-| `templates/users/help_center.html` | Public + App / Support | `dual-surface` | - | Public FAQ/help va auth qilingan user uchun operational help center varianti bo'lishi mumkin |
-| `templates/users/certificates.html` | App / Records | `missing` | - | Certificate list/history page yo'q |
+| Item | Value |
+| --- | --- |
+| Purpose | Focused lesson workspace |
+| Entry | `design-playground/learning/learning-shell.html` |
+| Pages | `components/learning.html` as component reference |
+| CSS | `tokens.css`, `foundation.css`, `learning.css`, `component-catalog.css` |
+| Components | Learning Rail, Learning Stage, Learning Support Panel |
+| Standards | `DESIGN_STANDARDS.md` -> Learning |
+| Migration Targets | `templates/courses/lesson_base.html`, `templates/courses/lesson_detail.html` |
+| Status | `ready` |
 
-## App Catalog Variants
+### Exam
 
-| Target | Shell | Status | Prototype source | Notes |
-|---|---|---|---|---|
-| `app course list variant` | App | `page-ready` | `design-playground/app-course-list.html` | Auth bo'lgan katalog uchun reference bor |
-| `app course detail variant` | App | `page-ready` | `design-playground/app-course-detail.html` | Auth bo'lgan detail uchun reference bor |
+| Item | Value |
+| --- | --- |
+| Purpose | Secure assessment workspace |
+| Entry | `design-playground/exam/exam-shell.html` |
+| Pages | `exam/exam-writing.html`, `exam/exam-listening.html`, `exam/exam-speaking.html`, `exam/exam-review.html`, `components/exam.html` |
+| CSS | `tokens.css`, `foundation.css`, `exam.css`, `component-catalog.css` |
+| Components | Secure Topbar, Passage Panel, Question Panel, Question Map, Exam Mode Surfaces |
+| Standards | `DESIGN_STANDARDS.md` -> Exam |
+| Migration Targets | `templates/courses/exam_base.html`, `templates/courses/exam_detail.html`, `templates/courses/exam_result.html` |
+| Status | `ready` |
 
-Bu ikkalasi rebuild targetlarda alohida template sifatida turmagan bo'lsa ham, keyingi qarorlar uchun muhim reference hisoblanadi.
+### Messenger
 
-## Dual-Surface Candidates
+| Item | Value |
+| --- | --- |
+| Purpose | Group chat, tutor threads, AI chat sessions |
+| Entry | `design-playground/messenger/messenger-shell.html` |
+| Pages | `components/messenger.html` as component reference |
+| CSS | `tokens.css`, `foundation.css`, `messenger-shell.css`, `messenger-catalog.css` |
+| Components | Messenger Rail, Conversation Topbar, Message Bubble, Composer |
+| Standards | `DESIGN_STANDARDS.md` -> Messenger |
+| Migration Targets | `templates/messenger/base.html`, `templates/messenger/index.html`, `templates/messenger/chat_widget.html` |
+| Status | `ready` |
 
-Quyidagi page oilalari tabiatan `bitta sahifa = bitta shell` emas:
+### Blog Reading
 
-| Page family | Variant 1 | Variant 2 | Notes |
-|---|---|---|---|
-| `pricing` | Public acquisition | App upgrade / renew | Copy, CTA va context boshqacha bo'ladi |
-| `legal` | Public trust / footer documents | App settings / help / compliance access | Dedicated prototype family tayyor; kontent shared bo'lishi mumkin, lekin surrounding shell va navigatsiya boshqacha bo'ladi |
-| `course_list` | Public discovery catalog | App contextual catalog | App varianti current level/cohort signallarini ko'rsatadi |
-| `course_detail` | Public sales/detail | App operational cohort detail | App ichida enrollment qarori continuity bilan keladi |
-| `help_center` | Public FAQ/support intro | App support workspace | Auth userda issue history va contextual help bo'lishi mumkin |
+| Item | Value |
+| --- | --- |
+| Purpose | Public editorial reading experience |
+| Entry | `design-playground/blog/blog-public-shell.html` |
+| Pages | `blog/blog-article-shell.html` |
+| CSS | `tokens.css`, `foundation.css`, `blog.css` |
+| Components | Blog List Shell, Article Shell |
+| Standards | `DESIGN_STANDARDS.md` -> Blog Reading |
+| Migration Targets | `templates/blog/base_public.html`, `templates/blog/post_list.html`, `templates/blog/post_detail.html` |
+| Status | `ready` |
 
-## Page Ownership Buckets
+### Blog Studio
 
-Bu bo'lim prototype planning uchun eng amaliy ko'rinishni beradi: qaysi sahifa oilasi faqat public, qaysisi faqat app, qaysisi esa ikki surface'da yashashi mumkin.
+| Item | Value |
+| --- | --- |
+| Purpose | Editorial operations workspace |
+| Entry | `design-playground/blog-studio/blog-studio-shell.html` |
+| Pages | `blog-studio/blog-studio-new-post.html`, `blog-studio/blog-studio-analytics.html`, `blog-studio/blog-studio-tags.html`, `blog-studio/blog-studio-sections.html` |
+| CSS | `tokens.css`, `foundation.css`, `blog-studio.css` |
+| Components | Studio Sidebar, Studio Topbar, Post Queue, Editor Surface, Taxonomy Manager |
+| Standards | `DESIGN_STANDARDS.md` -> Blog Studio |
+| Migration Targets | `templates/blog_studio/base.html`, `templates/blog_studio/dashboard.html`, `templates/blog_studio/post_form.html`, `templates/blog_studio/analytics.html`, `templates/blog_studio/tags.html`, `templates/blog_studio/sections.html` |
+| Status | `ready` |
 
-### 1. Public-only
+### Legal Documents
 
-Bu sahifalar asosan trust, discovery, onboarding yoki public information vazifasini bajaradi.
+| Item | Value |
+| --- | --- |
+| Purpose | Policy, terms, FAQ document pages |
+| Entry | `design-playground/legal/legal-privacy.html` |
+| Pages | `legal/legal-terms.html`, `legal/legal-faq.html` |
+| CSS | `tokens.css`, `foundation.css`, `legal.css` |
+| Components | Legal Document Header, Legal Content Section |
+| Standards | `DESIGN_STANDARDS.md` -> Legal |
+| Migration Targets | `templates/legal/privacy.html`, `templates/legal/terms.html`, `templates/legal/faq.html` |
+| Status | `ready` |
 
-- `templates/base.html`
-- `templates/index.html`
-- `templates/about.html`
-- `templates/auth/base.html`
-- `templates/registration/login.html`
-- `templates/registration/register.html`
-- `templates/registration/password_reset_form.html`
-- `templates/registration/password_reset_confirm.html`
-- `templates/registration/password_reset_done.html`
-- `templates/registration/password_reset_complete.html`
-- `blog/templates/blog/base.html`
-- `blog/templates/blog/post_list.html`
-- `blog/templates/blog/post_detail.html`
+### Error
 
-### 2. App-only
+| Item | Value |
+| --- | --- |
+| Purpose | Error status pages with recovery actions |
+| Entry | `design-playground/error/error-shell.html` |
+| Pages | `error/error-400.html`, `error/error-401.html`, `error/error-403.html`, `error/error-404.html`, `error/error-419.html`, `error/error-429.html`, `error/error-500.html`, `error/error-503.html` |
+| CSS | `tokens.css`, `foundation.css`, `error.css` |
+| Components | Error Shell, Error Action Row |
+| Standards | `DESIGN_STANDARDS.md` -> Error |
+| Migration Targets | `templates/errors/base.html`, status templates |
+| Status | `ready` |
 
-Bu sahifalar auth qilingan foydalanuvchi yoki operator kontekstiga tayanadi va public surface'da yashashi mantiqan to'g'ri emas.
+## Component Reference Matrix
 
-- `templates/dashboard/base.html`
-- `templates/users/dashboard.html`
-- `templates/users/leaderboard.html`
-- `templates/users/attendance_calendar.html`
-- `templates/users/attendance_manage.html`
-- `templates/users/notifications.html`
-- `templates/users/profile.html`
-- `templates/users/settings.html`
-- `templates/users/subscriptions.html`
-- `templates/users/certificates.html`
-- `templates/courses/lesson_detail.html`
-- `templates/courses/exam_detail.html`
-- `templates/courses/exam_result.html`
-- `templates/messenger/chat_widget.html`
-- `blog/templates/blog/studio_form.html`
-- `blog/templates/blog/studio_list.html`
-- `templates/includes/dashboard_enrollment_card.html`
-- `templates/includes/dashboard_recommended_course_card.html`
+| Reference Page | Covers | Used By |
+| --- | --- | --- |
+| `design-playground/components/index.html` | Component catalog entry | All flows |
+| `design-playground/components/buttons.html` | Buttons, action states | Public, Auth, App, Learning, Exam, Blog, Error |
+| `design-playground/components/navigation.html` | Public nav, app sidebar, topbar patterns | Public, App, Blog Studio |
+| `design-playground/components/cards.html` | Course cards, dashboard cards, content cards | Public, App, Blog |
+| `design-playground/components/forms.html` | Inputs, selects, textarea, upload, validation | Auth, Checkout, App, Studio |
+| `design-playground/components/learning.html` | Lesson cards, progress, learning widgets | Learning |
+| `design-playground/components/exam.html` | Exam controls and assessment UI | Exam |
+| `design-playground/components/messenger.html` | Chat widget and conversation components | Messenger, App, Learning |
 
-### 3. Dual-surface
+## Migration Readiness Matrix
 
-Bu sahifalar bitta maqsadga ega bo'lsa ham, public va app ichida turlicha kontekstda ko'rinishi mumkin.
+| Flow | Shell Base Needed | Page Templates | Component Source | CSS Scope | Status |
+| --- | --- | --- | --- | --- | --- |
+| Public Discovery | `templates/base_public.html` | landing, about, course list/detail, pricing | Public components | `public-*` wrapper | `ready` |
+| Auth & Billing | `templates/auth/base.html` | login/register/recovery/verify/checkout | Auth & Billing components | `auth-*`, `checkout-*` wrapper | `ready` |
+| Student App | `templates/dashboard/base.html` | dashboard, catalog, tracking, account | App components | `app-*` wrapper | `ready` |
+| Learning | `templates/courses/lesson_base.html` | lesson detail | Learning components | `learning-*` wrapper | `ready` |
+| Exam | `templates/courses/exam_base.html` | exam detail/result | Exam components | `exam-*` wrapper | `ready` |
+| Messenger | `templates/messenger/base.html` | full messenger, widget | Messenger components | `messenger-*` wrapper | `ready` |
+| Blog Reading | `templates/blog/base_public.html` | post list/detail | Blog Reading components | `blog-*` wrapper | `ready` |
+| Blog Studio | `templates/blog_studio/base.html` | dashboard, post form, analytics, tags, sections | Studio components | `studio-*` wrapper | `ready` |
+| Legal | `templates/legal/base.html` | privacy, terms, FAQ | Legal components | `legal-*` wrapper | `ready` |
+| Error | `templates/errors/base.html` | status pages | Error components | `error-*` wrapper | `ready` |
 
-- `templates/subscriptions/pricing.html`
-- `templates/legal_page.html`
-- `templates/courses/course_list.html`
-- `templates/courses/course_detail.html`
-- `templates/users/help_center.html`
-- `templates/includes/brand_lockup.html`
-- `templates/includes/course_cover_overlay.html`
-- `templates/includes/course_showcase_card.html`
+## Future Scope Register
 
-### 4. Document-special
+These are useful future surfaces outside the current prototype freeze:
 
-Bu oilani public/app duality ichiga tiqish noto'g'ri bo'ladi. Ular hujjat, checkout, printable yoki verification surface sifatida alohida qaralishi kerak.
+| Surface | Suggested Flow | Reference To Start From |
+| --- | --- | --- |
+| Operator attendance manage | Student App / Admin extension | `app/app-attendance.html` |
+| Certificate list/history | Student App / Records | `app/subscriptions.html`, `app/app-profile.html` density |
+| Certificate document | Document surface | `legal/legal-privacy.html`, `error/error-shell.html` calm document rhythm |
+| Certificate appendix | Document surface | `legal/legal-privacy.html` long-form rhythm |
+| App help center | Student App / Support | `app/notifications.html`, `messenger/messenger-shell.html` support patterns |
+| App upgrade/renew pricing | Student App / Billing | `public/pricing.html`, `app/subscriptions.html` |
 
-- `templates/cohorts/checkout.html`
-- `templates/cohorts/checkout_success.html`
-- `templates/courses/certificate.html`
-- `templates/courses/certificate_appendix.html`
+## Completion Checklist
 
-## Planning Shortcut
-
-Agar prototype navbatni eng amaliy ko'rinishda belgilamoqchi bo'lsak:
-
-1. `App-only gaps`
-   - notifications
-   - profile
-   - settings
-   - subscriptions
-   - attendance
-   - leaderboard
-   - certificates list
-2. `Document-special gaps`
-   - checkout
-   - checkout success
-   - certificate
-   - certificate appendix
-3. `Dual-surface gaps`
-   - pricing
-   - public/app course list
-   - public/app course detail
-   - help center
-
-## Learning Shell
-
-| Target | Shell | Status | Prototype source | Notes |
-|---|---|---|---|---|
-| `templates/courses/lesson_detail.html` | Learning | `shell-only` | `design-playground/learning-shell.html` | Asosiy lesson workspace bor, lekin text/homework/quiz/chat mode'lar hali ko'paytirilishi kerak |
-
-## Exam Shell
-
-| Target | Shell | Status | Prototype source | Notes |
-|---|---|---|---|---|
-| `templates/courses/exam_detail.html` | Exam | `page-ready` | `design-playground/exam-shell.html`, `design-playground/exam-writing.html`, `design-playground/exam-listening.html`, `design-playground/exam-speaking.html` | Family kuchli, mode-specific center stage bor |
-| `templates/courses/exam_result.html` | Exam | `page-ready` | `design-playground/exam-review.html` | Student-facing review/result reference bor |
-
-## Commerce / Document Flows
-
-| Target | Shell | Status | Prototype source | Notes |
-|---|---|---|---|---|
-| `templates/cohorts/checkout.html` | Commerce / Document | `missing` | - | Juda muhim bo'shliq |
-| `templates/cohorts/checkout_success.html` | Commerce / Document | `missing` | - | Checkout completion state yo'q |
-| `templates/courses/certificate.html` | Document | `missing` | - | Hujjatga o'xshash alohida shell kerak |
-| `templates/courses/certificate_appendix.html` | Document | `missing` | - | Academic appendix uchun alohida layout kerak |
-
-## Messenger
-
-| Target | Shell | Status | Prototype source | Notes |
-|---|---|---|---|---|
-| `templates/messenger/chat_widget.html` | App / Learning Widget | `component-only` | `design-playground/components/messenger.html` | Widget reference bor, lekin final page/context rule hali qotmagan |
-| `full messenger workspace` | Messenger | `page-ready` | `design-playground/messenger-shell.html` | Albatta rebuild targetda yo'q, lekin future reference sifatida kuchli |
-
-## Blog
-
-| Target | Shell | Status | Prototype source | Notes |
-|---|---|---|---|---|
-| `blog/templates/blog/base.html` | Blog / Editorial | `shell-only` | `design-playground/blog-public-shell.html`, `design-playground/blog-article-shell.html`, `design-playground/blog-studio-shell.html` | Oilaning bazasi bor, lekin yagona base hali ajratilmagan |
-| `blog/templates/blog/post_list.html` | Blog / Editorial | `page-ready` | `design-playground/blog-public-shell.html` | Public list reference tayyor |
-| `blog/templates/blog/post_detail.html` | Blog / Editorial | `page-ready` | `design-playground/blog-article-shell.html` | Article page reference tayyor |
-| `blog/templates/blog/studio_form.html` | Blog / Studio | `shell-only` | `design-playground/blog-studio-shell.html` | Form ichki bloklari bor, lekin final dedicated page yo'q |
-| `blog/templates/blog/studio_list.html` | Blog / Studio | `shell-only` | `design-playground/blog-studio-shell.html` | Queue/list bor, lekin ajratilgan page hali yo'q |
-
-## Shared Includes
-
-| Target | Shell | Status | Prototype source | Notes |
-|---|---|---|---|---|
-| `templates/includes/brand_lockup.html` | Shared | `component-only` | `design-playground/public-shell.html`, `design-playground/app-shell.html` | Mark+copy patternlar bor |
-| `templates/includes/course_cover_overlay.html` | Shared | `component-only` | `design-playground/public-shell.html`, `design-playground/app-course-detail.html` | Visual direction bor, include hali ajratilmagan |
-| `templates/includes/course_showcase_card.html` | Shared | `component-only` | `design-playground/public-shell.html`, `design-playground/components/cards.html` | Card oilasi bor |
-| `templates/includes/dashboard_enrollment_card.html` | Shared | `component-only` | `design-playground/app-shell.html` | Dashboard stat/enrollment ritmi bor, alohida include yo'q |
-| `templates/includes/dashboard_recommended_course_card.html` | Shared | `component-only` | `design-playground/app-shell.html`, `design-playground/app-course-list.html` | App card oilasi bor |
-
-## Biggest Prototype Gaps
-
-Priority bo'yicha eng katta bo'shliqlar:
-
-1. `checkout + checkout_success`
-2. `certificate + certificate_appendix`
-3. `notifications / profile / settings / subscriptions / help_center`
-4. `attendance_calendar / attendance_manage / leaderboard / certificates list`
-5. `public course_list / public course_detail / pricing / about`
-
-## Suggested Prototype Order
-
-1. Commerce/document oilasi:
-   - checkout
-   - checkout success
-   - certificate
-   - certificate appendix
-2. App utility oilasi:
-   - notifications
-   - profile
-   - settings
-   - subscriptions
-   - help center
-3. Academic tracking oilasi:
-   - attendance calendar
-   - attendance manage
-   - leaderboard
-   - certificates list
-4. Public informational oilasi:
-   - pricing
-   - public course list
-   - public course detail
+| Check | Status |
+| --- | --- |
+| All shell playground HTML files are listed from `design-playground/index.html` | `ready` |
+| All current prototype flows have entry pages | `ready` |
+| Every flow has child pages or component references | `ready` |
+| Every flow maps to CSS ownership | `ready` |
+| Every flow maps to component catalog sections | `ready` |
+| Every flow maps to migration targets | `ready` |
+| Standards, tokens, components, migration docs are linked from playground | `ready` |
+| Final readiness gate is linked from playground | `ready` |

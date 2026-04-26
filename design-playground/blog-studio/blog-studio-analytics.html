@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog Studio Analytics Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/blog-studio.css">
+</head>
+<body class="shell-app">
+  <div class="app-layout">
+    <aside class="app-sidebar">
+      <div class="app-sidebar-brand">
+        <div class="brand-mark brand-mark--app">AL</div>
+        <div class="app-brand-copy">
+          <strong>AzureLMS</strong>
+          <span>Blog studio</span>
+        </div>
+      </div>
+
+      <div class="app-sidebar-title">Kontent studio</div>
+
+      <section class="app-accordion">
+        <div class="app-sidebar-group">
+          <button class="app-group-toggle" type="button" aria-expanded="false">
+            <span class="app-group-copy">
+              <strong>Studio</strong>
+              <small>Postlar va yozish</small>
+            </span>
+            <i class="bi bi-chevron-down"></i>
+          </button>
+          <nav class="app-nav">
+            <a href="./blog-studio-shell.html"><i class="bi bi-speedometer2"></i><span>Ish stoli</span></a>
+            <a href="./blog-studio-new-post.html"><i class="bi bi-pencil-square"></i><span>Yangi post</span></a>
+          </nav>
+        </div>
+
+        <div class="app-sidebar-group">
+          <button class="app-group-toggle" type="button" aria-expanded="false">
+            <span class="app-group-copy">
+              <strong>Library</strong>
+              <small>Taxonomy</small>
+            </span>
+            <i class="bi bi-chevron-down"></i>
+          </button>
+          <nav class="app-nav app-nav--secondary">
+            <a href="./blog-studio-tags.html"><i class="bi bi-tags"></i><span>Taglar</span></a>
+            <a href="./blog-studio-sections.html"><i class="bi bi-folder2-open"></i><span>Bo'limlar</span></a>
+          </nav>
+        </div>
+
+        <div class="app-sidebar-group is-open">
+          <button class="app-group-toggle" type="button" aria-expanded="true">
+            <span class="app-group-copy">
+              <strong>Insights</strong>
+              <small>O'qilish va reach</small>
+            </span>
+            <i class="bi bi-chevron-down"></i>
+          </button>
+          <nav class="app-nav app-nav--secondary">
+            <a class="is-active" href="./blog-studio-analytics.html"><i class="bi bi-graph-up-arrow"></i><span>Analitika</span></a>
+          </nav>
+        </div>
+
+        <div class="app-sidebar-group">
+          <button class="app-group-toggle" type="button" aria-expanded="false">
+            <span class="app-group-copy">
+              <strong>Public</strong>
+              <small>O'qish qismi</small>
+            </span>
+            <i class="bi bi-chevron-down"></i>
+          </button>
+          <nav class="app-nav app-nav--secondary">
+            <a href="../blog/blog-public-shell.html"><i class="bi bi-journal-richtext"></i><span>Public blog</span></a>
+            <a href="../blog/blog-article-shell.html"><i class="bi bi-file-earmark-text"></i><span>Article preview</span></a>
+            <a href="../app/app-shell.html"><i class="bi bi-box-arrow-left"></i><span>App dashboard</span></a>
+          </nav>
+        </div>
+      </section>
+
+      <div class="app-user-card">
+        <div class="app-user-avatar">AS</div>
+        <div class="app-user-copy">
+          <strong>Azizbek Sirojiddinov</strong>
+          <span>Editor</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="app-main">
+      <header class="app-topbar">
+        <div class="app-term">
+          <i class="bi bi-list"></i>
+          <span>Blog studio / Analitika</span>
+        </div>
+        <div class="app-topbar-actions">
+          <a class="app-icon-btn" href="../app/app-shell.html" aria-label="App dashboard"><i class="bi bi-house-door"></i></a>
+          <a class="app-icon-btn app-icon-btn--badge" href="../app/notifications.html" aria-label="Notifications"><i class="bi bi-megaphone"></i><em>1</em></a>
+          <div class="app-topbar-user">
+            <div class="app-topbar-avatar">A</div>
+            <span>BLOG STUDIO</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="app-workspace blog-studio-page">
+        <section class="studio-toolbar" aria-label="Analytics controls">
+          <div class="studio-tabs" aria-label="Date range">
+            <button class="is-active" type="button">7 kun</button>
+            <button type="button">30 kun</button>
+            <button type="button">90 kun</button>
+          </div>
+          <div class="studio-toolbar-note">
+            <span class="studio-status-dot studio-status-dot--live"></span>
+            Oxirgi yangilanish: 18:10
+          </div>
+          <button class="studio-secondary-action" type="button">
+            <i class="bi bi-download"></i>
+            Export
+          </button>
+        </section>
+
+        <section class="studio-metric-grid" aria-label="Blog metrics">
+          <article class="studio-metric">
+            <span>Views</span>
+            <strong>18 240</strong>
+            <em>+12%</em>
+          </article>
+          <article class="studio-metric">
+            <span>Readers</span>
+            <strong>4 860</strong>
+            <em>+8%</em>
+          </article>
+          <article class="studio-metric">
+            <span>Avg read</span>
+            <strong>5m 42s</strong>
+            <em>+0:28</em>
+          </article>
+          <article class="studio-metric">
+            <span>Signups</span>
+            <strong>146</strong>
+            <em>+19%</em>
+          </article>
+        </section>
+
+        <section class="studio-insight-layout">
+          <section class="studio-panel" aria-labelledby="traffic-title">
+            <div class="studio-panel-head">
+              <div>
+                <strong id="traffic-title">Traffic trend</strong>
+                <span>Kunlik views</span>
+              </div>
+            </div>
+            <div class="studio-chart">
+              <span style="height: 42%"></span>
+              <span style="height: 58%"></span>
+              <span style="height: 48%"></span>
+              <span style="height: 72%"></span>
+              <span style="height: 64%"></span>
+              <span style="height: 86%"></span>
+              <span style="height: 78%"></span>
+            </div>
+          </section>
+
+          <section class="studio-panel" aria-labelledby="top-posts-title">
+            <div class="studio-panel-head">
+              <div>
+                <strong id="top-posts-title">Top postlar</strong>
+                <span>Eng ko'p o'qilgan yozuvlar</span>
+              </div>
+            </div>
+            <div class="studio-table">
+              <div class="studio-table-head">
+                <span>Post</span>
+                <span>Views</span>
+                <span>Read</span>
+                <span>Signup</span>
+              </div>
+              <article>
+                <strong>Public kurs katalogi</strong>
+                <span>5 420</span>
+                <span>64%</span>
+                <span>48</span>
+              </article>
+              <article>
+                <strong>Checkout receipt flow</strong>
+                <span>3 880</span>
+                <span>58%</span>
+                <span>31</span>
+              </article>
+              <article>
+                <strong>Messenger workspace</strong>
+                <span>2 940</span>
+                <span>52%</span>
+                <span>19</span>
+              </article>
+            </div>
+          </section>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="../assets/js/app-shell.js"></script>
+</body>
+</html>

@@ -11,6 +11,11 @@
   --surface-workspace: #f7f9fc;
   --surface-base: #ffffff;
   --surface-soft: #eef3f8;
+  --surface-dark-start: #13253b;
+  --surface-dark-end: #102033;
+  --surface-dark-gradient: linear-gradient(180deg, var(--surface-dark-start) 0%, var(--surface-dark-end) 100%);
+  --surface-utility: var(--surface-dark-gradient);
+  --surface-footer: var(--surface-dark-gradient);
 
   --border-strong: #cfd8e3;
   --border-main: #d7dfea;

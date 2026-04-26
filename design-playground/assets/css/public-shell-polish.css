@@ -1,0 +1,547 @@
+/*  ─────────────────────────────────────────────
+    public-shell-polish.css
+    public.css ustiga qo'shimcha yaxshilanishlar.
+    Asl fayl saqlanadi, bu faqat ustiga qatlamlanadi.
+    ───────────────────────────────────────────── */
+
+/* ── Course cover inner — ikonka + matn ───────── */
+.course-cover-inner {
+  display: grid;
+  place-items: center;
+  gap: 12px;
+}
+
+.course-cover-inner i {
+  font-size: 2rem;
+  opacity: 0.7;
+}
+
+/* ── Course card hover — subtil ko'tarish ──────── */
+.course-card {
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+.course-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 36px rgba(13, 24, 42, 0.1);
+}
+
+/* ── Course meta arrow ──────────────────────────── */
+.course-meta a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.course-meta a i {
+  font-size: 0.7rem;
+  transition: transform 180ms ease;
+}
+
+.course-card:hover .course-meta a i {
+  transform: translateX(3px);
+}
+
+/* ── Section link arrow ─────────────────────────── */
+.section-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: gap 180ms ease;
+}
+
+.section-link:hover {
+  gap: 10px;
+}
+
+.section-link i {
+  font-size: 0.78rem;
+}
+
+/* ── Process section — ikonkali step ────────────── */
+.process-step {
+  display: grid;
+  place-items: center;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.process-step i {
+  line-height: 1;
+}
+
+/* ── Process card hover ─────────────────────────── */
+.process-card {
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+.process-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 32px rgba(13, 24, 42, 0.08);
+}
+
+/* ── Process grid — stepper chiziq ──────────────── */
+.process-grid {
+  position: relative;
+}
+
+.process-grid::before {
+  content: "";
+  position: absolute;
+  top: 43px;
+  left: calc(25% - 10px);
+  right: calc(25% - 10px);
+  height: 1px;
+  background: var(--border-subtle, #dde4ee);
+  z-index: 0;
+}
+
+.process-card {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Testimonial — avatar + info ────────────────── */
+.testimonial-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.testimonial-avatar {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+  letter-spacing: 0.04em;
+}
+
+.testimonial-avatar--warm {
+  background: linear-gradient(135deg, #c96f3b, #e09157);
+}
+
+.testimonial-avatar--cool {
+  background: linear-gradient(135deg, #1e5ab4, #4a7ed8);
+}
+
+.testimonial-avatar--navy {
+  background: linear-gradient(135deg, #16263c, #2a4a6e);
+}
+
+.testimonial-info {
+  display: grid;
+  gap: 2px;
+}
+
+.testimonial-info strong {
+  font-size: 0.86rem;
+  color: var(--ink-700, #18263c);
+}
+
+.testimonial-info span {
+  font-size: 0.72rem;
+  color: #76859a;
+}
+
+/* ── Testimonial card — layout yaxshilash ───────── */
+.testimonial-card {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  padding: 20px;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+.testimonial-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 32px rgba(13, 24, 42, 0.08);
+}
+
+/* Eski testimonial-meta stillarini bekor qilish */
+.testimonial-card > .testimonial-meta {
+  display: none;
+}
+
+/* ── CTA — inner wrapper ────────────────────────── */
+.cta-strip {
+  display: block;
+  padding: 0;
+}
+
+.cta-inner {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 32px;
+  align-items: center;
+  padding: 36px 40px;
+  border: 1px solid #253a5b;
+  background:
+    radial-gradient(circle at 90% 80%, rgba(30, 90, 180, 0.15), transparent 50%),
+    linear-gradient(135deg, #18263c, #22415f);
+}
+
+.cta-inner .cta-copy {
+  display: grid;
+  gap: 8px;
+}
+
+.cta-inner .cta-copy h2 {
+  font-size: 1.92rem;
+  line-height: 1.05;
+  color: #fff;
+}
+
+.cta-inner .cta-copy p:last-child {
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 0.9rem;
+}
+
+.cta-inner .cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* ── Button hover effektlari ────────────────────── */
+.shell-public .button {
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 120ms ease;
+}
+
+.shell-public .button--primary:hover {
+  background: #1e3a5c;
+  border-color: #1e3a5c;
+}
+
+.shell-public .button--ghost:hover {
+  background: var(--surface-soft, #eef3f8);
+  border-color: var(--border-strong, #cfd8e3);
+}
+
+.shell-public .button--light:hover {
+  background: #f0f4f8;
+  color: #12203a;
+}
+
+.shell-public .button--outline-light:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.44);
+}
+
+/* ── Portal card hover ──────────────────────────── */
+.portal-card {
+  transition: box-shadow 200ms ease;
+}
+
+.portal-card:hover {
+  box-shadow: 0 20px 40px rgba(13, 24, 42, 0.1);
+}
+
+/* ── Portal tab hover ───────────────────────────── */
+.portal-card-tabs a {
+  transition: color 160ms ease, box-shadow 160ms ease;
+}
+
+.portal-card-tabs a:hover {
+  color: #1e5ab4;
+}
+
+/* ── Billboard poster hover ─────────────────────── */
+.public-billboard {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(107, 197, 188, 0.2), transparent 26%),
+    radial-gradient(circle at 84% 16%, rgba(240, 181, 70, 0.16), transparent 28%),
+    linear-gradient(128deg, #13253b 0%, #19375a 45%, #285f6b 100%);
+}
+
+.public-billboard:has(.public-billboard-slide:nth-child(1).is-active) {
+  background:
+    radial-gradient(circle at 16% 20%, rgba(107, 197, 188, 0.22), transparent 28%),
+    radial-gradient(circle at 86% 70%, rgba(110, 174, 248, 0.18), transparent 30%),
+    linear-gradient(128deg, #13253b 0%, #173c58 48%, #245f68 100%);
+}
+
+.public-billboard:has(.public-billboard-slide:nth-child(2).is-active) {
+  background:
+    radial-gradient(circle at 18% 74%, rgba(240, 181, 70, 0.18), transparent 28%),
+    radial-gradient(circle at 86% 18%, rgba(107, 197, 188, 0.16), transparent 30%),
+    linear-gradient(128deg, #172334 0%, #293b5f 46%, #44506f 100%);
+}
+
+.public-billboard:has(.public-billboard-slide:nth-child(3).is-active) {
+  background:
+    radial-gradient(circle at 16% 24%, rgba(229, 107, 119, 0.17), transparent 28%),
+    radial-gradient(circle at 82% 72%, rgba(110, 174, 248, 0.18), transparent 30%),
+    linear-gradient(128deg, #18263c 0%, #2b3359 48%, #463760 100%);
+}
+
+.public-billboard::before {
+  background:
+    linear-gradient(120deg, rgba(255, 255, 255, 0.12), transparent 28%),
+    radial-gradient(circle at 72% 48%, rgba(255, 255, 255, 0.14), transparent 32%),
+    linear-gradient(138deg, transparent 62%, rgba(255, 255, 255, 0.08) 62.2%, transparent 62.6%);
+  background-size: auto;
+  opacity: 0.42;
+}
+
+.public-billboard-grid {
+  grid-template-areas: "stage copy";
+  min-height: 532px;
+}
+
+.billboard-stage {
+  grid-area: stage;
+}
+
+.billboard-copy {
+  grid-area: copy;
+}
+
+.public-billboard-slide:nth-child(2) .public-billboard-grid {
+  grid-template-areas: "copy stage";
+  grid-template-columns: 1.02fr 0.98fr;
+}
+
+.public-billboard-slide:nth-child(2) .billboard-stage {
+  justify-self: end;
+  width: min(100%, 650px);
+}
+
+.public-billboard-slide:nth-child(3) .public-billboard-grid {
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "copy";
+  justify-items: center;
+  gap: 22px;
+  min-height: 532px;
+  padding-block: 48px 32px;
+}
+
+.public-billboard-slide:nth-child(3) .billboard-stage {
+  display: none;
+}
+
+.public-billboard-slide:nth-child(3) .billboard-copy {
+  min-height: 0;
+  max-width: 900px;
+  grid-template-rows: auto auto auto auto;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+}
+
+.public-billboard-slide:nth-child(3) .billboard-copy h1,
+.public-billboard-slide:nth-child(3) .billboard-text {
+  max-width: 760px;
+}
+
+.public-billboard-slide:nth-child(3) .billboard-points {
+  width: min(100%, 760px);
+}
+
+.billboard-poster {
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+.billboard-poster--main:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 24px 52px rgba(9, 17, 30, 0.26);
+}
+
+.billboard-poster--side:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 40px rgba(9, 17, 30, 0.22);
+}
+
+/* ── Billboard control hover ────────────────────── */
+.billboard-control {
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.billboard-control:hover {
+  background: rgba(255, 255, 255, 0.26);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+/* ── Billboard dot transition ───────────────────── */
+.billboard-dot {
+  transition: width 260ms ease, background 260ms ease;
+}
+
+/* ── Search strip focus ─────────────────────────── */
+.search-strip input:focus {
+  outline: none;
+  box-shadow: inset 0 0 0 2px rgba(30, 90, 180, 0.18);
+}
+
+.search-button {
+  transition: background 160ms ease;
+  cursor: pointer;
+}
+
+.search-button:hover {
+  background: #243f60;
+}
+
+/* ── Nav link hover ─────────────────────────────── */
+.public-main-nav a {
+  position: relative;
+  transition: color 160ms ease;
+}
+
+.public-main-nav a::after {
+  content: "";
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--interactive-link, #1e5ab4);
+  transition: width 200ms ease;
+}
+
+.public-main-nav a:hover {
+  color: var(--interactive-link, #1e5ab4);
+}
+
+.public-main-nav a:hover::after {
+  width: 100%;
+}
+
+/* ── Utility link hover ─────────────────────────── */
+.public-utility a {
+  transition: opacity 160ms ease;
+}
+
+.public-utility a:hover {
+  opacity: 0.82;
+}
+
+/* ── Footer link hover ──────────────────────────── */
+.public-footer-grid a {
+  transition: color 160ms ease;
+}
+
+.public-footer-grid a:hover {
+  color: #fff;
+}
+
+/* ── Responsive: CTA inner ──────────────────────── */
+@media (max-width: 820px) {
+  .public-billboard-grid,
+  .public-billboard-slide:nth-child(2) .public-billboard-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "copy"
+      "stage";
+  }
+
+  .public-billboard-slide:nth-child(3) .public-billboard-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "copy";
+  }
+
+  .public-billboard-slide:nth-child(2) .billboard-stage {
+    justify-self: start;
+    width: 100%;
+  }
+
+  .cta-inner {
+    grid-template-columns: 1fr;
+    padding: 28px 24px;
+  }
+
+  .process-grid::before {
+    display: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .public-billboard-grid,
+  .public-billboard-slide:nth-child(2) .public-billboard-grid,
+  .public-billboard-slide:nth-child(3) .public-billboard-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "copy";
+    min-height: 500px;
+    height: 500px;
+    gap: 0;
+    padding-block: 28px 16px;
+  }
+
+  .billboard-stage,
+  .public-billboard-slide:nth-child(2) .billboard-stage,
+  .public-billboard-slide:nth-child(3) .billboard-stage {
+    display: none;
+  }
+
+  .public-billboard-slide:nth-child(3) .billboard-copy {
+    max-width: none;
+    justify-items: start;
+    text-align: left;
+  }
+
+  .billboard-copy,
+  .public-billboard-slide:nth-child(3) .billboard-copy {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+    align-content: start;
+    gap: 12px;
+  }
+
+  .billboard-points,
+  .public-billboard-slide:nth-child(3) .billboard-points {
+    width: 100%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: auto;
+  }
+
+  .billboard-points div {
+    min-height: 78px;
+    padding: 10px 8px;
+  }
+
+  .billboard-points strong {
+    font-size: 0.76rem;
+    line-height: 1.2;
+  }
+
+  .billboard-points span {
+    font-size: 0.68rem;
+    line-height: 1.35;
+  }
+
+  .public-billboard-slide:nth-child(3) .billboard-copy h1,
+  .public-billboard-slide:nth-child(3) .billboard-text,
+  .public-billboard-slide:nth-child(3) .billboard-points {
+    width: 100%;
+    max-width: none;
+  }
+
+  .public-billboard-controls {
+    justify-content: center;
+    padding-bottom: 22px;
+  }
+
+  .billboard-nav {
+    display: none;
+  }
+}
+
+@media (max-width: 390px) {
+  .public-billboard-grid,
+  .public-billboard-slide:nth-child(2) .public-billboard-grid,
+  .public-billboard-slide:nth-child(3) .public-billboard-grid {
+    min-height: 530px;
+    height: 530px;
+  }
+}

@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App Course Catalog Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/app-course-list.css">
+</head>
+<body class="shell-app">
+  <div class="app-layout">
+    <aside class="app-sidebar">
+      <div class="app-sidebar-brand">
+        <div class="brand-mark brand-mark--app">AL</div>
+        <div class="app-brand-copy">
+          <strong>AzureLMS</strong>
+          <span>Student platform</span>
+        </div>
+      </div>
+
+      <div class="app-sidebar-title">O'quv paneli</div>
+
+      <section class="app-accordion">
+        <div class="app-sidebar-group">
+          <button class="app-group-toggle" type="button" aria-expanded="false">
+            <span class="app-group-copy">
+              <strong>Learning</strong>
+              <small>Asosiy oqim</small>
+            </span>
+            <i class="bi bi-chevron-down"></i>
+          </button>
+          <nav class="app-nav">
+            <a href="./app-shell.html"><i class="bi bi-grid"></i><span>Dashboard</span></a>
+            <a href="#"><i class="bi bi-collection-play"></i><span>Mening kurslarim</span></a>
+            <a href="./app-leaderboard.html"><i class="bi bi-bar-chart"></i><span>Leaderboard</span></a>
+            <a href="./app-attendance.html"><i class="bi bi-calendar3"></i><span>Davomat</span></a>
+            <a href="./notifications.html"><i class="bi bi-bell"></i><span>Bildirishnomalar</span><em>1</em></a>
+          </nav>
+        </div>
+
+        <div class="app-sidebar-group is-open">
+          <button class="app-group-toggle" type="button" aria-expanded="true">
+            <span class="app-group-copy">
+              <strong>Platform</strong>
+              <small>Katalog va support</small>
+            </span>
+            <i class="bi bi-chevron-down"></i>
+          </button>
+          <nav class="app-nav app-nav--secondary">
+            <a class="is-active" href="./app-course-list.html"><i class="bi bi-compass"></i><span>Katalog</span></a>
+            <a href="#"><i class="bi bi-life-preserver"></i><span>Help center</span></a>
+            <a href="./subscriptions.html"><i class="bi bi-credit-card"></i><span>Subscriptions</span></a>
+          </nav>
+        </div>
+
+        <div class="app-sidebar-group">
+          <button class="app-group-toggle" type="button" aria-expanded="false">
+            <span class="app-group-copy">
+              <strong>Content</strong>
+              <small>Blog va media</small>
+            </span>
+            <i class="bi bi-chevron-down"></i>
+          </button>
+          <nav class="app-nav app-nav--secondary">
+            <a href="../blog/blog-public-shell.html"><i class="bi bi-journal-richtext"></i><span>Blog</span></a>
+            <a href="../blog-studio/blog-studio-shell.html"><i class="bi bi-pencil-square"></i><span>Blog studio</span></a>
+          </nav>
+        </div>
+
+        <div class="app-sidebar-group">
+          <button class="app-group-toggle" type="button" aria-expanded="false">
+            <span class="app-group-copy">
+              <strong>Account</strong>
+              <small>Profil va sozlamalar</small>
+            </span>
+            <i class="bi bi-chevron-down"></i>
+          </button>
+          <nav class="app-nav app-nav--secondary">
+            <a href="./app-profile.html"><i class="bi bi-person"></i><span>Profil</span></a>
+            <a href="./app-settings.html"><i class="bi bi-gear"></i><span>Sozlamalar</span></a>
+          </nav>
+        </div>
+      </section>
+
+      <div class="app-user-card">
+        <div class="app-user-avatar">AS</div>
+        <div class="app-user-copy">
+          <strong>Azizbek Sirojiddinov</strong>
+          <span>@azurebek</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="app-main">
+      <header class="app-topbar">
+        <div class="app-term">
+          <i class="bi bi-list"></i>
+          <span>2025-2026 Bahar / Platform katalogi</span>
+        </div>
+        <div class="app-topbar-actions">
+          <button class="app-icon-btn"><i class="bi bi-house-door"></i></button>
+          <button class="app-icon-btn app-icon-btn--badge"><i class="bi bi-megaphone"></i><em>1</em></button>
+          <div class="app-topbar-user">
+            <div class="app-topbar-avatar">A</div>
+            <span>2510505504 - AZIZBEK</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="app-workspace app-catalog-page">
+        <section class="app-catalog-tools" aria-label="Catalog filters">
+          <label class="app-catalog-search" for="catalog-search">
+            <i class="bi bi-search"></i>
+            <input id="catalog-search" type="search" value="Akademik turk tili">
+          </label>
+
+          <details class="app-filter-menu">
+            <summary>
+              <span>Daraja</span>
+              <strong>A2</strong>
+              <i class="bi bi-chevron-down"></i>
+            </summary>
+            <div class="app-filter-popover">
+              <button class="app-filter-option" type="button">A1 foundation</button>
+              <button class="app-filter-option is-active" type="button">A2 bridge</button>
+              <button class="app-filter-option" type="button">B1 speaking</button>
+              <button class="app-filter-option" type="button">C1 writing</button>
+            </div>
+          </details>
+
+          <details class="app-filter-menu">
+            <summary>
+              <span>Format</span>
+              <strong>Live cohort</strong>
+              <i class="bi bi-chevron-down"></i>
+            </summary>
+            <div class="app-filter-popover">
+              <button class="app-filter-option is-active" type="button">Live cohort</button>
+              <button class="app-filter-option" type="button">Weekend</button>
+              <button class="app-filter-option" type="button">Bootcamp</button>
+            </div>
+          </details>
+
+          <details class="app-filter-menu">
+            <summary>
+              <span>Yo'nalish</span>
+              <strong>Certificate</strong>
+              <i class="bi bi-chevron-down"></i>
+            </summary>
+            <div class="app-filter-popover">
+              <button class="app-filter-option is-active" type="button">Certificate</button>
+              <button class="app-filter-option" type="button">Speaking</button>
+              <button class="app-filter-option" type="button">Writing</button>
+              <button class="app-filter-option" type="button">Exam prep</button>
+            </div>
+          </details>
+
+          <details class="app-filter-menu">
+            <summary>
+              <span>Sort</span>
+              <strong>Moslik</strong>
+              <i class="bi bi-chevron-down"></i>
+            </summary>
+            <div class="app-filter-popover">
+              <button class="app-filter-option is-active" type="button">Moslik</button>
+              <button class="app-filter-option" type="button">Yangi intake</button>
+              <button class="app-filter-option" type="button">Boshlanish</button>
+            </div>
+          </details>
+        </section>
+
+        <section class="app-catalog-results">
+          <div class="app-catalog-results-head">
+            <div>
+              <strong>4 ta mos cohort</strong>
+              <span>A2 bridge profilingiz uchun saralangan kurslar</span>
+            </div>
+            <a class="app-link-quiet" href="./app-course-detail.html">Primary match</a>
+          </div>
+
+          <div class="app-course-stack app-course-stack--focus">
+            <article class="app-course-card app-course-card--featured">
+              <div class="app-course-card__media">
+                <span class="app-course-card__badge">A2 bridge</span>
+                <div class="app-course-card__cover-copy">
+                  <strong>Academic Turkish Bridge</strong>
+                  <span>12 hafta, grammar + reading + placement readiness</span>
+                </div>
+              </div>
+              <div class="app-course-card__body">
+                <div class="app-course-card__head">
+                  <div class="app-course-card__copy">
+                    <p class="eyebrow">Primary match</p>
+                    <h3>Turk tili A2 - Academic Bridge Cohort</h3>
+                    <p>A2 student uchun structured cohort: grammar, reading va cohort assignment bitta ritmda yuradi.</p>
+                  </div>
+                  <span class="app-status-pill app-status-pill--live">Open cohort</span>
+                </div>
+
+                <div class="app-meta-row">
+                  <span class="app-meta-chip"><i class="bi bi-person-badge"></i>Mentor: M. Arif</span>
+                  <span class="app-meta-chip"><i class="bi bi-clock"></i>Tue / Thu 19:30</span>
+                  <span class="app-meta-chip"><i class="bi bi-award"></i>Certificate track</span>
+                  <span class="app-meta-chip"><i class="bi bi-wallet2"></i>Obuna bilan</span>
+                </div>
+
+                <div class="app-course-progress">
+                  <div class="app-course-progress__row">
+                    <span>Seats</span>
+                    <span>18 / 24</span>
+                  </div>
+                  <div class="app-progress-track"><div class="app-progress-bar" style="width: 75%;"></div></div>
+                </div>
+
+                <div class="app-link-row">
+                  <a class="app-btn app-btn--primary" href="./app-course-detail.html">Detail</a>
+                  <a class="app-btn" href="#">Schedule</a>
+                </div>
+              </div>
+            </article>
+
+            <article class="app-course-card">
+              <div class="app-course-card__media" style="background: linear-gradient(140deg, #152133 0%, #1f4965 52%, #4c8d8f 100%);">
+                <span class="app-course-card__badge">Speaking lab</span>
+                <div class="app-course-card__cover-copy">
+                  <strong>B1 Speaking Sprint</strong>
+                  <span>Live drills, speaking feedback va weekly lab sessions</span>
+                </div>
+              </div>
+              <div class="app-course-card__body">
+                <div class="app-course-card__head">
+                  <div class="app-course-card__copy">
+                    <p class="eyebrow">Next step</p>
+                    <h3>Speaking Lab - B1 Fluency Sprint</h3>
+                    <p>Foundation'dan keyingi speaking oqimi. Interview va oral correction uchun compact sprint.</p>
+                  </div>
+                  <span class="app-status-pill">Waitlist</span>
+                </div>
+
+                <div class="app-meta-row">
+                  <span class="app-meta-chip"><i class="bi bi-mic"></i>Speaking focus</span>
+                  <span class="app-meta-chip"><i class="bi bi-people"></i>16 o'rinli cohort</span>
+                  <span class="app-meta-chip"><i class="bi bi-calendar-week"></i>Start: 29 Apr</span>
+                </div>
+
+                <div class="app-link-row">
+                  <a class="app-btn app-btn--soft" href="#">Waitlist</a>
+                  <a class="app-btn" href="./app-course-detail.html">Detail</a>
+                </div>
+              </div>
+            </article>
+
+            <article class="app-course-card">
+              <div class="app-course-card__media" style="background: linear-gradient(140deg, #23172f 0%, #47345e 48%, #785a84 100%);">
+                <span class="app-course-card__badge">Writing path</span>
+                <div class="app-course-card__cover-copy">
+                  <strong>C1 Writing Intensive</strong>
+                  <span>Essay structure, correction loops va exam-aligned prompts</span>
+                </div>
+              </div>
+              <div class="app-course-card__body">
+                <div class="app-course-card__head">
+                  <div class="app-course-card__copy">
+                    <p class="eyebrow">Advanced lane</p>
+                    <h3>C1 Writing Intensive - Exam Ready Track</h3>
+                    <p>Akademik yozuv va exam tasklari uchun review cohort. Feedback cadence va rubric bilan ishlaydi.</p>
+                  </div>
+                  <span class="app-status-pill app-status-pill--warm">Needs placement</span>
+                </div>
+
+                <div class="app-meta-row">
+                  <span class="app-meta-chip"><i class="bi bi-journal-check"></i>Essay review</span>
+                  <span class="app-meta-chip"><i class="bi bi-stopwatch"></i>8 hafta</span>
+                  <span class="app-meta-chip"><i class="bi bi-shield-check"></i>Placement interview</span>
+                </div>
+
+                <div class="app-link-row">
+                  <a class="app-btn app-btn--primary" href="#">Interview</a>
+                  <a class="app-btn" href="./app-course-detail.html">Detail</a>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="../assets/js/app-shell.js"></script>
+  <script>
+    document.querySelectorAll('.app-filter-menu').forEach((menu) => {
+      menu.addEventListener('toggle', () => {
+        if (!menu.open) return;
+        document.querySelectorAll('.app-filter-menu[open]').forEach((otherMenu) => {
+          if (otherMenu !== menu) otherMenu.removeAttribute('open');
+        });
+      });
+    });
+
+    document.querySelectorAll('.app-filter-option').forEach((option) => {
+      option.addEventListener('click', () => {
+        const menu = option.closest('details');
+        if (!menu) return;
+
+        menu.querySelectorAll('.app-filter-option').forEach((item) => item.classList.remove('is-active'));
+        option.classList.add('is-active');
+
+        const value = menu.querySelector('summary strong');
+        if (value) value.textContent = option.textContent.trim();
+
+        menu.removeAttribute('open');
+      });
+    });
+  </script>
+</body>
+</html>

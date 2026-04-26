@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App Profile Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/app-account.css">
+</head>
+<body class="shell-app">
+  <div class="app-layout">
+    <aside class="app-sidebar">
+      <div class="app-sidebar-brand">
+        <div class="brand-mark brand-mark--app">AL</div>
+        <div class="app-brand-copy">
+          <strong>AzureLMS</strong>
+          <span>Student platform</span>
+        </div>
+      </div>
+
+      <div class="app-sidebar-title">O'quv paneli</div>
+
+      <section class="app-accordion">
+        <div class="app-sidebar-group">
+          <button class="app-group-toggle" type="button" aria-expanded="false">
+            <span class="app-group-copy">
+              <strong>Learning</strong>
+              <small>Asosiy oqim</small>
+            </span>
+            <i class="bi bi-chevron-down"></i>
+          </button>
+          <nav class="app-nav">
+            <a href="./app-shell.html"><i class="bi bi-grid"></i><span>Dashboard</span></a>
+            <a href="#"><i class="bi bi-collection-play"></i><span>Mening kurslarim</span></a>
+            <a href="./app-leaderboard.html"><i class="bi bi-bar-chart"></i><span>Leaderboard</span></a>
+            <a href="./app-attendance.html"><i class="bi bi-calendar3"></i><span>Davomat</span></a>
+            <a href="./notifications.html"><i class="bi bi-bell"></i><span>Bildirishnomalar</span><em>1</em></a>
+          </nav>
+        </div>
+
+        <div class="app-sidebar-group">
+          <button class="app-group-toggle" type="button" aria-expanded="false">
+            <span class="app-group-copy">
+              <strong>Platform</strong>
+              <small>Katalog va support</small>
+            </span>
+            <i class="bi bi-chevron-down"></i>
+          </button>
+          <nav class="app-nav app-nav--secondary">
+            <a href="./app-course-list.html"><i class="bi bi-compass"></i><span>Katalog</span></a>
+            <a href="#"><i class="bi bi-life-preserver"></i><span>Help center</span></a>
+            <a href="./subscriptions.html"><i class="bi bi-credit-card"></i><span>Subscriptions</span></a>
+          </nav>
+        </div>
+
+        <div class="app-sidebar-group">
+          <button class="app-group-toggle" type="button" aria-expanded="false">
+            <span class="app-group-copy">
+              <strong>Content</strong>
+              <small>Blog va media</small>
+            </span>
+            <i class="bi bi-chevron-down"></i>
+          </button>
+          <nav class="app-nav app-nav--secondary">
+            <a href="../blog/blog-public-shell.html"><i class="bi bi-journal-richtext"></i><span>Blog</span></a>
+            <a href="../blog-studio/blog-studio-shell.html"><i class="bi bi-pencil-square"></i><span>Blog studio</span></a>
+          </nav>
+        </div>
+
+        <div class="app-sidebar-group is-open">
+          <button class="app-group-toggle" type="button" aria-expanded="true">
+            <span class="app-group-copy">
+              <strong>Account</strong>
+              <small>Profil va sozlamalar</small>
+            </span>
+            <i class="bi bi-chevron-down"></i>
+          </button>
+          <nav class="app-nav app-nav--secondary">
+            <a class="is-active" href="./app-profile.html"><i class="bi bi-person"></i><span>Profil</span></a>
+            <a href="./app-settings.html"><i class="bi bi-gear"></i><span>Sozlamalar</span></a>
+          </nav>
+        </div>
+      </section>
+
+      <div class="app-user-card">
+        <div class="app-user-avatar">AS</div>
+        <div class="app-user-copy">
+          <strong>Azizbek Sirojiddinov</strong>
+          <span>@azurebek</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="app-main">
+      <header class="app-topbar">
+        <div class="app-term">
+          <i class="bi bi-list"></i>
+          <span>2025-2026 Bahar / Profil</span>
+        </div>
+        <div class="app-topbar-actions">
+          <button class="app-icon-btn"><i class="bi bi-house-door"></i></button>
+          <button class="app-icon-btn app-icon-btn--badge"><i class="bi bi-megaphone"></i><em>1</em></button>
+          <div class="app-topbar-user">
+            <div class="app-topbar-avatar">A</div>
+            <span>2510505504 - AZIZBEK</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="app-workspace app-account-page">
+        <section class="account-layout">
+          <aside class="account-profile-card">
+            <div class="account-avatar">AS</div>
+            <strong>Azizbek Sirojiddinov</strong>
+            <span>Student ID: 2510505504</span>
+            <div class="account-status-grid">
+              <div>
+                <small>Daraja</small>
+                <b>A2 bridge</b>
+              </div>
+              <div>
+                <small>Davomat</small>
+                <b>84%</b>
+              </div>
+              <div>
+                <small>XP</small>
+                <b>7 240</b>
+              </div>
+            </div>
+          </aside>
+
+          <section class="account-panel">
+            <div class="account-panel-head">
+              <strong>Shaxsiy ma'lumotlar</strong>
+              <button class="app-btn app-btn--primary" type="button">Saqlash</button>
+            </div>
+            <div class="account-form-grid">
+              <label>
+                <span>Ism</span>
+                <input type="text" value="Azizbek">
+              </label>
+              <label>
+                <span>Familiya</span>
+                <input type="text" value="Sirojiddinov">
+              </label>
+              <label>
+                <span>Email</span>
+                <input type="email" value="azizbek@azurelms.uz">
+              </label>
+              <label>
+                <span>Telefon</span>
+                <input type="tel" value="+998 90 123 45 67">
+              </label>
+              <label>
+                <span>Shahar</span>
+                <input type="text" value="Toshkent">
+              </label>
+              <label>
+                <span>Time zone</span>
+                <input type="text" value="Europe/Istanbul">
+              </label>
+            </div>
+
+            <div class="account-section-split">
+              <article>
+                <strong>Academic profile</strong>
+                <p>Current track, cohort va certificate progress shu student profiliga ulanadi.</p>
+                <div class="account-chip-row">
+                  <span>A2 Academic Bridge</span>
+                  <span>Certificate track</span>
+                  <span>Mentor: M. Arif</span>
+                </div>
+              </article>
+              <article>
+                <strong>Emergency contact</strong>
+                <p>Support yoki cohort operations zarur bo'lsa shu kontakt ishlatiladi.</p>
+                <div class="account-contact-row">
+                  <i class="bi bi-telephone"></i>
+                  <span>+998 97 222 44 66</span>
+                </div>
+              </article>
+            </div>
+          </section>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="../assets/js/app-shell.js"></script>
+</body>
+</html>

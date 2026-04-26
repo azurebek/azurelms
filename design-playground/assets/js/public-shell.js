@@ -6,6 +6,7 @@
     const dots = Array.from(carousel.querySelectorAll("[data-carousel-dot]"));
     const prev = carousel.querySelector("[data-carousel-prev]");
     const next = carousel.querySelector("[data-carousel-next]");
+    const mobileQuery = window.matchMedia("(max-width: 520px)");
 
     if (!slides.length) {
       return;
@@ -22,7 +23,9 @@
       currentIndex = (index + slides.length) % slides.length;
 
       slides.forEach((slide, slideIndex) => {
-        slide.classList.toggle("is-active", slideIndex === currentIndex);
+        const isActive = slideIndex === currentIndex;
+        slide.classList.toggle("is-active", isActive);
+        slide.setAttribute("aria-hidden", String(!isActive));
       });
 
       dots.forEach((dot, dotIndex) => {
@@ -32,6 +35,11 @@
 
     const startAutoplay = () => {
       stopAutoplay();
+
+      if (mobileQuery.matches) {
+        return;
+      }
+
       intervalId = window.setInterval(() => {
         setActive(currentIndex + 1);
       }, 5200);
@@ -63,6 +71,7 @@
 
     carousel.addEventListener("mouseenter", stopAutoplay);
     carousel.addEventListener("mouseleave", startAutoplay);
+    mobileQuery.addEventListener("change", startAutoplay);
 
     setActive(currentIndex);
     startAutoplay();

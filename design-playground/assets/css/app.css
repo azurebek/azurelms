@@ -1,4 +1,6 @@
 .shell-app {
+  height: 100vh;
+  overflow: hidden;
   background: #edf1f5;
 }
 
@@ -11,10 +13,16 @@
 .app-layout {
   display: grid;
   grid-template-columns: 264px minmax(0, 1fr);
-  min-height: 100vh;
+  height: 100vh;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .app-sidebar {
+  min-height: 0;
+  height: 100vh;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -218,12 +226,18 @@
 }
 
 .app-main {
+  min-width: 0;
+  min-height: 0;
+  height: 100vh;
+  overflow: hidden;
   display: grid;
   grid-template-rows: auto 1fr;
   background: #f7f9fc;
 }
 
 .app-topbar {
+  position: relative;
+  z-index: 5;
   display: flex;
   justify-content: space-between;
   gap: 16px;
@@ -312,6 +326,9 @@
 }
 
 .app-workspace {
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
   padding: 10px 12px 16px;
 }
 
@@ -405,14 +422,31 @@
 }
 
 @media (max-width: 960px) {
+  .shell-app {
+    height: auto;
+    overflow: auto;
+  }
+
   .app-layout,
   .info-strip,
   .dashboard-compact-grid {
     grid-template-columns: 1fr;
   }
 
+  .app-layout,
+  .app-main {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
   .app-sidebar {
-    grid-template-rows: auto;
+    height: auto;
+    overflow: visible;
+  }
+
+  .app-workspace {
+    overflow: visible;
   }
 
   .app-topbar,
@@ -1129,5 +1163,324 @@
   .app-learn-grid,
   .app-mini-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+.app-workspace--course {
+  display: grid;
+  gap: 10px;
+}
+
+.app-route-note {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid #d7dfea;
+  border-left: 4px solid #27885e;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.app-route-note div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.app-route-note strong {
+  color: #18263c;
+  font-size: 0.78rem;
+}
+
+.app-route-note span,
+.app-route-note a {
+  color: #617288;
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+.app-route-note a {
+  color: #173b73;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.app-page-head--compact {
+  margin-bottom: 0;
+}
+
+.app-course-operational {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 308px;
+  gap: 12px;
+  align-items: start;
+}
+
+.app-course-main--compact {
+  gap: 10px;
+}
+
+.app-course-brief {
+  display: grid;
+  grid-template-columns: 196px minmax(0, 1fr);
+  gap: 16px;
+  align-items: stretch;
+  padding: 14px;
+}
+
+.app-course-cover-panel {
+  min-height: 190px;
+  display: grid;
+  align-content: end;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 4px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent 40%),
+    linear-gradient(145deg, #18263c 0%, #295071 55%, #2f7d72 100%);
+  color: #fff;
+}
+
+.app-course-cover-panel__level {
+  width: fit-content;
+  min-height: 26px;
+  padding: 0 9px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+}
+
+.app-course-cover-panel strong {
+  font-size: 1.34rem;
+  line-height: 1.02;
+}
+
+.app-course-cover-panel p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.74rem;
+  line-height: 1.42;
+}
+
+.app-course-brief-copy {
+  display: grid;
+  align-content: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.app-course-brief-copy h2 {
+  margin: 0;
+  color: #18263c;
+  font-size: 1.34rem;
+  line-height: 1.08;
+}
+
+.app-course-brief-copy p {
+  margin: 0;
+  color: #6d7c92;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.app-decision-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.app-decision-card {
+  min-height: 96px;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 13px;
+  border: 1px solid #d7dfea;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.app-decision-card i {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 4px;
+  background: #eef3f8;
+  color: #173b73;
+}
+
+.app-decision-card strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #18263c;
+  font-size: 0.78rem;
+  line-height: 1.2;
+}
+
+.app-decision-card span {
+  color: #6d7c92;
+  font-size: 0.72rem;
+  line-height: 1.42;
+}
+
+.app-surface-head--tight {
+  margin-bottom: 10px;
+}
+
+.app-timeline-preview {
+  display: grid;
+  gap: 8px;
+}
+
+.app-timeline-row {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  min-height: 54px;
+  padding: 9px 10px;
+  border: 1px solid #e0e7f0;
+  border-radius: 4px;
+  background: #f9fbfe;
+}
+
+.app-timeline-row > span {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #173b73;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.app-timeline-row strong {
+  display: block;
+  color: #18263c;
+  font-size: 0.78rem;
+  line-height: 1.2;
+}
+
+.app-timeline-row small {
+  color: #6d7c92;
+  font-size: 0.7rem;
+  line-height: 1.35;
+}
+
+.app-timeline-row em {
+  min-height: 26px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: #eef3f8;
+  color: #4c698e;
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.app-cohort-compact-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.app-cohort-option {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid #d7dfea;
+  border-radius: 4px;
+  background: #fbfdff;
+}
+
+.app-cohort-option.is-selected {
+  border-color: rgba(39, 136, 94, 0.36);
+  background: rgba(39, 136, 94, 0.07);
+}
+
+.app-cohort-option strong {
+  display: block;
+  color: #18263c;
+  font-size: 0.8rem;
+}
+
+.app-cohort-option span,
+.app-cohort-option em {
+  color: #6d7c92;
+  font-size: 0.72rem;
+}
+
+.app-cohort-option em {
+  font-style: normal;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.app-enroll-card--lean {
+  top: 10px;
+}
+
+.app-next-action {
+  display: grid;
+  gap: 12px;
+}
+
+.app-action-stack {
+  display: grid;
+  gap: 8px;
+}
+
+.app-action-stack .app-btn {
+  width: 100%;
+}
+
+@media (max-width: 1180px) {
+  .app-course-operational {
+    grid-template-columns: 1fr;
+  }
+
+  .app-enroll-card--lean {
+    position: static;
+  }
+}
+
+@media (max-width: 760px) {
+  .app-route-note,
+  .app-page-head--compact,
+  .app-cohort-option {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .app-course-brief,
+  .app-decision-grid,
+  .app-cohort-compact-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .app-timeline-row {
+    grid-template-columns: 34px minmax(0, 1fr);
+  }
+
+  .app-timeline-row em {
+    grid-column: 2;
+    width: fit-content;
   }
 }

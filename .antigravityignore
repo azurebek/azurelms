@@ -1,0 +1,26 @@
+# Antigravity ignore file
+# Bu fayl Antigravity'ga qaysi papkalarni skaner qilmaslikni aytadi
+
+# Python/Django og'ir fayllari
+db.sqlite3
+db.sqlite3-journal
+media/
+static/
+staticfiles/
+venv/
+env/
+.env
+.env.local
+
+# IDE va keshlar
+.vscode/
+.idea/
+__pycache__/
+*.pyc
+.git/
+
+# Node.js (agar bo'lsa)
+node_modules/
+
+# Loglar
+*.log
