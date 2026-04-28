@@ -380,12 +380,12 @@
 
 @media (max-width: 820px) {
   .attendance-calendar {
-    overflow-x: auto;
+    overflow: visible;
   }
 
   .attendance-weekdays,
   .attendance-grid {
-    min-width: 760px;
+    min-width: 0;
   }
 }
 
@@ -402,5 +402,84 @@
 
   .attendance-filter button {
     padding: 0 8px;
+  }
+}
+
+@media (max-width: 640px) {
+  .attendance-controlbar,
+  .attendance-panel {
+    padding: 10px;
+  }
+
+  .attendance-period {
+    grid-template-columns: 32px minmax(0, 1fr) 32px;
+  }
+
+  .attendance-select {
+    grid-template-columns: 1fr;
+    gap: 3px;
+    padding: 8px 10px;
+  }
+
+  .attendance-filter {
+    gap: 5px;
+  }
+
+  .attendance-weekdays {
+    min-height: 28px;
+  }
+
+  .attendance-weekdays span {
+    padding: 0;
+    text-align: center;
+    font-size: 0.56rem;
+  }
+
+  .attendance-day {
+    min-height: 58px;
+    gap: 3px;
+    padding: 5px 3px;
+  }
+
+  .attendance-day > span {
+    font-size: 0.68rem;
+    text-align: center;
+  }
+
+  .attendance-day strong {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 0.6rem;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+    text-align: center;
+    white-space: normal;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .attendance-day em {
+    width: 100%;
+    min-height: 18px;
+    justify-content: center;
+    gap: 2px;
+    padding: 0 3px;
+    overflow: hidden;
+    font-size: 0.52rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .attendance-day em i {
+    display: none;
+  }
+
+  .attendance-panel-head,
+  .attendance-status-list div {
+    align-items: start;
+  }
+
+  .attendance-panel .app-btn {
+    width: 100%;
   }
 }

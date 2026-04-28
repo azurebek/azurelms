@@ -1,20 +1,21 @@
 .messenger-shell-page {
-  height: 100vh;
+  height: auto;
   margin: 0;
-  overflow: hidden;
+  overflow: visible;
   background: #edf1f5;
 }
 
 .messenger-layout {
   min-height: 100vh;
-  height: 100vh;
-  overflow: hidden;
+  height: auto;
+  overflow: visible;
+  grid-template-columns: 1fr;
 }
 
 .messenger-sidebar,
 .messenger-main {
-  min-height: 0;
-  overflow: hidden;
+  min-height: auto;
+  overflow: visible;
 }
 
 .messenger-sidebar-brand {
@@ -23,11 +24,11 @@
 
 .messenger-sidebar-body {
   flex: 1 1 auto;
-  min-height: 0;
+  min-height: auto;
   display: grid;
   grid-template-rows: auto auto auto auto minmax(0, 1fr);
   gap: 8px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .messenger-new-chat,
@@ -146,7 +147,8 @@
 }
 
 .messenger-session-list {
-  min-height: 0;
+  min-height: auto;
+  max-height: 260px;
   display: grid;
   align-content: start;
   gap: 3px;
@@ -193,7 +195,7 @@
 }
 
 .messenger-workspace {
-  min-height: 0;
+  min-height: 70vh;
   display: grid;
   grid-template-rows: 1fr auto;
   overflow: hidden;
@@ -201,30 +203,30 @@
 }
 
 .messenger-thread {
-  min-height: 0;
+  min-height: auto;
   display: grid;
   align-content: start;
   gap: 14px;
-  overflow-y: auto;
-  padding: 18px clamp(18px, 7vw, 96px) 22px;
+  overflow: visible;
+  padding: 18px 10px 22px;
 }
 
 .messenger-message {
   display: grid;
-  grid-template-columns: 32px minmax(0, 720px);
+  grid-template-columns: 1fr;
   gap: 10px;
   align-items: start;
 }
 
 .messenger-message--user {
-  grid-template-columns: minmax(0, 620px) 32px;
-  justify-content: end;
+  grid-template-columns: 1fr;
+  justify-content: stretch;
 }
 
 .messenger-speaker {
   width: 32px;
   height: 32px;
-  display: grid;
+  display: none;
   place-items: center;
   border-radius: 50%;
   background: #173b73;
@@ -303,7 +305,7 @@
 }
 
 .messenger-compose {
-  padding: 10px clamp(18px, 7vw, 96px) 12px;
+  padding: 10px 10px 12px;
   border-top: 1px solid #e2e8f1;
   background: #f7f9fc;
 }
@@ -326,7 +328,8 @@
 
 .messenger-compose-bar {
   display: flex;
-  align-items: center;
+  align-items: stretch;
+  flex-direction: column;
   justify-content: space-between;
   gap: 10px;
 }
@@ -334,6 +337,7 @@
 .messenger-compose-tools {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 6px;
 }
 
@@ -366,62 +370,87 @@
   color: #fff;
 }
 
-@media (max-width: 900px) {
-  .messenger-shell-page,
-  .messenger-layout {
-    height: auto;
-    overflow: visible;
+.messenger-shell-page .messenger-sidebar {
+  height: 100dvh;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.messenger-shell-page .app-term span {
+  font-size: 0;
+}
+
+.messenger-shell-page .app-term span::after {
+  content: "Messenger";
+  font-size: 0.74rem;
+}
+
+@media (min-width: 721px) {
+  .messenger-shell-page .app-term span {
+    font-size: inherit;
+  }
+
+  .messenger-shell-page .app-term span::after {
+    content: none;
+  }
+
+  .messenger-thread {
+    padding: 18px clamp(18px, 7vw, 96px) 22px;
+  }
+
+  .messenger-message {
+    grid-template-columns: 32px minmax(0, 720px);
+  }
+
+  .messenger-message--user {
+    grid-template-columns: minmax(0, 620px) 32px;
+    justify-content: end;
+  }
+
+  .messenger-speaker {
+    display: grid;
+  }
+
+  .messenger-compose {
+    padding: 10px clamp(18px, 7vw, 96px) 12px;
+  }
+
+  .messenger-compose-bar {
+    align-items: center;
+    flex-direction: row;
+  }
+}
+
+@media (min-width: 961px) {
+  .messenger-shell-page {
+    height: 100vh;
+    overflow: hidden;
   }
 
   .messenger-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: 264px minmax(0, 1fr);
+    height: 100vh;
+    overflow: hidden;
   }
 
   .messenger-sidebar,
   .messenger-main,
   .messenger-sidebar-body,
-  .messenger-session-list,
   .messenger-thread {
-    min-height: auto;
-    overflow: visible;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .messenger-session-list {
-    max-height: 260px;
+    min-height: 0;
+    max-height: none;
+  }
+
+  .messenger-thread {
     overflow-y: auto;
   }
 
   .messenger-workspace {
-    min-height: 70vh;
-  }
-}
-
-@media (max-width: 720px) {
-  .messenger-thread,
-  .messenger-compose {
-    padding-left: 10px;
-    padding-right: 10px;
-  }
-
-  .messenger-message,
-  .messenger-message--user {
-    grid-template-columns: 1fr;
-  }
-
-  .messenger-message--user {
-    justify-content: stretch;
-  }
-
-  .messenger-speaker {
-    display: none;
-  }
-
-  .messenger-compose-bar {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .messenger-compose-tools {
-    justify-content: flex-start;
+    min-height: 0;
   }
 }

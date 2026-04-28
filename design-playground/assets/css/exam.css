@@ -32,9 +32,10 @@
 
 .exam-topbar {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  justify-content: flex-start;
   gap: 18px;
-  align-items: center;
+  align-items: start;
   min-height: 58px;
   padding: 10px 16px;
   background: rgba(7, 14, 24, 0.86);
@@ -43,6 +44,7 @@
 
 .exam-identity {
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 12px;
   min-width: 0;
@@ -79,9 +81,11 @@
 
 .exam-topbar-meta {
   display: flex;
+  flex-direction: column;
   flex-wrap: wrap;
   gap: 8px;
-  justify-content: flex-end;
+  justify-content: flex-start;
+  align-items: flex-start;
 }
 
 .exam-chip {
@@ -103,7 +107,7 @@
 
 .exam-workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 296px;
+  grid-template-columns: 1fr;
   gap: 14px;
   min-height: 0;
   padding: 14px;
@@ -188,7 +192,7 @@
 
 .exam-stage-grid {
   display: grid;
-  grid-template-columns: minmax(280px, 0.76fr) minmax(0, 1fr);
+  grid-template-columns: 1fr;
   gap: 12px;
   min-height: 0;
 }
@@ -291,7 +295,7 @@
 }
 
 .exam-stage-grid--writing {
-  grid-template-columns: minmax(260px, 0.62fr) minmax(0, 1fr);
+  grid-template-columns: 1fr;
 }
 
 .exam-panel--editor {
@@ -450,7 +454,7 @@
 }
 
 .exam-stage-grid--speaking {
-  grid-template-columns: minmax(260px, 0.58fr) minmax(0, 1fr);
+  grid-template-columns: 1fr;
 }
 
 .exam-panel--record {
@@ -556,7 +560,7 @@
 
 .exam-review-summary {
   display: grid;
-  grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1fr);
+  grid-template-columns: 1fr;
   gap: 12px;
 }
 
@@ -589,7 +593,7 @@
 
 .exam-score-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 10px;
 }
 
@@ -599,8 +603,9 @@
 }
 
 .exam-review-row {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr;
+  justify-content: stretch;
   gap: 12px;
   align-items: center;
   padding: 12px;
@@ -659,9 +664,10 @@
 
 .exam-footer-bar {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  justify-content: flex-start;
   gap: 12px;
-  align-items: center;
+  align-items: start;
   padding: 12px 14px;
 }
 
@@ -718,7 +724,7 @@
 
 .exam-question-map {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -781,37 +787,57 @@
   cursor: pointer;
 }
 
-@media (max-width: 1180px) {
-  .exam-workspace,
-  .exam-stage-grid,
-  .exam-review-summary {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 860px) {
+@media (min-width: 861px) {
   .exam-topbar,
   .exam-footer-bar {
-    align-items: start;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
   }
 
-  .exam-topbar,
-  .exam-identity,
-  .exam-topbar-meta,
-  .exam-footer-bar {
-    flex-direction: column;
+  .exam-identity {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .exam-topbar-meta {
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
   }
 
   .exam-question-map {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
-  .exam-score-grid,
-  .exam-review-row {
-    grid-template-columns: 1fr;
+  .exam-score-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .exam-review-row {
-    display: grid;
+    display: flex;
+    justify-content: space-between;
+  }
+}
+
+@media (min-width: 1181px) {
+  .exam-workspace {
+    grid-template-columns: minmax(0, 1fr) 296px;
+  }
+
+  .exam-stage-grid {
+    grid-template-columns: minmax(280px, 0.76fr) minmax(0, 1fr);
+  }
+
+  .exam-stage-grid--writing {
+    grid-template-columns: minmax(260px, 0.62fr) minmax(0, 1fr);
+  }
+
+  .exam-stage-grid--speaking {
+    grid-template-columns: minmax(260px, 0.58fr) minmax(0, 1fr);
+  }
+
+  .exam-review-summary {
+    grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1fr);
   }
 }

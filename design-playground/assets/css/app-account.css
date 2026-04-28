@@ -264,6 +264,18 @@
 }
 
 @media (max-width: 680px) {
+  .account-profile-card,
+  .account-panel {
+    padding: 12px;
+  }
+
+  .account-status-grid div {
+    align-items: flex-start;
+    flex-direction: column;
+    justify-content: center;
+    padding: 8px 10px;
+  }
+
   .account-form-grid,
   .settings-select-grid {
     grid-template-columns: 1fr;
@@ -276,5 +288,16 @@
 
   .account-panel-head .app-btn {
     width: 100%;
+  }
+
+  .account-chip-row {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .account-chip-row span,
+  .account-contact-row {
+    width: 100%;
+    border-radius: 4px;
   }
 }
