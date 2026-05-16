@@ -1,0 +1,154 @@
+{% extends "auth/base.html" %}
+
+{% block title %}Ro'yxatdan o'tish | AzureLMS{% endblock %}
+{% block auth_shell_modifier %}auth-shell--register{% endblock %}
+{% block auth_heading %}Yangi account oching{% endblock %}
+{% block auth_lede %}Ismingizni, login va parolni kiritib AzureLMS muhitiga qo'shiling. Keyingi bosqichlarda track va maqsadni tanlaymiz.{% endblock %}
+
+{% block auth_topbar_back %}
+  <a class="auth-back" href="{% url 'login' %}">
+    <i class="bi bi-arrow-left"></i><span>Kirishga qaytish</span>
+  </a>
+{% endblock %}
+
+{% block auth_content %}
+  <form class="auth-surface auth-form-stack" method="post" action="{% url 'register' %}" novalidate>
+    {% csrf_token %}
+
+    <div class="auth-field-grid">
+      <label class="auth-field">
+        <span class="auth-field-label">Ism</span>
+        <input
+          class="auth-input"
+          type="text"
+          name="first_name"
+          id="id_first_name"
+          value="{{ form.first_name.value|default:'' }}"
+          placeholder="Ismingiz"
+          autocomplete="given-name"
+          required
+        >
+        {% if form.first_name.errors %}<small class="auth-field-error">{{ form.first_name.errors|first }}</small>{% endif %}
+      </label>
+
+      <label class="auth-field">
+        <span class="auth-field-label">Familiya</span>
+        <input
+          class="auth-input"
+          type="text"
+          name="last_name"
+          id="id_last_name"
+          value="{{ form.last_name.value|default:'' }}"
+          placeholder="Familiyangiz"
+          autocomplete="family-name"
+          required
+        >
+        {% if form.last_name.errors %}<small class="auth-field-error">{{ form.last_name.errors|first }}</small>{% endif %}
+      </label>
+    </div>
+
+    <label class="auth-field">
+      <span class="auth-field-label">Username</span>
+      <input
+        class="auth-input"
+        type="text"
+        name="username"
+        id="id_username"
+        value="{{ form.username.value|default:'' }}"
+        placeholder="azurebek"
+        autocomplete="username"
+        required
+      >
+      {% if form.username.errors %}<small class="auth-field-error">{{ form.username.errors|first }}</small>{% endif %}
+    </label>
+
+    <label class="auth-field">
+      <span class="auth-field-label">Email</span>
+      <input
+        class="auth-input"
+        type="email"
+        name="email"
+        id="id_email"
+        value="{{ form.email.value|default:'' }}"
+        placeholder="name@azurelms.uz"
+        autocomplete="email"
+        required
+      >
+      {% if form.email.errors %}<small class="auth-field-error">{{ form.email.errors|first }}</small>{% endif %}
+    </label>
+
+    <label class="auth-field">
+      <span class="auth-field-label">Telefon (ixtiyoriy)</span>
+      <input
+        class="auth-input"
+        type="tel"
+        name="phone_number"
+        id="id_phone_number"
+        value="{{ form.phone_number.value|default:'' }}"
+        placeholder="+998 xx xxx xx xx"
+        autocomplete="tel"
+      >
+      {% if form.phone_number.errors %}<small class="auth-field-error">{{ form.phone_number.errors|first }}</small>{% endif %}
+    </label>
+
+    <div class="auth-field-grid">
+      <label class="auth-field">
+        <span class="auth-field-label">Parol</span>
+        <span class="auth-input-wrap">
+          <input
+            class="auth-input"
+            type="password"
+            name="password1"
+            id="id_password1"
+            placeholder="Kuchli parol"
+            autocomplete="new-password"
+            required
+          >
+          <button type="button" class="auth-input-toggle" data-password-toggle="#id_password1" aria-label="Parolni ko'rsatish">
+            <i class="bi bi-eye"></i>
+          </button>
+        </span>
+        {% if form.password1.errors %}<small class="auth-field-error">{{ form.password1.errors|first }}</small>{% endif %}
+      </label>
+
+      <label class="auth-field">
+        <span class="auth-field-label">Parolni takrorlang</span>
+        <span class="auth-input-wrap">
+          <input
+            class="auth-input"
+            type="password"
+            name="password2"
+            id="id_password2"
+            placeholder="Parolni takrorlang"
+            autocomplete="new-password"
+            required
+          >
+          <button type="button" class="auth-input-toggle" data-password-toggle="#id_password2" aria-label="Parolni ko'rsatish">
+            <i class="bi bi-eye"></i>
+          </button>
+        </span>
+        {% if form.password2.errors %}<small class="auth-field-error">{{ form.password2.errors|first }}</small>{% endif %}
+      </label>
+    </div>
+
+    <div class="auth-actions">
+      <button type="submit" class="auth-action auth-action--primary">Ro'yxatdan o'tish</button>
+    </div>
+  </form>
+{% endblock %}
+
+{% block auth_meta %}
+  <div class="auth-meta-line">
+    <span>Account allaqachon bormi?</span>
+    <a class="auth-link" href="{% url 'login' %}">Kirish</a>
+  </div>
+{% endblock %}
+
+{% block auth_foot_label %}Minimal onboarding flow{% endblock %}
+
+{% block visual_chip_top %}identity{% endblock %}
+{% block visual_chip_right %}track{% endblock %}
+{% block visual_chip_bottom %}verify{% endblock %}
+{% block visual_badge_a %}01{% endblock %}
+{% block visual_badge_b %}04{% endblock %}
+{% block visual_note %}Ro'yxatdan o'tish onboarding oqimiga o'xshaydi: har ekranda bitta savol, bitta aniq qaror.{% endblock %}

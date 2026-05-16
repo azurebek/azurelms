@@ -88,3 +88,11 @@ test_s3_v2.py
 # Ngrok
 ngrok.exe
 ngrok.zip
+
+# ========================
+# Claude Code / local tooling
+# ========================
+.claude/
+.tools/
+.codex/
+.antigravityignore

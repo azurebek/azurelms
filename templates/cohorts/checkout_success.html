@@ -1,0 +1,39 @@
+{% extends "auth/base.html" %}
+
+{% block title %}Kvitansiya qabul qilindi | AzureLMS{% endblock %}
+{% block auth_shell_modifier %}auth-shell--checkout auth-shell--success{% endblock %}
+
+{% block auth_topbar_back %}
+  <a class="auth-back" href="{% url 'dashboard' %}">
+    <i class="bi bi-arrow-left"></i><span>Dashboardga qaytish</span>
+  </a>
+{% endblock %}
+
+{% block auth_heading %}Kvitansiya qabul qilindi{% endblock %}
+{% block auth_lede %}Yuborilgan kvitansiya admin tomonidan tekshiriladi. Tasdiqlangach kurs muhitiga to'liq access ochiladi.{% endblock %}
+
+{% block auth_content %}
+  <div class="auth-surface auth-form-stack">
+    <div class="auth-status-line auth-status-line--success">
+      <i class="bi bi-check2-circle"></i>
+      <div>
+        <strong>Yuborildi</strong>
+        <p>Receipt verification queue'ga tushdi. Odatda admin tasdiqlash uchun bir necha soat yetadi.</p>
+      </div>
+    </div>
+
+    <div class="auth-actions">
+      <a class="auth-action auth-action--primary" href="{% url 'dashboard' %}">Dashboardga o'tish</a>
+      <a class="auth-action auth-action--secondary" href="{% url 'subscriptions' %}">To'lovlar tarixi</a>
+    </div>
+  </div>
+{% endblock %}
+
+{% block auth_foot_label %}Receipt submitted{% endblock %}
+
+{% block visual_chip_top %}plan{% endblock %}
+{% block visual_chip_right %}receipt{% endblock %}
+{% block visual_chip_bottom %}review{% endblock %}
+{% block visual_badge_a %}OK{% endblock %}
+{% block visual_badge_b %}24h{% endblock %}
+{% block visual_note %}Tasdiqlanganidan keyin avtomatik xabar yuboriladi va access faollashadi.{% endblock %}
