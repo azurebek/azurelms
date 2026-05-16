@@ -34,12 +34,12 @@ def _env_int(name, default):
         return default
 
 
-is_local = (os.getenv("APP_ENV", "").strip().lower() == "local") or _env_bool("LOCAL_DEV", False)
+is_local = (os.getenv("APP_ENV", "").strip().lower() or "local") == "local"
 local_use_remote_services = _env_bool("LOCAL_USE_REMOTE_SERVICES", False)
 
 explicit_broker = os.getenv("CELERY_BROKER_URL")
 remote_redis_url = os.getenv("VALKEY_URL") or os.getenv("REDIS_URL")
-local_default_broker = "redis://127.0.0.1:6379/1"
+local_default_broker = "memory://"
 
 if explicit_broker:
     app.conf.broker_url = explicit_broker
@@ -54,6 +54,8 @@ app.conf.task_serializer = 'json'
 app.conf.result_serializer = 'json'
 app.conf.timezone = os.getenv("TIME_ZONE", "Asia/Tashkent").strip() or "Asia/Tashkent"
 app.conf.task_ignore_result = True
+app.conf.task_always_eager = _env_bool("CELERY_TASK_ALWAYS_EAGER", is_local and not local_use_remote_services)
+app.conf.task_eager_propagates = _env_bool("CELERY_TASK_EAGER_PROPAGATES", False)
 
 # DigitalOcean Valkey (rediss) uchun TLS sozlamasi
 if str(app.conf.broker_url).startswith('rediss://'):

@@ -13,8 +13,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 import importlib.util
 import os
-import sys
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -43,11 +43,14 @@ def module_available(module_name):
 load_dotenv(BASE_DIR / ".env")
 _raw_env = os.getenv("APP_ENV", "").strip().lower()
 if not _raw_env:
-    _raw_env = "local" if env_bool("LOCAL_DEV", False) else "production"
+    _raw_env = "local"
 APP_ENV = _raw_env
+IS_LOCAL = APP_ENV == "local"
+LOCAL_USE_REMOTE_SERVICES = env_bool("LOCAL_USE_REMOTE_SERVICES", False)
 ENV_FILE = BASE_DIR / f".env.{APP_ENV}"
 if ENV_FILE.exists():
     load_dotenv(ENV_FILE, override=True)
+    LOCAL_USE_REMOTE_SERVICES = env_bool("LOCAL_USE_REMOTE_SERVICES", LOCAL_USE_REMOTE_SERVICES)
 
 _prometheus_requested = env_bool("PROMETHEUS_ENABLED", False)
 PROMETHEUS_ENABLED = _prometheus_requested and module_available("django_prometheus")
@@ -66,26 +69,41 @@ TELEGRAM_ALLOW_INSECURE_LOCAL_WEBHOOK = env_bool("TELEGRAM_ALLOW_INSECURE_LOCAL_
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    if IS_LOCAL:
+        SECRET_KEY = "azurelms-local-development-insecure-secret-key"
+    else:
+        raise ImproperlyConfigured("SECRET_KEY must be set outside local development.")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env_bool("DEBUG", APP_ENV == "local")
+DEBUG = env_bool("DEBUG", IS_LOCAL)
 ENABLE_LEGACY_ADMIN = env_bool("ENABLE_LEGACY_ADMIN", False)
 
 # Domain sozlamalari
-APP_DOMAIN = os.getenv("APP_DOMAIN", "azurelms-app-aoib9.ondigitalocean.app")
-default_allowed_hosts = [APP_DOMAIN, "azurebek.me", "localhost", "127.0.0.1"]
-if APP_ENV == "local":
+APP_DOMAIN = os.getenv("APP_DOMAIN", "localhost" if IS_LOCAL else "azurelms-app-aoib9.ondigitalocean.app")
+default_allowed_hosts = ["localhost", "127.0.0.1", "[::1]"]
+if not IS_LOCAL:
+    default_allowed_hosts.extend([APP_DOMAIN, "azurebek.me"])
+else:
     default_allowed_hosts.append("*")
 ALLOWED_HOSTS = env_list("ALLOWED_HOSTS", default_allowed_hosts)
 
 # CSRF xavfsizligi uchun ishonchli domenlar (bu juda muhim!)
+default_csrf_trusted_origins = [
+    "http://localhost",
+    "http://127.0.0.1",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+if not IS_LOCAL:
+    default_csrf_trusted_origins = [f"https://{APP_DOMAIN}", "https://azurebek.me"]
 CSRF_TRUSTED_ORIGINS = env_list(
     "CSRF_TRUSTED_ORIGINS",
-    [f"https://{APP_DOMAIN}", "https://azurebek.me", "http://localhost", "http://127.0.0.1"],
+    default_csrf_trusted_origins,
 )
 
 # Security settings (Enforce HTTPS in production)
-SECURITY_STRICT = env_bool("SECURITY_STRICT", APP_ENV != "local")
+SECURITY_STRICT = env_bool("SECURITY_STRICT", not IS_LOCAL)
 if SECURITY_STRICT:
     SECURE_SSL_REDIRECT = True
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
@@ -158,7 +176,7 @@ if SECURITY_STRICT:
     else:
         print("Warning: SECURITY_STRICT is enabled, but django-csp is not installed; skipping CSP middleware.")
 
-CORS_ALLOW_ALL_ORIGINS = env_bool("CORS_ALLOW_ALL_ORIGINS", APP_ENV == "local")
+CORS_ALLOW_ALL_ORIGINS = env_bool("CORS_ALLOW_ALL_ORIGINS", IS_LOCAL)
 
 ROOT_URLCONF = "core.urls"
 
@@ -191,19 +209,21 @@ DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_HOST = os.getenv("DB_HOST")
 DB_PORT = os.getenv("DB_PORT", "25060")
 
-IS_LOCAL = APP_ENV == "local"
+REMOTE_DATABASE_CONFIGURED = bool((DB_NAME and DB_USER) or DATABASE_URL)
+ALLOW_REMOTE_DATABASE = (not IS_LOCAL) or LOCAL_USE_REMOTE_SERVICES
 
-# --- DIAGNOSTICS LOG ---
-print("--- [SYSTEM] DATABASE VARS CHECK ---")
-if DB_NAME and DB_USER:
-    print(f"Found Individual Vars: DB_NAME={DB_NAME}, DB_USER={DB_USER}, HOST={DB_HOST}")
-elif DATABASE_URL:
-    print(f"Found DATABASE_URL (Starting with: {DATABASE_URL[:15]}...)")
-else:
-    print("Warning: No database environment variables found!")
-print("--- [SYSTEM] END CHECK ---")
+if IS_LOCAL and REMOTE_DATABASE_CONFIGURED and not LOCAL_USE_REMOTE_SERVICES:
+    print("--- [SYSTEM] Local mode: external database settings ignored. Using SQLite. ---")
 
-if DB_NAME and DB_USER:
+if IS_LOCAL and not LOCAL_USE_REMOTE_SERVICES:
+    # Local development SQLite
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+elif DB_NAME and DB_USER and ALLOW_REMOTE_DATABASE:
     # Manual individual variables provided by user
     DATABASES = {
         'default': {
@@ -218,7 +238,7 @@ if DB_NAME and DB_USER:
             }
         }
     }
-elif DATABASE_URL:
+elif DATABASE_URL and ALLOW_REMOTE_DATABASE:
     # Fallback to DATABASE_URL if available
     DATABASE_URL = DATABASE_URL.strip().strip('"').strip("'")
     candidate_start = -1
@@ -233,29 +253,11 @@ elif DATABASE_URL:
     DATABASES = {
         'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
     }
-elif APP_ENV == "production":
-    # Default/Emergency production settings
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'defaultdb',
-            'USER': 'doadmin',
-            'PASSWORD': '',
-            'HOST': '',
-            'PORT': '25060',
-            'OPTIONS': {
-                'sslmode': 'require',
-            }
-        }
-    }
 else:
-    # Local development SQLite
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+    raise ImproperlyConfigured(
+        "Database settings are required outside local development. "
+        "For local SQLite, set APP_ENV=local and keep LOCAL_USE_REMOTE_SERVICES=False."
+    )
 
 # Cache backend (DigitalOcean Valkey/Redis)
 VALKEY_URL = os.getenv('VALKEY_URL')
@@ -264,20 +266,18 @@ REDIS_USER = os.getenv('REDIS_USER')
 REDIS_PASSWORD = os.getenv('REDIS_PASSWORD')
 REDIS_HOST = os.getenv('REDIS_HOST')
 REDIS_PORT = os.getenv('REDIS_PORT')
-LOCAL_USE_REMOTE_SERVICES = env_bool("LOCAL_USE_REMOTE_SERVICES", False)
-
 REDIS_COMPONENT_URL = None
 if REDIS_USER and REDIS_PASSWORD and REDIS_HOST and REDIS_PORT:
     REDIS_COMPONENT_URL = f"rediss://{REDIS_USER}:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/0"
 
 # Local muhitda production redisga tasodifiy ulanishni oldini olamiz.
 REMOTE_CACHE_URL = REDIS_COMPONENT_URL or VALKEY_URL or REDIS_URL
-if APP_ENV == "local" and not LOCAL_USE_REMOTE_SERVICES:
+if IS_LOCAL and not LOCAL_USE_REMOTE_SERVICES:
     CACHE_URL = None
 else:
     CACHE_URL = REMOTE_CACHE_URL
 
-if APP_ENV == "local" and REMOTE_CACHE_URL and not LOCAL_USE_REMOTE_SERVICES:
+if IS_LOCAL and REMOTE_CACHE_URL and not LOCAL_USE_REMOTE_SERVICES:
     print("--- [SYSTEM] Local mode: external Redis/Valkey disabled to isolate from production. ---")
 
 if CACHE_URL:
@@ -328,7 +328,7 @@ _email_backend_env = os.getenv("EMAIL_BACKEND", "").strip()
 if _email_backend_env:
     EMAIL_BACKEND = _email_backend_env
 else:
-    if APP_ENV == "local":
+    if IS_LOCAL:
         EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
     else:
         EMAIL_BACKEND = (
@@ -373,7 +373,9 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 WHITENOISE_IGNORE_MISSING_FILES = True
 
-USE_S3 = os.getenv('USE_S3', 'False') == 'True'
+USE_S3 = env_bool('USE_S3', False)
+if IS_LOCAL and not LOCAL_USE_REMOTE_SERVICES:
+    USE_S3 = False
 
 if USE_S3:
     # DigitalOcean Spaces (fra1 - Frankfurt) sozlamalari

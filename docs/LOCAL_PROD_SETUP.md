@@ -1,57 +1,63 @@
-# Local And Production Workflow
+# Local-First Development Workflow
 
-Bu loyiha endi `APP_ENV` bo'yicha avtomatik sozlanadi:
+Loyiha hozir default tarzda lokal ishlashga moslangan. `.env` yoki production
+environment sozlanmagan holatda ham Django `APP_ENV=local` deb olinadi.
 
-- `local` -> lokal test (default bot mode: `polling`)
-- `production` -> real server (default bot mode: `webhook`)
+## Lokal defaultlar
 
-## 1) Lokal sozlash
+- Database: `db.sqlite3`
+- Cache: Django `LocMemCache`
+- Channels: in-memory layer
+- Celery: eager mode + `memory://` broker
+- Media: `media/` papkasi
+- Email: console backend
+- Telegram: `polling`
+- S3, remote Postgres, Redis/Valkey: o'chirilgan
 
-1. `.env.local.example` faylidan nusxa oling: `.env.local`.
-2. Token va boshqa qiymatlarni to'ldiring.
-3. `APP_ENV=local` qoldiring.
-4. Ishga tushiring:
-
-```powershell
-$env:APP_ENV="local"
-python manage.py runserver
-```
-
-Telegram botni localda ngroksiz test qilish:
+## Ishga tushirish
 
 ```powershell
-$env:APP_ENV="local"
-python manage.py runbot
+.\venv\Scripts\python.exe manage.py migrate
+.\venv\Scripts\python.exe manage.py runserver
 ```
 
-## 2) Production sozlash
-
-1. `.env.production.example` faylidan `.env.production` yarating.
-2. Barcha secretlarni to'ldiring.
-3. Production server env ga `APP_ENV=production` qo'ying.
-4. Webhook o'rnating:
+Telegram botni localda alohida polling rejimida tekshirish:
 
 ```powershell
-python manage.py setwebhook https://example.com
+.\venv\Scripts\python.exe manage.py runbot
 ```
 
-## Muhim eslatma
+## Optional `.env.local`
 
-- Localda webhook bilan ishlamoqchi bo'lsangiz ham, xavfsizlikni pasaytirish uchun:
-  - `TELEGRAM_ALLOW_INSECURE_LOCAL_WEBHOOK=True` faqat localda qo'llang.
-- Productionda bu qiymat `False` bo'lsin.
+`.env.local` fayli gitga kirmaydi. Secret yoki local override kerak bo'lsa,
+shu faylda saqlanadi:
 
-## Rollback (tez ortga qaytish)
-
-Agar yangi o'zgarishlar yoqmasa, git orqali oldingi holatga qaytish mumkin:
-
-```powershell
-git checkout -- core/settings.py bot/views.py bot/management/commands/runbot.py bot/management/commands/setwebhook.py .gitignore
-git clean -f .env.local.example .env.production.example LOCAL_PROD_SETUP.md
+```dotenv
+APP_ENV=local
+DEBUG=True
+SECURITY_STRICT=False
+LOCAL_USE_REMOTE_SERVICES=False
+USE_S3=False
+EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 ```
 
-Yoki commit qilingandan keyin alohida revert commit qiling:
+## Remote servislarni ataylab yoqish
 
-```powershell
-git revert <commit_sha>
+Local rejimda remote DB, Redis/Valkey yoki S3 ishlatish faqat quyidagicha
+ataylab yoqiladi:
+
+```dotenv
+APP_ENV=local
+LOCAL_USE_REMOTE_SERVICES=True
+DATABASE_URL=postgres://...
+REDIS_URL=redis://...
+USE_S3=True
 ```
+
+Bu flag qo'yilmasa, project remote production infraga ulanmaydi.
+
+## Production sozlamalari
+
+Production kodlari saqlangan, lekin default yo'l emas. Production rejim faqat
+`APP_ENV=production` berilganda ishga tushadi va majburiy secret/database
+sozlamalarini talab qiladi.
