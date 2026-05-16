@@ -1,0 +1,190 @@
+{% extends "base_public.html" %}
+{% load static %}
+
+{% block title %}{{ course.title }} | AzureLMS{% endblock %}
+{% block body_class %}course-detail-page{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/public-course-detail.css' %}?v=1">
+{% endblock %}
+
+{% block content %}
+
+  <div class="course-detail-notice">
+    <div class="public-wrap">
+      <strong>{{ active_cohort_count }} ta faol cohort.</strong>
+      <span>Obuna tasdiqlangach barcha mos kurslar app ichida ochiladi.</span>
+      <a href="{% url 'subscriptions:pricing' %}">Narxlarni ko'rish</a>
+    </div>
+  </div>
+
+  {# ===== HERO ===== #}
+  <section class="course-detail-hero">
+    <div class="public-wrap course-detail-hero-grid">
+      <div class="course-detail-intro">
+        <p class="course-detail-provider">AzureLMS Academy</p>
+        <h1>{{ course.title }}</h1>
+        <p class="course-detail-summary">{{ course.description|striptags|truncatewords:40 }}</p>
+        <div class="course-detail-instructor">
+          <span>{{ course.instructor_initial }}</span>
+          <p>Mentor: <strong>{{ course.instructor_display_name }}</strong></p>
+        </div>
+
+        <div class="course-detail-actions">
+          {% if user.is_authenticated %}
+            {% if is_enrolled %}
+              <a class="button button--primary" href="{% url 'course_study' course_id=course.id %}">O'qishni davom ettirish</a>
+            {% else %}
+              <a class="button button--primary" href="{% url 'cohorts:checkout' course_id=course.id %}">Kursga yozilish</a>
+            {% endif %}
+          {% else %}
+            <a class="button button--primary" href="{% url 'login' %}?next={% url 'course_detail' pk=course.id %}">Hisobga kirib yozilish</a>
+          {% endif %}
+          <a class="button button--ghost" href="#program">Dastur rejasini ko'rish</a>
+        </div>
+
+        <div class="course-detail-enrolled">
+          <strong>{{ course_students_count }}+</strong>
+          <span>o'quvchi academic tracklarda o'qigan</span>
+        </div>
+      </div>
+
+      <aside class="course-detail-preview" aria-label="Course preview">
+        <div class="course-preview-card">
+          <div class="course-preview-top">
+            <span>{{ course.get_level_display }}</span>
+            <strong>{{ course.duration }} soat</strong>
+          </div>
+          <div class="course-preview-path">
+            <div><i class="bi bi-book"></i><span>{{ course_lessons_count }} dars</span></div>
+            <div><i class="bi bi-collection"></i><span>{{ modules|length }} modul</span></div>
+            <div><i class="bi bi-patch-check"></i><span>{{ course_exam_count }} imtihon</span></div>
+          </div>
+          {% if course.preview_video %}
+            <div class="course-preview-video">
+              <video controls src="{{ course.preview_video.url }}" preload="metadata"></video>
+            </div>
+          {% endif %}
+          {% if course.price %}
+            <div class="course-preview-price">
+              <span>Kurs narxi</span>
+              <strong>{{ course.price|floatformat:0 }} so'm</strong>
+            </div>
+          {% endif %}
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  {# ===== FACT BAR ===== #}
+  <section class="public-wrap course-detail-facts" aria-label="Course facts">
+    <article>
+      <strong>{{ modules|length }} modul</strong>
+      <span>Tuzilgan kurs arxitekturasi</span>
+    </article>
+    <article>
+      <strong>{{ course_lessons_count }} dars</strong>
+      <span>Lesson workspace ichida</span>
+    </article>
+    <article>
+      <strong>{{ course.get_level_display }}</strong>
+      <span>O'quvchi darajasiga moslangan</span>
+    </article>
+    <article>
+      <strong>{{ course.duration }} soat</strong>
+      <span>Taxminiy o'quv hajmi</span>
+    </article>
+    <article>
+      <strong>{{ active_cohort_count }} cohort</strong>
+      <span>Hozir faol guruhlar</span>
+    </article>
+  </section>
+
+  {# ===== TABS ===== #}
+  <nav class="public-wrap course-detail-tabs" aria-label="Course sections">
+    <a href="#overview">Haqida</a>
+    <a href="#program">Dastur</a>
+    <a href="#instructor">Mentor</a>
+    {% if course_exam_count %}<a href="#exams">Imtihonlar</a>{% endif %}
+  </nav>
+
+  {# ===== OVERVIEW ===== #}
+  <section class="public-wrap course-detail-section" id="overview">
+    <h2>Kurs haqida</h2>
+    <div class="course-detail-description">
+      {{ course.description|safe }}
+    </div>
+  </section>
+
+  {# ===== PROGRAM / MODULES ===== #}
+  <section class="course-detail-band" id="program">
+    <div class="public-wrap">
+      <div class="course-detail-section-head">
+        <h2>Dastur tuzilmasi</h2>
+        <p>Public sahifada modul preview ko'rinadi. To'liq darslar va materiallar obuna tasdiqlangach app ichida ochiladi.</p>
+      </div>
+
+      <div class="course-detail-roadmap">
+        {% for module in modules %}
+          <article>
+            <span>{{ forloop.counter|stringformat:"02d" }}</span>
+            <div>
+              <strong>{{ module.title }}</strong>
+              {% if module.description %}<p>{{ module.description|striptags|truncatewords:25 }}</p>{% endif %}
+            </div>
+            <em>{{ module.lessons.count }} dars</em>
+          </article>
+        {% empty %}
+          <p class="course-detail-empty">Modullar hali qo'shilmagan.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  {# ===== INSTRUCTOR ===== #}
+  {% if course.instructor %}
+    <section class="public-wrap course-detail-section" id="instructor">
+      <h2>O'qituvchi</h2>
+      <div class="course-detail-instructor-card">
+        <div class="course-detail-instructor-mark">
+          {% if course.instructor.avatar %}
+            <img src="{{ course.instructor.avatar.url }}" alt="{{ course.instructor_display_name }}">
+          {% else %}
+            {{ course.instructor_initial }}
+          {% endif %}
+        </div>
+        <div class="course-detail-instructor-copy">
+          <h3>{{ course.instructor_display_name }}</h3>
+          <p>{{ instructor_course_count }} ta faol kurs · AzureLMS Academy</p>
+          {% if course.instructor.bio %}
+            <p>{{ course.instructor.bio|truncatewords:40 }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+  {% endif %}
+
+  {# ===== CTA ===== #}
+  <section class="public-wrap cta-strip">
+    <div class="cta-inner">
+      <div class="cta-copy">
+        <p class="section-kicker section-kicker--light">Boshlash</p>
+        <h2>{{ course.title }} bilan o'rganishni boshlang</h2>
+        <p>Obuna ostida barcha mos kurslar, lesson workspace va sertifikat yo'li ochiladi.</p>
+      </div>
+      <div class="cta-actions">
+        {% if user.is_authenticated %}
+          {% if is_enrolled %}
+            <a class="button button--light" href="{% url 'course_study' course_id=course.id %}">O'qishni davom ettirish</a>
+          {% else %}
+            <a class="button button--light" href="{% url 'cohorts:checkout' course_id=course.id %}">Kursga yozilish</a>
+          {% endif %}
+        {% else %}
+          <a class="button button--light" href="{% url 'register' %}">Ro'yxatdan o'tish</a>
+          <a class="button button--outline-light" href="{% url 'login' %}">Kirish</a>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+{% endblock %}

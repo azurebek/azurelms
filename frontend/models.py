@@ -256,6 +256,14 @@ class SiteSettings(SingletonModel):
     youtube_url = models.URLField(blank=True, verbose_name="YouTube URL")
     facebook_url = models.URLField(blank=True, verbose_name="Facebook URL")
 
+    @property
+    def contact_phone_href(self):
+        phone = self.contact_phone or "+998 90 123 45 67"
+        normalized = "".join(
+            character for character in phone if character.isdigit() or character == "+"
+        )
+        return normalized or phone
+
     class Meta:
         verbose_name = "Platforma sozlamasi"
         verbose_name_plural = "7. Platforma sozlamalari"

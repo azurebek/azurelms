@@ -1,0 +1,234 @@
+{% extends "base_public.html" %}
+{% load static %}
+
+{% block title %}AzureLMS haqida — {{ page.hero_title_start|default:"Biz haqimizda" }}{% endblock %}
+{% block body_class %}shell-about{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/about.css' %}?v=1">
+{% endblock %}
+
+{% block content %}
+  <main class="about-main">
+
+    {# ===== HERO ===== #}
+    <section class="about-hero">
+      <div class="about-wrap about-hero-grid">
+        <div class="about-hero-copy">
+          <p class="about-kicker">AzureLMS haqida</p>
+          <h1>{{ page.hero_title_start }} <em>{{ page.hero_title_highlight }}</em></h1>
+          <div class="about-hero-text">{{ page.hero_subtitle|safe }}</div>
+          <div class="about-action-row">
+            <a class="button button--primary" href="{% url 'courses' %}">Kurslarni ko'rish</a>
+            <a class="button button--ghost" href="{% url 'faq_page' %}">Yordam markazi</a>
+          </div>
+        </div>
+
+        <div class="about-product-frame" aria-label="AzureLMS platform preview">
+          <div class="about-frame-top">
+            <span>Learning record</span>
+            <strong>{% now "Y" %}</strong>
+          </div>
+          <div class="about-record-grid">
+            {% for stat in highlighted_statistics|slice:":4" %}
+              <article>
+                <span>{{ stat.label }}</span>
+                <strong>{{ stat.value }}</strong>
+              </article>
+            {% empty %}
+              <article><span>Current track</span><strong>A2 Academic Bridge</strong></article>
+              <article><span>Mentor review</span><strong>Weekly</strong></article>
+              <article><span>Attendance</span><strong>84%</strong></article>
+              <article><span>Certificate path</span><strong>Open</strong></article>
+            {% endfor %}
+          </div>
+          <div class="about-progress-board">
+            <span style="width: 36%;"></span>
+            <span style="width: 58%;"></span>
+            <span style="width: 76%;"></span>
+            <span style="width: 91%;"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {# ===== PROOF STRIP ===== #}
+    {% if statistics %}
+      <section class="about-wrap about-proof-strip">
+        {% for stat in statistics|slice:":4" %}
+          <article>
+            <strong>{{ stat.value }}</strong>
+            <span>{{ stat.label }}</span>
+          </article>
+        {% endfor %}
+      </section>
+    {% endif %}
+
+    {# ===== MISSION / VISION ===== #}
+    <section class="about-band">
+      <div class="about-wrap about-band-grid">
+        <div class="about-section-head about-section-head--light">
+          <p class="section-kicker section-kicker--light">Missiya</p>
+          <h2>{{ page.mission_title }}</h2>
+          <div class="about-text">{{ page.mission_text|safe }}</div>
+        </div>
+        <div class="about-mission-note">
+          <strong>{{ page.vision_title }}</strong>
+          <div class="about-text">{{ page.vision_text|safe }}</div>
+        </div>
+      </div>
+    </section>
+
+    {# ===== APPROACH PRINCIPLES ===== #}
+    <section class="about-wrap about-section">
+      <div class="about-section-head">
+        <p class="section-kicker">Yondashuv</p>
+        <h2>Nega bu platforma boshqacha?</h2>
+        <p>Biz uchun chiroyli landing yetarli emas. Student kursga kirgandan keyin ham hamma narsa bir xil tartibda davom etishi kerak.</p>
+      </div>
+
+      <div class="about-principle-list">
+        <article>
+          <span>01</span>
+          <div>
+            <h3>Public sayt ishonch beradi</h3>
+            <p>Guest user kurs, daraja, cohort va sertifikat yo'lini login qilmasdan tushunadi.</p>
+          </div>
+        </article>
+        <article>
+          <span>02</span>
+          <div>
+            <h3>App shell qarorni tezlashtiradi</h3>
+            <p>Auth bo'lgan student faqat o'ziga tegishli schedule, progress va checkout signalini ko'radi.</p>
+          </div>
+        </article>
+        <article>
+          <span>03</span>
+          <div>
+            <h3>Learning flow uzilmaydi</h3>
+            <p>Lesson, assignment, messenger, exam va certificate bir-biriga bog'langan holatda ishlaydi.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    {# ===== PILLARS ===== #}
+    <section class="about-wrap about-section">
+      <div class="about-section-head">
+        <p class="section-kicker">Tizim ustunlari</p>
+        <h2>AzureLMS nimadan iborat?</h2>
+      </div>
+
+      <div class="about-pillar-grid">
+        <article class="about-pillar">
+          <i class="bi bi-journal-bookmark"></i>
+          <h3>Structured curriculum</h3>
+          <p>Har bir kurs module, lesson, assignment va final outcome bilan tartiblanadi.</p>
+        </article>
+        <article class="about-pillar">
+          <i class="bi bi-people"></i>
+          <h3>Live cohort</h3>
+          <p>O'quvchi yolg'iz qolmaydi: mentor, guruh va feedback ritmi yonma-yon yuradi.</p>
+        </article>
+        <article class="about-pillar">
+          <i class="bi bi-chat-square-text"></i>
+          <h3>Support workspace</h3>
+          <p>Messenger va notificationlar lesson jarayonidan ajralib ketmaydi.</p>
+        </article>
+        <article class="about-pillar">
+          <i class="bi bi-patch-check"></i>
+          <h3>Certificate review</h3>
+          <p>Natija shunchaki tugatish emas, review va tasdiq orqali rasmiylashadi.</p>
+        </article>
+      </div>
+    </section>
+
+    {# ===== TEAM ===== #}
+    {% if featured_member or team_members %}
+      <section class="about-wrap about-section">
+        <div class="about-team-layout">
+          <div class="about-section-head">
+            <p class="section-kicker">Jamoa</p>
+            <h2>Platformani qurayotgan yo'nalishlar</h2>
+            <p>Akademik flow, student support va platforma tizimlari uchun mas'ul jamoa.</p>
+          </div>
+
+          <div class="about-team-panel">
+            {% if featured_member %}
+              <article class="about-featured-member">
+                <div class="about-member-mark">
+                  {% if featured_member.avatar %}
+                    <img src="{{ featured_member.avatar.url }}" alt="{{ featured_member.name }}">
+                  {% else %}
+                    {{ featured_member.name|slice:":2"|upper }}
+                  {% endif %}
+                </div>
+                <div>
+                  <h3>{{ featured_member.name }}</h3>
+                  <span>{{ featured_member.role_1 }} / {{ featured_member.role_2 }}</span>
+                  <div class="about-text">{{ featured_member.bio|safe }}</div>
+                </div>
+              </article>
+            {% endif %}
+
+            {% if team_members %}
+              <div class="about-team-rows">
+                {% for member in team_members %}
+                  <article>
+                    <strong>{{ member.name }}</strong>
+                    <span>{{ member.role_1 }}{% if member.role_2 %} · {{ member.role_2 }}{% endif %}</span>
+                  </article>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </section>
+    {% endif %}
+
+    {# ===== TESTIMONIALS ===== #}
+    {% if testimonials %}
+      <section class="about-wrap about-section">
+        <div class="about-section-head">
+          <p class="section-kicker">Fikrlar</p>
+          <h2>O'quvchilar tajribasi</h2>
+        </div>
+
+        <div class="testimonial-grid">
+          {% for t in testimonials %}
+            <article class="testimonial-card">
+              <div class="testimonial-top">
+                <div class="testimonial-avatar testimonial-avatar--{% cycle 'warm' 'cool' 'navy' %}">
+                  {% if t.avatar %}<img src="{{ t.avatar.url }}" alt="{{ t.author_name }}">{% else %}{{ t.author_name|slice:":2"|upper }}{% endif %}
+                </div>
+                <div class="testimonial-info">
+                  <strong>{{ t.author_name }}</strong>
+                  <span>{{ t.author_role }}</span>
+                </div>
+              </div>
+              <div class="testimonial-stars">★★★★★</div>
+              <p>{{ t.content }}</p>
+            </article>
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+
+    {# ===== CTA ===== #}
+    <section class="about-wrap about-section">
+      <div class="about-final-cta">
+        <div>
+          <p class="section-kicker">Boshlash</p>
+          <h2>Platformani ko'ring, keyin mos yo'lni tanlang</h2>
+          <p>AzureLMS public sahifadan student dashboardgacha bir xil tartib va ishonch hissini saqlash uchun quriladi.</p>
+        </div>
+        <div class="about-action-row">
+          <a class="button button--primary" href="{% url 'courses' %}">Kurslarni ko'rish</a>
+          {% if not user.is_authenticated %}
+            <a class="button button--ghost" href="{% url 'register' %}">Ro'yxatdan o'tish</a>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+  </main>
+{% endblock %}

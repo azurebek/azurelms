@@ -1,0 +1,97 @@
+{% extends "base_public.html" %}
+{% load static %}
+
+{% block title %}Kurslar | AzureLMS{% endblock %}
+{% block body_class %}public-course-list-page{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/public-course-list.css' %}?v=1">
+{% endblock %}
+
+{% block content %}
+  <section class="public-list-hero">
+    <div class="public-wrap public-list-hero-grid">
+      <div>
+        <p class="section-kicker section-kicker--light">Kurs katalogi</p>
+        <h1>Turk tili yo'lingizni tanlang</h1>
+        <p>Daraja, format va sertifikat maqsadiga qarab mos cohortni toping. Har bir yo'nalish boshlanish sanasi, ritm va natija bo'yicha solishtiriladi.</p>
+      </div>
+      <aside class="public-list-summary">
+        <strong>A1-C1</strong>
+        <span>Live cohort, speaking lab, writing track va exam prep yo'nalishlari.</span>
+      </aside>
+    </div>
+  </section>
+
+  <section class="public-wrap public-list-tools">
+    <form method="get" class="public-list-search" action="">
+      <label for="public-course-search" class="sr-only">Qidiruv</label>
+      <i class="bi bi-search"></i>
+      <input id="public-course-search" type="search" name="q"
+             value="{{ request.GET.q|default:'' }}"
+             placeholder="Kurs, daraja yoki sertifikat qidiring">
+    </form>
+
+    {% with current_level=request.GET.level %}
+      <div class="public-list-filter-row">
+        <a class="public-list-filter{% if not current_level %} is-active{% endif %}" href="?{% if request.GET.q %}q={{ request.GET.q }}{% endif %}">Barchasi</a>
+        <a class="public-list-filter{% if current_level == 'beginner' %} is-active{% endif %}" href="?level=beginner{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">A1-A2</a>
+        <a class="public-list-filter{% if current_level == 'intermediate' %} is-active{% endif %}" href="?level=intermediate{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">B1-B2</a>
+        <a class="public-list-filter{% if current_level == 'advanced' %} is-active{% endif %}" href="?level=advanced{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">C1-C2</a>
+      </div>
+    {% endwith %}
+  </section>
+
+  <section class="public-wrap public-list-section">
+    <div class="public-list-heading">
+      <div>
+        <p class="section-kicker">Dasturlar</p>
+        <h2>Mavjud kurslar</h2>
+      </div>
+      <span>{{ paginator.count }} ta dastur</span>
+    </div>
+
+    <div class="public-course-list-grid">
+      {% for course in courses %}
+        <article class="public-course-list-card{% if forloop.first %} public-course-list-card--primary{% endif %}">
+          <div class="public-course-list-cover public-course-list-cover--{% cycle 'violet' 'teal' 'sand' 'navy' %}">
+            {% if course.thumbnail %}
+              <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" loading="lazy">
+            {% else %}
+              <span>{{ course.get_level_display }}</span>
+              <strong>{{ course.title }}</strong>
+            {% endif %}
+          </div>
+          <div class="public-course-list-body">
+            <p class="course-kicker">{{ course.get_level_display }}</p>
+            <h3>{{ course.title }}</h3>
+            <p>{{ course.description|striptags|truncatewords:22 }}</p>
+            <div class="course-chips">
+              <span>{{ course.annotated_lessons_count|default:course.lessons_count }} dars</span>
+              <span>{{ course.duration }} soat</span>
+              {% if course.price %}<span>{{ course.price|floatformat:0 }} so'm</span>{% endif %}
+            </div>
+            <div class="public-course-list-meta">
+              <span>{{ course.instructor_display_name }}</span>
+              <a href="{% url 'course_detail' pk=course.id %}">Batafsil <i class="bi bi-arrow-right"></i></a>
+            </div>
+          </div>
+        </article>
+      {% empty %}
+        <p class="public-course-list-empty">Filterga mos kurs topilmadi.</p>
+      {% endfor %}
+    </div>
+
+    {% if is_paginated %}
+      <nav class="public-pagination" aria-label="Sahifalar">
+        {% if page_obj.has_previous %}
+          <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.level %}&level={{ request.GET.level }}{% endif %}"><i class="bi bi-chevron-left"></i></a>
+        {% endif %}
+        <span>{{ page_obj.number }} / {{ paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.level %}&level={{ request.GET.level }}{% endif %}"><i class="bi bi-chevron-right"></i></a>
+        {% endif %}
+      </nav>
+    {% endif %}
+  </section>
+{% endblock %}

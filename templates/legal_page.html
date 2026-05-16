@@ -1,0 +1,62 @@
+{% extends "base_public.html" %}
+{% load static %}
+
+{% block title %}{{ legal_page.title }} | AzureLMS{% endblock %}
+{% block body_class %}shell-legal{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/legal.css' %}?v=1">
+{% endblock %}
+
+{% block content %}
+  <main class="legal-main">
+    <section class="legal-hero">
+      <div class="public-wrap legal-hero-inner">
+        <p class="section-kicker">Huquqiy hujjat</p>
+        <h1>{{ legal_page.title }}</h1>
+        <p class="legal-hero-meta">Oxirgi yangilanish: <strong>{{ legal_page.updated_at|date:"d F Y" }}</strong></p>
+      </div>
+    </section>
+
+    <section class="public-wrap legal-doc-wrap">
+      <div class="legal-doc-grid">
+        <article class="legal-doc-content">
+          {{ legal_page.content|safe }}
+        </article>
+
+        <aside class="legal-side-stack">
+          <section class="legal-side-card">
+            <h3>Boshqa hujjatlar</h3>
+            <ul class="legal-side-links">
+              <li><a href="{% url 'privacy_policy' %}"{% if active_legal_page == 'privacy' %} class="is-active"{% endif %}>Maxfiylik siyosati</a></li>
+              <li><a href="{% url 'terms_of_service' %}"{% if active_legal_page == 'terms' %} class="is-active"{% endif %}>Foydalanish shartlari</a></li>
+              <li><a href="{% url 'faq_page' %}"{% if active_legal_page == 'faq' %} class="is-active"{% endif %}>FAQ</a></li>
+            </ul>
+          </section>
+
+          <section class="legal-side-card">
+            <h3>Yordam</h3>
+            <div class="legal-mini-routes">
+              <div class="legal-mini-route">
+                <strong>Support email</strong>
+                <span><a href="mailto:{{ site_settings.contact_email|default:'info@azurelms.uz' }}">{{ site_settings.contact_email|default:'info@azurelms.uz' }}</a></span>
+              </div>
+              {% if site_settings.contact_phone %}
+                <div class="legal-mini-route">
+                  <strong>Aloqa</strong>
+                  <span><a href="tel:{{ site_settings.contact_phone_href }}">{{ site_settings.contact_phone }}</a></span>
+                </div>
+              {% endif %}
+              {% if site_settings.telegram_url %}
+                <div class="legal-mini-route">
+                  <strong>Telegram</strong>
+                  <span><a href="{{ site_settings.telegram_url }}" target="_blank" rel="noopener">@AzureLMS</a></span>
+                </div>
+              {% endif %}
+            </div>
+          </section>
+        </aside>
+      </div>
+    </section>
+  </main>
+{% endblock %}

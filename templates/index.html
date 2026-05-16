@@ -1,0 +1,375 @@
+{% extends "base_public.html" %}
+{% load static %}
+
+{% block title %}AzureLMS — {{ page.hero_title_start }} {{ page.hero_title_highlight }} {{ page.hero_title_end }}{% endblock %}
+{% block body_class %}shell-public--landing{% endblock %}
+
+{% block content %}
+
+  {# ===== BILLBOARD CAROUSEL ===== #}
+  <section class="public-billboard" data-carousel>
+    <div class="public-billboard-carousel">
+
+      {# Slide 1 — Platforma tanishtirish (LandingPage modelidan) #}
+      <article class="public-billboard-slide is-active" data-carousel-slide>
+        <div class="public-wrap public-billboard-grid">
+          <div class="billboard-stage">
+            <article class="billboard-poster billboard-poster--main">
+              <div class="billboard-poster-head">
+                <span>Academic bulletin</span>
+                <strong>{% now "Y" %}</strong>
+              </div>
+              <div class="billboard-poster-body">
+                <div class="poster-chart">
+                  <span style="height: 36%;"></span>
+                  <span style="height: 52%;"></span>
+                  <span style="height: 70%;"></span>
+                  <span style="height: 86%;"></span>
+                </div>
+                <div class="poster-copy">
+                  <strong>A1-C1</strong>
+                  <p>Tartibli track, lesson workspace va dashboard bitta oqimda.</p>
+                </div>
+              </div>
+              <div class="billboard-poster-foot">
+                <span>A1-C1 flow</span>
+                <span>Sertifikat track</span>
+                <span>Live support</span>
+              </div>
+            </article>
+
+            <article class="billboard-poster billboard-poster--side">
+              <span class="poster-side-label">TR</span>
+              <strong>A1-C1</strong>
+              <p>Turk tili, dashboard va exam flow yagona tizimda.</p>
+            </article>
+          </div>
+
+          <div class="billboard-copy">
+            <p class="billboard-kicker">{{ page.hero_badge }}</p>
+            <h1>{{ page.hero_title_start }} <em>{{ page.hero_title_highlight }}</em> {{ page.hero_title_end }}</h1>
+            <p class="billboard-text">{{ page.hero_subtitle|safe }}</p>
+            <div class="billboard-actions">
+              <a class="button button--light" href="{% url 'courses' %}">Kurslarni ko'rish</a>
+              <a class="button button--outline-light" href="{% url 'about' %}">Platforma haqida</a>
+            </div>
+            <div class="billboard-points">
+              {% for stat in statistics|slice:":3" %}
+                <div>
+                  <strong>{{ stat.value }}</strong>
+                  <span>{{ stat.label }}</span>
+                </div>
+              {% empty %}
+                <div><strong>6 track</strong><span>A1 dan C1 gacha</span></div>
+                <div><strong>10 hafta</strong><span>Lesson, exam va chat</span></div>
+                <div><strong>Doimiy support</strong><span>Telegram va dashboard</span></div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </article>
+
+      {# Slide 2 — Course catalog #}
+      <article class="public-billboard-slide" data-carousel-slide>
+        <div class="public-wrap public-billboard-grid">
+          <div class="billboard-stage">
+            <article class="billboard-poster billboard-poster--main">
+              <div class="billboard-poster-head">
+                <span>Course catalog</span>
+                <strong>{% now "Y" %}</strong>
+              </div>
+              <div class="billboard-poster-body">
+                <div class="poster-chart">
+                  <span style="height: 44%;"></span>
+                  <span style="height: 58%;"></span>
+                  <span style="height: 72%;"></span>
+                  <span style="height: 78%;"></span>
+                </div>
+                <div class="poster-copy">
+                  <strong>Modul</strong>
+                  <p>Har modul uchun aniq lesson ritmi, material va progress oqimi.</p>
+                </div>
+              </div>
+              <div class="billboard-poster-foot">
+                <span>Modul katalogi</span>
+                <span>Weekly rhythm</span>
+                <span>Study roadmap</span>
+              </div>
+            </article>
+
+            <article class="billboard-poster billboard-poster--side">
+              <span class="poster-side-label">B2</span>
+              <strong>Track</strong>
+              <p>Katalog, lesson plan va student dashboard bir-biriga bog'langan.</p>
+            </article>
+          </div>
+
+          <div class="billboard-copy">
+            <p class="billboard-kicker">Kurs arxitekturasi</p>
+            <h1>Katalogdan lesson workspacegacha bir xil tartib</h1>
+            <p class="billboard-text">Kurs preview, modul ritmi va qaysi yo'l bilan sertifikatga borish aniq ko'rinadi.</p>
+            <div class="billboard-actions">
+              <a class="button button--light" href="{% url 'courses' %}">Katalogni ochish</a>
+              <a class="button button--outline-light" href="{% url 'about' %}">Yo'l xaritasi</a>
+            </div>
+            <div class="billboard-points">
+              <div><strong>18-24 dars</strong><span>Har kurs uchun aniq ritm</span></div>
+              <div><strong>Weekly plan</strong><span>Modul va homework oqimi</span></div>
+              <div><strong>Lesson workspace</strong><span>Video, chat va exam</span></div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      {# Slide 3 — Certificate / Exam #}
+      <article class="public-billboard-slide" data-carousel-slide>
+        <div class="public-wrap public-billboard-grid">
+          <div class="billboard-stage">
+            <article class="billboard-poster billboard-poster--main">
+              <div class="billboard-poster-head">
+                <span>Certification flow</span>
+                <strong>{% now "Y" %}</strong>
+              </div>
+              <div class="billboard-poster-body">
+                <div class="poster-chart">
+                  <span style="height: 30%;"></span>
+                  <span style="height: 48%;"></span>
+                  <span style="height: 66%;"></span>
+                  <span style="height: 92%;"></span>
+                </div>
+                <div class="poster-copy">
+                  <strong>Final</strong>
+                  <p>Imtihon, tasdiqlash va sertifikat chiqarish bitta aniq yo'lda.</p>
+                </div>
+              </div>
+              <div class="billboard-poster-foot">
+                <span>Exam workspace</span>
+                <span>Certificate ready</span>
+                <span>Admin review</span>
+              </div>
+            </article>
+
+            <article class="billboard-poster billboard-poster--side">
+              <span class="poster-side-label">Live</span>
+              <strong>Support</strong>
+              <p>Telegram, mentor va help center bilan doimiy aloqa mavjud.</p>
+            </article>
+          </div>
+
+          <div class="billboard-copy">
+            <p class="billboard-kicker">Sertifikat yo'li</p>
+            <h1>Imtihon va sertifikatni bir tizimda yuritish</h1>
+            <p class="billboard-text">Exam workspace, verification va final certificate status bitta tizimda yuradi.</p>
+            <div class="billboard-actions">
+              <a class="button button--light" href="{% if user.is_authenticated %}{% url 'certificates' %}{% else %}{% url 'register' %}{% endif %}">Sertifikat yo'li</a>
+              <a class="button button--outline-light" href="{% url 'faq_page' %}">Yordam markazi</a>
+            </div>
+            <div class="billboard-points">
+              <div><strong>Exam flow</strong><span>Secure workspace</span></div>
+              <div><strong>Verification</strong><span>Admin va status</span></div>
+              <div><strong>Ready output</strong><span>Certificate va history</span></div>
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div class="public-wrap public-billboard-controls">
+      <div class="billboard-dots" role="tablist" aria-label="Billboard slides">
+        <button class="billboard-dot is-active" type="button" aria-label="1-slide" data-carousel-dot></button>
+        <button class="billboard-dot" type="button" aria-label="2-slide" data-carousel-dot></button>
+        <button class="billboard-dot" type="button" aria-label="3-slide" data-carousel-dot></button>
+      </div>
+      <div class="billboard-nav">
+        <button class="billboard-control" type="button" aria-label="Oldingi slide" data-carousel-prev>
+          <i class="bi bi-chevron-left"></i>
+        </button>
+        <button class="billboard-control" type="button" aria-label="Keyingi slide" data-carousel-next>
+          <i class="bi bi-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  {# ===== PORTAL GRID (preview + program tabs) ===== #}
+  <section class="public-wrap portal-grid">
+    <article class="portal-card portal-card--media">
+      <div class="portal-card-head">
+        <span>Platforma preview</span>
+      </div>
+      <div class="portal-preview">
+        <div class="portal-preview-window">
+          <div class="portal-preview-bar">
+            <span></span><span></span><span></span>
+          </div>
+          <div class="portal-preview-body">
+            <div class="portal-preview-sidebar"></div>
+            <div class="portal-preview-content">
+              <div class="preview-ribbon"></div>
+              <div class="preview-cards">
+                <span></span><span></span><span></span>
+              </div>
+              <div class="preview-table">
+                <span></span><span></span><span></span><span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="portal-card portal-card--program">
+      <div class="portal-card-tabs">
+        <a class="is-active" href="{% url 'courses' %}">Lisans</a>
+        <a href="{% url 'courses' %}">Yuqori daraja</a>
+        <a href="{% url 'about' %}">Sertifikat</a>
+      </div>
+      <div class="portal-program-grid">
+        <div class="portal-program-cover">
+          <div class="portal-program-label">AzureLMS model</div>
+          <strong>TR A1-C1</strong>
+        </div>
+        <div class="portal-program-copy">
+          <h2>Kurslar, lesson workspace va sertifikat oqimi bitta tizimda</h2>
+          <ul class="portal-list">
+            <li>Mashhur kurslar va modul ritmi</li>
+            <li>Qanday ishlaydi (4 qadam)</li>
+            <li>O'quvchilar fikri va statistika</li>
+            <li>Sertifikat va qabul yo'li</li>
+          </ul>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  {# ===== SEARCH STRIP ===== #}
+  <section class="public-wrap search-strip">
+    <form method="get" action="{% url 'courses' %}" style="display:contents;">
+      <input type="text" name="q" placeholder="Turk tili, B2, sertifikat yoki blog qidiring">
+      <button class="search-button" type="submit"><i class="bi bi-search"></i></button>
+    </form>
+  </section>
+
+  {# ===== POPULAR COURSES ===== #}
+  <section class="public-wrap public-section">
+    <div class="section-head">
+      <div>
+        <p class="section-kicker">Katalog</p>
+        <h2>Mashhur kurslar</h2>
+      </div>
+      <a class="section-link" href="{% url 'courses' %}">Barcha kurslarni ko'rish <i class="bi bi-arrow-right"></i></a>
+    </div>
+
+    <div class="course-grid">
+      {% for course in popular_courses %}
+        <article class="course-card">
+          <div class="course-cover course-cover--{% cycle 'violet' 'sand' 'navy' %}">
+            {% if course.thumbnail %}
+              <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" loading="lazy">
+            {% else %}
+              <div class="course-cover-inner">
+                <i class="bi bi-mortarboard"></i>
+                <span>{{ course.title }}</span>
+              </div>
+            {% endif %}
+          </div>
+          <div class="course-body">
+            <p class="course-kicker">{{ course.get_level_display }}</p>
+            <h3>{{ course.title }}</h3>
+            <p>{{ course.description|striptags|truncatewords:18 }}</p>
+            <div class="course-chips">
+              <span>{{ course.lessons_count }} dars</span>
+              <span>{{ course.duration }} soat</span>
+              {% if course.price %}<span>{{ course.price|floatformat:0 }} so'm</span>{% endif %}
+            </div>
+            <div class="course-meta">
+              <span>{{ course.instructor_display_name }}</span>
+              <a href="{% url 'course_detail' pk=course.id %}">Kursni ochish <i class="bi bi-arrow-right"></i></a>
+            </div>
+          </div>
+        </article>
+      {% empty %}
+        <p class="course-grid-empty">Hozircha kurslar qo'shilmagan.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  {# ===== HOW IT WORKS ===== #}
+  <section class="public-process"
+           {% if page.how_it_works_background_image %}style="background-image: url('{{ page.how_it_works_background_image.url }}');"{% endif %}>
+    <div class="public-wrap">
+      <div class="section-head">
+        <div>
+          <p class="section-kicker">Jarayon</p>
+          <h2>{{ page.how_it_works_title }}</h2>
+          {% if page.how_it_works_subtitle %}<span>{{ page.how_it_works_subtitle }}</span>{% endif %}
+        </div>
+      </div>
+
+      <div class="process-grid">
+        {% for step in how_it_works_steps %}
+          <article class="process-card">
+            <span class="process-step {{ step.number_class }}">
+              {% if step.number == 1 %}<i class="bi bi-person-plus"></i>
+              {% elif step.number == 2 %}<i class="bi bi-signpost-split"></i>
+              {% elif step.number == 3 %}<i class="bi bi-play-circle"></i>
+              {% else %}<i class="bi bi-patch-check"></i>{% endif %}
+            </span>
+            <h3>{{ step.title }}</h3>
+            <p>{{ step.description }}</p>
+          </article>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  {# ===== TESTIMONIALS ===== #}
+  {% if testimonials %}
+    <section class="public-wrap public-section">
+      <div class="section-head">
+        <div>
+          <p class="section-kicker">Fikrlar</p>
+          <h2>O'quvchilar fikri</h2>
+        </div>
+      </div>
+
+      <div class="testimonial-grid">
+        {% for t in testimonials %}
+          <article class="testimonial-card">
+            <div class="testimonial-top">
+              <div class="testimonial-avatar testimonial-avatar--{% cycle 'warm' 'cool' 'navy' %}">
+                {% if t.avatar %}<img src="{{ t.avatar.url }}" alt="{{ t.author_name }}">{% else %}{{ t.author_name|slice:":2"|upper }}{% endif %}
+              </div>
+              <div class="testimonial-info">
+                <strong>{{ t.author_name }}</strong>
+                <span>{{ t.author_role }}</span>
+              </div>
+            </div>
+            <div class="testimonial-stars">★★★★★</div>
+            <p>{{ t.content }}</p>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+
+  {# ===== CTA STRIP ===== #}
+  <section class="public-wrap cta-strip">
+    <div class="cta-inner">
+      <div class="cta-copy">
+        <p class="section-kicker section-kicker--light">Boshlash</p>
+        <h2>Bugun o'rganishni boshlang</h2>
+        <p>Platformadagi kurslar, dashboard va sertifikat yo'lini bir joyda ko'ring.</p>
+      </div>
+      <div class="cta-actions">
+        {% if user.is_authenticated %}
+          <a class="button button--light" href="{% url 'dashboard' %}">Dashboardga o'tish</a>
+        {% else %}
+          <a class="button button--light" href="{% url 'register' %}">Bepul boshlash</a>
+        {% endif %}
+        <a class="button button--outline-light" href="{% url 'courses' %}">Kurslarni ko'rish</a>
+      </div>
+    </div>
+  </section>
+
+{% endblock %}

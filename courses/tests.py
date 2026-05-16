@@ -1040,9 +1040,9 @@ class CourseDetailPageRenderTests(TestCase):
         response = self.client.get(reverse("course_detail", kwargs={"pk": self.course.pk}))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "AzureLMS Signature Course")
-        self.assertContains(response, "Faqat video emas, to'liq o'quv sistemasi")
-        self.assertContains(response, "Kursni olib boradigan o'qituvchi")
+        self.assertContains(response, "AzureLMS Academy")
+        self.assertContains(response, "Dastur tuzilmasi")
+        self.assertContains(response, "O'qituvchi")
 
 
 class CourseGradientCoverTests(TestCase):
