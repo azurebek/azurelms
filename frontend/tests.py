@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from .models import LandingPage
+from .models import LandingPage, LandingProcessStep
 
 
 class LandingPageHowItWorksTests(TestCase):
@@ -8,15 +8,20 @@ class LandingPageHowItWorksTests(TestCase):
         page = LandingPage.load()
         page.how_it_works_title = "Bu qanday ishlaydi?"
         page.how_it_works_subtitle = "Hammasi 4 bosqichda"
-        page.how_it_works_step_one_title = "Profil oching"
-        page.how_it_works_step_one_description = "Bir necha soniyada ro'yxatdan o'ting"
-        page.how_it_works_step_two_title = "Yo'nalish tanlang"
-        page.how_it_works_step_two_description = "Sizga mos kursni belgilang"
-        page.how_it_works_step_three_title = "Darslarni ko'ring"
-        page.how_it_works_step_three_description = "Video va mashqlar bilan davom eting"
-        page.how_it_works_step_four_title = "Natijani oling"
-        page.how_it_works_step_four_description = "Yakunida sertifikatni yuklab oling"
         page.save()
+        LandingProcessStep.objects.all().delete()
+        LandingProcessStep.objects.create(
+            title="Profil oching",
+            description="Bir necha soniyada ro'yxatdan o'ting",
+            icon_class="bi bi-person-plus",
+            order=1,
+        )
+        LandingProcessStep.objects.create(
+            title="Natijani oling",
+            description="Yakunida sertifikatni yuklab oling",
+            icon_class="bi bi-patch-check",
+            order=2,
+        )
 
         response = self.client.get("/")
         content = response.content.decode("utf-8")

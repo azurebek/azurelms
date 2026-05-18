@@ -1,7 +1,7 @@
 {% extends "base_public.html" %}
 {% load static %}
 
-{% block title %}AzureLMS — {{ page.hero_title_start }} {{ page.hero_title_highlight }} {{ page.hero_title_end }}{% endblock %}
+{% block title %}AzureLMS - {{ page.hero_title_start }} {{ page.hero_title_highlight }} {{ page.hero_title_end }}{% endblock %}
 {% block body_class %}shell-public--landing{% endblock %}
 
 {% block content %}
@@ -9,176 +9,69 @@
   {# ===== BILLBOARD CAROUSEL ===== #}
   <section class="public-billboard" data-carousel>
     <div class="public-billboard-carousel">
-
-      {# Slide 1 — Platforma tanishtirish (LandingPage modelidan) #}
-      <article class="public-billboard-slide is-active" data-carousel-slide>
-        <div class="public-wrap public-billboard-grid">
-          <div class="billboard-stage">
-            <article class="billboard-poster billboard-poster--main">
-              <div class="billboard-poster-head">
-                <span>Academic bulletin</span>
-                <strong>{% now "Y" %}</strong>
-              </div>
-              <div class="billboard-poster-body">
-                <div class="poster-chart">
-                  <span style="height: 36%;"></span>
-                  <span style="height: 52%;"></span>
-                  <span style="height: 70%;"></span>
-                  <span style="height: 86%;"></span>
+      {% for slide in hero_slides %}
+        <article class="public-billboard-slide {{ slide.layout_class }} {{ slide.gradient_class }}{% if forloop.first %} is-active{% endif %}" data-carousel-slide>
+          <div class="public-wrap public-billboard-grid">
+            <div class="billboard-stage">
+              <article class="billboard-poster billboard-poster--main">
+                <div class="billboard-poster-head">
+                  <span>{{ slide.poster_kicker }}</span>
+                  <strong>{{ slide.poster_year_label }}</strong>
                 </div>
-                <div class="poster-copy">
-                  <strong>A1-C1</strong>
-                  <p>Tartibli track, lesson workspace va dashboard bitta oqimda.</p>
+                <div class="billboard-poster-body">
+                  <div class="poster-chart {{ slide.chart_class }}">
+                    <span></span><span></span><span></span><span></span>
+                  </div>
+                  <div class="poster-copy">
+                    <strong>{{ slide.poster_title }}</strong>
+                    <p>{{ slide.poster_text }}</p>
+                  </div>
                 </div>
-              </div>
-              <div class="billboard-poster-foot">
-                <span>A1-C1 flow</span>
-                <span>Sertifikat track</span>
-                <span>Live support</span>
-              </div>
-            </article>
+                <div class="billboard-poster-foot">
+                  {% if slide.poster_chip_one %}<span>{{ slide.poster_chip_one }}</span>{% endif %}
+                  {% if slide.poster_chip_two %}<span>{{ slide.poster_chip_two }}</span>{% endif %}
+                  {% if slide.poster_chip_three %}<span>{{ slide.poster_chip_three }}</span>{% endif %}
+                </div>
+              </article>
 
-            <article class="billboard-poster billboard-poster--side">
-              <span class="poster-side-label">TR</span>
-              <strong>A1-C1</strong>
-              <p>Turk tili, dashboard va exam flow yagona tizimda.</p>
-            </article>
-          </div>
-
-          <div class="billboard-copy">
-            <p class="billboard-kicker">{{ page.hero_badge }}</p>
-            <h1>{{ page.hero_title_start }} <em>{{ page.hero_title_highlight }}</em> {{ page.hero_title_end }}</h1>
-            <p class="billboard-text">{{ page.hero_subtitle|safe }}</p>
-            <div class="billboard-actions">
-              <a class="button button--light" href="{% url 'courses' %}">Kurslarni ko'rish</a>
-              <a class="button button--outline-light" href="{% url 'about' %}">Platforma haqida</a>
+              <article class="billboard-poster billboard-poster--side">
+                <span class="poster-side-label">{{ slide.side_label }}</span>
+                <strong>{{ slide.side_title }}</strong>
+                <p>{{ slide.side_text }}</p>
+              </article>
             </div>
-            <div class="billboard-points">
-              {% for stat in statistics|slice:":3" %}
-                <div>
-                  <strong>{{ stat.value }}</strong>
-                  <span>{{ stat.label }}</span>
-                </div>
-              {% empty %}
-                <div><strong>6 track</strong><span>A1 dan C1 gacha</span></div>
-                <div><strong>10 hafta</strong><span>Lesson, exam va chat</span></div>
-                <div><strong>Doimiy support</strong><span>Telegram va dashboard</span></div>
-              {% endfor %}
+
+            <div class="billboard-copy">
+              <p class="billboard-kicker">{{ slide.kicker }}</p>
+              <h1>{{ slide.title }}</h1>
+              <p class="billboard-text">{{ slide.subtitle }}</p>
+              <div class="billboard-actions">
+                {% if slide.primary_label %}
+                  <a class="button button--light" href="{{ slide.primary_url|default:'#' }}">{{ slide.primary_label }}</a>
+                {% endif %}
+                {% if slide.secondary_label %}
+                  <a class="button button--outline-light" href="{{ slide.secondary_url|default:'#' }}">{{ slide.secondary_label }}</a>
+                {% endif %}
+              </div>
+              <div class="billboard-points">
+                {% for stat in slide.metric_items %}
+                  <div>
+                    <strong>{{ stat.value }}</strong>
+                    <span>{{ stat.label }}</span>
+                  </div>
+                {% endfor %}
+              </div>
             </div>
           </div>
-        </div>
-      </article>
-
-      {# Slide 2 — Course catalog #}
-      <article class="public-billboard-slide" data-carousel-slide>
-        <div class="public-wrap public-billboard-grid">
-          <div class="billboard-stage">
-            <article class="billboard-poster billboard-poster--main">
-              <div class="billboard-poster-head">
-                <span>Course catalog</span>
-                <strong>{% now "Y" %}</strong>
-              </div>
-              <div class="billboard-poster-body">
-                <div class="poster-chart">
-                  <span style="height: 44%;"></span>
-                  <span style="height: 58%;"></span>
-                  <span style="height: 72%;"></span>
-                  <span style="height: 78%;"></span>
-                </div>
-                <div class="poster-copy">
-                  <strong>Modul</strong>
-                  <p>Har modul uchun aniq lesson ritmi, material va progress oqimi.</p>
-                </div>
-              </div>
-              <div class="billboard-poster-foot">
-                <span>Modul katalogi</span>
-                <span>Weekly rhythm</span>
-                <span>Study roadmap</span>
-              </div>
-            </article>
-
-            <article class="billboard-poster billboard-poster--side">
-              <span class="poster-side-label">B2</span>
-              <strong>Track</strong>
-              <p>Katalog, lesson plan va student dashboard bir-biriga bog'langan.</p>
-            </article>
-          </div>
-
-          <div class="billboard-copy">
-            <p class="billboard-kicker">Kurs arxitekturasi</p>
-            <h1>Katalogdan lesson workspacegacha bir xil tartib</h1>
-            <p class="billboard-text">Kurs preview, modul ritmi va qaysi yo'l bilan sertifikatga borish aniq ko'rinadi.</p>
-            <div class="billboard-actions">
-              <a class="button button--light" href="{% url 'courses' %}">Katalogni ochish</a>
-              <a class="button button--outline-light" href="{% url 'about' %}">Yo'l xaritasi</a>
-            </div>
-            <div class="billboard-points">
-              <div><strong>18-24 dars</strong><span>Har kurs uchun aniq ritm</span></div>
-              <div><strong>Weekly plan</strong><span>Modul va homework oqimi</span></div>
-              <div><strong>Lesson workspace</strong><span>Video, chat va exam</span></div>
-            </div>
-          </div>
-        </div>
-      </article>
-
-      {# Slide 3 — Certificate / Exam #}
-      <article class="public-billboard-slide" data-carousel-slide>
-        <div class="public-wrap public-billboard-grid">
-          <div class="billboard-stage">
-            <article class="billboard-poster billboard-poster--main">
-              <div class="billboard-poster-head">
-                <span>Certification flow</span>
-                <strong>{% now "Y" %}</strong>
-              </div>
-              <div class="billboard-poster-body">
-                <div class="poster-chart">
-                  <span style="height: 30%;"></span>
-                  <span style="height: 48%;"></span>
-                  <span style="height: 66%;"></span>
-                  <span style="height: 92%;"></span>
-                </div>
-                <div class="poster-copy">
-                  <strong>Final</strong>
-                  <p>Imtihon, tasdiqlash va sertifikat chiqarish bitta aniq yo'lda.</p>
-                </div>
-              </div>
-              <div class="billboard-poster-foot">
-                <span>Exam workspace</span>
-                <span>Certificate ready</span>
-                <span>Admin review</span>
-              </div>
-            </article>
-
-            <article class="billboard-poster billboard-poster--side">
-              <span class="poster-side-label">Live</span>
-              <strong>Support</strong>
-              <p>Telegram, mentor va help center bilan doimiy aloqa mavjud.</p>
-            </article>
-          </div>
-
-          <div class="billboard-copy">
-            <p class="billboard-kicker">Sertifikat yo'li</p>
-            <h1>Imtihon va sertifikatni bir tizimda yuritish</h1>
-            <p class="billboard-text">Exam workspace, verification va final certificate status bitta tizimda yuradi.</p>
-            <div class="billboard-actions">
-              <a class="button button--light" href="{% if user.is_authenticated %}{% url 'certificates' %}{% else %}{% url 'register' %}{% endif %}">Sertifikat yo'li</a>
-              <a class="button button--outline-light" href="{% url 'faq_page' %}">Yordam markazi</a>
-            </div>
-            <div class="billboard-points">
-              <div><strong>Exam flow</strong><span>Secure workspace</span></div>
-              <div><strong>Verification</strong><span>Admin va status</span></div>
-              <div><strong>Ready output</strong><span>Certificate va history</span></div>
-            </div>
-          </div>
-        </div>
-      </article>
+        </article>
+      {% endfor %}
     </div>
 
     <div class="public-wrap public-billboard-controls">
       <div class="billboard-dots" role="tablist" aria-label="Billboard slides">
-        <button class="billboard-dot is-active" type="button" aria-label="1-slide" data-carousel-dot></button>
-        <button class="billboard-dot" type="button" aria-label="2-slide" data-carousel-dot></button>
-        <button class="billboard-dot" type="button" aria-label="3-slide" data-carousel-dot></button>
+        {% for slide in hero_slides %}
+          <button class="billboard-dot{% if forloop.first %} is-active{% endif %}" type="button" aria-label="{{ forloop.counter }}-slide" data-carousel-dot></button>
+        {% endfor %}
       </div>
       <div class="billboard-nav">
         <button class="billboard-control" type="button" aria-label="Oldingi slide" data-carousel-prev>
@@ -195,7 +88,7 @@
   <section class="public-wrap portal-grid">
     <article class="portal-card portal-card--media">
       <div class="portal-card-head">
-        <span>Platforma preview</span>
+        <span>{{ page.portal_media_label }}</span>
       </div>
       <div class="portal-preview">
         <div class="portal-preview-window">
@@ -220,22 +113,21 @@
 
     <article class="portal-card portal-card--program">
       <div class="portal-card-tabs">
-        <a class="is-active" href="{% url 'courses' %}">Lisans</a>
-        <a href="{% url 'courses' %}">Yuqori daraja</a>
-        <a href="{% url 'about' %}">Sertifikat</a>
+        {% for tab in portal_tabs %}
+          <a{% if tab.is_active %} class="is-active"{% endif %} href="{{ tab.url }}">{{ tab.label }}</a>
+        {% endfor %}
       </div>
       <div class="portal-program-grid">
         <div class="portal-program-cover">
-          <div class="portal-program-label">AzureLMS model</div>
-          <strong>TR A1-C1</strong>
+          <div class="portal-program-label">{{ page.portal_cover_label }}</div>
+          <strong>{{ page.portal_cover_title }}</strong>
         </div>
         <div class="portal-program-copy">
-          <h2>Kurslar, lesson workspace va sertifikat oqimi bitta tizimda</h2>
+          <h2>{{ page.portal_program_title }}</h2>
           <ul class="portal-list">
-            <li>Mashhur kurslar va modul ritmi</li>
-            <li>Qanday ishlaydi (4 qadam)</li>
-            <li>O'quvchilar fikri va statistika</li>
-            <li>Sertifikat va qabul yo'li</li>
+            {% for item in portal_items %}
+              <li>{{ item.text }}</li>
+            {% endfor %}
           </ul>
         </div>
       </div>
@@ -244,8 +136,8 @@
 
   {# ===== SEARCH STRIP ===== #}
   <section class="public-wrap search-strip">
-    <form method="get" action="{% url 'courses' %}" style="display:contents;">
-      <input type="text" name="q" placeholder="Turk tili, B2, sertifikat yoki blog qidiring">
+    <form method="get" action="{% url 'courses' %}" class="search-strip-form">
+      <input type="text" name="q" placeholder="{{ page.search_placeholder }}">
       <button class="search-button" type="submit"><i class="bi bi-search"></i></button>
     </form>
   </section>
@@ -254,10 +146,10 @@
   <section class="public-wrap public-section">
     <div class="section-head">
       <div>
-        <p class="section-kicker">Katalog</p>
-        <h2>Mashhur kurslar</h2>
+        <p class="section-kicker">{{ page.courses_section_kicker }}</p>
+        <h2>{{ page.courses_section_title }}</h2>
       </div>
-      <a class="section-link" href="{% url 'courses' %}">Barcha kurslarni ko'rish <i class="bi bi-arrow-right"></i></a>
+      <a class="section-link" href="{% url 'courses' %}">{{ page.courses_section_link_label }} <i class="bi bi-arrow-right"></i></a>
     </div>
 
     <div class="course-grid">
@@ -295,12 +187,12 @@
   </section>
 
   {# ===== HOW IT WORKS ===== #}
-  <section class="public-process"
-           {% if page.how_it_works_background_image %}style="background-image: url('{{ page.how_it_works_background_image.url }}');"{% endif %}>
+  <section class="public-process{% if page.how_it_works_background_image %} public-process--has-bg{% endif %}"
+           {% if page.how_it_works_background_image %}style="--public-process-bg: url('{{ page.how_it_works_background_image.url }}');"{% endif %}>
     <div class="public-wrap">
       <div class="section-head">
         <div>
-          <p class="section-kicker">Jarayon</p>
+          <p class="section-kicker">{{ page.process_section_kicker }}</p>
           <h2>{{ page.how_it_works_title }}</h2>
           {% if page.how_it_works_subtitle %}<span>{{ page.how_it_works_subtitle }}</span>{% endif %}
         </div>
@@ -309,11 +201,8 @@
       <div class="process-grid">
         {% for step in how_it_works_steps %}
           <article class="process-card">
-            <span class="process-step {{ step.number_class }}">
-              {% if step.number == 1 %}<i class="bi bi-person-plus"></i>
-              {% elif step.number == 2 %}<i class="bi bi-signpost-split"></i>
-              {% elif step.number == 3 %}<i class="bi bi-play-circle"></i>
-              {% else %}<i class="bi bi-patch-check"></i>{% endif %}
+            <span class="process-step {{ step.color_class }}">
+              <i class="{{ step.icon_class }}"></i>
             </span>
             <h3>{{ step.title }}</h3>
             <p>{{ step.description }}</p>
@@ -328,8 +217,8 @@
     <section class="public-wrap public-section">
       <div class="section-head">
         <div>
-          <p class="section-kicker">Fikrlar</p>
-          <h2>O'quvchilar fikri</h2>
+          <p class="section-kicker">{{ page.testimonials_section_kicker }}</p>
+          <h2>{{ page.testimonials_section_title }}</h2>
         </div>
       </div>
 
@@ -338,15 +227,15 @@
           <article class="testimonial-card">
             <div class="testimonial-top">
               <div class="testimonial-avatar testimonial-avatar--{% cycle 'warm' 'cool' 'navy' %}">
-                {% if t.avatar %}<img src="{{ t.avatar.url }}" alt="{{ t.author_name }}">{% else %}{{ t.author_name|slice:":2"|upper }}{% endif %}
+                {% if t.avatar %}<img src="{{ t.avatar.url }}" alt="{{ t.name }}">{% else %}{{ t.name|slice:":2"|upper }}{% endif %}
               </div>
               <div class="testimonial-info">
-                <strong>{{ t.author_name }}</strong>
-                <span>{{ t.author_role }}</span>
+                <strong>{{ t.name }}</strong>
+                <span>{{ t.role }}</span>
               </div>
             </div>
-            <div class="testimonial-stars">★★★★★</div>
-            <p>{{ t.content }}</p>
+            <div class="testimonial-stars"></div>
+            <p>{{ t.text }}</p>
           </article>
         {% endfor %}
       </div>
@@ -354,20 +243,26 @@
   {% endif %}
 
   {# ===== CTA STRIP ===== #}
-  <section class="public-wrap cta-strip">
+  <section class="public-wrap cta-strip {{ page.cta_background_class }}{% if page.cta_background_image %} cta-strip--has-image{% endif %}{% if page.cta_background_video %} cta-strip--has-video{% endif %}"
+           {% if page.cta_background_image %}style="--public-cta-bg-image: url('{{ page.cta_background_image.url }}');"{% endif %}>
     <div class="cta-inner">
+      {% if page.cta_background_video %}
+        <video class="public-background-video cta-background-video" autoplay muted loop playsinline aria-hidden="true">
+          <source src="{{ page.cta_background_video.url }}">
+        </video>
+      {% endif %}
       <div class="cta-copy">
-        <p class="section-kicker section-kicker--light">Boshlash</p>
-        <h2>Bugun o'rganishni boshlang</h2>
-        <p>Platformadagi kurslar, dashboard va sertifikat yo'lini bir joyda ko'ring.</p>
+        <p class="section-kicker section-kicker--light">{{ page.cta_kicker }}</p>
+        <h2>{{ page.cta_title }}</h2>
+        <div class="cta-text">{{ page.cta_description|safe }}</div>
       </div>
       <div class="cta-actions">
         {% if user.is_authenticated %}
           <a class="button button--light" href="{% url 'dashboard' %}">Dashboardga o'tish</a>
         {% else %}
-          <a class="button button--light" href="{% url 'register' %}">Bepul boshlash</a>
+          <a class="button button--light" href="{% url 'register' %}">{{ page.cta_primary_label }}</a>
         {% endif %}
-        <a class="button button--outline-light" href="{% url 'courses' %}">Kurslarni ko'rish</a>
+        <a class="button button--outline-light" href="{% url 'courses' %}">{{ page.cta_secondary_label }}</a>
       </div>
     </div>
   </section>

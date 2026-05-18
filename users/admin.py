@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, Notification, NotificationBroadcast
+from .models import CustomUser, Notification, NotificationBroadcast, UserOnboarding
 from .notification_service import send_broadcast
 
 
@@ -19,6 +19,14 @@ class CustomUserAdmin(UserAdmin):
 
 
 admin.site.register(CustomUser, CustomUserAdmin)
+
+
+@admin.register(UserOnboarding)
+class UserOnboardingAdmin(admin.ModelAdmin):
+    list_display = ("user", "goal", "current_level", "completed_at")
+    list_filter = ("goal", "current_level")
+    search_fields = ("user__username", "user__email", "user__first_name")
+    readonly_fields = ("completed_at",)
 
 
 @admin.register(Notification)

@@ -73,6 +73,40 @@
     carousel.addEventListener("mouseleave", startAutoplay);
     mobileQuery.addEventListener("change", startAutoplay);
 
+    // Keyboard navigation (WCAG AA) — Arrow keys when carousel is focused.
+    // tabindex orqali fokus olishi uchun atribut qo'shamiz (yo'q bo'lsa).
+    if (!carousel.hasAttribute("tabindex")) {
+      carousel.setAttribute("tabindex", "0");
+    }
+    carousel.setAttribute("role", carousel.getAttribute("role") || "region");
+    if (!carousel.hasAttribute("aria-roledescription")) {
+      carousel.setAttribute("aria-roledescription", "carousel");
+    }
+
+    carousel.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        setActive(currentIndex - 1);
+        startAutoplay();
+      } else if (event.key === "ArrowRight") {
+        event.preventDefault();
+        setActive(currentIndex + 1);
+        startAutoplay();
+      } else if (event.key === "Home") {
+        event.preventDefault();
+        setActive(0);
+        startAutoplay();
+      } else if (event.key === "End") {
+        event.preventDefault();
+        setActive(slides.length - 1);
+        startAutoplay();
+      }
+    });
+
+    // Foydalanuvchi fokus ichida bo'lsa autoplay'ni to'xtatamiz.
+    carousel.addEventListener("focusin", stopAutoplay);
+    carousel.addEventListener("focusout", startAutoplay);
+
     setActive(currentIndex);
     startAutoplay();
   });

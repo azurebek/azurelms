@@ -6,7 +6,12 @@ from django.urls import path
 from django.utils.html import format_html
 
 from .models import (
+    LandingHeroSlide,
+    LandingHeroSlideMetric,
     LandingPage,
+    LandingPortalListItem,
+    LandingPortalTab,
+    LandingProcessStep,
     Statistic,
     Testimonial,
     AboutPage,
@@ -60,13 +65,37 @@ class LandingPageAdmin(admin.ModelAdmin):
         (
             "Footer foni",
             {
-                "fields": ("footer_background_image", "footer_background_video"),
+                "fields": (
+                    "footer_background_preset",
+                    "footer_background_image",
+                    "footer_background_video",
+                ),
             },
         ),
         (
             "Bottom CTA",
             {
-                "fields": ("cta_title", "cta_description"),
+                "fields": (
+                    "cta_kicker",
+                    "cta_title",
+                    "cta_description",
+                    ("cta_primary_label", "cta_secondary_label"),
+                    "cta_background_preset",
+                    "cta_background_image",
+                    "cta_background_video",
+                ),
+            },
+        ),
+        (
+            "Pastki public bloklar",
+            {
+                "fields": (
+                    ("portal_media_label", "portal_program_title"),
+                    ("portal_cover_label", "portal_cover_title"),
+                    "search_placeholder",
+                    ("courses_section_kicker", "courses_section_title", "courses_section_link_label"),
+                    ("process_section_kicker", "testimonials_section_kicker", "testimonials_section_title"),
+                ),
             },
         ),
     )
@@ -74,6 +103,80 @@ class LandingPageAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         # Yagona (Singleton) model uchun faqat 1 ta yozuv yaratishga ruxsat beramiz.
         return not LandingPage.objects.exists()
+
+
+class LandingHeroSlideMetricInline(admin.TabularInline):
+    model = LandingHeroSlideMetric
+    extra = 3
+    fields = ("value", "label", "order")
+
+
+@admin.register(LandingHeroSlide)
+class LandingHeroSlideAdmin(admin.ModelAdmin):
+    list_display = ("title", "gradient_preset", "layout", "is_active", "order")
+    list_editable = ("gradient_preset", "layout", "is_active", "order")
+    list_filter = ("is_active", "gradient_preset", "layout")
+    inlines = (LandingHeroSlideMetricInline,)
+    fieldsets = (
+        (
+            "Slide sozlamalari",
+            {
+                "fields": (
+                    ("is_active", "order"),
+                    ("layout", "gradient_preset", "chart_preset"),
+                )
+            },
+        ),
+        (
+            "Asosiy matn",
+            {
+                "fields": (
+                    "kicker",
+                    "title",
+                    "subtitle",
+                    ("primary_label", "primary_url"),
+                    ("secondary_label", "secondary_url"),
+                )
+            },
+        ),
+        (
+            "Asosiy karta",
+            {
+                "fields": (
+                    ("poster_kicker", "poster_year_label"),
+                    ("poster_title", "poster_text"),
+                    ("poster_chip_one", "poster_chip_two", "poster_chip_three"),
+                )
+            },
+        ),
+        (
+            "Yon karta",
+            {
+                "fields": (
+                    ("side_label", "side_title"),
+                    "side_text",
+                )
+            },
+        ),
+    )
+
+
+@admin.register(LandingPortalTab)
+class LandingPortalTabAdmin(admin.ModelAdmin):
+    list_display = ("label", "url", "is_active", "is_visible", "order")
+    list_editable = ("is_active", "is_visible", "order")
+
+
+@admin.register(LandingPortalListItem)
+class LandingPortalListItemAdmin(admin.ModelAdmin):
+    list_display = ("text", "is_visible", "order")
+    list_editable = ("is_visible", "order")
+
+
+@admin.register(LandingProcessStep)
+class LandingProcessStepAdmin(admin.ModelAdmin):
+    list_display = ("title", "icon_class", "is_visible", "order")
+    list_editable = ("icon_class", "is_visible", "order")
 
 @admin.register(AboutPage)
 class AboutPageAdmin(admin.ModelAdmin):
@@ -105,6 +208,15 @@ class TeamMemberAdmin(admin.ModelAdmin):
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(admin.ModelAdmin):
     fieldsets = (
+        (
+            "Brend va logo",
+            {
+                "fields": (
+                    ("brand_name", "brand_tagline"),
+                    ("logo_mark_text", "logo_image"),
+                )
+            },
+        ),
         (
             "Asosiy kontaktlar",
             {
@@ -146,12 +258,12 @@ class SiteSettingsAdmin(admin.ModelAdmin):
 
 @admin.register(LandingNavItem)
 class LandingNavItemAdmin(admin.ModelAdmin):
-    list_display = ("drag_handle", "label", "kind_label", "is_visible", "order")
+    list_display = ("drag_handle", "label", "placement", "kind_label", "custom_url", "is_visible", "order")
     list_display_links = ("label",)
-    list_editable = ("is_visible",)
-    ordering = ("order", "id")
-    readonly_fields = ("key_label",)
-    fields = ("label", "key_label", "is_visible", "order")
+    list_editable = ("placement", "is_visible", "order")
+    list_filter = ("placement", "key", "is_visible")
+    ordering = ("placement", "order", "id")
+    fields = ("placement", "label", "key", "custom_url", "open_in_new_tab", "is_visible", "order")
 
     class Media:
         css = {"all": ("admin/css/landing_nav_sort.css",)}
@@ -167,16 +279,6 @@ class LandingNavItemAdmin(admin.ModelAdmin):
     @admin.display(description="Link turi", ordering="key")
     def kind_label(self, obj):
         return obj.get_key_display()
-
-    @admin.display(description="Link turi")
-    def key_label(self, obj):
-        return obj.get_key_display()
-
-    def has_add_permission(self, request):
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        return False
 
     def get_urls(self):
         custom_urls = [
@@ -194,8 +296,8 @@ class LandingNavItemAdmin(admin.ModelAdmin):
         except (TypeError, ValueError, json.JSONDecodeError):
             return JsonResponse({"error": "Invalid payload."}, status=400)
 
-        existing_ids = list(self.model.objects.order_by("order", "id").values_list("id", flat=True))
-        if sorted(existing_ids) != sorted(ordered_ids):
+        existing_ids = set(self.model.objects.filter(id__in=ordered_ids).values_list("id", flat=True))
+        if len(existing_ids) != len(set(ordered_ids)):
             return JsonResponse({"error": "IDs mismatch."}, status=400)
 
         for index, item_id in enumerate(ordered_ids, start=1):

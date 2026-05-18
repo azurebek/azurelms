@@ -23,11 +23,11 @@
   <div class="public-utility">
     <div class="public-wrap public-utility-inner">
       <nav class="public-utility-links">
-        <a href="{% url 'home' %}"><i class="bi bi-house-door-fill"></i>Bosh sahifa</a>
-        <a href="{% url 'courses' %}">Kurslar</a>
-        <a href="{% url 'subscriptions:pricing' %}">Narxlar</a>
-        <a href="{% url 'blog:list' %}">Blog</a>
-        <a href="{% url 'faq_page' %}">Yordam</a>
+        {% for item in utility_nav_items %}
+          <a href="{{ item.url }}"{% if item.open_in_new_tab %} target="_blank" rel="noopener"{% endif %}>
+            {% if forloop.first %}<i class="bi bi-house-door-fill"></i>{% endif %}{{ item.label }}
+          </a>
+        {% endfor %}
       </nav>
       <div class="public-utility-meta">
         <a href="#" class="public-locale-link is-active">UZ</a>
@@ -46,16 +46,22 @@
   <header class="public-header">
     <div class="public-wrap public-header-inner">
       <a class="public-brand" href="{% url 'home' %}">
-        <div class="brand-mark brand-mark--public">AL</div>
+        <div class="brand-mark brand-mark--public">
+          {% if site_settings.logo_image %}
+            <img src="{{ site_settings.logo_image.url }}" alt="{{ site_settings.brand_name }}">
+          {% else %}
+            {{ site_settings.logo_mark_text|default:"AL" }}
+          {% endif %}
+        </div>
         <div class="public-brand-copy">
-          <strong>AzureLMS</strong>
-          <span>Turk tili va sertifikat platformasi</span>
+          <strong>{{ site_settings.brand_name|default:"AzureLMS" }}</strong>
+          <span>{{ site_settings.brand_tagline|default:"Turk tili va sertifikat platformasi" }}</span>
         </div>
       </a>
 
       <nav class="public-main-nav">
         {% for item in landing_nav_items %}
-          <a href="{{ item.url }}" {% if item.is_active %}class="is-active"{% endif %}>{{ item.label }}</a>
+          <a href="{{ item.url }}" {% if item.is_active %}class="is-active"{% endif %}{% if item.open_in_new_tab %} target="_blank" rel="noopener"{% endif %}>{{ item.label }}</a>
         {% empty %}
           <a href="{% url 'about' %}">Biz haqimizda</a>
           <a href="{% url 'courses' %}">Kurslar</a>
@@ -92,28 +98,31 @@
   </main>
 
   {# ===== FOOTER ===== #}
-  <footer class="public-footer">
+  <footer class="public-footer {{ public_page_settings.footer_background_class }}{% if public_page_settings.footer_background_image %} public-footer--has-image{% endif %}{% if public_page_settings.footer_background_video %} public-footer--has-video{% endif %}"
+          {% if public_page_settings.footer_background_image %}style="--public-footer-bg-image: url('{{ public_page_settings.footer_background_image.url }}');"{% endif %}>
+    {% if public_page_settings.footer_background_video %}
+      <video class="public-background-video public-footer-background-video" autoplay muted loop playsinline aria-hidden="true">
+        <source src="{{ public_page_settings.footer_background_video.url }}">
+      </video>
+    {% endif %}
     <div class="public-wrap public-footer-grid">
       <div>
         <h4>Platforma</h4>
-        <a href="{% url 'courses' %}">Kurslar</a>
-        <a href="{% url 'subscriptions:pricing' %}">Narxlar</a>
-        <a href="{% url 'about' %}">Sertifikatlar</a>
-        {% if not user.is_authenticated %}
-          <a href="{% url 'register' %}">Qabul yo'li</a>
-        {% endif %}
+        {% for item in footer_platform_links %}
+          <a href="{{ item.url }}"{% if item.open_in_new_tab %} target="_blank" rel="noopener"{% endif %}>{{ item.label }}</a>
+        {% endfor %}
       </div>
       <div>
         <h4>Kompaniya</h4>
-        <a href="{% url 'about' %}">Biz haqimizda</a>
-        <a href="{% url 'blog:list' %}">Blog</a>
-        <a href="{% url 'faq_page' %}">Yordam markazi</a>
+        {% for item in footer_company_links %}
+          <a href="{{ item.url }}"{% if item.open_in_new_tab %} target="_blank" rel="noopener"{% endif %}>{{ item.label }}</a>
+        {% endfor %}
       </div>
       <div>
         <h4>Huquqiy</h4>
-        <a href="{% url 'terms_of_service' %}">Foydalanish shartlari</a>
-        <a href="{% url 'privacy_policy' %}">Maxfiylik siyosati</a>
-        <a href="{% url 'faq_page' %}">FAQ</a>
+        {% for item in footer_legal_links %}
+          <a href="{{ item.url }}"{% if item.open_in_new_tab %} target="_blank" rel="noopener"{% endif %}>{{ item.label }}</a>
+        {% endfor %}
       </div>
       <div>
         <h4>Aloqa</h4>

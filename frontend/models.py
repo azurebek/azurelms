@@ -16,7 +16,27 @@ class SingletonModel(models.Model):
         obj, created = cls.objects.get_or_create(pk=1)
         return obj
 
+
+def resolve_public_link(route_name="", custom_url="", fallback="#"):
+    if custom_url:
+        return custom_url
+    if route_name:
+        try:
+            return reverse(route_name)
+        except NoReverseMatch:
+            return fallback
+    return fallback
+
 class LandingPage(SingletonModel):
+    class BackgroundPreset(models.TextChoices):
+        MIDNIGHT = "midnight", "Midnight blue"
+        OCEAN = "ocean", "Ocean teal"
+        GRAPHITE = "graphite", "Graphite blue"
+        AURORA = "aurora", "Aurora violet"
+        EMERALD = "emerald", "Emerald gold"
+        RUBY = "ruby", "Ruby night"
+        INDIGO = "indigo", "Indigo sky"
+
     # Hero Section
     hero_badge = models.CharField(max_length=100, default="2026 yilning eng yaxshi platformasi", verbose_name="Bosh sahifa nishonchasi (Badge)")
     hero_title_start = models.CharField(max_length=100, default="Turk tilini", verbose_name="Sarlavha boshi")
@@ -38,7 +58,7 @@ class LandingPage(SingletonModel):
         help_text="MP4, WebM, OGV yoki MOV yuklang. Video bo'lsa fon rasmidan ustun turadi, bo'sh bo'lsa default gradient ishlaydi.",
         validators=[FileExtensionValidator(allowed_extensions=['mp4', 'webm', 'ogv', 'mov'])],
     )
-    
+
     hero_image = models.ImageField(upload_to='landing/', blank=True, null=True, verbose_name="Asosiy rasm (Hero Image)")
     hero_video = models.FileField(
         upload_to='landing/videos/',
@@ -120,6 +140,12 @@ class LandingPage(SingletonModel):
         verbose_name='Footer fon rasmi',
         help_text='Footer orqasida transparency overlay bilan ko\'rinadigan rasm.',
     )
+    footer_background_preset = models.CharField(
+        max_length=20,
+        choices=BackgroundPreset.choices,
+        default=BackgroundPreset.MIDNIGHT,
+        verbose_name="Footer fon preseti",
+    )
     footer_background_video = models.FileField(
         upload_to='landing/footer/videos/',
         blank=True,
@@ -128,10 +154,55 @@ class LandingPage(SingletonModel):
         help_text='MP4, WebM, OGV yoki MOV yuklang. Video bo\'lsa, footerda rasm o\'rniga video ishlatiladi.',
         validators=[FileExtensionValidator(allowed_extensions=['mp4', 'webm', 'ogv', 'mov'])],
     )
-    
+
     # CTA Section
     cta_title = models.CharField(max_length=100, default="Bugun o'rganishni boshlang!", verbose_name="Bottom CTA Sarlavhasi")
     cta_description = CKEditor5Field(default="Minglab o'quvchilar safiga qo'shiling va turk tilini professional darajada o'rganing.", verbose_name="Bottom CTA matni", config_name='default')
+    cta_kicker = models.CharField(max_length=80, default="Boshlash", verbose_name="Bottom CTA kicker")
+    cta_primary_label = models.CharField(max_length=80, default="Bepul boshlash", verbose_name="CTA asosiy tugma")
+    cta_secondary_label = models.CharField(max_length=80, default="Kurslarni ko'rish", verbose_name="CTA ikkinchi tugma")
+    cta_background_preset = models.CharField(
+        max_length=20,
+        choices=BackgroundPreset.choices,
+        default=BackgroundPreset.MIDNIGHT,
+        verbose_name="CTA fon preseti",
+    )
+    cta_background_image = models.ImageField(
+        upload_to='landing/cta/',
+        blank=True,
+        null=True,
+        verbose_name="CTA fon rasmi",
+        help_text="Bottom CTA orqasida ko'rinadigan rasm. Video bo'lsa, rasm o'rniga video ishlaydi.",
+    )
+    cta_background_video = models.FileField(
+        upload_to='landing/cta/videos/',
+        blank=True,
+        null=True,
+        verbose_name="CTA fon videosi",
+        help_text="MP4, WebM, OGV yoki MOV yuklang. Video bo'lsa, CTA fonida rasm o'rniga ishlatiladi.",
+        validators=[FileExtensionValidator(allowed_extensions=['mp4', 'webm', 'ogv', 'mov'])],
+    )
+
+    # Public homepage section labels
+    portal_media_label = models.CharField(max_length=100, default="Platforma preview", verbose_name="Portal media label")
+    portal_cover_label = models.CharField(max_length=100, default="AzureLMS model", verbose_name="Portal cover label")
+    portal_cover_title = models.CharField(max_length=80, default="TR A1-C1", verbose_name="Portal cover title")
+    portal_program_title = models.CharField(
+        max_length=180,
+        default="Kurslar, lesson workspace va sertifikat oqimi bitta tizimda",
+        verbose_name="Portal blok sarlavhasi",
+    )
+    search_placeholder = models.CharField(
+        max_length=180,
+        default="Turk tili, B2, sertifikat yoki blog qidiring",
+        verbose_name="Qidiruv placeholder",
+    )
+    courses_section_kicker = models.CharField(max_length=80, default="Katalog", verbose_name="Kurslar blok kicker")
+    courses_section_title = models.CharField(max_length=120, default="Mashhur kurslar", verbose_name="Kurslar blok sarlavhasi")
+    courses_section_link_label = models.CharField(max_length=100, default="Barcha kurslarni ko'rish", verbose_name="Kurslar blok linki")
+    process_section_kicker = models.CharField(max_length=80, default="Jarayon", verbose_name="Jarayon blok kicker")
+    testimonials_section_kicker = models.CharField(max_length=80, default="Fikrlar", verbose_name="Fikrlar blok kicker")
+    testimonials_section_title = models.CharField(max_length=120, default="O'quvchilar fikri", verbose_name="Fikrlar blok sarlavhasi")
 
     class Meta:
         verbose_name = "Bosh sahifa sozlamasi"
@@ -140,12 +211,20 @@ class LandingPage(SingletonModel):
     def __str__(self):
         return "Bosh sahifa dizayn matnlari"
 
+    @property
+    def cta_background_class(self):
+        return f"cta-strip--{self.cta_background_preset}"
+
+    @property
+    def footer_background_class(self):
+        return f"public-footer--{self.footer_background_preset}"
+
 
 class Statistic(models.Model):
     value = models.CharField(max_length=50, help_text="Masalan: 5,000+", verbose_name="Qiymati")
     label = models.CharField(max_length=100, help_text="Masalan: Faol o'quvchilar", verbose_name="Nomi")
     order = models.PositiveIntegerField(default=0, verbose_name="Tartib raqami")
-    
+
     class Meta:
         ordering = ['order']
         verbose_name = "Bosh sahifa statistikasi"
@@ -155,6 +234,148 @@ class Statistic(models.Model):
         return f"{self.value} - {self.label}"
 
 
+class LandingHeroSlide(models.Model):
+    class Layout(models.TextChoices):
+        STAGE_LEFT = "stage_left", "Vizual chapda, matn o'ngda"
+        STAGE_RIGHT = "stage_right", "Matn chapda, vizual o'ngda"
+
+    class GradientPreset(models.TextChoices):
+        OCEAN = "ocean", "Ocean teal"
+        GRAPHITE = "graphite", "Graphite blue"
+        AURORA = "aurora", "Aurora violet"
+        EMERALD = "emerald", "Emerald gold"
+        RUBY = "ruby", "Ruby night"
+        INDIGO = "indigo", "Indigo sky"
+
+    class ChartPreset(models.TextChoices):
+        ACADEMIC = "academic", "Academic"
+        CATALOG = "catalog", "Catalog"
+        CERTIFICATION = "certification", "Certification"
+        GROWTH = "growth", "Growth"
+
+    is_active = models.BooleanField(default=True, verbose_name="Faolmi?")
+    order = models.PositiveIntegerField(default=0, verbose_name="Tartib")
+    layout = models.CharField(max_length=20, choices=Layout.choices, default=Layout.STAGE_LEFT, verbose_name="Joylashuv")
+    gradient_preset = models.CharField(
+        max_length=20,
+        choices=GradientPreset.choices,
+        default=GradientPreset.OCEAN,
+        verbose_name="Background gradient",
+    )
+    chart_preset = models.CharField(max_length=20, choices=ChartPreset.choices, default=ChartPreset.ACADEMIC, verbose_name="Chart turi")
+
+    kicker = models.CharField(max_length=100, default="Turk tili platformasi", verbose_name="Kicker")
+    title = models.CharField(max_length=180, verbose_name="Asosiy sarlavha")
+    subtitle = models.TextField(verbose_name="Subtitle")
+    primary_label = models.CharField(max_length=80, default="Kurslarni ko'rish", verbose_name="Asosiy tugma matni")
+    primary_url = models.CharField(max_length=200, default="/courses/", verbose_name="Asosiy tugma URL")
+    secondary_label = models.CharField(max_length=80, blank=True, verbose_name="Ikkinchi tugma matni")
+    secondary_url = models.CharField(max_length=200, blank=True, verbose_name="Ikkinchi tugma URL")
+
+    poster_kicker = models.CharField(max_length=80, default="Academic bulletin", verbose_name="Asosiy karta yuqori matni")
+    poster_year_label = models.CharField(max_length=30, default="2026", verbose_name="Asosiy karta yil/label")
+    poster_title = models.CharField(max_length=80, default="A1-C1", verbose_name="Asosiy karta title")
+    poster_text = models.CharField(max_length=180, default="Tartibli track, lesson workspace va dashboard bitta oqimda.", verbose_name="Asosiy karta matni")
+    poster_chip_one = models.CharField(max_length=80, default="A1-C1 flow", verbose_name="Chip 1")
+    poster_chip_two = models.CharField(max_length=80, default="Sertifikat track", verbose_name="Chip 2")
+    poster_chip_three = models.CharField(max_length=80, default="Live support", verbose_name="Chip 3")
+
+    side_label = models.CharField(max_length=40, default="TR", verbose_name="Yon karta label")
+    side_title = models.CharField(max_length=80, default="A1-C1", verbose_name="Yon karta title")
+    side_text = models.CharField(max_length=180, default="Turk tili, dashboard va exam flow yagona tizimda.", verbose_name="Yon karta matni")
+
+    class Meta:
+        ordering = ["order", "id"]
+        verbose_name = "Carousel slide"
+        verbose_name_plural = "1.1 Carousel slide'lari"
+
+    def __str__(self):
+        return self.title
+
+    @property
+    def layout_class(self):
+        return "public-billboard-slide--reverse" if self.layout == self.Layout.STAGE_RIGHT else "public-billboard-slide--default"
+
+    @property
+    def gradient_class(self):
+        return f"public-billboard-slide--{self.gradient_preset}"
+
+    @property
+    def chart_class(self):
+        return f"poster-chart--{self.chart_preset}"
+
+    @property
+    def metric_items(self):
+        return self.metrics.all()
+
+
+class LandingHeroSlideMetric(models.Model):
+    slide = models.ForeignKey(LandingHeroSlide, related_name="metrics", on_delete=models.CASCADE, verbose_name="Slide")
+    value = models.CharField(max_length=70, verbose_name="Qiymat")
+    label = models.CharField(max_length=120, verbose_name="Izoh")
+    order = models.PositiveIntegerField(default=0, verbose_name="Tartib")
+
+    class Meta:
+        ordering = ["order", "id"]
+        verbose_name = "Carousel slide statistikasi"
+        verbose_name_plural = "1.2 Carousel slide statistikalari"
+
+    def __str__(self):
+        return f"{self.value} - {self.label}"
+
+
+class LandingPortalTab(models.Model):
+    label = models.CharField(max_length=80, verbose_name="Tab nomi")
+    url = models.CharField(max_length=200, default="/courses/", verbose_name="URL")
+    is_active = models.BooleanField(default=False, verbose_name="Aktiv ko'rinsinmi?")
+    is_visible = models.BooleanField(default=True, verbose_name="Ko'rinsinmi?")
+    order = models.PositiveIntegerField(default=0, verbose_name="Tartib")
+
+    class Meta:
+        ordering = ["order", "id"]
+        verbose_name = "Portal tab"
+        verbose_name_plural = "1.3 Portal tablari"
+
+    def __str__(self):
+        return self.label
+
+
+class LandingPortalListItem(models.Model):
+    text = models.CharField(max_length=140, verbose_name="Matn")
+    is_visible = models.BooleanField(default=True, verbose_name="Ko'rinsinmi?")
+    order = models.PositiveIntegerField(default=0, verbose_name="Tartib")
+
+    class Meta:
+        ordering = ["order", "id"]
+        verbose_name = "Portal ro'yxat elementi"
+        verbose_name_plural = "1.4 Portal ro'yxat elementlari"
+
+    def __str__(self):
+        return self.text
+
+
+class LandingProcessStep(models.Model):
+    title = models.CharField(max_length=120, verbose_name="Sarlavha")
+    description = models.CharField(max_length=240, verbose_name="Tavsif")
+    icon_class = models.CharField(
+        max_length=60,
+        default="bi bi-person-plus",
+        verbose_name="Bootstrap icon class",
+        help_text="Masalan: bi bi-person-plus, bi bi-signpost-split, bi bi-play-circle",
+    )
+    color_class = models.CharField(max_length=60, blank=True, verbose_name="Qo'shimcha rang class")
+    is_visible = models.BooleanField(default=True, verbose_name="Ko'rinsinmi?")
+    order = models.PositiveIntegerField(default=0, verbose_name="Tartib")
+
+    class Meta:
+        ordering = ["order", "id"]
+        verbose_name = "Jarayon qadami"
+        verbose_name_plural = "1.5 Jarayon qadamlari"
+
+    def __str__(self):
+        return self.title
+
+
 class Testimonial(models.Model):
     name = models.CharField(max_length=100, verbose_name="Ism-familiya")
     role = models.CharField(max_length=100, verbose_name="Kasbi/Darajasi", default="Talaba")
@@ -162,7 +383,7 @@ class Testimonial(models.Model):
     rating = models.PositiveSmallIntegerField(default=5, verbose_name="Baho (1-5)")
     avatar = models.ImageField(upload_to='testimonials/', blank=True, null=True, verbose_name="Rasm")
     is_active = models.BooleanField(default=True, verbose_name="Faolmi?")
-    
+
     class Meta:
         verbose_name = "Fikr"
         verbose_name_plural = "3. O'quvchilar fikrlari"
@@ -175,13 +396,13 @@ class AboutPage(SingletonModel):
     hero_title_start = models.CharField(max_length=100, default="Sifatli ta'lim orqali", verbose_name="Sarlavha boshi")
     hero_title_highlight = models.CharField(max_length=100, default="maqsad sari", verbose_name="Sarlavha ajratilgan qismi")
     hero_subtitle = CKEditor5Field(default="AzureLMS — turk tilini zamonaviy, interaktiv va qulay usulda o'rganishni xohlovchilar uchun...", verbose_name="Kichik matn (Subtitle)", config_name='default')
-    
+
     mission_title = models.CharField(max_length=200, default="Bizning maqsadimiz (Missiya)", verbose_name="Missiya Sarlavhasi")
     mission_text = CKEditor5Field(verbose_name="Missiya matni", blank=True, config_name='default')
-    
+
     vision_title = models.CharField(max_length=200, default="Bizning qarashimiz (Vision)", verbose_name="Vision Sarlavhasi")
     vision_text = CKEditor5Field(verbose_name="Vision matni", blank=True, config_name='default')
-    
+
     class Meta:
         verbose_name = "Biz haqimizda sozlamasi"
         verbose_name_plural = "4. Biz haqimizda sozlamalari"
@@ -194,7 +415,7 @@ class AboutStatistic(models.Model):
     value = models.CharField(max_length=50, verbose_name="Qiymati")
     label = models.CharField(max_length=100, verbose_name="Nomi")
     order = models.PositiveIntegerField(default=0, verbose_name="Tartib raqami")
-    
+
     class Meta:
         ordering = ['order']
         verbose_name = "Biz haqimizda statistikasi"
@@ -211,7 +432,7 @@ class TeamMember(models.Model):
     bio = CKEditor5Field(verbose_name="Qisqa ma'lumot", config_name='default')
     avatar = models.ImageField(upload_to='team/', blank=True, null=True, verbose_name="Rasm")
     order = models.PositiveIntegerField(default=0, verbose_name="Tartib raqami")
-    
+
     class Meta:
         ordering = ['order']
         verbose_name = "Jamoa a'zosi"
@@ -222,6 +443,19 @@ class TeamMember(models.Model):
 
 
 class SiteSettings(SingletonModel):
+    brand_name = models.CharField(max_length=80, default="AzureLMS", verbose_name="Brend nomi")
+    brand_tagline = models.CharField(
+        max_length=140,
+        default="Turk tili va sertifikat platformasi",
+        verbose_name="Brend ostsarlavhasi",
+    )
+    logo_mark_text = models.CharField(
+        max_length=8,
+        default="AL",
+        verbose_name="Logo mark matni",
+        help_text="Logo rasmi yuklanmasa shu qisqa matn ko'rinadi.",
+    )
+    logo_image = models.ImageField(upload_to="site/logo/", blank=True, null=True, verbose_name="Logo rasmi")
     company_description = models.TextField(
         default="Professional o'qituvchilar bilan turk tilini samarali o'rganing. A1 dan C1 gacha barcha darajalar.",
         verbose_name="Kompaniya qisqacha matni",
@@ -273,12 +507,24 @@ class SiteSettings(SingletonModel):
 
 
 class LandingNavItem(models.Model):
+    class Placement(models.TextChoices):
+        MAIN = "main", "Asosiy navbar"
+        UTILITY = "utility", "Yuqori utility navbar"
+        FOOTER_PLATFORM = "footer_platform", "Footer: Platforma"
+        FOOTER_COMPANY = "footer_company", "Footer: Kompaniya"
+        FOOTER_LEGAL = "footer_legal", "Footer: Huquqiy"
+
     class LinkKey(models.TextChoices):
+        CUSTOM = "custom", "Custom URL"
         HOME = "home", "Bosh sahifa"
         COURSES = "courses", "Kurslar"
         PRICING = "pricing", "Narxlar"
         ABOUT = "about", "Biz haqimizda"
         BLOG = "blog", "Blog"
+        FAQ = "faq", "Yordam / FAQ"
+        LOGIN = "login", "Kirish"
+        REGISTER = "register", "Ro'yxatdan o'tish"
+        DASHBOARD = "dashboard", "Dashboard"
 
     ROUTE_MAP = {
         LinkKey.HOME: "home",
@@ -286,10 +532,22 @@ class LandingNavItem(models.Model):
         LinkKey.PRICING: "subscriptions:pricing",
         LinkKey.ABOUT: "about",
         LinkKey.BLOG: "blog:list",
+        LinkKey.FAQ: "faq_page",
+        LinkKey.LOGIN: "login",
+        LinkKey.REGISTER: "register",
+        LinkKey.DASHBOARD: "dashboard",
     }
 
-    key = models.CharField(max_length=20, choices=LinkKey.choices, unique=True, verbose_name="Link turi")
+    placement = models.CharField(max_length=30, choices=Placement.choices, default=Placement.MAIN, verbose_name="Qayerda ko'rinsin?")
+    key = models.CharField(max_length=20, choices=LinkKey.choices, default=LinkKey.CUSTOM, verbose_name="Link turi")
     label = models.CharField(max_length=80, verbose_name="Navbar matni")
+    custom_url = models.CharField(
+        max_length=220,
+        blank=True,
+        verbose_name="Custom URL",
+        help_text="Custom URL tanlansa yoki route bo'sh bo'lsa shu ishlaydi. Masalan: /courses/ yoki https://...",
+    )
+    open_in_new_tab = models.BooleanField(default=False, verbose_name="Yangi tabda ochilsinmi?")
     is_visible = models.BooleanField(default=True, verbose_name="Ko'rinsinmi?")
     order = models.PositiveIntegerField(default=0, verbose_name="Tartib")
 
@@ -316,6 +574,38 @@ class LandingNavItem(models.Model):
             {"key": cls.LinkKey.ABOUT, "label": "Biz haqimizda", "is_visible": True, "order": 4},
             {"key": cls.LinkKey.BLOG, "label": "Blog", "is_visible": True, "order": 5},
         ]
+
+    @classmethod
+    def default_utility_items(cls):
+        return [
+            {"key": cls.LinkKey.HOME, "label": "Bosh sahifa", "is_visible": True, "order": 1},
+            {"key": cls.LinkKey.COURSES, "label": "Kurslar", "is_visible": True, "order": 2},
+            {"key": cls.LinkKey.PRICING, "label": "Narxlar", "is_visible": True, "order": 3},
+            {"key": cls.LinkKey.BLOG, "label": "Blog", "is_visible": True, "order": 4},
+            {"key": cls.LinkKey.FAQ, "label": "Yordam", "is_visible": True, "order": 5},
+        ]
+
+    @classmethod
+    def default_footer_items(cls, placement):
+        defaults = {
+            cls.Placement.FOOTER_PLATFORM: [
+                {"key": cls.LinkKey.COURSES, "label": "Kurslar", "is_visible": True, "order": 1},
+                {"key": cls.LinkKey.PRICING, "label": "Narxlar", "is_visible": True, "order": 2},
+                {"key": cls.LinkKey.ABOUT, "label": "Sertifikatlar", "is_visible": True, "order": 3},
+                {"key": cls.LinkKey.REGISTER, "label": "Qabul yo'li", "is_visible": True, "order": 4},
+            ],
+            cls.Placement.FOOTER_COMPANY: [
+                {"key": cls.LinkKey.ABOUT, "label": "Biz haqimizda", "is_visible": True, "order": 1},
+                {"key": cls.LinkKey.BLOG, "label": "Blog", "is_visible": True, "order": 2},
+                {"key": cls.LinkKey.FAQ, "label": "Yordam markazi", "is_visible": True, "order": 3},
+            ],
+            cls.Placement.FOOTER_LEGAL: [
+                {"key": cls.LinkKey.CUSTOM, "label": "Foydalanish shartlari", "custom_url": "/terms-of-service/", "is_visible": True, "order": 1},
+                {"key": cls.LinkKey.CUSTOM, "label": "Maxfiylik siyosati", "custom_url": "/privacy-policy/", "is_visible": True, "order": 2},
+                {"key": cls.LinkKey.FAQ, "label": "FAQ", "is_visible": True, "order": 3},
+            ],
+        }
+        return defaults.get(placement, [])
 
     @classmethod
     def get_url_for_key(cls, key):
@@ -359,9 +649,13 @@ class LandingNavItem(models.Model):
         return False
 
     def get_url(self):
-        return self.get_url_for_key(self.key)
+        if self.key == self.LinkKey.CUSTOM:
+            return self.custom_url or "#"
+        return self.custom_url or self.get_url_for_key(self.key)
 
     def is_active_for(self, request):
+        if self.custom_url:
+            return request.path == self.custom_url
         return self.is_key_active(self.key, request)
 
 

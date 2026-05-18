@@ -1,9 +1,12 @@
 {% extends "auth/base.html" %}
+{% load static %}
 
 {% block title %}Ro'yxatdan o'tish | AzureLMS{% endblock %}
 {% block auth_shell_modifier %}auth-shell--register{% endblock %}
-{% block auth_heading %}Yangi account oching{% endblock %}
-{% block auth_lede %}Ismingizni, login va parolni kiritib AzureLMS muhitiga qo'shiling. Keyingi bosqichlarda track va maqsadni tanlaymiz.{% endblock %}
+
+{# auth_heading va auth_lede har step uchun JS orqali yangilanadi. #}
+{% block auth_heading %}<span data-wizard-heading>Sizni nima deb chaqiraylik?</span>{% endblock %}
+{% block auth_lede %}<span data-wizard-lede>Ismingiz dashboard va sertifikatlarda ko'rinadi.</span>{% endblock %}
 
 {% block auth_topbar_back %}
   <a class="auth-back" href="{% url 'login' %}">
@@ -11,128 +14,179 @@
   </a>
 {% endblock %}
 
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/auth-wizard.css' %}?v=1">
+{% endblock %}
+
 {% block auth_content %}
-  <form class="auth-surface auth-form-stack" method="post" action="{% url 'register' %}" novalidate>
+  <form class="auth-surface auth-form-stack auth-wizard"
+        method="post" action="{% url 'register' %}"
+        id="registerWizard" novalidate>
     {% csrf_token %}
 
-    <div class="auth-field-grid">
+    {# ============ STEP 1: ISM ============ #}
+    <section class="wizard-step is-active"
+             data-step="1"
+             data-heading="Sizni nima deb chaqiraylik?"
+             data-lede="Ismingiz dashboard va sertifikatlarda ko'rinadi.">
+      <div class="auth-field-grid">
+        <label class="auth-field">
+          <span class="auth-field-label">Ism</span>
+          <input class="auth-input" type="text" name="first_name" id="id_first_name"
+                 value="{{ form.first_name.value|default:'' }}"
+                 placeholder="Ismingiz" autocomplete="given-name"
+                 data-required="1" data-min="2" required>
+          {% if form.first_name.errors %}<small class="auth-field-error">{{ form.first_name.errors|first }}</small>{% endif %}
+          <small class="auth-field-error wizard-field-error" data-for="id_first_name"></small>
+        </label>
+
+        <label class="auth-field">
+          <span class="auth-field-label">Familiya <span class="wizard-optional">(ixtiyoriy)</span></span>
+          <input class="auth-input" type="text" name="last_name" id="id_last_name"
+                 value="{{ form.last_name.value|default:'' }}"
+                 placeholder="Familiyangiz" autocomplete="family-name">
+          {% if form.last_name.errors %}<small class="auth-field-error">{{ form.last_name.errors|first }}</small>{% endif %}
+        </label>
+      </div>
+    </section>
+
+    {# ============ STEP 2: EMAIL ============ #}
+    <section class="wizard-step"
+             data-step="2"
+             data-heading="Email manzilingiz"
+             data-lede="Bildirishnomalar va parolni tiklash uchun ishlatamiz.">
       <label class="auth-field">
-        <span class="auth-field-label">Ism</span>
-        <input
-          class="auth-input"
-          type="text"
-          name="first_name"
-          id="id_first_name"
-          value="{{ form.first_name.value|default:'' }}"
-          placeholder="Ismingiz"
-          autocomplete="given-name"
-          required
-        >
-        {% if form.first_name.errors %}<small class="auth-field-error">{{ form.first_name.errors|first }}</small>{% endif %}
+        <span class="auth-field-label">Email</span>
+        <input class="auth-input" type="email" name="email" id="id_email"
+               value="{{ form.email.value|default:'' }}"
+               placeholder="name@azurelms.uz" autocomplete="email"
+               data-required="1" data-email="1" required>
+        {% if form.email.errors %}<small class="auth-field-error">{{ form.email.errors|first }}</small>{% endif %}
+        <small class="auth-field-error wizard-field-error" data-for="id_email"></small>
       </label>
+    </section>
 
-      <label class="auth-field">
-        <span class="auth-field-label">Familiya</span>
-        <input
-          class="auth-input"
-          type="text"
-          name="last_name"
-          id="id_last_name"
-          value="{{ form.last_name.value|default:'' }}"
-          placeholder="Familiyangiz"
-          autocomplete="family-name"
-          required
-        >
-        {% if form.last_name.errors %}<small class="auth-field-error">{{ form.last_name.errors|first }}</small>{% endif %}
-      </label>
-    </div>
-
-    <label class="auth-field">
-      <span class="auth-field-label">Username</span>
-      <input
-        class="auth-input"
-        type="text"
-        name="username"
-        id="id_username"
-        value="{{ form.username.value|default:'' }}"
-        placeholder="azurebek"
-        autocomplete="username"
-        required
-      >
-      {% if form.username.errors %}<small class="auth-field-error">{{ form.username.errors|first }}</small>{% endif %}
-    </label>
-
-    <label class="auth-field">
-      <span class="auth-field-label">Email</span>
-      <input
-        class="auth-input"
-        type="email"
-        name="email"
-        id="id_email"
-        value="{{ form.email.value|default:'' }}"
-        placeholder="name@azurelms.uz"
-        autocomplete="email"
-        required
-      >
-      {% if form.email.errors %}<small class="auth-field-error">{{ form.email.errors|first }}</small>{% endif %}
-    </label>
-
-    <label class="auth-field">
-      <span class="auth-field-label">Telefon (ixtiyoriy)</span>
-      <input
-        class="auth-input"
-        type="tel"
-        name="phone_number"
-        id="id_phone_number"
-        value="{{ form.phone_number.value|default:'' }}"
-        placeholder="+998 xx xxx xx xx"
-        autocomplete="tel"
-      >
-      {% if form.phone_number.errors %}<small class="auth-field-error">{{ form.phone_number.errors|first }}</small>{% endif %}
-    </label>
-
-    <div class="auth-field-grid">
+    {# ============ STEP 3: PAROL ============ #}
+    <section class="wizard-step"
+             data-step="3"
+             data-heading="Parol o'ylab toping"
+             data-lede="Kamida 8 ta belgi. Hisobingizni himoya qiladi.">
       <label class="auth-field">
         <span class="auth-field-label">Parol</span>
         <span class="auth-input-wrap">
-          <input
-            class="auth-input"
-            type="password"
-            name="password1"
-            id="id_password1"
-            placeholder="Kuchli parol"
-            autocomplete="new-password"
-            required
-          >
-          <button type="button" class="auth-input-toggle" data-password-toggle="#id_password1" aria-label="Parolni ko'rsatish">
+          <input class="auth-input" type="password" name="password1" id="id_password1"
+                 placeholder="Kuchli parol" autocomplete="new-password"
+                 data-required="1" data-min="8" required>
+          <button type="button" class="auth-input-toggle"
+                  data-password-toggle="#id_password1"
+                  aria-label="Parolni ko'rsatish">
             <i class="bi bi-eye"></i>
           </button>
         </span>
         {% if form.password1.errors %}<small class="auth-field-error">{{ form.password1.errors|first }}</small>{% endif %}
+        <small class="auth-field-error wizard-field-error" data-for="id_password1"></small>
       </label>
 
       <label class="auth-field">
         <span class="auth-field-label">Parolni takrorlang</span>
         <span class="auth-input-wrap">
-          <input
-            class="auth-input"
-            type="password"
-            name="password2"
-            id="id_password2"
-            placeholder="Parolni takrorlang"
-            autocomplete="new-password"
-            required
-          >
-          <button type="button" class="auth-input-toggle" data-password-toggle="#id_password2" aria-label="Parolni ko'rsatish">
+          <input class="auth-input" type="password" name="password2" id="id_password2"
+                 placeholder="Parolni takrorlang" autocomplete="new-password"
+                 data-required="1" data-match="id_password1" required>
+          <button type="button" class="auth-input-toggle"
+                  data-password-toggle="#id_password2"
+                  aria-label="Parolni ko'rsatish">
             <i class="bi bi-eye"></i>
           </button>
         </span>
         {% if form.password2.errors %}<small class="auth-field-error">{{ form.password2.errors|first }}</small>{% endif %}
+        <small class="auth-field-error wizard-field-error" data-for="id_password2"></small>
       </label>
+    </section>
+
+    {# ============ STEP 4: MAQSAD ============ #}
+    <section class="wizard-step"
+             data-step="4"
+             data-heading="Til o'rganishdan maqsadingiz?"
+             data-lede="Sizga to'g'ri kurslarni tavsiya qilishimiz uchun bilamiz.">
+      <div class="auth-choice-row wizard-choice-grid" data-choice-group="goal">
+        {% for value, label in form.fields.goal.choices %}
+          <label class="auth-choice wizard-choice">
+            <input type="radio" name="goal" value="{{ value }}"
+                   {% if form.goal.value == value %}checked{% endif %}>
+            <span class="wizard-choice-body">
+              <i class="bi
+                {% if value == 'work' %}bi-briefcase
+                {% elif value == 'travel' %}bi-airplane
+                {% elif value == 'exam' %}bi-mortarboard
+                {% elif value == 'personal' %}bi-heart
+                {% else %}bi-three-dots{% endif %}"></i>
+              <span>{{ label }}</span>
+            </span>
+          </label>
+        {% endfor %}
+      </div>
+      <small class="auth-field-error wizard-field-error" data-for="goal"></small>
+    </section>
+
+    {# ============ STEP 5: DARAJA ============ #}
+    <section class="wizard-step"
+             data-step="5"
+             data-heading="Hozirgi darajangiz qanday?"
+             data-lede="Aniq bilmasangiz, 'Bilmayman' tanlang — keyin baholaymiz.">
+      <div class="auth-choice-row wizard-choice-list" data-choice-group="current_level">
+        {% for value, label in form.fields.current_level.choices %}
+          <label class="auth-choice wizard-choice wizard-choice--row">
+            <input type="radio" name="current_level" value="{{ value }}"
+                   {% if form.current_level.value == value %}checked{% endif %}>
+            <span class="wizard-level-tag">{% if value == 'unknown' %}?{% else %}{{ value|upper }}{% endif %}</span>
+            <span class="wizard-choice-text">{{ label }}</span>
+          </label>
+        {% endfor %}
+      </div>
+      <small class="auth-field-error wizard-field-error" data-for="current_level"></small>
+    </section>
+
+    {# ============ STEP 6: YAKUNIY ============ #}
+    <section class="wizard-step"
+             data-step="6"
+             data-heading="Deyarli tayyor!"
+             data-lede="Shartlarga rozi bo'lib hisobingizni yarating.">
+      <ul class="wizard-summary" id="wizardSummary">
+        <li><span>Ism</span><strong data-summary="first_name">—</strong></li>
+        <li><span>Email</span><strong data-summary="email">—</strong></li>
+        <li><span>Maqsad</span><strong data-summary="goal">—</strong></li>
+        <li><span>Daraja</span><strong data-summary="current_level">—</strong></li>
+      </ul>
+      <label class="auth-check wizard-terms">
+        <input type="checkbox" id="terms" data-required="1" required>
+        <span>
+          Men <a class="auth-link" href="{% url 'terms_of_service' %}" target="_blank" rel="noopener">Foydalanish shartlari</a> va
+          <a class="auth-link" href="{% url 'privacy_policy' %}" target="_blank" rel="noopener">Maxfiylik siyosati</a>ga roziman.
+        </span>
+      </label>
+      <small class="auth-field-error wizard-field-error" data-for="terms"></small>
+    </section>
+
+    {# ============ NAVIGATSIYA ============ #}
+    <div class="auth-actions wizard-nav">
+      <button type="button" class="auth-action auth-action--secondary wizard-back" id="wizardBack" hidden>
+        <i class="bi bi-arrow-left"></i> Orqaga
+      </button>
+      <button type="button" class="auth-action auth-action--primary wizard-next" id="wizardNext">
+        Davom etish <i class="bi bi-arrow-right"></i>
+      </button>
+      <button type="submit" class="auth-action auth-action--primary wizard-submit" id="wizardSubmit" hidden>
+        <i class="bi bi-check2-circle"></i> Hisob yaratish
+      </button>
     </div>
 
-    <div class="auth-actions">
-      <button type="submit" class="auth-action auth-action--primary">Ro'yxatdan o'tish</button>
+    {# ============ STEPBAR (mavjud auth-stepbar dizayni) ============ #}
+    <div class="auth-step-meta">
+      <div class="auth-stepbar" id="wizardStepbar" aria-label="6 bosqichli onboarding">
+        <span class="is-active"></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <span class="auth-step-index"><span id="wizardStepNum">01</span> / 06</span>
     </div>
   </form>
 {% endblock %}
@@ -150,5 +204,9 @@
 {% block visual_chip_right %}track{% endblock %}
 {% block visual_chip_bottom %}verify{% endblock %}
 {% block visual_badge_a %}01{% endblock %}
-{% block visual_badge_b %}04{% endblock %}
+{% block visual_badge_b %}06{% endblock %}
 {% block visual_note %}Ro'yxatdan o'tish onboarding oqimiga o'xshaydi: har ekranda bitta savol, bitta aniq qaror.{% endblock %}
+
+{% block extra_js %}
+  <script src="{% static 'js/auth-wizard.js' %}?v=1" defer></script>
+{% endblock %}

@@ -15,11 +15,11 @@ class CustomUser(AbstractUser):
 
     # Profil uchun
     phone_number = models.CharField(max_length=20, blank=True, null=True)
-    
+
     from core.utils import validate_file_size, validate_image_extension
     avatar = models.ImageField(
-        upload_to='avatars/', 
-        blank=True, 
+        upload_to='avatars/',
+        blank=True,
         null=True,
         validators=[validate_file_size, validate_image_extension]
     )
@@ -53,6 +53,57 @@ class CustomUser(AbstractUser):
     class Meta:
         verbose_name = "Foydalanuvchi"
         verbose_name_plural = "Foydalanuvchilar"
+
+
+class UserOnboarding(models.Model):
+    """Ro'yxatdan o'tish wizard'i orqali olingan onboarding javoblari."""
+
+    GOAL_WORK = "work"
+    GOAL_TRAVEL = "travel"
+    GOAL_EXAM = "exam"
+    GOAL_PERSONAL = "personal"
+    GOAL_OTHER = "other"
+    GOAL_CHOICES = (
+        (GOAL_WORK, "Ish / karyera"),
+        (GOAL_TRAVEL, "Sayohat"),
+        (GOAL_EXAM, "Imtihon"),
+        (GOAL_PERSONAL, "Shaxsiy qiziqish"),
+        (GOAL_OTHER, "Boshqa"),
+    )
+
+    LEVEL_UNKNOWN = "unknown"
+    LEVEL_A1 = "a1"
+    LEVEL_A2 = "a2"
+    LEVEL_B1 = "b1"
+    LEVEL_B2 = "b2"
+    LEVEL_C1 = "c1"
+    LEVEL_C2 = "c2"
+    LEVEL_CHOICES = (
+        (LEVEL_UNKNOWN, "Bilmayman"),
+        (LEVEL_A1, "A1 — Boshlang'ich"),
+        (LEVEL_A2, "A2 — Asosiy"),
+        (LEVEL_B1, "B1 — O'rta"),
+        (LEVEL_B2, "B2 — O'rta yuqori"),
+        (LEVEL_C1, "C1 — Yuqori"),
+        (LEVEL_C2, "C2 — Mukammal"),
+    )
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="onboarding",
+    )
+    goal = models.CharField(max_length=20, choices=GOAL_CHOICES, blank=True, default="")
+    current_level = models.CharField(max_length=10, choices=LEVEL_CHOICES, blank=True, default="")
+    extra = models.JSONField(blank=True, null=True, help_text="Kelajakda qo'shimcha savollar uchun")
+    completed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Onboarding javobi"
+        verbose_name_plural = "Onboarding javoblari"
+
+    def __str__(self):
+        return f"Onboarding: {self.user}"
 
 
 class Notification(models.Model):

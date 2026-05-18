@@ -2,7 +2,7 @@ from django.urls import reverse_lazy
 from django.views.generic import CreateView, UpdateView, TemplateView, ListView, View
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth import update_session_auth_hash, login as auth_login
 from django.utils import timezone
 from django.db.models import Count, Prefetch, Q
 import datetime
@@ -36,7 +36,7 @@ def home_view(request):
 class RegisterView(CreateView):
     form_class = CustomUserCreationForm
     template_name = 'registration/register.html'
-    success_url = reverse_lazy('login')
+    success_url = reverse_lazy('dashboard')
 
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated:
@@ -44,12 +44,17 @@ class RegisterView(CreateView):
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
-        response = super().form_valid(form)
-        messages.success(self.request, "Muvaffaqiyatli ro'yxatdan o'tdingiz! Iltimos tizimga kiring.")
-        return response
+        user = form.save()
+        # Wizard yakunida darhol login qilamiz — onboardingdan keyin dashboardga.
+        auth_login(self.request, user, backend='users.backends.EmailOrUsernameBackend')
+        messages.success(self.request, "Xush kelibsiz! Hisobingiz tayyor.")
+        return redirect(self.get_success_url())
 
     def form_invalid(self, form):
-        messages.error(self.request, "Xatolik yuz berdi. Iltimos, ma'lumotlarni tekshirib qaytadan kiriting.")
+        # Wizard frontda validate qiladi; server-side xatolar bo'lsa
+        # JS xato bor step'ni topib unga qaytaradi.
+        if not form.non_field_errors():
+            messages.error(self.request, "Ma'lumotlarda xatolik bor. Iltimos qaytadan tekshiring.")
         return super().form_invalid(form)
 
 
@@ -110,25 +115,25 @@ class PasswordUpdateView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         from django.contrib.auth.password_validation import validate_password
         from django.core.exceptions import ValidationError
-        
+
         user = request.user
         old_pass = request.POST.get('old_password')
         new_pass1 = request.POST.get('new_password1')
         new_pass2 = request.POST.get('new_password2')
-        
+
         if not user.check_password(old_pass):
             messages.error(request, "Joriy parol noto'g'ri.")
             return redirect('settings')
         if new_pass1 != new_pass2:
             messages.error(request, "Yangi parollar mos kelmadi.")
             return redirect('settings')
-            
+
         try:
             validate_password(new_pass1, user)
         except ValidationError as e:
             messages.error(request, f"Parol juda oddiy: {' '.join(e.messages)}")
             return redirect('settings')
-            
+
         user.set_password(new_pass1)
         user.save()
         update_session_auth_hash(request, user)
@@ -146,13 +151,13 @@ class PasswordUpdateView(LoginRequiredMixin, View):
 
 class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = 'users/dashboard.html'
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         context['active_nav'] = 'dashboard'
         today = timezone.localdate()
-        
+
         enrollments = list(
             user.enrollments.select_related(
                 'cohort',
@@ -287,11 +292,11 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             # Use standard Signer because TimestampSigner produces too large a payload for Base64ing 64-chars Telegram limit
             from django.core.signing import Signer
             import base64
-            
+
             signer = Signer()
             raw_token = signer.sign(str(user.id))
             token = base64.urlsafe_b64encode(raw_token.encode()).decode().rstrip('=')
-            
+
             context['telegram_linked'] = False
             # Construct the deep link URL format: https://t.me/BOT_USERNAME?start=PAYLOAD
             bot_username = getattr(settings, 'BOT_USERNAME', '')
@@ -299,7 +304,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 context['telegram_bot_link'] = f"https://t.me/{bot_username.strip('@')}?start={token}"
             else:
                 context['telegram_bot_link'] = f"https://t.me/lmsazurebot?start={token}"
-            
+
         return context
 
 
@@ -690,7 +695,7 @@ class SubscriptionHistoryView(LoginRequiredMixin, ListView):
     model = Enrollment
     template_name = 'users/subscriptions.html'
     context_object_name = 'enrollments'
-    
+
     def get_queryset(self):
         return (
             self.request.user.enrollments.select_related('cohort', 'cohort__course', 'plan')
@@ -704,11 +709,11 @@ class CertificateListView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         context['active_nav'] = 'certificates'
-        
+
         # Gamification badges
         context['earned_badges'] = EarnedBadge.objects.filter(student=user).order_by('-earned_at')
-        
+
         # Course Completion Certificates
         context['course_certificates'] = CourseCertificate.objects.filter(student=user).order_by('-issued_at')
-        
+
         return context
