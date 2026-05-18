@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog Studio — AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #eff2f6; --surface: #f7f9fb; --white: #ffffff;
+      --border: #dde4ee; --border-soft: #e8eef6;
+      --ink-0: #0d1b2a; --ink-1: #1e3248; --ink-2: #2f4a66;
+      --ink-3: #4d6680; --ink-4: #7a90a8; --ink-5: #a8bcce;
+      --blue: #1d57d8; --blue-mid: #2563eb; --blue-soft: rgba(29,87,216,.09);
+      --green: #15803d; --green-mid: #16a34a; --green-soft: rgba(21,128,61,.10);
+      --amber: #b45309; --amber-soft: rgba(180,83,9,.10);
+      --purple: #6d28d9; --purple-soft: rgba(109,40,217,.09);
+      --red: #dc2626; --red-soft: rgba(220,38,38,.09);
+      --deep: #0d1b2a; --on-deep: #eff2f6;
+      --sh-sm: 0 1px 3px rgba(13,27,42,.05), 0 4px 12px rgba(13,27,42,.07);
+      --sh-md: 0 4px 12px rgba(13,27,42,.08), 0 16px 48px rgba(13,27,42,.10);
+      --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-xl: 20px; --r-pill: 999px;
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+      --sidebar-w: 224px;
+    }
+    [data-theme="dark"] {
+      --bg: #0c1520; --surface: #111d2b; --white: #152233;
+      --border: #1e3450; --border-soft: #172a40;
+      --ink-0: #dce9f5; --ink-1: #b8d0e6; --ink-2: #8aadc8;
+      --ink-3: #6288a4; --ink-4: #3f607e; --ink-5: #284259;
+      --blue: #60a5fa; --blue-mid: #3b82f6; --blue-soft: rgba(96,165,250,.12);
+      --green: #4ade80; --green-mid: #22c55e; --green-soft: rgba(74,222,128,.12);
+      --amber: #fbbf24; --amber-soft: rgba(251,191,36,.12);
+      --purple: #a78bfa; --purple-soft: rgba(167,139,250,.12);
+      --red: #f87171; --red-soft: rgba(248,113,113,.12);
+      --deep: #070e18; --on-deep: #dce9f5;
+      --sh-sm: 0 1px 3px rgba(0,0,0,.20), 0 4px 12px rgba(0,0,0,.24);
+      --sh-md: 0 4px 12px rgba(0,0,0,.28), 0 16px 48px rgba(0,0,0,.30);
+    }
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background: var(--bg); color: var(--ink-0);
+      -webkit-font-smoothing: antialiased;
+      display: flex; min-height: 100vh;
+      transition: background 280ms, color 280ms;
+    }
+    a { text-decoration: none; color: inherit; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: var(--sidebar-w); flex-shrink: 0;
+      background: var(--deep); color: var(--on-deep);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 50;
+      overflow-y: auto;
+    }
+    .sidebar-logo { padding: 20px 20px 16px; display: flex; align-items: center; gap: 9px; border-bottom: 1px solid rgba(255,255,255,.06); }
+    .logo-mark { width: 30px; height: 30px; border-radius: 8px; background: var(--purple); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.62rem; font-weight: 800; flex-shrink: 0; }
+    .logo-name { font-size: 0.88rem; font-weight: 700; color: var(--on-deep); }
+    .logo-tag { font-size: 0.6rem; font-weight: 700; padding: 2px 6px; background: rgba(109,40,217,.3); color: #c4b5fd; border-radius: var(--r-pill); margin-left: auto; }
+    .sidebar-user { padding: 14px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,.06); }
+    .user-av { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg,#6d28d9,#2563eb); display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; color: #fff; }
+    .user-name { font-size: 0.8rem; font-weight: 600; color: var(--on-deep); }
+    .user-role { font-size: 0.68rem; color: rgba(220,233,245,.4); }
+    .sidebar-nav { flex: 1; padding: 12px 10px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-group-label { font-size: 0.62rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: rgba(220,233,245,.35); padding: 10px 8px 4px; }
+    .nav-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: var(--r-md); font-size: 0.81rem; font-weight: 500; color: rgba(220,233,245,.6); transition: background 120ms, color 120ms; }
+    .nav-item:hover { background: rgba(255,255,255,.06); color: var(--on-deep); }
+    .nav-item.active { background: rgba(109,40,217,.22); color: #c4b5fd; font-weight: 600; }
+    .nav-item i { font-size: 1rem; width: 18px; flex-shrink: 0; }
+    .nav-badge { margin-left: auto; font-size: 0.62rem; font-weight: 700; background: var(--amber); color: #fff; padding: 1px 6px; border-radius: var(--r-pill); }
+    .sidebar-bottom { padding: 12px 10px 16px; border-top: 1px solid rgba(255,255,255,.06); display: flex; flex-direction: column; gap: 2px; }
+
+    /* LAYOUT */
+    .page-wrap { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; }
+    .topbar { height: 56px; background: var(--white); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 40; display: flex; align-items: center; padding: 0 28px; gap: 12px; transition: background 280ms; }
+    .topbar-title { font-size: 0.95rem; font-weight: 700; color: var(--ink-0); }
+    .topbar-sep { flex: 1; }
+    .new-post-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border-radius: var(--r-pill); background: var(--purple); color: #fff; font-size: 0.8rem; font-weight: 700; transition: opacity 120ms; }
+    .new-post-btn:hover { opacity: .85; }
+    .theme-btn { width: 34px; height: 34px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; color: var(--ink-3); border: 1px solid var(--border); transition: all 120ms; }
+    .theme-btn:hover { color: var(--ink-0); background: var(--surface); }
+
+    .page-body { padding: 28px; display: flex; flex-direction: column; gap: 28px; }
+
+    /* STATS */
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .stat-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 18px 20px; box-shadow: var(--sh-sm); transition: background 280ms, box-shadow 200ms; }
+    .stat-card:hover { box-shadow: var(--sh-md); }
+    .stat-label { font-size: 0.72rem; font-weight: 600; color: var(--ink-4); text-transform: uppercase; letter-spacing: .05em; }
+    .stat-val { font-size: 1.8rem; font-weight: 800; color: var(--ink-0); margin: 6px 0 4px; line-height: 1; }
+    .stat-delta { font-size: 0.72rem; font-weight: 600; padding: 1px 6px; border-radius: var(--r-pill); }
+    .delta-up { background: var(--green-soft); color: var(--green-mid); }
+    .delta-neu { background: var(--border); color: var(--ink-4); }
+
+    /* SECTION HEAD */
+    .sec-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .sec-title { font-size: 0.92rem; font-weight: 700; color: var(--ink-0); }
+    .sec-divider { flex: 1; height: 1px; background: var(--border); }
+    .sec-action { font-size: 0.75rem; font-weight: 600; color: var(--purple); display: flex; align-items: center; gap: 4px; }
+    .sec-action:hover { text-decoration: underline; }
+
+    /* TWO COL */
+    .two-col { display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; }
+
+    /* POSTS TABLE */
+    .posts-table { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--sh-sm); transition: background 280ms; }
+    .tbl-head { display: grid; grid-template-columns: 2.5fr 80px 80px 80px 100px 80px; padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--border); font-size: 0.7rem; font-weight: 700; color: var(--ink-4); text-transform: uppercase; letter-spacing: .05em; }
+    .tbl-row { display: grid; grid-template-columns: 2.5fr 80px 80px 80px 100px 80px; padding: 14px 16px; border-bottom: 1px solid var(--border-soft); align-items: center; transition: background 120ms; }
+    .tbl-row:last-child { border-bottom: none; }
+    .tbl-row:hover { background: var(--surface); }
+    .post-title-cell { display: flex; align-items: center; gap: 10px; }
+    .post-thumb { width: 40px; height: 34px; border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+    .post-name { font-size: 0.82rem; font-weight: 600; color: var(--ink-0); display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+    .post-cat { font-size: 0.68rem; color: var(--ink-4); margin-top: 2px; }
+    .tbl-cell { font-size: 0.78rem; color: var(--ink-3); }
+    .status-chip { font-size: 0.65rem; font-weight: 700; padding: 3px 8px; border-radius: var(--r-pill); }
+    .sc-pub    { background: var(--green-soft); color: var(--green-mid); }
+    .sc-draft  { background: var(--border); color: var(--ink-4); }
+    .sc-review { background: var(--amber-soft); color: var(--amber); }
+    .sc-sched  { background: var(--blue-soft); color: var(--blue-mid); }
+    .row-actions { display: flex; gap: 4px; }
+    .row-btn { width: 28px; height: 28px; border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center; font-size: 0.82rem; color: var(--ink-4); transition: all 120ms; }
+    .row-btn:hover { background: var(--surface); color: var(--ink-0); }
+
+    /* RIGHT PANEL */
+    .right-panel { display: flex; flex-direction: column; gap: 16px; }
+    .panel-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--sh-sm); transition: background 280ms; }
+    .panel-head { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 0.82rem; font-weight: 700; color: var(--ink-0); display: flex; align-items: center; gap: 8px; }
+    .panel-head i { color: var(--purple); }
+    .panel-body { padding: 14px 16px; }
+
+    /* QUICK ACTIONS */
+    .quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .qa-btn { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 10px; border-radius: var(--r-md); border: 1.5px solid var(--border); font-size: 0.72rem; font-weight: 600; color: var(--ink-2); transition: all 120ms; cursor: pointer; text-align: center; }
+    .qa-btn:hover { border-color: var(--purple); color: var(--purple); background: var(--purple-soft); }
+    .qa-btn i { font-size: 1.3rem; }
+
+    /* ACTIVITY */
+    .activity-item { display: flex; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border-soft); }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
+    .ad-pub  { background: var(--green-mid); }
+    .ad-comment { background: var(--blue-mid); }
+    .ad-view { background: var(--purple); }
+    .activity-text { font-size: 0.76rem; color: var(--ink-2); line-height: 1.5; }
+    .activity-time { font-size: 0.66rem; color: var(--ink-4); margin-top: 2px; }
+
+    /* CHART MINI */
+    .mini-chart { display: flex; align-items: flex-end; gap: 4px; height: 60px; }
+    .mc-bar { flex: 1; border-radius: 3px 3px 0 0; background: var(--purple-soft); transition: background 120ms; }
+    .mc-bar:hover { background: var(--purple); }
+    .mc-bar.today { background: var(--purple); }
+    .mc-labels { display: flex; justify-content: space-between; font-size: 0.6rem; color: var(--ink-5); margin-top: 4px; }
+
+    /* SCHEDULE ITEM */
+    .sched-item { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border-soft); }
+    .sched-item:last-child { border-bottom: none; }
+    .sched-date-box { width: 38px; height: 38px; border-radius: var(--r-sm); flex-shrink: 0; background: var(--purple-soft); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .sched-day { font-size: 0.9rem; font-weight: 800; color: var(--purple); line-height: 1; }
+    .sched-mon { font-size: 0.58rem; font-weight: 700; color: var(--purple); text-transform: uppercase; }
+    .sched-name { font-size: 0.78rem; font-weight: 600; color: var(--ink-0); }
+    .sched-time { font-size: 0.68rem; color: var(--ink-4); margin-top: 2px; }
+
+    @media (max-width: 1050px) { .two-col { grid-template-columns: 1fr; } }
+    @media (max-width: 700px) { .stats-row { grid-template-columns: 1fr 1fr; } }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">B</div>
+    <span class="logo-name">Blog Studio</span>
+    <span class="logo-tag">v2</span>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-av">AN</div>
+    <div>
+      <div class="user-name">Aziz Nazarov</div>
+      <div class="user-role">Muallif · Senior</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-group-label">Studio</div>
+    <a href="blog-studio-shell.html" class="nav-item active"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+    <a href="blog-studio-new-post.html" class="nav-item"><i class="bi bi-pencil-square"></i> Yangi maqola</a>
+    <a href="#" class="nav-item"><i class="bi bi-file-earmark-text"></i> Maqolalar <span class="nav-badge">3</span></a>
+    <a href="#" class="nav-item"><i class="bi bi-archive"></i> Qoralamalar</a>
+    <a href="blog-studio-analytics.html" class="nav-item"><i class="bi bi-bar-chart-line"></i> Statistika</a>
+    <div class="nav-group-label">Blog</div>
+    <a href="../blog/blog-shell.html" class="nav-item"><i class="bi bi-eye"></i> Blogni ko'rish</a>
+    <a href="#" class="nav-item"><i class="bi bi-tags"></i> Teglar & Kategoriyalar</a>
+    <a href="#" class="nav-item"><i class="bi bi-chat-square-text"></i> Izohlar <span class="nav-badge" style="background:var(--blue-mid)">12</span></a>
+    <div class="nav-group-label">Sozlash</div>
+    <a href="#" class="nav-item"><i class="bi bi-palette"></i> Dizayn</a>
+    <a href="#" class="nav-item"><i class="bi bi-gear"></i> Sozlamalar</a>
+  </nav>
+  <div class="sidebar-bottom">
+    <a href="../../index.html" class="nav-item"><i class="bi bi-arrow-left-circle"></i> Playground</a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="page-wrap">
+  <header class="topbar">
+    <h1 class="topbar-title">Studio Dashboard</h1>
+    <div class="topbar-sep"></div>
+    <a href="blog-studio-new-post.html" class="new-post-btn"><i class="bi bi-plus-lg"></i> Yangi maqola</a>
+    <button class="theme-btn" id="themeBtn"><i class="bi bi-moon" id="themeIcon"></i></button>
+  </header>
+
+  <div class="page-body">
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Jami maqolalar</div>
+        <div class="stat-val">28</div>
+        <div style="font-size:.75rem;color:var(--ink-4);display:flex;align-items:center;gap:5px"><span class="stat-delta delta-up">+3</span> bu oy</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Ko'rilganlar</div>
+        <div class="stat-val" style="color:var(--purple)">180k</div>
+        <div style="font-size:.75rem;color:var(--ink-4);display:flex;align-items:center;gap:5px"><span class="stat-delta delta-up">+24%</span> o'tgan oyga</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Obunachilar</div>
+        <div class="stat-val" style="color:var(--blue-mid)">4.2k</div>
+        <div style="font-size:.75rem;color:var(--ink-4);display:flex;align-items:center;gap:5px"><span class="stat-delta delta-up">+180</span> bu hafta</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">O'rtacha o'qish</div>
+        <div class="stat-val">6.4</div>
+        <div style="font-size:.75rem;color:var(--ink-4)"><span class="stat-delta delta-neu">daqiqa</span></div>
+      </div>
+    </div>
+
+    <!-- TABLE + RIGHT PANEL -->
+    <div class="two-col">
+      <div>
+        <div class="sec-head">
+          <span class="sec-title">So'nggi maqolalar</span>
+          <div class="sec-divider"></div>
+          <a href="#" class="sec-action">Hammasi <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="posts-table">
+          <div class="tbl-head">
+            <div>Maqola</div>
+            <div>Ko'rilgan</div>
+            <div>Like</div>
+            <div>Izoh</div>
+            <div>Status</div>
+            <div></div>
+          </div>
+          <div class="tbl-row">
+            <div class="post-title-cell">
+              <div class="post-thumb img--purple" style="background:linear-gradient(135deg,#f5f3ff,#ede9fe)">📚</div>
+              <div>
+                <div class="post-name">IELTS Band 8 ga chiqish: 10 ta sir</div>
+                <div class="post-cat">IELTS · 15 May 2026</div>
+              </div>
+            </div>
+            <div class="tbl-cell">47.2k</div>
+            <div class="tbl-cell">1.2k</div>
+            <div class="tbl-cell">234</div>
+            <div><span class="status-chip sc-pub">Chop etilgan</span></div>
+            <div class="row-actions">
+              <a href="blog-studio-new-post.html" class="row-btn" title="Tahrirlash"><i class="bi bi-pencil"></i></a>
+              <a href="blog-studio-analytics.html" class="row-btn" title="Statistika"><i class="bi bi-bar-chart"></i></a>
+              <button class="row-btn" title="Ko'rish"><i class="bi bi-eye"></i></button>
+            </div>
+          </div>
+          <div class="tbl-row">
+            <div class="post-title-cell">
+              <div class="post-thumb" style="background:linear-gradient(135deg,#f0fdf4,#dcfce7)">🔤</div>
+              <div>
+                <div class="post-name">Present Perfect vs Past Simple: to'liq qo'llanma</div>
+                <div class="post-cat">Grammatika · 12 May 2026</div>
+              </div>
+            </div>
+            <div class="tbl-cell">5.1k</div>
+            <div class="tbl-cell">218</div>
+            <div class="tbl-cell">47</div>
+            <div><span class="status-chip sc-pub">Chop etilgan</span></div>
+            <div class="row-actions">
+              <a href="blog-studio-new-post.html" class="row-btn"><i class="bi bi-pencil"></i></a>
+              <a href="blog-studio-analytics.html" class="row-btn"><i class="bi bi-bar-chart"></i></a>
+              <button class="row-btn"><i class="bi bi-eye"></i></button>
+            </div>
+          </div>
+          <div class="tbl-row">
+            <div class="post-title-cell">
+              <div class="post-thumb" style="background:linear-gradient(135deg,#fffbeb,#fef3c7)">⏰</div>
+              <div>
+                <div class="post-name">IELTS Speaking Band 7+: natural nutq texnikasi</div>
+                <div class="post-cat">IELTS Speaking · 20 May 2026</div>
+              </div>
+            </div>
+            <div class="tbl-cell">—</div>
+            <div class="tbl-cell">—</div>
+            <div class="tbl-cell">—</div>
+            <div><span class="status-chip sc-sched">Rejalashtirilgan</span></div>
+            <div class="row-actions">
+              <a href="blog-studio-new-post.html" class="row-btn"><i class="bi bi-pencil"></i></a>
+              <button class="row-btn"><i class="bi bi-clock"></i></button>
+              <button class="row-btn"><i class="bi bi-trash"></i></button>
+            </div>
+          </div>
+          <div class="tbl-row">
+            <div class="post-title-cell">
+              <div class="post-thumb" style="background:linear-gradient(135deg,#eff6ff,#dbeafe)">📖</div>
+              <div>
+                <div class="post-name">Conditional sentences: 0 dan 3 gacha to'liq qo'llanma</div>
+                <div class="post-cat">Grammatika · 3 May 2026</div>
+              </div>
+            </div>
+            <div class="tbl-cell">12.1k</div>
+            <div class="tbl-cell">567</div>
+            <div class="tbl-cell">89</div>
+            <div><span class="status-chip sc-pub">Chop etilgan</span></div>
+            <div class="row-actions">
+              <a href="blog-studio-new-post.html" class="row-btn"><i class="bi bi-pencil"></i></a>
+              <a href="blog-studio-analytics.html" class="row-btn"><i class="bi bi-bar-chart"></i></a>
+              <button class="row-btn"><i class="bi bi-eye"></i></button>
+            </div>
+          </div>
+          <div class="tbl-row">
+            <div class="post-title-cell">
+              <div class="post-thumb" style="background:linear-gradient(135deg,#fdf4ff,#f5d0fe)">💬</div>
+              <div>
+                <div class="post-name">Academic lug'at: Advanced Collocations ro'yxati</div>
+                <div class="post-cat">Qoralama · tahrirlash jarayonida</div>
+              </div>
+            </div>
+            <div class="tbl-cell">—</div>
+            <div class="tbl-cell">—</div>
+            <div class="tbl-cell">—</div>
+            <div><span class="status-chip sc-draft">Qoralama</span></div>
+            <div class="row-actions">
+              <a href="blog-studio-new-post.html" class="row-btn"><i class="bi bi-pencil"></i></a>
+              <button class="row-btn"><i class="bi bi-send"></i></button>
+              <button class="row-btn"><i class="bi bi-trash"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT PANEL -->
+      <div class="right-panel">
+        <!-- QUICK ACTIONS -->
+        <div class="panel-card">
+          <div class="panel-head"><i class="bi bi-lightning-charge"></i> Tezkor amallar</div>
+          <div class="panel-body">
+            <div class="quick-actions">
+              <a href="blog-studio-new-post.html" class="qa-btn"><i class="bi bi-pencil-square"></i>Yangi post</a>
+              <a href="blog-studio-analytics.html" class="qa-btn"><i class="bi bi-bar-chart-line"></i>Statistika</a>
+              <button class="qa-btn"><i class="bi bi-image"></i>Media</button>
+              <button class="qa-btn"><i class="bi bi-megaphone"></i>Xabar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEWS CHART -->
+        <div class="panel-card">
+          <div class="panel-head"><i class="bi bi-graph-up"></i> Ko'rishlar (7 kun)</div>
+          <div class="panel-body">
+            <div style="font-size:1.4rem;font-weight:800;color:var(--ink-0);margin-bottom:4px">12,840</div>
+            <div style="font-size:0.72rem;color:var(--ink-4);margin-bottom:12px">ushbu hafta · <span style="color:var(--green-mid)">+18%</span></div>
+            <div class="mini-chart" id="miniChart"></div>
+            <div class="mc-labels"><span>Du</span><span>Se</span><span>Ch</span><span>Pa</span><span>Ju</span><span>Sh</span><span>Ya</span></div>
+          </div>
+        </div>
+
+        <!-- ACTIVITY -->
+        <div class="panel-card">
+          <div class="panel-head"><i class="bi bi-activity"></i> So'nggi faollik</div>
+          <div class="panel-body">
+            <div class="activity-item">
+              <div class="activity-dot ad-comment"></div>
+              <div>
+                <div class="activity-text"><strong>Zuhra H.</strong> maqolangizga izoh qoldirdi</div>
+                <div class="activity-time">2 soat oldin · Band 8 maqola</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot ad-view"></div>
+              <div>
+                <div class="activity-text">Band 8 maqola <strong>1,000</strong> ko'rishdan o'tdi</div>
+                <div class="activity-time">4 soat oldin</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot ad-pub"></div>
+              <div>
+                <div class="activity-text">Present Perfect maqolasi chop etildi</div>
+                <div class="activity-time">12 May · 10:30</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot ad-comment"></div>
+              <div>
+                <div class="activity-text"><strong>Bekzod N.</strong> PEEL metodini sinab ko'radi</div>
+                <div class="activity-time">5 soat oldin</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SCHEDULED -->
+        <div class="panel-card">
+          <div class="panel-head"><i class="bi bi-calendar3"></i> Rejalashtirilgan</div>
+          <div class="panel-body">
+            <div class="sched-item">
+              <div class="sched-date-box"><div class="sched-day">20</div><div class="sched-mon">May</div></div>
+              <div>
+                <div class="sched-name">Speaking Band 7+ texnikasi</div>
+                <div class="sched-time"><i class="bi bi-clock"></i> 09:00 · IELTS Speaking</div>
+              </div>
+            </div>
+            <div class="sched-item">
+              <div class="sched-date-box"><div class="sched-day">25</div><div class="sched-mon">May</div></div>
+              <div>
+                <div class="sched-name">Reading: Passage mapping strategiyasi</div>
+                <div class="sched-time"><i class="bi bi-clock"></i> 10:00 · IELTS Reading</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  (function(){
+    const t = localStorage.getItem('az-theme');
+    const d = window.matchMedia('(prefers-color-scheme:dark)').matches;
+    document.documentElement.setAttribute('data-theme', t ? t : d ? 'dark' : 'light');
+  })();
+  const html = document.documentElement;
+  function applyTheme(dark) {
+    html.setAttribute('data-theme', dark ? 'dark' : 'light');
+    document.getElementById('themeIcon').className = dark ? 'bi bi-sun' : 'bi bi-moon';
+    try { localStorage.setItem('az-theme', dark ? 'dark' : 'light'); } catch(_){}
+  }
+  const saved = localStorage.getItem('az-theme');
+  applyTheme(saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme:dark)').matches);
+  document.getElementById('themeBtn').addEventListener('click', () =>
+    applyTheme(html.getAttribute('data-theme') !== 'dark'));
+
+  // Mini chart
+  const vals = [55, 70, 62, 85, 90, 78, 100];
+  const chart = document.getElementById('miniChart');
+  vals.forEach((v, i) => {
+    const bar = document.createElement('div');
+    bar.className = 'mc-bar' + (i === 6 ? ' today' : '');
+    bar.style.height = v + '%';
+    bar.title = v + '% kapasitet';
+    chart.appendChild(bar);
+  });
+</script>
+</body>
+</html>

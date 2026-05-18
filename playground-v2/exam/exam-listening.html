@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tinglash Imtihoni — AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #eff2f6; --surface: #f7f9fb; --white: #ffffff;
+      --border: #dde4ee; --border-soft: #e8eef6;
+      --ink-0: #0d1b2a; --ink-1: #1e3248; --ink-2: #2f4a66;
+      --ink-3: #4d6680; --ink-4: #7a90a8; --ink-5: #a8bcce;
+      --blue: #1d57d8; --blue-mid: #2563eb; --blue-soft: rgba(29,87,216,.09);
+      --green: #15803d; --green-mid: #16a34a; --green-soft: rgba(21,128,61,.10);
+      --amber: #b45309; --amber-soft: rgba(180,83,9,.10);
+      --red: #dc2626; --red-soft: rgba(220,38,38,.09);
+      --deep: #0d1b2a; --on-deep: #eff2f6;
+      --sh-sm: 0 1px 3px rgba(13,27,42,.05), 0 4px 12px rgba(13,27,42,.07);
+      --sh-md: 0 4px 12px rgba(13,27,42,.08), 0 16px 48px rgba(13,27,42,.10);
+      --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-xl: 20px; --r-pill: 999px;
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    [data-theme="dark"] {
+      --bg: #0c1520; --surface: #111d2b; --white: #152233;
+      --border: #1e3450; --border-soft: #172a40;
+      --ink-0: #dce9f5; --ink-1: #b8d0e6; --ink-2: #8aadc8;
+      --ink-3: #6288a4; --ink-4: #3f607e; --ink-5: #284259;
+      --blue: #60a5fa; --blue-mid: #3b82f6; --blue-soft: rgba(96,165,250,.12);
+      --green: #4ade80; --green-mid: #22c55e; --green-soft: rgba(74,222,128,.12);
+      --amber: #fbbf24; --amber-soft: rgba(251,191,36,.12);
+      --red: #f87171; --red-soft: rgba(248,113,113,.12);
+      --deep: #070e18; --on-deep: #dce9f5;
+      --sh-sm: 0 1px 3px rgba(0,0,0,.20), 0 4px 12px rgba(0,0,0,.24);
+      --sh-md: 0 4px 12px rgba(0,0,0,.28), 0 16px 48px rgba(0,0,0,.30);
+    }
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background: var(--bg); color: var(--ink-0);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh; display: flex; flex-direction: column;
+      transition: background 280ms, color 280ms;
+    }
+    a { text-decoration: none; color: inherit; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+
+    /* EXAM TOPBAR */
+    .exam-bar {
+      height: 60px; background: var(--white); border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; padding: 0 24px; gap: 16px;
+      position: sticky; top: 0; z-index: 40;
+      transition: background 280ms;
+    }
+    .exam-logo { display: flex; align-items: center; gap: 8px; }
+    .logo-mark {
+      width: 28px; height: 28px; border-radius: 7px;
+      background: var(--blue-mid); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.6rem; font-weight: 800;
+    }
+    .exam-title-area { display: flex; flex-direction: column; }
+    .exam-name { font-size: 0.82rem; font-weight: 700; color: var(--ink-0); }
+    .exam-sub  { font-size: 0.68rem; color: var(--ink-4); }
+    .bar-sep   { flex: 1; }
+
+    /* TIMER */
+    .timer-wrap { display: flex; align-items: center; gap: 8px; }
+    .timer-box {
+      display: flex; align-items: center; gap: 7px;
+      padding: 7px 14px; border-radius: var(--r-pill);
+      background: var(--surface); border: 1px solid var(--border);
+    }
+    .timer-icon { color: var(--amber); font-size: 0.9rem; }
+    .timer-val  { font-size: 0.92rem; font-weight: 700; color: var(--ink-0); font-variant-numeric: tabular-nums; }
+    .timer-val.warn { color: var(--red); animation: pulse 1s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.5; } }
+
+    /* PROGRESS */
+    .progress-wrap { display: flex; align-items: center; gap: 10px; }
+    .progress-label { font-size: 0.75rem; font-weight: 600; color: var(--ink-3); white-space: nowrap; }
+    .progress-track { width: 120px; height: 6px; background: var(--border); border-radius: var(--r-pill); overflow: hidden; }
+    .progress-fill  { height: 100%; background: var(--blue-mid); border-radius: var(--r-pill); transition: width 400ms var(--ease); }
+
+    .btn-submit {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 18px; border-radius: var(--r-pill);
+      background: var(--green-mid); color: #fff;
+      font-size: 0.8rem; font-weight: 700;
+      border: none; cursor: pointer;
+      transition: background 120ms;
+    }
+    .btn-submit:hover { background: var(--green); }
+    .theme-btn {
+      width: 32px; height: 32px; border-radius: var(--r-md);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--ink-3); border: 1px solid var(--border);
+    }
+    .theme-btn:hover { background: var(--surface); color: var(--ink-0); }
+
+    /* MAIN LAYOUT */
+    .exam-layout {
+      flex: 1; display: grid; grid-template-columns: 1fr 280px;
+      gap: 0; max-width: 1100px; margin: 0 auto; width: 100%; padding: 28px 24px;
+      align-items: start;
+    }
+    .exam-main  { padding-right: 24px; display: flex; flex-direction: column; gap: 20px; }
+    .exam-aside { position: sticky; top: 76px; }
+
+    /* AUDIO PLAYER */
+    .audio-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--r-xl); padding: 24px;
+      box-shadow: var(--sh-sm);
+      transition: background 280ms;
+    }
+    .audio-header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+    .audio-art {
+      width: 52px; height: 52px; border-radius: var(--r-lg); flex-shrink: 0;
+      background: linear-gradient(135deg, var(--blue-mid), #6d28d9);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+    }
+    .audio-title { font-size: 0.92rem; font-weight: 700; color: var(--ink-0); }
+    .audio-desc  { font-size: 0.72rem; color: var(--ink-4); margin-top: 3px; }
+    .audio-note  { font-size: 0.72rem; color: var(--amber); display: flex; align-items: center; gap: 4px; margin-top: 3px; }
+
+    /* WAVEFORM */
+    .waveform {
+      height: 56px; border-radius: var(--r-md);
+      background: var(--surface); border: 1px solid var(--border);
+      display: flex; align-items: center; padding: 0 16px; gap: 2px;
+      margin-bottom: 14px; overflow: hidden; position: relative;
+    }
+    .waveform-bar {
+      flex: 1; border-radius: 2px; background: var(--border);
+      transition: background 200ms;
+    }
+    .waveform-bar.played { background: var(--blue-mid); }
+    .waveform-cursor {
+      position: absolute; width: 2px; background: var(--blue-mid);
+      top: 8px; bottom: 8px; border-radius: 2px;
+      left: 30%; transition: left 200ms;
+      box-shadow: 0 0 6px rgba(37,99,235,.5);
+    }
+
+    /* PLAYBACK */
+    .playback-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .play-btn {
+      width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+      background: var(--blue-mid); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; transition: background 120ms, transform 120ms;
+    }
+    .play-btn:hover { background: var(--blue); transform: scale(1.05); }
+    .seek-track {
+      flex: 1; height: 6px; background: var(--border);
+      border-radius: var(--r-pill); cursor: pointer; position: relative;
+    }
+    .seek-fill { height: 100%; background: var(--blue-mid); border-radius: var(--r-pill); width: 30%; }
+    .seek-track::after {
+      content: ''; position: absolute;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--blue-mid); top: 50%; transform: translateY(-50%);
+      left: calc(30% - 7px);
+      box-shadow: 0 0 0 3px var(--blue-soft);
+    }
+    .time-label { font-size: 0.72rem; font-variant-numeric: tabular-nums; color: var(--ink-4); white-space: nowrap; }
+    .audio-controls-row { display: flex; align-items: center; gap: 8px; }
+    .ctrl-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 5px 11px; border-radius: var(--r-pill); font-size: 0.72rem; font-weight: 600;
+      color: var(--ink-3); border: 1px solid var(--border); background: var(--surface);
+      transition: all 120ms;
+    }
+    .ctrl-btn:hover { border-color: var(--blue-mid); color: var(--blue-mid); background: var(--blue-soft); }
+    .ctrl-btn.active { background: var(--blue-soft); color: var(--blue-mid); border-color: var(--blue-mid); }
+    .replay-note { font-size: 0.68rem; color: var(--amber); margin-left: auto; display: flex; align-items: center; gap: 4px; }
+
+    /* SECTION LABEL */
+    .section-label {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 0 8px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 4px;
+    }
+    .section-num {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--deep); color: var(--on-deep);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem; font-weight: 800;
+    }
+    .section-name { font-size: 0.85rem; font-weight: 700; color: var(--ink-0); }
+    .section-hint { font-size: 0.72rem; color: var(--ink-4); margin-left: auto; }
+
+    /* QUESTION CARD */
+    .question-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--r-lg); padding: 20px;
+      box-shadow: var(--sh-sm); transition: background 280ms;
+    }
+    .q-header { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px; }
+    .q-num {
+      font-size: 0.7rem; font-weight: 700; color: var(--blue-mid);
+      background: var(--blue-soft); padding: 3px 8px; border-radius: var(--r-pill);
+      white-space: nowrap;
+    }
+    .q-text { font-size: 0.88rem; font-weight: 600; color: var(--ink-0); line-height: 1.5; }
+    .q-hint { font-size: 0.72rem; color: var(--ink-4); margin-top: 4px; }
+    .options { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+    .option {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 14px; border-radius: var(--r-md);
+      border: 1.5px solid var(--border); cursor: pointer;
+      transition: border-color 150ms, background 150ms;
+    }
+    .option:hover { border-color: var(--blue-mid); background: var(--blue-soft); }
+    .option.selected { border-color: var(--blue-mid); background: var(--blue-soft); }
+    .option-dot {
+      width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+      border: 2px solid var(--border); transition: border-color 150ms, background 150ms;
+    }
+    .option.selected .option-dot { border-color: var(--blue-mid); background: var(--blue-mid); }
+    .option-letter {
+      width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+      background: var(--surface); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.68rem; font-weight: 700; color: var(--ink-3);
+    }
+    .option.selected .option-letter { background: var(--blue-mid); color: #fff; border-color: var(--blue-mid); }
+    .option-text { font-size: 0.82rem; color: var(--ink-1); flex: 1; }
+
+    /* FILL-IN BLANK */
+    .blank-input {
+      border: none; border-bottom: 2px solid var(--blue-mid);
+      background: transparent; color: var(--ink-0);
+      font-family: inherit; font-size: 0.88rem; font-weight: 600;
+      padding: 2px 6px; min-width: 120px; outline: none;
+      transition: border-color 150ms;
+    }
+    .blank-input:focus { border-color: var(--purple); }
+    .fill-sentence { font-size: 0.88rem; color: var(--ink-1); line-height: 2; }
+
+    /* NAV BUTTONS */
+    .q-nav { display: flex; align-items: center; gap: 10px; margin-top: 16px; }
+    .nav-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 8px 16px; border-radius: var(--r-pill); font-size: 0.78rem; font-weight: 600;
+      border: 1.5px solid var(--border); color: var(--ink-2);
+      transition: all 120ms;
+    }
+    .nav-btn:hover { border-color: var(--blue-mid); color: var(--blue-mid); background: var(--blue-soft); }
+    .nav-btn--next { background: var(--blue-mid); color: #fff; border-color: var(--blue-mid); }
+    .nav-btn--next:hover { background: var(--blue); border-color: var(--blue); }
+    .q-nav-sep { flex: 1; }
+    .flag-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 6px 12px; border-radius: var(--r-pill); font-size: 0.72rem; font-weight: 600;
+      color: var(--amber); border: 1.5px solid var(--amber-soft); background: var(--amber-soft);
+    }
+
+    /* ASIDE PANEL */
+    .aside-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--r-lg); overflow: hidden;
+      box-shadow: var(--sh-sm); transition: background 280ms;
+    }
+    .aside-head {
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+      font-size: 0.78rem; font-weight: 700; color: var(--ink-0);
+    }
+    .aside-body { padding: 14px 16px; }
+
+    /* QUESTION GRID */
+    .q-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+    .q-dot {
+      aspect-ratio: 1; border-radius: var(--r-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.68rem; font-weight: 700;
+      border: 1.5px solid var(--border); color: var(--ink-4);
+      cursor: pointer; transition: all 120ms;
+    }
+    .q-dot:hover { border-color: var(--blue-mid); color: var(--blue-mid); }
+    .q-dot.answered { background: var(--blue-soft); border-color: var(--blue-mid); color: var(--blue-mid); }
+    .q-dot.current  { background: var(--blue-mid); border-color: var(--blue-mid); color: #fff; }
+    .q-dot.flagged  { background: var(--amber-soft); border-color: var(--amber); color: var(--amber); }
+
+    .aside-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.67rem; color: var(--ink-4); }
+    .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+    .ld-answered { background: var(--blue-soft); border: 1.5px solid var(--blue-mid); }
+    .ld-current  { background: var(--blue-mid); }
+    .ld-flagged  { background: var(--amber-soft); border: 1.5px solid var(--amber); }
+    .ld-empty    { background: transparent; border: 1.5px solid var(--border); }
+
+    /* SECTION PROGRESS */
+    .sec-prog-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border-soft); }
+    .sec-prog-item:last-child { border-bottom: none; }
+    .sec-prog-label { font-size: 0.75rem; font-weight: 600; color: var(--ink-0); min-width: 64px; }
+    .sec-prog-bar { flex: 1; height: 5px; background: var(--border); border-radius: var(--r-pill); overflow: hidden; }
+    .sec-prog-fill { height: 100%; background: var(--blue-mid); border-radius: var(--r-pill); }
+    .sec-prog-val { font-size: 0.68rem; font-weight: 600; color: var(--ink-3); min-width: 30px; text-align: right; }
+  </style>
+</head>
+<body>
+
+<!-- EXAM BAR -->
+<header class="exam-bar">
+  <div class="exam-logo">
+    <div class="logo-mark">AZ</div>
+    <div class="exam-title-area">
+      <div class="exam-name">Tinglash Imtihoni</div>
+      <div class="exam-sub">Mock Test 9 · IELTS Academic</div>
+    </div>
+  </div>
+  <div class="bar-sep"></div>
+  <div class="progress-wrap">
+    <span class="progress-label" id="progressLabel">5 / 20</span>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill" style="width:25%"></div>
+    </div>
+  </div>
+  <div class="timer-wrap">
+    <div class="timer-box">
+      <i class="bi bi-clock timer-icon"></i>
+      <span class="timer-val" id="timerVal">29:45</span>
+    </div>
+  </div>
+  <button class="btn-submit" onclick="submitExam()"><i class="bi bi-check2-circle"></i> Topshirish</button>
+  <button class="theme-btn" id="themeBtn"><i class="bi bi-moon" id="themeIcon"></i></button>
+</header>
+
+<!-- EXAM LAYOUT -->
+<div class="exam-layout">
+  <div class="exam-main">
+
+    <!-- AUDIO PLAYER -->
+    <div class="audio-card">
+      <div class="audio-header">
+        <div class="audio-art">🎧</div>
+        <div>
+          <div class="audio-title">Section 1 — Conversation</div>
+          <div class="audio-desc">A telephone conversation between two people about booking a tour.</div>
+          <div class="audio-note"><i class="bi bi-info-circle"></i> Audio faqat 2 marta tinglash mumkin</div>
+        </div>
+      </div>
+
+      <div class="waveform" id="waveform">
+        <!-- JS generates bars -->
+        <div class="waveform-cursor" id="waveformCursor"></div>
+      </div>
+
+      <div class="playback-row">
+        <button class="play-btn" id="playBtn" onclick="togglePlay()">
+          <i class="bi bi-play-fill"></i>
+        </button>
+        <span class="time-label" id="timeNow">1:28</span>
+        <div class="seek-track" id="seekTrack" onclick="seekAudio(event)">
+          <div class="seek-fill" id="seekFill"></div>
+        </div>
+        <span class="time-label">5:00</span>
+      </div>
+
+      <div class="audio-controls-row">
+        <button class="ctrl-btn" onclick="setSpeed(this)" data-speed="1">1×</button>
+        <button class="ctrl-btn" onclick="setSpeed(this)" data-speed="1.5">1.5×</button>
+        <button class="ctrl-btn" onclick="setSpeed(this)" data-speed="2">2×</button>
+        <button class="ctrl-btn" onclick="rewind()"><i class="bi bi-skip-backward"></i> 10s</button>
+        <span class="replay-note" id="replayNote"><i class="bi bi-arrow-repeat"></i> 1 ta qayta tinglash qoldi</span>
+      </div>
+    </div>
+
+    <!-- SECTION 1 QUESTIONS -->
+    <div class="section-label">
+      <div class="section-num">1</div>
+      <div class="section-name">1-qism — Savol-javob</div>
+      <span class="section-hint">1–10 savollar</span>
+    </div>
+
+    <!-- Q1 -->
+    <div class="question-card" id="qCard1">
+      <div class="q-header">
+        <span class="q-num">Savol 1</span>
+        <div>
+          <div class="q-text">What is the main reason the woman is calling the travel agency?</div>
+          <div class="q-hint">Faqat bitta javobni tanlang</div>
+        </div>
+      </div>
+      <div class="options">
+        <div class="option" onclick="selectOption(this, 'q1')">
+          <div class="option-letter">A</div>
+          <div class="option-text">To complain about a previous tour</div>
+        </div>
+        <div class="option selected" onclick="selectOption(this, 'q1')">
+          <div class="option-letter">B</div>
+          <div class="option-text">To book a guided tour of the national park</div>
+        </div>
+        <div class="option" onclick="selectOption(this, 'q1')">
+          <div class="option-letter">C</div>
+          <div class="option-text">To inquire about accommodation options</div>
+        </div>
+        <div class="option" onclick="selectOption(this, 'q1')">
+          <div class="option-letter">D</div>
+          <div class="option-text">To cancel an existing reservation</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="question-card">
+      <div class="q-header">
+        <span class="q-num">Savol 2</span>
+        <div>
+          <div class="q-text">How many people will be joining the tour?</div>
+        </div>
+      </div>
+      <div class="options">
+        <div class="option" onclick="selectOption(this, 'q2')"><div class="option-letter">A</div><div class="option-text">2</div></div>
+        <div class="option" onclick="selectOption(this, 'q2')"><div class="option-letter">B</div><div class="option-text">3</div></div>
+        <div class="option" onclick="selectOption(this, 'q2')"><div class="option-letter">C</div><div class="option-text">4</div></div>
+        <div class="option" onclick="selectOption(this, 'q2')"><div class="option-letter">D</div><div class="option-text">5</div></div>
+      </div>
+    </div>
+
+    <!-- Q3 - Fill in blank -->
+    <div class="question-card">
+      <div class="q-header">
+        <span class="q-num">Savol 3–5</span>
+        <div>
+          <div class="q-text">Bo'sh joylarni to'ldiring (bitta so'z yoki raqam):</div>
+          <div class="q-hint">Faqat audio yordamida to'ldiring</div>
+        </div>
+      </div>
+      <div style="margin-top:14px; display:flex; flex-direction:column; gap:14px;">
+        <p class="fill-sentence">The tour departs every <input class="blank-input" placeholder="..." style="width:100px"> at 9 am from the main <input class="blank-input" placeholder="..." style="width:120px">.</p>
+        <p class="fill-sentence">The full tour costs <input class="blank-input" placeholder="..." style="width:80px"> per person including lunch and transport.</p>
+        <p class="fill-sentence">Participants should wear <input class="blank-input" placeholder="..." style="width:130px"> shoes and bring a <input class="blank-input" placeholder="..." style="width:110px">.</p>
+      </div>
+    </div>
+
+    <!-- SECTION 2 -->
+    <div class="section-label">
+      <div class="section-num">2</div>
+      <div class="section-name">2-qism — Monolog</div>
+      <span class="section-hint">11–20 savollar</span>
+    </div>
+
+    <!-- Q4 -->
+    <div class="question-card">
+      <div class="q-header">
+        <span class="q-num">Savol 11</span>
+        <div>
+          <div class="q-text">According to the speaker, what is the primary function of the community library's new extension?</div>
+        </div>
+      </div>
+      <div class="options">
+        <div class="option" onclick="selectOption(this, 'q11')"><div class="option-letter">A</div><div class="option-text">To provide additional book storage</div></div>
+        <div class="option" onclick="selectOption(this, 'q11')"><div class="option-letter">B</div><div class="option-text">To host children's reading programmes</div></div>
+        <div class="option" onclick="selectOption(this, 'q11')"><div class="option-letter">C</div><div class="option-text">To serve as a digital learning hub</div></div>
+        <div class="option" onclick="selectOption(this, 'q11')"><div class="option-letter">D</div><div class="option-text">To replace the existing reference section</div></div>
+      </div>
+    </div>
+
+    <!-- Q NAV -->
+    <div class="q-nav">
+      <button class="nav-btn" onclick="prevQuestion()"><i class="bi bi-arrow-left"></i> Oldingi</button>
+      <button class="flag-btn"><i class="bi bi-flag"></i> Belgilash</button>
+      <div class="q-nav-sep"></div>
+      <button class="nav-btn nav-btn--next" onclick="nextQuestion()">Keyingi <i class="bi bi-arrow-right"></i></button>
+    </div>
+  </div>
+
+  <!-- ASIDE -->
+  <div class="exam-aside">
+    <div class="aside-card" style="margin-bottom:14px">
+      <div class="aside-head">Savollar haritasi</div>
+      <div class="aside-body">
+        <div class="q-grid" id="qGrid">
+          <!-- generated by JS -->
+        </div>
+        <div class="aside-legend">
+          <div class="legend-item"><div class="legend-dot ld-current"></div>Joriy</div>
+          <div class="legend-item"><div class="legend-dot ld-answered"></div>Javob berilgan</div>
+          <div class="legend-item"><div class="legend-dot ld-flagged"></div>Belgilangan</div>
+          <div class="legend-item"><div class="legend-dot ld-empty"></div>Javobsiz</div>
+        </div>
+      </div>
+    </div>
+    <div class="aside-card">
+      <div class="aside-head">Qism taraqqiyoti</div>
+      <div class="aside-body" style="padding:12px 16px">
+        <div class="sec-prog-item">
+          <div class="sec-prog-label">1-qism</div>
+          <div class="sec-prog-bar"><div class="sec-prog-fill" style="width:50%"></div></div>
+          <div class="sec-prog-val">5/10</div>
+        </div>
+        <div class="sec-prog-item">
+          <div class="sec-prog-label">2-qism</div>
+          <div class="sec-prog-bar"><div class="sec-prog-fill" style="width:0%"></div></div>
+          <div class="sec-prog-val">0/10</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Theme
+  (function(){
+    const t = localStorage.getItem('az-theme');
+    const d = window.matchMedia('(prefers-color-scheme:dark)').matches;
+    document.documentElement.setAttribute('data-theme', t ? t : d ? 'dark' : 'light');
+  })();
+  const html = document.documentElement;
+  const btn  = document.getElementById('themeBtn');
+  const icon = document.getElementById('themeIcon');
+  function applyTheme(dark) {
+    html.setAttribute('data-theme', dark ? 'dark' : 'light');
+    icon.className = dark ? 'bi bi-sun' : 'bi bi-moon';
+    try { localStorage.setItem('az-theme', dark ? 'dark' : 'light'); } catch(_){}
+  }
+  const saved = localStorage.getItem('az-theme');
+  applyTheme(saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme:dark)').matches);
+  btn.addEventListener('click', () => applyTheme(html.getAttribute('data-theme') !== 'dark'));
+
+  // Waveform bars
+  const wf = document.getElementById('waveform');
+  const heights = [3,5,8,12,18,22,28,35,40,44,48,50,46,42,38,32,26,20,14,10,8,6,10,14,20,26,32,38,42,46,48,44,40,34,28,22,16,12,8,6,4,8,12,18,24,30,36,42,46,48,44,40,34,26,18,12,8,5,3,4];
+  const playedUntil = Math.floor(heights.length * 0.30);
+  heights.forEach((h, i) => {
+    const bar = document.createElement('div');
+    bar.className = 'waveform-bar' + (i < playedUntil ? ' played' : '');
+    bar.style.height = Math.max(8, h) + 'px';
+    wf.appendChild(bar);
+  });
+
+  // Question grid
+  const states = ['answered','answered','answered','answered','current','empty','empty','flagged','empty','empty',
+                  'empty','empty','empty','empty','empty','empty','empty','empty','empty','empty'];
+  const grid = document.getElementById('qGrid');
+  states.forEach((s, i) => {
+    const d = document.createElement('div');
+    d.className = 'q-dot ' + s;
+    d.textContent = i + 1;
+    d.onclick = () => scrollToQuestion(i + 1);
+    grid.appendChild(d);
+  });
+
+  // Timer
+  let secs = 29 * 60 + 45;
+  const timerEl = document.getElementById('timerVal');
+  const timerInterval = setInterval(() => {
+    secs--;
+    if (secs < 0) { clearInterval(timerInterval); timerEl.textContent = '00:00'; return; }
+    const m = Math.floor(secs / 60), s = secs % 60;
+    timerEl.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+    if (secs <= 300) timerEl.classList.add('warn');
+  }, 1000);
+
+  // Play/pause
+  let playing = false;
+  function togglePlay() {
+    playing = !playing;
+    document.getElementById('playBtn').innerHTML = playing
+      ? '<i class="bi bi-pause-fill"></i>'
+      : '<i class="bi bi-play-fill"></i>';
+  }
+
+  // Speed
+  function setSpeed(btn) {
+    document.querySelectorAll('.ctrl-btn[data-speed]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  document.querySelector('.ctrl-btn[data-speed="1"]').classList.add('active');
+
+  function rewind() { /* mock */ }
+
+  // Seek
+  function seekAudio(e) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pct = (e.clientX - rect.left) / rect.width;
+    document.getElementById('seekFill').style.width = (pct * 100) + '%';
+    document.getElementById('waveformCursor').style.left = (pct * 100) + '%';
+  }
+
+  // Options
+  function selectOption(el, group) {
+    el.closest('.options').querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  function prevQuestion() {}
+  function nextQuestion() {}
+  function scrollToQuestion(n) {}
+
+  function submitExam() {
+    if (confirm('Imtihonni yakunlamoqchimisiz?')) {
+      window.location.href = 'exam-review.html';
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analitika — Blog Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #eff2f6; --surface: #f7f9fb; --white: #ffffff;
+      --border: #dde4ee; --border-soft: #e8eef6;
+      --ink-0: #0d1b2a; --ink-1: #1e3248; --ink-2: #2f4a66;
+      --ink-3: #4d6680; --ink-4: #7a90a8; --ink-5: #a8bcce;
+      --blue: #1d57d8; --blue-mid: #2563eb; --blue-soft: rgba(29,87,216,.09);
+      --green: #15803d; --green-mid: #16a34a; --green-soft: rgba(21,128,61,.10);
+      --amber: #b45309; --amber-soft: rgba(180,83,9,.10);
+      --purple: #6d28d9; --purple-soft: rgba(109,40,217,.09);
+      --red: #dc2626; --red-soft: rgba(220,38,38,.09);
+      --deep: #0d1b2a; --on-deep: #eff2f6;
+      --sh-sm: 0 1px 3px rgba(13,27,42,.05), 0 4px 12px rgba(13,27,42,.07);
+      --sh-md: 0 4px 12px rgba(13,27,42,.08), 0 16px 48px rgba(13,27,42,.10);
+      --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-xl: 20px; --r-pill: 999px;
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+      --sidebar-w: 224px;
+    }
+    [data-theme="dark"] {
+      --bg: #0c1520; --surface: #111d2b; --white: #152233;
+      --border: #1e3450; --border-soft: #172a40;
+      --ink-0: #dce9f5; --ink-1: #b8d0e6; --ink-2: #8aadc8;
+      --ink-3: #6288a4; --ink-4: #3f607e; --ink-5: #284259;
+      --blue: #60a5fa; --blue-mid: #3b82f6; --blue-soft: rgba(96,165,250,.12);
+      --green: #4ade80; --green-mid: #22c55e; --green-soft: rgba(74,222,128,.12);
+      --amber: #fbbf24; --amber-soft: rgba(251,191,36,.12);
+      --purple: #a78bfa; --purple-soft: rgba(167,139,250,.12);
+      --red: #f87171; --red-soft: rgba(248,113,113,.12);
+      --deep: #070e18; --on-deep: #dce9f5;
+      --sh-sm: 0 1px 3px rgba(0,0,0,.20), 0 4px 12px rgba(0,0,0,.24);
+      --sh-md: 0 4px 12px rgba(0,0,0,.28), 0 16px 48px rgba(0,0,0,.30);
+    }
+    body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; background: var(--bg); color: var(--ink-0); -webkit-font-smoothing: antialiased; display: flex; min-height: 100vh; transition: background 280ms, color 280ms; }
+    a { text-decoration: none; color: inherit; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+
+    /* ── SIDEBAR ── */
+    .sidebar { width: var(--sidebar-w); flex-shrink: 0; background: var(--deep); color: var(--on-deep); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 50; overflow-y: auto; }
+    .sidebar-logo { padding: 20px 20px 16px; display: flex; align-items: center; gap: 9px; border-bottom: 1px solid rgba(255,255,255,.06); }
+    .logo-mark { width: 30px; height: 30px; border-radius: 8px; background: var(--purple); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.62rem; font-weight: 800; flex-shrink: 0; }
+    .logo-name { font-size: 0.88rem; font-weight: 700; color: var(--on-deep); }
+    .logo-tag { font-size: 0.6rem; font-weight: 700; padding: 2px 6px; background: rgba(109,40,217,.3); color: #c4b5fd; border-radius: var(--r-pill); margin-left: auto; }
+    .sidebar-user { padding: 14px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,.06); }
+    .user-av { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg,#6d28d9,#2563eb); display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; color: #fff; }
+    .user-name { font-size: 0.8rem; font-weight: 600; color: var(--on-deep); }
+    .user-role { font-size: 0.68rem; color: rgba(220,233,245,.4); }
+    .sidebar-nav { flex: 1; padding: 12px 10px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-group-label { font-size: 0.62rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: rgba(220,233,245,.35); padding: 10px 8px 4px; }
+    .nav-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: var(--r-md); font-size: 0.81rem; font-weight: 500; color: rgba(220,233,245,.6); transition: background 120ms, color 120ms; }
+    .nav-item:hover { background: rgba(255,255,255,.06); color: var(--on-deep); }
+    .nav-item.active { background: rgba(109,40,217,.22); color: #c4b5fd; font-weight: 600; }
+    .nav-item i { font-size: 1rem; width: 18px; flex-shrink: 0; }
+    .nav-badge { margin-left: auto; font-size: 0.62rem; font-weight: 700; background: var(--amber); color: #fff; padding: 1px 6px; border-radius: var(--r-pill); }
+    .sidebar-bottom { padding: 12px 10px 16px; border-top: 1px solid rgba(255,255,255,.06); display: flex; flex-direction: column; gap: 2px; }
+
+    /* ── LAYOUT ── */
+    .page-wrap { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* ── TOPBAR ── */
+    .topbar { height: 56px; background: var(--white); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; gap: 14px; position: sticky; top: 0; z-index: 40; }
+    .topbar-title { font-size: 1rem; font-weight: 700; color: var(--ink-0); }
+    .topbar-sub { font-size: 0.8rem; color: var(--ink-4); }
+    .tb-spacer { flex: 1; }
+
+    /* Date range pills */
+    .range-pills { display: flex; gap: 4px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-md); padding: 3px; }
+    .range-pill { height: 28px; padding: 0 12px; border-radius: var(--r-sm); font-size: 0.76rem; font-weight: 600; color: var(--ink-4); transition: all 120ms; }
+    .range-pill.active { background: var(--white); color: var(--ink-0); box-shadow: var(--sh-sm); }
+
+    .tb-btn { display: flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--r-md); font-size: 0.82rem; font-weight: 600; transition: all 120ms var(--ease); }
+    .tb-btn-ghost { border: 1px solid var(--border); color: var(--ink-2); background: var(--white); }
+    .tb-btn-ghost:hover { background: var(--bg); }
+    .tb-theme { width: 34px; height: 34px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--ink-3); border: 1px solid var(--border); background: var(--white); transition: all 120ms; }
+    .tb-theme:hover { background: var(--bg); color: var(--ink-0); }
+
+    /* ── CONTENT ── */
+    .content { padding: 28px 28px 48px; display: flex; flex-direction: column; gap: 24px; }
+
+    /* ── KPI CARDS ── */
+    .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .kpi-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-xl); padding: 20px 22px; display: flex; flex-direction: column; gap: 10px; box-shadow: var(--sh-sm); transition: transform 180ms var(--ease), box-shadow 180ms; }
+    .kpi-card:hover { transform: translateY(-2px); box-shadow: var(--sh-md); }
+    .kpi-icon { width: 38px; height: 38px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; font-size: 1.05rem; }
+    .kpi-icon.blue { background: var(--blue-soft); color: var(--blue-mid); }
+    .kpi-icon.green { background: var(--green-soft); color: var(--green-mid); }
+    .kpi-icon.purple { background: var(--purple-soft); color: var(--purple); }
+    .kpi-icon.amber { background: var(--amber-soft); color: var(--amber); }
+    .kpi-label { font-size: 0.76rem; font-weight: 600; color: var(--ink-4); text-transform: uppercase; letter-spacing: .04em; }
+    .kpi-val { font-size: 1.9rem; font-weight: 800; color: var(--ink-0); line-height: 1; }
+    .kpi-delta { display: inline-flex; align-items: center; gap: 3px; font-size: 0.76rem; font-weight: 700; padding: 2px 8px; border-radius: var(--r-pill); }
+    .kpi-delta.up { background: var(--green-soft); color: var(--green-mid); }
+    .kpi-delta.down { background: var(--red-soft); color: var(--red); }
+    .kpi-compare { font-size: 0.73rem; color: var(--ink-5); }
+
+    /* ── SECTION CARD ── */
+    .card { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-xl); box-shadow: var(--sh-sm); overflow: hidden; }
+    .card-head { padding: 18px 22px 16px; border-bottom: 1px solid var(--border-soft); display: flex; align-items: center; gap: 10px; }
+    .card-title { font-size: 0.92rem; font-weight: 700; color: var(--ink-0); }
+    .card-sub { font-size: 0.76rem; color: var(--ink-4); }
+    .card-spacer { flex: 1; }
+    .card-body { padding: 22px; }
+
+    /* ── CHART ROWS ── */
+    .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .charts-row-3 { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+
+    /* ── LINE CHART (SVG) ── */
+    .chart-wrap { position: relative; }
+    .chart-svg { width: 100%; overflow: visible; }
+    .chart-axis-x { display: flex; justify-content: space-between; padding: 6px 0 0; }
+    .chart-axis-x span { font-size: 0.69rem; color: var(--ink-5); }
+    .chart-legend { display: flex; gap: 16px; flex-wrap: wrap; padding: 10px 0 0; }
+    .legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.75rem; color: var(--ink-3); }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    /* ── BAR CHART ── */
+    .bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 180px; padding: 0 0 4px; }
+    .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+    .bar-fill { width: 100%; border-radius: 4px 4px 0 0; transition: height 600ms var(--ease); position: relative; min-height: 4px; }
+    .bar-fill:hover::after { content: attr(data-val); position: absolute; top: -28px; left: 50%; transform: translateX(-50%); background: var(--deep); color: var(--on-deep); font-size: 0.68rem; font-weight: 700; padding: 3px 7px; border-radius: var(--r-sm); white-space: nowrap; }
+    .bar-label { font-size: 0.67rem; color: var(--ink-5); }
+    .bar-fill.views { background: var(--blue-mid); }
+    .bar-fill.likes { background: var(--purple); }
+    .bar-fill.today { background: linear-gradient(180deg, var(--blue-mid), var(--purple)); }
+
+    /* ── DONUT CHART ── */
+    .donut-wrap { display: flex; align-items: center; gap: 24px; }
+    .donut-svg { flex-shrink: 0; }
+    .donut-legend { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+    .donut-item { display: flex; align-items: center; gap: 8px; }
+    .donut-swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+    .donut-name { font-size: 0.78rem; color: var(--ink-2); flex: 1; }
+    .donut-pct { font-size: 0.78rem; font-weight: 700; color: var(--ink-0); }
+    .donut-bar-bg { height: 4px; background: var(--border-soft); border-radius: 99px; flex: 1; overflow: hidden; }
+    .donut-bar-fill { height: 100%; border-radius: 99px; transition: width 800ms var(--ease); }
+
+    /* ── TOP POSTS TABLE ── */
+    .posts-table { width: 100%; border-collapse: collapse; }
+    .posts-table th { font-size: 0.7rem; font-weight: 700; color: var(--ink-4); text-transform: uppercase; letter-spacing: .06em; padding: 0 14px 12px; text-align: left; }
+    .posts-table th:not(:first-child) { text-align: right; }
+    .posts-table td { padding: 12px 14px; font-size: 0.83rem; color: var(--ink-1); border-top: 1px solid var(--border-soft); }
+    .posts-table tr:hover td { background: var(--bg); }
+    .posts-table td:not(:first-child) { text-align: right; }
+    .post-title-cell { display: flex; align-items: center; gap: 10px; }
+    .post-num { width: 24px; height: 24px; border-radius: 6px; background: var(--bg); font-size: 0.7rem; font-weight: 700; color: var(--ink-4); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .post-num.top { background: var(--amber-soft); color: var(--amber); }
+    .post-title-text { font-size: 0.84rem; font-weight: 600; color: var(--ink-0); }
+    .post-cat-chip { font-size: 0.67rem; font-weight: 700; padding: 1px 7px; border-radius: var(--r-pill); }
+    .chip-blue { background: var(--blue-soft); color: var(--blue-mid); }
+    .chip-green { background: var(--green-soft); color: var(--green); }
+    .chip-purple { background: var(--purple-soft); color: var(--purple); }
+    .chip-amber { background: var(--amber-soft); color: var(--amber); }
+    .trend-up { color: var(--green-mid); font-size: 0.72rem; font-weight: 700; }
+    .trend-dn { color: var(--red); font-size: 0.72rem; font-weight: 700; }
+    .mini-spark { display: flex; align-items: flex-end; gap: 2px; height: 22px; margin-left: auto; }
+    .spark-bar { width: 4px; border-radius: 2px; background: var(--blue-soft); }
+    .spark-bar.active { background: var(--blue-mid); }
+
+    /* ── AUDIENCE ── */
+    .audience-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .audience-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-xl); padding: 20px; box-shadow: var(--sh-sm); }
+    .aud-title { font-size: 0.82rem; font-weight: 700; color: var(--ink-0); margin-bottom: 14px; }
+
+    /* Device bars */
+    .device-list { display: flex; flex-direction: column; gap: 12px; }
+    .device-row { display: flex; align-items: center; gap: 10px; }
+    .device-icon { width: 28px; height: 28px; border-radius: var(--r-sm); background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: var(--ink-3); flex-shrink: 0; }
+    .device-info { flex: 1; }
+    .device-name { font-size: 0.79rem; font-weight: 600; color: var(--ink-1); }
+    .device-bar-bg { height: 5px; background: var(--border-soft); border-radius: 99px; margin-top: 4px; overflow: hidden; }
+    .device-bar-fill { height: 100%; border-radius: 99px; transition: width 700ms var(--ease); }
+    .device-pct { font-size: 0.78rem; font-weight: 700; color: var(--ink-0); width: 36px; text-align: right; }
+
+    /* Country list */
+    .country-list { display: flex; flex-direction: column; gap: 10px; }
+    .country-row { display: flex; align-items: center; gap: 10px; }
+    .country-flag { font-size: 1.2rem; width: 24px; }
+    .country-name { font-size: 0.8rem; font-weight: 600; color: var(--ink-1); flex: 1; }
+    .country-bar-bg { width: 80px; height: 5px; background: var(--border-soft); border-radius: 99px; overflow: hidden; }
+    .country-bar-fill { height: 100%; border-radius: 99px; background: var(--purple); transition: width 700ms var(--ease); }
+    .country-count { font-size: 0.78rem; font-weight: 700; color: var(--ink-0); width: 40px; text-align: right; }
+
+    /* Referrals */
+    .ref-list { display: flex; flex-direction: column; gap: 10px; }
+    .ref-row { display: flex; align-items: center; gap: 10px; }
+    .ref-icon { width: 30px; height: 30px; border-radius: var(--r-sm); background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
+    .ref-source { font-size: 0.8rem; font-weight: 600; color: var(--ink-1); flex: 1; }
+    .ref-bar-bg { width: 100px; height: 5px; background: var(--border-soft); border-radius: 99px; overflow: hidden; }
+    .ref-bar-fill { height: 100%; border-radius: 99px; background: var(--green-mid); transition: width 700ms var(--ease); }
+    .ref-visits { font-size: 0.78rem; font-weight: 700; color: var(--ink-0); width: 48px; text-align: right; }
+
+    /* ── ENGAGEMENT SCORE ── */
+    .eng-row { display: flex; align-items: center; gap: 20px; }
+    .eng-ring { position: relative; flex-shrink: 0; }
+    .eng-ring-label { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .eng-ring-num { font-size: 1.6rem; font-weight: 800; color: var(--ink-0); }
+    .eng-ring-sub { font-size: 0.68rem; color: var(--ink-4); font-weight: 600; }
+    .eng-metrics { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+    .eng-metric { display: flex; flex-direction: column; gap: 4px; }
+    .eng-metric-row { display: flex; justify-content: space-between; }
+    .eng-metric-name { font-size: 0.78rem; color: var(--ink-3); font-weight: 500; }
+    .eng-metric-val { font-size: 0.78rem; font-weight: 700; color: var(--ink-0); }
+    .eng-bar-bg { height: 5px; background: var(--border-soft); border-radius: 99px; overflow: hidden; }
+    .eng-bar-fill { height: 100%; border-radius: 99px; transition: width 700ms var(--ease); }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+  </style>
+</head>
+<body>
+  <script>
+    (function(){ try { var t = localStorage.getItem('lms-theme'); if(t) document.documentElement.setAttribute('data-theme', t); } catch(e){} })();
+  </script>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">AL</div>
+      <span class="logo-name">AzureLMS</span>
+      <span class="logo-tag">Studio</span>
+    </div>
+    <div class="sidebar-user">
+      <div class="user-av">AZ</div>
+      <div>
+        <div class="user-name">Azurebek</div>
+        <div class="user-role">Muallif</div>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <span class="nav-group-label">Studio</span>
+      <a href="blog-studio-shell.html" class="nav-item"><i class="bi bi-grid-1x2"></i> Boshqaruv</a>
+      <a href="blog-studio-new-post.html" class="nav-item"><i class="bi bi-pencil-square"></i> Yangi post</a>
+      <a href="#" class="nav-item"><i class="bi bi-file-earmark-text"></i> Postlar <span class="nav-badge">12</span></a>
+      <a href="blog-studio-analytics.html" class="nav-item active"><i class="bi bi-bar-chart-line"></i> Analitika</a>
+      <span class="nav-group-label">Kontent</span>
+      <a href="blog-tags.html" class="nav-item"><i class="bi bi-tags"></i> Teglar</a>
+      <a href="#" class="nav-item"><i class="bi bi-image"></i> Media</a>
+      <a href="#" class="nav-item"><i class="bi bi-chat-dots"></i> Izohlar <span class="nav-badge">3</span></a>
+    </div>
+    <div class="sidebar-bottom">
+      <a href="../blog/blog-shell.html" class="nav-item"><i class="bi bi-eye"></i> Blogni ko'rish</a>
+      <a href="#" class="nav-item"><i class="bi bi-gear"></i> Sozlamalar</a>
+    </div>
+  </nav>
+
+  <!-- PAGE WRAP -->
+  <div class="page-wrap">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div>
+        <div class="topbar-title">Analitika</div>
+        <div class="topbar-sub">So'nggi yangilanish: bugun, 14:32</div>
+      </div>
+      <div class="tb-spacer"></div>
+      <div class="range-pills">
+        <button class="range-pill" onclick="setRange(this)">7 kun</button>
+        <button class="range-pill active" onclick="setRange(this)">30 kun</button>
+        <button class="range-pill" onclick="setRange(this)">90 kun</button>
+        <button class="range-pill" onclick="setRange(this)">1 yil</button>
+      </div>
+      <button class="tb-btn tb-btn-ghost"><i class="bi bi-download"></i> Export</button>
+      <button class="tb-theme" onclick="toggleTheme()" title="Mavzu">
+        <i class="bi bi-moon-stars" id="themeIcon"></i>
+      </button>
+    </header>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- KPI CARDS -->
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <div class="kpi-icon blue"><i class="bi bi-eye"></i></div>
+          <div class="kpi-label">Jami ko'rishlar</div>
+          <div class="kpi-val" id="kpiViews">0</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="kpi-delta up"><i class="bi bi-arrow-up"></i> 24.6%</span>
+            <span class="kpi-compare">o'tgan oyga nisbatan</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon green"><i class="bi bi-people"></i></div>
+          <div class="kpi-label">Noyob tashrif buyuruvchilar</div>
+          <div class="kpi-val" id="kpiVisitors">0</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="kpi-delta up"><i class="bi bi-arrow-up"></i> 18.3%</span>
+            <span class="kpi-compare">o'tgan oyga nisbatan</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon purple"><i class="bi bi-heart"></i></div>
+          <div class="kpi-label">Jami yoqtirishlar</div>
+          <div class="kpi-val" id="kpiLikes">0</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="kpi-delta up"><i class="bi bi-arrow-up"></i> 31.2%</span>
+            <span class="kpi-compare">o'tgan oyga nisbatan</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon amber"><i class="bi bi-clock-history"></i></div>
+          <div class="kpi-label">O'rtacha o'qish vaqti</div>
+          <div class="kpi-val">4:18</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="kpi-delta down"><i class="bi bi-arrow-down"></i> 5.1%</span>
+            <span class="kpi-compare">o'tgan oyga nisbatan</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEWS CHART + DONUT -->
+      <div class="charts-row-3">
+        <!-- Line chart card -->
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Ko'rishlar dinamikasi</div>
+              <div class="card-sub">Kunlik ko'rishlar va unique tashrif buyuruvchilar</div>
+            </div>
+            <div class="card-spacer"></div>
+            <div style="display:flex;gap:6px;">
+              <button class="range-pill active" style="font-size:0.72rem;height:26px;padding:0 10px;border-radius:var(--r-sm);font-weight:600;color:var(--ink-0);background:var(--bg);border:1px solid var(--border);">Ko'rishlar</button>
+              <button class="range-pill" style="font-size:0.72rem;height:26px;padding:0 10px;border-radius:var(--r-sm);font-weight:600;color:var(--ink-4);background:var(--bg);border:1px solid var(--border);">Tashrif</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="chart-wrap">
+              <svg class="chart-svg" viewBox="0 0 580 180" id="lineChart">
+                <!-- Grid lines -->
+                <line x1="0" y1="30" x2="580" y2="30" stroke="var(--border-soft)" stroke-width="1"/>
+                <line x1="0" y1="70" x2="580" y2="70" stroke="var(--border-soft)" stroke-width="1"/>
+                <line x1="0" y1="110" x2="580" y2="110" stroke="var(--border-soft)" stroke-width="1"/>
+                <line x1="0" y1="150" x2="580" y2="150" stroke="var(--border-soft)" stroke-width="1"/>
+                <!-- Y labels -->
+                <text x="0" y="28" font-size="9" fill="var(--ink-5)">1,200</text>
+                <text x="0" y="68" font-size="9" fill="var(--ink-5)">900</text>
+                <text x="0" y="108" font-size="9" fill="var(--ink-5)">600</text>
+                <text x="0" y="148" font-size="9" fill="var(--ink-5)">300</text>
+                <!-- Views area gradient -->
+                <defs>
+                  <linearGradient id="viewsGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="var(--blue-mid)" stop-opacity="0.22"/>
+                    <stop offset="100%" stop-color="var(--blue-mid)" stop-opacity="0"/>
+                  </linearGradient>
+                  <linearGradient id="visGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="var(--purple)" stop-opacity="0.16"/>
+                    <stop offset="100%" stop-color="var(--purple)" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <!-- Views filled area -->
+                <path id="viewsArea" fill="url(#viewsGrad)" opacity="0" transition="opacity 500ms"/>
+                <!-- Visitors filled area -->
+                <path id="visArea" fill="url(#visGrad)" opacity="0"/>
+                <!-- Views line -->
+                <path id="viewsLine" fill="none" stroke="var(--blue-mid)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                <!-- Visitors line -->
+                <path id="visLine" fill="none" stroke="var(--purple)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="5,3"/>
+                <!-- Dots will be added by JS -->
+                <g id="dots"></g>
+              </svg>
+              <div class="chart-axis-x" id="chartAxisX"></div>
+              <div class="chart-legend">
+                <div class="legend-item"><span class="legend-dot" style="background:var(--blue-mid)"></span> Ko'rishlar</div>
+                <div class="legend-item"><span class="legend-dot" style="background:var(--purple)"></span> Tashrif buyuruvchilar</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Traffic sources donut -->
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Trafik manbalari</div>
+              <div class="card-sub">Bu oy</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="donut-wrap" style="flex-direction:column;align-items:flex-start;gap:16px;">
+              <svg class="donut-svg" viewBox="0 0 120 120" width="120" height="120">
+                <circle cx="60" cy="60" r="46" fill="none" stroke="var(--border-soft)" stroke-width="16"/>
+                <!-- Organic: 42% -->
+                <circle cx="60" cy="60" r="46" fill="none" stroke="var(--green-mid)" stroke-width="16"
+                  stroke-dasharray="289 0" stroke-dashoffset="72" stroke-linecap="round"
+                  id="donutOrganic" style="transition: stroke-dasharray 900ms var(--ease)"/>
+                <!-- Social: 28% -->
+                <circle cx="60" cy="60" r="46" fill="none" stroke="var(--purple)" stroke-width="16"
+                  stroke-dasharray="0 289" stroke-dashoffset="0" id="donutSocial"
+                  style="transition: stroke-dasharray 900ms 100ms var(--ease)"/>
+                <!-- Direct: 18% -->
+                <circle cx="60" cy="60" r="46" fill="none" stroke="var(--blue-mid)" stroke-width="16"
+                  stroke-dasharray="0 289" stroke-dashoffset="0" id="donutDirect"
+                  style="transition: stroke-dasharray 900ms 200ms var(--ease)"/>
+                <!-- Referral: 12% -->
+                <circle cx="60" cy="60" r="46" fill="none" stroke="var(--amber)" stroke-width="16"
+                  stroke-dasharray="0 289" stroke-dashoffset="0" id="donutRef"
+                  style="transition: stroke-dasharray 900ms 300ms var(--ease)"/>
+                <text x="60" y="56" text-anchor="middle" font-size="18" font-weight="800" fill="var(--ink-0)">42%</text>
+                <text x="60" y="70" text-anchor="middle" font-size="8" fill="var(--ink-4)">Organik</text>
+              </svg>
+              <div class="donut-legend" style="width:100%">
+                <div class="donut-item">
+                  <span class="donut-swatch" style="background:var(--green-mid)"></span>
+                  <span class="donut-name">Organik qidiruv</span>
+                  <div class="donut-bar-bg"><div class="donut-bar-fill" data-w="42" style="width:0;background:var(--green-mid)"></div></div>
+                  <span class="donut-pct">42%</span>
+                </div>
+                <div class="donut-item">
+                  <span class="donut-swatch" style="background:var(--purple)"></span>
+                  <span class="donut-name">Ijtimoiy tarmoqlar</span>
+                  <div class="donut-bar-bg"><div class="donut-bar-fill" data-w="28" style="width:0;background:var(--purple)"></div></div>
+                  <span class="donut-pct">28%</span>
+                </div>
+                <div class="donut-item">
+                  <span class="donut-swatch" style="background:var(--blue-mid)"></span>
+                  <span class="donut-name">To'g'ridan-to'g'ri</span>
+                  <div class="donut-bar-bg"><div class="donut-bar-fill" data-w="18" style="width:0;background:var(--blue-mid)"></div></div>
+                  <span class="donut-pct">18%</span>
+                </div>
+                <div class="donut-item">
+                  <span class="donut-swatch" style="background:var(--amber)"></span>
+                  <span class="donut-name">Referral</span>
+                  <div class="donut-bar-bg"><div class="donut-bar-fill" data-w="12" style="width:0;background:var(--amber)"></div></div>
+                  <span class="donut-pct">12%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BAR CHART + ENGAGEMENT -->
+      <div class="charts-row">
+        <!-- Daily bar chart -->
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Haftalik ko'rishlar</div>
+              <div class="card-sub">Oxirgi 8 hafta</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="bar-chart" id="barChart"></div>
+            <div class="chart-axis-x" id="barAxisX"></div>
+          </div>
+        </div>
+
+        <!-- Engagement score -->
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Jalb qilish ko'rsatkichi</div>
+              <div class="card-sub">O'rtacha aktivlik</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="eng-row">
+              <div class="eng-ring">
+                <svg viewBox="0 0 100 100" width="110" height="110">
+                  <circle cx="50" cy="50" r="42" fill="none" stroke="var(--border-soft)" stroke-width="10"/>
+                  <circle cx="50" cy="50" r="42" fill="none" stroke="var(--purple)" stroke-width="10"
+                    stroke-dasharray="264" stroke-dashoffset="264" stroke-linecap="round"
+                    transform="rotate(-90 50 50)" id="engRing"
+                    style="transition: stroke-dashoffset 900ms var(--ease)"/>
+                </svg>
+                <div class="eng-ring-label">
+                  <span class="eng-ring-num" id="engNum">0</span>
+                  <span class="eng-ring-sub">/ 100</span>
+                </div>
+              </div>
+              <div class="eng-metrics">
+                <div class="eng-metric">
+                  <div class="eng-metric-row">
+                    <span class="eng-metric-name">Like nisbati</span>
+                    <span class="eng-metric-val">8.4%</span>
+                  </div>
+                  <div class="eng-bar-bg"><div class="eng-bar-fill" data-w="84" style="width:0;background:var(--purple)"></div></div>
+                </div>
+                <div class="eng-metric">
+                  <div class="eng-metric-row">
+                    <span class="eng-metric-name">Izoh nisbati</span>
+                    <span class="eng-metric-val">3.2%</span>
+                  </div>
+                  <div class="eng-bar-bg"><div class="eng-bar-fill" data-w="32" style="width:0;background:var(--blue-mid)"></div></div>
+                </div>
+                <div class="eng-metric">
+                  <div class="eng-metric-row">
+                    <span class="eng-metric-name">Ulashish</span>
+                    <span class="eng-metric-val">2.7%</span>
+                  </div>
+                  <div class="eng-bar-bg"><div class="eng-bar-fill" data-w="27" style="width:0;background:var(--green-mid)"></div></div>
+                </div>
+                <div class="eng-metric">
+                  <div class="eng-metric-row">
+                    <span class="eng-metric-name">Saqlash nisbati</span>
+                    <span class="eng-metric-val">5.9%</span>
+                  </div>
+                  <div class="eng-bar-bg"><div class="eng-bar-fill" data-w="59" style="width:0;background:var(--amber)"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOP POSTS TABLE -->
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Eng yaxshi postlar</div>
+            <div class="card-sub">Ko'rishlar bo'yicha reyting</div>
+          </div>
+          <div class="card-spacer"></div>
+          <button class="tb-btn tb-btn-ghost" style="font-size:0.78rem;padding:5px 12px;height:32px;"><i class="bi bi-arrow-up-right"></i> Barchasi</button>
+        </div>
+        <div class="card-body" style="padding:0">
+          <table class="posts-table">
+            <thead>
+              <tr>
+                <th style="padding-left:22px;width:40%">Post nomi</th>
+                <th>Ko'rishlar</th>
+                <th>Yoqtirishlar</th>
+                <th>Izohlar</th>
+                <th>O'qish vaqti</th>
+                <th>Trend</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding-left:22px">
+                  <div class="post-title-cell">
+                    <div class="post-num top">01</div>
+                    <div>
+                      <div class="post-title-text">IELTS 7+ ball olish sirlari</div>
+                      <span class="post-cat-chip chip-blue">Ingliz tili</span>
+                    </div>
+                  </div>
+                </td>
+                <td><strong>12,847</strong></td>
+                <td>1,024</td>
+                <td>187</td>
+                <td>6:42</td>
+                <td><span class="trend-up"><i class="bi bi-arrow-up-right"></i> 34%</span></td>
+              </tr>
+              <tr>
+                <td style="padding-left:22px">
+                  <div class="post-title-cell">
+                    <div class="post-num top">02</div>
+                    <div>
+                      <div class="post-title-text">Python bilan AI loyiha qurish</div>
+                      <span class="post-cat-chip chip-purple">Dasturlash</span>
+                    </div>
+                  </div>
+                </td>
+                <td><strong>9,312</strong></td>
+                <td>743</td>
+                <td>124</td>
+                <td>8:15</td>
+                <td><span class="trend-up"><i class="bi bi-arrow-up-right"></i> 18%</span></td>
+              </tr>
+              <tr>
+                <td style="padding-left:22px">
+                  <div class="post-title-cell">
+                    <div class="post-num">03</div>
+                    <div>
+                      <div class="post-title-text">AzureLMS — platformaning yangi imkoniyatlari</div>
+                      <span class="post-cat-chip chip-green">Platforma</span>
+                    </div>
+                  </div>
+                </td>
+                <td><strong>7,641</strong></td>
+                <td>612</td>
+                <td>98</td>
+                <td>4:30</td>
+                <td><span class="trend-up"><i class="bi bi-arrow-up-right"></i> 12%</span></td>
+              </tr>
+              <tr>
+                <td style="padding-left:22px">
+                  <div class="post-title-cell">
+                    <div class="post-num">04</div>
+                    <div>
+                      <div class="post-title-text">Matematika olimpiadasi: tayyorlanish yo'li</div>
+                      <span class="post-cat-chip chip-amber">Matematika</span>
+                    </div>
+                  </div>
+                </td>
+                <td><strong>5,218</strong></td>
+                <td>388</td>
+                <td>67</td>
+                <td>5:10</td>
+                <td><span class="trend-dn"><i class="bi bi-arrow-down-right"></i> 3%</span></td>
+              </tr>
+              <tr>
+                <td style="padding-left:22px">
+                  <div class="post-title-cell">
+                    <div class="post-num">05</div>
+                    <div>
+                      <div class="post-title-text">Online ta'limning afzalliklari va kamchiliklari</div>
+                      <span class="post-cat-chip chip-blue">Ta'lim</span>
+                    </div>
+                  </div>
+                </td>
+                <td><strong>4,703</strong></td>
+                <td>297</td>
+                <td>54</td>
+                <td>3:55</td>
+                <td><span class="trend-up"><i class="bi bi-arrow-up-right"></i> 7%</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- AUDIENCE GRID -->
+      <div class="audience-grid">
+
+        <!-- Devices -->
+        <div class="audience-card">
+          <div class="aud-title"><i class="bi bi-display" style="color:var(--blue-mid);margin-right:6px;"></i>Qurilmalar</div>
+          <div class="device-list">
+            <div class="device-row">
+              <div class="device-icon"><i class="bi bi-phone"></i></div>
+              <div class="device-info">
+                <div class="device-name">Mobil</div>
+                <div class="device-bar-bg"><div class="device-bar-fill" data-w="62" style="width:0;background:var(--blue-mid)"></div></div>
+              </div>
+              <span class="device-pct">62%</span>
+            </div>
+            <div class="device-row">
+              <div class="device-icon"><i class="bi bi-laptop"></i></div>
+              <div class="device-info">
+                <div class="device-name">Kompyuter</div>
+                <div class="device-bar-bg"><div class="device-bar-fill" data-w="30" style="width:0;background:var(--green-mid)"></div></div>
+              </div>
+              <span class="device-pct">30%</span>
+            </div>
+            <div class="device-row">
+              <div class="device-icon"><i class="bi bi-tablet"></i></div>
+              <div class="device-info">
+                <div class="device-name">Planshet</div>
+                <div class="device-bar-bg"><div class="device-bar-fill" data-w="8" style="width:0;background:var(--amber)"></div></div>
+              </div>
+              <span class="device-pct">8%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Countries -->
+        <div class="audience-card">
+          <div class="aud-title"><i class="bi bi-globe" style="color:var(--purple);margin-right:6px;"></i>Mamlakatlar</div>
+          <div class="country-list">
+            <div class="country-row"><span class="country-flag">🇺🇿</span><span class="country-name">O'zbekiston</span><div class="country-bar-bg"><div class="country-bar-fill" data-w="72" style="width:0"></div></div><span class="country-count">72%</span></div>
+            <div class="country-row"><span class="country-flag">🇷🇺</span><span class="country-name">Rossiya</span><div class="country-bar-bg"><div class="country-bar-fill" data-w="12" style="width:0"></div></div><span class="country-count">12%</span></div>
+            <div class="country-row"><span class="country-flag">🇰🇿</span><span class="country-name">Qozog'iston</span><div class="country-bar-bg"><div class="country-bar-fill" data-w="8" style="width:0"></div></div><span class="country-count">8%</span></div>
+            <div class="country-row"><span class="country-flag">🇹🇷</span><span class="country-name">Turkiya</span><div class="country-bar-bg"><div class="country-bar-fill" data-w="5" style="width:0"></div></div><span class="country-count">5%</span></div>
+            <div class="country-row"><span class="country-flag">🌍</span><span class="country-name">Boshqalar</span><div class="country-bar-bg"><div class="country-bar-fill" data-w="3" style="width:0"></div></div><span class="country-count">3%</span></div>
+          </div>
+        </div>
+
+        <!-- Referral sources -->
+        <div class="audience-card">
+          <div class="aud-title"><i class="bi bi-share" style="color:var(--green-mid);margin-right:6px;"></i>Referral manbalar</div>
+          <div class="ref-list">
+            <div class="ref-row"><div class="ref-icon" style="color:#1877f2;"><i class="bi bi-facebook"></i></div><span class="ref-source">Facebook</span><div class="ref-bar-bg"><div class="ref-bar-fill" data-w="78" style="width:0"></div></div><span class="ref-visits">4,821</span></div>
+            <div class="ref-row"><div class="ref-icon" style="color:#0088cc;"><i class="bi bi-telegram"></i></div><span class="ref-source">Telegram</span><div class="ref-bar-bg"><div class="ref-bar-fill" data-w="92" style="width:0"></div></div><span class="ref-visits">5,684</span></div>
+            <div class="ref-row"><div class="ref-icon" style="color:#e1306c;"><i class="bi bi-instagram"></i></div><span class="ref-source">Instagram</span><div class="ref-bar-bg"><div class="ref-bar-fill" data-w="56" style="width:0"></div></div><span class="ref-visits">3,462</span></div>
+            <div class="ref-row"><div class="ref-icon" style="color:#ff0000;"><i class="bi bi-youtube"></i></div><span class="ref-source">YouTube</span><div class="ref-bar-bg"><div class="ref-bar-fill" data-w="34" style="width:0"></div></div><span class="ref-visits">2,107</span></div>
+            <div class="ref-row"><div class="ref-icon" style="color:var(--ink-3);"><i class="bi bi-link-45deg"></i></div><span class="ref-source">Boshqa saytlar</span><div class="ref-bar-bg"><div class="ref-bar-fill" data-w="21" style="width:0"></div></div><span class="ref-visits">1,298</span></div>
+          </div>
+        </div>
+
+        <!-- Newsletter -->
+        <div class="audience-card">
+          <div class="aud-title"><i class="bi bi-envelope-heart" style="color:var(--amber);margin-right:6px;"></i>Email obunachilari</div>
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            <div style="text-align:center;padding:16px 0;">
+              <div style="font-size:2.4rem;font-weight:800;color:var(--ink-0)" id="subsCount">0</div>
+              <div style="font-size:0.78rem;color:var(--ink-4);margin-top:2px;">Jami obunachi</div>
+              <span class="kpi-delta up" style="margin-top:8px;display:inline-flex;"><i class="bi bi-arrow-up"></i> +284 bu oy</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div style="display:flex;justify-content:space-between;font-size:0.8rem;">
+                <span style="color:var(--ink-3)">Ochilish darajasi</span>
+                <strong>47.3%</strong>
+              </div>
+              <div style="height:5px;background:var(--border-soft);border-radius:99px;overflow:hidden;">
+                <div style="height:100%;width:0;background:var(--amber);border-radius:99px;transition:width 800ms var(--ease)" data-w="47"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-top:4px;">
+                <span style="color:var(--ink-3)">Bosish darajasi</span>
+                <strong>12.8%</strong>
+              </div>
+              <div style="height:5px;background:var(--border-soft);border-radius:99px;overflow:hidden;">
+                <div style="height:100%;width:0;background:var(--blue-mid);border-radius:99px;transition:width 800ms 100ms var(--ease)" data-w="13"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /page-wrap -->
+
+  <script>
+    // ── Theme ──
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isDark = html.getAttribute('data-theme') === 'dark';
+      html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      document.getElementById('themeIcon').className = isDark ? 'bi bi-moon-stars' : 'bi bi-sun';
+      try { localStorage.setItem('lms-theme', isDark ? 'light' : 'dark'); } catch(e){}
+    }
+    (function(){ try { if(localStorage.getItem('lms-theme') === 'dark') document.getElementById('themeIcon').className = 'bi bi-sun'; } catch(e){} })();
+
+    // ── Range pills ──
+    function setRange(btn) {
+      document.querySelectorAll('.range-pill').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    // ── Counter animation ──
+    function animateCount(el, target, duration, suffix) {
+      let start = 0;
+      const step = Math.ceil(target / (duration / 16));
+      const iv = setInterval(() => {
+        start = Math.min(start + step, target);
+        el.textContent = start.toLocaleString('uz-UZ') + (suffix || '');
+        if (start >= target) clearInterval(iv);
+      }, 16);
+    }
+
+    // ── Line chart ──
+    const viewsData = [420,580,510,740,820,680,950,1080,730,860,1100,980,1200,1050,890,1140,1020,1180,1320,1080,940,1260,1180,1420,1100,1360,1540,1280,1460,1620];
+    const visData   = [280,390,350,510,570,460,650,740,500,590,760,670,830,720,610,780,700,810,910,740,650,870,810,980,760,940,1060,880,1010,1120];
+    const labels    = ['May 1','May 5','May 10','May 15','May 20','May 25','May 30'];
+
+    function buildLineChart() {
+      const W = 580, H = 180, pad = 30, maxV = 1800;
+      const pts = (data) => data.map((v, i) => {
+        const x = pad + (i / (data.length - 1)) * (W - pad * 2);
+        const y = H - pad - (v / maxV) * (H - pad * 2);
+        return [x, y];
+      });
+      const toPath = (pts, close = false) => {
+        const d = pts.map((p, i) => (i === 0 ? `M${p[0]},${p[1]}` : `L${p[0]},${p[1]}`)).join(' ');
+        return close ? d + ` L${pts[pts.length-1][0]},${H} L${pts[0][0]},${H} Z` : d;
+      };
+      const vPts = pts(viewsData), viPts = pts(visData);
+      document.getElementById('viewsLine').setAttribute('d', toPath(vPts));
+      document.getElementById('visLine').setAttribute('d', toPath(viPts));
+      document.getElementById('viewsArea').setAttribute('d', toPath(vPts, true));
+      document.getElementById('viewsArea').setAttribute('opacity', '1');
+      document.getElementById('visArea').setAttribute('d', toPath(viPts, true));
+      document.getElementById('visArea').setAttribute('opacity', '1');
+      // Dots on last point
+      const dotsG = document.getElementById('dots');
+      [[vPts[vPts.length-1], 'var(--blue-mid)'], [viPts[viPts.length-1], 'var(--purple)']].forEach(([p, c]) => {
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', p[0]); circle.setAttribute('cy', p[1]); circle.setAttribute('r', '4');
+        circle.setAttribute('fill', c); circle.setAttribute('stroke', 'var(--white)'); circle.setAttribute('stroke-width', '2');
+        dotsG.appendChild(circle);
+      });
+      // Axis labels
+      const axEl = document.getElementById('chartAxisX');
+      labels.forEach(l => { const s = document.createElement('span'); s.textContent = l; axEl.appendChild(s); });
+    }
+
+    // ── Bar chart ──
+    const barData = [
+      {w: 45, label: 'Mar 1'}, {w: 58, label: 'Mar 8'}, {w: 52, label: 'Mar 15'},
+      {w: 70, label: 'Mar 22'}, {w: 63, label: 'Apr 1'}, {w: 80, label: 'Apr 8'},
+      {w: 75, label: 'Apr 15'}, {w: 93, label: 'May 1'}
+    ];
+    function buildBarChart() {
+      const bc = document.getElementById('barChart');
+      const ax = document.getElementById('barAxisX');
+      barData.forEach((d, i) => {
+        const col = document.createElement('div');
+        col.className = 'bar-col';
+        const fill = document.createElement('div');
+        fill.className = 'bar-fill views' + (i === barData.length - 1 ? ' today' : '');
+        fill.dataset.val = (d.w * 140).toLocaleString() + ' ko\'rish';
+        fill.style.height = '0';
+        fill.style.maxHeight = d.w + '%';
+        col.appendChild(fill);
+        bc.appendChild(col);
+        const lbl = document.createElement('span');
+        lbl.textContent = d.label;
+        ax.appendChild(lbl);
+        setTimeout(() => { fill.style.height = d.w + '%'; }, 100 + i * 60);
+      });
+    }
+
+    // ── On load animations ──
+    window.addEventListener('load', () => {
+      buildLineChart();
+      buildBarChart();
+      // KPI counters
+      setTimeout(() => {
+        animateCount(document.getElementById('kpiViews'), 47203);
+        animateCount(document.getElementById('kpiVisitors'), 29841);
+        animateCount(document.getElementById('kpiLikes'), 3927);
+        animateCount(document.getElementById('subsCount'), 8432);
+      }, 200);
+      // Engagement ring
+      setTimeout(() => {
+        const score = 76;
+        const offset = 264 - (score / 100) * 264;
+        document.getElementById('engRing').style.strokeDashoffset = offset;
+        animateCount(document.getElementById('engNum'), score, 900);
+      }, 300);
+      // All fill bars
+      setTimeout(() => {
+        document.querySelectorAll('[data-w]').forEach(el => {
+          el.style.width = el.dataset.w + '%';
+        });
+      }, 400);
+    });
+  </script>
+</body>
+</html>

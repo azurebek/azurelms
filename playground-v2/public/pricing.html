@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Narxlar — AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    :root {
+      --bg: #eff2f6; --surface: #f7f9fb; --white: #ffffff;
+      --border: #dde4ee; --border-soft: #e8eef6;
+      --ink-0: #0d1b2a; --ink-1: #1e3248; --ink-2: #2f4a66;
+      --ink-3: #4d6680; --ink-4: #7a90a8; --ink-5: #a8bcce;
+      --deep: #0d1b2a; --on-deep: #eff2f6;
+      --blue: #1d57d8; --blue-mid: #2563eb; --blue-soft: rgba(29,87,216,.09);
+      --green: #15803d; --green-mid: #16a34a; --green-soft: rgba(21,128,61,.10);
+      --amber: #b45309; --amber-mid: #d97706; --amber-soft: rgba(180,83,9,.10);
+      --purple: #6d28d9; --purple-soft: rgba(109,40,217,.09);
+      --red: #dc2626; --red-soft: rgba(220,38,38,.09);
+      --nav-bg: rgba(239,242,246,.88); --nav-border: rgba(180,200,220,.5);
+      --sh-sm: 0 1px 3px rgba(13,27,42,.05), 0 4px 12px rgba(13,27,42,.07);
+      --sh-md: 0 4px 12px rgba(13,27,42,.08), 0 16px 48px rgba(13,27,42,.10);
+      --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-xl: 20px; --r-pill: 999px;
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+      --wrap: min(100%, 1160px);
+    }
+    [data-theme="dark"] {
+      --bg: #0c1520; --surface: #111d2b; --white: #152233;
+      --border: #1e3450; --border-soft: #172a40;
+      --ink-0: #dce9f5; --ink-1: #b8d0e6; --ink-2: #8aadc8;
+      --ink-3: #6288a4; --ink-4: #3f607e; --ink-5: #284259;
+      --deep: #070e18; --on-deep: #dce9f5;
+      --blue: #60a5fa; --blue-mid: #3b82f6; --blue-soft: rgba(96,165,250,.12);
+      --green: #4ade80; --green-mid: #22c55e; --green-soft: rgba(74,222,128,.12);
+      --amber: #fbbf24; --amber-mid: #f59e0b; --amber-soft: rgba(251,191,36,.12);
+      --purple: #a78bfa; --purple-soft: rgba(167,139,250,.12);
+      --red: #f87171; --red-soft: rgba(248,113,113,.12);
+      --nav-bg: rgba(12,21,32,.88); --nav-border: rgba(30,52,80,.8);
+      --sh-sm: 0 1px 3px rgba(0,0,0,.20), 0 4px 12px rgba(0,0,0,.24);
+      --sh-md: 0 4px 12px rgba(0,0,0,.28), 0 16px 48px rgba(0,0,0,.30);
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background: var(--bg); color: var(--ink-0);
+      -webkit-font-smoothing: antialiased;
+      transition: background 280ms, color 280ms;
+    }
+    a { text-decoration: none; color: inherit; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+
+    /* NAV */
+    .nav { position: sticky; top: 0; z-index: 100; background: var(--nav-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--nav-border); transition: background 280ms; }
+    .nav-inner { max-width: var(--wrap); margin: 0 auto; padding: 0 24px; height: 60px; display: flex; align-items: center; gap: 20px; }
+    .logo { display: flex; align-items: center; gap: 8px; margin-right: auto; }
+    .logo-mark { width: 30px; height: 30px; border-radius: 8px; background: var(--blue-mid); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.62rem; font-weight: 800; }
+    .logo-name { font-size: 0.9rem; font-weight: 700; color: var(--ink-0); transition: color 280ms; }
+    .nav-link { font-size: 0.85rem; font-weight: 500; color: var(--ink-2); transition: color 120ms; }
+    .nav-link:hover, .nav-link.active { color: var(--blue-mid); }
+    .theme-btn { width: 34px; height: 34px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; color: var(--ink-3); border: 1px solid var(--border); transition: all 120ms; }
+    .theme-btn:hover { color: var(--ink-0); background: var(--surface); }
+    .btn-nav { height: 34px; padding: 0 16px; border-radius: var(--r-pill); font-size: 0.82rem; font-weight: 600; background: var(--blue-mid); color: #fff; transition: background 120ms; }
+    .btn-nav:hover { background: var(--blue); }
+
+    /* HERO */
+    .hero { padding: 72px 0 56px; text-align: center; }
+    .hero-inner { max-width: 720px; margin: 0 auto; padding: 0 24px; }
+    .hero-label { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: var(--r-pill); background: var(--blue-soft); border: 1px solid rgba(29,87,216,.18); font-size: 0.72rem; font-weight: 700; color: var(--blue-mid); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 16px; }
+    .hero-title { font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 800; line-height: 1.15; margin-bottom: 16px; }
+    .hero-desc { font-size: 1rem; line-height: 1.65; color: var(--ink-3); margin-bottom: 32px; }
+
+    /* TOGGLE */
+    .billing-toggle { display: inline-flex; align-items: center; gap: 12px; background: var(--white); border: 1px solid var(--border); border-radius: var(--r-pill); padding: 4px; margin-bottom: 56px; }
+    .toggle-opt { padding: 8px 20px; border-radius: var(--r-pill); font-size: 0.85rem; font-weight: 600; color: var(--ink-3); transition: all 200ms var(--ease); cursor: pointer; }
+    .toggle-opt.active { background: var(--blue-mid); color: #fff; }
+    .toggle-save { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: var(--r-pill); background: var(--green-soft); color: var(--green-mid); font-size: 0.7rem; font-weight: 700; }
+
+    /* PRICING CARDS */
+    .pricing-wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 24px; }
+    .plans { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 80px; }
+
+    .plan-card { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--r-xl); padding: 32px; position: relative; transition: transform 220ms var(--ease), box-shadow 220ms var(--ease); }
+    .plan-card:hover { transform: translateY(-4px); box-shadow: var(--sh-md); }
+    .plan-card.featured { border-color: var(--blue-mid); box-shadow: 0 0 0 4px var(--blue-soft), var(--sh-md); }
+    .plan-card.featured:hover { transform: translateY(-6px); }
+
+    .plan-badge { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: var(--blue-mid); color: #fff; font-size: 0.72rem; font-weight: 700; padding: 4px 14px; border-radius: var(--r-pill); white-space: nowrap; }
+    .plan-icon { width: 48px; height: 48px; border-radius: var(--r-lg); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 16px; }
+    .plan-name { font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
+    .plan-desc { font-size: 0.82rem; line-height: 1.55; color: var(--ink-3); margin-bottom: 24px; }
+    .plan-price { margin-bottom: 4px; }
+    .plan-price-main { font-size: 2.4rem; font-weight: 800; line-height: 1; }
+    .plan-price-period { font-size: 0.82rem; color: var(--ink-4); margin-left: 4px; }
+    .plan-price-old { font-size: 0.85rem; color: var(--ink-5); text-decoration: line-through; margin-bottom: 20px; }
+    .plan-btn { width: 100%; height: 46px; border-radius: var(--r-pill); font-size: 0.9rem; font-weight: 700; transition: all 160ms var(--ease); margin-bottom: 24px; }
+    .plan-btn-primary { background: var(--blue-mid); color: #fff; }
+    .plan-btn-primary:hover { background: var(--blue); transform: translateY(-1px); }
+    .plan-btn-outline { background: transparent; color: var(--blue-mid); border: 1.5px solid var(--blue-mid); }
+    .plan-btn-outline:hover { background: var(--blue-soft); }
+    .plan-divider { height: 1px; background: var(--border-soft); margin-bottom: 20px; }
+    .plan-features { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .plan-features li { display: flex; align-items: flex-start; gap: 8px; font-size: 0.84rem; line-height: 1.45; color: var(--ink-2); }
+    .feat-check { color: var(--green-mid); font-size: 0.9rem; margin-top: 1px; flex-shrink: 0; }
+    .feat-x { color: var(--ink-5); font-size: 0.9rem; margin-top: 1px; flex-shrink: 0; }
+    .feat-dim { color: var(--ink-4); }
+
+    /* COMPARISON TABLE */
+    .compare-section { margin-bottom: 80px; }
+    .compare-title { font-size: 1.5rem; font-weight: 800; text-align: center; margin-bottom: 8px; }
+    .compare-sub { font-size: 0.9rem; color: var(--ink-3); text-align: center; margin-bottom: 36px; }
+    .compare-table { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--white); border: 1px solid var(--border); border-radius: var(--r-xl); overflow: hidden; box-shadow: var(--sh-sm); }
+    .compare-table th, .compare-table td { padding: 14px 20px; text-align: left; border-bottom: 1px solid var(--border-soft); }
+    .compare-table th { font-size: 0.82rem; font-weight: 700; background: var(--surface); color: var(--ink-3); text-transform: uppercase; letter-spacing: .05em; }
+    .compare-table th:not(:first-child) { text-align: center; }
+    .compare-table td { font-size: 0.85rem; color: var(--ink-2); vertical-align: middle; }
+    .compare-table td:not(:first-child) { text-align: center; }
+    .compare-table tr:last-child td { border-bottom: none; }
+    .compare-table tr:hover td { background: var(--surface); }
+    .th-plan { font-size: 0.88rem !important; font-weight: 800 !important; color: var(--ink-0) !important; text-transform: none !important; letter-spacing: 0 !important; }
+    .th-plan.featured-col { color: var(--blue-mid) !important; }
+    .feat-group-row td { background: var(--bg); color: var(--ink-3); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; padding: 10px 20px; }
+    .check-yes { color: var(--green-mid); font-size: 1rem; }
+    .check-no { color: var(--ink-5); font-size: 1rem; }
+
+    /* TESTIMONIALS */
+    .testimonials { margin-bottom: 80px; }
+    .testimonials-title { font-size: 1.5rem; font-weight: 800; text-align: center; margin-bottom: 32px; }
+    .testi-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+    .testi-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-xl); padding: 24px; }
+    .testi-stars { color: #fbbf24; font-size: 0.9rem; margin-bottom: 12px; }
+    .testi-text { font-size: 0.87rem; line-height: 1.65; color: var(--ink-2); margin-bottom: 16px; }
+    .testi-author { display: flex; align-items: center; gap: 10px; }
+    .testi-av { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: #fff; flex-shrink: 0; }
+    .testi-name { font-size: 0.85rem; font-weight: 600; }
+    .testi-plan { font-size: 0.75rem; color: var(--blue-mid); font-weight: 600; }
+
+    /* FAQ */
+    .faq-section { max-width: 720px; margin: 0 auto 80px; padding: 0 24px; }
+    .faq-title { font-size: 1.5rem; font-weight: 800; text-align: center; margin-bottom: 8px; }
+    .faq-sub { font-size: 0.9rem; color: var(--ink-3); text-align: center; margin-bottom: 36px; }
+    .faq-item { border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; margin-bottom: 10px; }
+    .faq-q { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; cursor: pointer; background: var(--white); transition: background 120ms; gap: 12px; user-select: none; }
+    .faq-q:hover { background: var(--surface); }
+    .faq-q-text { font-size: 0.9rem; font-weight: 600; color: var(--ink-0); }
+    .faq-chevron { color: var(--ink-4); font-size: 0.85rem; transition: transform 240ms var(--ease); flex-shrink: 0; }
+    .faq-item.open .faq-chevron { transform: rotate(180deg); }
+    .faq-a { display: none; padding: 0 20px 16px; background: var(--white); font-size: 0.85rem; line-height: 1.7; color: var(--ink-2); border-top: 1px solid var(--border-soft); padding-top: 14px; }
+    .faq-item.open .faq-a { display: block; }
+
+    /* CTA BANNER */
+    .cta-banner { background: var(--deep); border-radius: var(--r-xl); padding: 56px 48px; text-align: center; position: relative; overflow: hidden; margin: 0 24px 80px; max-width: calc(var(--wrap) - 0px); margin-left: auto; margin-right: auto; }
+    .cta-banner::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 70% 80% at 50% 50%, rgba(29,87,216,.3) 0%, transparent 70%); pointer-events: none; }
+    .cta-title { font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 800; color: var(--on-deep); margin-bottom: 12px; position: relative; }
+    .cta-desc { font-size: 0.95rem; color: rgba(220,233,245,.65); margin-bottom: 32px; position: relative; }
+    .cta-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; position: relative; }
+    .btn-cta-p { height: 50px; padding: 0 32px; border-radius: var(--r-pill); background: var(--on-deep); color: var(--deep); font-size: 0.95rem; font-weight: 700; transition: opacity 160ms, transform 160ms var(--ease); }
+    .btn-cta-p:hover { opacity: .9; transform: translateY(-2px); }
+    .btn-cta-s { height: 50px; padding: 0 28px; border-radius: var(--r-pill); background: transparent; color: var(--on-deep); font-size: 0.95rem; font-weight: 600; border: 1.5px solid rgba(220,233,245,.3); transition: border-color 160ms; }
+    .btn-cta-s:hover { border-color: rgba(220,233,245,.6); }
+
+    /* FOOTER */
+    .footer { background: var(--deep); padding: 48px 0 28px; }
+    .footer-inner { max-width: var(--wrap); margin: 0 auto; padding: 0 24px; }
+    .footer-top { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 40px; padding-bottom: 40px; border-bottom: 1px solid rgba(220,233,245,.1); margin-bottom: 28px; }
+    .footer-brand p { font-size: 0.84rem; line-height: 1.65; color: rgba(220,233,245,.5); margin-top: 12px; max-width: 240px; }
+    .footer-logo { display: flex; align-items: center; gap: 8px; }
+    .footer-logo-mark { width: 30px; height: 30px; border-radius: 8px; background: var(--on-deep); color: var(--deep); display: flex; align-items: center; justify-content: center; font-size: 0.62rem; font-weight: 800; }
+    .footer-logo-name { font-size: 0.9rem; font-weight: 700; color: var(--on-deep); }
+    .footer-col h4 { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: rgba(220,233,245,.45); margin-bottom: 14px; }
+    .footer-col a { display: block; font-size: 0.84rem; color: rgba(220,233,245,.6); margin-bottom: 10px; transition: color 120ms; }
+    .footer-col a:hover { color: var(--on-deep); }
+    .footer-bottom { display: flex; align-items: center; justify-content: space-between; font-size: 0.78rem; color: rgba(220,233,245,.35); }
+
+    @media (max-width: 900px) {
+      .plans { grid-template-columns: 1fr; max-width: 480px; margin-left: auto; margin-right: auto; }
+      .testi-grid { grid-template-columns: 1fr; }
+      .footer-top { grid-template-columns: 1fr 1fr; gap: 28px; }
+      .cta-banner { padding: 40px 24px; }
+    }
+    @media (max-width: 600px) {
+      .footer-top { grid-template-columns: 1fr; }
+      .compare-table { font-size: 0.8rem; }
+      .compare-table th, .compare-table td { padding: 10px 12px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition-duration: 50ms !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="logo">
+        <div class="logo-mark">AZ</div>
+        <span class="logo-name">AzureLMS</span>
+      </a>
+      <a href="course-list.html" class="nav-link">Kurslar</a>
+      <a href="pricing.html" class="nav-link active">Narxlar</a>
+      <a href="about.html" class="nav-link">Biz haqimizda</a>
+      <button class="theme-btn" id="themeBtn" aria-label="Toggle theme">
+        <i class="bi bi-moon" id="themeIcon"></i>
+      </button>
+      <a href="../auth/auth-login.html" class="nav-link">Kirish</a>
+      <a href="../auth/auth-register.html" class="btn-nav">Ro'yxatdan o't</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-label"><i class="bi bi-tag"></i> Shaffof narx siyosati</div>
+      <h1 class="hero-title">Maqsadingizga mos<br>reja tanlang</h1>
+      <p class="hero-desc">Har bir reja uchun bepul sinab ko'rish imkoniyati mavjud. Kredit karta shart emas.</p>
+
+      <!-- Billing toggle -->
+      <div class="billing-toggle">
+        <button class="toggle-opt active" id="toggleMonthly" onclick="setBilling('monthly')">Oylik</button>
+        <button class="toggle-opt" id="toggleYearly" onclick="setBilling('yearly')">
+          Yillik <span class="toggle-save"><i class="bi bi-lightning-fill"></i> 40% tejash</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PLANS -->
+  <div class="pricing-wrap">
+    <div class="plans">
+
+      <!-- STARTER -->
+      <div class="plan-card">
+        <div class="plan-icon" style="background:var(--blue-soft);">🌱</div>
+        <div class="plan-name">Starter</div>
+        <div class="plan-desc">O'rganishni endigina boshlayotganlar uchun. Asosiy kurslar va materiallar.</div>
+        <div class="plan-price">
+          <span class="plan-price-main" id="price-starter">59 000</span>
+          <span class="plan-price-period">so'm/oy</span>
+        </div>
+        <div class="plan-price-old" id="old-starter"></div>
+        <button class="plan-btn plan-btn-outline" onclick="location.href='../auth/auth-register.html'">Bepul boshlash</button>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><i class="bi bi-check-circle-fill feat-check"></i> 5 tagacha kursga kirish</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> HD video darslar</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> Yuklab olinadigan materiallar</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> Mobil ilova</li>
+          <li><i class="bi bi-x-circle feat-x"></i> <span class="feat-dim">Sertifikat</span></li>
+          <li><i class="bi bi-x-circle feat-x"></i> <span class="feat-dim">Muallim bilan aloqa</span></li>
+          <li><i class="bi bi-x-circle feat-x"></i> <span class="feat-dim">Jonli darslar</span></li>
+          <li><i class="bi bi-x-circle feat-x"></i> <span class="feat-dim">Guruh loyihalar</span></li>
+        </ul>
+      </div>
+
+      <!-- PRO (featured) -->
+      <div class="plan-card featured">
+        <div class="plan-badge">⭐ Eng mashhur</div>
+        <div class="plan-icon" style="background:var(--blue-soft);">🚀</div>
+        <div class="plan-name">Pro</div>
+        <div class="plan-desc">Jiddiy o'quvchilar uchun. Barcha kurslar, sertifikat va muallim yordami.</div>
+        <div class="plan-price">
+          <span class="plan-price-main" id="price-pro">199 000</span>
+          <span class="plan-price-period">so'm/oy</span>
+        </div>
+        <div class="plan-price-old" id="old-pro"></div>
+        <button class="plan-btn plan-btn-primary" onclick="location.href='../auth/checkout.html'">Pro bilan boshlash</button>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><i class="bi bi-check-circle-fill feat-check"></i> Barcha kurslarga cheksiz kirish</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> HD video darslar</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> Yuklab olinadigan materiallar</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> Mobil ilova</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> Tasdiqlangan sertifikatlar</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> Muallim bilan chat aloqasi</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> Oyda 4 ta jonli dars</li>
+          <li><i class="bi bi-x-circle feat-x"></i> <span class="feat-dim">Guruh loyihalar</span></li>
+        </ul>
+      </div>
+
+      <!-- TEAM -->
+      <div class="plan-card">
+        <div class="plan-icon" style="background:var(--purple-soft);">🏢</div>
+        <div class="plan-name">Team</div>
+        <div class="plan-desc">Kompaniyalar va guruhlar uchun. Admin panel, hisobotlar va maxsus kurslar.</div>
+        <div class="plan-price">
+          <span class="plan-price-main" id="price-team">499 000</span>
+          <span class="plan-price-period">so'm/oy</span>
+        </div>
+        <div class="plan-price-old" id="old-team"></div>
+        <button class="plan-btn plan-btn-outline" onclick="location.href='../auth/checkout.html'">Team rejasini olish</button>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><i class="bi bi-check-circle-fill feat-check"></i> Barcha kurslarga cheksiz kirish</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> HD video darslar</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> Yuklab olinadigan materiallar</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> Mobil ilova</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> Tasdiqlangan sertifikatlar</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> Muallim bilan video qo'ng'iroq</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> Cheksiz jonli darslar</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> Guruh loyihalar + admin panel</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- COMPARE TABLE -->
+    <div class="compare-section">
+      <h2 class="compare-title">Batafsil taqqoslash</h2>
+      <p class="compare-sub">Har bir rejada nima borligini aniq bilib oling</p>
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th style="width:40%;">Xususiyat</th>
+            <th class="th-plan">Starter</th>
+            <th class="th-plan featured-col">Pro</th>
+            <th class="th-plan">Team</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="feat-group-row"><td colspan="4">Kurslar va kontentga kirish</td></tr>
+          <tr><td>Kurslar soni</td><td>5 ta</td><td>Cheksiz</td><td>Cheksiz</td></tr>
+          <tr><td>Video sifat</td><td>HD 720p</td><td>Full HD 1080p</td><td>Full HD 1080p</td></tr>
+          <tr><td>Offline ko'rish</td><td><i class="bi bi-x-lg check-no"></i></td><td><i class="bi bi-check-lg check-yes"></i></td><td><i class="bi bi-check-lg check-yes"></i></td></tr>
+          <tr><td>Materiallar yuklab olish</td><td><i class="bi bi-check-lg check-yes"></i></td><td><i class="bi bi-check-lg check-yes"></i></td><td><i class="bi bi-check-lg check-yes"></i></td></tr>
+          <tr><td>Mobil ilova</td><td><i class="bi bi-check-lg check-yes"></i></td><td><i class="bi bi-check-lg check-yes"></i></td><td><i class="bi bi-check-lg check-yes"></i></td></tr>
+
+          <tr class="feat-group-row"><td colspan="4">Sertifikat va baholash</td></tr>
+          <tr><td>Tasdiqlangan sertifikat</td><td><i class="bi bi-x-lg check-no"></i></td><td><i class="bi bi-check-lg check-yes"></i></td><td><i class="bi bi-check-lg check-yes"></i></td></tr>
+          <tr><td>LinkedIn badge</td><td><i class="bi bi-x-lg check-no"></i></td><td><i class="bi bi-check-lg check-yes"></i></td><td><i class="bi bi-check-lg check-yes"></i></td></tr>
+          <tr><td>Imtihon va testlar</td><td>Cheklangan</td><td>Cheksiz</td><td>Cheksiz</td></tr>
+
+          <tr class="feat-group-row"><td colspan="4">O'qituvchi va yordam</td></tr>
+          <tr><td>Chat yordami</td><td><i class="bi bi-x-lg check-no"></i></td><td><i class="bi bi-check-lg check-yes"></i></td><td><i class="bi bi-check-lg check-yes"></i></td></tr>
+          <tr><td>Video qo'ng'iroq</td><td><i class="bi bi-x-lg check-no"></i></td><td><i class="bi bi-x-lg check-no"></i></td><td><i class="bi bi-check-lg check-yes"></i></td></tr>
+          <tr><td>Jonli darslar</td><td><i class="bi bi-x-lg check-no"></i></td><td>Oyda 4 ta</td><td>Cheksiz</td></tr>
+          <tr><td>Texnik yordam</td><td>Email</td><td>Chat (24/7)</td><td>Ustuvor chat</td></tr>
+
+          <tr class="feat-group-row"><td colspan="4">Korporativ</td></tr>
+          <tr><td>Admin panel</td><td><i class="bi bi-x-lg check-no"></i></td><td><i class="bi bi-x-lg check-no"></i></td><td><i class="bi bi-check-lg check-yes"></i></td></tr>
+          <tr><td>Jamoaviy hisobotlar</td><td><i class="bi bi-x-lg check-no"></i></td><td><i class="bi bi-x-lg check-no"></i></td><td><i class="bi bi-check-lg check-yes"></i></td></tr>
+          <tr><td>API integratsiya</td><td><i class="bi bi-x-lg check-no"></i></td><td><i class="bi bi-x-lg check-no"></i></td><td><i class="bi bi-check-lg check-yes"></i></td></tr>
+          <tr><td>Maxsus kurslar (custom)</td><td><i class="bi bi-x-lg check-no"></i></td><td><i class="bi bi-x-lg check-no"></i></td><td><i class="bi bi-check-lg check-yes"></i></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- TESTIMONIALS -->
+    <div class="testimonials">
+      <h2 class="testimonials-title">Foydalanuvchilar nima deydi?</h2>
+      <div class="testi-grid">
+        <div class="testi-card">
+          <div class="testi-stars">★★★★★</div>
+          <div class="testi-text">"Pro rejasi pulga arziydi. Sertifikat LinkedIn profilimga qo'shdim — intervyularda obro' qo'shdi. Muallim bilan chat orqali savollarga javob olish zo'r!"</div>
+          <div class="testi-author">
+            <div class="testi-av" style="background:linear-gradient(135deg,#f26a3d,#e8b84b);">NB</div>
+            <div>
+              <div class="testi-name">Nodira Baxtiyorova</div>
+              <div class="testi-plan">Pro reja · 8 oy</div>
+            </div>
+          </div>
+        </div>
+        <div class="testi-card">
+          <div class="testi-stars">★★★★★</div>
+          <div class="testi-text">"Kompaniyamiz uchun Team rejaini oldik. Admin paneldan xodimlar progressini kuzatish juda qulay. Narxi ham boshqa platformalarga nisbatan arzon."</div>
+          <div class="testi-author">
+            <div class="testi-av" style="background:linear-gradient(135deg,#1d57d8,#3b82f6);">AY</div>
+            <div>
+              <div class="testi-name">Alisher Yusupov</div>
+              <div class="testi-plan">Team reja · IT kompaniya</div>
+            </div>
+          </div>
+        </div>
+        <div class="testi-card">
+          <div class="testi-stars">★★★★☆</div>
+          <div class="testi-text">"Starter bilan boshladim, keyin Pro ga o'tdim. Offline ko'rish funksiyasi juda kerakli edi — metrodayam o'qiyapman. 30 kunlik kafolat ishonch beradi."</div>
+          <div class="testi-author">
+            <div class="testi-av" style="background:linear-gradient(135deg,#22c472,#16a34a);">MJ</div>
+            <div>
+              <div class="testi-name">Malika Jurayeva</div>
+              <div class="testi-plan">Pro reja · 3 oy</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <section class="faq-section">
+    <h2 class="faq-title">Ko'p so'raladigan savollar</h2>
+    <p class="faq-sub">Javob topolmasangiz, bizga yozing</p>
+
+    <div class="faq-item open">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text">Bepul sinab ko'rish imkoniyati bormi?</span>
+        <i class="bi bi-chevron-down faq-chevron"></i>
+      </div>
+      <div class="faq-a">Ha! Barcha rejalarda 7 kunlik bepul sinov muddati mavjud. Kredit karta ma'lumotlari so'ralmaydi. Sinov davri tugagach, avtomatik to'lov yechilmaydi.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text">Obunani bekor qilish qanchalik oson?</span>
+        <i class="bi bi-chevron-down faq-chevron"></i>
+      </div>
+      <div class="faq-a">Istalgan vaqtda shaxsiy kabineting orqali obunani bekor qila olasiz. Bekor qilish bir daqiqa ichida amalga oshadi, hech qanday jarimalar yo'q. Joriy oy uchun to'lagan pulingiz qaytarilmaydi, lekin oxirgi to'lov sanasigacha kirish saqlanadi.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text">30 kunlik kafolat qanday ishlaydi?</span>
+        <i class="bi bi-chevron-down faq-chevron"></i>
+      </div>
+      <div class="faq-a">Biror sababga ko'ra platformamiz kutganingizga to'g'ri kelmasa, to'lovdan keyin 30 kun ichida to'liq pul qaytarish kafolatimiz bor. Sabab ko'rsatishingiz shart emas — faqat support@azurelms.uz ga yozing.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text">Yillik rejaga o'tganimda chegirma qanday qo'llanadi?</span>
+        <i class="bi bi-chevron-down faq-chevron"></i>
+      </div>
+      <div class="faq-a">Yillik rejaga o'tganda 40% chegirma qo'llanadi va to'lov bir yil uchun bir marta olinadi. Masalan, Pro oylik narxi 199 000 so'm bo'lsa, yillik to'lov 199 000 × 12 × 0.6 = 1 432 800 so'm bo'ladi — oyiga atigi 119 400 so'm.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text">Qaysi to'lov usullarini qabul qilasiz?</span>
+        <i class="bi bi-chevron-down faq-chevron"></i>
+      </div>
+      <div class="faq-a">Karta (Visa/Mastercard/UzCard), Payme, Click va Uzum Pay orqali to'lash mumkin. Korporativ buyurtmalar uchun hisob-faktura (invoice) ham beramiz.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        <span class="faq-q-text">Team rejasida nechta foydalanuvchi bo'lishi mumkin?</span>
+        <i class="bi bi-chevron-down faq-chevron"></i>
+      </div>
+      <div class="faq-a">Standart Team rejasi 10 tagacha foydalanuvchini qamrab oladi. 10 dan ortiq xodim uchun Enterprise variant mavjud — biz bilan bog'laning va maxsus narxni muhokama qilamiz.</div>
+    </div>
+  </section>
+
+  <!-- CTA BANNER -->
+  <div style="max-width:var(--wrap);margin:0 auto;padding:0 24px 80px;">
+    <div class="cta-banner">
+      <h2 class="cta-title">7 kunlik bepul sinov bilan boshlang</h2>
+      <p class="cta-desc">Kredit karta talab etilmaydi. Istalgan vaqtda bekor qiling.</p>
+      <div class="cta-actions">
+        <button class="btn-cta-p" onclick="location.href='../auth/auth-register.html'">Bepul boshlash</button>
+        <button class="btn-cta-s" onclick="location.href='course-list.html'">Kurslarni ko'rish</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <div class="footer-logo-mark">AZ</div>
+            <span class="footer-logo-name">AzureLMS</span>
+          </div>
+          <p>O'zbekistondagi eng zamonaviy online ta'lim platformasi. Har kuni yuz minglab talabalar biz bilan o'rganadi.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Platforma</h4>
+          <a href="course-list.html">Barcha kurslar</a>
+          <a href="pricing.html">Narxlar</a>
+          <a href="about.html">Biz haqimizda</a>
+          <a href="#">Blog</a>
+        </div>
+        <div class="footer-col">
+          <h4>Qo'llab-quvvatlash</h4>
+          <a href="#">Yordam markazi</a>
+          <a href="#">Muallim bo'lish</a>
+          <a href="#">Hamkorlik</a>
+          <a href="#">Bog'lanish</a>
+        </div>
+        <div class="footer-col">
+          <h4>Huquqiy</h4>
+          <a href="#">Foydalanish shartlari</a>
+          <a href="#">Maxfiylik siyosati</a>
+          <a href="#">Cookie</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2025 AzureLMS. Barcha huquqlar himoyalangan.</span>
+        <span>O'zbekiston 🇺🇿</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Theme init
+    (function() {
+      let s; try { s = localStorage.getItem('az-theme'); } catch(_) {}
+      const dark = s ? s === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (dark) document.documentElement.setAttribute('data-theme', 'dark');
+      const icon = document.getElementById('themeIcon');
+      if (icon) icon.className = dark ? 'bi bi-sun' : 'bi bi-moon';
+    })();
+
+    document.getElementById('themeBtn').addEventListener('click', function() {
+      const html = document.documentElement;
+      const dark = html.getAttribute('data-theme') === 'dark';
+      html.setAttribute('data-theme', dark ? 'light' : 'dark');
+      document.getElementById('themeIcon').className = dark ? 'bi bi-moon' : 'bi bi-sun';
+      try { localStorage.setItem('az-theme', dark ? 'light' : 'dark'); } catch(_) {}
+    });
+
+    // Billing toggle
+    const prices = {
+      monthly:  { starter: '59 000',  pro: '199 000',  team: '499 000',  oldStarter: '',         oldPro: '',          oldTeam: '' },
+      yearly:   { starter: '35 000',  pro: '119 000',  team: '299 000',  oldStarter: '59 000/oy', oldPro: '199 000/oy', oldTeam: '499 000/oy' }
+    };
+
+    function setBilling(type) {
+      const p = prices[type];
+      document.getElementById('price-starter').textContent = p.starter;
+      document.getElementById('price-pro').textContent     = p.pro;
+      document.getElementById('price-team').textContent    = p.team;
+      document.getElementById('old-starter').textContent   = p.oldStarter;
+      document.getElementById('old-pro').textContent       = p.oldPro;
+      document.getElementById('old-team').textContent      = p.oldTeam;
+      document.getElementById('toggleMonthly').classList.toggle('active', type === 'monthly');
+      document.getElementById('toggleYearly').classList.toggle('active', type === 'yearly');
+    }
+
+    // FAQ accordion
+    function toggleFaq(qEl) {
+      const item = qEl.closest('.faq-item');
+      item.classList.toggle('open');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Imtihonlar — AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #eff2f6; --surface: #f7f9fb; --white: #ffffff;
+      --border: #dde4ee; --border-soft: #e8eef6;
+      --ink-0: #0d1b2a; --ink-1: #1e3248; --ink-2: #2f4a66;
+      --ink-3: #4d6680; --ink-4: #7a90a8; --ink-5: #a8bcce;
+      --blue: #1d57d8; --blue-mid: #2563eb; --blue-soft: rgba(29,87,216,.09);
+      --green: #15803d; --green-mid: #16a34a; --green-soft: rgba(21,128,61,.10);
+      --amber: #b45309; --amber-soft: rgba(180,83,9,.10);
+      --purple: #6d28d9; --purple-soft: rgba(109,40,217,.09);
+      --red: #dc2626; --red-soft: rgba(220,38,38,.09);
+      --deep: #0d1b2a; --on-deep: #eff2f6;
+      --sh-sm: 0 1px 3px rgba(13,27,42,.05), 0 4px 12px rgba(13,27,42,.07);
+      --sh-md: 0 4px 12px rgba(13,27,42,.08), 0 16px 48px rgba(13,27,42,.10);
+      --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-xl: 20px; --r-pill: 999px;
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+      --sidebar-w: 224px;
+    }
+    [data-theme="dark"] {
+      --bg: #0c1520; --surface: #111d2b; --white: #152233;
+      --border: #1e3450; --border-soft: #172a40;
+      --ink-0: #dce9f5; --ink-1: #b8d0e6; --ink-2: #8aadc8;
+      --ink-3: #6288a4; --ink-4: #3f607e; --ink-5: #284259;
+      --blue: #60a5fa; --blue-mid: #3b82f6; --blue-soft: rgba(96,165,250,.12);
+      --green: #4ade80; --green-mid: #22c55e; --green-soft: rgba(74,222,128,.12);
+      --amber: #fbbf24; --amber-soft: rgba(251,191,36,.12);
+      --purple: #a78bfa; --purple-soft: rgba(167,139,250,.12);
+      --red: #f87171; --red-soft: rgba(248,113,113,.12);
+      --deep: #070e18; --on-deep: #dce9f5;
+      --sh-sm: 0 1px 3px rgba(0,0,0,.20), 0 4px 12px rgba(0,0,0,.24);
+      --sh-md: 0 4px 12px rgba(0,0,0,.28), 0 16px 48px rgba(0,0,0,.30);
+    }
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background: var(--bg); color: var(--ink-0);
+      -webkit-font-smoothing: antialiased;
+      display: flex; min-height: 100vh;
+      transition: background 280ms, color 280ms;
+    }
+    a { text-decoration: none; color: inherit; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: var(--sidebar-w); flex-shrink: 0;
+      background: var(--deep); color: var(--on-deep);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 50;
+      overflow-y: auto;
+    }
+    .sidebar-logo {
+      padding: 20px 20px 16px;
+      display: flex; align-items: center; gap: 9px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .logo-mark {
+      width: 30px; height: 30px; border-radius: 8px;
+      background: var(--blue-mid); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.62rem; font-weight: 800; flex-shrink: 0;
+    }
+    .logo-name { font-size: 0.88rem; font-weight: 700; color: var(--on-deep); }
+    .logo-tag {
+      font-size: 0.6rem; font-weight: 700; padding: 2px 6px;
+      background: rgba(37,99,235,.3); color: #93c5fd;
+      border-radius: var(--r-pill); margin-left: auto;
+    }
+    .sidebar-user {
+      padding: 14px 16px;
+      display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .user-av {
+      width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, #3b82f6, #6d28d9);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem; font-weight: 700; color: #fff;
+    }
+    .user-name { font-size: 0.8rem; font-weight: 600; color: var(--on-deep); }
+    .user-role { font-size: 0.68rem; color: rgba(220,233,245,.4); }
+    .sidebar-nav { flex: 1; padding: 12px 10px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-group-label {
+      font-size: 0.62rem; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: rgba(220,233,245,.35);
+      padding: 10px 8px 4px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 9px;
+      padding: 8px 10px; border-radius: var(--r-md);
+      font-size: 0.81rem; font-weight: 500; color: rgba(220,233,245,.6);
+      transition: background 120ms, color 120ms;
+      position: relative;
+    }
+    .nav-item:hover { background: rgba(255,255,255,.06); color: var(--on-deep); }
+    .nav-item.active { background: rgba(37,99,235,.22); color: #93c5fd; font-weight: 600; }
+    .nav-item i { font-size: 1rem; width: 18px; flex-shrink: 0; }
+    .nav-badge {
+      margin-left: auto; font-size: 0.62rem; font-weight: 700;
+      background: var(--blue-mid); color: #fff;
+      padding: 1px 6px; border-radius: var(--r-pill);
+    }
+    .nav-badge--amber { background: var(--amber); }
+    .nav-badge--green { background: var(--green-mid); }
+    .sidebar-bottom {
+      padding: 12px 10px 16px;
+      border-top: 1px solid rgba(255,255,255,.06);
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .sidebar-bottom .nav-item { color: rgba(220,233,245,.45); }
+
+    /* LAYOUT */
+    .page-wrap {
+      margin-left: var(--sidebar-w); flex: 1;
+      display: flex; flex-direction: column; min-height: 100vh;
+    }
+    .topbar {
+      height: 56px; background: var(--white); border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 40;
+      display: flex; align-items: center; padding: 0 28px; gap: 12px;
+      transition: background 280ms;
+    }
+    .topbar-title { font-size: 0.95rem; font-weight: 700; color: var(--ink-0); }
+    .topbar-sep { flex: 1; }
+    .topbar-action {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 14px; border-radius: var(--r-pill);
+      font-size: 0.78rem; font-weight: 600;
+      border: 1.5px solid var(--border);
+      color: var(--ink-2); transition: all 120ms;
+    }
+    .topbar-action:hover { border-color: var(--blue-mid); color: var(--blue-mid); background: var(--blue-soft); }
+    .btn-primary {
+      background: var(--blue-mid); color: #fff;
+      border-color: var(--blue-mid) !important;
+      padding: 7px 16px;
+    }
+    .btn-primary:hover { background: var(--blue) !important; }
+    .theme-btn {
+      width: 34px; height: 34px; border-radius: var(--r-md);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--ink-3); border: 1px solid var(--border);
+      transition: color 120ms, background 120ms;
+    }
+    .theme-btn:hover { color: var(--ink-0); background: var(--surface); }
+
+    .page-body { padding: 28px; display: flex; flex-direction: column; gap: 28px; }
+
+    /* STATS */
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .stat-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--r-lg); padding: 18px 20px;
+      box-shadow: var(--sh-sm);
+      transition: background 280ms, box-shadow 200ms;
+    }
+    .stat-card:hover { box-shadow: var(--sh-md); }
+    .stat-label { font-size: 0.72rem; font-weight: 600; color: var(--ink-4); text-transform: uppercase; letter-spacing: .05em; }
+    .stat-val { font-size: 1.8rem; font-weight: 800; color: var(--ink-0); margin: 6px 0 4px; line-height: 1; }
+    .stat-sub { font-size: 0.75rem; color: var(--ink-4); display: flex; align-items: center; gap: 4px; }
+    .stat-delta { font-size: 0.72rem; font-weight: 600; padding: 1px 6px; border-radius: var(--r-pill); }
+    .delta-up   { background: var(--green-soft); color: var(--green-mid); }
+    .delta-down { background: var(--red-soft); color: var(--red); }
+    .delta-neu  { background: var(--border); color: var(--ink-4); }
+
+    /* SECTION HEADER */
+    .sec-head {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+    }
+    .sec-title { font-size: 0.92rem; font-weight: 700; color: var(--ink-0); }
+    .sec-divider { flex: 1; height: 1px; background: var(--border); }
+    .sec-action {
+      font-size: 0.75rem; font-weight: 600; color: var(--blue-mid);
+      display: flex; align-items: center; gap: 4px;
+    }
+    .sec-action:hover { text-decoration: underline; }
+
+    /* EXAM CARDS */
+    .exam-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .exam-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--r-lg); overflow: hidden;
+      box-shadow: var(--sh-sm);
+      transition: transform 200ms var(--ease), box-shadow 200ms var(--ease), background 280ms;
+    }
+    .exam-card:hover { transform: translateY(-3px); box-shadow: var(--sh-md); }
+    .exam-card-header {
+      padding: 20px 20px 14px;
+      display: flex; align-items: flex-start; gap: 14px;
+    }
+    .exam-icon {
+      width: 44px; height: 44px; border-radius: var(--r-md); flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+    }
+    .icon--listen { background: linear-gradient(135deg,#dbeafe,#bfdbfe); }
+    .icon--write  { background: linear-gradient(135deg,#dcfce7,#bbf7d0); }
+    .icon--speak  { background: linear-gradient(135deg,#fef9c3,#fde68a); }
+    .icon--read   { background: linear-gradient(135deg,#ede9fe,#ddd6fe); }
+    .icon--grammar{ background: linear-gradient(135deg,#fee2e2,#fecaca); }
+    .icon--vocab  { background: linear-gradient(135deg,#ffedd5,#fed7aa); }
+    [data-theme="dark"] .icon--listen { background: rgba(59,130,246,.15); }
+    [data-theme="dark"] .icon--write  { background: rgba(34,197,94,.15); }
+    [data-theme="dark"] .icon--speak  { background: rgba(234,179,8,.15); }
+    [data-theme="dark"] .icon--read   { background: rgba(109,40,217,.15); }
+    [data-theme="dark"] .icon--grammar{ background: rgba(220,38,38,.15); }
+    [data-theme="dark"] .icon--vocab  { background: rgba(234,88,12,.15); }
+    .exam-card-info { flex: 1; }
+    .exam-card-name { font-size: 0.88rem; font-weight: 700; color: var(--ink-0); margin-bottom: 3px; }
+    .exam-card-meta { font-size: 0.72rem; color: var(--ink-4); display: flex; gap: 10px; flex-wrap: wrap; }
+    .exam-card-meta span { display: flex; align-items: center; gap: 3px; }
+    .exam-card-body { padding: 0 20px 20px; display: flex; flex-direction: column; gap: 12px; }
+
+    /* PROGRESS BAR */
+    .score-row { display: flex; align-items: center; gap: 10px; }
+    .score-label { font-size: 0.72rem; font-weight: 600; color: var(--ink-3); min-width: 60px; }
+    .score-bar { flex: 1; height: 6px; background: var(--border); border-radius: var(--r-pill); overflow: hidden; }
+    .score-fill { height: 100%; border-radius: var(--r-pill); transition: width 600ms var(--ease); }
+    .fill-blue   { background: var(--blue-mid); }
+    .fill-green  { background: var(--green-mid); }
+    .fill-amber  { background: var(--amber); }
+    .fill-purple { background: var(--purple); }
+    .score-val { font-size: 0.72rem; font-weight: 700; color: var(--ink-0); min-width: 28px; text-align: right; }
+
+    .exam-card-footer {
+      padding: 12px 20px; border-top: 1px solid var(--border-soft);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .tag-chip {
+      font-size: 0.65rem; font-weight: 700; padding: 2px 8px;
+      border-radius: var(--r-pill);
+    }
+    .chip-blue   { background: var(--blue-soft); color: var(--blue-mid); }
+    .chip-green  { background: var(--green-soft); color: var(--green-mid); }
+    .chip-amber  { background: var(--amber-soft); color: var(--amber); }
+    .chip-red    { background: var(--red-soft); color: var(--red); }
+    .chip-purple { background: var(--purple-soft); color: var(--purple); }
+    .chip-gray   { background: var(--border); color: var(--ink-4); }
+    .card-btn {
+      margin-left: auto; display: inline-flex; align-items: center; gap: 5px;
+      padding: 6px 14px; border-radius: var(--r-pill); font-size: 0.76rem; font-weight: 600;
+      background: var(--blue-mid); color: #fff;
+      transition: background 120ms;
+    }
+    .card-btn:hover { background: var(--blue); }
+    .card-btn--outline {
+      background: transparent; color: var(--blue-mid);
+      border: 1.5px solid var(--blue-soft);
+    }
+    .card-btn--outline:hover { background: var(--blue-soft); }
+
+    /* TWO COL */
+    .two-col { display: grid; grid-template-columns: 1fr 340px; gap: 20px; align-items: start; }
+
+    /* HISTORY TABLE */
+    .history-table {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--r-lg); overflow: hidden;
+      box-shadow: var(--sh-sm); transition: background 280ms;
+    }
+    .tbl-head {
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 80px;
+      padding: 10px 16px; background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      font-size: 0.7rem; font-weight: 700; color: var(--ink-4);
+      text-transform: uppercase; letter-spacing: .05em;
+    }
+    .tbl-row {
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 80px;
+      padding: 12px 16px; border-bottom: 1px solid var(--border-soft);
+      align-items: center; transition: background 120ms;
+    }
+    .tbl-row:last-child { border-bottom: none; }
+    .tbl-row:hover { background: var(--surface); }
+    .tbl-name { font-size: 0.82rem; font-weight: 600; color: var(--ink-0); display: flex; align-items: center; gap: 8px; }
+    .tbl-name-icon {
+      width: 28px; height: 28px; border-radius: var(--r-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem;
+    }
+    .tbl-cell { font-size: 0.8rem; color: var(--ink-3); }
+    .score-circle {
+      width: 38px; height: 38px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem; font-weight: 800;
+    }
+    .sc-great { background: var(--green-soft); color: var(--green-mid); }
+    .sc-ok    { background: var(--blue-soft); color: var(--blue-mid); }
+    .sc-low   { background: var(--amber-soft); color: var(--amber); }
+    .sc-fail  { background: var(--red-soft); color: var(--red); }
+    .tbl-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 0.72rem; font-weight: 600; color: var(--blue-mid);
+      padding: 4px 10px; border-radius: var(--r-pill);
+      border: 1.5px solid var(--blue-soft); background: var(--blue-soft);
+      transition: all 120ms;
+    }
+    .tbl-btn:hover { background: var(--blue-mid); color: #fff; border-color: var(--blue-mid); }
+
+    /* RIGHT PANEL */
+    .right-panel { display: flex; flex-direction: column; gap: 16px; }
+    .panel-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--r-lg); overflow: hidden;
+      box-shadow: var(--sh-sm); transition: background 280ms;
+    }
+    .panel-head {
+      padding: 14px 16px; border-bottom: 1px solid var(--border);
+      font-size: 0.82rem; font-weight: 700; color: var(--ink-0);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .panel-head i { color: var(--blue-mid); }
+    .panel-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+
+    /* UPCOMING */
+    .upcoming-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 0; border-bottom: 1px solid var(--border-soft);
+    }
+    .upcoming-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .upc-date {
+      width: 42px; height: 42px; border-radius: var(--r-md); flex-shrink: 0;
+      background: var(--blue-soft); display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+    .upc-day { font-size: 1rem; font-weight: 800; color: var(--blue-mid); line-height: 1; }
+    .upc-mon { font-size: 0.6rem; font-weight: 700; color: var(--blue-mid); text-transform: uppercase; }
+    .upc-info { flex: 1; }
+    .upc-name { font-size: 0.8rem; font-weight: 600; color: var(--ink-0); }
+    .upc-time { font-size: 0.7rem; color: var(--ink-4); margin-top: 2px; }
+
+    /* STREAK */
+    .streak-hero {
+      background: linear-gradient(135deg, var(--deep) 0%, #1a2f52 100%);
+      border-radius: var(--r-lg); padding: 20px;
+      display: flex; align-items: center; gap: 14px;
+      border: 1px solid var(--border);
+    }
+    .streak-num {
+      font-size: 2.8rem; font-weight: 800; color: #fbbf24; line-height: 1;
+    }
+    .streak-label { font-size: 0.78rem; font-weight: 600; color: rgba(220,233,245,.7); }
+    .streak-sub   { font-size: 0.68rem; color: rgba(220,233,245,.4); margin-top: 3px; }
+    .streak-days  { display: flex; gap: 5px; margin-top: 12px; }
+    .streak-dot {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.6rem; font-weight: 700;
+    }
+    .sd-done    { background: #fbbf24; color: #0d1b2a; }
+    .sd-today   { background: rgba(251,191,36,.25); color: #fbbf24; border: 1.5px solid #fbbf24; }
+    .sd-pending { background: rgba(255,255,255,.07); color: rgba(220,233,245,.3); }
+
+    /* CERT CARD */
+    .cert-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 0; border-bottom: 1px solid var(--border-soft);
+    }
+    .cert-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .cert-icon {
+      width: 36px; height: 36px; border-radius: var(--r-md); flex-shrink: 0;
+      background: var(--amber-soft); color: var(--amber);
+      display: flex; align-items: center; justify-content: center; font-size: 1rem;
+    }
+    .cert-name { font-size: 0.8rem; font-weight: 600; color: var(--ink-0); }
+    .cert-date { font-size: 0.68rem; color: var(--ink-4); margin-top: 2px; }
+    .cert-score { margin-left: auto; font-size: 0.78rem; font-weight: 700; color: var(--green-mid); }
+
+    @media (max-width: 1100px) { .two-col { grid-template-columns: 1fr; } }
+    @media (max-width: 900px)  { .exam-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 700px)  { .stats-row { grid-template-columns: 1fr 1fr; } .exam-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">AZ</div>
+    <span class="logo-name">AzureLMS</span>
+    <span class="logo-tag">Beta</span>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-av">AB</div>
+    <div>
+      <div class="user-name">Azurebek</div>
+      <div class="user-role">O'quvchi</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-group-label">Asosiy</div>
+    <a href="app-shell.html" class="nav-item"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+    <a href="app-course-list.html" class="nav-item"><i class="bi bi-collection-play"></i> Kurslarim</a>
+    <a href="app-course-detail.html" class="nav-item"><i class="bi bi-play-circle"></i> Dars muhiti</a>
+    <div class="nav-group-label">Imtihon & O'rganish</div>
+    <a href="exam-shell.html" class="nav-item active"><i class="bi bi-clipboard-check"></i> Imtihonlar</a>
+    <a href="exam-listening.html" class="nav-item"><i class="bi bi-headphones"></i> Tinglash <span class="nav-badge">!</span></a>
+    <a href="exam-writing.html" class="nav-item"><i class="bi bi-pencil-square"></i> Yozish</a>
+    <a href="exam-speaking.html" class="nav-item"><i class="bi bi-mic"></i> Gapirish</a>
+    <a href="learning-shell.html" class="nav-item"><i class="bi bi-mortarboard"></i> O'rganish</a>
+    <div class="nav-group-label">Profil</div>
+    <a href="app-notifications.html" class="nav-item"><i class="bi bi-bell"></i> Bildirishnomalar <span class="nav-badge">3</span></a>
+    <a href="app-profile.html" class="nav-item"><i class="bi bi-person-circle"></i> Profil</a>
+    <a href="app-subscriptions.html" class="nav-item"><i class="bi bi-credit-card"></i> Obuna</a>
+    <a href="app-settings.html" class="nav-item"><i class="bi bi-gear"></i> Sozlamalar</a>
+  </nav>
+  <div class="sidebar-bottom">
+    <a href="../index.html" class="nav-item"><i class="bi bi-arrow-left-circle"></i> Playground</a>
+    <a href="#" class="nav-item"><i class="bi bi-box-arrow-right"></i> Chiqish</a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="page-wrap">
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <h1 class="topbar-title">Imtihonlar</h1>
+    <div class="topbar-sep"></div>
+    <a href="exam-listening.html" class="topbar-action btn-primary">
+      <i class="bi bi-play-circle"></i> Imtihon boshlash
+    </a>
+    <button class="theme-btn" id="themeBtn"><i class="bi bi-moon" id="themeIcon"></i></button>
+  </header>
+
+  <div class="page-body">
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Jami imtihon</div>
+        <div class="stat-val">24</div>
+        <div class="stat-sub"><span class="stat-delta delta-up">+3</span> bu oy</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">O'tganlar</div>
+        <div class="stat-val" style="color:var(--green-mid)">18</div>
+        <div class="stat-sub"><span class="stat-delta delta-up">75%</span> muvaffaqiyat</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">O'rtacha ball</div>
+        <div class="stat-val" style="color:var(--blue-mid)">82</div>
+        <div class="stat-sub"><span class="stat-delta delta-up">+6</span> o'tgan oyga</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Sertifikatlar</div>
+        <div class="stat-val" style="color:var(--amber)">3</div>
+        <div class="stat-sub"><span class="stat-delta delta-neu">1 ta kutilmoqda</span></div>
+      </div>
+    </div>
+
+    <!-- STREAK + EXAMS -->
+    <div>
+      <div class="sec-head">
+        <span class="sec-title">Imtihon turlari</span>
+        <div class="sec-divider"></div>
+      </div>
+      <div class="exam-grid">
+        <!-- LISTENING -->
+        <div class="exam-card">
+          <div class="exam-card-header">
+            <div class="exam-icon icon--listen">🎧</div>
+            <div class="exam-card-info">
+              <div class="exam-card-name">Tinglash (Listening)</div>
+              <div class="exam-card-meta">
+                <span><i class="bi bi-question-circle"></i> 20 savol</span>
+                <span><i class="bi bi-clock"></i> 30 daqiqa</span>
+              </div>
+            </div>
+          </div>
+          <div class="exam-card-body">
+            <div class="score-row">
+              <span class="score-label">O'rtacha</span>
+              <div class="score-bar"><div class="score-fill fill-blue" style="width:78%"></div></div>
+              <span class="score-val">78%</span>
+            </div>
+            <div class="score-row">
+              <span class="score-label">Eng yuqori</span>
+              <div class="score-bar"><div class="score-fill fill-green" style="width:92%"></div></div>
+              <span class="score-val">92%</span>
+            </div>
+          </div>
+          <div class="exam-card-footer">
+            <span class="tag-chip chip-blue">8 marta o'tilgan</span>
+            <a href="exam-listening.html" class="card-btn"><i class="bi bi-play-fill"></i> Boshlash</a>
+          </div>
+        </div>
+
+        <!-- WRITING -->
+        <div class="exam-card">
+          <div class="exam-card-header">
+            <div class="exam-icon icon--write">✍️</div>
+            <div class="exam-card-info">
+              <div class="exam-card-name">Yozish (Writing)</div>
+              <div class="exam-card-meta">
+                <span><i class="bi bi-file-text"></i> 2 vazifa</span>
+                <span><i class="bi bi-clock"></i> 60 daqiqa</span>
+              </div>
+            </div>
+          </div>
+          <div class="exam-card-body">
+            <div class="score-row">
+              <span class="score-label">O'rtacha</span>
+              <div class="score-bar"><div class="score-fill fill-green" style="width:71%"></div></div>
+              <span class="score-val">71%</span>
+            </div>
+            <div class="score-row">
+              <span class="score-label">Eng yuqori</span>
+              <div class="score-bar"><div class="score-fill fill-green" style="width:85%"></div></div>
+              <span class="score-val">85%</span>
+            </div>
+          </div>
+          <div class="exam-card-footer">
+            <span class="tag-chip chip-green">5 marta o'tilgan</span>
+            <a href="exam-writing.html" class="card-btn"><i class="bi bi-play-fill"></i> Boshlash</a>
+          </div>
+        </div>
+
+        <!-- SPEAKING -->
+        <div class="exam-card">
+          <div class="exam-card-header">
+            <div class="exam-icon icon--speak">🎤</div>
+            <div class="exam-card-info">
+              <div class="exam-card-name">Gapirish (Speaking)</div>
+              <div class="exam-card-meta">
+                <span><i class="bi bi-mic"></i> 4 qism</span>
+                <span><i class="bi bi-clock"></i> 15 daqiqa</span>
+              </div>
+            </div>
+          </div>
+          <div class="exam-card-body">
+            <div class="score-row">
+              <span class="score-label">O'rtacha</span>
+              <div class="score-bar"><div class="score-fill fill-amber" style="width:68%"></div></div>
+              <span class="score-val">68%</span>
+            </div>
+            <div class="score-row">
+              <span class="score-label">Eng yuqori</span>
+              <div class="score-bar"><div class="score-fill fill-amber" style="width:80%"></div></div>
+              <span class="score-val">80%</span>
+            </div>
+          </div>
+          <div class="exam-card-footer">
+            <span class="tag-chip chip-amber">3 marta o'tilgan</span>
+            <a href="exam-speaking.html" class="card-btn"><i class="bi bi-play-fill"></i> Boshlash</a>
+          </div>
+        </div>
+
+        <!-- READING -->
+        <div class="exam-card">
+          <div class="exam-card-header">
+            <div class="exam-icon icon--read">📖</div>
+            <div class="exam-card-info">
+              <div class="exam-card-name">O'qish (Reading)</div>
+              <div class="exam-card-meta">
+                <span><i class="bi bi-question-circle"></i> 40 savol</span>
+                <span><i class="bi bi-clock"></i> 60 daqiqa</span>
+              </div>
+            </div>
+          </div>
+          <div class="exam-card-body">
+            <div class="score-row">
+              <span class="score-label">O'rtacha</span>
+              <div class="score-bar"><div class="score-fill fill-purple" style="width:84%"></div></div>
+              <span class="score-val">84%</span>
+            </div>
+            <div class="score-row">
+              <span class="score-label">Eng yuqori</span>
+              <div class="score-bar"><div class="score-fill fill-purple" style="width:95%"></div></div>
+              <span class="score-val">95%</span>
+            </div>
+          </div>
+          <div class="exam-card-footer">
+            <span class="tag-chip chip-purple">6 marta o'tilgan</span>
+            <a href="#" class="card-btn"><i class="bi bi-play-fill"></i> Boshlash</a>
+          </div>
+        </div>
+
+        <!-- GRAMMAR -->
+        <div class="exam-card">
+          <div class="exam-card-header">
+            <div class="exam-icon icon--grammar">📝</div>
+            <div class="exam-card-info">
+              <div class="exam-card-name">Grammatika</div>
+              <div class="exam-card-meta">
+                <span><i class="bi bi-question-circle"></i> 50 savol</span>
+                <span><i class="bi bi-clock"></i> 45 daqiqa</span>
+              </div>
+            </div>
+          </div>
+          <div class="exam-card-body">
+            <div class="score-row">
+              <span class="score-label">O'rtacha</span>
+              <div class="score-bar"><div class="score-fill fill-blue" style="width:76%"></div></div>
+              <span class="score-val">76%</span>
+            </div>
+            <div class="score-row">
+              <span class="score-label">Eng yuqori</span>
+              <div class="score-bar"><div class="score-fill fill-blue" style="width:90%"></div></div>
+              <span class="score-val">90%</span>
+            </div>
+          </div>
+          <div class="exam-card-footer">
+            <span class="tag-chip chip-red">4 marta o'tilgan</span>
+            <a href="#" class="card-btn"><i class="bi bi-play-fill"></i> Boshlash</a>
+          </div>
+        </div>
+
+        <!-- VOCAB -->
+        <div class="exam-card">
+          <div class="exam-card-header">
+            <div class="exam-icon icon--vocab">💬</div>
+            <div class="exam-card-info">
+              <div class="exam-card-name">Lug'at (Vocabulary)</div>
+              <div class="exam-card-meta">
+                <span><i class="bi bi-question-circle"></i> 30 savol</span>
+                <span><i class="bi bi-clock"></i> 20 daqiqa</span>
+              </div>
+            </div>
+          </div>
+          <div class="exam-card-body">
+            <div class="score-row">
+              <span class="score-label">O'rtacha</span>
+              <div class="score-bar"><div class="score-fill fill-amber" style="width:62%"></div></div>
+              <span class="score-val">62%</span>
+            </div>
+            <div class="score-row">
+              <span class="score-label">Eng yuqori</span>
+              <div class="score-bar"><div class="score-fill fill-amber" style="width:74%"></div></div>
+              <span class="score-val">74%</span>
+            </div>
+          </div>
+          <div class="exam-card-footer">
+            <span class="tag-chip chip-amber">Zaif soha</span>
+            <a href="#" class="card-btn card-btn--outline"><i class="bi bi-arrow-repeat"></i> Mashq</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY + RIGHT PANEL -->
+    <div class="two-col">
+      <div>
+        <div class="sec-head">
+          <span class="sec-title">So'nggi natijalar</span>
+          <div class="sec-divider"></div>
+          <a href="exam-review.html" class="sec-action">Hammasi <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="history-table">
+          <div class="tbl-head">
+            <div>Imtihon</div>
+            <div>Sana</div>
+            <div>Vaqt</div>
+            <div>Ball</div>
+            <div></div>
+          </div>
+          <div class="tbl-row">
+            <div class="tbl-name">
+              <div class="tbl-name-icon" style="background:var(--blue-soft)">🎧</div>
+              Tinglash — Mock Test 8
+            </div>
+            <div class="tbl-cell">17 May 2026</div>
+            <div class="tbl-cell">28:14</div>
+            <div><div class="score-circle sc-great">92%</div></div>
+            <div><a href="exam-review.html" class="tbl-btn">Ko'rish</a></div>
+          </div>
+          <div class="tbl-row">
+            <div class="tbl-name">
+              <div class="tbl-name-icon" style="background:var(--green-soft)">✍️</div>
+              Yozish — Task 2 Mashq
+            </div>
+            <div class="tbl-cell">15 May 2026</div>
+            <div class="tbl-cell">55:40</div>
+            <div><div class="score-circle sc-ok">85%</div></div>
+            <div><a href="exam-review.html" class="tbl-btn">Ko'rish</a></div>
+          </div>
+          <div class="tbl-row">
+            <div class="tbl-name">
+              <div class="tbl-name-icon" style="background:var(--purple-soft)">📖</div>
+              O'qish — Passage 3
+            </div>
+            <div class="tbl-cell">13 May 2026</div>
+            <div class="tbl-cell">58:02</div>
+            <div><div class="score-circle sc-great">88%</div></div>
+            <div><a href="exam-review.html" class="tbl-btn">Ko'rish</a></div>
+          </div>
+          <div class="tbl-row">
+            <div class="tbl-name">
+              <div class="tbl-name-icon" style="background:var(--amber-soft)">🎤</div>
+              Gapirish — Part 2 Monolog
+            </div>
+            <div class="tbl-cell">11 May 2026</div>
+            <div class="tbl-cell">14:55</div>
+            <div><div class="score-circle sc-low">68%</div></div>
+            <div><a href="exam-review.html" class="tbl-btn">Ko'rish</a></div>
+          </div>
+          <div class="tbl-row">
+            <div class="tbl-name">
+              <div class="tbl-name-icon" style="background:var(--red-soft)">📝</div>
+              Grammatika — Unit 12 Test
+            </div>
+            <div class="tbl-cell">9 May 2026</div>
+            <div class="tbl-cell">42:18</div>
+            <div><div class="score-circle sc-fail">54%</div></div>
+            <div><a href="exam-review.html" class="tbl-btn">Ko'rish</a></div>
+          </div>
+          <div class="tbl-row">
+            <div class="tbl-name">
+              <div class="tbl-name-icon" style="background:var(--blue-soft)">🎧</div>
+              Tinglash — Mock Test 7
+            </div>
+            <div class="tbl-cell">7 May 2026</div>
+            <div class="tbl-cell">29:50</div>
+            <div><div class="score-circle sc-ok">78%</div></div>
+            <div><a href="exam-review.html" class="tbl-btn">Ko'rish</a></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT PANEL -->
+      <div class="right-panel">
+        <!-- STREAK -->
+        <div class="streak-hero">
+          <div>
+            <div class="streak-num">12</div>
+            <div class="streak-label">kun uzluksiz</div>
+            <div class="streak-sub">Rekord: 21 kun</div>
+            <div class="streak-days">
+              <div class="streak-dot sd-done">D</div>
+              <div class="streak-dot sd-done">S</div>
+              <div class="streak-dot sd-done">C</div>
+              <div class="streak-dot sd-done">P</div>
+              <div class="streak-dot sd-done">J</div>
+              <div class="streak-dot sd-done">Sh</div>
+              <div class="streak-dot sd-today">Y</div>
+            </div>
+          </div>
+          <div style="margin-left:auto;font-size:2.4rem">🔥</div>
+        </div>
+
+        <!-- UPCOMING -->
+        <div class="panel-card">
+          <div class="panel-head"><i class="bi bi-calendar-event"></i> Rejalashtirilgan</div>
+          <div class="panel-body">
+            <div class="upcoming-item">
+              <div class="upc-date"><div class="upc-day">20</div><div class="upc-mon">May</div></div>
+              <div class="upc-info">
+                <div class="upc-name">IELTS Mock Test — To'liq</div>
+                <div class="upc-time"><i class="bi bi-clock"></i> 09:00 · 2 soat 45 daqiqa</div>
+              </div>
+            </div>
+            <div class="upcoming-item">
+              <div class="upc-date"><div class="upc-day">23</div><div class="upc-mon">May</div></div>
+              <div class="upc-info">
+                <div class="upc-name">Yozish intensiv — Task 1</div>
+                <div class="upc-time"><i class="bi bi-clock"></i> 14:00 · 60 daqiqa</div>
+              </div>
+            </div>
+            <div class="upcoming-item">
+              <div class="upc-date"><div class="upc-day">28</div><div class="upc-mon">May</div></div>
+              <div class="upc-info">
+                <div class="upc-name">Gapirish mashqi — Part 3</div>
+                <div class="upc-time"><i class="bi bi-clock"></i> 16:00 · 20 daqiqa</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CERTIFICATES -->
+        <div class="panel-card">
+          <div class="panel-head"><i class="bi bi-award"></i> Sertifikatlar</div>
+          <div class="panel-body">
+            <div class="cert-item">
+              <div class="cert-icon">🏅</div>
+              <div>
+                <div class="cert-name">IELTS Simulation — Band 7</div>
+                <div class="cert-date">Apr 2026</div>
+              </div>
+              <div class="cert-score">B7.0</div>
+            </div>
+            <div class="cert-item">
+              <div class="cert-icon">🥈</div>
+              <div>
+                <div class="cert-name">Academic Writing Pro</div>
+                <div class="cert-date">Mar 2026</div>
+              </div>
+              <div class="cert-score">91%</div>
+            </div>
+            <div class="cert-item">
+              <div class="cert-icon">🥉</div>
+              <div>
+                <div class="cert-name">Listening Mastery L2</div>
+                <div class="cert-date">Feb 2026</div>
+              </div>
+              <div class="cert-score">88%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /page-body -->
+</div><!-- /page-wrap -->
+
+<script>
+  (function(){
+    const t = localStorage.getItem('az-theme');
+    const d = window.matchMedia('(prefers-color-scheme:dark)').matches;
+    document.documentElement.setAttribute('data-theme', t ? t : d ? 'dark' : 'light');
+  })();
+
+  const html = document.documentElement;
+  const btn  = document.getElementById('themeBtn');
+  const icon = document.getElementById('themeIcon');
+  function applyTheme(dark) {
+    html.setAttribute('data-theme', dark ? 'dark' : 'light');
+    icon.className = dark ? 'bi bi-sun' : 'bi bi-moon';
+    try { localStorage.setItem('az-theme', dark ? 'dark' : 'light'); } catch(_){}
+  }
+  const saved = localStorage.getItem('az-theme');
+  applyTheme(saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme:dark)').matches);
+  btn.addEventListener('click', () => applyTheme(html.getAttribute('data-theme') !== 'dark'));
+
+  // Animate score bars on load
+  document.querySelectorAll('.score-fill').forEach(el => {
+    const w = el.style.width; el.style.width = '0';
+    requestAnimationFrame(() => { el.style.width = w; });
+  });
+</script>
+</body>
+</html>

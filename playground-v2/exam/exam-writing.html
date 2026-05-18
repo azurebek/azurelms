@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yozish Imtihoni — AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #eff2f6; --surface: #f7f9fb; --white: #ffffff;
+      --border: #dde4ee; --border-soft: #e8eef6;
+      --ink-0: #0d1b2a; --ink-1: #1e3248; --ink-2: #2f4a66;
+      --ink-3: #4d6680; --ink-4: #7a90a8; --ink-5: #a8bcce;
+      --blue: #1d57d8; --blue-mid: #2563eb; --blue-soft: rgba(29,87,216,.09);
+      --green: #15803d; --green-mid: #16a34a; --green-soft: rgba(21,128,61,.10);
+      --amber: #b45309; --amber-soft: rgba(180,83,9,.10);
+      --red: #dc2626; --red-soft: rgba(220,38,38,.09);
+      --deep: #0d1b2a; --on-deep: #eff2f6;
+      --sh-sm: 0 1px 3px rgba(13,27,42,.05), 0 4px 12px rgba(13,27,42,.07);
+      --sh-md: 0 4px 12px rgba(13,27,42,.08), 0 16px 48px rgba(13,27,42,.10);
+      --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-xl: 20px; --r-pill: 999px;
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    [data-theme="dark"] {
+      --bg: #0c1520; --surface: #111d2b; --white: #152233;
+      --border: #1e3450; --border-soft: #172a40;
+      --ink-0: #dce9f5; --ink-1: #b8d0e6; --ink-2: #8aadc8;
+      --ink-3: #6288a4; --ink-4: #3f607e; --ink-5: #284259;
+      --blue: #60a5fa; --blue-mid: #3b82f6; --blue-soft: rgba(96,165,250,.12);
+      --green: #4ade80; --green-mid: #22c55e; --green-soft: rgba(74,222,128,.12);
+      --amber: #fbbf24; --amber-soft: rgba(251,191,36,.12);
+      --red: #f87171; --red-soft: rgba(248,113,113,.12);
+      --deep: #070e18; --on-deep: #dce9f5;
+      --sh-sm: 0 1px 3px rgba(0,0,0,.20), 0 4px 12px rgba(0,0,0,.24);
+      --sh-md: 0 4px 12px rgba(0,0,0,.28), 0 16px 48px rgba(0,0,0,.30);
+    }
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background: var(--bg); color: var(--ink-0);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh; display: flex; flex-direction: column;
+      transition: background 280ms, color 280ms;
+    }
+    a { text-decoration: none; color: inherit; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+
+    /* TOPBAR */
+    .exam-bar {
+      height: 60px; background: var(--white); border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; padding: 0 24px; gap: 14px;
+      position: sticky; top: 0; z-index: 40;
+      transition: background 280ms;
+    }
+    .logo-mark {
+      width: 28px; height: 28px; border-radius: 7px;
+      background: var(--green-mid); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.6rem; font-weight: 800;
+    }
+    .exam-name { font-size: 0.82rem; font-weight: 700; color: var(--ink-0); }
+    .exam-sub  { font-size: 0.68rem; color: var(--ink-4); }
+    .bar-sep { flex: 1; }
+
+    /* TASK TABS */
+    .task-tabs { display: flex; gap: 4px; }
+    .task-tab {
+      padding: 6px 14px; border-radius: var(--r-pill);
+      font-size: 0.75rem; font-weight: 600; color: var(--ink-3);
+      border: 1.5px solid var(--border); background: var(--surface);
+      transition: all 120ms;
+    }
+    .task-tab.active { background: var(--green-soft); color: var(--green-mid); border-color: var(--green-mid); }
+    .task-tab:hover { border-color: var(--green-mid); color: var(--green-mid); }
+
+    .timer-box {
+      display: flex; align-items: center; gap: 7px;
+      padding: 7px 14px; border-radius: var(--r-pill);
+      background: var(--surface); border: 1px solid var(--border);
+    }
+    .timer-icon { color: var(--amber); font-size: 0.9rem; }
+    .timer-val  { font-size: 0.92rem; font-weight: 700; color: var(--ink-0); font-variant-numeric: tabular-nums; }
+    .timer-val.warn { color: var(--red); }
+    .btn-submit {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 18px; border-radius: var(--r-pill);
+      background: var(--green-mid); color: #fff;
+      font-size: 0.8rem; font-weight: 700; transition: background 120ms;
+    }
+    .btn-submit:hover { background: var(--green); }
+    .theme-btn {
+      width: 32px; height: 32px; border-radius: var(--r-md);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--ink-3); border: 1px solid var(--border);
+    }
+    .theme-btn:hover { background: var(--surface); }
+
+    /* SPLIT LAYOUT */
+    .writing-layout {
+      flex: 1; display: grid; grid-template-columns: 1fr 1fr;
+      gap: 0; height: calc(100vh - 60px);
+    }
+
+    /* LEFT — TASK PANEL */
+    .task-panel {
+      border-right: 1px solid var(--border);
+      overflow-y: auto; display: flex; flex-direction: column;
+    }
+    .task-panel-head {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--white);
+      position: sticky; top: 0; z-index: 10;
+      transition: background 280ms;
+    }
+    .task-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+      color: var(--green-mid); background: var(--green-soft);
+      padding: 3px 9px; border-radius: var(--r-pill); margin-bottom: 10px;
+    }
+    .task-heading { font-size: 1rem; font-weight: 800; color: var(--ink-0); margin-bottom: 6px; }
+    .task-meta    { display: flex; gap: 14px; flex-wrap: wrap; }
+    .task-meta-item { font-size: 0.72rem; color: var(--ink-4); display: flex; align-items: center; gap: 4px; }
+    .task-meta-item i { color: var(--green-mid); }
+    .task-panel-body { padding: 20px 24px; flex: 1; }
+    .task-prompt { font-size: 0.88rem; color: var(--ink-1); line-height: 1.8; }
+    .task-prompt strong { color: var(--ink-0); }
+
+    /* CHART IMAGE MOCK */
+    .chart-mock {
+      border: 1px solid var(--border); border-radius: var(--r-lg);
+      background: var(--surface); margin: 16px 0;
+      padding: 20px; display: flex; flex-direction: column; gap: 12px;
+    }
+    .chart-title { font-size: 0.78rem; font-weight: 700; color: var(--ink-0); text-align: center; }
+    .chart-bars  { display: flex; align-items: flex-end; gap: 10px; height: 120px; justify-content: center; }
+    .chart-bar-group { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .chart-bar { width: 24px; border-radius: 4px 4px 0 0; background: var(--blue-mid); }
+    .chart-bar.b2 { background: var(--green-mid); }
+    .chart-year { font-size: 0.62rem; color: var(--ink-4); }
+    .chart-axis { display: flex; justify-content: space-between; font-size: 0.62rem; color: var(--ink-5); }
+    .chart-legend { display: flex; gap: 14px; justify-content: center; }
+    .chart-legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.68rem; color: var(--ink-3); }
+    .clb { width: 12px; height: 10px; border-radius: 2px; }
+
+    .task-tips { margin-top: 16px; display: flex; flex-direction: column; gap: 6px; }
+    .tip-item {
+      display: flex; align-items: flex-start; gap: 8px;
+      font-size: 0.78rem; color: var(--ink-3); line-height: 1.5;
+    }
+    .tip-icon { color: var(--green-mid); font-size: 0.85rem; flex-shrink: 0; margin-top: 1px; }
+
+    /* RIGHT — EDITOR PANEL */
+    .editor-panel { display: flex; flex-direction: column; overflow: hidden; }
+    .editor-toolbar {
+      padding: 10px 16px; border-bottom: 1px solid var(--border);
+      background: var(--white); display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+      transition: background 280ms;
+    }
+    .tb-btn {
+      width: 30px; height: 30px; border-radius: var(--r-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; color: var(--ink-3);
+      border: 1px solid transparent;
+      transition: all 120ms;
+    }
+    .tb-btn:hover { background: var(--surface); border-color: var(--border); color: var(--ink-0); }
+    .tb-sep { width: 1px; height: 20px; background: var(--border); margin: 0 2px; }
+    .tb-right { margin-left: auto; }
+    .font-size-btn {
+      display: flex; align-items: center; gap: 4px;
+      font-size: 0.72rem; font-weight: 600; color: var(--ink-3);
+      padding: 4px 8px; border-radius: var(--r-sm); border: 1px solid var(--border);
+    }
+
+    .editor-area { flex: 1; position: relative; overflow: hidden; }
+    .writing-textarea {
+      width: 100%; height: 100%;
+      border: none; outline: none; resize: none;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 0.9rem; line-height: 1.85; color: var(--ink-0);
+      background: var(--white); padding: 20px 24px;
+      transition: background 280ms, color 280ms;
+    }
+    .writing-textarea::placeholder { color: var(--ink-5); }
+
+    /* WORD COUNT BAR */
+    .editor-footer {
+      padding: 10px 16px; border-top: 1px solid var(--border);
+      background: var(--surface); display: flex; align-items: center; gap: 12px;
+      transition: background 280ms;
+    }
+    .word-count-wrap { display: flex; align-items: center; gap: 8px; flex: 1; }
+    .wc-track { width: 140px; height: 5px; background: var(--border); border-radius: var(--r-pill); overflow: hidden; }
+    .wc-fill  { height: 100%; border-radius: var(--r-pill); transition: width 300ms; }
+    .wc-ok    { background: var(--green-mid); }
+    .wc-low   { background: var(--amber); }
+    .wc-over  { background: var(--red); }
+    .wc-label { font-size: 0.72rem; font-weight: 600; }
+    .wc-label.ok   { color: var(--green-mid); }
+    .wc-label.low  { color: var(--amber); }
+    .wc-label.over { color: var(--red); }
+    .wc-target { font-size: 0.7rem; color: var(--ink-4); }
+    .char-count { font-size: 0.7rem; color: var(--ink-4); margin-left: auto; }
+
+    /* AUTOSAVE */
+    .autosave { font-size: 0.68rem; color: var(--ink-5); display: flex; align-items: center; gap: 4px; }
+    .autosave i { color: var(--green-mid); }
+
+    @media (max-width: 800px) {
+      .writing-layout { grid-template-columns: 1fr; height: auto; }
+      .task-panel { border-right: none; border-bottom: 1px solid var(--border); max-height: 400px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="exam-bar">
+  <div class="logo-mark">AZ</div>
+  <div>
+    <div class="exam-name">Yozish Imtihoni</div>
+    <div class="exam-sub">Writing Task 1 — IELTS Academic</div>
+  </div>
+  <div class="bar-sep"></div>
+  <div class="task-tabs">
+    <button class="task-tab active" onclick="switchTask(this, 1)">Task 1</button>
+    <button class="task-tab" onclick="switchTask(this, 2)">Task 2</button>
+  </div>
+  <div class="timer-box">
+    <i class="bi bi-clock timer-icon"></i>
+    <span class="timer-val" id="timerVal">58:22</span>
+  </div>
+  <button class="btn-submit" onclick="submitExam()"><i class="bi bi-check2-circle"></i> Topshirish</button>
+  <button class="theme-btn" id="themeBtn"><i class="bi bi-moon" id="themeIcon"></i></button>
+</header>
+
+<!-- SPLIT LAYOUT -->
+<div class="writing-layout">
+
+  <!-- LEFT: TASK PROMPT -->
+  <div class="task-panel" id="taskPanel">
+    <div class="task-panel-head">
+      <div class="task-badge"><i class="bi bi-1-circle"></i> Writing Task 1</div>
+      <div class="task-heading">Bar Chart Description</div>
+      <div class="task-meta">
+        <span class="task-meta-item"><i class="bi bi-hash"></i> Minimum 150 so'z</span>
+        <span class="task-meta-item"><i class="bi bi-clock"></i> ~20 daqiqa tavsiya</span>
+        <span class="task-meta-item"><i class="bi bi-bar-chart"></i> Ma'lumotlar tahlili</span>
+      </div>
+    </div>
+    <div class="task-panel-body">
+      <p class="task-prompt">
+        <strong>The bar chart below shows the percentage of people in different age groups who used online banking in a European country in 2010 and 2020.</strong>
+      </p>
+      <p class="task-prompt" style="margin-top:10px;">
+        Summarise the information by selecting and reporting the main features, and make comparisons where relevant.
+      </p>
+
+      <!-- CHART MOCK -->
+      <div class="chart-mock">
+        <div class="chart-title">Online Banking Usage by Age Group (%)</div>
+        <div class="chart-bars">
+          <div class="chart-bar-group">
+            <div class="chart-bar" style="height:28px" title="2010: 23%"></div>
+            <div class="chart-bar b2" style="height:60px" title="2020: 50%"></div>
+            <div class="chart-year">18–24</div>
+          </div>
+          <div class="chart-bar-group">
+            <div class="chart-bar" style="height:36px"></div>
+            <div class="chart-bar b2" style="height:84px"></div>
+            <div class="chart-year">25–34</div>
+          </div>
+          <div class="chart-bar-group">
+            <div class="chart-bar" style="height:40px"></div>
+            <div class="chart-bar b2" style="height:90px"></div>
+            <div class="chart-year">35–44</div>
+          </div>
+          <div class="chart-bar-group">
+            <div class="chart-bar" style="height:32px"></div>
+            <div class="chart-bar b2" style="height:72px"></div>
+            <div class="chart-year">45–54</div>
+          </div>
+          <div class="chart-bar-group">
+            <div class="chart-bar" style="height:18px"></div>
+            <div class="chart-bar b2" style="height:50px"></div>
+            <div class="chart-year">55–64</div>
+          </div>
+          <div class="chart-bar-group">
+            <div class="chart-bar" style="height:8px"></div>
+            <div class="chart-bar b2" style="height:28px"></div>
+            <div class="chart-year">65+</div>
+          </div>
+        </div>
+        <div class="chart-legend">
+          <div class="chart-legend-item"><div class="clb" style="background:var(--blue-mid)"></div> 2010</div>
+          <div class="chart-legend-item"><div class="clb" style="background:var(--green-mid)"></div> 2020</div>
+        </div>
+      </div>
+
+      <div class="task-tips">
+        <div class="tip-item"><i class="bi bi-lightbulb tip-icon"></i> Umumiy tendentsiyani birinchi jumlada ko'rsating</div>
+        <div class="tip-item"><i class="bi bi-lightbulb tip-icon"></i> Eng katta va eng kichik o'zgarishlarni solishtiring</div>
+        <div class="tip-item"><i class="bi bi-lightbulb tip-icon"></i> Aniq raqamlarni ishlating, lekin hammasini sanab bermang</div>
+        <div class="tip-item"><i class="bi bi-lightbulb tip-icon"></i> Shaxsiy fikr bildirish shart emas</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: EDITOR -->
+  <div class="editor-panel">
+    <!-- TOOLBAR -->
+    <div class="editor-toolbar">
+      <button class="tb-btn" title="Bold" onclick="formatText('bold')"><i class="bi bi-type-bold"></i></button>
+      <button class="tb-btn" title="Italic" onclick="formatText('italic')"><i class="bi bi-type-italic"></i></button>
+      <button class="tb-btn" title="Underline" onclick="formatText('underline')"><i class="bi bi-type-underline"></i></button>
+      <div class="tb-sep"></div>
+      <button class="tb-btn" title="Undo"><i class="bi bi-arrow-counterclockwise"></i></button>
+      <button class="tb-btn" title="Redo"><i class="bi bi-arrow-clockwise"></i></button>
+      <div class="tb-sep"></div>
+      <button class="tb-btn" title="Clear formatting"><i class="bi bi-eraser"></i></button>
+      <div class="tb-sep"></div>
+      <div class="font-size-btn tb-right">
+        <button onclick="changeFontSize(-1)" style="font-size:0.8rem;cursor:pointer">−</button>
+        <span id="fsLabel">14</span>
+        <button onclick="changeFontSize(1)" style="font-size:0.8rem;cursor:pointer">+</button>
+      </div>
+      <span class="autosave"><i class="bi bi-cloud-check"></i> Saqlandi 14:02</span>
+    </div>
+
+    <!-- TEXTAREA -->
+    <div class="editor-area">
+      <textarea class="writing-textarea" id="writingArea"
+        placeholder="Yozishni boshlang...&#10;&#10;Masalan: 'The bar chart illustrates the proportion of people across six age groups who used online banking in a European country in 2010 and 2020. Overall, usage increased significantly across all age groups, with the greatest growth observed among middle-aged adults...'"
+        oninput="updateWordCount(this)"></textarea>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="editor-footer">
+      <div class="word-count-wrap">
+        <div class="wc-track">
+          <div class="wc-fill wc-low" id="wcFill" style="width:0%"></div>
+        </div>
+        <span class="wc-label low" id="wcLabel">0 so'z</span>
+        <span class="wc-target">Minimum: 150</span>
+      </div>
+      <span class="char-count" id="charCount">0 belgi</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Theme
+  (function(){
+    const t = localStorage.getItem('az-theme');
+    const d = window.matchMedia('(prefers-color-scheme:dark)').matches;
+    document.documentElement.setAttribute('data-theme', t ? t : d ? 'dark' : 'light');
+  })();
+  const html = document.documentElement;
+  function applyTheme(dark) {
+    html.setAttribute('data-theme', dark ? 'dark' : 'light');
+    document.getElementById('themeIcon').className = dark ? 'bi bi-sun' : 'bi bi-moon';
+    try { localStorage.setItem('az-theme', dark ? 'dark' : 'light'); } catch(_){}
+  }
+  const saved = localStorage.getItem('az-theme');
+  applyTheme(saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme:dark)').matches);
+  document.getElementById('themeBtn').addEventListener('click', () =>
+    applyTheme(html.getAttribute('data-theme') !== 'dark'));
+
+  // Timer
+  let secs = 58 * 60 + 22;
+  const timerEl = document.getElementById('timerVal');
+  setInterval(() => {
+    secs--;
+    if (secs < 0) { timerEl.textContent = '00:00'; return; }
+    const m = Math.floor(secs / 60), s = secs % 60;
+    timerEl.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+    if (secs <= 300) timerEl.classList.add('warn');
+  }, 1000);
+
+  // Word count
+  function updateWordCount(ta) {
+    const words = ta.value.trim() === '' ? [] : ta.value.trim().split(/\s+/);
+    const count = words.length;
+    const chars = ta.value.length;
+    const min = 150, ideal = 180;
+    const pct = Math.min(100, (count / ideal) * 100);
+    const fill = document.getElementById('wcFill');
+    const label = document.getElementById('wcLabel');
+    document.getElementById('charCount').textContent = chars + ' belgi';
+
+    fill.style.width = pct + '%';
+    label.textContent = count + ' so\'z';
+
+    if (count >= min) {
+      fill.className = 'wc-fill wc-ok';
+      label.className = 'wc-label ok';
+    } else if (count >= min * 0.7) {
+      fill.className = 'wc-fill wc-low';
+      label.className = 'wc-label low';
+    } else {
+      fill.className = 'wc-fill wc-low';
+      label.className = 'wc-label low';
+    }
+  }
+
+  // Font size
+  let fontSize = 14;
+  function changeFontSize(delta) {
+    fontSize = Math.max(11, Math.min(20, fontSize + delta));
+    document.getElementById('writingArea').style.fontSize = fontSize + 'px';
+    document.getElementById('fsLabel').textContent = fontSize;
+  }
+
+  // Task switching
+  const tasks = {
+    1: { title: 'Bar Chart Description', badge: '1', sub: 'Writing Task 1 — IELTS Academic', min: 150 },
+    2: { title: 'Essay — Argument Discussion', badge: '2', sub: 'Writing Task 2 — IELTS Academic', min: 250 }
+  };
+  function switchTask(btn, n) {
+    document.querySelectorAll('.task-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  function formatText(cmd) { document.execCommand(cmd, false, null); }
+  function submitExam() {
+    if (confirm('Yozish imtihonini topshirmoqchimisiz?')) window.location.href = 'exam-review.html';
+  }
+</script>
+</body>
+</html>

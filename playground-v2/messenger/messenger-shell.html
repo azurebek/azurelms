@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xabarlar — AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #eff2f6; --white: #ffffff; --border: #dde4ee; --border-soft: #e8eef6;
+      --ink-0: #0d1b2a; --ink-1: #1e3248; --ink-3: #4d6680; --ink-4: #7a90a8; --ink-5: #a8bcce;
+      --blue-mid: #2563eb; --blue: #1d57d8; --blue-soft: rgba(29,87,216,.09); --blue-chip: rgba(29,87,216,.13);
+      --teal: #0d9488; --teal-soft: rgba(13,148,136,.09);
+      --purple: #7c3aed; --purple-soft: rgba(124,58,237,.09);
+      --green: #16a34a; --green-soft: rgba(22,163,74,.09);
+      --amber: #d97706; --amber-soft: rgba(217,119,6,.09);
+      --red: #dc2626; --red-soft: rgba(220,38,38,.09);
+      --deep: #0d1b2a; --on-deep: #eff2f6;
+      --sidebar-w: 224px;
+      --sh-sm: 0 1px 3px rgba(13,27,42,.05),0 4px 12px rgba(13,27,42,.07);
+      --sh-md: 0 4px 16px rgba(13,27,42,.08),0 12px 40px rgba(13,27,42,.10);
+      --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-xl: 20px; --r-pill: 999px;
+      --ease: cubic-bezier(0.16,1,0.3,1);
+    }
+    [data-theme="dark"] {
+      --bg: #0c1520; --white: #152233; --border: #1e3450; --border-soft: #172a40;
+      --ink-0: #dce9f5; --ink-1: #b8d0e6; --ink-3: #6288a4; --ink-4: #3f607e; --ink-5: #284259;
+      --blue-mid: #3b82f6; --blue: #60a5fa; --blue-soft: rgba(96,165,250,.12); --blue-chip: rgba(96,165,250,.18);
+      --teal: #2dd4bf; --teal-soft: rgba(45,212,191,.12);
+      --purple: #a78bfa; --purple-soft: rgba(167,139,250,.12);
+      --green: #4ade80; --green-soft: rgba(74,222,128,.12);
+      --amber: #fbbf24; --amber-soft: rgba(251,191,36,.12);
+      --red: #f87171; --red-soft: rgba(248,113,113,.12);
+      --deep: #070e18; --on-deep: #dce9f5;
+      --sh-sm: 0 1px 3px rgba(0,0,0,.20),0 4px 12px rgba(0,0,0,.24);
+      --sh-md: 0 4px 16px rgba(0,0,0,.28),0 12px 40px rgba(0,0,0,.34);
+    }
+    body { font-family: 'Plus Jakarta Sans',sans-serif; background: var(--bg); color: var(--ink-0); -webkit-font-smoothing: antialiased; display: flex; min-height: 100vh; transition: background 280ms,color 280ms; overflow: hidden; }
+    a { text-decoration: none; color: inherit; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+
+    /* ── SIDEBAR NAV ─────────────────────────────── */
+    .sidebar { width: var(--sidebar-w); background: var(--deep); display: flex; flex-direction: column; flex-shrink: 0; height: 100vh; position: sticky; top: 0; overflow-y: auto; }
+    .sidebar::-webkit-scrollbar { width: 4px; } .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 2px; }
+    .nav-brand { display: flex; align-items: center; gap: 9px; padding: 20px 18px 16px; }
+    .logo-mark { width: 30px; height: 30px; border-radius: 8px; background: var(--teal); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 800; flex-shrink: 0; }
+    .logo-name { font-size: 0.9rem; font-weight: 800; color: #fff; }
+    .nav-section { padding: 0 10px; margin-bottom: 6px; }
+    .nav-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .09em; color: rgba(255,255,255,.28); padding: 6px 8px 4px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: var(--r-md); color: rgba(255,255,255,.5); font-size: 0.82rem; font-weight: 600; transition: all 140ms; cursor: pointer; position: relative; }
+    .nav-item:hover { background: rgba(255,255,255,.06); color: rgba(255,255,255,.85); }
+    .nav-item.active { background: rgba(255,255,255,.1); color: #fff; }
+    .nav-item i { font-size: 1rem; width: 18px; text-align: center; }
+    .nav-badge { margin-left: auto; background: var(--blue-mid); color: #fff; font-size: 0.65rem; font-weight: 700; padding: 1px 6px; border-radius: var(--r-pill); min-width: 18px; text-align: center; }
+    .nav-badge.green { background: var(--green); }
+    .nav-sep { height: 1px; background: rgba(255,255,255,.07); margin: 8px 10px; }
+    .sidebar-bottom { margin-top: auto; padding: 12px 10px 16px; }
+    .user-row { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: var(--r-md); cursor: pointer; transition: background 140ms; }
+    .user-row:hover { background: rgba(255,255,255,.06); }
+    .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--blue-mid); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 800; flex-shrink: 0; overflow: hidden; position: relative; }
+    .avatar-status { position: absolute; bottom: 1px; right: 1px; width: 8px; height: 8px; border-radius: 50%; background: var(--green); border: 1.5px solid var(--deep); }
+    .user-info { flex: 1; min-width: 0; }
+    .user-name { font-size: 0.78rem; font-weight: 700; color: #fff; }
+    .user-role { font-size: 0.68rem; color: rgba(255,255,255,.4); }
+    .user-more { color: rgba(255,255,255,.3); font-size: 0.9rem; }
+
+    /* ── MAIN LAYOUT ─────────────────────────────── */
+    .main { flex: 1; display: flex; height: 100vh; overflow: hidden; }
+
+    /* ── CONTACT LIST PANEL ──────────────────────── */
+    .contacts-panel { width: 320px; flex-shrink: 0; background: var(--white); border-right: 1px solid var(--border); display: flex; flex-direction: column; height: 100vh; }
+    .contacts-header { padding: 16px 16px 12px; border-bottom: 1px solid var(--border); }
+    .contacts-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .contacts-title { font-size: 1rem; font-weight: 800; color: var(--ink-0); }
+    .icon-btn { width: 32px; height: 32px; border-radius: var(--r-md); background: var(--bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: var(--ink-3); transition: all 140ms; cursor: pointer; }
+    .icon-btn:hover { background: var(--blue-soft); color: var(--blue-mid); border-color: var(--blue-mid); }
+    .search-wrap { position: relative; }
+    .search-input { width: 100%; height: 36px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-pill); padding: 0 12px 0 34px; font-family: inherit; font-size: 0.82rem; color: var(--ink-0); outline: none; transition: border-color 140ms; }
+    .search-input::placeholder { color: var(--ink-5); }
+    .search-input:focus { border-color: var(--blue-mid); }
+    .search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--ink-5); font-size: 0.85rem; pointer-events: none; }
+    .filter-tabs { display: flex; gap: 4px; padding: 10px 16px 0; }
+    .filter-tab { flex: 1; height: 30px; border-radius: var(--r-pill); font-family: inherit; font-size: 0.75rem; font-weight: 700; cursor: pointer; border: none; background: transparent; color: var(--ink-4); transition: all 140ms; }
+    .filter-tab.active { background: var(--blue-soft); color: var(--blue-mid); }
+    .filter-tab:hover:not(.active) { background: var(--bg); color: var(--ink-1); }
+    .contacts-list { flex: 1; overflow-y: auto; padding: 6px 0; }
+    .contacts-list::-webkit-scrollbar { width: 4px; } .contacts-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .contact-group-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-5); padding: 10px 16px 4px; }
+    .contact-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer; transition: background 120ms; position: relative; border-radius: var(--r-md); margin: 0 6px; }
+    .contact-item:hover { background: var(--bg); }
+    .contact-item.active { background: var(--blue-soft); }
+    .contact-avatar { width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800; color: #fff; position: relative; }
+    .contact-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+    .online-dot { position: absolute; bottom: 1px; right: 1px; width: 9px; height: 9px; border-radius: 50%; background: var(--green); border: 1.5px solid var(--white); }
+    .offline-dot { position: absolute; bottom: 1px; right: 1px; width: 9px; height: 9px; border-radius: 50%; background: var(--ink-5); border: 1.5px solid var(--white); }
+    .away-dot { position: absolute; bottom: 1px; right: 1px; width: 9px; height: 9px; border-radius: 50%; background: var(--amber); border: 1.5px solid var(--white); }
+    .contact-body { flex: 1; min-width: 0; }
+    .contact-name-row { display: flex; align-items: center; justify-content: space-between; gap: 4px; margin-bottom: 3px; }
+    .contact-name { font-size: 0.84rem; font-weight: 700; color: var(--ink-0); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .contact-time { font-size: 0.7rem; color: var(--ink-5); flex-shrink: 0; }
+    .contact-time.unread { color: var(--blue-mid); font-weight: 700; }
+    .contact-preview { font-size: 0.76rem; color: var(--ink-4); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .contact-preview.unread { color: var(--ink-1); font-weight: 600; }
+    .unread-badge { width: 18px; height: 18px; border-radius: 50%; background: var(--blue-mid); color: #fff; font-size: 0.65rem; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .contact-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+
+    /* ── CHAT WINDOW ─────────────────────────────── */
+    .chat-panel { flex: 1; display: flex; flex-direction: column; height: 100vh; background: var(--bg); min-width: 0; }
+    .chat-topbar { height: 60px; background: var(--white); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; padding: 0 16px; flex-shrink: 0; }
+    .chat-user-info { flex: 1; display: flex; align-items: center; gap: 10px; }
+    .chat-avatar { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; font-weight: 800; color: #fff; position: relative; }
+    .chat-user-name { font-size: 0.9rem; font-weight: 800; color: var(--ink-0); }
+    .chat-status { font-size: 0.72rem; color: var(--green); font-weight: 600; }
+    .chat-status.offline { color: var(--ink-5); }
+    .chat-status.away { color: var(--amber); }
+    .topbar-actions { display: flex; align-items: center; gap: 6px; }
+
+    /* ── MESSAGES AREA ───────────────────────────── */
+    .messages-area { flex: 1; overflow-y: auto; padding: 20px 20px 12px; display: flex; flex-direction: column; gap: 2px; }
+    .messages-area::-webkit-scrollbar { width: 4px; } .messages-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .day-divider { display: flex; align-items: center; gap: 10px; margin: 14px 0 10px; }
+    .day-divider::before, .day-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .day-label { font-size: 0.7rem; font-weight: 700; color: var(--ink-5); padding: 3px 10px; background: var(--border-soft); border-radius: var(--r-pill); white-space: nowrap; }
+    .msg-row { display: flex; align-items: flex-end; gap: 8px; margin-bottom: 2px; }
+    .msg-row.me { flex-direction: row-reverse; }
+    .msg-avatar { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.62rem; font-weight: 800; color: #fff; align-self: flex-end; }
+    .msg-row.me .msg-avatar { display: none; }
+    .msg-group { display: flex; flex-direction: column; gap: 2px; max-width: 68%; }
+    .msg-row.me .msg-group { align-items: flex-end; }
+    .bubble { padding: 10px 14px; border-radius: 16px; font-size: 0.84rem; line-height: 1.55; position: relative; word-break: break-word; }
+    .bubble-them { background: var(--white); color: var(--ink-0); border-bottom-left-radius: 4px; box-shadow: var(--sh-sm); }
+    .bubble-me { background: var(--blue-mid); color: #fff; border-bottom-right-radius: 4px; }
+    .bubble-first-them { border-top-left-radius: 16px; }
+    .bubble-mid-them { border-top-left-radius: 4px; }
+    .bubble-first-me { border-top-right-radius: 16px; }
+    .bubble-mid-me { border-top-right-radius: 4px; }
+    .msg-meta { display: flex; align-items: center; gap: 4px; margin-top: 2px; }
+    .msg-row.me .msg-meta { justify-content: flex-end; }
+    .msg-time { font-size: 0.67rem; color: var(--ink-5); }
+    .msg-row.me .msg-time { color: var(--ink-5); }
+    .msg-status { font-size: 0.72rem; color: var(--blue-mid); }
+    .msg-status.delivered { color: var(--ink-5); }
+
+    /* File attachment bubble */
+    .bubble-file { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--white); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--sh-sm); cursor: pointer; transition: background 140ms; max-width: 260px; }
+    .bubble-file:hover { background: var(--bg); }
+    .bubble-file.me { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.2); }
+    .file-icon-wrap { width: 36px; height: 36px; border-radius: var(--r-md); background: var(--blue-soft); color: var(--blue-mid); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+    .bubble-file.me .file-icon-wrap { background: rgba(255,255,255,.15); color: #fff; }
+    .file-info { flex: 1; min-width: 0; }
+    .file-name { font-size: 0.78rem; font-weight: 700; color: var(--ink-0); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bubble-file.me .file-name { color: #fff; }
+    .file-size { font-size: 0.68rem; color: var(--ink-5); }
+    .bubble-file.me .file-size { color: rgba(255,255,255,.6); }
+
+    /* Image bubble */
+    .bubble-img { border-radius: var(--r-lg); overflow: hidden; max-width: 260px; cursor: pointer; position: relative; }
+    .bubble-img img { width: 100%; display: block; }
+    .bubble-img-placeholder { width: 220px; height: 150px; background: var(--border-soft); border-radius: var(--r-lg); display: flex; align-items: center; justify-content: center; }
+    .bubble-img-placeholder i { font-size: 2rem; color: var(--ink-5); }
+
+    /* Reaction */
+    .msg-reactions { display: flex; gap: 4px; margin-top: 4px; }
+    .reaction-chip { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-pill); font-size: 0.72rem; cursor: pointer; transition: all 140ms; }
+    .reaction-chip:hover { border-color: var(--blue-mid); }
+    .reaction-chip.mine { background: var(--blue-chip); border-color: var(--blue-mid); color: var(--blue-mid); }
+    .reaction-count { font-weight: 700; color: var(--ink-3); font-size: 0.68rem; }
+    .reaction-chip.mine .reaction-count { color: var(--blue-mid); }
+
+    /* Typing indicator */
+    .typing-row { display: flex; align-items: flex-end; gap: 8px; padding: 4px 0; }
+    .typing-bubble { display: flex; align-items: center; gap: 4px; padding: 10px 14px; background: var(--white); border-radius: 16px; border-bottom-left-radius: 4px; box-shadow: var(--sh-sm); }
+    .typing-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-5); animation: typingBounce 1.2s ease-in-out infinite; }
+    .typing-dot:nth-child(2) { animation-delay: .2s; }
+    .typing-dot:nth-child(3) { animation-delay: .4s; }
+    @keyframes typingBounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }
+
+    /* ── COMPOSE BAR ─────────────────────────────── */
+    .compose-wrap { padding: 12px 16px; background: var(--white); border-top: 1px solid var(--border); flex-shrink: 0; }
+    .compose-toolbar { display: flex; align-items: center; gap: 4px; padding-bottom: 8px; border-bottom: 1px solid var(--border-soft); margin-bottom: 8px; }
+    .compose-tool { width: 28px; height: 28px; border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; color: var(--ink-4); cursor: pointer; transition: all 140ms; }
+    .compose-tool:hover { background: var(--bg); color: var(--ink-1); }
+    .compose-tool.active { background: var(--blue-soft); color: var(--blue-mid); }
+    .compose-sep { width: 1px; height: 18px; background: var(--border); margin: 0 2px; }
+    .compose-row { display: flex; align-items: flex-end; gap: 8px; }
+    .compose-input-wrap { flex: 1; position: relative; }
+    .compose-input { width: 100%; min-height: 40px; max-height: 120px; background: var(--bg); border: 1px solid var(--border); border-radius: 20px; padding: 10px 14px; font-family: inherit; font-size: 0.84rem; color: var(--ink-0); outline: none; resize: none; line-height: 1.5; transition: border-color 140ms; overflow-y: auto; }
+    .compose-input:focus { border-color: var(--blue-mid); background: var(--white); }
+    .compose-input:empty::before { content: attr(data-placeholder); color: var(--ink-5); }
+    .compose-actions { display: flex; align-items: center; gap: 6px; }
+    .send-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--blue-mid); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; cursor: pointer; border: none; transition: all 140ms var(--ease); flex-shrink: 0; }
+    .send-btn:hover { background: var(--blue); transform: scale(1.08); }
+    .send-btn:active { transform: scale(0.96); }
+
+    /* ── EMOJI PICKER ────────────────────────────── */
+    .emoji-picker { position: absolute; bottom: calc(100% + 10px); left: 0; background: var(--white); border: 1px solid var(--border); border-radius: var(--r-xl); box-shadow: var(--sh-md); width: 300px; overflow: hidden; z-index: 100; animation: fadeUp 180ms var(--ease) both; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+    .emoji-picker-header { display: flex; padding: 10px; gap: 4px; border-bottom: 1px solid var(--border); }
+    .emoji-cat-btn { flex: 1; height: 32px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; cursor: pointer; transition: background 140ms; }
+    .emoji-cat-btn:hover, .emoji-cat-btn.active { background: var(--bg); }
+    .emoji-search { padding: 8px 10px; }
+    .emoji-search input { width: 100%; height: 30px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-pill); padding: 0 10px 0 28px; font-family: inherit; font-size: 0.78rem; color: var(--ink-0); outline: none; }
+    .emoji-search-icon { position: relative; }
+    .emoji-search-icon::before { content: '\F52A'; font-family: 'bootstrap-icons'; position: absolute; left: 20px; top: 18px; font-size: 0.72rem; color: var(--ink-5); pointer-events: none; }
+    .emoji-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; padding: 6px 10px 10px; max-height: 180px; overflow-y: auto; }
+    .emoji-grid::-webkit-scrollbar { width: 4px; } .emoji-grid::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .emoji-item { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: var(--r-sm); font-size: 1.25rem; cursor: pointer; transition: background 100ms; }
+    .emoji-item:hover { background: var(--bg); }
+
+    /* ── DETAIL PANEL ────────────────────────────── */
+    .detail-panel { width: 280px; background: var(--white); border-left: 1px solid var(--border); display: flex; flex-direction: column; height: 100vh; flex-shrink: 0; transition: width 300ms var(--ease), opacity 200ms; overflow: hidden; }
+    .detail-panel.hidden { width: 0; opacity: 0; }
+    .detail-header { padding: 16px 16px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .detail-title { font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-5); }
+    .detail-body { flex: 1; overflow-y: auto; padding: 0; }
+    .detail-body::-webkit-scrollbar { width: 4px; } .detail-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .detail-profile { display: flex; flex-direction: column; align-items: center; padding: 20px 16px 16px; border-bottom: 1px solid var(--border); }
+    .detail-avatar { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: 800; color: #fff; margin-bottom: 10px; position: relative; }
+    .detail-avatar .online-dot { width: 12px; height: 12px; border-width: 2px; }
+    .detail-name { font-size: 0.95rem; font-weight: 800; color: var(--ink-0); margin-bottom: 3px; }
+    .detail-username { font-size: 0.76rem; color: var(--ink-4); margin-bottom: 10px; }
+    .detail-status-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: var(--r-pill); font-size: 0.7rem; font-weight: 700; }
+    .detail-status-badge.online { background: var(--green-soft); color: var(--green); }
+    .detail-status-badge.offline { background: var(--bg); color: var(--ink-5); }
+    .detail-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .detail-action-btn { flex: 1; height: 32px; border-radius: var(--r-md); background: var(--bg); border: 1px solid var(--border); font-family: inherit; font-size: 0.72rem; font-weight: 700; color: var(--ink-3); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; transition: all 140ms; }
+    .detail-action-btn:hover { background: var(--blue-soft); color: var(--blue-mid); border-color: var(--blue-mid); }
+    .detail-section { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+    .detail-section-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-5); margin-bottom: 10px; }
+    .detail-info-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; }
+    .detail-info-icon { width: 26px; height: 26px; border-radius: var(--r-sm); background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 0.78rem; color: var(--ink-4); flex-shrink: 0; }
+    .detail-info-text { font-size: 0.78rem; color: var(--ink-3); }
+    .media-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+    .media-thumb { aspect-ratio: 1; border-radius: var(--r-sm); background: var(--border-soft); overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: opacity 140ms; }
+    .media-thumb:hover { opacity: .8; }
+    .media-thumb i { font-size: 1.2rem; color: var(--ink-5); }
+    .shared-file-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border-soft); cursor: pointer; transition: opacity 140ms; }
+    .shared-file-row:last-child { border-bottom: none; }
+    .shared-file-row:hover { opacity: .7; }
+    .shared-file-icon { width: 30px; height: 30px; border-radius: var(--r-sm); background: var(--blue-soft); color: var(--blue-mid); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0; }
+    .shared-file-name { font-size: 0.76rem; font-weight: 600; color: var(--ink-1); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .shared-file-size { font-size: 0.68rem; color: var(--ink-5); }
+
+    /* ── SYSTEM MESSAGE ──────────────────────────── */
+    .sys-msg { text-align: center; padding: 6px 16px; }
+    .sys-msg span { font-size: 0.72rem; color: var(--ink-5); background: var(--border-soft); padding: 3px 10px; border-radius: var(--r-pill); }
+
+    /* ── REPLY PREVIEW BAR ───────────────────────── */
+    .reply-bar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--bg); border-radius: var(--r-md); margin-bottom: 8px; border-left: 3px solid var(--blue-mid); }
+    .reply-text { flex: 1; font-size: 0.78rem; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .reply-close { color: var(--ink-5); cursor: pointer; transition: color 140ms; }
+    .reply-close:hover { color: var(--red); }
+
+    /* ── EMPTY STATE ─────────────────────────────── */
+    .chat-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 40px; }
+    .chat-empty i { font-size: 3rem; color: var(--ink-5); }
+    .chat-empty h3 { font-size: 1rem; font-weight: 800; color: var(--ink-0); }
+    .chat-empty p { font-size: 0.82rem; color: var(--ink-4); text-align: center; line-height: 1.6; }
+
+    /* ── TOAST ───────────────────────────────────── */
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(12px); background: var(--ink-0); color: var(--on-deep); font-size: 0.8rem; font-weight: 600; padding: 9px 18px; border-radius: var(--r-pill); box-shadow: var(--sh-md); opacity: 0; pointer-events: none; transition: all 280ms var(--ease); z-index: 200; white-space: nowrap; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── UNREAD JUMP BTN ─────────────────────────── */
+    .scroll-btn { position: absolute; bottom: 80px; right: 28px; width: 36px; height: 36px; border-radius: 50%; background: var(--white); border: 1px solid var(--border); box-shadow: var(--sh-sm); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; color: var(--ink-3); cursor: pointer; transition: all 140ms; opacity: 0; pointer-events: none; z-index: 10; }
+    .scroll-btn.visible { opacity: 1; pointer-events: auto; }
+    .scroll-btn:hover { background: var(--blue-soft); color: var(--blue-mid); }
+
+    /* Color helpers */
+    .c-blue { background: #2563eb; } .c-teal { background: #0d9488; } .c-purple { background: #7c3aed; }
+    .c-green { background: #16a34a; } .c-orange { background: #ea580c; } .c-pink { background: #db2777; }
+    .c-indigo { background: #4f46e5; } .c-rose { background: #e11d48; }
+  </style>
+</head>
+<body>
+  <script>(function(){ try { var t=localStorage.getItem('lms-theme'); if(t) document.documentElement.setAttribute('data-theme',t); } catch(e){} })();</script>
+
+  <!-- ── SIDEBAR NAV ──────────────────────────────────── -->
+  <nav class="sidebar">
+    <div class="nav-brand">
+      <div class="logo-mark">AL</div>
+      <span class="logo-name">AzureLMS</span>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Asosiy</div>
+      <a href="../app/app-shell.html" class="nav-item"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+      <a href="../app/app-course-list.html" class="nav-item"><i class="bi bi-play-circle"></i> Kurslar <span class="nav-badge green">3</span></a>
+      <a href="#" class="nav-item"><i class="bi bi-journal-bookmark"></i> Darslar</a>
+      <a href="#" class="nav-item"><i class="bi bi-trophy"></i> Yutuqlar</a>
+    </div>
+
+    <div class="nav-sep"></div>
+
+    <div class="nav-section">
+      <div class="nav-label">Hamjamiyat</div>
+      <a href="#" class="nav-item active"><i class="bi bi-chat-dots"></i> Xabarlar <span class="nav-badge">5</span></a>
+      <a href="#" class="nav-item"><i class="bi bi-people"></i> Guruhlar</a>
+      <a href="../blog/blog-shell.html" class="nav-item"><i class="bi bi-newspaper"></i> Blog</a>
+    </div>
+
+    <div class="nav-sep"></div>
+
+    <div class="nav-section">
+      <div class="nav-label">Boshqaruv</div>
+      <a href="../blog-studio/blog-studio-shell.html" class="nav-item"><i class="bi bi-pencil-square"></i> Studio</a>
+      <a href="../exam/exam-shell.html" class="nav-item"><i class="bi bi-patch-check"></i> Imtihonlar</a>
+      <a href="../app/app-profile.html" class="nav-item"><i class="bi bi-person-circle"></i> Profil</a>
+    </div>
+
+    <div class="sidebar-bottom">
+      <a href="../index.html" class="nav-item" style="margin-bottom:6px;"><i class="bi bi-grid"></i> Barcha sahifalar</a>
+      <div class="user-row">
+        <div class="avatar c-teal">AZ <div class="avatar-status"></div></div>
+        <div class="user-info">
+          <div class="user-name">Azurebek</div>
+          <div class="user-role">Student</div>
+        </div>
+        <i class="bi bi-three-dots-vertical user-more"></i>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── MAIN ──────────────────────────────────────────── -->
+  <div class="main">
+
+    <!-- ── CONTACTS PANEL ──────────────────────────────── -->
+    <div class="contacts-panel">
+      <div class="contacts-header">
+        <div class="contacts-title-row">
+          <span class="contacts-title">Xabarlar</span>
+          <div style="display:flex;gap:6px;">
+            <button class="icon-btn" onclick="showToast('Yangi chat boshlash')"><i class="bi bi-pencil-square"></i></button>
+            <button class="icon-btn" onclick="showToast('Sozlamalar')"><i class="bi bi-sliders"></i></button>
+          </div>
+        </div>
+        <div class="search-wrap">
+          <i class="bi bi-search search-icon"></i>
+          <input type="text" class="search-input" placeholder="Qidirish..." oninput="filterContacts(this.value)">
+        </div>
+      </div>
+
+      <div style="padding:0 16px;">
+        <div class="filter-tabs">
+          <button class="filter-tab active" onclick="setFilter(this,'all')">Barchasi</button>
+          <button class="filter-tab" onclick="setFilter(this,'unread')">O'qilmagan</button>
+          <button class="filter-tab" onclick="setFilter(this,'groups')">Guruhlar</button>
+        </div>
+      </div>
+
+      <div class="contacts-list" id="contactsList">
+        <!-- Pinned -->
+        <div class="contact-group-label">Muhrlangan</div>
+
+        <div class="contact-item active" onclick="openChat(this, 'Dilnoza Yusupova', 'online', 'c-purple', 'DY', 'Dasturlash kursining 5-moduli bo\'yicha savolingiz bormi?', '10:42', 0)">
+          <div class="contact-avatar c-purple">DY<div class="online-dot"></div></div>
+          <div class="contact-body">
+            <div class="contact-name-row">
+              <span class="contact-name">Dilnoza Yusupova</span>
+              <span class="contact-time">10:42</span>
+            </div>
+            <div class="contact-preview">Dasturlash kursining 5-moduli bo'yicha savolingiz bormi?</div>
+          </div>
+        </div>
+
+        <div class="contact-item" onclick="openChat(this, 'React Guruh', 'online', 'c-blue', 'RG', '👍 Zo\'r ishladingiz barchaga!', '9:15', 3)">
+          <div class="contact-avatar c-blue" style="border-radius:12px;">RG<div class="online-dot"></div></div>
+          <div class="contact-body">
+            <div class="contact-name-row">
+              <span class="contact-name">React Guruh</span>
+              <div class="contact-meta"><span class="contact-time unread">9:15</span></div>
+            </div>
+            <div class="contact-preview unread">👍 Zo'r ishladingiz barchaga!</div>
+          </div>
+          <div class="unread-badge">3</div>
+        </div>
+
+        <!-- Recent -->
+        <div class="contact-group-label">So'nggi</div>
+
+        <div class="contact-item" onclick="openChat(this, 'Bobur Nazarov', 'away', 'c-orange', 'BN', 'Loyiha fayli yuborildi ✅', 'Kecha', 0)">
+          <div class="contact-avatar c-orange">BN<div class="away-dot"></div></div>
+          <div class="contact-body">
+            <div class="contact-name-row">
+              <span class="contact-name">Bobur Nazarov</span>
+              <span class="contact-time">Kecha</span>
+            </div>
+            <div class="contact-preview">Loyiha fayli yuborildi ✅</div>
+          </div>
+        </div>
+
+        <div class="contact-item" onclick="openChat(this, 'Kamola Islamova', 'offline', 'c-pink', 'KI', 'Rahmat, juda foydali bo\'ldi!', 'Kecha', 1)">
+          <div class="contact-avatar c-pink">KI<div class="offline-dot"></div></div>
+          <div class="contact-body">
+            <div class="contact-name-row">
+              <span class="contact-name">Kamola Islamova</span>
+              <div class="contact-meta"><span class="contact-time unread">Kecha</span></div>
+            </div>
+            <div class="contact-preview unread">Rahmat, juda foydali bo'ldi!</div>
+          </div>
+          <div class="unread-badge">1</div>
+        </div>
+
+        <div class="contact-item" onclick="openChat(this, 'Ulugbek Toshmatov', 'online', 'c-indigo', 'UT', 'Siz aytgan metoddan foydalandim', 'Seshanba', 0)">
+          <div class="contact-avatar c-indigo">UT<div class="online-dot"></div></div>
+          <div class="contact-body">
+            <div class="contact-name-row">
+              <span class="contact-name">Ulugbek Toshmatov</span>
+              <span class="contact-time">Seshanba</span>
+            </div>
+            <div class="contact-preview">Siz aytgan metoddan foydalandim</div>
+          </div>
+        </div>
+
+        <div class="contact-item" onclick="openChat(this, 'JavaScript Bootcamp', 'online', 'c-green', 'JS', 'Bugungi dars 20:00da boshlanadi', 'Seshanba', 2)">
+          <div class="contact-avatar c-green" style="border-radius:12px;">JS<div class="online-dot"></div></div>
+          <div class="contact-body">
+            <div class="contact-name-row">
+              <span class="contact-name">JavaScript Bootcamp</span>
+              <div class="contact-meta"><span class="contact-time unread">Seshanba</span></div>
+            </div>
+            <div class="contact-preview unread">Bugungi dars 20:00da boshlanadi</div>
+          </div>
+          <div class="unread-badge">2</div>
+        </div>
+
+        <div class="contact-item" onclick="openChat(this, 'Sarvinoz Rahimova', 'offline', 'c-rose', 'SR', 'Ko\'rishguncha! 👋', 'Dushanba', 0)">
+          <div class="contact-avatar c-rose">SR<div class="offline-dot"></div></div>
+          <div class="contact-body">
+            <div class="contact-name-row">
+              <span class="contact-name">Sarvinoz Rahimova</span>
+              <span class="contact-time">Dushanba</span>
+            </div>
+            <div class="contact-preview">Ko'rishguncha! 👋</div>
+          </div>
+        </div>
+
+        <div class="contact-item" onclick="openChat(this, 'Nodir Xasanov', 'online', 'c-teal', 'NX', 'CV ni ko\'rib chiqdim, ajoyib!', 'Yakshanba', 0)">
+          <div class="contact-avatar c-teal">NX<div class="online-dot"></div></div>
+          <div class="contact-body">
+            <div class="contact-name-row">
+              <span class="contact-name">Nodir Xasanov</span>
+              <span class="contact-time">Yakshanba</span>
+            </div>
+            <div class="contact-preview">CV ni ko'rib chiqdim, ajoyib!</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CHAT PANEL ───────────────────────────────────── -->
+    <div class="chat-panel" id="chatPanel">
+      <!-- Topbar -->
+      <div class="chat-topbar" id="chatTopbar">
+        <div class="chat-user-info">
+          <div class="chat-avatar c-purple" id="chatAvatar">DY</div>
+          <div>
+            <div class="chat-user-name" id="chatName">Dilnoza Yusupova</div>
+            <div class="chat-status" id="chatStatus">● Online</div>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <button class="icon-btn" onclick="showToast('Qo\'ng\'iroq qilish')"><i class="bi bi-telephone"></i></button>
+          <button class="icon-btn" onclick="showToast('Video qo\'ng\'iroq')"><i class="bi bi-camera-video"></i></button>
+          <button class="icon-btn" id="detailToggleBtn" onclick="toggleDetail()"><i class="bi bi-layout-sidebar-reverse"></i></button>
+          <button class="icon-btn" onclick="showToast('Qidirish')"><i class="bi bi-search"></i></button>
+          <button class="icon-btn" onclick="showToast('Ko\'proq')"><i class="bi bi-three-dots-vertical"></i></button>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div class="messages-area" id="messagesArea">
+        <div class="day-divider"><span class="day-label">Bugun, 17 May</span></div>
+
+        <!-- Them group 1 -->
+        <div class="msg-row">
+          <div class="msg-avatar c-purple" style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:800;color:#fff;flex-shrink:0;">DY</div>
+          <div class="msg-group">
+            <div class="bubble bubble-them bubble-first-them">Salom! Dasturlash kursining 5-moduli bo'yicha savolingiz bormi? Men sizga yordam berishim mumkin 😊</div>
+            <div class="bubble bubble-them bubble-mid-them">Har qanday savolni bering, javob berishga tayyorman!</div>
+            <div class="msg-meta"><span class="msg-time">10:38</span></div>
+            <div class="msg-reactions">
+              <div class="reaction-chip mine" onclick="toggleReaction(this)">👍 <span class="reaction-count">2</span></div>
+              <div class="reaction-chip" onclick="toggleReaction(this)">❤️ <span class="reaction-count">1</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Me group 1 -->
+        <div class="msg-row me" style="margin-top:6px;">
+          <div class="msg-group">
+            <div class="bubble bubble-me bubble-first-me">Ha, albatta! 5-modulda async/await tushunchasi menga biroz qiyin tuyulmoqda.</div>
+            <div class="bubble bubble-me bubble-mid-me">Ayniqsa Promise chaining va error handling qismi...</div>
+            <div class="msg-meta"><span class="msg-time">10:40</span><i class="bi bi-check2-all msg-status"></i></div>
+          </div>
+        </div>
+
+        <!-- Them group 2 -->
+        <div class="msg-row" style="margin-top:6px;">
+          <div class="msg-avatar c-purple" style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:800;color:#fff;flex-shrink:0;">DY</div>
+          <div class="msg-group">
+            <div class="bubble bubble-them bubble-first-them">Tushunarli! Men sizga yaxshi misol yubora olaman. Mana bu materialga qarang:</div>
+            <!-- File bubble -->
+            <div class="bubble-file">
+              <div class="file-icon-wrap"><i class="bi bi-file-earmark-pdf"></i></div>
+              <div class="file-info">
+                <div class="file-name">async-await-guide.pdf</div>
+                <div class="file-size">2.4 MB • PDF fayl</div>
+              </div>
+              <i class="bi bi-download" style="color:var(--ink-5);font-size:0.85rem;"></i>
+            </div>
+            <div class="msg-meta"><span class="msg-time">10:42</span></div>
+          </div>
+        </div>
+
+        <!-- Me with image -->
+        <div class="msg-row me" style="margin-top:6px;">
+          <div class="msg-group">
+            <div class="bubble bubble-me bubble-first-me">Rahmat! Men bu kodni yozib ko'rdim lekin xato chiqyapti</div>
+            <div class="bubble-img">
+              <div class="bubble-img-placeholder"><i class="bi bi-image"></i></div>
+            </div>
+            <div class="msg-meta"><span class="msg-time">10:44</span><i class="bi bi-check2-all msg-status"></i></div>
+          </div>
+        </div>
+
+        <!-- System message -->
+        <div class="sys-msg"><span>Dilnoza fayl ulashdi</span></div>
+
+        <!-- Them group 3 -->
+        <div class="msg-row" style="margin-top:6px;">
+          <div class="msg-avatar c-purple" style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:800;color:#fff;flex-shrink:0;">DY</div>
+          <div class="msg-group">
+            <div class="bubble bubble-them bubble-first-them">Xatoni ko'rdim! <code style="background:var(--bg);padding:1px 5px;border-radius:4px;font-size:0.8em;">await</code> ni async funksiya ichida ishlatish kerak. Mana to'g'ri variant:</div>
+            <div class="bubble bubble-them bubble-mid-them" style="font-family:monospace;font-size:0.78rem;background:var(--bg);line-height:1.7;">async function fetchData() {<br>&nbsp;&nbsp;try {<br>&nbsp;&nbsp;&nbsp;&nbsp;const res = await fetch(url);<br>&nbsp;&nbsp;&nbsp;&nbsp;const data = await res.json();<br>&nbsp;&nbsp;&nbsp;&nbsp;return data;<br>&nbsp;&nbsp;} catch (err) {<br>&nbsp;&nbsp;&nbsp;&nbsp;console.error(err);<br>&nbsp;&nbsp;}<br>}</div>
+            <div class="msg-meta"><span class="msg-time">10:46</span></div>
+          </div>
+        </div>
+
+        <!-- Me last -->
+        <div class="msg-row me" style="margin-top:6px;">
+          <div class="msg-group">
+            <div class="bubble bubble-me bubble-first-me">Voy, juda aniq tushuntirdingiz! Ishlab ketdi 🎉 Katta rahmat Dilnoza opa!</div>
+            <div class="msg-meta"><span class="msg-time">10:47</span><i class="bi bi-check2-all msg-status"></i></div>
+            <div class="msg-reactions">
+              <div class="reaction-chip mine" onclick="toggleReaction(this)">🎉 <span class="reaction-count">1</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Them last -->
+        <div class="msg-row" style="margin-top:6px;">
+          <div class="msg-avatar c-purple" style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:800;color:#fff;flex-shrink:0;">DY</div>
+          <div class="msg-group">
+            <div class="bubble bubble-them bubble-first-them">Arzimaydi! 😊 Yana savollar bo'lsa, bemalol yozing. Kursni muvaffaqiyatli tugatishingizni xohlayman!</div>
+            <div class="msg-meta"><span class="msg-time">10:48</span></div>
+          </div>
+        </div>
+
+        <!-- Typing indicator -->
+        <div class="typing-row" id="typingIndicator" style="display:none;">
+          <div class="msg-avatar c-purple" style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:800;color:#fff;flex-shrink:0;">DY</div>
+          <div class="typing-bubble">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scroll to bottom btn -->
+      <button class="scroll-btn" id="scrollBtn" onclick="scrollToBottom()"><i class="bi bi-chevron-down"></i></button>
+
+      <!-- Compose -->
+      <div class="compose-wrap" style="position:relative;">
+        <!-- Reply bar (hidden by default) -->
+        <div class="reply-bar" id="replyBar" style="display:none;">
+          <i class="bi bi-reply" style="color:var(--blue-mid);"></i>
+          <span class="reply-text" id="replyText">Javob berilmoqda...</span>
+          <i class="bi bi-x reply-close" onclick="cancelReply()"></i>
+        </div>
+
+        <div class="compose-toolbar">
+          <div class="compose-tool" onclick="execCmd('bold')" title="Bold"><i class="bi bi-type-bold"></i></div>
+          <div class="compose-tool" onclick="execCmd('italic')" title="Italic"><i class="bi bi-type-italic"></i></div>
+          <div class="compose-tool" onclick="execCmd('strikeThrough')" title="Strike"><i class="bi bi-type-strikethrough"></i></div>
+          <div class="compose-sep"></div>
+          <div class="compose-tool" onclick="insertCodeBlock()" title="Code"><i class="bi bi-code-slash"></i></div>
+          <div class="compose-tool" onclick="insertLink()" title="Link"><i class="bi bi-link-45deg"></i></div>
+          <div class="compose-sep"></div>
+          <div class="compose-tool" id="emojiToggleBtn" onclick="toggleEmoji()" title="Emoji"><i class="bi bi-emoji-smile"></i></div>
+          <div class="compose-tool" onclick="triggerFileUpload()" title="Fayl"><i class="bi bi-paperclip"></i></div>
+          <div class="compose-tool" onclick="triggerImageUpload()" title="Rasm"><i class="bi bi-image"></i></div>
+        </div>
+
+        <!-- Emoji picker -->
+        <div class="emoji-picker" id="emojiPicker" style="display:none;">
+          <div class="emoji-picker-header">
+            <div class="emoji-cat-btn active" title="Tez-tez">⭐</div>
+            <div class="emoji-cat-btn" title="Yuzlar">😀</div>
+            <div class="emoji-cat-btn" title="Tabiat">🌿</div>
+            <div class="emoji-cat-btn" title="Ovqat">🍕</div>
+            <div class="emoji-cat-btn" title="Harakatlar">⚽</div>
+            <div class="emoji-cat-btn" title="Sayohat">✈️</div>
+            <div class="emoji-cat-btn" title="Belgilar">💡</div>
+            <div class="emoji-cat-btn" title="Bayroqlar">🏳️</div>
+          </div>
+          <div class="emoji-search emoji-search-icon">
+            <input type="text" placeholder="Emoji qidirish..." oninput="filterEmojis(this.value)" style="padding-left:28px;">
+          </div>
+          <div class="emoji-grid" id="emojiGrid"></div>
+        </div>
+
+        <div class="compose-row">
+          <div class="compose-input-wrap">
+            <div class="compose-input" id="composeInput" contenteditable="true" data-placeholder="Xabar yozing..." onkeydown="handleComposeKey(event)" oninput="onComposeInput()"></div>
+          </div>
+          <div class="compose-actions">
+            <button class="send-btn" onclick="sendMessage()"><i class="bi bi-send-fill"></i></button>
+          </div>
+        </div>
+        <input type="file" id="fileInput" style="display:none;" onchange="handleFileAttach(this)">
+        <input type="file" id="imageInput" accept="image/*" style="display:none;" onchange="handleImageAttach(this)">
+      </div>
+    </div>
+
+    <!-- ── DETAIL PANEL ──────────────────────────────────── -->
+    <div class="detail-panel" id="detailPanel">
+      <div class="detail-header">
+        <span class="detail-title">Ma'lumot</span>
+        <button class="icon-btn" onclick="toggleDetail()"><i class="bi bi-x"></i></button>
+      </div>
+      <div class="detail-body">
+        <div class="detail-profile">
+          <div class="detail-avatar c-purple">DY<div class="online-dot"></div></div>
+          <div class="detail-name">Dilnoza Yusupova</div>
+          <div class="detail-username">@dilnoza_dev</div>
+          <div class="detail-status-badge online"><i class="bi bi-circle-fill" style="font-size:.45rem;"></i> Online</div>
+          <div class="detail-actions">
+            <button class="detail-action-btn" onclick="showToast('Qo\'ng\'iroq qilish')"><i class="bi bi-telephone"></i> Qo'ng'iroq</button>
+            <button class="detail-action-btn" onclick="showToast('Profil ochildi')"><i class="bi bi-person"></i> Profil</button>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-section-title">Ma'lumotlar</div>
+          <div class="detail-info-row">
+            <div class="detail-info-icon"><i class="bi bi-mortarboard"></i></div>
+            <span class="detail-info-text">Senior Frontend Developer</span>
+          </div>
+          <div class="detail-info-row">
+            <div class="detail-info-icon"><i class="bi bi-building"></i></div>
+            <span class="detail-info-text">AzureTech LLC</span>
+          </div>
+          <div class="detail-info-row">
+            <div class="detail-info-icon"><i class="bi bi-geo-alt"></i></div>
+            <span class="detail-info-text">Toshkent, O'zbekiston</span>
+          </div>
+          <div class="detail-info-row">
+            <div class="detail-info-icon"><i class="bi bi-clock"></i></div>
+            <span class="detail-info-text">10:48 (UTC+5)</span>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-section-title">Media (6)</div>
+          <div class="media-grid">
+            <div class="media-thumb"><i class="bi bi-image"></i></div>
+            <div class="media-thumb"><i class="bi bi-image"></i></div>
+            <div class="media-thumb"><i class="bi bi-play-circle"></i></div>
+            <div class="media-thumb"><i class="bi bi-image"></i></div>
+            <div class="media-thumb"><i class="bi bi-image"></i></div>
+            <div class="media-thumb"><i class="bi bi-image"></i></div>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-section-title">Ulashilgan fayllar (3)</div>
+          <div class="shared-file-row">
+            <div class="shared-file-icon"><i class="bi bi-file-earmark-pdf"></i></div>
+            <div style="flex:1;min-width:0;">
+              <div class="shared-file-name">async-await-guide.pdf</div>
+              <div class="shared-file-size">2.4 MB • 10 May</div>
+            </div>
+          </div>
+          <div class="shared-file-row">
+            <div class="shared-file-icon" style="background:var(--green-soft);color:var(--green);"><i class="bi bi-file-earmark-zip"></i></div>
+            <div style="flex:1;min-width:0;">
+              <div class="shared-file-name">react-project-starter.zip</div>
+              <div class="shared-file-size">8.1 MB • 8 May</div>
+            </div>
+          </div>
+          <div class="shared-file-row">
+            <div class="shared-file-icon" style="background:var(--amber-soft);color:var(--amber);"><i class="bi bi-file-earmark-slides"></i></div>
+            <div style="flex:1;min-width:0;">
+              <div class="shared-file-name">module-5-slides.pptx</div>
+              <div class="shared-file-size">1.9 MB • 5 May</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-section" style="border-bottom:none;">
+          <div class="detail-section-title">Harakatlar</div>
+          <button class="detail-action-btn" style="width:100%;margin-bottom:8px;justify-content:flex-start;padding:0 12px;gap:8px;" onclick="showToast('Ovoz o\'chirildi')"><i class="bi bi-bell-slash"></i> Bildirishnomani o'chirish</button>
+          <button class="detail-action-btn" style="width:100%;margin-bottom:8px;justify-content:flex-start;padding:0 12px;gap:8px;color:var(--red);" onclick="showToast('Bloklandi')"><i class="bi bi-slash-circle"></i> Foydalanuvchini bloklash</button>
+          <button class="detail-action-btn" style="width:100%;justify-content:flex-start;padding:0 12px;gap:8px;color:var(--red);" onclick="showToast('Chat o\'chirildi')"><i class="bi bi-trash"></i> Chatni o'chirish</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ── THEME ──────────────────────────────────────────────────
+    function toggleTheme() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      try { localStorage.setItem('lms-theme', isDark ? 'light' : 'dark'); } catch(e){}
+    }
+
+    // ── TOAST ──────────────────────────────────────────────────
+    let toastTimer;
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+    }
+
+    // ── FILTER TABS ────────────────────────────────────────────
+    function setFilter(btn, type) {
+      document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      showToast(type === 'all' ? 'Barcha xabarlar' : type === 'unread' ? "O'qilmaganlar" : 'Guruhlar');
+    }
+
+    // ── CONTACT SEARCH ─────────────────────────────────────────
+    function filterContacts(q) {
+      const items = document.querySelectorAll('.contact-item');
+      items.forEach(item => {
+        const name = item.querySelector('.contact-name').textContent.toLowerCase();
+        item.style.display = name.includes(q.toLowerCase()) ? '' : 'none';
+      });
+    }
+
+    // ── OPEN CHAT ──────────────────────────────────────────────
+    function openChat(item, name, status, colorClass, initials, preview, time, unread) {
+      document.querySelectorAll('.contact-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+
+      // Remove unread badge
+      const badge = item.querySelector('.unread-badge');
+      if (badge) badge.remove();
+      const previewEl = item.querySelector('.contact-preview');
+      if (previewEl) previewEl.classList.remove('unread');
+      const timeEl = item.querySelector('.contact-time');
+      if (timeEl) timeEl.classList.remove('unread');
+
+      // Update topbar
+      const avatar = document.getElementById('chatAvatar');
+      avatar.textContent = initials;
+      avatar.className = 'chat-avatar ' + colorClass;
+
+      document.getElementById('chatName').textContent = name;
+      const statusEl = document.getElementById('chatStatus');
+      if (status === 'online') { statusEl.textContent = '● Online'; statusEl.className = 'chat-status'; }
+      else if (status === 'away') { statusEl.textContent = '● Uzoqda'; statusEl.className = 'chat-status away'; }
+      else { statusEl.textContent = '● Offline'; statusEl.className = 'chat-status offline'; }
+
+      // Update detail panel avatar
+      const detailAvatar = document.querySelector('.detail-avatar');
+      if (detailAvatar) {
+        detailAvatar.className = 'detail-avatar ' + colorClass;
+        detailAvatar.innerHTML = initials + '<div class="online-dot"></div>';
+      }
+      document.querySelector('.detail-name').textContent = name;
+
+      // Scroll to bottom
+      setTimeout(scrollToBottom, 50);
+    }
+
+    // ── DETAIL PANEL ───────────────────────────────────────────
+    let detailVisible = true;
+    function toggleDetail() {
+      detailVisible = !detailVisible;
+      document.getElementById('detailPanel').classList.toggle('hidden', !detailVisible);
+    }
+
+    // ── SCROLL ─────────────────────────────────────────────────
+    function scrollToBottom() {
+      const area = document.getElementById('messagesArea');
+      area.scrollTop = area.scrollHeight;
+      document.getElementById('scrollBtn').classList.remove('visible');
+    }
+
+    document.getElementById('messagesArea').addEventListener('scroll', function() {
+      const btn = document.getElementById('scrollBtn');
+      const fromBottom = this.scrollHeight - this.scrollTop - this.clientHeight;
+      btn.classList.toggle('visible', fromBottom > 200);
+    });
+
+    // ── SEND MESSAGE ───────────────────────────────────────────
+    function sendMessage() {
+      const input = document.getElementById('composeInput');
+      const text = input.innerText.trim();
+      if (!text) return;
+
+      const area = document.getElementById('messagesArea');
+      const now = new Date();
+      const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+
+      // Hide reply bar
+      cancelReply();
+
+      // Build message row
+      const row = document.createElement('div');
+      row.className = 'msg-row me';
+      row.style.marginTop = '6px';
+      row.innerHTML = `
+        <div class="msg-group">
+          <div class="bubble bubble-me bubble-first-me">${escapeHtml(text)}</div>
+          <div class="msg-meta">
+            <span class="msg-time">${time}</span>
+            <i class="bi bi-check2 msg-status delivered"></i>
+          </div>
+        </div>`;
+
+      // Hide typing if visible
+      document.getElementById('typingIndicator').style.display = 'none';
+
+      area.insertBefore(row, document.getElementById('typingIndicator'));
+      input.innerHTML = '';
+      scrollToBottom();
+
+      // Simulate delivered → read
+      setTimeout(() => { row.querySelector('.msg-status').className = 'bi bi-check2-all msg-status'; }, 900);
+
+      // Simulate typing response after delay
+      setTimeout(() => {
+        document.getElementById('typingIndicator').style.display = 'flex';
+        scrollToBottom();
+      }, 1500);
+      setTimeout(() => {
+        document.getElementById('typingIndicator').style.display = 'none';
+        const reply = document.createElement('div');
+        reply.className = 'msg-row';
+        reply.style.marginTop = '6px';
+        const activeContact = document.querySelector('.contact-item.active');
+        const initials = activeContact ? activeContact.querySelector('.contact-avatar').textContent.slice(0,2) : 'DY';
+        const colorClass = activeContact ? Array.from(activeContact.querySelector('.contact-avatar').classList).find(c => c.startsWith('c-')) : 'c-purple';
+        reply.innerHTML = `
+          <div class="msg-avatar ${colorClass}" style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:800;color:#fff;flex-shrink:0;">${initials}</div>
+          <div class="msg-group">
+            <div class="bubble bubble-them bubble-first-them">Xabaringizni oldim! Tez orada javob beraman 😊</div>
+            <div class="msg-meta"><span class="msg-time">${time}</span></div>
+          </div>`;
+        area.insertBefore(reply, document.getElementById('typingIndicator'));
+        scrollToBottom();
+      }, 3200);
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function handleComposeKey(e) {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    }
+
+    function onComposeInput() { /* could add char count etc */ }
+
+    // ── FORMAT COMMANDS ────────────────────────────────────────
+    function execCmd(cmd) {
+      document.getElementById('composeInput').focus();
+      document.execCommand(cmd, false, null);
+    }
+
+    function insertCodeBlock() {
+      document.getElementById('composeInput').focus();
+      document.execCommand('insertText', false, '`code`');
+    }
+
+    function insertLink() {
+      const url = prompt('URL kiriting:');
+      if (url) document.execCommand('createLink', false, url);
+    }
+
+    // ── EMOJI PICKER ───────────────────────────────────────────
+    const allEmojis = ['😀','😂','🥰','😍','🤩','😎','🤔','😮','😢','😡','🎉','👍','👎','❤️','🔥','✅','❌','⭐','🚀','💡','🙏','💪','🎓','📚','💻','🖥️','⌨️','🖱️','📱','📧','📁','🗂️','🔗','📊','📈','🗒️','✏️','🖊️','📝','🔍','🔎','🎯','💬','💭','📌','⚡','🌟','🌙','☀️','🌈','🌊','🍎','🍕','☕','🍵','🎵','🎶','🎸','🎹','🏆','🥇','🎮','🚗','✈️','🏠','🌍','⏰','📅','🔒','🔓','🔔','🔕'];
+    let filteredEmojis = [...allEmojis];
+
+    function buildEmojiGrid(list) {
+      const grid = document.getElementById('emojiGrid');
+      grid.innerHTML = '';
+      list.forEach(em => {
+        const el = document.createElement('div');
+        el.className = 'emoji-item';
+        el.textContent = em;
+        el.onclick = () => insertEmoji(em);
+        grid.appendChild(el);
+      });
+    }
+
+    function filterEmojis(q) {
+      // Simple: show all (no name lookup in demo)
+      buildEmojiGrid(allEmojis);
+    }
+
+    function toggleEmoji() {
+      const picker = document.getElementById('emojiPicker');
+      const isVisible = picker.style.display !== 'none';
+      picker.style.display = isVisible ? 'none' : 'block';
+      if (!isVisible) { buildEmojiGrid(allEmojis); }
+      document.getElementById('emojiToggleBtn').classList.toggle('active', !isVisible);
+    }
+
+    function insertEmoji(em) {
+      const input = document.getElementById('composeInput');
+      input.focus();
+      document.execCommand('insertText', false, em);
+      document.getElementById('emojiPicker').style.display = 'none';
+      document.getElementById('emojiToggleBtn').classList.remove('active');
+    }
+
+    document.addEventListener('click', (e) => {
+      const picker = document.getElementById('emojiPicker');
+      if (picker.style.display !== 'none' && !picker.contains(e.target) && !document.getElementById('emojiToggleBtn').contains(e.target)) {
+        picker.style.display = 'none';
+        document.getElementById('emojiToggleBtn').classList.remove('active');
+      }
+    });
+
+    // ── FILE / IMAGE ATTACH ────────────────────────────────────
+    function triggerFileUpload() { document.getElementById('fileInput').click(); }
+    function triggerImageUpload() { document.getElementById('imageInput').click(); }
+
+    function handleFileAttach(input) {
+      if (!input.files.length) return;
+      const file = input.files[0];
+      const area = document.getElementById('messagesArea');
+      const now = new Date();
+      const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+      const size = (file.size / 1024 / 1024).toFixed(1) + ' MB';
+
+      const row = document.createElement('div');
+      row.className = 'msg-row me';
+      row.style.marginTop = '6px';
+      row.innerHTML = `
+        <div class="msg-group" style="align-items:flex-end;">
+          <div class="bubble-file me">
+            <div class="file-icon-wrap"><i class="bi bi-file-earmark"></i></div>
+            <div class="file-info">
+              <div class="file-name">${escapeHtml(file.name)}</div>
+              <div class="file-size">${size}</div>
+            </div>
+          </div>
+          <div class="msg-meta"><span class="msg-time">${time}</span><i class="bi bi-check2 msg-status delivered"></i></div>
+        </div>`;
+      area.insertBefore(row, document.getElementById('typingIndicator'));
+      scrollToBottom();
+      input.value = '';
+      showToast('Fayl yuborildi');
+    }
+
+    function handleImageAttach(input) {
+      if (!input.files.length) return;
+      const file = input.files[0];
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const area = document.getElementById('messagesArea');
+        const now = new Date();
+        const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+        const row = document.createElement('div');
+        row.className = 'msg-row me';
+        row.style.marginTop = '6px';
+        row.innerHTML = `
+          <div class="msg-group" style="align-items:flex-end;">
+            <div class="bubble-img" style="max-width:220px;"><img src="${e.target.result}" alt="Rasm" style="border-radius:var(--r-lg);"></div>
+            <div class="msg-meta"><span class="msg-time">${time}</span><i class="bi bi-check2 msg-status delivered"></i></div>
+          </div>`;
+        area.insertBefore(row, document.getElementById('typingIndicator'));
+        scrollToBottom();
+      };
+      reader.readAsDataURL(file);
+      input.value = '';
+    }
+
+    // ── REPLY ──────────────────────────────────────────────────
+    function replyTo(text) {
+      document.getElementById('replyBar').style.display = 'flex';
+      document.getElementById('replyText').textContent = text;
+      document.getElementById('composeInput').focus();
+    }
+
+    function cancelReply() {
+      document.getElementById('replyBar').style.display = 'none';
+    }
+
+    // Add right-click reply context on bubbles
+    document.querySelectorAll('.bubble').forEach(bubble => {
+      bubble.addEventListener('dblclick', () => replyTo(bubble.textContent.slice(0, 60)));
+    });
+
+    // ── REACTIONS ─────────────────────────────────────────────
+    function toggleReaction(chip) {
+      const count = chip.querySelector('.reaction-count');
+      if (chip.classList.toggle('mine')) {
+        count.textContent = parseInt(count.textContent) + 1;
+      } else {
+        count.textContent = Math.max(0, parseInt(count.textContent) - 1);
+      }
+    }
+
+    // ── INIT ──────────────────────────────────────────────────
+    scrollToBottom();
+    buildEmojiGrid(allEmojis);
+  </script>
+</body>
+</html>

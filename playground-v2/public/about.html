@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Biz haqimizda — AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    :root {
+      --bg: #eff2f6; --surface: #f7f9fb; --white: #ffffff;
+      --border: #dde4ee; --border-soft: #e8eef6;
+      --ink-0: #0d1b2a; --ink-1: #1e3248; --ink-2: #2f4a66;
+      --ink-3: #4d6680; --ink-4: #7a90a8; --ink-5: #a8bcce;
+      --deep: #0d1b2a; --on-deep: #eff2f6;
+      --blue: #1d57d8; --blue-mid: #2563eb; --blue-soft: rgba(29,87,216,.09);
+      --green: #15803d; --green-mid: #16a34a; --green-soft: rgba(21,128,61,.10);
+      --amber: #b45309; --amber-mid: #d97706; --amber-soft: rgba(180,83,9,.10);
+      --purple: #6d28d9; --purple-soft: rgba(109,40,217,.09);
+      --red: #dc2626; --red-soft: rgba(220,38,38,.09);
+      --nav-bg: rgba(239,242,246,.88); --nav-border: rgba(180,200,220,.5);
+      --sh-sm: 0 1px 3px rgba(13,27,42,.05), 0 4px 12px rgba(13,27,42,.07);
+      --sh-md: 0 4px 12px rgba(13,27,42,.08), 0 16px 48px rgba(13,27,42,.10);
+      --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-xl: 20px; --r-pill: 999px;
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+      --wrap: min(100%, 1160px);
+    }
+    [data-theme="dark"] {
+      --bg: #0c1520; --surface: #111d2b; --white: #152233;
+      --border: #1e3450; --border-soft: #172a40;
+      --ink-0: #dce9f5; --ink-1: #b8d0e6; --ink-2: #8aadc8;
+      --ink-3: #6288a4; --ink-4: #3f607e; --ink-5: #284259;
+      --deep: #070e18; --on-deep: #dce9f5;
+      --blue: #60a5fa; --blue-mid: #3b82f6; --blue-soft: rgba(96,165,250,.12);
+      --green: #4ade80; --green-mid: #22c55e; --green-soft: rgba(74,222,128,.12);
+      --amber: #fbbf24; --amber-mid: #f59e0b; --amber-soft: rgba(251,191,36,.12);
+      --purple: #a78bfa; --purple-soft: rgba(167,139,250,.12);
+      --red: #f87171; --red-soft: rgba(248,113,113,.12);
+      --nav-bg: rgba(12,21,32,.88); --nav-border: rgba(30,52,80,.8);
+      --sh-sm: 0 1px 3px rgba(0,0,0,.20), 0 4px 12px rgba(0,0,0,.24);
+      --sh-md: 0 4px 12px rgba(0,0,0,.28), 0 16px 48px rgba(0,0,0,.30);
+    }
+
+    body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; background: var(--bg); color: var(--ink-0); -webkit-font-smoothing: antialiased; transition: background 280ms, color 280ms; }
+    a { text-decoration: none; color: inherit; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+
+    /* NAV */
+    .nav { position: sticky; top: 0; z-index: 100; background: var(--nav-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--nav-border); transition: background 280ms; }
+    .nav-inner { max-width: var(--wrap); margin: 0 auto; padding: 0 24px; height: 60px; display: flex; align-items: center; gap: 20px; }
+    .logo { display: flex; align-items: center; gap: 8px; margin-right: auto; }
+    .logo-mark { width: 30px; height: 30px; border-radius: 8px; background: var(--blue-mid); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.62rem; font-weight: 800; }
+    .logo-name { font-size: 0.9rem; font-weight: 700; color: var(--ink-0); transition: color 280ms; }
+    .nav-link { font-size: 0.85rem; font-weight: 500; color: var(--ink-2); transition: color 120ms; }
+    .nav-link:hover, .nav-link.active { color: var(--blue-mid); }
+    .theme-btn { width: 34px; height: 34px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; color: var(--ink-3); border: 1px solid var(--border); transition: all 120ms; }
+    .theme-btn:hover { color: var(--ink-0); background: var(--surface); }
+    .btn-nav { height: 34px; padding: 0 16px; border-radius: var(--r-pill); font-size: 0.82rem; font-weight: 600; background: var(--blue-mid); color: #fff; transition: background 120ms; }
+    .btn-nav:hover { background: var(--blue); }
+
+    /* HERO */
+    .hero { background: var(--deep); padding: 96px 0 80px; text-align: center; position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 70% 80% at 50% 30%, rgba(29,87,216,.25) 0%, transparent 70%); pointer-events: none; }
+    .hero-inner { max-width: 760px; margin: 0 auto; padding: 0 24px; position: relative; }
+    .hero-eyebrow { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: var(--r-pill); background: rgba(29,87,216,.25); border: 1px solid rgba(96,165,250,.3); font-size: 0.72rem; font-weight: 700; color: #93c5fd; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 20px; }
+    .hero-title { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 800; color: var(--on-deep); line-height: 1.15; margin-bottom: 20px; }
+    .hero-title span { background: linear-gradient(90deg, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-desc { font-size: 1rem; line-height: 1.7; color: rgba(220,233,245,.65); margin-bottom: 40px; }
+    .hero-stats { display: flex; justify-content: center; gap: 48px; flex-wrap: wrap; }
+    .stat { text-align: center; }
+    .stat-val { font-size: 2rem; font-weight: 800; color: var(--on-deep); line-height: 1; }
+    .stat-label { font-size: 0.78rem; color: rgba(220,233,245,.5); margin-top: 4px; }
+
+    /* SECTION SHARED */
+    .section { max-width: var(--wrap); margin: 0 auto; padding: 80px 24px; }
+    .section-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--blue-mid); margin-bottom: 10px; }
+    .section-title { font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 800; line-height: 1.25; margin-bottom: 16px; }
+    .section-desc { font-size: 0.95rem; line-height: 1.7; color: var(--ink-3); max-width: 560px; }
+
+    /* STORY */
+    .story { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+    .story-text p { font-size: 0.9rem; line-height: 1.75; color: var(--ink-2); margin-bottom: 16px; }
+    .story-text p:last-child { margin-bottom: 0; }
+    .story-visual { position: relative; }
+    .story-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-xl); padding: 28px; box-shadow: var(--sh-md); }
+    .story-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .story-logo { width: 44px; height: 44px; border-radius: var(--r-lg); background: var(--blue-mid); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.72rem; font-weight: 800; }
+    .story-card-title { font-size: 0.95rem; font-weight: 700; }
+    .story-card-sub { font-size: 0.78rem; color: var(--ink-4); margin-top: 2px; }
+    .timeline { position: relative; padding-left: 20px; }
+    .timeline::before { content: ''; position: absolute; left: 6px; top: 6px; bottom: 6px; width: 2px; background: var(--border); border-radius: 1px; }
+    .tl-item { position: relative; padding-left: 16px; margin-bottom: 20px; }
+    .tl-item:last-child { margin-bottom: 0; }
+    .tl-item::before { content: ''; position: absolute; left: -14px; top: 5px; width: 10px; height: 10px; border-radius: 50%; background: var(--white); border: 2px solid var(--border); }
+    .tl-item.done::before { background: var(--blue-mid); border-color: var(--blue-mid); }
+    .tl-year { font-size: 0.72rem; font-weight: 700; color: var(--blue-mid); margin-bottom: 2px; }
+    .tl-text { font-size: 0.84rem; color: var(--ink-2); line-height: 1.45; }
+
+    /* MISSION / VALUES */
+    .mission-section { background: var(--white); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .mission-inner { max-width: var(--wrap); margin: 0 auto; padding: 80px 24px; }
+    .mission-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
+    .mission-quote { font-size: clamp(1.1rem, 2.5vw, 1.5rem); font-weight: 700; line-height: 1.5; color: var(--ink-0); margin-bottom: 16px; }
+    .mission-quote::before { content: '"'; color: var(--blue-mid); font-size: 2rem; line-height: 0.5; vertical-align: -0.3em; margin-right: 4px; }
+    .mission-sig { font-size: 0.85rem; color: var(--ink-4); font-style: italic; }
+    .values-list { display: flex; flex-direction: column; gap: 16px; }
+    .value-item { display: flex; gap: 14px; }
+    .value-icon { width: 40px; height: 40px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+    .value-text h4 { font-size: 0.9rem; font-weight: 700; margin-bottom: 4px; }
+    .value-text p { font-size: 0.83rem; line-height: 1.55; color: var(--ink-3); }
+
+    /* NUMBERS */
+    .numbers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    .num-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-xl); padding: 28px 24px; text-align: center; transition: transform 220ms var(--ease), box-shadow 220ms; }
+    .num-card:hover { transform: translateY(-4px); box-shadow: var(--sh-md); }
+    .num-icon { font-size: 1.8rem; margin-bottom: 12px; }
+    .num-val { font-size: 2rem; font-weight: 800; color: var(--ink-0); line-height: 1; margin-bottom: 4px; }
+    .num-label { font-size: 0.82rem; color: var(--ink-3); line-height: 1.4; }
+
+    /* TEAM */
+    .team-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    .team-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-xl); padding: 24px 20px; text-align: center; transition: transform 220ms var(--ease), box-shadow 220ms; }
+    .team-card:hover { transform: translateY(-4px); box-shadow: var(--sh-md); }
+    .team-av { width: 72px; height: 72px; border-radius: var(--r-xl); margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: 800; color: #fff; }
+    .team-name { font-size: 0.92rem; font-weight: 700; margin-bottom: 4px; }
+    .team-role { font-size: 0.78rem; color: var(--ink-4); margin-bottom: 12px; line-height: 1.4; }
+    .team-links { display: flex; justify-content: center; gap: 8px; }
+    .team-link { width: 28px; height: 28px; border-radius: var(--r-sm); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.82rem; color: var(--ink-3); transition: all 120ms; }
+    .team-link:hover { color: var(--blue-mid); border-color: var(--blue-mid); background: var(--blue-soft); }
+
+    /* PARTNERS */
+    .partners-section { background: var(--white); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 56px 0; }
+    .partners-inner { max-width: var(--wrap); margin: 0 auto; padding: 0 24px; text-align: center; }
+    .partners-title { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-4); margin-bottom: 32px; }
+    .partners-row { display: flex; justify-content: center; align-items: center; gap: 40px; flex-wrap: wrap; }
+    .partner-logo { height: 36px; display: flex; align-items: center; gap: 8px; opacity: .5; transition: opacity 200ms; filter: grayscale(1); }
+    .partner-logo:hover { opacity: 1; filter: grayscale(0); }
+    .partner-mark { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 800; color: #fff; }
+    .partner-name { font-size: 0.88rem; font-weight: 700; color: var(--ink-2); }
+
+    /* OPEN POSITIONS */
+    .jobs-section { border-top: 1px solid var(--border); }
+    .jobs-inner { max-width: var(--wrap); margin: 0 auto; padding: 80px 24px; }
+    .jobs-head { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 32px; gap: 20px; }
+    .jobs-link { font-size: 0.85rem; font-weight: 600; color: var(--blue-mid); display: flex; align-items: center; gap: 5px; }
+    .job-item { display: flex; align-items: center; gap: 16px; padding: 18px 20px; background: var(--white); border: 1px solid var(--border); border-radius: var(--r-lg); margin-bottom: 10px; transition: transform 160ms var(--ease), box-shadow 160ms; }
+    .job-item:hover { transform: translateX(4px); box-shadow: var(--sh-sm); }
+    .job-dept { width: 36px; height: 36px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+    .job-info { flex: 1; }
+    .job-title { font-size: 0.9rem; font-weight: 600; margin-bottom: 3px; }
+    .job-meta { font-size: 0.78rem; color: var(--ink-4); display: flex; gap: 12px; }
+    .job-type { padding: 3px 8px; border-radius: var(--r-pill); font-size: 0.72rem; font-weight: 600; }
+    .job-type.full { background: var(--green-soft); color: var(--green-mid); }
+    .job-type.remote { background: var(--blue-soft); color: var(--blue-mid); }
+    .job-type.contract { background: var(--amber-soft); color: var(--amber-mid); }
+    .job-arrow { color: var(--ink-4); transition: color 160ms; }
+    .job-item:hover .job-arrow { color: var(--blue-mid); }
+
+    /* CTA BANNER */
+    .cta-banner { background: var(--deep); border-radius: var(--r-xl); padding: 56px 48px; text-align: center; position: relative; overflow: hidden; }
+    .cta-banner::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 70% 80% at 50% 50%, rgba(29,87,216,.3) 0%, transparent 70%); pointer-events: none; }
+    .cta-title { font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 800; color: var(--on-deep); margin-bottom: 12px; position: relative; }
+    .cta-desc { font-size: 0.95rem; color: rgba(220,233,245,.65); margin-bottom: 32px; position: relative; }
+    .cta-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; position: relative; }
+    .btn-cta-p { height: 50px; padding: 0 32px; border-radius: var(--r-pill); background: var(--on-deep); color: var(--deep); font-size: 0.95rem; font-weight: 700; transition: opacity 160ms, transform 160ms var(--ease); }
+    .btn-cta-p:hover { opacity: .9; transform: translateY(-2px); }
+    .btn-cta-s { height: 50px; padding: 0 28px; border-radius: var(--r-pill); background: transparent; color: var(--on-deep); font-size: 0.95rem; font-weight: 600; border: 1.5px solid rgba(220,233,245,.3); transition: border-color 160ms; }
+    .btn-cta-s:hover { border-color: rgba(220,233,245,.6); }
+
+    /* FOOTER */
+    .footer { background: var(--deep); padding: 48px 0 28px; }
+    .footer-inner { max-width: var(--wrap); margin: 0 auto; padding: 0 24px; }
+    .footer-top { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 40px; padding-bottom: 40px; border-bottom: 1px solid rgba(220,233,245,.1); margin-bottom: 28px; }
+    .footer-brand p { font-size: 0.84rem; line-height: 1.65; color: rgba(220,233,245,.5); margin-top: 12px; max-width: 240px; }
+    .footer-logo { display: flex; align-items: center; gap: 8px; }
+    .footer-logo-mark { width: 30px; height: 30px; border-radius: 8px; background: var(--on-deep); color: var(--deep); display: flex; align-items: center; justify-content: center; font-size: 0.62rem; font-weight: 800; }
+    .footer-logo-name { font-size: 0.9rem; font-weight: 700; color: var(--on-deep); }
+    .footer-col h4 { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: rgba(220,233,245,.45); margin-bottom: 14px; }
+    .footer-col a { display: block; font-size: 0.84rem; color: rgba(220,233,245,.6); margin-bottom: 10px; transition: color 120ms; }
+    .footer-col a:hover { color: var(--on-deep); }
+    .footer-bottom { display: flex; align-items: center; justify-content: space-between; font-size: 0.78rem; color: rgba(220,233,245,.35); }
+
+    @media (max-width: 1000px) {
+      .team-grid { grid-template-columns: repeat(2, 1fr); }
+      .numbers { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 760px) {
+      .story, .mission-grid { grid-template-columns: 1fr; gap: 40px; }
+      .team-grid { grid-template-columns: repeat(2, 1fr); }
+      .hero-stats { gap: 28px; }
+      .footer-top { grid-template-columns: 1fr 1fr; gap: 28px; }
+      .cta-banner { padding: 40px 24px; }
+      .jobs-head { flex-direction: column; align-items: flex-start; }
+    }
+    @media (max-width: 500px) {
+      .team-grid { grid-template-columns: 1fr 1fr; }
+      .numbers { grid-template-columns: 1fr 1fr; }
+      .footer-top { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition-duration: 50ms !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="logo">
+        <div class="logo-mark">AZ</div>
+        <span class="logo-name">AzureLMS</span>
+      </a>
+      <a href="course-list.html" class="nav-link">Kurslar</a>
+      <a href="pricing.html" class="nav-link">Narxlar</a>
+      <a href="about.html" class="nav-link active">Biz haqimizda</a>
+      <button class="theme-btn" id="themeBtn" aria-label="Toggle theme">
+        <i class="bi bi-moon" id="themeIcon"></i>
+      </button>
+      <a href="../auth/auth-login.html" class="nav-link">Kirish</a>
+      <a href="../auth/auth-register.html" class="btn-nav">Ro'yxatdan o't</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-eyebrow"><i class="bi bi-building"></i> Kompaniya haqida</div>
+      <h1 class="hero-title">
+        Ta'limni <span>hamma uchun</span><br>qulay qilamiz
+      </h1>
+      <p class="hero-desc">AzureLMS — O'zbekistondagi eng zamonaviy online ta'lim platformasi. Bizning maqsadimiz sifatli ta'limni geografik va moliyaviy to'siqlardan qat'iy nazar barcha uchun ochiq qilish.</p>
+      <div class="hero-stats">
+        <div class="stat">
+          <div class="stat-val">120 000+</div>
+          <div class="stat-label">Faol talaba</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val">48</div>
+          <div class="stat-label">Kurs</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val">96%</div>
+          <div class="stat-label">Qoniqish darajasi</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val">2020</div>
+          <div class="stat-label">Tashkil etilgan yil</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STORY -->
+  <div class="section">
+    <div class="story">
+      <div class="story-text">
+        <div class="section-label">Bizning hikoyamiz</div>
+        <h2 class="section-title">Orzudan platformagacha</h2>
+        <p>2020-yilda pandemiyadagi qiyin paytda, ikki do'st — Aziz va Doniyor — Toshkentda sifatli online kurslar juda kam ekanligini sezdi. Ingliz va turk tillarini o'rganmoqchi bo'lgan odamlar sifatsiz videolar va eskirgan materiallar bilan qiynalardi.</p>
+        <p>Shunda ular AzureLMS ni yaratishga qaror qildi. Birinchi kurs — "Turk tili A1" — atigi 3 oyda 500 ta talaba to'pladi. Bu raqam ularning haq yo'lda ekanligini ko'rsatdi.</p>
+        <p>Bugun AzureLMS 120 000 dan ortiq talaba, 48 kurs va 15 nafar mutaxassis muallim bilan O'zbekistondagi eng yirik til va texnologiya ta'lim platformasiga aylandi. Biroq biz hali yo'lning boshidamiz.</p>
+      </div>
+      <div class="story-visual">
+        <div class="story-card">
+          <div class="story-card-header">
+            <div class="story-logo">AZ</div>
+            <div>
+              <div class="story-card-title">AzureLMS sayohati</div>
+              <div class="story-card-sub">2020 — hozir</div>
+            </div>
+          </div>
+          <div class="timeline">
+            <div class="tl-item done">
+              <div class="tl-year">2020</div>
+              <div class="tl-text">Tashkil etildi. Birinchi 3 kurs va 500 ta talaba.</div>
+            </div>
+            <div class="tl-item done">
+              <div class="tl-year">2021</div>
+              <div class="tl-text">10 000 ta talaba. Sertifikat tizimi ishga tushdi.</div>
+            </div>
+            <div class="tl-item done">
+              <div class="tl-year">2022</div>
+              <div class="tl-text">Mobil ilova. Python va Biznes kurslari qo'shildi.</div>
+            </div>
+            <div class="tl-item done">
+              <div class="tl-year">2023</div>
+              <div class="tl-text">50 000 ta talaba. Team reja va korporativ xizmatlar.</div>
+            </div>
+            <div class="tl-item done">
+              <div class="tl-year">2024</div>
+              <div class="tl-text">100 000+ talaba. AI-yordamchi va adaptiv o'qish tizimi.</div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-year">2025 →</div>
+              <div class="tl-text">Mintaqa kengayishi. Qozog'iston va Qirg'iziston.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MISSION / VALUES -->
+  <div class="mission-section">
+    <div class="mission-inner">
+      <div class="mission-grid">
+        <div>
+          <div class="section-label">Missiya</div>
+          <div class="mission-quote">Har bir o'zbek yoshiga sifatli ta'lim imkoniyatini yaratish — geografik, iqtisodiy yoki ijtimoiy to'siqlardan qat'iy nazar.</div>
+          <div class="mission-sig">— Aziz Karimov, hammuassis</div>
+        </div>
+        <div class="values-list">
+          <div class="value-item">
+            <div class="value-icon" style="background:var(--blue-soft);">🎯</div>
+            <div class="value-text">
+              <h4>Sifat birinchi</h4>
+              <p>Har bir kurs professional metodistlar tomonidan yaratiladi va muntazam yangilab turiladi.</p>
+            </div>
+          </div>
+          <div class="value-item">
+            <div class="value-icon" style="background:var(--green-soft);">🌱</div>
+            <div class="value-text">
+              <h4>Inklyuzivlik</h4>
+              <p>Bepul kurslar, chegirmali narxlar va grant dasturlari orqali ta'limni barcha uchun ochiq qilamiz.</p>
+            </div>
+          </div>
+          <div class="value-item">
+            <div class="value-icon" style="background:var(--amber-soft);">⚡</div>
+            <div class="value-text">
+              <h4>Innovatsiya</h4>
+              <p>AI texnologiyalari va adaptiv o'qish orqali o'quv jarayonini shaxsiylashtiramiz.</p>
+            </div>
+          </div>
+          <div class="value-item">
+            <div class="value-icon" style="background:var(--purple-soft);">🤝</div>
+            <div class="value-text">
+              <h4>Hamjamiyat</h4>
+              <p>Talabalar, muallimlar va sanoat ekspertlari birlashgan faol o'quv ekotizimini quramiz.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NUMBERS -->
+  <div class="section" style="padding-top:72px;padding-bottom:72px;">
+    <div style="text-align:center;margin-bottom:48px;">
+      <div class="section-label" style="justify-content:center;display:flex;">Raqamlarda</div>
+      <h2 class="section-title" style="text-align:center;">Bizning natijalarimiz</h2>
+    </div>
+    <div class="numbers">
+      <div class="num-card">
+        <div class="num-icon">👨‍🎓</div>
+        <div class="num-val">120 000+</div>
+        <div class="num-label">Ro'yxatdan o'tgan talabalar</div>
+      </div>
+      <div class="num-card">
+        <div class="num-icon">📚</div>
+        <div class="num-val">48</div>
+        <div class="num-label">Aktiv kurs (har oy yangi)</div>
+      </div>
+      <div class="num-card">
+        <div class="num-icon">🏆</div>
+        <div class="num-val">86 000+</div>
+        <div class="num-label">Berilgan sertifikatlar</div>
+      </div>
+      <div class="num-card">
+        <div class="num-icon">⭐</div>
+        <div class="num-val">4.8</div>
+        <div class="num-label">O'rtacha kurs reytingi</div>
+      </div>
+      <div class="num-card">
+        <div class="num-icon">👨‍🏫</div>
+        <div class="num-val">15</div>
+        <div class="num-label">Ekspert muallimlar</div>
+      </div>
+      <div class="num-card">
+        <div class="num-icon">🎬</div>
+        <div class="num-val">4 200+</div>
+        <div class="num-label">Video darslar (soatlar)</div>
+      </div>
+      <div class="num-card">
+        <div class="num-icon">🌍</div>
+        <div class="num-val">14</div>
+        <div class="num-label">Viloyatdan talabalar</div>
+      </div>
+      <div class="num-card">
+        <div class="num-icon">📱</div>
+        <div class="num-val">73%</div>
+        <div class="num-label">Mobil qurilmadan kirish</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TEAM -->
+  <div class="section" style="background:var(--white);border-top:1px solid var(--border);border-bottom:1px solid var(--border);max-width:100%;padding:80px 0;">
+    <div style="max-width:var(--wrap);margin:0 auto;padding:0 24px;">
+      <div style="text-align:center;margin-bottom:48px;">
+        <div class="section-label" style="display:flex;justify-content:center;">Jamoa</div>
+        <h2 class="section-title" style="text-align:center;">Platforma ortidagi odamlar</h2>
+        <p class="section-desc" style="margin:0 auto;text-align:center;">Biz kichik ammo kuchli jamoa — har birimiz ta'lim va texnologiyaga ishtiyoqli.</p>
+      </div>
+      <div class="team-grid">
+        <div class="team-card">
+          <div class="team-av" style="background:linear-gradient(135deg,#f26a3d,#e8b84b);">AK</div>
+          <div class="team-name">Aziz Karimov</div>
+          <div class="team-role">Hammuassis & Bosh metodist</div>
+          <div class="team-links">
+            <a href="#" class="team-link"><i class="bi bi-linkedin"></i></a>
+            <a href="#" class="team-link"><i class="bi bi-twitter-x"></i></a>
+          </div>
+        </div>
+        <div class="team-card">
+          <div class="team-av" style="background:linear-gradient(135deg,#1d57d8,#3b82f6);">DU</div>
+          <div class="team-name">Doniyor Umarov</div>
+          <div class="team-role">Hammuassis & CTO</div>
+          <div class="team-links">
+            <a href="#" class="team-link"><i class="bi bi-linkedin"></i></a>
+            <a href="#" class="team-link"><i class="bi bi-github"></i></a>
+          </div>
+        </div>
+        <div class="team-card">
+          <div class="team-av" style="background:linear-gradient(135deg,#22c472,#16a34a);">NR</div>
+          <div class="team-name">Nilufar Rashidova</div>
+          <div class="team-role">Muallim · Ingliz tili</div>
+          <div class="team-links">
+            <a href="#" class="team-link"><i class="bi bi-linkedin"></i></a>
+            <a href="#" class="team-link"><i class="bi bi-instagram"></i></a>
+          </div>
+        </div>
+        <div class="team-card">
+          <div class="team-av" style="background:linear-gradient(135deg,#6b7df0,#8b5cf6);">ST</div>
+          <div class="team-name">Sardor Toshmatov</div>
+          <div class="team-role">Muallim · Python & Data</div>
+          <div class="team-links">
+            <a href="#" class="team-link"><i class="bi bi-linkedin"></i></a>
+            <a href="#" class="team-link"><i class="bi bi-github"></i></a>
+          </div>
+        </div>
+        <div class="team-card">
+          <div class="team-av" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);">ZH</div>
+          <div class="team-name">Zulfiya Holiqova</div>
+          <div class="team-role">UX/UI Dizayner</div>
+          <div class="team-links">
+            <a href="#" class="team-link"><i class="bi bi-linkedin"></i></a>
+            <a href="#" class="team-link"><i class="bi bi-dribbble"></i></a>
+          </div>
+        </div>
+        <div class="team-card">
+          <div class="team-av" style="background:linear-gradient(135deg,#f59e0b,#d97706);">BM</div>
+          <div class="team-name">Bobur Mirzayev</div>
+          <div class="team-role">Marketing va Growth</div>
+          <div class="team-links">
+            <a href="#" class="team-link"><i class="bi bi-linkedin"></i></a>
+            <a href="#" class="team-link"><i class="bi bi-twitter-x"></i></a>
+          </div>
+        </div>
+        <div class="team-card">
+          <div class="team-av" style="background:linear-gradient(135deg,#dc2626,#ef4444);">LY</div>
+          <div class="team-name">Lobar Yusupova</div>
+          <div class="team-role">Muallim · Biznes va Moliya</div>
+          <div class="team-links">
+            <a href="#" class="team-link"><i class="bi bi-linkedin"></i></a>
+            <a href="#" class="team-link"><i class="bi bi-youtube"></i></a>
+          </div>
+        </div>
+        <div class="team-card" style="border-style:dashed;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;" onmouseover="this.style.borderColor='var(--blue-mid)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="width:48px;height:48px;border-radius:50%;border:2px dashed var(--ink-5);display:flex;align-items:center;justify-content:center;color:var(--ink-4);font-size:1.2rem;">+</div>
+          <div style="font-size:0.85rem;font-weight:600;color:var(--ink-3);">Siz bo'lishingiz mumkin</div>
+          <div style="font-size:0.75rem;color:var(--blue-mid);font-weight:600;">Ochiq lavozimlarni ko'rish →</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PARTNERS -->
+  <div class="partners-section">
+    <div class="partners-inner">
+      <div class="partners-title">Hamkorlar va ishonch bildirganlar</div>
+      <div class="partners-row">
+        <div class="partner-logo">
+          <div class="partner-mark" style="background:#1d57d8;">IT</div>
+          <span class="partner-name">IT Park</span>
+        </div>
+        <div class="partner-logo">
+          <div class="partner-mark" style="background:#0d1b2a;">EL</div>
+          <span class="partner-name">E-Lern UZ</span>
+        </div>
+        <div class="partner-logo">
+          <div class="partner-mark" style="background:#15803d;">GD</div>
+          <span class="partner-name">GreenData</span>
+        </div>
+        <div class="partner-logo">
+          <div class="partner-mark" style="background:#6d28d9;">VX</div>
+          <span class="partner-name">VentureX</span>
+        </div>
+        <div class="partner-logo">
+          <div class="partner-mark" style="background:#b45309;">SK</div>
+          <span class="partner-name">SkillBridge</span>
+        </div>
+        <div class="partner-logo">
+          <div class="partner-mark" style="background:#dc2626;">TU</div>
+          <span class="partner-name">ToshDU</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPEN POSITIONS -->
+  <div class="jobs-section">
+    <div class="jobs-inner">
+      <div class="jobs-head">
+        <div>
+          <div class="section-label">Karyera</div>
+          <h2 class="section-title" style="margin-bottom:4px;">Ochiq lavozimlar</h2>
+          <p style="font-size:0.9rem;color:var(--ink-3);">Missiyamizga qo'shilmoqchimisiz? Bizda joy bor.</p>
+        </div>
+        <a href="#" class="jobs-link">Barcha lavozimlar <i class="bi bi-arrow-right"></i></a>
+      </div>
+
+      <div class="job-item">
+        <div class="job-dept" style="background:var(--blue-soft);">💻</div>
+        <div class="job-info">
+          <div class="job-title">Senior Frontend Developer</div>
+          <div class="job-meta"><span>Toshkent</span><span>·</span><span>React, TypeScript</span></div>
+        </div>
+        <span class="job-type full">To'liq stavka</span>
+        <i class="bi bi-arrow-right job-arrow"></i>
+      </div>
+      <div class="job-item">
+        <div class="job-dept" style="background:var(--green-soft);">🎓</div>
+        <div class="job-info">
+          <div class="job-title">Kurs Metodisti (Til yo'nalishi)</div>
+          <div class="job-meta"><span>Masofaviy</span><span>·</span><span>Ingliz yoki Turk tili</span></div>
+        </div>
+        <span class="job-type remote">Masofaviy</span>
+        <i class="bi bi-arrow-right job-arrow"></i>
+      </div>
+      <div class="job-item">
+        <div class="job-dept" style="background:var(--purple-soft);">🎨</div>
+        <div class="job-info">
+          <div class="job-title">Product Designer</div>
+          <div class="job-meta"><span>Toshkent / Masofaviy</span><span>·</span><span>Figma, UX research</span></div>
+        </div>
+        <span class="job-type remote">Masofaviy</span>
+        <i class="bi bi-arrow-right job-arrow"></i>
+      </div>
+      <div class="job-item">
+        <div class="job-dept" style="background:var(--amber-soft);">📊</div>
+        <div class="job-info">
+          <div class="job-title">Data Analyst</div>
+          <div class="job-meta"><span>Toshkent</span><span>·</span><span>SQL, Python, Metabase</span></div>
+        </div>
+        <span class="job-type full">To'liq stavka</span>
+        <i class="bi bi-arrow-right job-arrow"></i>
+      </div>
+      <div class="job-item">
+        <div class="job-dept" style="background:var(--red-soft);">🎬</div>
+        <div class="job-info">
+          <div class="job-title">Video Montajchi (freelance)</div>
+          <div class="job-meta"><span>Masofaviy</span><span>·</span><span>Premiere Pro, After Effects</span></div>
+        </div>
+        <span class="job-type contract">Shartnoma</span>
+        <i class="bi bi-arrow-right job-arrow"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA BANNER -->
+  <div style="max-width:var(--wrap);margin:0 auto;padding:0 24px 80px;">
+    <div class="cta-banner">
+      <h2 class="cta-title">O'rganishni bugun boshlang</h2>
+      <p class="cta-desc">120 000 dan ortiq talabaga qo'shiling. 7 kunlik bepul sinov.</p>
+      <div class="cta-actions">
+        <button class="btn-cta-p" onclick="location.href='../auth/auth-register.html'">Bepul boshlash</button>
+        <button class="btn-cta-s" onclick="location.href='course-list.html'">Kurslarni ko'rish</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <div class="footer-logo-mark">AZ</div>
+            <span class="footer-logo-name">AzureLMS</span>
+          </div>
+          <p>O'zbekistondagi eng zamonaviy online ta'lim platformasi. Har kuni yuz minglab talabalar biz bilan o'rganadi.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Platforma</h4>
+          <a href="course-list.html">Barcha kurslar</a>
+          <a href="pricing.html">Narxlar</a>
+          <a href="about.html">Biz haqimizda</a>
+          <a href="#">Blog</a>
+        </div>
+        <div class="footer-col">
+          <h4>Qo'llab-quvvatlash</h4>
+          <a href="#">Yordam markazi</a>
+          <a href="#">Muallim bo'lish</a>
+          <a href="#">Hamkorlik</a>
+          <a href="#">Bog'lanish</a>
+        </div>
+        <div class="footer-col">
+          <h4>Huquqiy</h4>
+          <a href="#">Foydalanish shartlari</a>
+          <a href="#">Maxfiylik siyosati</a>
+          <a href="#">Cookie</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2025 AzureLMS. Barcha huquqlar himoyalangan.</span>
+        <span>O'zbekiston 🇺🇿</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function() {
+      let s; try { s = localStorage.getItem('az-theme'); } catch(_) {}
+      const dark = s ? s === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (dark) document.documentElement.setAttribute('data-theme', 'dark');
+      const icon = document.getElementById('themeIcon');
+      if (icon) icon.className = dark ? 'bi bi-sun' : 'bi bi-moon';
+    })();
+
+    document.getElementById('themeBtn').addEventListener('click', function() {
+      const html = document.documentElement;
+      const dark = html.getAttribute('data-theme') === 'dark';
+      html.setAttribute('data-theme', dark ? 'light' : 'dark');
+      document.getElementById('themeIcon').className = dark ? 'bi bi-moon' : 'bi bi-sun';
+      try { localStorage.setItem('az-theme', dark ? 'light' : 'dark'); } catch(_) {}
+    });
+  </script>
+</body>
+</html>

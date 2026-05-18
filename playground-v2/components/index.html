@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Komponent Katalogi — AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    :root {
+      --bg: #eff2f6; --surface: #f7f9fb; --white: #ffffff;
+      --border: #dde4ee; --border-soft: #e8eef6;
+      --ink-0: #0d1b2a; --ink-1: #1e3248; --ink-2: #2f4a66;
+      --ink-3: #4d6680; --ink-4: #7a90a8; --ink-5: #a8bcce;
+      --blue: #1d57d8; --blue-mid: #2563eb; --blue-soft: rgba(29,87,216,.09);
+      --green: #15803d; --green-mid: #16a34a; --green-soft: rgba(21,128,61,.10);
+      --amber: #b45309; --amber-soft: rgba(180,83,9,.10);
+      --purple: #6d28d9; --purple-soft: rgba(109,40,217,.09);
+      --red: #dc2626; --red-soft: rgba(220,38,38,.09);
+      --teal: #0d9488; --teal-soft: rgba(13,148,136,.09);
+      --deep: #0d1b2a; --on-deep: #eff2f6;
+      --sh-sm: 0 1px 3px rgba(13,27,42,.05), 0 4px 12px rgba(13,27,42,.07);
+      --sh-md: 0 4px 12px rgba(13,27,42,.08), 0 16px 48px rgba(13,27,42,.10);
+      --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-xl: 20px; --r-pill: 999px;
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+      --sidebar-w: 220px;
+    }
+    [data-theme="dark"] {
+      --bg: #0c1520; --surface: #111d2b; --white: #152233;
+      --border: #1e3450; --border-soft: #172a40;
+      --ink-0: #dce9f5; --ink-1: #b8d0e6; --ink-2: #8aadc8;
+      --ink-3: #6288a4; --ink-4: #3f607e; --ink-5: #284259;
+      --blue: #60a5fa; --blue-mid: #3b82f6; --blue-soft: rgba(96,165,250,.12);
+      --green: #4ade80; --green-mid: #22c55e; --green-soft: rgba(74,222,128,.12);
+      --amber: #fbbf24; --amber-soft: rgba(251,191,36,.12);
+      --purple: #a78bfa; --purple-soft: rgba(167,139,250,.12);
+      --red: #f87171; --red-soft: rgba(248,113,113,.12);
+      --teal: #2dd4bf; --teal-soft: rgba(45,212,191,.12);
+      --deep: #070e18; --on-deep: #dce9f5;
+      --sh-sm: 0 1px 3px rgba(0,0,0,.20), 0 4px 12px rgba(0,0,0,.24);
+      --sh-md: 0 4px 12px rgba(0,0,0,.28), 0 16px 48px rgba(0,0,0,.30);
+    }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--ink-0); -webkit-font-smoothing: antialiased; display: flex; min-height: 100vh; transition: background 280ms, color 280ms; }
+    a { text-decoration: none; color: inherit; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; }
+
+    /* ── SIDEBAR NAV ── */
+    .sidenav {
+      width: var(--sidebar-w); flex-shrink: 0; background: var(--white);
+      border-right: 1px solid var(--border); position: fixed; top: 0; left: 0; bottom: 0;
+      overflow-y: auto; z-index: 50; padding: 0 0 24px;
+    }
+    .sidenav-head { padding: 18px 18px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 9px; }
+    .sidenav-logo { width: 28px; height: 28px; border-radius: 7px; background: var(--blue-mid); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: 800; flex-shrink: 0; }
+    .sidenav-title { font-size: 0.86rem; font-weight: 800; color: var(--ink-0); }
+    .sidenav-theme { width: 28px; height: 28px; border-radius: var(--r-sm); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; color: var(--ink-4); margin-left: auto; transition: all 120ms; }
+    .sidenav-theme:hover { background: var(--bg); color: var(--ink-0); }
+    .sidenav-nav { padding: 12px 10px; display: flex; flex-direction: column; gap: 2px; }
+    .nav-section { font-size: 0.62rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-5); padding: 10px 8px 4px; }
+    .nav-link { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: var(--r-md); font-size: 0.8rem; font-weight: 500; color: var(--ink-3); transition: all 120ms; }
+    .nav-link:hover { background: var(--bg); color: var(--ink-0); }
+    .nav-link.active { background: var(--blue-soft); color: var(--blue-mid); font-weight: 600; }
+    .nav-link i { font-size: 0.9rem; width: 16px; flex-shrink: 0; }
+
+    /* ── MAIN ── */
+    .main { margin-left: var(--sidebar-w); flex: 1; padding: 40px 48px 80px; max-width: 1100px; }
+
+    /* ── SECTION HEADER ── */
+    .page-title { font-size: 1.9rem; font-weight: 800; color: var(--ink-0); margin-bottom: 6px; }
+    .page-sub { font-size: 0.9rem; color: var(--ink-4); margin-bottom: 40px; }
+    .section { margin-bottom: 56px; }
+    .section-label {
+      font-size: 0.7rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--ink-5); margin-bottom: 20px; padding-bottom: 10px;
+      border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px;
+    }
+    .section-label::after { content: ''; flex: 1; }
+    .section-title { font-size: 1.1rem; font-weight: 800; color: var(--ink-0); margin-bottom: 4px; }
+    .section-sub { font-size: 0.79rem; color: var(--ink-4); margin-bottom: 20px; }
+
+    /* ── PREVIEW BOX ── */
+    .preview {
+      background: var(--white); border: 1px solid var(--border); border-radius: var(--r-xl);
+      overflow: hidden; margin-bottom: 8px;
+    }
+    .preview-body { padding: 28px 28px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .preview-body.col { flex-direction: column; align-items: flex-start; }
+    .preview-body.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .preview-body.grid3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+    .preview-code {
+      padding: 14px 20px; background: var(--deep); border-top: 1px solid var(--border);
+      font-family: 'Courier New', monospace; font-size: 0.78rem; color: #7dd3fc;
+      overflow-x: auto;
+    }
+
+    /* ═══════════════════════════════
+       DESIGN TOKENS — COLOR SWATCHES
+    ═══════════════════════════════ */
+    .swatch-grid { display: grid; grid-template-columns: repeat(auto-fill, 80px); gap: 10px; }
+    .swatch { border-radius: var(--r-md); overflow: hidden; }
+    .swatch-color { height: 52px; }
+    .swatch-name { font-size: 0.65rem; font-weight: 600; color: var(--ink-3); padding: 5px 6px 4px; background: var(--white); border: 1px solid var(--border); border-top: none; border-radius: 0 0 var(--r-sm) var(--r-sm); }
+    .swatch-val { font-size: 0.58rem; color: var(--ink-5); }
+
+    /* ═══════════════════════════════
+       TYPOGRAPHY
+    ═══════════════════════════════ */
+    .type-row { display: flex; flex-direction: column; gap: 3px; border-bottom: 1px solid var(--border-soft); padding-bottom: 16px; }
+    .type-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .type-meta { font-size: 0.7rem; font-weight: 600; color: var(--ink-5); }
+    .type-display { font-size: 2.4rem; font-weight: 800; line-height: 1.1; }
+    .type-h1 { font-size: 1.9rem; font-weight: 800; line-height: 1.2; }
+    .type-h2 { font-size: 1.4rem; font-weight: 700; line-height: 1.3; }
+    .type-h3 { font-size: 1.1rem; font-weight: 700; line-height: 1.35; }
+    .type-body { font-size: 1rem; font-weight: 400; line-height: 1.7; color: var(--ink-1); }
+    .type-small { font-size: 0.82rem; font-weight: 400; line-height: 1.6; color: var(--ink-3); }
+    .type-caption { font-size: 0.72rem; font-weight: 500; color: var(--ink-4); }
+    .type-label { font-size: 0.62rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-5); }
+
+    /* ═══════════════════════════════
+       BUTTONS
+    ═══════════════════════════════ */
+    .btn { display: inline-flex; align-items: center; gap: 7px; border-radius: var(--r-md); font-family: inherit; font-weight: 600; cursor: pointer; border: none; transition: all 140ms var(--ease); }
+    /* Sizes */
+    .btn-xs  { height: 28px; padding: 0 10px; font-size: 0.72rem; border-radius: var(--r-sm); }
+    .btn-sm  { height: 34px; padding: 0 14px; font-size: 0.8rem; }
+    .btn-md  { height: 40px; padding: 0 18px; font-size: 0.86rem; }
+    .btn-lg  { height: 48px; padding: 0 24px; font-size: 0.94rem; }
+    .btn-xl  { height: 56px; padding: 0 30px; font-size: 1rem; border-radius: var(--r-lg); }
+    /* Variants */
+    .btn-primary { background: var(--blue-mid); color: #fff; }
+    .btn-primary:hover { background: var(--blue); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37,99,235,.35); }
+    .btn-secondary { background: var(--bg); color: var(--ink-1); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--border-soft); border-color: var(--ink-4); }
+    .btn-ghost { background: transparent; color: var(--ink-2); border: 1px solid var(--border); }
+    .btn-ghost:hover { background: var(--bg); }
+    .btn-danger { background: var(--red); color: #fff; }
+    .btn-danger:hover { background: #b91c1c; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(220,38,38,.3); }
+    .btn-success { background: var(--green-mid); color: #fff; }
+    .btn-success:hover { background: var(--green); transform: translateY(-1px); }
+    .btn-purple { background: var(--purple); color: #fff; }
+    .btn-purple:hover { background: #5b21b6; transform: translateY(-1px); }
+    .btn-outline-blue { background: transparent; color: var(--blue-mid); border: 1.5px solid var(--blue-mid); }
+    .btn-outline-blue:hover { background: var(--blue-soft); }
+    .btn-pill { border-radius: var(--r-pill); }
+    .btn-icon { width: 40px; height: 40px; padding: 0; justify-content: center; border-radius: var(--r-md); background: var(--bg); color: var(--ink-2); border: 1px solid var(--border); }
+    .btn-icon:hover { background: var(--border-soft); color: var(--ink-0); }
+    .btn:disabled { opacity: .45; pointer-events: none; }
+
+    /* ═══════════════════════════════
+       BADGES & CHIPS
+    ═══════════════════════════════ */
+    .badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: var(--r-pill); font-size: 0.7rem; font-weight: 700; }
+    .badge-blue   { background: var(--blue-soft);   color: var(--blue-mid); }
+    .badge-green  { background: var(--green-soft);  color: var(--green-mid); }
+    .badge-amber  { background: var(--amber-soft);  color: var(--amber); }
+    .badge-red    { background: var(--red-soft);    color: var(--red); }
+    .badge-purple { background: var(--purple-soft); color: var(--purple); }
+    .badge-teal   { background: var(--teal-soft);   color: var(--teal); }
+    .badge-dark   { background: var(--deep); color: var(--on-deep); }
+    .badge-outline { background: transparent; border: 1.5px solid var(--border); color: var(--ink-3); }
+    .badge-dot::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; display: inline-block; }
+
+    /* ═══════════════════════════════
+       FORM ELEMENTS
+    ═══════════════════════════════ */
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-label { font-size: 0.78rem; font-weight: 600; color: var(--ink-2); }
+    .form-hint { font-size: 0.71rem; color: var(--ink-4); }
+    .form-error-msg { font-size: 0.71rem; color: var(--red); }
+    .form-input {
+      height: 40px; padding: 0 12px; background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: var(--r-md); font-family: inherit; font-size: 0.85rem; color: var(--ink-0);
+      outline: none; transition: border-color 150ms, box-shadow 150ms; width: 100%;
+    }
+    .form-input:focus { border-color: var(--blue-mid); box-shadow: 0 0 0 3px var(--blue-soft); }
+    .form-input.error { border-color: var(--red); }
+    .form-input.error:focus { box-shadow: 0 0 0 3px var(--red-soft); }
+    .form-input.success { border-color: var(--green-mid); }
+    .form-input::placeholder { color: var(--ink-5); }
+    .form-input-wrap { position: relative; }
+    .form-input-wrap .input-icon-l { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--ink-4); font-size: 0.9rem; pointer-events: none; }
+    .form-input-wrap .input-icon-r { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--ink-4); font-size: 0.9rem; }
+    .form-input-wrap.has-icon-l .form-input { padding-left: 36px; }
+    .form-input-wrap.has-icon-r .form-input { padding-right: 36px; }
+    .form-textarea { padding: 10px 12px; min-height: 96px; resize: vertical; }
+    .form-select {
+      height: 40px; padding: 0 32px 0 12px; background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: var(--r-md); font-family: inherit; font-size: 0.85rem; color: var(--ink-0);
+      outline: none; appearance: none; width: 100%; cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a90a8' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 12px center;
+      transition: border-color 150ms;
+    }
+    .form-select:focus { border-color: var(--blue-mid); box-shadow: 0 0 0 3px var(--blue-soft); }
+
+    /* Toggle / Checkbox / Radio */
+    .toggle-switch { position: relative; width: 42px; height: 24px; cursor: pointer; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-track { position: absolute; inset: 0; background: var(--border); border-radius: var(--r-pill); transition: background 200ms; }
+    .toggle-switch input:checked + .toggle-track { background: var(--blue-mid); }
+    .toggle-thumb { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; background: #fff; border-radius: 50%; transition: transform 200ms var(--ease); box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+    .toggle-switch input:checked ~ .toggle-thumb { transform: translateX(18px); }
+
+    .check-row { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+    .check-box { width: 18px; height: 18px; border-radius: 5px; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 140ms; }
+    .check-box.checked { background: var(--blue-mid); border-color: var(--blue-mid); }
+    .check-box.checked::after { content: ''; width: 9px; height: 5px; border-left: 2px solid #fff; border-bottom: 2px solid #fff; transform: rotate(-45deg) translateY(-2px); }
+    .check-label { font-size: 0.84rem; font-weight: 500; color: var(--ink-1); }
+
+    .radio-row { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+    .radio-circle { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 140ms; }
+    .radio-circle.selected { border-color: var(--blue-mid); }
+    .radio-circle.selected::after { content: ''; width: 8px; height: 8px; background: var(--blue-mid); border-radius: 50%; }
+
+    /* ═══════════════════════════════
+       CARDS
+    ═══════════════════════════════ */
+    .card-base {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--r-xl); box-shadow: var(--sh-sm);
+      overflow: hidden;
+    }
+    .card-img { height: 140px; background: linear-gradient(135deg, var(--blue-soft), var(--purple-soft)); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; }
+    .card-content { padding: 16px 18px; }
+    .card-eyebrow { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--blue-mid); margin-bottom: 6px; }
+    .card-heading { font-size: 0.95rem; font-weight: 700; color: var(--ink-0); margin-bottom: 6px; }
+    .card-text { font-size: 0.79rem; color: var(--ink-3); line-height: 1.5; margin-bottom: 14px; }
+    .card-footer-line { padding: 12px 18px; border-top: 1px solid var(--border-soft); display: flex; align-items: center; gap: 8px; }
+
+    /* Stat card */
+    .stat-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-xl); padding: 20px; box-shadow: var(--sh-sm); }
+    .stat-icon { width: 40px; height: 40px; border-radius: var(--r-md); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; margin-bottom: 12px; }
+    .stat-val { font-size: 1.8rem; font-weight: 800; color: var(--ink-0); line-height: 1; margin-bottom: 4px; }
+    .stat-label { font-size: 0.74rem; color: var(--ink-4); font-weight: 500; }
+    .stat-delta { display: inline-flex; align-items: center; gap: 3px; font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: var(--r-pill); margin-top: 8px; }
+
+    /* ═══════════════════════════════
+       ALERTS / CALLOUTS
+    ═══════════════════════════════ */
+    .alert { display: flex; gap: 12px; padding: 14px 16px; border-radius: var(--r-lg); border-left: 3px solid; }
+    .alert-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+    .alert-body { flex: 1; }
+    .alert-title { font-size: 0.84rem; font-weight: 700; margin-bottom: 2px; }
+    .alert-text { font-size: 0.79rem; line-height: 1.5; opacity: .85; }
+    .alert-info    { background: var(--blue-soft);   border-color: var(--blue-mid);  color: var(--blue); }
+    .alert-success { background: var(--green-soft);  border-color: var(--green-mid); color: var(--green); }
+    .alert-warning { background: var(--amber-soft);  border-color: var(--amber);     color: var(--amber); }
+    .alert-danger  { background: var(--red-soft);    border-color: var(--red);       color: var(--red); }
+
+    /* ═══════════════════════════════
+       AVATARS
+    ═══════════════════════════════ */
+    .av { border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; flex-shrink: 0; }
+    .av-xs { width: 24px; height: 24px; font-size: 0.55rem; }
+    .av-sm { width: 32px; height: 32px; font-size: 0.65rem; }
+    .av-md { width: 40px; height: 40px; font-size: 0.78rem; }
+    .av-lg { width: 52px; height: 52px; font-size: 0.92rem; }
+    .av-xl { width: 68px; height: 68px; font-size: 1.1rem; }
+    .av-blue   { background: linear-gradient(135deg,#1d57d8,#60a5fa); }
+    .av-purple { background: linear-gradient(135deg,#6d28d9,#a78bfa); }
+    .av-green  { background: linear-gradient(135deg,#15803d,#4ade80); }
+    .av-amber  { background: linear-gradient(135deg,#b45309,#fbbf24); }
+    .av-red    { background: linear-gradient(135deg,#dc2626,#f87171); }
+    .av-group { display: flex; }
+    .av-group .av { border: 2px solid var(--white); margin-left: -8px; }
+    .av-group .av:first-child { margin-left: 0; }
+    .av-status { position: relative; }
+    .av-status::after { content: ''; position: absolute; bottom: 1px; right: 1px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--white); background: var(--green-mid); }
+    .av-status.away::after { background: var(--amber); }
+    .av-status.offline::after { background: var(--ink-5); }
+
+    /* ═══════════════════════════════
+       PROGRESS BARS
+    ═══════════════════════════════ */
+    .progress-wrap { display: flex; flex-direction: column; gap: 6px; }
+    .progress-head { display: flex; justify-content: space-between; font-size: 0.78rem; font-weight: 600; }
+    .progress-bg { height: 8px; background: var(--border-soft); border-radius: 99px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 99px; transition: width 700ms var(--ease); }
+    .progress-sm .progress-bg { height: 4px; }
+    .progress-lg .progress-bg { height: 12px; }
+    .progress-striped .progress-fill {
+      background-image: linear-gradient(45deg, rgba(255,255,255,.2) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.2) 50%, rgba(255,255,255,.2) 75%, transparent 75%, transparent);
+      background-size: 16px 16px;
+    }
+
+    /* ═══════════════════════════════
+       SKELETON LOADERS
+    ═══════════════════════════════ */
+    @keyframes shimmer { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
+    .skeleton {
+      background: linear-gradient(90deg, var(--border-soft) 25%, var(--border) 37%, var(--border-soft) 63%);
+      background-size: 800px 100%; animation: shimmer 1.5s infinite linear;
+      border-radius: var(--r-sm);
+    }
+    .sk-line { height: 12px; border-radius: 99px; }
+    .sk-circle { border-radius: 50%; }
+    .sk-rect { border-radius: var(--r-md); }
+
+    /* ═══════════════════════════════
+       TOOLTIPS
+    ═══════════════════════════════ */
+    .tooltip-wrap { position: relative; display: inline-flex; }
+    .tooltip-wrap:hover .tooltip-box { opacity: 1; transform: translateX(-50%) translateY(-4px); pointer-events: auto; }
+    .tooltip-box {
+      position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%) translateY(0);
+      background: var(--deep); color: var(--on-deep); font-size: 0.73rem; font-weight: 500;
+      padding: 5px 10px; border-radius: var(--r-md); white-space: nowrap;
+      opacity: 0; pointer-events: none; transition: all 160ms var(--ease); z-index: 100;
+    }
+    .tooltip-box::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: var(--deep); }
+
+    /* ═══════════════════════════════
+       ICONS SHOWCASE
+    ═══════════════════════════════ */
+    .icon-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+    .icon-item { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-md); width: 72px; cursor: pointer; transition: all 120ms; }
+    .icon-item:hover { background: var(--blue-soft); border-color: var(--blue-mid); color: var(--blue-mid); }
+    .icon-item i { font-size: 1.3rem; }
+    .icon-item span { font-size: 0.55rem; color: var(--ink-5); text-align: center; word-break: break-all; }
+
+    /* ═══════════════════════════════
+       SPACING / RADIUS TOKENS
+    ═══════════════════════════════ */
+    .token-grid { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+    .token-item { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    .token-box { background: var(--blue-soft); border: 1.5px solid var(--blue-mid); }
+    .token-label { font-size: 0.65rem; font-weight: 600; color: var(--ink-4); }
+    .token-val { font-size: 0.6rem; color: var(--ink-5); font-family: monospace; }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+  </style>
+</head>
+<body>
+  <script>
+    (function(){ try { var t=localStorage.getItem('lms-theme'); if(t) document.documentElement.setAttribute('data-theme',t); } catch(e){} })();
+  </script>
+
+  <!-- SIDENAV -->
+  <nav class="sidenav">
+    <div class="sidenav-head">
+      <div class="sidenav-logo">AL</div>
+      <span class="sidenav-title">Design System</span>
+      <button class="sidenav-theme" onclick="toggleTheme()"><i class="bi bi-moon-stars" id="themeIcon"></i></button>
+    </div>
+    <div class="sidenav-nav">
+      <span class="nav-section">Asoslar</span>
+      <a href="#colors" class="nav-link active"><i class="bi bi-palette"></i> Ranglar</a>
+      <a href="#typography" class="nav-link"><i class="bi bi-type"></i> Tipografiya</a>
+      <a href="#spacing" class="nav-link"><i class="bi bi-grid-3x3"></i> Spacing & Radius</a>
+      <span class="nav-section">Komponentlar</span>
+      <a href="#buttons" class="nav-link"><i class="bi bi-hand-index"></i> Tugmalar</a>
+      <a href="#badges" class="nav-link"><i class="bi bi-tag"></i> Badge & Chip</a>
+      <a href="#forms" class="nav-link"><i class="bi bi-input-cursor-text"></i> Forma elementlari</a>
+      <a href="#cards" class="nav-link"><i class="bi bi-card-text"></i> Kartalar</a>
+      <a href="#alerts" class="nav-link"><i class="bi bi-exclamation-circle"></i> Alert & Callout</a>
+      <a href="#avatars" class="nav-link"><i class="bi bi-person-circle"></i> Avatar</a>
+      <a href="#progress" class="nav-link"><i class="bi bi-bar-chart"></i> Progress</a>
+      <a href="#skeletons" class="nav-link"><i class="bi bi-hourglass-split"></i> Skeleton</a>
+      <a href="#tooltips" class="nav-link"><i class="bi bi-chat-square-dots"></i> Tooltip</a>
+      <a href="#icons" class="nav-link"><i class="bi bi-stars"></i> Ikonalar</a>
+      <span class="nav-section">Havolalar</span>
+      <a href="../index.html" class="nav-link"><i class="bi bi-house"></i> Bosh sahifa</a>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="page-title">Komponent Katalogi</div>
+    <div class="page-sub">AzureLMS dizayn sistemasining barcha UI bloklari — tokenlar, komponentlar va namunalar.</div>
+
+    <!-- ── COLORS ── -->
+    <section class="section" id="colors">
+      <div class="section-label">01 — Ranglar</div>
+      <div class="section-title">Rang palitrasi</div>
+      <div class="section-sub">CSS o'zgaruvchilar orqali boshqariladigan semantik tokenlar. Dark mode avtomatik.</div>
+      <div class="preview">
+        <div class="preview-body col" style="gap:20px;">
+          <div>
+            <div style="font-size:0.72rem;font-weight:700;color:var(--ink-5);margin-bottom:10px;">Asosiy ranglar</div>
+            <div class="swatch-grid">
+              <div class="swatch"><div class="swatch-color" style="background:#2563eb"></div><div class="swatch-name">Blue<div class="swatch-val">#2563eb</div></div></div>
+              <div class="swatch"><div class="swatch-color" style="background:#16a34a"></div><div class="swatch-name">Green<div class="swatch-val">#16a34a</div></div></div>
+              <div class="swatch"><div class="swatch-color" style="background:#b45309"></div><div class="swatch-name">Amber<div class="swatch-val">#b45309</div></div></div>
+              <div class="swatch"><div class="swatch-color" style="background:#6d28d9"></div><div class="swatch-name">Purple<div class="swatch-val">#6d28d9</div></div></div>
+              <div class="swatch"><div class="swatch-color" style="background:#dc2626"></div><div class="swatch-name">Red<div class="swatch-val">#dc2626</div></div></div>
+              <div class="swatch"><div class="swatch-color" style="background:#0d9488"></div><div class="swatch-name">Teal<div class="swatch-val">#0d9488</div></div></div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:0.72rem;font-weight:700;color:var(--ink-5);margin-bottom:10px;">Matn ranglari (--ink-0 → --ink-5)</div>
+            <div style="display:flex;gap:8px;">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+                <div style="width:40px;height:40px;border-radius:var(--r-md);background:var(--ink-0)"></div>
+                <span style="font-size:0.6rem;color:var(--ink-5)">ink-0</span>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+                <div style="width:40px;height:40px;border-radius:var(--r-md);background:var(--ink-1)"></div>
+                <span style="font-size:0.6rem;color:var(--ink-5)">ink-1</span>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+                <div style="width:40px;height:40px;border-radius:var(--r-md);background:var(--ink-2)"></div>
+                <span style="font-size:0.6rem;color:var(--ink-5)">ink-2</span>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+                <div style="width:40px;height:40px;border-radius:var(--r-md);background:var(--ink-3)"></div>
+                <span style="font-size:0.6rem;color:var(--ink-5)">ink-3</span>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+                <div style="width:40px;height:40px;border-radius:var(--r-md);background:var(--ink-4)"></div>
+                <span style="font-size:0.6rem;color:var(--ink-5)">ink-4</span>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+                <div style="width:40px;height:40px;border-radius:var(--r-md);background:var(--ink-5)"></div>
+                <span style="font-size:0.6rem;color:var(--ink-5)">ink-5</span>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:0.72rem;font-weight:700;color:var(--ink-5);margin-bottom:10px;">Fon ranglari</div>
+            <div style="display:flex;gap:8px;">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><div style="width:56px;height:40px;border-radius:var(--r-md);background:var(--bg);border:1px solid var(--border)"></div><span style="font-size:0.6rem;color:var(--ink-5)">--bg</span></div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><div style="width:56px;height:40px;border-radius:var(--r-md);background:var(--surface);border:1px solid var(--border)"></div><span style="font-size:0.6rem;color:var(--ink-5)">--surface</span></div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><div style="width:56px;height:40px;border-radius:var(--r-md);background:var(--white);border:1px solid var(--border)"></div><span style="font-size:0.6rem;color:var(--ink-5)">--white</span></div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><div style="width:56px;height:40px;border-radius:var(--r-md);background:var(--deep)"></div><span style="font-size:0.6rem;color:var(--ink-5)">--deep</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── TYPOGRAPHY ── -->
+    <section class="section" id="typography">
+      <div class="section-label">02 — Tipografiya</div>
+      <div class="section-title">Matn stilllari</div>
+      <div class="section-sub">Plus Jakarta Sans shrift oilasi, 400–800 og'irlik.</div>
+      <div class="preview">
+        <div class="preview-body col" style="gap:20px;">
+          <div class="type-row"><div class="type-meta">Display · 2.4rem · 800</div><div class="type-display">AzureLMS ta'lim platformasi</div></div>
+          <div class="type-row"><div class="type-meta">H1 · 1.9rem · 800</div><div class="type-h1">Zamonaviy o'qish tajribasi</div></div>
+          <div class="type-row"><div class="type-meta">H2 · 1.4rem · 700</div><div class="type-h2">Interaktiv kurslar va testlar</div></div>
+          <div class="type-row"><div class="type-meta">H3 · 1.1rem · 700</div><div class="type-h3">Shaxsiylashtirilgan o'rganish yo'li</div></div>
+          <div class="type-row"><div class="type-meta">Body · 1rem · 400</div><div class="type-body">AzureLMS platformasi orqali ingliz tili, dasturlash va matematika fanlarini professional darajada o'rganishingiz mumkin. Har bir kurs tajribali ustozlar tomonidan tayyorlangan.</div></div>
+          <div class="type-row"><div class="type-meta">Small · 0.82rem · 400</div><div class="type-small">Platforma 50,000+ faol foydalanuvchiga ega bo'lib, har kuni yangi kontentlar qo'shilmoqda.</div></div>
+          <div class="type-row"><div class="type-meta">Caption · 0.72rem · 500</div><div class="type-caption">So'nggi yangilanish: 18-may, 2026</div></div>
+          <div class="type-row"><div class="type-meta">Label · 0.62rem · 700 · uppercase</div><div class="type-label">Kategoriya nomi</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── SPACING ── -->
+    <section class="section" id="spacing">
+      <div class="section-label">03 — Spacing & Radius</div>
+      <div class="section-title">Chegara radiuslari</div>
+      <div class="section-sub">--r-sm dan --r-pill gacha CSS tokenlari.</div>
+      <div class="preview">
+        <div class="preview-body" style="align-items:flex-end;gap:16px;">
+          <div class="token-item"><div class="token-box" style="width:40px;height:40px;border-radius:var(--r-sm)"></div><div class="token-label">--r-sm</div><div class="token-val">6px</div></div>
+          <div class="token-item"><div class="token-box" style="width:48px;height:48px;border-radius:var(--r-md)"></div><div class="token-label">--r-md</div><div class="token-val">10px</div></div>
+          <div class="token-item"><div class="token-box" style="width:56px;height:56px;border-radius:var(--r-lg)"></div><div class="token-label">--r-lg</div><div class="token-val">14px</div></div>
+          <div class="token-item"><div class="token-box" style="width:64px;height:64px;border-radius:var(--r-xl)"></div><div class="token-label">--r-xl</div><div class="token-val">20px</div></div>
+          <div class="token-item"><div class="token-box" style="width:80px;height:40px;border-radius:var(--r-pill)"></div><div class="token-label">--r-pill</div><div class="token-val">999px</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── BUTTONS ── -->
+    <section class="section" id="buttons">
+      <div class="section-label">04 — Tugmalar</div>
+      <div class="section-title">Variant va o'lchamlar</div>
+      <div class="section-sub">Primary, secondary, ghost, danger, success, purple — xs dan xl gacha.</div>
+      <div class="preview">
+        <div class="preview-body col" style="gap:16px;">
+          <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+            <button class="btn btn-primary btn-md">Primary</button>
+            <button class="btn btn-secondary btn-md">Secondary</button>
+            <button class="btn btn-ghost btn-md">Ghost</button>
+            <button class="btn btn-danger btn-md">Danger</button>
+            <button class="btn btn-success btn-md">Success</button>
+            <button class="btn btn-purple btn-md">Purple</button>
+            <button class="btn btn-outline-blue btn-md">Outline Blue</button>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+            <button class="btn btn-primary btn-xs"><i class="bi bi-plus"></i> XSmall</button>
+            <button class="btn btn-primary btn-sm">Small</button>
+            <button class="btn btn-primary btn-md">Medium</button>
+            <button class="btn btn-primary btn-lg">Large</button>
+            <button class="btn btn-primary btn-xl"><i class="bi bi-rocket-takeoff"></i> XLarge</button>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+            <button class="btn btn-primary btn-md btn-pill"><i class="bi bi-check-lg"></i> Pill</button>
+            <button class="btn btn-secondary btn-md btn-pill">Pill</button>
+            <button class="btn btn-icon btn-md"><i class="bi bi-gear"></i></button>
+            <button class="btn btn-icon btn-md"><i class="bi bi-bell"></i></button>
+            <button class="btn btn-primary btn-md" disabled>Disabled</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── BADGES ── -->
+    <section class="section" id="badges">
+      <div class="section-label">05 — Badge & Chip</div>
+      <div class="section-title">Holat belgilari</div>
+      <div class="section-sub">Rangli badge va outline variantlar.</div>
+      <div class="preview">
+        <div class="preview-body" style="flex-wrap:wrap;gap:10px;">
+          <span class="badge badge-blue"><i class="bi bi-circle-fill badge-dot"></i> Blue</span>
+          <span class="badge badge-green"><i class="bi bi-circle-fill badge-dot"></i> Green</span>
+          <span class="badge badge-amber">Amber</span>
+          <span class="badge badge-red">Red</span>
+          <span class="badge badge-purple">Purple</span>
+          <span class="badge badge-teal">Teal</span>
+          <span class="badge badge-dark">Dark</span>
+          <span class="badge badge-outline">Outline</span>
+          <span class="badge badge-blue"><i class="bi bi-check-lg"></i> Done</span>
+          <span class="badge badge-amber"><i class="bi bi-clock"></i> Pending</span>
+          <span class="badge badge-red"><i class="bi bi-x-lg"></i> Error</span>
+          <span class="badge badge-green"><i class="bi bi-broadcast"></i> Live</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── FORMS ── -->
+    <section class="section" id="forms">
+      <div class="section-label">06 — Forma elementlari</div>
+      <div class="section-title">Input, Select, Toggle, Checkbox</div>
+      <div class="section-sub">Barcha forma komponentlari focus/error/success holatlar bilan.</div>
+      <div class="preview">
+        <div class="preview-body grid2" style="gap:20px;padding:28px;">
+          <div class="form-group">
+            <label class="form-label">Oddiy input</label>
+            <input class="form-input" type="text" placeholder="Matn kiriting...">
+            <span class="form-hint">Yordamchi matn</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ikonali input</label>
+            <div class="form-input-wrap has-icon-l has-icon-r">
+              <i class="bi bi-search input-icon-l"></i>
+              <input class="form-input" type="text" placeholder="Qidirish...">
+              <i class="bi bi-x-circle input-icon-r" style="cursor:pointer"></i>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Xato holati</label>
+            <input class="form-input error" type="email" value="noto'g'ri@">
+            <span class="form-error-msg"><i class="bi bi-exclamation-circle"></i> Email manzili noto'g'ri</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Muvaffaqiyatli</label>
+            <input class="form-input success" type="text" value="Azurebek Toshmatov">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Select</label>
+            <select class="form-select">
+              <option>Kategoriya tanlang</option>
+              <option selected>Ingliz tili</option>
+              <option>Dasturlash</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Textarea</label>
+            <textarea class="form-input form-textarea" placeholder="Xabar matnini yozing..."></textarea>
+          </div>
+          <!-- Toggles & checkboxes -->
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg);border-radius:var(--r-md);">
+              <span style="font-size:0.84rem;font-weight:600;">Dark mode</span>
+              <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-track"></span><span class="toggle-thumb"></span></label>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg);border-radius:var(--r-md);">
+              <span style="font-size:0.84rem;font-weight:600;">Bildirishnomalar</span>
+              <label class="toggle-switch"><input type="checkbox"><span class="toggle-track"></span><span class="toggle-thumb"></span></label>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div class="check-row" onclick="this.querySelector('.check-box').classList.toggle('checked')">
+              <div class="check-box checked"></div>
+              <span class="check-label">IELTS kursiga yozilish</span>
+            </div>
+            <div class="check-row" onclick="this.querySelector('.check-box').classList.toggle('checked')">
+              <div class="check-box"></div>
+              <span class="check-label">Email xabarnomalar</span>
+            </div>
+            <div class="radio-row" onclick="document.querySelectorAll('.radio-circle').forEach(r=>r.classList.remove('selected'));this.querySelector('.radio-circle').classList.add('selected')">
+              <div class="radio-circle selected"></div>
+              <span class="check-label">Oylik to'lov</span>
+            </div>
+            <div class="radio-row" onclick="document.querySelectorAll('.radio-circle').forEach(r=>r.classList.remove('selected'));this.querySelector('.radio-circle').classList.add('selected')">
+              <div class="radio-circle"></div>
+              <span class="check-label">Yillik to'lov</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── CARDS ── -->
+    <section class="section" id="cards">
+      <div class="section-label">07 — Kartalar</div>
+      <div class="section-title">Karta variantlari</div>
+      <div class="section-sub">Content karta, stat karta va boshqalar.</div>
+      <div class="preview">
+        <div class="preview-body grid3">
+          <div class="card-base">
+            <div class="card-img">🎓</div>
+            <div class="card-content">
+              <div class="card-eyebrow">Ingliz tili</div>
+              <div class="card-heading">IELTS 7+ ball olish kursi</div>
+              <div class="card-text">6 oy davomida har tomonlama tayyorlanib IELTS da yuqori ball oling.</div>
+              <button class="btn btn-primary btn-sm" style="width:100%">Boshlash</button>
+            </div>
+            <div class="card-footer-line">
+              <div class="av av-sm av-purple">AZ</div>
+              <span style="font-size:0.75rem;color:var(--ink-3)">Azurebek</span>
+              <span class="badge badge-green" style="margin-left:auto">Yangi</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:var(--blue-soft);color:var(--blue-mid)"><i class="bi bi-people-fill"></i></div>
+            <div class="stat-val">12,847</div>
+            <div class="stat-label">Faol o'quvchilar</div>
+            <div class="stat-delta" style="background:var(--green-soft);color:var(--green-mid)"><i class="bi bi-arrow-up"></i> 18.3% o'sish</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:var(--purple-soft);color:var(--purple)"><i class="bi bi-trophy-fill"></i></div>
+            <div class="stat-val">92%</div>
+            <div class="stat-label">Muvaffaqiyat darajasi</div>
+            <div class="stat-delta" style="background:var(--blue-soft);color:var(--blue-mid)"><i class="bi bi-arrow-up"></i> 4.1% o'sish</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── ALERTS ── -->
+    <section class="section" id="alerts">
+      <div class="section-label">08 — Alert & Callout</div>
+      <div class="section-title">Xabar bloklari</div>
+      <div class="preview">
+        <div class="preview-body col" style="gap:10px;">
+          <div class="alert alert-info"><i class="bi bi-info-circle-fill alert-icon"></i><div class="alert-body"><div class="alert-title">Ma'lumot</div><div class="alert-text">Platformamiz yangi funksiyalar bilan yangilandi. Yangilanishlar haqida ko'proq bilib oling.</div></div></div>
+          <div class="alert alert-success"><i class="bi bi-check-circle-fill alert-icon"></i><div class="alert-body"><div class="alert-title">Muvaffaqiyatli!</div><div class="alert-text">Sizning ma'lumotlaringiz muvaffaqiyatli saqlandi.</div></div></div>
+          <div class="alert alert-warning"><i class="bi bi-exclamation-triangle-fill alert-icon"></i><div class="alert-body"><div class="alert-title">Diqqat!</div><div class="alert-text">Sizning obunangiz 3 kundan keyin tugaydi. Uzluksiz foydalanish uchun yangilang.</div></div></div>
+          <div class="alert alert-danger"><i class="bi bi-x-octagon-fill alert-icon"></i><div class="alert-body"><div class="alert-title">Xato yuz berdi</div><div class="alert-text">Server bilan bog'lanishda muammo bo'ldi. Qayta urinib ko'ring.</div></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── AVATARS ── -->
+    <section class="section" id="avatars">
+      <div class="section-label">09 — Avatar</div>
+      <div class="section-title">Foydalanuvchi avatarlari</div>
+      <div class="preview">
+        <div class="preview-body col" style="gap:20px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="av av-xs av-blue">AZ</div>
+            <div class="av av-sm av-purple">AZ</div>
+            <div class="av av-md av-green">AZ</div>
+            <div class="av av-lg av-amber">AZ</div>
+            <div class="av av-xl av-red">AZ</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:20px;">
+            <div><div style="font-size:0.72rem;color:var(--ink-5);margin-bottom:6px;">Guruh</div>
+              <div class="av-group">
+                <div class="av av-md av-blue">A</div>
+                <div class="av av-md av-purple">B</div>
+                <div class="av av-md av-green">C</div>
+                <div class="av av-md av-amber" style="font-size:0.7rem;">+12</div>
+              </div>
+            </div>
+            <div><div style="font-size:0.72rem;color:var(--ink-5);margin-bottom:6px;">Online holat</div>
+              <div style="display:flex;gap:12px;">
+                <div class="av-status"><div class="av av-md av-blue">AZ</div></div>
+                <div class="av-status away"><div class="av av-md av-purple">BK</div></div>
+                <div class="av-status offline"><div class="av av-md av-green">CL</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PROGRESS ── -->
+    <section class="section" id="progress">
+      <div class="section-label">10 — Progress</div>
+      <div class="section-title">Progress bar variantlari</div>
+      <div class="preview">
+        <div class="preview-body col" style="gap:16px;width:100%;">
+          <div class="progress-wrap">
+            <div class="progress-head"><span>Ingliz tili kursi</span><span>72%</span></div>
+            <div class="progress-bg"><div class="progress-fill" style="width:72%;background:var(--blue-mid)"></div></div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-head"><span>Matematika</span><span>45%</span></div>
+            <div class="progress-bg"><div class="progress-fill" style="width:45%;background:var(--purple)"></div></div>
+          </div>
+          <div class="progress-wrap progress-sm">
+            <div class="progress-head"><span>Kichik (sm)</span><span>60%</span></div>
+            <div class="progress-bg"><div class="progress-fill" style="width:60%;background:var(--green-mid)"></div></div>
+          </div>
+          <div class="progress-wrap progress-lg">
+            <div class="progress-head"><span>Katta (lg)</span><span>88%</span></div>
+            <div class="progress-bg"><div class="progress-fill progress-striped" style="width:88%;background:var(--amber)"></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── SKELETONS ── -->
+    <section class="section" id="skeletons">
+      <div class="section-label">11 — Skeleton Loader</div>
+      <div class="section-title">Yuklanish holati</div>
+      <div class="preview">
+        <div class="preview-body grid2">
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div class="skeleton sk-rect" style="height:140px;width:100%"></div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <div class="skeleton sk-circle" style="width:36px;height:36px;flex-shrink:0"></div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+                <div class="skeleton sk-line" style="width:70%"></div>
+                <div class="skeleton sk-line" style="width:45%"></div>
+              </div>
+            </div>
+            <div class="skeleton sk-line" style="width:100%"></div>
+            <div class="skeleton sk-line" style="width:80%"></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="display:flex;gap:10px;align-items:center;">
+              <div class="skeleton sk-circle" style="width:44px;height:44px;flex-shrink:0"></div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+                <div class="skeleton sk-line" style="width:60%"></div>
+                <div class="skeleton sk-line" style="width:35%"></div>
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center;">
+              <div class="skeleton sk-circle" style="width:44px;height:44px;flex-shrink:0"></div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+                <div class="skeleton sk-line" style="width:75%"></div>
+                <div class="skeleton sk-line" style="width:40%"></div>
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center;">
+              <div class="skeleton sk-circle" style="width:44px;height:44px;flex-shrink:0"></div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+                <div class="skeleton sk-line" style="width:55%"></div>
+                <div class="skeleton sk-line" style="width:30%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── TOOLTIPS ── -->
+    <section class="section" id="tooltips">
+      <div class="section-label">12 — Tooltip</div>
+      <div class="section-title">Ustiga kelganda ko'rsatish</div>
+      <div class="preview">
+        <div class="preview-body" style="gap:20px;padding-top:40px;">
+          <div class="tooltip-wrap">
+            <button class="btn btn-primary btn-md">Hover qiling</button>
+            <div class="tooltip-box">Bu Primary tugma</div>
+          </div>
+          <div class="tooltip-wrap">
+            <button class="btn btn-secondary btn-md">Ma'lumot</button>
+            <div class="tooltip-box">Qo'shimcha tushuntirish matn</div>
+          </div>
+          <div class="tooltip-wrap">
+            <div class="av av-md av-purple">AZ</div>
+            <div class="tooltip-box">Azurebek — Admin</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── ICONS ── -->
+    <section class="section" id="icons">
+      <div class="section-label">13 — Ikonalar</div>
+      <div class="section-title">Bootstrap Icons to'plami</div>
+      <div class="section-sub">Platformada ishlatiladigan asosiy ikonalar. Kliklang — nomni nusxalash.</div>
+      <div class="preview">
+        <div class="preview-body col">
+          <div class="icon-grid" id="iconGrid"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // ── Theme ──
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isDark = html.getAttribute('data-theme') === 'dark';
+      html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      document.getElementById('themeIcon').className = isDark ? 'bi bi-moon-stars' : 'bi bi-sun';
+      try { localStorage.setItem('lms-theme', isDark ? 'light' : 'dark'); } catch(e){}
+    }
+    (function(){ try { if(localStorage.getItem('lms-theme')==='dark') document.getElementById('themeIcon').className='bi bi-sun'; } catch(e){} })();
+
+    // ── Active nav on scroll ──
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.nav-link[href^="#"]');
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          navLinks.forEach(l => l.classList.remove('active'));
+          const a = document.querySelector(`.nav-link[href="#${e.target.id}"]`);
+          if (a) a.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-30% 0px -60% 0px' });
+    sections.forEach(s => observer.observe(s));
+
+    // ── Icon grid ──
+    const icons = [
+      'house','search','bell','gear','person','people','heart','star','bookmark','share',
+      'arrow-right','check-lg','x-lg','plus-lg','dash-lg','pencil','trash','eye','eye-slash','lock',
+      'unlock','shield-check','check-circle','x-circle','exclamation-triangle','info-circle','question-circle','clock','calendar','calendar-check',
+      'file-earmark','file-earmark-text','image','camera','mic','volume-up','play-circle','pause-circle','stop-circle','skip-forward',
+      'translate','book','mortarboard','trophy','award','patch-check','bar-chart','pie-chart','graph-up','lightning',
+      'globe','wifi','cloud','download','upload','folder','folder-open','link-45deg','telephone','envelope',
+      'chat-dots','send','reply','forward','three-dots','grid','list','filter','sort-down','funnel',
+      'tag','tags','layers','stack','box','gift','cart','credit-card','wallet','currency-dollar',
+    ];
+    const grid = document.getElementById('iconGrid');
+    icons.forEach(name => {
+      const item = document.createElement('div');
+      item.className = 'icon-item';
+      item.innerHTML = `<i class="bi bi-${name}"></i><span>bi-${name}</span>`;
+      item.onclick = () => {
+        navigator.clipboard.writeText(`bi-${name}`).catch(()=>{});
+        item.style.background = 'var(--green-soft)';
+        item.style.borderColor = 'var(--green-mid)';
+        item.style.color = 'var(--green-mid)';
+        setTimeout(() => { item.style.background=''; item.style.borderColor=''; item.style.color=''; }, 800);
+      };
+      grid.appendChild(item);
+    });
+  </script>
+</body>
+</html>
