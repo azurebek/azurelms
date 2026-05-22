@@ -1,150 +1,124 @@
-{% load static %}<!DOCTYPE html>
-<html lang="uz">
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}AzureLMS — Turk tili va sertifikat platformasi{% endblock %}</title>
-  <meta name="description" content="{% block meta_description %}{% if site_settings.company_description %}{{ site_settings.company_description }}{% else %}AzureLMS — turk tilini akademik va kuzatish mumkin bo'lgan muhitda o'rgatish platformasi.{% endif %}{% endblock %}">
-
+  <title>{% block title %}{{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}{{ site_settings.brand_tagline|default:"Turk tili va sertifikat platformasi" }}{% endblock %}">
+  <link rel="canonical" href="{% block canonical_link %}{{ request.build_absolute_uri }}{% endblock %}">
+  <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+  <meta property="og:title" content="{% block og_title %}{{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}{{ site_settings.brand_tagline|default:"Turk tili va sertifikat platformasi" }}{% endblock %}">
+  <meta property="og:url" content="{% block canonical_url %}{{ request.build_absolute_uri }}{% endblock %}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{% block twitter_title %}{{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %}">
+  <meta name="twitter:description" content="{% block twitter_description %}{{ site_settings.brand_tagline|default:"Turk tili va sertifikat platformasi" }}{% endblock %}">
+  {% block social_image %}{% endblock %}
+  <script>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-
-  <link rel="stylesheet" href="{% static 'css/tokens.css' %}?v=1">
-  <link rel="stylesheet" href="{% static 'css/foundation.css' %}?v=1">
-  <link rel="stylesheet" href="{% static 'css/public.css' %}?v=1">
-  <link rel="stylesheet" href="{% static 'css/public-shell-polish.css' %}?v=1">
-  {% block extra_css %}{% endblock %}
+  {% block extra_head %}{% endblock %}
+  {% block styles %}{% endblock %}
 </head>
-<body class="shell-public {% block body_class %}{% endblock %}">
-
-  {# ===== UTILITY STRIP ===== #}
-  <div class="public-utility">
-    <div class="public-wrap public-utility-inner">
-      <nav class="public-utility-links">
-        {% for item in utility_nav_items %}
-          <a href="{{ item.url }}"{% if item.open_in_new_tab %} target="_blank" rel="noopener"{% endif %}>
-            {% if forloop.first %}<i class="bi bi-house-door-fill"></i>{% endif %}{{ item.label }}
-          </a>
-        {% endfor %}
-      </nav>
-      <div class="public-utility-meta">
-        <a href="#" class="public-locale-link is-active">UZ</a>
-        <a href="#" class="public-locale-link">RU</a>
-        <a href="#" class="public-locale-link">EN</a>
-        {% if user.is_authenticated %}
-          <a href="{% url 'dashboard' %}">Dashboard</a>
-        {% else %}
-          <a href="{% url 'login' %}">Kirish</a>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-
-  {# ===== HEADER ===== #}
-  <header class="public-header">
-    <div class="public-wrap public-header-inner">
-      <a class="public-brand" href="{% url 'home' %}">
-        <div class="brand-mark brand-mark--public">
+<body class="{% block body_class %}{% endblock %}">
+  <nav class="nav" id="nav">
+    <div class="nav-inner">
+      <a class="nav-brand logo" href="{% url 'home' %}" aria-label="{{ site_settings.brand_name|default:'AzureLMS' }}">
+        <div class="nav-logo logo-mark">
           {% if site_settings.logo_image %}
-            <img src="{{ site_settings.logo_image.url }}" alt="{{ site_settings.brand_name }}">
+            <img src="{{ site_settings.logo_image.url }}" alt="">
           {% else %}
-            {{ site_settings.logo_mark_text|default:"AL" }}
+            {{ site_settings.logo_mark_text|default:"Az" }}
           {% endif %}
         </div>
-        <div class="public-brand-copy">
-          <strong>{{ site_settings.brand_name|default:"AzureLMS" }}</strong>
-          <span>{{ site_settings.brand_tagline|default:"Turk tili va sertifikat platformasi" }}</span>
-        </div>
+        <span class="nav-brand-name logo-name">{{ site_settings.brand_name|default:"AzureLMS" }}</span>
       </a>
 
-      <nav class="public-main-nav">
+      <div class="nav-links">
         {% for item in landing_nav_items %}
-          <a href="{{ item.url }}" {% if item.is_active %}class="is-active"{% endif %}{% if item.open_in_new_tab %} target="_blank" rel="noopener"{% endif %}>{{ item.label }}</a>
-        {% empty %}
-          <a href="{% url 'about' %}">Biz haqimizda</a>
-          <a href="{% url 'courses' %}">Kurslar</a>
-          <a href="{% url 'subscriptions:pricing' %}">Narxlar</a>
-          <a href="{% url 'blog:list' %}">Blog</a>
-          <a href="{% url 'faq_page' %}">Yordam</a>
+          <a class="nav-link{% if item.is_active %} active{% endif %}" href="{{ item.url }}" {% if item.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>{{ item.label }}</a>
         {% endfor %}
-      </nav>
+      </div>
 
-      <div class="public-header-actions">
+      <div class="nav-actions">
+        <button class="theme-toggle theme-btn" id="themeToggle" type="button" aria-label="Mavzuni almashtirish" title="Dark / Light mode">
+          <i class="bi bi-moon" id="themeIcon"></i>
+        </button>
         {% if user.is_authenticated %}
-          <a class="button button--ghost" href="{% url 'dashboard' %}">Dashboard</a>
-          <form class="public-logout-form" method="post" action="{% url 'logout' %}">
-            {% csrf_token %}
-            <button class="button button--primary" type="submit">Chiqish</button>
-          </form>
+          {% if user.is_staff or user.is_superuser %}
+            <a class="nav-link btn btn--ghost" href="{% url 'backoffice_dashboard' %}">Backoffice</a>
+          {% endif %}
+          <a class="nav-link btn btn--ghost" href="{% url 'dashboard' %}">Kabinet</a>
+          <a class="btn btn--solid btn-nav" href="{% url 'logout' %}">Chiqish</a>
         {% else %}
-          <a class="button button--ghost" href="{% url 'login' %}">Kirish</a>
-          <a class="button button--primary" href="{% url 'register' %}">Ro'yxatdan o'tish</a>
+          <a class="nav-link btn btn--ghost" href="{% url 'login' %}">Kirish</a>
+          <a class="btn btn--solid btn-nav" href="{% url 'register' %}">Boshlash <i class="bi bi-arrow-right"></i></a>
         {% endif %}
+        <button class="nav-toggle" type="button" aria-label="Menyu">
+          <span></span><span></span><span></span>
+        </button>
       </div>
-
-      <button class="public-mobile-menu" type="button" aria-label="Menyu" data-mobile-menu-toggle>
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
     </div>
-  </header>
+  </nav>
 
-  {# ===== MAIN ===== #}
-  <main class="public-main">
-    {% block content %}{% endblock %}
-  </main>
+  {% block content %}{% endblock %}
 
-  {# ===== FOOTER ===== #}
-  <footer class="public-footer {{ public_page_settings.footer_background_class }}{% if public_page_settings.footer_background_image %} public-footer--has-image{% endif %}{% if public_page_settings.footer_background_video %} public-footer--has-video{% endif %}"
-          {% if public_page_settings.footer_background_image %}style="--public-footer-bg-image: url('{{ public_page_settings.footer_background_image.url }}');"{% endif %}>
+  <footer class="footer {{ public_page_settings.footer_background_class }}">
     {% if public_page_settings.footer_background_video %}
-      <video class="public-background-video public-footer-background-video" autoplay muted loop playsinline aria-hidden="true">
-        <source src="{{ public_page_settings.footer_background_video.url }}">
-      </video>
+      <video class="public-media-bg" src="{{ public_page_settings.footer_background_video.url }}" autoplay muted loop playsinline></video>
+    {% elif public_page_settings.footer_background_image %}
+      <div class="public-media-bg" style="background-image: url('{{ public_page_settings.footer_background_image.url }}');"></div>
     {% endif %}
-    <div class="public-wrap public-footer-grid">
-      <div>
-        <h4>Platforma</h4>
-        {% for item in footer_platform_links %}
-          <a href="{{ item.url }}"{% if item.open_in_new_tab %} target="_blank" rel="noopener"{% endif %}>{{ item.label }}</a>
-        {% endfor %}
-      </div>
-      <div>
-        <h4>Kompaniya</h4>
-        {% for item in footer_company_links %}
-          <a href="{{ item.url }}"{% if item.open_in_new_tab %} target="_blank" rel="noopener"{% endif %}>{{ item.label }}</a>
-        {% endfor %}
-      </div>
-      <div>
-        <h4>Huquqiy</h4>
-        {% for item in footer_legal_links %}
-          <a href="{{ item.url }}"{% if item.open_in_new_tab %} target="_blank" rel="noopener"{% endif %}>{{ item.label }}</a>
-        {% endfor %}
-      </div>
-      <div>
-        <h4>Aloqa</h4>
-        {% if site_settings.contact_address %}<p>{{ site_settings.contact_address }}</p>{% endif %}
-        <p>Tel: <a href="tel:{{ site_settings.contact_phone_href }}">{{ site_settings.contact_phone|default:'+998 90 123 45 67' }}</a></p>
-        <p>Email: <a href="mailto:{{ site_settings.contact_email }}">{{ site_settings.contact_email|default:'info@azurelms.uz' }}</a></p>
-
-        <div class="public-footer-social">
-          {% if site_settings.telegram_url %}<a href="{{ site_settings.telegram_url }}" aria-label="Telegram"><i class="bi bi-telegram"></i></a>{% endif %}
-          {% if site_settings.instagram_url %}<a href="{{ site_settings.instagram_url }}" aria-label="Instagram"><i class="bi bi-instagram"></i></a>{% endif %}
-          {% if site_settings.youtube_url %}<a href="{{ site_settings.youtube_url }}" aria-label="YouTube"><i class="bi bi-youtube"></i></a>{% endif %}
-          {% if site_settings.facebook_url %}<a href="{{ site_settings.facebook_url }}" aria-label="Facebook"><i class="bi bi-facebook"></i></a>{% endif %}
+    <div class="wrap">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <div class="footer-logo-mark">{{ site_settings.logo_mark_text|default:"Az" }}</div>
+            <span class="footer-logo-name">{{ site_settings.brand_name|default:"AzureLMS" }}</span>
+          </div>
+          <p class="footer-tagline">{{ site_settings.company_description|default:site_settings.brand_tagline }}</p>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">Platforma</div>
+          {% for item in footer_platform_links %}
+            <a href="{{ item.url }}" {% if item.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>{{ item.label }}</a>
+          {% endfor %}
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">Kompaniya</div>
+          {% for item in footer_company_links %}
+            <a href="{{ item.url }}" {% if item.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>{{ item.label }}</a>
+          {% endfor %}
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">Huquqiy</div>
+          {% for item in footer_legal_links %}
+            <a href="{{ item.url }}" {% if item.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>{{ item.label }}</a>
+          {% endfor %}
         </div>
       </div>
-    </div>
-    <div class="public-wrap public-footer-bottom">
-      <span>© {% now "Y" %} AzureLMS. Barcha huquqlar himoyalangan.</span>
+      <div class="footer-bottom">
+        <span class="footer-copy">&copy; 2026 {{ site_settings.brand_name|default:"AzureLMS" }}. Barcha huquqlar himoyalangan.</span>
+        <div class="footer-social">
+          {% if site_settings.telegram_url %}<a href="{{ site_settings.telegram_url }}" aria-label="Telegram" target="_blank" rel="noopener"><i class="bi bi-telegram"></i></a>{% endif %}
+          {% if site_settings.instagram_url %}<a href="{{ site_settings.instagram_url }}" aria-label="Instagram" target="_blank" rel="noopener"><i class="bi bi-instagram"></i></a>{% endif %}
+          {% if site_settings.youtube_url %}<a href="{{ site_settings.youtube_url }}" aria-label="YouTube" target="_blank" rel="noopener"><i class="bi bi-youtube"></i></a>{% endif %}
+        </div>
+      </div>
     </div>
   </footer>
 
-  <script src="{% static 'js/public-mobile.js' %}?v=1" defer></script>
-  <script src="{% static 'js/public-shell.js' %}?v=1" defer></script>
-  {% block extra_js %}{% endblock %}
+  {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -1,97 +1,161 @@
 {% extends "base_public.html" %}
 {% load static %}
 
-{% block title %}Kurslar | AzureLMS{% endblock %}
+{% block title %}Kurslar - {{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %}
+{% block meta_description %}{{ site_settings.brand_name|default:"AzureLMS" }} kurslari katalogi.{% endblock %}
 {% block body_class %}public-course-list-page{% endblock %}
 
-{% block extra_css %}
-  <link rel="stylesheet" href="{% static 'css/public-course-list.css' %}?v=1">
+{% block styles %}
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/foundation.css' %}">
+  <link rel="stylesheet" href="{% static 'css/components.css' %}">
+  <link rel="stylesheet" href="{% static 'css/public.css' %}">
+  <link rel="stylesheet" href="{% static 'css/public-course-list.css' %}">
 {% endblock %}
 
 {% block content %}
-  <section class="public-list-hero">
-    <div class="public-wrap public-list-hero-grid">
-      <div>
-        <p class="section-kicker section-kicker--light">Kurs katalogi</p>
-        <h1>Turk tili yo'lingizni tanlang</h1>
-        <p>Daraja, format va sertifikat maqsadiga qarab mos cohortni toping. Har bir yo'nalish boshlanish sanasi, ritm va natija bo'yicha solishtiriladi.</p>
+  <div class="hero-strip">
+    <div class="hero-strip-inner">
+      <div class="breadcrumb">
+        <a href="{% url 'home' %}">Bosh sahifa</a>
+        <i class="bi bi-chevron-right"></i>
+        <span>Kurslar</span>
       </div>
-      <aside class="public-list-summary">
-        <strong>A1-C1</strong>
-        <span>Live cohort, speaking lab, writing track va exam prep yo'nalishlari.</span>
-      </aside>
+      <h1 class="page-title">Barcha kurslar</h1>
+      <p class="page-desc">Til o'rganishdan sertifikatgacha - darajangizga mos kursni tanlang.</p>
+      <form class="search-wrap" method="get" action="{% url 'courses' %}">
+        <i class="bi bi-search search-icon"></i>
+        <input class="search-input" type="search" name="q" value="{{ search_query }}" placeholder="Kurs qidiring...">
+      </form>
     </div>
-  </section>
+  </div>
 
-  <section class="public-wrap public-list-tools">
-    <form method="get" class="public-list-search" action="">
-      <label for="public-course-search" class="sr-only">Qidiruv</label>
-      <i class="bi bi-search"></i>
-      <input id="public-course-search" type="search" name="q"
-             value="{{ request.GET.q|default:'' }}"
-             placeholder="Kurs, daraja yoki sertifikat qidiring">
-    </form>
+  <div class="page-layout">
+    <aside class="sidebar">
+      <form id="courseFilters" method="get" action="{% url 'courses' %}">
+        {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+        <input type="hidden" name="sort" value="{{ current_sort }}">
 
-    {% with current_level=request.GET.level %}
-      <div class="public-list-filter-row">
-        <a class="public-list-filter{% if not current_level %} is-active{% endif %}" href="?{% if request.GET.q %}q={{ request.GET.q }}{% endif %}">Barchasi</a>
-        <a class="public-list-filter{% if current_level == 'beginner' %} is-active{% endif %}" href="?level=beginner{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">A1-A2</a>
-        <a class="public-list-filter{% if current_level == 'intermediate' %} is-active{% endif %}" href="?level=intermediate{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">B1-B2</a>
-        <a class="public-list-filter{% if current_level == 'advanced' %} is-active{% endif %}" href="?level=advanced{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">C1-C2</a>
-      </div>
-    {% endwith %}
-  </section>
-
-  <section class="public-wrap public-list-section">
-    <div class="public-list-heading">
-      <div>
-        <p class="section-kicker">Dasturlar</p>
-        <h2>Mavjud kurslar</h2>
-      </div>
-      <span>{{ paginator.count }} ta dastur</span>
-    </div>
-
-    <div class="public-course-list-grid">
-      {% for course in courses %}
-        <article class="public-course-list-card{% if forloop.first %} public-course-list-card--primary{% endif %}">
-          <div class="public-course-list-cover public-course-list-cover--{% cycle 'violet' 'teal' 'sand' 'navy' %}">
-            {% if course.thumbnail %}
-              <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" loading="lazy">
-            {% else %}
-              <span>{{ course.get_level_display }}</span>
-              <strong>{{ course.title }}</strong>
-            {% endif %}
+        <div class="filter-card">
+          <div class="filter-title">Daraja</div>
+          <div class="tag-filters">
+            <a class="tag-filter{% if not selected_levels %} active{% endif %}" href="{% url 'courses' %}{% if search_query %}?q={{ search_query|urlencode }}{% endif %}">Barchasi</a>
+            {% for level_value, level_label in level_choices %}
+              <label class="tag-filter{% if level_value in selected_levels %} active{% endif %}">
+                <input class="filter-checkbox sr-only" type="checkbox" name="level" value="{{ level_value }}" {% if level_value in selected_levels %}checked{% endif %}>
+                {{ level_label }}
+              </label>
+            {% endfor %}
           </div>
-          <div class="public-course-list-body">
-            <p class="course-kicker">{{ course.get_level_display }}</p>
-            <h3>{{ course.title }}</h3>
-            <p>{{ course.description|striptags|truncatewords:22 }}</p>
-            <div class="course-chips">
-              <span>{{ course.annotated_lessons_count|default:course.lessons_count }} dars</span>
-              <span>{{ course.duration }} soat</span>
-              {% if course.price %}<span>{{ course.price|floatformat:0 }} so'm</span>{% endif %}
-            </div>
-            <div class="public-course-list-meta">
-              <span>{{ course.instructor_display_name }}</span>
-              <a href="{% url 'course_detail' pk=course.id %}">Batafsil <i class="bi bi-arrow-right"></i></a>
-            </div>
-          </div>
-        </article>
-      {% empty %}
-        <p class="public-course-list-empty">Filterga mos kurs topilmadi.</p>
-      {% endfor %}
-    </div>
+        </div>
 
-    {% if is_paginated %}
-      <nav class="public-pagination" aria-label="Sahifalar">
-        {% if page_obj.has_previous %}
-          <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.level %}&level={{ request.GET.level }}{% endif %}"><i class="bi bi-chevron-left"></i></a>
-        {% endif %}
-        <span>{{ page_obj.number }} / {{ paginator.num_pages }}</span>
-        {% if page_obj.has_next %}
-          <a href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.level %}&level={{ request.GET.level }}{% endif %}"><i class="bi bi-chevron-right"></i></a>
-        {% endif %}
-      </nav>
-    {% endif %}
-  </section>
+        <div class="filter-card">
+          <div class="filter-title">Katalog</div>
+          <div class="filter-opts">
+            <label class="filter-opt">
+              <div class="filter-opt-left"><input class="filter-checkbox" type="checkbox" checked disabled> Faol kurslar</div>
+              <span class="filter-count">{{ page_obj.paginator.count }}</span>
+            </label>
+            <label class="filter-opt">
+              <div class="filter-opt-left"><input class="filter-checkbox" type="checkbox" checked disabled> Sertifikat yo'li</div>
+              <span class="filter-count">A1-C1</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="filter-card">
+          <div class="filter-title">Xususiyat</div>
+          <div class="filter-opts">
+            <label class="filter-opt">
+              <div class="filter-opt-left"><input class="filter-checkbox" type="checkbox" checked disabled> Video darslar</div>
+              <span class="filter-count"><i class="bi bi-play-circle"></i></span>
+            </label>
+            <label class="filter-opt">
+              <div class="filter-opt-left"><input class="filter-checkbox" type="checkbox" checked disabled> Imtihonlar</div>
+              <span class="filter-count"><i class="bi bi-patch-check"></i></span>
+            </label>
+          </div>
+        </div>
+      </form>
+    </aside>
+
+    <main class="main-area">
+      <div class="toolbar">
+        <p class="results-count"><strong>{{ page_obj.paginator.count }} ta</strong> kurs topildi</p>
+        <form class="sort-wrap" method="get" action="{% url 'courses' %}">
+          {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+          {% for level in selected_levels %}<input type="hidden" name="level" value="{{ level }}">{% endfor %}
+          <span class="sort-label">Saralash:</span>
+          <select class="sort-select" name="sort" data-auto-submit>
+            <option value="newest" {% if current_sort == "newest" %}selected{% endif %}>Yangi</option>
+            <option value="popular" {% if current_sort == "popular" %}selected{% endif %}>Ommabop</option>
+            <option value="oldest" {% if current_sort == "oldest" %}selected{% endif %}>Eski</option>
+          </select>
+        </form>
+      </div>
+
+      <div class="course-grid" id="courseGrid">
+        {% for course in courses %}
+          <article class="course-card">
+            <div class="card-thumb" style="background-image: url('{{ course.cover_media_url }}');">
+              <div class="card-thumb-bg"><i class="bi bi-book"></i></div>
+              {% if forloop.first %}<div class="card-badge-top badge-hot"><i class="bi bi-lightning-fill"></i> Ommabop</div>{% endif %}
+              <div class="card-level">{{ course.get_level_display }}</div>
+            </div>
+            <div class="card-body">
+              <div class="card-category">Kurs</div>
+              <h2 class="card-title">{{ course.title }}</h2>
+              <p class="card-desc">{{ course.description|striptags|truncatechars:120 }}</p>
+              <div class="instructor-mini">
+                <div class="instructor-av">{{ course.instructor_initial }}</div>
+                <span class="instructor-name">{{ course.instructor_display_name }}</span>
+              </div>
+              <div class="card-meta">
+                <span class="card-meta-item"><i class="bi bi-play-circle"></i> {{ course.lessons_count }} dars</span>
+                <span class="card-meta-item"><i class="bi bi-clock"></i> {{ course.duration }} soat</span>
+                <span class="card-meta-item"><i class="bi bi-people"></i> {{ course.students_count }}</span>
+              </div>
+              <div class="card-rating">
+                <span class="stars">★★★★★</span>
+                <span class="rating-val">4.8</span>
+                <span class="rating-count">({{ course.students_count|default:1 }})</span>
+              </div>
+            </div>
+            <div class="card-footer">
+              <div class="card-price">
+                {% if course.price %}
+                  <span class="price-main">{{ course.price|floatformat:0 }} so'm</span>
+                {% else %}
+                  <span class="price-free">Bepul</span>
+                {% endif %}
+              </div>
+              <a class="btn-enroll" href="{% url 'course_detail' course.pk %}">Ko'rish</a>
+            </div>
+          </article>
+        {% empty %}
+          <div class="empty-state">
+            <i class="bi bi-search"></i>
+            <p>Bu filter bo'yicha kurs topilmadi.</p>
+          </div>
+        {% endfor %}
+      </div>
+
+      {% if is_paginated %}
+        <nav class="pagination" aria-label="Kurslar sahifalari">
+          {% if page_obj.has_previous %}
+            <a class="page-btn" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% for level in selected_levels %}&level={{ level }}{% endfor %}"><i class="bi bi-chevron-left"></i></a>
+          {% endif %}
+          <span class="page-btn active">{{ page_obj.number }}</span>
+          {% if page_obj.has_next %}
+            <a class="page-btn" href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% for level in selected_levels %}&level={{ level }}{% endfor %}"><i class="bi bi-chevron-right"></i></a>
+          {% endif %}
+        </nav>
+      {% endif %}
+    </main>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static 'js/public-home.js' %}"></script>
+  <script src="{% static 'js/public-pages.js' %}"></script>
 {% endblock %}

@@ -1,212 +1,425 @@
-{% extends "auth/base.html" %}
 {% load static %}
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS - Ro'yxatdan o'tish">
+  <script>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>AzureLMS — Ro'yxatdan o'tish</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/foundation.css' %}">
+  <link rel="stylesheet" href="{% static 'css/components.css' %}">
+  <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+  <link rel="stylesheet" href="{% static 'css/prototype-extracted.css' %}">
+  
+  <style>
+    .interest-opt.selected {
+      border-color: var(--accent) !important;
+      background: var(--blue-soft) !important;
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body class="auth-page auth-page--register">
+<div class="shell">
 
-{% block title %}Ro'yxatdan o'tish | AzureLMS{% endblock %}
-{% block auth_shell_modifier %}auth-shell--register{% endblock %}
-
-{# auth_heading va auth_lede har step uchun JS orqali yangilanadi. #}
-{% block auth_heading %}<span data-wizard-heading>Sizni nima deb chaqiraylik?</span>{% endblock %}
-{% block auth_lede %}<span data-wizard-lede>Ismingiz dashboard va sertifikatlarda ko'rinadi.</span>{% endblock %}
-
-{% block auth_topbar_back %}
-  <a class="auth-back" href="{% url 'login' %}">
-    <i class="bi bi-arrow-left"></i><span>Kirishga qaytish</span>
-  </a>
-{% endblock %}
-
-{% block extra_css %}
-  <link rel="stylesheet" href="{% static 'css/auth-wizard.css' %}?v=1">
-{% endblock %}
-
-{% block auth_content %}
-  <form class="auth-surface auth-form-stack auth-wizard"
-        method="post" action="{% url 'register' %}"
-        id="registerWizard" novalidate>
-    {% csrf_token %}
-
-    {# ============ STEP 1: ISM ============ #}
-    <section class="wizard-step is-active"
-             data-step="1"
-             data-heading="Sizni nima deb chaqiraylik?"
-             data-lede="Ismingiz dashboard va sertifikatlarda ko'rinadi.">
-      <div class="auth-field-grid">
-        <label class="auth-field">
-          <span class="auth-field-label">Ism</span>
-          <input class="auth-input" type="text" name="first_name" id="id_first_name"
-                 value="{{ form.first_name.value|default:'' }}"
-                 placeholder="Ismingiz" autocomplete="given-name"
-                 data-required="1" data-min="2" required>
-          {% if form.first_name.errors %}<small class="auth-field-error">{{ form.first_name.errors|first }}</small>{% endif %}
-          <small class="auth-field-error wizard-field-error" data-for="id_first_name"></small>
-        </label>
-
-        <label class="auth-field">
-          <span class="auth-field-label">Familiya <span class="wizard-optional">(ixtiyoriy)</span></span>
-          <input class="auth-input" type="text" name="last_name" id="id_last_name"
-                 value="{{ form.last_name.value|default:'' }}"
-                 placeholder="Familiyangiz" autocomplete="family-name">
-          {% if form.last_name.errors %}<small class="auth-field-error">{{ form.last_name.errors|first }}</small>{% endif %}
-        </label>
-      </div>
-    </section>
-
-    {# ============ STEP 2: EMAIL ============ #}
-    <section class="wizard-step"
-             data-step="2"
-             data-heading="Email manzilingiz"
-             data-lede="Bildirishnomalar va parolni tiklash uchun ishlatamiz.">
-      <label class="auth-field">
-        <span class="auth-field-label">Email</span>
-        <input class="auth-input" type="email" name="email" id="id_email"
-               value="{{ form.email.value|default:'' }}"
-               placeholder="name@azurelms.uz" autocomplete="email"
-               data-required="1" data-email="1" required>
-        {% if form.email.errors %}<small class="auth-field-error">{{ form.email.errors|first }}</small>{% endif %}
-        <small class="auth-field-error wizard-field-error" data-for="id_email"></small>
-      </label>
-    </section>
-
-    {# ============ STEP 3: PAROL ============ #}
-    <section class="wizard-step"
-             data-step="3"
-             data-heading="Parol o'ylab toping"
-             data-lede="Kamida 8 ta belgi. Hisobingizni himoya qiladi.">
-      <label class="auth-field">
-        <span class="auth-field-label">Parol</span>
-        <span class="auth-input-wrap">
-          <input class="auth-input" type="password" name="password1" id="id_password1"
-                 placeholder="Kuchli parol" autocomplete="new-password"
-                 data-required="1" data-min="8" required>
-          <button type="button" class="auth-input-toggle"
-                  data-password-toggle="#id_password1"
-                  aria-label="Parolni ko'rsatish">
-            <i class="bi bi-eye"></i>
-          </button>
-        </span>
-        {% if form.password1.errors %}<small class="auth-field-error">{{ form.password1.errors|first }}</small>{% endif %}
-        <small class="auth-field-error wizard-field-error" data-for="id_password1"></small>
-      </label>
-
-      <label class="auth-field">
-        <span class="auth-field-label">Parolni takrorlang</span>
-        <span class="auth-input-wrap">
-          <input class="auth-input" type="password" name="password2" id="id_password2"
-                 placeholder="Parolni takrorlang" autocomplete="new-password"
-                 data-required="1" data-match="id_password1" required>
-          <button type="button" class="auth-input-toggle"
-                  data-password-toggle="#id_password2"
-                  aria-label="Parolni ko'rsatish">
-            <i class="bi bi-eye"></i>
-          </button>
-        </span>
-        {% if form.password2.errors %}<small class="auth-field-error">{{ form.password2.errors|first }}</small>{% endif %}
-        <small class="auth-field-error wizard-field-error" data-for="id_password2"></small>
-      </label>
-    </section>
-
-    {# ============ STEP 4: MAQSAD ============ #}
-    <section class="wizard-step"
-             data-step="4"
-             data-heading="Til o'rganishdan maqsadingiz?"
-             data-lede="Sizga to'g'ri kurslarni tavsiya qilishimiz uchun bilamiz.">
-      <div class="auth-choice-row wizard-choice-grid" data-choice-group="goal">
-        {% for value, label in form.fields.goal.choices %}
-          <label class="auth-choice wizard-choice">
-            <input type="radio" name="goal" value="{{ value }}"
-                   {% if form.goal.value == value %}checked{% endif %}>
-            <span class="wizard-choice-body">
-              <i class="bi
-                {% if value == 'work' %}bi-briefcase
-                {% elif value == 'travel' %}bi-airplane
-                {% elif value == 'exam' %}bi-mortarboard
-                {% elif value == 'personal' %}bi-heart
-                {% else %}bi-three-dots{% endif %}"></i>
-              <span>{{ label }}</span>
-            </span>
-          </label>
-        {% endfor %}
-      </div>
-      <small class="auth-field-error wizard-field-error" data-for="goal"></small>
-    </section>
-
-    {# ============ STEP 5: DARAJA ============ #}
-    <section class="wizard-step"
-             data-step="5"
-             data-heading="Hozirgi darajangiz qanday?"
-             data-lede="Aniq bilmasangiz, 'Bilmayman' tanlang — keyin baholaymiz.">
-      <div class="auth-choice-row wizard-choice-list" data-choice-group="current_level">
-        {% for value, label in form.fields.current_level.choices %}
-          <label class="auth-choice wizard-choice wizard-choice--row">
-            <input type="radio" name="current_level" value="{{ value }}"
-                   {% if form.current_level.value == value %}checked{% endif %}>
-            <span class="wizard-level-tag">{% if value == 'unknown' %}?{% else %}{{ value|upper }}{% endif %}</span>
-            <span class="wizard-choice-text">{{ label }}</span>
-          </label>
-        {% endfor %}
-      </div>
-      <small class="auth-field-error wizard-field-error" data-for="current_level"></small>
-    </section>
-
-    {# ============ STEP 6: YAKUNIY ============ #}
-    <section class="wizard-step"
-             data-step="6"
-             data-heading="Deyarli tayyor!"
-             data-lede="Shartlarga rozi bo'lib hisobingizni yarating.">
-      <ul class="wizard-summary" id="wizardSummary">
-        <li><span>Ism</span><strong data-summary="first_name">—</strong></li>
-        <li><span>Email</span><strong data-summary="email">—</strong></li>
-        <li><span>Maqsad</span><strong data-summary="goal">—</strong></li>
-        <li><span>Daraja</span><strong data-summary="current_level">—</strong></li>
-      </ul>
-      <label class="auth-check wizard-terms">
-        <input type="checkbox" id="terms" data-required="1" required>
-        <span>
-          Men <a class="auth-link" href="{% url 'terms_of_service' %}" target="_blank" rel="noopener">Foydalanish shartlari</a> va
-          <a class="auth-link" href="{% url 'privacy_policy' %}" target="_blank" rel="noopener">Maxfiylik siyosati</a>ga roziman.
-        </span>
-      </label>
-      <small class="auth-field-error wizard-field-error" data-for="terms"></small>
-    </section>
-
-    {# ============ NAVIGATSIYA ============ #}
-    <div class="auth-actions wizard-nav">
-      <button type="button" class="auth-action auth-action--secondary wizard-back" id="wizardBack" hidden>
-        <i class="bi bi-arrow-left"></i> Orqaga
+  <!-- LEFT -->
+  <div class="left">
+    <nav class="left-nav">
+      <a class="logo" href="{% url 'home' %}">
+        <div class="logo-mark">AZ</div>
+        <span class="logo-name">AzureLMS</span>
+      </a>
+      <button class="theme-btn" id="themeBtn" aria-label="Mavzu" type="button">
+        <i class="bi bi-moon" id="themeIcon"></i>
       </button>
-      <button type="button" class="auth-action auth-action--primary wizard-next" id="wizardNext">
-        Davom etish <i class="bi bi-arrow-right"></i>
-      </button>
-      <button type="submit" class="auth-action auth-action--primary wizard-submit" id="wizardSubmit" hidden>
-        <i class="bi bi-check2-circle"></i> Hisob yaratish
-      </button>
+    </nav>
+
+    <div class="left-body">
+      <div class="form-wrap">
+
+        <div class="step-dots">
+          <div class="step-dot active" id="dot1"></div>
+          <div class="step-dot" id="dot2"></div>
+        </div>
+
+        <p class="form-eyebrow" id="stepLabel">1-qadam · Asosiy ma'lumotlar</p>
+        <h1 class="form-title" id="formTitle">Hisob yarating</h1>
+        <p class="form-desc" id="formDesc">Allaqachon hisobingiz bormi? <a href="{% url 'login' %}">Kiring →</a></p>
+
+        <form method="post" action="{% url 'register' %}">
+          {% csrf_token %}
+
+          {% if form.errors %}
+            <div class="info-box info-box--red" style="background: rgba(239, 68, 68, 0.1); color: var(--red); border: 1.5px solid var(--red-soft); padding: 12px; border-radius: var(--r-md); margin-bottom: 16px; font-size: 0.82rem;">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              <strong>Taqdim etilgan ma'lumotlarda xatolik bor:</strong>
+              <ul style="margin: 4px 0 0 16px; padding: 0;">
+                {% for field in form %}
+                  {% for error in field.errors %}
+                    <li>{{ field.label }}: {{ error }}</li>
+                  {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                  <li>{{ error }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
+
+          <!-- STEP 1 -->
+          <div id="step1">
+            <div class="field-row">
+              <div class="field{% if form.first_name.errors %} field--error{% endif %}">
+                <label class="field-label" for="id_first_name">Ism</label>
+                <div class="field-wrap">
+                  <i class="bi bi-person field-icon"></i>
+                  <input class="field-input" type="text" name="first_name" id="id_first_name" placeholder="Ismingiz" autocomplete="given-name" required value="{{ form.first_name.value|default:'' }}">
+                </div>
+              </div>
+              <div class="field{% if form.last_name.errors %} field--error{% endif %}">
+                <label class="field-label" for="id_last_name">Familya</label>
+                <div class="field-wrap">
+                  <i class="bi bi-person field-icon"></i>
+                  <input class="field-input" type="text" name="last_name" id="id_last_name" placeholder="Familyangiz" autocomplete="family-name" value="{{ form.last_name.value|default:'' }}">
+                </div>
+              </div>
+            </div>
+
+            <div class="field{% if form.email.errors %} field--error{% endif %}">
+              <label class="field-label" for="id_email">Email manzil</label>
+              <div class="field-wrap">
+                <i class="bi bi-envelope field-icon"></i>
+                <input class="field-input" type="email" name="email" id="id_email" placeholder="email@example.com" autocomplete="email" required value="{{ form.email.value|default:'' }}">
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="id_password1">Parol</label>
+              <div class="field-wrap">
+                <i class="bi bi-lock field-icon"></i>
+                <input class="field-input" type="password" name="password1" id="id_password1" placeholder="Kamida 8 ta belgi" required>
+                <button class="field-action" id="togglePwd" type="button" aria-label="Ko'rsatish">
+                  <i class="bi bi-eye" id="eyeIcon"></i>
+                </button>
+              </div>
+              <div class="pwd-strength" id="pwdStrength" style="margin-top: 6px;">
+                <div class="pwd-bar" id="pb1"></div>
+                <div class="pwd-bar" id="pb2"></div>
+                <div class="pwd-bar" id="pb3"></div>
+                <div class="pwd-bar" id="pb4"></div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="id_password2">Parolni tasdiqlang</label>
+              <div class="field-wrap">
+                <i class="bi bi-lock-fill field-icon"></i>
+                <input class="field-input" type="password" name="password2" id="id_password2" placeholder="Parolni qayta kiriting" required>
+                <button class="field-action" id="togglePwd2" type="button" aria-label="Ko'rsatish">
+                  <i class="bi bi-eye" id="eyeIcon2"></i>
+                </button>
+              </div>
+            </div>
+
+            <button class="btn-submit xstyle-a3a55686" id="nextBtn" type="button">
+              Davom etish <i class="bi bi-arrow-right"></i>
+            </button>
+          </div>
+
+          <!-- STEP 2 -->
+          <div id="step2" style="display: none;">
+            <div class="field">
+              <label class="field-label">O'qishdan asosiy maqsadingiz</label>
+              <div class="xstyle-76dd8f5d">
+                {% for goal_code, goal_name in form.goal.field.choices %}
+                  {% if goal_code %}
+                    <label class="interest-opt xstyle-9bcf27c4" id="goal-opt-{{ goal_code }}">
+                      <input type="radio" name="goal" value="{{ goal_code }}" class="xstyle-cb199627" {% if form.goal.value == goal_code %}checked{% endif %}>
+                      <span class="xstyle-81f08c9c">
+                        {% if goal_code == 'work' %}💼
+                        {% elif goal_code == 'travel' %}✈️
+                        {% elif goal_code == 'exam' %}📝
+                        {% elif goal_code == 'personal' %}❤️
+                        {% else %}⚙️
+                        {% endif %}
+                        {{ goal_name }}
+                      </span>
+                    </label>
+                  {% endif %}
+                {% endfor %}
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="id_current_level">Hozirgi darajangiz (taxminiy)</label>
+              <div class="field-wrap">
+                <i class="bi bi-bar-chart field-icon"></i>
+                <select name="current_level" id="id_current_level" class="field-input xstyle-db9bd89e" style="padding-left: 36px; padding-right: 12px; appearance: auto;">
+                  {% for level_code, level_name in form.current_level.field.choices %}
+                    <option value="{{ level_code }}" {% if form.current_level.value == level_code %}selected{% endif %}>{{ level_name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <div class="terms-row xstyle-a3a55686">
+              <input type="checkbox" class="checkbox" id="termsCheck" required checked>
+              <label class="terms-text" for="termsCheck">
+                <a href="{% url 'terms_of_service' %}" target="_blank">Foydalanish shartlari</a> va
+                <a href="{% url 'privacy_policy' %}" target="_blank">Maxfiylik siyosatini</a> qabul qilaman
+              </label>
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-top: 16px;">
+              <button class="btn-submit btn--ghost" id="prevBtn" type="button" style="flex: 1; border: 1.5px solid var(--border); color: var(--ink-2); background: transparent;">
+                Orqaga
+              </button>
+              <button class="btn-submit" id="registerBtn" type="submit" style="flex: 2;">
+                <i class="bi bi-person-check-fill"></i> Hisobni yaratish
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <p class="login-cta" style="margin-top: 16px;">Allaqachon ro'yxatdan o'tganmisiz? <a href="{% url 'login' %}">Kiring</a></p>
+
+      </div>
     </div>
 
-    {# ============ STEPBAR (mavjud auth-stepbar dizayni) ============ #}
-    <div class="auth-step-meta">
-      <div class="auth-stepbar" id="wizardStepbar" aria-label="6 bosqichli onboarding">
-        <span class="is-active"></span><span></span><span></span><span></span><span></span><span></span>
-      </div>
-      <span class="auth-step-index"><span id="wizardStepNum">01</span> / 06</span>
-    </div>
-  </form>
-{% endblock %}
-
-{% block auth_meta %}
-  <div class="auth-meta-line">
-    <span>Account allaqachon bormi?</span>
-    <a class="auth-link" href="{% url 'login' %}">Kirish</a>
+    <footer class="left-footer">
+      © 2026 AzureLMS ·
+      <a href="{% url 'privacy_policy' %}" class="xstyle-6ddb9c03">Maxfiylik</a> ·
+      <a href="{% url 'terms_of_service' %}" class="xstyle-6ddb9c03">Shartlar</a>
+    </footer>
   </div>
-{% endblock %}
 
-{% block auth_foot_label %}Minimal onboarding flow{% endblock %}
+  <!-- RIGHT -->
+  <div class="right">
+    <div class="glow glow-1"></div>
+    <div class="glow glow-2"></div>
+    <div class="right-content">
 
-{% block visual_chip_top %}identity{% endblock %}
-{% block visual_chip_right %}track{% endblock %}
-{% block visual_chip_bottom %}verify{% endblock %}
-{% block visual_badge_a %}01{% endblock %}
-{% block visual_badge_b %}06{% endblock %}
-{% block visual_note %}Ro'yxatdan o'tish onboarding oqimiga o'xshaydi: har ekranda bitta savol, bitta aniq qaror.{% endblock %}
+      <!-- Onboarding card -->
+      <div class="onboard-card">
+        <div class="ob-head">
+          <span class="ob-title">O'quv yo'nalishlarini tanlang</span>
+          <span class="ob-badge">14 ta kurs</span>
+        </div>
+        <div class="path-list">
+          <div class="path-row selected">
+            <div class="path-icon pi-a">🇹🇷</div>
+            <div class="path-info">
+              <div class="path-name">Turk tili A1 → C1</div>
+              <div class="path-meta">48 dars · 6 daraja · Sertifikat</div>
+            </div>
+            <span class="path-tag pt-green">Ommabop</span>
+            <div class="path-check"></div>
+          </div>
+          <div class="path-row">
+            <div class="path-icon pi-b">🇬🇧</div>
+            <div class="path-info">
+              <div class="path-name">Ingliz tili — Biznes</div>
+              <div class="path-meta">36 dars · 4 daraja · IELTS tayyorlov</div>
+            </div>
+            <span class="path-tag pt-blue">Yangi</span>
+            <div class="path-check"></div>
+          </div>
+          <div class="path-row">
+            <div class="path-icon pi-c">🐍</div>
+            <div class="path-info">
+              <div class="path-name">Python — Sifirdan</div>
+              <div class="path-meta">52 dars · Loyiha · Portfolio</div>
+            </div>
+            <span class="path-tag pt-amber">Trend</span>
+            <div class="path-check"></div>
+          </div>
+          <div class="path-row">
+            <div class="path-icon pi-d">💼</div>
+            <div class="path-info">
+              <div class="path-name">Biznes ko'nikmalari</div>
+              <div class="path-meta">24 dars · MBA uslubi</div>
+            </div>
+            <span class="path-tag pt-purple">Premium</span>
+            <div class="path-check"></div>
+          </div>
+        </div>
+        <div class="social-proof">
+          <div class="avatars">
+            <div class="av av-1">JT</div>
+            <div class="av av-2">SA</div>
+            <div class="av av-3">MN</div>
+            <div class="av av-4">DK</div>
+          </div>
+          <div class="proof-text"><strong>+12 400</strong> o'quvchi bu hafta qo'shildi</div>
+        </div>
+      </div>
 
-{% block extra_js %}
-  <script src="{% static 'js/auth-wizard.js' %}?v=1" defer></script>
-{% endblock %}
+      <!-- Welcome toast -->
+      <div class="float-toast">
+        <div class="ft-icon ft-green">🎁</div>
+        <div class="ft-body">
+          <strong>7 kun bepul sinab ko'ring!</strong>
+          <span>Karta ma'lumoti talab qilinmaydi</span>
+        </div>
+      </div>
+
+      <!-- Cert badge -->
+      <div class="cert-float">
+        <div class="ft-icon ft-purple">🏅</div>
+        <div class="ft-body">
+          <strong>Tasdiqlangan sertifikat</strong>
+          <span>Kurs tugagach yuklab olasiz</span>
+        </div>
+      </div>
+
+    </div>
+    <p class="right-label">AzureLMS · Ro'yxatdan o'tish oqimi</p>
+  </div>
+
+</div>
+
+<script>
+  // Theme
+  const html = document.documentElement;
+  const themeBtn = document.getElementById('themeBtn');
+  const themeIcon = document.getElementById('themeIcon');
+  function applyTheme(d) {
+    html.setAttribute('data-theme', d ? 'dark' : 'light');
+    themeIcon.className = d ? 'bi bi-sun' : 'bi bi-moon';
+    try { localStorage.setItem('az-theme', d ? 'dark' : 'light'); } catch(_) {}
+  }
+  let s; try { s = localStorage.getItem('az-theme'); } catch(_) {}
+  applyTheme(s ? s === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches);
+  themeBtn.addEventListener('click', () => applyTheme(html.getAttribute('data-theme') !== 'dark'));
+
+  // Password toggle
+  const pwdInput = document.getElementById('id_password1');
+  const eyeIcon  = document.getElementById('eyeIcon');
+  document.getElementById('togglePwd').addEventListener('click', () => {
+    const show = pwdInput.type === 'password';
+    pwdInput.type = show ? 'text' : 'password';
+    eyeIcon.className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
+  });
+
+  const pwdInput2 = document.getElementById('id_password2');
+  const eyeIcon2  = document.getElementById('eyeIcon2');
+  document.getElementById('togglePwd2').addEventListener('click', () => {
+    const show = pwdInput2.type === 'password';
+    pwdInput2.type = show ? 'text' : 'password';
+    eyeIcon2.className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
+  });
+
+  // Password strength
+  pwdInput.addEventListener('input', () => {
+    const v = pwdInput.value;
+    const bars = [document.getElementById('pb1'), document.getElementById('pb2'), document.getElementById('pb3'), document.getElementById('pb4')];
+    bars.forEach(b => { b.className = 'pwd-bar'; });
+    if (!v) return;
+    let score = 0;
+    if (v.length >= 6) score++;
+    if (v.length >= 10) score++;
+    if (/[A-Z]/.test(v) || /[0-9]/.test(v)) score++;
+    if (/[^A-Za-z0-9]/.test(v)) score++;
+    const cls = score <= 1 ? 's1' : score === 2 ? 's2' : 's3';
+    for (let i = 0; i < score; i++) bars[i].classList.add(cls);
+  });
+
+  // Step navigation
+  const step1 = document.getElementById('step1');
+  const step2 = document.getElementById('step2');
+  const nextBtn = document.getElementById('nextBtn');
+  const prevBtn = document.getElementById('prevBtn');
+  const dot1 = document.getElementById('dot1');
+  const dot2 = document.getElementById('dot2');
+  const stepLabel = document.getElementById('stepLabel');
+  const formTitle = document.getElementById('formTitle');
+  const formDesc = document.getElementById('formDesc');
+
+  nextBtn.addEventListener('click', () => {
+    const firstName = document.getElementById('id_first_name').value.trim();
+    const email = document.getElementById('id_email').value.trim();
+    const pass1 = document.getElementById('id_password1').value.trim();
+    const pass2 = document.getElementById('id_password2').value.trim();
+
+    if (!firstName || !email || !pass1 || !pass2) {
+      alert("Iltimos, barcha majburiy maydonlarni to'ldiring!");
+      return;
+    }
+    if (pass1 !== pass2) {
+      alert("Parollar bir-biriga mos kelmadi!");
+      return;
+    }
+
+    step1.style.display = 'none';
+    step2.style.display = 'block';
+    dot1.classList.remove('active'); 
+    dot1.classList.add('done');
+    dot2.classList.add('active');
+    stepLabel.textContent = "2-qadam · Yo'nalish va maqsad";
+    formTitle.textContent = "Profilingizni sozlang";
+    formDesc.innerHTML = "O'rganish maqsadi va joriy darajangizni belgilang";
+  });
+
+  prevBtn.addEventListener('click', () => {
+    step2.style.display = 'none';
+    step1.style.display = 'block';
+    dot2.classList.remove('active');
+    dot1.classList.remove('done');
+    dot1.classList.add('active');
+    stepLabel.textContent = "1-qadam · Asosiy ma'lumotlar";
+    formTitle.textContent = "Hisob yarating";
+    formDesc.innerHTML = "Allaqachon hisobingiz bormi? <a href=\"{% url 'login' %}\">Kiring →</a>";
+  });
+
+  // Goal selectors visual toggling
+  const goalLabels = document.querySelectorAll('.interest-opt');
+  goalLabels.forEach(label => {
+    // If loaded with a value pre-checked (e.g. form reload), add selected class
+    const radio = label.querySelector('input[type="radio"]');
+    if (radio && radio.checked) {
+      label.classList.add('selected');
+    }
+
+    label.addEventListener('click', function(e) {
+      goalLabels.forEach(l => l.classList.remove('selected'));
+      this.classList.add('selected');
+      if (radio) {
+        radio.checked = true;
+      }
+    });
+  });
+
+  // Submit action loading feedback
+  const registerForm = document.querySelector('form');
+  const registerBtn = document.getElementById('registerBtn');
+  registerForm.addEventListener('submit', function() {
+    registerBtn.disabled = true;
+    registerBtn.innerHTML = '<i class="bi bi-arrow-repeat" style="animation: spin 0.8s linear infinite; display: inline-block;"></i> Yaratilmoqda...';
+  });
+
+  // Highlight popular path clicks inside decorative right panel
+  document.querySelectorAll('.path-row').forEach(row => {
+    row.addEventListener('click', () => row.classList.toggle('selected'));
+  });
+</script>
+</body>
+</html>

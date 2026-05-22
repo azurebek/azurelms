@@ -1,190 +1,227 @@
 {% extends "base_public.html" %}
 {% load static %}
 
-{% block title %}{{ course.title }} | AzureLMS{% endblock %}
-{% block body_class %}course-detail-page{% endblock %}
+{% block title %}{{ course.title }} - {{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %}
+{% block meta_description %}{{ course.description|striptags|truncatechars:160 }}{% endblock %}
+{% block body_class %}public-course-detail-page{% endblock %}
 
-{% block extra_css %}
-  <link rel="stylesheet" href="{% static 'css/public-course-detail.css' %}?v=1">
+{% block styles %}
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/foundation.css' %}">
+  <link rel="stylesheet" href="{% static 'css/components.css' %}">
+  <link rel="stylesheet" href="{% static 'css/public.css' %}">
+  <link rel="stylesheet" href="{% static 'css/public-course-detail.css' %}">
 {% endblock %}
 
 {% block content %}
-
-  <div class="course-detail-notice">
-    <div class="public-wrap">
-      <strong>{{ active_cohort_count }} ta faol cohort.</strong>
-      <span>Obuna tasdiqlangach barcha mos kurslar app ichida ochiladi.</span>
-      <a href="{% url 'subscriptions:pricing' %}">Narxlarni ko'rish</a>
-    </div>
-  </div>
-
-  {# ===== HERO ===== #}
-  <section class="course-detail-hero">
-    <div class="public-wrap course-detail-hero-grid">
-      <div class="course-detail-intro">
-        <p class="course-detail-provider">AzureLMS Academy</p>
-        <h1>{{ course.title }}</h1>
-        <p class="course-detail-summary">{{ course.description|striptags|truncatewords:40 }}</p>
-        <div class="course-detail-instructor">
-          <span>{{ course.instructor_initial }}</span>
-          <p>Mentor: <strong>{{ course.instructor_display_name }}</strong></p>
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-content">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+          <a href="{% url 'home' %}">Bosh sahifa</a>
+          <i class="bi bi-chevron-right"></i>
+          <a href="{% url 'courses' %}">Kurslar</a>
+          <i class="bi bi-chevron-right"></i>
+          <span>{{ course.title }}</span>
+        </nav>
+        <div class="hero-badge"><i class="bi bi-lightning-fill"></i> {{ course.get_level_display }}</div>
+        <h1 class="hero-title">{{ course.title }}</h1>
+        <p class="hero-desc">{{ course.description|striptags|truncatechars:240 }}</p>
+        <div class="hero-meta">
+          <span class="hero-meta-item"><i class="bi bi-play-circle"></i><strong>{{ course_lessons_count }}</strong> dars</span>
+          <span class="hero-meta-item"><i class="bi bi-clock"></i><strong>{{ course.duration }}</strong> soat</span>
+          <span class="hero-meta-item"><i class="bi bi-layers"></i><strong>{{ modules|length }}</strong> modul</span>
+          <span class="hero-meta-item"><i class="bi bi-people"></i><strong>{{ course_students_count }}</strong> talaba</span>
         </div>
-
-        <div class="course-detail-actions">
-          {% if user.is_authenticated %}
-            {% if is_enrolled %}
-              <a class="button button--primary" href="{% url 'course_study' course_id=course.id %}">O'qishni davom ettirish</a>
+        <div class="hero-stars">
+          <span class="stars">★★★★★</span>
+          <span class="rating-val">4.8</span>
+          <span class="rating-count">({{ course_students_count|default:1 }} sharh)</span>
+        </div>
+        <div class="hero-instructor">
+          <div class="inst-av">
+            {% if course.instructor.avatar %}
+              <img src="{{ course.instructor.avatar.url }}" alt="{{ course.instructor_display_name }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">
             {% else %}
-              <a class="button button--primary" href="{% url 'cohorts:checkout' course_id=course.id %}">Kursga yozilish</a>
+              {{ course.instructor_initial }}
             {% endif %}
-          {% else %}
-            <a class="button button--primary" href="{% url 'login' %}?next={% url 'course_detail' pk=course.id %}">Hisobga kirib yozilish</a>
-          {% endif %}
-          <a class="button button--ghost" href="#program">Dastur rejasini ko'rish</a>
-        </div>
-
-        <div class="course-detail-enrolled">
-          <strong>{{ course_students_count }}+</strong>
-          <span>o'quvchi academic tracklarda o'qigan</span>
+          </div>
+          <div class="inst-info">
+            <div class="inst-name">{{ course.instructor_display_name }}</div>
+            <div class="inst-role">{{ instructor_course_count }} ta kurs muallifi</div>
+          </div>
         </div>
       </div>
 
-      <aside class="course-detail-preview" aria-label="Course preview">
-        <div class="course-preview-card">
-          <div class="course-preview-top">
-            <span>{{ course.get_level_display }}</span>
-            <strong>{{ course.duration }} soat</strong>
-          </div>
-          <div class="course-preview-path">
-            <div><i class="bi bi-book"></i><span>{{ course_lessons_count }} dars</span></div>
-            <div><i class="bi bi-collection"></i><span>{{ modules|length }} modul</span></div>
-            <div><i class="bi bi-patch-check"></i><span>{{ course_exam_count }} imtihon</span></div>
-          </div>
+      <div class="hero-card-wrap">
+        <div class="hero-video" style="background-image: url('{{ course.cover_media_url }}');">
           {% if course.preview_video %}
-            <div class="course-preview-video">
-              <video controls src="{{ course.preview_video.url }}" preload="metadata"></video>
-            </div>
+            <video class="course-preview-video" src="{{ course.preview_video.url }}" muted loop playsinline></video>
           {% endif %}
-          {% if course.price %}
-            <div class="course-preview-price">
-              <span>Kurs narxi</span>
-              <strong>{{ course.price|floatformat:0 }} so'm</strong>
-            </div>
-          {% endif %}
+          <button class="play-btn" type="button" aria-label="Preview"><i class="bi bi-play-fill"></i></button>
+          <div class="hero-preview-bar">
+            <span class="preview-label">Preview: {{ preview_lesson.title|default:"Birinchi dars" }}</span>
+            <span class="preview-time">{{ course.duration }} soat</span>
+          </div>
         </div>
-      </aside>
+        <div class="enroll-badge">
+          <div class="badge-icon"><i class="bi bi-shield-check"></i></div>
+          <div class="badge-text">
+            <strong>Sertifikat yo'li</strong>
+            <span>Exam va progress bilan</span>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
-  {# ===== FACT BAR ===== #}
-  <section class="public-wrap course-detail-facts" aria-label="Course facts">
-    <article>
-      <strong>{{ modules|length }} modul</strong>
-      <span>Tuzilgan kurs arxitekturasi</span>
-    </article>
-    <article>
-      <strong>{{ course_lessons_count }} dars</strong>
-      <span>Lesson workspace ichida</span>
-    </article>
-    <article>
-      <strong>{{ course.get_level_display }}</strong>
-      <span>O'quvchi darajasiga moslangan</span>
-    </article>
-    <article>
-      <strong>{{ course.duration }} soat</strong>
-      <span>Taxminiy o'quv hajmi</span>
-    </article>
-    <article>
-      <strong>{{ active_cohort_count }} cohort</strong>
-      <span>Hozir faol guruhlar</span>
-    </article>
-  </section>
-
-  {# ===== TABS ===== #}
-  <nav class="public-wrap course-detail-tabs" aria-label="Course sections">
-    <a href="#overview">Haqida</a>
-    <a href="#program">Dastur</a>
-    <a href="#instructor">Mentor</a>
-    {% if course_exam_count %}<a href="#exams">Imtihonlar</a>{% endif %}
-  </nav>
-
-  {# ===== OVERVIEW ===== #}
-  <section class="public-wrap course-detail-section" id="overview">
-    <h2>Kurs haqida</h2>
-    <div class="course-detail-description">
-      {{ course.description|safe }}
-    </div>
-  </section>
-
-  {# ===== PROGRAM / MODULES ===== #}
-  <section class="course-detail-band" id="program">
-    <div class="public-wrap">
-      <div class="course-detail-section-head">
-        <h2>Dastur tuzilmasi</h2>
-        <p>Public sahifada modul preview ko'rinadi. To'liq darslar va materiallar obuna tasdiqlangach app ichida ochiladi.</p>
+  <div class="page-layout">
+    <main>
+      <div class="learn-box">
+        <div class="section-title">Nima o'rganasiz?</div>
+        <div class="learn-grid">
+          <div class="learn-item"><i class="bi bi-check-circle-fill"></i> Bosqichma-bosqich tuzilgan darslar</div>
+          <div class="learn-item"><i class="bi bi-check-circle-fill"></i> Amaliy mashqlar va testlar</div>
+          <div class="learn-item"><i class="bi bi-check-circle-fill"></i> Progress va sertifikat talablari</div>
+          <div class="learn-item"><i class="bi bi-check-circle-fill"></i> O'qituvchi tayyorlagan materiallar</div>
+        </div>
       </div>
 
-      <div class="course-detail-roadmap">
+      <div class="tabs" role="tablist">
+        <button class="tab-btn active" type="button" data-tab="curriculum">Dastur</button>
+        <button class="tab-btn" type="button" data-tab="instructor">O'qituvchi</button>
+        <button class="tab-btn" type="button" data-tab="reviews">Sharhlar</button>
+        <button class="tab-btn" type="button" data-tab="about">Kurs haqida</button>
+      </div>
+
+      <section class="tab-panel active" id="tab-curriculum">
+        <div class="curriculum-header">
+          <div class="section-title">O'quv dasturi</div>
+          <div class="curriculum-stats">{{ modules|length }} modul - {{ course_lessons_count }} dars</div>
+        </div>
         {% for module in modules %}
-          <article>
-            <span>{{ forloop.counter|stringformat:"02d" }}</span>
-            <div>
-              <strong>{{ module.title }}</strong>
-              {% if module.description %}<p>{{ module.description|striptags|truncatewords:25 }}</p>{% endif %}
+          <div class="section-group {% if forloop.first %}open{% endif %}">
+            <button class="section-head" type="button">
+              <span class="section-num">{{ forloop.counter }}</span>
+              <span class="section-label">{{ module.title }}</span>
+              <span class="section-meta">{{ module.lessons.all|length }} dars</span>
+              <i class="bi bi-chevron-down section-chevron"></i>
+            </button>
+            <div class="lesson-list">
+              {% for lesson in module.lessons.all %}
+                <div class="lesson-row">
+                  <div class="lesson-icon video"><i class="bi bi-play-fill"></i></div>
+                  <div class="lesson-name">{{ lesson.title }}</div>
+                  {% if forloop.parentloop.first and forloop.counter <= 2 %}
+                    <span class="lesson-preview">Preview</span>
+                  {% else %}
+                    <i class="bi bi-lock lesson-lock"></i>
+                  {% endif %}
+                  <div class="lesson-dur">{{ lesson.xp_reward }} XP</div>
+                </div>
+              {% empty %}
+                <div class="lesson-row">
+                  <div class="lesson-icon file"><i class="bi bi-file-earmark"></i></div>
+                  <div class="lesson-name">Darslar tez orada qo'shiladi.</div>
+                </div>
+              {% endfor %}
             </div>
-            <em>{{ module.lessons.count }} dars</em>
-          </article>
+          </div>
         {% empty %}
-          <p class="course-detail-empty">Modullar hali qo'shilmagan.</p>
+          <div class="empty-state">
+            <i class="bi bi-layers"></i>
+            <p>Bu kurs uchun modullar hali qo'shilmagan.</p>
+          </div>
         {% endfor %}
-      </div>
-    </div>
-  </section>
+      </section>
 
-  {# ===== INSTRUCTOR ===== #}
-  {% if course.instructor %}
-    <section class="public-wrap course-detail-section" id="instructor">
-      <h2>O'qituvchi</h2>
-      <div class="course-detail-instructor-card">
-        <div class="course-detail-instructor-mark">
-          {% if course.instructor.avatar %}
-            <img src="{{ course.instructor.avatar.url }}" alt="{{ course.instructor_display_name }}">
-          {% else %}
-            {{ course.instructor_initial }}
-          {% endif %}
+      <section class="tab-panel" id="tab-instructor">
+        <div class="instructor-card">
+          <div class="inst-av-lg">
+            {% if course.instructor.avatar %}
+              <img src="{{ course.instructor.avatar.url }}" alt="{{ course.instructor_display_name }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">
+            {% else %}
+              {{ course.instructor_initial }}
+            {% endif %}
+          </div>
+          <div class="inst-details">
+            <div class="inst-name-lg">{{ course.instructor_display_name }}</div>
+            <div class="inst-title">Kurs muallifi</div>
+            <div class="inst-stats">
+              <span class="inst-stat"><i class="bi bi-book"></i> {{ instructor_course_count }} kurs</span>
+              <span class="inst-stat"><i class="bi bi-people"></i> {{ course_students_count }} talaba</span>
+            </div>
+            <p class="inst-bio">{{ course.instructor.bio|default:"Bu kurs darslar, mashqlar va imtihon oqimini bitta tartibli yo'lga jamlaydi." }}</p>
+          </div>
         </div>
-        <div class="course-detail-instructor-copy">
-          <h3>{{ course.instructor_display_name }}</h3>
-          <p>{{ instructor_course_count }} ta faol kurs · AzureLMS Academy</p>
-          {% if course.instructor.bio %}
-            <p>{{ course.instructor.bio|truncatewords:40 }}</p>
-          {% endif %}
-        </div>
-      </div>
-    </section>
-  {% endif %}
+      </section>
 
-  {# ===== CTA ===== #}
-  <section class="public-wrap cta-strip">
-    <div class="cta-inner">
-      <div class="cta-copy">
-        <p class="section-kicker section-kicker--light">Boshlash</p>
-        <h2>{{ course.title }} bilan o'rganishni boshlang</h2>
-        <p>Obuna ostida barcha mos kurslar, lesson workspace va sertifikat yo'li ochiladi.</p>
-      </div>
-      <div class="cta-actions">
-        {% if user.is_authenticated %}
+      <section class="tab-panel" id="tab-reviews">
+        <div class="reviews-summary">
+          <div class="rating-big">
+            <div class="rating-num">4.8</div>
+            <div class="rating-stars">★★★★★</div>
+            <div class="rating-total">{{ course_students_count|default:1 }} o'quvchi asosida</div>
+          </div>
+          <div class="rating-bars">
+            <div class="bar-row"><span class="bar-label">5 ★</span><div class="bar-track"><div class="bar-fill" style="width: 82%"></div></div><span class="bar-pct">82%</span></div>
+            <div class="bar-row"><span class="bar-label">4 ★</span><div class="bar-track"><div class="bar-fill" style="width: 14%"></div></div><span class="bar-pct">14%</span></div>
+            <div class="bar-row"><span class="bar-label">3 ★</span><div class="bar-track"><div class="bar-fill" style="width: 4%"></div></div><span class="bar-pct">4%</span></div>
+          </div>
+        </div>
+        <article class="review-card">
+          <div class="review-header">
+            <div class="review-av inst-av">AB</div>
+            <div class="review-meta"><div class="review-name">Azizbek</div><div class="review-date">Yangi o'quvchi</div></div>
+            <div class="review-stars">★★★★★</div>
+          </div>
+          <p class="review-text">Kurs strukturasi aniq, modullar va darslar tartibli ko'rinadi.</p>
+        </article>
+      </section>
+
+      <section class="tab-panel" id="tab-about">
+        <div class="learn-box">
+          <div class="section-title">Kurs haqida</div>
+          <div class="rich-text">{{ course.description|safe }}</div>
+        </div>
+      </section>
+    </main>
+
+    <aside class="sidebar">
+      <div class="sidebar-card">
+        <div class="sidebar-thumb" style="background-image: url('{{ course.cover_media_url }}');">
+          <button class="sidebar-play" type="button" aria-label="Preview"><i class="bi bi-play-fill"></i></button>
+        </div>
+        <div class="sidebar-body">
+          <div class="sidebar-price">
+            {% if course.price %}
+              <span class="price-main">{{ course.price|floatformat:0 }} so'm</span>
+            {% else %}
+              <span class="price-main">Bepul</span>
+            {% endif %}
+          </div>
+          <div class="sidebar-timer"><i class="bi bi-patch-check"></i> Sertifikat va exam flow mavjud</div>
           {% if is_enrolled %}
-            <a class="button button--light" href="{% url 'course_study' course_id=course.id %}">O'qishni davom ettirish</a>
+            <a class="btn-enroll" href="{% url 'course_study' course.id %}">O'qishni davom ettirish</a>
           {% else %}
-            <a class="button button--light" href="{% url 'cohorts:checkout' course_id=course.id %}">Kursga yozilish</a>
+            <a class="btn-enroll" href="{% url 'cohorts:checkout' course.id %}">Kursga yozilish</a>
           {% endif %}
-        {% else %}
-          <a class="button button--light" href="{% url 'register' %}">Ro'yxatdan o'tish</a>
-          <a class="button button--outline-light" href="{% url 'login' %}">Kirish</a>
-        {% endif %}
+          <a class="btn-try" href="{% url 'courses' %}">Katalogga qaytish</a>
+          <div class="guarantee"><i class="bi bi-shield-check"></i> Admin paneldan boshqariladigan kurs kontenti</div>
+          <div class="sidebar-includes">
+            <div class="includes-title">Kurs ichida</div>
+            <div class="include-item"><i class="bi bi-play-circle"></i> {{ course_lessons_count }} ta dars</div>
+            <div class="include-item"><i class="bi bi-layers"></i> {{ modules|length }} ta modul</div>
+            <div class="include-item"><i class="bi bi-file-earmark-text"></i> {{ course_exam_count }} ta imtihon</div>
+            <div class="include-item"><i class="bi bi-award"></i> Sertifikat talablari</div>
+          </div>
+        </div>
       </div>
-    </div>
-  </section>
+    </aside>
+  </div>
+{% endblock %}
 
+{% block scripts %}
+  <script src="{% static 'js/public-home.js' %}"></script>
+  <script src="{% static 'js/public-pages.js' %}"></script>
 {% endblock %}

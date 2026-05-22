@@ -1,0 +1,84 @@
+    .legal-hero {
+      background: var(--deep);
+      color: var(--on-deep);
+      padding: 72px 0 56px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .legal-hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 70% 80% at 50% 30%, rgba(29, 87, 216, 0.28) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .legal-hero-inner {
+      position: relative;
+      width: var(--wrap);
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+    .legal-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: var(--r-pill);
+      background: rgba(29, 87, 216, 0.28);
+      border: 1px solid rgba(96, 165, 250, 0.3);
+      color: #93c5fd;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .legal-title {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 12px;
+    }
+    .legal-updated {
+      color: rgba(220, 233, 245, 0.6);
+      font-size: 0.86rem;
+    }
+    .legal-layout {
+      width: min(100%, 920px);
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+    .legal-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--r-xl);
+      box-shadow: var(--sh-sm);
+      padding: clamp(24px, 4vw, 42px);
+    }
+    .legal-content {
+      color: var(--ink-2);
+      font-size: 0.95rem;
+      line-height: 1.75;
+    }
+    .legal-content h1,
+    .legal-content h2,
+    .legal-content h3 {
+      color: var(--ink-0);
+      line-height: 1.25;
+      margin: 28px 0 10px;
+    }
+    .legal-content h1:first-child,
+    .legal-content h2:first-child,
+    .legal-content h3:first-child {
+      margin-top: 0;
+    }
+    .legal-content p,
+    .legal-content ul,
+    .legal-content ol {
+      margin-bottom: 14px;
+    }
+    .legal-content ul,
+    .legal-content ol {
+      padding-left: 22px;
+    }

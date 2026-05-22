@@ -1,270 +1,311 @@
 {% extends "base_public.html" %}
 {% load static %}
 
-{% block title %}AzureLMS - {{ page.hero_title_start }} {{ page.hero_title_highlight }} {{ page.hero_title_end }}{% endblock %}
-{% block body_class %}shell-public--landing{% endblock %}
+{% block title %}{{ site_settings.brand_name|default:"AzureLMS" }} - Turk tili va sertifikat platformasi{% endblock %}
+{% block meta_description %}{{ site_settings.brand_tagline|default:"A1 dan C1 gacha tartibli darslar, imtihon muhiti va sertifikat." }}{% endblock %}
+{% block body_class %}public-home{% endblock %}
+
+{% block styles %}
+  <link rel="stylesheet" href="{% static 'css/public-index.css' %}?v=2">
+{% endblock %}
 
 {% block content %}
+  <section class="hero">
+    {% if page.hero_background_video %}
+      <video class="public-media-bg" src="{{ page.hero_background_video.url }}" autoplay muted loop playsinline></video>
+    {% elif page.hero_background_image %}
+      <div class="public-media-bg" style="background-image: url('{{ page.hero_background_image.url }}');"></div>
+    {% endif %}
 
-  {# ===== BILLBOARD CAROUSEL ===== #}
-  <section class="public-billboard" data-carousel>
-    <div class="public-billboard-carousel">
-      {% for slide in hero_slides %}
-        <article class="public-billboard-slide {{ slide.layout_class }} {{ slide.gradient_class }}{% if forloop.first %} is-active{% endif %}" data-carousel-slide>
-          <div class="public-wrap public-billboard-grid">
-            <div class="billboard-stage">
-              <article class="billboard-poster billboard-poster--main">
-                <div class="billboard-poster-head">
-                  <span>{{ slide.poster_kicker }}</span>
-                  <strong>{{ slide.poster_year_label }}</strong>
-                </div>
-                <div class="billboard-poster-body">
-                  <div class="poster-chart {{ slide.chart_class }}">
-                    <span></span><span></span><span></span><span></span>
-                  </div>
-                  <div class="poster-copy">
-                    <strong>{{ slide.poster_title }}</strong>
-                    <p>{{ slide.poster_text }}</p>
-                  </div>
-                </div>
-                <div class="billboard-poster-foot">
-                  {% if slide.poster_chip_one %}<span>{{ slide.poster_chip_one }}</span>{% endif %}
-                  {% if slide.poster_chip_two %}<span>{{ slide.poster_chip_two }}</span>{% endif %}
-                  {% if slide.poster_chip_three %}<span>{{ slide.poster_chip_three }}</span>{% endif %}
-                </div>
-              </article>
-
-              <article class="billboard-poster billboard-poster--side">
-                <span class="poster-side-label">{{ slide.side_label }}</span>
-                <strong>{{ slide.side_title }}</strong>
-                <p>{{ slide.side_text }}</p>
-              </article>
-            </div>
-
-            <div class="billboard-copy">
-              <p class="billboard-kicker">{{ slide.kicker }}</p>
-              <h1>{{ slide.title }}</h1>
-              <p class="billboard-text">{{ slide.subtitle }}</p>
-              <div class="billboard-actions">
-                {% if slide.primary_label %}
-                  <a class="button button--light" href="{{ slide.primary_url|default:'#' }}">{{ slide.primary_label }}</a>
-                {% endif %}
-                {% if slide.secondary_label %}
-                  <a class="button button--outline-light" href="{{ slide.secondary_url|default:'#' }}">{{ slide.secondary_label }}</a>
-                {% endif %}
-              </div>
-              <div class="billboard-points">
-                {% for stat in slide.metric_items %}
-                  <div>
-                    <strong>{{ stat.value }}</strong>
-                    <span>{{ stat.label }}</span>
-                  </div>
-                {% endfor %}
-              </div>
-            </div>
-          </div>
-        </article>
-      {% endfor %}
-    </div>
-
-    <div class="public-wrap public-billboard-controls">
-      <div class="billboard-dots" role="tablist" aria-label="Billboard slides">
-        {% for slide in hero_slides %}
-          <button class="billboard-dot{% if forloop.first %} is-active{% endif %}" type="button" aria-label="{{ forloop.counter }}-slide" data-carousel-dot></button>
-        {% endfor %}
-      </div>
-      <div class="billboard-nav">
-        <button class="billboard-control" type="button" aria-label="Oldingi slide" data-carousel-prev>
-          <i class="bi bi-chevron-left"></i>
-        </button>
-        <button class="billboard-control" type="button" aria-label="Keyingi slide" data-carousel-next>
-          <i class="bi bi-chevron-right"></i>
-        </button>
-      </div>
-    </div>
-  </section>
-
-  {# ===== PORTAL GRID (preview + program tabs) ===== #}
-  <section class="public-wrap portal-grid">
-    <article class="portal-card portal-card--media">
-      <div class="portal-card-head">
-        <span>{{ page.portal_media_label }}</span>
-      </div>
-      <div class="portal-preview">
-        <div class="portal-preview-window">
-          <div class="portal-preview-bar">
-            <span></span><span></span><span></span>
-          </div>
-          <div class="portal-preview-body">
-            <div class="portal-preview-sidebar"></div>
-            <div class="portal-preview-content">
-              <div class="preview-ribbon"></div>
-              <div class="preview-cards">
-                <span></span><span></span><span></span>
-              </div>
-              <div class="preview-table">
-                <span></span><span></span><span></span><span></span>
-              </div>
-            </div>
-          </div>
+    <div class="wrap hero-inner">
+      <div class="hero-copy fi vis">
+        <div class="hero-tag">
+          <span class="hero-tag-dot"></span>
+          {{ page.hero_badge|default:"A1 - C1 darslari ochiq" }}
         </div>
-      </div>
-    </article>
 
-    <article class="portal-card portal-card--program">
-      <div class="portal-card-tabs">
-        {% for tab in portal_tabs %}
-          <a{% if tab.is_active %} class="is-active"{% endif %} href="{{ tab.url }}">{{ tab.label }}</a>
-        {% endfor %}
-      </div>
-      <div class="portal-program-grid">
-        <div class="portal-program-cover">
-          <div class="portal-program-label">{{ page.portal_cover_label }}</div>
-          <strong>{{ page.portal_cover_title }}</strong>
+        <h1 class="hero-headline">
+          {{ page.hero_title_start|default:"Turk tilini" }}<br>
+          <em>{{ page.hero_title_highlight|default:"o'z tempingizda," }}</em><br>
+          {{ page.hero_title_end|default:"tartib bilan o'rganing" }}
+        </h1>
+
+        <p class="hero-desc">{{ page.hero_subtitle|striptags|default:"Jonli darslar, imtihon muhiti va tasdiqlangan sertifikat - barchasi bitta platformada." }}</p>
+
+        <div class="hero-actions">
+          <a class="btn btn--solid btn--lg" href="{% url 'register' %}">{{ page.cta_primary_label|default:"Bepul boshlash" }}</a>
+          <a class="btn btn--outline btn--lg" href="{% url 'courses' %}">{{ page.cta_secondary_label|default:"Kurslarni ko'rish" }}</a>
         </div>
-        <div class="portal-program-copy">
-          <h2>{{ page.portal_program_title }}</h2>
-          <ul class="portal-list">
-            {% for item in portal_items %}
-              <li>{{ item.text }}</li>
+
+        <div class="hero-proof">
+          <div class="hero-avatars">
+            {% for student in recent_students|slice:":4" %}
+              <div class="hero-avatar av-{{ forloop.counter }}">{{ student.first_name|default:student.username|slice:":2"|upper }}</div>
+            {% empty %}
+              <div class="hero-avatar av-a">NS</div>
+              <div class="hero-avatar av-b">RK</div>
+              <div class="hero-avatar av-c">ZA</div>
+              <div class="hero-avatar av-d">MB</div>
             {% endfor %}
-          </ul>
+          </div>
+          <div class="hero-proof-text">
+            <strong>2,400+</strong> talaba allaqachon o'qiyapti
+          </div>
         </div>
       </div>
-    </article>
-  </section>
 
-  {# ===== SEARCH STRIP ===== #}
-  <section class="public-wrap search-strip">
-    <form method="get" action="{% url 'courses' %}" class="search-strip-form">
-      <input type="text" name="q" placeholder="{{ page.search_placeholder }}">
-      <button class="search-button" type="submit"><i class="bi bi-search"></i></button>
-    </form>
-  </section>
-
-  {# ===== POPULAR COURSES ===== #}
-  <section class="public-wrap public-section">
-    <div class="section-head">
-      <div>
-        <p class="section-kicker">{{ page.courses_section_kicker }}</p>
-        <h2>{{ page.courses_section_title }}</h2>
-      </div>
-      <a class="section-link" href="{% url 'courses' %}">{{ page.courses_section_link_label }} <i class="bi bi-arrow-right"></i></a>
-    </div>
-
-    <div class="course-grid">
-      {% for course in popular_courses %}
-        <article class="course-card">
-          <div class="course-cover course-cover--{% cycle 'violet' 'sand' 'navy' %}">
-            {% if course.thumbnail %}
-              <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" loading="lazy">
-            {% else %}
-              <div class="course-cover-inner">
-                <i class="bi bi-mortarboard"></i>
-                <span>{{ course.title }}</span>
+      <div class="hero-visual fi vis">
+        <div class="hero-preview-stage">
+          <div class="ui-card dash-preview">
+            <div class="dash-topbar">
+              <div class="dash-topbar-brand">
+                <div class="dash-logo-sm">{{ site_settings.logo_mark_text|default:"Az" }}</div>
+                <span>{{ site_settings.brand_name|default:"AzureLMS" }}</span>
               </div>
-            {% endif %}
-          </div>
-          <div class="course-body">
-            <p class="course-kicker">{{ course.get_level_display }}</p>
-            <h3>{{ course.title }}</h3>
-            <p>{{ course.description|striptags|truncatewords:18 }}</p>
-            <div class="course-chips">
-              <span>{{ course.lessons_count }} dars</span>
-              <span>{{ course.duration }} soat</span>
-              {% if course.price %}<span>{{ course.price|floatformat:0 }} so'm</span>{% endif %}
+              <div class="dash-user-pill">
+                <div class="dash-user-avatar">AB</div>
+                <span>Azizbek</span>
+              </div>
             </div>
-            <div class="course-meta">
-              <span>{{ course.instructor_display_name }}</span>
-              <a href="{% url 'course_detail' pk=course.id %}">Kursni ochish <i class="bi bi-arrow-right"></i></a>
+            <div class="dash-body">
+              <div>
+                <div class="active-course-label">Joriy kurs</div>
+                <div class="active-course-card">
+                  <div class="active-course-thumb"><i class="bi bi-book"></i></div>
+                  <div class="active-course-info">
+                    <div class="active-course-name">Turk tili - B2 Intensive</div>
+                    <div class="course-prog-track"><div class="course-prog-fill"></div></div>
+                  </div>
+                  <div class="active-course-pct">72%</div>
+                </div>
+              </div>
+              <div>
+                <div class="upcoming-label">Keyingi dars</div>
+                <div class="upcoming-row">
+                  <div class="upcoming-icon"><i class="bi bi-headphones"></i></div>
+                  <div class="upcoming-info">
+                    <div class="upcoming-title">Listening - Dialog 14</div>
+                    <div class="upcoming-meta">Bugun - 18:00 - 19:00</div>
+                  </div>
+                  <span class="upcoming-badge">Bugun</span>
+                </div>
+              </div>
+              <div class="dash-stats">
+                <div class="dash-stat"><div class="dash-stat-val">18</div><div class="dash-stat-lbl">Dars o'tildi</div></div>
+                <div class="dash-stat"><div class="dash-stat-val">94%</div><div class="dash-stat-lbl">Exam natija</div></div>
+                <div class="dash-stat"><div class="dash-stat-val">11</div><div class="dash-stat-lbl">Streak</div></div>
+              </div>
             </div>
           </div>
-        </article>
+
+          <div class="float-card float-bottom">
+            <div class="float-icon-wrap float-icon-wrap--amber"><i class="bi bi-trophy-fill"></i></div>
+            <div class="float-text">
+              <strong class="t-amber">B1 sertifikat olindi!</strong>
+              <span>96 ball - 2 soat oldin</span>
+            </div>
+          </div>
+
+          <div class="float-card float-top">
+            <div class="float-icon-wrap float-icon-wrap--green"><i class="bi bi-check-square-fill"></i></div>
+            <div class="float-text">
+              <strong class="t-green">Exam o'tdi</strong>
+              <span>Sertifikat tayyor</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="trust">
+    <div class="wrap trust-inner">
+      {% for stat in statistics %}
+        <div class="trust-stat fi"><div class="trust-num">{{ stat.value }}</div><div class="trust-lbl">{{ stat.label }}</div></div>
+        {% if not forloop.last %}<div class="trust-sep"></div>{% endif %}
       {% empty %}
-        <p class="course-grid-empty">Hozircha kurslar qo'shilmagan.</p>
+        <div class="trust-stat fi"><div class="trust-num" data-target="2400" data-suffix="+">2400+</div><div class="trust-lbl">Faol talaba</div></div>
+        <div class="trust-sep"></div>
+        <div class="trust-stat fi"><div class="trust-num">6</div><div class="trust-lbl">Daraja (A1-C1)</div></div>
+        <div class="trust-sep"></div>
+        <div class="trust-stat fi"><div class="trust-num" data-target="94" data-suffix="%">94%</div><div class="trust-lbl">Sertifikat oldi</div></div>
+        <div class="trust-sep"></div>
+        <div class="trust-stat fi"><div class="trust-num">4.9</div><div class="trust-lbl">O'rtacha reyting</div></div>
       {% endfor %}
     </div>
-  </section>
+  </div>
 
-  {# ===== HOW IT WORKS ===== #}
-  <section class="public-process{% if page.how_it_works_background_image %} public-process--has-bg{% endif %}"
-           {% if page.how_it_works_background_image %}style="--public-process-bg: url('{{ page.how_it_works_background_image.url }}');"{% endif %}>
-    <div class="public-wrap">
-      <div class="section-head">
+  <section class="section courses" id="courses">
+    <div class="wrap">
+      <div class="section-head fi">
         <div>
-          <p class="section-kicker">{{ page.process_section_kicker }}</p>
-          <h2>{{ page.how_it_works_title }}</h2>
-          {% if page.how_it_works_subtitle %}<span>{{ page.how_it_works_subtitle }}</span>{% endif %}
+          <p class="section-label">{{ page.courses_section_kicker|default:"Kurs katalogi" }}</p>
+          <h2 class="section-title">{{ page.courses_section_title|default:"Qaysi darajadan boshlaysiz?" }}</h2>
         </div>
+        <a class="section-link" href="{% url 'courses' %}">{{ page.courses_section_link_label|default:"Barcha kurslarni ko'rish" }} <i class="bi bi-arrow-right"></i></a>
       </div>
 
-      <div class="process-grid">
-        {% for step in how_it_works_steps %}
-          <article class="process-card">
-            <span class="process-step {{ step.color_class }}">
-              <i class="{{ step.icon_class }}"></i>
-            </span>
-            <h3>{{ step.title }}</h3>
-            <p>{{ step.description }}</p>
-          </article>
-        {% endfor %}
-      </div>
-    </div>
-  </section>
-
-  {# ===== TESTIMONIALS ===== #}
-  {% if testimonials %}
-    <section class="public-wrap public-section">
-      <div class="section-head">
-        <div>
-          <p class="section-kicker">{{ page.testimonials_section_kicker }}</p>
-          <h2>{{ page.testimonials_section_title }}</h2>
-        </div>
-      </div>
-
-      <div class="testimonial-grid">
-        {% for t in testimonials %}
-          <article class="testimonial-card">
-            <div class="testimonial-top">
-              <div class="testimonial-avatar testimonial-avatar--{% cycle 'warm' 'cool' 'navy' %}">
-                {% if t.avatar %}<img src="{{ t.avatar.url }}" alt="{{ t.name }}">{% else %}{{ t.name|slice:":2"|upper }}{% endif %}
+      <div class="course-grid">
+        {% for course in popular_courses %}
+          <article class="course-card fi">
+            <div class="course-cover cc-{{ forloop.counter }}">
+              <span class="course-cover-badge">{{ course.get_level_display }}</span>
+              <div class="course-cover-emoji">{% if course.level == "beginner" %}<i class="bi bi-flower1"></i>{% elif course.level == "intermediate" %}<i class="bi bi-book"></i>{% else %}<i class="bi bi-bank"></i>{% endif %}</div>
+            </div>
+            <div class="course-body">
+              <h3 class="course-title">{{ course.title }}</h3>
+              <p class="course-desc">{{ course.description|striptags|truncatewords:20 }}</p>
+              <div class="chips">
+                <span class="chip"><i class="bi bi-book"></i>{{ course.lessons_count }} dars</span>
+                <span class="chip"><i class="bi bi-clock"></i>{{ course.duration }} soat</span>
+                <span class="chip"><i class="bi bi-patch-check"></i>Sertifikat</span>
               </div>
-              <div class="testimonial-info">
-                <strong>{{ t.name }}</strong>
-                <span>{{ t.role }}</span>
+              <div class="course-foot">
+                <span class="course-instructor">{{ course.instructor_display_name }}</span>
+                <a class="course-cta" href="{% url 'course_detail' course.pk %}">Batafsil <i class="bi bi-arrow-right"></i></a>
               </div>
             </div>
-            <div class="testimonial-stars"></div>
-            <p>{{ t.text }}</p>
+          </article>
+        {% empty %}
+          <article class="course-card fi">
+            <div class="course-cover cc-a"><span class="course-cover-badge">A1 - A2</span><div class="course-cover-emoji"><i class="bi bi-flower1"></i></div></div>
+            <div class="course-body">
+              <h3 class="course-title">Boshlang'ich - A1/A2</h3>
+              <p class="course-desc">Turk tilini noldan boshlaydiganlar uchun. Alifbo, asosiy gaplar va oddiy dialoglar.</p>
+              <div class="chips"><span class="chip"><i class="bi bi-book"></i>18 dars</span><span class="chip"><i class="bi bi-clock"></i>7 hafta</span><span class="chip"><i class="bi bi-patch-check"></i>Sertifikat</span></div>
+              <div class="course-foot"><span class="course-instructor">AzureLMS Instructor</span><a class="course-cta" href="{% url 'courses' %}">Batafsil <i class="bi bi-arrow-right"></i></a></div>
+            </div>
           </article>
         {% endfor %}
-      </div>
-    </section>
-  {% endif %}
-
-  {# ===== CTA STRIP ===== #}
-  <section class="public-wrap cta-strip {{ page.cta_background_class }}{% if page.cta_background_image %} cta-strip--has-image{% endif %}{% if page.cta_background_video %} cta-strip--has-video{% endif %}"
-           {% if page.cta_background_image %}style="--public-cta-bg-image: url('{{ page.cta_background_image.url }}');"{% endif %}>
-    <div class="cta-inner">
-      {% if page.cta_background_video %}
-        <video class="public-background-video cta-background-video" autoplay muted loop playsinline aria-hidden="true">
-          <source src="{{ page.cta_background_video.url }}">
-        </video>
-      {% endif %}
-      <div class="cta-copy">
-        <p class="section-kicker section-kicker--light">{{ page.cta_kicker }}</p>
-        <h2>{{ page.cta_title }}</h2>
-        <div class="cta-text">{{ page.cta_description|safe }}</div>
-      </div>
-      <div class="cta-actions">
-        {% if user.is_authenticated %}
-          <a class="button button--light" href="{% url 'dashboard' %}">Dashboardga o'tish</a>
-        {% else %}
-          <a class="button button--light" href="{% url 'register' %}">{{ page.cta_primary_label }}</a>
-        {% endif %}
-        <a class="button button--outline-light" href="{% url 'courses' %}">{{ page.cta_secondary_label }}</a>
       </div>
     </div>
   </section>
 
+  <div class="hscroll-section-wrap" id="hscrollWrap">
+    <div class="hscroll-heading">
+      <div class="wrap">
+        <div class="section-head fi">
+          <div>
+            <p class="section-label">{{ page.process_section_kicker|default:"Jarayon" }}</p>
+            <h2 class="section-title">{{ page.how_it_works_title|default:"4 qadamda - boshidan sertifikatgacha" }}</h2>
+          </div>
+          <p class="section-link">{{ page.how_it_works_subtitle|default:"Aylantiring" }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="hscroll-sticky" id="hscrollSticky">
+      <div class="hscroll-track" id="hscrollTrack">
+        {% for step in how_it_works_steps %}
+          <div class="step-card">
+            <div class="step-num-row">
+              <div class="step-num">{{ forloop.counter|stringformat:"02d" }}</div>
+              <div class="step-icon-wrap"><i class="{{ step.icon_class|default:'bi bi-play-circle' }}"></i></div>
+            </div>
+            <h3 class="step-title">{{ step.title }}</h3>
+            <p class="step-desc">{{ step.description }}</p>
+            <div class="step-visual">
+              <div class="sv-row"><span class="sv-dot sv-dot--blue"></span><span class="sv-label">{{ step.title }}</span><span class="sv-badge sv-badge--blue">Step {{ forloop.counter }}</span></div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="hscroll-progress-bar"><div class="hscroll-progress-fill" id="hscrollProgress"></div></div>
+    </div>
+
+    <div class="hscroll-mobile">
+      <div class="wrap">
+        <div class="hscroll-mobile-grid">
+          {% for step in how_it_works_steps %}
+            <div class="step-card fi">
+              <div class="step-num-row"><div class="step-num">{{ forloop.counter|stringformat:"02d" }}</div><div class="step-icon-wrap"><i class="{{ step.icon_class|default:'bi bi-play-circle' }}"></i></div></div>
+              <h3 class="step-title">{{ step.title }}</h3>
+              <p class="step-desc">{{ step.description }}</p>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="section feature">
+    <div class="wrap">
+      <div class="feature-inner">
+        <div class="feature-visual fi">
+          <div class="feature-label">B2 - Modular tartib</div>
+          <div class="feat-row"><div class="feat-num done"><i class="bi bi-check"></i></div><div class="feat-info"><div class="feat-title">1-modul: Kirish va alifbo</div><div class="feat-meta">8 dars - 2 hafta</div></div><div class="feat-status done"><i class="bi bi-check-circle-fill"></i> Bajarildi</div></div>
+          <div class="feat-row"><div class="feat-num done"><i class="bi bi-check"></i></div><div class="feat-info"><div class="feat-title">2-modul: Grammatika asoslari</div><div class="feat-meta">10 dars - 3 hafta</div></div><div class="feat-status done"><i class="bi bi-check-circle-fill"></i> Bajarildi</div></div>
+          <div class="feat-row is-active"><div class="feat-num active"><i class="bi bi-arrow-right"></i></div><div class="feat-info"><div class="feat-title">3-modul: So'zlashuv va dialog</div><div class="feat-meta">6 dars - 2 hafta</div></div><div class="feat-status active"><i class="bi bi-play-circle-fill"></i> Joriy</div></div>
+          <div class="feat-row dim-row"><div class="feat-num dim">4</div><div class="feat-info"><div class="feat-title">4-modul: Yozma ifoda</div><div class="feat-meta">8 dars - 2 hafta</div></div><div class="feat-status dim">Keyingi</div></div>
+        </div>
+
+        <div class="fi feature-copy">
+          <p class="section-label">Nima farqi bor?</p>
+          <h2 class="section-title">{{ page.portal_program_title|default:"Tartib - eng yaxshi motivatsiya" }}</h2>
+          <div class="feature-list">
+            {% for item in portal_items %}
+              <div class="feature-item">
+                <div class="feature-item-icon"><i class="bi bi-check2-circle"></i></div>
+                <div class="feature-item-text">
+                  <div class="feature-item-title">{{ item.text }}</div>
+                  <div class="feature-item-desc">Platforma ichidagi har bir bo'lim bir-biriga ulanib, o'quvchi yo'lini tartibli qiladi.</div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section testimonials">
+    <div class="wrap">
+      <div class="section-head fi">
+        <div>
+          <p class="section-label">{{ page.testimonials_section_kicker|default:"Fikrlar" }}</p>
+          <h2 class="section-title">{{ page.testimonials_section_title|default:"Talabalar nima deydi?" }}</h2>
+        </div>
+      </div>
+      <div class="tgrid">
+        {% for testimonial in testimonials %}
+          <article class="tcard fi">
+            <div class="tcard-stars">
+              {% for _ in "12345"|make_list %}<i class="bi bi-star-fill"></i>{% endfor %}
+            </div>
+            <p class="tcard-quote">{{ testimonial.text }}</p>
+            <div class="tcard-person">
+              <div class="tcard-avatar tav-{{ forloop.counter }}">{{ testimonial.name|slice:":2"|upper }}</div>
+              <div><div class="tcard-name">{{ testimonial.name }}</div><div class="tcard-role">{{ testimonial.role }}</div></div>
+            </div>
+          </article>
+        {% empty %}
+          <article class="tcard fi">
+            <div class="tcard-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
+            <p class="tcard-quote">Dashboard'da progress ko'rganda o'rganishni to'xtatgim kelmadi.</p>
+            <div class="tcard-person"><div class="tcard-avatar tav-a">NS</div><div><div class="tcard-name">Nigor Soliyeva</div><div class="tcard-role">Talaba</div></div></div>
+          </article>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="cta {{ page.cta_background_class }}">
+    {% if page.cta_background_video %}
+      <video class="public-media-bg" src="{{ page.cta_background_video.url }}" autoplay muted loop playsinline></video>
+    {% elif page.cta_background_image %}
+      <div class="public-media-bg" style="background-image: url('{{ page.cta_background_image.url }}');"></div>
+    {% endif %}
+    <div class="wrap cta-inner fi">
+      <h2 class="cta-title">{{ page.cta_title|default:"Bugun birinchi darsni boshlang" }}</h2>
+      <p class="cta-desc">{{ page.cta_description|striptags|default:"Ro'yxatdan o'tish bepul. Birinchi modulni sinab ko'ring, keyin qaror qiling." }}</p>
+      <div class="cta-actions">
+        <a class="btn btn--lg btn--cta-p" href="{% url 'register' %}">{{ page.cta_primary_label|default:"Bepul boshlash" }}</a>
+        <a class="btn btn--lg btn--cta-g" href="{% url 'courses' %}">{{ page.cta_secondary_label|default:"Kurslarni ko'rish" }}</a>
+      </div>
+    </div>
+  </section>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{% static 'js/public-home.js' %}?v=1" defer></script>
 {% endblock %}
