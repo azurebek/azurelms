@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS old-turtle prototype for course detail.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>Turk tili: A1–B2 To'liq Kurs — AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- CSS Zanjiri (Architectural Standard) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/public.css">
+  <link rel="stylesheet" href="../assets/css/public-course-detail.css">
+
+  <link rel="stylesheet" href="../assets/css/prototype-extracted.css">
+</head>
+<body>
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="logo">
+        <div class="logo-mark">AZ</div>
+        <span class="logo-name">AzureLMS</span>
+      </a>
+      <a href="course-list.html" class="nav-link active">Kurslar</a>
+      <a href="pricing.html" class="nav-link">Narxlar</a>
+      <a href="about.html" class="nav-link">Biz haqimizda</a>
+      <button class="theme-btn" id="themeBtn" aria-label="Toggle theme">
+        <i class="bi bi-moon" id="themeIcon"></i>
+      </button>
+      <a href="../auth/auth-login.html" class="nav-link">Kirish</a>
+      <a href="../auth/auth-register.html" class="btn-nav">Ro'yxatdan o't</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-content">
+        <nav class="breadcrumb">
+          <a href="../index.html">Bosh sahifa</a>
+          <i class="bi bi-chevron-right xstyle-9b342752"></i>
+          <a href="course-list.html">Kurslar</a>
+          <i class="bi bi-chevron-right xstyle-9b342752"></i>
+          <span>Turk tili</span>
+        </nav>
+        <div class="hero-badge"><i class="bi bi-lightning-fill"></i> Bestseller</div>
+        <h1 class="hero-title">Turk tili: A1–B2<br>To'liq Kurs</h1>
+        <p class="hero-desc">Noldan boshlab B2 darajagacha — grammatika, lug'at, jonli suhbat va madaniyat. Har bir dars interaktiv mashqlar va amaliy misollar bilan to'ldirilgan.</p>
+        <div class="hero-meta">
+          <span class="hero-meta-item"><i class="bi bi-play-circle"></i><strong>124</strong> dars</span>
+          <span class="hero-meta-item"><i class="bi bi-clock"></i><strong>36 soat</strong> video</span>
+          <span class="hero-meta-item"><i class="bi bi-file-earmark-text"></i><strong>48</strong> material</span>
+          <span class="hero-meta-item"><i class="bi bi-people"></i><strong>2 840</strong> talaba</span>
+        </div>
+        <div class="hero-stars xstyle-7dde5e56">
+          <span class="stars">★★★★★</span>
+          <span class="rating-val">4.9</span>
+          <span class="rating-count">(318 sharh)</span>
+        </div>
+        <div class="hero-instructor">
+          <div class="inst-av">AZ</div>
+          <div class="inst-info">
+            <div class="inst-name">Aziz Karimov</div>
+            <div class="inst-role">Til metodisti · 8 yillik tajriba</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT CARD -->
+      <div class="hero-card-wrap">
+        <div class="hero-video">
+          <div class="hero-video-emoji">🇹🇷</div>
+          <div class="xstyle-b9e650a8"></div>
+          <button class="play-btn"><i class="bi bi-play-fill"></i></button>
+          <div class="hero-preview-bar xstyle-ef72d101">
+            <span class="preview-label">Bepul ko'rish: Dars 1</span>
+            <span class="preview-time">8:24</span>
+          </div>
+        </div>
+        <div class="enroll-badge">
+          <div class="badge-icon"><i class="bi bi-shield-check"></i></div>
+          <div class="badge-text">
+            <strong>30 kun kafolat</strong>
+            <span>Pul qaytarish</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PAGE LAYOUT -->
+  <div class="page-layout">
+    <!-- LEFT: TABS -->
+    <div>
+      <!-- WHAT YOU LEARN -->
+      <div class="learn-box">
+        <div class="section-title">Nima o'rganasiz?</div>
+        <div class="learn-grid">
+          <div class="learn-item"><i class="bi bi-check-circle-fill"></i>Turk alifbosi va talaffuz qoidalari</div>
+          <div class="learn-item"><i class="bi bi-check-circle-fill"></i>Kundalik hayotda zarur so'z boyligi</div>
+          <div class="learn-item"><i class="bi bi-check-circle-fill"></i>Grammatika: zamon, kelishik, fe'l</div>
+          <div class="learn-item"><i class="bi bi-check-circle-fill"></i>Jonli dialoglar va suhbat mashqlari</div>
+          <div class="learn-item"><i class="bi bi-check-circle-fill"></i>Tinglab tushunish va yozish ko'nikmalari</div>
+          <div class="learn-item"><i class="bi bi-check-circle-fill"></i>Turk madaniyati va etiket normalari</div>
+          <div class="learn-item"><i class="bi bi-check-circle-fill"></i>TÖMER imtihoniga tayyorgarlik</div>
+          <div class="learn-item"><i class="bi bi-check-circle-fill"></i>B2 darajasi uchun murakkab mavzular</div>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div class="tabs" id="tabs">
+        <button class="tab-btn active" data-tab="curriculum">Dastur</button>
+        <button class="tab-btn" data-tab="instructor">O'qituvchi</button>
+        <button class="tab-btn" data-tab="reviews">Sharhlar</button>
+        <button class="tab-btn" data-tab="about">Kurs haqida</button>
+      </div>
+
+      <!-- CURRICULUM TAB -->
+      <div class="tab-panel active" id="tab-curriculum">
+        <div class="curriculum-header">
+          <div class="section-title xstyle-76084ee4">O'quv dasturi</div>
+          <div class="curriculum-stats">12 bo'lim · 124 dars · 36 soat</div>
+        </div>
+        <p class="xstyle-a1a31ef2">Kurs A1 bosqichidan B2 gacha ketma-ket tuzilgan. Har bir bo'lim video darslar, test va amaliy mashqlardan iborat.</p>
+
+        <!-- Section 1 -->
+        <div class="section-group open">
+          <div class="section-head" data-ui-call="toggleSection" data-ui-pass="this">
+            <div class="section-num">1</div>
+            <div class="section-label">Kirish va Alifbo (A1)</div>
+            <div class="section-meta">8 dars · 1s 42d</div>
+            <i class="bi bi-chevron-down section-chevron"></i>
+          </div>
+          <div class="lesson-list">
+            <div class="lesson-row">
+              <div class="lesson-icon video"><i class="bi bi-play-fill"></i></div>
+              <div class="lesson-name">Turk tili haqida: umumiy ma'lumot</div>
+              <span class="lesson-preview">Bepul</span>
+              <div class="lesson-dur">8:24</div>
+            </div>
+            <div class="lesson-row">
+              <div class="lesson-icon video"><i class="bi bi-play-fill"></i></div>
+              <div class="lesson-name">Alifbo: unli va undosh harflar</div>
+              <span class="lesson-preview">Bepul</span>
+              <div class="lesson-dur">12:10</div>
+            </div>
+            <div class="lesson-row">
+              <div class="lesson-icon video"><i class="bi bi-play-fill"></i></div>
+              <div class="lesson-name">Talaffuz: vokal uyg'unligi</div>
+              <i class="bi bi-lock lesson-lock"></i>
+              <div class="lesson-dur">9:45</div>
+            </div>
+            <div class="lesson-row">
+              <div class="lesson-icon quiz"><i class="bi bi-question-circle"></i></div>
+              <div class="lesson-name">Alifbo testi (20 savol)</div>
+              <i class="bi bi-lock lesson-lock"></i>
+              <div class="lesson-dur">—</div>
+            </div>
+            <div class="lesson-row">
+              <div class="lesson-icon video"><i class="bi bi-play-fill"></i></div>
+              <div class="lesson-name">Salom, tanishuv iboralari</div>
+              <i class="bi bi-lock lesson-lock"></i>
+              <div class="lesson-dur">11:30</div>
+            </div>
+            <div class="lesson-row">
+              <div class="lesson-icon file"><i class="bi bi-file-earmark-pdf"></i></div>
+              <div class="lesson-name">1-bo'lim lug'ati (PDF)</div>
+              <i class="bi bi-lock lesson-lock"></i>
+              <div class="lesson-dur">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2 -->
+        <div class="section-group">
+          <div class="section-head" data-ui-call="toggleSection" data-ui-pass="this">
+            <div class="section-num">2</div>
+            <div class="section-label">Ot va olmoshlar (A1–A2)</div>
+            <div class="section-meta">10 dars · 2s 15d</div>
+            <i class="bi bi-chevron-down section-chevron"></i>
+          </div>
+          <div class="lesson-list">
+            <div class="lesson-row">
+              <div class="lesson-icon video"><i class="bi bi-play-fill"></i></div>
+              <div class="lesson-name">Otlar: birlik va ko'plik shakllar</div>
+              <i class="bi bi-lock lesson-lock"></i>
+              <div class="lesson-dur">14:20</div>
+            </div>
+            <div class="lesson-row">
+              <div class="lesson-icon video"><i class="bi bi-play-fill"></i></div>
+              <div class="lesson-name">Shaxs olmoshlari va egalik qo'shimchalari</div>
+              <i class="bi bi-lock lesson-lock"></i>
+              <div class="lesson-dur">16:45</div>
+            </div>
+            <div class="lesson-row">
+              <div class="lesson-icon quiz"><i class="bi bi-question-circle"></i></div>
+              <div class="lesson-name">Olmoshlar testi</div>
+              <i class="bi bi-lock lesson-lock"></i>
+              <div class="lesson-dur">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3 -->
+        <div class="section-group">
+          <div class="section-head" data-ui-call="toggleSection" data-ui-pass="this">
+            <div class="section-num">3</div>
+            <div class="section-label">Fe'llar va Zamon (A2)</div>
+            <div class="section-meta">14 dars · 3s 08d</div>
+            <i class="bi bi-chevron-down section-chevron"></i>
+          </div>
+          <div class="lesson-list"></div>
+        </div>
+
+        <!-- Section 4 -->
+        <div class="section-group">
+          <div class="section-head" data-ui-call="toggleSection" data-ui-pass="this">
+            <div class="section-num">4</div>
+            <div class="section-label">Kelishiklar tizimi (A2–B1)</div>
+            <div class="section-meta">12 dars · 2s 50d</div>
+            <i class="bi bi-chevron-down section-chevron"></i>
+          </div>
+          <div class="lesson-list"></div>
+        </div>
+
+        <!-- Remaining sections collapsed -->
+        <div class="section-group">
+          <div class="section-head" data-ui-call="toggleSection" data-ui-pass="this">
+            <div class="section-num">5</div>
+            <div class="section-label">Sifat va ravishlar (B1)</div>
+            <div class="section-meta">10 dars · 2s 20d</div>
+            <i class="bi bi-chevron-down section-chevron"></i>
+          </div>
+          <div class="lesson-list"></div>
+        </div>
+        <div class="section-group">
+          <div class="section-head" data-ui-call="toggleSection" data-ui-pass="this">
+            <div class="section-num">6</div>
+            <div class="section-label">Shart va istak mayillari (B1–B2)</div>
+            <div class="section-meta">11 dars · 2s 55d</div>
+            <i class="bi bi-chevron-down section-chevron"></i>
+          </div>
+          <div class="lesson-list"></div>
+        </div>
+
+        <button class="ui-hover-dashed-blue xstyle-2e1a652e">
+          Qolgan 6 bo'limni ko'rsatish →
+        </button>
+      </div>
+
+      <!-- INSTRUCTOR TAB -->
+      <div class="tab-panel" id="tab-instructor">
+        <div class="instructor-card">
+          <div class="inst-av-lg">AZ</div>
+          <div class="inst-details">
+            <div class="inst-name-lg">Aziz Karimov</div>
+            <div class="inst-title">Til metodisti, Yozuvchi, TÖMER diplomlangan muallim</div>
+            <div class="inst-stats">
+              <span class="inst-stat"><i class="bi bi-star-fill"></i> 4.9 reyting</span>
+              <span class="inst-stat"><i class="bi bi-people"></i> 12 400+ talaba</span>
+              <span class="inst-stat"><i class="bi bi-play-circle"></i> 4 kurs</span>
+            </div>
+            <div class="inst-bio">
+              Aziz Karimov Toshkent davlat sharqshunoslik universitetini tamomlab, Istanbul universitetida 3 yil tahsil oldi. Hozirda AzureLMS bosh metodisti sifatida ishlaydi va turk tilini o'rgatishning innovatsion usullarini ishlab chiqadi. U yaratgan kurslar ixchamligi, jonli misollar va amaliy yondashuvlari bilan ajralib turadi.
+            </div>
+          </div>
+        </div>
+
+        <div class="xstyle-641bcf88">
+          <div class="section-title">Qo'shimcha kurslar</div>
+          <div class="xstyle-2e1ca338">
+            <div class="xstyle-b9087f76">
+              <div class="xstyle-456e56a2">🇹🇷</div>
+              <div class="xstyle-7623f055">
+                <div class="xstyle-4f5b7cde">TÖMER imtihon tayyorgarlik kursi</div>
+                <div class="xstyle-2114a1ea">32 dars · 4.8 ★</div>
+              </div>
+              <a href="course-list.html" class="xstyle-c35816c3">Ko'rish →</a>
+            </div>
+            <div class="xstyle-b9087f76">
+              <div class="xstyle-b6f3799d">🗣️</div>
+              <div class="xstyle-7623f055">
+                <div class="xstyle-4f5b7cde">Jonli suhbat: Speaking mashqlari</div>
+                <div class="xstyle-2114a1ea">18 dars · 4.7 ★</div>
+              </div>
+              <a href="course-list.html" class="xstyle-c35816c3">Ko'rish →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- REVIEWS TAB -->
+      <div class="tab-panel" id="tab-reviews">
+        <div class="reviews-summary">
+          <div class="rating-big">
+            <div class="rating-num">4.9</div>
+            <div class="rating-stars">★★★★★</div>
+            <div class="rating-total">318 sharh</div>
+          </div>
+          <div class="rating-bars">
+            <div class="bar-row">
+              <div class="bar-label"><i class="bi bi-star-fill xstyle-3acc0776"></i> 5</div>
+              <div class="bar-track"><div class="bar-fill xstyle-66b95122"></div></div>
+              <div class="bar-pct">84%</div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label"><i class="bi bi-star-fill xstyle-3acc0776"></i> 4</div>
+              <div class="bar-track"><div class="bar-fill xstyle-3b46d70c"></div></div>
+              <div class="bar-pct">11%</div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label"><i class="bi bi-star-fill xstyle-3acc0776"></i> 3</div>
+              <div class="bar-track"><div class="bar-fill xstyle-713574fc"></div></div>
+              <div class="bar-pct">3%</div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label"><i class="bi bi-star-fill xstyle-3acc0776"></i> 2</div>
+              <div class="bar-track"><div class="bar-fill xstyle-8b87bb64"></div></div>
+              <div class="bar-pct">1%</div>
+            </div>
+            <div class="bar-row">
+              <div class="bar-label"><i class="bi bi-star-fill xstyle-3acc0776"></i> 1</div>
+              <div class="bar-track"><div class="bar-fill xstyle-89d64c14"></div></div>
+              <div class="bar-pct">1%</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-av xstyle-26fe3c0d">NB</div>
+            <div class="review-meta">
+              <div class="review-name">Nodira Baxtiyorova</div>
+              <div class="review-date">2 hafta oldin</div>
+            </div>
+            <div class="review-stars">★★★★★</div>
+          </div>
+          <div class="review-text">Juda ajoyib kurs! Aziz muallim grammatikani shunday tushunarli qilib tushuntiradiki, hatto murakkab mavzular ham oson o'zlashadi. 3 oyda A2 darajasiga yetdim. Barcha darslar mantiqiy ketma-ketlikda joylashgan va amaliy mashqlar ko'p. Sertifikat uchun ham tavsiya qilaman!</div>
+        </div>
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-av xstyle-707660a8">SK</div>
+            <div class="review-meta">
+              <div class="review-name">Sardor Komilov</div>
+              <div class="review-date">1 oy oldin</div>
+            </div>
+            <div class="review-stars">★★★★★</div>
+          </div>
+          <div class="review-text">Platformaning eng yaxshi kursi desam xato bo'lmaydi. Har bir dars qisqa va lo'nda — ortiqcha gapirilmaydi. Ishlatilgan PDF materiallar ham sifatli. Turk filmlari va seriallarini endi ancha tushunadigan bo'ldim.</div>
+        </div>
+        <div class="review-card">
+          <div class="review-header">
+            <div class="review-av xstyle-2930eb50">MJ</div>
+            <div class="review-meta">
+              <div class="review-name">Malika Jurayeva</div>
+              <div class="review-date">6 hafta oldin</div>
+            </div>
+            <div class="review-stars">★★★★☆</div>
+          </div>
+          <div class="review-text">Asosan juda yaxshi kurs. Bir yulduz kamaytirganim sababi — speaking mashqlari ozroq edi. Lekin grammatika va lug'at bo'yicha juda kuchli. Muallim savollarga tez javob qaytaradi, bu ham katta artilleriya!</div>
+        </div>
+
+        <button class="ui-hover-dashed-blue xstyle-3c56ea2b">
+          Barcha sharhlarni ko'rish (318) →
+        </button>
+      </div>
+
+      <!-- ABOUT TAB -->
+      <div class="tab-panel" id="tab-about">
+        <div class="section-title">Kurs haqida</div>
+        <p class="xstyle-13294d5d">Bu kurs Turk tilini noldan o'rganib, B2 darajasiga yetishni istagan barcha uchun yaratilgan. Har bir dars real hayotiy holatlarga asoslangan va kommunikativ yondashuv usulidan foydalaniladi.</p>
+
+        <div class="section-divider"></div>
+        <div class="section-title">Talablar</div>
+        <ul class="req-list">
+          <li>Kompyuter yoki smartfon va internet aloqasi</li>
+          <li>Oldindan hech qanday til bilimi talab etilmaydi</li>
+          <li>Kuniga kamida 20 daqiqa ajratasiz</li>
+          <li>Daftarcha va ruchka — mashqlar uchun</li>
+        </ul>
+
+        <div class="section-divider"></div>
+        <div class="section-title">Kim uchun?</div>
+        <ul class="audience-list">
+          <li><i class="bi bi-person-check"></i>Turk tilini noldan o'rganmoqchi bo'lganlar</li>
+          <li><i class="bi bi-person-check"></i>Turkiyaga sayohat yoki ish uchun tayyorlanayotganlar</li>
+          <li><i class="bi bi-person-check"></i>Turk serial va filmlarini tushunmoqchi bo'lganlar</li>
+          <li><i class="bi bi-person-check"></i>TÖMER yoki boshqa sertifikat imtihoniga tayyorlanayotganlar</li>
+          <li><i class="bi bi-person-check"></i>A1–A2 bilimi bor, lekin davom ettirmoqchi bo'lganlar</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-card">
+        <div class="sidebar-thumb">
+          <span>🇹🇷</span>
+          <div class="xstyle-bffbbbd9"></div>
+          <button class="sidebar-play"><i class="bi bi-play-fill"></i></button>
+        </div>
+        <div class="sidebar-body">
+          <div class="sidebar-price">
+            <span class="price-main">199 000 so'm</span>
+            <span class="price-old">399 000</span>
+            <span class="price-save">-50%</span>
+          </div>
+          <div class="sidebar-timer"><i class="bi bi-alarm"></i> Bu narx 2 kun 14 soatda tugaydi</div>
+          <button class="btn-enroll">Hoziroq boshlash</button>
+          <button class="btn-try">Bepul ko'rish (3 dars)</button>
+          <div class="guarantee"><i class="bi bi-shield-check"></i> 30 kunlik pul qaytarish kafolati</div>
+          <div class="sidebar-includes">
+            <div class="includes-title">Kurs ichida</div>
+            <div class="include-item"><i class="bi bi-play-circle"></i> 36 soat video dars</div>
+            <div class="include-item"><i class="bi bi-file-earmark-text"></i> 48 yuklab olinadigan material</div>
+            <div class="include-item"><i class="bi bi-phone"></i> Mobil va desktop qurilmalarda</div>
+            <div class="include-item"><i class="bi bi-infinity"></i> Umrbod kirish huquqi</div>
+            <div class="include-item"><i class="bi bi-trophy"></i> Yakuniy sertifikat</div>
+            <div class="include-item"><i class="bi bi-chat-dots"></i> Muallim bilan to'g'ridan-to'g'ri aloqa</div>
+          </div>
+        </div>
+        <div class="sidebar-share">
+          <button class="share-btn"><i class="bi bi-share"></i> Ulashish</button>
+          <button class="share-btn"><i class="bi bi-bookmark"></i> Saqlash</button>
+          <button class="share-btn"><i class="bi bi-gift"></i> Sovg'a</button>
+        </div>
+      </div>
+
+      <!-- ALSO BOUGHT -->
+      <div class="xstyle-0202455e">
+        <div class="xstyle-0a801631">Birga sotib olinadi</div>
+        <div class="xstyle-db185081">
+          <div class="xstyle-78bf1836">🇬🇧</div>
+          <div class="xstyle-7623f055">
+            <div class="xstyle-c8cc2e7d">Ingliz tili: Business English</div>
+            <div class="xstyle-cc818ce2">149 000 so'm</div>
+          </div>
+          <button class="ui-hover-blue-soft xstyle-df26b279"><i class="bi bi-plus"></i></button>
+        </div>
+        <div class="xstyle-7e30d285">
+          <div class="xstyle-3787fcdb">🐍</div>
+          <div class="xstyle-7623f055">
+            <div class="xstyle-c8cc2e7d">Python: Data Science uchun</div>
+            <div class="xstyle-cc818ce2">299 000 so'm</div>
+          </div>
+          <button class="ui-hover-blue-soft xstyle-df26b279"><i class="bi bi-plus"></i></button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <div class="footer-logo-mark">AZ</div>
+            <span class="footer-logo-name">AzureLMS</span>
+          </div>
+          <p>O'zbekistondagi eng zamonaviy online ta'lim platformasi. Har kuni yuz minglab talabalar biz bilan o'rganadi.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Platforma</h4>
+          <a href="course-list.html">Barcha kurslar</a>
+          <a href="pricing.html">Narxlar</a>
+          <a href="about.html">Biz haqimizda</a>
+          <a href="../blog/blog-shell.html">Blog</a>
+        </div>
+        <div class="footer-col">
+          <h4>Qo'llab-quvvatlash</h4>
+          <a href="about.html">Yordam markazi</a>
+          <a href="../blog-studio/blog-studio-shell.html">Muallim bo'lish</a>
+          <a href="about.html#jobs">Hamkorlik</a>
+          <a href="about.html">Bog'lanish</a>
+        </div>
+        <div class="footer-col">
+          <h4>Huquqiy</h4>
+          <a href="../legal/legal-terms.html">Foydalanish shartlari</a>
+          <a href="../legal/legal-privacy.html">Maxfiylik siyosati</a>
+          <a href="../legal/legal-cookies.html">Cookie</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2025 AzureLMS. Barcha huquqlar himoyalangan.</span>
+        <span>O'zbekiston 🇺🇿</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Theme init
+    (function() {
+      let s; try { s = localStorage.getItem('az-theme'); } catch(_) {}
+      const dark = s ? s === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (dark) document.documentElement.setAttribute('data-theme', 'dark');
+      const icon = document.getElementById('themeIcon');
+      if (icon) icon.className = dark ? 'bi bi-sun' : 'bi bi-moon';
+    })();
+
+    document.getElementById('themeBtn').addEventListener('click', function() {
+      const html = document.documentElement;
+      const dark = html.getAttribute('data-theme') === 'dark';
+      html.setAttribute('data-theme', dark ? 'light' : 'dark');
+      document.getElementById('themeIcon').className = dark ? 'bi bi-moon' : 'bi bi-sun';
+      try { localStorage.setItem('az-theme', dark ? 'light' : 'dark'); } catch(_) {}
+    });
+
+    // Tabs
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        this.classList.add('active');
+        document.getElementById('tab-' + this.dataset.tab).classList.add('active');
+      });
+    });
+
+    // Accordion
+    function toggleSection(head) {
+      const group = head.closest('.section-group');
+      group.classList.toggle('open');
+    }
+  </script>
+  <script src="../assets/js/prototype-ui.js"></script>
+</body>
+</html>
+

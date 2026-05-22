@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS old-turtle prototype for legal privacy.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>Maxfiylik siyosati — AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- CSS Zanjiri (Architectural Standard) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/legal-privacy.css">
+
+  <link rel="stylesheet" href="../assets/css/prototype-extracted.css">
+</head>
+<body>
+  <script>(function(){ try { var t=localStorage.getItem('lms-theme'); if(t) document.documentElement.setAttribute('data-theme',t); } catch(e){} })();</script>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="xstyle-e3f61041"><div class="logo-mark">AL</div><span class="logo-name">AzureLMS</span></a>
+      <div class="nav-spacer"></div>
+      <button class="nav-theme" data-ui-action="theme"><i class="bi bi-moon-stars" id="themeIcon"></i></button>
+    </div>
+  </nav>
+  <div class="layout">
+    <aside class="toc-sidebar">
+      <div class="toc-head">Mundarija</div>
+      <div class="toc-list" id="tocList">
+        <a href="#s1" class="toc-item active">1. Kirish</a>
+        <a href="#s2" class="toc-item">2. Yig'iladigan ma'lumotlar</a>
+        <a href="#s3" class="toc-item">3. Ma'lumotlardan foydalanish</a>
+        <a href="#s4" class="toc-item">4. Ma'lumotlarni ulashish</a>
+        <a href="#s5" class="toc-item">5. Ma'lumot xavfsizligi</a>
+        <a href="#s6" class="toc-item">6. Foydalanuvchi huquqlari</a>
+        <a href="#s7" class="toc-item">7. Bolalar maxfiyligi</a>
+        <a href="#s8" class="toc-item">8. Aloqa</a>
+      </div>
+      <div class="toc-divider"></div>
+      <div class="xstyle-e22dd14a">Huquqiy</div>
+      <div class="legal-links">
+        <a href="legal-terms.html" class="legal-link"><i class="bi bi-file-text"></i> Foydalanish shartlari</a>
+        <a href="legal-privacy.html" class="legal-link curr"><i class="bi bi-shield-check"></i> Maxfiylik siyosati</a>
+        <a href="legal-cookies.html" class="legal-link"><i class="bi bi-cookie"></i> Cookie siyosati</a>
+      </div>
+    </aside>
+    <article class="article">
+      <div class="article-hero">
+        <div class="article-badge"><i class="bi bi-shield-lock-fill"></i> Maxfiylik hujjati</div>
+        <h1 class="article-title">Maxfiylik siyosati</h1>
+        <div class="article-meta">
+          <span><i class="bi bi-calendar3"></i> Kuchga kirgan: 1-yanvar, 2025</span>
+          <span><i class="bi bi-arrow-clockwise"></i> Yangilangan: 15-may, 2026</span>
+          <span><i class="bi bi-clock"></i> ~10 daqiqa</span>
+        </div>
+      </div>
+      <div class="doc-section">
+        <div class="doc-callout"><p>AzureLMS sizning shaxsiy ma'lumotlaringizni himoya qilishni ustuvor vazifa deb biladi. Ushbu siyosat qaysi ma'lumotlarni yig'ish, qanday foydalanish va qanday himoya qilishimizni tushuntiradi.</p></div>
+      </div>
+      <span class="section-anchor" id="s1"></span>
+      <div class="doc-section">
+        <h2 class="doc-h2"><span class="doc-h2-num">01</span> Kirish</h2>
+        <p class="doc-p">AzureLMS ("Biz", "Platforma") — shaxsiy ma'lumotlarni O'zbekiston Respublikasi qonunchiligi va xalqaro standartlarga muvofiq himoya qilishga sodiqdir. Bu siyosat AzureLMS.uz saytidan va mobil ilovalaridan foydalanish paytida qanday ma'lumotlar yig'ilishi va ular bilan qanday muomala qilinishini tushuntiradi.</p>
+      </div>
+      <span class="section-anchor" id="s2"></span>
+      <div class="doc-section">
+        <h2 class="doc-h2"><span class="doc-h2-num">02</span> Yig'iladigan ma'lumotlar</h2>
+        <table class="data-table">
+          <thead><tr><th>Ma'lumot turi</th><th>Misol</th><th>Maqsad</th></tr></thead>
+          <tbody>
+            <tr><td>Shaxsiy ma'lumotlar</td><td>Ism, email, telefon</td><td>Hisob yaratish va identifikatsiya</td></tr>
+            <tr><td>O'quv ma'lumotlari</td><td>Kurs tarixi, test natijalari</td><td>O'quv tajribasini takomillashtirish</td></tr>
+            <tr><td>Qurilma ma'lumotlari</td><td>IP, brauzer, OS</td><td>Xavfsizlik va optimizatsiya</td></tr>
+            <tr><td>To'lov ma'lumotlari</td><td>Karta (faqat oxirgi 4 raqam)</td><td>Tranzaktsiyalar</td></tr>
+            <tr><td>Cookie ma'lumotlari</td><td>Sessiya, afzalliklar</td><td>Qulay foydalanish tajribasi</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <span class="section-anchor" id="s3"></span>
+      <div class="doc-section">
+        <h2 class="doc-h2"><span class="doc-h2-num">03</span> Ma'lumotlardan foydalanish</h2>
+        <p class="doc-p">Yig'ilgan ma'lumotlar quyidagi maqsadlarda ishlatiladi:</p>
+        <ul class="doc-ul">
+          <li>Platforma xizmatlarini taqdim etish va yaxshilash</li>
+          <li>Shaxsiylashtirilgan o'quv tavsiyalari berish</li>
+          <li>Xavfsizlikni ta'minlash va firibgarlikni oldini olish</li>
+          <li>Texnik muammolarni bartaraf etish</li>
+          <li>Statistik tahlil va mahsulot rivojlantirish</li>
+          <li>Ruxsat berilgan holda marketing xabarnomalar yuborish</li>
+        </ul>
+      </div>
+      <span class="section-anchor" id="s4"></span>
+      <div class="doc-section">
+        <h2 class="doc-h2"><span class="doc-h2-num">04</span> Ma'lumotlarni ulashish</h2>
+        <p class="doc-p">Shaxsiy ma'lumotlaringiz uchinchi tomonlarga quyidagi holatlardagina beriladi:</p>
+        <ul class="doc-ul">
+          <li><strong>Xizmat ko'rsatuvchilar</strong> — to'lov tizimlari, cloud xizmatlar (xavfsizlik shartnomasi asosida)</li>
+          <li><strong>Qonun talabi</strong> — sud buyrug'i yoki hukumat talabi bo'lganda</li>
+          <li><strong>Rozilik</strong> — siz aniq ruxsat bergan holatlarda</li>
+        </ul>
+        <div class="doc-highlight"><div class="doc-highlight-title">Kafolat</div><p class="doc-p">Biz hech qachon shaxsiy ma'lumotlaringizni tijorat maqsadida sotmaymiz yoki ijaraga bermaymiz.</p></div>
+      </div>
+      <span class="section-anchor" id="s5"></span>
+      <div class="doc-section">
+        <h2 class="doc-h2"><span class="doc-h2-num">05</span> Ma'lumot xavfsizligi</h2>
+        <p class="doc-p">Ma'lumotlaringizni himoya qilish uchun ishlatadigan texnologiyalar:</p>
+        <ul class="doc-ul">
+          <li>SSL/TLS shifrlash — barcha uzatmalar himoyalangan</li>
+          <li>AES-256 shifrlash — saqlanadigan maxfiy ma'lumotlar uchun</li>
+          <li>Ikki bosqichli autentifikatsiya (2FA) imkoniyati</li>
+          <li>Muntazam xavfsizlik tekshiruvi va penetration testing</li>
+        </ul>
+      </div>
+      <span class="section-anchor" id="s6"></span>
+      <div class="doc-section">
+        <h2 class="doc-h2"><span class="doc-h2-num">06</span> Foydalanuvchi huquqlari</h2>
+        <p class="doc-p">Siz quyidagi huquqlarga egasiz:</p>
+        <ul class="doc-ul">
+          <li><strong>Ko'rish huquqi</strong> — saqlangan barcha ma'lumotlaringizni so'rab olish</li>
+          <li><strong>Tuzatish</strong> — noto'g'ri ma'lumotlarni o'zgartirish</li>
+          <li><strong>O'chirish</strong> — hisobingiz va ma'lumotlaringizni to'liq o'chirish</li>
+          <li><strong>Ko'chirish</strong> — ma'lumotlaringizni yuklab olish (JSON/CSV format)</li>
+          <li><strong>E'tiroz bildirish</strong> — ba'zi ma'lumot qayta ishlash jarayonlariga</li>
+        </ul>
+        <p class="doc-p">Ushbu huquqlaringizni amalga oshirish uchun privacy@azurelms.uz manziliga yozing.</p>
+      </div>
+      <span class="section-anchor" id="s7"></span>
+      <div class="doc-section">
+        <h2 class="doc-h2"><span class="doc-h2-num">07</span> Bolalar maxfiyligi</h2>
+        <div class="doc-callout"><p>AzureLMS 13 yoshdan kichik bolalardan ongli ravishda ma'lumot yig'maydi. 13–18 yoshdagi o'quvchilar uchun ota-ona yoki qonuniy vasiy roziligi talab etiladi. Agar 13 yoshdan kichik bolaning hisobi topilsa, darhol o'chiriladi.</p></div>
+      </div>
+      <span class="section-anchor" id="s8"></span>
+      <div class="doc-section">
+        <h2 class="doc-h2"><span class="doc-h2-num">08</span> Aloqa</h2>
+        <div class="doc-highlight">
+          <div class="doc-highlight-title">Maxfiylik bo'yicha aloqa</div>
+          <ul class="doc-ul">
+            <li>Email: privacy@azurelms.uz</li>
+            <li>Javob vaqti: 5 ish kuni ichida</li>
+          </ul>
+        </div>
+      </div>
+    </article>
+  </div>
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isDark = html.getAttribute('data-theme') === 'dark';
+      html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      document.getElementById('themeIcon').className = isDark ? 'bi bi-moon-stars' : 'bi bi-sun';
+      try { localStorage.setItem('lms-theme', isDark ? 'light' : 'dark'); } catch(e){}
+    }
+    (function(){ try { if(localStorage.getItem('lms-theme')==='dark') document.getElementById('themeIcon').className='bi bi-sun'; } catch(e){} })();
+    const sections = document.querySelectorAll('.section-anchor');
+    const tocItems = document.querySelectorAll('.toc-item');
+    window.addEventListener('scroll', () => {
+      let curr = '';
+      sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) curr = s.id; });
+      tocItems.forEach(i => i.classList.toggle('active', i.getAttribute('href') === '#' + curr));
+    });
+  </script>
+  <script src="../assets/js/prototype-ui.js"></script>
+</body>
+</html>
+

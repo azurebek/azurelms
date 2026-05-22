@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS old-turtle prototype for auth register.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>AzureLMS — Ro'yxatdan o'tish</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- CSS Zanjiri (Architectural Standard) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/auth.css">
+
+  <link rel="stylesheet" href="../assets/css/prototype-extracted.css">
+</head>
+<body class="auth-page auth-page--register">
+<div class="shell">
+
+  <!-- LEFT -->
+  <div class="left">
+    <nav class="left-nav">
+      <a class="logo" href="../index.html">
+        <div class="logo-mark">AZ</div>
+        <span class="logo-name">AzureLMS</span>
+      </a>
+      <button class="theme-btn" id="themeBtn" aria-label="Tema">
+        <i class="bi bi-moon" id="themeIcon"></i>
+      </button>
+    </nav>
+
+    <div class="left-body">
+      <div class="form-wrap">
+
+        <div class="step-dots">
+          <div class="step-dot active" id="dot1"></div>
+          <div class="step-dot" id="dot2"></div>
+        </div>
+
+        <p class="form-eyebrow" id="stepLabel">1-qadam · Asosiy ma'lumotlar</p>
+        <h1 class="form-title" id="formTitle">Hisob yarating</h1>
+        <p class="form-desc" id="formDesc">Allaqachon hisobingiz bormi? <a href="auth-login.html">Kiring →</a></p>
+
+        <!-- STEP 1 -->
+        <div id="step1">
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label" for="firstName">Ism</label>
+              <div class="field-wrap">
+                <i class="bi bi-person field-icon"></i>
+                <input class="field-input" type="text" id="firstName" placeholder="Ismingiz" autocomplete="given-name">
+              </div>
+            </div>
+            <div class="field">
+              <label class="field-label" for="lastName">Familya</label>
+              <div class="field-wrap">
+                <i class="bi bi-person field-icon"></i>
+                <input class="field-input" type="text" id="lastName" placeholder="Familyangiz" autocomplete="family-name">
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="email">Email manzil</label>
+            <div class="field-wrap">
+              <i class="bi bi-envelope field-icon"></i>
+              <input class="field-input" type="email" id="email" placeholder="email@example.com" autocomplete="email">
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="password">Parol</label>
+            <div class="field-wrap">
+              <i class="bi bi-lock field-icon"></i>
+              <input class="field-input" type="password" id="password" placeholder="Kamida 8 ta belgi">
+              <button class="field-action" id="togglePwd" aria-label="Ko'rsatish">
+                <i class="bi bi-eye" id="eyeIcon"></i>
+              </button>
+            </div>
+            <div class="pwd-strength" id="pwdStrength">
+              <div class="pwd-bar" id="pb1"></div>
+              <div class="pwd-bar" id="pb2"></div>
+              <div class="pwd-bar" id="pb3"></div>
+              <div class="pwd-bar" id="pb4"></div>
+            </div>
+          </div>
+
+          <button class="btn-submit xstyle-a3a55686" id="nextBtn">
+            Davom etish <i class="bi bi-arrow-right"></i>
+          </button>
+        </div>
+
+        <!-- STEP 2 -->
+        <div id="step2" class="xstyle-c8be1ccb">
+          <div class="field">
+            <label class="field-label">Qiziqish yo'nalishingiz</label>
+            <div class="xstyle-76dd8f5d">
+              <label class="interest-opt xstyle-9bcf27c4" id="int1">
+                <input type="checkbox" class="xstyle-cb199627"> <span class="xstyle-81f08c9c">🇹🇷 Turk tili</span>
+              </label>
+              <label class="interest-opt xstyle-9bcf27c4">
+                <input type="checkbox" class="xstyle-cb199627"> <span class="xstyle-81f08c9c">🇬🇧 Ingliz tili</span>
+              </label>
+              <label class="interest-opt xstyle-9bcf27c4">
+                <input type="checkbox" class="xstyle-cb199627"> <span class="xstyle-81f08c9c">🐍 Python dasturlash</span>
+              </label>
+              <label class="interest-opt xstyle-9bcf27c4">
+                <input type="checkbox" class="xstyle-cb199627"> <span class="xstyle-81f08c9c">💼 Biznes ko'nikmalari</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="terms-row xstyle-a3a55686">
+            <input type="checkbox" class="checkbox" id="termsCheck" checked>
+            <label class="terms-text" for="termsCheck">
+              <a href="../legal/legal-terms.html">Foydalanish shartlari</a> va
+              <a href="../legal/legal-privacy.html">Maxfiylik siyosatini</a> qabul qilaman
+            </label>
+          </div>
+
+          <button class="btn-submit" id="registerBtn">
+            <i class="bi bi-person-check-fill"></i> Hisobni yaratish
+          </button>
+        </div>
+
+        <p class="login-cta">Allaqachon ro'yxatdan o'tganmisiz? <a href="auth-login.html">Kiring</a></p>
+
+      </div>
+    </div>
+
+    <footer class="left-footer">
+      © 2025 AzureLMS ·
+      <a href="../legal/legal-privacy.html" class="xstyle-6ddb9c03">Maxfiylik</a> ·
+      <a href="../legal/legal-terms.html"   class="xstyle-6ddb9c03">Shartlar</a>
+    </footer>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right">
+    <div class="glow glow-1"></div>
+    <div class="glow glow-2"></div>
+    <div class="right-content">
+
+      <!-- Onboarding card -->
+      <div class="onboard-card">
+        <div class="ob-head">
+          <span class="ob-title">O'quv yo'nalishlarini tanlang</span>
+          <span class="ob-badge">14 ta kurs</span>
+        </div>
+        <div class="path-list">
+          <div class="path-row selected">
+            <div class="path-icon pi-a">🇹🇷</div>
+            <div class="path-info">
+              <div class="path-name">Turk tili A1 → C1</div>
+              <div class="path-meta">48 dars · 6 daraja · Sertifikat</div>
+            </div>
+            <span class="path-tag pt-green">Ommabop</span>
+            <div class="path-check"></div>
+          </div>
+          <div class="path-row">
+            <div class="path-icon pi-b">🇬🇧</div>
+            <div class="path-info">
+              <div class="path-name">Ingliz tili — Biznes</div>
+              <div class="path-meta">36 dars · 4 daraja · IELTS tayyorlov</div>
+            </div>
+            <span class="path-tag pt-blue">Yangi</span>
+            <div class="path-check"></div>
+          </div>
+          <div class="path-row">
+            <div class="path-icon pi-c">🐍</div>
+            <div class="path-info">
+              <div class="path-name">Python — Sifirdan</div>
+              <div class="path-meta">52 dars · Loyiha · Portfolio</div>
+            </div>
+            <span class="path-tag pt-amber">Trend</span>
+            <div class="path-check"></div>
+          </div>
+          <div class="path-row">
+            <div class="path-icon pi-d">💼</div>
+            <div class="path-info">
+              <div class="path-name">Biznes ko'nikmalari</div>
+              <div class="path-meta">24 dars · MBA uslubi</div>
+            </div>
+            <span class="path-tag pt-purple">Premium</span>
+            <div class="path-check"></div>
+          </div>
+        </div>
+        <div class="social-proof">
+          <div class="avatars">
+            <div class="av av-1">JT</div>
+            <div class="av av-2">SA</div>
+            <div class="av av-3">MN</div>
+            <div class="av av-4">DK</div>
+          </div>
+          <div class="proof-text"><strong>+12 400</strong> o'quvchi bu hafta qo'shildi</div>
+        </div>
+      </div>
+
+      <!-- Welcome toast -->
+      <div class="float-toast">
+        <div class="ft-icon ft-green">🎁</div>
+        <div class="ft-body">
+          <strong>7 kun bepul sinab ko'ring!</strong>
+          <span>Karta ma'lumoti talab qilinmaydi</span>
+        </div>
+      </div>
+
+      <!-- Cert badge -->
+      <div class="cert-float">
+        <div class="ft-icon ft-purple">🏅</div>
+        <div class="ft-body">
+          <strong>Tasdiqlangan sertifikat</strong>
+          <span>Kurs tugagach yuklab olasiz</span>
+        </div>
+      </div>
+
+    </div>
+    <p class="right-label">AzureLMS · Ro'yxatdan o'tish oqimi</p>
+  </div>
+
+</div>
+<script>
+  // Theme
+  const html = document.documentElement;
+  const themeBtn = document.getElementById('themeBtn');
+  const themeIcon = document.getElementById('themeIcon');
+  function applyTheme(d) {
+    html.setAttribute('data-theme', d ? 'dark' : 'light');
+    themeIcon.className = d ? 'bi bi-sun' : 'bi bi-moon';
+    try { localStorage.setItem('az-theme', d ? 'dark' : 'light'); } catch(_) {}
+  }
+  let s; try { s = localStorage.getItem('az-theme'); } catch(_) {}
+  applyTheme(s ? s === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches);
+  themeBtn.addEventListener('click', () => applyTheme(html.getAttribute('data-theme') !== 'dark'));
+
+  // Password toggle
+  const pwdInput = document.getElementById('password');
+  const eyeIcon  = document.getElementById('eyeIcon');
+  document.getElementById('togglePwd').addEventListener('click', () => {
+    const show = pwdInput.type === 'password';
+    pwdInput.type = show ? 'text' : 'password';
+    eyeIcon.className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
+  });
+
+  // Password strength
+  pwdInput.addEventListener('input', () => {
+    const v = pwdInput.value;
+    const bars = [document.getElementById('pb1'), document.getElementById('pb2'), document.getElementById('pb3'), document.getElementById('pb4')];
+    bars.forEach(b => { b.className = 'pwd-bar'; });
+    if (!v) return;
+    let score = 0;
+    if (v.length >= 6) score++;
+    if (v.length >= 10) score++;
+    if (/[A-Z]/.test(v) || /[0-9]/.test(v)) score++;
+    if (/[^A-Za-z0-9]/.test(v)) score++;
+    const cls = score <= 1 ? 's1' : score === 2 ? 's2' : 's3';
+    for (let i = 0; i < score; i++) bars[i].classList.add(cls);
+  });
+
+  // Step navigation
+  let currentStep = 1;
+  document.getElementById('nextBtn').addEventListener('click', () => {
+    currentStep = 2;
+    document.getElementById('step1').style.display = 'none';
+    document.getElementById('step2').style.display = '';
+    document.getElementById('dot1').classList.remove('active'); document.getElementById('dot1').classList.add('done');
+    document.getElementById('dot2').classList.add('active');
+    document.getElementById('stepLabel').textContent = '2-qadam · Yo\'nalish tanlash';
+    document.getElementById('formTitle').textContent = 'Nimani o\'rganmoqchisiz?';
+    document.getElementById('formDesc').innerHTML = 'Istalgancha yo\'nalish tanlang';
+  });
+
+  document.getElementById('registerBtn').addEventListener('click', function() {
+    this.disabled = true;
+    this.innerHTML = '<i class="bi bi-arrow-repeat xstyle-8ca53549"></i> Yaratilmoqda...';
+    setTimeout(() => {
+      this.innerHTML = '<i class="bi bi-check-circle-fill"></i> Hisob yaratildi!';
+      this.style.background = '#16a34a';
+      this.style.boxShadow = '0 4px 16px rgba(22,163,74,.28)';
+    }, 1800);
+  });
+
+  // Path row click
+  document.querySelectorAll('.path-row').forEach(row => {
+    row.addEventListener('click', () => row.classList.toggle('selected'));
+  });
+</script>
+<style>@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}</style>
+  <script src="../assets/js/prototype-ui.js"></script>
+</body>
+</html>
+

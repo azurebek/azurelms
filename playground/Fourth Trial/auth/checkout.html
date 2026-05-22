@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS old-turtle prototype for checkout.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>AzureLMS — To'lov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- CSS Zanjiri (Architectural Standard) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/billing.css">
+
+  <link rel="stylesheet" href="../assets/css/prototype-extracted.css">
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="top-nav">
+  <div class="top-nav-inner">
+    <a class="logo" href="../index.html">
+      <div class="logo-mark">AZ</div>
+      <span class="logo-name">AzureLMS</span>
+    </a>
+    <div class="nav-right">
+      <span class="secure-badge"><i class="bi bi-shield-lock-fill"></i> Xavfsiz to'lov</span>
+      <button class="theme-btn" id="themeBtn" aria-label="Tema">
+        <i class="bi bi-moon" id="themeIcon"></i>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- PROGRESS -->
+<div class="checkout-progress">
+  <div class="progress-inner">
+    <div class="progress-step done">
+      <div class="step-circle"><i class="bi bi-check xstyle-4500b7ef"></i></div>
+      Kurs tanlash
+    </div>
+    <div class="step-line done"></div>
+    <div class="progress-step active">
+      <div class="step-circle">2</div>
+      To'lov
+    </div>
+    <div class="step-line"></div>
+    <div class="progress-step">
+      <div class="step-circle">3</div>
+      Tasdiqlash
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="checkout-wrap">
+
+  <!-- ══ FORM PANEL ══ -->
+  <div class="form-panel">
+
+    <!-- Contact info -->
+    <div class="form-card">
+      <div class="form-card-head">
+        <div class="form-card-head-icon icon-blue"><i class="bi bi-person"></i></div>
+        <div class="form-card-head-text">
+          <h2>Aloqa ma'lumotlari</h2>
+          <p>To'lov cheki shu emailga yuboriladi</p>
+        </div>
+      </div>
+      <div class="form-card-body">
+        <div class="field-row">
+          <div class="field">
+            <label class="field-label" for="firstName">Ism</label>
+            <div class="field-wrap">
+              <i class="bi bi-person field-icon"></i>
+              <input class="field-input" type="text" id="firstName" value="Jasur" placeholder="Ismingiz">
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="lastName">Familya</label>
+            <div class="field-wrap">
+              <i class="bi bi-person field-icon"></i>
+              <input class="field-input" type="text" id="lastName" value="Toshmatov" placeholder="Familyangiz">
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="email">Email</label>
+          <div class="field-wrap">
+            <i class="bi bi-envelope field-icon"></i>
+            <input class="field-input" type="email" id="email" value="jasur@example.com" placeholder="email@example.com">
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="phone">Telefon <span class="field-optional">(ixtiyoriy)</span></label>
+          <div class="field-wrap">
+            <i class="bi bi-telephone field-icon"></i>
+            <input class="field-input" type="tel" id="phone" placeholder="+998 90 000 00 00">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment method -->
+    <div class="form-card">
+      <div class="form-card-head">
+        <div class="form-card-head-icon icon-blue"><i class="bi bi-credit-card"></i></div>
+        <div class="form-card-head-text">
+          <h2>To'lov usuli</h2>
+          <p>Barcha to'lovlar SSL orqali himoyalangan</p>
+        </div>
+      </div>
+      <div class="form-card-body">
+        <!-- Method selector -->
+        <div class="pay-methods">
+          <div class="pay-method selected" data-method="card" data-ui-call="selectMethod" data-ui-pass="this">
+            <span class="pay-method-icon">💳</span>
+            <span class="pay-method-name">Karta</span>
+          </div>
+          <div class="pay-method" data-method="payme" data-ui-call="selectMethod" data-ui-pass="this">
+            <span class="pay-method-icon">🔵</span>
+            <span class="pay-method-name">Payme</span>
+          </div>
+          <div class="pay-method" data-method="click" data-ui-call="selectMethod" data-ui-pass="this">
+            <span class="pay-method-icon">🟢</span>
+            <span class="pay-method-name">Click</span>
+          </div>
+          <div class="pay-method" data-method="uzum" data-ui-call="selectMethod" data-ui-pass="this">
+            <span class="pay-method-icon">🟠</span>
+            <span class="pay-method-name">Uzum</span>
+          </div>
+        </div>
+
+        <!-- Card fields -->
+        <div id="cardFields">
+          <div class="field">
+            <label class="field-label" for="cardNumber">Karta raqami</label>
+            <div class="field-wrap">
+              <i class="bi bi-credit-card field-icon"></i>
+              <input class="field-input card-number-input" type="text" id="cardNumber"
+                     placeholder="0000  0000  0000  0000" maxlength="19">
+              <div class="card-brand">
+                <div class="brand-chip bc-visa">VISA</div>
+                <div class="brand-chip bc-mc">MC</div>
+              </div>
+            </div>
+          </div>
+          <div class="field-row xstyle-b26aeceb">
+            <div class="field">
+              <label class="field-label" for="expiry">Amal muddati</label>
+              <div class="field-wrap">
+                <i class="bi bi-calendar3 field-icon"></i>
+                <input class="field-input" type="text" id="expiry" placeholder="MM/YY" maxlength="5">
+              </div>
+            </div>
+            <div class="field">
+              <label class="field-label" for="cvv">CVV/CVC</label>
+              <div class="field-wrap">
+                <i class="bi bi-lock field-icon"></i>
+                <input class="field-input" type="text" id="cvv" placeholder="•••" maxlength="3">
+              </div>
+            </div>
+          </div>
+          <div class="field xstyle-b26aeceb">
+            <label class="field-label" for="cardName">Karta egasining ismi</label>
+            <div class="field-wrap">
+              <i class="bi bi-person field-icon"></i>
+              <input class="field-input xstyle-26ec034a" type="text" id="cardName" placeholder="JASUR TOSHMATOV">
+            </div>
+          </div>
+        </div>
+
+        <!-- QR / redirect for other methods -->
+        <div id="altMethod" class="xstyle-c8be1ccb">
+          <div class="xstyle-b1497cca">
+            <i class="bi bi-qr-code xstyle-4d3a73c1"></i>
+            <div class="xstyle-2c6806c4">To'lov ilovasiga yo'naltiriladi</div>
+            <div class="xstyle-a768c15a">«To'lash» tugmasini bosgach, <span id="altMethodName">tanlangan ilova</span> ochiladi</div>
+          </div>
+        </div>
+
+        <div class="security-note">
+          <i class="bi bi-shield-check-fill"></i>
+          Ma'lumotlaringiz 256-bit SSL shifrlash bilan himoyalangan
+        </div>
+
+        <div class="terms-row">
+          <input type="checkbox" class="terms-checkbox" id="termsCheck" checked>
+          <label class="terms-text" for="termsCheck">
+            <a href="../legal/legal-terms.html">Foydalanish shartlari</a> va
+            <a href="../legal/legal-privacy.html">Maxfiylik siyosatini</a> o'qidim va qabul qilaman.
+          </label>
+        </div>
+
+        <button class="btn-pay" id="payBtn">
+          <i class="bi bi-lock-fill lock-icon"></i>
+          <span id="payBtnText">199,000 so'm to'lash</span>
+        </button>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══ ORDER SUMMARY ══ -->
+  <aside class="order-summary">
+    <div class="summary-head"><h2>Buyurtma tafsiloti</h2></div>
+
+    <!-- Course -->
+    <div class="course-preview">
+      <div class="course-thumb">🇹🇷</div>
+      <div class="course-info">
+        <div class="course-name">Turk tili — Boshlang'ichdan mukammalgacha</div>
+        <div class="course-meta">A1 → C1 · 48 dars · 6 imtihon</div>
+        <div class="course-badges">
+          <span class="badge-xs bx-blue">Eng ommabop</span>
+          <span class="badge-xs bx-green">Sertifikat</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Plan selector -->
+    <div class="plan-selector">
+      <div class="plan-label">Tarifni tanlang</div>
+
+      <div class="plan-option" data-plan="monthly" data-ui-call="selectPlan" data-ui-pass="this" data-ui-args='[59000,"oylik"]'>
+        <div class="plan-radio"></div>
+        <div class="plan-info">
+          <div class="plan-name">Oylik</div>
+          <div class="plan-desc">Istalgan vaqt bekor qilish</div>
+        </div>
+        <div>
+          <div class="plan-price">59 000 so'm</div>
+          <span class="plan-save">&nbsp;</span>
+        </div>
+      </div>
+
+      <div class="plan-option selected" data-plan="annual" data-ui-call="selectPlan" data-ui-pass="this" data-ui-args='[199000,"yillik"]'>
+        <div class="plan-radio"></div>
+        <div class="plan-info">
+          <div class="plan-name">Yillik</div>
+          <div class="plan-desc">1 yil to'liq kirish</div>
+        </div>
+        <div>
+          <div class="plan-price">199 000 so'm</div>
+          <span class="plan-save">-44% tejash</span>
+        </div>
+      </div>
+
+      <div class="plan-option" data-plan="lifetime" data-ui-call="selectPlan" data-ui-pass="this" data-ui-args='[499000,"umrbod"]'>
+        <div class="plan-radio"></div>
+        <div class="plan-info">
+          <div class="plan-name">Umrbod</div>
+          <div class="plan-desc">Bir marta to'lab, doimo foydalaning</div>
+        </div>
+        <div>
+          <div class="plan-price">499 000 so'm</div>
+          <span class="plan-save">Eng tejamli</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Promo code -->
+    <div class="promo-wrap">
+      <input class="promo-input" type="text" id="promoInput" placeholder="Promo-kod (AZURE20)">
+      <button class="promo-btn" data-ui-call="applyPromo">Qo'llash</button>
+    </div>
+
+    <!-- Price breakdown -->
+    <div class="price-rows" id="priceRows">
+      <div class="price-row">
+        <span class="price-row-label">Kurs narxi (yillik)</span>
+        <span class="price-row-val">360 000 so'm</span>
+      </div>
+      <div class="price-row">
+        <span class="price-row-label">Chegirma (−44%)</span>
+        <span class="price-row-val discount">−161 000 so'm</span>
+      </div>
+      <div class="price-row xstyle-c8be1ccb" id="promoRow">
+        <span class="price-row-label">Promo kod</span>
+        <span class="price-row-val discount" id="promoVal">−0 so'm</span>
+      </div>
+      <div class="price-divider"></div>
+      <div class="price-total-row">
+        <span class="price-total-label">Jami</span>
+        <div>
+          <div class="price-total-val" id="totalPrice">199 000 so'm</div>
+          <div class="price-vat">QQS kiritilgan</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Guarantees -->
+    <div class="guarantees">
+      <div class="guarantee-row">
+        <i class="bi bi-shield-check-fill"></i>
+        30 kun ichida to'liq qaytarish kafolati
+      </div>
+      <div class="guarantee-row">
+        <i class="bi bi-award-fill"></i>
+        Tasdiqlangan sertifikat beriladi
+      </div>
+      <div class="guarantee-row">
+        <i class="bi bi-infinity"></i>
+        Barcha yangilanishlarga bepul kirish
+      </div>
+      <div class="guarantee-row">
+        <i class="bi bi-headset"></i>
+        7/24 qo'llab-quvvatlash xizmati
+      </div>
+    </div>
+
+  </aside>
+</div>
+
+<script>
+  // ── Theme ──
+  const html     = document.documentElement;
+  const themeBtn = document.getElementById('themeBtn');
+  const themeIcon= document.getElementById('themeIcon');
+  function applyTheme(dark) {
+    html.setAttribute('data-theme', dark ? 'dark' : 'light');
+    themeIcon.className = dark ? 'bi bi-sun' : 'bi bi-moon';
+    try { localStorage.setItem('az-theme', dark ? 'dark' : 'light'); } catch(_) {}
+  }
+  let saved; try { saved = localStorage.getItem('az-theme'); } catch(_) {}
+  applyTheme(saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches);
+  themeBtn.addEventListener('click', () => applyTheme(html.getAttribute('data-theme') !== 'dark'));
+
+  // ── Payment method ──
+  function selectMethod(el) {
+    document.querySelectorAll('.pay-method').forEach(m => m.classList.remove('selected'));
+    el.classList.add('selected');
+    const method = el.dataset.method;
+    const cardFields = document.getElementById('cardFields');
+    const altMethod  = document.getElementById('altMethod');
+    const altName    = document.getElementById('altMethodName');
+    if (method === 'card') {
+      cardFields.style.display = ''; altMethod.style.display = 'none';
+    } else {
+      cardFields.style.display = 'none'; altMethod.style.display = '';
+      altName.textContent = { payme: 'Payme', click: 'Click', uzum: 'Uzum Bank' }[method] || method;
+    }
+  }
+
+  // ── Plan selector ──
+  let currentPrice = 199000;
+  function selectPlan(el, price, label) {
+    document.querySelectorAll('.plan-option').forEach(p => p.classList.remove('selected'));
+    el.classList.add('selected');
+    currentPrice = price;
+    updateTotal();
+    document.getElementById('payBtnText').textContent =
+      price.toLocaleString('uz-UZ') + ' so\'m to\'lash';
+  }
+
+  // ── Promo code ──
+  let promoApplied = false;
+  let promoDiscount = 0;
+  function applyPromo() {
+    const code = document.getElementById('promoInput').value.trim().toUpperCase();
+    const promoRow = document.getElementById('promoRow');
+    const promoVal = document.getElementById('promoVal');
+    if (code === 'AZURE20') {
+      promoDiscount = Math.round(currentPrice * 0.20);
+      promoApplied = true;
+      promoRow.style.display = '';
+      promoVal.textContent = '−' + promoDiscount.toLocaleString('uz-UZ') + ' so\'m';
+      updateTotal();
+    } else {
+      promoRow.style.display = 'none';
+      promoDiscount = 0;
+      promoApplied = false;
+      updateTotal();
+      document.getElementById('promoInput').style.borderColor = 'var(--red)';
+      setTimeout(() => document.getElementById('promoInput').style.borderColor = '', 2000);
+    }
+  }
+
+  function updateTotal() {
+    const final = currentPrice - promoDiscount;
+    document.getElementById('totalPrice').textContent =
+      final.toLocaleString('uz-UZ') + ' so\'m';
+    document.getElementById('payBtnText').textContent =
+      final.toLocaleString('uz-UZ') + ' so\'m to\'lash';
+  }
+
+  // ── Card number formatting ──
+  document.getElementById('cardNumber').addEventListener('input', e => {
+    let v = e.target.value.replace(/\D/g, '').slice(0, 16);
+    e.target.value = v.replace(/(\d{4})(?=\d)/g, '$1  ');
+  });
+
+  // ── Expiry formatting ──
+  document.getElementById('expiry').addEventListener('input', e => {
+    let v = e.target.value.replace(/\D/g, '').slice(0, 4);
+    if (v.length >= 2) v = v.slice(0, 2) + '/' + v.slice(2);
+    e.target.value = v;
+  });
+
+  // ── Pay button ──
+  document.getElementById('payBtn').addEventListener('click', () => {
+    const btn = document.getElementById('payBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-arrow-repeat xstyle-7bf7b2ac"></i> Jarayonda...';
+    setTimeout(() => {
+      btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> To\'lov qabul qilindi!';
+      btn.style.background = 'var(--green)';
+      btn.style.boxShadow = '0 4px 20px rgba(22,163,74,.28)';
+    }, 2000);
+  });
+</script>
+<style>
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+</style>
+  <script src="../assets/js/prototype-ui.js"></script>
+</body>
+</html>
+

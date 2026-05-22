@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS old-turtle prototype for exam speaking.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>Gapirish Imtihoni — AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- CSS Zanjiri (Architectural Standard) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/exam-speaking.css">
+
+  <link rel="stylesheet" href="../assets/css/prototype-extracted.css">
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="exam-bar">
+  <div class="logo-mark">AZ</div>
+  <div>
+    <div class="exam-name">Gapirish Imtihoni</div>
+    <div class="exam-sub">Speaking Practice — IELTS Part 2</div>
+  </div>
+  <div class="bar-sep"></div>
+  <div class="timer-box">
+    <i class="bi bi-clock timer-icon"></i>
+    <span class="timer-val" id="timerVal">14:30</span>
+  </div>
+  <button class="btn-submit" data-ui-call="submitExam"><i class="bi bi-send"></i> Yuborish</button>
+  <button class="theme-btn" id="themeBtn"><i class="bi bi-moon" id="themeIcon"></i></button>
+</header>
+
+<!-- PARTS PROGRESS -->
+<div class="parts-bar">
+  <div class="part-step done" data-ui-call="setPart" data-ui-args='[1]'><i class="bi bi-check-circle-fill"></i> Part 1 — Kirish</div>
+  <div class="part-arrow"><i class="bi bi-chevron-right"></i></div>
+  <div class="part-step active"><i class="bi bi-mic-fill"></i> Part 2 — Monolog</div>
+  <div class="part-arrow"><i class="bi bi-chevron-right"></i></div>
+  <div class="part-step pending"><i class="bi bi-circle"></i> Part 3 — Muhokama</div>
+  <div class="part-arrow"><i class="bi bi-chevron-right"></i></div>
+  <div class="part-step pending"><i class="bi bi-circle"></i> Yakunlash</div>
+</div>
+
+<!-- LAYOUT -->
+<div class="speak-layout">
+  <div class="speak-main">
+
+    <!-- PROMPT -->
+    <div class="prompt-card">
+      <div class="prompt-part-badge"><i class="bi bi-2-circle"></i> Part 2 — Uzun monolog</div>
+      <div class="prompt-label">Mavzuingiz:</div>
+      <div class="prompt-title">Describe a person who has had a significant influence on your life.</div>
+
+      <div class="cue-card">
+        <div class="cue-label">Quyidagilarni aytib bering:</div>
+        <div class="cue-point"><div class="cue-dot"></div>Who this person is and how you know them</div>
+        <div class="cue-point"><div class="cue-dot"></div>What qualities or characteristics this person has</div>
+        <div class="cue-point"><div class="cue-dot"></div>How they have influenced you</div>
+        <div class="cue-point"><div class="cue-dot"></div>And explain why you feel this influence has been important to you</div>
+      </div>
+
+      <div class="prep-note">
+        <i class="bi bi-hourglass-split"></i>
+        Tayyorlanish vaqti: 1 daqiqa. Keyin 1–2 daqiqa gapiring.
+      </div>
+    </div>
+
+    <!-- RECORDER -->
+    <div class="recorder-card" id="recorderCard">
+      <div class="rec-state" id="recState">Mikrofon tugmasini bosib yozishni boshlang</div>
+
+      <div class="mic-area" id="micArea">
+        <div class="mic-ring mic-ring-1"></div>
+        <div class="mic-ring mic-ring-2"></div>
+        <div class="mic-ring mic-ring-3"></div>
+        <button class="mic-btn" id="micBtn" data-ui-call="toggleRecording">
+          <i class="bi bi-mic-fill" id="micIcon"></i>
+        </button>
+      </div>
+
+      <div class="rec-waveform" id="recWaveform">
+        <!-- JS builds bars -->
+      </div>
+
+      <div class="rec-timer" id="recTimer">00:00</div>
+      <div class="rec-max">Maksimal: 2:00</div>
+
+      <div class="rec-controls">
+        <button class="rec-ctrl-btn" id="stopBtn" disabled data-ui-call="stopRecording">
+          <i class="bi bi-stop-fill"></i> To'xtatish
+        </button>
+        <button class="rec-ctrl-btn danger" id="deleteBtn" disabled data-ui-call="deleteRecording">
+          <i class="bi bi-trash"></i> O'chirish
+        </button>
+      </div>
+
+      <!-- PLAYBACK -->
+      <div class="playback-section" id="playbackSection">
+        <div class="pb-label"><i class="bi bi-play-circle"></i> Yozuv tayyor — Eshiting</div>
+        <div class="pb-row">
+          <button class="pb-btn"><i class="bi bi-play-fill"></i></button>
+          <div class="pb-seek"><div class="pb-fill"></div></div>
+          <span class="pb-time">1:24 / 2:00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PART NAV -->
+    <div class="part-nav">
+      <button class="part-nav-btn" data-ui-action="history-back"><i class="bi bi-arrow-left"></i> Part 1</button>
+      <button class="part-nav-btn primary" data-ui-call="nextPart">Part 3 <i class="bi bi-arrow-right"></i></button>
+    </div>
+  </div>
+
+  <!-- ASIDE -->
+  <div class="speak-aside">
+    <!-- CRITERIA -->
+    <div class="aside-card">
+      <div class="aside-head"><i class="bi bi-star"></i> Baholash mezoni</div>
+      <div class="aside-body">
+        <div class="criteria-item">
+          <div class="crit-icon xstyle-6cc85777">🗣️</div>
+          <div>
+            <div class="crit-name">Fluency & Coherence</div>
+            <div class="crit-desc">Ravonlik va mantiqiy bog'liqlik</div>
+          </div>
+          <div class="crit-weight">25%</div>
+        </div>
+        <div class="criteria-item">
+          <div class="crit-icon xstyle-384b679b">📚</div>
+          <div>
+            <div class="crit-name">Lexical Resource</div>
+            <div class="crit-desc">Lug'at boyligi va qo'llanishi</div>
+          </div>
+          <div class="crit-weight">25%</div>
+        </div>
+        <div class="criteria-item">
+          <div class="crit-icon xstyle-1f5b271d">🔤</div>
+          <div>
+            <div class="crit-name">Grammatical Range</div>
+            <div class="crit-desc">Grammatik turlilik va aniqlik</div>
+          </div>
+          <div class="crit-weight">25%</div>
+        </div>
+        <div class="criteria-item">
+          <div class="crit-icon xstyle-f72af277">🔊</div>
+          <div>
+            <div class="crit-name">Pronunciation</div>
+            <div class="crit-desc">Talaffuz va intonatsiya</div>
+          </div>
+          <div class="crit-weight">25%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TIPS -->
+    <div class="aside-card">
+      <div class="aside-head"><i class="bi bi-lightbulb"></i> Maslahatlar</div>
+      <div class="aside-body">
+        <div class="tip-list">
+          <div class="tip"><i class="bi bi-check-circle"></i> Gapirmay qolmang — so'zlar topolmasangiz ham davom eting</div>
+          <div class="tip"><i class="bi bi-check-circle"></i> Shu mavzudagi shaxsiy misollarga murojaat qiling</div>
+          <div class="tip"><i class="bi bi-check-circle"></i> Murakkab grammatik tuzilmalar ishlating</div>
+          <div class="tip"><i class="bi bi-check-circle"></i> Har bir cue cardni qamrab oling</div>
+          <div class="tip"><i class="bi bi-x-circle xstyle-45e7ae4d"></i> Yodlangan javobdek tuyulmasin</div>
+          <div class="tip"><i class="bi bi-x-circle xstyle-45e7ae4d"></i> Juda tez yoki juda sekin gapirmang</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PREVIOUS PARTS -->
+    <div class="aside-card">
+      <div class="aside-head"><i class="bi bi-check2-all"></i> Tugallangan qismlar</div>
+      <div class="aside-body xstyle-fdf20b9a">
+        <div class="xstyle-e6fb2b6f">
+          <div class="xstyle-de0a634d">✓</div>
+          <div>
+            <div class="xstyle-d13d7e1d">Part 1 — Tanishuv</div>
+            <div class="xstyle-9f77f782">4 savol · 3:42</div>
+          </div>
+          <button class="xstyle-457b3ee5">Eshit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Theme
+  (function(){
+    const t = localStorage.getItem('az-theme');
+    const d = window.matchMedia('(prefers-color-scheme:dark)').matches;
+    document.documentElement.setAttribute('data-theme', t ? t : d ? 'dark' : 'light');
+  })();
+  const html = document.documentElement;
+  function applyTheme(dark) {
+    html.setAttribute('data-theme', dark ? 'dark' : 'light');
+    document.getElementById('themeIcon').className = dark ? 'bi bi-sun' : 'bi bi-moon';
+    try { localStorage.setItem('az-theme', dark ? 'dark' : 'light'); } catch(_){}
+  }
+  const saved = localStorage.getItem('az-theme');
+  applyTheme(saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme:dark)').matches);
+  document.getElementById('themeBtn').addEventListener('click', () =>
+    applyTheme(html.getAttribute('data-theme') !== 'dark'));
+
+  // Countdown timer
+  let examSecs = 14 * 60 + 30;
+  const timerEl = document.getElementById('timerVal');
+  setInterval(() => {
+    examSecs--;
+    if (examSecs < 0) return;
+    const m = Math.floor(examSecs / 60), s = examSecs % 60;
+    timerEl.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+    if (examSecs <= 180) timerEl.classList.add('warn');
+  }, 1000);
+
+  // Waveform bars
+  const wfEl = document.getElementById('recWaveform');
+  const barCount = 48;
+  for (let i = 0; i < barCount; i++) {
+    const bar = document.createElement('div');
+    bar.className = 'rw-bar';
+    bar.style.height = '6px';
+    wfEl.appendChild(bar);
+  }
+
+  // Recording state
+  let recording = false;
+  let recSecs = 0;
+  let recInterval = null;
+  let waveInterval = null;
+
+  function toggleRecording() {
+    if (!recording) startRecording();
+    else stopRecording();
+  }
+
+  function startRecording() {
+    recording = true;
+    document.getElementById('micArea').classList.add('recording');
+    document.getElementById('micBtn').classList.add('recording');
+    document.getElementById('micIcon').className = 'bi bi-stop-fill';
+    document.getElementById('recState').textContent = 'Yozilmoqda... Gapiring';
+    document.getElementById('stopBtn').disabled = false;
+    document.getElementById('deleteBtn').disabled = false;
+
+    recInterval = setInterval(() => {
+      recSecs++;
+      const m = Math.floor(recSecs / 60), s = recSecs % 60;
+      document.getElementById('recTimer').textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+      if (recSecs >= 120) stopRecording();
+    }, 1000);
+
+    // Animate waveform
+    waveInterval = setInterval(() => {
+      const bars = wfEl.querySelectorAll('.rw-bar');
+      bars.forEach((bar, i) => {
+        const h = Math.random() * 40 + 4;
+        bar.style.height = h + 'px';
+        bar.classList.toggle('active', Math.random() > 0.4);
+      });
+    }, 120);
+  }
+
+  function stopRecording() {
+    if (!recording) return;
+    recording = false;
+    clearInterval(recInterval);
+    clearInterval(waveInterval);
+    document.getElementById('micArea').classList.remove('recording');
+    document.getElementById('micBtn').classList.remove('recording');
+    document.getElementById('micIcon').className = 'bi bi-mic-fill';
+    document.getElementById('recState').textContent = 'Yozuv saqlandi ✓';
+    document.getElementById('playbackSection').classList.add('show');
+
+    // Reset bars
+    wfEl.querySelectorAll('.rw-bar').forEach(bar => {
+      bar.style.height = '8px'; bar.classList.remove('active');
+    });
+  }
+
+  function deleteRecording() {
+    if (!confirm('Yozuvni o\'chirishni xohlaysizmi?')) return;
+    recSecs = 0;
+    document.getElementById('recTimer').textContent = '00:00';
+    document.getElementById('recState').textContent = 'Mikrofon tugmasini bosib yozishni boshlang';
+    document.getElementById('playbackSection').classList.remove('show');
+    document.getElementById('stopBtn').disabled = true;
+    document.getElementById('deleteBtn').disabled = true;
+    wfEl.querySelectorAll('.rw-bar').forEach(bar => { bar.style.height = '6px'; bar.classList.remove('active'); });
+  }
+
+  function nextPart() { alert('Part 3 ishga tushadi...'); }
+  function setPart(n) {}
+  function submitExam() {
+    if (confirm('Gapirish imtihonini yakunlamoqchimisiz?')) window.location.href = 'exam-review.html';
+  }
+</script>
+  <script src="../assets/js/prototype-ui.js"></script>
+</body>
+</html>
+

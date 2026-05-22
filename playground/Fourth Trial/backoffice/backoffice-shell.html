@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS — backoffice (admin) dashboard.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>Backoffice — AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+  <!-- CSS Zanjiri (Architectural Standard) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/backoffice-shell.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- ═════════════ SIDEBAR ═════════════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">AZ</div>
+      <span class="sidebar-logo-name">AzureLMS</span>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="Backoffice navigatsiya">
+
+      <details class="nav-accordion" open>
+        <summary class="nav-accordion-trigger">
+          <span class="nav-accordion-title"><i class="bi bi-speedometer2"></i> Bosh sahifa</span>
+          <i class="bi bi-chevron-down nav-accordion-caret"></i>
+        </summary>
+        <div class="nav-accordion-panel">
+          <a href="backoffice-shell.html" class="nav-item active"><i class="bi bi-grid-fill"></i> Overview</a>
+          <a href="#" class="nav-item"><i class="bi bi-bar-chart-line"></i> Hisobotlar</a>
+          <a href="#" class="nav-item"><i class="bi bi-activity"></i> Aktivlik logi</a>
+        </div>
+      </details>
+
+      <details class="nav-accordion">
+        <summary class="nav-accordion-trigger">
+          <span class="nav-accordion-title"><i class="bi bi-people"></i> Foydalanuvchilar</span>
+          <i class="bi bi-chevron-down nav-accordion-caret"></i>
+        </summary>
+        <div class="nav-accordion-panel">
+          <a href="#" class="nav-item"><i class="bi bi-mortarboard"></i> Talabalar <span class="nav-badge">1.2k</span></a>
+          <a href="#" class="nav-item"><i class="bi bi-person-video3"></i> O'qituvchilar</a>
+          <a href="#" class="nav-item"><i class="bi bi-shield-lock"></i> Adminlar</a>
+          <a href="#" class="nav-item"><i class="bi bi-collection"></i> Cohortlar</a>
+        </div>
+      </details>
+
+      <details class="nav-accordion">
+        <summary class="nav-accordion-trigger">
+          <span class="nav-accordion-title"><i class="bi bi-journal-bookmark"></i> Mazmun</span>
+          <i class="bi bi-chevron-down nav-accordion-caret"></i>
+        </summary>
+        <div class="nav-accordion-panel">
+          <a href="#" class="nav-item"><i class="bi bi-collection-play"></i> Kurslar</a>
+          <a href="#" class="nav-item"><i class="bi bi-play-circle"></i> Darslar</a>
+          <a href="#" class="nav-item"><i class="bi bi-patch-check"></i> Imtihonlar</a>
+          <a href="#" class="nav-item"><i class="bi bi-newspaper"></i> Blog</a>
+          <a href="#" class="nav-item"><i class="bi bi-image"></i> Media</a>
+        </div>
+      </details>
+
+      <details class="nav-accordion">
+        <summary class="nav-accordion-trigger">
+          <span class="nav-accordion-title"><i class="bi bi-credit-card-2-front"></i> Sotuv</span>
+          <i class="bi bi-chevron-down nav-accordion-caret"></i>
+        </summary>
+        <div class="nav-accordion-panel">
+          <a href="#" class="nav-item"><i class="bi bi-receipt"></i> To'lovlar <span class="nav-badge">3</span></a>
+          <a href="#" class="nav-item"><i class="bi bi-card-checklist"></i> Obunalar</a>
+          <a href="#" class="nav-item"><i class="bi bi-ticket-perforated"></i> Promo kodlar</a>
+          <a href="#" class="nav-item"><i class="bi bi-graph-up-arrow"></i> Daromad</a>
+        </div>
+      </details>
+
+    </nav>
+
+    <div class="sidebar-bottom">
+      <details class="account-menu">
+        <summary class="sidebar-user">
+          <div class="user-av">AK</div>
+          <div class="user-info">
+            <div class="user-name">Azurebekdev</div>
+            <div class="user-plan">Admin · Owner</div>
+          </div>
+          <i class="bi bi-chevron-down user-chevron"></i>
+        </summary>
+        <div class="account-menu-panel">
+          <a href="../app/app-shell.html" class="account-menu-item"><i class="bi bi-arrow-left-circle"></i> Foydalanuvchi sifatida</a>
+          <a href="#" class="account-menu-item"><i class="bi bi-bell"></i> Bildirishnomalar <span class="nav-badge">3</span></a>
+          <a href="../app/app-profile.html" class="account-menu-item"><i class="bi bi-person-circle"></i> Profil</a>
+          <a href="../app/app-settings.html" class="account-menu-item"><i class="bi bi-gear"></i> Sozlamalar</a>
+          <div class="account-menu-sep"></div>
+          <a href="../auth/auth-login.html" class="account-menu-item danger"><i class="bi bi-box-arrow-right"></i> Chiqish</a>
+        </div>
+      </details>
+      <div class="sidebar-version">Backoffice · v0.1</div>
+    </div>
+  </aside>
+
+  <!-- ═════════════ MAIN ═════════════ -->
+  <div class="main">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button class="topbar-btn sidebar-toggle" id="sidebarToggle"><i class="bi bi-list"></i></button>
+      <span class="topbar-title">Overview <span class="admin-badge"><i class="bi bi-shield-lock-fill"></i> Admin</span></span>
+      <div class="topbar-search">
+        <i class="bi bi-search"></i>
+        <input type="text" placeholder="Talaba, kurs, to'lov izlash…">
+      </div>
+      <button class="topbar-btn" aria-label="Bildirishnomalar">
+        <i class="bi bi-bell"></i>
+        <div class="topbar-dot"></div>
+      </button>
+      <button class="topbar-btn" id="themeBtn" aria-label="Tema">
+        <i class="bi bi-moon" id="themeIcon"></i>
+      </button>
+    </header>
+
+    <!-- PAGE BODY -->
+    <main class="page-body">
+
+      <!-- ── GREETING ────────────────────────────── -->
+      <section class="bo-greeting">
+        <div class="bo-greeting-text">
+          <span class="bo-greeting-eyebrow"><i class="bi bi-shield-lock-fill"></i> Backoffice</span>
+          <div class="bo-greeting-hello">Salom, Azurebek</div>
+          <div class="bo-greeting-name">Bugun 3 ta tasdiqlanmagan to'lov bor 💰</div>
+          <div class="bo-greeting-sub">Hozircha hammasi normal kechmoqda. Bu hafta talabalar soni 12% ga oshdi, kurs yakunlash o'rtachasi esa 78% ga yetdi.</div>
+        </div>
+        <div class="bo-greeting-action">
+          <a href="#" class="btn-ghost"><i class="bi bi-file-earmark-text"></i> Hisobot</a>
+          <a href="#" class="btn-primary"><i class="bi bi-plus-lg"></i> Yangi cohort</a>
+        </div>
+      </section>
+
+      <!-- ── KPI ROW ─────────────────────────────── -->
+      <section class="bo-kpi-row">
+        <div class="bo-kpi">
+          <div class="bo-kpi-head">
+            <span class="bo-kpi-label">Faol talabalar</span>
+            <div class="bo-kpi-icon bg-blue"><i class="bi bi-people-fill"></i></div>
+          </div>
+          <div class="bo-kpi-val">1,247</div>
+          <div class="bo-kpi-delta up"><i class="bi bi-arrow-up"></i> +12% (hafta)</div>
+        </div>
+
+        <div class="bo-kpi">
+          <div class="bo-kpi-head">
+            <span class="bo-kpi-label">Bugungi daromad</span>
+            <div class="bo-kpi-icon bg-green"><i class="bi bi-cash-coin"></i></div>
+          </div>
+          <div class="bo-kpi-val">4.8 <span class="unit">mln so'm</span></div>
+          <div class="bo-kpi-delta up"><i class="bi bi-arrow-up"></i> +8.2% kechagidan</div>
+        </div>
+
+        <div class="bo-kpi">
+          <div class="bo-kpi-head">
+            <span class="bo-kpi-label">Yangi ro'yxatlar</span>
+            <div class="bo-kpi-icon bg-purple"><i class="bi bi-person-plus-fill"></i></div>
+          </div>
+          <div class="bo-kpi-val">38</div>
+          <div class="bo-kpi-delta up"><i class="bi bi-arrow-up"></i> +5 bugun</div>
+        </div>
+
+        <div class="bo-kpi">
+          <div class="bo-kpi-head">
+            <span class="bo-kpi-label">Yakunlash o'rt.</span>
+            <div class="bo-kpi-icon bg-amber"><i class="bi bi-patch-check-fill"></i></div>
+          </div>
+          <div class="bo-kpi-val">78<span class="unit">%</span></div>
+          <div class="bo-kpi-delta down"><i class="bi bi-arrow-down"></i> -2% (oy)</div>
+        </div>
+      </section>
+
+      <!-- ── TWO COLUMN: tasks + actions ────────── -->
+      <section class="bo-grid">
+
+        <!-- LEFT: pending tasks + activity -->
+        <div class="bo-card">
+          <div class="bo-card-head">
+            <div class="bo-card-title">E'tibor talab qiladi <span class="count-chip">7</span></div>
+            <a href="#" class="bo-card-link">Barchasi →</a>
+          </div>
+
+          <div class="bo-task">
+            <div class="bo-task-icon tone-amber"><i class="bi bi-receipt"></i></div>
+            <div class="bo-task-body">
+              <div class="bo-task-title">3 ta to'lov qo'lda tasdiqlash kutmoqda</div>
+              <div class="bo-task-sub">Eng eskisi 2 soat oldin yuborilgan</div>
+            </div>
+            <a href="#" class="bo-task-action">Ko'rish <i class="bi bi-arrow-right"></i></a>
+          </div>
+
+          <div class="bo-task">
+            <div class="bo-task-icon tone-blue"><i class="bi bi-pencil-square"></i></div>
+            <div class="bo-task-body">
+              <div class="bo-task-title">2 ta blog post moderatsiyada</div>
+              <div class="bo-task-sub">"Türkçe gramatika asoslari" va 1 boshqa</div>
+            </div>
+            <a href="#" class="bo-task-action">Ko'rish <i class="bi bi-arrow-right"></i></a>
+          </div>
+
+          <div class="bo-task">
+            <div class="bo-task-icon tone-red"><i class="bi bi-exclamation-triangle-fill"></i></div>
+            <div class="bo-task-body">
+              <div class="bo-task-title">1 ta support ticket — yuqori muhim</div>
+              <div class="bo-task-sub">Kamola I. · "Kursga kira olmayapman"</div>
+            </div>
+            <a href="#" class="bo-task-action">Javob</a>
+          </div>
+
+          <div class="bo-task">
+            <div class="bo-task-icon tone-purple"><i class="bi bi-collection"></i></div>
+            <div class="bo-task-body">
+              <div class="bo-task-title">"A2 Bahar 2026" cohort 12 ta joy bo'sh</div>
+              <div class="bo-task-sub">Boshlanishi: 27-may · Otomatik yopilish 24-mayda</div>
+            </div>
+            <a href="#" class="bo-task-action">Boshqarish</a>
+          </div>
+        </div>
+
+        <!-- RIGHT: quick actions + revenue -->
+        <div>
+          <div class="bo-card">
+            <div class="bo-card-head">
+              <div class="bo-card-title">Tez amallar</div>
+            </div>
+            <div class="bo-actions">
+              <a href="#" class="bo-action">
+                <div class="bo-action-icon bg-blue"><i class="bi bi-collection"></i></div>
+                <div class="bo-action-title">Yangi cohort</div>
+                <div class="bo-action-sub">Talabalarni guruhga olish</div>
+              </a>
+              <a href="#" class="bo-action">
+                <div class="bo-action-icon bg-green"><i class="bi bi-megaphone-fill"></i></div>
+                <div class="bo-action-title">E'lon yuborish</div>
+                <div class="bo-action-sub">Hammaga yoki guruhga</div>
+              </a>
+              <a href="#" class="bo-action">
+                <div class="bo-action-icon bg-purple"><i class="bi bi-ticket-perforated"></i></div>
+                <div class="bo-action-title">Promo kod</div>
+                <div class="bo-action-sub">Chegirma yarating</div>
+              </a>
+              <a href="#" class="bo-action">
+                <div class="bo-action-icon bg-amber"><i class="bi bi-plus-square"></i></div>
+                <div class="bo-action-title">Yangi kurs</div>
+                <div class="bo-action-sub">Bo'sh shablondan</div>
+              </a>
+            </div>
+          </div>
+
+          <div class="bo-card bo-revenue">
+            <div class="bo-card-head">
+              <div class="bo-card-title">Bu hafta daromad</div>
+              <a href="#" class="bo-card-link">Batafsil</a>
+            </div>
+            <div class="bo-revenue-val">28.6 mln so'm</div>
+            <div class="bo-revenue-sub">19–25 may · +14% o'tgan haftaga nisbatan</div>
+            <div class="bo-spark" aria-label="Haftalik daromad grafigi">
+              <div class="bo-spark-bar" style="height: 38%"></div>
+              <div class="bo-spark-bar" style="height: 52%"></div>
+              <div class="bo-spark-bar" style="height: 44%"></div>
+              <div class="bo-spark-bar" style="height: 68%"></div>
+              <div class="bo-spark-bar" style="height: 60%"></div>
+              <div class="bo-spark-bar" style="height: 78%"></div>
+              <div class="bo-spark-bar active" style="height: 92%"></div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ── TWO COLUMN: signups + activity ─────── -->
+      <section class="bo-grid">
+
+        <!-- Recent signups table -->
+        <div class="bo-card">
+          <div class="bo-card-head">
+            <div class="bo-card-title">So'nggi ro'yxatdan o'tganlar</div>
+            <a href="#" class="bo-card-link">Barchasi →</a>
+          </div>
+          <div class="bo-table-wrap">
+            <table class="bo-table">
+              <thead>
+                <tr>
+                  <th>Talaba</th>
+                  <th>Kurs</th>
+                  <th>Holat</th>
+                  <th>Vaqt</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div class="student-cell">
+                      <div class="student-av bo-av-c1">DY</div>
+                      <div>
+                        <div class="student-name">Dilnoza Yusupova</div>
+                        <div class="student-mail">dilnoza.y@mail.ru</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>Türkçe A1–B2</td>
+                  <td><span class="status-pill paid"><span class="dot"></span> To'langan</span></td>
+                  <td>5 daq oldin</td>
+                  <td><button class="row-action" type="button"><i class="bi bi-three-dots"></i></button></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="student-cell">
+                      <div class="student-av bo-av-c2">BN</div>
+                      <div>
+                        <div class="student-name">Bobur Nazarov</div>
+                        <div class="student-mail">bobur.n@gmail.com</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>Python Asoslar</td>
+                  <td><span class="status-pill trial"><span class="dot"></span> Trial</span></td>
+                  <td>22 daq oldin</td>
+                  <td><button class="row-action" type="button"><i class="bi bi-three-dots"></i></button></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="student-cell">
+                      <div class="student-av bo-av-c3">KI</div>
+                      <div>
+                        <div class="student-name">Kamola Islamova</div>
+                        <div class="student-mail">kamola.is@mail.com</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>Business English</td>
+                  <td><span class="status-pill pending"><span class="dot"></span> Tasdiqlash</span></td>
+                  <td>1 soat oldin</td>
+                  <td><button class="row-action" type="button"><i class="bi bi-three-dots"></i></button></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="student-cell">
+                      <div class="student-av bo-av-c4">UT</div>
+                      <div>
+                        <div class="student-name">Ulug'bek Toshmatov</div>
+                        <div class="student-mail">ut.dev@yandex.com</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>Türkçe A1–B2</td>
+                  <td><span class="status-pill paid"><span class="dot"></span> To'langan</span></td>
+                  <td>2 soat oldin</td>
+                  <td><button class="row-action" type="button"><i class="bi bi-three-dots"></i></button></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="student-cell">
+                      <div class="student-av bo-av-c5">SR</div>
+                      <div>
+                        <div class="student-name">Sarvinoz Rahimova</div>
+                        <div class="student-mail">sarvinoz@inbox.uz</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>IELTS Booster</td>
+                  <td><span class="status-pill trial"><span class="dot"></span> Trial</span></td>
+                  <td>3 soat oldin</td>
+                  <td><button class="row-action" type="button"><i class="bi bi-three-dots"></i></button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Activity feed -->
+        <div class="bo-card">
+          <div class="bo-card-head">
+            <div class="bo-card-title">So'nggi aktivlik</div>
+            <a href="#" class="bo-card-link">Log →</a>
+          </div>
+          <div class="bo-activity">
+            <div class="bo-activity-item">
+              <div class="bo-activity-marker" style="background:var(--green)"><i class="bi bi-check2"></i></div>
+              <div class="bo-activity-body">
+                <div class="bo-activity-text"><strong>Mavjudbek O.</strong> "Lesson 12: Past tense" darsini tahrirladi</div>
+                <div class="bo-activity-time">12 daq oldin</div>
+              </div>
+            </div>
+            <div class="bo-activity-item">
+              <div class="bo-activity-marker" style="background:var(--blue-mid)"><i class="bi bi-cash"></i></div>
+              <div class="bo-activity-body">
+                <div class="bo-activity-text"><strong>To'lov</strong> qabul qilindi — 199 000 so'm (Pro reja, Aziz K.)</div>
+                <div class="bo-activity-time">28 daq oldin</div>
+              </div>
+            </div>
+            <div class="bo-activity-item">
+              <div class="bo-activity-marker" style="background:var(--purple)"><i class="bi bi-collection"></i></div>
+              <div class="bo-activity-body">
+                <div class="bo-activity-text">Yangi cohort <strong>"A2 Bahar 2026"</strong> yaratildi</div>
+                <div class="bo-activity-time">1 soat oldin</div>
+              </div>
+            </div>
+            <div class="bo-activity-item">
+              <div class="bo-activity-marker" style="background:var(--amber)"><i class="bi bi-pencil"></i></div>
+              <div class="bo-activity-body">
+                <div class="bo-activity-text"><strong>2 ta blog post</strong> moderatsiyaga yuborildi</div>
+                <div class="bo-activity-time">2 soat oldin</div>
+              </div>
+            </div>
+            <div class="bo-activity-item">
+              <div class="bo-activity-marker" style="background:var(--red)"><i class="bi bi-exclamation"></i></div>
+              <div class="bo-activity-body">
+                <div class="bo-activity-text">Support ticket — <strong>Kamola I.</strong> kursga kira olmayapti</div>
+                <div class="bo-activity-time">3 soat oldin</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  (function() {
+    const btn = document.getElementById('themeBtn');
+    const icon = document.getElementById('themeIcon');
+    if (!btn) return;
+    function syncIcon() {
+      const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+      icon.className = dark ? 'bi bi-sun' : 'bi bi-moon';
+    }
+    syncIcon();
+    btn.addEventListener('click', () => {
+      const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', cur);
+      try { localStorage.setItem('az-theme', cur); } catch (_) {}
+      syncIcon();
+    });
+  })();
+</script>
+<script src="../assets/js/prototype-ui.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS old-turtle prototype for auth verify.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>AzureLMS — Email tasdiqlash</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- CSS Zanjiri (Architectural Standard) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/auth.css">
+
+  <link rel="stylesheet" href="../assets/css/prototype-extracted.css">
+</head>
+<body class="auth-page auth-page--verify">
+
+<div class="shell">
+
+  <!-- ══ LEFT ══ -->
+  <div class="left">
+    <nav class="left-nav">
+      <a class="logo" href="../index.html">
+        <div class="logo-mark">AZ</div>
+        <span class="logo-name">AzureLMS</span>
+      </a>
+      <button class="theme-btn" id="themeBtn" aria-label="Tema">
+        <i class="bi bi-moon" id="themeIcon"></i>
+      </button>
+    </nav>
+
+    <div class="left-body">
+      <div class="form-wrap">
+
+        <div class="email-icon-wrap">
+          <i class="bi bi-envelope-at xstyle-a0c19f60"></i>
+          <div class="email-icon-dot"></div>
+        </div>
+
+        <p class="form-eyebrow">2-qadam · Tasdiqlash</p>
+        <h1 class="form-title">Emailingizni tasdiqlang</h1>
+        <p class="form-desc">
+          <strong id="emailDisplay">jasur@example.com</strong> manziliga
+          6 xonali tasdiqlash kodi yuborildi. Quyida kiriting.
+        </p>
+
+        <!-- OTP boxes -->
+        <div class="otp-group" id="otpGroup">
+          <input class="otp-input" type="text" inputmode="numeric" maxlength="1" autocomplete="one-time-code" aria-label="Kod 1">
+          <input class="otp-input" type="text" inputmode="numeric" maxlength="1" aria-label="Kod 2">
+          <input class="otp-input" type="text" inputmode="numeric" maxlength="1" aria-label="Kod 3">
+          <input class="otp-input" type="text" inputmode="numeric" maxlength="1" aria-label="Kod 4">
+          <input class="otp-input" type="text" inputmode="numeric" maxlength="1" aria-label="Kod 5">
+          <input class="otp-input" type="text" inputmode="numeric" maxlength="1" aria-label="Kod 6">
+        </div>
+        <p class="otp-hint" id="otpHint">Kodni qidirish uchun spam papkasini ham tekshiring.</p>
+
+        <button class="btn-verify" id="verifyBtn" disabled>
+          <i class="bi bi-shield-check"></i> Tasdiqlash
+        </button>
+
+        <div class="resend-row">
+          Kodni olmadingizmi?
+          <button class="resend-btn" id="resendBtn" disabled>
+            Qayta yuborish (<span class="resend-timer" id="resendTimer">01:59</span>)
+          </button>
+        </div>
+
+        <div class="divider"></div>
+
+        <a class="back-link" href="auth-login.html">
+          <i class="bi bi-arrow-left xstyle-22b62ca4"></i>
+          Kirishga qaytish
+        </a>
+
+      </div>
+    </div>
+
+    <footer class="left-footer">
+      Muammo bormi? <a href="../public/about.html" class="xstyle-95845277">Yordam markazi</a>
+    </footer>
+  </div>
+
+  <!-- ══ RIGHT ══ -->
+  <div class="right">
+    <div class="right-glow right-glow-1"></div>
+    <div class="right-glow right-glow-2"></div>
+
+    <div class="right-content">
+
+      <!-- Inbox list -->
+      <div class="inbox-card">
+        <div class="inbox-header">
+          <div class="inbox-dot d-red"></div>
+          <div class="inbox-dot d-amber"></div>
+          <div class="inbox-dot d-green"></div>
+          <span class="inbox-title">Kiruvchi xatlar</span>
+        </div>
+        <div class="inbox-list">
+          <div class="inbox-row active">
+            <div class="inbox-avatar av-blue">AZ</div>
+            <div class="inbox-info">
+              <div class="inbox-sender">
+                AzureLMS <span class="time">Hozir</span>
+              </div>
+              <div class="inbox-subject">✉ Tasdiqlash kodingiz: 4 8 7 ···</div>
+            </div>
+            <div class="inbox-unread"></div>
+          </div>
+          <div class="inbox-row">
+            <div class="inbox-avatar av-gray">YT</div>
+            <div class="inbox-info">
+              <div class="inbox-sender">YouTube <span class="time">9:14</span></div>
+              <div class="inbox-subject">Yangi obunachingiz bor</div>
+            </div>
+          </div>
+          <div class="inbox-row">
+            <div class="inbox-avatar av-gray">GL</div>
+            <div class="inbox-info">
+              <div class="inbox-sender">Google <span class="time">Kecha</span></div>
+              <div class="inbox-subject">Xavfsizlik ogohlantirishi</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Opened email -->
+      <div class="email-open">
+        <div class="email-open-head">
+          <div class="email-open-from">noreply@azurelms.uz</div>
+          <div class="email-open-subject">AzureLMS — Tasdiqlash kodingiz</div>
+        </div>
+        <div class="email-open-body">
+          <div class="email-greet">Salom, Jasur! Hisobingizni tasdiqlash uchun quyidagi kodni kiriting.</div>
+          <div class="email-code-label">Bir martalik tasdiqlash kodi</div>
+          <div class="email-otp">
+            <div class="email-otp-box revealed">4</div>
+            <div class="email-otp-box revealed">8</div>
+            <div class="email-otp-box revealed">7</div>
+            <div class="email-otp-box revealed">2</div>
+            <div class="email-otp-box xstyle-a7be3ed9" id="reveal5">·</div>
+            <div class="email-otp-box xstyle-a7be3ed9" id="reveal6">·</div>
+          </div>
+          <div class="email-expire">
+            <i class="bi bi-clock xstyle-70341432"></i>
+            Kod 10 daqiqa ichida yaroqsiz bo'ladi
+          </div>
+        </div>
+      </div>
+
+      <!-- Success toast -->
+      <div class="toast-float xstyle-c8be1ccb" id="successToast">
+        <div class="toast-icon ti-green">✅</div>
+        <div class="toast-text">
+          <strong>Hisob tasdiqlandi!</strong>
+          <span>Dashboard ga yo'naltirilmoqda...</span>
+        </div>
+      </div>
+      <div class="toast-float" id="defaultToast">
+        <div class="toast-icon xstyle-2f25ef32">📱</div>
+        <div class="toast-text">
+          <strong>Kodni SMS orqali ham oling</strong>
+          <span>+998 90 ••• •• 12 raqamiga</span>
+        </div>
+      </div>
+
+    </div>
+
+    <p class="right-label">AzureLMS · Email tasdiqlash oqimi</p>
+  </div>
+
+</div>
+
+<script>
+  // ── Theme ──
+  const html     = document.documentElement;
+  const themeBtn = document.getElementById('themeBtn');
+  const themeIcon= document.getElementById('themeIcon');
+
+  function applyTheme(dark) {
+    html.setAttribute('data-theme', dark ? 'dark' : 'light');
+    themeIcon.className = dark ? 'bi bi-sun' : 'bi bi-moon';
+    try { localStorage.setItem('az-theme', dark ? 'dark' : 'light'); } catch(_) {}
+  }
+  let saved; try { saved = localStorage.getItem('az-theme'); } catch(_) {}
+  applyTheme(saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches);
+  themeBtn.addEventListener('click', () => applyTheme(html.getAttribute('data-theme') !== 'dark'));
+
+  // ── OTP logic ──
+  const inputs    = document.querySelectorAll('.otp-input');
+  const verifyBtn = document.getElementById('verifyBtn');
+  const otpHint   = document.getElementById('otpHint');
+  const reveal5   = document.getElementById('reveal5');
+  const reveal6   = document.getElementById('reveal6');
+
+  // Reveal last 2 digits of email OTP with delay (demo effect)
+  setTimeout(() => { reveal5.textContent = '6'; reveal5.style.color = ''; reveal5.classList.add('revealed'); }, 1200);
+  setTimeout(() => { reveal6.textContent = '1'; reveal6.style.color = ''; reveal6.classList.add('revealed'); }, 2000);
+
+  function getOTP() { return [...inputs].map(i => i.value).join(''); }
+
+  function checkComplete() {
+    const val = getOTP();
+    verifyBtn.disabled = val.length < 6;
+    inputs.forEach((inp, i) => {
+      inp.classList.toggle('filled', !!inp.value);
+    });
+  }
+
+  inputs.forEach((input, idx) => {
+    input.addEventListener('input', e => {
+      // allow only digits
+      input.value = input.value.replace(/\D/g, '').slice(-1);
+      input.classList.remove('error');
+      if (input.value && idx < inputs.length - 1) inputs[idx + 1].focus();
+      checkComplete();
+    });
+
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Backspace' && !input.value && idx > 0) {
+        inputs[idx - 1].focus();
+        inputs[idx - 1].value = '';
+        checkComplete();
+      }
+      // allow paste
+      if ((e.ctrlKey || e.metaKey) && e.key === 'v') return;
+    });
+
+    input.addEventListener('paste', e => {
+      e.preventDefault();
+      const text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+      text.split('').forEach((ch, i) => { if (inputs[i]) inputs[i].value = ch; });
+      inputs[Math.min(text.length, inputs.length - 1)].focus();
+      checkComplete();
+    });
+  });
+
+  // Verify click
+  verifyBtn.addEventListener('click', () => {
+    const code = getOTP();
+    // Demo: correct = 487261, anything else = error
+    if (code === '487261') {
+      verifyBtn.textContent = '✓ Tasdiqlandi!';
+      verifyBtn.classList.add('success');
+      verifyBtn.disabled = true;
+      otpHint.textContent = '✅ Email muvaffaqiyatli tasdiqlandi.';
+      otpHint.style.color = 'var(--green)';
+      document.getElementById('successToast').style.display = 'flex';
+      document.getElementById('defaultToast').style.display = 'none';
+    } else {
+      inputs.forEach(i => i.classList.add('error'));
+      otpHint.textContent = '❌ Noto\'g\'ri kod. Qayta urinib ko\'ring.';
+      otpHint.style.color = 'var(--red)';
+      setTimeout(() => {
+        inputs.forEach(i => i.classList.remove('error'));
+        otpHint.textContent = 'Kodni qidirish uchun spam papkasini ham tekshiring.';
+        otpHint.style.color = '';
+      }, 2500);
+    }
+  });
+
+  // Resend countdown — starts at 1:59
+  let seconds = 119;
+  const timerEl   = document.getElementById('resendTimer');
+  const resendBtn  = document.getElementById('resendBtn');
+
+  const tick = setInterval(() => {
+    seconds--;
+    const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+    const s = String(seconds % 60).padStart(2, '0');
+    timerEl.textContent = `${m}:${s}`;
+    if (seconds <= 0) {
+      clearInterval(tick);
+      resendBtn.disabled = false;
+      resendBtn.textContent = 'Qayta yuborish';
+    }
+  }, 1000);
+
+  resendBtn.addEventListener('click', () => {
+    if (resendBtn.disabled) return;
+    seconds = 119;
+    resendBtn.disabled = true;
+    resendBtn.innerHTML = `Qayta yuborish (<span class="resend-timer">01:59</span>)`;
+    otpHint.textContent = '📨 Yangi kod yuborildi. Emailingizni tekshiring.';
+    otpHint.style.color = 'var(--accent)';
+    setTimeout(() => { otpHint.textContent = 'Kodni qidirish uchun spam papkasini ham tekshiring.'; otpHint.style.color = ''; }, 3000);
+  });
+</script>
+  <script src="../assets/js/prototype-ui.js"></script>
+</body>
+</html>
+

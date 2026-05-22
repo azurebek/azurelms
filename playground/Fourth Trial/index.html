@@ -1,0 +1,142 @@
+﻿<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS old-turtle shell-first prototype catalog.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>Old Turtle Prototype Catalog | AzureLMS</title>
+  <script>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/foundation.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/catalog.css">
+  <link rel="stylesheet" href="assets/css/prototype-extracted.css">
+</head>
+<body class="catalog-page">
+  <header class="catalog-hero">
+    <div class="catalog-wrap">
+      <p class="catalog-eyebrow">Old Turtle</p>
+      <h1 class="catalog-title">Shell-first prototype workspace</h1>
+      <p class="catalog-copy">This copy is isolated from design-work-playground. Use it to normalize shell ownership, links, CSS chain, metadata, and migration readiness without touching the original folder.</p>
+      <div class="catalog-meta">
+        <span class="catalog-pill">37 HTML pages</span>
+        <span class="catalog-pill">39 CSS files</span>
+        <span class="catalog-pill">Status: normalizing</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="catalog-section">
+    <div class="catalog-wrap">
+      <div class="catalog-section-head">
+        <div>
+          <h2 class="catalog-section-title">Prototype Flows</h2>
+          <p class="catalog-section-note">Open a shell first, then inspect page variants in the same flow.</p>
+        </div>
+        <a class="catalog-link" href="docs/0-MANIFEST.md">Manifest</a>
+      </div>
+
+      <div class="catalog-grid">
+        <article class="catalog-card">
+          <h3>Public Discovery</h3>
+          <p>Landing, about, pricing, course list, and course detail.</p>
+          <div class="catalog-links">
+            <a class="catalog-link" href="public/index.html">Home</a>
+            <a class="catalog-link" href="public/about.html">About</a>
+            <a class="catalog-link" href="public/course-list.html">Courses</a>
+            <a class="catalog-link" href="public/course-detail.html">Course detail</a>
+            <a class="catalog-link" href="public/pricing.html">Pricing</a>
+          </div>
+        </article>
+
+        <article class="catalog-card">
+          <h3>Auth and Billing</h3>
+          <p>Login, registration, recovery, verification, and checkout.</p>
+          <div class="catalog-links">
+            <a class="catalog-link" href="auth/auth-login.html">Login</a>
+            <a class="catalog-link" href="auth/auth-register.html">Register</a>
+            <a class="catalog-link" href="auth/auth-recovery.html">Recovery</a>
+            <a class="catalog-link" href="auth/auth-verify.html">Verify</a>
+            <a class="catalog-link" href="auth/checkout.html">Checkout</a>
+          </div>
+        </article>
+
+        <article class="catalog-card">
+          <h3>Student App</h3>
+          <p>Dashboard shell and authenticated app pages.</p>
+          <div class="catalog-links">
+            <a class="catalog-link" href="app/app-shell.html">Shell</a>
+            <a class="catalog-link" href="app/app-course-list.html">Course list</a>
+            <a class="catalog-link" href="app/app-course-detail.html">Course detail</a>
+            <a class="catalog-link" href="app/app-notifications.html">Notifications</a>
+            <a class="catalog-link" href="app/app-profile.html">Profile</a>
+            <a class="catalog-link" href="app/app-settings.html">Settings</a>
+            <a class="catalog-link" href="app/app-subscriptions.html">Subscriptions</a>
+          </div>
+        </article>
+
+        <article class="catalog-card">
+          <h3>Exam</h3>
+          <p>Exam shell plus listening, speaking, writing, and review surfaces.</p>
+          <div class="catalog-links">
+            <a class="catalog-link" href="exam/exam-shell.html">Shell</a>
+            <a class="catalog-link" href="exam/exam-listening.html">Listening</a>
+            <a class="catalog-link" href="exam/exam-speaking.html">Speaking</a>
+            <a class="catalog-link" href="exam/exam-writing.html">Writing</a>
+            <a class="catalog-link" href="exam/exam-review.html">Review</a>
+          </div>
+        </article>
+
+        <article class="catalog-card">
+          <h3>Blog and Studio</h3>
+          <p>Public reading pages and editorial studio screens.</p>
+          <div class="catalog-links">
+            <a class="catalog-link" href="blog/blog-shell.html">Blog shell</a>
+            <a class="catalog-link" href="blog/blog-article.html">Article</a>
+            <a class="catalog-link" href="blog/blog-tags.html">Tags</a>
+            <a class="catalog-link" href="blog-studio/blog-studio-shell.html">Studio</a>
+            <a class="catalog-link" href="blog-studio/blog-studio-new-post.html">New post</a>
+            <a class="catalog-link" href="blog-studio/blog-studio-analytics.html">Analytics</a>
+          </div>
+        </article>
+
+        <article class="catalog-card">
+          <h3>Support Surfaces</h3>
+          <p>Legal documents, messenger, and calm error states.</p>
+          <div class="catalog-links">
+            <a class="catalog-link" href="legal/legal-privacy.html">Privacy</a>
+            <a class="catalog-link" href="legal/legal-terms.html">Terms</a>
+            <a class="catalog-link" href="legal/legal-cookies.html">Cookies</a>
+            <a class="catalog-link" href="messenger/messenger-shell.html">Messenger</a>
+            <a class="catalog-link" href="error/error-404.html">404</a>
+            <a class="catalog-link" href="error/error-500.html">500</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </main>
+  <script src="assets/js/prototype-ui.js"></script>
+</body>
+</html>
+

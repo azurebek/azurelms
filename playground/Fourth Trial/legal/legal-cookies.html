@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS old-turtle prototype for legal cookies.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>Cookie siyosati — AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- CSS Zanjiri (Architectural Standard) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/legal-cookies.css">
+
+  <link rel="stylesheet" href="../assets/css/prototype-extracted.css">
+</head>
+<body>
+  <script>(function(){ try { var t=localStorage.getItem('lms-theme'); if(t) document.documentElement.setAttribute('data-theme',t); } catch(e){} })();</script>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="xstyle-e3f61041"><div class="logo-mark">AL</div><span class="logo-name">AzureLMS</span></a>
+      <div class="nav-spacer"></div>
+      <button class="nav-theme" data-ui-action="theme"><i class="bi bi-moon-stars" id="themeIcon"></i></button>
+    </div>
+  </nav>
+  <div class="layout">
+    <aside class="toc-sidebar">
+      <div class="toc-head">Mundarija</div>
+      <div class="toc-list">
+        <a href="#s1" class="toc-item active">1. Cookie nima?</a>
+        <a href="#s2" class="toc-item">2. Cookie turlari</a>
+        <a href="#s3" class="toc-item">3. Ishlatiladigan cookie-lar</a>
+        <a href="#s4" class="toc-item">4. Sozlamalarni boshqarish</a>
+        <a href="#s5" class="toc-item">5. Uchinchi tomon</a>
+        <a href="#s6" class="toc-item">6. O'chirish usullari</a>
+        <a href="#s7" class="toc-item">7. Aloqa</a>
+      </div>
+      <div class="toc-divider"></div>
+      <div class="xstyle-e22dd14a">Huquqiy</div>
+      <div class="legal-links">
+        <a href="legal-terms.html" class="legal-link"><i class="bi bi-file-text"></i> Foydalanish shartlari</a>
+        <a href="legal-privacy.html" class="legal-link"><i class="bi bi-shield-check"></i> Maxfiylik siyosati</a>
+        <a href="legal-cookies.html" class="legal-link curr"><i class="bi bi-cookie"></i> Cookie siyosati</a>
+      </div>
+    </aside>
+    <article class="article">
+      <div class="article-hero">
+        <div class="article-badge"><i class="bi bi-cookie"></i> Cookie hujjati</div>
+        <h1 class="article-title">Cookie siyosati</h1>
+        <div class="article-meta">
+          <span><i class="bi bi-calendar3"></i> Yangilangan: 15-may, 2026</span>
+          <span><i class="bi bi-clock"></i> ~6 daqiqa</span>
+        </div>
+      </div>
+      <span class="section-anchor" id="s1"></span>
+      <div class="doc-section">
+        <h2 class="doc-h2"><span class="doc-h2-num">01</span> Cookie nima?</h2>
+        <p class="doc-p">Cookie (kuки) — brauzeringizga saqlanadigan kichik matn fayli. U saytga qayta kirsangiz, sizni tanish, afzalliklaringizni eslab qolish va xizmat sifatini oshirish uchun ishlatiladi.</p>
+        <div class="doc-callout"><p>Cookie-lar kompyuteringizga zarar etkazmaydi va shaxsiy fayllaringizga kirish imkoniga ega emas.</p></div>
+      </div>
+      <span class="section-anchor" id="s2"></span>
+      <div class="doc-section">
+        <h2 class="doc-h2"><span class="doc-h2-num">02</span> Cookie turlari</h2>
+        <div class="cookie-cards">
+          <div class="cookie-card">
+            <div class="cc-head">
+              <div class="cc-icon xstyle-a5a4f3be"><i class="bi bi-shield-check"></i></div>
+              <span class="cc-name">Zaruriy</span>
+              <span class="cc-badge b-req">Majburiy</span>
+            </div>
+            <div class="cc-desc">Sayt ishlashi uchun zarur. Kirish sessiyasi, xavfsizlik tokenlar. O'chirib bo'lmaydi.</div>
+          </div>
+          <div class="cookie-card">
+            <div class="cc-head">
+              <div class="cc-icon xstyle-83f56626"><i class="bi bi-graph-up"></i></div>
+              <span class="cc-name">Analitika</span>
+              <span class="cc-badge b-opt">Ixtiyoriy</span>
+            </div>
+            <div class="cc-desc">Sayt trafigi va foydalanish statistikasini o'lchash. Google Analytics va hokazo.</div>
+          </div>
+          <div class="cookie-card">
+            <div class="cc-head">
+              <div class="cc-icon xstyle-9967f362"><i class="bi bi-sliders"></i></div>
+              <span class="cc-name">Funksional</span>
+              <span class="cc-badge b-opt">Ixtiyoriy</span>
+            </div>
+            <div class="cc-desc">Til, mavzu (dark/light), so'nggi ko'rilgan kurslar kabi afzalliklarni eslab qolish.</div>
+          </div>
+          <div class="cookie-card">
+            <div class="cc-head">
+              <div class="cc-icon xstyle-42495c47"><i class="bi bi-megaphone"></i></div>
+              <span class="cc-name">Marketing</span>
+              <span class="cc-badge b-opt">Ixtiyoriy</span>
+            </div>
+            <div class="cc-desc">Maqsadli reklama ko'rsatish va marketing kampaniyalar samaradorligini o'lchash.</div>
+          </div>
+        </div>
+      </div>
+      <span class="section-anchor" id="s3"></span>
+      <div class="doc-section">
+        <h2 class="doc-h2"><span class="doc-h2-num">03</span> Ishlatiladigan cookie-lar</h2>
+        <table class="cookie-table">
+          <thead><tr><th>Nom</th><th>Tur</th><th>Muddat</th><th>Maqsad</th></tr></thead>
+          <tbody>
+            <tr><td>lms_session</td><td>Zaruriy</td><td>Sessiya</td><td>Foydalanuvchi autentifikatsiyasi</td></tr>
+            <tr><td>lms_theme</td><td>Funksional</td><td>1 yil</td><td>Dark/light mode saqlash</td></tr>
+            <tr><td>lms_lang</td><td>Funksional</td><td>1 yil</td><td>Til afzalligi</td></tr>
+            <tr><td>_ga</td><td>Analitika</td><td>2 yil</td><td>Google Analytics foydalanuvchi ID</td></tr>
+            <tr><td>_gid</td><td>Analitika</td><td>24 soat</td><td>Google Analytics sessiya ID</td></tr>
+            <tr><td>lms_cookie_consent</td><td>Zaruriy</td><td>1 yil</td><td>Cookie rozilik holati</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <span class="section-anchor" id="s4"></span>
+      <div class="doc-section">
+        <h2 class="doc-h2"><span class="doc-h2-num">04</span> Sozlamalarni boshqarish</h2>
+        <p class="doc-p">Quyida cookie turlarini yoqish yoki o'chirish imkoniyati mavjud:</p>
+        <div class="pref-section">
+          <div class="pref-row">
+            <div class="pref-info">
+              <div class="pref-name">Zaruriy cookie-lar</div>
+              <div class="pref-desc">Sayt ishlashi uchun — o'chirib bo'lmaydi</div>
+            </div>
+            <label class="toggle-switch"><input type="checkbox" checked disabled><span class="toggle-track"></span><span class="toggle-thumb"></span></label>
+          </div>
+          <div class="pref-row">
+            <div class="pref-info">
+              <div class="pref-name">Funksional cookie-lar</div>
+              <div class="pref-desc">Mavzu, til va afzalliklarni eslab qolish</div>
+            </div>
+            <label class="toggle-switch"><input type="checkbox" checked id="funcToggle"><span class="toggle-track"></span><span class="toggle-thumb"></span></label>
+          </div>
+          <div class="pref-row">
+            <div class="pref-info">
+              <div class="pref-name">Analitika cookie-lar</div>
+              <div class="pref-desc">Sayt trafigi va foydalanish statistikasi</div>
+            </div>
+            <label class="toggle-switch"><input type="checkbox" checked id="analyticsToggle"><span class="toggle-track"></span><span class="toggle-thumb"></span></label>
+          </div>
+          <div class="pref-row">
+            <div class="pref-info">
+              <div class="pref-name">Marketing cookie-lar</div>
+              <div class="pref-desc">Maqsadli reklama va kampaniya o'lchovi</div>
+            </div>
+            <label class="toggle-switch"><input type="checkbox" id="marketingToggle"><span class="toggle-track"></span><span class="toggle-thumb"></span></label>
+          </div>
+          <button class="save-btn" data-ui-call="savePrefs"><i class="bi bi-check-lg"></i> Sozlamalarni saqlash</button>
+        </div>
+      </div>
+      <span class="section-anchor" id="s5"></span>
+      <div class="doc-section">
+        <h2 class="doc-h2"><span class="doc-h2-num">05</span> Uchinchi tomon xizmatlari</h2>
+        <p class="doc-p">Quyidagi uchinchi tomon xizmatlari o'z cookie-larini qo'llashi mumkin:</p>
+        <ul class="doc-ul">
+          <li><strong>Google Analytics</strong> — trafik tahlili (Google maxfiylik siyosati qo'llaniladi)</li>
+          <li><strong>Stripe / Payme</strong> — to'lov xizmatlari (o'z maxfiylik siyosatiga ega)</li>
+          <li><strong>Cloudflare</strong> — CDN va xavfsizlik xizmatlari</li>
+        </ul>
+      </div>
+      <span class="section-anchor" id="s6"></span>
+      <div class="doc-section">
+        <h2 class="doc-h2"><span class="doc-h2-num">06</span> Cookie-larni o'chirish</h2>
+        <p class="doc-p">Cookie-larni brauzer sozlamalari orqali o'chirishingiz mumkin:</p>
+        <ul class="doc-ul">
+          <li><strong>Chrome:</strong> Sozlamalar → Maxfiylik → Cookie va sayt ma'lumotlari</li>
+          <li><strong>Firefox:</strong> Sozlamalar → Maxfiylik → Cookie va sayt ma'lumotlari</li>
+          <li><strong>Safari:</strong> Sozlamalar → Maxfiylik → Cookie-larni boshqarish</li>
+          <li><strong>Edge:</strong> Sozlamalar → Cookie va sayt ruxsatlari</li>
+        </ul>
+        <p class="doc-p">Eslatma: zaruriy cookie-larni o'chirganingizda, sayt to'liq ishlamasligi mumkin.</p>
+      </div>
+      <span class="section-anchor" id="s7"></span>
+      <div class="doc-section">
+        <h2 class="doc-h2"><span class="doc-h2-num">07</span> Aloqa</h2>
+        <p class="doc-p">Cookie siyosati bo'yicha savollar uchun: <strong>privacy@azurelms.uz</strong></p>
+      </div>
+    </article>
+  </div>
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isDark = html.getAttribute('data-theme') === 'dark';
+      html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      document.getElementById('themeIcon').className = isDark ? 'bi bi-moon-stars' : 'bi bi-sun';
+      try { localStorage.setItem('lms-theme', isDark ? 'light' : 'dark'); } catch(e){}
+    }
+    (function(){ try { if(localStorage.getItem('lms-theme')==='dark') document.getElementById('themeIcon').className='bi bi-sun'; } catch(e){} })();
+    function savePrefs() {
+      const btn = document.querySelector('.save-btn');
+      btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Saqlandi!';
+      btn.style.background = 'var(--green-mid)';
+      setTimeout(() => { btn.innerHTML = '<i class="bi bi-check-lg"></i> Sozlamalarni saqlash'; btn.style.background = ''; }, 2000);
+    }
+    window.addEventListener('scroll', () => {
+      const secs = document.querySelectorAll('.section-anchor');
+      const items = document.querySelectorAll('.toc-item');
+      let curr = '';
+      secs.forEach(s => { if (window.scrollY >= s.offsetTop - 100) curr = s.id; });
+      items.forEach(i => i.classList.toggle('active', i.getAttribute('href') === '#' + curr));
+    });
+  </script>
+  <script src="../assets/js/prototype-ui.js"></script>
+</body>
+</html>
+

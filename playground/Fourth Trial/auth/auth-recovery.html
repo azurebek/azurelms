@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS old-turtle prototype for auth recovery.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>AzureLMS — Parolni tiklash</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- CSS Zanjiri (Architectural Standard) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/auth.css">
+
+  <link rel="stylesheet" href="../assets/css/prototype-extracted.css">
+</head>
+<body class="auth-page auth-page--recovery">
+<div class="shell">
+
+  <!-- LEFT -->
+  <div class="left">
+    <nav class="left-nav">
+      <a class="logo" href="../index.html">
+        <div class="logo-mark">AZ</div>
+        <span class="logo-name">AzureLMS</span>
+      </a>
+      <button class="theme-btn" id="themeBtn" aria-label="Tema">
+        <i class="bi bi-moon" id="themeIcon"></i>
+      </button>
+    </nav>
+
+    <div class="left-body">
+      <div class="form-wrap">
+
+        <div class="lock-badge">
+          <i class="bi bi-shield-lock xstyle-6eb3933c"></i>
+          <div class="lock-badge-pulse"></div>
+        </div>
+
+        <!-- Steps -->
+        <div class="step-pills" id="stepPills">
+          <div class="step-pill active" id="pill1"><i class="bi bi-envelope"></i> Email</div>
+          <div class="step-pill" id="pill2"><i class="bi bi-key"></i> Tasdiqlash</div>
+          <div class="step-pill" id="pill3"><i class="bi bi-lock"></i> Yangi parol</div>
+        </div>
+
+        <!-- STEP 1: email -->
+        <div id="step1">
+          <p class="form-eyebrow">Xavfsizlik · 1-qadam</p>
+          <h1 class="form-title">Parolni tiklash</h1>
+          <p class="form-desc">Email manzilingizni kiriting — tasdiqlash havolasini yuboramiz.</p>
+
+          <div class="field">
+            <label class="field-label" for="email">Email manzil</label>
+            <div class="field-wrap">
+              <i class="bi bi-envelope field-icon"></i>
+              <input class="field-input" type="email" id="email" placeholder="email@example.com" autocomplete="email">
+            </div>
+          </div>
+
+          <div class="info-box info-box--blue">
+            <i class="bi bi-info-circle-fill"></i>
+            Hisobingizga bog'liq email manzilini kiriting. Kod 10 daqiqa ichida yaroqsiz bo'ladi.
+          </div>
+
+          <button class="btn-submit" id="sendBtn">
+            <i class="bi bi-send-fill"></i> Kod yuborish
+          </button>
+
+          <div class="divider"></div>
+          <a class="back-link" href="auth-login.html">
+            <i class="bi bi-arrow-left xstyle-94db95e1"></i>
+            Kirishga qaytish
+          </a>
+        </div>
+
+        <!-- STEP 2: OTP -->
+        <div id="step2" class="xstyle-c8be1ccb">
+          <p class="form-eyebrow">Xavfsizlik · 2-qadam</p>
+          <h1 class="form-title">Kodni kiriting</h1>
+          <p class="form-desc" id="s2desc">Email manziliga 6 xonali kod yuborildi.</p>
+
+          <div class="field">
+            <label class="field-label">Tasdiqlash kodi</label>
+            <div class="xstyle-b9bbe540">
+              <input class="field-input xstyle-61c3115d" type="text" inputmode="numeric" maxlength="1" class="otp xstyle-61c3115d" id="o1">
+              <input class="field-input xstyle-61c3115d" type="text" inputmode="numeric" maxlength="1" class="otp xstyle-61c3115d" id="o2">
+              <input class="field-input xstyle-61c3115d" type="text" inputmode="numeric" maxlength="1" class="otp xstyle-61c3115d" id="o3">
+              <input class="field-input xstyle-61c3115d" type="text" inputmode="numeric" maxlength="1" class="otp xstyle-61c3115d" id="o4">
+              <input class="field-input xstyle-61c3115d" type="text" inputmode="numeric" maxlength="1" class="otp xstyle-61c3115d" id="o5">
+              <input class="field-input xstyle-61c3115d" type="text" inputmode="numeric" maxlength="1" class="otp xstyle-61c3115d" id="o6">
+            </div>
+          </div>
+
+          <button class="btn-submit" id="verifyBtn">
+            <i class="bi bi-shield-check"></i> Tasdiqlash
+          </button>
+
+          <div class="divider"></div>
+          <button class="back-link xstyle-57d6f2b6" data-ui-call="goStep" data-ui-args='[1]'>
+            <i class="bi bi-arrow-left xstyle-94db95e1"></i>
+            Orqaga
+          </button>
+        </div>
+
+        <!-- STEP 3: new password -->
+        <div id="step3" class="xstyle-c8be1ccb">
+          <p class="form-eyebrow">Xavfsizlik · 3-qadam</p>
+          <h1 class="form-title">Yangi parol o'rnating</h1>
+          <p class="form-desc">Kuchli parol tanlang — kamida 8 ta belgi.</p>
+
+          <div class="field">
+            <label class="field-label" for="newPwd">Yangi parol</label>
+            <div class="field-wrap">
+              <i class="bi bi-lock field-icon"></i>
+              <input class="field-input" type="password" id="newPwd" placeholder="Yangi parolingiz">
+              <button class="field-action" id="toggleNew" aria-label="Ko'rsatish">
+                <i class="bi bi-eye" id="eyeNew"></i>
+              </button>
+            </div>
+            <div class="pwd-strength">
+              <div class="pwd-bar" id="npb1"></div>
+              <div class="pwd-bar" id="npb2"></div>
+              <div class="pwd-bar" id="npb3"></div>
+              <div class="pwd-bar" id="npb4"></div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="confirmPwd">Parolni tasdiqlang</label>
+            <div class="field-wrap">
+              <i class="bi bi-lock-fill field-icon"></i>
+              <input class="field-input" type="password" id="confirmPwd" placeholder="Parolni qayta kiriting">
+            </div>
+          </div>
+
+          <button class="btn-submit" id="saveBtn">
+            <i class="bi bi-check-circle-fill"></i> Parolni saqlash
+          </button>
+
+          <div class="divider"></div>
+          <button class="back-link xstyle-57d6f2b6" data-ui-call="goStep" data-ui-args='[2]'>
+            <i class="bi bi-arrow-left xstyle-94db95e1"></i>
+            Orqaga
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <footer class="left-footer">
+      © 2025 AzureLMS ·
+      <a href="../legal/legal-privacy.html" class="xstyle-6ddb9c03">Maxfiylik</a> ·
+      <a href="../legal/legal-terms.html"   class="xstyle-6ddb9c03">Shartlar</a>
+    </footer>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right">
+    <div class="glow glow-1"></div>
+    <div class="glow glow-2"></div>
+    <div class="right-content">
+
+      <!-- Security flow card -->
+      <div class="security-card">
+        <div class="sec-head">
+          <div class="sec-head-icon">🛡️</div>
+          <div>
+            <div class="sec-head-title">Xavfsizlik tekshiruvi</div>
+            <div class="sec-head-sub">3 bosqichli himoya jarayoni</div>
+          </div>
+        </div>
+
+        <div class="sec-steps">
+          <div class="sec-step">
+            <div class="step-circle sc-done">✓</div>
+            <div class="step-info">
+              <div class="step-name">Email manzilni kiritish</div>
+              <div class="step-desc">jasur@example.com ✓ tasdiqlandi</div>
+            </div>
+          </div>
+          <div class="sec-step">
+            <div class="step-circle sc-active">2</div>
+            <div class="step-info">
+              <div class="step-name">Tasdiqlash kodi</div>
+              <div class="step-desc">6 xonali kod emailga yuborildi</div>
+            </div>
+          </div>
+          <div class="sec-step">
+            <div class="step-circle sc-wait">3</div>
+            <div class="step-info">
+              <div class="step-name muted">Yangi parol o'rnatish</div>
+              <div class="step-desc">Tasdiqlashdan so'ng ochiladi</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sec-tips">
+          <div class="tip"><i class="bi bi-shield-fill-check"></i> SSL shifrlash</div>
+          <div class="tip"><i class="bi bi-clock-history"></i> 10 daqiqa muddati</div>
+          <div class="tip"><i class="bi bi-eye-slash-fill"></i> Parol ko'rinmaydi</div>
+          <div class="tip"><i class="bi bi-geo-alt-fill"></i> IP manzil tekshiruvi</div>
+        </div>
+      </div>
+
+      <!-- Info toast -->
+      <div class="float-toast">
+        <div class="ft-icon ft-purple">🔐</div>
+        <div class="ft-body">
+          <strong>256-bit shifrlash bilan himoyalangan</strong>
+          <span>Ma'lumotlaringiz xavfsiz saqlandi</span>
+        </div>
+      </div>
+
+      <!-- Countdown timer -->
+      <div class="timer-card">
+        <div>
+          <div class="timer-label">Kod yaroqli vaqti</div>
+          <div class="timer-val" id="rightTimer">09:59</div>
+        </div>
+        <div class="timer-bar-wrap">
+          <div class="timer-bar" id="timerBar"></div>
+        </div>
+      </div>
+
+    </div>
+    <p class="right-label">AzureLMS · Xavfsiz parol tiklash oqimi</p>
+  </div>
+
+</div>
+<script>
+  // Theme
+  const html = document.documentElement;
+  const themeBtn = document.getElementById('themeBtn');
+  const themeIcon = document.getElementById('themeIcon');
+  function applyTheme(d) {
+    html.setAttribute('data-theme', d ? 'dark' : 'light');
+    themeIcon.className = d ? 'bi bi-sun' : 'bi bi-moon';
+    try { localStorage.setItem('az-theme', d ? 'dark' : 'light'); } catch(_) {}
+  }
+  let s; try { s = localStorage.getItem('az-theme'); } catch(_) {}
+  applyTheme(s ? s === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches);
+  themeBtn.addEventListener('click', () => applyTheme(html.getAttribute('data-theme') !== 'dark'));
+
+  // Step navigation
+  let currentStep = 1;
+  function goStep(n) {
+    [1,2,3].forEach(i => document.getElementById('step'+i).style.display = i===n ? '' : 'none');
+    const pills = [document.getElementById('pill1'), document.getElementById('pill2'), document.getElementById('pill3')];
+    pills.forEach((p, i) => {
+      p.className = 'step-pill';
+      if (i+1 < n) p.classList.add('done');
+      if (i+1 === n) p.classList.add('active');
+    });
+    currentStep = n;
+  }
+
+  // Step 1 → 2
+  document.getElementById('sendBtn').addEventListener('click', function() {
+    const email = document.getElementById('email').value.trim();
+    if (!email) return;
+    this.disabled = true;
+    this.innerHTML = '<i class="bi bi-arrow-repeat xstyle-8ca53549"></i> Yuborilmoqda...';
+    setTimeout(() => {
+      document.getElementById('s2desc').textContent = `${email || 'email@example.com'} manziliga 6 xonali kod yuborildi.`;
+      goStep(2);
+    }, 1400);
+  });
+
+  // OTP inputs
+  const otps = [1,2,3,4,5,6].map(i => document.getElementById('o'+i));
+  otps.forEach((inp, idx) => {
+    inp.addEventListener('input', () => {
+      inp.value = inp.value.replace(/\D/g,'').slice(-1);
+      if (inp.value && idx < 5) otps[idx+1].focus();
+    });
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Backspace' && !inp.value && idx > 0) { otps[idx-1].focus(); otps[idx-1].value = ''; }
+    });
+    inp.addEventListener('paste', e => {
+      e.preventDefault();
+      const t = (e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'').slice(0,6);
+      t.split('').forEach((c,i) => { if (otps[i]) otps[i].value = c; });
+      otps[Math.min(t.length, 5)].focus();
+    });
+  });
+
+  // Step 2 → 3
+  document.getElementById('verifyBtn').addEventListener('click', function() {
+    this.disabled = true;
+    this.innerHTML = '<i class="bi bi-arrow-repeat xstyle-8ca53549"></i> Tekshirilmoqda...';
+    setTimeout(() => goStep(3), 1400);
+  });
+
+  // Step 3: password strength + save
+  const newPwd = document.getElementById('newPwd');
+  document.getElementById('toggleNew').addEventListener('click', () => {
+    const show = newPwd.type === 'password';
+    newPwd.type = show ? 'text' : 'password';
+    document.getElementById('eyeNew').className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
+  });
+  newPwd.addEventListener('input', () => {
+    const v = newPwd.value;
+    const bars = [1,2,3,4].map(i => document.getElementById('npb'+i));
+    bars.forEach(b => b.className = 'pwd-bar');
+    let score = 0;
+    if (v.length >= 6) score++;
+    if (v.length >= 10) score++;
+    if (/[A-Z]/.test(v) || /[0-9]/.test(v)) score++;
+    if (/[^A-Za-z0-9]/.test(v)) score++;
+    const cls = score<=1?'s1':score===2?'s2':'s3';
+    for (let i=0; i<score; i++) bars[i].classList.add(cls);
+  });
+
+  document.getElementById('saveBtn').addEventListener('click', function() {
+    this.disabled = true;
+    this.innerHTML = '<i class="bi bi-arrow-repeat xstyle-8ca53549"></i> Saqlanmoqda...';
+    setTimeout(() => {
+      this.innerHTML = '<i class="bi bi-check-circle-fill"></i> Parol muvaffaqiyatli yangilandi!';
+      this.style.background = '#16a34a';
+      this.style.boxShadow = '0 4px 16px rgba(22,163,74,.28)';
+    }, 1600);
+  });
+
+  // Right panel countdown
+  let secs = 599;
+  const timerEl = document.getElementById('rightTimer');
+  setInterval(() => {
+    if (secs <= 0) return;
+    secs--;
+    const m = String(Math.floor(secs/60)).padStart(2,'0');
+    const sec = String(secs%60).padStart(2,'0');
+    timerEl.textContent = `${m}:${sec}`;
+  }, 1000);
+</script>
+<style>@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}</style>
+  <script src="../assets/js/prototype-ui.js"></script>
+</body>
+</html>
+

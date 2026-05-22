@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS old-turtle prototype for app notifications.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>Bildirishnomalar — AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- CSS Zanjiri (Architectural Standard) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/app-notifications.css">
+
+  <link rel="stylesheet" href="../assets/css/prototype-extracted.css">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><div class="sidebar-logo-mark">AZ</div><span class="sidebar-logo-name">AzureLMS</span></div>
+    <nav class="sidebar-nav" aria-label="Asosiy navigatsiya">
+      <details class="nav-accordion" open>
+        <summary class="nav-accordion-trigger">
+          <span class="nav-accordion-title"><i class="bi bi-journal-bookmark"></i> O'qish</span>
+          <i class="bi bi-chevron-down nav-accordion-caret"></i>
+        </summary>
+        <div class="nav-accordion-panel">
+          <a href="app-shell.html" class="nav-item"><i class="bi bi-grid-fill"></i> Dashboard</a>
+          <a href="app-course-list.html" class="nav-item"><i class="bi bi-collection-play"></i> Kurslarim</a>
+          <a href="app-course-detail.html" class="nav-item"><i class="bi bi-play-circle"></i> O'quv xonasi</a>
+          <a href="app-shell.html" class="nav-item"><i class="bi bi-calendar3"></i> Jadval</a>
+        </div>
+      </details>
+
+      <details class="nav-accordion">
+        <summary class="nav-accordion-trigger">
+          <span class="nav-accordion-title"><i class="bi bi-bar-chart-line"></i> Progress</span>
+          <i class="bi bi-chevron-down nav-accordion-caret"></i>
+        </summary>
+        <div class="nav-accordion-panel">
+          <a href="app-shell.html" class="nav-item"><i class="bi bi-bar-chart-line"></i> Statistika</a>
+          <a href="app-profile.html" class="nav-item"><i class="bi bi-trophy"></i> Yutuqlar</a>
+          <a href="app-profile.html" class="nav-item"><i class="bi bi-patch-check"></i> Sertifikatlar</a>
+        </div>
+      </details>
+
+      <details class="nav-accordion">
+        <summary class="nav-accordion-trigger">
+          <span class="nav-accordion-title"><i class="bi bi-compass"></i> Platforma</span>
+          <i class="bi bi-chevron-down nav-accordion-caret"></i>
+        </summary>
+        <div class="nav-accordion-panel">
+          <a href="../public/course-list.html" class="nav-item"><i class="bi bi-shop"></i> Bozor</a>
+          <a href="../blog/blog-shell.html" class="nav-item"><i class="bi bi-newspaper"></i> Blog</a>
+          <a href="../exam/exam-shell.html" class="nav-item"><i class="bi bi-patch-check"></i> Imtihonlar</a>
+        </div>
+      </details>
+    </nav>
+    <div class="sidebar-bottom">
+      <details class="account-menu current">
+        <summary class="sidebar-user">
+          <div class="user-av">AK</div>
+          <div class="user-info">
+            <div class="user-name">Azurebekdev</div>
+            <div class="user-plan">Pro reja · Faol</div>
+          </div>
+          <i class="bi bi-chevron-down user-chevron"></i>
+        </summary>
+        <div class="account-menu-panel">
+          <a href="app-notifications.html" class="account-menu-item active"><i class="bi bi-bell"></i> Bildirishnomalar <span class="nav-badge">3</span></a>
+          <a href="app-profile.html" class="account-menu-item"><i class="bi bi-person-circle"></i> Profil</a>
+          <a href="app-settings.html" class="account-menu-item"><i class="bi bi-gear"></i> Sozlamalar</a>
+          <a href="app-subscriptions.html" class="account-menu-item"><i class="bi bi-credit-card"></i> Obuna</a>
+          <div class="account-menu-sep"></div>
+          <a href="../auth/auth-login.html" class="account-menu-item danger"><i class="bi bi-box-arrow-right"></i> Chiqish</a>
+        </div>
+      </details>
+      <div class="sidebar-version">Fourth Trial · v0.4</div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <span class="topbar-title">Bildirishnomalar</span>
+      <button class="topbar-btn" id="themeBtn"><i class="bi bi-moon" id="themeIcon"></i></button>
+    </header>
+    <main class="page-body">
+      <div class="notif-layout">
+        <div class="card">
+          <div class="notif-toolbar">
+            <div class="notif-count">Yangi<span>3</span></div>
+            <div class="filter-chips">
+              <div class="chip active">Hammasi</div>
+              <div class="chip">Darslar</div>
+              <div class="chip">Yutuqlar</div>
+              <div class="chip">Tizim</div>
+            </div>
+            <button class="btn-mark-all">Barchasini o'qildi</button>
+          </div>
+
+          <!-- Unread -->
+          <div class="notif-item unread">
+            <div class="unread-dot"></div>
+            <div class="notif-icon xstyle-f2cd36af"><i class="bi bi-play-circle-fill"></i></div>
+            <div class="notif-body">
+              <div class="notif-title">Yangi dars qo'shildi: Ravish hosil qilish</div>
+              <div class="notif-desc">Turk tili kursiga yangi video dars qo'shildi. Hoziroq ko'ring!</div>
+              <div class="notif-time">10 daqiqa oldin</div>
+              <div class="notif-action">Darsni ko'rish →</div>
+            </div>
+          </div>
+          <div class="notif-item unread">
+            <div class="unread-dot"></div>
+            <div class="notif-icon xstyle-b4b2fb28"><i class="bi bi-alarm-fill"></i></div>
+            <div class="notif-body">
+              <div class="notif-title">Eslatma: Bugun jonli dars bor!</div>
+              <div class="notif-desc">Turk tili jonli darsi bugun soat 16:00 da boshlanadi. Aziz muallim kutmoqda.</div>
+              <div class="notif-time">1 soat oldin</div>
+              <div class="notif-action">Darsga qo'shilish →</div>
+            </div>
+          </div>
+          <div class="notif-item unread">
+            <div class="unread-dot"></div>
+            <div class="notif-icon xstyle-adf55eb0"><i class="bi bi-trophy-fill"></i></div>
+            <div class="notif-body">
+              <div class="notif-title">🔥 Yangi yutuq: 12 kunlik seriya!</div>
+              <div class="notif-desc">Siz 12 kun uzluksiz o'qidingiz. Zo'r natija! Davom eting.</div>
+              <div class="notif-time">3 soat oldin</div>
+            </div>
+          </div>
+
+          <!-- Read -->
+          <div class="notif-item">
+            <div class="notif-icon xstyle-eead3a91"><i class="bi bi-check-circle-fill"></i></div>
+            <div class="notif-body">
+              <div class="notif-title">Test natijasi: Kelishiklar testi — 90/100</div>
+              <div class="notif-desc">Ajoyib! Siz Turk tili kursi testida yuqori natija qo'lga kirdingiz.</div>
+              <div class="notif-time">Kecha · 15:42</div>
+            </div>
+          </div>
+          <div class="notif-item">
+            <div class="notif-icon xstyle-f2cd36af"><i class="bi bi-person-fill-check"></i></div>
+            <div class="notif-body">
+              <div class="notif-title">Muallim javob berdi: Savol bo'yicha</div>
+              <div class="notif-desc">Aziz Karimov "daha" so'zining ishlatilishi bo'yicha savolingizga javob berdi.</div>
+              <div class="notif-time">Kecha · 11:20</div>
+              <div class="notif-action">Javobni ko'rish →</div>
+            </div>
+          </div>
+          <div class="notif-item">
+            <div class="notif-icon xstyle-a580fc7a"><i class="bi bi-credit-card-2-front-fill"></i></div>
+            <div class="notif-body">
+              <div class="notif-title">To'lov muvaffaqiyatli o'tdi</div>
+              <div class="notif-desc">Pro reja uchun 199 000 so'm to'landi. Keyingi to'lov: 17-iyun, 2025.</div>
+              <div class="notif-time">3 kun oldin</div>
+            </div>
+          </div>
+          <div class="notif-item">
+            <div class="notif-icon xstyle-b4b2fb28"><i class="bi bi-patch-check-fill"></i></div>
+            <div class="notif-body">
+              <div class="notif-title">🎓 Sertifikat olindi: Python Boshlang'ich</div>
+              <div class="notif-desc">Tabriklaymiz! Sertifikatingiz tayyor. Yuklab oling yoki LinkedIn ga qo'shing.</div>
+              <div class="notif-time">1 hafta oldin</div>
+              <div class="notif-action">Yuklab olish →</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SETTINGS SIDEBAR -->
+        <div class="xstyle-5ae19e99">
+          <div class="card settings-card">
+            <div class="settings-title">Bildirishnoma sozlamalari</div>
+            <div class="setting-row">
+              <div class="setting-info"><div class="setting-label">Yangi darslar</div><div class="setting-sub">Kursga yangi kontent qo'shilsa</div></div>
+              <div class="toggle on" data-ui-action="toggle-on"></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info"><div class="setting-label">Jonli dars eslatma</div><div class="setting-sub">Darsdan 1 soat oldin</div></div>
+              <div class="toggle on" data-ui-action="toggle-on"></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info"><div class="setting-label">Yutuqlar</div><div class="setting-sub">Yangi badge qo'lga kirganda</div></div>
+              <div class="toggle on" data-ui-action="toggle-on"></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info"><div class="setting-label">Test natijalari</div><div class="setting-sub">Test topshirilganda</div></div>
+              <div class="toggle on" data-ui-action="toggle-on"></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info"><div class="setting-label">Muallim javoblari</div><div class="setting-sub">Savolingizga javob kelsa</div></div>
+              <div class="toggle on" data-ui-action="toggle-on"></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info"><div class="setting-label">To'lov va obuna</div><div class="setting-sub">To'lov va yangiliklar</div></div>
+              <div class="toggle" data-ui-action="toggle-on"></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info"><div class="setting-label">Marketing</div><div class="setting-sub">Chegirmalar va aksiyalar</div></div>
+              <div class="toggle" data-ui-action="toggle-on"></div>
+            </div>
+          </div>
+
+          <div class="card settings-card">
+            <div class="settings-title">Email sozlamalari</div>
+            <div class="setting-row">
+              <div class="setting-info"><div class="setting-label">Haftalik hisobot</div><div class="setting-sub">Har dushanba kuni</div></div>
+              <div class="toggle on" data-ui-action="toggle-on"></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info"><div class="setting-label">Eslatmalar</div><div class="setting-sub">3 kunlik to'xtam bo'lsa</div></div>
+              <div class="toggle on" data-ui-action="toggle-on"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<script>
+  (function() {
+    let s; try { s = localStorage.getItem('az-theme'); } catch(_) {}
+    const dark = s ? s === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (dark) document.documentElement.setAttribute('data-theme', 'dark');
+    const icon = document.getElementById('themeIcon');
+    if (icon) icon.className = dark ? 'bi bi-sun' : 'bi bi-moon';
+  })();
+  document.getElementById('themeBtn').addEventListener('click', function() {
+    const html = document.documentElement;
+    const dark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', dark ? 'light' : 'dark');
+    document.getElementById('themeIcon').className = dark ? 'bi bi-moon' : 'bi bi-sun';
+    try { localStorage.setItem('az-theme', dark ? 'light' : 'dark'); } catch(_) {}
+  });
+  document.querySelectorAll('.chip').forEach(c => {
+    c.addEventListener('click', function() {
+      document.querySelectorAll('.chip').forEach(x => x.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+</script>
+  <script src="../assets/js/prototype-ui.js"></script>
+</body>
+</html>
+

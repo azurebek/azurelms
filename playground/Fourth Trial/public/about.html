@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS old-turtle prototype for about.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>Biz haqimizda — AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- CSS Zanjiri (Architectural Standard) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/public.css">
+  <link rel="stylesheet" href="../assets/css/public-about.css">
+
+  <link rel="stylesheet" href="../assets/css/prototype-extracted.css">
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="logo">
+        <div class="logo-mark">AZ</div>
+        <span class="logo-name">AzureLMS</span>
+      </a>
+      <a href="course-list.html" class="nav-link">Kurslar</a>
+      <a href="pricing.html" class="nav-link">Narxlar</a>
+      <a href="about.html" class="nav-link active">Biz haqimizda</a>
+      <button class="theme-btn" id="themeBtn" aria-label="Toggle theme">
+        <i class="bi bi-moon" id="themeIcon"></i>
+      </button>
+      <a href="../auth/auth-login.html" class="nav-link">Kirish</a>
+      <a href="../auth/auth-register.html" class="btn-nav">Ro'yxatdan o't</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-eyebrow"><i class="bi bi-building"></i> Kompaniya haqida</div>
+      <h1 class="hero-title">
+        Ta'limni <span>hamma uchun</span><br>qulay qilamiz
+      </h1>
+      <p class="hero-desc">AzureLMS — O'zbekistondagi eng zamonaviy online ta'lim platformasi. Bizning maqsadimiz sifatli ta'limni geografik va moliyaviy to'siqlardan qat'iy nazar barcha uchun ochiq qilish.</p>
+      <div class="hero-stats">
+        <div class="stat">
+          <div class="stat-val">120 000+</div>
+          <div class="stat-label">Faol talaba</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val">48</div>
+          <div class="stat-label">Kurs</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val">96%</div>
+          <div class="stat-label">Qoniqish darajasi</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val">2020</div>
+          <div class="stat-label">Tashkil etilgan yil</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STORY -->
+  <div class="section">
+    <div class="story">
+      <div class="story-text">
+        <div class="section-label">Bizning hikoyamiz</div>
+        <h2 class="section-title">Orzudan platformagacha</h2>
+        <p>2020-yilda pandemiyadagi qiyin paytda, ikki do'st — Aziz va Doniyor — Toshkentda sifatli online kurslar juda kam ekanligini sezdi. Ingliz va turk tillarini o'rganmoqchi bo'lgan odamlar sifatsiz videolar va eskirgan materiallar bilan qiynalardi.</p>
+        <p>Shunda ular AzureLMS ni yaratishga qaror qildi. Birinchi kurs — "Turk tili A1" — atigi 3 oyda 500 ta talaba to'pladi. Bu raqam ularning haq yo'lda ekanligini ko'rsatdi.</p>
+        <p>Bugun AzureLMS 120 000 dan ortiq talaba, 48 kurs va 15 nafar mutaxassis muallim bilan O'zbekistondagi eng yirik til va texnologiya ta'lim platformasiga aylandi. Biroq biz hali yo'lning boshidamiz.</p>
+      </div>
+      <div class="story-visual">
+        <div class="story-card">
+          <div class="story-card-header">
+            <div class="story-logo">AZ</div>
+            <div>
+              <div class="story-card-title">AzureLMS sayohati</div>
+              <div class="story-card-sub">2020 — hozir</div>
+            </div>
+          </div>
+          <div class="timeline">
+            <div class="tl-item done">
+              <div class="tl-year">2020</div>
+              <div class="tl-text">Tashkil etildi. Birinchi 3 kurs va 500 ta talaba.</div>
+            </div>
+            <div class="tl-item done">
+              <div class="tl-year">2021</div>
+              <div class="tl-text">10 000 ta talaba. Sertifikat tizimi ishga tushdi.</div>
+            </div>
+            <div class="tl-item done">
+              <div class="tl-year">2022</div>
+              <div class="tl-text">Mobil ilova. Python va Biznes kurslari qo'shildi.</div>
+            </div>
+            <div class="tl-item done">
+              <div class="tl-year">2023</div>
+              <div class="tl-text">50 000 ta talaba. Team reja va korporativ xizmatlar.</div>
+            </div>
+            <div class="tl-item done">
+              <div class="tl-year">2024</div>
+              <div class="tl-text">100 000+ talaba. AI-yordamchi va adaptiv o'qish tizimi.</div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-year">2025 →</div>
+              <div class="tl-text">Mintaqa kengayishi. Qozog'iston va Qirg'iziston.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MISSION / VALUES -->
+  <div class="mission-section">
+    <div class="mission-inner">
+      <div class="mission-grid">
+        <div>
+          <div class="section-label">Missiya</div>
+          <div class="mission-quote">Har bir o'zbek yoshiga sifatli ta'lim imkoniyatini yaratish — geografik, iqtisodiy yoki ijtimoiy to'siqlardan qat'iy nazar.</div>
+          <div class="mission-sig">— Aziz Karimov, hammuassis</div>
+        </div>
+        <div class="values-list">
+          <div class="value-item">
+            <div class="value-icon xstyle-7b1981d9">🎯</div>
+            <div class="value-text">
+              <h4>Sifat birinchi</h4>
+              <p>Har bir kurs professional metodistlar tomonidan yaratiladi va muntazam yangilab turiladi.</p>
+            </div>
+          </div>
+          <div class="value-item">
+            <div class="value-icon xstyle-24f63d55">🌱</div>
+            <div class="value-text">
+              <h4>Inklyuzivlik</h4>
+              <p>Bepul kurslar, chegirmali narxlar va grant dasturlari orqali ta'limni barcha uchun ochiq qilamiz.</p>
+            </div>
+          </div>
+          <div class="value-item">
+            <div class="value-icon xstyle-ea517243">⚡</div>
+            <div class="value-text">
+              <h4>Innovatsiya</h4>
+              <p>AI texnologiyalari va adaptiv o'qish orqali o'quv jarayonini shaxsiylashtiramiz.</p>
+            </div>
+          </div>
+          <div class="value-item">
+            <div class="value-icon xstyle-236daace">🤝</div>
+            <div class="value-text">
+              <h4>Hamjamiyat</h4>
+              <p>Talabalar, muallimlar va sanoat ekspertlari birlashgan faol o'quv ekotizimini quramiz.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NUMBERS -->
+  <div class="section xstyle-d0494507">
+    <div class="xstyle-f62c819c">
+      <div class="section-label xstyle-06090bf2">Raqamlarda</div>
+      <h2 class="section-title xstyle-dac4fe6c">Bizning natijalarimiz</h2>
+    </div>
+    <div class="numbers">
+      <div class="num-card">
+        <div class="num-icon">👨‍🎓</div>
+        <div class="num-val">120 000+</div>
+        <div class="num-label">Ro'yxatdan o'tgan talabalar</div>
+      </div>
+      <div class="num-card">
+        <div class="num-icon">📚</div>
+        <div class="num-val">48</div>
+        <div class="num-label">Aktiv kurs (har oy yangi)</div>
+      </div>
+      <div class="num-card">
+        <div class="num-icon">🏆</div>
+        <div class="num-val">86 000+</div>
+        <div class="num-label">Berilgan sertifikatlar</div>
+      </div>
+      <div class="num-card">
+        <div class="num-icon">⭐</div>
+        <div class="num-val">4.8</div>
+        <div class="num-label">O'rtacha kurs reytingi</div>
+      </div>
+      <div class="num-card">
+        <div class="num-icon">👨‍🏫</div>
+        <div class="num-val">15</div>
+        <div class="num-label">Ekspert muallimlar</div>
+      </div>
+      <div class="num-card">
+        <div class="num-icon">🎬</div>
+        <div class="num-val">4 200+</div>
+        <div class="num-label">Video darslar (soatlar)</div>
+      </div>
+      <div class="num-card">
+        <div class="num-icon">🌍</div>
+        <div class="num-val">14</div>
+        <div class="num-label">Viloyatdan talabalar</div>
+      </div>
+      <div class="num-card">
+        <div class="num-icon">📱</div>
+        <div class="num-val">73%</div>
+        <div class="num-label">Mobil qurilmadan kirish</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TEAM -->
+  <div class="section xstyle-8842e142" id="team">
+    <div class="xstyle-bd6373fa">
+      <div class="xstyle-f62c819c">
+        <div class="section-label xstyle-3167d881">Jamoa</div>
+        <h2 class="section-title xstyle-dac4fe6c">Platforma ortidagi odamlar</h2>
+        <p class="section-desc xstyle-272ea8a7">Biz kichik ammo kuchli jamoa — har birimiz ta'lim va texnologiyaga ishtiyoqli.</p>
+      </div>
+      <div class="team-grid">
+        <div class="team-card">
+          <div class="team-av xstyle-26fe3c0d">AK</div>
+          <div class="team-name">Aziz Karimov</div>
+          <div class="team-role">Hammuassis & Bosh metodist</div>
+          <div class="team-links">
+            <a href="#team" class="team-link"><i class="bi bi-linkedin"></i></a>
+            <a href="#team" class="team-link"><i class="bi bi-twitter-x"></i></a>
+          </div>
+        </div>
+        <div class="team-card">
+          <div class="team-av xstyle-a66420d4">DU</div>
+          <div class="team-name">Doniyor Umarov</div>
+          <div class="team-role">Hammuassis & CTO</div>
+          <div class="team-links">
+            <a href="#team" class="team-link"><i class="bi bi-linkedin"></i></a>
+            <a href="#team" class="team-link"><i class="bi bi-github"></i></a>
+          </div>
+        </div>
+        <div class="team-card">
+          <div class="team-av xstyle-707660a8">NR</div>
+          <div class="team-name">Nilufar Rashidova</div>
+          <div class="team-role">Muallim · Ingliz tili</div>
+          <div class="team-links">
+            <a href="#team" class="team-link"><i class="bi bi-linkedin"></i></a>
+            <a href="#team" class="team-link"><i class="bi bi-instagram"></i></a>
+          </div>
+        </div>
+        <div class="team-card">
+          <div class="team-av xstyle-2930eb50">ST</div>
+          <div class="team-name">Sardor Toshmatov</div>
+          <div class="team-role">Muallim · Python & Data</div>
+          <div class="team-links">
+            <a href="#team" class="team-link"><i class="bi bi-linkedin"></i></a>
+            <a href="#team" class="team-link"><i class="bi bi-github"></i></a>
+          </div>
+        </div>
+        <div class="team-card">
+          <div class="team-av xstyle-69f779e4">ZH</div>
+          <div class="team-name">Zulfiya Holiqova</div>
+          <div class="team-role">UX/UI Dizayner</div>
+          <div class="team-links">
+            <a href="#team" class="team-link"><i class="bi bi-linkedin"></i></a>
+            <a href="#team" class="team-link"><i class="bi bi-dribbble"></i></a>
+          </div>
+        </div>
+        <div class="team-card">
+          <div class="team-av xstyle-7518f12e">BM</div>
+          <div class="team-name">Bobur Mirzayev</div>
+          <div class="team-role">Marketing va Growth</div>
+          <div class="team-links">
+            <a href="#team" class="team-link"><i class="bi bi-linkedin"></i></a>
+            <a href="#team" class="team-link"><i class="bi bi-twitter-x"></i></a>
+          </div>
+        </div>
+        <div class="team-card">
+          <div class="team-av xstyle-4ebc4754">LY</div>
+          <div class="team-name">Lobar Yusupova</div>
+          <div class="team-role">Muallim · Biznes va Moliya</div>
+          <div class="team-links">
+            <a href="#team" class="team-link"><i class="bi bi-linkedin"></i></a>
+            <a href="#team" class="team-link"><i class="bi bi-youtube"></i></a>
+          </div>
+        </div>
+        <div class="team-card ui-hover-border-blue xstyle-b413f155">
+          <div class="xstyle-29650f69">+</div>
+          <div class="xstyle-db18e4eb">Siz bo'lishingiz mumkin</div>
+          <div class="xstyle-9fb8cea1">Ochiq lavozimlarni ko'rish →</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PARTNERS -->
+  <div class="partners-section">
+    <div class="partners-inner">
+      <div class="partners-title">Hamkorlar va ishonch bildirganlar</div>
+      <div class="partners-row">
+        <div class="partner-logo">
+          <div class="partner-mark xstyle-cbe0d724">IT</div>
+          <span class="partner-name">IT Park</span>
+        </div>
+        <div class="partner-logo">
+          <div class="partner-mark xstyle-892c2a6f">EL</div>
+          <span class="partner-name">E-Lern UZ</span>
+        </div>
+        <div class="partner-logo">
+          <div class="partner-mark xstyle-c2bc8e66">GD</div>
+          <span class="partner-name">GreenData</span>
+        </div>
+        <div class="partner-logo">
+          <div class="partner-mark xstyle-e86f0296">VX</div>
+          <span class="partner-name">VentureX</span>
+        </div>
+        <div class="partner-logo">
+          <div class="partner-mark xstyle-940d9115">SK</div>
+          <span class="partner-name">SkillBridge</span>
+        </div>
+        <div class="partner-logo">
+          <div class="partner-mark xstyle-9845192b">TU</div>
+          <span class="partner-name">ToshDU</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPEN POSITIONS -->
+  <div class="jobs-section" id="jobs">
+    <div class="jobs-inner">
+      <div class="jobs-head">
+        <div>
+          <div class="section-label">Karyera</div>
+          <h2 class="section-title xstyle-d982937d">Ochiq lavozimlar</h2>
+          <p class="xstyle-a2e82c3a">Missiyamizga qo'shilmoqchimisiz? Bizda joy bor.</p>
+        </div>
+        <a href="#jobs" class="jobs-link">Barcha lavozimlar <i class="bi bi-arrow-right"></i></a>
+      </div>
+
+      <div class="job-item">
+        <div class="job-dept xstyle-7b1981d9">💻</div>
+        <div class="job-info">
+          <div class="job-title">Senior Frontend Developer</div>
+          <div class="job-meta"><span>Toshkent</span><span>·</span><span>React, TypeScript</span></div>
+        </div>
+        <span class="job-type full">To'liq stavka</span>
+        <i class="bi bi-arrow-right job-arrow"></i>
+      </div>
+      <div class="job-item">
+        <div class="job-dept xstyle-24f63d55">🎓</div>
+        <div class="job-info">
+          <div class="job-title">Kurs Metodisti (Til yo'nalishi)</div>
+          <div class="job-meta"><span>Masofaviy</span><span>·</span><span>Ingliz yoki Turk tili</span></div>
+        </div>
+        <span class="job-type remote">Masofaviy</span>
+        <i class="bi bi-arrow-right job-arrow"></i>
+      </div>
+      <div class="job-item">
+        <div class="job-dept xstyle-236daace">🎨</div>
+        <div class="job-info">
+          <div class="job-title">Product Designer</div>
+          <div class="job-meta"><span>Toshkent / Masofaviy</span><span>·</span><span>Figma, UX research</span></div>
+        </div>
+        <span class="job-type remote">Masofaviy</span>
+        <i class="bi bi-arrow-right job-arrow"></i>
+      </div>
+      <div class="job-item">
+        <div class="job-dept xstyle-ea517243">📊</div>
+        <div class="job-info">
+          <div class="job-title">Data Analyst</div>
+          <div class="job-meta"><span>Toshkent</span><span>·</span><span>SQL, Python, Metabase</span></div>
+        </div>
+        <span class="job-type full">To'liq stavka</span>
+        <i class="bi bi-arrow-right job-arrow"></i>
+      </div>
+      <div class="job-item">
+        <div class="job-dept xstyle-c997696a">🎬</div>
+        <div class="job-info">
+          <div class="job-title">Video Montajchi (freelance)</div>
+          <div class="job-meta"><span>Masofaviy</span><span>·</span><span>Premiere Pro, After Effects</span></div>
+        </div>
+        <span class="job-type contract">Shartnoma</span>
+        <i class="bi bi-arrow-right job-arrow"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA BANNER -->
+  <div class="xstyle-384ef39d">
+    <div class="cta-banner">
+      <h2 class="cta-title">O'rganishni bugun boshlang</h2>
+      <p class="cta-desc">120 000 dan ortiq talabaga qo'shiling. 7 kunlik bepul sinov.</p>
+      <div class="cta-actions">
+        <button class="btn-cta-p" data-ui-href="../auth/auth-register.html">Bepul boshlash</button>
+        <button class="btn-cta-s" data-ui-href="course-list.html">Kurslarni ko'rish</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <div class="footer-logo-mark">AZ</div>
+            <span class="footer-logo-name">AzureLMS</span>
+          </div>
+          <p>O'zbekistondagi eng zamonaviy online ta'lim platformasi. Har kuni yuz minglab talabalar biz bilan o'rganadi.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Platforma</h4>
+          <a href="course-list.html">Barcha kurslar</a>
+          <a href="pricing.html">Narxlar</a>
+          <a href="about.html">Biz haqimizda</a>
+          <a href="../blog/blog-shell.html">Blog</a>
+        </div>
+        <div class="footer-col">
+          <h4>Qo'llab-quvvatlash</h4>
+          <a href="about.html">Yordam markazi</a>
+          <a href="../blog-studio/blog-studio-shell.html">Muallim bo'lish</a>
+          <a href="about.html#jobs">Hamkorlik</a>
+          <a href="about.html">Bog'lanish</a>
+        </div>
+        <div class="footer-col">
+          <h4>Huquqiy</h4>
+          <a href="../legal/legal-terms.html">Foydalanish shartlari</a>
+          <a href="../legal/legal-privacy.html">Maxfiylik siyosati</a>
+          <a href="../legal/legal-cookies.html">Cookie</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2025 AzureLMS. Barcha huquqlar himoyalangan.</span>
+        <span>O'zbekiston 🇺🇿</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function() {
+      let s; try { s = localStorage.getItem('az-theme'); } catch(_) {}
+      const dark = s ? s === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (dark) document.documentElement.setAttribute('data-theme', 'dark');
+      const icon = document.getElementById('themeIcon');
+      if (icon) icon.className = dark ? 'bi bi-sun' : 'bi bi-moon';
+    })();
+
+    document.getElementById('themeBtn').addEventListener('click', function() {
+      const html = document.documentElement;
+      const dark = html.getAttribute('data-theme') === 'dark';
+      html.setAttribute('data-theme', dark ? 'light' : 'dark');
+      document.getElementById('themeIcon').className = dark ? 'bi bi-moon' : 'bi bi-sun';
+      try { localStorage.setItem('az-theme', dark ? 'light' : 'dark'); } catch(_) {}
+    });
+  </script>
+  <script src="../assets/js/prototype-ui.js"></script>
+</body>
+</html>
+

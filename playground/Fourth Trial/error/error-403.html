@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS old-turtle prototype for error 403.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>403 — Ruxsat yo'q · AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- CSS Zanjiri (Architectural Standard) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/error-403.css">
+
+  <link rel="stylesheet" href="../assets/css/prototype-extracted.css">
+</head>
+<body>
+  <script>(function(){ try { var t=localStorage.getItem('lms-theme'); if(t) document.documentElement.setAttribute('data-theme',t); } catch(e){} })();</script>
+  <a href="../index.html" class="nav-logo"><div class="logo-mark">AL</div><span class="logo-name">AzureLMS</span></a>
+  <button class="theme-btn" data-ui-action="theme"><i class="bi bi-moon-stars" id="themeIcon"></i></button>
+
+  <div class="error-wrap">
+    <svg class="illustration" viewBox="0 0 260 220" xmlns="http://www.w3.org/2000/svg">
+      <!-- Background glow -->
+      <ellipse cx="130" cy="160" rx="80" ry="30" fill="var(--purple-soft)" opacity=".4"/>
+      <!-- Lock body -->
+      <rect x="80" y="110" width="100" height="80" rx="12" fill="var(--white)" stroke="var(--border)" stroke-width="1.5"/>
+      <!-- Lock shackle -->
+      <path d="M100 110 L100 80 Q100 50 130 50 Q160 50 160 80 L160 110" fill="none" stroke="var(--purple)" stroke-width="8" stroke-linecap="round"/>
+      <!-- Keyhole -->
+      <circle cx="130" cy="148" r="12" fill="var(--purple)" opacity=".15"/>
+      <circle cx="130" cy="145" r="7" fill="var(--purple)"/>
+      <rect x="126" y="150" width="8" height="18" rx="2" fill="var(--purple)"/>
+      <!-- Warning stars -->
+      <circle cx="60" cy="80" r="4" fill="var(--amber)" opacity=".5"/>
+      <circle cx="200" cy="90" r="3" fill="var(--purple)" opacity=".4"/>
+      <circle cx="55" cy="140" r="3" fill="var(--purple)" opacity=".3"/>
+      <circle cx="210" cy="150" r="4" fill="var(--amber)" opacity=".35"/>
+    </svg>
+
+    <div class="error-code">403</div>
+    <div class="error-title">Ruxsat yo'q</div>
+    <div class="error-desc">Bu sahifaga kirish uchun sizda yetarli huquq yo'q. Bu Premium kontent bo'lishi mumkin yoki siz tizimga kirmagansiz.</div>
+
+    <div class="btn-row">
+      <a href="../auth/auth-login.html" class="btn btn-primary"><i class="bi bi-person-fill"></i> Kirish</a>
+      <a href="../public/pricing.html" class="btn btn-purple"><i class="bi bi-stars"></i> Premium olish</a>
+      <button class="btn btn-ghost" data-ui-action="history-back"><i class="bi bi-arrow-left"></i> Orqaga</button>
+    </div>
+
+    <div class="access-box">
+      <div class="access-title">Tarif rejangiz</div>
+      <div class="plan-row">
+        <div class="plan-icon xstyle-202bef37"><i class="bi bi-person"></i></div>
+        <span class="plan-name">Sizning rejaniz: Bepul</span>
+        <span class="plan-badge b-curr">Joriy</span>
+      </div>
+      <div class="plan-row">
+        <div class="plan-icon xstyle-9967f362"><i class="bi bi-star-fill"></i></div>
+        <span class="plan-name">Premium — barcha imkoniyatlar</span>
+        <span class="plan-badge b-need">Kerak</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isDark = html.getAttribute('data-theme') === 'dark';
+      html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      document.getElementById('themeIcon').className = isDark ? 'bi bi-moon-stars' : 'bi bi-sun';
+      try { localStorage.setItem('lms-theme', isDark ? 'light' : 'dark'); } catch(e){}
+    }
+    (function(){ try { if(localStorage.getItem('lms-theme')==='dark') document.getElementById('themeIcon').className='bi bi-sun'; } catch(e){} })();
+  </script>
+  <script src="../assets/js/prototype-ui.js"></script>
+</body>
+</html>
+

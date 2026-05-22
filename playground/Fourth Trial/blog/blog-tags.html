@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS old-turtle prototype for blog tags.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>Teglar va Kategoriyalar — AzureLMS Blog</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- CSS Zanjiri (Architectural Standard) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/blog-tags.css">
+
+  <link rel="stylesheet" href="../assets/css/prototype-extracted.css">
+</head>
+<body>
+  <script>
+    (function(){ try { var t = localStorage.getItem('lms-theme'); if(t) document.documentElement.setAttribute('data-theme', t); } catch(e){} })();
+  </script>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="blog-shell.html" class="nav-logo">
+        <div class="logo-mark">AL</div>
+        <span class="logo-text">AzureLMS</span>
+        <span class="logo-divider">/</span>
+        <span class="logo-section">Blog</span>
+      </a>
+      <div class="nav-links">
+        <a href="blog-shell.html" class="nav-link">Bosh sahifa</a>
+        <a href="../public/course-list.html" class="nav-link">Kurslar</a>
+        <a href="../blog/blog-tags.html" class="nav-link active">Teglar</a>
+        <a href="../public/about.html#team" class="nav-link">Muallif haqida</a>
+      </div>
+      <div class="nav-spacer"></div>
+      <div class="nav-search">
+        <i class="bi bi-search"></i>
+        <input type="text" placeholder="Teg yoki kategoriya qidirish...">
+      </div>
+      <a href="../blog-studio/blog-studio-shell.html" class="nav-studio-btn">
+        <i class="bi bi-pencil-square"></i> Yozish
+      </a>
+      <button class="nav-theme" data-ui-action="theme">
+        <i class="bi bi-moon-stars" id="themeIcon"></i>
+      </button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-badge"><i class="bi bi-tags-fill"></i> Teglar va Kategoriyalar</div>
+      <h1 class="hero-title">Mavzularni kashf eting</h1>
+      <p class="hero-sub">Siz qiziqtirgan mavzu bo'yicha maqolalarni toping — ingliz tili, dasturlash, matematika va ko'plab boshqa sohalar.</p>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <span class="hero-stat-num">6</span>
+          <span class="hero-stat-label">Kategoriya</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-num">47</span>
+          <span class="hero-stat-label">Teg</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-num">124</span>
+          <span class="hero-stat-label">Maqola</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- CATEGORIES -->
+    <section>
+      <div class="section-head">
+        <div>
+          <div class="section-title">Kategoriyalar</div>
+          <div class="section-sub">Barcha asosiy mavzu yo'nalishlari</div>
+        </div>
+        <a href="blog-shell.html" class="see-all">Barchasi <i class="bi bi-arrow-right"></i></a>
+      </div>
+      <div class="cat-grid">
+        <!-- Ingliz tili -->
+        <div class="cat-card blue" data-ui-call="filterByCategory" data-ui-args='["ingliz-tili"]'>
+          <div class="cat-icon blue"><i class="bi bi-translate"></i></div>
+          <div>
+            <div class="cat-name">Ingliz tili</div>
+            <div class="cat-desc">IELTS, grammatika, lug'at boyitish va muloqot ko'nikmalari bo'yicha maqolalar</div>
+          </div>
+          <div class="cat-progress-bg"><div class="cat-progress-fill xstyle-7ad80859" data-w="72"></div></div>
+          <div class="cat-footer">
+            <span class="cat-count">38 <span>maqola</span></span>
+            <span class="cat-arrow"><i class="bi bi-arrow-right"></i></span>
+          </div>
+        </div>
+        <!-- Dasturlash -->
+        <div class="cat-card purple" data-ui-call="filterByCategory" data-ui-args='["dasturlash"]'>
+          <div class="cat-icon purple"><i class="bi bi-code-slash"></i></div>
+          <div>
+            <div class="cat-name">Dasturlash</div>
+            <div class="cat-desc">Python, JavaScript, web dasturlash va sun'iy intellekt haqida zamonaviy maqolalar</div>
+          </div>
+          <div class="cat-progress-bg"><div class="cat-progress-fill xstyle-54daa1d1" data-w="58"></div></div>
+          <div class="cat-footer">
+            <span class="cat-count">29 <span>maqola</span></span>
+            <span class="cat-arrow"><i class="bi bi-arrow-right"></i></span>
+          </div>
+        </div>
+        <!-- Matematika -->
+        <div class="cat-card green" data-ui-call="filterByCategory" data-ui-args='["matematika"]'>
+          <div class="cat-icon green"><i class="bi bi-calculator"></i></div>
+          <div>
+            <div class="cat-name">Matematika</div>
+            <div class="cat-desc">Algebra, geometriya, olimpiada masalalari va matematikaga qiziqish uyg'otuvchi maqolalar</div>
+          </div>
+          <div class="cat-progress-bg"><div class="cat-progress-fill xstyle-2421b74a" data-w="44"></div></div>
+          <div class="cat-footer">
+            <span class="cat-count">22 <span>maqola</span></span>
+            <span class="cat-arrow"><i class="bi bi-arrow-right"></i></span>
+          </div>
+        </div>
+        <!-- Fanlar -->
+        <div class="cat-card teal" data-ui-call="filterByCategory" data-ui-args='["fanlar"]'>
+          <div class="cat-icon teal"><i class="bi bi-atom"></i></div>
+          <div>
+            <div class="cat-name">Fanlar</div>
+            <div class="cat-desc">Fizika, kimyo, biologiya va tabiiy fanlar bo'yicha qiziqarli maqolalar</div>
+          </div>
+          <div class="cat-progress-bg"><div class="cat-progress-fill xstyle-41d800d5" data-w="30"></div></div>
+          <div class="cat-footer">
+            <span class="cat-count">15 <span>maqola</span></span>
+            <span class="cat-arrow"><i class="bi bi-arrow-right"></i></span>
+          </div>
+        </div>
+        <!-- Platforma -->
+        <div class="cat-card amber" data-ui-call="filterByCategory" data-ui-args='["platforma"]'>
+          <div class="cat-icon amber"><i class="bi bi-stars"></i></div>
+          <div>
+            <div class="cat-name">Platforma yangiliklari</div>
+            <div class="cat-desc">AzureLMS yangi funksiyalari, yangilanishlari va jamoa yangiliklari</div>
+          </div>
+          <div class="cat-progress-bg"><div class="cat-progress-fill xstyle-94aad0d7" data-w="22"></div></div>
+          <div class="cat-footer">
+            <span class="cat-count">11 <span>maqola</span></span>
+            <span class="cat-arrow"><i class="bi bi-arrow-right"></i></span>
+          </div>
+        </div>
+        <!-- Tarix -->
+        <div class="cat-card pink" data-ui-call="filterByCategory" data-ui-args='["tarix"]'>
+          <div class="cat-icon pink"><i class="bi bi-book"></i></div>
+          <div>
+            <div class="cat-name">Tarix va madaniyat</div>
+            <div class="cat-desc">O'zbekiston tarixi, jahon tarixi va madaniy meros haqida qiziqarli maqolalar</div>
+          </div>
+          <div class="cat-progress-bg"><div class="cat-progress-fill xstyle-57ab0628" data-w="18"></div></div>
+          <div class="cat-footer">
+            <span class="cat-count">9 <span>maqola</span></span>
+            <span class="cat-arrow"><i class="bi bi-arrow-right"></i></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAG CLOUD -->
+    <section>
+      <div class="section-head">
+        <div>
+          <div class="section-title">Teg buluti</div>
+          <div class="section-sub">Hajmi — mavzu bo'yicha maqolalar soniga mos</div>
+        </div>
+      </div>
+      <div class="tag-cloud-wrap">
+        <div class="tag-cloud" id="tagCloud"></div>
+      </div>
+    </section>
+
+    <!-- POSTS WITH SIDEBAR -->
+    <section>
+      <div class="section-head">
+        <div>
+          <div class="section-title">Maqolalar</div>
+          <div class="section-sub" id="postCount">124 ta maqola</div>
+        </div>
+      </div>
+      <div class="tags-layout">
+        <!-- Posts column -->
+        <div>
+          <!-- Filter bar -->
+          <div class="filter-bar xstyle-7dde5e56">
+            <button class="filter-btn active" data-cat="all" data-ui-call="filterPosts" data-ui-pass="this">Barchasi</button>
+            <button class="filter-btn" data-cat="ingliz-tili" data-ui-call="filterPosts" data-ui-pass="this">Ingliz tili</button>
+            <button class="filter-btn" data-cat="dasturlash" data-ui-call="filterPosts" data-ui-pass="this">Dasturlash</button>
+            <button class="filter-btn" data-cat="matematika" data-ui-call="filterPosts" data-ui-pass="this">Matematika</button>
+            <button class="filter-btn" data-cat="fanlar" data-ui-call="filterPosts" data-ui-pass="this">Fanlar</button>
+            <button class="filter-btn" data-cat="platforma" data-ui-call="filterPosts" data-ui-pass="this">Platforma</button>
+            <div class="filter-spacer"></div>
+            <button class="filter-sort"><i class="bi bi-sort-down"></i> Yangi</button>
+          </div>
+
+          <!-- Post grid -->
+          <div class="post-grid" id="postGrid">
+
+            <div class="post-card" data-cat="ingliz-tili">
+              <div class="post-thumb xstyle-4d7d7dda">🇬🇧
+                <div class="post-thumb-overlay"></div>
+                <span class="post-cat-badge badge-blue">Ingliz tili</span>
+              </div>
+              <div class="post-body">
+                <div class="post-title">IELTS 7+ ball olishning 10 ta siri</div>
+                <div class="post-excerpt">Tajribali ustozlardan olgan maslahatlar bilan IELTS imtihoniga tayyorlanishning eng samarali yo'llari.</div>
+                <div class="post-tags">
+                  <span class="post-tag">#ielts</span>
+                  <span class="post-tag">#ingliz-tili</span>
+                  <span class="post-tag">#imtihon</span>
+                </div>
+              </div>
+              <div class="post-footer">
+                <div class="post-author-av">AZ</div>
+                <span class="post-author-name">Azurebek</span>
+                <span class="post-meta">6 kun oldin · 7 daqiqa</span>
+                <div class="post-read-btn"><i class="bi bi-arrow-right"></i></div>
+              </div>
+            </div>
+
+            <div class="post-card" data-cat="dasturlash">
+              <div class="post-thumb xstyle-aa18874e">🐍
+                <div class="post-thumb-overlay"></div>
+                <span class="post-cat-badge badge-purple">Dasturlash</span>
+              </div>
+              <div class="post-body">
+                <div class="post-title">Python bilan AI loyiha qurish: to'liq qo'llanma</div>
+                <div class="post-excerpt">Sifr dan loyiha yaratishgacha — Python va zamonaviy AI kutubxonalari yordamida real dunyo muammolarini hal qiling.</div>
+                <div class="post-tags">
+                  <span class="post-tag">#python</span>
+                  <span class="post-tag">#ai</span>
+                  <span class="post-tag">#ml</span>
+                </div>
+              </div>
+              <div class="post-footer">
+                <div class="post-author-av">AZ</div>
+                <span class="post-author-name">Azurebek</span>
+                <span class="post-meta">2 hafta oldin · 8 daqiqa</span>
+                <div class="post-read-btn"><i class="bi bi-arrow-right"></i></div>
+              </div>
+            </div>
+
+            <div class="post-card" data-cat="matematika">
+              <div class="post-thumb xstyle-b17a20ae">📐
+                <div class="post-thumb-overlay"></div>
+                <span class="post-cat-badge badge-green">Matematika</span>
+              </div>
+              <div class="post-body">
+                <div class="post-title">Olimpiada matematikasiga tayyorlanish yo'li</div>
+                <div class="post-excerpt">Respublika va xalqaro olimpiadalarda muvaffaqiyat qozongan o'quvchilarning sirlari va tayyorlanish strategiyalari.</div>
+                <div class="post-tags">
+                  <span class="post-tag">#olimpiada</span>
+                  <span class="post-tag">#matematika</span>
+                  <span class="post-tag">#algebra</span>
+                </div>
+              </div>
+              <div class="post-footer">
+                <div class="post-author-av">AZ</div>
+                <span class="post-author-name">Azurebek</span>
+                <span class="post-meta">1 oy oldin · 5 daqiqa</span>
+                <div class="post-read-btn"><i class="bi bi-arrow-right"></i></div>
+              </div>
+            </div>
+
+            <div class="post-card" data-cat="platforma">
+              <div class="post-thumb xstyle-ce275db1">⭐
+                <div class="post-thumb-overlay"></div>
+                <span class="post-cat-badge badge-amber">Platforma</span>
+              </div>
+              <div class="post-body">
+                <div class="post-title">AzureLMS 2.0 — Yangi imkoniyatlar</div>
+                <div class="post-excerpt">Platformamizning eng yirik yangilanishi: AI ustozi, yangi interaktiv testlar va shaxsiylashtirilgan o'rganish yo'li.</div>
+                <div class="post-tags">
+                  <span class="post-tag">#yangilik</span>
+                  <span class="post-tag">#platforma</span>
+                  <span class="post-tag">#ai</span>
+                </div>
+              </div>
+              <div class="post-footer">
+                <div class="post-author-av">AZ</div>
+                <span class="post-author-name">Azurebek</span>
+                <span class="post-meta">3 kun oldin · 4 daqiqa</span>
+                <div class="post-read-btn"><i class="bi bi-arrow-right"></i></div>
+              </div>
+            </div>
+
+            <div class="post-card" data-cat="ingliz-tili">
+              <div class="post-thumb xstyle-98b9e79a">✍️
+                <div class="post-thumb-overlay"></div>
+                <span class="post-cat-badge badge-blue">Ingliz tili</span>
+              </div>
+              <div class="post-body">
+                <div class="post-title">Writing uchun 50 ta muhim ibora</div>
+                <div class="post-excerpt">Academic writing da eng ko'p ishlatiladigan iboralar va ularni to'g'ri qo'llash usullari.</div>
+                <div class="post-tags">
+                  <span class="post-tag">#writing</span>
+                  <span class="post-tag">#grammar</span>
+                  <span class="post-tag">#ielts</span>
+                </div>
+              </div>
+              <div class="post-footer">
+                <div class="post-author-av">AZ</div>
+                <span class="post-author-name">Azurebek</span>
+                <span class="post-meta">3 hafta oldin · 6 daqiqa</span>
+                <div class="post-read-btn"><i class="bi bi-arrow-right"></i></div>
+              </div>
+            </div>
+
+            <div class="post-card" data-cat="fanlar">
+              <div class="post-thumb xstyle-bc1f55a0">⚛️
+                <div class="post-thumb-overlay"></div>
+                <span class="post-cat-badge badge-teal">Fanlar</span>
+              </div>
+              <div class="post-body">
+                <div class="post-title">Kvant fizikasi: boshlang'ichlar uchun</div>
+                <div class="post-excerpt">Zamonaviy fizikaning eng qiziqarli sohasi bo'lgan kvant mexanikasiga oddiy va tushunарli kirish.</div>
+                <div class="post-tags">
+                  <span class="post-tag">#fizika</span>
+                  <span class="post-tag">#kvant</span>
+                  <span class="post-tag">#fan</span>
+                </div>
+              </div>
+              <div class="post-footer">
+                <div class="post-author-av">AZ</div>
+                <span class="post-author-name">Azurebek</span>
+                <span class="post-meta">1 oy oldin · 9 daqiqa</span>
+                <div class="post-read-btn"><i class="bi bi-arrow-right"></i></div>
+              </div>
+            </div>
+
+          </div><!-- /post-grid -->
+        </div>
+
+        <!-- Sidebar -->
+        <div class="xstyle-5ae19e99">
+
+          <!-- Trending tags -->
+          <div class="sidebar-widget">
+            <div class="widget-title"><i class="bi bi-fire xstyle-45e7ae4d"></i> Trend teglar</div>
+            <div class="trending-tag-list">
+              <div class="trending-tag-row">
+                <span class="trending-rank hot">🔥</span>
+                <span class="trending-name">#ielts</span>
+                <span class="trending-count">38 maqola</span>
+                <span class="trending-up"><i class="bi bi-arrow-up-right"></i> 34%</span>
+              </div>
+              <div class="trending-tag-row">
+                <span class="trending-rank hot">🔥</span>
+                <span class="trending-name">#ai</span>
+                <span class="trending-count">26 maqola</span>
+                <span class="trending-up"><i class="bi bi-arrow-up-right"></i> 28%</span>
+              </div>
+              <div class="trending-tag-row">
+                <span class="trending-rank">03</span>
+                <span class="trending-name">#python</span>
+                <span class="trending-count">21 maqola</span>
+                <span class="trending-up"><i class="bi bi-arrow-up-right"></i> 15%</span>
+              </div>
+              <div class="trending-tag-row">
+                <span class="trending-rank">04</span>
+                <span class="trending-name">#matematika</span>
+                <span class="trending-count">18 maqola</span>
+                <span class="trending-up"><i class="bi bi-arrow-up-right"></i> 9%</span>
+              </div>
+              <div class="trending-tag-row">
+                <span class="trending-rank">05</span>
+                <span class="trending-name">#grammar</span>
+                <span class="trending-count">15 maqola</span>
+                <span class="trending-up"><i class="bi bi-arrow-up-right"></i> 7%</span>
+              </div>
+              <div class="trending-tag-row">
+                <span class="trending-rank">06</span>
+                <span class="trending-name">#olimpiada</span>
+                <span class="trending-count">12 maqola</span>
+                <span class="trending-up"><i class="bi bi-arrow-up-right"></i> 5%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- New tags -->
+          <div class="sidebar-widget">
+            <div class="widget-title"><i class="bi bi-stars xstyle-4061f7d4"></i> Yangi teglar</div>
+            <div class="new-tags">
+              <div class="new-tag"><span class="new-dot"></span>#kvant-hisoblash</div>
+              <div class="new-tag"><span class="new-dot"></span>#chatgpt</div>
+              <div class="new-tag"><span class="new-dot"></span>#react</div>
+              <div class="new-tag"><span class="new-dot"></span>#speaking</div>
+              <div class="new-tag"><span class="new-dot"></span>#fizika</div>
+              <div class="new-tag"><span class="new-dot"></span>#typescript</div>
+              <div class="new-tag"><span class="new-dot"></span>#web3</div>
+            </div>
+          </div>
+
+          <!-- Subscribe -->
+          <div class="sidebar-widget xstyle-981225c4">
+            <div class="xstyle-0d75823b">
+              <div class="xstyle-434901f8">Yangi maqolalardan xabar toping</div>
+              <div class="xstyle-83f7ab2b">Har hafta eng qiziqarli maqolalar to'plamini email orqali oling</div>
+              <input type="email" placeholder="Email manzilingiz..." class="xstyle-3995b99c">
+              <button class="ui-hover-glass xstyle-06ad3b4b">
+                <i class="bi bi-envelope-heart"></i> Obuna bo'lish
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // ── Theme ──
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isDark = html.getAttribute('data-theme') === 'dark';
+      html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      document.getElementById('themeIcon').className = isDark ? 'bi bi-moon-stars' : 'bi bi-sun';
+      try { localStorage.setItem('lms-theme', isDark ? 'light' : 'dark'); } catch(e){}
+    }
+    (function(){ try { if(localStorage.getItem('lms-theme') === 'dark') document.getElementById('themeIcon').className = 'bi bi-sun'; } catch(e){} })();
+
+    // ── Filter posts by category button ──
+    function filterPosts(btn) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const cat = btn.dataset.cat;
+      const cards = document.querySelectorAll('.post-card');
+      let shown = 0;
+      cards.forEach(card => {
+        const match = cat === 'all' || card.dataset.cat === cat;
+        card.style.display = match ? 'flex' : 'none';
+        if (match) shown++;
+      });
+      document.getElementById('postCount').textContent = shown + ' ta maqola';
+    }
+
+    // ── Filter by category card click ──
+    function filterByCategory(cat) {
+      document.getElementById('postGrid').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setTimeout(() => {
+        const btn = document.querySelector(`.filter-btn[data-cat="${cat}"]`);
+        if (btn) filterPosts(btn);
+      }, 400);
+    }
+
+    // ── Tag cloud builder ──
+    const tags = [
+      { name: '#ielts', count: 38, size: 1.3 },
+      { name: '#ai', count: 26, size: 1.2 },
+      { name: '#python', count: 21, size: 1.15 },
+      { name: '#matematika', count: 18, size: 1.1 },
+      { name: '#grammar', count: 15, size: 1.05 },
+      { name: '#olimpiada', count: 12, size: 1.0 },
+      { name: '#dasturlash', count: 11, size: 0.97 },
+      { name: '#writing', count: 10, size: 0.95 },
+      { name: '#javascript', count: 9, size: 0.92 },
+      { name: '#fizika', count: 8, size: 0.9 },
+      { name: '#speaking', count: 7, size: 0.88 },
+      { name: '#ta\'lim', count: 7, size: 0.87 },
+      { name: '#sertifikat', count: 6, size: 0.85 },
+      { name: '#reading', count: 6, size: 0.84 },
+      { name: '#listening', count: 5, size: 0.82 },
+      { name: '#algebra', count: 5, size: 0.81 },
+      { name: '#web', count: 4, size: 0.79 },
+      { name: '#kimyo', count: 4, size: 0.78 },
+      { name: '#biologiya', count: 3, size: 0.76 },
+      { name: '#tarix', count: 3, size: 0.75 },
+      { name: '#vocabulary', count: 3, size: 0.74 },
+      { name: '#react', count: 2, size: 0.72 },
+      { name: '#typescript', count: 2, size: 0.71 },
+      { name: '#kvant', count: 2, size: 0.7 },
+      { name: '#chatgpt', count: 2, size: 0.69 },
+      { name: '#yangilik', count: 1, size: 0.67 },
+    ];
+
+    function buildTagCloud() {
+      const cloud = document.getElementById('tagCloud');
+      tags.forEach(tag => {
+        const el = document.createElement('div');
+        el.className = 'tag-cloud-item';
+        el.style.fontSize = tag.size + 'rem';
+        el.style.height = Math.round(tag.size * 28) + 'px';
+        el.style.paddingLeft = Math.round(tag.size * 12) + 'px';
+        el.style.paddingRight = Math.round(tag.size * 12) + 'px';
+        el.innerHTML = `${tag.name} <span class="tag-count">${tag.count}</span>`;
+        el.onclick = () => {
+          document.querySelectorAll('.tag-cloud-item').forEach(t => t.classList.remove('active'));
+          el.classList.add('active');
+        };
+        cloud.appendChild(el);
+      });
+    }
+
+    // ── Animate progress bars ──
+    window.addEventListener('load', () => {
+      buildTagCloud();
+      setTimeout(() => {
+        document.querySelectorAll('[data-w]').forEach(el => {
+          el.style.width = el.dataset.w + '%';
+        });
+      }, 200);
+    });
+  </script>
+  <script src="../assets/js/prototype-ui.js"></script>
+</body>
+</html>
+

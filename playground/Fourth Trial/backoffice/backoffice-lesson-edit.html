@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS Backoffice — Lesson editor (dars tahrirlash).">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>Dars tahrirlash — Backoffice</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/backoffice-course-create.css">
+  <link rel="stylesheet" href="../assets/css/backoffice-lesson-edit.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- ═════════════ SIDEBAR ═════════════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">AZ</div>
+      <span class="sidebar-logo-name">AzureLMS</span>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="Backoffice navigatsiya">
+      <details class="nav-accordion">
+        <summary class="nav-accordion-trigger">
+          <span class="nav-accordion-title"><i class="bi bi-speedometer2"></i> Bosh sahifa</span>
+          <i class="bi bi-chevron-down nav-accordion-caret"></i>
+        </summary>
+        <div class="nav-accordion-panel">
+          <a href="backoffice-shell.html" class="nav-item"><i class="bi bi-grid-fill"></i> Overview</a>
+          <a href="#" class="nav-item"><i class="bi bi-bar-chart-line"></i> Hisobotlar</a>
+        </div>
+      </details>
+
+      <details class="nav-accordion" open>
+        <summary class="nav-accordion-trigger">
+          <span class="nav-accordion-title"><i class="bi bi-journal-bookmark"></i> Mazmun</span>
+          <i class="bi bi-chevron-down nav-accordion-caret"></i>
+        </summary>
+        <div class="nav-accordion-panel">
+          <a href="backoffice-course-create.html" class="nav-item"><i class="bi bi-collection-play"></i> Kurslar</a>
+          <a href="backoffice-lesson-edit.html" class="nav-item active"><i class="bi bi-play-circle"></i> Darslar</a>
+          <a href="#" class="nav-item"><i class="bi bi-patch-check"></i> Imtihonlar</a>
+          <a href="#" class="nav-item"><i class="bi bi-newspaper"></i> Blog</a>
+        </div>
+      </details>
+
+      <details class="nav-accordion">
+        <summary class="nav-accordion-trigger">
+          <span class="nav-accordion-title"><i class="bi bi-people"></i> Foydalanuvchilar</span>
+          <i class="bi bi-chevron-down nav-accordion-caret"></i>
+        </summary>
+        <div class="nav-accordion-panel">
+          <a href="#" class="nav-item"><i class="bi bi-mortarboard"></i> Talabalar</a>
+          <a href="#" class="nav-item"><i class="bi bi-collection"></i> Cohortlar</a>
+        </div>
+      </details>
+
+      <details class="nav-accordion">
+        <summary class="nav-accordion-trigger">
+          <span class="nav-accordion-title"><i class="bi bi-credit-card-2-front"></i> Sotuv</span>
+          <i class="bi bi-chevron-down nav-accordion-caret"></i>
+        </summary>
+        <div class="nav-accordion-panel">
+          <a href="#" class="nav-item"><i class="bi bi-receipt"></i> To'lovlar</a>
+          <a href="#" class="nav-item"><i class="bi bi-ticket-perforated"></i> Promo kodlar</a>
+        </div>
+      </details>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <details class="account-menu">
+        <summary class="sidebar-user">
+          <div class="user-av">AK</div>
+          <div class="user-info">
+            <div class="user-name">Azurebekdev</div>
+            <div class="user-plan">Admin · Owner</div>
+          </div>
+          <i class="bi bi-chevron-down user-chevron"></i>
+        </summary>
+        <div class="account-menu-panel">
+          <a href="../app/app-shell.html" class="account-menu-item"><i class="bi bi-arrow-left-circle"></i> Foydalanuvchi sifatida</a>
+          <a href="#" class="account-menu-item"><i class="bi bi-gear"></i> Sozlamalar</a>
+          <div class="account-menu-sep"></div>
+          <a href="../auth/auth-login.html" class="account-menu-item danger"><i class="bi bi-box-arrow-right"></i> Chiqish</a>
+        </div>
+      </details>
+      <div class="sidebar-version">Backoffice · v0.1</div>
+    </div>
+  </aside>
+
+  <!-- ═════════════ MAIN ═════════════ -->
+  <div class="main">
+
+    <header class="topbar">
+      <button class="topbar-btn sidebar-toggle" id="sidebarToggle"><i class="bi bi-list"></i></button>
+      <span class="topbar-title">Lesson Editor <span class="admin-badge"><i class="bi bi-shield-lock-fill"></i> Admin</span></span>
+      <button class="topbar-btn" id="themeBtn" aria-label="Tema"><i class="bi bi-moon" id="themeIcon"></i></button>
+    </header>
+
+    <main class="page-body builder-page">
+
+      <!-- Builder sub-toolbar -->
+      <div class="builder-toolbar">
+        <button class="builder-back" type="button" aria-label="Orqaga"><i class="bi bi-arrow-left"></i></button>
+        <div class="builder-crumb">
+          <a href="backoffice-course-create.html">Türkçe A1–B2</a>
+          <i class="bi bi-chevron-right sep"></i>
+          <a href="#">Modul 2: Kundalik suhbat</a>
+          <i class="bi bi-chevron-right sep"></i>
+          <span class="current">Yo'l so'rash</span>
+        </div>
+        <div class="builder-save-status"><i class="bi bi-cloud-check-fill"></i> Avtomat saqlandi</div>
+        <div class="builder-actions">
+          <button class="btn-ghost-sm" type="button"><i class="bi bi-eye"></i> Preview</button>
+          <button class="btn-primary-sm" type="button"><i class="bi bi-check2"></i> Saqlash</button>
+        </div>
+      </div>
+
+      <!-- 3-column grid -->
+      <div class="builder-grid">
+
+        <!-- LEFT: Course tree (same shape, lesson highlighted) -->
+        <aside class="tree-panel">
+          <div class="tree-head">
+            <span class="tree-title">Kurs tarkibi</span>
+          </div>
+          <div class="tree-body">
+
+            <div class="tree-row" data-select="course">
+              <i class="bi bi-grid-1x2 icon"></i>
+              <span class="label">Kurs asoslari</span>
+            </div>
+
+            <div style="height:8px"></div>
+
+            <div class="tree-node expanded">
+              <div class="tree-row">
+                <i class="bi bi-chevron-right caret"></i>
+                <i class="bi bi-grip-vertical grip"></i>
+                <i class="bi bi-folder2 icon"></i>
+                <span class="label">1. Asoslar va alifbo</span>
+              </div>
+              <div class="tree-children">
+                <div class="tree-row"><i class="bi bi-grip-vertical grip"></i><i class="bi bi-play-circle icon"></i><span class="label">Alifbo va talaffuz</span></div>
+                <div class="tree-row"><i class="bi bi-grip-vertical grip"></i><i class="bi bi-play-circle icon"></i><span class="label">Salomlashish</span></div>
+                <div class="tree-row"><i class="bi bi-grip-vertical grip"></i><i class="bi bi-play-circle icon"></i><span class="label">Sonlar 1–100</span></div>
+              </div>
+            </div>
+
+            <div class="tree-node expanded">
+              <div class="tree-row">
+                <i class="bi bi-chevron-right caret"></i>
+                <i class="bi bi-grip-vertical grip"></i>
+                <i class="bi bi-folder2 icon"></i>
+                <span class="label">2. Kundalik suhbat</span>
+                <button class="row-add" type="button" title="Yangi dars"><i class="bi bi-plus"></i></button>
+              </div>
+              <div class="tree-children">
+                <div class="tree-row"><i class="bi bi-grip-vertical grip"></i><i class="bi bi-play-circle icon"></i><span class="label">Restoranda</span></div>
+                <div class="tree-row active"><i class="bi bi-grip-vertical grip"></i><i class="bi bi-play-circle-fill icon"></i><span class="label">Yo'l so'rash</span></div>
+              </div>
+            </div>
+
+            <div class="tree-node">
+              <div class="tree-row">
+                <i class="bi bi-chevron-right caret"></i>
+                <i class="bi bi-grip-vertical grip"></i>
+                <i class="bi bi-folder2 icon"></i>
+                <span class="label">3. Grammatika</span>
+              </div>
+              <div class="tree-children">
+                <div class="tree-row"><i class="bi bi-grip-vertical grip"></i><i class="bi bi-play-circle icon"></i><span class="label">Kelishiklar</span></div>
+                <div class="tree-row"><i class="bi bi-grip-vertical grip"></i><i class="bi bi-play-circle icon"></i><span class="label">O'tgan zamon</span></div>
+              </div>
+            </div>
+
+            <button class="tree-add-inline" type="button">
+              <i class="bi bi-folder-plus"></i> Yangi modul
+            </button>
+
+          </div>
+        </aside>
+
+        <!-- MIDDLE: Editor -->
+        <section class="editor-panel">
+          <div class="editor-tabs">
+            <button class="editor-tab active" type="button" data-tab="basics"><i class="bi bi-info-circle"></i> Asoslar</button>
+            <button class="editor-tab" type="button" data-tab="content"><i class="bi bi-file-text"></i> Mazmun</button>
+            <button class="editor-tab" type="button" data-tab="materials"><i class="bi bi-paperclip"></i> Materiallar <span class="dot"></span></button>
+            <button class="editor-tab" type="button" data-tab="quiz"><i class="bi bi-card-checklist"></i> Quiz</button>
+            <button class="editor-tab" type="button" data-tab="assignment"><i class="bi bi-pencil-square"></i> Vazifa</button>
+          </div>
+
+          <div class="editor-body">
+
+            <!-- ─── BASICS ─── -->
+            <div class="editor-section">
+              <div class="editor-section-head">
+                <div class="editor-section-title">Dars asoslari</div>
+                <div class="editor-section-hint">Sarlavha, video va XP</div>
+              </div>
+
+              <div class="field">
+                <label class="field-label">Dars mavzusi <span class="req">*</span></label>
+                <input class="field-input" type="text" id="lessonTitle" value="Yo'l so'rash">
+              </div>
+
+              <div class="field-row cols-2">
+                <div class="field">
+                  <label class="field-label">Modul</label>
+                  <select class="field-input">
+                    <option>1. Asoslar va alifbo</option>
+                    <option selected>2. Kundalik suhbat</option>
+                    <option>3. Grammatika</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label class="field-label">Darsdan keyingi XP</label>
+                  <div class="xp-pill">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                    <input type="number" value="15" min="0" id="lessonXp">
+                    <span>XP</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field">
+                <label class="field-label">YouTube video havolasi</label>
+                <span class="field-hint" style="margin-bottom:4px">Unlisted havolani yopishtiring — embed avtomatik tekshiriladi.</span>
+                <div class="video-input-row">
+                  <input class="field-input" type="url" value="https://www.youtube.com/watch?v=dQw4w9WgXcQ" placeholder="https://youtube.com/watch?v=...">
+                  <button class="btn-ghost-sm" type="button"><i class="bi bi-arrow-clockwise"></i> Tekshir</button>
+                </div>
+                <div class="video-card">
+                  <div class="video-card-thumb"><div class="play"><i class="bi bi-play-fill"></i></div></div>
+                  <div class="video-card-info">
+                    <div class="video-card-title">Turk tilida yo'l so'rash — A2 darsi</div>
+                    <div class="video-card-meta">
+                      <span><i class="bi bi-clock"></i> 8:42</span>
+                      <span class="ok"><i class="bi bi-check2-circle"></i> Embed ishlayapti</span>
+                    </div>
+                    <div class="video-card-actions">
+                      <button class="btn-ghost-sm" type="button"><i class="bi bi-play"></i> Ko'rish</button>
+                      <button class="btn-ghost-sm" type="button"><i class="bi bi-trash"></i> O'chirish</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ─── CONTENT (notes / explanation) ─── -->
+            <div class="editor-section">
+              <div class="editor-section-head">
+                <div class="editor-section-title">Dars matni va izohlar</div>
+                <div class="editor-section-hint">AI suhbati uchun ham ishlatiladi</div>
+              </div>
+
+              <div class="content-editor">
+                <div class="ce-toolbar">
+                  <select class="ce-select">
+                    <option>Paragraph</option>
+                    <option>Heading 2</option>
+                    <option>Heading 3</option>
+                  </select>
+                  <div class="ce-sep"></div>
+                  <button class="ce-tool" title="Bold"><i class="bi bi-type-bold"></i></button>
+                  <button class="ce-tool" title="Italic"><i class="bi bi-type-italic"></i></button>
+                  <button class="ce-tool" title="Underline"><i class="bi bi-type-underline"></i></button>
+                  <button class="ce-tool" title="Strikethrough"><i class="bi bi-type-strikethrough"></i></button>
+                  <div class="ce-sep"></div>
+                  <button class="ce-tool" title="Bullet list"><i class="bi bi-list-ul"></i></button>
+                  <button class="ce-tool" title="Numbered list"><i class="bi bi-list-ol"></i></button>
+                  <button class="ce-tool" title="Quote"><i class="bi bi-quote"></i></button>
+                  <button class="ce-tool" title="Code"><i class="bi bi-code-slash"></i></button>
+                  <div class="ce-sep"></div>
+                  <button class="ce-tool" title="Link"><i class="bi bi-link-45deg"></i></button>
+                  <button class="ce-tool" title="Image"><i class="bi bi-image"></i></button>
+                  <button class="ce-tool" title="Table"><i class="bi bi-table"></i></button>
+                  <div class="ce-sep"></div>
+                  <button class="ce-tool" title="Undo"><i class="bi bi-arrow-counterclockwise"></i></button>
+                  <button class="ce-tool" title="Redo"><i class="bi bi-arrow-clockwise"></i></button>
+                </div>
+                <div class="ce-body" contenteditable="true">
+                  <h3>Asosiy iboralar</h3>
+                  <p>Bu darsda turk tilida yo'l so'rash uchun kerakli iboralarni o'rganamiz. Quyidagi savol-javob namunalari bilan tanishamiz:</p>
+                  <ul>
+                    <li><code>Affedersiniz, ... nerede?</code> — Kechirasiz, ... qayerda?</li>
+                    <li><code>Nasıl gidebilirim?</code> — Qanday borishim mumkin?</li>
+                    <li><code>Sağa / sola dönün</code> — O'ngga / chapga buriling</li>
+                    <li><code>Düz gidin</code> — To'g'ri yuring</li>
+                  </ul>
+                  <blockquote>Maslahat: bu iboralarni karta yoki taksi haydovchisi bilan suhbatda qo'llab ko'ring.</blockquote>
+                  <h3>Yana qo'shimcha</h3>
+                  <p>Quyidagi videoda mahalliylar bilan haqiqiy suhbat yozilgan. Tinglashda <code>sağa</code> va <code>sola</code> so'zlariga e'tibor bering.</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- RIGHT: Live preview -->
+        <aside class="preview-panel">
+          <div class="preview-head">
+            <span class="preview-title">Talaba ko'rinishi</span>
+            <div class="preview-device">
+              <button type="button" class="active" title="Desktop"><i class="bi bi-laptop"></i></button>
+              <button type="button" title="Mobile"><i class="bi bi-phone"></i></button>
+            </div>
+          </div>
+          <div class="preview-body">
+
+            <div class="lesson-preview-video">
+              <div class="play-big"><i class="bi bi-play-fill"></i></div>
+              <span class="duration-pill">8:42</span>
+            </div>
+
+            <div class="lesson-preview-head">
+              <div class="lesson-preview-title" id="prevTitle">Yo'l so'rash</div>
+              <span class="lesson-preview-xp">+<span id="prevXp">15</span> XP</span>
+            </div>
+            <div class="lesson-preview-meta">
+              <span><i class="bi bi-collection"></i> Modul 2 · Kundalik suhbat</span>
+            </div>
+
+            <div class="lesson-preview-content">
+              <p><strong>Asosiy iboralar:</strong> Affedersiniz, ... nerede?, Nasıl gidebilirim?, Sağa / sola dönün, Düz gidin...</p>
+              <p>Karta yoki taksi haydovchisi bilan suhbatda qo'llab ko'ring.</p>
+            </div>
+
+            <div class="lesson-preview-section">
+              <div class="lesson-preview-section-title">Materiallar</div>
+              <div class="lesson-preview-attach">
+                <div class="ic"><i class="bi bi-file-earmark-pdf"></i></div>
+                <span class="nm">yol-sorash-iboralar.pdf</span>
+                <span class="sz">320 KB</span>
+              </div>
+              <div class="lesson-preview-attach">
+                <div class="ic" style="background:var(--purple-soft);color:var(--purple)"><i class="bi bi-headphones"></i></div>
+                <span class="nm">audio-mashq.mp3</span>
+                <span class="sz">2.1 MB</span>
+              </div>
+            </div>
+
+            <div class="lesson-preview-section">
+              <div class="lesson-preview-section-title">Yakuniy test</div>
+              <div class="lesson-preview-quiz-card">
+                <div class="ic"><i class="bi bi-card-checklist"></i></div>
+                <div class="info">
+                  <strong>4 savol · 20 ball</strong>
+                  <span>O'tish chegarasi: 70%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="lesson-preview-section">
+              <div class="lesson-preview-section-title">Vazifa</div>
+              <div class="lesson-preview-quiz-card" style="background:linear-gradient(135deg,var(--amber-soft),var(--red-soft))">
+                <div class="ic" style="background:linear-gradient(135deg,var(--amber),var(--red))"><i class="bi bi-pencil-square"></i></div>
+                <div class="info">
+                  <strong>O'zingiz haqida 5 jumla</strong>
+                  <span>Maksimal: 50 XP</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </aside>
+
+      </div>
+
+      <!-- Hidden alternative tab contents — shown via JS -->
+      <div id="alt-content" hidden>
+
+        <!-- MATERIALS TAB -->
+        <div data-tab-panel="materials">
+          <div class="editor-section">
+            <div class="editor-section-head">
+              <div class="editor-section-title">Qo'shimcha materiallar</div>
+              <div class="editor-section-hint">PDF, audio, slide va boshqa fayllar</div>
+            </div>
+
+            <div class="dropzone" style="margin-bottom:14px">
+              <i class="bi bi-cloud-upload"></i>
+              <div class="dz-title">Fayllarni shu yerga tashlang yoki bosing</div>
+              <div class="dz-sub">PDF, DOCX, MP3, ZIP, PNG · Maksimum 50 MB</div>
+            </div>
+
+            <div class="material-row">
+              <div class="material-icon pdf"><i class="bi bi-file-earmark-pdf-fill"></i></div>
+              <div class="material-info">
+                <div class="material-name">yol-sorash-iboralar.pdf</div>
+                <div class="material-meta"><span>320 KB</span><span>12-may, 14:20</span><span>14 yuklab olish</span></div>
+              </div>
+              <div class="material-actions">
+                <button type="button" title="Ko'rish"><i class="bi bi-eye"></i></button>
+                <button type="button" title="Yuklab olish"><i class="bi bi-download"></i></button>
+                <button type="button" class="danger" title="O'chirish"><i class="bi bi-trash"></i></button>
+              </div>
+            </div>
+
+            <div class="material-row">
+              <div class="material-icon audio"><i class="bi bi-music-note-beamed"></i></div>
+              <div class="material-info">
+                <div class="material-name">audio-mashq.mp3</div>
+                <div class="material-meta"><span>2.1 MB</span><span>12-may, 14:25</span></div>
+              </div>
+              <div class="material-actions">
+                <button type="button"><i class="bi bi-play"></i></button>
+                <button type="button"><i class="bi bi-download"></i></button>
+                <button type="button" class="danger"><i class="bi bi-trash"></i></button>
+              </div>
+            </div>
+
+            <div class="material-row">
+              <div class="material-icon doc"><i class="bi bi-file-earmark-slides"></i></div>
+              <div class="material-info">
+                <div class="material-name">slaydlar-yol-sorash.pdf</div>
+                <div class="material-meta"><span>1.4 MB</span><span>Bugun</span></div>
+              </div>
+              <div class="material-actions">
+                <button type="button"><i class="bi bi-eye"></i></button>
+                <button type="button"><i class="bi bi-download"></i></button>
+                <button type="button" class="danger"><i class="bi bi-trash"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- QUIZ TAB -->
+        <div data-tab-panel="quiz">
+          <div class="editor-section">
+            <div class="editor-section-head">
+              <div class="editor-section-title">Dars uchun quiz</div>
+              <div class="editor-section-hint">Talaba dars yakunida ushbu testni topshiradi</div>
+            </div>
+
+            <div class="quiz-summary">
+              <div class="quiz-summary-icon"><i class="bi bi-card-checklist"></i></div>
+              <div class="quiz-summary-info">
+                <div class="quiz-summary-title">Yo'l so'rash — yakuniy test</div>
+                <div class="quiz-summary-stats">
+                  <span><i class="bi bi-list-ol"></i> 4 savol</span>
+                  <span><i class="bi bi-bullseye"></i> 20 ball</span>
+                  <span><i class="bi bi-lightning-charge-fill"></i> +20 XP</span>
+                </div>
+              </div>
+              <button class="btn-ghost-sm" type="button"><i class="bi bi-gear"></i> Sozlash</button>
+            </div>
+
+            <div class="quiz-question">
+              <div class="qq-head">
+                <div class="qq-num">1</div>
+                <input class="qq-text-input" value="«Affedersiniz, ... nerede?» iborasi qaysi vaziyatda ishlatiladi?">
+                <div class="qq-points"><i class="bi bi-bullseye"></i><input type="number" value="5"> bal</div>
+                <div class="qq-actions">
+                  <button type="button" title="Yuqoriga"><i class="bi bi-arrow-up"></i></button>
+                  <button type="button" title="Pastga"><i class="bi bi-arrow-down"></i></button>
+                  <button type="button" class="danger" title="O'chirish"><i class="bi bi-trash"></i></button>
+                </div>
+              </div>
+              <div class="qq-choices">
+                <div class="qq-choice correct">
+                  <div class="qq-choice-mark"><i class="bi bi-check-lg"></i></div>
+                  <input class="qq-choice-input" value="Yo'l yoki joy so'raganda">
+                  <button class="qq-choice-remove" type="button"><i class="bi bi-x"></i></button>
+                </div>
+                <div class="qq-choice">
+                  <div class="qq-choice-mark"><i class="bi bi-check-lg"></i></div>
+                  <input class="qq-choice-input" value="Restoranda buyurtma berganda">
+                  <button class="qq-choice-remove" type="button"><i class="bi bi-x"></i></button>
+                </div>
+                <div class="qq-choice">
+                  <div class="qq-choice-mark"><i class="bi bi-check-lg"></i></div>
+                  <input class="qq-choice-input" value="Tanishganda salomlashish uchun">
+                  <button class="qq-choice-remove" type="button"><i class="bi bi-x"></i></button>
+                </div>
+                <button class="qq-add-choice" type="button"><i class="bi bi-plus-lg"></i> Variant qo'shish</button>
+              </div>
+            </div>
+
+            <div class="quiz-question">
+              <div class="qq-head">
+                <div class="qq-num">2</div>
+                <input class="qq-text-input" value="«Sağa dönün» nimani anglatadi?">
+                <div class="qq-points"><i class="bi bi-bullseye"></i><input type="number" value="5"> bal</div>
+                <div class="qq-actions">
+                  <button type="button"><i class="bi bi-arrow-up"></i></button>
+                  <button type="button"><i class="bi bi-arrow-down"></i></button>
+                  <button type="button" class="danger"><i class="bi bi-trash"></i></button>
+                </div>
+              </div>
+              <div class="qq-choices">
+                <div class="qq-choice">
+                  <div class="qq-choice-mark"><i class="bi bi-check-lg"></i></div>
+                  <input class="qq-choice-input" value="Chapga buriling">
+                  <button class="qq-choice-remove" type="button"><i class="bi bi-x"></i></button>
+                </div>
+                <div class="qq-choice correct">
+                  <div class="qq-choice-mark"><i class="bi bi-check-lg"></i></div>
+                  <input class="qq-choice-input" value="O'ngga buriling">
+                  <button class="qq-choice-remove" type="button"><i class="bi bi-x"></i></button>
+                </div>
+                <div class="qq-choice">
+                  <div class="qq-choice-mark"><i class="bi bi-check-lg"></i></div>
+                  <input class="qq-choice-input" value="To'g'ri yuring">
+                  <button class="qq-choice-remove" type="button"><i class="bi bi-x"></i></button>
+                </div>
+                <div class="qq-choice">
+                  <div class="qq-choice-mark"><i class="bi bi-check-lg"></i></div>
+                  <input class="qq-choice-input" value="Orqaga qayting">
+                  <button class="qq-choice-remove" type="button"><i class="bi bi-x"></i></button>
+                </div>
+                <button class="qq-add-choice" type="button"><i class="bi bi-plus-lg"></i> Variant qo'shish</button>
+              </div>
+            </div>
+
+            <button class="add-question-btn" type="button">
+              <i class="bi bi-plus-circle"></i> Yangi savol qo'shish
+            </button>
+          </div>
+        </div>
+
+        <!-- ASSIGNMENT TAB -->
+        <div data-tab-panel="assignment">
+          <div class="editor-section">
+            <div class="editor-section-head">
+              <div class="editor-section-title">Vazifa</div>
+              <div class="editor-section-hint">Tutor qo'lda tekshiradigan ochiq topshiriq</div>
+            </div>
+
+            <div class="field">
+              <label class="field-label">Vazifa nomi <span class="req">*</span></label>
+              <input class="field-input" type="text" value="O'zingiz haqida 5 jumla">
+            </div>
+
+            <div class="field-row cols-2">
+              <div class="field">
+                <label class="field-label">Maksimal XP</label>
+                <div class="xp-pill"><i class="bi bi-lightning-charge-fill"></i><input type="number" value="50"><span>XP</span></div>
+              </div>
+              <div class="field">
+                <label class="field-label">Topshirish muddati</label>
+                <input class="field-input" type="text" value="7 kun" placeholder="Cheklov yo'q">
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field-label">Vazifa sharti</label>
+              <div class="content-editor">
+                <div class="ce-toolbar">
+                  <button class="ce-tool"><i class="bi bi-type-bold"></i></button>
+                  <button class="ce-tool"><i class="bi bi-type-italic"></i></button>
+                  <div class="ce-sep"></div>
+                  <button class="ce-tool"><i class="bi bi-list-ul"></i></button>
+                  <button class="ce-tool"><i class="bi bi-list-ol"></i></button>
+                  <div class="ce-sep"></div>
+                  <button class="ce-tool"><i class="bi bi-paperclip"></i></button>
+                </div>
+                <div class="ce-body" contenteditable="true" style="min-height:160px">
+                  <p>Bu darsda o'rgangan iboralarni ishlatib, o'zingiz haqida 5 jumla yozing. Quyidagi savollarga javob bering:</p>
+                  <ul>
+                    <li>Ismingiz nima?</li>
+                    <li>Qayerdan kelgansiz?</li>
+                    <li>Bo'sh vaqtingizda nima qilasiz?</li>
+                  </ul>
+                  <p>Audio yozuv ham yuborishingiz mumkin (ixtiyoriy).</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="toggle-row" style="margin-top:14px">
+              <div class="toggle-row-info">
+                <div class="toggle-row-icon"><i class="bi bi-mic"></i></div>
+                <div class="toggle-row-text">
+                  <strong>Audio javob ruxsat eting</strong>
+                  <span>Talabalar matn yoki ovozli javob yuboradi</span>
+                </div>
+              </div>
+              <div class="switch on"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+</div>
+
+<script>
+  // Theme toggle
+  (function() {
+    const btn = document.getElementById('themeBtn');
+    const icon = document.getElementById('themeIcon');
+    if (!btn) return;
+    function syncIcon() {
+      const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+      icon.className = dark ? 'bi bi-sun' : 'bi bi-moon';
+    }
+    syncIcon();
+    btn.addEventListener('click', () => {
+      const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', cur);
+      try { localStorage.setItem('az-theme', cur); } catch (_) {}
+      syncIcon();
+    });
+  })();
+
+  // Tree expand/collapse
+  document.querySelectorAll('.tree-node > .tree-row').forEach(row => {
+    const caret = row.querySelector('.caret');
+    if (!caret) return;
+    row.addEventListener('click', (e) => {
+      if (e.target.closest('.row-add')) return;
+      row.parentElement.classList.toggle('expanded');
+    });
+  });
+
+  // Tree row selection
+  document.querySelectorAll('.tree-row').forEach(row => {
+    row.addEventListener('click', (e) => {
+      if (e.target.closest('.row-add') || e.target.closest('.caret')) return;
+      document.querySelectorAll('.tree-row').forEach(r => r.classList.remove('active'));
+      row.classList.add('active');
+    });
+  });
+
+  // Tab switching — swap visible editor content
+  const editorBody = document.querySelector('.editor-body');
+  const altContent = document.getElementById('alt-content');
+  const originalBasicsContent = editorBody.innerHTML;
+  document.querySelectorAll('.editor-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.editor-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const target = tab.dataset.tab;
+      if (target === 'basics' || target === 'content') {
+        editorBody.innerHTML = originalBasicsContent;
+        bindLiveSync();
+      } else {
+        const panel = altContent.querySelector(`[data-tab-panel="${target}"]`);
+        if (panel) editorBody.innerHTML = panel.innerHTML;
+      }
+      // Rebind switches in newly inserted content
+      editorBody.querySelectorAll('.switch').forEach(sw => {
+        sw.addEventListener('click', () => sw.classList.toggle('on'));
+      });
+      // Rebind quiz choice correct-marking
+      editorBody.querySelectorAll('.qq-choice .qq-choice-mark').forEach(mark => {
+        mark.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const choices = mark.closest('.qq-choices');
+          choices.querySelectorAll('.qq-choice').forEach(c => c.classList.remove('correct'));
+          mark.closest('.qq-choice').classList.add('correct');
+        });
+      });
+    });
+  });
+
+  // Switches
+  document.querySelectorAll('.switch').forEach(sw => {
+    sw.addEventListener('click', () => sw.classList.toggle('on'));
+  });
+
+  // Live sync: title and xp -> preview
+  function bindLiveSync() {
+    const t = document.getElementById('lessonTitle');
+    const x = document.getElementById('lessonXp');
+    const pt = document.getElementById('prevTitle');
+    const px = document.getElementById('prevXp');
+    if (t && pt) t.addEventListener('input', e => pt.textContent = e.target.value || 'Yangi dars');
+    if (x && px) x.addEventListener('input', e => px.textContent = e.target.value || '0');
+  }
+  bindLiveSync();
+
+  // Initial quiz choice correct-marking (if quiz already in DOM at first load)
+  document.querySelectorAll('.qq-choice .qq-choice-mark').forEach(mark => {
+    mark.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const choices = mark.closest('.qq-choices');
+      choices.querySelectorAll('.qq-choice').forEach(c => c.classList.remove('correct'));
+      mark.closest('.qq-choice').classList.add('correct');
+    });
+  });
+</script>
+<script src="../assets/js/prototype-ui.js"></script>
+
+</body>
+</html>

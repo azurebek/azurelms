@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS old-turtle prototype for pricing.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>Narxlar — AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- CSS Zanjiri (Architectural Standard) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/public.css">
+  <link rel="stylesheet" href="../assets/css/public-pricing.css">
+
+  <link rel="stylesheet" href="../assets/css/prototype-extracted.css">
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="logo">
+        <div class="logo-mark">AZ</div>
+        <span class="logo-name">AzureLMS</span>
+      </a>
+      <a href="course-list.html" class="nav-link">Kurslar</a>
+      <a href="pricing.html" class="nav-link active">Narxlar</a>
+      <a href="about.html" class="nav-link">Biz haqimizda</a>
+      <button class="theme-btn" id="themeBtn" aria-label="Toggle theme">
+        <i class="bi bi-moon" id="themeIcon"></i>
+      </button>
+      <a href="../auth/auth-login.html" class="nav-link">Kirish</a>
+      <a href="../auth/auth-register.html" class="btn-nav">Ro'yxatdan o't</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-label"><i class="bi bi-tag"></i> Shaffof narx siyosati</div>
+      <h1 class="hero-title">Maqsadingizga mos<br>reja tanlang</h1>
+      <p class="hero-desc">Har bir reja uchun bepul sinab ko'rish imkoniyati mavjud. Kredit karta shart emas.</p>
+
+      <!-- Billing toggle -->
+      <div class="billing-toggle">
+        <button class="toggle-opt active" id="toggleMonthly" data-ui-call="setBilling" data-ui-args='["monthly"]'>Oylik</button>
+        <button class="toggle-opt" id="toggleYearly" data-ui-call="setBilling" data-ui-args='["yearly"]'>
+          Yillik <span class="toggle-save"><i class="bi bi-lightning-fill"></i> 40% tejash</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PLANS -->
+  <div class="pricing-wrap">
+    <div class="plans">
+
+      <!-- STARTER -->
+      <div class="plan-card">
+        <div class="plan-icon xstyle-7b1981d9">🌱</div>
+        <div class="plan-name">Starter</div>
+        <div class="plan-desc">O'rganishni endigina boshlayotganlar uchun. Asosiy kurslar va materiallar.</div>
+        <div class="plan-price">
+          <span class="plan-price-main" id="price-starter">59 000</span>
+          <span class="plan-price-period">so'm/oy</span>
+        </div>
+        <div class="plan-price-old" id="old-starter"></div>
+        <button class="plan-btn plan-btn-outline" data-ui-href="../auth/auth-register.html">Bepul boshlash</button>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><i class="bi bi-check-circle-fill feat-check"></i> 5 tagacha kursga kirish</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> HD video darslar</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> Yuklab olinadigan materiallar</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> Mobil ilova</li>
+          <li><i class="bi bi-x-circle feat-x"></i> <span class="feat-dim">Sertifikat</span></li>
+          <li><i class="bi bi-x-circle feat-x"></i> <span class="feat-dim">Muallim bilan aloqa</span></li>
+          <li><i class="bi bi-x-circle feat-x"></i> <span class="feat-dim">Jonli darslar</span></li>
+          <li><i class="bi bi-x-circle feat-x"></i> <span class="feat-dim">Guruh loyihalar</span></li>
+        </ul>
+      </div>
+
+      <!-- PRO (featured) -->
+      <div class="plan-card featured">
+        <div class="plan-badge">⭐ Eng mashhur</div>
+        <div class="plan-icon xstyle-7b1981d9">🚀</div>
+        <div class="plan-name">Pro</div>
+        <div class="plan-desc">Jiddiy o'quvchilar uchun. Barcha kurslar, sertifikat va muallim yordami.</div>
+        <div class="plan-price">
+          <span class="plan-price-main" id="price-pro">199 000</span>
+          <span class="plan-price-period">so'm/oy</span>
+        </div>
+        <div class="plan-price-old" id="old-pro"></div>
+        <button class="plan-btn plan-btn-primary" data-ui-href="../auth/checkout.html">Pro bilan boshlash</button>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><i class="bi bi-check-circle-fill feat-check"></i> Barcha kurslarga cheksiz kirish</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> HD video darslar</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> Yuklab olinadigan materiallar</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> Mobil ilova</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> Tasdiqlangan sertifikatlar</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> Muallim bilan chat aloqasi</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> Oyda 4 ta jonli dars</li>
+          <li><i class="bi bi-x-circle feat-x"></i> <span class="feat-dim">Guruh loyihalar</span></li>
+        </ul>
+      </div>
+
+      <!-- TEAM -->
+      <div class="plan-card">
+        <div class="plan-icon xstyle-236daace">🏢</div>
+        <div class="plan-name">Team</div>
+        <div class="plan-desc">Kompaniyalar va guruhlar uchun. Admin panel, hisobotlar va maxsus kurslar.</div>
+        <div class="plan-price">
+          <span class="plan-price-main" id="price-team">499 000</span>
+          <span class="plan-price-period">so'm/oy</span>
+        </div>
+        <div class="plan-price-old" id="old-team"></div>
+        <button class="plan-btn plan-btn-outline" data-ui-href="../auth/checkout.html">Team rejasini olish</button>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><i class="bi bi-check-circle-fill feat-check"></i> Barcha kurslarga cheksiz kirish</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> HD video darslar</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> Yuklab olinadigan materiallar</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> Mobil ilova</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> Tasdiqlangan sertifikatlar</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> Muallim bilan video qo'ng'iroq</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> Cheksiz jonli darslar</li>
+          <li><i class="bi bi-check-circle-fill feat-check"></i> Guruh loyihalar + admin panel</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- COMPARE TABLE -->
+    <div class="compare-section">
+      <h2 class="compare-title">Batafsil taqqoslash</h2>
+      <p class="compare-sub">Har bir rejada nima borligini aniq bilib oling</p>
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th class="xstyle-f0242232">Xususiyat</th>
+            <th class="th-plan">Starter</th>
+            <th class="th-plan featured-col">Pro</th>
+            <th class="th-plan">Team</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="feat-group-row"><td colspan="4">Kurslar va kontentga kirish</td></tr>
+          <tr><td>Kurslar soni</td><td>5 ta</td><td>Cheksiz</td><td>Cheksiz</td></tr>
+          <tr><td>Video sifat</td><td>HD 720p</td><td>Full HD 1080p</td><td>Full HD 1080p</td></tr>
+          <tr><td>Offline ko'rish</td><td><i class="bi bi-x-lg check-no"></i></td><td><i class="bi bi-check-lg check-yes"></i></td><td><i class="bi bi-check-lg check-yes"></i></td></tr>
+          <tr><td>Materiallar yuklab olish</td><td><i class="bi bi-check-lg check-yes"></i></td><td><i class="bi bi-check-lg check-yes"></i></td><td><i class="bi bi-check-lg check-yes"></i></td></tr>
+          <tr><td>Mobil ilova</td><td><i class="bi bi-check-lg check-yes"></i></td><td><i class="bi bi-check-lg check-yes"></i></td><td><i class="bi bi-check-lg check-yes"></i></td></tr>
+
+          <tr class="feat-group-row"><td colspan="4">Sertifikat va baholash</td></tr>
+          <tr><td>Tasdiqlangan sertifikat</td><td><i class="bi bi-x-lg check-no"></i></td><td><i class="bi bi-check-lg check-yes"></i></td><td><i class="bi bi-check-lg check-yes"></i></td></tr>
+          <tr><td>LinkedIn badge</td><td><i class="bi bi-x-lg check-no"></i></td><td><i class="bi bi-check-lg check-yes"></i></td><td><i class="bi bi-check-lg check-yes"></i></td></tr>
+          <tr><td>Imtihon va testlar</td><td>Cheklangan</td><td>Cheksiz</td><td>Cheksiz</td></tr>
+
+          <tr class="feat-group-row"><td colspan="4">O'qituvchi va yordam</td></tr>
+          <tr><td>Chat yordami</td><td><i class="bi bi-x-lg check-no"></i></td><td><i class="bi bi-check-lg check-yes"></i></td><td><i class="bi bi-check-lg check-yes"></i></td></tr>
+          <tr><td>Video qo'ng'iroq</td><td><i class="bi bi-x-lg check-no"></i></td><td><i class="bi bi-x-lg check-no"></i></td><td><i class="bi bi-check-lg check-yes"></i></td></tr>
+          <tr><td>Jonli darslar</td><td><i class="bi bi-x-lg check-no"></i></td><td>Oyda 4 ta</td><td>Cheksiz</td></tr>
+          <tr><td>Texnik yordam</td><td>Email</td><td>Chat (24/7)</td><td>Ustuvor chat</td></tr>
+
+          <tr class="feat-group-row"><td colspan="4">Korporativ</td></tr>
+          <tr><td>Admin panel</td><td><i class="bi bi-x-lg check-no"></i></td><td><i class="bi bi-x-lg check-no"></i></td><td><i class="bi bi-check-lg check-yes"></i></td></tr>
+          <tr><td>Jamoaviy hisobotlar</td><td><i class="bi bi-x-lg check-no"></i></td><td><i class="bi bi-x-lg check-no"></i></td><td><i class="bi bi-check-lg check-yes"></i></td></tr>
+          <tr><td>API integratsiya</td><td><i class="bi bi-x-lg check-no"></i></td><td><i class="bi bi-x-lg check-no"></i></td><td><i class="bi bi-check-lg check-yes"></i></td></tr>
+          <tr><td>Maxsus kurslar (custom)</td><td><i class="bi bi-x-lg check-no"></i></td><td><i class="bi bi-x-lg check-no"></i></td><td><i class="bi bi-check-lg check-yes"></i></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- TESTIMONIALS -->
+    <div class="testimonials">
+      <h2 class="testimonials-title">Foydalanuvchilar nima deydi?</h2>
+      <div class="testi-grid">
+        <div class="testi-card">
+          <div class="testi-stars">★★★★★</div>
+          <div class="testi-text">"Pro rejasi pulga arziydi. Sertifikat LinkedIn profilimga qo'shdim — intervyularda obro' qo'shdi. Muallim bilan chat orqali savollarga javob olish zo'r!"</div>
+          <div class="testi-author">
+            <div class="testi-av xstyle-26fe3c0d">NB</div>
+            <div>
+              <div class="testi-name">Nodira Baxtiyorova</div>
+              <div class="testi-plan">Pro reja · 8 oy</div>
+            </div>
+          </div>
+        </div>
+        <div class="testi-card">
+          <div class="testi-stars">★★★★★</div>
+          <div class="testi-text">"Kompaniyamiz uchun Team rejaini oldik. Admin paneldan xodimlar progressini kuzatish juda qulay. Narxi ham boshqa platformalarga nisbatan arzon."</div>
+          <div class="testi-author">
+            <div class="testi-av xstyle-a66420d4">AY</div>
+            <div>
+              <div class="testi-name">Alisher Yusupov</div>
+              <div class="testi-plan">Team reja · IT kompaniya</div>
+            </div>
+          </div>
+        </div>
+        <div class="testi-card">
+          <div class="testi-stars">★★★★☆</div>
+          <div class="testi-text">"Starter bilan boshladim, keyin Pro ga o'tdim. Offline ko'rish funksiyasi juda kerakli edi — metrodayam o'qiyapman. 30 kunlik kafolat ishonch beradi."</div>
+          <div class="testi-author">
+            <div class="testi-av xstyle-707660a8">MJ</div>
+            <div>
+              <div class="testi-name">Malika Jurayeva</div>
+              <div class="testi-plan">Pro reja · 3 oy</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <section class="faq-section">
+    <h2 class="faq-title">Ko'p so'raladigan savollar</h2>
+    <p class="faq-sub">Javob topolmasangiz, bizga yozing</p>
+
+    <div class="faq-item open">
+      <div class="faq-q" data-ui-call="toggleFaq" data-ui-pass="this">
+        <span class="faq-q-text">Bepul sinab ko'rish imkoniyati bormi?</span>
+        <i class="bi bi-chevron-down faq-chevron"></i>
+      </div>
+      <div class="faq-a">Ha! Barcha rejalarda 7 kunlik bepul sinov muddati mavjud. Kredit karta ma'lumotlari so'ralmaydi. Sinov davri tugagach, avtomatik to'lov yechilmaydi.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" data-ui-call="toggleFaq" data-ui-pass="this">
+        <span class="faq-q-text">Obunani bekor qilish qanchalik oson?</span>
+        <i class="bi bi-chevron-down faq-chevron"></i>
+      </div>
+      <div class="faq-a">Istalgan vaqtda shaxsiy kabineting orqali obunani bekor qila olasiz. Bekor qilish bir daqiqa ichida amalga oshadi, hech qanday jarimalar yo'q. Joriy oy uchun to'lagan pulingiz qaytarilmaydi, lekin oxirgi to'lov sanasigacha kirish saqlanadi.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" data-ui-call="toggleFaq" data-ui-pass="this">
+        <span class="faq-q-text">30 kunlik kafolat qanday ishlaydi?</span>
+        <i class="bi bi-chevron-down faq-chevron"></i>
+      </div>
+      <div class="faq-a">Biror sababga ko'ra platformamiz kutganingizga to'g'ri kelmasa, to'lovdan keyin 30 kun ichida to'liq pul qaytarish kafolatimiz bor. Sabab ko'rsatishingiz shart emas — faqat support@azurelms.uz ga yozing.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" data-ui-call="toggleFaq" data-ui-pass="this">
+        <span class="faq-q-text">Yillik rejaga o'tganimda chegirma qanday qo'llanadi?</span>
+        <i class="bi bi-chevron-down faq-chevron"></i>
+      </div>
+      <div class="faq-a">Yillik rejaga o'tganda 40% chegirma qo'llanadi va to'lov bir yil uchun bir marta olinadi. Masalan, Pro oylik narxi 199 000 so'm bo'lsa, yillik to'lov 199 000 × 12 × 0.6 = 1 432 800 so'm bo'ladi — oyiga atigi 119 400 so'm.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" data-ui-call="toggleFaq" data-ui-pass="this">
+        <span class="faq-q-text">Qaysi to'lov usullarini qabul qilasiz?</span>
+        <i class="bi bi-chevron-down faq-chevron"></i>
+      </div>
+      <div class="faq-a">Karta (Visa/Mastercard/UzCard), Payme, Click va Uzum Pay orqali to'lash mumkin. Korporativ buyurtmalar uchun hisob-faktura (invoice) ham beramiz.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" data-ui-call="toggleFaq" data-ui-pass="this">
+        <span class="faq-q-text">Team rejasida nechta foydalanuvchi bo'lishi mumkin?</span>
+        <i class="bi bi-chevron-down faq-chevron"></i>
+      </div>
+      <div class="faq-a">Standart Team rejasi 10 tagacha foydalanuvchini qamrab oladi. 10 dan ortiq xodim uchun Enterprise variant mavjud — biz bilan bog'laning va maxsus narxni muhokama qilamiz.</div>
+    </div>
+  </section>
+
+  <!-- CTA BANNER -->
+  <div class="xstyle-384ef39d">
+    <div class="cta-banner">
+      <h2 class="cta-title">7 kunlik bepul sinov bilan boshlang</h2>
+      <p class="cta-desc">Kredit karta talab etilmaydi. Istalgan vaqtda bekor qiling.</p>
+      <div class="cta-actions">
+        <button class="btn-cta-p" data-ui-href="../auth/auth-register.html">Bepul boshlash</button>
+        <button class="btn-cta-s" data-ui-href="course-list.html">Kurslarni ko'rish</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <div class="footer-logo-mark">AZ</div>
+            <span class="footer-logo-name">AzureLMS</span>
+          </div>
+          <p>O'zbekistondagi eng zamonaviy online ta'lim platformasi. Har kuni yuz minglab talabalar biz bilan o'rganadi.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Platforma</h4>
+          <a href="course-list.html">Barcha kurslar</a>
+          <a href="pricing.html">Narxlar</a>
+          <a href="about.html">Biz haqimizda</a>
+          <a href="../blog/blog-shell.html">Blog</a>
+        </div>
+        <div class="footer-col">
+          <h4>Qo'llab-quvvatlash</h4>
+          <a href="about.html">Yordam markazi</a>
+          <a href="../blog-studio/blog-studio-shell.html">Muallim bo'lish</a>
+          <a href="about.html#jobs">Hamkorlik</a>
+          <a href="about.html">Bog'lanish</a>
+        </div>
+        <div class="footer-col">
+          <h4>Huquqiy</h4>
+          <a href="../legal/legal-terms.html">Foydalanish shartlari</a>
+          <a href="../legal/legal-privacy.html">Maxfiylik siyosati</a>
+          <a href="../legal/legal-cookies.html">Cookie</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2025 AzureLMS. Barcha huquqlar himoyalangan.</span>
+        <span>O'zbekiston 🇺🇿</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Theme init
+    (function() {
+      let s; try { s = localStorage.getItem('az-theme'); } catch(_) {}
+      const dark = s ? s === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (dark) document.documentElement.setAttribute('data-theme', 'dark');
+      const icon = document.getElementById('themeIcon');
+      if (icon) icon.className = dark ? 'bi bi-sun' : 'bi bi-moon';
+    })();
+
+    document.getElementById('themeBtn').addEventListener('click', function() {
+      const html = document.documentElement;
+      const dark = html.getAttribute('data-theme') === 'dark';
+      html.setAttribute('data-theme', dark ? 'light' : 'dark');
+      document.getElementById('themeIcon').className = dark ? 'bi bi-moon' : 'bi bi-sun';
+      try { localStorage.setItem('az-theme', dark ? 'light' : 'dark'); } catch(_) {}
+    });
+
+    // Billing toggle
+    const prices = {
+      monthly:  { starter: '59 000',  pro: '199 000',  team: '499 000',  oldStarter: '',         oldPro: '',          oldTeam: '' },
+      yearly:   { starter: '35 000',  pro: '119 000',  team: '299 000',  oldStarter: '59 000/oy', oldPro: '199 000/oy', oldTeam: '499 000/oy' }
+    };
+
+    function setBilling(type) {
+      const p = prices[type];
+      document.getElementById('price-starter').textContent = p.starter;
+      document.getElementById('price-pro').textContent     = p.pro;
+      document.getElementById('price-team').textContent    = p.team;
+      document.getElementById('old-starter').textContent   = p.oldStarter;
+      document.getElementById('old-pro').textContent       = p.oldPro;
+      document.getElementById('old-team').textContent      = p.oldTeam;
+      document.getElementById('toggleMonthly').classList.toggle('active', type === 'monthly');
+      document.getElementById('toggleYearly').classList.toggle('active', type === 'yearly');
+    }
+
+    // FAQ accordion
+    function toggleFaq(qEl) {
+      const item = qEl.closest('.faq-item');
+      item.classList.toggle('open');
+    }
+  </script>
+  <script src="../assets/js/prototype-ui.js"></script>
+</body>
+</html>
+

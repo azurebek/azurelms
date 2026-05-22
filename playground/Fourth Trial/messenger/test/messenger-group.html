@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Messenger test — Group chat.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>Group chat — AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="../../assets/css/tokens.css">
+  <link rel="stylesheet" href="../../assets/css/foundation.css">
+  <link rel="stylesheet" href="../../assets/css/components.css">
+  <link rel="stylesheet" href="messenger-test.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sb-head">
+    <div class="sb-head-row">
+      <a class="sb-home" href="../../app/app-shell.html" title="Dashboard'ga qaytish">
+        <span class="sb-home-logo">
+          <span class="logo-text">AL</span>
+          <i class="bi bi-arrow-left logo-back"></i>
+        </span>
+        <span class="sb-home-name">Xabarlar</span>
+      </a>
+      <div class="sb-head-actions">
+        <button class="sb-icon-btn" type="button" aria-label="Sozlamalar"><i class="bi bi-sliders"></i></button>
+      </div>
+    </div>
+    <div class="sb-search">
+      <i class="bi bi-search sb-search-icon"></i>
+      <input type="search" class="sb-search-input" placeholder="Qidirish...">
+    </div>
+  </div>
+
+  <div class="sb-body">
+    <div class="sb-new-chat-row">
+      <button class="sb-new-chat" type="button">
+        <i class="bi bi-pencil-square"></i>
+        <span>Yangi chat</span>
+      </button>
+    </div>
+
+    <div class="sb-section-label">Muhrlangan</div>
+
+    <a class="sb-item active" href="messenger-group.html">
+      <div class="sb-item-avatar c-lime">A2<span class="status-dot"></span></div>
+      <div class="sb-item-body">
+        <div class="sb-item-row">
+          <span class="sb-item-name">A2 Group chat</span>
+          <span class="sb-item-time">10:05</span>
+        </div>
+        <div class="sb-item-preview">Aziz: rahmat hammaga! 🙏</div>
+      </div>
+    </a>
+
+    <a class="sb-item" href="messenger-tutor.html">
+      <div class="sb-item-avatar c-amber">MA<span class="status-dot"></span></div>
+      <div class="sb-item-body">
+        <div class="sb-item-row">
+          <span class="sb-item-name">Mentor M. Arif</span>
+          <span class="sb-item-time">09:12</span>
+        </div>
+        <div class="sb-item-preview">Ertaga 19:00ga vaqt boring</div>
+      </div>
+    </a>
+
+    <div class="sb-section-label">AI suhbatlar</div>
+
+    <a class="sb-item" href="messenger-test.html">
+      <div class="sb-item-avatar sb-item-avatar--ai"><i class="bi bi-stars"></i></div>
+      <div class="sb-item-body">
+        <div class="sb-item-row">
+          <span class="sb-item-name">A2 guided study</span>
+          <span class="sb-item-time">10:28</span>
+        </div>
+        <div class="sb-item-preview">Speaking uchun qulayroq shakl:</div>
+      </div>
+    </a>
+    <a class="sb-item" href="#">
+      <div class="sb-item-avatar sb-item-avatar--ai"><i class="bi bi-stars"></i></div>
+      <div class="sb-item-body">
+        <div class="sb-item-row">
+          <span class="sb-item-name">Grammar correction</span>
+          <span class="sb-item-time">Kecha</span>
+        </div>
+        <div class="sb-item-preview">Past tense review</div>
+      </div>
+    </a>
+    <a class="sb-item" href="#">
+      <div class="sb-item-avatar sb-item-avatar--ai"><i class="bi bi-stars"></i></div>
+      <div class="sb-item-body">
+        <div class="sb-item-row">
+          <span class="sb-item-name">Reading summary</span>
+          <span class="sb-item-time">Kecha</span>
+        </div>
+        <div class="sb-item-preview">Lesson 02 notes</div>
+      </div>
+    </a>
+    <a class="sb-item" href="#">
+      <div class="sb-item-avatar sb-item-avatar--ai"><i class="bi bi-stars"></i></div>
+      <div class="sb-item-body">
+        <div class="sb-item-row">
+          <span class="sb-item-name">Writing starter</span>
+          <span class="sb-item-time">Seshanba</span>
+        </div>
+        <div class="sb-item-preview">Paragraph opening</div>
+      </div>
+    </a>
+    <a class="sb-item" href="#">
+      <div class="sb-item-avatar sb-item-avatar--ai"><i class="bi bi-stars"></i></div>
+      <div class="sb-item-body">
+        <div class="sb-item-row">
+          <span class="sb-item-name">Speaking drill</span>
+          <span class="sb-item-time">Dushanba</span>
+        </div>
+        <div class="sb-item-preview">Pronunciation feedback</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="sb-footer">
+    <div class="sb-user">
+      <div class="sb-user-avatar">AK</div>
+      <div class="sb-user-info">
+        <div class="sb-user-name">Azurebekdev</div>
+        <div class="sb-user-role">Pro reja · Faol</div>
+      </div>
+      <i class="bi bi-chevron-expand sb-user-more"></i>
+    </div>
+  </div>
+</aside>
+
+<section class="chat-panel">
+  <header class="chat-topbar">
+    <div class="chat-head">
+      <div class="chat-head-avatar chat-head-avatar--group">A2</div>
+      <div class="chat-head-meta">
+        <div class="chat-head-name">A2 Group chat</div>
+        <div class="chat-head-sub">28 a'zo · 6 online</div>
+      </div>
+    </div>
+    <div class="chat-actions">
+      <button class="chat-icon-btn" type="button" aria-label="A'zolar"><i class="bi bi-people"></i></button>
+      <button class="chat-icon-btn" type="button" aria-label="Qidirish"><i class="bi bi-search"></i></button>
+      <button class="chat-icon-btn info-toggle active" id="infoToggle" type="button" aria-label="Ma'lumot paneli" aria-expanded="true"><i class="bi bi-layout-sidebar-reverse"></i></button>
+      <button class="chat-icon-btn" id="themeBtn" type="button" aria-label="Tema"><i class="bi bi-moon" id="themeIcon"></i></button>
+      <button class="chat-icon-btn" type="button" aria-label="Ko'proq"><i class="bi bi-three-dots-vertical"></i></button>
+    </div>
+  </header>
+
+  <div class="messages-area">
+
+    <div class="day-divider"><span class="day-label">Bugun</span></div>
+
+    <div class="sys-note"><span>Dilnoza guruhga Bobur'ni qo'shdi</span></div>
+
+    <!-- Dilnoza -->
+    <div class="msg-row group-start group-last">
+      <div class="msg-avatar c-pink">DY</div>
+      <div class="msg-group">
+        <div class="msg-author-name">Dilnoza Yusupova</div>
+        <div class="bubble bubble-them">
+          Salom guruh! Bugungi self-introduction mashqini birga ko'rib chiqamizmi? Kim tayyor?
+        </div>
+        <div class="bubble-meta"><span>09:42</span></div>
+      </div>
+      <div class="msg-actions">
+        <button type="button" title="Reply"><i class="bi bi-reply"></i></button>
+        <button type="button" title="React"><i class="bi bi-emoji-smile"></i></button>
+        <button type="button" title="Copy"><i class="bi bi-files"></i></button>
+      </div>
+    </div>
+
+    <!-- Bobur: 2 bubbles -->
+    <div class="msg-row group-start">
+      <div class="msg-avatar c-cyan">BN</div>
+      <div class="msg-group">
+        <div class="msg-author-name">Bobur Nazarov</div>
+        <div class="bubble bubble-them">Men tayyorman 🙋‍♂️ Kecha yozib qo'ygandim, hozir yuboraman.</div>
+      </div>
+      <div class="msg-actions">
+        <button type="button" title="Reply"><i class="bi bi-reply"></i></button>
+        <button type="button" title="React"><i class="bi bi-emoji-smile"></i></button>
+      </div>
+    </div>
+    <div class="msg-row group-last">
+      <div class="msg-avatar c-cyan">BN</div>
+      <div class="msg-group">
+        <div class="bubble-file">
+          <div class="bubble-file-icon"><i class="bi bi-file-earmark-text"></i></div>
+          <div class="bubble-file-info">
+            <div class="bubble-file-name">self-intro-bobur.txt</div>
+            <div class="bubble-file-size">3.4 KB · TXT</div>
+          </div>
+          <i class="bi bi-download" style="color:var(--ink-4)"></i>
+        </div>
+        <div class="bubble-meta"><span>09:44</span></div>
+      </div>
+      <div class="msg-actions">
+        <button type="button" title="Reply"><i class="bi bi-reply"></i></button>
+        <button type="button" title="React"><i class="bi bi-emoji-smile"></i></button>
+      </div>
+    </div>
+
+    <!-- Me -->
+    <div class="msg-row me group-start group-last">
+      <div class="msg-group">
+        <div class="bubble bubble-me">
+          Zo'r Bobur! Men ham kechagi savol-javob qismida bir joyda qoldim. <code>Şimdi</code> bilan <code>Şu anda</code> qachon ishlatamiz?
+        </div>
+        <div class="bubble-meta"><span>10:01</span><i class="bi bi-check2-all check"></i></div>
+      </div>
+      <div class="msg-actions">
+        <button type="button" title="Copy"><i class="bi bi-files"></i></button>
+        <button type="button" title="Edit"><i class="bi bi-pencil"></i></button>
+      </div>
+    </div>
+
+    <!-- Kamola -->
+    <div class="msg-row group-start group-last">
+      <div class="msg-avatar c-lime">KI</div>
+      <div class="msg-group">
+        <div class="msg-author-name">Kamola Islamova</div>
+        <div class="bubble bubble-them">
+          Aziz, "Şimdi" — odatda hozirgi vaqt, "Şu anda" esa "aynan shu daqiqada". Ikkalasi A2 da bir xil ishlatilsa ham bo'ladi.
+        </div>
+        <div class="bubble-meta"><span>10:03</span></div>
+        <div class="reactions">
+          <div class="reaction mine">👍 <span class="reaction-count">2</span></div>
+          <div class="reaction">❤️ <span class="reaction-count">1</span></div>
+        </div>
+      </div>
+      <div class="msg-actions">
+        <button type="button" title="Reply"><i class="bi bi-reply"></i></button>
+        <button type="button" title="React"><i class="bi bi-emoji-smile"></i></button>
+        <button type="button" title="Copy"><i class="bi bi-files"></i></button>
+      </div>
+    </div>
+
+    <!-- Dilnoza -->
+    <div class="msg-row group-start group-last">
+      <div class="msg-avatar c-pink">DY</div>
+      <div class="msg-group">
+        <div class="msg-author-name">Dilnoza Yusupova</div>
+        <div class="bubble bubble-them">
+          Kamola to'g'ri aytdi 👍 Qo'shimcha qilaman: kursdagi 5-darsda bu farq batafsil tushuntirilgan, qarab oling.
+        </div>
+        <div class="bubble-meta"><span>10:04</span></div>
+      </div>
+      <div class="msg-actions">
+        <button type="button" title="Reply"><i class="bi bi-reply"></i></button>
+        <button type="button" title="React"><i class="bi bi-emoji-smile"></i></button>
+      </div>
+    </div>
+
+    <!-- Me -->
+    <div class="msg-row me group-start group-last">
+      <div class="msg-group">
+        <div class="bubble bubble-me">Rahmat hammaga! 🙏</div>
+        <div class="bubble-meta"><span>10:05</span><i class="bi bi-check2-all check"></i></div>
+      </div>
+      <div class="msg-actions">
+        <button type="button" title="Copy"><i class="bi bi-files"></i></button>
+        <button type="button" title="Edit"><i class="bi bi-pencil"></i></button>
+      </div>
+    </div>
+
+    <!-- Typing -->
+    <div class="typing-row">
+      <div class="msg-avatar c-indigo">UT</div>
+      <div class="typing-bubble">
+        <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="compose-wrap">
+    <div class="compose-row">
+      <div class="attach-wrap">
+        <button class="attach-btn" id="attachBtn" type="button" aria-label="Biriktirish"><i class="bi bi-plus-lg"></i></button>
+        <div class="attach-menu" id="attachMenu">
+          <button class="attach-item" type="button"><i class="bi bi-image ai-photo"></i> Rasm yoki video</button>
+          <button class="attach-item" type="button"><i class="bi bi-file-earmark ai-doc"></i> Hujjat</button>
+          <button class="attach-item" type="button"><i class="bi bi-mic ai-mic"></i> Ovozli xabar</button>
+          <button class="attach-item" type="button"><i class="bi bi-bar-chart ai-poll"></i> So'rovnoma</button>
+        </div>
+      </div>
+      <div class="compose-input-wrap">
+        <textarea class="compose-input" placeholder="Guruhga yozing..." rows="1"></textarea>
+      </div>
+      <div class="compose-actions">
+        <button class="compose-emoji" type="button" aria-label="Emoji"><i class="bi bi-emoji-smile"></i></button>
+        <button class="send-btn" type="button" aria-label="Yuborish"><i class="bi bi-send-fill"></i></button>
+      </div>
+    </div>
+  </footer>
+</section>
+
+<aside class="chat-info-panel" id="chatInfoPanel" aria-label="Suhbat ma'lumotlari">
+  <div class="info-head">
+    <div class="info-head-title">Guruh ma'lumoti</div>
+    <button class="info-close" id="infoClose" type="button" aria-label="Panelni yopish"><i class="bi bi-x-lg"></i></button>
+  </div>
+
+  <div class="info-profile">
+    <div class="info-avatar info-avatar--group">A2</div>
+    <div class="info-name">A2 Group chat</div>
+    <div class="info-status online"><span></span> 28 a'zo · 6 online</div>
+  </div>
+
+  <div class="info-actions">
+    <button type="button"><i class="bi bi-chat-dots-fill"></i><span>Message</span></button>
+    <button type="button"><i class="bi bi-bell"></i><span>Mute</span></button>
+    <button type="button"><i class="bi bi-person-plus"></i><span>Qo'shish</span></button>
+  </div>
+
+  <div class="info-strip"><i class="bi bi-megaphone"></i> Haftalik speaking practice · 5-dars</div>
+
+  <div class="info-scroll">
+    <section class="info-section">
+      <div class="info-section-title">Guruh haqida</div>
+      <p class="info-copy">A2 bridge talabalari uchun self-introduction, speaking va grammar savollarini birga ko'rish joyi.</p>
+    </section>
+
+    <section class="info-section">
+      <div class="info-section-title">A'zolar</div>
+      <div class="info-member"><span class="c-pink">DY</span><div><strong>Dilnoza Yusupova</strong><small>Mentor · online</small></div></div>
+      <div class="info-member"><span class="c-cyan">BN</span><div><strong>Bobur Nazarov</strong><small>Student</small></div></div>
+      <div class="info-member"><span class="c-lime">KI</span><div><strong>Kamola Islamova</strong><small>Student</small></div></div>
+    </section>
+
+    <section class="info-section">
+      <div class="info-section-title">Ulashilgan fayllar</div>
+      <div class="info-file"><i class="bi bi-file-earmark-text"></i><div><strong>self-intro-bobur.txt</strong><span>3.4 KB · TXT</span></div></div>
+      <div class="info-file"><i class="bi bi-file-earmark-pdf"></i><div><strong>lesson-05-notes.pdf</strong><span>420 KB · PDF</span></div></div>
+    </section>
+
+    <section class="info-section">
+      <div class="info-section-title">Harakatlar</div>
+      <button class="info-link" type="button"><i class="bi bi-link-45deg"></i> Taklif linkini olish</button>
+      <button class="info-link danger" type="button"><i class="bi bi-box-arrow-right"></i> Guruhdan chiqish</button>
+    </section>
+  </div>
+</aside>
+
+<script>
+  (function() {
+    const btn = document.getElementById('themeBtn');
+    const icon = document.getElementById('themeIcon');
+    if (!btn) return;
+    function syncIcon() {
+      const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+      icon.className = dark ? 'bi bi-sun' : 'bi bi-moon';
+    }
+    syncIcon();
+    btn.addEventListener('click', () => {
+      const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', cur);
+      try { localStorage.setItem('az-theme', cur); } catch (_) {}
+      syncIcon();
+    });
+  })();
+  (function() {
+    const ta = document.querySelector('.compose-input');
+    if (!ta) return;
+    ta.addEventListener('input', () => {
+      ta.style.height = 'auto';
+      ta.style.height = Math.min(ta.scrollHeight, 140) + 'px';
+    });
+  })();
+
+  (function() {
+    const btn = document.getElementById('attachBtn');
+    const menu = document.getElementById('attachMenu');
+    if (!btn || !menu) return;
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      btn.classList.toggle('open');
+      menu.classList.toggle('open');
+    });
+    document.addEventListener('click', (e) => {
+      if (!menu.contains(e.target) && e.target !== btn) {
+        btn.classList.remove('open');
+        menu.classList.remove('open');
+      }
+    });
+  })();
+
+  (function() {
+    const body = document.body;
+    const toggle = document.getElementById('infoToggle');
+    const close = document.getElementById('infoClose');
+    if (!toggle) return;
+
+    function setInfoPanel(open) {
+      body.classList.toggle('info-collapsed', !open);
+      toggle.classList.toggle('active', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    toggle.addEventListener('click', () => setInfoPanel(body.classList.contains('info-collapsed')));
+    if (close) close.addEventListener('click', () => setInfoPanel(false));
+  })();
+</script>
+
+</body>
+</html>

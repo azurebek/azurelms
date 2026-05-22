@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS old-turtle prototype for blog studio analytics.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>Analitika — Blog Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- CSS Zanjiri (Architectural Standard) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/blog-studio-analytics.css">
+
+  <link rel="stylesheet" href="../assets/css/prototype-extracted.css">
+</head>
+<body>
+  <script>
+    (function(){ try { var t = localStorage.getItem('lms-theme'); if(t) document.documentElement.setAttribute('data-theme', t); } catch(e){} })();
+  </script>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">AL</div>
+      <span class="logo-name">AzureLMS</span>
+      <span class="logo-tag">Studio</span>
+    </div>
+    <div class="sidebar-user">
+      <div class="user-av">AZ</div>
+      <div>
+        <div class="user-name">Azurebek</div>
+        <div class="user-role">Muallif</div>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <span class="nav-group-label">Studio</span>
+      <a href="blog-studio-shell.html" class="nav-item"><i class="bi bi-grid-1x2"></i> Boshqaruv</a>
+      <a href="blog-studio-new-post.html" class="nav-item"><i class="bi bi-pencil-square"></i> Yangi post</a>
+      <a href="blog-studio-shell.html" class="nav-item"><i class="bi bi-file-earmark-text"></i> Postlar <span class="nav-badge">12</span></a>
+      <a href="blog-studio-analytics.html" class="nav-item active"><i class="bi bi-bar-chart-line"></i> Analitika</a>
+      <span class="nav-group-label">Kontent</span>
+      <a href="../blog/blog-tags.html" class="nav-item"><i class="bi bi-tags"></i> Teglar</a>
+      <a href="blog-studio-new-post.html" class="nav-item"><i class="bi bi-image"></i> Media</a>
+      <a href="blog-studio-shell.html" class="nav-item"><i class="bi bi-chat-dots"></i> Izohlar <span class="nav-badge">3</span></a>
+    </div>
+    <div class="sidebar-bottom">
+      <a href="../blog/blog-shell.html" class="nav-item"><i class="bi bi-eye"></i> Blogni ko'rish</a>
+      <a href="blog-studio-shell.html" class="nav-item"><i class="bi bi-gear"></i> Sozlamalar</a>
+    </div>
+  </nav>
+
+  <!-- PAGE WRAP -->
+  <div class="page-wrap">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div>
+        <div class="topbar-title">Analitika</div>
+        <div class="topbar-sub">So'nggi yangilanish: bugun, 14:32</div>
+      </div>
+      <div class="tb-spacer"></div>
+      <div class="range-pills">
+        <button class="range-pill" data-ui-call="setRange" data-ui-pass="this">7 kun</button>
+        <button class="range-pill active" data-ui-call="setRange" data-ui-pass="this">30 kun</button>
+        <button class="range-pill" data-ui-call="setRange" data-ui-pass="this">90 kun</button>
+        <button class="range-pill" data-ui-call="setRange" data-ui-pass="this">1 yil</button>
+      </div>
+      <button class="tb-btn tb-btn-ghost"><i class="bi bi-download"></i> Export</button>
+      <button class="tb-theme" data-ui-action="theme" title="Mavzu">
+        <i class="bi bi-moon-stars" id="themeIcon"></i>
+      </button>
+    </header>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- KPI CARDS -->
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <div class="kpi-icon blue"><i class="bi bi-eye"></i></div>
+          <div class="kpi-label">Jami ko'rishlar</div>
+          <div class="kpi-val" id="kpiViews">0</div>
+          <div class="xstyle-e3f61041">
+            <span class="kpi-delta up"><i class="bi bi-arrow-up"></i> 24.6%</span>
+            <span class="kpi-compare">o'tgan oyga nisbatan</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon green"><i class="bi bi-people"></i></div>
+          <div class="kpi-label">Noyob tashrif buyuruvchilar</div>
+          <div class="kpi-val" id="kpiVisitors">0</div>
+          <div class="xstyle-e3f61041">
+            <span class="kpi-delta up"><i class="bi bi-arrow-up"></i> 18.3%</span>
+            <span class="kpi-compare">o'tgan oyga nisbatan</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon purple"><i class="bi bi-heart"></i></div>
+          <div class="kpi-label">Jami yoqtirishlar</div>
+          <div class="kpi-val" id="kpiLikes">0</div>
+          <div class="xstyle-e3f61041">
+            <span class="kpi-delta up"><i class="bi bi-arrow-up"></i> 31.2%</span>
+            <span class="kpi-compare">o'tgan oyga nisbatan</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon amber"><i class="bi bi-clock-history"></i></div>
+          <div class="kpi-label">O'rtacha o'qish vaqti</div>
+          <div class="kpi-val">4:18</div>
+          <div class="xstyle-e3f61041">
+            <span class="kpi-delta down"><i class="bi bi-arrow-down"></i> 5.1%</span>
+            <span class="kpi-compare">o'tgan oyga nisbatan</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEWS CHART + DONUT -->
+      <div class="charts-row-3">
+        <!-- Line chart card -->
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Ko'rishlar dinamikasi</div>
+              <div class="card-sub">Kunlik ko'rishlar va unique tashrif buyuruvchilar</div>
+            </div>
+            <div class="card-spacer"></div>
+            <div class="xstyle-1d8943fa">
+              <button class="range-pill active xstyle-4d2278fe">Ko'rishlar</button>
+              <button class="range-pill xstyle-e392bddd">Tashrif</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="chart-wrap">
+              <svg class="chart-svg" viewBox="0 0 580 180" id="lineChart">
+                <!-- Grid lines -->
+                <line x1="0" y1="30" x2="580" y2="30" stroke="var(--border-soft)" stroke-width="1"/>
+                <line x1="0" y1="70" x2="580" y2="70" stroke="var(--border-soft)" stroke-width="1"/>
+                <line x1="0" y1="110" x2="580" y2="110" stroke="var(--border-soft)" stroke-width="1"/>
+                <line x1="0" y1="150" x2="580" y2="150" stroke="var(--border-soft)" stroke-width="1"/>
+                <!-- Y labels -->
+                <text x="0" y="28" font-size="9" fill="var(--ink-5)">1,200</text>
+                <text x="0" y="68" font-size="9" fill="var(--ink-5)">900</text>
+                <text x="0" y="108" font-size="9" fill="var(--ink-5)">600</text>
+                <text x="0" y="148" font-size="9" fill="var(--ink-5)">300</text>
+                <!-- Views area gradient -->
+                <defs>
+                  <linearGradient id="viewsGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="var(--blue-mid)" stop-opacity="0.22"/>
+                    <stop offset="100%" stop-color="var(--blue-mid)" stop-opacity="0"/>
+                  </linearGradient>
+                  <linearGradient id="visGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="var(--purple)" stop-opacity="0.16"/>
+                    <stop offset="100%" stop-color="var(--purple)" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <!-- Views filled area -->
+                <path id="viewsArea" fill="url(#viewsGrad)" opacity="0" transition="opacity 500ms"/>
+                <!-- Visitors filled area -->
+                <path id="visArea" fill="url(#visGrad)" opacity="0"/>
+                <!-- Views line -->
+                <path id="viewsLine" fill="none" stroke="var(--blue-mid)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                <!-- Visitors line -->
+                <path id="visLine" fill="none" stroke="var(--purple)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="5,3"/>
+                <!-- Dots will be added by JS -->
+                <g id="dots"></g>
+              </svg>
+              <div class="chart-axis-x" id="chartAxisX"></div>
+              <div class="chart-legend">
+                <div class="legend-item"><span class="legend-dot xstyle-4f67ca57"></span> Ko'rishlar</div>
+                <div class="legend-item"><span class="legend-dot xstyle-07fad16d"></span> Tashrif buyuruvchilar</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Traffic sources donut -->
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Trafik manbalari</div>
+              <div class="card-sub">Bu oy</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="donut-wrap xstyle-a29c4ec7">
+              <svg class="donut-svg" viewBox="0 0 120 120" width="120" height="120">
+                <circle cx="60" cy="60" r="46" fill="none" stroke="var(--border-soft)" stroke-width="16"/>
+                <!-- Organic: 42% -->
+                <circle cx="60" cy="60" r="46" fill="none" stroke="var(--green-mid)" stroke-width="16"
+                  stroke-dasharray="289 0" stroke-dashoffset="72" stroke-linecap="round"
+                  id="donutOrganic"/ class="xstyle-cf7a5e7c">
+                <!-- Social: 28% -->
+                <circle cx="60" cy="60" r="46" fill="none" stroke="var(--purple)" stroke-width="16"
+                  stroke-dasharray="0 289" stroke-dashoffset="0" id="donutSocial"
+                 / class="xstyle-87dd99fa">
+                <!-- Direct: 18% -->
+                <circle cx="60" cy="60" r="46" fill="none" stroke="var(--blue-mid)" stroke-width="16"
+                  stroke-dasharray="0 289" stroke-dashoffset="0" id="donutDirect"
+                 / class="xstyle-aad2ca8d">
+                <!-- Referral: 12% -->
+                <circle cx="60" cy="60" r="46" fill="none" stroke="var(--amber)" stroke-width="16"
+                  stroke-dasharray="0 289" stroke-dashoffset="0" id="donutRef"
+                 / class="xstyle-faaac862">
+                <text x="60" y="56" text-anchor="middle" font-size="18" font-weight="800" fill="var(--ink-0)">42%</text>
+                <text x="60" y="70" text-anchor="middle" font-size="8" fill="var(--ink-4)">Organik</text>
+              </svg>
+              <div class="donut-legend xstyle-0466783d">
+                <div class="donut-item">
+                  <span class="donut-swatch xstyle-fd964389"></span>
+                  <span class="donut-name">Organik qidiruv</span>
+                  <div class="donut-bar-bg"><div class="donut-bar-fill xstyle-2421b74a" data-w="42"></div></div>
+                  <span class="donut-pct">42%</span>
+                </div>
+                <div class="donut-item">
+                  <span class="donut-swatch xstyle-07fad16d"></span>
+                  <span class="donut-name">Ijtimoiy tarmoqlar</span>
+                  <div class="donut-bar-bg"><div class="donut-bar-fill xstyle-54daa1d1" data-w="28"></div></div>
+                  <span class="donut-pct">28%</span>
+                </div>
+                <div class="donut-item">
+                  <span class="donut-swatch xstyle-4f67ca57"></span>
+                  <span class="donut-name">To'g'ridan-to'g'ri</span>
+                  <div class="donut-bar-bg"><div class="donut-bar-fill xstyle-7ad80859" data-w="18"></div></div>
+                  <span class="donut-pct">18%</span>
+                </div>
+                <div class="donut-item">
+                  <span class="donut-swatch xstyle-8014d762"></span>
+                  <span class="donut-name">Referral</span>
+                  <div class="donut-bar-bg"><div class="donut-bar-fill xstyle-94aad0d7" data-w="12"></div></div>
+                  <span class="donut-pct">12%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BAR CHART + ENGAGEMENT -->
+      <div class="charts-row">
+        <!-- Daily bar chart -->
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Haftalik ko'rishlar</div>
+              <div class="card-sub">Oxirgi 8 hafta</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="bar-chart" id="barChart"></div>
+            <div class="chart-axis-x" id="barAxisX"></div>
+          </div>
+        </div>
+
+        <!-- Engagement score -->
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">Jalb qilish ko'rsatkichi</div>
+              <div class="card-sub">O'rtacha aktivlik</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="eng-row">
+              <div class="eng-ring">
+                <svg viewBox="0 0 100 100" width="110" height="110">
+                  <circle cx="50" cy="50" r="42" fill="none" stroke="var(--border-soft)" stroke-width="10"/>
+                  <circle cx="50" cy="50" r="42" fill="none" stroke="var(--purple)" stroke-width="10"
+                    stroke-dasharray="264" stroke-dashoffset="264" stroke-linecap="round"
+                    transform="rotate(-90 50 50)" id="engRing"
+                   / class="xstyle-cbf64809">
+                </svg>
+                <div class="eng-ring-label">
+                  <span class="eng-ring-num" id="engNum">0</span>
+                  <span class="eng-ring-sub">/ 100</span>
+                </div>
+              </div>
+              <div class="eng-metrics">
+                <div class="eng-metric">
+                  <div class="eng-metric-row">
+                    <span class="eng-metric-name">Like nisbati</span>
+                    <span class="eng-metric-val">8.4%</span>
+                  </div>
+                  <div class="eng-bar-bg"><div class="eng-bar-fill xstyle-54daa1d1" data-w="84"></div></div>
+                </div>
+                <div class="eng-metric">
+                  <div class="eng-metric-row">
+                    <span class="eng-metric-name">Izoh nisbati</span>
+                    <span class="eng-metric-val">3.2%</span>
+                  </div>
+                  <div class="eng-bar-bg"><div class="eng-bar-fill xstyle-7ad80859" data-w="32"></div></div>
+                </div>
+                <div class="eng-metric">
+                  <div class="eng-metric-row">
+                    <span class="eng-metric-name">Ulashish</span>
+                    <span class="eng-metric-val">2.7%</span>
+                  </div>
+                  <div class="eng-bar-bg"><div class="eng-bar-fill xstyle-2421b74a" data-w="27"></div></div>
+                </div>
+                <div class="eng-metric">
+                  <div class="eng-metric-row">
+                    <span class="eng-metric-name">Saqlash nisbati</span>
+                    <span class="eng-metric-val">5.9%</span>
+                  </div>
+                  <div class="eng-bar-bg"><div class="eng-bar-fill xstyle-94aad0d7" data-w="59"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TOP POSTS TABLE -->
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">Eng yaxshi postlar</div>
+            <div class="card-sub">Ko'rishlar bo'yicha reyting</div>
+          </div>
+          <div class="card-spacer"></div>
+          <button class="tb-btn tb-btn-ghost xstyle-609d6757"><i class="bi bi-arrow-up-right"></i> Barchasi</button>
+        </div>
+        <div class="card-body xstyle-41d7d7e2">
+          <table class="posts-table">
+            <thead>
+              <tr>
+                <th class="xstyle-61218aee">Post nomi</th>
+                <th>Ko'rishlar</th>
+                <th>Yoqtirishlar</th>
+                <th>Izohlar</th>
+                <th>O'qish vaqti</th>
+                <th>Trend</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="xstyle-ea10c58f">
+                  <div class="post-title-cell">
+                    <div class="post-num top">01</div>
+                    <div>
+                      <div class="post-title-text">IELTS 7+ ball olish sirlari</div>
+                      <span class="post-cat-chip chip-blue">Ingliz tili</span>
+                    </div>
+                  </div>
+                </td>
+                <td><strong>12,847</strong></td>
+                <td>1,024</td>
+                <td>187</td>
+                <td>6:42</td>
+                <td><span class="trend-up"><i class="bi bi-arrow-up-right"></i> 34%</span></td>
+              </tr>
+              <tr>
+                <td class="xstyle-ea10c58f">
+                  <div class="post-title-cell">
+                    <div class="post-num top">02</div>
+                    <div>
+                      <div class="post-title-text">Python bilan AI loyiha qurish</div>
+                      <span class="post-cat-chip chip-purple">Dasturlash</span>
+                    </div>
+                  </div>
+                </td>
+                <td><strong>9,312</strong></td>
+                <td>743</td>
+                <td>124</td>
+                <td>8:15</td>
+                <td><span class="trend-up"><i class="bi bi-arrow-up-right"></i> 18%</span></td>
+              </tr>
+              <tr>
+                <td class="xstyle-ea10c58f">
+                  <div class="post-title-cell">
+                    <div class="post-num">03</div>
+                    <div>
+                      <div class="post-title-text">AzureLMS — platformaning yangi imkoniyatlari</div>
+                      <span class="post-cat-chip chip-green">Platforma</span>
+                    </div>
+                  </div>
+                </td>
+                <td><strong>7,641</strong></td>
+                <td>612</td>
+                <td>98</td>
+                <td>4:30</td>
+                <td><span class="trend-up"><i class="bi bi-arrow-up-right"></i> 12%</span></td>
+              </tr>
+              <tr>
+                <td class="xstyle-ea10c58f">
+                  <div class="post-title-cell">
+                    <div class="post-num">04</div>
+                    <div>
+                      <div class="post-title-text">Matematika olimpiadasi: tayyorlanish yo'li</div>
+                      <span class="post-cat-chip chip-amber">Matematika</span>
+                    </div>
+                  </div>
+                </td>
+                <td><strong>5,218</strong></td>
+                <td>388</td>
+                <td>67</td>
+                <td>5:10</td>
+                <td><span class="trend-dn"><i class="bi bi-arrow-down-right"></i> 3%</span></td>
+              </tr>
+              <tr>
+                <td class="xstyle-ea10c58f">
+                  <div class="post-title-cell">
+                    <div class="post-num">05</div>
+                    <div>
+                      <div class="post-title-text">Online ta'limning afzalliklari va kamchiliklari</div>
+                      <span class="post-cat-chip chip-blue">Ta'lim</span>
+                    </div>
+                  </div>
+                </td>
+                <td><strong>4,703</strong></td>
+                <td>297</td>
+                <td>54</td>
+                <td>3:55</td>
+                <td><span class="trend-up"><i class="bi bi-arrow-up-right"></i> 7%</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- AUDIENCE GRID -->
+      <div class="audience-grid">
+
+        <!-- Devices -->
+        <div class="audience-card">
+          <div class="aud-title"><i class="bi bi-display xstyle-0757a8e5"></i>Qurilmalar</div>
+          <div class="device-list">
+            <div class="device-row">
+              <div class="device-icon"><i class="bi bi-phone"></i></div>
+              <div class="device-info">
+                <div class="device-name">Mobil</div>
+                <div class="device-bar-bg"><div class="device-bar-fill xstyle-7ad80859" data-w="62"></div></div>
+              </div>
+              <span class="device-pct">62%</span>
+            </div>
+            <div class="device-row">
+              <div class="device-icon"><i class="bi bi-laptop"></i></div>
+              <div class="device-info">
+                <div class="device-name">Kompyuter</div>
+                <div class="device-bar-bg"><div class="device-bar-fill xstyle-2421b74a" data-w="30"></div></div>
+              </div>
+              <span class="device-pct">30%</span>
+            </div>
+            <div class="device-row">
+              <div class="device-icon"><i class="bi bi-tablet"></i></div>
+              <div class="device-info">
+                <div class="device-name">Planshet</div>
+                <div class="device-bar-bg"><div class="device-bar-fill xstyle-94aad0d7" data-w="8"></div></div>
+              </div>
+              <span class="device-pct">8%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Countries -->
+        <div class="audience-card">
+          <div class="aud-title"><i class="bi bi-globe xstyle-cfbc1b64"></i>Mamlakatlar</div>
+          <div class="country-list">
+            <div class="country-row"><span class="country-flag">🇺🇿</span><span class="country-name">O'zbekiston</span><div class="country-bar-bg"><div class="country-bar-fill xstyle-c40a0ed8" data-w="72"></div></div><span class="country-count">72%</span></div>
+            <div class="country-row"><span class="country-flag">🇷🇺</span><span class="country-name">Rossiya</span><div class="country-bar-bg"><div class="country-bar-fill xstyle-c40a0ed8" data-w="12"></div></div><span class="country-count">12%</span></div>
+            <div class="country-row"><span class="country-flag">🇰🇿</span><span class="country-name">Qozog'iston</span><div class="country-bar-bg"><div class="country-bar-fill xstyle-c40a0ed8" data-w="8"></div></div><span class="country-count">8%</span></div>
+            <div class="country-row"><span class="country-flag">🇹🇷</span><span class="country-name">Turkiya</span><div class="country-bar-bg"><div class="country-bar-fill xstyle-c40a0ed8" data-w="5"></div></div><span class="country-count">5%</span></div>
+            <div class="country-row"><span class="country-flag">🌍</span><span class="country-name">Boshqalar</span><div class="country-bar-bg"><div class="country-bar-fill xstyle-c40a0ed8" data-w="3"></div></div><span class="country-count">3%</span></div>
+          </div>
+        </div>
+
+        <!-- Referral sources -->
+        <div class="audience-card">
+          <div class="aud-title"><i class="bi bi-share xstyle-820dc564"></i>Referral manbalar</div>
+          <div class="ref-list">
+            <div class="ref-row"><div class="ref-icon xstyle-1bd6d874"><i class="bi bi-facebook"></i></div><span class="ref-source">Facebook</span><div class="ref-bar-bg"><div class="ref-bar-fill xstyle-c40a0ed8" data-w="78"></div></div><span class="ref-visits">4,821</span></div>
+            <div class="ref-row"><div class="ref-icon xstyle-44063697"><i class="bi bi-telegram"></i></div><span class="ref-source">Telegram</span><div class="ref-bar-bg"><div class="ref-bar-fill xstyle-c40a0ed8" data-w="92"></div></div><span class="ref-visits">5,684</span></div>
+            <div class="ref-row"><div class="ref-icon xstyle-10e12876"><i class="bi bi-instagram"></i></div><span class="ref-source">Instagram</span><div class="ref-bar-bg"><div class="ref-bar-fill xstyle-c40a0ed8" data-w="56"></div></div><span class="ref-visits">3,462</span></div>
+            <div class="ref-row"><div class="ref-icon xstyle-572c56d3"><i class="bi bi-youtube"></i></div><span class="ref-source">YouTube</span><div class="ref-bar-bg"><div class="ref-bar-fill xstyle-c40a0ed8" data-w="34"></div></div><span class="ref-visits">2,107</span></div>
+            <div class="ref-row"><div class="ref-icon xstyle-db90cbe8"><i class="bi bi-link-45deg"></i></div><span class="ref-source">Boshqa saytlar</span><div class="ref-bar-bg"><div class="ref-bar-fill xstyle-c40a0ed8" data-w="21"></div></div><span class="ref-visits">1,298</span></div>
+          </div>
+        </div>
+
+        <!-- Newsletter -->
+        <div class="audience-card">
+          <div class="aud-title"><i class="bi bi-envelope-heart xstyle-5b20480e"></i>Email obunachilari</div>
+          <div class="xstyle-62c135d5">
+            <div class="xstyle-5f1abcf0">
+              <div id="subsCount" class="xstyle-831b1fde">0</div>
+              <div class="xstyle-75abe023">Jami obunachi</div>
+              <span class="kpi-delta up xstyle-0e8fb9ff"><i class="bi bi-arrow-up"></i> +284 bu oy</span>
+            </div>
+            <div class="xstyle-f67b86e0">
+              <div class="xstyle-1781f697">
+                <span class="xstyle-1a1aca0e">Ochilish darajasi</span>
+                <strong>47.3%</strong>
+              </div>
+              <div class="xstyle-8c2ba17c">
+                <div data-w="47" class="xstyle-614b21ee"></div>
+              </div>
+              <div class="xstyle-41e238eb">
+                <span class="xstyle-1a1aca0e">Bosish darajasi</span>
+                <strong>12.8%</strong>
+              </div>
+              <div class="xstyle-8c2ba17c">
+                <div data-w="13" class="xstyle-9a694862"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /page-wrap -->
+
+  <script>
+    // ── Theme ──
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isDark = html.getAttribute('data-theme') === 'dark';
+      html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      document.getElementById('themeIcon').className = isDark ? 'bi bi-moon-stars' : 'bi bi-sun';
+      try { localStorage.setItem('lms-theme', isDark ? 'light' : 'dark'); } catch(e){}
+    }
+    (function(){ try { if(localStorage.getItem('lms-theme') === 'dark') document.getElementById('themeIcon').className = 'bi bi-sun'; } catch(e){} })();
+
+    // ── Range pills ──
+    function setRange(btn) {
+      document.querySelectorAll('.range-pill').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    // ── Counter animation ──
+    function animateCount(el, target, duration, suffix) {
+      let start = 0;
+      const step = Math.ceil(target / (duration / 16));
+      const iv = setInterval(() => {
+        start = Math.min(start + step, target);
+        el.textContent = start.toLocaleString('uz-UZ') + (suffix || '');
+        if (start >= target) clearInterval(iv);
+      }, 16);
+    }
+
+    // ── Line chart ──
+    const viewsData = [420,580,510,740,820,680,950,1080,730,860,1100,980,1200,1050,890,1140,1020,1180,1320,1080,940,1260,1180,1420,1100,1360,1540,1280,1460,1620];
+    const visData   = [280,390,350,510,570,460,650,740,500,590,760,670,830,720,610,780,700,810,910,740,650,870,810,980,760,940,1060,880,1010,1120];
+    const labels    = ['May 1','May 5','May 10','May 15','May 20','May 25','May 30'];
+
+    function buildLineChart() {
+      const W = 580, H = 180, pad = 30, maxV = 1800;
+      const pts = (data) => data.map((v, i) => {
+        const x = pad + (i / (data.length - 1)) * (W - pad * 2);
+        const y = H - pad - (v / maxV) * (H - pad * 2);
+        return [x, y];
+      });
+      const toPath = (pts, close = false) => {
+        const d = pts.map((p, i) => (i === 0 ? `M${p[0]},${p[1]}` : `L${p[0]},${p[1]}`)).join(' ');
+        return close ? d + ` L${pts[pts.length-1][0]},${H} L${pts[0][0]},${H} Z` : d;
+      };
+      const vPts = pts(viewsData), viPts = pts(visData);
+      document.getElementById('viewsLine').setAttribute('d', toPath(vPts));
+      document.getElementById('visLine').setAttribute('d', toPath(viPts));
+      document.getElementById('viewsArea').setAttribute('d', toPath(vPts, true));
+      document.getElementById('viewsArea').setAttribute('opacity', '1');
+      document.getElementById('visArea').setAttribute('d', toPath(viPts, true));
+      document.getElementById('visArea').setAttribute('opacity', '1');
+      // Dots on last point
+      const dotsG = document.getElementById('dots');
+      [[vPts[vPts.length-1], 'var(--blue-mid)'], [viPts[viPts.length-1], 'var(--purple)']].forEach(([p, c]) => {
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', p[0]); circle.setAttribute('cy', p[1]); circle.setAttribute('r', '4');
+        circle.setAttribute('fill', c); circle.setAttribute('stroke', 'var(--white)'); circle.setAttribute('stroke-width', '2');
+        dotsG.appendChild(circle);
+      });
+      // Axis labels
+      const axEl = document.getElementById('chartAxisX');
+      labels.forEach(l => { const s = document.createElement('span'); s.textContent = l; axEl.appendChild(s); });
+    }
+
+    // ── Bar chart ──
+    const barData = [
+      {w: 45, label: 'Mar 1'}, {w: 58, label: 'Mar 8'}, {w: 52, label: 'Mar 15'},
+      {w: 70, label: 'Mar 22'}, {w: 63, label: 'Apr 1'}, {w: 80, label: 'Apr 8'},
+      {w: 75, label: 'Apr 15'}, {w: 93, label: 'May 1'}
+    ];
+    function buildBarChart() {
+      const bc = document.getElementById('barChart');
+      const ax = document.getElementById('barAxisX');
+      barData.forEach((d, i) => {
+        const col = document.createElement('div');
+        col.className = 'bar-col';
+        const fill = document.createElement('div');
+        fill.className = 'bar-fill views' + (i === barData.length - 1 ? ' today' : '');
+        fill.dataset.val = (d.w * 140).toLocaleString() + ' ko\'rish';
+        fill.style.height = '0';
+        fill.style.maxHeight = d.w + '%';
+        col.appendChild(fill);
+        bc.appendChild(col);
+        const lbl = document.createElement('span');
+        lbl.textContent = d.label;
+        ax.appendChild(lbl);
+        setTimeout(() => { fill.style.height = d.w + '%'; }, 100 + i * 60);
+      });
+    }
+
+    // ── On load animations ──
+    window.addEventListener('load', () => {
+      buildLineChart();
+      buildBarChart();
+      // KPI counters
+      setTimeout(() => {
+        animateCount(document.getElementById('kpiViews'), 47203);
+        animateCount(document.getElementById('kpiVisitors'), 29841);
+        animateCount(document.getElementById('kpiLikes'), 3927);
+        animateCount(document.getElementById('subsCount'), 8432);
+      }, 200);
+      // Engagement ring
+      setTimeout(() => {
+        const score = 76;
+        const offset = 264 - (score / 100) * 264;
+        document.getElementById('engRing').style.strokeDashoffset = offset;
+        animateCount(document.getElementById('engNum'), score, 900);
+      }, 300);
+      // All fill bars
+      setTimeout(() => {
+        document.querySelectorAll('[data-w]').forEach(el => {
+          el.style.width = el.dataset.w + '%';
+        });
+      }, 400);
+    });
+  </script>
+  <script src="../assets/js/prototype-ui.js"></script>
+</body>
+</html>
+

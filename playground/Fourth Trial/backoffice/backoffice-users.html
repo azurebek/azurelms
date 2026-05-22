@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS — Backoffice · Foydalanuvchilarni boshqarish">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>Foydalanuvchilar — Backoffice · AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/backoffice-shell.css">
+  <link rel="stylesheet" href="../assets/css/backoffice-users.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- ═════════════ SIDEBAR ═════════════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">AZ</div>
+      <span class="sidebar-logo-name">AzureLMS</span>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="Backoffice navigatsiya">
+
+      <details class="nav-accordion">
+        <summary class="nav-accordion-trigger">
+          <span class="nav-accordion-title"><i class="bi bi-speedometer2"></i> Bosh sahifa</span>
+          <i class="bi bi-chevron-down nav-accordion-caret"></i>
+        </summary>
+        <div class="nav-accordion-panel">
+          <a href="backoffice-shell.html" class="nav-item"><i class="bi bi-grid-fill"></i> Overview</a>
+          <a href="#" class="nav-item"><i class="bi bi-bar-chart-line"></i> Hisobotlar</a>
+          <a href="#" class="nav-item"><i class="bi bi-activity"></i> Aktivlik logi</a>
+        </div>
+      </details>
+
+      <details class="nav-accordion" open>
+        <summary class="nav-accordion-trigger">
+          <span class="nav-accordion-title"><i class="bi bi-people"></i> Foydalanuvchilar</span>
+          <i class="bi bi-chevron-down nav-accordion-caret"></i>
+        </summary>
+        <div class="nav-accordion-panel">
+          <a href="backoffice-users.html" class="nav-item active"><i class="bi bi-mortarboard"></i> Barcha userlar <span class="nav-badge">1.2k</span></a>
+          <a href="#" class="nav-item"><i class="bi bi-person-video3"></i> O'qituvchilar</a>
+          <a href="#" class="nav-item"><i class="bi bi-shield-lock"></i> Adminlar</a>
+          <a href="#" class="nav-item"><i class="bi bi-collection"></i> Cohortlar</a>
+        </div>
+      </details>
+
+      <details class="nav-accordion">
+        <summary class="nav-accordion-trigger">
+          <span class="nav-accordion-title"><i class="bi bi-journal-bookmark"></i> Mazmun</span>
+          <i class="bi bi-chevron-down nav-accordion-caret"></i>
+        </summary>
+        <div class="nav-accordion-panel">
+          <a href="#" class="nav-item"><i class="bi bi-collection-play"></i> Kurslar</a>
+          <a href="#" class="nav-item"><i class="bi bi-play-circle"></i> Darslar</a>
+          <a href="#" class="nav-item"><i class="bi bi-patch-check"></i> Imtihonlar</a>
+          <a href="#" class="nav-item"><i class="bi bi-newspaper"></i> Blog</a>
+          <a href="#" class="nav-item"><i class="bi bi-image"></i> Media</a>
+        </div>
+      </details>
+
+      <details class="nav-accordion">
+        <summary class="nav-accordion-trigger">
+          <span class="nav-accordion-title"><i class="bi bi-credit-card-2-front"></i> Sotuv</span>
+          <i class="bi bi-chevron-down nav-accordion-caret"></i>
+        </summary>
+        <div class="nav-accordion-panel">
+          <a href="#" class="nav-item"><i class="bi bi-receipt"></i> To'lovlar <span class="nav-badge">3</span></a>
+          <a href="#" class="nav-item"><i class="bi bi-card-checklist"></i> Obunalar</a>
+          <a href="#" class="nav-item"><i class="bi bi-ticket-perforated"></i> Promo kodlar</a>
+          <a href="#" class="nav-item"><i class="bi bi-graph-up-arrow"></i> Daromad</a>
+        </div>
+      </details>
+
+    </nav>
+
+    <div class="sidebar-bottom">
+      <details class="account-menu">
+        <summary class="sidebar-user">
+          <div class="user-av">AK</div>
+          <div class="user-info">
+            <div class="user-name">Azurebekdev</div>
+            <div class="user-plan">Admin · Owner</div>
+          </div>
+          <i class="bi bi-chevron-down user-chevron"></i>
+        </summary>
+        <div class="account-menu-panel">
+          <a href="../app/app-shell.html" class="account-menu-item"><i class="bi bi-arrow-left-circle"></i> Foydalanuvchi sifatida</a>
+          <a href="#" class="account-menu-item"><i class="bi bi-bell"></i> Bildirishnomalar <span class="nav-badge">3</span></a>
+          <a href="../app/app-profile.html" class="account-menu-item"><i class="bi bi-person-circle"></i> Profil</a>
+          <a href="../app/app-settings.html" class="account-menu-item"><i class="bi bi-gear"></i> Sozlamalar</a>
+          <div class="account-menu-sep"></div>
+          <a href="../auth/auth-login.html" class="account-menu-item danger"><i class="bi bi-box-arrow-right"></i> Chiqish</a>
+        </div>
+      </details>
+      <div class="sidebar-version">Backoffice · v0.1</div>
+    </div>
+  </aside>
+
+  <!-- ═════════════ MAIN ═════════════ -->
+  <div class="main">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button class="topbar-btn sidebar-toggle" id="sidebarToggle"><i class="bi bi-list"></i></button>
+      <span class="topbar-title">Foydalanuvchilar <span class="admin-badge"><i class="bi bi-shield-lock-fill"></i> Admin</span></span>
+      <div class="topbar-search">
+        <i class="bi bi-search"></i>
+        <input type="text" placeholder="Talaba, kurs, to'lov izlash…">
+      </div>
+      <button class="topbar-btn" aria-label="Bildirishnomalar">
+        <i class="bi bi-bell"></i>
+        <div class="topbar-dot"></div>
+      </button>
+      <button class="topbar-btn" id="themeBtn" aria-label="Tema">
+        <i class="bi bi-moon" id="themeIcon"></i>
+      </button>
+    </header>
+
+    <!-- PAGE BODY -->
+    <main class="page-body">
+
+      <!-- ── PAGE HEADER ──── -->
+      <div class="users-header">
+        <div class="users-header-left">
+          <div class="users-page-title">
+            <i class="bi bi-people-fill"></i>
+            Foydalanuvchilarni boshqarish
+          </div>
+          <div class="users-page-sub">Barcha hisoblar — qidirish, filterlash, rollarni va statusni boshqarish</div>
+        </div>
+        <div class="users-header-actions">
+          <button class="btn-outline" onclick="showToast('CSV eksport tayyorlanmoqda…', 'warning')">
+            <i class="bi bi-download"></i> Eksport
+          </button>
+          <button class="btn-outline" onclick="openInviteModal()">
+            <i class="bi bi-envelope-plus"></i> Taklif yuborish
+          </button>
+          <button class="btn-primary-sm" onclick="showToast('Yangi user qo\'shish sahifasi ochilmoqda…', 'success')">
+            <i class="bi bi-person-plus-fill"></i> Yangi user
+          </button>
+        </div>
+      </div>
+
+      <!-- ── INVITE BANNER ──── -->
+      <div class="invite-banner" id="inviteBanner">
+        <i class="bi bi-envelope-check-fill"></i>
+        <div class="invite-banner-text">
+          <div class="invite-banner-title">5 ta taklif kutilmoqda — javob berilmagan</div>
+          <div class="invite-banner-sub">Dilnoza, Jasur va yana 3 kishi o'tgan haftadan beri javob bermagan</div>
+        </div>
+        <button class="btn-outline" style="padding:6px 12px;font-size:0.8rem;">Ko'rish</button>
+        <button class="invite-banner-close" onclick="document.getElementById('inviteBanner').remove()">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+
+      <!-- ── STATS ROW ──── -->
+      <div class="users-stats">
+        <div class="u-stat">
+          <div class="u-stat-icon blue"><i class="bi bi-people-fill"></i></div>
+          <div class="u-stat-body">
+            <div class="u-stat-val">1,247</div>
+            <div class="u-stat-label">Jami foydalanuvchilar</div>
+            <div class="u-stat-delta up"><i class="bi bi-arrow-up-short"></i> +38 bu hafta</div>
+          </div>
+        </div>
+        <div class="u-stat">
+          <div class="u-stat-icon green"><i class="bi bi-person-check-fill"></i></div>
+          <div class="u-stat-body">
+            <div class="u-stat-val">1,189</div>
+            <div class="u-stat-label">Faol hisoblar</div>
+            <div class="u-stat-delta up"><i class="bi bi-arrow-up-short"></i> 95.3% faollik</div>
+          </div>
+        </div>
+        <div class="u-stat">
+          <div class="u-stat-icon red"><i class="bi bi-person-slash"></i></div>
+          <div class="u-stat-body">
+            <div class="u-stat-val">14</div>
+            <div class="u-stat-label">Bloklangan</div>
+            <div class="u-stat-delta neu"><i class="bi bi-dash"></i> o'zgarishsiz</div>
+          </div>
+        </div>
+        <div class="u-stat">
+          <div class="u-stat-icon amber"><i class="bi bi-person-plus-fill"></i></div>
+          <div class="u-stat-body">
+            <div class="u-stat-val">38</div>
+            <div class="u-stat-label">Bu hafta yangi</div>
+            <div class="u-stat-delta up"><i class="bi bi-arrow-up-short"></i> +12% o'tganidan</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TABS ──── -->
+      <div class="users-tabs">
+        <button class="users-tab active" onclick="switchTab(this, 'all')">
+          Barchasi <span class="tab-count">1,247</span>
+        </button>
+        <button class="users-tab" onclick="switchTab(this, 'students')">
+          <i class="bi bi-mortarboard"></i> Talabalar <span class="tab-count">1,198</span>
+        </button>
+        <button class="users-tab" onclick="switchTab(this, 'teachers')">
+          <i class="bi bi-person-video3"></i> O'qituvchilar <span class="tab-count">34</span>
+        </button>
+        <button class="users-tab" onclick="switchTab(this, 'admins')">
+          <i class="bi bi-shield-lock"></i> Adminlar <span class="tab-count">7</span>
+        </button>
+        <button class="users-tab" onclick="switchTab(this, 'moderators')">
+          <i class="bi bi-eye"></i> Moderatorlar <span class="tab-count">8</span>
+        </button>
+      </div>
+
+      <!-- ── TOOLBAR ──── -->
+      <div class="users-toolbar">
+        <div class="users-search">
+          <i class="bi bi-search"></i>
+          <input type="text" id="searchInput" placeholder="Ism, email, telefon bo'yicha qidirish…" oninput="filterTable()">
+        </div>
+        <div class="toolbar-sep"></div>
+        <select class="toolbar-select" onchange="filterTable()">
+          <option value="">Barcha statuslar</option>
+          <option value="active">Faol</option>
+          <option value="inactive">Nofaol</option>
+          <option value="banned">Bloklangan</option>
+          <option value="pending">Kutilmoqda</option>
+        </select>
+        <select class="toolbar-select" onchange="filterTable()">
+          <option value="">Barcha kurslar</option>
+          <option>Türkçe A1–B2</option>
+          <option>IELTS Booster</option>
+          <option>Python Asoslar</option>
+          <option>Business English</option>
+        </select>
+        <select class="toolbar-select" onchange="sortTable(this.value)">
+          <option value="newest">Yangi → Eski</option>
+          <option value="oldest">Eski → Yangi</option>
+          <option value="az">A → Z (ism)</option>
+          <option value="courses">Kurslar soni</option>
+          <option value="lastactive">So'nggi aktivlik</option>
+        </select>
+        <div class="toolbar-sep"></div>
+        <button class="toolbar-btn" id="filterClearBtn" style="display:none;" onclick="clearFilters()">
+          <i class="bi bi-x-lg"></i> Tozalash
+        </button>
+        <button class="toolbar-btn" onclick="toggleColumnPicker()">
+          <i class="bi bi-layout-three-columns"></i> Ustunlar
+        </button>
+      </div>
+
+      <!-- ── BULK ACTION BAR ──── -->
+      <div class="bulk-bar" id="bulkBar">
+        <span class="bulk-bar-count" id="bulkCount">0 ta tanlangan</span>
+        <button class="bulk-btn" onclick="showToast('Email yuborilmoqda…', 'success')">
+          <i class="bi bi-envelope"></i> Email
+        </button>
+        <button class="bulk-btn" onclick="showToast('Faylga eksport qilinmoqda…', 'warning')">
+          <i class="bi bi-download"></i> Eksport
+        </button>
+        <button class="bulk-btn" onclick="openBulkRoleModal()">
+          <i class="bi bi-person-gear"></i> Rol o'zgartirish
+        </button>
+        <button class="bulk-btn danger" onclick="openBulkBanModal()">
+          <i class="bi bi-slash-circle"></i> Bloklash
+        </button>
+        <button class="bulk-btn-close" onclick="clearSelection()" aria-label="Tanlovni bekor qilish">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+
+      <!-- ── TABLE ──── -->
+      <div class="users-table-wrap">
+        <table class="users-table" id="usersTable">
+          <thead>
+            <tr>
+              <th>
+                <input type="checkbox" class="table-cb" id="selectAll" onchange="toggleSelectAll(this)">
+              </th>
+              <th class="sortable sort-active" onclick="sortTable('az')">
+                Foydalanuvchi <i class="bi bi-arrow-down-up sort-icon"></i>
+              </th>
+              <th>Rol</th>
+              <th>Status</th>
+              <th class="sortable" onclick="sortTable('courses')">
+                Kurslar <i class="bi bi-arrow-down-up sort-icon"></i>
+              </th>
+              <th class="sortable" onclick="sortTable('newest')">
+                Ro'yxat sanasi <i class="bi bi-arrow-down-up sort-icon"></i>
+              </th>
+              <th class="sortable" onclick="sortTable('lastactive')">
+                So'nggi kirish <i class="bi bi-arrow-down-up sort-icon"></i>
+              </th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="usersBody">
+
+            <!-- Row 1 -->
+            <tr onclick="openDrawer('dilnoza')" class="user-row" data-id="dilnoza">
+              <td onclick="event.stopPropagation()">
+                <input type="checkbox" class="table-cb row-cb" data-name="Dilnoza Yusupova" onchange="updateBulkBar()">
+              </td>
+              <td>
+                <div class="user-cell">
+                  <div class="user-av av-c1">DY</div>
+                  <div>
+                    <div class="user-name">Dilnoza Yusupova</div>
+                    <div class="user-email">dilnoza.y@mail.ru</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="role-badge role-student"><i class="bi bi-mortarboard-fill"></i> Talaba</span></td>
+              <td><span class="status-badge status-active"><span class="dot"></span> Faol</span></td>
+              <td><span class="course-chip"><i class="bi bi-collection-play"></i> 3 ta</span></td>
+              <td><span class="meta-text">14 may 2026</span></td>
+              <td><span class="meta-text">5 daqiqa oldin</span></td>
+              <td onclick="event.stopPropagation()" style="position:relative;">
+                <button class="row-action-btn" onclick="toggleDropdown('dd1')"><i class="bi bi-three-dots"></i></button>
+                <div class="row-dropdown" id="dd1">
+                  <button class="row-dropdown-item" onclick="openDrawer('dilnoza');closeAllDropdowns()"><i class="bi bi-person"></i> Profil ko'rish</button>
+                  <button class="row-dropdown-item" onclick="showToast('Xabar yuborilmoqda…','success');closeAllDropdowns()"><i class="bi bi-chat-left-text"></i> Xabar yuborish</button>
+                  <button class="row-dropdown-item" onclick="openRoleModal('Dilnoza Yusupova','DY','av-c1');closeAllDropdowns()"><i class="bi bi-person-gear"></i> Rol o'zgartirish</button>
+                  <div class="row-dropdown-sep"></div>
+                  <button class="row-dropdown-item danger" onclick="openBanModal('Dilnoza Yusupova','DY','av-c1',false);closeAllDropdowns()"><i class="bi bi-slash-circle"></i> Bloklash</button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Row 2 -->
+            <tr onclick="openDrawer('bobur')" class="user-row" data-id="bobur">
+              <td onclick="event.stopPropagation()">
+                <input type="checkbox" class="table-cb row-cb" data-name="Bobur Nazarov" onchange="updateBulkBar()">
+              </td>
+              <td>
+                <div class="user-cell">
+                  <div class="user-av av-c2">BN</div>
+                  <div>
+                    <div class="user-name">Bobur Nazarov</div>
+                    <div class="user-email">bobur.n@gmail.com</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="role-badge role-teacher"><i class="bi bi-person-video3"></i> O'qituvchi</span></td>
+              <td><span class="status-badge status-active"><span class="dot"></span> Faol</span></td>
+              <td><span class="course-chip"><i class="bi bi-collection-play"></i> 8 ta</span></td>
+              <td><span class="meta-text">2 apr 2025</span></td>
+              <td><span class="meta-text">1 soat oldin</span></td>
+              <td onclick="event.stopPropagation()" style="position:relative;">
+                <button class="row-action-btn" onclick="toggleDropdown('dd2')"><i class="bi bi-three-dots"></i></button>
+                <div class="row-dropdown" id="dd2">
+                  <button class="row-dropdown-item" onclick="openDrawer('bobur');closeAllDropdowns()"><i class="bi bi-person"></i> Profil ko'rish</button>
+                  <button class="row-dropdown-item" onclick="showToast('Xabar yuborilmoqda…','success');closeAllDropdowns()"><i class="bi bi-chat-left-text"></i> Xabar yuborish</button>
+                  <button class="row-dropdown-item" onclick="openRoleModal('Bobur Nazarov','BN','av-c2');closeAllDropdowns()"><i class="bi bi-person-gear"></i> Rol o'zgartirish</button>
+                  <div class="row-dropdown-sep"></div>
+                  <button class="row-dropdown-item danger" onclick="openBanModal('Bobur Nazarov','BN','av-c2',false);closeAllDropdowns()"><i class="bi bi-slash-circle"></i> Bloklash</button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Row 3 — BANNED -->
+            <tr onclick="openDrawer('kamola')" class="user-row" data-id="kamola">
+              <td onclick="event.stopPropagation()">
+                <input type="checkbox" class="table-cb row-cb" data-name="Kamola Islamova" onchange="updateBulkBar()">
+              </td>
+              <td>
+                <div class="user-cell">
+                  <div class="user-av av-c3">KI</div>
+                  <div>
+                    <div class="user-name">Kamola Islamova</div>
+                    <div class="user-email">kamola.is@mail.com</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="role-badge role-student"><i class="bi bi-mortarboard-fill"></i> Talaba</span></td>
+              <td><span class="status-badge status-banned"><span class="dot"></span> Bloklangan</span></td>
+              <td><span class="course-chip"><i class="bi bi-collection-play"></i> 1 ta</span></td>
+              <td><span class="meta-text">8 yan 2026</span></td>
+              <td><span class="meta-text">3 kun oldin</span></td>
+              <td onclick="event.stopPropagation()" style="position:relative;">
+                <button class="row-action-btn" onclick="toggleDropdown('dd3')"><i class="bi bi-three-dots"></i></button>
+                <div class="row-dropdown" id="dd3">
+                  <button class="row-dropdown-item" onclick="openDrawer('kamola');closeAllDropdowns()"><i class="bi bi-person"></i> Profil ko'rish</button>
+                  <button class="row-dropdown-item" onclick="showToast('Xabar yuborilmoqda…','success');closeAllDropdowns()"><i class="bi bi-chat-left-text"></i> Xabar yuborish</button>
+                  <button class="row-dropdown-item" onclick="openRoleModal('Kamola Islamova','KI','av-c3');closeAllDropdowns()"><i class="bi bi-person-gear"></i> Rol o'zgartirish</button>
+                  <div class="row-dropdown-sep"></div>
+                  <button class="row-dropdown-item success" onclick="openBanModal('Kamola Islamova','KI','av-c3',true);closeAllDropdowns()"><i class="bi bi-check-circle"></i> Blokdan chiqarish</button>
+                  <button class="row-dropdown-item danger" onclick="showToast('Hisobni o\'chirish tasdiqlanmadi','danger');closeAllDropdowns()"><i class="bi bi-trash3"></i> Hisobni o'chirish</button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Row 4 -->
+            <tr onclick="openDrawer('ulugbek')" class="user-row" data-id="ulugbek">
+              <td onclick="event.stopPropagation()">
+                <input type="checkbox" class="table-cb row-cb" data-name="Ulug'bek Toshmatov" onchange="updateBulkBar()">
+              </td>
+              <td>
+                <div class="user-cell">
+                  <div class="user-av av-c4">UT</div>
+                  <div>
+                    <div class="user-name">Ulug'bek Toshmatov</div>
+                    <div class="user-email">ut.dev@yandex.com</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="role-badge role-admin"><i class="bi bi-shield-lock-fill"></i> Admin</span></td>
+              <td><span class="status-badge status-active"><span class="dot"></span> Faol</span></td>
+              <td><span class="course-chip"><i class="bi bi-collection-play"></i> 12 ta</span></td>
+              <td><span class="meta-text">1 mar 2024</span></td>
+              <td><span class="meta-text">2 soat oldin</span></td>
+              <td onclick="event.stopPropagation()" style="position:relative;">
+                <button class="row-action-btn" onclick="toggleDropdown('dd4')"><i class="bi bi-three-dots"></i></button>
+                <div class="row-dropdown" id="dd4">
+                  <button class="row-dropdown-item" onclick="openDrawer('ulugbek');closeAllDropdowns()"><i class="bi bi-person"></i> Profil ko'rish</button>
+                  <button class="row-dropdown-item" onclick="showToast('Xabar yuborilmoqda…','success');closeAllDropdowns()"><i class="bi bi-chat-left-text"></i> Xabar yuborish</button>
+                  <button class="row-dropdown-item" onclick="openRoleModal('Ulug\'bek Toshmatov','UT','av-c4');closeAllDropdowns()"><i class="bi bi-person-gear"></i> Rol o'zgartirish</button>
+                  <div class="row-dropdown-sep"></div>
+                  <button class="row-dropdown-item danger" onclick="openBanModal('Ulug\'bek Toshmatov','UT','av-c4',false);closeAllDropdowns()"><i class="bi bi-slash-circle"></i> Bloklash</button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Row 5 -->
+            <tr onclick="openDrawer('sarvinoz')" class="user-row" data-id="sarvinoz">
+              <td onclick="event.stopPropagation()">
+                <input type="checkbox" class="table-cb row-cb" data-name="Sarvinoz Rahimova" onchange="updateBulkBar()">
+              </td>
+              <td>
+                <div class="user-cell">
+                  <div class="user-av av-c5">SR</div>
+                  <div>
+                    <div class="user-name">Sarvinoz Rahimova</div>
+                    <div class="user-email">sarvinoz@inbox.uz</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="role-badge role-student"><i class="bi bi-mortarboard-fill"></i> Talaba</span></td>
+              <td><span class="status-badge status-inactive"><span class="dot"></span> Nofaol</span></td>
+              <td><span class="course-chip"><i class="bi bi-collection-play"></i> 2 ta</span></td>
+              <td><span class="meta-text">20 noy 2025</span></td>
+              <td><span class="meta-text">12 kun oldin</span></td>
+              <td onclick="event.stopPropagation()" style="position:relative;">
+                <button class="row-action-btn" onclick="toggleDropdown('dd5')"><i class="bi bi-three-dots"></i></button>
+                <div class="row-dropdown" id="dd5">
+                  <button class="row-dropdown-item" onclick="openDrawer('sarvinoz');closeAllDropdowns()"><i class="bi bi-person"></i> Profil ko'rish</button>
+                  <button class="row-dropdown-item" onclick="showToast('Xabar yuborilmoqda…','success');closeAllDropdowns()"><i class="bi bi-chat-left-text"></i> Xabar yuborish</button>
+                  <button class="row-dropdown-item" onclick="openRoleModal('Sarvinoz Rahimova','SR','av-c5');closeAllDropdowns()"><i class="bi bi-person-gear"></i> Rol o'zgartirish</button>
+                  <div class="row-dropdown-sep"></div>
+                  <button class="row-dropdown-item danger" onclick="openBanModal('Sarvinoz Rahimova','SR','av-c5',false);closeAllDropdowns()"><i class="bi bi-slash-circle"></i> Bloklash</button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Row 6 -->
+            <tr onclick="openDrawer('jasur')" class="user-row" data-id="jasur">
+              <td onclick="event.stopPropagation()">
+                <input type="checkbox" class="table-cb row-cb" data-name="Jasur Mirzayev" onchange="updateBulkBar()">
+              </td>
+              <td>
+                <div class="user-cell">
+                  <div class="user-av av-c6">JM</div>
+                  <div>
+                    <div class="user-name">Jasur Mirzayev</div>
+                    <div class="user-email">jasur.m@gmail.com</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="role-badge role-moderator"><i class="bi bi-eye-fill"></i> Moderator</span></td>
+              <td><span class="status-badge status-active"><span class="dot"></span> Faol</span></td>
+              <td><span class="course-chip"><i class="bi bi-collection-play"></i> 5 ta</span></td>
+              <td><span class="meta-text">7 fev 2025</span></td>
+              <td><span class="meta-text">45 daqiqa oldin</span></td>
+              <td onclick="event.stopPropagation()" style="position:relative;">
+                <button class="row-action-btn" onclick="toggleDropdown('dd6')"><i class="bi bi-three-dots"></i></button>
+                <div class="row-dropdown" id="dd6">
+                  <button class="row-dropdown-item" onclick="openDrawer('jasur');closeAllDropdowns()"><i class="bi bi-person"></i> Profil ko'rish</button>
+                  <button class="row-dropdown-item" onclick="showToast('Xabar yuborilmoqda…','success');closeAllDropdowns()"><i class="bi bi-chat-left-text"></i> Xabar yuborish</button>
+                  <button class="row-dropdown-item" onclick="openRoleModal('Jasur Mirzayev','JM','av-c6');closeAllDropdowns()"><i class="bi bi-person-gear"></i> Rol o'zgartirish</button>
+                  <div class="row-dropdown-sep"></div>
+                  <button class="row-dropdown-item danger" onclick="openBanModal('Jasur Mirzayev','JM','av-c6',false);closeAllDropdowns()"><i class="bi bi-slash-circle"></i> Bloklash</button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Row 7 — PENDING -->
+            <tr onclick="openDrawer('nodira')" class="user-row" data-id="nodira">
+              <td onclick="event.stopPropagation()">
+                <input type="checkbox" class="table-cb row-cb" data-name="Nodira Xasanova" onchange="updateBulkBar()">
+              </td>
+              <td>
+                <div class="user-cell">
+                  <div class="user-av av-c7">NX</div>
+                  <div>
+                    <div class="user-name">Nodira Xasanova</div>
+                    <div class="user-email">nodira.x@mail.uz</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="role-badge role-student"><i class="bi bi-mortarboard-fill"></i> Talaba</span></td>
+              <td><span class="status-badge status-pending"><span class="dot"></span> Kutilmoqda</span></td>
+              <td><span class="course-chip"><i class="bi bi-collection-play"></i> 0 ta</span></td>
+              <td><span class="meta-text">22 may 2026</span></td>
+              <td><span class="meta-text">Hozir</span></td>
+              <td onclick="event.stopPropagation()" style="position:relative;">
+                <button class="row-action-btn" onclick="toggleDropdown('dd7')"><i class="bi bi-three-dots"></i></button>
+                <div class="row-dropdown" id="dd7">
+                  <button class="row-dropdown-item" onclick="openDrawer('nodira');closeAllDropdowns()"><i class="bi bi-person"></i> Profil ko'rish</button>
+                  <button class="row-dropdown-item success" onclick="showToast('Hisob tasdiqlandi!','success');closeAllDropdowns()"><i class="bi bi-check-circle"></i> Tasdiqlash</button>
+                  <button class="row-dropdown-item" onclick="showToast('Email yuborildi','success');closeAllDropdowns()"><i class="bi bi-envelope"></i> Email yuborish</button>
+                  <div class="row-dropdown-sep"></div>
+                  <button class="row-dropdown-item danger" onclick="openBanModal('Nodira Xasanova','NX','av-c7',false);closeAllDropdowns()"><i class="bi bi-slash-circle"></i> Rad etish</button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Row 8 -->
+            <tr onclick="openDrawer('sherzod')" class="user-row" data-id="sherzod">
+              <td onclick="event.stopPropagation()">
+                <input type="checkbox" class="table-cb row-cb" data-name="Sherzod Qodirov" onchange="updateBulkBar()">
+              </td>
+              <td>
+                <div class="user-cell">
+                  <div class="user-av av-c8">SQ</div>
+                  <div>
+                    <div class="user-name">Sherzod Qodirov</div>
+                    <div class="user-email">sherzod.q@umail.uz</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="role-badge role-student"><i class="bi bi-mortarboard-fill"></i> Talaba</span></td>
+              <td><span class="status-badge status-active"><span class="dot"></span> Faol</span></td>
+              <td><span class="course-chip"><i class="bi bi-collection-play"></i> 4 ta</span></td>
+              <td><span class="meta-text">3 mar 2026</span></td>
+              <td><span class="meta-text">3 soat oldin</span></td>
+              <td onclick="event.stopPropagation()" style="position:relative;">
+                <button class="row-action-btn" onclick="toggleDropdown('dd8')"><i class="bi bi-three-dots"></i></button>
+                <div class="row-dropdown" id="dd8">
+                  <button class="row-dropdown-item" onclick="openDrawer('sherzod');closeAllDropdowns()"><i class="bi bi-person"></i> Profil ko'rish</button>
+                  <button class="row-dropdown-item" onclick="showToast('Xabar yuborilmoqda…','success');closeAllDropdowns()"><i class="bi bi-chat-left-text"></i> Xabar yuborish</button>
+                  <button class="row-dropdown-item" onclick="openRoleModal('Sherzod Qodirov','SQ','av-c8');closeAllDropdowns()"><i class="bi bi-person-gear"></i> Rol o'zgartirish</button>
+                  <div class="row-dropdown-sep"></div>
+                  <button class="row-dropdown-item danger" onclick="openBanModal('Sherzod Qodirov','SQ','av-c8',false);closeAllDropdowns()"><i class="bi bi-slash-circle"></i> Bloklash</button>
+                </div>
+              </td>
+            </tr>
+
+          </tbody>
+        </table>
+
+        <!-- PAGINATION -->
+        <div class="users-pagination">
+          <div class="pagination-info">1–8 dan <strong>1,247</strong> ta foydalanuvchi ko'rsatilmoqda</div>
+          <div class="pagination-controls">
+            <button class="pg-btn" disabled><i class="bi bi-chevron-double-left"></i></button>
+            <button class="pg-btn" disabled><i class="bi bi-chevron-left"></i></button>
+            <button class="pg-btn active">1</button>
+            <button class="pg-btn">2</button>
+            <button class="pg-btn">3</button>
+            <span style="display:flex;align-items:center;padding:0 4px;font-size:0.84rem;color:var(--ink-4)">…</span>
+            <button class="pg-btn">156</button>
+            <button class="pg-btn"><i class="bi bi-chevron-right"></i></button>
+            <button class="pg-btn"><i class="bi bi-chevron-double-right"></i></button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ══════════════════════════════════════════
+     USER DETAIL DRAWER
+══════════════════════════════════════════ -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+
+<aside class="drawer" id="userDrawer" aria-label="Foydalanuvchi tafsilotlari" role="dialog">
+
+  <div class="drawer-header">
+    <div class="drawer-user-av av-c1" id="drawerAv">DY</div>
+    <div class="drawer-user-info">
+      <div class="drawer-user-name" id="drawerName">Dilnoza Yusupova</div>
+      <div class="drawer-user-email" id="drawerEmail">dilnoza.y@mail.ru</div>
+      <div class="drawer-badges">
+        <span class="role-badge role-student" id="drawerRole"><i class="bi bi-mortarboard-fill"></i> Talaba</span>
+        <span class="status-badge status-active" id="drawerStatus"><span class="dot"></span> Faol</span>
+      </div>
+    </div>
+    <button class="drawer-close" onclick="closeDrawer()"><i class="bi bi-x-lg"></i></button>
+  </div>
+
+  <div class="drawer-tabs">
+    <button class="drawer-tab active" onclick="switchDrawerTab(this, 'info')">Ma'lumot</button>
+    <button class="drawer-tab" onclick="switchDrawerTab(this, 'courses')">Kurslar</button>
+    <button class="drawer-tab" onclick="switchDrawerTab(this, 'payments')">To'lovlar</button>
+    <button class="drawer-tab" onclick="switchDrawerTab(this, 'activity')">Aktivlik</button>
+  </div>
+
+  <div class="drawer-body">
+
+    <!-- ── INFO TAB ── -->
+    <div class="drawer-panel active" id="dpanel-info">
+      <div class="drawer-section">
+        <div class="drawer-section-title">Shaxsiy ma'lumotlar</div>
+        <div class="info-grid">
+          <div class="info-field">
+            <div class="info-label">To'liq ism</div>
+            <div class="info-value" id="di-name">Dilnoza Yusupova</div>
+          </div>
+          <div class="info-field">
+            <div class="info-label">Telefon</div>
+            <div class="info-value" id="di-phone">+998 90 123 45 67</div>
+          </div>
+          <div class="info-field full">
+            <div class="info-label">Email</div>
+            <div class="info-value" id="di-email">dilnoza.y@mail.ru</div>
+          </div>
+          <div class="info-field">
+            <div class="info-label">Ro'yxat sanasi</div>
+            <div class="info-value" id="di-joined">14 may 2026</div>
+          </div>
+          <div class="info-field">
+            <div class="info-label">So'nggi kirish</div>
+            <div class="info-value" id="di-lastactive">5 daqiqa oldin</div>
+          </div>
+          <div class="info-field">
+            <div class="info-label">Manzil</div>
+            <div class="info-value muted" id="di-city">Toshkent, O'zbekiston</div>
+          </div>
+          <div class="info-field">
+            <div class="info-label">Til</div>
+            <div class="info-value" id="di-lang">O'zbekcha</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="drawer-sep"></div>
+
+      <div class="drawer-section">
+        <div class="drawer-section-title">Hisob holati</div>
+        <div class="info-grid">
+          <div class="info-field">
+            <div class="info-label">ID</div>
+            <div class="info-value" style="font-family:'IBM Plex Mono',monospace;font-size:0.78rem;" id="di-id">#usr_7291xq</div>
+          </div>
+          <div class="info-field">
+            <div class="info-label">Rol</div>
+            <div class="info-value" id="di-role">Talaba</div>
+          </div>
+          <div class="info-field">
+            <div class="info-label">Ro'yxat usuli</div>
+            <div class="info-value muted" id="di-method">Email va parol</div>
+          </div>
+          <div class="info-field">
+            <div class="info-label">Email tasdiqlangan</div>
+            <div class="info-value" id="di-verified" style="color:var(--green)"><i class="bi bi-check-circle-fill"></i> Ha</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="drawer-sep"></div>
+
+      <div class="drawer-section">
+        <div class="drawer-section-title">Izoh (admin uchun)</div>
+        <textarea
+          style="width:100%;resize:vertical;min-height:72px;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r-md);background:var(--surface);color:var(--ink-0);font-family:inherit;font-size:0.84rem;outline:none;transition:border-color 150ms;"
+          placeholder="Bu user haqida ichki eslatma qo'shing…"
+          onfocus="this.style.borderColor='var(--blue)'"
+          onblur="this.style.borderColor='var(--border)'"
+        ></textarea>
+        <button onclick="showToast('Izoh saqlandi','success')" style="margin-top:8px;padding:7px 14px;border-radius:var(--r-md);border:1.5px solid var(--border);background:var(--white);color:var(--ink-1);font-family:inherit;font-size:0.82rem;font-weight:600;cursor:pointer;">
+          <i class="bi bi-floppy"></i> Saqlash
+        </button>
+      </div>
+    </div>
+
+    <!-- ── COURSES TAB ── -->
+    <div class="drawer-panel" id="dpanel-courses">
+      <div class="drawer-section">
+        <div class="drawer-section-title">Ro'yxatdan o'tgan kurslar (3 ta)</div>
+
+        <div class="drawer-course">
+          <div class="drawer-course-thumb" style="background:var(--blue-soft);color:var(--blue)"><i class="bi bi-translate"></i></div>
+          <div class="drawer-course-info">
+            <div class="drawer-course-name">Türkçe A1–B2 Full Course</div>
+            <div class="drawer-course-meta">78% tugallangan · To'langan</div>
+            <div class="drawer-progress-bar"><div class="drawer-progress-fill" style="width:78%"></div></div>
+          </div>
+        </div>
+
+        <div class="drawer-course">
+          <div class="drawer-course-thumb" style="background:var(--green-soft);color:var(--green)"><i class="bi bi-briefcase"></i></div>
+          <div class="drawer-course-info">
+            <div class="drawer-course-name">Business English Intensive</div>
+            <div class="drawer-course-meta">42% tugallangan · To'langan</div>
+            <div class="drawer-progress-bar"><div class="drawer-progress-fill" style="width:42%;background:var(--green)"></div></div>
+          </div>
+        </div>
+
+        <div class="drawer-course">
+          <div class="drawer-course-thumb" style="background:var(--purple-soft);color:var(--purple)"><i class="bi bi-graph-up-arrow"></i></div>
+          <div class="drawer-course-info">
+            <div class="drawer-course-name">IELTS Booster 7+</div>
+            <div class="drawer-course-meta">12% tugallangan · Trial</div>
+            <div class="drawer-progress-bar"><div class="drawer-progress-fill" style="width:12%;background:var(--amber)"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="drawer-sep"></div>
+      <div class="drawer-section-title" style="font-size:0.72rem;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-4);margin-bottom:10px;">O'rtacha ko'rsatkichlar</div>
+      <div class="info-grid">
+        <div class="info-field">
+          <div class="info-label">O'rtacha progress</div>
+          <div class="info-value">44%</div>
+        </div>
+        <div class="info-field">
+          <div class="info-label">Jami darslar</div>
+          <div class="info-value">48 / 114</div>
+        </div>
+        <div class="info-field">
+          <div class="info-label">Topshiriqlar</div>
+          <div class="info-value">12 ta bajarilgan</div>
+        </div>
+        <div class="info-field">
+          <div class="info-label">Imtihon o'rtachasi</div>
+          <div class="info-value" style="color:var(--green)">82 / 100</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PAYMENTS TAB ── -->
+    <div class="drawer-panel" id="dpanel-payments">
+      <div class="drawer-section">
+        <div class="drawer-section-title">To'lovlar tarixi</div>
+
+        <div class="drawer-payment">
+          <div class="drawer-payment-icon paid"><i class="bi bi-check-circle-fill"></i></div>
+          <div class="drawer-payment-info">
+            <div class="drawer-payment-desc">Türkçe A1–B2 · To'liq kurs</div>
+            <div class="drawer-payment-date">14 may 2026 · Visa •••• 4521</div>
+          </div>
+          <div class="drawer-payment-amount">890 000 so'm</div>
+        </div>
+
+        <div class="drawer-payment">
+          <div class="drawer-payment-icon paid"><i class="bi bi-check-circle-fill"></i></div>
+          <div class="drawer-payment-info">
+            <div class="drawer-payment-desc">Business English Intensive</div>
+            <div class="drawer-payment-date">2 apr 2026 · Click Bank</div>
+          </div>
+          <div class="drawer-payment-amount">650 000 so'm</div>
+        </div>
+
+        <div class="drawer-payment">
+          <div class="drawer-payment-icon pending"><i class="bi bi-hourglass-split"></i></div>
+          <div class="drawer-payment-info">
+            <div class="drawer-payment-desc">IELTS Booster 7+ · Chek kutilmoqda</div>
+            <div class="drawer-payment-date">20 may 2026 · Bank o'tkazmasi</div>
+          </div>
+          <div class="drawer-payment-amount" style="color:var(--amber)">450 000 so'm</div>
+        </div>
+
+      </div>
+
+      <div class="drawer-sep"></div>
+      <div class="info-grid">
+        <div class="info-field">
+          <div class="info-label">Jami to'langan</div>
+          <div class="info-value" style="color:var(--green)">1 540 000 so'm</div>
+        </div>
+        <div class="info-field">
+          <div class="info-label">To'lovlar soni</div>
+          <div class="info-value">3 ta</div>
+        </div>
+      </div>
+
+      <div style="margin-top:12px;">
+        <button onclick="showToast('To\'lov qo\'lda qo\'shilmoqda…','warning')" style="padding:8px 14px;border-radius:var(--r-md);border:1.5px solid var(--border);background:var(--white);color:var(--ink-1);font-family:inherit;font-size:0.82rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+          <i class="bi bi-plus-lg"></i> Qo'lda to'lov qo'shish
+        </button>
+      </div>
+    </div>
+
+    <!-- ── ACTIVITY TAB ── -->
+    <div class="drawer-panel" id="dpanel-activity">
+      <div class="drawer-section">
+        <div class="drawer-section-title">So'nggi amallar</div>
+
+        <div class="drawer-activity">
+          <div class="drawer-act-dot" style="background:var(--green)"></div>
+          <div class="drawer-act-body">
+            <div class="drawer-act-text">"Lesson 14: Future Simple" darsini yakunladi</div>
+            <div class="drawer-act-time">5 daqiqa oldin · Türkçe A1–B2</div>
+          </div>
+        </div>
+        <div class="drawer-activity">
+          <div class="drawer-act-dot" style="background:var(--blue)"></div>
+          <div class="drawer-act-body">
+            <div class="drawer-act-text">Quizga kirdi: "Grammar Check #8"</div>
+            <div class="drawer-act-time">1 soat oldin · Business English</div>
+          </div>
+        </div>
+        <div class="drawer-activity">
+          <div class="drawer-act-dot" style="background:var(--amber)"></div>
+          <div class="drawer-act-body">
+            <div class="drawer-act-text">IELTS Booster kursiga ro'yxatdan o'tdi</div>
+            <div class="drawer-act-time">20 may 2026</div>
+          </div>
+        </div>
+        <div class="drawer-activity">
+          <div class="drawer-act-dot" style="background:var(--purple)"></div>
+          <div class="drawer-act-body">
+            <div class="drawer-act-text">Profil rasmi yangilandi</div>
+            <div class="drawer-act-time">18 may 2026</div>
+          </div>
+        </div>
+        <div class="drawer-activity">
+          <div class="drawer-act-dot" style="background:var(--green)"></div>
+          <div class="drawer-act-body">
+            <div class="drawer-act-text">Imtihon topshirdi: Mid-term — 88 ball</div>
+            <div class="drawer-act-time">15 may 2026 · Türkçe A1–B2</div>
+          </div>
+        </div>
+        <div class="drawer-activity">
+          <div class="drawer-act-dot" style="background:var(--blue)"></div>
+          <div class="drawer-act-body">
+            <div class="drawer-act-text">Tizimga birinchi marta kirdi</div>
+            <div class="drawer-act-time">14 may 2026 · Ro'yxatdan so'ng</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /drawer-body -->
+
+  <div class="drawer-footer">
+    <button class="drawer-action-btn primary" onclick="showToast('Xabar yuborilmoqda…','success')">
+      <i class="bi bi-chat-left-text"></i> Xabar
+    </button>
+    <button class="drawer-action-btn" onclick="openRoleModalFromDrawer()">
+      <i class="bi bi-person-gear"></i> Rol
+    </button>
+    <button class="drawer-action-btn warning" id="drawerBanBtn" onclick="openBanModalFromDrawer()">
+      <i class="bi bi-slash-circle"></i> Bloklash
+    </button>
+    <button class="drawer-action-btn danger" onclick="showToast('Bu amal hozircha mavjud emas','danger')" style="margin-left:auto;">
+      <i class="bi bi-trash3"></i>
+    </button>
+  </div>
+
+</aside>
+
+<!-- ══════════════════════════════════════════
+     MODAL: BAN / UNBAN
+══════════════════════════════════════════ -->
+<div class="modal-overlay" id="banModal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div class="modal-icon danger" id="banModalIcon"><i class="bi bi-slash-circle" id="banModalIconI"></i></div>
+      <div>
+        <div class="modal-title" id="banModalTitle">Foydalanuvchini bloklash</div>
+        <div class="modal-sub" id="banModalSub">Hisob to'xtatiladi va kirish bloklanadi</div>
+      </div>
+      <button class="modal-close" onclick="closeBanModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="modal-body">
+      <p id="banModalDesc">Ushbu foydalanuvchi tizimga kira olmaydi. Xohlasangiz istalgan vaqt blokdan chiqarishingiz mumkin.</p>
+      <div class="modal-highlight">
+        <div class="user-av av-c1" id="banModalAv">DY</div>
+        <div>
+          <div class="modal-highlight-name" id="banModalName">Dilnoza Yusupova</div>
+          <div class="modal-highlight-email" id="banModalEmail">dilnoza.y@mail.ru</div>
+        </div>
+      </div>
+      <div id="banReasonWrap">
+        <label style="font-size:0.84rem;font-weight:600;color:var(--ink-2);display:block;margin-bottom:6px;">Sabab (ixtiyoriy)</label>
+        <select style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r-md);background:var(--surface);color:var(--ink-0);font-family:inherit;font-size:0.84rem;outline:none;">
+          <option value="">Sabab tanlang…</option>
+          <option>Shartlarni buzish</option>
+          <option>Spam yoki suiiste'mol</option>
+          <option>To'lov muammosi</option>
+          <option>Foydalanuvchi talabi</option>
+          <option>Boshqa sabab</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="modal-btn-cancel" onclick="closeBanModal()">Bekor qilish</button>
+      <button class="modal-btn-confirm danger" id="banModalConfirm" onclick="executeBan()">
+        <i class="bi bi-slash-circle"></i> Bloklash
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MODAL: ROLE CHANGE
+══════════════════════════════════════════ -->
+<div class="modal-overlay" id="roleModal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div class="modal-icon blue"><i class="bi bi-person-gear"></i></div>
+      <div>
+        <div class="modal-title">Rol o'zgartirish</div>
+        <div class="modal-sub" id="roleModalSub">Foydalanuvchiga yangi rol bering</div>
+      </div>
+      <button class="modal-close" onclick="closeRoleModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-highlight">
+        <div class="user-av av-c1" id="roleModalAv">DY</div>
+        <div>
+          <div class="modal-highlight-name" id="roleModalName">Dilnoza Yusupova</div>
+          <div class="modal-highlight-email" id="roleModalEmail">Hozirgi rol: Talaba</div>
+        </div>
+      </div>
+      <div class="role-select-grid">
+        <button class="role-option selected" onclick="selectRole(this,'student')">
+          <div class="role-option-icon" style="background:var(--blue-soft);color:var(--blue)"><i class="bi bi-mortarboard-fill"></i></div>
+          <div>
+            <div class="role-option-label">Talaba</div>
+            <div class="role-option-desc">Kurs o'rganish</div>
+          </div>
+        </button>
+        <button class="role-option" onclick="selectRole(this,'teacher')">
+          <div class="role-option-icon" style="background:var(--green-soft);color:var(--green)"><i class="bi bi-person-video3"></i></div>
+          <div>
+            <div class="role-option-label">O'qituvchi</div>
+            <div class="role-option-desc">Kurs yaratish</div>
+          </div>
+        </button>
+        <button class="role-option" onclick="selectRole(this,'moderator')">
+          <div class="role-option-icon" style="background:var(--cyan-soft);color:var(--cyan)"><i class="bi bi-eye-fill"></i></div>
+          <div>
+            <div class="role-option-label">Moderator</div>
+            <div class="role-option-desc">Kontent nazorat</div>
+          </div>
+        </button>
+        <button class="role-option" onclick="selectRole(this,'admin')">
+          <div class="role-option-icon" style="background:var(--purple-soft);color:var(--purple)"><i class="bi bi-shield-lock-fill"></i></div>
+          <div>
+            <div class="role-option-label">Admin</div>
+            <div class="role-option-desc">To'liq kirish</div>
+          </div>
+        </button>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="modal-btn-cancel" onclick="closeRoleModal()">Bekor qilish</button>
+      <button class="modal-btn-confirm blue" onclick="executeRoleChange()">
+        <i class="bi bi-check2"></i> Rolni saqlash
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MODAL: INVITE
+══════════════════════════════════════════ -->
+<div class="modal-overlay" id="inviteModal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div class="modal-icon blue"><i class="bi bi-envelope-plus"></i></div>
+      <div>
+        <div class="modal-title">Foydalanuvchini taklif qilish</div>
+        <div class="modal-sub">Email orqali ro'yxatdan o'tish havolasi yuboriladi</div>
+      </div>
+      <button class="modal-close" onclick="closeInviteModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="modal-body">
+      <label style="font-size:0.84rem;font-weight:600;color:var(--ink-2);display:block;margin-bottom:6px;">Email manzil</label>
+      <input type="email" placeholder="user@example.com" id="inviteEmail"
+        style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r-md);background:var(--surface);color:var(--ink-0);font-family:inherit;font-size:0.875rem;outline:none;margin-bottom:14px;box-sizing:border-box;"
+        onfocus="this.style.borderColor='var(--blue)'"
+        onblur="this.style.borderColor='var(--border)'">
+      <label style="font-size:0.84rem;font-weight:600;color:var(--ink-2);display:block;margin-bottom:6px;">Birlamchi rol</label>
+      <select style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r-md);background:var(--surface);color:var(--ink-0);font-family:inherit;font-size:0.84rem;outline:none;">
+        <option>Talaba</option>
+        <option>O'qituvchi</option>
+        <option>Moderator</option>
+        <option>Admin</option>
+      </select>
+    </div>
+    <div class="modal-foot">
+      <button class="modal-btn-cancel" onclick="closeInviteModal()">Bekor qilish</button>
+      <button class="modal-btn-confirm blue" onclick="executeInvite()">
+        <i class="bi bi-send"></i> Yuborish
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ══════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════ -->
+<script>
+/* ── THEME ─────────────────────────────────── */
+const themeBtn = document.getElementById('themeBtn');
+const themeIcon = document.getElementById('themeIcon');
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  themeIcon.className = t === 'dark' ? 'bi bi-sun' : 'bi bi-moon';
+  try { localStorage.setItem('az-theme', t); } catch(_) {}
+}
+themeBtn.addEventListener('click', () => {
+  applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+});
+applyTheme(document.documentElement.getAttribute('data-theme'));
+
+/* ── SIDEBAR TOGGLE ───────────────────────── */
+document.getElementById('sidebarToggle').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+});
+
+/* ── TABS ─────────────────────────────────── */
+function switchTab(el, id) {
+  document.querySelectorAll('.users-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  showToast('Filter: ' + el.textContent.trim().split('\n')[0], 'success');
+}
+
+/* ── SEARCH & FILTER ──────────────────────── */
+function filterTable() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('.user-row').forEach(row => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = (!q || text.includes(q)) ? '' : 'none';
+  });
+  document.getElementById('filterClearBtn').style.display = q ? '' : 'none';
+}
+function clearFilters() {
+  document.getElementById('searchInput').value = '';
+  filterTable();
+  document.getElementById('filterClearBtn').style.display = 'none';
+}
+function sortTable(by) {
+  document.querySelectorAll('.users-table th.sortable').forEach(th => th.classList.remove('sort-active'));
+  showToast('Saralash: ' + by, 'success');
+}
+
+/* ── COLUMN PICKER (mock) ─────────────────── */
+function toggleColumnPicker() {
+  showToast('Ustun sozlamalari — tez orada', 'warning');
+}
+
+/* ── SELECT ALL ───────────────────────────── */
+function toggleSelectAll(cb) {
+  document.querySelectorAll('.row-cb').forEach(c => {
+    c.checked = cb.checked;
+    c.closest('tr').classList.toggle('selected', cb.checked);
+  });
+  updateBulkBar();
+}
+function updateBulkBar() {
+  const checked = document.querySelectorAll('.row-cb:checked');
+  const bar = document.getElementById('bulkBar');
+  bar.classList.toggle('visible', checked.length > 0);
+  document.getElementById('bulkCount').textContent = checked.length + ' ta tanlangan';
+}
+function clearSelection() {
+  document.querySelectorAll('.row-cb, #selectAll').forEach(c => { c.checked = false; });
+  document.querySelectorAll('.user-row').forEach(r => r.classList.remove('selected'));
+  document.getElementById('bulkBar').classList.remove('visible');
+}
+
+/* ── DROPDOWN ─────────────────────────────── */
+function toggleDropdown(id) {
+  const dd = document.getElementById(id);
+  const wasOpen = dd.classList.contains('open');
+  closeAllDropdowns();
+  if (!wasOpen) dd.classList.add('open');
+}
+function closeAllDropdowns() {
+  document.querySelectorAll('.row-dropdown').forEach(d => d.classList.remove('open'));
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.row-action-btn') && !e.target.closest('.row-dropdown')) {
+    closeAllDropdowns();
+  }
+});
+
+/* ── DRAWER DATA ──────────────────────────── */
+const userData = {
+  dilnoza: {
+    av:'DY', avClass:'av-c1', name:'Dilnoza Yusupova', email:'dilnoza.y@mail.ru',
+    role:'<i class="bi bi-mortarboard-fill"></i> Talaba', roleClass:'role-student',
+    status:'Faol', statusClass:'status-active',
+    phone:'+998 90 123 45 67', joined:'14 may 2026', lastactive:'5 daqiqa oldin',
+    city:'Toshkent', lang:'O\'zbekcha', id:'#usr_7291xq', roleText:'Talaba',
+    method:'Email va parol', verified:true, isBanned:false
+  },
+  bobur: {
+    av:'BN', avClass:'av-c2', name:'Bobur Nazarov', email:'bobur.n@gmail.com',
+    role:'<i class="bi bi-person-video3"></i> O\'qituvchi', roleClass:'role-teacher',
+    status:'Faol', statusClass:'status-active',
+    phone:'+998 91 234 56 78', joined:'2 apr 2025', lastactive:'1 soat oldin',
+    city:'Samarqand', lang:'O\'zbekcha', id:'#usr_4832bv', roleText:'O\'qituvchi',
+    method:'Google', verified:true, isBanned:false
+  },
+  kamola: {
+    av:'KI', avClass:'av-c3', name:'Kamola Islamova', email:'kamola.is@mail.com',
+    role:'<i class="bi bi-mortarboard-fill"></i> Talaba', roleClass:'role-student',
+    status:'Bloklangan', statusClass:'status-banned',
+    phone:'+998 93 345 67 89', joined:'8 yan 2026', lastactive:'3 kun oldin',
+    city:'Namangan', lang:'O\'zbekcha', id:'#usr_9120ki', roleText:'Talaba',
+    method:'Email va parol', verified:true, isBanned:true
+  },
+  ulugbek: {
+    av:'UT', avClass:'av-c4', name:'Ulug\'bek Toshmatov', email:'ut.dev@yandex.com',
+    role:'<i class="bi bi-shield-lock-fill"></i> Admin', roleClass:'role-admin',
+    status:'Faol', statusClass:'status-active',
+    phone:'+998 97 456 78 90', joined:'1 mar 2024', lastactive:'2 soat oldin',
+    city:'Toshkent', lang:'O\'zbekcha', id:'#usr_0012ad', roleText:'Admin',
+    method:'Email va parol', verified:true, isBanned:false
+  },
+  sarvinoz: {
+    av:'SR', avClass:'av-c5', name:'Sarvinoz Rahimova', email:'sarvinoz@inbox.uz',
+    role:'<i class="bi bi-mortarboard-fill"></i> Talaba', roleClass:'role-student',
+    status:'Nofaol', statusClass:'status-inactive',
+    phone:'+998 99 567 89 01', joined:'20 noy 2025', lastactive:'12 kun oldin',
+    city:'Farg\'ona', lang:'O\'zbekcha', id:'#usr_5518sr', roleText:'Talaba',
+    method:'Email va parol', verified:false, isBanned:false
+  },
+  jasur: {
+    av:'JM', avClass:'av-c6', name:'Jasur Mirzayev', email:'jasur.m@gmail.com',
+    role:'<i class="bi bi-eye-fill"></i> Moderator', roleClass:'role-moderator',
+    status:'Faol', statusClass:'status-active',
+    phone:'+998 95 678 90 12', joined:'7 fev 2025', lastactive:'45 daqiqa oldin',
+    city:'Toshkent', lang:'O\'zbekcha', id:'#usr_3344jm', roleText:'Moderator',
+    method:'Google', verified:true, isBanned:false
+  },
+  nodira: {
+    av:'NX', avClass:'av-c7', name:'Nodira Xasanova', email:'nodira.x@mail.uz',
+    role:'<i class="bi bi-mortarboard-fill"></i> Talaba', roleClass:'role-student',
+    status:'Kutilmoqda', statusClass:'status-pending',
+    phone:'+998 94 789 01 23', joined:'22 may 2026', lastactive:'Hozir',
+    city:'Qo\'qon', lang:'O\'zbekcha', id:'#usr_8891nx', roleText:'Talaba',
+    method:'Email va parol', verified:false, isBanned:false
+  },
+  sherzod: {
+    av:'SQ', avClass:'av-c8', name:'Sherzod Qodirov', email:'sherzod.q@umail.uz',
+    role:'<i class="bi bi-mortarboard-fill"></i> Talaba', roleClass:'role-student',
+    status:'Faol', statusClass:'status-active',
+    phone:'+998 98 890 12 34', joined:'3 mar 2026', lastactive:'3 soat oldin',
+    city:'Toshkent', lang:'O\'zbekcha', id:'#usr_6627sq', roleText:'Talaba',
+    method:'Apple ID', verified:true, isBanned:false
+  }
+};
+
+/* ── DRAWER ───────────────────────────────── */
+let currentDrawerUser = null;
+function openDrawer(id) {
+  const d = userData[id];
+  if (!d) return;
+  currentDrawerUser = d;
+
+  // header
+  const av = document.getElementById('drawerAv');
+  av.textContent = d.av;
+  av.className = 'drawer-user-av ' + d.avClass;
+  document.getElementById('drawerName').textContent = d.name;
+  document.getElementById('drawerEmail').textContent = d.email;
+
+  const roleEl = document.getElementById('drawerRole');
+  roleEl.innerHTML = d.role;
+  roleEl.className = 'role-badge ' + d.roleClass;
+
+  const statusEl = document.getElementById('drawerStatus');
+  statusEl.innerHTML = '<span class="dot"></span> ' + d.status;
+  statusEl.className = 'status-badge ' + d.statusClass;
+
+  // info fields
+  document.getElementById('di-name').textContent = d.name;
+  document.getElementById('di-phone').textContent = d.phone;
+  document.getElementById('di-email').textContent = d.email;
+  document.getElementById('di-joined').textContent = d.joined;
+  document.getElementById('di-lastactive').textContent = d.lastactive;
+  document.getElementById('di-city').textContent = d.city;
+  document.getElementById('di-lang').textContent = d.lang;
+  document.getElementById('di-id').textContent = d.id;
+  document.getElementById('di-role').textContent = d.roleText;
+  document.getElementById('di-method').textContent = d.method;
+  const verEl = document.getElementById('di-verified');
+  verEl.innerHTML = d.verified
+    ? '<i class="bi bi-check-circle-fill" style="color:var(--green)"></i> Ha'
+    : '<i class="bi bi-x-circle-fill" style="color:var(--red)"></i> Yo\'q';
+
+  // ban button
+  const banBtn = document.getElementById('drawerBanBtn');
+  if (d.isBanned) {
+    banBtn.className = 'drawer-action-btn success';
+    banBtn.innerHTML = '<i class="bi bi-check-circle"></i> Blokdan chiqarish';
+  } else {
+    banBtn.className = 'drawer-action-btn warning';
+    banBtn.innerHTML = '<i class="bi bi-slash-circle"></i> Bloklash';
+  }
+
+  // reset to info tab
+  switchDrawerTab(document.querySelector('.drawer-tab'), 'info');
+
+  document.getElementById('drawerOverlay').classList.add('open');
+  document.getElementById('userDrawer').classList.add('open');
+}
+function closeDrawer() {
+  document.getElementById('drawerOverlay').classList.remove('open');
+  document.getElementById('userDrawer').classList.remove('open');
+}
+function switchDrawerTab(el, id) {
+  document.querySelectorAll('.drawer-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.drawer-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('dpanel-' + id).classList.add('active');
+}
+
+/* ── BAN MODAL ────────────────────────────── */
+let banIsUnban = false;
+function openBanModal(name, av, avClass, isUnban) {
+  banIsUnban = isUnban;
+  document.getElementById('banModalAv').textContent = av;
+  document.getElementById('banModalAv').className = 'user-av ' + avClass;
+  document.getElementById('banModalName').textContent = name;
+  const icon = document.getElementById('banModalIcon');
+  const iconI = document.getElementById('banModalIconI');
+  const confirm = document.getElementById('banModalConfirm');
+  const reason = document.getElementById('banReasonWrap');
+  if (isUnban) {
+    icon.className = 'modal-icon warning';
+    iconI.className = 'bi bi-check-circle';
+    document.getElementById('banModalTitle').textContent = 'Blokdan chiqarish';
+    document.getElementById('banModalSub').textContent = 'Foydalanuvchining kirishi qayta tiklanadi';
+    document.getElementById('banModalDesc').textContent = 'Ushbu foydalanuvchi blokdan chiqariladi va tizimga kira oladi.';
+    confirm.innerHTML = '<i class="bi bi-check-circle"></i> Blokdan chiqarish';
+    confirm.className = 'modal-btn-confirm blue';
+    reason.style.display = 'none';
+  } else {
+    icon.className = 'modal-icon danger';
+    iconI.className = 'bi bi-slash-circle';
+    document.getElementById('banModalTitle').textContent = 'Foydalanuvchini bloklash';
+    document.getElementById('banModalSub').textContent = 'Hisob to\'xtatiladi va kirish bloklanadi';
+    document.getElementById('banModalDesc').textContent = 'Ushbu foydalanuvchi tizimga kira olmaydi. Xohlasangiz istalgan vaqt blokdan chiqarishingiz mumkin.';
+    confirm.innerHTML = '<i class="bi bi-slash-circle"></i> Bloklash';
+    confirm.className = 'modal-btn-confirm danger';
+    reason.style.display = '';
+  }
+  document.getElementById('banModal').classList.add('open');
+}
+function openBanModalFromDrawer() {
+  if (!currentDrawerUser) return;
+  openBanModal(currentDrawerUser.name, currentDrawerUser.av, currentDrawerUser.avClass, currentDrawerUser.isBanned);
+}
+function closeBanModal() { document.getElementById('banModal').classList.remove('open'); }
+function executeBan() {
+  closeBanModal();
+  showToast(banIsUnban ? 'Foydalanuvchi blokdan chiqarildi' : 'Foydalanuvchi bloklandi', banIsUnban ? 'success' : 'danger');
+}
+
+/* ── ROLE MODAL ───────────────────────────── */
+function openRoleModal(name, av, avClass) {
+  document.getElementById('roleModalAv').textContent = av;
+  document.getElementById('roleModalAv').className = 'user-av ' + avClass;
+  document.getElementById('roleModalName').textContent = name;
+  document.getElementById('roleModal').classList.add('open');
+}
+function openRoleModalFromDrawer() {
+  if (!currentDrawerUser) return;
+  openRoleModal(currentDrawerUser.name, currentDrawerUser.av, currentDrawerUser.avClass);
+}
+function closeRoleModal() { document.getElementById('roleModal').classList.remove('open'); }
+function selectRole(el, role) {
+  document.querySelectorAll('.role-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function executeRoleChange() {
+  closeRoleModal();
+  showToast('Rol muvaffaqiyatli o\'zgartirildi', 'success');
+}
+
+/* ── INVITE MODAL ─────────────────────────── */
+function openInviteModal() { document.getElementById('inviteModal').classList.add('open'); }
+function closeInviteModal() { document.getElementById('inviteModal').classList.remove('open'); }
+function executeInvite() {
+  const email = document.getElementById('inviteEmail').value;
+  closeInviteModal();
+  showToast(email ? email + ' ga taklif yuborildi' : 'Taklif yuborildi', 'success');
+}
+
+/* ── BULK MODALS ──────────────────────────── */
+function openBulkRoleModal() {
+  const checked = document.querySelectorAll('.row-cb:checked');
+  openRoleModal(checked.length + ' ta foydalanuvchi', '✓', 'av-c4');
+}
+function openBulkBanModal() {
+  const checked = document.querySelectorAll('.row-cb:checked');
+  openBanModal(checked.length + ' ta foydalanuvchi', '✗', 'av-c3', false);
+}
+
+/* ── CLOSE MODALS ON OVERLAY CLICK ───────── */
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+});
+
+/* ── TOAST ────────────────────────────────── */
+function showToast(msg, type = 'success') {
+  const icons = { success: 'bi-check-circle-fill', warning: 'bi-exclamation-triangle-fill', danger: 'bi-x-circle-fill' };
+  const container = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.innerHTML = `<i class="bi ${icons[type] || icons.success}"></i> ${msg}`;
+  container.appendChild(t);
+  setTimeout(() => {
+    t.style.opacity = '0';
+    t.style.transform = 'translateY(4px)';
+    t.style.transition = 'all 300ms';
+    setTimeout(() => t.remove(), 320);
+  }, 3200);
+}
+
+/* ── PAGINATION (mock) ────────────────────── */
+document.querySelectorAll('.pg-btn:not([disabled])').forEach(btn => {
+  btn.addEventListener('click', function() {
+    if (this.querySelector('i')) return;
+    document.querySelectorAll('.pg-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+</script>
+
+</body>
+</html>

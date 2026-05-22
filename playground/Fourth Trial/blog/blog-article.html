@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS old-turtle prototype for blog article.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>IELTS Band 8 ga chiqish — AzureBlog</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- CSS Zanjiri (Architectural Standard) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/blog-article.css">
+
+  <link rel="stylesheet" href="../assets/css/prototype-extracted.css">
+</head>
+<body>
+
+<!-- READ PROGRESS -->
+<div class="read-progress"><div class="read-progress-fill" id="readFill"></div></div>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="logo-mark">B</div>
+    <a href="blog-shell.html" class="nav-back"><i class="bi bi-arrow-left"></i> Blog</a>
+    <div class="nav-sep"></div>
+    <span class="nav-title-small" id="navTitleSmall">IELTS Band 8 ga chiqish: haqiqiy tajribadan 10 ta sir</span>
+    <button class="theme-btn" id="themeBtn"><i class="bi bi-moon" id="themeIcon"></i></button>
+  </div>
+</nav>
+
+<!-- LAYOUT -->
+<div class="article-layout">
+
+  <!-- SOCIAL COL -->
+  <div class="social-col">
+    <button class="social-btn" id="likeBtn" data-ui-call="toggleLike">
+      <i class="bi bi-heart" id="likeIcon"></i>
+      <span id="likeCount">1.2k</span>
+    </button>
+    <button class="social-btn" data-ui-action="scroll-bottom">
+      <i class="bi bi-chat"></i>
+      <span>234</span>
+    </button>
+    <div class="social-divider"></div>
+    <button class="social-btn" title="Twitter/X"><i class="bi bi-twitter-x"></i></button>
+    <button class="social-btn" title="Telegram"><i class="bi bi-telegram"></i></button>
+    <button class="social-btn" data-ui-call="copyLink" title="Nusxa olish"><i class="bi bi-link-45deg"></i></button>
+    <div class="social-divider"></div>
+    <button class="social-btn" id="bookmarkBtn" data-ui-call="toggleBookmark">
+      <i class="bi bi-bookmark" id="bmIcon"></i>
+    </button>
+  </div>
+
+  <!-- ARTICLE MAIN -->
+  <article class="article-main">
+    <div class="article-header">
+      <div class="article-breadcrumb">
+        <a href="blog-shell.html">Blog</a>
+        <i class="bi bi-chevron-right"></i>
+        <a href="../blog/blog-tags.html">IELTS</a>
+        <i class="bi bi-chevron-right"></i>
+        Maqola
+      </div>
+      <div class="article-tags">
+        <span class="article-tag-chip">IELTS</span>
+        <span class="article-tag-chip blue">Band 7+</span>
+        <span class="article-tag-chip">Maslahatlar</span>
+      </div>
+      <h1 class="article-h1">IELTS Band 8 ga chiqish: haqiqiy tajribadan 10 ta sir</h1>
+      <p class="article-deck">Ko'pchilik IELTS imtihoniga tayyorgarlik ko'radi, lekin ko'plari 7-bandda "tuzilib qolishadi". Ushbu maqolada men band 8 ga ko'tarilish uchun real hayotda ishlagan strategiyalarni bayon etaman.</p>
+      <div class="article-byline">
+        <div class="byline-av">AN</div>
+        <div>
+          <div class="byline-name">Aziz Nazarov</div>
+          <div class="byline-role">Senior Instructor · IELTS 8.5</div>
+        </div>
+        <div class="byline-meta">
+          <div class="byline-date">15 May 2026</div>
+          <div class="byline-read">8 daqiqa o'qish · 47.2k ko'rilgan</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COVER -->
+    <div class="article-cover">📚</div>
+
+    <!-- BODY -->
+    <div class="article-body">
+      <h2 id="intro">Kirish: Nima uchun Band 8?</h2>
+      <p>IELTS imtihonida Band 7 bilan Band 8 orasidagi farq — bu shunchaki bir ballik o'zgarish emas. Bu ikki darajaning o'rtasida misol uchun quyidagilar bor: keng lug'at boyligi, murakkabroq grammatik tuzilmalar, va — eng muhimi — <strong>tabiiy, ravon nutq</strong>.</p>
+      <p>Men o'tgan 3 yil davomida 200 dan ortiq talabani band 6 dan band 8 ga ko'tardim. Quyida eng ko'p ishlagan 10 ta strategiyani ulashaman.</p>
+
+      <div class="callout callout-info">
+        <div class="callout-header">💡 Eslatma</div>
+        <p>Ushbu maqola IELTS Academic formatiga mo'ljallangan. General Training uchun ba'zi farqlar mavjud.</p>
+      </div>
+
+      <h2 id="strategy1">1. "Examiner ko'zi bilan ko'rish" texnikasi</h2>
+      <p>Eng katta o'zgarish — o'zingizni examiner sifatida ko'rishni o'rganish. Har bir javobingizni yozganingizda yoki gapirganingizda, o'zingizdan so'rang: <em>"Bu javob menga Band 8 ekanligini ko'rsatadimi?"</em></p>
+      <p>Examiner birinchi navbatda quyidagilarga e'tibor beradi:</p>
+
+      <ul class="numbered-list">
+        <li class="nl-item">
+          <div class="nl-num">1</div>
+          <div class="nl-text"><span class="nl-title">Lexical Resource — Lug'at</span>Kolokatsiyalar, idiomalar va akademik so'zlarni tabiiy ishlatish</div>
+        </li>
+        <li class="nl-item">
+          <div class="nl-num">2</div>
+          <div class="nl-text"><span class="nl-title">Grammatical Range — Grammatika</span>Xilma-xil va murakkab tuzilmalar, minimal xatolar</div>
+        </li>
+        <li class="nl-item">
+          <div class="nl-num">3</div>
+          <div class="nl-text"><span class="nl-title">Coherence & Cohesion — Bog'liqlik</span>Mantiqiy oqim, paragraf strukturasi, bog'lovchi so'zlar</div>
+        </li>
+        <li class="nl-item">
+          <div class="nl-num">4</div>
+          <div class="nl-text"><span class="nl-title">Task Achievement — Topshiriqni bajarish</span>Savolga to'liq, aniq va tegishli javob berish</div>
+        </li>
+      </ul>
+
+      <h2 id="strategy2">2. Kolokatsiyalar — Band 8 ning siri</h2>
+      <p>Band 8 va Band 7 ning eng katta farqi — kolokatsiyalar. "Do homework" yozganda yoki "make homework" deganingizda, examiner sezadi. Kolokatsiyalar — bu so'zlarning birgalikda qo'llanishi.</p>
+
+      <div class="pull-quote">
+        <p>Band 8 talabalari "good" o'rniga "exceptional", "important" o'rniga "crucial" yoki "pivotal" deydi. Bu shunchaki sinonimlar emas — bu kontekstga mos so'z tanlash qobiliyati.</p>
+        <cite>— Cambridge IELTS examiner, 2024</cite>
+      </div>
+
+      <p>Masalan, "environmental problem" o'rniga "environmental challenge" yoki "ecological crisis" ishlatish, examiner nazar-diqqatini tortadi va bandni oshiradi.</p>
+
+      <h2 id="strategy3">3. Writing Task 2 uchun maxsus strategiya</h2>
+      <p>Writing Task 2 da Band 8 olish uchun sizning essengizdagi har bir paragraf quyidagi strukturaga ega bo'lishi kerak: <strong>PEEL</strong> — Point, Evidence, Explain, Link.</p>
+
+      <div class="callout callout-tip">
+        <div class="callout-header">✅ Maslahat</div>
+        <p>Har bir body paragrafini kamida 100 so'z bilan yozing. Qisqa paragraflar Band 8 uchun yetarli argumentatsiya ko'rsatmaydi.</p>
+      </div>
+
+      <h2 id="strategy4">4–10. Qolgan strategiyalar</h2>
+      <p>Ushbu maqolaning qolgan qismida quyidagi mavzularni ko'rib chiqamiz:</p>
+      <ul>
+        <li><strong>Reading:</strong> Paraphrase aniqlash ko'nikmasini rivojlantirish</li>
+        <li><strong>Listening:</strong> Section 4 da akademik monolog tinglash texnikasi</li>
+        <li><strong>Speaking:</strong> Fillers o'rniga "hesitation devices" ishlatish</li>
+        <li><strong>Umumiy:</strong> Band-specific sifatida o'ylash va yozish</li>
+      </ul>
+
+      <div class="callout callout-warn">
+        <div class="callout-header">⚠️ Ogohlantirish</div>
+        <p>Yodlangan javoblar va kaliplashgan iboralar bandni <em>pastga</em> tushiradi. Examiner har kuni yuzlab similar javoblarni ko'radi va bu darhol ko'zga tashlanadi.</p>
+      </div>
+    </div>
+
+    <!-- FOOTER TAGS -->
+    <div class="article-footer-tags">
+      <span class="article-tag-chip">IELTS</span>
+      <span class="article-tag-chip blue">Band 8</span>
+      <span class="article-tag-chip">Writing</span>
+      <span class="article-tag-chip">Speaking</span>
+      <span class="article-tag-chip">Strategies</span>
+    </div>
+
+    <!-- AUTHOR -->
+    <div class="author-card">
+      <div class="author-av">AN</div>
+      <div class="xstyle-97445a8d">
+        <div class="author-name">Aziz Nazarov</div>
+        <div class="author-role">Senior IELTS Instructor · AzureLMS</div>
+        <div class="author-bio">IELTS 8.5 sohibi. O'tgan 5 yil davomida 500 dan ortiq talabani band 7+ ga ko'targan muallif. Academic English va IELTS strategiyasi bo'yicha mutaxassis.</div>
+        <div class="author-stats">
+          <div class="author-stat"><i class="bi bi-pencil-square"></i> <strong>28</strong> maqola</div>
+          <div class="author-stat"><i class="bi bi-people"></i> <strong>4.2k</strong> obunachilar</div>
+          <div class="author-stat"><i class="bi bi-eye"></i> <strong>180k</strong> ko'rilgan</div>
+        </div>
+      </div>
+      <button class="follow-btn">Kuzatish</button>
+    </div>
+
+    <!-- COMMENTS -->
+    <div class="comments-section">
+      <div class="comments-head"><i class="bi bi-chat-square-text"></i> Izohlar <span class="xstyle-5a777be8">(234)</span></div>
+      <div class="comment-input-wrap">
+        <textarea class="comment-textarea" placeholder="Fikringizni ulashing..."></textarea>
+        <div class="comment-input-footer">
+          <button class="comment-btn">Yuborish</button>
+        </div>
+      </div>
+      <div class="comment-item">
+        <div class="comment-av xstyle-4e2d7a6c">ZH</div>
+        <div>
+          <span class="comment-author">Zuhra Hamidova</span>
+          <span class="comment-date">2 soat oldin</span>
+          <div class="comment-text">Juda foydali maqola! Kolokatsiyalar qismi menga eng ko'p yordam berdi. Men ham aynan shu muammoni uchratgan edim — "make" va "do" ni aralashtirib yuboraverdim.</div>
+          <div class="comment-actions">
+            <span class="comment-action"><i class="bi bi-heart"></i> 24 like</span>
+            <span class="comment-action"><i class="bi bi-reply"></i> Javob</span>
+          </div>
+        </div>
+      </div>
+      <div class="comment-item">
+        <div class="comment-av xstyle-115178f3">BN</div>
+        <div>
+          <span class="comment-author">Bekzod Normatov</span>
+          <span class="comment-date">5 soat oldin</span>
+          <div class="comment-text">PEEL metodini birinchi marta bu yerda o'qidim. Keyingi mock testda sinab ko'raman. Rahmat!</div>
+          <div class="comment-actions">
+            <span class="comment-action"><i class="bi bi-heart"></i> 11 like</span>
+            <span class="comment-action"><i class="bi bi-reply"></i> Javob</span>
+          </div>
+        </div>
+      </div>
+      <div class="comment-item">
+        <div class="comment-av xstyle-b4df943f">MA</div>
+        <div>
+          <span class="comment-author">Munira Abdullayeva</span>
+          <span class="comment-date">1 kun oldin</span>
+          <div class="comment-text">Yodlangan javoblar bandni pastga tushirishini bilardim, lekin bu qadar ta'sirli ekanligini bilmasdim. Endi ko'proq natural gapirish ustida ishlayman.</div>
+          <div class="comment-actions">
+            <span class="comment-action"><i class="bi bi-heart"></i> 18 like</span>
+            <span class="comment-action"><i class="bi bi-reply"></i> Javob</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- RIGHT COL -->
+  <div class="right-col">
+    <!-- TOC -->
+    <div class="sidebar-card">
+      <div class="sidebar-head"><i class="bi bi-list-ul"></i> Maqola tarkibi</div>
+      <div class="sidebar-body">
+        <div class="toc-list">
+          <div class="toc-item active" data-ui-call="scrollTo2" data-ui-args='["intro"]'>Kirish: Nima uchun Band 8?</div>
+          <div class="toc-item" data-ui-call="scrollTo2" data-ui-args='["strategy1"]'>1. Examiner ko'zi bilan ko'rish</div>
+          <div class="toc-item" data-ui-call="scrollTo2" data-ui-args='["strategy2"]'>2. Kolokatsiyalar</div>
+          <div class="toc-item" data-ui-call="scrollTo2" data-ui-args='["strategy3"]'>3. Writing Task 2 strategiyasi</div>
+          <div class="toc-item" data-ui-call="scrollTo2" data-ui-args='["strategy4"]'>4–10. Qolgan strategiyalar</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RELATED -->
+    <div class="sidebar-card">
+      <div class="sidebar-head"><i class="bi bi-collection"></i> Shunga o'xshash</div>
+      <div class="sidebar-body">
+        <div class="related-item">
+          <div class="related-thumb img--blue xstyle-836758b3">🔤</div>
+          <div>
+            <div class="related-title">Present Perfect vs Past Simple: qachon qaysi birini?</div>
+            <div class="related-meta">6 daqiqa · 5.1k ko'rilgan</div>
+          </div>
+        </div>
+        <div class="related-item">
+          <div class="related-thumb img--green xstyle-836758b3">💬</div>
+          <div>
+            <div class="related-title">Academic Word List: 50 ta muhim so'z</div>
+            <div class="related-meta">5 daqiqa · 6.7k ko'rilgan</div>
+          </div>
+        </div>
+        <div class="related-item">
+          <div class="related-thumb img--amber xstyle-836758b3">⏰</div>
+          <div>
+            <div class="related-title">Imtihon kuni vaqtni boshqarish: 90 daqiqa</div>
+            <div class="related-meta">4 daqiqa · 9.2k ko'rilgan</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  (function(){
+    const t = localStorage.getItem('az-theme');
+    const d = window.matchMedia('(prefers-color-scheme:dark)').matches;
+    document.documentElement.setAttribute('data-theme', t ? t : d ? 'dark' : 'light');
+  })();
+  const html = document.documentElement;
+  function applyTheme(dark) {
+    html.setAttribute('data-theme', dark ? 'dark' : 'light');
+    document.getElementById('themeIcon').className = dark ? 'bi bi-sun' : 'bi bi-moon';
+    try { localStorage.setItem('az-theme', dark ? 'dark' : 'light'); } catch(_){}
+  }
+  const saved = localStorage.getItem('az-theme');
+  applyTheme(saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme:dark)').matches);
+  document.getElementById('themeBtn').addEventListener('click', () =>
+    applyTheme(html.getAttribute('data-theme') !== 'dark'));
+
+  // Read progress
+  window.addEventListener('scroll', () => {
+    const el = document.documentElement;
+    const total = el.scrollHeight - el.clientHeight;
+    const pct = (el.scrollTop / total) * 100;
+    document.getElementById('readFill').style.width = pct + '%';
+
+    // Show nav title after scrolling past header
+    const titleEl = document.getElementById('navTitleSmall');
+    titleEl.classList.toggle('show', el.scrollTop > 300);
+  });
+
+  // Like
+  let liked = false, count = 1200;
+  function toggleLike() {
+    liked = !liked;
+    count += liked ? 1 : -1;
+    document.getElementById('likeIcon').className = liked ? 'bi bi-heart-fill' : 'bi bi-heart';
+    document.getElementById('likeBtn').classList.toggle('liked', liked);
+    document.getElementById('likeCount').textContent = count >= 1000 ? (count/1000).toFixed(1) + 'k' : count;
+  }
+
+  // Bookmark
+  let bookmarked = false;
+  function toggleBookmark() {
+    bookmarked = !bookmarked;
+    document.getElementById('bmIcon').className = bookmarked ? 'bi bi-bookmark-fill' : 'bi bi-bookmark';
+    document.getElementById('bookmarkBtn').classList.toggle('liked', bookmarked);
+  }
+
+  function copyLink() {
+    navigator.clipboard.writeText(window.location.href).catch(()=>{});
+  }
+
+  function scrollTo2(id) {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.querySelectorAll('.toc-item').forEach(el => el.classList.remove('active'));
+    event.target.classList.add('active');
+  }
+</script>
+  <script src="../assets/js/prototype-ui.js"></script>
+</body>
+</html>
+

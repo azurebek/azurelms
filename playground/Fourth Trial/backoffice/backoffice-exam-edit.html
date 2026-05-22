@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS Backoffice — Exam editor.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>Imtihon tahrirlash — Backoffice</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/backoffice-course-create.css">
+  <link rel="stylesheet" href="../assets/css/backoffice-lesson-edit.css">
+  <link rel="stylesheet" href="../assets/css/backoffice-exam-edit.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- ═════════════ SIDEBAR ═════════════ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">AZ</div>
+      <span class="sidebar-logo-name">AzureLMS</span>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="Backoffice navigatsiya">
+      <details class="nav-accordion">
+        <summary class="nav-accordion-trigger">
+          <span class="nav-accordion-title"><i class="bi bi-speedometer2"></i> Bosh sahifa</span>
+          <i class="bi bi-chevron-down nav-accordion-caret"></i>
+        </summary>
+        <div class="nav-accordion-panel">
+          <a href="backoffice-shell.html" class="nav-item"><i class="bi bi-grid-fill"></i> Overview</a>
+          <a href="#" class="nav-item"><i class="bi bi-bar-chart-line"></i> Hisobotlar</a>
+        </div>
+      </details>
+
+      <details class="nav-accordion" open>
+        <summary class="nav-accordion-trigger">
+          <span class="nav-accordion-title"><i class="bi bi-journal-bookmark"></i> Mazmun</span>
+          <i class="bi bi-chevron-down nav-accordion-caret"></i>
+        </summary>
+        <div class="nav-accordion-panel">
+          <a href="backoffice-course-create.html" class="nav-item"><i class="bi bi-collection-play"></i> Kurslar</a>
+          <a href="backoffice-lesson-edit.html" class="nav-item"><i class="bi bi-play-circle"></i> Darslar</a>
+          <a href="backoffice-exam-edit.html" class="nav-item active"><i class="bi bi-patch-check"></i> Imtihonlar</a>
+          <a href="#" class="nav-item"><i class="bi bi-newspaper"></i> Blog</a>
+        </div>
+      </details>
+
+      <details class="nav-accordion">
+        <summary class="nav-accordion-trigger">
+          <span class="nav-accordion-title"><i class="bi bi-people"></i> Foydalanuvchilar</span>
+          <i class="bi bi-chevron-down nav-accordion-caret"></i>
+        </summary>
+        <div class="nav-accordion-panel">
+          <a href="#" class="nav-item"><i class="bi bi-mortarboard"></i> Talabalar</a>
+          <a href="#" class="nav-item"><i class="bi bi-collection"></i> Cohortlar</a>
+        </div>
+      </details>
+
+      <details class="nav-accordion">
+        <summary class="nav-accordion-trigger">
+          <span class="nav-accordion-title"><i class="bi bi-credit-card-2-front"></i> Sotuv</span>
+          <i class="bi bi-chevron-down nav-accordion-caret"></i>
+        </summary>
+        <div class="nav-accordion-panel">
+          <a href="#" class="nav-item"><i class="bi bi-receipt"></i> To'lovlar</a>
+          <a href="#" class="nav-item"><i class="bi bi-ticket-perforated"></i> Promo kodlar</a>
+        </div>
+      </details>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <details class="account-menu">
+        <summary class="sidebar-user">
+          <div class="user-av">AK</div>
+          <div class="user-info">
+            <div class="user-name">Azurebekdev</div>
+            <div class="user-plan">Admin · Owner</div>
+          </div>
+          <i class="bi bi-chevron-down user-chevron"></i>
+        </summary>
+        <div class="account-menu-panel">
+          <a href="../app/app-shell.html" class="account-menu-item"><i class="bi bi-arrow-left-circle"></i> Foydalanuvchi sifatida</a>
+          <a href="#" class="account-menu-item"><i class="bi bi-gear"></i> Sozlamalar</a>
+          <div class="account-menu-sep"></div>
+          <a href="../auth/auth-login.html" class="account-menu-item danger"><i class="bi bi-box-arrow-right"></i> Chiqish</a>
+        </div>
+      </details>
+      <div class="sidebar-version">Backoffice · v0.1</div>
+    </div>
+  </aside>
+
+  <!-- ═════════════ MAIN ═════════════ -->
+  <div class="main">
+
+    <header class="topbar">
+      <button class="topbar-btn sidebar-toggle" id="sidebarToggle"><i class="bi bi-list"></i></button>
+      <span class="topbar-title">Exam Builder <span class="admin-badge"><i class="bi bi-shield-lock-fill"></i> Admin</span></span>
+      <button class="topbar-btn" id="themeBtn" aria-label="Tema"><i class="bi bi-moon" id="themeIcon"></i></button>
+    </header>
+
+    <main class="page-body builder-page">
+
+      <!-- Builder sub-toolbar -->
+      <div class="builder-toolbar">
+        <button class="builder-back" type="button" aria-label="Orqaga"><i class="bi bi-arrow-left"></i></button>
+        <div class="builder-crumb">
+          <a href="backoffice-course-create.html">Türkçe A1–B2</a>
+          <i class="bi bi-chevron-right sep"></i>
+          <span class="current">A1 Final imtihoni</span>
+        </div>
+        <div class="builder-save-status"><i class="bi bi-cloud-check-fill"></i> Avtomat saqlandi</div>
+        <div class="builder-actions">
+          <button class="btn-ghost-sm" type="button"><i class="bi bi-eye"></i> Preview</button>
+          <button class="btn-ghost-sm" type="button"><i class="bi bi-clipboard-check"></i> Test rejimida ko'rish</button>
+          <button class="btn-primary-sm" type="button"><i class="bi bi-check2"></i> Saqlash</button>
+        </div>
+      </div>
+
+      <!-- 3-column grid -->
+      <div class="builder-grid">
+
+        <!-- LEFT: Exam structure -->
+        <aside class="tree-panel">
+          <div class="tree-head">
+            <span class="tree-title">Bo'limlar</span>
+            <span style="font-size:0.7rem;color:var(--ink-4);font-weight:600">5 ta · 100 ball</span>
+          </div>
+          <div class="tree-body">
+
+            <div class="tree-row" style="margin-bottom:6px">
+              <i class="bi bi-grid-1x2 icon"></i>
+              <span class="label">Imtihon asoslari</span>
+            </div>
+
+            <div style="font-size:0.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-4);padding:10px 12px 4px">Mavjud bo'limlar</div>
+
+            <div class="section-row">
+              <i class="bi bi-grip-vertical grip"></i>
+              <div class="section-icon reading"><i class="bi bi-book"></i></div>
+              <div class="section-body">
+                <div class="section-name">O'qish: 3 ta matn</div>
+                <div class="section-meta"><span><i class="bi bi-bullseye"></i> 25 ball</span><span><i class="bi bi-clock"></i> 30 daq</span></div>
+              </div>
+            </div>
+
+            <div class="section-row active">
+              <i class="bi bi-grip-vertical grip"></i>
+              <div class="section-icon listening"><i class="bi bi-headphones"></i></div>
+              <div class="section-body">
+                <div class="section-name">Eshitish: 4 ta yozuv</div>
+                <div class="section-meta"><span><i class="bi bi-bullseye"></i> 25 ball</span><span><i class="bi bi-clock"></i> 25 daq</span></div>
+              </div>
+            </div>
+
+            <div class="section-row">
+              <i class="bi bi-grip-vertical grip"></i>
+              <div class="section-icon writing"><i class="bi bi-pencil"></i></div>
+              <div class="section-body">
+                <div class="section-name">Yozish: insho</div>
+                <div class="section-meta"><span><i class="bi bi-bullseye"></i> 20 ball</span><span><i class="bi bi-clock"></i> 30 daq</span></div>
+              </div>
+            </div>
+
+            <div class="section-row">
+              <i class="bi bi-grip-vertical grip"></i>
+              <div class="section-icon speaking"><i class="bi bi-mic"></i></div>
+              <div class="section-body">
+                <div class="section-name">Gapirish: 2 ta topshiriq</div>
+                <div class="section-meta"><span><i class="bi bi-bullseye"></i> 15 ball</span><span><i class="bi bi-clock"></i> 10 daq</span></div>
+              </div>
+            </div>
+
+            <div class="section-row">
+              <i class="bi bi-grip-vertical grip"></i>
+              <div class="section-icon grammar"><i class="bi bi-card-checklist"></i></div>
+              <div class="section-body">
+                <div class="section-name">Grammatika va lug'at</div>
+                <div class="section-meta"><span><i class="bi bi-bullseye"></i> 15 ball</span><span><i class="bi bi-clock"></i> 20 daq</span></div>
+              </div>
+            </div>
+
+            <div style="font-size:0.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-4);padding:14px 12px 6px">+ Yangi bo'lim qo'shish</div>
+
+            <div class="section-add-row">
+              <button class="section-chip" type="button">
+                <i class="bi bi-book"></i>
+                <span class="section-chip-label">Reading</span>
+              </button>
+              <button class="section-chip" type="button">
+                <i class="bi bi-headphones"></i>
+                <span class="section-chip-label">Listening</span>
+              </button>
+              <button class="section-chip" type="button">
+                <i class="bi bi-pencil"></i>
+                <span class="section-chip-label">Writing</span>
+              </button>
+              <button class="section-chip" type="button">
+                <i class="bi bi-mic"></i>
+                <span class="section-chip-label">Speaking</span>
+              </button>
+              <button class="section-chip" type="button">
+                <i class="bi bi-card-checklist"></i>
+                <span class="section-chip-label">Grammar</span>
+              </button>
+            </div>
+
+          </div>
+        </aside>
+
+        <!-- MIDDLE: Editor -->
+        <section class="editor-panel">
+          <div class="editor-tabs">
+            <button class="editor-tab active" type="button"><i class="bi bi-info-circle"></i> Bo'lim asoslari</button>
+            <button class="editor-tab" type="button"><i class="bi bi-file-text"></i> Shartlar</button>
+            <button class="editor-tab" type="button"><i class="bi bi-card-checklist"></i> Savollar <span style="background:var(--blue-soft);color:var(--blue-mid);font-size:0.6rem;font-weight:800;padding:1px 6px;border-radius:var(--r-pill);margin-left:4px">4</span></button>
+            <button class="editor-tab" type="button"><i class="bi bi-gear"></i> Sozlama</button>
+          </div>
+
+          <div class="editor-body">
+
+            <!-- EXAM META (always shown at top of any section editor) -->
+            <div class="exam-meta">
+              <div class="exam-meta-row">
+                <div class="exam-meta-text">
+                  <span class="exam-meta-eyebrow"><i class="bi bi-patch-check-fill"></i> Imtihon</span>
+                  <div class="exam-meta-title">A1 Final imtihoni</div>
+                </div>
+                <span class="exam-type-pill final"><i class="bi bi-stars"></i> Final</span>
+              </div>
+              <div class="exam-meta-stats">
+                <div class="exam-meta-stat">
+                  <span class="exam-meta-stat-val">5</span>
+                  <span class="exam-meta-stat-lab">Bo'lim</span>
+                </div>
+                <div class="exam-meta-stat">
+                  <span class="exam-meta-stat-val">100</span>
+                  <span class="exam-meta-stat-lab">Umumiy ball</span>
+                </div>
+                <div class="exam-meta-stat">
+                  <span class="exam-meta-stat-val">115 daq</span>
+                  <span class="exam-meta-stat-lab">Vaqt</span>
+                </div>
+                <div class="exam-meta-stat">
+                  <span class="exam-meta-stat-val">60%</span>
+                  <span class="exam-meta-stat-lab">O'tish ostonasi</span>
+                </div>
+                <div class="exam-meta-stat">
+                  <span class="exam-meta-stat-val">60%</span>
+                  <span class="exam-meta-stat-lab">Bahodagi o'rni</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECTION BEING EDITED -->
+            <div class="editor-section">
+              <div class="editor-section-head">
+                <div style="display:flex;align-items:center;gap:10px">
+                  <span class="section-type-badge listening"><i class="bi bi-headphones"></i> Eshitish</span>
+                  <div class="editor-section-title">Bo'lim asoslari</div>
+                </div>
+                <div class="editor-section-hint">2-bo'lim · 5 bo'limdan</div>
+              </div>
+
+              <div class="field">
+                <label class="field-label">Bo'lim nomi <span class="req">*</span></label>
+                <input class="field-input" type="text" value="Eshitish: 4 ta yozuv">
+              </div>
+
+              <div class="section-settings-grid">
+                <div class="field">
+                  <label class="field-label">Maksimal ball</label>
+                  <input class="field-input" type="number" value="25" min="0">
+                </div>
+                <div class="field">
+                  <label class="field-label">Vaqt (daqiqa)</label>
+                  <input class="field-input" type="number" value="25" min="1">
+                </div>
+                <div class="field">
+                  <label class="field-label">Tartib</label>
+                  <input class="field-input" type="number" value="2" min="0">
+                </div>
+              </div>
+
+              <div class="field">
+                <label class="field-label">Audio / Video havola</label>
+                <span class="field-hint" style="margin-bottom:4px">YouTube unlisted yoki MP3 havolasi</span>
+                <div class="video-input-row">
+                  <input class="field-input" type="url" value="https://www.youtube.com/watch?v=listening-a1-final" placeholder="https://...">
+                  <button class="btn-ghost-sm" type="button"><i class="bi bi-arrow-clockwise"></i> Tekshir</button>
+                </div>
+
+                <div class="audio-card">
+                  <div class="audio-thumb"><i class="bi bi-headphones"></i></div>
+                  <div class="audio-info">
+                    <div class="audio-title">A1 Final — Listening (4 part)</div>
+                    <div class="audio-meta">
+                      <span><i class="bi bi-clock"></i> 18:32</span>
+                      <span style="color:var(--green);font-weight:700"><i class="bi bi-check2-circle"></i> Embed ishlayapti</span>
+                    </div>
+                  </div>
+                  <div class="audio-actions">
+                    <button class="btn-ghost-sm" type="button"><i class="bi bi-play"></i></button>
+                    <button class="btn-ghost-sm" type="button"><i class="bi bi-trash"></i></button>
+                  </div>
+                </div>
+
+                <div class="replay-control">
+                  <div class="replay-icon"><i class="bi bi-arrow-repeat"></i></div>
+                  <div class="replay-text">Talabaga ruxsat etilgan tinglash soni</div>
+                  <div class="replay-counter">
+                    <button type="button"><i class="bi bi-dash"></i></button>
+                    <span>2</span>
+                    <button type="button"><i class="bi bi-plus"></i></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- INSTRUCTIONS -->
+            <div class="editor-section">
+              <div class="editor-section-head">
+                <div class="editor-section-title">Talabaga ko'rsatma</div>
+                <div class="editor-section-hint">Bo'lim boshlanishida ko'rinadi</div>
+              </div>
+              <div class="content-editor">
+                <div class="ce-toolbar">
+                  <button class="ce-tool"><i class="bi bi-type-bold"></i></button>
+                  <button class="ce-tool"><i class="bi bi-type-italic"></i></button>
+                  <div class="ce-sep"></div>
+                  <button class="ce-tool"><i class="bi bi-list-ul"></i></button>
+                  <button class="ce-tool"><i class="bi bi-list-ol"></i></button>
+                  <button class="ce-tool"><i class="bi bi-quote"></i></button>
+                </div>
+                <div class="ce-body" contenteditable="true" style="min-height:140px">
+                  <p>Quyidagi audioni diqqat bilan tinglang va savollarga javob bering.</p>
+                  <ul>
+                    <li>Audio <strong>2 marta</strong> tinglashga ruxsat etiladi</li>
+                    <li>Har bir savol uchun bitta to'g'ri javob bor</li>
+                    <li>Vaqt tugagandan keyin javoblar avtomatik yuboriladi</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- QUESTIONS PREVIEW (inline) -->
+            <div class="editor-section">
+              <div class="editor-section-head">
+                <div class="editor-section-title">Savollar (4)</div>
+                <a href="#" class="bo-card-link" style="font-size:0.78rem">Savollar tab'ida tahrirlash →</a>
+              </div>
+
+              <div class="quiz-question">
+                <div class="qq-head">
+                  <div class="qq-num">1</div>
+                  <input class="qq-text-input" value="Yo'lovchi qaysi shaharga ketmoqchi?">
+                  <div class="qq-points"><i class="bi bi-bullseye"></i><input type="number" value="6"> bal</div>
+                  <div class="qq-actions">
+                    <button type="button"><i class="bi bi-arrow-up"></i></button>
+                    <button type="button"><i class="bi bi-arrow-down"></i></button>
+                    <button type="button" class="danger"><i class="bi bi-trash"></i></button>
+                  </div>
+                </div>
+                <div class="qq-choices">
+                  <div class="qq-choice"><div class="qq-choice-mark"><i class="bi bi-check-lg"></i></div><input class="qq-choice-input" value="Ankara"></div>
+                  <div class="qq-choice correct"><div class="qq-choice-mark"><i class="bi bi-check-lg"></i></div><input class="qq-choice-input" value="İstanbul"></div>
+                  <div class="qq-choice"><div class="qq-choice-mark"><i class="bi bi-check-lg"></i></div><input class="qq-choice-input" value="İzmir"></div>
+                  <div class="qq-choice"><div class="qq-choice-mark"><i class="bi bi-check-lg"></i></div><input class="qq-choice-input" value="Bursa"></div>
+                </div>
+              </div>
+
+              <div class="quiz-question">
+                <div class="qq-head">
+                  <div class="qq-num">2</div>
+                  <input class="qq-text-input" value="Qaysi vaqtda chiqish kerak?">
+                  <div class="qq-points"><i class="bi bi-bullseye"></i><input type="number" value="6"> bal</div>
+                  <div class="qq-actions">
+                    <button type="button"><i class="bi bi-arrow-up"></i></button>
+                    <button type="button"><i class="bi bi-arrow-down"></i></button>
+                    <button type="button" class="danger"><i class="bi bi-trash"></i></button>
+                  </div>
+                </div>
+                <div class="qq-choices">
+                  <div class="qq-choice"><div class="qq-choice-mark"><i class="bi bi-check-lg"></i></div><input class="qq-choice-input" value="08:00"></div>
+                  <div class="qq-choice correct"><div class="qq-choice-mark"><i class="bi bi-check-lg"></i></div><input class="qq-choice-input" value="09:30"></div>
+                  <div class="qq-choice"><div class="qq-choice-mark"><i class="bi bi-check-lg"></i></div><input class="qq-choice-input" value="10:15"></div>
+                </div>
+              </div>
+
+              <button class="add-question-btn" type="button">
+                <i class="bi bi-plus-circle"></i> Yangi savol qo'shish
+              </button>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- RIGHT: Live preview (Listening section) -->
+        <aside class="preview-panel">
+          <div class="preview-head">
+            <span class="preview-title">Talaba ko'rinishi</span>
+            <div class="preview-device">
+              <button type="button" class="active"><i class="bi bi-laptop"></i></button>
+              <button type="button"><i class="bi bi-phone"></i></button>
+            </div>
+          </div>
+          <div class="preview-body">
+
+            <div class="exam-preview-shell">
+              <div class="exam-preview-header">
+                <div class="exam-preview-header-title">
+                  <span class="section-type-badge listening" style="font-size:0.62rem"><i class="bi bi-headphones"></i> Listening</span>
+                </div>
+                <div class="exam-preview-timer">
+                  <i class="bi bi-clock"></i> 24:53
+                </div>
+              </div>
+
+              <div class="exam-preview-body">
+
+                <div class="preview-audio">
+                  <div class="preview-audio-row">
+                    <div class="preview-audio-play"><i class="bi bi-play-fill"></i></div>
+                    <div class="preview-audio-info">
+                      <div class="preview-audio-title">A1 Final — Listening</div>
+                      <div class="preview-audio-meta">02:14 / 18:32 · 1/2 tinglash</div>
+                    </div>
+                  </div>
+                  <div class="preview-audio-wave">
+                    <div class="bar played" style="height:20%"></div>
+                    <div class="bar played" style="height:55%"></div>
+                    <div class="bar played" style="height:38%"></div>
+                    <div class="bar played" style="height:72%"></div>
+                    <div class="bar played" style="height:48%"></div>
+                    <div class="bar played" style="height:65%"></div>
+                    <div class="bar" style="height:40%"></div>
+                    <div class="bar" style="height:55%"></div>
+                    <div class="bar" style="height:30%"></div>
+                    <div class="bar" style="height:60%"></div>
+                    <div class="bar" style="height:42%"></div>
+                    <div class="bar" style="height:50%"></div>
+                    <div class="bar" style="height:35%"></div>
+                    <div class="bar" style="height:58%"></div>
+                    <div class="bar" style="height:45%"></div>
+                  </div>
+                </div>
+
+                <div class="preview-q">
+                  <div class="preview-q-num">Savol 1</div>
+                  <div class="preview-q-text">Yo'lovchi qaysi shaharga ketmoqchi?</div>
+                  <div class="preview-q-options">
+                    <div class="preview-q-opt"><span class="letter">A</span> Ankara</div>
+                    <div class="preview-q-opt checked"><span class="letter">B</span> İstanbul</div>
+                    <div class="preview-q-opt"><span class="letter">C</span> İzmir</div>
+                    <div class="preview-q-opt"><span class="letter">D</span> Bursa</div>
+                  </div>
+                </div>
+
+                <div class="preview-q">
+                  <div class="preview-q-num">Savol 2</div>
+                  <div class="preview-q-text">Qaysi vaqtda chiqish kerak?</div>
+                  <div class="preview-q-options">
+                    <div class="preview-q-opt"><span class="letter">A</span> 08:00</div>
+                    <div class="preview-q-opt"><span class="letter">B</span> 09:30</div>
+                    <div class="preview-q-opt"><span class="letter">C</span> 10:15</div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <div style="margin-top:14px;font-size:0.68rem;color:var(--ink-4);text-align:center;line-height:1.5">
+              Talabaning haqiqiy imtihon ekranida shu ko'rinish bo'ladi.<br>
+              Vaqt avtomatik sanaladi.
+            </div>
+
+          </div>
+        </aside>
+
+      </div>
+
+    </main>
+
+  </div>
+</div>
+
+<script>
+  (function() {
+    const btn = document.getElementById('themeBtn');
+    const icon = document.getElementById('themeIcon');
+    if (!btn) return;
+    function syncIcon() {
+      const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+      icon.className = dark ? 'bi bi-sun' : 'bi bi-moon';
+    }
+    syncIcon();
+    btn.addEventListener('click', () => {
+      const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', cur);
+      try { localStorage.setItem('az-theme', cur); } catch (_) {}
+      syncIcon();
+    });
+  })();
+
+  // Section row selection
+  document.querySelectorAll('.section-row, .tree-row').forEach(row => {
+    row.addEventListener('click', () => {
+      document.querySelectorAll('.section-row, .tree-row').forEach(r => r.classList.remove('active'));
+      row.classList.add('active');
+    });
+  });
+
+  // Editor tabs
+  document.querySelectorAll('.editor-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.editor-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+    });
+  });
+
+  // Quiz choice correct-marking
+  document.querySelectorAll('.qq-choice .qq-choice-mark').forEach(mark => {
+    mark.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const choices = mark.closest('.qq-choices');
+      choices.querySelectorAll('.qq-choice').forEach(c => c.classList.remove('correct'));
+      mark.closest('.qq-choice').classList.add('correct');
+    });
+  });
+
+  // Preview option selection (visual only)
+  document.querySelectorAll('.preview-q-options').forEach(group => {
+    group.querySelectorAll('.preview-q-opt').forEach(opt => {
+      opt.addEventListener('click', () => {
+        group.querySelectorAll('.preview-q-opt').forEach(o => o.classList.remove('checked'));
+        opt.classList.add('checked');
+      });
+    });
+  });
+
+  // Replay counter
+  document.querySelectorAll('.replay-counter').forEach(c => {
+    const span = c.querySelector('span');
+    const btns = c.querySelectorAll('button');
+    btns[0].addEventListener('click', () => {
+      let v = Math.max(0, parseInt(span.textContent) - 1);
+      span.textContent = v;
+    });
+    btns[1].addEventListener('click', () => {
+      let v = parseInt(span.textContent) + 1;
+      span.textContent = v;
+    });
+  });
+</script>
+<script src="../assets/js/prototype-ui.js"></script>
+
+</body>
+</html>

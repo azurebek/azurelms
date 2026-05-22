@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS old-turtle prototype for legal terms.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>Foydalanish shartlari — AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- CSS Zanjiri (Architectural Standard) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/legal-terms.css">
+
+  <link rel="stylesheet" href="../assets/css/prototype-extracted.css">
+</head>
+<body>
+  <script>(function(){ try { var t=localStorage.getItem('lms-theme'); if(t) document.documentElement.setAttribute('data-theme',t); } catch(e){} })();</script>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="xstyle-e3f61041">
+        <div class="logo-mark">AL</div>
+        <span class="logo-name">AzureLMS</span>
+      </a>
+      <div class="nav-spacer"></div>
+      <div class="nav-links">
+        <a href="../public/course-list.html" class="nav-link">Kurslar</a>
+        <a href="../blog/blog-shell.html" class="nav-link">Blog</a>
+        <a href="../public/about.html" class="nav-link">Biz haqimizda</a>
+      </div>
+      <button class="nav-theme" data-ui-action="theme"><i class="bi bi-moon-stars" id="themeIcon"></i></button>
+    </div>
+  </nav>
+
+  <div class="layout">
+    <!-- TOC -->
+    <aside class="toc-sidebar">
+      <div class="toc-head">Mundarija</div>
+      <div class="toc-list" id="tocList">
+        <a href="#s1" class="toc-item active">1. Umumiy shartlar</a>
+        <a href="#s2" class="toc-item">2. Foydalanuvchi hisobi</a>
+        <a href="#s3" class="toc-item">3. Kontent va litsenziya</a>
+        <a href="#s4" class="toc-item">4. To'lovlar</a>
+        <a href="#s5" class="toc-item">5. Taqiqlangan harakatlar</a>
+        <a href="#s6" class="toc-item">6. Mas'uliyat chegarasi</a>
+        <a href="#s7" class="toc-item">7. O'zgarishlar</a>
+        <a href="#s8" class="toc-item">8. Aloqa</a>
+      </div>
+      <div class="toc-divider"></div>
+      <div class="xstyle-e22dd14a">Huquqiy</div>
+      <div class="legal-links">
+        <a href="legal-terms.html" class="legal-link curr"><i class="bi bi-file-text"></i> Foydalanish shartlari</a>
+        <a href="legal-privacy.html" class="legal-link"><i class="bi bi-shield-check"></i> Maxfiylik siyosati</a>
+        <a href="legal-cookies.html" class="legal-link"><i class="bi bi-cookie"></i> Cookie siyosati</a>
+      </div>
+    </aside>
+
+    <!-- Article -->
+    <article class="article">
+      <div class="article-hero">
+        <div class="article-badge"><i class="bi bi-file-earmark-text"></i> Huquqiy hujjat</div>
+        <h1 class="article-title">Foydalanish shartlari</h1>
+        <div class="article-meta">
+          <span><i class="bi bi-calendar3"></i> Kuchga kirgan sana: 1-yanvar, 2025</span>
+          <span><i class="bi bi-arrow-clockwise"></i> Oxirgi yangilanish: 15-may, 2026</span>
+          <span><i class="bi bi-clock"></i> O'qish vaqti: ~8 daqiqa</span>
+        </div>
+      </div>
+
+      <div class="doc-section">
+        <div class="doc-callout"><p>Ushbu shartlar AzureLMS platformasidan foydalanish qoidalarini belgilaydi. Platformadan foydalanishni boshlashingiz bilan siz ushbu shartlarga rozilik bildirasiz.</p></div>
+      </div>
+
+      <span class="section-anchor" id="s1"></span>
+      <div class="doc-section">
+        <h2 class="doc-h2"><span class="doc-h2-num">01</span> Umumiy shartlar</h2>
+        <p class="doc-p">AzureLMS ("Platforma", "Biz") — onlayn ta'lim xizmatlarini taqdim etuvchi platforma bo'lib, foydalanuvchilar ("Siz") ga turli fanlar bo'yicha kurslar, testlar va o'quv materiallaridan foydalanish imkonini beradi.</p>
+        <p class="doc-p">Ushbu Foydalanish shartlari ("Shartlar") platforma va uning barcha xizmatlaridan foydalanishni tartibga soladi. Platformadan foydalanishni davom ettirishingiz ushbu Shartlar bilan kelishganingizni bildiradi.</p>
+        <p class="doc-p">Agar siz ushbu Shartlarning biron bir qismiga rozi bo'lmasangiz, platformadan foydalanishni to'xtating va hisobingizni o'chiring.</p>
+      </div>
+
+      <span class="section-anchor" id="s2"></span>
+      <div class="doc-section">
+        <h2 class="doc-h2"><span class="doc-h2-num">02</span> Foydalanuvchi hisobi</h2>
+        <h3 class="doc-h3">Ro'yxatdan o'tish</h3>
+        <p class="doc-p">Platformadan to'liq foydalanish uchun ro'yxatdan o'tish talab etiladi. Ro'yxatdan o'tishda quyidagi talablar qo'yiladi:</p>
+        <ul class="doc-ul">
+          <li>18 yoshdan katta bo'lish yoki ota-ona/vasiy roziligi</li>
+          <li>Haqiqiy va to'g'ri ma'lumot kiritish</li>
+          <li>Bir xil email manzil bilan faqat bitta hisob ochish</li>
+          <li>Hisob parolingizni xavfsiz saqlash</li>
+        </ul>
+        <h3 class="doc-h3">Hisob xavfsizligi</h3>
+        <p class="doc-p">Siz o'z hisobingiz xavfsizligi uchun to'liq mas'ulsiz. Hisobingizga ruxsatsiz kirishni sezdisangiz, darhol biz bilan bog'laning.</p>
+        <div class="doc-highlight">
+          <div class="doc-highlight-title">Muhim</div>
+          <p class="doc-p">Parolingizni hech kim bilan bo'lishmang. AzureLMS xodimlari hech qachon parolingizni so'ramaydi.</p>
+        </div>
+      </div>
+
+      <span class="section-anchor" id="s3"></span>
+      <div class="doc-section">
+        <h2 class="doc-h2"><span class="doc-h2-num">03</span> Kontent va litsenziya</h2>
+        <p class="doc-p">Platforma orqali taqdim etiladigan barcha kurslar, videolar, materiallar, testlar va boshqa kontentlar AzureLMS va uning litsenziarlariga tegishli bo'lib, mualliflik huquqi qonunlari bilan himoyalangan.</p>
+        <ul class="doc-ul">
+          <li>Shaxsiy o'quv maqsadida foydalanish ruxsat etiladi</li>
+          <li>Tijorat maqsadida qayta tarqatish, sotish yoki nusxalash taqiqlanadi</li>
+          <li>Materiallarni o'zgartirish yoki hosilaviy asarlar yaratish taqiqlanadi</li>
+          <li>Avtomatlashtirilgan usullar bilan kontentni yuklab olish taqiqlanadi</li>
+        </ul>
+      </div>
+
+      <span class="section-anchor" id="s4"></span>
+      <div class="doc-section">
+        <h2 class="doc-h2"><span class="doc-h2-num">04</span> To'lovlar va obuna</h2>
+        <p class="doc-p">Ayrim kurs va xizmatlar pullik bo'lishi mumkin. To'lov shartlari quyidagicha:</p>
+        <ul class="doc-ul">
+          <li>Barcha narxlar so'mda ko'rsatiladi, QQS kiritilgan</li>
+          <li>Oylik va yillik obuna rejalari mavjud</li>
+          <li>To'lov amalga oshirilgandan so'ng 14 kun ichida qaytarish mumkin</li>
+          <li>Obunani istalgan vaqt bekor qilish mumkin — amaldagi davr tugaguncha foydalanish davom etadi</li>
+        </ul>
+        <div class="doc-callout"><p><strong>Qaytarish siyosati:</strong> To'lov sanasidan 14 kun ichida to'liq qaytarish kafolatlanadi. 14 kundan keyin qaytarish faqat alohida holatlarda ko'rib chiqiladi.</p></div>
+      </div>
+
+      <span class="section-anchor" id="s5"></span>
+      <div class="doc-section">
+        <h2 class="doc-h2"><span class="doc-h2-num">05</span> Taqiqlangan harakatlar</h2>
+        <p class="doc-p">Platforma orqali quyidagi harakatlar qat'iyan taqiqlanadi:</p>
+        <ul class="doc-ul">
+          <li>Boshqa foydalanuvchilar nomidan harakat qilish yoki ularga zarar etkazish</li>
+          <li>Platformaning texnik himoyasini buzishga urinish</li>
+          <li>Spam, reklama yoki boshqa ruxsatsiz xabarlar yuborish</li>
+          <li>Platformada noto'g'ri yoki yolg'on ma'lumot tarqatish</li>
+          <li>Litsenziya yoki mualliflik huquqlarini buzish</li>
+          <li>Avtomatlashtirilgan skript yoki botlar orqali foydalanish</li>
+        </ul>
+        <p class="doc-p">Ushbu qoidalarni buzgan foydalanuvchilar hisobi darhol bloklanishi va huquqiy javobgarlikka tortilishi mumkin.</p>
+      </div>
+
+      <span class="section-anchor" id="s6"></span>
+      <div class="doc-section">
+        <h2 class="doc-h2"><span class="doc-h2-num">06</span> Mas'uliyat chegarasi</h2>
+        <p class="doc-p">AzureLMS quyidagi holatlarda mas'uliyat olmaydi:</p>
+        <ul class="doc-ul">
+          <li>Internet aloqasi uzilishi yoki texnik nosozliklar sababli yuzaga kelgan yo'qotishlar</li>
+          <li>Uchinchi tomon xizmatlari yoki saytlari orqali yuzaga kelgan muammolar</li>
+          <li>Foydalanuvchining o'z hisobiga kirish ma'lumotlarini yo'qotishi</li>
+          <li>Fors-major holatlari (tabiiy ofatlar, hukumat qarorlari va h.k.)</li>
+        </ul>
+      </div>
+
+      <span class="section-anchor" id="s7"></span>
+      <div class="doc-section">
+        <h2 class="doc-h2"><span class="doc-h2-num">07</span> Shartlarga o'zgartirishlar</h2>
+        <p class="doc-p">AzureLMS ushbu Shartlarni istalgan vaqt o'zgartirish huquqini o'zida saqlab qoladi. O'zgartirishlar amalga oshirilganda:</p>
+        <ul class="doc-ul">
+          <li>Email orqali xabarnoma yuboriladi</li>
+          <li>Platforma bosh sahifasida e'lon qilinadi</li>
+          <li>Yangi versiya kuchga kirish sanasi ko'rsatiladi</li>
+        </ul>
+        <p class="doc-p">O'zgartirishlar e'lon qilinganidan 30 kun keyin kuchga kiradi. Platformadan foydalanishni davom ettirish yangi Shartlar bilan kelishganligingizni bildiradi.</p>
+      </div>
+
+      <span class="section-anchor" id="s8"></span>
+      <div class="doc-section">
+        <h2 class="doc-h2"><span class="doc-h2-num">08</span> Aloqa</h2>
+        <p class="doc-p">Ushbu Shartlar bo'yicha savollaringiz bo'lsa, biz bilan bog'laning:</p>
+        <div class="doc-highlight">
+          <div class="doc-highlight-title">Aloqa ma'lumotlari</div>
+          <ul class="doc-ul">
+            <li>Email: legal@azurelms.uz</li>
+            <li>Telefon: +998 71 123-45-67</li>
+            <li>Manzil: Toshkent shahri, Yunusobod tumani</li>
+            <li>Ish vaqti: Dushanba–Juma, 09:00–18:00</li>
+          </ul>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isDark = html.getAttribute('data-theme') === 'dark';
+      html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      document.getElementById('themeIcon').className = isDark ? 'bi bi-moon-stars' : 'bi bi-sun';
+      try { localStorage.setItem('lms-theme', isDark ? 'light' : 'dark'); } catch(e){}
+    }
+    (function(){ try { if(localStorage.getItem('lms-theme')==='dark') document.getElementById('themeIcon').className='bi bi-sun'; } catch(e){} })();
+
+    // TOC active on scroll
+    const sections = document.querySelectorAll('.section-anchor');
+    const tocItems = document.querySelectorAll('.toc-item');
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(s => {
+        if (window.scrollY >= s.offsetTop - 100) current = s.id;
+      });
+      tocItems.forEach(item => {
+        item.classList.toggle('active', item.getAttribute('href') === '#' + current);
+      });
+    });
+  </script>
+  <script src="../assets/js/prototype-ui.js"></script>
+</body>
+</html>
+

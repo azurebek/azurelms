@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS old-turtle prototype for app course detail.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>O'quv xonasi &mdash; AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- CSS Zanjiri (Architectural Standard) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/app-course-detail.css">
+
+  <link rel="stylesheet" href="../assets/css/prototype-extracted.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- COURSE OUTLINE SIDEBAR -->
+  <aside class="lesson-sidebar" id="lessonSidebar">
+    <div class="ls-header">
+      <a href="app-shell.html" class="ls-logo-link" title="Dashboardga qaytish">
+        <span class="ls-logo-text">AZ</span>
+        <i class="bi bi-arrow-left ls-logo-back" aria-hidden="true"></i>
+      </a>
+      <div class="ls-header-copy">
+        <div class="ls-title">Turk tili: A1&ndash;B2</div>
+        <div class="ls-sub">To'liq kurs &middot; 124 dars</div>
+      </div>
+      <button class="ls-collapse-btn" id="lessonSidebarToggle" title="Mundarijani yig'ish" aria-label="Mundarijani yig'ish">
+        <i class="bi bi-layout-sidebar-inset"></i>
+      </button>
+    </div>
+    <div class="ls-progress">
+      <div class="ls-prog-info"><span>84 / 124 dars</span><span class="xstyle-1d631307">68%</span></div>
+      <div class="ls-prog-bar"><div class="ls-prog-fill"></div></div>
+    </div>
+    <div class="ls-scroll">
+
+      <!-- Sections -->
+      <div class="ls-section open">
+        <div class="ls-sec-head" data-ui-call="toggleLsSection" data-ui-pass="this">
+          <div class="ls-sec-num done"><i class="bi bi-check"></i></div>
+          <div class="ls-sec-name">1. Kirish va Alifbo</div>
+          <i class="bi bi-chevron-down ls-sec-chevron"></i>
+        </div>
+        <div class="ls-lessons">
+          <div class="ls-lesson"><div class="ls-lesson-icon done"><i class="bi bi-check"></i></div><div class="ls-lesson-name">Turk tili haqida</div><div class="ls-lesson-dur">8:24</div></div>
+          <div class="ls-lesson"><div class="ls-lesson-icon done"><i class="bi bi-check"></i></div><div class="ls-lesson-name">Alifbo: unli va undosh</div><div class="ls-lesson-dur">12:10</div></div>
+          <div class="ls-lesson"><div class="ls-lesson-icon done"><i class="bi bi-check"></i></div><div class="ls-lesson-name">Vokal uyg'unligi</div><div class="ls-lesson-dur">9:45</div></div>
+        </div>
+      </div>
+
+      <div class="ls-section open">
+        <div class="ls-sec-head" data-ui-call="toggleLsSection" data-ui-pass="this">
+          <div class="ls-sec-num done"><i class="bi bi-check"></i></div>
+          <div class="ls-sec-name">6. Shart mayili</div>
+          <i class="bi bi-chevron-down ls-sec-chevron"></i>
+        </div>
+        <div class="ls-lessons">
+          <div class="ls-lesson"><div class="ls-lesson-icon done"><i class="bi bi-check"></i></div><div class="ls-lesson-name">-se/-sa shakllar</div><div class="ls-lesson-dur">10:12</div></div>
+          <div class="ls-lesson"><div class="ls-lesson-icon done"><i class="bi bi-check"></i></div><div class="ls-lesson-name">Mashq: dialog</div><div class="ls-lesson-dur">7:30</div></div>
+        </div>
+      </div>
+
+      <div class="ls-section open">
+        <div class="ls-sec-head" data-ui-call="toggleLsSection" data-ui-pass="this">
+          <div class="ls-sec-num xstyle-f2cd36af">7</div>
+          <div class="ls-sec-name">7. Sifat va ravishlar</div>
+          <i class="bi bi-chevron-down ls-sec-chevron"></i>
+        </div>
+        <div class="ls-lessons">
+          <div class="ls-lesson"><div class="ls-lesson-icon done"><i class="bi bi-check"></i></div><div class="ls-lesson-name">Sifatning o'rni</div><div class="ls-lesson-dur">9:15</div></div>
+          <div class="ls-lesson"><div class="ls-lesson-icon done"><i class="bi bi-check"></i></div><div class="ls-lesson-name">Rang nomlari</div><div class="ls-lesson-dur">8:40</div></div>
+          <div class="ls-lesson active"><div class="ls-lesson-icon current"><i class="bi bi-play-fill"></i></div><div class="ls-lesson-name">Sifat darajalari</div><div class="ls-lesson-dur">11:08</div></div>
+          <div class="ls-lesson"><div class="ls-lesson-icon locked"><i class="bi bi-lock"></i></div><div class="ls-lesson-name">Ravish hosil qilish</div><div class="ls-lesson-dur">8:45</div></div>
+          <div class="ls-lesson"><div class="ls-lesson-icon locked"><i class="bi bi-lock"></i></div><div class="ls-lesson-name">Bo'lim 7 testi</div><div class="ls-lesson-dur">&mdash;</div></div>
+        </div>
+      </div>
+
+      <div class="ls-section">
+        <div class="ls-sec-head" data-ui-call="toggleLsSection" data-ui-pass="this">
+          <div class="ls-sec-num">8</div>
+          <div class="ls-sec-name">8. Olmoshlar tizimi</div>
+          <i class="bi bi-chevron-down ls-sec-chevron"></i>
+        </div>
+        <div class="ls-lessons"></div>
+      </div>
+
+      <div class="ls-section">
+        <div class="ls-sec-head" data-ui-call="toggleLsSection" data-ui-pass="this">
+          <div class="ls-sec-num">9</div>
+          <div class="ls-sec-name">9. Murakkab gaplar (B1)</div>
+          <i class="bi bi-chevron-down ls-sec-chevron"></i>
+        </div>
+        <div class="ls-lessons"></div>
+      </div>
+
+    </div>
+  </aside>
+
+  <!-- PLAYER MAIN -->
+  <div class="player-main">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <a href="app-course-list.html" class="back-btn"><i class="bi bi-arrow-left"></i> Orqaga</a>
+      <div class="topbar-sep"></div>
+      <span class="course-crumb">Turk tili: A1&ndash;B2 &rsaquo;</span>
+      <span class="lesson-crumb">Bo'lim 7 &middot; Dars 3 &mdash; Sifat darajalari</span>
+      <div class="topbar-right">
+        <div class="progress-chip">
+          <span class="xstyle-719d30ea">68%</span>
+          <div class="prog-bar-mini"><div class="prog-fill-mini xstyle-728c5592"></div></div>
+          <span class="prog-pct">84/124</span>
+        </div>
+        <button class="topbar-btn" title="Yozuvlar"><i class="bi bi-pencil"></i></button>
+        <button class="topbar-btn" title="Ulashish"><i class="bi bi-share"></i></button>
+        <button class="topbar-btn" id="themeBtn" title="Tema"><i class="bi bi-moon" id="themeIcon"></i></button>
+      </div>
+    </div>
+
+    <!-- VIDEO PLAYER -->
+    <div class="video-area">
+      <div class="video-bg">
+        <div class="video-emoji">🇹🇷</div>
+      </div>
+      <div class="video-overlay">
+        <div class="video-center">
+          <button class="vc-btn" title="Oldingi dars"><i class="bi bi-skip-start-fill"></i></button>
+          <button class="vc-btn play" id="playBtn" data-ui-call="togglePlay" data-ui-pass="this"><i class="bi bi-play-fill"></i></button>
+          <button class="vc-btn" title="Keyingi dars"><i class="bi bi-skip-end-fill"></i></button>
+        </div>
+        <div class="video-controls">
+          <div class="seek-bar">
+            <div class="seek-fill" id="seekFill"></div>
+          </div>
+          <div class="ctrl-row">
+            <button class="ctrl-btn" data-ui-call="togglePlay" data-ui-target-arg="#playBtn"><i class="bi bi-play-fill" id="ctrlPlay"></i></button>
+            <button class="ctrl-btn"><i class="bi bi-volume-up"></i></button>
+            <span class="ctrl-time">4:12 / 11:08</span>
+            <div class="ctrl-right">
+              <span class="ctrl-speed" id="speedBtn" data-ui-call="cycleSpeed">1×</span>
+              <button class="ctrl-btn" title="Yopiq sarlavha"><i class="bi bi-badge-cc"></i></button>
+              <button class="ctrl-btn" title="Kichik ekran"><i class="bi bi-pip"></i></button>
+              <button class="ctrl-btn" title="To'liq ekran"><i class="bi bi-fullscreen"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="content-area">
+      <div class="content-tabs" id="ctabs">
+        <div class="ctab active" data-tab="lesson">Dars</div>
+        <div class="ctab" data-tab="notes">Yozuvlarim</div>
+        <div class="ctab" data-tab="resources">Materiallar</div>
+        <div class="ctab" data-tab="discuss">Muhokama (12)</div>
+      </div>
+
+      <!-- LESSON TAB -->
+      <div class="ctab-panel active" id="ctab-lesson">
+        <div class="content-scroll">
+          <div class="lesson-title">Sifat darajalari (Sıfat dereceleri)</div>
+          <div class="lesson-meta">
+            <span><i class="bi bi-clock"></i> 11:08</span>
+            <span><i class="bi bi-file-earmark-text"></i> PDF mavjud</span>
+            <span><i class="bi bi-translate"></i> Tarjima mavjud</span>
+          </div>
+          <div class="lesson-body">
+            <p>Turk tilida sifatlarning <strong>uch darajasi</strong> mavjud: oddiy daraja (positive), qiyosiy daraja (comparative) va eng yuqori daraja (superlative). Bu darsda har birini o'rganamiz va real gaplarda qo'llaymiz.</p>
+            <div class="note-box"><i class="bi bi-lightbulb xstyle-0757a8e5"></i>Turk tilida sifat darajalari o'zbek tiliga juda o'xshash. Faqat qo'shimchalar farqlanadi.</div>
+            <table class="vocab-table">
+              <thead><tr><th>O'zbek</th><th>Oddiy</th><th>Qiyosiy (daha)</th><th>Eng yuqori (en)</th></tr></thead>
+              <tbody>
+                <tr><td>Katta</td><td class="vocab-tr">büyük</td><td>daha büyük</td><td>en büyük</td></tr>
+                <tr><td>Kichik</td><td class="vocab-tr">küçük</td><td>daha küçük</td><td>en küçük</td></tr>
+                <tr><td>Chiroyli</td><td class="vocab-tr">güzel</td><td>daha güzel</td><td>en güzel</td></tr>
+                <tr><td>Tez</td><td class="vocab-tr">hızlı</td><td>daha hızlı</td><td>en hızlı</td></tr>
+                <tr><td>Eski</td><td class="vocab-tr">eski</td><td>daha eski</td><td>en eski</td></tr>
+              </tbody>
+            </table>
+            <p><strong>Misol gaplar:</strong></p>
+            <p>• Bu ev <strong>daha büyük</strong> — Bu uy kattaroq<br>• İstanbul <strong>en büyük</strong> şehir — Istanbul eng katta shahar<br>• Sen <strong>daha güzelsin</strong> — Sen chiroyliroksan</p>
+          </div>
+
+          <!-- NEXT LESSON -->
+          <div class="xstyle-041691da">
+            <div class="xstyle-7623f055">
+              <div class="xstyle-8cf05145">Keyingi dars</div>
+              <div class="xstyle-0188ddbd">Bo'lim 7 · Dars 4 — Ravish hosil qilish</div>
+              <div class="xstyle-e8ce99ef">8:45 · Video</div>
+            </div>
+            <button class="ui-hover-blue-fill xstyle-b41063fb"><i class="bi bi-play-fill"></i> Keyingi</button>
+          </div>
+
+          <!-- MARK DONE -->
+          <div class="xstyle-d0b3bd8b">
+            <button class="ui-hover-green-fill xstyle-973c9ff7" id="doneBtn" data-ui-call="markDone">
+              <i class="bi bi-check-circle"></i> Darsni yakunladim
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- NOTES TAB -->
+      <div class="ctab-panel" id="ctab-notes">
+        <div class="content-scroll">
+          <div class="notes-area">
+            <div class="saved-note">
+              <div class="saved-note-meta">Bo'lim 7 · Dars 2 — 16-may 14:32</div>
+              daha = -roq (qiyosiy), en = eng (superlativ). Muhim! Sifat otdan oldin keladi turk tilida ham.
+            </div>
+            <textarea class="notes-textarea" placeholder="Bu dars bo'yicha yozuvlaringizni kiriting…" rows="5"></textarea>
+            <button class="notes-save">Saqlash</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESOURCES TAB -->
+      <div class="ctab-panel" id="ctab-resources">
+        <div class="content-scroll">
+          <div class="xstyle-f67b86e0">
+            <div class="ui-hover-surface xstyle-94d7f53a">
+              <div class="xstyle-984f264f"><i class="bi bi-file-earmark-pdf-fill"></i></div>
+              <div class="xstyle-7623f055"><div class="xstyle-c2cae0ad">Bo'lim 7 — Sifat darajalari (PDF)</div><div class="xstyle-719d30ea">248 KB · O'zbek / Turk</div></div>
+              <i class="bi bi-download xstyle-ca9808c0"></i>
+            </div>
+            <div class="ui-hover-surface xstyle-94d7f53a">
+              <div class="xstyle-8d5e573d"><i class="bi bi-table"></i></div>
+              <div class="xstyle-7623f055"><div class="xstyle-c2cae0ad">Sifat darajalari jadvali (Flashcard)</div><div class="xstyle-719d30ea">40 ta so'z · PDF</div></div>
+              <i class="bi bi-download xstyle-ca9808c0"></i>
+            </div>
+            <div class="ui-hover-surface xstyle-94d7f53a">
+              <div class="xstyle-e16edc20"><i class="bi bi-headphones"></i></div>
+              <div class="xstyle-7623f055"><div class="xstyle-c2cae0ad">Audio mashqlar — sifat darajalari</div><div class="xstyle-719d30ea">12:30 · MP3</div></div>
+              <i class="bi bi-download xstyle-ca9808c0"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DISCUSS TAB -->
+      <div class="ctab-panel" id="ctab-discuss">
+        <div class="content-scroll">
+          <div class="xstyle-2e1ca338">
+            <div class="xstyle-7323d8c4">
+              <div class="xstyle-446390f3">
+                <div class="xstyle-c5fc7684">NB</div>
+                <div><div class="xstyle-e8d4cc3d">Nodira</div><div class="xstyle-cb570b57">2 soat oldin</div></div>
+              </div>
+              <div class="xstyle-07569030">"daha" ni doim sifatdan oldin qo'yamizmi? Yoki otdan ham oldin kelishi mumkinmi?</div>
+              <div class="xstyle-f5179b22">
+                <div class="xstyle-ef3494ed">Aziz muallim</div>
+                Ha, "daha" faqat sifat va ravishlar oldida keladi. Otlar bilan ishlatilmaydi.
+              </div>
+            </div>
+            <div class="xstyle-a29faea6">
+              <div class="xstyle-c5fc7684">AK</div>
+              <div class="xstyle-7623f055"><input class="ui-focus-blue xstyle-db9bd89e" type="text" placeholder="Savol yoki izoh qoldiring…"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Theme
+  (function() {
+    let s; try { s = localStorage.getItem('az-theme'); } catch(_) {}
+    const dark = s ? s === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (dark) document.documentElement.setAttribute('data-theme', 'dark');
+    const icon = document.getElementById('themeIcon');
+    if (icon) icon.className = dark ? 'bi bi-sun' : 'bi bi-moon';
+  })();
+  const themeBtn = document.getElementById('themeBtn');
+  if (themeBtn) {
+    themeBtn.addEventListener('click', function() {
+      const html = document.documentElement;
+      const dark = html.getAttribute('data-theme') === 'dark';
+      html.setAttribute('data-theme', dark ? 'light' : 'dark');
+      const icon = document.getElementById('themeIcon');
+      if (icon) icon.className = dark ? 'bi bi-moon' : 'bi bi-sun';
+      try { localStorage.setItem('az-theme', dark ? 'light' : 'dark'); } catch(_) {}
+    });
+  }
+
+  // Course outline collapse
+  (function initLessonSidebar() {
+    const app = document.querySelector('.app');
+    const toggle = document.getElementById('lessonSidebarToggle');
+    if (!app || !toggle) return;
+
+    const setCollapsed = (collapsed) => {
+      app.classList.toggle('toc-collapsed', collapsed);
+      toggle.setAttribute("aria-label", collapsed ? "Mundarijani ochish" : "Mundarijani yig'ish");
+      toggle.setAttribute("title", collapsed ? "Mundarijani ochish" : "Mundarijani yig'ish");
+      toggle.querySelector('i').className = collapsed ? 'bi bi-layout-sidebar-inset-reverse' : 'bi bi-layout-sidebar-inset';
+    };
+
+    let saved = false;
+    try { saved = localStorage.getItem('az-lesson-sidebar-collapsed') === '1'; } catch(_) {}
+    setCollapsed(saved);
+
+    toggle.addEventListener('click', function() {
+      const collapsed = !app.classList.contains('toc-collapsed');
+      setCollapsed(collapsed);
+      try { localStorage.setItem('az-lesson-sidebar-collapsed', collapsed ? '1' : '0'); } catch(_) {}
+    });
+  })();
+
+  // Tabs
+  document.querySelectorAll('.ctab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.ctab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.ctab-panel').forEach(p => p.classList.remove('active'));
+      this.classList.add('active');
+      document.getElementById('ctab-' + this.dataset.tab).classList.add('active');
+    });
+  });
+
+  // Play toggle
+  let playing = false;
+  function togglePlay(btn) {
+    playing = !playing;
+    document.getElementById('playBtn').innerHTML = playing ? '<i class="bi bi-pause-fill"></i>' : '<i class="bi bi-play-fill"></i>';
+    document.getElementById('ctrlPlay').className = playing ? 'bi bi-pause-fill' : 'bi bi-play-fill';
+  }
+
+  // Speed
+  const speeds = ['1x','1.25x','1.5x','2x','0.75x'];
+  let speedIdx = 0;
+  function cycleSpeed() {
+    speedIdx = (speedIdx + 1) % speeds.length;
+    document.getElementById('speedBtn').textContent = speeds[speedIdx];
+  }
+
+  // Lesson sidebar sections
+  (function initLessonSections() {
+    const sections = Array.from(document.querySelectorAll('.ls-section'));
+    const preferred =
+      sections.find(section => section.querySelector('.ls-lesson.active')) ||
+      sections.find(section => section.classList.contains('open')) ||
+      sections[0];
+
+    sections.forEach(section => {
+      section.classList.toggle('open', section === preferred);
+    });
+  })();
+
+  function toggleLsSection(head) {
+    const app = document.querySelector('.app');
+    if (app && app.classList.contains('toc-collapsed')) {
+      app.classList.remove('toc-collapsed');
+      const toggle = document.getElementById('lessonSidebarToggle');
+      if (toggle) {
+        toggle.setAttribute("aria-label", "Mundarijani yig'ish");
+        toggle.setAttribute("title", "Mundarijani yig'ish");
+        toggle.querySelector('i').className = 'bi bi-layout-sidebar-inset';
+      }
+      try { localStorage.setItem('az-lesson-sidebar-collapsed', '0'); } catch(_) {}
+    }
+
+    const section = head.closest('.ls-section');
+    const shouldOpen = !section.classList.contains('open');
+
+    document.querySelectorAll('.ls-section.open').forEach(openSection => {
+      if (openSection !== section) {
+        openSection.classList.remove('open');
+      }
+    });
+
+    section.classList.toggle('open', shouldOpen);
+  }
+
+  // Mark done
+  function markDone() {
+    const btn = document.getElementById('doneBtn');
+    btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Yakunlandi!';
+    btn.style.background = 'var(--green-mid)';
+    btn.style.color = '#fff';
+    btn.disabled = true;
+  }
+</script>
+  <script src="../assets/js/prototype-ui.js"></script>
+</body>
+</html>
+

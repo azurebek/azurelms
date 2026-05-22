@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS old-turtle prototype for course list.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>Kurslar — AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- CSS Zanjiri (Architectural Standard) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/public.css">
+  <link rel="stylesheet" href="../assets/css/public-course-list.css">
+
+  <link rel="stylesheet" href="../assets/css/prototype-extracted.css">
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="logo" href="index.html">
+      <div class="logo-mark">AZ</div>
+      <span class="logo-name">AzureLMS</span>
+    </a>
+    <a class="nav-link active" href="course-list.html">Kurslar</a>
+    <a class="nav-link" href="pricing.html">Narxlar</a>
+    <a class="nav-link" href="about.html">Biz haqimizda</a>
+    <button class="theme-btn" id="themeBtn" aria-label="Tema">
+      <i class="bi bi-moon" id="themeIcon"></i>
+    </button>
+    <a class="btn-nav" href="../auth/auth-login.html">Kirish</a>
+  </div>
+</nav>
+
+<!-- HERO STRIP -->
+<div class="hero-strip">
+  <div class="hero-strip-inner">
+    <div class="breadcrumb">
+      <a href="index.html">Bosh sahifa</a>
+      <i class="bi bi-chevron-right"></i>
+      <span>Kurslar</span>
+    </div>
+    <h1 class="page-title">Barcha kurslar</h1>
+    <p class="page-desc">Til o'rganishdan dasturlashgacha — 14 ta sertifikatlangan kurs, 12 000+ faol o'quvchi.</p>
+    <div class="search-wrap">
+      <i class="bi bi-search search-icon"></i>
+      <input class="search-input" type="text" placeholder="Kurs qidiring... (masalan: Turk tili, Python)" id="searchInput">
+    </div>
+  </div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="page-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <div class="filter-card">
+      <div class="filter-title">Kategoriya</div>
+      <div class="filter-opts">
+        <label class="filter-opt">
+          <div class="filter-opt-left"><input type="checkbox" class="filter-checkbox" checked> Barcha</div>
+          <span class="filter-count">14</span>
+        </label>
+        <label class="filter-opt">
+          <div class="filter-opt-left"><input type="checkbox" class="filter-checkbox"> Til o'rganish</div>
+          <span class="filter-count">8</span>
+        </label>
+        <label class="filter-opt">
+          <div class="filter-opt-left"><input type="checkbox" class="filter-checkbox"> Dasturlash</div>
+          <span class="filter-count">3</span>
+        </label>
+        <label class="filter-opt">
+          <div class="filter-opt-left"><input type="checkbox" class="filter-checkbox"> Biznes</div>
+          <span class="filter-count">3</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="filter-card">
+      <div class="filter-title">Daraja</div>
+      <div class="tag-filters">
+        <div class="tag-filter active">Barchasi</div>
+        <div class="tag-filter">A1</div>
+        <div class="tag-filter">A2</div>
+        <div class="tag-filter">B1</div>
+        <div class="tag-filter">B2</div>
+        <div class="tag-filter">C1</div>
+      </div>
+    </div>
+
+    <div class="filter-card">
+      <div class="filter-title">Narx</div>
+      <div class="filter-opts">
+        <label class="filter-opt">
+          <div class="filter-opt-left"><input type="checkbox" class="filter-checkbox"> Bepul</div>
+          <span class="filter-count">2</span>
+        </label>
+        <label class="filter-opt">
+          <div class="filter-opt-left"><input type="checkbox" class="filter-checkbox"> To'lov</div>
+          <span class="filter-count">12</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="filter-card">
+      <div class="filter-title">Xususiyat</div>
+      <div class="filter-opts">
+        <label class="filter-opt">
+          <div class="filter-opt-left"><input type="checkbox" class="filter-checkbox"> Sertifikat</div>
+          <span class="filter-count">10</span>
+        </label>
+        <label class="filter-opt">
+          <div class="filter-opt-left"><input type="checkbox" class="filter-checkbox"> Jonli sinf</div>
+          <span class="filter-count">4</span>
+        </label>
+        <label class="filter-opt">
+          <div class="filter-opt-left"><input type="checkbox" class="filter-checkbox"> Offlayn kirish</div>
+          <span class="filter-count">8</span>
+        </label>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-area">
+
+    <div class="toolbar">
+      <p class="results-count"><strong>14 ta</strong> kurs topildi</p>
+      <div class="xstyle-ea96bdd3">
+        <div class="sort-wrap">
+          <span class="sort-label">Saralash:</span>
+          <select class="sort-select">
+            <option>Ommabop</option>
+            <option>Yangi</option>
+            <option>Reyting</option>
+            <option>Narx: pastdan</option>
+            <option>Narx: yuqoridan</option>
+          </select>
+        </div>
+        <div class="view-btns">
+          <div class="view-btn active"><i class="bi bi-grid"></i></div>
+          <div class="view-btn"><i class="bi bi-list"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="course-grid" id="courseGrid">
+
+      <!-- Card 1 -->
+      <div class="course-card">
+        <div class="card-thumb thumb-blue">
+          <div class="card-thumb-bg">🇹🇷</div>
+          <div class="card-badge-top badge-hot">🔥 Ommabop</div>
+          <div class="card-level">A1 → C1</div>
+        </div>
+        <div class="card-body">
+          <div class="card-category">Til o'rganish</div>
+          <div class="card-title">Turk tili — Boshlang'ichdan mukammalgacha</div>
+          <div class="card-desc">A1 dan C1 gacha tartibli darslar, imtihon muhiti va tasdiqlangan sertifikat.</div>
+          <div class="instructor-mini">
+            <div class="instructor-av">AZ</div>
+            <span class="instructor-name">Aziz Karimov</span>
+          </div>
+          <div class="card-meta">
+            <span class="card-meta-item"><i class="bi bi-play-circle"></i> 48 dars</span>
+            <span class="card-meta-item"><i class="bi bi-clock"></i> 36 soat</span>
+            <span class="card-meta-item"><i class="bi bi-award"></i> Sertifikat</span>
+          </div>
+          <div class="card-rating">
+            <span class="stars">★★★★★</span>
+            <span class="rating-val">4.9</span>
+            <span class="rating-count">(2 840)</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-price">
+            <span class="price-main">199 000 so'm</span>
+            <span class="price-old">360 000</span>
+          </div>
+          <a class="btn-enroll" href="course-detail.html">Ko'rish</a>
+        </div>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="course-card">
+        <div class="card-thumb thumb-teal">
+          <div class="card-thumb-bg">🇬🇧</div>
+          <div class="card-badge-top badge-new">✨ Yangi</div>
+          <div class="card-level">B1 → C1</div>
+        </div>
+        <div class="card-body">
+          <div class="card-category">Til o'rganish</div>
+          <div class="card-title">Ingliz tili — Biznes va IELTS</div>
+          <div class="card-desc">Korporativ muhit uchun professional ingliz tili va IELTS tayyorgarligi.</div>
+          <div class="instructor-mini">
+            <div class="instructor-av">SN</div>
+            <span class="instructor-name">Sarvinoz Nazarova</span>
+          </div>
+          <div class="card-meta">
+            <span class="card-meta-item"><i class="bi bi-play-circle"></i> 36 dars</span>
+            <span class="card-meta-item"><i class="bi bi-clock"></i> 28 soat</span>
+            <span class="card-meta-item"><i class="bi bi-award"></i> Sertifikat</span>
+          </div>
+          <div class="card-rating">
+            <span class="stars">★★★★★</span>
+            <span class="rating-val">4.8</span>
+            <span class="rating-count">(1 240)</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-price">
+            <span class="price-main">159 000 so'm</span>
+            <span class="price-old">280 000</span>
+          </div>
+          <a class="btn-enroll" href="course-detail.html">Ko'rish</a>
+        </div>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="course-card">
+        <div class="card-thumb thumb-purple">
+          <div class="card-thumb-bg">🐍</div>
+          <div class="card-badge-top badge-sale">🏷 −40%</div>
+          <div class="card-level">Boshlang'ich</div>
+        </div>
+        <div class="card-body">
+          <div class="card-category">Dasturlash</div>
+          <div class="card-title">Python — Sifirdan Professional Darajaga</div>
+          <div class="card-desc">O'zbekcha Python kursi: o'zgaruvchilardan ML loyihalarigacha.</div>
+          <div class="instructor-mini">
+            <div class="instructor-av">JT</div>
+            <span class="instructor-name">Jasur Toshmatov</span>
+          </div>
+          <div class="card-meta">
+            <span class="card-meta-item"><i class="bi bi-play-circle"></i> 52 dars</span>
+            <span class="card-meta-item"><i class="bi bi-clock"></i> 40 soat</span>
+            <span class="card-meta-item"><i class="bi bi-award"></i> Portfolio</span>
+          </div>
+          <div class="card-rating">
+            <span class="stars">★★★★☆</span>
+            <span class="rating-val">4.7</span>
+            <span class="rating-count">(980)</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-price">
+            <span class="price-main">179 000 so'm</span>
+            <span class="price-old">299 000</span>
+          </div>
+          <a class="btn-enroll" href="course-detail.html">Ko'rish</a>
+        </div>
+      </div>
+
+      <!-- Card 4 -->
+      <div class="course-card">
+        <div class="card-thumb thumb-amber">
+          <div class="card-thumb-bg">💼</div>
+          <div class="card-badge-top badge-cert">🏅 Sertifikat</div>
+          <div class="card-level">O'rta</div>
+        </div>
+        <div class="card-body">
+          <div class="card-category">Biznes</div>
+          <div class="card-title">Biznes ko'nikmalari — MBA uslubi</div>
+          <div class="card-desc">Startap asoschilari va menejerlari uchun amaliy biznes kursi.</div>
+          <div class="instructor-mini">
+            <div class="instructor-av">MR</div>
+            <span class="instructor-name">Mirzo Rahimov</span>
+          </div>
+          <div class="card-meta">
+            <span class="card-meta-item"><i class="bi bi-play-circle"></i> 24 dars</span>
+            <span class="card-meta-item"><i class="bi bi-clock"></i> 18 soat</span>
+            <span class="card-meta-item"><i class="bi bi-award"></i> Sertifikat</span>
+          </div>
+          <div class="card-rating">
+            <span class="stars">★★★★★</span>
+            <span class="rating-val">4.9</span>
+            <span class="rating-count">(620)</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-price">
+            <span class="price-main">129 000 so'm</span>
+          </div>
+          <a class="btn-enroll" href="course-detail.html">Ko'rish</a>
+        </div>
+      </div>
+
+      <!-- Card 5 -->
+      <div class="course-card">
+        <div class="card-thumb thumb-green">
+          <div class="card-thumb-bg">🇩🇪</div>
+          <div class="card-level">A1 → B2</div>
+        </div>
+        <div class="card-body">
+          <div class="card-category">Til o'rganish</div>
+          <div class="card-title">Nemis tili — Asosdan B2 gacha</div>
+          <div class="card-desc">Grammatika, lug'at va tinglab tushunish mashqlari bilan.</div>
+          <div class="instructor-mini">
+            <div class="instructor-av">DK</div>
+            <span class="instructor-name">Dilnoza Karimova</span>
+          </div>
+          <div class="card-meta">
+            <span class="card-meta-item"><i class="bi bi-play-circle"></i> 42 dars</span>
+            <span class="card-meta-item"><i class="bi bi-clock"></i> 32 soat</span>
+            <span class="card-meta-item"><i class="bi bi-award"></i> Sertifikat</span>
+          </div>
+          <div class="card-rating">
+            <span class="stars">★★★★☆</span>
+            <span class="rating-val">4.6</span>
+            <span class="rating-count">(430)</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-price">
+            <span class="price-main">149 000 so'm</span>
+            <span class="price-old">240 000</span>
+          </div>
+          <a class="btn-enroll" href="course-detail.html">Ko'rish</a>
+        </div>
+      </div>
+
+      <!-- Card 6 — FREE -->
+      <div class="course-card">
+        <div class="card-thumb thumb-red">
+          <div class="card-thumb-bg">🎯</div>
+          <div class="card-badge-top badge-new">🆓 Bepul</div>
+          <div class="card-level">Boshlang'ich</div>
+        </div>
+        <div class="card-body">
+          <div class="card-category">Til o'rganish</div>
+          <div class="card-title">Turk tili — Kirish kursi (Bepul)</div>
+          <div class="card-desc">6 ta dars bilan turk tilini sinab ko'ring. Hech qanday to'lov talab etilmaydi.</div>
+          <div class="instructor-mini">
+            <div class="instructor-av">AZ</div>
+            <span class="instructor-name">Aziz Karimov</span>
+          </div>
+          <div class="card-meta">
+            <span class="card-meta-item"><i class="bi bi-play-circle"></i> 6 dars</span>
+            <span class="card-meta-item"><i class="bi bi-clock"></i> 4 soat</span>
+          </div>
+          <div class="card-rating">
+            <span class="stars">★★★★★</span>
+            <span class="rating-val">5.0</span>
+            <span class="rating-count">(5 100)</span>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-price">
+            <span class="price-free">Bepul</span>
+          </div>
+          <a class="btn-enroll xstyle-e2f4e07e" href="course-detail.html">Boshlash</a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- PAGINATION -->
+    <div class="pagination">
+      <div class="page-btn"><i class="bi bi-chevron-left xstyle-bf179753"></i></div>
+      <div class="page-btn active">1</div>
+      <div class="page-btn">2</div>
+      <div class="page-btn">3</div>
+      <div class="page-btn ellipsis">···</div>
+      <div class="page-btn">8</div>
+      <div class="page-btn"><i class="bi bi-chevron-right xstyle-bf179753"></i></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const html = document.documentElement;
+  const themeBtn = document.getElementById('themeBtn');
+  const themeIcon = document.getElementById('themeIcon');
+  function applyTheme(d) {
+    html.setAttribute('data-theme', d ? 'dark' : 'light');
+    themeIcon.className = d ? 'bi bi-sun' : 'bi bi-moon';
+    try { localStorage.setItem('az-theme', d ? 'dark' : 'light'); } catch(_) {}
+  }
+  let s; try { s = localStorage.getItem('az-theme'); } catch(_) {}
+  applyTheme(s ? s === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches);
+  themeBtn.addEventListener('click', () => applyTheme(html.getAttribute('data-theme') !== 'dark'));
+
+  // Tag filter toggle
+  document.querySelectorAll('.tag-filter').forEach(tag => {
+    tag.addEventListener('click', () => {
+      document.querySelectorAll('.tag-filter').forEach(t => t.classList.remove('active'));
+      tag.classList.add('active');
+    });
+  });
+
+  // View toggle
+  document.querySelectorAll('.view-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  // Search filter (demo)
+  document.getElementById('searchInput').addEventListener('input', e => {
+    const q = e.target.value.toLowerCase();
+    document.querySelectorAll('.course-card').forEach(card => {
+      const title = card.querySelector('.card-title').textContent.toLowerCase();
+      card.style.display = title.includes(q) || !q ? '' : 'none';
+    });
+  });
+</script>
+  <script src="../assets/js/prototype-ui.js"></script>
+</body>
+</html>
+

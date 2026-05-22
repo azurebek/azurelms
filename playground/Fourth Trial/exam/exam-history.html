@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS old-turtle prototype for exam reports.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>Imtihon hisobotlari — AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/exam-shell.css">
+  <link rel="stylesheet" href="../assets/css/prototype-extracted.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">AZ</div>
+    <span class="logo-name">AzureLMS</span>
+  </div>
+  <nav class="sidebar-nav" aria-label="Imtihon navigatsiyasi">
+    <details class="nav-accordion">
+      <summary class="nav-accordion-trigger">
+        <span class="nav-accordion-title"><i class="bi bi-journal-bookmark"></i> O'qish</span>
+        <i class="bi bi-chevron-down nav-accordion-caret"></i>
+      </summary>
+      <div class="nav-accordion-panel">
+        <a href="../app/app-shell.html" class="nav-item"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+        <a href="../app/app-course-list.html" class="nav-item"><i class="bi bi-collection-play"></i> Kurslarim</a>
+        <a href="../app/app-course-detail.html" class="nav-item"><i class="bi bi-play-circle"></i> Dars muhiti</a>
+      </div>
+    </details>
+    <details class="nav-accordion" open>
+      <summary class="nav-accordion-trigger">
+        <span class="nav-accordion-title"><i class="bi bi-clipboard-check"></i> Imtihon</span>
+        <i class="bi bi-chevron-down nav-accordion-caret"></i>
+      </summary>
+      <div class="nav-accordion-panel">
+        <a href="exam-shell.html" class="nav-item"><i class="bi bi-speedometer2"></i> Markaz</a>
+        <a href="exam-listening.html" class="nav-item"><i class="bi bi-headphones"></i> Tinglash <span class="nav-badge">!</span></a>
+        <a href="exam-writing.html" class="nav-item"><i class="bi bi-pencil-square"></i> Yozish</a>
+        <a href="exam-speaking.html" class="nav-item"><i class="bi bi-mic"></i> Gapirish</a>
+        <a href="exam-review.html" class="nav-item"><i class="bi bi-clipboard-data"></i> Natijalar</a>
+        <a href="exam-history.html" class="nav-item active"><i class="bi bi-bar-chart-line"></i> Hisobot</a>
+      </div>
+    </details>
+    <details class="nav-accordion">
+      <summary class="nav-accordion-trigger">
+        <span class="nav-accordion-title"><i class="bi bi-compass"></i> Platforma</span>
+        <i class="bi bi-chevron-down nav-accordion-caret"></i>
+      </summary>
+      <div class="nav-accordion-panel">
+        <a href="../public/course-list.html" class="nav-item"><i class="bi bi-shop"></i> Bozor</a>
+        <a href="../public/pricing.html" class="nav-item"><i class="bi bi-receipt"></i> Narxlar</a>
+      </div>
+    </details>
+  </nav>
+  <div class="sidebar-bottom">
+    <details class="account-menu">
+      <summary class="sidebar-user">
+        <div class="user-av">AB</div>
+        <div class="user-info">
+          <div class="user-name">Azurebek</div>
+          <div class="user-role">Pro reja · Faol</div>
+        </div>
+        <i class="bi bi-chevron-down user-chevron"></i>
+      </summary>
+      <div class="account-menu-panel">
+        <a href="../app/app-notifications.html" class="account-menu-item"><i class="bi bi-bell"></i> Bildirishnomalar <span class="nav-badge">3</span></a>
+        <a href="../app/app-profile.html" class="account-menu-item"><i class="bi bi-person-circle"></i> Profil</a>
+        <a href="../app/app-settings.html" class="account-menu-item"><i class="bi bi-gear"></i> Sozlamalar</a>
+        <a href="../app/app-subscriptions.html" class="account-menu-item"><i class="bi bi-credit-card"></i> Obuna</a>
+        <div class="account-menu-sep"></div>
+        <a href="../auth/auth-login.html" class="account-menu-item danger"><i class="bi bi-box-arrow-right"></i> Chiqish</a>
+      </div>
+    </details>
+    <div class="sidebar-version">Fourth Trial · v0.4</div>
+  </div>
+</aside>
+
+<div class="page-wrap">
+  <header class="topbar">
+    <h1 class="topbar-title">Imtihon hisobotlari</h1>
+    <div class="topbar-sep"></div>
+    <a href="exam-shell.html" class="topbar-action"><i class="bi bi-arrow-left"></i> Markazga qaytish</a>
+    <button class="theme-btn" id="themeBtn"><i class="bi bi-moon" id="themeIcon"></i></button>
+  </header>
+
+  <div class="page-body">
+    <section class="exam-hero report-hero">
+      <div class="hero-copy">
+        <div class="hero-kicker">Hisobot · May 2026</div>
+        <h2 class="hero-title">Natijalar, reja va sertifikatlar alohida nazoratda</h2>
+        <p class="hero-text">Bu sahifa imtihon markazini toza saqlash uchun ajratildi. Pastdagi bloklar faqat monitoring va tahlil uchun.</p>
+      </div>
+      <div class="hero-panel">
+        <div class="hero-panel-head">
+          <span>Uzluksiz mashq</span>
+          <strong>12 kun</strong>
+        </div>
+        <div class="hero-score">
+          <span class="hero-score-num">82</span>
+          <span class="hero-score-label">o'rtacha ball</span>
+        </div>
+        <div class="hero-progress">
+          <span>Oylik bajarilish</span>
+          <strong>75%</strong>
+        </div>
+        <div class="hero-track"><div class="hero-track-fill"></div></div>
+      </div>
+    </section>
+
+    <div class="two-col">
+      <div>
+        <div class="sec-head">
+          <span class="sec-title">So'nggi natijalar</span>
+          <div class="sec-divider"></div>
+          <a href="exam-review.html" class="sec-action">Batafsil <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="history-table">
+          <div class="tbl-head">
+            <div>Imtihon</div>
+            <div>Sana</div>
+            <div>Vaqt</div>
+            <div>Ball</div>
+            <div></div>
+          </div>
+          <div class="tbl-row">
+            <div class="tbl-name"><div class="tbl-name-icon xstyle-6cc85777">🎧</div>Tinglash — Mock Test 8</div>
+            <div class="tbl-cell">17 May 2026</div>
+            <div class="tbl-cell">28:14</div>
+            <div><div class="score-circle sc-great">92%</div></div>
+            <div><a href="exam-review.html" class="tbl-btn">Ko'rish</a></div>
+          </div>
+          <div class="tbl-row">
+            <div class="tbl-name"><div class="tbl-name-icon xstyle-384b679b">✍️</div>Yozish — Task 2 Mashq</div>
+            <div class="tbl-cell">15 May 2026</div>
+            <div class="tbl-cell">55:40</div>
+            <div><div class="score-circle sc-ok">85%</div></div>
+            <div><a href="exam-review.html" class="tbl-btn">Ko'rish</a></div>
+          </div>
+          <div class="tbl-row">
+            <div class="tbl-name"><div class="tbl-name-icon xstyle-f72af277">📖</div>O'qish — Passage 3</div>
+            <div class="tbl-cell">13 May 2026</div>
+            <div class="tbl-cell">58:02</div>
+            <div><div class="score-circle sc-great">88%</div></div>
+            <div><a href="exam-review.html" class="tbl-btn">Ko'rish</a></div>
+          </div>
+          <div class="tbl-row">
+            <div class="tbl-name"><div class="tbl-name-icon xstyle-1f5b271d">🎤</div>Gapirish — Part 2 Monolog</div>
+            <div class="tbl-cell">11 May 2026</div>
+            <div class="tbl-cell">14:55</div>
+            <div><div class="score-circle sc-low">68%</div></div>
+            <div><a href="exam-review.html" class="tbl-btn">Ko'rish</a></div>
+          </div>
+          <div class="tbl-row">
+            <div class="tbl-name"><div class="tbl-name-icon xstyle-c3d383cc">📝</div>Grammatika — Unit 12 Test</div>
+            <div class="tbl-cell">9 May 2026</div>
+            <div class="tbl-cell">42:18</div>
+            <div><div class="score-circle sc-fail">54%</div></div>
+            <div><a href="exam-review.html" class="tbl-btn">Ko'rish</a></div>
+          </div>
+          <div class="tbl-row">
+            <div class="tbl-name"><div class="tbl-name-icon xstyle-6cc85777">🎧</div>Tinglash — Mock Test 7</div>
+            <div class="tbl-cell">7 May 2026</div>
+            <div class="tbl-cell">29:50</div>
+            <div><div class="score-circle sc-ok">78%</div></div>
+            <div><a href="exam-review.html" class="tbl-btn">Ko'rish</a></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="right-panel">
+        <div class="streak-hero">
+          <div>
+            <div class="streak-num">12</div>
+            <div class="streak-label">kun uzluksiz</div>
+            <div class="streak-sub">Rekord: 21 kun</div>
+            <div class="streak-days">
+              <div class="streak-dot sd-done">D</div>
+              <div class="streak-dot sd-done">S</div>
+              <div class="streak-dot sd-done">C</div>
+              <div class="streak-dot sd-done">P</div>
+              <div class="streak-dot sd-done">J</div>
+              <div class="streak-dot sd-done">Sh</div>
+              <div class="streak-dot sd-today">Y</div>
+            </div>
+          </div>
+          <div class="xstyle-bc303d1e">🔥</div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-head"><i class="bi bi-calendar-event"></i> Rejalashtirilgan</div>
+          <div class="panel-body">
+            <div class="upcoming-item">
+              <div class="upc-date"><div class="upc-day">20</div><div class="upc-mon">May</div></div>
+              <div class="upc-info">
+                <div class="upc-name">IELTS Mock Test — To'liq</div>
+                <div class="upc-time"><i class="bi bi-clock"></i> 09:00 · 2 soat 45 daqiqa</div>
+              </div>
+            </div>
+            <div class="upcoming-item">
+              <div class="upc-date"><div class="upc-day">23</div><div class="upc-mon">May</div></div>
+              <div class="upc-info">
+                <div class="upc-name">Yozish intensiv — Task 1</div>
+                <div class="upc-time"><i class="bi bi-clock"></i> 14:00 · 60 daqiqa</div>
+              </div>
+            </div>
+            <div class="upcoming-item">
+              <div class="upc-date"><div class="upc-day">28</div><div class="upc-mon">May</div></div>
+              <div class="upc-info">
+                <div class="upc-name">Gapirish mashqi — Part 3</div>
+                <div class="upc-time"><i class="bi bi-clock"></i> 16:00 · 20 daqiqa</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-head"><i class="bi bi-award"></i> Sertifikatlar</div>
+          <div class="panel-body">
+            <div class="cert-item">
+              <div class="cert-icon">🏅</div>
+              <div>
+                <div class="cert-name">IELTS Simulation — Band 7</div>
+                <div class="cert-date">Apr 2026</div>
+              </div>
+              <div class="cert-score">B7.0</div>
+            </div>
+            <div class="cert-item">
+              <div class="cert-icon">🥈</div>
+              <div>
+                <div class="cert-name">Academic Writing Pro</div>
+                <div class="cert-date">Mar 2026</div>
+              </div>
+              <div class="cert-score">91%</div>
+            </div>
+            <div class="cert-item">
+              <div class="cert-icon">🥉</div>
+              <div>
+                <div class="cert-name">Listening Mastery L2</div>
+                <div class="cert-date">Feb 2026</div>
+              </div>
+              <div class="cert-score">88%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function(){
+    const t = localStorage.getItem('az-theme');
+    const d = window.matchMedia('(prefers-color-scheme:dark)').matches;
+    document.documentElement.setAttribute('data-theme', t ? t : d ? 'dark' : 'light');
+  })();
+
+  const html = document.documentElement;
+  const btn  = document.getElementById('themeBtn');
+  const icon = document.getElementById('themeIcon');
+  function applyTheme(dark) {
+    html.setAttribute('data-theme', dark ? 'dark' : 'light');
+    icon.className = dark ? 'bi bi-sun' : 'bi bi-moon';
+    try { localStorage.setItem('az-theme', dark ? 'dark' : 'light'); } catch(_){}
+  }
+  const saved = localStorage.getItem('az-theme');
+  applyTheme(saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme:dark)').matches);
+  btn.addEventListener('click', () => applyTheme(html.getAttribute('data-theme') !== 'dark'));
+</script>
+<script src="../assets/js/prototype-ui.js"></script>
+</body>
+</html>

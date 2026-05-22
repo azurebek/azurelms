@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AzureLMS — Turk tili va sertifikat platformasi</title>
+  <meta name="description" content="A1 dan C1 gacha — tartibli darslar, jonli imtihon muhiti va tasdiqlangan sertifikat.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- CSS Zanjiri (Architectural Standard) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/public.css">
+  <link rel="stylesheet" href="../assets/css/public-index.css">
+
+  <link rel="stylesheet" href="../assets/css/prototype-extracted.css">
+</head>
+<body>
+
+  <!-- ── NAV ── -->
+  <nav class="nav" id="nav">
+    <div class="nav-inner">
+      <a class="nav-brand" href="index.html">
+        <div class="nav-logo">Az</div>
+        <span class="nav-brand-name">AzureLMS</span>
+      </a>
+
+      <div class="nav-links">
+        <a href="#courses">Kurslar</a>
+        <a href="pricing.html">Narxlar</a>
+        <a href="../blog/blog-shell.html">Blog</a>
+        <a href="about.html">Yordam</a>
+      </div>
+
+      <div class="nav-actions">
+        <button class="theme-toggle" id="themeToggle" aria-label="Mavzuni almashtirish" title="Dark / Light mode">
+          <i class="bi bi-moon" id="themeIcon"></i>
+        </button>
+        <a class="btn btn--ghost" href="../auth/auth-login.html">Kirish</a>
+        <a class="btn btn--solid" href="../auth/auth-register.html">
+          Boshlash <i class="bi bi-arrow-right xstyle-496d03cb"></i>
+        </a>
+        <button class="nav-toggle" type="button" aria-label="Menyu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── HERO ── -->
+  <section class="hero">
+    <div class="wrap hero-inner">
+      <div class="hero-copy fi vis">
+        <div class="hero-tag">
+          <span class="hero-tag-dot"></span>
+          A1 · B1 · B2 · C1 darslari ochiq
+        </div>
+
+        <h1 class="hero-headline">
+          Turk tilini<br>
+          <em>o'z tempingizda,</em><br>
+          tartib bilan o'rganing
+        </h1>
+
+        <p class="hero-desc">
+          Jonli darslar, imtihon muhiti va tasdiqlangan sertifikat — barchasi bitta platformada. Ortiqcha narsa yo'q.
+        </p>
+
+        <div class="hero-actions">
+          <a class="btn btn--solid btn--lg" href="../auth/auth-register.html">Bepul boshlash</a>
+          <a class="btn btn--outline btn--lg" href="#courses">Kurslarni ko'rish</a>
+        </div>
+
+        <div class="hero-proof">
+          <div class="hero-avatars">
+            <div class="hero-avatar av-a">NS</div>
+            <div class="hero-avatar av-b">RK</div>
+            <div class="hero-avatar av-c">ZA</div>
+            <div class="hero-avatar av-d">MB</div>
+          </div>
+          <div class="hero-proof-text">
+            <strong>2,400+</strong> talaba allaqachon o'qiyapti
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-visual fi vis xstyle-db3b07f2">
+        <div class="xstyle-d1c8b0b1">
+          <div class="ui-card dash-preview">
+            <div class="dash-topbar">
+              <div class="dash-topbar-brand">
+                <div class="dash-logo-sm">Az</div>
+                <span>AzureLMS</span>
+              </div>
+              <div class="dash-user-pill">
+                <div class="dash-user-avatar">AB</div>
+                <span>Azizbek</span>
+              </div>
+            </div>
+            <div class="dash-body">
+              <div>
+                <div class="active-course-label">Joriy kurs</div>
+                <div class="active-course-card">
+                  <div class="active-course-thumb">📖</div>
+                  <div class="active-course-info">
+                    <div class="active-course-name">Turk tili — B2 Intensive</div>
+                    <div class="course-prog-track"><div class="course-prog-fill"></div></div>
+                  </div>
+                  <div class="active-course-pct">72%</div>
+                </div>
+              </div>
+              <div>
+                <div class="upcoming-label">Keyingi dars</div>
+                <div class="upcoming-row">
+                  <div class="upcoming-icon">🎧</div>
+                  <div class="upcoming-info">
+                    <div class="upcoming-title">Listening — Dialog 14</div>
+                    <div class="upcoming-meta">Bugun · 18:00 – 19:00</div>
+                  </div>
+                  <span class="upcoming-badge">Bugun</span>
+                </div>
+              </div>
+              <div class="dash-stats">
+                <div class="dash-stat"><div class="dash-stat-val">18</div><div class="dash-stat-lbl">Dars o'tildi</div></div>
+                <div class="dash-stat"><div class="dash-stat-val">94%</div><div class="dash-stat-lbl">Exam natija</div></div>
+                <div class="dash-stat"><div class="dash-stat-val">🔥11</div><div class="dash-stat-lbl">Streak</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="float-card float-bottom">
+            <div class="float-icon-wrap float-icon-wrap--amber">🏆</div>
+            <div class="float-text">
+              <strong class="t-amber">B1 sertifikat olindi!</strong>
+              <span>96 ball · 2 soat oldin</span>
+            </div>
+          </div>
+
+          <div class="float-card float-top">
+            <div class="float-icon-wrap float-icon-wrap--green">✅</div>
+            <div class="float-text">
+              <strong class="t-green">Exam o'tdi</strong>
+              <span>Sertifikat tayyor</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── TRUST ── -->
+  <div class="trust">
+    <div class="wrap trust-inner">
+      <div class="trust-stat fi"><div class="trust-num" data-target="2400" data-suffix="+">2400+</div><div class="trust-lbl">Faol talaba</div></div>
+      <div class="trust-sep"></div>
+      <div class="trust-stat fi xstyle-cdf9740a"><div class="trust-num">6</div><div class="trust-lbl">Daraja (A1–C1)</div></div>
+      <div class="trust-sep"></div>
+      <div class="trust-stat fi xstyle-78626d54"><div class="trust-num" data-target="94" data-suffix="%">94%</div><div class="trust-lbl">Sertifikat oldi</div></div>
+      <div class="trust-sep"></div>
+      <div class="trust-stat fi xstyle-0248d7d7"><div class="trust-num">4.9 ★</div><div class="trust-lbl">O'rtacha reyting</div></div>
+    </div>
+  </div>
+
+  <!-- ── COURSES ── -->
+  <section class="section courses" id="courses">
+    <div class="wrap">
+      <div class="section-head fi">
+        <div>
+          <p class="section-label">Kurs katalogi</p>
+          <h2 class="section-title">Qaysi darajadan boshlaysiz?</h2>
+        </div>
+        <a class="section-link" href="course-list.html">Barcha kurslar <i class="bi bi-arrow-right"></i></a>
+      </div>
+
+      <div class="course-grid">
+        <article class="course-card fi">
+          <div class="course-cover cc-a">
+            <span class="course-cover-badge">A1 — A2</span>
+            <div class="course-cover-emoji">🌱</div>
+          </div>
+          <div class="course-body">
+            <h3 class="course-title">Boshlang'ich — A1/A2</h3>
+            <p class="course-desc">Turk tilini noldan boshlaydiganlar uchun. Alifbo, asosiy gaplar va oddiy dialoglar.</p>
+            <div class="chips">
+              <span class="chip"><i class="bi bi-book"></i>18 dars</span>
+              <span class="chip"><i class="bi bi-clock"></i>7 hafta</span>
+              <span class="chip"><i class="bi bi-patch-check"></i>Sertifikat</span>
+            </div>
+            <div class="course-foot">
+              <span class="course-instructor">Azizbek Sirojiddinov</span>
+              <a class="course-cta" href="course-detail.html">Batafsil <i class="bi bi-arrow-right xstyle-652db75e"></i></a>
+            </div>
+          </div>
+        </article>
+
+        <article class="course-card fi xstyle-a2665192">
+          <div class="course-cover cc-b">
+            <span class="course-cover-badge">B1 — B2</span>
+            <div class="course-cover-emoji">📗</div>
+          </div>
+          <div class="course-body">
+            <h3 class="course-title">O'rta daraja — B1/B2</h3>
+            <p class="course-desc">Grammatik chuqurlik va real so'zlashuv ko'nikmasi. Exam muhiti birlashtirilgan.</p>
+            <div class="chips">
+              <span class="chip"><i class="bi bi-book"></i>24 dars</span>
+              <span class="chip"><i class="bi bi-clock"></i>10 hafta</span>
+              <span class="chip"><i class="bi bi-mic"></i>Speaking</span>
+            </div>
+            <div class="course-foot">
+              <span class="course-instructor">Azizbek Sirojiddinov</span>
+              <a class="course-cta" href="course-detail.html">Batafsil <i class="bi bi-arrow-right xstyle-652db75e"></i></a>
+            </div>
+          </div>
+        </article>
+
+        <article class="course-card fi xstyle-b82d5a87">
+          <div class="course-cover cc-c">
+            <span class="course-cover-badge">C1</span>
+            <div class="course-cover-emoji">🏛️</div>
+          </div>
+          <div class="course-body">
+            <h3 class="course-title">Yuqori daraja — C1</h3>
+            <p class="course-desc">Akademik yozuv, professional leksika va sertifikat imtihoniga to'liq tayyorlanish.</p>
+            <div class="chips">
+              <span class="chip"><i class="bi bi-book"></i>28 dars</span>
+              <span class="chip"><i class="bi bi-clock"></i>12 hafta</span>
+              <span class="chip"><i class="bi bi-award"></i>C1 sertifikat</span>
+            </div>
+            <div class="course-foot">
+              <span class="course-instructor">Azizbek Sirojiddinov</span>
+              <a class="course-cta" href="course-detail.html">Batafsil <i class="bi bi-arrow-right xstyle-652db75e"></i></a>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════
+       HORIZONTAL SCROLL — JARAYON
+       Wrapper is very tall; inner panel stays sticky.
+       JS translates the track horizontally.
+  ══════════════════════════════════════════════ -->
+  <div class="hscroll-section-wrap" id="hscrollWrap">
+
+    <!-- Section heading (scrolls away normally) -->
+    <div class="hscroll-heading">
+      <div class="wrap">
+        <div class="section-head fi xstyle-ef0b7a11">
+          <div>
+            <p class="section-label">Jarayon</p>
+            <h2 class="section-title">4 qadamda — boshidan sertifikatgacha</h2>
+          </div>
+          <p class="xstyle-576c2382">← aylantiring →</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sticky panel (desktop) -->
+    <div class="hscroll-sticky" id="hscrollSticky">
+      <div class="hscroll-track" id="hscrollTrack">
+
+        <!-- 01 -->
+        <div class="step-card">
+          <div class="step-num-row">
+            <div class="step-num">01</div>
+            <div class="step-icon-wrap"><i class="bi bi-person-plus"></i></div>
+          </div>
+          <h3 class="step-title">Ro'yxatdan o'ting</h3>
+          <p class="step-desc">Bir daqiqada account yarating, darajangizni tanlang. Google yoki Telegram orqali ham kirish mumkin. Hech qanday kredit karta talab qilinmaydi.</p>
+          <div class="step-visual">
+            <div class="sv-row">
+              <div class="sv-dot sv-dot--green"></div>
+              <span class="sv-label">Google bilan kirish</span>
+              <span class="sv-badge sv-badge--green">Tezkor</span>
+            </div>
+            <div class="sv-row">
+              <div class="sv-dot sv-dot--blue"></div>
+              <span class="sv-label">Telegram orqali</span>
+              <span class="sv-badge sv-badge--blue">Mashhur</span>
+            </div>
+            <div class="sv-row">
+              <div class="sv-dot sv-dot--muted"></div>
+              <span class="sv-label">Email & parol</span>
+              <span class="sv-badge sv-badge--muted">Klassik</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 02 -->
+        <div class="step-card">
+          <div class="step-num-row">
+            <div class="step-num">02</div>
+            <div class="step-icon-wrap"><i class="bi bi-map"></i></div>
+          </div>
+          <h3 class="step-title">Yo'lingizni belgilang</h3>
+          <p class="step-desc">Dashboard sizga kurs modullari, haftalik jadval va sertifikat yo'lini aniq ko'rsatadi. Qayerdasiz — har doim ko'rinib turadi.</p>
+          <div class="step-visual">
+            <div class="xstyle-007b6797">Sertifikat yo'li</div>
+            <div class="step-mini-prog">
+              <div class="smp-label"><span>A1 → A2</span><span class="xstyle-7f24e27d">✓ Bajarildi</span></div>
+              <div class="smp-track"><div class="smp-fill smp-fill--green xstyle-0466783d"></div></div>
+            </div>
+            <div class="step-mini-prog xstyle-fe7b4979">
+              <div class="smp-label"><span>B1 → B2</span><span>72%</span></div>
+              <div class="smp-track"><div class="smp-fill smp-fill--blue"></div></div>
+            </div>
+            <div class="step-mini-prog xstyle-5484e2e5">
+              <div class="smp-label"><span>C1</span><span>Keyingi</span></div>
+              <div class="smp-track"><div class="smp-fill smp-fill--purple xstyle-d2fba0f3"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 03 -->
+        <div class="step-card">
+          <div class="step-num-row">
+            <div class="step-num">03</div>
+            <div class="step-icon-wrap"><i class="bi bi-play-circle"></i></div>
+          </div>
+          <h3 class="step-title">O'rganishni boshlang</h3>
+          <p class="step-desc">Jonli darslar, audio materiallar, yozma topshiriqlar va mentor chat — barchasi bitta workspace'da. Hech qayerga o'tmasdan ishlaysiz.</p>
+          <div class="step-visual">
+            <div class="sv-row xstyle-5937cdf5">
+              <span class="xstyle-b9bc9bb7">🎧</span>
+              <div>
+                <div class="sv-label xstyle-d44f6d7d">Listening · Dialog 14</div>
+                <div class="sv-sub">Bugun · 18:00 – 19:00 · 45 daqiqa</div>
+              </div>
+              <span class="sv-badge sv-badge--blue">Joriy</span>
+            </div>
+            <div class="sv-row xstyle-8ebe6947">
+              <span class="xstyle-b9bc9bb7">✍️</span>
+              <div>
+                <div class="sv-label xstyle-d44f6d7d">Writing · Esse drafti</div>
+                <div class="sv-sub">Ertaga · Topshiriq kutilmoqda</div>
+              </div>
+              <span class="sv-badge sv-badge--muted">Keyingi</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 04 -->
+        <div class="step-card">
+          <div class="step-num-row">
+            <div class="step-num">04</div>
+            <div class="step-icon-wrap"><i class="bi bi-patch-check"></i></div>
+          </div>
+          <h3 class="step-title">Sertifikat oling</h3>
+          <p class="step-desc">Imtihondan o'tgach, tasdiqlangan raqamli sertifikat darhol hisobingizga tushadi. LinkedIn'ga bir bosish bilan qo'shiladi.</p>
+          <div class="step-visual">
+            <div class="xstyle-74858741">
+              <div class="xstyle-44c1f7ac">🏛️</div>
+              <div class="xstyle-64285db0">AzureLMS Certificate</div>
+              <div class="xstyle-b1b5240b">Turk tili · B2 Daraja · 2025</div>
+              <div class="xstyle-f9847566">
+                <span class="sv-badge sv-badge--green xstyle-802591f3">✓ Tasdiqlangan</span>
+                <span class="sv-badge sv-badge--blue xstyle-802591f3">LinkedIn</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- progress bar inside sticky panel -->
+      <div class="hscroll-progress-bar">
+        <div class="hscroll-progress-fill" id="hscrollProgress"></div>
+      </div>
+    </div>
+
+    <!-- Mobile fallback -->
+    <div class="hscroll-mobile">
+      <div class="wrap">
+        <div class="hscroll-mobile-grid">
+          <div class="step-card fi">
+            <div class="step-num-row"><div class="step-num">01</div><div class="step-icon-wrap"><i class="bi bi-person-plus"></i></div></div>
+            <h3 class="step-title">Ro'yxatdan o'ting</h3>
+            <p class="step-desc">Google, Telegram yoki email bilan bir daqiqada kirish. Kredit karta shart emas.</p>
+          </div>
+          <div class="step-card fi xstyle-a2665192">
+            <div class="step-num-row"><div class="step-num">02</div><div class="step-icon-wrap"><i class="bi bi-map"></i></div></div>
+            <h3 class="step-title">Yo'lingizni belgilang</h3>
+            <p class="step-desc">Dashboard A1 dan C1 gacha bo'lgan yo'lni, haftalik jadvalni aniq ko'rsatadi.</p>
+          </div>
+          <div class="step-card fi xstyle-b82d5a87">
+            <div class="step-num-row"><div class="step-num">03</div><div class="step-icon-wrap"><i class="bi bi-play-circle"></i></div></div>
+            <h3 class="step-title">O'rganishni boshlang</h3>
+            <p class="step-desc">Darslar, audio, topshiriqlar va mentor chat bitta workspace'da.</p>
+          </div>
+          <div class="step-card fi xstyle-f2c236be">
+            <div class="step-num-row"><div class="step-num">04</div><div class="step-icon-wrap"><i class="bi bi-patch-check"></i></div></div>
+            <h3 class="step-title">Sertifikat oling</h3>
+            <p class="step-desc">Imtihondan o'tgach tasdiqlangan raqamli sertifikat darhol beriladi.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /hscroll-section-wrap -->
+
+  <!-- ── FEATURE SPLIT ── -->
+  <section class="section feature">
+    <div class="wrap">
+      <div class="feature-inner">
+        <div class="feature-visual fi">
+          <div class="xstyle-a19b4068">B2 — Modular tartibi</div>
+          <div class="feat-row"><div class="feat-num done">✓</div><div class="feat-info"><div class="feat-title">1-modul: Kirish va alifbo</div><div class="feat-meta">8 dars · 2 hafta</div></div><div class="feat-status done"><i class="bi bi-check-circle-fill"></i> Bajarildi</div></div>
+          <div class="feat-row"><div class="feat-num done">✓</div><div class="feat-info"><div class="feat-title">2-modul: Grammatika asoslari</div><div class="feat-meta">10 dars · 3 hafta</div></div><div class="feat-status done"><i class="bi bi-check-circle-fill"></i> Bajarildi</div></div>
+          <div class="feat-row is-active"><div class="feat-num active">→</div><div class="feat-info"><div class="feat-title">3-modul: So'zlashuv va dialog</div><div class="feat-meta">6 dars · 2 hafta</div></div><div class="feat-status active"><i class="bi bi-play-circle-fill"></i> Joriy</div></div>
+          <div class="feat-row dim-row"><div class="feat-num dim">4</div><div class="feat-info"><div class="feat-title">4-modul: Yozma ifoda</div><div class="feat-meta">8 dars · 2 hafta</div></div><div class="feat-status dim">Keyingi</div></div>
+          <div class="xstyle-1ca6173b">
+            <span class="xstyle-8d988f94">Umumiy progress</span>
+            <span class="xstyle-f9ba52a0">50% — 14/28 dars</span>
+          </div>
+        </div>
+
+        <div class="fi xstyle-cf84a4ae">
+          <p class="section-label xstyle-da12f285">Nima farqi bor?</p>
+          <h2 class="section-title xstyle-6e12ab0d">Tartib — eng yaxshi motivatsiya</h2>
+          <div class="feature-list">
+            <div class="feature-item">
+              <div class="feature-item-icon">📊</div>
+              <div class="feature-item-text">
+                <div class="feature-item-title">Har bir dars ketma-ket ochiladi</div>
+                <div class="feature-item-desc">Oldingi mavzuni tushunmasdan keyingisiga o'tib bo'lmaydi. Bu sizi haqiqiy bilim egasiga aylantiradi.</div>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-item-icon">🎯</div>
+              <div class="feature-item-text">
+                <div class="feature-item-title">Dashboard hamma narsani kuzatadi</div>
+                <div class="feature-item-desc">Progress, streak, exam natijalari va sertifikat holati — bitta sahifada, har doim yangilanib turadi.</div>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-item-icon">🤝</div>
+              <div class="feature-item-text">
+                <div class="feature-item-title">Jonli support har qadamda</div>
+                <div class="feature-item-desc">Telegram, dashboard chat va mentor bilan savol-javob. Biror joyda qolmasligingizni ta'minlaymiz.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── TESTIMONIALS ── -->
+  <section class="section testimonials">
+    <div class="wrap">
+      <div class="section-head fi">
+        <div>
+          <p class="section-label">Fikrlar</p>
+          <h2 class="section-title">Talabalar nima deydi?</h2>
+        </div>
+      </div>
+      <div class="tgrid">
+        <article class="tcard fi">
+          <div class="tcard-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
+          <p class="tcard-quote">Marketing hissi yo'q, real platform hissi bor. Dashboard'da progress ko'rganda o'rganishni to'xtatgim kelmadi.</p>
+          <div class="tcard-person">
+            <div class="tcard-avatar tav-a">NS</div>
+            <div><div class="tcard-name">Nigor Soliyeva</div><div class="tcard-role">Pedagog · C1 sertifikat egasi</div></div>
+          </div>
+        </article>
+        <article class="tcard fi xstyle-db3b07f2">
+          <div class="tcard-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
+          <p class="tcard-quote">Modular tartib juda mos keldi. Har hafta qayerda ekanligimni aniq bildim. 3 oyda B2 darajasiga chiqdim.</p>
+          <div class="tcard-person">
+            <div class="tcard-avatar tav-b">RE</div>
+            <div><div class="tcard-name">Rohila Ergashova</div><div class="tcard-role">Talaba · B2 yo'lida</div></div>
+          </div>
+        </article>
+        <article class="tcard fi xstyle-7f21c970">
+          <div class="tcard-stars"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i></div>
+          <p class="tcard-quote">Exam workspace rostdan imtihon muhitini his ettiradi. Sertifikat olgach, LinkedIn'ga qo'ydim — ish topishga yordam berdi.</p>
+          <div class="tcard-person">
+            <div class="tcard-avatar tav-c">RA</div>
+            <div><div class="tcard-name">Rayhona Abdullayeva</div><div class="tcard-role">Muhandis · B1 sertifikat egasi</div></div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CTA ── -->
+  <section class="cta">
+    <div class="wrap cta-inner fi">
+      <h2 class="cta-title">Bugun birinchi darsni boshlang</h2>
+      <p class="cta-desc">Ro'yxatdan o'tish bepul. Birinchi modulni sinab ko'ring, keyin qaror qiling.</p>
+      <div class="cta-actions">
+        <a class="btn btn--lg btn--cta-p" href="../auth/auth-register.html">Bepul boshlash</a>
+        <a class="btn btn--lg btn--cta-g" href="#courses">Kurslarni ko'rish</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ── -->
+  <footer class="footer">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <div class="footer-logo-mark">Az</div>
+            <span class="footer-logo-name">AzureLMS</span>
+          </div>
+          <p class="footer-tagline">Turk tilini tartibli, kuzatiladigan va sertifikatga tayyor muhitda o'rgatish platformasi.</p>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">Platforma</div>
+          <a href="course-list.html">Kurslar</a><a href="pricing.html">Narxlar</a><a href="../legal/legal-terms.html">Sertifikatlar</a><a href="../app/app-shell.html">Dashboard</a>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">Kompaniya</div>
+          <a href="about.html">Biz haqimizda</a><a href="../blog/blog-shell.html">Blog</a><a href="about.html#jobs">Hamkorlik</a><a href="about.html">Yordam markazi</a>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">Huquqiy</div>
+          <a href="../legal/legal-terms.html">Foydalanish shartlari</a><a href="../legal/legal-privacy.html">Maxfiylik siyosati</a><a href="../legal/legal-privacy.html">KVKK</a><a href="../legal/legal-terms.html">Sertifikat qoidalari</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span class="footer-copy">© 2026 AzureLMS. Barcha huquqlar himoyalangan.</span>
+        <div class="footer-social">
+          <a href="about.html#team" aria-label="Telegram"><i class="bi bi-telegram"></i></a>
+          <a href="about.html#team" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+          <a href="../blog/blog-shell.html" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    'use strict';
+
+    /* ═══════════════════════════════
+       DARK MODE
+    ═══════════════════════════════ */
+    const html       = document.documentElement;
+    const toggleBtn  = document.getElementById('themeToggle');
+    const themeIcon  = document.getElementById('themeIcon');
+
+    function applyTheme(dark) {
+      html.setAttribute('data-theme', dark ? 'dark' : 'light');
+      themeIcon.className = dark ? 'bi bi-sun' : 'bi bi-moon';
+      try { localStorage.setItem('az-theme', dark ? 'dark' : 'light'); } catch(_) {}
+    }
+
+    // On load: respect saved preference, then OS preference
+    (function() {
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch(_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      applyTheme(saved ? saved === 'dark' : prefersDark);
+    })();
+
+    toggleBtn.addEventListener('click', () => {
+      applyTheme(html.getAttribute('data-theme') !== 'dark');
+    });
+
+    /* ═══════════════════════════════
+       NAV SCROLL STATE
+    ═══════════════════════════════ */
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('is-scrolled', window.scrollY > 6);
+    }, { passive: true });
+
+    /* ═══════════════════════════════
+       FADE-IN ON SCROLL
+    ═══════════════════════════════ */
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add('vis'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -36px 0px' });
+
+    document.querySelectorAll('.fi:not(.vis)').forEach(el => io.observe(el));
+
+    /* ═══════════════════════════════
+       HORIZONTAL SCROLL — JARAYON
+    ═══════════════════════════════ */
+    const wrap     = document.getElementById('hscrollWrap');
+    const sticky   = document.getElementById('hscrollSticky');
+    const track    = document.getElementById('hscrollTrack');
+    const progFill = document.getElementById('hscrollProgress');
+
+    let maxShift = 0;
+    let headingH = 0;
+
+    function setupHScroll() {
+      if (window.innerWidth < 768 || !wrap) return;
+
+      // Measure heading height (the non-sticky part above the sticky panel)
+      const heading = wrap.querySelector('.hscroll-heading');
+      headingH = heading ? heading.offsetHeight : 0;
+
+      // Track natural width
+      const trackW = track.scrollWidth;
+      const winW   = window.innerWidth;
+      maxShift = Math.max(0, trackW - winW);
+
+      // Outer container height = heading + room to scroll through all cards + viewport
+      wrap.style.height = (headingH + maxShift + window.innerHeight) + 'px';
+    }
+
+    function onScrollHScroll() {
+      if (window.innerWidth < 768 || !wrap || maxShift === 0) return;
+
+      const rect = wrap.getBoundingClientRect();
+      // stickyTop = where sticky panel starts relative to viewport
+      // The sticky panel starts after the heading scrolls away
+      const stickyTop = rect.top + headingH;
+
+      if (stickyTop > 0 || rect.bottom < window.innerHeight) {
+        // Not in pinned zone — reset
+        if (stickyTop > 0) {
+          track.style.transform = 'translateX(0)';
+          if (progFill) progFill.style.width = '0%';
+        }
+        return;
+      }
+
+      // How far we've scrolled into the pinned zone
+      const scrolled = -(rect.top + headingH); // positive when pinned
+      const progress = Math.min(1, Math.max(0, scrolled / maxShift));
+
+      track.style.transform = `translateX(${-progress * maxShift}px)`;
+      if (progFill) progFill.style.width = (progress * 100) + '%';
+    }
+
+    // Init
+    setupHScroll();
+    window.addEventListener('scroll', onScrollHScroll, { passive: true });
+    window.addEventListener('resize', () => { setupHScroll(); onScrollHScroll(); });
+
+    /* ═══════════════════════════════
+       COUNTER ANIMATION
+    ═══════════════════════════════ */
+    const counterObs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        const el = e.target;
+        const target = parseInt(el.dataset.target);
+        const suffix = el.dataset.suffix || '';
+        if (isNaN(target)) return;
+
+        let start = 0;
+        const dur = 1200;
+        const startTime = performance.now();
+
+        function step(now) {
+          const p = Math.min(1, (now - startTime) / dur);
+          // ease-out quad
+          const eased = 1 - (1 - p) * (1 - p);
+          start = Math.round(eased * target);
+          el.textContent = (start >= 1000 ? start.toLocaleString() : start) + suffix;
+          if (p < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+        counterObs.unobserve(el);
+      });
+    }, { threshold: 0.6 });
+
+    document.querySelectorAll('[data-target]').forEach(el => counterObs.observe(el));
+  </script>
+  <script src="../assets/js/prototype-ui.js"></script>
+</body>
+</html>
+

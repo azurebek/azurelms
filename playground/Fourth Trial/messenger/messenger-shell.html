@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS old-turtle prototype for messenger shell.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>Xabarlar — AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- CSS Zanjiri (Architectural Standard) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/messenger-shell.css">
+
+  <link rel="stylesheet" href="../assets/css/prototype-extracted.css">
+</head>
+<body>
+  <script>(function(){ try { var t=localStorage.getItem('lms-theme'); if(t) document.documentElement.setAttribute('data-theme',t); } catch(e){} })();</script>
+
+  <!-- ── SIDEBAR NAV ──────────────────────────────────── -->
+  <nav class="sidebar">
+    <div class="nav-brand">
+      <div class="logo-mark">AL</div>
+      <span class="logo-name">AzureLMS</span>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Asosiy</div>
+      <a href="../app/app-shell.html" class="nav-item"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+      <a href="../app/app-course-list.html" class="nav-item"><i class="bi bi-play-circle"></i> Kurslar <span class="nav-badge green">3</span></a>
+      <a href="../app/app-course-detail.html" class="nav-item"><i class="bi bi-journal-bookmark"></i> Darslar</a>
+      <a href="../app/app-profile.html" class="nav-item"><i class="bi bi-trophy"></i> Yutuqlar</a>
+    </div>
+
+    <div class="nav-sep"></div>
+
+    <div class="nav-section">
+      <div class="nav-label">Hamjamiyat</div>
+      <a href="messenger-shell.html" class="nav-item active"><i class="bi bi-chat-dots"></i> Xabarlar <span class="nav-badge">5</span></a>
+      <a href="messenger-shell.html" class="nav-item"><i class="bi bi-people"></i> Guruhlar</a>
+      <a href="../blog/blog-shell.html" class="nav-item"><i class="bi bi-newspaper"></i> Blog</a>
+    </div>
+
+    <div class="nav-sep"></div>
+
+    <div class="nav-section">
+      <div class="nav-label">Boshqaruv</div>
+      <a href="../blog-studio/blog-studio-shell.html" class="nav-item"><i class="bi bi-pencil-square"></i> Studio</a>
+      <a href="../exam/exam-shell.html" class="nav-item"><i class="bi bi-patch-check"></i> Imtihonlar</a>
+      <a href="../app/app-profile.html" class="nav-item"><i class="bi bi-person-circle"></i> Profil</a>
+    </div>
+
+    <div class="sidebar-bottom">
+      <a href="../index.html" class="nav-item xstyle-6c002e21"><i class="bi bi-grid"></i> Barcha sahifalar</a>
+      <div class="user-row">
+        <div class="avatar c-teal">AZ <div class="avatar-status"></div></div>
+        <div class="user-info">
+          <div class="user-name">Azurebek</div>
+          <div class="user-role">Student</div>
+        </div>
+        <i class="bi bi-three-dots-vertical user-more"></i>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── MAIN ──────────────────────────────────────────── -->
+  <div class="main">
+
+    <!-- ── CONTACTS PANEL ──────────────────────────────── -->
+    <div class="contacts-panel">
+      <div class="contacts-header">
+        <div class="contacts-title-row">
+          <span class="contacts-title">Xabarlar</span>
+          <div class="xstyle-1d8943fa">
+            <button class="icon-btn" data-ui-call="showToast" data-ui-args='["Yangi chat boshlash"]'><i class="bi bi-pencil-square"></i></button>
+            <button class="icon-btn" data-ui-call="showToast" data-ui-args='["Sozlamalar"]'><i class="bi bi-sliders"></i></button>
+          </div>
+        </div>
+        <div class="search-wrap">
+          <i class="bi bi-search search-icon"></i>
+          <input type="text" class="search-input" placeholder="Qidirish..." data-ui-input-call="filterContacts" data-ui-pass="value">
+        </div>
+      </div>
+
+      <div class="xstyle-9c7a7f49">
+        <div class="filter-tabs">
+          <button class="filter-tab active" data-ui-call="setFilter" data-ui-pass="this" data-ui-args='["all"]'>Barchasi</button>
+          <button class="filter-tab" data-ui-call="setFilter" data-ui-pass="this" data-ui-args='["unread"]'>O'qilmagan</button>
+          <button class="filter-tab" data-ui-call="setFilter" data-ui-pass="this" data-ui-args='["groups"]'>Guruhlar</button>
+        </div>
+      </div>
+
+      <div class="contacts-list" id="contactsList">
+        <!-- Pinned -->
+        <div class="contact-group-label">Muhrlangan</div>
+
+        <div class="contact-item active" data-ui-call="openChat" data-ui-pass="this" data-ui-args='["Dilnoza Yusupova","online","c-purple","DY","Dasturlash kursining 5-moduli bo\u0027yicha savolingiz bormi?","10:42",0]'>
+          <div class="contact-avatar c-purple">DY<div class="online-dot"></div></div>
+          <div class="contact-body">
+            <div class="contact-name-row">
+              <span class="contact-name">Dilnoza Yusupova</span>
+              <span class="contact-time">10:42</span>
+            </div>
+            <div class="contact-preview">Dasturlash kursining 5-moduli bo'yicha savolingiz bormi?</div>
+          </div>
+        </div>
+
+        <div class="contact-item" data-ui-call="openChat" data-ui-pass="this" data-ui-args='["React Guruh","online","c-blue","RG","👍 Zo\u0027r ishladingiz barchaga!","9:15",3]'>
+          <div class="contact-avatar c-blue xstyle-eabc464e">RG<div class="online-dot"></div></div>
+          <div class="contact-body">
+            <div class="contact-name-row">
+              <span class="contact-name">React Guruh</span>
+              <div class="contact-meta"><span class="contact-time unread">9:15</span></div>
+            </div>
+            <div class="contact-preview unread">👍 Zo'r ishladingiz barchaga!</div>
+          </div>
+          <div class="unread-badge">3</div>
+        </div>
+
+        <!-- Recent -->
+        <div class="contact-group-label">So'nggi</div>
+
+        <div class="contact-item" data-ui-call="openChat" data-ui-pass="this" data-ui-args='["Bobur Nazarov","away","c-orange","BN","Loyiha fayli yuborildi ✅","Kecha",0]'>
+          <div class="contact-avatar c-orange">BN<div class="away-dot"></div></div>
+          <div class="contact-body">
+            <div class="contact-name-row">
+              <span class="contact-name">Bobur Nazarov</span>
+              <span class="contact-time">Kecha</span>
+            </div>
+            <div class="contact-preview">Loyiha fayli yuborildi ✅</div>
+          </div>
+        </div>
+
+        <div class="contact-item" data-ui-call="openChat" data-ui-pass="this" data-ui-args='["Kamola Islamova","offline","c-pink","KI","Rahmat, juda foydali bo\u0027ldi!","Kecha",1]'>
+          <div class="contact-avatar c-pink">KI<div class="offline-dot"></div></div>
+          <div class="contact-body">
+            <div class="contact-name-row">
+              <span class="contact-name">Kamola Islamova</span>
+              <div class="contact-meta"><span class="contact-time unread">Kecha</span></div>
+            </div>
+            <div class="contact-preview unread">Rahmat, juda foydali bo'ldi!</div>
+          </div>
+          <div class="unread-badge">1</div>
+        </div>
+
+        <div class="contact-item" data-ui-call="openChat" data-ui-pass="this" data-ui-args='["Ulugbek Toshmatov","online","c-indigo","UT","Siz aytgan metoddan foydalandim","Seshanba",0]'>
+          <div class="contact-avatar c-indigo">UT<div class="online-dot"></div></div>
+          <div class="contact-body">
+            <div class="contact-name-row">
+              <span class="contact-name">Ulugbek Toshmatov</span>
+              <span class="contact-time">Seshanba</span>
+            </div>
+            <div class="contact-preview">Siz aytgan metoddan foydalandim</div>
+          </div>
+        </div>
+
+        <div class="contact-item" data-ui-call="openChat" data-ui-pass="this" data-ui-args='["JavaScript Bootcamp","online","c-green","JS","Bugungi dars 20:00da boshlanadi","Seshanba",2]'>
+          <div class="contact-avatar c-green xstyle-eabc464e">JS<div class="online-dot"></div></div>
+          <div class="contact-body">
+            <div class="contact-name-row">
+              <span class="contact-name">JavaScript Bootcamp</span>
+              <div class="contact-meta"><span class="contact-time unread">Seshanba</span></div>
+            </div>
+            <div class="contact-preview unread">Bugungi dars 20:00da boshlanadi</div>
+          </div>
+          <div class="unread-badge">2</div>
+        </div>
+
+        <div class="contact-item" data-ui-call="openChat" data-ui-pass="this" data-ui-args='["Sarvinoz Rahimova","offline","c-rose","SR","Ko\u0027rishguncha! 👋","Dushanba",0]'>
+          <div class="contact-avatar c-rose">SR<div class="offline-dot"></div></div>
+          <div class="contact-body">
+            <div class="contact-name-row">
+              <span class="contact-name">Sarvinoz Rahimova</span>
+              <span class="contact-time">Dushanba</span>
+            </div>
+            <div class="contact-preview">Ko'rishguncha! 👋</div>
+          </div>
+        </div>
+
+        <div class="contact-item" data-ui-call="openChat" data-ui-pass="this" data-ui-args='["Nodir Xasanov","online","c-teal","NX","CV ni ko\u0027rib chiqdim, ajoyib!","Yakshanba",0]'>
+          <div class="contact-avatar c-teal">NX<div class="online-dot"></div></div>
+          <div class="contact-body">
+            <div class="contact-name-row">
+              <span class="contact-name">Nodir Xasanov</span>
+              <span class="contact-time">Yakshanba</span>
+            </div>
+            <div class="contact-preview">CV ni ko'rib chiqdim, ajoyib!</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CHAT PANEL ───────────────────────────────────── -->
+    <div class="chat-panel" id="chatPanel">
+      <!-- Topbar -->
+      <div class="chat-topbar" id="chatTopbar">
+        <div class="chat-user-info">
+          <div class="chat-avatar c-purple" id="chatAvatar">DY</div>
+          <div>
+            <div class="chat-user-name" id="chatName">Dilnoza Yusupova</div>
+            <div class="chat-status" id="chatStatus">● Online</div>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <button class="icon-btn" data-ui-call="showToast" data-ui-args='["Qo\u0027ng\u0027iroq qilish"]'><i class="bi bi-telephone"></i></button>
+          <button class="icon-btn" data-ui-call="showToast" data-ui-args='["Video qo\u0027ng\u0027iroq"]'><i class="bi bi-camera-video"></i></button>
+          <button class="icon-btn" id="detailToggleBtn" data-ui-call="toggleDetail"><i class="bi bi-layout-sidebar-reverse"></i></button>
+          <button class="icon-btn" data-ui-call="showToast" data-ui-args='["Qidirish"]'><i class="bi bi-search"></i></button>
+          <button class="icon-btn" data-ui-call="showToast" data-ui-args='["Ko\u0027proq"]'><i class="bi bi-three-dots-vertical"></i></button>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div class="messages-area" id="messagesArea">
+        <div class="day-divider"><span class="day-label">Bugun, 17 May</span></div>
+
+        <!-- Them group 1 -->
+        <div class="msg-row">
+          <div class="msg-avatar c-purple xstyle-0ff20db5">DY</div>
+          <div class="msg-group">
+            <div class="bubble bubble-them bubble-first-them">Salom! Dasturlash kursining 5-moduli bo'yicha savolingiz bormi? Men sizga yordam berishim mumkin 😊</div>
+            <div class="bubble bubble-them bubble-mid-them">Har qanday savolni bering, javob berishga tayyorman!</div>
+            <div class="msg-meta"><span class="msg-time">10:38</span></div>
+            <div class="msg-reactions">
+              <div class="reaction-chip mine" data-ui-call="toggleReaction" data-ui-pass="this">👍 <span class="reaction-count">2</span></div>
+              <div class="reaction-chip" data-ui-call="toggleReaction" data-ui-pass="this">❤️ <span class="reaction-count">1</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Me group 1 -->
+        <div class="msg-row me xstyle-2fd7789b">
+          <div class="msg-group">
+            <div class="bubble bubble-me bubble-first-me">Ha, albatta! 5-modulda async/await tushunchasi menga biroz qiyin tuyulmoqda.</div>
+            <div class="bubble bubble-me bubble-mid-me">Ayniqsa Promise chaining va error handling qismi...</div>
+            <div class="msg-meta"><span class="msg-time">10:40</span><i class="bi bi-check2-all msg-status"></i></div>
+          </div>
+        </div>
+
+        <!-- Them group 2 -->
+        <div class="msg-row xstyle-2fd7789b">
+          <div class="msg-avatar c-purple xstyle-0ff20db5">DY</div>
+          <div class="msg-group">
+            <div class="bubble bubble-them bubble-first-them">Tushunarli! Men sizga yaxshi misol yubora olaman. Mana bu materialga qarang:</div>
+            <!-- File bubble -->
+            <div class="bubble-file">
+              <div class="file-icon-wrap"><i class="bi bi-file-earmark-pdf"></i></div>
+              <div class="file-info">
+                <div class="file-name">async-await-guide.pdf</div>
+                <div class="file-size">2.4 MB • PDF fayl</div>
+              </div>
+              <i class="bi bi-download xstyle-e820fda7"></i>
+            </div>
+            <div class="msg-meta"><span class="msg-time">10:42</span></div>
+          </div>
+        </div>
+
+        <!-- Me with image -->
+        <div class="msg-row me xstyle-2fd7789b">
+          <div class="msg-group">
+            <div class="bubble bubble-me bubble-first-me">Rahmat! Men bu kodni yozib ko'rdim lekin xato chiqyapti</div>
+            <div class="bubble-img">
+              <div class="bubble-img-placeholder"><i class="bi bi-image"></i></div>
+            </div>
+            <div class="msg-meta"><span class="msg-time">10:44</span><i class="bi bi-check2-all msg-status"></i></div>
+          </div>
+        </div>
+
+        <!-- System message -->
+        <div class="sys-msg"><span>Dilnoza fayl ulashdi</span></div>
+
+        <!-- Them group 3 -->
+        <div class="msg-row xstyle-2fd7789b">
+          <div class="msg-avatar c-purple xstyle-0ff20db5">DY</div>
+          <div class="msg-group">
+            <div class="bubble bubble-them bubble-first-them">Xatoni ko'rdim! <code class="xstyle-651d3e4b">await</code> ni async funksiya ichida ishlatish kerak. Mana to'g'ri variant:</div>
+            <div class="bubble bubble-them bubble-mid-them xstyle-d5743667">async function fetchData() {<br>&nbsp;&nbsp;try {<br>&nbsp;&nbsp;&nbsp;&nbsp;const res = await fetch(url);<br>&nbsp;&nbsp;&nbsp;&nbsp;const data = await res.json();<br>&nbsp;&nbsp;&nbsp;&nbsp;return data;<br>&nbsp;&nbsp;} catch (err) {<br>&nbsp;&nbsp;&nbsp;&nbsp;console.error(err);<br>&nbsp;&nbsp;}<br>}</div>
+            <div class="msg-meta"><span class="msg-time">10:46</span></div>
+          </div>
+        </div>
+
+        <!-- Me last -->
+        <div class="msg-row me xstyle-2fd7789b">
+          <div class="msg-group">
+            <div class="bubble bubble-me bubble-first-me">Voy, juda aniq tushuntirdingiz! Ishlab ketdi 🎉 Katta rahmat Dilnoza opa!</div>
+            <div class="msg-meta"><span class="msg-time">10:47</span><i class="bi bi-check2-all msg-status"></i></div>
+            <div class="msg-reactions">
+              <div class="reaction-chip mine" data-ui-call="toggleReaction" data-ui-pass="this">🎉 <span class="reaction-count">1</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Them last -->
+        <div class="msg-row xstyle-2fd7789b">
+          <div class="msg-avatar c-purple xstyle-0ff20db5">DY</div>
+          <div class="msg-group">
+            <div class="bubble bubble-them bubble-first-them">Arzimaydi! 😊 Yana savollar bo'lsa, bemalol yozing. Kursni muvaffaqiyatli tugatishingizni xohlayman!</div>
+            <div class="msg-meta"><span class="msg-time">10:48</span></div>
+          </div>
+        </div>
+
+        <!-- Typing indicator -->
+        <div class="typing-row xstyle-c8be1ccb" id="typingIndicator">
+          <div class="msg-avatar c-purple xstyle-0ff20db5">DY</div>
+          <div class="typing-bubble">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scroll to bottom btn -->
+      <button class="scroll-btn" id="scrollBtn" data-ui-call="scrollToBottom"><i class="bi bi-chevron-down"></i></button>
+
+      <!-- Compose -->
+      <div class="compose-wrap xstyle-87db2275">
+        <!-- Reply bar (hidden by default) -->
+        <div class="reply-bar xstyle-c8be1ccb" id="replyBar">
+          <i class="bi bi-reply xstyle-bad25c3f"></i>
+          <span class="reply-text" id="replyText">Javob berilmoqda...</span>
+          <i class="bi bi-x reply-close" data-ui-call="cancelReply"></i>
+        </div>
+
+        <div class="compose-toolbar">
+          <div class="compose-tool" data-ui-call="execCmd" data-ui-args='["bold"]' title="Bold"><i class="bi bi-type-bold"></i></div>
+          <div class="compose-tool" data-ui-call="execCmd" data-ui-args='["italic"]' title="Italic"><i class="bi bi-type-italic"></i></div>
+          <div class="compose-tool" data-ui-call="execCmd" data-ui-args='["strikeThrough"]' title="Strike"><i class="bi bi-type-strikethrough"></i></div>
+          <div class="compose-sep"></div>
+          <div class="compose-tool" data-ui-call="insertCodeBlock" title="Code"><i class="bi bi-code-slash"></i></div>
+          <div class="compose-tool" data-ui-call="insertLink" title="Link"><i class="bi bi-link-45deg"></i></div>
+          <div class="compose-sep"></div>
+          <div class="compose-tool" id="emojiToggleBtn" data-ui-call="toggleEmoji" title="Emoji"><i class="bi bi-emoji-smile"></i></div>
+          <div class="compose-tool" data-ui-call="triggerFileUpload" title="Fayl"><i class="bi bi-paperclip"></i></div>
+          <div class="compose-tool" data-ui-call="triggerImageUpload" title="Rasm"><i class="bi bi-image"></i></div>
+        </div>
+
+        <!-- Emoji picker -->
+        <div class="emoji-picker xstyle-c8be1ccb" id="emojiPicker">
+          <div class="emoji-picker-header">
+            <div class="emoji-cat-btn active" title="Tez-tez">⭐</div>
+            <div class="emoji-cat-btn" title="Yuzlar">😀</div>
+            <div class="emoji-cat-btn" title="Tabiat">🌿</div>
+            <div class="emoji-cat-btn" title="Ovqat">🍕</div>
+            <div class="emoji-cat-btn" title="Harakatlar">⚽</div>
+            <div class="emoji-cat-btn" title="Sayohat">✈️</div>
+            <div class="emoji-cat-btn" title="Belgilar">💡</div>
+            <div class="emoji-cat-btn" title="Bayroqlar">🏳️</div>
+          </div>
+          <div class="emoji-search emoji-search-icon">
+            <input type="text" placeholder="Emoji qidirish..." data-ui-input-call="filterEmojis" data-ui-pass="value" class="xstyle-45192fb4">
+          </div>
+          <div class="emoji-grid" id="emojiGrid"></div>
+        </div>
+
+        <div class="compose-row">
+          <div class="compose-input-wrap">
+            <div class="compose-input" id="composeInput" contenteditable="true" data-placeholder="Xabar yozing..." data-ui-keydown-call="handleComposeKey" data-ui-pass="event" data-ui-input-call="onComposeInput"></div>
+          </div>
+          <div class="compose-actions">
+            <button class="send-btn" data-ui-call="sendMessage"><i class="bi bi-send-fill"></i></button>
+          </div>
+        </div>
+        <input type="file" id="fileInput" data-ui-change-call="handleFileAttach" data-ui-pass="this" class="xstyle-c8be1ccb">
+        <input type="file" id="imageInput" accept="image/*" data-ui-change-call="handleImageAttach" data-ui-pass="this" class="xstyle-c8be1ccb">
+      </div>
+    </div>
+
+    <!-- ── DETAIL PANEL ──────────────────────────────────── -->
+    <div class="detail-panel" id="detailPanel">
+      <div class="detail-header">
+        <span class="detail-title">Ma'lumot</span>
+        <button class="icon-btn" data-ui-call="toggleDetail"><i class="bi bi-x"></i></button>
+      </div>
+      <div class="detail-body">
+        <div class="detail-profile">
+          <div class="detail-avatar c-purple">DY<div class="online-dot"></div></div>
+          <div class="detail-name">Dilnoza Yusupova</div>
+          <div class="detail-username">@dilnoza_dev</div>
+          <div class="detail-status-badge online"><i class="bi bi-circle-fill xstyle-e6d79bbd"></i> Online</div>
+          <div class="detail-actions">
+            <button class="detail-action-btn" data-ui-call="showToast" data-ui-args='["Qo\u0027ng\u0027iroq qilish"]'><i class="bi bi-telephone"></i> Qo'ng'iroq</button>
+            <button class="detail-action-btn" data-ui-call="showToast" data-ui-args='["Profil ochildi"]'><i class="bi bi-person"></i> Profil</button>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-section-title">Ma'lumotlar</div>
+          <div class="detail-info-row">
+            <div class="detail-info-icon"><i class="bi bi-mortarboard"></i></div>
+            <span class="detail-info-text">Senior Frontend Developer</span>
+          </div>
+          <div class="detail-info-row">
+            <div class="detail-info-icon"><i class="bi bi-building"></i></div>
+            <span class="detail-info-text">AzureTech LLC</span>
+          </div>
+          <div class="detail-info-row">
+            <div class="detail-info-icon"><i class="bi bi-geo-alt"></i></div>
+            <span class="detail-info-text">Toshkent, O'zbekiston</span>
+          </div>
+          <div class="detail-info-row">
+            <div class="detail-info-icon"><i class="bi bi-clock"></i></div>
+            <span class="detail-info-text">10:48 (UTC+5)</span>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-section-title">Media (6)</div>
+          <div class="media-grid">
+            <div class="media-thumb"><i class="bi bi-image"></i></div>
+            <div class="media-thumb"><i class="bi bi-image"></i></div>
+            <div class="media-thumb"><i class="bi bi-play-circle"></i></div>
+            <div class="media-thumb"><i class="bi bi-image"></i></div>
+            <div class="media-thumb"><i class="bi bi-image"></i></div>
+            <div class="media-thumb"><i class="bi bi-image"></i></div>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="detail-section-title">Ulashilgan fayllar (3)</div>
+          <div class="shared-file-row">
+            <div class="shared-file-icon"><i class="bi bi-file-earmark-pdf"></i></div>
+            <div class="xstyle-a07604d3">
+              <div class="shared-file-name">async-await-guide.pdf</div>
+              <div class="shared-file-size">2.4 MB • 10 May</div>
+            </div>
+          </div>
+          <div class="shared-file-row">
+            <div class="shared-file-icon xstyle-b4151488"><i class="bi bi-file-earmark-zip"></i></div>
+            <div class="xstyle-a07604d3">
+              <div class="shared-file-name">react-project-starter.zip</div>
+              <div class="shared-file-size">8.1 MB • 8 May</div>
+            </div>
+          </div>
+          <div class="shared-file-row">
+            <div class="shared-file-icon xstyle-4d07594c"><i class="bi bi-file-earmark-slides"></i></div>
+            <div class="xstyle-a07604d3">
+              <div class="shared-file-name">module-5-slides.pptx</div>
+              <div class="shared-file-size">1.9 MB • 5 May</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-section xstyle-0dce84d8">
+          <div class="detail-section-title">Harakatlar</div>
+          <button class="detail-action-btn xstyle-5a1a542f" data-ui-call="showToast" data-ui-args='["Ovoz o\u0027chirildi"]'><i class="bi bi-bell-slash"></i> Bildirishnomani o'chirish</button>
+          <button class="detail-action-btn xstyle-9d19d5bb" data-ui-call="showToast" data-ui-args='["Bloklandi"]'><i class="bi bi-slash-circle"></i> Foydalanuvchini bloklash</button>
+          <button class="detail-action-btn xstyle-51ea8f85" data-ui-call="showToast" data-ui-args='["Chat o\u0027chirildi"]'><i class="bi bi-trash"></i> Chatni o'chirish</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ── THEME ──────────────────────────────────────────────────
+    function toggleTheme() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      try { localStorage.setItem('lms-theme', isDark ? 'light' : 'dark'); } catch(e){}
+    }
+
+    // ── TOAST ──────────────────────────────────────────────────
+    let toastTimer;
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+    }
+
+    // ── FILTER TABS ────────────────────────────────────────────
+    function setFilter(btn, type) {
+      document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      showToast(type === 'all' ? 'Barcha xabarlar' : type === 'unread' ? "O'qilmaganlar" : 'Guruhlar');
+    }
+
+    // ── CONTACT SEARCH ─────────────────────────────────────────
+    function filterContacts(q) {
+      const items = document.querySelectorAll('.contact-item');
+      items.forEach(item => {
+        const name = item.querySelector('.contact-name').textContent.toLowerCase();
+        item.style.display = name.includes(q.toLowerCase()) ? '' : 'none';
+      });
+    }
+
+    // ── OPEN CHAT ──────────────────────────────────────────────
+    function openChat(item, name, status, colorClass, initials, preview, time, unread) {
+      document.querySelectorAll('.contact-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+
+      // Remove unread badge
+      const badge = item.querySelector('.unread-badge');
+      if (badge) badge.remove();
+      const previewEl = item.querySelector('.contact-preview');
+      if (previewEl) previewEl.classList.remove('unread');
+      const timeEl = item.querySelector('.contact-time');
+      if (timeEl) timeEl.classList.remove('unread');
+
+      // Update topbar
+      const avatar = document.getElementById('chatAvatar');
+      avatar.textContent = initials;
+      avatar.className = 'chat-avatar ' + colorClass;
+
+      document.getElementById('chatName').textContent = name;
+      const statusEl = document.getElementById('chatStatus');
+      if (status === 'online') { statusEl.textContent = '● Online'; statusEl.className = 'chat-status'; }
+      else if (status === 'away') { statusEl.textContent = '● Uzoqda'; statusEl.className = 'chat-status away'; }
+      else { statusEl.textContent = '● Offline'; statusEl.className = 'chat-status offline'; }
+
+      // Update detail panel avatar
+      const detailAvatar = document.querySelector('.detail-avatar');
+      if (detailAvatar) {
+        detailAvatar.className = 'detail-avatar ' + colorClass;
+        detailAvatar.innerHTML = initials + '<div class="online-dot"></div>';
+      }
+      document.querySelector('.detail-name').textContent = name;
+
+      // Scroll to bottom
+      setTimeout(scrollToBottom, 50);
+    }
+
+    // ── DETAIL PANEL ───────────────────────────────────────────
+    let detailVisible = true;
+    function toggleDetail() {
+      detailVisible = !detailVisible;
+      document.getElementById('detailPanel').classList.toggle('hidden', !detailVisible);
+    }
+
+    // ── SCROLL ─────────────────────────────────────────────────
+    function scrollToBottom() {
+      const area = document.getElementById('messagesArea');
+      area.scrollTop = area.scrollHeight;
+      document.getElementById('scrollBtn').classList.remove('visible');
+    }
+
+    document.getElementById('messagesArea').addEventListener('scroll', function() {
+      const btn = document.getElementById('scrollBtn');
+      const fromBottom = this.scrollHeight - this.scrollTop - this.clientHeight;
+      btn.classList.toggle('visible', fromBottom > 200);
+    });
+
+    // ── SEND MESSAGE ───────────────────────────────────────────
+    function sendMessage() {
+      const input = document.getElementById('composeInput');
+      const text = input.innerText.trim();
+      if (!text) return;
+
+      const area = document.getElementById('messagesArea');
+      const now = new Date();
+      const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+
+      // Hide reply bar
+      cancelReply();
+
+      // Build message row
+      const row = document.createElement('div');
+      row.className = 'msg-row me';
+      row.style.marginTop = '6px';
+      row.innerHTML = `
+        <div class="msg-group">
+          <div class="bubble bubble-me bubble-first-me">${escapeHtml(text)}</div>
+          <div class="msg-meta">
+            <span class="msg-time">${time}</span>
+            <i class="bi bi-check2 msg-status delivered"></i>
+          </div>
+        </div>`;
+
+      // Hide typing if visible
+      document.getElementById('typingIndicator').style.display = 'none';
+
+      area.insertBefore(row, document.getElementById('typingIndicator'));
+      input.innerHTML = '';
+      scrollToBottom();
+
+      // Simulate delivered → read
+      setTimeout(() => { row.querySelector('.msg-status').className = 'bi bi-check2-all msg-status'; }, 900);
+
+      // Simulate typing response after delay
+      setTimeout(() => {
+        document.getElementById('typingIndicator').style.display = 'flex';
+        scrollToBottom();
+      }, 1500);
+      setTimeout(() => {
+        document.getElementById('typingIndicator').style.display = 'none';
+        const reply = document.createElement('div');
+        reply.className = 'msg-row';
+        reply.style.marginTop = '6px';
+        const activeContact = document.querySelector('.contact-item.active');
+        const initials = activeContact ? activeContact.querySelector('.contact-avatar').textContent.slice(0,2) : 'DY';
+        const colorClass = activeContact ? Array.from(activeContact.querySelector('.contact-avatar').classList).find(c => c.startsWith('c-')) : 'c-purple';
+        reply.innerHTML = `
+          <div class="msg-avatar ${colorClass} xstyle-0ff20db5">${initials}</div>
+          <div class="msg-group">
+            <div class="bubble bubble-them bubble-first-them">Xabaringizni oldim! Tez orada javob beraman 😊</div>
+            <div class="msg-meta"><span class="msg-time">${time}</span></div>
+          </div>`;
+        area.insertBefore(reply, document.getElementById('typingIndicator'));
+        scrollToBottom();
+      }, 3200);
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function handleComposeKey(e) {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    }
+
+    function onComposeInput() { /* could add char count etc */ }
+
+    // ── FORMAT COMMANDS ────────────────────────────────────────
+    function execCmd(cmd) {
+      document.getElementById('composeInput').focus();
+      document.execCommand(cmd, false, null);
+    }
+
+    function insertCodeBlock() {
+      document.getElementById('composeInput').focus();
+      document.execCommand('insertText', false, '`code`');
+    }
+
+    function insertLink() {
+      const url = prompt('URL kiriting:');
+      if (url) document.execCommand('createLink', false, url);
+    }
+
+    // ── EMOJI PICKER ───────────────────────────────────────────
+    const allEmojis = ['😀','😂','🥰','😍','🤩','😎','🤔','😮','😢','😡','🎉','👍','👎','❤️','🔥','✅','❌','⭐','🚀','💡','🙏','💪','🎓','📚','💻','🖥️','⌨️','🖱️','📱','📧','📁','🗂️','🔗','📊','📈','🗒️','✏️','🖊️','📝','🔍','🔎','🎯','💬','💭','📌','⚡','🌟','🌙','☀️','🌈','🌊','🍎','🍕','☕','🍵','🎵','🎶','🎸','🎹','🏆','🥇','🎮','🚗','✈️','🏠','🌍','⏰','📅','🔒','🔓','🔔','🔕'];
+    let filteredEmojis = [...allEmojis];
+
+    function buildEmojiGrid(list) {
+      const grid = document.getElementById('emojiGrid');
+      grid.innerHTML = '';
+      list.forEach(em => {
+        const el = document.createElement('div');
+        el.className = 'emoji-item';
+        el.textContent = em;
+        el.onclick = () => insertEmoji(em);
+        grid.appendChild(el);
+      });
+    }
+
+    function filterEmojis(q) {
+      // Simple: show all (no name lookup in demo)
+      buildEmojiGrid(allEmojis);
+    }
+
+    function toggleEmoji() {
+      const picker = document.getElementById('emojiPicker');
+      const isVisible = picker.style.display !== 'none';
+      picker.style.display = isVisible ? 'none' : 'block';
+      if (!isVisible) { buildEmojiGrid(allEmojis); }
+      document.getElementById('emojiToggleBtn').classList.toggle('active', !isVisible);
+    }
+
+    function insertEmoji(em) {
+      const input = document.getElementById('composeInput');
+      input.focus();
+      document.execCommand('insertText', false, em);
+      document.getElementById('emojiPicker').style.display = 'none';
+      document.getElementById('emojiToggleBtn').classList.remove('active');
+    }
+
+    document.addEventListener('click', (e) => {
+      const picker = document.getElementById('emojiPicker');
+      if (picker.style.display !== 'none' && !picker.contains(e.target) && !document.getElementById('emojiToggleBtn').contains(e.target)) {
+        picker.style.display = 'none';
+        document.getElementById('emojiToggleBtn').classList.remove('active');
+      }
+    });
+
+    // ── FILE / IMAGE ATTACH ────────────────────────────────────
+    function triggerFileUpload() { document.getElementById('fileInput').click(); }
+    function triggerImageUpload() { document.getElementById('imageInput').click(); }
+
+    function handleFileAttach(input) {
+      if (!input.files.length) return;
+      const file = input.files[0];
+      const area = document.getElementById('messagesArea');
+      const now = new Date();
+      const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+      const size = (file.size / 1024 / 1024).toFixed(1) + ' MB';
+
+      const row = document.createElement('div');
+      row.className = 'msg-row me';
+      row.style.marginTop = '6px';
+      row.innerHTML = `
+        <div class="msg-group xstyle-6befe1c9">
+          <div class="bubble-file me">
+            <div class="file-icon-wrap"><i class="bi bi-file-earmark"></i></div>
+            <div class="file-info">
+              <div class="file-name">${escapeHtml(file.name)}</div>
+              <div class="file-size">${size}</div>
+            </div>
+          </div>
+          <div class="msg-meta"><span class="msg-time">${time}</span><i class="bi bi-check2 msg-status delivered"></i></div>
+        </div>`;
+      area.insertBefore(row, document.getElementById('typingIndicator'));
+      scrollToBottom();
+      input.value = '';
+      showToast('Fayl yuborildi');
+    }
+
+    function handleImageAttach(input) {
+      if (!input.files.length) return;
+      const file = input.files[0];
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const area = document.getElementById('messagesArea');
+        const now = new Date();
+        const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+        const row = document.createElement('div');
+        row.className = 'msg-row me';
+        row.style.marginTop = '6px';
+        row.innerHTML = `
+          <div class="msg-group xstyle-6befe1c9">
+            <div class="bubble-img xstyle-e73ebf41"><img src="${e.target.result}" alt="Rasm" class="xstyle-7665c5fb"></div>
+            <div class="msg-meta"><span class="msg-time">${time}</span><i class="bi bi-check2 msg-status delivered"></i></div>
+          </div>`;
+        area.insertBefore(row, document.getElementById('typingIndicator'));
+        scrollToBottom();
+      };
+      reader.readAsDataURL(file);
+      input.value = '';
+    }
+
+    // ── REPLY ──────────────────────────────────────────────────
+    function replyTo(text) {
+      document.getElementById('replyBar').style.display = 'flex';
+      document.getElementById('replyText').textContent = text;
+      document.getElementById('composeInput').focus();
+    }
+
+    function cancelReply() {
+      document.getElementById('replyBar').style.display = 'none';
+    }
+
+    // Add right-click reply context on bubbles
+    document.querySelectorAll('.bubble').forEach(bubble => {
+      bubble.addEventListener('dblclick', () => replyTo(bubble.textContent.slice(0, 60)));
+    });
+
+    // ── REACTIONS ─────────────────────────────────────────────
+    function toggleReaction(chip) {
+      const count = chip.querySelector('.reaction-count');
+      if (chip.classList.toggle('mine')) {
+        count.textContent = parseInt(count.textContent) + 1;
+      } else {
+        count.textContent = Math.max(0, parseInt(count.textContent) - 1);
+      }
+    }
+
+    // ── INIT ──────────────────────────────────────────────────
+    scrollToBottom();
+    buildEmojiGrid(allEmojis);
+  </script>
+  <script src="../assets/js/prototype-ui.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS old-turtle prototype for app shell.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>Dashboard — AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- CSS Zanjiri (Architectural Standard) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/app-shell.css">
+
+  <link rel="stylesheet" href="../assets/css/prototype-extracted.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">AZ</div>
+      <span class="sidebar-logo-name">AzureLMS</span>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="Asosiy navigatsiya">
+      <details class="nav-accordion" open>
+        <summary class="nav-accordion-trigger">
+          <span class="nav-accordion-title"><i class="bi bi-journal-bookmark"></i> O'qish</span>
+          <i class="bi bi-chevron-down nav-accordion-caret"></i>
+        </summary>
+        <div class="nav-accordion-panel">
+          <a href="app-shell.html" class="nav-item active"><i class="bi bi-grid-fill"></i> Dashboard</a>
+          <a href="app-course-list.html" class="nav-item"><i class="bi bi-collection-play"></i> Kurslarim</a>
+          <a href="app-course-detail.html" class="nav-item"><i class="bi bi-play-circle"></i> O'quv xonasi</a>
+          <a href="app-shell.html" class="nav-item"><i class="bi bi-calendar3"></i> Jadval</a>
+        </div>
+      </details>
+
+      <details class="nav-accordion">
+        <summary class="nav-accordion-trigger">
+          <span class="nav-accordion-title"><i class="bi bi-bar-chart-line"></i> Progress</span>
+          <i class="bi bi-chevron-down nav-accordion-caret"></i>
+        </summary>
+        <div class="nav-accordion-panel">
+          <a href="app-shell.html" class="nav-item"><i class="bi bi-bar-chart-line"></i> Statistika</a>
+          <a href="app-profile.html" class="nav-item"><i class="bi bi-trophy"></i> Yutuqlar</a>
+          <a href="app-profile.html" class="nav-item"><i class="bi bi-patch-check"></i> Sertifikatlar</a>
+        </div>
+      </details>
+
+      <details class="nav-accordion">
+        <summary class="nav-accordion-trigger">
+          <span class="nav-accordion-title"><i class="bi bi-compass"></i> Platforma</span>
+          <i class="bi bi-chevron-down nav-accordion-caret"></i>
+        </summary>
+        <div class="nav-accordion-panel">
+          <a href="../public/course-list.html" class="nav-item"><i class="bi bi-shop"></i> Bozor</a>
+          <a href="../blog/blog-shell.html" class="nav-item"><i class="bi bi-newspaper"></i> Blog</a>
+          <a href="../exam/exam-shell.html" class="nav-item"><i class="bi bi-patch-check"></i> Imtihonlar</a>
+        </div>
+      </details>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <details class="account-menu">
+        <summary class="sidebar-user">
+          <div class="user-av">AK</div>
+          <div class="user-info">
+            <div class="user-name">Azurebekdev</div>
+            <div class="user-plan">Pro reja · Faol</div>
+          </div>
+          <i class="bi bi-chevron-down user-chevron"></i>
+        </summary>
+        <div class="account-menu-panel">
+          <a href="app-notifications.html" class="account-menu-item"><i class="bi bi-bell"></i> Bildirishnomalar <span class="nav-badge">3</span></a>
+          <a href="app-profile.html" class="account-menu-item"><i class="bi bi-person-circle"></i> Profil</a>
+          <a href="app-settings.html" class="account-menu-item"><i class="bi bi-gear"></i> Sozlamalar</a>
+          <a href="app-subscriptions.html" class="account-menu-item"><i class="bi bi-credit-card"></i> Obuna</a>
+          <div class="account-menu-sep"></div>
+          <a href="../auth/auth-login.html" class="account-menu-item danger"><i class="bi bi-box-arrow-right"></i> Chiqish</a>
+        </div>
+      </details>
+      <div class="sidebar-version">Fourth Trial · v0.4</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button class="topbar-btn sidebar-toggle xstyle-f0e997ab" id="sidebarToggle"><i class="bi bi-list"></i></button>
+      <span class="topbar-title">Dashboard</span>
+      <div class="topbar-search">
+        <i class="bi bi-search"></i>
+        <input type="text" placeholder="Kurs yoki dars izlash…">
+      </div>
+      <button class="topbar-btn xstyle-87db2275" data-ui-href="app-notifications.html">
+        <i class="bi bi-bell"></i>
+        <div class="topbar-dot"></div>
+      </button>
+      <button class="topbar-btn" id="themeBtn" aria-label="Toggle theme">
+        <i class="bi bi-moon" id="themeIcon"></i>
+      </button>
+    </header>
+
+    <!-- PAGE BODY -->
+    <main class="page-body">
+
+      <!-- GREETING -->
+      <div class="greeting">
+        <div class="greeting-text">
+          <div class="greeting-hello">Xush kelibsiz,</div>
+          <div class="greeting-name">Azurebekdev 👋</div>
+          <div class="greeting-sub">Bugun ham bir qadam oldinga! Turk tili kursida 68% ga yetdingiz.</div>
+          <div class="greeting-streak">
+            <div class="streak-badge">🔥 12 kunlik seriya</div>
+            <div class="streak-badge xstyle-692276a9">📅 Bugun: 3 dars</div>
+          </div>
+        </div>
+        <div class="greeting-action">
+          <button class="btn-continue" data-ui-href="app-course-detail.html"><i class="bi bi-play-fill"></i> Davom ettirish</button>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-icon xstyle-7b1981d9">📚</div>
+          <div class="stat-body">
+            <div class="stat-val">4</div>
+            <div class="stat-label">Faol kurs</div>
+            <div class="stat-delta delta-up"><i class="bi bi-arrow-up"></i> 1 ta yangi</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon xstyle-24f63d55">⏱️</div>
+          <div class="stat-body">
+            <div class="stat-val">24.5</div>
+            <div class="stat-label">Umumiy soat</div>
+            <div class="stat-delta delta-up"><i class="bi bi-arrow-up"></i> Bu hafta +3.2s</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon xstyle-ea517243">🏆</div>
+          <div class="stat-body">
+            <div class="stat-val">7</div>
+            <div class="stat-label">Yutuqlar</div>
+            <div class="stat-delta delta-up"><i class="bi bi-arrow-up"></i> 2 ta yangi</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon xstyle-236daace">📊</div>
+          <div class="stat-body">
+            <div class="stat-val">82%</div>
+            <div class="stat-label">Test o'rtachasi</div>
+            <div class="stat-delta delta-up"><i class="bi bi-arrow-up"></i> +4% o'sish</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TWO COL -->
+      <div class="two-col">
+
+        <!-- ACTIVE COURSES -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Faol kurslar</div>
+            <a href="app-course-list.html" class="card-link">Barchasini ko'rish →</a>
+          </div>
+
+          <div class="course-row">
+            <div class="course-thumb xstyle-9c836d34">🇹🇷</div>
+            <div class="course-info">
+              <div class="course-name">Turk tili: A1–B2 To'liq Kurs</div>
+              <div class="course-meta">84 / 124 dars · Bo'lim 7: Sifat va ravishlar</div>
+              <div class="progress-bar"><div class="progress-fill pf1 xstyle-728c5592"></div></div>
+            </div>
+            <div class="course-pct">68%</div>
+            <button class="btn-play" data-ui-href="app-course-detail.html"><i class="bi bi-play-fill"></i></button>
+          </div>
+
+          <div class="course-row">
+            <div class="course-thumb xstyle-2b044dd7">🇬🇧</div>
+            <div class="course-info">
+              <div class="course-name">Ingliz tili: Business English</div>
+              <div class="course-meta">25 / 80 dars · Bo'lim 3: Email yozish</div>
+              <div class="progress-bar"><div class="progress-fill pf2 xstyle-2a457416"></div></div>
+            </div>
+            <div class="course-pct">31%</div>
+            <button class="btn-play"><i class="bi bi-play-fill"></i></button>
+          </div>
+
+          <div class="course-row">
+            <div class="course-thumb xstyle-40138047">🐍</div>
+            <div class="course-info">
+              <div class="course-name">Python: Asoslardan Proyektgacha</div>
+              <div class="course-meta">52 / 61 dars · Bo'lim 9: Loyiha yakunlash</div>
+              <div class="progress-bar"><div class="progress-fill pf3 xstyle-a86c4ce5"></div></div>
+            </div>
+            <div class="course-pct">85%</div>
+            <button class="btn-play"><i class="bi bi-play-fill"></i></button>
+          </div>
+
+          <div class="course-row">
+            <div class="course-thumb xstyle-fcedbb75">💼</div>
+            <div class="course-info">
+              <div class="course-name">Biznes va Menejment Asoslari</div>
+              <div class="course-meta">7 / 58 dars · Bo'lim 1: Kirish</div>
+              <div class="progress-bar"><div class="progress-fill pf4 xstyle-bbed66ce"></div></div>
+            </div>
+            <div class="course-pct">12%</div>
+            <button class="btn-play"><i class="bi bi-play-fill"></i></button>
+          </div>
+        </div>
+
+        <!-- ACTIVITY FEED -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">So'nggi faollik</div>
+            <span class="card-link xstyle-9acffd81">Bugun</span>
+          </div>
+          <div class="activity-list">
+            <div class="activity-item">
+              <div class="activity-dot xstyle-adf55eb0"><i class="bi bi-check-lg"></i></div>
+              <div class="activity-text">
+                <div class="activity-main">Dars yakunlandi: <strong>Fe'llar va zamon — Mashq 3</strong></div>
+                <div class="activity-time">20 daqiqa oldin</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot xstyle-f2cd36af"><i class="bi bi-star-fill"></i></div>
+              <div class="activity-text">
+                <div class="activity-main">Yutuq qo'lga kiritildi: <strong>🔥 10 kunlik seriya</strong></div>
+                <div class="activity-time">1 soat oldin</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot xstyle-eead3a91"><i class="bi bi-question-circle"></i></div>
+              <div class="activity-text">
+                <div class="activity-main">Test topshirildi: <strong>Kelishiklar testi</strong> — 90/100</div>
+                <div class="activity-time">3 soat oldin</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot xstyle-b4b2fb28"><i class="bi bi-file-earmark-arrow-down"></i></div>
+              <div class="activity-text">
+                <div class="activity-main">Material yuklab olindi: <strong>Bo'lim 6 lug'ati (PDF)</strong></div>
+                <div class="activity-time">Kecha</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot xstyle-adf55eb0"><i class="bi bi-patch-check-fill"></i></div>
+              <div class="activity-text">
+                <div class="activity-main">Sertifikat olindi: <strong>Python: Boshlang'ich daraja</strong></div>
+                <div class="activity-time">3 kun oldin</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTTOM ROW -->
+      <div class="bottom-row">
+
+        <!-- MINI CALENDAR -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Dars jadvali</div>
+          </div>
+          <div class="mini-cal">
+            <div class="cal-header">
+              <button class="cal-nav"><i class="bi bi-chevron-left"></i></button>
+              <div class="cal-month">May 2025</div>
+              <button class="cal-nav"><i class="bi bi-chevron-right"></i></button>
+            </div>
+            <div class="cal-grid">
+              <div class="cal-day-label">Du</div><div class="cal-day-label">Se</div><div class="cal-day-label">Ch</div><div class="cal-day-label">Pa</div><div class="cal-day-label">Ju</div><div class="cal-day-label">Sh</div><div class="cal-day-label">Ya</div>
+              <div class="cal-day other-month past">28</div><div class="cal-day other-month past">29</div><div class="cal-day other-month past">30</div><div class="cal-day past">1</div><div class="cal-day past has-lesson">2</div><div class="cal-day past">3</div><div class="cal-day past">4</div>
+              <div class="cal-day past has-lesson">5</div><div class="cal-day past">6</div><div class="cal-day past has-lesson">7</div><div class="cal-day past">8</div><div class="cal-day past has-lesson">9</div><div class="cal-day past">10</div><div class="cal-day past">11</div>
+              <div class="cal-day past has-lesson">12</div><div class="cal-day past">13</div><div class="cal-day past has-lesson">14</div><div class="cal-day past">15</div><div class="cal-day past has-lesson">16</div><div class="cal-day today">17</div><div class="cal-day">18</div>
+              <div class="cal-day has-lesson">19</div><div class="cal-day">20</div><div class="cal-day has-lesson">21</div><div class="cal-day">22</div><div class="cal-day has-lesson">23</div><div class="cal-day">24</div><div class="cal-day">25</div>
+              <div class="cal-day has-lesson">26</div><div class="cal-day">27</div><div class="cal-day">28</div><div class="cal-day">29</div><div class="cal-day">30</div><div class="cal-day">31</div><div class="cal-day other-month">1</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- UPCOMING LESSONS -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Yaqinlashayotgan darslar</div>
+          </div>
+          <div class="upcoming-item">
+            <div class="upcoming-time">16:00</div>
+            <div class="upcoming-info">
+              <div class="upcoming-name">Jonli dars: Sifat va ravishlar</div>
+              <div class="upcoming-course">Turk tili kursi · Aziz muallim</div>
+            </div>
+            <span class="upcoming-type xstyle-f2cd36af">Jonli</span>
+          </div>
+          <div class="upcoming-item">
+            <div class="upcoming-time">Ert.</div>
+            <div class="upcoming-info">
+              <div class="upcoming-name">Kelishiklar testi (2-urinish)</div>
+              <div class="upcoming-course">Turk tili kursi</div>
+            </div>
+            <span class="upcoming-type xstyle-eead3a91">Test</span>
+          </div>
+          <div class="upcoming-item">
+            <div class="upcoming-time">Ert.</div>
+            <div class="upcoming-info">
+              <div class="upcoming-name">Email yozish: formal uslub</div>
+              <div class="upcoming-course">Business English</div>
+            </div>
+            <span class="upcoming-type xstyle-adf55eb0">Video</span>
+          </div>
+          <div class="upcoming-item">
+            <div class="upcoming-time">19-may</div>
+            <div class="upcoming-info">
+              <div class="upcoming-name">Yakuniy loyiha taqdimoti</div>
+              <div class="upcoming-course">Python kursi</div>
+            </div>
+            <span class="upcoming-type xstyle-b4b2fb28">Loyiha</span>
+          </div>
+          <div class="upcoming-item">
+            <div class="upcoming-time">21-may</div>
+            <div class="upcoming-info">
+              <div class="upcoming-name">Biznes muloqot asoslari</div>
+              <div class="upcoming-course">Biznes kursi</div>
+            </div>
+            <span class="upcoming-type xstyle-adf55eb0">Video</span>
+          </div>
+        </div>
+
+        <!-- ACHIEVEMENTS -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Yutuqlar</div>
+            <a href="app-profile.html" class="card-link">Barchasini ko'r →</a>
+          </div>
+          <div class="achieve-grid">
+            <div class="achieve-item">
+              <div class="achieve-emoji">🔥</div>
+              <div class="achieve-name">12 kunlik seriya</div>
+              <div class="achieve-desc">Uzluksiz o'qish</div>
+            </div>
+            <div class="achieve-item">
+              <div class="achieve-emoji">⭐</div>
+              <div class="achieve-name">Yulduz talaba</div>
+              <div class="achieve-desc">3 ta 5 yulduzli baho</div>
+            </div>
+            <div class="achieve-item">
+              <div class="achieve-emoji">🏆</div>
+              <div class="achieve-name">Birinchi sertifikat</div>
+              <div class="achieve-desc">Python kursi</div>
+            </div>
+            <div class="achieve-item">
+              <div class="achieve-emoji">🎯</div>
+              <div class="achieve-name">100% test</div>
+              <div class="achieve-desc">Alifbo testida</div>
+            </div>
+            <div class="achieve-item locked">
+              <div class="achieve-emoji">💎</div>
+              <div class="achieve-name">Pro o'quvchi</div>
+              <div class="achieve-desc">30 kun faollik</div>
+            </div>
+            <div class="achieve-item locked">
+              <div class="achieve-emoji">🌍</div>
+              <div class="achieve-name">Ko'p til</div>
+              <div class="achieve-desc">3 ta kursni tugatish</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+  // Theme init
+  (function() {
+    let s; try { s = localStorage.getItem('az-theme'); } catch(_) {}
+    const dark = s ? s === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (dark) document.documentElement.setAttribute('data-theme', 'dark');
+    const icon = document.getElementById('themeIcon');
+    if (icon) icon.className = dark ? 'bi bi-sun' : 'bi bi-moon';
+  })();
+
+  document.getElementById('themeBtn').addEventListener('click', function() {
+    const html = document.documentElement;
+    const dark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', dark ? 'light' : 'dark');
+    document.getElementById('themeIcon').className = dark ? 'bi bi-moon' : 'bi bi-sun';
+    try { localStorage.setItem('az-theme', dark ? 'light' : 'dark'); } catch(_) {}
+  });
+
+  // Mobile sidebar toggle
+  const sidebarToggle = document.getElementById('sidebarToggle');
+  const sidebar = document.getElementById('sidebar');
+  if (sidebarToggle) {
+    sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+  }
+</script>
+  <script src="../assets/js/prototype-ui.js"></script>
+</body>
+</html>
+

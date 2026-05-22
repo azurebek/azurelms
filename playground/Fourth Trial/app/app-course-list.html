@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS old-turtle prototype for app course list.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>Kurslarim — AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- CSS Zanjiri (Architectural Standard) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/app-course-list.css">
+
+  <link rel="stylesheet" href="../assets/css/prototype-extracted.css">
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">AZ</div>
+      <span class="sidebar-logo-name">AzureLMS</span>
+    </div>
+    <nav class="sidebar-nav" aria-label="Asosiy navigatsiya">
+      <details class="nav-accordion" open>
+        <summary class="nav-accordion-trigger">
+          <span class="nav-accordion-title"><i class="bi bi-journal-bookmark"></i> O'qish</span>
+          <i class="bi bi-chevron-down nav-accordion-caret"></i>
+        </summary>
+        <div class="nav-accordion-panel">
+          <a href="app-shell.html" class="nav-item"><i class="bi bi-grid-fill"></i> Dashboard</a>
+          <a href="app-course-list.html" class="nav-item active"><i class="bi bi-collection-play"></i> Kurslarim</a>
+          <a href="app-course-detail.html" class="nav-item"><i class="bi bi-play-circle"></i> O'quv xonasi</a>
+          <a href="app-shell.html" class="nav-item"><i class="bi bi-calendar3"></i> Jadval</a>
+        </div>
+      </details>
+
+      <details class="nav-accordion">
+        <summary class="nav-accordion-trigger">
+          <span class="nav-accordion-title"><i class="bi bi-bar-chart-line"></i> Progress</span>
+          <i class="bi bi-chevron-down nav-accordion-caret"></i>
+        </summary>
+        <div class="nav-accordion-panel">
+          <a href="app-shell.html" class="nav-item"><i class="bi bi-bar-chart-line"></i> Statistika</a>
+          <a href="app-profile.html" class="nav-item"><i class="bi bi-trophy"></i> Yutuqlar</a>
+          <a href="app-profile.html" class="nav-item"><i class="bi bi-patch-check"></i> Sertifikatlar</a>
+        </div>
+      </details>
+
+      <details class="nav-accordion">
+        <summary class="nav-accordion-trigger">
+          <span class="nav-accordion-title"><i class="bi bi-compass"></i> Platforma</span>
+          <i class="bi bi-chevron-down nav-accordion-caret"></i>
+        </summary>
+        <div class="nav-accordion-panel">
+          <a href="../public/course-list.html" class="nav-item"><i class="bi bi-shop"></i> Bozor</a>
+          <a href="../blog/blog-shell.html" class="nav-item"><i class="bi bi-newspaper"></i> Blog</a>
+          <a href="../exam/exam-shell.html" class="nav-item"><i class="bi bi-patch-check"></i> Imtihonlar</a>
+        </div>
+      </details>
+    </nav>
+    <div class="sidebar-bottom">
+      <details class="account-menu">
+        <summary class="sidebar-user">
+          <div class="user-av">AK</div>
+          <div class="user-info">
+            <div class="user-name">Azurebekdev</div>
+            <div class="user-plan">Pro reja · Faol</div>
+          </div>
+          <i class="bi bi-chevron-down user-chevron"></i>
+        </summary>
+        <div class="account-menu-panel">
+          <a href="app-notifications.html" class="account-menu-item"><i class="bi bi-bell"></i> Bildirishnomalar <span class="nav-badge">3</span></a>
+          <a href="app-profile.html" class="account-menu-item"><i class="bi bi-person-circle"></i> Profil</a>
+          <a href="app-settings.html" class="account-menu-item"><i class="bi bi-gear"></i> Sozlamalar</a>
+          <a href="app-subscriptions.html" class="account-menu-item"><i class="bi bi-credit-card"></i> Obuna</a>
+          <div class="account-menu-sep"></div>
+          <a href="../auth/auth-login.html" class="account-menu-item danger"><i class="bi bi-box-arrow-right"></i> Chiqish</a>
+        </div>
+      </details>
+      <div class="sidebar-version">Fourth Trial · v0.4</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <header class="topbar">
+      <span class="topbar-title">Kurslarim</span>
+      <button class="topbar-btn xstyle-87db2275" data-ui-href="app-notifications.html"><i class="bi bi-bell"></i><div class="topbar-dot"></div></button>
+      <button class="topbar-btn" id="themeBtn"><i class="bi bi-moon" id="themeIcon"></i></button>
+    </header>
+
+    <main class="page-body">
+      <div class="page-header">
+        <div class="page-title">Kurslarim</div>
+        <div class="page-sub">Jami 4 ta kursga yozilgansiz · 1 ta tugatilgan</div>
+      </div>
+
+      <div class="filter-row">
+        <div class="tab-pills" id="tabPills">
+          <div class="tab-pill active" data-filter="all">Hammasi (5)</div>
+          <div class="tab-pill" data-filter="active">Faol (4)</div>
+          <div class="tab-pill" data-filter="done">Tugatilgan (1)</div>
+          <div class="tab-pill" data-filter="cert">Sertifikatli (1)</div>
+        </div>
+        <div class="filter-right">
+          <select class="sort-select">
+            <option>So'nggi faollik</option>
+            <option>Nomi: A-Z</option>
+            <option>Foiz: yuqori</option>
+            <option>Foiz: past</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="course-grid" id="courseGrid">
+
+        <!-- Course 1 — Active, in progress -->
+        <div class="course-card" data-status="active">
+          <div class="cc-thumb xstyle-9c836d34">🇹🇷</div>
+          <div class="cc-body">
+            <div class="cc-meta-top">
+              <span class="cc-cat">Til kurslari</span>
+              <span class="cc-level xstyle-f2cd36af">A1–B2</span>
+            </div>
+            <div class="cc-name">Turk tili: A1–B2 To'liq Kurs</div>
+            <div class="cc-lesson">Keyingi: Bo'lim 7 · Dars 3 — Sifat darajalari</div>
+            <div class="cc-progress-wrap">
+              <div class="cc-progress-info">
+                <span class="cc-progress-label">84 / 124 dars</span>
+                <span class="cc-progress-pct">68%</span>
+              </div>
+              <div class="progress-bar"><div class="progress-fill xstyle-728c5592"></div></div>
+            </div>
+            <div class="cc-stats">
+              <span class="cc-stat"><i class="bi bi-clock"></i> 24.5 soat</span>
+              <span class="cc-stat"><i class="bi bi-calendar3"></i> Kecha o'qildi</span>
+              <span class="cc-stat"><i class="bi bi-star-fill xstyle-2ddf8769"></i> 4.9</span>
+            </div>
+          </div>
+          <div class="cc-actions">
+            <button class="btn-continue" data-ui-href="app-course-detail.html"><i class="bi bi-play-fill"></i> Davom etish</button>
+            <button class="cc-more"><i class="bi bi-three-dots"></i></button>
+          </div>
+        </div>
+
+        <!-- Course 2 — Active -->
+        <div class="course-card" data-status="active">
+          <div class="cc-thumb xstyle-2b044dd7">🇬🇧</div>
+          <div class="cc-body">
+            <div class="cc-meta-top">
+              <span class="cc-cat">Til kurslari</span>
+              <span class="cc-level xstyle-b4b2fb28">B1–B2</span>
+            </div>
+            <div class="cc-name">Ingliz tili: Business English</div>
+            <div class="cc-lesson">Keyingi: Bo'lim 3 · Dars 5 — Formal email yozish</div>
+            <div class="cc-progress-wrap">
+              <div class="cc-progress-info">
+                <span class="cc-progress-label">25 / 80 dars</span>
+                <span class="cc-progress-pct">31%</span>
+              </div>
+              <div class="progress-bar"><div class="progress-fill xstyle-2a457416"></div></div>
+            </div>
+            <div class="cc-stats">
+              <span class="cc-stat"><i class="bi bi-clock"></i> 8.2 soat</span>
+              <span class="cc-stat"><i class="bi bi-calendar3"></i> 3 kun oldin</span>
+              <span class="cc-stat"><i class="bi bi-star-fill xstyle-2ddf8769"></i> 4.7</span>
+            </div>
+          </div>
+          <div class="cc-actions">
+            <button class="btn-continue"><i class="bi bi-play-fill"></i> Davom etish</button>
+            <button class="cc-more"><i class="bi bi-three-dots"></i></button>
+          </div>
+        </div>
+
+        <!-- Course 3 — Almost done -->
+        <div class="course-card" data-status="active">
+          <div class="cc-thumb xstyle-40138047">🐍</div>
+          <div class="cc-body">
+            <div class="cc-meta-top">
+              <span class="cc-cat">Dasturlash</span>
+              <span class="cc-level xstyle-adf55eb0">Boshlang'ich</span>
+            </div>
+            <div class="cc-name">Python: Asoslardan Proyektgacha</div>
+            <div class="cc-lesson">Keyingi: Bo'lim 9 · Yakuniy loyiha</div>
+            <div class="cc-progress-wrap">
+              <div class="cc-progress-info">
+                <span class="cc-progress-label">52 / 61 dars</span>
+                <span class="cc-progress-pct">85%</span>
+              </div>
+              <div class="progress-bar"><div class="progress-fill xstyle-a86c4ce5"></div></div>
+            </div>
+            <div class="cc-stats">
+              <span class="cc-stat"><i class="bi bi-clock"></i> 18.4 soat</span>
+              <span class="cc-stat"><i class="bi bi-calendar3"></i> Bugun</span>
+              <span class="cc-stat"><i class="bi bi-star-fill xstyle-2ddf8769"></i> 4.8</span>
+            </div>
+          </div>
+          <div class="cc-actions">
+            <button class="btn-continue green"><i class="bi bi-play-fill"></i> Yakunlash</button>
+            <button class="cc-more"><i class="bi bi-three-dots"></i></button>
+          </div>
+        </div>
+
+        <!-- Course 4 — Just started -->
+        <div class="course-card" data-status="active">
+          <div class="cc-thumb xstyle-fcedbb75">💼</div>
+          <div class="cc-body">
+            <div class="cc-meta-top">
+              <span class="cc-cat">Biznes</span>
+              <span class="cc-level xstyle-eead3a91">Barcha daraja</span>
+            </div>
+            <div class="cc-name">Biznes va Menejment Asoslari</div>
+            <div class="cc-lesson">Keyingi: Bo'lim 1 · Dars 7 — Biznes modellari</div>
+            <div class="cc-progress-wrap">
+              <div class="cc-progress-info">
+                <span class="cc-progress-label">7 / 58 dars</span>
+                <span class="cc-progress-pct">12%</span>
+              </div>
+              <div class="progress-bar"><div class="progress-fill xstyle-bbed66ce"></div></div>
+            </div>
+            <div class="cc-stats">
+              <span class="cc-stat"><i class="bi bi-clock"></i> 2.1 soat</span>
+              <span class="cc-stat"><i class="bi bi-calendar3"></i> 1 hafta oldin</span>
+              <span class="cc-stat"><i class="bi bi-star-fill xstyle-2ddf8769"></i> 4.6</span>
+            </div>
+          </div>
+          <div class="cc-actions">
+            <button class="btn-continue"><i class="bi bi-play-fill"></i> Davom etish</button>
+            <button class="cc-more"><i class="bi bi-three-dots"></i></button>
+          </div>
+        </div>
+
+        <!-- Course 5 — Completed + Certificate -->
+        <div class="course-card completed" data-status="done cert">
+          <div class="cc-thumb xstyle-cadeb6b2">🐍</div>
+          <div class="cc-body">
+            <div class="cc-meta-top">
+              <span class="cc-cat">Dasturlash</span>
+              <span class="cc-level xstyle-adf55eb0">✓ Tugatildi</span>
+            </div>
+            <div class="cc-name">Python: Boshlang'ich daraja</div>
+            <div class="cc-lesson">Barcha darslar yakunlandi · 2025-yil, 10-aprel</div>
+            <div class="cc-progress-wrap">
+              <div class="cc-progress-info">
+                <span class="cc-progress-label">38 / 38 dars</span>
+                <span class="cc-progress-pct">100%</span>
+              </div>
+              <div class="progress-bar"><div class="progress-fill xstyle-8960ca89"></div></div>
+            </div>
+            <div class="cc-stats">
+              <span class="cc-stat"><i class="bi bi-clock"></i> 12.6 soat</span>
+              <span class="cc-stat"><i class="bi bi-calendar3"></i> 10-aprelda</span>
+              <span class="cc-stat"><i class="bi bi-star-fill xstyle-2ddf8769"></i> 5.0</span>
+            </div>
+          </div>
+          <div class="cc-actions">
+            <button class="btn-continue done"><i class="bi bi-arrow-repeat"></i> Qayta ko'rish</button>
+            <div class="cc-cert"><i class="bi bi-patch-check-fill"></i> Sertifikat</div>
+            <button class="cc-more"><i class="bi bi-three-dots"></i></button>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+  (function() {
+    let s; try { s = localStorage.getItem('az-theme'); } catch(_) {}
+    const dark = s ? s === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (dark) document.documentElement.setAttribute('data-theme', 'dark');
+    const icon = document.getElementById('themeIcon');
+    if (icon) icon.className = dark ? 'bi bi-sun' : 'bi bi-moon';
+  })();
+  document.getElementById('themeBtn').addEventListener('click', function() {
+    const html = document.documentElement;
+    const dark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', dark ? 'light' : 'dark');
+    document.getElementById('themeIcon').className = dark ? 'bi bi-moon' : 'bi bi-sun';
+    try { localStorage.setItem('az-theme', dark ? 'light' : 'dark'); } catch(_) {}
+  });
+
+  // Tab filter
+  document.querySelectorAll('.tab-pill').forEach(pill => {
+    pill.addEventListener('click', function() {
+      document.querySelectorAll('.tab-pill').forEach(p => p.classList.remove('active'));
+      this.classList.add('active');
+      const filter = this.dataset.filter;
+      document.querySelectorAll('.course-card').forEach(card => {
+        const status = card.dataset.status || '';
+        if (filter === 'all') card.style.display = '';
+        else if (filter === 'active') card.style.display = status === 'active' ? '' : 'none';
+        else if (filter === 'done') card.style.display = status.includes('done') ? '' : 'none';
+        else if (filter === 'cert') card.style.display = status.includes('cert') ? '' : 'none';
+      });
+    });
+  });
+</script>
+  <script src="../assets/js/prototype-ui.js"></script>
+</body>
+</html>
+

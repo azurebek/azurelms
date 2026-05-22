@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS old-turtle prototype for blog shell.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>Blog — AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- CSS Zanjiri (Architectural Standard) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/blog-shell.css">
+
+  <link rel="stylesheet" href="../assets/css/prototype-extracted.css">
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-logo">
+      <div class="logo-mark">B</div>
+      <span class="logo-name">AzureBlog</span>
+      <span class="logo-tag">Beta</span>
+    </div>
+    <div class="nav-links">
+      <a href="blog-shell.html" class="nav-link active">Asosiy</a>
+      <a href="../blog/blog-tags.html" class="nav-link">Kategoriyalar</a>
+      <a href="../public/about.html#team" class="nav-link">Mualliflar</a>
+      <a href="../public/about.html" class="nav-link">Haqida</a>
+    </div>
+    <div class="nav-sep"></div>
+    <div class="nav-search">
+      <i class="bi bi-search"></i>
+      <input type="text" placeholder="Qidirish...">
+    </div>
+    <a href="../blog-studio/blog-studio-shell.html" class="write-btn"><i class="bi bi-pencil-square"></i> Yozish</a>
+    <button class="theme-btn" id="themeBtn"><i class="bi bi-moon" id="themeIcon"></i></button>
+  </div>
+</nav>
+
+<!-- FEATURED HERO -->
+<div class="featured-hero">
+  <div class="featured-inner">
+    <div>
+      <div class="feat-eyebrow"><i class="bi bi-lightning-charge-fill"></i> Tanlangan maqola</div>
+      <h1 class="feat-title">IELTS Band 8 ga chiqish: haqiqiy tajribadan 10 ta sir</h1>
+      <p class="feat-excerpt">Ko'pchilik IELTS imtihoniga tayyorgarlik ko'radi, lekin ko'plari 7-bandda "tuzilib qolishadi". Ushbu maqolada men band 8 ga ko'tarilish uchun real hayotda ishlagan strategiyalarni batafsilroq bayon etaman.</p>
+      <div class="feat-meta">
+        <div class="feat-author">
+          <div class="feat-av">AN</div>
+          <span class="feat-author-name">Aziz Nazarov</span>
+        </div>
+        <span class="feat-date">15 May 2026 · 8 daqiqa o'qish</span>
+      </div>
+      <a href="blog-article.html" class="feat-read-btn">O'qish <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="feat-card">
+      <div class="feat-card-img">📚</div>
+      <div class="feat-card-body">
+        <div class="feat-card-tag">🏆 Eng ko'p o'qilgan</div>
+        <div class="feat-card-title">IELTS Band 8 ga chiqish: haqiqiy tajribadan 10 ta sir</div>
+        <div class="feat-card-meta">47.2k ko'rilgan · 1.2k like · 234 izoh</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<main class="main">
+  <div>
+    <!-- FILTER -->
+    <div class="filter-bar">
+      <button class="filter-btn active" data-ui-call="filterPosts" data-ui-pass="this" data-ui-args='["all"]'>Hammasi</button>
+      <button class="filter-btn" data-ui-call="filterPosts" data-ui-pass="this" data-ui-args='["grammar"]'>Grammatika</button>
+      <button class="filter-btn" data-ui-call="filterPosts" data-ui-pass="this" data-ui-args='["vocab"]'>Lug'at</button>
+      <button class="filter-btn" data-ui-call="filterPosts" data-ui-pass="this" data-ui-args='["ielts"]'>IELTS</button>
+      <button class="filter-btn" data-ui-call="filterPosts" data-ui-pass="this" data-ui-args='["tips"]'>Maslahatlar</button>
+      <button class="filter-btn" data-ui-call="filterPosts" data-ui-pass="this" data-ui-args='["culture"]'>Madaniyat</button>
+    </div>
+
+    <!-- ARTICLES -->
+    <div class="article-grid">
+
+      <!-- WIDE -->
+      <a href="blog-article.html" class="article-card wide" data-cat="ielts">
+        <div class="article-card-img img--purple">
+          🎯
+          <span class="article-reading-time">12 daqiqa</span>
+        </div>
+        <div class="article-card-body">
+          <div class="article-tag">IELTS · Yozish</div>
+          <div class="article-title">Writing Task 2 uchun mukammal esse strukturasi: examiner nima qidiradi?</div>
+          <div class="article-excerpt">Band 7+ esse examiner tomonidan qanday baholanadi? Izohlovchilar bilan o'tkazilgan suhbatlar asosida yozilgan chuqur tahlil. Har bir baholash mezonini alohida ko'rib chiqamiz.</div>
+          <div class="article-footer">
+            <div class="article-av xstyle-67031837">MK</div>
+            <span class="article-author">Malika Karimova</span>
+            <span class="article-date">14 May</span>
+            <div class="article-stats">
+              <span class="article-stat"><i class="bi bi-eye"></i> 8.4k</span>
+              <span class="article-stat"><i class="bi bi-heart"></i> 342</span>
+            </div>
+          </div>
+        </div>
+      </a>
+
+      <!-- REGULAR CARDS -->
+      <a href="blog-article.html" class="article-card" data-cat="grammar">
+        <div class="article-card-img img--blue">
+          🔤
+          <span class="article-reading-time">6 daqiqa</span>
+        </div>
+        <div class="article-card-body">
+          <div class="article-tag">Grammatika</div>
+          <div class="article-title">Present Perfect vs Past Simple: qachon qaysi birini ishlatish kerak?</div>
+          <div class="article-excerpt">O'zbek va ingliz tillarining bu ikki zamoni o'rtasidagi farq va ularni to'g'ri ishlatish uchun amaliy qoidalar.</div>
+          <div class="article-footer">
+            <div class="article-av xstyle-4e2d7a6c">JR</div>
+            <span class="article-author">Jamshid Raximov</span>
+            <span class="article-date">12 May</span>
+            <div class="article-stats">
+              <span class="article-stat"><i class="bi bi-eye"></i> 5.1k</span>
+              <span class="article-stat"><i class="bi bi-heart"></i> 218</span>
+            </div>
+          </div>
+        </div>
+      </a>
+
+      <a href="blog-article.html" class="article-card" data-cat="vocab">
+        <div class="article-card-img img--green">
+          💬
+          <span class="article-reading-time">5 daqiqa</span>
+        </div>
+        <div class="article-card-body">
+          <div class="article-tag">Lug'at</div>
+          <div class="article-title">Academic Word List: 50 ta muhim so'z va ularni ishlatish usullari</div>
+          <div class="article-excerpt">IELTS, TOEFL va akademik yozuvda eng ko'p uchraydigan so'zlar va ularning kontekstdagi ishlatiish usullari.</div>
+          <div class="article-footer">
+            <div class="article-av xstyle-115178f3">SU</div>
+            <span class="article-author">Sarvinoz Umarova</span>
+            <span class="article-date">10 May</span>
+            <div class="article-stats">
+              <span class="article-stat"><i class="bi bi-eye"></i> 6.7k</span>
+              <span class="article-stat"><i class="bi bi-heart"></i> 287</span>
+            </div>
+          </div>
+        </div>
+      </a>
+
+      <a href="blog-article.html" class="article-card" data-cat="tips">
+        <div class="article-card-img img--amber">
+          ⏰
+          <span class="article-reading-time">4 daqiqa</span>
+        </div>
+        <div class="article-card-body">
+          <div class="article-tag">Maslahatlar</div>
+          <div class="article-title">Imtihon kuni vaqtni boshqarish: 90 daqiqani optimal taqsimlash</div>
+          <div class="article-excerpt">Ko'pchilik IELTS Reading qismida vaqtga yetishmasligidan shikoyat qiladi. Ushbu maqolada 40 savolni 60 daqiqada hal qilish strategiyasi.</div>
+          <div class="article-footer">
+            <div class="article-av xstyle-b4df943f">AQ</div>
+            <span class="article-author">Alisher Qodirov</span>
+            <span class="article-date">9 May</span>
+            <div class="article-stats">
+              <span class="article-stat"><i class="bi bi-eye"></i> 9.2k</span>
+              <span class="article-stat"><i class="bi bi-heart"></i> 401</span>
+            </div>
+          </div>
+        </div>
+      </a>
+
+      <a href="blog-article.html" class="article-card" data-cat="culture">
+        <div class="article-card-img img--red">
+          🌍
+          <span class="article-reading-time">7 daqiqa</span>
+        </div>
+        <div class="article-card-body">
+          <div class="article-tag">Madaniyat</div>
+          <div class="article-title">Ingliz tilidagi idiomalar: to'g'ridan-to'g'ri tarjima nima uchun ishlamaydi</div>
+          <div class="article-excerpt">Madaniyat bilan tilning bog'liqligi va ingliz idiomalarini kontekstda tushunish usullari haqida batafsil ko'rib chiqamiz.</div>
+          <div class="article-footer">
+            <div class="article-av xstyle-2b88d589">FT</div>
+            <span class="article-author">Farzona Toshmatova</span>
+            <span class="article-date">7 May</span>
+            <div class="article-stats">
+              <span class="article-stat"><i class="bi bi-eye"></i> 4.3k</span>
+              <span class="article-stat"><i class="bi bi-heart"></i> 176</span>
+            </div>
+          </div>
+        </div>
+      </a>
+
+      <a href="blog-article.html" class="article-card" data-cat="ielts">
+        <div class="article-card-img img--teal">
+          🎧
+          <span class="article-reading-time">9 daqiqa</span>
+        </div>
+        <div class="article-card-body">
+          <div class="article-tag">IELTS · Tinglash</div>
+          <div class="article-title">IELTS Listening Section 4: monologni qanday tushunish kerak?</div>
+          <div class="article-excerpt">4-qismdagi akademik monolog IELTS tinglashning eng qiyin qismidir. Uni muvaffaqiyatli hal qilish uchun zarur bo'lgan ko'nikmalar.</div>
+          <div class="article-footer">
+            <div class="article-av xstyle-31796f91">BM</div>
+            <span class="article-author">Bobur Mirzayev</span>
+            <span class="article-date">5 May</span>
+            <div class="article-stats">
+              <span class="article-stat"><i class="bi bi-eye"></i> 7.8k</span>
+              <span class="article-stat"><i class="bi bi-heart"></i> 324</span>
+            </div>
+          </div>
+        </div>
+      </a>
+
+      <!-- WIDE BOTTOM -->
+      <a href="blog-article.html" class="article-card wide" data-cat="grammar">
+        <div class="article-card-img img--purple">
+          🔬
+          <span class="article-reading-time">11 daqiqa</span>
+        </div>
+        <div class="article-card-body">
+          <div class="article-tag">Grammatika · Chuqur tahlil</div>
+          <div class="article-title">Conditional sentences: 0 dan 3 gacha to'liq qo'llanma + amaliy misollar</div>
+          <div class="article-excerpt">Shartli gaplar ingliz tilida ko'p ishlatiladi, lekin ularni to'g'ri ishlatish IELTS va kundalik nutqda qiyin tuyulishi mumkin. Ushbu keng qo'llanmada barcha turlarini va ular orasidagi nozik farqlarni batafsil ko'rib chiqamiz.</div>
+          <div class="article-footer">
+            <div class="article-av xstyle-67031837">MK</div>
+            <span class="article-author">Malika Karimova</span>
+            <span class="article-date">3 May</span>
+            <div class="article-stats">
+              <span class="article-stat"><i class="bi bi-eye"></i> 12.1k</span>
+              <span class="article-stat"><i class="bi bi-heart"></i> 567</span>
+              <span class="article-stat"><i class="bi bi-chat"></i> 89</span>
+            </div>
+          </div>
+        </div>
+      </a>
+
+    </div>
+
+    <!-- PAGINATION -->
+    <div class="pagination">
+      <button class="page-btn arrow"><i class="bi bi-chevron-left"></i></button>
+      <button class="page-btn active">1</button>
+      <button class="page-btn">2</button>
+      <button class="page-btn">3</button>
+      <button class="page-btn">…</button>
+      <button class="page-btn">12</button>
+      <button class="page-btn arrow"><i class="bi bi-chevron-right"></i></button>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <aside class="blog-sidebar">
+    <!-- SEARCH -->
+    <div class="sidebar-card">
+      <div class="sidebar-head"><i class="bi bi-search"></i> Qidirish</div>
+      <div class="sidebar-body">
+        <div class="nav-search xstyle-0466783d">
+          <i class="bi bi-search"></i>
+          <input type="text" placeholder="Maqola qidirish...">
+        </div>
+      </div>
+    </div>
+
+    <!-- CATEGORIES -->
+    <div class="sidebar-card">
+      <div class="sidebar-head"><i class="bi bi-grid-3x3-gap"></i> Kategoriyalar</div>
+      <div class="sidebar-body">
+        <div class="category-item">
+          <div class="category-dot xstyle-3b7c0976"></div>
+          <span class="category-name">IELTS tayyorgarlik</span>
+          <span class="category-count">48</span>
+        </div>
+        <div class="category-item">
+          <div class="category-dot xstyle-830beda7"></div>
+          <span class="category-name">Grammatika</span>
+          <span class="category-count">35</span>
+        </div>
+        <div class="category-item">
+          <div class="category-dot xstyle-78bf1600"></div>
+          <span class="category-name">Lug'at</span>
+          <span class="category-count">29</span>
+        </div>
+        <div class="category-item">
+          <div class="category-dot xstyle-f1dea313"></div>
+          <span class="category-name">O'qish strategiyasi</span>
+          <span class="category-count">22</span>
+        </div>
+        <div class="category-item">
+          <div class="category-dot xstyle-96fc7c05"></div>
+          <span class="category-name">Tinglash texnikasi</span>
+          <span class="category-count">18</span>
+        </div>
+        <div class="category-item">
+          <div class="category-dot xstyle-cafe7c62"></div>
+          <span class="category-name">Madaniyat & Til</span>
+          <span class="category-count">14</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRENDING -->
+    <div class="sidebar-card">
+      <div class="sidebar-head"><i class="bi bi-graph-up-arrow"></i> Trendda</div>
+      <div class="sidebar-body">
+        <div class="trending-item">
+          <div class="trending-num">01</div>
+          <div>
+            <div class="trending-title">IELTS Band 8 ga chiqish: 10 ta sir</div>
+            <div class="trending-meta">47.2k ko'rilgan</div>
+          </div>
+        </div>
+        <div class="trending-item">
+          <div class="trending-num">02</div>
+          <div>
+            <div class="trending-title">Conditional sentences to'liq qo'llanma</div>
+            <div class="trending-meta">12.1k ko'rilgan</div>
+          </div>
+        </div>
+        <div class="trending-item">
+          <div class="trending-num">03</div>
+          <div>
+            <div class="trending-title">Imtihon kuni vaqtni boshqarish</div>
+            <div class="trending-meta">9.2k ko'rilgan</div>
+          </div>
+        </div>
+        <div class="trending-item">
+          <div class="trending-num">04</div>
+          <div>
+            <div class="trending-title">Academic Word List: 50 ta so'z</div>
+            <div class="trending-meta">6.7k ko'rilgan</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAGS -->
+    <div class="sidebar-card">
+      <div class="sidebar-head"><i class="bi bi-tags"></i> Teglar</div>
+      <div class="sidebar-body">
+        <div class="tag-cloud">
+          <span class="tag-item">IELTS</span>
+          <span class="tag-item">Grammar</span>
+          <span class="tag-item">Writing</span>
+          <span class="tag-item">Vocabulary</span>
+          <span class="tag-item">Listening</span>
+          <span class="tag-item">Speaking</span>
+          <span class="tag-item">Reading</span>
+          <span class="tag-item">Band 7+</span>
+          <span class="tag-item">Academic</span>
+          <span class="tag-item">Phrases</span>
+          <span class="tag-item">Idioms</span>
+          <span class="tag-item">TOEFL</span>
+          <span class="tag-item">Study Tips</span>
+          <span class="tag-item">Mock Test</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEWSLETTER -->
+    <div class="newsletter-card">
+      <div class="nl-title">💌 Yangiliklardan xabardor bo'ling</div>
+      <div class="nl-sub">Har haftada eng yaxshi maqolalar va o'quv materiallari pochta qutingizga!</div>
+      <input class="nl-input" type="email" placeholder="email@manzil.com">
+      <button class="nl-btn">Obuna bo'lish</button>
+    </div>
+  </aside>
+</main>
+
+<script>
+  (function(){
+    const t = localStorage.getItem('az-theme');
+    const d = window.matchMedia('(prefers-color-scheme:dark)').matches;
+    document.documentElement.setAttribute('data-theme', t ? t : d ? 'dark' : 'light');
+  })();
+  const html = document.documentElement;
+  function applyTheme(dark) {
+    html.setAttribute('data-theme', dark ? 'dark' : 'light');
+    document.getElementById('themeIcon').className = dark ? 'bi bi-sun' : 'bi bi-moon';
+    try { localStorage.setItem('az-theme', dark ? 'dark' : 'light'); } catch(_){}
+  }
+  const saved = localStorage.getItem('az-theme');
+  applyTheme(saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme:dark)').matches);
+  document.getElementById('themeBtn').addEventListener('click', () =>
+    applyTheme(html.getAttribute('data-theme') !== 'dark'));
+
+  function filterPosts(btn, cat) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.article-card').forEach(card => {
+      if (cat === 'all') { card.style.display = ''; return; }
+      card.style.display = (card.dataset.cat || '').includes(cat) ? '' : 'none';
+    });
+  }
+</script>
+  <script src="../assets/js/prototype-ui.js"></script>
+</body>
+</html>
+

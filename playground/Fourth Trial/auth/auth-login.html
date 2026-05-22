@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS old-turtle prototype for auth login.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>AzureLMS — Kirish</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  
+  <!-- CSS Zanjiri (Architectural Standard) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/auth.css">
+
+  <link rel="stylesheet" href="../assets/css/prototype-extracted.css">
+</head>
+<body class="auth-page auth-page--login">
+<div class="shell">
+
+  <!-- LEFT -->
+  <div class="left">
+    <nav class="left-nav">
+      <a class="logo" href="../index.html">
+        <div class="logo-mark">AZ</div>
+        <span class="logo-name">AzureLMS</span>
+      </a>
+      <button class="theme-btn" id="themeBtn" aria-label="Tema">
+        <i class="bi bi-moon" id="themeIcon"></i>
+      </button>
+    </nav>
+
+    <div class="left-body">
+      <div class="form-wrap">
+        <p class="form-eyebrow">Xush kelibsiz</p>
+        <h1 class="form-title">Hisobingizga<br>kiring</h1>
+        <p class="form-desc">Hisobingiz yo'qmi? <a href="auth-register.html">Ro'yxatdan o'ting →</a></p>
+
+        <div class="field">
+          <label class="field-label" for="email">Email manzil</label>
+          <div class="field-wrap">
+            <i class="bi bi-envelope field-icon"></i>
+            <input class="field-input" type="email" id="email" placeholder="email@example.com" autocomplete="email">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="password">Parol</label>
+          <div class="field-wrap">
+            <i class="bi bi-lock field-icon"></i>
+            <input class="field-input" type="password" id="password" placeholder="Parolingizni kiriting" autocomplete="current-password">
+            <button class="field-action" id="togglePwd" aria-label="Ko'rsatish">
+              <i class="bi bi-eye" id="eyeIcon"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="row-between">
+          <div class="remember-row">
+            <input type="checkbox" class="checkbox" id="remember" checked>
+            <label class="remember-label" for="remember">Eslab qolish</label>
+          </div>
+          <a class="forgot-link" href="auth-recovery.html">Parolni unutdingizmi?</a>
+        </div>
+
+        <button class="btn-submit" id="loginBtn">
+          <i class="bi bi-box-arrow-in-right"></i> Kirish
+        </button>
+
+        <div class="divider-or"><span>yoki</span></div>
+
+        <button class="btn-social">
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#4285F4" d="M44.5 20H24v8.5h11.7C34.1 33.7 29.6 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 6 1.1 8.2 2.9l6.4-6.4C34.4 4.1 29.4 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c12.1 0 20.9-8.5 20.9-21.5 0-1.2-.1-2.4-.4-3.5z"/><path fill="#34A853" d="M6.3 14.7l7 5.1C15.1 16 19.2 13 24 13c3.1 0 6 1.1 8.2 2.9l6.4-6.4C34.4 4.1 29.4 2 24 2 16.1 2 9.4 7.4 6.3 14.7z"/><path fill="#FBBC05" d="M24 46c5.3 0 10.2-1.8 14-4.9l-6.5-5.3C29.5 37.6 26.9 38.5 24 38.5c-5.6 0-10.3-3.5-12-8.4l-7 5.4C8.4 42 15.6 46 24 46z"/><path fill="#EA4335" d="M44.5 20H24v8.5h11.7c-0.8 2.7-2.5 4.9-4.7 6.3l6.5 5.3C41.8 37.1 45 31 45 24c0-1.4-.2-2.7-.5-4z"/></svg>
+          Google orqali kirish
+        </button>
+
+        <p class="register-cta">Birinchi marta? <a href="auth-register.html">Hisob yarating</a></p>
+      </div>
+    </div>
+
+    <footer class="left-footer">
+      © 2025 AzureLMS ·
+      <a href="../legal/legal-privacy.html" class="xstyle-6ddb9c03">Maxfiylik</a> ·
+      <a href="../legal/legal-terms.html"   class="xstyle-6ddb9c03">Shartlar</a>
+    </footer>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right">
+    <div class="glow glow-1"></div>
+    <div class="glow glow-2"></div>
+    <div class="right-content">
+
+      <div class="dash-card">
+        <div class="dash-topbar">
+          <div class="dash-avatar">JT</div>
+          <div>
+            <div class="dash-user-name">Jasur Toshmatov</div>
+            <div class="dash-user-sub">Premium · 3 ta faol kurs</div>
+          </div>
+          <div class="dash-streak xstyle-690f054c">🔥 18 kun</div>
+        </div>
+
+        <div class="dash-section">
+          <div class="dash-section-lbl">Mening kurslarim</div>
+          <div class="course-row">
+            <div class="course-flag">🇹🇷</div>
+            <div class="course-info">
+              <div class="course-name-sm">Turk tili — A1 → C1</div>
+              <div class="prog-bar"><div class="prog-fill pf1"></div></div>
+            </div>
+            <span class="course-pct">68%</span>
+          </div>
+          <div class="course-row">
+            <div class="course-flag">🐍</div>
+            <div class="course-info">
+              <div class="course-name-sm">Python — Asoslar</div>
+              <div class="prog-bar"><div class="prog-fill pf2"></div></div>
+            </div>
+            <span class="course-pct">31%</span>
+          </div>
+          <div class="course-row">
+            <div class="course-flag">💼</div>
+            <div class="course-info">
+              <div class="course-name-sm">Biznes ingliz tili</div>
+              <div class="prog-bar"><div class="prog-fill pf3"></div></div>
+            </div>
+            <span class="course-pct">15%</span>
+          </div>
+        </div>
+
+        <div class="next-lesson">
+          <div class="next-icon"><i class="bi bi-play-circle-fill"></i></div>
+          <div class="xstyle-97445a8d">
+            <div class="next-label">Keyingi dars</div>
+            <div class="next-name">Turk tili — 14-dars: Ot va fe'l</div>
+          </div>
+          <div class="next-play"><i class="bi bi-play-fill"></i></div>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat-cell"><div class="stat-val">142</div><div class="stat-lbl">Dars</div></div>
+          <div class="stat-cell"><div class="stat-val">6</div><div class="stat-lbl">Sertifikat</div></div>
+          <div class="stat-cell"><div class="stat-val">4.8</div><div class="stat-lbl">Ball</div></div>
+        </div>
+      </div>
+
+      <div class="float-toast">
+        <div class="ft-icon">🏆</div>
+        <div class="ft-body">
+          <strong>Haftalik rekord!</strong>
+          <span>Bu hafta 18 ta dars tugatingiz</span>
+        </div>
+      </div>
+
+    </div>
+    <p class="right-label">AzureLMS · O'quv platformasi</p>
+  </div>
+
+</div>
+
+<script>
+  const html = document.documentElement;
+  const themeBtn = document.getElementById('themeBtn');
+  const themeIcon = document.getElementById('themeIcon');
+  function applyTheme(d) {
+    html.setAttribute('data-theme', d ? 'dark' : 'light');
+    themeIcon.className = d ? 'bi bi-sun' : 'bi bi-moon';
+    try { localStorage.setItem('az-theme', d ? 'dark' : 'light'); } catch(_) {}
+  }
+  let s; try { s = localStorage.getItem('az-theme'); } catch(_) {}
+  applyTheme(s ? s === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches);
+  themeBtn.addEventListener('click', () => applyTheme(html.getAttribute('data-theme') !== 'dark'));
+
+  const pwdInput = document.getElementById('password');
+  const eyeIcon  = document.getElementById('eyeIcon');
+  document.getElementById('togglePwd').addEventListener('click', () => {
+    const show = pwdInput.type === 'password';
+    pwdInput.type = show ? 'text' : 'password';
+    eyeIcon.className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
+  });
+
+  document.getElementById('loginBtn').addEventListener('click', function() {
+    this.disabled = true;
+    this.innerHTML = '<i class="bi bi-arrow-repeat xstyle-8ca53549"></i> Yuklanmoqda...';
+    setTimeout(() => {
+      this.innerHTML = '<i class="bi bi-check-circle-fill"></i> Muvaffaqiyatli!';
+      this.style.background = '#16a34a';
+      this.style.boxShadow = '0 4px 16px rgba(22,163,74,.28)';
+    }, 1600);
+  });
+</script>
+  <script src="../assets/js/prototype-ui.js"></script>
+</body>
+</html>
+

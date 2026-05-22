@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS old-turtle prototype for blog studio new post.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>Yangi post — Blog Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- CSS Zanjiri (Architectural Standard) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/blog-studio-new-post.css">
+
+  <link rel="stylesheet" href="../assets/css/prototype-extracted.css">
+</head>
+<body>
+  <script>
+    (function(){
+      try { var t = localStorage.getItem('lms-theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch(e){}
+    })();
+  </script>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">AL</div>
+      <span class="logo-name">AzureLMS</span>
+      <span class="logo-tag">Studio</span>
+    </div>
+    <div class="sidebar-user">
+      <div class="user-av">AZ</div>
+      <div>
+        <div class="user-name">Azurebek</div>
+        <div class="user-role">Muallif</div>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <span class="nav-group-label">Studio</span>
+      <a href="blog-studio-shell.html" class="nav-item">
+        <i class="bi bi-grid-1x2"></i> Boshqaruv
+      </a>
+      <a href="blog-studio-new-post.html" class="nav-item active">
+        <i class="bi bi-pencil-square"></i> Yangi post
+      </a>
+      <a href="blog-studio-shell.html" class="nav-item">
+        <i class="bi bi-file-earmark-text"></i> Postlar
+        <span class="nav-badge">12</span>
+      </a>
+      <a href="blog-studio-analytics.html" class="nav-item">
+        <i class="bi bi-bar-chart-line"></i> Analitika
+      </a>
+      <span class="nav-group-label">Kontent</span>
+      <a href="../blog/blog-tags.html" class="nav-item">
+        <i class="bi bi-tags"></i> Teglar
+      </a>
+      <a href="blog-studio-new-post.html" class="nav-item">
+        <i class="bi bi-image"></i> Media
+      </a>
+      <a href="blog-studio-shell.html" class="nav-item">
+        <i class="bi bi-chat-dots"></i> Izohlar
+        <span class="nav-badge">3</span>
+      </a>
+    </div>
+    <div class="sidebar-bottom">
+      <a href="../blog/blog-shell.html" class="nav-item">
+        <i class="bi bi-eye"></i> Blogni ko'rish
+      </a>
+      <a href="blog-studio-shell.html" class="nav-item">
+        <i class="bi bi-gear"></i> Sozlamalar
+      </a>
+    </div>
+  </nav>
+
+  <!-- PAGE WRAP -->
+  <div class="page-wrap">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <a href="blog-studio-shell.html" class="tb-back">
+        <i class="bi bi-arrow-left"></i> Orqaga
+      </a>
+      <div class="tb-divider"></div>
+      <span class="tb-title">Yangi maqola</span>
+      <span class="tb-status" id="tbStatus">Saqlanmagan</span>
+      <div class="tb-spacer"></div>
+      <span class="tb-word-count" id="tbWordCount">0 so'z</span>
+      <button class="tb-btn tb-btn-ghost" data-ui-call="toggleFocus">
+        <i class="bi bi-arrows-fullscreen"></i> Fokus
+      </button>
+      <button class="tb-btn tb-btn-ghost" data-ui-call="openDrawer">
+        <i class="bi bi-send"></i> Nashr
+      </button>
+      <button class="tb-btn tb-btn-primary" data-ui-call="saveDraft">
+        <i class="bi bi-floppy"></i> Saqlash
+      </button>
+      <button class="tb-theme" data-ui-action="theme" title="Mavzu">
+        <i class="bi bi-moon-stars" id="themeIcon"></i>
+      </button>
+    </header>
+
+    <!-- EDITOR BODY -->
+    <div class="editor-body">
+
+      <!-- MAIN EDITOR -->
+      <main class="editor-main" id="editorMain">
+        <div class="editor-canvas">
+
+          <!-- Cover image -->
+          <div class="cover-area" id="coverArea" data-ui-call="triggerCoverUpload">
+            <div class="cover-placeholder" id="coverPlaceholder">
+              <i class="bi bi-image-alt"></i>
+              <span>Muqova rasmini qo'shish</span>
+              <small>PNG, JPG, WebP — 1200×630px tavsiya etiladi</small>
+            </div>
+            <img class="cover-img xstyle-6b99de8b" id="coverImg" src="" alt="">
+            <button class="cover-remove" id="coverRemove" data-ui-call="removeCover" data-ui-pass="event">
+              <i class="bi bi-x"></i>
+            </button>
+          </div>
+          <input type="file" id="coverFile" accept="image/*" data-ui-change-call="onCoverChange" data-ui-pass="event" class="xstyle-6b99de8b">
+
+          <!-- Title -->
+          <textarea
+            class="title-input"
+            id="titleInput"
+            placeholder="Maqola sarlavhasi..."
+            rows="2"
+            data-ui-input-call="onTitleInput" data-ui-pass="this"
+          ></textarea>
+
+          <!-- Subtitle / excerpt -->
+          <textarea
+            class="subtitle-input"
+            id="subtitleInput"
+            placeholder="Qisqacha tavsif (excerpt)..."
+            rows="2"
+            data-ui-input-call="autoResize" data-ui-pass="this"
+          ></textarea>
+
+          <hr class="editor-divider">
+
+          <!-- Formatting toolbar -->
+          <div class="toolbar" id="toolbar">
+            <div class="tool-group">
+              <button class="tool-btn-text" data-ui-call="execCmd" data-ui-args='["formatBlock","h2"]' title="Sarlavha 2">H2</button>
+              <button class="tool-btn-text" data-ui-call="execCmd" data-ui-args='["formatBlock","h3"]' title="Sarlavha 3">H3</button>
+            </div>
+            <div class="tool-sep"></div>
+            <div class="tool-group">
+              <button class="tool-btn" data-ui-call="execCmd" data-ui-args='["bold"]' id="btn-bold" title="Qalin (Ctrl+B)"><i class="bi bi-type-bold"></i></button>
+              <button class="tool-btn" data-ui-call="execCmd" data-ui-args='["italic"]' id="btn-italic" title="Kursiv (Ctrl+I)"><i class="bi bi-type-italic"></i></button>
+              <button class="tool-btn" data-ui-call="execCmd" data-ui-args='["underline"]' id="btn-underline" title="Tagiga chizilgan"><i class="bi bi-type-underline"></i></button>
+              <button class="tool-btn" data-ui-call="execCmd" data-ui-args='["strikeThrough"]' title="Ustiga chizilgan"><i class="bi bi-type-strikethrough"></i></button>
+            </div>
+            <div class="tool-sep"></div>
+            <div class="tool-group">
+              <button class="tool-btn" data-ui-call="execCmd" data-ui-args='["insertUnorderedList"]' title="Ro'yxat"><i class="bi bi-list-ul"></i></button>
+              <button class="tool-btn" data-ui-call="execCmd" data-ui-args='["insertOrderedList"]' title="Raqamli ro'yxat"><i class="bi bi-list-ol"></i></button>
+              <button class="tool-btn" data-ui-call="insertBlockquote" title="Iqtibos"><i class="bi bi-blockquote-left"></i></button>
+              <button class="tool-btn" data-ui-call="insertCode" title="Kod"><i class="bi bi-code-slash"></i></button>
+            </div>
+            <div class="tool-sep"></div>
+            <div class="tool-group">
+              <button class="tool-btn" data-ui-call="insertLink" title="Havola"><i class="bi bi-link-45deg"></i></button>
+              <button class="tool-btn" data-ui-call="triggerInlineImg" title="Rasm qo'shish"><i class="bi bi-image"></i></button>
+            </div>
+            <div class="tool-sep"></div>
+            <div class="tool-group">
+              <button class="tool-btn" data-ui-call="execCmd" data-ui-args='["undo"]' title="Bekor qilish"><i class="bi bi-arrow-counterclockwise"></i></button>
+              <button class="tool-btn" data-ui-call="execCmd" data-ui-args='["redo"]' title="Qaytarish"><i class="bi bi-arrow-clockwise"></i></button>
+            </div>
+            <div class="tool-spacer"></div>
+            <div class="tool-mode-toggle">
+              <button class="mode-btn active" id="modeRich" data-ui-call="setMode" data-ui-args='["rich"]'>Boyitilgan</button>
+              <button class="mode-btn" id="modeMarkdown" data-ui-call="setMode" data-ui-args='["markdown"]'>Markdown</button>
+            </div>
+          </div>
+
+          <!-- Rich editor -->
+          <div
+            class="editor-content"
+            id="richEditor"
+            contenteditable="true"
+            data-placeholder="Maqolangizni yozing... Slash komandasi uchun / tugmasini bosing"
+            data-ui-input-call="onEditorInput"
+          >
+            <p>AzureLMS — bu zamonaviy ta'lim platformasi bo'lib, o'quvchilarga interaktiv kurslar, testlar va o'rganish imkoniyatlarini taqdim etadi. Platforma <strong>ingliz tili</strong>, dasturlash, matematika va boshqa fanlar bo'yicha sertifikatlangan kurslarni o'z ichiga oladi.</p>
+            <h2>Nima uchun AzureLMS?</h2>
+            <p>Raqamli ta'lim bozori tez sur'atlar bilan o'sib bormoqda. Bugungi kunda millionlab o'quvchilar onlayn platformalar orqali yangi bilimlarni o'zlashtirishmoqda. AzureLMS aynan shu ehtiyojni qondirish uchun yaratilgan.</p>
+            <blockquote>
+              "Ta'lim — bu dunyodagi eng kuchli qurol bo'lib, u orqali siz dunyoni o'zgartira olasiz." — Nelson Mandela
+            </blockquote>
+            <h3>Asosiy xususiyatlar</h3>
+            <p>Platforma quyidagi imkoniyatlarni taqdim etadi: interaktiv videodarslar, avtomatlashtirilgan testlar, real vaqtda natijalar tahlili va shaxsiylashtirilgan o'rganish yo'li.</p>
+          </div>
+
+          <!-- Markdown mode (hidden by default) -->
+          <textarea
+            id="markdownEditor"
+           
+            placeholder="# Sarlavha&#10;&#10;Matn yozing..."
+           class="xstyle-de8a6aec"></textarea>
+
+          <div class="slash-hint xstyle-d8a81eac">
+            <i class="bi bi-lightbulb xstyle-bb4ec5f2"></i>
+            <kbd>/</kbd> tugmasi bilan blok qo'shish · <kbd>Ctrl+S</kbd> saqlash · <kbd>Ctrl+Shift+F</kbd> fokus rejim
+          </div>
+
+        </div>
+      </main>
+
+      <!-- RIGHT PANEL -->
+      <aside class="editor-panel">
+
+        <!-- Post status -->
+        <div class="panel-section">
+          <span class="panel-heading">Holat</span>
+          <div class="status-pills">
+            <button class="status-pill active" data-s="draft" data-ui-call="setStatus" data-ui-pass="this">Qoralama</button>
+            <button class="status-pill" data-s="review" data-ui-call="setStatus" data-ui-pass="this">Ko'rib chiqish</button>
+            <button class="status-pill" data-s="published" data-ui-call="setStatus" data-ui-pass="this">Nashr</button>
+          </div>
+        </div>
+
+        <!-- Category -->
+        <div class="panel-section">
+          <span class="panel-heading">Kategoriya</span>
+          <select class="panel-select" id="catSelect">
+            <option value="">— Kategoriya tanlang —</option>
+            <option value="ingliz-tili" selected>Ingliz tili</option>
+            <option value="dasturlash">Dasturlash</option>
+            <option value="matematika">Matematika</option>
+            <option value="tarix">Tarix</option>
+            <option value="fanlar">Fanlar</option>
+            <option value="platforma">Platforma yangiliklari</option>
+          </select>
+        </div>
+
+        <!-- Tags -->
+        <div class="panel-section">
+          <span class="panel-heading">Teglar</span>
+          <div class="tag-input-wrap" id="tagWrap" data-ui-focus-target="#tagInput">
+            <div class="tag-chip" data-tag="ta'lim">ta'lim <button data-ui-call="removeTag" data-ui-pass="this" data-ui-args='["ta\u0027lim"]'><i class="bi bi-x"></i></button></div>
+            <div class="tag-chip" data-tag="online">online <button data-ui-call="removeTag" data-ui-pass="this" data-ui-args='["online"]'><i class="bi bi-x"></i></button></div>
+            <input type="text" class="tag-real-input" id="tagInput" placeholder="Teg qo'shish..." data-ui-keydown-call="onTagKey" data-ui-pass="event">
+          </div>
+          <div class="tag-suggestions">
+            <button class="tag-sugg" data-ui-call="addTag" data-ui-args='["kurs"]'>+ kurs</button>
+            <button class="tag-sugg" data-ui-call="addTag" data-ui-args='["sertifikat"]'>+ sertifikat</button>
+            <button class="tag-sugg" data-ui-call="addTag" data-ui-args='["ielts"]'>+ ielts</button>
+            <button class="tag-sugg" data-ui-call="addTag" data-ui-args='["dasturlash"]'>+ dasturlash</button>
+            <button class="tag-sugg" data-ui-call="addTag" data-ui-args='["ai"]'>+ AI</button>
+          </div>
+        </div>
+
+        <!-- SEO -->
+        <div class="panel-section">
+          <span class="panel-heading">SEO</span>
+          <div class="seo-field">
+            <span class="seo-label">SEO sarlavhasi</span>
+            <input type="text" class="seo-input" id="seoTitle" placeholder="Sahifa uchun sarlavha..." value="AzureLMS — Zamonaviy onlayn ta'lim platformasi" data-ui-input-call="updateSeoCount">
+            <span class="seo-count" id="seoTitleCount">47 / 60</span>
+          </div>
+          <div class="seo-field">
+            <span class="seo-label">Meta tavsif</span>
+            <textarea class="seo-input xstyle-9d0af0f4" id="seoDesc" rows="3" placeholder="Sahifa tavsifi..." data-ui-input-call="updateSeoCount">AzureLMS orqali ingliz tili, dasturlash va boshqa fanlarni o'rganing. Interaktiv kurslar, sertifikatlar va shaxsiylashtirilgan o'rganish yo'li.</textarea>
+            <span class="seo-count" id="seoDescCount">141 / 160</span>
+          </div>
+          <div class="seo-preview">
+            <div class="seo-prev-url">azurelms.uz › blog › azurelms-ta-lim-platformasi</div>
+            <div class="seo-prev-title" id="seoPrevTitle">AzureLMS — Zamonaviy onlayn ta'lim platformasi</div>
+            <div class="seo-prev-desc" id="seoPrevDesc">AzureLMS orqali ingliz tili, dasturlash va boshqa fanlarni o'rganing. Interaktiv kurslar...</div>
+          </div>
+        </div>
+
+        <!-- Reading time -->
+        <div class="panel-section">
+          <span class="panel-heading">Ma'lumot</span>
+          <div class="xstyle-b6b43fa1">
+            <div class="reading-time-row">
+              <span class="rt-label">O'qish vaqti</span>
+              <span class="rt-value" id="readingTime">2 daqiqa</span>
+            </div>
+            <div class="reading-time-row">
+              <span class="rt-label">So'zlar soni</span>
+              <span class="rt-value" id="wordCountPanel">134 so'z</span>
+            </div>
+            <div class="reading-time-row">
+              <span class="rt-label">Belgilar</span>
+              <span class="rt-value" id="charCount">782 belgi</span>
+            </div>
+          </div>
+        </div>
+
+      </aside>
+    </div>
+  </div>
+
+  <!-- PUBLISH DRAWER BACKDROP -->
+  <div class="drawer-backdrop" id="drawerBackdrop" data-ui-call="closeDrawer"></div>
+
+  <!-- PUBLISH SETTINGS DRAWER -->
+  <div class="publish-drawer" id="publishDrawer">
+    <div class="drawer-head">
+      <span class="drawer-title">Nashr sozlamalari</span>
+      <button class="drawer-close" data-ui-call="closeDrawer"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="drawer-body">
+
+      <!-- Visibility -->
+      <div class="drawer-section">
+        <span class="drawer-label">Ko'rinish</span>
+        <div class="vis-options">
+          <div class="vis-opt selected" data-ui-call="selectVis" data-ui-pass="this">
+            <div class="vis-opt-radio"></div>
+            <i class="bi bi-globe vis-opt-icon"></i>
+            <div class="vis-opt-text">
+              <div class="vis-opt-title">Hammaga ko'rinadi</div>
+              <div class="vis-opt-desc">Barcha tashrif buyuruvchilar ko'ra oladi</div>
+            </div>
+          </div>
+          <div class="vis-opt" data-ui-call="selectVis" data-ui-pass="this">
+            <div class="vis-opt-radio"></div>
+            <i class="bi bi-people vis-opt-icon"></i>
+            <div class="vis-opt-text">
+              <div class="vis-opt-title">Faqat a'zolar</div>
+              <div class="vis-opt-desc">Ro'yxatdan o'tgan foydalanuvchilar</div>
+            </div>
+          </div>
+          <div class="vis-opt" data-ui-call="selectVis" data-ui-pass="this">
+            <div class="vis-opt-radio"></div>
+            <i class="bi bi-lock vis-opt-icon"></i>
+            <div class="vis-opt-text">
+              <div class="vis-opt-title">Maxfiy</div>
+              <div class="vis-opt-desc">Faqat siz ko'rasiz (qoralama)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toggles -->
+      <div class="drawer-section">
+        <span class="drawer-label">Imkoniyatlar</span>
+        <div class="xstyle-f67b86e0">
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <span class="toggle-title">Izohlarni yoqish</span>
+              <span class="toggle-desc">O'quvchilar izoh qoldira oladi</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked>
+              <span class="toggle-track"></span>
+              <span class="toggle-thumb"></span>
+            </label>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <span class="toggle-title">Do'stona URL</span>
+              <span class="toggle-desc">Sarlavhadan URL hosil qilish</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked>
+              <span class="toggle-track"></span>
+              <span class="toggle-thumb"></span>
+            </label>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <span class="toggle-title">Tavsiya etilgan post</span>
+              <span class="toggle-desc">Bosh sahifada ko'rsatish</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox">
+              <span class="toggle-track"></span>
+              <span class="toggle-thumb"></span>
+            </label>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <span class="toggle-title">Email xabarnoma</span>
+              <span class="toggle-desc">Obunachilarga email yuborish</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" checked>
+              <span class="toggle-track"></span>
+              <span class="toggle-thumb"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Schedule -->
+      <div class="drawer-section">
+        <span class="drawer-label">Rejalashtirish</span>
+        <div class="schedule-row">
+          <label class="xstyle-fcef2ab9">Nashr sanasi va vaqti</label>
+          <input type="datetime-local" class="schedule-input" value="2026-05-20T09:00">
+        </div>
+        <div class="xstyle-6a5aad19">
+          <i class="bi bi-clock xstyle-f0e997ab"></i>
+          3 kun, 0 soat va 0 daqiqadan keyin nashr qilinadi
+        </div>
+      </div>
+
+      <!-- URL slug -->
+      <div class="drawer-section">
+        <span class="drawer-label">URL manzili</span>
+        <div class="xstyle-1d8943fa">
+          <div class="xstyle-3c229d4e">
+            azurelms.uz/blog/
+          </div>
+          <input type="text" class="schedule-input xstyle-4b3de78f" value="azurelms-talim-platformasi" placeholder="url-slug">
+        </div>
+      </div>
+
+    </div>
+    <div class="drawer-footer">
+      <button class="drawer-btn drawer-btn-sched" data-ui-call="schedulePost">
+        <i class="bi bi-calendar-check"></i> Rejalashtirish
+      </button>
+      <button class="drawer-btn drawer-btn-pub" data-ui-call="publishNow">
+        <i class="bi bi-send-fill"></i> Hozir nashr
+      </button>
+    </div>
+  </div>
+
+  <!-- AUTOSAVE TOAST -->
+  <div class="toast" id="toast">
+    <i class="bi bi-check-circle-fill"></i>
+    <span id="toastMsg">Qoralama saqlandi</span>
+  </div>
+
+  <!-- FOCUS OVERLAY -->
+  <div class="focus-overlay" data-ui-call="toggleFocus"></div>
+
+  <script>
+    // ── Theme ──
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isDark = html.getAttribute('data-theme') === 'dark';
+      html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      document.getElementById('themeIcon').className = isDark ? 'bi bi-moon-stars' : 'bi bi-sun';
+      try { localStorage.setItem('lms-theme', isDark ? 'light' : 'dark'); } catch(e){}
+    }
+    // Sync icon on load
+    (function(){
+      try { if(localStorage.getItem('lms-theme') === 'dark') document.getElementById('themeIcon').className = 'bi bi-sun'; } catch(e){}
+    })();
+
+    // ── Auto-resize textareas ──
+    function autoResize(el) {
+      el.style.height = 'auto';
+      el.style.height = el.scrollHeight + 'px';
+    }
+    document.querySelectorAll('textarea').forEach(t => { autoResize(t); t.addEventListener('input', () => autoResize(t)); });
+
+    // ── Title input ──
+    function onTitleInput(el) {
+      autoResize(el);
+      updateSlug(el.value);
+    }
+    function updateSlug(title) {
+      const slug = title.toLowerCase()
+        .replace(/[^a-z0-9\s\-']/g,'')
+        .replace(/\s+/g,'-').replace(/-+/g,'-').slice(0,60);
+      const inputs = document.querySelectorAll('.schedule-input');
+      if (inputs[1]) inputs[1].value = slug || 'url-slug';
+    }
+
+    // ── Word count & reading time ──
+    function onEditorInput() {
+      const text = document.getElementById('richEditor').innerText || '';
+      const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+      const chars = text.length;
+      const mins = Math.max(1, Math.round(words / 200));
+      document.getElementById('tbWordCount').textContent = words + ' so\'z';
+      document.getElementById('wordCountPanel').textContent = words + ' so\'z';
+      document.getElementById('charCount').textContent = chars + ' belgi';
+      document.getElementById('readingTime').textContent = mins + ' daqiqa';
+      scheduleAutosave();
+    }
+
+    // ── Formatting commands ──
+    function execCmd(cmd, arg) {
+      document.getElementById('richEditor').focus();
+      document.execCommand(cmd, false, arg || null);
+      updateToolbarState();
+    }
+    function insertBlockquote() {
+      document.getElementById('richEditor').focus();
+      document.execCommand('formatBlock', false, 'blockquote');
+    }
+    function insertCode() {
+      const sel = window.getSelection();
+      if (!sel.rangeCount) return;
+      const range = sel.getRangeAt(0);
+      const code = document.createElement('code');
+      code.textContent = sel.toString() || 'kod';
+      range.deleteContents();
+      range.insertNode(code);
+    }
+    function insertLink() {
+      const url = prompt('URL kiriting:', 'https://');
+      if (url) document.execCommand('createLink', false, url);
+    }
+    function triggerInlineImg() {
+      const url = prompt('Rasm URL:', 'https://');
+      if (url) document.execCommand('insertImage', false, url);
+    }
+    function updateToolbarState() {
+      ['bold','italic','underline'].forEach(cmd => {
+        const btn = document.getElementById('btn-' + cmd);
+        if (btn) btn.classList.toggle('active', document.queryCommandState(cmd));
+      });
+    }
+    document.getElementById('richEditor').addEventListener('keyup', updateToolbarState);
+    document.getElementById('richEditor').addEventListener('mouseup', updateToolbarState);
+
+    // Ctrl+S to save
+    document.addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveDraft(); }
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'F') { e.preventDefault(); toggleFocus(); }
+    });
+
+    // ── Mode toggle ──
+    function setMode(mode) {
+      const rich = document.getElementById('richEditor');
+      const md = document.getElementById('markdownEditor');
+      const tb = document.getElementById('toolbar');
+      document.getElementById('modeRich').classList.toggle('active', mode === 'rich');
+      document.getElementById('modeMarkdown').classList.toggle('active', mode === 'markdown');
+      if (mode === 'markdown') {
+        md.value = rich.innerText;
+        rich.style.display = 'none';
+        md.style.display = 'block';
+      } else {
+        rich.innerHTML = '<p>' + md.value.replace(/\n\n/g,'</p><p>') + '</p>';
+        md.style.display = 'none';
+        rich.style.display = 'block';
+      }
+    }
+
+    // ── Focus mode ──
+    function toggleFocus() {
+      document.body.classList.toggle('focus-mode');
+    }
+
+    // ── Cover image ──
+    function triggerCoverUpload() {
+      document.getElementById('coverFile').click();
+    }
+    function onCoverChange(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const img = document.getElementById('coverImg');
+        const area = document.getElementById('coverArea');
+        const ph = document.getElementById('coverPlaceholder');
+        img.src = ev.target.result;
+        img.style.display = 'block';
+        ph.style.display = 'none';
+        area.classList.add('has-cover');
+        area.onclick = null; // disable re-click when has cover
+      };
+      reader.readAsDataURL(file);
+    }
+    function removeCover(e) {
+      e.stopPropagation();
+      const img = document.getElementById('coverImg');
+      const area = document.getElementById('coverArea');
+      const ph = document.getElementById('coverPlaceholder');
+      img.src = ''; img.style.display = 'none';
+      ph.style.display = 'flex';
+      area.classList.remove('has-cover');
+      area.onclick = triggerCoverUpload;
+    }
+
+    // ── Tags ──
+    const tags = new Set(['ta\'lim','online']);
+    function addTag(tag) {
+      tag = tag.trim().toLowerCase().replace(/^\+\s*/,'');
+      if (!tag || tags.has(tag)) return;
+      tags.add(tag);
+      const wrap = document.getElementById('tagWrap');
+      const input = document.getElementById('tagInput');
+      const chip = document.createElement('div');
+      chip.className = 'tag-chip';
+      chip.dataset.tag = tag;
+      chip.innerHTML = `${tag} <button data-ui-call="removeTag" data-ui-pass="this" data-ui-args='["${tag}"]'><i class="bi bi-x"></i></button>`;
+      wrap.insertBefore(chip, input);
+      input.value = '';
+    }
+    function removeTag(btn, tag) {
+      tags.delete(tag);
+      btn.closest('.tag-chip').remove();
+    }
+    function onTagKey(e) {
+      if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        addTag(e.target.value);
+      }
+      if (e.key === 'Backspace' && e.target.value === '') {
+        const chips = document.querySelectorAll('.tag-chip');
+        if (chips.length) {
+          const last = chips[chips.length - 1];
+          tags.delete(last.dataset.tag);
+          last.remove();
+        }
+      }
+    }
+
+    // ── SEO ──
+    function updateSeoCount() {
+      const tEl = document.getElementById('seoTitle');
+      const dEl = document.getElementById('seoDesc');
+      const tLen = tEl.value.length;
+      const dLen = dEl.value.length;
+      const tCount = document.getElementById('seoTitleCount');
+      const dCount = document.getElementById('seoDescCount');
+      tCount.textContent = tLen + ' / 60';
+      tCount.className = 'seo-count' + (tLen > 60 ? ' over' : tLen > 50 ? '' : ' warn');
+      dCount.textContent = dLen + ' / 160';
+      dCount.className = 'seo-count' + (dLen > 160 ? ' over' : dLen > 130 ? '' : ' warn');
+      document.getElementById('seoPrevTitle').textContent = tEl.value.slice(0,60) || 'Sarlavha...';
+      document.getElementById('seoPrevDesc').textContent = (dEl.value.slice(0,120) || 'Tavsif...') + '...';
+    }
+
+    // ── Status ──
+    function setStatus(btn) {
+      document.querySelectorAll('.status-pill').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+    }
+
+    // ── Autosave ──
+    let saveTimer;
+    function scheduleAutosave() {
+      clearTimeout(saveTimer);
+      const s = document.getElementById('tbStatus');
+      s.textContent = 'Saqlanmagan'; s.className = 'tb-status';
+      saveTimer = setTimeout(saveDraft, 3000);
+    }
+    function saveDraft() {
+      clearTimeout(saveTimer);
+      const s = document.getElementById('tbStatus');
+      s.textContent = 'Saqlandi ✓'; s.className = 'tb-status saved';
+      showToast('Qoralama saqlandi');
+    }
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2600);
+    }
+
+    // ── Publish drawer ──
+    function openDrawer() {
+      document.getElementById('publishDrawer').classList.add('open');
+      document.getElementById('drawerBackdrop').classList.add('open');
+    }
+    function closeDrawer() {
+      document.getElementById('publishDrawer').classList.remove('open');
+      document.getElementById('drawerBackdrop').classList.remove('open');
+    }
+    function selectVis(el) {
+      document.querySelectorAll('.vis-opt').forEach(o => o.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+    function schedulePost() {
+      closeDrawer();
+      showToast('Post rejalashtirildi ✓');
+      const s = document.getElementById('tbStatus');
+      s.textContent = 'Rejalashtirilgan'; s.className = 'tb-status';
+      s.style.background = 'var(--blue-soft)'; s.style.color = 'var(--blue-mid)';
+    }
+    function publishNow() {
+      closeDrawer();
+      showToast('Post nashr qilindi! 🎉');
+      const s = document.getElementById('tbStatus');
+      s.textContent = 'Nashr qilindi'; s.className = 'tb-status saved';
+    }
+
+    // Initial word count
+    onEditorInput();
+    updateSeoCount();
+  </script>
+  <script src="../assets/js/prototype-ui.js"></script>
+</body>
+</html>
+

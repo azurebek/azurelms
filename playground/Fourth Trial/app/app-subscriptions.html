@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS old-turtle prototype for app subscriptions.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>Obuna — AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- CSS Zanjiri (Architectural Standard) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/app.css">
+  <link rel="stylesheet" href="../assets/css/app-subscriptions.css">
+
+  <link rel="stylesheet" href="../assets/css/prototype-extracted.css">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><div class="sidebar-logo-mark">AZ</div><span class="sidebar-logo-name">AzureLMS</span></div>
+    <nav class="sidebar-nav" aria-label="Asosiy navigatsiya">
+      <details class="nav-accordion" open>
+        <summary class="nav-accordion-trigger">
+          <span class="nav-accordion-title"><i class="bi bi-journal-bookmark"></i> O'qish</span>
+          <i class="bi bi-chevron-down nav-accordion-caret"></i>
+        </summary>
+        <div class="nav-accordion-panel">
+          <a href="app-shell.html" class="nav-item"><i class="bi bi-grid-fill"></i> Dashboard</a>
+          <a href="app-course-list.html" class="nav-item"><i class="bi bi-collection-play"></i> Kurslarim</a>
+          <a href="app-course-detail.html" class="nav-item"><i class="bi bi-play-circle"></i> O'quv xonasi</a>
+          <a href="app-shell.html" class="nav-item"><i class="bi bi-calendar3"></i> Jadval</a>
+        </div>
+      </details>
+
+      <details class="nav-accordion">
+        <summary class="nav-accordion-trigger">
+          <span class="nav-accordion-title"><i class="bi bi-bar-chart-line"></i> Progress</span>
+          <i class="bi bi-chevron-down nav-accordion-caret"></i>
+        </summary>
+        <div class="nav-accordion-panel">
+          <a href="app-shell.html" class="nav-item"><i class="bi bi-bar-chart-line"></i> Statistika</a>
+          <a href="app-profile.html" class="nav-item"><i class="bi bi-trophy"></i> Yutuqlar</a>
+          <a href="app-profile.html" class="nav-item"><i class="bi bi-patch-check"></i> Sertifikatlar</a>
+        </div>
+      </details>
+
+      <details class="nav-accordion">
+        <summary class="nav-accordion-trigger">
+          <span class="nav-accordion-title"><i class="bi bi-compass"></i> Platforma</span>
+          <i class="bi bi-chevron-down nav-accordion-caret"></i>
+        </summary>
+        <div class="nav-accordion-panel">
+          <a href="../public/course-list.html" class="nav-item"><i class="bi bi-shop"></i> Bozor</a>
+          <a href="../blog/blog-shell.html" class="nav-item"><i class="bi bi-newspaper"></i> Blog</a>
+          <a href="../exam/exam-shell.html" class="nav-item"><i class="bi bi-patch-check"></i> Imtihonlar</a>
+        </div>
+      </details>
+    </nav>
+    <div class="sidebar-bottom">
+      <details class="account-menu current">
+        <summary class="sidebar-user">
+          <div class="user-av">AK</div>
+          <div class="user-info">
+            <div class="user-name">Azurebekdev</div>
+            <div class="user-plan">Pro reja · Faol</div>
+          </div>
+          <i class="bi bi-chevron-down user-chevron"></i>
+        </summary>
+        <div class="account-menu-panel">
+          <a href="app-notifications.html" class="account-menu-item"><i class="bi bi-bell"></i> Bildirishnomalar <span class="nav-badge">3</span></a>
+          <a href="app-profile.html" class="account-menu-item"><i class="bi bi-person-circle"></i> Profil</a>
+          <a href="app-settings.html" class="account-menu-item"><i class="bi bi-gear"></i> Sozlamalar</a>
+          <a href="app-subscriptions.html" class="account-menu-item active"><i class="bi bi-credit-card"></i> Obuna</a>
+          <div class="account-menu-sep"></div>
+          <a href="../auth/auth-login.html" class="account-menu-item danger"><i class="bi bi-box-arrow-right"></i> Chiqish</a>
+        </div>
+      </details>
+      <div class="sidebar-version">Fourth Trial · v0.4</div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <span class="topbar-title">Obuna</span>
+      <button class="topbar-btn xstyle-87db2275" data-ui-href="app-notifications.html"><i class="bi bi-bell"></i><div class="topbar-dot"></div></button>
+      <button class="topbar-btn" id="themeBtn"><i class="bi bi-moon" id="themeIcon"></i></button>
+    </header>
+
+    <main class="page-body">
+
+      <!-- CURRENT PLAN -->
+      <div class="plan-hero">
+        <div class="ph-icon">🚀</div>
+        <div class="ph-info">
+          <div class="ph-badge"><i class="bi bi-check-circle-fill"></i> Faol obuna</div>
+          <div class="ph-plan-name">Pro Reja</div>
+          <div class="ph-sub">Oylik to'lov · Keyingi to'lov: <strong class="xstyle-f3272885">17-iyun, 2025</strong> · 199 000 so'm</div>
+        </div>
+        <div class="ph-actions">
+          <button class="btn-upgrade" data-ui-href="../public/pricing.html"><i class="bi bi-arrow-up-circle"></i> Team ga o'tish</button>
+          <button class="btn-cancel">Obunani bekor qilish</button>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="xstyle-5ae19e99">
+
+          <!-- BILLING HISTORY -->
+          <div class="card">
+            <div class="xstyle-b72ae578">
+              <div class="xstyle-3ebc1444">To'lov tarixi</div>
+              <button class="xstyle-dc167e81">Hammasini ko'rish</button>
+            </div>
+            <div class="bill-head">
+              <span>Tavsif</span>
+              <span>Sana</span>
+              <span>Summa</span>
+              <span>Holat</span>
+            </div>
+            <div class="bill-row">
+              <div class="bill-desc">Pro reja · Oylik</div>
+              <div class="bill-date">17-may, 2025</div>
+              <div class="bill-amount">199 000 so'm</div>
+              <span class="bill-status xstyle-adf55eb0">To'landi</span>
+            </div>
+            <div class="bill-row">
+              <div class="bill-desc">Pro reja · Oylik</div>
+              <div class="bill-date">17-apr, 2025</div>
+              <div class="bill-amount">199 000 so'm</div>
+              <span class="bill-status xstyle-adf55eb0">To'landi</span>
+            </div>
+            <div class="bill-row">
+              <div class="bill-desc">Pro reja · Oylik</div>
+              <div class="bill-date">17-mar, 2025</div>
+              <div class="bill-amount">199 000 so'm</div>
+              <span class="bill-status xstyle-adf55eb0">To'landi</span>
+            </div>
+            <div class="bill-row">
+              <div class="bill-desc">Starter reja · Oylik</div>
+              <div class="bill-date">17-fev, 2025</div>
+              <div class="bill-amount">59 000 so'm</div>
+              <span class="bill-status xstyle-adf55eb0">To'landi</span>
+            </div>
+            <div class="bill-row">
+              <div class="bill-desc">Starter reja · Oylik</div>
+              <div class="bill-date">17-yan, 2025</div>
+              <div class="bill-amount">59 000 so'm</div>
+              <span class="bill-status xstyle-adf55eb0">To'landi</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="xstyle-5ae19e99">
+
+          <!-- PLAN FEATURES -->
+          <div class="card">
+            <div class="xstyle-58bea9a2">
+              <div class="xstyle-3ebc1444">Pro reja imkoniyatlari</div>
+            </div>
+            <div class="feat-list">
+              <div class="feat-item"><i class="bi bi-check-circle-fill"></i> Barcha kurslarga cheksiz kirish</div>
+              <div class="feat-item"><i class="bi bi-check-circle-fill"></i> Full HD video darslar</div>
+              <div class="feat-item"><i class="bi bi-check-circle-fill"></i> Offline ko'rish imkoniyati</div>
+              <div class="feat-item"><i class="bi bi-check-circle-fill"></i> Tasdiqlangan sertifikatlar</div>
+              <div class="feat-item"><i class="bi bi-check-circle-fill"></i> Muallim bilan chat aloqasi</div>
+              <div class="feat-item"><i class="bi bi-check-circle-fill"></i> Oyda 4 ta jonli dars</div>
+              <div class="feat-item"><i class="bi bi-check-circle-fill"></i> 24/7 texnik yordam</div>
+            </div>
+            <div class="xstyle-fbefaca5">
+              <a href="../public/pricing.html" class="xstyle-f8769e4f">Team rejasiga o'tish — 499 000 so'm/oy →</a>
+            </div>
+          </div>
+
+          <!-- PAYMENT METHODS -->
+          <div class="card">
+            <div class="xstyle-b72ae578">
+              <div class="xstyle-3ebc1444">To'lov usullari</div>
+              <button class="xstyle-dc167e81"><i class="bi bi-plus"></i> Qo'shish</button>
+            </div>
+            <div class="pm-card">
+              <div class="pm-icon">VISA</div>
+              <div class="pm-info">
+                <div class="pm-name">Visa **** 4242</div>
+                <div class="pm-sub">Muddati: 09/27</div>
+              </div>
+              <span class="pm-default">Asosiy</span>
+            </div>
+            <div class="pm-card">
+              <div class="pm-icon xstyle-8d4d31d1">Payme</div>
+              <div class="pm-info">
+                <div class="pm-name">Payme · +998 90 *** 45 67</div>
+                <div class="pm-sub">Qo'shildi: mar 2024</div>
+              </div>
+              <span class="pm-remove">O'chirish</span>
+            </div>
+          </div>
+
+          <!-- USAGE -->
+          <div class="card xstyle-39d49061">
+            <div class="xstyle-01b1031c">Bu oydagi foydalanish</div>
+            <div class="xstyle-b32a606a">
+              <div>
+                <div class="xstyle-510cd9a3"><span class="xstyle-db90cbe8">O'quv vaqti</span><span class="xstyle-758a8873">14.5 / ∞ soat</span></div>
+                <div class="xstyle-04a7896a"><div class="xstyle-64bbe339"></div></div>
+              </div>
+              <div>
+                <div class="xstyle-510cd9a3"><span class="xstyle-db90cbe8">Jonli darslar</span><span class="xstyle-758a8873">2 / 4 ta</span></div>
+                <div class="xstyle-04a7896a"><div class="xstyle-35f3cc77"></div></div>
+              </div>
+              <div>
+                <div class="xstyle-510cd9a3"><span class="xstyle-db90cbe8">Yuklab olishlar</span><span class="xstyle-758a8873">234 MB / ∞</span></div>
+                <div class="xstyle-04a7896a"><div class="xstyle-c299923b"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<script>
+  (function() {
+    let s; try { s = localStorage.getItem('az-theme'); } catch(_) {}
+    const dark = s ? s === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (dark) document.documentElement.setAttribute('data-theme', 'dark');
+    const icon = document.getElementById('themeIcon');
+    if (icon) icon.className = dark ? 'bi bi-sun' : 'bi bi-moon';
+  })();
+  document.getElementById('themeBtn').addEventListener('click', function() {
+    const html = document.documentElement;
+    const dark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', dark ? 'light' : 'dark');
+    document.getElementById('themeIcon').className = dark ? 'bi bi-moon' : 'bi bi-sun';
+    try { localStorage.setItem('az-theme', dark ? 'light' : 'dark'); } catch(_) {}
+  });
+</script>
+  <script src="../assets/js/prototype-ui.js"></script>
+</body>
+</html>
+

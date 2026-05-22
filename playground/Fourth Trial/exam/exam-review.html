@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS old-turtle prototype for exam review.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>Imtihon Natijalari — AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- CSS Zanjiri (Architectural Standard) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/exam-review.css">
+
+  <link rel="stylesheet" href="../assets/css/prototype-extracted.css">
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="logo-mark">AZ</div>
+  <span class="nav-title">Imtihon Natijalari</span>
+  <div class="nav-sep"></div>
+  <a href="exam-listening.html" class="nav-btn"><i class="bi bi-arrow-repeat"></i> Qayta topshirish</a>
+  <a href="exam-shell.html" class="nav-btn primary"><i class="bi bi-grid"></i> Imtihonlarga qaytish</a>
+  <button class="theme-btn" id="themeBtn"><i class="bi bi-moon" id="themeIcon"></i></button>
+</nav>
+
+<!-- HERO -->
+<div class="result-hero">
+  <div class="hero-inner">
+    <!-- RING -->
+    <div class="score-ring-wrap">
+      <svg class="score-ring-svg" width="140" height="140" viewBox="0 0 100 100">
+        <circle class="ring-track" cx="50" cy="50" r="45"/>
+        <circle class="ring-fill great" cx="50" cy="50" r="45" id="scoreRing"/>
+      </svg>
+      <div class="score-center">
+        <div class="score-num" id="scoreNum">0</div>
+        <div class="score-denom">/ 100</div>
+      </div>
+    </div>
+
+    <!-- INFO -->
+    <div class="hero-right">
+      <div class="hero-exam-name">Tinglash Imtihoni — Mock Test 9</div>
+      <div class="hero-meta-row">
+        <div class="hero-meta-item"><i class="bi bi-calendar3"></i> 17 May 2026</div>
+        <div class="hero-meta-item"><i class="bi bi-clock"></i> 28 daqiqa 14 soniya</div>
+        <div class="hero-meta-item"><i class="bi bi-question-circle"></i> 20 savol</div>
+      </div>
+      <div class="skill-bars">
+        <div class="skill-row">
+          <span class="skill-name">1-qism</span>
+          <div class="skill-track"><div class="skill-fill sf-green xstyle-d2fba0f3" data-w="90%"></div></div>
+          <span class="skill-val">9/10</span>
+        </div>
+        <div class="skill-row">
+          <span class="skill-name">2-qism</span>
+          <div class="skill-track"><div class="skill-fill sf-blue xstyle-d2fba0f3" data-w="80%"></div></div>
+          <span class="skill-val">8/10</span>
+        </div>
+        <div class="skill-row">
+          <span class="skill-name">3-qism</span>
+          <div class="skill-track"><div class="skill-fill sf-amber xstyle-d2fba0f3" data-w="70%"></div></div>
+          <span class="skill-val">7/10</span>
+        </div>
+        <div class="skill-row">
+          <span class="skill-name">4-qism</span>
+          <div class="skill-track"><div class="skill-fill sf-blue xstyle-d2fba0f3" data-w="76%"></div></div>
+          <span class="skill-val">8/10</span>
+        </div>
+      </div>
+      <div class="hero-badges">
+        <div class="hero-badge achieved"><i class="bi bi-trophy"></i> Eng yuqori natija!</div>
+        <div class="hero-badge achieved"><i class="bi bi-lightning"></i> Tez yakunlandi</div>
+        <div class="hero-badge"><i class="bi bi-graph-up"></i> +14% o'sish</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- REVIEW MAIN -->
+<div class="review-main">
+
+  <!-- SUMMARY STATS -->
+  <div>
+    <div class="summary-grid">
+      <div class="sum-card">
+        <div class="sum-icon">✅</div>
+        <div class="sum-val xstyle-caaacc20">17</div>
+        <div class="sum-label">To'g'ri javob</div>
+      </div>
+      <div class="sum-card">
+        <div class="sum-icon">❌</div>
+        <div class="sum-val xstyle-45e7ae4d">3</div>
+        <div class="sum-label">Noto'g'ri javob</div>
+      </div>
+      <div class="sum-card">
+        <div class="sum-icon">⏭️</div>
+        <div class="sum-val xstyle-08935a7e">0</div>
+        <div class="sum-label">O'tkazib yuborilgan</div>
+      </div>
+      <div class="sum-card">
+        <div class="sum-icon">🎯</div>
+        <div class="sum-val xstyle-917f8555">92%</div>
+        <div class="sum-label">Aniqlik</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUESTION REVIEW -->
+  <div>
+    <div class="sec-head">
+      <span class="sec-title">Savol-javoblarni ko'rib chiqish</span>
+      <div class="sec-divider"></div>
+    </div>
+    <div class="section-tabs xstyle-2b583d73">
+      <div class="section-tab active" data-ui-call="filterQ" data-ui-pass="this" data-ui-args='["all"]'>Hammasi (20)</div>
+      <div class="section-tab" data-ui-call="filterQ" data-ui-pass="this" data-ui-args='["correct"]'>To'g'ri (17)</div>
+      <div class="section-tab" data-ui-call="filterQ" data-ui-pass="this" data-ui-args='["wrong"]'>Noto'g'ri (3)</div>
+    </div>
+
+    <div id="qList" class="xstyle-be265379">
+
+      <!-- Q1 CORRECT -->
+      <div class="q-review-card" data-result="correct">
+        <div class="qr-header" data-ui-call="toggleQ" data-ui-pass="parent">
+          <span class="qr-num">Savol 1</span>
+          <span class="qr-text">What is the main reason the woman is calling the travel agency?</span>
+          <span class="qr-status qrs-correct"><i class="bi bi-check-circle-fill"></i> To'g'ri</span>
+          <i class="bi bi-chevron-down qr-chevron"></i>
+        </div>
+        <div class="qr-body">
+          <div class="qr-section">
+            <div class="qr-section-label">Javobingiz</div>
+            <div class="answer-row correct"><i class="bi bi-check-circle-fill"></i> B — To book a guided tour of the national park</div>
+          </div>
+          <div class="qr-explanation">
+            <strong>Izoh:</strong> Suhbatda ayol "I'd like to find out more about your guided tours" deydi va park haqida so'raydi. B variant to'g'ri.
+          </div>
+        </div>
+      </div>
+
+      <!-- Q2 WRONG -->
+      <div class="q-review-card open" data-result="wrong">
+        <div class="qr-header" data-ui-call="toggleQ" data-ui-pass="parent">
+          <span class="qr-num">Savol 2</span>
+          <span class="qr-text">How many people will be joining the tour?</span>
+          <span class="qr-status qrs-wrong"><i class="bi bi-x-circle-fill"></i> Noto'g'ri</span>
+          <i class="bi bi-chevron-down qr-chevron"></i>
+        </div>
+        <div class="qr-body">
+          <div class="qr-section">
+            <div class="qr-section-label">Javobingiz</div>
+            <div class="answer-row wrong"><i class="bi bi-x-circle-fill"></i> C — 4 kishi</div>
+          </div>
+          <div class="qr-section">
+            <div class="qr-section-label">To'g'ri javob</div>
+            <div class="answer-row correct"><i class="bi bi-check-circle-fill"></i> B — 3 kishi</div>
+          </div>
+          <div class="qr-explanation">
+            <strong>Izoh:</strong> Ayol "There will be three of us" deydi. "Me, my husband, and my sister" — bu 3 kishi. To'rt deb eshitish keng tarqalgan xato, chunki boshqa kontekstda "four" so'zi ham uchraydi.
+          </div>
+        </div>
+      </div>
+
+      <!-- Q3 CORRECT -->
+      <div class="q-review-card" data-result="correct">
+        <div class="qr-header" data-ui-call="toggleQ" data-ui-pass="parent">
+          <span class="qr-num">Savol 3</span>
+          <span class="qr-text">The tour departs every ___ at 9 am from the main ___.</span>
+          <span class="qr-status qrs-correct"><i class="bi bi-check-circle-fill"></i> To'g'ri</span>
+          <i class="bi bi-chevron-down qr-chevron"></i>
+        </div>
+        <div class="qr-body">
+          <div class="qr-section">
+            <div class="qr-section-label">Javobingiz</div>
+            <div class="answer-row correct"><i class="bi bi-check-circle-fill"></i> "Tuesday" · "entrance"</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q4 CORRECT -->
+      <div class="q-review-card" data-result="correct">
+        <div class="qr-header" data-ui-call="toggleQ" data-ui-pass="parent">
+          <span class="qr-num">Savol 4</span>
+          <span class="qr-text">The full tour costs ___ per person.</span>
+          <span class="qr-status qrs-correct"><i class="bi bi-check-circle-fill"></i> To'g'ri</span>
+          <i class="bi bi-chevron-down qr-chevron"></i>
+        </div>
+        <div class="qr-body">
+          <div class="qr-section">
+            <div class="qr-section-label">Javobingiz</div>
+            <div class="answer-row correct"><i class="bi bi-check-circle-fill"></i> "$45"</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q5 WRONG -->
+      <div class="q-review-card" data-result="wrong">
+        <div class="qr-header" data-ui-call="toggleQ" data-ui-pass="parent">
+          <span class="qr-num">Savol 5</span>
+          <span class="qr-text">Participants should wear ___ shoes.</span>
+          <span class="qr-status qrs-wrong"><i class="bi bi-x-circle-fill"></i> Noto'g'ri</span>
+          <i class="bi bi-chevron-down qr-chevron"></i>
+        </div>
+        <div class="qr-body">
+          <div class="qr-section">
+            <div class="qr-section-label">Javobingiz</div>
+            <div class="answer-row wrong"><i class="bi bi-x-circle-fill"></i> "sport"</div>
+          </div>
+          <div class="qr-section">
+            <div class="qr-section-label">To'g'ri javob</div>
+            <div class="answer-row correct"><i class="bi bi-check-circle-fill"></i> "comfortable"</div>
+          </div>
+          <div class="qr-explanation">
+            <strong>Izoh:</strong> Gid "comfortable walking shoes" deydi. "Sport shoes" noto'g'ri, chunki audio matni aniq "comfortable" so'zini ishlatgan.
+          </div>
+        </div>
+      </div>
+
+      <!-- Q6–20 abbreviated -->
+      <div class="xstyle-7d8236ee">
+        <i class="bi bi-three-dots xstyle-fafebeb2"></i>
+        6–20-savollar: 15 ta to'g'ri, 1 ta noto'g'ri
+        <button data-ui-call="expandAll" class="xstyle-fdb7f9b3">
+          Hammasini ko'rsatish <i class="bi bi-chevron-down"></i>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RECOMMENDATIONS -->
+  <div>
+    <div class="sec-head">
+      <span class="sec-title">Tavsiyalar</span>
+      <div class="sec-divider"></div>
+    </div>
+    <div class="xstyle-a56c85e3">
+      <div class="reco-card">
+        <div class="reco-icon xstyle-1f5b271d">🎯</div>
+        <div>
+          <div class="reco-title">To'ldirish-bo'sh joylar — diqqatni oshiring</div>
+          <div class="reco-text">Fill-in-the-blank savollarida aniq so'zni eshitish muhim. Audio tinglash paytida faqat kerakli qism atrofidagi so'zlarni kuzating. Sinonim so'zlardan saqlaning.</div>
+          <span class="reco-tag xstyle-9967f362"><i class="bi bi-bullseye"></i> Focal area</span>
+        </div>
+      </div>
+      <div class="reco-card">
+        <div class="reco-icon xstyle-6cc85777">📖</div>
+        <div>
+          <div class="reco-title">Raqam va miqdor savollarida diqqat qiling</div>
+          <div class="reco-text">Odatda suhbatlarda raqamlar bir necha marta takrorlanadi. Birinchi eshitgan raqamingizga ishonmang — oxirgi tasdiqlangan raqamni yozing.</div>
+          <span class="reco-tag xstyle-83f56626"><i class="bi bi-info-circle"></i> Eslatma</span>
+        </div>
+      </div>
+      <div class="reco-card">
+        <div class="reco-icon xstyle-384b679b">🚀</div>
+        <div>
+          <div class="reco-title">Kuchli tomonlar — davom eting</div>
+          <div class="reco-text">Multiple choice va bitta so'z to'ldirishda yuqori natija. Ushbu ko'nikmalarniyingilashda qolgan turdagi savollarni ham mustahkamlang.</div>
+          <span class="reco-tag xstyle-a5a4f3be"><i class="bi bi-check-circle"></i> Kuchli</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /review-main -->
+
+<script>
+  // Theme
+  (function(){
+    const t = localStorage.getItem('az-theme');
+    const d = window.matchMedia('(prefers-color-scheme:dark)').matches;
+    document.documentElement.setAttribute('data-theme', t ? t : d ? 'dark' : 'light');
+  })();
+  const html = document.documentElement;
+  function applyTheme(dark) {
+    html.setAttribute('data-theme', dark ? 'dark' : 'light');
+    document.getElementById('themeIcon').className = dark ? 'bi bi-sun' : 'bi bi-moon';
+    try { localStorage.setItem('az-theme', dark ? 'dark' : 'light'); } catch(_){}
+  }
+  const saved = localStorage.getItem('az-theme');
+  applyTheme(saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme:dark)').matches);
+  document.getElementById('themeBtn').addEventListener('click', () =>
+    applyTheme(html.getAttribute('data-theme') !== 'dark'));
+
+  // Score animation
+  window.addEventListener('load', () => {
+    const score = 92;
+    const ring = document.getElementById('scoreRing');
+    const numEl = document.getElementById('scoreNum');
+    const circumference = 283;
+    const offset = circumference - (score / 100) * circumference;
+
+    setTimeout(() => {
+      ring.style.strokeDashoffset = offset;
+      let n = 0;
+      const step = setInterval(() => {
+        n = Math.min(n + 2, score);
+        numEl.textContent = n;
+        if (n >= score) clearInterval(step);
+      }, 20);
+    }, 300);
+
+    // Skill bars
+    document.querySelectorAll('.skill-fill[data-w]').forEach(el => {
+      setTimeout(() => { el.style.width = el.dataset.w; }, 400);
+    });
+  });
+
+  // Toggle question
+  function toggleQ(card) {
+    card.classList.toggle('open');
+  }
+
+  // Filter
+  function filterQ(btn, filter) {
+    document.querySelectorAll('.section-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.q-review-card').forEach(card => {
+      if (filter === 'all') card.style.display = '';
+      else card.style.display = card.dataset.result === filter ? '' : 'none';
+    });
+  }
+
+  function expandAll() {}
+</script>
+  <script src="../assets/js/prototype-ui.js"></script>
+</body>
+</html>
+

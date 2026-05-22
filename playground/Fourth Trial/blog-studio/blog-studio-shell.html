@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS old-turtle prototype for blog studio shell.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>Blog Studio — AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- CSS Zanjiri (Architectural Standard) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/blog-studio-shell.css">
+
+  <link rel="stylesheet" href="../assets/css/prototype-extracted.css">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">B</div>
+    <span class="logo-name">Blog Studio</span>
+    <span class="logo-tag">v2</span>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-av">AN</div>
+    <div>
+      <div class="user-name">Aziz Nazarov</div>
+      <div class="user-role">Muallif · Senior</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-group-label">Studio</div>
+    <a href="blog-studio-shell.html" class="nav-item active"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+    <a href="blog-studio-new-post.html" class="nav-item"><i class="bi bi-pencil-square"></i> Yangi maqola</a>
+    <a href="blog-studio-shell.html" class="nav-item"><i class="bi bi-file-earmark-text"></i> Maqolalar <span class="nav-badge">3</span></a>
+    <a href="blog-studio-shell.html" class="nav-item"><i class="bi bi-archive"></i> Qoralamalar</a>
+    <a href="blog-studio-analytics.html" class="nav-item"><i class="bi bi-bar-chart-line"></i> Statistika</a>
+    <div class="nav-group-label">Blog</div>
+    <a href="../blog/blog-shell.html" class="nav-item"><i class="bi bi-eye"></i> Blogni ko'rish</a>
+    <a href="../blog/blog-tags.html" class="nav-item"><i class="bi bi-tags"></i> Teglar & Kategoriyalar</a>
+    <a href="blog-studio-shell.html" class="nav-item"><i class="bi bi-chat-square-text"></i> Izohlar <span class="nav-badge xstyle-4f67ca57">12</span></a>
+    <div class="nav-group-label">Sozlash</div>
+    <a href="blog-studio-shell.html" class="nav-item"><i class="bi bi-palette"></i> Dizayn</a>
+    <a href="blog-studio-shell.html" class="nav-item"><i class="bi bi-gear"></i> Sozlamalar</a>
+  </nav>
+  <div class="sidebar-bottom">
+    <a href="../index.html" class="nav-item"><i class="bi bi-arrow-left-circle"></i> Playground</a>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="page-wrap">
+  <header class="topbar">
+    <h1 class="topbar-title">Studio Dashboard</h1>
+    <div class="topbar-sep"></div>
+    <a href="blog-studio-new-post.html" class="new-post-btn"><i class="bi bi-plus-lg"></i> Yangi maqola</a>
+    <button class="theme-btn" id="themeBtn"><i class="bi bi-moon" id="themeIcon"></i></button>
+  </header>
+
+  <div class="page-body">
+
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Jami maqolalar</div>
+        <div class="stat-val">28</div>
+        <div class="xstyle-d0ea8946"><span class="stat-delta delta-up">+3</span> bu oy</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Ko'rilganlar</div>
+        <div class="stat-val xstyle-4061f7d4">180k</div>
+        <div class="xstyle-d0ea8946"><span class="stat-delta delta-up">+24%</span> o'tgan oyga</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Obunachilar</div>
+        <div class="stat-val xstyle-917f8555">4.2k</div>
+        <div class="xstyle-d0ea8946"><span class="stat-delta delta-up">+180</span> bu hafta</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">O'rtacha o'qish</div>
+        <div class="stat-val">6.4</div>
+        <div class="xstyle-61630957"><span class="stat-delta delta-neu">daqiqa</span></div>
+      </div>
+    </div>
+
+    <!-- TABLE + RIGHT PANEL -->
+    <div class="two-col">
+      <div>
+        <div class="sec-head">
+          <span class="sec-title">So'nggi maqolalar</span>
+          <div class="sec-divider"></div>
+          <a href="blog-studio-shell.html" class="sec-action">Hammasi <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="posts-table">
+          <div class="tbl-head">
+            <div>Maqola</div>
+            <div>Ko'rilgan</div>
+            <div>Like</div>
+            <div>Izoh</div>
+            <div>Status</div>
+            <div></div>
+          </div>
+          <div class="tbl-row">
+            <div class="post-title-cell">
+              <div class="post-thumb img--purple xstyle-3e61612c">📚</div>
+              <div>
+                <div class="post-name">IELTS Band 8 ga chiqish: 10 ta sir</div>
+                <div class="post-cat">IELTS · 15 May 2026</div>
+              </div>
+            </div>
+            <div class="tbl-cell">47.2k</div>
+            <div class="tbl-cell">1.2k</div>
+            <div class="tbl-cell">234</div>
+            <div><span class="status-chip sc-pub">Chop etilgan</span></div>
+            <div class="row-actions">
+              <a href="blog-studio-new-post.html" class="row-btn" title="Tahrirlash"><i class="bi bi-pencil"></i></a>
+              <a href="blog-studio-analytics.html" class="row-btn" title="Statistika"><i class="bi bi-bar-chart"></i></a>
+              <button class="row-btn" title="Ko'rish"><i class="bi bi-eye"></i></button>
+            </div>
+          </div>
+          <div class="tbl-row">
+            <div class="post-title-cell">
+              <div class="post-thumb xstyle-189734b4">🔤</div>
+              <div>
+                <div class="post-name">Present Perfect vs Past Simple: to'liq qo'llanma</div>
+                <div class="post-cat">Grammatika · 12 May 2026</div>
+              </div>
+            </div>
+            <div class="tbl-cell">5.1k</div>
+            <div class="tbl-cell">218</div>
+            <div class="tbl-cell">47</div>
+            <div><span class="status-chip sc-pub">Chop etilgan</span></div>
+            <div class="row-actions">
+              <a href="blog-studio-new-post.html" class="row-btn"><i class="bi bi-pencil"></i></a>
+              <a href="blog-studio-analytics.html" class="row-btn"><i class="bi bi-bar-chart"></i></a>
+              <button class="row-btn"><i class="bi bi-eye"></i></button>
+            </div>
+          </div>
+          <div class="tbl-row">
+            <div class="post-title-cell">
+              <div class="post-thumb xstyle-a2661214">⏰</div>
+              <div>
+                <div class="post-name">IELTS Speaking Band 7+: natural nutq texnikasi</div>
+                <div class="post-cat">IELTS Speaking · 20 May 2026</div>
+              </div>
+            </div>
+            <div class="tbl-cell">—</div>
+            <div class="tbl-cell">—</div>
+            <div class="tbl-cell">—</div>
+            <div><span class="status-chip sc-sched">Rejalashtirilgan</span></div>
+            <div class="row-actions">
+              <a href="blog-studio-new-post.html" class="row-btn"><i class="bi bi-pencil"></i></a>
+              <button class="row-btn"><i class="bi bi-clock"></i></button>
+              <button class="row-btn"><i class="bi bi-trash"></i></button>
+            </div>
+          </div>
+          <div class="tbl-row">
+            <div class="post-title-cell">
+              <div class="post-thumb xstyle-fd853a9a">📖</div>
+              <div>
+                <div class="post-name">Conditional sentences: 0 dan 3 gacha to'liq qo'llanma</div>
+                <div class="post-cat">Grammatika · 3 May 2026</div>
+              </div>
+            </div>
+            <div class="tbl-cell">12.1k</div>
+            <div class="tbl-cell">567</div>
+            <div class="tbl-cell">89</div>
+            <div><span class="status-chip sc-pub">Chop etilgan</span></div>
+            <div class="row-actions">
+              <a href="blog-studio-new-post.html" class="row-btn"><i class="bi bi-pencil"></i></a>
+              <a href="blog-studio-analytics.html" class="row-btn"><i class="bi bi-bar-chart"></i></a>
+              <button class="row-btn"><i class="bi bi-eye"></i></button>
+            </div>
+          </div>
+          <div class="tbl-row">
+            <div class="post-title-cell">
+              <div class="post-thumb xstyle-68542e8a">💬</div>
+              <div>
+                <div class="post-name">Academic lug'at: Advanced Collocations ro'yxati</div>
+                <div class="post-cat">Qoralama · tahrirlash jarayonida</div>
+              </div>
+            </div>
+            <div class="tbl-cell">—</div>
+            <div class="tbl-cell">—</div>
+            <div class="tbl-cell">—</div>
+            <div><span class="status-chip sc-draft">Qoralama</span></div>
+            <div class="row-actions">
+              <a href="blog-studio-new-post.html" class="row-btn"><i class="bi bi-pencil"></i></a>
+              <button class="row-btn"><i class="bi bi-send"></i></button>
+              <button class="row-btn"><i class="bi bi-trash"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT PANEL -->
+      <div class="right-panel">
+        <!-- QUICK ACTIONS -->
+        <div class="panel-card">
+          <div class="panel-head"><i class="bi bi-lightning-charge"></i> Tezkor amallar</div>
+          <div class="panel-body">
+            <div class="quick-actions">
+              <a href="blog-studio-new-post.html" class="qa-btn"><i class="bi bi-pencil-square"></i>Yangi post</a>
+              <a href="blog-studio-analytics.html" class="qa-btn"><i class="bi bi-bar-chart-line"></i>Statistika</a>
+              <button class="qa-btn"><i class="bi bi-image"></i>Media</button>
+              <button class="qa-btn"><i class="bi bi-megaphone"></i>Xabar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEWS CHART -->
+        <div class="panel-card">
+          <div class="panel-head"><i class="bi bi-graph-up"></i> Ko'rishlar (7 kun)</div>
+          <div class="panel-body">
+            <div class="xstyle-3fbb4b3e">12,840</div>
+            <div class="xstyle-a26c64d4">ushbu hafta · <span class="xstyle-caaacc20">+18%</span></div>
+            <div class="mini-chart" id="miniChart"></div>
+            <div class="mc-labels"><span>Du</span><span>Se</span><span>Ch</span><span>Pa</span><span>Ju</span><span>Sh</span><span>Ya</span></div>
+          </div>
+        </div>
+
+        <!-- ACTIVITY -->
+        <div class="panel-card">
+          <div class="panel-head"><i class="bi bi-activity"></i> So'nggi faollik</div>
+          <div class="panel-body">
+            <div class="activity-item">
+              <div class="activity-dot ad-comment"></div>
+              <div>
+                <div class="activity-text"><strong>Zuhra H.</strong> maqolangizga izoh qoldirdi</div>
+                <div class="activity-time">2 soat oldin · Band 8 maqola</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot ad-view"></div>
+              <div>
+                <div class="activity-text">Band 8 maqola <strong>1,000</strong> ko'rishdan o'tdi</div>
+                <div class="activity-time">4 soat oldin</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot ad-pub"></div>
+              <div>
+                <div class="activity-text">Present Perfect maqolasi chop etildi</div>
+                <div class="activity-time">12 May · 10:30</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot ad-comment"></div>
+              <div>
+                <div class="activity-text"><strong>Bekzod N.</strong> PEEL metodini sinab ko'radi</div>
+                <div class="activity-time">5 soat oldin</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SCHEDULED -->
+        <div class="panel-card">
+          <div class="panel-head"><i class="bi bi-calendar3"></i> Rejalashtirilgan</div>
+          <div class="panel-body">
+            <div class="sched-item">
+              <div class="sched-date-box"><div class="sched-day">20</div><div class="sched-mon">May</div></div>
+              <div>
+                <div class="sched-name">Speaking Band 7+ texnikasi</div>
+                <div class="sched-time"><i class="bi bi-clock"></i> 09:00 · IELTS Speaking</div>
+              </div>
+            </div>
+            <div class="sched-item">
+              <div class="sched-date-box"><div class="sched-day">25</div><div class="sched-mon">May</div></div>
+              <div>
+                <div class="sched-name">Reading: Passage mapping strategiyasi</div>
+                <div class="sched-time"><i class="bi bi-clock"></i> 10:00 · IELTS Reading</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  (function(){
+    const t = localStorage.getItem('az-theme');
+    const d = window.matchMedia('(prefers-color-scheme:dark)').matches;
+    document.documentElement.setAttribute('data-theme', t ? t : d ? 'dark' : 'light');
+  })();
+  const html = document.documentElement;
+  function applyTheme(dark) {
+    html.setAttribute('data-theme', dark ? 'dark' : 'light');
+    document.getElementById('themeIcon').className = dark ? 'bi bi-sun' : 'bi bi-moon';
+    try { localStorage.setItem('az-theme', dark ? 'dark' : 'light'); } catch(_){}
+  }
+  const saved = localStorage.getItem('az-theme');
+  applyTheme(saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme:dark)').matches);
+  document.getElementById('themeBtn').addEventListener('click', () =>
+    applyTheme(html.getAttribute('data-theme') !== 'dark'));
+
+  // Mini chart
+  const vals = [55, 70, 62, 85, 90, 78, 100];
+  const chart = document.getElementById('miniChart');
+  vals.forEach((v, i) => {
+    const bar = document.createElement('div');
+    bar.className = 'mc-bar' + (i === 6 ? ' today' : '');
+    bar.style.height = v + '%';
+    bar.title = v + '% kapasitet';
+    chart.appendChild(bar);
+  });
+</script>
+  <script src="../assets/js/prototype-ui.js"></script>
+</body>
+</html>
+

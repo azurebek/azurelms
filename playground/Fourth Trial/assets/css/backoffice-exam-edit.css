@@ -1,0 +1,565 @@
+/* ══════════════════════════════════════════════════════
+   BACKOFFICE — Exam Editor (add-ons)
+   Reuses backoffice-course-create.css + backoffice-lesson-edit.css
+   ══════════════════════════════════════════════════════ */
+
+/* ── EXAM META CARD (top of editor) ────────────────── */
+.exam-meta {
+  background: linear-gradient(135deg, var(--deep), #1a2c45);
+  color: var(--on-deep);
+  border-radius: var(--r-xl);
+  padding: 18px 20px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.exam-meta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 100% at 90% 50%, rgba(167,139,250,0.32) 0%, transparent 70%);
+  pointer-events: none;
+}
+.exam-meta-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.exam-meta-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.exam-meta-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.66rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(167,139,250,0.95);
+}
+.exam-meta-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #fff;
+}
+.exam-meta-stats {
+  display: flex;
+  gap: 18px;
+  margin-top: 4px;
+}
+.exam-meta-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.exam-meta-stat-val {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #fff;
+}
+.exam-meta-stat-lab {
+  font-size: 0.65rem;
+  color: rgba(220,233,245,0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+/* Exam-type pill (visa / final) */
+.exam-type-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 11px;
+  border-radius: var(--r-pill);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.exam-type-pill.visa { background: rgba(96,165,250,0.22); color: #93c5fd; }
+.exam-type-pill.final { background: rgba(167,139,250,0.22); color: #c4b5fd; }
+
+/* Weight bar (Visa 40% / Final 60% visual) */
+.weight-bar {
+  display: flex;
+  height: 8px;
+  border-radius: var(--r-pill);
+  overflow: hidden;
+  background: var(--bg);
+  margin-bottom: 6px;
+}
+.weight-bar .seg-visa { background: var(--blue-mid); }
+.weight-bar .seg-final { background: var(--purple); }
+.weight-bar-legend {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--ink-3);
+  font-weight: 600;
+}
+.weight-bar-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.weight-bar-legend .lg-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.weight-bar-legend .lg-dot.visa { background: var(--blue-mid); }
+.weight-bar-legend .lg-dot.final { background: var(--purple); }
+
+/* Passing score visual */
+.pass-score {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+.pass-score-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--green-soft);
+  color: var(--green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  flex-shrink: 0;
+}
+.pass-score-info { flex: 1; }
+.pass-score-val {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--ink-0);
+}
+.pass-score-lab {
+  font-size: 0.72rem;
+  color: var(--ink-4);
+}
+.pass-score-input {
+  width: 70px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--bg);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ink-0);
+  text-align: right;
+  outline: none;
+}
+.pass-score-input:focus {
+  border-color: var(--blue-mid);
+  background: var(--white);
+}
+
+/* ── SECTION-TYPE QUICK-ADD CHIPS ──────────────────── */
+.section-add-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  padding: 8px;
+}
+.section-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 9px 4px;
+  border: 1px dashed var(--border);
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--ink-4);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 140ms;
+}
+.section-chip:hover {
+  background: var(--bg);
+  border-style: solid;
+  color: var(--ink-1);
+  transform: translateY(-1px);
+}
+.section-chip i { font-size: 1.05rem; }
+.section-chip-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+
+/* ── SECTION LIST (in tree-panel) ──────────────────── */
+.section-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  margin: 0 6px 4px;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: background 120ms;
+  border: 1px solid transparent;
+}
+.section-row:hover {
+  background: var(--bg);
+  border-color: var(--border);
+}
+.section-row.active {
+  background: var(--blue-soft);
+  border-color: var(--blue-mid);
+}
+.section-row .grip {
+  color: var(--ink-5);
+  font-size: 0.85rem;
+  cursor: grab;
+  opacity: 0;
+  transition: opacity 120ms;
+}
+.section-row:hover .grip { opacity: 1; }
+
+.section-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+.section-icon.reading { background: var(--blue-soft); color: var(--blue-mid); }
+.section-icon.listening { background: var(--purple-soft); color: var(--purple); }
+.section-icon.writing { background: var(--amber-soft); color: var(--amber); }
+.section-icon.speaking { background: var(--red-soft); color: var(--red); }
+.section-icon.grammar { background: var(--green-soft); color: var(--green); }
+
+.section-body { flex: 1; min-width: 0; }
+.section-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink-0);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.section-meta {
+  font-size: 0.68rem;
+  color: var(--ink-4);
+  display: flex;
+  gap: 8px;
+  margin-top: 1px;
+}
+.section-meta span { display: inline-flex; align-items: center; gap: 3px; }
+
+/* ── SECTION TYPE BADGE (top of editor) ────────────── */
+.section-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px;
+  border-radius: var(--r-pill);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.section-type-badge.listening { background: var(--purple-soft); color: var(--purple); }
+.section-type-badge.reading { background: var(--blue-soft); color: var(--blue-mid); }
+.section-type-badge.writing { background: var(--amber-soft); color: var(--amber); }
+.section-type-badge.speaking { background: var(--red-soft); color: var(--red); }
+.section-type-badge.grammar { background: var(--green-soft); color: var(--green); }
+
+/* ── AUDIO / MEDIA EMBED CARD ─────────────────────── */
+.audio-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: linear-gradient(135deg, var(--purple-soft), var(--blue-soft));
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  margin-top: 10px;
+}
+.audio-thumb {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-md);
+  background: linear-gradient(135deg, var(--purple), var(--blue-mid));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+.audio-info { flex: 1; min-width: 0; }
+.audio-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ink-0);
+}
+.audio-meta {
+  font-size: 0.7rem;
+  color: var(--ink-4);
+  margin-top: 2px;
+  display: flex;
+  gap: 10px;
+}
+.audio-meta span { display: inline-flex; align-items: center; gap: 3px; }
+.audio-actions {
+  display: flex;
+  gap: 6px;
+}
+
+/* Plays-allowed indicator */
+.replay-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  margin-top: 8px;
+}
+.replay-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-md);
+  background: var(--amber-soft);
+  color: var(--amber);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+.replay-text { flex: 1; font-size: 0.78rem; color: var(--ink-1); font-weight: 600; }
+.replay-counter {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+}
+.replay-counter button {
+  width: 26px;
+  height: 26px;
+  background: transparent;
+  border: none;
+  color: var(--ink-3);
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+.replay-counter button:hover { color: var(--blue-mid); }
+.replay-counter span {
+  min-width: 22px;
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--ink-0);
+}
+
+/* ── PREVIEW (right) — exam section player ────────── */
+.exam-preview-shell {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+.exam-preview-header {
+  padding: 12px 14px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.exam-preview-header-title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--ink-0);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.exam-preview-timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  background: var(--amber-soft);
+  color: var(--amber);
+  border-radius: var(--r-pill);
+  font-size: 0.72rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.exam-preview-body { padding: 14px; }
+
+/* Audio player (preview, listening) */
+.preview-audio {
+  background: linear-gradient(135deg, #1f2937, #111827);
+  border-radius: var(--r-md);
+  padding: 14px;
+  color: #fff;
+  margin-bottom: 14px;
+  position: relative;
+  overflow: hidden;
+}
+.preview-audio::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 30% 50%, rgba(124,58,237,0.25), transparent 70%);
+}
+.preview-audio-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.preview-audio-play {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--ink-0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.preview-audio-info { flex: 1; min-width: 0; }
+.preview-audio-title {
+  font-size: 0.84rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.preview-audio-meta {
+  font-size: 0.68rem;
+  opacity: 0.7;
+  margin-top: 2px;
+}
+.preview-audio-wave {
+  position: relative;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.preview-audio-wave .bar {
+  flex: 1;
+  background: rgba(255,255,255,0.3);
+  border-radius: 2px;
+}
+.preview-audio-wave .bar.played { background: #fff; }
+
+/* Reading passage (preview) */
+.preview-reading {
+  background: var(--bg);
+  border-radius: var(--r-md);
+  padding: 12px;
+  margin-bottom: 14px;
+  font-size: 0.78rem;
+  color: var(--ink-1);
+  line-height: 1.6;
+  max-height: 180px;
+  overflow-y: auto;
+}
+.preview-reading::-webkit-scrollbar { width: 4px; }
+.preview-reading::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* Question preview */
+.preview-q {
+  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.preview-q:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+.preview-q-num {
+  display: inline-block;
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--blue-mid);
+  margin-bottom: 4px;
+}
+.preview-q-text {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink-0);
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+.preview-q-options { display: flex; flex-direction: column; gap: 5px; }
+.preview-q-opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--bg);
+  border: 1.5px solid transparent;
+  border-radius: var(--r-md);
+  font-size: 0.78rem;
+  color: var(--ink-1);
+}
+.preview-q-opt.checked {
+  border-color: var(--blue-mid);
+  background: var(--blue-soft);
+  color: var(--blue-mid);
+  font-weight: 600;
+}
+.preview-q-opt .letter {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--white);
+  border: 1.5px solid var(--ink-5);
+  font-size: 0.66rem;
+  font-weight: 800;
+  color: var(--ink-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.preview-q-opt.checked .letter {
+  background: var(--blue-mid);
+  border-color: var(--blue-mid);
+  color: #fff;
+}
+
+/* Writing/Speaking preview (open input) */
+.preview-open-input {
+  background: var(--bg);
+  border: 1.5px dashed var(--border);
+  border-radius: var(--r-md);
+  padding: 14px;
+  font-size: 0.78rem;
+  color: var(--ink-4);
+  text-align: center;
+}
+.preview-open-input i { font-size: 1.4rem; display: block; margin-bottom: 4px; }
+
+/* Section settings 2-col grid */
+.section-settings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}

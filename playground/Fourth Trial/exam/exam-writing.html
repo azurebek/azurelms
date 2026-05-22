@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AzureLMS old-turtle prototype for exam writing.">
+  <script data-old-turtle-theme-boot>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved ? saved : (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>Yozish Imtihoni — AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- CSS Zanjiri (Architectural Standard) -->
+  <link rel="stylesheet" href="../assets/css/tokens.css">
+  <link rel="stylesheet" href="../assets/css/foundation.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+  <link rel="stylesheet" href="../assets/css/exam-writing.css">
+
+  <link rel="stylesheet" href="../assets/css/prototype-extracted.css">
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="exam-bar">
+  <div class="logo-mark">AZ</div>
+  <div>
+    <div class="exam-name">Yozish Imtihoni</div>
+    <div class="exam-sub">Writing Task 1 — IELTS Academic</div>
+  </div>
+  <div class="bar-sep"></div>
+  <div class="task-tabs">
+    <button class="task-tab active" data-ui-call="switchTask" data-ui-pass="this" data-ui-args='[1]'>Task 1</button>
+    <button class="task-tab" data-ui-call="switchTask" data-ui-pass="this" data-ui-args='[2]'>Task 2</button>
+  </div>
+  <div class="timer-box">
+    <i class="bi bi-clock timer-icon"></i>
+    <span class="timer-val" id="timerVal">58:22</span>
+  </div>
+  <button class="btn-submit" data-ui-call="submitExam"><i class="bi bi-check2-circle"></i> Topshirish</button>
+  <button class="theme-btn" id="themeBtn"><i class="bi bi-moon" id="themeIcon"></i></button>
+</header>
+
+<!-- SPLIT LAYOUT -->
+<div class="writing-layout">
+
+  <!-- LEFT: TASK PROMPT -->
+  <div class="task-panel" id="taskPanel">
+    <div class="task-panel-head">
+      <div class="task-badge"><i class="bi bi-1-circle"></i> Writing Task 1</div>
+      <div class="task-heading">Bar Chart Description</div>
+      <div class="task-meta">
+        <span class="task-meta-item"><i class="bi bi-hash"></i> Minimum 150 so'z</span>
+        <span class="task-meta-item"><i class="bi bi-clock"></i> ~20 daqiqa tavsiya</span>
+        <span class="task-meta-item"><i class="bi bi-bar-chart"></i> Ma'lumotlar tahlili</span>
+      </div>
+    </div>
+    <div class="task-panel-body">
+      <p class="task-prompt">
+        <strong>The bar chart below shows the percentage of people in different age groups who used online banking in a European country in 2010 and 2020.</strong>
+      </p>
+      <p class="task-prompt xstyle-d8a81eac">
+        Summarise the information by selecting and reporting the main features, and make comparisons where relevant.
+      </p>
+
+      <!-- CHART MOCK -->
+      <div class="chart-mock">
+        <div class="chart-title">Online Banking Usage by Age Group (%)</div>
+        <div class="chart-bars">
+          <div class="chart-bar-group">
+            <div class="chart-bar xstyle-3a8bc583" title="2010: 23%"></div>
+            <div class="chart-bar b2 xstyle-9072f42a" title="2020: 50%"></div>
+            <div class="chart-year">18–24</div>
+          </div>
+          <div class="chart-bar-group">
+            <div class="chart-bar xstyle-903dd6ee"></div>
+            <div class="chart-bar b2 xstyle-1550bee2"></div>
+            <div class="chart-year">25–34</div>
+          </div>
+          <div class="chart-bar-group">
+            <div class="chart-bar xstyle-3a409516"></div>
+            <div class="chart-bar b2 xstyle-c76b0baa"></div>
+            <div class="chart-year">35–44</div>
+          </div>
+          <div class="chart-bar-group">
+            <div class="chart-bar xstyle-268b76c7"></div>
+            <div class="chart-bar b2 xstyle-38bc9bd2"></div>
+            <div class="chart-year">45–54</div>
+          </div>
+          <div class="chart-bar-group">
+            <div class="chart-bar xstyle-ad1b7916"></div>
+            <div class="chart-bar b2 xstyle-1a4ff88c"></div>
+            <div class="chart-year">55–64</div>
+          </div>
+          <div class="chart-bar-group">
+            <div class="chart-bar xstyle-83ca52ef"></div>
+            <div class="chart-bar b2 xstyle-3a8bc583"></div>
+            <div class="chart-year">65+</div>
+          </div>
+        </div>
+        <div class="chart-legend">
+          <div class="chart-legend-item"><div class="clb xstyle-4f67ca57"></div> 2010</div>
+          <div class="chart-legend-item"><div class="clb xstyle-fd964389"></div> 2020</div>
+        </div>
+      </div>
+
+      <div class="task-tips">
+        <div class="tip-item"><i class="bi bi-lightbulb tip-icon"></i> Umumiy tendentsiyani birinchi jumlada ko'rsating</div>
+        <div class="tip-item"><i class="bi bi-lightbulb tip-icon"></i> Eng katta va eng kichik o'zgarishlarni solishtiring</div>
+        <div class="tip-item"><i class="bi bi-lightbulb tip-icon"></i> Aniq raqamlarni ishlating, lekin hammasini sanab bermang</div>
+        <div class="tip-item"><i class="bi bi-lightbulb tip-icon"></i> Shaxsiy fikr bildirish shart emas</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: EDITOR -->
+  <div class="editor-panel">
+    <!-- TOOLBAR -->
+    <div class="editor-toolbar">
+      <button class="tb-btn" title="Bold" data-ui-call="formatText" data-ui-args='["bold"]'><i class="bi bi-type-bold"></i></button>
+      <button class="tb-btn" title="Italic" data-ui-call="formatText" data-ui-args='["italic"]'><i class="bi bi-type-italic"></i></button>
+      <button class="tb-btn" title="Underline" data-ui-call="formatText" data-ui-args='["underline"]'><i class="bi bi-type-underline"></i></button>
+      <div class="tb-sep"></div>
+      <button class="tb-btn" title="Undo"><i class="bi bi-arrow-counterclockwise"></i></button>
+      <button class="tb-btn" title="Redo"><i class="bi bi-arrow-clockwise"></i></button>
+      <div class="tb-sep"></div>
+      <button class="tb-btn" title="Clear formatting"><i class="bi bi-eraser"></i></button>
+      <div class="tb-sep"></div>
+      <div class="font-size-btn tb-right">
+        <button data-ui-call="changeFontSize" data-ui-args='[-1]' class="xstyle-38583d31">−</button>
+        <span id="fsLabel">14</span>
+        <button data-ui-call="changeFontSize" data-ui-args='[1]' class="xstyle-38583d31">+</button>
+      </div>
+      <span class="autosave"><i class="bi bi-cloud-check"></i> Saqlandi 14:02</span>
+    </div>
+
+    <!-- TEXTAREA -->
+    <div class="editor-area">
+      <textarea class="writing-textarea" id="writingArea"
+        placeholder="Yozishni boshlang...&#10;&#10;Masalan: 'The bar chart illustrates the proportion of people across six age groups who used online banking in a European country in 2010 and 2020. Overall, usage increased significantly across all age groups, with the greatest growth observed among middle-aged adults...'"
+        data-ui-input-call="updateWordCount" data-ui-pass="this"></textarea>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="editor-footer">
+      <div class="word-count-wrap">
+        <div class="wc-track">
+          <div class="wc-fill wc-low xstyle-d2fba0f3" id="wcFill"></div>
+        </div>
+        <span class="wc-label low" id="wcLabel">0 so'z</span>
+        <span class="wc-target">Minimum: 150</span>
+      </div>
+      <span class="char-count" id="charCount">0 belgi</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Theme
+  (function(){
+    const t = localStorage.getItem('az-theme');
+    const d = window.matchMedia('(prefers-color-scheme:dark)').matches;
+    document.documentElement.setAttribute('data-theme', t ? t : d ? 'dark' : 'light');
+  })();
+  const html = document.documentElement;
+  function applyTheme(dark) {
+    html.setAttribute('data-theme', dark ? 'dark' : 'light');
+    document.getElementById('themeIcon').className = dark ? 'bi bi-sun' : 'bi bi-moon';
+    try { localStorage.setItem('az-theme', dark ? 'dark' : 'light'); } catch(_){}
+  }
+  const saved = localStorage.getItem('az-theme');
+  applyTheme(saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme:dark)').matches);
+  document.getElementById('themeBtn').addEventListener('click', () =>
+    applyTheme(html.getAttribute('data-theme') !== 'dark'));
+
+  // Timer
+  let secs = 58 * 60 + 22;
+  const timerEl = document.getElementById('timerVal');
+  setInterval(() => {
+    secs--;
+    if (secs < 0) { timerEl.textContent = '00:00'; return; }
+    const m = Math.floor(secs / 60), s = secs % 60;
+    timerEl.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+    if (secs <= 300) timerEl.classList.add('warn');
+  }, 1000);
+
+  // Word count
+  function updateWordCount(ta) {
+    const words = ta.value.trim() === '' ? [] : ta.value.trim().split(/\s+/);
+    const count = words.length;
+    const chars = ta.value.length;
+    const min = 150, ideal = 180;
+    const pct = Math.min(100, (count / ideal) * 100);
+    const fill = document.getElementById('wcFill');
+    const label = document.getElementById('wcLabel');
+    document.getElementById('charCount').textContent = chars + ' belgi';
+
+    fill.style.width = pct + '%';
+    label.textContent = count + ' so\'z';
+
+    if (count >= min) {
+      fill.className = 'wc-fill wc-ok';
+      label.className = 'wc-label ok';
+    } else if (count >= min * 0.7) {
+      fill.className = 'wc-fill wc-low';
+      label.className = 'wc-label low';
+    } else {
+      fill.className = 'wc-fill wc-low';
+      label.className = 'wc-label low';
+    }
+  }
+
+  // Font size
+  let fontSize = 14;
+  function changeFontSize(delta) {
+    fontSize = Math.max(11, Math.min(20, fontSize + delta));
+    document.getElementById('writingArea').style.fontSize = fontSize + 'px';
+    document.getElementById('fsLabel').textContent = fontSize;
+  }
+
+  // Task switching
+  const tasks = {
+    1: { title: 'Bar Chart Description', badge: '1', sub: 'Writing Task 1 — IELTS Academic', min: 150 },
+    2: { title: 'Essay — Argument Discussion', badge: '2', sub: 'Writing Task 2 — IELTS Academic', min: 250 }
+  };
+  function switchTask(btn, n) {
+    document.querySelectorAll('.task-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  function formatText(cmd) { document.execCommand(cmd, false, null); }
+  function submitExam() {
+    if (confirm('Yozish imtihonini topshirmoqchimisiz?')) window.location.href = 'exam-review.html';
+  }
+</script>
+  <script src="../assets/js/prototype-ui.js"></script>
+</body>
+</html>
+
