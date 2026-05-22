@@ -1,159 +1,298 @@
-{% extends "auth/base.html" %}
-{% load static %}
+{% load static humanize %}
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{{ course.title }} kursiga obuna checkout sahifasi.">
+  <script>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>{{ course.title }} - To'lov</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/foundation.css' %}">
+  <link rel="stylesheet" href="{% static 'css/components.css' %}">
+  <link rel="stylesheet" href="{% static 'css/billing.css' %}">
+  <link rel="stylesheet" href="{% static 'css/prototype-extracted.css' %}">
+</head>
+<body class="checkout-page">
+  <nav class="top-nav">
+    <div class="top-nav-inner">
+      <a class="logo" href="{% url 'home' %}" aria-label="{{ site_settings.brand_name|default:'AzureLMS' }}">
+        <div class="logo-mark">
+          {% if site_settings.logo_image %}
+            <img src="{{ site_settings.logo_image.url }}" alt="">
+          {% else %}
+            {{ site_settings.logo_mark_text|default:"AZ" }}
+          {% endif %}
+        </div>
+        <span class="logo-name">{{ site_settings.brand_name|default:"AzureLMS" }}</span>
+      </a>
+      <div class="nav-right">
+        <a class="checkout-back-link" href="{% url 'course_detail' course.id %}">
+          <i class="bi bi-arrow-left"></i>
+          Kursga qaytish
+        </a>
+        <span class="secure-badge"><i class="bi bi-shield-lock-fill"></i> Xavfsiz checkout</span>
+        <button class="theme-btn" id="themeBtn" type="button" aria-label="Tema">
+          <i class="bi bi-moon" id="themeIcon"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
 
-{% block title %}To'lov | {{ course.title }} | AzureLMS{% endblock %}
-{% block auth_shell_modifier %}auth-shell--checkout{% endblock %}
+  <div class="checkout-progress">
+    <div class="progress-inner">
+      <div class="progress-step done">
+        <div class="step-circle"><i class="bi bi-check"></i></div>
+        Kurs tanlandi
+      </div>
+      <div class="step-line done"></div>
+      <div class="progress-step active">
+        <div class="step-circle">2</div>
+        Tarif va to'lov
+      </div>
+      <div class="step-line"></div>
+      <div class="progress-step">
+        <div class="step-circle">3</div>
+        Tasdiqlash
+      </div>
+    </div>
+  </div>
 
-{% block extra_css %}
-  <link rel="stylesheet" href="{% static 'css/billing.css' %}?v=1">
-{% endblock %}
-
-{% block auth_topbar_back %}
-  <a class="auth-back" href="{% url 'course_detail' pk=course.id %}">
-    <i class="bi bi-arrow-left"></i><span>Kursga qaytish</span>
-  </a>
-{% endblock %}
-
-{% block auth_heading %}{{ course.title }}{% endblock %}
-{% block auth_lede %}Oylik obuna uchun karta raqamga to'lov qiling va kvitansiyani shu yerda yuklang. Admin tasdiqlagach access ochiladi.{% endblock %}
-
-{% block auth_content %}
-  {% if has_pending_receipt %}
-    <div class="auth-surface auth-alert auth-alert--info" role="status">
-      <p><i class="bi bi-hourglass-split"></i> Sizda allaqachon tasdiqlanmagan kvitansiya mavjud. Admin tasdiqlashini kutmoqdamiz.</p>
+  {% if messages %}
+    <div class="checkout-messages" role="status">
+      {% for message in messages %}
+        <div class="checkout-alert checkout-alert-{{ message.tags|default:'info' }}">
+          <i class="bi bi-info-circle"></i>
+          <span>{{ message }}</span>
+        </div>
+      {% endfor %}
     </div>
   {% endif %}
 
-  <form class="auth-surface checkout-form auth-checkout-form"
-        method="post"
-        enctype="multipart/form-data"
-        action="{% url 'cohorts:checkout' course_id=course.id %}">
+  <form class="checkout-wrap" method="post" enctype="multipart/form-data" id="checkoutForm" data-promo-url="{% url 'cohorts:checkout_promo_preview' course.id %}">
     {% csrf_token %}
 
-    <div class="auth-checkout-form-head">
-      <div>
-        <span>{{ course.title }}</span>
-        <strong>
-          {% if selected_plan %}{{ selected_plan.price|floatformat:0 }} so'm / {{ selected_plan.get_billing_period_display|default:"oy" }}{% else %}Tarif tanlanmagan{% endif %}
-        </strong>
-      </div>
-      <em>{% if has_pending_receipt %}Receipt pending{% else %}Receipt kutilmoqda{% endif %}</em>
-    </div>
-
-    {% if plans %}
-      <label class="auth-field">
-        <span class="auth-field-label">Tarifni tanlang</span>
-        <select class="auth-input" name="plan_id" required>
-          {% for plan in plans %}
-            <option value="{{ plan.id }}" {% if selected_plan and selected_plan.id == plan.id %}selected{% endif %}>
-              {{ plan.name }} — {{ plan.price|floatformat:0 }} so'm
-            </option>
-          {% endfor %}
-        </select>
-      </label>
-    {% endif %}
-
-    {% if site_settings.payment_card_number %}
-      <section class="auth-checkout-card-number" aria-label="To'lov kartasi">
-        <div>
-          <span>To'lov kartasi{% if site_settings.payment_card_holder %} — {{ site_settings.payment_card_holder }}{% endif %}</span>
-          <strong data-card-number>{{ site_settings.payment_card_number }}</strong>
+    <div class="form-panel">
+      <section class="form-card">
+        <div class="form-card-head">
+          <div class="form-card-head-icon icon-blue"><i class="bi bi-person"></i></div>
+          <div class="form-card-head-text">
+            <h2>Aloqa ma'lumotlari</h2>
+            <p>Chek holati shu akkaunt orqali kuzatiladi</p>
+          </div>
         </div>
-        <button type="button" data-copy-card aria-label="Karta raqamini nusxalash">
-          <i class="bi bi-copy"></i>
-        </button>
+        <div class="form-card-body">
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label" for="firstName">Ism</label>
+              <div class="field-wrap">
+                <i class="bi bi-person field-icon"></i>
+                <input class="field-input" type="text" id="firstName" value="{{ request.user.first_name|default:request.user.username }}" readonly>
+              </div>
+            </div>
+            <div class="field">
+              <label class="field-label" for="lastName">Familya</label>
+              <div class="field-wrap">
+                <i class="bi bi-person field-icon"></i>
+                <input class="field-input" type="text" id="lastName" value="{{ request.user.last_name }}" placeholder="Kiritilmagan" readonly>
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="email">Email</label>
+            <div class="field-wrap">
+              <i class="bi bi-envelope field-icon"></i>
+              <input class="field-input" type="email" id="email" value="{{ request.user.email }}" placeholder="email@example.com" readonly>
+            </div>
+          </div>
+          <div class="checkout-note">
+            <i class="bi bi-lightning-charge"></i>
+            <span>Kursga yozilish obuna tarifi orqali ochiladi. Admin chekni tasdiqlagandan keyin darslar aktiv bo'ladi.</span>
+          </div>
+        </div>
       </section>
-    {% endif %}
 
-    <label class="auth-field">
-      <span class="auth-field-label">Promo kod (ixtiyoriy)</span>
-      <input class="auth-input" type="text" name="promo_code"
-             value="{{ submitted_promo_code|default:'' }}"
-             placeholder="PROMO2026">
-    </label>
+      <section class="form-card">
+        <div class="form-card-head">
+          <div class="form-card-head-icon icon-blue"><i class="bi bi-wallet2"></i></div>
+          <div class="form-card-head-text">
+            <h2>To'lov usuli</h2>
+            <p>To'lovdan so'ng chek rasmni shu yerga yuklang</p>
+          </div>
+        </div>
+        <div class="form-card-body">
+          <div class="pay-methods" aria-label="To'lov usullari">
+            <button class="pay-method selected" type="button" data-method="card">
+              <span class="pay-method-icon"><i class="bi bi-credit-card"></i></span>
+              <span class="pay-method-name">Karta</span>
+            </button>
+            <button class="pay-method" type="button" data-method="payme">
+              <span class="pay-method-icon"><i class="bi bi-phone"></i></span>
+              <span class="pay-method-name">Payme</span>
+            </button>
+            <button class="pay-method" type="button" data-method="click">
+              <span class="pay-method-icon"><i class="bi bi-cursor"></i></span>
+              <span class="pay-method-name">Click</span>
+            </button>
+            <button class="pay-method" type="button" data-method="bank">
+              <span class="pay-method-icon"><i class="bi bi-bank"></i></span>
+              <span class="pay-method-name">Bank</span>
+            </button>
+          </div>
 
-    {% if promo_quote %}
-      <div class="auth-status-line auth-status-line--success">
-        <i class="bi bi-tag"></i>
-        <p>Promo qo'llanildi: <strong>{{ promo_quote.final_amount|floatformat:0 }} so'm</strong> (chegirma {{ promo_quote.discount_amount|floatformat:0 }} so'm)</p>
+          <div class="payment-instruction">
+            <div class="payment-instruction-icon"><i class="bi bi-receipt"></i></div>
+            <div>
+              <strong>To'lov chekini yuklang</strong>
+              <p>Hozirgi real oqim manual tasdiqlash bilan ishlaydi: tanlangan tarif bo'yicha to'lov qiling, keyin chek rasmini yuboring.</p>
+            </div>
+          </div>
+
+          {% if has_pending_receipt %}
+            <div class="checkout-alert checkout-alert-warning">
+              <i class="bi bi-hourglass-split"></i>
+              <span>Sizda tasdiqlanishi kutilayotgan chek bor. Admin javobini kuting.</span>
+            </div>
+          {% else %}
+            <div class="field">
+              <label class="field-label" for="receiptImage">To'lov cheki</label>
+              <label class="receipt-upload" for="receiptImage">
+                <span class="receipt-upload-icon"><i class="bi bi-cloud-arrow-up"></i></span>
+                <span>
+                  <strong id="receiptFileName">Rasm tanlang</strong>
+                  <small>PNG yoki JPG formatidagi chek fayli</small>
+                </span>
+              </label>
+              <input class="receipt-input" type="file" id="receiptImage" name="receipt_image" accept="image/png,image/jpeg,image/webp" required>
+            </div>
+          {% endif %}
+
+          <div class="security-note">
+            <i class="bi bi-shield-check-fill"></i>
+            Chek admin tomonidan tekshiriladi, tasdiqlangandan keyin obuna muddati boshlanadi.
+          </div>
+
+          <div class="terms-row">
+            <input type="checkbox" class="terms-checkbox" id="termsCheck" checked required>
+            <label class="terms-text" for="termsCheck">
+              <a href="{% url 'terms_of_service' %}">Foydalanish shartlari</a> va
+              <a href="{% url 'privacy_policy' %}">Maxfiylik siyosatini</a> qabul qilaman.
+            </label>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <aside class="order-summary">
+      <div class="summary-head"><h2>Buyurtma tafsiloti</h2></div>
+
+      <div class="course-preview">
+        <div class="course-thumb course-thumb-img" style="background-image: url('{{ course.cover_media_url }}');">
+          <span>{{ course.title|slice:":2"|upper }}</span>
+        </div>
+        <div class="course-info">
+          <div class="course-name">{{ course.title }}</div>
+          <div class="course-meta">{{ course.get_level_display }} - {{ course.lessons_count }} dars - {{ course.duration }} soat</div>
+          <div class="course-badges">
+            <span class="badge-xs bx-blue">Obuna</span>
+            <span class="badge-xs bx-green">Sertifikat</span>
+          </div>
+        </div>
       </div>
-    {% endif %}
 
-    <div class="checkout-form-grid">
-      <label class="checkout-field">
-        <span>Davr</span>
-        <input class="auth-input" type="text"
-               value="{{ period_start|date:'d.m.Y' }} — {{ period_end|date:'d.m.Y' }}"
-               readonly>
-      </label>
-      <label class="checkout-field">
-        <span>To'lov sanasi</span>
-        <input class="auth-input" type="date" name="payment_date" value="{{ period_start|date:'Y-m-d' }}">
-      </label>
-    </div>
+      <div class="plan-selector">
+        <div class="plan-label">Avval tarifni tanlang</div>
+        {% for plan in plans %}
+          <label class="plan-option{% if selected_plan and plan.id == selected_plan.id %} selected{% endif %}" data-price="{{ plan.price|floatformat:0 }}" data-plan-name="{{ plan.name }}" data-plan-option>
+            <input class="plan-input" type="radio" name="plan_id" value="{{ plan.id }}" {% if selected_plan and plan.id == selected_plan.id %}checked{% endif %} required>
+            <span class="plan-radio" aria-hidden="true"></span>
+            <span class="plan-info">
+              <span class="plan-name">{{ plan.name }}</span>
+              <span class="plan-desc">{{ plan.description|striptags|truncatechars:64 }}</span>
+            </span>
+            <span>
+              <span class="plan-price">{{ plan.price|floatformat:0|intcomma }} so'm</span>
+              {% if plan.is_popular %}<span class="plan-save">Ommabop</span>{% endif %}
+            </span>
+          </label>
+        {% endfor %}
+      </div>
 
-    <label class="checkout-upload auth-checkout-upload" for="receipt-file" data-upload-label>
-      <i class="bi bi-cloud-arrow-up"></i>
-      <span>
-        <strong>Kvitansiyani yuklang</strong>
-        <em>PNG, JPG yoki WEBP format</em>
-      </span>
-      <input id="receipt-file" type="file" name="receipt_image" accept=".png,.jpg,.jpeg,.webp" required>
-    </label>
+      <div class="promo-wrap">
+        <input class="promo-input" type="text" id="promoInput" name="promo_code" value="{{ submitted_promo_code }}" placeholder="Promo-kod">
+        <button class="promo-btn" type="button" id="promoApplyBtn">Qo'llash</button>
+      </div>
+      <div class="promo-feedback" id="promoFeedback" aria-live="polite"></div>
 
-    <div class="checkout-submit-row">
-      <button class="auth-action auth-action--primary" type="submit" {% if has_pending_receipt %}disabled{% endif %}>
-        Kvitansiyani yuborish
+      <div class="price-rows" id="priceRows">
+        <div class="price-row">
+          <span class="price-row-label" id="pricePlanLabel">Tarif narxi</span>
+          <span class="price-row-val" id="basePrice">
+            {% if promo_quote %}{{ promo_quote.base_amount|floatformat:0|intcomma }}{% else %}{{ selected_plan.price|floatformat:0|intcomma }}{% endif %} so'm
+          </span>
+        </div>
+        <div class="price-row{% if not promo_quote %} is-hidden{% endif %}" id="promoRow">
+          <span class="price-row-label">Promo chegirma</span>
+          <span class="price-row-val discount" id="promoDiscount">
+            -{% if promo_quote %}{{ promo_quote.discount_amount|floatformat:0|intcomma }}{% else %}0{% endif %} so'm
+          </span>
+        </div>
+        <div class="price-divider"></div>
+        <div class="price-total-row">
+          <span class="price-total-label">Jami</span>
+          <div>
+            <div class="price-total-val" id="totalPrice">
+              {% if promo_quote %}{{ promo_quote.final_amount|floatformat:0|intcomma }}{% else %}{{ selected_plan.price|floatformat:0|intcomma }}{% endif %} so'm
+            </div>
+            <div class="price-vat">Oylik obuna</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="checkout-period">
+        <div><span>Boshlanish</span><strong>{{ period_start|date:"d M Y" }}</strong></div>
+        <div><span>Tugash</span><strong>{{ period_end|date:"d M Y" }}</strong></div>
+      </div>
+
+      <button class="btn-pay" id="payBtn" type="submit" {% if has_pending_receipt %}disabled{% endif %}>
+        <i class="bi bi-lock-fill lock-icon"></i>
+        <span id="payBtnText">{% if has_pending_receipt %}Tasdiq kutilmoqda{% else %}Chekni yuborish{% endif %}</span>
       </button>
-      <a class="auth-action auth-action--secondary" href="{% url 'course_detail' pk=course.id %}">
-        Bekor qilish
-      </a>
-    </div>
+
+      <div class="guarantees">
+        <div class="guarantee-row">
+          <i class="bi bi-shield-check-fill"></i>
+          Admin tasdiqlagach kurs avtomatik ochiladi
+        </div>
+        <div class="guarantee-row">
+          <i class="bi bi-calendar-check-fill"></i>
+          30 kunlik obuna muddati hisoblanadi
+        </div>
+        <div class="guarantee-row">
+          <i class="bi bi-award-fill"></i>
+          Exam va sertifikat flow saqlanadi
+        </div>
+        <div class="guarantee-row">
+          <i class="bi bi-headset"></i>
+          Muammo bo'lsa qo'llab-quvvatlash yordam beradi
+        </div>
+      </div>
+    </aside>
   </form>
-{% endblock %}
 
-{% block auth_foot_label %}Authenticated payment step{% endblock %}
-
-{% block visual_chip_top %}plan{% endblock %}
-{% block visual_chip_right %}receipt{% endblock %}
-{% block visual_chip_bottom %}access{% endblock %}
-{% block visual_badge_a %}01{% endblock %}
-{% block visual_badge_b %}OK{% endblock %}
-{% block visual_note %}1) Karta raqamga o'tkazma qiling • 2) Kvitansiyani yuklang • 3) Admin tasdiqlagach access ochiladi.{% endblock %}
-
-{% block extra_js %}
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      var copyBtn = document.querySelector('[data-copy-card]');
-      var cardEl = document.querySelector('[data-card-number]');
-      if (copyBtn && cardEl) {
-        copyBtn.addEventListener('click', function () {
-          var text = cardEl.textContent.replace(/\s+/g, '');
-          if (navigator.clipboard) {
-            navigator.clipboard.writeText(text);
-          }
-          var icon = copyBtn.querySelector('i');
-          if (icon) {
-            icon.classList.remove('bi-copy');
-            icon.classList.add('bi-check2');
-            setTimeout(function () {
-              icon.classList.remove('bi-check2');
-              icon.classList.add('bi-copy');
-            }, 1500);
-          }
-        });
-      }
-
-      var fileInput = document.getElementById('receipt-file');
-      var uploadLabel = document.querySelector('[data-upload-label] strong');
-      if (fileInput && uploadLabel) {
-        var originalText = uploadLabel.textContent;
-        fileInput.addEventListener('change', function () {
-          uploadLabel.textContent = fileInput.files.length
-            ? fileInput.files[0].name
-            : originalText;
-        });
-      }
-    });
-  </script>
-{% endblock %}
+  <script src="{% static 'js/prototype-ui.js' %}"></script>
+  <script src="{% static 'js/billing.js' %}"></script>
+</body>
+</html>

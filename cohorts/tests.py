@@ -40,6 +40,8 @@ TEST_TEMPLATES = [
                     "django.template.loaders.locmem.Loader",
                     {
                         "cohorts/checkout.html": "Checkout page",
+                        "cohorts/checkout_pending.html": "Pending receipt {{ receipt.id }}",
+                        "cohorts/checkout_success.html": "Success receipt {{ receipt.id }}",
                     },
                 )
             ],
@@ -110,7 +112,12 @@ class CheckoutPlanSelectionTests(TestCase):
             },
         )
 
-        self.assertRedirects(response, reverse("cohorts:checkout_success"), fetch_redirect_response=False)
+        receipt = PaymentReceipt.objects.get(enrollment__student=self.student)
+        self.assertRedirects(
+            response,
+            reverse("cohorts:checkout_pending", args=[receipt.id]),
+            fetch_redirect_response=False,
+        )
 
         enrollment = Enrollment.objects.get(student=self.student, cohort=self.cohort)
         receipt = PaymentReceipt.objects.get(enrollment=enrollment)
@@ -154,8 +161,12 @@ class CheckoutPlanSelectionTests(TestCase):
             },
         )
 
-        self.assertRedirects(response, reverse("cohorts:checkout_success"), fetch_redirect_response=False)
         receipt = PaymentReceipt.objects.get()
+        self.assertRedirects(
+            response,
+            reverse("cohorts:checkout_pending", args=[receipt.id]),
+            fetch_redirect_response=False,
+        )
         redemption = PromoRedemption.objects.get(payment_receipt=receipt)
 
         self.assertEqual(str(receipt.base_amount), "149000.00")
@@ -169,6 +180,34 @@ class CheckoutPlanSelectionTests(TestCase):
         redemption.refresh_from_db()
 
         self.assertEqual(redemption.status, PromoRedemption.STATUS_APPLIED)
+
+    def test_checkout_receipt_status_pages_follow_verification_state(self):
+        self.client.post(
+            self.checkout_url,
+            {
+                "plan_id": str(self.plan_standard.id),
+                "receipt_image": self._fake_receipt(),
+            },
+        )
+        receipt = PaymentReceipt.objects.get()
+
+        pending_url = reverse("cohorts:checkout_pending", args=[receipt.id])
+        success_url = reverse("cohorts:checkout_success", args=[receipt.id])
+
+        pending_response = self.client.get(pending_url)
+        self.assertContains(pending_response, f"Pending receipt {receipt.id}")
+
+        success_response = self.client.get(success_url)
+        self.assertRedirects(success_response, pending_url, fetch_redirect_response=False)
+
+        receipt.is_verified = True
+        receipt.save()
+
+        pending_response = self.client.get(pending_url)
+        self.assertRedirects(pending_response, success_url, fetch_redirect_response=False)
+
+        success_response = self.client.get(success_url)
+        self.assertContains(success_response, f"Success receipt {receipt.id}")
 
     def test_checkout_promo_preview_endpoint_returns_discount_breakdown(self):
         campaign = PromoCampaign.objects.create(
@@ -257,6 +296,26 @@ class CheckoutResolutionServiceTests(TestCase):
         self.assertFalse(created)
         self.assertEqual(enrollment, existing)
         self.assertEqual(checkout_cohort, self.default_cohort)
+
+    def test_checkout_resolution_creates_default_cohort_when_course_has_no_group(self):
+        course_without_group = Course.objects.create(
+            title="Subscription Only Course",
+            description="No cohort yet",
+            instructor=self.teacher,
+            level="beginner",
+        )
+
+        enrollment, created, checkout_cohort = resolve_checkout_enrollment(
+            student=self.student,
+            course=course_without_group,
+        )
+
+        self.assertTrue(created)
+        self.assertEqual(enrollment.cohort, checkout_cohort)
+        self.assertEqual(checkout_cohort.course, course_without_group)
+        self.assertTrue(checkout_cohort.is_active)
+        self.assertTrue(checkout_cohort.is_checkout_default)
+        self.assertEqual(checkout_cohort.start_date, timezone.localdate())
 
 
 class EnrollmentInvariantTests(TestCase):

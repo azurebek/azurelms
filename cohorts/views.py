@@ -32,17 +32,19 @@ def checkout_view(request, course_id):
         messages.error(request, "Hozircha obuna tariflari sozlanmagan. Iltimos, birozdan so'ng qayta urinib ko'ring.")
         return redirect('subscriptions:pricing')
 
-    selected_plan = enrollment.plan if enrollment.plan_id else plans.first()
+    requested_plan_id = request.POST.get("plan_id") or request.GET.get("plan_id")
+    requested_plan = plans.filter(id=requested_plan_id).first() if requested_plan_id else None
+    selected_plan = requested_plan or (enrollment.plan if enrollment.plan_id else plans.first())
     if selected_plan and not plans.filter(id=selected_plan.id).exists():
         selected_plan = plans.first()
     submitted_promo_code = (request.POST.get("promo_code") or request.GET.get("promo_code") or "").strip()
-    
+
     # Check if there is already a pending receipt
     has_pending_receipt = PaymentReceipt.objects.filter(
-        enrollment=enrollment, 
+        enrollment=enrollment,
         is_verified=False
     ).exists()
-    
+
     # Calculate period_start and period_end for this payment
     today = timezone.localdate()
     if enrollment.status == 'active' and enrollment.next_payment_deadline and enrollment.next_payment_deadline > today:
@@ -51,7 +53,7 @@ def checkout_view(request, course_id):
     else:
         # Start immediately
         tentative_start = today
-        
+
     tentative_end = tentative_start + datetime.timedelta(days=30)
     promo_quote = None
     if submitted_promo_code and selected_plan:
@@ -64,7 +66,7 @@ def checkout_view(request, course_id):
             )
         except PromoValidationError:
             promo_quote = None
-    
+
     if request.method == 'POST':
         selected_plan = plans.filter(id=request.POST.get('plan_id')).first()
         if not selected_plan:
@@ -112,14 +114,14 @@ def checkout_view(request, course_id):
         if has_pending_receipt:
             messages.error(request, "Sizda allaqachon tasdiqlanmagan to'lov cheki mavjud. Iltimos, administrator tasdiqlashini kuting.")
             return redirect('cohorts:checkout', course_id=course.id)
-            
+
         # Chekni saqlaymiz
         receipt_image = request.FILES.get('receipt_image')
-        
+
         if not receipt_image:
             messages.error(request, "Iltimos, to'lov chek rasmini yuklang.")
             return render(request, 'cohorts/checkout.html', {
-                'course': course, 
+                'course': course,
                 'enrollment': enrollment,
                 'checkout_cohort': checkout_cohort,
                 'enrollment_created': enrollment_created,
@@ -137,7 +139,7 @@ def checkout_view(request, course_id):
             enrollment.save(update_fields=['plan'])
 
         try:
-            create_checkout_receipt_with_promo(
+            receipt, _, _ = create_checkout_receipt_with_promo(
                 enrollment=enrollment,
                 plan=selected_plan,
                 receipt_image=receipt_image,
@@ -160,11 +162,11 @@ def checkout_view(request, course_id):
                 'period_start': tentative_start,
                 'period_end': tentative_end
             })
-        
-        return redirect('cohorts:checkout_success')
+
+        return redirect('cohorts:checkout_pending', receipt_id=receipt.id)
 
     return render(request, 'cohorts/checkout.html', {
-        'course': course, 
+        'course': course,
         'enrollment': enrollment,
         'checkout_cohort': checkout_cohort,
         'enrollment_created': enrollment_created,
@@ -177,9 +179,50 @@ def checkout_view(request, course_id):
         'period_end': tentative_end
     })
 
+def _get_user_receipt_or_404(request, receipt_id):
+    return get_object_or_404(
+        PaymentReceipt.objects.select_related(
+            "enrollment",
+            "enrollment__cohort",
+            "enrollment__cohort__course",
+            "enrollment__plan",
+        ),
+        id=receipt_id,
+        enrollment__student=request.user,
+    )
+
+
 @login_required
-def checkout_success_view(request):
-    return render(request, 'cohorts/checkout_success.html')
+def checkout_pending_view(request, receipt_id):
+    receipt = _get_user_receipt_or_404(request, receipt_id)
+    if receipt.is_verified:
+        return redirect("cohorts:checkout_success", receipt_id=receipt.id)
+    return render(request, "cohorts/checkout_pending.html", {"receipt": receipt})
+
+
+@login_required
+def checkout_success_view(request, receipt_id=None):
+    if receipt_id is None:
+        receipt = (
+            PaymentReceipt.objects.select_related(
+                "enrollment",
+                "enrollment__cohort",
+                "enrollment__cohort__course",
+                "enrollment__plan",
+            )
+            .filter(enrollment__student=request.user, is_verified=True)
+            .order_by("-submitted_at", "-id")
+            .first()
+        )
+        if not receipt:
+            return redirect("subscriptions")
+    else:
+        receipt = _get_user_receipt_or_404(request, receipt_id)
+
+    if not receipt.is_verified:
+        return redirect("cohorts:checkout_pending", receipt_id=receipt.id)
+
+    return render(request, "cohorts/checkout_success.html", {"receipt": receipt})
 
 
 @login_required

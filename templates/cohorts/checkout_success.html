@@ -1,39 +1,147 @@
-{% extends "auth/base.html" %}
+{% load static humanize %}
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>To'lov tasdiqlandi - AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/billing.css' %}">
+  <link rel="stylesheet" href="{% static 'css/billing-status.css' %}">
+</head>
+<body class="checkout-status-page checkout-success-page">
+  <nav class="top-nav">
+    <div class="top-nav-inner">
+      <a class="logo" href="{% url 'home' %}" aria-label="{{ site_settings.brand_name|default:'AzureLMS' }}">
+        <div class="logo-mark">{{ site_settings.logo_mark_text|default:"AZ" }}</div>
+        <span class="logo-name">{{ site_settings.brand_name|default:"AzureLMS" }}</span>
+      </a>
+      <div class="nav-right">
+        <span class="secure-badge"><i class="bi bi-shield-check-fill"></i> To'lov tasdiqlandi</span>
+        <button class="theme-btn" id="themeBtn" type="button" aria-label="Tema">
+          <i class="bi bi-moon" id="themeIcon"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
 
-{% block title %}Kvitansiya qabul qilindi | AzureLMS{% endblock %}
-{% block auth_shell_modifier %}auth-shell--checkout auth-shell--success{% endblock %}
+  <div class="checkout-progress">
+    <div class="progress-inner status-progress">
+      <div class="progress-step done"><div class="step-circle"><i class="bi bi-check"></i></div>Kurs tanlash</div>
+      <div class="step-line done"></div>
+      <div class="progress-step done"><div class="step-circle"><i class="bi bi-check"></i></div>To'lov</div>
+      <div class="step-line done"></div>
+      <div class="progress-step active success-step"><div class="step-circle"><i class="bi bi-check"></i></div>Tasdiqlash</div>
+    </div>
+  </div>
 
-{% block auth_topbar_back %}
-  <a class="auth-back" href="{% url 'dashboard' %}">
-    <i class="bi bi-arrow-left"></i><span>Dashboardga qaytish</span>
-  </a>
-{% endblock %}
+  <main class="success-wrap">
+    <section class="hero-card status-hero">
+      <div class="success-icon-wrap"><i class="bi bi-check-circle-fill"></i></div>
+      <h1 class="hero-title">To'lovingiz qabul qilindi!</h1>
+      <p class="hero-sub">
+        {{ receipt.enrollment.cohort.course.title }} kursiga kirish faollashtirildi.
+        Obuna muddati <strong>{{ receipt.period_end|date:"d M Y"|default:"30 kun" }}</strong> gacha amal qiladi.
+      </p>
+      <span class="order-id-badge success-order"><i class="bi bi-hash"></i> AZ-{{ receipt.submitted_at|date:"Y" }}-{{ receipt.id }}</span>
+    </section>
 
-{% block auth_heading %}Kvitansiya qabul qilindi{% endblock %}
-{% block auth_lede %}Yuborilgan kvitansiya admin tomonidan tekshiriladi. Tasdiqlangach kurs muhitiga to'liq access ochiladi.{% endblock %}
-
-{% block auth_content %}
-  <div class="auth-surface auth-form-stack">
-    <div class="auth-status-line auth-status-line--success">
-      <i class="bi bi-check2-circle"></i>
-      <div>
-        <strong>Yuborildi</strong>
-        <p>Receipt verification queue'ga tushdi. Odatda admin tasdiqlash uchun bir necha soat yetadi.</p>
+    <div class="status-info-row">
+      <div class="info-chip">
+        <div class="info-chip-icon ic-green"><i class="bi bi-calendar-check"></i></div>
+        <div class="info-chip-text">
+          <span>Faollashtirildi</span>
+          <strong>
+            {% if receipt.enrollment.last_payment_date %}
+              {{ receipt.enrollment.last_payment_date|date:"d M Y" }}
+            {% else %}
+              {{ receipt.submitted_at|date:"d M Y" }}
+            {% endif %}
+          </strong>
+        </div>
+      </div>
+      <div class="info-chip">
+        <div class="info-chip-icon ic-blue"><i class="bi bi-shield-check-fill"></i></div>
+        <div class="info-chip-text"><span>Holat</span><strong>To'landi</strong></div>
+      </div>
+      <div class="info-chip">
+        <div class="info-chip-icon ic-amber"><i class="bi bi-clock-history"></i></div>
+        <div class="info-chip-text"><span>Amal qilishi</span><strong>{{ receipt.period_end|date:"d M Y"|default:"30 kun" }}</strong></div>
       </div>
     </div>
 
-    <div class="auth-actions">
-      <a class="auth-action auth-action--primary" href="{% url 'dashboard' %}">Dashboardga o'tish</a>
-      <a class="auth-action auth-action--secondary" href="{% url 'subscriptions' %}">To'lovlar tarixi</a>
+    <section class="order-card">
+      <div class="order-card-head">
+        <h3><i class="bi bi-receipt"></i> Buyurtma tafsiloti</h3>
+        {% if receipt.receipt_image %}
+          <a href="{{ receipt.receipt_image.url }}" class="download-link" target="_blank" rel="noopener">
+            <i class="bi bi-download"></i> Chekni ko'rish
+          </a>
+        {% endif %}
+      </div>
+      <div class="course-row">
+        <div class="course-thumb">{{ receipt.enrollment.cohort.course.title|slice:":2"|upper }}</div>
+        <div class="course-info">
+          <div class="course-name">{{ receipt.enrollment.cohort.course.title }}</div>
+          <div class="course-meta">{{ receipt.enrollment.cohort.course.get_level_display }} - {{ receipt.enrollment.plan.name|default:"Obuna" }}</div>
+          <div><span class="badge-xs bx-blue">Obuna</span> <span class="badge-xs bx-green">Sertifikat</span></div>
+        </div>
+        <div class="course-plan-cell">
+          <div class="course-plan-badge">{{ receipt.enrollment.plan.name|default:"Obuna" }}</div>
+          <div class="course-plan-sub">Kursga kirish faollashdi</div>
+        </div>
+      </div>
+      <div class="price-section">
+        <div class="price-row"><span class="price-row-label">Tarif narxi</span><span class="price-row-val">{{ receipt.base_amount|floatformat:0|intcomma }} so'm</span></div>
+        {% if receipt.discount_amount %}
+          <div class="price-row"><span class="price-row-label">Chegirma{% if receipt.promo_code_snapshot %} ({{ receipt.promo_code_snapshot }}){% endif %}</span><span class="price-row-val discount">-{{ receipt.discount_amount|floatformat:0|intcomma }} so'm</span></div>
+        {% endif %}
+        <div class="price-divider"></div>
+        <div class="price-total-row">
+          <span class="price-total-label">Jami to'landi</span>
+          <div class="price-paid-cell">
+            <div class="price-total-val">{{ receipt.amount|floatformat:0|intcomma }} so'm</div>
+            <div class="price-paid-tag"><i class="bi bi-check-circle-fill"></i> To'landi</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="next-card">
+      <div class="next-card-head"><h3><i class="bi bi-lightning-charge-fill"></i> Keyingi qadamlar</h3></div>
+      <div class="next-steps">
+        <a href="{% url 'course_study' receipt.enrollment.cohort.course.id %}" class="next-step">
+          <div class="step-num">1</div>
+          <div class="step-body"><div class="step-title">Birinchi darsni boshlang</div><div class="step-desc">Kurs muhiti ochildi, endi o'qishni davom ettirish mumkin.</div></div>
+          <i class="bi bi-chevron-right step-arrow"></i>
+        </a>
+        <a href="{% url 'subscriptions' %}" class="next-step">
+          <div class="step-num">2</div>
+          <div class="step-body"><div class="step-title">Obuna holatini ko'ring</div><div class="step-desc">To'lov tarixi va keyingi muddat /subscriptions/ sahifasida.</div></div>
+          <i class="bi bi-chevron-right step-arrow"></i>
+        </a>
+      </div>
+    </section>
+
+    <div class="cta-row">
+      <a href="{% url 'course_study' receipt.enrollment.cohort.course.id %}" class="btn-primary"><i class="bi bi-play-circle-fill"></i> O'qishni boshlash</a>
+      <a href="{% url 'dashboard' %}" class="btn-secondary"><i class="bi bi-grid"></i> Dashboard</a>
+      <a href="{% url 'courses' %}" class="btn-secondary"><i class="bi bi-search"></i> Boshqa kurslar</a>
     </div>
-  </div>
-{% endblock %}
+  </main>
 
-{% block auth_foot_label %}Receipt submitted{% endblock %}
-
-{% block visual_chip_top %}plan{% endblock %}
-{% block visual_chip_right %}receipt{% endblock %}
-{% block visual_chip_bottom %}review{% endblock %}
-{% block visual_badge_a %}OK{% endblock %}
-{% block visual_badge_b %}24h{% endblock %}
-{% block visual_note %}Tasdiqlanganidan keyin avtomatik xabar yuboriladi va access faollashadi.{% endblock %}
+  <script src="{% static 'js/billing.js' %}"></script>
+</body>
+</html>

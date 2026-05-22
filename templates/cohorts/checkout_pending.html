@@ -1,0 +1,140 @@
+{% load static humanize %}
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{{ receipt.enrollment.cohort.course.title }} to'lov cheki ko'rib chiqilmoqda.">
+  <script>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>To'lov ko'rib chiqilmoqda - AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/billing.css' %}">
+  <link rel="stylesheet" href="{% static 'css/billing-status.css' %}">
+</head>
+<body class="checkout-status-page">
+  <nav class="top-nav status-nav">
+    <div class="top-nav-inner">
+      <a class="logo" href="{% url 'home' %}">
+        <div class="logo-mark">{{ site_settings.logo_mark_text|default:"AZ" }}</div>
+        <span class="logo-name">{{ site_settings.brand_name|default:"AzureLMS" }}</span>
+      </a>
+      <button class="theme-btn" id="themeBtn" type="button" aria-label="Tema">
+        <i class="bi bi-moon" id="themeIcon"></i>
+      </button>
+    </div>
+  </nav>
+
+  <div class="checkout-progress">
+    <div class="progress-inner status-progress">
+      <div class="progress-step done"><div class="step-circle"><i class="bi bi-check"></i></div>Kurs tanlash</div>
+      <div class="step-line done"></div>
+      <div class="progress-step done"><div class="step-circle"><i class="bi bi-check"></i></div>To'lov</div>
+      <div class="step-line amber"></div>
+      <div class="progress-step active pending-step"><div class="step-circle"><i class="bi bi-hourglass-split"></i></div>Tasdiqlash</div>
+    </div>
+  </div>
+
+  <main class="pending-wrap">
+    <section class="hero-card status-hero">
+      <div class="pending-icon-wrap"><i class="bi bi-hourglass-split"></i></div>
+      <h1 class="hero-title">Chekingiz qabul qilindi</h1>
+      <p class="hero-sub">
+        To'lov cheki muvaffaqiyatli yuklandi. Administrator ko'rib chiqqandan so'ng
+        kursga kirishingiz <strong>avtomatik faollashtiriladi</strong>.
+      </p>
+      <span class="order-id-badge"><i class="bi bi-hash"></i> AZ-{{ receipt.submitted_at|date:"Y" }}-{{ receipt.id }}</span>
+    </section>
+
+    <section class="status-card">
+      <div class="status-card-head"><h3><i class="bi bi-activity"></i> Holat</h3></div>
+      <div class="timeline">
+        <div class="tl-step done">
+          <div class="tl-dot"><i class="bi bi-check"></i></div>
+          <div class="tl-body">
+            <div class="tl-title">Buyurtma yaratildi</div>
+            <div class="tl-time">{{ receipt.submitted_at|date:"d M Y, H:i" }}</div>
+            <div class="tl-desc">{{ receipt.enrollment.plan.name|default:"Obuna" }} tarifi tanlandi.</div>
+          </div>
+        </div>
+        <div class="tl-step done">
+          <div class="tl-dot"><i class="bi bi-check"></i></div>
+          <div class="tl-body">
+            <div class="tl-title">Chek yuklandi</div>
+            <div class="tl-time">{{ receipt.submitted_at|date:"d M Y, H:i" }}</div>
+            <div class="tl-desc">To'lov cheki muvaffaqiyatli qabul qilindi.</div>
+            <div class="receipt-chip">
+              <i class="bi bi-file-earmark-image"></i>
+              <div>
+                <div class="receipt-chip-name">Chek #{{ receipt.id }}</div>
+                <div class="receipt-chip-size">{{ receipt.amount|floatformat:0|intcomma }} so'm</div>
+              </div>
+              {% if receipt.receipt_image %}
+                <a class="receipt-view-btn" href="{{ receipt.receipt_image.url }}" target="_blank" rel="noopener">Ko'rish</a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        <div class="tl-step active">
+          <div class="tl-dot"><i class="bi bi-hourglass-split"></i></div>
+          <div class="tl-body">
+            <div class="tl-title">Administrator ko'rib chiqmoqda</div>
+            <div class="tl-time">Odatda 1-4 soat ichida</div>
+            <div class="tl-desc">Tasdiqlangach status /subscriptions/ sahifasida To'landi bo'lib ko'rinadi.</div>
+          </div>
+        </div>
+        <div class="tl-step muted">
+          <div class="tl-dot">4</div>
+          <div class="tl-body">
+            <div class="tl-title">Kursga kirish faollashtiriladi</div>
+            <div class="tl-time">Tasdiqlanganidan so'ng darhol</div>
+            <div class="tl-desc">Kurs va obuna muddati avtomatik ochiladi.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="order-mini">
+      <div class="order-mini-head"><i class="bi bi-bag-check"></i> Buyurtma tafsiloti</div>
+      <div class="order-mini-body">
+        <div class="course-thumb-sm">{{ receipt.enrollment.cohort.course.title|slice:":2"|upper }}</div>
+        <div class="course-info-sm">
+          <div class="course-name-sm">{{ receipt.enrollment.cohort.course.title }}</div>
+          <div class="course-meta-sm">{{ receipt.enrollment.cohort.course.get_level_display }} - {{ receipt.enrollment.plan.name|default:"Obuna" }}</div>
+        </div>
+        <div class="order-price-cell">
+          <div class="course-price-sm">{{ receipt.amount|floatformat:0|intcomma }} so'm</div>
+          <div class="price-pending-tag"><i class="bi bi-hourglass-split"></i> Kutilmoqda</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="info-card">
+      <div class="info-card-head"><i class="bi bi-info-circle-fill"></i> Nima qilish kerak?</div>
+      <div class="info-list">
+        <div class="info-row"><div class="info-dot"></div><div class="info-text"><strong>Hozircha hech narsa qilmang</strong> - admin chekni ko'rib chiqadi.</div></div>
+        <div class="info-row"><div class="info-dot"></div><div class="info-text"><strong>/subscriptions/ sahifasini kuzating</strong> - tasdiqlangach status linkli To'landi bo'ladi.</div></div>
+        <div class="info-row"><div class="info-dot"></div><div class="info-text">Agar chek noto'g'ri bo'lsa, admin orqali qayta yuborish kerak bo'ladi.</div></div>
+      </div>
+    </section>
+
+    <div class="cta-row">
+      <a href="{% url 'subscriptions' %}" class="btn-ghost"><i class="bi bi-credit-card"></i> Obunani kuzatish</a>
+      <a href="{% url 'courses' %}" class="btn-ghost"><i class="bi bi-search"></i> Boshqa kurslar</a>
+      <a href="{% url 'dashboard' %}" class="btn-ghost"><i class="bi bi-grid"></i> Dashboard</a>
+    </div>
+  </main>
+
+  <script src="{% static 'js/billing.js' %}"></script>
+</body>
+</html>

@@ -7,6 +7,36 @@ class CheckoutUnavailable(Exception):
     pass
 
 
+def ensure_checkout_cohort(*, course, today=None):
+    today = today or timezone.localdate()
+    existing_default = course.cohorts.filter(is_checkout_default=True).order_by("-is_active", "start_date", "id").first()
+    if existing_default:
+        updates = []
+        if not existing_default.is_active:
+            existing_default.is_active = True
+            updates.append("is_active")
+        if existing_default.start_date > today:
+            existing_default.start_date = today
+            updates.append("start_date")
+        if updates:
+            existing_default.save(update_fields=updates)
+        return existing_default
+
+    active_cohort = pick_checkout_cohort(course=course, today=today)
+    if active_cohort:
+        active_cohort.is_checkout_default = True
+        active_cohort.save(update_fields=["is_checkout_default"])
+        return active_cohort
+
+    return Cohort.objects.create(
+        name=f"{course.title} - Checkout",
+        course=course,
+        start_date=today,
+        is_active=True,
+        is_checkout_default=True,
+    )
+
+
 def pick_checkout_cohort(*, course, today=None):
     today = today or timezone.localdate()
     active_cohorts = course.cohorts.filter(is_active=True).order_by("start_date", "id")
@@ -37,9 +67,10 @@ def _checkout_priority(enrollment, *, target_cohort_id=None, today=None):
 
 def resolve_checkout_enrollment(*, student, course, today=None):
     today = today or timezone.localdate()
-    target_cohort = pick_checkout_cohort(course=course, today=today)
-    if not target_cohort:
-        raise CheckoutUnavailable("Ayni paytda bu kurs bo'yicha ochiq guruh yo'q.")
+    target_cohort = pick_checkout_cohort(course=course, today=today) or ensure_checkout_cohort(
+        course=course,
+        today=today,
+    )
 
     existing_enrollments = list(
         Enrollment.objects.filter(student=student, cohort__course=course)
