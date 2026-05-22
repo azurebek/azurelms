@@ -1,0 +1,66 @@
+{% extends "errors/base.html" %}
+{% load static %}
+
+{% block page_title %}500 — Server xatosi · AzureLMS{% endblock %}
+{% block meta_description %}Serverda kutilmagan xatolik yuz berdi. Texnik jamoamiz xatoni hal qilmoqda.{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/error-500.css' %}">{% endblock %}
+
+{% block content %}
+<div class="error-wrap">
+  <svg class="illustration" viewBox="0 0 280 220" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <rect x="80" y="50" width="120" height="150" rx="8" fill="var(--white)" stroke="var(--border)" stroke-width="1.5"/>
+    <rect x="92" y="66" width="96" height="22" rx="4" fill="var(--border-soft)"/>
+    <circle cx="104" cy="77" r="4" fill="#16a34a"/>
+    <rect x="114" y="73" width="40" height="4" rx="2" fill="var(--border)"/>
+    <rect x="92" y="96" width="96" height="22" rx="4" fill="var(--border-soft)"/>
+    <circle cx="104" cy="107" r="4" fill="var(--red)"/>
+    <rect x="114" y="103" width="40" height="4" rx="2" fill="var(--border)"/>
+    <rect x="92" y="126" width="96" height="22" rx="4" fill="var(--border-soft)"/>
+    <circle cx="104" cy="137" r="4" fill="var(--amber)"/>
+    <rect x="114" y="133" width="40" height="4" rx="2" fill="var(--border)"/>
+    <rect x="92" y="156" width="96" height="22" rx="4" fill="var(--border-soft)"/>
+    <circle cx="104" cy="167" r="4" fill="#16a34a"/>
+    <rect x="114" y="163" width="40" height="4" rx="2" fill="var(--border)"/>
+    <text x="220" y="90" font-size="28" text-anchor="middle">🔥</text>
+    <polygon points="56,140 44,160 68,160" fill="var(--amber)" opacity=".8"/>
+    <text x="56" y="156" text-anchor="middle" font-family="'Plus Jakarta Sans',sans-serif" font-size="10" font-weight="800" fill="#fff">!</text>
+    <circle cx="185" cy="110" r="3" fill="var(--red)" opacity=".6"><animate attributeName="opacity" values="0.6;0;0.6" dur="1.2s" repeatCount="indefinite"/></circle>
+    <circle cx="175" cy="100" r="2" fill="var(--amber)" opacity=".5"><animate attributeName="opacity" values="0.5;0;0.5" dur="0.9s" repeatCount="indefinite"/></circle>
+    <circle cx="195" cy="120" r="2" fill="var(--red)" opacity=".4"><animate attributeName="opacity" values="0.4;0;0.4" dur="1.5s" repeatCount="indefinite"/></circle>
+  </svg>
+
+  <div class="error-code">500</div>
+  <div class="error-title">Server xatosi</div>
+  <div class="error-desc">Bizning serverlarimizda kutilmagan muammo yuz berdi. Texnik jamoamiz bu muammo ustida ishlayapti. Biroz kuting va qayta urinib ko'ring.</div>
+
+  <div class="retry-counter">Avtomatik qayta yuklash: <span data-countdown>30</span> soniyada</div>
+
+  <div class="btn-row">
+    <button type="button" class="btn btn-primary" data-error-action="reload"><i class="bi bi-arrow-clockwise"></i> Qayta yuklash</button>
+    <a href="{% url 'home' %}" class="btn btn-ghost"><i class="bi bi-house"></i> Bosh sahifa</a>
+  </div>
+
+  <div class="status-box">
+    <div class="status-title">Servis holati</div>
+    <div class="status-row"><span class="status-dot dot-green"></span><span class="status-service">Web server</span><span class="status-badge s-ok">Ishlayapti</span></div>
+    <div class="status-row"><span class="status-dot dot-red"></span><span class="status-service">API server</span><span class="status-badge s-down">Ishlamayapti</span></div>
+    <div class="status-row"><span class="status-dot dot-amber"></span><span class="status-service">Ma'lumotlar bazasi</span><span class="status-badge s-warn">Sekin</span></div>
+    <div class="status-row"><span class="status-dot dot-green"></span><span class="status-service">CDN</span><span class="status-badge s-ok">Ishlayapti</span></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block page_js %}
+<script>
+  (function () {
+    const el = document.querySelector('[data-countdown]');
+    if (!el) return;
+    let secs = 30;
+    const iv = setInterval(function () {
+      secs--;
+      el.textContent = secs;
+      if (secs <= 0) { clearInterval(iv); window.location.reload(); }
+    }, 1000);
+  })();
+</script>
+{% endblock %}

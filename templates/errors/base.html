@@ -1,0 +1,66 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{% block meta_description %}AzureLMS xato sahifasi{% endblock %}">
+  <script>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme') || localStorage.getItem('lms-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>{% block page_title %}Xato — AzureLMS{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  {% block page_css %}{% endblock %}
+  <link rel="stylesheet" href="{% static 'css/prototype-extracted.css' %}">
+</head>
+<body>
+  <a href="{% url 'home' %}" class="nav-logo">
+    <div class="logo-mark">AL</div>
+    <span class="logo-name">AzureLMS</span>
+  </a>
+  <button type="button" class="theme-btn" data-error-theme-toggle aria-label="Mavzu almashtirish">
+    <i class="bi bi-moon-stars" data-error-theme-icon></i>
+  </button>
+
+  {% block content %}{% endblock %}
+
+  <script>
+    (function () {
+      const html = document.documentElement;
+      const icon = document.querySelector('[data-error-theme-icon]');
+      function syncIcon() {
+        if (!icon) return;
+        icon.className = html.getAttribute('data-theme') === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
+      }
+      syncIcon();
+
+      const toggle = document.querySelector('[data-error-theme-toggle]');
+      if (toggle) {
+        toggle.addEventListener('click', function () {
+          const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+          html.setAttribute('data-theme', next);
+          try { localStorage.setItem('az-theme', next); } catch (_) {}
+          syncIcon();
+        });
+      }
+
+      document.addEventListener('click', function (event) {
+        const back = event.target.closest('[data-error-action="back"]');
+        if (back) { event.preventDefault(); window.history.back(); return; }
+        const reload = event.target.closest('[data-error-action="reload"]');
+        if (reload) { event.preventDefault(); window.location.reload(); }
+      });
+    })();
+  </script>
+  {% block page_js %}{% endblock %}
+</body>
+</html>

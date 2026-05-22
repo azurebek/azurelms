@@ -5,6 +5,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from frontend.views import home_view, about_view, legal_page_view
+from core import views as core_views
+
+handler404 = "core.views.page_not_found"
+handler403 = "core.views.permission_denied"
+handler500 = "core.views.server_error"
 
 urlpatterns = [
     # Bosh sahifa (Home / Landing)
@@ -37,6 +42,10 @@ urlpatterns = [
     
     # CKEditor rasm yuklash manzili
     path("ckeditor5/", include('django_ckeditor_5.urls'), name="ck_editor_5_upload_file"),
+
+    # Holat sahifalari (texnik ishlar va offline)
+    path('maintenance/', core_views.maintenance, name='maintenance'),
+    path('offline/', core_views.offline, name='offline'),
 ]
 
 if settings.PROMETHEUS_ENABLED:

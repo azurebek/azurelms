@@ -1,0 +1,60 @@
+{% extends "errors/base.html" %}
+{% load static %}
+
+{% block page_title %}Offline — AzureLMS{% endblock %}
+{% block meta_description %}Internet aloqasi yo'q. Tarmoq sozlamalarini tekshiring.{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/error-offline.css' %}">{% endblock %}
+
+{% block content %}
+<div class="error-wrap">
+  <svg class="illustration" viewBox="0 0 260 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <ellipse cx="130" cy="100" rx="55" ry="45" fill="var(--border-soft)"/>
+    <ellipse cx="100" cy="115" rx="35" ry="28" fill="var(--border-soft)"/>
+    <ellipse cx="160" cy="115" rx="35" ry="28" fill="var(--border-soft)"/>
+    <rect x="75" y="115" width="110" height="30" fill="var(--border-soft)"/>
+    <line x1="90" y1="158" x2="84" y2="174" stroke="var(--teal)" stroke-width="2.5" stroke-linecap="round" opacity=".6"><animate attributeName="y1" values="150;165;150" dur="1.2s" repeatCount="indefinite"/></line>
+    <line x1="115" y1="155" x2="109" y2="171" stroke="var(--teal)" stroke-width="2.5" stroke-linecap="round" opacity=".7"><animate attributeName="y1" values="147;162;147" dur="1s" repeatCount="indefinite"/></line>
+    <line x1="140" y1="160" x2="134" y2="176" stroke="var(--teal)" stroke-width="2.5" stroke-linecap="round" opacity=".5"><animate attributeName="y1" values="152;167;152" dur="1.4s" repeatCount="indefinite"/></line>
+    <line x1="165" y1="155" x2="159" y2="171" stroke="var(--teal)" stroke-width="2.5" stroke-linecap="round" opacity=".6"><animate attributeName="y1" values="147;162;147" dur="1.1s" repeatCount="indefinite"/></line>
+    <g transform="translate(130,85)">
+      <path class="wifi-arc-3" d="M-32,-18 Q0,-38 32,-18" fill="none" stroke="var(--ink-5)" stroke-width="4" stroke-linecap="round"/>
+      <path class="wifi-arc-2" d="M-20,-6 Q0,-20 20,-6" fill="none" stroke="var(--ink-5)" stroke-width="4" stroke-linecap="round"/>
+      <path class="wifi-arc-1" d="M-8,6 Q0,-4 8,6" fill="none" stroke="var(--ink-5)" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="0" cy="14" r="4" fill="var(--ink-5)"/>
+      <line x1="-16" y1="-28" x2="16" y2="4" stroke="var(--teal)" stroke-width="3" stroke-linecap="round"/>
+      <line x1="16" y1="-28" x2="-16" y2="4" stroke="var(--teal)" stroke-width="3" stroke-linecap="round"/>
+    </g>
+  </svg>
+
+  <div class="badge-offline"><i class="bi bi-wifi-off"></i> Internet aloqasi yo'q</div>
+  <div class="error-title">Siz offline dasiz</div>
+  <div class="error-desc">Internet aloqasi yo'q yoki juda zaif. Qurilmangiz tarmoq sozlamalarini tekshiring va qayta urinib ko'ring.</div>
+
+  <div class="conn-check"><div class="conn-dot"></div> Aloqa tekshirilmoqda...</div>
+
+  <div class="btn-row">
+    <button type="button" class="btn btn-primary" data-offline-check><i class="bi bi-arrow-clockwise"></i> Qayta urinish</button>
+  </div>
+
+  <div class="tips-box">
+    <div class="tips-title">Muammo yechimi</div>
+    <div class="tip-row"><div class="tip-icon"><i class="bi bi-wifi"></i></div><div class="tip-text">Router yoki modemingizni qayta yoqing (30 soniya kuting)</div></div>
+    <div class="tip-row"><div class="tip-icon"><i class="bi bi-phone"></i></div><div class="tip-text">Mobil internet yoqilganligini tekshiring — parvoz rejimi o'chiq bo'lsin</div></div>
+    <div class="tip-row"><div class="tip-icon"><i class="bi bi-globe"></i></div><div class="tip-text">Boshqa saytlar ochilayotganini tekshiring — muammo lokal bo'lishi mumkin</div></div>
+    <div class="tip-row"><div class="tip-icon"><i class="bi bi-headset"></i></div><div class="tip-text">Muammo davom etsa, internet provayderi bilan bog'laning</div></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block page_js %}
+<script>
+  (function () {
+    const btn = document.querySelector('[data-offline-check]');
+    if (!btn) return;
+    btn.addEventListener('click', function () {
+      if (navigator.onLine) { window.location.href = '{% url "home" %}'; }
+      else { alert("Hali ham internet aloqasi yo'q. Tarmoq sozlamalarini tekshiring."); }
+    });
+  })();
+</script>
+{% endblock %}

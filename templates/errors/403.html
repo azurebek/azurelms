@@ -1,0 +1,49 @@
+{% extends "errors/base.html" %}
+{% load static %}
+
+{% block page_title %}403 — Ruxsat yo'q · AzureLMS{% endblock %}
+{% block meta_description %}Bu sahifaga kirish uchun sizda yetarli huquq yo'q.{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/error-403.css' %}">{% endblock %}
+
+{% block content %}
+<div class="error-wrap">
+  <svg class="illustration" viewBox="0 0 260 220" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <ellipse cx="130" cy="160" rx="80" ry="30" fill="var(--purple-soft)" opacity=".4"/>
+    <rect x="80" y="110" width="100" height="80" rx="12" fill="var(--white)" stroke="var(--border)" stroke-width="1.5"/>
+    <path d="M100 110 L100 80 Q100 50 130 50 Q160 50 160 80 L160 110" fill="none" stroke="var(--purple)" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="130" cy="148" r="12" fill="var(--purple)" opacity=".15"/>
+    <circle cx="130" cy="145" r="7" fill="var(--purple)"/>
+    <rect x="126" y="150" width="8" height="18" rx="2" fill="var(--purple)"/>
+    <circle cx="60" cy="80" r="4" fill="var(--amber)" opacity=".5"/>
+    <circle cx="200" cy="90" r="3" fill="var(--purple)" opacity=".4"/>
+    <circle cx="55" cy="140" r="3" fill="var(--purple)" opacity=".3"/>
+    <circle cx="210" cy="150" r="4" fill="var(--amber)" opacity=".35"/>
+  </svg>
+
+  <div class="error-code">403</div>
+  <div class="error-title">Ruxsat yo'q</div>
+  <div class="error-desc">Bu sahifaga kirish uchun sizda yetarli huquq yo'q. Bu Premium kontent bo'lishi mumkin yoki siz tizimga kirmagansiz.</div>
+
+  <div class="btn-row">
+    {% if not user.is_authenticated %}
+    <a href="{% url 'login' %}" class="btn btn-primary"><i class="bi bi-person-fill"></i> Kirish</a>
+    {% endif %}
+    <a href="{% url 'subscriptions:pricing' %}" class="btn btn-purple"><i class="bi bi-stars"></i> Premium olish</a>
+    <button type="button" class="btn btn-ghost" data-error-action="back"><i class="bi bi-arrow-left"></i> Orqaga</button>
+  </div>
+
+  <div class="access-box">
+    <div class="access-title">Tarif rejangiz</div>
+    <div class="plan-row">
+      <div class="plan-icon xstyle-202bef37"><i class="bi bi-person"></i></div>
+      <span class="plan-name">Sizning rejaniz: Bepul</span>
+      <span class="plan-badge b-curr">Joriy</span>
+    </div>
+    <div class="plan-row">
+      <div class="plan-icon xstyle-9967f362"><i class="bi bi-star-fill"></i></div>
+      <span class="plan-name">Premium — barcha imkoniyatlar</span>
+      <span class="plan-badge b-need">Kerak</span>
+    </div>
+  </div>
+</div>
+{% endblock %}
