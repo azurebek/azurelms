@@ -1,0 +1,210 @@
+{% extends "blog/base.html" %}
+{% load static humanize %}
+
+{% block page_title %}Blog Studio - AzureLMS{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/blog-studio-shell.css' %}">{% endblock %}
+
+{% block content %}
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">B</div>
+    <span class="logo-name">Blog Studio</span>
+    <span class="logo-tag">v2</span>
+  </div>
+  <div class="sidebar-user">
+    {% with author_name=user.get_full_name|default:user.username %}
+      <div class="user-av">{{ author_name|slice:":1"|upper }}</div>
+      <div>
+        <div class="user-name">{{ author_name }}</div>
+        <div class="user-role">Muallif</div>
+      </div>
+    {% endwith %}
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-group-label">Studio</div>
+    <a href="{% url 'blog:studio' %}" class="nav-item active"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+    <a href="{% url 'blog:studio_create' %}" class="nav-item"><i class="bi bi-pencil-square"></i> Yangi maqola</a>
+    <a href="{% url 'blog:studio' %}" class="nav-item"><i class="bi bi-file-earmark-text"></i> Maqolalar <span class="nav-badge">{{ posts|length }}</span></a>
+    <a href="{% url 'blog:studio' %}" class="nav-item"><i class="bi bi-archive"></i> Qoralamalar <span class="nav-badge">{{ draft_count }}</span></a>
+    <a href="{% url 'blog:studio' %}#analytics" class="nav-item"><i class="bi bi-bar-chart-line"></i> Statistika</a>
+    <div class="nav-group-label">Blog</div>
+    <a href="{% url 'blog:list' %}" class="nav-item"><i class="bi bi-eye"></i> Blogni ko'rish</a>
+    <a href="{% url 'blog:list' %}#tags" class="nav-item"><i class="bi bi-tags"></i> Teglar & Kategoriyalar</a>
+    <a href="{% url 'blog:studio' %}#comments" class="nav-item"><i class="bi bi-chat-square-text"></i> Izohlar <span class="nav-badge xstyle-4f67ca57">{{ comment_total|default:0 }}</span></a>
+    <div class="nav-group-label">Sozlash</div>
+    <a href="{% url 'blog:studio' %}#design" class="nav-item"><i class="bi bi-palette"></i> Dizayn</a>
+    <a href="{% url 'blog:studio' %}#settings" class="nav-item"><i class="bi bi-gear"></i> Sozlamalar</a>
+  </nav>
+  <div class="sidebar-bottom">
+    <a href="{% url 'home' %}" class="nav-item"><i class="bi bi-arrow-left-circle"></i> Public sahifa</a>
+  </div>
+</aside>
+
+<div class="page-wrap">
+  <header class="topbar">
+    <h1 class="topbar-title">Studio Dashboard</h1>
+    <div class="topbar-sep"></div>
+    <a href="{% url 'blog:studio_create' %}" class="new-post-btn"><i class="bi bi-plus-lg"></i> Yangi maqola</a>
+    <button class="theme-btn" id="themeBtn" type="button" data-ui-action="theme" aria-label="Mavzuni almashtirish">
+      <i class="bi bi-moon" id="themeIcon"></i>
+    </button>
+  </header>
+
+  <div class="page-body">
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Jami maqolalar</div>
+        <div class="stat-val">{{ posts|length }}</div>
+        <div class="xstyle-d0ea8946"><span class="stat-delta delta-up">{{ published_count }}</span> chop etilgan</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Ko'rilganlar</div>
+        <div class="stat-val xstyle-4061f7d4">{{ total_views|default:0|intcomma }}</div>
+        <div class="xstyle-d0ea8946"><span class="stat-delta delta-up">{{ total_claps|default:0|intcomma }}</span> like</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Izohlar</div>
+        <div class="stat-val xstyle-917f8555">{{ comment_total|default:0|intcomma }}</div>
+        <div class="xstyle-d0ea8946"><span class="stat-delta delta-neu">jonli</span> muhokama</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">O'rtacha o'qish</div>
+        <div class="stat-val">{{ avg_reading_time|default:1 }}</div>
+        <div class="xstyle-61630957"><span class="stat-delta delta-neu">daqiqa</span></div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <div class="sec-head">
+          <span class="sec-title">So'nggi maqolalar</span>
+          <div class="sec-divider"></div>
+          <a href="{% url 'blog:studio' %}" class="sec-action">Hammasi <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="posts-table">
+          <div class="tbl-head">
+            <div>Maqola</div>
+            <div>Ko'rilgan</div>
+            <div>Like</div>
+            <div>Izoh</div>
+            <div>Status</div>
+            <div></div>
+          </div>
+          {% for post in posts %}
+            {% cycle 'img--purple' 'img--blue' 'img--green' 'img--amber' 'img--red' as thumb_color silent %}
+            <div class="tbl-row">
+              <div class="post-title-cell">
+                <div class="post-thumb {{ thumb_color }}{% if post.cover_image %} blog-cover-preview{% endif %}" {% if post.cover_image %}style="background-image: url('{{ post.cover_image.url }}');"{% endif %}>
+                  {% if not post.cover_image %}<i class="bi bi-journal-text"></i>{% endif %}
+                </div>
+                <div>
+                  <div class="post-name">{{ post.title|truncatechars:72 }}</div>
+                  <div class="post-cat">
+                    {% for tag in post.tags.all %}{% if forloop.first %}{{ tag.name }} · {% endif %}{% endfor %}
+                    {% if post.published_at %}{{ post.published_at|date:"j M Y" }}{% else %}tahrirlash jarayonida{% endif %}
+                  </div>
+                </div>
+              </div>
+              <div class="tbl-cell">{{ post.view_count|intcomma }}</div>
+              <div class="tbl-cell">{{ post.clap_count|intcomma }}</div>
+              <div class="tbl-cell">{{ post.comment_count|intcomma }}</div>
+              <div>
+                {% if post.status == "published" and post.published_at and post.published_at > now %}
+                  <span class="status-chip sc-sched">Rejalashtirilgan</span>
+                {% elif post.status == "published" %}
+                  <span class="status-chip sc-pub">Chop etilgan</span>
+                {% else %}
+                  <span class="status-chip sc-draft">Qoralama</span>
+                {% endif %}
+              </div>
+              <div class="row-actions">
+                <a href="{% url 'blog:studio_edit' post.slug %}" class="row-btn" title="Tahrirlash"><i class="bi bi-pencil"></i></a>
+                {% if post.is_live %}
+                  <a href="{% url 'blog:detail' post.slug %}" class="row-btn" title="Ko'rish"><i class="bi bi-eye"></i></a>
+                {% else %}
+                  <a href="{% url 'blog:detail' post.slug %}?preview=1" class="row-btn" title="Preview"><i class="bi bi-eye"></i></a>
+                {% endif %}
+              </div>
+            </div>
+          {% empty %}
+            <div class="blog-empty">Hali maqola yo'q. Birinchi postni yaratishdan boshlang.</div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="right-panel">
+        <div class="panel-card">
+          <div class="panel-head"><i class="bi bi-lightning-charge"></i> Tezkor amallar</div>
+          <div class="panel-body">
+            <div class="quick-actions">
+              <a href="{% url 'blog:studio_create' %}" class="qa-btn"><i class="bi bi-pencil-square"></i>Yangi post</a>
+              <a href="#analytics" class="qa-btn"><i class="bi bi-bar-chart-line"></i>Statistika</a>
+              <a href="{% url 'blog:list' %}" class="qa-btn"><i class="bi bi-eye"></i>Blog</a>
+              <a href="{% url 'home' %}" class="qa-btn"><i class="bi bi-house"></i>Sayt</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-card" id="analytics">
+          <div class="panel-head"><i class="bi bi-graph-up"></i> Ko'rishlar (7 kun)</div>
+          <div class="panel-body">
+            <div class="xstyle-3fbb4b3e">{{ total_views|default:0|intcomma }}</div>
+            <div class="xstyle-a26c64d4">jami ko'rish · <span class="xstyle-caaacc20">{{ published_count }} nashr</span></div>
+            <div class="mini-chart" id="miniChart"></div>
+            <div class="mc-labels"><span>Du</span><span>Se</span><span>Ch</span><span>Pa</span><span>Ju</span><span>Sh</span><span>Ya</span></div>
+          </div>
+        </div>
+
+        <div class="panel-card" id="comments">
+          <div class="panel-head"><i class="bi bi-activity"></i> So'nggi faollik</div>
+          <div class="panel-body">
+            {% for post in posts|slice:":4" %}
+              <div class="activity-item">
+                <div class="activity-dot {% if post.status == "published" %}ad-pub{% else %}ad-view{% endif %}"></div>
+                <div>
+                  <div class="activity-text"><strong>{{ post.title|truncatechars:34 }}</strong></div>
+                  <div class="activity-time">{{ post.updated_at|timesince }} oldin · {{ post.get_status_display }}</div>
+                </div>
+              </div>
+            {% empty %}
+              <div class="activity-item">
+                <div class="activity-dot ad-view"></div>
+                <div>
+                  <div class="activity-text">Studio tayyor.</div>
+                  <div class="activity-time">Yangi post kutilyapti</div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-head"><i class="bi bi-calendar3"></i> Rejalashtirilgan</div>
+          <div class="panel-body">
+            {% for post in scheduled_posts %}
+              <div class="sched-item">
+                <div class="sched-date-box">
+                  <div class="sched-day">{{ post.published_at|date:"d" }}</div>
+                  <div class="sched-mon">{{ post.published_at|date:"M" }}</div>
+                </div>
+                <div>
+                  <div class="sched-name">{{ post.title|truncatechars:36 }}</div>
+                  <div class="sched-time"><i class="bi bi-clock"></i> {{ post.published_at|date:"H:i" }}</div>
+                </div>
+              </div>
+            {% empty %}
+              <div class="sched-item">
+                <div class="sched-date-box"><div class="sched-day">--</div><div class="sched-mon">May</div></div>
+                <div>
+                  <div class="sched-name">Rejalashtirilgan post yo'q</div>
+                  <div class="sched-time"><i class="bi bi-clock"></i> Qoralama tayyorlang</div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

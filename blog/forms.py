@@ -10,7 +10,7 @@ class BlogPostForm(forms.ModelForm):
         help_text="Teglarni vergul bilan ajrating. Masalan: product, mindset, notes",
         widget=forms.TextInput(
             attrs={
-                "class": "form-control",
+                "class": "tag-real-input",
                 "placeholder": "strategy, turk tili, founder notes",
             }
         ),
@@ -34,23 +34,23 @@ class BlogPostForm(forms.ModelForm):
             "meta_description",
         ]
         widgets = {
-            "title": forms.TextInput(attrs={"class": "form-control", "placeholder": "Sarlavha"}),
-            "cover_image": forms.ClearableFileInput(attrs={"class": "form-control"}),
-            "cover_alt_text": forms.TextInput(attrs={"class": "form-control", "placeholder": "Cover rasm tavsifi"}),
+            "title": forms.TextInput(attrs={"class": "title-input", "placeholder": "Maqola sarlavhasi..."}),
+            "cover_image": forms.ClearableFileInput(attrs={"class": "d-none", "id": "coverFile"}),
+            "cover_alt_text": forms.TextInput(attrs={"class": "seo-input", "placeholder": "Cover rasm tavsifi"}),
             "excerpt": forms.Textarea(
-                attrs={"class": "form-control", "rows": 4, "placeholder": "Qisqa kirish yoki teaser matni"}
+                attrs={"class": "subtitle-input", "rows": 2, "placeholder": "Qisqacha tavsif (excerpt)..."}
             ),
             "featured_quote": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Article ichida highlight bo'ladigan qisqa fikr"}
+                attrs={"class": "seo-input", "placeholder": "Article ichida highlight bo'ladigan iqtibos"}
             ),
-            "published_at": forms.DateTimeInput(attrs={"class": "form-control", "type": "datetime-local"}),
-            "seo_title": forms.TextInput(attrs={"class": "form-control", "placeholder": "SEO sarlavha"}),
+            "published_at": forms.DateTimeInput(attrs={"class": "schedule-input", "type": "datetime-local"}),
+            "seo_title": forms.TextInput(attrs={"class": "seo-input", "placeholder": "SEO sarlavha"}),
             "meta_description": forms.Textarea(
-                attrs={"class": "form-control", "rows": 3, "placeholder": "Share preview uchun qisqa tavsif"}
+                attrs={"class": "seo-input", "rows": 3, "placeholder": "Share preview uchun qisqa tavsif"}
             ),
             "featured": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "allow_comments": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-            "status": forms.Select(attrs={"class": "form-select"}),
+            "status": forms.Select(attrs={"class": "panel-select"}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -90,7 +90,7 @@ class BlogCommentForm(forms.ModelForm):
         widgets = {
             "content": forms.Textarea(
                 attrs={
-                    "class": "form-control blog-comment-input",
+                    "class": "comment-textarea blog-comment-input",
                     "rows": 4,
                     "placeholder": "Fikringizni yozing...",
                     "maxlength": 2000,

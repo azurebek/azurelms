@@ -1,0 +1,266 @@
+{% extends "blog/base.html" %}
+{% load static %}
+
+{% block page_title %}{% if object %}Maqolani tahrirlash{% else %}Yangi maqola{% endif %} - Blog Studio{% endblock %}
+{% block body_class %}blog-studio-editor-page{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/blog-studio-new-post.css' %}">{% endblock %}
+{% block extra_head %}{{ form.media }}{% endblock %}
+
+{% block content %}
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">AL</div>
+    <span class="logo-name">AzureLMS</span>
+    <span class="logo-tag">Studio</span>
+  </div>
+  <div class="sidebar-user">
+    {% with author_name=user.get_full_name|default:user.username %}
+      <div class="user-av">{{ author_name|slice:":1"|upper }}</div>
+      <div>
+        <div class="user-name">{{ author_name }}</div>
+        <div class="user-role">Muallif</div>
+      </div>
+    {% endwith %}
+  </div>
+  <div class="sidebar-nav">
+    <span class="nav-group-label">Studio</span>
+    <a href="{% url 'blog:studio' %}" class="nav-item">
+      <i class="bi bi-grid-1x2"></i> Boshqaruv
+    </a>
+    <a href="{% url 'blog:studio_create' %}" class="nav-item active">
+      <i class="bi bi-pencil-square"></i> Yangi post
+    </a>
+    <a href="{% url 'blog:studio' %}" class="nav-item">
+      <i class="bi bi-file-earmark-text"></i> Postlar
+    </a>
+    <a href="{% url 'blog:studio' %}#analytics" class="nav-item">
+      <i class="bi bi-bar-chart-line"></i> Analitika
+    </a>
+    <span class="nav-group-label">Kontent</span>
+    <a href="{% url 'blog:list' %}#tags" class="nav-item">
+      <i class="bi bi-tags"></i> Teglar
+    </a>
+    <a href="{% url 'blog:studio' %}#comments" class="nav-item">
+      <i class="bi bi-chat-dots"></i> Izohlar
+    </a>
+  </div>
+  <div class="sidebar-bottom">
+    <a href="{% url 'blog:list' %}" class="nav-item">
+      <i class="bi bi-eye"></i> Blogni ko'rish
+    </a>
+    <a href="{% url 'blog:studio' %}" class="nav-item">
+      <i class="bi bi-gear"></i> Sozlamalar
+    </a>
+  </div>
+</nav>
+
+<div class="page-wrap">
+  <header class="topbar">
+    <a href="{% url 'blog:studio' %}" class="tb-back">
+      <i class="bi bi-arrow-left"></i> Orqaga
+    </a>
+    <div class="tb-divider"></div>
+    <span class="tb-title">{% if object %}Maqolani tahrirlash{% else %}Yangi maqola{% endif %}</span>
+    <span class="tb-status" id="tbStatus">{{ form.instance.get_status_display|default:"Saqlanmagan" }}</span>
+    <div class="tb-spacer"></div>
+    <span class="tb-word-count" id="tbWordCount">{{ form.instance.reading_time_minutes|default:1 }} daqiqa</span>
+    <button class="tb-btn tb-btn-ghost" type="button" data-ui-call="toggleFocus">
+      <i class="bi bi-arrows-fullscreen"></i> Fokus
+    </button>
+    <button class="tb-btn tb-btn-ghost" type="button" data-ui-call="openDrawer">
+      <i class="bi bi-send"></i> Nashr
+    </button>
+    <button class="tb-btn tb-btn-primary blog-native-submit" type="submit" form="postForm">
+      <i class="bi bi-floppy"></i> Saqlash
+    </button>
+    <button class="tb-theme" type="button" data-ui-action="theme" title="Mavzu">
+      <i class="bi bi-moon-stars" id="themeIcon"></i>
+    </button>
+  </header>
+
+  <form id="postForm" method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <div class="blog-field-hidden">{{ form.status }}</div>
+
+    <div class="editor-body">
+      <main class="editor-main" id="editorMain">
+        <div class="editor-canvas">
+          <div class="cover-area" id="coverArea" role="button" tabindex="0">
+            <div class="cover-placeholder" id="coverPlaceholder" {% if form.instance.cover_image %}style="display:none"{% endif %}>
+              <i class="bi bi-image-alt"></i>
+              <span>Muqova rasmini qo'shish</span>
+              <small>PNG, JPG, WebP - 1200x630px tavsiya etiladi</small>
+            </div>
+            <img class="cover-img" id="coverImg" src="{% if form.instance.cover_image %}{{ form.instance.cover_image.url }}{% endif %}" alt="" {% if not form.instance.cover_image %}style="display:none"{% endif %}>
+            <button class="cover-remove" id="coverRemove" type="button">
+              <i class="bi bi-x"></i>
+            </button>
+          </div>
+          <input type="file" name="{{ form.cover_image.html_name }}" id="coverFile" accept="image/*" class="blog-cover-field">
+          {% if form.cover_image.errors %}<div class="blog-field-error">{{ form.cover_image.errors }}</div>{% endif %}
+
+          {{ form.title }}
+          {% if form.title.errors %}<div class="blog-field-error">{{ form.title.errors }}</div>{% endif %}
+
+          {{ form.excerpt }}
+          {% if form.excerpt.errors %}<div class="blog-field-error">{{ form.excerpt.errors }}</div>{% endif %}
+
+          <hr class="editor-divider">
+
+          <div class="editor-content blog-ckeditor-shell">
+            {{ form.body }}
+          </div>
+          {% if form.body.errors %}<div class="blog-field-error">{{ form.body.errors }}</div>{% endif %}
+        </div>
+      </main>
+
+      <aside class="editor-panel">
+        <div class="panel-section">
+          <span class="panel-heading">Holat</span>
+          <div class="status-pills">
+            <button class="status-pill" type="button" data-s="draft" data-blog-status="draft">Qoralama</button>
+            <button class="status-pill" type="button" data-s="published" data-blog-status="published">Nashr</button>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <span class="panel-heading">Muqova</span>
+          <div class="seo-field">
+            <span class="seo-label">Rasm tavsifi</span>
+            {{ form.cover_alt_text }}
+            {% if form.cover_alt_text.errors %}<span class="blog-field-error">{{ form.cover_alt_text.errors }}</span>{% endif %}
+          </div>
+          <div class="seo-field">
+            <span class="seo-label">Highlight quote</span>
+            {{ form.featured_quote }}
+            {% if form.featured_quote.errors %}<span class="blog-field-error">{{ form.featured_quote.errors }}</span>{% endif %}
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <span class="panel-heading">Teglar</span>
+          <div class="tag-input-wrap">
+            {{ form.tag_names }}
+          </div>
+          <div class="tag-suggestions">
+            <span class="tag-sugg">kurs</span>
+            <span class="tag-sugg">sertifikat</span>
+            <span class="tag-sugg">ielts</span>
+            <span class="tag-sugg">dasturlash</span>
+            <span class="tag-sugg">ai</span>
+          </div>
+          {% if form.tag_names.errors %}<div class="blog-field-error">{{ form.tag_names.errors }}</div>{% endif %}
+        </div>
+
+        <div class="panel-section">
+          <span class="panel-heading">SEO</span>
+          <div class="seo-field">
+            <span class="seo-label">SEO sarlavhasi</span>
+            {{ form.seo_title }}
+            <span class="seo-count">60 belgigacha tavsiya</span>
+          </div>
+          <div class="seo-field">
+            <span class="seo-label">Meta tavsif</span>
+            {{ form.meta_description }}
+            <span class="seo-count">160 belgigacha tavsiya</span>
+          </div>
+          <div class="seo-preview">
+            <div class="seo-prev-url">azurelms.uz / blog / {{ form.instance.slug|default:"yangi-maqola" }}</div>
+            <div class="seo-prev-title">{{ form.instance.share_title|default:"Maqola sarlavhasi" }}</div>
+            <div class="seo-prev-desc">{{ form.instance.share_description|default:"Meta tavsif shu yerda ko'rinadi."|truncatechars:140 }}</div>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <span class="panel-heading">Ma'lumot</span>
+          <div class="xstyle-b6b43fa1">
+            <div class="reading-time-row">
+              <span class="rt-label">O'qish vaqti</span>
+              <span class="rt-value" id="readingTime">{{ form.instance.reading_time_minutes|default:1 }} daqiqa</span>
+            </div>
+            <div class="reading-time-row">
+              <span class="rt-label">Status</span>
+              <span class="rt-value">{{ form.instance.get_status_display|default:"Qoralama" }}</span>
+            </div>
+            <div class="reading-time-row">
+              <span class="rt-label">Slug</span>
+              <span class="rt-value">{{ form.instance.slug|default:"auto" }}</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="drawer-backdrop" id="drawerBackdrop" data-ui-call="closeDrawer"></div>
+
+    <div class="publish-drawer" id="publishDrawer">
+      <div class="drawer-head">
+        <span class="drawer-title">Nashr sozlamalari</span>
+        <button class="drawer-close" type="button" data-ui-call="closeDrawer"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="drawer-body">
+        <div class="drawer-section">
+          <span class="drawer-label">Imkoniyatlar</span>
+          <div class="xstyle-f67b86e0">
+            <div class="toggle-row">
+              <div class="toggle-info">
+                <span class="toggle-title">Izohlarni yoqish</span>
+                <span class="toggle-desc">O'quvchilar izoh qoldira oladi</span>
+              </div>
+              <label class="toggle-switch">
+                {{ form.allow_comments }}
+                <span class="toggle-track"></span>
+                <span class="toggle-thumb"></span>
+              </label>
+            </div>
+            <div class="toggle-row">
+              <div class="toggle-info">
+                <span class="toggle-title">Tavsiya etilgan post</span>
+                <span class="toggle-desc">Blog bosh qismida ko'rsatish</span>
+              </div>
+              <label class="toggle-switch">
+                {{ form.featured }}
+                <span class="toggle-track"></span>
+                <span class="toggle-thumb"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="drawer-section">
+          <span class="drawer-label">Rejalashtirish</span>
+          <div class="schedule-row">
+            <label class="xstyle-fcef2ab9" for="{{ form.published_at.id_for_label }}">Nashr sanasi va vaqti</label>
+            {{ form.published_at }}
+          </div>
+          {% if form.published_at.errors %}<div class="blog-field-error">{{ form.published_at.errors }}</div>{% endif %}
+        </div>
+
+        <div class="drawer-section">
+          <span class="drawer-label">URL manzili</span>
+          <div class="xstyle-1d8943fa">
+            <div class="xstyle-3c229d4e">azurelms.uz/blog/</div>
+            <input type="text" class="schedule-input xstyle-4b3de78f" value="{{ form.instance.slug|default:'auto' }}" disabled>
+          </div>
+        </div>
+      </div>
+      <div class="drawer-footer">
+        <button class="drawer-btn drawer-btn-sched" type="button" data-submit-status="draft">
+          <i class="bi bi-calendar-check"></i> Qoralama saqlash
+        </button>
+        <button class="drawer-btn drawer-btn-pub" type="button" data-submit-status="published">
+          <i class="bi bi-send-fill"></i> Hozir nashr
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <div class="toast" id="toast">
+    <i class="bi bi-check-circle-fill"></i>
+    <span id="toastMsg">Saqlandi</span>
+  </div>
+
+  <div class="focus-overlay" data-ui-call="toggleFocus"></div>
+</div>
+{% endblock %}

@@ -1,0 +1,266 @@
+.blog-messages {
+  position: fixed;
+  z-index: 80;
+  top: 88px;
+  right: 24px;
+  display: grid;
+  gap: 10px;
+  width: min(360px, calc(100vw - 32px));
+}
+
+.blog-message {
+  padding: 12px 14px;
+  border: 1px solid rgba(86, 148, 255, 0.25);
+  border-radius: 16px;
+  background: var(--surface, #fff);
+  color: var(--ink-0, #101827);
+  box-shadow: var(--shadow-lg, 0 18px 50px rgba(15, 23, 42, 0.16));
+  font-size: 0.9rem;
+  font-weight: 700;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.blog-message.success {
+  border-color: rgba(35, 197, 94, 0.35);
+}
+
+.blog-message.is-hiding {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.blog-empty {
+  padding: 48px 28px;
+  border: 1px dashed rgba(86, 148, 255, 0.28);
+  border-radius: 22px;
+  color: var(--ink-2, #64748b);
+  text-align: center;
+}
+
+.blog-field-error {
+  margin-top: 8px;
+  color: #ef4444;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.blog-field-hidden {
+  display: none;
+}
+
+.blog-cover-field {
+  display: none;
+}
+
+.blog-ckeditor-shell .django-ckeditor-widget,
+.blog-ckeditor-shell textarea,
+.blog-ckeditor-shell .ck-editor,
+.blog-ckeditor-shell .ck-editor__main {
+  width: 100% !important;
+}
+
+.blog-native-submit {
+  border: 0;
+}
+
+.comment-replies {
+  display: grid;
+  gap: 18px;
+  margin-top: 18px;
+  padding-left: 24px;
+}
+
+.comment-reply-form {
+  display: none;
+  margin-top: 14px;
+}
+
+.blog-comment-input {
+  width: 100%;
+  min-height: 110px;
+  resize: vertical;
+  border: 1px solid var(--border, rgba(148, 163, 184, 0.25));
+  border-radius: 16px;
+  background: var(--bg, #f8fafc);
+  color: var(--ink-0, #101827);
+  font: inherit;
+  padding: 14px 16px;
+  outline: none;
+}
+
+.comment-textarea.blog-comment-input {
+  display: block;
+}
+
+.comment-reply-form.open {
+  display: block;
+}
+
+.blog-cover-preview {
+  background-position: center;
+  background-size: cover;
+  color: transparent;
+}
+
+.blog-cover-preview::after {
+  content: "";
+}
+
+body.blog-studio-editor-page {
+  display: block;
+  min-height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+body.blog-studio-editor-page .page-wrap {
+  height: auto;
+  min-height: 100vh;
+  overflow: visible;
+}
+
+body.blog-studio-editor-page .topbar {
+  position: sticky;
+  top: 0;
+}
+
+body.blog-studio-editor-page .editor-body {
+  min-height: 0;
+  overflow: visible;
+  align-items: flex-start;
+}
+
+body.blog-studio-editor-page .editor-main {
+  min-height: calc(100vh - 56px);
+  overflow: visible;
+}
+
+body.blog-studio-editor-page .editor-content.blog-ckeditor-shell {
+  min-height: 520px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  background: var(--white);
+  box-shadow: var(--sh-sm);
+}
+
+body.blog-studio-editor-page .blog-ckeditor-shell .django-ckeditor-widget,
+body.blog-studio-editor-page .blog-ckeditor-shell .ck.ck-editor {
+  display: block;
+  overflow: hidden;
+  border-radius: inherit;
+  background: var(--white);
+}
+
+body.blog-studio-editor-page .blog-ckeditor-shell .ck.ck-toolbar {
+  position: sticky;
+  top: 56px;
+  z-index: 35;
+  gap: 4px;
+  padding: 10px 14px !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--border) !important;
+  background: var(--surface) !important;
+  box-shadow: none !important;
+}
+
+body.blog-studio-editor-page .blog-ckeditor-shell .ck.ck-toolbar__separator {
+  background: var(--border) !important;
+}
+
+body.blog-studio-editor-page .blog-ckeditor-shell .ck.ck-button,
+body.blog-studio-editor-page .blog-ckeditor-shell .ck.ck-dropdown__button {
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: var(--r-sm) !important;
+  color: var(--ink-2) !important;
+  cursor: pointer;
+}
+
+body.blog-studio-editor-page .blog-ckeditor-shell .ck.ck-button:hover,
+body.blog-studio-editor-page .blog-ckeditor-shell .ck.ck-button.ck-on,
+body.blog-studio-editor-page .blog-ckeditor-shell .ck.ck-dropdown__button:hover,
+body.blog-studio-editor-page .blog-ckeditor-shell .ck.ck-dropdown__button.ck-on {
+  background: var(--blue-soft) !important;
+  color: var(--blue-mid) !important;
+  box-shadow: none !important;
+}
+
+body.blog-studio-editor-page .blog-ckeditor-shell .ck.ck-button .ck-icon,
+body.blog-studio-editor-page .blog-ckeditor-shell .ck.ck-dropdown__button .ck-icon {
+  color: currentColor !important;
+}
+
+body.blog-studio-editor-page .blog-ckeditor-shell .ck.ck-button__label,
+body.blog-studio-editor-page .blog-ckeditor-shell .ck.ck-dropdown__button .ck-button__label {
+  color: currentColor !important;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-weight: 700;
+}
+
+body.blog-studio-editor-page .blog-ckeditor-shell .ck.ck-dropdown__panel,
+body.blog-studio-editor-page .blog-ckeditor-shell .ck.ck-list,
+body.blog-studio-editor-page .blog-ckeditor-shell .ck.ck-balloon-panel {
+  border: 1px solid var(--border) !important;
+  background: var(--surface) !important;
+  color: var(--ink-0) !important;
+  box-shadow: var(--sh-md) !important;
+}
+
+body.blog-studio-editor-page .blog-ckeditor-shell .ck.ck-list__item .ck-button {
+  color: var(--ink-1) !important;
+}
+
+body.blog-studio-editor-page .blog-ckeditor-shell .ck.ck-list__item .ck-button:hover,
+body.blog-studio-editor-page .blog-ckeditor-shell .ck.ck-list__item .ck-button.ck-on {
+  background: var(--blue-soft) !important;
+}
+
+body.blog-studio-editor-page .blog-ckeditor-shell .ck.ck-editor__main > .ck-editor__editable {
+  min-height: 430px;
+  padding: 28px 32px;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: var(--white) !important;
+  color: var(--ink-0) !important;
+  box-shadow: none !important;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+body.blog-studio-editor-page .blog-ckeditor-shell .ck.ck-editor__editable.ck-focused {
+  box-shadow: inset 0 0 0 2px var(--blue-soft) !important;
+}
+
+body.blog-studio-editor-page .blog-ckeditor-shell .ck.ck-editor__editable h2,
+body.blog-studio-editor-page .blog-ckeditor-shell .ck.ck-editor__editable h3,
+body.blog-studio-editor-page .blog-ckeditor-shell .ck.ck-editor__editable p,
+body.blog-studio-editor-page .blog-ckeditor-shell .ck.ck-editor__editable li {
+  color: var(--ink-0);
+}
+
+body.blog-studio-editor-page .editor-panel {
+  position: sticky;
+  top: 56px;
+  max-height: calc(100vh - 56px);
+  align-self: flex-start;
+}
+
+@media (max-width: 720px) {
+  .blog-messages {
+    top: 72px;
+    right: 16px;
+  }
+
+  body.blog-studio-editor-page .editor-body {
+    display: block;
+  }
+
+  body.blog-studio-editor-page .editor-panel {
+    position: static;
+    max-height: none;
+    width: 100%;
+  }
+}

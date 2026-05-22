@@ -85,3 +85,22 @@ class BlogFlowTests(TestCase):
         self.assertEqual(unlike_response.status_code, 200)
         self.assertFalse(unlike_response.json()["liked"])
         self.assertEqual(unlike_response.json()["like_count"], 0)
+
+    def test_staff_studio_pages_are_accessible(self):
+        editor = CustomUser.objects.create_superuser(
+            username="editor",
+            email="editor@example.com",
+            password="testpass123",
+        )
+        self.client.force_login(editor)
+
+        studio_response = self.client.get(reverse("blog:studio"))
+        create_response = self.client.get(reverse("blog:studio_create"))
+        edit_response = self.client.get(reverse("blog:studio_edit", args=[self.post.slug]))
+
+        self.assertEqual(studio_response.status_code, 200)
+        self.assertContains(studio_response, "Studio Dashboard")
+        self.assertEqual(create_response.status_code, 200)
+        self.assertContains(create_response, "Yangi maqola")
+        self.assertEqual(edit_response.status_code, 200)
+        self.assertContains(edit_response, self.post.title)

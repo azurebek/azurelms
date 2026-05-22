@@ -3,7 +3,7 @@ from urllib.parse import quote
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.db import IntegrityError, transaction
-from django.db.models import Count, F, Q
+from django.db.models import Avg, Count, F, Q, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
@@ -76,6 +76,7 @@ class BlogListView(ListView):
         context["landing_settings"] = landing_settings
         context["carousel_posts"] = carousel_posts
         context["featured_post"] = self.featured_post
+        context["hero_post"] = self.featured_post or (carousel_posts[0] if carousel_posts else None)
         context["search_query"] = self.search_query
         context["active_tag"] = self.active_tag
         context["top_tags"] = BlogTag.objects.annotate(post_total=Count("posts", filter=published_filter)).filter(
@@ -203,6 +204,21 @@ class BlogStudioView(BlogStaffRequiredMixin, TemplateView):
         context["posts"] = posts.order_by("-updated_at")
         context["draft_count"] = posts.filter(status=BlogPost.STATUS_DRAFT).count()
         context["published_count"] = posts.filter(status=BlogPost.STATUS_PUBLISHED).count()
+        context["scheduled_posts"] = posts.filter(
+            status=BlogPost.STATUS_PUBLISHED,
+            published_at__gt=timezone.now(),
+        ).order_by("published_at")[:4]
+        totals = posts.aggregate(
+            total_views=Sum("view_count"),
+            total_claps=Sum("clap_count"),
+            comment_total=Sum("comment_count"),
+            avg_reading_time=Avg("reading_time_minutes"),
+        )
+        context["total_views"] = totals["total_views"] or 0
+        context["total_claps"] = totals["total_claps"] or 0
+        context["comment_total"] = totals["comment_total"] or 0
+        context["avg_reading_time"] = round(totals["avg_reading_time"] or 1, 1)
+        context["now"] = timezone.now()
         return context
 
 
