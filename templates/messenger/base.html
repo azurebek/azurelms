@@ -1,0 +1,246 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{% block meta_description %}AzureLMS xabarlar — guruh, tutor va AI suhbatlar.{% endblock %}">
+  <script>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme') || localStorage.getItem('lms-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>{% block page_title %}Xabarlar — AzureLMS{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/foundation.css' %}">
+  <link rel="stylesheet" href="{% static 'css/components.css' %}">
+  <link rel="stylesheet" href="{% static 'css/messenger-shell.css' %}">
+  <link rel="stylesheet" href="{% static 'css/prototype-extracted.css' %}">
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sb-head">
+    <div class="sb-head-row">
+      <a class="sb-home" href="{% url 'dashboard' %}" title="Dashboard'ga qaytish">
+        <span class="sb-home-logo">
+          <span class="logo-text">AL</span>
+          <i class="bi bi-arrow-left logo-back"></i>
+        </span>
+        <span class="sb-home-name">Xabarlar</span>
+      </a>
+      <div class="sb-head-actions">
+        <button class="sb-icon-btn" type="button" aria-label="Sozlamalar"><i class="bi bi-sliders"></i></button>
+      </div>
+    </div>
+    <div class="sb-search">
+      <i class="bi bi-search sb-search-icon"></i>
+      <input type="search" class="sb-search-input" placeholder="Qidirish..." data-contact-search>
+    </div>
+  </div>
+
+  <div class="sb-body">
+
+    <div class="sb-new-chat-row">
+      <button class="sb-new-chat" type="button">
+        <i class="bi bi-pencil-square"></i>
+        <span>Yangi chat</span>
+      </button>
+    </div>
+
+    <div class="sb-section-label">Muhrlangan</div>
+
+    <a class="sb-item {% if active_room == 'group' %}active{% else %}has-unread{% endif %}" href="{% url 'messenger:group' %}">
+      <div class="sb-item-avatar c-lime">A2<span class="status-dot"></span></div>
+      <div class="sb-item-body">
+        <div class="sb-item-row">
+          <span class="sb-item-name">A2 Group chat</span>
+          <span class="sb-item-time">10:05</span>
+        </div>
+        <div class="sb-item-preview">Aziz: rahmat hammaga! 🙏</div>
+      </div>
+      {% if active_room != 'group' %}<span class="sb-item-badge">2</span>{% endif %}
+    </a>
+
+    <a class="sb-item {% if active_room == 'tutor' %}active{% endif %}" href="{% url 'messenger:tutor' %}">
+      <div class="sb-item-avatar c-amber">MA<span class="status-dot"></span></div>
+      <div class="sb-item-body">
+        <div class="sb-item-row">
+          <span class="sb-item-name">Mentor M. Arif</span>
+          <span class="sb-item-time">09:12</span>
+        </div>
+        <div class="sb-item-preview">Ertaga 19:00ga vaqt boring</div>
+      </div>
+    </a>
+
+    <div class="sb-section-label">AI suhbatlar</div>
+
+    <a class="sb-item {% if active_room == 'ai' %}active{% endif %}" href="{% url 'messenger:ai' %}">
+      <div class="sb-item-avatar sb-item-avatar--ai"><i class="bi bi-stars"></i></div>
+      <div class="sb-item-body">
+        <div class="sb-item-row">
+          <span class="sb-item-name">A2 guided study</span>
+          <span class="sb-item-time">10:28</span>
+        </div>
+        <div class="sb-item-preview">Speaking uchun qulayroq shakl:</div>
+      </div>
+    </a>
+
+    <a class="sb-item" href="#">
+      <div class="sb-item-avatar sb-item-avatar--ai"><i class="bi bi-stars"></i></div>
+      <div class="sb-item-body">
+        <div class="sb-item-row">
+          <span class="sb-item-name">Grammar correction</span>
+          <span class="sb-item-time">Kecha</span>
+        </div>
+        <div class="sb-item-preview">Past tense review</div>
+      </div>
+    </a>
+
+    <a class="sb-item" href="#">
+      <div class="sb-item-avatar sb-item-avatar--ai"><i class="bi bi-stars"></i></div>
+      <div class="sb-item-body">
+        <div class="sb-item-row">
+          <span class="sb-item-name">Reading summary</span>
+          <span class="sb-item-time">Kecha</span>
+        </div>
+        <div class="sb-item-preview">Lesson 02 notes</div>
+      </div>
+    </a>
+
+    <a class="sb-item" href="#">
+      <div class="sb-item-avatar sb-item-avatar--ai"><i class="bi bi-stars"></i></div>
+      <div class="sb-item-body">
+        <div class="sb-item-row">
+          <span class="sb-item-name">Writing starter</span>
+          <span class="sb-item-time">Seshanba</span>
+        </div>
+        <div class="sb-item-preview">Paragraph opening</div>
+      </div>
+    </a>
+
+    <a class="sb-item" href="#">
+      <div class="sb-item-avatar sb-item-avatar--ai"><i class="bi bi-stars"></i></div>
+      <div class="sb-item-body">
+        <div class="sb-item-row">
+          <span class="sb-item-name">Speaking drill</span>
+          <span class="sb-item-time">Dushanba</span>
+        </div>
+        <div class="sb-item-preview">Pronunciation feedback</div>
+      </div>
+    </a>
+
+    <a class="sb-item" href="#">
+      <div class="sb-item-avatar sb-item-avatar--ai"><i class="bi bi-stars"></i></div>
+      <div class="sb-item-body">
+        <div class="sb-item-row">
+          <span class="sb-item-name">Vocabulary builder</span>
+          <span class="sb-item-time">Yakshanba</span>
+        </div>
+        <div class="sb-item-preview">Daily 10 words</div>
+      </div>
+    </a>
+
+  </div>
+
+  <div class="sb-footer">
+    <div class="sb-user">
+      <div class="sb-user-avatar">{{ user.username|slice:":2"|upper }}</div>
+      <div class="sb-user-info">
+        <div class="sb-user-name">{{ user.get_full_name|default:user.username }}</div>
+        <div class="sb-user-role">Student</div>
+      </div>
+      <i class="bi bi-chevron-expand sb-user-more"></i>
+    </div>
+  </div>
+</aside>
+
+{% block chat_panel %}{% endblock %}
+
+{% block info_panel %}{% endblock %}
+
+<script>
+  (function() {
+    const btn = document.getElementById('themeBtn');
+    const icon = document.getElementById('themeIcon');
+    if (btn) {
+      function syncIcon() {
+        const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+        if (icon) icon.className = dark ? 'bi bi-sun' : 'bi bi-moon';
+      }
+      syncIcon();
+      btn.addEventListener('click', function () {
+        const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', cur);
+        try { localStorage.setItem('az-theme', cur); } catch (_) {}
+        syncIcon();
+      });
+    }
+  })();
+
+  (function () {
+    const ta = document.querySelector('.compose-input');
+    if (!ta) return;
+    ta.addEventListener('input', function () {
+      ta.style.height = 'auto';
+      ta.style.height = Math.min(ta.scrollHeight, 140) + 'px';
+    });
+  })();
+
+  (function () {
+    const btn = document.getElementById('attachBtn');
+    const menu = document.getElementById('attachMenu');
+    if (!btn || !menu) return;
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      btn.classList.toggle('open');
+      menu.classList.toggle('open');
+    });
+    document.addEventListener('click', function (e) {
+      if (!menu.contains(e.target) && e.target !== btn) {
+        btn.classList.remove('open');
+        menu.classList.remove('open');
+      }
+    });
+  })();
+
+  (function () {
+    const body = document.body;
+    const toggle = document.getElementById('infoToggle');
+    const close = document.getElementById('infoClose');
+    if (!toggle) return;
+    function setInfoPanel(open) {
+      body.classList.toggle('info-collapsed', !open);
+      toggle.classList.toggle('active', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    toggle.addEventListener('click', function () { setInfoPanel(body.classList.contains('info-collapsed')); });
+    if (close) close.addEventListener('click', function () { setInfoPanel(false); });
+  })();
+
+  (function () {
+    const search = document.querySelector('[data-contact-search]');
+    if (!search) return;
+    search.addEventListener('input', function () {
+      const q = search.value.toLowerCase();
+      document.querySelectorAll('.sb-item').forEach(function (item) {
+        const name = item.querySelector('.sb-item-name');
+        if (!name) return;
+        item.style.display = name.textContent.toLowerCase().indexOf(q) !== -1 ? '' : 'none';
+      });
+    });
+  })();
+</script>
+
+{% block page_js %}{% endblock %}
+
+</body>
+</html>

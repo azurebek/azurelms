@@ -13,15 +13,35 @@ from .access import user_can_access_room
 from .models import ChatRoom, Message, AIFeedback
 
 
-class MessengerShellView(LoginRequiredMixin, TemplateView):
-    """Render the messenger shell (contacts + chat + detail panes).
+class _MessengerRoomView(LoginRequiredMixin, TemplateView):
+    """Base for the three messenger shell variants (AI / group / tutor).
 
-    For now the page ships with prototype mock data and inline JS.
-    Real room/message loading goes through the existing JSON APIs
+    For now each page ships with prototype mock data and inline JS;
+    real room/message loading goes through the existing JSON APIs
     (get_user_rooms, get_room_messages) and the WebSocket consumer.
     """
 
-    template_name = "messenger/shell.html"
+    active_room = ""
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["active_room"] = self.active_room
+        return context
+
+
+class MessengerAIView(_MessengerRoomView):
+    template_name = "messenger/ai.html"
+    active_room = "ai"
+
+
+class MessengerGroupView(_MessengerRoomView):
+    template_name = "messenger/group.html"
+    active_room = "group"
+
+
+class MessengerTutorView(_MessengerRoomView):
+    template_name = "messenger/tutor.html"
+    active_room = "tutor"
 
 @login_required
 @never_cache
