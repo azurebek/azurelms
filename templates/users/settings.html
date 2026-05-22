@@ -1,0 +1,174 @@
+{% extends 'users/base_app.html' %}
+{% load static %}
+
+{% block title %}Sozlamalar — AzureLMS{% endblock %}
+{% block page_title %}Sozlamalar{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/app-settings.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="settings-layout">
+  <div class="settings-nav">
+    <div class="sn-item active"><i class="bi bi-person"></i> Profil</div>
+    <div class="sn-item"><i class="bi bi-shield-lock"></i> Xavfsizlik</div>
+    <div class="sn-item"><i class="bi bi-palette"></i> Ko'rinish</div>
+    <div class="sn-item"><i class="bi bi-translate"></i> Til</div>
+    <div class="sn-item"><i class="bi bi-bell"></i> Bildirishnomalar</div>
+    <div class="sn-item"><i class="bi bi-device-hdd"></i> Yuklab olish</div>
+    <div class="sn-item"><i class="bi bi-shield-exclamation"></i> Maxfiylik</div>
+  </div>
+
+  <div class="settings-main">
+    <!-- APPEARANCE -->
+    <div class="ss">
+      <div class="ss-header"><div class="ss-title">Ko'rinish</div><div class="ss-sub">Interfeys rangi va o'lchami</div></div>
+      <div class="ss-body">
+        <div class="sr">
+          <div class="sr-icon xstyle-f2cd36af"><i class="bi bi-moon-stars"></i></div>
+          <div class="sr-info"><div class="sr-label">Qorong'i rejim</div><div class="sr-desc">Ko'zni qoraytiruvchi interfeys</div></div>
+          <div class="toggle on" id="darkToggle2" onclick="toggleTheme();"></div>
+        </div>
+        <div class="sr">
+          <div class="sr-icon xstyle-eead3a91"><i class="bi bi-type"></i></div>
+          <div class="sr-info"><div class="sr-label">Matn o'lchami</div><div class="sr-desc">Interfeysdagi shrift kattaligi</div></div>
+          <select class="sr-select"><option>Standart</option><option>Kichik</option><option>Katta</option></select>
+        </div>
+        <div class="sr">
+          <div class="sr-icon xstyle-adf55eb0"><i class="bi bi-layout-sidebar"></i></div>
+          <div class="sr-info"><div class="sr-label">Yon panel holati</div><div class="sr-desc">Boshlanganda kengaytirilgan ko'rsatish</div></div>
+          <div class="toggle on"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECURITY -->
+    <div class="ss">
+      <div class="ss-header"><div class="ss-title">Xavfsizlik</div><div class="ss-sub">Parol va kirish nazorati</div></div>
+      <div class="ss-body">
+        <div class="sr" style="flex-direction: column; align-items: stretch; gap: 8px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <div class="sr-icon xstyle-f2cd36af"><i class="bi bi-key-fill"></i></div>
+              <div class="sr-info"><div class="sr-label">Parolni o'zgartirish</div><div class="sr-desc">Oxirgi o'zgartirilgan: 3 oy oldin</div></div>
+            </div>
+            <button class="sr-btn" onclick="document.getElementById('passwordFormCard').style.display = document.getElementById('passwordFormCard').style.display === 'none' ? 'block' : 'none';">O'zgartirish</button>
+          </div>
+          <form id="passwordFormCard" method="post" action="{% url 'update_password' %}" style="display: none; padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); margin-top: 10px; width: 100%;">
+            {% csrf_token %}
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <div style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-size: 0.78rem; font-weight: 600; color: var(--ink-3);">Joriy parol</label>
+                <input class="form-input" type="password" name="old_password" required style="height: 36px; border: 1px solid var(--border); border-radius: var(--r-md); padding: 0 10px; outline: none; background: var(--white);">
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-size: 0.78rem; font-weight: 600; color: var(--ink-3);">Yangi parol</label>
+                <input class="form-input" type="password" name="new_password1" required style="height: 36px; border: 1px solid var(--border); border-radius: var(--r-md); padding: 0 10px; outline: none; background: var(--white);">
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-size: 0.78rem; font-weight: 600; color: var(--ink-3);">Yangi parolni takrorlang</label>
+                <input class="form-input" type="password" name="new_password2" required style="height: 36px; border: 1px solid var(--border); border-radius: var(--r-md); padding: 0 10px; outline: none; background: var(--white);">
+              </div>
+              <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px;">
+                <button type="submit" class="sr-btn" style="background: var(--blue-mid); color: white; border: none; padding: 0 16px;">Parolni yangilash</button>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="sr">
+          <div class="sr-icon xstyle-adf55eb0"><i class="bi bi-shield-check"></i></div>
+          <div class="sr-info"><div class="sr-label">Ikki bosqichli tekshiruv</div><div class="sr-desc">SMS yoki authenticator orqali</div></div>
+          <div class="toggle"></div>
+        </div>
+        <div class="sr">
+          <div class="sr-icon xstyle-b4b2fb28"><i class="bi bi-clock-history"></i></div>
+          <div class="sr-info"><div class="sr-label">Sessiya muddati</div><div class="sr-desc">Nofaollik vaqtidan so'ng chiqarish</div></div>
+          <select class="sr-select"><option>30 daqiqa</option><option>1 soat</option><option>1 kun</option><option>Hech qachon</option></select>
+        </div>
+        <div class="sr">
+          <div class="sr-icon xstyle-a580fc7a"><i class="bi bi-box-arrow-right"></i></div>
+          <div class="sr-info"><div class="sr-label">Barcha qurilmalardan chiqish</div><div class="sr-desc">3 ta faol sessiya</div></div>
+          <button class="sr-btn danger">Chiqarish</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LANGUAGE -->
+    <div class="ss">
+      <div class="ss-header"><div class="ss-title">Til va mintaqa</div><div class="ss-sub">Interfeys tili va vaqt mintaqasi</div></div>
+      <div class="ss-body">
+        <div class="sr">
+          <div class="sr-icon xstyle-f2cd36af"><i class="bi bi-translate"></i></div>
+          <div class="sr-info"><div class="sr-label">Interfeys tili</div><div class="sr-desc">Menyu va tugmalar tili</div></div>
+          <select class="sr-select"><option>O'zbek</option><option>Русский</option><option>English</option></select>
+        </div>
+        <div class="sr">
+          <div class="sr-icon xstyle-adf55eb0"><i class="bi bi-globe2"></i></div>
+          <div class="sr-info"><div class="sr-label">Vaqt mintaqasi</div><div class="sr-desc">Hozir: Asia/Tashkent (UTC+5)</div></div>
+          <select class="sr-select"><option>Asia/Tashkent</option><option>Europe/Moscow</option><option>UTC</option></select>
+        </div>
+      </div>
+    </div>
+
+    <!-- DOWNLOADS -->
+    <div class="ss">
+      <div class="ss-header"><div class="ss-title">Yuklab olish</div><div class="ss-sub">Offline ko'rish sozlamalari</div></div>
+      <div class="ss-body">
+        <div class="sr">
+          <div class="sr-icon xstyle-f2cd36af"><i class="bi bi-wifi-off"></i></div>
+          <div class="sr-info"><div class="sr-label">Offline rejim</div><div class="sr-desc">Internetisiz ko'rish uchun yuklab olish</div></div>
+          <div class="toggle on"></div>
+        </div>
+        <div class="sr">
+          <div class="sr-icon xstyle-eead3a91"><i class="bi bi-hd"></i></div>
+          <div class="sr-info"><div class="sr-label">Video sifati</div><div class="sr-desc">Yuklab olish sifatini tanlang</div></div>
+          <select class="sr-select"><option>1080p</option><option>720p</option><option>480p</option></select>
+        </div>
+        <div class="sr">
+          <div class="sr-icon xstyle-b4b2fb28"><i class="bi bi-trash"></i></div>
+          <div class="sr-info"><div class="sr-label">Keshni tozalash</div><div class="sr-desc">234 MB band qilmoqda</div></div>
+          <button class="sr-btn">Tozalash</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRIVACY -->
+    <div class="ss">
+      <div class="ss-header"><div class="ss-title">Maxfiylik</div><div class="ss-sub">Ma'lumotlar va tahlil</div></div>
+      <div class="ss-body">
+        <div class="sr">
+          <div class="sr-icon xstyle-f2cd36af"><i class="bi bi-graph-up"></i></div>
+          <div class="sr-info"><div class="sr-label">Foydalanish tahlili</div><div class="sr-desc">Platformani yaxshilash uchun anon ma'lumot</div></div>
+          <div class="toggle on"></div>
+        </div>
+        <div class="sr">
+          <div class="sr-icon xstyle-adf55eb0"><i class="bi bi-eye-slash"></i></div>
+          <div class="sr-info"><div class="sr-label">Profil ko'rinishi</div><div class="sr-desc">Boshqa talabalar profilingizni ko'ra oladi</div></div>
+          <select class="sr-select"><option>Hammaga ochiq</option><option>Faqat o'zim</option></select>
+        </div>
+        <div class="sr">
+          <div class="sr-icon xstyle-a580fc7a"><i class="bi bi-download"></i></div>
+          <div class="sr-info"><div class="sr-label">Ma'lumotlarni eksport qilish</div><div class="sr-desc">Balla ma'lumotlaringizni yuklab oling</div></div>
+          <button class="sr-btn">Eksport</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Theme management sync
+  (function() {
+    let s; try { s = localStorage.getItem('az-theme'); } catch(_) {}
+    const dark = s ? s === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const dt = document.getElementById('darkToggle2');
+    if (dt) {
+      if (dark) dt.classList.add('on');
+      else dt.classList.remove('on');
+    }
+  })();
+</script>
+{% endblock %}

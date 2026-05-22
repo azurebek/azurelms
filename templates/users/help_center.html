@@ -1,0 +1,93 @@
+{% extends 'users/base_app.html' %}
+{% load static %}
+
+{% block title %}Yordam Markazi — AzureLMS{% endblock %}
+{% block page_title %}Yordam Markazi{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 900px; margin: 0 auto; padding: 24px;">
+  
+  <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 24px;">
+    <h2 style="font-size: 20px; font-weight: 800; color: var(--ink-1); margin: 0;">Yordam markazi</h2>
+    <p style="font-size: 13px; color: var(--ink-3); margin-top: 4px;">Platformadan foydalanish, to'lovlar va huquqiy masalalar bo'yicha ma'lumotlar.</p>
+  </div>
+
+  <!-- HELP TABS NAVIGATION -->
+  <div class="help-tabs" style="display: flex; gap: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 1px; margin-bottom: 24px;">
+    <button class="tab-btn active" onclick="switchHelpTab('faq', this)" style="border: none; background: transparent; padding: 12px 16px; font-size: 14px; font-weight: 600; color: var(--blue); border-bottom: 2px solid var(--blue); cursor: pointer; transition: all 0.2s;">
+      💡 Savol-javoblar (FAQ)
+    </button>
+    <button class="tab-btn" onclick="switchHelpTab('terms', this)" style="border: none; background: transparent; padding: 12px 16px; font-size: 14px; font-weight: 500; color: var(--ink-3); border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.2s;">
+      📜 Foydalanish shartlari
+    </button>
+    <button class="tab-btn" onclick="switchHelpTab('privacy', this)" style="border: none; background: transparent; padding: 12px 16px; font-size: 14px; font-weight: 500; color: var(--ink-3); border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.2s;">
+      🔒 Maxfiylik siyosati
+    </button>
+  </div>
+
+  <!-- HELP TABS CONTENT -->
+  <div class="help-content-wrapper">
+    
+    <!-- FAQ TAB -->
+    <div id="help-tab-faq" class="help-tab-panel" style="display: block; line-height: 1.6; color: var(--ink-2);">
+      <h3 style="font-size: 18px; font-weight: 700; color: var(--ink-1); margin-bottom: 16px;">{{ page_faq.title|default:"Ko'p beriladigan savollar" }}</h3>
+      <div style="font-size: 14px;">
+        {{ page_faq.content|safe }}
+      </div>
+    </div>
+    
+    <!-- TERMS TAB -->
+    <div id="help-tab-terms" class="help-tab-panel" style="display: none; line-height: 1.6; color: var(--ink-2);">
+      <h3 style="font-size: 18px; font-weight: 700; color: var(--ink-1); margin-bottom: 16px;">{{ page_terms.title|default:"Foydalanish shartlari" }}</h3>
+      <div style="font-size: 14px;">
+        {{ page_terms.content|safe }}
+      </div>
+    </div>
+
+    <!-- PRIVACY TAB -->
+    <div id="help-tab-privacy" class="help-tab-panel" style="display: none; line-height: 1.6; color: var(--ink-2);">
+      <h3 style="font-size: 18px; font-weight: 700; color: var(--ink-1); margin-bottom: 16px;">{{ page_privacy.title|default:"Maxfiylik kelishuvi" }}</h3>
+      <div style="font-size: 14px;">
+        {{ page_privacy.content|safe }}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER SUPPORT ACTION -->
+  <div style="margin-top: 48px; padding: 20px; background: rgba(59, 130, 246, 0.03); border: 1px solid rgba(59, 130, 246, 0.1); border-radius: var(--radius-l); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px;">
+    <div>
+      <h4 style="font-size: 15px; font-weight: 700; color: var(--ink-1); margin: 0;">Savolingizga javob topa olmadingizmi?</h4>
+      <p style="font-size: 12px; color: var(--ink-3); margin-top: 4px; margin-bottom: 0;">Bizning qo'llab-quvvatlash guruhimiz bilan bog'laning, sizga tez fursatda yordam beramiz.</p>
+    </div>
+    <a href="mailto:support@azurelms.uz" class="btn-submit" style="text-decoration: none; padding: 10px 20px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+      <i class="bi bi-envelope"></i> Bizga yozish
+    </a>
+  </div>
+
+</div>
+
+<script>
+  function switchHelpTab(tabName, buttonEl) {
+    // Hide all panels
+    const panels = document.querySelectorAll('.help-tab-panel');
+    panels.forEach(panel => panel.style.display = 'none');
+    
+    // Deactivate all buttons
+    const buttons = document.querySelectorAll('.tab-btn');
+    buttons.forEach(btn => {
+      btn.style.color = 'var(--ink-3)';
+      btn.style.borderBottomColor = 'transparent';
+      btn.style.fontWeight = '500';
+    });
+    
+    // Show active panel
+    document.getElementById('help-tab-' + tabName).style.display = 'block';
+    
+    // Style active button
+    buttonEl.style.color = 'var(--blue)';
+    buttonEl.style.borderBottomColor = 'var(--blue)';
+    buttonEl.style.fontWeight = '600';
+  }
+</script>
+{% endblock %}

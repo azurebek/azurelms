@@ -1,0 +1,70 @@
+{% extends 'users/base_app.html' %}
+{% load static %}
+
+{% block title %}Sertifikatlar — AzureLMS{% endblock %}
+{% block page_title %}Sertifikatlar{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 900px; margin: 0 auto; padding: 24px;">
+  <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 24px;">
+    <h2 style="font-size: 20px; font-weight: 800; color: var(--ink-1); margin: 0;">Mening sertifikatlarim</h2>
+    <p style="font-size: 13px; color: var(--ink-3); margin-top: 4px;">Kurslarni muvaffaqiyatli tamomlaganingizdan so'ng berilgan rasmiy sertifikatlar va ularning ilovalari.</p>
+  </div>
+
+  <div class="certificates-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px;">
+    {% for cert in course_certificates %}
+      <div class="cert-card" style="border: 1px solid var(--border-color); border-radius: var(--radius-l); padding: 20px; display: flex; flex-direction: column; justify-content: space-between; background: var(--bg-1); transition: all 0.2s; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);">
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+            <div style="width: 48px; height: 48px; background: rgba(16, 185, 129, 0.1); color: var(--emerald); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+              <i class="bi bi-patch-check-fill"></i>
+            </div>
+            <span style="font-size: 11px; background: rgba(59, 130, 246, 0.1); color: var(--blue); padding: 4px 8px; border-radius: 4px; font-weight: 600; text-transform: uppercase;">
+              Rasmiy
+            </span>
+          </div>
+          
+          <h3 style="font-size: 16px; font-weight: 700; color: var(--ink-1); margin-bottom: 8px; line-height: 1.4;">
+            {{ cert.course.title }}
+          </h3>
+          <p style="font-size: 12px; color: var(--ink-3); margin-bottom: 16px;">
+            Berilgan sana: {{ cert.issued_at|date:"d-M, Y" }} <br>
+            Sertifikat ID: <code>{{ cert.certificate_id }}</code>
+          </p>
+        </div>
+
+        <div style="display: flex; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 16px; margin-top: 12px;">
+          <a href="{% url 'certificate_detail' certificate_id=cert.certificate_id %}" class="btn-submit" style="flex-grow: 1; text-align: center; text-decoration: none; padding: 8px 12px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+            <i class="bi bi-eye"></i> Ko'rish
+          </a>
+          <a href="{% url 'certificate_appendix' certificate_id=cert.certificate_id %}" style="text-decoration: none; border: 1px solid var(--border-color); color: var(--ink-2); padding: 8px 12px; border-radius: var(--radius-m); font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center;" title="Ilova">
+            Ilova
+          </a>
+        </div>
+      </div>
+    {% empty %}
+      <div style="grid-column: 1 / -1; text-align: center; padding: 48px 24px; color: var(--ink-3);">
+        <i class="bi bi-patch-exclamation-fill" style="font-size: 48px; color: var(--ink-4); display: block; margin-bottom: 16px;"></i>
+        <h4 style="font-size: 16px; font-weight: 700; color: var(--ink-2); margin-bottom: 8px;">Sertifikatlar mavjud emas</h4>
+        <p style="font-size: 13px; max-width: 400px; margin: 0 auto 24px;">Siz hali hech qaysi kursni to'liq tamomlamagansiz. Kurslar ro'yxatidan faol darslarni yakunlab sertifikatga ega bo'ling.</p>
+        <a href="{% url 'courses' %}" class="btn-submit" style="text-decoration: none; display: inline-block; padding: 10px 20px;">Kurslarni boshlash</a>
+      </div>
+    {% endfor %}
+  </div>
+
+  {% if earned_badges %}
+    <div style="border-top: 1px solid var(--border-color); margin-top: 48px; padding-top: 24px;">
+      <h3 style="font-size: 16px; font-weight: 700; color: var(--ink-1); margin-bottom: 16px;">Gamifikatsiya nishonlari</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 16px;">
+        {% for badge in earned_badges %}
+          <div style="border: 1px solid var(--border-color); border-radius: var(--radius-m); padding: 16px; text-align: center; background: var(--bg-2);">
+            <div style="font-size: 32px; margin-bottom: 8px;">{{ badge.badge.badge_type }}</div>
+            <div style="font-size: 12px; font-weight: 700; color: var(--ink-1); margin-bottom: 4px;">{{ badge.badge.name }}</div>
+            <div style="font-size: 10px; color: var(--ink-3);">{{ badge.earned_at|date:"d-M, Y" }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,135 @@
+{% extends 'users/base_app.html' %}
+{% load static %}
+
+{% block title %}Bildirishnomalar — AzureLMS{% endblock %}
+{% block page_title %}Bildirishnomalar{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/app-notifications.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="notif-layout">
+  <div class="card">
+    <div class="notif-toolbar">
+      <div class="notif-count">Yangi<span>{{ unread_notifications.count }}</span></div>
+      <div class="filter-chips">
+        <div class="chip active">Hammasi</div>
+        <div class="chip">Darslar</div>
+        <div class="chip">Yutuqlar</div>
+        <div class="chip">Tizim</div>
+      </div>
+      {% if unread_notifications.exists %}
+        <form method="post" action="{% url 'notifications_read_all' %}" style="margin: 0;">
+          {% csrf_token %}
+          <button type="submit" class="btn-mark-all" style="background: none; border: none; font-family: inherit; font-size: inherit; color: inherit; cursor: pointer; padding: 0;">Barchasini o'qildi</button>
+        </form>
+      {% endif %}
+    </div>
+
+    <!-- Unread -->
+    {% for notif in unread_notifications %}
+      <div class="notif-item unread" onclick="location.href='{% url 'notification_open' notification_id=notif.id %}'" style="cursor: pointer;">
+        <div class="unread-dot"></div>
+        <div class="notif-icon xstyle-f2cd36af"><i class="bi bi-bell-fill"></i></div>
+        <div class="notif-body">
+          <div class="notif-title">{{ notif.title|default:"Tizim xabari" }}</div>
+          <div class="notif-desc">{{ notif.message }}</div>
+          <div class="notif-time">{{ notif.created_at|timesince }} oldin</div>
+          {% if notif.url %}
+            <div class="notif-action" onclick="event.stopPropagation(); location.href='{% url 'notification_open' notification_id=notif.id %}'">Batafsil ko'rish →</div>
+          {% endif %}
+        </div>
+      </div>
+    {% empty %}
+      {% if not read_notifications.exists %}
+        <div class="notif-item" style="justify-content: center; text-align: center; padding: 40px 20px;">
+          <div style="color: var(--ink-4);">
+            <i class="bi bi-bell-slash" style="font-size: 2rem; display: block; margin-bottom: 8px;"></i>
+            Hozircha bildirishnomalar yo'q.
+          </div>
+        </div>
+      {% endif %}
+    {% endfor %}
+
+    <!-- Read -->
+    {% for notif in read_notifications %}
+      <div class="notif-item" {% if notif.url %}onclick="location.href='{{ notif.url }}'" style="cursor: pointer;"{% endif %}>
+        <div class="notif-icon xstyle-eead3a91"><i class="bi bi-envelope-open"></i></div>
+        <div class="notif-body">
+          <div class="notif-title">{{ notif.title|default:"Tizim xabari" }}</div>
+          <div class="notif-desc">{{ notif.message }}</div>
+          <div class="notif-time">{{ notif.created_at|date:"d-M, Y, H:i" }}</div>
+          {% if notif.url %}
+            <div class="notif-action">Ko'rish →</div>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- SETTINGS SIDEBAR -->
+  <div class="xstyle-5ae19e99">
+    <div class="card settings-card">
+      <div class="settings-title">Bildirishnoma sozlamalari</div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-label">Yangi darslar</div><div class="setting-sub">Kursga yangi kontent qo'shilsa</div></div>
+        <div class="toggle on"></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-label">Jonli dars eslatma</div><div class="setting-sub">Darsdan 1 soat oldin</div></div>
+        <div class="toggle on"></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-label">Yutuqlar</div><div class="setting-sub">Yangi badge qo'lga kirganda</div></div>
+        <div class="toggle on"></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-label">Test natijalari</div><div class="setting-sub">Test topshirilganda</div></div>
+        <div class="toggle on"></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-label">Muallim javoblari</div><div class="setting-sub">Savolingizga javob kelsa</div></div>
+        <div class="toggle on"></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-label">To'lov va obuna</div><div class="setting-sub">To'lov va yangiliklar</div></div>
+        <div class="toggle"></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-label">Marketing</div><div class="setting-sub">Chegirmalar va aksiyalar</div></div>
+        <div class="toggle"></div>
+      </div>
+    </div>
+
+    <div class="card settings-card">
+      <div class="settings-title">Email sozlamalari</div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-label">Haftalik hisobot</div><div class="setting-sub">Har dushanba kuni</div></div>
+        <div class="toggle on"></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info"><div class="setting-label">Eslatmalar</div><div class="setting-sub">3 kunlik to'xtam bo'lsa</div></div>
+        <div class="toggle on"></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.querySelectorAll('.chip').forEach(c => {
+    c.addEventListener('click', function() {
+      document.querySelectorAll('.chip').forEach(x => x.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+  // Handle toggles
+  document.querySelectorAll('.toggle').forEach(t => {
+    t.addEventListener('click', function() {
+      this.classList.toggle('on');
+    });
+  });
+</script>
+{% endblock %}

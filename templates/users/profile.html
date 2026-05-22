@@ -1,0 +1,162 @@
+{% extends 'users/base_app.html' %}
+{% load static %}
+
+{% block title %}Profil — AzureLMS{% endblock %}
+{% block page_title %}Profil{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/app-profile.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- HERO -->
+<div class="profile-hero">
+  <div class="ph-inner">
+    <div class="ph-av">
+      {% if user.avatar %}
+        <img src="{{ user.avatar.url }}" alt="{{ user.username }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">
+      {% else %}
+        {{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}
+      {% endif %}
+    </div>
+    <div class="ph-info">
+      <div class="ph-name">{{ user.get_full_name|default:user.username }}</div>
+      <div class="ph-email">{{ user.email }}</div>
+      <div class="ph-tags">
+        <span class="ph-tag xstyle-ce5e35ed">{{ current_plan.name|default:"Bepul reja" }}</span>
+        <span class="ph-tag xstyle-ee2b6466">🔥 {{ user.streak_days|default:0 }} kunlik seriya</span>
+        <span class="ph-tag xstyle-6f1f2e93">✓ Tasdiqlangan</span>
+      </div>
+    </div>
+    <div class="ph-actions">
+      <form id="avatarForm" method="post" action="{% url 'update_avatar' %}" enctype="multipart/form-data" style="display: none;">
+        {% csrf_token %}
+        <input type="file" id="avatarInput" name="avatar" onchange="document.getElementById('avatarForm').submit();" accept="image/*">
+      </form>
+      <button class="btn-edit" onclick="document.getElementById('avatarInput').click();"><i class="bi bi-camera"></i> Rasm o'zgartirish</button>
+    </div>
+  </div>
+  <div class="ph-stats">
+    <div class="ph-stat"><div class="ph-stat-val">{{ user.enrollments.count }}</div><div class="ph-stat-label">Faol kurs</div></div>
+    <div class="ph-stat"><div class="ph-stat-val">{{ total_hours|default:"0" }}s</div><div class="ph-stat-label">O'quv vaqti</div></div>
+    <div class="ph-stat"><div class="ph-stat-val">{{ course_certificates.count }}</div><div class="ph-stat-label">Sertifikat</div></div>
+    <div class="ph-stat"><div class="ph-stat-val">82%</div><div class="ph-stat-label">Test o'rtachasi</div></div>
+    <div class="ph-stat"><div class="ph-stat-val">{{ earned_badges.count }}</div><div class="ph-stat-label">Yutuq</div></div>
+  </div>
+</div>
+
+<div class="two-col">
+  <!-- FORM -->
+  <div>
+    <form method="post" class="card xstyle-79a1c5a5">
+      {% csrf_token %}
+      <div class="card-title">Shaxsiy ma'lumotlar</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Ism</label><input class="form-input" name="first_name" type="text" value="{{ user.first_name }}"></div>
+        <div class="form-group"><label class="form-label">Familiya</label><input class="form-input" name="last_name" type="text" value="{{ user.last_name }}"></div>
+        <div class="form-group"><label class="form-label">Foydalanuvchi nomi</label><input class="form-input" name="username" type="text" value="{{ user.username }}"></div>
+        <div class="form-group"><label class="form-label">Telefon</label><input class="form-input" name="phone_number" type="tel" value="{{ user.phone_number|default:'' }}"></div>
+        <div class="form-group full"><label class="form-label">Email</label><input class="form-input" name="email" type="email" value="{{ user.email }}"></div>
+        <div class="form-group full"><label class="form-label">Bio</label><textarea class="form-input form-textarea" name="bio" placeholder="O'zingiz haqingizda qisqacha…">{{ user.bio|default:'' }}</textarea></div>
+        <div class="form-group"><label class="form-label">Shahar</label><input class="form-input" type="text" value="Toshkent" disabled></div>
+        <div class="form-group"><label class="form-label">Veb-sayt</label><input class="form-input" type="url" placeholder="https://..." disabled></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-cancel" type="button" onclick="window.location.reload();">Bekor qilish</button>
+        <button class="btn-save" type="submit">Saqlash</button>
+      </div>
+    </form>
+
+    <!-- BADGES -->
+    <div class="card" style="margin-bottom: 24px;">
+      <div class="card-title">Mening yutuqlarim</div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 16px; margin-top: 16px;">
+        {% for badge in earned_badges %}
+          <div style="text-align: center; padding: 12px; border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--surface);">
+            <div style="font-size: 32px; margin-bottom: 6px;">{{ badge.badge.badge_type }}</div>
+            <div style="font-size: 13px; font-weight: 600; color: var(--ink-1);">{{ badge.badge.name }}</div>
+            <div style="font-size: 11px; color: var(--ink-4); margin-top: 2px;">{{ badge.earned_at|date:"d-M, Y" }}</div>
+          </div>
+        {% empty %}
+          <p style="grid-column: 1/-1; text-align: center; color: var(--ink-3); padding: 16px 0; font-size: 13px;">
+            Hozircha yutuqlar yo'q. Kurslarni o'qib, yangi nishonlar qo'lga kiriting!
+          </p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- CERTS -->
+    <div class="card">
+      <div class="card-title">Sertifikatlar</div>
+      {% for cert in course_certificates %}
+        <div class="cert-item" onclick="location.href='{% url 'certificate_detail' certificate_id=cert.certificate_id %}'">
+          <div class="cert-icon"><i class="bi bi-patch-check-fill"></i></div>
+          <div class="cert-info">
+            <div class="cert-name">{{ cert.course.title }}</div>
+            <div class="cert-date">Berildi: {{ cert.issued_at|date:"d-M, Y" }} · AzureLMS</div>
+          </div>
+          <a href="{% url 'certificate_detail' certificate_id=cert.certificate_id %}" class="cert-dl" onclick="event.stopPropagation();"><i class="bi bi-download"></i></a>
+        </div>
+      {% empty %}
+        <div class="xstyle-11412d81">
+          <div class="xstyle-4645dd87">Keyingi sertifikat</div>
+          <div class="xstyle-81bda73f">Python kursini tugatgandan so'ng</div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="xstyle-5ae19e99">
+    <div class="card">
+      <div class="card-title">Hisob holati</div>
+      <div class="sc-item">
+        <div class="sc-icon xstyle-adf55eb0"><i class="bi bi-shield-check"></i></div>
+        <div class="sc-label">Hisob holati</div>
+        <div class="sc-val xstyle-5d1df5da">Faol</div>
+      </div>
+      <div class="sc-item">
+        <div class="sc-icon xstyle-f2cd36af"><i class="bi bi-credit-card"></i></div>
+        <div class="sc-label">Obuna rejasi</div>
+        <div class="sc-val">{{ current_plan.name|default:"Bepul" }}</div>
+      </div>
+      <div class="sc-item">
+        <div class="sc-icon xstyle-b4b2fb28"><i class="bi bi-calendar3"></i></div>
+        <div class="sc-label">Keyingi to'lov</div>
+        <div class="sc-val">17-iyun, 2025</div>
+      </div>
+      <div class="sc-item">
+        <div class="sc-icon xstyle-eead3a91"><i class="bi bi-clock-history"></i></div>
+        <div class="sc-label">Ro'yxatdan o'tgan</div>
+        <div class="sc-val">{{ user.date_joined|date:"M Y" }}</div>
+      </div>
+      <a href="{% url 'subscriptions' %}" class="xstyle-c82160de">Obunani boshqarish →</a>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Ijtimoiy tarmoqlar</div>
+      <div class="sc-item">
+        <div class="sc-icon xstyle-73c36276"><i class="bi bi-linkedin"></i></div>
+        <div class="sc-label">LinkedIn</div>
+        <button class="xstyle-92f97beb">Ulash</button>
+      </div>
+      <div class="sc-item">
+        <div class="sc-icon xstyle-13077f01"><i class="bi bi-github"></i></div>
+        <div class="sc-label">GitHub</div>
+        <button class="xstyle-92f97beb">Ulash</button>
+      </div>
+      <div class="sc-item">
+        <div class="sc-icon xstyle-add4eb7a"><i class="bi bi-instagram"></i></div>
+        <div class="sc-label">Instagram</div>
+        <button class="xstyle-92f97beb">Ulash</button>
+      </div>
+    </div>
+
+    <div class="card xstyle-0d670282">
+      <div class="card-title xstyle-26a2dff5">Xavfli zona</div>
+      <p class="xstyle-b4c75569">Hisobni o'chirish barcha ma'lumotlarni qaytarib bo'lmaydigan tarzda yo'q qiladi.</p>
+      <button class="ui-hover-red-soft xstyle-d44413c8">Hisobni o'chirish</button>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,143 @@
+{% extends 'users/base_app.html' %}
+{% load static %}
+
+{% block title %}Obuna - AzureLMS{% endblock %}
+{% block page_title %}Obuna{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/app-subscriptions.css' %}">
+{% endblock %}
+
+{% block content %}
+{% if active_subscription %}
+  {% with active_enrollment=active_subscription %}
+    <div class="plan-hero">
+      <div class="ph-icon"><i class="bi bi-rocket-takeoff"></i></div>
+      <div class="ph-info">
+        <div class="ph-badge"><i class="bi bi-check-circle-fill"></i> Faol obuna</div>
+        <div class="ph-plan-name">{{ active_enrollment.plan.name|default:"Pro Reja" }}</div>
+        <div class="ph-sub">
+          Oylik to'lov · Keyingi to'lov:
+          <strong class="xstyle-f3272885">{{ active_enrollment.next_payment_deadline|date:"d-M, Y"|default:"Belgilanmagan" }}</strong>
+          · {{ active_enrollment.plan.price|default:"199 000" }} so'm
+        </div>
+      </div>
+      <div class="ph-actions">
+        <button class="btn-upgrade" onclick="location.href='{% url 'courses' %}'"><i class="bi bi-arrow-up-circle"></i> Team ga o'tish</button>
+        <button class="btn-cancel">Obunani bekor qilish</button>
+      </div>
+    </div>
+  {% endwith %}
+{% else %}
+  <div class="plan-hero plan-hero-empty">
+    <div class="ph-icon"><i class="bi bi-lightbulb"></i></div>
+    <div class="ph-info">
+      <div class="ph-plan-name">Faol obuna mavjud emas</div>
+      <div class="ph-sub">Kurslarga yozilish yoki obuna bo'lish uchun kurslar bo'limiga o'ting.</div>
+    </div>
+    <div class="ph-actions">
+      <button class="btn-upgrade" onclick="location.href='{% url 'courses' %}'">Kurslar ro'yxati</button>
+    </div>
+  </div>
+{% endif %}
+
+<div class="two-col">
+  <div class="xstyle-5ae19e99">
+    <div class="card">
+      <div class="xstyle-b72ae578">
+        <div class="xstyle-3ebc1444">To'lov tarixi</div>
+        <button class="xstyle-dc167e81" onclick="location.href='#'">Hammasini ko'rish</button>
+      </div>
+      <div class="bill-head">
+        <span>Tavsif</span>
+        <span>Sana</span>
+        <span>Summa</span>
+        <span>Holat</span>
+      </div>
+
+      {% for receipt in payment_receipts %}
+        <div class="bill-row">
+          <div class="bill-desc">
+            {{ receipt.enrollment.cohort.course.title }}
+            {% if receipt.enrollment.plan %}
+              · {{ receipt.enrollment.plan.name }}
+            {% endif %}
+          </div>
+          <div class="bill-date">{{ receipt.submitted_at|date:"d-M, Y" }}</div>
+          <div class="bill-amount">{{ receipt.amount|floatformat:0 }} so'm</div>
+          {% if receipt.is_verified %}
+            <a class="bill-status bill-status-paid" href="{% url 'cohorts:checkout_success' receipt.id %}">To'landi</a>
+          {% else %}
+            <a class="bill-status bill-status-pending" href="{% url 'cohorts:checkout_pending' receipt.id %}">Kutilmoqda</a>
+          {% endif %}
+        </div>
+      {% empty %}
+        <div style="text-align: center; padding: 32px; color: var(--ink-3);">
+          Hozircha hech qanday obuna yoki kurs tarixi mavjud emas.
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="xstyle-5ae19e99">
+    <div class="card">
+      <div class="xstyle-58bea9a2">
+        <div class="xstyle-3ebc1444">Pro reja imkoniyatlari</div>
+      </div>
+      <div class="feat-list">
+        <div class="feat-item"><i class="bi bi-check-circle-fill"></i> Barcha kurslarga cheksiz kirish</div>
+        <div class="feat-item"><i class="bi bi-check-circle-fill"></i> Full HD video darslar</div>
+        <div class="feat-item"><i class="bi bi-check-circle-fill"></i> Offline ko'rish imkoniyati</div>
+        <div class="feat-item"><i class="bi bi-check-circle-fill"></i> Tasdiqlangan sertifikatlar</div>
+        <div class="feat-item"><i class="bi bi-check-circle-fill"></i> Muallim bilan chat aloqasi</div>
+        <div class="feat-item"><i class="bi bi-check-circle-fill"></i> Oyda 4 ta jonli dars</div>
+        <div class="feat-item"><i class="bi bi-check-circle-fill"></i> 24/7 texnik yordam</div>
+      </div>
+      <div class="xstyle-fbefaca5">
+        <a href="{% url 'courses' %}" class="xstyle-f8769e4f">Team rejasiga o'tish - 499 000 so'm/oy →</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="xstyle-b72ae578">
+        <div class="xstyle-3ebc1444">To'lov usullari</div>
+        <button class="xstyle-dc167e81"><i class="bi bi-plus"></i> Qo'shish</button>
+      </div>
+      <div class="pm-card">
+        <div class="pm-icon">VISA</div>
+        <div class="pm-info">
+          <div class="pm-name">Visa **** 4242</div>
+          <div class="pm-sub">Muddati: 09/27</div>
+        </div>
+        <span class="pm-default">Asosiy</span>
+      </div>
+      <div class="pm-card">
+        <div class="pm-icon xstyle-8d4d31d1">Payme</div>
+        <div class="pm-info">
+          <div class="pm-name">Payme · +998 90 *** 45 67</div>
+          <div class="pm-sub">Qo'shildi: mar 2024</div>
+        </div>
+        <span class="pm-remove">O'chirish</span>
+      </div>
+    </div>
+
+    <div class="card xstyle-39d49061">
+      <div class="xstyle-01b1031c">Bu oydagi foydalanish</div>
+      <div class="xstyle-b32a606a">
+        <div>
+          <div class="xstyle-510cd9a3"><span class="xstyle-db90cbe8">O'quv vaqti</span><span class="xstyle-758a8873">14.5 / cheksiz soat</span></div>
+          <div class="xstyle-04a7896a"><div class="xstyle-64bbe339"></div></div>
+        </div>
+        <div>
+          <div class="xstyle-510cd9a3"><span class="xstyle-db90cbe8">Jonli darslar</span><span class="xstyle-758a8873">2 / 4 ta</span></div>
+          <div class="xstyle-04a7896a"><div class="xstyle-35f3cc77"></div></div>
+        </div>
+        <div>
+          <div class="xstyle-510cd9a3"><span class="xstyle-db90cbe8">Yuklab olishlar</span><span class="xstyle-758a8873">234 MB / cheksiz</span></div>
+          <div class="xstyle-04a7896a"><div class="xstyle-c299923b"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

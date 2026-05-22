@@ -1,0 +1,130 @@
+{% extends 'users/base_app.html' %}
+{% load static %}
+
+{% block title %}Reyting — AzureLMS{% endblock %}
+{% block page_title %}Guruh Reytingi{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 800px; margin: 0 auto; padding: 24px;">
+  
+  <!-- HEADER & FILTER -->
+  <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 24px; gap: 16px;">
+    <div>
+      <h2 style="font-size: 20px; font-weight: 800; color: var(--ink-1); margin: 0;">Guruh reytingi</h2>
+      <p style="font-size: 13px; color: var(--ink-3); margin-top: 4px;">Guruhdoshlaringiz orasida to'plangan dars va davomat ballari bo'yicha yetakchilar.</p>
+    </div>
+
+    <!-- Cohort filter form -->
+    {% if leaderboard_cohort_choices %}
+      <form method="get" action="" id="leaderboardForm" style="display: flex; align-items: center; gap: 8px;">
+        <label for="cohortSelect" style="font-size: 13px; font-weight: 600; color: var(--ink-2);">Guruhni tanlang:</label>
+        <select name="cohort" id="cohortSelect" onchange="document.getElementById('leaderboardForm').submit();" style="border: 1px solid var(--border-color); background: var(--bg-1); color: var(--ink-1); padding: 8px 16px; border-radius: var(--radius-m); font-size: 13px; cursor: pointer;">
+          {% for enrollment in leaderboard_cohort_choices %}
+            <option value="{{ enrollment.cohort.id }}" {% if enrollment.cohort.id == selected_leaderboard_cohort_id %}selected{% endif %}>
+              {{ enrollment.cohort.course.title }} ({{ enrollment.cohort.name }})
+            </option>
+          {% endfor %}
+        </select>
+      </form>
+    {% endif %}
+  </div>
+
+  {% if leaderboard_cohort %}
+    <div style="font-size: 14px; font-weight: 700; color: var(--ink-2); margin-bottom: 16px;">
+      Guruh: <span style="color: var(--blue);">{{ leaderboard_cohort.name }}</span> ({{ leaderboard_cohort.course.title }})
+    </div>
+
+    <!-- LEADERBOARD TABLE -->
+    <div style="border: 1px solid var(--border-color); border-radius: var(--radius-l); overflow: hidden;">
+      
+      <!-- Table Header -->
+      <div style="display: grid; grid-template-columns: 80px 1fr 120px; background: var(--bg-2); padding: 12px 16px; font-size: 12px; font-weight: 700; color: var(--ink-3); border-bottom: 1px solid var(--border-color);">
+        <span>Rank</span>
+        <span>Talaba</span>
+        <span style="text-align: right;">Ball (XP)</span>
+      </div>
+
+      <!-- Table Body -->
+      <div style="display: flex; flex-direction: column;">
+        {% for row in leaderboard_top %}
+          <div style="display: grid; grid-template-columns: 80px 1fr 120px; padding: 14px 16px; align-items: center; border-bottom: {% if forloop.last and not leaderboard_my_row.rank > 10 %}none{% else %}1px solid var(--border-color){% endif %}; {% if row.is_me %}background: rgba(59, 130, 246, 0.05); font-weight: 600;{% endif %}">
+            
+            <!-- Rank Indicator -->
+            <div style="font-size: 15px; font-weight: 700;">
+              {% if row.rank == 1 %}
+                🥇 <span style="color: #d4af37; font-size: 12px;">1</span>
+              {% elif row.rank == 2 %}
+                🥈 <span style="color: #c0c0c0; font-size: 12px;">2</span>
+              {% elif row.rank == 3 %}
+                🥉 <span style="color: #cd7f32; font-size: 12px;">3</span>
+              {% else %}
+                <span style="color: var(--ink-3); padding-left: 6px;">{{ row.rank }}</span>
+              {% endif %}
+            </div>
+
+            <!-- Student Info -->
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--bg-3); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--ink-1); overflow: hidden;">
+                {% if row.student.avatar %}
+                  <img src="{{ row.student.avatar.url }}" alt="{{ row.student.first_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                {% else %}
+                  {{ row.student.first_name|slice:":1" }}{{ row.student.last_name|slice:":1" }}
+                {% endif %}
+              </div>
+              <div style="color: var(--ink-1);">
+                {{ row.student.get_full_name|default:row.student.username }}
+                {% if row.is_me %}
+                  <span style="font-size: 10px; background: var(--blue); color: white; padding: 2px 6px; border-radius: 10px; margin-left: 6px;">Siz</span>
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Score -->
+            <div style="text-align: right; font-weight: 700; color: var(--blue);">
+              {{ row.cohort_score }} XP
+            </div>
+            
+          </div>
+        {% endfor %}
+
+        <!-- Pinned current user if rank is below top 10 -->
+        {% if leaderboard_my_row.rank > 10 %}
+          <!-- Spacer / Separator -->
+          <div style="text-align: center; padding: 8px; background: var(--bg-3); color: var(--ink-3); font-size: 12px; font-weight: 600;">
+            •••
+          </div>
+
+          <div style="display: grid; grid-template-columns: 80px 1fr 120px; padding: 14px 16px; align-items: center; background: rgba(59, 130, 246, 0.08); font-weight: 600;">
+            <div style="font-size: 15px; font-weight: 700; color: var(--ink-2); padding-left: 6px;">
+              {{ leaderboard_my_row.rank }}
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--bg-3); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--ink-1); overflow: hidden;">
+                {% if leaderboard_my_row.student.avatar %}
+                  <img src="{{ leaderboard_my_row.student.avatar.url }}" alt="{{ leaderboard_my_row.student.first_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                {% else %}
+                  {{ leaderboard_my_row.student.first_name|slice:":1" }}{{ leaderboard_my_row.student.last_name|slice:":1" }}
+                {% endif %}
+              </div>
+              <div style="color: var(--ink-1);">
+                {{ leaderboard_my_row.student.get_full_name|default:leaderboard_my_row.student.username }}
+                <span style="font-size: 10px; background: var(--blue); color: white; padding: 2px 6px; border-radius: 10px; margin-left: 6px;">Siz</span>
+              </div>
+            </div>
+            <div style="text-align: right; font-weight: 700; color: var(--blue);">
+              {{ leaderboard_my_row.cohort_score }} XP
+            </div>
+          </div>
+        {% endif %}
+      </div>
+
+    </div>
+  {% else %}
+    <div style="text-align: center; padding: 48px 24px; color: var(--ink-3);">
+      <i class="bi bi-trophy-fill" style="font-size: 48px; color: var(--ink-4); display: block; margin-bottom: 16px;"></i>
+      <h4 style="font-size: 16px; font-weight: 700; color: var(--ink-2); margin-bottom: 8px;">Guruhlar aniqlanmadi</h4>
+      <p style="font-size: 13px; max-width: 400px; margin: 0 auto;">Reyting jadvalini ko'rish uchun faol guruhga a'zo bo'lishingiz kerak.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

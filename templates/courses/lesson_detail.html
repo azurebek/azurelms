@@ -1,0 +1,468 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{{ course.title }} kursining interaktiv dars sahifasi.">
+  <script>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>{{ lesson.title }} - {{ course.title }} - AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/foundation.css' %}">
+  <link rel="stylesheet" href="{% static 'css/components.css' %}">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <link rel="stylesheet" href="{% static 'css/app-course-detail.css' %}">
+  <link rel="stylesheet" href="{% static 'css/prototype-extracted.css' %}">
+</head>
+<body>
+<div class="app">
+  <aside class="lesson-sidebar" id="lessonSidebar">
+    <div class="ls-header">
+      <a href="{% url 'dashboard' %}" class="ls-logo-link" title="Dashboardga qaytish">
+        <span class="ls-logo-text">AZ</span>
+        <i class="bi bi-arrow-left ls-logo-back" aria-hidden="true"></i>
+      </a>
+      <div class="ls-header-copy">
+        <div class="ls-title">{{ course.title }}</div>
+        <div class="ls-sub">{{ course_module_count }} modul &middot; {{ total_lessons }} dars</div>
+      </div>
+      <button class="ls-collapse-btn" id="lessonSidebarToggle" type="button" title="Mundarijani yig'ish" aria-label="Mundarijani yig'ish">
+        <i class="bi bi-layout-sidebar-inset"></i>
+      </button>
+    </div>
+
+    <div class="ls-progress">
+      <div class="ls-prog-info"><span>Umumiy progress</span><span>{{ course_progress_percent|default:0 }}%</span></div>
+      <div class="ls-prog-bar"><div class="ls-prog-fill" style="width: {{ course_progress_percent|default:0 }}%; height: 100%;"></div></div>
+    </div>
+
+    <div class="ls-scroll">
+      {% for module in modules %}
+        <div class="ls-section {% if module.id == current_module.id %}open{% endif %}">
+          <button class="ls-sec-head" type="button" data-ui-call="toggleLsSection" data-ui-pass="this">
+            <span class="ls-sec-num {% if module.order < current_module.order %}done{% endif %}">
+              {% if module.order < current_module.order %}<i class="bi bi-check"></i>{% else %}{{ forloop.counter }}{% endif %}
+            </span>
+            <span class="ls-sec-name">{{ module.title }}</span>
+            <i class="bi bi-chevron-down ls-sec-chevron"></i>
+          </button>
+          <div class="ls-lessons">
+            {% for lesson_item in module.lesson_items %}
+              {% if lesson_item.is_locked %}
+                <div class="ls-lesson locked" title="{{ lesson_item.lock_reason }}">
+                  <div class="ls-lesson-icon locked"><i class="bi bi-lock-fill"></i></div>
+                  <div class="ls-lesson-name">
+                    {{ lesson_item.title }}
+                    {% if lesson_item.lock_reason %}<small>{{ lesson_item.lock_reason }}</small>{% endif %}
+                  </div>
+                  <div class="ls-lesson-dur">{{ lesson_item.xp_reward }} XP</div>
+                </div>
+              {% else %}
+                <a class="ls-lesson {% if lesson_item.id == lesson.id %}active{% endif %}" href="{% url 'lesson_detail' course.id lesson_item.id %}{{ cohort_query }}" {% if lesson_item.id == lesson.id %}aria-label="Current lesson"{% endif %}>
+                  <div class="ls-lesson-icon {% if lesson_item.id == lesson.id %}current{% elif lesson_item.id in completed_lesson_ids %}done{% else %}done{% endif %}">
+                    {% if lesson_item.id == lesson.id %}
+                      <i class="bi bi-play-fill"></i>
+                    {% elif lesson_item.id in completed_lesson_ids %}
+                      <i class="bi bi-check"></i>
+                    {% else %}
+                      <i class="bi bi-circle"></i>
+                    {% endif %}
+                  </div>
+                  <div class="ls-lesson-name">{{ lesson_item.title }}</div>
+                  <div class="ls-lesson-dur">{% if lesson_item.id == lesson.id %}Current lesson{% else %}{{ lesson_item.xp_reward }} XP{% endif %}</div>
+                </a>
+              {% endif %}
+            {% empty %}
+              <div class="ls-lesson">
+                <div class="ls-lesson-icon locked"><i class="bi bi-file-earmark"></i></div>
+                <div class="ls-lesson-name">Darslar tez orada qo'shiladi.</div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </aside>
+
+  <div class="player-main">
+    <div class="topbar">
+      <a href="{% url 'course_detail' course.id %}" class="back-btn"><i class="bi bi-arrow-left"></i> Kursga qaytish</a>
+      <div class="topbar-sep"></div>
+      <span class="course-crumb">{{ course.title }} &rsaquo;</span>
+      <span class="lesson-crumb">{{ current_module.title }} &middot; {{ lesson.title }}</span>
+      <div class="topbar-right">
+        <div class="progress-chip">
+          <span>{{ course_progress_percent|default:0 }}%</span>
+          <div class="prog-bar-mini"><div class="prog-fill-mini" style="width: {{ course_progress_percent|default:0 }}%;"></div></div>
+          <span class="prog-pct">{{ lesson_position|default:1 }}/{{ total_lessons|default:1 }}</span>
+        </div>
+        <button class="topbar-btn" type="button" data-ui-click-target="#ctab-notes-trigger" title="Yozuvlar"><i class="bi bi-pencil"></i></button>
+        <button class="topbar-btn" id="themeBtn" type="button" title="Tema"><i class="bi bi-moon" id="themeIcon"></i></button>
+      </div>
+    </div>
+
+    {% if messages %}
+      <div class="lesson-messages">
+        {% for message in messages %}
+          <div class="lesson-message lesson-message--{{ message.tags|default:'info' }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <section class="video-area {% if not has_video %}video-area--empty{% endif %}" aria-label="Videodars">
+      {% if has_video and lesson.embed_video_url %}
+        <iframe class="video-frame" src="{{ lesson.embed_video_url }}" title="{{ lesson.title }}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+      {% else %}
+        <div class="video-bg">
+          <div class="video-emoji"><i class="bi bi-journal-richtext"></i></div>
+        </div>
+        <div class="video-overlay">
+          <div class="video-center">
+            <div class="lesson-video-empty">
+              <strong>Videodars mavjud emas</strong>
+              <span>Bu dars uchun matn, vazifa yoki quiz materiallari bilan davom eting.</span>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </section>
+
+    <div class="content-area">
+      <div class="content-tabs" id="ctabs" data-default-tab="{{ default_study_tab|default:'text' }}">
+        {% if has_video %}<button class="ctab" id="ctab-video-trigger" type="button" data-tab="video">Videodars</button>{% endif %}
+        {% if has_content %}<button class="ctab" id="ctab-text-trigger" type="button" data-tab="text">Dars materiallari</button>{% endif %}
+        {% if has_assignments %}<button class="ctab" id="ctab-homework-trigger" type="button" data-tab="homework">Vazifa</button>{% endif %}
+        {% if has_quizzes %}<button class="ctab" id="ctab-quiz-trigger" type="button" data-tab="quiz">Quiz</button>{% endif %}
+        <button class="ctab" id="ctab-resources-trigger" type="button" data-tab="resources">Materiallar</button>
+        <button class="ctab" id="ctab-notes-trigger" type="button" data-tab="notes">Yozuvlarim</button>
+      </div>
+
+      {% if has_video %}
+        <section class="ctab-panel" id="ctab-video">
+          <div class="content-scroll">
+            <div class="lesson-title">{{ lesson.title }}</div>
+            <div class="lesson-meta">
+              <span><i class="bi bi-play-circle"></i> Videodars</span>
+              <span><i class="bi bi-award"></i> {{ lesson.xp_reward }} XP</span>
+              <span><i class="bi bi-layers"></i> {{ current_module.title }}</span>
+            </div>
+            <div class="lesson-body">
+              <p>Videoni ko'rib chiqing, keyin pastdagi materiallar va amaliy topshiriqlar bilan darsni mustahkamlang.</p>
+              {% if has_content %}
+                <div class="note-box"><i class="bi bi-lightbulb xstyle-0757a8e5"></i> Matnli konspekt uchun "Dars materiallari" bo'limiga o'ting.</div>
+              {% endif %}
+            </div>
+          </div>
+        </section>
+      {% endif %}
+
+      {% if has_content %}
+        <section class="ctab-panel" id="ctab-text">
+          <div class="content-scroll">
+            <div class="lesson-title">{{ lesson.title }}</div>
+            <div class="lesson-meta">
+              <span><i class="bi bi-file-earmark-text"></i> Dars materiallari</span>
+              <span><i class="bi bi-award"></i> {{ lesson.xp_reward }} XP</span>
+              <span><i class="bi bi-list-ol"></i> {{ lesson_position|default:1 }} / {{ total_lessons|default:1 }}</span>
+            </div>
+            <div class="lesson-body rich-text">{{ lesson.content|safe }}</div>
+          </div>
+        </section>
+      {% endif %}
+
+      {% if has_assignments %}
+        <section class="ctab-panel" id="ctab-homework">
+          <div class="content-scroll">
+            <div class="lesson-title">Vazifalar</div>
+            <div class="lesson-meta">
+              <span><i class="bi bi-clipboard-check"></i> {{ assignments|length }} ta topshiriq</span>
+              <span><i class="bi bi-lock"></i> Tasdiqlangach keyingi dars ochiladi</span>
+            </div>
+            <div class="study-card-grid">
+              {% for assignment in assignments %}
+                <article class="study-card">
+                  <div class="study-card-head">
+                    <div>
+                      <div class="study-card-kicker">Vazifa</div>
+                      <h2>{{ assignment.title }}</h2>
+                    </div>
+                    <span class="study-status study-status--{{ assignment.current_submission.status|default:'new' }}">
+                      {% if assignment.current_submission %}
+                        {{ assignment.current_submission.get_status_display }}
+                      {% else %}
+                        Topshirilmagan
+                      {% endif %}
+                    </span>
+                  </div>
+                  <div class="lesson-body assignment-body">{{ assignment.description|safe }}</div>
+                  {% if assignment.current_submission.teacher_feedback %}
+                    <div class="note-box"><strong>O'qituvchi izohi:</strong> {{ assignment.current_submission.teacher_feedback }}</div>
+                  {% endif %}
+                  <form class="assignment-form" method="post" enctype="multipart/form-data" action="{% url 'assignment_submit' course.id lesson.id assignment.id %}{% if active_cohort_id %}?cohort={{ active_cohort_id }}{% endif %}">
+                    {% csrf_token %}
+                    <textarea class="notes-textarea" name="answer_text" rows="5" placeholder="Javobingizni yozing...">{{ assignment.current_submission.answer_text|default:"" }}</textarea>
+                    <div class="form-row">
+                      <input class="file-input" type="file" name="attachment">
+                      <button class="notes-save" type="submit"><i class="bi bi-send"></i> Yuborish</button>
+                    </div>
+                  </form>
+                </article>
+              {% endfor %}
+            </div>
+          </div>
+        </section>
+      {% endif %}
+
+      {% if has_quizzes %}
+        <section class="ctab-panel" id="ctab-quiz">
+          <div class="content-scroll">
+            <div class="lesson-title">Quiz</div>
+            <div class="lesson-meta">
+              <span><i class="bi bi-question-circle"></i> {{ quizzes|length }} ta test bloki</span>
+              <span><i class="bi bi-stars"></i> XP natijaga qarab beriladi</span>
+            </div>
+            <div class="study-card-grid">
+              {% for quiz in quizzes %}
+                <form class="study-card quiz-form" data-quiz-form data-quiz-url="{% url 'api_quiz_submit' course.id lesson.id quiz.id %}">
+                  {% csrf_token %}
+                  <div class="study-card-head">
+                    <div>
+                      <div class="study-card-kicker">Quiz</div>
+                      <h2>{{ quiz.title }}</h2>
+                    </div>
+                    <span class="study-status">{{ quiz.xp_reward }} XP</span>
+                  </div>
+                  {% for question in quiz.questions.all %}
+                    <fieldset class="quiz-question">
+                      <legend>{{ question.text|safe }}</legend>
+                      {% for choice in question.choices.all %}
+                        <label class="quiz-choice">
+                          <input type="radio" name="question_{{ question.id }}" value="{{ choice.id }}">
+                          <span>{{ choice.text }}</span>
+                        </label>
+                      {% endfor %}
+                    </fieldset>
+                  {% endfor %}
+                  <div class="quiz-result" hidden></div>
+                  <button class="notes-save" type="submit"><i class="bi bi-check2-circle"></i> Natijani tekshirish</button>
+                </form>
+              {% endfor %}
+            </div>
+          </div>
+        </section>
+      {% endif %}
+
+      <section class="ctab-panel" id="ctab-resources">
+        <div class="content-scroll">
+          <div class="lesson-title">Materiallar</div>
+          <div class="lesson-meta">
+            <span><i class="bi bi-folder2-open"></i> {{ resource_count }} resurs</span>
+            <span><i class="bi bi-activity"></i> {{ practice_count }} amaliy blok</span>
+          </div>
+          <div class="resource-list">
+            {% if has_video %}
+              <button class="resource-item" type="button" data-ui-click-target="#ctab-video-trigger">
+                <span class="resource-icon"><i class="bi bi-play-circle-fill"></i></span>
+                <span><strong>Videodars</strong><small>{{ lesson.title }}</small></span>
+                <i class="bi bi-arrow-right"></i>
+              </button>
+            {% endif %}
+            {% if has_content %}
+              <button class="resource-item" type="button" data-ui-click-target="#ctab-text-trigger">
+                <span class="resource-icon resource-icon--text"><i class="bi bi-file-earmark-text"></i></span>
+                <span><strong>Dars materiallari</strong><small>Matnli konspekt va tushuntirishlar</small></span>
+                <i class="bi bi-arrow-right"></i>
+              </button>
+            {% endif %}
+            {% if has_assignments %}
+              <button class="resource-item" type="button" data-ui-click-target="#ctab-homework-trigger">
+                <span class="resource-icon resource-icon--task"><i class="bi bi-clipboard-check"></i></span>
+                <span><strong>Vazifalar</strong><small>{{ assignments|length }} ta topshiriq</small></span>
+                <i class="bi bi-arrow-right"></i>
+              </button>
+            {% endif %}
+            {% if has_quizzes %}
+              <button class="resource-item" type="button" data-ui-click-target="#ctab-quiz-trigger">
+                <span class="resource-icon resource-icon--quiz"><i class="bi bi-ui-checks"></i></span>
+                <span><strong>Quiz</strong><small>{{ quizzes|length }} ta test bloki</small></span>
+                <i class="bi bi-arrow-right"></i>
+              </button>
+            {% endif %}
+            {% if has_course_exams %}
+              <a class="resource-item" href="{% url 'exam_detail' course.id first_course_exam.id %}">
+                <span class="resource-icon resource-icon--exam"><i class="bi bi-patch-check"></i></span>
+                <span><strong>Kurs imtihoni</strong><small>{{ first_course_exam.title }}</small></span>
+                <i class="bi bi-arrow-right"></i>
+              </a>
+            {% endif %}
+          </div>
+
+          {% if next_lesson %}
+            <div class="xstyle-041691da">
+              <div class="xstyle-7623f055">
+                <div class="xstyle-8cf05145">Keyingi dars</div>
+                <div class="xstyle-0188ddbd">{{ next_lesson.module.title }} &middot; {{ next_lesson.title }}</div>
+                <div class="xstyle-e8ce99ef">{{ next_lesson.xp_reward }} XP</div>
+              </div>
+              <a class="ui-hover-blue-fill xstyle-b41063fb" href="{% url 'lesson_detail' course.id next_lesson.id %}{{ cohort_query }}"><i class="bi bi-play-fill"></i> Keyingi</a>
+            </div>
+          {% elif next_lesson_locked %}
+            <div class="xstyle-041691da">
+              <div class="xstyle-7623f055">
+                <div class="xstyle-8cf05145">Keyingi dars yopiq</div>
+                <div class="xstyle-0188ddbd">{{ next_lesson_lock_reason }}</div>
+              </div>
+              <i class="bi bi-lock-fill"></i>
+            </div>
+          {% endif %}
+        </div>
+      </section>
+
+      <section class="ctab-panel" id="ctab-notes">
+        <div class="content-scroll">
+          <div class="notes-area">
+            <div class="saved-note">
+              <div class="saved-note-meta">{{ current_module.title }} &middot; {{ lesson.title }}</div>
+              Shaxsiy yozuvlar hozircha brauzerda saqlanadi. Keyingi bosqichda bu bo'limni backend modelga ulash mumkin.
+            </div>
+            <textarea class="notes-textarea" id="lessonNotes" placeholder="Bu dars bo'yicha yozuvlaringizni kiriting..." rows="7"></textarea>
+            <button class="notes-save" type="button" data-save-notes><i class="bi bi-save"></i> Saqlash</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'js/prototype-ui.js' %}"></script>
+<script>
+  (function() {
+    const themeBtn = document.getElementById('themeBtn');
+    const themeIcon = document.getElementById('themeIcon');
+    function syncThemeIcon() {
+      if (!themeIcon) return;
+      themeIcon.className = document.documentElement.getAttribute('data-theme') === 'dark' ? 'bi bi-sun' : 'bi bi-moon';
+    }
+    window.toggleTheme = function() {
+      const html = document.documentElement;
+      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      try { localStorage.setItem('az-theme', next); } catch (_) {}
+      syncThemeIcon();
+    };
+    syncThemeIcon();
+    if (themeBtn) themeBtn.addEventListener('click', window.toggleTheme);
+  })();
+
+  (function initLessonSidebar() {
+    const app = document.querySelector('.app');
+    const toggle = document.getElementById('lessonSidebarToggle');
+    if (!app || !toggle) return;
+    const icon = toggle.querySelector('i');
+    const setCollapsed = (collapsed) => {
+      app.classList.toggle('toc-collapsed', collapsed);
+      toggle.setAttribute('aria-label', collapsed ? 'Mundarijani ochish' : "Mundarijani yig'ish");
+      toggle.setAttribute('title', collapsed ? 'Mundarijani ochish' : "Mundarijani yig'ish");
+      if (icon) icon.className = collapsed ? 'bi bi-layout-sidebar-inset-reverse' : 'bi bi-layout-sidebar-inset';
+    };
+    let saved = false;
+    try { saved = localStorage.getItem('az-lesson-sidebar-collapsed') === '1'; } catch (_) {}
+    setCollapsed(saved);
+    toggle.addEventListener('click', function() {
+      const collapsed = !app.classList.contains('toc-collapsed');
+      setCollapsed(collapsed);
+      try { localStorage.setItem('az-lesson-sidebar-collapsed', collapsed ? '1' : '0'); } catch (_) {}
+    });
+  })();
+
+  function toggleLsSection(head) {
+    const app = document.querySelector('.app');
+    if (app && app.classList.contains('toc-collapsed')) {
+      app.classList.remove('toc-collapsed');
+      try { localStorage.setItem('az-lesson-sidebar-collapsed', '0'); } catch (_) {}
+    }
+    const section = head.closest('.ls-section');
+    if (!section) return;
+    const shouldOpen = !section.classList.contains('open');
+    document.querySelectorAll('.ls-section.open').forEach((openSection) => {
+      if (openSection !== section) openSection.classList.remove('open');
+    });
+    section.classList.toggle('open', shouldOpen);
+  }
+
+  (function initTabs() {
+    const tabs = Array.from(document.querySelectorAll('.ctab'));
+    const panels = Array.from(document.querySelectorAll('.ctab-panel'));
+    const requested = new URLSearchParams(window.location.search).get('tab');
+    const fallback = document.getElementById('ctabs')?.dataset.defaultTab || 'resources';
+    function activate(tabName) {
+      const tab = tabs.find((item) => item.dataset.tab === tabName) || tabs[0];
+      if (!tab) return;
+      tabs.forEach((item) => item.classList.toggle('active', item === tab));
+      panels.forEach((panel) => panel.classList.toggle('active', panel.id === 'ctab-' + tab.dataset.tab));
+    }
+    tabs.forEach((tab) => tab.addEventListener('click', () => activate(tab.dataset.tab)));
+    activate(requested || fallback);
+  })();
+
+  (function initNotes() {
+    const key = 'az-lesson-notes-{{ lesson.id }}';
+    const textarea = document.getElementById('lessonNotes');
+    const save = document.querySelector('[data-save-notes]');
+    if (!textarea || !save) return;
+    try { textarea.value = localStorage.getItem(key) || ''; } catch (_) {}
+    save.addEventListener('click', function() {
+      try { localStorage.setItem(key, textarea.value); } catch (_) {}
+      save.innerHTML = '<i class="bi bi-check2"></i> Saqlandi';
+      window.setTimeout(() => { save.innerHTML = '<i class="bi bi-save"></i> Saqlash'; }, 1400);
+    });
+  })();
+
+  (function initQuizForms() {
+    document.querySelectorAll('[data-quiz-form]').forEach((form) => {
+      form.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        const answers = {};
+        form.querySelectorAll('input[type="radio"]:checked').forEach((input) => {
+          answers[input.name.replace('question_', '')] = input.value;
+        });
+        const result = form.querySelector('.quiz-result');
+        const csrf = form.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+        try {
+          const response = await fetch(form.dataset.quizUrl, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrf},
+            body: JSON.stringify({answers})
+          });
+          const payload = await response.json();
+          result.hidden = false;
+          if (!response.ok) {
+            result.textContent = payload.error || 'Quizni tekshirishda xatolik yuz berdi.';
+            result.className = 'quiz-result quiz-result--error';
+            return;
+          }
+          result.textContent = `${payload.total_correct}/${payload.total_questions} to'g'ri - ${payload.score}% - +${payload.xp_earned} XP`;
+          result.className = 'quiz-result quiz-result--success';
+        } catch (_) {
+          result.hidden = false;
+          result.textContent = "Tarmoq xatosi. Keyinroq qayta urinib ko'ring.";
+          result.className = 'quiz-result quiz-result--error';
+        }
+      });
+    });
+  })();
+</script>
+</body>
+</html>
