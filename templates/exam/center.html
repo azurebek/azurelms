@@ -1,0 +1,250 @@
+{% extends "users/base_app.html" %}
+{% load static %}
+
+{% block title %}Imtihon markazi — AzureLMS{% endblock %}
+{% block page_title %}Imtihon markazi{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/exam-shell.css' %}">{% endblock %}
+
+{% block content %}
+<section class="exam-hero">
+  <div class="hero-copy">
+    <div class="hero-kicker">IELTS Academic · Mock Test 9</div>
+    <h2 class="hero-title">Bugungi fokus: tinglash tezligi va yozish aniqligi</h2>
+    <p class="hero-text">So'nggi urinishlarda umumiy ritm yaxshi, lekin speaking va vocabulary bloklari ko'proq mashq so'rayapti.</p>
+    <div class="hero-actions">
+      <a href="{% url 'exam:listening' %}" class="hero-btn primary"><i class="bi bi-play-fill"></i> Davom etish</a>
+      <a href="{% url 'exam:history' %}" class="hero-btn secondary"><i class="bi bi-bar-chart"></i> Natijalarni ko'rish</a>
+    </div>
+  </div>
+  <div class="hero-panel">
+    <div class="hero-panel-head">
+      <span>Keyingi to'liq test</span>
+      <strong>20 May</strong>
+    </div>
+    <div class="hero-score">
+      <span class="hero-score-num">82</span>
+      <span class="hero-score-label">o'rtacha ball</span>
+    </div>
+    <div class="hero-progress">
+      <span>Mock tayyorgarlik</span>
+      <strong>68%</strong>
+    </div>
+    <div class="hero-track"><div class="hero-track-fill"></div></div>
+  </div>
+</section>
+
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-label">Jami imtihon</div>
+    <div class="stat-val">24</div>
+    <div class="stat-sub"><span class="stat-delta delta-up">+3</span> bu oy</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">O'tganlar</div>
+    <div class="stat-val xstyle-caaacc20">18</div>
+    <div class="stat-sub"><span class="stat-delta delta-up">75%</span> muvaffaqiyat</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">O'rtacha ball</div>
+    <div class="stat-val xstyle-917f8555">82</div>
+    <div class="stat-sub"><span class="stat-delta delta-up">+6</span> o'tgan oyga</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Sertifikatlar</div>
+    <div class="stat-val xstyle-08935a7e">3</div>
+    <div class="stat-sub"><span class="stat-delta delta-neu">1 ta kutilmoqda</span></div>
+  </div>
+</div>
+
+<div>
+  <div class="sec-head">
+    <span class="sec-title">Imtihon turlari</span>
+    <div class="sec-divider"></div>
+  </div>
+  <div class="exam-grid">
+    <div class="exam-card">
+      <div class="exam-card-header">
+        <div class="exam-icon icon--listen">🎧</div>
+        <div class="exam-card-info">
+          <div class="exam-card-name">Tinglash (Listening)</div>
+          <div class="exam-card-meta">
+            <span><i class="bi bi-question-circle"></i> 20 savol</span>
+            <span><i class="bi bi-clock"></i> 30 daqiqa</span>
+          </div>
+        </div>
+      </div>
+      <div class="exam-card-body">
+        <div class="score-row">
+          <span class="score-label">O'rtacha</span>
+          <div class="score-bar"><div class="score-fill fill-blue" data-w="78%"></div></div>
+          <span class="score-val">78%</span>
+        </div>
+        <div class="score-row">
+          <span class="score-label">Eng yuqori</span>
+          <div class="score-bar"><div class="score-fill fill-green" data-w="92%"></div></div>
+          <span class="score-val">92%</span>
+        </div>
+      </div>
+      <div class="exam-card-footer">
+        <span class="tag-chip chip-blue">8 marta o'tilgan</span>
+        <a href="{% url 'exam:listening' %}" class="card-btn"><i class="bi bi-play-fill"></i> Boshlash</a>
+      </div>
+    </div>
+
+    <div class="exam-card">
+      <div class="exam-card-header">
+        <div class="exam-icon icon--write">✍️</div>
+        <div class="exam-card-info">
+          <div class="exam-card-name">Yozish (Writing)</div>
+          <div class="exam-card-meta">
+            <span><i class="bi bi-file-text"></i> 2 vazifa</span>
+            <span><i class="bi bi-clock"></i> 60 daqiqa</span>
+          </div>
+        </div>
+      </div>
+      <div class="exam-card-body">
+        <div class="score-row">
+          <span class="score-label">O'rtacha</span>
+          <div class="score-bar"><div class="score-fill fill-green" data-w="71%"></div></div>
+          <span class="score-val">71%</span>
+        </div>
+        <div class="score-row">
+          <span class="score-label">Eng yuqori</span>
+          <div class="score-bar"><div class="score-fill fill-green" data-w="85%"></div></div>
+          <span class="score-val">85%</span>
+        </div>
+      </div>
+      <div class="exam-card-footer">
+        <span class="tag-chip chip-green">5 marta o'tilgan</span>
+        <a href="{% url 'exam:writing' %}" class="card-btn"><i class="bi bi-play-fill"></i> Boshlash</a>
+      </div>
+    </div>
+
+    <div class="exam-card">
+      <div class="exam-card-header">
+        <div class="exam-icon icon--speak">🎤</div>
+        <div class="exam-card-info">
+          <div class="exam-card-name">Gapirish (Speaking)</div>
+          <div class="exam-card-meta">
+            <span><i class="bi bi-mic"></i> 4 qism</span>
+            <span><i class="bi bi-clock"></i> 15 daqiqa</span>
+          </div>
+        </div>
+      </div>
+      <div class="exam-card-body">
+        <div class="score-row">
+          <span class="score-label">O'rtacha</span>
+          <div class="score-bar"><div class="score-fill fill-amber" data-w="68%"></div></div>
+          <span class="score-val">68%</span>
+        </div>
+        <div class="score-row">
+          <span class="score-label">Eng yuqori</span>
+          <div class="score-bar"><div class="score-fill fill-amber" data-w="80%"></div></div>
+          <span class="score-val">80%</span>
+        </div>
+      </div>
+      <div class="exam-card-footer">
+        <span class="tag-chip chip-amber">3 marta o'tilgan</span>
+        <a href="{% url 'exam:speaking' %}" class="card-btn"><i class="bi bi-play-fill"></i> Boshlash</a>
+      </div>
+    </div>
+
+    <div class="exam-card">
+      <div class="exam-card-header">
+        <div class="exam-icon icon--read">📖</div>
+        <div class="exam-card-info">
+          <div class="exam-card-name">O'qish (Reading)</div>
+          <div class="exam-card-meta">
+            <span><i class="bi bi-question-circle"></i> 40 savol</span>
+            <span><i class="bi bi-clock"></i> 60 daqiqa</span>
+          </div>
+        </div>
+      </div>
+      <div class="exam-card-body">
+        <div class="score-row">
+          <span class="score-label">O'rtacha</span>
+          <div class="score-bar"><div class="score-fill fill-purple" data-w="84%"></div></div>
+          <span class="score-val">84%</span>
+        </div>
+        <div class="score-row">
+          <span class="score-label">Eng yuqori</span>
+          <div class="score-bar"><div class="score-fill fill-purple" data-w="95%"></div></div>
+          <span class="score-val">95%</span>
+        </div>
+      </div>
+      <div class="exam-card-footer">
+        <span class="tag-chip chip-purple">6 marta o'tilgan</span>
+        <a href="{% url 'exam:review' %}" class="card-btn"><i class="bi bi-play-fill"></i> Boshlash</a>
+      </div>
+    </div>
+
+    <div class="exam-card">
+      <div class="exam-card-header">
+        <div class="exam-icon icon--grammar">📝</div>
+        <div class="exam-card-info">
+          <div class="exam-card-name">Grammatika</div>
+          <div class="exam-card-meta">
+            <span><i class="bi bi-question-circle"></i> 50 savol</span>
+            <span><i class="bi bi-clock"></i> 45 daqiqa</span>
+          </div>
+        </div>
+      </div>
+      <div class="exam-card-body">
+        <div class="score-row">
+          <span class="score-label">O'rtacha</span>
+          <div class="score-bar"><div class="score-fill fill-blue" data-w="76%"></div></div>
+          <span class="score-val">76%</span>
+        </div>
+        <div class="score-row">
+          <span class="score-label">Eng yuqori</span>
+          <div class="score-bar"><div class="score-fill fill-blue" data-w="90%"></div></div>
+          <span class="score-val">90%</span>
+        </div>
+      </div>
+      <div class="exam-card-footer">
+        <span class="tag-chip chip-red">4 marta o'tilgan</span>
+        <a href="{% url 'exam:review' %}" class="card-btn"><i class="bi bi-play-fill"></i> Boshlash</a>
+      </div>
+    </div>
+
+    <div class="exam-card">
+      <div class="exam-card-header">
+        <div class="exam-icon icon--vocab">💬</div>
+        <div class="exam-card-info">
+          <div class="exam-card-name">Lug'at (Vocabulary)</div>
+          <div class="exam-card-meta">
+            <span><i class="bi bi-question-circle"></i> 30 savol</span>
+            <span><i class="bi bi-clock"></i> 20 daqiqa</span>
+          </div>
+        </div>
+      </div>
+      <div class="exam-card-body">
+        <div class="score-row">
+          <span class="score-label">O'rtacha</span>
+          <div class="score-bar"><div class="score-fill fill-amber" data-w="62%"></div></div>
+          <span class="score-val">62%</span>
+        </div>
+        <div class="score-row">
+          <span class="score-label">Eng yuqori</span>
+          <div class="score-bar"><div class="score-fill fill-amber" data-w="74%"></div></div>
+          <span class="score-val">74%</span>
+        </div>
+      </div>
+      <div class="exam-card-footer">
+        <span class="tag-chip chip-amber">Zaif soha</span>
+        <a href="{% url 'exam:review' %}" class="card-btn card-btn--outline"><i class="bi bi-arrow-repeat"></i> Mashq</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.querySelectorAll('.score-fill[data-w]').forEach(function (el) {
+    var w = el.dataset.w;
+    el.style.width = '0';
+    requestAnimationFrame(function () { el.style.width = w; });
+  });
+</script>
+{% endblock %}

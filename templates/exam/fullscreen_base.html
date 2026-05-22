@@ -1,0 +1,52 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{% block meta_description %}AzureLMS imtihon{% endblock %}">
+  <script>
+    (function() {
+      const html = document.documentElement;
+      let saved;
+      try { saved = localStorage.getItem('az-theme') || localStorage.getItem('lms-theme'); } catch (_) {}
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      html.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));
+    })();
+  </script>
+  <title>{% block page_title %}Imtihon — AzureLMS{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/foundation.css' %}">
+  <link rel="stylesheet" href="{% static 'css/components.css' %}">
+  {% block page_css %}{% endblock %}
+  <link rel="stylesheet" href="{% static 'css/prototype-extracted.css' %}">
+</head>
+<body>
+  {% block content %}{% endblock %}
+
+  <script>
+    (function () {
+      const html = document.documentElement;
+      function syncIcon() {
+        document.querySelectorAll('[data-exam-theme-icon]').forEach(function (icon) {
+          icon.className = html.getAttribute('data-theme') === 'dark' ? 'bi bi-sun' : 'bi bi-moon';
+        });
+      }
+      syncIcon();
+      document.querySelectorAll('[data-exam-theme-toggle]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+          html.setAttribute('data-theme', next);
+          try { localStorage.setItem('az-theme', next); } catch (_) {}
+          syncIcon();
+        });
+      });
+    })();
+  </script>
+  {% block page_js %}{% endblock %}
+</body>
+</html>

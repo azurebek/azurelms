@@ -46,6 +46,9 @@ urlpatterns = [
     # Holat sahifalari (texnik ishlar va offline)
     path('maintenance/', core_views.maintenance, name='maintenance'),
     path('offline/', core_views.offline, name='offline'),
+
+    # Imtihon (Exam shell)
+    path('exam/', include(('users.exam_urls', 'exam'), namespace='exam')),
 ]
 
 if settings.PROMETHEUS_ENABLED:

@@ -1,0 +1,264 @@
+{% extends "exam/fullscreen_base.html" %}
+{% load static %}
+
+{% block page_title %}Tinglash Imtihoni — AzureLMS{% endblock %}
+{% block meta_description %}Tinglash imtihonini topshirish — Mock Test 9, IELTS Academic{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/exam-listening.css' %}">{% endblock %}
+
+{% block content %}
+<header class="exam-bar">
+  <div class="exam-logo">
+    <div class="logo-mark">AZ</div>
+    <div class="exam-title-area">
+      <div class="exam-name">Tinglash Imtihoni</div>
+      <div class="exam-sub">Mock Test 9 · IELTS Academic</div>
+    </div>
+  </div>
+  <div class="bar-sep"></div>
+  <div class="progress-wrap">
+    <span class="progress-label" data-progress-label>5 / 20</span>
+    <div class="progress-track">
+      <div class="progress-fill" data-progress-fill style="width: 25%;"></div>
+    </div>
+  </div>
+  <div class="timer-wrap">
+    <div class="timer-box">
+      <i class="bi bi-clock timer-icon"></i>
+      <span class="timer-val" data-exam-timer>29:45</span>
+    </div>
+  </div>
+  <button type="button" class="btn-submit" data-listening-submit><i class="bi bi-check2-circle"></i> Topshirish</button>
+  <button type="button" class="theme-btn" data-exam-theme-toggle><i class="bi bi-moon" data-exam-theme-icon></i></button>
+</header>
+
+<div class="exam-layout">
+  <div class="exam-main">
+
+    <div class="audio-card">
+      <div class="audio-header">
+        <div class="audio-art">🎧</div>
+        <div>
+          <div class="audio-title">Section 1 — Conversation</div>
+          <div class="audio-desc">A telephone conversation between two people about booking a tour.</div>
+          <div class="audio-note"><i class="bi bi-info-circle"></i> Audio faqat 2 marta tinglash mumkin</div>
+        </div>
+      </div>
+
+      <div class="waveform" data-waveform>
+        <div class="waveform-cursor" data-waveform-cursor></div>
+      </div>
+
+      <div class="playback-row">
+        <button type="button" class="play-btn" data-play-btn>
+          <i class="bi bi-play-fill"></i>
+        </button>
+        <span class="time-label">1:28</span>
+        <div class="seek-track" data-seek-track>
+          <div class="seek-fill" data-seek-fill></div>
+        </div>
+        <span class="time-label">5:00</span>
+      </div>
+
+      <div class="audio-controls-row">
+        <button type="button" class="ctrl-btn active" data-speed-btn data-speed="1">1×</button>
+        <button type="button" class="ctrl-btn" data-speed-btn data-speed="1.5">1.5×</button>
+        <button type="button" class="ctrl-btn" data-speed-btn data-speed="2">2×</button>
+        <button type="button" class="ctrl-btn"><i class="bi bi-skip-backward"></i> 10s</button>
+        <span class="replay-note"><i class="bi bi-arrow-repeat"></i> 1 ta qayta tinglash qoldi</span>
+      </div>
+    </div>
+
+    <div class="section-label">
+      <div class="section-num">1</div>
+      <div class="section-name">1-qism — Savol-javob</div>
+      <span class="section-hint">1–10 savollar</span>
+    </div>
+
+    <div class="question-card">
+      <div class="q-header">
+        <span class="q-num">Savol 1</span>
+        <div>
+          <div class="q-text">What is the main reason the woman is calling the travel agency?</div>
+          <div class="q-hint">Faqat bitta javobni tanlang</div>
+        </div>
+      </div>
+      <div class="options">
+        <div class="option" data-option data-group="q1"><div class="option-letter">A</div><div class="option-text">To complain about a previous tour</div></div>
+        <div class="option selected" data-option data-group="q1"><div class="option-letter">B</div><div class="option-text">To book a guided tour of the national park</div></div>
+        <div class="option" data-option data-group="q1"><div class="option-letter">C</div><div class="option-text">To inquire about accommodation options</div></div>
+        <div class="option" data-option data-group="q1"><div class="option-letter">D</div><div class="option-text">To cancel an existing reservation</div></div>
+      </div>
+    </div>
+
+    <div class="question-card">
+      <div class="q-header">
+        <span class="q-num">Savol 2</span>
+        <div><div class="q-text">How many people will be joining the tour?</div></div>
+      </div>
+      <div class="options">
+        <div class="option" data-option data-group="q2"><div class="option-letter">A</div><div class="option-text">2</div></div>
+        <div class="option" data-option data-group="q2"><div class="option-letter">B</div><div class="option-text">3</div></div>
+        <div class="option" data-option data-group="q2"><div class="option-letter">C</div><div class="option-text">4</div></div>
+        <div class="option" data-option data-group="q2"><div class="option-letter">D</div><div class="option-text">5</div></div>
+      </div>
+    </div>
+
+    <div class="question-card">
+      <div class="q-header">
+        <span class="q-num">Savol 3–5</span>
+        <div>
+          <div class="q-text">Bo'sh joylarni to'ldiring (bitta so'z yoki raqam):</div>
+          <div class="q-hint">Faqat audio yordamida to'ldiring</div>
+        </div>
+      </div>
+      <div class="xstyle-58cb54f5">
+        <p class="fill-sentence">The tour departs every <input class="blank-input" placeholder="..."> at 9 am from the main <input class="blank-input" placeholder="...">.</p>
+        <p class="fill-sentence">The full tour costs <input class="blank-input" placeholder="..."> per person including lunch and transport.</p>
+        <p class="fill-sentence">Participants should wear <input class="blank-input" placeholder="..."> shoes and bring a <input class="blank-input" placeholder="...">.</p>
+      </div>
+    </div>
+
+    <div class="section-label">
+      <div class="section-num">2</div>
+      <div class="section-name">2-qism — Monolog</div>
+      <span class="section-hint">11–20 savollar</span>
+    </div>
+
+    <div class="question-card">
+      <div class="q-header">
+        <span class="q-num">Savol 11</span>
+        <div><div class="q-text">According to the speaker, what is the primary function of the community library's new extension?</div></div>
+      </div>
+      <div class="options">
+        <div class="option" data-option data-group="q11"><div class="option-letter">A</div><div class="option-text">To provide additional book storage</div></div>
+        <div class="option" data-option data-group="q11"><div class="option-letter">B</div><div class="option-text">To host children's reading programmes</div></div>
+        <div class="option" data-option data-group="q11"><div class="option-letter">C</div><div class="option-text">To serve as a digital learning hub</div></div>
+        <div class="option" data-option data-group="q11"><div class="option-letter">D</div><div class="option-text">To replace the existing reference section</div></div>
+      </div>
+    </div>
+
+    <div class="q-nav">
+      <button type="button" class="nav-btn"><i class="bi bi-arrow-left"></i> Oldingi</button>
+      <button type="button" class="flag-btn"><i class="bi bi-flag"></i> Belgilash</button>
+      <div class="q-nav-sep"></div>
+      <button type="button" class="nav-btn nav-btn--next">Keyingi <i class="bi bi-arrow-right"></i></button>
+    </div>
+  </div>
+
+  <div class="exam-aside">
+    <div class="aside-card xstyle-2b583d73">
+      <div class="aside-head">Savollar haritasi</div>
+      <div class="aside-body">
+        <div class="q-grid" data-q-grid></div>
+        <div class="aside-legend">
+          <div class="legend-item"><div class="legend-dot ld-current"></div>Joriy</div>
+          <div class="legend-item"><div class="legend-dot ld-answered"></div>Javob berilgan</div>
+          <div class="legend-item"><div class="legend-dot ld-flagged"></div>Belgilangan</div>
+          <div class="legend-item"><div class="legend-dot ld-empty"></div>Javobsiz</div>
+        </div>
+      </div>
+    </div>
+    <div class="aside-card">
+      <div class="aside-head">Qism taraqqiyoti</div>
+      <div class="aside-body xstyle-fdf20b9a">
+        <div class="sec-prog-item">
+          <div class="sec-prog-label">1-qism</div>
+          <div class="sec-prog-bar"><div class="sec-prog-fill" style="width: 50%;"></div></div>
+          <div class="sec-prog-val">5/10</div>
+        </div>
+        <div class="sec-prog-item">
+          <div class="sec-prog-label">2-qism</div>
+          <div class="sec-prog-bar"><div class="sec-prog-fill" style="width: 0%;"></div></div>
+          <div class="sec-prog-val">0/10</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block page_js %}
+<script>
+  (function () {
+    const wf = document.querySelector('[data-waveform]');
+    if (wf) {
+      const heights = [3,5,8,12,18,22,28,35,40,44,48,50,46,42,38,32,26,20,14,10,8,6,10,14,20,26,32,38,42,46,48,44,40,34,28,22,16,12,8,6,4,8,12,18,24,30,36,42,46,48,44,40,34,26,18,12,8,5,3,4];
+      const playedUntil = Math.floor(heights.length * 0.30);
+      heights.forEach(function (h, i) {
+        const bar = document.createElement('div');
+        bar.className = 'waveform-bar' + (i < playedUntil ? ' played' : '');
+        bar.style.height = Math.max(8, h) + 'px';
+        wf.appendChild(bar);
+      });
+    }
+
+    const grid = document.querySelector('[data-q-grid]');
+    if (grid) {
+      const states = ['answered','answered','answered','answered','current','empty','empty','flagged','empty','empty',
+                      'empty','empty','empty','empty','empty','empty','empty','empty','empty','empty'];
+      states.forEach(function (s, i) {
+        const d = document.createElement('div');
+        d.className = 'q-dot ' + s;
+        d.textContent = i + 1;
+        grid.appendChild(d);
+      });
+    }
+
+    let secs = 29 * 60 + 45;
+    const timerEl = document.querySelector('[data-exam-timer]');
+    if (timerEl) {
+      const iv = setInterval(function () {
+        secs--;
+        if (secs < 0) { clearInterval(iv); timerEl.textContent = '00:00'; return; }
+        const m = Math.floor(secs / 60), s = secs % 60;
+        timerEl.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+        if (secs <= 300) timerEl.classList.add('warn');
+      }, 1000);
+    }
+
+    const playBtn = document.querySelector('[data-play-btn]');
+    if (playBtn) {
+      let playing = false;
+      playBtn.addEventListener('click', function () {
+        playing = !playing;
+        playBtn.innerHTML = playing ? '<i class="bi bi-pause-fill"></i>' : '<i class="bi bi-play-fill"></i>';
+      });
+    }
+
+    document.querySelectorAll('[data-speed-btn]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('[data-speed-btn]').forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+      });
+    });
+
+    const seekTrack = document.querySelector('[data-seek-track]');
+    if (seekTrack) {
+      seekTrack.addEventListener('click', function (e) {
+        const rect = seekTrack.getBoundingClientRect();
+        const pct = (e.clientX - rect.left) / rect.width;
+        const fill = document.querySelector('[data-seek-fill]');
+        const cursor = document.querySelector('[data-waveform-cursor]');
+        if (fill) fill.style.width = (pct * 100) + '%';
+        if (cursor) cursor.style.left = (pct * 100) + '%';
+      });
+    }
+
+    document.querySelectorAll('[data-option]').forEach(function (opt) {
+      opt.addEventListener('click', function () {
+        opt.parentElement.querySelectorAll('[data-option]').forEach(function (o) { o.classList.remove('selected'); });
+        opt.classList.add('selected');
+      });
+    });
+
+    const submitBtn = document.querySelector('[data-listening-submit]');
+    if (submitBtn) {
+      submitBtn.addEventListener('click', function () {
+        if (confirm("Imtihonni yakunlamoqchimisiz?")) {
+          window.location.href = '{% url "exam:review" %}';
+        }
+      });
+    }
+  })();
+</script>
+{% endblock %}
