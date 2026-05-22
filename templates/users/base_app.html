@@ -110,6 +110,9 @@
           <i class="bi bi-chevron-down nav-accordion-caret"></i>
         </summary>
         <div class="nav-accordion-panel">
+          <a href="{% url 'messenger:index' %}" class="nav-item {% if active_nav == 'messenger' %}active{% endif %}">
+            <i class="bi bi-chat-dots"></i> Xabarlar
+          </a>
           <a href="{% url 'courses' %}" class="nav-item"><i class="bi bi-shop"></i> Kurslar bozori</a>
           <a href="{% url 'blog:list' %}" class="nav-item"><i class="bi bi-newspaper"></i> Tizim blogi</a>
           <a href="{% url 'help_center' %}" class="nav-item {% if active_nav == 'help_center' %}active{% endif %}">

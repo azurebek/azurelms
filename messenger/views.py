@@ -1,13 +1,27 @@
 import json
 
-from django.views.decorators.http import require_POST
-from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Max, Count, Q
+from django.http import JsonResponse
 from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_POST
+from django.views.generic import TemplateView
+
 from cohorts.models import Enrollment, enrollment_active_access_q
 from .access import user_can_access_room
 from .models import ChatRoom, Message, AIFeedback
+
+
+class MessengerShellView(LoginRequiredMixin, TemplateView):
+    """Render the messenger shell (contacts + chat + detail panes).
+
+    For now the page ships with prototype mock data and inline JS.
+    Real room/message loading goes through the existing JSON APIs
+    (get_user_rooms, get_room_messages) and the WebSocket consumer.
+    """
+
+    template_name = "messenger/shell.html"
 
 @login_required
 @never_cache
