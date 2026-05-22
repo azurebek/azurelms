@@ -1,0 +1,233 @@
+{% extends "backoffice/base.html" %}
+{% load static humanize %}
+
+{% block title %}{% if course %}Kurs tahrirlash{% else %}Yangi kurs{% endif %} - Backoffice{% endblock %}
+{% block topbar_title %}Course Builder{% endblock %}
+{% block page_body_class %}builder-page{% endblock %}
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/backoffice-course-create.css' %}">
+{% endblock %}
+
+{% block content %}
+<form method="post" novalidate>
+  {% csrf_token %}
+  <div class="builder-toolbar">
+    <a class="builder-back" href="{% url 'backoffice_dashboard' %}" aria-label="Orqaga"><i class="bi bi-arrow-left"></i></a>
+    <input class="builder-title-input" type="text" value="{{ course.title|default:'Yangi kurs' }}" aria-label="Kurs nomi preview" readonly>
+    <div class="builder-save-status"><i class="bi bi-cloud-check-fill"></i> Real Django form</div>
+    <div class="builder-actions">
+      {% if course %}
+        <a class="btn-ghost-sm" href="{% url 'course_detail' course.pk %}"><i class="bi bi-eye"></i> Preview</a>
+      {% endif %}
+      <button class="btn-ghost-sm" type="submit" name="save_draft" value="1"><i class="bi bi-file-earmark"></i> Qoralama</button>
+      <button class="btn-primary-sm" type="submit"><i class="bi bi-rocket-takeoff-fill"></i> Saqlash</button>
+    </div>
+  </div>
+
+  {% if form.errors %}
+    <div class="bo-card" style="margin-bottom: 16px;">
+      <div class="bo-card-title">Formada xatolar bor</div>
+      {{ form.errors }}
+    </div>
+  {% endif %}
+
+  <div class="builder-grid">
+    <aside class="tree-panel">
+      <div class="tree-head">
+        <span class="tree-title">Tarkib</span>
+        <span style="font-size:0.7rem;color:var(--ink-4);font-weight:600">{{ modules|length }} modul - {{ lessons_count }} dars</span>
+      </div>
+      <div class="tree-body">
+        <div class="tree-row active">
+          <i class="bi bi-grid-1x2 icon"></i>
+          <span class="label">Kurs asoslari</span>
+        </div>
+        <div class="tree-row">
+          <i class="bi bi-image icon"></i>
+          <span class="label">Cover dizayni</span>
+        </div>
+        <div style="height:8px"></div>
+        {% for module in modules %}
+          <div class="tree-node expanded">
+            <div class="tree-row">
+              <i class="bi bi-chevron-right caret"></i>
+              <i class="bi bi-grip-vertical grip"></i>
+              <i class="bi bi-folder2 icon"></i>
+              <span class="label">{{ module.order }}. {{ module.title }}</span>
+            </div>
+            <div class="tree-children">
+              {% for lesson in module.lessons.all %}
+                <a class="tree-row" href="{% url 'backoffice_lesson_edit' lesson.pk %}">
+                  <i class="bi bi-grip-vertical grip"></i>
+                  <i class="bi bi-play-circle icon"></i>
+                  <span class="label">{{ lesson.title }}</span>
+                </a>
+              {% empty %}
+                <div class="tree-row"><i class="bi bi-play-circle icon"></i><span class="label">Dars hali yo'q</span></div>
+              {% endfor %}
+            </div>
+          </div>
+        {% empty %}
+          <div class="tree-row">
+            <i class="bi bi-folder2 icon"></i>
+            <span class="label">Kurs saqlangandan keyin modul qo'shiladi</span>
+          </div>
+        {% endfor %}
+        <div class="tree-add-inline"><i class="bi bi-folder-plus"></i> Yangi modul tez orada</div>
+      </div>
+    </aside>
+
+    <section class="editor-panel">
+      <div class="editor-tabs">
+        <button class="editor-tab active" type="button"><i class="bi bi-info-circle"></i> Asoslar</button>
+        <button class="editor-tab" type="button"><i class="bi bi-image"></i> Cover</button>
+        <button class="editor-tab" type="button"><i class="bi bi-people"></i> Talabalar <span class="dot"></span></button>
+        <button class="editor-tab" type="button"><i class="bi bi-gear"></i> Sozlama</button>
+      </div>
+
+      <div class="editor-body">
+        <div class="editor-section">
+          <div class="editor-section-head">
+            <div class="editor-section-title">Kurs ma'lumotlari</div>
+            <div class="editor-section-hint">Talabalar bu ma'lumotlarni katalogda ko'radi</div>
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="{{ form.title.id_for_label }}">Kurs nomi <span class="req">*</span></label>
+            {{ form.title }}
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="{{ form.description.id_for_label }}">Qisqa tavsif</label>
+            {{ form.description }}
+            <span class="field-hint">HTML/CKEditor kontenti modelga saqlanadi.</span>
+          </div>
+
+          <div class="field-row cols-2">
+            <div class="field">
+              <label class="field-label" for="{{ form.level.id_for_label }}">Daraja</label>
+              {{ form.level }}
+            </div>
+            <div class="field">
+              <label class="field-label" for="{{ form.instructor.id_for_label }}">O'qituvchi</label>
+              {{ form.instructor }}
+            </div>
+          </div>
+
+          <div class="field-row cols-2">
+            <div class="field">
+              <label class="field-label" for="{{ form.duration.id_for_label }}">Davomiyligi (soat)</label>
+              {{ form.duration }}
+            </div>
+            <div class="field">
+              <label class="field-label" for="{{ form.price.id_for_label }}">Narx (UZS)</label>
+              {{ form.price }}
+            </div>
+          </div>
+        </div>
+
+        <div class="editor-section">
+          <div class="editor-section-head">
+            <div class="editor-section-title">Cover dizayni</div>
+            <div class="editor-section-hint">Gradient yoki yuklangan rasm rejimi</div>
+          </div>
+
+          <div class="field-row cols-2">
+            <div class="field">
+              <label class="field-label" for="{{ form.cover_mode.id_for_label }}">Cover turi</label>
+              {{ form.cover_mode }}
+            </div>
+            <div class="field">
+              <label class="field-label" for="{{ form.gradient_preset.id_for_label }}">Gradient preset</label>
+              {{ form.gradient_preset }}
+            </div>
+          </div>
+
+          <div class="field-row cols-2">
+            <div class="field">
+              <label class="field-label" for="{{ form.gradient_cover_title.id_for_label }}">Cover markaziy yozuv</label>
+              {{ form.gradient_cover_title }}
+            </div>
+            <div class="field">
+              <label class="field-label" for="{{ form.gradient_cover_label.id_for_label }}">Kichik badge</label>
+              {{ form.gradient_cover_label }}
+            </div>
+          </div>
+        </div>
+
+        <div class="editor-section">
+          <div class="editor-section-head">
+            <div class="editor-section-title">E'lon qilish va sertifikat</div>
+          </div>
+
+          <label class="toggle-row">
+            <div class="toggle-row-info">
+              <div class="toggle-row-icon"><i class="bi bi-shop"></i></div>
+              <div class="toggle-row-text">
+                <strong>Katalogda ko'rinsin</strong>
+                <span>Talabalar kurslar sahifasidan topa oladi</span>
+              </div>
+            </div>
+            {{ form.is_active }}
+          </label>
+
+          <label class="toggle-row">
+            <div class="toggle-row-info">
+              <div class="toggle-row-icon"><i class="bi bi-patch-check"></i></div>
+              <div class="toggle-row-text">
+                <strong>Assignmentlar tasdiqlansin</strong>
+                <span>Sertifikat uchun barcha assignmentlar approved bo'lishi kerak</span>
+              </div>
+            </div>
+            {{ form.certificate_requires_all_assignments_approved }}
+          </label>
+
+          <div class="field-row cols-2">
+            <div class="field">
+              <label class="field-label" for="{{ form.certificate_min_lesson_completion_percent.id_for_label }}">Minimal lesson completion (%)</label>
+              {{ form.certificate_min_lesson_completion_percent }}
+            </div>
+            <div class="field">
+              <label class="field-label" for="{{ form.certificate_min_attendance_percent.id_for_label }}">Minimal attendance (%)</label>
+              {{ form.certificate_min_attendance_percent }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="preview-panel">
+      <div class="preview-head">
+        <span class="preview-title">Talaba ko'rinishi</span>
+        <div class="preview-device">
+          <button type="button" class="active" title="Desktop"><i class="bi bi-laptop"></i></button>
+          <button type="button" title="Mobile"><i class="bi bi-phone"></i></button>
+        </div>
+      </div>
+      <div class="preview-body">
+        <div class="preview-card">
+          <div class="preview-cover g-{{ course.gradient_preset|default:'midnight_wave' }}">
+            <div class="preview-cover-text">
+              <span class="preview-cover-label">{{ course.cover_display_label|default:"A1-A2" }}</span>
+              <div class="preview-cover-title">{{ course.cover_display_title|default:"Yangi kurs" }}</div>
+            </div>
+          </div>
+          <div class="preview-card-body">
+            <div class="preview-card-meta">Til o'rganish</div>
+            <div class="preview-card-title">{{ course.title|default:"Yangi kurs" }}</div>
+            <div class="preview-card-desc">{{ course.description|striptags|truncatechars:160|default:"Kurs tavsifi shu yerda ko'rinadi." }}</div>
+            <div class="preview-card-foot">
+              <div class="preview-card-stats">
+                <span><i class="bi bi-play-circle"></i> {{ lessons_count }} dars</span>
+                <span><i class="bi bi-clock"></i> {{ course.duration|default:0 }}s</span>
+                <span><i class="bi bi-people"></i> {{ students_count|intcomma }}</span>
+              </div>
+              <strong>{{ course.price|default:0|floatformat:0|intcomma }} so'm</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</form>
+{% endblock %}

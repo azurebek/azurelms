@@ -11,7 +11,7 @@ import calendar
 from .forms import CustomUserCreationForm
 from .models import CustomUser, Notification
 from django.shortcuts import redirect, render, get_object_or_404
-from cohorts.models import Enrollment, Attendance, Cohort, enrollment_active_access_q
+from cohorts.models import Enrollment, Attendance, Cohort, PaymentReceipt, enrollment_active_access_q
 from cohorts.attendance_service import upsert_attendance_and_xp
 from courses.models import Certificate as CourseCertificate
 from courses.models import Course, LessonProgress
@@ -459,7 +459,8 @@ class HelpCenterView(LoginRequiredMixin, TemplateView):
         context["active_nav"] = "help_center"
         for page_type in [LegalPage.PAGE_PRIVACY, LegalPage.PAGE_TERMS, LegalPage.PAGE_FAQ]:
             defaults = LegalPage.defaults_for(page_type)
-            LegalPage.objects.get_or_create(page_type=page_type, defaults=defaults)
+            page, _ = LegalPage.objects.get_or_create(page_type=page_type, defaults=defaults)
+            context[f"page_{page_type}"] = page
         return context
 
 
@@ -486,7 +487,25 @@ class UserProfileView(LoginRequiredMixin, TemplateView):
         context['earned_badges'] = EarnedBadge.objects.filter(student=user).order_by('-earned_at')
         context['course_certificates'] = CourseCertificate.objects.filter(student=user).order_by('-issued_at')
         context['current_plan'] = current_plan_enrollment.plan if current_plan_enrollment else None
+
+        passed_lessons_count = Attendance.objects.filter(
+            enrollment__student=user,
+            status__in=[Attendance.STATUS_PRESENT, Attendance.STATUS_PARTIAL],
+        ).count()
+        context['total_hours'] = passed_lessons_count * 2
         return context
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        user.first_name = request.POST.get('first_name', user.first_name)
+        user.last_name = request.POST.get('last_name', user.last_name)
+        user.username = request.POST.get('username', user.username)
+        user.phone_number = request.POST.get('phone_number', user.phone_number)
+        user.email = request.POST.get('email', user.email)
+        user.bio = request.POST.get('bio', user.bio)
+        user.save()
+        messages.success(request, "Profil ma'lumotlari muvaffaqiyatli saqlandi.")
+        return redirect('profile')
 
 class AttendanceCalendarView(LoginRequiredMixin, TemplateView):
     template_name = 'users/attendance_calendar.html'
@@ -701,6 +720,21 @@ class SubscriptionHistoryView(LoginRequiredMixin, ListView):
             self.request.user.enrollments.select_related('cohort', 'cohort__course', 'plan')
             .order_by('-joined_at')
         )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        enrollments = list(context["enrollments"])
+        context["active_nav"] = "subscriptions"
+        context["active_subscription"] = next(
+            (enrollment for enrollment in enrollments if enrollment.has_active_access()),
+            enrollments[0] if enrollments else None,
+        )
+        context["payment_receipts"] = (
+            PaymentReceipt.objects.filter(enrollment__student=self.request.user)
+            .select_related("enrollment", "enrollment__cohort", "enrollment__cohort__course", "enrollment__plan")
+            .order_by("-submitted_at", "-id")
+        )
+        return context
 
 class CertificateListView(LoginRequiredMixin, TemplateView):
     template_name = 'users/certificates.html'

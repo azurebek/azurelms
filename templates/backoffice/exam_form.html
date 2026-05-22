@@ -1,0 +1,257 @@
+{% extends "backoffice/base.html" %}
+{% load static humanize %}
+
+{% block title %}Imtihon editor - Backoffice{% endblock %}
+{% block topbar_title %}Exam Builder{% endblock %}
+{% block page_body_class %}builder-page{% endblock %}
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/backoffice-course-create.css' %}">
+  <link rel="stylesheet" href="{% static 'css/backoffice-lesson-edit.css' %}">
+  <link rel="stylesheet" href="{% static 'css/backoffice-exam-edit.css' %}">
+{% endblock %}
+
+{% block content %}
+<form method="post" novalidate>
+  {% csrf_token %}
+  <div class="builder-toolbar">
+    <a class="builder-back" href="{% url 'backoffice_dashboard' %}" aria-label="Orqaga"><i class="bi bi-arrow-left"></i></a>
+    <div class="builder-crumb">
+      {% if exam %}
+        <a href="{% url 'backoffice_course_edit' exam.course.pk %}">{{ exam.course.title }}</a>
+        <i class="bi bi-chevron-right sep"></i>
+        <span class="current">{{ exam.title }}</span>
+      {% else %}
+        <span class="current">Yangi imtihon</span>
+      {% endif %}
+    </div>
+    <div class="builder-save-status"><i class="bi bi-cloud-check-fill"></i> Real Django form</div>
+    <div class="builder-actions">
+      {% if exam %}
+        <a class="btn-ghost-sm" href="{% url 'exam_detail' exam.course.pk exam.pk %}"><i class="bi bi-eye"></i> Preview</a>
+      {% endif %}
+      <button class="btn-ghost-sm" type="button"><i class="bi bi-clipboard-check"></i> Test rejimi</button>
+      <button class="btn-primary-sm" type="submit"><i class="bi bi-check2"></i> Saqlash</button>
+    </div>
+  </div>
+
+  {% if exam_form.errors or section_form.errors %}
+    <div class="bo-card" style="margin-bottom: 16px;">
+      <div class="bo-card-title">Formada xatolar bor</div>
+      {{ exam_form.errors }}
+      {{ section_form.errors }}
+    </div>
+  {% endif %}
+
+  <div class="builder-grid">
+    <aside class="tree-panel">
+      <div class="tree-head">
+        <span class="tree-title">Bo'limlar</span>
+        <span style="font-size:0.7rem;color:var(--ink-4);font-weight:600">{{ sections|length }} ta - {{ total_score }} ball</span>
+      </div>
+      <div class="tree-body">
+        <div class="tree-row active" style="margin-bottom:6px">
+          <i class="bi bi-grid-1x2 icon"></i>
+          <span class="label">Imtihon asoslari</span>
+        </div>
+        <div style="font-size:0.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-4);padding:10px 12px 4px">Mavjud bo'limlar</div>
+        {% for row_section in sections %}
+          <div class="section-row {% if section and row_section.pk == section.pk %}active{% endif %}">
+            <i class="bi bi-grip-vertical grip"></i>
+            <div class="section-icon {{ row_section.section_type }}"><i class="bi bi-card-checklist"></i></div>
+            <div class="section-body">
+              <div class="section-name">{{ row_section.title }}</div>
+              <div class="section-meta">
+                <span><i class="bi bi-bullseye"></i> {{ row_section.max_score }} ball</span>
+                <span><i class="bi bi-clock"></i> {{ row_section.time_limit_minutes }} daq</span>
+              </div>
+            </div>
+          </div>
+        {% empty %}
+          <div class="section-row">
+            <div class="section-icon grammar"><i class="bi bi-card-checklist"></i></div>
+            <div class="section-body">
+              <div class="section-name">Bo'lim hali yo'q</div>
+              <div class="section-meta"><span>Saqlaganda birinchi bo'lim yaratiladi</span></div>
+            </div>
+          </div>
+        {% endfor %}
+
+        <div style="font-size:0.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-4);padding:14px 12px 6px">+ Yangi bo'lim qo'shish</div>
+        <div class="section-add-row">
+          {% for value, label in section_types %}
+            <button class="section-chip" type="button">
+              <i class="bi bi-plus"></i>
+              <span class="section-chip-label">{{ label }}</span>
+            </button>
+          {% endfor %}
+        </div>
+      </div>
+    </aside>
+
+    <section class="editor-panel">
+      <div class="editor-tabs">
+        <button class="editor-tab active" type="button"><i class="bi bi-info-circle"></i> Bo'lim asoslari</button>
+        <button class="editor-tab" type="button"><i class="bi bi-file-text"></i> Shartlar</button>
+        <button class="editor-tab" type="button"><i class="bi bi-card-checklist"></i> Savollar <span style="background:var(--blue-soft);color:var(--blue-mid);font-size:0.6rem;font-weight:800;padding:1px 6px;border-radius:var(--r-pill);margin-left:4px">{{ questions_count }}</span></button>
+        <button class="editor-tab" type="button"><i class="bi bi-gear"></i> Sozlama</button>
+      </div>
+
+      <div class="editor-body">
+        <div class="editor-section">
+          <div class="editor-section-head">
+            <div class="editor-section-title">Imtihon sozlamalari</div>
+            <div class="editor-section-hint">Kurs, turi, urinishlar va o'tish shartlari</div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="{{ exam_form.title.id_for_label }}">Imtihon nomi <span class="req">*</span></label>
+            {{ exam_form.title }}
+          </div>
+          <div class="field-row cols-2">
+            <div class="field">
+              <label class="field-label" for="{{ exam_form.course.id_for_label }}">Kurs</label>
+              {{ exam_form.course }}
+            </div>
+            <div class="field">
+              <label class="field-label" for="{{ exam_form.exam_type.id_for_label }}">Imtihon turi</label>
+              {{ exam_form.exam_type }}
+            </div>
+          </div>
+          <div class="field-row cols-2">
+            <div class="field">
+              <label class="field-label" for="{{ exam_form.weight_percentage.id_for_label }}">Umumiy bahodagi o'rni (%)</label>
+              {{ exam_form.weight_percentage }}
+            </div>
+            <div class="field">
+              <label class="field-label" for="{{ exam_form.passing_score.id_for_label }}">O'tish bali (%)</label>
+              {{ exam_form.passing_score }}
+            </div>
+          </div>
+          <div class="field-row cols-2">
+            <div class="field">
+              <label class="field-label" for="{{ exam_form.max_attempts.id_for_label }}">Maksimal urinish</label>
+              {{ exam_form.max_attempts }}
+            </div>
+            <div class="field">
+              <label class="field-label" for="{{ exam_form.prerequisite_exam.id_for_label }}">Prerequisite exam</label>
+              {{ exam_form.prerequisite_exam }}
+            </div>
+          </div>
+        </div>
+
+        <div class="editor-section">
+          <div class="editor-section-head">
+            <div class="editor-section-title">Bo'lim asoslari</div>
+            <div class="editor-section-hint">Birinchi bo'lim ma'lumotlari</div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="{{ section_form.title.id_for_label }}">Bo'lim nomi <span class="req">*</span></label>
+            {{ section_form.title }}
+          </div>
+          <div class="field-row cols-2">
+            <div class="field">
+              <label class="field-label" for="{{ section_form.section_type.id_for_label }}">Bo'lim turi</label>
+              {{ section_form.section_type }}
+            </div>
+            <div class="field">
+              <label class="field-label" for="{{ section_form.max_score.id_for_label }}">Ball</label>
+              {{ section_form.max_score }}
+            </div>
+          </div>
+          <div class="field-row cols-2">
+            <div class="field">
+              <label class="field-label" for="{{ section_form.time_limit_minutes.id_for_label }}">Vaqt limiti (daq)</label>
+              {{ section_form.time_limit_minutes }}
+            </div>
+            <div class="field">
+              <label class="field-label" for="{{ section_form.order.id_for_label }}">Tartib</label>
+              {{ section_form.order }}
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="{{ section_form.media_url.id_for_label }}">Media URL</label>
+            {{ section_form.media_url }}
+          </div>
+          <div class="field">
+            <label class="field-label" for="{{ section_form.instructions.id_for_label }}">Instruksiya</label>
+            {{ section_form.instructions }}
+          </div>
+          <div class="field">
+            <label class="field-label" for="{{ section_form.reading_text.id_for_label }}">Reading matni</label>
+            {{ section_form.reading_text }}
+          </div>
+        </div>
+
+        <div class="editor-section">
+          <div class="editor-section-head">
+            <div class="editor-section-title">Kirish siyosati</div>
+            <div class="editor-section-hint">Talabaga imtihon ochilish shartlari</div>
+          </div>
+          <label class="toggle-row">
+            <div class="toggle-row-info">
+              <div class="toggle-row-icon"><i class="bi bi-pencil-square"></i></div>
+              <div class="toggle-row-text">
+                <strong>Barcha assignmentlar tasdiqlansin</strong>
+                <span>Imtihonga kirishdan oldin</span>
+              </div>
+            </div>
+            {{ exam_form.requires_all_assignments_approved }}
+          </label>
+          <div class="field-row cols-2">
+            <div class="field">
+              <label class="field-label" for="{{ exam_form.minimum_lesson_completion_percent.id_for_label }}">Minimal lesson completion (%)</label>
+              {{ exam_form.minimum_lesson_completion_percent }}
+            </div>
+            <div class="field">
+              <label class="field-label" for="{{ exam_form.minimum_attendance_percent.id_for_label }}">Minimal attendance (%)</label>
+              {{ exam_form.minimum_attendance_percent }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="preview-panel">
+      <div class="preview-head">
+        <span class="preview-title">Talaba ko'rinishi</span>
+        <div class="preview-device">
+          <button type="button" class="active"><i class="bi bi-laptop"></i></button>
+          <button type="button"><i class="bi bi-phone"></i></button>
+        </div>
+      </div>
+      <div class="preview-body">
+        <div class="exam-preview-shell">
+          <div class="exam-preview-header">
+            <div class="exam-preview-header-title"><i class="bi bi-patch-check-fill"></i> {{ exam.title|default:"Yangi imtihon" }}</div>
+            <div class="exam-preview-timer"><i class="bi bi-clock"></i> {{ total_time|default:0 }} daq</div>
+          </div>
+          <div class="exam-preview-body">
+            <div class="preview-audio">
+              <div class="preview-audio-row">
+                <div class="preview-audio-play"><i class="bi bi-play-fill"></i></div>
+                <div class="preview-audio-info">
+                  <div class="preview-audio-title">{{ section.title|default:"Birinchi bo'lim" }}</div>
+                  <div class="preview-audio-meta">{{ section.get_section_type_display|default:"Bo'lim turi" }} - {{ total_score|default:0 }} ball</div>
+                </div>
+              </div>
+              <div class="preview-audio-wave">
+                <span class="bar played" style="height:40%"></span><span class="bar played" style="height:70%"></span><span class="bar" style="height:55%"></span><span class="bar" style="height:85%"></span><span class="bar" style="height:35%"></span>
+              </div>
+            </div>
+            <div class="preview-reading">
+              {{ section.instructions|default:"Imtihon bo'limi instruksiyasi shu yerda ko'rinadi."|safe|truncatewords_html:42 }}
+            </div>
+            <div class="preview-q">
+              <div class="preview-q-num">Siyosat</div>
+              <div class="preview-q-text">O'tish bali: {{ exam.passing_score|default:60 }}%, urinishlar: {{ exam.max_attempts|default:1 }}</div>
+              <div class="preview-q-options">
+                <div class="preview-q-opt checked"><span class="letter">A</span> {{ exam.course.title|default:"Kurs tanlanmagan" }}</div>
+                <div class="preview-q-opt"><span class="letter">B</span> Talaba exam markazida ko'radi</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</form>
+{% endblock %}

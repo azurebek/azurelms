@@ -1,0 +1,210 @@
+{% extends "backoffice/base.html" %}
+{% load static humanize %}
+
+{% block title %}Dars editor - Backoffice{% endblock %}
+{% block topbar_title %}Lesson Editor{% endblock %}
+{% block page_body_class %}builder-page{% endblock %}
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/backoffice-course-create.css' %}">
+  <link rel="stylesheet" href="{% static 'css/backoffice-lesson-edit.css' %}">
+{% endblock %}
+
+{% block content %}
+<form method="post" novalidate>
+  {% csrf_token %}
+  <div class="builder-toolbar">
+    <a class="builder-back" href="{% url 'backoffice_course_create' %}" aria-label="Orqaga"><i class="bi bi-arrow-left"></i></a>
+    <div class="builder-crumb">
+      {% if lesson %}
+        <a href="{% url 'backoffice_course_edit' lesson.module.course.pk %}">{{ lesson.module.course.title }}</a>
+        <i class="bi bi-chevron-right sep"></i>
+        <span>{{ lesson.module.title }}</span>
+        <i class="bi bi-chevron-right sep"></i>
+        <span class="current">{{ lesson.title }}</span>
+      {% else %}
+        <span class="current">Yangi dars</span>
+      {% endif %}
+    </div>
+    <div class="builder-save-status"><i class="bi bi-cloud-check-fill"></i> Real Django form</div>
+    <div class="builder-actions">
+      {% if lesson %}
+        <a class="btn-ghost-sm" href="{% url 'lesson_detail' lesson.module.course.pk lesson.pk %}"><i class="bi bi-eye"></i> Preview</a>
+      {% endif %}
+      <button class="btn-primary-sm" type="submit"><i class="bi bi-check2"></i> Saqlash</button>
+    </div>
+  </div>
+
+  {% if form.errors %}
+    <div class="bo-card" style="margin-bottom: 16px;">
+      <div class="bo-card-title">Formada xatolar bor</div>
+      {{ form.errors }}
+    </div>
+  {% endif %}
+
+  <div class="builder-grid">
+    <aside class="tree-panel">
+      <div class="tree-head">
+        <span class="tree-title">Kurs tarkibi</span>
+      </div>
+      <div class="tree-body">
+        {% for course in courses %}
+          {% for module in course.modules.all %}
+            <div class="tree-node expanded">
+              <div class="tree-row">
+                <i class="bi bi-chevron-right caret"></i>
+                <i class="bi bi-folder2 icon"></i>
+                <span class="label">{{ module.order }}. {{ module.title }}</span>
+              </div>
+              <div class="tree-children">
+                {% for row_lesson in module.lessons.all %}
+                  <a class="tree-row {% if lesson and row_lesson.pk == lesson.pk %}active{% endif %}" href="{% url 'backoffice_lesson_edit' row_lesson.pk %}">
+                    <i class="bi bi-grip-vertical grip"></i>
+                    <i class="bi {% if lesson and row_lesson.pk == lesson.pk %}bi-play-circle-fill{% else %}bi-play-circle{% endif %} icon"></i>
+                    <span class="label">{{ row_lesson.title }}</span>
+                  </a>
+                {% empty %}
+                  <div class="tree-row"><i class="bi bi-play-circle icon"></i><span class="label">Dars yo'q</span></div>
+                {% endfor %}
+              </div>
+            </div>
+          {% empty %}
+            <div class="tree-row"><i class="bi bi-folder2 icon"></i><span class="label">{{ course.title }} uchun modul yo'q</span></div>
+          {% endfor %}
+        {% empty %}
+          <div class="tree-row"><i class="bi bi-collection-play icon"></i><span class="label">Kurs hali yo'q</span></div>
+        {% endfor %}
+        <a class="tree-add-inline" href="{% url 'backoffice_course_create' %}">
+          <i class="bi bi-folder-plus"></i> Yangi kurs/modul
+        </a>
+      </div>
+    </aside>
+
+    <section class="editor-panel">
+      <div class="editor-tabs">
+        <button class="editor-tab active" type="button" data-tab="basics"><i class="bi bi-info-circle"></i> Asoslar</button>
+        <button class="editor-tab" type="button" data-tab="content"><i class="bi bi-file-text"></i> Mazmun</button>
+        <button class="editor-tab" type="button" data-tab="materials"><i class="bi bi-paperclip"></i> Materiallar <span class="dot"></span></button>
+        <button class="editor-tab" type="button" data-tab="quiz"><i class="bi bi-card-checklist"></i> Quiz</button>
+        <button class="editor-tab" type="button" data-tab="assignment"><i class="bi bi-pencil-square"></i> Vazifa</button>
+      </div>
+
+      <div class="editor-body">
+        <div class="editor-section">
+          <div class="editor-section-head">
+            <div class="editor-section-title">Dars asoslari</div>
+            <div class="editor-section-hint">Sarlavha, video va XP</div>
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="{{ form.title.id_for_label }}">Dars mavzusi <span class="req">*</span></label>
+            {{ form.title }}
+          </div>
+
+          <div class="field-row cols-2">
+            <div class="field">
+              <label class="field-label" for="{{ form.module.id_for_label }}">Modul</label>
+              {{ form.module }}
+            </div>
+            <div class="field">
+              <label class="field-label" for="{{ form.xp_reward.id_for_label }}">Darsdan keyingi XP</label>
+              <div class="xp-pill">
+                <i class="bi bi-lightning-charge-fill"></i>
+                {{ form.xp_reward }}
+                <span>XP</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="field-row cols-2">
+            <div class="field">
+              <label class="field-label" for="{{ form.order.id_for_label }}">Tartib</label>
+              {{ form.order }}
+            </div>
+            <div class="field">
+              <label class="field-label" for="{{ form.video_url.id_for_label }}">YouTube video havolasi</label>
+              {{ form.video_url }}
+            </div>
+          </div>
+
+          {% if lesson.embed_video_url %}
+            <div class="video-card">
+              <div class="video-card-thumb"><div class="play"><i class="bi bi-play-fill"></i></div></div>
+              <div class="video-card-info">
+                <div class="video-card-title">{{ lesson.title }}</div>
+                <div class="video-card-meta">
+                  <span class="ok"><i class="bi bi-check2-circle"></i> Embed URL tayyor</span>
+                </div>
+                <div class="video-card-actions">
+                  <a class="btn-ghost-sm" href="{{ lesson.embed_video_url }}" target="_blank" rel="noopener"><i class="bi bi-play"></i> Ko'rish</a>
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="editor-section">
+          <div class="editor-section-head">
+            <div class="editor-section-title">Dars matni va izohlar</div>
+            <div class="editor-section-hint">AI suhbati uchun ham ishlatiladi</div>
+          </div>
+          {{ form.content }}
+        </div>
+
+        <div class="editor-section">
+          <div class="editor-section-head">
+            <div class="editor-section-title">Materiallar, quiz va vazifa</div>
+            <div class="editor-section-hint">Hozircha ko'rish rejimi</div>
+          </div>
+          <div class="quiz-summary">
+            <div class="quiz-summary-icon"><i class="bi bi-card-checklist"></i></div>
+            <div class="quiz-summary-info">
+              <div class="quiz-summary-title">{{ quizzes|length }} ta quiz</div>
+              <div class="quiz-summary-stats">
+                <span><i class="bi bi-pencil-square"></i> {{ assignments|length }} ta vazifa</span>
+                <span><i class="bi bi-lightning-charge-fill"></i> +{{ lesson.xp_reward|default:0 }} XP</span>
+              </div>
+            </div>
+            <button class="btn-ghost-sm" type="button"><i class="bi bi-gear"></i> Quiz/vazifa sozlamalari</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="preview-panel">
+      <div class="preview-head">
+        <span class="preview-title">Talaba ko'rinishi</span>
+        <div class="preview-device">
+          <button type="button" class="active" title="Desktop"><i class="bi bi-laptop"></i></button>
+          <button type="button" title="Mobile"><i class="bi bi-phone"></i></button>
+        </div>
+      </div>
+      <div class="preview-body">
+        <div class="lesson-preview-video">
+          <div class="play-big"><i class="bi bi-play-fill"></i></div>
+          <span class="duration-pill">Video</span>
+        </div>
+        <div class="lesson-preview-head">
+          <div class="lesson-preview-title" id="prevTitle">{{ lesson.title|default:"Yangi dars" }}</div>
+          <span class="lesson-preview-xp">+<span id="prevXp">{{ lesson.xp_reward|default:0 }}</span> XP</span>
+        </div>
+        <div class="lesson-preview-meta">
+          <span><i class="bi bi-collection"></i> {{ lesson.module.title|default:"Modul tanlanmagan" }}</span>
+        </div>
+        <div class="lesson-preview-content">
+          {{ lesson.content|default:"Dars matni shu yerda ko'rinadi."|safe|truncatewords_html:36 }}
+        </div>
+        <div class="lesson-preview-section">
+          <div class="lesson-preview-section-title">Yakuniy test</div>
+          <div class="lesson-preview-quiz-card">
+            <div class="ic"><i class="bi bi-card-checklist"></i></div>
+            <div class="info">
+              <strong>{{ quizzes|length }} quiz</strong>
+              <span>Darsga biriktirilgan testlar</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</form>
+{% endblock %}

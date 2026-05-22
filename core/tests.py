@@ -1,0 +1,87 @@
+from django.contrib.auth import get_user_model
+from django.test import TestCase, override_settings
+from django.urls import reverse
+
+from courses.models import Course, Exam, ExamSection, Lesson, Module
+
+
+@override_settings(GEMINI_API_KEY=None)
+class BackofficeDashboardTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.staff_user = User.objects.create_user(
+            username="backoffice_staff",
+            email="backoffice_staff@example.test",
+            password="pass-12345",
+            is_staff=True,
+        )
+        self.student_user = User.objects.create_user(
+            username="backoffice_student",
+            email="backoffice_student@example.test",
+            password="pass-12345",
+        )
+
+    def test_staff_user_can_open_backoffice_dashboard(self):
+        self.client.force_login(self.staff_user)
+
+        response = self.client.get(reverse("backoffice_dashboard"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "backoffice/dashboard.html")
+        self.assertContains(response, "Backoffice")
+        self.assertContains(response, "Faol talabalar")
+        self.assertContains(response, "E'tibor talab qiladi")
+
+    def test_non_staff_user_is_redirected_from_backoffice_dashboard(self):
+        self.client.force_login(self.student_user)
+
+        response = self.client.get(reverse("backoffice_dashboard"))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/users/login/", response["Location"])
+
+    def test_staff_user_can_open_backoffice_prototype_pages(self):
+        course = Course.objects.create(
+            title="Backoffice Course",
+            description="Course description",
+            instructor=self.staff_user,
+            level="beginner",
+            duration=10,
+            price=1000,
+        )
+        module = Module.objects.create(course=course, title="Intro", order=1)
+        lesson = Lesson.objects.create(module=module, title="First lesson", order=1, content="<p>Body</p>")
+        exam = Exam.objects.create(
+            course=course,
+            title="Final exam",
+            exam_type="final",
+            weight_percentage=60,
+            passing_score=60,
+            max_attempts=2,
+        )
+        ExamSection.objects.create(
+            exam=exam,
+            title="Reading",
+            section_type="reading",
+            instructions="Read the text.",
+            max_score=20,
+            time_limit_minutes=20,
+            order=1,
+        )
+        self.client.force_login(self.staff_user)
+
+        checks = (
+            (reverse("backoffice_users"), "Foydalanuvchilarni boshqarish"),
+            (reverse("backoffice_course_create"), "Course Builder"),
+            (reverse("backoffice_course_edit", kwargs={"course_id": course.pk}), "Kurs ma'lumotlari"),
+            (reverse("backoffice_lessons"), "Lesson Editor"),
+            (reverse("backoffice_lesson_edit", kwargs={"lesson_id": lesson.pk}), "Dars asoslari"),
+            (reverse("backoffice_exams"), "Exam Builder"),
+            (reverse("backoffice_exam_edit", kwargs={"exam_id": exam.pk}), "Imtihon sozlamalari"),
+        )
+
+        for url, marker in checks:
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, marker)

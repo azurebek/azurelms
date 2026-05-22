@@ -46,6 +46,14 @@ urlpatterns = [
     # Holat sahifalari (texnik ishlar va offline)
     path('maintenance/', core_views.maintenance, name='maintenance'),
     path('offline/', core_views.offline, name='offline'),
+    path('backoffice/', core_views.backoffice_dashboard, name='backoffice_dashboard'),
+    path('backoffice/users/', core_views.backoffice_users, name='backoffice_users'),
+    path('backoffice/courses/new/', core_views.backoffice_course_editor, name='backoffice_course_create'),
+    path('backoffice/courses/<int:course_id>/', core_views.backoffice_course_editor, name='backoffice_course_edit'),
+    path('backoffice/lessons/', core_views.backoffice_lesson_editor, name='backoffice_lessons'),
+    path('backoffice/lessons/<int:lesson_id>/', core_views.backoffice_lesson_editor, name='backoffice_lesson_edit'),
+    path('backoffice/exams/', core_views.backoffice_exam_editor, name='backoffice_exams'),
+    path('backoffice/exams/<int:exam_id>/', core_views.backoffice_exam_editor, name='backoffice_exam_edit'),
 
     # Imtihon (Exam shell)
     path('exam/', include(('users.exam_urls', 'exam'), namespace='exam')),

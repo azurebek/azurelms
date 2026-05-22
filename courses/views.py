@@ -486,6 +486,13 @@ class LessonDetailView(LoginRequiredMixin, DetailView):
         context['lesson_section_count'] = len(context['lesson_sections'])
         context["drip_enabled"] = access_bundle["drip_enabled"]
         context["lesson_access_map"] = lesson_access_map
+        context["completed_lesson_ids"] = set(
+            LessonProgress.objects.filter(
+                enrollment=enrollment,
+                lesson__module__course=course,
+                is_completed=True,
+            ).values_list("lesson_id", flat=True)
+        ) if enrollment else set()
 
         # Oldingi quiz urinishlarini yuklash
         quiz_ids = list(quizzes.values_list('id', flat=True))

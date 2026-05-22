@@ -120,6 +120,20 @@
           </a>
         </div>
       </details>
+
+      {% if user.is_staff or user.is_superuser %}
+        <details class="nav-accordion" {% if active_nav == 'backoffice' %}open{% endif %}>
+          <summary class="nav-accordion-trigger">
+            <span class="nav-accordion-title"><i class="bi bi-shield-lock"></i> Admin</span>
+            <i class="bi bi-chevron-down nav-accordion-caret"></i>
+          </summary>
+          <div class="nav-accordion-panel">
+            <a href="{% url 'backoffice_dashboard' %}" class="nav-item {% if active_nav == 'backoffice' %}active{% endif %}">
+              <i class="bi bi-grid-fill"></i> Backoffice
+            </a>
+          </div>
+        </details>
+      {% endif %}
     </nav>
 
     <div class="sidebar-bottom">
@@ -148,6 +162,9 @@
           <a href="{% url 'profile' %}" class="account-menu-item {% if active_nav == 'profile' %}active{% endif %}"><i class="bi bi-person-circle"></i> Profil</a>
           <a href="{% url 'settings' %}" class="account-menu-item {% if active_nav == 'settings' %}active{% endif %}"><i class="bi bi-gear"></i> Sozlamalar</a>
           <a href="{% url 'subscriptions' %}" class="account-menu-item {% if active_nav == 'subscriptions' %}active{% endif %}"><i class="bi bi-credit-card"></i> Obunalar</a>
+          {% if user.is_staff or user.is_superuser %}
+            <a href="{% url 'backoffice_dashboard' %}" class="account-menu-item {% if active_nav == 'backoffice' %}active{% endif %}"><i class="bi bi-shield-lock"></i> Backoffice</a>
+          {% endif %}
           <div class="account-menu-sep"></div>
           
           <form id="logout-form" action="{% url 'logout' %}" method="post" style="display: none;">
