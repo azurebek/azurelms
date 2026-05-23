@@ -783,6 +783,67 @@ class AIMemoryControlTests(TestCase):
         self.assertContains(response, "IELTS 7.0 olishni xohlaydi")
         self.assertContains(response, "Saqlangan faktlar (2)")
 
+    def test_reject_view_marks_fact_rejected_and_records_trace(self):
+        fact = self._make_fact("Birinchi tilim turkcha", fingerprint="fp-reject-one")
+
+        response = self.client.post(reverse("ai_memory_reject", args=[fact.id]))
+
+        self.assertEqual(response.status_code, 302)
+        fact.refresh_from_db()
+        self.assertEqual(fact.status, AIMemoryFact.STATUS_REJECTED)
+        self.assertEqual(fact.confidence, 0.0)
+        self.assertIn("rejected_by_user_at", fact.metadata)
+        trace = AIMemoryTrace.objects.filter(
+            user=self.student,
+            fact=fact,
+            event_type=AIMemoryTrace.EVENT_ARCHIVED,
+        ).first()
+        self.assertIsNotNone(trace)
+        self.assertEqual(trace.metadata.get("action"), "user_reject")
+
+    def test_reject_ignores_other_user_facts(self):
+        other = User.objects.create_user(
+            username="reject-other",
+            email="reject-other@example.com",
+            password="testpass123",
+        )
+        foreign_fact = AIMemoryFact.objects.create(
+            user=other,
+            category=AIMemoryFact.CATEGORY_PROFILE,
+            key="profile:foreign-reject",
+            value="Foreign user fakti reject",
+            fingerprint="fp-reject-foreign",
+        )
+
+        self.client.post(reverse("ai_memory_reject", args=[foreign_fact.id]))
+
+        foreign_fact.refresh_from_db()
+        self.assertEqual(foreign_fact.status, AIMemoryFact.STATUS_ACTIVE)
+        self.assertEqual(foreign_fact.confidence, 0.8)
+
+    def test_reject_endpoint_returns_json_for_ajax(self):
+        fact = self._make_fact("JSON reject test", fingerprint="fp-reject-json")
+
+        response = self.client.post(
+            reverse("ai_memory_reject", args=[fact.id]),
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"status": "success"})
+
+    def test_list_page_renders_report_stats_and_reject_button(self):
+        fact = self._make_fact("Hisobot uchun fakt", fingerprint="fp-report-fact")
+
+        response = self.client.get(reverse("ai_memory"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Xotira hisoboti")
+        self.assertContains(response, "Faol fakt")
+        self.assertContains(response, "Promptga olingan")
+        self.assertContains(response, reverse("ai_memory_reject", args=[fact.id]))
+        self.assertContains(response, "Noto'g'ri")
+
 
 class AIFeedbackApiTests(TestCase):
     def setUp(self):

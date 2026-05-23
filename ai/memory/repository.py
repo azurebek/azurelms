@@ -9,6 +9,12 @@ from .types import MemoryCandidate, SavedMemory
 
 
 class MemoryRepository:
+    DECAY_START_DAYS = 30
+    DECAY_STEP_DAYS = 30
+    DECAY_AMOUNT = 0.07
+    ARCHIVE_CONFIDENCE_BELOW = 0.35
+    ARCHIVE_STALE_DAYS = 180
+
     def __init__(self, *, evaluator: MemoryQualityEvaluator | None = None):
         self.evaluator = evaluator or MemoryQualityEvaluator()
 
@@ -82,6 +88,7 @@ class MemoryRepository:
         return SavedMemory(fact=fact, created=created)
 
     def active_facts(self, *, user):
+        self.maintain_user_memory(user=user)
         return AIMemoryFact.objects.filter(
             user=user,
             status=AIMemoryFact.STATUS_ACTIVE,
@@ -93,12 +100,47 @@ class MemoryRepository:
         AIMemoryFact.objects.filter(id__in=fact_ids).update(last_used_at=timezone.now())
 
     def archive_one(self, *, user, fact_id: int) -> bool:
-        updated = AIMemoryFact.objects.filter(
+        fact = AIMemoryFact.objects.filter(
             user=user,
             id=fact_id,
             status=AIMemoryFact.STATUS_ACTIVE,
-        ).update(status=AIMemoryFact.STATUS_ARCHIVED, updated_at=timezone.now())
-        return updated > 0
+        ).first()
+        if not fact:
+            return False
+        fact.status = AIMemoryFact.STATUS_ARCHIVED
+        fact.save(update_fields=["status", "updated_at"])
+        self.create_trace(
+            user=user,
+            fact=fact,
+            event_type=AIMemoryTrace.EVENT_ARCHIVED,
+            reason="User archived this memory fact from memory settings.",
+            metadata={"action": "user_archive"},
+        )
+        return True
+
+    def reject_one(self, *, user, fact_id: int) -> bool:
+        fact = AIMemoryFact.objects.filter(
+            user=user,
+            id=fact_id,
+            status=AIMemoryFact.STATUS_ACTIVE,
+        ).first()
+        if not fact:
+            return False
+        fact.status = AIMemoryFact.STATUS_REJECTED
+        fact.confidence = 0.0
+        fact.metadata = {
+            **(fact.metadata or {}),
+            "rejected_by_user_at": timezone.now().isoformat(),
+        }
+        fact.save(update_fields=["status", "confidence", "metadata", "updated_at"])
+        self.create_trace(
+            user=user,
+            fact=fact,
+            event_type=AIMemoryTrace.EVENT_ARCHIVED,
+            reason="User marked this memory fact as incorrect.",
+            metadata={"action": "user_reject"},
+        )
+        return True
 
     def archive_all_for_user(self, *, user, clear_legacy: bool = True) -> int:
         archived_count = AIMemoryFact.objects.filter(
@@ -132,6 +174,70 @@ class MemoryRepository:
                 metadata={"category": category, "key": key, "replacement_id": keep_id},
             )
         return updated
+
+    def maintain_user_memory(self, *, user, now=None) -> dict:
+        """Decay stale memory confidence and archive very old or weak facts.
+
+        This intentionally runs on normal memory reads. It is conservative:
+        only active facts older than DECAY_START_DAYS since last update are
+        touched, and automatic archival needs either very old staleness or a
+        confidence score that has decayed below the threshold.
+        """
+        now = now or timezone.now()
+        decayed = 0
+        archived = 0
+        for fact in AIMemoryFact.objects.filter(user=user, status=AIMemoryFact.STATUS_ACTIVE):
+            anchor = fact.last_used_at or fact.updated_at or fact.created_at
+            stale_days = max(0, (now - anchor).days)
+            if stale_days < self.DECAY_START_DAYS:
+                continue
+
+            decay_steps = max(1, stale_days // self.DECAY_STEP_DAYS)
+            current_confidence = max(0.0, min(float(fact.confidence or 0.0), 1.0))
+            next_confidence = max(0.0, round(current_confidence - (decay_steps * self.DECAY_AMOUNT), 3))
+            should_archive = (
+                stale_days >= self.ARCHIVE_STALE_DAYS
+                or next_confidence < self.ARCHIVE_CONFIDENCE_BELOW
+            )
+
+            metadata = {
+                **(fact.metadata or {}),
+                "last_confidence_decay": {
+                    "at": now.isoformat(),
+                    "stale_days": stale_days,
+                    "from": current_confidence,
+                    "to": next_confidence,
+                },
+            }
+            fact.confidence = next_confidence
+            fact.metadata = metadata
+            update_fields = ["confidence", "metadata", "updated_at"]
+            reason = "Decayed memory confidence because the fact has not been used recently."
+            event_metadata = {
+                "action": "confidence_decay",
+                "stale_days": stale_days,
+                "previous_confidence": current_confidence,
+                "new_confidence": next_confidence,
+            }
+            if should_archive:
+                fact.status = AIMemoryFact.STATUS_ARCHIVED
+                update_fields.append("status")
+                archived += 1
+                reason = "Automatically archived stale or low-confidence memory fact."
+                event_metadata["action"] = "auto_archive_stale"
+            else:
+                decayed += 1
+            fact.save(update_fields=update_fields)
+            self.create_trace(
+                user=user,
+                fact=fact,
+                event_type=AIMemoryTrace.EVENT_ARCHIVED if should_archive else AIMemoryTrace.EVENT_SKIPPED,
+                reason=reason,
+                score=next_confidence,
+                metadata=event_metadata,
+            )
+
+        return {"decayed": decayed, "archived": archived}
 
     def create_trace(
         self,

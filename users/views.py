@@ -192,17 +192,28 @@ class AIMemoryListView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         from messenger.models import AIMemoryFact, AIMemoryTrace, AILongTermMemory
+        from ai.memory.repository import MemoryRepository
 
         context = super().get_context_data(**kwargs)
         user = self.request.user
         context['active_nav'] = 'ai_memory'
 
+        maintenance_report = MemoryRepository().maintain_user_memory(user=user)
+
         facts = list(
             AIMemoryFact.objects.filter(user=user, status=AIMemoryFact.STATUS_ACTIVE)
+            .annotate(
+                trace_count=Count("trace_events"),
+                retrieval_count=Count(
+                    "trace_events",
+                    filter=Q(trace_events__event_type=AIMemoryTrace.EVENT_RETRIEVED),
+                ),
+            )
             .order_by('-updated_at')
         )
         fact_ids = [fact.id for fact in facts]
         latest_traces = {}
+        trace_map: dict[int, list] = {}
         if fact_ids:
             traces = (
                 AIMemoryTrace.objects.filter(user=user, fact_id__in=fact_ids)
@@ -210,8 +221,15 @@ class AIMemoryListView(LoginRequiredMixin, TemplateView):
             )
             for trace in traces:
                 latest_traces.setdefault(trace.fact_id, trace)
+                trace_map.setdefault(trace.fact_id, [])
+                if len(trace_map[trace.fact_id]) < 3:
+                    trace_map[trace.fact_id].append(trace)
         for fact in facts:
             fact.latest_trace = latest_traces.get(fact.id)
+            fact.trace_items = trace_map.get(fact.id, [])
+            fact.confidence_percent = round(max(0.0, min(float(fact.confidence or 0.0), 1.0)) * 100)
+            fact.age_days = max(0, (timezone.now() - fact.created_at).days)
+            fact.last_used_label = fact.last_used_at.strftime("%d-%b, %H:%M") if fact.last_used_at else "Hali ishlatilmagan"
 
         grouped: dict[str, list] = {}
         for fact in facts:
@@ -247,6 +265,29 @@ class AIMemoryListView(LoginRequiredMixin, TemplateView):
         ]
         context['memory_total'] = len(facts)
         context['ai_memory_enabled'] = user.ai_memory_enabled
+        status_counts = {
+            row["status"]: row["total"]
+            for row in AIMemoryFact.objects.filter(user=user).values("status").annotate(total=Count("id"))
+        }
+        trace_counts = {
+            row["event_type"]: row["total"]
+            for row in AIMemoryTrace.objects.filter(user=user).values("event_type").annotate(total=Count("id"))
+        }
+        context['memory_report'] = {
+            "active": status_counts.get(AIMemoryFact.STATUS_ACTIVE, 0),
+            "archived": status_counts.get(AIMemoryFact.STATUS_ARCHIVED, 0),
+            "rejected": status_counts.get(AIMemoryFact.STATUS_REJECTED, 0),
+            "saved": trace_counts.get(AIMemoryTrace.EVENT_SAVED, 0),
+            "retrieved": trace_counts.get(AIMemoryTrace.EVENT_RETRIEVED, 0),
+            "unused": sum(1 for fact in facts if not fact.last_used_at),
+            "decayed": maintenance_report["decayed"],
+            "auto_archived": maintenance_report["archived"],
+        }
+        context['recent_memory_traces'] = list(
+            AIMemoryTrace.objects.filter(user=user)
+            .select_related("fact")
+            .order_by("-created_at")[:12]
+        )
         legacy = AILongTermMemory.objects.filter(user=user).first()
         context['legacy_memory_text'] = (legacy.learned_facts or '').strip() if legacy else ''
         return context
@@ -269,6 +310,26 @@ class AIMemoryArchiveView(LoginRequiredMixin, View):
             messages.info(request, "Yozuv topilmadi yoki allaqachon arxivlangan.")
         if wants_json:
             return JsonResponse({"status": "success" if archived else "noop"})
+        return redirect('ai_memory')
+
+
+class AIMemoryRejectView(LoginRequiredMixin, View):
+    """Mark a memory fact as incorrect so it is no longer used by AI."""
+
+    def post(self, request, fact_id, *args, **kwargs):
+        from ai.memory.repository import MemoryRepository
+
+        wants_json = (
+            request.headers.get("x-requested-with") == "XMLHttpRequest"
+            or "application/json" in request.headers.get("accept", "")
+        )
+        rejected = MemoryRepository().reject_one(user=request.user, fact_id=fact_id)
+        if rejected:
+            messages.success(request, "Xotira yozuvi noto'g'ri deb belgilandi.")
+        else:
+            messages.info(request, "Yozuv topilmadi yoki allaqachon faol emas.")
+        if wants_json:
+            return JsonResponse({"status": "success" if rejected else "noop"})
         return redirect('ai_memory')
 
 
