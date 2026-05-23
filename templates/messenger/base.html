@@ -48,12 +48,13 @@
   </div>
 
   <div class="sb-body">
-    <div class="sb-new-chat-row">
-      <button class="sb-new-chat" type="button">
+    <form class="sb-new-chat-row" method="post" action="{% url 'messenger:new_ai_chat' %}">
+      {% csrf_token %}
+      <button class="sb-new-chat" type="submit">
         <i class="bi bi-pencil-square"></i>
         <span>Yangi chat</span>
       </button>
-    </div>
+    </form>
 
     <div class="sb-section-label">Kurs chatlari</div>
 
@@ -107,16 +108,18 @@
 
     <div class="sb-section-label">AI suhbatlar</div>
 
-    <a class="sb-item {% if active_room == 'ai' %}active{% endif %}" href="{% url 'messenger:ai' %}">
-      <div class="sb-item-avatar sb-item-avatar--ai"><i class="bi bi-stars"></i></div>
-      <div class="sb-item-body">
-        <div class="sb-item-row">
-          <span class="sb-item-name">{{ ai_room.name|default:"Azure AI" }}</span>
-          <span class="sb-item-time">{% if ai_room.last_message_at %}{{ ai_room.last_message_at|date:"H:i" }}{% endif %}</span>
+    {% for ai in ai_rooms %}
+      <a class="sb-item {% if active_room == 'ai' and active_ai_room_id == ai.id %}active{% endif %}" href="{% url 'messenger:ai_room' ai.id %}" data-sidebar-room-id="{{ ai.id }}">
+        <div class="sb-item-avatar sb-item-avatar--ai"><i class="bi bi-stars"></i></div>
+        <div class="sb-item-body">
+          <div class="sb-item-row">
+            <span class="sb-item-name">{{ ai.name|default:"Yangi AI chat" }}</span>
+            <span class="sb-item-time">{% if ai.last_message_at %}{{ ai.last_message_at|date:"H:i" }}{% endif %}</span>
+          </div>
+          <div class="sb-item-preview">{% if ai.last_message_text %}{{ ai.last_message_text|truncatechars:44 }}{% else %}Savol yozib, darhol mashq qiling{% endif %}</div>
         </div>
-        <div class="sb-item-preview">Savol yozib, darhol mashq qiling</div>
-      </div>
-    </a>
+      </a>
+    {% endfor %}
   </div>
 
   <div class="sb-footer">

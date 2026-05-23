@@ -19,6 +19,7 @@ from gamification.models import EarnedBadge
 from frontend.models import LegalPage
 from django.core.signing import TimestampSigner
 from django.conf import settings
+from django.http import JsonResponse
 from courses.models import Lesson
 import os
 import uuid
@@ -110,6 +111,60 @@ class AvatarUpdateView(LoginRequiredMixin, View):
         else:
             messages.error(request, "Rasm tanlanmadi.")
         return redirect('settings')
+
+class AIToneUpdateView(LoginRequiredMixin, View):
+    """Update only the AI tone preference for the AzureAI assistant."""
+
+    def post(self, request, *args, **kwargs):
+        tone = (request.POST.get('ai_tone') or '').strip()
+        valid_tones = {choice for choice, _ in CustomUser.AI_TONE_CHOICES}
+        wants_json = (
+            request.headers.get("x-requested-with") == "XMLHttpRequest"
+            or "application/json" in request.headers.get("accept", "")
+        )
+
+        if tone not in valid_tones:
+            if wants_json:
+                return JsonResponse({"status": "error", "message": "Noto'g'ri uslub tanlandi."}, status=400)
+            messages.error(request, "Noto'g'ri uslub tanlandi.")
+            return redirect('settings')
+
+        if request.user.ai_tone != tone:
+            request.user.ai_tone = tone
+            request.user.save(update_fields=['ai_tone'])
+            messages.success(request, "AzureAI uslubi yangilandi.")
+        if wants_json:
+            label = dict(CustomUser.AI_TONE_CHOICES).get(tone, tone)
+            return JsonResponse({"status": "success", "ai_tone": tone, "label": label})
+        return redirect('settings')
+
+
+class AIModelUpdateView(LoginRequiredMixin, View):
+    """Update only the Gemini model preference for the AzureAI assistant."""
+
+    def post(self, request, *args, **kwargs):
+        model = (request.POST.get('ai_model') or '').strip()
+        valid_models = {choice for choice, _ in CustomUser.AI_MODEL_CHOICES}
+        wants_json = (
+            request.headers.get("x-requested-with") == "XMLHttpRequest"
+            or "application/json" in request.headers.get("accept", "")
+        )
+
+        if model not in valid_models:
+            if wants_json:
+                return JsonResponse({"status": "error", "message": "Noto'g'ri model tanlandi."}, status=400)
+            messages.error(request, "Noto'g'ri model tanlandi.")
+            return redirect('settings')
+
+        if request.user.ai_model != model:
+            request.user.ai_model = model
+            request.user.save(update_fields=['ai_model'])
+            messages.success(request, "AzureAI modeli yangilandi.")
+        if wants_json:
+            label = dict(CustomUser.AI_MODEL_CHOICES).get(model, model)
+            return JsonResponse({"status": "success", "ai_model": model, "label": label})
+        return redirect('settings')
+
 
 class PasswordUpdateView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):

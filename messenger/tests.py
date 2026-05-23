@@ -1,4 +1,5 @@
 import datetime
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
@@ -7,8 +8,10 @@ from django.urls import reverse
 
 from cohorts.models import Cohort, Enrollment
 from courses.models import Course, Lesson, Module
+from messenger.access import maybe_name_ai_room_from_first_prompt
 from messenger.models import AIFeedback, ChatRoom, LessonRAGChunk, Message
 from messenger.rag import ensure_pgvector_schema, reindex_lessons, retrieve_relevant_chunks
+from messenger.signals import suppress_ai_signal
 from messenger.tasks import generate_ai_response
 
 
@@ -77,6 +80,36 @@ class ChatAccessTests(TestCase):
         self.assertEqual([room["type"] for room in rooms], ["ai"])
         self.assertTrue(ChatRoom.objects.filter(room_type="ai", participants=self.student).exists())
 
+    def test_new_ai_chat_creates_separate_room_and_redirects_to_it(self):
+        self.client.force_login(self.student)
+        self.client.get(reverse("messenger:ai"))
+
+        response = self.client.post(reverse("messenger:new_ai_chat"))
+
+        ai_rooms = ChatRoom.objects.filter(room_type="ai", participants=self.student)
+        self.assertEqual(ai_rooms.count(), 2)
+        new_room = ai_rooms.order_by("-created_at").first()
+        self.assertRedirects(response, reverse("messenger:ai_room", args=[new_room.id]), fetch_redirect_response=False)
+
+    def test_user_rooms_returns_all_ai_chats_with_latest_preview(self):
+        older_room = ChatRoom.objects.create(room_type="ai", name="Grammar mashqi")
+        older_room.participants.add(self.student)
+        newer_room = ChatRoom.objects.create(room_type="ai", name="Essay feedback")
+        newer_room.participants.add(self.student)
+        with suppress_ai_signal():
+            Message.objects.create(room=older_room, sender=self.student, text="Present perfectni tushuntir")
+            Message.objects.create(room=newer_room, text="Essay yaxshi, lekin thesis aniqroq bo'lsin", is_ai_response=True)
+        self.client.force_login(self.student)
+
+        response = self.client.get(reverse("messenger:get_user_rooms"))
+
+        self.assertEqual(response.status_code, 200)
+        ai_rooms = [room for room in response.json()["rooms"] if room["type"] == "ai"]
+        self.assertEqual(len(ai_rooms), 2)
+        self.assertEqual(ai_rooms[0]["name"], "Essay feedback")
+        self.assertEqual(ai_rooms[0]["last_message_text"], "Essay yaxshi, lekin thesis aniqroq bo'lsin")
+        self.assertEqual(ai_rooms[1]["last_message_text"], "Present perfectni tushuntir")
+
     def test_messenger_pages_render_without_course_enrollment(self):
         self.client.force_login(self.student)
 
@@ -86,10 +119,33 @@ class ChatAccessTests(TestCase):
 
         self.assertEqual(ai_response.status_code, 200)
         self.assertContains(ai_response, "Azure AI tayyor")
+        self.assertContains(ai_response, "Gemini 3.5 Flash")
+        self.assertContains(ai_response, "Gemini 3.1 Pro")
+        self.assertContains(ai_response, "Gemini 3.1 Flash Lite")
+        self.assertContains(ai_response, "Javob uslubi")
+        self.assertContains(ai_response, "Qisqa va aniq")
         self.assertEqual(group_response.status_code, 200)
         self.assertContains(group_response, "Guruh chati yopiq")
         self.assertEqual(tutor_response.status_code, 200)
         self.assertContains(tutor_response, "Tutor chati yopiq")
+
+    def test_ai_page_lists_separate_ai_chats_and_latest_previews(self):
+        first_room = ChatRoom.objects.create(room_type="ai", name="Present perfect")
+        first_room.participants.add(self.student)
+        second_room = ChatRoom.objects.create(room_type="ai", name="IELTS essay")
+        second_room.participants.add(self.student)
+        with suppress_ai_signal():
+            Message.objects.create(room=first_room, sender=self.student, text="Present perfect nima?")
+            Message.objects.create(room=second_room, sender=self.student, text="Essay introduction tekshir")
+        self.client.force_login(self.student)
+
+        response = self.client.get(reverse("messenger:ai_room", args=[first_room.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Present perfect")
+        self.assertContains(response, "IELTS essay")
+        self.assertContains(response, "Present perfect nima?")
+        self.assertContains(response, "Essay introduction tekshir")
 
     def test_room_apis_filter_stale_participants(self):
         group_room = ChatRoom.objects.get(cohort=self.cohort, room_type="group")
@@ -153,6 +209,46 @@ class GenerateAiResponseTaskTests(TestCase):
         self.assertIn("Kechirasiz", ai_message.text)
         self.assertTrue(mocked_client.called)
         mocked_logger_exception.assert_called_once()
+
+    @patch("messenger.tasks.retrieve_relevant_chunks", return_value=[])
+    @patch("messenger.tasks.genai.Client")
+    def test_generate_ai_response_prompt_keeps_emoji_enabled_for_formal_tone(
+        self,
+        mocked_client,
+        _mocked_retrieve_chunks,
+    ):
+        self.student.ai_tone = User.AI_TONE_FORMAL
+        self.student.ai_model = User.AI_MODEL_31_PRO
+        self.student.save(update_fields=["ai_tone", "ai_model"])
+        room = ChatRoom.objects.create(room_type="ai", name="Azure AI - ai-student")
+        room.participants.add(self.student)
+        mocked_client.return_value.models.generate_content.return_value = SimpleNamespace(text="Javob tayyor.")
+
+        message_id = generate_ai_response.run(
+            room_id=room.id,
+            student_id=self.student.id,
+            user_question="Rasmiy javob ber",
+        )
+
+        prompt = mocked_client.return_value.models.generate_content.call_args.kwargs["contents"]
+        model_name = mocked_client.return_value.models.generate_content.call_args.kwargs["model"]
+        self.assertEqual(model_name, User.AI_MODEL_31_PRO)
+        self.assertIn("Har javobda tabiiy joyda mos emoji ishlat", prompt)
+        self.assertIn("Faqat 1 ta neytral, mavzuga mos emoji ishlat", prompt)
+        self.assertNotIn("emoji ishlatma", prompt)
+        self.assertEqual(Message.objects.get(id=message_id).text, "Javob tayyor.")
+
+    def test_first_prompt_can_name_ai_room(self):
+        room = ChatRoom.objects.create(room_type="ai", name="Yangi AI chat")
+        room.participants.add(self.student)
+        with suppress_ai_signal():
+            Message.objects.create(room=room, sender=self.student, text="Past simple va present perfect farqi nima?")
+
+        renamed = maybe_name_ai_room_from_first_prompt(room, "Past simple va present perfect farqi nima?")
+
+        self.assertTrue(renamed)
+        room.refresh_from_db()
+        self.assertEqual(room.name, "Past simple va present perfect farqi nima")
 
 
 class AIFeedbackApiTests(TestCase):

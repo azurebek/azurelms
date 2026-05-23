@@ -6,6 +6,8 @@ from .models import ChatRoom
 
 
 User = get_user_model()
+DEFAULT_AI_ROOM_TITLE = "Yangi AI chat"
+MAX_AI_ROOM_TITLE_LENGTH = 56
 
 
 def user_has_active_enrollment(user):
@@ -20,16 +22,49 @@ def ensure_user_ai_room(user):
     if not user or not user.is_authenticated:
         return None
 
-    room = ChatRoom.objects.filter(room_type="ai", participants=user).order_by("created_at").first()
+    room = ChatRoom.objects.filter(room_type="ai", participants=user).order_by("-created_at").first()
     if room:
         return room
 
-    room_name = f"Azure AI - {user.username}"
-    room = ChatRoom.objects.filter(room_type="ai", name=room_name).order_by("created_at").first()
-    if room is None:
-        room = ChatRoom.objects.create(room_type="ai", name=room_name)
+    return create_user_ai_room(user)
+
+
+def create_user_ai_room(user):
+    if not user or not user.is_authenticated:
+        return None
+
+    room = ChatRoom.objects.create(room_type="ai", name=DEFAULT_AI_ROOM_TITLE)
     room.participants.add(user)
     return room
+
+
+def derive_ai_room_name_from_prompt(prompt):
+    clean_prompt = " ".join((prompt or "").split())
+    if not clean_prompt:
+        return DEFAULT_AI_ROOM_TITLE
+
+    words = clean_prompt.split(" ")[:7]
+    title = " ".join(words).strip(" .,!?;:-")
+    if len(title) > MAX_AI_ROOM_TITLE_LENGTH:
+        title = title[:MAX_AI_ROOM_TITLE_LENGTH].rsplit(" ", 1)[0].strip(" .,!?;:-")
+    return title[:1].upper() + title[1:] if title else DEFAULT_AI_ROOM_TITLE
+
+
+def maybe_name_ai_room_from_first_prompt(room, prompt):
+    if not room or room.room_type != "ai":
+        return False
+
+    user_message_count = room.messages.filter(is_ai_response=False).count()
+    if user_message_count != 1:
+        return False
+
+    new_name = derive_ai_room_name_from_prompt(prompt)
+    if room.name == new_name:
+        return False
+
+    room.name = new_name
+    room.save(update_fields=["name"])
+    return True
 
 
 def user_can_access_room(user, room):

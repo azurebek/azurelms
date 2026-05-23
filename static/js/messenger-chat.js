@@ -6,6 +6,8 @@
   const activeRoom = panel.getAttribute('data-active-room');
   const currentUserId = Number(panel.getAttribute('data-current-user-id'));
   const currentUserName = panel.getAttribute('data-current-user-name') || 'Siz';
+  const aiToneUrl = panel.getAttribute('data-ai-tone-url');
+  const aiModelUrl = panel.getAttribute('data-ai-model-url');
   const messagesArea = document.querySelector('[data-chat-messages]');
   const input = document.querySelector('[data-chat-input]');
   const sendButton = document.querySelector('[data-chat-send]');
@@ -27,6 +29,131 @@
   function removeEmptyState() {
     const emptyState = messagesArea.querySelector('[data-empty-state]');
     if (emptyState) emptyState.remove();
+  }
+
+  function truncatePreview(text) {
+    const clean = (text || '').replace(/\s+/g, ' ').trim();
+    return clean.length > 44 ? `${clean.slice(0, 41)}...` : clean;
+  }
+
+  function updateSidebarRoom(payload) {
+    const sidebarRoomId = payload.room_id || roomId;
+    const item = document.querySelector(`[data-sidebar-room-id="${CSS.escape(String(sidebarRoomId))}"]`);
+    if (!item) return;
+
+    const name = item.querySelector('.sb-item-name');
+    if (name && payload.room_name) name.textContent = payload.room_name;
+
+    const preview = item.querySelector('.sb-item-preview');
+    if (preview) preview.textContent = truncatePreview(payload.message || payload.text || '');
+
+    const time = item.querySelector('.sb-item-time');
+    if (time) time.textContent = payload.created_at || currentTime();
+  }
+
+  function csrfToken() {
+    const tokenInput = document.querySelector('[name="csrfmiddlewaretoken"]');
+    if (tokenInput && tokenInput.value) return tokenInput.value;
+    const match = document.cookie.match(/(?:^|; )csrftoken=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : '';
+  }
+
+  function setPickerStatus(selector, message, type) {
+    const status = document.querySelector(selector);
+    if (!status) return;
+    status.textContent = message || '';
+    status.classList.toggle('is-success', type === 'success');
+    status.classList.toggle('is-error', type === 'error');
+  }
+
+  function markSelectedOption(selector, attr, value) {
+    document.querySelectorAll(selector).forEach(function (button) {
+      const selected = button.getAttribute(attr) === value;
+      button.classList.toggle('active', selected);
+      const marker = button.querySelector('.ai-current');
+      if (marker) marker.textContent = selected ? 'Tanlangan' : '';
+    });
+  }
+
+  function optionLabel(button) {
+    const label = button.querySelector('span:not(.ai-current)');
+    return label ? label.textContent.trim() : '';
+  }
+
+  function initTonePicker() {
+    if (!aiToneUrl) return;
+    document.querySelectorAll('[data-ai-tone-option]').forEach(function (button) {
+      button.addEventListener('click', async function () {
+        const tone = button.getAttribute('data-ai-tone-option');
+        if (!tone) return;
+
+        setPickerStatus('[data-ai-tone-status]', 'Saqlanmoqda...');
+        const body = new URLSearchParams();
+        body.set('ai_tone', tone);
+
+        try {
+          const response = await fetch(aiToneUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+              'X-CSRFToken': csrfToken(),
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json',
+            },
+            body: body.toString(),
+          });
+          const payload = await response.json();
+          if (!response.ok || payload.status !== 'success') {
+            throw new Error(payload.message || 'Uslub saqlanmadi.');
+          }
+          markSelectedOption('[data-ai-tone-option]', 'data-ai-tone-option', payload.ai_tone || tone);
+          panel.setAttribute('data-current-ai-tone', payload.ai_tone || tone);
+          const currentLabel = document.querySelector('[data-ai-tone-current-label]');
+          if (currentLabel) currentLabel.textContent = payload.label || optionLabel(button);
+          setPickerStatus('[data-ai-tone-status]', 'Uslub yangilandi.', 'success');
+        } catch (error) {
+          setPickerStatus('[data-ai-tone-status]', error.message || 'Uslub saqlanmadi.', 'error');
+        }
+      });
+    });
+  }
+
+  function initModelPicker() {
+    if (!aiModelUrl) return;
+    document.querySelectorAll('[data-ai-model-option]').forEach(function (button) {
+      button.addEventListener('click', async function () {
+        const model = button.getAttribute('data-ai-model-option');
+        if (!model) return;
+
+        setPickerStatus('[data-ai-model-status]', 'Saqlanmoqda...');
+        const body = new URLSearchParams();
+        body.set('ai_model', model);
+
+        try {
+          const response = await fetch(aiModelUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+              'X-CSRFToken': csrfToken(),
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json',
+            },
+            body: body.toString(),
+          });
+          const payload = await response.json();
+          if (!response.ok || payload.status !== 'success') {
+            throw new Error(payload.message || 'Model saqlanmadi.');
+          }
+          markSelectedOption('[data-ai-model-option]', 'data-ai-model-option', payload.ai_model || model);
+          panel.setAttribute('data-current-ai-model', payload.ai_model || model);
+          const currentLabel = document.querySelector('[data-ai-model-current-label]');
+          if (currentLabel) currentLabel.textContent = payload.label || optionLabel(button);
+          setPickerStatus('[data-ai-model-status]', 'Model yangilandi.', 'success');
+        } catch (error) {
+          setPickerStatus('[data-ai-model-status]', error.message || 'Model saqlanmadi.', 'error');
+        }
+      });
+    });
   }
 
   function showAiTyping() {
@@ -123,6 +250,7 @@
     group.appendChild(meta);
     row.appendChild(group);
     messagesArea.appendChild(row);
+    updateSidebarRoom(payload);
     scrollToBottom();
   }
 
@@ -138,6 +266,7 @@
       const time = row.querySelector('.bubble-meta span');
       if (time && payload.created_at) time.textContent = payload.created_at;
     }
+    updateSidebarRoom(payload);
     return true;
   }
 
@@ -192,5 +321,7 @@
   });
 
   sendButton.disabled = true;
+  initModelPicker();
+  initTonePicker();
   scrollToBottom();
 })();

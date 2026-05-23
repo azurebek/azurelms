@@ -146,6 +146,80 @@ class NotificationContextTests(TestCase):
         self.assertEqual(Notification.objects.filter(recipient=self.user).count(), 0)
 
 
+class AIToneUpdateViewTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="tone-user",
+            email="tone-user@example.com",
+            password="testpass123",
+        )
+        self.client.force_login(self.user)
+
+    def test_ajax_update_saves_ai_tone(self):
+        response = self.client.post(
+            reverse("update_ai_tone"),
+            {"ai_tone": User.AI_TONE_BRIEF},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+            HTTP_ACCEPT="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["status"], "success")
+        self.assertEqual(response.json()["ai_tone"], User.AI_TONE_BRIEF)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.ai_tone, User.AI_TONE_BRIEF)
+
+    def test_ajax_update_rejects_invalid_ai_tone(self):
+        response = self.client.post(
+            reverse("update_ai_tone"),
+            {"ai_tone": "robot-poet"},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+            HTTP_ACCEPT="application/json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["status"], "error")
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.ai_tone, User.AI_TONE_FRIENDLY)
+
+
+class AIModelUpdateViewTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="model-user",
+            email="model-user@example.com",
+            password="testpass123",
+        )
+        self.client.force_login(self.user)
+
+    def test_ajax_update_saves_ai_model(self):
+        response = self.client.post(
+            reverse("update_ai_model"),
+            {"ai_model": User.AI_MODEL_31_PRO},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+            HTTP_ACCEPT="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["status"], "success")
+        self.assertEqual(response.json()["ai_model"], User.AI_MODEL_31_PRO)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.ai_model, User.AI_MODEL_31_PRO)
+
+    def test_ajax_update_rejects_invalid_ai_model(self):
+        response = self.client.post(
+            reverse("update_ai_model"),
+            {"ai_model": "gemini-mystery"},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+            HTTP_ACCEPT="application/json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["status"], "error")
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.ai_model, User.AI_MODEL_25_FLASH)
+
+
 class DashboardProgressTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(

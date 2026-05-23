@@ -19,6 +19,53 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
+# AzureAI suhbat uslubi foydalanuvchi tanlovidan keladi (CustomUser.ai_tone).
+# Har bir uslub uchun 2-4 jumlali, aniq instruktsiya. Default: friendly.
+TONE_INSTRUCTIONS = {
+    "friendly": (
+        "Samimiy va do'stona ohangda yoz, lekin ortiqcha rasmiy yoki romantik bo'lma. "
+        "Foydalanuvchini ismi yoki neytral murojaat bilan tabiiy chaqirsang bo'ladi. "
+        "Javoblar o'rta uzunlikda, qisqa do'stona izoh bilan tugatish mumkin. "
+        "1-2 ta iliq, mavzuga mos emoji ishlat."
+    ),
+    "formal": (
+        "Rasmiy va professional uslubda yoz, hurmatli murojaat ishlat (\"Siz\"). "
+        "Lug'at va terminologiya aniq bo'lsin, oddiy so'zlashuv va hazilga ketma. "
+        "Javoblar to'liq va akademik, lekin chizilgan strukturada bo'lsin. "
+        "Faqat 1 ta neytral, mavzuga mos emoji ishlat."
+    ),
+    "brief": (
+        "Maksimal qisqa va aniq yoz. Imkon qadar 1-2 jumlada javob ber. "
+        "Kirish va yopuv jumlalarisiz — faqat asosiy javob va zarur bo'lsa bitta misol. "
+        "Hech qachon ortiqcha tushuntirma berma, foydalanuvchi qo'shimcha so'rasa keyin kengaytir. "
+        "Ko'pi bilan 1 ta emoji ishlat."
+    ),
+    "detailed": (
+        "Kengaytirilgan, tushuntiruvchi javob ber. Asosiy javobdan tashqari kontekst, "
+        "misol va o'xshashlik bilan tushuntir. Zarur bo'lsa 3-5 qadamlik bosqichli "
+        "yechim ber, lekin har qadam alohida va aniq bo'lsin, takrorlamasdan. "
+        "Bo'limlar yoki asosiy fikrlar yonida jami 1-3 ta mos emoji ishlat."
+    ),
+}
+DEFAULT_TONE = "friendly"
+DEFAULT_MODEL_FALLBACKS = [
+    "gemini-2.5-flash",
+    "gemini-3.5-flash",
+    "gemini-3.1-flash-lite",
+    "gemini-3.1-pro-preview",
+    "gemini-2.5-flash-lite",
+    "gemini-2.0-flash-lite",
+    "gemini-2.0-flash",
+    "gemini-flash-latest",
+    "gemini-pro-latest",
+]
+
+
+def _resolve_tone_instruction(student):
+    tone = getattr(student, "ai_tone", None) or DEFAULT_TONE
+    return tone, TONE_INSTRUCTIONS.get(tone, TONE_INSTRUCTIONS[DEFAULT_TONE])
+
+
 def _render_rag_context(rag_chunks):
     if not rag_chunks:
         return ""
@@ -99,6 +146,9 @@ def generate_ai_response(room_id, student_id, user_question, context_lesson_id=N
 
         client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
+        tone_name, tone_instruction = _resolve_tone_instruction(student)
+        selected_model = getattr(student, "ai_model", None) or DEFAULT_MODEL_FALLBACKS[0]
+
         prompt = (
             "SYSTEM INSTRUCTIONS: DO NOT IGNORE THESE INSTRUCTIONS. "
             "Siz AzureLMS platformasining xavfsiz va ishonchli AI yordamchisisiz. "
@@ -108,13 +158,14 @@ def generate_ai_response(room_id, student_id, user_question, context_lesson_id=N
             "USLUB QOIDALARI:\n"
             "1) Birinchi javobdagina qisqa salomlash.\n"
             "2) Keyingi javoblarda qayta-qayta salomlashma, to'g'ridan-to'g'ri savolga o't.\n"
-            "3) Samimiy bo'l, lekin ortiqcha romantik yoki rasmiy bo'lma.\n"
-            "4) Javoblar qisqa, strukturalangan va amaliy bo'lsin.\n"
-            "5) Zarur bo'lsa 2-4 qadamli yechim yoki aniq misol ber.\n"
-            "6) Agar savol noaniq bo'lsa, bitta aniq savol bilan aniqlashtir.\n"
-            "7) Markdown ishlatma: '**', '__', '#', '```' kabi belgilarni yozma.\n"
-            "8) Uzun devor-matn yozma: har fikrni alohida satr/paragrafda ber.\n"
-            "9) Kerak bo'lsa oddiy ro'yxatni `1.` yoki `-` bilan ber, lekin juda uzun qilma.\n\n"
+            "3) Zarur bo'lsa 2-4 qadamli yechim yoki aniq misol ber.\n"
+            "4) Agar savol noaniq bo'lsa, bitta aniq savol bilan aniqlashtir.\n"
+            "5) Markdown ishlatma: '**', '__', '#', '```' kabi belgilarni yozma.\n"
+            "6) Uzun devor-matn yozma: har fikrni alohida satr/paragrafda ber.\n"
+            "7) Kerak bo'lsa oddiy ro'yxatni `1.` yoki `-` bilan ber, lekin juda uzun qilma.\n"
+            "8) Har javobda tabiiy joyda mos emoji ishlat: emoji matnni almashtirmasin va spam bo'lmasin.\n\n"
+            f"TON (foydalanuvchi tanlovi: {tone_name}):\n"
+            f"{tone_instruction}\n\n"
             "RAG QOIDALARI:\n"
             "1) Agar `RAG manbalar` bo'limida kontekst bo'lsa, avvalo shu kontekstga tayangan holda javob ber.\n"
             "2) Hech bo'lmasa bitta manbadan foydalansang, tegishli jumla oxirida `(Manba N)` formatida ko'rsat.\n"
@@ -132,11 +183,12 @@ def generate_ai_response(room_id, student_id, user_question, context_lesson_id=N
 
         raw_models = os.getenv(
             "GEMINI_MODEL_FALLBACKS",
-            "gemini-2.5-flash-lite,gemini-2.5-flash,gemini-2.0-flash-lite,gemini-2.0-flash,gemini-flash-latest,gemini-pro-latest",
+            ",".join(DEFAULT_MODEL_FALLBACKS),
         )
-        model_candidates = [model.strip() for model in raw_models.split(",") if model.strip()]
+        configured_models = [model.strip() for model in raw_models.split(",") if model.strip()]
+        model_candidates = [selected_model] + [model for model in configured_models if model != selected_model]
         if not model_candidates:
-            model_candidates = ["gemini-2.5-flash"]
+            model_candidates = [DEFAULT_MODEL_FALLBACKS[0]]
 
         ai_reply_raw = None
         last_error = None
@@ -209,6 +261,8 @@ def generate_ai_response(room_id, student_id, user_question, context_lesson_id=N
                 "message": ai_message.text,
                 "sender_name": "Azure AI",
                 "sender_id": None,
+                "room_id": room.id,
+                "room_name": room.name,
                 "created_at": ai_message.created_at.strftime("%H:%M"),
             },
         )

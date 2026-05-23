@@ -28,6 +28,42 @@ class CustomUser(AbstractUser):
     # O'quvchining umumiy XP (Tajriba) ballari
     total_xp = models.IntegerField(default=0, help_text="O'quvchining jami to'plagan XP ballari")
 
+    # AzureAI suhbatining uslubi (messenger input menyusidan tanlanadi)
+    AI_TONE_FRIENDLY = 'friendly'
+    AI_TONE_FORMAL = 'formal'
+    AI_TONE_BRIEF = 'brief'
+    AI_TONE_DETAILED = 'detailed'
+    AI_TONE_CHOICES = [
+        (AI_TONE_FRIENDLY, "Samimiy va do'stona"),
+        (AI_TONE_FORMAL, "Rasmiy va professional"),
+        (AI_TONE_BRIEF, "Qisqa va aniq"),
+        (AI_TONE_DETAILED, "Kengaytirilgan va tushuntiruvchi"),
+    ]
+    ai_tone = models.CharField(
+        max_length=16,
+        choices=AI_TONE_CHOICES,
+        default=AI_TONE_FRIENDLY,
+        help_text="AzureAI yordamchisi javob beradigan uslub",
+    )
+    AI_MODEL_25_FLASH = 'gemini-2.5-flash'
+    AI_MODEL_25_FLASH_LITE = 'gemini-2.5-flash-lite'
+    AI_MODEL_31_PRO = 'gemini-3.1-pro-preview'
+    AI_MODEL_35_FLASH = 'gemini-3.5-flash'
+    AI_MODEL_31_FLASH_LITE = 'gemini-3.1-flash-lite'
+    AI_MODEL_CHOICES = [
+        (AI_MODEL_25_FLASH, "Gemini 2.5 Flash"),
+        (AI_MODEL_25_FLASH_LITE, "Gemini 2.5 Flash-Lite"),
+        (AI_MODEL_31_PRO, "Gemini 3.1 Pro"),
+        (AI_MODEL_35_FLASH, "Gemini 3.5 Flash"),
+        (AI_MODEL_31_FLASH_LITE, "Gemini 3.1 Flash Lite"),
+    ]
+    ai_model = models.CharField(
+        max_length=80,
+        choices=AI_MODEL_CHOICES,
+        default=AI_MODEL_25_FLASH,
+        help_text="AzureAI javob yaratishda birinchi ishlatadigan Gemini modeli",
+    )
+
     # To'qnashuvni (clash) oldini olish uchun
     groups = models.ManyToManyField(
         'auth.Group',

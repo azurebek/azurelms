@@ -10,7 +10,7 @@ import threading
 import sys
 import re
 
-from .access import sync_student_chat_access
+from .access import maybe_name_ai_room_from_first_prompt, sync_student_chat_access
 from .models import ChatRoom, Message
 
 
@@ -63,15 +63,16 @@ def trigger_azure_ai(sender, instance, created, **kwargs):
     if created and not instance.is_ai_response:
         raw_text = instance.text or ""
         text_lower = raw_text.lower()
+        maybe_name_ai_room_from_first_prompt(instance.room, raw_text)
 
         if instance.room.room_type == 'ai' or '@azure' in text_lower:
             # Delegate to Celery background task instead of native threading.Thread
             from .tasks import generate_ai_response
-            
+
             user_question = re.sub(r"@azure", "", raw_text, flags=re.IGNORECASE).strip()
             student_id = instance.sender.id if instance.sender else None
             context_lesson_id = instance.context_lesson.id if instance.context_lesson else None
-            
+
             if student_id:
                 try:
                     generate_ai_response.delay(

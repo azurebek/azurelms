@@ -7,7 +7,7 @@ from asgiref.sync import sync_to_async
 from django.contrib.auth import get_user_model
 from cohorts.models import Enrollment, enrollment_active_access_q
 from courses.models import Lesson
-from .access import user_can_access_room
+from .access import maybe_name_ai_room_from_first_prompt, user_can_access_room
 from .models import ChatRoom, Message
 
 User = get_user_model()
@@ -80,6 +80,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'sender_id': user.id,
                     'sender_name': user.get_full_name() or user.username,
                     'client_message_id': client_message_id,
+                    'room_id': saved_msg.room_id,
+                    'room_name': saved_msg.room.name,
                 }
             )
 
@@ -106,6 +108,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         message_id = event.get('message_id') or event.get('id')
         created_at = event.get('created_at')
         client_message_id = event.get("client_message_id")
+        room_id = event.get("room_id")
+        room_name = event.get("room_name")
 
         await self.send(text_data=json.dumps({
             'message': message,
@@ -114,6 +118,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'message_id': message_id,
             'created_at': created_at,
             'client_message_id': client_message_id,
+            'room_id': room_id,
+            'room_name': room_name,
         }))
 
     def enqueue_background_task(self, coroutine):
@@ -142,6 +148,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
             with suppress_ai_signal():
                 msg = Message.objects.create(room=room, sender=user, text=text, context_lesson=context_lesson)
+            maybe_name_ai_room_from_first_prompt(room, text)
             return msg
         except Exception as e:
             print(f"WebSocket saqlashda xatolik: {e}")

@@ -2,14 +2,15 @@ import json
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Max, Count, Q
-from django.http import JsonResponse
+from django.db.models import Max, Count, Q, OuterRef, Subquery
+from django.http import Http404, JsonResponse
+from django.shortcuts import redirect
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
 from django.views.generic import TemplateView
 
 from cohorts.models import Enrollment, enrollment_active_access_q
-from .access import ensure_user_ai_room, sync_student_chat_access, user_can_access_room, user_has_active_enrollment
+from .access import create_user_ai_room, ensure_user_ai_room, sync_student_chat_access, user_can_access_room, user_has_active_enrollment
 from .models import ChatRoom, Message, AIFeedback
 
 
@@ -19,12 +20,14 @@ def _room_rank(item):
 
 def _build_messenger_rooms(user):
     sync_student_chat_access(user)
+    latest_message = Message.objects.filter(room=OuterRef("pk")).order_by("-created_at")
 
     rooms = list(
         ChatRoom.objects.filter(participants=user)
         .select_related("cohort")
         .annotate(
             last_message_at=Max("messages__created_at"),
+            last_message_text=Subquery(latest_message.values("text")[:1]),
             message_count=Count("messages"),
         )
     )
@@ -56,15 +59,21 @@ def _build_messenger_rooms(user):
     ai_room = None
     ai_candidates = rooms_by_type.get("ai", [])
     if ai_candidates:
-        ai_room = max(ai_candidates, key=_room_rank)
+        ai_candidates = sorted(ai_candidates, key=_room_rank, reverse=True)
+        ai_room = ai_candidates[0]
     else:
         ai_room = ensure_user_ai_room(user)
+        ai_room.last_message_at = None
+        ai_room.last_message_text = None
+        ai_room.message_count = 0
+        ai_candidates = [ai_room]
 
     return {
         "messenger_rooms": rooms,
         "group_room": group_room,
         "tutor_room": tutor_room,
         "ai_room": ai_room,
+        "ai_rooms": ai_candidates,
         "has_active_enrollment": user_has_active_enrollment(user),
     }
 
@@ -89,13 +98,22 @@ class _MessengerRoomView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         context.update(_build_messenger_rooms(self.request.user))
         context["active_room"] = self.active_room
-        active_room_map = {
-            "ai": context["ai_room"],
-            "group": context["group_room"],
-            "tutor": context["tutor_room"],
-        }
-        active_chat_room = active_room_map.get(self.active_room)
+        if self.active_room == "ai":
+            room_id = self.kwargs.get("room_id")
+            if room_id is not None:
+                active_chat_room = next((room for room in context["ai_rooms"] if room.id == room_id), None)
+                if active_chat_room is None:
+                    raise Http404("AI chat topilmadi")
+            else:
+                active_chat_room = context["ai_room"]
+        else:
+            active_room_map = {
+                "group": context["group_room"],
+                "tutor": context["tutor_room"],
+            }
+            active_chat_room = active_room_map.get(self.active_room)
         context["active_chat_room"] = active_chat_room
+        context["active_ai_room_id"] = active_chat_room.id if self.active_room == "ai" and active_chat_room else None
         context["chat_messages"] = _room_messages(active_chat_room)
         context["chat_locked"] = self.active_room in {"group", "tutor"} and active_chat_room is None
         return context
@@ -115,6 +133,14 @@ class MessengerTutorView(_MessengerRoomView):
     template_name = "messenger/tutor.html"
     active_room = "tutor"
 
+
+@login_required
+@require_POST
+def create_ai_chat(request):
+    room = create_user_ai_room(request.user)
+    return redirect("messenger:ai_room", room_id=room.id)
+
+
 @login_required
 @never_cache
 def get_user_rooms(request):
@@ -127,10 +153,9 @@ def get_user_rooms(request):
         for room in (
             room_context["group_room"],
             room_context["tutor_room"],
-            room_context["ai_room"],
         )
         if room is not None
-    ]
+    ] + list(room_context["ai_rooms"])
 
     data = []
     for r in selected_rooms:
@@ -142,9 +167,10 @@ def get_user_rooms(request):
                 "cohort_id": r.cohort.id if r.cohort else None,
                 "message_count": r.message_count,
                 "last_message_at": r.last_message_at.isoformat() if r.last_message_at else None,
+                "last_message_text": r.last_message_text or "",
             }
         )
-        
+
     return JsonResponse({'status': 'success', 'rooms': data})
 
 
@@ -185,7 +211,7 @@ def get_room_messages(request, room_id):
                 negative_count=Count("id", filter=Q(rating=AIFeedback.RATING_NEGATIVE)),
             )
         }
-        
+
         msgs_data = []
         for m in recent_messages:
             user_feedback = feedback_map.get(m.id)
@@ -207,9 +233,9 @@ def get_room_messages(request, room_id):
                 ),
                 'feedback_totals': totals if m.is_ai_response else None,
             })
-            
+
         return JsonResponse({'status': 'success', 'messages': msgs_data})
-        
+
     except ChatRoom.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Chat xonasi topilmadi yoki huquq yo\'q'}, status=403)
 

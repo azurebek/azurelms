@@ -866,7 +866,9 @@ body {
   position: absolute;
   bottom: calc(100% + 8px);
   left: 0;
-  min-width: 200px;
+  width: min(280px, calc(100vw - 28px));
+  max-height: min(460px, calc(100vh - 140px));
+  overflow-y: auto;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
@@ -901,6 +903,15 @@ body {
   text-align: left;
 }
 .attach-item:hover { background: var(--bg); }
+.attach-item.active {
+  background: var(--blue-soft);
+  color: var(--blue-mid);
+}
+.attach-item.is-static {
+  cursor: default;
+  opacity: .78;
+}
+.attach-item.is-static:hover { background: transparent; }
 .attach-item i {
   width: 32px;
   height: 32px;
@@ -922,6 +933,58 @@ body {
   background: var(--border-soft);
   margin: 4px 8px;
 }
+.attach-menu-label {
+  padding: 6px 10px 4px;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  color: var(--ink-4);
+  text-transform: uppercase;
+}
+.attach-section {
+  border-radius: var(--r-md);
+  background: transparent;
+}
+.attach-section + .attach-section { margin-top: 4px; }
+.attach-section-summary {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: var(--r-md);
+  color: var(--ink-4);
+  cursor: pointer;
+  list-style: none;
+}
+.attach-section-summary::-webkit-details-marker { display: none; }
+.attach-section-summary:hover { background: var(--bg); }
+.attach-section-summary span {
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.attach-section-summary strong {
+  min-width: 0;
+  color: var(--ink-1);
+  font-size: .76rem;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+}
+.attach-section-summary i {
+  font-size: .72rem;
+  transition: transform 140ms;
+}
+.attach-section[open] .attach-section-summary i { transform: rotate(180deg); }
+.attach-section-options {
+  max-height: 172px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
 .attach-item .ai-current {
   margin-left: auto;
   font-size: 0.72rem;
@@ -931,6 +994,18 @@ body {
   padding: 2px 8px;
   border-radius: var(--r-pill);
 }
+.attach-item.active .ai-current {
+  color: var(--blue-mid);
+  background: rgba(29,87,216,.12);
+}
+.attach-status {
+  min-height: 18px;
+  padding: 4px 10px 2px;
+  font-size: .72rem;
+  color: var(--ink-4);
+}
+.attach-status.is-error { color: var(--red); }
+.attach-status.is-success { color: var(--green); }
 
 .compose-input-wrap { flex: 1; position: relative; }
 .compose-input {

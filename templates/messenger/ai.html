@@ -5,12 +5,12 @@
 {% block meta_description %}Azure AI bilan erkin suhbat va o'quv savollari.{% endblock %}
 
 {% block chat_panel %}
-<section class="chat-panel" data-chat-room-id="{{ active_chat_room.id }}" data-current-user-id="{{ user.id }}" data-current-user-name="{{ user.get_full_name|default:user.username }}" data-active-room="{{ active_room }}">
+<section class="chat-panel" data-chat-room-id="{{ active_chat_room.id }}" data-current-user-id="{{ user.id }}" data-current-user-name="{{ user.get_full_name|default:user.username }}" data-active-room="{{ active_room }}" data-ai-tone-url="{% url 'update_ai_tone' %}" data-ai-model-url="{% url 'update_ai_model' %}" data-current-ai-tone="{{ user.ai_tone }}" data-current-ai-model="{{ user.ai_model }}">
   <header class="chat-topbar">
     <div class="chat-head">
       <div class="chat-head-avatar chat-head-avatar--ai"><i class="bi bi-stars"></i></div>
       <div class="chat-head-meta">
-        <div class="chat-head-name">Azure AI <i class="bi bi-patch-check-fill verified" title="AI"></i></div>
+        <div class="chat-head-name">{{ active_chat_room.name|default:"Yangi AI chat" }} <i class="bi bi-patch-check-fill verified" title="AI"></i></div>
         <div class="chat-head-sub online"><span class="dot"></span> Har doim ochiq</div>
       </div>
     </div>
@@ -50,9 +50,45 @@
       <div class="attach-wrap">
         <button class="attach-btn" id="attachBtn" type="button" aria-label="Biriktirish"><i class="bi bi-plus-lg"></i></button>
         <div class="attach-menu" id="attachMenu">
+          {% csrf_token %}
           <button class="attach-item" type="button"><i class="bi bi-image ai-photo"></i> Rasm yoki video</button>
           <button class="attach-item" type="button"><i class="bi bi-file-earmark ai-doc"></i> Hujjat</button>
           <button class="attach-item" type="button"><i class="bi bi-mic ai-mic"></i> Ovozli xabar</button>
+          <div class="attach-divider"></div>
+          <details class="attach-section" open>
+            <summary class="attach-section-summary">
+              <span>Model</span>
+              <strong data-ai-model-current-label>{{ user.get_ai_model_display }}</strong>
+              <i class="bi bi-chevron-down"></i>
+            </summary>
+            <div class="attach-section-options">
+              {% for value, label in user.AI_MODEL_CHOICES %}
+                <button class="attach-item attach-item--model {% if user.ai_model == value %}active{% endif %}" type="button" data-ai-model-option="{{ value }}">
+                  <i class="bi bi-cpu ai-model"></i>
+                  <span>{{ label }}</span>
+                  <span class="ai-current">{% if user.ai_model == value %}Tanlangan{% endif %}</span>
+                </button>
+              {% endfor %}
+            </div>
+            <div class="attach-status" data-ai-model-status></div>
+          </details>
+          <details class="attach-section">
+            <summary class="attach-section-summary">
+              <span>Javob uslubi</span>
+              <strong data-ai-tone-current-label>{{ user.get_ai_tone_display }}</strong>
+              <i class="bi bi-chevron-down"></i>
+            </summary>
+            <div class="attach-section-options">
+              {% for value, label in user.AI_TONE_CHOICES %}
+                <button class="attach-item attach-item--tone {% if user.ai_tone == value %}active{% endif %}" type="button" data-ai-tone-option="{{ value }}">
+                  <i class="bi bi-stars ai-model"></i>
+                  <span>{{ label }}</span>
+                  <span class="ai-current">{% if user.ai_tone == value %}Tanlangan{% endif %}</span>
+                </button>
+              {% endfor %}
+            </div>
+            <div class="attach-status" data-ai-tone-status></div>
+          </details>
         </div>
       </div>
       <div class="compose-input-wrap">
@@ -76,7 +112,7 @@
 
   <div class="info-profile">
     <div class="info-avatar info-avatar--ai"><i class="bi bi-stars"></i></div>
-    <div class="info-name">Azure AI</div>
+    <div class="info-name">{{ active_chat_room.name|default:"Yangi AI chat" }}</div>
     <div class="info-status online"><span></span> Auth foydalanuvchilar uchun ochiq</div>
   </div>
 

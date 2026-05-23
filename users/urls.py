@@ -1,6 +1,6 @@
 from django.urls import path
 from django.contrib.auth.views import (
-    LoginView, 
+    LoginView,
     LogoutView,
     PasswordResetView,
     PasswordResetDoneView,
@@ -8,7 +8,8 @@ from django.contrib.auth.views import (
     PasswordResetCompleteView
 )
 from .views import (
-    RegisterView, UserProfileView, SettingsView, AvatarUpdateView, PasswordUpdateView, 
+    RegisterView, UserProfileView, SettingsView, AvatarUpdateView, PasswordUpdateView,
+    AIModelUpdateView, AIToneUpdateView,
     DashboardView, SubscriptionHistoryView, CertificateListView, LeaderboardView,
     AttendanceCalendarView, AttendanceManageView,
     NotificationCenterView, NotificationOpenView, NotificationReadAllView, HelpCenterView
@@ -22,6 +23,8 @@ urlpatterns = [
     path('settings/', SettingsView.as_view(), name='settings'),
     path('settings/avatar/', AvatarUpdateView.as_view(), name='update_avatar'),
     path('settings/password/', PasswordUpdateView.as_view(), name='update_password'),
+    path('settings/ai-tone/', AIToneUpdateView.as_view(), name='update_ai_tone'),
+    path('settings/ai-model/', AIModelUpdateView.as_view(), name='update_ai_model'),
     path('dashboard/', DashboardView.as_view(), name='dashboard'),
     path('leaderboard/', LeaderboardView.as_view(), name='leaderboard'),
     path('notifications/', NotificationCenterView.as_view(), name='notifications'),
@@ -32,7 +35,7 @@ urlpatterns = [
     path('subscriptions/', SubscriptionHistoryView.as_view(), name='subscriptions'),
     path('certificates/', CertificateListView.as_view(), name='certificates'),
     path('help/', HelpCenterView.as_view(), name='help_center'),
-    
+
     # Password Reset
     path('password-reset/', PasswordResetView.as_view(), name='password_reset'),
     path('password-reset/done/', PasswordResetDoneView.as_view(), name='password_reset_done'),
