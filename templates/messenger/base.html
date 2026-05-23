@@ -123,14 +123,33 @@
   </div>
 
   <div class="sb-footer">
-    <div class="sb-user">
-      <div class="sb-user-avatar">{{ user.username|slice:":2"|upper }}</div>
-      <div class="sb-user-info">
-        <div class="sb-user-name">{{ user.get_full_name|default:user.username }}</div>
-        <div class="sb-user-role">Student</div>
+    <details class="sb-account">
+      <summary class="sb-user">
+        <div class="sb-user-avatar">
+          {% if user.avatar %}
+            <img src="{{ user.avatar.url }}" alt="{{ user.first_name|default:user.username }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+          {% else %}
+            {{ user.username|slice:":2"|upper }}
+          {% endif %}
+        </div>
+        <div class="sb-user-info">
+          <div class="sb-user-name">{{ user.get_full_name|default:user.username }}</div>
+          <div class="sb-user-role">{% if user.is_staff %}Admin{% else %}Student{% endif %}</div>
+        </div>
+        <i class="bi bi-chevron-expand sb-user-more"></i>
+      </summary>
+      <div class="sb-account-menu">
+        <a href="{% url 'profile' %}" class="sb-account-item"><i class="bi bi-person-circle"></i> Profil</a>
+        <a href="{% url 'settings' %}" class="sb-account-item"><i class="bi bi-gear"></i> Sozlamalar</a>
+        <a href="{% url 'ai_memory' %}" class="sb-account-item"><i class="bi bi-stars"></i> AzureAI xotirasi</a>
+        <button type="button" class="sb-account-item" id="sbThemeToggle"><i class="bi bi-moon" id="sbThemeIcon"></i> Mavzu</button>
+        <div class="sb-account-sep"></div>
+        <form id="sb-logout-form" action="{% url 'logout' %}" method="post" style="display: none;">{% csrf_token %}</form>
+        <button type="button" class="sb-account-item danger" onclick="document.getElementById('sb-logout-form').submit();">
+          <i class="bi bi-box-arrow-right"></i> Chiqish
+        </button>
       </div>
-      <i class="bi bi-chevron-expand sb-user-more"></i>
-    </div>
+    </details>
   </div>
 </aside>
 
@@ -140,21 +159,34 @@
 
 <script>
   (function() {
-    const btn = document.getElementById('themeBtn');
-    const icon = document.getElementById('themeIcon');
-    if (btn) {
-      function syncIcon() {
-        const dark = document.documentElement.getAttribute('data-theme') === 'dark';
-        if (icon) icon.className = dark ? 'bi bi-sun' : 'bi bi-moon';
-      }
-      syncIcon();
-      btn.addEventListener('click', function () {
-        const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', cur);
-        try { localStorage.setItem('az-theme', cur); } catch (_) {}
-        syncIcon();
-      });
+    function syncIcon(icon) {
+      if (!icon) return;
+      const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+      icon.className = dark ? 'bi bi-sun' : 'bi bi-moon';
     }
+    function toggleTheme() {
+      const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', cur);
+      try { localStorage.setItem('az-theme', cur); } catch (_) {}
+      syncIcon(document.getElementById('themeIcon'));
+      syncIcon(document.getElementById('sbThemeIcon'));
+    }
+    syncIcon(document.getElementById('themeIcon'));
+    syncIcon(document.getElementById('sbThemeIcon'));
+    const topBtn = document.getElementById('themeBtn');
+    if (topBtn) topBtn.addEventListener('click', toggleTheme);
+    const sbBtn = document.getElementById('sbThemeToggle');
+    if (sbBtn) sbBtn.addEventListener('click', toggleTheme);
+  })();
+
+  (function () {
+    const details = document.querySelector('.sb-account');
+    if (!details) return;
+    document.addEventListener('click', function (e) {
+      if (details.open && !details.contains(e.target)) {
+        details.open = false;
+      }
+    });
   })();
 
   (function () {

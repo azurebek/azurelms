@@ -1,0 +1,156 @@
+{% extends 'users/base_app.html' %}
+{% load static %}
+
+{% block title %}AzureAI xotirasi — AzureLMS{% endblock %}
+{% block page_title %}AzureAI xotirasi{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/app-settings.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="settings-layout">
+  <div class="settings-nav">
+    <a class="sn-item" href="{% url 'settings' %}"><i class="bi bi-person"></i> Profil</a>
+    <div class="sn-item active"><i class="bi bi-stars"></i> AzureAI xotirasi</div>
+  </div>
+
+  <div class="settings-main">
+
+    <!-- TOGGLE -->
+    <div class="ss">
+      <div class="ss-header">
+        <div class="ss-title">Xotira holati</div>
+        <div class="ss-sub">AzureAI suhbatlaringizdan o'rganib, keyingi javoblarda foydalanadi</div>
+      </div>
+      <div class="ss-body">
+        <form method="post" action="{% url 'ai_memory_toggle' %}" id="memoryToggleForm" style="width: 100%;">
+          {% csrf_token %}
+          <input type="hidden" name="ai_memory_enabled" id="memoryToggleInput" value="{% if ai_memory_enabled %}1{% else %}0{% endif %}">
+          <div class="sr">
+            <div class="sr-icon xstyle-f2cd36af"><i class="bi bi-toggles"></i></div>
+            <div class="sr-info">
+              <div class="sr-label">AI xotirasini yoqish</div>
+              <div class="sr-desc">
+                {% if ai_memory_enabled %}
+                  Yoqilgan — AzureAI siz haqingizda muhim faktlarni eslab qoladi.
+                {% else %}
+                  O'chirilgan — AzureAI hech narsa eslab qolmaydi, eskilarini ham e'tiborga olmaydi.
+                {% endif %}
+              </div>
+            </div>
+            <div class="toggle {% if ai_memory_enabled %}on{% endif %}" id="memoryToggle" role="switch" tabindex="0" aria-checked="{% if ai_memory_enabled %}true{% else %}false{% endif %}"></div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- FACT LIST -->
+    <div class="ss">
+      <div class="ss-header">
+        <div class="ss-title">Saqlangan faktlar ({{ memory_total }})</div>
+        <div class="ss-sub">Har bir yozuvni o'chirish yoki barchasini birdaniga tozalash mumkin</div>
+      </div>
+      <div class="ss-body">
+
+        {% if memory_groups %}
+          {% for group in memory_groups %}
+            <div class="sr" style="flex-direction: column; align-items: stretch; gap: 10px;">
+              <div style="display: flex; align-items: center; gap: 14px; width: 100%;">
+                <div class="sr-icon xstyle-eead3a91"><i class="bi bi-{{ group.icon }}"></i></div>
+                <div class="sr-info">
+                  <div class="sr-label">{{ group.label }}</div>
+                  <div class="sr-desc">{{ group.facts|length }} ta yozuv</div>
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px; padding-left: 56px; width: 100%;">
+                {% for fact in group.facts %}
+                  <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md);">
+                    <div style="flex: 1; min-width: 0;">
+                      <div style="font-size: 0.92rem; color: var(--ink-1); line-height: 1.4;">{{ fact.value }}</div>
+                      <div style="font-size: 0.72rem; color: var(--ink-3); margin-top: 4px;">
+                        Saqlangan: {{ fact.created_at|date:"d-M, H:i" }}
+                        {% if fact.last_used_at %}· Oxirgi foydalanish: {{ fact.last_used_at|date:"d-M" }}{% endif %}
+                      </div>
+                    </div>
+                    <form method="post" action="{% url 'ai_memory_archive' fact.id %}" style="margin: 0;">
+                      {% csrf_token %}
+                      <button class="sr-btn danger" type="submit" title="O'chirish" style="padding: 6px 10px; font-size: 0.82rem;">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </form>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+          {% endfor %}
+
+          <div class="sr">
+            <div class="sr-icon xstyle-a580fc7a"><i class="bi bi-trash-fill"></i></div>
+            <div class="sr-info">
+              <div class="sr-label">Hammasini tozalash</div>
+              <div class="sr-desc">Barcha yozuvlar o'chiriladi. Bu amalni qaytarib bo'lmaydi.</div>
+            </div>
+            <form method="post" action="{% url 'ai_memory_clear' %}" onsubmit="return confirm('Rostdan ham AzureAI xotirasidagi barcha yozuvlarni tozalamoqchimisiz?');" style="margin: 0;">
+              {% csrf_token %}
+              <button class="sr-btn danger" type="submit">Hammasini tozalash</button>
+            </form>
+          </div>
+
+        {% else %}
+          <div class="sr" style="justify-content: center;">
+            <div class="sr-info" style="text-align: center;">
+              <div class="sr-label">Hozircha xotira bo'sh</div>
+              <div class="sr-desc">AzureAI bilan suhbatlashganingizda muhim faktlar shu yerda paydo bo'ladi.</div>
+            </div>
+          </div>
+        {% endif %}
+
+      </div>
+    </div>
+
+    {% if legacy_memory_text %}
+      <div class="ss">
+        <div class="ss-header">
+          <div class="ss-title">Eski xotira (legacy)</div>
+          <div class="ss-sub">Avvalgi tizimdan saqlanib qolgan erkin matn — "Hammasini tozalash" bosilganda u ham tozalanadi.</div>
+        </div>
+        <div class="ss-body">
+          <div class="sr" style="flex-direction: column; align-items: stretch;">
+            <pre style="margin: 0; padding: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); font-size: 0.85rem; color: var(--ink-2); white-space: pre-wrap; word-break: break-word;">{{ legacy_memory_text }}</pre>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  (function () {
+    const toggle = document.getElementById('memoryToggle');
+    const input = document.getElementById('memoryToggleInput');
+    const form = document.getElementById('memoryToggleForm');
+    if (!toggle || !input || !form) return;
+
+    function fire() {
+      const isOn = toggle.classList.contains('on');
+      const next = isOn ? '0' : '1';
+      input.value = next;
+      toggle.classList.toggle('on', next === '1');
+      toggle.setAttribute('aria-checked', next === '1' ? 'true' : 'false');
+      form.submit();
+    }
+
+    toggle.addEventListener('click', fire);
+    toggle.addEventListener('keydown', function (e) {
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        fire();
+      }
+    });
+  })();
+</script>
+{% endblock %}

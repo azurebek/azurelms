@@ -340,6 +340,74 @@ body {
 .sb-user-more {
   color: rgba(220,233,245,.3);
   font-size: 0.85rem;
+  transition: transform 160ms ease;
+}
+
+.sb-account {
+  position: relative;
+}
+.sb-account > summary {
+  list-style: none;
+}
+.sb-account > summary::-webkit-details-marker { display: none; }
+.sb-account[open] .sb-user-more {
+  transform: rotate(180deg);
+  color: rgba(220,233,245,.7);
+}
+.sb-account-menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 8px);
+  background: var(--surface, #1c2230);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--r-lg);
+  box-shadow: 0 20px 40px -10px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.02);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 50;
+}
+.sb-account-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--r-md);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--on-deep, #e8eef7);
+  background: transparent;
+  border: none;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 140ms;
+}
+.sb-account-item:hover {
+  background: rgba(255,255,255,.08);
+  color: var(--on-deep, #fff);
+}
+.sb-account-item i {
+  width: 18px;
+  font-size: 0.95rem;
+  color: rgba(220,233,245,.7);
+}
+.sb-account-item.danger {
+  color: #ff7a7a;
+}
+.sb-account-item.danger i {
+  color: #ff7a7a;
+}
+.sb-account-item.danger:hover {
+  background: rgba(255,80,80,.12);
+}
+.sb-account-sep {
+  height: 1px;
+  background: rgba(255,255,255,.07);
+  margin: 4px 6px;
 }
 
 /* ══════════════════════════════════════════════════════

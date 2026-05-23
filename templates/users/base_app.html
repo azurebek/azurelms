@@ -161,6 +161,7 @@
           </a>
           <a href="{% url 'profile' %}" class="account-menu-item {% if active_nav == 'profile' %}active{% endif %}"><i class="bi bi-person-circle"></i> Profil</a>
           <a href="{% url 'settings' %}" class="account-menu-item {% if active_nav == 'settings' %}active{% endif %}"><i class="bi bi-gear"></i> Sozlamalar</a>
+          <a href="{% url 'ai_memory' %}" class="account-menu-item {% if active_nav == 'ai_memory' %}active{% endif %}"><i class="bi bi-stars"></i> AzureAI xotirasi</a>
           <a href="{% url 'subscriptions' %}" class="account-menu-item {% if active_nav == 'subscriptions' %}active{% endif %}"><i class="bi bi-credit-card"></i> Obunalar</a>
           {% if user.is_staff or user.is_superuser %}
             <a href="{% url 'backoffice_dashboard' %}" class="account-menu-item {% if active_nav == 'backoffice' %}active{% endif %}"><i class="bi bi-shield-lock"></i> Backoffice</a>
