@@ -72,6 +72,12 @@
                         Saqlangan: {{ fact.created_at|date:"d-M, H:i" }}
                         {% if fact.last_used_at %}· Oxirgi foydalanish: {{ fact.last_used_at|date:"d-M" }}{% endif %}
                       </div>
+                      {% if fact.latest_trace %}
+                        <div style="font-size: 0.72rem; color: var(--ink-3); margin-top: 6px;">
+                          Nega: {{ fact.latest_trace.reason }}
+                          {% if fact.latest_trace.score %}- Score: {{ fact.latest_trace.score|floatformat:2 }}{% endif %}
+                        </div>
+                      {% endif %}
                     </div>
                     <form method="post" action="{% url 'ai_memory_archive' fact.id %}" style="margin: 0;">
                       {% csrf_token %}

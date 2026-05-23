@@ -130,6 +130,9 @@ class AIMemoryFact(models.Model):
     visibility = models.CharField(max_length=20, choices=VISIBILITY_CHOICES, default=VISIBILITY_USER_VISIBLE)
     fingerprint = models.CharField(max_length=64)
     metadata = models.JSONField(blank=True, default=dict)
+    embedding = models.JSONField(default=list, blank=True)
+    embedding_model = models.CharField(max_length=80, blank=True, default="")
+    embedding_dim = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     last_used_at = models.DateTimeField(null=True, blank=True)
@@ -146,7 +149,53 @@ class AIMemoryFact(models.Model):
         indexes = [
             models.Index(fields=["user", "status", "category"]),
             models.Index(fields=["user", "updated_at"]),
+            models.Index(fields=["user", "embedding_model"]),
             models.Index(fields=["fingerprint"]),
+        ]
+
+
+class AIMemoryTrace(models.Model):
+    EVENT_RETRIEVED = "retrieved"
+    EVENT_SAVED = "saved"
+    EVENT_SKIPPED = "skipped"
+    EVENT_ARCHIVED = "archived"
+    EVENT_CHOICES = (
+        (EVENT_RETRIEVED, "Retrieved"),
+        (EVENT_SAVED, "Saved"),
+        (EVENT_SKIPPED, "Skipped"),
+        (EVENT_ARCHIVED, "Archived"),
+    )
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="ai_memory_traces")
+    fact = models.ForeignKey(
+        AIMemoryFact,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="trace_events",
+    )
+    room = models.ForeignKey(
+        ChatRoom,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="ai_memory_traces",
+    )
+    event_type = models.CharField(max_length=24, choices=EVENT_CHOICES)
+    reason = models.TextField(blank=True, default="")
+    score = models.FloatField(null=True, blank=True)
+    metadata = models.JSONField(blank=True, default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} | {self.event_type} | {self.reason[:50]}"
+
+    class Meta:
+        verbose_name = "AI Memory Trace"
+        verbose_name_plural = "AI Memory Traces"
+        indexes = [
+            models.Index(fields=["user", "event_type", "created_at"]),
+            models.Index(fields=["fact", "created_at"]),
         ]
 
 

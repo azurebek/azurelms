@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import AIFeedback, AIMemoryFact, AIConversationSummary, ChatRoom, LessonRAGChunk, Message
+from .models import AIFeedback, AIMemoryFact, AIMemoryTrace, AIConversationSummary, ChatRoom, LessonRAGChunk, Message
 
 class MessageInline(admin.TabularInline):
     model = Message
@@ -36,8 +36,17 @@ class LessonRAGChunkAdmin(admin.ModelAdmin):
 
 @admin.register(AIMemoryFact)
 class AIMemoryFactAdmin(admin.ModelAdmin):
-    list_display = ("user", "category", "status", "visibility", "confidence", "value_preview", "updated_at")
-    list_filter = ("category", "status", "visibility", "updated_at")
+    list_display = (
+        "user",
+        "category",
+        "status",
+        "visibility",
+        "confidence",
+        "embedding_dim",
+        "value_preview",
+        "updated_at",
+    )
+    list_filter = ("category", "status", "visibility", "embedding_model", "updated_at")
     search_fields = ("user__username", "user__email", "key", "value")
     readonly_fields = ("fingerprint", "created_at", "updated_at", "last_used_at")
     autocomplete_fields = ("user", "source_message", "source_room")
@@ -45,6 +54,19 @@ class AIMemoryFactAdmin(admin.ModelAdmin):
     @admin.display(description="Memory")
     def value_preview(self, obj):
         return (obj.value or "")[:90]
+
+
+@admin.register(AIMemoryTrace)
+class AIMemoryTraceAdmin(admin.ModelAdmin):
+    list_display = ("user", "event_type", "fact", "score", "reason_preview", "created_at")
+    list_filter = ("event_type", "created_at")
+    search_fields = ("user__username", "user__email", "fact__value", "reason")
+    readonly_fields = ("created_at",)
+    autocomplete_fields = ("user", "fact", "room")
+
+    @admin.display(description="Reason")
+    def reason_preview(self, obj):
+        return (obj.reason or "")[:90]
 
 
 @admin.register(AIConversationSummary)

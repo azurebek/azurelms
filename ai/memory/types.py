@@ -25,6 +25,16 @@ class SavedMemory:
 
 
 @dataclass(frozen=True)
+class ScoredMemoryFact:
+    fact: Any
+    score: float
+    reasons: list[str] = field(default_factory=list)
+    lexical_overlap: int = 0
+    semantic_overlap: int = 0
+    vector_score: float | None = None
+
+
+@dataclass(frozen=True)
 class ConversationContext:
     summary: str = ""
     recent_dialogue: str = ""

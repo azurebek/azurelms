@@ -1,20 +1,25 @@
-import re
-
-from messenger.models import AIMemoryFact
+from messenger.models import AIMemoryTrace
 
 from .repository import MemoryRepository
+from .semantic import SemanticMemoryScorer
 
 
 class MemoryRetriever:
-    def __init__(self, repository: MemoryRepository | None = None):
+    def __init__(
+        self,
+        repository: MemoryRepository | None = None,
+        scorer: SemanticMemoryScorer | None = None,
+    ):
         self.repository = repository or MemoryRepository()
+        self.scorer = scorer or SemanticMemoryScorer()
 
     def render_for_prompt(self, *, user, question: str, limit: int = 7) -> str:
-        facts = self.retrieve(user=user, question=question, limit=limit)
+        scored_facts = self.retrieve_scored(user=user, question=question, limit=limit)
         legacy_text = self.repository.get_legacy_memory_text(user).strip()
-        if facts:
-            self.repository.mark_used([fact.id for fact in facts])
-            lines = [f"- [{fact.category}] {fact.value}" for fact in facts]
+        if scored_facts:
+            self.repository.mark_used([item.fact.id for item in scored_facts])
+            self._trace_retrieval(user=user, question=question, scored_facts=scored_facts)
+            lines = [f"- [{item.fact.category}] {item.fact.value}" for item in scored_facts]
             if legacy_text:
                 lines.append(f"Legacy memory:\n{legacy_text}")
             return "\n".join(lines)
@@ -22,34 +27,44 @@ class MemoryRetriever:
         return legacy_text
 
     def retrieve(self, *, user, question: str, limit: int = 7):
+        return [item.fact for item in self.retrieve_scored(user=user, question=question, limit=limit)]
+
+    def retrieve_scored(self, *, user, question: str, limit: int = 7):
         fact_list = list(self.repository.active_facts(user=user).order_by("-updated_at")[:80])
         if not fact_list:
             return []
 
-        query_terms = self._terms(question)
-        scored = []
-        for fact in fact_list:
-            score = self._score_fact(fact, query_terms)
-            scored.append((score, fact.updated_at, fact))
+        scored = self.scorer.score(facts=fact_list, question=question)
+        if not (question or "").strip():
+            return scored[:limit]
+        return [item for item in scored[:limit] if item.score > 0]
 
-        scored.sort(key=lambda row: (row[0], row[1]), reverse=True)
-        return [fact for score, _updated_at, fact in scored[:limit] if score > 0 or not query_terms]
+    def _trace_retrieval(self, *, user, question: str, scored_facts) -> None:
+        top_items = []
+        for item in scored_facts:
+            top_items.append(
+                {
+                    "fact_id": item.fact.id,
+                    "category": item.fact.category,
+                    "key": item.fact.key,
+                    "value": item.fact.value,
+                    "score": round(item.score, 4),
+                    "reasons": item.reasons,
+                    "lexical_overlap": item.lexical_overlap,
+                    "semantic_overlap": item.semantic_overlap,
+                    "vector_score": item.vector_score,
+                }
+            )
 
-    def _score_fact(self, fact: AIMemoryFact, query_terms: set[str]) -> float:
-        if not query_terms:
-            return fact.confidence
-
-        haystack = self._terms(f"{fact.category} {fact.key} {fact.value}")
-        overlap = len(query_terms & haystack)
-        if overlap:
-            return overlap + min(fact.confidence, 1.0) / 10
-        if fact.category in {
-            AIMemoryFact.CATEGORY_PREFERENCE,
-            AIMemoryFact.CATEGORY_PROFILE,
-            AIMemoryFact.CATEGORY_SCHEDULE,
-        }:
-            return 0.2 + min(fact.confidence, 1.0) / 10
-        return 0.0
-
-    def _terms(self, text: str) -> set[str]:
-        return {term for term in re.findall(r"[\w']{3,}", (text or "").lower())}
+        best = scored_facts[0]
+        self.repository.create_trace(
+            user=user,
+            fact=best.fact,
+            event_type=AIMemoryTrace.EVENT_RETRIEVED,
+            reason="Selected relevant memories for the prompt using lexical, semantic, category, confidence, and optional vector scores.",
+            score=best.score,
+            metadata={
+                "question": question,
+                "selected": top_items,
+            },
+        )

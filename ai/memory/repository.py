@@ -2,17 +2,22 @@ import hashlib
 
 from django.utils import timezone
 
-from messenger.models import AIMemoryFact, AIConversationSummary, AILongTermMemory
+from messenger.models import AIMemoryFact, AIMemoryTrace, AIConversationSummary, AILongTermMemory
 
+from .evaluation import MemoryQualityEvaluator
 from .types import MemoryCandidate, SavedMemory
 
 
 class MemoryRepository:
+    def __init__(self, *, evaluator: MemoryQualityEvaluator | None = None):
+        self.evaluator = evaluator or MemoryQualityEvaluator()
+
     def get_legacy_memory_text(self, user) -> str:
         memory, _ = AILongTermMemory.objects.get_or_create(user=user)
         return memory.learned_facts or ""
 
     def save_candidate(self, *, user, candidate: MemoryCandidate, source_room=None, source_message=None) -> SavedMemory:
+        quality_eval = self.evaluator.evaluate_candidate(candidate)
         fingerprint = self.fingerprint(candidate.category, candidate.value)
         fact, created = AIMemoryFact.objects.get_or_create(
             user=user,
@@ -59,6 +64,21 @@ class MemoryRepository:
             key=candidate.key,
             keep_id=fact.id,
         )
+        self.create_trace(
+            user=user,
+            fact=fact,
+            room=source_room,
+            event_type=AIMemoryTrace.EVENT_SAVED,
+            reason="Model emitted SAVE_MEMORY tag and memory policy accepted it.",
+            metadata={
+                "created": created,
+                "category": candidate.category,
+                "key": candidate.key,
+                "confidence": candidate.confidence,
+                "quality_eval": quality_eval,
+                "candidate_metadata": candidate.metadata,
+            },
+        )
         return SavedMemory(fact=fact, created=created)
 
     def active_facts(self, *, user):
@@ -101,7 +121,38 @@ class MemoryRepository:
         )
         if keep_id:
             conflicts = conflicts.exclude(id=keep_id)
-        return conflicts.update(status=AIMemoryFact.STATUS_ARCHIVED, updated_at=timezone.now())
+        conflict_ids = list(conflicts.values_list("id", flat=True))
+        updated = conflicts.update(status=AIMemoryFact.STATUS_ARCHIVED, updated_at=timezone.now())
+        for fact in AIMemoryFact.objects.filter(id__in=conflict_ids):
+            self.create_trace(
+                user=user,
+                fact=fact,
+                event_type=AIMemoryTrace.EVENT_ARCHIVED,
+                reason="Archived because a newer memory with the same category/key replaced it.",
+                metadata={"category": category, "key": key, "replacement_id": keep_id},
+            )
+        return updated
+
+    def create_trace(
+        self,
+        *,
+        user,
+        event_type: str,
+        reason: str = "",
+        fact=None,
+        room=None,
+        score: float | None = None,
+        metadata: dict | None = None,
+    ):
+        return AIMemoryTrace.objects.create(
+            user=user,
+            fact=fact,
+            room=room,
+            event_type=event_type,
+            reason=reason,
+            score=score,
+            metadata=metadata or {},
+        )
 
     def get_conversation_summary(self, *, room):
         summary, _created = AIConversationSummary.objects.get_or_create(room=room)

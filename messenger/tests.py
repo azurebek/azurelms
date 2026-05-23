@@ -14,6 +14,7 @@ from messenger.models import (
     AIConversationSummary,
     AILongTermMemory,
     AIMemoryFact,
+    AIMemoryTrace,
     ChatRoom,
     LessonRAGChunk,
     Message,
@@ -272,6 +273,9 @@ class GenerateAiResponseTaskTests(TestCase):
         self.assertEqual(memory.category, AIMemoryFact.CATEGORY_WEAK_TOPIC)
         self.assertEqual(memory.value, "Python funksiyalarini o'rganyapti")
         self.assertEqual(memory.source_room, room)
+        trace = AIMemoryTrace.objects.get(user=self.student, event_type=AIMemoryTrace.EVENT_SAVED)
+        self.assertIn("SAVE_MEMORY", trace.reason)
+        self.assertTrue(trace.metadata["quality_eval"]["passed"])
 
     @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
     @patch("ai.providers.gemini.genai.Client")
@@ -355,6 +359,95 @@ class GenerateAiResponseTaskTests(TestCase):
 
         prompt = mocked_client.return_value.models.generate_content.call_args.kwargs["contents"]
         self.assertIn("[weak_topic] Python funksiyalarida qiynalyapti", prompt)
+
+    @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
+    @patch("ai.providers.gemini.genai.Client")
+    def test_generate_ai_response_uses_semantic_alias_memory_scoring(
+        self,
+        mocked_client,
+        _mocked_retrieve_chunks,
+    ):
+        room = ChatRoom.objects.create(room_type="ai", name="Azure AI - ai-student")
+        room.participants.add(self.student)
+        AIMemoryFact.objects.create(
+            user=self.student,
+            category=AIMemoryFact.CATEGORY_WEAK_TOPIC,
+            key="weak_topic:python-functions",
+            value="Python funksiyalar mavzusida qiynalyapti",
+            fingerprint="test-semantic-functions",
+        )
+        AIMemoryFact.objects.create(
+            user=self.student,
+            category=AIMemoryFact.CATEGORY_SCHEDULE,
+            key="schedule:evening",
+            value="Kechqurun o'qishni afzal ko'radi",
+            fingerprint="test-semantic-schedule",
+        )
+        mocked_client.return_value.models.generate_content.return_value = SimpleNamespace(text="Javob tayyor.")
+
+        generate_ai_response.run(
+            room_id=room.id,
+            student_id=self.student.id,
+            user_question="def qanday ishlaydi?",
+        )
+
+        prompt = mocked_client.return_value.models.generate_content.call_args.kwargs["contents"]
+        self.assertIn("[weak_topic] Python funksiyalar mavzusida qiynalyapti", prompt)
+        trace = AIMemoryTrace.objects.filter(
+            user=self.student,
+            event_type=AIMemoryTrace.EVENT_RETRIEVED,
+        ).latest("created_at")
+        self.assertIn("semantic_overlap", " ".join(trace.metadata["selected"][0]["reasons"]))
+
+    @patch("ai.memory.semantic.embed_texts", return_value=[[1.0, 0.0]])
+    @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
+    @patch("ai.providers.gemini.genai.Client")
+    def test_generate_ai_response_uses_vector_memory_score_when_embeddings_exist(
+        self,
+        mocked_client,
+        _mocked_retrieve_chunks,
+        _mocked_embed_texts,
+    ):
+        room = ChatRoom.objects.create(room_type="ai", name="Azure AI - ai-student")
+        room.participants.add(self.student)
+        AIMemoryFact.objects.create(
+            user=self.student,
+            category=AIMemoryFact.CATEGORY_WEAK_TOPIC,
+            key="weak_topic:pronunciation",
+            value="Mandarin pronunciation practice",
+            fingerprint="test-vector-pronunciation",
+            embedding=[1.0, 0.0],
+            embedding_model="gemini-embedding-001",
+            embedding_dim=2,
+        )
+        AIMemoryFact.objects.create(
+            user=self.student,
+            category=AIMemoryFact.CATEGORY_OTHER,
+            key="other:billing",
+            value="Billing portal details",
+            fingerprint="test-vector-billing",
+            embedding=[0.0, 1.0],
+            embedding_model="gemini-embedding-001",
+            embedding_dim=2,
+        )
+        mocked_client.return_value.models.generate_content.return_value = SimpleNamespace(text="Javob tayyor.")
+
+        generate_ai_response.run(
+            room_id=room.id,
+            student_id=self.student.id,
+            user_question="completely unrelated query",
+        )
+
+        prompt = mocked_client.return_value.models.generate_content.call_args.kwargs["contents"]
+        self.assertLess(
+            prompt.index("Mandarin pronunciation practice"),
+            prompt.index("Billing portal details"),
+        )
+        trace = AIMemoryTrace.objects.filter(
+            user=self.student,
+            event_type=AIMemoryTrace.EVENT_RETRIEVED,
+        ).latest("created_at")
+        self.assertIn("semantic_vector", " ".join(trace.metadata["selected"][0]["reasons"]))
 
     @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
     @patch("ai.providers.gemini.genai.Client")

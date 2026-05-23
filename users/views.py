@@ -191,7 +191,7 @@ class AIMemoryListView(LoginRequiredMixin, TemplateView):
     template_name = 'users/ai_memory.html'
 
     def get_context_data(self, **kwargs):
-        from messenger.models import AIMemoryFact, AILongTermMemory
+        from messenger.models import AIMemoryFact, AIMemoryTrace, AILongTermMemory
 
         context = super().get_context_data(**kwargs)
         user = self.request.user
@@ -201,6 +201,18 @@ class AIMemoryListView(LoginRequiredMixin, TemplateView):
             AIMemoryFact.objects.filter(user=user, status=AIMemoryFact.STATUS_ACTIVE)
             .order_by('-updated_at')
         )
+        fact_ids = [fact.id for fact in facts]
+        latest_traces = {}
+        if fact_ids:
+            traces = (
+                AIMemoryTrace.objects.filter(user=user, fact_id__in=fact_ids)
+                .order_by('fact_id', '-created_at')
+            )
+            for trace in traces:
+                latest_traces.setdefault(trace.fact_id, trace)
+        for fact in facts:
+            fact.latest_trace = latest_traces.get(fact.id)
+
         grouped: dict[str, list] = {}
         for fact in facts:
             grouped.setdefault(fact.category, []).append(fact)
