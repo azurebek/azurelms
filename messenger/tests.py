@@ -9,7 +9,7 @@ from django.urls import reverse
 from cohorts.models import Cohort, Enrollment
 from courses.models import Course, Lesson, Module
 from messenger.access import maybe_name_ai_room_from_first_prompt
-from messenger.models import AIFeedback, ChatRoom, LessonRAGChunk, Message
+from messenger.models import AIFeedback, AILongTermMemory, ChatRoom, LessonRAGChunk, Message
 from messenger.rag import ensure_pgvector_schema, reindex_lessons, retrieve_relevant_chunks
 from messenger.signals import suppress_ai_signal
 from messenger.tasks import generate_ai_response
@@ -190,8 +190,8 @@ class GenerateAiResponseTaskTests(TestCase):
         self.assertEqual(Message.objects.count(), 0)
         mocked_warning.assert_called_once()
 
-    @patch("messenger.tasks.logger.exception")
-    @patch("messenger.tasks.genai.Client", side_effect=RuntimeError("provider down"))
+    @patch("ai.agent.engine.logger.exception")
+    @patch("ai.providers.gemini.genai.Client", side_effect=RuntimeError("provider down"))
     def test_generate_ai_response_creates_fallback_message_when_provider_fails(
         self,
         mocked_client,
@@ -210,8 +210,8 @@ class GenerateAiResponseTaskTests(TestCase):
         self.assertTrue(mocked_client.called)
         mocked_logger_exception.assert_called_once()
 
-    @patch("messenger.tasks.retrieve_relevant_chunks", return_value=[])
-    @patch("messenger.tasks.genai.Client")
+    @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
+    @patch("ai.providers.gemini.genai.Client")
     def test_generate_ai_response_prompt_keeps_emoji_enabled_for_formal_tone(
         self,
         mocked_client,
@@ -237,6 +237,31 @@ class GenerateAiResponseTaskTests(TestCase):
         self.assertIn("Faqat 1 ta neytral, mavzuga mos emoji ishlat", prompt)
         self.assertNotIn("emoji ishlatma", prompt)
         self.assertEqual(Message.objects.get(id=message_id).text, "Javob tayyor.")
+
+    @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
+    @patch("ai.providers.gemini.genai.Client")
+    def test_generate_ai_response_hides_memory_tag_and_saves_fact(
+        self,
+        mocked_client,
+        _mocked_retrieve_chunks,
+    ):
+        room = ChatRoom.objects.create(room_type="ai", name="Azure AI - ai-student")
+        room.participants.add(self.student)
+        mocked_client.return_value.models.generate_content.return_value = SimpleNamespace(
+            text="**Tushunarli.** <SAVE_MEMORY>Python funksiyalarini o'rganyapti</SAVE_MEMORY>"
+        )
+
+        message_id = generate_ai_response.run(
+            room_id=room.id,
+            student_id=self.student.id,
+            user_question="Funksiyalarni eslab qol",
+        )
+
+        ai_message = Message.objects.get(id=message_id)
+        self.assertEqual(ai_message.text, "Tushunarli.")
+        self.assertNotIn("SAVE_MEMORY", ai_message.text)
+        memory = AILongTermMemory.objects.get(user=self.student)
+        self.assertIn("- Python funksiyalarini o'rganyapti", memory.learned_facts)
 
     def test_first_prompt_can_name_ai_room(self):
         room = ChatRoom.objects.create(room_type="ai", name="Yangi AI chat")
