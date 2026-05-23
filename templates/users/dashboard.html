@@ -35,6 +35,28 @@
   </div>
 </div>
 
+{% if not telegram_linked and telegram_bot_link %}
+  <div class="info-box info-box--blue" style="margin: 20px 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+    <div>
+      <strong>Telegram botimizga ulanib</strong>
+      <span> dars eslatmalari va muhim xabarlarni tezroq oling.</span>
+    </div>
+    <a class="btn-submit" href="{{ telegram_bot_link }}" target="_blank" rel="noopener" style="text-decoration: none; padding: 10px 16px; font-size: 14px;">
+      Telegramga ulanish
+    </a>
+  </div>
+{% endif %}
+
+{% for notification in notifications|slice:":2" %}
+  <div class="info-box info-box--blue" style="margin: 12px 0; display: flex; align-items: center; gap: 10px;">
+    <i class="bi bi-{{ notification.icon|default:'bell' }}"></i>
+    <div>
+      <strong>{{ notification.title }}</strong>
+      {% if notification.message %}<div style="font-size: 0.9rem; color: var(--ink-3);">{{ notification.message }}</div>{% endif %}
+    </div>
+  </div>
+{% endfor %}
+
 <!-- STATS -->
 <div class="stats-row">
   <div class="stat-card">
@@ -87,7 +109,13 @@
   <!-- ACTIVE COURSES -->
   <div class="card">
     <div class="card-header">
-      <div class="card-title">Mening faol kurslarim</div>
+      <div class="card-title">
+        {% if active_dashboard_enrollments|length > 1 %}
+          Barcha guruhlaringiz
+        {% else %}
+          Davom etayotgan kurs
+        {% endif %}
+      </div>
       <a href="{% url 'courses' %}" class="card-link">Barchasini ko'rish →</a>
     </div>
 
@@ -103,7 +131,7 @@
         <div class="course-info">
           <div class="course-name">{{ enrollment.cohort.course.title }}</div>
           <div class="course-meta">
-            {{ enrollment.dashboard_completed_lessons }} / {{ enrollment.dashboard_total_lessons }} dars · 
+            {{ enrollment.cohort.name }} · {{ enrollment.dashboard_completed_lessons }} / {{ enrollment.dashboard_total_lessons }} dars ·
             <span class="badge bg-{{ enrollment.dashboard_status_tone }}">{{ enrollment.dashboard_status_label }}</span>
           </div>
           <div class="progress-bar">
