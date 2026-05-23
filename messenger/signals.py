@@ -4,12 +4,26 @@ from django.db import transaction
 from django.conf import settings
 from cohorts.models import Cohort, Enrollment
 from courses.models import Lesson
+from contextlib import contextmanager
+from contextvars import ContextVar
 import threading
 import sys
 import re
 
 from .access import sync_student_chat_access
 from .models import ChatRoom, Message
+
+
+_suppress_ai_signal = ContextVar("suppress_ai_signal", default=False)
+
+
+@contextmanager
+def suppress_ai_signal():
+    token = _suppress_ai_signal.set(True)
+    try:
+        yield
+    finally:
+        _suppress_ai_signal.reset(token)
 
 
 # ==========================================
@@ -43,6 +57,9 @@ def teardown_student_chats(sender, instance, **kwargs):
 # ==========================================
 @receiver(post_save, sender=Message)
 def trigger_azure_ai(sender, instance, created, **kwargs):
+    if _suppress_ai_signal.get():
+        return
+
     if created and not instance.is_ai_response:
         raw_text = instance.text or ""
         text_lower = raw_text.lower()

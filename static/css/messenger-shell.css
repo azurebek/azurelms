@@ -195,6 +195,16 @@ body {
 }
 .sb-item:hover { background: rgba(255,255,255,.04); }
 .sb-item.active { background: rgba(96,165,250,.14); }
+.sb-item.is-disabled {
+  cursor: not-allowed;
+  opacity: .58;
+  pointer-events: none;
+}
+.sb-item.is-disabled .sb-item-name,
+.sb-item.is-disabled .sb-item-preview,
+.sb-item.is-disabled .sb-item-time {
+  color: rgba(255,255,255,.5);
+}
 .sb-item.active::before {
   content: '';
   position: absolute;
@@ -450,6 +460,45 @@ body {
 .messages-area::-webkit-scrollbar { width: 4px; }
 .messages-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
+.chat-empty-state {
+  min-height: calc(100% - 44px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+  color: var(--ink-3);
+  padding: 32px;
+}
+.chat-empty-state h2 {
+  margin: 0;
+  font-size: 1.18rem;
+  color: var(--ink-1);
+  letter-spacing: 0;
+}
+.chat-empty-state p {
+  margin: 0;
+  max-width: 430px;
+  line-height: 1.55;
+  font-size: .92rem;
+}
+.chat-empty-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(96,165,250,.14);
+  color: #60a5fa;
+  font-size: 1.45rem;
+}
+.chat-empty-state--locked .chat-empty-icon {
+  background: rgba(245,158,11,.14);
+  color: var(--amber);
+}
+
 .day-divider {
   display: flex;
   justify-content: center;
@@ -537,8 +586,13 @@ body {
   font-size: 0.88rem;
   line-height: 1.55;
   word-break: break-word;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
   position: relative;
   max-width: 100%;
+}
+.msg-row.is-pending .bubble-me {
+  opacity: .9;
 }
 .bubble code {
   background: rgba(0,0,0,0.08);
@@ -771,6 +825,13 @@ body {
   background: var(--white);
   border-top: 1px solid var(--border);
   transition: background 280ms, border-color 280ms;
+}
+.compose-wrap--locked {
+  opacity: .72;
+}
+.compose-wrap--locked .compose-input,
+.compose-wrap--locked .send-btn {
+  cursor: not-allowed;
 }
 .compose-row {
   display: flex;

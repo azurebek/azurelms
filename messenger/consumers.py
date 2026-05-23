@@ -1,4 +1,6 @@
 import json
+import re
+import asyncio
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from asgiref.sync import sync_to_async
@@ -15,6 +17,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.user = self.scope.get('user')
         self.room_id = self.scope['url_route']['kwargs']['room_id']
         self.room_group_name = f'chat_{self.room_id}'
+        self.background_tasks = set()
 
         # 1. Autentifikatsiya tekshiruvi
         if not self.user or not self.user.is_authenticated:
@@ -84,6 +87,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
             room_type = await self.get_room_type(self.room_id)
             if room_type != 'ai':
                 await self.dispatch_telegram_notification(saved_msg.id)
+            if room_type == 'ai' or '@azure' in (message or '').lower():
+                user_question = re.sub(r"@azure", "", message or "", flags=re.IGNORECASE).strip()
+                self.enqueue_background_task(
+                    self.dispatch_ai_response(
+                        room_id=saved_msg.room_id,
+                        student_id=user.id,
+                        user_question=user_question,
+                        context_lesson_id=saved_msg.context_lesson_id,
+                    )
+                )
 
     # Guruhdan kelgan xabarni WebSocket orqali jo'natish
     async def chat_message(self, event):
@@ -103,6 +116,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'client_message_id': client_message_id,
         }))
 
+    def enqueue_background_task(self, coroutine):
+        task = asyncio.create_task(coroutine)
+        self.background_tasks.add(task)
+        task.add_done_callback(self.background_tasks.discard)
+
     @database_sync_to_async
     def is_authorized(self):
         try:
@@ -120,7 +138,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 lesson = Lesson.objects.filter(id=context_lesson_id).select_related("module__course").first()
                 if lesson and self._user_can_use_lesson_context(user, lesson):
                     context_lesson = lesson
-            msg = Message.objects.create(room=room, sender=user, text=text, context_lesson=context_lesson)
+            from .signals import suppress_ai_signal
+
+            with suppress_ai_signal():
+                msg = Message.objects.create(room=room, sender=user, text=text, context_lesson=context_lesson)
             return msg
         except Exception as e:
             print(f"WebSocket saqlashda xatolik: {e}")
@@ -147,3 +168,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
             send_telegram_notification.delay(message_id)
         except Exception as e:
             print(f"Telegram task dispatch xatosi: {e}")
+
+    @sync_to_async
+    def dispatch_ai_response(self, room_id, student_id, user_question, context_lesson_id=None):
+        try:
+            from .tasks import generate_ai_response
+            generate_ai_response.delay(
+                room_id=room_id,
+                student_id=student_id,
+                user_question=user_question,
+                context_lesson_id=context_lesson_id,
+            )
+        except Exception as e:
+            print(f"AI task dispatch xatosi: {e}")

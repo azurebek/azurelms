@@ -9,8 +9,70 @@ from django.views.decorators.http import require_POST
 from django.views.generic import TemplateView
 
 from cohorts.models import Enrollment, enrollment_active_access_q
-from .access import user_can_access_room
+from .access import ensure_user_ai_room, sync_student_chat_access, user_can_access_room, user_has_active_enrollment
 from .models import ChatRoom, Message, AIFeedback
+
+
+def _room_rank(item):
+    return (item.last_message_at or item.created_at, item.created_at, item.id)
+
+
+def _build_messenger_rooms(user):
+    sync_student_chat_access(user)
+
+    rooms = list(
+        ChatRoom.objects.filter(participants=user)
+        .select_related("cohort")
+        .annotate(
+            last_message_at=Max("messages__created_at"),
+            message_count=Count("messages"),
+        )
+    )
+    rooms = [room for room in rooms if user_can_access_room(user, room)]
+
+    rooms_by_type = {}
+    for room in rooms:
+        rooms_by_type.setdefault(room.room_type, []).append(room)
+
+    active_cohort_id = (
+        Enrollment.objects.filter(enrollment_active_access_q(), student=user)
+        .order_by("-joined_at")
+        .values_list("cohort_id", flat=True)
+        .first()
+    )
+
+    group_room = None
+    group_candidates = rooms_by_type.get("group", [])
+    if group_candidates:
+        if active_cohort_id:
+            group_room = next((g for g in group_candidates if g.cohort_id == active_cohort_id), None)
+        group_room = group_room or max(group_candidates, key=_room_rank)
+
+    tutor_room = None
+    tutor_candidates = rooms_by_type.get("private", [])
+    if tutor_candidates:
+        tutor_room = max(tutor_candidates, key=_room_rank)
+
+    ai_room = None
+    ai_candidates = rooms_by_type.get("ai", [])
+    if ai_candidates:
+        ai_room = max(ai_candidates, key=_room_rank)
+    else:
+        ai_room = ensure_user_ai_room(user)
+
+    return {
+        "messenger_rooms": rooms,
+        "group_room": group_room,
+        "tutor_room": tutor_room,
+        "ai_room": ai_room,
+        "has_active_enrollment": user_has_active_enrollment(user),
+    }
+
+
+def _room_messages(room):
+    if not room:
+        return []
+    return list(room.messages.select_related("sender").order_by("created_at")[:100])
 
 
 class _MessengerRoomView(LoginRequiredMixin, TemplateView):
@@ -25,7 +87,17 @@ class _MessengerRoomView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context.update(_build_messenger_rooms(self.request.user))
         context["active_room"] = self.active_room
+        active_room_map = {
+            "ai": context["ai_room"],
+            "group": context["group_room"],
+            "tutor": context["tutor_room"],
+        }
+        active_chat_room = active_room_map.get(self.active_room)
+        context["active_chat_room"] = active_chat_room
+        context["chat_messages"] = _room_messages(active_chat_room)
+        context["chat_locked"] = self.active_room in {"group", "tutor"} and active_chat_room is None
         return context
 
 
@@ -49,48 +121,16 @@ def get_user_rooms(request):
     """
     Foydalanuvchining barcha chat xonalarini qaytaradi (Guruh, Tutor, AzureAI).
     """
-    rooms = list(
-        ChatRoom.objects.filter(participants=request.user)
-        .select_related("cohort")
-        .annotate(
-            last_message_at=Max("messages__created_at"),
-            message_count=Count("messages"),
+    room_context = _build_messenger_rooms(request.user)
+    selected_rooms = [
+        room
+        for room in (
+            room_context["group_room"],
+            room_context["tutor_room"],
+            room_context["ai_room"],
         )
-    )
-    rooms = [room for room in rooms if user_can_access_room(request.user, room)]
-
-    rooms_by_type = {}
-    for room in rooms:
-        rooms_by_type.setdefault(room.room_type, []).append(room)
-
-    active_cohort_id = (
-        Enrollment.objects.filter(enrollment_active_access_q(), student=request.user)
-        .order_by("-joined_at")
-        .values_list("cohort_id", flat=True)
-        .first()
-    )
-
-    def room_rank(item):
-        return (item.last_message_at or item.created_at, item.created_at, item.id)
-
-    selected_rooms = []
-
-    # Group: avval aktiv cohort xonasi, bo'lmasa eng oxirgi faol xona.
-    group_candidates = rooms_by_type.get("group", [])
-    if group_candidates:
-        preferred_group = None
-        if active_cohort_id:
-            preferred_group = next(
-                (g for g in group_candidates if g.cohort_id == active_cohort_id),
-                None,
-            )
-        selected_rooms.append(preferred_group or max(group_candidates, key=room_rank))
-
-    # Private va AI: eng oxirgi faol xona.
-    for room_type in ("private", "ai"):
-        candidates = rooms_by_type.get(room_type, [])
-        if candidates:
-            selected_rooms.append(max(candidates, key=room_rank))
+        if room is not None
+    ]
 
     data = []
     for r in selected_rooms:

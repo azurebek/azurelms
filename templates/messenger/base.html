@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="{% block meta_description %}AzureLMS xabarlar — guruh, tutor va AI suhbatlar.{% endblock %}">
+  <meta name="description" content="{% block meta_description %}AzureLMS xabarlar - guruh, tutor va AI suhbatlar.{% endblock %}">
   <script>
     (function() {
       const html = document.documentElement;
@@ -14,7 +14,7 @@
       html.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));
     })();
   </script>
-  <title>{% block page_title %}Xabarlar — AzureLMS{% endblock %}</title>
+  <title>{% block page_title %}Xabarlar - AzureLMS{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -48,7 +48,6 @@
   </div>
 
   <div class="sb-body">
-
     <div class="sb-new-chat-row">
       <button class="sb-new-chat" type="button">
         <i class="bi bi-pencil-square"></i>
@@ -56,30 +55,55 @@
       </button>
     </div>
 
-    <div class="sb-section-label">Muhrlangan</div>
+    <div class="sb-section-label">Kurs chatlari</div>
 
-    <a class="sb-item {% if active_room == 'group' %}active{% else %}has-unread{% endif %}" href="{% url 'messenger:group' %}">
-      <div class="sb-item-avatar c-lime">A2<span class="status-dot"></span></div>
-      <div class="sb-item-body">
-        <div class="sb-item-row">
-          <span class="sb-item-name">A2 Group chat</span>
-          <span class="sb-item-time">10:05</span>
+    {% if group_room %}
+      <a class="sb-item {% if active_room == 'group' %}active{% endif %}" href="{% url 'messenger:group' %}">
+        <div class="sb-item-avatar c-lime">GR<span class="status-dot"></span></div>
+        <div class="sb-item-body">
+          <div class="sb-item-row">
+            <span class="sb-item-name">{{ group_room.name|default:"Guruh chati" }}</span>
+            <span class="sb-item-time">{% if group_room.last_message_at %}{{ group_room.last_message_at|date:"H:i" }}{% endif %}</span>
+          </div>
+          <div class="sb-item-preview">{{ group_room.cohort.name|default:"Kurs guruhi" }}</div>
         </div>
-        <div class="sb-item-preview">Aziz: rahmat hammaga! 🙏</div>
+      </a>
+    {% else %}
+      <div class="sb-item is-disabled" aria-disabled="true">
+        <div class="sb-item-avatar c-lime">GR<span class="status-dot offline"></span></div>
+        <div class="sb-item-body">
+          <div class="sb-item-row">
+            <span class="sb-item-name">Guruh chati</span>
+            <span class="sb-item-time"><i class="bi bi-lock"></i></span>
+          </div>
+          <div class="sb-item-preview">Kursga yozilgach ochiladi</div>
+        </div>
       </div>
-      {% if active_room != 'group' %}<span class="sb-item-badge">2</span>{% endif %}
-    </a>
+    {% endif %}
 
-    <a class="sb-item {% if active_room == 'tutor' %}active{% endif %}" href="{% url 'messenger:tutor' %}">
-      <div class="sb-item-avatar c-amber">MA<span class="status-dot"></span></div>
-      <div class="sb-item-body">
-        <div class="sb-item-row">
-          <span class="sb-item-name">Mentor M. Arif</span>
-          <span class="sb-item-time">09:12</span>
+    {% if tutor_room %}
+      <a class="sb-item {% if active_room == 'tutor' %}active{% endif %}" href="{% url 'messenger:tutor' %}">
+        <div class="sb-item-avatar c-amber">TU<span class="status-dot"></span></div>
+        <div class="sb-item-body">
+          <div class="sb-item-row">
+            <span class="sb-item-name">{{ tutor_room.name|default:"Tutor bilan aloqa" }}</span>
+            <span class="sb-item-time">{% if tutor_room.last_message_at %}{{ tutor_room.last_message_at|date:"H:i" }}{% endif %}</span>
+          </div>
+          <div class="sb-item-preview">Kurs mentoring suhbati</div>
         </div>
-        <div class="sb-item-preview">Ertaga 19:00ga vaqt boring</div>
+      </a>
+    {% else %}
+      <div class="sb-item is-disabled" aria-disabled="true">
+        <div class="sb-item-avatar c-amber">TU<span class="status-dot offline"></span></div>
+        <div class="sb-item-body">
+          <div class="sb-item-row">
+            <span class="sb-item-name">Tutor bilan aloqa</span>
+            <span class="sb-item-time"><i class="bi bi-lock"></i></span>
+          </div>
+          <div class="sb-item-preview">Kursga yozilgach ochiladi</div>
+        </div>
       </div>
-    </a>
+    {% endif %}
 
     <div class="sb-section-label">AI suhbatlar</div>
 
@@ -87,68 +111,12 @@
       <div class="sb-item-avatar sb-item-avatar--ai"><i class="bi bi-stars"></i></div>
       <div class="sb-item-body">
         <div class="sb-item-row">
-          <span class="sb-item-name">A2 guided study</span>
-          <span class="sb-item-time">10:28</span>
+          <span class="sb-item-name">{{ ai_room.name|default:"Azure AI" }}</span>
+          <span class="sb-item-time">{% if ai_room.last_message_at %}{{ ai_room.last_message_at|date:"H:i" }}{% endif %}</span>
         </div>
-        <div class="sb-item-preview">Speaking uchun qulayroq shakl:</div>
+        <div class="sb-item-preview">Savol yozib, darhol mashq qiling</div>
       </div>
     </a>
-
-    <a class="sb-item" href="#">
-      <div class="sb-item-avatar sb-item-avatar--ai"><i class="bi bi-stars"></i></div>
-      <div class="sb-item-body">
-        <div class="sb-item-row">
-          <span class="sb-item-name">Grammar correction</span>
-          <span class="sb-item-time">Kecha</span>
-        </div>
-        <div class="sb-item-preview">Past tense review</div>
-      </div>
-    </a>
-
-    <a class="sb-item" href="#">
-      <div class="sb-item-avatar sb-item-avatar--ai"><i class="bi bi-stars"></i></div>
-      <div class="sb-item-body">
-        <div class="sb-item-row">
-          <span class="sb-item-name">Reading summary</span>
-          <span class="sb-item-time">Kecha</span>
-        </div>
-        <div class="sb-item-preview">Lesson 02 notes</div>
-      </div>
-    </a>
-
-    <a class="sb-item" href="#">
-      <div class="sb-item-avatar sb-item-avatar--ai"><i class="bi bi-stars"></i></div>
-      <div class="sb-item-body">
-        <div class="sb-item-row">
-          <span class="sb-item-name">Writing starter</span>
-          <span class="sb-item-time">Seshanba</span>
-        </div>
-        <div class="sb-item-preview">Paragraph opening</div>
-      </div>
-    </a>
-
-    <a class="sb-item" href="#">
-      <div class="sb-item-avatar sb-item-avatar--ai"><i class="bi bi-stars"></i></div>
-      <div class="sb-item-body">
-        <div class="sb-item-row">
-          <span class="sb-item-name">Speaking drill</span>
-          <span class="sb-item-time">Dushanba</span>
-        </div>
-        <div class="sb-item-preview">Pronunciation feedback</div>
-      </div>
-    </a>
-
-    <a class="sb-item" href="#">
-      <div class="sb-item-avatar sb-item-avatar--ai"><i class="bi bi-stars"></i></div>
-      <div class="sb-item-body">
-        <div class="sb-item-row">
-          <span class="sb-item-name">Vocabulary builder</span>
-          <span class="sb-item-time">Yakshanba</span>
-        </div>
-        <div class="sb-item-preview">Daily 10 words</div>
-      </div>
-    </a>
-
   </div>
 
   <div class="sb-footer">

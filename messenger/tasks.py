@@ -32,6 +32,28 @@ def _render_rag_context(rag_chunks):
     return "\n\n".join(context_lines)
 
 
+def _fallback_ai_reply(error):
+    error_text = str(error).lower()
+    if (
+        "resource_exhausted" in error_text
+        or "prepayment credits are depleted" in error_text
+        or "quota" in error_text
+        or "billing" in error_text
+    ):
+        return (
+            "AI xizmati hozir limit yoki billing chekloviga tushdi. "
+            "Admin API kreditini tekshirgandan keyin yana yozib ko'ring."
+        )
+
+    if "not found" in error_text and "models/" in error_text:
+        return (
+            "AI modeli konfiguratsiyasida muammo bor. "
+            "Admin model ro'yxatini yangilagandan keyin yana urinib ko'ring."
+        )
+
+    return "Kechirasiz, hozircha ulanishda xatolik yuz berdi. Iltimos, birozdan so'ng qayta urinib ko'ring."
+
+
 @shared_task(ignore_result=True)
 def generate_ai_response(room_id, student_id, user_question, context_lesson_id=None):
     try:
@@ -110,7 +132,7 @@ def generate_ai_response(room_id, student_id, user_question, context_lesson_id=N
 
         raw_models = os.getenv(
             "GEMINI_MODEL_FALLBACKS",
-            "gemini-3-flash,gemini-2.5-flash-lite,gemini-2.5-flash,gemini-2.5-pro,gemini-3.1-pro-preview,gemini-3.1-pro,gemini-3-flash-lite",
+            "gemini-2.5-flash-lite,gemini-2.5-flash,gemini-2.0-flash-lite,gemini-2.0-flash,gemini-flash-latest,gemini-pro-latest",
         )
         model_candidates = [model.strip() for model in raw_models.split(",") if model.strip()]
         if not model_candidates:
@@ -162,7 +184,8 @@ def generate_ai_response(room_id, student_id, user_question, context_lesson_id=N
             long_term_memory.save()
             ai_reply = ai_reply_raw.replace(memory_match.group(0), "").strip()
 
-    except Exception:
+    except Exception as exc:
+        ai_reply = _fallback_ai_reply(exc)
         logger.exception(
             "Gemini response generation failed for room_id=%s student_id=%s",
             room_id,

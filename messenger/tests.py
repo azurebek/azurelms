@@ -44,7 +44,8 @@ class ChatAccessTests(TestCase):
             cohort=self.cohort,
             status="pending",
         )
-        self.assertEqual(ChatRoom.objects.filter(participants=self.student).count(), 0)
+        pending_room_types = set(ChatRoom.objects.filter(participants=self.student).values_list("room_type", flat=True))
+        self.assertEqual(pending_room_types, {"ai"})
 
         enrollment.status = "active"
         enrollment.save()
@@ -63,7 +64,32 @@ class ChatAccessTests(TestCase):
         enrollment.status = "expired"
         enrollment.save()
 
-        self.assertEqual(ChatRoom.objects.filter(participants=self.student).count(), 0)
+        room_types = set(ChatRoom.objects.filter(participants=self.student).values_list("room_type", flat=True))
+        self.assertEqual(room_types, {"ai"})
+
+    def test_ai_room_is_available_without_course_enrollment(self):
+        self.client.force_login(self.student)
+
+        response = self.client.get(reverse("messenger:get_user_rooms"))
+
+        self.assertEqual(response.status_code, 200)
+        rooms = response.json()["rooms"]
+        self.assertEqual([room["type"] for room in rooms], ["ai"])
+        self.assertTrue(ChatRoom.objects.filter(room_type="ai", participants=self.student).exists())
+
+    def test_messenger_pages_render_without_course_enrollment(self):
+        self.client.force_login(self.student)
+
+        ai_response = self.client.get(reverse("messenger:ai"))
+        group_response = self.client.get(reverse("messenger:group"))
+        tutor_response = self.client.get(reverse("messenger:tutor"))
+
+        self.assertEqual(ai_response.status_code, 200)
+        self.assertContains(ai_response, "Azure AI tayyor")
+        self.assertEqual(group_response.status_code, 200)
+        self.assertContains(group_response, "Guruh chati yopiq")
+        self.assertEqual(tutor_response.status_code, 200)
+        self.assertContains(tutor_response, "Tutor chati yopiq")
 
     def test_room_apis_filter_stale_participants(self):
         group_room = ChatRoom.objects.get(cohort=self.cohort, room_type="group")
@@ -83,10 +109,13 @@ class ChatAccessTests(TestCase):
 
         list_response = self.client.get(reverse("messenger:get_user_rooms"))
         self.assertEqual(list_response.status_code, 200)
-        self.assertEqual(list_response.json()["rooms"], [])
+        self.assertEqual([room["type"] for room in list_response.json()["rooms"]], ["ai"])
 
         message_response = self.client.get(reverse("messenger:get_room_messages", args=[group_room.id]))
         self.assertEqual(message_response.status_code, 403)
+
+        ai_response = self.client.get(reverse("messenger:get_room_messages", args=[ai_room.id]))
+        self.assertEqual(ai_response.status_code, 200)
 
 
 class GenerateAiResponseTaskTests(TestCase):

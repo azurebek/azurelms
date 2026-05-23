@@ -1,198 +1,117 @@
 {% extends "messenger/base.html" %}
+{% load static %}
 
-{% block page_title %}Tutor chat — AzureLMS{% endblock %}
-{% block meta_description %}Tutor bilan shaxsiy suhbat — talaffuz va speaking bo'yicha mashqlar.{% endblock %}
+{% block page_title %}Tutor chati - AzureLMS{% endblock %}
+{% block meta_description %}Kursga bog'langan tutor bilan shaxsiy suhbat.{% endblock %}
 
 {% block chat_panel %}
-<section class="chat-panel">
+<section class="chat-panel" {% if active_chat_room %}data-chat-room-id="{{ active_chat_room.id }}" data-current-user-id="{{ user.id }}" data-current-user-name="{{ user.get_full_name|default:user.username }}" data-active-room="{{ active_room }}"{% endif %}>
   <header class="chat-topbar">
     <div class="chat-head">
-      <div class="chat-head-avatar chat-head-avatar--tutor">MA</div>
+      <div class="chat-head-avatar chat-head-avatar--tutor">TU</div>
       <div class="chat-head-meta">
-        <div class="chat-head-name">Muhammadrasul Arif <i class="bi bi-patch-check-fill verified" title="Tutor"></i></div>
-        <div class="chat-head-sub online"><span class="dot"></span> Online · Turkce tutor</div>
+        <div class="chat-head-name">{% if active_chat_room %}Tutor bilan aloqa{% else %}Tutor chati{% endif %}</div>
+        <div class="chat-head-sub {% if active_chat_room %}online{% endif %}">{% if active_chat_room %}<span class="dot"></span>Kurs mentoring suhbati{% else %}Kursga yozilgach ochiladi{% endif %}</div>
       </div>
     </div>
     <div class="chat-actions">
-      <button class="chat-icon-btn" type="button" aria-label="Audio qo'ng'iroq"><i class="bi bi-telephone"></i></button>
-      <button class="chat-icon-btn" type="button" aria-label="Video qo'ng'iroq"><i class="bi bi-camera-video"></i></button>
-      <button class="chat-icon-btn" type="button" aria-label="Qidirish"><i class="bi bi-search"></i></button>
+      <button class="chat-icon-btn" type="button" aria-label="Audio qo'ng'iroq" {% if chat_locked %}disabled{% endif %}><i class="bi bi-telephone"></i></button>
+      <button class="chat-icon-btn" type="button" aria-label="Qidirish" {% if chat_locked %}disabled{% endif %}><i class="bi bi-search"></i></button>
       <button class="chat-icon-btn info-toggle active" id="infoToggle" type="button" aria-label="Ma'lumot paneli" aria-expanded="true"><i class="bi bi-layout-sidebar-reverse"></i></button>
       <button class="chat-icon-btn" id="themeBtn" type="button" aria-label="Tema"><i class="bi bi-moon" id="themeIcon"></i></button>
-      <button class="chat-icon-btn" type="button" aria-label="Ko'proq"><i class="bi bi-three-dots-vertical"></i></button>
     </div>
   </header>
 
-  <div class="messages-area">
-
-    <div class="day-divider"><span class="day-label">Kecha</span></div>
-
-    <div class="msg-row group-start">
-      <div class="msg-avatar msg-avatar--tutor">MA</div>
-      <div class="msg-group">
-        <div class="bubble bubble-them">
-          Aziz, salom! Bugungi speaking topshirig'ini qabul qildim. Umumiy darajangiz juda yaxshi — talaffuz ustida biroz ishlash kerak xolos.
-        </div>
+  <div class="messages-area" data-chat-messages>
+    {% if chat_locked %}
+      <div class="chat-empty-state chat-empty-state--locked">
+        <div class="chat-empty-icon"><i class="bi bi-lock"></i></div>
+        <h2>Tutor chati yopiq</h2>
+        <p>Tutor bilan suhbat kursga bog'langan. Aktiv kurs ochilganda bu xona avtomatik ulanadi.</p>
       </div>
-      <div class="msg-actions">
-        <button type="button" title="Reply"><i class="bi bi-reply"></i></button>
-        <button type="button" title="React"><i class="bi bi-emoji-smile"></i></button>
-        <button type="button" title="Copy"><i class="bi bi-files"></i></button>
-      </div>
-    </div>
-
-    <div class="msg-row group-last">
-      <div class="msg-avatar msg-avatar--tutor">MA</div>
-      <div class="msg-group">
-        <div class="bubble bubble-them">Mana qisqa eslatma yozib qo'ydim:</div>
-        <div class="bubble-file">
-          <div class="bubble-file-icon"><i class="bi bi-file-earmark-pdf"></i></div>
-          <div class="bubble-file-info">
-            <div class="bubble-file-name">talaffuz-feedback-w12.pdf</div>
-            <div class="bubble-file-size">680 KB · PDF</div>
+    {% else %}
+      <div class="day-divider"><span class="day-label">Bugun</span></div>
+      {% if chat_messages %}
+        {% for message in chat_messages %}
+          <div class="msg-row {% if message.sender_id == user.id %}me {% endif %}group-start group-last" data-message-id="{{ message.id }}">
+            {% if message.sender_id != user.id %}
+              <div class="msg-avatar msg-avatar--tutor">{{ message.sender.username|slice:":2"|upper|default:"TU" }}</div>
+            {% endif %}
+            <div class="msg-group">
+              {% if message.sender_id != user.id and message.sender %}<div class="msg-author-name">{{ message.sender.get_full_name|default:message.sender.username }}</div>{% endif %}
+              <div class="bubble {% if message.sender_id == user.id %}bubble-me{% else %}bubble-them{% endif %}">{{ message.text|linebreaksbr }}</div>
+              <div class="bubble-meta"><span>{{ message.created_at|date:"H:i" }}</span>{% if message.sender_id == user.id %}<i class="bi bi-check2-all check"></i>{% endif %}</div>
+            </div>
           </div>
-          <i class="bi bi-download" style="color:var(--ink-4)"></i>
+        {% endfor %}
+      {% else %}
+        <div class="chat-empty-state" data-empty-state>
+          <div class="chat-empty-icon"><i class="bi bi-person-check"></i></div>
+          <h2>Tutor bilan suhbat tayyor</h2>
+          <p>Savolingizni yozing, tutor javobi shu yerda davom etadi.</p>
         </div>
-        <div class="bubble-meta"><span>17:21</span></div>
-      </div>
-      <div class="msg-actions">
-        <button type="button" title="Reply"><i class="bi bi-reply"></i></button>
-        <button type="button" title="React"><i class="bi bi-emoji-smile"></i></button>
-      </div>
-    </div>
-
-    <div class="msg-row me group-start group-last">
-      <div class="msg-group">
-        <div class="bubble bubble-me">
-          Katta rahmat ustoz! O'qib chiqdim, juda foydali. Bir savol bor — <code>ğ</code> harfini qaysi joylarda yumshatib aytamiz?
-        </div>
-        <div class="bubble-meta"><span>18:42</span><i class="bi bi-check2-all check"></i></div>
-      </div>
-      <div class="msg-actions">
-        <button type="button" title="Copy"><i class="bi bi-files"></i></button>
-        <button type="button" title="Edit"><i class="bi bi-pencil"></i></button>
-      </div>
-    </div>
-
-    <div class="day-divider"><span class="day-label">Bugun</span></div>
-
-    <div class="msg-row group-start">
-      <div class="msg-avatar msg-avatar--tutor">MA</div>
-      <div class="msg-group">
-        <div class="bubble bubble-them">
-          Salom! <code>ğ</code> aslida o'zi tovush bermaydi — oldidagi unlini cho'zadi. Masalan <code>dağ</code> → "daa", <code>öğrenmek</code> → "öörenmek".
-        </div>
-      </div>
-      <div class="msg-actions">
-        <button type="button" title="Reply"><i class="bi bi-reply"></i></button>
-        <button type="button" title="React"><i class="bi bi-emoji-smile"></i></button>
-        <button type="button" title="Copy"><i class="bi bi-files"></i></button>
-      </div>
-    </div>
-    <div class="msg-row group-last">
-      <div class="msg-avatar msg-avatar--tutor">MA</div>
-      <div class="msg-group">
-        <div class="bubble bubble-them">
-          Bugun darsda 15 daqiqa shu mavzuga ajratamiz. Ertaga 19:00ga vaqt boring iltimos.
-        </div>
-        <div class="bubble-meta"><span>09:08</span></div>
-        <div class="reactions">
-          <div class="reaction mine">👍 <span class="reaction-count">1</span></div>
-        </div>
-      </div>
-      <div class="msg-actions">
-        <button type="button" title="Reply"><i class="bi bi-reply"></i></button>
-        <button type="button" title="React"><i class="bi bi-emoji-smile"></i></button>
-      </div>
-    </div>
-
-    <div class="msg-row me group-start group-last">
-      <div class="msg-group">
-        <div class="bubble bubble-me">Yaxshi ustoz, 19:00 da bo'laman 👍</div>
-        <div class="bubble-meta"><span>09:12</span><i class="bi bi-check2-all check"></i></div>
-      </div>
-      <div class="msg-actions">
-        <button type="button" title="Copy"><i class="bi bi-files"></i></button>
-        <button type="button" title="Edit"><i class="bi bi-pencil"></i></button>
-      </div>
-    </div>
-
-    <div class="typing-row">
-      <div class="msg-avatar msg-avatar--tutor">MA</div>
-      <div class="typing-bubble">
-        <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
-      </div>
-    </div>
-
+      {% endif %}
+    {% endif %}
   </div>
 
-  <footer class="compose-wrap">
-    <div class="compose-row">
-      <div class="attach-wrap">
-        <button class="attach-btn" id="attachBtn" type="button" aria-label="Biriktirish"><i class="bi bi-plus-lg"></i></button>
-        <div class="attach-menu" id="attachMenu">
-          <button class="attach-item" type="button"><i class="bi bi-image ai-photo"></i> Rasm yoki video</button>
-          <button class="attach-item" type="button"><i class="bi bi-file-earmark ai-doc"></i> Hujjat</button>
-          <button class="attach-item" type="button"><i class="bi bi-mic ai-mic"></i> Ovozli xabar</button>
+  {% if active_chat_room %}
+    <footer class="compose-wrap">
+      <div class="compose-row">
+        <div class="attach-wrap">
+          <button class="attach-btn" id="attachBtn" type="button" aria-label="Biriktirish"><i class="bi bi-plus-lg"></i></button>
+          <div class="attach-menu" id="attachMenu">
+            <button class="attach-item" type="button"><i class="bi bi-image ai-photo"></i> Rasm yoki video</button>
+            <button class="attach-item" type="button"><i class="bi bi-file-earmark ai-doc"></i> Hujjat</button>
+            <button class="attach-item" type="button"><i class="bi bi-mic ai-mic"></i> Ovozli xabar</button>
+          </div>
+        </div>
+        <div class="compose-input-wrap">
+          <textarea class="compose-input" placeholder="Tutor'ga yozing..." rows="1" data-chat-input></textarea>
+        </div>
+        <div class="compose-actions">
+          <button class="compose-emoji" type="button" aria-label="Emoji"><i class="bi bi-emoji-smile"></i></button>
+          <button class="send-btn" type="button" aria-label="Yuborish" data-chat-send><i class="bi bi-send-fill"></i></button>
         </div>
       </div>
-      <div class="compose-input-wrap">
-        <textarea class="compose-input" placeholder="Tutor'ga yozing..." rows="1"></textarea>
+    </footer>
+  {% else %}
+    <footer class="compose-wrap compose-wrap--locked">
+      <div class="compose-row">
+        <div class="compose-input-wrap">
+          <textarea class="compose-input" placeholder="Kursga yozilgach tutorga yozish mumkin" rows="1" disabled></textarea>
+        </div>
+        <div class="compose-actions">
+          <button class="send-btn" type="button" aria-label="Yuborish" disabled><i class="bi bi-lock-fill"></i></button>
+        </div>
       </div>
-      <div class="compose-actions">
-        <button class="compose-emoji" type="button" aria-label="Emoji"><i class="bi bi-emoji-smile"></i></button>
-        <button class="send-btn" type="button" aria-label="Yuborish"><i class="bi bi-send-fill"></i></button>
-      </div>
-    </div>
-  </footer>
+    </footer>
+  {% endif %}
 </section>
 {% endblock %}
 
 {% block info_panel %}
-<aside class="chat-info-panel" id="chatInfoPanel" aria-label="Suhbat ma'lumotlari">
+<aside class="chat-info-panel" id="chatInfoPanel" aria-label="Tutor ma'lumotlari">
   <div class="info-head">
-    <div class="info-head-title">Tutor ma'lumoti</div>
+    <div class="info-head-title">Tutor</div>
     <button class="info-close" id="infoClose" type="button" aria-label="Panelni yopish"><i class="bi bi-x-lg"></i></button>
   </div>
 
   <div class="info-profile">
-    <div class="info-avatar info-avatar--tutor">MA</div>
-    <div class="info-name">Muhammadrasul Arif</div>
-    <div class="info-status online"><span></span> Online · Turkce tutor</div>
+    <div class="info-avatar info-avatar--tutor">TU</div>
+    <div class="info-name">Tutor bilan aloqa</div>
+    <div class="info-status {% if active_chat_room %}online{% endif %}">{% if active_chat_room %}<span></span>Kurs mentoring suhbati{% else %}<i class="bi bi-lock"></i> Kursga bog'langan{% endif %}</div>
   </div>
-
-  <div class="info-actions">
-    <button type="button"><i class="bi bi-chat-dots-fill"></i><span>Message</span></button>
-    <button type="button"><i class="bi bi-telephone-fill"></i><span>Call</span></button>
-    <button type="button"><i class="bi bi-bell"></i><span>Mute</span></button>
-  </div>
-
-  <div class="info-strip"><i class="bi bi-calendar-check"></i> Keyingi dars · Ertaga 19:00</div>
 
   <div class="info-scroll">
     <section class="info-section">
-      <div class="info-section-title">Profil</div>
-      <div class="info-kv"><span>Yo'nalish</span><strong>Turk tili speaking</strong></div>
-      <div class="info-kv"><span>Tajriba</span><strong>5 yil</strong></div>
-      <div class="info-kv"><span>Vaqt zonasi</span><strong>UTC+5</strong></div>
-    </section>
-
-    <section class="info-section">
-      <div class="info-section-title">Bio</div>
-      <p class="info-copy">A1-B2 oral practice, talaffuz va real suhbat strukturasi bo'yicha mentor.</p>
-    </section>
-
-    <section class="info-section">
-      <div class="info-section-title">Ulashilgan materiallar</div>
-      <div class="info-file"><i class="bi bi-file-earmark-pdf"></i><div><strong>talaffuz-feedback-w12.pdf</strong><span>680 KB · PDF</span></div></div>
-      <div class="info-file"><i class="bi bi-mic"></i><div><strong>soft-g-practice.mp3</strong><span>1.8 MB · Audio</span></div></div>
-    </section>
-
-    <section class="info-section">
-      <div class="info-section-title">Harakatlar</div>
-      <button class="info-link" type="button"><i class="bi bi-calendar-plus"></i> Dars rejalashtirish</button>
-      <button class="info-link danger" type="button"><i class="bi bi-slash-circle"></i> Bloklash</button>
+      <div class="info-section-title">Holat</div>
+      <div class="info-kv"><span>Kirish</span><strong>{% if active_chat_room %}Ochiq{% else %}Yopiq{% endif %}</strong></div>
+      <div class="info-kv"><span>Talab</span><strong>Aktiv kurs</strong></div>
     </section>
   </div>
 </aside>
+{% endblock %}
+
+{% block page_js %}
+{% if active_chat_room %}<script src="{% static 'js/messenger-chat.js' %}"></script>{% endif %}
 {% endblock %}

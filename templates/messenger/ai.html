@@ -1,140 +1,48 @@
 {% extends "messenger/base.html" %}
+{% load static %}
 
-{% block page_title %}AI suhbat — AzureLMS{% endblock %}
-{% block meta_description %}AzureAI bilan A2 darajadagi guided study suhbati.{% endblock %}
+{% block page_title %}AI suhbat - AzureLMS{% endblock %}
+{% block meta_description %}Azure AI bilan erkin suhbat va o'quv savollari.{% endblock %}
 
 {% block chat_panel %}
-<section class="chat-panel">
+<section class="chat-panel" data-chat-room-id="{{ active_chat_room.id }}" data-current-user-id="{{ user.id }}" data-current-user-name="{{ user.get_full_name|default:user.username }}" data-active-room="{{ active_room }}">
   <header class="chat-topbar">
     <div class="chat-head">
       <div class="chat-head-avatar chat-head-avatar--ai"><i class="bi bi-stars"></i></div>
       <div class="chat-head-meta">
-        <div class="chat-head-name">A2 guided study <i class="bi bi-patch-check-fill verified" title="AI"></i></div>
-        <div class="chat-head-sub online"><span class="dot"></span> AzureAI 4.6 · Memory yoqilgan</div>
+        <div class="chat-head-name">Azure AI <i class="bi bi-patch-check-fill verified" title="AI"></i></div>
+        <div class="chat-head-sub online"><span class="dot"></span> Har doim ochiq</div>
       </div>
     </div>
     <div class="chat-actions">
       <button class="chat-icon-btn" type="button" aria-label="Qidirish"><i class="bi bi-search"></i></button>
       <button class="chat-icon-btn info-toggle active" id="infoToggle" type="button" aria-label="Ma'lumot paneli" aria-expanded="true"><i class="bi bi-layout-sidebar-reverse"></i></button>
       <button class="chat-icon-btn" id="themeBtn" type="button" aria-label="Tema"><i class="bi bi-moon" id="themeIcon"></i></button>
-      <button class="chat-icon-btn" type="button" aria-label="Ko'proq"><i class="bi bi-three-dots-vertical"></i></button>
     </div>
   </header>
 
-  <div class="messages-area">
-
+  <div class="messages-area" data-chat-messages>
     <div class="day-divider"><span class="day-label">Bugun</span></div>
 
-    <div class="msg-row group-start group-last">
-      <div class="msg-avatar msg-avatar--ai"><i class="bi bi-stars"></i></div>
-      <div class="msg-group">
-        <div class="bubble bubble-them">
-          Bugungi lesson uchun tanishtiruvni qisqa va tabiiy uslubda mashq qilamiz. Avval savol-javob skeletini tuzamiz, keyin sizning variantingizni tekshiramiz.
-          <div class="bubble-citations">
-            <span class="chip"><i class="bi bi-bookmark"></i> Lesson 03</span>
-            <span class="chip"><i class="bi bi-bar-chart"></i> A2 bridge</span>
-            <span class="chip"><i class="bi bi-cpu"></i> Memory on</span>
+    {% if chat_messages %}
+      {% for message in chat_messages %}
+        <div class="msg-row {% if message.sender_id == user.id %}me {% endif %}group-start group-last" data-message-id="{{ message.id }}">
+          {% if message.sender_id != user.id %}
+            <div class="msg-avatar msg-avatar--ai"><i class="bi bi-stars"></i></div>
+          {% endif %}
+          <div class="msg-group">
+            <div class="bubble {% if message.sender_id == user.id %}bubble-me{% else %}bubble-them{% endif %}">{{ message.text|linebreaksbr }}</div>
+            <div class="bubble-meta"><span>{{ message.created_at|date:"H:i" }}</span>{% if message.sender_id == user.id %}<i class="bi bi-check2-all check"></i>{% endif %}</div>
           </div>
         </div>
-        <div class="bubble-meta"><span>10:24</span></div>
+      {% endfor %}
+    {% else %}
+      <div class="chat-empty-state" data-empty-state>
+        <div class="chat-empty-icon"><i class="bi bi-stars"></i></div>
+        <h2>Azure AI tayyor</h2>
+        <p>Kursga yozilmagan bo'lsangiz ham savol berishingiz, mashq tekshirtirishingiz va yo'nalish olishingiz mumkin.</p>
       </div>
-      <div class="msg-actions">
-        <button type="button" title="Copy"><i class="bi bi-files"></i></button>
-        <button type="button" title="Like"><i class="bi bi-hand-thumbs-up"></i></button>
-        <button type="button" title="Feedback"><i class="bi bi-chat-left-text"></i></button>
-      </div>
-    </div>
-
-    <div class="msg-row me group-start group-last">
-      <div class="msg-group">
-        <div class="bubble bubble-me">
-          Menga juda rasmiy bo'lmagan, A2 darajadagi tanishtiruv namunasi kerak.
-        </div>
-        <div class="bubble-meta"><span>10:25</span><i class="bi bi-check2-all check"></i></div>
-      </div>
-      <div class="msg-actions">
-        <button type="button" title="Copy"><i class="bi bi-files"></i></button>
-        <button type="button" title="Edit"><i class="bi bi-pencil"></i></button>
-      </div>
-    </div>
-
-    <div class="msg-row group-start">
-      <div class="msg-avatar msg-avatar--ai"><i class="bi bi-stars"></i></div>
-      <div class="msg-group">
-        <div class="bubble bubble-them">Mana toza variant:</div>
-      </div>
-      <div class="msg-actions">
-        <button type="button" title="Copy"><i class="bi bi-files"></i></button>
-        <button type="button" title="Like"><i class="bi bi-hand-thumbs-up"></i></button>
-        <button type="button" title="Feedback"><i class="bi bi-chat-left-text"></i></button>
-      </div>
-    </div>
-    <div class="msg-row group-last">
-      <div class="msg-avatar msg-avatar--ai"><i class="bi bi-stars"></i></div>
-      <div class="msg-group">
-        <div class="bubble bubble-them">
-          Merhaba, benim adım Azizbek. Ben Özbekistan'dan geliyorum. Şimdi Türkçe öğreniyorum. Boş zamanımda kitap okuyorum ve yeni kelimeler tekrar ediyorum.
-        </div>
-        <div class="bubble-meta"><span>10:25</span></div>
-        <div class="reactions">
-          <div class="reaction mine">👍 <span class="reaction-count">1</span></div>
-        </div>
-      </div>
-      <div class="msg-actions">
-        <button type="button" title="Copy"><i class="bi bi-files"></i></button>
-        <button type="button" title="Like"><i class="bi bi-hand-thumbs-up"></i></button>
-        <button type="button" title="Feedback"><i class="bi bi-chat-left-text"></i></button>
-      </div>
-    </div>
-
-    <div class="msg-row me group-start group-last">
-      <div class="msg-group">
-        <div class="bubble bubble-me">Endi shuni biroz qisqartirib, speaking uchun qulay qilib ber.</div>
-        <div class="bubble-meta"><span>10:27</span><i class="bi bi-check2-all check"></i></div>
-      </div>
-      <div class="msg-actions">
-        <button type="button" title="Copy"><i class="bi bi-files"></i></button>
-        <button type="button" title="Edit"><i class="bi bi-pencil"></i></button>
-      </div>
-    </div>
-
-    <div class="msg-row group-start">
-      <div class="msg-avatar msg-avatar--ai"><i class="bi bi-stars"></i></div>
-      <div class="msg-group">
-        <div class="bubble bubble-them">Speaking uchun qulayroq shakl:</div>
-      </div>
-      <div class="msg-actions">
-        <button type="button" title="Copy"><i class="bi bi-files"></i></button>
-        <button type="button" title="Like"><i class="bi bi-hand-thumbs-up"></i></button>
-      </div>
-    </div>
-    <div class="msg-row group-mid">
-      <div class="msg-avatar msg-avatar--ai"><i class="bi bi-stars"></i></div>
-      <div class="msg-group">
-        <div class="bubble bubble-them">
-          Merhaba, ben Azizbek. Özbekistan'dan geliyorum. Türkçe öğreniyorum. Boş zamanımda kitap okuyorum.
-        </div>
-      </div>
-      <div class="msg-actions">
-        <button type="button" title="Copy"><i class="bi bi-files"></i></button>
-        <button type="button" title="Like"><i class="bi bi-hand-thumbs-up"></i></button>
-      </div>
-    </div>
-    <div class="msg-row group-last">
-      <div class="msg-avatar msg-avatar--ai"><i class="bi bi-stars"></i></div>
-      <div class="msg-group">
-        <div class="bubble bubble-them">
-          Keyingi qadamda siz ovozli o'qib ko'ring, men talaffuz va tabiiylik bo'yicha qisqa feedback beraman.
-        </div>
-        <div class="bubble-meta"><span>10:28</span></div>
-      </div>
-      <div class="msg-actions">
-        <button type="button" title="Copy"><i class="bi bi-files"></i></button>
-        <button type="button" title="Like"><i class="bi bi-hand-thumbs-up"></i></button>
-        <button type="button" title="Feedback"><i class="bi bi-chat-left-text"></i></button>
-      </div>
-    </div>
-
+    {% endif %}
   </div>
 
   <footer class="compose-wrap">
@@ -145,16 +53,14 @@
           <button class="attach-item" type="button"><i class="bi bi-image ai-photo"></i> Rasm yoki video</button>
           <button class="attach-item" type="button"><i class="bi bi-file-earmark ai-doc"></i> Hujjat</button>
           <button class="attach-item" type="button"><i class="bi bi-mic ai-mic"></i> Ovozli xabar</button>
-          <div class="attach-divider"></div>
-          <button class="attach-item" type="button"><i class="bi bi-stars ai-model"></i> AzureAI 4.6 <i class="bi bi-chevron-down" style="margin-left:auto;font-size:0.78rem;color:var(--ink-4)"></i></button>
         </div>
       </div>
       <div class="compose-input-wrap">
-        <textarea class="compose-input" placeholder="AzureAI'ga yozing..." rows="1"></textarea>
+        <textarea class="compose-input" placeholder="Azure AI'ga yozing..." rows="1" data-chat-input></textarea>
       </div>
       <div class="compose-actions">
         <button class="compose-emoji" type="button" aria-label="Emoji"><i class="bi bi-emoji-smile"></i></button>
-        <button class="send-btn" type="button" aria-label="Yuborish"><i class="bi bi-send-fill"></i></button>
+        <button class="send-btn" type="button" aria-label="Yuborish" data-chat-send><i class="bi bi-send-fill"></i></button>
       </div>
     </div>
   </footer>
@@ -170,43 +76,34 @@
 
   <div class="info-profile">
     <div class="info-avatar info-avatar--ai"><i class="bi bi-stars"></i></div>
-    <div class="info-name">A2 guided study</div>
-    <div class="info-status online"><span></span> AzureAI 4.6 · memory yoqilgan</div>
+    <div class="info-name">Azure AI</div>
+    <div class="info-status online"><span></span> Auth foydalanuvchilar uchun ochiq</div>
   </div>
 
   <div class="info-actions">
     <button type="button"><i class="bi bi-chat-dots-fill"></i><span>Chat</span></button>
-    <button type="button"><i class="bi bi-bell"></i><span>Mute</span></button>
     <button type="button"><i class="bi bi-bookmark-star"></i><span>Saqlash</span></button>
+    <button type="button"><i class="bi bi-stars"></i><span>AI</span></button>
   </div>
 
-  <div class="info-strip"><i class="bi bi-stars"></i> Speaking · A2 bridge · Lesson 03</div>
+  <div class="info-strip"><i class="bi bi-lightning-charge"></i> Umumiy savollar va mashq feedback</div>
 
   <div class="info-scroll">
     <section class="info-section">
-      <div class="info-section-title">AI kontekst</div>
-      <div class="info-kv"><span>Model</span><strong>AzureAI 4.6</strong></div>
-      <div class="info-kv"><span>Rejim</span><strong>Guided speaking</strong></div>
-      <div class="info-kv"><span>Memory</span><strong>Yoqilgan</strong></div>
+      <div class="info-section-title">Kontekst</div>
+      <div class="info-kv"><span>Holat</span><strong>Ochiq</strong></div>
+      <div class="info-kv"><span>Kurs talabi</span><strong>Yo'q</strong></div>
+      <div class="info-kv"><span>Xona</span><strong>#{{ active_chat_room.id }}</strong></div>
     </section>
 
     <section class="info-section">
-      <div class="info-section-title">Bugungi maqsad</div>
-      <p class="info-copy">A2 darajada tabiiy self-introduction tuzish, qisqartirish va talaffuzga tayyorlash.</p>
-    </section>
-
-    <section class="info-section">
-      <div class="info-section-title">Materiallar</div>
-      <div class="info-file"><i class="bi bi-file-earmark-text"></i><div><strong>self-intro-template.pdf</strong><span>148 KB · PDF</span></div></div>
-      <div class="info-file"><i class="bi bi-mic"></i><div><strong>pronunciation-drill.mp3</strong><span>2.1 MB · Audio</span></div></div>
-      <div class="info-file"><i class="bi bi-card-checklist"></i><div><strong>A2 speaking checklist</strong><span>12 band</span></div></div>
-    </section>
-
-    <section class="info-section">
-      <div class="info-section-title">Tezkor harakatlar</div>
-      <button class="info-link" type="button"><i class="bi bi-download"></i> Chat xulosasini yuklash</button>
-      <button class="info-link" type="button"><i class="bi bi-trash3"></i> Kontekstni tozalash</button>
+      <div class="info-section-title">Eng yaxshi ishlaydi</div>
+      <p class="info-copy">Savolni aniq yozing, matn yoki jumlangizni yuboring, AI esa qisqa feedback va keyingi qadam beradi.</p>
     </section>
   </div>
 </aside>
+{% endblock %}
+
+{% block page_js %}
+<script src="{% static 'js/messenger-chat.js' %}"></script>
 {% endblock %}
