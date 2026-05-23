@@ -754,6 +754,55 @@ body {
   color: var(--blue-mid);
 }
 
+.message-feedback {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px 0;
+  min-height: 24px;
+}
+.feedback-btn {
+  height: 24px;
+  min-width: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  background: var(--white);
+  color: var(--ink-4);
+  font-family: inherit;
+  font-size: .72rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: color 120ms, border-color 120ms, background 120ms, transform 120ms;
+}
+.feedback-btn:hover {
+  color: var(--blue-mid);
+  border-color: rgba(96,165,250,.48);
+  background: var(--blue-soft);
+}
+.feedback-btn.active {
+  color: var(--blue-mid);
+  border-color: rgba(96,165,250,.55);
+  background: var(--blue-soft);
+}
+.feedback-btn:disabled {
+  cursor: wait;
+  opacity: .68;
+}
+.feedback-status {
+  min-width: 58px;
+  font-size: .68rem;
+  font-weight: 700;
+  color: var(--ink-4);
+}
+.message-feedback.has-error .feedback-status {
+  color: var(--red);
+}
+
 /* Citations on AI bubble */
 .bubble-citations {
   display: flex;
@@ -994,6 +1043,37 @@ body {
   pointer-events: none;
   transition: opacity 160ms var(--ease), transform 160ms var(--ease);
   z-index: 50;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(96,165,250,.45) transparent;
+}
+.attach-menu::-webkit-scrollbar,
+.attach-section-options::-webkit-scrollbar {
+  width: 8px;
+}
+.attach-menu::-webkit-scrollbar-track,
+.attach-section-options::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: var(--r-pill);
+  margin: 8px 0;
+}
+.attach-menu::-webkit-scrollbar-thumb,
+.attach-section-options::-webkit-scrollbar-thumb {
+  min-height: 32px;
+  background: rgba(96,165,250,.34);
+  background-clip: content-box;
+  border: 2px solid transparent;
+  border-radius: var(--r-pill);
+}
+.attach-menu::-webkit-scrollbar-thumb:hover,
+.attach-section-options::-webkit-scrollbar-thumb:hover {
+  background: rgba(96,165,250,.58);
+  background-clip: content-box;
+}
+.attach-menu::-webkit-scrollbar-button,
+.attach-section-options::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
 }
 .attach-menu.open {
   opacity: 1;
@@ -1099,6 +1179,8 @@ body {
   max-height: 172px;
   overflow-y: auto;
   padding-right: 2px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(96,165,250,.45) transparent;
 }
 .attach-item .ai-current {
   margin-left: auto;

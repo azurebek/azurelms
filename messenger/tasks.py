@@ -32,6 +32,9 @@ def _broadcast_ai_message(ai_message):
             "room_id": ai_message.room_id,
             "room_name": ai_message.room.name,
             "created_at": ai_message.created_at.strftime("%H:%M"),
+            "is_ai": True,
+            "feedback": None,
+            "feedback_totals": {"positive": 0, "negative": 0},
         },
     )
 

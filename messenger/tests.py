@@ -879,6 +879,30 @@ class AIFeedbackApiTests(TestCase):
         self.assertEqual(message_payload["feedback_totals"]["positive"], 1)
         self.assertEqual(message_payload["feedback_totals"]["negative"], 1)
 
+    def test_ai_room_page_renders_feedback_controls_for_existing_ai_messages(self):
+        AIFeedback.objects.create(
+            message=self.ai_message,
+            student=self.student,
+            rating=AIFeedback.RATING_NEGATIVE,
+            comment="Aniqroq bo'lsin",
+        )
+        AIFeedback.objects.create(
+            message=self.ai_message,
+            student=self.peer,
+            rating=AIFeedback.RATING_POSITIVE,
+            comment="Foydali",
+        )
+        self.client.force_login(self.student)
+
+        response = self.client.get(reverse("messenger:ai_room", args=[self.room.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-ai-feedback')
+        self.assertContains(response, f'data-message-id="{self.ai_message.id}"')
+        self.assertContains(response, 'data-user-rating="-1"')
+        self.assertContains(response, 'data-feedback-positive>1</span>')
+        self.assertContains(response, 'data-feedback-negative>1</span>')
+
 
 class RagPipelineTests(TestCase):
     def setUp(self):

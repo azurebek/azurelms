@@ -78,10 +78,39 @@ def _build_messenger_rooms(user):
     }
 
 
-def _room_messages(room):
+def _room_messages(room, user=None):
     if not room:
         return []
-    return list(room.messages.select_related("sender").order_by("created_at")[:100])
+    messages = list(room.messages.select_related("sender").order_by("created_at")[:100])
+    ai_message_ids = [message.id for message in messages if message.is_ai_response]
+    if not ai_message_ids:
+        return messages
+
+    feedback_map = {}
+    if user and user.is_authenticated:
+        feedback_map = {
+            feedback.message_id: feedback
+            for feedback in AIFeedback.objects.filter(message_id__in=ai_message_ids, student=user)
+        }
+    feedback_totals = {
+        row["message_id"]: {
+            "positive": row["positive_count"],
+            "negative": row["negative_count"],
+        }
+        for row in AIFeedback.objects.filter(message_id__in=ai_message_ids)
+        .values("message_id")
+        .annotate(
+            positive_count=Count("id", filter=Q(rating=AIFeedback.RATING_POSITIVE)),
+            negative_count=Count("id", filter=Q(rating=AIFeedback.RATING_NEGATIVE)),
+        )
+    }
+    for message in messages:
+        feedback = feedback_map.get(message.id)
+        totals = feedback_totals.get(message.id, {"positive": 0, "negative": 0})
+        message.user_feedback_rating = feedback.rating if feedback else None
+        message.feedback_positive_count = totals["positive"]
+        message.feedback_negative_count = totals["negative"]
+    return messages
 
 
 class _MessengerRoomView(LoginRequiredMixin, TemplateView):
@@ -114,7 +143,7 @@ class _MessengerRoomView(LoginRequiredMixin, TemplateView):
             active_chat_room = active_room_map.get(self.active_room)
         context["active_chat_room"] = active_chat_room
         context["active_ai_room_id"] = active_chat_room.id if self.active_room == "ai" and active_chat_room else None
-        context["chat_messages"] = _room_messages(active_chat_room)
+        context["chat_messages"] = _room_messages(active_chat_room, self.request.user)
         context["chat_locked"] = self.active_room in {"group", "tutor"} and active_chat_room is None
         return context
 

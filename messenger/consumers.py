@@ -141,6 +141,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
         client_message_id = event.get("client_message_id")
         room_id = event.get("room_id")
         room_name = event.get("room_name")
+        is_ai = event.get("is_ai", False)
+        feedback = event.get("feedback")
+        feedback_totals = event.get("feedback_totals")
 
         await self.send(text_data=json.dumps({
             'event_type': 'message',
@@ -152,6 +155,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'client_message_id': client_message_id,
             'room_id': room_id,
             'room_name': room_name,
+            'is_ai': is_ai,
+            'feedback': feedback,
+            'feedback_totals': feedback_totals,
         }))
 
     async def ai_status(self, event):

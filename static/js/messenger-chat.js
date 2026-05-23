@@ -8,6 +8,7 @@
   const currentUserName = panel.getAttribute('data-current-user-name') || 'Siz';
   const aiToneUrl = panel.getAttribute('data-ai-tone-url');
   const aiModelUrl = panel.getAttribute('data-ai-model-url');
+  const aiFeedbackUrlTemplate = panel.getAttribute('data-ai-feedback-url-template');
   const messagesArea = document.querySelector('[data-chat-messages]');
   const input = document.querySelector('[data-chat-input]');
   const sendButton = document.querySelector('[data-chat-send]');
@@ -122,6 +123,119 @@
   function optionLabel(button) {
     const label = button.querySelector('span:not(.ai-current)');
     return label ? label.textContent.trim() : '';
+  }
+
+  function aiFeedbackUrl(messageId) {
+    const safeId = encodeURIComponent(String(messageId));
+    if (aiFeedbackUrlTemplate) {
+      return aiFeedbackUrlTemplate.replace('/0/', `/${safeId}/`);
+    }
+    return `/messenger/api/ai-feedback/${safeId}/`;
+  }
+
+  function normalizeFeedbackTotals(totals) {
+    return {
+      positive: Number(totals && totals.positive) || 0,
+      negative: Number(totals && totals.negative) || 0,
+    };
+  }
+
+  function normalizeUserRating(feedback) {
+    if (!feedback || feedback.rating === null || feedback.rating === undefined) return null;
+    const rating = Number(feedback.rating);
+    return rating === 1 || rating === -1 ? rating : null;
+  }
+
+  function updateFeedbackControls(container, feedback, totals) {
+    if (!container) return;
+    const userRating = normalizeUserRating(feedback);
+    const counts = normalizeFeedbackTotals(totals);
+    container.dataset.userRating = userRating === null ? '' : String(userRating);
+
+    const positive = container.querySelector('[data-feedback-positive]');
+    const negative = container.querySelector('[data-feedback-negative]');
+    if (positive) positive.textContent = String(counts.positive);
+    if (negative) negative.textContent = String(counts.negative);
+
+    container.querySelectorAll('[data-feedback-rating]').forEach(function (button) {
+      const rating = Number(button.getAttribute('data-feedback-rating'));
+      button.classList.toggle('active', rating === userRating);
+    });
+  }
+
+  function createFeedbackControls(payload) {
+    const controls = document.createElement('div');
+    controls.className = 'message-feedback';
+    controls.dataset.aiFeedback = 'true';
+    controls.dataset.messageId = payload.message_id || payload.id || '';
+
+    const positive = document.createElement('button');
+    positive.type = 'button';
+    positive.className = 'feedback-btn';
+    positive.setAttribute('data-feedback-rating', '1');
+    positive.setAttribute('aria-label', 'Yaxshi javob');
+    positive.title = 'Yaxshi javob';
+    positive.innerHTML = '<i class="bi bi-hand-thumbs-up"></i><span data-feedback-positive>0</span>';
+
+    const negative = document.createElement('button');
+    negative.type = 'button';
+    negative.className = 'feedback-btn';
+    negative.setAttribute('data-feedback-rating', '-1');
+    negative.setAttribute('aria-label', 'Foydasiz javob');
+    negative.title = 'Foydasiz javob';
+    negative.innerHTML = '<i class="bi bi-hand-thumbs-down"></i><span data-feedback-negative>0</span>';
+
+    const status = document.createElement('span');
+    status.className = 'feedback-status';
+    status.dataset.feedbackStatus = 'true';
+
+    controls.appendChild(positive);
+    controls.appendChild(negative);
+    controls.appendChild(status);
+    updateFeedbackControls(controls, payload.feedback, payload.feedback_totals);
+    return controls;
+  }
+
+  async function submitFeedback(button) {
+    const controls = button.closest('[data-ai-feedback]');
+    if (!controls || !controls.dataset.messageId) return;
+    const rating = Number(button.getAttribute('data-feedback-rating'));
+    if (rating !== 1 && rating !== -1) return;
+
+    const status = controls.querySelector('[data-feedback-status]');
+    const buttons = controls.querySelectorAll('[data-feedback-rating]');
+    buttons.forEach(function (item) { item.disabled = true; });
+    controls.classList.add('is-saving');
+    if (status) status.textContent = 'Saqlanmoqda...';
+
+    try {
+      const response = await fetch(aiFeedbackUrl(controls.dataset.messageId), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken(),
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ rating: rating, comment: '' }),
+      });
+      const payload = await response.json();
+      if (!response.ok || payload.status !== 'success') {
+        throw new Error(payload.message || 'Feedback saqlanmadi.');
+      }
+      controls.classList.remove('has-error');
+      updateFeedbackControls(controls, payload.feedback, payload.feedback_totals);
+      if (status) status.textContent = 'Saqlandi';
+      window.setTimeout(function () {
+        if (status) status.textContent = '';
+      }, 1600);
+    } catch (error) {
+      if (status) status.textContent = error.message || 'Saqlanmadi';
+      controls.classList.add('has-error');
+    } finally {
+      controls.classList.remove('is-saving');
+      buttons.forEach(function (item) { item.disabled = false; });
+    }
   }
 
   function initTonePicker() {
@@ -246,9 +360,16 @@
     return avatar;
   }
 
+  function isFeedbackEligibleAiMessage(payload, senderId, isMine) {
+    if (isMine) return false;
+    if (payload.is_ai === true || payload.is_ai === 'true') return true;
+    return activeRoom === 'ai' && senderId === null;
+  }
+
   function appendMessage(payload) {
     const senderId = payload.sender_id === null || payload.sender_id === undefined ? null : Number(payload.sender_id);
     const isMine = senderId === currentUserId;
+    const isAiMessage = isFeedbackEligibleAiMessage(payload, senderId, isMine);
     const senderName = payload.sender_name || 'Azure AI';
     const text = payload.message || payload.text || '';
 
@@ -261,6 +382,7 @@
     if (payload.client_message_id) row.dataset.clientMessageId = payload.client_message_id;
     if (payload.optimistic) row.classList.add('is-pending');
     if (payload.retry_text) row.dataset.retryText = payload.retry_text;
+    if (isAiMessage) row.dataset.isAi = 'true';
 
     if (!isMine) row.appendChild(createAvatar(senderId, senderName));
 
@@ -293,6 +415,9 @@
     }
 
     group.appendChild(meta);
+    if (isAiMessage) {
+      group.appendChild(createFeedbackControls(payload));
+    }
     row.appendChild(group);
     messagesArea.appendChild(row);
     updateSidebarRoom(payload);
@@ -419,6 +544,11 @@
   });
 
   sendButton.addEventListener('click', sendMessage);
+  messagesArea.addEventListener('click', function (event) {
+    const button = event.target.closest('[data-feedback-rating]');
+    if (!button || !messagesArea.contains(button)) return;
+    submitFeedback(button);
+  });
   input.addEventListener('keydown', function (event) {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
