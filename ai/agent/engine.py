@@ -32,7 +32,10 @@ class AIEngine:
             skill = self.skill_registry.select_for_request(request)
             safe_question = self.memory_service.sanitize_user_question(request.user_question)
             dialogue = self.memory_service.get_recent_dialogue(request.room)
-            long_term_memory = self.memory_service.get_long_term_memory(request.student)
+            relevant_memory = self.memory_service.render_relevant_memory(
+                student=request.student,
+                question=safe_question,
+            )
             rag_context = self.rag_service.build(
                 user=request.student,
                 question=safe_question,
@@ -41,7 +44,7 @@ class AIEngine:
             prompt = self.prompt_builder.build(
                 student=request.student,
                 skill=skill,
-                long_term_memory=long_term_memory.learned_facts,
+                long_term_memory=relevant_memory,
                 dialogue=dialogue,
                 lesson_context=rag_context.lesson_context,
                 rag_context=rag_context.rag_context,
@@ -52,17 +55,24 @@ class AIEngine:
                 selected_model=getattr(request.student, "ai_model", None),
             )
 
-            reply_without_tag, new_fact = self.memory_service.extract_memory_directive(provider_response.text)
-            clean_reply = self._sanitize_reply(reply_without_tag)
-            if new_fact:
-                self.memory_service.append_fact(long_term_memory, new_fact)
+            extraction = self.memory_service.extract_from_reply(provider_response.text, user_question=safe_question)
+            clean_reply = self._sanitize_reply(extraction.reply_text)
+            saved_memories = self.memory_service.save_candidates(
+                student=request.student,
+                candidates=extraction.candidates,
+                source_room=request.room,
+            )
 
             return AIResponse(
                 text=clean_reply,
                 model_name=provider_response.model_name,
                 skill_slug=skill.slug,
-                saved_memory_fact=new_fact,
-                metadata={"rag_chunks": len(rag_context.chunks)},
+                saved_memory_fact=saved_memories[0].fact.value if saved_memories else None,
+                metadata={
+                    "rag_chunks": len(rag_context.chunks),
+                    "memory_candidates": len(extraction.candidates),
+                    "saved_memories": len(saved_memories),
+                },
             )
         except Exception as exc:
             logger.exception(

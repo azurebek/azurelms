@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import AIFeedback, ChatRoom, LessonRAGChunk, Message
+from .models import AIFeedback, AIMemoryFact, ChatRoom, LessonRAGChunk, Message
 
 class MessageInline(admin.TabularInline):
     model = Message
@@ -16,6 +16,7 @@ class AIFeedbackInline(admin.TabularInline):
 class ChatRoomAdmin(admin.ModelAdmin):
     list_display = ('name', 'room_type', 'created_at')
     list_filter = ('room_type',)
+    search_fields = ('name', 'participants__username', 'participants__email')
     inlines = [MessageInline] # Xona ichida xabarlarni yozish imkoniyati
 
 @admin.register(Message)
@@ -31,6 +32,19 @@ class LessonRAGChunkAdmin(admin.ModelAdmin):
     list_display = ("id", "course", "lesson", "chunk_index", "embedding_model", "embedding_dim", "updated_at")
     list_filter = ("embedding_model", "course")
     search_fields = ("lesson__title", "course__title", "chunk_text")
+
+
+@admin.register(AIMemoryFact)
+class AIMemoryFactAdmin(admin.ModelAdmin):
+    list_display = ("user", "category", "status", "visibility", "confidence", "value_preview", "updated_at")
+    list_filter = ("category", "status", "visibility", "updated_at")
+    search_fields = ("user__username", "user__email", "key", "value")
+    readonly_fields = ("fingerprint", "created_at", "updated_at", "last_used_at")
+    autocomplete_fields = ("user", "source_message", "source_room")
+
+    @admin.display(description="Memory")
+    def value_preview(self, obj):
+        return (obj.value or "")[:90]
 
 
 @admin.register(AIFeedback)

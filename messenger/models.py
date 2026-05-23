@@ -73,6 +73,83 @@ class AILongTermMemory(models.Model):
         return f"AI Memory for {self.user.username}"
 
 
+class AIMemoryFact(models.Model):
+    CATEGORY_PREFERENCE = "preference"
+    CATEGORY_LEARNING_GOAL = "learning_goal"
+    CATEGORY_WEAK_TOPIC = "weak_topic"
+    CATEGORY_SCHEDULE = "schedule"
+    CATEGORY_PROFILE = "profile"
+    CATEGORY_DO_NOT_REMEMBER = "do_not_remember"
+    CATEGORY_OTHER = "other"
+    CATEGORY_CHOICES = (
+        (CATEGORY_PREFERENCE, "Preference"),
+        (CATEGORY_LEARNING_GOAL, "Learning goal"),
+        (CATEGORY_WEAK_TOPIC, "Weak topic"),
+        (CATEGORY_SCHEDULE, "Schedule"),
+        (CATEGORY_PROFILE, "Profile"),
+        (CATEGORY_DO_NOT_REMEMBER, "Do not remember"),
+        (CATEGORY_OTHER, "Other"),
+    )
+
+    STATUS_ACTIVE = "active"
+    STATUS_ARCHIVED = "archived"
+    STATUS_REJECTED = "rejected"
+    STATUS_CHOICES = (
+        (STATUS_ACTIVE, "Active"),
+        (STATUS_ARCHIVED, "Archived"),
+        (STATUS_REJECTED, "Rejected"),
+    )
+
+    VISIBILITY_USER_VISIBLE = "user_visible"
+    VISIBILITY_INTERNAL = "internal"
+    VISIBILITY_CHOICES = (
+        (VISIBILITY_USER_VISIBLE, "User visible"),
+        (VISIBILITY_INTERNAL, "Internal"),
+    )
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="ai_memory_facts")
+    category = models.CharField(max_length=32, choices=CATEGORY_CHOICES, default=CATEGORY_OTHER)
+    key = models.CharField(max_length=120, blank=True, default="")
+    value = models.TextField()
+    source_message = models.ForeignKey(
+        Message,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="generated_memory_facts",
+    )
+    source_room = models.ForeignKey(
+        ChatRoom,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="generated_memory_facts",
+    )
+    confidence = models.FloatField(default=0.8)
+    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_ACTIVE)
+    visibility = models.CharField(max_length=20, choices=VISIBILITY_CHOICES, default=VISIBILITY_USER_VISIBLE)
+    fingerprint = models.CharField(max_length=64)
+    metadata = models.JSONField(blank=True, default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    last_used_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.user.username} | {self.category}: {self.value[:60]}"
+
+    class Meta:
+        verbose_name = "AI Memory Fact"
+        verbose_name_plural = "AI Memory Facts"
+        constraints = [
+            models.UniqueConstraint(fields=["user", "fingerprint"], name="unique_ai_memory_fact_fingerprint"),
+        ]
+        indexes = [
+            models.Index(fields=["user", "status", "category"]),
+            models.Index(fields=["user", "updated_at"]),
+            models.Index(fields=["fingerprint"]),
+        ]
+
+
 class LessonRAGChunk(models.Model):
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name="rag_chunks")
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="rag_chunks")

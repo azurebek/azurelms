@@ -9,7 +9,7 @@ from django.urls import reverse
 from cohorts.models import Cohort, Enrollment
 from courses.models import Course, Lesson, Module
 from messenger.access import maybe_name_ai_room_from_first_prompt
-from messenger.models import AIFeedback, AILongTermMemory, ChatRoom, LessonRAGChunk, Message
+from messenger.models import AIFeedback, AILongTermMemory, AIMemoryFact, ChatRoom, LessonRAGChunk, Message
 from messenger.rag import ensure_pgvector_schema, reindex_lessons, retrieve_relevant_chunks
 from messenger.signals import suppress_ai_signal
 from messenger.tasks import generate_ai_response
@@ -248,7 +248,7 @@ class GenerateAiResponseTaskTests(TestCase):
         room = ChatRoom.objects.create(room_type="ai", name="Azure AI - ai-student")
         room.participants.add(self.student)
         mocked_client.return_value.models.generate_content.return_value = SimpleNamespace(
-            text="**Tushunarli.** <SAVE_MEMORY>Python funksiyalarini o'rganyapti</SAVE_MEMORY>"
+            text="**Tushunarli.** <SAVE_MEMORY>weak_topic: Python funksiyalarini o'rganyapti</SAVE_MEMORY>"
         )
 
         message_id = generate_ai_response.run(
@@ -260,8 +260,123 @@ class GenerateAiResponseTaskTests(TestCase):
         ai_message = Message.objects.get(id=message_id)
         self.assertEqual(ai_message.text, "Tushunarli.")
         self.assertNotIn("SAVE_MEMORY", ai_message.text)
-        memory = AILongTermMemory.objects.get(user=self.student)
-        self.assertIn("- Python funksiyalarini o'rganyapti", memory.learned_facts)
+        memory = AIMemoryFact.objects.get(user=self.student)
+        self.assertEqual(memory.category, AIMemoryFact.CATEGORY_WEAK_TOPIC)
+        self.assertEqual(memory.value, "Python funksiyalarini o'rganyapti")
+        self.assertEqual(memory.source_room, room)
+
+    @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
+    @patch("ai.providers.gemini.genai.Client")
+    def test_generate_ai_response_deduplicates_structured_memory(
+        self,
+        mocked_client,
+        _mocked_retrieve_chunks,
+    ):
+        room = ChatRoom.objects.create(room_type="ai", name="Azure AI - ai-student")
+        room.participants.add(self.student)
+        mocked_client.return_value.models.generate_content.return_value = SimpleNamespace(
+            text="<SAVE_MEMORY>weak_topic: Python funksiyalarida qiynalyapti</SAVE_MEMORY>Javob."
+        )
+
+        generate_ai_response.run(room_id=room.id, student_id=self.student.id, user_question="Buni eslab qol")
+        generate_ai_response.run(room_id=room.id, student_id=self.student.id, user_question="Yana eslab qol")
+
+        self.assertEqual(AIMemoryFact.objects.filter(user=self.student).count(), 1)
+
+    @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
+    @patch("ai.providers.gemini.genai.Client")
+    def test_generate_ai_response_skips_sensitive_memory(
+        self,
+        mocked_client,
+        _mocked_retrieve_chunks,
+    ):
+        room = ChatRoom.objects.create(room_type="ai", name="Azure AI - ai-student")
+        room.participants.add(self.student)
+        mocked_client.return_value.models.generate_content.return_value = SimpleNamespace(
+            text="<SAVE_MEMORY>preference: API key ABC123 ni eslab qol</SAVE_MEMORY>Mayli."
+        )
+
+        generate_ai_response.run(room_id=room.id, student_id=self.student.id, user_question="kalitni eslab qol")
+
+        self.assertFalse(AIMemoryFact.objects.filter(user=self.student).exists())
+
+    @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
+    @patch("ai.providers.gemini.genai.Client")
+    def test_generate_ai_response_respects_do_not_remember_request(
+        self,
+        mocked_client,
+        _mocked_retrieve_chunks,
+    ):
+        room = ChatRoom.objects.create(room_type="ai", name="Azure AI - ai-student")
+        room.participants.add(self.student)
+        mocked_client.return_value.models.generate_content.return_value = SimpleNamespace(
+            text="<SAVE_MEMORY>profile: Python beginner darajada</SAVE_MEMORY>Mayli."
+        )
+
+        generate_ai_response.run(
+            room_id=room.id,
+            student_id=self.student.id,
+            user_question="Buni eslab qolma: men Python beginner darajadaman",
+        )
+
+        self.assertFalse(AIMemoryFact.objects.filter(user=self.student).exists())
+
+    @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
+    @patch("ai.providers.gemini.genai.Client")
+    def test_generate_ai_response_includes_relevant_memory_in_prompt(
+        self,
+        mocked_client,
+        _mocked_retrieve_chunks,
+    ):
+        room = ChatRoom.objects.create(room_type="ai", name="Azure AI - ai-student")
+        room.participants.add(self.student)
+        AIMemoryFact.objects.create(
+            user=self.student,
+            category=AIMemoryFact.CATEGORY_WEAK_TOPIC,
+            key="weak_topic:python-functions",
+            value="Python funksiyalarida qiynalyapti",
+            fingerprint="test-python-functions",
+        )
+        mocked_client.return_value.models.generate_content.return_value = SimpleNamespace(text="Javob tayyor.")
+
+        generate_ai_response.run(
+            room_id=room.id,
+            student_id=self.student.id,
+            user_question="Python funksiyalarini tushuntir",
+        )
+
+        prompt = mocked_client.return_value.models.generate_content.call_args.kwargs["contents"]
+        self.assertIn("[weak_topic] Python funksiyalarida qiynalyapti", prompt)
+
+    @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
+    @patch("ai.providers.gemini.genai.Client")
+    def test_generate_ai_response_keeps_legacy_memory_fallback_in_prompt(
+        self,
+        mocked_client,
+        _mocked_retrieve_chunks,
+    ):
+        room = ChatRoom.objects.create(room_type="ai", name="Azure AI - ai-student")
+        room.participants.add(self.student)
+        AILongTermMemory.objects.create(user=self.student, learned_facts="- Qisqa izohlarni yoqtiradi")
+        AIMemoryFact.objects.create(
+            user=self.student,
+            category=AIMemoryFact.CATEGORY_PROFILE,
+            key="profile:student",
+            value="Python beginner darajada",
+            fingerprint="test-profile",
+        )
+        mocked_client.return_value.models.generate_content.return_value = SimpleNamespace(text="Javob tayyor.")
+
+        generate_ai_response.run(
+            room_id=room.id,
+            student_id=self.student.id,
+            user_question="Python funksiyalarini tushuntir",
+        )
+
+        prompt = mocked_client.return_value.models.generate_content.call_args.kwargs["contents"]
+        self.assertIn("[profile] Python beginner darajada", prompt)
+        self.assertIn("Legacy memory:", prompt)
+        self.assertIn("Qisqa izohlarni yoqtiradi", prompt)
 
     def test_first_prompt_can_name_ai_room(self):
         room = ChatRoom.objects.create(room_type="ai", name="Yangi AI chat")
