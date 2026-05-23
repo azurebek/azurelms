@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import AIFeedback, AIMemoryFact, ChatRoom, LessonRAGChunk, Message
+from .models import AIFeedback, AIMemoryFact, AIConversationSummary, ChatRoom, LessonRAGChunk, Message
 
 class MessageInline(admin.TabularInline):
     model = Message
@@ -45,6 +45,14 @@ class AIMemoryFactAdmin(admin.ModelAdmin):
     @admin.display(description="Memory")
     def value_preview(self, obj):
         return (obj.value or "")[:90]
+
+
+@admin.register(AIConversationSummary)
+class AIConversationSummaryAdmin(admin.ModelAdmin):
+    list_display = ("room", "covered_message_count", "covered_message", "updated_at")
+    search_fields = ("room__name", "summary_text")
+    readonly_fields = ("created_at", "updated_at")
+    autocomplete_fields = ("room", "covered_message")
 
 
 @admin.register(AIFeedback)

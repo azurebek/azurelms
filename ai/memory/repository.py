@@ -2,7 +2,7 @@ import hashlib
 
 from django.utils import timezone
 
-from messenger.models import AIMemoryFact, AILongTermMemory
+from messenger.models import AIMemoryFact, AIConversationSummary, AILongTermMemory
 
 from .types import MemoryCandidate, SavedMemory
 
@@ -53,6 +53,12 @@ class MemoryRepository:
                     "updated_at",
                 ]
             )
+        self.archive_conflicting_facts(
+            user=user,
+            category=candidate.category,
+            key=candidate.key,
+            keep_id=fact.id,
+        )
         return SavedMemory(fact=fact, created=created)
 
     def active_facts(self, *, user):
@@ -83,8 +89,43 @@ class MemoryRepository:
             AILongTermMemory.objects.filter(user=user).update(learned_facts="")
         return archived_count
 
+    def archive_conflicting_facts(self, *, user, category: str, key: str, keep_id: int | None = None) -> int:
+        if not key:
+            return 0
+
+        conflicts = AIMemoryFact.objects.filter(
+            user=user,
+            category=category,
+            key=key,
+            status=AIMemoryFact.STATUS_ACTIVE,
+        )
+        if keep_id:
+            conflicts = conflicts.exclude(id=keep_id)
+        return conflicts.update(status=AIMemoryFact.STATUS_ARCHIVED, updated_at=timezone.now())
+
+    def get_conversation_summary(self, *, room):
+        summary, _created = AIConversationSummary.objects.get_or_create(room=room)
+        return summary
+
+    def save_conversation_summary(
+        self,
+        *,
+        room,
+        summary_text: str,
+        covered_message=None,
+        covered_message_count: int = 0,
+    ):
+        summary, _created = AIConversationSummary.objects.update_or_create(
+            room=room,
+            defaults={
+                "summary_text": summary_text,
+                "covered_message": covered_message,
+                "covered_message_count": max(covered_message_count, 0),
+            },
+        )
+        return summary
+
     def fingerprint(self, category: str, value: str) -> str:
         normalized = " ".join((value or "").lower().split())
         payload = f"{category}:{normalized}".encode("utf-8")
         return hashlib.sha256(payload).hexdigest()
-

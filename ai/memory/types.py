@@ -23,3 +23,10 @@ class SavedMemory:
     fact: Any
     created: bool
 
+
+@dataclass(frozen=True)
+class ConversationContext:
+    summary: str = ""
+    recent_dialogue: str = ""
+    summarized_message_count: int = 0
+    recent_message_count: int = 0

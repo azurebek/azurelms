@@ -31,7 +31,10 @@ class AIEngine:
         try:
             skill = self.skill_registry.select_for_request(request)
             safe_question = self.memory_service.sanitize_user_question(request.user_question)
-            dialogue = self.memory_service.get_recent_dialogue(request.room)
+            conversation_context = self.memory_service.get_conversation_context(
+                room=request.room,
+                student=request.student,
+            )
             relevant_memory = self.memory_service.render_relevant_memory(
                 student=request.student,
                 question=safe_question,
@@ -45,7 +48,8 @@ class AIEngine:
                 student=request.student,
                 skill=skill,
                 long_term_memory=relevant_memory,
-                dialogue=dialogue,
+                conversation_summary=conversation_context.summary,
+                dialogue=conversation_context.recent_dialogue,
                 lesson_context=rag_context.lesson_context,
                 rag_context=rag_context.rag_context,
                 user_question=safe_question,
@@ -76,6 +80,8 @@ class AIEngine:
                     "rag_chunks": len(rag_context.chunks),
                     "memory_candidates": len(extraction.candidates),
                     "saved_memories": len(saved_memories),
+                    "summarized_messages": conversation_context.summarized_message_count,
+                    "recent_dialogue_messages": conversation_context.recent_message_count,
                 },
             )
         except Exception as exc:

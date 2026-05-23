@@ -9,7 +9,15 @@ from django.urls import reverse
 from cohorts.models import Cohort, Enrollment
 from courses.models import Course, Lesson, Module
 from messenger.access import maybe_name_ai_room_from_first_prompt
-from messenger.models import AIFeedback, AILongTermMemory, AIMemoryFact, ChatRoom, LessonRAGChunk, Message
+from messenger.models import (
+    AIFeedback,
+    AIConversationSummary,
+    AILongTermMemory,
+    AIMemoryFact,
+    ChatRoom,
+    LessonRAGChunk,
+    Message,
+)
 from messenger.rag import ensure_pgvector_schema, reindex_lessons, retrieve_relevant_chunks
 from messenger.signals import suppress_ai_signal
 from messenger.tasks import generate_ai_response
@@ -377,6 +385,96 @@ class GenerateAiResponseTaskTests(TestCase):
         self.assertIn("[profile] Python beginner darajada", prompt)
         self.assertIn("Legacy memory:", prompt)
         self.assertIn("Qisqa izohlarni yoqtiradi", prompt)
+
+    @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
+    @patch("ai.providers.gemini.genai.Client")
+    def test_generate_ai_response_summarizes_older_dialogue_in_prompt(
+        self,
+        mocked_client,
+        _mocked_retrieve_chunks,
+    ):
+        room = ChatRoom.objects.create(room_type="ai", name="Azure AI - ai-student")
+        room.participants.add(self.student)
+        with suppress_ai_signal():
+            for index in range(1, 15):
+                Message.objects.create(
+                    room=room,
+                    sender=self.student if index % 2 else None,
+                    text=f"Topic {index} haqida gaplashdik",
+                    is_ai_response=index % 2 == 0,
+                )
+        mocked_client.return_value.models.generate_content.return_value = SimpleNamespace(text="Davom etamiz.")
+
+        generate_ai_response.run(
+            room_id=room.id,
+            student_id=self.student.id,
+            user_question="Davom ettir",
+        )
+
+        prompt = mocked_client.return_value.models.generate_content.call_args.kwargs["contents"]
+        summary = AIConversationSummary.objects.get(room=room)
+        self.assertEqual(summary.covered_message_count, 6)
+        self.assertIn("Suhbat summarysi", prompt)
+        self.assertIn("Oldingi suhbat qisqa mazmuni", prompt)
+        self.assertIn("Topic 1 haqida gaplashdik", prompt)
+        self.assertIn("Topic 14 haqida gaplashdik", prompt)
+
+    @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
+    @patch("ai.providers.gemini.genai.Client")
+    def test_generate_ai_response_does_not_persist_summary_when_memory_disabled(
+        self,
+        mocked_client,
+        _mocked_retrieve_chunks,
+    ):
+        self.student.ai_memory_enabled = False
+        self.student.save(update_fields=["ai_memory_enabled"])
+        room = ChatRoom.objects.create(room_type="ai", name="Azure AI - ai-student")
+        room.participants.add(self.student)
+        with suppress_ai_signal():
+            for index in range(1, 15):
+                Message.objects.create(
+                    room=room,
+                    sender=self.student if index % 2 else None,
+                    text=f"Disabled memory topic {index}",
+                    is_ai_response=index % 2 == 0,
+                )
+        mocked_client.return_value.models.generate_content.return_value = SimpleNamespace(text="Javob tayyor.")
+
+        generate_ai_response.run(
+            room_id=room.id,
+            student_id=self.student.id,
+            user_question="Davom ettir",
+        )
+
+        prompt = mocked_client.return_value.models.generate_content.call_args.kwargs["contents"]
+        self.assertFalse(AIConversationSummary.objects.filter(room=room).exists())
+        self.assertIn("Suhbat summarysi", prompt)
+        self.assertNotIn("ai-student: Disabled memory topic 1\n", prompt)
+        self.assertIn("Disabled memory topic 14", prompt)
+
+    @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
+    @patch("ai.providers.gemini.genai.Client")
+    def test_generate_ai_response_archives_conflicting_memory_slot(
+        self,
+        mocked_client,
+        _mocked_retrieve_chunks,
+    ):
+        room = ChatRoom.objects.create(room_type="ai", name="Azure AI - ai-student")
+        room.participants.add(self.student)
+        mocked_client.return_value.models.generate_content.side_effect = [
+            SimpleNamespace(text="<SAVE_MEMORY>preference: Qisqa javoblarni yoqtiradi</SAVE_MEMORY>Mayli."),
+            SimpleNamespace(text="<SAVE_MEMORY>preference: Batafsil javoblarni yoqtiradi</SAVE_MEMORY>Mayli."),
+        ]
+
+        generate_ai_response.run(room_id=room.id, student_id=self.student.id, user_question="Qisqa javob ber")
+        generate_ai_response.run(room_id=room.id, student_id=self.student.id, user_question="Endi batafsil javob ber")
+
+        active = AIMemoryFact.objects.get(user=self.student, status=AIMemoryFact.STATUS_ACTIVE)
+        archived = AIMemoryFact.objects.get(user=self.student, status=AIMemoryFact.STATUS_ARCHIVED)
+        self.assertEqual(active.key, "preference:answer_length")
+        self.assertEqual(archived.key, "preference:answer_length")
+        self.assertEqual(active.value, "Batafsil javoblarni yoqtiradi")
+        self.assertEqual(archived.value, "Qisqa javoblarni yoqtiradi")
 
     def test_first_prompt_can_name_ai_room(self):
         room = ChatRoom.objects.create(room_type="ai", name="Yangi AI chat")

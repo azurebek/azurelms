@@ -98,9 +98,29 @@ class MemoryPolicy:
         return 0.82
 
     def make_key(self, category: str, value: str) -> str:
+        canonical = self._canonical_key(category, value)
+        if canonical:
+            return canonical
         words = re.findall(r"[\w']+", value.lower())
         compact = "-".join(words[:8])
         return f"{category}:{compact}"[:120]
+
+    def _canonical_key(self, category: str, value: str) -> str | None:
+        lowered = value.lower()
+        if category == AIMemoryFact.CATEGORY_PREFERENCE:
+            if any(word in lowered for word in ("qisqa", "brief", "batafsil", "detailed", "uzun", "keng")):
+                return f"{category}:answer_length"
+            if "emoji" in lowered:
+                return f"{category}:emoji"
+            if any(word in lowered for word in ("o'zbek", "uzbek", "english", "ingliz", "til")):
+                return f"{category}:language"
+        if category == AIMemoryFact.CATEGORY_SCHEDULE:
+            if any(word in lowered for word in ("ertalab", "kechqurun", "dushanba", "seshanba", "chorshanba", "vaqt")):
+                return f"{category}:study_time"
+        if category == AIMemoryFact.CATEGORY_PROFILE:
+            if any(word in lowered for word in ("beginner", "boshlang", "intermediate", "advanced", "daraja")):
+                return f"{category}:level"
+        return None
 
     def _split_category(self, raw_fact: str) -> tuple[str | None, str]:
         text = (raw_fact or "").strip()
@@ -109,4 +129,3 @@ class MemoryPolicy:
         prefix, value = text.split(":", 1)
         category = CATEGORY_ALIASES.get(prefix.strip().lower())
         return category, value if category else text
-

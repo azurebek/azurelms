@@ -150,6 +150,31 @@ class AIMemoryFact(models.Model):
         ]
 
 
+class AIConversationSummary(models.Model):
+    room = models.OneToOneField(ChatRoom, on_delete=models.CASCADE, related_name="ai_conversation_summary")
+    summary_text = models.TextField(blank=True, default="")
+    covered_message = models.ForeignKey(
+        Message,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="covered_by_ai_summaries",
+    )
+    covered_message_count = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"AI summary for room {self.room_id}"
+
+    class Meta:
+        verbose_name = "AI Conversation Summary"
+        verbose_name_plural = "AI Conversation Summaries"
+        indexes = [
+            models.Index(fields=["updated_at"]),
+        ]
+
+
 class LessonRAGChunk(models.Model):
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name="rag_chunks")
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="rag_chunks")
