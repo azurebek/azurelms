@@ -6,6 +6,161 @@
 
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'css/app-settings.css' %}">
+  <style>
+    .mem-report-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+      width: 100%;
+    }
+    .mem-stat-card {
+      padding: 12px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .mem-stat-val {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--ink-1);
+      line-height: 1.1;
+    }
+    .mem-stat-label {
+      font-size: 0.72rem;
+      color: var(--ink-3);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .mem-stat-card[data-tone="green"] .mem-stat-val { color: var(--emerald, #10b981); }
+    .mem-stat-card[data-tone="amber"] .mem-stat-val { color: var(--amber, #f59e0b); }
+    .mem-stat-card[data-tone="red"] .mem-stat-val { color: #ef4444; }
+    .mem-stat-card[data-tone="blue"] .mem-stat-val { color: var(--blue, #3b82f6); }
+
+    .mem-fact-card {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+    }
+    .mem-fact-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .mem-fact-value {
+      font-size: 0.92rem;
+      color: var(--ink-1);
+      line-height: 1.4;
+      flex: 1;
+      min-width: 0;
+    }
+    .mem-fact-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .mem-fact-actions .sr-btn {
+      padding: 6px 10px;
+      font-size: 0.78rem;
+    }
+    .mem-fact-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 14px;
+      font-size: 0.72rem;
+      color: var(--ink-3);
+    }
+    .mem-fact-meta .meta-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .mem-confidence {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.72rem;
+      color: var(--ink-3);
+    }
+    .mem-confidence-bar {
+      flex: 1;
+      height: 6px;
+      background: var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .mem-confidence-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--blue, #3b82f6), var(--emerald, #10b981));
+      transition: width 200ms;
+    }
+    .mem-confidence-fill[data-low="true"] {
+      background: linear-gradient(90deg, var(--amber, #f59e0b), #ef4444);
+    }
+    .mem-trace-toggle {
+      font-size: 0.72rem;
+      color: var(--ink-3);
+      cursor: pointer;
+      user-select: none;
+    }
+    .mem-trace-toggle:hover { color: var(--ink-2); }
+    .mem-trace-list {
+      margin-top: 6px;
+      padding: 8px 10px;
+      background: var(--surface-2, rgba(0,0,0,.04));
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .mem-trace-row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      font-size: 0.72rem;
+      color: var(--ink-2);
+      line-height: 1.4;
+    }
+    .mem-trace-row .trace-icon {
+      width: 18px;
+      flex-shrink: 0;
+      color: var(--ink-3);
+    }
+    .mem-trace-row .trace-when {
+      color: var(--ink-3);
+      margin-left: auto;
+      white-space: nowrap;
+    }
+    .mem-trace-row[data-event="saved"] .trace-icon { color: var(--emerald, #10b981); }
+    .mem-trace-row[data-event="retrieved"] .trace-icon { color: var(--blue, #3b82f6); }
+    .mem-trace-row[data-event="archived"] .trace-icon { color: var(--amber, #f59e0b); }
+    .mem-trace-row[data-event="skipped"] .trace-icon { color: var(--ink-3); }
+
+    .mem-global-timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+    }
+    .mem-global-timeline .mem-trace-row {
+      padding: 8px 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+    }
+    .mem-global-timeline .trace-fact {
+      font-weight: 600;
+      color: var(--ink-1);
+    }
+  </style>
 {% endblock %}
 
 {% block content %}
@@ -45,11 +200,59 @@
       </div>
     </div>
 
+    <!-- REPORT / STATS -->
+    {% if memory_report %}
+      <div class="ss">
+        <div class="ss-header">
+          <div class="ss-title">Xotira hisoboti</div>
+          <div class="ss-sub">AI nimani saqlagan, nimani ishlatgan va nima vaqt o'tishi bilan zaiflashgan</div>
+        </div>
+        <div class="ss-body">
+          <div class="sr" style="padding: 0;">
+            <div class="mem-report-grid">
+              <div class="mem-stat-card" data-tone="green">
+                <span class="mem-stat-val">{{ memory_report.active }}</span>
+                <span class="mem-stat-label">Faol fakt</span>
+              </div>
+              <div class="mem-stat-card" data-tone="amber">
+                <span class="mem-stat-val">{{ memory_report.archived }}</span>
+                <span class="mem-stat-label">Arxivlangan</span>
+              </div>
+              <div class="mem-stat-card" data-tone="red">
+                <span class="mem-stat-val">{{ memory_report.rejected }}</span>
+                <span class="mem-stat-label">Noto'g'ri deb belgilangan</span>
+              </div>
+              <div class="mem-stat-card" data-tone="blue">
+                <span class="mem-stat-val">{{ memory_report.retrieved }}</span>
+                <span class="mem-stat-label">Promptga olingan</span>
+              </div>
+              <div class="mem-stat-card">
+                <span class="mem-stat-val">{{ memory_report.saved }}</span>
+                <span class="mem-stat-label">Saqlash hodisalari</span>
+              </div>
+              <div class="mem-stat-card">
+                <span class="mem-stat-val">{{ memory_report.unused }}</span>
+                <span class="mem-stat-label">Hech qachon ishlatilmagan</span>
+              </div>
+              <div class="mem-stat-card">
+                <span class="mem-stat-val">{{ memory_report.decayed }}</span>
+                <span class="mem-stat-label">Bugun decay bo'ldi</span>
+              </div>
+              <div class="mem-stat-card">
+                <span class="mem-stat-val">{{ memory_report.auto_archived }}</span>
+                <span class="mem-stat-label">Avto-arxivlangan</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
     <!-- FACT LIST -->
     <div class="ss">
       <div class="ss-header">
         <div class="ss-title">Saqlangan faktlar ({{ memory_total }})</div>
-        <div class="ss-sub">Har bir yozuvni o'chirish yoki barchasini birdaniga tozalash mumkin</div>
+        <div class="ss-sub">Har bir yozuvni arxivlash, noto'g'ri deb belgilash yoki barchasini birdaniga tozalash mumkin</div>
       </div>
       <div class="ss-body">
 
@@ -63,28 +266,62 @@
                   <div class="sr-desc">{{ group.facts|length }} ta yozuv</div>
                 </div>
               </div>
-              <div style="display: flex; flex-direction: column; gap: 8px; padding-left: 56px; width: 100%;">
+              <div style="display: flex; flex-direction: column; gap: 10px; padding-left: 56px; width: 100%;">
                 {% for fact in group.facts %}
-                  <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md);">
-                    <div style="flex: 1; min-width: 0;">
-                      <div style="font-size: 0.92rem; color: var(--ink-1); line-height: 1.4;">{{ fact.value }}</div>
-                      <div style="font-size: 0.72rem; color: var(--ink-3); margin-top: 4px;">
-                        Saqlangan: {{ fact.created_at|date:"d-M, H:i" }}
-                        {% if fact.last_used_at %}· Oxirgi foydalanish: {{ fact.last_used_at|date:"d-M" }}{% endif %}
+                  <div class="mem-fact-card">
+                    <div class="mem-fact-head">
+                      <div class="mem-fact-value">{{ fact.value }}</div>
+                      <div class="mem-fact-actions">
+                        <form method="post" action="{% url 'ai_memory_reject' fact.id %}" style="margin: 0;">
+                          {% csrf_token %}
+                          <button class="sr-btn" type="submit" title="Noto'g'ri deb belgilash">
+                            <i class="bi bi-x-circle"></i> Noto'g'ri
+                          </button>
+                        </form>
+                        <form method="post" action="{% url 'ai_memory_archive' fact.id %}" style="margin: 0;">
+                          {% csrf_token %}
+                          <button class="sr-btn danger" type="submit" title="O'chirish (arxivlash)">
+                            <i class="bi bi-trash"></i>
+                          </button>
+                        </form>
                       </div>
-                      {% if fact.latest_trace %}
-                        <div style="font-size: 0.72rem; color: var(--ink-3); margin-top: 6px;">
-                          Nega: {{ fact.latest_trace.reason }}
-                          {% if fact.latest_trace.score %}- Score: {{ fact.latest_trace.score|floatformat:2 }}{% endif %}
-                        </div>
+                    </div>
+
+                    <div class="mem-confidence">
+                      <span>Ishonch</span>
+                      <div class="mem-confidence-bar">
+                        <div class="mem-confidence-fill"
+                             style="width: {{ fact.confidence_percent }}%;"
+                             data-low="{% if fact.confidence_percent < 50 %}true{% else %}false{% endif %}"></div>
+                      </div>
+                      <span>{{ fact.confidence_percent }}%</span>
+                    </div>
+
+                    <div class="mem-fact-meta">
+                      <span class="meta-pill"><i class="bi bi-calendar3"></i> {{ fact.age_days }} kun oldin saqlangan</span>
+                      <span class="meta-pill"><i class="bi bi-clock-history"></i> {{ fact.last_used_label }}</span>
+                      {% if fact.retrieval_count %}
+                        <span class="meta-pill"><i class="bi bi-arrow-down-up"></i> {{ fact.retrieval_count }} marta promptga olingan</span>
+                      {% endif %}
+                      {% if fact.embedding_model %}
+                        <span class="meta-pill"><i class="bi bi-cpu"></i> {{ fact.embedding_model }}</span>
                       {% endif %}
                     </div>
-                    <form method="post" action="{% url 'ai_memory_archive' fact.id %}" style="margin: 0;">
-                      {% csrf_token %}
-                      <button class="sr-btn danger" type="submit" title="O'chirish" style="padding: 6px 10px; font-size: 0.82rem;">
-                        <i class="bi bi-trash"></i>
-                      </button>
-                    </form>
+
+                    {% if fact.trace_items %}
+                      <details class="mem-trace">
+                        <summary class="mem-trace-toggle">Nima uchun? ({{ fact.trace_items|length }} ta hodisa)</summary>
+                        <div class="mem-trace-list">
+                          {% for trace in fact.trace_items %}
+                            <div class="mem-trace-row" data-event="{{ trace.event_type }}">
+                              <i class="bi bi-{% if trace.event_type == 'saved' %}plus-circle{% elif trace.event_type == 'retrieved' %}arrow-down-circle{% elif trace.event_type == 'archived' %}archive{% else %}dash-circle{% endif %} trace-icon"></i>
+                              <span>{{ trace.reason|default:trace.get_event_type_display }}{% if trace.score %} · score {{ trace.score|floatformat:2 }}{% endif %}</span>
+                              <span class="trace-when">{{ trace.created_at|date:"d-M H:i" }}</span>
+                            </div>
+                          {% endfor %}
+                        </div>
+                      </details>
+                    {% endif %}
                   </div>
                 {% endfor %}
               </div>
@@ -95,7 +332,7 @@
             <div class="sr-icon xstyle-a580fc7a"><i class="bi bi-trash-fill"></i></div>
             <div class="sr-info">
               <div class="sr-label">Hammasini tozalash</div>
-              <div class="sr-desc">Barcha yozuvlar o'chiriladi. Bu amalni qaytarib bo'lmaydi.</div>
+              <div class="sr-desc">Barcha yozuvlar arxivlanadi. Admin auditi uchun saqlanadi, lekin sizning sahifangizdan yo'qoladi.</div>
             </div>
             <form method="post" action="{% url 'ai_memory_clear' %}" onsubmit="return confirm('Rostdan ham AzureAI xotirasidagi barcha yozuvlarni tozalamoqchimisiz?');" style="margin: 0;">
               {% csrf_token %}
@@ -114,6 +351,32 @@
 
       </div>
     </div>
+
+    <!-- GLOBAL TRACE TIMELINE -->
+    {% if recent_memory_traces %}
+      <div class="ss">
+        <div class="ss-header">
+          <div class="ss-title">Oxirgi hodisalar</div>
+          <div class="ss-sub">AzureAI xotira bilan nima qildi — saqladi, ishlatdi yoki arxivladi</div>
+        </div>
+        <div class="ss-body">
+          <div class="sr" style="padding: 0;">
+            <div class="mem-global-timeline">
+              {% for trace in recent_memory_traces %}
+                <div class="mem-trace-row" data-event="{{ trace.event_type }}">
+                  <i class="bi bi-{% if trace.event_type == 'saved' %}plus-circle{% elif trace.event_type == 'retrieved' %}arrow-down-circle{% elif trace.event_type == 'archived' %}archive{% else %}dash-circle{% endif %} trace-icon"></i>
+                  <span>
+                    <span class="trace-fact">{% if trace.fact %}{{ trace.fact.value|truncatechars:60 }}{% else %}(o'chirilgan fakt){% endif %}</span>
+                    — {{ trace.reason|default:trace.get_event_type_display }}{% if trace.score %} · score {{ trace.score|floatformat:2 }}{% endif %}
+                  </span>
+                  <span class="trace-when">{{ trace.created_at|date:"d-M H:i" }}</span>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
 
     {% if legacy_memory_text %}
       <div class="ss">
