@@ -390,6 +390,146 @@ class GenerateAiResponseTaskTests(TestCase):
         room.refresh_from_db()
         self.assertEqual(room.name, "Past simple va present perfect farqi nima")
 
+    @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
+    @patch("ai.providers.gemini.genai.Client")
+    def test_generate_ai_response_skips_memory_when_user_disabled_it(
+        self,
+        mocked_client,
+        _mocked_retrieve_chunks,
+    ):
+        self.student.ai_memory_enabled = False
+        self.student.save(update_fields=["ai_memory_enabled"])
+        room = ChatRoom.objects.create(room_type="ai", name="Azure AI - ai-student")
+        room.participants.add(self.student)
+        AIMemoryFact.objects.create(
+            user=self.student,
+            category=AIMemoryFact.CATEGORY_PROFILE,
+            key="profile:disabled",
+            value="Eski fakt eslab qolingan",
+            fingerprint="test-disabled-profile",
+        )
+        AILongTermMemory.objects.create(user=self.student, learned_facts="- Legacy ham bo'lsin")
+        mocked_client.return_value.models.generate_content.return_value = SimpleNamespace(
+            text="Tushundim. <SAVE_MEMORY>profile: Yangi fakt</SAVE_MEMORY>"
+        )
+
+        generate_ai_response.run(
+            room_id=room.id,
+            student_id=self.student.id,
+            user_question="Profil yangilab qo'y",
+        )
+
+        prompt = mocked_client.return_value.models.generate_content.call_args.kwargs["contents"]
+        self.assertNotIn("Eski fakt eslab qolingan", prompt)
+        self.assertNotIn("Legacy ham bo'lsin", prompt)
+        self.assertNotIn("Legacy memory:", prompt)
+        self.assertEqual(AIMemoryFact.objects.filter(user=self.student).count(), 1)
+
+
+class AIMemoryControlTests(TestCase):
+    def setUp(self):
+        self.student = User.objects.create_user(
+            username="memory-control-student",
+            email="memory-control@example.com",
+            password="testpass123",
+        )
+        self.client.force_login(self.student)
+
+    def _make_fact(self, value, category=None, fingerprint=None):
+        return AIMemoryFact.objects.create(
+            user=self.student,
+            category=category or AIMemoryFact.CATEGORY_PROFILE,
+            key=f"{category or AIMemoryFact.CATEGORY_PROFILE}:{value[:20]}",
+            value=value,
+            fingerprint=fingerprint or value,
+        )
+
+    def test_toggle_off_disables_memory_and_persists(self):
+        self.assertTrue(self.student.ai_memory_enabled)
+
+        response = self.client.post(
+            reverse("ai_memory_toggle"),
+            data={"ai_memory_enabled": "0"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.student.refresh_from_db()
+        self.assertFalse(self.student.ai_memory_enabled)
+
+    def test_toggle_endpoint_returns_json_for_ajax(self):
+        response = self.client.post(
+            reverse("ai_memory_toggle"),
+            data={"ai_memory_enabled": "1"},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"status": "success", "ai_memory_enabled": True})
+
+    def test_archive_view_soft_deletes_fact_for_user_but_keeps_row(self):
+        fact = self._make_fact("Past simple ni yaxshi biladi", fingerprint="fp-archive-one")
+
+        response = self.client.post(reverse("ai_memory_archive", args=[fact.id]))
+
+        self.assertEqual(response.status_code, 302)
+        fact.refresh_from_db()
+        self.assertEqual(fact.status, AIMemoryFact.STATUS_ARCHIVED)
+        active_for_user = AIMemoryFact.objects.filter(
+            user=self.student,
+            status=AIMemoryFact.STATUS_ACTIVE,
+        )
+        self.assertFalse(active_for_user.exists())
+        self.assertTrue(AIMemoryFact.objects.filter(id=fact.id).exists())
+
+    def test_archive_ignores_other_user_facts(self):
+        other = User.objects.create_user(
+            username="other-student",
+            email="other@example.com",
+            password="testpass123",
+        )
+        foreign_fact = AIMemoryFact.objects.create(
+            user=other,
+            category=AIMemoryFact.CATEGORY_PROFILE,
+            key="profile:foreign",
+            value="Foreign user fakti",
+            fingerprint="fp-foreign",
+        )
+
+        self.client.post(reverse("ai_memory_archive", args=[foreign_fact.id]))
+
+        foreign_fact.refresh_from_db()
+        self.assertEqual(foreign_fact.status, AIMemoryFact.STATUS_ACTIVE)
+
+    def test_clear_all_archives_active_and_clears_legacy(self):
+        self._make_fact("Fact A", fingerprint="fp-clear-a")
+        self._make_fact("Fact B", category=AIMemoryFact.CATEGORY_PREFERENCE, fingerprint="fp-clear-b")
+        AILongTermMemory.objects.create(user=self.student, learned_facts="- eski qator")
+
+        response = self.client.post(reverse("ai_memory_clear"))
+
+        self.assertEqual(response.status_code, 302)
+        active = AIMemoryFact.objects.filter(user=self.student, status=AIMemoryFact.STATUS_ACTIVE)
+        archived = AIMemoryFact.objects.filter(user=self.student, status=AIMemoryFact.STATUS_ARCHIVED)
+        self.assertEqual(active.count(), 0)
+        self.assertEqual(archived.count(), 2)
+        legacy = AILongTermMemory.objects.get(user=self.student)
+        self.assertEqual(legacy.learned_facts, "")
+
+    def test_list_page_groups_facts_by_category(self):
+        self._make_fact("Beginner darajada", fingerprint="fp-list-profile")
+        self._make_fact(
+            "IELTS 7.0 olishni xohlaydi",
+            category=AIMemoryFact.CATEGORY_LEARNING_GOAL,
+            fingerprint="fp-list-goal",
+        )
+
+        response = self.client.get(reverse("ai_memory"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Beginner darajada")
+        self.assertContains(response, "IELTS 7.0 olishni xohlaydi")
+        self.assertContains(response, "Saqlangan faktlar (2)")
+
 
 class AIFeedbackApiTests(TestCase):
     def setUp(self):

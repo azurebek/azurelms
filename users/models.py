@@ -63,6 +63,10 @@ class CustomUser(AbstractUser):
         default=AI_MODEL_25_FLASH,
         help_text="AzureAI javob yaratishda birinchi ishlatadigan Gemini modeli",
     )
+    ai_memory_enabled = models.BooleanField(
+        default=True,
+        help_text="AzureAI uzoq muddatli xotirasi yoqilganmi (o'quvchi shaxsiy faktlarni eslab qolish/foydalanishga ruxsat berishi)",
+    )
 
     # To'qnashuvni (clash) oldini olish uchun
     groups = models.ManyToManyField(

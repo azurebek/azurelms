@@ -15,6 +15,7 @@ class CustomUserAdmin(UserAdmin):
     # Foydalanuvchi profiliga kirganda ko'rinadigan qo'shimcha maydonlar (Fieldsets)
     fieldsets = UserAdmin.fieldsets + (
         ('LMS Ma\'lumotlari', {'fields': ('telegram_id', 'telegram_username', 'phone_number', 'avatar', 'total_xp')}),
+        ('AzureAI sozlamalari', {'fields': ('ai_tone', 'ai_model', 'ai_memory_enabled')}),
     )
 
 

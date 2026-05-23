@@ -66,6 +66,23 @@ class MemoryRepository:
             return
         AIMemoryFact.objects.filter(id__in=fact_ids).update(last_used_at=timezone.now())
 
+    def archive_one(self, *, user, fact_id: int) -> bool:
+        updated = AIMemoryFact.objects.filter(
+            user=user,
+            id=fact_id,
+            status=AIMemoryFact.STATUS_ACTIVE,
+        ).update(status=AIMemoryFact.STATUS_ARCHIVED, updated_at=timezone.now())
+        return updated > 0
+
+    def archive_all_for_user(self, *, user, clear_legacy: bool = True) -> int:
+        archived_count = AIMemoryFact.objects.filter(
+            user=user,
+            status=AIMemoryFact.STATUS_ACTIVE,
+        ).update(status=AIMemoryFact.STATUS_ARCHIVED, updated_at=timezone.now())
+        if clear_legacy:
+            AILongTermMemory.objects.filter(user=user).update(learned_facts="")
+        return archived_count
+
     def fingerprint(self, category: str, value: str) -> str:
         normalized = " ".join((value or "").lower().split())
         payload = f"{category}:{normalized}".encode("utf-8")

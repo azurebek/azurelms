@@ -55,7 +55,11 @@ class AIEngine:
                 selected_model=getattr(request.student, "ai_model", None),
             )
 
-            extraction = self.memory_service.extract_from_reply(provider_response.text, user_question=safe_question)
+            extraction = self.memory_service.extract_from_reply(
+                provider_response.text,
+                user_question=safe_question,
+                student=request.student,
+            )
             clean_reply = self._sanitize_reply(extraction.reply_text)
             saved_memories = self.memory_service.save_candidates(
                 student=request.student,

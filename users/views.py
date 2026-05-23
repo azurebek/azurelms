@@ -166,6 +166,117 @@ class AIModelUpdateView(LoginRequiredMixin, View):
         return redirect('settings')
 
 
+class AIMemoryToggleView(LoginRequiredMixin, View):
+    """Toggle the user's AI long-term memory on/off."""
+
+    def post(self, request, *args, **kwargs):
+        raw = (request.POST.get('ai_memory_enabled') or '').strip().lower()
+        enabled = raw in {'1', 'true', 'on', 'yes'}
+        wants_json = (
+            request.headers.get("x-requested-with") == "XMLHttpRequest"
+            or "application/json" in request.headers.get("accept", "")
+        )
+
+        if request.user.ai_memory_enabled != enabled:
+            request.user.ai_memory_enabled = enabled
+            request.user.save(update_fields=['ai_memory_enabled'])
+            label = "yoqildi" if enabled else "o'chirildi"
+            messages.success(request, f"AzureAI xotirasi {label}.")
+        if wants_json:
+            return JsonResponse({"status": "success", "ai_memory_enabled": enabled})
+        return redirect('ai_memory')
+
+
+class AIMemoryListView(LoginRequiredMixin, TemplateView):
+    template_name = 'users/ai_memory.html'
+
+    def get_context_data(self, **kwargs):
+        from messenger.models import AIMemoryFact, AILongTermMemory
+
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        context['active_nav'] = 'ai_memory'
+
+        facts = list(
+            AIMemoryFact.objects.filter(user=user, status=AIMemoryFact.STATUS_ACTIVE)
+            .order_by('-updated_at')
+        )
+        grouped: dict[str, list] = {}
+        for fact in facts:
+            grouped.setdefault(fact.category, []).append(fact)
+
+        category_order = [
+            AIMemoryFact.CATEGORY_PROFILE,
+            AIMemoryFact.CATEGORY_LEARNING_GOAL,
+            AIMemoryFact.CATEGORY_PREFERENCE,
+            AIMemoryFact.CATEGORY_WEAK_TOPIC,
+            AIMemoryFact.CATEGORY_SCHEDULE,
+            AIMemoryFact.CATEGORY_OTHER,
+        ]
+        category_labels = dict(AIMemoryFact.CATEGORY_CHOICES)
+        category_icons = {
+            AIMemoryFact.CATEGORY_PROFILE: 'person-badge',
+            AIMemoryFact.CATEGORY_LEARNING_GOAL: 'flag',
+            AIMemoryFact.CATEGORY_PREFERENCE: 'sliders',
+            AIMemoryFact.CATEGORY_WEAK_TOPIC: 'exclamation-triangle',
+            AIMemoryFact.CATEGORY_SCHEDULE: 'calendar2-week',
+            AIMemoryFact.CATEGORY_OTHER: 'bookmark',
+        }
+
+        context['memory_groups'] = [
+            {
+                'category': cat,
+                'label': category_labels.get(cat, cat),
+                'icon': category_icons.get(cat, 'bookmark'),
+                'facts': grouped.get(cat, []),
+            }
+            for cat in category_order
+            if grouped.get(cat)
+        ]
+        context['memory_total'] = len(facts)
+        context['ai_memory_enabled'] = user.ai_memory_enabled
+        legacy = AILongTermMemory.objects.filter(user=user).first()
+        context['legacy_memory_text'] = (legacy.learned_facts or '').strip() if legacy else ''
+        return context
+
+
+class AIMemoryArchiveView(LoginRequiredMixin, View):
+    """Soft-delete (archive) a single fact owned by the current user."""
+
+    def post(self, request, fact_id, *args, **kwargs):
+        from ai.memory.repository import MemoryRepository
+
+        wants_json = (
+            request.headers.get("x-requested-with") == "XMLHttpRequest"
+            or "application/json" in request.headers.get("accept", "")
+        )
+        archived = MemoryRepository().archive_one(user=request.user, fact_id=fact_id)
+        if archived:
+            messages.success(request, "Xotira yozuvi o'chirildi.")
+        else:
+            messages.info(request, "Yozuv topilmadi yoki allaqachon arxivlangan.")
+        if wants_json:
+            return JsonResponse({"status": "success" if archived else "noop"})
+        return redirect('ai_memory')
+
+
+class AIMemoryClearAllView(LoginRequiredMixin, View):
+    """Archive every active fact for the current user and clear legacy memory."""
+
+    def post(self, request, *args, **kwargs):
+        from ai.memory.repository import MemoryRepository
+
+        wants_json = (
+            request.headers.get("x-requested-with") == "XMLHttpRequest"
+            or "application/json" in request.headers.get("accept", "")
+        )
+        archived_count = MemoryRepository().archive_all_for_user(user=request.user, clear_legacy=True)
+        messages.success(request, "AzureAI xotirasi to'liq tozalandi.")
+        if wants_json:
+            return JsonResponse({"status": "success", "archived": archived_count})
+        return redirect('ai_memory')
+
+
 class PasswordUpdateView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         from django.contrib.auth.password_validation import validate_password
