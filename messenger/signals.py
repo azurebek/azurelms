@@ -79,7 +79,8 @@ def trigger_azure_ai(sender, instance, created, **kwargs):
                         room_id=instance.room.id,
                         student_id=student_id,
                         user_question=user_question,
-                        context_lesson_id=context_lesson_id
+                        context_lesson_id=context_lesson_id,
+                        user_message_id=instance.id,
                     )
                 except Exception as e:
                     # Celery vaqtincha ishlamasa ham user xabari saqlanib qolishi va AI javob qaytishi kerak.
@@ -91,6 +92,7 @@ def trigger_azure_ai(sender, instance, created, **kwargs):
                             "student_id": student_id,
                             "user_question": user_question,
                             "context_lesson_id": context_lesson_id,
+                            "user_message_id": instance.id,
                         },
                         daemon=True,
                     ).start()

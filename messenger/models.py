@@ -224,6 +224,63 @@ class AIConversationSummary(models.Model):
         ]
 
 
+class AIResponseRun(models.Model):
+    STATUS_PENDING = "pending"
+    STATUS_RUNNING = "running"
+    STATUS_SUCCEEDED = "succeeded"
+    STATUS_FALLBACK = "fallback"
+    STATUS_FAILED = "failed"
+    STATUS_CHOICES = (
+        (STATUS_PENDING, "Pending"),
+        (STATUS_RUNNING, "Running"),
+        (STATUS_SUCCEEDED, "Succeeded"),
+        (STATUS_FALLBACK, "Fallback"),
+        (STATUS_FAILED, "Failed"),
+    )
+
+    room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name="ai_response_runs")
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name="ai_response_runs")
+    user_message = models.ForeignKey(
+        Message,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="ai_response_runs",
+    )
+    ai_message = models.ForeignKey(
+        Message,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="ai_generated_runs",
+    )
+    context_lesson = models.ForeignKey(Lesson, on_delete=models.SET_NULL, null=True, blank=True)
+    client_message_id = models.CharField(max_length=80, blank=True, default="")
+    user_question = models.TextField(blank=True, default="")
+    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    model_name = models.CharField(max_length=120, blank=True, default="")
+    skill_slug = models.CharField(max_length=80, blank=True, default="")
+    error_message = models.TextField(blank=True, default="")
+    duration_ms = models.PositiveIntegerField(default=0)
+    metadata = models.JSONField(blank=True, default=dict)
+    started_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"AI run {self.id} | {self.room_id} | {self.status}"
+
+    class Meta:
+        verbose_name = "AI Response Run"
+        verbose_name_plural = "AI Response Runs"
+        indexes = [
+            models.Index(fields=["room", "created_at"]),
+            models.Index(fields=["student", "status", "created_at"]),
+            models.Index(fields=["user_message", "status"]),
+        ]
+
+
 class LessonRAGChunk(models.Model):
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name="rag_chunks")
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="rag_chunks")

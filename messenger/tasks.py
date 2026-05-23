@@ -1,4 +1,5 @@
 import logging
+import time
 
 from ai.agent.engine import AIEngine
 from ai.agent.types import AIRequest
@@ -7,9 +8,10 @@ from celery import shared_task
 from channels.layers import get_channel_layer
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 from courses.models import Lesson
-from messenger.models import ChatRoom, Message
+from messenger.models import AIResponseRun, ChatRoom, Message
 from messenger.rag import reindex_lessons
 
 
@@ -34,8 +36,34 @@ def _broadcast_ai_message(ai_message):
     )
 
 
+def _broadcast_ai_status(*, room_id, status, run=None, user_message_id=None, message="", error_message=""):
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        f"chat_{room_id}",
+        {
+            "type": "ai_status",
+            "status": status,
+            "run_id": run.id if run else None,
+            "user_message_id": user_message_id,
+            "message": message,
+            "error_message": error_message,
+        },
+    )
+
+
+def _short_error(error) -> str:
+    return str(error or "").strip()[:500]
+
+
 @shared_task(ignore_result=True)
-def generate_ai_response(room_id, student_id, user_question, context_lesson_id=None):
+def generate_ai_response(
+    room_id,
+    student_id,
+    user_question,
+    context_lesson_id=None,
+    user_message_id=None,
+    client_message_id=None,
+):
     try:
         room = ChatRoom.objects.get(id=room_id)
     except ChatRoom.DoesNotExist:
@@ -55,28 +83,103 @@ def generate_ai_response(room_id, student_id, user_question, context_lesson_id=N
         except Lesson.DoesNotExist:
             logger.warning("Ignoring missing context lesson_id=%s for room_id=%s", context_lesson_id, room_id)
 
-    response = AIEngine().generate_reply(
-        AIRequest(
-            room=room,
-            student=student,
-            user_question=user_question,
-            context_lesson=context_lesson,
-        )
-    )
+    user_message = None
+    if user_message_id:
+        user_message = Message.objects.filter(id=user_message_id, room=room, sender=student).first()
 
-    ai_message = Message.objects.create(
+    run = AIResponseRun.objects.create(
         room=room,
-        text=response.text,
-        is_ai_response=True,
+        student=student,
+        user_message=user_message,
         context_lesson=context_lesson,
+        client_message_id=(client_message_id or "")[:80],
+        user_question=user_question or "",
+        status=AIResponseRun.STATUS_RUNNING,
+        started_at=timezone.now(),
     )
+    started = time.perf_counter()
 
     try:
-        _broadcast_ai_message(ai_message)
+        _broadcast_ai_status(
+            room_id=room.id,
+            status=AIResponseRun.STATUS_RUNNING,
+            run=run,
+            user_message_id=user_message.id if user_message else user_message_id,
+            message="Azure AI javob tayyorlayapti...",
+        )
     except Exception:
-        logger.exception("AI websocket broadcast failed for room_id=%s message_id=%s", room.id, ai_message.id)
+        logger.exception("AI status broadcast failed at start for run_id=%s", run.id)
 
-    return ai_message.id
+    try:
+        response = AIEngine().generate_reply(
+            AIRequest(
+                room=room,
+                student=student,
+                user_question=user_question,
+                context_lesson=context_lesson,
+            )
+        )
+
+        ai_message = Message.objects.create(
+            room=room,
+            text=response.text,
+            is_ai_response=True,
+            context_lesson=context_lesson,
+        )
+        status = AIResponseRun.STATUS_SUCCEEDED if response.model_name else AIResponseRun.STATUS_FALLBACK
+        run.status = status
+        run.ai_message = ai_message
+        run.model_name = response.model_name or ""
+        run.skill_slug = response.skill_slug or ""
+        run.duration_ms = int((time.perf_counter() - started) * 1000)
+        run.metadata = response.metadata or {}
+        run.completed_at = timezone.now()
+        run.save(
+            update_fields=[
+                "status",
+                "ai_message",
+                "model_name",
+                "skill_slug",
+                "duration_ms",
+                "metadata",
+                "completed_at",
+                "updated_at",
+            ]
+        )
+
+        try:
+            _broadcast_ai_message(ai_message)
+            _broadcast_ai_status(
+                room_id=room.id,
+                status=status,
+                run=run,
+                user_message_id=user_message.id if user_message else user_message_id,
+                message="Javob tayyor.",
+            )
+        except Exception:
+            logger.exception("AI websocket broadcast failed for room_id=%s message_id=%s", room.id, ai_message.id)
+
+        return ai_message.id
+    except Exception as exc:
+        error_text = _short_error(exc)
+        logger.exception("AI response task failed for room_id=%s student_id=%s run_id=%s", room.id, student.id, run.id)
+        run.status = AIResponseRun.STATUS_FAILED
+        run.error_message = error_text
+        run.duration_ms = int((time.perf_counter() - started) * 1000)
+        run.completed_at = timezone.now()
+        run.save(update_fields=["status", "error_message", "duration_ms", "completed_at", "updated_at"])
+        try:
+            _broadcast_ai_status(
+                room_id=room.id,
+                status=AIResponseRun.STATUS_FAILED,
+                run=run,
+                user_message_id=user_message.id if user_message else user_message_id,
+                message="AI javob bera olmadi.",
+                error_message=error_text,
+            )
+        except Exception:
+            logger.exception("AI failure status broadcast failed for run_id=%s", run.id)
+        return None
 
 
 @shared_task(ignore_result=True)

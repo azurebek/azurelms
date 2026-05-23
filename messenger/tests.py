@@ -12,6 +12,7 @@ from messenger.access import maybe_name_ai_room_from_first_prompt
 from messenger.models import (
     AIFeedback,
     AIConversationSummary,
+    AIResponseRun,
     AILongTermMemory,
     AIMemoryFact,
     AIMemoryTrace,
@@ -218,6 +219,67 @@ class GenerateAiResponseTaskTests(TestCase):
         self.assertIn("Kechirasiz", ai_message.text)
         self.assertTrue(mocked_client.called)
         mocked_logger_exception.assert_called_once()
+        run = AIResponseRun.objects.get(room=room, student=self.student)
+        self.assertEqual(run.status, AIResponseRun.STATUS_FALLBACK)
+        self.assertEqual(run.ai_message, ai_message)
+        self.assertEqual(run.model_name, "")
+        self.assertGreaterEqual(run.duration_ms, 0)
+
+    @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
+    @patch("ai.providers.gemini.genai.Client")
+    def test_generate_ai_response_records_successful_run_with_user_message(
+        self,
+        mocked_client,
+        _mocked_retrieve_chunks,
+    ):
+        room = ChatRoom.objects.create(room_type="ai", name="Azure AI - ai-student")
+        room.participants.add(self.student)
+        with suppress_ai_signal():
+            user_message = Message.objects.create(room=room, sender=self.student, text="Present perfect nima?")
+        mocked_client.return_value.models.generate_content.return_value = SimpleNamespace(text="Javob tayyor.")
+
+        message_id = generate_ai_response.run(
+            room_id=room.id,
+            student_id=self.student.id,
+            user_question=user_message.text,
+            user_message_id=user_message.id,
+            client_message_id="client-123",
+        )
+
+        run = AIResponseRun.objects.get(room=room, student=self.student)
+        self.assertEqual(run.status, AIResponseRun.STATUS_SUCCEEDED)
+        self.assertEqual(run.user_message, user_message)
+        self.assertEqual(run.ai_message_id, message_id)
+        self.assertEqual(run.client_message_id, "client-123")
+        self.assertTrue(run.model_name)
+        self.assertGreaterEqual(run.duration_ms, 0)
+
+    @patch("messenger.tasks.logger.exception")
+    @patch("messenger.tasks.Message.objects.create", side_effect=RuntimeError("db write failed"))
+    @patch("messenger.tasks.AIEngine.generate_reply")
+    def test_generate_ai_response_records_failed_run_when_message_create_fails(
+        self,
+        mocked_generate_reply,
+        _mocked_message_create,
+        mocked_logger_exception,
+    ):
+        room = ChatRoom.objects.create(room_type="ai", name="Azure AI - ai-student")
+        room.participants.add(self.student)
+        mocked_generate_reply.return_value = SimpleNamespace(
+            text="Javob tayyor.",
+            model_name="gemini-test",
+            skill_slug="general_chat",
+            metadata={},
+        )
+
+        result = generate_ai_response.run(room_id=room.id, student_id=self.student.id, user_question="salom")
+
+        self.assertIsNone(result)
+        run = AIResponseRun.objects.get(room=room, student=self.student)
+        self.assertEqual(run.status, AIResponseRun.STATUS_FAILED)
+        self.assertIn("db write failed", run.error_message)
+        self.assertGreaterEqual(run.duration_ms, 0)
+        mocked_logger_exception.assert_called()
 
     @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
     @patch("ai.providers.gemini.genai.Client")

@@ -16,7 +16,7 @@
 
   const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
   const socket = new WebSocket(`${protocol}://${window.location.host}/ws/chat/${roomId}/`);
-  const pendingClientMessageIds = new Set();
+  const pendingClientMessageIds = new Map();
 
   function scrollToBottom() {
     messagesArea.scrollTop = messagesArea.scrollHeight;
@@ -24,6 +24,25 @@
 
   function currentTime() {
     return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function ensureStatusBar() {
+    let status = document.querySelector('[data-chat-status]');
+    if (status) return status;
+
+    status = document.createElement('div');
+    status.className = 'chat-status';
+    status.dataset.chatStatus = 'true';
+    messagesArea.insertAdjacentElement('afterend', status);
+    return status;
+  }
+
+  function setChatStatus(message, type) {
+    const status = ensureStatusBar();
+    status.textContent = message || '';
+    status.classList.toggle('is-visible', Boolean(message));
+    status.classList.toggle('is-error', type === 'error');
+    status.classList.toggle('is-success', type === 'success');
   }
 
   function removeEmptyState() {
@@ -49,6 +68,31 @@
 
     const time = item.querySelector('.sb-item-time');
     if (time) time.textContent = payload.created_at || currentTime();
+  }
+
+  function appendSystemNotice(message, options) {
+    removeEmptyState();
+    const notice = document.createElement('div');
+    notice.className = `sys-note ${options && options.type === 'error' ? 'sys-note--error' : ''}`;
+
+    const span = document.createElement('span');
+    span.textContent = message;
+    notice.appendChild(span);
+
+    if (options && options.retry && options.userMessageId) {
+      const retry = document.createElement('button');
+      retry.type = 'button';
+      retry.className = 'sys-retry';
+      retry.textContent = 'Qayta urinish';
+      retry.addEventListener('click', function () {
+        notice.remove();
+        retryAiResponse(options.userMessageId);
+      });
+      span.appendChild(retry);
+    }
+
+    messagesArea.appendChild(notice);
+    scrollToBottom();
   }
 
   function csrfToken() {
@@ -216,6 +260,7 @@
     if (payload.message_id) row.dataset.messageId = payload.message_id;
     if (payload.client_message_id) row.dataset.clientMessageId = payload.client_message_id;
     if (payload.optimistic) row.classList.add('is-pending');
+    if (payload.retry_text) row.dataset.retryText = payload.retry_text;
 
     if (!isMine) row.appendChild(createAvatar(senderId, senderName));
 
@@ -263,6 +308,7 @@
     if (row) {
       row.classList.remove('is-pending');
       if (payload.message_id) row.dataset.messageId = payload.message_id;
+      row.dataset.retryText = payload.message || payload.text || row.dataset.retryText || '';
       const time = row.querySelector('.bubble-meta span');
       if (time && payload.created_at) time.textContent = payload.created_at;
     }
@@ -270,12 +316,60 @@
     return true;
   }
 
+  function handleAiStatus(payload) {
+    if (activeRoom !== 'ai') return;
+    const status = payload.status || '';
+
+    if (status === 'running' || status === 'pending') {
+      showAiTyping();
+      setChatStatus(payload.message || 'Azure AI javob tayyorlayapti...');
+      return;
+    }
+
+    if (status === 'succeeded') {
+      hideAiTyping();
+      setChatStatus('', 'success');
+      return;
+    }
+
+    if (status === 'fallback') {
+      hideAiTyping();
+      setChatStatus('', 'success');
+      return;
+    }
+
+    if (status === 'failed') {
+      hideAiTyping();
+      setChatStatus(payload.message || 'AI javob bera olmadi.', 'error');
+      appendSystemNotice(payload.message || 'AI javob bera olmadi.', {
+        type: 'error',
+        retry: true,
+        userMessageId: payload.user_message_id,
+      });
+    }
+  }
+
+  function retryAiResponse(userMessageId) {
+    if (!userMessageId) return;
+    if (socket.readyState !== WebSocket.OPEN) {
+      setChatStatus("Ulanish uzilgan. Sahifani yangilab qayta urinib ko'ring.", 'error');
+      return;
+    }
+
+    showAiTyping();
+    setChatStatus('Qayta urinilmoqda...');
+    socket.send(JSON.stringify({
+      action: 'retry_ai_response',
+      user_message_id: userMessageId,
+    }));
+  }
+
   function sendMessage() {
     const text = input.value.trim();
     if (!text || socket.readyState !== WebSocket.OPEN) return;
     const clientMessageId = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
-    pendingClientMessageIds.add(clientMessageId);
+    pendingClientMessageIds.set(clientMessageId, { text });
     appendMessage({
       message: text,
       sender_id: currentUserId,
@@ -283,6 +377,7 @@
       client_message_id: clientMessageId,
       created_at: currentTime(),
       optimistic: true,
+      retry_text: text,
     });
     if (activeRoom === 'ai') showAiTyping();
 
@@ -296,15 +391,26 @@
 
   socket.addEventListener('open', function () {
     sendButton.disabled = false;
+    setChatStatus('');
   });
 
   socket.addEventListener('close', function () {
     sendButton.disabled = true;
+    hideAiTyping();
+    setChatStatus("Ulanish uzildi. Sahifani yangilang yoki birozdan keyin qayta urinib ko'ring.", 'error');
+  });
+
+  socket.addEventListener('error', function () {
+    setChatStatus('Ulanishda muammo bor.', 'error');
   });
 
   socket.addEventListener('message', function (event) {
     try {
       const payload = JSON.parse(event.data);
+      if (payload.event_type === 'ai_status') {
+        handleAiStatus(payload);
+        return;
+      }
       if (confirmOptimisticMessage(payload)) return;
       appendMessage(payload);
     } catch (_) {

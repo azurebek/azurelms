@@ -1,5 +1,14 @@
 from django.contrib import admin
-from .models import AIFeedback, AIMemoryFact, AIMemoryTrace, AIConversationSummary, ChatRoom, LessonRAGChunk, Message
+from .models import (
+    AIFeedback,
+    AIMemoryFact,
+    AIMemoryTrace,
+    AIConversationSummary,
+    AIResponseRun,
+    ChatRoom,
+    LessonRAGChunk,
+    Message,
+)
 
 class MessageInline(admin.TabularInline):
     model = Message
@@ -75,6 +84,15 @@ class AIConversationSummaryAdmin(admin.ModelAdmin):
     search_fields = ("room__name", "summary_text")
     readonly_fields = ("created_at", "updated_at")
     autocomplete_fields = ("room", "covered_message")
+
+
+@admin.register(AIResponseRun)
+class AIResponseRunAdmin(admin.ModelAdmin):
+    list_display = ("id", "student", "room", "status", "model_name", "duration_ms", "created_at")
+    list_filter = ("status", "model_name", "created_at")
+    search_fields = ("student__username", "student__email", "room__name", "user_question", "error_message")
+    readonly_fields = ("created_at", "updated_at", "started_at", "completed_at")
+    autocomplete_fields = ("student", "room", "user_message", "ai_message", "context_lesson")
 
 
 @admin.register(AIFeedback)

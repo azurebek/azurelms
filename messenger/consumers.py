@@ -47,13 +47,39 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     # Socketdan xabar qabul qilish
     async def receive(self, text_data):
-        data = json.loads(text_data)
+        try:
+            data = json.loads(text_data)
+        except json.JSONDecodeError:
+            return
+        action = data.get("action")
         message = data.get('message')
         context_lesson_id = data.get("context_lesson_id")
         client_message_id = data.get("client_message_id")
 
         # Xavfsizlik: sender_id ni clientdan emas, scopeden olamiz
         user = self.scope['user']
+
+        if action == "retry_ai_response":
+            retry_message_id = data.get("user_message_id")
+            retry_payload = await self.get_retry_payload(user, self.room_id, retry_message_id)
+            if not retry_payload:
+                await self.send_ai_status(
+                    status="failed",
+                    user_message_id=retry_message_id,
+                    message="Qayta urinish uchun xabar topilmadi.",
+                )
+                return
+
+            self.enqueue_background_task(
+                self.dispatch_ai_response(
+                    room_id=retry_payload["room_id"],
+                    student_id=user.id,
+                    user_question=retry_payload["text"],
+                    context_lesson_id=retry_payload["context_lesson_id"],
+                    user_message_id=retry_payload["message_id"],
+                )
+            )
+            return
 
         try:
             context_lesson_id = int(context_lesson_id) if context_lesson_id is not None else None
@@ -64,6 +90,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
             client_message_id = None
         elif client_message_id:
             client_message_id = client_message_id.strip()[:80] or None
+
+        if not isinstance(message, str) or not message.strip():
+            return
 
         # Bazaga saqlash
         saved_msg = await self.save_message(user, self.room_id, message, context_lesson_id=context_lesson_id)
@@ -97,6 +126,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         student_id=user.id,
                         user_question=user_question,
                         context_lesson_id=saved_msg.context_lesson_id,
+                        user_message_id=saved_msg.id,
+                        client_message_id=client_message_id,
                     )
                 )
 
@@ -112,6 +143,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         room_name = event.get("room_name")
 
         await self.send(text_data=json.dumps({
+            'event_type': 'message',
             'message': message,
             'sender_id': sender_id,
             'sender_name': sender_name,
@@ -120,6 +152,25 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'client_message_id': client_message_id,
             'room_id': room_id,
             'room_name': room_name,
+        }))
+
+    async def ai_status(self, event):
+        await self.send(text_data=json.dumps({
+            'event_type': 'ai_status',
+            'status': event.get('status'),
+            'run_id': event.get('run_id'),
+            'user_message_id': event.get('user_message_id'),
+            'message': event.get('message') or '',
+            'error_message': event.get('error_message') or '',
+        }))
+
+    async def send_ai_status(self, *, status, user_message_id=None, message="", error_message=""):
+        await self.send(text_data=json.dumps({
+            'event_type': 'ai_status',
+            'status': status,
+            'user_message_id': user_message_id,
+            'message': message,
+            'error_message': error_message,
         }))
 
     def enqueue_background_task(self, coroutine):
@@ -168,6 +219,26 @@ class ChatConsumer(AsyncWebsocketConsumer):
         room = ChatRoom.objects.filter(id=room_id).only('room_type').first()
         return room.room_type if room else None
 
+    @database_sync_to_async
+    def get_retry_payload(self, user, room_id, message_id):
+        try:
+            message_id = int(message_id)
+        except (TypeError, ValueError):
+            return None
+        message = (
+            Message.objects.filter(id=message_id, room_id=room_id, sender=user, is_ai_response=False)
+            .only("id", "room_id", "text", "context_lesson_id")
+            .first()
+        )
+        if not message:
+            return None
+        return {
+            "message_id": message.id,
+            "room_id": message.room_id,
+            "text": message.text,
+            "context_lesson_id": message.context_lesson_id,
+        }
+
     @sync_to_async
     def dispatch_telegram_notification(self, message_id):
         try:
@@ -177,14 +248,33 @@ class ChatConsumer(AsyncWebsocketConsumer):
             print(f"Telegram task dispatch xatosi: {e}")
 
     @sync_to_async
-    def dispatch_ai_response(self, room_id, student_id, user_question, context_lesson_id=None):
+    def dispatch_ai_response(
+        self,
+        room_id,
+        student_id,
+        user_question,
+        context_lesson_id=None,
+        user_message_id=None,
+        client_message_id=None,
+    ):
+        from .tasks import generate_ai_response
+
         try:
-            from .tasks import generate_ai_response
             generate_ai_response.delay(
                 room_id=room_id,
                 student_id=student_id,
                 user_question=user_question,
                 context_lesson_id=context_lesson_id,
+                user_message_id=user_message_id,
+                client_message_id=client_message_id,
             )
         except Exception as e:
             print(f"AI task dispatch xatosi: {e}")
+            generate_ai_response.run(
+                room_id=room_id,
+                student_id=student_id,
+                user_question=user_question,
+                context_lesson_id=context_lesson_id,
+                user_message_id=user_message_id,
+                client_message_id=client_message_id,
+            )
