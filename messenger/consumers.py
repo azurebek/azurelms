@@ -144,6 +144,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         is_ai = event.get("is_ai", False)
         feedback = event.get("feedback")
         feedback_totals = event.get("feedback_totals")
+        regenerate_user_message_id = event.get("regenerate_user_message_id")
 
         await self.send(text_data=json.dumps({
             'event_type': 'message',
@@ -158,6 +159,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'is_ai': is_ai,
             'feedback': feedback,
             'feedback_totals': feedback_totals,
+            'regenerate_user_message_id': regenerate_user_message_id,
         }))
 
     async def ai_status(self, event):

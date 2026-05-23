@@ -43,6 +43,14 @@
                   <i class="bi bi-hand-thumbs-down"></i>
                   <span data-feedback-negative>{{ message.feedback_negative_count|default:0 }}</span>
                 </button>
+                <button class="feedback-btn feedback-btn--icon" type="button" data-copy-message aria-label="Nusxa olish" title="Nusxa olish">
+                  <i class="bi bi-copy"></i>
+                </button>
+                {% if message.ai_regenerate_user_message_id %}
+                  <button class="feedback-btn feedback-btn--icon" type="button" data-regenerate-message data-user-message-id="{{ message.ai_regenerate_user_message_id }}" aria-label="Qayta generatsiya qilish" title="Qayta generatsiya qilish">
+                    <i class="bi bi-arrow-clockwise"></i>
+                  </button>
+                {% endif %}
                 <span class="feedback-status" data-feedback-status></span>
               </div>
             {% endif %}
@@ -154,5 +162,5 @@
 {% endblock %}
 
 {% block page_js %}
-<script src="{% static 'js/messenger-chat.js' %}?v=ai-feedback-2"></script>
+<script src="{% static 'js/messenger-chat.js' %}?v=regenerate-actions-4"></script>
 {% endblock %}

@@ -191,6 +191,29 @@
 
     controls.appendChild(positive);
     controls.appendChild(negative);
+
+    const copy = document.createElement('button');
+    copy.type = 'button';
+    copy.className = 'feedback-btn feedback-btn--icon';
+    copy.setAttribute('data-copy-message', 'true');
+    copy.setAttribute('aria-label', 'Nusxa olish');
+    copy.title = 'Nusxa olish';
+    copy.innerHTML = '<i class="bi bi-copy"></i>';
+    controls.appendChild(copy);
+
+    const regenerateUserMessageId = payload.regenerate_user_message_id || payload.user_message_id;
+    if (regenerateUserMessageId) {
+      const regenerate = document.createElement('button');
+      regenerate.type = 'button';
+      regenerate.className = 'feedback-btn feedback-btn--icon';
+      regenerate.setAttribute('data-regenerate-message', 'true');
+      regenerate.setAttribute('data-user-message-id', regenerateUserMessageId);
+      regenerate.setAttribute('aria-label', 'Qayta generatsiya qilish');
+      regenerate.title = 'Qayta generatsiya qilish';
+      regenerate.innerHTML = '<i class="bi bi-arrow-clockwise"></i>';
+      controls.appendChild(regenerate);
+    }
+
     controls.appendChild(status);
     updateFeedbackControls(controls, payload.feedback, payload.feedback_totals);
     return controls;
@@ -236,6 +259,55 @@
       controls.classList.remove('is-saving');
       buttons.forEach(function (item) { item.disabled = false; });
     }
+  }
+
+  function messageTextForAction(button) {
+    const group = button.closest('.msg-group');
+    const bubble = group ? group.querySelector('.bubble') : null;
+    return bubble ? (bubble.innerText || bubble.textContent || '').trim() : '';
+  }
+
+  function fallbackCopyText(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    textarea.remove();
+  }
+
+  async function copyMessage(button) {
+    const controls = button.closest('[data-ai-feedback]');
+    const status = controls ? controls.querySelector('[data-feedback-status]') : null;
+    const text = messageTextForAction(button);
+    if (!text) return;
+
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        fallbackCopyText(text);
+      }
+      if (status) status.textContent = 'Nusxalandi';
+      window.setTimeout(function () {
+        if (status) status.textContent = '';
+      }, 1400);
+    } catch (_) {
+      if (status) status.textContent = 'Nusxa olinmadi';
+      if (controls) controls.classList.add('has-error');
+    }
+  }
+
+  function regenerateMessage(button) {
+    const controls = button.closest('[data-ai-feedback]');
+    const status = controls ? controls.querySelector('[data-feedback-status]') : null;
+    const userMessageId = button.getAttribute('data-user-message-id');
+    if (!userMessageId) return;
+    if (status) status.textContent = 'Qayta...';
+    retryAiResponse(userMessageId);
   }
 
   function initTonePicker() {
@@ -545,6 +617,18 @@
 
   sendButton.addEventListener('click', sendMessage);
   messagesArea.addEventListener('click', function (event) {
+    const regenerateButton = event.target.closest('[data-regenerate-message]');
+    if (regenerateButton && messagesArea.contains(regenerateButton)) {
+      regenerateMessage(regenerateButton);
+      return;
+    }
+
+    const copyButton = event.target.closest('[data-copy-message]');
+    if (copyButton && messagesArea.contains(copyButton)) {
+      copyMessage(copyButton);
+      return;
+    }
+
     const button = event.target.closest('[data-feedback-rating]');
     if (!button || !messagesArea.contains(button)) return;
     submitFeedback(button);

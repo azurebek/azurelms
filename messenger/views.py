@@ -11,7 +11,7 @@ from django.views.generic import TemplateView
 
 from cohorts.models import Enrollment, enrollment_active_access_q
 from .access import create_user_ai_room, ensure_user_ai_room, sync_student_chat_access, user_can_access_room, user_has_active_enrollment
-from .models import ChatRoom, Message, AIFeedback
+from .models import AIResponseRun, ChatRoom, Message, AIFeedback
 
 
 def _room_rank(item):
@@ -104,12 +104,25 @@ def _room_messages(room, user=None):
             negative_count=Count("id", filter=Q(rating=AIFeedback.RATING_NEGATIVE)),
         )
     }
+    regenerate_map = {}
+    for run in (
+        AIResponseRun.objects.filter(ai_message_id__in=ai_message_ids, user_message_id__isnull=False)
+        .order_by("-created_at")
+        .only("ai_message_id", "user_message_id")
+    ):
+        regenerate_map.setdefault(run.ai_message_id, run.user_message_id)
+    last_user_message_id = None
     for message in messages:
+        if not message.is_ai_response and message.sender_id:
+            last_user_message_id = message.id
         feedback = feedback_map.get(message.id)
         totals = feedback_totals.get(message.id, {"positive": 0, "negative": 0})
         message.user_feedback_rating = feedback.rating if feedback else None
         message.feedback_positive_count = totals["positive"]
         message.feedback_negative_count = totals["negative"]
+        message.ai_regenerate_user_message_id = regenerate_map.get(message.id) or (
+            last_user_message_id if message.is_ai_response else None
+        )
     return messages
 
 
@@ -240,9 +253,19 @@ def get_room_messages(request, room_id):
                 negative_count=Count("id", filter=Q(rating=AIFeedback.RATING_NEGATIVE)),
             )
         }
+        regenerate_map = {}
+        for run in (
+            AIResponseRun.objects.filter(ai_message_id__in=ai_message_ids, user_message_id__isnull=False)
+            .order_by("-created_at")
+            .only("ai_message_id", "user_message_id")
+        ):
+            regenerate_map.setdefault(run.ai_message_id, run.user_message_id)
 
         msgs_data = []
+        last_user_message_id = None
         for m in recent_messages:
+            if not m.is_ai_response and m.sender_id:
+                last_user_message_id = m.id
             user_feedback = feedback_map.get(m.id)
             totals = feedback_totals.get(m.id, {"positive": 0, "negative": 0})
             msgs_data.append({
@@ -261,6 +284,9 @@ def get_room_messages(request, room_id):
                     else None
                 ),
                 'feedback_totals': totals if m.is_ai_response else None,
+                'regenerate_user_message_id': (
+                    regenerate_map.get(m.id) or last_user_message_id if m.is_ai_response else None
+                ),
             })
 
         return JsonResponse({'status': 'success', 'messages': msgs_data})

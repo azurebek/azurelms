@@ -856,6 +856,20 @@ class AIFeedbackApiTests(TestCase):
         self.assertEqual(response.json()["feedback_totals"]["negative"], 1)
 
     def test_get_room_messages_returns_my_feedback_and_totals_for_ai_messages(self):
+        with suppress_ai_signal():
+            user_message = Message.objects.create(
+                room=self.room,
+                sender=self.student,
+                text="Javobni qayta yoz",
+            )
+        AIResponseRun.objects.create(
+            room=self.room,
+            student=self.student,
+            user_message=user_message,
+            ai_message=self.ai_message,
+            user_question=user_message.text,
+            status=AIResponseRun.STATUS_SUCCEEDED,
+        )
         AIFeedback.objects.create(
             message=self.ai_message,
             student=self.student,
@@ -878,8 +892,23 @@ class AIFeedbackApiTests(TestCase):
         self.assertEqual(message_payload["feedback"]["comment"], "Mana shu joyini tuzatish kerak")
         self.assertEqual(message_payload["feedback_totals"]["positive"], 1)
         self.assertEqual(message_payload["feedback_totals"]["negative"], 1)
+        self.assertEqual(message_payload["regenerate_user_message_id"], user_message.id)
 
     def test_ai_room_page_renders_feedback_controls_for_existing_ai_messages(self):
+        with suppress_ai_signal():
+            user_message = Message.objects.create(
+                room=self.room,
+                sender=self.student,
+                text="Javobni qayta yoz",
+            )
+        AIResponseRun.objects.create(
+            room=self.room,
+            student=self.student,
+            user_message=user_message,
+            ai_message=self.ai_message,
+            user_question=user_message.text,
+            status=AIResponseRun.STATUS_SUCCEEDED,
+        )
         AIFeedback.objects.create(
             message=self.ai_message,
             student=self.student,
@@ -900,6 +929,9 @@ class AIFeedbackApiTests(TestCase):
         self.assertContains(response, 'data-ai-feedback')
         self.assertContains(response, f'data-message-id="{self.ai_message.id}"')
         self.assertContains(response, 'data-user-rating="-1"')
+        self.assertContains(response, 'data-copy-message')
+        self.assertContains(response, 'data-regenerate-message')
+        self.assertContains(response, f'data-user-message-id="{user_message.id}"')
         self.assertContains(response, 'data-feedback-positive>1</span>')
         self.assertContains(response, 'data-feedback-negative>1</span>')
 

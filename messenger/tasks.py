@@ -19,7 +19,7 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
-def _broadcast_ai_message(ai_message):
+def _broadcast_ai_message(ai_message, user_message_id=None):
     channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)(
         f"chat_{ai_message.room_id}",
@@ -35,6 +35,7 @@ def _broadcast_ai_message(ai_message):
             "is_ai": True,
             "feedback": None,
             "feedback_totals": {"positive": 0, "negative": 0},
+            "regenerate_user_message_id": user_message_id,
         },
     )
 
@@ -151,7 +152,7 @@ def generate_ai_response(
         )
 
         try:
-            _broadcast_ai_message(ai_message)
+            _broadcast_ai_message(ai_message, user_message_id=user_message.id if user_message else user_message_id)
             _broadcast_ai_status(
                 room_id=room.id,
                 status=status,
