@@ -1240,6 +1240,8 @@ class AIFeedbackApiTests(TestCase):
         self.assertContains(response, 'data-feedback-negative>1</span>')
         self.assertContains(response, "Homework Checker")
         self.assertContains(response, "homework_context")
+        self.assertContains(response, "feedback-btn--skill")
+        self.assertNotContains(response, "message-ai-run")
         self.assertContains(response, 'data-ai-skill-option="quiz_generator"')
         self.assertContains(response, 'data-ai-skill-option="writing_feedback"')
 

@@ -34,16 +34,12 @@
             <div class="bubble {% if message.sender_id == user.id %}bubble-me{% else %}bubble-them{% endif %}">{{ message.text|linebreaksbr }}</div>
             <div class="bubble-meta"><span>{{ message.created_at|date:"H:i" }}</span>{% if message.sender_id == user.id %}<i class="bi bi-check2-all check"></i>{% endif %}</div>
             {% if message.is_ai_response %}
-              {% if message.ai_skill_label %}
-                <div class="message-ai-run">
-                  <i class="bi bi-stars"></i>
-                  <span>{{ message.ai_skill_label }}</span>
-                  {% if message.ai_used_tools %}
-                    <small>{{ message.ai_used_tools|join:", " }}</small>
-                  {% endif %}
-                </div>
-              {% endif %}
               <div class="message-feedback" data-ai-feedback data-message-id="{{ message.id }}" data-user-rating="{{ message.user_feedback_rating|default:'' }}">
+                {% if message.ai_skill_label %}
+                  <span class="feedback-btn feedback-btn--icon feedback-btn--skill" tabindex="0" role="img" aria-label="Skill: {{ message.ai_skill_label }}" title="Skill: {{ message.ai_skill_label }}{% if message.ai_used_tools %} | Tools: {{ message.ai_used_tools|join:', ' }}{% endif %}">
+                    <i class="bi bi-stars"></i>
+                  </span>
+                {% endif %}
                 <button class="feedback-btn {% if message.user_feedback_rating == 1 %}active{% endif %}" type="button" data-feedback-rating="1" aria-label="Yaxshi javob" title="Yaxshi javob">
                   <i class="bi bi-hand-thumbs-up"></i>
                   <span data-feedback-positive>{{ message.feedback_positive_count|default:0 }}</span>

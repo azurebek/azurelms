@@ -170,6 +170,9 @@
     controls.dataset.aiFeedback = 'true';
     controls.dataset.messageId = payload.message_id || payload.id || '';
 
+    const skillMeta = createAiSkillMeta(payload);
+    if (skillMeta) controls.appendChild(skillMeta);
+
     const positive = document.createElement('button');
     positive.type = 'button';
     positive.className = 'feedback-btn';
@@ -220,25 +223,25 @@
     return controls;
   }
 
-  function createAiRunMeta(payload) {
+  function createAiSkillMeta(payload) {
     if (!payload.ai_skill_label && !payload.ai_skill_slug) return null;
 
-    const meta = document.createElement('div');
-    meta.className = 'message-ai-run';
+    const meta = document.createElement('span');
+    meta.className = 'feedback-btn feedback-btn--icon feedback-btn--skill';
+    meta.tabIndex = 0;
+    meta.setAttribute('role', 'img');
 
     const icon = document.createElement('i');
     icon.className = 'bi bi-stars';
     meta.appendChild(icon);
 
-    const label = document.createElement('span');
-    label.textContent = payload.ai_skill_label || payload.ai_skill_slug || 'AI skill';
-    meta.appendChild(label);
-
+    const label = payload.ai_skill_label || payload.ai_skill_slug || 'AI skill';
+    let title = `Skill: ${label}`;
     if (Array.isArray(payload.ai_used_tools) && payload.ai_used_tools.length) {
-      const tools = document.createElement('small');
-      tools.textContent = payload.ai_used_tools.join(', ');
-      meta.appendChild(tools);
+      title += ` | Tools: ${payload.ai_used_tools.join(', ')}`;
     }
+    meta.title = title;
+    meta.setAttribute('aria-label', title);
 
     return meta;
   }
@@ -527,8 +530,6 @@
 
     group.appendChild(meta);
     if (isAiMessage) {
-      const runMeta = createAiRunMeta(payload);
-      if (runMeta) group.appendChild(runMeta);
       group.appendChild(createFeedbackControls(payload));
     }
     row.appendChild(group);
