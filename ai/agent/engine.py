@@ -88,6 +88,7 @@ class AIEngine:
                     "summarized_messages": conversation_context.summarized_message_count,
                     "recent_dialogue_messages": conversation_context.recent_message_count,
                     "active_skill": skill.slug,
+                    "requested_skill": request.requested_skill_slug or "auto",
                     "used_tools": tool_context.used_tools,
                 },
             )

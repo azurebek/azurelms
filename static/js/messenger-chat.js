@@ -9,6 +9,7 @@
   const aiToneUrl = panel.getAttribute('data-ai-tone-url');
   const aiModelUrl = panel.getAttribute('data-ai-model-url');
   const aiFeedbackUrlTemplate = panel.getAttribute('data-ai-feedback-url-template');
+  let selectedAiSkill = panel.getAttribute('data-current-ai-skill') || 'auto';
   const messagesArea = document.querySelector('[data-chat-messages]');
   const input = document.querySelector('[data-chat-input]');
   const sendButton = document.querySelector('[data-chat-send]');
@@ -219,6 +220,29 @@
     return controls;
   }
 
+  function createAiRunMeta(payload) {
+    if (!payload.ai_skill_label && !payload.ai_skill_slug) return null;
+
+    const meta = document.createElement('div');
+    meta.className = 'message-ai-run';
+
+    const icon = document.createElement('i');
+    icon.className = 'bi bi-stars';
+    meta.appendChild(icon);
+
+    const label = document.createElement('span');
+    label.textContent = payload.ai_skill_label || payload.ai_skill_slug || 'AI skill';
+    meta.appendChild(label);
+
+    if (Array.isArray(payload.ai_used_tools) && payload.ai_used_tools.length) {
+      const tools = document.createElement('small');
+      tools.textContent = payload.ai_used_tools.join(', ');
+      meta.appendChild(tools);
+    }
+
+    return meta;
+  }
+
   async function submitFeedback(button) {
     const controls = button.closest('[data-ai-feedback]');
     if (!controls || !controls.dataset.messageId) return;
@@ -386,6 +410,21 @@
     });
   }
 
+  function initSkillPicker() {
+    document.querySelectorAll('[data-ai-skill-option]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        const skill = button.getAttribute('data-ai-skill-option') || 'auto';
+        selectedAiSkill = skill;
+        panel.setAttribute('data-current-ai-skill', skill);
+        markSelectedOption('[data-ai-skill-option]', 'data-ai-skill-option', skill);
+
+        const currentLabel = document.querySelector('[data-ai-skill-current-label]');
+        if (currentLabel) currentLabel.textContent = optionLabel(button) || 'Auto';
+        setPickerStatus('[data-ai-skill-status]', 'Keyingi xabarda ishlaydi.', 'success');
+      });
+    });
+  }
+
   function showAiTyping() {
     if (activeRoom !== 'ai' || messagesArea.querySelector('[data-ai-typing]')) return;
     removeEmptyState();
@@ -488,6 +527,8 @@
 
     group.appendChild(meta);
     if (isAiMessage) {
+      const runMeta = createAiRunMeta(payload);
+      if (runMeta) group.appendChild(runMeta);
       group.appendChild(createFeedbackControls(payload));
     }
     row.appendChild(group);
@@ -581,6 +622,7 @@
     socket.send(JSON.stringify({
       message: text,
       client_message_id: clientMessageId,
+      ai_skill: selectedAiSkill || 'auto',
     }));
     input.value = '';
     input.style.height = 'auto';
@@ -643,5 +685,6 @@
   sendButton.disabled = true;
   initModelPicker();
   initTonePicker();
+  initSkillPicker();
   scrollToBottom();
 })();

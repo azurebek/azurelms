@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model
 from cohorts.models import Enrollment, enrollment_active_access_q
 from courses.models import Lesson
 from .access import maybe_name_ai_room_from_first_prompt, user_can_access_room
-from .models import ChatRoom, Message
+from .models import AIResponseRun, ChatRoom, Message
 
 User = get_user_model()
 
@@ -55,6 +55,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         message = data.get('message')
         context_lesson_id = data.get("context_lesson_id")
         client_message_id = data.get("client_message_id")
+        requested_skill_slug = data.get("ai_skill")
 
         # Xavfsizlik: sender_id ni clientdan emas, scopeden olamiz
         user = self.scope['user']
@@ -77,6 +78,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     user_question=retry_payload["text"],
                     context_lesson_id=retry_payload["context_lesson_id"],
                     user_message_id=retry_payload["message_id"],
+                    requested_skill_slug=retry_payload["requested_skill_slug"],
                 )
             )
             return
@@ -90,6 +92,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
             client_message_id = None
         elif client_message_id:
             client_message_id = client_message_id.strip()[:80] or None
+
+        if not isinstance(requested_skill_slug, str):
+            requested_skill_slug = None
+        else:
+            requested_skill_slug = requested_skill_slug.strip()[:80] or None
+            if requested_skill_slug == "auto":
+                requested_skill_slug = None
 
         if not isinstance(message, str) or not message.strip():
             return
@@ -128,6 +137,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         context_lesson_id=saved_msg.context_lesson_id,
                         user_message_id=saved_msg.id,
                         client_message_id=client_message_id,
+                        requested_skill_slug=requested_skill_slug,
                     )
                 )
 
@@ -240,11 +250,19 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
         if not message:
             return None
+        latest_run = (
+            AIResponseRun.objects.filter(user_message=message)
+            .exclude(skill_slug="")
+            .order_by("-created_at")
+            .only("skill_slug")
+            .first()
+        )
         return {
             "message_id": message.id,
             "room_id": message.room_id,
             "text": message.text,
             "context_lesson_id": message.context_lesson_id,
+            "requested_skill_slug": latest_run.skill_slug if latest_run else None,
         }
 
     @sync_to_async
@@ -264,6 +282,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         context_lesson_id=None,
         user_message_id=None,
         client_message_id=None,
+        requested_skill_slug=None,
     ):
         from .tasks import generate_ai_response
 
@@ -275,6 +294,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 context_lesson_id=context_lesson_id,
                 user_message_id=user_message_id,
                 client_message_id=client_message_id,
+                requested_skill_slug=requested_skill_slug,
             )
         except Exception as e:
             print(f"AI task dispatch xatosi: {e}")
@@ -285,4 +305,5 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 context_lesson_id=context_lesson_id,
                 user_message_id=user_message_id,
                 client_message_id=client_message_id,
+                requested_skill_slug=requested_skill_slug,
             )

@@ -8,6 +8,7 @@ class AIRequest:
     student: Any
     user_question: str
     context_lesson: Any | None = None
+    requested_skill_slug: str | None = None
 
 
 @dataclass(frozen=True)

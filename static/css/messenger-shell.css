@@ -1174,6 +1174,7 @@ body {
 .attach-item .ai-mic    { background: var(--red-soft);   color: var(--red); }
 .attach-item .ai-poll   { background: var(--green-soft); color: var(--green); }
 .attach-item .ai-model  { background: var(--purple-soft); color: var(--purple); }
+.attach-item .ai-skill  { background: var(--blue-soft); color: var(--blue-mid); }
 
 .attach-divider {
   height: 1px;
@@ -1255,6 +1256,36 @@ body {
 }
 .attach-status.is-error { color: var(--red); }
 .attach-status.is-success { color: var(--green); }
+
+.message-ai-run {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: min(100%, 520px);
+  margin-top: 5px;
+  padding: 4px 8px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-pill);
+  color: var(--ink-3);
+  background: color-mix(in srgb, var(--blue-soft) 45%, transparent);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.message-ai-run i {
+  color: var(--blue-mid);
+  font-size: .76rem;
+}
+.message-ai-run span,
+.message-ai-run small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.message-ai-run small {
+  color: var(--ink-4);
+  font-weight: 600;
+}
 
 .compose-input-wrap { flex: 1; position: relative; }
 .compose-input {

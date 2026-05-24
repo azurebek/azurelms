@@ -9,6 +9,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
 from django.views.generic import TemplateView
 
+from ai.skills.registry import SkillRegistry
 from cohorts.models import Enrollment, enrollment_active_access_q
 from .access import create_user_ai_room, ensure_user_ai_room, sync_student_chat_access, user_can_access_room, user_has_active_enrollment
 from .models import AIResponseRun, ChatRoom, Message, AIFeedback
@@ -78,6 +79,20 @@ def _build_messenger_rooms(user):
     }
 
 
+def _skill_label(slug):
+    if not slug:
+        return ""
+    try:
+        return SkillRegistry().get(slug).name
+    except KeyError:
+        return slug.replace("_", " ").title()
+
+
+def _run_used_tools(run):
+    tools = (run.metadata or {}).get("used_tools", []) if run else []
+    return tools if isinstance(tools, list) else []
+
+
 def _room_messages(room, user=None):
     if not room:
         return []
@@ -104,25 +119,29 @@ def _room_messages(room, user=None):
             negative_count=Count("id", filter=Q(rating=AIFeedback.RATING_NEGATIVE)),
         )
     }
-    regenerate_map = {}
+    run_map = {}
     for run in (
-        AIResponseRun.objects.filter(ai_message_id__in=ai_message_ids, user_message_id__isnull=False)
+        AIResponseRun.objects.filter(ai_message_id__in=ai_message_ids)
         .order_by("-created_at")
-        .only("ai_message_id", "user_message_id")
+        .only("ai_message_id", "user_message_id", "skill_slug", "metadata")
     ):
-        regenerate_map.setdefault(run.ai_message_id, run.user_message_id)
+        run_map.setdefault(run.ai_message_id, run)
     last_user_message_id = None
     for message in messages:
         if not message.is_ai_response and message.sender_id:
             last_user_message_id = message.id
         feedback = feedback_map.get(message.id)
         totals = feedback_totals.get(message.id, {"positive": 0, "negative": 0})
+        run = run_map.get(message.id)
         message.user_feedback_rating = feedback.rating if feedback else None
         message.feedback_positive_count = totals["positive"]
         message.feedback_negative_count = totals["negative"]
-        message.ai_regenerate_user_message_id = regenerate_map.get(message.id) or (
+        message.ai_regenerate_user_message_id = (run.user_message_id if run else None) or (
             last_user_message_id if message.is_ai_response else None
         )
+        message.ai_skill_slug = run.skill_slug if run else ""
+        message.ai_skill_label = _skill_label(message.ai_skill_slug)
+        message.ai_used_tools = _run_used_tools(run)
     return messages
 
 
@@ -158,6 +177,8 @@ class _MessengerRoomView(LoginRequiredMixin, TemplateView):
         context["active_ai_room_id"] = active_chat_room.id if self.active_room == "ai" and active_chat_room else None
         context["chat_messages"] = _room_messages(active_chat_room, self.request.user)
         context["chat_locked"] = self.active_room in {"group", "tutor"} and active_chat_room is None
+        if self.active_room == "ai":
+            context["ai_skills"] = SkillRegistry().all()
         return context
 
 
@@ -253,13 +274,13 @@ def get_room_messages(request, room_id):
                 negative_count=Count("id", filter=Q(rating=AIFeedback.RATING_NEGATIVE)),
             )
         }
-        regenerate_map = {}
+        run_map = {}
         for run in (
-            AIResponseRun.objects.filter(ai_message_id__in=ai_message_ids, user_message_id__isnull=False)
+        AIResponseRun.objects.filter(ai_message_id__in=ai_message_ids)
             .order_by("-created_at")
-            .only("ai_message_id", "user_message_id")
+            .only("ai_message_id", "user_message_id", "skill_slug", "metadata")
         ):
-            regenerate_map.setdefault(run.ai_message_id, run.user_message_id)
+            run_map.setdefault(run.ai_message_id, run)
 
         msgs_data = []
         last_user_message_id = None
@@ -268,6 +289,7 @@ def get_room_messages(request, room_id):
                 last_user_message_id = m.id
             user_feedback = feedback_map.get(m.id)
             totals = feedback_totals.get(m.id, {"positive": 0, "negative": 0})
+            run = run_map.get(m.id)
             msgs_data.append({
                 'id': m.id,
                 'text': m.text,
@@ -285,8 +307,11 @@ def get_room_messages(request, room_id):
                 ),
                 'feedback_totals': totals if m.is_ai_response else None,
                 'regenerate_user_message_id': (
-                    regenerate_map.get(m.id) or last_user_message_id if m.is_ai_response else None
+                    (run.user_message_id if run else None) or last_user_message_id if m.is_ai_response else None
                 ),
+                'ai_skill_slug': run.skill_slug if run else "",
+                'ai_skill_label': _skill_label(run.skill_slug) if run else "",
+                'ai_used_tools': _run_used_tools(run),
             })
 
         return JsonResponse({'status': 'success', 'messages': msgs_data})

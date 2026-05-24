@@ -187,6 +187,10 @@ class SkillRegistry:
         self._definitions = {definition.slug: definition for definition in BUILTIN_SKILLS}
 
     def select_for_request(self, request) -> Skill:
+        requested_skill_slug = self._normalize_slug(getattr(request, "requested_skill_slug", None))
+        if requested_skill_slug:
+            return self.get(requested_skill_slug)
+
         question = self._normalize(getattr(request, "user_question", ""))
         best_slug = "general_chat"
         best_score = 0
@@ -223,6 +227,9 @@ class SkillRegistry:
     def all(self) -> list[Skill]:
         return [self.get(definition.slug) for definition in BUILTIN_SKILLS]
 
+    def is_valid_slug(self, slug: str | None) -> bool:
+        return bool(self._normalize_slug(slug))
+
     def _score_definition(self, definition: SkillDefinition, question: str) -> int:
         score = 0
         for keyword in definition.trigger_keywords:
@@ -244,3 +251,9 @@ class SkillRegistry:
 
     def _normalize(self, text: str) -> str:
         return " ".join((text or "").casefold().split())
+
+    def _normalize_slug(self, slug: str | None) -> str:
+        normalized = (slug or "").strip()
+        if normalized == "auto":
+            return ""
+        return normalized if normalized in self._definitions else ""

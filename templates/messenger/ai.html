@@ -5,7 +5,7 @@
 {% block meta_description %}Azure AI bilan erkin suhbat va o'quv savollari.{% endblock %}
 
 {% block chat_panel %}
-<section class="chat-panel" data-chat-room-id="{{ active_chat_room.id }}" data-current-user-id="{{ user.id }}" data-current-user-name="{{ user.get_full_name|default:user.username }}" data-active-room="{{ active_room }}" data-ai-tone-url="{% url 'update_ai_tone' %}" data-ai-model-url="{% url 'update_ai_model' %}" data-ai-feedback-url-template="{% url 'messenger:submit_ai_feedback' 0 %}" data-current-ai-tone="{{ user.ai_tone }}" data-current-ai-model="{{ user.ai_model }}">
+<section class="chat-panel" data-chat-room-id="{{ active_chat_room.id }}" data-current-user-id="{{ user.id }}" data-current-user-name="{{ user.get_full_name|default:user.username }}" data-active-room="{{ active_room }}" data-ai-tone-url="{% url 'update_ai_tone' %}" data-ai-model-url="{% url 'update_ai_model' %}" data-ai-feedback-url-template="{% url 'messenger:submit_ai_feedback' 0 %}" data-current-ai-tone="{{ user.ai_tone }}" data-current-ai-model="{{ user.ai_model }}" data-current-ai-skill="auto">
   <header class="chat-topbar">
     <div class="chat-head">
       <div class="chat-head-avatar chat-head-avatar--ai"><i class="bi bi-stars"></i></div>
@@ -34,6 +34,15 @@
             <div class="bubble {% if message.sender_id == user.id %}bubble-me{% else %}bubble-them{% endif %}">{{ message.text|linebreaksbr }}</div>
             <div class="bubble-meta"><span>{{ message.created_at|date:"H:i" }}</span>{% if message.sender_id == user.id %}<i class="bi bi-check2-all check"></i>{% endif %}</div>
             {% if message.is_ai_response %}
+              {% if message.ai_skill_label %}
+                <div class="message-ai-run">
+                  <i class="bi bi-stars"></i>
+                  <span>{{ message.ai_skill_label }}</span>
+                  {% if message.ai_used_tools %}
+                    <small>{{ message.ai_used_tools|join:", " }}</small>
+                  {% endif %}
+                </div>
+              {% endif %}
               <div class="message-feedback" data-ai-feedback data-message-id="{{ message.id }}" data-user-rating="{{ message.user_feedback_rating|default:'' }}">
                 <button class="feedback-btn {% if message.user_feedback_rating == 1 %}active{% endif %}" type="button" data-feedback-rating="1" aria-label="Yaxshi javob" title="Yaxshi javob">
                   <i class="bi bi-hand-thumbs-up"></i>
@@ -92,6 +101,28 @@
               {% endfor %}
             </div>
             <div class="attach-status" data-ai-model-status></div>
+          </details>
+          <details class="attach-section">
+            <summary class="attach-section-summary">
+              <span>Skill</span>
+              <strong data-ai-skill-current-label>Auto</strong>
+              <i class="bi bi-chevron-down"></i>
+            </summary>
+            <div class="attach-section-options">
+              <button class="attach-item attach-item--skill active" type="button" data-ai-skill-option="auto">
+                <i class="bi bi-magic ai-skill"></i>
+                <span>Auto</span>
+                <span class="ai-current">Tanlangan</span>
+              </button>
+              {% for skill in ai_skills %}
+                <button class="attach-item attach-item--skill" type="button" data-ai-skill-option="{{ skill.slug }}">
+                  <i class="bi bi-stars ai-skill"></i>
+                  <span>{{ skill.name }}</span>
+                  <span class="ai-current"></span>
+                </button>
+              {% endfor %}
+            </div>
+            <div class="attach-status" data-ai-skill-status></div>
           </details>
           <details class="attach-section">
             <summary class="attach-section-summary">
@@ -162,5 +193,5 @@
 {% endblock %}
 
 {% block page_js %}
-<script src="{% static 'js/messenger-chat.js' %}?v=regenerate-actions-4"></script>
+<script src="{% static 'js/messenger-chat.js' %}?v=ai-skills-1"></script>
 {% endblock %}

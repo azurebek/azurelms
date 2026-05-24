@@ -249,6 +249,20 @@ class GenerateAiResponseTaskTests(TestCase):
             )
             self.assertEqual(skill.slug, expected_slug, question)
 
+    def test_skill_registry_honors_valid_requested_skill(self):
+        registry = SkillRegistry()
+
+        skill = registry.select_for_request(
+            AIRequest(
+                room=None,
+                student=self.student,
+                user_question="Oddiy savol",
+                requested_skill_slug="writing_feedback",
+            )
+        )
+
+        self.assertEqual(skill.slug, "writing_feedback")
+
     @patch("messenger.tasks.logger.warning")
     def test_generate_ai_response_returns_safely_when_room_is_missing(self, mocked_warning):
         result = generate_ai_response.run(room_id=999999, student_id=self.student.id, user_question="salom")
@@ -412,6 +426,30 @@ class GenerateAiResponseTaskTests(TestCase):
         run = AIResponseRun.objects.get(room=room, student=self.student)
         self.assertEqual(run.skill_slug, "student_progress_coach")
         self.assertIn("student_progress", run.metadata["used_tools"])
+
+    @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
+    @patch("ai.providers.gemini.genai.Client")
+    def test_generate_ai_response_honors_requested_skill_slug(
+        self,
+        mocked_client,
+        _mocked_retrieve_chunks,
+    ):
+        room = ChatRoom.objects.create(room_type="ai", name="Azure AI - ai-student")
+        room.participants.add(self.student)
+        mocked_client.return_value.models.generate_content.return_value = SimpleNamespace(text="Javob tayyor.")
+
+        generate_ai_response.run(
+            room_id=room.id,
+            student_id=self.student.id,
+            user_question="Oddiy savol",
+            requested_skill_slug="grammar_corrector",
+        )
+
+        prompt = mocked_client.return_value.models.generate_content.call_args.kwargs["contents"]
+        self.assertIn("ACTIVE SKILL: Grammar Corrector (grammar_corrector)", prompt)
+        run = AIResponseRun.objects.get(room=room, student=self.student)
+        self.assertEqual(run.skill_slug, "grammar_corrector")
+        self.assertEqual(run.metadata["requested_skill"], "grammar_corrector")
 
     @patch("messenger.tasks.logger.exception")
     @patch("messenger.tasks.Message.objects.create", side_effect=RuntimeError("db write failed"))
@@ -1128,6 +1166,8 @@ class AIFeedbackApiTests(TestCase):
             ai_message=self.ai_message,
             user_question=user_message.text,
             status=AIResponseRun.STATUS_SUCCEEDED,
+            skill_slug="quiz_generator",
+            metadata={"used_tools": ["lesson_context", "quiz_context"]},
         )
         AIFeedback.objects.create(
             message=self.ai_message,
@@ -1152,6 +1192,9 @@ class AIFeedbackApiTests(TestCase):
         self.assertEqual(message_payload["feedback_totals"]["positive"], 1)
         self.assertEqual(message_payload["feedback_totals"]["negative"], 1)
         self.assertEqual(message_payload["regenerate_user_message_id"], user_message.id)
+        self.assertEqual(message_payload["ai_skill_slug"], "quiz_generator")
+        self.assertEqual(message_payload["ai_skill_label"], "Quiz Generator")
+        self.assertEqual(message_payload["ai_used_tools"], ["lesson_context", "quiz_context"])
 
     def test_ai_room_page_renders_feedback_controls_for_existing_ai_messages(self):
         with suppress_ai_signal():
@@ -1167,6 +1210,8 @@ class AIFeedbackApiTests(TestCase):
             ai_message=self.ai_message,
             user_question=user_message.text,
             status=AIResponseRun.STATUS_SUCCEEDED,
+            skill_slug="homework_checker",
+            metadata={"used_tools": ["homework_context"]},
         )
         AIFeedback.objects.create(
             message=self.ai_message,
@@ -1193,6 +1238,10 @@ class AIFeedbackApiTests(TestCase):
         self.assertContains(response, f'data-user-message-id="{user_message.id}"')
         self.assertContains(response, 'data-feedback-positive>1</span>')
         self.assertContains(response, 'data-feedback-negative>1</span>')
+        self.assertContains(response, "Homework Checker")
+        self.assertContains(response, "homework_context")
+        self.assertContains(response, 'data-ai-skill-option="quiz_generator"')
+        self.assertContains(response, 'data-ai-skill-option="writing_feedback"')
 
 
 class RagPipelineTests(TestCase):
