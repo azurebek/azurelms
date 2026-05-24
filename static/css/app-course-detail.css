@@ -1212,6 +1212,11 @@ body {
   background: rgba(245,158,11,.12);
 }
 
+.resource-icon--ai {
+  color: var(--blue-mid);
+  background: var(--blue-soft);
+}
+
 .resource-icon--quiz,
 .resource-icon--exam {
   color: var(--violet);

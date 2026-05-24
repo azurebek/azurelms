@@ -12,6 +12,7 @@ from django.utils import timezone
 from blog.models import BlogPost
 from cohorts.models import Cohort, Enrollment, PaymentReceipt
 from courses.models import Course, Exam, ExamSection, Lesson, LessonProgress, Module
+from messenger.rag import get_rag_index_status
 from subscriptions.models import PromoCode
 
 from .backoffice_forms import (
@@ -110,6 +111,7 @@ def backoffice_dashboard(request):
     )
     pending_receipts_count = pending_receipts.count()
     pending_posts_count = BlogPost.objects.exclude(status=BlogPost.STATUS_PUBLISHED).count()
+    rag_status = get_rag_index_status()
 
     context = {
         "active_nav": "backoffice",
@@ -139,6 +141,7 @@ def backoffice_dashboard(request):
         "active_cohorts": Cohort.objects.filter(is_active=True).select_related("course").order_by("start_date")[:4],
         "weekly_revenue": weekly_revenue,
         "sparkline": [38, 52, 44, 68, 60, 78, 92],
+        "rag_status": rag_status,
     }
     return render(request, "backoffice/dashboard.html", context)
 

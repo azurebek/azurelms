@@ -56,6 +56,7 @@ class AIEngine:
                 dialogue=conversation_context.recent_dialogue,
                 lesson_context=rag_context.lesson_context,
                 rag_context=rag_context.rag_context,
+                rag_access_note=rag_context.access_note,
                 tool_context=tool_context.rendered,
                 user_question=safe_question,
             )
@@ -83,6 +84,8 @@ class AIEngine:
                 saved_memory_fact=saved_memories[0].fact.value if saved_memories else None,
                 metadata={
                     "rag_chunks": len(rag_context.chunks),
+                    "rag_sources": rag_context.sources,
+                    "rag_access_note": rag_context.access_note,
                     "memory_candidates": len(extraction.candidates),
                     "saved_memories": len(saved_memories),
                     "summarized_messages": conversation_context.summarized_message_count,

@@ -11,7 +11,15 @@ from django.views.generic import TemplateView
 
 from ai.skills.registry import SkillRegistry
 from cohorts.models import Enrollment, enrollment_active_access_q
-from .access import create_user_ai_room, ensure_user_ai_room, sync_student_chat_access, user_can_access_room, user_has_active_enrollment
+from courses.models import Lesson
+from .access import (
+    create_user_ai_room,
+    ensure_user_ai_room,
+    sync_student_chat_access,
+    user_can_access_room,
+    user_can_use_lesson_context,
+    user_has_active_enrollment,
+)
 from .models import AIResponseRun, ChatRoom, Message, AIFeedback
 
 
@@ -93,6 +101,30 @@ def _run_used_tools(run):
     return tools if isinstance(tools, list) else []
 
 
+def _run_rag_sources(run):
+    sources = (run.metadata or {}).get("rag_sources", []) if run else []
+    return sources if isinstance(sources, list) else []
+
+
+def _rag_source_title(sources):
+    if not sources:
+        return ""
+    lines = []
+    for source in sources[:4]:
+        number = source.get("number", "?")
+        label = source.get("label") or " > ".join(
+            part
+            for part in [
+                source.get("course_title", ""),
+                source.get("module_title", ""),
+                source.get("lesson_title", ""),
+            ]
+            if part
+        )
+        lines.append(f"Manba {number}: {label or 'RAG chunk'}")
+    return "\n".join(lines)
+
+
 def _room_messages(room, user=None):
     if not room:
         return []
@@ -142,6 +174,8 @@ def _room_messages(room, user=None):
         message.ai_skill_slug = run.skill_slug if run else ""
         message.ai_skill_label = _skill_label(message.ai_skill_slug)
         message.ai_used_tools = _run_used_tools(run)
+        message.ai_rag_sources = _run_rag_sources(run)
+        message.ai_rag_source_title = _rag_source_title(message.ai_rag_sources)
     return messages
 
 
@@ -179,7 +213,19 @@ class _MessengerRoomView(LoginRequiredMixin, TemplateView):
         context["chat_locked"] = self.active_room in {"group", "tutor"} and active_chat_room is None
         if self.active_room == "ai":
             context["ai_skills"] = SkillRegistry().all()
+            context["active_context_lesson"] = self._active_context_lesson()
         return context
+
+    def _active_context_lesson(self):
+        lesson_id = self.request.GET.get("lesson")
+        try:
+            lesson_id = int(lesson_id)
+        except (TypeError, ValueError):
+            return None
+        lesson = Lesson.objects.select_related("module__course").filter(id=lesson_id).first()
+        if lesson and user_can_use_lesson_context(self.request.user, lesson):
+            return lesson
+        return None
 
 
 class MessengerAIView(_MessengerRoomView):
@@ -312,6 +358,7 @@ def get_room_messages(request, room_id):
                 'ai_skill_slug': run.skill_slug if run else "",
                 'ai_skill_label': _skill_label(run.skill_slug) if run else "",
                 'ai_used_tools': _run_used_tools(run),
+                'ai_rag_sources': _run_rag_sources(run),
             })
 
         return JsonResponse({'status': 'success', 'messages': msgs_data})

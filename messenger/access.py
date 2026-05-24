@@ -18,6 +18,23 @@ def user_has_active_enrollment(user):
     return Enrollment.objects.filter(enrollment_active_access_q(), student=user).exists()
 
 
+def user_can_use_lesson_context(user, lesson):
+    if not user or not user.is_authenticated or not lesson:
+        return False
+    if user.is_staff or user.is_superuser:
+        return True
+
+    course_id = getattr(lesson.module, "course_id", None)
+    if not course_id:
+        return False
+
+    return Enrollment.objects.filter(
+        enrollment_active_access_q(),
+        student=user,
+        cohort__course_id=course_id,
+    ).exists()
+
+
 def ensure_user_ai_room(user):
     if not user or not user.is_authenticated:
         return None

@@ -33,7 +33,7 @@ from messenger.models import (
     LessonRAGChunk,
     Message,
 )
-from messenger.rag import ensure_pgvector_schema, reindex_lessons, retrieve_relevant_chunks
+from messenger.rag import ensure_pgvector_schema, get_rag_index_status, reindex_lessons, retrieve_relevant_chunks
 from messenger.signals import suppress_ai_signal
 from messenger.tasks import generate_ai_response
 
@@ -151,6 +151,45 @@ class ChatAccessTests(TestCase):
         self.assertContains(group_response, "Guruh chati yopiq")
         self.assertEqual(tutor_response.status_code, 200)
         self.assertContains(tutor_response, "Tutor chati yopiq")
+
+    def test_ai_page_uses_lesson_query_for_enrolled_student_context(self):
+        module = Module.objects.create(course=self.course, title="Context Module", order=1)
+        lesson = Lesson.objects.create(
+            module=module,
+            title="Context Lesson",
+            content="<p>Context body</p>",
+            order=1,
+        )
+        Enrollment.objects.create(
+            student=self.student,
+            cohort=self.cohort,
+            status=Enrollment.STATUS_ACTIVE,
+        )
+        self.client.force_login(self.student)
+
+        response = self.client.get(f"{reverse('messenger:ai')}?lesson={lesson.id}")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, f'data-context-lesson-id="{lesson.id}"')
+        self.assertContains(response, "RAG scope")
+        self.assertContains(response, "Context Lesson")
+
+    def test_ai_page_ignores_lesson_query_without_course_access(self):
+        other_course = Course.objects.create(title="Private Course", description="Private", level="beginner")
+        other_module = Module.objects.create(course=other_course, title="Private Module", order=1)
+        other_lesson = Lesson.objects.create(
+            module=other_module,
+            title="Private Lesson",
+            content="<p>Private body</p>",
+            order=1,
+        )
+        self.client.force_login(self.student)
+
+        response = self.client.get(f"{reverse('messenger:ai')}?lesson={other_lesson.id}")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-context-lesson-id=""')
+        self.assertNotContains(response, "Private Lesson")
 
     def test_ai_page_lists_separate_ai_chats_and_latest_previews(self):
         first_room = ChatRoom.objects.create(room_type="ai", name="Present perfect")
@@ -1336,6 +1375,61 @@ class RagPipelineTests(TestCase):
         self.assertEqual(len(chunks), 1)
         self.assertEqual(chunks[0]["course_id"], self.course.id)
         self.assertTrue(mocked_embed_texts.called)
+
+    @patch("messenger.rag.embed_texts", return_value=[[1.0, 0.0]])
+    def test_retrieval_scopes_current_lesson_to_its_module(self, _mocked_embed_texts):
+        other_module = Module.objects.create(course=self.course, title="Other Module", order=2)
+        other_lesson = Lesson.objects.create(
+            module=other_module,
+            title="Other Module Lesson",
+            content="Different module topic",
+            order=1,
+        )
+
+        LessonRAGChunk.objects.create(
+            lesson=self.lesson,
+            course=self.course,
+            chunk_index=0,
+            chunk_text="Python funksiyasi qiymat qaytaradi.",
+            chunk_hash="chunk-context-1",
+            content_hash="content-context-1",
+            token_count=5,
+            embedding=[1.0, 0.0],
+            embedding_model="gemini-embedding-001",
+            embedding_dim=2,
+        )
+        LessonRAGChunk.objects.create(
+            lesson=other_lesson,
+            course=self.course,
+            chunk_index=0,
+            chunk_text="Boshqa moduldagi mavzu.",
+            chunk_hash="chunk-context-2",
+            content_hash="content-context-2",
+            token_count=4,
+            embedding=[1.0, 0.0],
+            embedding_model="gemini-embedding-001",
+            embedding_dim=2,
+        )
+
+        chunks = retrieve_relevant_chunks(
+            user=self.student,
+            question="funksiya nimani qaytaradi",
+            context_lesson=self.lesson,
+            top_k=4,
+        )
+
+        self.assertEqual({chunk["module_id"] for chunk in chunks}, {self.module.id})
+        self.assertEqual(chunks[0]["module_title"], "Module 1")
+        self.assertIn("RAG Course", chunks[0]["source_label"])
+
+    def test_rag_index_status_reports_missing_lessons(self):
+        LessonRAGChunk.objects.filter(lesson=self.lesson).delete()
+        status = get_rag_index_status()
+
+        self.assertEqual(status["eligible_lessons"], 1)
+        self.assertEqual(status["missing_lessons"], 1)
+        self.assertEqual(status["ready_lessons"], 0)
+        self.assertIn("reindex_rag", status["index_command"])
 
     def test_pgvector_setup_skips_on_non_postgres(self):
         result = ensure_pgvector_schema(backfill=False)

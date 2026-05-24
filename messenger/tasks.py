@@ -12,6 +12,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from courses.models import Lesson
+from messenger.access import user_can_use_lesson_context
 from messenger.models import AIResponseRun, ChatRoom, Message
 from messenger.rag import reindex_lessons
 
@@ -29,7 +30,7 @@ def _skill_label(slug):
         return slug.replace("_", " ").title()
 
 
-def _broadcast_ai_message(ai_message, user_message_id=None, skill_slug="", used_tools=None):
+def _broadcast_ai_message(ai_message, user_message_id=None, skill_slug="", used_tools=None, rag_sources=None):
     channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)(
         f"chat_{ai_message.room_id}",
@@ -49,6 +50,7 @@ def _broadcast_ai_message(ai_message, user_message_id=None, skill_slug="", used_
             "ai_skill_slug": skill_slug or "",
             "ai_skill_label": _skill_label(skill_slug),
             "ai_used_tools": used_tools or [],
+            "ai_rag_sources": rag_sources or [],
         },
     )
 
@@ -97,7 +99,16 @@ def generate_ai_response(
     context_lesson = None
     if context_lesson_id:
         try:
-            context_lesson = Lesson.objects.get(id=context_lesson_id)
+            candidate_lesson = Lesson.objects.select_related("module__course").get(id=context_lesson_id)
+            if user_can_use_lesson_context(student, candidate_lesson):
+                context_lesson = candidate_lesson
+            else:
+                logger.warning(
+                    "Ignoring forbidden context lesson_id=%s for room_id=%s student_id=%s",
+                    context_lesson_id,
+                    room_id,
+                    student_id,
+                )
         except Lesson.DoesNotExist:
             logger.warning("Ignoring missing context lesson_id=%s for room_id=%s", context_lesson_id, room_id)
 
@@ -172,6 +183,7 @@ def generate_ai_response(
                 user_message_id=user_message.id if user_message else user_message_id,
                 skill_slug=run.skill_slug,
                 used_tools=(run.metadata or {}).get("used_tools", []),
+                rag_sources=(run.metadata or {}).get("rag_sources", []),
             )
             _broadcast_ai_status(
                 room_id=room.id,

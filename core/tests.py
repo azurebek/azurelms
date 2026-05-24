@@ -31,6 +31,8 @@ class BackofficeDashboardTests(TestCase):
         self.assertContains(response, "Backoffice")
         self.assertContains(response, "Faol talabalar")
         self.assertContains(response, "E'tibor talab qiladi")
+        self.assertContains(response, "AI RAG index")
+        self.assertIn("rag_status", response.context)
 
     def test_non_staff_user_is_redirected_from_backoffice_dashboard(self):
         self.client.force_login(self.student_user)

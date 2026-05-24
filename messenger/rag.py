@@ -9,12 +9,13 @@ from typing import Iterable
 
 from django.conf import settings
 from django.db import connection, transaction
+from django.db.models import Max, Q
 from django.utils.html import strip_tags
 from google import genai
 from google.genai import types
 
 from cohorts.models import Enrollment, enrollment_active_access_q
-from courses.models import Course, Lesson
+from courses.models import Course, Lesson, Module
 from .models import LessonRAGChunk
 
 
@@ -355,6 +356,129 @@ def _active_course_ids_for_user(user):
     )
 
 
+def _normalize_id_list(values):
+    if values is None:
+        return None
+    if isinstance(values, (int, str)):
+        values = [values]
+
+    normalized = []
+    for value in values:
+        try:
+            item = int(value)
+        except (TypeError, ValueError):
+            continue
+        if item not in normalized:
+            normalized.append(item)
+    return normalized
+
+
+def _intersect_ids(allowed_ids, requested_ids):
+    if requested_ids is None:
+        return allowed_ids
+    if allowed_ids is None:
+        return requested_ids
+    allowed_set = set(allowed_ids)
+    return [item for item in requested_ids if item in allowed_set]
+
+
+def lesson_content_hash(
+    lesson,
+    *,
+    embedding_model: str = DEFAULT_EMBEDDING_MODEL,
+    chunk_words: int = DEFAULT_CHUNK_WORDS,
+    overlap_words: int = DEFAULT_CHUNK_OVERLAP_WORDS,
+):
+    normalized_text = normalize_lesson_text(lesson.content or "")
+    if not normalized_text:
+        return ""
+    content_hash_base = f"{lesson.id}|{embedding_model}|{chunk_words}|{overlap_words}|{normalized_text}"
+    return _text_sha(content_hash_base)
+
+
+def get_rag_index_status(
+    *,
+    embedding_model: str = DEFAULT_EMBEDDING_MODEL,
+    chunk_words: int = DEFAULT_CHUNK_WORDS,
+    overlap_words: int = DEFAULT_CHUNK_OVERLAP_WORDS,
+):
+    lesson_qs = Lesson.objects.select_related("module__course")
+    lessons_with_text = [
+        lesson
+        for lesson in lesson_qs.exclude(Q(content__isnull=True) | Q(content="")).only(
+            "id",
+            "title",
+            "content",
+            "module_id",
+            "module__title",
+            "module__course_id",
+            "module__course__title",
+        )
+        if normalize_lesson_text(lesson.content or "")
+    ]
+
+    chunk_qs = LessonRAGChunk.objects.filter(embedding_model=embedding_model)
+    indexed_hashes = {}
+    for row in chunk_qs.order_by("lesson_id", "chunk_index").values("lesson_id", "content_hash"):
+        indexed_hashes.setdefault(row["lesson_id"], row["content_hash"])
+
+    missing_lessons = []
+    stale_lessons = []
+    for lesson in lessons_with_text:
+        expected_hash = lesson_content_hash(
+            lesson,
+            embedding_model=embedding_model,
+            chunk_words=chunk_words,
+            overlap_words=overlap_words,
+        )
+        current_hash = indexed_hashes.get(lesson.id)
+        if not current_hash:
+            missing_lessons.append(lesson)
+        elif current_hash != expected_hash:
+            stale_lessons.append(lesson)
+
+    last_indexed_at = chunk_qs.aggregate(last=Max("updated_at")).get("last")
+    total_lessons = Lesson.objects.count()
+    indexed_lessons = chunk_qs.values("lesson_id").distinct().count()
+    ready_lessons = max(0, len(lessons_with_text) - len(missing_lessons) - len(stale_lessons))
+    ready_percent = round((ready_lessons / len(lessons_with_text)) * 100) if lessons_with_text else 0
+
+    return {
+        "embedding_model": embedding_model,
+        "total_lessons": total_lessons,
+        "eligible_lessons": len(lessons_with_text),
+        "indexed_lessons": indexed_lessons,
+        "ready_lessons": ready_lessons,
+        "ready_percent": ready_percent,
+        "missing_lessons": len(missing_lessons),
+        "stale_lessons": len(stale_lessons),
+        "empty_lessons": max(0, total_lessons - len(lessons_with_text)),
+        "total_chunks": chunk_qs.count(),
+        "last_indexed_at": last_indexed_at,
+        "pgvector_ready": is_pgvector_ready(),
+        "index_command": "python manage.py reindex_rag --force",
+        "scoped_command": "python manage.py reindex_rag --course-id <id> --module-id <id> --lesson-id <id> --force",
+        "sample_missing_lessons": [
+            {
+                "id": lesson.id,
+                "title": lesson.title,
+                "course_title": lesson.module.course.title,
+                "module_title": lesson.module.title,
+            }
+            for lesson in missing_lessons[:5]
+        ],
+        "sample_stale_lessons": [
+            {
+                "id": lesson.id,
+                "title": lesson.title,
+                "course_title": lesson.module.course.title,
+                "module_title": lesson.module.title,
+            }
+            for lesson in stale_lessons[:5]
+        ],
+    }
+
+
 def _cosine_similarity(a, b):
     if not a or not b or len(a) != len(b):
         return -1.0
@@ -392,9 +516,20 @@ def _format_retrieved_chunks(scored_rows, top_k):
                 "chunk_text": item["chunk_text"],
                 "lesson_id": item["lesson_id"],
                 "lesson_title": item["lesson_title"],
+                "module_id": item.get("module_id"),
+                "module_title": item.get("module_title", ""),
                 "course_id": item["course_id"],
                 "course_title": item["course_title"],
                 "chunk_index": item["chunk_index"],
+                "source_label": " > ".join(
+                    part
+                    for part in [
+                        item["course_title"],
+                        item.get("module_title", ""),
+                        item["lesson_title"],
+                    ]
+                    if part
+                ),
             }
         )
         per_lesson_counter[lesson_id] = lesson_count + 1
@@ -404,7 +539,16 @@ def _format_retrieved_chunks(scored_rows, top_k):
     return selected
 
 
-def _retrieve_chunks_pgvector(*, query_vector, embedding_model, course_ids, context_lesson_id, top_k):
+def _retrieve_chunks_pgvector(
+    *,
+    query_vector,
+    embedding_model,
+    course_ids,
+    module_ids,
+    lesson_ids,
+    context_lesson_id,
+    top_k,
+):
     if not is_pgvector_ready():
         return []
 
@@ -414,6 +558,7 @@ def _retrieve_chunks_pgvector(*, query_vector, embedding_model, course_ids, cont
     chunk_table = LessonRAGChunk._meta.db_table
     lesson_table = Lesson._meta.db_table
     course_table = Course._meta.db_table
+    module_table = Module._meta.db_table
 
     score_expr = "(1 - (c.embedding_vector <=> %s::vector))"
     params = [query_vector_literal]
@@ -434,16 +579,23 @@ def _retrieve_chunks_pgvector(*, query_vector, embedding_model, course_ids, cont
     if course_ids is not None:
         where_clauses.append("c.course_id = ANY(%s)")
         params.append(course_ids)
+    if module_ids is not None:
+        where_clauses.append("l.module_id = ANY(%s)")
+        params.append(module_ids)
+    if lesson_ids is not None:
+        where_clauses.append("c.lesson_id = ANY(%s)")
+        params.append(lesson_ids)
 
     params.append(limit)
 
     sql = (
         f'SELECT c.id, c.chunk_text, c.lesson_id, c.course_id, c.chunk_index, '
-        f"l.title AS lesson_title, cr.title AS course_title, "
+        f"l.title AS lesson_title, cr.title AS course_title, l.module_id, m.title AS module_title, "
         f"(1 - (c.embedding_vector <=> %s::vector)) AS similarity, "
         f"{score_expr} AS score "
         f'FROM "{chunk_table}" c '
         f'JOIN "{lesson_table}" l ON l.id = c.lesson_id '
+        f'JOIN "{module_table}" m ON m.id = l.module_id '
         f'JOIN "{course_table}" cr ON cr.id = c.course_id '
         f"WHERE {' AND '.join(where_clauses)} "
         f"ORDER BY score DESC "
@@ -465,8 +617,10 @@ def _retrieve_chunks_pgvector(*, query_vector, embedding_model, course_ids, cont
                 "chunk_index": row[4],
                 "lesson_title": row[5],
                 "course_title": row[6],
-                "similarity": float(row[7] or 0.0),
-                "score": float(row[8] or 0.0),
+                "module_id": row[7],
+                "module_title": row[8],
+                "similarity": float(row[9] or 0.0),
+                "score": float(row[10] or 0.0),
             }
         )
 
@@ -477,6 +631,7 @@ def reindex_lessons(
     *,
     lesson_ids=None,
     course_ids=None,
+    module_ids=None,
     force=False,
     embedding_model: str = DEFAULT_EMBEDDING_MODEL,
     chunk_words: int = DEFAULT_CHUNK_WORDS,
@@ -487,6 +642,8 @@ def reindex_lessons(
         queryset = queryset.filter(id__in=lesson_ids)
     if course_ids:
         queryset = queryset.filter(module__course_id__in=course_ids)
+    if module_ids:
+        queryset = queryset.filter(module_id__in=module_ids)
 
     stats = {
         "total_lessons": 0,
@@ -510,8 +667,12 @@ def reindex_lessons(
                     stats["cleared_lessons"] += 1
                 continue
 
-            content_hash_base = f"{lesson.id}|{embedding_model}|{chunk_words}|{overlap_words}|{normalized_text}"
-            content_hash = _text_sha(content_hash_base)
+            content_hash = lesson_content_hash(
+                lesson,
+                embedding_model=embedding_model,
+                chunk_words=chunk_words,
+                overlap_words=overlap_words,
+            )
 
             if not force and existing_qs.filter(content_hash=content_hash).exists():
                 stats["skipped_unchanged"] += 1
@@ -579,6 +740,9 @@ def retrieve_relevant_chunks(
     user,
     question: str,
     context_lesson=None,
+    course_ids=None,
+    module_ids=None,
+    lesson_ids=None,
     top_k: int = DEFAULT_TOP_K,
     embedding_model: str = DEFAULT_EMBEDDING_MODEL,
 ):
@@ -586,8 +750,22 @@ def retrieve_relevant_chunks(
     if not query:
         return []
 
-    course_ids = _active_course_ids_for_user(user)
-    if course_ids == []:
+    allowed_course_ids = _active_course_ids_for_user(user)
+    if allowed_course_ids == []:
+        return []
+
+    requested_course_ids = _normalize_id_list(course_ids)
+    requested_module_ids = _normalize_id_list(module_ids)
+    requested_lesson_ids = _normalize_id_list(lesson_ids)
+
+    if context_lesson:
+        context_course_id = context_lesson.module.course_id
+        context_module_id = context_lesson.module_id
+        requested_course_ids = requested_course_ids or [context_course_id]
+        requested_module_ids = requested_module_ids or [context_module_id]
+
+    scoped_course_ids = _intersect_ids(allowed_course_ids, requested_course_ids)
+    if scoped_course_ids == []:
         return []
 
     try:
@@ -605,16 +783,22 @@ def retrieve_relevant_chunks(
         pgvector_chunks = _retrieve_chunks_pgvector(
             query_vector=query_vector,
             embedding_model=embedding_model,
-            course_ids=course_ids,
+            course_ids=scoped_course_ids,
+            module_ids=requested_module_ids,
+            lesson_ids=requested_lesson_ids,
             context_lesson_id=context_lesson.id if context_lesson else None,
             top_k=top_k,
         )
         if pgvector_chunks:
             return pgvector_chunks
 
-    chunks_qs = LessonRAGChunk.objects.filter(embedding_model=embedding_model).select_related("lesson", "course")
-    if course_ids is not None:
-        chunks_qs = chunks_qs.filter(course_id__in=course_ids)
+    chunks_qs = LessonRAGChunk.objects.filter(embedding_model=embedding_model).select_related("lesson__module", "course")
+    if scoped_course_ids is not None:
+        chunks_qs = chunks_qs.filter(course_id__in=scoped_course_ids)
+    if requested_module_ids is not None:
+        chunks_qs = chunks_qs.filter(lesson__module_id__in=requested_module_ids)
+    if requested_lesson_ids is not None:
+        chunks_qs = chunks_qs.filter(lesson_id__in=requested_lesson_ids)
 
     if context_lesson:
         prioritized_ids = list(
@@ -622,8 +806,10 @@ def retrieve_relevant_chunks(
             .order_by("chunk_index")
             .values_list("id", flat=True)[: MAX_CHUNKS_PER_LESSON * 8]
         )
-        chunks_qs = chunks_qs.order_by("-updated_at")
-        candidate_chunks = list(chunks_qs[:MAX_CANDIDATES])
+        candidate_chunks = list(chunks_qs.filter(id__in=prioritized_ids).order_by("chunk_index"))
+        candidate_chunks.extend(
+            list(chunks_qs.exclude(id__in=prioritized_ids).order_by("-updated_at")[:MAX_CANDIDATES])
+        )
         if prioritized_ids:
             prioritized = [chunk for chunk in candidate_chunks if chunk.id in prioritized_ids]
             other = [chunk for chunk in candidate_chunks if chunk.id not in prioritized_ids]
@@ -641,7 +827,9 @@ def retrieve_relevant_chunks(
             continue
         boost = 0.0
         if context_lesson and chunk.lesson_id == context_lesson.id:
-            boost = 0.08
+            boost = 0.12
+        elif context_lesson and chunk.lesson.module_id == context_lesson.module_id:
+            boost = 0.04
         score = similarity + boost
         scored_rows.append(
             {
@@ -651,6 +839,8 @@ def retrieve_relevant_chunks(
                 "chunk_text": chunk.chunk_text,
                 "lesson_id": chunk.lesson_id,
                 "lesson_title": chunk.lesson.title,
+                "module_id": chunk.lesson.module_id,
+                "module_title": chunk.lesson.module.title,
                 "course_id": chunk.course_id,
                 "course_title": chunk.course.title,
                 "chunk_index": chunk.chunk_index,

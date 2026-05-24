@@ -217,6 +217,31 @@
         </div>
 
         <div>
+          <div class="bo-card bo-rag-card">
+            <div class="bo-card-head">
+              <div class="bo-card-title">AI RAG index <span class="count-chip">{{ rag_status.ready_percent }}%</span></div>
+              <span class="bo-card-link">{{ rag_status.embedding_model }}</span>
+            </div>
+            <div class="bo-rag-meter" aria-label="RAG tayyorlik darajasi">
+              <div class="bo-rag-meter-fill" style="width: {{ rag_status.ready_percent }}%"></div>
+            </div>
+            <div class="bo-rag-stats">
+              <span><strong>{{ rag_status.ready_lessons|intcomma }}</strong> tayyor</span>
+              <span><strong>{{ rag_status.missing_lessons|intcomma }}</strong> missing</span>
+              <span><strong>{{ rag_status.stale_lessons|intcomma }}</strong> stale</span>
+              <span><strong>{{ rag_status.total_chunks|intcomma }}</strong> chunk</span>
+            </div>
+            <div class="bo-rag-command">{{ rag_status.index_command }}</div>
+            <div class="bo-rag-sub">
+              {% if rag_status.last_indexed_at %}
+                Oxirgi indexing: {{ rag_status.last_indexed_at|timesince }} oldin
+              {% else %}
+                Hali indexing bajarilmagan
+              {% endif %}
+              · pgvector {% if rag_status.pgvector_ready %}tayyor{% else %}fallback{% endif %}
+            </div>
+          </div>
+
           <div class="bo-card">
             <div class="bo-card-head">
               <div class="bo-card-title">Tez amallar</div>

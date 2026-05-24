@@ -42,6 +42,7 @@ class PromptBuilder:
         conversation_summary: str,
         lesson_context: str,
         rag_context: str,
+        rag_access_note: str,
         tool_context: str,
         user_question: str,
     ) -> str:
@@ -68,7 +69,8 @@ class PromptBuilder:
             "RAG QOIDALARI:\n"
             "1) Agar `RAG manbalar` bo'limida kontekst bo'lsa, avvalo shu kontekstga tayangan holda javob ber.\n"
             "2) Hech bo'lmasa bitta manbadan foydalansang, tegishli jumla oxirida `(Manba N)` formatida ko'rsat.\n"
-            "3) Agar manbalar yetarli bo'lmasa, taxminiy gapirma, bitta aniqlashtiruvchi savol ber.\n\n"
+            "3) Agar manbalar yetarli bo'lmasa, taxminiy gapirma, bitta aniqlashtiruvchi savol ber.\n"
+            "4) Foydalanuvchida kurs obunasi bo'lmasa, kurs ichki materiallari haqida da'vo qilma; umumiy tushuntirish ber.\n\n"
             f"O'quvchi haqida relevant faktlar (Uzoq muddatli xotira):\n{long_term_memory or '(yoq)'}\n\n"
             "Agar suhbat davomida o'quvchi haqida YANGI va MUHIM fakt (qiziqishi, odati, o'rganish vaqti va h.k.) o'rgansang, "
             "javob oxirida <SAVE_MEMORY>category: fakt</SAVE_MEMORY> tegida saqla. "
@@ -77,6 +79,7 @@ class PromptBuilder:
             f"Suhbat summarysi (eski qismlar - qisqa muddatli xotira):\n{conversation_summary or '(yoq)'}\n\n"
             f"So'nggi xabarlar (qisqa muddatli xotira):\n{dialogue or '(yoq)'}\n\n"
             f"O'quvchi hozirgi ochgan dars konteksti:\n{lesson_context or '(berilmagan)'}\n\n"
+            f"RAG scope va ruxsat holati:\n{rag_access_note or '(yoq)'}\n\n"
             f"RAG manbalar (eng relevanti):\n{rag_context or '(topilmadi)'}\n\n"
             "AGENT TOOL KONTEXTI:\n"
             "Quyidagi bo'limlar AzureLMS backend tool'lari tomonidan tayyorlangan ichki snapshot. "

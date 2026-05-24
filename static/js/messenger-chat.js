@@ -6,6 +6,7 @@
   const activeRoom = panel.getAttribute('data-active-room');
   const currentUserId = Number(panel.getAttribute('data-current-user-id'));
   const currentUserName = panel.getAttribute('data-current-user-name') || 'Siz';
+  const contextLessonId = panel.getAttribute('data-context-lesson-id') || '';
   const aiToneUrl = panel.getAttribute('data-ai-tone-url');
   const aiModelUrl = panel.getAttribute('data-ai-model-url');
   const aiFeedbackUrlTemplate = panel.getAttribute('data-ai-feedback-url-template');
@@ -172,6 +173,8 @@
 
     const skillMeta = createAiSkillMeta(payload);
     if (skillMeta) controls.appendChild(skillMeta);
+    const sourceMeta = createAiSourceMeta(payload);
+    if (sourceMeta) controls.appendChild(sourceMeta);
 
     const positive = document.createElement('button');
     positive.type = 'button';
@@ -243,6 +246,30 @@
     meta.title = title;
     meta.setAttribute('aria-label', title);
 
+    return meta;
+  }
+
+  function createAiSourceMeta(payload) {
+    const sources = Array.isArray(payload.ai_rag_sources) ? payload.ai_rag_sources : [];
+    if (!sources.length) return null;
+
+    const meta = document.createElement('span');
+    meta.className = 'feedback-btn feedback-btn--icon feedback-btn--source';
+    meta.tabIndex = 0;
+    meta.setAttribute('role', 'img');
+
+    const icon = document.createElement('i');
+    icon.className = 'bi bi-journal-text';
+    meta.appendChild(icon);
+
+    const sourceLines = sources.slice(0, 4).map(function (source) {
+      const number = source.number || '?';
+      const label = source.label || [source.course_title, source.module_title, source.lesson_title].filter(Boolean).join(' > ');
+      return `Manba ${number}: ${label || 'RAG chunk'}`;
+    });
+    const title = `RAG manbalar\n${sourceLines.join('\n')}`;
+    meta.title = title;
+    meta.setAttribute('aria-label', title);
     return meta;
   }
 
@@ -620,11 +647,15 @@
     });
     if (activeRoom === 'ai') showAiTyping();
 
-    socket.send(JSON.stringify({
+    const payload = {
       message: text,
       client_message_id: clientMessageId,
       ai_skill: selectedAiSkill || 'auto',
-    }));
+    };
+    if (activeRoom === 'ai' && contextLessonId) {
+      payload.context_lesson_id = contextLessonId;
+    }
+    socket.send(JSON.stringify(payload));
     input.value = '';
     input.style.height = 'auto';
   }

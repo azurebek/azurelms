@@ -5,7 +5,7 @@
 {% block meta_description %}Azure AI bilan erkin suhbat va o'quv savollari.{% endblock %}
 
 {% block chat_panel %}
-<section class="chat-panel" data-chat-room-id="{{ active_chat_room.id }}" data-current-user-id="{{ user.id }}" data-current-user-name="{{ user.get_full_name|default:user.username }}" data-active-room="{{ active_room }}" data-ai-tone-url="{% url 'update_ai_tone' %}" data-ai-model-url="{% url 'update_ai_model' %}" data-ai-feedback-url-template="{% url 'messenger:submit_ai_feedback' 0 %}" data-current-ai-tone="{{ user.ai_tone }}" data-current-ai-model="{{ user.ai_model }}" data-current-ai-skill="auto">
+<section class="chat-panel" data-chat-room-id="{{ active_chat_room.id }}" data-current-user-id="{{ user.id }}" data-current-user-name="{{ user.get_full_name|default:user.username }}" data-active-room="{{ active_room }}" data-ai-tone-url="{% url 'update_ai_tone' %}" data-ai-model-url="{% url 'update_ai_model' %}" data-ai-feedback-url-template="{% url 'messenger:submit_ai_feedback' 0 %}" data-current-ai-tone="{{ user.ai_tone }}" data-current-ai-model="{{ user.ai_model }}" data-current-ai-skill="auto" data-context-lesson-id="{{ active_context_lesson.id|default:'' }}">
   <header class="chat-topbar">
     <div class="chat-head">
       <div class="chat-head-avatar chat-head-avatar--ai"><i class="bi bi-stars"></i></div>
@@ -38,6 +38,11 @@
                 {% if message.ai_skill_label %}
                   <span class="feedback-btn feedback-btn--icon feedback-btn--skill" tabindex="0" role="img" aria-label="Skill: {{ message.ai_skill_label }}" title="Skill: {{ message.ai_skill_label }}{% if message.ai_used_tools %} | Tools: {{ message.ai_used_tools|join:', ' }}{% endif %}">
                     <i class="bi bi-stars"></i>
+                  </span>
+                {% endif %}
+                {% if message.ai_rag_sources %}
+                  <span class="feedback-btn feedback-btn--icon feedback-btn--source" tabindex="0" role="img" aria-label="RAG manbalar" title="{{ message.ai_rag_source_title }}">
+                    <i class="bi bi-journal-text"></i>
                   </span>
                 {% endif %}
                 <button class="feedback-btn {% if message.user_feedback_rating == 1 %}active{% endif %}" type="button" data-feedback-rating="1" aria-label="Yaxshi javob" title="Yaxshi javob">
@@ -177,6 +182,10 @@
       <div class="info-section-title">Kontekst</div>
       <div class="info-kv"><span>Holat</span><strong>Ochiq</strong></div>
       <div class="info-kv"><span>Kurs talabi</span><strong>Yo'q</strong></div>
+      {% if active_context_lesson %}
+        <div class="info-kv"><span>RAG scope</span><strong>{{ active_context_lesson.module.course.title }}</strong></div>
+        <div class="info-kv"><span>Dars</span><strong>{{ active_context_lesson.title }}</strong></div>
+      {% endif %}
       <div class="info-kv"><span>Xona</span><strong>#{{ active_chat_room.id }}</strong></div>
     </section>
 
@@ -189,5 +198,5 @@
 {% endblock %}
 
 {% block page_js %}
-<script src="{% static 'js/messenger-chat.js' %}?v=ai-skills-1"></script>
+<script src="{% static 'js/messenger-chat.js' %}?v=ai-rag-context-1"></script>
 {% endblock %}
