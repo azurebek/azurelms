@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 
@@ -14,33 +14,233 @@ class Skill:
     name: str
     description: str
     instructions: str
+    tool_slugs: tuple[str, ...] = field(default_factory=tuple)
+    trigger_keywords: tuple[str, ...] = field(default_factory=tuple)
+    priority: int = 0
+
+
+@dataclass(frozen=True)
+class SkillDefinition:
+    slug: str
+    name: str
+    description: str
+    tool_slugs: tuple[str, ...] = field(default_factory=tuple)
+    trigger_keywords: tuple[str, ...] = field(default_factory=tuple)
+    priority: int = 0
+
+
+BUILTIN_SKILLS: tuple[SkillDefinition, ...] = (
+    SkillDefinition(
+        slug="general_chat",
+        name="General Chat",
+        description="Default Azure AI tutor conversation skill.",
+        tool_slugs=("student_progress", "course_navigator"),
+        trigger_keywords=(),
+        priority=0,
+    ),
+    SkillDefinition(
+        slug="lesson_explainer",
+        name="Lesson Explainer",
+        description="Explains lesson topics using the current lesson and RAG context.",
+        tool_slugs=("lesson_context", "course_navigator"),
+        trigger_keywords=(
+            "tushuntir",
+            "izohlab ber",
+            "explain",
+            "lesson",
+            "dars",
+            "mavzu",
+            "qanday ishlaydi",
+            "misol bilan",
+        ),
+        priority=20,
+    ),
+    SkillDefinition(
+        slug="quiz_generator",
+        name="Quiz Generator",
+        description="Creates practice questions and quizzes from lesson context.",
+        tool_slugs=("lesson_context", "quiz_context"),
+        trigger_keywords=(
+            "quiz",
+            "test",
+            "quiz tuz",
+            "savol tuz",
+            "mashq tuz",
+            "practice",
+            "variant",
+            "imtihon uchun savol",
+            "tekshiruvchi test",
+        ),
+        priority=80,
+    ),
+    SkillDefinition(
+        slug="homework_checker",
+        name="Homework Checker",
+        description="Reviews homework drafts and gives revision guidance.",
+        tool_slugs=("lesson_context", "homework_context", "student_progress"),
+        trigger_keywords=(
+            "homework",
+            "vazifa",
+            "topshiriq",
+            "tekshirib ber",
+            "tekshir",
+            "review qil",
+            "xatolarini top",
+            "baholab ber",
+        ),
+        priority=70,
+    ),
+    SkillDefinition(
+        slug="grammar_corrector",
+        name="Grammar Corrector",
+        description="Corrects grammar, explains mistakes, and provides compact practice.",
+        tool_slugs=("lesson_context",),
+        trigger_keywords=(
+            "grammar",
+            "grammatika",
+            "xato",
+            "tuzat",
+            "correct",
+            "zamon",
+            "tense",
+            "gapimni",
+            "sentence",
+        ),
+        priority=65,
+    ),
+    SkillDefinition(
+        slug="speaking_coach",
+        name="Speaking Coach",
+        description="Coaches speaking, pronunciation, fluency, and oral exam practice.",
+        tool_slugs=("lesson_context", "student_progress"),
+        trigger_keywords=(
+            "speaking",
+            "gapirish",
+            "talaffuz",
+            "pronunciation",
+            "audio",
+            "og'zaki",
+            "fluency",
+            "nutq",
+        ),
+        priority=60,
+    ),
+    SkillDefinition(
+        slug="writing_feedback",
+        name="Writing Feedback",
+        description="Gives structured feedback on essays, paragraphs, and writing tasks.",
+        tool_slugs=("lesson_context", "homework_context"),
+        trigger_keywords=(
+            "writing",
+            "essay",
+            "insho",
+            "yozganim",
+            "matnim",
+            "paragraph",
+            "feedback",
+            "yozuv",
+        ),
+        priority=60,
+    ),
+    SkillDefinition(
+        slug="course_navigator",
+        name="Course Navigator",
+        description="Helps learners find courses, lessons, next steps, and platform navigation.",
+        tool_slugs=("course_navigator", "student_progress"),
+        trigger_keywords=(
+            "qaysi dars",
+            "keyingi dars",
+            "qayerdan boshlay",
+            "kurs",
+            "roadmap",
+            "navigatsiya",
+            "qayerga o'tay",
+            "nimani o'qiy",
+        ),
+        priority=50,
+    ),
+    SkillDefinition(
+        slug="student_progress_coach",
+        name="Student Progress Coach",
+        description="Analyzes learner progress and suggests the next study plan.",
+        tool_slugs=("student_progress", "course_navigator"),
+        trigger_keywords=(
+            "progress",
+            "natija",
+            "qancha tugatdim",
+            "rivojlanish",
+            "kuchsiz joy",
+            "reja tuz",
+            "study plan",
+            "qanday yaxshilay",
+        ),
+        priority=55,
+    ),
+)
 
 
 class SkillRegistry:
-    """Loads and selects AI skills.
-
-    The first production step is intentionally small: every message routes to
-    the general chat skill. The registry gives us the extension point for
-    lesson, quiz, image, and document skills without bloating the Celery task.
-    """
+    """Loads and selects built-in AI skills for Azure AI."""
 
     def __init__(self, skills_root: Path | None = None):
         self.skills_root = skills_root or Path(__file__).resolve().parent
+        self._definitions = {definition.slug: definition for definition in BUILTIN_SKILLS}
 
     def select_for_request(self, request) -> Skill:
-        return self.get("general_chat")
+        question = self._normalize(getattr(request, "user_question", ""))
+        best_slug = "general_chat"
+        best_score = 0
+
+        for definition in BUILTIN_SKILLS:
+            if definition.slug == "general_chat":
+                continue
+            score = self._score_definition(definition, question)
+            if definition.slug == "lesson_explainer" and getattr(request, "context_lesson", None):
+                score += 2
+            if score > best_score or (score == best_score and score and definition.priority > self._definitions[best_slug].priority):
+                best_slug = definition.slug
+                best_score = score
+
+        if best_score == 0 and getattr(request, "context_lesson", None):
+            best_slug = "lesson_explainer"
+
+        return self.get(best_slug)
 
     def get(self, slug: str) -> Skill:
-        if slug != "general_chat":
+        definition = self._definitions.get(slug)
+        if not definition:
             raise KeyError(f"Unknown AI skill: {slug}")
-        skill_path = self.skills_root / "general_chat" / "SKILL.md"
-        try:
-            instructions = skill_path.read_text(encoding="utf-8").strip()
-        except OSError:
-            instructions = GENERAL_CHAT_FALLBACK_INSTRUCTIONS
         return Skill(
-            slug="general_chat",
-            name="General Chat",
-            description="Default Azure AI tutor conversation skill.",
-            instructions=instructions,
+            slug=definition.slug,
+            name=definition.name,
+            description=definition.description,
+            instructions=self._load_instructions(definition.slug),
+            tool_slugs=definition.tool_slugs,
+            trigger_keywords=definition.trigger_keywords,
+            priority=definition.priority,
         )
+
+    def all(self) -> list[Skill]:
+        return [self.get(definition.slug) for definition in BUILTIN_SKILLS]
+
+    def _score_definition(self, definition: SkillDefinition, question: str) -> int:
+        score = 0
+        for keyword in definition.trigger_keywords:
+            normalized_keyword = self._normalize(keyword)
+            if normalized_keyword and normalized_keyword in question:
+                score += 4 + len(normalized_keyword.split())
+        if score:
+            score += definition.priority // 20
+        return score
+
+    def _load_instructions(self, slug: str) -> str:
+        skill_path = self.skills_root / slug / "SKILL.md"
+        try:
+            return skill_path.read_text(encoding="utf-8").strip()
+        except OSError:
+            if slug == "general_chat":
+                return GENERAL_CHAT_FALLBACK_INSTRUCTIONS
+            return f"Use the {slug} skill. Answer in Uzbek and follow AzureLMS safety rules."
+
+    def _normalize(self, text: str) -> str:
+        return " ".join((text or "").casefold().split())

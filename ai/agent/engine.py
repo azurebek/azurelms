@@ -6,6 +6,7 @@ from ai.prompts.builder import PromptBuilder
 from ai.providers.gemini import GeminiProvider, fallback_ai_reply
 from ai.rag.context import RAGContextService
 from ai.skills.registry import SkillRegistry
+from ai.tools.context import ToolContextService
 
 
 logger = logging.getLogger(__name__)
@@ -20,16 +21,19 @@ class AIEngine:
         prompt_builder: PromptBuilder | None = None,
         provider: GeminiProvider | None = None,
         skill_registry: SkillRegistry | None = None,
+        tool_context_service: ToolContextService | None = None,
     ):
         self.memory_service = memory_service or MemoryService()
         self.rag_service = rag_service or RAGContextService()
         self.prompt_builder = prompt_builder or PromptBuilder()
         self.provider = provider or GeminiProvider()
         self.skill_registry = skill_registry or SkillRegistry()
+        self.tool_context_service = tool_context_service or ToolContextService()
 
     def generate_reply(self, request: AIRequest) -> AIResponse:
         try:
             skill = self.skill_registry.select_for_request(request)
+            tool_context = self.tool_context_service.build(request=request, skill=skill)
             safe_question = self.memory_service.sanitize_user_question(request.user_question)
             conversation_context = self.memory_service.get_conversation_context(
                 room=request.room,
@@ -52,6 +56,7 @@ class AIEngine:
                 dialogue=conversation_context.recent_dialogue,
                 lesson_context=rag_context.lesson_context,
                 rag_context=rag_context.rag_context,
+                tool_context=tool_context.rendered,
                 user_question=safe_question,
             )
             provider_response = self.provider.generate(
@@ -82,6 +87,8 @@ class AIEngine:
                     "saved_memories": len(saved_memories),
                     "summarized_messages": conversation_context.summarized_message_count,
                     "recent_dialogue_messages": conversation_context.recent_message_count,
+                    "active_skill": skill.slug,
+                    "used_tools": tool_context.used_tools,
                 },
             )
         except Exception as exc:

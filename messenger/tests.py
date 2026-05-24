@@ -7,8 +7,20 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
+from ai.agent.types import AIRequest
+from ai.skills.registry import SkillRegistry
 from cohorts.models import Cohort, Enrollment
-from courses.models import Course, Lesson, Module
+from courses.models import (
+    Assignment,
+    AssignmentSubmission,
+    Choice,
+    Course,
+    Lesson,
+    LessonProgress,
+    Module,
+    Question,
+    Quiz,
+)
 from messenger.access import maybe_name_ai_room_from_first_prompt
 from messenger.models import (
     AIFeedback,
@@ -193,6 +205,50 @@ class GenerateAiResponseTaskTests(TestCase):
             password="testpass123",
         )
 
+    def _make_course_with_lesson(self, *, title="AI English", lesson_title="Present Perfect"):
+        course = Course.objects.create(
+            title=title,
+            description="English course for AI tool tests",
+            level="beginner",
+        )
+        module = Module.objects.create(course=course, title="Module 1", order=1)
+        lesson = Lesson.objects.create(
+            module=module,
+            title=lesson_title,
+            content="<p>Present perfect connects past actions with present results.</p>",
+            order=1,
+        )
+        cohort = Cohort.objects.create(
+            name=f"{title} Cohort",
+            course=course,
+            start_date=datetime.date(2026, 1, 1),
+        )
+        enrollment = Enrollment.objects.create(
+            student=self.student,
+            cohort=cohort,
+            status=Enrollment.STATUS_ACTIVE,
+        )
+        return course, module, lesson, enrollment
+
+    def test_skill_registry_routes_core_skill_requests(self):
+        registry = SkillRegistry()
+        cases = {
+            "Shu darsdan quiz tuz": "quiz_generator",
+            "Vazifamni tekshirib ber": "homework_checker",
+            "Bu gapimni grammatika bo'yicha tuzat": "grammar_corrector",
+            "Speaking uchun og'zaki practice qilaylik": "speaking_coach",
+            "Essay yozganimga feedback ber": "writing_feedback",
+            "Keyingi dars qaysi?": "course_navigator",
+            "Progressim qanday, reja tuz": "student_progress_coach",
+            "Bugun motivatsiya ber": "general_chat",
+        }
+
+        for question, expected_slug in cases.items():
+            skill = registry.select_for_request(
+                AIRequest(room=None, student=self.student, user_question=question)
+            )
+            self.assertEqual(skill.slug, expected_slug, question)
+
     @patch("messenger.tasks.logger.warning")
     def test_generate_ai_response_returns_safely_when_room_is_missing(self, mocked_warning):
         result = generate_ai_response.run(room_id=999999, student_id=self.student.id, user_question="salom")
@@ -254,6 +310,108 @@ class GenerateAiResponseTaskTests(TestCase):
         self.assertEqual(run.client_message_id, "client-123")
         self.assertTrue(run.model_name)
         self.assertGreaterEqual(run.duration_ms, 0)
+
+    @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
+    @patch("ai.providers.gemini.genai.Client")
+    def test_generate_ai_response_routes_quiz_skill_and_includes_tool_context(
+        self,
+        mocked_client,
+        _mocked_retrieve_chunks,
+    ):
+        _course, _module, lesson, _enrollment = self._make_course_with_lesson()
+        quiz = Quiz.objects.create(title="Present Perfect Quiz", lesson=lesson)
+        question = Question.objects.create(quiz=quiz, text="<p>I ____ finished my homework.</p>")
+        Choice.objects.create(question=question, text="have", is_correct=True)
+        Choice.objects.create(question=question, text="has", is_correct=False)
+        room = ChatRoom.objects.create(room_type="ai", name="Azure AI - ai-student")
+        room.participants.add(self.student)
+        mocked_client.return_value.models.generate_content.return_value = SimpleNamespace(text="Javob tayyor.")
+
+        generate_ai_response.run(
+            room_id=room.id,
+            student_id=self.student.id,
+            user_question="Shu darsdan quiz tuz",
+            context_lesson_id=lesson.id,
+        )
+
+        prompt = mocked_client.return_value.models.generate_content.call_args.kwargs["contents"]
+        self.assertIn("ACTIVE SKILL: Quiz Generator (quiz_generator)", prompt)
+        self.assertIn("AGENT TOOL KONTEXTI", prompt)
+        self.assertIn("[tool:lesson_context]", prompt)
+        self.assertIn("[tool:quiz_context]", prompt)
+        self.assertIn("Existing quiz context for lesson: Present Perfect", prompt)
+        self.assertIn("Do not expose stored correct-answer flags", prompt)
+        run = AIResponseRun.objects.get(room=room, student=self.student)
+        self.assertEqual(run.skill_slug, "quiz_generator")
+        self.assertEqual(run.metadata["active_skill"], "quiz_generator")
+        self.assertIn("quiz_context", run.metadata["used_tools"])
+
+    @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
+    @patch("ai.providers.gemini.genai.Client")
+    def test_generate_ai_response_routes_homework_skill_with_submission_context(
+        self,
+        mocked_client,
+        _mocked_retrieve_chunks,
+    ):
+        _course, _module, lesson, _enrollment = self._make_course_with_lesson(lesson_title="Daily Routine")
+        assignment = Assignment.objects.create(
+            lesson=lesson,
+            title="Write your routine",
+            description="<p>Write five sentences about your daily routine.</p>",
+        )
+        AssignmentSubmission.objects.create(
+            assignment=assignment,
+            student=self.student,
+            answer_text="I wakes up at seven and go to school.",
+            status=AssignmentSubmission.STATUS_PENDING,
+        )
+        room = ChatRoom.objects.create(room_type="ai", name="Azure AI - ai-student")
+        room.participants.add(self.student)
+        mocked_client.return_value.models.generate_content.return_value = SimpleNamespace(text="Javob tayyor.")
+
+        generate_ai_response.run(
+            room_id=room.id,
+            student_id=self.student.id,
+            user_question="Vazifamni tekshirib ber",
+            context_lesson_id=lesson.id,
+        )
+
+        prompt = mocked_client.return_value.models.generate_content.call_args.kwargs["contents"]
+        self.assertIn("ACTIVE SKILL: Homework Checker (homework_checker)", prompt)
+        self.assertIn("[tool:homework_context]", prompt)
+        self.assertIn("Student draft excerpt: I wakes up at seven and go to school.", prompt)
+        run = AIResponseRun.objects.get(room=room, student=self.student)
+        self.assertEqual(run.skill_slug, "homework_checker")
+        self.assertIn("homework_context", run.metadata["used_tools"])
+
+    @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
+    @patch("ai.providers.gemini.genai.Client")
+    def test_generate_ai_response_routes_progress_skill_with_progress_tool(
+        self,
+        mocked_client,
+        _mocked_retrieve_chunks,
+    ):
+        _course, module, lesson, enrollment = self._make_course_with_lesson(lesson_title="First Lesson")
+        Lesson.objects.create(module=module, title="Second Lesson", content="Next topic", order=2)
+        LessonProgress.objects.create(enrollment=enrollment, lesson=lesson, is_completed=True)
+        room = ChatRoom.objects.create(room_type="ai", name="Azure AI - ai-student")
+        room.participants.add(self.student)
+        mocked_client.return_value.models.generate_content.return_value = SimpleNamespace(text="Javob tayyor.")
+
+        generate_ai_response.run(
+            room_id=room.id,
+            student_id=self.student.id,
+            user_question="Progressim qanday, reja tuz",
+        )
+
+        prompt = mocked_client.return_value.models.generate_content.call_args.kwargs["contents"]
+        self.assertIn("ACTIVE SKILL: Student Progress Coach (student_progress_coach)", prompt)
+        self.assertIn("[tool:student_progress]", prompt)
+        self.assertIn("1/2 lessons completed", prompt)
+        self.assertIn("Suggested next lesson by progress: Module 1 -> Second Lesson", prompt)
+        run = AIResponseRun.objects.get(room=room, student=self.student)
+        self.assertEqual(run.skill_slug, "student_progress_coach")
+        self.assertIn("student_progress", run.metadata["used_tools"])
 
     @patch("messenger.tasks.logger.exception")
     @patch("messenger.tasks.Message.objects.create", side_effect=RuntimeError("db write failed"))
