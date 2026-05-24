@@ -5,6 +5,7 @@ from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from cohorts.models import Cohort, Enrollment
 from courses.models import Course, Lesson, Module
@@ -335,6 +336,7 @@ class GenerateAiResponseTaskTests(TestCase):
         self.assertEqual(memory.category, AIMemoryFact.CATEGORY_WEAK_TOPIC)
         self.assertEqual(memory.value, "Python funksiyalarini o'rganyapti")
         self.assertEqual(memory.source_room, room)
+        self.assertIn("last_seen_at", memory.metadata)
         trace = AIMemoryTrace.objects.get(user=self.student, event_type=AIMemoryTrace.EVENT_SAVED)
         self.assertIn("SAVE_MEMORY", trace.reason)
         self.assertTrue(trace.metadata["quality_eval"]["passed"])
@@ -843,6 +845,44 @@ class AIMemoryControlTests(TestCase):
         self.assertContains(response, "Promptga olingan")
         self.assertContains(response, reverse("ai_memory_reject", args=[fact.id]))
         self.assertContains(response, "Noto'g'ri")
+
+    def test_maintenance_archives_stale_fact_after_prior_decay_write(self):
+        from ai.memory.repository import MemoryRepository
+
+        repo = MemoryRepository()
+        now = timezone.now()
+        first_seen_at = now - datetime.timedelta(days=179)
+        fact = self._make_fact("Juda eski lekin ilgari decay qilingan fakt", fingerprint="fp-stale-decay")
+        AIMemoryFact.objects.filter(id=fact.id).update(
+            confidence=0.8,
+            created_at=first_seen_at,
+            updated_at=first_seen_at,
+            metadata={"last_seen_at": first_seen_at.isoformat()},
+        )
+
+        first_report = repo.maintain_user_memory(user=self.student, now=now)
+        fact.refresh_from_db()
+
+        self.assertEqual(first_report, {"decayed": 1, "archived": 0})
+        self.assertEqual(fact.status, AIMemoryFact.STATUS_ACTIVE)
+        self.assertLess(fact.confidence, 0.8)
+
+        second_report = repo.maintain_user_memory(
+            user=self.student,
+            now=first_seen_at + datetime.timedelta(days=181),
+        )
+        fact.refresh_from_db()
+
+        self.assertEqual(second_report, {"decayed": 0, "archived": 1})
+        self.assertEqual(fact.status, AIMemoryFact.STATUS_ARCHIVED)
+        self.assertTrue(
+            AIMemoryTrace.objects.filter(
+                user=self.student,
+                fact=fact,
+                event_type=AIMemoryTrace.EVENT_ARCHIVED,
+                metadata__action="auto_archive_stale",
+            ).exists()
+        )
 
 
 class AIFeedbackApiTests(TestCase):

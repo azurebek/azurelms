@@ -1,5 +1,6 @@
 import hashlib
 
+from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 
 from messenger.models import AIMemoryFact, AIMemoryTrace, AIConversationSummary, AILongTermMemory
@@ -25,6 +26,11 @@ class MemoryRepository:
     def save_candidate(self, *, user, candidate: MemoryCandidate, source_room=None, source_message=None) -> SavedMemory:
         quality_eval = self.evaluator.evaluate_candidate(candidate)
         fingerprint = self.fingerprint(candidate.category, candidate.value)
+        now = timezone.now()
+        candidate_metadata = {
+            **(candidate.metadata or {}),
+            "last_seen_at": now.isoformat(),
+        }
         fact, created = AIMemoryFact.objects.get_or_create(
             user=user,
             fingerprint=fingerprint,
@@ -37,7 +43,7 @@ class MemoryRepository:
                 "visibility": candidate.visibility,
                 "source_room": source_room,
                 "source_message": source_message,
-                "metadata": candidate.metadata,
+                "metadata": candidate_metadata,
             },
         )
         if not created:
@@ -49,7 +55,7 @@ class MemoryRepository:
             fact.visibility = candidate.visibility
             fact.source_room = source_room or fact.source_room
             fact.source_message = source_message or fact.source_message
-            fact.metadata = {**(fact.metadata or {}), **candidate.metadata}
+            fact.metadata = {**(fact.metadata or {}), **candidate_metadata}
             fact.save(
                 update_fields=[
                     "category",
@@ -186,8 +192,11 @@ class MemoryRepository:
         now = now or timezone.now()
         decayed = 0
         archived = 0
-        for fact in AIMemoryFact.objects.filter(user=user, status=AIMemoryFact.STATUS_ACTIVE):
-            anchor = fact.last_used_at or fact.updated_at or fact.created_at
+        for fact in (
+            AIMemoryFact.objects.filter(user=user, status=AIMemoryFact.STATUS_ACTIVE)
+            .select_related("source_message")
+        ):
+            anchor = self._staleness_anchor(fact)
             stale_days = max(0, (now - anchor).days)
             if stale_days < self.DECAY_START_DAYS:
                 continue
@@ -238,6 +247,21 @@ class MemoryRepository:
             )
 
         return {"decayed": decayed, "archived": archived}
+
+    def _staleness_anchor(self, fact):
+        """Return the last meaningful use/update time, ignoring maintenance writes."""
+        metadata = fact.metadata or {}
+        last_seen_at = metadata.get("last_seen_at")
+        parsed = parse_datetime(last_seen_at) if last_seen_at else None
+        if parsed and timezone.is_naive(parsed):
+            parsed = timezone.make_aware(parsed, timezone.get_current_timezone())
+        if fact.last_used_at:
+            return fact.last_used_at
+        if parsed:
+            return parsed
+        if fact.source_message_id and fact.source_message:
+            return fact.source_message.created_at
+        return fact.created_at
 
     def create_trace(
         self,
