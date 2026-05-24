@@ -293,6 +293,31 @@ body {
   justify-content: center;
   flex-shrink: 0;
 }
+.sb-pin {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255,255,255,.38);
+  opacity: 0;
+  transition: opacity 120ms, color 120ms, background 120ms;
+}
+.sb-pin:hover,
+.sb-pin:focus-visible {
+  color: #fff;
+  background: rgba(255,255,255,.1);
+  outline: none;
+}
+.sb-item:hover .sb-pin,
+.sb-item:focus-within .sb-pin,
+.sb-item.is-pinned .sb-pin {
+  opacity: 1;
+}
+.sb-item.is-pinned .sb-pin {
+  color: #60a5fa;
+}
 
 .sb-footer {
   flex-shrink: 0;
@@ -733,6 +758,13 @@ body {
   color: #fff;
   border-bottom-right-radius: 6px;
 }
+.bubble-deleted {
+  color: var(--ink-4);
+  font-style: italic;
+}
+.msg-row.me .bubble-deleted {
+  color: rgba(255,255,255,.76);
+}
 
 /* Bubble grouping */
 .msg-row.group-mid .bubble-them { border-top-left-radius: 6px; }
@@ -1033,6 +1065,17 @@ body {
   background: var(--bg);
   color: var(--blue-mid);
 }
+.msg-actions button.danger:hover {
+  color: var(--red);
+  background: var(--red-soft);
+}
+@media (hover: none) {
+  .msg-actions {
+    opacity: 1;
+    pointer-events: auto;
+    transform: none;
+  }
+}
 
 /* ── COMPOSE ────────────────────────────────────────── */
 .compose-wrap {
@@ -1057,6 +1100,17 @@ body {
 }
 
 .attach-wrap { position: relative; flex-shrink: 0; }
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 .attach-btn {
   width: 40px;
   height: 40px;
@@ -1738,7 +1792,38 @@ body.info-collapsed .chat-info-panel {
   }
 }
 @media (max-width: 640px) {
-  .sidebar { display: none; }
+  .sidebar {
+    width: 112px;
+  }
+  .sb-home-name,
+  .sb-search,
+  .sb-section-label,
+  .sb-new-chat span,
+  .sb-item-body,
+  .sb-footer {
+    display: none;
+  }
+  .sb-head {
+    padding: 14px 10px;
+  }
+  .sb-head-row,
+  .sb-head-actions {
+    justify-content: center;
+  }
+  .sb-new-chat-row {
+    padding: 0 10px;
+  }
+  .sb-new-chat {
+    justify-content: center;
+    padding: 10px;
+  }
+  .sb-item {
+    justify-content: center;
+    padding: 10px 8px;
+  }
+  .sb-pin {
+    display: none;
+  }
   .messages-area { padding: 12px; }
   .compose-wrap { padding: 8px 12px 12px; }
   .msg-group { max-width: 82%; }

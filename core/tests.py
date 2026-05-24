@@ -3,6 +3,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from courses.models import Course, Exam, ExamSection, Lesson, Module
+from messenger.models import ChatRoom, Message
 
 
 @override_settings(GEMINI_API_KEY=None)
@@ -70,10 +71,14 @@ class BackofficeDashboardTests(TestCase):
             time_limit_minutes=20,
             order=1,
         )
+        chat_room = ChatRoom.objects.create(room_type="ai", name="Backoffice AI chat")
+        chat_room.participants.add(self.student_user)
+        Message.objects.create(room=chat_room, text="Monitoring uchun test xabar", is_ai_response=True)
         self.client.force_login(self.staff_user)
 
         checks = (
             (reverse("backoffice_users"), "Foydalanuvchilarni boshqarish"),
+            (reverse("backoffice_chats"), "Chat monitoring"),
             (reverse("backoffice_course_create"), "Course Builder"),
             (reverse("backoffice_course_edit", kwargs={"course_id": course.pk}), "Kurs ma'lumotlari"),
             (reverse("backoffice_lessons"), "Lesson Editor"),

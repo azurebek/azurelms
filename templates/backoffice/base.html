@@ -36,13 +36,14 @@
     </div>
 
     <nav class="sidebar-nav" aria-label="Backoffice navigatsiya">
-      <details class="nav-accordion" {% if bo_active == 'overview' %}open{% endif %}>
+      <details class="nav-accordion" {% if bo_active == 'overview' or bo_active == 'chats' %}open{% endif %}>
         <summary class="nav-accordion-trigger">
           <span class="nav-accordion-title"><i class="bi bi-speedometer2"></i> Bosh sahifa</span>
           <i class="bi bi-chevron-down nav-accordion-caret"></i>
         </summary>
         <div class="nav-accordion-panel">
           <a href="{% url 'backoffice_dashboard' %}" class="nav-item {% if bo_active == 'overview' %}active{% endif %}"><i class="bi bi-grid-fill"></i> Overview</a>
+          <a href="{% url 'backoffice_chats' %}" class="nav-item {% if bo_active == 'chats' %}active{% endif %}"><i class="bi bi-chat-dots"></i> Chat monitoring <span class="nav-badge">{{ counts.chat_rooms|intcomma }}</span></a>
           <a href="#" class="nav-item"><i class="bi bi-bar-chart-line"></i> Hisobotlar</a>
           <a href="#" class="nav-item"><i class="bi bi-activity"></i> Aktivlik logi</a>
         </div>

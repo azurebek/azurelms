@@ -5,9 +5,10 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from asgiref.sync import sync_to_async
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from courses.models import Lesson
 from .access import maybe_name_ai_room_from_first_prompt, user_can_access_room, user_can_use_lesson_context
-from .models import AIResponseRun, ChatRoom, Message
+from .models import AIResponseRun, ChatRoom, ChatRoomUserState, Message
 
 User = get_user_model()
 
@@ -158,6 +159,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
         ai_skill_label = event.get("ai_skill_label", "")
         ai_used_tools = event.get("ai_used_tools", [])
         ai_rag_sources = event.get("ai_rag_sources", [])
+        attachment = event.get("attachment")
+        is_deleted = event.get("is_deleted", False)
+        edited_at = event.get("edited_at", "")
 
         await self.send(text_data=json.dumps({
             'event_type': 'message',
@@ -177,7 +181,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'ai_skill_label': ai_skill_label,
             'ai_used_tools': ai_used_tools,
             'ai_rag_sources': ai_rag_sources,
+            'attachment': attachment,
+            'is_deleted': is_deleted,
+            'edited_at': edited_at,
         }))
+
+    async def message_update(self, event):
+        payload = event.get("payload") or {}
+        payload["event_type"] = event.get("event_type") or "message_update"
+        await self.send(text_data=json.dumps(payload))
 
     async def ai_status(self, event):
         await self.send(text_data=json.dumps({
@@ -224,6 +236,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
             with suppress_ai_signal():
                 msg = Message.objects.create(room=room, sender=user, text=text, context_lesson=context_lesson)
+            ChatRoomUserState.objects.update_or_create(
+                room=room,
+                user=user,
+                defaults={"last_read_at": timezone.now()},
+            )
             maybe_name_ai_room_from_first_prompt(room, text)
             return msg
         except Exception as e:

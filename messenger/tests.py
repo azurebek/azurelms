@@ -1,9 +1,11 @@
 import datetime
+import tempfile
 from types import SimpleNamespace
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -29,6 +31,7 @@ from messenger.models import (
     AILongTermMemory,
     AIMemoryFact,
     AIMemoryTrace,
+    ChatRoomUserState,
     ChatRoom,
     LessonRAGChunk,
     Message,
@@ -132,6 +135,93 @@ class ChatAccessTests(TestCase):
         self.assertEqual(ai_rooms[0]["name"], "Essay feedback")
         self.assertEqual(ai_rooms[0]["last_message_text"], "Essay yaxshi, lekin thesis aniqroq bo'lsin")
         self.assertEqual(ai_rooms[1]["last_message_text"], "Present perfectni tushuntir")
+
+    def test_user_rooms_include_pinned_and_unread_state(self):
+        pinned_room = ChatRoom.objects.create(room_type="ai", name="Pinned grammar")
+        pinned_room.participants.add(self.student)
+        normal_room = ChatRoom.objects.create(room_type="ai", name="Normal chat")
+        normal_room.participants.add(self.student)
+        ChatRoomUserState.objects.create(
+            room=pinned_room,
+            user=self.student,
+            is_pinned=True,
+            last_read_at=timezone.now() - datetime.timedelta(minutes=5),
+        )
+        with suppress_ai_signal():
+            Message.objects.create(room=pinned_room, text="Yangi AI javob", is_ai_response=True)
+            Message.objects.create(room=normal_room, sender=self.student, text="Oddiy xabar")
+        self.client.force_login(self.student)
+
+        response = self.client.get(reverse("messenger:get_user_rooms"))
+
+        self.assertEqual(response.status_code, 200)
+        ai_rooms = [room for room in response.json()["rooms"] if room["type"] == "ai"]
+        self.assertEqual(ai_rooms[0]["id"], pinned_room.id)
+        self.assertTrue(ai_rooms[0]["is_pinned"])
+        self.assertEqual(ai_rooms[0]["unread_count"], 1)
+
+    def test_toggle_room_pin_api_flips_user_state(self):
+        room = ChatRoom.objects.create(room_type="ai", name="Pin me")
+        room.participants.add(self.student)
+        self.client.force_login(self.student)
+
+        response = self.client.post(reverse("messenger:toggle_room_pin", args=[room.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["is_pinned"])
+        self.assertTrue(ChatRoomUserState.objects.get(room=room, user=self.student).is_pinned)
+
+        second_response = self.client.post(reverse("messenger:toggle_room_pin", args=[room.id]))
+
+        self.assertEqual(second_response.status_code, 200)
+        self.assertFalse(second_response.json()["is_pinned"])
+
+    def test_message_edit_and_delete_apis_soft_delete_own_message(self):
+        room = ChatRoom.objects.create(room_type="ai", name="Editable")
+        room.participants.add(self.student)
+        with suppress_ai_signal():
+            message = Message.objects.create(room=room, sender=self.student, text="Eski matn")
+        self.client.force_login(self.student)
+
+        edit_response = self.client.post(
+            reverse("messenger:edit_message", args=[message.id]),
+            data='{"text": "Yangi matn"}',
+            content_type="application/json",
+        )
+
+        self.assertEqual(edit_response.status_code, 200)
+        message.refresh_from_db()
+        self.assertEqual(message.text, "Yangi matn")
+        self.assertIsNotNone(message.edited_at)
+        self.assertEqual(edit_response.json()["message"]["message"], "Yangi matn")
+
+        delete_response = self.client.post(reverse("messenger:delete_message", args=[message.id]))
+
+        self.assertEqual(delete_response.status_code, 200)
+        message.refresh_from_db()
+        self.assertTrue(message.is_deleted)
+        self.assertEqual(message.text, "")
+        self.assertEqual(delete_response.json()["message"]["message"], "Xabar o'chirilgan")
+
+    @override_settings(MEDIA_ROOT=tempfile.mkdtemp())
+    def test_upload_message_attachment_api_creates_file_message(self):
+        room = ChatRoom.objects.create(room_type="ai", name="Upload")
+        room.participants.add(self.student)
+        upload = SimpleUploadedFile("hello.txt", b"salom", content_type="text/plain")
+        self.client.force_login(self.student)
+
+        response = self.client.post(
+            reverse("messenger:upload_message_attachment"),
+            data={"room_id": room.id, "text": "Mana fayl", "file": upload},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        message = Message.objects.get(room=room, sender=self.student)
+        self.assertEqual(message.text, "Mana fayl")
+        self.assertEqual(message.attachment_name, "hello.txt")
+        payload = response.json()["message"]
+        self.assertEqual(payload["attachment"]["name"], "hello.txt")
+        self.assertEqual(payload["attachment"]["content_type"], "text/plain")
 
     def test_messenger_pages_render_without_course_enrollment(self):
         self.client.force_login(self.student)

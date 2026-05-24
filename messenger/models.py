@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 from cohorts.models import Cohort
 from courses.models import Course, Lesson
 from django.contrib.auth import get_user_model
@@ -40,15 +41,54 @@ class Message(models.Model):
     # Xabarni kim yozdi? (Agar AI yozgan bo'lsa, sender bo'sh qolishi mumkin)
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     text = models.TextField(verbose_name="Xabar matni")
+    attachment = models.FileField(upload_to="messenger/attachments/%Y/%m/%d", null=True, blank=True)
+    attachment_name = models.CharField(max_length=255, blank=True, default="")
+    attachment_content_type = models.CharField(max_length=120, blank=True, default="")
+    attachment_size = models.PositiveIntegerField(default=0)
 
     is_ai_response = models.BooleanField(default=False, help_text="Bu xabarni AI yozganmi?")
+    is_deleted = models.BooleanField(default=False)
 
     # SEHRLI MAYDON: O'quvchi qaysi darsda turib savol bergani shu yerda saqlanadi
     context_lesson = models.ForeignKey(Lesson, on_delete=models.SET_NULL, null=True, blank=True,
                                        help_text="Kontekst uchun dars")
 
     created_at = models.DateTimeField(auto_now_add=True)
+    edited_at = models.DateTimeField(null=True, blank=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
     is_read = models.BooleanField(default=False, verbose_name="O'qildimi?")
+
+    @property
+    def display_text(self):
+        if self.is_deleted:
+            return "Xabar o'chirilgan"
+        if self.text:
+            return self.text
+        if self.attachment_name:
+            return self.attachment_name
+        return ""
+
+    @property
+    def attachment_url(self):
+        if not self.attachment or self.is_deleted:
+            return ""
+        try:
+            return self.attachment.url
+        except ValueError:
+            return ""
+
+    @property
+    def is_image_attachment(self):
+        return (self.attachment_content_type or "").startswith("image/")
+
+    @property
+    def attachment_size_label(self):
+        size = int(self.attachment_size or 0)
+        if size >= 1024 * 1024:
+            return f"{size / (1024 * 1024):.1f} MB"
+        if size >= 1024:
+            return f"{size / 1024:.0f} KB"
+        return f"{size} B" if size else ""
 
     def __str__(self):
         sender_name = self.sender.username if self.sender else "Azure AI"
@@ -61,6 +101,34 @@ class Message(models.Model):
         indexes = [
             models.Index(fields=['created_at']),
             models.Index(fields=['room', 'created_at']),
+            models.Index(fields=['room', 'is_deleted', 'created_at']),
+        ]
+
+
+class ChatRoomUserState(models.Model):
+    room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name="user_states")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="chat_room_states")
+    is_pinned = models.BooleanField(default=False)
+    last_read_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def mark_read(self, when=None):
+        self.last_read_at = when or timezone.now()
+        self.save(update_fields=["last_read_at", "updated_at"])
+
+    def __str__(self):
+        return f"{self.user} | {self.room_id} | pinned={self.is_pinned}"
+
+    class Meta:
+        verbose_name = "Chat room user state"
+        verbose_name_plural = "Chat room user states"
+        constraints = [
+            models.UniqueConstraint(fields=["room", "user"], name="unique_chat_room_user_state"),
+        ]
+        indexes = [
+            models.Index(fields=["user", "is_pinned", "updated_at"]),
+            models.Index(fields=["room", "user"]),
         ]
 
 

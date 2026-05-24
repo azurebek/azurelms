@@ -59,15 +59,16 @@
     <div class="sb-section-label">Kurs chatlari</div>
 
     {% if group_room %}
-      <a class="sb-item {% if active_room == 'group' %}active{% endif %}" href="{% url 'messenger:group' %}">
+      <a class="sb-item {% if active_room == 'group' %}active{% endif %} {% if group_room.unread_count %}has-unread{% endif %} {% if group_room.is_pinned %}is-pinned{% endif %}" href="{% url 'messenger:group' %}" data-sidebar-room-id="{{ group_room.id }}" data-search-text="{{ group_room.name|default:'Guruh chati' }} {{ group_room.cohort.name|default:'Kurs guruhi' }} {{ group_room.last_message_text|default:'' }}">
         <div class="sb-item-avatar c-lime">GR<span class="status-dot"></span></div>
         <div class="sb-item-body">
           <div class="sb-item-row">
             <span class="sb-item-name">{{ group_room.name|default:"Guruh chati" }}</span>
-            <span class="sb-item-time">{% if group_room.last_message_at %}{{ group_room.last_message_at|date:"H:i" }}{% endif %}</span>
+            <span class="sb-item-time">{% if group_room.unread_count %}<span class="sb-item-badge">{{ group_room.unread_count }}</span>{% elif group_room.last_message_at %}{{ group_room.last_message_at|date:"H:i" }}{% endif %}</span>
           </div>
           <div class="sb-item-preview">{{ group_room.cohort.name|default:"Kurs guruhi" }}</div>
         </div>
+        <span class="sb-pin" role="button" tabindex="0" data-pin-room-id="{{ group_room.id }}" aria-label="Chatni mahkamlash" title="{% if group_room.is_pinned %}Pinned{% else %}Pin{% endif %}"><i class="bi {% if group_room.is_pinned %}bi-pin-fill{% else %}bi-pin-angle{% endif %}"></i></span>
       </a>
     {% else %}
       <div class="sb-item is-disabled" aria-disabled="true">
@@ -77,21 +78,22 @@
             <span class="sb-item-name">Guruh chati</span>
             <span class="sb-item-time"><i class="bi bi-lock"></i></span>
           </div>
-          <div class="sb-item-preview">Kursga yozilgach ochiladi</div>
+          <div class="sb-item-preview">Aktiv kurs/cohort kerak</div>
         </div>
       </div>
     {% endif %}
 
     {% if tutor_room %}
-      <a class="sb-item {% if active_room == 'tutor' %}active{% endif %}" href="{% url 'messenger:tutor' %}">
+      <a class="sb-item {% if active_room == 'tutor' %}active{% endif %} {% if tutor_room.unread_count %}has-unread{% endif %} {% if tutor_room.is_pinned %}is-pinned{% endif %}" href="{% url 'messenger:tutor' %}" data-sidebar-room-id="{{ tutor_room.id }}" data-search-text="{{ tutor_room.name|default:'Tutor bilan aloqa' }} Kurs mentoring suhbati {{ tutor_room.last_message_text|default:'' }}">
         <div class="sb-item-avatar c-amber">TU<span class="status-dot"></span></div>
         <div class="sb-item-body">
           <div class="sb-item-row">
             <span class="sb-item-name">{{ tutor_room.name|default:"Tutor bilan aloqa" }}</span>
-            <span class="sb-item-time">{% if tutor_room.last_message_at %}{{ tutor_room.last_message_at|date:"H:i" }}{% endif %}</span>
+            <span class="sb-item-time">{% if tutor_room.unread_count %}<span class="sb-item-badge">{{ tutor_room.unread_count }}</span>{% elif tutor_room.last_message_at %}{{ tutor_room.last_message_at|date:"H:i" }}{% endif %}</span>
           </div>
           <div class="sb-item-preview">Kurs mentoring suhbati</div>
         </div>
+        <span class="sb-pin" role="button" tabindex="0" data-pin-room-id="{{ tutor_room.id }}" aria-label="Chatni mahkamlash" title="{% if tutor_room.is_pinned %}Pinned{% else %}Pin{% endif %}"><i class="bi {% if tutor_room.is_pinned %}bi-pin-fill{% else %}bi-pin-angle{% endif %}"></i></span>
       </a>
     {% else %}
       <div class="sb-item is-disabled" aria-disabled="true">
@@ -101,7 +103,7 @@
             <span class="sb-item-name">Tutor bilan aloqa</span>
             <span class="sb-item-time"><i class="bi bi-lock"></i></span>
           </div>
-          <div class="sb-item-preview">Kursga yozilgach ochiladi</div>
+          <div class="sb-item-preview">Aktiv kursda tutor ochiladi</div>
         </div>
       </div>
     {% endif %}
@@ -109,15 +111,16 @@
     <div class="sb-section-label">AI suhbatlar</div>
 
     {% for ai in ai_rooms %}
-      <a class="sb-item {% if active_room == 'ai' and active_ai_room_id == ai.id %}active{% endif %}" href="{% url 'messenger:ai_room' ai.id %}" data-sidebar-room-id="{{ ai.id }}">
+      <a class="sb-item {% if active_room == 'ai' and active_ai_room_id == ai.id %}active{% endif %} {% if ai.unread_count %}has-unread{% endif %} {% if ai.is_pinned %}is-pinned{% endif %}" href="{% url 'messenger:ai_room' ai.id %}" data-sidebar-room-id="{{ ai.id }}" data-search-text="{{ ai.name|default:'Yangi AI chat' }} {{ ai.last_message_text|default:'Savol yozib darhol mashq qiling' }}">
         <div class="sb-item-avatar sb-item-avatar--ai"><i class="bi bi-stars"></i></div>
         <div class="sb-item-body">
           <div class="sb-item-row">
             <span class="sb-item-name">{{ ai.name|default:"Yangi AI chat" }}</span>
-            <span class="sb-item-time">{% if ai.last_message_at %}{{ ai.last_message_at|date:"H:i" }}{% endif %}</span>
+            <span class="sb-item-time">{% if ai.unread_count %}<span class="sb-item-badge">{{ ai.unread_count }}</span>{% elif ai.last_message_at %}{{ ai.last_message_at|date:"H:i" }}{% endif %}</span>
           </div>
           <div class="sb-item-preview">{% if ai.last_message_text %}{{ ai.last_message_text|truncatechars:44 }}{% else %}Savol yozib, darhol mashq qiling{% endif %}</div>
         </div>
+        <span class="sb-pin" role="button" tabindex="0" data-pin-room-id="{{ ai.id }}" aria-label="Chatni mahkamlash" title="{% if ai.is_pinned %}Pinned{% else %}Pin{% endif %}"><i class="bi {% if ai.is_pinned %}bi-pin-fill{% else %}bi-pin-angle{% endif %}"></i></span>
       </a>
     {% endfor %}
   </div>
@@ -235,9 +238,45 @@
     search.addEventListener('input', function () {
       const q = search.value.toLowerCase();
       document.querySelectorAll('.sb-item').forEach(function (item) {
-        const name = item.querySelector('.sb-item-name');
-        if (!name) return;
-        item.style.display = name.textContent.toLowerCase().indexOf(q) !== -1 ? '' : 'none';
+        const haystack = (item.dataset.searchText || item.textContent || '').toLowerCase();
+        item.style.display = haystack.indexOf(q) !== -1 ? '' : 'none';
+      });
+    });
+  })();
+
+  (function () {
+    function csrfToken() {
+      const tokenInput = document.querySelector('[name="csrfmiddlewaretoken"]');
+      if (tokenInput && tokenInput.value) return tokenInput.value;
+      const match = document.cookie.match(/(?:^|; )csrftoken=([^;]+)/);
+      return match ? decodeURIComponent(match[1]) : '';
+    }
+    document.querySelectorAll('[data-pin-room-id]').forEach(function (pin) {
+      pin.addEventListener('click', async function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        const roomId = pin.getAttribute('data-pin-room-id');
+        if (!roomId) return;
+        try {
+          const response = await fetch(`/messenger/api/rooms/${encodeURIComponent(roomId)}/pin/`, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': csrfToken(),
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json',
+            },
+          });
+          const payload = await response.json();
+          if (!response.ok || payload.status !== 'success') return;
+          const item = pin.closest('.sb-item');
+          if (item) item.classList.toggle('is-pinned', Boolean(payload.is_pinned));
+          const icon = pin.querySelector('i');
+          if (icon) icon.className = payload.is_pinned ? 'bi bi-pin-fill' : 'bi bi-pin-angle';
+          window.setTimeout(() => window.location.reload(), 120);
+        } catch (_) {}
+      });
+      pin.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') pin.click();
       });
     });
   })();

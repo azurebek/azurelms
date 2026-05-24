@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import get_user_model
-from django.db.models import Count, Q, Sum
+from django.db.models import Count, Max, OuterRef, Q, Subquery, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.timesince import timesince
 from django.utils import timezone
@@ -12,6 +12,7 @@ from django.utils import timezone
 from blog.models import BlogPost
 from cohorts.models import Cohort, Enrollment, PaymentReceipt
 from courses.models import Course, Exam, ExamSection, Lesson, LessonProgress, Module
+from messenger.models import ChatRoom, Message
 from messenger.rag import get_rag_index_status
 from subscriptions.models import PromoCode
 
@@ -46,6 +47,7 @@ def _backoffice_counts():
         "pending_receipts": pending_receipts_count,
         "pending_posts": pending_posts_count,
         "promo_codes": PromoCode.objects.count(),
+        "chat_rooms": ChatRoom.objects.count(),
         "completed_lessons": LessonProgress.objects.filter(is_completed=True).count(),
     }
 
@@ -133,6 +135,7 @@ def backoffice_dashboard(request):
             "pending_receipts": pending_receipts_count,
             "pending_posts": pending_posts_count,
             "promo_codes": PromoCode.objects.count(),
+            "chat_rooms": ChatRoom.objects.count(),
             "completed_lessons": LessonProgress.objects.filter(is_completed=True).count(),
         },
         "attention_count": pending_receipts_count + pending_posts_count,
@@ -144,6 +147,62 @@ def backoffice_dashboard(request):
         "rag_status": rag_status,
     }
     return render(request, "backoffice/dashboard.html", context)
+
+
+@login_required
+@user_passes_test(_is_backoffice_user)
+def backoffice_chats(request):
+    query = request.GET.get("q", "").strip()
+    room_type = request.GET.get("type", "all")
+    latest_message = Message.objects.filter(room=OuterRef("pk")).order_by("-created_at")
+
+    rooms_qs = (
+        ChatRoom.objects.select_related("cohort", "cohort__course")
+        .prefetch_related("participants")
+        .annotate(
+            message_count=Count("messages", distinct=True),
+            participant_count=Count("participants", distinct=True),
+            last_message_at=Max("messages__created_at"),
+            last_message_text=Subquery(latest_message.values("text")[:1]),
+            last_sender_name=Subquery(
+                latest_message.values("sender__username")[:1],
+            ),
+        )
+    )
+    if room_type in {"ai", "group", "private"}:
+        rooms_qs = rooms_qs.filter(room_type=room_type)
+    if query:
+        rooms_qs = rooms_qs.filter(
+            Q(name__icontains=query)
+            | Q(messages__text__icontains=query)
+            | Q(participants__username__icontains=query)
+            | Q(participants__email__icontains=query)
+            | Q(cohort__name__icontains=query)
+            | Q(cohort__course__title__icontains=query)
+        ).distinct()
+
+    page_obj = Paginator(rooms_qs.order_by("-last_message_at", "-created_at"), 12).get_page(request.GET.get("page"))
+    today = timezone.localdate()
+    context = {
+        **_backoffice_context("chats"),
+        "filters": {"q": query, "type": room_type},
+        "page_obj": page_obj,
+        "room_type_choices": (
+            ("all", "Barcha chatlar"),
+            ("ai", "AI suhbatlar"),
+            ("group", "Guruh chatlari"),
+            ("private", "Tutor/private"),
+        ),
+        "chat_stats": {
+            "total": ChatRoom.objects.count(),
+            "ai": ChatRoom.objects.filter(room_type="ai").count(),
+            "group": ChatRoom.objects.filter(room_type="group").count(),
+            "private": ChatRoom.objects.filter(room_type="private").count(),
+            "messages_today": Message.objects.filter(created_at__date=today).count(),
+            "attachments": Message.objects.filter(attachment__isnull=False).exclude(attachment="").count(),
+        },
+    }
+    return render(request, "backoffice/chats.html", context)
 
 
 @login_required

@@ -48,6 +48,7 @@ urlpatterns = [
     path('offline/', core_views.offline, name='offline'),
     path('backoffice/', core_views.backoffice_dashboard, name='backoffice_dashboard'),
     path('backoffice/users/', core_views.backoffice_users, name='backoffice_users'),
+    path('backoffice/chats/', core_views.backoffice_chats, name='backoffice_chats'),
     path('backoffice/courses/new/', core_views.backoffice_course_editor, name='backoffice_course_create'),
     path('backoffice/courses/<int:course_id>/', core_views.backoffice_course_editor, name='backoffice_course_edit'),
     path('backoffice/lessons/', core_views.backoffice_lesson_editor, name='backoffice_lessons'),

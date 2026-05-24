@@ -1,0 +1,167 @@
+{% extends "backoffice/base.html" %}
+{% load static humanize %}
+
+{% block title %}Chat monitoring - Backoffice{% endblock %}
+{% block topbar_title %}Chat monitoring{% endblock %}
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/backoffice-users.css' %}">
+  <link rel="stylesheet" href="{% static 'css/backoffice-chats.css' %}">
+{% endblock %}
+{% block topbar_extra %}
+  <form class="topbar-search" method="get">
+    <i class="bi bi-search"></i>
+    <input type="text" name="q" value="{{ filters.q }}" placeholder="Chat, user yoki xabar izlash...">
+    <input type="hidden" name="type" value="{{ filters.type }}">
+  </form>
+{% endblock %}
+
+{% block content %}
+<div class="users-header">
+  <div class="users-header-left">
+    <div class="users-page-title">
+      <i class="bi bi-chat-dots-fill"></i>
+      Chat monitoring
+    </div>
+    <div class="users-page-sub">AI, guruh va tutor suhbatlari bo'yicha umumiy kuzatuv paneli</div>
+  </div>
+  <div class="users-header-actions">
+    <a class="btn-outline" href="{% url 'messenger:ai' %}">
+      <i class="bi bi-box-arrow-up-right"></i> Messenger
+    </a>
+  </div>
+</div>
+
+<div class="users-stats">
+  <div class="u-stat">
+    <div class="u-stat-icon blue"><i class="bi bi-chat-square-text-fill"></i></div>
+    <div class="u-stat-body">
+      <div class="u-stat-val">{{ chat_stats.total|intcomma }}</div>
+      <div class="u-stat-label">Jami chat xonalari</div>
+      <div class="u-stat-delta neu">{{ chat_stats.messages_today|intcomma }} xabar bugun</div>
+    </div>
+  </div>
+  <div class="u-stat">
+    <div class="u-stat-icon green"><i class="bi bi-stars"></i></div>
+    <div class="u-stat-body">
+      <div class="u-stat-val">{{ chat_stats.ai|intcomma }}</div>
+      <div class="u-stat-label">AI suhbatlar</div>
+      <div class="u-stat-delta up">Auth userlar uchun ochiq</div>
+    </div>
+  </div>
+  <div class="u-stat">
+    <div class="u-stat-icon amber"><i class="bi bi-people-fill"></i></div>
+    <div class="u-stat-body">
+      <div class="u-stat-val">{{ chat_stats.group|intcomma }}</div>
+      <div class="u-stat-label">Guruh chatlari</div>
+      <div class="u-stat-delta neu">Kurs/cohortga bog'langan</div>
+    </div>
+  </div>
+  <div class="u-stat">
+    <div class="u-stat-icon red"><i class="bi bi-paperclip"></i></div>
+    <div class="u-stat-body">
+      <div class="u-stat-val">{{ chat_stats.attachments|intcomma }}</div>
+      <div class="u-stat-label">Faylli xabarlar</div>
+      <div class="u-stat-delta neu">Upload audit uchun</div>
+    </div>
+  </div>
+</div>
+
+<div class="users-tabs">
+  {% for value, label in room_type_choices %}
+    <a class="users-tab {% if filters.type == value %}active{% endif %}" href="{% url 'backoffice_chats' %}?type={{ value }}&q={{ filters.q|urlencode }}">
+      {{ label }}
+    </a>
+  {% endfor %}
+</div>
+
+<form class="users-toolbar" method="get">
+  <div class="toolbar-search">
+    <i class="bi bi-search"></i>
+    <input type="text" name="q" value="{{ filters.q }}" placeholder="Chat nomi, user, email yoki xabar matni...">
+  </div>
+  <select class="toolbar-select" name="type">
+    {% for value, label in room_type_choices %}
+      <option value="{{ value }}" {% if filters.type == value %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <button class="toolbar-btn" type="submit"><i class="bi bi-funnel"></i> Filter</button>
+  <a class="toolbar-btn" href="{% url 'backoffice_chats' %}"><i class="bi bi-x-lg"></i> Tozalash</a>
+</form>
+
+<div class="chat-monitor-list">
+  {% for room in page_obj.object_list %}
+    <article class="chat-monitor-row">
+      <div class="chat-room-mark chat-room-mark--{{ room.room_type }}">
+        {% if room.room_type == "ai" %}
+          <i class="bi bi-stars"></i>
+        {% elif room.room_type == "group" %}
+          <i class="bi bi-people-fill"></i>
+        {% else %}
+          <i class="bi bi-person-video3"></i>
+        {% endif %}
+      </div>
+      <div class="chat-room-main">
+        <div class="chat-room-head">
+          <div class="chat-room-title">{{ room.name|default:"Nomsiz chat" }}</div>
+          <span class="chat-room-type">{{ room.get_room_type_display }}</span>
+        </div>
+        <div class="chat-room-preview">
+          {% if room.last_message_text %}
+            {{ room.last_message_text|truncatechars:120 }}
+          {% else %}
+            Hali xabar yo'q
+          {% endif %}
+        </div>
+        <div class="chat-room-meta">
+          <span><i class="bi bi-chat-left-text"></i> {{ room.message_count|intcomma }} xabar</span>
+          <span><i class="bi bi-person"></i> {{ room.participant_count|intcomma }} ishtirokchi</span>
+          {% if room.cohort %}
+            <span><i class="bi bi-collection-play"></i> {{ room.cohort.course.title }} / {{ room.cohort.name }}</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="chat-room-side">
+        <div class="chat-room-time">
+          {% if room.last_message_at %}{{ room.last_message_at|timesince }} oldin{% else %}Yangi{% endif %}
+        </div>
+        <div class="chat-room-people">
+          {% for participant in room.participants.all|slice:":4" %}
+            <span title="{{ participant.get_full_name|default:participant.username }}">{{ participant.username|slice:":2"|upper }}</span>
+          {% empty %}
+            <span>--</span>
+          {% endfor %}
+        </div>
+      </div>
+    </article>
+  {% empty %}
+    <div class="chat-monitor-empty">
+      <i class="bi bi-search"></i>
+      <strong>Chat topilmadi</strong>
+      <span>Filter yoki qidiruvni yengillashtirib qayta urinib ko'ring.</span>
+    </div>
+  {% endfor %}
+</div>
+
+<div class="users-pagination">
+  <div class="pagination-info">
+    {% if page_obj.paginator.count %}
+      {{ page_obj.start_index }}-{{ page_obj.end_index }} dan <strong>{{ page_obj.paginator.count|intcomma }}</strong> ta chat ko'rsatilmoqda
+    {% else %}
+      0 ta chat
+    {% endif %}
+  </div>
+  <div class="pagination-controls">
+    {% if page_obj.has_previous %}
+      <a class="pg-btn" href="?page={{ page_obj.previous_page_number }}&q={{ filters.q|urlencode }}&type={{ filters.type }}"><i class="bi bi-chevron-left"></i></a>
+    {% else %}
+      <button class="pg-btn" disabled><i class="bi bi-chevron-left"></i></button>
+    {% endif %}
+    <button class="pg-btn active">{{ page_obj.number }}</button>
+    {% if page_obj.has_next %}
+      <a class="pg-btn" href="?page={{ page_obj.next_page_number }}&q={{ filters.q|urlencode }}&type={{ filters.type }}"><i class="bi bi-chevron-right"></i></a>
+    {% else %}
+      <button class="pg-btn" disabled><i class="bi bi-chevron-right"></i></button>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

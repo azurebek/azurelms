@@ -14,6 +14,7 @@
   const messagesArea = document.querySelector('[data-chat-messages]');
   const input = document.querySelector('[data-chat-input]');
   const sendButton = document.querySelector('[data-chat-send]');
+  const uploadInput = document.querySelector('[data-upload-input]');
 
   if (!roomId || !messagesArea || !input || !sendButton) return;
 
@@ -133,6 +134,18 @@
       return aiFeedbackUrlTemplate.replace('/0/', `/${safeId}/`);
     }
     return `/messenger/api/ai-feedback/${safeId}/`;
+  }
+
+  function messageEditUrl(messageId) {
+    return `/messenger/api/messages/${encodeURIComponent(String(messageId))}/edit/`;
+  }
+
+  function messageDeleteUrl(messageId) {
+    return `/messenger/api/messages/${encodeURIComponent(String(messageId))}/delete/`;
+  }
+
+  function isMessageDeleted(payload) {
+    return payload && (payload.is_deleted === true || payload.is_deleted === 'true');
   }
 
   function normalizeFeedbackTotals(totals) {
@@ -271,6 +284,67 @@
     meta.title = title;
     meta.setAttribute('aria-label', title);
     return meta;
+  }
+
+  function createAttachmentNode(attachment, isMine) {
+    if (!attachment || !attachment.url) return null;
+    const file = document.createElement('a');
+    file.className = `bubble-file ${attachment.is_image ? 'bubble-file--image' : ''}`;
+    file.href = attachment.url;
+    file.target = '_blank';
+    file.rel = 'noopener';
+
+    const iconWrap = document.createElement('span');
+    iconWrap.className = 'bubble-file-icon';
+    const icon = document.createElement('i');
+    icon.className = attachment.is_image ? 'bi bi-image' : 'bi bi-file-earmark';
+    iconWrap.appendChild(icon);
+
+    const info = document.createElement('span');
+    info.className = 'bubble-file-info';
+
+    const name = document.createElement('span');
+    name.className = 'bubble-file-name';
+    name.textContent = attachment.name || 'Fayl';
+
+    const size = document.createElement('span');
+    size.className = 'bubble-file-size';
+    size.textContent = attachment.size_label || '';
+
+    info.appendChild(name);
+    info.appendChild(size);
+    file.appendChild(iconWrap);
+    file.appendChild(info);
+    if (isMine) file.classList.add('bubble-file--me');
+    return file;
+  }
+
+  function createMessageActions(messageId) {
+    if (!messageId) return null;
+    const actions = document.createElement('div');
+    actions.className = 'msg-actions';
+    actions.dataset.messageActions = 'true';
+    actions.dataset.messageId = messageId;
+
+    const edit = document.createElement('button');
+    edit.type = 'button';
+    edit.className = 'message-action-btn';
+    edit.setAttribute('data-edit-message', 'true');
+    edit.setAttribute('aria-label', 'Tahrirlash');
+    edit.title = 'Tahrirlash';
+    edit.innerHTML = '<i class="bi bi-pencil"></i>';
+
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'message-action-btn danger';
+    remove.setAttribute('data-delete-message', 'true');
+    remove.setAttribute('aria-label', "O'chirish");
+    remove.title = "O'chirish";
+    remove.innerHTML = '<i class="bi bi-trash"></i>';
+
+    actions.appendChild(edit);
+    actions.appendChild(remove);
+    return actions;
   }
 
   async function submitFeedback(button) {
@@ -513,6 +587,7 @@
     const isAiMessage = isFeedbackEligibleAiMessage(payload, senderId, isMine);
     const senderName = payload.sender_name || 'Azure AI';
     const text = payload.message || payload.text || '';
+    const isDeleted = isMessageDeleted(payload);
 
     removeEmptyState();
     if (!isMine) hideAiTyping();
@@ -524,6 +599,7 @@
     if (payload.optimistic) row.classList.add('is-pending');
     if (payload.retry_text) row.dataset.retryText = payload.retry_text;
     if (isAiMessage) row.dataset.isAi = 'true';
+    if (isDeleted) row.classList.add('is-deleted');
 
     if (!isMine) row.appendChild(createAvatar(senderId, senderName));
 
@@ -538,15 +614,19 @@
     }
 
     const bubble = document.createElement('div');
-    bubble.className = `bubble ${isMine ? 'bubble-me' : 'bubble-them'}`;
+    bubble.className = `bubble ${isMine ? 'bubble-me' : 'bubble-them'} ${isDeleted ? 'bubble-deleted' : ''}`;
+    bubble.dataset.messageText = 'true';
     bubble.textContent = text;
     group.appendChild(bubble);
+
+    const attachment = createAttachmentNode(payload.attachment, isMine);
+    if (attachment) group.appendChild(attachment);
 
     const meta = document.createElement('div');
     meta.className = 'bubble-meta';
 
     const time = document.createElement('span');
-    time.textContent = payload.created_at || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    time.textContent = `${payload.created_at || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}${payload.edited_at ? ' - tahrirlangan' : ''}`;
     meta.appendChild(time);
 
     if (isMine) {
@@ -558,6 +638,8 @@
     group.appendChild(meta);
     if (isAiMessage) {
       group.appendChild(createFeedbackControls(payload));
+    } else if (isMine && !payload.optimistic && !isDeleted) {
+      group.appendChild(createMessageActions(payload.message_id || payload.id));
     }
     row.appendChild(group);
     messagesArea.appendChild(row);
@@ -577,6 +659,10 @@
       row.dataset.retryText = payload.message || payload.text || row.dataset.retryText || '';
       const time = row.querySelector('.bubble-meta span');
       if (time && payload.created_at) time.textContent = payload.created_at;
+      const group = row.querySelector('.msg-group');
+      if (group && payload.message_id && !group.querySelector('[data-message-actions]')) {
+        group.appendChild(createMessageActions(payload.message_id));
+      }
     }
     updateSidebarRoom(payload);
     return true;
@@ -628,6 +714,138 @@
       action: 'retry_ai_response',
       user_message_id: userMessageId,
     }));
+  }
+
+  function updateRenderedMessage(payload) {
+    const messageId = payload.message_id || payload.id;
+    if (!messageId) return;
+    const row = messagesArea.querySelector(`[data-message-id="${CSS.escape(String(messageId))}"]`);
+    if (!row) return;
+    const deleted = isMessageDeleted(payload);
+    const bubble = row.querySelector('[data-message-text]');
+    if (bubble) {
+      bubble.textContent = payload.message || payload.text || '';
+      bubble.classList.toggle('bubble-deleted', deleted);
+    }
+    row.classList.toggle('is-deleted', deleted);
+
+    const metaTime = row.querySelector('.bubble-meta span');
+    if (metaTime && payload.created_at) {
+      metaTime.textContent = `${payload.created_at}${payload.edited_at ? ' - tahrirlangan' : ''}`;
+    }
+    if (deleted) {
+      row.querySelector('[data-message-actions]')?.remove();
+      row.querySelector('.bubble-file')?.remove();
+    }
+    updateSidebarRoom(payload);
+  }
+
+  async function editOwnMessage(button) {
+    const row = button.closest('[data-message-id]');
+    const messageId = row ? row.dataset.messageId : '';
+    const bubble = row ? row.querySelector('[data-message-text]') : null;
+    if (!messageId || !bubble) return;
+    const current = (bubble.innerText || bubble.textContent || '').trim();
+    const next = window.prompt('Xabarni tahrirlang', current);
+    if (next === null) return;
+    const text = next.trim();
+    if (!text) {
+      setChatStatus("Xabar bo'sh bo'lmasin.", 'error');
+      return;
+    }
+
+    try {
+      const response = await fetch(messageEditUrl(messageId), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken(),
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ text }),
+      });
+      const payload = await response.json();
+      if (!response.ok || payload.status !== 'success') throw new Error(payload.message || 'Tahrirlanmadi');
+      updateRenderedMessage(payload.message);
+      setChatStatus('Xabar tahrirlandi.', 'success');
+      window.setTimeout(() => setChatStatus(''), 1200);
+    } catch (error) {
+      setChatStatus(error.message || 'Tahrirlanmadi', 'error');
+    }
+  }
+
+  async function deleteOwnMessage(button) {
+    const row = button.closest('[data-message-id]');
+    const messageId = row ? row.dataset.messageId : '';
+    if (!messageId || !window.confirm("Xabar o'chirilsinmi?")) return;
+
+    try {
+      const response = await fetch(messageDeleteUrl(messageId), {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken(),
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+        },
+      });
+      const payload = await response.json();
+      if (!response.ok || payload.status !== 'success') throw new Error(payload.message || "O'chirilmadi");
+      updateRenderedMessage(payload.message);
+      setChatStatus("Xabar o'chirildi.", 'success');
+      window.setTimeout(() => setChatStatus(''), 1200);
+    } catch (error) {
+      setChatStatus(error.message || "O'chirilmadi", 'error');
+    }
+  }
+
+  async function uploadAttachment(file) {
+    if (!file) return;
+    const form = new FormData();
+    form.append('room_id', roomId);
+    form.append('file', file);
+    const caption = input.value.trim();
+    if (caption) form.append('text', caption);
+
+    setChatStatus('Fayl yuklanmoqda...');
+    try {
+      const response = await fetch('/messenger/api/messages/upload/', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken(),
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+        },
+        body: form,
+      });
+      const payload = await response.json();
+      if (!response.ok || payload.status !== 'success') throw new Error(payload.message || 'Fayl yuklanmadi');
+      input.value = '';
+      input.style.height = 'auto';
+      if (socket.readyState !== WebSocket.OPEN && payload.message) {
+        appendMessage(payload.message);
+      }
+      setChatStatus('Fayl yuborildi.', 'success');
+      window.setTimeout(() => setChatStatus(''), 1200);
+    } catch (error) {
+      setChatStatus(error.message || 'Fayl yuklanmadi', 'error');
+    }
+  }
+
+  function initUpload() {
+    if (!uploadInput) return;
+    document.querySelectorAll('[data-upload-trigger]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        const accept = button.getAttribute('data-upload-accept') || '';
+        uploadInput.setAttribute('accept', accept);
+        uploadInput.click();
+      });
+    });
+    uploadInput.addEventListener('change', function () {
+      const file = uploadInput.files && uploadInput.files[0];
+      uploadInput.value = '';
+      uploadAttachment(file);
+    });
   }
 
   function sendMessage() {
@@ -682,6 +900,14 @@
         handleAiStatus(payload);
         return;
       }
+      if (payload.event_type === 'message_edited' || payload.event_type === 'message_deleted' || payload.event_type === 'message_update') {
+        updateRenderedMessage(payload);
+        return;
+      }
+      if (payload.event_type === 'message_uploaded') {
+        appendMessage(payload);
+        return;
+      }
       if (confirmOptimisticMessage(payload)) return;
       appendMessage(payload);
     } catch (_) {
@@ -703,6 +929,18 @@
       return;
     }
 
+    const editButton = event.target.closest('[data-edit-message]');
+    if (editButton && messagesArea.contains(editButton)) {
+      editOwnMessage(editButton);
+      return;
+    }
+
+    const deleteButton = event.target.closest('[data-delete-message]');
+    if (deleteButton && messagesArea.contains(deleteButton)) {
+      deleteOwnMessage(deleteButton);
+      return;
+    }
+
     const button = event.target.closest('[data-feedback-rating]');
     if (!button || !messagesArea.contains(button)) return;
     submitFeedback(button);
@@ -718,5 +956,6 @@
   initModelPicker();
   initTonePicker();
   initSkillPicker();
+  initUpload();
   scrollToBottom();
 })();
