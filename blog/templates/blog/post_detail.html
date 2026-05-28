@@ -14,7 +14,7 @@
     <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{{ post.cover_image.url }}">
   {% endif %}
 {% endblock %}
-{% block page_css %}<link rel="stylesheet" href="{% static 'css/blog-article.css' %}">{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/blog-article.css' %}?v=20260524-brand">{% endblock %}
 
 {% block content %}
 <form class="blog-field-hidden">{% csrf_token %}</form>
@@ -22,7 +22,16 @@
 
 <nav class="nav">
   <div class="nav-inner">
-    <a class="logo-mark" href="{% url 'blog:list' %}">B</a>
+    <a class="nav-logo" href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'home' %}{% endif %}" aria-label="{{ site_settings.brand_name|default:'AzureLMS' }}">
+      <div class="logo-mark">
+        {% if site_settings.logo_image %}
+          <img src="{{ site_settings.logo_image.url }}" alt="">
+        {% else %}
+          {{ site_settings.logo_mark_text|default:"Az" }}
+        {% endif %}
+      </div>
+      <span class="logo-name">{{ site_settings.brand_name|default:"AzureLMS" }}</span>
+    </a>
     <a href="{% url 'blog:list' %}" class="nav-back"><i class="bi bi-arrow-left"></i> Blog</a>
     <div class="nav-sep"></div>
     <span class="nav-title-small" id="navTitleSmall">{{ post.title }}</span>

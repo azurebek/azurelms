@@ -92,7 +92,7 @@ def link_user_from_start_token(token, telegram_user_id, telegram_username=""):
                     "title": "Telegram hisobi ulandi",
                     "message": "Profilingiz Telegram botiga muvaffaqiyatli bog'landi.",
                     "icon": "telegram",
-                    "url": "/users/settings/",
+                    "url": "/users/profile/",
                     "category": Notification.CATEGORY_SYSTEM,
                 },
             )

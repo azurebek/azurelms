@@ -8,6 +8,27 @@ Answer in Uzbek, use available memory and course context, keep the response clea
 """.strip()
 
 
+# "medium" web_search effort: agar quyidagi vaqt belgisi + ma'lumot belgisi birga uchrasa,
+# foydalanuvchi aniq "qidirib ber" demagan bo'lsa ham web_search'ga majburiy yo'naltirish.
+_TIME_HINTS = (
+    "hozir", "bugun", "bugungi", "kechagi", "kecha",
+    "so'nggi", "songi", "sungi", "oxirgi",
+    "yangi", "yangidan", "joriy", "endi",
+    "shu hafta", "shu oy", "joriy yil",
+)
+_INFO_HINTS = (
+    "narx", "narxi", "kurs", "kursi",
+    "qancha", "necha", "qachon", "qaerda", "qayerda",
+    "qaysi", "kim",
+    "yangilik", "yangiliklar", "news",
+    "ob-havo", "ob havo", "weather",
+    "natija", "natijasi", "hisob",
+    "voqea", "voqealar",
+    "ko'rsatkich", "stavka", "indeks",
+    "kursini", "narxini", "vaziyat",
+)
+
+
 @dataclass(frozen=True)
 class Skill:
     slug: str
@@ -176,6 +197,38 @@ BUILTIN_SKILLS: tuple[SkillDefinition, ...] = (
         ),
         priority=55,
     ),
+    SkillDefinition(
+        slug="web_search",
+        name="Web Search",
+        description="Looks up fresh information from the web when the question needs current facts, news, or external sources.",
+        tool_slugs=("web_search",),
+        trigger_keywords=(
+            "qidir",
+            "qidirib ber",
+            "qidirsangchi",
+            "izlab ber",
+            "internetdan",
+            "internetda",
+            "googleda",
+            "google",
+            "search",
+            "bugungi",
+            "so'nggi",
+            "yangiliklar",
+            "yangilik",
+            "hozir qancha",
+            "qachon bo'ldi",
+            "kim hozir",
+            "qaysi yilda",
+            "narxi qancha",
+            "kursi qancha",
+            "ob-havo",
+            "ob havo",
+            "weather",
+            "news",
+        ),
+        priority=90,
+    ),
 )
 
 
@@ -192,6 +245,13 @@ class SkillRegistry:
             return self.get(requested_skill_slug)
 
         question = self._normalize(getattr(request, "user_question", ""))
+
+        # "Medium" effort: vaqt + ma'lumot juftligi mavjud bo'lsa, foydalanuvchi aniq so'rov yozmagan bo'lsa ham web_search'ga.
+        student = getattr(request, "student", None)
+        effort = getattr(student, "ai_web_search_effort", "light") or "light"
+        if effort in {"medium", "heavy"} and self._is_time_sensitive_info_query(question):
+            return self.get("web_search")
+
         best_slug = "general_chat"
         best_score = 0
 
@@ -209,6 +269,14 @@ class SkillRegistry:
             best_slug = "lesson_explainer"
 
         return self.get(best_slug)
+
+    def _is_time_sensitive_info_query(self, normalized_question: str) -> bool:
+        if not normalized_question:
+            return False
+        has_time = any(hint in normalized_question for hint in _TIME_HINTS)
+        if not has_time:
+            return False
+        return any(hint in normalized_question for hint in _INFO_HINTS)
 
     def get(self, slug: str) -> Skill:
         definition = self._definitions.get(slug)

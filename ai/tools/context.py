@@ -221,6 +221,13 @@ class ToolContextService:
                 lines.append("  No lessons found in this course.")
         return "\n".join(lines)
 
+    def _render_web_search(self, *, request) -> str:
+        return (
+            "Web qidiruv yoqilgan. Gemini Google Search tool orqali real-time natijalarni o'qiy oladi. "
+            "Foydalanuvchining savoliga eng yangi va aniq ma'lumotni qidir, "
+            "javobda manba raqamlarini (Manba 1, Manba 2, ...) grounding tartibida ishlat va oxirida qisqa manba ro'yxatini ber."
+        )
+
     def _clean_excerpt(self, value: str | None, limit: int | None = None) -> str:
         limit = limit or self.MAX_EXCERPT_CHARS
         text = strip_tags(value or "")

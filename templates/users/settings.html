@@ -111,6 +111,26 @@
       </div>
     </div>
 
+    <!-- AZURE AI -->
+    <div class="ss">
+      <div class="ss-header"><div class="ss-title">AzureAI</div><div class="ss-sub">Assistent xulqi va internet qidiruvi</div></div>
+      <div class="ss-body">
+        <form method="post" action="{% url 'update_ai_web_search_effort' %}" class="sr" data-autosubmit>
+          {% csrf_token %}
+          <div class="sr-icon xstyle-f2cd36af"><i class="bi bi-globe"></i></div>
+          <div class="sr-info">
+            <div class="sr-label">Internet qidiruvi</div>
+            <div class="sr-desc">AI yangi ma'lumot uchun internetga chiqishini qanchalik faol qilamiz</div>
+          </div>
+          <select class="sr-select" name="ai_web_search_effort" onchange="this.form.submit()">
+            {% for value, label in user.AI_WEB_SEARCH_EFFORT_CHOICES %}
+              <option value="{{ value }}" {% if user.ai_web_search_effort == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </form>
+      </div>
+    </div>
+
     <!-- DOWNLOADS -->
     <div class="ss">
       <div class="ss-header"><div class="ss-title">Yuklab olish</div><div class="ss-sub">Offline ko'rish sozlamalari</div></div>

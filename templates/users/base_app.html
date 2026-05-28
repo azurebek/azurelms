@@ -27,6 +27,7 @@
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
   <link rel="stylesheet" href="{% static 'css/app-shell.css' %}">
   <link rel="stylesheet" href="{% static 'css/prototype-extracted.css' %}">
+  <link rel="stylesheet" href="{% static 'css/ai-widget.css' %}">
   
   {% block extra_css %}{% endblock %}
 </head>
@@ -155,8 +156,8 @@
         <div class="account-menu-panel">
           <a href="{% url 'notifications' %}" class="account-menu-item {% if active_nav == 'notifications' %}active{% endif %}">
             <i class="bi bi-bell"></i> Bildirishnomalar
-            {% if user.notifications.filter.is_read.count > 0 or unread_notifications.count > 0 %}
-              <span class="nav-badge">{{ unread_notifications.count|default:user.notifications.filter.is_read.count }}</span>
+            {% if unread_notifications_count %}
+              <span class="nav-badge">{{ unread_notifications_count }}</span>
             {% endif %}
           </a>
           <a href="{% url 'profile' %}" class="account-menu-item {% if active_nav == 'profile' %}active{% endif %}"><i class="bi bi-person-circle"></i> Profil</a>
@@ -226,6 +227,8 @@
   </div>
 </div>
 
+{% include "includes/ai_assistant_widget.html" %}
+
 <script src="{% static 'js/prototype-ui.js' %}"></script>
 <script>
   // Theme init & toggle
@@ -263,6 +266,22 @@
   if (sidebarToggle) {
     sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
   }
+
+  // Account dropdown: close when clicking outside or pressing Escape
+  (function() {
+    const accountMenu = document.querySelector('.account-menu');
+    if (!accountMenu) return;
+    document.addEventListener('click', (event) => {
+      if (accountMenu.open && !accountMenu.contains(event.target)) {
+        accountMenu.open = false;
+      }
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && accountMenu.open) {
+        accountMenu.open = false;
+      }
+    });
+  })();
 </script>
 {% block extra_js %}{% endblock %}
 </body>

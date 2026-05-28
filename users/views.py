@@ -166,6 +166,33 @@ class AIModelUpdateView(LoginRequiredMixin, View):
         return redirect('settings')
 
 
+class AIWebSearchEffortUpdateView(LoginRequiredMixin, View):
+    """Update only the AzureAI web-search effort preference."""
+
+    def post(self, request, *args, **kwargs):
+        effort = (request.POST.get('ai_web_search_effort') or '').strip()
+        valid_efforts = {choice for choice, _ in CustomUser.AI_WEB_SEARCH_EFFORT_CHOICES}
+        wants_json = (
+            request.headers.get("x-requested-with") == "XMLHttpRequest"
+            or "application/json" in request.headers.get("accept", "")
+        )
+
+        if effort not in valid_efforts:
+            if wants_json:
+                return JsonResponse({"status": "error", "message": "Noto'g'ri qidiruv rejimi tanlandi."}, status=400)
+            messages.error(request, "Noto'g'ri qidiruv rejimi tanlandi.")
+            return redirect('settings')
+
+        if request.user.ai_web_search_effort != effort:
+            request.user.ai_web_search_effort = effort
+            request.user.save(update_fields=['ai_web_search_effort'])
+            messages.success(request, "AzureAI web qidiruv rejimi yangilandi.")
+        if wants_json:
+            label = dict(CustomUser.AI_WEB_SEARCH_EFFORT_CHOICES).get(effort, effort)
+            return JsonResponse({"status": "success", "ai_web_search_effort": effort, "label": label})
+        return redirect('settings')
+
+
 class AIMemoryToggleView(LoginRequiredMixin, View):
     """Toggle the user's AI long-term memory on/off."""
 
@@ -522,29 +549,30 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             .order_by('-annotated_students_count', '-created_at')[:3]
         )
 
-        # O'quvchining joriy telegram holati
-        if user.telegram_id:
-            context['telegram_linked'] = True
-            context['telegram_username'] = user.telegram_username
-        else:
-            # Token generate for telegram bot binding
-            # Use standard Signer because TimestampSigner produces too large a payload for Base64ing 64-chars Telegram limit
-            from django.core.signing import Signer
-            import base64
-
-            signer = Signer()
-            raw_token = signer.sign(str(user.id))
-            token = base64.urlsafe_b64encode(raw_token.encode()).decode().rstrip('=')
-
-            context['telegram_linked'] = False
-            # Construct the deep link URL format: https://t.me/BOT_USERNAME?start=PAYLOAD
-            bot_username = getattr(settings, 'BOT_USERNAME', '')
-            if bot_username:
-                context['telegram_bot_link'] = f"https://t.me/{bot_username.strip('@')}?start={token}"
-            else:
-                context['telegram_bot_link'] = f"https://t.me/lmsazurebot?start={token}"
-
         return context
+
+
+def _build_telegram_link_context(user):
+    """Telegram-bot ulash uchun deep-link va holat ma'lumotlari."""
+    if user.telegram_id:
+        return {
+            'telegram_linked': True,
+            'telegram_username': user.telegram_username,
+        }
+
+    # Token generate for telegram bot binding (Signer is compact enough for Telegram's 64-char payload limit)
+    from django.core.signing import Signer
+    import base64
+
+    signer = Signer()
+    raw_token = signer.sign(str(user.id))
+    token = base64.urlsafe_b64encode(raw_token.encode()).decode().rstrip('=')
+
+    bot_username = (getattr(settings, 'BOT_USERNAME', '') or 'lmsazurebot').strip('@')
+    return {
+        'telegram_linked': False,
+        'telegram_bot_link': f"https://t.me/{bot_username}?start={token}",
+    }
 
 
 def get_cohort_leaderboard_context(user, cohort_id=None):
@@ -732,6 +760,7 @@ class UserProfileView(LoginRequiredMixin, TemplateView):
             status__in=[Attendance.STATUS_PRESENT, Attendance.STATUS_PARTIAL],
         ).count()
         context['total_hours'] = passed_lessons_count * 2
+        context.update(_build_telegram_link_context(user))
         return context
 
     def post(self, request, *args, **kwargs):

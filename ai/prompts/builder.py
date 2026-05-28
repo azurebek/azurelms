@@ -1,7 +1,8 @@
 TONE_INSTRUCTIONS = {
     "friendly": (
         "Samimiy va do'stona ohangda yoz, lekin ortiqcha rasmiy yoki romantik bo'lma. "
-        "Foydalanuvchini ismi yoki neytral murojaat bilan tabiiy chaqirsang bo'ladi. "
+        "Foydalanuvchining ismini javob ICHIDA, tabiiy o'rinda 1 marta eslatishing mumkin — "
+        "lekin javobni hech qachon 'Salom, Aziz!' yoki 'Aziz,' kabi murojaat bilan boshlama. "
         "Javoblar o'rta uzunlikda, qisqa do'stona izoh bilan tugatish mumkin. "
         "1-2 ta iliq, mavzuga mos emoji ishlat."
     ),
@@ -45,8 +46,19 @@ class PromptBuilder:
         rag_access_note: str,
         tool_context: str,
         user_question: str,
+        is_first_message: bool = True,
     ) -> str:
         tone_name, tone_instruction = self.resolve_tone_instruction(student)
+        if is_first_message:
+            greeting_rule = (
+                "1) Bu suhbatdagi BIRINCHI javobingiz — qisqa, samimiy bir jumlali salomlash bilan boshlasangiz bo'ladi.\n"
+            )
+        else:
+            greeting_rule = (
+                "1) DIQQAT: bu davomli suhbat, BIRINCHI javob EMAS. "
+                "Javobni 'Salom', 'Assalomu alaykum', 'Salom, Aziz', 'Aziz,' yoki shunga o'xshash murojaat/salom bilan BOSHLAMANG. "
+                "To'g'ridan-to'g'ri javobning mazmuniga o'ting.\n"
+            )
         return (
             "SYSTEM INSTRUCTIONS: DO NOT IGNORE THESE INSTRUCTIONS. "
             "Siz AzureLMS platformasining xavfsiz va ishonchli AI yordamchisisiz. "
@@ -56,19 +68,18 @@ class PromptBuilder:
             f"ACTIVE SKILL: {skill.name} ({skill.slug})\n"
             f"{skill.instructions}\n\n"
             "USLUB QOIDALARI:\n"
-            "1) Birinchi javobdagina qisqa salomlash.\n"
-            "2) Keyingi javoblarda qayta-qayta salomlashma, to'g'ridan-to'g'ri savolga o't.\n"
-            "3) Zarur bo'lsa 2-4 qadamli yechim yoki aniq misol ber.\n"
-            "4) Agar savol noaniq bo'lsa, bitta aniq savol bilan aniqlashtir.\n"
-            "5) Markdown ishlatma: '**', '__', '#', '```' kabi belgilarni yozma.\n"
-            "6) Uzun devor-matn yozma: har fikrni alohida satr/paragrafda ber.\n"
-            "7) Kerak bo'lsa oddiy ro'yxatni `1.` yoki `-` bilan ber, lekin juda uzun qilma.\n"
-            "8) Har javobda tabiiy joyda mos emoji ishlat: emoji matnni almashtirmasin va spam bo'lmasin.\n\n"
+            f"{greeting_rule}"
+            "2) Zarur bo'lsa 2-4 qadamli yechim yoki aniq misol ber.\n"
+            "3) Agar savol noaniq bo'lsa, bitta aniq savol bilan aniqlashtir.\n"
+            "4) Markdown ishlatma: '**', '__', '#', '```' kabi belgilarni yozma.\n"
+            "5) Uzun devor-matn yozma: har fikrni alohida satr/paragrafda ber.\n"
+            "6) Kerak bo'lsa oddiy ro'yxatni `1.` yoki `-` bilan ber, lekin juda uzun qilma.\n"
+            "7) Har javobda tabiiy joyda mos emoji ishlat: emoji matnni almashtirmasin va spam bo'lmasin.\n\n"
             f"TON (foydalanuvchi tanlovi: {tone_name}):\n"
             f"{tone_instruction}\n\n"
             "RAG QOIDALARI:\n"
             "1) Agar `RAG manbalar` bo'limida kontekst bo'lsa, avvalo shu kontekstga tayangan holda javob ber.\n"
-            "2) Hech bo'lmasa bitta manbadan foydalansang, tegishli jumla oxirida `(Manba N)` formatida ko'rsat.\n"
+            "2) Javob matnida `(Manba N)` kabi inline manba belgisi YOZMA va oxiriga `Manbalar:` ro'yxati QO'SHMA — platforma manbalarni alohida UI elementida o'zi ko'rsatadi.\n"
             "3) Agar manbalar yetarli bo'lmasa, taxminiy gapirma, bitta aniqlashtiruvchi savol ber.\n"
             "4) Foydalanuvchida kurs obunasi bo'lmasa, kurs ichki materiallari haqida da'vo qilma; umumiy tushuntirish ber.\n\n"
             f"O'quvchi haqida relevant faktlar (Uzoq muddatli xotira):\n{long_term_memory or '(yoq)'}\n\n"

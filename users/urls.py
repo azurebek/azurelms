@@ -9,7 +9,7 @@ from django.contrib.auth.views import (
 )
 from .views import (
     RegisterView, UserProfileView, SettingsView, AvatarUpdateView, PasswordUpdateView,
-    AIModelUpdateView, AIToneUpdateView,
+    AIModelUpdateView, AIToneUpdateView, AIWebSearchEffortUpdateView,
     AIMemoryListView, AIMemoryArchiveView, AIMemoryClearAllView, AIMemoryRejectView, AIMemoryToggleView,
     DashboardView, SubscriptionHistoryView, CertificateListView, LeaderboardView,
     AttendanceCalendarView, AttendanceManageView,
@@ -26,6 +26,7 @@ urlpatterns = [
     path('settings/password/', PasswordUpdateView.as_view(), name='update_password'),
     path('settings/ai-tone/', AIToneUpdateView.as_view(), name='update_ai_tone'),
     path('settings/ai-model/', AIModelUpdateView.as_view(), name='update_ai_model'),
+    path('settings/ai-web-search/', AIWebSearchEffortUpdateView.as_view(), name='update_ai_web_search_effort'),
     path('settings/ai-memory/', AIMemoryListView.as_view(), name='ai_memory'),
     path('settings/ai-memory/toggle/', AIMemoryToggleView.as_view(), name='ai_memory_toggle'),
     path('settings/ai-memory/clear/', AIMemoryClearAllView.as_view(), name='ai_memory_clear'),

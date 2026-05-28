@@ -267,18 +267,26 @@ class DashboardProgressTests(TestCase):
         self.assertEqual(response.context["primary_enrollment"].dashboard_progress, 50)
         self.assertContains(response, "50%")
 
-    def test_dashboard_shows_telegram_connect_prompt_for_unlinked_user(self):
-        response = self.client.get(reverse("dashboard"))
+    def test_profile_shows_telegram_connect_button_for_unlinked_user(self):
+        response = self.client.get(reverse("profile"))
 
         self.assertEqual(response.status_code, 200)
         self.assertFalse(response.context["telegram_linked"])
-        self.assertContains(response, "Telegram botimizga ulanib")
         self.assertContains(response, response.context["telegram_bot_link"])
 
-    def test_dashboard_hides_telegram_prompt_and_shows_link_notification_for_linked_user(self):
+    def test_profile_shows_linked_username_for_linked_user(self):
         self.user.telegram_id = 6211651081
         self.user.telegram_username = "lmsazurebot_tester"
         self.user.save(update_fields=["telegram_id", "telegram_username"])
+
+        response = self.client.get(reverse("profile"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["telegram_linked"])
+        self.assertContains(response, "@lmsazurebot_tester")
+        self.assertNotIn("telegram_bot_link", response.context)
+
+    def test_dashboard_does_not_render_inline_telegram_or_notification_blocks(self):
         Notification.objects.create(
             recipient=self.user,
             title="Telegram hisobi ulandi",
@@ -290,9 +298,8 @@ class DashboardProgressTests(TestCase):
         response = self.client.get(reverse("dashboard"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertTrue(response.context["telegram_linked"])
         self.assertNotContains(response, "Telegram botimizga ulanib")
-        self.assertContains(response, "Telegram hisobi ulandi")
+        self.assertNotContains(response, "info-box--blue")
 
     def test_dashboard_lists_all_active_cohorts_for_multi_cohort_student(self):
         second_course = Course.objects.create(

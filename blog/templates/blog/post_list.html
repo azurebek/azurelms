@@ -2,21 +2,24 @@
 {% load static humanize %}
 
 {% block page_title %}Blog - AzureLMS{% endblock %}
-{% block page_css %}<link rel="stylesheet" href="{% static 'css/blog-shell.css' %}">{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/blog-shell.css' %}?v=20260524-brand">{% endblock %}
 
 {% block content %}
 <nav class="nav">
   <div class="nav-inner">
-    <a class="nav-logo" href="{% url 'blog:list' %}">
-      <div class="logo-mark">B</div>
-      <span class="logo-name">AzureBlog</span>
-      <span class="logo-tag">Beta</span>
+    <a class="nav-logo" href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'home' %}{% endif %}" aria-label="{{ site_settings.brand_name|default:'AzureLMS' }}">
+      <div class="logo-mark">
+        {% if site_settings.logo_image %}
+          <img src="{{ site_settings.logo_image.url }}" alt="">
+        {% else %}
+          {{ site_settings.logo_mark_text|default:"Az" }}
+        {% endif %}
+      </div>
+      <span class="logo-name">{{ site_settings.brand_name|default:"AzureLMS" }}</span>
     </a>
     <div class="nav-links">
-      <a href="{% url 'blog:list' %}" class="nav-link active">Asosiy</a>
+      <a href="{% url 'blog:list' %}" class="nav-link active">Blog</a>
       <a href="{% url 'blog:list' %}#tags" class="nav-link">Kategoriyalar</a>
-      <a href="{% url 'about' %}#team" class="nav-link">Mualliflar</a>
-      <a href="{% url 'about' %}" class="nav-link">Haqida</a>
     </div>
     <div class="nav-sep"></div>
     <form class="nav-search" method="get" action="{% url 'blog:list' %}">

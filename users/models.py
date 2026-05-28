@@ -67,6 +67,20 @@ class CustomUser(AbstractUser):
         default=True,
         help_text="AzureAI uzoq muddatli xotirasi yoqilganmi (o'quvchi shaxsiy faktlarni eslab qolish/foydalanishga ruxsat berishi)",
     )
+    AI_WEB_SEARCH_LIGHT = "light"
+    AI_WEB_SEARCH_MEDIUM = "medium"
+    AI_WEB_SEARCH_HEAVY = "heavy"
+    AI_WEB_SEARCH_EFFORT_CHOICES = [
+        (AI_WEB_SEARCH_LIGHT, "Yengil — faqat aniq so'rov bo'lsa"),
+        (AI_WEB_SEARCH_MEDIUM, "O'rta — vaqtga oid savollarda avtomatik"),
+        (AI_WEB_SEARCH_HEAVY, "Og'ir — har savolda AI o'zi qaror qiladi"),
+    ]
+    ai_web_search_effort = models.CharField(
+        max_length=16,
+        choices=AI_WEB_SEARCH_EFFORT_CHOICES,
+        default=AI_WEB_SEARCH_LIGHT,
+        help_text="AzureAI internet qidiruvini qanchalik faol ishlatishi",
+    )
 
     # To'qnashuvni (clash) oldini olish uchun
     groups = models.ManyToManyField(

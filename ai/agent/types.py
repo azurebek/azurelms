@@ -24,3 +24,4 @@ class AIResponse:
 class ProviderResponse:
     text: str
     model_name: str
+    web_search: dict[str, Any] | None = None

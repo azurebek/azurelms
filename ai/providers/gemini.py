@@ -1,10 +1,15 @@
+import logging
 import os
 import time
 
 from django.conf import settings
 from google import genai
+from google.genai import types as genai_types
 
 from ai.agent.types import ProviderResponse
+
+
+logger = logging.getLogger(__name__)
 
 
 DEFAULT_MODEL_FALLBACKS = [
@@ -47,30 +52,95 @@ class GeminiProvider:
         self.api_key = api_key if api_key is not None else settings.GEMINI_API_KEY
         self.sleep = sleep
 
-    def generate(self, *, prompt: str, selected_model: str | None = None) -> ProviderResponse:
+    def generate(
+        self,
+        *,
+        prompt: str,
+        selected_model: str | None = None,
+        enable_web_search: bool = False,
+    ) -> ProviderResponse:
         client = genai.Client(api_key=self.api_key)
         candidates = self._model_candidates(selected_model)
+        config = self._build_config(enable_web_search=enable_web_search)
         last_error = None
 
         for model_name in candidates:
             for attempt in range(2):
                 try:
-                    response = client.models.generate_content(
-                        model=model_name,
-                        contents=prompt,
-                    )
+                    kwargs = {"model": model_name, "contents": prompt}
+                    if config is not None:
+                        kwargs["config"] = config
+                    response = client.models.generate_content(**kwargs)
                     text = (response.text or "").strip()
                     if text:
-                        return ProviderResponse(text=text, model_name=model_name)
+                        web_search = self._extract_web_search_metadata(response) if enable_web_search else None
+                        return ProviderResponse(
+                            text=text,
+                            model_name=model_name,
+                            web_search=web_search,
+                        )
                     raise RuntimeError(f"Bo'sh javob qaytdi (model={model_name})")
                 except Exception as exc:
                     last_error = exc
                     if self._is_rate_limited(exc) and attempt == 0:
                         self.sleep(1.5)
                         continue
+                    if enable_web_search and self._is_unsupported_tool(exc):
+                        # Model bu modelda google_search'ni qo'llab-quvvatlamasa, tools'siz qayta urinamiz.
+                        logger.warning(
+                            "Model %s google_search tool'ni qabul qilmadi, web_search'siz qayta urinaman.",
+                            model_name,
+                        )
+                        config = None
+                        enable_web_search = False
+                        continue
                     break
 
         raise RuntimeError(f"Barcha modellar muvaffaqiyatsiz tugadi. Last error: {last_error}")
+
+    def _build_config(self, *, enable_web_search: bool):
+        if not enable_web_search:
+            return None
+        try:
+            return genai_types.GenerateContentConfig(
+                tools=[genai_types.Tool(google_search=genai_types.GoogleSearch())]
+            )
+        except Exception:
+            logger.exception("Google Search tool konfiguratsiyasi yaratib bo'lmadi")
+            return None
+
+    def _extract_web_search_metadata(self, response):
+        try:
+            candidate = (response.candidates or [None])[0]
+            grounding = getattr(candidate, "grounding_metadata", None)
+            if not grounding:
+                return None
+            queries = list(getattr(grounding, "web_search_queries", None) or [])
+            sources = []
+            for index, chunk in enumerate(getattr(grounding, "grounding_chunks", None) or [], start=1):
+                web = getattr(chunk, "web", None)
+                if not web:
+                    continue
+                sources.append(
+                    {
+                        "number": index,
+                        "title": getattr(web, "title", "") or "",
+                        "uri": getattr(web, "uri", "") or "",
+                    }
+                )
+            if not queries and not sources:
+                return None
+            return {"queries": queries, "sources": sources}
+        except Exception:
+            logger.exception("Web search grounding metadata parse qilinmadi")
+            return None
+
+    def _is_unsupported_tool(self, error) -> bool:
+        error_text = str(error).lower()
+        return (
+            "google_search" in error_text
+            and ("not supported" in error_text or "unsupported" in error_text or "invalid" in error_text)
+        )
 
     def _model_candidates(self, selected_model: str | None) -> list[str]:
         raw_models = os.getenv(
