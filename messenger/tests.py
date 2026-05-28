@@ -370,6 +370,9 @@ class GenerateAiResponseTaskTests(TestCase):
             "Keyingi dars qaysi?": "course_navigator",
             "Progressim qanday, reja tuz": "student_progress_coach",
             "Bugun motivatsiya ber": "general_chat",
+            "Bugungi yangiliklarni qidirib ber": "web_search",
+            "Dollar kursi qancha hozir": "web_search",
+            "Internetdan izlab ber: Tashkentda ob-havo": "web_search",
         }
 
         for question, expected_slug in cases.items():
@@ -377,6 +380,48 @@ class GenerateAiResponseTaskTests(TestCase):
                 AIRequest(room=None, student=self.student, user_question=question)
             )
             self.assertEqual(skill.slug, expected_slug, question)
+
+    def test_skill_registry_medium_effort_routes_time_info_pair_without_explicit_keyword(self):
+        """Medium rejimda vaqt + ma'lumot juftligi alohida keyword bo'lmasa ham web_search'ga ketadi."""
+        registry = SkillRegistry()
+        self.student.ai_web_search_effort = "medium"
+
+        cases = [
+            "Hozir kim chempion bo'lib turibdi",
+            "Kechagi natija nima bo'ldi",
+            "Endi qaerda yashaydi",
+        ]
+        for question in cases:
+            skill = registry.select_for_request(
+                AIRequest(room=None, student=self.student, user_question=question)
+            )
+            self.assertEqual(skill.slug, "web_search", question)
+
+    def test_skill_registry_medium_effort_skips_time_without_info_signal(self):
+        """Vaqt belgisi bor lekin INFO_HINTS yo'q bo'lsa, pair-detection ishlamaydi."""
+        registry = SkillRegistry()
+        self.student.ai_web_search_effort = "medium"
+
+        cases = [
+            "Hozir tushuntirib ber",
+            "Bugun motivatsiya ber",
+            "Endi charchadim",
+        ]
+        for question in cases:
+            skill = registry.select_for_request(
+                AIRequest(room=None, student=self.student, user_question=question)
+            )
+            self.assertNotEqual(skill.slug, "web_search", question)
+
+    def test_skill_registry_light_effort_ignores_pair_only_signals(self):
+        """Light rejimda pair-detection ishlamaydi; faqat aniq keyword'lar trigger qiladi."""
+        registry = SkillRegistry()
+        self.student.ai_web_search_effort = "light"
+
+        skill = registry.select_for_request(
+            AIRequest(room=None, student=self.student, user_question="Hozir kim chempion bo'lib turibdi")
+        )
+        self.assertNotEqual(skill.slug, "web_search")
 
     def test_skill_registry_honors_valid_requested_skill(self):
         registry = SkillRegistry()
@@ -488,6 +533,205 @@ class GenerateAiResponseTaskTests(TestCase):
         self.assertEqual(run.skill_slug, "quiz_generator")
         self.assertEqual(run.metadata["active_skill"], "quiz_generator")
         self.assertIn("quiz_context", run.metadata["used_tools"])
+
+    @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
+    @patch("ai.providers.gemini.genai.Client")
+    def test_generate_ai_response_routes_web_search_skill_and_enables_grounding(
+        self,
+        mocked_client,
+        _mocked_retrieve_chunks,
+    ):
+        room = ChatRoom.objects.create(room_type="ai", name="Azure AI - ai-student")
+        room.participants.add(self.student)
+        mocked_client.return_value.models.generate_content.return_value = SimpleNamespace(
+            text="Bugun dollar kursi ~12 600 so'm.",
+            candidates=[
+                SimpleNamespace(
+                    grounding_metadata=SimpleNamespace(
+                        web_search_queries=["bugungi dollar kursi"],
+                        grounding_chunks=[
+                            SimpleNamespace(
+                                web=SimpleNamespace(
+                                    uri="https://example.uz/usd",
+                                    title="Markaziy bank kursi",
+                                )
+                            )
+                        ],
+                    )
+                )
+            ],
+        )
+
+        generate_ai_response.run(
+            room_id=room.id,
+            student_id=self.student.id,
+            user_question="Bugungi dollar kursi qancha, internetdan qidirib ber",
+        )
+
+        call_kwargs = mocked_client.return_value.models.generate_content.call_args.kwargs
+        self.assertIn("ACTIVE SKILL: Web Search (web_search)", call_kwargs["contents"])
+        self.assertIn("[tool:web_search]", call_kwargs["contents"])
+        self.assertIn("config", call_kwargs)
+        self.assertTrue(getattr(call_kwargs["config"], "tools", None))
+        run = AIResponseRun.objects.get(room=room, student=self.student)
+        self.assertEqual(run.skill_slug, "web_search")
+        self.assertTrue(run.metadata.get("web_search_enabled"))
+        self.assertEqual(run.metadata.get("web_search_queries"), ["bugungi dollar kursi"])
+        sources = run.metadata.get("web_search_sources") or []
+        self.assertEqual(len(sources), 1)
+        self.assertEqual(sources[0]["title"], "Markaziy bank kursi")
+        self.assertEqual(sources[0]["uri"], "https://example.uz/usd")
+
+    @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
+    @patch("ai.providers.gemini.genai.Client")
+    def test_generate_ai_response_omits_web_search_config_for_default_skill(
+        self,
+        mocked_client,
+        _mocked_retrieve_chunks,
+    ):
+        room = ChatRoom.objects.create(room_type="ai", name="Azure AI - ai-student")
+        room.participants.add(self.student)
+        mocked_client.return_value.models.generate_content.return_value = SimpleNamespace(
+            text="Javob tayyor.",
+            candidates=[],
+        )
+
+        generate_ai_response.run(
+            room_id=room.id,
+            student_id=self.student.id,
+            user_question="Bugun motivatsiya ber",
+        )
+
+        call_kwargs = mocked_client.return_value.models.generate_content.call_args.kwargs
+        self.assertNotIn("config", call_kwargs)
+        run = AIResponseRun.objects.get(room=room, student=self.student)
+        self.assertFalse(run.metadata.get("web_search_enabled"))
+
+    @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
+    @patch("ai.providers.gemini.genai.Client")
+    def test_generate_ai_response_enables_grounding_for_heavy_effort_even_on_general_chat(
+        self,
+        mocked_client,
+        _mocked_retrieve_chunks,
+    ):
+        self.student.ai_web_search_effort = "heavy"
+        self.student.save(update_fields=["ai_web_search_effort"])
+        room = ChatRoom.objects.create(room_type="ai", name="Azure AI - ai-student")
+        room.participants.add(self.student)
+        mocked_client.return_value.models.generate_content.return_value = SimpleNamespace(
+            text="Javob tayyor.",
+            candidates=[],
+        )
+
+        generate_ai_response.run(
+            room_id=room.id,
+            student_id=self.student.id,
+            user_question="Bugun motivatsiya ber",
+        )
+
+        call_kwargs = mocked_client.return_value.models.generate_content.call_args.kwargs
+        self.assertIn("config", call_kwargs)
+        self.assertTrue(getattr(call_kwargs["config"], "tools", None))
+        run = AIResponseRun.objects.get(room=room, student=self.student)
+        self.assertTrue(run.metadata.get("web_search_enabled"))
+
+    @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
+    @patch("ai.providers.gemini.genai.Client")
+    def test_generate_ai_response_strips_inline_source_markers_and_trailing_sources_list(
+        self,
+        mocked_client,
+        _mocked_retrieve_chunks,
+    ):
+        room = ChatRoom.objects.create(room_type="ai", name="Azure AI - ai-student")
+        room.participants.add(self.student)
+        raw_reply = (
+            "Bugun dollar kursi 12 600 so'm (Manba 1).\n"
+            "Inflyatsiya darajasi 9.5% (Manba 1, Manba 2).\n\n"
+            "Manbalar:\n"
+            "- Markaziy bank (cbu.uz)\n"
+            "- Statistika qo'mitasi (stat.uz)"
+        )
+        mocked_client.return_value.models.generate_content.return_value = SimpleNamespace(
+            text=raw_reply,
+            candidates=[
+                SimpleNamespace(
+                    grounding_metadata=SimpleNamespace(
+                        web_search_queries=["dollar kursi"],
+                        grounding_chunks=[
+                            SimpleNamespace(web=SimpleNamespace(uri="https://cbu.uz", title="CBU"))
+                        ],
+                    )
+                )
+            ],
+        )
+
+        message_id = generate_ai_response.run(
+            room_id=room.id,
+            student_id=self.student.id,
+            user_question="Bugungi dollar kursi qancha, qidirib ber",
+        )
+
+        ai_message = Message.objects.get(id=message_id)
+        self.assertNotIn("(Manba", ai_message.text)
+        self.assertNotIn("Manbalar:", ai_message.text)
+        self.assertIn("12 600 so'm", ai_message.text)
+        self.assertIn("Inflyatsiya darajasi 9.5%", ai_message.text)
+        run = AIResponseRun.objects.get(ai_message=ai_message)
+        self.assertEqual(len(run.metadata["web_search_sources"]), 1)
+
+    @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
+    @patch("ai.providers.gemini.genai.Client")
+    def test_generate_ai_response_strips_leading_greeting_in_followup_message(
+        self,
+        mocked_client,
+        _mocked_retrieve_chunks,
+    ):
+        room = ChatRoom.objects.create(room_type="ai", name="Azure AI - ai-student")
+        room.participants.add(self.student)
+        with suppress_ai_signal():
+            Message.objects.create(room=room, sender=self.student, text="Birinchi savol")
+            Message.objects.create(room=room, text="Birinchi javob", is_ai_response=True)
+        mocked_client.return_value.models.generate_content.return_value = SimpleNamespace(
+            text="Salom, Aziz! 😊\n\nXitoyda Tiananmen voqealari 1989-yilda bo'lib o'tgan.",
+            candidates=[],
+        )
+
+        message_id = generate_ai_response.run(
+            room_id=room.id,
+            student_id=self.student.id,
+            user_question="Tiananmen voqealari qachon bo'lgan",
+        )
+
+        ai_message = Message.objects.get(id=message_id)
+        self.assertNotIn("Salom, Aziz", ai_message.text)
+        self.assertTrue(ai_message.text.startswith("Xitoyda Tiananmen"))
+        prompt = mocked_client.return_value.models.generate_content.call_args.kwargs["contents"]
+        self.assertIn("DIQQAT: bu davomli suhbat", prompt)
+
+    @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
+    @patch("ai.providers.gemini.genai.Client")
+    def test_generate_ai_response_keeps_greeting_in_first_message(
+        self,
+        mocked_client,
+        _mocked_retrieve_chunks,
+    ):
+        room = ChatRoom.objects.create(room_type="ai", name="Azure AI - ai-student")
+        room.participants.add(self.student)
+        mocked_client.return_value.models.generate_content.return_value = SimpleNamespace(
+            text="Salom! Bugun nima qilamiz? 😊",
+            candidates=[],
+        )
+
+        message_id = generate_ai_response.run(
+            room_id=room.id,
+            student_id=self.student.id,
+            user_question="Salom",
+        )
+
+        ai_message = Message.objects.get(id=message_id)
+        self.assertTrue(ai_message.text.startswith("Salom"))
+        prompt = mocked_client.return_value.models.generate_content.call_args.kwargs["contents"]
+        self.assertIn("BIRINCHI javobingiz", prompt)
 
     @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
     @patch("ai.providers.gemini.genai.Client")
