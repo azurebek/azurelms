@@ -1,281 +1,573 @@
-# AzureLMS — agentlar uchun qoidalar
+# AzureLMS — Agentlar uchun qoidalar
 
-Bu hujjat **Claude Code**, **Codex**, **Antigravity** (yoki boshqa AI IDE) bilan parallel ishlash uchun. Har agent sessiya boshlashidan oldin shuni o'qiydi.
+Bu hujjat **Claude Code**, **Codex**, **Antigravity** (yoki boshqa AI agent) bir repo ustida ishlaganda to'qnashuvni minimumga tushirish uchun. Har agent sessiya boshlashidan oldin shuni o'qiydi.
 
-Maqsad: 3 ta agent bir vaqtda ishlasin, lekin **bir-biriga aralashmasin va bir-birining ishini buzmasin**.
+Maqsad: 3+ ta agent bir vaqtda ishlasin, lekin bir-biriga aralashmasin, bir-birining ishini buzmasin, takroriy kontekst sarflashga vaqt ketmasin.
 
 ---
 
-## 1. Branch konvensiyasi (qattiq qoida)
+## 0. Eslab qolinishi kerak bo'lgan 5 ta qoida
 
-Har agent **o'z prefiks bilan** branch ochadi:
+Agar faqat 5 ta narsani eslab qolish kerak bo'lsa:
 
-| Agent | Prefiks | Misol |
+1. `main` integratsiya trunk'i. Unda faqat Azurbek ruxsati bilan ishlanadi.
+2. Har agent o'z prefiks branch'ida ishlaydi: `codex/`, `claude/`, `antigravity/`.
+3. Har agent imkon qadar o'z worktree papkasida ishlaydi.
+4. Bitta task tugasa: **test → commit → marinebook yozuvi**.
+5. **Begona uncommitted o'zgarishni revert, delete yoki overwrite qilma.**
+
+---
+
+## 1. Source of truth
+
+Sessiya boshlanganda quyidagilar source of truth hisoblanadi:
+
+| Tartib | Fayl / buyruq | Nima uchun |
 |---|---|---|
-| Claude Code | `claude/` | `claude/web-search-skill`, `claude/dashboard-fix` |
-| Codex | `codex/` | `codex/messenger-quality`, `codex/exam-flow` |
-| Antigravity | `antigravity/` | `antigravity/telegram-bot`, `antigravity/ai-widget` |
-| Inson (Azurbek) | `feature/` yoki to'g'ridan-to'g'ri `main` | `feature/payment-update` |
+| 1 | `git status --short --branch` | qaysi branch va dirty state |
+| 2 | `git log --oneline --decorate -8` | so'nggi ishlar |
+| 3 | `git worktree list` | papka/branch ownership |
+| 4 | `nuclear-program/marinebook.md` (so'nggi 3-5 yozuv) | so'nggi major sessionlar |
+| 5 | `nuclear-program/project-context.md` | loyiha arxitekturasi |
+| 6 | task tegadigan app fayllari (model/view/url/test) | haqiqiy kod source of truth |
 
-**Hech qachon:**
-- ❌ Boshqa agentning branch'iga commit qilmaslik
-- ❌ Boshqa agentning branch'ini merge qilmaslik (faqat Azurbek qiladi)
-- ❌ `main` ga to'g'ridan-to'g'ri commit qilmaslik (Azurbek ruxsat bersa istisno)
-- ❌ Boshqa agent ishlayotgan fayllarga tegmaslik (bilmaslik kerak bo'lsa, avval `git log` orqali tekshirib ko'rish kim oxirgi tegan)
-
-**Doim:**
-- ✅ O'z prefiks bilan branch och: `git checkout -b claude/feature-name main`
-- ✅ Bittadan feature/fix uchun bitta branch
-- ✅ Branch nomi qisqa va aniq: `claude/fix-pricing-grid`, `codex/add-quiz-timer`
+**Hech bir agent faqat eski chat xotirasi asosida qaror qilmaydi.** Hozirgi repo holatini tekshiradi.
 
 ---
 
-## 2. Worktree sozlamasi (ixtiyoriy lekin tavsiya etiladi)
+## 2. Branch ownership
 
-Disk papkalarining ham ajratilishi to'qnashuvni **fizik jihatdan imkonsiz** qiladi. Sozlash:
+| Owner | Prefiks | Misol |
+|---|---|---|
+| Codex | `codex/` | `codex/messenger-reply-threading` |
+| Claude Code | `claude/` | `claude/rag-admin-panel` |
+| Antigravity | `antigravity/` | `antigravity/dashboard-polish` |
+| Human / Azurbek | `feature/`, `hotfix/`, yoki `main` | `feature/payment-flow` |
+| Integration | `main` | release-ready trunk |
 
-```bash
-# Asosiy papka (Azurbek + integratsiya)
-cd C:\Projects\azurelms      # main branch shu yerda
+### Qattiq taqiqlar
 
-# Har agent uchun alohida worktree
-git worktree add ../azurelms-claude       claude/work
-git worktree add ../azurelms-codex        codex/work
-git worktree add ../azurelms-antigravity  antigravity/work
+- ❌ Boshqa agent branch'iga commit qilma
+- ❌ Boshqa agent branch'ini force-push qilma
+- ❌ `main`'ga bevosita commit/push qilma (Azurbek aniq aytmasa)
+- ❌ Begona uncommitted o'zgarishni "tozalash" uchun revert qilma
+- ❌ `git reset --hard`, `git clean -fd`, `git checkout -- .` ishlatma (Azurbek ruxsat bermasa)
+
+### Branch yaratish
+
+```powershell
+git fetch origin
+git checkout -b codex/<task-name> origin/main
 ```
 
-Endi:
-- Claude IDE → `C:\Projects\azurelms-claude\` ochsa, `claude/work` branchida ishlaydi
-- Codex → `C:\Projects\azurelms-codex\` → `codex/work`
-- Antigravity → `C:\Projects\azurelms-antigravity\` → `antigravity/work`
+**Branch nomi:** kichik harflar, 3-5 so'z, task'ni bildiradi. Umumiy `work`, `fix`, `final`, `new` kabi nomlardan qoching.
 
-Har papka bitta git repo'siga ulangan (`.git/` `C:\Projects\azurelms\` da bir marta), lekin har biri o'z working tree'siga ega.
+Yaxshi: `codex/ai-widget-fallback`, `claude/rag-source-panel`, `antigravity/mobile-dashboard-polish`
+Yomon: `codex/work`, `claude/fix`, `antigravity/test2`
 
-**Yangi feature boshlash:**
-```bash
-cd C:\Projects\azurelms-claude
-git checkout -b claude/<new-feature> main
-git pull origin main   # main eng so'nggi bo'lsin
+`<agent>/work` faqat **uzoq muddatli worktree base branch** sifatida ishlatilsa bo'ladi. Har feature uchun alohida branch ochiladi.
+
+---
+
+## 3. Worktree setup
+
+Tavsiya etilgan papkalar:
+
+```text
+C:\Projects\azurelms                main / integration
+C:\Projects\azurelms-codex          Codex worktree
+C:\Projects\azurelms-claude         Claude worktree
+C:\Projects\azurelms-antigravity    Antigravity worktree
+```
+
+**Branchlar hali mavjud bo'lmasa:**
+
+```powershell
+cd C:\Projects\azurelms
+git worktree add -b codex/work ../azurelms-codex main
+git worktree add -b claude/work ../azurelms-claude main
+git worktree add -b antigravity/work ../azurelms-antigravity main
+```
+
+**Branchlar mavjud bo'lsa:**
+
+```powershell
+git worktree add ../azurelms-codex codex/work
+```
+
+### Worktree qoidalari
+
+- Har IDE o'z worktree papkasini ochadi
+- Agent boshqa agent papkasiga fayl yozmaydi
+- Worktree o'chirishdan oldin `git status` tekshiriladi
+- Worktree branch'ini almashtirishdan oldin dirty state hal qilinadi
+
+Verify:
+
+```powershell
+git worktree list
+git status --short --branch
 ```
 
 ---
 
-## 3. Sessiya boshlash protokoli
+## 4. Sessiya boshlash
 
-Har **yangi chat sessiya** boshlanganda agent quyidagi tartibda kontekstga kiradi:
+Har yangi sessiya ~5 daqiqalik bootstrap bilan boshlanadi:
 
-1. **`nuclear-program/project-context.md`** o'qish — loyihaning to'liq tushunish (5-10 daqiqa)
-2. **`nuclear-program/marinebook.md`** ning so'nggi 3-5 yozuvini o'qish — yaqinda nima bo'lganini bilish (2-3 daqiqa)
-3. **`git status` va `git log --oneline -10`** ishga tushirish — joriy holatni ko'rish
-4. **`git branch -a`** — qaysi branch'da turganini tasdiqlash. Agar `main` da bo'lsa — yangi feature uchun darhol o'z prefiks bilan branch ochish (1-bo'limga qarang)
+```powershell
+git status --short --branch
+git log --oneline --decorate -8
+git worktree list
+```
 
-Bu 4 ta qadam ~10 daqiqa oladi va **5000-10000 token sarflashning oldini oladi** (avval har sessiya zerikarli exploration bilan boshlanardi).
+Keyin:
+
+1. `nuclear-program/marinebook.md` so'nggi 3-5 yozuvini o'qi
+2. Arxitektura kerak bo'lsa `nuclear-program/project-context.md`'ni o'qi
+3. Task tegadigan app'ning `models.py`, `urls.py`, `views.py`, `tests.py`'sini tekshir
+4. Branch to'g'ri prefiksda ekanini tasdiqla
+5. Dirty worktree bo'lsa — kim qilganini ajrat (quyidagi triage)
+
+### Dirty worktree triage
+
+`git status` dirty bo'lsa:
+
+| Holat | Amal |
+|---|---|
+| O'z sessiyangdagi o'zgarish | davom et, lekin tez commit qil |
+| User yoki boshqa agent o'zgarishi | tegma, faqat o'qib moslash |
+| Task'ga bevosita xalaqit beradi | Azurbek'dan yo'l so'ra |
+| Kimniki ekanini bilmaysan | `git diff` bilan o'rgan, **revert qilma** |
 
 ---
 
-## 4. Commit discipline
+## 5. Task scope
 
-### 4.1 Commit hajmi
+Har task boshida aniqlanadi:
 
-**Bitta commit = bitta logical o'zgarish.** Stack qilmaslik. Misol:
-- ❌ "feat: lots of stuff" (10 ta o'zaro bog'liqsiz feature)
-- ✅ "feat(messenger): add reply threading"
-- ✅ "fix(blog): handle None sender in reply preview"
-- ✅ "refactor(ai): extract mention detection to separate module"
+- Maqsad nima
+- Qaysi app/fayllar tegadi
+- Test qanday bo'ladi
+- Data migration kerakmi
+- Frontend bo'lsa qaysi sahifada browser verify kerak
+- AI/provider bo'lsa external key yoki network kerakmi
 
-### 4.2 Commit xabari formati
+### Scope kattaligi
 
-```
+| Task turi | Tavsiya |
+|---|---|
+| CSS/UI polish | 1-5 fayl, browser verify |
+| Bug fix | minimal fayl, regression test |
+| Model change | migration + tests |
+| AI behavior | engine/prompt/skill + messenger tests |
+| RAG/memory | unit tests + management command smoke |
+| Full feature | kichik bosqichlarga bo'linadi |
+
+**Agent unrelated refactor qilmaydi.** "Ko'rib qoldim, shuni ham tuzatdim" faqat juda kichik va xavfsiz bo'lsa qabul qilinadi; aks holda alohida task.
+
+---
+
+## 6. Edit discipline
+
+### Faylga tegishdan oldin
+
+1. Faylni o'qi
+2. Existing pattern'ni tushun
+3. Fayl dirty bo'lsa, diff'ni ko'r
+4. O'zgarishni minimal qil
+
+### Taqiqlar
+
+- ❌ Begona formatting churn
+- ❌ Katta rename/move (task talab qilmasa)
+- ❌ Generated/media/venv fayllarni commit qilish
+- ❌ `.env`, secrets, API keys commit qilish
+- ❌ `db.sqlite3`, `media/`, `staticfiles/` commit qilish
+
+### Maxsus ehtiyot fayllar (multi-agent collision zonalari)
+
+Bu fayllarga tegishda `git diff`'ni tez-tez ko'r:
+
+- `messenger/models.py`, `messenger/tasks.py`, `messenger/consumers.py`, `messenger/views.py`
+- `static/js/messenger-chat.js`, `static/css/messenger-shell.css`
+- `courses/models.py`, `courses/views.py`
+- `users/models.py`, `users/views.py`
+- `core/settings.py`, `core/urls.py`
+- `nuclear-program/*.md`
+
+---
+
+## 7. Test discipline
+
+### Minimal test matrix
+
+| O'zgarish | Minimum |
+|---|---|
+| Docs only | `git diff --check` |
+| CSS/template only | browser verify + `python manage.py check` |
+| Python view/form | `python manage.py check` + app tests |
+| Model/migration | `python manage.py makemigrations --check` + app tests |
+| Messenger | `python manage.py test messenger` |
+| Users/dashboard/settings | `python manage.py test users` |
+| Courses/lesson/exam | focused `courses` tests |
+| AI skill/memory/RAG | `python manage.py test messenger` + focused tests |
+| Checkout/subscription | `python manage.py test cohorts subscriptions` |
+
+### Test natijasini halol yozish
+
+Final yoki marinebook'da:
+
+- Qaysi command yugurdi
+- Pass / fail soni
+- Fail bo'lsa aynan qaysi test
+- Fail task bilan bog'liqmi yoki pre-existing'mi
+
+**"Testlar o'tdi" deb umumiy aytma — command'ni yoz.**
+
+### Testni skip qilish
+
+Faqat shu hollarda mumkin:
+
+- Testning o'zi noto'g'ri yoki eskirganligi isbotlangan
+- Azurbek rozilik bergan
+- Marinebook'da sabab yozilgan
+
+**Tezroq tugatish uchun testni susaytirish mumkin emas.**
+
+---
+
+## 8. Commit discipline
+
+### Qachon commit
+
+Commit qil:
+
+- Bitta logical feature tugaganda
+- Bug fix + regression test o'tganda
+- Migration + model change stable bo'lganda
+- Session yopilishidan oldin
+- 30 daqiqadan ortiq ish yig'ilib qolsa va holat testdan o'tsa
+
+Commit qilma:
+
+- Test'dan o'tmagan WIP'ni (Azurbek "WIP commit" demasa)
+- Secret yoki local generated fayllarni
+- Boshqa agent o'zgarishini o'zingniki bilan aralashtirib
+
+### Commit format
+
+```text
 <type>(<scope>): <short summary>
 
-<optional details>
+<optional body>
 
 Co-Authored-By: <Agent Name> <noreply@anthropic.com>
 ```
 
-`type` lar: `feat`, `fix`, `refactor`, `chore`, `docs`, `test`, `perf`, `style`
-`scope` (ixtiyoriy): `messenger`, `ai-agent`, `ai-memory`, `ui`, `blog`, `users`, va h.k.
+**Types:** `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `style`, `perf`
 
-### 4.3 Commit oraliqlari
+**Misollar:**
 
-- Yangi fayl yaratdingizmi → testlaringiz o'tdimi → **commit qiling**
-- Yangi class/funksiya — **commit**
-- Bug fix — **commit**
-- 30+ minut ish to'planib qoldi va commit qilinmagan? **Stop. Commit qiling.** Stack — keyingi muammoning ildizi.
-
----
-
-## 5. Test discipline
-
-### 5.1 Commit oldidan
-
-- `python manage.py check` — minimum
-- O'zgartirilgan app testlari: `python manage.py test <app>` (masalan `messenger`, `users`, `courses`)
-- Yangi feature qo'shganda — yangi test ham yozish (bitta-ikkita)
-
-### 5.2 Branch'ni main'ga qo'shishdan oldin
-
-- **Hammasini** yugurtirish: `python manage.py test`
-- Hammasi yashil bo'lishi shart
-- Sinmagan testlari bo'lsa — ular bekor qilinmasligi kerak, ulardan biri tuzatilishi yoki muammo qaytarilishi kerak
-
-### 5.3 Test xafa qilish (skip / xfail) — istisno
-
-Faqat: testning o'zi noto'g'ri yozilgan bo'lsa yoki sinadigan feature hali yo'q bo'lsa. **Hech qachon "tezroq merge qilish uchun"** test'ni skip qilmaslik.
-
----
-
-## 6. Push va merge protokoli
-
-### 6.1 Push
-
-- O'z branch'ingizga doim push qilish: `git push origin <your-branch>`
-- `main` ga **to'g'ridan-to'g'ri push qilmaslik** — faqat Azurbek qiladi
-- Force-push (`--force`, `--force-with-lease`) — faqat o'z branch'ingizga, va boshqa agent shu branch'ga tegmagan bo'lsa
-
-### 6.2 Merge to main
-
-Bu **inson tomonidan** (Azurbek tomonidan) qilinadi:
-
-1. Agent o'z branch'ida ishni tugatadi, push qiladi
-2. GitHub'da Pull Request ochadi (yoki Azurbek lokal'da merge qiladi)
-3. Azurbek tasdiqlaydi, merge qiladi (preferensial: **squash merge** yoki **fast-forward**)
-4. Branch o'chiriladi: `git branch -d claude/feature && git push origin --delete claude/feature`
-
-### 6.3 Main'dan yangilanish olish
-
-Boshqa agent ishi main'ga qo'shildi → siz ham o'z branch'ingizni yangilang:
-
-```bash
-git checkout claude/your-branch
-git fetch origin
-git rebase origin/main   # yoki: git merge origin/main
+```text
+feat(messenger): add AI room pinning
+fix(courses): preserve lesson cohort query
+test(ai): cover medium web search routing
+docs(agent): add worktree playbook
 ```
 
-Konflikt chiqsa — toza hal qilish, keyin commit.
+---
+
+## 9. Push, PR, merge
+
+### Push
+
+```powershell
+git push -u origin codex/<task-name>
+```
+
+**Push faqat o'z branch'ingizga.**
+
+### Force push
+
+`--force-with-lease` faqat:
+
+- O'z branch'ingiz
+- Boshqa agent tegmagan
+- Rebase/amend sababli zarur
+- Azurbek yoki task context bunga ruxsat bergan
+
+**`--force` (bez lease) hech qachon ishlatilmaydi.**
+
+### Merge to main
+
+Merge'ni **Azurbek** hal qiladi. Agent tayyorlaydi:
+
+- Branch push'lanagan
+- Test status (aniq command + natija)
+- Summary (3-5 jumla)
+- Known risks
+- Migration kerak bo'lsa aniq yozuv
+- Screenshots/browser verify kerak bo'lsa dalil
 
 ---
 
-## 7. Agentlar orasidagi etiketka
+## 10. Marinebook qoidasi
 
-### 7.1 Qaerda ishlasangiz, shu yerda turing
+`nuclear-program/marinebook.md` major sessionlar kundaligi.
 
-- Boshqa agentning branch'iga checkout qilmaslik
-- Boshqa agentning worktree'siga (papkasiga) fayl yozmaslik
-- Boshqa agent ochib qo'ygan PR'ni yopib qo'ymaslik
+### Qachon yoziladi
 
-### 7.2 Shared fayllar (`messenger/tests.py`, `messenger/models.py`...)
+✅ Yoz:
+- Major feature tugasa
+- Architecture o'zgarsa
+- Branch merge/push qilinsa
+- Muhim qaror yoki rollback bo'lsa
+- Boshqa agent davom ettirishi kerak bo'lsa
 
-Ba'zi fayllar barchaga teng. Ularga o'zgartirish kiritganda:
+❌ Yozish shart emas:
+- Juda kichik typo/CSS fix
+- Faqat local exploration
+- Test run xolos
 
-- **Avval** main'dan pull oling
-- **Faqat o'z qism**ingizni o'zgartiring (boshqa agent o'sha faylga teggan bo'lsa, konflikt chiqishi mumkin)
-- Test yugurting → konflikt chiqsa, hal qiling
-- Commit qilganda — `feat(messenger): X bo'limini qo'shish` deb aniq belgilang
+### Format
 
-### 7.3 Tortishuv chiqsa
+Yangi yozuv **eng tepaga** (teskari xronologik):
 
-- Ikki agent bir paytda bitta feature ustida ishlaganini sezsangiz → STOP
-- Azurbek'ga xabar qiling (xabar yo'l: sessiya tugatishda `marinebook.md` ga yozib qoldirish)
-- Bittasini saqlash, ikkinchisini bekor qilish — Azurbek tanlaydi
+```markdown
+## 2026-MM-DD [Agent_nomi]: Qisqa sarlavha
 
----
+2-4 jumla: nima qilindi, nima uchun muhim, nimalarga tegildi.
 
-## 8. Qachon `project-context.md` va `marinebook.md` ni yangilash
+- Branch: `codex/task-name`
+- Commitlar: `abc1234`, `def5678`
+- Test holati: `python manage.py test messenger` pass (68/68)
+- Davom etilishi kerak: yo'q / aniq keyingi qadam
+```
 
-### 8.1 `project-context.md`
+### Marinebook'da yolg'on yo'q
 
-**Yangilanadi:**
-- Yangi major feature qo'shilganda (skill, API, model, oqim)
-- Major refactor — modullar qayta tashkil qilinganda
-- Tech stack o'zgarsa (yangi kutubxona, yangi DB)
-- URL nomlari, environment o'zgarsa
-- Foydalanuvchi sozlamalari (`CustomUser` choices) qo'shilsa
-
-**Yangilamaydi:**
-- Kichik bug fix
-- CSS polish
-- Faqat test qo'shildi
-- Vaqtinchalik WIP
-
-### 8.2 `marinebook.md`
-
-**Doim yangilanadi.** Har sessiya yakunida (yoki har major commitdan keyin) agent o'z yozuvini qo'shadi. Format quyida.
+- ❌ Commit hali yo'q bo'lsa "keyin qo'shiladi" deb yozma — commit'dan keyin yoz
+- ❌ Test yugurmagan bo'lsa "yashil" deb yozma — "yugurilmadi" deb yoz
+- ❌ Pre-existing failure'ni o'z ishingga aybdor qilma — alohida ayt
 
 ---
 
-## 9. Sessiya yakunlash protokoli
+## 11. Project-context.md yangilash
 
-Sessiya tugashidan oldin (yoki uzayib ketganda):
+`project-context.md` major architecture wiki.
 
-1. **Hammasini commit qiling** — uncommitted ish qoldirmaslik
-2. **Push qiling** — o'z branch'ingizga
-3. **Testlar yugurtirildi** — yashil bo'lsin
-4. **`marinebook.md`** ga yozuv qo'shing (eng yuqoriga, teskari xronologik):
-   ```markdown
-   ## 2026-MM-DD [Agent nomi]: Qisqa sarlavha
-   
-   Nima qilindi, qisqa izoh (2-4 jumla).
-   
-   - Branch: `claude/feature-name`
-   - Commitlar: abc1234, def5678
-   - Test holati: 91/91 yashil
-   - Davom etilishi kerak bo'lgan ishlar: [agar bor bo'lsa]
-   ```
-5. **Major feature bo'lsa** `project-context.md` ga qism qo'shing yoki yangilang
-6. Chat sessiyani yoping. Yangi chat yangi bootstrap'dan boshlanadi (bu 3-bo'limdagi qisqa protokol).
+✅ Yangilanadi:
+- Yangi app yoki katta modul
+- AI engine/memory/RAG/skills contract o'zgarsa
+- URL yoki WebSocket/API contract o'zgarsa
+- Model relationships o'zgarsa
+- Deployment/env o'zgarsa
+- Major frontend shell migration bo'lsa
 
----
+❌ Yangilanmaydi:
+- Oddiy CSS polish
+- Copy text o'zgarishi
+- Bitta bug fix
+- Faqat test qo'shish
 
-## 10. Anti-pattern signallari
-
-Quyidagilarni sezsangiz — **darhol to'xtang va commit qiling**:
-
-- "30+ fayl uncommitted" — kelajakdagi muammo
-- "Hech bir muammo tugamayapti" — yarim-tayyor narsalarni stack qilyapsiz
-- "Adashib ketdim, qaysi branch'da turganimni bilmayman" — chalkash worktree
-- "Bu boshqa agent ishlayotgan fayl shekilli" — STOP, tasdiqlang
-- "Bu menga begona kod kabi" — main'dan yangilanish oling, kontekstni qayta o'qing
-
-Sessiya uzayib ketsa (`>50 turn`) — yangi chat ochish kerak. Yangi chat 30 sekundda bootstrap qiladi (3-bo'lim).
+**Context faylga faqat verified ma'lumot yoziladi.** Taxmin yoki bir martalik kuzatuv → `marinebook.md`'ga.
 
 ---
 
-## 11. Per-agent maxsus qoidalar
+## 12. Long session signallari
 
-### Claude Code
+Quyidagi belgilar chiqsa, agent session'ni yopishga tayyorlaydi:
 
-- Tools: kuchli **edit-based** ish, fayl-fayl o'qish va o'zgartirish
-- Imzo: `Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>`
-- Sessiya uzunligi: 50-100 turn, undan keyin yangi chat
-- Kuchli tomon: refactoring, test yozish, debug, dokumentatsiya
+- 50+ turn bo'ldi
+- Bir nechta unrelated task aralashdi
+- 20+ fayl dirty bo'lib qoldi
+- Agent nima o'zgartirganini og'zaki qayta ayta olmayapti
+- Test/debug loop 3 marotabadan ko'p takrorlandi
+- **User "nima qilayotgandik?" deb so'radi** (eng kuchli signal)
+
+### Session yopish protokoli
+
+1. `git status --short`
+2. O'zgarishlarni logical guruhlarga ajrat
+3. Test/check yugurtir
+4. Commit qil yoki WIP holatini aniq yoz
+5. Marinebook yangila (major bo'lsa)
+6. User'ga qisqa status ber
+
+---
+
+## 13. Conflict protocol
+
+Conflict chiqsa:
+
+1. Panika qilma
+2. `git status` va conflicted fayllarni ko'r
+3. Har conflict uchun:
+   - Current branch nima qilgan
+   - Incoming nima qilgan
+   - Ikkalasining niyati nima
+   - Test qanday tasdiqlaydi
+4. Begona feature logikasini olib tashlama
+5. Hal bo'lgach focused test yugurtir
+6. Marinebook'da conflict haqida yoz
+
+### Cross-agent feature collision
+
+Ikki agent bir feature ustida ishlaganini sezsang:
+
+- **STOP**
+- Ikkala branch holatini yoz
+- Azurbek'dan qaysi yo'l tanlanishini so'ra
+
+---
+
+## 14. Frontend verify
+
+Frontend o'zgarishida agent quyidagilarni qiladi:
+
+- Relevant sahifani browser'da ochadi
+- Desktop va kerak bo'lsa mobile width tekshiradi
+- Text overflow, overlap, scrollbar, hover/active state tekshiradi
+- JS console error bo'lsa ko'radi
+- Dark/light theme ta'sirini hisobga oladi
+
+**Messenger/course/lesson/dashboard kabi interactive sahifalarda faqat HTML render yetarli emas** — kamida asosiy user action tekshiriladi.
+
+---
+
+## 15. AI feature qoidasi
+
+AI'ga tegadigan o'zgarishda:
+
+- Prompt injection va `<SAVE_MEMORY>` safety tekshiriladi
+- Memory on/off behavior saqlanadi
+- RAG access user enrollment scope bilan cheklanadi
+- Web search faqat effort qoidalariga mos yoqiladi
+- `AIResponseRun.metadata` telemetry buzilmaydi
+- UI skill/model/tone settings bilan mos ishlaydi
+
+**AI behavior o'zgarsa kamida bitta test qo'shiladi yoki mavjud test yangilanadi.**
+
+---
+
+## 16. Data migration
+
+Model o'zgarishi:
+
+1. Migration yarat
+2. Migration'ni o'qi
+3. Data loss bor-yo'qligini tekshir
+4. Default/null/backfill masalasini hal qil
+5. Test yoki `manage.py check` yugurtir
+
+### Danger signs
+
+- Field rename auto-detected emas
+- `RemoveField`
+- Non-null field without default
+- Large data migration
+- Index/constraint on large table
+
+Bunday hollarda Azurbek'ka aniq risk yoziladi.
+
+---
+
+## 17. Secrets va private data
+
+**Hech qachon commit qilinmaydi:**
+
+- `.env`, `.env.local`
+- API keys (Gemini, Telegram, OpenAI, ...)
+- DB password
+- Redis/Valkey URL bilan creds
+- User personal data export
+- `db.sqlite3`
+- Media uploads
+
+**Sensitive qiymat ko'rinsa:**
+
+- Final'da plaintext qaytarilmaydi
+- Maskalanadi (`sk-***`, `ghp_***`)
+- Kerak bo'lsa rotate qilish tavsiya qilinadi
+
+---
+
+## 18. Per-agent notes
 
 ### Codex
 
-- Tools: **CLI + agent** ko'proq, autonom code generation
-- Branch prefiksi: `codex/`
-- Tarixiy: `codex/playground-next` branch ishlatilgan (endi main'ga qo'shilgan)
-- Kuchli tomon: katta refactor, butun feature qurish
+- Branch prefiks: `codex/`
+- Kuchli tomon: repo bo'ylab refactor, tests, CLI, browser verify
+- Ko'p faylga tegsa tez-tez `git diff --stat` tekshiradi
+- Manual edit uchun patch/diff discipline saqlaydi
+
+### Claude Code
+
+- Branch prefiks: `claude/`
+- Kuchli tomon: refactor, dokumentatsiya, structured analysis, tests
+- Long context'da session'ni erta yopish foydali
+- Imzo: `Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>`
 
 ### Antigravity
 
-- Google IDE
-- Branch prefiksi: `antigravity/`
-- Tarixiy: `antigravity/dev` ishlatilgan (o'chirilgan — uncommitted ish yo'qoldi)
-- **DARS:** Antigravity bilan ishlaganda har 10-15 daqiqada commit qilish, stack yo'q
-- Kuchli tomon: UI/UX, frontend, design implementation
+- Branch prefiks: `antigravity/`
+- Kuchli tomon: frontend/UI exploration
+- **Har 10-15 daqiqada kichik commit/checkpoint** tavsiya etiladi
+- Katta uncommitted UI experimentlarni main branch'da saqlama (bugun bo'lgan ish — 3000+ qator yo'qoldi)
+
+### Human / Azurbek
+
+- Integration qarorini beradi
+- Main merge/push ruxsatini beradi
+- Agentlar conflict yoki duplicated effort bo'lsa final tanlovni qiladi
 
 ---
 
-## 12. Bu hujjatni o'zi yangilash
+## 19. Final response qoidasi
 
-`rules-for-agents.md` ham yashash hujjati. O'zgartirish kerak bo'lsa:
+Agent ishni tugatganda user'ga qisqa aytadi:
 
-1. Azurbek tasdiqlaydi
-2. Yangi qoida qo'shilsa — yangi raqamli bo'lim
-3. Eski qoida olib tashlansa — sababi `marinebook.md` ga yoziladi
-4. Versiya nomi yo'q, lekin commit history saqlanadi
+- Nima o'zgardi
+- Qaysi muhim fayllar
+- Test/check natijasi (aniq command bilan)
+- Nima qilinmadi yoki risk
+- Commit/push qilingan bo'lsa hash/branch
+
+**Uzun diff'ni final'ga ko'chirma.** Kerak bo'lsa clickable file path beradi.
 
 ---
 
-*Yangilanish: 2026-05-28 (nuclear-program tizimi yaratildi)*
+## 20. Emergency stop
+
+Darhol to'xtash kerak:
+
+- Branch noto'g'ri ekanini sezsa
+- `main` dirty bo'lsa va task feature bo'lsa
+- Destructive command kerak bo'lsa (bu user tomonidan tasdiqlanishi kerak)
+- Migration data loss ehtimoli bo'lsa
+- Secret commit bo'lganini sezsa
+- User'ning o'zgarishi ustidan yozish xavfi bo'lsa
+- **Test failure sababini tushunmay turib "fix" qilish loop'i boshlangan bo'lsa**
+
+To'xtaganda agent user'ga:
+
+1. Nima xavf borligini
+2. Hozirgi branch/status'ni
+3. Xavfsiz variantlarni
+4. Tavsiya qilingan keyingi qadamni aytadi
+
+---
+
+## 21. Bu faylni yangilash
+
+Bu hujjat ham living document.
+
+- Faqat real muammo yoki yangi workflow paydo bo'lsa yangilanadi
+- Qoida qisqa va actionable bo'lsin
+- Eski qoidani o'chirishdan ko'ra, sababi bilan almashtir
+- Major o'zgarish marinebook'da qayd etilsin
+
+---
+
+*Yangilanish: 2026-05-28 (Codex'ning alternative versiyasi bilan birlashtirilgan yakuniy variant).*
