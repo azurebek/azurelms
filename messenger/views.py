@@ -18,6 +18,7 @@ from courses.models import Lesson
 from .access import (
     create_user_ai_room,
     ensure_user_ai_room,
+    maybe_name_ai_room_from_first_prompt,
     sync_student_chat_access,
     user_can_access_room,
     user_can_use_lesson_context,
@@ -384,6 +385,84 @@ class MessengerTutorView(_MessengerRoomView):
 def create_ai_chat(request):
     room = create_user_ai_room(request.user)
     return redirect("messenger:ai_room", room_id=room.id)
+
+
+@login_required
+@require_POST
+def widget_ai_message(request):
+    """Floating AzureAI widget xabarini qabul qiladi.
+
+    Lazy room creation: AI xonasi FAQAT haqiqiy xabar yuborilganda yaratiladi.
+    Widget ochilib, hech narsa yozilmasa hech qanday xona/yozuv saqlanmaydi.
+    Birinchi xabar `room_id` siz keladi → yangi xona yaratiladi va qaytariladi;
+    keyingi xabarlar o'sha `room_id` bilan kelib bitta suhbatda davom etadi.
+    """
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, TypeError):
+        return JsonResponse({"status": "error", "message": "Invalid JSON"}, status=400)
+
+    message_text = str(data.get("message", "") or "").strip()
+    if not message_text:
+        return JsonResponse({"status": "error", "message": "Bo'sh xabar yuborib bo'lmaydi."}, status=400)
+
+    room = None
+    raw_room_id = data.get("room_id")
+    if raw_room_id is not None:
+        try:
+            room = ChatRoom.objects.filter(
+                id=int(raw_room_id),
+                room_type="ai",
+                participants=request.user,
+            ).first()
+        except (TypeError, ValueError):
+            room = None
+
+    # Lazy: faqat shu nuqtada (haqiqiy xabar bilan) yangi xona yaratiladi.
+    created_room = False
+    if room is None:
+        room = create_user_ai_room(request.user)
+        created_room = True
+
+    from .signals import suppress_ai_signal
+    from .tasks import generate_ai_response
+
+    with suppress_ai_signal():
+        user_message = Message.objects.create(room=room, sender=request.user, text=message_text)
+    maybe_name_ai_room_from_first_prompt(room, message_text)
+    room.refresh_from_db(fields=["name"])
+
+    ai_message_id = generate_ai_response.run(
+        room_id=room.id,
+        student_id=request.user.id,
+        user_question=message_text,
+        user_message_id=user_message.id,
+    )
+    ai_message = Message.objects.filter(id=ai_message_id).first() if ai_message_id else None
+
+    return JsonResponse(
+        {
+            "status": "success",
+            "room_id": room.id,
+            "room_name": room.name,
+            "created_room": created_room,
+            "room_url": f"/messenger/ai/{room.id}/",
+            "user_message": {
+                "id": user_message.id,
+                "text": user_message.text,
+                "created_at": user_message.created_at.strftime("%H:%M"),
+            },
+            "ai_message": {
+                "id": ai_message.id if ai_message else None,
+                "text": (
+                    ai_message.text
+                    if ai_message
+                    else "Kechirasiz, hozir javob bera olmadim. Birozdan so'ng qayta urinib ko'ring."
+                ),
+                "created_at": (ai_message.created_at if ai_message else timezone.now()).strftime("%H:%M"),
+            },
+        }
+    )
 
 
 @login_required

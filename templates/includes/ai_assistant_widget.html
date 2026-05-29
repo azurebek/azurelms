@@ -1,0 +1,62 @@
+{% load static %}
+{% comment %}
+Floating AzureAI widget — auth sahifalarda (messenger'dan tashqari) o'ng pastki burchakda.
+Lazy: xona faqat birinchi xabar yuborilganda yaratiladi.
+{% endcomment %}
+<div class="azai-widget" id="azaiWidget"
+     data-endpoint="{% url 'messenger:widget_ai_message' %}"
+     data-messenger-url="{% url 'messenger:ai' %}">
+  {% csrf_token %}
+
+  <!-- Launcher (owl) -->
+  <button type="button" class="azai-launcher" id="azaiLauncher"
+          aria-label="AzureAI bilan suhbat" aria-expanded="false">
+    <img class="azai-launcher-img"
+         src="{% static 'img/ai-assistant-widget.png' %}"
+         alt="AzureAI" draggable="false"
+         onerror="this.style.display='none';this.closest('.azai-launcher').classList.add('azai-launcher--fallback')">
+    <i class="bi bi-stars azai-launcher-fallback-icon"></i>
+    <span class="azai-launcher-tooltip">AzureAI bilan suhbat</span>
+  </button>
+
+  <!-- Chat panel -->
+  <section class="azai-panel" id="azaiPanel" aria-hidden="true">
+    <header class="azai-panel-head">
+      <div class="azai-panel-id">
+        <span class="azai-panel-avatar"><i class="bi bi-stars"></i></span>
+        <span class="azai-panel-meta">
+          <span class="azai-panel-name">AzureAI</span>
+          <span class="azai-panel-status"><span class="azai-dot"></span> Har doim ochiq</span>
+        </span>
+      </div>
+      <div class="azai-panel-actions">
+        <a class="azai-panel-btn azai-expand" id="azaiExpand" href="#" hidden
+           title="To'liq suhbatga o'tish" aria-label="To'liq suhbatga o'tish">
+          <i class="bi bi-arrows-angle-expand"></i>
+        </a>
+        <button type="button" class="azai-panel-btn" id="azaiClose"
+                title="Yopish" aria-label="Yopish">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+    </header>
+
+    <div class="azai-messages" id="azaiMessages">
+      <div class="azai-welcome">
+        <div class="azai-welcome-icon"><i class="bi bi-stars"></i></div>
+        <p class="azai-welcome-title">Salom! Men AzureAI 👋</p>
+        <p class="azai-welcome-sub">Savol bering, mashq tekshirtiring yoki yo'nalish so'rang. Suhbat faqat yozsangiz saqlanadi.</p>
+      </div>
+    </div>
+
+    <form class="azai-compose" id="azaiCompose" autocomplete="off">
+      <textarea class="azai-input" id="azaiInput" rows="1"
+                placeholder="AzureAI'ga yozing..." aria-label="Xabar"></textarea>
+      <button type="submit" class="azai-send" id="azaiSend" aria-label="Yuborish">
+        <i class="bi bi-send-fill"></i>
+      </button>
+    </form>
+  </section>
+</div>
+
+<script src="{% static 'js/ai-widget.js' %}" defer></script>

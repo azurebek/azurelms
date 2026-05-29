@@ -7,6 +7,7 @@ urlpatterns = [
     path('', views.MessengerAIView.as_view(), name='index'),
     path('ai/', views.MessengerAIView.as_view(), name='ai'),
     path('ai/new/', views.create_ai_chat, name='new_ai_chat'),
+    path('api/widget-ai/message/', views.widget_ai_message, name='widget_ai_message'),
     path('ai/<int:room_id>/', views.MessengerAIView.as_view(), name='ai_room'),
     path('group/', views.MessengerGroupView.as_view(), name='group'),
     path('tutor/', views.MessengerTutorView.as_view(), name='tutor'),

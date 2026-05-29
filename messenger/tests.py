@@ -1768,3 +1768,128 @@ class RagPipelineTests(TestCase):
     def test_pgvector_setup_skips_on_non_postgres(self):
         result = ensure_pgvector_schema(backfill=False)
         self.assertEqual(result.get("status"), "skipped_non_postgres")
+
+
+class WidgetAiMessageTests(TestCase):
+    """Floating AzureAI widget endpoint — lazy room creation behaviour."""
+
+    def setUp(self):
+        self.student = User.objects.create_user(
+            username="widget-student",
+            email="widget-student@example.com",
+            password="testpass123",
+        )
+        self.client.force_login(self.student)
+        self.url = reverse("messenger:widget_ai_message")
+
+    def _ai_room_count(self):
+        return ChatRoom.objects.filter(room_type="ai", participants=self.student).count()
+
+    @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
+    @patch("ai.providers.gemini.genai.Client")
+    def test_first_message_creates_room_and_returns_reply(self, mocked_client, _chunks):
+        mocked_client.return_value.models.generate_content.return_value = SimpleNamespace(
+            text="Salom! Qanday yordam beray?", candidates=[]
+        )
+        self.assertEqual(self._ai_room_count(), 0)
+
+        response = self.client.post(
+            self.url,
+            data='{"message": "Salom", "room_id": null}',
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["status"], "success")
+        self.assertTrue(payload["created_room"])
+        self.assertTrue(payload["ai_message"]["text"])
+        # Lazy creation: endi aynan bitta AI xona bor
+        self.assertEqual(self._ai_room_count(), 1)
+        room = ChatRoom.objects.get(id=payload["room_id"])
+        # User xabari + AI javobi saqlandi
+        self.assertEqual(room.messages.filter(is_ai_response=False).count(), 1)
+        self.assertEqual(room.messages.filter(is_ai_response=True).count(), 1)
+
+    def test_empty_message_creates_no_room(self):
+        response = self.client.post(
+            self.url,
+            data='{"message": "   ", "room_id": null}',
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(self._ai_room_count(), 0)
+
+    @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
+    @patch("ai.providers.gemini.genai.Client")
+    def test_second_message_reuses_same_room(self, mocked_client, _chunks):
+        mocked_client.return_value.models.generate_content.return_value = SimpleNamespace(
+            text="Javob", candidates=[]
+        )
+        first = self.client.post(
+            self.url,
+            data='{"message": "Birinchi", "room_id": null}',
+            content_type="application/json",
+        ).json()
+        room_id = first["room_id"]
+
+        second = self.client.post(
+            self.url,
+            data=f'{{"message": "Ikkinchi", "room_id": {room_id}}}',
+            content_type="application/json",
+        ).json()
+
+        self.assertEqual(second["room_id"], room_id)
+        self.assertFalse(second["created_room"])
+        self.assertEqual(self._ai_room_count(), 1)
+        room = ChatRoom.objects.get(id=room_id)
+        self.assertEqual(room.messages.filter(is_ai_response=False).count(), 2)
+
+    @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
+    @patch("ai.providers.gemini.genai.Client")
+    def test_foreign_room_id_falls_back_to_new_room(self, mocked_client, _chunks):
+        mocked_client.return_value.models.generate_content.return_value = SimpleNamespace(
+            text="Javob", candidates=[]
+        )
+        other = User.objects.create_user(
+            username="widget-other", email="widget-other@example.com", password="testpass123"
+        )
+        foreign_room = ChatRoom.objects.create(room_type="ai", name="Foreign")
+        foreign_room.participants.add(other)
+
+        response = self.client.post(
+            self.url,
+            data=f'{{"message": "Salom", "room_id": {foreign_room.id}}}',
+            content_type="application/json",
+        ).json()
+
+        # Begona xonaga yozib bo'lmaydi → yangi xona yaratiladi
+        self.assertNotEqual(response["room_id"], foreign_room.id)
+        self.assertTrue(response["created_room"])
+        self.assertEqual(foreign_room.messages.count(), 0)
+
+    def test_widget_requires_login(self):
+        self.client.logout()
+        response = self.client.post(
+            self.url,
+            data='{"message": "Salom"}',
+            content_type="application/json",
+        )
+        self.assertIn(response.status_code, (302, 403))
+        self.assertEqual(ChatRoom.objects.filter(room_type="ai").count(), 0)
+
+    def test_get_method_not_allowed(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 405)
+
+    @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
+    @patch("ai.providers.gemini.genai.Client")
+    def test_dashboard_renders_widget_but_messenger_does_not(self, mocked_client, _chunks):
+        mocked_client.return_value.models.generate_content.return_value = SimpleNamespace(
+            text="x", candidates=[]
+        )
+        dashboard = self.client.get(reverse("dashboard"))
+        self.assertContains(dashboard, "azaiWidget")
+
+        messenger_page = self.client.get(reverse("messenger:ai"))
+        self.assertNotContains(messenger_page, "azaiWidget")
