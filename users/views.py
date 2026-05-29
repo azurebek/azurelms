@@ -415,6 +415,76 @@ class PasswordUpdateView(LoginRequiredMixin, View):
         return super().form_invalid(form)
 
 
+def build_student_enrollments(user, today=None):
+    """O'quvchining enrollmentlarini progress/status metadata bilan tuzadi.
+
+    Dashboard va "Mening kurslarim" sahifalari ulashadi. Har enrollment'ga
+    `dashboard_*` atributlari qo'shiladi (progress %, status tone, days left).
+    Ro'yxat status (active → pending → frozen → expired) va so'nggi qo'shilish
+    bo'yicha saralanadi.
+    """
+    today = today or timezone.localdate()
+
+    enrollments = list(
+        user.enrollments.select_related(
+            'cohort',
+            'cohort__course',
+            'cohort__course__instructor',
+            'plan',
+        ).annotate(
+            total_lessons_count=Count('cohort__course__modules__lessons', distinct=True),
+            completed_attendance_count=Count(
+                'attendance__lesson',
+                filter=Q(attendance__status__in=[Attendance.STATUS_PRESENT, Attendance.STATUS_PARTIAL]),
+                distinct=True,
+            ),
+            completed_progress_count=Count(
+                'lesson_progress',
+                filter=Q(lesson_progress__is_completed=True),
+                distinct=True,
+            ),
+        )
+    )
+
+    status_priority = {'active': 0, 'pending': 1, 'frozen': 2, 'expired': 3}
+    enrollments.sort(
+        key=lambda item: (
+            status_priority.get(item.get_effective_status(today=today), 9),
+            -item.joined_at.timestamp(),
+        )
+    )
+
+    for enrollment in enrollments:
+        effective_status = enrollment.get_effective_status(today=today)
+        total_lessons = enrollment.total_lessons_count or 0
+        completed_lessons = max(
+            enrollment.completed_attendance_count or 0,
+            enrollment.completed_progress_count or 0,
+        )
+        enrollment.dashboard_total_lessons = total_lessons
+        enrollment.dashboard_completed_lessons = completed_lessons
+        enrollment.dashboard_progress = (
+            int(round((completed_lessons / total_lessons) * 100))
+            if total_lessons
+            else 0
+        )
+        enrollment.dashboard_effective_status = effective_status
+        enrollment.dashboard_status_label = enrollment.get_effective_status_display(today=today)
+        enrollment.dashboard_status_tone = {
+            'active': 'success',
+            'pending': 'warning',
+            'expired': 'danger',
+            'frozen': 'secondary',
+        }.get(effective_status, 'secondary')
+        enrollment.dashboard_days_left = None
+        if enrollment.next_payment_deadline:
+            enrollment.dashboard_days_left = (
+                enrollment.next_payment_deadline - today
+            ).days
+
+    return enrollments
+
+
 class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = 'users/dashboard.html'
 
@@ -424,63 +494,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context['active_nav'] = 'dashboard'
         today = timezone.localdate()
 
-        enrollments = list(
-            user.enrollments.select_related(
-                'cohort',
-                'cohort__course',
-                'cohort__course__instructor',
-                'plan',
-            ).annotate(
-                total_lessons_count=Count('cohort__course__modules__lessons', distinct=True),
-                completed_attendance_count=Count(
-                    'attendance__lesson',
-                    filter=Q(attendance__status__in=[Attendance.STATUS_PRESENT, Attendance.STATUS_PARTIAL]),
-                    distinct=True,
-                ),
-                completed_progress_count=Count(
-                    'lesson_progress',
-                    filter=Q(lesson_progress__is_completed=True),
-                    distinct=True,
-                ),
-            )
-        )
-
-        status_priority = {'active': 0, 'pending': 1, 'frozen': 2, 'expired': 3}
-        enrollments.sort(
-            key=lambda item: (
-                status_priority.get(item.get_effective_status(today=today), 9),
-                -item.joined_at.timestamp(),
-            )
-        )
-
-        for enrollment in enrollments:
-            effective_status = enrollment.get_effective_status(today=today)
-            total_lessons = enrollment.total_lessons_count or 0
-            completed_lessons = max(
-                enrollment.completed_attendance_count or 0,
-                enrollment.completed_progress_count or 0,
-            )
-            enrollment.dashboard_total_lessons = total_lessons
-            enrollment.dashboard_completed_lessons = completed_lessons
-            enrollment.dashboard_progress = (
-                int(round((completed_lessons / total_lessons) * 100))
-                if total_lessons
-                else 0
-            )
-            enrollment.dashboard_effective_status = effective_status
-            enrollment.dashboard_status_label = enrollment.get_effective_status_display(today=today)
-            enrollment.dashboard_status_tone = {
-                'active': 'success',
-                'pending': 'warning',
-                'expired': 'danger',
-                'frozen': 'secondary',
-            }.get(effective_status, 'secondary')
-            enrollment.dashboard_days_left = None
-            if enrollment.next_payment_deadline:
-                enrollment.dashboard_days_left = (
-                    enrollment.next_payment_deadline - today
-                ).days
-
+        enrollments = build_student_enrollments(user, today)
         context['active_enrollments'] = enrollments
         active_enrollment_qs = user.enrollments.filter(enrollment_active_access_q())
         context['active_courses_count'] = active_enrollment_qs.count()
@@ -549,6 +563,29 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             .order_by('-annotated_students_count', '-created_at')[:3]
         )
 
+        return context
+
+
+class MyCoursesView(LoginRequiredMixin, TemplateView):
+    """App-shell ichidagi "Mening kurslarim" — o'quvchi yozilgan kurslar.
+
+    Public `/courses/` katalogidan farqli: bu app-shell oqimida qoladi va
+    faqat foydalanuvchi enrollmentlarini progress bilan ko'rsatadi.
+    """
+    template_name = 'users/my_courses.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        context['active_nav'] = 'my_courses'
+
+        enrollments = build_student_enrollments(user)
+        context['enrollments'] = enrollments
+        context['count_all'] = len(enrollments)
+        context['count_active'] = sum(
+            1 for e in enrollments if e.dashboard_effective_status == Enrollment.STATUS_ACTIVE
+        )
+        context['count_completed'] = sum(1 for e in enrollments if e.dashboard_progress >= 100)
         return context
 
 

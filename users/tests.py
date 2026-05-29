@@ -509,3 +509,94 @@ class SubscriptionLifecycleCommandTests(TestCase):
                 external_key__startswith=f"sub-due-{self.enrollment.id}-",
             ).exists()
         )
+
+
+class MyCoursesViewTests(TestCase):
+    """App-shell ichidagi "Mening kurslarim" sahifasi."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="mc-user", email="mc-user@example.com", password="testpass123"
+        )
+        self.teacher = User.objects.create_user(
+            username="mc-teacher", email="mc-teacher@example.com", password="testpass123", is_staff=True
+        )
+        self.course = Course.objects.create(
+            title="My Courses Turk tili",
+            description="Test course",
+            instructor=self.teacher,
+            level="beginner",
+        )
+        module = Module.objects.create(course=self.course, title="1-modul", order=1)
+        self.lesson_1 = Lesson.objects.create(module=module, title="1-dars", order=1)
+        self.lesson_2 = Lesson.objects.create(module=module, title="2-dars", order=2)
+        self.cohort = Cohort.objects.create(
+            name="My Courses Cohort", course=self.course, start_date="2026-03-01"
+        )
+        self.enrollment = Enrollment.objects.create(
+            student=self.user, cohort=self.cohort, status="active"
+        )
+        self.url = reverse("my_courses")
+
+    def test_requires_login(self):
+        response = self.client.get(self.url)
+        self.assertIn(response.status_code, (302, 403))
+
+    def test_lists_enrolled_course_with_progress(self):
+        LessonProgress.objects.create(
+            enrollment=self.enrollment, lesson=self.lesson_1, is_completed=True
+        )
+        self.client.force_login(self.user)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["active_nav"], "my_courses")
+        self.assertEqual(response.context["count_all"], 1)
+        self.assertEqual(response.context["count_active"], 1)
+        self.assertContains(response, "My Courses Turk tili")
+        self.assertContains(response, "My Courses Cohort")
+        # 1/2 dars = 50%
+        self.assertContains(response, "50%")
+        self.assertContains(response, "Davom etish")
+
+    def test_empty_state_for_user_without_enrollment(self):
+        other = User.objects.create_user(
+            username="mc-empty", email="mc-empty@example.com", password="testpass123"
+        )
+        self.client.force_login(other)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["count_all"], 0)
+        self.assertContains(response, "Hali kursga yozilmagansiz")
+        self.assertContains(response, "Kurslarni ko'rish")
+
+    def test_does_not_show_other_users_courses(self):
+        other_course = Course.objects.create(
+            title="Begona kurs", description="x", instructor=self.teacher, level="beginner"
+        )
+        other_cohort = Cohort.objects.create(
+            name="Begona Cohort", course=other_course, start_date="2026-03-01"
+        )
+        other_user = User.objects.create_user(
+            username="mc-other", email="mc-other@example.com", password="testpass123"
+        )
+        Enrollment.objects.create(student=other_user, cohort=other_cohort, status="active")
+        self.client.force_login(self.user)
+
+        response = self.client.get(self.url)
+
+        self.assertContains(response, "My Courses Turk tili")
+        self.assertNotContains(response, "Begona kurs")
+
+    def test_pending_enrollment_shows_awaiting_state(self):
+        self.enrollment.status = "pending"
+        self.enrollment.save(update_fields=["status"])
+        self.client.force_login(self.user)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.context["count_active"], 0)
+        self.assertContains(response, "Tasdiq kutilmoqda")

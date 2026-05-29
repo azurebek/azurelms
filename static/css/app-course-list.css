@@ -1,0 +1,126 @@
+/* ══════════════════════════════════════════════════════
+   "Mening kurslarim" (app-shell) — sahifa-specific.
+   Layout (sidebar/topbar/app) app-shell.css'da. Token tizimiga tayanadi.
+   ══════════════════════════════════════════════════════ */
+
+/* Page header */
+.mc-header { margin-bottom: 24px; }
+.mc-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 4px; color: var(--ink-0); }
+.mc-sub { font-size: 0.85rem; color: var(--ink-3); }
+
+/* Filter pills */
+.mc-filter-row { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+.mc-tabs { display: flex; gap: 4px; background: var(--white); border: 1px solid var(--border); border-radius: var(--r-pill); padding: 3px; }
+.mc-tab {
+  padding: 6px 16px;
+  border-radius: var(--r-pill);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition: all 160ms;
+}
+.mc-tab.active { background: var(--blue-mid); color: #fff; }
+.mc-tab:hover:not(.active) { color: var(--ink-0); background: var(--surface); }
+
+/* Course cards */
+.mc-grid { display: flex; flex-direction: column; gap: 12px; }
+.mc-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  padding: 20px;
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  align-items: flex-start;
+  transition: transform 180ms var(--ease), box-shadow 180ms;
+}
+.mc-card:hover { transform: translateY(-2px); box-shadow: var(--sh-md); }
+.mc-card.is-completed { opacity: 0.8; }
+
+.mc-thumb {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--r-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  flex-shrink: 0;
+  background: var(--blue-soft);
+}
+.mc-body { flex: 1; min-width: 0; }
+.mc-meta-top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+.mc-cat { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-4); }
+.mc-status {
+  padding: 2px 9px;
+  border-radius: var(--r-pill);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+.mc-status--success { background: var(--green-soft); color: var(--green-mid); }
+.mc-status--warning { background: var(--amber-soft); color: var(--amber-mid); }
+.mc-status--danger { background: var(--red-soft); color: var(--red); }
+.mc-status--secondary { background: var(--surface); color: var(--ink-3); }
+.mc-name { font-size: 1rem; font-weight: 700; margin-bottom: 4px; line-height: 1.3; color: var(--ink-0); }
+.mc-cohort { font-size: 0.8rem; color: var(--ink-3); margin-bottom: 10px; }
+
+.mc-progress-wrap { margin-bottom: 8px; }
+.mc-progress-info { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.mc-progress-label { font-size: 0.75rem; color: var(--ink-4); }
+.mc-progress-pct { font-size: 0.75rem; font-weight: 700; color: var(--ink-2); }
+.mc-progress-bar { height: 6px; background: var(--border); border-radius: var(--r-pill); overflow: hidden; }
+.mc-progress-fill { height: 100%; border-radius: var(--r-pill); background: var(--blue-mid); transition: width 320ms var(--ease); }
+
+.mc-stats { display: flex; gap: 16px; flex-wrap: wrap; }
+.mc-stat { font-size: 0.75rem; color: var(--ink-4); display: flex; align-items: center; gap: 4px; }
+.mc-stat i { font-size: 0.8rem; }
+
+.mc-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
+.mc-continue {
+  height: 36px;
+  padding: 0 18px;
+  border-radius: var(--r-pill);
+  background: var(--blue-mid);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background 160ms;
+}
+.mc-continue:hover { background: var(--blue); }
+.mc-continue--locked { background: var(--surface); color: var(--ink-3); border: 1px solid var(--border); cursor: not-allowed; }
+
+/* Empty state */
+.mc-empty { text-align: center; padding: 64px 24px; }
+.mc-empty-icon { font-size: 3rem; margin-bottom: 16px; opacity: 0.6; color: var(--ink-4); }
+.mc-empty-title { font-size: 1rem; font-weight: 700; margin-bottom: 8px; color: var(--ink-0); }
+.mc-empty-desc { font-size: 0.85rem; color: var(--ink-3); margin-bottom: 24px; }
+.mc-browse {
+  height: 42px;
+  padding: 0 24px;
+  border-radius: var(--r-pill);
+  background: var(--blue-mid);
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  transition: background 160ms;
+}
+.mc-browse:hover { background: var(--blue); }
+
+/* Hidden by filter */
+.mc-card[hidden] { display: none; }
+
+@media (max-width: 700px) {
+  .mc-card { flex-direction: column; }
+  .mc-actions { flex-direction: row; align-items: center; width: 100%; }
+}

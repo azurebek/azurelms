@@ -11,7 +11,7 @@ from .views import (
     RegisterView, UserProfileView, SettingsView, AvatarUpdateView, PasswordUpdateView,
     AIModelUpdateView, AIToneUpdateView, AIWebSearchEffortUpdateView,
     AIMemoryListView, AIMemoryArchiveView, AIMemoryClearAllView, AIMemoryRejectView, AIMemoryToggleView,
-    DashboardView, SubscriptionHistoryView, CertificateListView, LeaderboardView,
+    DashboardView, MyCoursesView, SubscriptionHistoryView, CertificateListView, LeaderboardView,
     AttendanceCalendarView, AttendanceManageView,
     NotificationCenterView, NotificationOpenView, NotificationReadAllView, HelpCenterView
 )
@@ -33,6 +33,7 @@ urlpatterns = [
     path('settings/ai-memory/<int:fact_id>/archive/', AIMemoryArchiveView.as_view(), name='ai_memory_archive'),
     path('settings/ai-memory/<int:fact_id>/reject/', AIMemoryRejectView.as_view(), name='ai_memory_reject'),
     path('dashboard/', DashboardView.as_view(), name='dashboard'),
+    path('my-courses/', MyCoursesView.as_view(), name='my_courses'),
     path('leaderboard/', LeaderboardView.as_view(), name='leaderboard'),
     path('notifications/', NotificationCenterView.as_view(), name='notifications'),
     path('notifications/<int:notification_id>/open/', NotificationOpenView.as_view(), name='notification_open'),

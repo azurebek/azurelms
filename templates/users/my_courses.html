@@ -1,0 +1,114 @@
+{% extends 'users/base_app.html' %}
+{% load static %}
+
+{% block title %}Mening kurslarim — AzureLMS{% endblock %}
+{% block page_title %}Mening kurslarim{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/app-course-list.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="mc-header">
+  <div class="mc-title">Mening kurslarim</div>
+  <div class="mc-sub">
+    {% if count_all %}
+      Jami {{ count_all }} ta kurs · {{ count_active }} ta faol{% if count_completed %} · {{ count_completed }} ta tugatilgan{% endif %}
+    {% else %}
+      Hali birorta kursga yozilmagansiz
+    {% endif %}
+  </div>
+</div>
+
+{% if enrollments %}
+  <div class="mc-filter-row">
+    <div class="mc-tabs" data-mc-tabs>
+      <div class="mc-tab active" data-filter="all">Hammasi ({{ count_all }})</div>
+      <div class="mc-tab" data-filter="active">Faol ({{ count_active }})</div>
+      {% if count_completed %}
+        <div class="mc-tab" data-filter="completed">Tugatilgan ({{ count_completed }})</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="mc-grid" data-mc-grid>
+    {% for e in enrollments %}
+      <div class="mc-card {% if e.dashboard_progress >= 100 %}is-completed{% endif %}"
+           data-status="{{ e.dashboard_effective_status }}"
+           data-completed="{% if e.dashboard_progress >= 100 %}1{% else %}0{% endif %}">
+        <div class="mc-thumb">{{ e.cohort.course.flag_emoji|default:"📚" }}</div>
+        <div class="mc-body">
+          <div class="mc-meta-top">
+            <span class="mc-cat">{{ e.cohort.course.get_level_display }}</span>
+            <span class="mc-status mc-status--{{ e.dashboard_status_tone }}">{{ e.dashboard_status_label }}</span>
+          </div>
+          <div class="mc-name">{{ e.cohort.course.title }}</div>
+          <div class="mc-cohort">{{ e.cohort.name }}</div>
+          <div class="mc-progress-wrap">
+            <div class="mc-progress-info">
+              <span class="mc-progress-label">{{ e.dashboard_completed_lessons }} / {{ e.dashboard_total_lessons }} dars</span>
+              <span class="mc-progress-pct">{{ e.dashboard_progress }}%</span>
+            </div>
+            <div class="mc-progress-bar">
+              <div class="mc-progress-fill" style="width: {{ e.dashboard_progress }}%;"></div>
+            </div>
+          </div>
+          <div class="mc-stats">
+            {% if e.cohort.course.instructor %}
+              <span class="mc-stat"><i class="bi bi-person-video3"></i> {{ e.cohort.course.instructor.get_full_name|default:e.cohort.course.instructor.username }}</span>
+            {% endif %}
+            {% if e.dashboard_days_left is not None and e.dashboard_effective_status == 'active' %}
+              <span class="mc-stat"><i class="bi bi-calendar-event"></i> To'lovgacha {{ e.dashboard_days_left }} kun</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="mc-actions">
+          {% if e.dashboard_effective_status == 'active' %}
+            <a class="mc-continue" href="{% url 'course_study' course_id=e.cohort.course.id %}">
+              <i class="bi bi-play-fill"></i> Davom etish
+            </a>
+          {% elif e.dashboard_effective_status == 'pending' %}
+            <span class="mc-continue mc-continue--locked"><i class="bi bi-hourglass-split"></i> Tasdiq kutilmoqda</span>
+          {% else %}
+            <a class="mc-continue mc-continue--locked" href="{% url 'course_detail' pk=e.cohort.course.id %}" style="cursor: pointer;">
+              <i class="bi bi-eye"></i> Ko'rish
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="mc-empty">
+    <div class="mc-empty-icon"><i class="bi bi-journal-x"></i></div>
+    <div class="mc-empty-title">Hali kursga yozilmagansiz</div>
+    <div class="mc-empty-desc">Kurslar katalogidan o'zingizga mos kursni tanlab, o'qishni boshlang.</div>
+    <a class="mc-browse" href="{% url 'courses' %}"><i class="bi bi-compass"></i> Kurslarni ko'rish</a>
+  </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  (function () {
+    const tabs = document.querySelector('[data-mc-tabs]');
+    const grid = document.querySelector('[data-mc-grid]');
+    if (!tabs || !grid) return;
+
+    tabs.addEventListener('click', function (e) {
+      const tab = e.target.closest('.mc-tab');
+      if (!tab) return;
+      tabs.querySelectorAll('.mc-tab').forEach((t) => t.classList.remove('active'));
+      tab.classList.add('active');
+
+      const filter = tab.dataset.filter;
+      grid.querySelectorAll('.mc-card').forEach(function (card) {
+        let show = true;
+        if (filter === 'active') show = card.dataset.status === 'active';
+        else if (filter === 'completed') show = card.dataset.completed === '1';
+        card.hidden = !show;
+      });
+    });
+  })();
+</script>
+{% endblock %}
