@@ -58,6 +58,13 @@ if _prometheus_requested and not PROMETHEUS_ENABLED:
     print("Warning: PROMETHEUS_ENABLED is set, but django_prometheus is not installed.")
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+DIGITALOCEAN_INFERENCE_API_KEY = os.getenv("DIGITALOCEAN_INFERENCE_API_KEY")
+DIGITALOCEAN_INFERENCE_BASE_URL = os.getenv(
+    "DIGITALOCEAN_INFERENCE_BASE_URL",
+    "https://inference.do-ai.run/v1",
+).rstrip("/")
+DIGITALOCEAN_INFERENCE_MODEL = os.getenv("DIGITALOCEAN_INFERENCE_MODEL", "router:general")
+AI_CHAT_PROVIDER = os.getenv("AI_CHAT_PROVIDER", "gemini").strip().lower()
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "YOUR_BOT_TOKEN_HERE")
 BOT_USERNAME = os.getenv("BOT_USERNAME", "AzureLMS_bot")
 TELEGRAM_WEBHOOK_SECRET = os.getenv("TELEGRAM_WEBHOOK_SECRET", "YOUR_SECRET_TOKEN_HERE")

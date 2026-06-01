@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fifth Trial UI Standards</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=15">
+</head>
+<body class="ds-page">
+
+  <header class="ds-header">
+    <div class="wrap ds-header-inner">
+      <a href="public/index.html" class="brand-logo" aria-label="Coursera clone home"><img src="assets/coursera-logo.svg" alt="Coursera"></a>
+      <span class="ds-badge">Fifth Trial reference</span>
+      <nav class="ds-nav"><a href="#foundations">Foundations</a><a href="#tokens">Tokens</a><a href="#components">Components</a><a href="#rules">Rules</a></nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="ds-hero">
+      <div class="wrap">
+        <p class="ds-kicker">AzureLMS prototype system · Coursera-calibrated</p>
+        <h1>Fifth Trial UI Standards</h1>
+        <p>Use this page as the visual source of truth. New prototype screens should reuse these tokens and components before introducing a new pattern.</p>
+      </div>
+    </section>
+
+    <section class="ds-section" id="foundations">
+      <div class="wrap">
+        <div class="ds-section-head"><p>01 · Foundations</p><h2>Locked defaults</h2></div>
+        <div class="ds-grid ds-grid-4">
+          <article class="ds-note"><b>Font</b><span>Source Sans 3</span><small>400 regular · 600 semibold · 700 bold</small></article>
+          <article class="ds-note"><b>Desktop container</b><span>1408px</span><small>32px inline padding · 1344px content</small></article>
+          <article class="ds-note"><b>Spacing rhythm</b><span>4px grid</span><small>Prefer the --space-* token scale</small></article>
+          <article class="ds-note"><b>Reference viewport</b><span>1536 × 900</span><small>Also verify tablet and mobile breakpoints</small></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="ds-section ds-section-soft" id="tokens">
+      <div class="wrap">
+        <div class="ds-section-head"><p>02 · Tokens</p><h2>Palette</h2></div>
+        <div class="ds-colors">
+          <article class="ds-color"><i style="--swatch:#0056d2"></i><b>--blue</b><span>#0056D2</span><small>Primary CTA, links, active</small></article>
+          <article class="ds-color"><i style="--swatch:#00419e"></i><b>--blue-dark</b><span>#00419E</span><small>Primary hover</small></article>
+          <article class="ds-color"><i style="--swatch:#08246b"></i><b>--navy</b><span>#08246B</span><small>Deep promo surfaces</small></article>
+          <article class="ds-color"><i style="--swatch:#eef4ff"></i><b>--blue-soft</b><span>#EEF4FF</span><small>Subtle chips and cards</small></article>
+          <article class="ds-color"><i style="--swatch:#eaf1fb"></i><b>--lilac-panel</b><span>#EAF1FB</span><small>Hero and legal panels</small></article>
+          <article class="ds-color"><i style="--swatch:#fff4e8"></i><b>--cream</b><span>#FFF4E8</span><small>Warm promos</small></article>
+          <article class="ds-color"><i style="--swatch:#0f1114"></i><b>--ink</b><span>#0F1114</span><small>Titles and body text</small></article>
+          <article class="ds-color"><i style="--swatch:#5b6780"></i><b>--ink-2</b><span>#5B6780</span><small>Secondary copy</small></article>
+        </div>
+
+        <div class="ds-token-split">
+          <div>
+            <h3>Typography</h3>
+            <div class="ds-type-list">
+              <div class="ds-type-row"><span>--fs-xs · 12px</span><b style="font-size:var(--fs-xs)">Caption and micro metadata</b></div>
+              <div class="ds-type-row"><span>--fs-sm · 14px</span><b style="font-size:var(--fs-sm)">Navigation, labels, card metadata</b></div>
+              <div class="ds-type-row"><span>--fs-base · 16px</span><b style="font-size:var(--fs-base)">Body copy and buttons</b></div>
+              <div class="ds-type-row"><span>--fs-xl · 22px</span><b style="font-size:var(--fs-xl)">Section title</b></div>
+              <div class="ds-type-row"><span>--fs-3xl · 28px</span><b style="font-size:var(--fs-3xl)">Large title</b></div>
+              <div class="ds-type-row"><span>--fs-hero · 30-44px</span><b style="font-size:var(--fs-hero)">Hero title</b></div>
+            </div>
+          </div>
+          <div>
+            <h3>Spacing</h3>
+            <div class="ds-space-list">
+              <div class="ds-space-row"><span>4</span><i style="width:4px"></i><b>--space-1</b></div>
+              <div class="ds-space-row"><span>8</span><i style="width:8px"></i><b>--space-2</b></div>
+              <div class="ds-space-row"><span>12</span><i style="width:12px"></i><b>--space-3</b></div>
+              <div class="ds-space-row"><span>16</span><i style="width:16px"></i><b>--space-4</b></div>
+              <div class="ds-space-row"><span>24</span><i style="width:24px"></i><b>--space-6</b></div>
+              <div class="ds-space-row"><span>32</span><i style="width:32px"></i><b>--space-7</b></div>
+              <div class="ds-space-row"><span>48</span><i style="width:48px"></i><b>--space-8</b></div>
+              <div class="ds-space-row"><span>64</span><i style="width:64px"></i><b>--space-9</b></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ds-section" id="components">
+      <div class="wrap">
+        <div class="ds-section-head"><p>03 · Components</p><h2>Reuse before inventing</h2></div>
+
+        <div class="ds-demo">
+          <h3>Buttons and links</h3>
+          <div class="ds-row"><a class="btn btn-primary" href="#">Primary action</a><a class="btn btn-outline" href="#">Secondary action</a><a class="btn btn-white ds-on-blue" href="#">White action</a><a class="textlink" href="#">Text link <i class="bi bi-arrow-right"></i></a></div>
+        </div>
+
+        <div class="ds-demo">
+          <h3>Search, chips, and tabs</h3>
+          <div class="ds-component-grid">
+            <div class="search ds-search"><input type="text" placeholder="What do you want to learn?"><button aria-label="Search"><i class="bi bi-search"></i></button></div>
+            <div class="ds-row"><span class="chip">Data analysis</span><span class="chip">AI literacy</span><span class="cat-pill"><i class="bi bi-stars"></i> Artificial Intelligence</span></div>
+            <div class="popular-tabs"><button class="popular-tab active">Most popular</button><button class="popular-tab">Hot new releases</button><button class="popular-tab">Trending now</button></div>
+          </div>
+        </div>
+
+        <div class="ds-demo">
+          <h3>Cards</h3>
+          <div class="ds-card-grid">
+            <a class="popular-card" href="#">
+              <div class="popular-media"><img src="https://picsum.photos/seed/ds-course/620/350" alt=""><span class="popular-badge">Job Skills</span></div>
+              <div class="popular-body"><div class="prov"><img class="prov-logo" src="https://picsum.photos/seed/ds-provider/40/40" alt=""><span class="prov-name">Google</span></div><h3>Google Data Analytics</h3><div class="popular-meta"><i class="bi bi-star-fill"></i> 4.8 · 180K reviews</div><p>Professional Certificate</p></div>
+            </a>
+            <a class="ccard" href="#"><img class="ccard-thumb" src="https://picsum.photos/seed/ds-compact/120/120" alt=""><div class="ccard-body"><div class="prov"><img class="prov-logo" src="https://picsum.photos/seed/ds-org/40/40" alt=""><span class="prov-name">Partner organization</span></div><div class="ccard-title">Compact horizontal learning card</div><div class="ccard-meta">Course <span>·</span> <i class="bi bi-star-fill star"></i> 4.8</div></div></a>
+            <div class="side-panel"><h3>Side panel</h3><p>Use bordered side panels for supporting facts, instructor context, or secondary actions.</p><a class="btn btn-outline btn-sm" href="#">Learn more</a></div>
+          </div>
+        </div>
+
+        <div class="ds-demo">
+          <h3>Radii and shadows</h3>
+          <div class="ds-radius-grid"><span class="ds-radius ds-r-sm">6px</span><span class="ds-radius ds-r-btn">8px</span><span class="ds-radius ds-r-card">12px</span><span class="ds-radius ds-r-lg">16px</span><span class="ds-radius ds-r-banner">24px</span><span class="ds-radius ds-shadow">Shadow</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ds-section ds-section-soft" id="rules">
+      <div class="wrap">
+        <div class="ds-section-head"><p>04 · Rules</p><h2>No-improvisation checklist</h2></div>
+        <ol class="ds-rule-list">
+          <li>Start with an existing token or component from this page.</li>
+          <li>Use the 4px spacing scale unless a measured Coursera reference requires an off-grid value.</li>
+          <li>Use Source Sans 3 and the documented weights. Do not add a new font inside a page.</li>
+          <li>Keep public pages inside the 1408px desktop shell with 32px inline padding.</li>
+          <li>When a new pattern is truly needed, add it to <code>style.css</code>, this page, and <code>DESIGN-SYSTEM.md</code> together.</li>
+          <li>Verify at 1536px desktop plus one tablet and one mobile viewport before promoting a prototype.</li>
+        </ol>
+      </div>
+    </section>
+  </main>
+
+</body>
+</html>

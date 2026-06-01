@@ -326,6 +326,7 @@ class ChatAccessTests(TestCase):
         self.assertEqual(ai_response.status_code, 200)
 
 
+@override_settings(AI_CHAT_PROVIDER="gemini")
 class GenerateAiResponseTaskTests(TestCase):
     def setUp(self):
         self.student = User.objects.create_user(
@@ -1770,6 +1771,7 @@ class RagPipelineTests(TestCase):
         self.assertEqual(result.get("status"), "skipped_non_postgres")
 
 
+@override_settings(AI_CHAT_PROVIDER="gemini")
 class WidgetAiMessageTests(TestCase):
     """Floating AzureAI widget endpoint — lazy room creation behaviour."""
 

@@ -70,7 +70,7 @@ python manage.py reindex_rag --force
 python manage.py runbot
 ```
 
-Tech stack qisqacha: Django 6.0.2 + Python (local venv 3.14, Dockerfile 3.12), Channels (ASGI), Celery, PostgreSQL + pgvector (prod) / SQLite (lokal), Gemini API (`google-genai 1.65`), Aiogram 3.26.
+Tech stack qisqacha: Django 6.0.2 + Python (local venv 3.14, Dockerfile 3.12), Channels (ASGI), Celery, PostgreSQL + pgvector (prod) / SQLite (lokal), Gemini API (`google-genai 1.65`) + optional DigitalOcean Serverless Inference chat provider, Aiogram 3.26.
 
 ---
 

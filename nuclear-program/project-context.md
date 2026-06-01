@@ -64,10 +64,10 @@ Source of truth har doim **kod** (model/view/task/URL/test). Bu fayl kodga mosla
 
 | Qism | Texnologiya |
 |---|---|
-| Provider | Google Gemini via `google-genai==1.65.0` |
-| Chat models | Gemini 2.5 Flash, 2.5 Flash-Lite, 3.1 Pro preview, 3.5 Flash, 3.1 Flash Lite (user tanlovi) |
+| Chat provider | `AI_CHAT_PROVIDER`: Google Gemini yoki DigitalOcean Serverless Inference |
+| Chat models | Gemini user tanlovi; DigitalOcean uchun `DIGITALOCEAN_INFERENCE_MODEL` + fallbacklar |
 | Embedding | `gemini-embedding-001`, 768 dimensions |
-| Web search | Gemini grounding / `google_search` tool |
+| Web search | Gemini grounding / `google_search` tool; DigitalOcean adapterida hozircha o'chirilgan |
 | Memory | structured `AIMemoryFact`, traces, summaries, semantic scoring |
 | RAG | `LessonRAGChunk`, course/lesson scoped retrieval |
 
@@ -174,7 +174,7 @@ ai/
 ├── agent/    engine.py, types.py
 ├── memory/   evaluation, extractor, policy, repository, retriever, semantic, service, summarizer, types
 ├── prompts/  builder.py
-├── providers/gemini.py
+├── providers/ gemini.py, digitalocean.py, provider factory
 ├── rag/      context.py
 ├── skills/   registry.py + 10 ta SKILL.md
 └── tools/    context.py
@@ -461,7 +461,7 @@ Foydalanuvchi `/users/settings/` da tanlaydi (`CustomUser.ai_web_search_effort`)
 |---|---|
 | `light` (default) | Faqat aniq keyword (qidir, bugungi, kursi qancha, ob-havo) |
 | `medium` | Light + **pair detection**: vaqt belgisi (`hozir`/`bugun`/`kechagi`) + ma'lumot belgisi (`narx`/`kim`/`natija`) birga uchrasa majburiy web_search |
-| `heavy` | Har savolda Gemini'ga `google_search` tool yoqilgan — model o'zi qaror qiladi |
+| `heavy` | Gemini provider'da har savolda `google_search` tool yoqilgan — model o'zi qaror qiladi. DigitalOcean adapterida hozircha web search o'chirilgan |
 
 Manbalar javob matnida ko'rsatilmaydi. Telemetry'da saqlanadi:
 - `web_search_enabled`
@@ -471,7 +471,8 @@ Manbalar javob matnida ko'rsatilmaydi. Telemetry'da saqlanadi:
 ### 5.6 Tone, model, telemetry
 
 - **Tone:** `friendly` / `formal` / `brief` / `detailed` — prompt builder ohangni o'zgartiradi
-- **Model:** user setting `ai_model` provider'ga yuboriladi. Fallback bor — provider ishlamasa user'ga generic AI failure emas, yumshoq javob qaytadi
+- **Provider:** `AI_CHAT_PROVIDER=gemini|digitalocean`. DigitalOcean adapteri OpenAI-compatible `/v1/chat/completions` endpoint'ini ishlatadi
+- **Model:** Gemini'da user setting `ai_model`; DigitalOcean'da `DIGITALOCEAN_INFERENCE_MODEL` va fallbacklar. Provider ishlamasa user'ga yumshoq fallback javob qaytadi
 - **Telemetry:** `AIResponseRun` har AI javobning metadata'sini saqlaydi: status, model, skill, duration_ms, tools, rag_sources, memory counts, web_search_*
 
 ---
@@ -699,7 +700,11 @@ Message
 | `VALKEY_URL` / `REDIS_URL` | cache, channels, celery broker |
 | `CELERY_BROKER_URL` | explicit broker override |
 | `CELERY_TASK_ALWAYS_EAGER` | local eager task override |
-| `GEMINI_API_KEY` | AI provider va embeddings |
+| `GEMINI_API_KEY` | Gemini chat provider va embeddings |
+| `AI_CHAT_PROVIDER` | `gemini` (default) yoki `digitalocean` |
+| `DIGITALOCEAN_INFERENCE_API_KEY` | DigitalOcean Serverless Inference Model Access Key |
+| `DIGITALOCEAN_INFERENCE_MODEL` | DigitalOcean chat modeli, default `router:general` |
+| `DIGITALOCEAN_INFERENCE_MODEL_FALLBACKS` | DigitalOcean chat model fallbacklari |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot |
 | `BOT_USERNAME` | Telegram bot username |
 | `TELEGRAM_MODE` | `polling` (local default), `webhook` (prod) |
@@ -766,7 +771,7 @@ EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 
 | Task | Boshlash nuqtasi |
 |---|---|
-| AI javob sifati | `ai/agent/engine.py`, `ai/prompts/builder.py`, `ai/providers/gemini.py` |
+| AI javob sifati | `ai/agent/engine.py`, `ai/prompts/builder.py`, `ai/providers/` |
 | Skill qo'shish | `ai/skills/registry.py`, `ai/skills/<slug>/SKILL.md`, `messenger/tests.py` |
 | Memory | `ai/memory/service.py`, `repository.py`, `retriever.py`, `messenger/models.py` |
 | RAG | `ai/rag/context.py`, `messenger/rag.py`, `LessonRAGChunk`, `reindex_rag` |

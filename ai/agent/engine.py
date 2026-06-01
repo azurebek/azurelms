@@ -4,7 +4,8 @@ import re
 from ai.agent.types import AIRequest, AIResponse
 from ai.memory.service import MemoryService
 from ai.prompts.builder import PromptBuilder
-from ai.providers.gemini import GeminiProvider, fallback_ai_reply
+from ai.providers import get_chat_provider
+from ai.providers.gemini import fallback_ai_reply
 from ai.rag.context import RAGContextService
 from ai.skills.registry import SkillRegistry
 from ai.tools.context import ToolContextService
@@ -20,14 +21,14 @@ class AIEngine:
         memory_service: MemoryService | None = None,
         rag_service: RAGContextService | None = None,
         prompt_builder: PromptBuilder | None = None,
-        provider: GeminiProvider | None = None,
+        provider=None,
         skill_registry: SkillRegistry | None = None,
         tool_context_service: ToolContextService | None = None,
     ):
         self.memory_service = memory_service or MemoryService()
         self.rag_service = rag_service or RAGContextService()
         self.prompt_builder = prompt_builder or PromptBuilder()
-        self.provider = provider or GeminiProvider()
+        self.provider = provider or get_chat_provider()
         self.skill_registry = skill_registry or SkillRegistry()
         self.tool_context_service = tool_context_service or ToolContextService()
 
@@ -71,6 +72,7 @@ class AIEngine:
                 "web_search" in tool_context.used_tools
                 or effort == "heavy"
             )
+            enable_web_search = enable_web_search and getattr(self.provider, "supports_web_search", True)
             provider_response = self.provider.generate(
                 prompt=prompt,
                 selected_model=getattr(request.student, "ai_model", None),
