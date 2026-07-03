@@ -1,0 +1,116 @@
+{% load static %}<!DOCTYPE html>
+{# ============================================================
+   ExamShell — fullscreen imtihon topshirish sahifasi.
+   Kontent exam-shell.js tomonidan build_section_payload API'sidan
+   render qilinadi: 'tasks' → boy task engine, 'questions' → oddiy.
+   ============================================================ #}
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ exam.title }} — Imtihon | AzureLMS</title>
+  <script>(function(){try{var t=localStorage.getItem('az-v2-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/exam-shell.css' %}">
+  <script defer src="{% static 'js/exam-shell.js' %}"></script>
+</head>
+<body>
+<div class="exam">
+
+  <!-- ============ HEADER ============ -->
+  <header class="exam-top">
+    <div class="exam-brand">
+      <span class="exam-brand-mark">A</span>
+      <div style="min-width:0;">
+        <div class="exam-title">{{ exam.title }}</div>
+        <div class="exam-sub" data-exam-sub>{{ course.title }}</div>
+      </div>
+    </div>
+    <div class="exam-top-actions">
+      <div class="exam-timer" data-exam-timer hidden><i class="bi bi-clock" style="font-size:13px;"></i> <span data-exam-time>--:--</span></div>
+      <button type="button" class="exam-icon" data-exam-theme aria-label="Mavzu"><i class="bi bi-moon"></i></button>
+      <button type="button" class="exam-finish" data-exam-finish>Yakunlash</button>
+    </div>
+  </header>
+
+  <!-- ============ BO'LIM NAVI ============ -->
+  <nav class="exam-nav" data-exam-nav>
+    {% for section in sections %}
+      <span class="exam-step is-locked"><span class="exam-step-dot"><i class="bi bi-dot"></i></span> {{ section.title }}</span>
+      {% if not forloop.last %}<i class="bi bi-chevron-right exam-sep"></i>{% endif %}
+    {% endfor %}
+  </nav>
+
+  <!-- ============ TANA (JS render qiladi) ============ -->
+  <div class="exam-body" data-exam-body>
+
+    <!-- Start overlay -->
+    <div class="x-overlay" data-exam-overlay>
+      <div class="x-start">
+        <div class="x-start-kicker">{{ course.title }} · {{ exam.get_exam_type_display }}</div>
+        <h1>{{ exam.title }}</h1>
+        <p class="x-start-desc">Imtihon {{ sections|length }} bo'limdan iborat. Boshlagach taymer to'xtamaydi — barcha bo'limlarni yakunlab, "Yakunlash" tugmasini bosing.</p>
+
+        <div class="x-start-stats">
+          <div class="x-start-stat"><b>{{ exam.total_time_limit_minutes }}</b><span>daqiqa</span></div>
+          <div class="x-start-stat"><b>{{ exam.passing_score }}%</b><span>o'tish bali</span></div>
+          <div class="x-start-stat"><b>{{ remaining_attempts }}</b><span>urinish qoldi</span></div>
+        </div>
+
+        <div class="x-start-secs">
+          {% for section in sections %}
+            <div class="x-start-sec">
+              {% if section.section_type == 'listening' %}<i class="bi bi-headphones"></i>
+              {% elif section.section_type == 'reading' %}<i class="bi bi-book"></i>
+              {% elif section.section_type == 'writing' %}<i class="bi bi-pencil"></i>
+              {% elif section.section_type == 'speaking' %}<i class="bi bi-mic"></i>
+              {% else %}<i class="bi bi-ui-checks"></i>{% endif %}
+              <span class="t">{{ section.title }}</span>
+              <span class="m">{{ section.time_limit_minutes }} daqiqa · {{ section.max_score }} ball</span>
+            </div>
+          {% empty %}
+            <div class="x-empty"><i class="bi bi-inbox"></i> Bo'limlar hali qo'shilmagan.</div>
+          {% endfor %}
+        </div>
+
+        <div class="x-start-rules">
+          <div><i class="bi bi-clock-history"></i> Vaqt tugasa, imtihon avtomatik yakunlanadi va tekshiruvga yuboriladi.</div>
+          <div><i class="bi bi-eye"></i> Sahifadan chiqib ketishlar qayd etiladi va o'qituvchiga ko'rinadi.</div>
+          <div><i class="bi bi-cloud-check"></i> Javoblaringiz avtomatik saqlab boriladi — internet uzilsa qaytadan kiring.</div>
+          {% if exam.max_attempts %}<div><i class="bi bi-arrow-repeat"></i> Jami {{ exam.max_attempts }} ta urinish huquqiga egasiz.</div>{% endif %}
+        </div>
+
+        {% if can_start_exam %}
+          <button type="button" class="x-start-btn" data-exam-start>
+            <i class="bi bi-play-fill"></i>
+            {% if my_attempt and not my_attempt.is_completed %}Imtihonni davom ettirish{% else %}Imtihonni boshlash{% endif %}
+          </button>
+        {% else %}
+          <div class="x-start-blocked">
+            <i class="bi bi-lock-fill" style="margin-top:2px;"></i>
+            <span>{{ exam_entry_policy.message|default:"Imtihonni boshlash hozircha mumkin emas." }}</span>
+          </div>
+        {% endif %}
+
+        <a href="{% url 'exam_center' %}" style="display:inline-flex;align-items:center;gap:7px;margin-top:16px;font-size:12.5px;color:var(--ink-3);"><i class="bi bi-arrow-left"></i> Imtihon markaziga qaytish</a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============ FOOTER ============ -->
+  <div class="exam-foot" data-exam-foot>
+    <a class="exam-foot-btn" href="{% url 'exam_center' %}"><i class="bi bi-arrow-left"></i> Markaz</a>
+    <span class="exam-foot-note">Imtihonni boshlash uchun yuqoridagi tugmani bosing</span>
+    <span></span>
+  </div>
+
+</div>
+
+{{ exam_config|json_script:"exam-config" }}
+</body>
+</html>

@@ -1,0 +1,164 @@
+{% extends "users/base_app.html" %}
+{# ============================================================
+   Imtihon natijasi — AppShell sahifa (proto: app/exam-result.html).
+   Holatlar: tekshirilmoqda (amber) / o'tdi (azure-green) / o'tmadi (red).
+   ============================================================ #}
+
+{% block app_title %}{{ exam.title }} — Natija{% endblock %}
+{% block app_icon %}bi-clipboard-check{% endblock %}
+{% block app_topbar_title %}Imtihon natijasi{% endblock %}
+
+{% block app_content %}
+<div style="max-width:900px;">
+  <a href="{% url 'exam_center' %}" style="display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-3);margin-bottom:22px;"><i class="bi bi-arrow-left"></i> Imtihon markazi</a>
+
+  {% if attempt %}
+
+  <!-- ============ HERO ============ -->
+  <section style="border:1px solid var(--line);border-radius:18px;background:var(--panel);overflow:hidden;margin-bottom:18px;">
+    <div style="display:grid;grid-template-columns:auto 1fr;" class="exres-grid">
+      <div style="background:linear-gradient(140deg,{% if not attempt.is_reviewed %}var(--amber),#b57400{% elif attempt.passed %}var(--azure),var(--azure-2){% else %}var(--red),#8f1d28{% endif %});padding:32px 36px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden;min-width:230px;">
+        <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px);background-size:26px 26px;"></div>
+        <div style="position:relative;">
+          <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.8);margin-bottom:10px;">Umumiy ball</div>
+          {% if attempt.is_reviewed %}
+            <div style="font-family:'Space Mono',monospace;font-size:62px;font-weight:700;color:#fff;line-height:1;">{{ attempt.score|floatformat:0 }}</div>
+            <div style="font-size:14px;color:rgba(255,255,255,.85);margin-top:6px;">100 dan</div>
+          {% else %}
+            <div style="font-family:'Space Mono',monospace;font-size:52px;font-weight:700;color:#fff;line-height:1;">?</div>
+            <div style="font-size:13px;color:rgba(255,255,255,.85);margin-top:6px;">baholanmoqda</div>
+          {% endif %}
+          <div style="display:inline-flex;align-items:center;gap:7px;margin-top:16px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.25);padding:7px 14px;border-radius:999px;color:#fff;font-size:13px;font-weight:600;">
+            {% if not attempt.is_reviewed %}<i class="bi bi-hourglass-split"></i> Tekshirilmoqda
+            {% elif attempt.passed %}<i class="bi bi-check-circle-fill"></i> O'tdingiz
+            {% else %}<i class="bi bi-x-circle-fill"></i> O'ta olmadingiz{% endif %}
+          </div>
+        </div>
+      </div>
+      <div style="padding:28px 30px;display:flex;flex-direction:column;justify-content:center;">
+        <div style="font-family:'Space Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;">{{ course.title }} · {{ exam.get_exam_type_display }} · {{ attempt.completed_time|date:"d.m.Y" }}</div>
+        {% if not attempt.is_reviewed %}
+          <h1 style="font-size:clamp(22px,2.6vw,28px);font-weight:600;letter-spacing:-.02em;color:var(--ink);margin:0 0 10px;">Javoblaringiz qabul qilindi</h1>
+          <p style="font-size:14.5px;line-height:1.6;color:var(--ink-2);margin:0 0 18px;max-width:52ch;">O'qituvchi writing/speaking javoblaringizni tekshirmoqda. Yakuniy natija tasdiqlangach shu sahifada ko'rinadi va bildirishnoma keladi.</p>
+        {% elif attempt.passed %}
+          <h1 style="font-size:clamp(22px,2.6vw,28px);font-weight:600;letter-spacing:-.02em;color:var(--ink);margin:0 0 10px;">Tabriklaymiz, {{ request.user.first_name|default:request.user.username }}!</h1>
+          <p style="font-size:14.5px;line-height:1.6;color:var(--ink-2);margin:0 0 18px;max-width:52ch;">Siz "{{ exam.title }}" imtihonidan muvaffaqiyatli o'tdingiz. O'tish bali: {{ exam.passing_score }}%.</p>
+        {% else %}
+          <h1 style="font-size:clamp(22px,2.6vw,28px);font-weight:600;letter-spacing:-.02em;color:var(--ink);margin:0 0 10px;">Bu safar yetmadi</h1>
+          <p style="font-size:14.5px;line-height:1.6;color:var(--ink-2);margin:0 0 18px;max-width:52ch;">O'tish uchun {{ exam.passing_score }}% kerak edi. Quyidagi bo'lim tahlilini ko'rib chiqing{% if can_retake %} va qayta urinib ko'ring{% endif %}.</p>
+        {% endif %}
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          {% if course_certificate %}
+            <a href="{% url 'certificate_detail' course_certificate.certificate_id %}" style="display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 18px;border-radius:10px;background:var(--azure);color:var(--on-azure);font-size:14px;font-weight:600;"><i class="bi bi-patch-check"></i> Sertifikatni ochish</a>
+          {% elif attempt.is_reviewed and attempt.passed %}
+            <a href="{% url 'certificates' %}" style="display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 18px;border-radius:10px;background:var(--azure);color:var(--on-azure);font-size:14px;font-weight:600;"><i class="bi bi-patch-check"></i> Sertifikatlarim</a>
+          {% endif %}
+          {% if can_retake %}
+            <a href="{% url 'exam_detail' course.id exam.id %}" style="display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 18px;border-radius:10px;background:var(--azure);color:var(--on-azure);font-size:14px;font-weight:600;"><i class="bi bi-arrow-repeat"></i> Qayta topshirish</a>
+          {% endif %}
+          <a href="{% url 'course_detail' course.id %}" style="display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 18px;border-radius:10px;border:1px solid var(--line);color:var(--ink);font-size:14px;font-weight:600;"><i class="bi bi-journal-text"></i> Kursga qaytish</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STATLAR ============ -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;" class="exres-stats">
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:16px;text-align:center;">
+      <div style="font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--ink);">{% if attempt.is_reviewed %}{{ attempt.score|floatformat:0 }}%{% else %}—{% endif %}</div>
+      <div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">Umumiy</div>
+    </div>
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:16px;text-align:center;">
+      <div style="font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--ink);">{% if duration_minutes is not None %}{{ duration_minutes }} daq{% else %}—{% endif %}</div>
+      <div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">Sarflangan</div>
+    </div>
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:16px;text-align:center;">
+      <div style="font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--ink);">{{ attempt.attempt_number }}/{{ exam.max_attempts }}</div>
+      <div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">Urinish</div>
+    </div>
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:16px;text-align:center;">
+      <div style="font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:{% if attempt.blur_warnings %}var(--amber){% else %}var(--green){% endif %};">{{ attempt.blur_warnings }}</div>
+      <div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">Diqqat ogohlantirishi</div>
+    </div>
+  </div>
+
+  <!-- ============ BO'LIMLAR KESIMI ============ -->
+  {% if section_reviews %}
+    <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:24px 0 12px;">Bo'limlar bo'yicha {% if not attempt.is_reviewed %}(dastlabki){% endif %}</div>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:18px;" class="exres-secs">
+      {% for review in section_reviews %}
+        <div style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:18px 20px;">
+          <div style="display:flex;align-items:center;gap:11px;margin-bottom:14px;">
+            <span style="width:38px;height:38px;border-radius:10px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:16px;flex:0 0 auto;">
+              {% if review.section.section_type == 'listening' %}<i class="bi bi-headphones"></i>
+              {% elif review.section.section_type == 'reading' %}<i class="bi bi-book"></i>
+              {% elif review.section.section_type == 'writing' %}<i class="bi bi-pencil"></i>
+              {% elif review.section.section_type == 'speaking' %}<i class="bi bi-mic"></i>
+              {% else %}<i class="bi bi-ui-checks"></i>{% endif %}
+            </span>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:14.5px;font-weight:600;color:var(--ink);">{{ review.section.title }}</div>
+              <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);">{{ review.awarded_score|floatformat:"-2" }}/{{ review.section.max_score }} ball</div>
+            </div>
+            {% widthratio review.awarded_score review.section.max_score 100 as sec_pct %}
+            <span style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:{% if sec_pct|add:0 >= exam.passing_score %}var(--green){% else %}var(--amber){% endif %};">{{ sec_pct }}</span>
+          </div>
+          <div style="height:7px;border-radius:999px;background:var(--line-2);overflow:hidden;">
+            <div style="height:100%;width:{{ sec_pct }}%;background:{% if sec_pct|add:0 >= exam.passing_score %}var(--green){% else %}var(--amber){% endif %};border-radius:999px;"></div>
+          </div>
+          {% if review.feedback %}
+            <div style="margin-top:12px;border-left:3px solid var(--azure);border-radius:0 10px 10px 0;background:var(--paper-2);padding:10px 13px;font-size:12.5px;line-height:1.55;color:var(--ink-2);"><b style="color:var(--ink);">O'qituvchi izohi:</b> {{ review.feedback }}</div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- ============ PER-JAVOB IZOHLAR (writing/speaking) ============ -->
+  {% if feedback_answers %}
+    <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:24px 0 12px;">Javoblaringizga izohlar</div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:18px;">
+      {% for answer in feedback_answers %}
+        <div style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:16px 18px;">
+          <div style="display:flex;align-items:center;gap:9px;margin-bottom:9px;">
+            <span style="font-family:'Space Mono',monospace;font-size:10.5px;font-weight:700;color:var(--azure);background:var(--azure-soft);padding:4px 10px;border-radius:7px;">{{ answer.question.exam_section.get_section_type_display|default:"Savol" }}</span>
+            <span style="font-size:12.5px;color:var(--ink-3);">{{ answer.question.text|striptags|truncatechars:70 }}</span>
+            <span style="margin-left:auto;font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:var(--ink);">{{ answer.awarded_score|floatformat:"-2" }}/{{ answer.question.points }}</span>
+          </div>
+          <div style="font-size:13.5px;line-height:1.6;color:var(--ink-2);">{{ answer.grader_feedback|linebreaksbr }}</div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- ============ YAKUNIY IZOH ============ -->
+  {% if attempt.review_notes %}
+    <div style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:20px;margin-bottom:18px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <span style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);">O'qituvchining yakuniy izohi</span>
+        <i class="bi bi-chat-quote" style="color:var(--azure);"></i>
+      </div>
+      <p style="font-size:14px;line-height:1.65;color:var(--ink-2);margin:0;">{{ attempt.review_notes|linebreaksbr }}</p>
+      {% if attempt.reviewed_by %}
+        <div style="margin-top:12px;font-size:12px;color:var(--ink-3);">— {{ attempt.reviewed_by.get_full_name|default:attempt.reviewed_by.username }}{% if attempt.reviewed_at %} · {{ attempt.reviewed_at|date:"d.m.Y H:i" }}{% endif %}</div>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  {% else %}
+    <div style="border:1px dashed var(--line);border-radius:16px;padding:40px 20px;text-align:center;color:var(--ink-3);">
+      <i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:10px;color:var(--ink-4);"></i>
+      Bu imtihon bo'yicha urinish topilmadi.
+      <div style="margin-top:14px;"><a href="{% url 'exam_detail' course.id exam.id %}" style="color:var(--azure);font-weight:600;">Imtihonni boshlash <i class="bi bi-arrow-right"></i></a></div>
+    </div>
+  {% endif %}
+</div>
+
+<style>
+  @media (max-width:760px){
+    .exres-grid{ grid-template-columns:1fr !important; }
+    .exres-stats{ grid-template-columns:repeat(2,1fr) !important; }
+    .exres-secs{ grid-template-columns:1fr !important; }
+  }
+</style>
+{% endblock %}
