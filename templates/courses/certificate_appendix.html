@@ -1,0 +1,102 @@
+{% load static %}<!DOCTYPE html>
+{# Sertifikat ilovasi — imtihonlar va bo'limlar bo'yicha batafsil ballar (chop etish uchun). #}
+<html lang="uz" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sertifikat ilovasi {{ certificate.certificate_id }} — AzureLMS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <style>
+    body{ background:var(--paper-2); margin:0; padding:32px 16px; font-family:'Space Grotesk',sans-serif; }
+    .apx-wrap{ max-width:820px; margin:0 auto; }
+    .apx-actions{ display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:18px; }
+    .apx-btn{ display:inline-flex; align-items:center; gap:8px; height:42px; padding:0 18px; border-radius:10px; font-size:13.5px; font-weight:600; border:1px solid var(--line); color:var(--ink-2); background:var(--panel); cursor:pointer; text-decoration:none; }
+    .apx-btn.is-primary{ background:var(--azure); color:var(--on-azure); border:none; }
+    .apx{ background:var(--panel); border:1px solid var(--line); border-radius:20px; padding:clamp(26px,4vw,44px); }
+    .apx-head{ display:flex; align-items:center; justify-content:space-between; gap:14px; border-bottom:1px solid var(--line); padding-bottom:18px; margin-bottom:22px; }
+    .apx-brand{ display:flex; align-items:center; gap:11px; }
+    .apx-mark{ width:38px; height:38px; border-radius:11px; background:var(--azure); color:var(--on-azure); display:grid; place-items:center; font-weight:700; font-size:19px; }
+    .apx-brand b{ font-size:17px; letter-spacing:-.02em; color:var(--ink); }
+    .apx-id{ font-family:'Space Mono',monospace; font-size:11px; color:var(--ink-3); text-align:right; }
+    .apx h1{ font-size:clamp(21px,3vw,27px); font-weight:600; letter-spacing:-.02em; color:var(--ink); margin:0 0 6px; }
+    .apx-meta{ font-size:13.5px; color:var(--ink-2); margin:0 0 22px; line-height:1.6; }
+    .apx-exam{ border:1px solid var(--line); border-radius:14px; overflow:hidden; margin-bottom:16px; }
+    .apx-exam-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:13px 16px; background:var(--paper-2); border-bottom:1px solid var(--line); }
+    .apx-exam-head .t{ font-size:14.5px; font-weight:600; color:var(--ink); }
+    .apx-exam-head .s{ font-family:'Space Mono',monospace; font-size:12px; color:var(--ink-3); }
+    .apx table{ width:100%; border-collapse:collapse; }
+    .apx th{ text-align:left; font-family:'Space Mono',monospace; font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); padding:9px 16px; border-bottom:1px solid var(--line); }
+    .apx td{ font-size:13.5px; color:var(--ink-2); padding:10px 16px; border-bottom:1px solid var(--line-2); }
+    .apx tr:last-child td{ border-bottom:none; }
+    .apx td.score{ font-family:'Space Mono',monospace; font-weight:700; color:var(--ink); text-align:right; white-space:nowrap; }
+    .apx-pass{ display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:600; padding:3px 10px; border-radius:999px; }
+    .apx-pass.ok{ color:var(--green); background:var(--green-soft); }
+    .apx-pass.no{ color:var(--red); background:var(--red-soft); }
+    @media print{
+      body{ background:#fff; padding:0; }
+      .apx-actions{ display:none; }
+      .apx{ border:none; border-radius:0; }
+    }
+  </style>
+</head>
+<body>
+<div class="apx-wrap">
+  <div class="apx-actions">
+    <a class="apx-btn" href="{% url 'certificate_detail' certificate.certificate_id %}"><i class="bi bi-arrow-left"></i> Sertifikat</a>
+    <button type="button" class="apx-btn is-primary" onclick="window.print()"><i class="bi bi-printer"></i> Chop etish / PDF</button>
+  </div>
+
+  <div class="apx">
+    <div class="apx-head">
+      <div class="apx-brand"><span class="apx-mark">A</span><b>Azure<span style="color:var(--azure);">LMS</span></b></div>
+      <div class="apx-id">ID: {{ certificate.certificate_id }}<br>{{ certificate.issued_at|date:"d.m.Y" }}</div>
+    </div>
+
+    <h1>Sertifikat Ilovasi</h1>
+    <p class="apx-meta">
+      <b style="color:var(--ink);">{{ certificate.student.get_full_name|default:certificate.student.username }}</b> —
+      "{{ certificate.course.title }}" kursi bo'yicha tasdiqlangan imtihon natijalari.
+      Yakuniy ball: <b style="color:var(--ink);">{{ certificate.final_score }}%</b>.
+    </p>
+
+    {% for attempt in reviewed_attempts %}
+      <div class="apx-exam">
+        <div class="apx-exam-head">
+          <span class="t">{{ attempt.exam.title }} <span style="font-weight:400;color:var(--ink-3);">· {{ attempt.exam.get_exam_type_display }}</span></span>
+          <span style="display:flex;align-items:center;gap:10px;">
+            <span class="s">{{ attempt.score|floatformat:0 }}%</span>
+            <span class="apx-pass {% if attempt.passed %}ok{% else %}no{% endif %}">{% if attempt.passed %}<i class="bi bi-check-circle-fill"></i> O'tdi{% else %}<i class="bi bi-x-circle-fill"></i> O'tmadi{% endif %}</span>
+          </span>
+        </div>
+        <table>
+          <thead><tr><th>Bo'lim</th><th>Turi</th><th style="text-align:right;">Ball</th></tr></thead>
+          <tbody>
+            {% for review in attempt.section_reviews.all %}
+              <tr>
+                <td>{{ review.section.title }}</td>
+                <td>{{ review.section.get_section_type_display }}</td>
+                <td class="score">{{ review.awarded_score|floatformat:"-2" }} / {{ review.section.max_score }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="3" style="text-align:center;color:var(--ink-3);">Bo'lim ballari kiritilmagan.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% empty %}
+      <p style="color:var(--ink-3);">Tasdiqlangan imtihon urinishlari topilmadi.</p>
+    {% endfor %}
+
+    <p style="font-family:'Space Mono',monospace;font-size:10.5px;color:var(--ink-3);margin:18px 0 0;line-height:1.7;">
+      Ushbu ilova sertifikatning ajralmas qismi hisoblanadi. Tekshirish: {{ request.scheme }}://{{ request.get_host }}{% url 'certificate_detail' certificate.certificate_id %}
+    </p>
+  </div>
+</div>
+
+{% if auto_print %}<script>window.addEventListener('load', function(){ window.print(); });</script>{% endif %}
+</body>
+</html>
