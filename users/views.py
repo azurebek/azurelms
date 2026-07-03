@@ -72,7 +72,7 @@ class StartSmartOnboardingView(LoginRequiredMixin, View):
             schema_name='user_onboarding'
         )
         
-        return redirect('chat_detail', room_id=room.id)
+        return redirect('messenger:ai_room', room_id=room.id)
 
 
 class SettingsView(LoginRequiredMixin, UpdateView):
