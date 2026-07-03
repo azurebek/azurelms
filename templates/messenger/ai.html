@@ -1,218 +1,183 @@
-{% extends "messenger/base.html" %}
+{% extends "base.html" %}
 {% load static %}
+{% comment %}
+  Messenger (AI) — standalone 3-panel shell. MessengerAIView.
+  Proto: azurelms-proto/app/messenger.html. Kontrakt: static/js/messenger-chat.js.
+  Kontekst: ai_rooms, active_chat_room, active_ai_room_id, chat_messages (Message:
+  id, sender_id, is_ai_response, display_body, created_at, feedback_*, user_feedback_rating,
+  can_manage), active_room, chat_locked, active_context_lesson.
+  group.html/tutor.html shu shablonni meros oladi (active_room kontekstdan).
+{% endcomment %}
 
-{% block page_title %}AI suhbat - AzureLMS{% endblock %}
-{% block meta_description %}Azure AI bilan erkin suhbat va o'quv savollari.{% endblock %}
+{% block title %}Xabarlar — AzureLMS{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/messenger.css' %}">{% endblock %}
+{% block extra_js %}<script defer src="{% static 'js/messenger-chat.js' %}"></script>{% endblock %}
 
-{% block chat_panel %}
-<section class="chat-panel" data-chat-room-id="{{ active_chat_room.id }}" data-current-user-id="{{ user.id }}" data-current-user-name="{{ user.get_full_name|default:user.username }}" data-active-room="{{ active_room }}" data-ai-tone-url="{% url 'update_ai_tone' %}" data-ai-model-url="{% url 'update_ai_model' %}" data-ai-feedback-url-template="{% url 'messenger:submit_ai_feedback' 0 %}" data-current-ai-tone="{{ user.ai_tone }}" data-current-ai-model="{{ user.ai_model }}" data-current-ai-skill="auto" data-context-lesson-id="{{ active_context_lesson.id|default:'' }}">
-  <header class="chat-topbar">
-    <div class="chat-head">
-      <div class="chat-head-avatar chat-head-avatar--ai"><i class="bi bi-stars"></i></div>
-      <div class="chat-head-meta">
-        <div class="chat-head-name">{{ active_chat_room.name|default:"Yangi AI chat" }} <i class="bi bi-patch-check-fill verified" title="AI"></i></div>
-        <div class="chat-head-sub online"><span class="dot"></span> Har doim ochiq</div>
+{% block body %}
+<form style="display:none;">{% csrf_token %}</form>
+<div class="msgr">
+
+  <!-- Icon rail -->
+  <aside class="msgr-rail">
+    <a class="msgr-rail-logo" href="{% url 'dashboard' %}" title="Boshqaruv paneli">A</a>
+    <a class="msgr-rail-btn{% if active_room == 'ai' %} active{% endif %}" href="{% url 'messenger:ai' %}" title="AI repetitor"><i class="bi bi-stars"></i></a>
+    <a class="msgr-rail-btn{% if active_room == 'group' %} active{% endif %}" href="{% url 'messenger:group' %}" title="Guruh"><i class="bi bi-people"></i></a>
+    <a class="msgr-rail-btn{% if active_room == 'tutor' %} active{% endif %}" href="{% url 'messenger:tutor' %}" title="Tutor"><i class="bi bi-mortarboard"></i></a>
+    <div style="flex:1;"></div>
+    <button type="button" class="msgr-rail-btn" aria-label="Mavzu"><i class="bi bi-moon"></i></button>
+    <a class="msgr-rail-av" href="{% url 'profile' %}" title="Profil">{{ request.user.first_name.0|default:request.user.username.0|upper }}{{ request.user.last_name.0|upper }}</a>
+  </aside>
+
+  <!-- Conversation list -->
+  <section class="msgr-list">
+    <div class="msgr-list-head">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <h1 class="msgr-list-title">Xabarlar</h1>
+        <a href="{% url 'messenger:new_ai_chat' %}" aria-label="Yangi suhbat" style="width:32px;height:32px;border-radius:9px;background:var(--azure);color:var(--on-azure);display:grid;place-items:center;font-size:14px;"><i class="bi bi-pencil-square"></i></a>
+      </div>
+      <div class="msgr-search"><i class="bi bi-search" style="font-size:12px;"></i> Suhbat qidirish…</div>
+      <div class="msgr-tabs">
+        <a class="msgr-tab{% if active_room == 'ai' %} active{% endif %}" href="{% url 'messenger:ai' %}">AI</a>
+        <a class="msgr-tab{% if active_room == 'group' %} active{% endif %}" href="{% url 'messenger:group' %}">Guruh</a>
+        <a class="msgr-tab{% if active_room == 'tutor' %} active{% endif %}" href="{% url 'messenger:tutor' %}">Tutor</a>
       </div>
     </div>
-    <div class="chat-actions">
-      <button class="chat-icon-btn" type="button" aria-label="Qidirish"><i class="bi bi-search"></i></button>
-      <button class="chat-icon-btn info-toggle active" id="infoToggle" type="button" aria-label="Ma'lumot paneli" aria-expanded="true"><i class="bi bi-layout-sidebar-reverse"></i></button>
-      <button class="chat-icon-btn" id="themeBtn" type="button" aria-label="Tema"><i class="bi bi-moon" id="themeIcon"></i></button>
-    </div>
-  </header>
-
-  <div class="messages-area" data-chat-messages>
-    <div class="day-divider"><span class="day-label">Bugun</span></div>
-
-    {% if chat_messages %}
-      {% for message in chat_messages %}
-        <div class="msg-row {% if message.sender_id == user.id %}me {% endif %}group-start group-last" data-message-id="{{ message.id }}">
-          {% if message.sender_id != user.id %}
-            <div class="msg-avatar msg-avatar--ai"><i class="bi bi-stars"></i></div>
-          {% endif %}
-          <div class="msg-group">
-            <div class="bubble {% if message.sender_id == user.id %}bubble-me{% else %}bubble-them{% endif %} {% if message.is_deleted %}bubble-deleted{% endif %}" data-message-text>{{ message.display_body|linebreaksbr }}</div>
-            {% if message.attachment_url %}
-              <a class="bubble-file {% if message.is_image_attachment %}bubble-file--image{% endif %}" href="{{ message.attachment_url }}" target="_blank" rel="noopener">
-                <span class="bubble-file-icon"><i class="bi {% if message.is_image_attachment %}bi-image{% else %}bi-file-earmark{% endif %}"></i></span>
-                <span class="bubble-file-info">
-                  <span class="bubble-file-name">{{ message.attachment_name|default:"Fayl" }}</span>
-                  <span class="bubble-file-size">{{ message.attachment_size_label }}</span>
-                </span>
-              </a>
-            {% endif %}
-            <div class="bubble-meta"><span>{{ message.created_at|date:"H:i" }}{% if message.edited_at %} · tahrirlangan{% endif %}</span>{% if message.sender_id == user.id %}<i class="bi bi-check2-all check"></i>{% endif %}</div>
-            {% if message.can_manage %}
-              <div class="msg-actions" data-message-actions data-message-id="{{ message.id }}">
-                <button class="message-action-btn" type="button" data-edit-message aria-label="Tahrirlash" title="Tahrirlash"><i class="bi bi-pencil"></i></button>
-                <button class="message-action-btn danger" type="button" data-delete-message aria-label="O'chirish" title="O'chirish"><i class="bi bi-trash"></i></button>
-              </div>
-            {% endif %}
-            {% if message.is_ai_response %}
-              <div class="message-feedback" data-ai-feedback data-message-id="{{ message.id }}" data-user-rating="{{ message.user_feedback_rating|default:'' }}">
-                {% if message.ai_skill_label %}
-                  <span class="feedback-btn feedback-btn--icon feedback-btn--skill" tabindex="0" role="img" aria-label="Skill: {{ message.ai_skill_label }}" title="Skill: {{ message.ai_skill_label }}{% if message.ai_used_tools %} | Tools: {{ message.ai_used_tools|join:', ' }}{% endif %}">
-                    <i class="bi bi-stars"></i>
-                  </span>
-                {% endif %}
-                {% if message.ai_rag_sources %}
-                  <span class="feedback-btn feedback-btn--icon feedback-btn--source" tabindex="0" role="img" aria-label="RAG manbalar" title="{{ message.ai_rag_source_title }}">
-                    <i class="bi bi-journal-text"></i>
-                  </span>
-                {% endif %}
-                <button class="feedback-btn {% if message.user_feedback_rating == 1 %}active{% endif %}" type="button" data-feedback-rating="1" aria-label="Yaxshi javob" title="Yaxshi javob">
-                  <i class="bi bi-hand-thumbs-up"></i>
-                  <span data-feedback-positive>{{ message.feedback_positive_count|default:0 }}</span>
-                </button>
-                <button class="feedback-btn {% if message.user_feedback_rating == -1 %}active{% endif %}" type="button" data-feedback-rating="-1" aria-label="Foydasiz javob" title="Foydasiz javob">
-                  <i class="bi bi-hand-thumbs-down"></i>
-                  <span data-feedback-negative>{{ message.feedback_negative_count|default:0 }}</span>
-                </button>
-                <button class="feedback-btn feedback-btn--icon" type="button" data-copy-message aria-label="Nusxa olish" title="Nusxa olish">
-                  <i class="bi bi-copy"></i>
-                </button>
-                {% if message.ai_regenerate_user_message_id %}
-                  <button class="feedback-btn feedback-btn--icon" type="button" data-regenerate-message data-user-message-id="{{ message.ai_regenerate_user_message_id }}" aria-label="Qayta generatsiya qilish" title="Qayta generatsiya qilish">
-                    <i class="bi bi-arrow-clockwise"></i>
-                  </button>
-                {% endif %}
-                <span class="feedback-status" data-feedback-status></span>
-              </div>
-            {% endif %}
-          </div>
-        </div>
+    <div class="msgr-list-scroll">
+      {% for room in ai_rooms %}
+      <a class="sb-item{% if room.id == active_ai_room_id %} active{% endif %}" href="{% url 'messenger:ai_room' room_id=room.id %}" data-sidebar-room-id="{{ room.id }}">
+        <span class="sb-item-av"><i class="bi bi-stars"></i></span>
+        <span class="sb-item-body">
+          <span class="sb-item-top"><span class="sb-item-name">{{ room.name|default:"Azure AI" }}</span><span class="sb-item-time">{% if room.updated_at %}{{ room.updated_at|date:"H:i" }}{% endif %}</span></span>
+          <span class="sb-item-bot"><span class="sb-item-preview">{{ room.last_message_text|default:"Suhbatni boshlang…"|striptags|truncatechars:40 }}</span></span>
+        </span>
+      </a>
+      {% empty %}
+      <div style="padding:24px 14px;text-align:center;font-size:13px;color:var(--ink-3);">Hali suhbat yo'q.<br><a href="{% url 'messenger:new_ai_chat' %}" style="color:var(--azure);font-weight:600;">Yangi suhbat boshlang</a></div>
       {% endfor %}
-    {% else %}
-      <div class="chat-empty-state" data-empty-state>
-        <div class="chat-empty-icon"><i class="bi bi-stars"></i></div>
-        <h2>Azure AI tayyor</h2>
-        <p>Kursga yozilmagan bo'lsangiz ham savol berishingiz, mashq tekshirtirishingiz va yo'nalish olishingiz mumkin.</p>
-      </div>
-    {% endif %}
-  </div>
+    </div>
+  </section>
 
-  <footer class="compose-wrap">
-    <div class="compose-row">
-      <div class="attach-wrap">
-        <button class="attach-btn" id="attachBtn" type="button" aria-label="Biriktirish"><i class="bi bi-plus-lg"></i></button>
-        <div class="attach-menu" id="attachMenu">
-          {% csrf_token %}
-          <button class="attach-item" type="button" data-upload-trigger data-upload-accept="image/*,video/*"><i class="bi bi-image ai-photo"></i> Rasm yoki video</button>
-          <button class="attach-item" type="button" data-upload-trigger data-upload-accept=".pdf,.doc,.docx,.txt,.zip,image/*"><i class="bi bi-file-earmark ai-doc"></i> Hujjat</button>
-          <button class="attach-item" type="button"><i class="bi bi-mic ai-mic"></i> Ovozli xabar</button>
-          <div class="attach-divider"></div>
-          <details class="attach-section" open>
-            <summary class="attach-section-summary">
-              <span>Model</span>
-              <strong data-ai-model-current-label>{{ user.get_ai_model_display }}</strong>
-              <i class="bi bi-chevron-down"></i>
-            </summary>
-            <div class="attach-section-options">
-              {% for value, label in user.AI_MODEL_CHOICES %}
-                <button class="attach-item attach-item--model {% if user.ai_model == value %}active{% endif %}" type="button" data-ai-model-option="{{ value }}">
-                  <i class="bi bi-cpu ai-model"></i>
-                  <span>{{ label }}</span>
-                  <span class="ai-current">{% if user.ai_model == value %}Tanlangan{% endif %}</span>
-                </button>
+  <!-- Chat panel -->
+  {% if active_chat_room %}
+  <section class="msgr-chat"
+    data-chat-room-id="{{ active_chat_room.id }}"
+    data-active-room="{{ active_room }}"
+    data-current-user-id="{{ request.user.id }}"
+    data-current-user-name="{{ request.user.get_full_name|default:request.user.username }}"
+    data-context-lesson-id="{{ active_context_lesson.id|default:'' }}"
+    data-ai-tone-url="{% url 'update_ai_tone' %}"
+    data-ai-model-url="{% url 'update_ai_model' %}"
+    data-ai-feedback-url-template="{% url 'messenger:submit_ai_feedback' message_id=0 %}"
+    data-current-ai-skill="auto">
+
+    <header class="chat-head">
+      <div class="chat-head-id">
+        <span class="chat-head-av">{% if active_room == 'ai' %}<i class="bi bi-stars"></i>{% else %}{{ active_chat_room.name|default:"?"|slice:":1"|upper }}{% endif %}</span>
+        <span style="min-width:0;">
+          <span style="display:flex;align-items:center;gap:8px;"><span class="chat-head-name">{% if active_room == 'ai' %}Azure AI{% else %}{{ active_chat_room.name }}{% endif %}</span>{% if active_room == 'ai' %}<span style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.08em;padding:2px 6px;border-radius:5px;background:var(--azure-soft);color:var(--azure);">AI</span>{% endif %}</span>
+          <span class="chat-head-sub"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;"></span><span data-chat-status>{% if active_room == 'ai' %}Shaxsiy repetitor{% else %}Onlayn{% endif %}</span></span>
+        </span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        {% if active_room == 'ai' %}
+        {# AI sozlamalari — uslub/model/skill tanlovlari backend choices'dan (messenger-chat.js data-* kontrakti) #}
+        <details style="position:relative;">
+          <summary class="chat-ico" style="list-style:none;cursor:pointer;display:grid;place-items:center;" aria-label="AI sozlamalari"><i class="bi bi-sliders2"></i></summary>
+          <div style="position:absolute;right:0;top:calc(100% + 8px);z-index:30;width:280px;border:1px solid var(--line);border-radius:14px;background:var(--panel);box-shadow:0 14px 40px rgba(11,14,21,.16);padding:14px;">
+            <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;">Javob uslubi</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
+              {% for value, label in request.user.AI_TONE_CHOICES %}
+              <button type="button" data-ai-tone-option="{{ value }}" class="feedback-btn{% if request.user.ai_tone == value %} active{% endif %}" style="font-size:11.5px;">{{ label }}</button>
               {% endfor %}
             </div>
-            <div class="attach-status" data-ai-model-status></div>
-          </details>
-          <details class="attach-section">
-            <summary class="attach-section-summary">
-              <span>Skill</span>
-              <strong data-ai-skill-current-label>Auto</strong>
-              <i class="bi bi-chevron-down"></i>
-            </summary>
-            <div class="attach-section-options">
-              <button class="attach-item attach-item--skill active" type="button" data-ai-skill-option="auto">
-                <i class="bi bi-magic ai-skill"></i>
-                <span>Auto</span>
-                <span class="ai-current">Tanlangan</span>
-              </button>
+            <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;">AI modeli</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
+              {% for value, label in request.user.AI_MODEL_CHOICES %}
+              <button type="button" data-ai-model-option="{{ value }}" class="feedback-btn{% if request.user.ai_model == value %} active{% endif %}" style="font-size:11.5px;">{{ label }}</button>
+              {% endfor %}
+            </div>
+            <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;">AI skill</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+              <button type="button" data-ai-skill-option="auto" class="feedback-btn active" style="font-size:11.5px;">Avto</button>
               {% for skill in ai_skills %}
-                <button class="attach-item attach-item--skill" type="button" data-ai-skill-option="{{ skill.slug }}">
-                  <i class="bi bi-stars ai-skill"></i>
-                  <span>{{ skill.name }}</span>
-                  <span class="ai-current"></span>
-                </button>
+              <button type="button" data-ai-skill-option="{{ skill.slug }}" class="feedback-btn" style="font-size:11.5px;" title="{{ skill.description }}">{{ skill.name }}</button>
               {% endfor %}
             </div>
-            <div class="attach-status" data-ai-skill-status></div>
-          </details>
-          <details class="attach-section">
-            <summary class="attach-section-summary">
-              <span>Javob uslubi</span>
-              <strong data-ai-tone-current-label>{{ user.get_ai_tone_display }}</strong>
-              <i class="bi bi-chevron-down"></i>
-            </summary>
-            <div class="attach-section-options">
-              {% for value, label in user.AI_TONE_CHOICES %}
-                <button class="attach-item attach-item--tone {% if user.ai_tone == value %}active{% endif %}" type="button" data-ai-tone-option="{{ value }}">
-                  <i class="bi bi-stars ai-model"></i>
-                  <span>{{ label }}</span>
-                  <span class="ai-current">{% if user.ai_tone == value %}Tanlangan{% endif %}</span>
-                </button>
-              {% endfor %}
-            </div>
-            <div class="attach-status" data-ai-tone-status></div>
-          </details>
+          </div>
+        </details>
+        {% endif %}
+        <a class="chat-ico" href="{% url 'settings' %}" aria-label="Sozlamalar"><i class="bi bi-gear"></i></a>
+      </div>
+    </header>
+
+    <div class="chat-msgs" data-chat-messages data-appscroll>
+      {% for message in chat_messages %}
+      {% if message.sender_id == request.user.id %}
+      <div class="msg-row me group-start group-last" data-message-id="{{ message.id }}">
+        <div class="msg-group">
+          <div class="bubble bubble-me{% if message.is_deleted %} bubble-deleted{% endif %}" data-message-text="true">{{ message.display_body }}</div>
+          <div class="bubble-meta"><span>{{ message.created_at|date:"H:i" }}</span><i class="bi bi-check2-all check"></i></div>
+          {% if message.can_manage and not message.is_deleted %}
+          <div class="msg-actions" data-message-actions="true" data-message-id="{{ message.id }}">
+            <button type="button" class="message-action-btn" data-edit-message="true" aria-label="Tahrirlash"><i class="bi bi-pencil"></i></button>
+            <button type="button" class="message-action-btn danger" data-delete-message="true" aria-label="O'chirish"><i class="bi bi-trash"></i></button>
+          </div>
+          {% endif %}
         </div>
-        <input class="sr-only" type="file" data-upload-input>
       </div>
-      <div class="compose-input-wrap">
-        <textarea class="compose-input" placeholder="Azure AI'ga yozing..." rows="1" data-chat-input></textarea>
+      {% else %}
+      <div class="msg-row group-start group-last"{% if message.is_ai_response %} data-is-ai="true"{% endif %} data-message-id="{{ message.id }}">
+        <span class="msg-avatar {% if message.is_ai_response %}msg-avatar--ai{% else %}c-lime{% endif %}">{% if message.is_ai_response %}<i class="bi bi-stars"></i>{% else %}{{ message.sender.first_name.0|default:message.sender.username.0|upper }}{% endif %}</span>
+        <div class="msg-group">
+          {% if not message.is_ai_response and message.sender %}<div class="msg-author-name">{{ message.sender.get_full_name|default:message.sender.username }}</div>{% endif %}
+          <div class="bubble bubble-them{% if message.is_deleted %} bubble-deleted{% endif %}" data-message-text="true">{{ message.display_body }}</div>
+          <div class="bubble-meta"><span>{{ message.created_at|date:"H:i" }}</span></div>
+          {% if message.is_ai_response %}
+          {# messenger-chat.js createFeedbackControls bilan bir xil DOM kontrakti #}
+          <div class="message-feedback" data-ai-feedback="true" data-message-id="{{ message.id }}" data-user-rating="{{ message.user_feedback_rating|default:'' }}">
+            {% if message.ai_skill_label %}<span class="feedback-btn feedback-btn--icon feedback-btn--skill" role="img" tabindex="0" title="Skill: {{ message.ai_skill_label }}{% if message.ai_used_tools %} | Tools: {{ message.ai_used_tools|join:', ' }}{% endif %}"><i class="bi bi-stars"></i></span>{% endif %}
+            <button type="button" class="feedback-btn{% if message.user_feedback_rating == 1 %} active{% endif %}" data-feedback-rating="1"><i class="bi bi-hand-thumbs-up"></i><span data-feedback-positive>{{ message.feedback_positive_count|default:0 }}</span></button>
+            <button type="button" class="feedback-btn{% if message.user_feedback_rating == -1 %} active{% endif %}" data-feedback-rating="-1"><i class="bi bi-hand-thumbs-down"></i><span data-feedback-negative>{{ message.feedback_negative_count|default:0 }}</span></button>
+            <button type="button" class="feedback-btn feedback-btn--icon" data-copy-message="true" aria-label="Nusxa olish" title="Nusxa olish"><i class="bi bi-copy"></i></button>
+            {% if message.ai_regenerate_user_message_id %}<button type="button" class="feedback-btn feedback-btn--icon" data-regenerate-message="true" data-user-message-id="{{ message.ai_regenerate_user_message_id }}" aria-label="Qayta generatsiya qilish" title="Qayta generatsiya qilish"><i class="bi bi-arrow-clockwise"></i></button>{% endif %}
+            <span class="feedback-status" data-feedback-status></span>
+          </div>
+          {% endif %}
+        </div>
       </div>
-      <div class="compose-actions">
-        <button class="compose-emoji" type="button" aria-label="Emoji"><i class="bi bi-emoji-smile"></i></button>
-        <button class="send-btn" type="button" aria-label="Yuborish" data-chat-send><i class="bi bi-send-fill"></i></button>
+      {% endif %}
+      {% empty %}
+      <div class="chat-empty" data-empty-state>
+        <i class="bi bi-stars"></i>
+        <div style="font-size:16px;font-weight:600;color:var(--ink);">Azure AI tayyor</div>
+        <div style="font-size:13.5px;max-width:36ch;line-height:1.6;">Grammatika, speaking yoki dars bo'yicha savol bering — darhol javob beraman.</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="chat-composer">
+      {% if active_context_lesson %}
+      <div class="chat-chips"><span class="chat-chip" title="AI javoblari shu dars konteksti (RAG) bilan boyitiladi"><i class="bi bi-paperclip" style="color:var(--azure);"></i> RAG scope: {{ active_context_lesson.title|truncatechars:36 }}</span></div>
+      {% endif %}
+      <div class="chat-inputrow">
+        <button type="button" class="chat-icobtn" aria-label="Biriktirish" onclick="this.parentNode.querySelector('[data-upload-input]').click()"><i class="bi bi-paperclip"></i></button>
+        <input type="file" data-upload-input hidden accept="image/*,.pdf,.doc,.docx">
+        <textarea rows="1" data-chat-input placeholder="Xabar yozing…  (Enter — yuborish)"></textarea>
+        <button type="button" class="chat-send" data-chat-send aria-label="Yuborish"><i class="bi bi-arrow-up"></i></button>
       </div>
     </div>
-  </footer>
-</section>
-{% endblock %}
 
-{% block info_panel %}
-<aside class="chat-info-panel" id="chatInfoPanel" aria-label="Suhbat ma'lumotlari">
-  <div class="info-head">
-    <div class="info-head-title">Ma'lumot</div>
-    <button class="info-close" id="infoClose" type="button" aria-label="Panelni yopish"><i class="bi bi-x-lg"></i></button>
-  </div>
+  </section>
+  {% else %}
+  <section class="msgr-chat" style="align-items:center;justify-content:center;">
+    <div class="chat-empty">
+      <i class="bi bi-chat-dots"></i>
+      <div style="font-size:16px;font-weight:600;color:var(--ink);">{% if chat_locked %}{% if active_room == 'group' %}Guruh chati yopiq{% elif active_room == 'tutor' %}Tutor chati yopiq{% else %}Suhbat mavjud emas{% endif %}{% else %}Suhbat tanlanmagan{% endif %}</div>
+      <div style="font-size:13.5px;max-width:36ch;line-height:1.6;">{% if chat_locked %}Faol obuna bilan guruh va tutor chatlari ochiladi.{% else %}Chapdan suhbat tanlang yoki yangi AI suhbat boshlang.{% endif %}</div>
+      {% if active_room == 'ai' %}<a href="{% url 'messenger:new_ai_chat' %}" style="margin-top:6px;display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:10px;background:var(--azure);color:var(--on-azure);font-size:13.5px;font-weight:600;">Yangi suhbat <i class="bi bi-arrow-right" style="font-size:12px;"></i></a>{% endif %}
+    </div>
+  </section>
+  {% endif %}
 
-  <div class="info-profile">
-    <div class="info-avatar info-avatar--ai"><i class="bi bi-stars"></i></div>
-    <div class="info-name">{{ active_chat_room.name|default:"Yangi AI chat" }}</div>
-    <div class="info-status online"><span></span> Auth foydalanuvchilar uchun ochiq</div>
-  </div>
-
-  <div class="info-actions">
-    <button type="button"><i class="bi bi-chat-dots-fill"></i><span>Chat</span></button>
-    <button type="button"><i class="bi bi-bookmark-star"></i><span>Saqlash</span></button>
-    <button type="button"><i class="bi bi-stars"></i><span>AI</span></button>
-  </div>
-
-  <div class="info-strip"><i class="bi bi-lightning-charge"></i> Umumiy savollar va mashq feedback</div>
-
-  <div class="info-scroll">
-    <section class="info-section">
-      <div class="info-section-title">Kontekst</div>
-      <div class="info-kv"><span>Holat</span><strong>Ochiq</strong></div>
-      <div class="info-kv"><span>Kurs talabi</span><strong>Yo'q</strong></div>
-      {% if active_context_lesson %}
-        <div class="info-kv"><span>RAG scope</span><strong>{{ active_context_lesson.module.course.title }}</strong></div>
-        <div class="info-kv"><span>Dars</span><strong>{{ active_context_lesson.title }}</strong></div>
-      {% endif %}
-      <div class="info-kv"><span>Xona</span><strong>#{{ active_chat_room.id }}</strong></div>
-    </section>
-
-    <section class="info-section">
-      <div class="info-section-title">Eng yaxshi ishlaydi</div>
-      <p class="info-copy">Savolni aniq yozing, matn yoki jumlangizni yuboring, AI esa qisqa feedback va keyingi qadam beradi.</p>
-    </section>
-  </div>
-</aside>
-{% endblock %}
-
-{% block page_js %}
-<script src="{% static 'js/messenger-chat.js' %}?v=ai-rag-context-1"></script>
+</div>
 {% endblock %}
