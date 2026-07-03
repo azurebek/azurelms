@@ -1,0 +1,37 @@
+/* ============================================================
+   AdminShell urg'ulari. Panel mexanikasi app-shell.css'da.
+   Bu fayl admin urg'ularini qo'shadi: qizil rol nishoni,
+   qora logo/avatar, qizil badge/dot.
+   Yuklash: tokens → base → app-shell.css → bu fayl.
+   ============================================================ */
+.app-logo.has-role{ margin-bottom:6px; }
+.app-logo-mark.is-dark{ background:var(--ink); color:var(--paper); }
+
+.adm-role{
+  display:inline-flex; align-items:center; gap:6px; margin:0 6px 14px;
+  font-family:'Space Mono',monospace; font-size:9.5px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--red); background:var(--red-soft); padding:4px 9px; border-radius:6px; width:max-content;
+}
+.app.collapsed .adm-role{ display:none; }
+
+.app-user-av.is-dark{ background:var(--ink); color:var(--paper); }
+.app-nav-badge.is-red{ background:var(--red); color:#fff; }
+.app-ico-dot.is-red{ background:var(--red); }
+.app-top-title.is-admin i{ color:var(--ink-2); }
+
+.app-top-av{
+  width:36px; height:36px; border-radius:9px; background:var(--ink);
+  display:grid; place-items:center; color:var(--paper); font-weight:700; font-size:13px; flex:0 0 auto;
+}
+
+/* Backoffice editor formalari (course/lesson/exam_form) — umumiy */
+.bo-card{ border:1px solid var(--line); border-radius:14px; background:var(--panel); padding:22px; }
+.bo-form label.fld{ display:block; margin-bottom:15px; }
+.bo-lbl{ display:block; font-family:'Space Mono',monospace; font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); margin-bottom:7px; }
+.bo-form input[type=text], .bo-form input[type=number], .bo-form input[type=url], .bo-form input[type=email], .bo-form input[type=date], .bo-form input[type=datetime-local], .bo-form input[type=file], .bo-form select, .bo-form textarea, .bo-form input:not([type]){ width:100%; padding:0 13px; height:44px; border-radius:10px; border:1px solid var(--line); background:var(--paper-2); color:var(--ink); font-size:14px; outline:none; font-family:inherit; transition:border-color .2s,box-shadow .2s; }
+.bo-form input[type=file]{ height:auto; padding:11px 13px; }
+.bo-form textarea{ height:auto; min-height:90px; padding:11px 13px; line-height:1.6; resize:vertical; }
+.bo-form input:focus, .bo-form select:focus, .bo-form textarea:focus{ border-color:var(--azure); box-shadow:0 0 0 3px var(--azure-soft); }
+.bo-check{ display:flex; align-items:center; gap:10px; margin-bottom:15px; }
+.bo-help{ display:block; font-size:11.5px; color:var(--ink-4); margin-top:5px; }
+.bo-err{ display:block; font-size:12px; color:var(--red); margin-top:5px; }

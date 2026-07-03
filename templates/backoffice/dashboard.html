@@ -1,401 +1,75 @@
-{% load static humanize %}
-<!DOCTYPE html>
-<html lang="uz" data-theme="light">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="AzureLMS backoffice dashboard.">
-  <script>
-    (function() {
-      const html = document.documentElement;
-      let saved;
-      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
-      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-      html.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));
-    })();
-  </script>
-  <title>Backoffice - AzureLMS</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
-  <link rel="stylesheet" href="{% static 'css/foundation.css' %}">
-  <link rel="stylesheet" href="{% static 'css/components.css' %}">
-  <link rel="stylesheet" href="{% static 'css/app.css' %}">
-  <link rel="stylesheet" href="{% static 'css/backoffice-shell.css' %}">
-  <link rel="stylesheet" href="{% static 'css/prototype-extracted.css' %}">
-</head>
-<body>
-<div class="app">
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo">
-      <div class="sidebar-logo-mark">AZ</div>
-      <a class="sidebar-logo-name" href="{% url 'backoffice_dashboard' %}" style="color: inherit; text-decoration: none;">AzureLMS</a>
-    </div>
+{% extends "backoffice/base.html" %}
+{% comment %}
+  Backoffice dashboard (backoffice_dashboard).
+  Proto: azurelms-proto/admin/admin-dashboard.html.
+  Kontekst: kpis (active_students/today_revenue/new_signups/completion_rate), counts,
+  attention_count, pending_receipts[:4], recent_users, active_cohorts.
+{% endcomment %}
 
-    <nav class="sidebar-nav" aria-label="Backoffice navigatsiya">
-      <details class="nav-accordion" open>
-        <summary class="nav-accordion-trigger">
-          <span class="nav-accordion-title"><i class="bi bi-speedometer2"></i> Bosh sahifa</span>
-          <i class="bi bi-chevron-down nav-accordion-caret"></i>
-        </summary>
-        <div class="nav-accordion-panel">
-          <a href="{% url 'backoffice_dashboard' %}" class="nav-item active"><i class="bi bi-grid-fill"></i> Overview</a>
-          <a href="#" class="nav-item"><i class="bi bi-bar-chart-line"></i> Hisobotlar</a>
-          <a href="#" class="nav-item"><i class="bi bi-activity"></i> Aktivlik logi</a>
-        </div>
-      </details>
+{% block bo_title %}Boshqaruv paneli{% endblock %}
+{% block bo_icon %}bi-grid-1x2{% endblock %}
+{% block bo_topbar %}Boshqaruv paneli{% endblock %}
 
-      <details class="nav-accordion">
-        <summary class="nav-accordion-trigger">
-          <span class="nav-accordion-title"><i class="bi bi-people"></i> Foydalanuvchilar</span>
-          <i class="bi bi-chevron-down nav-accordion-caret"></i>
-        </summary>
-        <div class="nav-accordion-panel">
-          <a href="{% url 'backoffice_users' %}?role=students" class="nav-item"><i class="bi bi-mortarboard"></i> Talabalar <span class="nav-badge">{{ counts.students|intcomma }}</span></a>
-          <a href="{% url 'backoffice_users' %}?role=teachers" class="nav-item"><i class="bi bi-person-video3"></i> O'qituvchilar <span class="nav-badge">{{ counts.teachers|intcomma }}</span></a>
-          <a href="{% url 'backoffice_users' %}?role=admins" class="nav-item"><i class="bi bi-shield-lock"></i> Adminlar <span class="nav-badge">{{ counts.admins|intcomma }}</span></a>
-          <a href="#" class="nav-item"><i class="bi bi-collection"></i> Cohortlar <span class="nav-badge">{{ counts.cohorts|intcomma }}</span></a>
-        </div>
-      </details>
+{% block bo_content %}
+<div style="max-width:1100px;">
 
-      <details class="nav-accordion">
-        <summary class="nav-accordion-trigger">
-          <span class="nav-accordion-title"><i class="bi bi-journal-bookmark"></i> Mazmun</span>
-          <i class="bi bi-chevron-down nav-accordion-caret"></i>
-        </summary>
-        <div class="nav-accordion-panel">
-          <a href="{% url 'backoffice_course_create' %}" class="nav-item"><i class="bi bi-collection-play"></i> Kurslar <span class="nav-badge">{{ counts.courses|intcomma }}</span></a>
-          <a href="{% url 'backoffice_lessons' %}" class="nav-item"><i class="bi bi-play-circle"></i> Darslar <span class="nav-badge">{{ counts.lessons|intcomma }}</span></a>
-          <a href="{% url 'backoffice_exams' %}" class="nav-item"><i class="bi bi-patch-check"></i> Imtihonlar <span class="nav-badge">{{ counts.exams|intcomma }}</span></a>
-          <a href="{% url 'blog:studio' %}" class="nav-item"><i class="bi bi-newspaper"></i> Blog</a>
-        </div>
-      </details>
-
-      <details class="nav-accordion">
-        <summary class="nav-accordion-trigger">
-          <span class="nav-accordion-title"><i class="bi bi-credit-card-2-front"></i> Sotuv</span>
-          <i class="bi bi-chevron-down nav-accordion-caret"></i>
-        </summary>
-        <div class="nav-accordion-panel">
-          <a href="#" class="nav-item"><i class="bi bi-receipt"></i> To'lovlar <span class="nav-badge">{{ counts.pending_receipts|intcomma }}</span></a>
-          <a href="{% url 'subscriptions' %}" class="nav-item"><i class="bi bi-card-checklist"></i> Obunalar</a>
-          <a href="#" class="nav-item"><i class="bi bi-ticket-perforated"></i> Promo kodlar <span class="nav-badge">{{ counts.promo_codes|intcomma }}</span></a>
-        </div>
-      </details>
-    </nav>
-
-    <div class="sidebar-bottom">
-      <details class="account-menu">
-        <summary class="sidebar-user">
-          <div class="user-av">
-            {% if request.user.first_name %}{{ request.user.first_name|slice:":1" }}{{ request.user.last_name|slice:":1" }}{% else %}{{ request.user.username|slice:":2"|upper }}{% endif %}
-          </div>
-          <div class="user-info">
-            <div class="user-name">{{ request.user.get_full_name|default:request.user.username }}</div>
-            <div class="user-plan">Admin{% if request.user.is_superuser %} - Owner{% endif %}</div>
-          </div>
-          <i class="bi bi-chevron-down user-chevron"></i>
-        </summary>
-        <div class="account-menu-panel">
-          <a href="{% url 'dashboard' %}" class="account-menu-item"><i class="bi bi-arrow-left-circle"></i> Foydalanuvchi sifatida</a>
-          <a href="{% url 'notifications' %}" class="account-menu-item"><i class="bi bi-bell"></i> Bildirishnomalar</a>
-          <a href="{% url 'profile' %}" class="account-menu-item"><i class="bi bi-person-circle"></i> Profil</a>
-          <a href="{% url 'settings' %}" class="account-menu-item"><i class="bi bi-gear"></i> Sozlamalar</a>
-          <div class="account-menu-sep"></div>
-          <form id="logout-form" action="{% url 'logout' %}" method="post" style="display: none;">{% csrf_token %}</form>
-          <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="account-menu-item danger"><i class="bi bi-box-arrow-right"></i> Chiqish</a>
-        </div>
-      </details>
-      <div class="sidebar-version">Backoffice - v0.1</div>
-    </div>
-  </aside>
-
-  <div class="main">
-    <header class="topbar">
-      <button class="topbar-btn sidebar-toggle" id="sidebarToggle" type="button"><i class="bi bi-list"></i></button>
-      <span class="topbar-title">Overview <span class="admin-badge"><i class="bi bi-shield-lock-fill"></i> Admin</span></span>
-      <div class="topbar-search">
-        <i class="bi bi-search"></i>
-        <input type="text" placeholder="Talaba, kurs, to'lov izlash...">
-      </div>
-      <button class="topbar-btn" type="button" aria-label="Bildirishnomalar">
-        <i class="bi bi-bell"></i>
-        {% if counts.pending_receipts %}<div class="topbar-dot"></div>{% endif %}
-      </button>
-      <button class="topbar-btn" id="themeBtn" type="button" aria-label="Tema">
-        <i class="bi bi-moon" id="themeIcon"></i>
-      </button>
-    </header>
-
-    <main class="page-body">
-      <section class="bo-greeting">
-        <div class="bo-greeting-text">
-          <span class="bo-greeting-eyebrow"><i class="bi bi-shield-lock-fill"></i> Backoffice</span>
-          <div class="bo-greeting-hello">Salom, {{ request.user.first_name|default:request.user.username }}</div>
-          <div class="bo-greeting-name">Bugun {{ counts.pending_receipts }} ta tasdiqlanmagan to'lov bor</div>
-          <div class="bo-greeting-sub">Platforma holati real ma'lumotlardan yig'ilmoqda: kurslar, cohortlar, to'lovlar, ro'yxatdan o'tishlar va yakunlash ko'rsatkichi bir joyda.</div>
-        </div>
-        <div class="bo-greeting-action">
-          <a href="#" class="btn-ghost"><i class="bi bi-file-earmark-text"></i> Hisobot</a>
-          <a href="#" class="btn-primary"><i class="bi bi-plus-lg"></i> Yangi cohort</a>
-        </div>
-      </section>
-
-      <section class="bo-kpi-row">
-        <div class="bo-kpi">
-          <div class="bo-kpi-head">
-            <span class="bo-kpi-label">Faol talabalar</span>
-            <div class="bo-kpi-icon bg-blue"><i class="bi bi-people-fill"></i></div>
-          </div>
-          <div class="bo-kpi-val">{{ kpis.active_students|intcomma }}</div>
-          <div class="bo-kpi-delta up"><i class="bi bi-arrow-up"></i> Active enrollment</div>
-        </div>
-
-        <div class="bo-kpi">
-          <div class="bo-kpi-head">
-            <span class="bo-kpi-label">Bugungi daromad</span>
-            <div class="bo-kpi-icon bg-green"><i class="bi bi-cash-coin"></i></div>
-          </div>
-          <div class="bo-kpi-val">{{ kpis.today_revenue|floatformat:0|intcomma }} <span class="unit">so'm</span></div>
-          <div class="bo-kpi-delta flat"><i class="bi bi-calendar2-check"></i> Bugun</div>
-        </div>
-
-        <div class="bo-kpi">
-          <div class="bo-kpi-head">
-            <span class="bo-kpi-label">Yangi ro'yxatlar</span>
-            <div class="bo-kpi-icon bg-purple"><i class="bi bi-person-plus-fill"></i></div>
-          </div>
-          <div class="bo-kpi-val">{{ kpis.new_signups|intcomma }}</div>
-          <div class="bo-kpi-delta up"><i class="bi bi-arrow-up"></i> Bugun</div>
-        </div>
-
-        <div class="bo-kpi">
-          <div class="bo-kpi-head">
-            <span class="bo-kpi-label">Yakunlash o'rt.</span>
-            <div class="bo-kpi-icon bg-amber"><i class="bi bi-patch-check-fill"></i></div>
-          </div>
-          <div class="bo-kpi-val">{{ kpis.completion_rate }}<span class="unit">%</span></div>
-          <div class="bo-kpi-delta flat"><i class="bi bi-check2-circle"></i> {{ counts.completed_lessons|intcomma }} dars</div>
-        </div>
-      </section>
-
-      <section class="bo-grid">
-        <div class="bo-card">
-          <div class="bo-card-head">
-            <div class="bo-card-title">E'tibor talab qiladi <span class="count-chip">{{ attention_count }}</span></div>
-            <a href="{% url 'backoffice_users' %}" class="bo-card-link">Barchasi -></a>
-          </div>
-
-          <div class="bo-task">
-            <div class="bo-task-icon tone-amber"><i class="bi bi-receipt"></i></div>
-            <div class="bo-task-body">
-              <div class="bo-task-title">{{ counts.pending_receipts }} ta to'lov qo'lda tasdiqlash kutmoqda</div>
-              <div class="bo-task-sub">{% if pending_receipts %}Eng eskisi {{ pending_receipts.0.submitted_at|timesince }} oldin yuborilgan{% else %}Hozir pending to'lov yo'q{% endif %}</div>
-            </div>
-            <a href="#" class="bo-task-action">Ko'rish <i class="bi bi-arrow-right"></i></a>
-          </div>
-
-          <div class="bo-task">
-            <div class="bo-task-icon tone-blue"><i class="bi bi-pencil-square"></i></div>
-            <div class="bo-task-body">
-              <div class="bo-task-title">{{ counts.pending_posts }} ta blog post draft/moderatsiyada</div>
-              <div class="bo-task-sub">Blog studio orqali tahrirlash mumkin</div>
-            </div>
-            <a href="{% url 'blog:studio' %}" class="bo-task-action">Ko'rish <i class="bi bi-arrow-right"></i></a>
-          </div>
-
-          <div class="bo-task">
-            <div class="bo-task-icon tone-purple"><i class="bi bi-collection"></i></div>
-            <div class="bo-task-body">
-              <div class="bo-task-title">{{ counts.cohorts }} ta cohort platformada</div>
-              <div class="bo-task-sub">{{ kpis.active_students }} faol talaba cohortlarga ulangan</div>
-            </div>
-            <a href="#" class="bo-task-action">Boshqarish</a>
-          </div>
-        </div>
-
-        <div>
-          <div class="bo-card bo-rag-card">
-            <div class="bo-card-head">
-              <div class="bo-card-title">AI RAG index <span class="count-chip">{{ rag_status.ready_percent }}%</span></div>
-              <span class="bo-card-link">{{ rag_status.embedding_model }}</span>
-            </div>
-            <div class="bo-rag-meter" aria-label="RAG tayyorlik darajasi">
-              <div class="bo-rag-meter-fill" style="width: {{ rag_status.ready_percent }}%"></div>
-            </div>
-            <div class="bo-rag-stats">
-              <span><strong>{{ rag_status.ready_lessons|intcomma }}</strong> tayyor</span>
-              <span><strong>{{ rag_status.missing_lessons|intcomma }}</strong> missing</span>
-              <span><strong>{{ rag_status.stale_lessons|intcomma }}</strong> stale</span>
-              <span><strong>{{ rag_status.total_chunks|intcomma }}</strong> chunk</span>
-            </div>
-            <div class="bo-rag-command">{{ rag_status.index_command }}</div>
-            <div class="bo-rag-sub">
-              {% if rag_status.last_indexed_at %}
-                Oxirgi indexing: {{ rag_status.last_indexed_at|timesince }} oldin
-              {% else %}
-                Hali indexing bajarilmagan
-              {% endif %}
-              · pgvector {% if rag_status.pgvector_ready %}tayyor{% else %}fallback{% endif %}
-            </div>
-          </div>
-
-          <div class="bo-card">
-            <div class="bo-card-head">
-              <div class="bo-card-title">Tez amallar</div>
-            </div>
-            <div class="bo-actions">
-              <a href="#" class="bo-action">
-                <div class="bo-action-icon bg-blue"><i class="bi bi-collection"></i></div>
-                <div class="bo-action-title">Yangi cohort</div>
-                <div class="bo-action-sub">Talabalarni guruhga olish</div>
-              </a>
-              <a href="{% url 'notifications' %}" class="bo-action">
-                <div class="bo-action-icon bg-green"><i class="bi bi-megaphone-fill"></i></div>
-                <div class="bo-action-title">E'lon yuborish</div>
-                <div class="bo-action-sub">Bildirishnomalarni tekshirish</div>
-              </a>
-              <a href="#" class="bo-action">
-                <div class="bo-action-icon bg-purple"><i class="bi bi-ticket-perforated"></i></div>
-                <div class="bo-action-title">Promo kod</div>
-                <div class="bo-action-sub">Chegirma yarating</div>
-              </a>
-              <a href="{% url 'backoffice_course_create' %}" class="bo-action">
-                <div class="bo-action-icon bg-amber"><i class="bi bi-plus-square"></i></div>
-                <div class="bo-action-title">Kurslar</div>
-                <div class="bo-action-sub">Course builderni ochish</div>
-              </a>
-            </div>
-          </div>
-
-          <div class="bo-card bo-revenue">
-            <div class="bo-card-head">
-              <div class="bo-card-title">Bu hafta daromad</div>
-              <a href="#" class="bo-card-link">Batafsil</a>
-            </div>
-            <div class="bo-revenue-val">{{ weekly_revenue|floatformat:0|intcomma }} so'm</div>
-            <div class="bo-revenue-sub">Oxirgi 7 kun - tasdiqlangan to'lovlar</div>
-            <div class="bo-spark" aria-label="Haftalik daromad grafigi">
-              {% for height in sparkline %}
-                <div class="bo-spark-bar {% if forloop.last %}active{% endif %}" style="height: {{ height }}%"></div>
-              {% endfor %}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="bo-grid">
-        <div class="bo-card">
-          <div class="bo-card-head">
-            <div class="bo-card-title">So'nggi ro'yxatdan o'tganlar</div>
-            <a href="{% url 'backoffice_users' %}" class="bo-card-link">Barchasi -></a>
-          </div>
-          <div class="bo-table-wrap">
-            <table class="bo-table">
-              <thead>
-                <tr>
-                  <th>Talaba</th>
-                  <th>Email</th>
-                  <th>Holat</th>
-                  <th>Vaqt</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for student in recent_users %}
-                  <tr>
-                    <td>
-                      <div class="student-cell">
-                        <div class="student-av bo-av-c{{ forloop.counter }}">{% if student.first_name %}{{ student.first_name|slice:":1" }}{{ student.last_name|slice:":1" }}{% else %}{{ student.username|slice:":2"|upper }}{% endif %}</div>
-                        <div>
-                          <div class="student-name">{{ student.get_full_name|default:student.username }}</div>
-                          <div class="student-mail">{{ student.username }}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td>{{ student.email }}</td>
-                    <td><span class="status-pill {% if student.is_active %}paid{% else %}pending{% endif %}"><span class="dot"></span>{% if student.is_active %}Faol{% else %}Bloklangan{% endif %}</span></td>
-                    <td>{{ student.date_joined|timesince }} oldin</td>
-                    <td><button class="row-action" type="button"><i class="bi bi-three-dots"></i></button></td>
-                  </tr>
-                {% empty %}
-                  <tr><td colspan="5">Hali foydalanuvchi yo'q.</td></tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="bo-card">
-          <div class="bo-card-head">
-            <div class="bo-card-title">So'nggi aktivlik</div>
-            <a href="#" class="bo-card-link">Log -></a>
-          </div>
-          <div class="bo-activity">
-            {% for receipt in pending_receipts %}
-              <div class="bo-activity-item">
-                <div class="bo-activity-marker" style="background:var(--amber)"><i class="bi bi-cash"></i></div>
-                <div class="bo-activity-body">
-                  <div class="bo-activity-text"><strong>{{ receipt.enrollment.student.get_full_name|default:receipt.enrollment.student.username }}</strong> {{ receipt.amount|floatformat:0|intcomma }} so'm to'lov yubordi</div>
-                  <div class="bo-activity-time">{{ receipt.submitted_at|timesince }} oldin - {{ receipt.enrollment.cohort.course.title }}</div>
-                </div>
-              </div>
-            {% endfor %}
-            {% for cohort in active_cohorts %}
-              <div class="bo-activity-item">
-                <div class="bo-activity-marker" style="background:var(--blue-mid)"><i class="bi bi-collection"></i></div>
-                <div class="bo-activity-body">
-                  <div class="bo-activity-text"><strong>{{ cohort.name }}</strong> cohort faol</div>
-                  <div class="bo-activity-time">{{ cohort.course.title }} - start {{ cohort.start_date|date:"d M Y" }}</div>
-                </div>
-              </div>
-            {% empty %}
-              {% if not pending_receipts %}
-                <div class="bo-activity-item">
-                  <div class="bo-activity-marker" style="background:var(--green)"><i class="bi bi-check2"></i></div>
-                  <div class="bo-activity-body">
-                    <div class="bo-activity-text">Hozircha alohida e'tibor talab qiladigan aktivlik yo'q.</div>
-                    <div class="bo-activity-time">Tizim tinch ishlayapti</div>
-                  </div>
-                </div>
-              {% endif %}
-            {% endfor %}
-          </div>
-        </div>
-      </section>
-    </main>
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px;">
+    <div><div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;">Backoffice · {% now "j-F, Y" %}</div><h1 style="font-size:clamp(24px,2.6vw,32px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:0;">Platforma holati</h1></div>
+    <span style="display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;padding:8px 14px;border-radius:10px;{% if attention_count %}color:var(--red);background:var(--red-soft);border:1px solid var(--red);{% else %}color:var(--ink-3);background:var(--paper-2);border:1px solid var(--line);{% endif %}"><i class="bi {% if attention_count %}bi-exclamation-triangle{% else %}bi-check2-circle{% endif %}"></i> E'tibor talab qiladi: {{ attention_count|default:0 }}</span>
   </div>
+
+  <!-- KPI -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:14px;">
+    <div style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:18px 20px;"><span style="width:34px;height:34px;border-radius:9px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:15px;"><i class="bi bi-people"></i></span><div style="font-family:'Space Mono',monospace;font-size:26px;font-weight:700;color:var(--ink);margin-top:12px;">{{ kpis.active_students }}</div><div style="font-size:12.5px;color:var(--ink-3);margin-top:3px;">Faol o'quvchi</div></div>
+    <div style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:18px 20px;"><span style="width:34px;height:34px;border-radius:9px;background:var(--green-soft);color:var(--green);display:grid;place-items:center;font-size:15px;"><i class="bi bi-cash-stack"></i></span><div style="font-family:'Space Mono',monospace;font-size:26px;font-weight:700;color:var(--ink);margin-top:12px;">{{ kpis.today_revenue|floatformat:0 }}</div><div style="font-size:12.5px;color:var(--ink-3);margin-top:3px;">Bugungi daromad (so'm)</div></div>
+    <div style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:18px 20px;"><span style="width:34px;height:34px;border-radius:9px;background:var(--violet-soft);color:var(--violet);display:grid;place-items:center;font-size:15px;"><i class="bi bi-person-plus"></i></span><div style="font-family:'Space Mono',monospace;font-size:26px;font-weight:700;color:var(--ink);margin-top:12px;">{{ kpis.new_signups }}</div><div style="font-size:12.5px;color:var(--ink-3);margin-top:3px;">Bugungi ro'yxat</div></div>
+    <div style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:18px 20px;"><span style="width:34px;height:34px;border-radius:9px;background:var(--amber-soft);color:var(--amber);display:grid;place-items:center;font-size:15px;"><i class="bi bi-check2-circle"></i></span><div style="font-family:'Space Mono',monospace;font-size:26px;font-weight:700;color:var(--ink);margin-top:12px;">{{ kpis.completion_rate }}%</div><div style="font-size:12.5px;color:var(--ink-3);margin-top:3px;">Tugatish darajasi</div></div>
+  </div>
+
+  <!-- AI RAG index holati -->
+  <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:13px 16px;margin-bottom:14px;">
+    <span style="width:34px;height:34px;border-radius:9px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:15px;flex:0 0 auto;"><i class="bi bi-stars"></i></span>
+    <div style="flex:1;min-width:180px;">
+      <div style="font-size:13.5px;font-weight:600;color:var(--ink);">AI RAG index</div>
+      <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);margin-top:2px;">{{ rag_status.indexed_lessons }}/{{ rag_status.eligible_lessons }} dars indekslangan · model: {{ rag_status.embedding_model }}</div>
+    </div>
+    <span style="font-family:'Space Mono',monospace;font-size:16px;font-weight:700;color:{% if rag_status.ready_percent >= 90 %}var(--green){% elif rag_status.ready_percent >= 50 %}var(--amber){% else %}var(--red){% endif %};">{{ rag_status.ready_percent|default:0 }}%</span>
+  </div>
+
+  <!-- Counts grid -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:14px;">
+    <a href="{% url 'backoffice_users' %}" style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:14px 16px;"><div style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--ink);">{{ counts.students }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">O'quvchi</div></a>
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:14px 16px;"><div style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--ink);">{{ counts.teachers }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">O'qituvchi</div></div>
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:14px 16px;"><div style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--ink);">{{ counts.courses }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">Kurs</div></div>
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:14px 16px;"><div style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--ink);">{{ counts.lessons }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">Dars</div></div>
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:14px 16px;"><div style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--ink);">{{ counts.cohorts }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">Guruh</div></div>
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:14px 16px;"><div style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--ink);">{{ counts.completed_lessons }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">O'tilgan dars</div></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:14px;">
+    <!-- Pending receipts (attention) -->
+    <div style="border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line);"><span style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);">Tasdiq kutayotgan to'lovlar</span>{% if counts.pending_receipts %}<span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--red);background:var(--red-soft);padding:3px 9px;border-radius:999px;">{{ counts.pending_receipts }}</span>{% endif %}</div>
+      {% for r in pending_receipts %}
+      <div style="display:flex;align-items:center;gap:12px;padding:13px 20px;{% if not forloop.last %}border-bottom:1px solid var(--line-2);{% endif %}">
+        <span style="width:34px;height:34px;border-radius:9px;background:var(--amber-soft);color:var(--amber);display:grid;place-items:center;font-size:14px;flex:0 0 auto;"><i class="bi bi-receipt"></i></span>
+        <div style="flex:1;min-width:0;"><div style="font-size:13.5px;color:var(--ink);line-height:1.4;"><strong style="font-weight:600;">{{ r.enrollment.student.get_full_name|default:r.enrollment.student.username }}</strong> · {{ r.enrollment.cohort.course.title|truncatechars:24 }}</div><div style="font-family:'Space Mono',monospace;font-size:10.5px;color:var(--ink-4);margin-top:1px;">{{ r.amount|floatformat:0 }} so'm · {{ r.submitted_at|date:"d.m H:i" }}</div></div>
+      </div>
+      {% empty %}
+      <div style="padding:24px 20px;text-align:center;font-size:13px;color:var(--ink-3);"><i class="bi bi-check-circle" style="color:var(--green);"></i> Kutayotgan to'lov yo'q.</div>
+      {% endfor %}
+    </div>
+
+    <!-- Recent users + cohorts -->
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div style="border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line);"><span style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);">Yangi o'quvchilar</span><a href="{% url 'backoffice_users' %}" style="font-size:12px;color:var(--azure);font-weight:500;">Hammasi</a></div>
+        {% for u in recent_users %}
+        <div style="display:flex;align-items:center;gap:11px;padding:11px 20px;{% if not forloop.last %}border-bottom:1px solid var(--line-2);{% endif %}"><span style="width:30px;height:30px;border-radius:8px;background:var(--azure);color:#fff;display:grid;place-items:center;font-weight:700;font-size:11px;flex:0 0 auto;">{{ u.first_name.0|default:u.username.0|upper }}{{ u.last_name.0|upper }}</span><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ u.get_full_name|default:u.username }}</div><div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--ink-4);">{{ u.date_joined|date:"d.m.Y" }}</div></div></div>
+        {% empty %}<div style="padding:18px 20px;font-size:13px;color:var(--ink-3);">—</div>{% endfor %}
+      </div>
+    </div>
+  </div>
+
 </div>
-
-<script src="{% static 'js/prototype-ui.js' %}"></script>
-<script>
-  (function() {
-    const btn = document.getElementById('themeBtn');
-    const icon = document.getElementById('themeIcon');
-    function syncIcon() {
-      if (!icon) return;
-      const dark = document.documentElement.getAttribute('data-theme') === 'dark';
-      icon.className = dark ? 'bi bi-sun' : 'bi bi-moon';
-    }
-    window.toggleTheme = function() {
-      const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', next);
-      try { localStorage.setItem('az-theme', next); } catch (_) {}
-      syncIcon();
-    };
-    syncIcon();
-    if (btn) btn.addEventListener('click', window.toggleTheme);
-  })();
-
-  (function() {
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const sidebar = document.getElementById('sidebar');
-    if (sidebarToggle && sidebar) {
-      sidebarToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
-    }
-  })();
-</script>
-</body>
-</html>
+{% endblock %}

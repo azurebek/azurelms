@@ -1,167 +1,65 @@
 {% extends "backoffice/base.html" %}
-{% load static humanize %}
+{% comment %}
+  Suhbatlar (backoffice_chats).
+  Kontekst: page_obj (ChatRoom: name, room_type, cohort, message_count, participant_count,
+  last_message_at, last_message_text, last_sender_name), filters (q/type), room_type_choices, chat_stats.
+{% endcomment %}
 
-{% block title %}Chat monitoring - Backoffice{% endblock %}
-{% block topbar_title %}Chat monitoring{% endblock %}
-{% block extra_css %}
-  <link rel="stylesheet" href="{% static 'css/backoffice-users.css' %}">
-  <link rel="stylesheet" href="{% static 'css/backoffice-chats.css' %}">
-{% endblock %}
-{% block topbar_extra %}
-  <form class="topbar-search" method="get">
-    <i class="bi bi-search"></i>
-    <input type="text" name="q" value="{{ filters.q }}" placeholder="Chat, user yoki xabar izlash...">
-    <input type="hidden" name="type" value="{{ filters.type }}">
-  </form>
-{% endblock %}
+{% block bo_title %}Suhbatlar{% endblock %}
+{% block bo_icon %}bi-chat-dots{% endblock %}
+{% block bo_topbar %}Suhbatlar{% endblock %}
 
-{% block content %}
-<div class="users-header">
-  <div class="users-header-left">
-    <div class="users-page-title">
-      <i class="bi bi-chat-dots-fill"></i>
-      Chat monitoring
-    </div>
-    <div class="users-page-sub">AI, guruh va tutor suhbatlari bo'yicha umumiy kuzatuv paneli</div>
-  </div>
-  <div class="users-header-actions">
-    <a class="btn-outline" href="{% url 'messenger:ai' %}">
-      <i class="bi bi-box-arrow-up-right"></i> Messenger
-    </a>
-  </div>
-</div>
+{% block bo_content %}
+<div style="max-width:1100px;">
 
-<div class="users-stats">
-  <div class="u-stat">
-    <div class="u-stat-icon blue"><i class="bi bi-chat-square-text-fill"></i></div>
-    <div class="u-stat-body">
-      <div class="u-stat-val">{{ chat_stats.total|intcomma }}</div>
-      <div class="u-stat-label">Jami chat xonalari</div>
-      <div class="u-stat-delta neu">{{ chat_stats.messages_today|intcomma }} xabar bugun</div>
-    </div>
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:20px;">
+    <div><h1 style="font-size:clamp(22px,2.6vw,30px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:0 0 6px;">Suhbatlar</h1><p style="font-size:14px;color:var(--ink-3);margin:0;">AI, guruh va tutor chatlari monitoringi.</p></div>
+    <form method="get" style="position:relative;">
+      {% if filters.type and filters.type != 'all' %}<input type="hidden" name="type" value="{{ filters.type }}">{% endif %}
+      <i class="bi bi-search" style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--ink-3);font-size:13px;"></i>
+      <input type="search" name="q" value="{{ filters.q }}" placeholder="Chat, foydalanuvchi…" style="height:40px;width:min(260px,68vw);padding:0 13px 0 36px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:13.5px;outline:none;">
+    </form>
   </div>
-  <div class="u-stat">
-    <div class="u-stat-icon green"><i class="bi bi-stars"></i></div>
-    <div class="u-stat-body">
-      <div class="u-stat-val">{{ chat_stats.ai|intcomma }}</div>
-      <div class="u-stat-label">AI suhbatlar</div>
-      <div class="u-stat-delta up">Auth userlar uchun ochiq</div>
-    </div>
-  </div>
-  <div class="u-stat">
-    <div class="u-stat-icon amber"><i class="bi bi-people-fill"></i></div>
-    <div class="u-stat-body">
-      <div class="u-stat-val">{{ chat_stats.group|intcomma }}</div>
-      <div class="u-stat-label">Guruh chatlari</div>
-      <div class="u-stat-delta neu">Kurs/cohortga bog'langan</div>
-    </div>
-  </div>
-  <div class="u-stat">
-    <div class="u-stat-icon red"><i class="bi bi-paperclip"></i></div>
-    <div class="u-stat-body">
-      <div class="u-stat-val">{{ chat_stats.attachments|intcomma }}</div>
-      <div class="u-stat-label">Faylli xabarlar</div>
-      <div class="u-stat-delta neu">Upload audit uchun</div>
-    </div>
-  </div>
-</div>
 
-<div class="users-tabs">
-  {% for value, label in room_type_choices %}
-    <a class="users-tab {% if filters.type == value %}active{% endif %}" href="{% url 'backoffice_chats' %}?type={{ value }}&q={{ filters.q|urlencode }}">
-      {{ label }}
-    </a>
-  {% endfor %}
-</div>
-
-<form class="users-toolbar" method="get">
-  <div class="toolbar-search">
-    <i class="bi bi-search"></i>
-    <input type="text" name="q" value="{{ filters.q }}" placeholder="Chat nomi, user, email yoki xabar matni...">
+  <!-- Stats -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:18px;">
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:14px 16px;"><div style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--ink);">{{ chat_stats.total }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">Jami chat</div></div>
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:14px 16px;"><div style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--azure);">{{ chat_stats.ai }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">AI</div></div>
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:14px 16px;"><div style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--green);">{{ chat_stats.group }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">Guruh</div></div>
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:14px 16px;"><div style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--ink);">{{ chat_stats.messages_today }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">Bugungi xabar</div></div>
   </div>
-  <select class="toolbar-select" name="type">
-    {% for value, label in room_type_choices %}
-      <option value="{{ value }}" {% if filters.type == value %}selected{% endif %}>{{ label }}</option>
+
+  <!-- Type filter -->
+  <div style="display:flex;gap:6px;background:var(--paper-2);border:1px solid var(--line);border-radius:10px;padding:4px;margin-bottom:18px;width:max-content;max-width:100%;flex-wrap:wrap;">
+    {% for key, label in room_type_choices %}
+    <a href="?type={{ key }}{% if filters.q %}&q={{ filters.q }}{% endif %}" style="height:32px;display:inline-flex;align-items:center;padding:0 14px;border-radius:7px;font-size:12.5px;font-weight:600;{% if filters.type == key or not filters.type and key == 'all' %}background:var(--azure-soft);color:var(--azure);{% else %}color:var(--ink-3);{% endif %}">{{ label }}</a>
     {% endfor %}
-  </select>
-  <button class="toolbar-btn" type="submit"><i class="bi bi-funnel"></i> Filter</button>
-  <a class="toolbar-btn" href="{% url 'backoffice_chats' %}"><i class="bi bi-x-lg"></i> Tozalash</a>
-</form>
+  </div>
 
-<div class="chat-monitor-list">
-  {% for room in page_obj.object_list %}
-    <article class="chat-monitor-row">
-      <div class="chat-room-mark chat-room-mark--{{ room.room_type }}">
-        {% if room.room_type == "ai" %}
-          <i class="bi bi-stars"></i>
-        {% elif room.room_type == "group" %}
-          <i class="bi bi-people-fill"></i>
-        {% else %}
-          <i class="bi bi-person-video3"></i>
-        {% endif %}
-      </div>
-      <div class="chat-room-main">
-        <div class="chat-room-head">
-          <div class="chat-room-title">{{ room.name|default:"Nomsiz chat" }}</div>
-          <span class="chat-room-type">{{ room.get_room_type_display }}</span>
-        </div>
-        <div class="chat-room-preview">
-          {% if room.last_message_text %}
-            {{ room.last_message_text|truncatechars:120 }}
-          {% else %}
-            Hali xabar yo'q
-          {% endif %}
-        </div>
-        <div class="chat-room-meta">
-          <span><i class="bi bi-chat-left-text"></i> {{ room.message_count|intcomma }} xabar</span>
-          <span><i class="bi bi-person"></i> {{ room.participant_count|intcomma }} ishtirokchi</span>
-          {% if room.cohort %}
-            <span><i class="bi bi-collection-play"></i> {{ room.cohort.course.title }} / {{ room.cohort.name }}</span>
-          {% endif %}
-        </div>
-      </div>
-      <div class="chat-room-side">
-        <div class="chat-room-time">
-          {% if room.last_message_at %}{{ room.last_message_at|timesince }} oldin{% else %}Yangi{% endif %}
-        </div>
-        <div class="chat-room-people">
-          {% for participant in room.participants.all|slice:":4" %}
-            <span title="{{ participant.get_full_name|default:participant.username }}">{{ participant.username|slice:":2"|upper }}</span>
-          {% empty %}
-            <span>--</span>
-          {% endfor %}
-        </div>
-      </div>
-    </article>
-  {% empty %}
-    <div class="chat-monitor-empty">
-      <i class="bi bi-search"></i>
-      <strong>Chat topilmadi</strong>
-      <span>Filter yoki qidiruvni yengillashtirib qayta urinib ko'ring.</span>
+  {% if page_obj.object_list %}
+  <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;">
+    <div style="display:grid;grid-template-columns:2.2fr .8fr .8fr 1.4fr;padding:12px 20px;background:var(--paper-2);border-bottom:1px solid var(--line);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);"><span>Chat</span><span>Tur</span><span>Xabar</span><span>So'nggi</span></div>
+    {% for room in page_obj.object_list %}
+    <div style="display:grid;grid-template-columns:2.2fr .8fr .8fr 1.4fr;align-items:center;padding:13px 20px;{% if not forloop.last %}border-bottom:1px solid var(--line-2);{% endif %}">
+      <div style="display:flex;align-items:center;gap:12px;min-width:0;"><span style="width:36px;height:36px;border-radius:9px;flex:0 0 auto;display:grid;place-items:center;color:#fff;font-size:14px;background:{% if room.room_type == 'ai' %}var(--azure){% elif room.room_type == 'group' %}var(--green){% else %}var(--violet){% endif %};"><i class="bi {% if room.room_type == 'ai' %}bi-stars{% elif room.room_type == 'group' %}bi-people{% else %}bi-person{% endif %}"></i></span><div style="min-width:0;"><div style="font-size:13.5px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{% if room.name %}{{ room.name }}{% elif room.cohort %}{{ room.cohort.name }}{% else %}{{ room.get_room_type_display|default:"Suhbat" }}{% endif %}</div><div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);">{{ room.participant_count }} ishtirokchi</div></div></div>
+      <span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);text-transform:uppercase;">{{ room.room_type }}</span>
+      <span style="font-family:'Space Mono',monospace;font-size:13px;color:var(--ink-2);">{{ room.message_count }}</span>
+      <div style="min-width:0;"><div style="font-size:12.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ room.last_message_text|default:"—"|striptags|truncatechars:36 }}</div><div style="font-family:'Space Mono',monospace;font-size:10.5px;color:var(--ink-4);">{% if room.last_message_at %}{{ room.last_message_at|date:"d.m H:i" }}{% endif %}</div></div>
     </div>
-  {% endfor %}
-</div>
+    {% endfor %}
+  </section>
 
-<div class="users-pagination">
-  <div class="pagination-info">
-    {% if page_obj.paginator.count %}
-      {{ page_obj.start_index }}-{{ page_obj.end_index }} dan <strong>{{ page_obj.paginator.count|intcomma }}</strong> ta chat ko'rsatilmoqda
-    {% else %}
-      0 ta chat
-    {% endif %}
+  {% if page_obj.has_other_pages %}
+  <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:24px;">
+    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}{% if filters.q %}&q={{ filters.q }}{% endif %}{% if filters.type != 'all' %}&type={{ filters.type }}{% endif %}" style="height:38px;display:inline-flex;align-items:center;gap:6px;padding:0 14px;border-radius:9px;border:1px solid var(--line);color:var(--ink-2);font-size:13px;font-weight:600;"><i class="bi bi-chevron-left"></i> Oldingi</a>{% endif %}
+    <span style="font-family:'Space Mono',monospace;font-size:12.5px;color:var(--ink-3);">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}{% if filters.q %}&q={{ filters.q }}{% endif %}{% if filters.type != 'all' %}&type={{ filters.type }}{% endif %}" style="height:38px;display:inline-flex;align-items:center;gap:6px;padding:0 14px;border-radius:9px;border:1px solid var(--line);color:var(--ink-2);font-size:13px;font-weight:600;">Keyingi <i class="bi bi-chevron-right"></i></a>{% endif %}
   </div>
-  <div class="pagination-controls">
-    {% if page_obj.has_previous %}
-      <a class="pg-btn" href="?page={{ page_obj.previous_page_number }}&q={{ filters.q|urlencode }}&type={{ filters.type }}"><i class="bi bi-chevron-left"></i></a>
-    {% else %}
-      <button class="pg-btn" disabled><i class="bi bi-chevron-left"></i></button>
-    {% endif %}
-    <button class="pg-btn active">{{ page_obj.number }}</button>
-    {% if page_obj.has_next %}
-      <a class="pg-btn" href="?page={{ page_obj.next_page_number }}&q={{ filters.q|urlencode }}&type={{ filters.type }}"><i class="bi bi-chevron-right"></i></a>
-    {% else %}
-      <button class="pg-btn" disabled><i class="bi bi-chevron-right"></i></button>
-    {% endif %}
-  </div>
+  {% endif %}
+
+  {% else %}
+  <div style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:48px 24px;text-align:center;"><div style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:6px;">Chat topilmadi</div><div style="font-size:13px;color:var(--ink-3);">Filtr yoki qidiruvni o'zgartiring.</div></div>
+  {% endif %}
+
 </div>
 {% endblock %}

@@ -1,311 +1,71 @@
 {% extends "backoffice/base.html" %}
-{% load static humanize %}
+{% comment %}
+  Foydalanuvchilar (backoffice_users).
+  Proto: azurelms-proto/admin/admin-users.html.
+  Kontekst: user_rows (id,name,email,phone,initials,role_label/class/icon,status_label/class,
+  course_count,date_joined,last_login), user_stats, filters (q/role/status), page_obj.
+{% endcomment %}
 
-{% block title %}Foydalanuvchilar - Backoffice{% endblock %}
-{% block topbar_title %}Foydalanuvchilar{% endblock %}
-{% block extra_css %}
-  <link rel="stylesheet" href="{% static 'css/backoffice-users.css' %}">
-{% endblock %}
-{% block topbar_extra %}
-  <form class="topbar-search" method="get">
-    <i class="bi bi-search"></i>
-    <input type="text" name="q" value="{{ filters.q }}" placeholder="Talaba, email, telefon izlash...">
-  </form>
-  <button class="topbar-btn" type="button" aria-label="Bildirishnomalar">
-    <i class="bi bi-bell"></i>
-    {% if counts.pending_receipts %}<div class="topbar-dot"></div>{% endif %}
-  </button>
-{% endblock %}
+{% block bo_title %}Foydalanuvchilar{% endblock %}
+{% block bo_icon %}bi-people{% endblock %}
+{% block bo_topbar %}Foydalanuvchilar{% endblock %}
 
-{% block content %}
-<div class="users-header">
-  <div class="users-header-left">
-    <div class="users-page-title">
-      <i class="bi bi-people-fill"></i>
-      Foydalanuvchilarni boshqarish
+{% block bo_content %}
+<div style="max-width:1100px;">
+
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:20px;">
+    <div><h1 style="font-size:clamp(22px,2.6vw,30px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:0 0 6px;">Foydalanuvchilar</h1><p style="font-size:14px;color:var(--ink-3);margin:0;">Barcha o'quvchilar, o'qituvchilar va adminlar.</p></div>
+    <form method="get" style="position:relative;">
+      {% if filters.role and filters.role != 'all' %}<input type="hidden" name="role" value="{{ filters.role }}">{% endif %}
+      {% if filters.status and filters.status != 'all' %}<input type="hidden" name="status" value="{{ filters.status }}">{% endif %}
+      <i class="bi bi-search" style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--ink-3);font-size:13px;"></i>
+      <input type="search" name="q" value="{{ filters.q }}" placeholder="Ism, email, telefon…" style="height:40px;width:min(260px,68vw);padding:0 13px 0 36px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:13.5px;outline:none;">
+    </form>
+  </div>
+
+  <!-- Stats -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:18px;">
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:14px 16px;"><div style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--ink);">{{ user_stats.total }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">Jami</div></div>
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:14px 16px;"><div style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--green);">{{ user_stats.active }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">Faol</div></div>
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:14px 16px;"><div style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--red);">{{ user_stats.blocked }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">Bloklangan</div></div>
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:14px 16px;"><div style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--ink);">{{ user_stats.new_this_week }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">Bu hafta</div></div>
+  </div>
+
+  <!-- Role filter -->
+  <div style="display:flex;gap:6px;background:var(--paper-2);border:1px solid var(--line);border-radius:10px;padding:4px;margin-bottom:18px;width:max-content;max-width:100%;flex-wrap:wrap;">
+    {% with qs=filters.q|default:'' %}
+    <a href="?role=all{% if qs %}&q={{ qs }}{% endif %}" style="height:32px;display:inline-flex;align-items:center;padding:0 14px;border-radius:7px;font-size:12.5px;font-weight:600;{% if filters.role == 'all' or not filters.role %}background:var(--azure-soft);color:var(--azure);{% else %}color:var(--ink-3);{% endif %}">Hammasi</a>
+    <a href="?role=students{% if qs %}&q={{ qs }}{% endif %}" style="height:32px;display:inline-flex;align-items:center;padding:0 14px;border-radius:7px;font-size:12.5px;font-weight:600;{% if filters.role == 'students' %}background:var(--azure-soft);color:var(--azure);{% else %}color:var(--ink-3);{% endif %}">O'quvchilar</a>
+    <a href="?role=teachers{% if qs %}&q={{ qs }}{% endif %}" style="height:32px;display:inline-flex;align-items:center;padding:0 14px;border-radius:7px;font-size:12.5px;font-weight:600;{% if filters.role == 'teachers' %}background:var(--azure-soft);color:var(--azure);{% else %}color:var(--ink-3);{% endif %}">O'qituvchilar</a>
+    <a href="?role=admins{% if qs %}&q={{ qs }}{% endif %}" style="height:32px;display:inline-flex;align-items:center;padding:0 14px;border-radius:7px;font-size:12.5px;font-weight:600;{% if filters.role == 'admins' %}background:var(--azure-soft);color:var(--azure);{% else %}color:var(--ink-3);{% endif %}">Adminlar</a>
+    {% endwith %}
+  </div>
+
+  {% if user_rows %}
+  <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;">
+    <div style="display:grid;grid-template-columns:2.2fr 1fr 1fr .8fr .6fr;padding:12px 20px;background:var(--paper-2);border-bottom:1px solid var(--line);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);"><span>Foydalanuvchi</span><span>Rol</span><span>Holat</span><span>Kurslar</span><span style="text-align:right;">Qo'shilgan</span></div>
+    {% for u in user_rows %}
+    <div style="display:grid;grid-template-columns:2.2fr 1fr 1fr .8fr .6fr;align-items:center;padding:13px 20px;{% if not forloop.last %}border-bottom:1px solid var(--line-2);{% endif %}">
+      <div style="display:flex;align-items:center;gap:12px;min-width:0;"><span style="width:36px;height:36px;border-radius:9px;flex:0 0 auto;display:grid;place-items:center;font-weight:700;font-size:12px;color:#fff;background:{% if u.role_class == 'role-admin' %}var(--ink){% elif u.role_class == 'role-teacher' %}var(--violet){% else %}var(--azure){% endif %};">{{ u.initials }}</span><div style="min-width:0;"><div style="font-size:13.5px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ u.name }}</div><div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ u.email }}</div></div></div>
+      <div><span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:{% if u.role_class == 'role-admin' %}var(--red){% elif u.role_class == 'role-teacher' %}var(--violet){% else %}var(--azure){% endif %};"><i class="bi {{ u.role_icon }}"></i> {{ u.role_label }}</span></div>
+      <div>{% if u.status_class == 'status-active' %}<span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--green);"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);"></span>{{ u.status_label }}</span>{% else %}<span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--red);"><span style="width:6px;height:6px;border-radius:50%;background:var(--red);"></span>{{ u.status_label }}</span>{% endif %}</div>
+      <span style="font-family:'Space Mono',monospace;font-size:13px;color:var(--ink-2);">{{ u.course_count }}</span>
+      <span style="font-family:'Space Mono',monospace;font-size:12px;color:var(--ink-3);text-align:right;">{{ u.date_joined|date:"d.m.y" }}</span>
     </div>
-    <div class="users-page-sub">Barcha hisoblar - qidirish, filterlash, rollarni va statusni ko'rish</div>
+    {% endfor %}
+  </section>
+
+  {% if page_obj.has_other_pages %}
+  <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:24px;">
+    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}{% if filters.q %}&q={{ filters.q }}{% endif %}{% if filters.role != 'all' %}&role={{ filters.role }}{% endif %}{% if filters.status != 'all' %}&status={{ filters.status }}{% endif %}" style="height:38px;display:inline-flex;align-items:center;gap:6px;padding:0 14px;border-radius:9px;border:1px solid var(--line);color:var(--ink-2);font-size:13px;font-weight:600;"><i class="bi bi-chevron-left"></i> Oldingi</a>{% endif %}
+    <span style="font-family:'Space Mono',monospace;font-size:12.5px;color:var(--ink-3);">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}{% if filters.q %}&q={{ filters.q }}{% endif %}{% if filters.role != 'all' %}&role={{ filters.role }}{% endif %}{% if filters.status != 'all' %}&status={{ filters.status }}{% endif %}" style="height:38px;display:inline-flex;align-items:center;gap:6px;padding:0 14px;border-radius:9px;border:1px solid var(--line);color:var(--ink-2);font-size:13px;font-weight:600;">Keyingi <i class="bi bi-chevron-right"></i></a>{% endif %}
   </div>
-  <div class="users-header-actions">
-    <button class="btn-outline" type="button" onclick="showToast('CSV eksport keyingi bosqichda ulanadi', 'warning')">
-      <i class="bi bi-download"></i> Eksport
-    </button>
-    <button class="btn-outline" type="button" onclick="openInviteModal()">
-      <i class="bi bi-envelope-plus"></i> Taklif yuborish
-    </button>
-    <button class="btn-primary-sm" type="button" onclick="showToast('Yangi user formasi keyingi bosqichda ulanadi', 'success')">
-      <i class="bi bi-person-plus-fill"></i> Yangi user
-    </button>
-  </div>
+  {% endif %}
+
+  {% else %}
+  <div style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:48px 24px;text-align:center;"><div style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:6px;">Foydalanuvchi topilmadi</div><div style="font-size:13px;color:var(--ink-3);">Filtr yoki qidiruvni o'zgartiring.</div></div>
+  {% endif %}
+
 </div>
-
-<div class="users-stats">
-  <div class="u-stat">
-    <div class="u-stat-icon blue"><i class="bi bi-people-fill"></i></div>
-    <div class="u-stat-body">
-      <div class="u-stat-val">{{ user_stats.total|intcomma }}</div>
-      <div class="u-stat-label">Jami foydalanuvchilar</div>
-      <div class="u-stat-delta up"><i class="bi bi-arrow-up-short"></i> {{ user_stats.new_this_week|intcomma }} bu hafta</div>
-    </div>
-  </div>
-  <div class="u-stat">
-    <div class="u-stat-icon green"><i class="bi bi-person-check-fill"></i></div>
-    <div class="u-stat-body">
-      <div class="u-stat-val">{{ user_stats.active|intcomma }}</div>
-      <div class="u-stat-label">Faol hisoblar</div>
-      <div class="u-stat-delta up"><i class="bi bi-arrow-up-short"></i> {{ user_stats.active_percent }}% faollik</div>
-    </div>
-  </div>
-  <div class="u-stat">
-    <div class="u-stat-icon red"><i class="bi bi-person-slash"></i></div>
-    <div class="u-stat-body">
-      <div class="u-stat-val">{{ user_stats.blocked|intcomma }}</div>
-      <div class="u-stat-label">Bloklangan</div>
-      <div class="u-stat-delta neu"><i class="bi bi-dash"></i> is_active=False</div>
-    </div>
-  </div>
-  <div class="u-stat">
-    <div class="u-stat-icon amber"><i class="bi bi-shield-lock-fill"></i></div>
-    <div class="u-stat-body">
-      <div class="u-stat-val">{{ counts.admins|intcomma }}</div>
-      <div class="u-stat-label">Adminlar</div>
-      <div class="u-stat-delta up"><i class="bi bi-arrow-up-short"></i> {{ counts.teachers|intcomma }} staff</div>
-    </div>
-  </div>
-</div>
-
-<div class="users-tabs">
-  <a class="users-tab {% if filters.role == 'all' %}active{% endif %}" href="{% url 'backoffice_users' %}">
-    Barchasi <span class="tab-count">{{ user_stats.total|intcomma }}</span>
-  </a>
-  <a class="users-tab {% if filters.role == 'students' %}active{% endif %}" href="{% url 'backoffice_users' %}?role=students">
-    <i class="bi bi-mortarboard"></i> Talabalar <span class="tab-count">{{ counts.students|intcomma }}</span>
-  </a>
-  <a class="users-tab {% if filters.role == 'teachers' %}active{% endif %}" href="{% url 'backoffice_users' %}?role=teachers">
-    <i class="bi bi-person-video3"></i> O'qituvchilar <span class="tab-count">{{ counts.teachers|intcomma }}</span>
-  </a>
-  <a class="users-tab {% if filters.role == 'admins' %}active{% endif %}" href="{% url 'backoffice_users' %}?role=admins">
-    <i class="bi bi-shield-lock"></i> Adminlar <span class="tab-count">{{ counts.admins|intcomma }}</span>
-  </a>
-</div>
-
-<form class="users-toolbar" method="get">
-  <div class="toolbar-search">
-    <i class="bi bi-search"></i>
-    <input type="text" name="q" value="{{ filters.q }}" placeholder="Ism, email, telefon bo'yicha qidirish...">
-  </div>
-  <select class="toolbar-select" name="role">
-    <option value="all" {% if filters.role == 'all' %}selected{% endif %}>Barcha rollar</option>
-    <option value="students" {% if filters.role == 'students' %}selected{% endif %}>Talabalar</option>
-    <option value="teachers" {% if filters.role == 'teachers' %}selected{% endif %}>O'qituvchilar</option>
-    <option value="admins" {% if filters.role == 'admins' %}selected{% endif %}>Adminlar</option>
-  </select>
-  <select class="toolbar-select" name="status">
-    <option value="all" {% if filters.status == 'all' %}selected{% endif %}>Barcha statuslar</option>
-    <option value="active" {% if filters.status == 'active' %}selected{% endif %}>Faol</option>
-    <option value="blocked" {% if filters.status == 'blocked' %}selected{% endif %}>Bloklangan</option>
-  </select>
-  <button class="toolbar-btn" type="submit"><i class="bi bi-funnel"></i> Filter</button>
-  <a class="toolbar-btn" href="{% url 'backoffice_users' %}"><i class="bi bi-x-lg"></i> Tozalash</a>
-</form>
-
-<div class="users-table-wrap">
-  <table class="users-table" id="usersTable">
-    <thead>
-      <tr>
-        <th><input type="checkbox" class="table-cb" id="selectAll" onchange="toggleSelectAll(this)"></th>
-        <th>Foydalanuvchi</th>
-        <th>Rol</th>
-        <th>Status</th>
-        <th>Kurslar</th>
-        <th>Ro'yxat sanasi</th>
-        <th>So'nggi kirish</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody id="usersBody">
-      {% for row in user_rows %}
-        <tr onclick="openDrawer('{{ row.dom_id }}')" class="user-row" data-id="{{ row.dom_id }}">
-          <td onclick="event.stopPropagation()">
-            <input type="checkbox" class="table-cb row-cb" data-name="{{ row.name }}" onchange="updateBulkBar()">
-          </td>
-          <td>
-            <div class="user-cell">
-              <div class="user-av av-c{{ forloop.counter|add:'0' }}">{{ row.initials }}</div>
-              <div>
-                <div class="user-name">{{ row.name }}</div>
-                <div class="user-email">{{ row.email }}</div>
-              </div>
-            </div>
-          </td>
-          <td><span class="role-badge {{ row.role_class }}"><i class="bi {{ row.role_icon }}"></i> {{ row.role_label }}</span></td>
-          <td><span class="status-badge {{ row.status_class }}"><span class="dot"></span> {{ row.status_label }}</span></td>
-          <td><span class="course-chip"><i class="bi bi-collection-play"></i> {{ row.course_count }} ta</span></td>
-          <td><span class="meta-text">{{ row.date_joined|date:"d M Y" }}</span></td>
-          <td><span class="meta-text">{% if row.last_login %}{{ row.last_login|timesince }} oldin{% else %}Kirmagan{% endif %}</span></td>
-          <td onclick="event.stopPropagation()" style="position:relative;">
-            <button class="row-action-btn" type="button" onclick="toggleDropdown('dd{{ row.id }}')"><i class="bi bi-three-dots"></i></button>
-            <div class="row-dropdown" id="dd{{ row.id }}">
-              <button class="row-dropdown-item" type="button" onclick="openDrawer('{{ row.dom_id }}');closeAllDropdowns()"><i class="bi bi-person"></i> Profil ko'rish</button>
-              <button class="row-dropdown-item" type="button" onclick="showToast('Xabar yuborish keyingi bosqichda ulanadi','success');closeAllDropdowns()"><i class="bi bi-chat-left-text"></i> Xabar yuborish</button>
-              <button class="row-dropdown-item" type="button" onclick="showToast('Rol o\\'zgartirish hozircha read-only','warning');closeAllDropdowns()"><i class="bi bi-person-gear"></i> Rol o'zgartirish</button>
-            </div>
-          </td>
-        </tr>
-      {% empty %}
-        <tr>
-          <td colspan="8">
-            <div class="users-page-sub" style="padding: 24px;">Filter bo'yicha foydalanuvchi topilmadi.</div>
-          </td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  <div class="users-pagination">
-    <div class="pagination-info">
-      {{ page_obj.start_index }}-{{ page_obj.end_index }} dan <strong>{{ page_obj.paginator.count|intcomma }}</strong> ta foydalanuvchi ko'rsatilmoqda
-    </div>
-    <div class="pagination-controls">
-      {% if page_obj.has_previous %}
-        <a class="pg-btn" href="?page={{ page_obj.previous_page_number }}&q={{ filters.q }}&role={{ filters.role }}&status={{ filters.status }}"><i class="bi bi-chevron-left"></i></a>
-      {% else %}
-        <button class="pg-btn" disabled><i class="bi bi-chevron-left"></i></button>
-      {% endif %}
-      <button class="pg-btn active">{{ page_obj.number }}</button>
-      {% if page_obj.has_next %}
-        <a class="pg-btn" href="?page={{ page_obj.next_page_number }}&q={{ filters.q }}&role={{ filters.role }}&status={{ filters.status }}"><i class="bi bi-chevron-right"></i></a>
-      {% else %}
-        <button class="pg-btn" disabled><i class="bi bi-chevron-right"></i></button>
-      {% endif %}
-    </div>
-  </div>
-</div>
-
-<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
-<aside class="drawer" id="userDrawer" aria-label="Foydalanuvchi tafsilotlari" role="dialog">
-  <div class="drawer-header">
-    <div class="drawer-user-av av-c1" id="drawerAv">AZ</div>
-    <div class="drawer-user-info">
-      <div class="drawer-user-name" id="drawerName">Foydalanuvchi</div>
-      <div class="drawer-user-email" id="drawerEmail">email</div>
-      <div class="drawer-badges">
-        <span class="role-badge role-student" id="drawerRole"><i class="bi bi-mortarboard-fill"></i> Talaba</span>
-        <span class="status-badge status-active" id="drawerStatus"><span class="dot"></span> Faol</span>
-      </div>
-    </div>
-    <button class="drawer-close" type="button" onclick="closeDrawer()"><i class="bi bi-x-lg"></i></button>
-  </div>
-  <div class="drawer-tabs">
-    <button class="drawer-tab active" type="button">Ma'lumot</button>
-    <button class="drawer-tab" type="button">Kurslar</button>
-    <button class="drawer-tab" type="button">To'lovlar</button>
-    <button class="drawer-tab" type="button">Aktivlik</button>
-  </div>
-  <div class="drawer-body">
-    <div class="drawer-panel active">
-      <div class="drawer-section">
-        <div class="drawer-section-title">Shaxsiy ma'lumotlar</div>
-        <div class="info-grid">
-          <div class="info-field"><div class="info-label">To'liq ism</div><div class="info-value" id="di-name">-</div></div>
-          <div class="info-field"><div class="info-label">Telefon</div><div class="info-value" id="di-phone">-</div></div>
-          <div class="info-field full"><div class="info-label">Email</div><div class="info-value" id="di-email">-</div></div>
-          <div class="info-field"><div class="info-label">Ro'yxat sanasi</div><div class="info-value" id="di-joined">-</div></div>
-          <div class="info-field"><div class="info-label">So'nggi kirish</div><div class="info-value" id="di-lastactive">-</div></div>
-          <div class="info-field"><div class="info-label">Kurslar</div><div class="info-value" id="di-courses">-</div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="drawer-footer">
-    <button class="drawer-action-btn primary" type="button" onclick="showToast('Xabar keyingi bosqichda ulanadi','success')"><i class="bi bi-chat-left-text"></i> Xabar</button>
-    <button class="drawer-action-btn" type="button" onclick="showToast('Rol o\\'zgartirish read-only','warning')"><i class="bi bi-person-gear"></i> Rol</button>
-  </div>
-</aside>
-
-<div class="modal-overlay" id="inviteModal">
-  <div class="modal-card">
-    <div class="modal-head">
-      <div class="modal-icon"><i class="bi bi-envelope-plus"></i></div>
-      <div>
-        <div class="modal-title">Taklif yuborish</div>
-        <div class="modal-sub">Bu UI hozircha prototip rejimida</div>
-      </div>
-      <button class="modal-close" type="button" onclick="closeInviteModal()"><i class="bi bi-x-lg"></i></button>
-    </div>
-    <div class="modal-body">
-      <input type="email" placeholder="user@example.com" id="inviteEmail" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r-md);background:var(--surface);color:var(--ink-0);font-family:inherit;font-size:0.84rem;outline:none;">
-    </div>
-    <div class="modal-actions">
-      <button class="modal-btn-cancel" type="button" onclick="closeInviteModal()">Bekor qilish</button>
-      <button class="modal-btn-confirm blue" type="button" onclick="showToast('Taklif yuborish API keyingi bosqichda ulanadi','success');closeInviteModal()">Yuborish</button>
-    </div>
-  </div>
-</div>
-
-<div class="toast-container" id="toastStack"></div>
-{{ user_rows_json|json_script:"backoffice-user-rows" }}
-{% endblock %}
-
-{% block extra_js %}
-<script>
-  const userRows = JSON.parse(document.getElementById('backoffice-user-rows').textContent);
-
-  function toggleDropdown(id) {
-    document.querySelectorAll('.row-dropdown').forEach((item) => {
-      if (item.id !== id) item.classList.remove('open');
-    });
-    const dropdown = document.getElementById(id);
-    if (dropdown) dropdown.classList.toggle('open');
-  }
-  function closeAllDropdowns() {
-    document.querySelectorAll('.row-dropdown').forEach((item) => item.classList.remove('open'));
-  }
-  document.addEventListener('click', (event) => {
-    if (!event.target.closest('.row-action-btn') && !event.target.closest('.row-dropdown')) {
-      closeAllDropdowns();
-    }
-  });
-  function toggleSelectAll(source) {
-    document.querySelectorAll('.row-cb').forEach((item) => item.checked = source.checked);
-  }
-  function updateBulkBar() {}
-  function openDrawer(id) {
-    const row = userRows.find((item) => item.dom_id === id);
-    if (!row) return;
-    document.getElementById('drawerAv').textContent = row.initials;
-    document.getElementById('drawerName').textContent = row.name;
-    document.getElementById('drawerEmail').textContent = row.email;
-    document.getElementById('drawerRole').innerHTML = `<i class="bi ${row.role_icon}"></i> ${row.role_label}`;
-    document.getElementById('drawerRole').className = `role-badge ${row.role_class}`;
-    document.getElementById('drawerStatus').innerHTML = `<span class="dot"></span> ${row.status_label}`;
-    document.getElementById('drawerStatus').className = `status-badge ${row.status_class}`;
-    document.getElementById('di-name').textContent = row.name;
-    document.getElementById('di-phone').textContent = row.phone || '-';
-    document.getElementById('di-email').textContent = row.email;
-    document.getElementById('di-joined').textContent = row.joined_display;
-    document.getElementById('di-lastactive').textContent = row.last_login_display;
-    document.getElementById('di-courses').textContent = `${row.course_count} ta`;
-    document.getElementById('drawerOverlay').classList.add('open');
-    document.getElementById('userDrawer').classList.add('open');
-  }
-  function closeDrawer() {
-    document.getElementById('drawerOverlay').classList.remove('open');
-    document.getElementById('userDrawer').classList.remove('open');
-  }
-  function openInviteModal() {
-    document.getElementById('inviteModal').classList.add('open');
-  }
-  function closeInviteModal() {
-    document.getElementById('inviteModal').classList.remove('open');
-  }
-  function showToast(message, type) {
-    const stack = document.getElementById('toastStack');
-    const toast = document.createElement('div');
-    toast.className = `toast ${type || 'success'}`;
-    toast.innerHTML = `<i class="bi bi-info-circle"></i><span>${message}</span>`;
-    stack.appendChild(toast);
-    setTimeout(() => toast.remove(), 2600);
-  }
-</script>
 {% endblock %}

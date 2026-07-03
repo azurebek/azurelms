@@ -1,233 +1,65 @@
 {% extends "backoffice/base.html" %}
-{% load static humanize %}
+{% comment %}
+  Kurs muharriri (backoffice_course_editor). Proto: azurelms-proto/teacher/course-editor.html.
+  Kontekst: form (CourseBackofficeForm), course, modules (lessons bilan), lessons_count, students_count.
+{% endcomment %}
 
-{% block title %}{% if course %}Kurs tahrirlash{% else %}Yangi kurs{% endif %} - Backoffice{% endblock %}
-{% block topbar_title %}Course Builder{% endblock %}
-{% block page_body_class %}builder-page{% endblock %}
-{% block extra_css %}
-  <link rel="stylesheet" href="{% static 'css/backoffice-course-create.css' %}">
-{% endblock %}
+{% block bo_title %}Kurs muharriri{% endblock %}
+{% block bo_icon %}bi-journal-richtext{% endblock %}
+{% block bo_topbar %}Kurs muharriri{% endblock %}
 
-{% block content %}
-<form method="post" novalidate>
+{% block page_css %}{{ form.media }}{% endblock %}
+
+{% block bo_content %}
+<form method="post" enctype="multipart/form-data" class="bo-form" style="max-width:1080px;">
   {% csrf_token %}
-  <div class="builder-toolbar">
-    <a class="builder-back" href="{% url 'backoffice_dashboard' %}" aria-label="Orqaga"><i class="bi bi-arrow-left"></i></a>
-    <input class="builder-title-input" type="text" value="{{ course.title|default:'Yangi kurs' }}" aria-label="Kurs nomi preview" readonly>
-    <div class="builder-save-status"><i class="bi bi-cloud-check-fill"></i> Real Django form</div>
-    <div class="builder-actions">
-      {% if course %}
-        <a class="btn-ghost-sm" href="{% url 'course_detail' course.pk %}"><i class="bi bi-eye"></i> Preview</a>
-      {% endif %}
-      <button class="btn-ghost-sm" type="submit" name="save_draft" value="1"><i class="bi bi-file-earmark"></i> Qoralama</button>
-      <button class="btn-primary-sm" type="submit"><i class="bi bi-rocket-takeoff-fill"></i> Saqlash</button>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:22px;">
+    <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+      <a href="{% url 'backoffice_dashboard' %}" aria-label="Orqaga" style="width:38px;height:38px;border-radius:10px;border:1px solid var(--line);color:var(--ink-2);display:grid;place-items:center;font-size:15px;flex:0 0 auto;"><i class="bi bi-arrow-left"></i></a>
+      <div style="min-width:0;"><div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);margin-bottom:2px;">Kontent{% if course %} · {{ lessons_count }} dars · {{ students_count }} o'quvchi{% endif %}</div><h1 style="font-size:clamp(18px,2.2vw,24px);font-weight:600;letter-spacing:-.02em;color:var(--ink);margin:0;">{% if course %}{{ course.title }}{% else %}Yangi kurs{% endif %}</h1></div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <button type="submit" name="save_draft" value="1" style="height:40px;padding:0 16px;border-radius:9px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:13.5px;font-weight:600;cursor:pointer;">Qoralama</button>
+      <button type="submit" style="display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 18px;border-radius:9px;background:var(--azure);color:var(--on-azure);font-size:13.5px;font-weight:600;border:none;cursor:pointer;"><i class="bi bi-check2"></i> Saqlash</button>
     </div>
   </div>
 
-  {% if form.errors %}
-    <div class="bo-card" style="margin-bottom: 16px;">
-      <div class="bo-card-title">Formada xatolar bor</div>
-      {{ form.errors }}
+  {% if form.non_field_errors %}<div style="background:var(--red-soft);color:var(--red);border:1px solid var(--red);border-radius:10px;padding:11px 14px;font-size:13px;margin-bottom:18px;">{{ form.non_field_errors }}</div>{% endif %}
+
+  <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:20px;align-items:start;">
+    <!-- Forma -->
+    <div class="bo-card">
+      <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:16px;">Kurs ma'lumotlari</div>
+      {% for field in form %}
+        {% if field.field.widget.input_type == 'checkbox' %}
+        <div class="bo-check">{{ field }}<span style="font-size:13.5px;color:var(--ink);">{{ field.label }}</span>{% if field.errors %}<span class="bo-err">{{ field.errors|striptags }}</span>{% endif %}</div>
+        {% else %}
+        <label class="fld"><span class="bo-lbl">{{ field.label }}</span>{{ field }}{% if field.help_text %}<span class="bo-help">{{ field.help_text|safe }}</span>{% endif %}{% if field.errors %}<span class="bo-err">{{ field.errors|striptags }}</span>{% endif %}</label>
+        {% endif %}
+      {% endfor %}
     </div>
-  {% endif %}
 
-  <div class="builder-grid">
-    <aside class="tree-panel">
-      <div class="tree-head">
-        <span class="tree-title">Tarkib</span>
-        <span style="font-size:0.7rem;color:var(--ink-4);font-weight:600">{{ modules|length }} modul - {{ lessons_count }} dars</span>
-      </div>
-      <div class="tree-body">
-        <div class="tree-row active">
-          <i class="bi bi-grid-1x2 icon"></i>
-          <span class="label">Kurs asoslari</span>
-        </div>
-        <div class="tree-row">
-          <i class="bi bi-image icon"></i>
-          <span class="label">Cover dizayni</span>
-        </div>
-        <div style="height:8px"></div>
+    <!-- Modullar -->
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      {% if course %}
+      <div class="bo-card" style="padding:0;overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line);"><span style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);">Modullar</span><span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-4);">{{ modules|length }}</span></div>
         {% for module in modules %}
-          <div class="tree-node expanded">
-            <div class="tree-row">
-              <i class="bi bi-chevron-right caret"></i>
-              <i class="bi bi-grip-vertical grip"></i>
-              <i class="bi bi-folder2 icon"></i>
-              <span class="label">{{ module.order }}. {{ module.title }}</span>
-            </div>
-            <div class="tree-children">
-              {% for lesson in module.lessons.all %}
-                <a class="tree-row" href="{% url 'backoffice_lesson_edit' lesson.pk %}">
-                  <i class="bi bi-grip-vertical grip"></i>
-                  <i class="bi bi-play-circle icon"></i>
-                  <span class="label">{{ lesson.title }}</span>
-                </a>
-              {% empty %}
-                <div class="tree-row"><i class="bi bi-play-circle icon"></i><span class="label">Dars hali yo'q</span></div>
-              {% endfor %}
-            </div>
-          </div>
+        <div style="padding:14px 18px;{% if not forloop.last %}border-bottom:1px solid var(--line-2);{% endif %}">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><span style="width:26px;height:26px;border-radius:7px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-family:'Space Mono',monospace;font-size:12px;font-weight:700;flex:0 0 auto;">{{ forloop.counter|stringformat:"02d" }}</span><span style="font-size:14px;font-weight:600;color:var(--ink);">{{ module.title }}</span></div>
+          {% for lesson in module.lessons.all %}
+          <a href="{% url 'backoffice_lesson_edit' lesson_id=lesson.id %}" style="display:flex;align-items:center;gap:9px;padding:7px 8px 7px 36px;border-radius:8px;font-size:13px;color:var(--ink-2);"><i class="bi bi-play-circle" style="font-size:12px;color:var(--ink-4);"></i><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ lesson.title }}</span><i class="bi bi-pencil" style="font-size:11px;color:var(--ink-4);"></i></a>
+          {% empty %}<div style="padding:4px 8px 4px 36px;font-size:12px;color:var(--ink-4);">Dars yo'q</div>{% endfor %}
+        </div>
         {% empty %}
-          <div class="tree-row">
-            <i class="bi bi-folder2 icon"></i>
-            <span class="label">Kurs saqlangandan keyin modul qo'shiladi</span>
-          </div>
+        <div style="padding:20px 18px;font-size:13px;color:var(--ink-3);text-align:center;">Saqlangach modul qo'shiladi.</div>
         {% endfor %}
-        <div class="tree-add-inline"><i class="bi bi-folder-plus"></i> Yangi modul tez orada</div>
       </div>
-    </aside>
-
-    <section class="editor-panel">
-      <div class="editor-tabs">
-        <button class="editor-tab active" type="button"><i class="bi bi-info-circle"></i> Asoslar</button>
-        <button class="editor-tab" type="button"><i class="bi bi-image"></i> Cover</button>
-        <button class="editor-tab" type="button"><i class="bi bi-people"></i> Talabalar <span class="dot"></span></button>
-        <button class="editor-tab" type="button"><i class="bi bi-gear"></i> Sozlama</button>
-      </div>
-
-      <div class="editor-body">
-        <div class="editor-section">
-          <div class="editor-section-head">
-            <div class="editor-section-title">Kurs ma'lumotlari</div>
-            <div class="editor-section-hint">Talabalar bu ma'lumotlarni katalogda ko'radi</div>
-          </div>
-
-          <div class="field">
-            <label class="field-label" for="{{ form.title.id_for_label }}">Kurs nomi <span class="req">*</span></label>
-            {{ form.title }}
-          </div>
-
-          <div class="field">
-            <label class="field-label" for="{{ form.description.id_for_label }}">Qisqa tavsif</label>
-            {{ form.description }}
-            <span class="field-hint">HTML/CKEditor kontenti modelga saqlanadi.</span>
-          </div>
-
-          <div class="field-row cols-2">
-            <div class="field">
-              <label class="field-label" for="{{ form.level.id_for_label }}">Daraja</label>
-              {{ form.level }}
-            </div>
-            <div class="field">
-              <label class="field-label" for="{{ form.instructor.id_for_label }}">O'qituvchi</label>
-              {{ form.instructor }}
-            </div>
-          </div>
-
-          <div class="field-row cols-2">
-            <div class="field">
-              <label class="field-label" for="{{ form.duration.id_for_label }}">Davomiyligi (soat)</label>
-              {{ form.duration }}
-            </div>
-            <div class="field">
-              <label class="field-label" for="{{ form.price.id_for_label }}">Narx (UZS)</label>
-              {{ form.price }}
-            </div>
-          </div>
-        </div>
-
-        <div class="editor-section">
-          <div class="editor-section-head">
-            <div class="editor-section-title">Cover dizayni</div>
-            <div class="editor-section-hint">Gradient yoki yuklangan rasm rejimi</div>
-          </div>
-
-          <div class="field-row cols-2">
-            <div class="field">
-              <label class="field-label" for="{{ form.cover_mode.id_for_label }}">Cover turi</label>
-              {{ form.cover_mode }}
-            </div>
-            <div class="field">
-              <label class="field-label" for="{{ form.gradient_preset.id_for_label }}">Gradient preset</label>
-              {{ form.gradient_preset }}
-            </div>
-          </div>
-
-          <div class="field-row cols-2">
-            <div class="field">
-              <label class="field-label" for="{{ form.gradient_cover_title.id_for_label }}">Cover markaziy yozuv</label>
-              {{ form.gradient_cover_title }}
-            </div>
-            <div class="field">
-              <label class="field-label" for="{{ form.gradient_cover_label.id_for_label }}">Kichik badge</label>
-              {{ form.gradient_cover_label }}
-            </div>
-          </div>
-        </div>
-
-        <div class="editor-section">
-          <div class="editor-section-head">
-            <div class="editor-section-title">E'lon qilish va sertifikat</div>
-          </div>
-
-          <label class="toggle-row">
-            <div class="toggle-row-info">
-              <div class="toggle-row-icon"><i class="bi bi-shop"></i></div>
-              <div class="toggle-row-text">
-                <strong>Katalogda ko'rinsin</strong>
-                <span>Talabalar kurslar sahifasidan topa oladi</span>
-              </div>
-            </div>
-            {{ form.is_active }}
-          </label>
-
-          <label class="toggle-row">
-            <div class="toggle-row-info">
-              <div class="toggle-row-icon"><i class="bi bi-patch-check"></i></div>
-              <div class="toggle-row-text">
-                <strong>Assignmentlar tasdiqlansin</strong>
-                <span>Sertifikat uchun barcha assignmentlar approved bo'lishi kerak</span>
-              </div>
-            </div>
-            {{ form.certificate_requires_all_assignments_approved }}
-          </label>
-
-          <div class="field-row cols-2">
-            <div class="field">
-              <label class="field-label" for="{{ form.certificate_min_lesson_completion_percent.id_for_label }}">Minimal lesson completion (%)</label>
-              {{ form.certificate_min_lesson_completion_percent }}
-            </div>
-            <div class="field">
-              <label class="field-label" for="{{ form.certificate_min_attendance_percent.id_for_label }}">Minimal attendance (%)</label>
-              {{ form.certificate_min_attendance_percent }}
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <aside class="preview-panel">
-      <div class="preview-head">
-        <span class="preview-title">Talaba ko'rinishi</span>
-        <div class="preview-device">
-          <button type="button" class="active" title="Desktop"><i class="bi bi-laptop"></i></button>
-          <button type="button" title="Mobile"><i class="bi bi-phone"></i></button>
-        </div>
-      </div>
-      <div class="preview-body">
-        <div class="preview-card">
-          <div class="preview-cover g-{{ course.gradient_preset|default:'midnight_wave' }}">
-            <div class="preview-cover-text">
-              <span class="preview-cover-label">{{ course.cover_display_label|default:"A1-A2" }}</span>
-              <div class="preview-cover-title">{{ course.cover_display_title|default:"Yangi kurs" }}</div>
-            </div>
-          </div>
-          <div class="preview-card-body">
-            <div class="preview-card-meta">Til o'rganish</div>
-            <div class="preview-card-title">{{ course.title|default:"Yangi kurs" }}</div>
-            <div class="preview-card-desc">{{ course.description|striptags|truncatechars:160|default:"Kurs tavsifi shu yerda ko'rinadi." }}</div>
-            <div class="preview-card-foot">
-              <div class="preview-card-stats">
-                <span><i class="bi bi-play-circle"></i> {{ lessons_count }} dars</span>
-                <span><i class="bi bi-clock"></i> {{ course.duration|default:0 }}s</span>
-                <span><i class="bi bi-people"></i> {{ students_count|intcomma }}</span>
-              </div>
-              <strong>{{ course.price|default:0|floatformat:0|intcomma }} so'm</strong>
-            </div>
-          </div>
-        </div>
-      </div>
-    </aside>
+      {% else %}
+      <div class="bo-card" style="text-align:center;color:var(--ink-3);font-size:13px;line-height:1.6;">Kursni saqlaganingizdan so'ng modul va darslar shu yerda paydo bo'ladi.</div>
+      {% endif %}
+    </div>
   </div>
 </form>
 {% endblock %}
