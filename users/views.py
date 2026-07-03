@@ -45,9 +45,9 @@ class RegisterView(CreateView):
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
-        user = form.save()
+        self.object = form.save()
         # Wizard yakunida darhol login qilamiz — onboardingdan keyin dashboardga.
-        auth_login(self.request, user, backend='users.backends.EmailOrUsernameBackend')
+        auth_login(self.request, self.object, backend='users.backends.EmailOrUsernameBackend')
         messages.success(self.request, "Xush kelibsiz! Hisobingiz tayyor.")
         return redirect(self.get_success_url())
 
