@@ -1,124 +1,88 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="uz" data-theme="light">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}{{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %}</title>
-  <meta name="description" content="{% block meta_description %}{{ site_settings.brand_tagline|default:"Turk tili va sertifikat platformasi" }}{% endblock %}">
-  <link rel="canonical" href="{% block canonical_link %}{{ request.build_absolute_uri }}{% endblock %}">
-  <meta property="og:type" content="{% block og_type %}website{% endblock %}">
-  <meta property="og:title" content="{% block og_title %}{{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %}">
-  <meta property="og:description" content="{% block og_description %}{{ site_settings.brand_tagline|default:"Turk tili va sertifikat platformasi" }}{% endblock %}">
-  <meta property="og:url" content="{% block canonical_url %}{{ request.build_absolute_uri }}{% endblock %}">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="{% block twitter_title %}{{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %}">
-  <meta name="twitter:description" content="{% block twitter_description %}{{ site_settings.brand_tagline|default:"Turk tili va sertifikat platformasi" }}{% endblock %}">
-  {% block social_image %}{% endblock %}
-  <script>
-    (function() {
-      const html = document.documentElement;
-      let saved;
-      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
-      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-      html.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));
-    })();
-  </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-  {% block extra_head %}{% endblock %}
-  {% block styles %}{% endblock %}
-</head>
-<body class="{% block body_class %}{% endblock %}">
-  <nav class="nav" id="nav">
-    <div class="nav-inner">
-      <a class="nav-brand logo" href="{% url 'home' %}" aria-label="{{ site_settings.brand_name|default:'AzureLMS' }}">
-        <div class="nav-logo logo-mark">
-          {% if site_settings.logo_image %}
-            <img src="{{ site_settings.logo_image.url }}" alt="">
-          {% else %}
-            {{ site_settings.logo_mark_text|default:"Az" }}
-          {% endif %}
-        </div>
-        <span class="nav-brand-name logo-name">{{ site_settings.brand_name|default:"AzureLMS" }}</span>
+{% comment %}
+  PublicShell chrome (nav + footer) — standart ommaviy sahifalar uchun.
+  Proto: azurelms-proto/public/_shell.html + public-shell.css + public.js.
+  Sahifalar shu fayldan meros olib, {% block content %} ni to'ldiradi.
+  (Landing bespoke — u to'g'ridan-to'g'ri base.html dan meros oladi.)
+{% endcomment %}
+
+{% block title %}AzureLMS — Turk tili A1–C1{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/public-shell.css' %}">
+  {% block page_css %}{% endblock %}
+{% endblock %}
+
+{% block extra_js %}
+  <script defer src="{% static 'js/public.js' %}"></script>
+  {% block page_js %}{% endblock %}
+{% endblock %}
+
+{% block body %}
+<div class="pub">
+
+  <header class="pub-header" data-pub-header>
+    <div class="pub-header-inner">
+      <a class="pub-brand" href="{% url 'home' %}">
+        <span class="pub-brand-mark">A</span>
+        <span class="pub-brand-name">Azure<b>LMS</b></span>
       </a>
-
-      <div class="nav-links">
-        {% for item in landing_nav_items %}
-          <a class="nav-link{% if item.is_active %} active{% endif %}" href="{{ item.url }}" {% if item.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>{{ item.label }}</a>
-        {% endfor %}
-      </div>
-
-      <div class="nav-actions">
-        <button class="theme-toggle theme-btn" id="themeToggle" type="button" aria-label="Mavzuni almashtirish" title="Dark / Light mode">
-          <i class="bi bi-moon" id="themeIcon"></i>
-        </button>
-        {% if user.is_authenticated %}
-          {% if user.is_staff or user.is_superuser %}
-            <a class="nav-link btn btn--ghost" href="{% url 'backoffice_dashboard' %}">Backoffice</a>
-          {% endif %}
-          <a class="nav-link btn btn--ghost" href="{% url 'dashboard' %}">Kabinet</a>
-          <a class="btn btn--solid btn-nav" href="{% url 'logout' %}">Chiqish</a>
-        {% else %}
-          <a class="nav-link btn btn--ghost" href="{% url 'login' %}">Kirish</a>
-          <a class="btn btn--solid btn-nav" href="{% url 'register' %}">Boshlash <i class="bi bi-arrow-right"></i></a>
-        {% endif %}
-        <button class="nav-toggle" type="button" aria-label="Menyu">
-          <span></span><span></span><span></span>
-        </button>
+      <nav class="pub-nav" data-pubnav>
+        <a href="{% url 'courses' %}"{% if active_nav == 'courses' %} class="active"{% endif %}>Kurslar</a>
+        <a href="{% url 'subscriptions:pricing' %}"{% if active_nav == 'pricing' %} class="active"{% endif %}>Narxlar</a>
+        <a href="{% url 'blog:list' %}"{% if active_nav == 'blog' %} class="active"{% endif %}>Blog</a>
+        <a href="{% url 'home' %}#ai">AI repetitor</a>
+      </nav>
+      <div class="pub-actions">
+        <button type="button" class="pub-theme" aria-label="Mavzu"><i class="bi bi-moon"></i></button>
+        <a class="pub-login" href="{% url 'login' %}">Kirish</a>
+        <a class="pub-cta" href="{% url 'register' %}">Boshlash <i class="bi bi-arrow-right"></i></a>
       </div>
     </div>
-  </nav>
+  </header>
 
-  {% block content %}{% endblock %}
+  <main class="pub-main">
+    {% block content %}{% endblock %}
+  </main>
 
-  <footer class="footer {{ public_page_settings.footer_background_class }}">
-    {% if public_page_settings.footer_background_video %}
-      <video class="public-media-bg" src="{{ public_page_settings.footer_background_video.url }}" autoplay muted loop playsinline></video>
-    {% elif public_page_settings.footer_background_image %}
-      <div class="public-media-bg" style="background-image: url('{{ public_page_settings.footer_background_image.url }}');"></div>
-    {% endif %}
-    <div class="wrap">
-      <div class="footer-grid">
-        <div class="footer-brand">
-          <div class="footer-logo">
-            <div class="footer-logo-mark">{{ site_settings.logo_mark_text|default:"Az" }}</div>
-            <span class="footer-logo-name">{{ site_settings.brand_name|default:"AzureLMS" }}</span>
+  <footer class="pub-footer">
+    <div class="pub-footer-inner">
+      <div class="pub-footer-cols">
+        <div class="pub-foot-brand">
+          <a href="{% url 'home' %}"><span class="pub-brand-mark" style="width:28px;height:28px;font-size:15px;">A</span><span class="pub-brand-name">{{ site_settings.brand_name|default:"AzureLMS" }}</span></a>
+          <p>{{ site_settings.company_description|default:"O'zbek tilida turk tilini A1 dan C1 gacha tartibli o'rgatadigan platforma." }}</p>
+        </div>
+        <div>
+          <div class="pub-foot-title">Platforma</div>
+          <div class="pub-foot-links"><a href="{% url 'courses' %}">Kurslar</a><a href="{% url 'subscriptions:pricing' %}">Narxlar</a><a href="{% url 'home' %}#ai">AI repetitor</a></div>
+        </div>
+        <div>
+          <div class="pub-foot-title">Kompaniya</div>
+          <div class="pub-foot-links"><a href="{% url 'about' %}">Biz haqimizda</a><a href="{% url 'blog:list' %}">Blog</a><a href="{% url 'faq_page' %}">Yordam</a></div>
+        </div>
+        <div>
+          <div class="pub-foot-title">Huquqiy</div>
+          <div class="pub-foot-links"><a href="{% url 'privacy_policy' %}">Maxfiylik</a><a href="{% url 'terms_of_service' %}">Foydalanish shartlari</a><a href="{% url 'faq_page' %}">FAQ</a></div>
+        </div>
+        <div>
+          <div class="pub-foot-title">Aloqa</div>
+          <div class="pub-foot-links">
+            {% if site_settings.contact_phone %}<a href="tel:{{ site_settings.contact_phone|cut:" " }}">{{ site_settings.contact_phone }}</a>{% endif %}
+            {% if site_settings.contact_email %}<a href="mailto:{{ site_settings.contact_email }}">{{ site_settings.contact_email }}</a>{% endif %}
           </div>
-          <p class="footer-tagline">{{ site_settings.company_description|default:site_settings.brand_tagline }}</p>
-        </div>
-        <div class="footer-col">
-          <div class="footer-col-title">Platforma</div>
-          {% for item in footer_platform_links %}
-            <a href="{{ item.url }}" {% if item.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>{{ item.label }}</a>
-          {% endfor %}
-        </div>
-        <div class="footer-col">
-          <div class="footer-col-title">Kompaniya</div>
-          {% for item in footer_company_links %}
-            <a href="{{ item.url }}" {% if item.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>{{ item.label }}</a>
-          {% endfor %}
-        </div>
-        <div class="footer-col">
-          <div class="footer-col-title">Huquqiy</div>
-          {% for item in footer_legal_links %}
-            <a href="{{ item.url }}" {% if item.open_in_new_tab %}target="_blank" rel="noopener"{% endif %}>{{ item.label }}</a>
-          {% endfor %}
         </div>
       </div>
-      <div class="footer-bottom">
-        <span class="footer-copy">&copy; 2026 {{ site_settings.brand_name|default:"AzureLMS" }}. Barcha huquqlar himoyalangan.</span>
-        <div class="footer-social">
-          {% if site_settings.telegram_url %}<a href="{{ site_settings.telegram_url }}" aria-label="Telegram" target="_blank" rel="noopener"><i class="bi bi-telegram"></i></a>{% endif %}
-          {% if site_settings.instagram_url %}<a href="{{ site_settings.instagram_url }}" aria-label="Instagram" target="_blank" rel="noopener"><i class="bi bi-instagram"></i></a>{% endif %}
-          {% if site_settings.youtube_url %}<a href="{{ site_settings.youtube_url }}" aria-label="YouTube" target="_blank" rel="noopener"><i class="bi bi-youtube"></i></a>{% endif %}
+      <div class="pub-foot-bottom">
+        <span>© 2026 {{ site_settings.brand_name|default:"AzureLMS"|upper }} — BARCHA HUQUQLAR HIMOYALANGAN</span>
+        <div class="pub-foot-social">
+          <a href="{{ site_settings.telegram_url|default:'#' }}">TELEGRAM</a>
+          <a href="{{ site_settings.instagram_url|default:'#' }}">INSTAGRAM</a>
+          <a href="{{ site_settings.youtube_url|default:'#' }}">YOUTUBE</a>
         </div>
       </div>
     </div>
   </footer>
 
-  {% block scripts %}{% endblock %}
-</body>
-</html>
+</div>
+{% endblock %}

@@ -1,161 +1,83 @@
 {% extends "base_public.html" %}
-{% load static %}
+{% comment %}
+  Kurslar katalogi (CourseListView).
+  Proto: azurelms-proto/public/courses.html.
+  Kontekst: courses (annotated_lessons_count, annotated_students_count, level, instructor),
+  search_query, selected_levels, level_choices, current_sort, pagination (page_obj, is_paginated).
+{% endcomment %}
 
-{% block title %}Kurslar - {{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %}
-{% block meta_description %}{{ site_settings.brand_name|default:"AzureLMS" }} kurslari katalogi.{% endblock %}
-{% block body_class %}public-course-list-page{% endblock %}
-
-{% block styles %}
-  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
-  <link rel="stylesheet" href="{% static 'css/foundation.css' %}">
-  <link rel="stylesheet" href="{% static 'css/components.css' %}">
-  <link rel="stylesheet" href="{% static 'css/public.css' %}">
-  <link rel="stylesheet" href="{% static 'css/public-course-list.css' %}">
-{% endblock %}
-
+{% block title %}Kurslar — AzureLMS{% endblock %}
 {% block content %}
-  <div class="hero-strip">
-    <div class="hero-strip-inner">
-      <div class="breadcrumb">
-        <a href="{% url 'home' %}">Bosh sahifa</a>
-        <i class="bi bi-chevron-right"></i>
-        <span>Kurslar</span>
-      </div>
-      <h1 class="page-title">Barcha kurslar</h1>
-      <p class="page-desc">Til o'rganishdan sertifikatgacha - darajangizga mos kursni tanlang.</p>
-      <form class="search-wrap" method="get" action="{% url 'courses' %}">
-        <i class="bi bi-search search-icon"></i>
-        <input class="search-input" type="search" name="q" value="{{ search_query }}" placeholder="Kurs qidiring...">
-      </form>
+<div style="max-width:1140px;margin:0 auto;padding:clamp(28px,5vw,52px) clamp(18px,4vw,32px);">
+
+  <!-- Sarlavha + qidiruv -->
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:24px;">
+    <div>
+      <h1 style="font-size:clamp(26px,3.4vw,38px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:0 0 8px;">Kurslar</h1>
+      <p style="font-size:15px;color:var(--ink-3);margin:0;max-width:52ch;line-height:1.6;">Turk tili A1 dan C1 gacha — tartibli dastur, jonli darslar va imtihon tayyorgarligi.</p>
     </div>
+    <form method="get" style="position:relative;flex:0 0 auto;">
+      {% for lv in selected_levels %}<input type="hidden" name="level" value="{{ lv }}">{% endfor %}
+      {% if current_sort %}<input type="hidden" name="sort" value="{{ current_sort }}">{% endif %}
+      <i class="bi bi-search" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--ink-3);font-size:13px;"></i>
+      <input type="search" name="q" value="{{ search_query }}" placeholder="Kurs qidirish…" style="height:44px;width:min(280px,70vw);padding:0 14px 0 38px;border-radius:11px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:14px;outline:none;">
+    </form>
   </div>
 
-  <div class="page-layout">
-    <aside class="sidebar">
-      <form id="courseFilters" method="get" action="{% url 'courses' %}">
-        {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
-        <input type="hidden" name="sort" value="{{ current_sort }}">
-
-        <div class="filter-card">
-          <div class="filter-title">Daraja</div>
-          <div class="tag-filters">
-            <a class="tag-filter{% if not selected_levels %} active{% endif %}" href="{% url 'courses' %}{% if search_query %}?q={{ search_query|urlencode }}{% endif %}">Barchasi</a>
-            {% for level_value, level_label in level_choices %}
-              <label class="tag-filter{% if level_value in selected_levels %} active{% endif %}">
-                <input class="filter-checkbox sr-only" type="checkbox" name="level" value="{{ level_value }}" {% if level_value in selected_levels %}checked{% endif %}>
-                {{ level_label }}
-              </label>
-            {% endfor %}
-          </div>
-        </div>
-
-        <div class="filter-card">
-          <div class="filter-title">Katalog</div>
-          <div class="filter-opts">
-            <label class="filter-opt">
-              <div class="filter-opt-left"><input class="filter-checkbox" type="checkbox" checked disabled> Faol kurslar</div>
-              <span class="filter-count">{{ page_obj.paginator.count }}</span>
-            </label>
-            <label class="filter-opt">
-              <div class="filter-opt-left"><input class="filter-checkbox" type="checkbox" checked disabled> Sertifikat yo'li</div>
-              <span class="filter-count">A1-C1</span>
-            </label>
-          </div>
-        </div>
-
-        <div class="filter-card">
-          <div class="filter-title">Xususiyat</div>
-          <div class="filter-opts">
-            <label class="filter-opt">
-              <div class="filter-opt-left"><input class="filter-checkbox" type="checkbox" checked disabled> Video darslar</div>
-              <span class="filter-count"><i class="bi bi-play-circle"></i></span>
-            </label>
-            <label class="filter-opt">
-              <div class="filter-opt-left"><input class="filter-checkbox" type="checkbox" checked disabled> Imtihonlar</div>
-              <span class="filter-count"><i class="bi bi-patch-check"></i></span>
-            </label>
-          </div>
-        </div>
-      </form>
-    </aside>
-
-    <main class="main-area">
-      <div class="toolbar">
-        <p class="results-count"><strong>{{ page_obj.paginator.count }} ta</strong> kurs topildi</p>
-        <form class="sort-wrap" method="get" action="{% url 'courses' %}">
-          {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
-          {% for level in selected_levels %}<input type="hidden" name="level" value="{{ level }}">{% endfor %}
-          <span class="sort-label">Saralash:</span>
-          <select class="sort-select" name="sort" data-auto-submit>
-            <option value="newest" {% if current_sort == "newest" %}selected{% endif %}>Yangi</option>
-            <option value="popular" {% if current_sort == "popular" %}selected{% endif %}>Ommabop</option>
-            <option value="oldest" {% if current_sort == "oldest" %}selected{% endif %}>Eski</option>
-          </select>
-        </form>
-      </div>
-
-      <div class="course-grid" id="courseGrid">
-        {% for course in courses %}
-          <article class="course-card">
-            <div class="card-thumb" style="background-image: url('{{ course.cover_media_url }}');">
-              <div class="card-thumb-bg"><i class="bi bi-book"></i></div>
-              {% if forloop.first %}<div class="card-badge-top badge-hot"><i class="bi bi-lightning-fill"></i> Ommabop</div>{% endif %}
-              <div class="card-level">{{ course.get_level_display }}</div>
-            </div>
-            <div class="card-body">
-              <div class="card-category">Kurs</div>
-              <h2 class="card-title">{{ course.title }}</h2>
-              <p class="card-desc">{{ course.description|striptags|truncatechars:120 }}</p>
-              <div class="instructor-mini">
-                <div class="instructor-av">{{ course.instructor_initial }}</div>
-                <span class="instructor-name">{{ course.instructor_display_name }}</span>
-              </div>
-              <div class="card-meta">
-                <span class="card-meta-item"><i class="bi bi-play-circle"></i> {{ course.lessons_count }} dars</span>
-                <span class="card-meta-item"><i class="bi bi-clock"></i> {{ course.duration }} soat</span>
-                <span class="card-meta-item"><i class="bi bi-people"></i> {{ course.students_count }}</span>
-              </div>
-              <div class="card-rating">
-                <span class="stars">★★★★★</span>
-                <span class="rating-val">4.8</span>
-                <span class="rating-count">({{ course.students_count|default:1 }})</span>
-              </div>
-            </div>
-            <div class="card-footer">
-              <div class="card-price">
-                {% if course.price %}
-                  <span class="price-main">{{ course.price|floatformat:0 }} so'm</span>
-                {% else %}
-                  <span class="price-free">Bepul</span>
-                {% endif %}
-              </div>
-              <a class="btn-enroll" href="{% url 'course_detail' course.pk %}">Ko'rish</a>
-            </div>
-          </article>
-        {% empty %}
-          <div class="empty-state">
-            <i class="bi bi-search"></i>
-            <p>Bu filter bo'yicha kurs topilmadi.</p>
-          </div>
-        {% endfor %}
-      </div>
-
-      {% if is_paginated %}
-        <nav class="pagination" aria-label="Kurslar sahifalari">
-          {% if page_obj.has_previous %}
-            <a class="page-btn" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% for level in selected_levels %}&level={{ level }}{% endfor %}"><i class="bi bi-chevron-left"></i></a>
-          {% endif %}
-          <span class="page-btn active">{{ page_obj.number }}</span>
-          {% if page_obj.has_next %}
-            <a class="page-btn" href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% for level in selected_levels %}&level={{ level }}{% endfor %}"><i class="bi bi-chevron-right"></i></a>
-          {% endif %}
-        </nav>
-      {% endif %}
-    </main>
+  <!-- Filtr bari -->
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--line);">
+    <div style="display:flex;gap:6px;background:var(--paper-2);border:1px solid var(--line);border-radius:10px;padding:4px;flex-wrap:wrap;">
+      <a href="?{% if search_query %}q={{ search_query }}{% endif %}" style="height:32px;display:inline-flex;align-items:center;padding:0 14px;border-radius:7px;font-size:12.5px;font-weight:600;{% if not selected_levels %}background:var(--azure-soft);color:var(--azure);{% else %}color:var(--ink-3);{% endif %}">Hammasi</a>
+      {% for val, label in level_choices %}
+      <a href="?level={{ val }}{% if search_query %}&q={{ search_query }}{% endif %}" style="height:32px;display:inline-flex;align-items:center;padding:0 14px;border-radius:7px;font-size:12.5px;font-weight:600;{% if val in selected_levels %}background:var(--azure-soft);color:var(--azure);{% else %}color:var(--ink-3);{% endif %}">{{ label }}</a>
+      {% endfor %}
+    </div>
+    <span style="font-family:'Space Mono',monospace;font-size:12px;color:var(--ink-3);">{{ paginator.count }} ta kurs</span>
   </div>
-{% endblock %}
 
-{% block scripts %}
-  <script src="{% static 'js/public-home.js' %}"></script>
-  <script src="{% static 'js/public-pages.js' %}"></script>
+  {% if courses %}
+  <!-- Kurslar to'ri -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;">
+    {% for course in courses %}
+    <a href="{% url 'course_detail' pk=course.id %}" class="pub-lift" style="border:1px solid var(--line);border-radius:16px;background:var(--panel);overflow:hidden;display:flex;flex-direction:column;">
+      {# Cover: yuklangan rasm yoki gradient SVG (cover_media_url ikkalasini beradi). Rasmda sarlavha overlay bilan chiqadi. #}
+      <div style="position:relative;height:128px;background:url('{{ course.cover_media_url }}') center/cover no-repeat, linear-gradient(125deg,var(--azure),var(--azure-2));padding:16px;display:flex;flex-direction:column;justify-content:space-between;">
+        <span style="font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:#fff;background:rgba(0,0,0,.28);padding:4px 10px;border-radius:7px;align-self:flex-start;position:relative;z-index:2;">{{ course.cover_display_label }}</span>
+        {% if course.show_cover_text_overlay %}
+          <div class="course-cover-overlay course-cover-overlay--showcase" style="position:absolute;inset:auto 0 0 0;padding:26px 16px 12px;background:linear-gradient(180deg,rgba(11,14,21,0),rgba(11,14,21,.72));color:#fff;font-size:15px;font-weight:600;letter-spacing:-.01em;">{{ course.cover_display_title }}</div>
+        {% else %}
+          <i class="bi bi-journal-text" style="color:rgba(255,255,255,.92);font-size:34px;align-self:flex-end;"></i>
+        {% endif %}
+      </div>
+      <div style="padding:20px;display:flex;flex-direction:column;flex:1;">
+        <h3 style="font-size:17px;font-weight:600;letter-spacing:-.01em;color:var(--ink);margin:0 0 6px;">{{ course.title }}</h3>
+        <p style="font-size:13.5px;line-height:1.55;color:var(--ink-3);margin:0 0 16px;flex:1;">{{ course.description|striptags|truncatewords:18 }}</p>
+        <div style="display:flex;align-items:center;gap:16px;font-family:'Space Mono',monospace;font-size:11.5px;color:var(--ink-3);padding-top:14px;border-top:1px solid var(--line-2);">
+          <span style="display:flex;align-items:center;gap:6px;"><i class="bi bi-collection-play" style="font-size:13px;"></i> {{ course.annotated_lessons_count }} dars</span>
+          <span style="display:flex;align-items:center;gap:6px;"><i class="bi bi-people" style="font-size:13px;"></i> {{ course.annotated_students_count }} o'quvchi</span>
+          {% if course.instructor %}<span style="margin-left:auto;display:flex;align-items:center;gap:5px;color:var(--ink-2);"><i class="bi bi-mortarboard" style="font-size:12px;"></i> {{ course.instructor.get_full_name|default:course.instructor.username }}</span>{% endif %}
+        </div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+
+  {% if is_paginated %}
+  <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:32px;">
+    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% for lv in selected_levels %}&level={{ lv }}{% endfor %}{% if current_sort %}&sort={{ current_sort }}{% endif %}" style="height:38px;display:inline-flex;align-items:center;gap:6px;padding:0 14px;border-radius:9px;border:1px solid var(--line);color:var(--ink-2);font-size:13px;font-weight:600;"><i class="bi bi-chevron-left"></i> Oldingi</a>{% endif %}
+    <span style="font-family:'Space Mono',monospace;font-size:12.5px;color:var(--ink-3);">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% for lv in selected_levels %}&level={{ lv }}{% endfor %}{% if current_sort %}&sort={{ current_sort }}{% endif %}" style="height:38px;display:inline-flex;align-items:center;gap:6px;padding:0 14px;border-radius:9px;border:1px solid var(--line);color:var(--ink-2);font-size:13px;font-weight:600;">Keyingi <i class="bi bi-chevron-right"></i></a>{% endif %}
+  </div>
+  {% endif %}
+
+  {% else %}
+  <div style="border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:56px 24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;">
+    <span style="width:60px;height:60px;border-radius:16px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:27px;"><i class="bi bi-search"></i></span>
+    <div style="font-size:17px;font-weight:600;color:var(--ink);">Kurs topilmadi</div>
+    <div style="font-size:13.5px;color:var(--ink-3);max-width:40ch;line-height:1.6;">{% if search_query or selected_levels %}Filtr yoki qidiruvni o'zgartirib ko'ring.{% else %}Hozircha kurslar mavjud emas.{% endif %}</div>
+    {% if search_query or selected_levels %}<a href="{% url 'courses' %}" style="margin-top:6px;display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:10px;background:var(--azure);color:var(--on-azure);font-size:13.5px;font-weight:600;">Barcha kurslar</a>{% endif %}
+  </div>
+  {% endif %}
+
+</div>
 {% endblock %}

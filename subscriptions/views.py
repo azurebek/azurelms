@@ -9,3 +9,8 @@ class PricingView(ListView):
     def get_queryset(self):
         # Using prefetch_related reduces database queries
         return Plan.objects.prefetch_related('features').all()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['active_nav'] = 'pricing'
+        return context

@@ -1,133 +1,135 @@
 {% extends "base_public.html" %}
-{% load static %}
+{% comment %}
+  Biz haqimizda (about_view) — PublicShell chrome'ida, proto dizayn tilida.
+  Kontekst: page (AboutPage), highlighted_statistics, featured_member,
+  team_members, testimonials.
+{% endcomment %}
 
-{% block title %}Biz haqimizda - {{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %}
-{% block meta_description %}{{ page.hero_subtitle|striptags|truncatechars:160 }}{% endblock %}
-{% block body_class %}public-about-page{% endblock %}
+{% block title %}Biz haqimizda — AzureLMS{% endblock %}
 
-{% block styles %}
-  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
-  <link rel="stylesheet" href="{% static 'css/foundation.css' %}">
-  <link rel="stylesheet" href="{% static 'css/components.css' %}">
-  <link rel="stylesheet" href="{% static 'css/public.css' %}">
-  <link rel="stylesheet" href="{% static 'css/public-about.css' %}">
+{% block page_css %}
+<style>
+  .ab-wrap{ max-width:1100px; margin:0 auto; padding:clamp(36px,5vw,64px) clamp(20px,4vw,32px) 72px; }
+  .ab-eyebrow{ font-family:'Space Mono',monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--azure); margin-bottom:14px; }
+  .ab-h1{ font-size:clamp(28px,4vw,46px); font-weight:600; letter-spacing:-.035em; line-height:1.05; color:var(--ink); margin:0; max-width:18ch; text-wrap:balance; }
+  .ab-sub{ font-size:16px; line-height:1.65; color:var(--ink-2); margin:22px 0 0; max-width:60ch; }
+  .ab-sub p{ margin:0 0 10px; }
+  .ab-stats{ display:flex; align-items:stretch; margin:44px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); flex-wrap:wrap; }
+  .ab-stat{ flex:1; min-width:140px; padding:20px 4px; }
+  .ab-stat + .ab-stat{ border-left:1px solid var(--line); padding-left:22px; }
+  .ab-stat-val{ font-family:'Space Mono',monospace; font-size:clamp(22px,2.6vw,30px); font-weight:700; color:var(--ink); }
+  .ab-stat-lbl{ font-size:12.5px; color:var(--ink-3); margin-top:4px; }
+  .ab-grid2{ display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-bottom:24px; }
+  .ab-card{ border:1px solid var(--line); border-radius:14px; background:var(--panel); padding:26px; }
+  .ab-card-ico{ width:42px; height:42px; border-radius:11px; background:var(--azure-soft); color:var(--azure); display:grid; place-items:center; font-size:19px; margin-bottom:16px; }
+  .ab-card h3{ font-size:18px; font-weight:600; letter-spacing:-.02em; color:var(--ink); margin:0 0 10px; }
+  .ab-card .prose{ font-size:14.5px; line-height:1.7; color:var(--ink-2); }
+  .ab-card .prose p{ margin:0 0 10px; }
+  .ab-section-label{ display:flex; align-items:center; gap:12px; font-family:'Space Mono',monospace; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); margin:48px 0 22px; }
+  .ab-section-label .ln{ flex:1; height:1px; background:var(--line); }
+  .ab-team{ display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:14px; }
+  .ab-member{ border:1px solid var(--line); border-radius:14px; background:var(--panel); padding:20px; }
+  .ab-member.feat{ grid-column:1 / -1; display:flex; gap:22px; align-items:center; flex-wrap:wrap; }
+  .ab-av{ width:56px; height:56px; border-radius:14px; object-fit:cover; background:var(--azure); color:var(--on-azure); display:grid; place-items:center; font-weight:700; font-size:20px; flex:0 0 auto; }
+  .ab-member.feat .ab-av{ width:84px; height:84px; font-size:30px; border-radius:18px; }
+  .ab-name{ font-size:15px; font-weight:600; color:var(--ink); margin-top:14px; }
+  .ab-member.feat .ab-name{ margin-top:0; font-size:19px; }
+  .ab-role{ font-family:'Space Mono',monospace; font-size:11px; color:var(--azure); margin-top:3px; }
+  .ab-bio{ font-size:13px; line-height:1.6; color:var(--ink-3); margin-top:10px; }
+  .ab-member.feat .ab-bio{ font-size:14px; max-width:60ch; }
+  .ab-tgrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:14px; }
+  .ab-quote{ border:1px solid var(--line); border-radius:14px; background:var(--panel); padding:22px; }
+  .ab-stars{ color:var(--amber); font-size:13px; letter-spacing:2px; margin-bottom:12px; }
+  .ab-qtext{ font-size:14px; line-height:1.65; color:var(--ink); margin:0 0 16px; }
+  .ab-qfoot{ display:flex; align-items:center; gap:11px; }
+  .ab-qav{ width:38px; height:38px; border-radius:10px; object-fit:cover; background:var(--azure-soft); color:var(--azure); display:grid; place-items:center; font-weight:700; font-size:14px; flex:0 0 auto; }
+  @media (max-width:720px){ .ab-grid2{ grid-template-columns:1fr; } }
+</style>
 {% endblock %}
 
 {% block content %}
-  <section class="hero">
-    <div class="hero-inner">
-      <div class="hero-eyebrow"><i class="bi bi-building"></i> Kompaniya haqida</div>
-      <h1 class="hero-title">{{ page.hero_title_start }} <span>{{ page.hero_title_highlight }}</span></h1>
-      <div class="hero-desc">{{ page.hero_subtitle|safe }}</div>
-      <div class="hero-stats">
-        {% for stat in highlighted_statistics %}
-          <div class="stat">
-            <div class="stat-val">{{ stat.value }}</div>
-            <div class="stat-label">{{ stat.label }}</div>
-          </div>
-        {% empty %}
-          <div class="stat"><div class="stat-val">A1-C1</div><div class="stat-label">Darajalar</div></div>
-          <div class="stat"><div class="stat-val">24/7</div><div class="stat-label">Platforma</div></div>
-          <div class="stat"><div class="stat-val">100%</div><div class="stat-label">Tartibli oqim</div></div>
-        {% endfor %}
+<div class="ab-wrap">
+
+  <!-- Hero -->
+  <section>
+    <div class="ab-eyebrow">Biz haqimizda</div>
+    <h1 class="ab-h1">{{ page.hero_title_start }} <span style="color:var(--azure);">{{ page.hero_title_highlight }}</span></h1>
+    <div class="ab-sub">{{ page.hero_subtitle|safe }}</div>
+  </section>
+
+  <!-- Statistika -->
+  {% if highlighted_statistics %}
+  <div class="ab-stats">
+    {% for stat in highlighted_statistics %}
+    <div class="ab-stat"><div class="ab-stat-val">{{ stat.value }}</div><div class="ab-stat-lbl">{{ stat.label }}</div></div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Missiya + Vision -->
+  <div class="ab-grid2">
+    <div class="ab-card">
+      <div class="ab-card-ico"><i class="bi bi-bullseye"></i></div>
+      <h3>{{ page.mission_title }}</h3>
+      <div class="prose">{{ page.mission_text|safe }}</div>
+    </div>
+    <div class="ab-card">
+      <div class="ab-card-ico"><i class="bi bi-binoculars"></i></div>
+      <h3>{{ page.vision_title }}</h3>
+      <div class="prose">{{ page.vision_text|safe }}</div>
+    </div>
+  </div>
+
+  <!-- Jamoa -->
+  {% if featured_member or team_members %}
+  <div class="ab-section-label"><span style="color:var(--azure);">01</span> / Jamoa <span class="ln"></span></div>
+  <div class="ab-team">
+    {% if featured_member %}
+    <div class="ab-member feat">
+      {% if featured_member.avatar %}<img class="ab-av" src="{{ featured_member.avatar.url }}" alt="{{ featured_member.name }}">{% else %}<span class="ab-av">{{ featured_member.name|slice:":1" }}</span>{% endif %}
+      <div style="flex:1;min-width:200px;">
+        <div class="ab-name">{{ featured_member.name }}</div>
+        <div class="ab-role">{{ featured_member.role_1 }} · {{ featured_member.role_2 }}</div>
+        <div class="ab-bio">{{ featured_member.bio|safe }}</div>
       </div>
     </div>
-  </section>
-
-  <section class="section">
-    <div class="story">
-      <div class="story-text">
-        <div class="section-label">Bizning hikoyamiz</div>
-        <h2 class="section-title">{{ page.mission_title }}</h2>
-        <div class="section-desc rich-text">{{ page.mission_text|default:site_settings.company_description|safe }}</div>
-      </div>
-      <div class="story-visual">
-        <div class="story-card">
-          <div class="story-card-header">
-            <div class="story-logo">{{ site_settings.logo_mark_text|default:"AZ" }}</div>
-            <div>
-              <div class="story-card-title">{{ site_settings.brand_name|default:"AzureLMS" }} yo'li</div>
-              <div class="story-card-sub">Public platforma</div>
-            </div>
-          </div>
-          <div class="timeline">
-            <div class="tl-item done"><div class="tl-year">1</div><div class="tl-text">Kurs katalogi va onboarding.</div></div>
-            <div class="tl-item done"><div class="tl-year">2</div><div class="tl-text">Lesson workspace va progress.</div></div>
-            <div class="tl-item done"><div class="tl-year">3</div><div class="tl-text">Exam flow va sertifikat.</div></div>
-            <div class="tl-item"><div class="tl-year">4</div><div class="tl-text">Admin panel orqali kontent boshqaruvi.</div></div>
-          </div>
-        </div>
-      </div>
+    {% endif %}
+    {% for member in team_members %}
+    <div class="ab-member">
+      {% if member.avatar %}<img class="ab-av" src="{{ member.avatar.url }}" alt="{{ member.name }}">{% else %}<span class="ab-av">{{ member.name|slice:":1" }}</span>{% endif %}
+      <div class="ab-name">{{ member.name }}</div>
+      <div class="ab-role">{{ member.role_1 }} · {{ member.role_2 }}</div>
+      <div class="ab-bio">{{ member.bio|safe }}</div>
     </div>
-  </section>
+    {% endfor %}
+  </div>
+  {% endif %}
 
-  <section class="mission-section">
-    <div class="mission-inner">
-      <div class="mission-grid">
-        <div>
-          <div class="section-label">Qarash</div>
-          <div class="mission-quote">{{ page.vision_title }}</div>
-          <div class="mission-sig">{{ page.vision_text|striptags|default:"Har bir o'quvchiga aniq yo'l va tartibli o'quv muhiti." }}</div>
-        </div>
-        <div class="values-list">
-          <div class="value-item">
-            <div class="value-icon badge-new"><i class="bi bi-bullseye"></i></div>
-            <div class="value-text"><h4>Tartib</h4><p>Kurs, dars, exam va sertifikat bir xil oqimda yuradi.</p></div>
-          </div>
-          <div class="value-item">
-            <div class="value-icon badge-cert"><i class="bi bi-stars"></i></div>
-            <div class="value-text"><h4>Sifat</h4><p>Kontent admin paneldan boshqariladi va yangilab boriladi.</p></div>
-          </div>
-          <div class="value-item">
-            <div class="value-icon badge-sale"><i class="bi bi-lightning-charge"></i></div>
-            <div class="value-text"><h4>Tezlik</h4><p>O'quvchi kerakli kurs va darsga ortiqcha yo'lsiz boradi.</p></div>
-          </div>
-        </div>
-      </div>
+  <!-- O'quvchilar fikri -->
+  {% if testimonials %}
+  <div class="ab-section-label"><span style="color:var(--azure);">02</span> / O'quvchilar fikri <span class="ln"></span></div>
+  <div class="ab-tgrid">
+    {% for t in testimonials %}
+    <figure class="ab-quote">
+      <div class="ab-stars">{% for _ in "12345"|make_list %}{% if forloop.counter <= t.rating %}★{% else %}<span style="color:var(--line-2);">★</span>{% endif %}{% endfor %}</div>
+      <blockquote class="ab-qtext">"{{ t.text }}"</blockquote>
+      <figcaption class="ab-qfoot">
+        {% if t.avatar %}<img class="ab-qav" src="{{ t.avatar.url }}" alt="{{ t.name }}">{% else %}<span class="ab-qav">{{ t.name|slice:":1" }}</span>{% endif %}
+        <div><div style="font-size:13.5px;font-weight:600;color:var(--ink);">{{ t.name }}</div><div style="font-size:11.5px;color:var(--ink-3);">{{ t.role }}</div></div>
+      </figcaption>
+    </figure>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- CTA -->
+  <div style="margin-top:56px;border:1px solid var(--azure);border-radius:16px;background:var(--azure-soft);padding:clamp(26px,4vw,40px);display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;">
+    <div>
+      <h2 style="font-size:clamp(20px,2.4vw,28px);font-weight:600;letter-spacing:-.02em;color:var(--ink);margin:0 0 6px;">Biz bilan turk tilini boshlang.</h2>
+      <p style="font-size:14px;color:var(--ink-2);margin:0;">A1 dan C1 gacha — tartibli, aniq va qo'llab-quvvatlanadigan yo'l.</p>
     </div>
-  </section>
+    <a href="{% url 'register' %}" style="display:inline-flex;align-items:center;gap:8px;padding:13px 22px;border-radius:10px;background:var(--azure);color:var(--on-azure);font-size:15px;font-weight:600;flex:0 0 auto;">Bepul boshlash <i class="bi bi-arrow-right" style="font-size:13px;"></i></a>
+  </div>
 
-  <section class="section">
-    <div class="section-label">Raqamlarda</div>
-    <h2 class="section-title">Bizning natijalarimiz</h2>
-    <div class="numbers">
-      {% for stat in statistics %}
-        <div class="num-card">
-          <div class="num-icon"><i class="bi bi-bar-chart"></i></div>
-          <div class="num-val">{{ stat.value }}</div>
-          <div class="num-label">{{ stat.label }}</div>
-        </div>
-      {% empty %}
-        <div class="num-card"><div class="num-icon"><i class="bi bi-book"></i></div><div class="num-val">A1-C1</div><div class="num-label">Kurs darajalari</div></div>
-        <div class="num-card"><div class="num-icon"><i class="bi bi-award"></i></div><div class="num-val">Exam</div><div class="num-label">Sertifikat yo'li</div></div>
-        <div class="num-card"><div class="num-icon"><i class="bi bi-chat"></i></div><div class="num-val">Support</div><div class="num-label">Yordam markazi</div></div>
-        <div class="num-card"><div class="num-icon"><i class="bi bi-phone"></i></div><div class="num-val">Mobile</div><div class="num-label">Moslashuvchan layout</div></div>
-      {% endfor %}
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="section-label">Jamoa</div>
-    <h2 class="section-title">Platformani yuritadiganlar</h2>
-    <div class="team-grid">
-      {% for member in team %}
-        <article class="team-card">
-          {% if member.avatar %}
-            <img class="team-av team-av-img" src="{{ member.avatar.url }}" alt="{{ member.name }}">
-          {% else %}
-            <div class="team-av">{{ member.name|slice:":1" }}</div>
-          {% endif %}
-          <div class="team-name">{{ member.name }}</div>
-          <div class="team-role">{{ member.role_1 }} · {{ member.role_2 }}</div>
-        </article>
-      {% empty %}
-        <article class="team-card"><div class="team-av">AZ</div><div class="team-name">AzureLMS</div><div class="team-role">Ta'lim platformasi</div></article>
-      {% endfor %}
-    </div>
-  </section>
-{% endblock %}
-
-{% block scripts %}
-  <script src="{% static 'js/public-home.js' %}"></script>
-  <script src="{% static 'js/public-pages.js' %}"></script>
+</div>
 {% endblock %}

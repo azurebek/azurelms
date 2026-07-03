@@ -1,227 +1,111 @@
 {% extends "base_public.html" %}
-{% load static %}
+{% comment %}
+  Kurs tafsiloti (CourseDetailView).
+  Proto: azurelms-proto/public/course-detail.html.
+  Kontekst: course, modules (lessons), course_lessons_count, course_students_count,
+  active_cohort_count, instructor_course_count, course_exam_count, is_enrolled.
+  Eslatma: kurs narxi (Plan/cohort orqali) bu view'da yo'q — narx o'rniga rol-asosli CTA.
+{% endcomment %}
 
-{% block title %}{{ course.title }} - {{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %}
-{% block meta_description %}{{ course.description|striptags|truncatechars:160 }}{% endblock %}
-{% block body_class %}public-course-detail-page{% endblock %}
-
-{% block styles %}
-  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
-  <link rel="stylesheet" href="{% static 'css/foundation.css' %}">
-  <link rel="stylesheet" href="{% static 'css/components.css' %}">
-  <link rel="stylesheet" href="{% static 'css/public.css' %}">
-  <link rel="stylesheet" href="{% static 'css/public-course-detail.css' %}">
-{% endblock %}
-
+{% block title %}{{ course.title }} — AzureLMS{% endblock %}
 {% block content %}
-  <section class="hero">
-    <div class="hero-inner">
-      <div class="hero-content">
-        <nav class="breadcrumb" aria-label="Breadcrumb">
-          <a href="{% url 'home' %}">Bosh sahifa</a>
-          <i class="bi bi-chevron-right"></i>
-          <a href="{% url 'courses' %}">Kurslar</a>
-          <i class="bi bi-chevron-right"></i>
-          <span>{{ course.title }}</span>
-        </nav>
-        <div class="hero-badge"><i class="bi bi-lightning-fill"></i> {{ course.get_level_display }}</div>
-        <h1 class="hero-title">{{ course.title }}</h1>
-        <p class="hero-desc">{{ course.description|striptags|truncatechars:240 }}</p>
-        <div class="hero-meta">
-          <span class="hero-meta-item"><i class="bi bi-play-circle"></i><strong>{{ course_lessons_count }}</strong> dars</span>
-          <span class="hero-meta-item"><i class="bi bi-clock"></i><strong>{{ course.duration }}</strong> soat</span>
-          <span class="hero-meta-item"><i class="bi bi-layers"></i><strong>{{ modules|length }}</strong> modul</span>
-          <span class="hero-meta-item"><i class="bi bi-people"></i><strong>{{ course_students_count }}</strong> talaba</span>
+<div style="max-width:1140px;margin:0 auto;padding:clamp(24px,4vw,44px) clamp(18px,4vw,32px);">
+
+  <!-- Breadcrumb -->
+  <div style="display:flex;align-items:center;gap:8px;font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);margin-bottom:24px;">
+    <a href="{% url 'courses' %}" style="color:var(--ink-3);">Kurslar</a>
+    <i class="bi bi-chevron-right" style="font-size:9px;"></i>
+    <span style="color:var(--ink);">{{ course.title }}</span>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1.6fr 0.95fr;gap:32px;align-items:start;">
+
+    <!-- Chap ustun -->
+    <div>
+      <div style="min-height:200px;border-radius:18px;background:linear-gradient(125deg,var(--azure),var(--azure-2));padding:24px;display:flex;flex-direction:column;justify-content:space-between;gap:24px;position:relative;overflow:hidden;margin-bottom:28px;">
+        <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px);background-size:32px 32px;opacity:.6;"></div>
+        <div style="position:relative;display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:#fff;background:rgba(0,0,0,.2);padding:5px 12px;border-radius:8px;">{{ course.get_level_display|upper }}</span>
+          <i class="bi bi-journal-text" style="color:rgba(255,255,255,.92);font-size:30px;"></i>
         </div>
-        <div class="hero-stars">
-          <span class="stars">★★★★★</span>
-          <span class="rating-val">4.8</span>
-          <span class="rating-count">({{ course_students_count|default:1 }} sharh)</span>
-        </div>
-        <div class="hero-instructor">
-          <div class="inst-av">
-            {% if course.instructor.avatar %}
-              <img src="{{ course.instructor.avatar.url }}" alt="{{ course.instructor_display_name }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">
-            {% else %}
-              {{ course.instructor_initial }}
-            {% endif %}
-          </div>
-          <div class="inst-info">
-            <div class="inst-name">{{ course.instructor_display_name }}</div>
-            <div class="inst-role">{{ instructor_course_count }} ta kurs muallifi</div>
-          </div>
+        <div style="position:relative;">
+          <h1 style="font-size:clamp(26px,3vw,36px);font-weight:600;letter-spacing:-.03em;color:#fff;margin:0 0 8px;">{{ course.title }}</h1>
+          <p style="font-size:14.5px;color:rgba(255,255,255,.82);margin:0;max-width:46ch;">{{ course.description|striptags|truncatewords:24 }}</p>
         </div>
       </div>
 
-      <div class="hero-card-wrap">
-        <div class="hero-video" style="background-image: url('{{ course.cover_media_url }}');">
-          {% if course.preview_video %}
-            <video class="course-preview-video" src="{{ course.preview_video.url }}" muted loop playsinline></video>
-          {% endif %}
-          <button class="play-btn" type="button" aria-label="Preview"><i class="bi bi-play-fill"></i></button>
-          <div class="hero-preview-bar">
-            <span class="preview-label">Preview: {{ preview_lesson.title|default:"Birinchi dars" }}</span>
-            <span class="preview-time">{{ course.duration }} soat</span>
-          </div>
-        </div>
-        <div class="enroll-badge">
-          <div class="badge-icon"><i class="bi bi-shield-check"></i></div>
-          <div class="badge-text">
-            <strong>Sertifikat yo'li</strong>
-            <span>Exam va progress bilan</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <div class="page-layout">
-    <main>
-      <div class="learn-box">
-        <div class="section-title">Nima o'rganasiz?</div>
-        <div class="learn-grid">
-          <div class="learn-item"><i class="bi bi-check-circle-fill"></i> Bosqichma-bosqich tuzilgan darslar</div>
-          <div class="learn-item"><i class="bi bi-check-circle-fill"></i> Amaliy mashqlar va testlar</div>
-          <div class="learn-item"><i class="bi bi-check-circle-fill"></i> Progress va sertifikat talablari</div>
-          <div class="learn-item"><i class="bi bi-check-circle-fill"></i> O'qituvchi tayyorlagan materiallar</div>
-        </div>
+      <!-- Statistika -->
+      <div style="display:flex;border:1px solid var(--line);border-radius:13px;overflow:hidden;margin-bottom:30px;">
+        <div style="flex:1;padding:16px;text-align:center;border-right:1px solid var(--line);"><div style="display:flex;align-items:center;justify-content:center;gap:7px;font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--ink);"><i class="bi bi-collection-play" style="font-size:14px;color:var(--azure);"></i>{{ course_lessons_count }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">dars</div></div>
+        <div style="flex:1;padding:16px;text-align:center;border-right:1px solid var(--line);"><div style="display:flex;align-items:center;justify-content:center;gap:7px;font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--ink);"><i class="bi bi-layers" style="font-size:14px;color:var(--azure);"></i>{{ modules|length }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">modul</div></div>
+        <div style="flex:1;padding:16px;text-align:center;border-right:1px solid var(--line);"><div style="display:flex;align-items:center;justify-content:center;gap:7px;font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--ink);"><i class="bi bi-clipboard-check" style="font-size:14px;color:var(--azure);"></i>{{ course_exam_count }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">imtihon</div></div>
+        <div style="flex:1;padding:16px;text-align:center;"><div style="display:flex;align-items:center;justify-content:center;gap:7px;font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--ink);"><i class="bi bi-people" style="font-size:14px;color:var(--azure);"></i>{{ course_students_count }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">o'quvchi</div></div>
       </div>
 
-      <div class="tabs" role="tablist">
-        <button class="tab-btn active" type="button" data-tab="curriculum">Dastur</button>
-        <button class="tab-btn" type="button" data-tab="instructor">O'qituvchi</button>
-        <button class="tab-btn" type="button" data-tab="reviews">Sharhlar</button>
-        <button class="tab-btn" type="button" data-tab="about">Kurs haqida</button>
-      </div>
+      <!-- Kurs haqida -->
+      {% if course.description %}
+      <h2 style="font-size:20px;font-weight:600;letter-spacing:-.02em;color:var(--ink);margin:0 0 12px;">Kurs haqida</h2>
+      <div style="font-size:15px;line-height:1.7;color:var(--ink-2);margin:0 0 32px;">{{ course.description|safe }}</div>
+      {% endif %}
 
-      <section class="tab-panel active" id="tab-curriculum">
-        <div class="curriculum-header">
-          <div class="section-title">O'quv dasturi</div>
-          <div class="curriculum-stats">{{ modules|length }} modul - {{ course_lessons_count }} dars</div>
-        </div>
+      <!-- Dastur -->
+      {% if modules %}
+      <h2 style="font-size:20px;font-weight:600;letter-spacing:-.02em;color:var(--ink);margin:0 0 16px;">Dastur</h2>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:36px;">
         {% for module in modules %}
-          <div class="section-group {% if forloop.first %}open{% endif %}">
-            <button class="section-head" type="button">
-              <span class="section-num">{{ forloop.counter }}</span>
-              <span class="section-label">{{ module.title }}</span>
-              <span class="section-meta">{{ module.lessons.all|length }} dars</span>
-              <i class="bi bi-chevron-down section-chevron"></i>
-            </button>
-            <div class="lesson-list">
-              {% for lesson in module.lessons.all %}
-                <div class="lesson-row">
-                  <div class="lesson-icon video"><i class="bi bi-play-fill"></i></div>
-                  <div class="lesson-name">{{ lesson.title }}</div>
-                  {% if forloop.parentloop.first and forloop.counter <= 2 %}
-                    <span class="lesson-preview">Preview</span>
-                  {% else %}
-                    <i class="bi bi-lock lesson-lock"></i>
-                  {% endif %}
-                  <div class="lesson-dur">{{ lesson.xp_reward }} XP</div>
-                </div>
-              {% empty %}
-                <div class="lesson-row">
-                  <div class="lesson-icon file"><i class="bi bi-file-earmark"></i></div>
-                  <div class="lesson-name">Darslar tez orada qo'shiladi.</div>
-                </div>
-              {% endfor %}
-            </div>
+        <div style="border:1px solid var(--line);border-radius:12px;background:var(--panel);overflow:hidden;">
+          <div style="display:flex;align-items:center;gap:13px;padding:15px 16px;">
+            <span style="width:34px;height:34px;border-radius:9px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-family:'Space Mono',monospace;font-size:13px;font-weight:700;flex:0 0 auto;">{{ forloop.counter|stringformat:"02d" }}</span>
+            <span style="flex:1;min-width:0;"><span style="display:block;font-size:14.5px;font-weight:600;color:var(--ink);">{{ module.title }}</span><span style="display:block;font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);margin-top:2px;">{{ module.lessons.all|length }} dars</span></span>
           </div>
-        {% empty %}
-          <div class="empty-state">
-            <i class="bi bi-layers"></i>
-            <p>Bu kurs uchun modullar hali qo'shilmagan.</p>
+          {% if module.lessons.all %}
+          <div style="padding:0 16px 12px 63px;display:flex;flex-direction:column;gap:2px;">
+            {% for lesson in module.lessons.all %}
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line-2);"><i class="bi bi-play-circle" style="font-size:13px;color:var(--ink-3);flex:0 0 auto;"></i><span style="flex:1;font-size:13px;color:var(--ink-2);">{{ lesson.title }}</span></div>
+            {% endfor %}
           </div>
-        {% endfor %}
-      </section>
-
-      <section class="tab-panel" id="tab-instructor">
-        <div class="instructor-card">
-          <div class="inst-av-lg">
-            {% if course.instructor.avatar %}
-              <img src="{{ course.instructor.avatar.url }}" alt="{{ course.instructor_display_name }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">
-            {% else %}
-              {{ course.instructor_initial }}
-            {% endif %}
-          </div>
-          <div class="inst-details">
-            <div class="inst-name-lg">{{ course.instructor_display_name }}</div>
-            <div class="inst-title">Kurs muallifi</div>
-            <div class="inst-stats">
-              <span class="inst-stat"><i class="bi bi-book"></i> {{ instructor_course_count }} kurs</span>
-              <span class="inst-stat"><i class="bi bi-people"></i> {{ course_students_count }} talaba</span>
-            </div>
-            <p class="inst-bio">{{ course.instructor.bio|default:"Bu kurs darslar, mashqlar va imtihon oqimini bitta tartibli yo'lga jamlaydi." }}</p>
-          </div>
-        </div>
-      </section>
-
-      <section class="tab-panel" id="tab-reviews">
-        <div class="reviews-summary">
-          <div class="rating-big">
-            <div class="rating-num">4.8</div>
-            <div class="rating-stars">★★★★★</div>
-            <div class="rating-total">{{ course_students_count|default:1 }} o'quvchi asosida</div>
-          </div>
-          <div class="rating-bars">
-            <div class="bar-row"><span class="bar-label">5 ★</span><div class="bar-track"><div class="bar-fill" style="width: 82%"></div></div><span class="bar-pct">82%</span></div>
-            <div class="bar-row"><span class="bar-label">4 ★</span><div class="bar-track"><div class="bar-fill" style="width: 14%"></div></div><span class="bar-pct">14%</span></div>
-            <div class="bar-row"><span class="bar-label">3 ★</span><div class="bar-track"><div class="bar-fill" style="width: 4%"></div></div><span class="bar-pct">4%</span></div>
-          </div>
-        </div>
-        <article class="review-card">
-          <div class="review-header">
-            <div class="review-av inst-av">AB</div>
-            <div class="review-meta"><div class="review-name">Azizbek</div><div class="review-date">Yangi o'quvchi</div></div>
-            <div class="review-stars">★★★★★</div>
-          </div>
-          <p class="review-text">Kurs strukturasi aniq, modullar va darslar tartibli ko'rinadi.</p>
-        </article>
-      </section>
-
-      <section class="tab-panel" id="tab-about">
-        <div class="learn-box">
-          <div class="section-title">Kurs haqida</div>
-          <div class="rich-text">{{ course.description|safe }}</div>
-        </div>
-      </section>
-    </main>
-
-    <aside class="sidebar">
-      <div class="sidebar-card">
-        <div class="sidebar-thumb" style="background-image: url('{{ course.cover_media_url }}');">
-          <button class="sidebar-play" type="button" aria-label="Preview"><i class="bi bi-play-fill"></i></button>
-        </div>
-        <div class="sidebar-body">
-          <div class="sidebar-price">
-            {% if course.price %}
-              <span class="price-main">{{ course.price|floatformat:0 }} so'm</span>
-            {% else %}
-              <span class="price-main">Bepul</span>
-            {% endif %}
-          </div>
-          <div class="sidebar-timer"><i class="bi bi-patch-check"></i> Sertifikat va exam flow mavjud</div>
-          {% if is_enrolled %}
-            <a class="btn-enroll" href="{% url 'course_study' course.id %}">O'qishni davom ettirish</a>
-          {% else %}
-            <a class="btn-enroll" href="{% url 'cohorts:checkout' course.id %}">Kursga yozilish</a>
           {% endif %}
-          <a class="btn-try" href="{% url 'courses' %}">Katalogga qaytish</a>
-          <div class="guarantee"><i class="bi bi-shield-check"></i> Admin paneldan boshqariladigan kurs kontenti</div>
-          <div class="sidebar-includes">
-            <div class="includes-title">Kurs ichida</div>
-            <div class="include-item"><i class="bi bi-play-circle"></i> {{ course_lessons_count }} ta dars</div>
-            <div class="include-item"><i class="bi bi-layers"></i> {{ modules|length }} ta modul</div>
-            <div class="include-item"><i class="bi bi-file-earmark-text"></i> {{ course_exam_count }} ta imtihon</div>
-            <div class="include-item"><i class="bi bi-award"></i> Sertifikat talablari</div>
-          </div>
         </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- O'qituvchi -->
+      {% if course.instructor %}
+      <h2 style="font-size:20px;font-weight:600;letter-spacing:-.02em;color:var(--ink);margin:0 0 16px;">O'qituvchi</h2>
+      <div style="display:flex;align-items:center;gap:16px;border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:20px;">
+        {% if course.instructor.avatar %}<img src="{{ course.instructor.avatar.url }}" alt="{{ course.instructor.get_full_name }}" style="width:60px;height:60px;border-radius:16px;object-fit:cover;flex:0 0 auto;">{% else %}<span style="width:60px;height:60px;border-radius:16px;background:var(--violet);display:grid;place-items:center;color:#fff;font-weight:700;font-size:22px;flex:0 0 auto;">{{ course.instructor.first_name.0|default:course.instructor.username.0|upper }}{{ course.instructor.last_name.0|upper }}</span>{% endif %}
+        <div style="flex:1;min-width:0;"><div style="font-size:16px;font-weight:600;color:var(--ink);">{{ course.instructor.get_full_name|default:course.instructor.username }}</div><div style="font-size:13px;color:var(--ink-3);margin-top:2px;">O'qituvchi · {{ instructor_course_count }} ta kurs</div>{% if course.instructor.bio %}<p style="font-size:13px;color:var(--ink-2);line-height:1.55;margin:8px 0 0;">{{ course.instructor.bio|truncatewords:24 }}</p>{% endif %}</div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- O'ng aside -->
+    <aside style="position:sticky;top:88px;border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:22px;box-shadow:0 1px 2px rgba(11,14,21,.04),0 18px 50px rgba(11,14,21,.08);">
+      {% if is_enrolled %}
+      <div style="display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--green);background:var(--green-soft);padding:6px 12px;border-radius:999px;margin-bottom:16px;"><i class="bi bi-check-circle-fill"></i> Siz yozilgansiz</div>
+      <a href="{% url 'course_study' course_id=course.id %}" style="display:flex;align-items:center;justify-content:center;gap:8px;height:48px;border-radius:11px;background:var(--azure);color:var(--on-azure);font-size:15px;font-weight:600;">Darsni davom ettirish <i class="bi bi-arrow-right" style="font-size:13px;"></i></a>
+      {% elif user.is_authenticated %}
+      <div style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:4px;">Kursga yoziling</div>
+      <div style="font-size:12.5px;color:var(--ink-3);margin-bottom:16px;">Guruhni tanlab, to'lovni rasmiylashtiring.</div>
+      <a href="{% url 'cohorts:checkout' course_id=course.id %}" style="display:flex;align-items:center;justify-content:center;gap:8px;height:48px;border-radius:11px;background:var(--azure);color:var(--on-azure);font-size:15px;font-weight:600;">Kursga yozilish <i class="bi bi-arrow-right" style="font-size:13px;"></i></a>
+      {% else %}
+      <div style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:4px;">Boshlashga tayyormisiz?</div>
+      <div style="font-size:12.5px;color:var(--ink-3);margin-bottom:16px;">Yozilish uchun hisobingizga kiring.</div>
+      <a href="{% url 'login' %}?next={% url 'course_detail' pk=course.id %}" style="display:flex;align-items:center;justify-content:center;gap:8px;height:48px;border-radius:11px;background:var(--azure);color:var(--on-azure);font-size:15px;font-weight:600;">Kirish <i class="bi bi-arrow-right" style="font-size:13px;"></i></a>
+      <a href="{% url 'register' %}" style="display:flex;align-items:center;justify-content:center;gap:8px;height:46px;border-radius:11px;border:1px solid var(--line);color:var(--ink);font-size:14px;font-weight:600;margin-top:10px;">Ro'yxatdan o'tish</a>
+      {% endif %}
+
+      <div style="height:1px;background:var(--line);margin:20px 0;"></div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;align-items:center;gap:11px;"><i class="bi bi-collection-play" style="font-size:15px;color:var(--azure);flex:0 0 auto;width:18px;text-align:center;"></i><span style="font-size:13.5px;color:var(--ink-2);">{{ course_lessons_count }} dars · umrbod kirish</span></div>
+        <div style="display:flex;align-items:center;gap:11px;"><i class="bi bi-stars" style="font-size:15px;color:var(--azure);flex:0 0 auto;width:18px;text-align:center;"></i><span style="font-size:13.5px;color:var(--ink-2);">Cheksiz AI repetitor</span></div>
+        <div style="display:flex;align-items:center;gap:11px;"><i class="bi bi-people" style="font-size:15px;color:var(--azure);flex:0 0 auto;width:18px;text-align:center;"></i><span style="font-size:13.5px;color:var(--ink-2);">Jonli guruh darslari</span></div>
+        <div style="display:flex;align-items:center;gap:11px;"><i class="bi bi-clipboard-check" style="font-size:15px;color:var(--azure);flex:0 0 auto;width:18px;text-align:center;"></i><span style="font-size:13.5px;color:var(--ink-2);">To'liq imtihon muhiti</span></div>
+        <div style="display:flex;align-items:center;gap:11px;"><i class="bi bi-patch-check" style="font-size:15px;color:var(--azure);flex:0 0 auto;width:18px;text-align:center;"></i><span style="font-size:13.5px;color:var(--ink-2);">Tasdiqlangan sertifikat</span></div>
       </div>
     </aside>
-  </div>
-{% endblock %}
 
-{% block scripts %}
-  <script src="{% static 'js/public-home.js' %}"></script>
-  <script src="{% static 'js/public-pages.js' %}"></script>
+  </div>
+</div>
 {% endblock %}

@@ -1,298 +1,105 @@
-{% load static humanize %}
-<!DOCTYPE html>
-<html lang="uz" data-theme="light">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="{{ course.title }} kursiga obuna checkout sahifasi.">
-  <script>
-    (function() {
-      const html = document.documentElement;
-      let saved;
-      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
-      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-      html.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));
-    })();
-  </script>
-  <title>{{ course.title }} - To'lov</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
-  <link rel="stylesheet" href="{% static 'css/foundation.css' %}">
-  <link rel="stylesheet" href="{% static 'css/components.css' %}">
-  <link rel="stylesheet" href="{% static 'css/billing.css' %}">
-  <link rel="stylesheet" href="{% static 'css/prototype-extracted.css' %}">
-</head>
-<body class="checkout-page">
-  <nav class="top-nav">
-    <div class="top-nav-inner">
-      <a class="logo" href="{% url 'home' %}" aria-label="{{ site_settings.brand_name|default:'AzureLMS' }}">
-        <div class="logo-mark">
-          {% if site_settings.logo_image %}
-            <img src="{{ site_settings.logo_image.url }}" alt="">
-          {% else %}
-            {{ site_settings.logo_mark_text|default:"AZ" }}
-          {% endif %}
-        </div>
-        <span class="logo-name">{{ site_settings.brand_name|default:"AzureLMS" }}</span>
-      </a>
-      <div class="nav-right">
-        <a class="checkout-back-link" href="{% url 'course_detail' course.id %}">
-          <i class="bi bi-arrow-left"></i>
-          Kursga qaytish
-        </a>
-        <span class="secure-badge"><i class="bi bi-shield-lock-fill"></i> Xavfsiz checkout</span>
-        <button class="theme-btn" id="themeBtn" type="button" aria-label="Tema">
-          <i class="bi bi-moon" id="themeIcon"></i>
-        </button>
-      </div>
-    </div>
-  </nav>
+{% extends "base_public.html" %}
+{% comment %}
+  To'lov (checkout_view). Proto: azurelms-proto/public/checkout.html.
+  REAL oqim: tarif tanlash + (ixtiyoriy) promokod + CHEK RASMINI yuklash → pending.
+  (Proto'dagi karta/CVV mock emas — bu yerda chek yuklash.)
+  Kontekst: course, enrollment, plans, selected_plan, submitted_promo_code,
+  promo_quote (PromoPricingQuote: base_amount/discount_amount/final_amount/has_discount),
+  has_pending_receipt, period_start, period_end.
+{% endcomment %}
 
-  <div class="checkout-progress">
-    <div class="progress-inner">
-      <div class="progress-step done">
-        <div class="step-circle"><i class="bi bi-check"></i></div>
-        Kurs tanlandi
-      </div>
-      <div class="step-line done"></div>
-      <div class="progress-step active">
-        <div class="step-circle">2</div>
-        Tarif va to'lov
-      </div>
-      <div class="step-line"></div>
-      <div class="progress-step">
-        <div class="step-circle">3</div>
-        Tasdiqlash
-      </div>
-    </div>
+{% block title %}To'lov — {{ course.title }}{% endblock %}
+{% block page_css %}
+<style>
+  .co-plan{ display:flex;align-items:center;gap:12px;padding:14px 16px;border:1px solid var(--line);border-radius:12px;cursor:pointer;transition:border-color .18s,background .18s; }
+  .co-plan:has(input:checked){ border-color:var(--azure);background:var(--azure-soft); }
+  .co-plan input{ accent-color:var(--azure);width:18px;height:18px;flex:0 0 auto; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="max-width:980px;margin:0 auto;padding:clamp(28px,4vw,52px) clamp(18px,4vw,32px);">
+
+  <div style="display:flex;align-items:center;gap:8px;font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);margin-bottom:26px;">
+    <a href="{% url 'course_detail' pk=course.id %}" style="color:var(--ink-3);">{{ course.title|truncatechars:24 }}</a>
+    <i class="bi bi-chevron-right" style="font-size:9px;"></i><span style="color:var(--ink);">To'lov</span>
   </div>
 
-  {% if messages %}
-    <div class="checkout-messages" role="status">
-      {% for message in messages %}
-        <div class="checkout-alert checkout-alert-{{ message.tags|default:'info' }}">
-          <i class="bi bi-info-circle"></i>
-          <span>{{ message }}</span>
-        </div>
-      {% endfor %}
-    </div>
-  {% endif %}
+  <h1 style="font-size:clamp(24px,2.8vw,32px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:0 0 26px;">To'lovni yakunlang</h1>
 
-  <form class="checkout-wrap" method="post" enctype="multipart/form-data" id="checkoutForm" data-promo-url="{% url 'cohorts:checkout_promo_preview' course.id %}">
-    {% csrf_token %}
+  {% if has_pending_receipt %}
+  <div style="border:1px solid var(--amber);border-radius:14px;background:var(--amber-soft);padding:22px;display:flex;align-items:flex-start;gap:14px;">
+    <i class="bi bi-hourglass-split" style="color:var(--amber);font-size:22px;flex:0 0 auto;margin-top:1px;"></i>
+    <div><div style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:4px;">Tasdiqlanmagan chek mavjud</div><div style="font-size:13.5px;color:var(--ink-2);line-height:1.6;">Siz allaqachon to'lov cheki yuborgansiz. Administrator uni tekshirib tasdiqlaguncha kuting. Tasdiqlangach, kursga kirish ochiladi.</div><a href="{% url 'my_courses' %}" style="display:inline-flex;align-items:center;gap:7px;margin-top:14px;font-size:13.5px;font-weight:600;color:var(--azure);">Darslarimga o'tish <i class="bi bi-arrow-right" style="font-size:12px;"></i></a></div>
+  </div>
+  {% else %}
 
-    <div class="form-panel">
-      <section class="form-card">
-        <div class="form-card-head">
-          <div class="form-card-head-icon icon-blue"><i class="bi bi-person"></i></div>
-          <div class="form-card-head-text">
-            <h2>Aloqa ma'lumotlari</h2>
-            <p>Chek holati shu akkaunt orqali kuzatiladi</p>
-          </div>
-        </div>
-        <div class="form-card-body">
-          <div class="field-row">
-            <div class="field">
-              <label class="field-label" for="firstName">Ism</label>
-              <div class="field-wrap">
-                <i class="bi bi-person field-icon"></i>
-                <input class="field-input" type="text" id="firstName" value="{{ request.user.first_name|default:request.user.username }}" readonly>
-              </div>
-            </div>
-            <div class="field">
-              <label class="field-label" for="lastName">Familya</label>
-              <div class="field-wrap">
-                <i class="bi bi-person field-icon"></i>
-                <input class="field-input" type="text" id="lastName" value="{{ request.user.last_name }}" placeholder="Kiritilmagan" readonly>
-              </div>
-            </div>
-          </div>
-          <div class="field">
-            <label class="field-label" for="email">Email</label>
-            <div class="field-wrap">
-              <i class="bi bi-envelope field-icon"></i>
-              <input class="field-input" type="email" id="email" value="{{ request.user.email }}" placeholder="email@example.com" readonly>
-            </div>
-          </div>
-          <div class="checkout-note">
-            <i class="bi bi-lightning-charge"></i>
-            <span>Kursga yozilish obuna tarifi orqali ochiladi. Admin chekni tasdiqlagandan keyin darslar aktiv bo'ladi.</span>
-          </div>
-        </div>
-      </section>
+  <form method="post" enctype="multipart/form-data">{% csrf_token %}
+  <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:28px;align-items:start;">
 
-      <section class="form-card">
-        <div class="form-card-head">
-          <div class="form-card-head-icon icon-blue"><i class="bi bi-wallet2"></i></div>
-          <div class="form-card-head-text">
-            <h2>To'lov usuli</h2>
-            <p>To'lovdan so'ng chek rasmni shu yerga yuklang</p>
-          </div>
-        </div>
-        <div class="form-card-body">
-          <div class="pay-methods" aria-label="To'lov usullari">
-            <button class="pay-method selected" type="button" data-method="card">
-              <span class="pay-method-icon"><i class="bi bi-credit-card"></i></span>
-              <span class="pay-method-name">Karta</span>
-            </button>
-            <button class="pay-method" type="button" data-method="payme">
-              <span class="pay-method-icon"><i class="bi bi-phone"></i></span>
-              <span class="pay-method-name">Payme</span>
-            </button>
-            <button class="pay-method" type="button" data-method="click">
-              <span class="pay-method-icon"><i class="bi bi-cursor"></i></span>
-              <span class="pay-method-name">Click</span>
-            </button>
-            <button class="pay-method" type="button" data-method="bank">
-              <span class="pay-method-icon"><i class="bi bi-bank"></i></span>
-              <span class="pay-method-name">Bank</span>
-            </button>
-          </div>
-
-          <div class="payment-instruction">
-            <div class="payment-instruction-icon"><i class="bi bi-receipt"></i></div>
-            <div>
-              <strong>To'lov chekini yuklang</strong>
-              <p>Hozirgi real oqim manual tasdiqlash bilan ishlaydi: tanlangan tarif bo'yicha to'lov qiling, keyin chek rasmini yuboring.</p>
-            </div>
-          </div>
-
-          {% if has_pending_receipt %}
-            <div class="checkout-alert checkout-alert-warning">
-              <i class="bi bi-hourglass-split"></i>
-              <span>Sizda tasdiqlanishi kutilayotgan chek bor. Admin javobini kuting.</span>
-            </div>
-          {% else %}
-            <div class="field">
-              <label class="field-label" for="receiptImage">To'lov cheki</label>
-              <label class="receipt-upload" for="receiptImage">
-                <span class="receipt-upload-icon"><i class="bi bi-cloud-arrow-up"></i></span>
-                <span>
-                  <strong id="receiptFileName">Rasm tanlang</strong>
-                  <small>PNG yoki JPG formatidagi chek fayli</small>
-                </span>
-              </label>
-              <input class="receipt-input" type="file" id="receiptImage" name="receipt_image" accept="image/png,image/jpeg,image/webp" required>
-            </div>
-          {% endif %}
-
-          <div class="security-note">
-            <i class="bi bi-shield-check-fill"></i>
-            Chek admin tomonidan tekshiriladi, tasdiqlangandan keyin obuna muddati boshlanadi.
-          </div>
-
-          <div class="terms-row">
-            <input type="checkbox" class="terms-checkbox" id="termsCheck" checked required>
-            <label class="terms-text" for="termsCheck">
-              <a href="{% url 'terms_of_service' %}">Foydalanish shartlari</a> va
-              <a href="{% url 'privacy_policy' %}">Maxfiylik siyosatini</a> qabul qilaman.
-            </label>
-          </div>
-        </div>
-      </section>
-    </div>
-
-    <aside class="order-summary">
-      <div class="summary-head"><h2>Buyurtma tafsiloti</h2></div>
-
-      <div class="course-preview">
-        <div class="course-thumb course-thumb-img" style="background-image: url('{{ course.cover_media_url }}');">
-          <span>{{ course.title|slice:":2"|upper }}</span>
-        </div>
-        <div class="course-info">
-          <div class="course-name">{{ course.title }}</div>
-          <div class="course-meta">{{ course.get_level_display }} - {{ course.lessons_count }} dars - {{ course.duration }} soat</div>
-          <div class="course-badges">
-            <span class="badge-xs bx-blue">Obuna</span>
-            <span class="badge-xs bx-green">Sertifikat</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="plan-selector">
-        <div class="plan-label">Avval tarifni tanlang</div>
-        {% for plan in plans %}
-          <label class="plan-option{% if selected_plan and plan.id == selected_plan.id %} selected{% endif %}" data-price="{{ plan.price|floatformat:0 }}" data-plan-name="{{ plan.name }}" data-plan-option>
-            <input class="plan-input" type="radio" name="plan_id" value="{{ plan.id }}" {% if selected_plan and plan.id == selected_plan.id %}checked{% endif %} required>
-            <span class="plan-radio" aria-hidden="true"></span>
-            <span class="plan-info">
-              <span class="plan-name">{{ plan.name }}</span>
-              <span class="plan-desc">{{ plan.description|striptags|truncatechars:64 }}</span>
-            </span>
-            <span>
-              <span class="plan-price">{{ plan.price|floatformat:0|intcomma }} so'm</span>
-              {% if plan.is_popular %}<span class="plan-save">Ommabop</span>{% endif %}
-            </span>
+    <!-- Chap: tarif + chek -->
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <!-- 1. Tarif -->
+      <div style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:22px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;"><span style="width:26px;height:26px;border-radius:50%;background:var(--azure);color:var(--on-azure);display:grid;place-items:center;font-family:'Space Mono',monospace;font-size:12px;font-weight:700;">1</span><span style="font-size:15px;font-weight:600;color:var(--ink);">Tarifni tanlang</span></div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          {% for plan in plans %}
+          <label class="co-plan">
+            <input type="radio" name="plan_id" value="{{ plan.id }}" {% if selected_plan and plan.id == selected_plan.id %}checked{% endif %}>
+            <span style="flex:1;min-width:0;"><span style="display:block;font-size:14px;font-weight:600;color:var(--ink);">{{ plan.name }}</span>{% if plan.description %}<span style="display:block;font-size:12px;color:var(--ink-3);margin-top:1px;">{{ plan.description|striptags|truncatewords:8 }}</span>{% endif %}</span>
+            <span style="font-family:'Space Mono',monospace;font-size:14px;font-weight:700;color:var(--ink);flex:0 0 auto;">{% if plan.price > 0 %}{{ plan.price|floatformat:0 }}<span style="font-size:11px;font-weight:400;color:var(--ink-3);"> so'm</span>{% else %}Bepul{% endif %}</span>
           </label>
-        {% endfor %}
-      </div>
-
-      <div class="promo-wrap">
-        <input class="promo-input" type="text" id="promoInput" name="promo_code" value="{{ submitted_promo_code }}" placeholder="Promo-kod">
-        <button class="promo-btn" type="button" id="promoApplyBtn">Qo'llash</button>
-      </div>
-      <div class="promo-feedback" id="promoFeedback" aria-live="polite"></div>
-
-      <div class="price-rows" id="priceRows">
-        <div class="price-row">
-          <span class="price-row-label" id="pricePlanLabel">Tarif narxi</span>
-          <span class="price-row-val" id="basePrice">
-            {% if promo_quote %}{{ promo_quote.base_amount|floatformat:0|intcomma }}{% else %}{{ selected_plan.price|floatformat:0|intcomma }}{% endif %} so'm
-          </span>
-        </div>
-        <div class="price-row{% if not promo_quote %} is-hidden{% endif %}" id="promoRow">
-          <span class="price-row-label">Promo chegirma</span>
-          <span class="price-row-val discount" id="promoDiscount">
-            -{% if promo_quote %}{{ promo_quote.discount_amount|floatformat:0|intcomma }}{% else %}0{% endif %} so'm
-          </span>
-        </div>
-        <div class="price-divider"></div>
-        <div class="price-total-row">
-          <span class="price-total-label">Jami</span>
-          <div>
-            <div class="price-total-val" id="totalPrice">
-              {% if promo_quote %}{{ promo_quote.final_amount|floatformat:0|intcomma }}{% else %}{{ selected_plan.price|floatformat:0|intcomma }}{% endif %} so'm
-            </div>
-            <div class="price-vat">Oylik obuna</div>
-          </div>
+          {% endfor %}
         </div>
       </div>
 
-      <div class="checkout-period">
-        <div><span>Boshlanish</span><strong>{{ period_start|date:"d M Y" }}</strong></div>
-        <div><span>Tugash</span><strong>{{ period_end|date:"d M Y" }}</strong></div>
+      <!-- 2. Chek yuklash -->
+      <div style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:22px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;"><span style="width:26px;height:26px;border-radius:50%;background:var(--azure);color:var(--on-azure);display:grid;place-items:center;font-family:'Space Mono',monospace;font-size:12px;font-weight:700;">2</span><span style="font-size:15px;font-weight:600;color:var(--ink);">To'lov chekini yuklang</span></div>
+        <div style="font-size:13.5px;line-height:1.6;color:var(--ink-2);background:var(--paper-2);border:1px solid var(--line);border-radius:11px;padding:14px 16px;margin-bottom:16px;">
+          <i class="bi bi-info-circle" style="color:var(--azure);"></i> To'lovni administrator ko'rsatgan hisobga o'tkazing, so'ng to'lov chekining rasm/skrinshotini shu yerga yuklang. Administrator tasdiqlagach kursga kirish ochiladi.
+        </div>
+        <label style="display:block;">
+          <span style="display:block;font-family:'Space Mono',monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:7px;">Chek rasmi</span>
+          <input type="file" name="receipt_image" accept="image/*" required style="width:100%;font-size:13.5px;color:var(--ink-2);padding:12px;border:1px dashed var(--line);border-radius:11px;background:var(--paper-2);cursor:pointer;">
+        </label>
       </div>
+    </div>
 
-      <button class="btn-pay" id="payBtn" type="submit" {% if has_pending_receipt %}disabled{% endif %}>
-        <i class="bi bi-lock-fill lock-icon"></i>
-        <span id="payBtnText">{% if has_pending_receipt %}Tasdiq kutilmoqda{% else %}Chekni yuborish{% endif %}</span>
-      </button>
-
-      <div class="guarantees">
-        <div class="guarantee-row">
-          <i class="bi bi-shield-check-fill"></i>
-          Admin tasdiqlagach kurs avtomatik ochiladi
+    <!-- O'ng: buyurtma -->
+    <aside style="position:sticky;top:88px;border:1px solid var(--line);border-radius:16px;background:var(--panel);overflow:hidden;">
+      <div style="padding:20px;border-bottom:1px solid var(--line);">
+        <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:14px;">Buyurtma</div>
+        <div style="display:flex;align-items:center;gap:13px;">
+          <span style="width:48px;height:48px;border-radius:12px;background:linear-gradient(125deg,var(--azure),var(--azure-2));display:grid;place-items:center;color:#fff;font-size:20px;flex:0 0 auto;"><i class="bi bi-journal-text"></i></span>
+          <div style="flex:1;min-width:0;"><div style="font-size:14.5px;font-weight:600;color:var(--ink);">{{ course.title }}</div><div style="font-size:12.5px;color:var(--ink-3);">{% if selected_plan %}{{ selected_plan.name }}{% endif %}{% if checkout_cohort %} · {{ checkout_cohort }}{% endif %}</div></div>
         </div>
-        <div class="guarantee-row">
-          <i class="bi bi-calendar-check-fill"></i>
-          30 kunlik obuna muddati hisoblanadi
+        <div style="display:flex;gap:8px;margin-top:16px;">
+          <input name="promo_code" value="{{ submitted_promo_code }}" placeholder="Promo kod" style="width:100%;height:40px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--paper-2);color:var(--ink);font-size:14px;outline:none;">
         </div>
-        <div class="guarantee-row">
-          <i class="bi bi-award-fill"></i>
-          Exam va sertifikat flow saqlanadi
-        </div>
-        <div class="guarantee-row">
-          <i class="bi bi-headset"></i>
-          Muammo bo'lsa qo'llab-quvvatlash yordam beradi
-        </div>
+        {% if submitted_promo_code and not promo_quote %}<div style="font-size:11.5px;color:var(--red);margin-top:7px;">Promokod amal qilmadi yoki noto'g'ri.</div>{% elif promo_quote and promo_quote.has_discount %}<div style="font-size:11.5px;color:var(--green);margin-top:7px;"><i class="bi bi-check-circle"></i> Promokod qo'llandi.</div>{% endif %}
+      </div>
+      <div style="padding:20px;display:flex;flex-direction:column;gap:11px;">
+        {% if promo_quote and promo_quote.has_discount %}
+        <div style="display:flex;justify-content:space-between;font-size:13.5px;"><span style="color:var(--ink-2);">{{ selected_plan.name }}</span><span style="font-family:'Space Mono',monospace;color:var(--ink);">{{ promo_quote.base_amount|floatformat:0 }}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:13.5px;"><span style="color:var(--ink-2);">Chegirma</span><span style="font-family:'Space Mono',monospace;color:var(--green);">−{{ promo_quote.discount_amount|floatformat:0 }}</span></div>
+        <div style="height:1px;background:var(--line);margin:6px 0;"></div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;"><span style="font-size:14.5px;font-weight:600;color:var(--ink);">Jami</span><span style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--ink);">{{ promo_quote.final_amount|floatformat:0 }}</span></div>
+        {% else %}
+        <div style="display:flex;justify-content:space-between;align-items:baseline;"><span style="font-size:14.5px;font-weight:600;color:var(--ink);">Jami</span><span style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--ink);">{% if selected_plan %}{{ selected_plan.price|floatformat:0 }}{% else %}—{% endif %}</span></div>
+        {% endif %}
+        <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);text-align:right;">so'm / oy</div>
+        {% if period_start and period_end %}<div style="font-family:'Space Mono',monospace;font-size:10.5px;color:var(--ink-4);text-align:right;">{{ period_start|date:"d.m.Y" }} — {{ period_end|date:"d.m.Y" }}</div>{% endif %}
+      </div>
+      <div style="padding:0 20px 20px;">
+        <button type="submit" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:48px;border-radius:11px;background:var(--azure);color:var(--on-azure);font-size:15px;font-weight:600;border:none;cursor:pointer;"><i class="bi bi-upload" style="font-size:14px;"></i> Chekni yuborish</button>
+        <div style="display:flex;align-items:center;justify-content:center;gap:7px;margin-top:12px;font-size:11.5px;color:var(--ink-3);"><i class="bi bi-shield-check" style="color:var(--green);"></i> Xavfsiz · administrator tasdiqlaydi</div>
       </div>
     </aside>
-  </form>
 
-  <script src="{% static 'js/prototype-ui.js' %}"></script>
-  <script src="{% static 'js/billing.js' %}"></script>
-</body>
-</html>
+  </div>
+  </form>
+  {% endif %}
+
+</div>
+{% endblock %}

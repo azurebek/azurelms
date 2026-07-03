@@ -1,35 +1,52 @@
 {% extends "base_public.html" %}
-{% load static %}
+{% comment %}
+  Huquqiy sahifa — privacy / terms / faq (legal_page_view).
+  Proto: azurelms-proto/public/legal.html.
+  Kontekst: legal_page (LegalPage), active_legal_page (page_type).
+{% endcomment %}
 
-{% block title %}{{ legal_page.title }} - {{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %}
-{% block meta_description %}{{ legal_page.content|striptags|truncatechars:160 }}{% endblock %}
-{% block body_class %}public-legal-page{% endblock %}
+{% block title %}{{ legal_page.title }} — AzureLMS{% endblock %}
 
-{% block styles %}
-  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
-  <link rel="stylesheet" href="{% static 'css/foundation.css' %}">
-  <link rel="stylesheet" href="{% static 'css/components.css' %}">
-  <link rel="stylesheet" href="{% static 'css/public.css' %}">
-  <link rel="stylesheet" href="{% static 'css/public-legal.css' %}">
+{% block page_css %}
+<style>
+  .legal-doc{ max-width:1040px; margin:0 auto; padding:clamp(32px,4vw,52px) clamp(20px,4vw,32px) 64px; }
+  .legal-eyebrow{ font-family:'Space Mono',monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--azure); margin-bottom:12px; }
+  .legal-title{ font-size:clamp(26px,3.4vw,40px); font-weight:600; letter-spacing:-.035em; line-height:1.05; color:var(--ink); margin:0; }
+  .legal-updated{ font-family:'Space Mono',monospace; font-size:11.5px; color:var(--ink-3); margin-top:10px; }
+  .legal-tabs{ display:flex; gap:6px; background:var(--paper-2); border:1px solid var(--line); border-radius:10px; padding:4px; margin:28px 0 30px; width:max-content; max-width:100%; flex-wrap:wrap; }
+  .legal-tab{ height:34px; padding:0 16px; display:inline-flex; align-items:center; border-radius:8px; font-size:13px; font-weight:600; transition:.18s; color:var(--ink-3); }
+  .legal-tab.active{ background:var(--panel); color:var(--ink); box-shadow:0 1px 2px rgba(11,14,21,.06); }
+  .legal-tab:not(.active):hover{ color:var(--ink); }
+  .legal-content{ max-width:760px; }
+  .legal-content h2,.legal-content h3{ font-size:19px; font-weight:600; letter-spacing:-.02em; color:var(--ink); margin:28px 0 12px; }
+  .legal-content h2:first-child,.legal-content h3:first-child{ margin-top:0; }
+  .legal-content p{ font-size:14.5px; line-height:1.75; color:var(--ink-2); margin:0 0 12px; }
+  .legal-content ul,.legal-content ol{ font-size:14.5px; line-height:1.75; color:var(--ink-2); padding-left:22px; margin:0 0 14px; }
+  .legal-content li{ margin-bottom:6px; }
+  .legal-content a{ color:var(--azure); }
+  .legal-contact{ border:1px solid var(--line); border-radius:12px; background:var(--panel); padding:18px 20px; display:flex; align-items:center; gap:13px; margin-top:28px; max-width:760px; }
+</style>
 {% endblock %}
 
 {% block content %}
-  <section class="legal-hero">
-    <div class="legal-hero-inner">
-      <div class="legal-kicker"><i class="bi bi-shield-check"></i> Huquqiy ma'lumot</div>
-      <h1 class="legal-title">{{ legal_page.title }}</h1>
-      <div class="legal-updated">Yangilangan: {{ legal_page.updated_at|date:"d.m.Y" }}</div>
-    </div>
-  </section>
+<div class="legal-doc">
+  <div style="margin-bottom:4px;">
+    <div class="legal-eyebrow">Huquqiy hujjatlar</div>
+    <h1 class="legal-title">{{ legal_page.title }}</h1>
+    <div class="legal-updated">Oxirgi yangilanish: {{ legal_page.updated_at|date:"d.m.Y" }}</div>
+  </div>
 
-  <main class="legal-layout">
-    <article class="legal-card">
-      <div class="legal-content">{{ legal_page.content|safe }}</div>
-    </article>
-  </main>
-{% endblock %}
+  <div class="legal-tabs">
+    <a class="legal-tab{% if active_legal_page == 'terms' %} active{% endif %}" href="{% url 'terms_of_service' %}">Shartlar</a>
+    <a class="legal-tab{% if active_legal_page == 'privacy' %} active{% endif %}" href="{% url 'privacy_policy' %}">Maxfiylik</a>
+    <a class="legal-tab{% if active_legal_page == 'faq' %} active{% endif %}" href="{% url 'faq_page' %}">FAQ</a>
+  </div>
 
-{% block scripts %}
-  <script src="{% static 'js/public-home.js' %}"></script>
-  <script src="{% static 'js/public-pages.js' %}"></script>
+  <article class="legal-content">{{ legal_page.content|safe }}</article>
+
+  <div class="legal-contact">
+    <span style="width:38px;height:38px;border-radius:10px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:16px;flex:0 0 auto;"><i class="bi bi-envelope"></i></span>
+    <div style="flex:1;"><div style="font-size:13.5px;font-weight:600;color:var(--ink);">Savollaringiz bormi?</div><div style="font-size:12.5px;color:var(--ink-3);">{{ site_settings.contact_email|default:"legal@azurelms.uz" }} — 3 ish kunida javob beramiz.</div></div>
+  </div>
+</div>
 {% endblock %}

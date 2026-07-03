@@ -1,147 +1,24 @@
-{% load static humanize %}
-<!DOCTYPE html>
-<html lang="uz" data-theme="light">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script>
-    (function() {
-      const html = document.documentElement;
-      let saved;
-      try { saved = localStorage.getItem('az-theme'); } catch (_) {}
-      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-      html.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));
-    })();
-  </script>
-  <title>To'lov tasdiqlandi - AzureLMS</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'css/billing.css' %}">
-  <link rel="stylesheet" href="{% static 'css/billing-status.css' %}">
-</head>
-<body class="checkout-status-page checkout-success-page">
-  <nav class="top-nav">
-    <div class="top-nav-inner">
-      <a class="logo" href="{% url 'home' %}" aria-label="{{ site_settings.brand_name|default:'AzureLMS' }}">
-        <div class="logo-mark">{{ site_settings.logo_mark_text|default:"AZ" }}</div>
-        <span class="logo-name">{{ site_settings.brand_name|default:"AzureLMS" }}</span>
-      </a>
-      <div class="nav-right">
-        <span class="secure-badge"><i class="bi bi-shield-check-fill"></i> To'lov tasdiqlandi</span>
-        <button class="theme-btn" id="themeBtn" type="button" aria-label="Tema">
-          <i class="bi bi-moon" id="themeIcon"></i>
-        </button>
-      </div>
-    </div>
-  </nav>
+{% extends "base_public.html" %}
+{% comment %} To'lov tasdiqlandi (checkout_success_view). Kontekst: receipt. {% endcomment %}
+{% block title %}To'lov tasdiqlandi — AzureLMS{% endblock %}
+{% block content %}
+<div style="max-width:560px;margin:0 auto;padding:clamp(40px,6vw,72px) clamp(18px,4vw,32px);text-align:center;">
+  <span style="width:64px;height:64px;border-radius:18px;background:var(--green-soft);color:var(--green);display:grid;place-items:center;font-size:30px;margin:0 auto 20px;"><i class="bi bi-check-circle"></i></span>
+  <h1 style="font-size:clamp(24px,3vw,32px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:0 0 10px;">To'lov tasdiqlandi</h1>
+  <p style="font-size:15px;line-height:1.65;color:var(--ink-2);margin:0 0 26px;">Tabriklaymiz! To'lovingiz qabul qilindi va kursga kirish ochildi. Endi o'qishni boshlashingiz mumkin.</p>
 
-  <div class="checkout-progress">
-    <div class="progress-inner status-progress">
-      <div class="progress-step done"><div class="step-circle"><i class="bi bi-check"></i></div>Kurs tanlash</div>
-      <div class="step-line done"></div>
-      <div class="progress-step done"><div class="step-circle"><i class="bi bi-check"></i></div>To'lov</div>
-      <div class="step-line done"></div>
-      <div class="progress-step active success-step"><div class="step-circle"><i class="bi bi-check"></i></div>Tasdiqlash</div>
-    </div>
+  {% if receipt %}
+  <div style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:20px;text-align:left;display:flex;flex-direction:column;gap:12px;margin-bottom:26px;">
+    <div style="display:flex;justify-content:space-between;font-size:13.5px;"><span style="color:var(--ink-3);">Kurs</span><span style="color:var(--ink);font-weight:600;">{{ receipt.enrollment.cohort.course.title }}</span></div>
+    {% if receipt.enrollment.plan %}<div style="display:flex;justify-content:space-between;font-size:13.5px;"><span style="color:var(--ink-3);">Tarif</span><span style="color:var(--ink);">{{ receipt.enrollment.plan.name }}</span></div>{% endif %}
+    <div style="display:flex;justify-content:space-between;font-size:13.5px;"><span style="color:var(--ink-3);">Summa</span><span style="font-family:'Space Mono',monospace;color:var(--ink);">{{ receipt.amount|floatformat:0 }} so'm</span></div>
+    <div style="display:flex;justify-content:space-between;font-size:13.5px;"><span style="color:var(--ink-3);">Holat</span><span style="display:inline-flex;align-items:center;gap:6px;color:var(--green);font-weight:600;"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);"></span>Tasdiqlangan</span></div>
   </div>
+  {% endif %}
 
-  <main class="success-wrap">
-    <section class="hero-card status-hero">
-      <div class="success-icon-wrap"><i class="bi bi-check-circle-fill"></i></div>
-      <h1 class="hero-title">To'lovingiz qabul qilindi!</h1>
-      <p class="hero-sub">
-        {{ receipt.enrollment.cohort.course.title }} kursiga kirish faollashtirildi.
-        Obuna muddati <strong>{{ receipt.period_end|date:"d M Y"|default:"30 kun" }}</strong> gacha amal qiladi.
-      </p>
-      <span class="order-id-badge success-order"><i class="bi bi-hash"></i> AZ-{{ receipt.submitted_at|date:"Y" }}-{{ receipt.id }}</span>
-    </section>
-
-    <div class="status-info-row">
-      <div class="info-chip">
-        <div class="info-chip-icon ic-green"><i class="bi bi-calendar-check"></i></div>
-        <div class="info-chip-text">
-          <span>Faollashtirildi</span>
-          <strong>
-            {% if receipt.enrollment.last_payment_date %}
-              {{ receipt.enrollment.last_payment_date|date:"d M Y" }}
-            {% else %}
-              {{ receipt.submitted_at|date:"d M Y" }}
-            {% endif %}
-          </strong>
-        </div>
-      </div>
-      <div class="info-chip">
-        <div class="info-chip-icon ic-blue"><i class="bi bi-shield-check-fill"></i></div>
-        <div class="info-chip-text"><span>Holat</span><strong>To'landi</strong></div>
-      </div>
-      <div class="info-chip">
-        <div class="info-chip-icon ic-amber"><i class="bi bi-clock-history"></i></div>
-        <div class="info-chip-text"><span>Amal qilishi</span><strong>{{ receipt.period_end|date:"d M Y"|default:"30 kun" }}</strong></div>
-      </div>
-    </div>
-
-    <section class="order-card">
-      <div class="order-card-head">
-        <h3><i class="bi bi-receipt"></i> Buyurtma tafsiloti</h3>
-        {% if receipt.receipt_image %}
-          <a href="{{ receipt.receipt_image.url }}" class="download-link" target="_blank" rel="noopener">
-            <i class="bi bi-download"></i> Chekni ko'rish
-          </a>
-        {% endif %}
-      </div>
-      <div class="course-row">
-        <div class="course-thumb">{{ receipt.enrollment.cohort.course.title|slice:":2"|upper }}</div>
-        <div class="course-info">
-          <div class="course-name">{{ receipt.enrollment.cohort.course.title }}</div>
-          <div class="course-meta">{{ receipt.enrollment.cohort.course.get_level_display }} - {{ receipt.enrollment.plan.name|default:"Obuna" }}</div>
-          <div><span class="badge-xs bx-blue">Obuna</span> <span class="badge-xs bx-green">Sertifikat</span></div>
-        </div>
-        <div class="course-plan-cell">
-          <div class="course-plan-badge">{{ receipt.enrollment.plan.name|default:"Obuna" }}</div>
-          <div class="course-plan-sub">Kursga kirish faollashdi</div>
-        </div>
-      </div>
-      <div class="price-section">
-        <div class="price-row"><span class="price-row-label">Tarif narxi</span><span class="price-row-val">{{ receipt.base_amount|floatformat:0|intcomma }} so'm</span></div>
-        {% if receipt.discount_amount %}
-          <div class="price-row"><span class="price-row-label">Chegirma{% if receipt.promo_code_snapshot %} ({{ receipt.promo_code_snapshot }}){% endif %}</span><span class="price-row-val discount">-{{ receipt.discount_amount|floatformat:0|intcomma }} so'm</span></div>
-        {% endif %}
-        <div class="price-divider"></div>
-        <div class="price-total-row">
-          <span class="price-total-label">Jami to'landi</span>
-          <div class="price-paid-cell">
-            <div class="price-total-val">{{ receipt.amount|floatformat:0|intcomma }} so'm</div>
-            <div class="price-paid-tag"><i class="bi bi-check-circle-fill"></i> To'landi</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="next-card">
-      <div class="next-card-head"><h3><i class="bi bi-lightning-charge-fill"></i> Keyingi qadamlar</h3></div>
-      <div class="next-steps">
-        <a href="{% url 'course_study' receipt.enrollment.cohort.course.id %}" class="next-step">
-          <div class="step-num">1</div>
-          <div class="step-body"><div class="step-title">Birinchi darsni boshlang</div><div class="step-desc">Kurs muhiti ochildi, endi o'qishni davom ettirish mumkin.</div></div>
-          <i class="bi bi-chevron-right step-arrow"></i>
-        </a>
-        <a href="{% url 'subscriptions' %}" class="next-step">
-          <div class="step-num">2</div>
-          <div class="step-body"><div class="step-title">Obuna holatini ko'ring</div><div class="step-desc">To'lov tarixi va keyingi muddat /subscriptions/ sahifasida.</div></div>
-          <i class="bi bi-chevron-right step-arrow"></i>
-        </a>
-      </div>
-    </section>
-
-    <div class="cta-row">
-      <a href="{% url 'course_study' receipt.enrollment.cohort.course.id %}" class="btn-primary"><i class="bi bi-play-circle-fill"></i> O'qishni boshlash</a>
-      <a href="{% url 'dashboard' %}" class="btn-secondary"><i class="bi bi-grid"></i> Dashboard</a>
-      <a href="{% url 'courses' %}" class="btn-secondary"><i class="bi bi-search"></i> Boshqa kurslar</a>
-    </div>
-  </main>
-
-  <script src="{% static 'js/billing.js' %}"></script>
-</body>
-</html>
+  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+    {% if receipt %}<a href="{% url 'course_study' course_id=receipt.enrollment.cohort.course.id %}" style="display:inline-flex;align-items:center;gap:8px;height:46px;padding:0 22px;border-radius:11px;background:var(--azure);color:var(--on-azure);font-size:14.5px;font-weight:600;">Kursni boshlash <i class="bi bi-arrow-right" style="font-size:13px;"></i></a>{% endif %}
+    <a href="{% url 'dashboard' %}" style="display:inline-flex;align-items:center;gap:8px;height:46px;padding:0 22px;border-radius:11px;border:1px solid var(--line);color:var(--ink);font-size:14.5px;font-weight:600;">Boshqaruv paneli</a>
+  </div>
+</div>
+{% endblock %}

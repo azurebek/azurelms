@@ -1,116 +1,60 @@
 {% extends "base_public.html" %}
-{% load static %}
+{% comment %}
+  Narxlar (PricingView).
+  Proto: azurelms-proto/public/pricing.html.
+  Kontekst: plans (Plan: name, price, description, is_popular, button_text + features
+  [PlanFeature: name, is_included]).
+  Eslatma: yillik toggle (yillik narx maydoni yo'q) va qattiq 3-ustun taqqoslash
+  jadvali (plan soni dinamik) qoldirildi; har kartada real feature ro'yxati.
+{% endcomment %}
 
-{% block title %}Narxlar - {{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %}
-{% block meta_description %}{{ site_settings.brand_name|default:"AzureLMS" }} tariflari va obuna rejalari.{% endblock %}
-{% block body_class %}public-pricing-page{% endblock %}
-
-{% block styles %}
-  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
-  <link rel="stylesheet" href="{% static 'css/foundation.css' %}">
-  <link rel="stylesheet" href="{% static 'css/components.css' %}">
-  <link rel="stylesheet" href="{% static 'css/public.css' %}">
-  <link rel="stylesheet" href="{% static 'css/public-pricing.css' %}?v=20260524-grid">
-{% endblock %}
-
+{% block title %}Narxlar — AzureLMS{% endblock %}
 {% block content %}
-  <section class="hero">
-    <div class="hero-inner">
-      <div class="hero-label"><i class="bi bi-tag"></i> Shaffof narx siyosati</div>
-      <h1 class="hero-title">Maqsadingizga mos<br>reja tanlang</h1>
-      <p class="hero-desc">Tariflar, kurslar va sertifikat yo'li bitta platformada.</p>
-      <div class="billing-toggle">
-        <button class="toggle-opt active" type="button" data-billing-toggle="monthly">Oylik</button>
-        <button class="toggle-opt" type="button" data-billing-toggle="yearly">Yillik <span class="toggle-save"><i class="bi bi-lightning-fill"></i> tejash</span></button>
-      </div>
-    </div>
-  </section>
+<div style="max-width:1080px;margin:0 auto;padding:clamp(28px,5vw,56px) clamp(18px,4vw,32px);">
 
-  <div class="pricing-wrap">
-    <div class="plans {% if plans|length == 1 %}plans--single{% endif %}">
-      {% for plan in plans %}
-        <article class="plan-card {% if plan.is_popular %}featured{% endif %}">
-          {% if plan.is_popular %}<div class="plan-badge">Eng mashhur</div>{% endif %}
-          <div class="plan-icon {% if plan.is_popular %}badge-cert{% else %}badge-new{% endif %}"><i class="bi bi-stars"></i></div>
-          <div class="plan-name">{{ plan.name }}</div>
-          <div class="plan-desc">{{ plan.description|striptags|truncatechars:140 }}</div>
-          <div class="plan-price">
-            <span class="plan-price-main" data-monthly="{{ plan.price|floatformat:0 }}">{{ plan.price|floatformat:0 }}</span>
-            <span class="plan-price-period">so'm/oy</span>
-          </div>
-          <div class="plan-price-old"></div>
-          <a class="plan-btn {% if plan.is_popular %}plan-btn-primary{% else %}plan-btn-outline{% endif %}" href="{% url 'register' %}">{{ plan.button_text }}</a>
-          <div class="plan-divider"></div>
-          <ul class="plan-features">
-            {% for feature in plan.features.all %}
-              <li>
-                <i class="bi {% if feature.is_included %}bi-check-circle-fill feat-check{% else %}bi-x-circle feat-x{% endif %}"></i>
-                <span {% if not feature.is_included %}class="feat-dim"{% endif %}>{{ feature.name }}</span>
-              </li>
-            {% empty %}
-              <li><i class="bi bi-check-circle-fill feat-check"></i> Kurslarga kirish</li>
-              <li><i class="bi bi-check-circle-fill feat-check"></i> Video darslar</li>
-              <li><i class="bi bi-check-circle-fill feat-check"></i> Progress kuzatuvi</li>
-            {% endfor %}
-          </ul>
-        </article>
-      {% empty %}
-        <article class="plan-card featured">
-          <div class="plan-badge">Boshlash uchun</div>
-          <div class="plan-icon badge-cert"><i class="bi bi-stars"></i></div>
-          <div class="plan-name">Pro</div>
-          <div class="plan-desc">Kurslar, darslar, exam va sertifikat oqimi uchun asosiy reja.</div>
-          <div class="plan-price"><span class="plan-price-main">199 000</span><span class="plan-price-period">so'm/oy</span></div>
-          <a class="plan-btn plan-btn-primary" href="{% url 'register' %}">Boshlash</a>
-          <div class="plan-divider"></div>
-          <ul class="plan-features">
-            <li><i class="bi bi-check-circle-fill feat-check"></i> Barcha public kurslarni ko'rish</li>
-            <li><i class="bi bi-check-circle-fill feat-check"></i> Dashboard va progress</li>
-            <li><i class="bi bi-check-circle-fill feat-check"></i> Sertifikat flow</li>
-          </ul>
-        </article>
-      {% endfor %}
-    </div>
-
-    <section class="compare-section">
-      <h2 class="compare-title">Batafsil taqqoslash</h2>
-      <p class="compare-sub">Har bir rejada asosiy o'quv oqimi qanday ishlashini ko'ring.</p>
-      <table class="compare-table">
-        <thead>
-          <tr>
-            <th>Xususiyat</th>
-            <th class="th-plan">Starter</th>
-            <th class="th-plan featured-col">Pro</th>
-            <th class="th-plan">Team</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="feat-group-row"><td colspan="4">Kurslar va kontent</td></tr>
-          <tr><td>Video darslar</td><td><i class="bi bi-check-lg check-yes"></i></td><td><i class="bi bi-check-lg check-yes"></i></td><td><i class="bi bi-check-lg check-yes"></i></td></tr>
-          <tr><td>Materiallar</td><td><i class="bi bi-check-lg check-yes"></i></td><td><i class="bi bi-check-lg check-yes"></i></td><td><i class="bi bi-check-lg check-yes"></i></td></tr>
-          <tr class="feat-group-row"><td colspan="4">Sertifikat va yordam</td></tr>
-          <tr><td>Sertifikat</td><td><i class="bi bi-x-lg check-no"></i></td><td><i class="bi bi-check-lg check-yes"></i></td><td><i class="bi bi-check-lg check-yes"></i></td></tr>
-          <tr><td>Mentor yordami</td><td>Email</td><td>Chat</td><td>Ustuvor</td></tr>
-        </tbody>
-      </table>
-    </section>
-
-    <section class="faq-section">
-      <h2 class="faq-title">Ko'p so'raladigan savollar</h2>
-      <p class="faq-sub">Obuna va kurslarga kirish bo'yicha qisqa javoblar.</p>
-      <div class="faq-item open">
-        <button class="faq-q" type="button"><span class="faq-q-text">Obuna kursga kirishni ochadimi?</span><i class="bi bi-chevron-down faq-chevron"></i></button>
-        <div class="faq-a">Ha, tanlangan tarif va checkout shartlariga qarab kurslarga kirish ochiladi.</div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-q" type="button"><span class="faq-q-text">Sertifikat qanday olinadi?</span><i class="bi bi-chevron-down faq-chevron"></i></button>
-        <div class="faq-a">Kurs talablarini bajarib, imtihon va progress mezonlaridan o'tganingizdan keyin sertifikat tayyorlanadi.</div>
-      </div>
-    </section>
+  <div style="text-align:center;max-width:600px;margin:0 auto 42px;">
+    <h1 style="font-size:clamp(28px,3.6vw,42px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:0 0 12px;">O'zingizga mos tarifni tanlang</h1>
+    <p style="font-size:15.5px;line-height:1.6;color:var(--ink-3);margin:0;">Bepuldan boshlang, kerak bo'lganda yuqori tarifga o'ting. Istalgan vaqtda bekor qilish mumkin.</p>
   </div>
-{% endblock %}
 
-{% block scripts %}
-  <script src="{% static 'js/public-home.js' %}"></script>
-  <script src="{% static 'js/public-pages.js' %}"></script>
+  {% if plans %}
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;align-items:stretch;max-width:980px;margin:0 auto;">
+    {% for plan in plans %}
+    <article style="position:relative;border-radius:16px;background:var(--panel);padding:26px;display:flex;flex-direction:column;{% if plan.is_popular %}border:1.5px solid var(--azure);box-shadow:0 2px 8px rgba(11,14,21,.06),0 30px 70px rgba(18,87,230,.12);{% else %}border:1px solid var(--line);{% endif %}">
+      {% if plan.is_popular %}
+      <div style="position:absolute;top:0;left:0;right:0;height:4px;background:var(--azure);border-radius:16px 16px 0 0;"></div>
+      <span style="position:absolute;top:18px;right:18px;font-family:'Space Mono',monospace;font-size:9.5px;letter-spacing:.08em;color:var(--azure);background:var(--azure-soft);padding:4px 9px;border-radius:6px;">OMMABOP</span>
+      {% endif %}
+      <div style="font-family:'Space Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);">{{ plan.name }}</div>
+      {% if plan.description %}<div style="font-size:12.5px;color:var(--ink-3);margin:6px 0 14px;line-height:1.4;">{{ plan.description|striptags|truncatewords:10 }}</div>{% else %}<div style="margin-bottom:14px;"></div>{% endif %}
+      <div style="display:flex;align-items:baseline;gap:4px;">
+        {% if plan.price > 0 %}<span style="font-family:'Space Mono',monospace;font-size:34px;font-weight:700;color:var(--ink);letter-spacing:-.02em;">{{ plan.price|floatformat:0 }}</span><span style="font-size:13px;color:var(--ink-3);">so'm/oy</span>{% else %}<span style="font-family:'Space Mono',monospace;font-size:34px;font-weight:700;color:var(--ink);letter-spacing:-.02em;">Bepul</span>{% endif %}
+      </div>
+      <a href="{% if user.is_authenticated %}{% url 'courses' %}{% else %}{% url 'register' %}{% endif %}" style="display:flex;align-items:center;justify-content:center;gap:8px;height:44px;border-radius:11px;font-size:14px;font-weight:600;margin-top:20px;{% if plan.is_popular %}background:var(--azure);color:var(--on-azure);{% else %}background:transparent;border:1px solid var(--line);color:var(--ink);{% endif %}">{{ plan.button_text }}</a>
+      {% if plan.features.all %}
+      <div style="height:1px;background:var(--line);margin:22px 0;"></div>
+      <div style="display:flex;flex-direction:column;gap:11px;">
+        {% for f in plan.features.all %}
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          {% if f.is_included %}<i class="bi bi-check-lg" style="font-size:15px;flex:0 0 auto;margin-top:1px;color:var(--azure);"></i><span style="font-size:13.5px;line-height:1.45;color:var(--ink-2);">{{ f.name }}</span>{% else %}<i class="bi bi-dash" style="font-size:15px;flex:0 0 auto;margin-top:1px;color:var(--ink-4);"></i><span style="font-size:13.5px;line-height:1.45;color:var(--ink-4);">{{ f.name }}</span>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div style="border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:56px 24px;text-align:center;max-width:520px;margin:0 auto;">
+    <span style="width:60px;height:60px;border-radius:16px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:27px;margin:0 auto 14px;"><i class="bi bi-tags"></i></span>
+    <div style="font-size:17px;font-weight:600;color:var(--ink);margin-bottom:6px;">Tariflar hozircha mavjud emas</div>
+    <div style="font-size:13.5px;color:var(--ink-3);line-height:1.6;">Tez orada e'lon qilamiz. Hozir kurslarni ko'rib chiqing.</div>
+    <a href="{% url 'courses' %}" style="margin-top:16px;display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:10px;background:var(--azure);color:var(--on-azure);font-size:14px;font-weight:600;">Kurslarni ko'rish <i class="bi bi-arrow-right" style="font-size:13px;"></i></a>
+  </div>
+  {% endif %}
+
+  <!-- Kafolat -->
+  <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:32px;font-size:13px;color:var(--ink-3);"><i class="bi bi-shield-check" style="color:var(--green);"></i> Xavfsiz to'lov · istalgan vaqtda bekor qilish</div>
+
+</div>
 {% endblock %}
