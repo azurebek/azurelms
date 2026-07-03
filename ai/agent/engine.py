@@ -37,6 +37,20 @@ class AIEngine:
             skill = self.skill_registry.select_for_request(request)
             tool_context = self.tool_context_service.build(request=request, skill=skill)
             safe_question = self.memory_service.sanitize_user_question(request.user_question)
+            
+            if skill.slug == "smart_form" and getattr(request, "room", None):
+                from messenger.models import SmartFormSession
+                from ai.smart_form.engine import SmartFormEngine
+                
+                active_session = SmartFormSession.objects.filter(
+                    chat_room=request.room
+                ).exclude(status__in=['COMPLETED', 'FAILED', 'CANCELLED', 'EXPIRED']).first()
+                
+                if active_session:
+                    form_engine = SmartFormEngine(active_session)
+                    intent = form_engine.process_user_message(safe_question)
+                    safe_question = f"{safe_question}\n\n[SYSTEM INSTRUCTION - SMART FORM ENGINE INTENT: {intent}]"
+            
             conversation_context = self.memory_service.get_conversation_context(
                 room=request.room,
                 student=request.student,
