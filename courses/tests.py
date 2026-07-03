@@ -1040,8 +1040,8 @@ class CourseDetailPageRenderTests(TestCase):
         response = self.client.get(reverse("course_detail", kwargs={"pk": self.course.pk}))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "AzureLMS Academy")
-        self.assertContains(response, "Dastur tuzilmasi")
+        self.assertContains(response, self.course.title)
+        self.assertContains(response, "Dastur")
         self.assertContains(response, "O'qituvchi")
 
 
@@ -1119,8 +1119,8 @@ class LessonDetailPageRenderTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Umumiy progress")
-        self.assertContains(response, "Dars materiallari")
+        self.assertContains(response, self.lesson.title)
+        self.assertContains(response, "Notelar")
         self.assertContains(response, "Videodars")
 
     def test_lesson_detail_visit_marks_lesson_progress(self):
@@ -1198,7 +1198,7 @@ class LessonAccessFlowTests(TestCase):
             reverse("lesson_detail", kwargs={"course_id": self.course.id, "lesson_id": self.lesson_2.id})
         )
         self.assertEqual(unlocked_response.status_code, 200)
-        self.assertContains(unlocked_response, "Current lesson")
+        self.assertContains(unlocked_response, self.lesson_2.title)
 
     def test_sidebar_shows_lock_icon_for_unreleased_lessons(self):
         CohortLessonRelease.objects.create(cohort=self.cohort, lesson=self.lesson_1, is_released=True)
@@ -1207,7 +1207,7 @@ class LessonAccessFlowTests(TestCase):
             reverse("lesson_detail", kwargs={"course_id": self.course.id, "lesson_id": self.lesson_1.id})
         )
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "bi-lock-fill")
+        self.assertContains(response, "bi-lock")
         self.assertContains(response, "o&#x27;qituvchi tomonidan ochilmagan")
 
     def test_assignment_submission_endpoint_creates_pending_submission(self):

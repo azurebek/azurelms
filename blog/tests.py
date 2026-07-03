@@ -99,7 +99,7 @@ class BlogFlowTests(TestCase):
         edit_response = self.client.get(reverse("blog:studio_edit", args=[self.post.slug]))
 
         self.assertEqual(studio_response.status_code, 200)
-        self.assertContains(studio_response, "Studio Dashboard")
+        self.assertContains(studio_response, "Blog studiya")
         self.assertEqual(create_response.status_code, 200)
         self.assertContains(create_response, "Yangi maqola")
         self.assertEqual(edit_response.status_code, 200)

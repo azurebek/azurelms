@@ -30,7 +30,7 @@ class BackofficeDashboardTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "backoffice/dashboard.html")
         self.assertContains(response, "Backoffice")
-        self.assertContains(response, "Faol talabalar")
+        self.assertContains(response, "Faol o'quvchi")
         self.assertContains(response, "E'tibor talab qiladi")
         self.assertContains(response, "AI RAG index")
         self.assertIn("rag_status", response.context)
@@ -76,15 +76,16 @@ class BackofficeDashboardTests(TestCase):
         Message.objects.create(room=chat_room, text="Monitoring uchun test xabar", is_ai_response=True)
         self.client.force_login(self.staff_user)
 
+        # Markerlar yangi AdminShell sahifa sarlavhalariga mos
         checks = (
-            (reverse("backoffice_users"), "Foydalanuvchilarni boshqarish"),
-            (reverse("backoffice_chats"), "Chat monitoring"),
-            (reverse("backoffice_course_create"), "Course Builder"),
-            (reverse("backoffice_course_edit", kwargs={"course_id": course.pk}), "Kurs ma'lumotlari"),
-            (reverse("backoffice_lessons"), "Lesson Editor"),
-            (reverse("backoffice_lesson_edit", kwargs={"lesson_id": lesson.pk}), "Dars asoslari"),
-            (reverse("backoffice_exams"), "Exam Builder"),
-            (reverse("backoffice_exam_edit", kwargs={"exam_id": exam.pk}), "Imtihon sozlamalari"),
+            (reverse("backoffice_users"), "Foydalanuvchilar"),
+            (reverse("backoffice_chats"), "Suhbatlar"),
+            (reverse("backoffice_course_create"), "Yangi kurs"),
+            (reverse("backoffice_course_edit", kwargs={"course_id": course.pk}), course.title),
+            (reverse("backoffice_lessons"), "Dars muharriri"),
+            (reverse("backoffice_lesson_edit", kwargs={"lesson_id": lesson.pk}), lesson.title),
+            (reverse("backoffice_exams"), "Imtihon muharriri"),
+            (reverse("backoffice_exam_edit", kwargs={"exam_id": exam.pk}), exam.title),
         )
 
         for url, marker in checks:
