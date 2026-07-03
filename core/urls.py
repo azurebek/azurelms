@@ -6,6 +6,7 @@ from django.conf.urls.static import static
 
 from frontend.views import home_view, about_view, legal_page_view
 from core import views as core_views
+from core import teacher_views
 
 handler404 = "core.views.page_not_found"
 handler403 = "core.views.permission_denied"
@@ -55,6 +56,16 @@ urlpatterns = [
     path('backoffice/lessons/<int:lesson_id>/', core_views.backoffice_lesson_editor, name='backoffice_lesson_edit'),
     path('backoffice/exams/', core_views.backoffice_exam_editor, name='backoffice_exams'),
     path('backoffice/exams/<int:exam_id>/', core_views.backoffice_exam_editor, name='backoffice_exam_edit'),
+
+    # TeacherShell — o'qituvchi paneli
+    path('teacher/', teacher_views.teacher_dashboard, name='teacher_dashboard'),
+    path('teacher/cohorts/', teacher_views.teacher_cohorts, name='teacher_cohorts'),
+    path('teacher/students/', teacher_views.teacher_students, name='teacher_students'),
+    path('teacher/courses/', teacher_views.teacher_courses_view, name='teacher_courses'),
+    path('teacher/grading/', teacher_views.teacher_grading, name='teacher_grading'),
+    path('teacher/grading/exam/<int:attempt_id>/', teacher_views.teacher_grade_exam, name='teacher_grade_exam'),
+    path('teacher/grading/assignment/<int:submission_id>/', teacher_views.teacher_grade_assignment, name='teacher_grade_assignment'),
+    path('teacher/attendance/', teacher_views.teacher_attendance, name='teacher_attendance'),
 ]
 
 if settings.PROMETHEUS_ENABLED:

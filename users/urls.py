@@ -13,11 +13,14 @@ from .views import (
     AIMemoryListView, AIMemoryArchiveView, AIMemoryClearAllView, AIMemoryRejectView, AIMemoryToggleView,
     DashboardView, MyCoursesView, SubscriptionHistoryView, CertificateListView, LeaderboardView,
     AttendanceCalendarView, AttendanceManageView,
-    NotificationCenterView, NotificationOpenView, NotificationReadAllView, HelpCenterView
+    NotificationCenterView, NotificationOpenView, NotificationReadAllView, HelpCenterView,
+    OnboardingChoiceView, StartSmartOnboardingView
 )
 
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
+    path('register/onboarding/', OnboardingChoiceView.as_view(), name='onboarding_choice'),
+    path('register/onboarding/ai/', StartSmartOnboardingView.as_view(), name='start_smart_onboarding'),
     path('login/', LoginView.as_view(template_name='registration/login.html', redirect_authenticated_user=True), name='login'),
     path('logout/', LogoutView.as_view(next_page='home'), name='logout'),
     path('profile/', UserProfileView.as_view(), name='profile'),

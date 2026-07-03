@@ -1,0 +1,155 @@
+{% extends "base_teacher.html" %}
+{% comment %}
+  Imtihon urinishini baholash. Avto bo'limlar (rich/MCQ) — natija readonly ko'rinadi,
+  writing/speaking — har javobga ball + per-esse izoh (grader_feedback), so'ng bo'lim bali.
+  "Saqlash" = qoralama; "Tasdiqlash" = finalize_review (ball %, o'tdi/o'tmadi, sertifikat).
+{% endcomment %}
+
+{% block t_title %}Baholash — {{ attempt.exam.title }}{% endblock %}
+{% block t_icon %}bi-check2-square{% endblock %}
+{% block t_topbar %}Imtihonni tekshirish{% endblock %}
+
+{% block t_content %}
+<form method="post" style="max-width:900px;">
+  {% csrf_token %}
+
+  <!-- Sarlavha -->
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:18px;">
+    <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+      <a href="{% url 'teacher_grading' %}" aria-label="Orqaga" style="width:38px;height:38px;border-radius:10px;border:1px solid var(--line);color:var(--ink-2);display:grid;place-items:center;font-size:15px;flex:0 0 auto;"><i class="bi bi-arrow-left"></i></a>
+      <span style="width:42px;height:42px;border-radius:11px;background:var(--violet-soft, var(--azure-soft));color:var(--violet, var(--azure));display:grid;place-items:center;font-weight:700;font-size:14px;flex:0 0 auto;">{{ attempt.student.first_name.0|default:attempt.student.username.0|upper }}{{ attempt.student.last_name.0|upper }}</span>
+      <div style="min-width:0;">
+        <div style="font-size:16px;font-weight:600;color:var(--ink);">{{ attempt.student.get_full_name|default:attempt.student.username }}</div>
+        <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);">{{ attempt.exam.title }} · urinish #{{ attempt.attempt_number }} · {{ attempt.completed_time|date:"d.m.Y H:i" }}</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      {% if attempt.blur_warnings %}<span style="display:inline-flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:11px;color:var(--amber);background:var(--amber-soft);padding:5px 11px;border-radius:7px;" title="Imtihon paytida sahifadan chiqishlar"><i class="bi bi-eye"></i> {{ attempt.blur_warnings }} ogohlantirish</span>{% endif %}
+      {% if attempt.is_reviewed %}<span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--green);background:var(--green-soft);padding:5px 11px;border-radius:7px;"><i class="bi bi-check2-circle"></i> Tasdiqlangan ({{ attempt.score|floatformat:0 }}%)</span>{% endif %}
+    </div>
+  </div>
+
+  <!-- Bo'limlar -->
+  {% for item in sections %}
+  <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;margin-bottom:16px;">
+    <div style="display:flex;align-items:center;gap:11px;padding:13px 18px;border-bottom:1px solid var(--line);background:var(--paper-2);">
+      <span style="width:32px;height:32px;border-radius:9px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:14px;flex:0 0 auto;">
+        {% if item.section.section_type == 'listening' %}<i class="bi bi-headphones"></i>{% elif item.section.section_type == 'reading' %}<i class="bi bi-book"></i>{% elif item.section.section_type == 'writing' %}<i class="bi bi-pencil"></i>{% elif item.section.section_type == 'speaking' %}<i class="bi bi-mic"></i>{% else %}<i class="bi bi-ui-checks"></i>{% endif %}
+      </span>
+      <span style="flex:1;min-width:0;font-size:14.5px;font-weight:600;color:var(--ink);">{{ item.section.title }} <span style="font-weight:400;color:var(--ink-3);">· {{ item.section.get_section_type_display }}</span></span>
+      <span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);flex:0 0 auto;">max {{ item.section.max_score }} ball</span>
+    </div>
+
+    <div style="padding:18px;">
+      {% if item.manual %}
+        {# Writing/Speaking — har javob alohida baholanadi #}
+        {% for answer in item.answers %}
+        <article style="border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px;">
+          <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;">Savol {{ forloop.counter }}</div>
+          <div style="font-size:14px;font-weight:600;line-height:1.5;color:var(--ink);margin-bottom:12px;">{{ answer.question.text|striptags|truncatechars:220 }}</div>
+
+          {% if answer.answer_text %}
+            <div style="border:1px solid var(--line);border-radius:11px;background:var(--paper-2);padding:14px 16px;font-size:14px;line-height:1.7;color:var(--ink-2);margin-bottom:8px;white-space:pre-wrap;">{{ answer.answer_text }}</div>
+            <div style="font-family:'Space Mono',monospace;font-size:11px;color:{% if answer.question.min_word_count and answer.word_count < answer.question.min_word_count %}var(--amber){% else %}var(--ink-3){% endif %};margin-bottom:12px;">
+              {{ answer.word_count }} so'z{% if answer.question.min_word_count or answer.question.max_word_count %} (talab: {% if answer.question.min_word_count %}min {{ answer.question.min_word_count }}{% endif %}{% if answer.question.max_word_count %} / max {{ answer.question.max_word_count }}{% endif %}){% endif %}
+            </div>
+          {% endif %}
+          {% if answer.audio_file_url %}
+            <audio controls src="{{ answer.audio_file_url }}" style="width:100%;max-width:440px;margin-bottom:12px;"></audio>
+          {% endif %}
+          {% if not answer.answer_text and not answer.audio_file_url %}
+            <div style="border:1px dashed var(--line);border-radius:11px;padding:14px;font-size:13px;color:var(--ink-4);margin-bottom:12px;">Javob berilmagan.</div>
+          {% endif %}
+
+          <div style="display:grid;grid-template-columns:130px 1fr;gap:12px;align-items:start;">
+            <label style="display:block;">
+              <span style="display:block;font-size:11.5px;color:var(--ink-3);margin-bottom:5px;">Ball (0–{{ answer.question.points }})</span>
+              <input type="number" name="answer_score_{{ answer.id }}" value="{{ answer.awarded_score|floatformat:'-2' }}" min="0" max="{{ answer.question.points }}" step="0.5" data-answer-score data-section="{{ item.review.id }}" style="width:100%;height:40px;padding:0 12px;border-radius:9px;border:1px solid var(--line);background:var(--paper-2);color:var(--ink);font-family:'Space Mono',monospace;font-size:14px;font-weight:700;outline:none;">
+            </label>
+            <label style="display:block;">
+              <span style="display:block;font-size:11.5px;color:var(--ink-3);margin-bottom:5px;">Shu javobga izoh (o'quvchi natija sahifasida ko'radi)</span>
+              <textarea name="answer_feedback_{{ answer.id }}" rows="2" placeholder="Masalan: tuzilma yaxshi, grammatikaga e'tibor bering…" style="width:100%;border:1px solid var(--line);border-radius:9px;background:var(--paper-2);color:var(--ink);font-size:13.5px;line-height:1.55;padding:10px 12px;outline:none;resize:vertical;">{{ answer.grader_feedback }}</textarea>
+            </label>
+          </div>
+        </article>
+        {% empty %}
+        <div style="border:1px dashed var(--line);border-radius:11px;padding:16px;font-size:13px;color:var(--ink-4);margin-bottom:14px;">Bu bo'limda javoblar yo'q.</div>
+        {% endfor %}
+      {% else %}
+        {# Avto-baholangan bo'lim — qisqa xulosa #}
+        <div style="display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:11px;background:var(--paper-2);padding:12px 15px;margin-bottom:14px;font-size:13px;color:var(--ink-2);">
+          <i class="bi bi-cpu" style="color:var(--azure);"></i>
+          Avto-baholangan:
+          {% if item.has_rich %}boy savollar jami <b style="font-family:'Space Mono',monospace;color:var(--ink);">{{ item.reading_total|floatformat:'-2' }}</b> ball{% endif %}
+          {% if item.answers %}{% if item.has_rich %} + {% endif %}test javoblari{% endif %}
+          — quyidagi bo'lim bali topshirilganda avto to'ldirilgan, xohlasangiz o'zgartiring.
+        </div>
+      {% endif %}
+
+      <div style="display:flex;align-items:end;gap:14px;flex-wrap:wrap;padding-top:14px;border-top:1px solid var(--line-2);">
+        <label style="display:block;flex:0 0 150px;">
+          <span style="display:block;font-size:11.5px;color:var(--ink-3);margin-bottom:5px;">Bo'lim bali (0–{{ item.section.max_score }})</span>
+          <input type="number" name="section_score_{{ item.review.id }}" value="{{ item.review.awarded_score|floatformat:'-2' }}" min="0" max="{{ item.section.max_score }}" step="0.5" data-section-score="{{ item.review.id }}" style="width:100%;height:42px;padding:0 12px;border-radius:9px;border:1px solid var(--azure);background:var(--azure-soft);color:var(--ink);font-family:'Space Mono',monospace;font-size:15px;font-weight:700;outline:none;">
+        </label>
+        <label style="display:block;flex:1;min-width:220px;">
+          <span style="display:block;font-size:11.5px;color:var(--ink-3);margin-bottom:5px;">Bo'lim izohi</span>
+          <input type="text" name="section_feedback_{{ item.review.id }}" value="{{ item.review.feedback }}" placeholder="Umumiy fikr…" style="width:100%;height:42px;padding:0 13px;border-radius:9px;border:1px solid var(--line);background:var(--paper-2);color:var(--ink);font-size:13.5px;outline:none;">
+        </label>
+      </div>
+    </div>
+  </section>
+  {% endfor %}
+
+  <!-- Yakun -->
+  <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:18px;margin-bottom:20px;">
+    <label style="display:block;margin-bottom:14px;">
+      <span style="display:block;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;">Yakuniy izoh (butun imtihon bo'yicha)</span>
+      <textarea name="review_notes" rows="3" placeholder="O'quvchiga umumiy fikr…" style="width:100%;border:1px solid var(--line);border-radius:11px;background:var(--paper-2);color:var(--ink);font-size:14px;line-height:1.6;padding:13px 15px;outline:none;resize:vertical;">{{ attempt.review_notes }}</textarea>
+    </label>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:baseline;gap:8px;">
+        <span style="font-size:13px;color:var(--ink-3);">Jami:</span>
+        <span style="font-family:'Space Mono',monospace;font-size:26px;font-weight:700;color:var(--ink);" data-total-score>{{ section_total|floatformat:'-2' }}</span>
+        <span style="font-size:13px;color:var(--ink-3);">/ {{ exam_max }} (<span data-total-percent>{{ projected_percent }}</span>% · o'tish: {{ attempt.exam.passing_score }}%)</span>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button type="submit" name="action" value="save" style="display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 18px;border-radius:10px;border:1px solid var(--line);color:var(--ink-2);background:transparent;font-size:13.5px;font-weight:600;cursor:pointer;"><i class="bi bi-save"></i> Saqlash</button>
+        <button type="submit" name="action" value="finalize" onclick="return confirm('Natija tasdiqlanadi va o\'quvchiga ko\'rinadi. Davom etasizmi?');" style="display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 20px;border-radius:10px;background:var(--green);color:#fff;border:none;font-size:13.5px;font-weight:600;cursor:pointer;"><i class="bi bi-check2-circle"></i> Tasdiqlash va yakunlash</button>
+      </div>
+    </div>
+  </section>
+</form>
+
+<script>
+(function(){
+  // Writing/Speaking javob ballari o'zgarsa — bo'lim balini avto-jamlash + umumiy foiz
+  var EXAM_MAX = {{ exam_max|default:0 }};
+  function recalcSection(reviewId){
+    var sum = 0;
+    document.querySelectorAll('[data-answer-score][data-section="' + reviewId + '"]').forEach(function(inp){
+      sum += parseFloat(inp.value) || 0;
+    });
+    var target = document.querySelector('[data-section-score="' + reviewId + '"]');
+    if (target) {
+      var max = parseFloat(target.getAttribute('max')) || sum;
+      target.value = Math.min(sum, max);
+    }
+    recalcTotal();
+  }
+  function recalcTotal(){
+    var total = 0;
+    document.querySelectorAll('[data-section-score]').forEach(function(inp){ total += parseFloat(inp.value) || 0; });
+    var totalEl = document.querySelector('[data-total-score]');
+    var pctEl = document.querySelector('[data-total-percent]');
+    if (totalEl) totalEl.textContent = (Math.round(total * 100) / 100).toString();
+    if (pctEl && EXAM_MAX) pctEl.textContent = (Math.round(total / EXAM_MAX * 1000) / 10).toString();
+  }
+  document.querySelectorAll('[data-answer-score]').forEach(function(inp){
+    inp.addEventListener('input', function(){ recalcSection(inp.getAttribute('data-section')); });
+  });
+  document.querySelectorAll('[data-section-score]').forEach(function(inp){
+    inp.addEventListener('input', recalcTotal);
+  });
+})();
+</script>
+{% endblock %}

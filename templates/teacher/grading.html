@@ -1,0 +1,65 @@
+{% extends "base_teacher.html" %}
+{% comment %} Tekshirish navbati — kutayotgan imtihon urinishlari + topshiriqlar. {% endcomment %}
+
+{% block t_title %}Tekshirish{% endblock %}
+{% block t_icon %}bi-check2-square{% endblock %}
+{% block t_topbar %}Tekshirish{% endblock %}
+
+{% block t_content %}
+<div style="max-width:1000px;">
+  <div style="margin-bottom:20px;">
+    <h1 style="font-size:clamp(22px,2.6vw,28px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:0 0 6px;">Tekshirish navbati</h1>
+    <p style="font-size:14px;color:var(--ink-3);margin:0;">{{ grading_pending_count }} ta ish tekshirishni kutmoqda.</p>
+  </div>
+
+  <!-- Imtihon urinishlari -->
+  <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:0 0 10px;">Imtihonlar ({{ pending_exams|length }})</div>
+  <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;margin-bottom:22px;">
+    {% for attempt in pending_exams %}
+    <a href="{% url 'teacher_grade_exam' attempt.id %}" style="display:flex;align-items:center;gap:13px;padding:13px 16px;{% if not forloop.last %}border-bottom:1px solid var(--line-2);{% endif %}transition:background .15s;">
+      <span style="width:38px;height:38px;border-radius:10px;background:var(--violet-soft, var(--azure-soft));color:var(--violet, var(--azure));display:grid;place-items:center;font-weight:700;font-size:13px;flex:0 0 auto;">{{ attempt.student.first_name.0|default:attempt.student.username.0|upper }}{{ attempt.student.last_name.0|upper }}</span>
+      <span style="flex:1;min-width:0;">
+        <span style="display:block;font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ attempt.exam.title }}</span>
+        <span style="display:block;font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);">{{ attempt.student.get_full_name|default:attempt.student.username }} · {{ attempt.exam.course.title|truncatechars:26 }} · {{ attempt.completed_time|date:"d.m H:i" }}</span>
+      </span>
+      {% if attempt.blur_warnings %}<span style="font-family:'Space Mono',monospace;font-size:10.5px;color:var(--amber);background:var(--amber-soft);padding:3px 9px;border-radius:6px;flex:0 0 auto;" title="Sahifadan chiqishlar"><i class="bi bi-eye"></i> {{ attempt.blur_warnings }}</span>{% endif %}
+      <span style="font-family:'Space Mono',monospace;font-size:10.5px;color:var(--azure);background:var(--azure-soft);padding:4px 10px;border-radius:6px;flex:0 0 auto;">Urinish #{{ attempt.attempt_number }}</span>
+      <i class="bi bi-arrow-right" style="color:var(--ink-4);flex:0 0 auto;"></i>
+    </a>
+    {% empty %}
+    <div style="padding:26px 16px;text-align:center;color:var(--ink-3);font-size:13.5px;"><i class="bi bi-check2-circle" style="color:var(--green);margin-right:6px;"></i>Tekshirilmagan imtihon yo'q.</div>
+    {% endfor %}
+  </section>
+
+  <!-- Topshiriqlar -->
+  <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:0 0 10px;">Uy vazifalari ({{ pending_assignments|length }})</div>
+  <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;margin-bottom:22px;">
+    {% for submission in pending_assignments %}
+    <a href="{% url 'teacher_grade_assignment' submission.id %}" style="display:flex;align-items:center;gap:13px;padding:13px 16px;{% if not forloop.last %}border-bottom:1px solid var(--line-2);{% endif %}">
+      <span style="width:38px;height:38px;border-radius:10px;background:var(--green-soft);color:var(--green);display:grid;place-items:center;font-size:15px;flex:0 0 auto;"><i class="bi bi-journal-text"></i></span>
+      <span style="flex:1;min-width:0;">
+        <span style="display:block;font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ submission.assignment.title }}</span>
+        <span style="display:block;font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);">{{ submission.student.get_full_name|default:submission.student.username }} · {{ submission.assignment.lesson.title|truncatechars:30 }} · {{ submission.submitted_at|date:"d.m H:i" }}</span>
+      </span>
+      <i class="bi bi-arrow-right" style="color:var(--ink-4);flex:0 0 auto;"></i>
+    </a>
+    {% empty %}
+    <div style="padding:26px 16px;text-align:center;color:var(--ink-3);font-size:13.5px;"><i class="bi bi-check2-circle" style="color:var(--green);margin-right:6px;"></i>Tekshirilmagan vazifa yo'q.</div>
+    {% endfor %}
+  </section>
+
+  {% if recently_reviewed %}
+  <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:0 0 10px;">Yaqinda tasdiqlangan</div>
+  <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;">
+    {% for attempt in recently_reviewed %}
+    <div style="display:flex;align-items:center;gap:12px;padding:11px 16px;{% if not forloop.last %}border-bottom:1px solid var(--line-2);{% endif %}">
+      <i class="bi {% if attempt.passed %}bi-check-circle-fill" style="color:var(--green);{% else %}bi-x-circle-fill" style="color:var(--red);{% endif %}flex:0 0 auto;"></i>
+      <span style="flex:1;min-width:0;font-size:13px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ attempt.student.get_full_name|default:attempt.student.username }} — {{ attempt.exam.title }}</span>
+      <span style="font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:var(--ink);flex:0 0 auto;">{{ attempt.score|floatformat:0 }}%</span>
+      <span style="font-family:'Space Mono',monospace;font-size:10.5px;color:var(--ink-4);flex:0 0 auto;">{{ attempt.reviewed_at|date:"d.m" }}</span>
+    </div>
+    {% endfor %}
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

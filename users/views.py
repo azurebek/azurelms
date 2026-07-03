@@ -37,7 +37,7 @@ def home_view(request):
 class RegisterView(CreateView):
     form_class = CustomUserCreationForm
     template_name = 'registration/register.html'
-    success_url = reverse_lazy('dashboard')
+    success_url = reverse_lazy('onboarding_choice')
 
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated:
@@ -52,11 +52,27 @@ class RegisterView(CreateView):
         return redirect(self.get_success_url())
 
     def form_invalid(self, form):
-        # Wizard frontda validate qiladi; server-side xatolar bo'lsa
-        # JS xato bor step'ni topib unga qaytaradi.
         if not form.non_field_errors():
             messages.error(self.request, "Ma'lumotlarda xatolik bor. Iltimos qaytadan tekshiring.")
         return super().form_invalid(form)
+
+class OnboardingChoiceView(LoginRequiredMixin, TemplateView):
+    template_name = 'registration/onboarding_choice.html'
+
+class StartSmartOnboardingView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        from messenger.models import ChatRoom, SmartFormSession
+        # Create an AI chat room for this user
+        room = ChatRoom.objects.create(room_type='ai', name='Azure AI Onboarding')
+        room.participants.add(request.user)
+        
+        # Create smart form session
+        SmartFormSession.objects.create(
+            chat_room=room,
+            schema_name='user_onboarding'
+        )
+        
+        return redirect('chat_detail', room_id=room.id)
 
 
 class SettingsView(LoginRequiredMixin, UpdateView):

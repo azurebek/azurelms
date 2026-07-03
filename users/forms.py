@@ -34,9 +34,6 @@ class CustomUserCreationForm(UserCreationForm):
     last_name = forms.CharField(max_length=30, required=False)
     email = forms.EmailField(required=True)
 
-    goal = forms.ChoiceField(choices=UserOnboarding.GOAL_CHOICES, required=False)
-    current_level = forms.ChoiceField(choices=UserOnboarding.LEVEL_CHOICES, required=False)
-
     class Meta(UserCreationForm.Meta):
         model = CustomUser
         fields = ("first_name", "last_name", "email")
@@ -60,11 +57,4 @@ class CustomUserCreationForm(UserCreationForm):
         user.username = _generate_unique_username(user.email)
         if commit:
             user.save()
-            UserOnboarding.objects.update_or_create(
-                user=user,
-                defaults={
-                    "goal": self.cleaned_data.get("goal", ""),
-                    "current_level": self.cleaned_data.get("current_level", ""),
-                },
-            )
         return user

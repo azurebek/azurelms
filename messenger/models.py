@@ -411,3 +411,46 @@ class AIFeedback(models.Model):
             models.Index(fields=["rating", "created_at"]),
             models.Index(fields=["student", "created_at"]),
         ]
+
+
+class SmartFormSession(models.Model):
+    STATUS_CREATED = 'created'
+    STATUS_COLLECTING = 'collecting'
+    STATUS_VALIDATING = 'validating'
+    STATUS_READY = 'ready'
+    STATUS_SUBMITTING = 'submitting'
+    STATUS_COMPLETED = 'completed'
+    STATUS_FAILED = 'failed'
+    STATUS_EXPIRED = 'expired'
+    STATUS_CANCELLED = 'cancelled'
+
+    STATUS_CHOICES = (
+        (STATUS_CREATED, 'Created'),
+        (STATUS_COLLECTING, 'Collecting'),
+        (STATUS_VALIDATING, 'Validating'),
+        (STATUS_READY, 'Ready'),
+        (STATUS_SUBMITTING, 'Submitting'),
+        (STATUS_COMPLETED, 'Completed'),
+        (STATUS_FAILED, 'Failed'),
+        (STATUS_EXPIRED, 'Expired'),
+        (STATUS_CANCELLED, 'Cancelled'),
+    )
+
+    chat_room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name='smart_form_sessions')
+    schema_name = models.CharField(max_length=120, help_text="Registry name of the form (e.g. 'user_onboarding')")
+    state = models.JSONField(default=dict, blank=True, help_text="Unified state (fields, values, status)")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_CREATED)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.schema_name} | {self.chat_room} | {self.status}"
+
+    class Meta:
+        verbose_name = "Smart Form Session"
+        verbose_name_plural = "Smart Form Sessions"
+        indexes = [
+            models.Index(fields=["status", "created_at"]),
+            models.Index(fields=["chat_room", "status"]),
+        ]

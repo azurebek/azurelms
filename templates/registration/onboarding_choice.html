@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5 mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8 text-center">
+            <h1 class="display-5 fw-bold mb-3">Xush kelibsiz! 🎉</h1>
+            <p class="lead text-muted mb-5">Turk tilini o'rganishdagi maqsadlaringizni bilib olishimiz uchun qanday usulni tanlaysiz?</p>
+            
+            <div class="row g-4">
+                <!-- Traditional Form -->
+                <div class="col-md-6">
+                    <div class="card h-100 border-0 shadow-sm hover-elevate transition-all">
+                        <div class="card-body p-5">
+                            <div class="mb-4">
+                                <span style="font-size: 3rem;">⚡</span>
+                            </div>
+                            <h4 class="card-title fw-bold">Tezkor anketa</h4>
+                            <p class="card-text text-muted mb-4">An'anaviy shaklni to'ldirish orqali savollarga javob bering va darhol boshlang.</p>
+                            <a href="{% url 'dashboard' %}" class="btn btn-light border w-100 py-2 fw-semibold">Dashboardga o'tish</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Smart Form AI -->
+                <div class="col-md-6">
+                    <div class="card h-100 border-0 shadow hover-elevate transition-all" style="background: linear-gradient(145deg, #f0f7ff, #ffffff);">
+                        <div class="card-body p-5">
+                            <div class="mb-4">
+                                <span style="font-size: 3rem;">🤖</span>
+                            </div>
+                            <h4 class="card-title fw-bold text-primary">Azure AI bilan suhbat</h4>
+                            <p class="card-text text-muted mb-4">Sun'iy intellektimiz bilan qisqa va qiziqarli suhbat qurish orqali profillni to'ldiring.</p>
+                            <form method="post" action="{% url 'start_smart_onboarding' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+                                    Suhbatni boshlash
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.transition-all {
+    transition: all 0.3s ease;
+}
+.hover-elevate:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 1rem 3rem rgba(0,0,0,.175)!important;
+}
+</style>
+{% endblock %}

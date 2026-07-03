@@ -52,6 +52,14 @@ class SkillDefinition:
 
 BUILTIN_SKILLS: tuple[SkillDefinition, ...] = (
     SkillDefinition(
+        slug="smart_form",
+        name="Smart Form AI",
+        description="Handles structured data collection via conversation.",
+        tool_slugs=(),
+        trigger_keywords=(),
+        priority=100,
+    ),
+    SkillDefinition(
         slug="general_chat",
         name="General Chat",
         description="Default Azure AI tutor conversation skill.",

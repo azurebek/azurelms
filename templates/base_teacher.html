@@ -4,8 +4,9 @@
   TeacherShell — xodim/o'qituvchi paneli (sidebar + topbar, binafsha urg'u).
   Proto: azurelms-proto/teacher/_shell + teacher-shell.css.
   Panel mexanikasi app-shell.css/js (App/Teacher/Admin umumiy bazasi).
-  Hozircha kontent tooli sifatida Blog studiya ulangan; backoffice sahifalari
-  ko'chirilgach nav kengaytiriladi.
+  Nav kalitlari (active_nav): teacher_dashboard · teacher_cohorts ·
+  teacher_students · teacher_courses · blog_studio · teacher_grading ·
+  teacher_attendance. grading_pending_count badge'i teacher view'lardan keladi.
 {% endcomment %}
 
 {% block title %}AzureLMS — {% block t_title %}Studiya{% endblock %}{% endblock %}
@@ -24,12 +25,25 @@
 <div class="app">
   <aside class="app-side" data-appside>
     <div class="app-side-inner">
-      <a class="app-logo has-role" href="{% url 'blog:studio' %}"><span class="app-logo-mark">A</span><span class="app-logo-name">Azure<b>LMS</b></span></a>
-      <div class="tch-role"><i class="bi bi-mortarboard-fill"></i> Studiya</div>
+      <a class="app-logo has-role" href="{% url 'teacher_dashboard' %}"><span class="app-logo-mark">A</span><span class="app-logo-name">Azure<b>LMS</b></span></a>
+      <div class="tch-role"><i class="bi bi-mortarboard-fill"></i> O'qituvchi</div>
       <nav class="app-nav" data-appscroll>
         <div class="app-nav-group">
-          <button type="button" class="app-nav-label" data-app-group><span>Kontent</span><i class="bi bi-chevron-down"></i></button>
+          <button type="button" class="app-nav-label" data-app-group><span>O'qitish</span><i class="bi bi-chevron-down"></i></button>
+          <a class="app-nav-item{% if active_nav == 'teacher_dashboard' %} active{% endif %}" href="{% url 'teacher_dashboard' %}"><i class="bi bi-grid-1x2"></i><span class="label">Boshqaruv</span></a>
+          <a class="app-nav-item{% if active_nav == 'teacher_cohorts' %} active{% endif %}" href="{% url 'teacher_cohorts' %}"><i class="bi bi-collection"></i><span class="label">Guruhlar</span></a>
+          <a class="app-nav-item{% if active_nav == 'teacher_students' %} active{% endif %}" href="{% url 'teacher_students' %}"><i class="bi bi-people"></i><span class="label">O'quvchilar</span></a>
+        </div>
+        <div class="app-nav-group">
+          <button type="button" class="app-nav-label" data-app-group><span>Kontent &amp; baholash</span><i class="bi bi-chevron-down"></i></button>
+          <a class="app-nav-item{% if active_nav == 'teacher_courses' %} active{% endif %}" href="{% url 'teacher_courses' %}"><i class="bi bi-journal-richtext"></i><span class="label">Kontent</span></a>
           <a class="app-nav-item{% if active_nav == 'blog_studio' %} active{% endif %}" href="{% url 'blog:studio' %}"><i class="bi bi-pencil-square"></i><span class="label">Blog studiya</span></a>
+          <a class="app-nav-item{% if active_nav == 'teacher_grading' %} active{% endif %}" href="{% url 'teacher_grading' %}"><i class="bi bi-check2-square"></i><span class="label">Tekshirish</span>{% if grading_pending_count %}<span class="app-nav-badge is-amber">{{ grading_pending_count }}</span>{% endif %}</a>
+          <a class="app-nav-item{% if active_nav == 'teacher_attendance' %} active{% endif %}" href="{% url 'teacher_attendance' %}"><i class="bi bi-calendar-check"></i><span class="label">Davomat</span></a>
+        </div>
+        <div class="app-nav-group">
+          <button type="button" class="app-nav-label" data-app-group><span>Aloqa</span><i class="bi bi-chevron-down"></i></button>
+          <a class="app-nav-item" href="{% url 'messenger:index' %}"><i class="bi bi-chat-dots"></i><span class="label">Xabarlar</span></a>
         </div>
       </nav>
       <div class="app-side-bottom">
