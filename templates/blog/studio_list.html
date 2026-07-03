@@ -1,0 +1,61 @@
+{% extends "base_teacher.html" %}
+{% comment %}
+  Blog studiya — postlar boshqaruvi (BlogStudioView).
+  Proto: azurelms-proto/teacher/blog-studio.html.
+  Kontekst: posts, draft_count, published_count, total_views, total_claps,
+  comment_total, scheduled_posts.
+{% endcomment %}
+
+{% block t_title %}Blog studiya{% endblock %}
+{% block t_icon %}bi-pencil-square{% endblock %}
+{% block t_topbar %}Blog studiya{% endblock %}
+
+{% block page_css %}<style>.bs-row:hover{background:var(--paper-2);}@media(max-width:720px){.bs-rail{display:none!important;}.bs-grid{grid-template-columns:repeat(2,1fr)!important;}}</style>{% endblock %}
+
+{% block t_content %}
+<div style="max-width:1080px;">
+
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:20px;">
+    <div><h1 style="font-size:clamp(22px,2.6vw,30px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:0 0 6px;">Blog studiya</h1><p style="font-size:14px;color:var(--ink-3);margin:0;">Maqolalarni yozing, tahrirlang va nashr eting.</p></div>
+    <a href="{% url 'blog:studio_create' %}" style="display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:9px;background:var(--azure);color:var(--on-azure);font-size:14px;font-weight:600;"><i class="bi bi-plus-lg"></i> Yangi maqola</a>
+  </div>
+
+  <!-- Statistika -->
+  <div class="bs-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;">
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:16px 18px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><span style="font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--ink);">{{ posts|length }}</span><i class="bi bi-journal-text" style="color:var(--ink-4);font-size:15px;"></i></div><div style="font-size:12px;color:var(--ink-3);">Jami maqola</div></div>
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:16px 18px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><span style="font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--green);">{{ published_count }}</span><i class="bi bi-check-circle" style="color:var(--ink-4);font-size:15px;"></i></div><div style="font-size:12px;color:var(--ink-3);">Nashr etilgan</div></div>
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:16px 18px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><span style="font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--amber);">{{ draft_count }}</span><i class="bi bi-pencil" style="color:var(--ink-4);font-size:15px;"></i></div><div style="font-size:12px;color:var(--ink-3);">Qoralama</div></div>
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:16px 18px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><span style="font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--ink);">{{ total_views }}</span><i class="bi bi-eye" style="color:var(--ink-4);font-size:15px;"></i></div><div style="font-size:12px;color:var(--ink-3);">Jami ko'rish</div></div>
+  </div>
+
+  {% if posts %}
+  <!-- Jadval -->
+  <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;">
+    <div class="bs-rail" style="display:grid;grid-template-columns:2.4fr 1fr .9fr .9fr .6fr;padding:12px 20px;background:var(--paper-2);border-bottom:1px solid var(--line);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);"><span>Maqola</span><span>Holat</span><span>Ko'rishlar</span><span>Sana</span><span></span></div>
+    {% for post in posts %}
+    <div class="bs-row" style="display:grid;grid-template-columns:2.4fr 1fr .9fr .9fr .6fr;align-items:center;padding:13px 20px;{% if not forloop.last %}border-bottom:1px solid var(--line-2);{% endif %}transition:background .18s;">
+      <div style="display:flex;align-items:center;gap:13px;min-width:0;">
+        <span style="width:36px;height:36px;border-radius:9px;flex:0 0 auto;display:grid;place-items:center;background:linear-gradient(135deg,var(--azure),var(--azure-2));"><i class="bi bi-journal-text" style="color:#fff;font-size:15px;"></i></span>
+        <div style="min-width:0;"><div style="font-size:13.5px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ post.title }}</div><div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);">{% for tag in post.tags.all|slice:":1" %}{{ tag.name }}{% empty %}—{% endfor %}</div></div>
+      </div>
+      <div>{% if post.status == 'published' %}<span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--green);background:var(--green-soft);padding:4px 10px;border-radius:999px;">Nashr</span>{% else %}<span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--amber);background:var(--amber-soft);padding:4px 10px;border-radius:999px;">Qoralama</span>{% endif %}</div>
+      <span style="font-family:'Space Mono',monospace;font-size:13px;color:var(--ink-2);">{{ post.view_count|default:0 }}</span>
+      <span style="font-family:'Space Mono',monospace;font-size:12px;color:var(--ink-3);">{{ post.updated_at|date:"d.m.y" }}</span>
+      <div style="justify-self:end;display:flex;gap:4px;">
+        <a href="{% url 'blog:studio_edit' slug=post.slug %}" aria-label="Tahrirlash" style="width:32px;height:32px;border-radius:8px;color:var(--ink-3);display:grid;place-items:center;font-size:13px;"><i class="bi bi-pencil"></i></a>
+        {% if post.is_live %}<a href="{{ post.get_absolute_url }}" target="_blank" aria-label="Ko'rish" style="width:32px;height:32px;border-radius:8px;color:var(--ink-3);display:grid;place-items:center;font-size:13px;"><i class="bi bi-box-arrow-up-right"></i></a>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </section>
+  {% else %}
+  <div style="border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:48px 24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;">
+    <span style="width:60px;height:60px;border-radius:16px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:27px;"><i class="bi bi-pencil-square"></i></span>
+    <div style="font-size:17px;font-weight:600;color:var(--ink);">Hali maqola yo'q</div>
+    <div style="font-size:13.5px;color:var(--ink-3);max-width:40ch;line-height:1.6;">Birinchi blog maqolangizni yozing — grammatika, maslahat yoki yangilik.</div>
+    <a href="{% url 'blog:studio_create' %}" style="margin-top:8px;display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:10px;background:var(--azure);color:var(--on-azure);font-size:14px;font-weight:600;"><i class="bi bi-plus-lg"></i> Yangi maqola</a>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

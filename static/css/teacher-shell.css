@@ -1,0 +1,23 @@
+/* ============================================================
+   TeacherShell urg'ulari. Panel mexanikasi app-shell.css'da
+   (App/Teacher/Admin umumiy baza). Bu fayl faqat o'qituvchi
+   urg'ularini qo'shadi: binafsha rol nishoni/avatar, amber badge.
+   Yuklash: tokens → base → app-shell.css → bu fayl.
+   ============================================================ */
+.app-logo.has-role{ margin-bottom:6px; }
+
+.tch-role{
+  display:inline-flex; align-items:center; gap:6px; margin:0 6px 18px;
+  font-family:'Space Mono',monospace; font-size:9.5px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--violet); background:var(--violet-soft); padding:4px 9px; border-radius:6px; width:max-content;
+}
+.app.collapsed .tch-role{ display:none; }
+
+.app-user-av.is-violet{ background:var(--violet); }
+.app-nav-badge.is-amber{ background:var(--amber); color:#fff; }
+.app-ico-dot.is-amber{ background:var(--amber); }
+
+.app-top-av{
+  width:36px; height:36px; border-radius:9px; background:var(--violet);
+  display:grid; place-items:center; color:#fff; font-weight:700; font-size:13px; flex:0 0 auto;
+}
