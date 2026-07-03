@@ -1,0 +1,37 @@
+/* ============================================================
+   AzureLMS — Base reset & shared primitives (global)
+   tokens.css dan KEYIN yuklanadi.
+   ============================================================ */
+
+html{scroll-behavior:smooth}
+*{box-sizing:border-box}
+
+body{
+  min-width:320px;
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Space Grotesk',system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+
+img,svg,video,canvas{max-width:100%}
+a{text-decoration:none;color:inherit}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+input,textarea,select{font-family:inherit}
+
+::selection{background:var(--azure-soft);color:var(--azure-2)}
+
+/* Ilova scrollbarlari */
+[data-appscroll]::-webkit-scrollbar{width:9px}
+[data-appscroll]::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
+
+/* Umumiy animatsiyalar (AI typing indikatori, h.k.) */
+@keyframes azDot{0%,100%{opacity:.35;transform:scale(.85)}50%{opacity:1;transform:scale(1)}}
+@keyframes azType{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-4px);opacity:1}}
+@keyframes azBlink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* Mobil: sidebar overlay rejimi */
+@media (max-width:820px){
+  [data-appside]{position:fixed!important;z-index:60;height:100vh}
+}
