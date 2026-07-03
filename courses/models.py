@@ -481,6 +481,11 @@ class ExamSection(models.Model):
     reading_text = CKEditor5Field(blank=True, null=True, config_name='default', verbose_name="Reading uchun matn")
 
     media_url = models.URLField(blank=True, null=True, help_text="Listening uchun YouTube/Audio link")
+    audio_play_limit = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Audio tinglash limiti",
+        help_text="Listening audiosi necha marta eshitilishi mumkin. 0 = cheksiz.",
+    )
     max_score = models.PositiveIntegerField(help_text="Ushbu bo'lim uchun beriladigan maksimal ball")
     time_limit_minutes = models.PositiveIntegerField(default=30, help_text="Ushbu bo'limni ishlash uchun beriladigan vaqt (daqiqa)")
     order = models.PositiveIntegerField(default=0, verbose_name="Tartib raqami")
@@ -955,6 +960,18 @@ class Question(models.Model):
     text = CKEditor5Field(verbose_name="Savol matni", config_name='default')
     points = models.PositiveIntegerField(default=1, verbose_name="Savol bali")
 
+    # Writing (ochiq javob) uchun so'z chegaralari. 0 = talab/chegara yo'q.
+    min_word_count = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Minimal so'z soni",
+        help_text="Writing javobi uchun minimal so'z talabi (masalan 150). 0 = talab yo'q.",
+    )
+    max_word_count = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Maksimal so'z soni",
+        help_text="Writing javobi uchun yuqori chegara. 0 = cheksiz.",
+    )
+
     def __str__(self):
         return str(self.text)[:50]  # Savolning bir qismini ko'rsatadi
 
@@ -1226,7 +1243,18 @@ class StudentAnswer(models.Model):
     # Grading
     awarded_score = models.DecimalField(max_digits=5, decimal_places=2, default=0, help_text="O'qituvchi qo'ygan yoki avto tekshirilgan ball")
     is_graded = models.BooleanField(default=False, help_text="O'qituvchi tekshirib balldan qoniqdimi?")
-    
+    grader_feedback = models.TextField(blank=True, default="", help_text="O'qituvchining shu javobga (esse/yozuv) alohida izohi")
+    is_flagged_for_review = models.BooleanField(default=False, help_text="O'quvchi keyin qaytish uchun belgiladi (review flag)")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    @property
+    def is_answered(self):
+        return bool(self.selected_choice_id or (self.answer_text or "").strip() or self.audio_file_url)
+
+    @property
+    def word_count(self):
+        return len([token for token in (self.answer_text or "").strip().split() if token])
+
     def __str__(self):
         return f"Answer by {self.attempt.student.username} for Q: {self.question.id}"
 

@@ -1,0 +1,78 @@
+{% extends "users/base_app.html" %}
+{% comment %}
+  Imtihon markazi (ExamCenterView) — eski stub `exam:` app o'rnini bosadi.
+  Kontekst: exams (Exam + .course, .section_count, .total_time_limit_minutes,
+  .latest_attempt [ExamAttempt: is_completed/is_reviewed/passed/score/review_status_label],
+  .attempts_used, .attempts_left, .max_attempts). Amallar: exam_detail / exam_result.
+{% endcomment %}
+
+{% block app_icon %}bi-clipboard-check{% endblock %}
+{% block app_topbar_title %}Imtihon{% endblock %}
+
+{% block app_content %}
+<div style="max-width:960px;margin:0 auto;">
+
+  <div style="margin-bottom:24px;">
+    <h1 style="font-size:clamp(22px,2.6vw,30px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:0 0 6px;">Imtihon markazi</h1>
+    <p style="font-size:14px;color:var(--ink-3);margin:0;">Faol kurslaringizdagi imtihonlar — topshiring va natijalarni ko'ring.</p>
+  </div>
+
+  {% if exams %}
+  <div style="display:flex;flex-direction:column;gap:14px;">
+    {% for exam in exams %}
+    <article style="border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;display:flex;align-items:stretch;">
+      <div style="width:6px;flex:0 0 auto;background:{% if exam.exam_type == 'final' %}var(--azure){% else %}var(--amber){% endif %};"></div>
+      <div style="flex:1;min-width:0;padding:18px 20px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:200px;">
+          <div style="display:flex;align-items:center;gap:9px;margin-bottom:5px;flex-wrap:wrap;">
+            <span style="font-size:15px;font-weight:600;color:var(--ink);">{{ exam.title }}</span>
+            <span style="font-family:'Space Mono',monospace;font-size:9.5px;letter-spacing:.05em;color:{% if exam.exam_type == 'final' %}var(--azure){% else %}var(--amber){% endif %};background:{% if exam.exam_type == 'final' %}var(--azure-soft){% else %}var(--amber-soft){% endif %};padding:3px 8px;border-radius:6px;text-transform:uppercase;">{{ exam.get_exam_type_display }}</span>
+          </div>
+          <div style="font-family:'Space Mono',monospace;font-size:11.5px;color:var(--ink-3);">{{ exam.course.title }} · {{ exam.section_count }} bo'lim · {{ exam.total_time_limit_minutes }} daq · o'tish {{ exam.passing_score }}%</div>
+        </div>
+
+        <!-- Holat -->
+        <div style="min-width:120px;">
+          {% if exam.latest_attempt %}
+            {% if exam.latest_attempt.is_reviewed %}
+            <div style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:{% if exam.latest_attempt.passed %}var(--green){% else %}var(--red){% endif %};"><span style="width:7px;height:7px;border-radius:50%;background:{% if exam.latest_attempt.passed %}var(--green){% else %}var(--red){% endif %};"></span>{% if exam.latest_attempt.passed %}O'tdi{% else %}O'tmadi{% endif %} · {{ exam.latest_attempt.score|floatformat:0 }}%</div>
+            {% elif exam.latest_attempt.is_completed %}
+            <div style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--amber);"><span style="width:7px;height:7px;border-radius:50%;background:var(--amber);"></span>Tekshirilmoqda</div>
+            {% else %}
+            <div style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--azure);"><span style="width:7px;height:7px;border-radius:50%;background:var(--azure);"></span>Jarayonda</div>
+            {% endif %}
+          {% else %}
+          <div style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-3);"><span style="width:7px;height:7px;border-radius:50%;background:var(--ink-4);"></span>Boshlanmagan</div>
+          {% endif %}
+          <div style="font-family:'Space Mono',monospace;font-size:10.5px;color:var(--ink-4);margin-top:3px;">{{ exam.attempts_used }}/{{ exam.max_attempts }} urinish</div>
+        </div>
+
+        <!-- Amal -->
+        <div style="flex:0 0 auto;">
+          {% if exam.latest_attempt and exam.latest_attempt.is_reviewed %}
+          <a href="{% url 'exam_result' course_id=exam.course.id exam_id=exam.id %}" style="display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 18px;border-radius:9px;border:1px solid var(--line);color:var(--ink);font-size:13.5px;font-weight:600;"><i class="bi bi-clipboard-data"></i> Natija</a>
+          {% elif exam.latest_attempt and exam.latest_attempt.is_completed %}
+          <span style="display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 18px;border-radius:9px;border:1px solid var(--line);color:var(--ink-4);font-size:13.5px;font-weight:600;cursor:not-allowed;"><i class="bi bi-hourglass-split"></i> Kutilmoqda</span>
+          {% elif exam.latest_attempt and not exam.latest_attempt.is_completed %}
+          <a href="{% url 'exam_detail' course_id=exam.course.id exam_id=exam.id %}" style="display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 18px;border-radius:9px;background:var(--azure);color:var(--on-azure);font-size:13.5px;font-weight:600;"><i class="bi bi-play-fill"></i> Davom etish</a>
+          {% elif exam.attempts_left > 0 %}
+          <a href="{% url 'exam_detail' course_id=exam.course.id exam_id=exam.id %}" style="display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 18px;border-radius:9px;background:var(--azure);color:var(--on-azure);font-size:13.5px;font-weight:600;"><i class="bi bi-play-fill"></i> Boshlash</a>
+          {% else %}
+          <span style="display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 18px;border-radius:9px;border:1px solid var(--line);color:var(--ink-4);font-size:13.5px;font-weight:600;cursor:not-allowed;"><i class="bi bi-lock"></i> Tugadi</span>
+          {% endif %}
+        </div>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div style="border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:48px 24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;">
+    <span style="width:60px;height:60px;border-radius:16px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:27px;"><i class="bi bi-clipboard-check"></i></span>
+    <div style="font-size:17px;font-weight:600;color:var(--ink);">Imtihon yo'q</div>
+    <div style="font-size:13.5px;color:var(--ink-3);max-width:40ch;line-height:1.6;">Faol kurslaringizda hozircha imtihon mavjud emas. Kurs imtihonlari shu yerda paydo bo'ladi.</div>
+    <a href="{% url 'my_courses' %}" style="margin-top:8px;display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:10px;background:var(--azure);color:var(--on-azure);font-size:14px;font-weight:600;">Darslarimga o'tish <i class="bi bi-arrow-right" style="font-size:13px;"></i></a>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -55,9 +55,6 @@ urlpatterns = [
     path('backoffice/lessons/<int:lesson_id>/', core_views.backoffice_lesson_editor, name='backoffice_lesson_edit'),
     path('backoffice/exams/', core_views.backoffice_exam_editor, name='backoffice_exams'),
     path('backoffice/exams/<int:exam_id>/', core_views.backoffice_exam_editor, name='backoffice_exam_edit'),
-
-    # Imtihon (Exam shell)
-    path('exam/', include(('users.exam_urls', 'exam'), namespace='exam')),
 ]
 
 if settings.PROMETHEUS_ENABLED:

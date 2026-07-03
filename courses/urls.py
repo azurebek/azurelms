@@ -3,6 +3,7 @@ from . import views
 
 urlpatterns = [
     path('', views.CourseListView.as_view(), name='courses'),
+    path('exams/', views.ExamCenterView.as_view(), name='exam_center'),
     path('<int:pk>/', views.CourseDetailView.as_view(), name='course_detail'),
     path('<int:course_id>/study/', views.CourseStudyRedirectView.as_view(), name='course_study'),
     path('<int:course_id>/lesson/<int:lesson_id>/', views.LessonDetailView.as_view(), name='lesson_detail'),
@@ -26,6 +27,8 @@ urlpatterns = [
         name='api_exam_section_state',
     ),
     path('<int:course_id>/exam/<int:exam_id>/api/save/', views.SaveExamAnswerView.as_view(), name='api_exam_save'),
+    path('<int:course_id>/exam/<int:exam_id>/api/audio/', views.UploadExamAudioView.as_view(), name='api_exam_audio_upload'),
+    path('<int:course_id>/exam/<int:exam_id>/api/audio-play/', views.RegisterAudioPlayView.as_view(), name='api_exam_audio_play'),
     path('<int:course_id>/exam/<int:exam_id>/api/review-flag/', views.ToggleExamReviewFlagView.as_view(), name='api_exam_review_flag'),
     path('<int:course_id>/exam/<int:exam_id>/api/blur/', views.LogBlurWarningView.as_view(), name='api_exam_blur'),
     path('<int:course_id>/exam/<int:exam_id>/api/submit/', views.SubmitExamView.as_view(), name='api_exam_submit'),

@@ -386,14 +386,26 @@ class ExamSectionAdmin(nested_admin.NestedModelAdmin):
 class StudentAnswerInline(admin.StackedInline):
     model = StudentAnswer
     extra = 0
-    fields = ('question', 'get_question_type', 'answer_text', 'audio_file_url', 'selected_choice', 'is_correct_choice', 'awarded_score', 'is_graded')
-    readonly_fields = ('question', 'get_question_type', 'answer_text', 'audio_file_url', 'selected_choice', 'is_correct_choice')
-    
+    fields = ('question', 'get_question_type', 'answer_text', 'word_count_display', 'audio_file_url', 'selected_choice', 'is_correct_choice', 'awarded_score', 'is_graded', 'grader_feedback')
+    readonly_fields = ('question', 'get_question_type', 'answer_text', 'word_count_display', 'audio_file_url', 'selected_choice', 'is_correct_choice')
+
     @admin.display(description='Bo\'lim turi')
     def get_question_type(self, obj):
         if obj.question.exam_section:
             return obj.question.exam_section.get_section_type_display()
         return "Noma'lum"
+
+    @admin.display(description="So'z soni")
+    def word_count_display(self, obj):
+        count = obj.word_count
+        min_words = obj.question.min_word_count or 0
+        max_words = obj.question.max_word_count or 0
+        if min_words or max_words:
+            requirement = f"min {min_words}" if min_words else ""
+            if max_words:
+                requirement = f"{requirement} / max {max_words}".strip(" /")
+            return f"{count} so'z (talab: {requirement})"
+        return f"{count} so'z"
     
     @admin.display(description='Test yechimi to\'g\'rimi?')
     def is_correct_choice(self, obj):

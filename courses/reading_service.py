@@ -64,10 +64,10 @@ def _build_status_counts(question_map):
 
 
 def build_reading_section_payload(*, attempt, section):
+    # Bu "boy task engine" — reading uchun ishlab chiqilgan, lekin ReadingTask'lar
+    # asosida har qanday section (masalan listening) uchun ham ishlaydi.
     if section.exam_id != attempt.exam_id:
         raise ValidationError("Section ushbu attempt imtihoniga tegishli emas.")
-    if section.section_type != "reading":
-        raise ValidationError("Bu endpoint faqat reading sectionlar uchun ishlaydi.")
 
     state = ensure_exam_section_state(attempt=attempt, section=section)
     tasks = list(
@@ -155,9 +155,14 @@ def build_reading_section_payload(*, attempt, section):
         "section": {
             "id": section.id,
             "title": section.title,
+            "section_type": section.section_type,
             "instructions": section.instructions or "",
             "legacy_reading_text": section.reading_text or "",
+            "media_url": section.media_url or "",
             "time_limit_minutes": section.time_limit_minutes,
+            "audio_play_limit": section.audio_play_limit,
+            "plays_used": int(state.state.get("plays_used", 0)),
+            "plays_left": (max(section.audio_play_limit - int(state.state.get("plays_used", 0)), 0) if section.audio_play_limit else None),
         },
         "state": {
             "current_item_id": current_item_id,

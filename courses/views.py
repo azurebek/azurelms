@@ -45,6 +45,14 @@ from .reading_service import (
     save_reading_response,
     toggle_reading_review_flag,
 )
+from .exam_section_service import (
+    word_count_status,
+    build_question_section_payload,
+    build_section_payload,
+    register_audio_play,
+    save_question_answer,
+    toggle_question_review_flag,
+)
 
 
 def _safe_int(value):
@@ -227,6 +235,7 @@ class CourseListView(ListView):
         context['selected_levels'] = self.request.GET.getlist('level')
         context['level_choices'] = Course.LEVEL_CHOICES
         context['current_sort'] = self.request.GET.get('sort', 'newest')
+        context['active_nav'] = 'courses'
         return context
 
 
@@ -273,6 +282,7 @@ class CourseDetailView(DetailView):
             ).exists()
         else:
             context['is_enrolled'] = False
+        context['active_nav'] = 'courses'
         return context
 
 class CourseStudyRedirectView(LoginRequiredMixin, View):
@@ -587,6 +597,46 @@ class SubmitAssignmentView(LoginRequiredMixin, View):
         )
         return redirect(redirect_url)
 
+class ExamCenterView(LoginRequiredMixin, ListView):
+    """O'quvchining faol kurslaridagi imtihonlar markazi (AppShell 'Imtihon').
+
+    Eski stub `exam:` app o'rnini bosadi — haqiqiy courses exam oqimiga ulaydi.
+    """
+    model = Exam
+    template_name = 'courses/exam_center.html'
+    context_object_name = 'exams'
+
+    def get_queryset(self):
+        from django.db.models import Count
+        user = self.request.user
+        course_ids = (
+            Enrollment.objects.filter(enrollment_active_access_q(), student=user)
+            .values_list('cohort__course_id', flat=True)
+            .distinct()
+        )
+        exams = list(
+            Exam.objects.filter(course_id__in=course_ids)
+            .select_related('course')
+            .annotate(
+                section_count=Count('sections', distinct=True),
+                attempts_used=Count('attempts', filter=Q(attempts__student=user), distinct=True),
+            )
+            .order_by('course__title', 'exam_type')
+        )
+        latest_by_exam = {}
+        for attempt in ExamAttempt.objects.filter(student=user, exam__in=exams).order_by('exam_id', '-attempt_number'):
+            latest_by_exam.setdefault(attempt.exam_id, attempt)
+        for exam in exams:
+            exam.latest_attempt = latest_by_exam.get(exam.id)
+            exam.attempts_left = max(exam.max_attempts - exam.attempts_used, 0)
+        return exams
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['active_nav'] = 'exam'
+        return context
+
+
 class ExamDetailView(LoginRequiredMixin, DetailView):
     model = Exam
     template_name = 'courses/exam_detail.html'
@@ -642,7 +692,39 @@ class ExamDetailView(LoginRequiredMixin, DetailView):
         entry_policy = check_exam_entry_policy(student=user, exam=self.object) if is_enrolled else None
         context['exam_entry_policy'] = entry_policy
         context['can_start_exam'] = bool(entry_policy and entry_policy.is_allowed)
-        
+
+        # exam-shell.js uchun runtime konfiguratsiya (json_script orqali xavfsiz uzatiladi)
+        from django.middleware.csrf import get_token
+
+        exam = self.object
+        sections = list(context['sections'])
+        context['exam_config'] = {
+            'csrf': get_token(self.request),
+            'urls': {
+                'start': reverse('api_exam_start', args=[course.id, exam.id]),
+                'save': reverse('api_exam_save', args=[course.id, exam.id]),
+                'audioUpload': reverse('api_exam_audio_upload', args=[course.id, exam.id]),
+                'audioPlay': reverse('api_exam_audio_play', args=[course.id, exam.id]),
+                'reviewFlag': reverse('api_exam_review_flag', args=[course.id, exam.id]),
+                'blur': reverse('api_exam_blur', args=[course.id, exam.id]),
+                'submit': reverse('api_exam_submit', args=[course.id, exam.id]),
+                'result': reverse('exam_result', args=[course.id, exam.id]),
+                'center': reverse('exam_center'),
+                # JS '/0/' ni haqiqiy section id bilan almashtiradi
+                'sectionState': reverse('api_exam_section_state', args=[course.id, exam.id, 0]),
+            },
+            'sections': [
+                {
+                    'id': section.id,
+                    'title': section.title,
+                    'type': section.section_type,
+                    'typeLabel': section.get_section_type_display(),
+                    'timeLimit': section.time_limit_minutes,
+                }
+                for section in sections
+            ],
+        }
+
         return context
 
 class ExamResultView(LoginRequiredMixin, DetailView):
@@ -700,6 +782,25 @@ class ExamResultView(LoginRequiredMixin, DetailView):
             and not attempt.passed
             and attempt.attempt_number < self.object.max_attempts
         )
+
+        context['active_nav'] = 'exam'
+        context['section_reviews'] = []
+        context['feedback_answers'] = []
+        context['duration_minutes'] = None
+        if attempt:
+            context['section_reviews'] = list(
+                attempt.section_reviews.select_related('section').order_by('section__order')
+            )
+            # per-esse/javob o'qituvchi izohlari (writing/speaking)
+            context['feedback_answers'] = list(
+                attempt.answers.exclude(grader_feedback="")
+                .select_related('question', 'question__exam_section')
+                .order_by('question__exam_section__order', 'question_id')
+            )
+            if attempt.completed_time and attempt.start_time:
+                context['duration_minutes'] = max(
+                    int((attempt.completed_time - attempt.start_time).total_seconds() // 60), 0
+                )
         return context
 
 class StartExamView(LoginRequiredMixin, View):
@@ -737,13 +838,7 @@ class ExamSectionStateView(LoginRequiredMixin, View):
                 {'error': 'Imtihon vaqti tugadi. Urinish tekshiruvga yuborildi.'},
                 status=400,
             )
-        if section.section_type != "reading":
-            return JsonResponse(
-                {'error': 'Section state endpoint hozircha faqat reading section uchun ishlaydi.'},
-                status=400,
-            )
-
-        payload = build_reading_section_payload(attempt=attempt, section=section)
+        payload = build_section_payload(attempt=attempt, section=section)
         return JsonResponse({'status': 'success', **payload})
 
 
@@ -784,32 +879,24 @@ class SaveExamAnswerView(LoginRequiredMixin, View):
                     }
                 )
 
-            question_id = data.get('question_id')
-            answer_text = data.get('answer_text')
-            choice_id = data.get('choice_id')
-            audio_url = data.get('audio_url')
-
-            question = get_object_or_404(Question, id=question_id)
-
-            # Security: Ensure question actually belongs to this exam
-            if question.exam_section and question.exam_section.exam_id != attempt.exam_id:
-                return JsonResponse({'error': 'Xatolik: Bu savol ushbu imtihonga tegishli emas.'}, status=400)
-
-            # Upsert student answer
-            ans, _ = StudentAnswer.objects.get_or_create(attempt=attempt, question=question)
-
-            if choice_id:
-                choice = get_object_or_404(Choice, id=choice_id, question=question)
-                ans.selected_choice = choice
-                ans.awarded_score = question.points if choice.is_correct else 0
-                ans.is_graded = True
-            if answer_text is not None:
-                ans.answer_text = answer_text
-            if audio_url:
-                ans.audio_file_url = audio_url
-
-            ans.save()
-            return JsonResponse({'status': 'success'})
+            question = get_object_or_404(Question, id=data.get('question_id'))
+            answer = save_question_answer(attempt=attempt, question=question, payload=data)
+            response_payload = {
+                'status': 'success',
+                'saved_answer': {
+                    'question_id': answer.question_id,
+                    'awarded_score': float(answer.awarded_score),
+                    'is_graded': answer.is_graded,
+                    'is_flagged_for_review': answer.is_flagged_for_review,
+                    'word_count': answer.word_count,
+                    'word_count_status': word_count_status(question, answer.word_count),
+                },
+            }
+            if question.exam_section_id:
+                response_payload['section_state'] = build_question_section_payload(
+                    attempt=attempt, section=question.exam_section
+                )['state']
+            return JsonResponse(response_payload)
         except Http404 as exc:
             return JsonResponse({'error': str(exc)}, status=404)
         except (ValidationError, ValueError) as exc:
@@ -836,31 +923,139 @@ class ToggleExamReviewFlagView(LoginRequiredMixin, View):
             )
 
         reading_item_id = data.get("reading_item_id")
-        if reading_item_id in (None, ""):
-            return JsonResponse({'error': "reading_item_id yuborilishi shart."}, status=400)
+        question_id = data.get("question_id")
 
         try:
-            item = ReadingItem.objects.select_related('task__section').get(id=reading_item_id)
-            if item.task.section.exam_id != attempt.exam_id:
-                raise Http404("Reading item topilmadi.")
-            response = toggle_reading_review_flag(
-                attempt=attempt,
-                item=item,
-                flagged=data.get("flagged"),
-            )
-            payload = build_reading_section_payload(attempt=attempt, section=item.task.section)
-            return JsonResponse(
-                {
-                    'status': 'success',
-                    'is_flagged_for_review': response.is_flagged_for_review,
-                    'section_state': payload['state'],
-                }
-            )
+            if reading_item_id not in (None, ""):
+                item = ReadingItem.objects.select_related('task__section').get(id=reading_item_id)
+                if item.task.section.exam_id != attempt.exam_id:
+                    raise Http404("Reading item topilmadi.")
+                response = toggle_reading_review_flag(attempt=attempt, item=item, flagged=data.get("flagged"))
+                payload = build_reading_section_payload(attempt=attempt, section=item.task.section)
+                return JsonResponse(
+                    {
+                        'status': 'success',
+                        'is_flagged_for_review': response.is_flagged_for_review,
+                        'section_state': payload['state'],
+                    }
+                )
+            if question_id not in (None, ""):
+                question = get_object_or_404(Question, id=question_id)
+                if question.exam_section and question.exam_section.exam_id != attempt.exam_id:
+                    raise Http404("Savol topilmadi.")
+                answer = toggle_question_review_flag(attempt=attempt, question=question, flagged=data.get("flagged"))
+                section_state = {}
+                if question.exam_section_id:
+                    section_state = build_question_section_payload(attempt=attempt, section=question.exam_section)['state']
+                return JsonResponse(
+                    {
+                        'status': 'success',
+                        'is_flagged_for_review': answer.is_flagged_for_review,
+                        'section_state': section_state,
+                    }
+                )
+            return JsonResponse({'error': "reading_item_id yoki question_id yuborilishi shart."}, status=400)
         except Http404 as exc:
             return JsonResponse({'error': str(exc)}, status=404)
         except (ReadingItem.DoesNotExist, ValidationError) as exc:
             message = exc.messages[0] if isinstance(exc, ValidationError) and exc.messages else str(exc)
             return JsonResponse({'error': message}, status=400)
+
+class RegisterAudioPlayView(LoginRequiredMixin, View):
+    """Listening audiosi tinglanishini qayd qiladi va tinglash limitini server tomonda majburlaydi."""
+    def post(self, request, course_id, exam_id):
+        attempt = get_in_progress_exam_attempt(student=request.user, exam_id=exam_id)
+        if not attempt:
+            return JsonResponse({'error': 'Faol imtihon urinishi topilmadi.'}, status=404)
+        if expire_attempt_if_time_limit_reached(attempt):
+            return JsonResponse(
+                {'error': 'Imtihon vaqti tugadi. Urinish tekshiruvga yuborildi.'},
+                status=400,
+            )
+        try:
+            data = json.loads(request.body or '{}')
+        except json.JSONDecodeError:
+            data = {}
+        section = get_object_or_404(ExamSection, id=data.get('section_id'), exam_id=exam_id)
+        try:
+            result = register_audio_play(attempt=attempt, section=section)
+        except ValidationError as exc:
+            message = exc.messages[0] if getattr(exc, 'messages', None) else str(exc)
+            return JsonResponse({'error': message}, status=400)
+        return JsonResponse(
+            {'status': 'success' if result['allowed'] else 'limit_reached', **result},
+            status=200 if result['allowed'] else 403,
+        )
+
+
+class UploadExamAudioView(LoginRequiredMixin, View):
+    """Speaking yozuvini qabul qiladi → storage'ga (S3/Spaces yoki local) saqlaydi →
+    StudentAnswer.audio_file_url'ga biriktiradi. Speaking topshirishning yetishmayotgan halqasi."""
+    MAX_BYTES = 25 * 1024 * 1024
+    ALLOWED_PREFIXES = ("audio/", "video/webm", "video/mp4", "application/octet-stream")
+
+    def post(self, request, course_id, exam_id):
+        attempt = get_in_progress_exam_attempt(student=request.user, exam_id=exam_id)
+        if not attempt:
+            return JsonResponse({'error': 'Faol imtihon urinishi topilmadi.'}, status=404)
+        if expire_attempt_if_time_limit_reached(attempt):
+            return JsonResponse(
+                {'error': 'Imtihon vaqti tugadi. Urinish tekshiruvga yuborildi.'},
+                status=400,
+            )
+
+        question = get_object_or_404(Question, id=request.POST.get('question_id'))
+        if question.exam_section and question.exam_section.exam_id != attempt.exam_id:
+            return JsonResponse({'error': 'Bu savol ushbu imtihonga tegishli emas.'}, status=400)
+
+        upload = request.FILES.get('audio')
+        if not upload:
+            return JsonResponse({'error': "Audio fayl yuborilmadi."}, status=400)
+        if upload.size > self.MAX_BYTES:
+            return JsonResponse({'error': "Audio yozuvi 25 MB dan kichik bo'lishi kerak."}, status=400)
+        content_type = getattr(upload, 'content_type', '') or ''
+        if content_type and not any(content_type.startswith(prefix) for prefix in self.ALLOWED_PREFIXES):
+            return JsonResponse({'error': "Audio formati qo'llab-quvvatlanmaydi."}, status=400)
+
+        import os
+        import uuid
+        from django.core.files.storage import default_storage
+
+        ext = os.path.splitext(upload.name or '')[1].lower()
+        if not ext or len(ext) > 8 or '/' in ext or '\\' in ext:
+            ext = '.webm'
+        key = f"exam_audio/{attempt.id}/{question.id}_{uuid.uuid4().hex}{ext}"
+        saved_path = default_storage.save(key, upload)
+        audio_url = request.build_absolute_uri(default_storage.url(saved_path))
+
+        try:
+            answer = save_question_answer(
+                attempt=attempt,
+                question=question,
+                payload={
+                    'audio_url': audio_url,
+                    'current_question_id': request.POST.get('current_question_id'),
+                },
+            )
+        except (ValidationError, ValueError) as exc:
+            message = exc.messages[0] if isinstance(exc, ValidationError) and getattr(exc, 'messages', None) else str(exc)
+            return JsonResponse({'error': message}, status=400)
+
+        response_payload = {
+            'status': 'success',
+            'audio_url': audio_url,
+            'saved_answer': {
+                'question_id': answer.question_id,
+                'audio_url': answer.audio_file_url,
+                'is_flagged_for_review': answer.is_flagged_for_review,
+            },
+        }
+        if question.exam_section_id:
+            response_payload['section_state'] = build_question_section_payload(
+                attempt=attempt, section=question.exam_section
+            )['state']
+        return JsonResponse(response_payload)
+
 
 class LogBlurWarningView(LoginRequiredMixin, View):
     def post(self, request, course_id, exam_id):
