@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% load static %}
+{% comment %}
+  AuthShell — split-screen (chap: qora brend panel, o'ng: forma).
+  Proto: azurelms-proto/public/auth.html + forgot-password.html.
+  Sahifalar {% block auth_form %} ni to'ldiradi.
+{% endcomment %}
+
+{% block title %}{% block auth_title %}AzureLMS — Kirish{% endblock %}{% endblock %}
+
+{% block extra_css %}
+<style>
+  @media (max-width:840px){ [data-authgrid]{grid-template-columns:1fr!important;} [data-brandpanel]{display:none!important;} }
+  .auth-tabs{ display:grid; grid-template-columns:1fr 1fr; gap:4px; padding:4px; background:var(--paper-2); border:1px solid var(--line); border-radius:11px; margin-bottom:30px; }
+  .auth-tab{ height:38px; border-radius:8px; font-size:13.5px; font-weight:600; transition:.2s; display:grid; place-items:center; color:var(--ink-3); }
+  .auth-tab.active{ background:var(--panel); color:var(--ink); box-shadow:0 1px 2px rgba(11,14,21,.06); }
+  .auth-h1{ font-size:26px; font-weight:600; letter-spacing:-.03em; color:var(--ink); margin:0 0 6px; }
+  .auth-lead{ font-size:14px; color:var(--ink-3); margin:0 0 26px; line-height:1.55; }
+  .auth-field{ display:block; margin-bottom:16px; }
+  .auth-label{ display:block; font-family:'Space Mono',monospace; font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); margin-bottom:7px; }
+  .auth-form input, .auth-form select{ width:100%; height:46px; padding:0 14px; border-radius:10px; border:1px solid var(--line); background:var(--panel); color:var(--ink); font-size:14.5px; outline:none; transition:border-color .2s,box-shadow .2s; }
+  .auth-form input:focus, .auth-form select:focus{ border-color:var(--azure); box-shadow:0 0 0 3px var(--azure-soft); }
+  .auth-btn{ display:flex; align-items:center; justify-content:center; gap:8px; width:100%; height:48px; border-radius:10px; background:var(--azure); color:var(--on-azure); font-size:15px; font-weight:600; margin-top:4px; transition:transform .2s cubic-bezier(.16,1,.3,1); border:none; cursor:pointer; }
+  .auth-btn:hover{ transform:translateY(-1px); }
+  .auth-help{ font-size:11.5px; color:var(--ink-4); margin-top:6px; line-height:1.45; }
+  .auth-help ul{ margin:4px 0 0; padding-left:16px; }
+  .auth-fielderr{ font-size:12px; color:var(--red); margin-top:5px; }
+  .auth-errors{ background:var(--red-soft); color:var(--red); border:1px solid var(--red); border-radius:9px; padding:11px 13px; font-size:12.5px; line-height:1.5; margin-bottom:18px; }
+  .auth-errors ul{ margin:0; padding-left:16px; }
+  .auth-alt{ display:flex; align-items:center; justify-content:center; gap:9px; height:46px; border-radius:10px; border:1px solid var(--line); background:var(--panel); color:var(--ink); font-size:14px; font-weight:500; transition:border-color .2s,background .2s; }
+  .auth-alt:hover{ border-color:var(--azure); }
+  .auth-divider{ display:flex; align-items:center; gap:12px; margin:24px 0; }
+  .auth-divider span.ln{ flex:1; height:1px; background:var(--line); }
+  .auth-divider span.tx{ font-family:'Space Mono',monospace; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-4); }
+  .auth-foot-link{ text-align:center; font-size:13px; color:var(--ink-3); margin:24px 0 0; }
+  .auth-foot-link a{ color:var(--azure); font-weight:600; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div data-authgrid style="min-height:100vh;display:grid;grid-template-columns:.92fr 1.08fr;background:var(--paper);color:var(--ink);">
+
+  <!-- Brend paneli (doim qora) -->
+  <aside data-brandpanel style="position:relative;background:#0b0e15;color:#e9edf4;padding:40px 46px;display:flex;flex-direction:column;overflow:hidden;">
+    <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:34px 34px;-webkit-mask-image:radial-gradient(120% 90% at 30% 10%,#000 30%,transparent 78%);mask-image:radial-gradient(120% 90% at 30% 10%,#000 30%,transparent 78%);"></div>
+    <div style="position:absolute;top:-120px;right:-120px;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(91,141,255,.22),transparent 68%);filter:blur(6px);"></div>
+
+    <a href="{% url 'home' %}" style="position:relative;display:flex;align-items:center;gap:10px;">
+      <span style="width:30px;height:30px;border-radius:7px;background:#5b8dff;display:grid;place-items:center;color:#06090f;font-weight:700;font-size:16px;">A</span>
+      <span style="font-size:17px;font-weight:600;letter-spacing:-.02em;color:#fff;">Azure<span style="color:#69717f;font-weight:500;">LMS</span></span>
+    </a>
+
+    <div style="position:relative;margin-top:auto;">
+      <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#5b8dff;margin-bottom:18px;">Turk tili · A1—C1</div>
+      <h2 style="font-size:clamp(26px,2.6vw,34px);font-weight:600;line-height:1.1;letter-spacing:-.03em;color:#fff;margin:0;max-width:16ch;">Tartibli til ta'limi uchun yagona ish maydoni.</h2>
+      <div style="margin-top:30px;display:flex;flex-direction:column;gap:11px;max-width:330px;">
+        <div style="display:flex;align-items:center;gap:11px;font-size:14px;color:#c3cad6;"><i class="bi bi-check-circle" style="color:#5b8dff;font-size:14px;"></i>Jonli darslar va imtihon muhiti</div>
+        <div style="display:flex;align-items:center;gap:11px;font-size:14px;color:#c3cad6;"><i class="bi bi-check-circle" style="color:#5b8dff;font-size:14px;"></i>Shaxsiy AI repetitor</div>
+        <div style="display:flex;align-items:center;gap:11px;font-size:14px;color:#c3cad6;"><i class="bi bi-check-circle" style="color:#5b8dff;font-size:14px;"></i>Tasdiqlangan sertifikat</div>
+      </div>
+    </div>
+
+    <div style="position:relative;margin-top:40px;padding-top:22px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;gap:26px;">
+        <div><div style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:#fff;">2,400+</div><div style="font-size:11px;color:#69717f;">talaba</div></div>
+        <div><div style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:#fff;">94%</div><div style="font-size:11px;color:#69717f;">sertifikat</div></div>
+        <div><div style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:#fff;">4.9</div><div style="font-size:11px;color:#69717f;">reyting</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Forma paneli -->
+  <main style="position:relative;display:flex;flex-direction:column;padding:26px clamp(24px,5vw,56px);">
+    <div style="display:flex;align-items:center;justify-content:flex-end;gap:14px;">
+      <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.06em;"><span style="color:var(--ink);">UZ</span> <span style="color:var(--ink-4);">EN</span></div>
+      <button type="button" aria-label="Mavzu" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--line);color:var(--ink-2);display:grid;place-items:center;font-size:13px;transition:border-color .2s,color .2s;"><i class="bi bi-moon"></i></button>
+    </div>
+
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:32px 0;">
+      <div style="width:100%;max-width:392px;">
+        {% block auth_form %}{% endblock %}
+      </div>
+    </div>
+
+    <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;color:var(--ink-4);text-align:center;">© 2026 AZURELMS · TOSHKENT, UZ</div>
+  </main>
+
+</div>
+{% endblock %}
