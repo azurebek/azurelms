@@ -16,6 +16,21 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-03 [Claude]: Yangi dizayn migratsiyasi + exam quyi-tizimi to'liq yakunlandi
+
+azurelms-proto/ dagi yangi dizayn (Space Grotesk / azure #1257e6) Django'ga TO'LIQ ko'chirildi — eski frontend (61 fayl CSS/shablon) o'chirilib, o'rniga qatlamli shell tizimi qurildi: `base.html` → public / auth / AppShell (11 sahifa) / TeacherShell / AdminShell / ExamShell / errors; messenger 3-panel (messenger-chat.js DOM kontraktiga to'liq mos, WebSocket real-time). Floating AzureAI widget tiklandi (base_app include).
+
+**Exam quyi-tizimi backend+frontend bilan tugallandi:** stub `exam:` app o'chirildi → yagona `courses` engine. `build_section_payload` dispatcheri (ReadingTask bo'lsa boy 8-turli avto-baholanadigan engine, aks holda Question/Choice); barcha 5 section turiga premium section-state (saqlab-borish, question_map, review-flag). Speaking — audio upload quvuri (default_storage). Listening — server-enforced replay limiti. Writing — min/max so'z chegaralari + per-esse `grader_feedback` + text-bomb himoyasi (migratsiyalar 0017–0019). Frontend: `exam-shell.js` runtime (deadline taymer avto-submit, renderer dispatch, MediaRecorder, autosave flush, blur proctoring) + `exam_detail` (start-overlay) + `exam_result` (3 holat) + sertifikat sahifalari qayta yaratildi (0abdce7 da o'chirilgan ekan).
+
+Migratsiya paytida tushib qolgan funksiyalar testlar orqali topilib tiklandi: landing dinamik how-it-works (LandingPage/ProcessStep), footer site_settings kontaktlari, dashboard multi-kohort ro'yxati, leaderboard kohort selektori, my_courses "Tasdiq kutilmoqda" holati + kohort nomi, kurs kartasida yuklangan cover overlay, backoffice "E'tibor talab qiladi" + AI RAG index holati, messenger AI sozlamalar popover (uslub/model/skill backend choices'dan) va server-render feedback kontraktlari (copy/regenerate/skill chip).
+
+- Branch: `playground`
+- Commitlar: `a5acf01`…`0a3ed29` (13 ta: foundation → public → auth → app → lesson → messenger → blog+teacher → backoffice → errors → exam backend → sertifikat → exam UI → test moslash)
+- Test holati: `python manage.py test` — **169/169 OK** (Ran 169 tests, OK); `manage.py check` toza
+- Davom etilishi kerak: exam JS'ni brauzerda jonli sinash (recorder/audio limit/autosave); settings'dagi AI model tanlovini Gemini'dan DO stack'ka ko'chirish (task_9bf37dd1); home_view eski kontekst qoldiqlarini tozalash
+
+---
+
 ## 2026-05-28 [Claude + Codex]: Nuclear-program fayllari Codex variantlari bilan birlashtirildi
 
 Codex parallel sessiyada `alternative-project-context.md` (1239 satr) va `alternative-rules-for-agents.md` (635 satr) yozib qo'ygan ekan. Ikkalasi ham mendagi original variantlarning kengaytmasi sifatida ishlangan. Ikkalasini section-by-section taqqoslab, eng yaxshi qismlarni asosiy fayllarga birlashtirdim, alternative fayllarni o'chirdim.
