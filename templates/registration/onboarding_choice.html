@@ -1,58 +1,47 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends "registration/base_auth.html" %}
 
-{% block body %}
-<div class="container py-5 mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-10 col-lg-8 text-center">
-            <h1 class="display-5 fw-bold mb-3">Xush kelibsiz! 🎉</h1>
-            <p class="lead text-muted mb-5">Turk tilini o'rganishdagi maqsadlaringizni bilib olishimiz uchun qanday usulni tanlaysiz?</p>
-            
-            <div class="row g-4">
-                <!-- Traditional Form -->
-                <div class="col-md-6">
-                    <div class="card h-100 border-0 shadow-sm hover-elevate transition-all">
-                        <div class="card-body p-5">
-                            <div class="mb-4">
-                                <span style="font-size: 3rem;">⚡</span>
-                            </div>
-                            <h4 class="card-title fw-bold">Tezkor anketa</h4>
-                            <p class="card-text text-muted mb-4">An'anaviy shaklni to'ldirish orqali savollarga javob bering va darhol boshlang.</p>
-                            <a href="{% url 'dashboard' %}" class="btn btn-light border w-100 py-2 fw-semibold">Dashboardga o'tish</a>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Smart Form AI -->
-                <div class="col-md-6">
-                    <div class="card h-100 border-0 shadow hover-elevate transition-all" style="background: linear-gradient(145deg, #f0f7ff, #ffffff);">
-                        <div class="card-body p-5">
-                            <div class="mb-4">
-                                <span style="font-size: 3rem;">🤖</span>
-                            </div>
-                            <h4 class="card-title fw-bold text-primary">Azure AI bilan suhbat</h4>
-                            <p class="card-text text-muted mb-4">Sun'iy intellektimiz bilan qisqa va qiziqarli suhbat qurish orqali profillni to'ldiring.</p>
-                            <form method="post" action="{% url 'start_smart_onboarding' %}">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
-                                    Suhbatni boshlash
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
+{% block auth_title %}Xush kelibsiz — AzureLMS{% endblock %}
+
+{% block auth_form %}
+<h1 class="auth-h1" style="font-size:28px; margin-bottom:12px;">Xush kelibsiz! 🎉</h1>
+<p class="auth-lead" style="margin-bottom:32px;">Turk tilini o'rganishdagi maqsadlaringizni bilib olishimiz uchun usulni tanlang.</p>
+
+<div style="display:flex; flex-direction:column; gap:16px;">
+    <!-- Traditional Form -->
+    <a href="{% url 'dashboard' %}" class="choice-card" style="display:block; text-decoration:none; border:1px solid var(--line); border-radius:14px; padding:24px; background:var(--panel); transition:all 0.2s ease; cursor:pointer;">
+        <div style="display:flex; align-items:flex-start; gap:18px;">
+            <div style="font-size:32px; line-height:1;">⚡</div>
+            <div>
+                <h4 style="margin:0 0 6px 0; font-size:16px; font-weight:600; color:var(--ink);">Tezkor anketa</h4>
+                <p style="margin:0; font-size:13.5px; color:var(--ink-3); line-height:1.5;">An'anaviy shaklni to'ldirib, darhol ta'limni boshlang.</p>
             </div>
         </div>
-    </div>
+    </a>
+    
+    <!-- Smart Form AI -->
+    <form method="post" action="{% url 'start_smart_onboarding' %}" style="margin:0;">
+        {% csrf_token %}
+        <button type="submit" class="choice-card ai-card" style="width:100%; text-align:left; border:1px solid var(--azure); border-radius:14px; padding:24px; background:linear-gradient(145deg, var(--paper), #f5f8ff); cursor:pointer; transition:all 0.2s ease;">
+            <div style="display:flex; align-items:flex-start; gap:18px;">
+                <div style="font-size:32px; line-height:1;">🤖</div>
+                <div>
+                    <h4 style="margin:0 0 6px 0; font-size:16px; font-weight:700; color:var(--azure);">Azure AI bilan suhbat</h4>
+                    <p style="margin:0; font-size:13.5px; color:var(--ink-2); line-height:1.5;">Sun'iy intellektimiz bilan qisqa va qiziqarli suhbat qurish orqali profillni to'ldiring.</p>
+                </div>
+            </div>
+        </button>
+    </form>
 </div>
 
 <style>
-.transition-all {
-    transition: all 0.3s ease;
+.choice-card:hover {
+    border-color: var(--ink-4) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(11, 14, 21, 0.06);
 }
-.hover-elevate:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 1rem 3rem rgba(0,0,0,.175)!important;
+.ai-card:hover {
+    border-color: var(--azure) !important;
+    box-shadow: 0 8px 24px rgba(91, 141, 255, 0.15) !important;
 }
 </style>
 {% endblock %}
