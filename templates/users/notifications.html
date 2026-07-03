@@ -1,135 +1,56 @@
-{% extends 'users/base_app.html' %}
-{% load static %}
+{% extends "users/base_app.html" %}
+{% comment %}
+  Bildirishnomalar (NotificationCenterView).
+  Proto: azurelms-proto/app/notifications.html.
+  Kontekst: unread_notifications, read_notifications (Notification).
+{% endcomment %}
 
-{% block title %}Bildirishnomalar — AzureLMS{% endblock %}
-{% block page_title %}Bildirishnomalar{% endblock %}
+{% block app_icon %}bi-bell{% endblock %}
+{% block app_topbar_title %}Bildirishnomalar{% endblock %}
 
-{% block extra_css %}
-  <link rel="stylesheet" href="{% static 'css/app-notifications.css' %}">
-{% endblock %}
+{% block app_content %}
+<div style="max-width:760px;margin:0 auto;">
 
-{% block content %}
-<div class="notif-layout">
-  <div class="card">
-    <div class="notif-toolbar">
-      <div class="notif-count">Yangi<span>{{ unread_notifications.count }}</span></div>
-      <div class="filter-chips">
-        <div class="chip active">Hammasi</div>
-        <div class="chip">Darslar</div>
-        <div class="chip">Yutuqlar</div>
-        <div class="chip">Tizim</div>
-      </div>
-      {% if unread_notifications.exists %}
-        <form method="post" action="{% url 'notifications_read_all' %}" style="margin: 0;">
-          {% csrf_token %}
-          <button type="submit" class="btn-mark-all" style="background: none; border: none; font-family: inherit; font-size: inherit; color: inherit; cursor: pointer; padding: 0;">Barchasini o'qildi</button>
-        </form>
-      {% endif %}
-    </div>
-
-    <!-- Unread -->
-    {% for notif in unread_notifications %}
-      <div class="notif-item unread" onclick="location.href='{% url 'notification_open' notification_id=notif.id %}'" style="cursor: pointer;">
-        <div class="unread-dot"></div>
-        <div class="notif-icon xstyle-f2cd36af"><i class="bi bi-bell-fill"></i></div>
-        <div class="notif-body">
-          <div class="notif-title">{{ notif.title|default:"Tizim xabari" }}</div>
-          <div class="notif-desc">{{ notif.message }}</div>
-          <div class="notif-time">{{ notif.created_at|timesince }} oldin</div>
-          {% if notif.url %}
-            <div class="notif-action" onclick="event.stopPropagation(); location.href='{% url 'notification_open' notification_id=notif.id %}'">Batafsil ko'rish →</div>
-          {% endif %}
-        </div>
-      </div>
-    {% empty %}
-      {% if not read_notifications.exists %}
-        <div class="notif-item" style="justify-content: center; text-align: center; padding: 40px 20px;">
-          <div style="color: var(--ink-4);">
-            <i class="bi bi-bell-slash" style="font-size: 2rem; display: block; margin-bottom: 8px;"></i>
-            Hozircha bildirishnomalar yo'q.
-          </div>
-        </div>
-      {% endif %}
-    {% endfor %}
-
-    <!-- Read -->
-    {% for notif in read_notifications %}
-      <div class="notif-item" {% if notif.url %}onclick="location.href='{{ notif.url }}'" style="cursor: pointer;"{% endif %}>
-        <div class="notif-icon xstyle-eead3a91"><i class="bi bi-envelope-open"></i></div>
-        <div class="notif-body">
-          <div class="notif-title">{{ notif.title|default:"Tizim xabari" }}</div>
-          <div class="notif-desc">{{ notif.message }}</div>
-          <div class="notif-time">{{ notif.created_at|date:"d-M, Y, H:i" }}</div>
-          {% if notif.url %}
-            <div class="notif-action">Ko'rish →</div>
-          {% endif %}
-        </div>
-      </div>
-    {% endfor %}
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px;">
+    <div><h1 style="font-size:clamp(22px,2.6vw,30px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:0 0 6px;">Bildirishnomalar</h1><p style="font-size:14px;color:var(--ink-3);margin:0;">{% if unread_notifications %}{{ unread_notifications|length }} ta o'qilmagan{% else %}Hammasi o'qilgan{% endif %}.</p></div>
+    {% if unread_notifications %}
+    <form method="post" action="{% url 'notifications_read_all' %}">{% csrf_token %}
+      <button type="submit" style="display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 15px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink-2);font-size:13px;font-weight:600;cursor:pointer;"><i class="bi bi-check2-all"></i> Hammasini o'qilgan deb belgilash</button>
+    </form>
+    {% endif %}
   </div>
 
-  <!-- SETTINGS SIDEBAR -->
-  <div class="xstyle-5ae19e99">
-    <div class="card settings-card">
-      <div class="settings-title">Bildirishnoma sozlamalari</div>
-      <div class="setting-row">
-        <div class="setting-info"><div class="setting-label">Yangi darslar</div><div class="setting-sub">Kursga yangi kontent qo'shilsa</div></div>
-        <div class="toggle on"></div>
+  {% if unread_notifications or read_notifications %}
+  <div style="display:flex;flex-direction:column;gap:8px;">
+    {% for n in unread_notifications %}
+    <div style="display:flex;align-items:flex-start;gap:13px;padding:15px 16px;border-radius:13px;border:1px solid var(--line);background:var(--azure-soft);">
+      <span style="width:40px;height:40px;border-radius:11px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:17px;flex:0 0 auto;"><i class="bi bi-{{ n.icon|default:'bell' }}"></i></span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:14px;color:var(--ink);line-height:1.45;">{% if n.title %}<strong style="font-weight:600;">{{ n.title }}</strong> {% endif %}{{ n.message }}</div>
+        <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-4);margin-top:3px;">{{ n.created_at|date:"d.m.Y H:i" }}</div>
+        {% if n.url %}<a href="{% url 'notification_open' n.id %}" style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--azure);margin-top:9px;">Ko'rish <i class="bi bi-arrow-right" style="font-size:11px;"></i></a>{% endif %}
       </div>
-      <div class="setting-row">
-        <div class="setting-info"><div class="setting-label">Jonli dars eslatma</div><div class="setting-sub">Darsdan 1 soat oldin</div></div>
-        <div class="toggle on"></div>
-      </div>
-      <div class="setting-row">
-        <div class="setting-info"><div class="setting-label">Yutuqlar</div><div class="setting-sub">Yangi badge qo'lga kirganda</div></div>
-        <div class="toggle on"></div>
-      </div>
-      <div class="setting-row">
-        <div class="setting-info"><div class="setting-label">Test natijalari</div><div class="setting-sub">Test topshirilganda</div></div>
-        <div class="toggle on"></div>
-      </div>
-      <div class="setting-row">
-        <div class="setting-info"><div class="setting-label">Muallim javoblari</div><div class="setting-sub">Savolingizga javob kelsa</div></div>
-        <div class="toggle on"></div>
-      </div>
-      <div class="setting-row">
-        <div class="setting-info"><div class="setting-label">To'lov va obuna</div><div class="setting-sub">To'lov va yangiliklar</div></div>
-        <div class="toggle"></div>
-      </div>
-      <div class="setting-row">
-        <div class="setting-info"><div class="setting-label">Marketing</div><div class="setting-sub">Chegirmalar va aksiyalar</div></div>
-        <div class="toggle"></div>
+      <span style="width:8px;height:8px;border-radius:50%;background:var(--azure);flex:0 0 auto;margin-top:6px;"></span>
+    </div>
+    {% endfor %}
+    {% for n in read_notifications %}
+    <div style="display:flex;align-items:flex-start;gap:13px;padding:15px 16px;border-radius:13px;border:1px solid var(--line);background:var(--panel);">
+      <span style="width:40px;height:40px;border-radius:11px;background:var(--paper-2);color:var(--ink-3);display:grid;place-items:center;font-size:17px;flex:0 0 auto;"><i class="bi bi-{{ n.icon|default:'bell' }}"></i></span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:14px;color:var(--ink-2);line-height:1.45;">{% if n.title %}<strong style="font-weight:600;color:var(--ink);">{{ n.title }}</strong> {% endif %}{{ n.message }}</div>
+        <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-4);margin-top:3px;">{{ n.created_at|date:"d.m.Y H:i" }}</div>
+        {% if n.url %}<a href="{% url 'notification_open' n.id %}" style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--azure);margin-top:9px;">Ko'rish <i class="bi bi-arrow-right" style="font-size:11px;"></i></a>{% endif %}
       </div>
     </div>
-
-    <div class="card settings-card">
-      <div class="settings-title">Email sozlamalari</div>
-      <div class="setting-row">
-        <div class="setting-info"><div class="setting-label">Haftalik hisobot</div><div class="setting-sub">Har dushanba kuni</div></div>
-        <div class="toggle on"></div>
-      </div>
-      <div class="setting-row">
-        <div class="setting-info"><div class="setting-label">Eslatmalar</div><div class="setting-sub">3 kunlik to'xtam bo'lsa</div></div>
-        <div class="toggle on"></div>
-      </div>
-    </div>
+    {% endfor %}
   </div>
+  {% else %}
+  <div style="border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:48px 24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;">
+    <span style="width:60px;height:60px;border-radius:16px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:27px;"><i class="bi bi-bell-slash"></i></span>
+    <div style="font-size:17px;font-weight:600;color:var(--ink);">Bildirishnoma yo'q</div>
+    <div style="font-size:13.5px;color:var(--ink-3);max-width:40ch;line-height:1.6;">Yangi xabarlar, natijalar va eslatmalar shu yerda paydo bo'ladi.</div>
+  </div>
+  {% endif %}
+
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-  document.querySelectorAll('.chip').forEach(c => {
-    c.addEventListener('click', function() {
-      document.querySelectorAll('.chip').forEach(x => x.classList.remove('active'));
-      this.classList.add('active');
-    });
-  });
-  // Handle toggles
-  document.querySelectorAll('.toggle').forEach(t => {
-    t.addEventListener('click', function() {
-      this.classList.toggle('on');
-    });
-  });
-</script>
 {% endblock %}

@@ -1,148 +1,84 @@
-{% extends 'users/base_app.html' %}
-{% load static %}
+{% extends "users/base_app.html" %}
+{% comment %}
+  Davomat (AttendanceCalendarView).
+  Proto: azurelms-proto/app/attendance.html.
+  Kontekst: calendar_weeks [[{day,status}]], attendance_summary {present,partial,absent},
+  selected_month/prev_month/next_month, attendance_cohort(+choices), selected_attendance_cohort_id.
+  status: 'present'(yashil) / 'partial'(amber) / 'absent'(qizil) / None.
+{% endcomment %}
 
-{% block title %}Davomat Taqvimi — AzureLMS{% endblock %}
-{% block page_title %}Davomat Taqvimi{% endblock %}
+{% block app_icon %}bi-calendar-check{% endblock %}
+{% block app_topbar_title %}Davomat{% endblock %}
 
-{% block content %}
-<div class="card" style="max-width: 900px; margin: 0 auto; padding: 24px;">
-  
-  <!-- COHORT SELECT & NAVIGATION -->
-  <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 24px; gap: 16px;">
-    <div>
-      <h2 style="font-size: 20px; font-weight: 800; color: var(--ink-1); margin: 0;">Mening davomatim</h2>
-      <p style="font-size: 13px; color: var(--ink-3); margin-top: 4px;">Kurslardagi darslarga qatnashish va dars qoldirish ko'rsatkichlaringiz.</p>
-    </div>
-    
-    <!-- Cohort selection dropdown -->
-    {% if attendance_cohort_choices %}
-      <form method="get" action="" id="cohortForm" style="display: flex; align-items: center; gap: 8px;">
-        <input type="hidden" name="year" value="{{ selected_month.year }}">
-        <input type="hidden" name="month" value="{{ selected_month.month }}">
-        
-        <label for="cohortSelect" style="font-size: 13px; font-weight: 600; color: var(--ink-2);">Guruhni tanlang:</label>
-        <select name="cohort" id="cohortSelect" onchange="document.getElementById('cohortForm').submit();" style="border: 1px solid var(--border-color); background: var(--bg-1); color: var(--ink-1); padding: 8px 16px; border-radius: var(--radius-m); font-size: 13px; cursor: pointer;">
-          {% for enrollment in attendance_cohort_choices %}
-            <option value="{{ enrollment.cohort.id }}" {% if enrollment.cohort.id == selected_attendance_cohort_id %}selected{% endif %}>
-              {{ enrollment.cohort.course.title }} ({{ enrollment.cohort.name }})
-            </option>
-          {% endfor %}
-        </select>
-      </form>
+{% block app_content %}
+<div style="max-width:820px;margin:0 auto;">
+
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:20px;">
+    <div><h1 style="font-size:clamp(22px,2.6vw,30px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:0 0 6px;">Davomat</h1><p style="font-size:14px;color:var(--ink-3);margin:0;">{% if attendance_cohort %}{{ attendance_cohort }}{% else %}Darslarga qatnashish tarixi{% endif %}.</p></div>
+    {% if attendance_cohort_choices|length > 1 %}
+    <form method="get" id="cohortForm">
+      <input type="hidden" name="year" value="{{ selected_month|date:'Y' }}"><input type="hidden" name="month" value="{{ selected_month|date:'n' }}">
+      <select name="cohort" onchange="document.getElementById('cohortForm').submit()" style="height:38px;padding:0 12px;border-radius:9px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:13px;outline:none;cursor:pointer;">
+        {% for e in attendance_cohort_choices %}<option value="{{ e.cohort_id }}" {% if e.cohort_id == selected_attendance_cohort_id %}selected{% endif %}>{{ e.cohort }}</option>{% endfor %}
+      </select>
+    </form>
     {% endif %}
   </div>
 
   {% if attendance_cohort %}
-    <!-- CALENDAR CARD -->
-    <div class="two-col" style="gap: 24px; margin-top: 24px;">
-      
-      <!-- CALENDAR GRID -->
-      <div style="flex-grow: 1;">
-        <div class="mini-cal" style="width: 100%; max-width: 100%; border: 1px solid var(--border-color); border-radius: var(--radius-l); padding: 16px;">
-          
-          <!-- Month Header Navigation -->
-          <div class="cal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <a href="?year={{ prev_month.year }}&month={{ prev_month.month }}&cohort={{ selected_attendance_cohort_id }}" class="cal-nav" style="text-decoration: none; color: var(--ink-2); display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: var(--radius-m); border: 1px solid var(--border-color);"><i class="bi bi-chevron-left"></i></a>
-            <div class="cal-month" style="font-size: 16px; font-weight: 800; color: var(--ink-1);">{{ selected_month|date:"F Y" }}</div>
-            <a href="?year={{ next_month.year }}&month={{ next_month.month }}&cohort={{ selected_attendance_cohort_id }}" class="cal-nav" style="text-decoration: none; color: var(--ink-2); display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: var(--radius-m); border: 1px solid var(--border-color);"><i class="bi bi-chevron-right"></i></a>
-          </div>
-          
-          <!-- Calendar Days -->
-          <div class="cal-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; text-align: center;">
-            <div class="cal-day-label" style="font-size: 12px; font-weight: 700; color: var(--ink-3); padding-bottom: 8px;">Dush</div>
-            <div class="cal-day-label" style="font-size: 12px; font-weight: 700; color: var(--ink-3); padding-bottom: 8px;">Sesh</div>
-            <div class="cal-day-label" style="font-size: 12px; font-weight: 700; color: var(--ink-3); padding-bottom: 8px;">Chor</div>
-            <div class="cal-day-label" style="font-size: 12px; font-weight: 700; color: var(--ink-3); padding-bottom: 8px;">Pay</div>
-            <div class="cal-day-label" style="font-size: 12px; font-weight: 700; color: var(--ink-3); padding-bottom: 8px;">Jum</div>
-            <div class="cal-day-label" style="font-size: 12px; font-weight: 700; color: var(--ink-3); padding-bottom: 8px;">Shan</div>
-            <div class="cal-day-label" style="font-size: 12px; font-weight: 700; color: var(--ink-3); padding-bottom: 8px;">Yak</div>
-            
-            {% for week in calendar_weeks %}
-              {% for day in week %}
-                {% if day.day %}
-                  <!-- Status coloring logic -->
-                  {% if day.status == 'present' %}
-                    <div class="cal-day" style="background: rgba(16, 185, 129, 0.15); color: var(--emerald); font-weight: 700; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-m); padding: 12px 0; position: relative;">
-                      {{ day.day }}
-                      <span style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); font-size: 8px; color: var(--emerald);">●</span>
-                    </div>
-                  {% elif day.status == 'partial' %}
-                    <div class="cal-day" style="background: rgba(245, 158, 11, 0.15); color: var(--amber); font-weight: 700; border: 1px solid rgba(245, 158, 11, 0.3); border-radius: var(--radius-m); padding: 12px 0; position: relative;">
-                      {{ day.day }}
-                      <span style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); font-size: 8px; color: var(--amber);">●</span>
-                    </div>
-                  {% elif day.status == 'absent' %}
-                    <div class="cal-day" style="background: rgba(239, 68, 68, 0.15); color: var(--rose); font-weight: 700; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-m); padding: 12px 0; position: relative;">
-                      {{ day.day }}
-                      <span style="position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); font-size: 8px; color: var(--rose);">●</span>
-                    </div>
-                  {% else %}
-                    <!-- Active Month without class -->
-                    <div class="cal-day" style="background: var(--bg-2); color: var(--ink-2); border-radius: var(--radius-m); padding: 12px 0;">
-                      {{ day.day }}
-                    </div>
-                  {% endif %}
-                {% else %}
-                  <!-- Empty Day from other month -->
-                  <div class="cal-day other-month" style="opacity: 0.15; padding: 12px 0;"></div>
-                {% endif %}
-              {% endfor %}
-            {% endfor %}
-          </div>
-        </div>
-      </div>
-      
-      <!-- STATS & LEGEND -->
-      <div style="width: 280px; flex-shrink: 0; display: flex; flex-direction: column; gap: 20px;">
-        <!-- STATS CARD -->
-        <div class="card" style="padding: 16px;">
-          <h3 style="font-size: 15px; font-weight: 700; color: var(--ink-1); margin-bottom: 16px;">Ushbu oy yakunlari</h3>
-          
-          <div style="display: flex; flex-direction: column; gap: 12px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
-              <span style="font-size: 13px; color: var(--ink-2); display: flex; align-items: center; gap: 6px;">
-                <span style="display: inline-block; width: 8px; height: 8px; background: var(--emerald); border-radius: 50%;"></span>
-                Qatnashgan darslar
-              </span>
-              <span style="font-weight: 700; color: var(--emerald);">{{ attendance_summary.present }} ta</span>
-            </div>
-            
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
-              <span style="font-size: 13px; color: var(--ink-2); display: flex; align-items: center; gap: 6px;">
-                <span style="display: inline-block; width: 8px; height: 8px; background: var(--amber); border-radius: 50%;"></span>
-                Kechikkan / Qisman
-              </span>
-              <span style="font-weight: 700; color: var(--amber);">{{ attendance_summary.partial }} ta</span>
-            </div>
-            
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 13px; color: var(--ink-2); display: flex; align-items: center; gap: 6px;">
-                <span style="display: inline-block; width: 8px; height: 8px; background: var(--rose); border-radius: 50%;"></span>
-                Qoldirilgan darslar
-              </span>
-              <span style="font-weight: 700; color: var(--rose);">{{ attendance_summary.absent }} ta</span>
-            </div>
-          </div>
-        </div>
-        
-        <!-- INSTRUCTION -->
-        <div class="card" style="padding: 16px; background: rgba(59, 130, 246, 0.02); border-color: rgba(59, 130, 246, 0.1);">
-          <h4 style="font-size: 13px; font-weight: 700; color: var(--blue); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-            <i class="bi bi-info-circle-fill"></i> Eslatma
-          </h4>
-          <p style="font-size: 12px; color: var(--ink-3); line-height: 1.5; margin: 0;">
-            Dars davomati har bir dars boshlanganidan so'ng 15 daqiqa ichida o'qituvchi tomonidan belgilanadi.
-            Agar davomatingizda xatolik bo'lsa, kurs koordinatori yoki o'qituvchi bilan bog'laning.
-          </p>
-        </div>
-      </div>
+  <!-- Xulosa -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:16px 18px;"><div style="display:flex;align-items:center;gap:8px;"><span style="width:10px;height:10px;border-radius:50%;background:var(--green);"></span><span style="font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--ink);">{{ attendance_summary.present }}</span></div><div style="font-size:12px;color:var(--ink-3);margin-top:4px;">Kelgan</div></div>
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:16px 18px;"><div style="display:flex;align-items:center;gap:8px;"><span style="width:10px;height:10px;border-radius:50%;background:var(--amber);"></span><span style="font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--ink);">{{ attendance_summary.partial }}</span></div><div style="font-size:12px;color:var(--ink-3);margin-top:4px;">Kech qolgan</div></div>
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:16px 18px;"><div style="display:flex;align-items:center;gap:8px;"><span style="width:10px;height:10px;border-radius:50%;background:var(--red);"></span><span style="font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--ink);">{{ attendance_summary.absent }}</span></div><div style="font-size:12px;color:var(--ink-3);margin-top:4px;">Kelmagan</div></div>
+  </div>
+
+  <!-- Kalendar -->
+  <section style="border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:20px;">
+    {% now "j" as today_day %}{% now "n,Y" as today_ny %}
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <a href="?year={{ prev_month|date:'Y' }}&month={{ prev_month|date:'n' }}{% if selected_attendance_cohort_id %}&cohort={{ selected_attendance_cohort_id }}{% endif %}" aria-label="Oldingi oy" style="width:36px;height:36px;border-radius:9px;border:1px solid var(--line);color:var(--ink-2);display:grid;place-items:center;"><i class="bi bi-chevron-left"></i></a>
+      <div style="font-size:15px;font-weight:600;color:var(--ink);">{{ selected_month|date:"F Y" }}</div>
+      <a href="?year={{ next_month|date:'Y' }}&month={{ next_month|date:'n' }}{% if selected_attendance_cohort_id %}&cohort={{ selected_attendance_cohort_id }}{% endif %}" aria-label="Keyingi oy" style="width:36px;height:36px;border-radius:9px;border:1px solid var(--line);color:var(--ink-2);display:grid;place-items:center;"><i class="bi bi-chevron-right"></i></a>
     </div>
+
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px;">
+      {% for d in weekday_labels %}<div style="text-align:center;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-4);padding:4px 0;">{{ d }}</div>{% endfor %}
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;">
+      {% for week in calendar_weeks %}{% for cell in week %}
+        {% if not cell.day %}
+        <div style="aspect-ratio:1/1;"></div>
+        {% else %}
+        {% if cell.status == 'present' %}
+        <div style="position:relative;aspect-ratio:1/1;border-radius:9px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line-2);background:color-mix(in srgb,var(--green) 12%,transparent);"><span style="color:var(--green);font-weight:600;font-family:'Space Mono',monospace;">{{ cell.day }}</span><span style="position:absolute;bottom:5px;width:5px;height:5px;border-radius:50%;background:var(--green);"></span></div>
+        {% elif cell.status == 'partial' %}
+        <div style="position:relative;aspect-ratio:1/1;border-radius:9px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line-2);background:color-mix(in srgb,var(--amber) 12%,transparent);"><span style="color:var(--amber);font-weight:600;font-family:'Space Mono',monospace;">{{ cell.day }}</span><span style="position:absolute;bottom:5px;width:5px;height:5px;border-radius:50%;background:var(--amber);"></span></div>
+        {% elif cell.status == 'absent' %}
+        <div style="position:relative;aspect-ratio:1/1;border-radius:9px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line-2);background:color-mix(in srgb,var(--red) 12%,transparent);"><span style="color:var(--red);font-weight:600;font-family:'Space Mono',monospace;">{{ cell.day }}</span><span style="position:absolute;bottom:5px;width:5px;height:5px;border-radius:50%;background:var(--red);"></span></div>
+        {% else %}
+        <div style="aspect-ratio:1/1;border-radius:9px;display:flex;align-items:center;justify-content:center;border:{% if cell.day|stringformat:'s' == today_day and selected_month|date:'n,Y' == today_ny %}2px solid var(--azure){% else %}1px solid var(--line-2){% endif %};"><span style="color:var(--ink-2);font-family:'Space Mono',monospace;">{{ cell.day }}</span></div>
+        {% endif %}
+        {% endif %}
+      {% endfor %}{% endfor %}
+    </div>
+
+    <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:20px;padding-top:16px;border-top:1px solid var(--line);">
+      <span style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-2);"><span style="width:9px;height:9px;border-radius:50%;background:var(--green);"></span> Kelgan</span>
+      <span style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-2);"><span style="width:9px;height:9px;border-radius:50%;background:var(--amber);"></span> Kech qolgan</span>
+      <span style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-2);"><span style="width:9px;height:9px;border-radius:50%;background:var(--red);"></span> Kelmagan</span>
+      <span style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-2);"><span style="width:9px;height:9px;border-radius:50%;border:2px solid var(--azure);"></span> Bugun</span>
+    </div>
+  </section>
   {% else %}
-    <div style="text-align: center; padding: 48px 24px; color: var(--ink-3);">
-      <i class="bi bi-calendar-x" style="font-size: 48px; color: var(--ink-4); display: block; margin-bottom: 16px;"></i>
-      <h4 style="font-size: 16px; font-weight: 700; color: var(--ink-2); margin-bottom: 8px;">Faol guruhlar mavjud emas</h4>
-      <p style="font-size: 13px; max-width: 400px; margin: 0 auto;">Davomatni tekshirish uchun faol kurslardan birortasiga a'zo bo'lishingiz kerak.</p>
-    </div>
+  <div style="border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:48px 24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;">
+    <span style="width:60px;height:60px;border-radius:16px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:27px;"><i class="bi bi-calendar-check"></i></span>
+    <div style="font-size:17px;font-weight:600;color:var(--ink);">Davomat ma'lumoti yo'q</div>
+    <div style="font-size:13.5px;color:var(--ink-3);max-width:40ch;line-height:1.6;">Faol guruhga qo'shilganingizdan so'ng, dars davomatingiz shu kalendarда ko'rinadi.</div>
+    <a href="{% url 'my_courses' %}" style="margin-top:8px;display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:10px;background:var(--azure);color:var(--on-azure);font-size:14px;font-weight:600;">Darslarimga o'tish <i class="bi bi-arrow-right" style="font-size:13px;"></i></a>
+  </div>
   {% endif %}
+
 </div>
 {% endblock %}

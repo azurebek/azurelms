@@ -1,93 +1,54 @@
-{% extends 'users/base_app.html' %}
-{% load static %}
+{% extends "users/base_app.html" %}
+{% comment %}
+  Yordam markazi (HelpCenterView).
+  Proto: azurelms-proto/app/help.html.
+  Kontekst: page_privacy, page_terms, page_faq (LegalPage).
+{% endcomment %}
 
-{% block title %}Yordam Markazi — AzureLMS{% endblock %}
-{% block page_title %}Yordam Markazi{% endblock %}
+{% block app_icon %}bi-life-preserver{% endblock %}
+{% block app_topbar_title %}Yordam markazi{% endblock %}
 
-{% block content %}
-<div class="card" style="max-width: 900px; margin: 0 auto; padding: 24px;">
-  
-  <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 24px;">
-    <h2 style="font-size: 20px; font-weight: 800; color: var(--ink-1); margin: 0;">Yordam markazi</h2>
-    <p style="font-size: 13px; color: var(--ink-3); margin-top: 4px;">Platformadan foydalanish, to'lovlar va huquqiy masalalar bo'yicha ma'lumotlar.</p>
+{% block page_css %}
+<style>
+  .help-faq h2,.help-faq h3{ font-size:15px; font-weight:600; color:var(--ink); margin:18px 0 8px; }
+  .help-faq h2:first-child,.help-faq h3:first-child{ margin-top:0; }
+  .help-faq p{ font-size:13.5px; line-height:1.7; color:var(--ink-2); margin:0 0 12px; }
+  .help-faq ul,.help-faq ol{ font-size:13.5px; line-height:1.7; color:var(--ink-2); padding-left:20px; margin:0 0 12px; }
+</style>
+{% endblock %}
+
+{% block app_content %}
+<div style="max-width:860px;margin:0 auto;">
+
+  <div style="margin-bottom:24px;">
+    <h1 style="font-size:clamp(22px,2.6vw,30px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:0 0 6px;">Yordam markazi</h1>
+    <p style="font-size:14px;color:var(--ink-3);margin:0;">Tez-tez beriladigan savollar va qo'llab-quvvatlash.</p>
   </div>
 
-  <!-- HELP TABS NAVIGATION -->
-  <div class="help-tabs" style="display: flex; gap: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 1px; margin-bottom: 24px;">
-    <button class="tab-btn active" onclick="switchHelpTab('faq', this)" style="border: none; background: transparent; padding: 12px 16px; font-size: 14px; font-weight: 600; color: var(--blue); border-bottom: 2px solid var(--blue); cursor: pointer; transition: all 0.2s;">
-      💡 Savol-javoblar (FAQ)
-    </button>
-    <button class="tab-btn" onclick="switchHelpTab('terms', this)" style="border: none; background: transparent; padding: 12px 16px; font-size: 14px; font-weight: 500; color: var(--ink-3); border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.2s;">
-      📜 Foydalanish shartlari
-    </button>
-    <button class="tab-btn" onclick="switchHelpTab('privacy', this)" style="border: none; background: transparent; padding: 12px 16px; font-size: 14px; font-weight: 500; color: var(--ink-3); border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.2s;">
-      🔒 Maxfiylik siyosati
-    </button>
+  <!-- Kategoriyalar -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:28px;">
+    <a href="{% url 'faq_page' %}" class="pub-lift" style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:18px;"><span style="width:40px;height:40px;border-radius:11px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:18px;"><i class="bi bi-rocket-takeoff"></i></span><div style="font-size:14.5px;font-weight:600;color:var(--ink);margin-top:13px;">Boshlash</div><div style="font-size:12.5px;color:var(--ink-3);margin-top:3px;">Ro'yxat, kirish, daraja</div></a>
+    <a href="{% url 'subscriptions' %}" class="pub-lift" style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:18px;"><span style="width:40px;height:40px;border-radius:11px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:18px;"><i class="bi bi-credit-card"></i></span><div style="font-size:14.5px;font-weight:600;color:var(--ink);margin-top:13px;">Hisob &amp; to'lov</div><div style="font-size:12.5px;color:var(--ink-3);margin-top:3px;">Obuna va to'lovlar</div></a>
+    <a href="{% url 'my_courses' %}" class="pub-lift" style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:18px;"><span style="width:40px;height:40px;border-radius:11px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:18px;"><i class="bi bi-stars"></i></span><div style="font-size:14.5px;font-weight:600;color:var(--ink);margin-top:13px;">Darslar &amp; AI</div><div style="font-size:12.5px;color:var(--ink-3);margin-top:3px;">Darslar va repetitor</div></a>
+    <a href="{% url 'certificates' %}" class="pub-lift" style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:18px;"><span style="width:40px;height:40px;border-radius:11px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:18px;"><i class="bi bi-patch-check"></i></span><div style="font-size:14.5px;font-weight:600;color:var(--ink);margin-top:13px;">Sertifikat</div><div style="font-size:12.5px;color:var(--ink-3);margin-top:3px;">Sertifikat olish</div></a>
   </div>
 
-  <!-- HELP TABS CONTENT -->
-  <div class="help-content-wrapper">
-    
-    <!-- FAQ TAB -->
-    <div id="help-tab-faq" class="help-tab-panel" style="display: block; line-height: 1.6; color: var(--ink-2);">
-      <h3 style="font-size: 18px; font-weight: 700; color: var(--ink-1); margin-bottom: 16px;">{{ page_faq.title|default:"Ko'p beriladigan savollar" }}</h3>
-      <div style="font-size: 14px;">
-        {{ page_faq.content|safe }}
-      </div>
-    </div>
-    
-    <!-- TERMS TAB -->
-    <div id="help-tab-terms" class="help-tab-panel" style="display: none; line-height: 1.6; color: var(--ink-2);">
-      <h3 style="font-size: 18px; font-weight: 700; color: var(--ink-1); margin-bottom: 16px;">{{ page_terms.title|default:"Foydalanish shartlari" }}</h3>
-      <div style="font-size: 14px;">
-        {{ page_terms.content|safe }}
-      </div>
-    </div>
-
-    <!-- PRIVACY TAB -->
-    <div id="help-tab-privacy" class="help-tab-panel" style="display: none; line-height: 1.6; color: var(--ink-2);">
-      <h3 style="font-size: 18px; font-weight: 700; color: var(--ink-1); margin-bottom: 16px;">{{ page_privacy.title|default:"Maxfiylik kelishuvi" }}</h3>
-      <div style="font-size: 14px;">
-        {{ page_privacy.content|safe }}
-      </div>
-    </div>
-
+  <!-- FAQ (admin'da tahrirlanadigan) -->
+  <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:0 0 12px;">Ko'p so'raladigan savollar</div>
+  <div class="help-faq" style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:22px 24px;margin-bottom:28px;">
+    {{ page_faq.content|safe }}
+    <a href="{% url 'faq_page' %}" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--azure);margin-top:6px;">Barcha savollar <i class="bi bi-arrow-right" style="font-size:11px;"></i></a>
   </div>
 
-  <!-- FOOTER SUPPORT ACTION -->
-  <div style="margin-top: 48px; padding: 20px; background: rgba(59, 130, 246, 0.03); border: 1px solid rgba(59, 130, 246, 0.1); border-radius: var(--radius-l); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px;">
-    <div>
-      <h4 style="font-size: 15px; font-weight: 700; color: var(--ink-1); margin: 0;">Savolingizga javob topa olmadingizmi?</h4>
-      <p style="font-size: 12px; color: var(--ink-3); margin-top: 4px; margin-bottom: 0;">Bizning qo'llab-quvvatlash guruhimiz bilan bog'laning, sizga tez fursatda yordam beramiz.</p>
+  <!-- Qo'llab-quvvatlash -->
+  <div style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:22px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
+    <span style="width:48px;height:48px;border-radius:12px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:22px;flex:0 0 auto;"><i class="bi bi-headset"></i></span>
+    <div style="flex:1;min-width:180px;"><div style="font-size:15px;font-weight:600;color:var(--ink);">Javob topa olmadingizmi?</div><div style="font-size:13px;color:var(--ink-3);margin-top:2px;">Qo'llab-quvvatlash jamoasi bilan bog'laning — odatda 3 soatda javob beramiz.</div></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <a href="{% url 'messenger:ai' %}" style="display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 18px;border-radius:10px;background:var(--azure);color:var(--on-azure);font-size:13.5px;font-weight:600;"><i class="bi bi-chat-dots"></i> Chat ochish</a>
+      {% if site_settings.telegram_url %}<a href="{{ site_settings.telegram_url }}" style="display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 16px;border-radius:10px;border:1px solid var(--line);color:var(--ink);font-size:13.5px;font-weight:600;"><i class="bi bi-telegram"></i> Telegram</a>{% endif %}
     </div>
-    <a href="mailto:support@azurelms.uz" class="btn-submit" style="text-decoration: none; padding: 10px 20px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
-      <i class="bi bi-envelope"></i> Bizga yozish
-    </a>
   </div>
 
 </div>
-
-<script>
-  function switchHelpTab(tabName, buttonEl) {
-    // Hide all panels
-    const panels = document.querySelectorAll('.help-tab-panel');
-    panels.forEach(panel => panel.style.display = 'none');
-    
-    // Deactivate all buttons
-    const buttons = document.querySelectorAll('.tab-btn');
-    buttons.forEach(btn => {
-      btn.style.color = 'var(--ink-3)';
-      btn.style.borderBottomColor = 'transparent';
-      btn.style.fontWeight = '500';
-    });
-    
-    // Show active panel
-    document.getElementById('help-tab-' + tabName).style.display = 'block';
-    
-    // Style active button
-    buttonEl.style.color = 'var(--blue)';
-    buttonEl.style.borderBottomColor = 'var(--blue)';
-    buttonEl.style.fontWeight = '600';
-  }
-</script>
 {% endblock %}

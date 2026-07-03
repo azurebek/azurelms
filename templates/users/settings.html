@@ -1,194 +1,128 @@
-{% extends 'users/base_app.html' %}
-{% load static %}
+{% extends "users/base_app.html" %}
+{% comment %}
+  Sozlamalar (SettingsView UpdateView, fields: first_name,last_name,phone_number,bio).
+  Proto: azurelms-proto/app/settings.html.
+  Sub-formalar: update_password, update_ai_tone, ai_memory_toggle.
+  Eslatma: AI model selektori hozircha yo'q — CustomUser.AI_MODEL_CHOICES hali
+  Gemini, DO-stack (Maverick/Qwen3/DO Router) ga ko'chirilishi kerak.
+{% endcomment %}
 
-{% block title %}Sozlamalar — AzureLMS{% endblock %}
-{% block page_title %}Sozlamalar{% endblock %}
+{% block app_icon %}bi-gear{% endblock %}
+{% block app_topbar_title %}Sozlamalar{% endblock %}
 
-{% block extra_css %}
-  <link rel="stylesheet" href="{% static 'css/app-settings.css' %}">
+{% block page_css %}
+<style>
+  .set-form input, .set-form textarea{ width:100%; padding:0 14px; border-radius:10px; border:1px solid var(--line); background:var(--paper-2); color:var(--ink); font-size:14px; outline:none; transition:border-color .2s,box-shadow .2s; }
+  .set-form input{ height:44px; }
+  .set-form textarea{ min-height:90px; padding:12px 14px; line-height:1.6; resize:vertical; }
+  .set-form input:focus, .set-form textarea:focus{ border-color:var(--azure); box-shadow:0 0 0 3px var(--azure-soft); }
+  .set-lbl{ display:block; font-family:'Space Mono',monospace; font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); margin-bottom:7px; }
+  .set-sec{ border:1px solid var(--line); border-radius:14px; background:var(--panel); margin-bottom:16px; overflow:hidden; }
+  .set-sec-h{ display:flex; align-items:center; gap:10px; padding:16px 20px; border-bottom:1px solid var(--line); }
+  .set-sec-h span{ font-size:15px; font-weight:600; color:var(--ink); }
+  .set-save{ display:inline-flex; align-items:center; gap:7px; height:42px; padding:0 18px; border-radius:10px; background:var(--azure); color:var(--on-azure); font-size:14px; font-weight:600; border:none; cursor:pointer; }
+  .set-pill{ height:34px; padding:0 14px; border-radius:8px; font-size:13px; font-weight:600; border:1px solid var(--line); background:transparent; color:var(--ink-2); cursor:pointer; }
+  .set-pill.is-on{ border-color:var(--azure); background:var(--azure); color:var(--on-azure); }
+</style>
 {% endblock %}
 
-{% block content %}
-<div class="settings-layout">
-  <div class="settings-nav">
-    <div class="sn-item active"><i class="bi bi-person"></i> Profil</div>
-    <div class="sn-item"><i class="bi bi-shield-lock"></i> Xavfsizlik</div>
-    <div class="sn-item"><i class="bi bi-palette"></i> Ko'rinish</div>
-    <div class="sn-item"><i class="bi bi-translate"></i> Til</div>
-    <div class="sn-item"><i class="bi bi-bell"></i> Bildirishnomalar</div>
-    <div class="sn-item"><i class="bi bi-device-hdd"></i> Yuklab olish</div>
-    <div class="sn-item"><i class="bi bi-shield-exclamation"></i> Maxfiylik</div>
-  </div>
+{% block app_content %}
+<div style="max-width:1000px;margin:0 auto;">
 
-  <div class="settings-main">
-    <!-- APPEARANCE -->
-    <div class="ss">
-      <div class="ss-header"><div class="ss-title">Ko'rinish</div><div class="ss-sub">Interfeys rangi va o'lchami</div></div>
-      <div class="ss-body">
-        <div class="sr">
-          <div class="sr-icon xstyle-f2cd36af"><i class="bi bi-moon-stars"></i></div>
-          <div class="sr-info"><div class="sr-label">Qorong'i rejim</div><div class="sr-desc">Ko'zni qoraytiruvchi interfeys</div></div>
-          <div class="toggle on" id="darkToggle2" onclick="toggleTheme();"></div>
-        </div>
-        <div class="sr">
-          <div class="sr-icon xstyle-eead3a91"><i class="bi bi-type"></i></div>
-          <div class="sr-info"><div class="sr-label">Matn o'lchami</div><div class="sr-desc">Interfeysdagi shrift kattaligi</div></div>
-          <select class="sr-select"><option>Standart</option><option>Kichik</option><option>Katta</option></select>
-        </div>
-        <div class="sr">
-          <div class="sr-icon xstyle-adf55eb0"><i class="bi bi-layout-sidebar"></i></div>
-          <div class="sr-info"><div class="sr-label">Yon panel holati</div><div class="sr-desc">Boshlanganda kengaytirilgan ko'rsatish</div></div>
-          <div class="toggle on"></div>
-        </div>
-      </div>
-    </div>
+  <div style="margin-bottom:22px;"><h1 style="font-size:clamp(22px,2.6vw,30px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:0 0 6px;">Sozlamalar</h1><p style="font-size:14px;color:var(--ink-3);margin:0;">Hisob, AI repetitor va ko'rinishni boshqaring.</p></div>
 
-    <!-- SECURITY -->
-    <div class="ss">
-      <div class="ss-header"><div class="ss-title">Xavfsizlik</div><div class="ss-sub">Parol va kirish nazorati</div></div>
-      <div class="ss-body">
-        <div class="sr" style="flex-direction: column; align-items: stretch; gap: 8px;">
-          <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-            <div style="display: flex; align-items: center; gap: 14px;">
-              <div class="sr-icon xstyle-f2cd36af"><i class="bi bi-key-fill"></i></div>
-              <div class="sr-info"><div class="sr-label">Parolni o'zgartirish</div><div class="sr-desc">Oxirgi o'zgartirilgan: 3 oy oldin</div></div>
-            </div>
-            <button class="sr-btn" onclick="document.getElementById('passwordFormCard').style.display = document.getElementById('passwordFormCard').style.display === 'none' ? 'block' : 'none';">O'zgartirish</button>
-          </div>
-          <form id="passwordFormCard" method="post" action="{% url 'update_password' %}" style="display: none; padding: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); margin-top: 10px; width: 100%;">
-            {% csrf_token %}
-            <div style="display: flex; flex-direction: column; gap: 12px;">
-              <div style="display: flex; flex-direction: column; gap: 4px;">
-                <label style="font-size: 0.78rem; font-weight: 600; color: var(--ink-3);">Joriy parol</label>
-                <input class="form-input" type="password" name="old_password" required style="height: 36px; border: 1px solid var(--border); border-radius: var(--r-md); padding: 0 10px; outline: none; background: var(--white);">
-              </div>
-              <div style="display: flex; flex-direction: column; gap: 4px;">
-                <label style="font-size: 0.78rem; font-weight: 600; color: var(--ink-3);">Yangi parol</label>
-                <input class="form-input" type="password" name="new_password1" required style="height: 36px; border: 1px solid var(--border); border-radius: var(--r-md); padding: 0 10px; outline: none; background: var(--white);">
-              </div>
-              <div style="display: flex; flex-direction: column; gap: 4px;">
-                <label style="font-size: 0.78rem; font-weight: 600; color: var(--ink-3);">Yangi parolni takrorlang</label>
-                <input class="form-input" type="password" name="new_password2" required style="height: 36px; border: 1px solid var(--border); border-radius: var(--r-md); padding: 0 10px; outline: none; background: var(--white);">
-              </div>
-              <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px;">
-                <button type="submit" class="sr-btn" style="background: var(--blue-mid); color: white; border: none; padding: 0 16px;">Parolni yangilash</button>
-              </div>
-            </div>
-          </form>
+  <!-- Hisob -->
+  <section class="set-sec">
+    <div class="set-sec-h"><i class="bi bi-person-circle" style="color:var(--azure);font-size:16px;"></i><span>Hisob</span></div>
+    <div style="padding:20px;">
+      <form method="post" action="{% url 'settings' %}" class="set-form" style="display:flex;flex-direction:column;gap:16px;">
+        {% csrf_token %}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <label><span class="set-lbl">Ism</span>{{ form.first_name }}</label>
+          <label><span class="set-lbl">Familiya</span>{{ form.last_name }}</label>
         </div>
-        <div class="sr">
-          <div class="sr-icon xstyle-adf55eb0"><i class="bi bi-shield-check"></i></div>
-          <div class="sr-info"><div class="sr-label">Ikki bosqichli tekshiruv</div><div class="sr-desc">SMS yoki authenticator orqali</div></div>
-          <div class="toggle"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <label><span class="set-lbl">Telefon</span>{{ form.phone_number }}</label>
+          <label><span class="set-lbl">Email</span><input type="email" value="{{ request.user.email }}" disabled style="opacity:.7;cursor:not-allowed;"></label>
         </div>
-        <div class="sr">
-          <div class="sr-icon xstyle-b4b2fb28"><i class="bi bi-clock-history"></i></div>
-          <div class="sr-info"><div class="sr-label">Sessiya muddati</div><div class="sr-desc">Nofaollik vaqtidan so'ng chiqarish</div></div>
-          <select class="sr-select"><option>30 daqiqa</option><option>1 soat</option><option>1 kun</option><option>Hech qachon</option></select>
-        </div>
-        <div class="sr">
-          <div class="sr-icon xstyle-a580fc7a"><i class="bi bi-box-arrow-right"></i></div>
-          <div class="sr-info"><div class="sr-label">Barcha qurilmalardan chiqish</div><div class="sr-desc">3 ta faol sessiya</div></div>
-          <button class="sr-btn danger">Chiqarish</button>
-        </div>
-      </div>
-    </div>
+        <label><span class="set-lbl">Haqida (bio)</span>{{ form.bio }}</label>
+        <div><button type="submit" class="set-save"><i class="bi bi-check2"></i> Saqlash</button></div>
+      </form>
 
-    <!-- LANGUAGE -->
-    <div class="ss">
-      <div class="ss-header"><div class="ss-title">Til va mintaqa</div><div class="ss-sub">Interfeys tili va vaqt mintaqasi</div></div>
-      <div class="ss-body">
-        <div class="sr">
-          <div class="sr-icon xstyle-f2cd36af"><i class="bi bi-translate"></i></div>
-          <div class="sr-info"><div class="sr-label">Interfeys tili</div><div class="sr-desc">Menyu va tugmalar tili</div></div>
-          <select class="sr-select"><option>O'zbek</option><option>Русский</option><option>English</option></select>
-        </div>
-        <div class="sr">
-          <div class="sr-icon xstyle-adf55eb0"><i class="bi bi-globe2"></i></div>
-          <div class="sr-info"><div class="sr-label">Vaqt mintaqasi</div><div class="sr-desc">Hozir: Asia/Tashkent (UTC+5)</div></div>
-          <select class="sr-select"><option>Asia/Tashkent</option><option>Europe/Moscow</option><option>UTC</option></select>
-        </div>
-      </div>
-    </div>
-
-    <!-- AZURE AI -->
-    <div class="ss">
-      <div class="ss-header"><div class="ss-title">AzureAI</div><div class="ss-sub">Assistent xulqi va internet qidiruvi</div></div>
-      <div class="ss-body">
-        <form method="post" action="{% url 'update_ai_web_search_effort' %}" class="sr" data-autosubmit>
+      <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-top:20px;padding-top:18px;border-top:1px solid var(--line-2);">
+        <form method="post" action="{% url 'update_password' %}" class="set-form" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;flex:1;min-width:280px;">
           {% csrf_token %}
-          <div class="sr-icon xstyle-f2cd36af"><i class="bi bi-globe"></i></div>
-          <div class="sr-info">
-            <div class="sr-label">Internet qidiruvi</div>
-            <div class="sr-desc">AI yangi ma'lumot uchun internetga chiqishini qanchalik faol qilamiz</div>
-          </div>
-          <select class="sr-select" name="ai_web_search_effort" onchange="this.form.submit()">
-            {% for value, label in user.AI_WEB_SEARCH_EFFORT_CHOICES %}
-              <option value="{{ value }}" {% if user.ai_web_search_effort == value %}selected{% endif %}>{{ label }}</option>
-            {% endfor %}
-          </select>
+          <label><span class="set-lbl">Joriy parol</span><input type="password" name="old_password" required></label>
+          <label><span class="set-lbl">Yangi parol</span><input type="password" name="new_password1" required></label>
+          <label><span class="set-lbl">Tasdiqlang</span><input type="password" name="new_password2" required></label>
+          <div style="grid-column:1 / -1;"><button type="submit" style="height:40px;padding:0 16px;border-radius:9px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:13px;font-weight:600;cursor:pointer;"><i class="bi bi-key"></i> Parolni o'zgartirish</button></div>
         </form>
       </div>
     </div>
+  </section>
 
-    <!-- DOWNLOADS -->
-    <div class="ss">
-      <div class="ss-header"><div class="ss-title">Yuklab olish</div><div class="ss-sub">Offline ko'rish sozlamalari</div></div>
-      <div class="ss-body">
-        <div class="sr">
-          <div class="sr-icon xstyle-f2cd36af"><i class="bi bi-wifi-off"></i></div>
-          <div class="sr-info"><div class="sr-label">Offline rejim</div><div class="sr-desc">Internetisiz ko'rish uchun yuklab olish</div></div>
-          <div class="toggle on"></div>
-        </div>
-        <div class="sr">
-          <div class="sr-icon xstyle-eead3a91"><i class="bi bi-hd"></i></div>
-          <div class="sr-info"><div class="sr-label">Video sifati</div><div class="sr-desc">Yuklab olish sifatini tanlang</div></div>
-          <select class="sr-select"><option>1080p</option><option>720p</option><option>480p</option></select>
-        </div>
-        <div class="sr">
-          <div class="sr-icon xstyle-b4b2fb28"><i class="bi bi-trash"></i></div>
-          <div class="sr-info"><div class="sr-label">Keshni tozalash</div><div class="sr-desc">234 MB band qilmoqda</div></div>
-          <button class="sr-btn">Tozalash</button>
+  <!-- AI repetitor -->
+  <section class="set-sec">
+    <div class="set-sec-h"><i class="bi bi-stars" style="color:var(--azure);font-size:16px;"></i><span>AI repetitor</span></div>
+    <div style="padding:20px;display:flex;flex-direction:column;gap:22px;">
+      <div>
+        <div style="font-size:13.5px;font-weight:600;color:var(--ink);margin-bottom:3px;">Javob ohangi</div>
+        <div style="font-size:12px;color:var(--ink-3);margin-bottom:11px;">AzureAI siz bilan qanday gaplashsin.</div>
+        <form method="post" action="{% url 'update_ai_tone' %}" style="display:flex;flex-wrap:wrap;gap:7px;">
+          {% csrf_token %}
+          {% for value, label in tone_choices %}
+          <button type="submit" name="ai_tone" value="{{ value }}" class="set-pill{% if request.user.ai_tone == value %} is-on{% endif %}">{{ label }}</button>
+          {% endfor %}
+        </form>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:6px;border-top:1px solid var(--line-2);">
+        <div><div style="font-size:13.5px;font-weight:500;color:var(--ink);">Xotira</div><div style="font-size:12px;color:var(--ink-3);">AI sizning ma'lumotlaringizni eslab qolsin.</div></div>
+        <form method="post" action="{% url 'ai_memory_toggle' %}">
+          {% csrf_token %}
+          <input type="hidden" name="ai_memory_enabled" value="{% if request.user.ai_memory_enabled %}0{% else %}1{% endif %}">
+          <button type="submit" aria-label="Xotira" style="width:42px;height:24px;border-radius:999px;flex:0 0 auto;position:relative;border:none;cursor:pointer;background:{% if request.user.ai_memory_enabled %}var(--azure){% else %}var(--ink-4){% endif %};"><span style="position:absolute;top:3px;left:{% if request.user.ai_memory_enabled %}21px{% else %}3px{% endif %};width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s cubic-bezier(.16,1,.3,1);"></span></button>
+        </form>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+        <div><div style="font-size:13.5px;font-weight:500;color:var(--ink);">Saqlangan faktlar</div><div style="font-size:12px;color:var(--ink-3);">AI eslab qolgan ma'lumotlarni ko'rish va boshqarish.</div></div>
+        <a href="{% url 'ai_memory' %}" style="height:38px;display:inline-flex;align-items:center;gap:7px;padding:0 16px;border-radius:9px;border:1px solid var(--line);color:var(--ink);font-size:13px;font-weight:600;"><i class="bi bi-bookmark-star"></i> Ochish</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ko'rinish -->
+  <section class="set-sec" style="margin-bottom:0;">
+    <div class="set-sec-h"><i class="bi bi-palette" style="color:var(--azure);font-size:16px;"></i><span>Ko'rinish</span></div>
+    <div style="padding:20px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div><div style="font-size:13.5px;font-weight:600;color:var(--ink);">Mavzu</div><div style="font-size:12px;color:var(--ink-3);">Yorug' yoki qorong'i.</div></div>
+        <div style="display:flex;gap:7px;">
+          <button type="button" class="set-pill" data-theme-set="light" style="display:inline-flex;align-items:center;gap:7px;"><i class="bi bi-sun"></i> Yorug'</button>
+          <button type="button" class="set-pill" data-theme-set="dark" style="display:inline-flex;align-items:center;gap:7px;"><i class="bi bi-moon"></i> Qorong'i</button>
         </div>
       </div>
     </div>
+  </section>
 
-    <!-- PRIVACY -->
-    <div class="ss">
-      <div class="ss-header"><div class="ss-title">Maxfiylik</div><div class="ss-sub">Ma'lumotlar va tahlil</div></div>
-      <div class="ss-body">
-        <div class="sr">
-          <div class="sr-icon xstyle-f2cd36af"><i class="bi bi-graph-up"></i></div>
-          <div class="sr-info"><div class="sr-label">Foydalanish tahlili</div><div class="sr-desc">Platformani yaxshilash uchun anon ma'lumot</div></div>
-          <div class="toggle on"></div>
-        </div>
-        <div class="sr">
-          <div class="sr-icon xstyle-adf55eb0"><i class="bi bi-eye-slash"></i></div>
-          <div class="sr-info"><div class="sr-label">Profil ko'rinishi</div><div class="sr-desc">Boshqa talabalar profilingizni ko'ra oladi</div></div>
-          <select class="sr-select"><option>Hammaga ochiq</option><option>Faqat o'zim</option></select>
-        </div>
-        <div class="sr">
-          <div class="sr-icon xstyle-a580fc7a"><i class="bi bi-download"></i></div>
-          <div class="sr-info"><div class="sr-label">Ma'lumotlarni eksport qilish</div><div class="sr-desc">Balla ma'lumotlaringizni yuklab oling</div></div>
-          <button class="sr-btn">Eksport</button>
-        </div>
-      </div>
-    </div>
-  </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
 <script>
-  // Theme management sync
-  (function() {
-    let s; try { s = localStorage.getItem('az-theme'); } catch(_) {}
-    const dark = s ? s === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const dt = document.getElementById('darkToggle2');
-    if (dt) {
-      if (dark) dt.classList.add('on');
-      else dt.classList.remove('on');
-    }
-  })();
+(function(){
+  function sync(){
+    var cur = document.documentElement.getAttribute('data-theme') || 'light';
+    document.querySelectorAll('[data-theme-set]').forEach(function(b){
+      b.classList.toggle('is-on', b.getAttribute('data-theme-set') === cur);
+    });
+  }
+  document.querySelectorAll('[data-theme-set]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var t = btn.getAttribute('data-theme-set');
+      document.documentElement.setAttribute('data-theme', t);
+      try{ localStorage.setItem('az-v2-theme', t); }catch(e){}
+      sync();
+    });
+  });
+  sync();
+})();
 </script>
 {% endblock %}

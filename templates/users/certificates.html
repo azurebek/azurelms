@@ -1,70 +1,66 @@
-{% extends 'users/base_app.html' %}
-{% load static %}
+{% extends "users/base_app.html" %}
+{% comment %}
+  Sertifikatlar (CertificateListView).
+  Proto: azurelms-proto/app/certificates.html.
+  Kontekst: course_certificates (courses.Certificate: course, final_score,
+  issued_at, certificate_id), earned_badges (gamification.EarnedBadge).
+{% endcomment %}
 
-{% block title %}Sertifikatlar — AzureLMS{% endblock %}
-{% block page_title %}Sertifikatlar{% endblock %}
+{% block app_icon %}bi-patch-check{% endblock %}
+{% block app_topbar_title %}Sertifikatlar{% endblock %}
 
-{% block content %}
-<div class="card" style="max-width: 900px; margin: 0 auto; padding: 24px;">
-  <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 24px;">
-    <h2 style="font-size: 20px; font-weight: 800; color: var(--ink-1); margin: 0;">Mening sertifikatlarim</h2>
-    <p style="font-size: 13px; color: var(--ink-3); margin-top: 4px;">Kurslarni muvaffaqiyatli tamomlaganingizdan so'ng berilgan rasmiy sertifikatlar va ularning ilovalari.</p>
+{% block app_content %}
+<div style="max-width:920px;margin:0 auto;">
+
+  <div style="margin-bottom:24px;">
+    <h1 style="font-size:clamp(22px,2.6vw,30px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:0 0 6px;">Sertifikatlar</h1>
+    <p style="font-size:14px;color:var(--ink-3);margin:0;">Tugatilgan kurslar bo'yicha tasdiqlangan sertifikatlar va yutuq nishonlari.</p>
   </div>
 
-  <div class="certificates-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px;">
+  {% if course_certificates %}
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:28px;">
     {% for cert in course_certificates %}
-      <div class="cert-card" style="border: 1px solid var(--border-color); border-radius: var(--radius-l); padding: 20px; display: flex; flex-direction: column; justify-content: space-between; background: var(--bg-1); transition: all 0.2s; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);">
-        <div>
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
-            <div style="width: 48px; height: 48px; background: rgba(16, 185, 129, 0.1); color: var(--emerald); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;">
-              <i class="bi bi-patch-check-fill"></i>
-            </div>
-            <span style="font-size: 11px; background: rgba(59, 130, 246, 0.1); color: var(--blue); padding: 4px 8px; border-radius: 4px; font-weight: 600; text-transform: uppercase;">
-              Rasmiy
-            </span>
-          </div>
-          
-          <h3 style="font-size: 16px; font-weight: 700; color: var(--ink-1); margin-bottom: 8px; line-height: 1.4;">
-            {{ cert.course.title }}
-          </h3>
-          <p style="font-size: 12px; color: var(--ink-3); margin-bottom: 16px;">
-            Berilgan sana: {{ cert.issued_at|date:"d-M, Y" }} <br>
-            Sertifikat ID: <code>{{ cert.certificate_id }}</code>
-          </p>
-        </div>
-
-        <div style="display: flex; gap: 12px; border-top: 1px solid var(--border-color); padding-top: 16px; margin-top: 12px;">
-          <a href="{% url 'certificate_detail' certificate_id=cert.certificate_id %}" class="btn-submit" style="flex-grow: 1; text-align: center; text-decoration: none; padding: 8px 12px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
-            <i class="bi bi-eye"></i> Ko'rish
-          </a>
-          <a href="{% url 'certificate_appendix' certificate_id=cert.certificate_id %}" style="text-decoration: none; border: 1px solid var(--border-color); color: var(--ink-2); padding: 8px 12px; border-radius: var(--radius-m); font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center;" title="Ilova">
-            Ilova
-          </a>
-        </div>
+    <article style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:20px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:8px;"><span style="width:26px;height:26px;border-radius:7px;background:var(--azure);display:grid;place-items:center;color:var(--on-azure);font-weight:700;font-size:13px;">A</span><span style="font-size:13px;font-weight:600;color:var(--ink);">AzureLMS</span></div>
+        <span style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.06em;color:var(--green);background:var(--green-soft);padding:4px 9px;border-radius:6px;">Tasdiqlangan</span>
       </div>
-    {% empty %}
-      <div style="grid-column: 1 / -1; text-align: center; padding: 48px 24px; color: var(--ink-3);">
-        <i class="bi bi-patch-exclamation-fill" style="font-size: 48px; color: var(--ink-4); display: block; margin-bottom: 16px;"></i>
-        <h4 style="font-size: 16px; font-weight: 700; color: var(--ink-2); margin-bottom: 8px;">Sertifikatlar mavjud emas</h4>
-        <p style="font-size: 13px; max-width: 400px; margin: 0 auto 24px;">Siz hali hech qaysi kursni to'liq tamomlamagansiz. Kurslar ro'yxatidan faol darslarni yakunlab sertifikatga ega bo'ling.</p>
-        <a href="{% url 'courses' %}" class="btn-submit" style="text-decoration: none; display: inline-block; padding: 10px 20px;">Kurslarni boshlash</a>
+      <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);">Sertifikat</div>
+      <div style="font-size:20px;font-weight:600;letter-spacing:-.02em;color:var(--ink);margin:4px 0 2px;">{{ cert.course.title }}</div>
+      <div style="font-size:13px;color:var(--ink-2);">{{ request.user.get_full_name|default:request.user.username }} · <span style="color:var(--azure);font-weight:600;">{{ cert.final_score }} / 100</span></div>
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-top:18px;">
+        <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--ink-3);line-height:1.6;">{{ cert.issued_at|date:"d.m.Y" }}<br>№ {{ cert.certificate_id }}</div>
+        <a href="{% url 'certificate_detail' certificate_id=cert.certificate_id %}" aria-label="Sertifikatni ko'rish" style="width:46px;height:46px;border-radius:9px;border:1px solid var(--line);display:grid;place-items:center;font-size:24px;color:var(--ink);"><i class="bi bi-qr-code"></i></a>
       </div>
+      <div style="display:flex;gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid var(--line);">
+        <a href="{% url 'certificate_detail' certificate_id=cert.certificate_id %}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;height:38px;border-radius:9px;background:var(--azure);color:var(--on-azure);font-size:13px;font-weight:600;"><i class="bi bi-eye"></i> Ko'rish</a>
+      </div>
+    </article>
     {% endfor %}
   </div>
+  {% endif %}
 
   {% if earned_badges %}
-    <div style="border-top: 1px solid var(--border-color); margin-top: 48px; padding-top: 24px;">
-      <h3 style="font-size: 16px; font-weight: 700; color: var(--ink-1); margin-bottom: 16px;">Gamifikatsiya nishonlari</h3>
-      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 16px;">
-        {% for badge in earned_badges %}
-          <div style="border: 1px solid var(--border-color); border-radius: var(--radius-m); padding: 16px; text-align: center; background: var(--bg-2);">
-            <div style="font-size: 32px; margin-bottom: 8px;">{{ badge.badge.badge_type }}</div>
-            <div style="font-size: 12px; font-weight: 700; color: var(--ink-1); margin-bottom: 4px;">{{ badge.badge.name }}</div>
-            <div style="font-size: 10px; color: var(--ink-3);">{{ badge.earned_at|date:"d-M, Y" }}</div>
-          </div>
-        {% endfor %}
-      </div>
+  <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:0 0 12px;">Yutuq nishonlari</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;">
+    {% for b in earned_badges %}
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:18px 14px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:9px;">
+      {% if b.badge.icon %}<img src="{{ b.badge.icon.url }}" alt="{{ b.badge.name }}" style="width:48px;height:48px;border-radius:12px;object-fit:cover;">{% else %}<span style="width:48px;height:48px;border-radius:12px;background:var(--amber-soft);color:var(--amber);display:grid;place-items:center;font-size:22px;"><i class="bi bi-award"></i></span>{% endif %}
+      <div style="font-size:13px;font-weight:600;color:var(--ink);line-height:1.3;">{{ b.badge.name }}</div>
+      <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--ink-4);">{{ b.earned_at|date:"d.m.Y" }}</div>
     </div>
+    {% endfor %}
+  </div>
   {% endif %}
+
+  {% if not course_certificates and not earned_badges %}
+  <div style="border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:48px 24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;">
+    <span style="width:60px;height:60px;border-radius:16px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:27px;"><i class="bi bi-patch-check"></i></span>
+    <div style="font-size:17px;font-weight:600;color:var(--ink);">Hali sertifikat yo'q</div>
+    <div style="font-size:13.5px;color:var(--ink-3);max-width:42ch;line-height:1.6;">Kursni tugatib, yakuniy imtihondan o'tganingizdan so'ng tasdiqlangan sertifikat shu yerda paydo bo'ladi.</div>
+    <a href="{% url 'my_courses' %}" style="margin-top:8px;display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:10px;background:var(--azure);color:var(--on-azure);font-size:14px;font-weight:600;">Darslarimga o'tish <i class="bi bi-arrow-right" style="font-size:13px;"></i></a>
+  </div>
+  {% endif %}
+
 </div>
 {% endblock %}

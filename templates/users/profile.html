@@ -1,171 +1,98 @@
-{% extends 'users/base_app.html' %}
-{% load static %}
+{% extends "users/base_app.html" %}
+{% comment %}
+  Profil (UserProfileView) — display; tahrirlash Sozlamalar'da.
+  Proto: azurelms-proto/app/profile.html.
+  Kontekst: earned_badges, course_certificates, current_plan, total_hours,
+  telegram_linked / telegram_bot_link / telegram_username, + global notifications.
+{% endcomment %}
 
-{% block title %}Profil — AzureLMS{% endblock %}
-{% block page_title %}Profil{% endblock %}
+{% block app_icon %}bi-person{% endblock %}
+{% block app_topbar_title %}Profil{% endblock %}
 
-{% block extra_css %}
-  <link rel="stylesheet" href="{% static 'css/app-profile.css' %}">
-{% endblock %}
+{% block app_content %}
+<div style="max-width:1040px;margin:0 auto;">
 
-{% block content %}
-<!-- HERO -->
-<div class="profile-hero">
-  <div class="ph-inner">
-    <div class="ph-av">
-      {% if user.avatar %}
-        <img src="{{ user.avatar.url }}" alt="{{ user.username }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: inherit;">
-      {% else %}
-        {{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}
+  <!-- Header -->
+  <section style="border:1px solid var(--line);border-radius:16px;background:var(--panel);overflow:hidden;margin-bottom:16px;">
+    <div style="height:96px;background:linear-gradient(110deg,var(--azure),var(--azure-2));position:relative;"><div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.1) 1px,transparent 1px);background-size:28px 28px;opacity:.5;"></div></div>
+    <div style="padding:0 24px 22px;display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-top:-34px;">
+      <div style="display:flex;align-items:flex-end;gap:16px;">
+        {% if request.user.avatar %}<img src="{{ request.user.avatar.url }}" alt="{{ request.user.get_full_name }}" style="width:84px;height:84px;border-radius:20px;border:4px solid var(--panel);object-fit:cover;">{% else %}<span style="width:84px;height:84px;border-radius:20px;background:var(--azure);border:4px solid var(--panel);display:grid;place-items:center;color:var(--on-azure);font-weight:700;font-size:32px;">{{ request.user.first_name.0|default:request.user.username.0|upper }}{{ request.user.last_name.0|upper }}</span>{% endif %}
+        <div style="padding-bottom:4px;"><div style="font-size:21px;font-weight:600;letter-spacing:-.02em;color:var(--ink);">{{ request.user.get_full_name|default:request.user.username }}</div><div style="font-size:13px;color:var(--ink-3);margin-top:2px;">{{ request.user.email }}{% if request.user.phone_number %} · {{ request.user.phone_number }}{% endif %}</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding-bottom:4px;">
+        <span style="display:inline-flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:11px;color:var(--azure);background:var(--azure-soft);padding:6px 12px;border-radius:999px;"><i class="bi bi-patch-check-fill"></i> {{ request.user.current_level|default:"A1" }} · {{ request.user.total_xp }} XP</span>
+        <a href="{% url 'settings' %}" style="height:38px;display:inline-flex;align-items:center;gap:7px;padding:0 16px;border-radius:9px;border:1px solid var(--line);color:var(--ink);font-size:13px;font-weight:600;"><i class="bi bi-pencil"></i> Tahrirlash</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Statistikalar -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:16px;">
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:16px;"><div style="font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--ink);">{{ total_hours }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">Soat o'qildi</div></div>
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:16px;"><div style="font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--ink);">{{ request.user.streak_days|default:0 }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">Streak</div></div>
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:16px;"><div style="font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--ink);">{{ request.user.total_xp }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">XP</div></div>
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:16px;"><div style="font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--ink);">{{ course_certificates|length }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">Sertifikat</div></div>
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:16px;"><div style="font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--ink);">{{ earned_badges|length }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">Nishon</div></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:16px;align-items:start;">
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <!-- Haqida -->
+      <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:20px;">
+        <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px;">Haqida</div>
+        {% if request.user.bio %}<p style="font-size:14px;line-height:1.65;color:var(--ink-2);margin:0;">{{ request.user.bio }}</p>{% else %}<p style="font-size:14px;line-height:1.6;color:var(--ink-4);margin:0;">Hali ma'lumot kiritilmagan. <a href="{% url 'settings' %}" style="color:var(--azure);">Sozlamalardan</a> qo'shing.</p>{% endif %}
+      </section>
+
+      <!-- Nishonlar -->
+      {% if earned_badges %}
+      <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:20px;">
+        <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:14px;">Nishonlar</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:12px;">
+          {% for b in earned_badges %}
+          <div style="display:flex;flex-direction:column;align-items:center;gap:7px;" title="{{ b.badge.name }}">
+            {% if b.badge.icon %}<img src="{{ b.badge.icon.url }}" alt="{{ b.badge.name }}" style="width:46px;height:46px;border-radius:13px;object-fit:cover;">{% else %}<span style="width:46px;height:46px;border-radius:13px;display:grid;place-items:center;font-size:19px;background:var(--azure-soft);color:var(--azure);"><i class="bi bi-award-fill"></i></span>{% endif %}
+            <span style="font-size:10.5px;color:var(--ink-3);text-align:center;line-height:1.2;">{{ b.badge.name }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
       {% endif %}
     </div>
-    <div class="ph-info">
-      <div class="ph-name">{{ user.get_full_name|default:user.username }}</div>
-      <div class="ph-email">{{ user.email }}</div>
-      <div class="ph-tags">
-        <span class="ph-tag xstyle-ce5e35ed">{{ current_plan.name|default:"Bepul reja" }}</span>
-        <span class="ph-tag xstyle-ee2b6466">🔥 {{ user.streak_days|default:0 }} kunlik seriya</span>
-        <span class="ph-tag xstyle-6f1f2e93">✓ Tasdiqlangan</span>
-      </div>
-    </div>
-    <div class="ph-actions">
-      <form id="avatarForm" method="post" action="{% url 'update_avatar' %}" enctype="multipart/form-data" style="display: none;">
-        {% csrf_token %}
-        <input type="file" id="avatarInput" name="avatar" onchange="document.getElementById('avatarForm').submit();" accept="image/*">
-      </form>
-      <button class="btn-edit" onclick="document.getElementById('avatarInput').click();"><i class="bi bi-camera"></i> Rasm o'zgartirish</button>
-    </div>
-  </div>
-  <div class="ph-stats">
-    <div class="ph-stat"><div class="ph-stat-val">{{ user.enrollments.count }}</div><div class="ph-stat-label">Faol kurs</div></div>
-    <div class="ph-stat"><div class="ph-stat-val">{{ total_hours|default:"0" }}s</div><div class="ph-stat-label">O'quv vaqti</div></div>
-    <div class="ph-stat"><div class="ph-stat-val">{{ course_certificates.count }}</div><div class="ph-stat-label">Sertifikat</div></div>
-    <div class="ph-stat"><div class="ph-stat-val">82%</div><div class="ph-stat-label">Test o'rtachasi</div></div>
-    <div class="ph-stat"><div class="ph-stat-val">{{ earned_badges.count }}</div><div class="ph-stat-label">Yutuq</div></div>
-  </div>
-</div>
 
-<div class="two-col">
-  <!-- FORM -->
-  <div>
-    <form method="post" class="card xstyle-79a1c5a5">
-      {% csrf_token %}
-      <div class="card-title">Shaxsiy ma'lumotlar</div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">Ism</label><input class="form-input" name="first_name" type="text" value="{{ user.first_name }}"></div>
-        <div class="form-group"><label class="form-label">Familiya</label><input class="form-input" name="last_name" type="text" value="{{ user.last_name }}"></div>
-        <div class="form-group"><label class="form-label">Foydalanuvchi nomi</label><input class="form-input" name="username" type="text" value="{{ user.username }}"></div>
-        <div class="form-group"><label class="form-label">Telefon</label><input class="form-input" name="phone_number" type="tel" value="{{ user.phone_number|default:'' }}"></div>
-        <div class="form-group full"><label class="form-label">Email</label><input class="form-input" name="email" type="email" value="{{ user.email }}"></div>
-        <div class="form-group full"><label class="form-label">Bio</label><textarea class="form-input form-textarea" name="bio" placeholder="O'zingiz haqingizda qisqacha…">{{ user.bio|default:'' }}</textarea></div>
-        <div class="form-group"><label class="form-label">Shahar</label><input class="form-input" type="text" value="Toshkent" disabled></div>
-        <div class="form-group"><label class="form-label">Veb-sayt</label><input class="form-input" type="url" placeholder="https://..." disabled></div>
-      </div>
-      <div class="form-actions">
-        <button class="btn-cancel" type="button" onclick="window.location.reload();">Bekor qilish</button>
-        <button class="btn-save" type="submit">Saqlash</button>
-      </div>
-    </form>
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <!-- Joriy tarif -->
+      {% if current_plan %}
+      <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:20px;">
+        <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:14px;">Joriy tarif</div>
+        <div style="display:flex;align-items:center;gap:12px;"><span style="width:42px;height:42px;border-radius:11px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:19px;"><i class="bi bi-gem"></i></span><div><div style="font-size:16px;font-weight:600;color:var(--ink);">{{ current_plan }}</div><a href="{% url 'subscriptions' %}" style="font-size:12.5px;color:var(--azure);">To'lovlar tarixi</a></div></div>
+      </section>
+      {% endif %}
 
-    <!-- BADGES -->
-    <div class="card" style="margin-bottom: 24px;">
-      <div class="card-title">Mening yutuqlarim</div>
-      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 16px; margin-top: 16px;">
-        {% for badge in earned_badges %}
-          <div style="text-align: center; padding: 12px; border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--surface);">
-            <div style="font-size: 32px; margin-bottom: 6px;">{{ badge.badge.badge_type }}</div>
-            <div style="font-size: 13px; font-weight: 600; color: var(--ink-1);">{{ badge.badge.name }}</div>
-            <div style="font-size: 11px; color: var(--ink-4); margin-top: 2px;">{{ badge.earned_at|date:"d-M, Y" }}</div>
-          </div>
-        {% empty %}
-          <p style="grid-column: 1/-1; text-align: center; color: var(--ink-3); padding: 16px 0; font-size: 13px;">
-            Hozircha yutuqlar yo'q. Kurslarni o'qib, yangi nishonlar qo'lga kiriting!
-          </p>
-        {% endfor %}
-      </div>
-    </div>
-
-    <!-- CERTS -->
-    <div class="card">
-      <div class="card-title">Sertifikatlar</div>
-      {% for cert in course_certificates %}
-        <div class="cert-item" onclick="location.href='{% url 'certificate_detail' certificate_id=cert.certificate_id %}'">
-          <div class="cert-icon"><i class="bi bi-patch-check-fill"></i></div>
-          <div class="cert-info">
-            <div class="cert-name">{{ cert.course.title }}</div>
-            <div class="cert-date">Berildi: {{ cert.issued_at|date:"d-M, Y" }} · AzureLMS</div>
-          </div>
-          <a href="{% url 'certificate_detail' certificate_id=cert.certificate_id %}" class="cert-dl" onclick="event.stopPropagation();"><i class="bi bi-download"></i></a>
-        </div>
-      {% empty %}
-        <div class="xstyle-11412d81">
-          <div class="xstyle-4645dd87">Keyingi sertifikat</div>
-          <div class="xstyle-81bda73f">Python kursini tugatgandan so'ng</div>
-        </div>
-      {% endfor %}
-    </div>
-  </div>
-
-  <!-- SIDEBAR -->
-  <div class="xstyle-5ae19e99">
-    <div class="card">
-      <div class="card-title">Hisob holati</div>
-      <div class="sc-item">
-        <div class="sc-icon xstyle-adf55eb0"><i class="bi bi-shield-check"></i></div>
-        <div class="sc-label">Hisob holati</div>
-        <div class="sc-val xstyle-5d1df5da">Faol</div>
-      </div>
-      <div class="sc-item">
-        <div class="sc-icon xstyle-f2cd36af"><i class="bi bi-credit-card"></i></div>
-        <div class="sc-label">Obuna rejasi</div>
-        <div class="sc-val">{{ current_plan.name|default:"Bepul" }}</div>
-      </div>
-      <div class="sc-item">
-        <div class="sc-icon xstyle-b4b2fb28"><i class="bi bi-calendar3"></i></div>
-        <div class="sc-label">Keyingi to'lov</div>
-        <div class="sc-val">17-iyun, 2025</div>
-      </div>
-      <div class="sc-item">
-        <div class="sc-icon xstyle-eead3a91"><i class="bi bi-clock-history"></i></div>
-        <div class="sc-label">Ro'yxatdan o'tgan</div>
-        <div class="sc-val">{{ user.date_joined|date:"M Y" }}</div>
-      </div>
-      <a href="{% url 'subscriptions' %}" class="xstyle-c82160de">Obunani boshqarish →</a>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Ijtimoiy tarmoqlar</div>
-      <div class="sc-item">
-        <div class="sc-icon xstyle-73c36276"><i class="bi bi-telegram"></i></div>
-        <div class="sc-label">Telegram</div>
+      <!-- Telegram -->
+      <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:20px;">
+        <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:14px;">Telegram</div>
         {% if telegram_linked %}
-          <span class="sc-val xstyle-5d1df5da">@{{ telegram_username|default:"ulangan" }}</span>
-        {% elif telegram_bot_link %}
-          <a class="xstyle-92f97beb" href="{{ telegram_bot_link }}" target="_blank" rel="noopener">Ulash</a>
+        <div style="display:flex;align-items:center;gap:12px;"><span style="width:42px;height:42px;border-radius:11px;background:var(--green-soft);color:var(--green);display:grid;place-items:center;font-size:19px;"><i class="bi bi-telegram"></i></span><div><div style="font-size:14px;font-weight:600;color:var(--ink);">Ulangan</div><div style="font-size:12.5px;color:var(--ink-3);">{% if telegram_username %}@{{ telegram_username }}{% else %}Telegram hisobingiz{% endif %}</div></div></div>
+        {% else %}
+        <p style="font-size:13px;color:var(--ink-3);margin:0 0 13px;line-height:1.55;">Bildirishnomalar va AI repetitorni Telegram orqali ham oling.</p>
+        <a href="{{ telegram_bot_link }}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 18px;border-radius:10px;background:#229ed9;color:#fff;font-size:13.5px;font-weight:600;"><i class="bi bi-telegram"></i> Telegramni ulash</a>
         {% endif %}
-      </div>
-      <div class="sc-item">
-        <div class="sc-icon xstyle-73c36276"><i class="bi bi-linkedin"></i></div>
-        <div class="sc-label">LinkedIn</div>
-        <button class="xstyle-92f97beb">Ulash</button>
-      </div>
-      <div class="sc-item">
-        <div class="sc-icon xstyle-13077f01"><i class="bi bi-github"></i></div>
-        <div class="sc-label">GitHub</div>
-        <button class="xstyle-92f97beb">Ulash</button>
-      </div>
-      <div class="sc-item">
-        <div class="sc-icon xstyle-add4eb7a"><i class="bi bi-instagram"></i></div>
-        <div class="sc-label">Instagram</div>
-        <button class="xstyle-92f97beb">Ulash</button>
-      </div>
-    </div>
+      </section>
 
-    <div class="card xstyle-0d670282">
-      <div class="card-title xstyle-26a2dff5">Xavfli zona</div>
-      <p class="xstyle-b4c75569">Hisobni o'chirish barcha ma'lumotlarni qaytarib bo'lmaydigan tarzda yo'q qiladi.</p>
-      <button class="ui-hover-red-soft xstyle-d44413c8">Hisobni o'chirish</button>
+      <!-- So'nggi faollik -->
+      {% if notifications %}
+      <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:20px;">
+        <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:14px;">So'nggi faollik</div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          {% for n in notifications|slice:":4" %}
+          <div style="display:flex;align-items:flex-start;gap:11px;"><span style="flex:0 0 auto;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font-size:13px;background:var(--azure-soft);color:var(--azure);"><i class="bi bi-{{ n.icon|default:'bell' }}"></i></span><div style="flex:1;min-width:0;"><div style="font-size:13px;color:var(--ink);line-height:1.4;">{% if n.title %}{{ n.title }}{% else %}{{ n.message|truncatechars:60 }}{% endif %}</div><div style="font-family:'Space Mono',monospace;font-size:10.5px;color:var(--ink-4);margin-top:1px;">{{ n.created_at|date:"d.m.Y" }}</div></div></div>
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
     </div>
   </div>
+
 </div>
 {% endblock %}

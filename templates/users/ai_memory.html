@@ -1,425 +1,97 @@
-{% extends 'users/base_app.html' %}
-{% load static %}
+{% extends "users/base_app.html" %}
+{% comment %}
+  AI xotira (AIMemoryListView). Proto yo'q — app-shell uslubida.
+  Kontekst: memory_groups [{category,label,icon,facts}], memory_total, ai_memory_enabled,
+  memory_report {active,archived,saved,retrieved,...}, recent_memory_traces, legacy_memory_text.
+  Fakt: .value, .confidence_percent, .age_days, .last_used_label, .retrieval_count, .id.
+  Amallar: ai_memory_toggle, ai_memory_archive(fact_id), ai_memory_reject(fact_id), ai_memory_clear.
+{% endcomment %}
 
-{% block title %}AzureAI xotirasi — AzureLMS{% endblock %}
-{% block page_title %}AzureAI xotirasi{% endblock %}
+{% block app_icon %}bi-bookmark-star{% endblock %}
+{% block app_topbar_title %}AI xotira{% endblock %}
 
-{% block extra_css %}
-  <link rel="stylesheet" href="{% static 'css/app-settings.css' %}">
-  <style>
-    .mem-report-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 10px;
-      width: 100%;
-    }
-    .mem-stat-card {
-      padding: 12px 14px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r-md);
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    .mem-stat-val {
-      font-size: 1.4rem;
-      font-weight: 700;
-      color: var(--ink-1);
-      line-height: 1.1;
-    }
-    .mem-stat-label {
-      font-size: 0.72rem;
-      color: var(--ink-3);
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-    }
-    .mem-stat-card[data-tone="green"] .mem-stat-val { color: var(--emerald, #10b981); }
-    .mem-stat-card[data-tone="amber"] .mem-stat-val { color: var(--amber, #f59e0b); }
-    .mem-stat-card[data-tone="red"] .mem-stat-val { color: #ef4444; }
-    .mem-stat-card[data-tone="blue"] .mem-stat-val { color: var(--blue, #3b82f6); }
+{% block app_content %}
+<div style="max-width:880px;margin:0 auto;">
 
-    .mem-fact-card {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      padding: 12px 14px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r-md);
-    }
-    .mem-fact-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 12px;
-    }
-    .mem-fact-value {
-      font-size: 0.92rem;
-      color: var(--ink-1);
-      line-height: 1.4;
-      flex: 1;
-      min-width: 0;
-    }
-    .mem-fact-actions {
-      display: flex;
-      gap: 6px;
-      flex-shrink: 0;
-    }
-    .mem-fact-actions .sr-btn {
-      padding: 6px 10px;
-      font-size: 0.78rem;
-    }
-    .mem-fact-meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px 14px;
-      font-size: 0.72rem;
-      color: var(--ink-3);
-    }
-    .mem-fact-meta .meta-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .mem-confidence {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.72rem;
-      color: var(--ink-3);
-    }
-    .mem-confidence-bar {
-      flex: 1;
-      height: 6px;
-      background: var(--border);
-      border-radius: 999px;
-      overflow: hidden;
-    }
-    .mem-confidence-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--blue, #3b82f6), var(--emerald, #10b981));
-      transition: width 200ms;
-    }
-    .mem-confidence-fill[data-low="true"] {
-      background: linear-gradient(90deg, var(--amber, #f59e0b), #ef4444);
-    }
-    .mem-trace-toggle {
-      font-size: 0.72rem;
-      color: var(--ink-3);
-      cursor: pointer;
-      user-select: none;
-    }
-    .mem-trace-toggle:hover { color: var(--ink-2); }
-    .mem-trace-list {
-      margin-top: 6px;
-      padding: 8px 10px;
-      background: var(--surface-2, rgba(0,0,0,.04));
-      border: 1px solid var(--border);
-      border-radius: var(--r-sm);
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .mem-trace-row {
-      display: flex;
-      gap: 8px;
-      align-items: flex-start;
-      font-size: 0.72rem;
-      color: var(--ink-2);
-      line-height: 1.4;
-    }
-    .mem-trace-row .trace-icon {
-      width: 18px;
-      flex-shrink: 0;
-      color: var(--ink-3);
-    }
-    .mem-trace-row .trace-when {
-      color: var(--ink-3);
-      margin-left: auto;
-      white-space: nowrap;
-    }
-    .mem-trace-row[data-event="saved"] .trace-icon { color: var(--emerald, #10b981); }
-    .mem-trace-row[data-event="retrieved"] .trace-icon { color: var(--blue, #3b82f6); }
-    .mem-trace-row[data-event="archived"] .trace-icon { color: var(--amber, #f59e0b); }
-    .mem-trace-row[data-event="skipped"] .trace-icon { color: var(--ink-3); }
-
-    .mem-global-timeline {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      width: 100%;
-    }
-    .mem-global-timeline .mem-trace-row {
-      padding: 8px 10px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r-sm);
-    }
-    .mem-global-timeline .trace-fact {
-      font-weight: 600;
-      color: var(--ink-1);
-    }
-  </style>
-{% endblock %}
-
-{% block content %}
-<div class="settings-layout">
-  <div class="settings-nav">
-    <a class="sn-item" href="{% url 'settings' %}"><i class="bi bi-person"></i> Profil</a>
-    <div class="sn-item active"><i class="bi bi-stars"></i> AzureAI xotirasi</div>
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px;">
+    <div><h1 style="font-size:clamp(22px,2.6vw,30px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:0 0 6px;">AI xotira</h1><p style="font-size:14px;color:var(--ink-3);margin:0;">AzureAI siz haqingizda eslab qolgan ma'lumotlar.</p></div>
+    <a href="{% url 'settings' %}" style="height:38px;display:inline-flex;align-items:center;gap:7px;padding:0 15px;border-radius:9px;border:1px solid var(--line);color:var(--ink);font-size:13px;font-weight:600;"><i class="bi bi-gear"></i> Sozlamalar</a>
   </div>
 
-  <div class="settings-main">
-
-    <!-- TOGGLE -->
-    <div class="ss">
-      <div class="ss-header">
-        <div class="ss-title">Xotira holati</div>
-        <div class="ss-sub">AzureAI suhbatlaringizdan o'rganib, keyingi javoblarda foydalanadi</div>
-      </div>
-      <div class="ss-body">
-        <form method="post" action="{% url 'ai_memory_toggle' %}" id="memoryToggleForm" style="width: 100%;">
-          {% csrf_token %}
-          <input type="hidden" name="ai_memory_enabled" id="memoryToggleInput" value="{% if ai_memory_enabled %}1{% else %}0{% endif %}">
-          <div class="sr">
-            <div class="sr-icon xstyle-f2cd36af"><i class="bi bi-toggles"></i></div>
-            <div class="sr-info">
-              <div class="sr-label">AI xotirasini yoqish</div>
-              <div class="sr-desc">
-                {% if ai_memory_enabled %}
-                  Yoqilgan — AzureAI siz haqingizda muhim faktlarni eslab qoladi.
-                {% else %}
-                  O'chirilgan — AzureAI hech narsa eslab qolmaydi, eskilarini ham e'tiborga olmaydi.
-                {% endif %}
-              </div>
-            </div>
-            <div class="toggle {% if ai_memory_enabled %}on{% endif %}" id="memoryToggle" role="switch" tabindex="0" aria-checked="{% if ai_memory_enabled %}true{% else %}false{% endif %}"></div>
-          </div>
-        </form>
-      </div>
+  <!-- Holat + toggle -->
+  <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:18px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:13px;">
+      <span style="width:42px;height:42px;border-radius:11px;flex:0 0 auto;display:grid;place-items:center;font-size:19px;{% if ai_memory_enabled %}background:var(--green-soft);color:var(--green);{% else %}background:var(--paper-2);color:var(--ink-4);{% endif %}"><i class="bi bi-{% if ai_memory_enabled %}check-circle{% else %}pause-circle{% endif %}"></i></span>
+      <div><div style="font-size:14px;font-weight:600;color:var(--ink);">Xotira {% if ai_memory_enabled %}yoqilgan{% else %}o'chirilgan{% endif %}</div><div style="font-size:12.5px;color:var(--ink-3);">{% if ai_memory_enabled %}Yangi suhbatlarda muhim faktlar saqlanadi.{% else %}Yangi faktlar saqlanmaydi (mavjudlari qoladi).{% endif %}</div></div>
     </div>
+    <form method="post" action="{% url 'ai_memory_toggle' %}">
+      {% csrf_token %}
+      <input type="hidden" name="ai_memory_enabled" value="{% if ai_memory_enabled %}0{% else %}1{% endif %}">
+      <button type="submit" aria-label="Xotira" style="width:42px;height:24px;border-radius:999px;flex:0 0 auto;position:relative;border:none;cursor:pointer;background:{% if ai_memory_enabled %}var(--azure){% else %}var(--ink-4){% endif %};"><span style="position:absolute;top:3px;left:{% if ai_memory_enabled %}21px{% else %}3px{% endif %};width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s cubic-bezier(.16,1,.3,1);"></span></button>
+    </form>
+  </section>
 
-    <!-- REPORT / STATS -->
-    {% if memory_report %}
-      <div class="ss">
-        <div class="ss-header">
-          <div class="ss-title">Xotira hisoboti</div>
-          <div class="ss-sub">AI nimani saqlagan, nimani ishlatgan va nima vaqt o'tishi bilan zaiflashgan</div>
-        </div>
-        <div class="ss-body">
-          <div class="sr" style="padding: 0;">
-            <div class="mem-report-grid">
-              <div class="mem-stat-card" data-tone="green">
-                <span class="mem-stat-val">{{ memory_report.active }}</span>
-                <span class="mem-stat-label">Faol fakt</span>
-              </div>
-              <div class="mem-stat-card" data-tone="amber">
-                <span class="mem-stat-val">{{ memory_report.archived }}</span>
-                <span class="mem-stat-label">Arxivlangan</span>
-              </div>
-              <div class="mem-stat-card" data-tone="red">
-                <span class="mem-stat-val">{{ memory_report.rejected }}</span>
-                <span class="mem-stat-label">Noto'g'ri deb belgilangan</span>
-              </div>
-              <div class="mem-stat-card" data-tone="blue">
-                <span class="mem-stat-val">{{ memory_report.retrieved }}</span>
-                <span class="mem-stat-label">Promptga olingan</span>
-              </div>
-              <div class="mem-stat-card">
-                <span class="mem-stat-val">{{ memory_report.saved }}</span>
-                <span class="mem-stat-label">Saqlash hodisalari</span>
-              </div>
-              <div class="mem-stat-card">
-                <span class="mem-stat-val">{{ memory_report.unused }}</span>
-                <span class="mem-stat-label">Hech qachon ishlatilmagan</span>
-              </div>
-              <div class="mem-stat-card">
-                <span class="mem-stat-val">{{ memory_report.decayed }}</span>
-                <span class="mem-stat-label">Bugun decay bo'ldi</span>
-              </div>
-              <div class="mem-stat-card">
-                <span class="mem-stat-val">{{ memory_report.auto_archived }}</span>
-                <span class="mem-stat-label">Avto-arxivlangan</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    {% endif %}
-
-    <!-- FACT LIST -->
-    <div class="ss">
-      <div class="ss-header">
-        <div class="ss-title">Saqlangan faktlar ({{ memory_total }})</div>
-        <div class="ss-sub">Har bir yozuvni arxivlash, noto'g'ri deb belgilash yoki barchasini birdaniga tozalash mumkin</div>
-      </div>
-      <div class="ss-body">
-
-        {% if memory_groups %}
-          {% for group in memory_groups %}
-            <div class="sr" style="flex-direction: column; align-items: stretch; gap: 10px;">
-              <div style="display: flex; align-items: center; gap: 14px; width: 100%;">
-                <div class="sr-icon xstyle-eead3a91"><i class="bi bi-{{ group.icon }}"></i></div>
-                <div class="sr-info">
-                  <div class="sr-label">{{ group.label }}</div>
-                  <div class="sr-desc">{{ group.facts|length }} ta yozuv</div>
-                </div>
-              </div>
-              <div style="display: flex; flex-direction: column; gap: 10px; padding-left: 56px; width: 100%;">
-                {% for fact in group.facts %}
-                  <div class="mem-fact-card">
-                    <div class="mem-fact-head">
-                      <div class="mem-fact-value">{{ fact.value }}</div>
-                      <div class="mem-fact-actions">
-                        <form method="post" action="{% url 'ai_memory_reject' fact.id %}" style="margin: 0;">
-                          {% csrf_token %}
-                          <button class="sr-btn" type="submit" title="Noto'g'ri deb belgilash">
-                            <i class="bi bi-x-circle"></i> Noto'g'ri
-                          </button>
-                        </form>
-                        <form method="post" action="{% url 'ai_memory_archive' fact.id %}" style="margin: 0;">
-                          {% csrf_token %}
-                          <button class="sr-btn danger" type="submit" title="O'chirish (arxivlash)">
-                            <i class="bi bi-trash"></i>
-                          </button>
-                        </form>
-                      </div>
-                    </div>
-
-                    <div class="mem-confidence">
-                      <span>Ishonch</span>
-                      <div class="mem-confidence-bar">
-                        <div class="mem-confidence-fill"
-                             style="width: {{ fact.confidence_percent }}%;"
-                             data-low="{% if fact.confidence_percent < 50 %}true{% else %}false{% endif %}"></div>
-                      </div>
-                      <span>{{ fact.confidence_percent }}%</span>
-                    </div>
-
-                    <div class="mem-fact-meta">
-                      <span class="meta-pill"><i class="bi bi-calendar3"></i> {{ fact.age_days }} kun oldin saqlangan</span>
-                      <span class="meta-pill"><i class="bi bi-clock-history"></i> {{ fact.last_used_label }}</span>
-                      {% if fact.retrieval_count %}
-                        <span class="meta-pill"><i class="bi bi-arrow-down-up"></i> {{ fact.retrieval_count }} marta promptga olingan</span>
-                      {% endif %}
-                      {% if fact.embedding_model %}
-                        <span class="meta-pill"><i class="bi bi-cpu"></i> {{ fact.embedding_model }}</span>
-                      {% endif %}
-                    </div>
-
-                    {% if fact.trace_items %}
-                      <details class="mem-trace">
-                        <summary class="mem-trace-toggle">Nima uchun? ({{ fact.trace_items|length }} ta hodisa)</summary>
-                        <div class="mem-trace-list">
-                          {% for trace in fact.trace_items %}
-                            <div class="mem-trace-row" data-event="{{ trace.event_type }}">
-                              <i class="bi bi-{% if trace.event_type == 'saved' %}plus-circle{% elif trace.event_type == 'retrieved' %}arrow-down-circle{% elif trace.event_type == 'archived' %}archive{% else %}dash-circle{% endif %} trace-icon"></i>
-                              <span>{{ trace.reason|default:trace.get_event_type_display }}{% if trace.score %} · score {{ trace.score|floatformat:2 }}{% endif %}</span>
-                              <span class="trace-when">{{ trace.created_at|date:"d-M H:i" }}</span>
-                            </div>
-                          {% endfor %}
-                        </div>
-                      </details>
-                    {% endif %}
-                  </div>
-                {% endfor %}
-              </div>
-            </div>
-          {% endfor %}
-
-          <div class="sr">
-            <div class="sr-icon xstyle-a580fc7a"><i class="bi bi-trash-fill"></i></div>
-            <div class="sr-info">
-              <div class="sr-label">Hammasini tozalash</div>
-              <div class="sr-desc">Barcha yozuvlar arxivlanadi. Admin auditi uchun saqlanadi, lekin sizning sahifangizdan yo'qoladi.</div>
-            </div>
-            <form method="post" action="{% url 'ai_memory_clear' %}" onsubmit="return confirm('Rostdan ham AzureAI xotirasidagi barcha yozuvlarni tozalamoqchimisiz?');" style="margin: 0;">
-              {% csrf_token %}
-              <button class="sr-btn danger" type="submit">Hammasini tozalash</button>
-            </form>
-          </div>
-
-        {% else %}
-          <div class="sr" style="justify-content: center;">
-            <div class="sr-info" style="text-align: center;">
-              <div class="sr-label">Hozircha xotira bo'sh</div>
-              <div class="sr-desc">AzureAI bilan suhbatlashganingizda muhim faktlar shu yerda paydo bo'ladi.</div>
-            </div>
-          </div>
-        {% endif %}
-
-      </div>
-    </div>
-
-    <!-- GLOBAL TRACE TIMELINE -->
-    {% if recent_memory_traces %}
-      <div class="ss">
-        <div class="ss-header">
-          <div class="ss-title">Oxirgi hodisalar</div>
-          <div class="ss-sub">AzureAI xotira bilan nima qildi — saqladi, ishlatdi yoki arxivladi</div>
-        </div>
-        <div class="ss-body">
-          <div class="sr" style="padding: 0;">
-            <div class="mem-global-timeline">
-              {% for trace in recent_memory_traces %}
-                <div class="mem-trace-row" data-event="{{ trace.event_type }}">
-                  <i class="bi bi-{% if trace.event_type == 'saved' %}plus-circle{% elif trace.event_type == 'retrieved' %}arrow-down-circle{% elif trace.event_type == 'archived' %}archive{% else %}dash-circle{% endif %} trace-icon"></i>
-                  <span>
-                    <span class="trace-fact">{% if trace.fact %}{{ trace.fact.value|truncatechars:60 }}{% else %}(o'chirilgan fakt){% endif %}</span>
-                    — {{ trace.reason|default:trace.get_event_type_display }}{% if trace.score %} · score {{ trace.score|floatformat:2 }}{% endif %}
-                  </span>
-                  <span class="trace-when">{{ trace.created_at|date:"d-M H:i" }}</span>
-                </div>
-              {% endfor %}
-            </div>
-          </div>
-        </div>
-      </div>
-    {% endif %}
-
-    {% if legacy_memory_text %}
-      <div class="ss">
-        <div class="ss-header">
-          <div class="ss-title">Eski xotira (legacy)</div>
-          <div class="ss-sub">Avvalgi tizimdan saqlanib qolgan erkin matn — "Hammasini tozalash" bosilganda u ham tozalanadi.</div>
-        </div>
-        <div class="ss-body">
-          <div class="sr" style="flex-direction: column; align-items: stretch;">
-            <pre style="margin: 0; padding: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); font-size: 0.85rem; color: var(--ink-2); white-space: pre-wrap; word-break: break-word;">{{ legacy_memory_text }}</pre>
-          </div>
-        </div>
-      </div>
-    {% endif %}
-
+  {% if memory_total %}
+  <!-- Statistika -->
+  <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:0 0 10px;">Xotira hisoboti</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:12px;margin-bottom:20px;">
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:14px 16px;"><div style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--ink);">{{ memory_report.active }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">Faol fakt</div></div>
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:14px 16px;"><div style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--ink);">{{ memory_report.retrieved }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">Promptga olingan</div></div>
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:14px 16px;"><div style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--ink);">{{ memory_report.saved }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">Saqlangan</div></div>
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:14px 16px;"><div style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--ink);">{{ memory_report.archived }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">Arxivlangan</div></div>
   </div>
+
+  <!-- Kategoriyalar bo'yicha faktlar -->
+  <h2 style="font-size:16px;font-weight:600;color:var(--ink);margin:0 0 14px;">Saqlangan faktlar ({{ memory_total }})</h2>
+  {% for group in memory_groups %}
+  <div style="display:flex;align-items:center;gap:9px;margin:0 0 12px;">
+    <span style="width:28px;height:28px;border-radius:8px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:14px;"><i class="bi bi-{{ group.icon }}"></i></span>
+    <span style="font-size:14px;font-weight:600;color:var(--ink);">{{ group.label }}</span>
+    <span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-4);">{{ group.facts|length }}</span>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:22px;">
+    {% for fact in group.facts %}
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:16px 18px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;color:var(--ink);line-height:1.5;">{{ fact.value }}</div>
+          <div style="display:flex;align-items:center;gap:14px;margin-top:10px;flex-wrap:wrap;font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-4);">
+            <span><i class="bi bi-graph-up" style="margin-right:4px;"></i>{{ fact.confidence_percent }}% ishonch</span>
+            <span><i class="bi bi-clock-history" style="margin-right:4px;"></i>{{ fact.last_used_label }}</span>
+            {% if fact.retrieval_count %}<span><i class="bi bi-arrow-repeat" style="margin-right:4px;"></i>{{ fact.retrieval_count }}× ishlatilgan</span>{% endif %}
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex:0 0 auto;">
+          <form method="post" action="{% url 'ai_memory_archive' fact_id=fact.id %}">{% csrf_token %}<button type="submit" aria-label="Arxivlash" title="Arxivlash" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--line);color:var(--ink-3);display:grid;place-items:center;font-size:13px;cursor:pointer;background:transparent;"><i class="bi bi-archive"></i></button></form>
+          <form method="post" action="{% url 'ai_memory_reject' fact_id=fact.id %}">{% csrf_token %}<button type="submit" aria-label="Noto'g'ri — o'chirish" title="Noto'g'ri — o'chirish" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--line);color:var(--red);display:grid;place-items:center;font-size:13px;cursor:pointer;background:transparent;"><i class="bi bi-x-lg"></i></button></form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+
+  <!-- Hammasini tozalash -->
+  <form method="post" action="{% url 'ai_memory_clear' %}" onsubmit="return confirm('Barcha saqlangan faktlar o\'chiriladi. Davom etasizmi?');" style="display:flex;justify-content:flex-end;">
+    {% csrf_token %}
+    <button type="submit" style="display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 16px;border-radius:10px;border:1px solid var(--line);color:var(--red);font-size:13px;font-weight:600;cursor:pointer;background:transparent;"><i class="bi bi-trash"></i> Xotirani tozalash</button>
+  </form>
+
+  {% else %}
+  <div style="border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:48px 24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;">
+    <span style="width:60px;height:60px;border-radius:16px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:27px;"><i class="bi bi-bookmark-star"></i></span>
+    <div style="font-size:17px;font-weight:600;color:var(--ink);">Xotira hali bo'sh</div>
+    <div style="font-size:13.5px;color:var(--ink-3);max-width:42ch;line-height:1.6;">AzureAI bilan suhbatlashganingiz sayin, u siz haqingizdagi muhim ma'lumotlarni (maqsad, daraja, zaif mavzular) shu yerda eslab qoladi.</div>
+    <a href="{% url 'messenger:ai' %}" style="margin-top:8px;display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:10px;background:var(--azure);color:var(--on-azure);font-size:14px;font-weight:600;">AI bilan suhbat <i class="bi bi-arrow-right" style="font-size:13px;"></i></a>
+  </div>
+  {% endif %}
+
+  {% if legacy_memory_text %}
+  <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:18px 20px;margin-top:16px;">
+    <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px;">Eski xotira (arxiv)</div>
+    <p style="font-size:13.5px;line-height:1.65;color:var(--ink-2);margin:0;white-space:pre-wrap;">{{ legacy_memory_text }}</p>
+  </section>
+  {% endif %}
+
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-  (function () {
-    const toggle = document.getElementById('memoryToggle');
-    const input = document.getElementById('memoryToggleInput');
-    const form = document.getElementById('memoryToggleForm');
-    if (!toggle || !input || !form) return;
-
-    function fire() {
-      const isOn = toggle.classList.contains('on');
-      const next = isOn ? '0' : '1';
-      input.value = next;
-      toggle.classList.toggle('on', next === '1');
-      toggle.setAttribute('aria-checked', next === '1' ? 'true' : 'false');
-      form.submit();
-    }
-
-    toggle.addEventListener('click', fire);
-    toggle.addEventListener('keydown', function (e) {
-      if (e.key === ' ' || e.key === 'Enter') {
-        e.preventDefault();
-        fire();
-      }
-    });
-  })();
-</script>
 {% endblock %}

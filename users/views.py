@@ -79,6 +79,7 @@ class SettingsView(LoginRequiredMixin, UpdateView):
             status__in=[Attendance.STATUS_PRESENT, Attendance.STATUS_PARTIAL],
         ).count()
         context['total_hours'] = passed_lessons_count * 2
+        context['tone_choices'] = CustomUser.AI_TONE_CHOICES
         return context
 
     def form_valid(self, form):
@@ -819,6 +820,7 @@ class AttendanceCalendarView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         context['active_nav'] = 'attendance_calendar'
+        context['weekday_labels'] = ['Du', 'Se', 'Cho', 'Pa', 'Ju', 'Sha', 'Ya']
 
         today = timezone.localdate()
         try:

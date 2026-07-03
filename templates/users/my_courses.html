@@ -1,114 +1,90 @@
-{% extends 'users/base_app.html' %}
-{% load static %}
+{% extends "users/base_app.html" %}
+{% comment %}
+  Darslarim (MyCoursesView) — o'quvchi yozilgan kurslar.
+  Proto: azurelms-proto/app/my-learning.html.
+  Kontekst: enrollments (Enrollment + dashboard_* atributlar),
+  count_all, count_active, count_completed.
+{% endcomment %}
 
-{% block title %}Mening kurslarim — AzureLMS{% endblock %}
-{% block page_title %}Mening kurslarim{% endblock %}
+{% block app_icon %}bi-journal-text{% endblock %}
+{% block app_topbar_title %}Darslarim{% endblock %}
 
-{% block extra_css %}
-  <link rel="stylesheet" href="{% static 'css/app-course-list.css' %}">
-{% endblock %}
+{% block app_content %}
 
-{% block content %}
-<div class="mc-header">
-  <div class="mc-title">Mening kurslarim</div>
-  <div class="mc-sub">
-    {% if count_all %}
-      Jami {{ count_all }} ta kurs · {{ count_active }} ta faol{% if count_completed %} · {{ count_completed }} ta tugatilgan{% endif %}
-    {% else %}
-      Hali birorta kursga yozilmagansiz
-    {% endif %}
+<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:22px;">
+  <div><h1 style="font-size:clamp(22px,2.6vw,30px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:0 0 6px;">Darslarim</h1><p style="font-size:14px;color:var(--ink-3);margin:0;">Faol kurslar va o'qish tarixingiz.</p></div>
+  <div style="display:flex;gap:6px;background:var(--paper-2);border:1px solid var(--line);border-radius:10px;padding:4px;">
+    <button type="button" style="height:30px;padding:0 14px;border-radius:7px;font-size:12.5px;font-weight:600;background:var(--azure-soft);color:var(--azure);">Hammasi <span style="opacity:.6;">{{ count_all }}</span></button>
+    <button type="button" style="height:30px;padding:0 14px;border-radius:7px;font-size:12.5px;font-weight:600;background:transparent;color:var(--ink-3);">Faol <span style="opacity:.6;">{{ count_active }}</span></button>
+    <button type="button" style="height:30px;padding:0 14px;border-radius:7px;font-size:12.5px;font-weight:600;background:transparent;color:var(--ink-3);">Tugatilgan <span style="opacity:.6;">{{ count_completed }}</span></button>
   </div>
 </div>
 
-{% if enrollments %}
-  <div class="mc-filter-row">
-    <div class="mc-tabs" data-mc-tabs>
-      <div class="mc-tab active" data-filter="all">Hammasi ({{ count_all }})</div>
-      <div class="mc-tab" data-filter="active">Faol ({{ count_active }})</div>
-      {% if count_completed %}
-        <div class="mc-tab" data-filter="completed">Tugatilgan ({{ count_completed }})</div>
-      {% endif %}
+{% if count_active and enrollments.0.dashboard_effective_status == 'active' %}
+{% with feat=enrollments.0 %}
+<section style="border:1px solid var(--line);border-radius:16px;background:linear-gradient(110deg,var(--azure),var(--azure-2));color:#fff;padding:24px;margin-bottom:20px;position:relative;overflow:hidden;">
+  <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px);background-size:30px 30px;opacity:.6;"></div>
+  <div style="position:relative;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;">
+    <div>
+      <div style="font-family:'Space Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;opacity:.8;margin-bottom:8px;">Davom etish</div>
+      <div style="font-size:20px;font-weight:600;letter-spacing:-.02em;">{{ feat.cohort.course.title }}</div>
+      <div style="font-size:13px;opacity:.85;margin-top:3px;">{{ feat.cohort.name }} · {{ feat.dashboard_completed_lessons }}/{{ feat.dashboard_total_lessons }} dars · {{ feat.dashboard_progress }}% tugadi</div>
+      <div style="width:260px;max-width:100%;height:6px;border-radius:999px;background:rgba(255,255,255,.25);overflow:hidden;margin-top:14px;"><div style="height:100%;width:{{ feat.dashboard_progress }}%;background:#fff;border-radius:999px;"></div></div>
     </div>
+    <a href="{% url 'course_detail' pk=feat.cohort.course.id %}" style="display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 22px;border-radius:11px;background:#fff;color:var(--azure-2);font-size:14.5px;font-weight:700;flex:0 0 auto;"><i class="bi bi-play-fill"></i> Davom etish</a>
   </div>
-
-  <div class="mc-grid" data-mc-grid>
-    {% for e in enrollments %}
-      <div class="mc-card {% if e.dashboard_progress >= 100 %}is-completed{% endif %}"
-           data-status="{{ e.dashboard_effective_status }}"
-           data-completed="{% if e.dashboard_progress >= 100 %}1{% else %}0{% endif %}">
-        <div class="mc-thumb">{{ e.cohort.course.flag_emoji|default:"📚" }}</div>
-        <div class="mc-body">
-          <div class="mc-meta-top">
-            <span class="mc-cat">{{ e.cohort.course.get_level_display }}</span>
-            <span class="mc-status mc-status--{{ e.dashboard_status_tone }}">{{ e.dashboard_status_label }}</span>
-          </div>
-          <div class="mc-name">{{ e.cohort.course.title }}</div>
-          <div class="mc-cohort">{{ e.cohort.name }}</div>
-          <div class="mc-progress-wrap">
-            <div class="mc-progress-info">
-              <span class="mc-progress-label">{{ e.dashboard_completed_lessons }} / {{ e.dashboard_total_lessons }} dars</span>
-              <span class="mc-progress-pct">{{ e.dashboard_progress }}%</span>
-            </div>
-            <div class="mc-progress-bar">
-              <div class="mc-progress-fill" style="width: {{ e.dashboard_progress }}%;"></div>
-            </div>
-          </div>
-          <div class="mc-stats">
-            {% if e.cohort.course.instructor %}
-              <span class="mc-stat"><i class="bi bi-person-video3"></i> {{ e.cohort.course.instructor.get_full_name|default:e.cohort.course.instructor.username }}</span>
-            {% endif %}
-            {% if e.dashboard_days_left is not None and e.dashboard_effective_status == 'active' %}
-              <span class="mc-stat"><i class="bi bi-calendar-event"></i> To'lovgacha {{ e.dashboard_days_left }} kun</span>
-            {% endif %}
-          </div>
-        </div>
-        <div class="mc-actions">
-          {% if e.dashboard_effective_status == 'active' %}
-            <a class="mc-continue" href="{% url 'course_study' course_id=e.cohort.course.id %}">
-              <i class="bi bi-play-fill"></i> Davom etish
-            </a>
-          {% elif e.dashboard_effective_status == 'pending' %}
-            <span class="mc-continue mc-continue--locked"><i class="bi bi-hourglass-split"></i> Tasdiq kutilmoqda</span>
-          {% else %}
-            <a class="mc-continue mc-continue--locked" href="{% url 'course_detail' pk=e.cohort.course.id %}" style="cursor: pointer;">
-              <i class="bi bi-eye"></i> Ko'rish
-            </a>
-          {% endif %}
-        </div>
-      </div>
-    {% endfor %}
-  </div>
-{% else %}
-  <div class="mc-empty">
-    <div class="mc-empty-icon"><i class="bi bi-journal-x"></i></div>
-    <div class="mc-empty-title">Hali kursga yozilmagansiz</div>
-    <div class="mc-empty-desc">Kurslar katalogidan o'zingizga mos kursni tanlab, o'qishni boshlang.</div>
-    <a class="mc-browse" href="{% url 'courses' %}"><i class="bi bi-compass"></i> Kurslarni ko'rish</a>
-  </div>
+</section>
+{% endwith %}
 {% endif %}
-{% endblock %}
 
-{% block extra_js %}
-<script>
-  (function () {
-    const tabs = document.querySelector('[data-mc-tabs]');
-    const grid = document.querySelector('[data-mc-grid]');
-    if (!tabs || !grid) return;
+{% if enrollments %}
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">
+  {% for e in enrollments %}
+  {% if e.dashboard_progress >= 100 %}{% with grad="linear-gradient(120deg,#0f9d58,#0a7a44)" tone_c="var(--green)" tone_bg="var(--green-soft)" tone_t="Tugatilgan" %}
+  <article class="pub-lift" style="border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;">
+    <div style="height:104px;background:{{ grad }};padding:14px;display:flex;flex-direction:column;justify-content:space-between;"><span style="font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:#fff;background:rgba(0,0,0,.18);padding:4px 10px;border-radius:7px;align-self:flex-start;">{{ e.cohort.course.title|slice:":2"|upper }}</span><i class="bi bi-journal-check" style="color:rgba(255,255,255,.9);font-size:30px;align-self:flex-end;"></i></div>
+    <div style="padding:18px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-size:11px;font-weight:600;color:{{ tone_c }};background:{{ tone_bg }};padding:3px 9px;border-radius:6px;">{{ tone_t }}</span><span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);">{{ e.dashboard_progress }}%</span></div>
+      <h3 style="font-size:16px;font-weight:600;color:var(--ink);margin:11px 0 4px;letter-spacing:-.01em;">{{ e.cohort.course.title }}</h3>
+      <div style="font-size:12.5px;color:var(--ink-3);">{{ e.dashboard_completed_lessons }}/{{ e.dashboard_total_lessons }} dars · tugadi</div>
+      <div style="height:5px;border-radius:999px;background:var(--line-2);overflow:hidden;margin-top:14px;"><div style="height:100%;width:{{ e.dashboard_progress }}%;background:{{ tone_c }};border-radius:999px;"></div></div>
+      <a href="{% url 'course_detail' pk=e.cohort.course.id %}" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:16px;height:40px;padding:0 14px;border-radius:10px;border:1px solid var(--line);font-size:13.5px;font-weight:600;color:var(--ink-2);">Takrorlash <i class="bi bi-arrow-right" style="font-size:12px;"></i></a>
+    </div>
+  </article>
+  {% endwith %}
+  {% else %}{% if e.dashboard_effective_status == 'active' %}{% with grad="linear-gradient(120deg,#1257e6,#0e44b8)" tone_c="var(--azure)" tone_bg="var(--azure-soft)" %}
+  <article class="pub-lift" style="border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;">
+    <div style="height:104px;background:{{ grad }};padding:14px;display:flex;flex-direction:column;justify-content:space-between;"><span style="font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:#fff;background:rgba(0,0,0,.18);padding:4px 10px;border-radius:7px;align-self:flex-start;">{{ e.cohort.course.title|slice:":2"|upper }}</span><i class="bi bi-soundwave" style="color:rgba(255,255,255,.9);font-size:30px;align-self:flex-end;"></i></div>
+    <div style="padding:18px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-size:11px;font-weight:600;color:{{ tone_c }};background:{{ tone_bg }};padding:3px 9px;border-radius:6px;">{{ e.dashboard_status_label }}</span><span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);">{{ e.dashboard_progress }}%</span></div>
+      <h3 style="font-size:16px;font-weight:600;color:var(--ink);margin:11px 0 4px;letter-spacing:-.01em;">{{ e.cohort.course.title }}</h3>
+      <div style="font-size:12.5px;color:var(--ink-3);">{{ e.cohort.name }} · {{ e.dashboard_completed_lessons }}/{{ e.dashboard_total_lessons }} dars</div>
+      <div style="height:5px;border-radius:999px;background:var(--line-2);overflow:hidden;margin-top:14px;"><div style="height:100%;width:{{ e.dashboard_progress }}%;background:{{ tone_c }};border-radius:999px;"></div></div>
+      <a href="{% url 'course_detail' pk=e.cohort.course.id %}" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:16px;height:40px;padding:0 14px;border-radius:10px;border:1px solid var(--line);font-size:13.5px;font-weight:600;color:var(--azure);">Davom etish <i class="bi bi-arrow-right" style="font-size:12px;"></i></a>
+    </div>
+  </article>
+  {% endwith %}
+  {% else %}{% with grad="linear-gradient(120deg,#454c58,#2b3038)" %}
+  <article class="pub-lift" style="border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;">
+    <div style="height:104px;background:{{ grad }};padding:14px;display:flex;flex-direction:column;justify-content:space-between;"><span style="font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:#fff;background:rgba(0,0,0,.18);padding:4px 10px;border-radius:7px;align-self:flex-start;">{{ e.cohort.course.title|slice:":2"|upper }}</span><i class="bi bi-hourglass-split" style="color:rgba(255,255,255,.9);font-size:30px;align-self:flex-end;"></i></div>
+    <div style="padding:18px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;"><span style="font-size:11px;font-weight:600;color:var(--amber);background:var(--amber-soft);padding:3px 9px;border-radius:6px;">{% if e.dashboard_effective_status == 'pending' %}Tasdiq kutilmoqda{% else %}{{ e.dashboard_status_label }}{% endif %}</span><span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);">{{ e.dashboard_progress }}%</span></div>
+      <h3 style="font-size:16px;font-weight:600;color:var(--ink);margin:11px 0 4px;letter-spacing:-.01em;">{{ e.cohort.course.title }}</h3>
+      <div style="font-size:12.5px;color:var(--ink-3);">{{ e.cohort.name }} · {{ e.dashboard_completed_lessons }}/{{ e.dashboard_total_lessons }} dars</div>
+      <div style="height:5px;border-radius:999px;background:var(--line-2);overflow:hidden;margin-top:14px;"><div style="height:100%;width:{{ e.dashboard_progress }}%;background:var(--amber);border-radius:999px;"></div></div>
+      <a href="{% url 'course_detail' pk=e.cohort.course.id %}" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:16px;height:40px;padding:0 14px;border-radius:10px;border:1px solid var(--line);font-size:13.5px;font-weight:600;color:var(--ink-2);">Ko'rish <i class="bi bi-arrow-right" style="font-size:12px;"></i></a>
+    </div>
+  </article>
+  {% endwith %}{% endif %}{% endif %}
+  {% endfor %}
+</div>
+{% else %}
+<div style="border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:48px 24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;">
+  <span style="width:60px;height:60px;border-radius:16px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:27px;"><i class="bi bi-journal-plus"></i></span>
+  <div style="font-size:17px;font-weight:600;color:var(--ink);">Hali kursga yozilmagansiz</div>
+  <div style="font-size:13.5px;color:var(--ink-3);max-width:40ch;line-height:1.6;">Turk tili kurslari katalogidan o'zingizga mosini tanlang va birinchi darsdan boshlang.</div>
+  <a href="{% url 'courses' %}" style="margin-top:8px;display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:10px;background:var(--azure);color:var(--on-azure);font-size:14px;font-weight:600;">Kurslarni ko'rish <i class="bi bi-arrow-right" style="font-size:13px;"></i></a>
+</div>
+{% endif %}
 
-    tabs.addEventListener('click', function (e) {
-      const tab = e.target.closest('.mc-tab');
-      if (!tab) return;
-      tabs.querySelectorAll('.mc-tab').forEach((t) => t.classList.remove('active'));
-      tab.classList.add('active');
-
-      const filter = tab.dataset.filter;
-      grid.querySelectorAll('.mc-card').forEach(function (card) {
-        let show = true;
-        if (filter === 'active') show = card.dataset.status === 'active';
-        else if (filter === 'completed') show = card.dataset.completed === '1';
-        card.hidden = !show;
-      });
-    });
-  })();
-</script>
 {% endblock %}

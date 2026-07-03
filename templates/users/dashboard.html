@@ -1,266 +1,130 @@
-{% extends 'users/base_app.html' %}
-{% load static %}
+{% extends "users/base_app.html" %}
+{% comment %}
+  O'quvchi boshqaruv paneli (DashboardView).
+  Proto: azurelms-proto/app/dashboard.html.
+  Real kontekst: primary_enrollment (Enrollment + dashboard_* atributlar),
+  xp_points, streak_days, completed_lessons_count, active_courses_count,
+  achievements_count, certificates_count, recommended_courses.
+{% endcomment %}
 
-{% block title %}Dashboard — AzureLMS{% endblock %}
-{% block page_title %}Dashboard{% endblock %}
+{% block app_icon %}bi-grid-1x2{% endblock %}
+{% block app_topbar_title %}Boshqaruv paneli{% endblock %}
 
-{% block content %}
-<!-- GREETING -->
-<div class="greeting">
-  <div class="greeting-text">
-    <div class="greeting-hello">Xush kelibsiz,</div>
-    <div class="greeting-name">{{ user.get_full_name|default:user.username }} 👋</div>
-    <div class="greeting-sub">
-      {% if active_enrollments %}
-        Bugun ham bir qadam oldinga! Faol kurslaringizda davom eting.
-      {% else %}
-        Tizimga muvaffaqiyatli kirdingiz! O'rganishni boshlash uchun Kurslar bo'limiga o'ting.
-      {% endif %}
-    </div>
-    <div class="greeting-streak">
-      <div class="streak-badge">🔥 {{ streak_days }} kunlik seriya</div>
-      <div class="streak-badge" style="background: rgba(139, 92, 246, 0.15); border-color: rgba(139, 92, 246, 0.35); color: #a78bfa;">✨ {{ xp_points }} XP ball</div>
-    </div>
+{% block app_content %}
+
+<!-- Salomlashish -->
+<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:24px;">
+  <div>
+    <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;">{% now "l · d.m.Y" %}</div>
+    <h1 style="font-size:clamp(24px,2.6vw,32px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:0;">Xush kelibsiz, {{ request.user.first_name|default:request.user.username }}.</h1>
   </div>
-  <div class="greeting-action">
-    {% if active_enrollments %}
-      <a class="btn-continue" href="{% url 'course_study' course_id=active_enrollments.0.cohort.course.id %}" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
-        <i class="bi bi-play-fill"></i> Davom ettirish
+  {% if primary_enrollment %}
+  <a href="{% url 'course_detail' pk=primary_enrollment.cohort.course.id %}" style="display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:9px;background:var(--azure);color:var(--on-azure);font-size:14px;font-weight:600;"><i class="bi bi-play-fill"></i> Darsni davom ettirish</a>
+  {% else %}
+  <a href="{% url 'courses' %}" style="display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:9px;background:var(--azure);color:var(--on-azure);font-size:14px;font-weight:600;"><i class="bi bi-search"></i> Kurslarni ko'rish</a>
+  {% endif %}
+</div>
+
+<!-- Bento 1: joriy kurs + XP/streak -->
+<div style="display:grid;grid-template-columns:repeat(12,1fr);gap:14px;">
+  <div style="grid-column:span 7;border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:22px;">
+    {% if active_dashboard_enrollments|length > 1 %}
+    {# Bir nechta faol guruh — hammasi ro'yxat bo'lib chiqadi #}
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <span style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);">Barcha guruhlaringiz</span>
+      <span style="font-family:'Space Mono',monospace;font-size:10px;padding:3px 8px;border-radius:5px;background:var(--azure-soft);color:var(--azure);">{{ active_dashboard_enrollments|length }} TA FAOL</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      {% for item in active_dashboard_enrollments %}
+      <a href="{% url 'course_detail' pk=item.cohort.course.id %}" style="display:flex;align-items:center;gap:14px;padding:13px 15px;border-radius:11px;border:1px solid var(--line);transition:border-color .2s;">
+        <span style="width:40px;height:40px;border-radius:10px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:16px;flex:0 0 auto;"><i class="bi bi-journal-text"></i></span>
+        <span style="flex:1;min-width:0;">
+          <span style="display:block;font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ item.cohort.course.title }}</span>
+          <span style="display:block;font-size:12px;color:var(--ink-3);">{{ item.cohort.name }} · {{ item.dashboard_completed_lessons }}/{{ item.dashboard_total_lessons }} dars</span>
+        </span>
+        <span style="font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--azure);flex:0 0 auto;">{{ item.dashboard_progress }}%</span>
       </a>
+      {% endfor %}
+    </div>
     {% else %}
-      <a class="btn-continue" href="{% url 'courses' %}" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
-        <i class="bi bi-compass"></i> Kurslarni ko'rish
-      </a>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <span style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);">Davom etayotgan kurs</span>
+      {% if primary_enrollment %}<span style="font-family:'Space Mono',monospace;font-size:10px;padding:3px 8px;border-radius:5px;background:var(--azure-soft);color:var(--azure);">{{ primary_enrollment.dashboard_status_label|upper }}</span>{% endif %}
+    </div>
+    {% if primary_enrollment %}
+    <div style="display:flex;align-items:center;gap:18px;">
+      <div style="position:relative;width:96px;height:96px;flex:0 0 auto;border-radius:50%;background:conic-gradient(var(--azure) {% widthratio primary_enrollment.dashboard_progress 100 360 %}deg,var(--line-2) 0deg);display:grid;place-items:center;">
+        <div style="width:74px;height:74px;border-radius:50%;background:var(--panel);display:grid;place-items:center;"><div style="text-align:center;"><div style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--ink);">{{ primary_enrollment.dashboard_progress }}%</div><div style="font-size:9px;color:var(--ink-3);">tugadi</div></div></div>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:18px;font-weight:600;color:var(--ink);letter-spacing:-.02em;">{{ primary_enrollment.cohort.course.title }}</div>
+        <div style="font-size:13px;color:var(--ink-3);margin-top:3px;">{{ primary_enrollment.cohort.name }} · {{ primary_enrollment.dashboard_completed_lessons }}/{{ primary_enrollment.dashboard_total_lessons }} dars o'tildi</div>
+        <div style="height:6px;border-radius:999px;background:var(--line-2);overflow:hidden;margin-top:14px;"><div data-meter data-target="{{ primary_enrollment.dashboard_progress }}" style="height:100%;width:0;background:var(--azure);border-radius:999px;transition:width 1.1s cubic-bezier(.16,1,.3,1);"></div></div>
+      </div>
+    </div>
+    <a href="{% url 'course_detail' pk=primary_enrollment.cohort.course.id %}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px;padding:13px 15px;border-radius:11px;border:1px solid var(--line);transition:border-color .2s,background .2s;">
+      <span style="display:flex;align-items:center;gap:12px;"><span style="width:38px;height:38px;border-radius:9px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:16px;"><i class="bi bi-play-circle"></i></span><span><span style="display:block;font-size:14px;font-weight:600;color:var(--ink);">Kursga o'tish</span><span style="display:block;font-size:12px;color:var(--ink-3);">{{ primary_enrollment.cohort.course.title }}</span></span></span>
+      <i class="bi bi-arrow-right" style="color:var(--azure);"></i>
+    </a>
+    {% else %}
+    <div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:24px 12px;gap:10px;">
+      <span style="width:54px;height:54px;border-radius:14px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:24px;"><i class="bi bi-journal-plus"></i></span>
+      <div style="font-size:15px;font-weight:600;color:var(--ink);">Hali kursga yozilmagansiz</div>
+      <div style="font-size:13px;color:var(--ink-3);max-width:34ch;">Katalogdan o'zingizga mos turk tili kursini tanlang va birinchi darsdan boshlang.</div>
+      <a href="{% url 'courses' %}" style="margin-top:6px;display:inline-flex;align-items:center;gap:7px;padding:10px 16px;border-radius:9px;background:var(--azure);color:var(--on-azure);font-size:13.5px;font-weight:600;">Kurslarni ko'rish <i class="bi bi-arrow-right" style="font-size:12px;"></i></a>
+    </div>
+    {% endif %}
     {% endif %}
   </div>
-</div>
 
-<!-- STATS -->
-<div class="stats-row">
-  <div class="stat-card">
-    <div class="stat-icon" style="background: rgba(59, 130, 246, 0.1); color: var(--blue);">📚</div>
-    <div class="stat-body">
-      <div class="stat-val">{{ active_courses_count }}</div>
-      <div class="stat-label">Faol kurslar</div>
-      <div class="stat-delta delta-up">
-        {% if active_courses_count > 0 %}
-          <i class="bi bi-arrow-up"></i> Faol o'qish
-        {% else %}
-          Kurs yo'q
-        {% endif %}
-      </div>
+  <div style="grid-column:span 5;display:flex;flex-direction:column;gap:14px;">
+    <div style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:20px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;"><span style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);">Daraja · XP</span><a href="{% url 'leaderboard' %}" style="font-size:12px;font-weight:600;color:var(--azure);">{{ request.user.current_level|default:"A1" }}</a></div>
+      <div style="display:flex;align-items:baseline;gap:6px;"><span data-count="{{ xp_points }}" style="font-family:'Space Mono',monospace;font-size:30px;font-weight:700;color:var(--ink);">0</span><span style="font-size:13px;color:var(--ink-3);">XP</span></div>
+      <div style="font-size:11.5px;color:var(--ink-3);margin-top:10px;">Reytingdagi o'rningizni ko'rish uchun bosing.</div>
     </div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--emerald);">⏱️</div>
-    <div class="stat-body">
-      <div class="stat-val">{{ study_hours }}</div>
-      <div class="stat-label">O'quv soatlari</div>
-      <div class="stat-delta delta-up"><i class="bi bi-arrow-up"></i> Jami soat</div>
-    </div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: var(--amber);">🏆</div>
-    <div class="stat-body">
-      <div class="stat-val">{{ achievements_count }}</div>
-      <div class="stat-label">Yutuqlar</div>
-      <div class="stat-delta delta-up">
-        <a href="{% url 'profile' %}" style="color: inherit; text-decoration: none;">Ko'rish →</a>
-      </div>
-    </div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon" style="background: rgba(139, 92, 246, 0.1); color: var(--violet);">🎖️</div>
-    <div class="stat-body">
-      <div class="stat-val">{{ certificates_count }}</div>
-      <div class="stat-label">Sertifikatlar</div>
-      <div class="stat-delta delta-up">
-        <a href="{% url 'certificates' %}" style="color: inherit; text-decoration: none;">Ko'rish →</a>
-      </div>
-    </div>
+    <a href="{% url 'attendance_calendar' %}" style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:20px;display:flex;align-items:center;gap:16px;">
+      <span style="width:48px;height:48px;border-radius:12px;background:var(--amber-soft);color:var(--amber);display:grid;place-items:center;font-size:22px;"><i class="bi bi-fire"></i></span>
+      <div><div style="font-family:'Space Mono',monospace;font-size:24px;font-weight:700;color:var(--ink);">{{ streak_days|default:0 }} kun</div><div style="font-size:12px;color:var(--ink-3);">Ketma-ket o'qish · davomat</div></div>
+    </a>
   </div>
 </div>
 
-<!-- TWO COL -->
-<div class="two-col">
-
-  <!-- ACTIVE COURSES -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-title">
-        {% if active_dashboard_enrollments|length > 1 %}
-          Barcha guruhlaringiz
-        {% else %}
-          Davom etayotgan kurs
-        {% endif %}
-      </div>
-      <a href="{% url 'courses' %}" class="card-link">Barchasini ko'rish →</a>
-    </div>
-
-    {% for enrollment in active_enrollments %}
-      <div class="course-row">
-        <div class="course-thumb">
-          {% if enrollment.cohort.course.flag_emoji %}
-            {{ enrollment.cohort.course.flag_emoji }}
-          {% else %}
-            📚
-          {% endif %}
-        </div>
-        <div class="course-info">
-          <div class="course-name">{{ enrollment.cohort.course.title }}</div>
-          <div class="course-meta">
-            {{ enrollment.cohort.name }} · {{ enrollment.dashboard_completed_lessons }} / {{ enrollment.dashboard_total_lessons }} dars ·
-            <span class="badge bg-{{ enrollment.dashboard_status_tone }}">{{ enrollment.dashboard_status_label }}</span>
-          </div>
-          <div class="progress-bar">
-            <div class="progress-fill" style="width: {{ enrollment.dashboard_progress }}%; background: var(--blue);"></div>
-          </div>
-        </div>
-        <div class="course-pct">{{ enrollment.dashboard_progress }}%</div>
-        <a class="btn-play" href="{% url 'course_study' course_id=enrollment.cohort.course.id %}" style="display: flex; align-items: center; justify-content: center; text-decoration: none;">
-          <i class="bi bi-play-fill"></i>
-        </a>
-      </div>
-    {% empty %}
-      <div class="empty-state" style="padding: 40px 20px; text-align: center; color: var(--ink-3);">
-        <i class="bi bi-journal-x" style="font-size: 48px; display: block; margin-bottom: 12px; color: var(--ink-4);"></i>
-        <p style="font-weight: 500; font-size: 16px; margin-bottom: 8px;">Sizda faol kurslar mavjud emas.</p>
-        <p style="font-size: 14px; margin-bottom: 20px;">Kurslar bo'limidan o'zingizga ma'qul kursni tanlab o'qishni boshlashingiz mumkin.</p>
-        <a href="{% url 'courses' %}" class="btn-submit" style="display: inline-block; text-decoration: none; padding: 10px 20px; font-size: 14px;">Kurslarni tanlash</a>
-      </div>
-    {% endfor %}
-  </div>
-
-  <!-- ACTIVITY FEED -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-title">So'nggi faolliklar</div>
-      <span class="card-link" style="color: var(--ink-3);">Bugun</span>
-    </div>
-    <div class="activity-list">
-      <div class="activity-item">
-        <div class="activity-dot" style="background: rgba(16, 185, 129, 0.1); color: var(--emerald);"><i class="bi bi-check-lg"></i></div>
-        <div class="activity-text">
-          <div class="activity-main">Kabinetga muvaffaqiyatli kirdingiz.</div>
-          <div class="activity-time">Hozirgina</div>
-        </div>
-      </div>
-      {% if active_enrollments %}
-        <div class="activity-item">
-          <div class="activity-dot" style="background: rgba(59, 130, 246, 0.1); color: var(--blue);"><i class="bi bi-book"></i></div>
-          <div class="activity-text">
-            <div class="activity-main">Kurs o'quv dasturi tekshirildi.</div>
-            <div class="activity-time">1 soat oldin</div>
-          </div>
-        </div>
-      {% endif %}
-      {% if streak_days > 0 %}
-        <div class="activity-item">
-          <div class="activity-dot" style="background: rgba(245, 158, 11, 0.1); color: var(--amber);"><i class="bi bi-star-fill"></i></div>
-          <div class="activity-text">
-            <div class="activity-main">Faollik seriyasi yuklandi: <strong>🔥 {{ streak_days }} kunlik seriya</strong></div>
-            <div class="activity-time">2 soat oldin</div>
-          </div>
-        </div>
-      {% endif %}
-      <div class="activity-item">
-        <div class="activity-dot" style="background: rgba(139, 92, 246, 0.1); color: var(--violet);"><i class="bi bi-shield-check"></i></div>
-        <div class="activity-text">
-          <div class="activity-main">Hisob xavfsizligi tekshiruvi: <strong>SSL Faol</strong></div>
-          <div class="activity-time">Bugun</div>
-        </div>
-      </div>
-    </div>
-  </div>
+<!-- Real statistikalar -->
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:14px;">
+  <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:16px 18px;"><div style="display:flex;align-items:center;justify-content:space-between;"><span data-count="{{ completed_lessons_count }}" style="font-family:'Space Mono',monospace;font-size:24px;font-weight:700;color:var(--ink);">0</span><i class="bi bi-journal-check" style="color:var(--ink-4);font-size:15px;"></i></div><div style="font-size:12px;color:var(--ink-3);margin-top:4px;">Dars o'tildi</div></div>
+  <a href="{% url 'my_courses' %}" style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:16px 18px;transition:border-color .2s;"><div style="display:flex;align-items:center;justify-content:space-between;"><span data-count="{{ active_courses_count }}" style="font-family:'Space Mono',monospace;font-size:24px;font-weight:700;color:var(--ink);">0</span><i class="bi bi-journal-text" style="color:var(--ink-4);font-size:15px;"></i></div><div style="font-size:12px;color:var(--ink-3);margin-top:4px;">Faol kurs</div></a>
+  <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:16px 18px;"><div style="display:flex;align-items:center;justify-content:space-between;"><span data-count="{{ achievements_count }}" style="font-family:'Space Mono',monospace;font-size:24px;font-weight:700;color:var(--ink);">0</span><i class="bi bi-award" style="color:var(--ink-4);font-size:15px;"></i></div><div style="font-size:12px;color:var(--ink-3);margin-top:4px;">Yutuq nishoni</div></div>
+  <a href="{% url 'certificates' %}" style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:16px 18px;transition:border-color .2s;"><div style="display:flex;align-items:center;justify-content:space-between;"><span data-count="{{ certificates_count }}" style="font-family:'Space Mono',monospace;font-size:24px;font-weight:700;color:var(--ink);">0</span><i class="bi bi-patch-check" style="color:var(--ink-4);font-size:15px;"></i></div><div style="font-size:12px;color:var(--ink-3);margin-top:4px;">Sertifikat</div></a>
 </div>
 
-<!-- BOTTOM ROW -->
-<div class="bottom-row">
-
-  <!-- MINI CALENDAR -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-title">Dars jadvali</div>
-    </div>
-    <div class="mini-cal">
-      <div class="cal-header">
-        <button class="cal-nav"><i class="bi bi-chevron-left"></i></button>
-        <div class="cal-month">May 2026</div>
-        <button class="cal-nav"><i class="bi bi-chevron-right"></i></button>
-      </div>
-      <div class="cal-grid">
-        <div class="cal-day-label">Du</div><div class="cal-day-label">Se</div><div class="cal-day-label">Ch</div><div class="cal-day-label">Pa</div><div class="cal-day-label">Ju</div><div class="cal-day-label">Sh</div><div class="cal-day-label">Ya</div>
-        <div class="cal-day other-month past">27</div><div class="cal-day other-month past">28</div><div class="cal-day other-month past">29</div><div class="cal-day other-month past">30</div><div class="cal-day past">1</div><div class="cal-day past has-lesson">2</div><div class="cal-day past">3</div>
-        <div class="cal-day past">4</div><div class="cal-day past has-lesson">5</div><div class="cal-day past">6</div><div class="cal-day past has-lesson">7</div><div class="cal-day past">8</div><div class="cal-day past has-lesson">9</div><div class="cal-day past">10</div>
-        <div class="cal-day past">11</div><div class="cal-day past has-lesson">12</div><div class="cal-day past">13</div><div class="cal-day past has-lesson">14</div><div class="cal-day past">15</div><div class="cal-day past has-lesson">16</div><div class="cal-day today">17</div>
-        <div class="cal-day">18</div><div class="cal-day has-lesson">19</div><div class="cal-day">20</div><div class="cal-day has-lesson">21</div><div class="cal-day">22</div><div class="cal-day has-lesson">23</div><div class="cal-day">24</div>
-        <div class="cal-day">25</div><div class="cal-day has-lesson">26</div><div class="cal-day">27</div><div class="cal-day">28</div><div class="cal-day">29</div><div class="cal-day">30</div><div class="cal-day">31</div>
-      </div>
-    </div>
+<!-- Profilni to'ldirish -->
+{% if profile_completion < 100 %}
+<a href="{% url 'profile' %}" style="display:flex;align-items:center;gap:16px;border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:18px 20px;margin-top:14px;">
+  <span style="width:44px;height:44px;border-radius:11px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:19px;flex:0 0 auto;"><i class="bi bi-person-vcard"></i></span>
+  <div style="flex:1;min-width:0;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;"><span style="font-size:14px;font-weight:600;color:var(--ink);">Profilingizni to'ldiring</span><span style="font-family:'Space Mono',monospace;font-size:12px;color:var(--azure);">{{ profile_completion }}%</span></div>
+    <div style="height:6px;border-radius:999px;background:var(--line-2);overflow:hidden;margin-top:9px;"><div data-meter data-target="{{ profile_completion }}" style="height:100%;width:0;background:var(--azure);border-radius:999px;transition:width 1.1s cubic-bezier(.16,1,.3,1);"></div></div>
   </div>
+  <i class="bi bi-arrow-right" style="color:var(--ink-3);flex:0 0 auto;"></i>
+</a>
+{% endif %}
 
-  <!-- UPCOMING LESSONS -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-title">Yaqinlashayotgan darslar</div>
+<!-- Tavsiya etilgan kurslar -->
+{% if recommended_courses %}
+<div style="border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;margin-top:14px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line);"><span style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);">Tavsiya etilgan kurslar</span><a href="{% url 'courses' %}" style="font-size:12.5px;color:var(--azure);font-weight:500;">Barchasi</a></div>
+  {% for course in recommended_courses %}
+  <a href="{% url 'course_detail' pk=course.id %}" style="display:flex;align-items:center;gap:14px;padding:14px 20px;{% if not forloop.last %}border-bottom:1px solid var(--line-2);{% endif %}">
+    <span style="width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,var(--azure),var(--azure-2));color:#fff;display:grid;place-items:center;font-family:'Space Mono',monospace;font-weight:700;font-size:13px;flex:0 0 auto;">{{ course.title|slice:":2"|upper }}</span>
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ course.title }}</div>
+      <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);margin-top:2px;">{{ course.annotated_lessons_count }} dars · {{ course.annotated_students_count }} o'quvchi</div>
     </div>
-    {% if active_enrollments %}
-      <div class="upcoming-item">
-        <div class="upcoming-time">Bugun</div>
-        <div class="upcoming-info">
-          <div class="upcoming-name">Kurs darslari bilan tanishish</div>
-          <div class="upcoming-course">{{ active_enrollments.0.cohort.course.title }}</div>
-        </div>
-        <span class="upcoming-type" style="background: rgba(16, 185, 129, 0.1); color: var(--emerald);">Video</span>
-      </div>
-    {% endif %}
-    <div class="upcoming-item">
-      <div class="upcoming-time">Haftalik</div>
-      <div class="upcoming-info">
-        <div class="upcoming-name">Mustaqil amaliy mashg'ulotlar</div>
-        <div class="upcoming-course">Platforma mustaqil topshiriqlari</div>
-      </div>
-      <span class="upcoming-type" style="background: rgba(59, 130, 246, 0.1); color: var(--blue);">Amaliyot</span>
-    </div>
-    <div class="upcoming-item">
-      <div class="upcoming-time">Tez orada</div>
-      <div class="upcoming-info">
-        <div class="upcoming-name">Tizim bo'yicha yo'riqnoma darsi</div>
-        <div class="upcoming-course">LMS platformasi bilan tanishish</div>
-      </div>
-      <span class="upcoming-type" style="background: rgba(245, 158, 11, 0.1); color: var(--amber);">Jonli</span>
-    </div>
-  </div>
-
-  <!-- ACHIEVEMENTS -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-title">Yutuqlar</div>
-      <a href="{% url 'profile' %}" class="card-link">Barchasi →</a>
-    </div>
-    <div class="achieve-grid">
-      <div class="achieve-item {% if streak_days < 1 %}locked{% endif %}">
-        <div class="achieve-emoji">🔥</div>
-        <div class="achieve-name">Uzluksiz faollik</div>
-        <div class="achieve-desc">Seriyani boshlash</div>
-      </div>
-      <div class="achieve-item {% if xp_points < 100 %}locked{% endif %}">
-        <div class="achieve-emoji">⭐</div>
-        <div class="achieve-name">Yulduz talaba</div>
-        <div class="achieve-desc">100 XP ball</div>
-      </div>
-      <div class="achieve-item {% if certificates_count < 1 %}locked{% endif %}">
-        <div class="achieve-emoji">🏆</div>
-        <div class="achieve-name">Birinchi sertifikat</div>
-        <div class="achieve-desc">Kursni bitirish</div>
-      </div>
-      <div class="achieve-item locked">
-        <div class="achieve-emoji">💎</div>
-        <div class="achieve-name">Pro o'quvchi</div>
-        <div class="achieve-desc">30 kun faollik</div>
-      </div>
-    </div>
-  </div>
-
+    <i class="bi bi-arrow-right" style="color:var(--ink-3);flex:0 0 auto;"></i>
+  </a>
+  {% endfor %}
 </div>
+{% endif %}
+
 {% endblock %}
