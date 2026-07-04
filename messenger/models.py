@@ -436,6 +436,17 @@ class SmartFormSession(models.Model):
         (STATUS_CANCELLED, 'Cancelled'),
     )
 
+    # Faol (suhbat davom etayotgan) statuslar — tugallanganlari bundan tashqarida.
+    # DIQQAT: qiymatlar lowercase; avvalgi kod UPPERCASE bilan exclude qilib,
+    # tugagan sessionlarni ham "faol" deb hisoblardi (xona abadiy forma rejimida qolardi).
+    ACTIVE_STATUSES = (
+        STATUS_CREATED,
+        STATUS_COLLECTING,
+        STATUS_VALIDATING,
+        STATUS_READY,
+        STATUS_SUBMITTING,
+    )
+
     chat_room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name='smart_form_sessions')
     schema_name = models.CharField(max_length=120, help_text="Registry name of the form (e.g. 'user_onboarding')")
     state = models.JSONField(default=dict, blank=True, help_text="Unified state (fields, values, status)")
@@ -443,6 +454,17 @@ class SmartFormSession(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    @classmethod
+    def active_for_room(cls, room):
+        """Xonadagi faol smart-form sessiyasi (bo'lmasa None)."""
+        if not room:
+            return None
+        return (
+            cls.objects.filter(chat_room=room, status__in=cls.ACTIVE_STATUSES)
+            .order_by("-created_at")
+            .first()
+        )
 
     def __str__(self):
         return f"{self.schema_name} | {self.chat_room} | {self.status}"

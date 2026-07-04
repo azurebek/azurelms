@@ -16,6 +16,11 @@ class SmartFormEngine:
         """
         Process a user message, update state, and return the next intent.
         """
+        # 0. Birinchi xabardan boshlab sessiya "collecting" holatiga o'tadi
+        if self.session.status == SmartFormSession.STATUS_CREATED:
+            self.session.status = SmartFormSession.STATUS_COLLECTING
+            self.session.save(update_fields=["status"])
+
         # 1. Extraction
         extracted_data = {}
         for extractor in self.extractors:

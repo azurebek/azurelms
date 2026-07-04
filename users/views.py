@@ -61,17 +61,42 @@ class OnboardingChoiceView(LoginRequiredMixin, TemplateView):
 
 class StartSmartOnboardingView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
-        from messenger.models import ChatRoom, SmartFormSession
-        # Create an AI chat room for this user
+        from messenger.models import ChatRoom, Message, SmartFormSession
+
+        # Bitta faol onboarding sessiyasi yetarli — qayta bosilsa o'sha xonaga qaytamiz
+        existing = (
+            SmartFormSession.objects.filter(
+                chat_room__participants=request.user,
+                schema_name='user_onboarding',
+                status__in=SmartFormSession.ACTIVE_STATUSES,
+            )
+            .select_related('chat_room')
+            .first()
+        )
+        if existing:
+            return redirect('messenger:ai_room', room_id=existing.chat_room_id)
+
         room = ChatRoom.objects.create(room_type='ai', name='Azure AI Onboarding')
         room.participants.add(request.user)
-        
-        # Create smart form session
+
         SmartFormSession.objects.create(
             chat_room=room,
-            schema_name='user_onboarding'
+            schema_name='user_onboarding',
         )
-        
+        # Xona bo'sh ochilmasin — AI birinchi savolni beradi
+        # (is_ai_response=True bo'lgani uchun AI-signal qayta trigger bo'lmaydi)
+        first_name = request.user.first_name or "do'stim"
+        Message.objects.create(
+            room=room,
+            is_ai_response=True,
+            text=(
+                f"Salom, {first_name}! 👋 Men Azure AI man. "
+                "Sizga mos o'quv rejasini tuzishim uchun bir-ikki savol beraman.\n\n"
+                "Avvalo: turk tilini nima maqsadda o'rganmoqchisiz — ish, sayohat, "
+                "imtihon yoki shaxsiy qiziqish uchunmi?"
+            ),
+        )
+
         return redirect('messenger:ai_room', room_id=room.id)
 
 

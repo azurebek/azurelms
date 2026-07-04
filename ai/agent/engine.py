@@ -41,14 +41,16 @@ class AIEngine:
             if skill.slug == "smart_form" and getattr(request, "room", None):
                 from messenger.models import SmartFormSession
                 from ai.smart_form.engine import SmartFormEngine
-                
-                active_session = SmartFormSession.objects.filter(
-                    chat_room=request.room
-                ).exclude(status__in=['COMPLETED', 'FAILED', 'CANCELLED', 'EXPIRED']).first()
-                
+
+                active_session = SmartFormSession.active_for_room(request.room)
                 if active_session:
-                    form_engine = SmartFormEngine(active_session)
-                    intent = form_engine.process_user_message(safe_question)
+                    # Forma dvigateli yiqilsa ham chat javob berishda davom etsin
+                    try:
+                        form_engine = SmartFormEngine(active_session)
+                        intent = form_engine.process_user_message(safe_question)
+                    except Exception:
+                        logger.exception("SmartFormEngine xatosi (session=%s)", active_session.id)
+                        intent = "ASK_RETRY"
                     safe_question = f"{safe_question}\n\n[SYSTEM INSTRUCTION - SMART FORM ENGINE INTENT: {intent}]"
             
             conversation_context = self.memory_service.get_conversation_context(

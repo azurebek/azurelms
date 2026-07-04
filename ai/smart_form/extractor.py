@@ -1,79 +1,134 @@
+"""Foydalanuvchi matnidan forma maydonlarini ajratib olish.
+
+Avvalgi versiya google.genai (Gemini) ga qattiq bog'langan edi — loyiha DO
+stack'ida bu hech qachon ishlamasdi va suhbat bitta savolda aylanib qolardi.
+Endi loyihaning umumiy provider qatlami (`ai.providers.get_chat_provider`)
+ishlatiladi: Gemini ham, DigitalOcean (maverick/qwen) ham bir xil ishlaydi.
+"""
 import json
-from typing import Dict, Any, Type
-from django.conf import settings
+import logging
+import re
+from typing import Any, Dict, Type
+
 from .base import BaseSmartForm
 
+logger = logging.getLogger(__name__)
+
+_JSON_BLOCK_RE = re.compile(r"\{.*\}", re.DOTALL)
+
+
+def parse_llm_json(text: str) -> Dict[str, Any]:
+    """LLM javobidan JSON obyektini chidamli tarzda ajratadi.
+
+    Kichik modellar ko'pincha ```json ... ``` fence yoki izoh matni bilan
+    qaytaradi — birinchi {...} blokini topamiz.
+    """
+    if not text:
+        return {}
+    cleaned = text.strip()
+    if cleaned.startswith("```"):
+        cleaned = re.sub(r"^```[a-zA-Z]*\s*", "", cleaned)
+        cleaned = re.sub(r"\s*```$", "", cleaned)
+    try:
+        parsed = json.loads(cleaned)
+        return parsed if isinstance(parsed, dict) else {}
+    except json.JSONDecodeError:
+        match = _JSON_BLOCK_RE.search(cleaned)
+        if not match:
+            return {}
+        try:
+            parsed = json.loads(match.group(0))
+            return parsed if isinstance(parsed, dict) else {}
+        except json.JSONDecodeError:
+            return {}
+
+
 class BaseExtractor:
-    def extract(self, text: str, form_class: Type[BaseSmartForm], current_state: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Extract fields from raw text.
-        Returns a dict of extracted fields with their status.
-        Example: {\"goal\": {\"value\": \"travel\", \"status\": \"needs_confirmation\"}}
+    def extract(
+        self, text: str, form_class: Type[BaseSmartForm], current_state: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Matndan maydonlarni ajratadi.
+
+        Natija: {"goal": {"value": "travel", "status": "confirmed"}} ko'rinishida.
+        status: "confirmed" (aniq) yoki "needs_confirmation" (taxminiy).
         """
         raise NotImplementedError
 
+
 class LLMExtractor(BaseExtractor):
-    def extract(self, text: str, form_class: Type[BaseSmartForm], current_state: Dict[str, Any]) -> Dict[str, Any]:
-        from google import genai
-        from google.genai import types
+    """Provider-agnostik LLM extractor (DO yoki Gemini — settings hal qiladi)."""
 
-        target_fields = {}
+    def __init__(self, provider=None):
+        self._provider = provider
+
+    @property
+    def provider(self):
+        if self._provider is None:
+            from ai.providers import get_chat_provider
+
+            self._provider = get_chat_provider()
+        return self._provider
+
+    def _build_prompt(self, text: str, target_fields: dict, fields_state: dict) -> str:
+        lines = [
+            "Sen qat'iy ma'lumot ajratuvchisan (data extractor).",
+            "Foydalanuvchi xabaridan quyidagi maydonlarni ajrat va FAQAT JSON qaytar.",
+            "",
+            "Maydonlar:",
+        ]
+        for fname, finfo in target_fields.items():
+            lines.append(f'- "{fname}": {finfo.description or fname}')
+            pending = fields_state.get(fname, {})
+            if pending.get("status") == "needs_confirmation" and pending.get("value"):
+                lines.append(
+                    f'  (Hozirgi taxminiy qiymat: "{pending["value"]}". '
+                    f"Agar foydalanuvchi tasdiqlasa — ha, to'g'ri, xop, aynan — "
+                    f"shu qiymatni needs_confirmation=false bilan qaytar; "
+                    f"rad etsa yangi qiymatni yoki null qaytar.)"
+                )
+        lines += [
+            "",
+            "Javob formati — aynan shunday JSON, boshqa hech narsa yozma:",
+            "{" + ", ".join(
+                f'"{fname}": {{"extracted_value": "<qiymat yoki null>", "needs_confirmation": true/false}}'
+                for fname in target_fields
+            ) + "}",
+            "Qoidalar: topilmagan maydon uchun extracted_value=null; qiymat aniq aytilgan bo'lsa "
+            "needs_confirmation=false, taxmin bo'lsa true. Maydon tavsifidagi ruxsat etilgan "
+            "qiymatlardan chetga chiqma.",
+            "",
+            f'Foydalanuvchi xabari: "{text}"',
+        ]
+        return "\n".join(lines)
+
+    def extract(
+        self, text: str, form_class: Type[BaseSmartForm], current_state: Dict[str, Any]
+    ) -> Dict[str, Any]:
         fields_state = current_state.get("fields", {})
-        
-        for field_name, field_info in form_class.model_fields.items():
-            field_state = fields_state.get(field_name, {})
-            if field_state.get("status") not in ("confirmed",):
-                target_fields[field_name] = field_info
-
+        target_fields = {
+            fname: finfo
+            for fname, finfo in form_class.model_fields.items()
+            if fields_state.get(fname, {}).get("status") != "confirmed"
+        }
         if not target_fields:
             return {}
 
-        properties = {}
-        for fname, finfo in target_fields.items():
-            properties[fname] = types.Schema(
-                type=types.Type.OBJECT,
-                properties={
-                    "extracted_value": types.Schema(type=types.Type.STRING, description=f"Extract this field if present: {finfo.description or fname}. Use null if not found."),
-                    "needs_confirmation": types.Schema(type=types.Type.BOOLEAN, description="True if the extracted value is uncertain or inferred."),
-                }
-            )
-        
-        schema = types.Schema(
-            type=types.Type.OBJECT,
-            properties=properties,
-        )
-
-        # Assuming GEMINI_API_KEY is defined in django settings, or fallback to default client environment variables
-        api_key = getattr(settings, 'GEMINI_API_KEY', None)
-        client = genai.Client(api_key=api_key) if api_key else genai.Client()
-        
-        prompt = (
-            f"You are a strict data extractor. Extract the following fields from the user's text:\n"
-            f"Fields to look for: {', '.join(target_fields.keys())}\n\n"
-            f"User Text: '{text}'"
-        )
-        
+        prompt = self._build_prompt(text, target_fields, fields_state)
         try:
-            response = client.models.generate_content(
-                model='gemini-2.5-flash',
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    response_mime_type="application/json",
-                    response_schema=schema,
-                    temperature=0.0
-                ),
-            )
-            data = json.loads(response.text)
-            
-            result = {}
-            for fname, ext_data in data.items():
-                if ext_data and ext_data.get("extracted_value") is not None:
-                    status = "needs_confirmation" if ext_data.get("needs_confirmation") else "confirmed"
-                    result[fname] = {
-                        "value": ext_data["extracted_value"],
-                        "status": status
-                    }
-            return result
-        except Exception as e:
-            print(f"LLMExtractor error: {e}")
+            response = self.provider.generate(prompt=prompt)
+            data = parse_llm_json(response.text)
+        except Exception as exc:
+            logger.warning("SmartForm LLMExtractor xatosi: %s", exc)
             return {}
+
+        result: Dict[str, Any] = {}
+        for fname in target_fields:
+            ext = data.get(fname)
+            if not isinstance(ext, dict):
+                continue
+            value = ext.get("extracted_value")
+            if value in (None, "", "null", "None"):
+                continue
+            status = "needs_confirmation" if ext.get("needs_confirmation") else "confirmed"
+            result[fname] = {"value": str(value), "status": status}
+        return result

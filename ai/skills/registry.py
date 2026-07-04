@@ -260,14 +260,12 @@ class SkillRegistry:
         if effort in {"medium", "heavy"} and self._is_time_sensitive_info_query(question):
             return self.get("web_search")
 
-        # [NEW] Check for active SmartFormSession
+        # Xonada faol SmartFormSession bo'lsa — suhbatni forma skilli boshqaradi
         room = getattr(request, "room", None)
         if room and getattr(room, "room_type", None) == "ai":
             from messenger.models import SmartFormSession
-            active_session = SmartFormSession.objects.filter(
-                chat_room=room
-            ).exclude(status__in=['COMPLETED', 'FAILED', 'CANCELLED', 'EXPIRED']).first()
-            if active_session:
+
+            if SmartFormSession.active_for_room(room):
                 return self.get("smart_form")
 
         best_slug = "general_chat"
