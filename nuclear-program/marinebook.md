@@ -16,6 +16,21 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-04 [Claude]: TeacherShell paneli to'liq ko'chirildi (grading bilan)
+
+Proto'dagi qolgan 6 teacher sahifasi Django'ga ko'chirildi — endi o'qituvchi Django admin'siz ishlaydi: **Tekshirish** (navbat: kutayotgan imtihon urinishlari + uy vazifalari; imtihonni bo'limma-bo'lim baholash — writing/speaking javoblariga ball + per-esse `grader_feedback`, avto bo'limlar readonly xulosa, bo'lim ballari live-jamlanadi, "Tasdiqlash" `finalize_review` ni chaqiradi va sertifikat beradi; vazifani tasdiqlash keyingi darsni ochadi), **Boshqaruv** (KPI + navbat + guruhlar), **Guruhlar**, **O'quvchilar** (kohort filtri, qidiruv, progress), **Kontent** (backoffice muharrirlariga ko'prik), **Davomat olish** (kohort+dars bo'yicha present/partial/absent, upsert, "hammasini keldi" tugmasi). Routelar `teacher/*` (core/teacher_views.py), kirish `is_staff`; ko'lam: superuser→hamma, staff→o'z kurslari (kursi yo'q staff→hamma, kichik markaz rejimi). AppShell sidebar'ga "O'qituvchi paneli" havolasi qo'shildi.
+
+Yo'lda tuzatildi: `ai/smart_form/*` (cb5a6ac) barcha fayllari `\"\"\"` escape-docstring SyntaxError bilan kelgan — test discovery yiqilardi; 5 fayl tuzatildi.
+
+**Muhim ogohlantirish (multi-agent):** `cb5a6ac` (Antigravity "Smart Form Engine MVP") commiti mening o'sha paytdagi yarim-tayyor teacher fayllarimni (grading.html, grade_exam.html, teacher_views.py ilk holati, core/urls.py teacher routelari, base_teacher nav) tasodifan qamrab olgan — ehtimol `git add -A`. Fayllar yakuniy holatga shu branchdagi keyingi commitlarim bilan yetkazildi; antigravity branchiga tegilmadi, ish `claude/teacher-shell`da (antigravity/smart-form-engine ustiga qurilgan).
+
+- Branch: `claude/teacher-shell` (bazasi: `antigravity/smart-form-engine` ← `playground`)
+- Commitlar: `8eddee0` (fix ai syntax), `a7e1005` (feat teacher), `dd6d3bc` (test), + marinebook
+- Test holati: `python manage.py test` — **175/175 OK** (6 ta yangi TeacherPanelTests bilan)
+- Davom etilishi kerak: admin-payments/admin-settings sahifalari (ixtiyoriy, Django admin qoplaydi); exam JS jonli brauzer sinovi; AI model tanlovini DO stack'ka ko'chirish
+
+---
+
 ## 2026-07-03 [Claude]: Yangi dizayn migratsiyasi + exam quyi-tizimi to'liq yakunlandi
 
 azurelms-proto/ dagi yangi dizayn (Space Grotesk / azure #1257e6) Django'ga TO'LIQ ko'chirildi — eski frontend (61 fayl CSS/shablon) o'chirilib, o'rniga qatlamli shell tizimi qurildi: `base.html` → public / auth / AppShell (11 sahifa) / TeacherShell / AdminShell / ExamShell / errors; messenger 3-panel (messenger-chat.js DOM kontraktiga to'liq mos, WebSocket real-time). Floating AzureAI widget tiklandi (base_app include).
