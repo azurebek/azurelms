@@ -16,6 +16,21 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-04 [Claude]: Smart Form Engine ta'mirlandi — endi haqiqatan ishlaydi
+
+Antigravity'ning kechagi Smart Form MVP'si (AI bilan suhbat orqali onboarding) 6 ta bug tufayli ishlamasdi: (1) `users/forms/` namespace-package `users/forms.py` soyasida — forma registry HECH QACHON to'lmasdi (asosiy sabab); (2) extractor google.genai'ga qattiq bog'langan — DO stack'da hech narsa ajratmasdi, suhbat bitta savolda aylanardi; (3) status exclude UPPERCASE vs lowercase qiymatlar — tugagan session xonani abadiy band qilardi; (4) submit URL o'rniga matn qaytarardi; (5) "ha" tasdiqlash sikli hal qilinmagan; (6) xona bo'sh ochilardi.
+
+Tuzatishlar: forma `users/smart_forms.py`da (apps.ready import, pydantic normalizatsiya validatorlari — goal/level model choices'ga), extractor provider-agnostik (`get_chat_provider`, fence-tolerant JSON, prompt'da tasdiqlash qoidasi), `SmartFormSession.ACTIVE_STATUSES`+`active_for_room()` helper, submit → `reverse('dashboard')`, welcome AI xabari + takroriy sessiya guard, AIEngine bloki try/except himoyada.
+
+**Jonli sinov (haqiqiy DO maverick bilan):** "sayohat uchun o'rganmoqchiman" → goal=travel ✓ → "B1 deb o'ylayman" → needs_confirmation → CONFIRM_LEVEL ✓ → "Ha, to'g'ri" → confirmed → SUBMIT → UserOnboarding(travel, b1), session completed, dashboard URL ✓.
+
+- Branch: `claude/teacher-shell` → **playground'ga merge qilindi** (user so'rovi: "ishlata olsang playgroundga olib kel")
+- Commitlar: `490e3a7` (fix), `59de4d5` (test), + marinebook
+- Test holati: `python manage.py test` — **189/189 OK** (14 yangi smart_form testi bilan); jonli DO smoke o'tdi
+- Davom etilishi kerak: "Tezkor anketa" (klassik yo'l) hozir to'g'ridan dashboard'ga o'tadi — xohlansa oddiy forma sahifasi qo'shish; SmartFormSession'ga eskirish (expired) cron'i
+
+---
+
 ## 2026-07-04 [Claude]: TeacherShell paneli to'liq ko'chirildi (grading bilan)
 
 Proto'dagi qolgan 6 teacher sahifasi Django'ga ko'chirildi — endi o'qituvchi Django admin'siz ishlaydi: **Tekshirish** (navbat: kutayotgan imtihon urinishlari + uy vazifalari; imtihonni bo'limma-bo'lim baholash — writing/speaking javoblariga ball + per-esse `grader_feedback`, avto bo'limlar readonly xulosa, bo'lim ballari live-jamlanadi, "Tasdiqlash" `finalize_review` ni chaqiradi va sertifikat beradi; vazifani tasdiqlash keyingi darsni ochadi), **Boshqaruv** (KPI + navbat + guruhlar), **Guruhlar**, **O'quvchilar** (kohort filtri, qidiruv, progress), **Kontent** (backoffice muharrirlariga ko'prik), **Davomat olish** (kohort+dars bo'yicha present/partial/absent, upsert, "hammasini keldi" tugmasi). Routelar `teacher/*` (core/teacher_views.py), kirish `is_staff`; ko'lam: superuser→hamma, staff→o'z kurslari (kursi yo'q staff→hamma, kichik markaz rejimi). AppShell sidebar'ga "O'qituvchi paneli" havolasi qo'shildi.
