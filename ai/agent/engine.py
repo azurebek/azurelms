@@ -82,6 +82,8 @@ class AIEngine:
                 tool_context=tool_context.rendered,
                 user_question=safe_question,
                 is_first_message=is_first_message,
+                document_context=getattr(request, "document_context", "") or "",
+                document_name=getattr(request, "document_name", "") or "",
             )
             effort = getattr(request.student, "ai_web_search_effort", "light") or "light"
             enable_web_search = (
@@ -127,6 +129,7 @@ class AIEngine:
                     "active_skill": skill.slug,
                     "requested_skill": request.requested_skill_slug or "auto",
                     "used_tools": tool_context.used_tools,
+                    "document_name": getattr(request, "document_name", "") or "",
                     "web_search_enabled": enable_web_search,
                     "web_search_queries": web_search_meta.get("queries", []),
                     "web_search_sources": web_search_meta.get("sources", []),

@@ -9,6 +9,9 @@ class AIRequest:
     user_question: str
     context_lesson: Any | None = None
     requested_skill_slug: str | None = None
+    # Xonaga yuklangan PDF'dan ajratilgan matn (bo'lsa) — prompt'ga hujjat bo'limi sifatida kiradi
+    document_context: str = ""
+    document_name: str = ""
 
 
 @dataclass(frozen=True)

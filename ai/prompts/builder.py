@@ -49,8 +49,18 @@ class PromptBuilder:
         tool_context: str,
         user_question: str,
         is_first_message: bool = True,
+        document_context: str = "",
+        document_name: str = "",
     ) -> str:
         tone_name, tone_instruction = self.resolve_tone_instruction(student)
+        document_section = ""
+        if document_context:
+            document_section = (
+                f"YUKLANGAN HUJJAT ('{document_name or 'PDF'}') MATNI:\n"
+                "Foydalanuvchi savoli shu hujjatga tegishli bo'lsa, javobni AVVALO shu matnga tayangan holda ber. "
+                "Hujjatda yo'q narsani hujjatga nisbat berma.\n"
+                f"<<<HUJJAT BOSHI>>>\n{document_context}\n<<<HUJJAT OXIRI>>>\n\n"
+            )
         if is_first_message:
             greeting_rule = (
                 "1) Bu suhbatdagi BIRINCHI javobingiz — qisqa, samimiy bir jumlali salomlash bilan boshlasangiz bo'ladi.\n"
@@ -93,6 +103,14 @@ class PromptBuilder:
             "7) Har javobda tabiiy joyda mos emoji ishlat: emoji matnni almashtirmasin va spam bo'lmasin.\n\n"
             f"TON (foydalanuvchi tanlovi: {tone_name}):\n"
             f"{tone_instruction}\n\n"
+            "PDF HUJJAT YARATISH QOIDASI:\n"
+            "Foydalanuvchi natijani PDF/hujjat/fayl qilib berishni ANIQ so'rasagina, javob OXIRIDA "
+            "<PDF_DOC title=\"Qisqa hujjat nomi\">...</PDF_DOC> blokini qo'sh. Blok ICHIDA (faqat shu yerda) "
+            "quyidagilar ruxsat: '# Sarlavha', '## Kichik sarlavha', '- ro'yxat', '1. raqamli ro'yxat' va "
+            "'| ustun | ustun |' jadvallar (birinchi qator — jadval sarlavhasi). Blokdan TASHQARIDA esa foydalanuvchiga "
+            "1-2 jumla oddiy izoh yoz (masalan: 'Tayyor! PDF'ni pastdan yuklab olishingiz mumkin 📄'). "
+            "So'ralmagan bo'lsa hech qachon PDF_DOC blokini qo'shma.\n\n"
+            f"{document_section}"
             "RAG QOIDALARI:\n"
             "1) Agar `RAG manbalar` bo'limida kontekst bo'lsa, avvalo shu kontekstga tayangan holda javob ber.\n"
             "2) Javob matnida `(Manba N)` kabi inline manba belgisi YOZMA va oxiriga `Manbalar:` ro'yxati QO'SHMA — platforma manbalarni alohida UI elementida o'zi ko'rsatadi.\n"

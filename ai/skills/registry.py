@@ -206,6 +206,26 @@ BUILTIN_SKILLS: tuple[SkillDefinition, ...] = (
         priority=55,
     ),
     SkillDefinition(
+        slug="document_qa",
+        name="Document Q&A",
+        description="Answers questions about an uploaded PDF document and builds documents on request.",
+        tool_slugs=("lesson_context",),
+        trigger_keywords=(
+            "pdf",
+            "hujjat",
+            "fayl",
+            "faylni",
+            "yuklagan",
+            "yuklad",
+            "dokument",
+            "document",
+            "o'qib ber",
+            "xulosa qil",
+            "summarize",
+        ),
+        priority=75,
+    ),
+    SkillDefinition(
         slug="web_search",
         name="Web Search",
         description="Looks up fresh information from the web when the question needs current facts, news, or external sources.",
@@ -281,7 +301,10 @@ class SkillRegistry:
                 best_slug = definition.slug
                 best_score = score
 
-        if best_score == 0 and getattr(request, "context_lesson", None):
+        if best_score == 0 and getattr(request, "document_context", None):
+            # Xonada yuklangan hujjat bor, savol boshqa skillga tushmadi — hujjat skilli
+            best_slug = "document_qa"
+        elif best_score == 0 and getattr(request, "context_lesson", None):
             best_slug = "lesson_explainer"
 
         return self.get(best_slug)

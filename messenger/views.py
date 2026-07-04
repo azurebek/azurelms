@@ -1,4 +1,5 @@
 import json
+import logging
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
@@ -25,6 +26,9 @@ from .access import (
     user_has_active_enrollment,
 )
 from .models import AIResponseRun, ChatRoom, ChatRoomUserState, Message, AIFeedback
+
+
+logger = logging.getLogger(__name__)
 
 
 def _room_rank(item):
@@ -658,6 +662,38 @@ def upload_message_attachment(request):
         )
     _mark_room_read(request.user, room)
     _broadcast_message_event(message, event_type="message_uploaded", user=request.user)
+
+    # AI xonasiga PDF yuklansa (yoki izohli fayl kelsa) — AI o'zi javob boshlaydi.
+    # Oddiy rasm-fayllar izohsiz yuklansa AI chaqirilmaydi (avvalgi xulq saqlanadi).
+    is_pdf = (upload.name or "").lower().endswith(".pdf") or "pdf" in (
+        getattr(upload, "content_type", "") or ""
+    ).lower()
+    if room.room_type == "ai" and (is_pdf or text):
+        from .tasks import generate_ai_response
+
+        question = text or "Men PDF hujjat yukladim — qisqacha mazmunini aytib bera olasanmi?"
+        try:
+            generate_ai_response.delay(
+                room_id=room.id,
+                student_id=request.user.id,
+                user_question=question,
+                user_message_id=message.id,
+            )
+        except Exception as exc:  # Celery yo'q bo'lsa lokal thread fallback (signal bilan bir xil)
+            logger.warning("Celery dispatch error on upload, falling back to thread: %s", exc)
+            import threading
+
+            threading.Thread(
+                target=generate_ai_response.run,
+                kwargs={
+                    "room_id": room.id,
+                    "student_id": request.user.id,
+                    "user_question": question,
+                    "user_message_id": message.id,
+                },
+                daemon=True,
+            ).start()
+
     return JsonResponse({"status": "success", "message": _message_payload(message, request.user)})
 
 

@@ -30,6 +30,76 @@ def _skill_label(slug):
         return slug.replace("_", " ").title()
 
 
+def _is_pdf_message(message):
+    if not message or not message.attachment:
+        return False
+    name = (message.attachment_name or message.attachment.name or "").lower()
+    content_type = (message.attachment_content_type or "").lower()
+    return name.endswith(".pdf") or "pdf" in content_type
+
+
+def _latest_document_context(room, current_message=None):
+    """Xonadagi eng so'nggi PDF'dan AI uchun matn konteksti.
+
+    Avval joriy xabarning o'zi tekshiriladi, keyin xonadagi oxirgi 30 xabar —
+    foydalanuvchi odatda avval fayl yuklab, keyin savol yozadi.
+    Natija: (matn, fayl_nomi) yoki ("", "").
+    """
+    from ai.documents import extract_pdf_text
+
+    candidates = []
+    if current_message is not None:
+        candidates.append(current_message)
+    candidates.extend(
+        Message.objects.filter(room=room, is_deleted=False)
+        .exclude(attachment="")
+        .order_by("-created_at")[:30]
+    )
+    for message in candidates:
+        if not _is_pdf_message(message):
+            continue
+        text = extract_pdf_text(message.attachment)
+        name = message.attachment_name or message.attachment.name.rsplit("/", 1)[-1]
+        return text, name
+    return "", ""
+
+
+def _attach_generated_pdf(ai_message, *, title, body, run_id):
+    """<PDF_DOC> blokidan PDF yasab AI xabariga biriktiradi. Xato PDF'siz davom etadi."""
+    from django.core.files.base import ContentFile
+
+    from ai.documents import build_pdf
+
+    try:
+        pdf_bytes = build_pdf(title=title, body=body)
+    except Exception:
+        logger.exception("PDF yasash xatosi (run_id=%s)", run_id)
+        return False
+    safe_title = "".join(ch for ch in title if ch.isalnum() or ch in " -_").strip()[:60] or "hujjat"
+    filename = f"{safe_title}.pdf"
+    ai_message.attachment.save(f"ai_docs/{run_id}_{filename}", ContentFile(pdf_bytes), save=False)
+    ai_message.attachment_name = filename
+    ai_message.attachment_content_type = "application/pdf"
+    ai_message.attachment_size = len(pdf_bytes)
+    ai_message.save(
+        update_fields=["attachment", "attachment_name", "attachment_content_type", "attachment_size"]
+    )
+    return True
+
+
+def _attachment_broadcast_payload(message):
+    if not message.attachment:
+        return None
+    return {
+        "url": message.attachment_url,
+        "name": message.attachment_name or message.attachment.name.rsplit("/", 1)[-1],
+        "content_type": message.attachment_content_type,
+        "size": message.attachment_size,
+        "size_label": message.attachment_size_label,
+        "is_image": message.is_image_attachment,
+    }
+
+
 def _broadcast_ai_message(ai_message, user_message_id=None, skill_slug="", used_tools=None, rag_sources=None):
     channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)(
@@ -51,6 +121,7 @@ def _broadcast_ai_message(ai_message, user_message_id=None, skill_slug="", used_
             "ai_skill_label": _skill_label(skill_slug),
             "ai_used_tools": used_tools or [],
             "ai_rag_sources": rag_sources or [],
+            "attachment": _attachment_broadcast_payload(ai_message),
         },
     )
 
@@ -140,6 +211,13 @@ def generate_ai_response(
         logger.exception("AI status broadcast failed at start for run_id=%s", run.id)
 
     try:
+        # Xonadagi so'nggi PDF (bo'lsa) — AI'ga hujjat konteksti sifatida
+        document_context, document_name = "", ""
+        try:
+            document_context, document_name = _latest_document_context(room, current_message=user_message)
+        except Exception:
+            logger.exception("Hujjat kontekstini yig'ish xatosi (room_id=%s)", room.id)
+
         response = AIEngine().generate_reply(
             AIRequest(
                 room=room,
@@ -147,15 +225,25 @@ def generate_ai_response(
                 user_question=user_question,
                 context_lesson=context_lesson,
                 requested_skill_slug=requested_skill_slug,
+                document_context=document_context,
+                document_name=document_name,
             )
         )
 
+        # AI javobida <PDF_DOC> bloki bo'lsa — haqiqiy PDF yasab xabarga biriktiramiz
+        from ai.documents import extract_pdf_doc_block
+
+        reply_text, pdf_title, pdf_body = extract_pdf_doc_block(response.text)
+
         ai_message = Message.objects.create(
             room=room,
-            text=response.text,
+            text=reply_text,
             is_ai_response=True,
             context_lesson=context_lesson,
         )
+        if pdf_body:
+            _attach_generated_pdf(ai_message, title=pdf_title, body=pdf_body, run_id=run.id)
+
         status = AIResponseRun.STATUS_SUCCEEDED if response.model_name else AIResponseRun.STATUS_FALLBACK
         run.status = status
         run.ai_message = ai_message
