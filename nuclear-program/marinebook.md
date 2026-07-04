@@ -30,6 +30,18 @@ Oldin/keyin (haqiqiy DO maverick): "qaysi serialni tanlarding?" → OLDIN: "Men 
 
 ---
 
+## 2026-07-05 [Claude]: Azure AI endi PDF bilan ishlaydi (o'qish + yaratish, e2b'siz)
+
+Ikki yo'nalish, ikkalasi jonli DO sinovidan o'tdi. **O'qish:** AI xonasiga PDF yuklansa AI o'zi javob boshlaydi (upload view'da dispatch; avval `suppress_ai_signal` tufayli fayl xabarlari AI'ga umuman yetmasdi); keyingi savollarda xonadagi oxirgi PDF avtomatik kontekst bo'ladi (`ai/documents/reader.py` — pypdf, 40 sahifa/15k belgi limit, xato-chidamli; prompt'da "YUKLANGAN HUJJAT" bo'limi). **Yaratish:** foydalanuvchi hujjat so'rasa AI javob oxirida `<PDF_DOC title>markdown-subset</PDF_DOC>` bloki yozadi (SAVE_MEMORY naqshidek), server `ai/documents/writer.py` (fpdf2 + DejaVu Unicode — turkcha ı/ğ/ş to'liq; sarlavha/ro'yxat/jadval render, brend header/footer) bilan haqiqiy PDF yasab AI xabariga biriktiradi — chatdagi mavjud attachment UI'da yuklab olinadi (broadcast'ga attachment payload qo'shildi). AI kodi BAJARILMAYDI — e2b/sandbox keraksiz (arxitektura qarori marinebook 2026-07-04 muhokamasiga mos).
+
+Yangi `document_qa` skilli (trigger: pdf/hujjat/fayl...; hujjat bor+neytral savol→shu skill). Deps: pypdf 6.14.2, fpdf2 2.8.7 (requirements'da). Jonli sinov: konspekt-PDF yuklab "beklemek nima degani?" → AI hujjatdan "kutmoq" + qoidani topdi ✓; "3 fe'ldan PDF lug'at yasab ber" → "Turkcha-Ozbekcha Fellar Lugati.pdf" (18KB) biriktirildi, ichida so'zlar bor ✓.
+
+- Branch: `claude/ai-persona` (persona fixi ustiga — ikkalasi bitta PR bo'lib main'ga boradi)
+- Test holati: `python manage.py test` — **201/201 OK** (12 yangi ai.documents testi bilan)
+- Davom etilishi kerak: DOCX o'qish (python-docx, xuddi shu quvurga oson qo'shiladi); skan-rasm PDF'lar uchun OCR yo'q (matn bo'sh bo'lsa AI foydalanuvchiga tushuntiradi)
+
+---
+
 ## 2026-07-04 [Claude]: Smart Form Engine ta'mirlandi — endi haqiqatan ishlaydi
 
 Antigravity'ning kechagi Smart Form MVP'si (AI bilan suhbat orqali onboarding) 6 ta bug tufayli ishlamasdi: (1) `users/forms/` namespace-package `users/forms.py` soyasida — forma registry HECH QACHON to'lmasdi (asosiy sabab); (2) extractor google.genai'ga qattiq bog'langan — DO stack'da hech narsa ajratmasdi, suhbat bitta savolda aylanardi; (3) status exclude UPPERCASE vs lowercase qiymatlar — tugagan session xonani abadiy band qilardi; (4) submit URL o'rniga matn qaytarardi; (5) "ha" tasdiqlash sikli hal qilinmagan; (6) xona bo'sh ochilardi.
