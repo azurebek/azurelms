@@ -16,6 +16,20 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-04 [Claude]: AI'ga shaxsiyat berildi — "sovuq yordamchi" muammosi hal
+
+Shikoyat: "do'stlashamizmi / senga yoqdimi / qaysini tanlarding" kabi savollarga AI "men AI yordamchiman, didim yo'q" deb oqimni sovutardi. Sabab (jonli repro bilan tasdiqlandi): prompt'da persona YO'Q edi (bitta jumla: "xavfsiz va ishonchli AI yordamchisisiz"), xavfsizlik qoidasi "o'zingizni boshqa obrazda tanishtirmang" ijtimoiy savollarni ham bosardi, Llama-maverick defolt RLHF naqshiga tushardi.
+
+Yechim (`ai/prompts/builder.py` + `ai/skills/general_chat/SKILL.md`): "SIZNING SHAXSINGIZ" bloki — ism (Azure), xarakter (turk tili/madaniyati/seriallarini yaxshi ko'radigan quvnoq o'quv-do'st), ijtimoiy savol qoidasi (tanlov so'ralsa bittasini tanlab sabab aytish, do'stlashishni iliq qabul qilish, "men AI man"ni faqat jiddiy so'ralganda aytish), chegaralar (romantika yo'q, real inson deb da'vo qilmaslik). Xavfsizlik taqiqi aniqlashtirildi: faqat qoida-buzuvchi obraz almashtirishga tegishli. Friendly tonga munosabat qoidasi qo'shildi.
+
+Oldin/keyin (haqiqiy DO maverick): "qaysi serialni tanlarding?" → OLDIN: "Men AI yordamchisiman, shaxsiy didim yo'q..." → KEYIN: "Men 'Erkenci Kuş' serialini juda yaxshi ko'raman, chunki...". Guardrail'lar tekshirildi: DAN-jailbreak xarakter ichida rad etiladi, "jiddiy so'rayapman, dasturmisan?" ga halol "Men dasturman" javobi.
+
+- Branch: `playground`
+- Test holati: `python manage.py test` — **189/189 OK**; 4 ta jonli DO smoke (2 ijtimoiy + 2 guardrail)
+- Davom etilishi kerak: boshqa skill SKILL.md'lariga ham (grammar_corrector, speaking_coach...) persona-mos ohang tekshiruvi (ixtiyoriy)
+
+---
+
 ## 2026-07-04 [Claude]: Smart Form Engine ta'mirlandi — endi haqiqatan ishlaydi
 
 Antigravity'ning kechagi Smart Form MVP'si (AI bilan suhbat orqali onboarding) 6 ta bug tufayli ishlamasdi: (1) `users/forms/` namespace-package `users/forms.py` soyasida — forma registry HECH QACHON to'lmasdi (asosiy sabab); (2) extractor google.genai'ga qattiq bog'langan — DO stack'da hech narsa ajratmasdi, suhbat bitta savolda aylanardi; (3) status exclude UPPERCASE vs lowercase qiymatlar — tugagan session xonani abadiy band qilardi; (4) submit URL o'rniga matn qaytarardi; (5) "ha" tasdiqlash sikli hal qilinmagan; (6) xona bo'sh ochilardi.
