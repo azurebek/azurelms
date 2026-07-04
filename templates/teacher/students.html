@@ -1,0 +1,62 @@
+{% extends "base_teacher.html" %}
+{% comment %} O'quvchilar — kohort filtri + qidiruv + progress jadvali. {% endcomment %}
+
+{% block t_title %}O'quvchilar{% endblock %}
+{% block t_icon %}bi-people{% endblock %}
+{% block t_topbar %}O'quvchilar{% endblock %}
+
+{% block t_content %}
+<div style="max-width:1100px;">
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px;">
+    <div>
+      <h1 style="font-size:clamp(22px,2.6vw,30px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:0 0 6px;">O'quvchilar</h1>
+      <p style="font-size:14px;color:var(--ink-3);margin:0;">{{ total_count }} ta yozilish topildi.</p>
+    </div>
+    <form method="get" style="display:flex;gap:8px;flex-wrap:wrap;">
+      <select name="cohort" onchange="this.form.submit()" style="height:42px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:13px;outline:none;">
+        <option value="">Barcha guruhlar</option>
+        {% for cohort in cohort_choices %}
+        <option value="{{ cohort.id }}"{% if cohort.id == selected_cohort_id %} selected{% endif %}>{{ cohort.name }} ({{ cohort.course.title|truncatechars:18 }})</option>
+        {% endfor %}
+      </select>
+      <div style="position:relative;">
+        <i class="bi bi-search" style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--ink-3);font-size:13px;"></i>
+        <input type="search" name="q" value="{{ search_query|default:'' }}" placeholder="Ism yoki email…" style="height:42px;width:min(240px,60vw);padding:0 13px 0 36px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:13.5px;outline:none;">
+      </div>
+    </form>
+  </div>
+
+  <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;">
+    <div style="display:grid;grid-template-columns:1.4fr 1fr 130px 90px 90px;padding:11px 18px;background:var(--paper-2);border-bottom:1px solid var(--line);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);" class="tchstu-head"><span>O'quvchi</span><span>Guruh</span><span>Progress</span><span style="text-align:right;">XP</span><span style="text-align:right;">Holat</span></div>
+    {% for enrollment in page_obj %}
+    <div style="display:grid;grid-template-columns:1.4fr 1fr 130px 90px 90px;align-items:center;padding:12px 18px;{% if not forloop.last %}border-bottom:1px solid var(--line-2);{% endif %}" class="tchstu-row">
+      <span style="display:flex;align-items:center;gap:11px;min-width:0;">
+        <span style="width:34px;height:34px;border-radius:9px;background:var(--violet-soft, var(--azure-soft));color:var(--violet, var(--azure));display:grid;place-items:center;font-weight:700;font-size:12px;flex:0 0 auto;">{{ enrollment.student.first_name.0|default:enrollment.student.username.0|upper }}{{ enrollment.student.last_name.0|upper }}</span>
+        <span style="min-width:0;">
+          <span style="display:block;font-size:13.5px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ enrollment.student.get_full_name|default:enrollment.student.username }}</span>
+          <span style="display:block;font-size:11.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ enrollment.student.email }}</span>
+        </span>
+      </span>
+      <span style="font-size:12.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ enrollment.cohort.name }}</span>
+      <span style="display:flex;align-items:center;gap:8px;">
+        <span style="flex:1;height:6px;border-radius:999px;background:var(--line-2);overflow:hidden;"><span style="display:block;height:100%;width:{{ enrollment.progress_percent }}%;background:var(--azure);border-radius:999px;"></span></span>
+        <span style="font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:var(--ink-2);min-width:34px;text-align:right;">{{ enrollment.progress_percent }}%</span>
+      </span>
+      <span style="text-align:right;font-family:'Space Mono',monospace;font-size:12.5px;font-weight:700;color:var(--ink);">{{ enrollment.student.total_xp|default:0 }}</span>
+      <span style="text-align:right;"><span style="font-family:'Space Mono',monospace;font-size:9.5px;letter-spacing:.04em;padding:4px 8px;border-radius:6px;{% if enrollment.status == 'active' %}color:var(--green);background:var(--green-soft);{% elif enrollment.status == 'pending' %}color:var(--amber);background:var(--amber-soft);{% else %}color:var(--ink-4);background:var(--paper-2);{% endif %}">{{ enrollment.get_status_display|truncatechars:14 }}</span></span>
+    </div>
+    {% empty %}
+    <div style="padding:32px 18px;text-align:center;color:var(--ink-3);font-size:13.5px;">O'quvchi topilmadi.</div>
+    {% endfor %}
+  </section>
+
+  {% if page_obj.paginator.num_pages > 1 %}
+  <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:20px;">
+    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}{% if selected_cohort_id %}&cohort={{ selected_cohort_id }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" style="height:36px;display:inline-flex;align-items:center;padding:0 13px;border-radius:9px;border:1px solid var(--line);color:var(--ink-2);font-size:12.5px;font-weight:600;"><i class="bi bi-chevron-left"></i></a>{% endif %}
+    <span style="font-family:'Space Mono',monospace;font-size:12px;color:var(--ink-3);">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}{% if selected_cohort_id %}&cohort={{ selected_cohort_id }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" style="height:36px;display:inline-flex;align-items:center;padding:0 13px;border-radius:9px;border:1px solid var(--line);color:var(--ink-2);font-size:12.5px;font-weight:600;"><i class="bi bi-chevron-right"></i></a>{% endif %}
+  </div>
+  {% endif %}
+</div>
+<style>@media (max-width:860px){ .tchstu-head{ display:none !important; } .tchstu-row{ grid-template-columns:1fr !important; gap:8px; } .tchstu-row > span{ text-align:left !important; } }</style>
+{% endblock %}

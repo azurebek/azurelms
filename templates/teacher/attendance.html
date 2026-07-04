@@ -1,0 +1,89 @@
+{% extends "base_teacher.html" %}
+{% comment %} Davomat olish — kohort + dars tanlab har o'quvchiga holat belgilash. {% endcomment %}
+
+{% block t_title %}Davomat{% endblock %}
+{% block t_icon %}bi-calendar-check{% endblock %}
+{% block t_topbar %}Davomat olish{% endblock %}
+
+{% block t_content %}
+<div style="max-width:960px;">
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px;">
+    <div>
+      <h1 style="font-size:clamp(22px,2.6vw,30px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:0 0 6px;">Davomat olish</h1>
+      <p style="font-size:14px;color:var(--ink-3);margin:0;">Guruh va darsni tanlang, so'ng har bir o'quvchini belgilang.</p>
+    </div>
+    <form method="get" style="display:flex;gap:8px;flex-wrap:wrap;">
+      <select name="cohort" onchange="this.form.submit()" style="height:42px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:13px;outline:none;max-width:230px;">
+        {% for c in cohorts %}
+        <option value="{{ c.id }}"{% if cohort and c.id == cohort.id %} selected{% endif %}>{{ c.name }} ({{ c.course.title|truncatechars:16 }})</option>
+        {% empty %}<option value="">Guruh yo'q</option>{% endfor %}
+      </select>
+      {% if lessons %}
+      <select name="lesson" onchange="this.form.submit()" style="height:42px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:13px;outline:none;max-width:260px;">
+        {% for l in lessons %}
+        <option value="{{ l.id }}"{% if lesson and l.id == lesson.id %} selected{% endif %}>{{ l.module.title|truncatechars:14 }} · {{ l.title|truncatechars:26 }}</option>
+        {% endfor %}
+      </select>
+      {% endif %}
+    </form>
+  </div>
+
+  {% if not cohort %}
+    <div style="border:1px dashed var(--line);border-radius:14px;padding:36px 20px;text-align:center;color:var(--ink-3);font-size:13.5px;">Avval faol guruh yarating.</div>
+  {% elif not lesson %}
+    <div style="border:1px dashed var(--line);border-radius:14px;padding:36px 20px;text-align:center;color:var(--ink-3);font-size:13.5px;">Bu kursda hali darslar yo'q.</div>
+  {% else %}
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="cohort" value="{{ cohort.id }}">
+    <input type="hidden" name="lesson" value="{{ lesson.id }}">
+
+    <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;margin-bottom:18px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 18px;border-bottom:1px solid var(--line);background:var(--paper-2);flex-wrap:wrap;">
+        <span style="font-size:13.5px;font-weight:600;color:var(--ink);"><i class="bi bi-play-circle" style="color:var(--azure);"></i> {{ lesson.title }}</span>
+        <span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);">{{ rows|length }} o'quvchi · {% now "d.m.Y" %}</span>
+      </div>
+
+      {% for row in rows %}
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;{% if not forloop.last %}border-bottom:1px solid var(--line-2);{% endif %}flex-wrap:wrap;">
+        <span style="width:34px;height:34px;border-radius:9px;background:var(--violet-soft, var(--azure-soft));color:var(--violet, var(--azure));display:grid;place-items:center;font-weight:700;font-size:12px;flex:0 0 auto;">{{ row.enrollment.student.first_name.0|default:row.enrollment.student.username.0|upper }}{{ row.enrollment.student.last_name.0|upper }}</span>
+        <span style="flex:1;min-width:140px;">
+          <span style="display:block;font-size:13.5px;font-weight:600;color:var(--ink);">{{ row.enrollment.student.get_full_name|default:row.enrollment.student.username }}</span>
+          {% if row.percent is not None %}<span style="display:block;font-family:'Space Mono',monospace;font-size:10.5px;color:{% if row.percent >= 80 %}var(--green){% elif row.percent >= 50 %}var(--amber){% else %}var(--red){% endif %};">Umumiy davomat: {{ row.percent }}%</span>{% else %}<span style="display:block;font-family:'Space Mono',monospace;font-size:10.5px;color:var(--ink-4);">Hali belgilanmagan</span>{% endif %}
+        </span>
+        <div style="display:flex;gap:5px;flex:0 0 auto;" role="radiogroup">
+          <label style="cursor:pointer;"><input type="radio" name="att_{{ row.enrollment.id }}" value="present"{% if row.status == 'present' %} checked{% endif %} hidden><span class="att-chip att-present"><i class="bi bi-check-lg"></i> Keldi</span></label>
+          <label style="cursor:pointer;"><input type="radio" name="att_{{ row.enrollment.id }}" value="partial"{% if row.status == 'partial' %} checked{% endif %} hidden><span class="att-chip att-partial"><i class="bi bi-clock-history"></i> Qisman</span></label>
+          <label style="cursor:pointer;"><input type="radio" name="att_{{ row.enrollment.id }}" value="absent"{% if row.status == 'absent' %} checked{% endif %} hidden><span class="att-chip att-absent"><i class="bi bi-x-lg"></i> Kelmadi</span></label>
+        </div>
+      </div>
+      {% empty %}
+      <div style="padding:32px 18px;text-align:center;color:var(--ink-3);font-size:13.5px;">Bu guruhda faol o'quvchi yo'q.</div>
+      {% endfor %}
+    </section>
+
+    {% if rows %}
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+      <button type="button" data-mark-all style="display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 16px;border-radius:10px;border:1px solid var(--line);color:var(--ink-2);background:transparent;font-size:13px;font-weight:600;cursor:pointer;"><i class="bi bi-check2-all"></i> Hammasini "Keldi" qilish</button>
+      <button type="submit" style="display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 22px;border-radius:10px;background:var(--azure);color:var(--on-azure);border:none;font-size:13.5px;font-weight:600;cursor:pointer;"><i class="bi bi-save"></i> Davomatni saqlash</button>
+    </div>
+    {% endif %}
+  </form>
+  {% endif %}
+</div>
+
+<style>
+  .att-chip{ display:inline-flex; align-items:center; gap:5px; height:34px; padding:0 12px; border-radius:9px; font-size:12px; font-weight:600; color:var(--ink-3); background:var(--paper-2); border:1px solid var(--line); transition:.15s; }
+  input:checked + .att-chip.att-present{ color:#fff; background:var(--green); border-color:var(--green); }
+  input:checked + .att-chip.att-partial{ color:#1a1200; background:var(--amber); border-color:var(--amber); }
+  input:checked + .att-chip.att-absent{ color:#fff; background:var(--red); border-color:var(--red); }
+</style>
+<script>
+(function(){
+  var btn = document.querySelector('[data-mark-all]');
+  if (btn) btn.addEventListener('click', function(){
+    document.querySelectorAll('input[type="radio"][value="present"]').forEach(function(r){ r.checked = true; });
+  });
+})();
+</script>
+{% endblock %}

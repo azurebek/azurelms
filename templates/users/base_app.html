@@ -57,6 +57,7 @@
 
       <div class="app-side-bottom">
         {% if request.user.is_staff %}
+        <a class="app-nav-item is-teacher" href="{% url 'teacher_dashboard' %}"><i class="bi bi-mortarboard"></i><span class="label">O'qituvchi paneli</span></a>
         <a class="app-nav-item is-muted" href="{% url 'backoffice_dashboard' %}"><i class="bi bi-shield-lock"></i><span class="label">Admin paneli</span></a>
         {% endif %}
         <a class="app-nav-item{% if active_nav == 'settings' %} active{% endif %}" href="{% url 'settings' %}"><i class="bi bi-gear"></i><span class="label">Sozlamalar</span></a>

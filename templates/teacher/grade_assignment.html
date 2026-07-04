@@ -1,0 +1,59 @@
+{% extends "base_teacher.html" %}
+{% comment %} Uy vazifasini tekshirish — tasdiqlash keyingi darsni ochadi (lesson gate). {% endcomment %}
+
+{% block t_title %}Vazifa — {{ submission.assignment.title }}{% endblock %}
+{% block t_icon %}bi-check2-square{% endblock %}
+{% block t_topbar %}Vazifani tekshirish{% endblock %}
+
+{% block t_content %}
+<form method="post" style="max-width:760px;">
+  {% csrf_token %}
+
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;min-width:0;">
+    <a href="{% url 'teacher_grading' %}" aria-label="Orqaga" style="width:38px;height:38px;border-radius:10px;border:1px solid var(--line);color:var(--ink-2);display:grid;place-items:center;font-size:15px;flex:0 0 auto;"><i class="bi bi-arrow-left"></i></a>
+    <span style="width:42px;height:42px;border-radius:11px;background:var(--green-soft);color:var(--green);display:grid;place-items:center;font-weight:700;font-size:14px;flex:0 0 auto;">{{ submission.student.first_name.0|default:submission.student.username.0|upper }}{{ submission.student.last_name.0|upper }}</span>
+    <div style="min-width:0;">
+      <div style="font-size:16px;font-weight:600;color:var(--ink);">{{ submission.student.get_full_name|default:submission.student.username }}</div>
+      <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);">{{ submission.assignment.lesson.module.course.title|truncatechars:32 }} · {{ submission.assignment.lesson.title|truncatechars:32 }} · {{ submission.submitted_at|date:"d.m.Y H:i" }}</div>
+    </div>
+    <span style="margin-left:auto;font-family:'Space Mono',monospace;font-size:10.5px;padding:5px 11px;border-radius:7px;flex:0 0 auto;{% if submission.status == 'approved' %}color:var(--green);background:var(--green-soft);{% elif submission.status == 'needs_revision' %}color:var(--amber);background:var(--amber-soft);{% else %}color:var(--azure);background:var(--azure-soft);{% endif %}">{{ submission.get_status_display }}</span>
+  </div>
+
+  <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:20px;margin-bottom:16px;">
+    <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;">Topshiriq</div>
+    <h1 style="font-size:18px;font-weight:600;letter-spacing:-.01em;color:var(--ink);margin:0 0 10px;">{{ submission.assignment.title }}</h1>
+    <div style="font-size:13.5px;line-height:1.6;color:var(--ink-2);">{{ submission.assignment.description|safe }}</div>
+  </section>
+
+  <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:20px;margin-bottom:16px;">
+    <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:10px;">O'quvchi javobi</div>
+    {% if submission.answer_text %}
+      <div style="border:1px solid var(--line);border-radius:11px;background:var(--paper-2);padding:16px 18px;font-size:14.5px;line-height:1.75;color:var(--ink-2);white-space:pre-wrap;">{{ submission.answer_text }}</div>
+    {% endif %}
+    {% if submission.attachment %}
+      <a href="{{ submission.attachment.url }}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:10px 15px;border-radius:10px;border:1px solid var(--line);color:var(--azure);font-size:13.5px;font-weight:600;"><i class="bi bi-paperclip"></i> Biriktirilgan faylni ochish</a>
+    {% endif %}
+    {% if not submission.answer_text and not submission.attachment %}
+      <div style="border:1px dashed var(--line);border-radius:11px;padding:16px;font-size:13px;color:var(--ink-4);">Javob matni yo'q.</div>
+    {% endif %}
+  </section>
+
+  <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:20px;">
+    <div style="display:grid;grid-template-columns:1fr 140px;gap:14px;align-items:start;margin-bottom:16px;">
+      <label style="display:block;">
+        <span style="display:block;font-size:11.5px;color:var(--ink-3);margin-bottom:6px;">Izoh (o'quvchiga ko'rinadi)</span>
+        <textarea name="teacher_feedback" rows="3" placeholder="Fikringizni yozing…" style="width:100%;border:1px solid var(--line);border-radius:11px;background:var(--paper-2);color:var(--ink);font-size:14px;line-height:1.6;padding:12px 14px;outline:none;resize:vertical;">{{ submission.teacher_feedback }}</textarea>
+      </label>
+      <label style="display:block;">
+        <span style="display:block;font-size:11.5px;color:var(--ink-3);margin-bottom:6px;">XP (0–{{ submission.assignment.max_xp }})</span>
+        <input type="number" name="awarded_xp" value="{{ submission.awarded_xp }}" min="0" max="{{ submission.assignment.max_xp }}" style="width:100%;height:44px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:var(--paper-2);color:var(--ink);font-family:'Space Mono',monospace;font-size:15px;font-weight:700;outline:none;">
+      </label>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">
+      <button type="submit" name="action" value="revision" style="display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 18px;border-radius:10px;border:1px solid var(--amber);color:var(--amber);background:var(--amber-soft);font-size:13.5px;font-weight:600;cursor:pointer;"><i class="bi bi-arrow-counterclockwise"></i> Qayta ishlashga</button>
+      <button type="submit" name="action" value="approve" style="display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 20px;border-radius:10px;background:var(--green);color:#fff;border:none;font-size:13.5px;font-weight:600;cursor:pointer;"><i class="bi bi-check2-circle"></i> Tasdiqlash</button>
+    </div>
+    <p style="font-size:12px;color:var(--ink-4);margin:12px 0 0;text-align:right;"><i class="bi bi-info-circle"></i> Tasdiqlash o'quvchining keyingi darsini ochadi.</p>
+  </section>
+</form>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base_teacher.html" %}
+{% comment %} Guruhlar — o'qituvchi kurslaridagi kohortlar kartalari. {% endcomment %}
+
+{% block t_title %}Guruhlar{% endblock %}
+{% block t_icon %}bi-collection{% endblock %}
+{% block t_topbar %}Guruhlar{% endblock %}
+
+{% block t_content %}
+<div style="max-width:1100px;">
+  <div style="margin-bottom:20px;">
+    <h1 style="font-size:clamp(22px,2.6vw,30px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:0 0 6px;">Guruhlar</h1>
+    <p style="font-size:14px;color:var(--ink-3);margin:0;">{{ cohorts|length }} ta guruh — davomat va o'quvchilarga tez o'tish.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;">
+    {% for cohort in cohorts %}
+    <article style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:18px 20px;display:flex;flex-direction:column;gap:12px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
+        <div style="min-width:0;">
+          <div style="font-size:15.5px;font-weight:600;color:var(--ink);">{{ cohort.name }}</div>
+          <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);margin-top:3px;">{{ cohort.course.title|truncatechars:34 }} · {{ cohort.start_date|date:"d.m.Y" }}</div>
+        </div>
+        <span style="font-family:'Space Mono',monospace;font-size:9.5px;letter-spacing:.05em;padding:4px 9px;border-radius:6px;flex:0 0 auto;{% if cohort.is_active %}color:var(--green);background:var(--green-soft);{% else %}color:var(--ink-4);background:var(--paper-2);{% endif %}">{% if cohort.is_active %}Faol{% else %}Yopiq{% endif %}</span>
+      </div>
+      <div style="display:flex;gap:14px;font-family:'Space Mono',monospace;font-size:11.5px;color:var(--ink-2);">
+        <span><i class="bi bi-people" style="color:var(--azure);"></i> {{ cohort.members_count }} faol</span>
+        {% if cohort.pending_count %}<span><i class="bi bi-hourglass-split" style="color:var(--amber);"></i> {{ cohort.pending_count }} kutmoqda</span>{% endif %}
+        {% if cohort.telegram_group_link %}<a href="{{ cohort.telegram_group_link }}" target="_blank" style="color:var(--azure);"><i class="bi bi-telegram"></i> guruh</a>{% endif %}
+      </div>
+      <div style="display:flex;gap:8px;margin-top:auto;">
+        <a href="{% url 'teacher_students' %}?cohort={{ cohort.id }}" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:38px;border-radius:9px;border:1px solid var(--line);color:var(--ink-2);font-size:12.5px;font-weight:600;"><i class="bi bi-people"></i> O'quvchilar</a>
+        <a href="{% url 'teacher_attendance' %}?cohort={{ cohort.id }}" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:38px;border-radius:9px;border:1px solid var(--line);color:var(--ink-2);font-size:12.5px;font-weight:600;"><i class="bi bi-calendar-check"></i> Davomat</a>
+      </div>
+    </article>
+    {% empty %}
+    <div style="grid-column:1/-1;border:1px dashed var(--line);border-radius:14px;padding:36px 20px;text-align:center;color:var(--ink-3);font-size:13.5px;">Guruhlar topilmadi.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends "base_teacher.html" %}
+{% comment %} O'qituvchi boshqaruv paneli — KPI, tekshirish navbati, guruhlar holati. {% endcomment %}
+
+{% block t_title %}Boshqaruv{% endblock %}
+{% block t_icon %}bi-grid-1x2{% endblock %}
+{% block t_topbar %}Boshqaruv{% endblock %}
+
+{% block t_content %}
+<div style="max-width:1100px;">
+
+  <div style="margin-bottom:22px;">
+    <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;">{% now "l · j-F" %}</div>
+    <h1 style="font-size:clamp(24px,2.6vw,32px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:0;">Assalomu alaykum, {{ request.user.first_name|default:request.user.username }}.</h1>
+  </div>
+
+  <!-- KPI -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:18px;">
+    <a href="{% url 'teacher_cohorts' %}" style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:18px 20px;">
+      <span style="width:34px;height:34px;border-radius:9px;background:var(--violet-soft, var(--azure-soft));color:var(--violet, var(--azure));display:grid;place-items:center;font-size:15px;"><i class="bi bi-collection"></i></span>
+      <div style="font-family:'Space Mono',monospace;font-size:26px;font-weight:700;color:var(--ink);margin-top:12px;">{{ kpis.cohorts }}</div>
+      <div style="font-size:12.5px;color:var(--ink-3);margin-top:3px;">Faol guruh</div>
+    </a>
+    <a href="{% url 'teacher_students' %}" style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:18px 20px;">
+      <span style="width:34px;height:34px;border-radius:9px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:15px;"><i class="bi bi-people"></i></span>
+      <div style="font-family:'Space Mono',monospace;font-size:26px;font-weight:700;color:var(--ink);margin-top:12px;">{{ kpis.students }}</div>
+      <div style="font-size:12.5px;color:var(--ink-3);margin-top:3px;">Faol o'quvchi</div>
+    </a>
+    <a href="{% url 'teacher_grading' %}" style="border:1px solid {% if kpis.pending_exams %}var(--amber){% else %}var(--line){% endif %};border-radius:14px;background:var(--panel);padding:18px 20px;">
+      <span style="width:34px;height:34px;border-radius:9px;background:var(--amber-soft);color:var(--amber);display:grid;place-items:center;font-size:15px;"><i class="bi bi-clipboard-check"></i></span>
+      <div style="font-family:'Space Mono',monospace;font-size:26px;font-weight:700;color:var(--ink);margin-top:12px;">{{ kpis.pending_exams }}</div>
+      <div style="font-size:12.5px;color:var(--ink-3);margin-top:3px;">Imtihon kutmoqda</div>
+    </a>
+    <a href="{% url 'teacher_grading' %}" style="border:1px solid {% if kpis.pending_assignments %}var(--amber){% else %}var(--line){% endif %};border-radius:14px;background:var(--panel);padding:18px 20px;">
+      <span style="width:34px;height:34px;border-radius:9px;background:var(--green-soft);color:var(--green);display:grid;place-items:center;font-size:15px;"><i class="bi bi-journal-text"></i></span>
+      <div style="font-family:'Space Mono',monospace;font-size:26px;font-weight:700;color:var(--ink);margin-top:12px;">{{ kpis.pending_assignments }}</div>
+      <div style="font-size:12.5px;color:var(--ink-3);margin-top:3px;">Vazifa kutmoqda</div>
+    </a>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1.1fr 0.9fr;gap:14px;" class="tchdash-cols">
+    <!-- Tekshirish navbati -->
+    <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line);">
+        <span style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);">Tekshirish navbati</span>
+        <a href="{% url 'teacher_grading' %}" style="font-size:12px;font-weight:600;color:var(--azure);">Hammasi <i class="bi bi-arrow-right" style="font-size:11px;"></i></a>
+      </div>
+      {% for attempt in queue_exams %}
+      <a href="{% url 'teacher_grade_exam' attempt.id %}" style="display:flex;align-items:center;gap:11px;padding:12px 18px;{% if not forloop.last or queue_assignments %}border-bottom:1px solid var(--line-2);{% endif %}">
+        <span style="width:32px;height:32px;border-radius:9px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:13px;flex:0 0 auto;"><i class="bi bi-clipboard-check"></i></span>
+        <span style="flex:1;min-width:0;">
+          <span style="display:block;font-size:13.5px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ attempt.exam.title }}</span>
+          <span style="display:block;font-family:'Space Mono',monospace;font-size:10.5px;color:var(--ink-3);">{{ attempt.student.get_full_name|default:attempt.student.username|truncatechars:22 }} · {{ attempt.completed_time|timesince }} oldin</span>
+        </span>
+        <i class="bi bi-arrow-right" style="color:var(--ink-4);"></i>
+      </a>
+      {% endfor %}
+      {% for submission in queue_assignments %}
+      <a href="{% url 'teacher_grade_assignment' submission.id %}" style="display:flex;align-items:center;gap:11px;padding:12px 18px;{% if not forloop.last %}border-bottom:1px solid var(--line-2);{% endif %}">
+        <span style="width:32px;height:32px;border-radius:9px;background:var(--green-soft);color:var(--green);display:grid;place-items:center;font-size:13px;flex:0 0 auto;"><i class="bi bi-journal-text"></i></span>
+        <span style="flex:1;min-width:0;">
+          <span style="display:block;font-size:13.5px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ submission.assignment.title }}</span>
+          <span style="display:block;font-family:'Space Mono',monospace;font-size:10.5px;color:var(--ink-3);">{{ submission.student.get_full_name|default:submission.student.username|truncatechars:22 }} · {{ submission.submitted_at|timesince }} oldin</span>
+        </span>
+        <i class="bi bi-arrow-right" style="color:var(--ink-4);"></i>
+      </a>
+      {% endfor %}
+      {% if not queue_exams and not queue_assignments %}
+      <div style="padding:26px 18px;text-align:center;color:var(--ink-3);font-size:13.5px;"><i class="bi bi-check2-circle" style="color:var(--green);margin-right:6px;"></i>Navbat bo'sh — hammasi tekshirilgan.</div>
+      {% endif %}
+    </section>
+
+    <!-- Guruhlar holati -->
+    <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line);">
+        <span style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);">Guruhlar holati</span>
+        <a href="{% url 'teacher_cohorts' %}" style="font-size:12px;font-weight:600;color:var(--azure);">Hammasi <i class="bi bi-arrow-right" style="font-size:11px;"></i></a>
+      </div>
+      {% for cohort in cohorts %}
+      <div style="display:flex;align-items:center;gap:11px;padding:12px 18px;{% if not forloop.last %}border-bottom:1px solid var(--line-2);{% endif %}">
+        <span style="width:32px;height:32px;border-radius:9px;background:var(--violet-soft, var(--azure-soft));color:var(--violet, var(--azure));display:grid;place-items:center;font-size:13px;flex:0 0 auto;"><i class="bi bi-collection"></i></span>
+        <span style="flex:1;min-width:0;">
+          <span style="display:block;font-size:13.5px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ cohort.name }}</span>
+          <span style="display:block;font-family:'Space Mono',monospace;font-size:10.5px;color:var(--ink-3);">{{ cohort.course.title|truncatechars:26 }}</span>
+        </span>
+        <span style="font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:var(--ink-2);flex:0 0 auto;"><i class="bi bi-people" style="font-size:11px;color:var(--ink-4);"></i> {{ cohort.members_count }}</span>
+      </div>
+      {% empty %}
+      <div style="padding:26px 18px;text-align:center;color:var(--ink-3);font-size:13.5px;">Faol guruh yo'q.</div>
+      {% endfor %}
+    </section>
+  </div>
+</div>
+
+<style>@media (max-width:900px){ .tchdash-cols{ grid-template-columns:1fr !important; } }</style>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base_teacher.html" %}
+{% comment %} Kurs kontenti — kurslar + backoffice muharrirlariga havolalar. {% endcomment %}
+
+{% block t_title %}Kontent{% endblock %}
+{% block t_icon %}bi-journal-richtext{% endblock %}
+{% block t_topbar %}Kurs kontenti{% endblock %}
+
+{% block t_content %}
+<div style="max-width:1100px;">
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px;">
+    <div>
+      <h1 style="font-size:clamp(22px,2.6vw,30px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:0 0 6px;">Kurs kontenti</h1>
+      <p style="font-size:14px;color:var(--ink-3);margin:0;">Darslar va imtihonlarni backoffice muharrirlarida tahrirlang.</p>
+    </div>
+    {% if request.user.is_staff %}
+    <a href="{% url 'backoffice_course_create' %}" style="display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 18px;border-radius:10px;background:var(--azure);color:var(--on-azure);font-size:13.5px;font-weight:600;"><i class="bi bi-plus-lg"></i> Yangi kurs</a>
+    {% endif %}
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;">
+    {% for course in courses %}
+    <article style="border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;display:flex;flex-direction:column;">
+      <div style="height:92px;background:url('{{ course.cover_media_url }}') center/cover no-repeat, linear-gradient(125deg,var(--azure),var(--azure-2));padding:12px 14px;display:flex;align-items:flex-start;justify-content:space-between;">
+        <span style="font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:#fff;background:rgba(0,0,0,.28);padding:3px 9px;border-radius:6px;">{{ course.get_level_display }}</span>
+        <span style="font-family:'Space Mono',monospace;font-size:9.5px;letter-spacing:.05em;padding:3px 8px;border-radius:6px;{% if course.is_active %}color:#fff;background:rgba(15,157,88,.85);{% else %}color:#fff;background:rgba(0,0,0,.4);{% endif %}">{% if course.is_active %}Nashr etilgan{% else %}Qoralama{% endif %}</span>
+      </div>
+      <div style="padding:16px 18px;display:flex;flex-direction:column;gap:12px;flex:1;">
+        <div>
+          <h3 style="font-size:16px;font-weight:600;color:var(--ink);margin:0 0 4px;letter-spacing:-.01em;">{{ course.title }}</h3>
+          <div style="display:flex;gap:13px;font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);">
+            <span><i class="bi bi-collection-play"></i> {{ course.lessons_total }} dars</span>
+            <span><i class="bi bi-people"></i> {{ course.students_total }} o'quvchi</span>
+            <span><i class="bi bi-clipboard-check"></i> {{ course.exams_total }} imtihon</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:auto;flex-wrap:wrap;">
+          <a href="{% url 'backoffice_course_edit' course.id %}" style="flex:1;min-width:96px;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;border-radius:9px;border:1px solid var(--line);color:var(--ink-2);font-size:12px;font-weight:600;"><i class="bi bi-journal-richtext"></i> Kurs</a>
+          <a href="{% url 'backoffice_lessons' %}" style="flex:1;min-width:96px;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;border-radius:9px;border:1px solid var(--line);color:var(--ink-2);font-size:12px;font-weight:600;"><i class="bi bi-play-circle"></i> Darslar</a>
+          <a href="{% url 'backoffice_exams' %}" style="flex:1;min-width:96px;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;border-radius:9px;border:1px solid var(--line);color:var(--ink-2);font-size:12px;font-weight:600;"><i class="bi bi-clipboard-check"></i> Imtihonlar</a>
+        </div>
+      </div>
+    </article>
+    {% empty %}
+    <div style="grid-column:1/-1;border:1px dashed var(--line);border-radius:14px;padding:36px 20px;text-align:center;color:var(--ink-3);font-size:13.5px;">Sizga biriktirilgan kurs yo'q.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

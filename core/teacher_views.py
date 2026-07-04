@@ -213,16 +213,17 @@ def teacher_students(request):
 @user_passes_test(_is_teacher)
 def teacher_courses_view(request):
     context = _base_context(request.user, "teacher_courses")
+    # NB: lessons_count/students_count Course modelida property — annotate nomi boshqa
     courses = (
         context["teacher_courses"]
         .annotate(
-            lessons_count=Count("modules__lessons", distinct=True),
-            students_count=Count(
+            lessons_total=Count("modules__lessons", distinct=True),
+            students_total=Count(
                 "cohorts__members",
                 filter=enrollment_active_access_q(prefix="cohorts__members__"),
                 distinct=True,
             ),
-            exams_count=Count("exams", distinct=True),
+            exams_total=Count("exams", distinct=True),
         )
         .order_by("-is_active", "title")
     )
