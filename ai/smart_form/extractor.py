@@ -5,11 +5,11 @@ from .base import BaseSmartForm
 
 class BaseExtractor:
     def extract(self, text: str, form_class: Type[BaseSmartForm], current_state: Dict[str, Any]) -> Dict[str, Any]:
-        \"\"\"
+        """
         Extract fields from raw text.
         Returns a dict of extracted fields with their status.
         Example: {\"goal\": {\"value\": \"travel\", \"status\": \"needs_confirmation\"}}
-        \"\"\"
+        """
         raise NotImplementedError
 
 class LLMExtractor(BaseExtractor):

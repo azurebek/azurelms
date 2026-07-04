@@ -13,9 +13,9 @@ class SmartFormEngine:
         self.planner = Planner()
         
     def process_user_message(self, text: str) -> str:
-        \"\"\"
+        """
         Process a user message, update state, and return the next intent.
-        \"\"\"
+        """
         # 1. Extraction
         extracted_data = {}
         for extractor in self.extractors:

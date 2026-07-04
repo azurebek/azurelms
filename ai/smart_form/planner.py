@@ -3,10 +3,10 @@ from .base import BaseSmartForm
 
 class Planner:
     def plan_next_action(self, form_class: Type[BaseSmartForm], current_state: Dict[str, Any]) -> str:
-        \"\"\"
+        """
         Analyzes the current form state and determines the next intent.
         Returns an Intent string, like 'ASK_GOAL' or 'SUBMIT_FORM'.
-        \"\"\"
+        """
         fields_state = current_state.get("fields", {})
         
         pending_fields = []

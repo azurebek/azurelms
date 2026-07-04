@@ -3,9 +3,9 @@ from typing import Type, Dict, Any
 FORM_REGISTRY: Dict[str, Type[Any]] = {}
 
 def register_form(name: str):
-    \"\"\"
+    """
     Decorator to register a BaseSmartForm class into the global registry.
-    \"\"\"
+    """
     def decorator(cls):
         FORM_REGISTRY[name] = cls
         return cls
