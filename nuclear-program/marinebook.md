@@ -16,6 +16,24 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-05 [Claude]: AI token-limit boshqaruv markazi (admin nazorati kengaytirildi)
+
+User AI token-iqtisodiyotini admin uchun markazlashgan boshqaruv talab qildi: modellar/tokenlar/limitlar bir joydan; foydalanuvchi 5 soatlik + haftalik limitlari; bayram/event uchun ommaviy/guruh/tarif reset-bonuslari. Qarorlar (AskUserQuestion): birlik=TOKEN, ko'lam=tarif+shaxsiy override, reset=hammaga+kohort+tarif.
+
+**Yangi `aicontrol` app.** Modellar: AISettings (singleton — global default 5h/haftalik limit, enforcement master switch, staff-exempt, default model/effort), AIPlanPolicy (tarif bo'yicha limit), AIUserAllowance (OneToOne — shaxsiy override, reset markerlari, bonus, is_blocked), AIUsageResetEvent (audit: scope all/cohort/plan · kind reset/bonus · window 5h/weekly/both · sabab · affected_count · created_by).
+
+**Token hisobi:** ProviderResponse.usage; DO payload['usage'] + Gemini usage_metadata; AIResponseRun'ga prompt/completion/total_tokens (messenger migration 0013); tasks.py saqlaydi.
+
+**Limit mantig'i (service.py):** resolve = override → tarif siyosati → global default (+ bonus). Oyna rolling: used = AIResponseRun.total_tokens yig'indisi (now-5h/now-7d dan yoki reset markeridan, qaysi kech). get_quota_status → allowed/reason/used/limit/reset_at. Enforcement generate_ai_response boshida, **fail-open** (limiter xatosi chatni bloklamaydi): limit oshsa engine chaqirilmaydi, halol xabar + tiklanish vaqti; staff ozod; master switch. apply_reset_event scope bo'yicha (bounded: so'nggi 7 kun faollar) qo'llaydi.
+
+**Admin UI 2 xil:** (1) Django admin — 4 model + reset event saqlansa avtomatik qo'llanadi (tez yo'l). (2) **AdminShell `/backoffice/ai-control/`** — usage overview (5h/hafta token, faol/bloklangan), global limit formasi, tarif-policy jadval (inline tahrir), reset/bonus formasi (scope→dinamik kohort/tarif tanlov, JS bilan), top-10 token-user, so'nggi amallar. Backoffice nav'ga "AI boshqaruvi" qo'shildi.
+
+- Branch: `claude/ai-admin-control`
+- Test holati: `python manage.py test` — **236/236 OK** (aicontrol 17 + backoffice AI 3 yangi)
+- Davom etilishi kerak: `/settings` sahifasidagi AI model tanlovi hali AISettings bilan bog'lanmagan (ixtiyoriy); token narx→so'm hisobi hisobot uchun; o'quvchi dashboard'ida "qolgan token" indikatori
+
+---
+
 ## 2026-07-05 [Claude]: Gibrid AI — Gemini FAQAT web-qidiruv uchun (maverick asosiy)
 
 User web-qidiruvni tikladi, lekin Gemini bepul kvotasini tejash sharti bilan: qidiruv Gemini'da, qolgani maverick'da. Muammo edi: DO/maverick `supports_web_search=False` — jonli qidira olmaydi, `web_search` skilli tanlansa ham AI faktlarni to'qirdi.
