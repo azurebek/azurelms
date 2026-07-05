@@ -294,11 +294,21 @@
     file.target = '_blank';
     file.rel = 'noopener';
 
-    const iconWrap = document.createElement('span');
-    iconWrap.className = 'bubble-file-icon';
-    const icon = document.createElement('i');
-    icon.className = attachment.is_image ? 'bi bi-image' : 'bi bi-file-earmark';
-    iconWrap.appendChild(icon);
+    if (attachment.is_image) {
+      const preview = document.createElement('img');
+      preview.src = attachment.url;
+      preview.alt = attachment.name || '';
+      preview.loading = 'lazy';
+      preview.style.cssText = 'max-width:220px;max-height:180px;border-radius:10px;display:block;margin-bottom:6px;';
+      file.appendChild(preview);
+    } else {
+      const iconWrap = document.createElement('span');
+      iconWrap.className = 'bubble-file-icon';
+      const icon = document.createElement('i');
+      icon.className = 'bi bi-file-earmark';
+      iconWrap.appendChild(icon);
+      file.appendChild(iconWrap);
+    }
 
     const info = document.createElement('span');
     info.className = 'bubble-file-info';
@@ -313,7 +323,6 @@
 
     info.appendChild(name);
     info.appendChild(size);
-    file.appendChild(iconWrap);
     file.appendChild(info);
     if (isMine) file.classList.add('bubble-file--me');
     return file;

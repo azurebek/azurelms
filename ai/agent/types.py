@@ -12,6 +12,9 @@ class AIRequest:
     # Xonaga yuklangan PDF'dan ajratilgan matn (bo'lsa) — prompt'ga hujjat bo'limi sifatida kiradi
     document_context: str = ""
     document_name: str = ""
+    # Xonaga yuklangan oxirgi rasm (data-URL) — vision-model'ga to'g'ridan yuboriladi
+    image_data_url: str = ""
+    image_name: str = ""
 
 
 @dataclass(frozen=True)

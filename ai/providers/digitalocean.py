@@ -21,6 +21,8 @@ DEFAULT_MODEL_FALLBACKS = [
 
 class DigitalOceanProvider:
     supports_web_search = False
+    # llama-4-maverick natively multimodal — rasm data-URL'lari bilan vision ishlaydi
+    supports_vision = True
 
     def __init__(self, *, api_key: str | None = None, session=None, sleep=time.sleep):
         self.api_key = api_key if api_key is not None else settings.DIGITALOCEAN_INFERENCE_API_KEY
@@ -35,11 +37,20 @@ class DigitalOceanProvider:
         prompt: str,
         selected_model: str | None = None,
         enable_web_search: bool = False,
+        images: list[str] | None = None,
     ) -> ProviderResponse:
         if not self.api_key:
             raise RuntimeError("DIGITALOCEAN_INFERENCE_API_KEY mavjud emas.")
         if enable_web_search:
             logger.warning("DigitalOcean provider uchun web search hali ulanmagan.")
+
+        # Vision: OpenAI-compatible content array (matn + image_url data-URL'lar)
+        if images:
+            content = [{"type": "text", "text": prompt}] + [
+                {"type": "image_url", "image_url": {"url": image_url}} for image_url in images
+            ]
+        else:
+            content = prompt
 
         last_error = None
         for model_name in self._model_candidates(selected_model):
@@ -53,7 +64,7 @@ class DigitalOceanProvider:
                         },
                         json={
                             "model": model_name,
-                            "messages": [{"role": "user", "content": prompt}],
+                            "messages": [{"role": "user", "content": content}],
                             "max_tokens": 1200,
                         },
                         timeout=60,

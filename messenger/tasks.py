@@ -38,6 +38,69 @@ def _is_pdf_message(message):
     return name.endswith(".pdf") or "pdf" in content_type
 
 
+_RASTER_EXTENSIONS = (".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp")
+
+
+def _is_raster_image_message(message):
+    """Foydalanuvchi yuborgan rastr rasm (AI'ning o'z SVG'lari hisobga olinmaydi)."""
+    if not message or not message.attachment or message.is_ai_response:
+        return False
+    name = (message.attachment_name or message.attachment.name or "").lower()
+    content_type = (message.attachment_content_type or "").lower()
+    if "svg" in content_type or name.endswith(".svg"):
+        return False
+    return content_type.startswith("image/") or name.endswith(_RASTER_EXTENSIONS)
+
+
+def _latest_image_context(room, current_message=None):
+    """Xonadagi eng so'nggi rastr rasmni vision uchun data-URL'ga tayyorlaydi.
+
+    Natija: (data_url, fayl_nomi) yoki ("", "").
+    """
+    from ai.documents import image_to_data_url
+
+    candidates = []
+    if current_message is not None:
+        candidates.append(current_message)
+    candidates.extend(
+        Message.objects.filter(room=room, is_deleted=False, is_ai_response=False)
+        .exclude(attachment="")
+        .order_by("-created_at")[:30]
+    )
+    for message in candidates:
+        if not _is_raster_image_message(message):
+            continue
+        data_url = image_to_data_url(message.attachment)
+        if not data_url:
+            continue
+        name = message.attachment_name or message.attachment.name.rsplit("/", 1)[-1]
+        return data_url, name
+    return "", ""
+
+
+def _attach_generated_svg(ai_message, *, title, svg_text, run_id):
+    """<SVG_IMAGE> blokidan zararsizlantirilgan SVG yasab xabarga biriktiradi."""
+    from django.core.files.base import ContentFile
+
+    from ai.documents import sanitize_svg
+
+    clean_svg = sanitize_svg(svg_text)
+    if not clean_svg:
+        logger.warning("SVG sanitizatsiyadan o'tmadi (run_id=%s)", run_id)
+        return False
+    payload = clean_svg.encode("utf-8")
+    safe_title = "".join(ch for ch in title if ch.isalnum() or ch in " -_").strip()[:60] or "rasm"
+    filename = f"{safe_title}.svg"
+    ai_message.attachment.save(f"ai_docs/{run_id}_{filename}", ContentFile(payload), save=False)
+    ai_message.attachment_name = filename
+    ai_message.attachment_content_type = "image/svg+xml"
+    ai_message.attachment_size = len(payload)
+    ai_message.save(
+        update_fields=["attachment", "attachment_name", "attachment_content_type", "attachment_size"]
+    )
+    return True
+
+
 def _latest_document_context(room, current_message=None):
     """Xonadagi eng so'nggi PDF'dan AI uchun matn konteksti.
 
@@ -218,6 +281,13 @@ def generate_ai_response(
         except Exception:
             logger.exception("Hujjat kontekstini yig'ish xatosi (room_id=%s)", room.id)
 
+        # Xonadagi so'nggi rasm (bo'lsa) — vision-model'ga to'g'ridan yuboriladi
+        image_data_url, image_name = "", ""
+        try:
+            image_data_url, image_name = _latest_image_context(room, current_message=user_message)
+        except Exception:
+            logger.exception("Rasm kontekstini yig'ish xatosi (room_id=%s)", room.id)
+
         response = AIEngine().generate_reply(
             AIRequest(
                 room=room,
@@ -227,13 +297,16 @@ def generate_ai_response(
                 requested_skill_slug=requested_skill_slug,
                 document_context=document_context,
                 document_name=document_name,
+                image_data_url=image_data_url,
+                image_name=image_name,
             )
         )
 
-        # AI javobida <PDF_DOC> bloki bo'lsa — haqiqiy PDF yasab xabarga biriktiramiz
-        from ai.documents import extract_pdf_doc_block
+        # AI javobida <PDF_DOC>/<SVG_IMAGE> bloklari bo'lsa — fayl yasab xabarga biriktiramiz
+        from ai.documents import extract_pdf_doc_block, extract_svg_block
 
         reply_text, pdf_title, pdf_body = extract_pdf_doc_block(response.text)
+        reply_text, svg_title, svg_body = extract_svg_block(reply_text)
 
         ai_message = Message.objects.create(
             room=room,
@@ -243,6 +316,8 @@ def generate_ai_response(
         )
         if pdf_body:
             _attach_generated_pdf(ai_message, title=pdf_title, body=pdf_body, run_id=run.id)
+        elif svg_body:
+            _attach_generated_svg(ai_message, title=svg_title, svg_text=svg_body, run_id=run.id)
 
         status = AIResponseRun.STATUS_SUCCEEDED if response.model_name else AIResponseRun.STATUS_FALLBACK
         run.status = status

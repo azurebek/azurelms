@@ -51,6 +51,7 @@ class PromptBuilder:
         is_first_message: bool = True,
         document_context: str = "",
         document_name: str = "",
+        image_name: str = "",
     ) -> str:
         tone_name, tone_instruction = self.resolve_tone_instruction(student)
         document_section = ""
@@ -60,6 +61,15 @@ class PromptBuilder:
                 "Foydalanuvchi savoli shu hujjatga tegishli bo'lsa, javobni AVVALO shu matnga tayangan holda ber. "
                 "Hujjatda yo'q narsani hujjatga nisbat berma.\n"
                 f"<<<HUJJAT BOSHI>>>\n{document_context}\n<<<HUJJAT OXIRI>>>\n\n"
+            )
+        image_section = ""
+        if image_name:
+            image_section = (
+                f"YUKLANGAN RASM ('{image_name}'):\n"
+                "Foydalanuvchi rasm yubordi va u so'rovga biriktirilgan — sen uni KO'RA OLASAN. "
+                "Savol rasmga tegishli bo'lsa, avvalo rasmni diqqat bilan tahlil qilib javob ber "
+                "(matn/yozuvlarni o'qi, tarjima qil, xatolarni ko'rsat). "
+                "Rasmda yo'q narsani ko'rgandek gapirma.\n\n"
             )
         if is_first_message:
             greeting_rule = (
@@ -110,7 +120,15 @@ class PromptBuilder:
             "'| ustun | ustun |' jadvallar (birinchi qator — jadval sarlavhasi). Blokdan TASHQARIDA esa foydalanuvchiga "
             "1-2 jumla oddiy izoh yoz (masalan: 'Tayyor! PDF'ni pastdan yuklab olishingiz mumkin 📄'). "
             "So'ralmagan bo'lsa hech qachon PDF_DOC blokini qo'shma.\n\n"
+            "RASM (SVG) YARATISH QOIDASI:\n"
+            "Foydalanuvchi rasm/flashcard/diagramma/illustratsiya CHIZIB berishni so'rasagina, javob OXIRIDA "
+            "<SVG_IMAGE title=\"Qisqa nom\">to'liq <svg>...</svg> kodi</SVG_IMAGE> blokini qo'sh. "
+            "SVG qoidalari: viewBox ishlat (masalan 0 0 480 320), faqat oddiy shakllar va matn "
+            "(rect, circle, path, text) — script yoki tashqi havola YO'Q; matnlarga font-size va o'qiladigan "
+            "ranglar ber; AzureLMS uslubi uchun asosiy rang #1257e6. "
+            "Blokdan tashqarida 1-2 jumla izoh yoz. So'ralmagan bo'lsa blok qo'shma.\n\n"
             f"{document_section}"
+            f"{image_section}"
             "RAG QOIDALARI:\n"
             "1) Agar `RAG manbalar` bo'limida kontekst bo'lsa, avvalo shu kontekstga tayangan holda javob ber.\n"
             "2) Javob matnida `(Manba N)` kabi inline manba belgisi YOZMA va oxiriga `Manbalar:` ro'yxati QO'SHMA — platforma manbalarni alohida UI elementida o'zi ko'rsatadi.\n"

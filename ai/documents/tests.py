@@ -10,7 +10,14 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from ai.agent.types import AIRequest, AIResponse
-from ai.documents import build_pdf, extract_pdf_doc_block, extract_pdf_text
+from ai.documents import (
+    build_pdf,
+    extract_pdf_doc_block,
+    extract_pdf_text,
+    extract_svg_block,
+    image_to_data_url,
+    sanitize_svg,
+)
 from ai.skills.registry import SkillRegistry
 from messenger.models import ChatRoom, Message
 
@@ -48,11 +55,55 @@ class PdfWriterReaderTests(TestCase):
         self.assertEqual((cleaned, title, body), ("oddiy javob", None, None))
 
 
+def _sample_png_bytes(color="red", size=(80, 60)):
+    from PIL import Image
+
+    image = Image.new("RGB", size, color)
+    buffer = io.BytesIO()
+    image.save(buffer, format="PNG")
+    return buffer.getvalue()
+
+
+class ImageLayerTests(TestCase):
+    def test_image_to_data_url_downscales_and_encodes(self):
+        data_url = image_to_data_url(io.BytesIO(_sample_png_bytes(size=(3000, 2000))))
+        self.assertTrue(data_url.startswith("data:image/jpeg;base64,"))
+        self.assertLess(len(data_url), 900_000)
+
+    def test_image_to_data_url_survives_garbage(self):
+        self.assertEqual(image_to_data_url(io.BytesIO(b"rasm emas")), "")
+
+    def test_extract_svg_block_and_sanitize(self):
+        reply = (
+            "Mana flashcard! 🎨\n"
+            "<SVG_IMAGE title=\"Ev flashcard\">"
+            "<svg viewBox=\"0 0 100 60\" xmlns=\"http://www.w3.org/2000/svg\">"
+            "<script>alert(1)</script>"
+            "<rect x=\"1\" y=\"1\" width=\"98\" height=\"58\" fill=\"#1257e6\" onclick=\"alert(2)\"/>"
+            "<a href=\"https://evil.example\"><text x=\"10\" y=\"30\">ev</text></a>"
+            "</svg></SVG_IMAGE>"
+        )
+        cleaned, title, svg_body = extract_svg_block(reply)
+        self.assertEqual(cleaned, "Mana flashcard! 🎨")
+        self.assertEqual(title, "Ev flashcard")
+
+        safe = sanitize_svg(svg_body)
+        self.assertIn("<svg", safe)
+        self.assertIn("rect", safe)
+        self.assertNotIn("script", safe.lower())
+        self.assertNotIn("onclick", safe.lower())
+        self.assertNotIn("evil.example", safe)
+
+    def test_sanitize_rejects_non_svg(self):
+        self.assertEqual(sanitize_svg("<div>html</div>"), "")
+        self.assertEqual(sanitize_svg("buzuq <svg"), "")
+
+
 class DocumentSkillSelectionTests(TestCase):
     def setUp(self):
         self.registry = SkillRegistry()
 
-    def _request(self, question, document_context=""):
+    def _request(self, question, document_context="", image_data_url=""):
         return SimpleNamespace(
             room=None,
             student=None,
@@ -60,6 +111,7 @@ class DocumentSkillSelectionTests(TestCase):
             requested_skill_slug=None,
             context_lesson=None,
             document_context=document_context,
+            image_data_url=image_data_url,
         )
 
     def test_pdf_keywords_route_to_document_qa(self):
@@ -75,6 +127,16 @@ class DocumentSkillSelectionTests(TestCase):
     def test_without_document_neutral_question_stays_general(self):
         skill = self.registry.select_for_request(self._request("bu nima haqida?"))
         self.assertEqual(skill.slug, "general_chat")
+
+    def test_image_keywords_route_to_image_qa(self):
+        skill = self.registry.select_for_request(self._request("menga flashcard chizib ber"))
+        self.assertEqual(skill.slug, "image_qa")
+
+    def test_neutral_question_with_image_routes_to_image_qa(self):
+        skill = self.registry.select_for_request(
+            self._request("bu nima?", image_data_url="data:image/jpeg;base64,xxx")
+        )
+        self.assertEqual(skill.slug, "image_qa")
 
 
 @override_settings(MEDIA_ROOT=TEMP_MEDIA)
@@ -140,6 +202,76 @@ class GenerateAiResponsePdfFlowTests(TestCase):
 
 
 @override_settings(MEDIA_ROOT=TEMP_MEDIA)
+class GenerateAiResponseImageFlowTests(TestCase):
+    def setUp(self):
+        self.student = User.objects.create_user(username="img_u", email="img@t.uz", password="x")
+        self.room = ChatRoom.objects.create(room_type="ai", name="Image room")
+        self.room.participants.add(self.student)
+
+    def _run_task(self, question, user_message=None):
+        from messenger.tasks import generate_ai_response
+
+        generate_ai_response.run(
+            room_id=self.room.id,
+            student_id=self.student.id,
+            user_question=question,
+            user_message_id=user_message.id if user_message else None,
+        )
+
+    def test_uploaded_image_reaches_engine_as_data_url(self):
+        upload_message = Message.objects.create(
+            room=self.room,
+            sender=self.student,
+            text="",
+            attachment=ContentFile(_sample_png_bytes(), name="foto.png"),
+            attachment_name="foto.png",
+            attachment_content_type="image/png",
+        )
+
+        captured = {}
+
+        def capture(request: AIRequest):
+            captured["request"] = request
+            return AIResponse(text="ok", model_name="fake", skill_slug="image_qa", metadata={})
+
+        with patch("messenger.tasks.AIEngine") as engine_cls:
+            engine_cls.return_value.generate_reply.side_effect = capture
+            self._run_task("rasmda nima bor?", user_message=upload_message)
+
+        request = captured["request"]
+        self.assertTrue(request.image_data_url.startswith("data:image/jpeg;base64,"))
+        self.assertEqual(request.image_name, "foto.png")
+
+    def test_svg_image_block_becomes_sanitized_attachment(self):
+        fake = AIResponse(
+            text=(
+                "Mana! 🎨\n<SVG_IMAGE title=\"Ev flashcard\">"
+                "<svg viewBox=\"0 0 100 60\" xmlns=\"http://www.w3.org/2000/svg\">"
+                "<script>alert(1)</script>"
+                "<rect x=\"1\" y=\"1\" width=\"98\" height=\"58\" fill=\"#1257e6\"/>"
+                "<text x=\"20\" y=\"35\" fill=\"white\">ev</text>"
+                "</svg></SVG_IMAGE>"
+            ),
+            model_name="fake-model",
+            skill_slug="image_qa",
+            metadata={},
+        )
+        with patch("messenger.tasks.AIEngine") as engine_cls:
+            engine_cls.return_value.generate_reply.return_value = fake
+            self._run_task("menga 'ev' uchun flashcard chizib ber")
+
+        ai_message = Message.objects.filter(room=self.room, is_ai_response=True).latest("created_at")
+        self.assertEqual(ai_message.text, "Mana! 🎨")
+        self.assertTrue(ai_message.attachment_name.endswith(".svg"))
+        self.assertEqual(ai_message.attachment_content_type, "image/svg+xml")
+        self.assertTrue(ai_message.is_image_attachment)
+        ai_message.attachment.open("rb")
+        svg_saved = ai_message.attachment.read().decode("utf-8")
+        self.assertIn("<svg", svg_saved)
+        self.assertNotIn("script", svg_saved.lower())
+
+
+@override_settings(MEDIA_ROOT=TEMP_MEDIA)
 class UploadTriggersAiTests(TestCase):
     def setUp(self):
         self.student = User.objects.create_user(
@@ -169,7 +301,14 @@ class UploadTriggersAiTests(TestCase):
         kwargs = delay.call_args.kwargs
         self.assertIn("PDF hujjat yukladim", kwargs["user_question"])
 
-    def test_captionless_image_upload_does_not_dispatch_ai(self):
+    def test_image_upload_dispatches_ai_with_default_question(self):
+        # Vision qo'shilgach rasm ham AI'ni chaqiradi (avval chaqirilmasdi)
         with patch("messenger.tasks.generate_ai_response.delay") as delay:
             self._upload("rasm.png", b"\x89PNG fake", "image/png")
+        delay.assert_called_once()
+        self.assertIn("rasm yubordim", delay.call_args.kwargs["user_question"])
+
+    def test_captionless_generic_file_does_not_dispatch_ai(self):
+        with patch("messenger.tasks.generate_ai_response.delay") as delay:
+            self._upload("hujjat.docx", b"PK fake docx", "application/vnd.openxmlformats")
         delay.assert_not_called()

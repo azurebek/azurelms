@@ -116,6 +116,12 @@
       <div class="msg-row me group-start group-last" data-message-id="{{ message.id }}">
         <div class="msg-group">
           <div class="bubble bubble-me{% if message.is_deleted %} bubble-deleted{% endif %}" data-message-text="true">{{ message.display_body }}</div>
+          {% if message.attachment and not message.is_deleted %}
+          <a class="bubble-file bubble-file--me{% if message.is_image_attachment %} bubble-file--image{% endif %}" href="{{ message.attachment_url }}" target="_blank" rel="noopener">
+            {% if message.is_image_attachment %}<img src="{{ message.attachment_url }}" alt="" loading="lazy" style="max-width:220px;max-height:180px;border-radius:10px;display:block;margin-bottom:6px;">{% else %}<span class="bubble-file-icon"><i class="bi bi-file-earmark"></i></span>{% endif %}
+            <span class="bubble-file-info"><span class="bubble-file-name">{{ message.attachment_name|default:"Fayl" }}</span><span class="bubble-file-size">{{ message.attachment_size_label }}</span></span>
+          </a>
+          {% endif %}
           <div class="bubble-meta"><span>{{ message.created_at|date:"H:i" }}</span><i class="bi bi-check2-all check"></i></div>
           {% if message.can_manage and not message.is_deleted %}
           <div class="msg-actions" data-message-actions="true" data-message-id="{{ message.id }}">
@@ -131,6 +137,12 @@
         <div class="msg-group">
           {% if not message.is_ai_response and message.sender %}<div class="msg-author-name">{{ message.sender.get_full_name|default:message.sender.username }}</div>{% endif %}
           <div class="bubble bubble-them{% if message.is_deleted %} bubble-deleted{% endif %}" data-message-text="true">{{ message.display_body }}</div>
+          {% if message.attachment and not message.is_deleted %}
+          <a class="bubble-file{% if message.is_image_attachment %} bubble-file--image{% endif %}" href="{{ message.attachment_url }}" target="_blank" rel="noopener">
+            {% if message.is_image_attachment %}<img src="{{ message.attachment_url }}" alt="" loading="lazy" style="max-width:220px;max-height:180px;border-radius:10px;display:block;margin-bottom:6px;">{% else %}<span class="bubble-file-icon"><i class="bi bi-file-earmark"></i></span>{% endif %}
+            <span class="bubble-file-info"><span class="bubble-file-name">{{ message.attachment_name|default:"Fayl" }}</span><span class="bubble-file-size">{{ message.attachment_size_label }}</span></span>
+          </a>
+          {% endif %}
           <div class="bubble-meta"><span>{{ message.created_at|date:"H:i" }}</span></div>
           {% if message.is_ai_response %}
           {# messenger-chat.js createFeedbackControls bilan bir xil DOM kontrakti #}

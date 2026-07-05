@@ -84,6 +84,7 @@ class AIEngine:
                 is_first_message=is_first_message,
                 document_context=getattr(request, "document_context", "") or "",
                 document_name=getattr(request, "document_name", "") or "",
+                image_name=getattr(request, "image_name", "") or "",
             )
             effort = getattr(request.student, "ai_web_search_effort", "light") or "light"
             enable_web_search = (
@@ -91,11 +92,15 @@ class AIEngine:
                 or effort == "heavy"
             )
             enable_web_search = enable_web_search and getattr(self.provider, "supports_web_search", True)
-            provider_response = self.provider.generate(
-                prompt=prompt,
-                selected_model=getattr(request.student, "ai_model", None),
-                enable_web_search=enable_web_search,
-            )
+            generate_kwargs = {
+                "prompt": prompt,
+                "selected_model": getattr(request.student, "ai_model", None),
+                "enable_web_search": enable_web_search,
+            }
+            image_data_url = getattr(request, "image_data_url", "") or ""
+            if image_data_url and getattr(self.provider, "supports_vision", False):
+                generate_kwargs["images"] = [image_data_url]
+            provider_response = self.provider.generate(**generate_kwargs)
 
             extraction = self.memory_service.extract_from_reply(
                 provider_response.text,
@@ -130,6 +135,8 @@ class AIEngine:
                     "requested_skill": request.requested_skill_slug or "auto",
                     "used_tools": tool_context.used_tools,
                     "document_name": getattr(request, "document_name", "") or "",
+                    "image_name": getattr(request, "image_name", "") or "",
+                    "vision_used": bool(generate_kwargs.get("images")),
                     "web_search_enabled": enable_web_search,
                     "web_search_queries": web_search_meta.get("queries", []),
                     "web_search_sources": web_search_meta.get("sources", []),

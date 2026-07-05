@@ -663,15 +663,22 @@ def upload_message_attachment(request):
     _mark_room_read(request.user, room)
     _broadcast_message_event(message, event_type="message_uploaded", user=request.user)
 
-    # AI xonasiga PDF yuklansa (yoki izohli fayl kelsa) — AI o'zi javob boshlaydi.
-    # Oddiy rasm-fayllar izohsiz yuklansa AI chaqirilmaydi (avvalgi xulq saqlanadi).
-    is_pdf = (upload.name or "").lower().endswith(".pdf") or "pdf" in (
-        getattr(upload, "content_type", "") or ""
-    ).lower()
-    if room.room_type == "ai" and (is_pdf or text):
+    # AI xonasiga PDF/rasm yuklansa (yoki izohli fayl kelsa) — AI o'zi javob boshlaydi.
+    upload_name = (upload.name or "").lower()
+    upload_type = (getattr(upload, "content_type", "") or "").lower()
+    is_pdf = upload_name.endswith(".pdf") or "pdf" in upload_type
+    is_image = upload_type.startswith("image/") or upload_name.endswith(
+        (".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp")
+    )
+    if room.room_type == "ai" and (is_pdf or is_image or text):
         from .tasks import generate_ai_response
 
-        question = text or "Men PDF hujjat yukladim — qisqacha mazmunini aytib bera olasanmi?"
+        if text:
+            question = text
+        elif is_pdf:
+            question = "Men PDF hujjat yukladim — qisqacha mazmunini aytib bera olasanmi?"
+        else:
+            question = "Men rasm yubordim — unda nima ko'rinayotganini aytib bera olasanmi?"
         try:
             generate_ai_response.delay(
                 room_id=room.id,

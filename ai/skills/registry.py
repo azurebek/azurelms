@@ -206,6 +206,25 @@ BUILTIN_SKILLS: tuple[SkillDefinition, ...] = (
         priority=55,
     ),
     SkillDefinition(
+        slug="image_qa",
+        name="Image Understanding",
+        description="Analyzes uploaded images (photos, screenshots, handwriting) and draws simple SVG visuals on request.",
+        tool_slugs=("lesson_context",),
+        trigger_keywords=(
+            "rasm",
+            "rasmda",
+            "suratda",
+            "surat",
+            "screenshot",
+            "skrinshot",
+            "chizib ber",
+            "chiz",
+            "flashcard",
+            "diagramma",
+        ),
+        priority=76,
+    ),
+    SkillDefinition(
         slug="document_qa",
         name="Document Q&A",
         description="Answers questions about an uploaded PDF document and builds documents on request.",
@@ -301,7 +320,10 @@ class SkillRegistry:
                 best_slug = definition.slug
                 best_score = score
 
-        if best_score == 0 and getattr(request, "document_context", None):
+        if best_score == 0 and getattr(request, "image_data_url", None):
+            # Xonada yuklangan rasm bor, savol boshqa skillga tushmadi — vision skilli
+            best_slug = "image_qa"
+        elif best_score == 0 and getattr(request, "document_context", None):
             # Xonada yuklangan hujjat bor, savol boshqa skillga tushmadi — hujjat skilli
             best_slug = "document_qa"
         elif best_score == 0 and getattr(request, "context_lesson", None):
