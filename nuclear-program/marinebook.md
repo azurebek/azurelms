@@ -16,6 +16,20 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-05 [Claude]: Azure AI endi rasmlarni ko'radi va o'zi chizadi (vision + SVG)
+
+**Kashfiyot:** DO'dagi llama-4-maverick tug'ma multimodal ekan — jonli probe rasmdagi "MERHABA" yozuvini o'qib tarjima qildi. Yangi xizmat/xarajat YO'Q. **Ko'rish:** provider `images` param oldi (OpenAI-uslub content array, `supports_vision=True`); yuklangan rasm Pillow bilan 1280px JPEG data-URL'ga tayyorlanadi (`ai/documents/images.py`); AI xonasiga rasm yuklansa AI o'zi javob boshlaydi, keyingi savollarda xonadagi oxirgi rastr rasm avtomatik so'rovga biriktiriladi (AI'ning o'z SVG'lari hisobga olinmaydi — loop yo'q). **Chizish:** `<SVG_IMAGE title>` bloki (PDF_DOC naqshi) → server QAT'IY allowlist sanitizer bilan zararsizlantiradi (script/foreignObject/on*/href butunlay o'chadi, ElementTree asosida) → .svg attachment (image/svg+xml) → chatda rasm sifatida ko'rinadi. Yangi `image_qa` skilli (rasm/chiz/flashcard triggerlari; rasm bor + neytral savol → shu skill; tanlash tartibi: image → document → lesson).
+
+Yo'lda tuzatildi: chat bubble'larida attachment SERVER-RENDER'da umuman chiqmasdi (sahifa yangilanganda fayllar "yo'qolardi") — ai.html'ga ikkala tarafga attachment bloki qo'shildi; JS'da rasm uchun haqiqiy <img> preview.
+
+Jonli DO sinov: rasmdagi "KITAP OKUMAK / COK GUZELDIR" o'qilib to'g'ri tarjima qilindi ✓; "ev uchun flashcard chiz" → "Ev sozi uchun flashcard.svg" (sanitizer'dan o'tgan, is_image) ✓.
+
+- Branch: `claude/ai-persona` (persona + PDF + rasm — bitta AI-yaxshilanishlar to'plami)
+- Test holati: `python manage.py test` — **210/210 OK** (9 yangi rasm testi bilan)
+- Davom etilishi kerak: foto-realistik rasm generatsiyasi ATAYLAB yo'q (tashqi pullik API kerak bo'lardi — DO-only byudjet qaroriga zid); SVG hozircha bitta blok/javob
+
+---
+
 ## 2026-07-04 [Claude]: AI'ga shaxsiyat berildi — "sovuq yordamchi" muammosi hal
 
 Shikoyat: "do'stlashamizmi / senga yoqdimi / qaysini tanlarding" kabi savollarga AI "men AI yordamchiman, didim yo'q" deb oqimni sovutardi. Sabab (jonli repro bilan tasdiqlandi): prompt'da persona YO'Q edi (bitta jumla: "xavfsiz va ishonchli AI yordamchisisiz"), xavfsizlik qoidasi "o'zingizni boshqa obrazda tanishtirmang" ijtimoiy savollarni ham bosardi, Llama-maverick defolt RLHF naqshiga tushardi.
