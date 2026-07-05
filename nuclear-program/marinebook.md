@@ -16,6 +16,24 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-05 [Claude]: Gibrid AI — Gemini FAQAT web-qidiruv uchun (maverick asosiy)
+
+User web-qidiruvni tikladi, lekin Gemini bepul kvotasini tejash sharti bilan: qidiruv Gemini'da, qolgani maverick'da. Muammo edi: DO/maverick `supports_web_search=False` — jonli qidira olmaydi, `web_search` skilli tanlansa ham AI faktlarni to'qirdi.
+
+**Arxitektura (qobiliyat-asosli provayder tanlash):** `get_search_provider()` — Gemini'ni FAQAT kalit+qobiliyat bo'lsa qaytaradi (`GeminiProvider.supports_web_search=True`). `AIEngine`'ga `search_provider` inject (sentinel bilan; konstruktor tarmoqqa chiqmaydi — arzon). `generate_reply`: `wants_web_search AND rasm yo'q` bo'lsa — asosiy qidira olsa asosiy, aks holda Gemini mutaxassisi (grounding, selected_model uzatilmaydi — DO modelini tanimaydi); aks holda maverick. Rasm bo'lsa vision ustun (maverick'da qoladi). Kalit yo'q → maverick'da halol javob, crash yo'q. Metadata: `search_specialist_used`.
+
+**web_search skilli takomili:** `_render_web_search` tool-konteksti SKILL.md bilan ZID edi ("(Manba N) yoz" deb, skill esa "yozma" derdi) — tuzatildi; halollik kuchaytirildi (jonli natija yo'q bo'lsa faktni TO'QIMASLIK). Bir nechta yuqori-aniqlikdagi trigger qo'shildi (eng so'nggi, valyuta kursi, real vaqt...) — konservativ, minimal-usage saqlanadi.
+
+**Jonli sinov (haqiqiy Gemini+maverick):** "Internetdan qidirib ber: bugungi yangiliklar" → Gemini (gemini-2.5-flash), grounding, **8 haqiqiy manba**, jonli O'zbekiston yangiliklari ✓; "Turkchada rahmat qanday?" → maverick, Gemini TEGMADI ✓. 6 ta unit test aynan shu kafolatni tekshiradi (oddiy chat search_provider'ni chaqirmaydi).
+
+**NB (deploy):** ishlashi uchun `GEMINI_API_KEY` env'da bo'lishi shart (lokalda bor). Yo'q bo'lsa — jonli qidiruv o'chadi, chat ishlayveradi. Bu DO-only qaroriga maqsadli, tor istisno (faqat qidiruv).
+
+- Branch: `claude/ai-hybrid-search`
+- Test holati: `python manage.py test` — **216/216 OK** (6 yangi ai.agent provayder-routing testi); jonli Gemini+maverick smoke o'tdi
+- Davom etilishi kerak: web_search skill-tanlash hali kalit-so'zga bog'liq (semantik "aholisi qancha" kabi savollar general_chat'ga tushadi — ataylab, kvota tejash uchun); kerak bo'lsa LLM-router; prod'da GEMINI_API_KEY env qo'shish
+
+---
+
 ## 2026-07-05 [Claude]: Azure AI endi rasmlarni ko'radi va o'zi chizadi (vision + SVG)
 
 **Kashfiyot:** DO'dagi llama-4-maverick tug'ma multimodal ekan — jonli probe rasmdagi "MERHABA" yozuvini o'qib tarjima qildi. Yangi xizmat/xarajat YO'Q. **Ko'rish:** provider `images` param oldi (OpenAI-uslub content array, `supports_vision=True`); yuklangan rasm Pillow bilan 1280px JPEG data-URL'ga tayyorlanadi (`ai/documents/images.py`); AI xonasiga rasm yuklansa AI o'zi javob boshlaydi, keyingi savollarda xonadagi oxirgi rastr rasm avtomatik so'rovga biriktiriladi (AI'ning o'z SVG'lari hisobga olinmaydi — loop yo'q). **Chizish:** `<SVG_IMAGE title>` bloki (PDF_DOC naqshi) → server QAT'IY allowlist sanitizer bilan zararsizlantiradi (script/foreignObject/on*/href butunlay o'chadi, ElementTree asosida) → .svg attachment (image/svg+xml) → chatda rasm sifatida ko'rinadi. Yangi `image_qa` skilli (rasm/chiz/flashcard triggerlari; rasm bor + neytral savol → shu skill; tanlash tartibi: image → document → lesson).
