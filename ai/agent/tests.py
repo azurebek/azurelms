@@ -1,0 +1,161 @@
+"""AIEngine provayder-tanlash testlari — Gemini FAQAT web-qidiruv uchun.
+
+Asosiy kafolat: oddiy chatda Gemini (search mutaxassisi) umuman chaqirilmaydi,
+shu tariqa uning bepul kvotasi tejaladi. Qidiruv kerak bo'lgandagina ishga tushadi.
+"""
+from types import SimpleNamespace
+from unittest.mock import MagicMock
+
+from django.test import TestCase, override_settings
+
+from ai.agent.engine import AIEngine
+from ai.agent.types import AIRequest, ProviderResponse
+from ai.providers import get_search_provider
+from ai.skills.registry import SkillRegistry
+
+
+def _conversation_ctx():
+    return SimpleNamespace(
+        recent_message_count=1,
+        summarized_message_count=0,
+        summary="",
+        recent_dialogue="",
+    )
+
+
+def _rag_ctx():
+    return SimpleNamespace(
+        lesson_context="",
+        rag_context="",
+        access_note="",
+        chunks=[],
+        sources=[],
+    )
+
+
+def _fake_memory():
+    memory = MagicMock()
+    memory.sanitize_user_question.side_effect = lambda q: q
+    memory.get_conversation_context.return_value = _conversation_ctx()
+    memory.render_relevant_memory.return_value = ""
+    memory.extract_from_reply.side_effect = lambda text, **kw: SimpleNamespace(
+        reply_text=text, candidates=[]
+    )
+    memory.save_candidates.return_value = []
+    return memory
+
+
+def _fake_provider(*, supports_web_search=False, supports_vision=False, text="javob", model="m", web=None):
+    provider = MagicMock()
+    provider.supports_web_search = supports_web_search
+    provider.supports_vision = supports_vision
+    provider.generate.return_value = ProviderResponse(text=text, model_name=model, web_search=web)
+    return provider
+
+
+def _make_engine(*, primary, search_provider, used_tools):
+    rag = MagicMock()
+    rag.build.return_value = _rag_ctx()
+    prompt_builder = MagicMock()
+    prompt_builder.build.return_value = "PROMPT"
+    tool_ctx = MagicMock()
+    tool_ctx.build.return_value = SimpleNamespace(rendered="", used_tools=used_tools)
+    skill_registry = MagicMock()
+    skill_registry.select_for_request.return_value = SkillRegistry().get("general_chat")
+    return AIEngine(
+        memory_service=_fake_memory(),
+        rag_service=rag,
+        prompt_builder=prompt_builder,
+        provider=primary,
+        search_provider=search_provider,
+        skill_registry=skill_registry,
+        tool_context_service=tool_ctx,
+    )
+
+
+def _student():
+    return SimpleNamespace(ai_web_search_effort="light", ai_model="llama-4-maverick")
+
+
+class SearchProviderFactoryTests(TestCase):
+    @override_settings(GEMINI_API_KEY="test-key")
+    def test_returns_gemini_when_key_present(self):
+        provider = get_search_provider()
+        self.assertIsNotNone(provider)
+        self.assertTrue(getattr(provider, "supports_web_search", False))
+
+    @override_settings(GEMINI_API_KEY=None)
+    def test_returns_none_without_key(self):
+        self.assertIsNone(get_search_provider())
+
+
+class EngineProviderRoutingTests(TestCase):
+    def test_normal_chat_never_touches_search_provider(self):
+        # ENG MUHIM KAFOLAT: oddiy suhbatda Gemini chaqirilmaydi
+        primary = _fake_provider(supports_vision=True, text="maverick javob", model="llama-4-maverick")
+        search = _fake_provider(supports_web_search=True, text="gemini", model="gemini-2.5-flash")
+        engine = _make_engine(primary=primary, search_provider=search, used_tools=[])
+
+        response = engine.generate_reply(
+            AIRequest(room=None, student=_student(), user_question="Salom, qalaysan?")
+        )
+
+        primary.generate.assert_called_once()
+        search.generate.assert_not_called()
+        self.assertEqual(response.text, "maverick javob")
+        self.assertFalse(response.metadata["search_specialist_used"])
+
+    def test_web_search_query_routes_to_gemini_specialist(self):
+        primary = _fake_provider(supports_vision=True, model="llama-4-maverick")
+        search = _fake_provider(
+            supports_web_search=True,
+            text="grounded javob",
+            model="gemini-2.5-flash",
+            web={"queries": ["dollar kursi"], "sources": [{"title": "cbu", "uri": "https://cbu.uz"}]},
+        )
+        engine = _make_engine(primary=primary, search_provider=search, used_tools=["web_search"])
+
+        response = engine.generate_reply(
+            AIRequest(room=None, student=_student(), user_question="Bugungi dollar kursi qancha?")
+        )
+
+        search.generate.assert_called_once()
+        primary.generate.assert_not_called()
+        # Gemini'ga DO model nomi uzatilmasligi kerak (o'z defoltini ishlatadi)
+        self.assertNotIn("selected_model", search.generate.call_args.kwargs)
+        self.assertTrue(search.generate.call_args.kwargs["enable_web_search"])
+        self.assertTrue(response.metadata["search_specialist_used"])
+        self.assertEqual(response.metadata["web_search_sources"], [{"title": "cbu", "uri": "https://cbu.uz"}])
+
+    def test_web_query_without_specialist_falls_back_to_primary_honestly(self):
+        # Kalit yo'q (search_provider=None) → maverick'da halol javob, crash yo'q
+        primary = _fake_provider(supports_vision=True, text="halol javob", model="llama-4-maverick")
+        engine = _make_engine(primary=primary, search_provider=None, used_tools=["web_search"])
+
+        response = engine.generate_reply(
+            AIRequest(room=None, student=_student(), user_question="Bugungi ob-havo?")
+        )
+
+        primary.generate.assert_called_once()
+        self.assertFalse(primary.generate.call_args.kwargs["enable_web_search"])
+        self.assertFalse(response.metadata["search_specialist_used"])
+
+    def test_image_plus_web_query_prefers_vision_on_primary(self):
+        # Rasm bor → vision ustun: maverick'da qoladi, Gemini chaqirilmaydi
+        primary = _fake_provider(supports_vision=True, text="rasm tahlili", model="llama-4-maverick")
+        search = _fake_provider(supports_web_search=True, model="gemini-2.5-flash")
+        engine = _make_engine(primary=primary, search_provider=search, used_tools=["web_search"])
+
+        request = AIRequest(
+            room=None,
+            student=_student(),
+            user_question="rasmda nima va bugungi narxi qancha?",
+            image_data_url="data:image/jpeg;base64,xxx",
+            image_name="foto.png",
+        )
+        response = engine.generate_reply(request)
+
+        primary.generate.assert_called_once()
+        search.generate.assert_not_called()
+        self.assertEqual(primary.generate.call_args.kwargs["images"], ["data:image/jpeg;base64,xxx"])
+        self.assertTrue(response.metadata["vision_used"])

@@ -4,7 +4,7 @@ import re
 from ai.agent.types import AIRequest, AIResponse
 from ai.memory.service import MemoryService
 from ai.prompts.builder import PromptBuilder
-from ai.providers import get_chat_provider
+from ai.providers import get_chat_provider, get_search_provider
 from ai.providers.gemini import fallback_ai_reply
 from ai.rag.context import RAGContextService
 from ai.skills.registry import SkillRegistry
@@ -12,6 +12,10 @@ from ai.tools.context import ToolContextService
 
 
 logger = logging.getLogger(__name__)
+
+# search_provider'ni "berilmagan" (default → get_search_provider) va "ataylab None"
+# (mutaxassis yo'q) holatlarini farqlash uchun sentinel.
+_UNSET = object()
 
 
 class AIEngine:
@@ -22,6 +26,7 @@ class AIEngine:
         rag_service: RAGContextService | None = None,
         prompt_builder: PromptBuilder | None = None,
         provider=None,
+        search_provider=_UNSET,
         skill_registry: SkillRegistry | None = None,
         tool_context_service: ToolContextService | None = None,
     ):
@@ -29,6 +34,10 @@ class AIEngine:
         self.rag_service = rag_service or RAGContextService()
         self.prompt_builder = prompt_builder or PromptBuilder()
         self.provider = provider or get_chat_provider()
+        # Web-qidiruv mutaxassisi (Gemini) — faqat qidiruv kerak bo'lganda ishlatiladi.
+        # GeminiProvider konstruktori tarmoqqa chiqmaydi (kalitni o'qiydi xolos), shuning
+        # uchun har so'rovda yaratish arzon; genai.Client faqat generate()da tuziladi.
+        self.search_provider = get_search_provider() if search_provider is _UNSET else search_provider
         self.skill_registry = skill_registry or SkillRegistry()
         self.tool_context_service = tool_context_service or ToolContextService()
 
@@ -87,20 +96,34 @@ class AIEngine:
                 image_name=getattr(request, "image_name", "") or "",
             )
             effort = getattr(request.student, "ai_web_search_effort", "light") or "light"
-            enable_web_search = (
-                "web_search" in tool_context.used_tools
-                or effort == "heavy"
-            )
-            enable_web_search = enable_web_search and getattr(self.provider, "supports_web_search", True)
-            generate_kwargs = {
-                "prompt": prompt,
-                "selected_model": getattr(request.student, "ai_model", None),
-                "enable_web_search": enable_web_search,
-            }
+            wants_web_search = "web_search" in tool_context.used_tools or effort == "heavy"
             image_data_url = getattr(request, "image_data_url", "") or ""
-            if image_data_url and getattr(self.provider, "supports_vision", False):
+
+            # --- Provayderni QOBILIYAT bo'yicha tanlash ---
+            # Standart: asosiy provayder (maverick/DO). Gemini FAQAT jonli web-qidiruv
+            # kerak bo'lганda va asosiy provayder buni qila olmaganda ishga tushadi —
+            # shu tariqa Gemini bepul kvotasi tejaladi. Rasm bo'lsa vision ustun turadi
+            # (vision maverick'da, qidiruv Gemini'da — bittasini tanlaymiz).
+            active_provider = self.provider
+            enable_web_search = False
+            used_search_specialist = False
+            if wants_web_search and not image_data_url:
+                if getattr(self.provider, "supports_web_search", False):
+                    enable_web_search = True
+                elif self.search_provider is not None:
+                    active_provider = self.search_provider
+                    enable_web_search = True
+                    used_search_specialist = True
+                # aks holda: qidiruv backendi yo'q → asosiy provayderda halol javob
+
+            generate_kwargs = {"prompt": prompt, "enable_web_search": enable_web_search}
+            # Foydalanuvchi tanlagan model faqat asosiy provayderga tegishli
+            # (Gemini mutaxassisi DO model nomini tanimaydi — o'z defoltini ishlatadi).
+            if not used_search_specialist:
+                generate_kwargs["selected_model"] = getattr(request.student, "ai_model", None)
+            if image_data_url and getattr(active_provider, "supports_vision", False):
                 generate_kwargs["images"] = [image_data_url]
-            provider_response = self.provider.generate(**generate_kwargs)
+            provider_response = active_provider.generate(**generate_kwargs)
 
             extraction = self.memory_service.extract_from_reply(
                 provider_response.text,
@@ -137,6 +160,7 @@ class AIEngine:
                     "document_name": getattr(request, "document_name", "") or "",
                     "image_name": getattr(request, "image_name", "") or "",
                     "vision_used": bool(generate_kwargs.get("images")),
+                    "search_specialist_used": used_search_specialist,
                     "web_search_enabled": enable_web_search,
                     "web_search_queries": web_search_meta.get("queries", []),
                     "web_search_sources": web_search_meta.get("sources", []),

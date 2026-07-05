@@ -222,10 +222,15 @@ class ToolContextService:
         return "\n".join(lines)
 
     def _render_web_search(self, *, request) -> str:
+        # DIQQAT: matnda '(Manba N)' yozish yoki manba ro'yxatini qo'shish TAQIQLANADI —
+        # platforma manbalarni alohida UI elementida o'zi ko'rsatadi (web_search SKILL.md).
         return (
-            "Web qidiruv yoqilgan. Gemini Google Search tool orqali real-time natijalarni o'qiy oladi. "
-            "Foydalanuvchining savoliga eng yangi va aniq ma'lumotni qidir, "
-            "javobda manba raqamlarini (Manba 1, Manba 2, ...) grounding tartibida ishlat va oxirida qisqa manba ro'yxatini ber."
+            "Foydalanuvchi savoli jonli/yangi ma'lumot talab qiladi. Agar qidiruv natijalari mavjud bo'lsa, "
+            "faktlarni AVVALO shularga tayangan holda ber va o'zing biladigandek tabiiy yoz — "
+            "javob matnida '(Manba 1)' kabi belgilar yozma, oxiriga 'Manbalar:' ro'yxati qo'shma. "
+            "Bir nechta manba mos kelsa birlashtir, ziddiyat bo'lsa buni aniq ayt. "
+            "Agar jonli natija bo'lmasa, sana/narx/statistikani TO'QIMA — halol ayt: eng so'nggi "
+            "ma'lumotni tekshira olmayotganingni bildir va savolni aniqlashtirishni taklif qil."
         )
 
     def _clean_excerpt(self, value: str | None, limit: int | None = None) -> str:

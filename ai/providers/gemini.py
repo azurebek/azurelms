@@ -48,6 +48,10 @@ def fallback_ai_reply(error) -> str:
 
 
 class GeminiProvider:
+    # Gemini Google Search grounding orqali jonli web-qidiruvni qo'llab-quvvatlaydi
+    supports_web_search = True
+    supports_vision = False
+
     def __init__(self, *, api_key: str | None = None, sleep=time.sleep):
         self.api_key = api_key if api_key is not None else settings.GEMINI_API_KEY
         self.sleep = sleep
