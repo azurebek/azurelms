@@ -10,6 +10,19 @@ from ai.agent.types import ProviderResponse
 
 logger = logging.getLogger(__name__)
 
+
+def _normalize_usage(usage) -> dict | None:
+    """OpenAI-uslub usage blokini {prompt,completion,total}_tokens ga keltiradi."""
+    if not isinstance(usage, dict):
+        return None
+    prompt = int(usage.get("prompt_tokens") or 0)
+    completion = int(usage.get("completion_tokens") or 0)
+    total = int(usage.get("total_tokens") or (prompt + completion))
+    if not (prompt or completion or total):
+        return None
+    return {"prompt_tokens": prompt, "completion_tokens": completion, "total_tokens": total}
+
+
 DEFAULT_MODEL_FALLBACKS = [
     "router:general",
     "deepseek-4-flash",
@@ -78,7 +91,11 @@ class DigitalOceanProvider:
                         .strip()
                     )
                     if text:
-                        return ProviderResponse(text=text, model_name=model_name)
+                        return ProviderResponse(
+                            text=text,
+                            model_name=model_name,
+                            usage=_normalize_usage(payload.get("usage")),
+                        )
                     raise RuntimeError(f"Bo'sh javob qaytdi (model={model_name})")
                 except Exception as exc:
                     last_error = exc

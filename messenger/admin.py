@@ -88,7 +88,7 @@ class AIConversationSummaryAdmin(admin.ModelAdmin):
 
 @admin.register(AIResponseRun)
 class AIResponseRunAdmin(admin.ModelAdmin):
-    list_display = ("id", "student", "room", "status", "model_name", "duration_ms", "created_at")
+    list_display = ("id", "student", "room", "status", "model_name", "total_tokens", "duration_ms", "created_at")
     list_filter = ("status", "model_name", "created_at")
     search_fields = ("student__username", "student__email", "room__name", "user_question", "error_message")
     readonly_fields = ("created_at", "updated_at", "started_at", "completed_at")

@@ -31,3 +31,5 @@ class ProviderResponse:
     text: str
     model_name: str
     web_search: dict[str, Any] | None = None
+    # {"prompt_tokens", "completion_tokens", "total_tokens"} — provayder qaytarsa
+    usage: dict[str, int] | None = None

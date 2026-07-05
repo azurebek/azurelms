@@ -82,6 +82,7 @@ class GeminiProvider:
                             text=text,
                             model_name=model_name,
                             web_search=web_search,
+                            usage=self._extract_usage(response),
                         )
                     raise RuntimeError(f"Bo'sh javob qaytdi (model={model_name})")
                 except Exception as exc:
@@ -111,6 +112,22 @@ class GeminiProvider:
             )
         except Exception:
             logger.exception("Google Search tool konfiguratsiyasi yaratib bo'lmadi")
+            return None
+
+    def _extract_usage(self, response):
+        """Gemini usage_metadata -> {prompt,completion,total}_tokens."""
+        try:
+            meta = getattr(response, "usage_metadata", None)
+            if not meta:
+                return None
+            prompt = int(getattr(meta, "prompt_token_count", 0) or 0)
+            completion = int(getattr(meta, "candidates_token_count", 0) or 0)
+            total = int(getattr(meta, "total_token_count", 0) or (prompt + completion))
+            if not (prompt or completion or total):
+                return None
+            return {"prompt_tokens": prompt, "completion_tokens": completion, "total_tokens": total}
+        except Exception:
+            logger.exception("Gemini usage_metadata parse qilinmadi")
             return None
 
     def _extract_web_search_metadata(self, response):

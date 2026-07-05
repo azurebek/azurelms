@@ -250,6 +250,43 @@ def generate_ai_response(
     if user_message_id:
         user_message = Message.objects.filter(id=user_message_id, room=room, sender=student).first()
 
+    # --- AI token limiti (5 soatlik + haftalik) ---
+    # Fail-open: limiter'da xato bo'lsa foydalanuvchi bloklanmaydi (nazorat, devor emas).
+    try:
+        from aicontrol.service import get_quota_status, limit_message
+
+        quota = get_quota_status(student)
+        if not quota.allowed:
+            notice = limit_message(quota)
+            blocked_message = Message.objects.create(room=room, text=notice, is_ai_response=True)
+            AIResponseRun.objects.create(
+                room=room,
+                student=student,
+                user_message=user_message,
+                ai_message=blocked_message,
+                user_question=user_question or "",
+                status=AIResponseRun.STATUS_FALLBACK,
+                skill_slug="quota_block",
+                started_at=timezone.now(),
+                completed_at=timezone.now(),
+            )
+            try:
+                _broadcast_ai_message(
+                    blocked_message,
+                    user_message_id=user_message.id if user_message else user_message_id,
+                )
+                _broadcast_ai_status(
+                    room_id=room.id,
+                    status=AIResponseRun.STATUS_FALLBACK,
+                    user_message_id=user_message.id if user_message else user_message_id,
+                    message="Limit tugadi.",
+                )
+            except Exception:
+                logger.exception("Quota-block broadcast failed for room_id=%s", room.id)
+            return None
+    except Exception:
+        logger.exception("AI quota check failed (fail-open) for student_id=%s", student_id)
+
     run = AIResponseRun.objects.create(
         room=room,
         student=student,
@@ -326,6 +363,11 @@ def generate_ai_response(
         run.skill_slug = response.skill_slug or ""
         run.duration_ms = int((time.perf_counter() - started) * 1000)
         run.metadata = response.metadata or {}
+        # Token hisobi — AI limit-boshqaruvi shu maydonlar yig'indisiga tayanadi
+        usage = (response.metadata or {}).get("usage") or {}
+        run.prompt_tokens = int(usage.get("prompt_tokens") or 0)
+        run.completion_tokens = int(usage.get("completion_tokens") or 0)
+        run.total_tokens = int(usage.get("total_tokens") or 0)
         run.completed_at = timezone.now()
         run.save(
             update_fields=[
@@ -335,6 +377,9 @@ def generate_ai_response(
                 "skill_slug",
                 "duration_ms",
                 "metadata",
+                "prompt_tokens",
+                "completion_tokens",
+                "total_tokens",
                 "completed_at",
                 "updated_at",
             ]

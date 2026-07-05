@@ -164,6 +164,7 @@ class AIEngine:
                     "web_search_enabled": enable_web_search,
                     "web_search_queries": web_search_meta.get("queries", []),
                     "web_search_sources": web_search_meta.get("sources", []),
+                    "usage": provider_response.usage or {},
                 },
             )
         except Exception as exc:

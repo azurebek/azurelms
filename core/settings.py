@@ -145,6 +145,7 @@ INSTALLED_APPS = [
     'courses',
     'cohorts',
     'messenger',
+    'aicontrol',
     'gamification',
     'subscriptions',
     'frontend',
