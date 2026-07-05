@@ -56,6 +56,7 @@ urlpatterns = [
     path('backoffice/lessons/<int:lesson_id>/', core_views.backoffice_lesson_editor, name='backoffice_lesson_edit'),
     path('backoffice/exams/', core_views.backoffice_exam_editor, name='backoffice_exams'),
     path('backoffice/exams/<int:exam_id>/', core_views.backoffice_exam_editor, name='backoffice_exam_edit'),
+    path('backoffice/ai-control/', core_views.backoffice_ai_control, name='backoffice_ai_control'),
 
     # TeacherShell — o'qituvchi paneli
     path('teacher/', teacher_views.teacher_dashboard, name='teacher_dashboard'),

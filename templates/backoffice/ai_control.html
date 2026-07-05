@@ -1,0 +1,143 @@
+{% extends "backoffice/base.html" %}
+{% comment %} AI boshqaruv markazi — global limitlar, tarif siyosatlari, usage, reset/bonus. {% endcomment %}
+
+{% block bo_title %}AI boshqaruvi{% endblock %}
+{% block bo_icon %}bi-cpu{% endblock %}
+{% block bo_topbar %}AI boshqaruvi{% endblock %}
+
+{% block bo_content %}
+<div style="max-width:1100px;">
+
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px;">
+    <div>
+      <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;">Token iqtisodiyoti · boshqaruv markazi</div>
+      <h1 style="font-size:clamp(24px,2.6vw,32px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:0;">AI limitlari va nazorat</h1>
+    </div>
+    <span style="display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;padding:8px 14px;border-radius:10px;{% if ai_settings.enforcement_enabled %}color:var(--green);background:var(--green-soft);border:1px solid var(--green);{% else %}color:var(--amber);background:var(--amber-soft);border:1px solid var(--amber);{% endif %}"><i class="bi {% if ai_settings.enforcement_enabled %}bi-shield-check{% else %}bi-shield-slash{% endif %}"></i> Limitlar {% if ai_settings.enforcement_enabled %}YOQILGAN{% else %}O'CHIRILGAN{% endif %}</span>
+  </div>
+
+  <!-- Usage overview -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:22px;">
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:16px 18px;"><div style="font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--ink);">{{ usage.tokens_5h|floatformat:0 }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">Token · so'nggi 5 soat</div></div>
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:16px 18px;"><div style="font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--ink);">{{ usage.tokens_week|floatformat:0 }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">Token · so'nggi hafta</div></div>
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:16px 18px;"><div style="font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--ink);">{{ usage.active_users }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">Faol AI foydalanuvchi</div></div>
+    <div style="border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:16px 18px;"><div style="font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:{% if usage.blocked %}var(--red){% else %}var(--ink){% endif %};">{{ usage.blocked }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">Bloklangan</div></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;" class="aic-cols">
+
+    <!-- Global sozlamalar -->
+    <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--line);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);">Global default limitlar</div>
+      <form method="post" style="padding:18px;">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save_settings">
+        <div class="bo-check" style="margin-bottom:12px;"><input type="checkbox" name="enforcement_enabled" id="ee"{% if ai_settings.enforcement_enabled %} checked{% endif %}><label for="ee" style="font-size:13.5px;color:var(--ink);">Limitlar yoqilgan (o'chirilsa hech kim bloklanmaydi)</label></div>
+        <div class="bo-check" style="margin-bottom:16px;"><input type="checkbox" name="exempt_staff" id="es"{% if ai_settings.exempt_staff %} checked{% endif %}><label for="es" style="font-size:13.5px;color:var(--ink);">Xodimlar (staff) limitdan ozod</label></div>
+        <label class="fld"><span class="bo-lbl">Default 5 soatlik token limiti</span><input type="number" name="default_5h_token_limit" value="{{ ai_settings.default_5h_token_limit }}" min="0" class="field-input"></label>
+        <label class="fld"><span class="bo-lbl">Default haftalik token limiti</span><input type="number" name="default_weekly_token_limit" value="{{ ai_settings.default_weekly_token_limit }}" min="0" class="field-input"></label>
+        <button type="submit" style="margin-top:8px;display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 18px;border-radius:9px;background:var(--azure);color:var(--on-azure);border:none;font-size:13.5px;font-weight:600;cursor:pointer;"><i class="bi bi-check2"></i> Saqlash</button>
+      </form>
+    </section>
+
+    <!-- Reset / bonus -->
+    <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--line);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);">Reset / bonus (bayram · event)</div>
+      <form method="post" style="padding:18px;" data-aic-event onsubmit="return confirm('Amalni tanlangan foydalanuvchilarga qo‘llaysizmi?');">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="apply_event">
+        <label class="fld"><span class="bo-lbl">Kimga</span>
+          <select name="scope" class="field-input" data-aic-scope>
+            <option value="all">Hammaga (ommaviy)</option>
+            <option value="cohort">Guruh (kohort)</option>
+            <option value="plan">Tarif</option>
+          </select>
+        </label>
+        <label class="fld" data-aic-cohort hidden><span class="bo-lbl">Guruh</span>
+          <select name="cohort_id" class="field-input">{% for c in cohorts %}<option value="{{ c.id }}">{{ c.name }} ({{ c.course.title|truncatechars:20 }})</option>{% endfor %}</select>
+        </label>
+        <label class="fld" data-aic-plan hidden><span class="bo-lbl">Tarif</span>
+          <select name="plan_id" class="field-input">{% for p in all_plans %}<option value="{{ p.id }}">{{ p.name }}</option>{% endfor %}</select>
+        </label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <label class="fld"><span class="bo-lbl">Amal</span>
+            <select name="kind" class="field-input" data-aic-kind><option value="reset">Reset (usage nolga)</option><option value="bonus">Bonus (qo'shimcha token)</option></select>
+          </label>
+          <label class="fld"><span class="bo-lbl">Oyna</span>
+            <select name="window" class="field-input"><option value="both">Ikkalasi</option><option value="5h">5 soatlik</option><option value="weekly">Haftalik</option></select>
+          </label>
+        </div>
+        <label class="fld" data-aic-bonus hidden><span class="bo-lbl">Bonus token miqdori</span><input type="number" name="bonus_tokens" value="50000" min="0" class="field-input"></label>
+        <label class="fld"><span class="bo-lbl">Sabab (masalan: Navro'z)</span><input type="text" name="reason" maxlength="200" class="field-input" placeholder="Bayram/event nomi"></label>
+        <button type="submit" style="margin-top:6px;display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 18px;border-radius:9px;background:var(--green);color:#fff;border:none;font-size:13.5px;font-weight:600;cursor:pointer;"><i class="bi bi-gift"></i> Qo'llash</button>
+      </form>
+    </section>
+  </div>
+
+  <!-- Tarif siyosatlari -->
+  <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:24px 0 10px;">Tarif bo'yicha limitlar</div>
+  <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;margin-bottom:22px;">
+    <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 90px 90px;padding:11px 18px;background:var(--paper-2);border-bottom:1px solid var(--line);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);"><span>Tarif</span><span>5 soatlik</span><span>Haftalik</span><span>Faol</span><span></span></div>
+    {% for row in plan_rows %}
+    <form method="post" style="display:grid;grid-template-columns:1.4fr 1fr 1fr 90px 90px;align-items:center;gap:8px;padding:10px 18px;{% if not forloop.last %}border-bottom:1px solid var(--line-2);{% endif %}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="save_policy">
+      <input type="hidden" name="plan_id" value="{{ row.plan.id }}">
+      <span style="font-size:13.5px;font-weight:600;color:var(--ink);">{{ row.plan.name }}</span>
+      <input type="number" name="token_limit_5h" value="{{ row.policy.token_limit_5h|default:'' }}" placeholder="default" min="0" style="height:34px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:var(--paper-2);color:var(--ink);font-family:'Space Mono',monospace;font-size:12.5px;">
+      <input type="number" name="token_limit_weekly" value="{{ row.policy.token_limit_weekly|default:'' }}" placeholder="default" min="0" style="height:34px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:var(--paper-2);color:var(--ink);font-family:'Space Mono',monospace;font-size:12.5px;">
+      <label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-2);"><input type="checkbox" name="is_active"{% if row.policy.is_active or not row.policy %} checked{% endif %}> faol</label>
+      <button type="submit" style="height:34px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--azure);font-size:12px;font-weight:600;cursor:pointer;">Saqlash</button>
+    </form>
+    {% empty %}
+    <div style="padding:20px;text-align:center;color:var(--ink-3);font-size:13px;">Tariflar yo'q. Avval subscriptions bo'limida tarif qo'shing.</div>
+    {% endfor %}
+  </section>
+
+  <div style="display:grid;grid-template-columns:1.3fr 0.7fr;gap:16px;align-items:start;" class="aic-cols">
+    <!-- Top foydalanuvchilar -->
+    <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--line);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);">Eng ko'p token ishlatganlar · hafta</div>
+      {% for u in top_users %}
+      <div style="display:flex;align-items:center;gap:11px;padding:11px 18px;{% if not forloop.last %}border-bottom:1px solid var(--line-2);{% endif %}">
+        <span style="font-family:'Space Mono',monospace;font-size:12px;color:var(--ink-4);width:20px;">{{ forloop.counter }}</span>
+        <span style="flex:1;min-width:0;font-size:13.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ u.student__first_name|default:u.student__username }} {{ u.student__last_name }}</span>
+        <span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);">{{ u.runs }} so'rov</span>
+        <span style="font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--ink);">{{ u.tokens|floatformat:0 }}</span>
+      </div>
+      {% empty %}
+      <div style="padding:20px;text-align:center;color:var(--ink-3);font-size:13px;">Hafta ichida AI ishlatilmagan.</div>
+      {% endfor %}
+    </section>
+
+    <!-- So'nggi amallar -->
+    <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--line);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);">So'nggi reset/bonus</div>
+      {% for e in recent_events %}
+      <div style="padding:11px 18px;{% if not forloop.last %}border-bottom:1px solid var(--line-2);{% endif %}">
+        <div style="display:flex;align-items:center;gap:8px;"><span style="font-size:12.5px;font-weight:600;color:{% if e.kind == 'reset' %}var(--azure){% else %}var(--green){% endif %};">{{ e.get_kind_display|truncatechars:12 }}</span><span style="font-family:'Space Mono',monospace;font-size:10.5px;color:var(--ink-4);">{{ e.get_scope_display }}</span><span style="margin-left:auto;font-family:'Space Mono',monospace;font-size:10.5px;color:var(--ink-3);">{{ e.affected_count }} ta</span></div>
+        {% if e.reason %}<div style="font-size:12px;color:var(--ink-2);margin-top:2px;">{{ e.reason }}</div>{% endif %}
+        <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--ink-4);margin-top:2px;">{{ e.created_at|date:"d.m H:i" }}{% if e.created_by %} · {{ e.created_by.username }}{% endif %}</div>
+      </div>
+      {% empty %}
+      <div style="padding:20px;text-align:center;color:var(--ink-3);font-size:13px;">Hali reset/bonus berilmagan.</div>
+      {% endfor %}
+    </section>
+  </div>
+</div>
+
+<style>@media (max-width:860px){ .aic-cols{ grid-template-columns:1fr !important; } }</style>
+<script>
+(function(){
+  var scope = document.querySelector('[data-aic-scope]');
+  var kind = document.querySelector('[data-aic-kind]');
+  function sync(){
+    var s = scope.value, k = kind.value;
+    document.querySelector('[data-aic-cohort]').hidden = s !== 'cohort';
+    document.querySelector('[data-aic-plan]').hidden = s !== 'plan';
+    document.querySelector('[data-aic-bonus]').hidden = k !== 'bonus';
+  }
+  if (scope && kind) { scope.addEventListener('change', sync); kind.addEventListener('change', sync); sync(); }
+})();
+</script>
+{% endblock %}

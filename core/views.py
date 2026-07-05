@@ -28,6 +28,13 @@ def _is_backoffice_user(user):
     return user.is_staff or user.is_superuser
 
 
+def _safe_int(value):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def _backoffice_counts():
     User = get_user_model()
     pending_receipts_count = PaymentReceipt.objects.filter(is_verified=False).count()
@@ -419,3 +426,109 @@ def backoffice_users(request):
         },
     }
     return render(request, "backoffice/users.html", context)
+
+
+@login_required
+@user_passes_test(_is_backoffice_user)
+def backoffice_ai_control(request):
+    """AI boshqaruv markazi — global limitlar, tarif siyosatlari, usage, reset/bonus."""
+    from aicontrol.models import AISettings, AIPlanPolicy, AIUsageResetEvent, AIUserAllowance
+    from aicontrol.service import apply_reset_event
+    from messenger.models import AIResponseRun
+    from subscriptions.models import Plan
+
+    ai_settings = AISettings.load()
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+
+        if action == "save_settings":
+            ai_settings.enforcement_enabled = "enforcement_enabled" in request.POST
+            ai_settings.exempt_staff = "exempt_staff" in request.POST
+            ai_settings.default_5h_token_limit = _safe_int(request.POST.get("default_5h_token_limit")) or 0
+            ai_settings.default_weekly_token_limit = _safe_int(request.POST.get("default_weekly_token_limit")) or 0
+            ai_settings.default_model = (request.POST.get("default_model") or "").strip()[:80]
+            ai_settings.default_effort = (request.POST.get("default_effort") or "").strip()[:20]
+            ai_settings.updated_by = request.user
+            ai_settings.save()
+            messages.success(request, "AI global sozlamalari saqlandi.")
+            return redirect("backoffice_ai_control")
+
+        if action == "save_policy":
+            plan = Plan.objects.filter(id=request.POST.get("plan_id")).first()
+            if plan:
+                AIPlanPolicy.objects.update_or_create(
+                    plan=plan,
+                    defaults={
+                        "token_limit_5h": _safe_int(request.POST.get("token_limit_5h")) or 0,
+                        "token_limit_weekly": _safe_int(request.POST.get("token_limit_weekly")) or 0,
+                        "is_active": "is_active" in request.POST,
+                    },
+                )
+                messages.success(request, f"{plan.name} tarif limiti saqlandi.")
+            return redirect("backoffice_ai_control")
+
+        if action == "apply_event":
+            scope = request.POST.get("scope")
+            kind = request.POST.get("kind")
+            window = request.POST.get("window") or AIUsageResetEvent.WINDOW_BOTH
+            event = AIUsageResetEvent(
+                scope=scope,
+                kind=kind,
+                window=window,
+                bonus_tokens=_safe_int(request.POST.get("bonus_tokens")) or 0,
+                reason=(request.POST.get("reason") or "").strip()[:200],
+                created_by=request.user,
+            )
+            if scope == AIUsageResetEvent.SCOPE_COHORT:
+                event.cohort = Cohort.objects.filter(id=request.POST.get("cohort_id")).first()
+            elif scope == AIUsageResetEvent.SCOPE_PLAN:
+                event.plan = Plan.objects.filter(id=request.POST.get("plan_id")).first()
+            event.save()
+            count = apply_reset_event(event)
+            verb = "Reset" if kind == AIUsageResetEvent.KIND_RESET else "Bonus"
+            messages.success(request, f"{verb} qo'llandi — {count} foydalanuvchiga ta'sir qildi.")
+            return redirect("backoffice_ai_control")
+
+    # --- GET: usage overview ---
+    now = timezone.now()
+    week_start = now - timedelta(days=7)
+    hour5 = now - timedelta(hours=5)
+
+    week_runs = AIResponseRun.objects.filter(created_at__gte=week_start)
+    tokens_week = week_runs.aggregate(t=Sum("total_tokens"))["t"] or 0
+    tokens_5h = (
+        AIResponseRun.objects.filter(created_at__gte=hour5).aggregate(t=Sum("total_tokens"))["t"] or 0
+    )
+    active_ai_users = week_runs.values("student").distinct().count()
+    blocked_count = AIUserAllowance.objects.filter(is_blocked=True).count()
+
+    top_users = list(
+        week_runs.values("student__id", "student__username", "student__first_name", "student__last_name")
+        .annotate(tokens=Sum("total_tokens"), runs=Count("id"))
+        .order_by("-tokens")[:10]
+    )
+
+    # Tarif siyosatlari (mavjud + hali yo'q tariflar)
+    policies = {p.plan_id: p for p in AIPlanPolicy.objects.select_related("plan")}
+    plan_rows = []
+    for plan in Plan.objects.order_by("order", "price"):
+        policy = policies.get(plan.id)
+        plan_rows.append({"plan": plan, "policy": policy})
+
+    context = {
+        **_backoffice_context("ai_control"),
+        "ai_settings": ai_settings,
+        "plan_rows": plan_rows,
+        "cohorts": Cohort.objects.select_related("course").order_by("-start_date")[:100],
+        "all_plans": Plan.objects.order_by("order", "price"),
+        "usage": {
+            "tokens_week": tokens_week,
+            "tokens_5h": tokens_5h,
+            "active_users": active_ai_users,
+            "blocked": blocked_count,
+        },
+        "top_users": top_users,
+        "recent_events": AIUsageResetEvent.objects.select_related("cohort", "plan", "created_by")[:8],
+    }
+    return render(request, "backoffice/ai_control.html", context)

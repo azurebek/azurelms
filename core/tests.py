@@ -86,6 +86,7 @@ class BackofficeDashboardTests(TestCase):
             (reverse("backoffice_lesson_edit", kwargs={"lesson_id": lesson.pk}), lesson.title),
             (reverse("backoffice_exams"), "Imtihon muharriri"),
             (reverse("backoffice_exam_edit", kwargs={"exam_id": exam.pk}), exam.title),
+            (reverse("backoffice_ai_control"), "AI limitlari"),
         )
 
         for url, marker in checks:
@@ -284,3 +285,53 @@ class TeacherPanelTests(TestCase):
         )
         record.refresh_from_db()
         self.assertEqual(record.status, "absent")
+
+
+class BackofficeAIControlTests(TestCase):
+    """AI boshqaruv markazi sahifasi — sozlama saqlash va reset qo'llash."""
+
+    def setUp(self):
+        User = get_user_model()
+        self.staff = User.objects.create_user(
+            username="aic_staff", email="aic@example.test", password="pass-12345", is_staff=True
+        )
+        self.student = User.objects.create_user(
+            username="aic_student", email="aics@example.test", password="pass-12345"
+        )
+
+    def test_non_staff_redirected(self):
+        self.client.force_login(self.student)
+        response = self.client.get(reverse("backoffice_ai_control"))
+        self.assertEqual(response.status_code, 302)
+
+    def test_save_settings(self):
+        from aicontrol.models import AISettings
+
+        self.client.force_login(self.staff)
+        response = self.client.post(
+            reverse("backoffice_ai_control"),
+            {
+                "action": "save_settings",
+                "enforcement_enabled": "on",
+                "default_5h_token_limit": "77000",
+                "default_weekly_token_limit": "888000",
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        s = AISettings.load()
+        self.assertTrue(s.enforcement_enabled)
+        self.assertEqual(s.default_5h_token_limit, 77000)
+        self.assertFalse(s.exempt_staff)  # checkbox yuborilmadi -> False
+
+    def test_apply_mass_reset_event(self):
+        from aicontrol.models import AIUsageResetEvent
+
+        self.client.force_login(self.staff)
+        response = self.client.post(
+            reverse("backoffice_ai_control"),
+            {"action": "apply_event", "scope": "all", "kind": "reset", "window": "both", "reason": "Navro'z"},
+        )
+        self.assertEqual(response.status_code, 302)
+        event = AIUsageResetEvent.objects.latest("created_at")
+        self.assertEqual(event.reason, "Navro'z")
+        self.assertEqual(event.created_by, self.staff)
