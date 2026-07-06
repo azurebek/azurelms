@@ -16,6 +16,27 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-06 [Claude]: AI suhbat sifati — persona qayta-yozish + xotira relevance-darvoza
+
+Real suhbat transkripti (room 68) tahlili ko'rsatdiki, asosiy muammo mexanikada emas, AI'ning SUHBATLASHISHIDA edi: har javob bir xil qolipda (iliq gap + emoji + savol), hamma narsaga rozilik (sikofant bo'shlik), aloqasiz mavzuga xotira-fakt quyilishi ("mushuk obsessiyasi"), inglizcha so'z o'yini hazillari, oddiy o'yin qoidasini ushlab turolmaslik.
+
+Dalilga asoslangan diagnoz (scratchpad probalar + jonli maverick): (1) xotira vektorlari o'lik — faktlar yozilganda umuman embed qilinmaydi (embedding_model=''), shu bois retrieve_scored har javobga category_prior baseline (~0.286) bo'yicha HAMMA faktni quyardi; (2) "Shoy shovliq" kabi noto'g'ri tarjima model chegarasi emas — maverick toza promptda "Görüşmek üzere→ko'rishguncha"ni to'g'ri qiladi, aybdor prompt ortiqcha yuklanishi + axlat-xotira; (3) mistral-3-14B fallback o'zbekchada kirill axlat chiqaradi.
+
+Tuzatishlar:
+- Persona qayta-yozildi (builder.py + general_chat SKILL.md): umurtqa (rozi bo'lavermaslik), dars-niyati (turkchani tabiiy qo'shish), emoji kam, doim savol bilan tugatmaslik, ichki-mexanika taqiqi, hazil lokalizatsiyasi, o'yin-holati intizomi, SAVE_MEMORY shablon-echo taqiqi.
+- Xotira relevance-darvoza (retriever): faqat lexical/semantic/vector signali bor fakt promptga tushadi — baseline-dump yo'q. Jonli tasdiq: user 38'da "hayot ma'nosi/hazil/Toshkent" endi mushuk quymaydi.
+- Extraction hardening (policy): "category: X" shablon-echo + yalang'och toifa nomlarini rad. Dedup (repository): fingerprint apostrof/tinish variantlarini birlashtiradi. prune_ai_memory buyrug'i — mavjud axlatni arxivlaydi (mahalliy: 5 ta).
+- mistral-3-14B DO fallback zanjiridan olib tashlandi.
+
+Halol chegara: hazil sifati va chuqur ko'p-turlik o'yin-holati baribir maverick chegarasi (prompt qisman yaxshiladi, to'liq emas). Vektor semantik-qidiruvni tiriltirish (yozganda embed) — keyingi ish; reindex_ai_memory buyrug'i bor, faqat ishga tushirilmagan.
+
+- Branch: `claude/ai-conversation-quality` (playground — main'ga tegilmadi)
+- Commitlar: `f60bcdc` (memory), `71ceab7` (persona), `e0d45f5` (provider)
+- Test holati: `python manage.py test` — **239/239 OK**
+- Davom etilishi kerak: yozganda embed → semantik retrieval (RAG_EMBEDDING_MODEL/bge-m3); mem0 baholash; conversation_partner/word_builder skilllari; vocab skilliga few-shot; so'ng user ruxsati bilan main'ga merge
+
+---
+
 ## 2026-07-05 [Claude]: O'quvchilar uchun AI foydalanish paneli (Claude Settings→Usage uslubida)
 
 User Claude'ning o'z "Plan usage limits" ekranini ko'rsatib, o'quvchilarga ham shunday panel so'radi. Backend (aicontrol) tayyor edi — faqat UI. `aicontrol/service.build_usage_panel(user)` — get_quota_status'ni tayyor-shablon dict'ga aylantiradi (session/weekly: used/limit/percent/remaining/reset_at + unlimited/blocked bayroq). Settings sahifasida to'liq "AI foydalanish limiti" bo'limi (2 progress-bar: joriy sessiya 5h + haftalik; %, token hisobi, timeuntil reset; 80%→amber, 100%→qizil; staff→"Limitsiz"; blocked→qizil ogohlantirish). Dashboard'da ixcham 5h-% indikator karta (settings'ga havola). Ikkalasi bir manba. Model bo'yicha bo'linmaydi (maverick bitta, Gemini faqat qidiruvda) — 2 bar yetarli. 3 yangi test.
