@@ -16,6 +16,16 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-05 [Claude]: O'quvchilar uchun AI foydalanish paneli (Claude Settings→Usage uslubida)
+
+User Claude'ning o'z "Plan usage limits" ekranini ko'rsatib, o'quvchilarga ham shunday panel so'radi. Backend (aicontrol) tayyor edi — faqat UI. `aicontrol/service.build_usage_panel(user)` — get_quota_status'ni tayyor-shablon dict'ga aylantiradi (session/weekly: used/limit/percent/remaining/reset_at + unlimited/blocked bayroq). Settings sahifasida to'liq "AI foydalanish limiti" bo'limi (2 progress-bar: joriy sessiya 5h + haftalik; %, token hisobi, timeuntil reset; 80%→amber, 100%→qizil; staff→"Limitsiz"; blocked→qizil ogohlantirish). Dashboard'da ixcham 5h-% indikator karta (settings'ga havola). Ikkalasi bir manba. Model bo'yicha bo'linmaydi (maverick bitta, Gemini faqat qidiruvda) — 2 bar yetarli. 3 yangi test.
+
+- Branch: `claude/user-usage-panel` → main'ga merge
+- Test holati: `python manage.py test` — **239/239 OK**
+- Davom etilishi kerak: real-time yangilanish (hozir sahifa yuklashda server-render); "qolgan token" messenger composer yonida (ixtiyoriy)
+
+---
+
 ## 2026-07-05 [Claude]: AI token-limit boshqaruv markazi (admin nazorati kengaytirildi)
 
 User AI token-iqtisodiyotini admin uchun markazlashgan boshqaruv talab qildi: modellar/tokenlar/limitlar bir joydan; foydalanuvchi 5 soatlik + haftalik limitlari; bayram/event uchun ommaviy/guruh/tarif reset-bonuslari. Qarorlar (AskUserQuestion): birlik=TOKEN, ko'lam=tarif+shaxsiy override, reset=hammaga+kohort+tarif.
