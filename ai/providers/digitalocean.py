@@ -23,11 +23,12 @@ def _normalize_usage(usage) -> dict | None:
     return {"prompt_tokens": prompt, "completion_tokens": completion, "total_tokens": total}
 
 
+# mistral-3-14B ataylab OLIB TASHLANGAN: o'zbekcha tarjimada kirill axlat/gibberish
+# chiqaradi (jonli sinovda tasdiqlangan), shuning uchun foydalanuvchiga yuzli zanjirda emas.
 DEFAULT_MODEL_FALLBACKS = [
     "router:general",
     "deepseek-4-flash",
     "gemma-4-31B-it",
-    "mistral-3-14B",
     "llama3.3-70b-instruct",
 ]
 
