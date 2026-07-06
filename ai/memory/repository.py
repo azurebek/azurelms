@@ -1,4 +1,5 @@
 import hashlib
+import re
 
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
@@ -307,6 +308,15 @@ class MemoryRepository:
         return summary
 
     def fingerprint(self, category: str, value: str) -> str:
-        normalized = " ".join((value or "").lower().split())
+        normalized = self._normalize_for_fingerprint(value)
         payload = f"{category}:{normalized}".encode("utf-8")
         return hashlib.sha256(payload).hexdigest()
+
+    def _normalize_for_fingerprint(self, value: str) -> str:
+        """Apostrof variantlari (' ' ` ʻ ʼ) va tinish belgilaridan qat'i nazar bir xil
+        fingerprint bersin — 'ko'radi' va 'ko'radi' kabi near-dubllarni birlashtiradi.
+        """
+        text = (value or "").lower()
+        text = re.sub(r"[’‘`´ʻʼ']", "'", text)
+        text = re.sub(r"[^\w']+", " ", text, flags=re.UNICODE)
+        return " ".join(text.split())

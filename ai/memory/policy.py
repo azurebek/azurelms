@@ -54,6 +54,8 @@ class MemoryPolicy:
         normalized_value = self.normalize_value(value)
         if not self.is_safe_to_store(normalized_value):
             return None
+        if self.is_template_noise(normalized_value):
+            return None
 
         category = category or self.infer_category(normalized_value)
         return MemoryCandidate(
@@ -76,6 +78,22 @@ class MemoryPolicy:
         if len(value) > 500:
             return False
         return not any(pattern in lowered for pattern in SENSITIVE_PATTERNS)
+
+    def is_template_noise(self, value: str) -> bool:
+        """Model shablonni aynan nusxalab yozganda paydo bo'ladigan axlatni rad etadi.
+
+        Masalan: '<SAVE_MEMORY>category: profile</SAVE_MEMORY>' -> value 'category: profile'.
+        Shuningdek yalang'och toifa nomi yoki 'fakt/fact' placeholder qiymatini ham rad etadi.
+        """
+        lowered = (value or "").strip().lower()
+        if not lowered:
+            return True
+        if re.match(r"^(category|toifa)\b\s*:?", lowered):
+            return True
+        bare = lowered.strip(" :.-")
+        if bare in CATEGORY_ALIASES or bare in {"fakt", "fact", "value", "qiymat"}:
+            return True
+        return False
 
     def infer_category(self, value: str) -> str:
         lowered = value.lower()

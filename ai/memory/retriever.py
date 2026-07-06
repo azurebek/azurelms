@@ -5,6 +5,11 @@ from .semantic import SemanticMemoryScorer
 
 
 class MemoryRetriever:
+    # Faqat CHINAKAM relevant faktlarni promptga qo'shamiz. Category_prior + confidence
+    # baseline'i (relevance signali yo'q) HAR javobga fakt quyilishiga sabab bo'lardi —
+    # bu "dump"ni to'xtatamiz. Vektor mavjud bo'lsa, shu kosinus chegarasidan baland bo'lsin.
+    VECTOR_RELEVANCE_MIN = 0.25
+
     def __init__(
         self,
         repository: MemoryRepository | None = None,
@@ -37,7 +42,19 @@ class MemoryRetriever:
         scored = self.scorer.score(facts=fact_list, question=question)
         if not (question or "").strip():
             return scored[:limit]
-        return [item for item in scored[:limit] if item.score > 0]
+        relevant = [item for item in scored if self._is_relevant(item)]
+        return relevant[:limit]
+
+    def _is_relevant(self, item) -> bool:
+        """Faqat lexical/semantic/vector signali bor faktni relevant deb hisoblaymiz.
+
+        Baseline (category_prior + confidence) o'z-o'zidan relevance EMAS — aks holda
+        har javobga aloqasiz faktlar quyiladi (mushuk-obsessiyasi shundan edi).
+        """
+        if item.lexical_overlap or item.semantic_overlap:
+            return True
+        vector_score = item.vector_score or 0.0
+        return vector_score >= self.VECTOR_RELEVANCE_MIN
 
     def _trace_retrieval(self, *, user, question: str, scored_facts) -> None:
         top_items = []

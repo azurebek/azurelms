@@ -1073,10 +1073,9 @@ class GenerateAiResponseTaskTests(TestCase):
         )
 
         prompt = mocked_client.return_value.models.generate_content.call_args.kwargs["contents"]
-        self.assertLess(
-            prompt.index("Mandarin pronunciation practice"),
-            prompt.index("Billing portal details"),
-        )
+        # Relevant (yuqori kosinus) fakt qo'shiladi; aloqasiz (0.0 kosinus) fakt endi filtrlanadi.
+        self.assertIn("Mandarin pronunciation practice", prompt)
+        self.assertNotIn("Billing portal details", prompt)
         trace = AIMemoryTrace.objects.filter(
             user=self.student,
             event_type=AIMemoryTrace.EVENT_RETRIEVED,
