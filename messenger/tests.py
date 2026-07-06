@@ -875,7 +875,7 @@ class GenerateAiResponseTaskTests(TestCase):
         prompt = mocked_client.return_value.models.generate_content.call_args.kwargs["contents"]
         model_name = mocked_client.return_value.models.generate_content.call_args.kwargs["model"]
         self.assertEqual(model_name, User.AI_MODEL_31_PRO)
-        self.assertIn("Har javobda tabiiy joyda mos emoji ishlat", prompt)
+        self.assertIn("Emoji juda kam ishlat", prompt)
         self.assertIn("Faqat 1 ta neytral, mavzuga mos emoji ishlat", prompt)
         self.assertNotIn("emoji ishlatma", prompt)
         self.assertEqual(Message.objects.get(id=message_id).text, "Javob tayyor.")
