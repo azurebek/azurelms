@@ -144,6 +144,39 @@ def limit_message(status: QuotaStatus) -> str:
     return f"5 soatlik AI limitingiz tugadi.{tail} Biroz dam olib, keyin davom eting 🙂"
 
 
+def build_usage_panel(user) -> dict:
+    """Foydalanuvchiga ko'rsatiladigan AI foydalanish paneli (settings/dashboard uchun).
+
+    get_quota_status'ni tayyor-shablon dict'ga aylantiradi: har oyna uchun
+    used/limit/percent/remaining/reset_at + umumiy 'unlimited'/'blocked' bayroq.
+    """
+    status = get_quota_status(user)
+    unlimited = status.reason in {"exempt", "disabled"}
+
+    def pct(used, limit):
+        return min(round(used / limit * 100), 100) if limit else 0
+
+    return {
+        "unlimited": unlimited,
+        "blocked": status.reason == "blocked",
+        "reason": status.reason,
+        "session": {
+            "used": status.used_5h,
+            "limit": status.limit_5h,
+            "percent": pct(status.used_5h, status.limit_5h),
+            "remaining": status.remaining_5h,
+            "reset_at": status.reset_5h_at,
+        },
+        "weekly": {
+            "used": status.used_weekly,
+            "limit": status.limit_weekly,
+            "percent": pct(status.used_weekly, status.limit_weekly),
+            "remaining": status.remaining_weekly,
+            "reset_at": status.reset_weekly_at,
+        },
+    }
+
+
 # ---------------------------------------------------------------- reset / bonus
 
 def _scope_users(event: AIUsageResetEvent, *, active_since):

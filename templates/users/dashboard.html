@@ -87,6 +87,12 @@
       <span style="width:48px;height:48px;border-radius:12px;background:var(--amber-soft);color:var(--amber);display:grid;place-items:center;font-size:22px;"><i class="bi bi-fire"></i></span>
       <div><div style="font-family:'Space Mono',monospace;font-size:24px;font-weight:700;color:var(--ink);">{{ streak_days|default:0 }} kun</div><div style="font-size:12px;color:var(--ink-3);">Ketma-ket o'qish · davomat</div></div>
     </a>
+    {% if not ai_usage.unlimited and not ai_usage.blocked %}
+    <a href="{% url 'settings' %}" style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:16px 20px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;"><span style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);"><i class="bi bi-speedometer2" style="color:var(--azure);"></i> AI limiti · 5 soat</span><span style="font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:{% if ai_usage.session.percent >= 100 %}var(--red){% elif ai_usage.session.percent >= 80 %}var(--amber){% else %}var(--ink){% endif %};">{{ ai_usage.session.percent }}%</span></div>
+      <div style="height:6px;border-radius:999px;background:var(--line-2);overflow:hidden;"><div style="height:100%;width:{{ ai_usage.session.percent }}%;border-radius:999px;background:{% if ai_usage.session.percent >= 100 %}var(--red){% elif ai_usage.session.percent >= 80 %}var(--amber){% else %}var(--azure){% endif %};"></div></div>
+    </a>
+    {% endif %}
   </div>
 </div>
 

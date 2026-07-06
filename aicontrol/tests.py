@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+from django.urls import reverse
 from django.utils import timezone
 
 from aicontrol.models import AISettings, AIPlanPolicy, AIUserAllowance, AIUsageResetEvent
@@ -230,3 +231,38 @@ class TokenNormalizationTests(TestCase):
         self.assertEqual(_normalize_usage({"prompt_tokens": 3, "completion_tokens": 4})["total_tokens"], 7)
         self.assertIsNone(_normalize_usage(None))
         self.assertIsNone(_normalize_usage({}))
+
+
+class UsagePanelTests(TestCase):
+    def setUp(self):
+        AISettings.objects.all().delete()
+        s = AISettings.load()
+        s.default_5h_token_limit = 10_000
+        s.default_weekly_token_limit = 40_000
+        s.save()
+        self.user = User.objects.create_user(username="up", email="up@t.uz", password="x")
+        self.room = _room(self.user)
+
+    def test_panel_percentages_and_shape(self):
+        from aicontrol.service import build_usage_panel
+
+        _add_usage(self.user, self.room, 2_500)  # 25% of 5h
+        panel = build_usage_panel(self.user)
+        self.assertFalse(panel["unlimited"])
+        self.assertEqual(panel["session"]["percent"], 25)
+        self.assertEqual(panel["session"]["used"], 2_500)
+        self.assertEqual(panel["session"]["limit"], 10_000)
+
+    def test_panel_unlimited_for_staff(self):
+        from aicontrol.service import build_usage_panel
+
+        staff = User.objects.create_user(username="ups", email="ups@t.uz", password="x", is_staff=True)
+        self.assertTrue(build_usage_panel(staff)["unlimited"])
+
+    def test_settings_page_shows_usage_panel(self):
+        _add_usage(self.user, self.room, 3_000)
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("settings"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "AI foydalanish limiti")
+        self.assertContains(response, "Joriy sessiya")

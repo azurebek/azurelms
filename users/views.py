@@ -121,6 +121,8 @@ class SettingsView(LoginRequiredMixin, UpdateView):
         ).count()
         context['total_hours'] = passed_lessons_count * 2
         context['tone_choices'] = CustomUser.AI_TONE_CHOICES
+        from aicontrol.service import build_usage_panel
+        context['ai_usage'] = build_usage_panel(user)
         return context
 
     def form_valid(self, form):
@@ -558,6 +560,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context['completed_lessons'] = passed_lessons_count
         context['average_progress'] = passed_lessons_count
         context['total_hours'] = passed_lessons_count * 2
+        from aicontrol.service import build_usage_panel
+        context['ai_usage'] = build_usage_panel(user)
         context['study_hours'] = context['total_hours']
         context['xp_points'] = user.total_xp if hasattr(user, 'total_xp') else 0
         context['streak_days'] = user.streak_days if hasattr(user, 'streak_days') else 0
