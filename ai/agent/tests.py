@@ -141,6 +141,39 @@ class EngineProviderRoutingTests(TestCase):
         self.assertFalse(primary.generate.call_args.kwargs["enable_web_search"])
         self.assertFalse(response.metadata["search_specialist_used"])
 
+    def test_search_specialist_failure_falls_back_to_primary(self):
+        # Gemini 429/kvota bilan yiqilsa — butun javob yiqilmasin, maverick halol javob bersin
+        primary = _fake_provider(text="halol javob (qidiruvsiz)", model="llama-4-maverick")
+        search = _fake_provider(supports_web_search=True, model="gemini-2.5-flash")
+        search.generate.side_effect = RuntimeError("429 RESOURCE_EXHAUSTED: quota exceeded")
+        engine = _make_engine(primary=primary, search_provider=search, used_tools=["web_search"])
+
+        response = engine.generate_reply(
+            AIRequest(room=None, student=_student(), user_question="internetdan qidirib top")
+        )
+
+        search.generate.assert_called_once()
+        primary.generate.assert_called_once()
+        self.assertEqual(response.text, "halol javob (qidiruvsiz)")
+        # Fallback xato-xabari EMAS, to'laqonli javob
+        self.assertEqual(response.model_name, "llama-4-maverick")
+        self.assertFalse(primary.generate.call_args.kwargs["enable_web_search"])
+        self.assertTrue(response.metadata["search_specialist_failed"])
+        self.assertFalse(response.metadata["search_specialist_used"])
+
+    def test_primary_failure_still_returns_fallback_message(self):
+        # Asosiy provayder yiqilsa eski xatti-harakat saqlanadi: fallback xabar
+        primary = _fake_provider(model="llama-4-maverick")
+        primary.generate.side_effect = RuntimeError("DO down")
+        engine = _make_engine(primary=primary, search_provider=None, used_tools=[])
+
+        response = engine.generate_reply(
+            AIRequest(room=None, student=_student(), user_question="salom")
+        )
+
+        self.assertIsNone(response.model_name)
+        self.assertTrue(response.text)
+
     def test_retrieval_uses_context_augmented_query_but_prompt_keeps_original(self):
         # "davom et" kabi qisqa savolda memory/RAG boyitilgan so'rov bilan qidiradi,
         # promptdagi user_question esa asl xabarligicha qoladi.
