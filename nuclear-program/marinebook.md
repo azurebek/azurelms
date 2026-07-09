@@ -24,8 +24,10 @@ Yo'lda tuzatildi: GenerateAiResponseTaskTests setUp'ida messenger.rag.embed_text
 
 Jonli sinov tuzatishi (room 78): "kajol'ni taniysanmi?" savoli ko'rsatdiki, "qisqa xabar = oxirgi mavzu" qoidasi mavzu ALMASHUVI bilan ziddiyatga tushardi — model yangi savolga javob berib, oxirida eski mavzuni (mushuklar) majburan qaytarardi, ustiga Kajol ismini "kajal/surma"ga tarjima qilishga urinardi. Prompt qoidasi ikkiga ajratildi: qisqa DAVOM xabari ≠ qisqa YANGI-mavzu xabari; yangi mavzuda eski mavzu qaytarilmaydi, javobsiz qolgan savol qistalmaydi; ismlarni tarjima qilish/majburan turkchaga bog'lash taqiqlandi.
 
+Ikkinchi jonli tuzatish (room 79): "internetdan qidirib..." web_search'ga TO'G'RI tushdi, lekin Gemini bepul kvotasi tugagan (429 RESOURCE_EXHAUSTED, 9 modelning hammasi; pro-modellarda limit: 0 — bepul tarif yo'q) va butun javob yiqilib qo'pol billing-xabar chiqardi. Endi mutaxassis runtime-xatosi butun so'rovni yiqitmaydi — maverick'ka qaytiladi va u "jonli qidira olmadim" deb halol javob beradi (metadata: search_specialist_failed). Kvota har kuni Tinch okeani yarim tunida (~Toshkent 12:00) yangilanadi.
+
 - Branch: `claude/ai-context-understanding`
-- Commitlar: `0cdaecf`, `28314d6` (jonli sinov tuzatishi)
+- Commitlar: `0cdaecf`, `28314d6` (jonli sinov tuzatishi), `354702e` (Gemini-yiqilish degradatsiyasi)
 - Test holati: `python manage.py test` — **250/250 OK** (11 yangi: 4 registry stickiness/word-boundary, 3 retrieval-query, 3 embed-on-write, 1 engine)
 - Davom etilishi kerak: mavjud eski faktlar uchun `python manage.py reindex_ai_memory` bir marta yugurtirilishi kerak (yangi faktlar o'zi embed bo'ladi); stickiness hozir evristik (≤6 so'z + davom-so'zlari) — kerak bo'lsa keyin LLM-router; jonli suhbatda smoke-test qilib main'ga merge Azurbek ruxsati bilan
 
