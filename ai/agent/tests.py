@@ -36,6 +36,7 @@ def _rag_ctx():
 def _fake_memory():
     memory = MagicMock()
     memory.sanitize_user_question.side_effect = lambda q: q
+    memory.build_retrieval_query.side_effect = lambda *, room, question: question
     memory.get_conversation_context.return_value = _conversation_ctx()
     memory.render_relevant_memory.return_value = ""
     memory.extract_from_reply.side_effect = lambda text, **kw: SimpleNamespace(
@@ -139,6 +140,27 @@ class EngineProviderRoutingTests(TestCase):
         primary.generate.assert_called_once()
         self.assertFalse(primary.generate.call_args.kwargs["enable_web_search"])
         self.assertFalse(response.metadata["search_specialist_used"])
+
+    def test_retrieval_uses_context_augmented_query_but_prompt_keeps_original(self):
+        # "davom et" kabi qisqa savolda memory/RAG boyitilgan so'rov bilan qidiradi,
+        # promptdagi user_question esa asl xabarligicha qoladi.
+        primary = _fake_provider(text="javob", model="llama-4-maverick")
+        engine = _make_engine(primary=primary, search_provider=None, used_tools=[])
+        engine.memory_service.build_retrieval_query.side_effect = (
+            lambda *, room, question: f"Turkchada kelasi zamon qanday yasaladi?\n{question}"
+        )
+
+        response = engine.generate_reply(
+            AIRequest(room=None, student=_student(), user_question="davom et")
+        )
+
+        memory_kwargs = engine.memory_service.render_relevant_memory.call_args.kwargs
+        rag_kwargs = engine.rag_service.build.call_args.kwargs
+        prompt_kwargs = engine.prompt_builder.build.call_args.kwargs
+        self.assertIn("kelasi zamon", memory_kwargs["question"])
+        self.assertIn("kelasi zamon", rag_kwargs["question"])
+        self.assertEqual(prompt_kwargs["user_question"], "davom et")
+        self.assertTrue(response.metadata["retrieval_query_augmented"])
 
     def test_image_plus_web_query_prefers_vision_on_primary(self):
         # Rasm bor → vision ustun: maverick'da qoladi, Gemini chaqirilmaydi

@@ -334,6 +334,13 @@ class GenerateAiResponseTaskTests(TestCase):
             email="ai-student@example.com",
             password="testpass123",
         )
+        # Xotira fakti yozilganda embed fail-open — testda tarmoqqa chiqmasin.
+        embed_patcher = patch(
+            "messenger.rag.embed_texts",
+            side_effect=RuntimeError("testda embedding o'chirilgan"),
+        )
+        embed_patcher.start()
+        self.addCleanup(embed_patcher.stop)
 
     def _make_course_with_lesson(self, *, title="AI English", lesson_title="Present Perfect"):
         course = Course.objects.create(
@@ -437,6 +444,93 @@ class GenerateAiResponseTaskTests(TestCase):
         )
 
         self.assertEqual(skill.slug, "writing_feedback")
+
+    def test_skill_registry_keyword_requires_word_start(self):
+        """Substring false-positive'lar yo'qoladi: "protest" ichidan "test" topilmasin."""
+        registry = SkillRegistry()
+
+        cases = {
+            "Protest nima degani?": "general_chat",
+            "Diskurs haqida gapir": "general_chat",
+            "Testlar tuzib ber": "quiz_generator",
+            "Kursim qanday ketyapti": "course_navigator",
+        }
+        for question, expected_slug in cases.items():
+            skill = registry.select_for_request(
+                AIRequest(room=None, student=self.student, user_question=question)
+            )
+            self.assertEqual(skill.slug, expected_slug, question)
+
+    def _make_ai_room_with_run(self, *, skill_slug="quiz_generator", completed_at=None):
+        room = ChatRoom.objects.create(room_type="ai", name=f"Azure AI - {self.student.username}")
+        room.participants.add(self.student)
+        AIResponseRun.objects.create(
+            room=room,
+            student=self.student,
+            user_question="Kelasi zamondan quiz tuz",
+            status=AIResponseRun.STATUS_SUCCEEDED,
+            skill_slug=skill_slug,
+            started_at=completed_at or timezone.now(),
+            completed_at=completed_at or timezone.now(),
+        )
+        return room
+
+    def test_skill_registry_sticks_to_previous_skill_for_continuation(self):
+        """Quiz o'rtasidagi "B" yoki "davom et" javobi faol skill oqimini uzmasligi kerak."""
+        registry = SkillRegistry()
+        room = self._make_ai_room_with_run(skill_slug="quiz_generator")
+
+        for question in ("davom et", "B", "yana bitta", "keyingisi"):
+            skill = registry.select_for_request(
+                AIRequest(room=room, student=self.student, user_question=question)
+            )
+            self.assertEqual(skill.slug, "quiz_generator", question)
+
+    def test_skill_registry_does_not_stick_for_greetings_keywords_or_stale_runs(self):
+        registry = SkillRegistry()
+        room = self._make_ai_room_with_run(skill_slug="quiz_generator")
+
+        # Salomlashish — yangi suhbat signali, yopishmaydi
+        skill = registry.select_for_request(
+            AIRequest(room=room, student=self.student, user_question="Salom!")
+        )
+        self.assertEqual(skill.slug, "general_chat")
+
+        # Aniq keyword har doim stickiness'dan ustun
+        skill = registry.select_for_request(
+            AIRequest(room=room, student=self.student, user_question="Bu gapimni tuzat: ben gitmek")
+        )
+        self.assertEqual(skill.slug, "grammar_corrector")
+
+        # Uzun keyword'siz xabar — katta ehtimol yangi mavzu
+        skill = registry.select_for_request(
+            AIRequest(
+                room=room,
+                student=self.student,
+                user_question="Menga Turkiyaning eng mashhur taomlari haqida batafsil aytib bera olasanmi do'stim",
+            )
+        )
+        self.assertEqual(skill.slug, "general_chat")
+
+        # Eski (3 soatdan oshgan) run — oqim uzilgan, yopishmaydi
+        stale_room = self._make_ai_room_with_run(
+            skill_slug="quiz_generator",
+            completed_at=timezone.now() - datetime.timedelta(hours=4),
+        )
+        skill = registry.select_for_request(
+            AIRequest(room=stale_room, student=self.student, user_question="davom et")
+        )
+        self.assertEqual(skill.slug, "general_chat")
+
+    def test_skill_registry_stickiness_skips_web_search_and_smart_form(self):
+        """web_search (kvota) va smart_form (o'z sessiyasi) sticky bo'lmaydi."""
+        registry = SkillRegistry()
+        room = self._make_ai_room_with_run(skill_slug="web_search")
+
+        skill = registry.select_for_request(
+            AIRequest(room=room, student=self.student, user_question="davom et")
+        )
+        self.assertEqual(skill.slug, "general_chat")
 
     @patch("messenger.tasks.logger.warning")
     def test_generate_ai_response_returns_safely_when_room_is_missing(self, mocked_warning):
@@ -1248,6 +1342,116 @@ class GenerateAiResponseTaskTests(TestCase):
         self.assertNotIn("Legacy ham bo'lsin", prompt)
         self.assertNotIn("Legacy memory:", prompt)
         self.assertEqual(AIMemoryFact.objects.filter(user=self.student).count(), 1)
+
+
+class MemoryRetrievalQueryTests(TestCase):
+    """Qisqa (anaforik) savolni oldingi user xabarlari bilan boyitish testlari."""
+
+    def setUp(self):
+        self.student = User.objects.create_user(
+            username="retrieval-student",
+            email="retrieval-student@example.com",
+            password="testpass123",
+        )
+        self.room = ChatRoom.objects.create(room_type="ai", name="Azure AI - retrieval")
+        self.room.participants.add(self.student)
+
+    def _add_message(self, text, *, is_ai=False):
+        return Message.objects.create(
+            room=self.room,
+            sender=None if is_ai else self.student,
+            text=text,
+            is_ai_response=is_ai,
+        )
+
+    def test_short_question_is_augmented_with_previous_user_messages(self):
+        from ai.memory.service import MemoryService
+
+        self._add_message("Turkchada kelasi zamon qanday yasaladi?")
+        self._add_message("Kelasi zamon -acak/-ecek bilan yasaladi.", is_ai=True)
+        self._add_message("davom et")  # joriy savol xabar sifatida saqlangan
+
+        query = MemoryService().build_retrieval_query(room=self.room, question="davom et")
+
+        self.assertIn("kelasi zamon qanday yasaladi", query.lower())
+        self.assertTrue(query.endswith("davom et"))
+        # AI javobi retrieval so'roviga kirmasligi kerak
+        self.assertNotIn("-acak/-ecek", query)
+
+    def test_long_question_is_not_augmented(self):
+        from ai.memory.service import MemoryService
+
+        self._add_message("Turkchada kelasi zamon qanday yasaladi?")
+        question = "Menga turk tilidagi barcha zamonlarni misollar bilan tushuntirib ber"
+
+        query = MemoryService().build_retrieval_query(room=self.room, question=question)
+
+        self.assertEqual(query, question)
+
+    def test_short_question_without_history_stays_unchanged(self):
+        from ai.memory.service import MemoryService
+
+        self._add_message("davom et")
+
+        query = MemoryService().build_retrieval_query(room=self.room, question="davom et")
+
+        self.assertEqual(query, "davom et")
+
+
+class MemoryEmbedOnWriteTests(TestCase):
+    """Fakt saqlanganda embed qilinadi — semantik retrieval tirik bo'lishi uchun."""
+
+    def setUp(self):
+        self.student = User.objects.create_user(
+            username="embed-student",
+            email="embed-student@example.com",
+            password="testpass123",
+        )
+
+    def _candidate(self):
+        from ai.memory.types import MemoryCandidate
+
+        return MemoryCandidate(
+            category=AIMemoryFact.CATEGORY_LEARNING_GOAL,
+            key="learning_goal",
+            value="Turkcha B1 darajasiga chiqmoqchi",
+            confidence=0.9,
+        )
+
+    @patch("messenger.rag.embed_texts", return_value=[[0.5, 0.25, 0.1]])
+    def test_save_candidate_embeds_fact_on_write(self, mocked_embed):
+        from ai.memory.repository import MemoryRepository
+        from messenger.rag import DEFAULT_EMBEDDING_MODEL
+
+        saved = MemoryRepository().save_candidate(user=self.student, candidate=self._candidate())
+
+        saved.fact.refresh_from_db()
+        self.assertEqual(saved.fact.embedding, [0.5, 0.25, 0.1])
+        self.assertEqual(saved.fact.embedding_model, DEFAULT_EMBEDDING_MODEL)
+        self.assertEqual(saved.fact.embedding_dim, 3)
+        embed_call_text = mocked_embed.call_args.args[0][0]
+        self.assertIn("Turkcha B1", embed_call_text)
+
+    @patch("messenger.rag.embed_texts", side_effect=RuntimeError("kalit yo'q"))
+    def test_save_candidate_survives_embedding_failure(self, _mocked_embed):
+        from ai.memory.repository import MemoryRepository
+
+        saved = MemoryRepository().save_candidate(user=self.student, candidate=self._candidate())
+
+        saved.fact.refresh_from_db()
+        self.assertEqual(saved.fact.status, AIMemoryFact.STATUS_ACTIVE)
+        self.assertEqual(saved.fact.embedding, [])
+        self.assertEqual(saved.fact.embedding_model, "")
+
+    @patch("messenger.rag.embed_texts", return_value=[[0.5, 0.25]])
+    def test_save_candidate_skips_reembedding_when_vector_is_fresh(self, mocked_embed):
+        from ai.memory.repository import MemoryRepository
+
+        repo = MemoryRepository()
+        repo.save_candidate(user=self.student, candidate=self._candidate())
+        repo.save_candidate(user=self.student, candidate=self._candidate())
+
+        self.assertEqual(mocked_embed.call_count, 1)
 
 
 class AIMemoryControlTests(TestCase):

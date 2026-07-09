@@ -66,13 +66,19 @@ class AIEngine:
                 room=request.room,
                 student=request.student,
             )
+            # Qisqa/anaforik savol ("davom et", "buni tushuntir") retrieval uchun oldingi
+            # user xabarlari bilan boyitiladi — promptdagi user_question o'zgarmaydi.
+            retrieval_query = self.memory_service.build_retrieval_query(
+                room=request.room,
+                question=safe_question,
+            )
             relevant_memory = self.memory_service.render_relevant_memory(
                 student=request.student,
-                question=safe_question,
+                question=retrieval_query,
             )
             rag_context = self.rag_service.build(
                 user=request.student,
-                question=safe_question,
+                question=retrieval_query,
                 context_lesson=request.context_lesson,
             )
             is_first_message = (
@@ -156,6 +162,7 @@ class AIEngine:
                     "recent_dialogue_messages": conversation_context.recent_message_count,
                     "active_skill": skill.slug,
                     "requested_skill": request.requested_skill_slug or "auto",
+                    "retrieval_query_augmented": retrieval_query != safe_question,
                     "used_tools": tool_context.used_tools,
                     "document_name": getattr(request, "document_name", "") or "",
                     "image_name": getattr(request, "image_name", "") or "",

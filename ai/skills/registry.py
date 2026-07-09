@@ -1,4 +1,7 @@
+import re
+
 from dataclasses import dataclass, field
+from datetime import timedelta
 from pathlib import Path
 
 
@@ -27,6 +30,17 @@ _INFO_HINTS = (
     "ko'rsatkich", "stavka", "indeks",
     "kursini", "narxini", "vaziyat",
 )
+
+# Suhbat-oqim davomiyligi: qisqa "davom" xabarlari oldingi faol skill'da qolishi kerak,
+# aks holda quiz/mashq o'rtasida "B" yoki "davom et" degan javob general_chat'ga tushib oqim uziladi.
+_CONTINUATION_HINTS = (
+    "davom", "yana", "keyingi", "keyingisi", "boshqa", "qayta",
+    "next", "yana bir", "yana bitta", "to'xtama", "boshla",
+)
+# Sof salomlashish/xayrlashish — bu yangi suhbat signali, oldingi skill'ga yopishmaydi.
+_GREETING_WORDS = frozenset({
+    "salom", "assalomu", "alaykum", "salomlar", "rahmat", "raxmat", "xayr", "hayr",
+})
 
 
 @dataclass(frozen=True)
@@ -287,6 +301,26 @@ BUILTIN_SKILLS: tuple[SkillDefinition, ...] = (
 class SkillRegistry:
     """Loads and selects built-in AI skills for Azure AI."""
 
+    # Qisqa davomiy xabarda oldingi skill'da qolish mumkin bo'lgan skilllar.
+    # web_search (Gemini kvotasi), smart_form (o'z sessiyasi bor) va general_chat
+    # (baribir default) ataylab kiritilmagan.
+    STICKY_SKILL_SLUGS = frozenset({
+        "quiz_generator",
+        "grammar_corrector",
+        "speaking_coach",
+        "writing_feedback",
+        "lesson_explainer",
+        "homework_checker",
+        "course_navigator",
+        "student_progress_coach",
+        "image_qa",
+        "document_qa",
+    })
+    # Oxirgi muvaffaqiyatli javob shu oynadan eski bo'lsa, oqim uzilgan deb hisoblaymiz.
+    STICKY_WINDOW = timedelta(hours=3)
+    # Shu so'zdan uzun keyword'siz xabar — katta ehtimol yangi mavzu, yopishmaymiz.
+    CONTINUATION_MAX_WORDS = 6
+
     def __init__(self, skills_root: Path | None = None):
         self.skills_root = skills_root or Path(__file__).resolve().parent
         self._definitions = {definition.slug: definition for definition in BUILTIN_SKILLS}
@@ -325,6 +359,16 @@ class SkillRegistry:
                 best_slug = definition.slug
                 best_score = score
 
+        if (
+            best_score == 0
+            and room is not None
+            and getattr(room, "room_type", None) == "ai"
+            and self._is_continuation_message(question)
+        ):
+            sticky_slug = self._last_recent_skill_slug(room)
+            if sticky_slug:
+                return self.get(sticky_slug)
+
         if best_score == 0 and getattr(request, "image_data_url", None):
             # Xonada yuklangan rasm bor, savol boshqa skillga tushmadi — vision skilli
             best_slug = "image_qa"
@@ -343,6 +387,44 @@ class SkillRegistry:
         if not has_time:
             return False
         return any(hint in normalized_question for hint in _INFO_HINTS)
+
+    def _is_continuation_message(self, normalized_question: str) -> bool:
+        """Xabar oldingi oqimning davomi (qisqa javob/buyruq) ekanini taxmin qiladi.
+
+        Quiz javobi ("B", "İstanbul"), "davom et", "yana bitta" kabi xabarlar keyword'siz
+        bo'lgani uchun aks holda general_chat'ga tushib faol skill oqimini uzardi.
+        """
+        if not normalized_question:
+            return False
+        words = [word.strip(".,!?:;()\"'") for word in normalized_question.split()]
+        words = [word for word in words if word]
+        if not words:
+            return False
+        # Salomlashish bilan boshlangan qisqa xabar — yangi suhbat, davom emas.
+        if words[0] in _GREETING_WORDS and len(words) <= 3:
+            return False
+        if any(hint in normalized_question for hint in _CONTINUATION_HINTS):
+            return True
+        return len(words) <= self.CONTINUATION_MAX_WORDS
+
+    def _last_recent_skill_slug(self, room) -> str:
+        from django.utils import timezone
+
+        from messenger.models import AIResponseRun
+
+        cutoff = timezone.now() - self.STICKY_WINDOW
+        run = (
+            AIResponseRun.objects.filter(
+                room=room,
+                status=AIResponseRun.STATUS_SUCCEEDED,
+                completed_at__gte=cutoff,
+                skill_slug__in=sorted(self.STICKY_SKILL_SLUGS),
+            )
+            .order_by("-id")
+            .only("skill_slug")
+            .first()
+        )
+        return run.skill_slug if run else ""
 
     def get(self, slug: str) -> Skill:
         definition = self._definitions.get(slug)
@@ -368,11 +450,20 @@ class SkillRegistry:
         score = 0
         for keyword in definition.trigger_keywords:
             normalized_keyword = self._normalize(keyword)
-            if normalized_keyword and normalized_keyword in question:
+            if normalized_keyword and self._keyword_matches(normalized_keyword, question):
                 score += 4 + len(normalized_keyword.split())
         if score:
             score += definition.priority // 20
         return score
+
+    def _keyword_matches(self, keyword: str, question: str) -> bool:
+        """Keyword faqat so'z boshida tursa mos keladi.
+
+        Oddiy substring "protest" ichidan "test", "diskurs" ichidan "kurs" topib skillni
+        adashtirardi. So'z boshi talab qilinadi, lekin o'zbek qo'shimchalariga ruxsat:
+        "kurs" → "kursi" mos, "diskurs" mos emas.
+        """
+        return re.search(rf"(?<![\w'’ʻʼ`]){re.escape(keyword)}", question) is not None
 
     def _load_instructions(self, slug: str) -> str:
         skill_path = self.skills_root / slug / "SKILL.md"
