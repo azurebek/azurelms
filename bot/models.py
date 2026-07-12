@@ -56,6 +56,27 @@ class TelegramLessonSession(models.Model):
         return f"{self.cohort.name} | {self.lesson.title} | {self.attendance_date}"
 
 
+class BotGuest(models.Model):
+    """Bog'lanmagan (mehmon) Telegram foydalanuvchi holati — onboarding voronkasi.
+
+    AI demo savol-javob limiti shu yerda hisoblanadi. Ro'yxatdan o'tib
+    bog'langach bu yozuv shunchaki tarix bo'lib qoladi.
+    """
+
+    telegram_id = models.BigIntegerField(unique=True, db_index=True, verbose_name="Telegram user ID")
+    telegram_username = models.CharField(max_length=255, blank=True, default="")
+    demo_questions_used = models.PositiveIntegerField(default=0, verbose_name="AI demo savollar soni")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Bot mehmoni"
+        verbose_name_plural = "Bot mehmonlari"
+
+    def __str__(self):
+        return f"guest:{self.telegram_id} ({self.demo_questions_used} demo savol)"
+
+
 class TelegramLessonCheckIn(models.Model):
     session = models.ForeignKey(
         TelegramLessonSession,

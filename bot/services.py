@@ -1,16 +1,20 @@
 import base64
 import datetime
+import re
 from dataclasses import dataclass
 
 from django.core.signing import BadSignature, Signer
 from django.db import IntegrityError, transaction
 from django.utils import timezone
+from django.utils.html import strip_tags
 
-from bot.models import TelegramLessonCheckIn, TelegramLessonSession
+from bot.models import BotGuest, TelegramLessonCheckIn, TelegramLessonSession
 from cohorts.attendance_service import upsert_attendance_and_xp
 from cohorts.models import Attendance, Cohort, Enrollment, enrollment_active_access_q
-from courses.models import Lesson
+from courses.models import Course, Lesson
 from users.models import CustomUser, Notification
+
+GUEST_DEMO_QUESTION_LIMIT = 5
 
 
 @dataclass
@@ -535,4 +539,207 @@ def get_open_session_status(chat_id):
         session=session,
         checkin_count=len(checkins),
         checkin_names=names,
+    )
+
+
+# ================================================================ F2: Onboarding (mehmon)
+
+@dataclass
+class GuestDemoResult(ActionResult):
+    answer: str = ""
+    remaining: int = 0
+
+
+@dataclass
+class PhoneRegisterResult(ActionResult):
+    user: CustomUser | None = None
+    created: bool = False
+
+
+def list_public_courses():
+    """Mehmonga ko'rsatiladigan faol kurslar (bot formatiga tayyor)."""
+    level_labels = {"beginner": "Boshlang'ich", "intermediate": "O'rta", "advanced": "Yuqori"}
+    items = []
+    for course in Course.objects.filter(is_active=True).order_by("level", "title"):
+        items.append(
+            {
+                "id": course.id,
+                "title": course.title,
+                "level": level_labels.get(course.level, course.level),
+                "duration": course.duration,
+                "price": int(course.price),
+                "description": strip_tags(course.description or "")[:220].strip(),
+            }
+        )
+    return items
+
+
+def list_plans():
+    """Faol tariflar + belgilangan xususiyatlar."""
+    from subscriptions.models import Plan
+
+    items = []
+    for plan in Plan.objects.prefetch_related("features").order_by("order"):
+        items.append(
+            {
+                "name": plan.name,
+                "price": int(plan.price),
+                "is_popular": plan.is_popular,
+                "features": [f.name for f in plan.features.all() if f.is_included][:6],
+                "description": strip_tags(plan.description or "")[:160].strip(),
+            }
+        )
+    return items
+
+
+def _fmt_sum(value):
+    return f"{value:,}".replace(",", " ")
+
+
+def _build_demo_context():
+    """AI demo uchun ixcham mahsulot-konteksti (kurslar + tariflar)."""
+    course_lines = [
+        f"- {c['title']} ({c['level']}, ~{c['duration']} soat, {_fmt_sum(c['price'])} so'm)"
+        for c in list_public_courses()[:6]
+    ]
+    plan_lines = [f"- {p['name']}: {_fmt_sum(p['price'])} so'm/oy" for p in list_plans()[:4]]
+    return (
+        "Sen AzureLMS platformasining yordamchi konsultantisan. AzureLMS — o'zbek "
+        "tilida turk tilini A1'dan C1'gacha o'rgatadigan onlayn platforma: video "
+        "darslar, jonli guruh darslari, davomat, imtihonlar, sertifikat va AI repetitor bor.\n"
+        + ("Kurslar:\n" + "\n".join(course_lines) + "\n" if course_lines else "")
+        + ("Tariflar:\n" + "\n".join(plan_lines) + "\n" if plan_lines else "")
+        + "Qoidalar: faqat o'zbekcha, qisqa (3-5 jumla), samimiy javob ber. Faqat platforma "
+        "va turk tili o'rganish mavzusida gapir — boshqa mavzuga o'tma. Narx/kurs haqida "
+        "yuqoridagi ma'lumotdan tashqarisini TO'QIMA; bilmasang ro'yxatdan o'tib aniqlashtirishni taklif qil."
+    )
+
+
+def guest_demo_answer(telegram_id, telegram_username, question, *, provider=None):
+    """Mehmon uchun limitli AI savol-javob. Provider xatosi halol xabar bilan qaytadi."""
+    question = (question or "").strip()
+    if not question:
+        return GuestDemoResult(ok=False, code="empty", message="Savol bo'sh.")
+    if len(question) > 500:
+        return GuestDemoResult(
+            ok=False, code="too_long",
+            message="Savol juda uzun — qisqaroq yozing (500 belgigacha).",
+        )
+
+    guest, _ = BotGuest.objects.get_or_create(
+        telegram_id=telegram_id,
+        defaults={"telegram_username": telegram_username or ""},
+    )
+    if guest.demo_questions_used >= GUEST_DEMO_QUESTION_LIMIT:
+        return GuestDemoResult(
+            ok=False,
+            code="limit_reached",
+            message=(
+                "Demo savollar tugadi. Ro'yxatdan o'tsangiz, AI repetitor bilan "
+                "cheklovsiz suhbatlashasiz — /start bosib \"Ro'yxatdan o'tish\"ni tanlang."
+            ),
+        )
+
+    if provider is None:
+        from ai.providers import get_chat_provider
+
+        provider = get_chat_provider()
+
+    prompt = f"{_build_demo_context()}\n\nMehmon savoli: {question}"
+    try:
+        response = provider.generate(prompt=prompt)
+        answer = (response.text or "").strip()
+    except Exception:
+        return GuestDemoResult(
+            ok=False,
+            code="provider_error",
+            message="Hozir javob bera olmadim — birozdan so'ng qayta urinib ko'ring.",
+        )
+
+    guest.demo_questions_used += 1
+    if telegram_username and guest.telegram_username != telegram_username:
+        guest.telegram_username = telegram_username
+    guest.save(update_fields=["demo_questions_used", "telegram_username", "updated_at"])
+
+    return GuestDemoResult(
+        ok=True,
+        code="answered",
+        message="OK",
+        answer=answer,
+        remaining=GUEST_DEMO_QUESTION_LIMIT - guest.demo_questions_used,
+    )
+
+
+def normalize_phone(raw):
+    digits = re.sub(r"\D", "", raw or "")
+    if len(digits) == 9:  # 901234567 → O'zbekiston raqami deb hisoblaymiz
+        digits = "998" + digits
+    return f"+{digits}" if digits else ""
+
+
+def register_guest_via_phone(*, telegram_id, telegram_username, phone, first_name="", last_name=""):
+    """Telefon-kontakt orqali ro'yxat: mavjud hisob bo'lsa bog'laydi, bo'lmasa yaratadi.
+
+    Telefon Telegram tomonidan tasdiqlangan bo'lishi shart (handler
+    contact.user_id == from_user.id ni tekshiradi).
+    """
+    phone = normalize_phone(phone)
+    if not phone or len(phone) < 10:
+        return PhoneRegisterResult(ok=False, code="bad_phone", message="Telefon raqam noto'g'ri ko'rinishda.")
+
+    existing_tg = CustomUser.objects.filter(telegram_id=telegram_id).first()
+    if existing_tg:
+        return PhoneRegisterResult(
+            ok=True, code="already_linked",
+            message="Bu Telegram allaqachon hisobga ulangan.", user=existing_tg,
+        )
+
+    with transaction.atomic():
+        user = CustomUser.objects.filter(phone_number=phone).first()
+        if user:
+            if user.telegram_id and user.telegram_id != telegram_id:
+                return PhoneRegisterResult(
+                    ok=False, code="phone_taken",
+                    message="Bu raqamdagi hisob boshqa Telegram'ga ulangan. Yordam: /yordam",
+                )
+            user.telegram_id = telegram_id
+            user.telegram_username = telegram_username or ""
+            user.save(update_fields=["telegram_id", "telegram_username"])
+            created = False
+        else:
+            base_username = f"user{phone.lstrip('+')}"
+            username = base_username
+            suffix = 1
+            while CustomUser.objects.filter(username=username).exists():
+                suffix += 1
+                username = f"{base_username}-{suffix}"
+            user = CustomUser.objects.create_user(
+                username=username,
+                phone_number=phone,
+                first_name=(first_name or "")[:150],
+                last_name=(last_name or "")[:150],
+                telegram_id=telegram_id,
+                telegram_username=telegram_username or "",
+            )
+            user.set_unusable_password()
+            user.save(update_fields=["password"])
+            created = True
+
+    Notification.objects.create(
+        recipient=user,
+        title="Telegram orqali ro'yxatdan o'tdingiz" if created else "Telegram hisobi ulandi",
+        message=(
+            "AzureLMS'ga xush kelibsiz! Kurs tanlab o'qishni boshlashingiz mumkin."
+            if created
+            else "Telegram botingiz hisobingizga muvaffaqiyatli ulandi."
+        ),
+        icon="telegram",
+        category=Notification.CATEGORY_SYSTEM,
+    )
+    return PhoneRegisterResult(
+        ok=True,
+        code="registered" if created else "linked",
+        message="Ro'yxatdan o'tdingiz!" if created else "Hisobingiz ulandi!",
+        user=user,
+        created=created,
     )

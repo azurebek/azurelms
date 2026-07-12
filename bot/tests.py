@@ -373,6 +373,127 @@ class GroupOpsRenderingTests(TestCase):
         self.assertIn("Darsni qoldirdingiz", text)
 
 
+class OnboardingServiceTests(TestCase):
+    """F2 — mehmon xizmatlari: ro'yxat, AI demo limiti, katalog."""
+
+    def setUp(self):
+        self.instructor = User.objects.create_user(
+            username="onb-teacher", email="onb-teacher@example.com", password="x",
+        )
+        Course.objects.create(
+            title="Turk tili A1", description="<p>Boshlang'ich kurs</p>",
+            instructor=self.instructor, level="beginner", is_active=True,
+        )
+        Course.objects.create(
+            title="Yashirin kurs", description="t",
+            instructor=self.instructor, level="beginner", is_active=False,
+        )
+
+    def test_list_public_courses_only_active_and_strips_html(self):
+        from bot.services import list_public_courses
+
+        courses = list_public_courses()
+        titles = [c["title"] for c in courses]
+        self.assertIn("Turk tili A1", titles)
+        self.assertNotIn("Yashirin kurs", titles)
+        course = next(c for c in courses if c["title"] == "Turk tili A1")
+        self.assertEqual(course["description"], "Boshlang'ich kurs")
+
+    def test_phone_register_creates_and_links(self):
+        from bot.services import register_guest_via_phone
+
+        result = register_guest_via_phone(
+            telegram_id=7001, telegram_username="yangi_user",
+            phone="+998 90 123-45-67", first_name="Yangi", last_name="User",
+        )
+        self.assertTrue(result.ok)
+        self.assertTrue(result.created)
+        user = result.user
+        self.assertEqual(user.phone_number, "+998901234567")
+        self.assertEqual(user.telegram_id, 7001)
+        self.assertFalse(user.has_usable_password())
+        self.assertTrue(Notification.objects.filter(recipient=user).exists())
+
+        # Ikkinchi marta — allaqachon bog'langan
+        again = register_guest_via_phone(
+            telegram_id=7001, telegram_username="yangi_user", phone="+998901234567",
+        )
+        self.assertTrue(again.ok)
+        self.assertEqual(again.code, "already_linked")
+
+    def test_phone_register_links_existing_account_by_phone(self):
+        from bot.services import register_guest_via_phone
+
+        existing = User.objects.create_user(
+            username="site-user", email="site@example.com",
+            password="x", phone_number="+998911112233",
+        )
+        result = register_guest_via_phone(
+            telegram_id=7002, telegram_username="site_tg", phone="911112233",
+        )
+        self.assertTrue(result.ok)
+        self.assertFalse(result.created)
+        existing.refresh_from_db()
+        self.assertEqual(existing.telegram_id, 7002)
+
+    def test_phone_register_rejects_foreign_linked_phone(self):
+        from bot.services import register_guest_via_phone
+
+        User.objects.create_user(
+            username="taken", email="taken@example.com", password="x",
+            phone_number="+998900000001", telegram_id=8888,
+        )
+        result = register_guest_via_phone(
+            telegram_id=7003, telegram_username="x", phone="+998900000001",
+        )
+        self.assertFalse(result.ok)
+        self.assertEqual(result.code, "phone_taken")
+
+    def test_normalize_phone(self):
+        from bot.services import normalize_phone
+
+        self.assertEqual(normalize_phone("+998 90 123-45-67"), "+998901234567")
+        self.assertEqual(normalize_phone("901234567"), "+998901234567")
+        self.assertEqual(normalize_phone(""), "")
+
+    def test_guest_demo_limit(self):
+        from types import SimpleNamespace
+
+        from bot.models import BotGuest
+        from bot.services import GUEST_DEMO_QUESTION_LIMIT, guest_demo_answer
+
+        fake_provider = SimpleNamespace(
+            generate=lambda **kw: SimpleNamespace(text="Salom! Kurslar haqida...")
+        )
+
+        for i in range(GUEST_DEMO_QUESTION_LIMIT):
+            result = guest_demo_answer(9001, "demo_guest", f"Savol {i}", provider=fake_provider)
+            self.assertTrue(result.ok, msg=f"savol {i} rad etildi")
+        self.assertEqual(result.remaining, 0)
+
+        blocked = guest_demo_answer(9001, "demo_guest", "Yana savol", provider=fake_provider)
+        self.assertFalse(blocked.ok)
+        self.assertEqual(blocked.code, "limit_reached")
+        self.assertEqual(
+            BotGuest.objects.get(telegram_id=9001).demo_questions_used,
+            GUEST_DEMO_QUESTION_LIMIT,
+        )
+
+    def test_guest_demo_provider_error_does_not_consume_quota(self):
+        from types import SimpleNamespace
+
+        from bot.models import BotGuest
+        from bot.services import guest_demo_answer
+
+        def boom(**kw):
+            raise RuntimeError("down")
+
+        result = guest_demo_answer(9002, "g", "Savol", provider=SimpleNamespace(generate=boom))
+        self.assertFalse(result.ok)
+        self.assertEqual(result.code, "provider_error")
+        self.assertEqual(BotGuest.objects.get(telegram_id=9002).demo_questions_used, 0)
+
+
 class IdentityResolveTests(TestCase):
     """bot/middleware.resolve_identity — rol aniqlash."""
 

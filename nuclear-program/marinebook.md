@@ -16,6 +16,17 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-12 [Claude]: Telegram bot F2 — onboarding voronkasi (landing, AI demo, telefon-ro'yxat)
+
+F0+F1 Azurbek tomonidan telefonda sinab tasdiqlandi, davomi qurildi. Mehmon (bog'lanmagan) user endi botda to'liq landing oladi: /start → tanituv + inline menyu (📚 Kurslar / 💰 Narxlar / 🤖 AI savol / 📝 Ro'yxat). Kurslar va tariflar to'g'ridan-to'g'ri DB'dan (faol kurslar, Plan+PlanFeature, HTML strip). AI demo: mehmon oddiy matn yozsa `get_chat_provider().generate` mahsulot-konteksti bilan javob beradi (kurs/tarif ma'lumoti promptga quyiladi, to'qish taqiqlangan) — `BotGuest` modelida 5 savollik limit, provider xatosi kvotani yemaydi. Ro'yxat ikki yo'l: (a) telefon-kontakt tugmasi — `contact.user_id == from_user.id` tekshiruvi bilan (faqat o'z raqami), mavjud hisob telefon bo'yicha topilsa bog'lanadi, bo'lmasa yangi user yaratiladi (unusable password, normalize qilingan +998... raqam); (b) sayt register havolasi. Bog'langan userning erkin matni F3'gacha hint oladi.
+
+- Branch: `claude/telegram-bot`
+- Commitlar: quyidagi commit (F2), `377f9e9` (F0+F1)
+- Test holati: `python manage.py test` — **266/266 OK** (bot: 11→18, +7 F2 testi)
+- Davom etilishi kerak: F3 o'quvchi workspace (darslarim/to'lov/davomat menyusi) + AI repetitor DM (messenger engine'ga ulash) + notification outbox; F4 o'qituvchi/admin; prod uchun alohida bot + webhook
+
+---
+
 ## 2026-07-12 [Claude]: Telegram bot qayta-arxitektura F0+F1 — skelet + Davomat v2
 
 Azurbek talabi: bot kompyutersiz auditoriya uchun platformaning to'liq interfeysi bo'lsin (reja: `nuclear-program/telegram-bot-plan.md`, F0–F5 bosqichlar kelishilgan). Bu sessiyada F0+F1:
