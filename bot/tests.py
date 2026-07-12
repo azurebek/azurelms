@@ -509,6 +509,99 @@ class OnboardingServiceTests(TestCase):
         self.assertEqual(BotGuest.objects.get(telegram_id=9002).demo_questions_used, 0)
 
 
+class WorkspaceServiceTests(TestCase):
+    """F3 — o'quvchi workspace servislari."""
+
+    def setUp(self):
+        self.teacher = User.objects.create_user(
+            username="ws-teacher", email="ws-teacher@example.com", password="x", is_staff=True,
+        )
+        self.student = User.objects.create_user(
+            username="ws-student", email="ws-student@example.com", password="x", telegram_id=6001,
+        )
+        self.course = Course.objects.create(
+            title="WS kursi", description="t", instructor=self.teacher, level="beginner",
+        )
+        module = Module.objects.create(course=self.course, title="M1", order=1)
+        self.lesson = Lesson.objects.create(module=module, title="WS darsi", order=1, xp_reward=5)
+        self.cohort = Cohort.objects.create(
+            name="WS kohorti", course=self.course, start_date="2026-03-26", is_active=True,
+        )
+        self.enrollment = Enrollment.objects.create(
+            student=self.student, cohort=self.cohort, status="active",
+        )
+
+    def test_student_overview_uses_dashboard_math(self):
+        from bot.services import student_overview
+
+        items = student_overview(self.student)
+        self.assertEqual(len(items), 1)
+        item = items[0]
+        self.assertEqual(item["course"], "WS kursi")
+        self.assertEqual(item["total"], 1)
+        self.assertEqual(item["completed"], 0)
+        self.assertEqual(item["progress"], 0)
+
+    def test_student_recent_attendance(self):
+        from bot.services import student_recent_attendance
+        from cohorts.attendance_service import upsert_attendance_and_xp
+
+        upsert_attendance_and_xp(
+            enrollment=self.enrollment, lesson=self.lesson,
+            date=timezone.localdate(), status=Attendance.STATUS_PRESENT,
+            marked_by=self.teacher,
+        )
+        items = student_recent_attendance(self.student)
+        self.assertEqual(len(items), 1)
+        self.assertEqual(items[0]["lesson"], "WS darsi")
+        self.assertIn("Keldi", items[0]["status"])
+
+    def test_telegram_ai_room_is_stable(self):
+        from bot.services import TELEGRAM_AI_ROOM_NAME, get_or_create_telegram_ai_room
+
+        room1 = get_or_create_telegram_ai_room(self.student)
+        room2 = get_or_create_telegram_ai_room(self.student)
+        self.assertEqual(room1.id, room2.id)
+        self.assertEqual(room1.name, TELEGRAM_AI_ROOM_NAME)
+        self.assertEqual(room1.room_type, "ai")
+        self.assertIn(self.student, room1.participants.all())
+
+    def test_telegram_ai_reply_creates_messages_in_room(self):
+        from types import SimpleNamespace
+        from unittest.mock import patch
+
+        from bot.services import telegram_ai_reply
+        from messenger.models import Message
+
+        def fake_run(*, room_id, student_id, user_question, user_message_id):
+            from messenger.models import ChatRoom
+            room = ChatRoom.objects.get(id=room_id)
+            msg = Message.objects.create(room=room, sender=None, text="Turkcha javob!")
+            return msg.id
+
+        with patch("messenger.tasks.generate_ai_response", SimpleNamespace(run=fake_run)):
+            result = telegram_ai_reply(self.student, "Salom, rahmat turkchada nima?")
+
+        self.assertTrue(result.ok, msg=result.message)
+        self.assertEqual(result.answer, "Turkcha javob!")
+        room_messages = Message.objects.filter(room__name="Telegram AI suhbati")
+        self.assertEqual(room_messages.count(), 2)  # user savoli + AI javobi
+
+    def test_telegram_ai_reply_engine_error_is_graceful(self):
+        from types import SimpleNamespace
+        from unittest.mock import patch
+
+        from bot.services import telegram_ai_reply
+
+        def boom(**kw):
+            raise RuntimeError("engine down")
+
+        with patch("messenger.tasks.generate_ai_response", SimpleNamespace(run=boom)):
+            result = telegram_ai_reply(self.student, "Savol")
+        self.assertFalse(result.ok)
+        self.assertEqual(result.code, "engine_error")
+
+
 class OnboardingMarkupTests(TestCase):
     """Telegram localhost URL-tugmani rad etadi — lokal muhitda callback bo'lishi shart."""
 

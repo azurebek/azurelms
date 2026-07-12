@@ -162,13 +162,16 @@ def render_welcome(lms_user, lms_role):
             "• <code>/dars 1</code> — davomat boshlash\n"
             "• <code>/dars tugadi</code> — yakunlash, ismli e'lon + ogohlantirishlar\n"
             "• <code>/davomat</code> — joriy holat\n"
-            "• <code>/link_cohort ID</code> — guruhni kohortga ulash"
+            "• <code>/link_cohort ID</code> — guruhni kohortga ulash\n\n"
+            "Shaxsiy buyruqlar: /darslarim · /davomatim · /tolov\n"
+            "Savol yozsangiz — AI repetitor javob beradi 🤖"
         )
     else:
         lines.append(
-            "Dars guruhidagi davomat postida \"Darsga kirdim\" tugmasini bosing — "
-            "davomatingiz avtomatik belgilanadi.\n\n"
-            "Tez orada: darslaringiz, to'lov holati va AI repetitor shu yerda."
+            "Menyu: quyidagi tugmalar yoki buyruqlar —\n"
+            "📚 /darslarim · ✅ /davomatim · 💳 /tolov\n\n"
+            "🤖 Shunchaki savol yozing — AI repetitor javob beradi "
+            "(turk tili, darslar, mashqlar — hammasi)."
         )
     return "\n".join(lines)
 
@@ -208,7 +211,13 @@ async def cmd_start_handler(
         )
         return
 
-    await message.answer(render_welcome(lms_user, lms_role), parse_mode=HTML_MODE)
+    from bot.routers.workspace import student_menu_markup
+
+    await message.answer(
+        render_welcome(lms_user, lms_role),
+        parse_mode=HTML_MODE,
+        reply_markup=student_menu_markup(),
+    )
 
 
 @router.message(Command("yordam", "help"))
@@ -218,7 +227,13 @@ async def help_handler(message: types.Message, lms_user, lms_role):
             render_guest_welcome(), parse_mode=HTML_MODE, reply_markup=guest_menu_markup()
         )
         return
-    await message.answer(render_welcome(lms_user, lms_role), parse_mode=HTML_MODE)
+    from bot.routers.workspace import student_menu_markup
+
+    await message.answer(
+        render_welcome(lms_user, lms_role),
+        parse_mode=HTML_MODE,
+        reply_markup=student_menu_markup(),
+    )
 
 
 # ---------------------------------------------------------------- callbacks
@@ -338,11 +353,17 @@ async def contact_handler(message: types.Message, lms_user):
 @router.message(F.text & ~F.text.startswith("/"))
 async def guest_text_handler(message: types.Message, lms_user):
     if lms_user is not None:
-        # Bog'langan user uchun erkin suhbat F3'da (AI repetitor) ulanadi.
-        await message.answer(
-            "Buyruqlar: /start — menyu, /yordam — yordam.\n"
-            "AI repetitor bilan suhbat tez orada shu yerda ishlaydi 🤖"
-        )
+        # Bog'langan user — to'liq AI repetitor (messenger engine, F3)
+        from bot.routers.workspace import send_long
+        from bot.services import telegram_ai_reply
+
+        await message.bot.send_chat_action(message.chat.id, "typing")
+        result = await sync_to_async(telegram_ai_reply)(lms_user, message.text)
+        if not result.ok:
+            await message.answer(result.message)
+            return
+        # AI matni markdown bo'lishi mumkin — parse_mode'siz (xavfsiz) yuboramiz
+        await send_long(message, result.answer)
         return
 
     await message.bot.send_chat_action(message.chat.id, "typing")

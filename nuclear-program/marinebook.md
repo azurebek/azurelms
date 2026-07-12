@@ -16,6 +16,17 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-12 [Claude]: Telegram bot F3 — o'quvchi workspace + AI repetitor DM
+
+F2 telefon-sinovda tasdiqlandi (yo'lda 2 tuzatish: localhost URL-tugmani Telegram rad etadi → lokalda callback-tugma + global error-boundary; email unique='' to'qnashuvi → placeholder email). F3: bog'langan user uchun ish stoli. `/darslarim` — progress bar bilan kurslar (users.views.build_student_enrollments QAYTA ishlatiladi, dashboard bilan bir xil hisob), `/davomatim` — so'nggi 10 davomat, `/tolov` — tarif/holat/muddatlar; /start menyusi inline tugmalar bilan. Eng muhimi: **erkin matn → messenger AI engine** (`telegram_ai_reply`): har userga doimiy "Telegram AI suhbati" xonasi (saytdagi Messengerda ko'rinadi), `generate_ai_response.run` — skills/xotira/RAG/aicontrol-kvota hammasi sayt bilan bitta; suppress_ai_signal bilan dublikat generatsiya oldi olinadi; javob 4000-belgili bo'laklarda, parse_mode'siz (markdown-entity xatolaridan xavfsiz). Guruh (F1) va mehmon (F2) oqimlariga tegilmagan.
+
+- Branch: `claude/telegram-bot`
+- Commitlar: quyidagi commit (F3), `422dad4` (email fix), `0de42f3` (URL-tugma fix), `1d21049` (F2), `377f9e9` (F0+F1)
+- Test holati: `python manage.py test` — **274/274 OK** (bot: 21→26, +5 F3 testi)
+- Davom etilishi kerak: F4 o'qituvchi/admin buyruqlari + notification outbox (platforma hodisalari → DM); AI javobida rasm/hujjat attachment'lar (engine SVG/PDF qaytarsa hozircha faqat matn ketadi); prod: alohida bot + webhook + kvota belgisi
+
+---
+
 ## 2026-07-12 [Claude]: Telegram bot F2 — onboarding voronkasi (landing, AI demo, telefon-ro'yxat)
 
 F0+F1 Azurbek tomonidan telefonda sinab tasdiqlandi, davomi qurildi. Mehmon (bog'lanmagan) user endi botda to'liq landing oladi: /start → tanituv + inline menyu (📚 Kurslar / 💰 Narxlar / 🤖 AI savol / 📝 Ro'yxat). Kurslar va tariflar to'g'ridan-to'g'ri DB'dan (faol kurslar, Plan+PlanFeature, HTML strip). AI demo: mehmon oddiy matn yozsa `get_chat_provider().generate` mahsulot-konteksti bilan javob beradi (kurs/tarif ma'lumoti promptga quyiladi, to'qish taqiqlangan) — `BotGuest` modelida 5 savollik limit, provider xatosi kvotani yemaydi. Ro'yxat ikki yo'l: (a) telefon-kontakt tugmasi — `contact.user_id == from_user.id` tekshiruvi bilan (faqat o'z raqami), mavjud hisob telefon bo'yicha topilsa bog'lanadi, bo'lmasa yangi user yaratiladi (unusable password, normalize qilingan +998... raqam); (b) sayt register havolasi. Bog'langan userning erkin matni F3'gacha hint oladi.

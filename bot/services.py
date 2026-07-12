@@ -747,3 +747,147 @@ def register_guest_via_phone(*, telegram_id, telegram_username, phone, first_nam
         user=user,
         created=created,
     )
+
+
+# ================================================================ F3: O'quvchi workspace
+
+TELEGRAM_AI_ROOM_NAME = "Telegram AI suhbati"
+
+ATTENDANCE_STATUS_LABELS = {
+    Attendance.STATUS_PRESENT: "✅ Keldi",
+    Attendance.STATUS_PARTIAL: "🕒 Kech",
+    Attendance.STATUS_ABSENT: "❌ Kelmadi",
+}
+
+ENROLLMENT_STATUS_LABELS = {
+    "active": "Faol",
+    "pending": "To'lov kutilmoqda",
+    "frozen": "Muzlatilgan",
+    "expired": "Muddati tugagan",
+    "completed": "Tugallangan",
+}
+
+
+@dataclass
+class TelegramAiResult(ActionResult):
+    answer: str = ""
+
+
+def student_overview(user):
+    """Dashboard bilan BIR XIL hisob — users.views.build_student_enrollments qayta ishlatiladi."""
+    from users.views import build_student_enrollments
+
+    items = []
+    for e in build_student_enrollments(user):
+        items.append(
+            {
+                "course": e.cohort.course.title,
+                "cohort": e.cohort.name,
+                "status": ENROLLMENT_STATUS_LABELS.get(
+                    e.dashboard_effective_status, e.dashboard_effective_status
+                ),
+                "completed": e.dashboard_completed_lessons,
+                "total": e.dashboard_total_lessons,
+                "progress": e.dashboard_progress,
+            }
+        )
+    return items
+
+
+def student_recent_attendance(user, limit=10):
+    records = (
+        Attendance.objects.filter(enrollment__student=user)
+        .select_related("lesson")
+        .order_by("-date", "-id")[:limit]
+    )
+    return [
+        {
+            "date": r.date.strftime("%d.%m.%Y"),
+            "lesson": r.lesson.title if r.lesson else "—",
+            "status": ATTENDANCE_STATUS_LABELS.get(r.status, r.status),
+        }
+        for r in records
+    ]
+
+
+def student_payment_overview(user):
+    items = []
+    for e in user.enrollments.select_related("plan", "cohort__course").order_by("-joined_at"):
+        items.append(
+            {
+                "course": e.cohort.course.title,
+                "plan": e.plan.name if e.plan else "—",
+                "status": ENROLLMENT_STATUS_LABELS.get(e.status, e.status),
+                "last_payment": e.last_payment_date.strftime("%d.%m.%Y") if e.last_payment_date else "—",
+                "next_deadline": (
+                    e.next_payment_deadline.strftime("%d.%m.%Y") if e.next_payment_deadline else "—"
+                ),
+            }
+        )
+    return items
+
+
+def get_or_create_telegram_ai_room(user):
+    """Har userga bitta doimiy 'Telegram AI suhbati' xonasi.
+
+    Nomi qat'iy — saytdagi AI suhbatlaridan ajralib turadi va lookup barqaror.
+    """
+    from messenger.models import ChatRoom
+
+    room = (
+        ChatRoom.objects.filter(
+            room_type="ai", participants=user, name=TELEGRAM_AI_ROOM_NAME
+        )
+        .order_by("id")
+        .first()
+    )
+    if room is None:
+        from messenger.access import create_user_ai_room
+
+        room = create_user_ai_room(user)
+        room.name = TELEGRAM_AI_ROOM_NAME
+        room.save(update_fields=["name"])
+    return room
+
+
+def telegram_ai_reply(user, text):
+    """Bog'langan user matni → messenger AI engine (skills, xotira, kvota — hammasi).
+
+    Sayt bilan bitta engine: generate_ai_response o'zi kvota tekshiradi
+    (aicontrol, fail-open), xotira/RAG ishlatadi. Suhbat saytdagi messenger'da
+    'Telegram AI suhbati' xonasi sifatida ko'rinadi.
+    """
+    text = (text or "").strip()
+    if not text:
+        return TelegramAiResult(ok=False, code="empty", message="Xabar bo'sh.")
+
+    from messenger.models import Message
+    from messenger.signals import suppress_ai_signal
+    from messenger.tasks import generate_ai_response
+
+    room = get_or_create_telegram_ai_room(user)
+    with suppress_ai_signal():
+        user_message = Message.objects.create(room=room, sender=user, text=text)
+
+    try:
+        ai_message_id = generate_ai_response.run(
+            room_id=room.id,
+            student_id=user.id,
+            user_question=text,
+            user_message_id=user_message.id,
+        )
+    except Exception:
+        return TelegramAiResult(
+            ok=False,
+            code="engine_error",
+            message="Hozir javob bera olmadim — birozdan so'ng qayta urinib ko'ring.",
+        )
+
+    ai_message = Message.objects.filter(id=ai_message_id).first() if ai_message_id else None
+    if not ai_message or not (ai_message.text or "").strip():
+        return TelegramAiResult(
+            ok=False,
+            code="empty_answer",
+            message="Javob tayyorlanmadi — birozdan so'ng qayta urinib ko'ring.",
+        )
+    return TelegramAiResult(ok=True, code="answered", message="OK", answer=ai_message.text)
