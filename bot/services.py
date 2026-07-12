@@ -582,6 +582,7 @@ def list_plans():
     for plan in Plan.objects.prefetch_related("features").order_by("order"):
         items.append(
             {
+                "id": plan.id,
                 "name": plan.name,
                 "price": int(plan.price),
                 "is_popular": plan.is_popular,
@@ -891,3 +892,137 @@ def telegram_ai_reply(user, text):
             message="Javob tayyorlanmadi — birozdan so'ng qayta urinib ko'ring.",
         )
     return TelegramAiResult(ok=True, code="answered", message="OK", answer=ai_message.text)
+
+
+# ================================================================ F3.5: Kursga yozilish
+
+@dataclass
+class EnrollBeginResult(ActionResult):
+    course_title: str = ""
+    plan_name: str = ""
+    amount: int = 0
+    card_number: str = ""
+    card_holder: str = ""
+    period_start: str = ""
+    period_end: str = ""
+
+
+@dataclass
+class ReceiptSubmitResult(ActionResult):
+    receipt_id: int | None = None
+    course_title: str = ""
+    amount: int = 0
+
+
+def _checkout_period(enrollment, today=None):
+    """Sayt checkout'i bilan BIR XIL davr hisobi (cohorts/views.checkout_view)."""
+    today = today or timezone.localdate()
+    if (
+        enrollment.status == Enrollment.STATUS_ACTIVE
+        and enrollment.next_payment_deadline
+        and enrollment.next_payment_deadline > today
+    ):
+        start = enrollment.next_payment_deadline
+    else:
+        start = today
+    return start, start + datetime.timedelta(days=30)
+
+
+def begin_course_enrollment(user, course_id, plan_id):
+    """Kurs+tarif tanlandi → pending enrollment + to'lov rekvizitlari.
+
+    Sayt bilan bitta servis: resolve_checkout_enrollment kohortni o'zi tanlaydi,
+    mavjud enrollmentni qayta ishlatadi (dublikat ochilmaydi).
+    """
+    from cohorts.checkout_service import CheckoutUnavailable, resolve_checkout_enrollment
+    from cohorts.models import PaymentReceipt
+    from frontend.models import SiteSettings
+    from subscriptions.models import Plan
+
+    course = Course.objects.filter(id=course_id, is_active=True).first()
+    if not course:
+        return EnrollBeginResult(ok=False, code="course_missing", message="Kurs topilmadi yoki faol emas.")
+    plan = Plan.objects.filter(id=plan_id).first()
+    if not plan:
+        return EnrollBeginResult(ok=False, code="plan_missing", message="Tarif topilmadi.")
+
+    try:
+        enrollment, _created, _cohort = resolve_checkout_enrollment(student=user, course=course)
+    except CheckoutUnavailable as exc:
+        return EnrollBeginResult(ok=False, code="unavailable", message=str(exc))
+
+    if PaymentReceipt.objects.filter(enrollment=enrollment, is_verified=False).exists():
+        return EnrollBeginResult(
+            ok=False,
+            code="pending_receipt",
+            message=(
+                "Sizda tasdiqlanmagan to'lov cheki bor — administrator ko'rib chiqishini kuting. "
+                "Holat: /tolov"
+            ),
+        )
+
+    if enrollment.plan_id != plan.id:
+        enrollment.plan = plan
+        enrollment.save(update_fields=["plan"])
+
+    start, end = _checkout_period(enrollment)
+    site = SiteSettings.load()
+    return EnrollBeginResult(
+        ok=True,
+        code="begun",
+        message="Tarif tanlandi.",
+        course_title=course.title,
+        plan_name=plan.name,
+        amount=int(plan.price),
+        card_number=site.payment_card_number or "",
+        card_holder=site.payment_card_holder or "",
+        period_start=start.strftime("%d.%m.%Y"),
+        period_end=end.strftime("%d.%m.%Y"),
+    )
+
+
+def submit_payment_receipt(user, receipt_image):
+    """Telegram'dan kelgan chek rasmi → PaymentReceipt (sayt bilan bitta servis).
+
+    Nishon: tarifi tanlangan, tasdiqlanmagan cheki yo'q eng so'nggi enrollment
+    (begin_course_enrollment'dan keyingi holat).
+    """
+    from subscriptions.promo_service import create_checkout_receipt_with_promo
+
+    enrollment = (
+        user.enrollments.select_related("plan", "cohort__course")
+        .filter(plan__isnull=False)
+        .exclude(receipts__is_verified=False)
+        .order_by("-joined_at", "-id")
+        .first()
+    )
+    if enrollment is None:
+        has_pending = user.enrollments.filter(receipts__is_verified=False).exists()
+        if has_pending:
+            return ReceiptSubmitResult(
+                ok=False,
+                code="pending_receipt",
+                message="Oldingi chekingiz hali tasdiqlanmagan — administrator ko'rib chiqishini kuting.",
+            )
+        return ReceiptSubmitResult(
+            ok=False,
+            code="no_target",
+            message="Avval kurs va tarifni tanlang: /yozilish",
+        )
+
+    start, end = _checkout_period(enrollment)
+    receipt, _quote, _redemption = create_checkout_receipt_with_promo(
+        enrollment=enrollment,
+        plan=enrollment.plan,
+        receipt_image=receipt_image,
+        period_start=start,
+        period_end=end,
+    )
+    return ReceiptSubmitResult(
+        ok=True,
+        code="submitted",
+        message="Chek qabul qilindi.",
+        receipt_id=receipt.id,
+        course_title=enrollment.cohort.course.title,
+        amount=int(receipt.amount),
+    )

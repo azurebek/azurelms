@@ -602,6 +602,87 @@ class WorkspaceServiceTests(TestCase):
         self.assertEqual(result.code, "engine_error")
 
 
+class EnrollmentFlowTests(TestCase):
+    """F3.5 — botdan kursga yozilish: tarif tanlash → chek yuborish."""
+
+    def setUp(self):
+        from subscriptions.models import Plan
+
+        self.teacher = User.objects.create_user(
+            username="enr-teacher", email="enr-teacher@example.com", password="x", is_staff=True,
+        )
+        self.student = User.objects.create_user(
+            username="enr-student", email="enr-student@example.com", password="x", telegram_id=6101,
+        )
+        self.course = Course.objects.create(
+            title="Yozilish kursi", description="t", instructor=self.teacher,
+            level="beginner", is_active=True,
+        )
+        self.cohort = Cohort.objects.create(
+            name="Yozilish kohorti", course=self.course, start_date="2026-03-26", is_active=True,
+        )
+        self.plan = Plan.objects.create(name="Standart", price=299000, description="t", order=1)
+
+    def _fake_receipt(self):
+        from django.core.files.base import ContentFile
+
+        return ContentFile(b"fake-image-bytes", name="tg-receipt-test.jpg")
+
+    def test_begin_enrollment_creates_pending_with_plan_and_card_info(self):
+        from bot.services import begin_course_enrollment
+
+        result = begin_course_enrollment(self.student, self.course.id, self.plan.id)
+        self.assertTrue(result.ok, msg=result.message)
+        self.assertEqual(result.amount, 299000)
+        self.assertTrue(result.card_number)
+
+        enrollment = Enrollment.objects.get(student=self.student)
+        self.assertEqual(enrollment.status, "pending")
+        self.assertEqual(enrollment.plan_id, self.plan.id)
+
+        # Ikkinchi chaqiruv dublikat enrollment ochmaydi
+        begin_course_enrollment(self.student, self.course.id, self.plan.id)
+        self.assertEqual(Enrollment.objects.filter(student=self.student).count(), 1)
+
+    def test_submit_receipt_creates_payment_receipt(self):
+        from bot.services import begin_course_enrollment, submit_payment_receipt
+        from cohorts.models import PaymentReceipt
+
+        begin_course_enrollment(self.student, self.course.id, self.plan.id)
+        result = submit_payment_receipt(self.student, self._fake_receipt())
+
+        self.assertTrue(result.ok, msg=result.message)
+        receipt = PaymentReceipt.objects.get(id=result.receipt_id)
+        self.assertEqual(int(receipt.amount), 299000)
+        self.assertFalse(receipt.is_verified)
+        self.assertEqual(result.course_title, "Yozilish kursi")
+
+    def test_submit_receipt_without_plan_selection_is_rejected(self):
+        from bot.services import submit_payment_receipt
+
+        result = submit_payment_receipt(self.student, self._fake_receipt())
+        self.assertFalse(result.ok)
+        self.assertEqual(result.code, "no_target")
+
+    def test_second_receipt_blocked_while_pending(self):
+        from bot.services import (
+            begin_course_enrollment,
+            submit_payment_receipt,
+        )
+
+        begin_course_enrollment(self.student, self.course.id, self.plan.id)
+        submit_payment_receipt(self.student, self._fake_receipt())
+
+        # Chek kutilayotganda yana boshlash ham, yana chek ham bloklanadi
+        again = begin_course_enrollment(self.student, self.course.id, self.plan.id)
+        self.assertFalse(again.ok)
+        self.assertEqual(again.code, "pending_receipt")
+
+        second = submit_payment_receipt(self.student, self._fake_receipt())
+        self.assertFalse(second.ok)
+        self.assertEqual(second.code, "pending_receipt")
+
+
 class OnboardingMarkupTests(TestCase):
     """Telegram localhost URL-tugmani rad etadi — lokal muhitda callback bo'lishi shart."""
 

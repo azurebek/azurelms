@@ -16,6 +16,17 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-12 [Claude]: Telegram bot F3.5 — botdan kursga yozilish (to'liq checkout oqimi)
+
+Azurbek taklifi: qabul ochiq kurslar + yozilish botda bo'lsin. Oqim: `/yozilish` (yoki menyudagi 🎓) → faol kurslar ro'yxati inline tugmalar bilan → tarif tanlash (narx/⭐️ ommabop) → to'lov rekvizitlari (summa, karta raqami/egasi — SiteSettings'dan, davr) → user chek RASMINI yuboradi (F.photo) → Telegram'dan fayl yuklab olinib `PaymentReceipt` yaratiladi → backoffice'dagi mavjud tasdiqlash oqimiga tushadi. MUHIM: biznes-mantiq yozilmadi — sayt checkout servislari qayta ishlatildi (`resolve_checkout_enrollment` kohort tanlash/pending enrollment, `create_checkout_receipt_with_promo` chek+summa, davr hisobi checkout_view bilan bir xil). Guard'lar: tasdiqlanmagan chek borida qayta boshlash/qayta chek bloklanadi; tarif tanlanmagan rasmga halol hint; chek nishoni = tarifi tanlangan, cheki yo'q eng so'nggi enrollment (stateless — bot restart holatni yo'qotmaydi).
+
+- Branch: `claude/telegram-bot`
+- Commitlar: quyidagi commit (F3.5)
+- Test holati: `python manage.py test` — **278/278 OK** (bot: 26→30, +4 F3.5)
+- Davom etilishi kerak: promo-kod kiritish botda (servis tayyor, UI yo'q); chek tasdiqlanganda userga DM (F4 outbox); F4 o'qituvchi/admin
+
+---
+
 ## 2026-07-12 [Claude]: Telegram bot F3 — o'quvchi workspace + AI repetitor DM
 
 F2 telefon-sinovda tasdiqlandi (yo'lda 2 tuzatish: localhost URL-tugmani Telegram rad etadi → lokalda callback-tugma + global error-boundary; email unique='' to'qnashuvi → placeholder email). F3: bog'langan user uchun ish stoli. `/darslarim` — progress bar bilan kurslar (users.views.build_student_enrollments QAYTA ishlatiladi, dashboard bilan bir xil hisob), `/davomatim` — so'nggi 10 davomat, `/tolov` — tarif/holat/muddatlar; /start menyusi inline tugmalar bilan. Eng muhimi: **erkin matn → messenger AI engine** (`telegram_ai_reply`): har userga doimiy "Telegram AI suhbati" xonasi (saytdagi Messengerda ko'rinadi), `generate_ai_response.run` — skills/xotira/RAG/aicontrol-kvota hammasi sayt bilan bitta; suppress_ai_signal bilan dublikat generatsiya oldi olinadi; javob 4000-belgili bo'laklarda, parse_mode'siz (markdown-entity xatolaridan xavfsiz). Guruh (F1) va mehmon (F2) oqimlariga tegilmagan.
