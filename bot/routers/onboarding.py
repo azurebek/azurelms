@@ -61,12 +61,28 @@ def guest_menu_markup():
     )
 
 
+def _is_public_domain():
+    domain = getattr(settings, "APP_DOMAIN", "") or ""
+    return "localhost" not in domain and not domain.startswith("127.")
+
+
+def site_register_url():
+    if _is_public_domain():
+        return f"https://{settings.APP_DOMAIN}/users/register/"
+    return f"http://{settings.APP_DOMAIN}:8000/users/register/"
+
+
 def register_menu_markup():
-    site_url = f"https://{settings.APP_DOMAIN}/users/register/"
+    # Telegram inline tugmalarda localhost URL'ni rad etadi (Wrong HTTP URL) —
+    # lokalda URL-tugma o'rniga havolani matn qilib yuboradigan callback ishlatamiz.
+    if _is_public_domain():
+        site_btn = InlineKeyboardButton(text="🌐 Saytda ro'yxatdan o'tish", url=site_register_url())
+    else:
+        site_btn = InlineKeyboardButton(text="🌐 Saytda ro'yxatdan o'tish", callback_data="onb:register_site")
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="📱 Telefon raqam bilan (shu yerda)", callback_data="onb:register_phone")],
-            [InlineKeyboardButton(text="🌐 Saytda ro'yxatdan o'tish", url=site_url)],
+            [site_btn],
             [InlineKeyboardButton(text="⬅️ Orqaga", callback_data="onb:menu")],
         ]
     )
@@ -254,6 +270,14 @@ async def cb_register(callback: types.CallbackQuery):
         "(30 soniya), yoki saytda to'liq forma bilan.",
         parse_mode=HTML_MODE,
         reply_markup=register_menu_markup(),
+    )
+
+
+@router.callback_query(F.data == "onb:register_site")
+async def cb_register_site(callback: types.CallbackQuery):
+    await callback.answer()
+    await callback.message.answer(
+        f"🌐 Saytda ro'yxatdan o'tish:\n{site_register_url()}"
     )
 
 

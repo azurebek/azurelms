@@ -494,6 +494,30 @@ class OnboardingServiceTests(TestCase):
         self.assertEqual(BotGuest.objects.get(telegram_id=9002).demo_questions_used, 0)
 
 
+class OnboardingMarkupTests(TestCase):
+    """Telegram localhost URL-tugmani rad etadi — lokal muhitda callback bo'lishi shart."""
+
+    def test_register_markup_has_no_localhost_url_button(self):
+        from bot.routers.onboarding import register_menu_markup
+
+        markup = register_menu_markup()
+        for row in markup.inline_keyboard:
+            for btn in row:
+                if btn.url:
+                    self.assertNotIn("localhost", btn.url)
+                    self.assertNotIn("127.0.0.1", btn.url)
+
+    def test_register_markup_url_button_on_public_domain(self):
+        from unittest.mock import patch
+
+        from bot.routers import onboarding
+
+        with patch.object(onboarding.settings, "APP_DOMAIN", "azurelms.uz"):
+            markup = onboarding.register_menu_markup()
+        urls = [btn.url for row in markup.inline_keyboard for btn in row if btn.url]
+        self.assertEqual(urls, ["https://azurelms.uz/users/register/"])
+
+
 class IdentityResolveTests(TestCase):
     """bot/middleware.resolve_identity — rol aniqlash."""
 
