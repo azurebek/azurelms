@@ -715,6 +715,10 @@ def register_guest_via_phone(*, telegram_id, telegram_username, phone, first_nam
                 username = f"{base_username}-{suffix}"
             user = CustomUser.objects.create_user(
                 username=username,
+                # email unique=True — bo'sh qoldirib bo'lmaydi (ikkinchi ''-email
+                # UNIQUE'ni buzadi). Username'dan deterministik placeholder;
+                # user keyin sozlamalarda haqiqiy emailga almashtira oladi.
+                email=f"{username}@telegram.azurelms.uz",
                 phone_number=phone,
                 first_name=(first_name or "")[:150],
                 last_name=(last_name or "")[:150],

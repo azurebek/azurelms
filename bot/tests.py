@@ -449,6 +449,21 @@ class OnboardingServiceTests(TestCase):
         self.assertFalse(result.ok)
         self.assertEqual(result.code, "phone_taken")
 
+    def test_phone_register_two_guests_no_email_collision(self):
+        """email unique=True — ikki telefon-ro'yxat ''-email to'qnashuvisiz o'tishi shart."""
+        from bot.services import register_guest_via_phone
+
+        # Bazada allaqachon bo'sh-email user bor deb simulyatsiya qilamiz
+        User.objects.create(username="legacy-empty-email", email="")
+
+        first = register_guest_via_phone(telegram_id=7101, telegram_username="a", phone="+998901111111")
+        second = register_guest_via_phone(telegram_id=7102, telegram_username="b", phone="+998902222222")
+
+        self.assertTrue(first.ok, msg=first.message)
+        self.assertTrue(second.ok, msg=second.message)
+        self.assertNotEqual(first.user.email, second.user.email)
+        self.assertTrue(first.user.email)
+
     def test_normalize_phone(self):
         from bot.services import normalize_phone
 
