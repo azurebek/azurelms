@@ -16,6 +16,36 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-12 [Claude]: AI vidjet (boyo'g'li) tuzatildi — dublikat skript panelni ochirmayotgan edi
+
+Floating AzureAI vidjeti (app sahifalardagi boyo'g'li tugma) umuman ishlamayotgan edi: `ai-widget.js` ham `base_app.html` head'ida, ham include (`ai_assistant_widget.html`) ichida ulangan — IIFE ikki marta yugurib, ikkita click-listener panelni ochib-darhol yopar, submit esa ikki POST yuborar edi. Head'dagi dublikat olib tashlandi (skript endi faqat include ichida — include o'zi-yetarli bo'lib qoldi), JS'ga `dataset.azaiInit` ikki-marta-init himoyasi qo'shildi. Dars sahifasiga (`lesson_detail.html`) ham vidjet qo'shildi — o'quvchi darsdan chiqmasdan savol so'raydi. Backend (lazy room) allaqachon to'g'ri edi, tegilmadi: bo'sh ochib-yopilsa xona yaratilmaydi; birinchi xabardan keyin xona yaratilib messengerda avto-nomlangan suhbat sifatida chiqadi, keyingi xabarlar o'sha xonada davom etadi — hammasi jonli tekshirildi (real AI javob bilan, room 83).
+
+Diagnostika eslatmasi: lokal `runserver`ni `--noreload` bilan yugurtirmang — Django 4.1+ cached template loader'ni DEBUG'da ham yoqadi va keshni faqat autoreloader tozalaydi; `--noreload`da template tahrirlari serverga yetib bormaydi (shu sessiyada 20 daqiqa yegan tuzoq).
+
+- Branch: `claude/ai-context-understanding`
+- Commitlar: `cf52d4e`
+- Test holati: `python manage.py test messenger` — **85/85 OK**
+- Davom etilishi kerak: mobil moslashuv auditi alohida reja bo'lib turibdi (messenger 1-panel rejimi, checkout/dashboard gridlari); vidjet hozir student shell + dars sahifasida — teacher/backoffice'ga ataylab qo'shilmadi
+
+---
+
+## 2026-07-09 [Claude]: AI suhbat-konteksti — skill stickiness, kontekstli retrieval, embed-on-write
+
+Uch yo'nalishda takomil: (1) SUHBAT OQIMI — skill tanlash faqat joriy xabarga qarardi, quiz o'rtasidagi "B" yoki "davom et" javobi keyword'siz bo'lgani uchun general_chat'ga tushib oqim uzilardi. Endi keyword'siz qisqa davomiy xabar xonaning oxirgi muvaffaqiyatli skillida qoladi (AIResponseRun, 3 soatlik oyna; web_search/smart_form/general_chat sticky emas). Prompt'ga SUHBAT OQIMI bo'limi (qisqa xabar = oxirgi mavzu; berilgan savolga javobni AVVAL baholash; mavzuni ushlab turish), quiz SKILL.md'ga javob-baholash qoidasi. (2) USERNI TUSHUNISH — memory+RAG retrieval faqat oxirgi xabar bilan qidirardi ("buni tushuntir" hech narsa topmasdi). Endi ≤5 so'zli anaforik savol retrieval uchun oldingi 2 user xabari bilan boyitiladi (promptdagi user_question o'zgarmaydi). Oldingi sessiyada qoldirilgan "yozganda embed" ham bajarildi: fakt saqlanganda vektor yoziladi (fail-open, reindex_ai_memory bilan bir xil format) — semantik vektor-retrieval endi tirik. (3) SKILL ANIQLIGI — keyword matching substring edi ("protest"→"test", "diskurs"→"kurs" false-positive); endi so'z boshi talab qilinadi, o'zbek qo'shimchalari ("kursi") ishlayveradi.
+
+Yo'lda tuzatildi: GenerateAiResponseTaskTests setUp'ida messenger.rag.embed_texts guard — lokalda GEMINI_API_KEY bor muhitda SAVE_MEMORY testlari tarmoqqa chiqmasin (embed-on-write fail-open bo'lgani uchun saqlash oqimi buzilmaydi).
+
+Jonli sinov tuzatishi (room 78): "kajol'ni taniysanmi?" savoli ko'rsatdiki, "qisqa xabar = oxirgi mavzu" qoidasi mavzu ALMASHUVI bilan ziddiyatga tushardi — model yangi savolga javob berib, oxirida eski mavzuni (mushuklar) majburan qaytarardi, ustiga Kajol ismini "kajal/surma"ga tarjima qilishga urinardi. Prompt qoidasi ikkiga ajratildi: qisqa DAVOM xabari ≠ qisqa YANGI-mavzu xabari; yangi mavzuda eski mavzu qaytarilmaydi, javobsiz qolgan savol qistalmaydi; ismlarni tarjima qilish/majburan turkchaga bog'lash taqiqlandi.
+
+Ikkinchi jonli tuzatish (room 79): "internetdan qidirib..." web_search'ga TO'G'RI tushdi, lekin Gemini bepul kvotasi tugagan (429 RESOURCE_EXHAUSTED, 9 modelning hammasi; pro-modellarda limit: 0 — bepul tarif yo'q) va butun javob yiqilib qo'pol billing-xabar chiqardi. Endi mutaxassis runtime-xatosi butun so'rovni yiqitmaydi — maverick'ka qaytiladi va u "jonli qidira olmadim" deb halol javob beradi (metadata: search_specialist_failed). Kvota har kuni Tinch okeani yarim tunida (~Toshkent 12:00) yangilanadi.
+
+- Branch: `claude/ai-context-understanding`
+- Commitlar: `0cdaecf`, `28314d6` (jonli sinov tuzatishi), `354702e` (Gemini-yiqilish degradatsiyasi)
+- Test holati: `python manage.py test` — **250/250 OK** (11 yangi: 4 registry stickiness/word-boundary, 3 retrieval-query, 3 embed-on-write, 1 engine)
+- Davom etilishi kerak: mavjud eski faktlar uchun `python manage.py reindex_ai_memory` bir marta yugurtirilishi kerak (yangi faktlar o'zi embed bo'ladi); stickiness hozir evristik (≤6 so'z + davom-so'zlari) — kerak bo'lsa keyin LLM-router; jonli suhbatda smoke-test qilib main'ga merge Azurbek ruxsati bilan
+
+---
+
 ## 2026-07-06 [Claude]: AI suhbat sifati — persona qayta-yozish + xotira relevance-darvoza
 
 Real suhbat transkripti (room 68) tahlili ko'rsatdiki, asosiy muammo mexanikada emas, AI'ning SUHBATLASHISHIDA edi: har javob bir xil qolipda (iliq gap + emoji + savol), hamma narsaga rozilik (sikofant bo'shlik), aloqasiz mavzuga xotira-fakt quyilishi ("mushuk obsessiyasi"), inglizcha so'z o'yini hazillari, oddiy o'yin qoidasini ushlab turolmaslik.

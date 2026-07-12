@@ -66,13 +66,19 @@ class AIEngine:
                 room=request.room,
                 student=request.student,
             )
+            # Qisqa/anaforik savol ("davom et", "buni tushuntir") retrieval uchun oldingi
+            # user xabarlari bilan boyitiladi — promptdagi user_question o'zgarmaydi.
+            retrieval_query = self.memory_service.build_retrieval_query(
+                room=request.room,
+                question=safe_question,
+            )
             relevant_memory = self.memory_service.render_relevant_memory(
                 student=request.student,
-                question=safe_question,
+                question=retrieval_query,
             )
             rag_context = self.rag_service.build(
                 user=request.student,
-                question=safe_question,
+                question=retrieval_query,
                 context_lesson=request.context_lesson,
             )
             is_first_message = (
@@ -123,7 +129,30 @@ class AIEngine:
                 generate_kwargs["selected_model"] = getattr(request.student, "ai_model", None)
             if image_data_url and getattr(active_provider, "supports_vision", False):
                 generate_kwargs["images"] = [image_data_url]
-            provider_response = active_provider.generate(**generate_kwargs)
+
+            search_specialist_failed = False
+            try:
+                provider_response = active_provider.generate(**generate_kwargs)
+            except Exception:
+                if not used_search_specialist:
+                    raise
+                # Gemini mutaxassisi yiqildi (429 kvota, tarmoq va h.k.) — butun javobni
+                # yiqitmasdan asosiy provayderda davom etamiz. Prompt'dagi web_search
+                # tool-konteksti jonli natija yo'qligida halol javob berishni talab qiladi.
+                logger.exception(
+                    "Web-search mutaxassisi xatosi — asosiy provayderga qaytilmoqda (room_id=%s)",
+                    getattr(request.room, "id", None),
+                )
+                search_specialist_failed = True
+                used_search_specialist = False
+                enable_web_search = False
+                active_provider = self.provider
+                generate_kwargs = {
+                    "prompt": prompt,
+                    "enable_web_search": False,
+                    "selected_model": getattr(request.student, "ai_model", None),
+                }
+                provider_response = active_provider.generate(**generate_kwargs)
 
             extraction = self.memory_service.extract_from_reply(
                 provider_response.text,
@@ -156,11 +185,13 @@ class AIEngine:
                     "recent_dialogue_messages": conversation_context.recent_message_count,
                     "active_skill": skill.slug,
                     "requested_skill": request.requested_skill_slug or "auto",
+                    "retrieval_query_augmented": retrieval_query != safe_question,
                     "used_tools": tool_context.used_tools,
                     "document_name": getattr(request, "document_name", "") or "",
                     "image_name": getattr(request, "image_name", "") or "",
                     "vision_used": bool(generate_kwargs.get("images")),
                     "search_specialist_used": used_search_specialist,
+                    "search_specialist_failed": search_specialist_failed,
                     "web_search_enabled": enable_web_search,
                     "web_search_queries": web_search_meta.get("queries", []),
                     "web_search_sources": web_search_meta.get("sources", []),

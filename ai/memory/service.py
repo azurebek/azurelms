@@ -10,6 +10,11 @@ from .retriever import MemoryRetriever
 class MemoryService:
     RECENT_DIALOGUE_LIMIT = 8
     SUMMARY_BATCH_LIMIT = 30
+    # Shu so'zdan qisqa savol anaforik bo'lishi mumkin ("davom et", "buni tushuntir") —
+    # retrieval uchun oldingi user xabarlari bilan boyitiladi.
+    ANAPHORA_MAX_WORDS = 5
+    RETRIEVAL_CONTEXT_USER_MESSAGES = 2
+    RETRIEVAL_CONTEXT_MESSAGE_CHARS = 300
 
     def __init__(
         self,
@@ -60,6 +65,47 @@ class MemoryService:
 
     def sanitize_user_question(self, question: str | None) -> str:
         return (question or "").replace("<SAVE_MEMORY>", "").replace("</SAVE_MEMORY>", "")
+
+    def build_retrieval_query(self, *, room, question: str) -> str:
+        """Xotira/RAG qidiruvi uchun so'rov: qisqa (anaforik) savolni oldingi user
+        xabarlari bilan boyitadi.
+
+        "davom et", "buni tushuntir" kabi xabarlar yolg'iz holda hech qanday relevant
+        fakt yoki RAG chunk topa olmaydi — mavzu oldingi xabarlarda. Bu faqat retrieval
+        so'rovi; promptga ketadigan user_question o'zgarmaydi.
+        """
+        question = question or ""
+        words = question.split()
+        if not words or len(words) > self.ANAPHORA_MAX_WORDS or room is None:
+            return question
+        previous_texts = self._recent_user_texts(room=room, exclude_text=question)
+        if not previous_texts:
+            return question
+        return "\n".join([*previous_texts, question])
+
+    def _recent_user_texts(self, *, room, exclude_text: str, limit: int | None = None) -> list[str]:
+        limit = limit or self.RETRIEVAL_CONTEXT_USER_MESSAGES
+        normalized_current = " ".join((exclude_text or "").split())
+        messages = list(
+            Message.objects.filter(room=room, is_ai_response=False, is_deleted=False)
+            .exclude(text="")
+            .order_by("-created_at")[: limit + 4]
+        )
+        texts = []
+        skipped_current = False
+        for message in messages:
+            compact = " ".join((message.text or "").split())
+            if not compact:
+                continue
+            # Joriy savol xabar sifatida allaqachon saqlangan — uni o'zi bilan boyitmaymiz.
+            if not skipped_current and compact == normalized_current:
+                skipped_current = True
+                continue
+            texts.append(compact[: self.RETRIEVAL_CONTEXT_MESSAGE_CHARS])
+            if len(texts) >= limit:
+                break
+        texts.reverse()
+        return texts
 
     def render_relevant_memory(self, *, student, question: str, limit: int = 7) -> str:
         if not self.is_enabled_for(student):

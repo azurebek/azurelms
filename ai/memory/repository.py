@@ -77,6 +77,7 @@ class MemoryRepository:
             key=candidate.key,
             keep_id=fact.id,
         )
+        self._ensure_embedding(fact)
         self.create_trace(
             user=user,
             fact=fact,
@@ -93,6 +94,38 @@ class MemoryRepository:
             },
         )
         return SavedMemory(fact=fact, created=created)
+
+    def _ensure_embedding(self, fact) -> None:
+        """Faktni yozish paytida embed qiladi — semantik (vektor) retrieval tirik bo'lsin.
+
+        Fail-open: embedding xatosi (kalit yo'q, tarmoq yo'q) xotira saqlashni to'xtatmaydi;
+        fakt embeddingsiz qoladi va keyin `reindex_ai_memory` bilan to'ldirilishi mumkin.
+        Matn formati reindex_ai_memory buyrug'i bilan bir xil: "{category}: {value}".
+        """
+        from messenger.rag import DEFAULT_EMBEDDING_MODEL, embed_texts
+
+        if (
+            fact.embedding
+            and fact.embedding_model == DEFAULT_EMBEDDING_MODEL
+            and fact.embedding_dim == len(fact.embedding)
+        ):
+            # Fingerprint bir xil bo'lgani uchun value semantik jihatdan o'zgarmagan —
+            # qayta embed qilish shart emas.
+            return
+        try:
+            vectors = embed_texts(
+                [f"{fact.category}: {fact.value}"],
+                embedding_model=DEFAULT_EMBEDDING_MODEL,
+            )
+        except Exception:
+            return
+        vector = vectors[0] if vectors else None
+        if not vector:
+            return
+        fact.embedding = [float(value) for value in vector]
+        fact.embedding_model = DEFAULT_EMBEDDING_MODEL
+        fact.embedding_dim = len(fact.embedding)
+        fact.save(update_fields=["embedding", "embedding_model", "embedding_dim", "updated_at"])
 
     def active_facts(self, *, user):
         self.maintain_user_memory(user=user)
