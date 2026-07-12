@@ -16,6 +16,19 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-12 [Claude]: AI vidjet (boyo'g'li) tuzatildi — dublikat skript panelni ochirmayotgan edi
+
+Floating AzureAI vidjeti (app sahifalardagi boyo'g'li tugma) umuman ishlamayotgan edi: `ai-widget.js` ham `base_app.html` head'ida, ham include (`ai_assistant_widget.html`) ichida ulangan — IIFE ikki marta yugurib, ikkita click-listener panelni ochib-darhol yopar, submit esa ikki POST yuborar edi. Head'dagi dublikat olib tashlandi (skript endi faqat include ichida — include o'zi-yetarli bo'lib qoldi), JS'ga `dataset.azaiInit` ikki-marta-init himoyasi qo'shildi. Dars sahifasiga (`lesson_detail.html`) ham vidjet qo'shildi — o'quvchi darsdan chiqmasdan savol so'raydi. Backend (lazy room) allaqachon to'g'ri edi, tegilmadi: bo'sh ochib-yopilsa xona yaratilmaydi; birinchi xabardan keyin xona yaratilib messengerda avto-nomlangan suhbat sifatida chiqadi, keyingi xabarlar o'sha xonada davom etadi — hammasi jonli tekshirildi (real AI javob bilan, room 83).
+
+Diagnostika eslatmasi: lokal `runserver`ni `--noreload` bilan yugurtirmang — Django 4.1+ cached template loader'ni DEBUG'da ham yoqadi va keshni faqat autoreloader tozalaydi; `--noreload`da template tahrirlari serverga yetib bormaydi (shu sessiyada 20 daqiqa yegan tuzoq).
+
+- Branch: `claude/ai-context-understanding`
+- Commitlar: `cf52d4e`
+- Test holati: `python manage.py test messenger` — **85/85 OK**
+- Davom etilishi kerak: mobil moslashuv auditi alohida reja bo'lib turibdi (messenger 1-panel rejimi, checkout/dashboard gridlari); vidjet hozir student shell + dars sahifasida — teacher/backoffice'ga ataylab qo'shilmadi
+
+---
+
 ## 2026-07-09 [Claude]: AI suhbat-konteksti — skill stickiness, kontekstli retrieval, embed-on-write
 
 Uch yo'nalishda takomil: (1) SUHBAT OQIMI — skill tanlash faqat joriy xabarga qarardi, quiz o'rtasidagi "B" yoki "davom et" javobi keyword'siz bo'lgani uchun general_chat'ga tushib oqim uzilardi. Endi keyword'siz qisqa davomiy xabar xonaning oxirgi muvaffaqiyatli skillida qoladi (AIResponseRun, 3 soatlik oyna; web_search/smart_form/general_chat sticky emas). Prompt'ga SUHBAT OQIMI bo'limi (qisqa xabar = oxirgi mavzu; berilgan savolga javobni AVVAL baholash; mavzuni ushlab turish), quiz SKILL.md'ga javob-baholash qoidasi. (2) USERNI TUSHUNISH — memory+RAG retrieval faqat oxirgi xabar bilan qidirardi ("buni tushuntir" hech narsa topmasdi). Endi ≤5 so'zli anaforik savol retrieval uchun oldingi 2 user xabari bilan boyitiladi (promptdagi user_question o'zgarmaydi). Oldingi sessiyada qoldirilgan "yozganda embed" ham bajarildi: fakt saqlanganda vektor yoziladi (fail-open, reindex_ai_memory bilan bir xil format) — semantik vektor-retrieval endi tirik. (3) SKILL ANIQLIGI — keyword matching substring edi ("protest"→"test", "diskurs"→"kurs" false-positive); endi so'z boshi talab qilinadi, o'zbek qo'shimchalari ("kursi") ishlayveradi.
