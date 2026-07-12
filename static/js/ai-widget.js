@@ -6,6 +6,10 @@
 
   const widget = document.getElementById("azaiWidget");
   if (!widget) return;
+  // Skript ikki marta ulansa ham listener'lar bir marta bog'lanadi
+  // (dublikat toggle panelni ochib-darhol yopadi, submit ikki marta ketadi).
+  if (widget.dataset.azaiInit) return;
+  widget.dataset.azaiInit = "1";
 
   const launcher = document.getElementById("azaiLauncher");
   const panel = document.getElementById("azaiPanel");
