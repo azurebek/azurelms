@@ -16,6 +16,17 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-12 [Claude]: Branch konsolidatsiya — main yagona zamonaviy branch (Azurbek ruxsati)
+
+Azurbek buyrug'i bilan barcha tarqoq branch'lar main'ga jamlandi va o'chirildi. `claude/ai-context-understanding` (AI suhbat-konteksti + vidjet tuzatish, 8 commit) main'ga merge qilindi; `claude/ai-conversation-quality`ning 4 commit'i allaqachon patch-ekvivalent holda main'da edi (git cherry tasdiqladi), qolgan 5 branch (ai-admin-control, ai-hybrid-search, ai-persona, fix-new-chat-405, user-usage-panel) to'liq merge bo'lgan edi. Hammasi (lokal + remote) o'chirildi. Bundan keyin yangi ish yana prefiks-branch'larda boshlanadi, lekin eski qoldiqlar yo'q — main = yagona haqiqat manbai.
+
+- Branch: `main`
+- Commitlar: merge `claude/ai-context-understanding` (`0cdaecf`..`f6a3238`), `566f17d` (vidjet cherry-pick, avvalroq)
+- Test holati: `python manage.py test` — **252/252 OK** (merge'dan keyin to'liq to'plam)
+- Davom etilishi kerak: `python manage.py reindex_ai_memory` bir marta (9-iyul yozuvidagi qoldiq); mobil moslashuv rejasi kutmoqda
+
+---
+
 ## 2026-07-12 [Claude]: AI vidjet (boyo'g'li) tuzatildi — dublikat skript panelni ochirmayotgan edi
 
 Floating AzureAI vidjeti (app sahifalardagi boyo'g'li tugma) umuman ishlamayotgan edi: `ai-widget.js` ham `base_app.html` head'ida, ham include (`ai_assistant_widget.html`) ichida ulangan — IIFE ikki marta yugurib, ikkita click-listener panelni ochib-darhol yopar, submit esa ikki POST yuborar edi. Head'dagi dublikat olib tashlandi (skript endi faqat include ichida — include o'zi-yetarli bo'lib qoldi), JS'ga `dataset.azaiInit` ikki-marta-init himoyasi qo'shildi. Dars sahifasiga (`lesson_detail.html`) ham vidjet qo'shildi — o'quvchi darsdan chiqmasdan savol so'raydi. Backend (lazy room) allaqachon to'g'ri edi, tegilmadi: bo'sh ochib-yopilsa xona yaratilmaydi; birinchi xabardan keyin xona yaratilib messengerda avto-nomlangan suhbat sifatida chiqadi, keyingi xabarlar o'sha xonada davom etadi — hammasi jonli tekshirildi (real AI javob bilan, room 83).
