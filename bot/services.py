@@ -1026,3 +1026,188 @@ def submit_payment_receipt(user, receipt_image):
         course_title=enrollment.cohort.course.title,
         amount=int(receipt.amount),
     )
+
+
+# ================================================================ F4: O'qituvchi / Admin
+
+def teacher_cohorts_overview(user):
+    """O'qituvchining guruhlari: o'quvchi soni, Telegram bog'lanishi, oxirgi sessiya."""
+    cohorts = (
+        Cohort.objects.filter(is_active=True)
+        .select_related("course")
+        .order_by("course__title", "name")
+    )
+    if not (user.is_staff or user.is_superuser):
+        cohorts = cohorts.filter(course__instructor=user)
+
+    items = []
+    for cohort in cohorts:
+        last_session = (
+            TelegramLessonSession.objects.filter(cohort=cohort)
+            .order_by("-started_at")
+            .first()
+        )
+        items.append(
+            {
+                "id": cohort.id,
+                "name": cohort.name,
+                "course": cohort.course.title,
+                "students": Enrollment.objects.filter(
+                    enrollment_active_access_q(), cohort=cohort
+                ).count(),
+                "tg_bound": bool(getattr(cohort, "telegram_chat_id", None)),
+                "last_session": (
+                    last_session.attendance_date.strftime("%d.%m.%Y") if last_session else None
+                ),
+            }
+        )
+    return items
+
+
+def teacher_grading_queue(user, limit=8):
+    """Baholash kutayotgan ishlar — teacher_views helper'lari qayta ishlatiladi."""
+    from core.teacher_views import (
+        _pending_assignment_submissions,
+        _pending_exam_attempts,
+        _teacher_courses,
+    )
+
+    courses = _teacher_courses(user)
+    exams = list(_pending_exam_attempts(courses)[:limit])
+    assignments = list(_pending_assignment_submissions(courses)[:limit])
+    return {
+        "exam_count": _pending_exam_attempts(courses).count(),
+        "assignment_count": _pending_assignment_submissions(courses).count(),
+        "exams": [
+            {
+                "student": student_display_name(a.student),
+                "title": a.exam.title,
+                "course": a.exam.course.title,
+            }
+            for a in exams
+        ],
+        "assignments": [
+            {
+                "student": student_display_name(s.student),
+                "title": s.assignment.title,
+                "course": s.assignment.lesson.module.course.title,
+            }
+            for s in assignments
+        ],
+    }
+
+
+def admin_stats():
+    from cohorts.models import PaymentReceipt
+
+    today = timezone.localdate()
+    return {
+        "students": CustomUser.objects.filter(is_staff=False, is_superuser=False).count(),
+        "active_enrollments": Enrollment.objects.filter(enrollment_active_access_q()).count(),
+        "pending_enrollments": Enrollment.objects.filter(status=Enrollment.STATUS_PENDING).count(),
+        "unverified_receipts": PaymentReceipt.objects.filter(is_verified=False).count(),
+        "guests": BotGuest.objects.count(),
+        "today_checkins": TelegramLessonCheckIn.objects.filter(
+            checked_in_at__date=today
+        ).count(),
+    }
+
+
+def pending_receipts(limit=5):
+    from cohorts.models import PaymentReceipt
+
+    receipts = (
+        PaymentReceipt.objects.filter(is_verified=False)
+        .select_related("enrollment__student", "enrollment__cohort__course", "enrollment__plan")
+        .order_by("submitted_at")[:limit]
+    )
+    return [
+        {
+            "id": r.id,
+            "student": student_display_name(r.enrollment.student),
+            "course": r.enrollment.cohort.course.title,
+            "plan": r.enrollment.plan.name if r.enrollment.plan else "—",
+            "amount": int(r.amount),
+            "submitted": r.submitted_at.strftime("%d.%m %H:%M"),
+            "image_path": r.receipt_image.path if r.receipt_image else None,
+        }
+        for r in receipts
+    ]
+
+
+def verify_receipt(receipt_id, actor):
+    """Chekni tasdiqlash — PaymentReceipt.save() enrollmentni o'zi faollashtiradi."""
+    from cohorts.models import PaymentReceipt
+
+    if not (actor and (actor.is_staff or actor.is_superuser)):
+        return ActionResult(ok=False, code="forbidden", message="Ruxsat yo'q.")
+    receipt = (
+        PaymentReceipt.objects.select_related(
+            "enrollment__student", "enrollment__cohort__course"
+        )
+        .filter(id=receipt_id)
+        .first()
+    )
+    if not receipt:
+        return ActionResult(ok=False, code="missing", message="Chek topilmadi.")
+    if receipt.is_verified:
+        return ActionResult(ok=True, code="already", message="Bu chek allaqachon tasdiqlangan.")
+
+    receipt.is_verified = True
+    receipt.save()
+
+    student = receipt.enrollment.student
+    course_title = receipt.enrollment.cohort.course.title
+    Notification.objects.create(
+        recipient=student,
+        title="To'lov tasdiqlandi ✅",
+        message=(
+            f"\"{course_title}\" kursi uchun {int(receipt.amount)} so'mlik to'lovingiz "
+            f"tasdiqlandi. Kursga kirish ochiq — omad!"
+        ),
+        icon="check-circle",
+        url=f"/courses/{receipt.enrollment.cohort.course_id}/",
+        category=Notification.CATEGORY_SUBSCRIPTION,
+    )
+    return ActionResult(
+        ok=True,
+        code="verified",
+        message=f"✅ Tasdiqlandi: {student_display_name(student)} — {course_title}",
+    )
+
+
+def reject_receipt(receipt_id, actor):
+    """Chekni rad etish — receipt o'chadi (promo band bo'lsa bo'shatiladi), userga xabar."""
+    from cohorts.models import PaymentReceipt
+
+    if not (actor and (actor.is_staff or actor.is_superuser)):
+        return ActionResult(ok=False, code="forbidden", message="Ruxsat yo'q.")
+    receipt = (
+        PaymentReceipt.objects.select_related(
+            "enrollment__student", "enrollment__cohort__course"
+        )
+        .filter(id=receipt_id, is_verified=False)
+        .first()
+    )
+    if not receipt:
+        return ActionResult(ok=False, code="missing", message="Chek topilmadi yoki allaqachon tasdiqlangan.")
+
+    student = receipt.enrollment.student
+    course_title = receipt.enrollment.cohort.course.title
+    receipt.delete()
+
+    Notification.objects.create(
+        recipient=student,
+        title="To'lov cheki rad etildi",
+        message=(
+            f"\"{course_title}\" kursi uchun yuborgan chekingiz qabul qilinmadi. "
+            f"To'lovni tekshirib, chekni qayta yuboring yoki administratorga murojaat qiling."
+        ),
+        icon="x-circle",
+        category=Notification.CATEGORY_SUBSCRIPTION,
+    )
+    return ActionResult(
+        ok=True,
+        code="rejected",
+        message=f"❌ Rad etildi: {student_display_name(student)} — {course_title}",
+    )

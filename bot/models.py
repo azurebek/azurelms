@@ -77,6 +77,42 @@ class BotGuest(models.Model):
         return f"guest:{self.telegram_id} ({self.demo_questions_used} demo savol)"
 
 
+class TelegramOutbox(models.Model):
+    """Platforma bildirishnomasi → Telegram DM navbati (F4).
+
+    users.Notification yaratilganda signal shu yerga yozadi (recipient'da
+    telegram_id bo'lsa); worker (run_bot ichida yoki `manage.py telegram_outbox`)
+    rate-limit bilan yuboradi. Sayt jarayoni hech qachon o'zi yubormaydi.
+    """
+
+    STATUS_PENDING = "pending"
+    STATUS_SENT = "sent"
+    STATUS_FAILED = "failed"
+    STATUS_CHOICES = (
+        (STATUS_PENDING, "Kutilmoqda"),
+        (STATUS_SENT, "Yuborildi"),
+        (STATUS_FAILED, "Xato"),
+    )
+
+    notification = models.OneToOneField(
+        "users.Notification", on_delete=models.CASCADE, related_name="telegram_outbox",
+    )
+    telegram_id = models.BigIntegerField(db_index=True, verbose_name="Qabul qiluvchi Telegram ID")
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_PENDING, db_index=True)
+    attempts = models.PositiveIntegerField(default=0)
+    last_error = models.CharField(max_length=255, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    sent_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        ordering = ["id"]
+        verbose_name = "Telegram outbox"
+        verbose_name_plural = "Telegram outbox"
+
+    def __str__(self):
+        return f"outbox:{self.id} → {self.telegram_id} [{self.status}]"
+
+
 class TelegramLessonCheckIn(models.Model):
     session = models.ForeignKey(
         TelegramLessonSession,

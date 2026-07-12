@@ -157,13 +157,17 @@ def render_welcome(lms_user, lms_role):
         "",
     ]
     if lms_role in {"admin", "teacher"}:
+        admin_extra = "\n• /stat — platforma holati\n• /cheklar — to'lov cheklari tasdiqlash" if lms_role == "admin" else ""
         lines.append(
-            "Guruh buyruqlari (dars guruhida):\n"
+            "O'qituvchi buyruqlari:\n"
+            "• /guruhlarim — guruhlar, o'quvchilar, Telegram holati\n"
+            "• /baholash — tekshirilmagan imtihon/vazifalar"
+            + admin_extra
+            + "\n\nGuruh buyruqlari (dars guruhida):\n"
             "• <code>/dars 1</code> — davomat boshlash\n"
             "• <code>/dars tugadi</code> — yakunlash, ismli e'lon + ogohlantirishlar\n"
             "• <code>/davomat</code> — joriy holat\n"
             "• <code>/link_cohort ID</code> — guruhni kohortga ulash\n\n"
-            "Shaxsiy buyruqlar: /darslarim · /davomatim · /tolov\n"
             "Savol yozsangiz — AI repetitor javob beradi 🤖"
         )
     else:

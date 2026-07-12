@@ -16,6 +16,17 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-12 [Claude]: Telegram bot F4 — o'qituvchi/admin buyruqlari + notification outbox
+
+Bot endi platformaning push-kanali va admin-pulti. **Outbox:** `users.Notification` yaratilganda signal `TelegramOutbox`ga yozadi (recipient'da telegram_id bo'lsa); worker (run_bot ichida polling bilan parallel, prod uchun `manage.py telegram_outbox [--loop]`) 15s siklda 25 tadan yuboradi, 3 urinishdan keyin failed; user botni bloklagan bo'lsa jim failed, sayt-qo'ng'iroqcha baribir turadi. Jonli tasdiqlandi: Notification → 15s ichida real DM. **O'qituvchi:** /guruhlarim (o'quvchi soni, TG bog'langanligi, oxirgi davomat), /baholash (tekshirilmagan imtihon/vazifalar — teacher_views helper'lari qayta ishlatildi). **Admin:** /stat (platforma sonlari), /cheklar — chek RASMI bilan keladi, ✅ Tasdiqlash / ❌ Rad tugmalari: tasdiq `PaymentReceipt.save()` orqali enrollmentni faollashtiradi (mavjud model-mantiq), userga Notification yoziladi → outbox orqali DM ham boradi (to'liq zanjir: chek → tasdiq → o'quvchiga avto-xabar). Rad: receipt o'chadi (promo bo'shaydi), userga qayta-yuborish xabari. Yo'lda: run_bot print'idagi '→' cp1252 konsolda UnicodeEncodeError berdi — ASCII'ga almashtirildi.
+
+- Branch: `claude/telegram-bot`
+- Commitlar: quyidagi commit (F4)
+- Test holati: `python manage.py test` — **285/285 OK** (bot: 30→37, +7 F4: outbox mirror/holatlar, verify/reject/huquq, teacher scope, stats)
+- Davom etilishi kerak: broadcast (admin ommaviy xabar) — rate-limit bilan; teacher e'lon guruhga; prod: webhook + `telegram_outbox --loop` worker + alohida bot tokeni; F5 Mini App
+
+---
+
 ## 2026-07-12 [Claude]: Telegram bot F3.5 — botdan kursga yozilish (to'liq checkout oqimi)
 
 Azurbek taklifi: qabul ochiq kurslar + yozilish botda bo'lsin. Oqim: `/yozilish` (yoki menyudagi 🎓) → faol kurslar ro'yxati inline tugmalar bilan → tarif tanlash (narx/⭐️ ommabop) → to'lov rekvizitlari (summa, karta raqami/egasi — SiteSettings'dan, davr) → user chek RASMINI yuboradi (F.photo) → Telegram'dan fayl yuklab olinib `PaymentReceipt` yaratiladi → backoffice'dagi mavjud tasdiqlash oqimiga tushadi. MUHIM: biznes-mantiq yozilmadi — sayt checkout servislari qayta ishlatildi (`resolve_checkout_enrollment` kohort tanlash/pending enrollment, `create_checkout_receipt_with_promo` chek+summa, davr hisobi checkout_view bilan bir xil). Guard'lar: tasdiqlanmagan chek borida qayta boshlash/qayta chek bloklanadi; tarif tanlanmagan rasmga halol hint; chek nishoni = tarifi tanlangan, cheki yo'q eng so'nggi enrollment (stateless — bot restart holatni yo'qotmaydi).

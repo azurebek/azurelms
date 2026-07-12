@@ -10,12 +10,14 @@ from aiogram.types.error_event import ErrorEvent
 
 from bot.routers.group_ops import router as group_ops_router
 from bot.routers.onboarding import router as onboarding_router
+from bot.routers.staff import router as staff_router
 from bot.routers.workspace import router as workspace_router
 
 logger = logging.getLogger(__name__)
 
 root_router = Router(name="root")
 root_router.include_router(group_ops_router)
+root_router.include_router(staff_router)
 root_router.include_router(workspace_router)
 # onboarding oxirida — unda catch-all (erkin matn) handler bor
 root_router.include_router(onboarding_router)

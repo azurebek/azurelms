@@ -683,6 +683,186 @@ class EnrollmentFlowTests(TestCase):
         self.assertEqual(second.code, "pending_receipt")
 
 
+class OutboxTests(TestCase):
+    """F4 — Notification → TelegramOutbox ko'zgusi va yuborish holatlari."""
+
+    def setUp(self):
+        self.linked = User.objects.create_user(
+            username="ob-linked", email="ob-linked@example.com", password="x", telegram_id=6201,
+        )
+        self.unlinked = User.objects.create_user(
+            username="ob-unlinked", email="ob-unlinked@example.com", password="x",
+        )
+
+    def test_notification_mirrors_to_outbox_only_for_linked(self):
+        from bot.models import TelegramOutbox
+
+        n1 = Notification.objects.create(recipient=self.linked, title="Salom", message="Xabar")
+        Notification.objects.create(recipient=self.unlinked, title="Salom", message="Xabar")
+
+        rows = TelegramOutbox.objects.all()
+        self.assertEqual(rows.count(), 1)
+        row = rows.first()
+        self.assertEqual(row.notification_id, n1.id)
+        self.assertEqual(row.telegram_id, 6201)
+        self.assertEqual(row.status, TelegramOutbox.STATUS_PENDING)
+
+    def test_outbox_render_and_state_transitions(self):
+        from bot.models import TelegramOutbox
+        from bot.outbox import (
+            MAX_ATTEMPTS,
+            fetch_pending_outbox,
+            mark_outbox_attempt_failed,
+            mark_outbox_sent,
+            render_outbox_text,
+        )
+
+        Notification.objects.create(
+            recipient=self.linked, title="To'lov tasdiqlandi ✅", message="Kurs ochiq <3",
+        )
+        items = fetch_pending_outbox()
+        self.assertEqual(len(items), 1)
+        item = items[0]
+
+        text = render_outbox_text(item)
+        self.assertIn("To&#x27;lov tasdiqlandi", text)
+        self.assertIn("&lt;3", text)  # HTML escape
+
+        mark_outbox_sent(item)
+        item.refresh_from_db()
+        self.assertEqual(item.status, TelegramOutbox.STATUS_SENT)
+        self.assertEqual(fetch_pending_outbox(), [])
+
+        # Xato holati: MAX_ATTEMPTS'gacha pending, keyin failed
+        n = Notification.objects.create(recipient=self.linked, title="X", message="Y")
+        fail_item = TelegramOutbox.objects.get(notification=n)
+        for i in range(MAX_ATTEMPTS):
+            mark_outbox_attempt_failed(fail_item, RuntimeError("blocked"))
+        fail_item.refresh_from_db()
+        self.assertEqual(fail_item.status, TelegramOutbox.STATUS_FAILED)
+        self.assertEqual(fail_item.attempts, MAX_ATTEMPTS)
+
+
+class AdminReceiptActionTests(TestCase):
+    """F4 — botdan chek tasdiqlash/rad etish."""
+
+    def setUp(self):
+        from subscriptions.models import Plan
+        from django.core.files.base import ContentFile
+        from cohorts.models import PaymentReceipt
+
+        self.admin = User.objects.create_user(
+            username="adm", email="adm@example.com", password="x",
+            is_staff=True, telegram_id=6301,
+        )
+        self.student = User.objects.create_user(
+            username="adm-student", email="adm-student@example.com", password="x", telegram_id=6302,
+        )
+        course = Course.objects.create(
+            title="Chek kursi", description="t", instructor=self.admin, level="beginner",
+        )
+        cohort = Cohort.objects.create(
+            name="Chek kohorti", course=course, start_date="2026-03-26", is_active=True,
+        )
+        self.plan = Plan.objects.create(name="Oddiy", price=200000, description="t", order=1)
+        self.enrollment = Enrollment.objects.create(
+            student=self.student, cohort=cohort, status="pending", plan=self.plan,
+        )
+        self.receipt = PaymentReceipt.objects.create(
+            enrollment=self.enrollment,
+            receipt_image=ContentFile(b"img", name="r.jpg"),
+            amount=200000,
+            period_start=timezone.localdate(),
+            period_end=timezone.localdate() + datetime.timedelta(days=30),
+        )
+
+    def test_verify_receipt_activates_enrollment_and_notifies(self):
+        from bot.services import verify_receipt
+
+        result = verify_receipt(self.receipt.id, self.admin)
+        self.assertTrue(result.ok, msg=result.message)
+
+        self.enrollment.refresh_from_db()
+        self.assertEqual(self.enrollment.status, "active")
+        self.assertIsNotNone(self.enrollment.next_payment_deadline)
+
+        note = Notification.objects.get(recipient=self.student, title="To'lov tasdiqlandi ✅")
+        # Outbox ko'zgusi ham ishlagan (student bog'langan)
+        from bot.models import TelegramOutbox
+        self.assertTrue(TelegramOutbox.objects.filter(notification=note).exists())
+
+    def test_reject_receipt_deletes_and_notifies(self):
+        from bot.services import reject_receipt
+        from cohorts.models import PaymentReceipt
+
+        result = reject_receipt(self.receipt.id, self.admin)
+        self.assertTrue(result.ok, msg=result.message)
+        self.assertFalse(PaymentReceipt.objects.filter(id=self.receipt.id).exists())
+        self.assertTrue(
+            Notification.objects.filter(
+                recipient=self.student, title="To'lov cheki rad etildi"
+            ).exists()
+        )
+        self.enrollment.refresh_from_db()
+        self.assertEqual(self.enrollment.status, "pending")  # faollashmagan
+
+    def test_receipt_actions_require_staff(self):
+        from bot.services import reject_receipt, verify_receipt
+
+        result = verify_receipt(self.receipt.id, self.student)
+        self.assertFalse(result.ok)
+        self.assertEqual(result.code, "forbidden")
+        result = reject_receipt(self.receipt.id, self.student)
+        self.assertFalse(result.ok)
+
+
+class StaffServiceTests(TestCase):
+    """F4 — o'qituvchi servislari."""
+
+    def setUp(self):
+        self.instructor = User.objects.create_user(
+            username="stf-teacher", email="stf-teacher@example.com", password="x",
+        )
+        self.other_instructor = User.objects.create_user(
+            username="stf-other", email="stf-other@example.com", password="x",
+        )
+        course = Course.objects.create(
+            title="Staff kursi", description="t", instructor=self.instructor, level="beginner",
+        )
+        other_course = Course.objects.create(
+            title="Begona kurs", description="t", instructor=self.other_instructor, level="beginner",
+        )
+        self.cohort = Cohort.objects.create(
+            name="Staff kohorti", course=course, start_date="2026-03-26", is_active=True,
+        )
+        Cohort.objects.create(
+            name="Begona kohorti", course=other_course, start_date="2026-03-26", is_active=True,
+        )
+        student = User.objects.create_user(
+            username="stf-student", email="stf-student@example.com", password="x",
+        )
+        Enrollment.objects.create(student=student, cohort=self.cohort, status="active")
+
+    def test_teacher_sees_only_own_cohorts(self):
+        from bot.services import teacher_cohorts_overview
+
+        items = teacher_cohorts_overview(self.instructor)
+        names = [i["name"] for i in items]
+        self.assertIn("Staff kohorti", names)
+        self.assertNotIn("Begona kohorti", names)
+        item = next(i for i in items if i["name"] == "Staff kohorti")
+        self.assertEqual(item["students"], 1)
+        self.assertFalse(item["tg_bound"])
+
+    def test_admin_stats_counts(self):
+        from bot.services import admin_stats
+
+        stats = admin_stats()
+        self.assertGreaterEqual(stats["students"], 3)
+        self.assertGreaterEqual(stats["active_enrollments"], 1)
+        self.assertEqual(stats["unverified_receipts"], 0)
+
+
 class OnboardingMarkupTests(TestCase):
     """Telegram localhost URL-tugmani rad etadi — lokal muhitda callback bo'lishi shart."""
 
