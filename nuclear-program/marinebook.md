@@ -16,6 +16,23 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-12 [Claude]: Telegram bot qayta-arxitektura F0+F1 — skelet + Davomat v2
+
+Azurbek talabi: bot kompyutersiz auditoriya uchun platformaning to'liq interfeysi bo'lsin (reja: `nuclear-program/telegram-bot-plan.md`, F0–F5 bosqichlar kelishilgan). Bu sessiyada F0+F1:
+
+**F0 (skelet):** `Bot(token=...)` endi lazy (`get_bot()/get_dispatcher()`) — bo'sh token loyihani yiqitmaydi (eski boot-mina yopildi, `manage.py check` bo'sh token bilan ham o'tadi). `bot/middleware.py` IdentityMiddleware — har update'da telegram_id → user + rol (admin/teacher/student/linked/guest), handler'lar `lms_user`/`lms_role` oladi. `bot/handlers.py` → `bot/routers/` paketi: `group_ops` (guruh, chat-type filtr) + `onboarding` (shaxsiy chat; F2 landing shu yerga quriladi).
+
+**F1 (Davomat v2):** o'zbekcha buyruqlar `/dars 1`, `/dars tugadi` (aliaslar: tamom/yakun/stop; eski /start_lesson, /close_lesson ham ishlaydi), `/davomat` — joriy sessiya holati. Yopishda: ismli keldi/kech/kelmadi e'loni (kelmaganlar @username yoki tg://user link bilan chertiladi, HTML-escape bilan), kelmaganlarga DM ogohlantirish (dars havolasi bilan; botni ochmaganlarga jim o'tadi) + platforma-Notification (idempotent `tg-absent-<session>` external_key). Servis qatlami kengaydi: `CloseLessonResult.details` (ismli ro'yxatlar), `get_open_session_status`, `student_display_name`.
+
+Jonli tekshirildi: @azureLMSbot polling'da ishga tushdi (dev token — production uchun keyin alohida bot, Azurbek qarori).
+
+- Branch: `claude/telegram-bot`
+- Commitlar: quyidagi commit
+- Test holati: `python manage.py test` — **259/259 OK** (bot: 4→11, +7 yangi)
+- Davom etilishi kerak: F2 onboarding voronkasi (tanituv, kurslar, AI demo, ikki yo'lli ro'yxat — telefon-kontakt + sayt); F3 o'quvchi workspace + AI repetitor DM; guruhda haqiqiy telefon-sinov (Azurbek)
+
+---
+
 ## 2026-07-12 [Claude]: Branch konsolidatsiya — main yagona zamonaviy branch (Azurbek ruxsati)
 
 Azurbek buyrug'i bilan barcha tarqoq branch'lar main'ga jamlandi va o'chirildi. `claude/ai-context-understanding` (AI suhbat-konteksti + vidjet tuzatish, 8 commit) main'ga merge qilindi; `claude/ai-conversation-quality`ning 4 commit'i allaqachon patch-ekvivalent holda main'da edi (git cherry tasdiqladi), qolgan 5 branch (ai-admin-control, ai-hybrid-search, ai-persona, fix-new-chat-405, user-usage-panel) to'liq merge bo'lgan edi. Hammasi (lokal + remote) o'chirildi. Bundan keyin yangi ish yana prefiks-branch'larda boshlanadi, lekin eski qoldiqlar yo'q — main = yagona haqiqat manbai.

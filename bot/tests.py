@@ -220,3 +220,194 @@ class TelegramBotFlowTests(TestCase):
         self.assertEqual(close_result.summary[Attendance.STATUS_PRESENT], 1)
         self.assertEqual(close_result.summary[Attendance.STATUS_PARTIAL], 1)
         self.assertEqual(close_result.summary[Attendance.STATUS_ABSENT], 1)
+
+    def test_close_session_returns_named_details_and_notifies_absent(self):
+        """Davomat v2: yopishda ismli ro'yxatlar + kelmaganga platforma-bildirishnoma."""
+        bind_chat_to_cohort(
+            cohort_id=self.cohort.id,
+            chat_id=-1001234567890,
+            chat_title="A1 Evening Group",
+            actor_telegram_id=self.teacher.telegram_id,
+        )
+        start_result = start_lesson_session(
+            chat_id=-1001234567890,
+            chat_title="A1 Evening Group",
+            actor_telegram_id=self.teacher.telegram_id,
+            lesson_ref="1",
+        )
+        register_checkin(
+            session_id=start_result.session.id,
+            telegram_user_id=self.student_present.telegram_id,
+            telegram_username="student_present",
+        )
+
+        close_result = close_lesson_session(
+            chat_id=-1001234567890,
+            actor_telegram_id=self.teacher.telegram_id,
+        )
+
+        self.assertTrue(close_result.ok)
+        details = close_result.details
+        present_names = [i["name"] for i in details[Attendance.STATUS_PRESENT]]
+        absent_names = [i["name"] for i in details[Attendance.STATUS_ABSENT]]
+        self.assertIn("tg-present", present_names)
+        self.assertIn("tg-absent", absent_names)
+        self.assertIn("tg-partial", absent_names)  # check-in qilmagan
+
+        absent_item = next(i for i in details[Attendance.STATUS_ABSENT] if i["name"] == "tg-absent")
+        self.assertEqual(absent_item["telegram_id"], 2003)
+
+        # Platforma-bildirishnoma yozildi (idempotent external_key bilan)
+        note = Notification.objects.get(
+            recipient=self.student_absent,
+            external_key=f"tg-absent-{close_result.session.id}",
+        )
+        self.assertIn("davomatga belgilanmadingiz", note.message)
+        self.assertIn(f"/lesson/{self.lesson_1.id}/", note.url)
+
+    def test_open_session_status_query(self):
+        from bot.services import get_open_session_status
+
+        missing = get_open_session_status(chat_id=-1001234567890)
+        self.assertFalse(missing.ok)
+
+        bind_chat_to_cohort(
+            cohort_id=self.cohort.id,
+            chat_id=-1001234567890,
+            chat_title="A1 Evening Group",
+            actor_telegram_id=self.teacher.telegram_id,
+        )
+        start_lesson_session(
+            chat_id=-1001234567890,
+            chat_title="A1 Evening Group",
+            actor_telegram_id=self.teacher.telegram_id,
+            lesson_ref="1",
+        )
+        register_checkin(
+            session_id=TelegramLessonSession.objects.get(chat_id=-1001234567890).id,
+            telegram_user_id=self.student_present.telegram_id,
+            telegram_username="student_present",
+        )
+
+        status = get_open_session_status(chat_id=-1001234567890)
+        self.assertTrue(status.ok)
+        self.assertEqual(status.checkin_count, 1)
+        self.assertIn("tg-present", status.checkin_names)
+
+
+class GroupOpsRenderingTests(TestCase):
+    """group_ops router'ining sof (tarmoqsiz) yordamchi funksiyalari."""
+
+    def test_parse_dars_args(self):
+        from bot.routers.group_ops import parse_dars_args
+
+        self.assertEqual(parse_dars_args("1"), ("start", "1"))
+        self.assertEqual(parse_dars_args("  3  "), ("start", "3"))
+        self.assertEqual(parse_dars_args("tugadi"), ("close", None))
+        self.assertEqual(parse_dars_args("TUGADI"), ("close", None))
+        self.assertEqual(parse_dars_args("tamom"), ("close", None))
+        self.assertEqual(parse_dars_args(""), ("usage", None))
+        self.assertEqual(parse_dars_args(None), ("usage", None))
+
+    def test_render_close_announcement_mentions_absent(self):
+        from types import SimpleNamespace
+
+        from bot.routers.group_ops import render_close_announcement
+
+        session = SimpleNamespace(
+            lesson=SimpleNamespace(title="Dars 1"),
+            attendance_date=datetime.date(2026, 7, 12),
+        )
+        summary = {"present": 1, "partial": 0, "absent": 2, "total": 3}
+        details = {
+            "present": [{"name": "Aziza", "telegram_id": 1, "telegram_username": "aziza"}],
+            "partial": [],
+            "absent": [
+                {"name": "Bekzod", "telegram_id": 2, "telegram_username": "bekzod_t"},
+                {"name": "Malika <X>", "telegram_id": 3, "telegram_username": ""},
+            ],
+        }
+
+        text = render_close_announcement(session, summary, details)
+
+        self.assertIn("Aziza", text)
+        self.assertIn("@bekzod_t", text)  # username bor → @mention
+        self.assertIn('tg://user?id=3', text)  # username yo'q → id-link
+        self.assertIn("Malika &lt;X&gt;", text)  # HTML escape
+        self.assertIn("Keldi (1)", text)
+        self.assertIn("Kelmadi (2)", text)
+
+    def test_render_close_announcement_all_present(self):
+        from types import SimpleNamespace
+
+        from bot.routers.group_ops import render_close_announcement
+
+        session = SimpleNamespace(
+            lesson=SimpleNamespace(title="Dars 1"),
+            attendance_date=datetime.date(2026, 7, 12),
+        )
+        text = render_close_announcement(
+            session,
+            {"present": 2, "partial": 0, "absent": 0, "total": 2},
+            {"present": [{"name": "A", "telegram_id": 1, "telegram_username": ""},
+                         {"name": "B", "telegram_id": 2, "telegram_username": ""}],
+             "partial": [], "absent": []},
+        )
+        self.assertIn("Hamma darsda", text)
+        self.assertNotIn("Kelmadi", text)
+
+    def test_render_absent_dm_contains_lesson_link(self):
+        from types import SimpleNamespace
+
+        from bot.routers.group_ops import render_absent_dm
+
+        session = SimpleNamespace(
+            lesson=SimpleNamespace(title="Alifbo"),
+            lesson_id=7,
+            attendance_date=datetime.date(2026, 7, 12),
+            cohort=SimpleNamespace(course_id=4),
+        )
+        text = render_absent_dm(session)
+        self.assertIn("Alifbo", text)
+        self.assertIn("/courses/4/lesson/7/", text)
+        self.assertIn("Darsni qoldirdingiz", text)
+
+
+class IdentityResolveTests(TestCase):
+    """bot/middleware.resolve_identity — rol aniqlash."""
+
+    def setUp(self):
+        self.staff = User.objects.create_user(
+            username="id-staff", email="id-staff@example.com",
+            password="x", is_staff=True, telegram_id=5001,
+        )
+        self.instructor = User.objects.create_user(
+            username="id-instructor", email="id-instructor@example.com",
+            password="x", telegram_id=5002,
+        )
+        self.student = User.objects.create_user(
+            username="id-student", email="id-student@example.com",
+            password="x", telegram_id=5003,
+        )
+        self.linked_only = User.objects.create_user(
+            username="id-linked", email="id-linked@example.com",
+            password="x", telegram_id=5004,
+        )
+        course = Course.objects.create(
+            title="Rol kursi", description="t", instructor=self.instructor, level="beginner",
+        )
+        cohort = Cohort.objects.create(
+            name="Rol kohorti", course=course, start_date="2026-03-26", is_active=True,
+        )
+        Enrollment.objects.create(student=self.student, cohort=cohort, status="active")
+
+    def test_roles(self):
+        from bot.middleware import resolve_identity
+
+        self.assertEqual(resolve_identity(5001)[1], "admin")
+        self.assertEqual(resolve_identity(5002)[1], "teacher")
+        self.assertEqual(resolve_identity(5003)[1], "student")
+        self.assertEqual(resolve_identity(5004)[1], "linked")
+        user, role = resolve_identity(999999)
+        self.assertIsNone(user)
+        self.assertEqual(role, "guest")

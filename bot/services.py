@@ -37,6 +37,21 @@ class CheckInResult(ActionResult):
 class CloseLessonResult(ActionResult):
     session: TelegramLessonSession | None = None
     summary: dict | None = None
+    # Ismli ro'yxatlar: {"present": [...], "partial": [...], "absent": [...]}
+    # har element: {"name", "telegram_id", "telegram_username", "user_id"}
+    details: dict | None = None
+
+
+@dataclass
+class SessionStatusResult(ActionResult):
+    session: TelegramLessonSession | None = None
+    checkin_count: int = 0
+    checkin_names: list | None = None
+
+
+def student_display_name(user):
+    full = f"{user.first_name} {user.last_name}".strip()
+    return full or user.username
 
 
 def get_user_role(telegram_id):
@@ -425,6 +440,11 @@ def close_lesson_session(*, chat_id, actor_telegram_id):
         Attendance.STATUS_ABSENT: 0,
         "total": len(enrollments),
     }
+    details = {
+        Attendance.STATUS_PRESENT: [],
+        Attendance.STATUS_PARTIAL: [],
+        Attendance.STATUS_ABSENT: [],
+    }
 
     for enrollment in enrollments:
         checkin = checkins.get(enrollment.id)
@@ -443,11 +463,22 @@ def close_lesson_session(*, chat_id, actor_telegram_id):
             marked_by=actor,
         )
         summary[status] += 1
+        student = enrollment.student
+        details[status].append(
+            {
+                "name": student_display_name(student),
+                "telegram_id": student.telegram_id,
+                "telegram_username": student.telegram_username or "",
+                "user_id": student.id,
+            }
+        )
 
     session.status = TelegramLessonSession.STATUS_CLOSED
     session.closed_by = actor
     session.closed_at = timezone.now()
     session.save(update_fields=["status", "closed_by", "closed_at"])
+
+    _notify_absent_students(session, details[Attendance.STATUS_ABSENT])
 
     return CloseLessonResult(
         ok=True,
@@ -455,4 +486,53 @@ def close_lesson_session(*, chat_id, actor_telegram_id):
         message="Davomat sessiyasi yopildi va attendance yozildi.",
         session=session,
         summary=summary,
+        details=details,
+    )
+
+
+def _notify_absent_students(session, absent_items):
+    """Kelmaganlarga platforma-bildirishnoma (sayt qo'ng'irog'i). DM alohida — handler yuboradi."""
+    lesson_url = f"/courses/{session.cohort.course_id}/lesson/{session.lesson_id}/"
+    for item in absent_items:
+        Notification.objects.get_or_create(
+            recipient_id=item["user_id"],
+            external_key=f"tg-absent-{session.id}",
+            defaults={
+                "title": "Darsni qoldirdingiz",
+                "message": (
+                    f"{session.attendance_date.strftime('%d.%m.%Y')} — "
+                    f"\"{session.lesson.title}\" darsida davomatga belgilanmadingiz. "
+                    f"Dars materialini ko'rib chiqing."
+                ),
+                "icon": "calendar-x",
+                "url": lesson_url,
+                "category": Notification.CATEGORY_SYSTEM,
+            },
+        )
+
+
+def get_open_session_status(chat_id):
+    """Guruhda /davomat — joriy ochiq sessiya holati."""
+    session = (
+        TelegramLessonSession.objects.select_related("cohort", "lesson")
+        .filter(chat_id=chat_id, status=TelegramLessonSession.STATUS_OPEN)
+        .first()
+    )
+    if not session:
+        return SessionStatusResult(
+            ok=False,
+            code="session_missing",
+            message="Hozir ochiq davomat sessiyasi yo'q. Boshlash: /dars <raqam>",
+        )
+    checkins = list(
+        session.checkins.select_related("enrollment__student").order_by("checked_in_at")
+    )
+    names = [student_display_name(c.enrollment.student) for c in checkins]
+    return SessionStatusResult(
+        ok=True,
+        code="session_open",
+        message="Sessiya ochiq.",
+        session=session,
+        checkin_count=len(checkins),
+        checkin_names=names,
     )
