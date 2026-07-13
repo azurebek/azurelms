@@ -11,6 +11,7 @@ django.setup()
 
 from bot.aiogram_app import get_bot, get_dispatcher  # noqa: E402
 from bot.outbox import outbox_worker  # noqa: E402
+from bot.setup_commands import setup_bot_commands  # noqa: E402
 
 
 async def main():
@@ -19,6 +20,9 @@ async def main():
 
     print("Deleting any existing webhook...")
     await bot.delete_webhook(drop_pending_updates=True)
+
+    print("Registering command menu (set_my_commands)...")
+    await setup_bot_commands(bot)
 
     print("Starting outbox worker (platforma bildirishnomalari -> DM)...")
     outbox_task = asyncio.create_task(outbox_worker(bot))

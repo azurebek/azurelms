@@ -863,6 +863,103 @@ class StaffServiceTests(TestCase):
         self.assertEqual(stats["unverified_receipts"], 0)
 
 
+class MiniAppAuthTests(TestCase):
+    """F5 — Telegram Mini App initData validatsiyasi va avto-login."""
+
+    TEST_TOKEN = "123456:TEST-TOKEN-FOR-MINIAPP"
+
+    def _make_init_data(self, telegram_id, auth_date=None, tamper=False):
+        import json as jsonlib
+        import time as timelib
+        from urllib.parse import urlencode
+
+        from bot.miniapp import compute_init_data_hash
+
+        pairs = {
+            "auth_date": str(int(auth_date if auth_date is not None else timelib.time())),
+            "query_id": "AAtest",
+            "user": jsonlib.dumps({"id": telegram_id, "first_name": "Test"}),
+        }
+        digest = compute_init_data_hash(pairs, self.TEST_TOKEN)
+        if tamper:
+            digest = "0" * 64
+        return urlencode({**pairs, "hash": digest})
+
+    def test_validate_init_data_roundtrip(self):
+        from bot.miniapp import validate_init_data
+
+        init_data = self._make_init_data(telegram_id=9911)
+        result = validate_init_data(init_data, self.TEST_TOKEN)
+        self.assertIsNotNone(result)
+        self.assertEqual(result["user"]["id"], 9911)
+
+    def test_validate_init_data_rejects_tampered_and_expired(self):
+        import time as timelib
+
+        from bot.miniapp import validate_init_data
+
+        tampered = self._make_init_data(telegram_id=9911, tamper=True)
+        self.assertIsNone(validate_init_data(tampered, self.TEST_TOKEN))
+
+        expired = self._make_init_data(telegram_id=9911, auth_date=timelib.time() - 100000)
+        self.assertIsNone(validate_init_data(expired, self.TEST_TOKEN))
+
+        wrong_token = self._make_init_data(telegram_id=9911)
+        self.assertIsNone(validate_init_data(wrong_token, "boshqa:token"))
+
+    def test_safe_next_path(self):
+        from bot.miniapp import safe_next_path
+
+        self.assertEqual(safe_next_path("/courses/4/"), "/courses/4/")
+        self.assertEqual(safe_next_path("//evil.com"), "/users/dashboard/")
+        self.assertEqual(safe_next_path("https://evil.com"), "/users/dashboard/")
+        self.assertEqual(safe_next_path(""), "/users/dashboard/")
+
+    def test_miniapp_auth_logs_user_in(self):
+        import json as jsonlib
+        from unittest.mock import patch
+
+        user = User.objects.create_user(
+            username="ma-user", email="ma-user@example.com", password="x", telegram_id=9922,
+        )
+        init_data = self._make_init_data(telegram_id=9922)
+
+        with patch("bot.views.settings.TELEGRAM_BOT_TOKEN", self.TEST_TOKEN):
+            response = self.client.post(
+                "/bot/miniapp/auth/",
+                data=jsonlib.dumps({"init_data": init_data, "next": "/courses/"}),
+                content_type="application/json",
+            )
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["status"], "success")
+        self.assertEqual(data["redirect"], "/courses/")
+        self.assertEqual(int(self.client.session["_auth_user_id"]), user.id)
+
+    def test_miniapp_auth_rejects_unlinked_and_invalid(self):
+        import json as jsonlib
+        from unittest.mock import patch
+
+        init_data = self._make_init_data(telegram_id=555000)  # hech kimga ulanmagan
+        with patch("bot.views.settings.TELEGRAM_BOT_TOKEN", self.TEST_TOKEN):
+            response = self.client.post(
+                "/bot/miniapp/auth/",
+                data=jsonlib.dumps({"init_data": init_data, "next": "/"}),
+                content_type="application/json",
+            )
+        self.assertEqual(response.status_code, 404)
+
+        with patch("bot.views.settings.TELEGRAM_BOT_TOKEN", self.TEST_TOKEN):
+            response = self.client.post(
+                "/bot/miniapp/auth/",
+                data=jsonlib.dumps({"init_data": "hash=abc&auth_date=1", "next": "/"}),
+                content_type="application/json",
+            )
+        self.assertEqual(response.status_code, 403)
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+
 class OnboardingMarkupTests(TestCase):
     """Telegram localhost URL-tugmani rad etadi — lokal muhitda callback bo'lishi shart."""
 

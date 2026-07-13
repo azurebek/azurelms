@@ -6,11 +6,13 @@ Erkin matn AI repetitorga boradi (onboarding catch-all → telegram_ai_reply).
 
 import html
 import time
+from urllib.parse import quote
 
 from aiogram import F, Router, types
 from aiogram.filters import Command
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from asgiref.sync import sync_to_async
+from django.conf import settings
 
 from bot.services import (
     begin_course_enrollment,
@@ -29,20 +31,38 @@ HTML_MODE = "HTML"
 TG_MESSAGE_LIMIT = 4000  # 4096 rasmiy limitdan zaxira bilan
 
 
+def _is_public_domain():
+    domain = getattr(settings, "APP_DOMAIN", "") or ""
+    return "localhost" not in domain and not domain.startswith("127.")
+
+
+def miniapp_button(text, path):
+    """Mini App tugmasi (F5) — sayt sahifasini bot ichida avto-login bilan ochadi.
+
+    Telegram web_app tugmasi faqat public HTTPS'da ishlaydi — lokalda None.
+    """
+    if not _is_public_domain():
+        return None
+    url = f"https://{settings.APP_DOMAIN}/bot/miniapp/?next={quote(path, safe='')}"
+    return InlineKeyboardButton(text=text, web_app=WebAppInfo(url=url))
+
+
 def student_menu_markup():
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(text="📚 Darslarim", callback_data="ws:courses"),
-                InlineKeyboardButton(text="✅ Davomatim", callback_data="ws:attendance"),
-            ],
-            [
-                InlineKeyboardButton(text="💳 To'lovim", callback_data="ws:payment"),
-                InlineKeyboardButton(text="🤖 AI repetitor", callback_data="ws:ai"),
-            ],
-            [InlineKeyboardButton(text="🎓 Kursga yozilish", callback_data="ws:enroll")],
-        ]
-    )
+    rows = [
+        [
+            InlineKeyboardButton(text="📚 Darslarim", callback_data="ws:courses"),
+            InlineKeyboardButton(text="✅ Davomatim", callback_data="ws:attendance"),
+        ],
+        [
+            InlineKeyboardButton(text="💳 To'lovim", callback_data="ws:payment"),
+            InlineKeyboardButton(text="🤖 AI repetitor", callback_data="ws:ai"),
+        ],
+        [InlineKeyboardButton(text="🎓 Kursga yozilish", callback_data="ws:enroll")],
+    ]
+    webapp_btn = miniapp_button("🌐 Saytni ochish (Mini App)", "/users/dashboard/")
+    if webapp_btn:
+        rows.append([webapp_btn])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
 def enroll_courses_markup(courses):

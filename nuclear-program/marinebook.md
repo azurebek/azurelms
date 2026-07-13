@@ -16,6 +16,17 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-13 [Claude]: Telegram bot F5 — Mini App auth-ko'prigi (initData → avto-login)
+
+Bot qayta-arxitekturasining so'nggi bosqichi: sayt sahifalarini bot ichida parolsiz ochish poydevori. `bot/miniapp.py` — Telegram WebApp `initData` HMAC-SHA256 validatsiyasi (rasmiy spets bo'yicha: kalit = HMAC("WebAppData", bot_token), 24h muddat, sof funksiya — tarmoqsiz testlanadi) + `safe_next_path` open-redirect himoyasi. `/bot/miniapp/` kirish sahifasi (telegram-web-app.js → initData'ni POST qiladi) va `/bot/miniapp/auth/` (validatsiya → telegram_id bo'yicha user → Django session login; csrf_exempt xavfsiz — autentifikatsiya initData imzosining o'zi). Student menyusida "🌐 Saytni ochish (Mini App)" web_app tugmasi — FAQAT public domenda (Telegram web_app ham localhost'ni rad etadi, F2'dagi URL-tugma saboqlari); Telegram'dan tashqarida ochilsa oddiy login'ga yo'naltiradi. To'liq webview oqimi prod HTTPS chiqqanda sinaladi — validatsiya/login qatlami esa 5 test bilan qoplangan (roundtrip, tampered/expired/wrong-token, unlinked 404, session ochilishi, next-sanitizatsiya).
+
+- Branch: `claude/telegram-bot`
+- Commitlar: quyidagi commit (F5)
+- Test holati: `python manage.py test` — **290/290 OK** (bot: 37→42, +5 F5)
+- Davom etilishi kerak: prod deploy'da BotFather orqali Menu Button (Web App) sozlash; og'ir sahifalarga (dars tahriri, imtihon, checkout) miniapp_button'lar mobil-moslashuv tuzatishlaridan keyin; admin broadcast
+
+---
+
 ## 2026-07-12 [Claude]: Telegram bot F4 — o'qituvchi/admin buyruqlari + notification outbox
 
 Bot endi platformaning push-kanali va admin-pulti. **Outbox:** `users.Notification` yaratilganda signal `TelegramOutbox`ga yozadi (recipient'da telegram_id bo'lsa); worker (run_bot ichida polling bilan parallel, prod uchun `manage.py telegram_outbox [--loop]`) 15s siklda 25 tadan yuboradi, 3 urinishdan keyin failed; user botni bloklagan bo'lsa jim failed, sayt-qo'ng'iroqcha baribir turadi. Jonli tasdiqlandi: Notification → 15s ichida real DM. **O'qituvchi:** /guruhlarim (o'quvchi soni, TG bog'langanligi, oxirgi davomat), /baholash (tekshirilmagan imtihon/vazifalar — teacher_views helper'lari qayta ishlatildi). **Admin:** /stat (platforma sonlari), /cheklar — chek RASMI bilan keladi, ✅ Tasdiqlash / ❌ Rad tugmalari: tasdiq `PaymentReceipt.save()` orqali enrollmentni faollashtiradi (mavjud model-mantiq), userga Notification yoziladi → outbox orqali DM ham boradi (to'liq zanjir: chek → tasdiq → o'quvchiga avto-xabar). Rad: receipt o'chadi (promo bo'shaydi), userga qayta-yuborish xabari. Yo'lda: run_bot print'idagi '→' cp1252 konsolda UnicodeEncodeError berdi — ASCII'ga almashtirildi.

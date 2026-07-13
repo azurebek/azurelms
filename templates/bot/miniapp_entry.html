@@ -1,0 +1,64 @@
+{% load static %}<!DOCTYPE html>
+{% comment %}
+Mini App kirish sahifasi (F5). Telegram webview ochadi:
+telegram-web-app.js dan initData olinadi -> /bot/miniapp/auth/ ga POST ->
+sessiya ochilgach next sahifaga redirect. Telegram'dan tashqarida ochilsa
+oddiy login sahifasiga yo'naltiradi.
+{% endcomment %}
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AzureLMS</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body{margin:0;min-height:100vh;display:grid;place-items:center;font-family:system-ui,sans-serif;background:#f6f8fb;color:#1b2430;}
+    .box{text-align:center;padding:24px;}
+    .spin{width:34px;height:34px;border:3px solid #d7dfeb;border-top-color:#2563eb;border-radius:50%;margin:0 auto 14px;animation:r 0.8s linear infinite;}
+    @keyframes r{to{transform:rotate(360deg)}}
+    .err{color:#b42318;max-width:34ch;line-height:1.5;}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="spin" id="spin"></div>
+    <div id="msg">Kirilmoqda…</div>
+  </div>
+  <script>
+  (function(){
+    var msg = document.getElementById('msg');
+    var spin = document.getElementById('spin');
+    var nextPath = "{{ next_path|escapejs }}";
+    var tg = window.Telegram && window.Telegram.WebApp;
+    var initData = tg ? tg.initData : "";
+
+    if (!initData) {
+      // Telegram'dan tashqarida ochilgan — oddiy login orqali
+      window.location.href = "/users/login/?next=" + encodeURIComponent(nextPath);
+      return;
+    }
+    if (tg) { try { tg.ready(); tg.expand(); } catch (e) {} }
+
+    fetch("/bot/miniapp/auth/", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({init_data: initData, next: nextPath})
+    }).then(function(r){ return r.json().then(function(d){ return {ok: r.ok, data: d}; }); })
+      .then(function(res){
+        if (res.ok && res.data.status === "success") {
+          window.location.href = res.data.redirect;
+          return;
+        }
+        spin.style.display = "none";
+        msg.className = "err";
+        msg.textContent = (res.data && res.data.message) || "Kirishda xatolik. Botga qaytib /start bosing.";
+      })
+      .catch(function(){
+        spin.style.display = "none";
+        msg.className = "err";
+        msg.textContent = "Ulanishda xatolik — qayta urinib ko'ring.";
+      });
+  })();
+  </script>
+</body>
+</html>

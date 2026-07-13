@@ -45,12 +45,17 @@ Kirish (webhook prod / polling dev)
 
 | # | Nima | Tarkib | Holat |
 |---|------|--------|-------|
-| **F0** | Skelet | Lazy Bot init, identity-middleware, modulli router tuzilma (`bot/routers/`), o'zbekcha buyruqlar, xatolik-qatlami | boshlanmoqda |
-| **F1** | Davomat v2 | `/dars N`, `/dars tugadi`, `/davomat` (holat); ismli keldi/kech/kelmadi e'loni; kelmaganlarga DM ogohlantirish (bog'lanmaganlar guruhda @mention) | boshlanmoqda |
-| **F2** | Onboarding voronkasi | Tanituv, kurslar/narxlar, AI demo savol-javob (aicontrol kvota), **ikki yo'lli ro'yxat**: (a) telefon-kontakt bilan bot ichida, (b) sayt havolasi + token | — |
-| **F3** | O'quvchi workspace + AI | Doimiy menyu: darslarim/progress, davomatim, to'lov holati, AI repetitor DM'da; notification outbox | — |
-| **F4** | O'qituvchi + Admin | Guruhlarim, baholash navbati, e'lon yuborish; admin: statistika, to'lov tasdiqlash, broadcast | — |
-| **F5** | Mini App qatlami | Og'ir ekranlar (dars tahriri, imtihon, checkout) bot ichida avto-login bilan — mobil-moslashuv rejasi bilan birga | — |
+| **F0** | Skelet | Lazy Bot init, identity-middleware, modulli router tuzilma (`bot/routers/`), o'zbekcha buyruqlar, xatolik-qatlami | ✅ 2026-07-12, jonli sinalgan |
+| **F1** | Davomat v2 | `/dars N`, `/dars tugadi`, `/davomat` (holat); ismli keldi/kech/kelmadi e'loni; kelmaganlarga DM ogohlantirish (bog'lanmaganlar guruhda @mention) | ✅ 2026-07-12, jonli sinalgan |
+| **F2** | Onboarding voronkasi | Tanituv, kurslar/narxlar, AI demo savol-javob (5 savol, BotGuest), **ikki yo'lli ro'yxat**: (a) telefon-kontakt bilan bot ichida, (b) sayt havolasi + token | ✅ 2026-07-12, jonli sinalgan |
+| **F3** | O'quvchi workspace + AI | Menyu: /darslarim (progress), /davomatim, /tolov; erkin matn → messenger AI engine ("Telegram AI suhbati" xonasi) | ✅ 2026-07-12 |
+| **F3.5** | Kursga yozilish | /yozilish → kurs → tarif → rekvizitlar (SiteSettings karta) → chek rasmi → PaymentReceipt (sayt checkout servislari) | ✅ 2026-07-12 |
+| **F4** | O'qituvchi + Admin + Outbox | /guruhlarim, /baholash; admin: /stat, /cheklar (rasm + tasdiqlash/rad tugmalari); Notification→DM outbox (signal + worker) | ✅ 2026-07-12, outbox jonli isbotlangan |
+| **F5** | Mini App qatlami | initData HMAC auth-ko'prik (`/bot/miniapp/` + `/bot/miniapp/auth/`), avto-login, open-redirect himoya; public domenda web_app menyu tugmasi (lokalda avto-fallback) | ✅ 2026-07-13 — ko'prik tayyor; to'liq webview sinovi prod HTTPS'da |
+
+Keyingi navbat: admin broadcast, o'qituvchi e'loni, prod deploy (alohida bot token,
+webhook, `telegram_outbox --loop`), Mini App'ni og'ir sahifalarga yoyish
+(mobil-moslashuv rejasi bajarilgach).
 
 ## Sinov strategiyasi
 

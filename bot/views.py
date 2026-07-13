@@ -3,10 +3,13 @@ import json
 from aiogram import types
 from asgiref.sync import async_to_sync
 from django.conf import settings
+from django.contrib.auth import login
 from django.http import HttpResponseForbidden, JsonResponse
+from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
 from .aiogram_app import get_bot, get_dispatcher
+from .miniapp import safe_next_path, validate_init_data
 
 
 @csrf_exempt
@@ -46,3 +49,61 @@ def telegram_webhook(request):
     except Exception as e:
         print(f"Error processing update: {e}")
         return JsonResponse({"error": "Internal server error"}, status=500)
+
+
+def miniapp_entry(request):
+    """Mini App kirish sahifasi (F5).
+
+    Telegram webview shu sahifani ochadi; sahifadagi JS
+    window.Telegram.WebApp.initData'ni auth endpoint'ga POST qiladi,
+    sessiya ochilgach maqsad sahifaga o'tadi.
+    """
+    return render(
+        request,
+        "bot/miniapp_entry.html",
+        {"next_path": safe_next_path(request.GET.get("next"))},
+    )
+
+
+@csrf_exempt
+def miniapp_auth(request):
+    """initData'ni tekshirib Django sessiyasini ochadi.
+
+    CSRF o'rniga autentifikatsiya — initData'ning o'zi (bot token bilan
+    HMAC imzolangan, 24 soatlik muddat). csrf_exempt shu sababdan xavfsiz.
+    """
+    if request.method != "POST":
+        return JsonResponse({"status": "error", "message": "POST kerak."}, status=405)
+
+    try:
+        payload = json.loads(request.body.decode("utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return JsonResponse({"status": "error", "message": "Invalid JSON"}, status=400)
+
+    init_data = payload.get("init_data") or ""
+    token = (getattr(settings, "TELEGRAM_BOT_TOKEN", "") or "").strip()
+    validated = validate_init_data(init_data, token)
+    if not validated or not validated.get("user"):
+        return JsonResponse(
+            {"status": "error", "message": "Telegram ma'lumotini tasdiqlab bo'lmadi."},
+            status=403,
+        )
+
+    telegram_id = validated["user"].get("id")
+    from users.models import CustomUser
+
+    user = CustomUser.objects.filter(telegram_id=telegram_id, is_active=True).first()
+    if not user:
+        return JsonResponse(
+            {
+                "status": "error",
+                "code": "unlinked",
+                "message": "Hisobingiz botga ulanmagan. Botda /start bosib ro'yxatdan o'ting.",
+            },
+            status=404,
+        )
+
+    login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+    return JsonResponse(
+        {"status": "success", "redirect": safe_next_path(payload.get("next"))}
+    )
