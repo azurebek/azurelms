@@ -113,6 +113,29 @@ class TelegramOutbox(models.Model):
         return f"outbox:{self.id} → {self.telegram_id} [{self.status}]"
 
 
+class BotBroadcastDraft(models.Model):
+    """Admin broadcast qoralamasi (F6).
+
+    /broadcast <matn> → matn shu yerda saqlanadi; nishon/tasdiqlash callback
+    tugmalari faqat draft id ko'taradi (callback_data 64 baytga sig'ishi uchun).
+    Yuborilgach o'chiriladi — restart holatga ta'sir qilmaydi.
+    """
+
+    admin = models.ForeignKey(
+        "users.CustomUser", on_delete=models.CASCADE, related_name="bot_broadcast_drafts",
+    )
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Bot broadcast qoralama"
+        verbose_name_plural = "Bot broadcast qoralamalar"
+
+    def __str__(self):
+        return f"draft:{self.id} ({self.admin_id}): {self.text[:40]}"
+
+
 class TelegramLessonCheckIn(models.Model):
     session = models.ForeignKey(
         TelegramLessonSession,

@@ -16,6 +16,17 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-13 [Claude]: Telegram bot F6 — admin paneli kengaytmasi (qidiruv, broadcast, AI stat)
+
+Azurbek so'rovi: platformadagi admin imkonlarini botga kengroq ko'chirish. **`/qidiruv <so'z>`** — user qidiruv (ism/username/email/telefon/telegram, min 3 belgi, top-5): karta (rol, kontaktlar, XP, obunalar+muddatlar) + 🔒 Bloklash/🔓 Faollashtirish tugmasi (himoya: o'zini va staff'ni bloklab bo'lmaydi). **`/broadcast <matn>`** — ommaviy e'lon: matn `BotBroadcastDraft`ga yoziladi (callback 64-bayt limiti uchun; restart'ga chidamli), nishon tugmalari (Hammaga soni bilan / faol kohortlar) → ikkinchi bosqich tasdiqlash → `NotificationBroadcast` yozuvi + har userga Notification. MUHIM nuance: saytdagi `send_broadcast` bulk_create ishlatadi — signal otmaydi, TG'ga tushmaydi; bot versiyasi ATAYIN bitta-bitta create qiladi → post_save signali → outbox → DM (worker 25/15s rate-limit bilan tarqatadi). **`/ai_stat`** — bugun/7 kun token+javob soni, xatolar, top-5 token-user (AIResponseRun aggregate). Buyruqlar menyusi scope'landi: admin buyruqlari faqat admin chatlarida ko'rinadi (BotCommandScopeChat, startup'da staff+telegram_id ro'yxatidan).
+
+- Branch: `claude/telegram-bot`
+- Commitlar: quyidagi commit (F6)
+- Test holati: `python manage.py test` — **295/295 OK** (bot: 42→47, +5 F6)
+- Davom etilishi kerak: backoffice'dagi og'ir tahrir ekranlari (kurs/dars/imtihon formalari) — Mini App orqali prod'da; AI reset/bonus (aicontrol) botdan berish; broadcast'da title/url berish opsiyasi
+
+---
+
 ## 2026-07-13 [Claude]: Telegram bot F5 — Mini App auth-ko'prigi (initData → avto-login)
 
 Bot qayta-arxitekturasining so'nggi bosqichi: sayt sahifalarini bot ichida parolsiz ochish poydevori. `bot/miniapp.py` — Telegram WebApp `initData` HMAC-SHA256 validatsiyasi (rasmiy spets bo'yicha: kalit = HMAC("WebAppData", bot_token), 24h muddat, sof funksiya — tarmoqsiz testlanadi) + `safe_next_path` open-redirect himoyasi. `/bot/miniapp/` kirish sahifasi (telegram-web-app.js → initData'ni POST qiladi) va `/bot/miniapp/auth/` (validatsiya → telegram_id bo'yicha user → Django session login; csrf_exempt xavfsiz — autentifikatsiya initData imzosining o'zi). Student menyusida "🌐 Saytni ochish (Mini App)" web_app tugmasi — FAQAT public domenda (Telegram web_app ham localhost'ni rad etadi, F2'dagi URL-tugma saboqlari); Telegram'dan tashqarida ochilsa oddiy login'ga yo'naltiradi. To'liq webview oqimi prod HTTPS chiqqanda sinaladi — validatsiya/login qatlami esa 5 test bilan qoplangan (roundtrip, tampered/expired/wrong-token, unlinked 404, session ochilishi, next-sanitizatsiya).

@@ -863,6 +863,109 @@ class StaffServiceTests(TestCase):
         self.assertEqual(stats["unverified_receipts"], 0)
 
 
+class AdminExpansionTests(TestCase):
+    """F6 — admin qidiruv, bloklash, broadcast, AI stat."""
+
+    def setUp(self):
+        self.admin = User.objects.create_user(
+            username="f6-admin", email="f6-admin@example.com", password="x",
+            is_staff=True, telegram_id=6401,
+        )
+        self.student_tg = User.objects.create_user(
+            username="f6-student-tg", email="f6-tg@example.com", password="x",
+            telegram_id=6402, first_name="Aziza", phone_number="+998901112233",
+        )
+        self.student_plain = User.objects.create_user(
+            username="f6-student-plain", email="f6-plain@example.com", password="x",
+        )
+        course = Course.objects.create(
+            title="F6 kursi", description="t", instructor=self.admin, level="beginner",
+        )
+        self.cohort = Cohort.objects.create(
+            name="F6 kohorti", course=course, start_date="2026-03-26", is_active=True,
+        )
+        Enrollment.objects.create(student=self.student_tg, cohort=self.cohort, status="active")
+
+    def test_search_finds_by_name_and_phone(self):
+        from bot.services import admin_search_users
+
+        by_name = admin_search_users("Aziza")
+        self.assertEqual(len(by_name), 1)
+        self.assertEqual(by_name[0]["username"], "f6-student-tg")
+        self.assertEqual(by_name[0]["role"], "O'quvchi")
+        self.assertEqual(len(by_name[0]["enrollments"]), 1)
+
+        by_phone = admin_search_users("901112233")
+        self.assertEqual(len(by_phone), 1)
+
+        too_short = admin_search_users("Az")
+        self.assertEqual(too_short, [])
+
+    def test_toggle_active_with_guards(self):
+        from bot.services import admin_toggle_user_active
+
+        result = admin_toggle_user_active(self.student_plain.id, self.admin)
+        self.assertTrue(result.ok)
+        self.student_plain.refresh_from_db()
+        self.assertFalse(self.student_plain.is_active)
+
+        back = admin_toggle_user_active(self.student_plain.id, self.admin)
+        self.assertTrue(back.ok)
+        self.student_plain.refresh_from_db()
+        self.assertTrue(self.student_plain.is_active)
+
+        self.assertFalse(admin_toggle_user_active(self.admin.id, self.admin).ok)  # o'zini
+        self.assertFalse(admin_toggle_user_active(self.student_plain.id, self.student_tg).ok)  # oddiy user
+
+    def test_broadcast_full_flow(self):
+        from bot.models import BotBroadcastDraft, TelegramOutbox
+        from bot.services import (
+            broadcast_recipient_count,
+            create_broadcast_draft,
+            execute_broadcast,
+        )
+        from users.models import NotificationBroadcast
+
+        draft, error = create_broadcast_draft(self.admin, "Ertaga dars soat 19:00 da!")
+        self.assertIsNone(error)
+
+        self.assertEqual(broadcast_recipient_count(str(self.cohort.id)), 1)
+        self.assertGreaterEqual(broadcast_recipient_count("all"), 3)
+
+        result = execute_broadcast(draft.id, str(self.cohort.id), self.admin)
+        self.assertTrue(result.ok, msg=result.message)
+
+        # Kohortdagi 1 o'quvchiga Notification + (tg bog'langani uchun) outbox
+        note = Notification.objects.get(recipient=self.student_tg, title="E'lon 📢")
+        self.assertIn("19:00", note.message)
+        self.assertTrue(TelegramOutbox.objects.filter(notification=note).exists())
+
+        broadcast = NotificationBroadcast.objects.get(created_by=self.admin)
+        self.assertTrue(broadcast.is_sent)
+        self.assertFalse(BotBroadcastDraft.objects.filter(id=draft.id).exists())  # sarflandi
+
+        # Qoralama yo'q — qayta yuborib bo'lmaydi
+        again = execute_broadcast(draft.id, "all", self.admin)
+        self.assertFalse(again.ok)
+        self.assertEqual(again.code, "draft_missing")
+
+    def test_broadcast_draft_validation(self):
+        from bot.services import create_broadcast_draft
+
+        _, err = create_broadcast_draft(self.admin, "qis")
+        self.assertIsNotNone(err)
+        _, err = create_broadcast_draft(self.student_tg, "Yetarlicha uzun matn")
+        self.assertIsNotNone(err)
+
+    def test_admin_ai_usage_empty(self):
+        from bot.services import admin_ai_usage
+
+        usage = admin_ai_usage()
+        self.assertEqual(usage["today"]["runs"], 0)
+        self.assertEqual(usage["week"]["tokens"], 0)
+        self.assertEqual(usage["top_users"], [])
+
+
 class MiniAppAuthTests(TestCase):
     """F5 — Telegram Mini App initData validatsiyasi va avto-login."""
 

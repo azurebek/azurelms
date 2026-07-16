@@ -1211,3 +1211,236 @@ def reject_receipt(receipt_id, actor):
         code="rejected",
         message=f"❌ Rad etildi: {student_display_name(student)} — {course_title}",
     )
+
+
+# ================================================================ F6: Admin kengaytmasi
+
+def _require_admin(actor):
+    return bool(actor and (actor.is_staff or actor.is_superuser))
+
+
+def admin_search_users(query, limit=5):
+    """Ism/username/email/telefon/telegram bo'yicha qidiruv."""
+    from django.db.models import Q
+
+    query = (query or "").strip()
+    if len(query) < 3:
+        return []
+    users = (
+        CustomUser.objects.filter(
+            Q(username__icontains=query)
+            | Q(first_name__icontains=query)
+            | Q(last_name__icontains=query)
+            | Q(email__icontains=query)
+            | Q(phone_number__icontains=query)
+            | Q(telegram_username__icontains=query)
+        )
+        .order_by("-date_joined")[:limit]
+    )
+    return [admin_user_card(u) for u in users]
+
+
+def admin_user_card(user):
+    enrollments = [
+        {
+            "course": e.cohort.course.title,
+            "status": ENROLLMENT_STATUS_LABELS.get(e.status, e.status),
+            "next_deadline": (
+                e.next_payment_deadline.strftime("%d.%m.%Y") if e.next_payment_deadline else "—"
+            ),
+        }
+        for e in user.enrollments.select_related("cohort__course").order_by("-joined_at")[:4]
+    ]
+    if user.is_staff or user.is_superuser:
+        role = "Admin"
+    elif enrollments:
+        role = "O'quvchi"
+    else:
+        role = "Foydalanuvchi"
+    return {
+        "id": user.id,
+        "name": student_display_name(user),
+        "username": user.username,
+        "role": role,
+        "email": user.email or "—",
+        "phone": user.phone_number or "—",
+        "telegram": f"@{user.telegram_username}" if user.telegram_username else (
+            "ulangan" if user.telegram_id else "ulanmagan"
+        ),
+        "is_active": user.is_active,
+        "xp": user.total_xp,
+        "joined": user.date_joined.strftime("%d.%m.%Y"),
+        "enrollments": enrollments,
+    }
+
+
+def admin_toggle_user_active(user_id, actor):
+    """Bloklash/faollashtirish. Himoya: o'zini va staff'ni bloklab bo'lmaydi."""
+    if not _require_admin(actor):
+        return ActionResult(ok=False, code="forbidden", message="Ruxsat yo'q.")
+    user = CustomUser.objects.filter(id=user_id).first()
+    if not user:
+        return ActionResult(ok=False, code="missing", message="Foydalanuvchi topilmadi.")
+    if user.id == actor.id:
+        return ActionResult(ok=False, code="self", message="O'zingizni bloklay olmaysiz.")
+    if user.is_staff or user.is_superuser:
+        return ActionResult(ok=False, code="staff", message="Staff hisobni botdan bloklab bo'lmaydi.")
+
+    user.is_active = not user.is_active
+    user.save(update_fields=["is_active"])
+    label = "faollashtirildi ✅" if user.is_active else "bloklandi 🔒"
+    return ActionResult(
+        ok=True,
+        code="toggled",
+        message=f"{student_display_name(user)} {label}",
+    )
+
+
+def create_broadcast_draft(actor, text):
+    from bot.models import BotBroadcastDraft
+
+    text = (text or "").strip()
+    if not _require_admin(actor):
+        return None, "Ruxsat yo'q."
+    if len(text) < 5:
+        return None, "Matn juda qisqa. Foydalanish: /broadcast E'lon matni..."
+    if len(text) > 3500:
+        return None, "Matn juda uzun (3500 belgigacha)."
+    # Eski qoralamalarni tozalaymiz — bitta faol qoralama yetarli
+    BotBroadcastDraft.objects.filter(admin=actor).delete()
+    draft = BotBroadcastDraft.objects.create(admin=actor, text=text)
+    return draft, None
+
+
+def broadcast_targets():
+    """Nishonlar: hammaga (bog'langanlar soni bilan) + faol kohortlar."""
+    all_count = CustomUser.objects.filter(is_active=True).count()
+    tg_count = CustomUser.objects.filter(is_active=True, telegram_id__isnull=False).count()
+    cohorts = [
+        {
+            "id": c.id,
+            "name": c.name,
+            "count": Enrollment.objects.filter(
+                enrollment_active_access_q(), cohort=c
+            ).count(),
+        }
+        for c in Cohort.objects.filter(is_active=True).order_by("name")[:8]
+    ]
+    return {"all_count": all_count, "tg_count": tg_count, "cohorts": cohorts}
+
+
+def broadcast_recipient_count(target):
+    qs = _broadcast_recipients_qs(target)
+    return qs.count() if qs is not None else 0
+
+
+def _broadcast_recipients_qs(target):
+    if target == "all":
+        return CustomUser.objects.filter(is_active=True)
+    if str(target).isdigit():
+        return CustomUser.objects.filter(
+            is_active=True,
+            enrollments__cohort_id=int(target),
+        ).distinct()
+    return None
+
+
+def execute_broadcast(draft_id, target, actor):
+    """Broadcast'ni yuborish: NotificationBroadcast yozuvi + har userga Notification.
+
+    ATAYIN bitta-bitta create (bulk emas): post_save signali TelegramOutbox'ga
+    yozsin — sayt qo'ng'irog'i + Telegram DM birga ketadi (outbox worker
+    rate-limit bilan yuboradi).
+    """
+    from bot.models import BotBroadcastDraft
+    from users.models import NotificationBroadcast
+
+    if not _require_admin(actor):
+        return ActionResult(ok=False, code="forbidden", message="Ruxsat yo'q.")
+    draft = BotBroadcastDraft.objects.filter(id=draft_id, admin=actor).first()
+    if not draft:
+        return ActionResult(
+            ok=False, code="draft_missing",
+            message="Qoralama topilmadi — /broadcast bilan qaytadan boshlang.",
+        )
+    recipients = _broadcast_recipients_qs(target)
+    if recipients is None:
+        return ActionResult(ok=False, code="bad_target", message="Nishon noto'g'ri.")
+
+    broadcast = NotificationBroadcast.objects.create(
+        title="E'lon",
+        message=draft.text,
+        icon="megaphone",
+        target_type=(
+            NotificationBroadcast.TARGET_ALL if target == "all"
+            else NotificationBroadcast.TARGET_COHORTS
+        ),
+        created_by=actor,
+    )
+    if target != "all":
+        broadcast.cohorts.add(int(target))
+
+    total = 0
+    tg_total = 0
+    for user in recipients.iterator():
+        Notification.objects.create(
+            recipient=user,
+            title="E'lon 📢",
+            message=draft.text,
+            icon="megaphone",
+            category=Notification.CATEGORY_MANUAL,
+        )
+        total += 1
+        if user.telegram_id:
+            tg_total += 1
+
+    broadcast.is_sent = True
+    broadcast.sent_at = timezone.now()
+    broadcast.save(update_fields=["is_sent", "sent_at"])
+    draft.delete()
+
+    return ActionResult(
+        ok=True,
+        code="sent",
+        message=(
+            f"📢 E'lon {total} kishiga yozildi (saytda qo'ng'iroqcha), "
+            f"shundan {tg_total} tasiga Telegram DM navbatga qo'yildi."
+        ),
+    )
+
+
+def admin_ai_usage():
+    """AI sarfi: bugun/7 kun, muvaffaqiyat, top-5 token yeyuvchi."""
+    from django.db.models import Count, Sum
+
+    from messenger.models import AIResponseRun
+
+    now = timezone.now()
+    today_qs = AIResponseRun.objects.filter(created_at__date=timezone.localdate())
+    week_qs = AIResponseRun.objects.filter(created_at__gte=now - datetime.timedelta(days=7))
+
+    def _agg(qs):
+        data = qs.aggregate(runs=Count("id"), tokens=Sum("total_tokens"))
+        return {"runs": data["runs"] or 0, "tokens": int(data["tokens"] or 0)}
+
+    top = (
+        week_qs.values("student__username", "student__first_name", "student__last_name")
+        .annotate(tokens=Sum("total_tokens"), runs=Count("id"))
+        .order_by("-tokens")[:5]
+    )
+    top_users = [
+        {
+            "name": (f"{t['student__first_name']} {t['student__last_name']}".strip()
+                     or t["student__username"]),
+            "tokens": int(t["tokens"] or 0),
+            "runs": t["runs"],
+        }
+        for t in top
+    ]
+    failed_week = week_qs.filter(status=AIResponseRun.STATUS_FAILED).count()
+    return {
+        "today": _agg(today_qs),
+        "week": _agg(week_qs),
+        "failed_week": failed_week,
+        "top_users": top_users,
+    }
