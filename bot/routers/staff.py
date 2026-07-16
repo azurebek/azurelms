@@ -16,6 +16,16 @@ from bot.services import (
     admin_search_users,
     admin_stats,
     admin_toggle_user_active,
+    ai_action_preview,
+    ai_action_scopes,
+    ai_control_overview,
+    ai_disable_plan_policy,
+    ai_execute_action,
+    ai_plan_policies,
+    ai_set_global_limits,
+    ai_set_plan_policy,
+    ai_toggle_enforcement,
+    ai_toggle_user_block,
     broadcast_recipient_count,
     broadcast_targets,
     create_broadcast_draft,
@@ -164,14 +174,26 @@ def _render_user_card(card):
             )
     else:
         lines.append("Obunalar: yo'q")
+    ai = card.get("ai") or {}
+    if ai.get("blocked"):
+        lines.append("AI: 🚫 bloklangan")
+    elif ai.get("unlimited"):
+        lines.append("AI: ♾ limitsiz")
+    else:
+        lines.append(f"AI: 5 soatlik {ai.get('pct_5h', 0)}% · haftalik {ai.get('pct_weekly', 0)}%")
     return "\n".join(lines)
 
 
 def _user_card_markup(card):
     toggle_text = "🔒 Bloklash" if card["is_active"] else "🔓 Faollashtirish"
+    ai_blocked = (card.get("ai") or {}).get("blocked")
+    ai_text = "✅ AI'ni ochish" if ai_blocked else "🚫 AI'ni bloklash"
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text=toggle_text, callback_data=f"adm:u:toggle:{card['id']}")]
+            [
+                InlineKeyboardButton(text=toggle_text, callback_data=f"adm:u:toggle:{card['id']}"),
+                InlineKeyboardButton(text=ai_text, callback_data=f"adm:ai:ublk:{card['id']}"),
+            ]
         ]
     )
 
@@ -298,6 +320,216 @@ async def cb_broadcast(callback: types.CallbackQuery, lms_user, lms_role):
             await callback.message.edit_text(
                 f"{base}\n\n{result.message}", parse_mode=None, reply_markup=None
             )
+
+
+# ---------------------------------------------------------------- AI nazorat (F7)
+
+@router.message(Command("ai_sozlama"))
+async def cmd_ai_settings(message: types.Message, lms_role):
+    if lms_role != "admin":
+        await message.answer("Bu buyruq administratorlar uchun.")
+        return
+    s = await sync_to_async(ai_control_overview)()
+    lines = [
+        "⚙️ <b>AI sozlamalari</b>\n",
+        f"Limitlar: {'🟢 yoqiq' if s['enforcement'] else '🔴 o‘chiq (hech kim bloklanmaydi)'}",
+        f"Xodimlar ozod: {'ha' if s['exempt_staff'] else 'yo‘q'}",
+        f"Global default: 5 soatlik {_fmt_sum(s['limit_5h'])} · haftalik {_fmt_sum(s['limit_weekly'])} token",
+        f"Model: {html.escape(s['model'])}",
+    ]
+    if s["policies"]:
+        lines.append("\n<b>Tarif siyosatlari:</b>")
+        for p in s["policies"]:
+            state = "" if p["active"] else " (o‘chiq)"
+            lines.append(
+                f"• {html.escape(p['plan'])}: {_fmt_sum(p['limit_5h'])} / {_fmt_sum(p['limit_weekly'])}{state}"
+            )
+    if s["recent"]:
+        lines.append("\n<b>So'nggi amallar:</b>")
+        for r in s["recent"]:
+            lines.append(f"• {r['when']} — {r['kind']}, {r['scope']}, {r['window']} ({r['count']} kishi)")
+    lines.append(
+        "\nBuyruqlar: /ai_limit 100000 1000000 · /ai_tarif · /ai_reset · /ai_bonus 50000 · /ai_stat"
+    )
+    toggle_text = "🔴 Limitlarni o'chirish" if s["enforcement"] else "🟢 Limitlarni yoqish"
+    await message.answer(
+        "\n".join(lines),
+        parse_mode=HTML_MODE,
+        reply_markup=InlineKeyboardMarkup(
+            inline_keyboard=[[InlineKeyboardButton(text=toggle_text, callback_data="adm:ai:enf")]]
+        ),
+    )
+
+
+@router.message(Command("ai_limit"))
+async def cmd_ai_limit(message: types.Message, command: CommandObject, lms_user, lms_role):
+    if lms_role != "admin":
+        await message.answer("Bu buyruq administratorlar uchun.")
+        return
+    parts = (command.args or "").split()
+    if len(parts) != 2:
+        await message.answer("Foydalanish: /ai_limit <5_soatlik> <haftalik>\nMasalan: /ai_limit 100000 1000000")
+        return
+    result = await sync_to_async(ai_set_global_limits)(lms_user, parts[0], parts[1])
+    await message.answer(result.message)
+
+
+async def _send_ai_scope_menu(message, kind, amount):
+    scopes = await sync_to_async(ai_action_scopes)()
+    rows = [[InlineKeyboardButton(text="📢 Hammaga", callback_data=f"adm:ai:s:{kind}:{amount}:a:0")]]
+    for c in scopes["cohorts"]:
+        rows.append(
+            [InlineKeyboardButton(text=f"👥 {c['name']}", callback_data=f"adm:ai:s:{kind}:{amount}:c:{c['id']}")]
+        )
+    for p in scopes["plans"]:
+        rows.append(
+            [InlineKeyboardButton(text=f"💳 {p['name']} tarifi", callback_data=f"adm:ai:s:{kind}:{amount}:p:{p['id']}")]
+        )
+    rows.append([InlineKeyboardButton(text="❌ Bekor", callback_data="adm:ai:x")])
+    title = f"Bonus +{_fmt_sum(int(amount))} token" if kind == "b" else "Usage reset"
+    await message.answer(
+        f"🎯 <b>{title}</b> — kimga qo'llanadi?",
+        parse_mode=HTML_MODE,
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=rows),
+    )
+
+
+@router.message(Command("ai_tarif"))
+async def cmd_ai_plan_policy(message: types.Message, command: CommandObject, lms_user, lms_role):
+    if lms_role != "admin":
+        await message.answer("Bu buyruq administratorlar uchun.")
+        return
+    parts = (command.args or "").split()
+
+    if len(parts) == 2 and parts[0].isdigit() and parts[1].lower() == "off":
+        result = await sync_to_async(ai_disable_plan_policy)(lms_user, int(parts[0]))
+        await message.answer(result.message)
+        return
+
+    if len(parts) == 3 and parts[0].isdigit():
+        result = await sync_to_async(ai_set_plan_policy)(lms_user, int(parts[0]), parts[1], parts[2])
+        await message.answer(result.message)
+        return
+
+    if parts:
+        await message.answer(
+            "Foydalanish:\n"
+            "• <code>/ai_tarif</code> — ro'yxat\n"
+            "• <code>/ai_tarif ID 50000 500000</code> — siyosat o'rnatish\n"
+            "• <code>/ai_tarif ID off</code> — o'chirish (global defaultga qaytadi)",
+            parse_mode=HTML_MODE,
+        )
+        return
+
+    items = await sync_to_async(ai_plan_policies)()
+    if not items:
+        await message.answer("Tariflar hali sozlanmagan.")
+        return
+    lines = ["💳 <b>Tarif AI siyosatlari</b>\n"]
+    for it in items:
+        policy = it["policy"]
+        if policy and policy["active"]:
+            state = f"{_fmt_sum(policy['limit_5h'])} / {_fmt_sum(policy['limit_weekly'])} token"
+        elif policy:
+            state = "o'chiq (global default)"
+        else:
+            state = "global default"
+        lines.append(f"• <b>ID {it['plan_id']}</b> — {html.escape(it['name'])}: {state}")
+    lines.append(
+        "\nTahrirlash: <code>/ai_tarif ID 50000 500000</code>\n"
+        "O'chirish: <code>/ai_tarif ID off</code>"
+    )
+    await message.answer("\n".join(lines), parse_mode=HTML_MODE)
+
+
+@router.message(Command("ai_reset"))
+async def cmd_ai_reset(message: types.Message, lms_role):
+    if lms_role != "admin":
+        await message.answer("Bu buyruq administratorlar uchun.")
+        return
+    await _send_ai_scope_menu(message, "r", 0)
+
+
+@router.message(Command("ai_bonus"))
+async def cmd_ai_bonus(message: types.Message, command: CommandObject, lms_role):
+    if lms_role != "admin":
+        await message.answer("Bu buyruq administratorlar uchun.")
+        return
+    arg = (command.args or "").strip()
+    if not arg.isdigit() or int(arg) <= 0:
+        await message.answer("Foydalanish: /ai_bonus <token_miqdori>\nMasalan: /ai_bonus 50000")
+        return
+    await _send_ai_scope_menu(message, "b", int(arg))
+
+
+@router.callback_query(F.data.startswith("adm:ai:"))
+async def cb_ai_control(callback: types.CallbackQuery, lms_user, lms_role):
+    if lms_role != "admin":
+        await callback.answer("Ruxsat yo'q.", show_alert=True)
+        return
+    parts = callback.data.split(":")
+    op = parts[2]
+
+    if op == "x":
+        await callback.answer("Bekor qilindi.")
+        if callback.message:
+            await callback.message.edit_text("Amal bekor qilindi.", reply_markup=None)
+        return
+
+    if op == "enf":
+        result = await sync_to_async(ai_toggle_enforcement)(lms_user)
+        await callback.answer(result.message, show_alert=True)
+        return
+
+    if op == "ublk":
+        result = await sync_to_async(ai_toggle_user_block)(int(parts[3]), lms_user)
+        await callback.answer(result.message, show_alert=not result.ok)
+        return
+
+    if op == "s":  # adm:ai:s:<kind>:<amount>:<stype>:<sid> → oyna tanlash
+        kind, amount, stype, sid = parts[3], parts[4], parts[5], parts[6]
+        base = f"adm:ai:w:{kind}:{amount}:{stype}:{sid}"
+        await callback.answer()
+        await callback.message.edit_reply_markup(
+            reply_markup=InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [
+                        InlineKeyboardButton(text="⏱ 5 soatlik", callback_data=f"{base}:5h"),
+                        InlineKeyboardButton(text="📅 Haftalik", callback_data=f"{base}:weekly"),
+                    ],
+                    [InlineKeyboardButton(text="♻️ Ikkalasi", callback_data=f"{base}:both")],
+                    [InlineKeyboardButton(text="❌ Bekor", callback_data="adm:ai:x")],
+                ]
+            )
+        )
+        return
+
+    if op == "w":  # oyna tanlandi → preview + tasdiqlash
+        kind, amount, stype, sid, window = parts[3], parts[4], parts[5], parts[6], parts[7]
+        count = await sync_to_async(ai_action_preview)(kind, amount, stype, sid, window)
+        await callback.answer()
+        await callback.message.edit_reply_markup(
+            reply_markup=InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [
+                        InlineKeyboardButton(
+                            text=f"✅ {count} foydalanuvchiga qo'llashni tasdiqlash",
+                            callback_data=f"adm:ai:go:{kind}:{amount}:{stype}:{sid}:{window}",
+                        )
+                    ],
+                    [InlineKeyboardButton(text="❌ Bekor", callback_data="adm:ai:x")],
+                ]
+            )
+        )
+        return
+
+    if op == "go":
+        kind, amount, stype, sid, window = parts[3], parts[4], parts[5], parts[6], parts[7]
+        await callback.answer("Qo'llanilmoqda…")
+        result = await sync_to_async(ai_execute_action)(lms_user, kind, amount, stype, sid, window)
+        if callback.message:
+            base = callback.message.text or ""
+            await callback.message.edit_text(f"{base}\n\n{result.message}", reply_markup=None)
 
 
 # ---------------------------------------------------------------- AI stat

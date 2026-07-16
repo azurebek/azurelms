@@ -30,6 +30,10 @@ ADMIN_COMMANDS = PRIVATE_COMMANDS + [
     BotCommand(command="qidiruv", description="Foydalanuvchi qidirish"),
     BotCommand(command="broadcast", description="E'lon yuborish (hammaga/kohortga)"),
     BotCommand(command="ai_stat", description="AI token sarfi"),
+    BotCommand(command="ai_sozlama", description="AI sozlamalari (limitlar, enforcement)"),
+    BotCommand(command="ai_tarif", description="Tarif AI siyosatlari (tahrirlash)"),
+    BotCommand(command="ai_reset", description="AI usage reset (scope tanlash)"),
+    BotCommand(command="ai_bonus", description="AI bonus token berish"),
 ]
 
 GROUP_COMMANDS = [

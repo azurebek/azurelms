@@ -16,6 +16,17 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-13 [Claude]: Telegram bot F7 — AI nazorat botdan (aicontrol to'liq)
+
+Azurbek so'rovi: AI nazorat qismlari botdan boshqarilsin. Backoffice `/backoffice/ai-control/` imkonlari endi botda: **`/ai_sozlama`** — global holat (enforcement, xodim-ozodlik, default limitlar, model), tarif siyosatlari, so'nggi 5 amal (audit) + bitta bosishda "Limitlarni yoqish/o'chirish" tugmasi (bosh rubilnik). **`/ai_limit <5h> <hafta>`** — global default limitlarni o'zgartirish (validatsiya: musbat, hafta ≥ 5h; updated_by yoziladi). **`/ai_reset`** va **`/ai_bonus <miqdor>`** — uch bosqichli oqim: scope (Hammaga/kohort/tarif) → oyna (5h/haftalik/ikkalasi) → qamrov soni bilan tasdiqlash → mavjud `apply_reset_event` servisi (audit `AIUsageResetEvent`, reason="Telegram bot orqali"); callback-zanjir parametrlari 64-bayt limitga sig'adi, draft-model kerak emas. **`/qidiruv` kartasi boyidi**: AI holati qatori (5h/haftalik foiz yoki blok/limitsiz) + "🚫 AI'ni bloklash / ✅ ochish" tugmasi (`AIUserAllowance.is_blocked`). **`/ai_tarif`** (Azurbek so'roviga qo'shimcha): tarif siyosatlari ro'yxati ID'lar bilan; `/ai_tarif ID 50000 500000` — o'rnatish/yangilash (update_or_create, is_active=True), `/ai_tarif ID off` — o'chirish (is_active=False → global defaultga qaytadi, resolve_limits shunga qaraydi). Hech qanday yangi biznes-mantiq yo'q — hammasi aicontrol servislarining ustida.
+
+- Branch: `claude/telegram-bot`
+- Commitlar: quyidagi commit (F7)
+- Test holati: bot **53/53** (+6 F7: enforcement toggle+guard, limit validatsiya, reset audit bilan, bonus, user-blok/karta, tarif siyosati CRUD); to'liq suite **300/300 OK**; aicontrol 20/20
+- Davom etilishi kerak: per-user shaxsiy limit override botdan; prod deploy to'plami
+
+---
+
 ## 2026-07-13 [Claude]: Telegram bot F6 — admin paneli kengaytmasi (qidiruv, broadcast, AI stat)
 
 Azurbek so'rovi: platformadagi admin imkonlarini botga kengroq ko'chirish. **`/qidiruv <so'z>`** — user qidiruv (ism/username/email/telefon/telegram, min 3 belgi, top-5): karta (rol, kontaktlar, XP, obunalar+muddatlar) + 🔒 Bloklash/🔓 Faollashtirish tugmasi (himoya: o'zini va staff'ni bloklab bo'lmaydi). **`/broadcast <matn>`** — ommaviy e'lon: matn `BotBroadcastDraft`ga yoziladi (callback 64-bayt limiti uchun; restart'ga chidamli), nishon tugmalari (Hammaga soni bilan / faol kohortlar) → ikkinchi bosqich tasdiqlash → `NotificationBroadcast` yozuvi + har userga Notification. MUHIM nuance: saytdagi `send_broadcast` bulk_create ishlatadi — signal otmaydi, TG'ga tushmaydi; bot versiyasi ATAYIN bitta-bitta create qiladi → post_save signali → outbox → DM (worker 25/15s rate-limit bilan tarqatadi). **`/ai_stat`** — bugun/7 kun token+javob soni, xatolar, top-5 token-user (AIResponseRun aggregate). Buyruqlar menyusi scope'landi: admin buyruqlari faqat admin chatlarida ko'rinadi (BotCommandScopeChat, startup'da staff+telegram_id ro'yxatidan).

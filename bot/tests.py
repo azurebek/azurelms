@@ -966,6 +966,135 @@ class AdminExpansionTests(TestCase):
         self.assertEqual(usage["top_users"], [])
 
 
+class AiControlTests(TestCase):
+    """F7 — AI nazorat botdan: sozlamalar, reset/bonus, user blok."""
+
+    def setUp(self):
+        self.admin = User.objects.create_user(
+            username="f7-admin", email="f7-admin@example.com", password="x",
+            is_staff=True, telegram_id=6501,
+        )
+        self.student = User.objects.create_user(
+            username="f7-student", email="f7-student@example.com", password="x", telegram_id=6502,
+        )
+        # _scope_users qamroviga tushishi uchun allowance yaratamiz
+        from aicontrol.service import get_allowance
+        get_allowance(self.student)
+
+    def test_toggle_enforcement_and_guard(self):
+        from aicontrol.models import AISettings
+        from bot.services import ai_toggle_enforcement
+
+        before = AISettings.load().enforcement_enabled
+        result = ai_toggle_enforcement(self.admin)
+        self.assertTrue(result.ok)
+        self.assertNotEqual(AISettings.load().enforcement_enabled, before)
+        # qaytarib qo'yamiz
+        ai_toggle_enforcement(self.admin)
+        self.assertEqual(AISettings.load().enforcement_enabled, before)
+
+        self.assertFalse(ai_toggle_enforcement(self.student).ok)
+
+    def test_set_global_limits_validation(self):
+        from aicontrol.models import AISettings
+        from bot.services import ai_set_global_limits
+
+        ok = ai_set_global_limits(self.admin, "200000", "2000000")
+        self.assertTrue(ok.ok, msg=ok.message)
+        s = AISettings.load()
+        self.assertEqual(s.default_5h_token_limit, 200000)
+        self.assertEqual(s.default_weekly_token_limit, 2000000)
+
+        self.assertFalse(ai_set_global_limits(self.admin, "abc", "10").ok)
+        self.assertFalse(ai_set_global_limits(self.admin, "1000", "500").ok)  # haftalik < 5h
+        self.assertFalse(ai_set_global_limits(self.student, "1000", "5000").ok)
+
+    def test_reset_action_sets_markers_with_audit(self):
+        from aicontrol.models import AIUsageResetEvent
+        from aicontrol.service import get_allowance
+        from bot.services import ai_action_preview, ai_execute_action
+
+        preview = ai_action_preview("r", 0, "a", 0, "both")
+        self.assertGreaterEqual(preview, 1)
+
+        result = ai_execute_action(self.admin, "r", 0, "a", 0, "both")
+        self.assertTrue(result.ok, msg=result.message)
+
+        allowance = get_allowance(self.student)
+        self.assertIsNotNone(allowance.reset_5h_at)
+        self.assertIsNotNone(allowance.reset_weekly_at)
+
+        event = AIUsageResetEvent.objects.get()
+        self.assertEqual(event.kind, AIUsageResetEvent.KIND_RESET)
+        self.assertEqual(event.created_by, self.admin)
+        self.assertGreaterEqual(event.affected_count, 1)
+        self.assertEqual(event.reason, "Telegram bot orqali")
+
+    def test_bonus_action_adds_tokens(self):
+        from aicontrol.service import get_allowance
+        from bot.services import ai_execute_action
+
+        result = ai_execute_action(self.admin, "b", 50000, "a", 0, "5h")
+        self.assertTrue(result.ok, msg=result.message)
+        allowance = get_allowance(self.student)
+        self.assertEqual(allowance.bonus_5h_tokens, 50000)
+        self.assertEqual(allowance.bonus_weekly_tokens, 0)
+
+        self.assertFalse(ai_execute_action(self.admin, "b", 0, "a", 0, "5h").ok)  # miqdor 0
+        self.assertFalse(ai_execute_action(self.student, "b", 100, "a", 0, "5h").ok)  # huquq
+
+    def test_plan_policy_set_disable_and_list(self):
+        from aicontrol.models import AIPlanPolicy
+        from bot.services import (
+            ai_disable_plan_policy,
+            ai_plan_policies,
+            ai_set_plan_policy,
+        )
+        from subscriptions.models import Plan
+
+        plan = Plan.objects.create(name="F7 tarif", price=150000, description="t", order=1)
+
+        # Boshida siyosat yo'q
+        items = ai_plan_policies()
+        item = next(i for i in items if i["plan_id"] == plan.id)
+        self.assertIsNone(item["policy"])
+
+        # O'rnatish
+        result = ai_set_plan_policy(self.admin, plan.id, "40000", "400000")
+        self.assertTrue(result.ok, msg=result.message)
+        policy = AIPlanPolicy.objects.get(plan=plan)
+        self.assertEqual(policy.token_limit_5h, 40000)
+        self.assertTrue(policy.is_active)
+
+        # Validatsiya va huquq
+        self.assertFalse(ai_set_plan_policy(self.admin, plan.id, "5000", "100").ok)
+        self.assertFalse(ai_set_plan_policy(self.student, plan.id, "1000", "10000").ok)
+        self.assertFalse(ai_set_plan_policy(self.admin, 99999, "1000", "10000").ok)
+
+        # O'chirish → global defaultga qaytadi; qayta o'rnatish is_active'ni tiklaydi
+        off = ai_disable_plan_policy(self.admin, plan.id)
+        self.assertTrue(off.ok)
+        policy.refresh_from_db()
+        self.assertFalse(policy.is_active)
+
+        ai_set_plan_policy(self.admin, plan.id, "60000", "600000")
+        policy.refresh_from_db()
+        self.assertTrue(policy.is_active)
+        self.assertEqual(policy.token_limit_5h, 60000)
+
+    def test_user_ai_block_toggle_and_card_field(self):
+        from bot.services import admin_user_card, ai_toggle_user_block
+
+        result = ai_toggle_user_block(self.student.id, self.admin)
+        self.assertTrue(result.ok)
+        card = admin_user_card(self.student)
+        self.assertTrue(card["ai"]["blocked"])
+
+        ai_toggle_user_block(self.student.id, self.admin)
+        card = admin_user_card(self.student)
+        self.assertFalse(card["ai"]["blocked"])
+
+
 class MiniAppAuthTests(TestCase):
     """F5 — Telegram Mini App initData validatsiyasi va avto-login."""
 

@@ -1271,6 +1271,7 @@ def admin_user_card(user):
         "xp": user.total_xp,
         "joined": user.date_joined.strftime("%d.%m.%Y"),
         "enrollments": enrollments,
+        "ai": ai_user_status(user),
     }
 
 
@@ -1407,6 +1408,264 @@ def execute_broadcast(draft_id, target, actor):
             f"shundan {tg_total} tasiga Telegram DM navbatga qo'yildi."
         ),
     )
+
+
+# ================================================================ F7: AI nazorat (admin)
+
+AI_WINDOW_LABELS = {"5h": "5 soatlik", "weekly": "Haftalik", "both": "Ikkala oyna"}
+
+
+def ai_control_overview():
+    """Global AI sozlamalari + tarif siyosatlari + so'nggi amallar."""
+    from aicontrol.models import AIPlanPolicy, AISettings, AIUsageResetEvent
+
+    s = AISettings.load()
+    policies = [
+        {
+            "plan": p.plan.name,
+            "limit_5h": p.token_limit_5h,
+            "limit_weekly": p.token_limit_weekly,
+            "active": p.is_active,
+        }
+        for p in AIPlanPolicy.objects.select_related("plan")
+    ]
+    recent = [
+        {
+            "kind": e.get_kind_display(),
+            "scope": e.get_scope_display(),
+            "window": e.get_window_display(),
+            "count": e.affected_count,
+            "when": e.created_at.strftime("%d.%m %H:%M"),
+        }
+        for e in AIUsageResetEvent.objects.all()[:5]
+    ]
+    return {
+        "enforcement": s.enforcement_enabled,
+        "exempt_staff": s.exempt_staff,
+        "limit_5h": s.default_5h_token_limit,
+        "limit_weekly": s.default_weekly_token_limit,
+        "model": s.default_model or "(settings.py default)",
+        "policies": policies,
+        "recent": recent,
+    }
+
+
+def ai_toggle_enforcement(actor):
+    from aicontrol.models import AISettings
+
+    if not _require_admin(actor):
+        return ActionResult(ok=False, code="forbidden", message="Ruxsat yo'q.")
+    s = AISettings.load()
+    s.enforcement_enabled = not s.enforcement_enabled
+    s.updated_by = actor
+    s.save(update_fields=["enforcement_enabled", "updated_by", "updated_at"])
+    label = "yoqildi 🟢" if s.enforcement_enabled else "o'chirildi 🔴 (hech kim bloklanmaydi)"
+    return ActionResult(ok=True, code="toggled", message=f"AI limitlari {label}")
+
+
+def ai_set_global_limits(actor, limit_5h, limit_weekly):
+    from aicontrol.models import AISettings
+
+    if not _require_admin(actor):
+        return ActionResult(ok=False, code="forbidden", message="Ruxsat yo'q.")
+    try:
+        limit_5h, limit_weekly = int(limit_5h), int(limit_weekly)
+    except (TypeError, ValueError):
+        return ActionResult(ok=False, code="bad_value", message="Foydalanish: /ai_limit 100000 1000000")
+    if limit_5h <= 0 or limit_weekly <= 0 or limit_weekly < limit_5h:
+        return ActionResult(
+            ok=False, code="bad_value",
+            message="Limitlar musbat bo'lishi va haftalik ≥ 5 soatlikdan bo'lishi kerak.",
+        )
+    s = AISettings.load()
+    s.default_5h_token_limit = limit_5h
+    s.default_weekly_token_limit = limit_weekly
+    s.updated_by = actor
+    s.save(update_fields=["default_5h_token_limit", "default_weekly_token_limit", "updated_by", "updated_at"])
+    return ActionResult(
+        ok=True, code="updated",
+        message=f"Global limitlar: 5 soatlik {_fmt_sum(limit_5h)} · haftalik {_fmt_sum(limit_weekly)} token",
+    )
+
+
+def ai_plan_policies():
+    """Barcha tariflar + AI siyosati holati (tahrirlash ro'yxati uchun)."""
+    from aicontrol.models import AIPlanPolicy
+    from subscriptions.models import Plan
+
+    policies = {p.plan_id: p for p in AIPlanPolicy.objects.all()}
+    items = []
+    for plan in Plan.objects.order_by("order", "id"):
+        policy = policies.get(plan.id)
+        items.append(
+            {
+                "plan_id": plan.id,
+                "name": plan.name,
+                "price": int(plan.price),
+                "policy": (
+                    {
+                        "limit_5h": policy.token_limit_5h,
+                        "limit_weekly": policy.token_limit_weekly,
+                        "active": policy.is_active,
+                    }
+                    if policy
+                    else None
+                ),
+            }
+        )
+    return items
+
+
+def ai_set_plan_policy(actor, plan_id, limit_5h, limit_weekly):
+    """Tarif siyosatini o'rnatish/yangilash (is_active=True bilan)."""
+    from aicontrol.models import AIPlanPolicy
+    from subscriptions.models import Plan
+
+    if not _require_admin(actor):
+        return ActionResult(ok=False, code="forbidden", message="Ruxsat yo'q.")
+    plan = Plan.objects.filter(id=plan_id).first()
+    if not plan:
+        return ActionResult(ok=False, code="plan_missing", message="Tarif topilmadi — /ai_tarif bilan ID'larni ko'ring.")
+    try:
+        limit_5h, limit_weekly = int(limit_5h), int(limit_weekly)
+    except (TypeError, ValueError):
+        return ActionResult(ok=False, code="bad_value", message="Limitlar butun son bo'lishi kerak.")
+    if limit_5h <= 0 or limit_weekly <= 0 or limit_weekly < limit_5h:
+        return ActionResult(
+            ok=False, code="bad_value",
+            message="Limitlar musbat bo'lishi va haftalik ≥ 5 soatlikdan bo'lishi kerak.",
+        )
+    AIPlanPolicy.objects.update_or_create(
+        plan=plan,
+        defaults={
+            "token_limit_5h": limit_5h,
+            "token_limit_weekly": limit_weekly,
+            "is_active": True,
+        },
+    )
+    return ActionResult(
+        ok=True, code="updated",
+        message=(
+            f"✅ {plan.name}: 5 soatlik {_fmt_sum(limit_5h)} · "
+            f"haftalik {_fmt_sum(limit_weekly)} token"
+        ),
+    )
+
+
+def ai_disable_plan_policy(actor, plan_id):
+    """Tarif siyosatini o'chirish — tarif global defaultga qaytadi."""
+    from aicontrol.models import AIPlanPolicy
+
+    if not _require_admin(actor):
+        return ActionResult(ok=False, code="forbidden", message="Ruxsat yo'q.")
+    policy = AIPlanPolicy.objects.filter(plan_id=plan_id).select_related("plan").first()
+    if not policy:
+        return ActionResult(ok=False, code="missing", message="Bu tarifda alohida siyosat yo'q.")
+    policy.is_active = False
+    policy.save(update_fields=["is_active", "updated_at"])
+    return ActionResult(
+        ok=True, code="disabled",
+        message=f"🔕 {policy.plan.name} siyosati o'chirildi — global default amal qiladi.",
+    )
+
+
+def ai_action_scopes():
+    """Reset/bonus nishonlari: hammaga + faol kohortlar + tariflar."""
+    from subscriptions.models import Plan
+
+    cohorts = [
+        {"id": c.id, "name": c.name}
+        for c in Cohort.objects.filter(is_active=True).order_by("name")[:6]
+    ]
+    plans = [{"id": p.id, "name": p.name} for p in Plan.objects.order_by("order")[:6]]
+    return {"cohorts": cohorts, "plans": plans}
+
+
+def _build_ai_event(kind, amount, scope_type, scope_id):
+    from aicontrol.models import AIUsageResetEvent
+
+    scope_map = {
+        "a": AIUsageResetEvent.SCOPE_ALL,
+        "c": AIUsageResetEvent.SCOPE_COHORT,
+        "p": AIUsageResetEvent.SCOPE_PLAN,
+    }
+    scope = scope_map.get(scope_type)
+    if scope is None:
+        return None
+    event = AIUsageResetEvent(
+        scope=scope,
+        kind=AIUsageResetEvent.KIND_BONUS if kind == "b" else AIUsageResetEvent.KIND_RESET,
+        bonus_tokens=int(amount or 0),
+    )
+    if scope == AIUsageResetEvent.SCOPE_COHORT:
+        event.cohort_id = int(scope_id)
+    elif scope == AIUsageResetEvent.SCOPE_PLAN:
+        event.plan_id = int(scope_id)
+    return event
+
+
+def ai_action_preview(kind, amount, scope_type, scope_id, window):
+    """Amal qamraydigan foydalanuvchilar soni (saqlamasdan)."""
+    from aicontrol.service import WINDOW_WEEK, _scope_users
+
+    event = _build_ai_event(kind, amount, scope_type, scope_id)
+    if event is None:
+        return None
+    event.window = window
+    return _scope_users(event, active_since=timezone.now() - WINDOW_WEEK).count()
+
+
+def ai_execute_action(actor, kind, amount, scope_type, scope_id, window):
+    """Reset/bonus'ni qo'llash — mavjud apply_reset_event servisi orqali (audit bilan)."""
+    from aicontrol.service import apply_reset_event
+
+    if not _require_admin(actor):
+        return ActionResult(ok=False, code="forbidden", message="Ruxsat yo'q.")
+    if kind == "b" and int(amount or 0) <= 0:
+        return ActionResult(ok=False, code="bad_amount", message="Bonus miqdori noto'g'ri.")
+    event = _build_ai_event(kind, amount, scope_type, scope_id)
+    if event is None or window not in AI_WINDOW_LABELS:
+        return ActionResult(ok=False, code="bad_target", message="Nishon yoki oyna noto'g'ri.")
+    event.window = window
+    event.reason = "Telegram bot orqali"
+    event.created_by = actor
+    event.save()
+    count = apply_reset_event(event)
+    kind_label = f"Bonus +{_fmt_sum(int(amount))} token" if kind == "b" else "Reset"
+    return ActionResult(
+        ok=True,
+        code="applied",
+        message=f"✅ {kind_label} · {AI_WINDOW_LABELS[window]} — {count} foydalanuvchiga qo'llandi.",
+    )
+
+
+def ai_user_status(user):
+    """Qidiruv kartasi uchun user AI holati."""
+    from aicontrol.service import build_usage_panel, get_allowance
+
+    panel = build_usage_panel(user)
+    allowance = get_allowance(user)
+    return {
+        "blocked": allowance.is_blocked,
+        "unlimited": panel["unlimited"],
+        "pct_5h": panel["session"]["percent"],
+        "pct_weekly": panel["weekly"]["percent"],
+    }
+
+
+def ai_toggle_user_block(user_id, actor):
+    from aicontrol.service import get_allowance
+
+    if not _require_admin(actor):
+        return ActionResult(ok=False, code="forbidden", message="Ruxsat yo'q.")
+    user = CustomUser.objects.filter(id=user_id).first()
+    if not user:
+        return ActionResult(ok=False, code="missing", message="Foydalanuvchi topilmadi.")
+    allowance = get_allowance(user)
+    allowance.is_blocked = not allowance.is_blocked
+    allowance.save(update_fields=["is_blocked", "updated_at"])
+    label = "AI bloklandi 🚫" if allowance.is_blocked else "AI ochildi ✅"
+    return ActionResult(ok=True, code="toggled", message=f"{student_display_name(user)}: {label}")
 
 
 def admin_ai_usage():
