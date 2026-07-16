@@ -57,6 +57,57 @@ Keyingi navbat: admin broadcast, o'qituvchi e'loni, prod deploy (alohida bot tok
 webhook, `telegram_outbox --loop`), Mini App'ni og'ir sahifalarga yoyish
 (mobil-moslashuv rejasi bajarilgach).
 
+> Yangilanish 2026-07-13: F6 (admin kengaytmasi: /qidiruv, /broadcast, /ai_stat) va
+> F7 (AI nazorat: /ai_sozlama, /ai_limit, /ai_tarif, /ai_reset, /ai_bonus, user-blok)
+> ham bajarildi. Quyida 2-qism rejasi.
+
+---
+
+# 2-QISM: To'liq quvvatli alternativ (F8–F13)
+
+> Maqsad (Azurbek, 2026-07-13): saytga kirolmaydigan foydalanuvchi uchun bot
+> platformaning TO'LIQ o'rnini bossin — nafaqat kuzatuv, balki O'QISH ham.
+
+## Hozirgi kamchilik xaritasi
+
+1-qism (F0–F7) "atrofdagi" hamma narsani qopladi: ro'yxat, yozilish, to'lov,
+davomat, kuzatuv, AI, admin-pult. Yetishmayotgan yadro — **dars jarayonining o'zi**:
+o'quvchi botdan turib darsni KO'RA olmaydi, vazifa TOPSHIRA olmaydi, quiz/imtihon
+YECHA olmaydi, sertifikatini OLA olmaydi. O'qituvchi baholay olmaydi. Shu 2-qism
+aynan shularni yopadi.
+
+Model-tayyorlik tekshirildi: `Lesson.video_url` (YouTube unlisted havola),
+`Lesson.content` (HTML → matnga o'giriladi), Quiz=MCQ (inline tugmalarga ideal),
+`ExamAttempt.answer_text` (writing=matn xabar) + `audio_file_url` (speaking=Telegram
+ovozli xabar) — hammasi chat-interfeysga yotadi.
+
+## Fazalar
+
+| # | Faza | Tarkib | Hajm |
+|---|------|--------|------|
+| **F8** | **Dars-yetkazish (botda o'qish)** — yadro | /darslarim → kurs → modul/dars ro'yxati (✅ o'tilgan / 🔒 qulf, sayt lock-mantig'i bilan); dars ochish: video tugmasi (YouTube unlisted), kontent HTML→matn (bo'laklab), "✅ Darsni tugatdim" → LessonProgress+XP (sayt servisi); deep-link `t.me/bot?start=dars_ID` — davomat ogohlantirishidagi havola endi botning o'zida ochiladi; "🤖 Shu dars bo'yicha savol" → AI repetitorga dars-kontekst | ~1.5 kun |
+| **F9** | **Vazifa va quiz** | Dars ichida 📝 Vazifa: topshiriq → javob matn/foto/fayl → AssignmentSubmission (pending) → o'qituvchi navbatiga; baholanganda DM (outbox tayyor). ❓ Quiz: savollar inline tugmalar bilan ketma-ket, mavjud quiz-submit servisi, natija+XP darhol | ~1 kun |
+| **F10** | **Prod-ga chiqarish** ⚡ | Alohida prod bot + BotFather profil (rasm/description); webhook + secret; `telegram_outbox --loop` alohida worker (DO App Platform/Procfile); deploy'da setup_bot_commands; Mini App Menu Button aktivatsiyasi (mobil-moslashuv tuzatishlari bilan birga); media file_id keshi; xatolik-monitoring (kritik xato → admin DM); rate hardening | ~1.5 kun |
+| **F11** | **Imtihon va sertifikat** | /imtihonlarim (jadval/holat/natija); topshirish v1: MCQ tugmalar, writing=matn, speaking=ovozli xabar (mavjud audio-upload oqimiga); vaqt nazorati xabarda; murakkab holat uchun Mini App'ga yo'naltirish opsiyasi. /sertifikatlarim: ro'yxat + PDF/rasm chatga | ~2 kun |
+| **F12** | **O'qituvchi to'liq ish stoli** | /baholash interaktiv: ishni ochish (matn/fayl) → baho + izoh → o'quvchiga avto-DM; guruhga e'lon botdan; dars eslatmalari (jadval bo'yicha guruhga avto-post) | ~1 kun |
+| **F13** | **Profil/reyting/polish** | /reyting (leaderboard), /profil (ism, AI tone/model sozlash), /yordam FAQ DB'dan; onboarding→yozilish→to'lov→o'qish voronkasining uzluksizligini end-to-end tekshirish | ~1 kun |
+
+**Tavsiya tartibi:** F8 → F9 → **F10 (prod!)** → F11 → F12 → F13.
+Sabab: F8+F9 bilan bot haqiqiy "o'qish joyi"ga aylanadi — shu zahoti prod'ga
+chiqarib real o'quvchilarga berish kerak (20-sentyabr launch'iga zaxira vaqt
+qoladi), qolgan fazalar jonli foydalanish ustiga iterativ qo'shiladi.
+
+## Halol chegaralar (qabul qilingan)
+
+- **Video himoyasi yo'q**: YouTube unlisted havola/Telegram fayl forward qilinishi mumkin — saytdagi bilan bir xil daraja, qo'shimcha DRM rejalashtirilmagan.
+- **Imtihon halolligi**: botda taymer "yumshoq" (xabar vaqtlari bilan), sayt darajasidagi nazorat yo'q — jiddiy imtihonlar uchun Mini App/sayt tavsiya etiladi, botdagi rejim mashq-imtihonlar uchun.
+- **FSM holati**: polling'da xotirada; webhook prod'da ko'p-jarayonlik bo'lsa DB-storage kerak bo'ladi (F10'da hal qilinadi — hozirgi oqimlar ataylab stateless qurilgan).
+
+## Sinov strategiyasi (1-qismdagidek)
+
+Har faza: servis-testlar (bot suite) + to'liq regressiya + Azurbek telefon-sinovi
+→ marinebook yozuvi → commit. F10'dan keyin sinovlar prod botda staging-kohort bilan.
+
 ## Sinov strategiyasi
 
 1. **Avtomatik** (har bosqich): servis testlari (mavjud `bot/tests.py` uslubi) + handler testlari
