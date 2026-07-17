@@ -61,6 +61,10 @@
         <a class="app-nav-item is-muted" href="{% url 'backoffice_dashboard' %}"><i class="bi bi-shield-lock"></i><span class="label">Admin paneli</span></a>
         {% endif %}
         <a class="app-nav-item{% if active_nav == 'settings' %} active{% endif %}" href="{% url 'settings' %}"><i class="bi bi-gear"></i><span class="label">Sozlamalar</span></a>
+        {# Django 6: LogoutView faqat POST qabul qiladi — link emas, forma #}
+        <form method="post" action="{% url 'logout' %}" style="margin:0;">{% csrf_token %}
+          <button type="submit" class="app-nav-item is-muted" style="width:100%;"><i class="bi bi-box-arrow-right"></i><span class="label">Chiqish</span></button>
+        </form>
         <button type="button" class="app-nav-item is-muted" data-app-collapse><i class="bi bi-chevron-double-left"></i><span class="label">Yig'ish</span></button>
         <a class="app-user" href="{% url 'profile' %}">
           {% if request.user.avatar %}<img class="app-user-av" src="{{ request.user.avatar.url }}" alt="{{ request.user.get_full_name }}" style="object-fit:cover;">{% else %}<span class="app-user-av">{{ request.user.first_name.0|default:request.user.username.0|upper }}{{ request.user.last_name.0|upper }}</span>{% endif %}

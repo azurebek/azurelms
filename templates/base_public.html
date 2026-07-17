@@ -36,8 +36,16 @@
       </nav>
       <div class="pub-actions">
         <button type="button" class="pub-theme" aria-label="Mavzu"><i class="bi bi-moon"></i></button>
-        <a class="pub-login" href="{% url 'login' %}">Kirish</a>
-        <a class="pub-cta" href="{% url 'register' %}">Boshlash <i class="bi bi-arrow-right"></i></a>
+        {% if request.user.is_authenticated %}
+          {# Django 6: LogoutView faqat POST qabul qiladi — link emas, forma #}
+          <form method="post" action="{% url 'logout' %}" style="margin:0;">{% csrf_token %}
+            <button type="submit" class="pub-login" style="border:none;background:none;cursor:pointer;">Chiqish</button>
+          </form>
+          <a class="pub-cta" href="{% url 'dashboard' %}">Kabinet <i class="bi bi-arrow-right"></i></a>
+        {% else %}
+          <a class="pub-login" href="{% url 'login' %}">Kirish</a>
+          <a class="pub-cta" href="{% url 'register' %}">Boshlash <i class="bi bi-arrow-right"></i></a>
+        {% endif %}
       </div>
     </div>
   </header>
