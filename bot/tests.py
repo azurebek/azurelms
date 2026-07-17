@@ -966,6 +966,100 @@ class AdminExpansionTests(TestCase):
         self.assertEqual(usage["top_users"], [])
 
 
+class LessonDeliveryTests(TestCase):
+    """F8 — botda o'qish: kurs xaritasi, dars ochish (=o'tildi), deep-link."""
+
+    def setUp(self):
+        self.teacher = User.objects.create_user(
+            username="f8-teacher", email="f8-teacher@example.com", password="x", is_staff=True,
+        )
+        self.student = User.objects.create_user(
+            username="f8-student", email="f8-student@example.com", password="x", telegram_id=6601,
+        )
+        self.outsider = User.objects.create_user(
+            username="f8-outsider", email="f8-outsider@example.com", password="x", telegram_id=6602,
+        )
+        self.course = Course.objects.create(
+            title="F8 kursi", description="t", instructor=self.teacher, level="beginner",
+        )
+        module = Module.objects.create(course=self.course, title="Alifbo moduli", order=1)
+        self.lesson1 = Lesson.objects.create(
+            module=module, title="Harflar", order=1, xp_reward=10,
+            video_url="https://youtu.be/test123",
+            content="<p>Turk alifbosida <b>29 ta</b> harf bor.</p><ul><li>A harfi</li></ul>",
+        )
+        self.lesson2 = Lesson.objects.create(module=module, title="Talaffuz", order=2, xp_reward=10)
+        self.cohort = Cohort.objects.create(
+            name="F8 kohorti", course=self.course, start_date="2026-03-26", is_active=True,
+        )
+        Enrollment.objects.create(student=self.student, cohort=self.cohort, status="active")
+
+    def test_html_to_text(self):
+        from bot.services import html_to_text
+
+        text = html_to_text("<p>Salom <b>dunyo</b>!</p><ul><li>Bir</li><li>Ikki &amp; uch</li></ul>")
+        self.assertIn("Salom dunyo!", text)
+        self.assertIn("• Bir", text)
+        self.assertIn("Ikki & uch", text)
+        self.assertNotIn("<", text)
+
+    def test_course_map_states(self):
+        from bot.services import student_course_map
+
+        data = student_course_map(self.student, self.course.id)
+        self.assertEqual(data["course"], "F8 kursi")
+        lessons = data["modules"]["Alifbo moduli"]
+        self.assertEqual(len(lessons), 2)
+        self.assertFalse(lessons[0]["locked"])
+        self.assertFalse(lessons[0]["completed"])
+
+        # Obunasiz user uchun hammasi qulf
+        outsider_map = student_course_map(self.outsider, self.course.id)
+        self.assertTrue(all(
+            lesson["locked"] for lesson in outsider_map["modules"]["Alifbo moduli"]
+        ))
+
+    def test_open_lesson_marks_completed_like_site(self):
+        from bot.services import student_course_map, student_open_lesson
+        from courses.models import LessonProgress
+
+        result = student_open_lesson(self.student, self.lesson1.id)
+        self.assertTrue(result.ok, msg=result.message)
+        lesson = result.lesson
+        self.assertEqual(lesson["title"], "Harflar")
+        self.assertEqual(lesson["video_url"], "https://youtu.be/test123")
+        self.assertIn("29 ta harf", lesson["content"])
+        self.assertIn("• A harfi", lesson["content"])
+
+        # Sayt bilan bir xil: ochish = LessonProgress completed
+        self.assertTrue(
+            LessonProgress.objects.filter(
+                enrollment__student=self.student, lesson=self.lesson1, is_completed=True
+            ).exists()
+        )
+        data = student_course_map(self.student, self.course.id)
+        first = data["modules"]["Alifbo moduli"][0]
+        self.assertTrue(first["completed"])
+
+    def test_open_lesson_guards(self):
+        from bot.services import student_open_lesson
+
+        blocked = student_open_lesson(self.outsider, self.lesson1.id)
+        self.assertFalse(blocked.ok)
+
+        missing = student_open_lesson(self.student, 99999)
+        self.assertFalse(missing.ok)
+        self.assertEqual(missing.code, "missing")
+
+    def test_parse_start_payload(self):
+        from bot.services import parse_start_payload
+
+        self.assertEqual(parse_start_payload("dars_12"), ("lesson", 12))
+        self.assertEqual(parse_start_payload("sometoken"), ("token", "sometoken"))
+        self.assertEqual(parse_start_payload(""), ("none", None))
+        self.assertEqual(parse_start_payload("dars_abc"), ("token", "dars_abc"))
+
+
 class AiControlTests(TestCase):
     """F7 — AI nazorat botdan: sozlamalar, reset/bonus, user blok."""
 

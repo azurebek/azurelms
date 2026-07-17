@@ -782,6 +782,7 @@ def student_overview(user):
     for e in build_student_enrollments(user):
         items.append(
             {
+                "course_id": e.cohort.course_id,
                 "course": e.cohort.course.title,
                 "cohort": e.cohort.name,
                 "status": ENROLLMENT_STATUS_LABELS.get(
@@ -1211,6 +1212,127 @@ def reject_receipt(receipt_id, actor):
         code="rejected",
         message=f"❌ Rad etildi: {student_display_name(student)} — {course_title}",
     )
+
+
+# ================================================================ F8: Botda o'qish (dars-yetkazish)
+
+import html as _html
+import re as _re
+
+
+def html_to_text(raw):
+    """CKEditor HTML → Telegram uchun oddiy matn (abzatslar saqlanadi)."""
+    text = raw or ""
+    text = _re.sub(r"<\s*(br|/p|/li|/h[1-6]|/div)\s*/?\s*>", "\n", text, flags=_re.I)
+    text = _re.sub(r"<\s*li[^>]*>", "• ", text, flags=_re.I)
+    text = strip_tags(text)
+    text = _html.unescape(text)
+    text = _re.sub(r"\n{3,}", "\n\n", text)
+    return text.strip()
+
+
+@dataclass
+class LessonOpenResult(ActionResult):
+    lesson: dict | None = None
+
+
+def _course_enrollment_and_access(user, course):
+    from courses.views import _build_lesson_access_bundle, _get_active_enrollment_for_course
+
+    enrollment = _get_active_enrollment_for_course(user, course)
+    bundle = _build_lesson_access_bundle(course, user, enrollment)
+    return enrollment, bundle
+
+
+def student_course_map(user, course_id):
+    """Kursning modul→dars xaritasi (✅ o'tilgan / 🔒 qulf holatlari bilan)."""
+    from courses.models import LessonProgress
+
+    course = Course.objects.filter(id=course_id, is_active=True).first()
+    if not course:
+        return None
+    enrollment, bundle = _course_enrollment_and_access(user, course)
+
+    completed_ids = set()
+    if enrollment:
+        completed_ids = set(
+            LessonProgress.objects.filter(
+                enrollment=enrollment, is_completed=True
+            ).values_list("lesson_id", flat=True)
+        )
+
+    modules = {}
+    for lesson in bundle["lessons"]:
+        state = bundle["lesson_access_map"].get(lesson.id, {})
+        modules.setdefault(lesson.module.title, []).append(
+            {
+                "id": lesson.id,
+                "title": lesson.title,
+                "completed": lesson.id in completed_ids,
+                "locked": not state.get("is_accessible", True),
+                "lock_reason": state.get("lock_reason", ""),
+            }
+        )
+    return {"course_id": course.id, "course": course.title, "modules": modules}
+
+
+def student_open_lesson(user, lesson_id):
+    """Darsni botda ochish. Sayt bilan bir xil: ochish = LessonProgress completed.
+
+    Qulf mantig'i ham sayt bilan bitta (_build_lesson_access_bundle).
+    """
+    from courses.views import _mark_lesson_progress_completed
+
+    lesson = (
+        Lesson.objects.select_related("module__course")
+        .filter(id=lesson_id, module__course__is_active=True)
+        .first()
+    )
+    if not lesson:
+        return LessonOpenResult(ok=False, code="missing", message="Dars topilmadi.")
+    course = lesson.module.course
+
+    enrollment, bundle = _course_enrollment_and_access(user, course)
+    state = bundle["lesson_access_map"].get(lesson.id, {})
+    if not state.get("is_accessible", True):
+        return LessonOpenResult(
+            ok=False,
+            code="locked",
+            message=f"🔒 {state.get('lock_reason') or 'Bu dars hozircha yopiq.'}",
+        )
+    if not enrollment:
+        return LessonOpenResult(
+            ok=False, code="not_enrolled",
+            message="Bu kursga faol obunangiz yo'q. Yozilish: /yozilish",
+        )
+
+    _mark_lesson_progress_completed(enrollment, lesson)
+
+    return LessonOpenResult(
+        ok=True,
+        code="opened",
+        message="OK",
+        lesson={
+            "id": lesson.id,
+            "title": lesson.title,
+            "module": lesson.module.title,
+            "course_id": course.id,
+            "course": course.title,
+            "video_url": lesson.video_url or "",
+            "content": html_to_text(lesson.content or ""),
+            "assignments": lesson.assignments.count(),
+            "quizzes": lesson.quizzes.count(),
+        },
+    )
+
+
+def parse_start_payload(payload):
+    """Deep-link payload: 'dars_12' → ("lesson", 12); aks holda ("token", payload)."""
+    text = (payload or "").strip()
+    match = _re.fullmatch(r"dars_(\d+)", text)
+    if match:
+        return ("lesson", int(match.group(1)))
+    return ("token", text) if text else ("none", None)
 
 
 # ================================================================ F6: Admin kengaytmasi

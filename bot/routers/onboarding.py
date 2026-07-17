@@ -191,6 +191,21 @@ async def cmd_start_handler(
 ):
     token = command.args
 
+    # Deep-link: t.me/<bot>?start=dars_12 → darsni to'g'ridan-to'g'ri ochish
+    from bot.services import parse_start_payload
+
+    kind, value = parse_start_payload(token)
+    if kind == "lesson":
+        if lms_user is None:
+            await message.answer(
+                "Darsni ochish uchun avval ro'yxatdan o'ting yoki hisobingizni ulang: /start"
+            )
+            return
+        from bot.routers.workspace import send_lesson_view
+
+        await send_lesson_view(message, lms_user, value)
+        return
+
     if token:
         result = await sync_to_async(link_user_from_start_token)(
             token,

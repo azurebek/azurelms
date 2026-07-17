@@ -14,6 +14,7 @@ import html
 
 from aiogram import F, Router, types
 from aiogram.filters import Command, CommandObject
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from asgiref.sync import sync_to_async
 
 from bot.keyboards import attendance_checkin_markup
@@ -257,11 +258,23 @@ async def _close_lesson(message):
     # Kelmaganlarga DM ogohlantirish (faqat botga /start bosgan bog'langan userlarga yetadi)
     absent = (result.details or {}).get("absent", [])
     dm_text = render_absent_dm(result.session)
+    dm_markup = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="📖 Darsni botda ochish",
+                    callback_data=f"ls:l:{result.session.lesson_id}",
+                )
+            ]
+        ]
+    )
     for item in absent:
         if not item.get("telegram_id"):
             continue
         try:
-            await message.bot.send_message(item["telegram_id"], dm_text, parse_mode=HTML_MODE)
+            await message.bot.send_message(
+                item["telegram_id"], dm_text, parse_mode=HTML_MODE, reply_markup=dm_markup
+            )
         except Exception:
             # User botni ochmagan/bloklagan bo'lishi mumkin — jim o'tkazamiz,
             # platforma-bildirishnoma baribir yozilgan (services._notify_absent_students).

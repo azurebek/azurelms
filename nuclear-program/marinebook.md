@@ -16,6 +16,17 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-13 [Claude]: Telegram bot F8 — botda O'QISH (2-qism boshi, dars-yetkazish)
+
+2-qism (F8–F13) reja: bot saytga kirolmaydiganlar uchun TO'LIQ alternativ bo'lsin (nafaqat kuzatuv — o'qish ham). F8 yadro: o'quvchi endi darsni botning o'zida ochib o'qiydi. `/darslarim`da har kursda "📖 darslar" tugmasi → `student_course_map` modul→dars ro'yxatini beradi (✅ o'tilgan / ▶️ ochiq / 🔒 qulf — qulf mantig'i AYNAN sayt bilan bitta: `_build_lesson_access_bundle` qayta ishlatildi, drip-release + oldingi-dars-vazifasi-tasdiqlangan qoidalari bilan). Darsni ochish (`student_open_lesson`): video havolasi tugmasi (YouTube unlisted) + kontent (CKEditor HTML → `html_to_text` bilan matnga, abzats/ro'yxat saqlanadi, 4000-bo'lak) + "✅ dars o'tildi" — MUHIM: ochish = `_mark_lesson_progress_completed` (sayt LessonDetailView bilan bir xil semantика, LessonProgress+keyingi dars ochiladi). Deep-link: `t.me/bot?start=dars_12` → darsni to'g'ridan-to'g'ri ochadi (`parse_start_payload`); F1 davomat-ogohlantirish DM'iga "📖 Darsni botda ochish" tugmasi qo'shildi — endi kelmagan o'quvchi bir bosishda darsni oladi. Kontent HTML-escape qilinadi (parse_mode xatosidan himoya). Vazifa/quiz mavjudligi ko'rsatiladi (topshirish F9).
+
+- Branch: `claude/telegram-bot`
+- Commitlar: quyidagi commit (F8)
+- Test holati: `python manage.py test` — **306/306 OK** (bot: 53→58, +5 F8)
+- Davom etilishi kerak: F9 vazifa topshirish (matn/foto/fayl → AssignmentSubmission) + quiz inline tugmalar; keyin F10 PROD deploy (yadro tayyor bo'lgach real o'quvchilarga)
+
+---
+
 ## 2026-07-13 [Claude]: Telegram bot F7 — AI nazorat botdan (aicontrol to'liq)
 
 Azurbek so'rovi: AI nazorat qismlari botdan boshqarilsin. Backoffice `/backoffice/ai-control/` imkonlari endi botda: **`/ai_sozlama`** — global holat (enforcement, xodim-ozodlik, default limitlar, model), tarif siyosatlari, so'nggi 5 amal (audit) + bitta bosishda "Limitlarni yoqish/o'chirish" tugmasi (bosh rubilnik). **`/ai_limit <5h> <hafta>`** — global default limitlarni o'zgartirish (validatsiya: musbat, hafta ≥ 5h; updated_by yoziladi). **`/ai_reset`** va **`/ai_bonus <miqdor>`** — uch bosqichli oqim: scope (Hammaga/kohort/tarif) → oyna (5h/haftalik/ikkalasi) → qamrov soni bilan tasdiqlash → mavjud `apply_reset_event` servisi (audit `AIUsageResetEvent`, reason="Telegram bot orqali"); callback-zanjir parametrlari 64-bayt limitga sig'adi, draft-model kerak emas. **`/qidiruv` kartasi boyidi**: AI holati qatori (5h/haftalik foiz yoki blok/limitsiz) + "🚫 AI'ni bloklash / ✅ ochish" tugmasi (`AIUserAllowance.is_blocked`). **`/ai_tarif`** (Azurbek so'roviga qo'shimcha): tarif siyosatlari ro'yxati ID'lar bilan; `/ai_tarif ID 50000 500000` — o'rnatish/yangilash (update_or_create, is_active=True), `/ai_tarif ID off` — o'chirish (is_active=False → global defaultga qaytadi, resolve_limits shunga qaraydi). Hech qanday yangi biznes-mantiq yo'q — hammasi aicontrol servislarining ustida.

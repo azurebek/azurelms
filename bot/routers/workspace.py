@@ -18,6 +18,8 @@ from bot.services import (
     begin_course_enrollment,
     list_plans,
     list_public_courses,
+    student_course_map,
+    student_open_lesson,
     student_overview,
     student_payment_overview,
     student_recent_attendance,
@@ -90,15 +92,22 @@ def enroll_plans_markup(course_id, plans):
 
 
 async def send_long(message: types.Message, text: str, **kwargs):
-    """4096 belgi limitidan oshgan javobni bo'lib yuboradi."""
+    """4096 belgi limitidan oshgan javobni bo'lib yuboradi.
+
+    reply_markup faqat OXIRGI bo'lakka qo'shiladi (tugmalar takrorlanmasin).
+    """
+    reply_markup = kwargs.pop("reply_markup", None)
     while text:
         chunk = text[:TG_MESSAGE_LIMIT]
         if len(text) > TG_MESSAGE_LIMIT:
             cut = chunk.rfind("\n")
             if cut > TG_MESSAGE_LIMIT // 2:
                 chunk = chunk[:cut]
-        await message.answer(chunk, **kwargs)
         text = text[len(chunk):].lstrip("\n")
+        is_last = not text
+        await message.answer(
+            chunk, reply_markup=reply_markup if is_last else None, **kwargs
+        )
 
 
 # ---------------------------------------------------------------- rendering
@@ -145,13 +154,31 @@ def _require_user(lms_user):
     return lms_user is not None
 
 
+def _courses_overview_markup(items):
+    rows = [
+        [
+            InlineKeyboardButton(
+                text=f"📖 {it['course']} — darslar",
+                callback_data=f"ls:c:{it['course_id']}",
+            )
+        ]
+        for it in items[:8]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=rows) if rows else None
+
+
 @router.message(Command("darslarim"))
 async def cmd_courses(message: types.Message, lms_user):
     if not _require_user(lms_user):
         await message.answer("Avval ro'yxatdan o'ting: /start")
         return
     items = await sync_to_async(student_overview)(lms_user)
-    await send_long(message, render_courses_overview(items), parse_mode=HTML_MODE)
+    await send_long(
+        message,
+        render_courses_overview(items),
+        parse_mode=HTML_MODE,
+        reply_markup=_courses_overview_markup(items),
+    )
 
 
 @router.message(Command("davomatim"))
@@ -209,6 +236,101 @@ async def cb_ai(callback: types.CallbackQuery, lms_user):
         "Suhbat saytdagi Messenger'da \"Telegram AI suhbati\" bo'lib saqlanadi, "
         "xotira va limitlar sayt bilan bir xil."
     )
+
+
+# ---------------------------------------------------------------- botda o'qish (F8)
+
+async def send_course_map(message: types.Message, lms_user, course_id):
+    data = await sync_to_async(student_course_map)(lms_user, course_id)
+    if not data:
+        await message.answer("Kurs topilmadi yoki faol emas.")
+        return
+    if not data["modules"]:
+        await message.answer("Bu kursda hali darslar joylanmagan.")
+        return
+
+    for module_title, lessons in data["modules"].items():
+        lines = [f"📦 <b>{html.escape(module_title)}</b> · {html.escape(data['course'])}\n"]
+        rows = []
+        for i, lesson in enumerate(lessons, 1):
+            if lesson["locked"]:
+                reason = f" — <i>{html.escape(lesson['lock_reason'])}</i>" if lesson["lock_reason"] else ""
+                lines.append(f"🔒 {i}. {html.escape(lesson['title'])}{reason}")
+                continue
+            icon = "✅" if lesson["completed"] else "▶️"
+            lines.append(f"{icon} {i}. {html.escape(lesson['title'])}")
+            rows.append(
+                [
+                    InlineKeyboardButton(
+                        text=f"{icon} {i}. {lesson['title'][:40]}",
+                        callback_data=f"ls:l:{lesson['id']}",
+                    )
+                ]
+            )
+        await send_long(
+            message,
+            "\n".join(lines),
+            parse_mode=HTML_MODE,
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=rows[:30]) if rows else None,
+        )
+
+
+async def send_lesson_view(message: types.Message, lms_user, lesson_id):
+    """Darsni botda ochish — deep-link va tugmalar shu funksiyani chaqiradi."""
+    result = await sync_to_async(student_open_lesson)(lms_user, lesson_id)
+    if not result.ok:
+        await message.answer(result.message)
+        return
+    lesson = result.lesson
+
+    header = (
+        f"📖 <b>{html.escape(lesson['title'])}</b>\n"
+        f"{html.escape(lesson['module'])} · {html.escape(lesson['course'])}\n"
+    )
+    extras = []
+    if lesson["assignments"]:
+        extras.append(f"📝 Vazifa: {lesson['assignments']} ta (topshirish tez orada botda)")
+    if lesson["quizzes"]:
+        extras.append(f"❓ Quiz: {lesson['quizzes']} ta (tez orada botda)")
+    footer = "\n\n" + "\n".join(extras) if extras else ""
+    footer += "\n\n✅ Dars o'tildi deb belgilandi."
+
+    rows = []
+    if lesson["video_url"]:
+        rows.append([InlineKeyboardButton(text="🎥 Video darsni ko'rish", url=lesson["video_url"])])
+    rows.append(
+        [InlineKeyboardButton(text="⬅️ Darslar ro'yxati", callback_data=f"ls:c:{lesson['course_id']}")]
+    )
+
+    body = html.escape(lesson["content"]) if lesson["content"] else (
+        "Bu darsda matnli kontent yo'q — videoni ko'ring."
+    )
+    await send_long(
+        message,
+        header + "\n" + body + footer,
+        parse_mode=HTML_MODE,
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=rows),
+    )
+
+
+@router.callback_query(F.data.startswith("ls:c:"))
+async def cb_course_map(callback: types.CallbackQuery, lms_user):
+    await callback.answer()
+    if not _require_user(lms_user):
+        return
+    course_id = callback.data.split(":")[2]
+    if course_id.isdigit():
+        await send_course_map(callback.message, lms_user, int(course_id))
+
+
+@router.callback_query(F.data.startswith("ls:l:"))
+async def cb_open_lesson(callback: types.CallbackQuery, lms_user):
+    await callback.answer()
+    if not _require_user(lms_user):
+        return
+    lesson_id = callback.data.split(":")[2]
+    if lesson_id.isdigit():
+        await send_lesson_view(callback.message, lms_user, int(lesson_id))
 
 
 # ---------------------------------------------------------------- kursga yozilish (F3.5)
