@@ -136,6 +136,40 @@ class BotBroadcastDraft(models.Model):
         return f"draft:{self.id} ({self.admin_id}): {self.text[:40]}"
 
 
+class BotPendingAction(models.Model):
+    """User'dan keyingi xabar kutilayotgan holat (F9).
+
+    aiogram FSM o'rniga DB — bot restart / webhook ko'p-jarayonligida holat
+    yo'qolmaydi. Har userda ko'pi bilan bitta faol holat (unique user).
+
+    kind=assignment → target_id: Assignment.id, keyingi matn/foto javob bo'ladi
+    kind=quiz       → target_id: Quiz.id, data: {"index": 0, "answers": {...}}
+    """
+
+    KIND_ASSIGNMENT = "assignment"
+    KIND_QUIZ = "quiz"
+    KIND_CHOICES = (
+        (KIND_ASSIGNMENT, "Vazifa javobi"),
+        (KIND_QUIZ, "Quiz"),
+    )
+
+    user = models.OneToOneField(
+        "users.CustomUser", on_delete=models.CASCADE, related_name="bot_pending_action",
+    )
+    kind = models.CharField(max_length=16, choices=KIND_CHOICES)
+    target_id = models.PositiveIntegerField()
+    data = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Bot kutilayotgan amal"
+        verbose_name_plural = "Bot kutilayotgan amallar"
+
+    def __str__(self):
+        return f"{self.user_id}: {self.kind}#{self.target_id}"
+
+
 class TelegramLessonCheckIn(models.Model):
     session = models.ForeignKey(
         TelegramLessonSession,

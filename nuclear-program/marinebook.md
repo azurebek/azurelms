@@ -16,6 +16,17 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-13 [Claude]: Telegram bot F9 — vazifa topshirish + quiz botda (o'qish sikli yopildi)
+
+O'quvchi endi botda nafaqat o'qiydi, balki TOPSHIRADI ham. **Refactor (muhim):** quiz baholash va vazifa saqlash mantig'i `courses/views.py` ichida edi (SubmitQuizView/SubmitAssignmentView) — `courses/submission_service.py` ga chiqarildi (`submit_assignment`, `grade_quiz`); view'lar endi shu servisni chaqiradi, bot ham. Bitta manba: XP hisobi (eng yaxshi urinishdan oshgani beriladi), obuna tekshiruvi, qayta-topshirishda pending'ga qaytish — hammasi bir xil. Courses testlari 31/31 refactor'ni himoya qildi. **Vazifa oqimi:** dars → 📝 Vazifa tugmasi → ro'yxat (holat: ⏳ tekshiruvda / ✅ tasdiqlangan / 🔁 qayta ishlash + o'qituvchi izohi) → shart matni → javob: matn YOKI rasm/fayl (caption bilan) → AssignmentSubmission → o'qituvchi navbatiga (/baholash). **Quiz oqimi:** ❓ Quiz → savol-savol inline tugmalar bilan (javob bosilgach tugmalar o'chadi — qayta bosish yo'q), oxirida natija + XP. **Holat:** aiogram FSM (xotira) o'rniga `BotPendingAction` DB-modeli — bot restart/webhook ko'p-jarayonligida yo'qolmaydi; har userda bitta faol holat. **Handler ustuvorligi:** `AwaitingAssignment` custom filter — vazifa kutilayotganda matn AI'ga emas vazifaga, rasm chekka emas vazifaga ketadi; filter False qaytarsa aiogram odatdagi handler'ga o'tadi (AI/chek oqimlari buzilmadi). /bekor bilan chiqish.
+
+- Branch: `claude/telegram-bot`
+- Commitlar: quyidagi commit (F9)
+- Test holati: `python manage.py test` — **311/311 OK** (bot: 58→63, +5 F9; courses 31/31 refactor'ni himoya qildi)
+- Davom etilishi kerak: **F10 PROD** (yadro tayyor — real o'quvchilarga berish vaqti): alohida bot token, webhook, telegram_outbox --loop worker, BotFather profil, Mini App menu button
+
+---
+
 ## 2026-07-13 [Claude]: Telegram bot F8 — botda O'QISH (2-qism boshi, dars-yetkazish)
 
 2-qism (F8–F13) reja: bot saytga kirolmaydiganlar uchun TO'LIQ alternativ bo'lsin (nafaqat kuzatuv — o'qish ham). F8 yadro: o'quvchi endi darsni botning o'zida ochib o'qiydi. `/darslarim`da har kursda "📖 darslar" tugmasi → `student_course_map` modul→dars ro'yxatini beradi (✅ o'tilgan / ▶️ ochiq / 🔒 qulf — qulf mantig'i AYNAN sayt bilan bitta: `_build_lesson_access_bundle` qayta ishlatildi, drip-release + oldingi-dars-vazifasi-tasdiqlangan qoidalari bilan). Darsni ochish (`student_open_lesson`): video havolasi tugmasi (YouTube unlisted) + kontent (CKEditor HTML → `html_to_text` bilan matnga, abzats/ro'yxat saqlanadi, 4000-bo'lak) + "✅ dars o'tildi" — MUHIM: ochish = `_mark_lesson_progress_completed` (sayt LessonDetailView bilan bir xil semantика, LessonProgress+keyingi dars ochiladi). Deep-link: `t.me/bot?start=dars_12` → darsni to'g'ridan-to'g'ri ochadi (`parse_start_payload`); F1 davomat-ogohlantirish DM'iga "📖 Darsni botda ochish" tugmasi qo'shildi — endi kelmagan o'quvchi bir bosishda darsni oladi. Kontent HTML-escape qilinadi (parse_mode xatosidan himoya). Vazifa/quiz mavjudligi ko'rsatiladi (topshirish F9).

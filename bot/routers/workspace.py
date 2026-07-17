@@ -9,20 +9,28 @@ import time
 from urllib.parse import quote
 
 from aiogram import F, Router, types
-from aiogram.filters import Command
+from aiogram.filters import BaseFilter, Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from asgiref.sync import sync_to_async
 from django.conf import settings
 
 from bot.services import (
+    answer_quiz_question,
     begin_course_enrollment,
+    clear_pending_action,
+    get_pending_action,
+    lesson_assignments,
+    lesson_quizzes,
     list_plans,
     list_public_courses,
+    start_assignment_answer,
+    start_quiz,
     student_course_map,
     student_open_lesson,
     student_overview,
     student_payment_overview,
     student_recent_attendance,
+    submit_assignment_answer,
     submit_payment_receipt,
 )
 
@@ -31,6 +39,21 @@ router.message.filter(F.chat.type == "private")
 
 HTML_MODE = "HTML"
 TG_MESSAGE_LIMIT = 4000  # 4096 rasmiy limitdan zaxira bilan
+
+
+class AwaitingAssignment(BaseFilter):
+    """Vazifa javobi kutilayaptimi? False bo'lsa aiogram keyingi handler'ga o'tadi
+    (matn → AI repetitor, rasm → to'lov cheki)."""
+
+    async def __call__(self, event: types.Message, lms_user=None, **kwargs):
+        if lms_user is None:
+            return False
+        from bot.models import BotPendingAction
+
+        pending = await sync_to_async(get_pending_action)(lms_user)
+        if pending is None or pending.kind != BotPendingAction.KIND_ASSIGNMENT:
+            return False
+        return {"pending_assignment_id": pending.target_id}
 
 
 def _is_public_domain():
@@ -287,17 +310,29 @@ async def send_lesson_view(message: types.Message, lms_user, lesson_id):
         f"📖 <b>{html.escape(lesson['title'])}</b>\n"
         f"{html.escape(lesson['module'])} · {html.escape(lesson['course'])}\n"
     )
-    extras = []
-    if lesson["assignments"]:
-        extras.append(f"📝 Vazifa: {lesson['assignments']} ta (topshirish tez orada botda)")
-    if lesson["quizzes"]:
-        extras.append(f"❓ Quiz: {lesson['quizzes']} ta (tez orada botda)")
-    footer = "\n\n" + "\n".join(extras) if extras else ""
-    footer += "\n\n✅ Dars o'tildi deb belgilandi."
+    footer = "\n\n✅ Dars o'tildi deb belgilandi."
 
     rows = []
     if lesson["video_url"]:
         rows.append([InlineKeyboardButton(text="🎥 Video darsni ko'rish", url=lesson["video_url"])])
+    if lesson["assignments"]:
+        rows.append(
+            [
+                InlineKeyboardButton(
+                    text=f"📝 Vazifa ({lesson['assignments']})",
+                    callback_data=f"ls:a:{lesson['id']}",
+                )
+            ]
+        )
+    if lesson["quizzes"]:
+        rows.append(
+            [
+                InlineKeyboardButton(
+                    text=f"❓ Quiz ({lesson['quizzes']})",
+                    callback_data=f"ls:q:{lesson['id']}",
+                )
+            ]
+        )
     rows.append(
         [InlineKeyboardButton(text="⬅️ Darslar ro'yxati", callback_data=f"ls:c:{lesson['course_id']}")]
     )
@@ -331,6 +366,190 @@ async def cb_open_lesson(callback: types.CallbackQuery, lms_user):
     lesson_id = callback.data.split(":")[2]
     if lesson_id.isdigit():
         await send_lesson_view(callback.message, lms_user, int(lesson_id))
+
+
+# ---------------------------------------------------------------- vazifa (F9)
+
+@router.callback_query(F.data.startswith("ls:a:"))
+async def cb_lesson_assignments(callback: types.CallbackQuery, lms_user):
+    await callback.answer()
+    if not _require_user(lms_user):
+        return
+    lesson_id = callback.data.split(":")[2]
+    if not lesson_id.isdigit():
+        return
+    data = await sync_to_async(lesson_assignments)(lms_user, int(lesson_id))
+    if not data or not data["assignments"]:
+        await callback.message.answer("Bu darsda vazifa yo'q.")
+        return
+
+    lines = [f"📝 <b>Vazifalar</b> · {html.escape(data['lesson'])}\n"]
+    rows = []
+    for item in data["assignments"]:
+        state = f" — {item['status']}" if item["status"] else ""
+        lines.append(f"• <b>{html.escape(item['title'])}</b> ({item['max_xp']} XP){state}")
+        if item["feedback"]:
+            lines.append(f"  💬 <i>{html.escape(item['feedback'])}</i>")
+        rows.append(
+            [
+                InlineKeyboardButton(
+                    text=f"✍️ {item['title'][:40]}",
+                    callback_data=f"as:s:{item['id']}",
+                )
+            ]
+        )
+    await send_long(
+        callback.message,
+        "\n".join(lines),
+        parse_mode=HTML_MODE,
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=rows),
+    )
+
+
+@router.callback_query(F.data.startswith("as:s:"))
+async def cb_assignment_start(callback: types.CallbackQuery, lms_user):
+    await callback.answer()
+    if not _require_user(lms_user):
+        return
+    assignment_id = callback.data.split(":")[2]
+    if not assignment_id.isdigit():
+        return
+    result = await sync_to_async(start_assignment_answer)(lms_user, int(assignment_id))
+    if not result.ok:
+        await callback.message.answer(result.message)
+        return
+    a = result.assignment
+    body = html.escape(a["description"]) if a["description"] else "Shart berilmagan."
+    await send_long(
+        callback.message,
+        f"✍️ <b>{html.escape(a['title'])}</b> ({a['max_xp']} XP)\n\n{body}\n\n"
+        f"<b>Javobingizni yuboring:</b> matn yozing yoki rasm/fayl tashlang.\n"
+        f"Bekor qilish: /bekor",
+        parse_mode=HTML_MODE,
+    )
+
+
+@router.message(Command("bekor"))
+async def cmd_cancel(message: types.Message, lms_user):
+    if not _require_user(lms_user):
+        return
+    await sync_to_async(clear_pending_action)(lms_user)
+    await message.answer("Bekor qilindi.")
+
+
+# ---------------------------------------------------------------- quiz (F9)
+
+def _quiz_markup(quiz_id, question):
+    rows = [
+        [
+            InlineKeyboardButton(
+                text=choice["text"][:60],
+                callback_data=f"qz:a:{quiz_id}:{question['id']}:{choice['id']}",
+            )
+        ]
+        for choice in question["choices"]
+    ]
+    rows.append([InlineKeyboardButton(text="❌ To'xtatish", callback_data="qz:x")])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+async def _send_quiz_question(message, quiz_id, result):
+    q = result.question
+    await message.answer(
+        f"❓ <b>{html.escape(result.quiz_title)}</b> · savol {q['index'] + 1}/{q['total']}\n\n"
+        f"{html.escape(q['text'])}",
+        parse_mode=HTML_MODE,
+        reply_markup=_quiz_markup(quiz_id, q),
+    )
+
+
+@router.callback_query(F.data.startswith("ls:q:"))
+async def cb_lesson_quizzes(callback: types.CallbackQuery, lms_user):
+    await callback.answer()
+    if not _require_user(lms_user):
+        return
+    lesson_id = callback.data.split(":")[2]
+    if not lesson_id.isdigit():
+        return
+    quizzes = await sync_to_async(lesson_quizzes)(lms_user, int(lesson_id))
+    if not quizzes:
+        await callback.message.answer("Bu darsda quiz yo'q.")
+        return
+    rows = [
+        [
+            InlineKeyboardButton(
+                text=f"▶️ {q['title'][:35]} ({q['questions']} savol · {q['xp']} XP)",
+                callback_data=f"qz:s:{q['id']}",
+            )
+        ]
+        for q in quizzes
+    ]
+    await callback.message.answer(
+        "❓ <b>Quizlar</b> — boshlash uchun tanlang:",
+        parse_mode=HTML_MODE,
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=rows),
+    )
+
+
+@router.callback_query(F.data.startswith("qz:s:"))
+async def cb_quiz_start(callback: types.CallbackQuery, lms_user):
+    await callback.answer()
+    if not _require_user(lms_user):
+        return
+    quiz_id = callback.data.split(":")[2]
+    if not quiz_id.isdigit():
+        return
+    result = await sync_to_async(start_quiz)(lms_user, int(quiz_id))
+    if not result.ok:
+        await callback.message.answer(result.message)
+        return
+    await _send_quiz_question(callback.message, int(quiz_id), result)
+
+
+@router.callback_query(F.data == "qz:x")
+async def cb_quiz_cancel(callback: types.CallbackQuery, lms_user):
+    await callback.answer("To'xtatildi.")
+    if _require_user(lms_user):
+        await sync_to_async(clear_pending_action)(lms_user)
+    if callback.message:
+        try:
+            await callback.message.edit_reply_markup(reply_markup=None)
+        except Exception:
+            pass
+
+
+@router.callback_query(F.data.startswith("qz:a:"))
+async def cb_quiz_answer(callback: types.CallbackQuery, lms_user):
+    await callback.answer()
+    if not _require_user(lms_user):
+        return
+    parts = callback.data.split(":")  # qz:a:<quiz>:<question>:<choice>
+    if len(parts) != 5 or not all(p.isdigit() for p in parts[2:]):
+        return
+    quiz_id, question_id, choice_id = int(parts[2]), int(parts[3]), int(parts[4])
+
+    # Tanlangan javobni belgilab, tugmalarni o'chiramiz (qayta bosilmasin)
+    if callback.message:
+        try:
+            await callback.message.edit_reply_markup(reply_markup=None)
+        except Exception:
+            pass
+
+    result = await sync_to_async(answer_quiz_question)(lms_user, quiz_id, question_id, choice_id)
+    if not result.ok:
+        await callback.message.answer(result.message)
+        return
+    if not result.finished:
+        await _send_quiz_question(callback.message, quiz_id, result)
+        return
+
+    emoji = "🎉" if result.score >= 80 else ("👍" if result.score >= 50 else "💪")
+    xp_line = f"\n+{result.xp_earned} XP" if result.xp_earned else "\n(XP avval berilgan)"
+    await callback.message.answer(
+        f"{emoji} <b>{html.escape(result.quiz_title)}</b> yakunlandi!\n\n"
+        f"Natija: <b>{result.total_correct}/{result.total_questions}</b> · {result.score}%{xp_line}",
+        parse_mode=HTML_MODE,
+    )
 
 
 # ---------------------------------------------------------------- kursga yozilish (F3.5)
@@ -409,20 +628,50 @@ async def cb_enroll_plan(callback: types.CallbackQuery, lms_user):
     )
 
 
+async def _download_to_content_file(message, file_id, name):
+    from django.core.files.base import ContentFile
+
+    file = await message.bot.get_file(file_id)
+    buffer = await message.bot.download_file(file.file_path)
+    return ContentFile(buffer.read(), name=name)
+
+
+# --- Vazifa javobi (matn/rasm/fayl) — pending bo'lganda BIRINCHI bo'lib ushlaydi ---
+
+@router.message(AwaitingAssignment(), F.text & ~F.text.startswith("/"))
+async def assignment_text_answer(message: types.Message, lms_user, pending_assignment_id):
+    result = await sync_to_async(submit_assignment_answer)(
+        lms_user, pending_assignment_id, text=message.text
+    )
+    await message.answer(result.message, parse_mode=HTML_MODE if result.ok else None)
+
+
+@router.message(AwaitingAssignment(), F.photo | F.document)
+async def assignment_file_answer(message: types.Message, lms_user, pending_assignment_id):
+    if message.photo:
+        file_id = message.photo[-1].file_id
+        name = f"tg-assignment-{lms_user.id}-{int(time.time())}.jpg"
+    else:
+        file_id = message.document.file_id
+        name = message.document.file_name or f"tg-assignment-{lms_user.id}-{int(time.time())}"
+
+    content = await _download_to_content_file(message, file_id, name)
+    result = await sync_to_async(submit_assignment_answer)(
+        lms_user, pending_assignment_id, text=message.caption or "", attachment=content
+    )
+    await message.answer(result.message, parse_mode=HTML_MODE if result.ok else None)
+
+
 @router.message(F.photo)
 async def photo_handler(message: types.Message, lms_user):
     if not _require_user(lms_user):
         await message.answer("Chek qabul qilish uchun avval ro'yxatdan o'ting: /start")
         return
 
-    photo = message.photo[-1]
-    file = await message.bot.get_file(photo.file_id)
-    buffer = await message.bot.download_file(file.file_path)
-
-    from django.core.files.base import ContentFile
-
-    content = ContentFile(
-        buffer.read(), name=f"tg-receipt-{lms_user.id}-{int(time.time())}.jpg"
+    content = await _download_to_content_file(
+        message,
+        message.photo[-1].file_id,
+        f"tg-receipt-{lms_user.id}-{int(time.time())}.jpg",
     )
     result = await sync_to_async(submit_payment_receipt)(lms_user, content)
     if not result.ok:

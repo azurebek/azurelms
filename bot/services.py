@@ -1326,6 +1326,251 @@ def student_open_lesson(user, lesson_id):
     )
 
 
+# ---------------------------------------------------------------- F9: vazifa va quiz
+
+@dataclass
+class AssignmentPromptResult(ActionResult):
+    assignment: dict | None = None
+
+
+@dataclass
+class QuizStepResult(ActionResult):
+    question: dict | None = None
+    finished: bool = False
+    score: float = 0.0
+    total_correct: int = 0
+    total_questions: int = 0
+    xp_earned: int = 0
+    quiz_title: str = ""
+
+
+def get_pending_action(user):
+    from bot.models import BotPendingAction
+
+    return BotPendingAction.objects.filter(user=user).first()
+
+
+def clear_pending_action(user):
+    from bot.models import BotPendingAction
+
+    BotPendingAction.objects.filter(user=user).delete()
+
+
+def _lesson_access_ok(user, lesson):
+    """Dars ochiqmi? (sayt qulf mantig'i)"""
+    course = lesson.module.course
+    enrollment, bundle = _course_enrollment_and_access(user, course)
+    state = bundle["lesson_access_map"].get(lesson.id, {})
+    return enrollment is not None and state.get("is_accessible", True)
+
+
+def lesson_assignments(user, lesson_id):
+    """Dars vazifalari + har birining topshirish holati."""
+    from courses.models import Assignment, AssignmentSubmission
+
+    lesson = Lesson.objects.select_related("module__course").filter(id=lesson_id).first()
+    if not lesson:
+        return None
+    submissions = {
+        s.assignment_id: s
+        for s in AssignmentSubmission.objects.filter(
+            student=user, assignment__lesson_id=lesson_id
+        )
+    }
+    status_labels = {
+        AssignmentSubmission.STATUS_PENDING: "⏳ Tekshiruvda",
+        AssignmentSubmission.STATUS_APPROVED: "✅ Tasdiqlangan",
+        AssignmentSubmission.STATUS_NEEDS_REVISION: "🔁 Qayta ishlash kerak",
+    }
+    items = []
+    for assignment in Assignment.objects.filter(lesson_id=lesson_id).order_by("id"):
+        submission = submissions.get(assignment.id)
+        items.append(
+            {
+                "id": assignment.id,
+                "title": assignment.title,
+                "max_xp": assignment.max_xp,
+                "status": status_labels.get(submission.status) if submission else "",
+                "feedback": submission.teacher_feedback if submission else "",
+                "awarded_xp": submission.awarded_xp if submission else 0,
+            }
+        )
+    return {"lesson": lesson.title, "lesson_id": lesson.id, "assignments": items}
+
+
+def start_assignment_answer(user, assignment_id):
+    """Vazifa shartini berib, javob kutish holatini yozadi."""
+    from bot.models import BotPendingAction
+    from courses.models import Assignment
+
+    assignment = (
+        Assignment.objects.select_related("lesson__module__course")
+        .filter(id=assignment_id)
+        .first()
+    )
+    if not assignment:
+        return AssignmentPromptResult(ok=False, code="missing", message="Vazifa topilmadi.")
+    if not _lesson_access_ok(user, assignment.lesson):
+        return AssignmentPromptResult(
+            ok=False, code="locked", message="Bu dars siz uchun ochiq emas."
+        )
+
+    BotPendingAction.objects.update_or_create(
+        user=user,
+        defaults={
+            "kind": BotPendingAction.KIND_ASSIGNMENT,
+            "target_id": assignment.id,
+            "data": {},
+        },
+    )
+    return AssignmentPromptResult(
+        ok=True,
+        code="prompt",
+        message="OK",
+        assignment={
+            "id": assignment.id,
+            "title": assignment.title,
+            "description": html_to_text(assignment.description or ""),
+            "max_xp": assignment.max_xp,
+            "lesson_id": assignment.lesson_id,
+        },
+    )
+
+
+def submit_assignment_answer(user, assignment_id, *, text="", attachment=None):
+    """Javobni saqlash — sayt bilan bitta servis (courses.submission_service)."""
+    from courses.models import Assignment
+    from courses.submission_service import submit_assignment
+
+    assignment = (
+        Assignment.objects.select_related("lesson__module__course")
+        .filter(id=assignment_id)
+        .first()
+    )
+    if not assignment:
+        return ActionResult(ok=False, code="missing", message="Vazifa topilmadi.")
+
+    result = submit_assignment(
+        user=user, assignment=assignment, answer_text=text, attachment=attachment
+    )
+    if result.ok:
+        clear_pending_action(user)
+        return ActionResult(
+            ok=True,
+            code="submitted",
+            message=(
+                f"✅ Vazifa yuborildi: <b>{assignment.title}</b>\n"
+                f"O'qituvchi tekshirgach xabar beramiz. Holat: /darslarim"
+            ),
+        )
+    return ActionResult(ok=False, code=result.code, message=result.message)
+
+
+def _quiz_question_payload(quiz, index):
+    questions = list(quiz.questions.prefetch_related("choices").order_by("id"))
+    if index >= len(questions):
+        return None
+    question = questions[index]
+    return {
+        "index": index,
+        "total": len(questions),
+        "id": question.id,
+        "text": question.text,
+        "choices": [
+            {"id": c.id, "text": c.text} for c in question.choices.all().order_by("id")
+        ],
+    }
+
+
+def start_quiz(user, quiz_id):
+    """Quizni boshlash — birinchi savolni beradi, holatni yozadi."""
+    from bot.models import BotPendingAction
+    from courses.models import Quiz
+
+    quiz = (
+        Quiz.objects.select_related("lesson__module__course")
+        .filter(id=quiz_id, lesson__isnull=False)
+        .first()
+    )
+    if not quiz:
+        return QuizStepResult(ok=False, code="missing", message="Quiz topilmadi.")
+    if not _lesson_access_ok(user, quiz.lesson):
+        return QuizStepResult(ok=False, code="locked", message="Bu dars siz uchun ochiq emas.")
+
+    payload = _quiz_question_payload(quiz, 0)
+    if payload is None:
+        return QuizStepResult(ok=False, code="empty", message="Bu quizda savollar yo'q.")
+
+    BotPendingAction.objects.update_or_create(
+        user=user,
+        defaults={
+            "kind": BotPendingAction.KIND_QUIZ,
+            "target_id": quiz.id,
+            "data": {"index": 0, "answers": {}},
+        },
+    )
+    return QuizStepResult(
+        ok=True, code="question", message="OK", question=payload, quiz_title=quiz.title
+    )
+
+
+def answer_quiz_question(user, quiz_id, question_id, choice_id):
+    """Javobni yozib keyingi savolga o'tadi; oxirida grade_quiz bilan baholaydi."""
+    from bot.models import BotPendingAction
+    from courses.models import Quiz
+    from courses.submission_service import grade_quiz
+
+    pending = BotPendingAction.objects.filter(
+        user=user, kind=BotPendingAction.KIND_QUIZ, target_id=quiz_id
+    ).first()
+    if not pending:
+        return QuizStepResult(
+            ok=False, code="no_session",
+            message="Quiz sessiyasi topilmadi — qaytadan boshlang.",
+        )
+    quiz = Quiz.objects.select_related("lesson__module__course").filter(id=quiz_id).first()
+    if not quiz:
+        return QuizStepResult(ok=False, code="missing", message="Quiz topilmadi.")
+
+    answers = dict(pending.data.get("answers") or {})
+    answers[str(question_id)] = int(choice_id)
+    next_index = int(pending.data.get("index") or 0) + 1
+
+    payload = _quiz_question_payload(quiz, next_index)
+    if payload is not None:
+        pending.data = {"index": next_index, "answers": answers}
+        pending.save(update_fields=["data", "updated_at"])
+        return QuizStepResult(
+            ok=True, code="question", message="OK", question=payload, quiz_title=quiz.title
+        )
+
+    # Oxirgi savol — baholash
+    result = grade_quiz(user=user, quiz=quiz, answers=answers)
+    clear_pending_action(user)
+    if not result.ok:
+        return QuizStepResult(ok=False, code=result.code, message=result.message)
+    return QuizStepResult(
+        ok=True,
+        code="finished",
+        message="OK",
+        finished=True,
+        score=result.score,
+        total_correct=result.total_correct,
+        total_questions=result.total_questions,
+        xp_earned=result.xp_earned,
+        quiz_title=quiz.title,
+    )
+
+
+def lesson_quizzes(user, lesson_id):
+    from courses.models import Quiz
+
+    return [
+        {"id": q.id, "title": q.title, "xp": q.xp_reward, "questions": q.questions.count()}
+        for q in Quiz.objects.filter(lesson_id=lesson_id).order_by("id")
+    ]
+
+
 def parse_start_payload(payload):
     """Deep-link payload: 'dars_12' → ("lesson", 12); aks holda ("token", payload)."""
     text = (payload or "").strip()

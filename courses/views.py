@@ -568,28 +568,18 @@ class SubmitAssignmentView(LoginRequiredMixin, View):
             messages.error(request, "Vazifa yuborish uchun faol obuna kerak.")
             return redirect("course_detail", pk=course_id)
 
-        submission, _ = AssignmentSubmission.objects.get_or_create(
+        # Mantiq courses/submission_service.py da — Telegram bot ham shuni chaqiradi.
+        from courses.submission_service import submit_assignment
+
+        result = submit_assignment(
+            user=request.user,
             assignment=assignment,
-            student=request.user,
+            answer_text=request.POST.get("answer_text") or "",
+            attachment=request.FILES.get("attachment"),
         )
-        answer_text = (request.POST.get("answer_text") or "").strip()
-        attachment = request.FILES.get("attachment")
-
-        if not answer_text and not attachment and not submission.attachment:
-            messages.error(request, "Kamida matn yoki fayl yuborishingiz kerak.")
+        if not result.ok:
+            messages.error(request, result.message)
             return redirect(redirect_url)
-
-        if answer_text:
-            submission.answer_text = answer_text
-        if attachment:
-            submission.attachment = attachment
-
-        submission.status = AssignmentSubmission.STATUS_PENDING
-        submission.teacher_feedback = ""
-        submission.reviewed_by = None
-        submission.reviewed_at = None
-        submission.awarded_xp = 0
-        submission.save()
 
         messages.success(
             request,
@@ -1086,113 +1076,36 @@ class SubmitExamView(LoginRequiredMixin, View):
         return JsonResponse({'status': 'success', 'pending_review': True})
 
 class SubmitQuizView(LoginRequiredMixin, View):
-    """Dars ichidagi quiz javoblarni qabul qilish va natija hisoblash."""
+    """Dars ichidagi quiz javoblarni qabul qilish va natija hisoblash.
+
+    Baholash mantig'i courses/submission_service.grade_quiz da — Telegram bot
+    ham xuddi shu servisni chaqiradi (bitta qoida, bitta XP hisobi).
+    """
     def post(self, request, course_id, lesson_id, quiz_id):
         quiz = get_object_or_404(Quiz, id=quiz_id, lesson_id=lesson_id, lesson__module__course_id=course_id)
-        
-        # Enrollment tekshiruvi
-        if not Enrollment.objects.filter(
-            enrollment_active_access_q(),
-            student=request.user,
-            cohort__course_id=course_id,
-        ).exists():
-            return JsonResponse({'error': 'Kursga obuna bo\'lmagansiz.'}, status=403)
-        
+
         try:
             data = json.loads(request.body)
             answers = data.get('answers', {})  # {question_id: choice_id}
         except (json.JSONDecodeError, AttributeError):
-            return JsonResponse({'error': 'Noto\'g\'ri ma\'lumot formati.'}, status=400)
-        
-        if not answers:
-            return JsonResponse({'error': 'Javoblar bo\'sh.'}, status=400)
-        
-        # Barcha savollarni olish
-        questions = quiz.questions.prefetch_related('choices').all()
-        total_questions = questions.count()
-        
-        if total_questions == 0:
-            return JsonResponse({'error': 'Quizda savollar yo\'q.'}, status=400)
-        
-        # Javoblarni tekshirish
-        total_correct = 0
-        results = []  # Har bir savol natijasi
-        
-        # QuizAttempt yaratish
-        previous_best_xp = (
-            QuizAttempt.objects.filter(student=request.user, quiz=quiz)
-            .aggregate(best_xp=Max('xp_earned'))
-            .get('best_xp')
-            or 0
-        )
-        attempt = QuizAttempt.objects.create(
-            student=request.user,
-            quiz=quiz,
-            total_questions=total_questions,
-        )
-        
-        for question in questions:
-            q_id_str = str(question.id)
-            selected_choice_id = answers.get(q_id_str)
-            
-            correct_choice = question.choices.filter(is_correct=True).first()
-            is_correct = False
-            selected_choice = None
-            
-            if selected_choice_id:
-                try:
-                    selected_choice = question.choices.get(id=int(selected_choice_id))
-                    is_correct = selected_choice.is_correct
-                except (Choice.DoesNotExist, ValueError):
-                    pass
-            
-            if is_correct:
-                total_correct += 1
-            
-            # Javobni saqlash
-            if selected_choice:
-                QuizAnswer.objects.create(
-                    attempt=attempt,
-                    question=question,
-                    selected_choice=selected_choice,
-                    is_correct=is_correct,
-                )
-            
-            results.append({
-                'question_id': question.id,
-                'selected_choice_id': int(selected_choice_id) if selected_choice_id else None,
-                'correct_choice_id': correct_choice.id if correct_choice else None,
-                'is_correct': is_correct,
-            })
-        
-        # Ball hisoblash
-        score = round((total_correct / total_questions) * 100, 1)
-        
-        # XP hisoblash — to'g'ri javoblar nisbatiga qarab
-        attempt_xp = round(quiz.xp_reward * (total_correct / total_questions))
-        awarded_xp = max(0, attempt_xp - previous_best_xp)
-        
-        # Attempt yangilash
-        attempt.score = score
-        attempt.total_correct = total_correct
-        attempt.xp_earned = attempt_xp
-        attempt.save()
-        
-        # Foydalanuvchiga XP qo'shish
-        if awarded_xp > 0:
-            request.user.total_xp += awarded_xp
-            request.user.save(update_fields=['total_xp'])
-        
+            return JsonResponse({'error': "Noto'g'ri ma'lumot formati."}, status=400)
+
+        from courses.submission_service import grade_quiz
+
+        result = grade_quiz(user=request.user, quiz=quiz, answers=answers)
+        if not result.ok:
+            status = 403 if result.code == 'no_access' else 400
+            return JsonResponse({'error': result.message}, status=status)
+
         return JsonResponse({
             'status': 'success',
-            'score': score,
-            'total_correct': total_correct,
-            'total_questions': total_questions,
-            'xp_earned': awarded_xp,
-            'attempt_xp': attempt_xp,
-            'results': results,
+            'score': result.score,
+            'total_correct': result.total_correct,
+            'total_questions': result.total_questions,
+            'xp_earned': result.xp_earned,
+            'attempt_xp': result.attempt_xp,
+            'results': result.results,
         })
-
 
 class CertificateDetailView(DetailView):
     """

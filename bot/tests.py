@@ -1060,6 +1060,160 @@ class LessonDeliveryTests(TestCase):
         self.assertEqual(parse_start_payload("dars_abc"), ("token", "dars_abc"))
 
 
+class AssignmentAndQuizTests(TestCase):
+    """F9 — botda vazifa topshirish va quiz yechish."""
+
+    def setUp(self):
+        from courses.models import Assignment, Choice, Question, Quiz
+
+        self.teacher = User.objects.create_user(
+            username="f9-teacher", email="f9-teacher@example.com", password="x", is_staff=True,
+        )
+        self.student = User.objects.create_user(
+            username="f9-student", email="f9-student@example.com", password="x", telegram_id=6701,
+        )
+        self.outsider = User.objects.create_user(
+            username="f9-outsider", email="f9-outsider@example.com", password="x", telegram_id=6702,
+        )
+        self.course = Course.objects.create(
+            title="F9 kursi", description="t", instructor=self.teacher, level="beginner",
+        )
+        module = Module.objects.create(course=self.course, title="M1", order=1)
+        self.lesson = Lesson.objects.create(module=module, title="F9 darsi", order=1, xp_reward=10)
+        self.cohort = Cohort.objects.create(
+            name="F9 kohorti", course=self.course, start_date="2026-03-26", is_active=True,
+        )
+        Enrollment.objects.create(student=self.student, cohort=self.cohort, status="active")
+
+        self.assignment = Assignment.objects.create(
+            lesson=self.lesson, title="Matn yozing",
+            description="<p>Turkcha <b>5 ta</b> gap yozing.</p>", max_xp=50,
+        )
+        self.quiz = Quiz.objects.create(title="F9 quiz", lesson=self.lesson, xp_reward=20)
+        q1 = Question.objects.create(quiz=self.quiz, text="Rahmat turkchada?")
+        Choice.objects.create(question=q1, text="Teşekkür", is_correct=True)
+        Choice.objects.create(question=q1, text="Merhaba", is_correct=False)
+        q2 = Question.objects.create(quiz=self.quiz, text="Salom turkchada?")
+        Choice.objects.create(question=q2, text="Güle güle", is_correct=False)
+        Choice.objects.create(question=q2, text="Merhaba", is_correct=True)
+        self.q1, self.q2 = q1, q2
+
+    # ---- vazifa
+
+    def test_assignment_flow_text_answer(self):
+        from bot.models import BotPendingAction
+        from bot.services import (
+            lesson_assignments,
+            start_assignment_answer,
+            submit_assignment_answer,
+        )
+        from courses.models import AssignmentSubmission
+
+        prompt = start_assignment_answer(self.student, self.assignment.id)
+        self.assertTrue(prompt.ok, msg=prompt.message)
+        self.assertIn("5 ta gap", prompt.assignment["description"])
+        self.assertTrue(
+            BotPendingAction.objects.filter(
+                user=self.student, kind=BotPendingAction.KIND_ASSIGNMENT
+            ).exists()
+        )
+
+        result = submit_assignment_answer(self.student, self.assignment.id, text="Ben iyiyim.")
+        self.assertTrue(result.ok, msg=result.message)
+        submission = AssignmentSubmission.objects.get(
+            assignment=self.assignment, student=self.student
+        )
+        self.assertEqual(submission.answer_text, "Ben iyiyim.")
+        self.assertEqual(submission.status, AssignmentSubmission.STATUS_PENDING)
+        # Holat tozalandi
+        self.assertFalse(BotPendingAction.objects.filter(user=self.student).exists())
+
+        # Ro'yxatda holat ko'rinadi
+        data = lesson_assignments(self.student, self.lesson.id)
+        self.assertIn("Tekshiruvda", data["assignments"][0]["status"])
+
+    def test_assignment_guards(self):
+        from bot.services import start_assignment_answer, submit_assignment_answer
+
+        locked = start_assignment_answer(self.outsider, self.assignment.id)
+        self.assertFalse(locked.ok)
+        self.assertEqual(locked.code, "locked")
+
+        missing = start_assignment_answer(self.student, 99999)
+        self.assertFalse(missing.ok)
+
+        empty = submit_assignment_answer(self.student, self.assignment.id, text="   ")
+        self.assertFalse(empty.ok)
+        self.assertEqual(empty.code, "empty")
+
+    # ---- quiz
+
+    def test_quiz_full_flow_awards_xp(self):
+        from bot.models import BotPendingAction
+        from bot.services import answer_quiz_question, start_quiz
+
+        start = start_quiz(self.student, self.quiz.id)
+        self.assertTrue(start.ok, msg=start.message)
+        self.assertEqual(start.question["index"], 0)
+        self.assertEqual(start.question["total"], 2)
+        self.assertEqual(len(start.question["choices"]), 2)
+
+        correct1 = next(c for c in start.question["choices"] if c["text"] == "Teşekkür")
+        step = answer_quiz_question(self.student, self.quiz.id, self.q1.id, correct1["id"])
+        self.assertTrue(step.ok)
+        self.assertFalse(step.finished)
+        self.assertEqual(step.question["index"], 1)
+
+        correct2 = next(c for c in step.question["choices"] if c["text"] == "Merhaba")
+        final = answer_quiz_question(self.student, self.quiz.id, self.q2.id, correct2["id"])
+        self.assertTrue(final.ok)
+        self.assertTrue(final.finished)
+        self.assertEqual(final.total_correct, 2)
+        self.assertEqual(final.score, 100.0)
+        self.assertEqual(final.xp_earned, 20)
+
+        self.student.refresh_from_db()
+        self.assertEqual(self.student.total_xp, 20)
+        self.assertFalse(BotPendingAction.objects.filter(user=self.student).exists())
+
+    def test_quiz_retake_does_not_double_xp(self):
+        from bot.services import answer_quiz_question, start_quiz
+
+        def _run(correct):
+            start = start_quiz(self.student, self.quiz.id)
+            c1 = next(
+                c for c in start.question["choices"]
+                if (c["text"] == "Teşekkür") == correct
+            )
+            step = answer_quiz_question(self.student, self.quiz.id, self.q1.id, c1["id"])
+            c2 = next(
+                c for c in step.question["choices"]
+                if (c["text"] == "Merhaba") == correct
+            )
+            return answer_quiz_question(self.student, self.quiz.id, self.q2.id, c2["id"])
+
+        first = _run(correct=True)
+        self.assertEqual(first.xp_earned, 20)
+        self.student.refresh_from_db()
+        self.assertEqual(self.student.total_xp, 20)
+
+        second = _run(correct=True)
+        self.assertEqual(second.xp_earned, 0)  # takroriy urinish XP bermaydi
+        self.student.refresh_from_db()
+        self.assertEqual(self.student.total_xp, 20)
+
+    def test_quiz_guards(self):
+        from bot.services import answer_quiz_question, start_quiz
+
+        locked = start_quiz(self.outsider, self.quiz.id)
+        self.assertFalse(locked.ok)
+        self.assertEqual(locked.code, "locked")
+
+        no_session = answer_quiz_question(self.student, self.quiz.id, self.q1.id, 1)
+        self.assertFalse(no_session.ok)
+        self.assertEqual(no_session.code, "no_session")
+
+
 class AiControlTests(TestCase):
     """F7 — AI nazorat botdan: sozlamalar, reset/bonus, user blok."""
 
