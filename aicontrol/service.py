@@ -230,6 +230,40 @@ def apply_reset_event(event: AIUsageResetEvent) -> int:
             allowance.save(update_fields=fields + ["updated_at"])
             count += 1
 
+            # Notification yaratish (post_save orqali Telegram outboxga ham oyna ulanadi)
+            from users.models import Notification
+            reason_str = f" Sabab: {event.reason}" if event.reason else ""
+            if event.kind == AIUsageResetEvent.KIND_RESET:
+                title = "AI limitlari yangilandi"
+                if event.window == AIUsageResetEvent.WINDOW_BOTH:
+                    msg = f"Sizning AzureAI yordamchisi uchun 5 soatlik va haftalik limitlaringiz yangilandi (foydalanish nolga tushirildi).{reason_str}"
+                elif event.window == AIUsageResetEvent.WINDOW_5H:
+                    msg = f"Sizning AzureAI yordamchisi uchun 5 soatlik limitlaringiz yangilandi.{reason_str}"
+                else:
+                    msg = f"Sizning AzureAI yordamchisi uchun haftalik limitlaringiz yangilandi.{reason_str}"
+            else:  # BONUS
+                title = "AI bonus tokenlari taqdim etildi"
+                bonus_val = int(event.bonus_tokens or 0)
+                if event.window == AIUsageResetEvent.WINDOW_BOTH:
+                    msg = f"Sizga AzureAI uchun {bonus_val:,} ta 5 soatlik va haftalik bonus tokenlar taqdim etildi!{reason_str}"
+                elif event.window == AIUsageResetEvent.WINDOW_5H:
+                    msg = f"Sizga AzureAI uchun {bonus_val:,} ta 5 soatlik bonus tokenlar taqdim etildi!{reason_str}"
+                else:
+                    msg = f"Sizga AzureAI uchun {bonus_val:,} ta haftalik bonus tokenlar taqdim etildi!{reason_str}"
+
+            Notification.objects.get_or_create(
+                recipient=user,
+                external_key=f"ai-limit-event-{event.id}-{user.id}",
+                defaults={
+                    "title": title,
+                    "message": msg,
+                    "icon": "cpu",
+                    "url": "/users/settings/",
+                    "category": Notification.CATEGORY_SYSTEM,
+                }
+            )
+
     event.affected_count = count
     event.save(update_fields=["affected_count"])
     return count
+

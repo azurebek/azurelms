@@ -14,7 +14,8 @@ from .views import (
     DashboardView, MyCoursesView, SubscriptionHistoryView, CertificateListView, LeaderboardView,
     AttendanceCalendarView, AttendanceManageView,
     NotificationCenterView, NotificationOpenView, NotificationReadAllView, HelpCenterView,
-    OnboardingChoiceView, StartSmartOnboardingView
+    OnboardingChoiceView, StartSmartOnboardingView,
+    telegram_auth_init, telegram_auth_status
 )
 
 urlpatterns = [
@@ -22,6 +23,8 @@ urlpatterns = [
     path('register/onboarding/', OnboardingChoiceView.as_view(), name='onboarding_choice'),
     path('register/onboarding/ai/', StartSmartOnboardingView.as_view(), name='start_smart_onboarding'),
     path('login/', LoginView.as_view(template_name='registration/login.html', redirect_authenticated_user=True), name='login'),
+    path('telegram-auth/init/', telegram_auth_init, name='telegram_auth_init'),
+    path('telegram-auth/status/<str:token>/', telegram_auth_status, name='telegram_auth_status'),
     path('logout/', LogoutView.as_view(next_page='home'), name='logout'),
     path('profile/', UserProfileView.as_view(), name='profile'),
     path('settings/', SettingsView.as_view(), name='settings'),

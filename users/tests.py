@@ -600,3 +600,79 @@ class MyCoursesViewTests(TestCase):
 
         self.assertEqual(response.context["count_active"], 0)
         self.assertContains(response, "Tasdiq kutilmoqda")
+
+
+from users.models import TelegramAuthSession
+from bot.services import handle_telegram_auth_token
+
+class TelegramCustomAuthTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="auth-test-user",
+            email="auth-test-user@example.com",
+            password="testpass123",
+            telegram_id=987654321,
+        )
+
+    def test_telegram_auth_init_creates_session(self):
+        response = self.client.get(reverse('telegram_auth_init'))
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data['ok'])
+        self.assertIn('token', data)
+        self.assertIn('bot_link', data)
+        
+        session = TelegramAuthSession.objects.filter(token=data['token']).first()
+        self.assertIsNotNone(session)
+        self.assertEqual(session.status, TelegramAuthSession.STATUS_PENDING)
+
+    def test_telegram_auth_status_pending(self):
+        session = TelegramAuthSession.objects.create(token="test_pending_token")
+        response = self.client.get(reverse('telegram_auth_status', args=["test_pending_token"]))
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data['ok'])
+        self.assertEqual(data['status'], 'pending')
+
+    def test_telegram_auth_success_logs_in_existing_user(self):
+        session = TelegramAuthSession.objects.create(token="test_success_token")
+        
+        result = handle_telegram_auth_token("auth_test_success_token", 987654321)
+        self.assertTrue(result.ok)
+        self.assertEqual(result.code, "login_success")
+        
+        session.refresh_from_db()
+        self.assertEqual(session.status, TelegramAuthSession.STATUS_AUTHENTICATED)
+        self.assertEqual(session.user, self.user)
+        
+        response = self.client.get(reverse('telegram_auth_status', args=["test_success_token"]))
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data['ok'])
+        self.assertEqual(data['status'], 'authenticated')
+        self.assertEqual(data['redirect_url'], '/users/dashboard/')
+        
+        self.assertIn('_auth_user_id', self.client.session)
+
+    def test_telegram_auth_creates_new_user_if_not_exists(self):
+        session = TelegramAuthSession.objects.create(token="test_register_token")
+        
+        result = handle_telegram_auth_token(
+            "auth_test_register_token",
+            88887777,
+            first_name="TG_User",
+            last_name="TG_Last",
+            telegram_username="tg_new_user"
+        )
+        self.assertTrue(result.ok)
+        self.assertEqual(result.code, "register_success")
+        
+        session.refresh_from_db()
+        self.assertEqual(session.status, TelegramAuthSession.STATUS_AUTHENTICATED)
+        self.assertIsNotNone(session.user)
+        self.assertEqual(session.user.telegram_id, 88887777)
+        self.assertEqual(session.user.first_name, "TG_User")
+        self.assertEqual(session.user.last_name, "TG_Last")
+        self.assertEqual(session.user.telegram_username, "tg_new_user")
+        self.assertEqual(session.user.email, "tg_88887777@telegram.local")
+

@@ -54,7 +54,84 @@
 </form>
 
 <div class="auth-divider"><span class="ln"></span><span class="tx">yoki</span><span class="ln"></span></div>
-<a href="#" class="auth-alt"><i class="bi bi-telegram" style="color:#229ed9;font-size:16px;"></i> Telegram orqali davom etish</a>
+<a href="#" id="telegram-auth-btn" class="auth-alt"><i class="bi bi-telegram" style="color:#229ed9;font-size:16px;"></i> Telegram orqali davom etish</a>
 
 <p class="auth-foot-link">Hisobingiz bormi? <a href="{% url 'login' %}">Kirish</a></p>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tgBtn = document.getElementById('telegram-auth-btn');
+    if (!tgBtn) return;
+
+    let pollingInterval = null;
+
+    tgBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const originalContent = tgBtn.innerHTML;
+        tgBtn.innerHTML = '<i class="bi bi-arrow-repeat spin-anim" style="font-size:16px;"></i> Kutilmoqda...';
+        tgBtn.style.pointerEvents = 'none';
+        tgBtn.style.opacity = '0.7';
+
+        // 1. Session token yaratish
+        fetch('{% url "telegram_auth_init" %}')
+            .then(res => res.json())
+            .then(data => {
+                if (data.ok) {
+                    // Bot deep-linkini yangi oynada ochamiz
+                    window.open(data.bot_link, '_blank');
+                    
+                    // 2. Polling boshlaymiz
+                    pollingInterval = setInterval(function() {
+                        fetch(`/users/telegram-auth/status/${data.token}/`)
+                            .then(res => res.json())
+                            .then(statusData => {
+                                if (statusData.ok) {
+                                    if (statusData.status === 'authenticated') {
+                                        clearInterval(pollingInterval);
+                                        tgBtn.innerHTML = '<i class="bi bi-check-circle" style="color:#28a745;font-size:16px;"></i> Kirish tasdiqlandi!';
+                                        setTimeout(() => {
+                                            window.location.href = statusData.redirect_url;
+                                        }, 500);
+                                    } else if (statusData.status === 'expired') {
+                                        clearInterval(pollingInterval);
+                                        resetBtn('Eskirdi. Qayta urinib ko\'ring.');
+                                    }
+                                }
+                            })
+                            .catch(err => {
+                                console.error('Polling xatosi:', err);
+                            });
+                    }, 2000);
+                } else {
+                    resetBtn('Xatolik yuz berdi.');
+                }
+            })
+            .catch(err => {
+                console.error('Init xatosi:', err);
+                resetBtn('Ulanish xatosi.');
+            });
+
+        function resetBtn(errorMsg) {
+            tgBtn.innerHTML = `<i class="bi bi-exclamation-circle" style="color:var(--red);font-size:16px;"></i> ${errorMsg}`;
+            tgBtn.style.pointerEvents = 'auto';
+            tgBtn.style.opacity = '1';
+            setTimeout(() => {
+                tgBtn.innerHTML = originalContent;
+            }, 3000);
+        }
+    });
+});
+</script>
+
+<style>
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.spin-anim {
+    display: inline-block;
+    animation: spin 1.2s linear infinite;
+}
+</style>
 {% endblock %}

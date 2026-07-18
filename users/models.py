@@ -232,3 +232,38 @@ class NotificationBroadcast(models.Model):
 
     def __str__(self):
         return f"{self.get_target_type_display()} | {self.message[:50]}"
+
+
+class TelegramAuthSession(models.Model):
+    STATUS_PENDING = 'pending'
+    STATUS_AUTHENTICATED = 'authenticated'
+    STATUS_EXPIRED = 'expired'
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Kutilmoqda'),
+        (STATUS_AUTHENTICATED, 'Tizimga kirdi'),
+        (STATUS_EXPIRED, 'Muddati o\'tgan'),
+    ]
+
+    token = models.CharField(max_length=64, unique=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='telegram_auth_sessions'
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Telegram Auth Sessiyasi"
+        verbose_name_plural = "Telegram Auth Sessiyalari"
+
+    def __str__(self):
+        return f"AuthSession: {self.token[:8]}... | Status: {self.status}"
+
+    def is_valid(self):
+        # Token 5 daqiqa davomida yaroqli
+        limit = timezone.now() - timezone.timedelta(minutes=5)
+        return self.created_at >= limit and self.status == self.STATUS_PENDING
+

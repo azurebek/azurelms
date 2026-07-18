@@ -132,7 +132,7 @@ class ResetEventTests(TestCase):
         self.course = Course.objects.create(title="c", description="d")
         self.cohort = Cohort.objects.create(name="g", course=self.course, start_date=datetime.date.today())
         self.plan = Plan.objects.create(name="Pro", price=100000, description="d")
-        self.user = User.objects.create_user(username="re", email="re@t.uz", password="x")
+        self.user = User.objects.create_user(username="re", email="re@t.uz", password="x", telegram_id=123456789)
         Enrollment.objects.create(student=self.user, cohort=self.cohort, status="active", plan=self.plan)
         self.room = _room(self.user)
 
@@ -149,6 +149,21 @@ class ResetEventTests(TestCase):
         count = apply_reset_event(event)
         self.assertGreaterEqual(count, 1)
         self.assertTrue(get_quota_status(self.user).allowed)
+
+        # Notification va TelegramOutbox to'g'ri yaratilganligini tekshiramiz
+        from users.models import Notification
+        from bot.models import TelegramOutbox
+        
+        notification = Notification.objects.filter(
+            recipient=self.user,
+            external_key=f"ai-limit-event-{event.id}-{self.user.id}"
+        ).first()
+        self.assertIsNotNone(notification)
+        self.assertEqual(notification.title, "AI limitlari yangilandi")
+        self.assertIn("Navro'z", notification.message)
+        
+        outbox = TelegramOutbox.objects.filter(notification=notification).first()
+        self.assertIsNotNone(outbox)
 
     def test_cohort_scope_targets_only_members(self):
         other = User.objects.create_user(username="re2", email="re2@t.uz", password="x")
@@ -170,11 +185,28 @@ class ResetEventTests(TestCase):
             scope=AIUsageResetEvent.SCOPE_PLAN, plan=self.plan,
             kind=AIUsageResetEvent.KIND_BONUS, window=AIUsageResetEvent.WINDOW_5H,
             bonus_tokens=5_000,
+            reason="A'lo natija",
         )
         apply_reset_event(event)
         allowance = AIUserAllowance.objects.get(user=self.user)
         self.assertEqual(allowance.bonus_5h_tokens, 5_000)
         self.assertTrue(get_quota_status(self.user).allowed)
+
+        # Bonus notification tekshiruvi
+        from users.models import Notification
+        from bot.models import TelegramOutbox
+
+        notification = Notification.objects.filter(
+            recipient=self.user,
+            external_key=f"ai-limit-event-{event.id}-{self.user.id}"
+        ).first()
+        self.assertIsNotNone(notification)
+        self.assertEqual(notification.title, "AI bonus tokenlari taqdim etildi")
+        self.assertIn("A'lo natija", notification.message)
+        self.assertIn("5,000", notification.message)
+
+        outbox = TelegramOutbox.objects.filter(notification=notification).first()
+        self.assertIsNotNone(outbox)
 
 
 class EnforcementInTaskTests(TestCase):

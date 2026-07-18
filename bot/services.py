@@ -128,6 +128,82 @@ def get_linked_user(telegram_user_id):
     return CustomUser.objects.filter(telegram_id=telegram_user_id).first()
 
 
+def handle_telegram_auth_token(token, telegram_user_id, first_name="", last_name="", telegram_username=""):
+    """Telegram orqali login/register qilish (Deep-link auth tokenini tasdiqlash)."""
+    if not token or not token.startswith("auth_"):
+        return ActionResult(ok=False, code="invalid_format", message="Noto'g'ri token formati.")
+
+    auth_token = token[5:] # 'auth_' prefiksini olib tashlaymiz
+    from users.models import TelegramAuthSession, CustomUser, Notification
+    from django.db import transaction
+
+    try:
+        session = TelegramAuthSession.objects.get(token=auth_token)
+    except TelegramAuthSession.DoesNotExist:
+        return ActionResult(ok=False, code="not_found", message="Kirish sessiyasi topilmadi yoki eskirgan.")
+
+    if not session.is_valid():
+        return ActionResult(ok=False, code="expired", message="Sessiya vaqti tugagan. Iltimos, saytdan qayta urinib ko'ring.")
+
+    try:
+        with transaction.atomic():
+            user = CustomUser.objects.filter(telegram_id=telegram_user_id).first()
+
+            if user:
+                # Login: user mavjud, sessiyaga ulaymiz
+                session.user = user
+                session.status = TelegramAuthSession.STATUS_AUTHENTICATED
+                session.save(update_fields=['user', 'status'])
+                return ActionResult(
+                    ok=True,
+                    code="login_success",
+                    message="Tizimga kirish tasdiqlandi! Brauzeringizga qaytib, o'qishni davom ettiring 🚀"
+                )
+            else:
+                # Register: yangi user yaratamiz
+                email = f"tg_{telegram_user_id}@telegram.local"
+                base_username = telegram_username or f"tg_{telegram_user_id}"
+                username = base_username
+                counter = 1
+                while CustomUser.objects.filter(username=username).exists():
+                    username = f"{base_username}_{counter}"
+                    counter += 1
+
+                user = CustomUser.objects.create_user(
+                    username=username,
+                    email=email,
+                    first_name=first_name,
+                    last_name=last_name,
+                    telegram_id=telegram_user_id,
+                    telegram_username=telegram_username,
+                )
+                user.set_unusable_password()
+                user.save()
+
+                session.user = user
+                session.status = TelegramAuthSession.STATUS_AUTHENTICATED
+                session.save(update_fields=['user', 'status'])
+                
+                Notification.objects.create(
+                    recipient=user,
+                    external_key=f"telegram-auth-created-{user.id}",
+                    title="Xush kelibsiz!",
+                    message="Profilingiz Telegram orqali yaratildi va ulandi.",
+                    icon="telegram",
+                    url="/users/profile/",
+                    category=Notification.CATEGORY_SYSTEM,
+                )
+                return ActionResult(
+                    ok=True,
+                    code="register_success",
+                    message="Siz uchun yangi profil yaratildi va tizimga kirish tasdiqlandi! Brauzeringizga qayting 🚀"
+                )
+    except Exception as e:
+        logger.exception("handle_telegram_auth_token xatosi: %s", str(e))
+        return ActionResult(ok=False, code="server_error", message="Tizim xatoligi yuz berdi. Qayta urinib ko'ring.")
+
+
+
 def can_manage_cohort(user, cohort):
     return bool(
         user

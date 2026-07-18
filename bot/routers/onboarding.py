@@ -207,6 +207,18 @@ async def cmd_start_handler(
         return
 
     if token:
+        if token.startswith("auth_"):
+            from bot.services import handle_telegram_auth_token
+            result = await sync_to_async(handle_telegram_auth_token)(
+                token,
+                message.from_user.id,
+                message.from_user.first_name or "",
+                message.from_user.last_name or "",
+                message.from_user.username or "",
+            )
+            await message.answer(result.message)
+            return
+
         result = await sync_to_async(link_user_from_start_token)(
             token,
             message.from_user.id,

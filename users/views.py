@@ -1103,3 +1103,48 @@ class CertificateListView(LoginRequiredMixin, TemplateView):
         context['course_certificates'] = CourseCertificate.objects.filter(student=user).order_by('-issued_at')
 
         return context
+
+
+from django.http import JsonResponse
+import secrets
+from django.contrib.auth import login as django_login
+from users.models import TelegramAuthSession
+
+def telegram_auth_init(request):
+    """Vaqtinchalik token va Telegram deep-linkini yaratadi (AJAX)."""
+    token = secrets.token_urlsafe(32)
+    TelegramAuthSession.objects.create(token=token)
+    bot_username = (getattr(settings, 'BOT_USERNAME', '') or 'azureLMSbot').strip('@')
+    bot_link = f"https://t.me/{bot_username}?start=auth_{token}"
+    return JsonResponse({
+        'ok': True,
+        'token': token,
+        'bot_link': bot_link
+    })
+
+
+def telegram_auth_status(request, token):
+    """Token holatini tekshiradi va u tasdiqlangan bo'lsa, foydalanuvchini login qiladi (Polling AJAX)."""
+    try:
+        session = TelegramAuthSession.objects.get(token=token)
+    except TelegramAuthSession.DoesNotExist:
+        return JsonResponse({'ok': False, 'status': 'not_found', 'message': 'Sessiya topilmadi.'})
+
+    # Token yaroqlilik muddatini tekshirish
+    if session.status == TelegramAuthSession.STATUS_PENDING and not session.is_valid():
+        session.status = TelegramAuthSession.STATUS_EXPIRED
+        session.save(update_fields=['status'])
+
+    if session.status == TelegramAuthSession.STATUS_AUTHENTICATED and session.user:
+        django_login(request, session.user, backend='django.contrib.auth.backends.ModelBackend')
+        return JsonResponse({
+            'ok': True,
+            'status': 'authenticated',
+            'redirect_url': '/users/dashboard/'
+        })
+
+    return JsonResponse({
+        'ok': True,
+        'status': session.status,
+    })
+
