@@ -14,7 +14,7 @@ from courses.models import Course, Lesson, LessonProgress, Module
 from subscriptions.models import Plan, PromoCampaign, PromoCode, PromoRedemption
 from users.models import Notification
 
-from .checkout_service import resolve_checkout_enrollment
+from .checkout_service import resolve_checkout_enrollment, CheckoutUnavailable
 from .enrollment_service import expire_overdue_enrollments
 from .models import Attendance, Cohort, Enrollment, EnrollmentTransition, PaymentReceipt
 from .transition_service import (
@@ -297,7 +297,7 @@ class CheckoutResolutionServiceTests(TestCase):
         self.assertEqual(enrollment, existing)
         self.assertEqual(checkout_cohort, self.default_cohort)
 
-    def test_checkout_resolution_creates_default_cohort_when_course_has_no_group(self):
+    def test_checkout_resolution_fails_when_course_has_no_group(self):
         course_without_group = Course.objects.create(
             title="Subscription Only Course",
             description="No cohort yet",
@@ -305,17 +305,11 @@ class CheckoutResolutionServiceTests(TestCase):
             level="beginner",
         )
 
-        enrollment, created, checkout_cohort = resolve_checkout_enrollment(
-            student=self.student,
-            course=course_without_group,
-        )
-
-        self.assertTrue(created)
-        self.assertEqual(enrollment.cohort, checkout_cohort)
-        self.assertEqual(checkout_cohort.course, course_without_group)
-        self.assertTrue(checkout_cohort.is_active)
-        self.assertTrue(checkout_cohort.is_checkout_default)
-        self.assertEqual(checkout_cohort.start_date, timezone.localdate())
+        with self.assertRaises(CheckoutUnavailable):
+            resolve_checkout_enrollment(
+                student=self.student,
+                course=course_without_group,
+            )
 
 
 class EnrollmentInvariantTests(TestCase):

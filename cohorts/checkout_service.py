@@ -28,13 +28,7 @@ def ensure_checkout_cohort(*, course, today=None):
         active_cohort.save(update_fields=["is_checkout_default"])
         return active_cohort
 
-    return Cohort.objects.create(
-        name=f"{course.title} - Checkout",
-        course=course,
-        start_date=today,
-        is_active=True,
-        is_checkout_default=True,
-    )
+    raise CheckoutUnavailable("Ushbu kursga qabul hali ochilmagan.")
 
 
 def pick_checkout_cohort(*, course, today=None):
