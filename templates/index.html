@@ -43,9 +43,17 @@
       </nav>
 
       <div data-railhide style="margin-top:auto;display:flex;flex-direction:column;gap:18px;">
+        {% if request.user.is_authenticated %}
+        <a href="{% url 'dashboard' %}" style="display:inline-flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 14px;border-radius:9px;background:var(--azure);color:var(--on-azure);font-size:13.5px;font-weight:600;">Kabinetim <i class="bi bi-arrow-right" style="font-size:12px;"></i></a>
+        {% else %}
         <a href="{% url 'register' %}" style="display:inline-flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 14px;border-radius:9px;background:var(--azure);color:var(--on-azure);font-size:13.5px;font-weight:600;">Bepul boshlash <i class="bi bi-arrow-right" style="font-size:12px;"></i></a>
+        {% endif %}
         <div style="display:flex;align-items:center;justify-content:space-between;">
+          {% if request.user.is_authenticated %}
+          <span style="font-size:13px;color:var(--ink-2);">{{ request.user.first_name|default:request.user.username }}</span>
+          {% else %}
           <a href="{% url 'login' %}" style="font-size:13px;color:var(--ink-2);">Kirish</a>
+          {% endif %}
           <div style="display:flex;align-items:center;gap:12px;">
             <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.06em;"><span style="color:var(--ink);">UZ</span> <span style="color:var(--ink-4);">EN</span></div>
             <button type="button" aria-label="Mavzu" style="width:30px;height:30px;border-radius:7px;border:1px solid var(--line);color:var(--ink-2);display:grid;place-items:center;font-size:13px;transition:border-color .2s,color .2s;"><i class="bi bi-moon"></i></button>
@@ -68,7 +76,11 @@
         <h1 data-reveal style="font-size:clamp(30px,4.4vw,50px);font-weight:600;line-height:1.04;letter-spacing:-.035em;color:var(--ink);margin:32px 0 0;max-width:15ch;text-wrap:balance;transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);">A1 dan C1 gacha — bitta <span style="color:var(--azure);">aniq tizimda</span>.</h1>
         <p data-reveal style="font-size:16px;line-height:1.6;color:var(--ink-2);margin:22px 0 0;max-width:54ch;transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);">Chalkash kurslar emas. Jonli darslar, AI repetitor, imtihon muhiti va tasdiqlangan sertifikat — boshidan oxirigacha tartibga solingan yagona ish maydoni.</p>
         <div data-reveal style="display:flex;align-items:center;gap:22px;margin-top:30px;flex-wrap:wrap;transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);">
+          {% if request.user.is_authenticated %}
+          <a href="{% url 'dashboard' %}" style="display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:9px;background:var(--azure);color:var(--on-azure);font-size:14.5px;font-weight:600;transition:transform .22s cubic-bezier(.16,1,.3,1);">Kabinetimga o'tish <i class="bi bi-arrow-right" style="font-size:13px;"></i></a>
+          {% else %}
           <a href="{% url 'register' %}" style="display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:9px;background:var(--azure);color:var(--on-azure);font-size:14.5px;font-weight:600;transition:transform .22s cubic-bezier(.16,1,.3,1);">Bepul boshlash <i class="bi bi-arrow-right" style="font-size:13px;"></i></a>
+          {% endif %}
           <a href="#path" style="display:inline-flex;align-items:center;gap:7px;font-size:14.5px;font-weight:500;color:var(--ink);transition:gap .25s;">Daraja yo'lini ko'rish <i class="bi bi-arrow-down" style="font-size:12px;color:var(--ink-3);"></i></a>
         </div>
 
@@ -242,7 +254,11 @@
         <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:28px;flex-wrap:wrap;margin-bottom:48px;">
           <h2 style="font-size:clamp(26px,3.4vw,42px);font-weight:600;letter-spacing:-.035em;line-height:1.04;color:var(--ink);margin:0;max-width:14ch;">Bugun birinchi darsdan boshlang.</h2>
           <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
+            {% if request.user.is_authenticated %}
+            <a href="{% url 'dashboard' %}" style="display:inline-flex;align-items:center;gap:8px;padding:13px 22px;border-radius:9px;background:var(--azure);color:var(--on-azure);font-size:15px;font-weight:600;transition:transform .22s cubic-bezier(.16,1,.3,1);">Kabinetimga o'tish <i class="bi bi-arrow-right" style="font-size:13px;"></i></a>
+            {% else %}
             <a href="{% url 'register' %}" style="display:inline-flex;align-items:center;gap:8px;padding:13px 22px;border-radius:9px;background:var(--azure);color:var(--on-azure);font-size:15px;font-weight:600;transition:transform .22s cubic-bezier(.16,1,.3,1);">Bepul boshlash <i class="bi bi-arrow-right" style="font-size:13px;"></i></a>
+            {% endif %}
             <a href="{% url 'subscriptions:pricing' %}" style="font-size:14.5px;font-weight:500;color:var(--ink-2);">Narxlar bilan tanishish</a>
           </div>
         </div>
