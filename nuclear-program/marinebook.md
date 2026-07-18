@@ -16,6 +16,17 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-18 [Antigravity]: Telegram Deep-Link Auth va AI Limit xabarlari
+
+Telegram orqali login/register qilish (Deep-link & polling custom flow) sahifalarda tugma orqali ishlaydigan qilindi. AI limit reset yoki bonus qo'llanganda har bir ta'sirlangan foydalanuvchiga platforma va Telegram outbox orqali avtomatik bildirishnoma yuboriladigan bo'ldi. Jami 315/315 testlar yashil holatga keltirildi.
+
+- Branch: `antigravity/telegram-bot-prod`
+- Commitlar: `79c6149`
+- Test holati: `python manage.py test` — **315/315 OK**
+- Davom etilishi kerak: yo'q
+
+---
+
 ## 2026-07-13 [Claude]: Telegram bot F9 — vazifa topshirish + quiz botda (o'qish sikli yopildi)
 
 O'quvchi endi botda nafaqat o'qiydi, balki TOPSHIRADI ham. **Refactor (muhim):** quiz baholash va vazifa saqlash mantig'i `courses/views.py` ichida edi (SubmitQuizView/SubmitAssignmentView) — `courses/submission_service.py` ga chiqarildi (`submit_assignment`, `grade_quiz`); view'lar endi shu servisni chaqiradi, bot ham. Bitta manba: XP hisobi (eng yaxshi urinishdan oshgani beriladi), obuna tekshiruvi, qayta-topshirishda pending'ga qaytish — hammasi bir xil. Courses testlari 31/31 refactor'ni himoya qildi. **Vazifa oqimi:** dars → 📝 Vazifa tugmasi → ro'yxat (holat: ⏳ tekshiruvda / ✅ tasdiqlangan / 🔁 qayta ishlash + o'qituvchi izohi) → shart matni → javob: matn YOKI rasm/fayl (caption bilan) → AssignmentSubmission → o'qituvchi navbatiga (/baholash). **Quiz oqimi:** ❓ Quiz → savol-savol inline tugmalar bilan (javob bosilgach tugmalar o'chadi — qayta bosish yo'q), oxirida natija + XP. **Holat:** aiogram FSM (xotira) o'rniga `BotPendingAction` DB-modeli — bot restart/webhook ko'p-jarayonligida yo'qolmaydi; har userda bitta faol holat. **Handler ustuvorligi:** `AwaitingAssignment` custom filter — vazifa kutilayotganda matn AI'ga emas vazifaga, rasm chekka emas vazifaga ketadi; filter False qaytarsa aiogram odatdagi handler'ga o'tadi (AI/chek oqimlari buzilmadi). /bekor bilan chiqish.
