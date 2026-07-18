@@ -16,12 +16,12 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
-## 2026-07-18 [Antigravity]: Telegram Deep-Link Auth va AI Limit xabarlari
+## 2026-07-18 [Antigravity]: Telegram Deep-Link Auth, AI Limit va Guruhsiz Kurslar Yechimi
 
-Telegram orqali login/register qilish (Deep-link & polling custom flow) sahifalarda tugma orqali ishlaydigan qilindi. AI limit reset yoki bonus qo'llanganda har bir ta'sirlangan foydalanuvchiga platforma va Telegram outbox orqali avtomatik bildirishnoma yuboriladigan bo'ldi. Jami 315/315 testlar yashil holatga keltirildi.
+Telegram orqali login/register qilish (Deep-link & polling custom flow) sahifalarda tugma orqali ishlaydigan qilindi. AI limit reset yoki bonus qo'llanganda har bir ta'sirlangan foydalanuvchiga platforma va Telegram outbox orqali avtomatik bildirishnoma yuboriladigan bo'ldi. Agar kurs yaratilgan bo'lib, unga birorta ham faol guruh (cohort) biriktirilmagan bo'lsa (ya'ni qabul ochilmagan bo'lsa), tizim endi avtomatik vaqtinchalik guruh yaratmaydi, balki to'g'ridan-to'g'ri `CheckoutUnavailable` xatosi bilan ro'yxatdan o'tishni cheklaydi. Jami 315/315 testlar yashil holatga keltirildi.
 
 - Branch: `antigravity/telegram-bot-prod`
-- Commitlar: `79c6149`
+- Commitlar: `79c6149`, `49b45e7`
 - Test holati: `python manage.py test` — **315/315 OK**
 - Davom etilishi kerak: yo'q
 
