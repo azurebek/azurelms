@@ -16,6 +16,17 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-21 [Codex]: Telegram Mini App lokal workspace
+
+Telegram Mini App auth-ko'prigi alohida mobil platforma home sahifasi bilan kengaytirildi: kurslar, Azure AI, imtihon, davomat, sertifikat, to'lov, reyting va yordam oqimlariga bitta WebView markazidan o'tiladi. `APP_ENV=local` uchun oddiy Django login talab qiladigan xavfsiz `?preview=1` rejimi qo'shildi; production Telegram `initData` HMAC oqimi o'zgarmadi. Mobil 390×844 va desktop browser QA'da overflow hamda console xatolari kuzatilmadi.
+
+- Branch: `codex/local-development-session`
+- Commitlar: `77cfaba`
+- Test holati: `python manage.py test bot` — **69/69 OK**; `python manage.py test` — **321/321 OK**; `python manage.py check` — **0 issues**
+- Davom etilishi kerak: public HTTPS domen bilan Telegram WebView'da real `initData` sinovi va BotFather Menu Button aktivatsiyasi
+
+---
+
 ## 2026-07-21 [Codex]: Telegram branch main'ga tayyorlandi
 
 `antigravity/telegram-bot-prod` dagi 20 ta commit `main` ustiga fast-forward qilish uchun tekshirildi. Integratsiya oldidan buzilgan `python manage.py runbot` entrypoint lazy `get_bot()` / `get_dispatcher()` API'ga moslandi va regression test bilan himoyalandi.
