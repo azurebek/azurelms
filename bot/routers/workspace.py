@@ -84,7 +84,7 @@ def student_menu_markup():
         ],
         [InlineKeyboardButton(text="🎓 Kursga yozilish", callback_data="ws:enroll")],
     ]
-    webapp_btn = miniapp_button("🌐 Saytni ochish (Mini App)", "/users/dashboard/")
+    webapp_btn = miniapp_button("🌐 Saytni ochish (Mini App)", "/bot/miniapp/home/")
     if webapp_btn:
         rows.append([webapp_btn])
     return InlineKeyboardMarkup(inline_keyboard=rows)

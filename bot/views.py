@@ -4,8 +4,11 @@ from aiogram import types
 from asgiref.sync import async_to_sync
 from django.conf import settings
 from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import redirect_to_login
 from django.http import HttpResponseForbidden, JsonResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 
 from .aiogram_app import get_bot, get_dispatcher
@@ -58,10 +61,42 @@ def miniapp_entry(request):
     window.Telegram.WebApp.initData'ni auth endpoint'ga POST qiladi,
     sessiya ochilgach maqsad sahifaga o'tadi.
     """
+    requested_next = request.GET.get("next") or reverse("bot:miniapp_home")
+    next_path = safe_next_path(requested_next)
+
+    # Telegram WebView localhost'ni ochmaydi va initData faqat Telegram ichida
+    # mavjud. Lokal UI ishlab chiqish uchun oddiy Django login orqali xuddi shu
+    # destination'ga o'tamiz. Production'da preview parametri hech narsa qilmaydi.
+    if getattr(settings, "IS_LOCAL", False) and request.GET.get("preview") == "1":
+        if not request.user.is_authenticated:
+            return redirect_to_login(request.get_full_path())
+        return redirect(next_path)
+
     return render(
         request,
         "bot/miniapp_entry.html",
-        {"next_path": safe_next_path(request.GET.get("next"))},
+        {"next_path": next_path},
+    )
+
+
+@login_required
+def miniapp_home(request):
+    """Telegram WebView uchun ixcham platforma markazi."""
+    from users.views import build_student_enrollments
+
+    enrollments = build_student_enrollments(request.user)
+    active_enrollments = [
+        item for item in enrollments if item.dashboard_effective_status == "active"
+    ]
+    return render(
+        request,
+        "bot/miniapp_home.html",
+        {
+            "enrollments": enrollments[:3],
+            "active_enrollments": active_enrollments,
+            "primary_enrollment": active_enrollments[0] if active_enrollments else None,
+            "is_local_preview": getattr(settings, "IS_LOCAL", False),
+        },
     )
 
 
