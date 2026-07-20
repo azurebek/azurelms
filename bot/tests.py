@@ -1,5 +1,7 @@
 import base64
 import datetime
+import asyncio
+from unittest.mock import AsyncMock, patch
 
 from django.contrib.auth import get_user_model
 from django.core.signing import Signer
@@ -20,6 +22,23 @@ from users.models import Notification
 
 
 User = get_user_model()
+
+
+class RunBotCommandTests(TestCase):
+    @patch("bot.management.commands.runbot.get_dispatcher")
+    @patch("bot.management.commands.runbot.get_bot")
+    def test_runbot_uses_lazy_bot_and_dispatcher(self, mocked_get_bot, mocked_get_dispatcher):
+        from bot.management.commands.runbot import Command
+
+        mocked_bot = mocked_get_bot.return_value
+        mocked_bot.delete_webhook = AsyncMock()
+        mocked_dispatcher = mocked_get_dispatcher.return_value
+        mocked_dispatcher.start_polling = AsyncMock()
+
+        asyncio.run(Command().run_bot())
+
+        mocked_bot.delete_webhook.assert_awaited_once_with(drop_pending_updates=True)
+        mocked_dispatcher.start_polling.assert_awaited_once_with(mocked_bot)
 
 
 class TelegramBotFlowTests(TestCase):
