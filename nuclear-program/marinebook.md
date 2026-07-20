@@ -16,6 +16,17 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-21 [Codex]: Telegram branch main'ga tayyorlandi
+
+`antigravity/telegram-bot-prod` dagi 20 ta commit `main` ustiga fast-forward qilish uchun tekshirildi. Integratsiya oldidan buzilgan `python manage.py runbot` entrypoint lazy `get_bot()` / `get_dispatcher()` API'ga moslandi va regression test bilan himoyalandi.
+
+- Branch: `codex/promote-telegram-main`
+- Commitlar: `19526a8`
+- Test holati: `python manage.py test` — **316/316 OK**; `python manage.py check` — **0 issues**
+- Davom etilishi kerak: `origin/main` ga fast-forward push
+
+---
+
 ## 2026-07-18 [Antigravity]: Telegram Deep-Link Auth, AI Limit va Guruhsiz Kurslar Yechimi
 
 Telegram orqali login/register qilish (Deep-link & polling custom flow) sahifalarda tugma orqali ishlaydigan qilindi. AI limit reset yoki bonus qo'llanganda har bir ta'sirlangan foydalanuvchiga platforma va Telegram outbox orqali avtomatik bildirishnoma yuboriladigan bo'ldi. Agar kurs yaratilgan bo'lib, unga birorta ham faol guruh (cohort) biriktirilmagan bo'lsa (ya'ni qabul ochilmagan bo'lsa), tizim endi avtomatik vaqtinchalik guruh yaratmaydi, balki to'g'ridan-to'g'ri `CheckoutUnavailable` xatosi bilan ro'yxatdan o'tishni cheklaydi. Jami 315/315 testlar yashil holatga keltirildi.
