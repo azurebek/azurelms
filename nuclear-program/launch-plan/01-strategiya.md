@@ -1,6 +1,6 @@
 # 01 — Strategiya: bozor, pozitsiyalash, farqlash
 
-*2026-07-11 (kechqurun qayta yozildi — model aniqlandi: platforma Azurbekning jonli kursi dastagi). Manbalar hujjat oxirida.*
+*2026-07-11 da jonli kurs modeli aniqlandi. 2026-07-22 audit rebaseline'i solo-owner control plane, Learner Outcome Loop va AI evidence gate'ini qo'shdi. Manbalar hujjat oxirida.*
 
 ---
 
@@ -20,6 +20,20 @@
 | Yangi o'quvchi oqimi | Og'zaki tavsiya | Landing + daraja testi + blog + Telegram kontent → kursga yozilish |
 
 Bir jumlada: **o'qituvchi o'rgatadi, platforma tizim beradi, AI oradagi bo'shliqni to'ldiradi.**
+
+### 0.1 Operatsion model — yakka owner, bitta markaz
+
+Azurbek bitta ustoz va bitta product owner. Platforma uning ishini ko'paytiradigan ko'p kanal emas, bitta control plane atrofidagi adapterlar tizimi. Web, Telegram, Mini App, Messenger va AI alohida enrollment, release, submission, review yoki progress qoidasi yaratmaydi; bir xil canonical service va state'ni ko'rsatadi.
+
+```text
+Azure Control Center
+  policy · health · quality · cost · release
+    Diagnose → Plan → Practice → Proof → Escalate
+      canonical domain services + state machines
+        Web · Telegram · Mini App · Messenger · Celery · AI providers
+```
+
+Yangi capability learner outcome yoki owner vaqtiga bitta o'lchanadigan ta'sir ko'rsatmasa, canonical owner'i va kill switch'i bo'lmasa, launch scope'ga kirmaydi. Bitta markaz mega-view yoki mega-service emas: modullar mustaqil, boshqaruv va haqiqat esa yagona.
 
 ---
 
@@ -45,7 +59,7 @@ Sertifikat **istalgan tan olingan chet tilidan** bo'lishi mumkin — daraja yo'n
 - Ingliz B2 (IELTS 5.5–6.5 ekvivalenti) — o'rtacha o'zbek uchun 1.5–3 yil mehnat
 - **Turkcha B2 — qardosh til: bir necha oyda erishiladigan real maqsad** (agglyutinatsiya, SOV, egalik/kelishik parallellari, ulkan umumiy leksika)
 
-Bozor hajmi o'lchangan: **UZBMB turk tili milliy sertifikat imtihonining bitta yozma kunida 5200+ topshiruvchi** (2025-03-02); imtihonlar yiliga bir necha marta, viloyatlarda + Toshkentda. 2025'dan ko'p darajali format (A1–C2): yozma kun (tinglash+o'qish+yozish) + og'zaki alohida kunlarda. **Bizning imtihon dvigatelimiz aynan shu 4 ko'nikmani qoplaydi.**
+Bozor hajmi o'lchangan: **UZBMB turk tili milliy sertifikat imtihonining bitta yozma kunida 5200+ topshiruvchi** (2025-03-02); imtihonlar yiliga bir necha marta, viloyatlarda + Toshkentda. 2025'dan ko'p darajali format (A1–C2): yozma kun (tinglash+o'qish+yozish) + og'zaki alohida kunlarda. Platformada to'rt ko'nikma uchun asosiy komponentlar bor; UZBMB format parity'si, content bank va real browser/device evidence hali gate'dan o'tishi kerak.
 
 ### 1.3 Segmentlar
 
@@ -75,7 +89,7 @@ Haqiqiy raqobat maydoni o'zgardi (model aniqlangach): biz "app bozori"da emas, *
 | Duolingo / global applar | Brend, gamifikatsiya | O'zbek bazasi yo'q (tekshirildi), milliy sertifikatni bilmaydi, jonli ustoz yo'q |
 | Yunus Emre kurslari/portali | Rasmiylik | O'zbekcha emas, milliy sertifikatga tayyorlamaydi; TYS bo'yicha hamkor-potentsial |
 
-**Bizning himoya qatlamlarimiz (moat):** (1) ustozning isbotlangan kursi va bitiruvchilari, (2) platforma-injiniring (yillik ish — nusxalab bo'lmaydi), (3) o'zbekcha AI repetitor, (4) milliy sertifikat formatiga mos mock dvigateli, (5) Ko'prik metodikasi kontenti.
+**Maqsadli himoya qatlamlari (moat):** `MAVJUD` — Azurbekning curriculum'i/teacher judgment'i va Ko'prik metodikasi; `QURILMOQDA` — milliy sertifikat kontent banki va canonical teacher workflow; `PLANNED/EVIDENCE REQUIRED` — learner attempt/mastery evidence, o'zbek–turk misconception taxonomy, o'lchangan cohort outcome va teacher efficiency. Kod, model nomi yoki AI personaning o'zi moat emas.
 
 ---
 
@@ -87,7 +101,7 @@ Haqiqiy raqobat maydoni o'zgardi (model aniqlangach): biz "app bozori"da emas, *
 
 ### 3.2 Xabar piramidasi (auditoriyaga qarab)
 
-1. **S1 talabgorga (asosiy):** "Magistratura uchun sertifikat kerakmi? Turkchadan B2 — real 4–6 oy. Jonli darslar + tizimli platforma + AI yordamchi. Birinchi mock imtihonni bepul topshirib ko'r."
+1. **S1 talabgorga (asosiy):** "Magistratura uchun sertifikat kerakmi? Turkcha uchun boshlang'ich darajangiz, davomat va practice'ingizga mos aniq reja oling. Jonli darslar + tizimli platforma + AI yordamchi." Muddat claim'i beta cohort taqsimoti va aniq shartlar bilan o'lchangandan keyin qo'shiladi.
 2. **Ota-ona/homiy:** "Farzandingiz qayerda, qachon, qancha o'qigani — hammasi ko'rinadi: davomat, baho, progress."
 3. **Keng auditoriya (kontent):** "Turkchaning yarmini allaqachon bilasan" — ko'prik postlari qiziqish uyg'otadi → daraja testi → kurs.
 
@@ -114,23 +128,25 @@ Haqiqiy raqobat maydoni o'zgardi (model aniqlangach): biz "app bozori"da emas, *
 
 **Nega kuchli:** asosiy raqib (Telegram-guruh o'qituvchilari) uchun bu yetib bo'lmas tizim; o'quvchi/ota-ona uchun "jiddiy kurs" signali. **Bu launch'ning yadro va'dasi.**
 
-**Holat:** bloklar qurilgan (bot davomat, release, assignment, leaderboard) — bitta silliq oqimga bog'lash kerak (03-backlog A0).
+**Holat:** bloklar qurilgan (bot davomat, release, assignment, leaderboard) — ularni alohida state graphlar va bitta owner flow'iga bog'lash kerak (`03-backlog` A3 Live Lesson Orchestrator).
 
-### ⭐ IH-2. Azure AI — darslar orasidagi 24/7 yordamchi (jonli demo qiroli)
+### ⭐ IH-2. Azure AI — course-grounded yordamchidan natija loop'iga
 
-**Nima:** o'quvchi yarim kechada vazifa fotosini yuklaydi → AI o'qiydi (vision bor), xatoni o'zbekcha tushuntiradi, zaif mavzuni eslab qoladi (memory bor), ertasiga shu mavzudan mashq beradi (quiz_generator bor). Ustozga: tekshiruv navbati yengillashadi (AI birinchi qatlam), o'quvchi savollari 3 kun kutmaydi.
+**Launch capability (mavjud primitive'lar):** kurs/dars kontekstiga tayangan savol-javob, rasm/PDF tahlili, draftga izoh, conversation history/memory va texnik telemetry. Bu yordamchi o'qituvchini almashtirmaydi va high-stakes bahoni mustaqil tasdiqlamaydi.
 
-**Nega kuchli:** o'qituvchining eng katta og'rig'i — masshtab (100 o'quvchining savoli/vazifasi); AI buni yechadi, lekin ustozni ALMASHTIRMAYDI — bu xabarda muhim ("AI + ustoz", "AI o'rniga" emas). O'zbekistonda buni ko'rsatadigan kurs yo'q.
+**Premium outcome gate (qurilishi va isbotlanishi kerak):** item-level xato evidence → keyingi structured practice → qayta urinishdagi o'sish → Progress Proof → past confidence yoki takroriy xatoni ustozga eskalatsiya. Writing'da revision history va teacher approval; speaking'da esa real audio pipeline bo'lmasa “pronunciation coach” claim'i yo'q.
 
-**Holat:** texnik 90% tayyor; "ertasi kuni davom" trigger + haftalik hisobot qoladi.
+**Nega kuchli bo'lishi mumkin:** AI 24/7 chat bo'lgani uchun emas, learner correction rate'ni oshirsa yoki ustozning review vaqtini kamaytirsa. Har ikkisi real cohort KPI va eval bilan o'lchanadi.
+
+**Holat:** RAG/vision/memory/chat poydevori bor; structured mastery, stateful practice, teacher review integratsiyasi, hard deadline/cost gate va audio pronunciation hali `PLANNED`. AI narx oshirishning mustaqil asosi emas.
 
 ### ⭐ IH-3. Milliy sertifikat mock-markazi (S1'ning yuragi)
 
-**Nima:** UZBMB turk tili imtihoni formatida mock: yozma kun (tinglash — replay-limit bilan, o'qish — 8 task turi, yozish — so'z chegarasi + per-esse feedback) + og'zaki (audio yozish + ustoz baholashi). "Sertifikat tayyorligi: B2 — 68%" progress. Har mock natijasi zaif-mavzu sifatida AI xotirasiga tushadi.
+**Nima:** UZBMB turk tili imtihoni formatida mock: yozma kun (tinglash — replay-limit bilan, o'qish — 8 task turi, yozish — so'z chegarasi + per-esse feedback) + og'zaki (audio yozish + ustoz baholashi). Mock natijasi canonical learning evidence'ga aylangachgina objective/mastery va keyingi practice'ga ulanadi; validatsiyalanmagan “B2 — 68%” marketing qilinmaydi.
 
-**Nega kuchli:** S1 uchun yagona haqiqiy savol "imtihondan o'tamanmi?" — mock bunga javob beradi. Imtihon dvigatelimiz shu format uchun ortiqchasi bilan yetarli. Birinchi mock bepul = eng kuchli lead-magnit.
+**Nega kuchli:** S1 uchun asosiy savol "imtihonga qanchalik tayyorman?" — formatga mos, kalibrlangan mock bunga evidence beradi. Bepul mock kuchli lead-magnit bo'lishi mumkin, lekin faqat exam/mobile QA va content review'dan keyin.
 
-**Holat:** dvigatel to'liq; UZBMB spetsifikatsiyasini olish (P1 tadqiqot) + 2 mock kontenti (04) + JS brauzer sinovi qarzi.
+**Holat:** tinglash/o'qish/yozish/speaking review komponentlari mavjud; UZBMB spetsifikatsiyasi parity'si, 2 mock kontenti, private audio va JS real browser/device sinovi `PLANNED`.
 
 ### ⭐ IH-4. Telegram-native ritm (darslar allaqachon shu yerda)
 
@@ -150,7 +166,7 @@ Haqiqiy raqobat maydoni o'zgardi (model aniqlangach): biz "app bozori"da emas, *
 
 ### ⭐ IH-6. Ko'prik metodikasi — kontent imzosi
 
-**Nima:** "sen allaqachon yarmini bilasan" — tovush ko'priklari (b↔v: bor=var), morfologiya parallellari (uy-im=ev-im); dars materiallari va AI tushuntirishlari (word_builder skilli) shu tilda gapiradi; tashqarida — Telegram/Instagram mikro-kontent.
+**Nima:** "sen allaqachon yarmini bilasan" — tovush ko'priklari (b↔v: bor=var), morfologiya parallellari (uy-im=ev-im); dars materiallari shu tilda gapiradi. AI `word_builder` keyinchalik approved morphology dataset va structured PracticeMode ustida quriladi; prompt-only skill launch capability hisoblanmaydi. Tashqarida — Telegram/Instagram mikro-kontent.
 
 **Nega kuchli:** brend eslab qolinadigan qiladi; ustoz darslarida baribir shu usul bor (o'zbeklarga o'rgatish tajribasi) — biz uni nomlab, formatlab, imzoga aylantiramiz.
 
@@ -170,43 +186,43 @@ Haqiqiy raqobat maydoni o'zgardi (model aniqlangach): biz "app bozori"da emas, *
 
 ---
 
-## 5. Retention arxitekturasi
+## 5. Learner Outcome Loop — retention va AI uchun bitta yadro
 
-Jonli kurs o'zi kuchli retention beradi (jadval + guruh + ustoz majburiyati) — platforma uni kunlik odat bilan to'ldiradi:
+Jonli kurs haftalik ritmni beradi. Platforma retentionni ko'proq badge bilan emas, yopiq natija sikli bilan quradi:
 
+```text
+DIAGNOSE: quiz / assignment / mock / learner goal
+  → PLAN: bugungi 10–15 daqiqalik next action
+    → PRACTICE: 3–8 structured item yoki revision
+      → PROOF: oldingi urinish → yangi natija
+        → ESCALATE: faqat human attention kerak bo'lgan holat
 ```
-Haftalik yadro: JONLI DARS (Telegram, ustoz bilan)
-   ↓ dars ochilishi + vazifa (platforma)
-Kunlik halqa: Telegram xabar → 3-daqiqalik sessiya
-   (SRS takror 5 karta + bugungi ko'prik) → streak
-Haftalik yakun: "Azure haftaligi" hisobot + reyting yangilanishi
-Oylik cho'qqi: MOCK IMTIHON → tayyorgarlik % o'sishi
-```
 
-| Qatlam | Mexanika | Holat |
+| Qatlam | Scope | Gate |
 |---|---|---|
-| Jonli dars ritmi | jadval, eslatmalar, davomat | bor (bot) + xabarlar P2 |
-| Kunlik ritual | SRS + ko'prik + streak | BUILD (P1–P2); streak hozir placeholder! |
-| AI xotira ko'rinishi | haftalik hisobot | BUILD-kichik (P2) |
-| Ijtimoiy | leaderboard (bor), guruh chat (bor) | POLISH |
-| Maqsad-gradient | sertifikat tayyorligi % | BUILD-kichik (P2) |
-| Yutuqlar | XP/badge/sertifikat (bor) | POLISH |
+| Jonli dars lifecycle | jadval → check-in → release → assignment → review | canonical state machine va adapter parity |
+| Daily Coach | deterministic 3-task reja | completion state + next-action policy |
+| Structured practice | item/attempt/feedback/retry | objective va outcome event |
+| Progress Proof | quiz/assignment/mock/practice evidence | validatsiyalangan formula, vanity % yo'q |
+| Teacher escalation | P4/NEXT conditional pilot | A7/A9 quality gate + review time va resolution SLA |
+
+SRS, streak, haftalik AI report va certificate readiness foizi mustaqil subsystem bo'lmaydi; ular shu loopning ishonchli event/evidence qatlamidan keyin capability sifatida qo'shiladi.
 
 ---
 
-## 6. Narx strategiyasi (gipoteza — P0'da Azurbek kiritadi, beta'da tekshiriladi)
+## 6. Narx strategiyasi — outcome gate'dan keyin
 
 **Asosiy mahsulot — kurs obunasi** (jonli darslar + platforma birga; platforma alohida sotilmaydi — u kursning ustunligi). Mavjud checkout (kohort + chek + tasdiqlash) aynan shu model uchun qurilgan.
 
 | Taklif | Narx (gipoteza) | Nima kiradi |
 |---|---|---|
-| **Bepul qatlam** (oqim uchun) | 0 | Daraja testi, 1 mock imtihon (yozma), kunlik ko'prik, AI-lite (haftalik token limit), namunaviy video dars |
-| **Kurs obunasi** | Azurbekning joriy narxi ± platforma-prim | Jonli darslar + barcha ochilgan video/materiallar + vazifa tekshiruvi + quiz/reyting + AI standart limit + Telegram ritm |
-| **Kurs+ (premium)** | +40–60% | + barcha mock imtihonlar cheksiz + og'zaki mock ustoz baholashi bilan + AI yuqori limit + ustuvor feedback |
+| **Bepul qatlam** (oqim uchun) | 0 | Placement/diagnostic, namunaviy dars yoki mock, cheklangan course-grounded AI beta |
+| **Kurs obunasi** | Azurbekning joriy narxi | Jonli darslar + canonical platform oqimi + vazifa/quiz/mock + standart AI yordamchi |
+| **Kurs+ pilot** | Narx faqat beta'dan keyin | Adaptive practice, revision history, Progress Proof, ko'proq human-reviewed mock va aniq feedback SLA |
 
-Taktikalar: kuzgi guruhga "launch narxi" (birinchi guruhga chegirma yoki premium-bonus); bitiruvchi-referral (sertifikat olgan o'quvchi tavsiyasi = ikkalasiga bonus); **"sertifikat kafolati" o'ylab ko'rish** (davomat+vazifa sharti bilan o'tmasa — keyingi mavsum bepul) — ishonch bombasi, risk past.
+Kurs+ narxi AI tokeni yoki “unlimited chat” bilan emas, o'lchangan learning gain, revision proof, teacher review capacity va SLA bilan oqlanadi. `+40–60%` faqat pricing experiment gipotezasi; “sertifikat kafolati” real cohort data, aniq legal shart va downside hisobi bo'lmaguncha launch scope'dan tashqarida.
 
-AI tannarx: token telemetriya bor (AIResponseRun); P4'da o'quvchi-boshiga haftalik so'm hisobi → limitlar moslanadi. DO $200 kredit — yostiq.
+AI tannarx: token telemetriya bor, lekin provider price ledger, usage reservation va missing-usage estimate launchdan oldin kerak. Target: incremental AI xarajati premium incremental revenue'ning `≤25%`; kredit mahsulot iqtisodini isbotlamaydi.
 
 ---
 
@@ -225,6 +241,15 @@ AI tannarx: token telemetriya bor (AIResponseRun); P4'da o'quvchi-boshiga haftal
 2. **Platforma:** kuzgi jonli guruh 3 haftadir platformada o'qiyapti (1-sentyabrdan) — demo emas, real ish
 3. **Raqamlar (launch haftasi):** kuzgi guruh to'liq platformada · 100+ yangi registratsiya · 200+ daraja testi tugatilgan · Telegram kanal 300+
 4. **Hikoya:** 3+ testimonial (shu jumladan avvalgi bitiruvchilardan) landing'da
+
+### Outcome va owner-control mezonlari
+
+- Core flow'ni developer/DB aralashuvisiz tugatgan learnerlar ulushi `≥98%`.
+- Adapter parity bo'yicha critical incident `0`; manual DB rescue `0`.
+- Assignment turnaround va teacher minutes/student/week beta boshida va oxirida o'lchangan.
+- Structured practice ishlatilsa, birinchi activity completion `≥60%`, pre/post accuracy `+15 pp` yoki writing rubric `+0.5/5`.
+- AI feedbackdan keyingi correction rate va 7 kunlik retention/transfer check yozilgan.
+- Premium AI ochilsa, README'dagi quality, latency, safety va cost gate'lari o'tgan.
 
 ---
 

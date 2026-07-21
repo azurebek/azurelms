@@ -1,6 +1,6 @@
 # AzureLMS — Agentlar uchun qoidalar
 
-Bu hujjat **Claude Code**, **Codex**, **Antigravity** (yoki boshqa AI agent) bir repo ustida ishlaganda to'qnashuvni minimumga tushirish uchun. Har agent sessiya boshlashidan oldin shuni o'qiydi.
+Bu hujjat **Claude Code**, **Codex**, **Antigravity** (yoki boshqa AI agent) bir repo ustida ishlaganda mahsulot yo'nalishi va kod ownership'ini bitta markazda tutish uchun. Har agent sessiya boshlashidan oldin shuni o'qiydi.
 
 Maqsad: 3+ ta agent bir vaqtda ishlasin, lekin bir-biriga aralashmasin, bir-birining ishini buzmasin, takroriy kontekst sarflashga vaqt ketmasin.
 
@@ -15,6 +15,25 @@ Agar faqat 5 ta narsani eslab qolish kerak bo'lsa:
 3. Har agent imkon qadar o'z worktree papkasida ishlaydi.
 4. Bitta task tugasa: **test → commit → marinebook yozuvi**.
 5. **Begona uncommitted o'zgarishni revert, delete yoki overwrite qilma.**
+
+### Product authority va arxitektura doktrinasi
+
+1. **AzureLMS'ning yagona product owneri — Azurbek.** Agentlar audit, variant, implementatsiya va verifikatsiya qiladi; scope, pricing, product claim va go/no-go qarorini o'zlashtirmaydi.
+2. **Bir control plane, ko'p adapter.** Canonical Django domain model/service va backoffice yagona haqiqatni boshqaradi. Web, Telegram bot, Mini App, messenger, Celery va AI providerlar shu haqiqatga kirish adapterlaridir.
+3. **Adapter biznes qoidasini egallamaydi.** Enrollment/access, lesson release, submission, grade, progress, XP, pricing/entitlement, quota va notification trigger bir canonical service/policy/state machine'da yashaydi.
+4. Bir qoida ikki surface'da kerak bo'lsa, nusxa yozilmaydi: domain service chiqariladi va adapterlar unga ulanadi.
+5. **Bitta markaz mega-file degani emas.** Control plane modul bo'ladi, lekin capability registry, effective policy, feature flags/kill switch, audit/event ledger va health/release holati bitta boshqaruv nuqtasida tutashadi.
+6. AI yoki tashqi provider access, payment, grade yoki progressning system-of-record'i bo'lmaydi; u faqat tavsiya/evidence beradi, canonical state deterministic service yoki human approval orqali o'zgaradi.
+
+Arxitektura piramidasi:
+
+```text
+Azurbek / Azure Control Center
+  Policy · Health · Quality · Cost · Release
+    Enrollment · Learning · AI outcome loop · Messaging
+      Canonical domain services + state machines + event/audit ledger
+        Web · Telegram · Mini App · Messenger · Celery · AI providers
+```
 
 ---
 
@@ -33,9 +52,13 @@ Sessiya boshlanganda quyidagilar source of truth hisoblanadi:
 
 **Hech bir agent faqat eski chat xotirasi asosida qaror qilmaydi.** Hozirgi repo holatini tekshiradi.
 
+Product qarorida authority yuqoridan pastga: (1) Azurbekning yozilgan qarori, (2) launch strategiya va admission/status, (3) canonical domain contract/service, (4) model/migration, (5) adapter contract, (6) UI/copy, (7) eski chat yoki marinebook. Quyi qatlam yuqoridagiga zid bo'lsa, mavjud dublikat kod yangi product haqiqatiga aylantirilmaydi.
+
 ---
 
-## 2. Branch ownership
+## 2. Branch/write ownership
+
+Bu jadval faqat Git write boundary. Product va integration authority Azurbekda qoladi.
 
 | Owner | Prefiks | Misol |
 |---|---|---|
@@ -153,6 +176,20 @@ Har task boshida aniqlanadi:
 - Frontend bo'lsa qaysi sahifada browser verify kerak
 - AI/provider bo'lsa external key yoki network kerakmi
 
+### Feature admission gate
+
+Har yangi yoki material o'zgargan capability, flow, business rule yoki product claim — shu jumladan mavjud view/service ichidagi o'zgarish, yangi app/model/sahifa/background job/provider/AI skill — boshlanishidan oldin quyidagilar yoziladi:
+
+1. Qaysi learner outcome yoki owner workload muammosi yechiladi?
+2. Bitta asosiy KPI nima?
+3. Qaysi canonical state o'zgaradi va uning yagona service/policy/state machine'i qaysi?
+4. Qaysi adapterlar bu serviceni faqat iste'mol qiladi?
+5. Azurbekning haftalik operatsion yuki oshadimi yoki kamayadimi?
+6. Feature flag/kill switch, failure va rollback yo'li bormi?
+7. Launch uchun zarurmi, post-launch'mi yoki experimentmi?
+
+Natija faqat `ADMIT — launch-critical`, `ADMIT — post-launch`, `EXPERIMENT — canonical state yozmaydi`, yoki `REJECT — duplicate/no measurable outcome/owner burden`. “Yangi skill”, “yangi sahifa” yoki “demo chiroyli bo'ladi” mustaqil admission sababi emas.
+
 ### Scope kattaligi
 
 | Task turi | Tavsiya |
@@ -213,6 +250,11 @@ Bu fayllarga tegishda `git diff`'ni tez-tez ko'r:
 | Courses/lesson/exam | focused `courses` tests |
 | AI skill/memory/RAG | `python manage.py test messenger` + focused tests |
 | Checkout/subscription | `python manage.py test cohorts subscriptions` |
+| Domain service/state machine | transition + permission + idempotency + invariant tests |
+| Bir flow bir nechta adapterda | parity contract test + har adapter smoke |
+| AI product behavior | functional test + versionlangan quality eval + failure/fallback gate |
+
+Adapter testi parsing/serialization va canonical service chaqirilganini tekshiradi. Adapter ichida alohida enrollment/release/payment/progress hisobi topilsa, yangi test bilan dublikatni mustahkamlash emas, logikani control plane'ga qaytarish kerak.
 
 ### Test natijasini halol yozish
 
@@ -309,6 +351,11 @@ Merge'ni **Azurbek** hal qiladi. Agent tayyorlaydi:
 - Known risks
 - Migration kerak bo'lsa aniq yozuv
 - Screenshots/browser verify kerak bo'lsa dalil
+- Feature admission statusi va asosiy outcome KPI
+- Canonical service hamda tegilgan adapterlar ro'yxati
+- Duplicate business logic yo'qligi
+- Feature'ni disable/rollback qilish yo'li
+- Product claim o'zgargan bo'lsa, uni tasdiqlovchi evidence
 
 ---
 
@@ -436,18 +483,24 @@ Frontend o'zgarishida agent quyidagilarni qiladi:
 
 ---
 
-## 15. AI feature qoidasi
+## 15. AI outcome va safety gate
 
 AI'ga tegadigan o'zgarishda:
 
+- Har feature learning outcome yoki teacher minutes saved tezisiga ega bo'ladi; prompt/skill qo'shilishi feature completion hisoblanmaydi
+- “Adaptiv”, “zaif joyni biladi”, “speaking coach” yoki “tekshiruvni yengillashtiradi” claim'i uchun structured state, eval va real workflow evidence kerak
+- AI output canonical state'ni faqat deterministic service yoki human approval orqali o'zgartiradi
+- Provider system instructions haqiqiy system-role'da, learner/RAG/PDF/memory esa untrusted data sifatida uzatiladi
 - Prompt injection va `<SAVE_MEMORY>` safety tekshiriladi
 - Memory on/off behavior saqlanadi
 - RAG access user enrollment scope bilan cheklanadi
 - Web search faqat effort qoidalariga mos yoqiladi
 - `AIResponseRun.metadata` telemetry buzilmaydi
-- UI skill/model/tone settings bilan mos ishlaydi
+- Model/skill/token/latency operatsion metric; pedagogik outcome emas
+- Marketing copy runtime capability va fresh eval dalilidan oldinga o'tmaydi
+- Provider adapterida learner progress, access, pricing yoki grading logikasi bo'lmaydi
 
-**AI behavior o'zgarsa kamida bitta test qo'shiladi yoki mavjud test yangilanadi.**
+**AI behavior o'zgarsa functional test, teacher-authored/versionlangan quality eval va failure/fallback tekshiruvi yangilanadi.** Premium capability release gate'dan o'tmasa feature flag yopiq qoladi.
 
 ---
 
@@ -570,4 +623,4 @@ Bu hujjat ham living document.
 
 ---
 
-*Yangilanish: 2026-05-28 (Codex'ning alternative versiyasi bilan birlashtirilgan yakuniy variant).*
+*Yangilanish: 2026-07-22 (solo-owner control plane, feature admission va AI outcome gate qo'shildi).*
