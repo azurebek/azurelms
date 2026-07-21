@@ -31,12 +31,13 @@
 - **Acceptance:** test Notification → outbox `sent`; broker round-trip; `check --deploy`; full suite; restore va rollback drill.
 - **Faza:** P0.
 
-### A2. Azure Control Center v0 — `PLANNED`, `L`
+### A2. Azure Control Center v0 — `IN PROGRESS`, `L`
 
 - **Outcome:** Azurbek bitta joydan policy, health, queues, quality, cost va release holatini boshqaradi.
 - **Canonical owner:** mavjud backoffice + `aicontrol` kengaytmasi; yangi parallel admin subsystem yo'q.
 - **Scope:** `/backoffice/control/`; owner-only; capability registry; effective config; feature flags/kill switches; queue/worker health; audit va release stoplight. Chuqur analytics v0 scope'ida emas.
 - **Acceptance:** GREEN/AMBER/RED sababli; har mutation reason+confirmation+idempotency+audit; arbitrary shell yo'q; `/backoffice/ai-control/` AI tab/compatibility yo'liga tutashadi.
+- **2026-07-22 foundation evidence:** active superuser-only read-only route, 10-capability registry, safe partial-failure snapshot, effective config va shu servisdagi `system_audit` CLI tayyor; 1280x900/390x844 browser QA hamda permission/CLI testlari o'tdi. Hali kerak: mutation audit/confirmation/idempotency, flags/kill switches, active worker heartbeat, `ReleaseRecord`, cost/quality va qolgan capability probe'lari. Shu sabab band `EVIDENCE READY` emas.
 - **Faza:** P1.
 
 ### A3. Live Lesson Orchestrator — `PLANNED`, `M contract + L adapters/UI`

@@ -73,6 +73,8 @@ Stoplight:
 - **AMBER:** degradatsiya bor, lekin oltin kurs oqimi ishlaydi va fallback aniq;
 - **RED:** checkout/access/data-loss/privacy xavfi, majburiy worker yo'q yoki critical eval yiqilgan. Traffic/capability ochilmaydi.
 
+**Joriy foundation (2026-07-22):** `/backoffice/control/` faqat active superuser uchun read-only stoplight sifatida ishlaydi. DB, cache, Channels, Celery config, Telegram outbox, media, AI provider/policy, RAG, security va release identity bitta `core/control_center` snapshotidan olinadi; `system_audit` CLI ham aynan shu servis adapteri. Hali mutation, append-only audit, feature flag/kill switch, active worker heartbeat, `ReleaseRecord`, cost/quality va backup/email/memory probe'lari ulanmagan.
+
 ## 3. Permission matrix va system audit
 
 | Amal | Owner/superuser | Teacher/staff | Student | Worker |

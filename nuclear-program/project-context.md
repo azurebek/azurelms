@@ -190,7 +190,9 @@ ai/
 
 **Joriy UI:** `/backoffice/ai-control/` token usage, global/plan limit va reset/bonusni boshqaradi; blocked userlar sonini ko'rsatadi, lekin shu sahifada per-user block mutation'i yo'q. Per-user blok amali bot yoki admin orqali. `default_model` va `default_effort` modelda saqlanadi, ammo runtime provider ularni o'qimaydi va template ularni edit input sifatida render qilmaydi.
 
-**Joriy chegarasi:** umumiy capability registry, owner-only `/backoffice/control/`, release record, system-wide feature flag/kill switch, service heartbeat, cost ledger va AI quality release gate hozir mavjud emas.
+**Joriy Control Center foundation (2026-07-22):** owner-only `/backoffice/control/` `core/control_center/`dagi bitta read-only capability registry va snapshot servisidan foydalanadi. DB, cache, Channels, Celery config, Telegram outbox, media, AI provider/effective token policy, RAG, security va release identity GREEN/AMBER/RED sabab bilan ko'rinadi. Shu snapshot terminalda `python manage.py system_audit [--json] [--fail-on red|amber|never]` orqali ham ishlaydi; web va CLI alohida health mantiq yozmaydi.
+
+**Joriy chegarasi:** bu foundation mutation qilmaydi. Append-only `SystemAuditEvent`, system-wide feature flag/kill switch, active worker/beat heartbeat, `ReleaseRecord`, backup/email/memory probe, cost ledger va AI quality release gate hali mavjud emas. `/backoffice/ai-control/` compatibility control path sifatida Control Center'dan ochiladi, lekin hozircha alohida sahifa.
 
 ### `subscriptions`
 
@@ -366,6 +368,7 @@ Custom yashirin admin URL'lari:
 
 ```
 /backoffice/
+/backoffice/control/                 # faqat active superuser
 /backoffice/users/
 /backoffice/chats/
 /backoffice/courses/new/
@@ -378,11 +381,11 @@ Custom yashirin admin URL'lari:
 
 Access helper: `core.views._is_backoffice_user`. Legacy `/admin/` faqat `ENABLE_LEGACY_ADMIN=True`.
 
-**Joriy permission cheklovi:** `_is_backoffice_user` `is_staff` yoki `is_superuser`ni qabul qiladi; AI global control ham shu gate ortida. Teacher'ga explicit course biriktirilmagan bo'lsa teacher query hozir barcha kurslarni qaytarishi mumkin. Owner-only Control Center va default-deny teacher scope — maqsad, joriy capability emas.
+**Joriy permission cheklovi:** `_is_backoffice_user` `is_staff` yoki `is_superuser`ni qabul qiladi; AI global control ham shu gate ortida. `/backoffice/control/` esa alohida `_is_control_center_owner` orqali faqat active `is_superuser`ga ochiladi va hozir read-only. Teacher'ga explicit course biriktirilmagan bo'lsa teacher query hozir barcha kurslarni qaytarishi mumkin; default-deny teacher scope hali maqsad.
 
-### 4.11 Maqsad operatsion arxitektura — hali mavjud emas
+### 4.11 Maqsad operatsion arxitektura — foundation mavjud, control plane tugamagan
 
-Owner-only Azure Control Center, canonical lesson/enrollment state machine'lari, private media, broker fail-fast, CI/release gates va umumiy system audit rejasi `launch-plan/02-yol-xarita.md`, `03-mahsulot-backlog.md` va `05-launch-ops.md`da. Ular kod, migration, test va browser/production evidence tugamaguncha ushbu joriy URL/model xaritasiga qo'shilmaydi.
+Owner-only Azure Control Center'ning read-only registry/snapshot qatlami joriy URL xaritasiga qo'shildi. Mutation/audit/flag/release qatlamlari, canonical lesson/enrollment state machine'lari, private media, broker fail-fast va CI/release gates rejasi `launch-plan/02-yol-xarita.md`, `03-mahsulot-backlog.md` va `05-launch-ops.md`da qoladi. Ular kod, migration, test va browser/production evidence tugamaguncha mavjud capability hisoblanmaydi.
 
 ---
 
@@ -762,7 +765,7 @@ Mini App sahifalari `templates/bot/miniapp_base.html` mobil shellini ulashadi. T
 - `.github/workflows` va `/healthz` endpoint hozir yo'q.
 - `TelegramOutbox` modeli/command'i bor, lekin Procfile'da doimiy process yo'q; worker atomic claim/lease qilmaydi, shuning uchun hozir aynan 1 replica xavfsizroq.
 - `AIResponseRun` status, model, skill, token, duration, metadata va errorni saqlaydi; pul qiymati va quality release gate saqlanmaydi.
-- Umumiy append-only `SystemAuditEvent`, capability heartbeat va `ReleaseRecord` hozir yo'q.
+- Read-only capability registry/snapshot bor; umumiy append-only `SystemAuditEvent`, active service heartbeat va `ReleaseRecord` hozir yo'q.
 
 ### `.env.local` namunasi (git'ga kirmaydi)
 

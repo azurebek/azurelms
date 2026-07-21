@@ -22,10 +22,15 @@ from .backoffice_forms import (
     ExamSectionBackofficeForm,
     LessonBackofficeForm,
 )
+from .control_center import build_control_center_snapshot
 
 
 def _is_backoffice_user(user):
     return user.is_staff or user.is_superuser
+
+
+def _is_control_center_owner(user):
+    return user.is_active and user.is_superuser
 
 
 def _safe_int(value):
@@ -85,6 +90,19 @@ def maintenance(request):
 
 def offline(request):
     return render(request, "errors/offline.html")
+
+
+@login_required
+@user_passes_test(_is_control_center_owner)
+def backoffice_control(request):
+    """Owner-only, read-only operational control-plane snapshot."""
+    context = {
+        "active_nav": "backoffice",
+        "bo_active": "control",
+        "counts": {},
+        "snapshot": build_control_center_snapshot(),
+    }
+    return render(request, "backoffice/control_center.html", context)
 
 
 @login_required

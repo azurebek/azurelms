@@ -1,0 +1,81 @@
+{% extends "backoffice/base.html" %}
+{% load static %}
+
+{% block bo_title %}Control Center{% endblock %}
+{% block bo_icon %}bi-command{% endblock %}
+{% block bo_topbar %}Azure Control Center{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/control-center.css' %}">{% endblock %}
+
+{% block bo_content %}
+<section class="cc-hero cc-status-{{ snapshot.overall_status }}">
+  <div>
+    <div class="cc-kicker">OWNER CONTROL PLANE · READ-ONLY FOUNDATION</div>
+    <h1>Platforma holati bitta nuqtada</h1>
+    <p>Bu snapshot biznes-mantiqni ko'chirmaydi. Har modul o'z canonical state'ida qoladi, health va effective config shu yerda tutashadi.</p>
+  </div>
+  <div class="cc-overall">
+    <span class="cc-dot"></span>
+    <div><strong>{{ snapshot.overall_status|upper }}</strong><small>{{ snapshot.environment }} · {{ snapshot.generated_at|date:"d.m.Y H:i:s" }}</small></div>
+  </div>
+</section>
+
+<section class="cc-summary" aria-label="Capability status xulosasi">
+  <article><span class="cc-summary-dot is-green"></span><div><strong>{{ snapshot.counts.green }}</strong><small>GREEN</small></div></article>
+  <article><span class="cc-summary-dot is-amber"></span><div><strong>{{ snapshot.counts.amber }}</strong><small>AMBER</small></div></article>
+  <article><span class="cc-summary-dot is-red"></span><div><strong>{{ snapshot.counts.red }}</strong><small>RED</small></div></article>
+  <article><i class="bi bi-boxes"></i><div><strong>{{ snapshot.counts.total }}</strong><small>CAPABILITY</small></div></article>
+</section>
+
+<div class="cc-layout">
+  <section class="cc-main">
+    <div class="cc-section-head">
+      <div><span class="cc-kicker">CAPABILITY REGISTRY</span><h2>Tizim stoplight'i</h2></div>
+      <span class="cc-readonly"><i class="bi bi-eye"></i> Faqat kuzatuv</span>
+    </div>
+
+    <div class="cc-capabilities">
+      {% for item in snapshot.results %}
+      <article class="cc-capability cc-card-{{ item.status }}" id="capability-{{ item.definition.slug }}">
+        <div class="cc-card-head">
+          <div>
+            <span class="cc-category">{{ item.definition.category }} · {{ item.definition.criticality }}</span>
+            <h3>{{ item.definition.label }}</h3>
+          </div>
+          <span class="cc-badge is-{{ item.status }}"><span></span>{{ item.status|upper }}</span>
+        </div>
+        <p class="cc-summary-text">{{ item.summary }}</p>
+        <p class="cc-description">{{ item.definition.description }}</p>
+        {% if item.details %}
+        <dl class="cc-details">
+          {% for key, value in item.details %}<div><dt>{{ key }}</dt><dd>{{ value }}</dd></div>{% endfor %}
+        </dl>
+        {% endif %}
+        <div class="cc-card-foot">
+          <span><i class="bi bi-person-check"></i> {{ item.definition.owner }}</span>
+          {% if item.definition.dependencies %}<span><i class="bi bi-diagram-3"></i> {{ item.definition.dependencies|join:", " }}</span>{% endif %}
+        </div>
+        <details class="cc-runbook"><summary>Runbook</summary><p>{{ item.definition.runbook }}</p></details>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <aside class="cc-side">
+    <section class="cc-panel">
+      <span class="cc-kicker">EFFECTIVE CONFIG</span>
+      <h2>Joriy konfiguratsiya</h2>
+      <dl class="cc-config">
+        {% for key, value in snapshot.effective_config %}<div><dt>{{ key }}</dt><dd>{{ value }}</dd></div>{% endfor %}
+      </dl>
+    </section>
+
+    <section class="cc-panel">
+      <span class="cc-kicker">CONTROL PATHS</span>
+      <h2>Boshqaruv yo'llari</h2>
+      <a class="cc-link" href="{% url 'backoffice_ai_control' %}"><span><i class="bi bi-cpu"></i> AI siyosati</span><i class="bi bi-arrow-right"></i></a>
+      <a class="cc-link" href="{% url 'backoffice_dashboard' %}"><span><i class="bi bi-graph-up"></i> Biznes dashboard</span><i class="bi bi-arrow-right"></i></a>
+      <div class="cc-next"><i class="bi bi-cone-striped"></i><p><strong>Keyingi qatlam</strong>Feature flag, mutation audit, worker heartbeat va ReleaseRecord hali shu foundation ustiga ulanadi.</p></div>
+    </section>
+  </aside>
+</div>
+{% endblock %}

@@ -29,6 +29,7 @@
       <nav class="app-nav" data-appscroll>
         <div class="app-nav-group">
           <button type="button" class="app-nav-label" data-app-group><span>Boshqaruv</span><i class="bi bi-chevron-down"></i></button>
+          {% if request.user.is_superuser %}<a class="app-nav-item{% if url_name == 'backoffice_control' %} active{% endif %}" href="{% url 'backoffice_control' %}"><i class="bi bi-command"></i><span class="label">Control Center</span></a>{% endif %}
           <a class="app-nav-item{% if url_name == 'backoffice_dashboard' %} active{% endif %}" href="{% url 'backoffice_dashboard' %}"><i class="bi bi-grid-1x2"></i><span class="label">Boshqaruv paneli</span>{% if counts.pending_receipts %}<span class="app-nav-badge is-red">{{ counts.pending_receipts }}</span>{% endif %}</a>
           <a class="app-nav-item{% if url_name == 'backoffice_users' %} active{% endif %}" href="{% url 'backoffice_users' %}"><i class="bi bi-people"></i><span class="label">Foydalanuvchilar</span></a>
           <a class="app-nav-item{% if url_name == 'backoffice_chats' %} active{% endif %}" href="{% url 'backoffice_chats' %}"><i class="bi bi-chat-dots"></i><span class="label">Suhbatlar</span></a>
