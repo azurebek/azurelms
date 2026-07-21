@@ -625,6 +625,19 @@ Message
 | `/messenger/api/rooms/` | `messenger:get_user_rooms` |
 | `/messenger/api/messages/<room_id>/` | `messenger:get_room_messages` |
 
+### Telegram Mini App
+
+| URL | Name |
+|---|---|
+| `/bot/miniapp/` | `bot:miniapp_entry` |
+| `/bot/miniapp/auth/` | `bot:miniapp_auth` |
+| `/bot/miniapp/home/` | `bot:miniapp_home` |
+| `/bot/miniapp/courses/` | `bot:miniapp_courses` |
+| `/bot/miniapp/ai/` | `bot:miniapp_ai` |
+| `/bot/miniapp/profile/` | `bot:miniapp_profile` |
+
+Mini App sahifalari `templates/bot/miniapp_base.html` mobil shellini ulashadi. Telegram `initData` orqali ochilgan sessiya va lokal `?preview=1` oqimi shu alohida shellga kiradi; katta platforma sahifalari faqat chuqur amallar uchun havola sifatida qoladi.
+
 ### Blog
 
 | URL | Name |

@@ -6,6 +6,7 @@ from django.conf import settings
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import redirect_to_login
+from django.db.models import Count, F, Max
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -81,26 +82,76 @@ def miniapp_entry(request):
     )
 
 
-@xframe_options_exempt
-@login_required
-def miniapp_home(request):
-    """Telegram WebView uchun ixcham platforma markazi."""
+def _miniapp_context(request, active_tab):
+    """Mini App sahifalari ulashadigan mobil kontekst."""
     from users.views import build_student_enrollments
 
     enrollments = build_student_enrollments(request.user)
     active_enrollments = [
         item for item in enrollments if item.dashboard_effective_status == "active"
     ]
+    return {
+        "active_tab": active_tab,
+        "enrollments": enrollments,
+        "active_enrollments": active_enrollments,
+        "primary_enrollment": active_enrollments[0] if active_enrollments else None,
+        "is_local_preview": getattr(settings, "IS_LOCAL", False),
+    }
+
+
+@xframe_options_exempt
+@login_required
+def miniapp_home(request):
+    """Telegram WebView uchun ixcham platforma markazi."""
     return render(
         request,
         "bot/miniapp_home.html",
-        {
-            "enrollments": enrollments[:3],
-            "active_enrollments": active_enrollments,
-            "primary_enrollment": active_enrollments[0] if active_enrollments else None,
-            "is_local_preview": getattr(settings, "IS_LOCAL", False),
-        },
+        _miniapp_context(request, "home"),
     )
+
+
+@xframe_options_exempt
+@login_required
+def miniapp_courses(request):
+    """Mini App ichidagi kurslar va o'qishni davom ettirish sahifasi."""
+    return render(
+        request,
+        "bot/miniapp_courses.html",
+        _miniapp_context(request, "courses"),
+    )
+
+
+@xframe_options_exempt
+@login_required
+def miniapp_ai(request):
+    """Azure AI uchun Mini App markazi va so'nggi suhbatlar."""
+    context = _miniapp_context(request, "ai")
+    context["ai_rooms"] = list(
+        request.user.chat_rooms.filter(room_type="ai")
+        .annotate(message_count=Count("messages"), last_message_at=Max("messages__created_at"))
+        .order_by(F("last_message_at").desc(nulls_last=True), "-created_at")[:4]
+    )
+    return render(request, "bot/miniapp_ai.html", context)
+
+
+@xframe_options_exempt
+@login_required
+def miniapp_profile(request):
+    """Mini App uchun profil, AI sozlamalari va tezkor havolalar."""
+    context = _miniapp_context(request, "profile")
+    onboarding = getattr(request.user, "onboarding", None)
+    context.update(
+        {
+            "level_label": (
+                onboarding.get_current_level_display()
+                if onboarding and onboarding.current_level
+                else "Daraja belgilanmagan"
+            ),
+            "ai_tone_label": request.user.get_ai_tone_display(),
+            "ai_model_label": request.user.get_ai_model_display(),
+        }
+    )
+    return render(request, "bot/miniapp_profile.html", context)
 
 
 @csrf_exempt

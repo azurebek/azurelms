@@ -1,0 +1,41 @@
+{% extends "bot/miniapp_base.html" %}
+{% block title %}Profil{% endblock %}
+{% block header_label %}Profil{% endblock %}
+{% block content %}
+  <section class="miniapp-profile-card">
+    <div class="profile-glow"></div>
+    <div class="miniapp-avatar large">
+      {% if request.user.avatar %}<img src="{{ request.user.avatar.url }}" alt="">
+      {% else %}{{ request.user.first_name.0|default:request.user.username.0|upper }}{{ request.user.last_name.0|upper }}{% endif %}
+    </div>
+    <h1>{{ request.user.get_full_name|default:request.user.username }}</h1>
+    <p>{{ request.user.email }}</p>
+    <span class="profile-level">{{ level_label }}</span>
+  </section>
+
+  <section class="miniapp-stat-row profile-stats" aria-label="Profil natijalari">
+    <a href="{% url 'leaderboard' %}"><strong>{{ request.user.total_xp|default:0 }}</strong><small>jami XP</small></a>
+    <a href="{% url 'attendance_calendar' %}"><strong>{{ request.user.streak_days|default:0 }}</strong><small>kun seriya</small></a>
+    <a href="{% url 'bot:miniapp_courses' %}"><strong>{{ enrollments|length }}</strong><small>kurslar</small></a>
+  </section>
+
+  <section class="miniapp-section first">
+    <div class="miniapp-section-head"><div><p class="miniapp-overline">Sozlamalar</p><h2>O‘quv profili</h2></div></div>
+    <div class="miniapp-settings-list">
+      <a href="{% url 'settings' %}"><span class="settings-icon blue"><svg class="miniapp-icon"><use href="#icon-user"></use></svg></span><span><strong>Shaxsiy ma’lumotlar</strong><small>Ism, rasm va aloqa</small></span><svg class="miniapp-icon list-chevron"><use href="#icon-chevron"></use></svg></a>
+      <a href="{% url 'settings' %}"><span class="settings-icon violet"><svg class="miniapp-icon"><use href="#icon-sparkles"></use></svg></span><span><strong>Azure AI uslubi</strong><small>{{ ai_tone_label }} · {{ ai_model_label }}</small></span><svg class="miniapp-icon list-chevron"><use href="#icon-chevron"></use></svg></a>
+      <a href="{% url 'subscriptions' %}"><span class="settings-icon green"><svg class="miniapp-icon"><use href="#icon-card"></use></svg></span><span><strong>Tarif va to‘lovlar</strong><small>Obuna va cheklar tarixi</small></span><svg class="miniapp-icon list-chevron"><use href="#icon-chevron"></use></svg></a>
+    </div>
+  </section>
+
+  <section class="miniapp-section">
+    <div class="miniapp-section-head"><div><p class="miniapp-overline">Platforma</p><h2>Yana nimalar bor?</h2></div></div>
+    <div class="miniapp-settings-list compact">
+      <a href="{% url 'certificates' %}"><span class="settings-icon amber"><svg class="miniapp-icon"><use href="#icon-award"></use></svg></span><span><strong>Sertifikatlar</strong></span><svg class="miniapp-icon list-chevron"><use href="#icon-chevron"></use></svg></a>
+      <a href="{% url 'leaderboard' %}"><span class="settings-icon blue"><svg class="miniapp-icon"><use href="#icon-trophy"></use></svg></span><span><strong>Reyting</strong></span><svg class="miniapp-icon list-chevron"><use href="#icon-chevron"></use></svg></a>
+      <a href="{% url 'help_center' %}"><span class="settings-icon muted"><svg class="miniapp-icon"><use href="#icon-help"></use></svg></span><span><strong>Yordam markazi</strong></span><svg class="miniapp-icon list-chevron"><use href="#icon-chevron"></use></svg></a>
+    </div>
+  </section>
+
+  <div class="miniapp-telegram-note"><span><svg class="miniapp-icon"><use href="#icon-telegram"></use></svg></span><div><strong>Telegram bilan ulangan</strong><small>{% if request.user.telegram_username %}@{{ request.user.telegram_username }}{% else %}Mini App sessiyasi himoyalangan{% endif %}</small></div><svg class="miniapp-icon shield"><use href="#icon-shield"></use></svg></div>
+{% endblock %}

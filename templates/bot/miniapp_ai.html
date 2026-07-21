@@ -1,0 +1,43 @@
+{% extends "bot/miniapp_base.html" %}
+{% block title %}Azure AI{% endblock %}
+{% block header_label %}Azure AI{% endblock %}
+{% block content %}
+  <section class="miniapp-ai-hero">
+    <div class="ai-orb"><svg class="miniapp-icon"><use href="#icon-sparkles"></use></svg><i></i></div>
+    <p class="miniapp-overline">Shaxsiy AI repetitor</p>
+    <h1>Bugun nimani o‘rganamiz?</h1>
+    <p>Turkcha grammatika, tarjima, mashq yoki suhbat — Azure doim yoningizda.</p>
+    <form method="post" action="{% url 'messenger:new_ai_chat' %}">{% csrf_token %}<button type="submit">Yangi suhbat <svg class="miniapp-icon"><use href="#icon-plus"></use></svg></button></form>
+  </section>
+
+  <section class="miniapp-section first">
+    <div class="miniapp-section-head"><div><p class="miniapp-overline">Tez boshlash</p><h2>Nima qilishni xohlaysiz?</h2></div></div>
+    <div class="miniapp-prompt-grid">
+      <a href="{% url 'messenger:ai' %}"><span class="action-icon blue"><svg class="miniapp-icon"><use href="#icon-message"></use></svg></span><strong>Turkcha suhbat</strong><small>Erkin gaplashib mashq qilish</small></a>
+      <a href="{% url 'messenger:ai' %}"><span class="action-icon violet"><svg class="miniapp-icon"><use href="#icon-check"></use></svg></span><strong>Grammatika</strong><small>Qoidani sodda tushuntirish</small></a>
+      <a href="{% url 'messenger:ai' %}"><span class="action-icon green"><svg class="miniapp-icon"><use href="#icon-book"></use></svg></span><strong>Matn tahlili</strong><small>Tarjima va xatolarni tekshirish</small></a>
+      <a href="{% url 'messenger:ai' %}"><span class="action-icon amber"><svg class="miniapp-icon"><use href="#icon-target"></use></svg></span><strong>Mini test</strong><small>Bilimingizni sinab ko‘rish</small></a>
+    </div>
+  </section>
+
+  <section class="miniapp-ai-status">
+    <span><svg class="miniapp-icon"><use href="#icon-memory"></use></svg></span>
+    <div><strong>Shaxsiy xotira {% if request.user.ai_memory_enabled %}yoqilgan{% else %}o‘chirilgan{% endif %}</strong><small>Azure javoblarni sizning darajangizga moslaydi.</small></div>
+    <a href="{% url 'ai_memory' %}"><svg class="miniapp-icon"><use href="#icon-chevron"></use></svg></a>
+  </section>
+
+  {% if ai_rooms %}
+  <section class="miniapp-section">
+    <div class="miniapp-section-head"><div><p class="miniapp-overline">Tarix</p><h2>So‘nggi suhbatlar</h2></div><a href="{% url 'messenger:ai' %}">Barchasi</a></div>
+    <div class="miniapp-list">
+      {% for room in ai_rooms %}
+      <a class="miniapp-list-item" href="{% url 'messenger:ai_room' room.id %}">
+        <span class="chat-icon"><svg class="miniapp-icon"><use href="#icon-message"></use></svg></span>
+        <span class="list-copy"><strong>{{ room.name|default:"Azure AI suhbati" }}</strong><small>{{ room.message_count }} xabar{% if room.last_message_at %} · {{ room.last_message_at|date:"d M, H:i" }}{% endif %}</small></span>
+        <svg class="miniapp-icon list-chevron"><use href="#icon-chevron"></use></svg>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+{% endblock %}

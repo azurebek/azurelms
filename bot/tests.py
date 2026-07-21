@@ -1467,6 +1467,32 @@ class MiniAppAuthTests(TestCase):
         self.assertContains(response, "Imtihonlar")
         self.assertContains(response, "120")
 
+    def test_miniapp_dedicated_pages_require_login_and_render_navigation(self):
+        routes = (
+            ("/bot/miniapp/courses/", "O‘qishni davom ettiring", "Darslar"),
+            ("/bot/miniapp/ai/", "Bugun nimani o‘rganamiz?", "Azure AI"),
+            ("/bot/miniapp/profile/", "O‘quv profili", "Profil"),
+        )
+
+        for path, heading, active_label in routes:
+            with self.subTest(path=path):
+                anonymous = self.client.get(path)
+                self.assertEqual(anonymous.status_code, 302)
+
+                user = User.objects.create_user(
+                    username=f"mini-{active_label.lower().replace(' ', '-')}",
+                    email=f"{active_label.lower().replace(' ', '-')}@example.com",
+                    password="x",
+                )
+                self.client.force_login(user)
+                response = self.client.get(path)
+
+                self.assertEqual(response.status_code, 200)
+                self.assertNotIn("X-Frame-Options", response)
+                self.assertContains(response, heading)
+                self.assertContains(response, 'class="miniapp-nav"')
+                self.client.logout()
+
     def test_miniapp_auth_logs_user_in(self):
         import json as jsonlib
         from unittest.mock import patch
