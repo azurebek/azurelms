@@ -1415,10 +1415,13 @@ class MiniAppAuthTests(TestCase):
         self.assertEqual(safe_next_path(""), "/users/dashboard/")
 
     def test_miniapp_entry_defaults_to_dedicated_home(self):
+        regular_response = self.client.get("/users/login/")
         response = self.client.get("/bot/miniapp/")
 
+        self.assertEqual(regular_response["X-Frame-Options"], "DENY")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["next_path"], "/bot/miniapp/home/")
+        self.assertNotIn("X-Frame-Options", response)
 
     def test_local_preview_requires_login_then_opens_home(self):
         from unittest.mock import patch
@@ -1458,6 +1461,7 @@ class MiniAppAuthTests(TestCase):
         response = self.client.get("/bot/miniapp/home/")
 
         self.assertEqual(response.status_code, 200)
+        self.assertNotIn("X-Frame-Options", response)
         self.assertContains(response, "Azure AI")
         self.assertContains(response, "Darslarim")
         self.assertContains(response, "Imtihonlar")
@@ -1484,6 +1488,14 @@ class MiniAppAuthTests(TestCase):
         self.assertEqual(data["status"], "success")
         self.assertEqual(data["redirect"], "/courses/")
         self.assertEqual(int(self.client.session["_auth_user_id"]), user.id)
+        self.assertTrue(self.client.session["telegram_miniapp"])
+
+        framed_response = self.client.get("/users/dashboard/")
+        self.assertNotIn("X-Frame-Options", framed_response)
+        self.assertIn(
+            "frame-ancestors 'self' https://web.telegram.org https://*.telegram.org",
+            framed_response["Content-Security-Policy"],
+        )
 
     def test_miniapp_auth_rejects_unlinked_and_invalid(self):
         import json as jsonlib

@@ -10,6 +10,7 @@ from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.clickjacking import xframe_options_exempt
 
 from .aiogram_app import get_bot, get_dispatcher
 from .miniapp import safe_next_path, validate_init_data
@@ -54,6 +55,7 @@ def telegram_webhook(request):
         return JsonResponse({"error": "Internal server error"}, status=500)
 
 
+@xframe_options_exempt
 def miniapp_entry(request):
     """Mini App kirish sahifasi (F5).
 
@@ -79,6 +81,7 @@ def miniapp_entry(request):
     )
 
 
+@xframe_options_exempt
 @login_required
 def miniapp_home(request):
     """Telegram WebView uchun ixcham platforma markazi."""
@@ -139,6 +142,7 @@ def miniapp_auth(request):
         )
 
     login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+    request.session["telegram_miniapp"] = True
     return JsonResponse(
         {"status": "success", "redirect": safe_next_path(payload.get("next"))}
     )
