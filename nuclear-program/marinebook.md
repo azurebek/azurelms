@@ -16,6 +16,15 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-22 [Codex]: Nuclear Program solo-owner control plane'ga qayta bazalandi
+
+Uch parallel agent auditidan keyin launch reja feature-first yo'ldan poydevor→control→canonical flow→mobile parity→minimal AI outcome tartibiga o'tkazildi. Agent qoidalariga product authority, adapter boundary va feature admission gate qo'shildi; roadmap/backlog/ops/kontent bir xil ID va exit kriteriylarga moslandi. Azure AI premium claim'i structured evidence, quality/latency/cost gate va yetarli sample bo'lmaganda `INSUFFICIENT_DATA → beta` qaroriga bog'landi; bu commit faqat hujjatlarni o'zgartirdi.
+
+- Branch: `codex/nuclear-program-rebaseline`
+- Commitlar: `cf147ac`
+- Test holati: `.\venv\Scripts\python.exe manage.py check` — **0 issues**; `git diff --check` — **OK**; relative Markdown links va code fences — **OK**
+- Davom etilishi kerak: backlog `A0a` Telegram auth/webhook/access security → `A0b` private media/upload/WebSocket → `A1` production runtime/CI
+
 ## 2026-07-21 [Codex]: Telegram bot brendingi yangilandi
 
 `@azureLMSbot` uchun AzureLMS vizual tiliga mos yangi profil logosi yaratildi va loyiha ichida qayta ishlatish uchun branding asseti sifatida saqlandi. BotFather orqali profil rasmi hamda foydalanuvchiga ko'rinadigan tavsif yangilandi; ikkala o'zgarish ham BotFather muvaffaqiyat xabari bilan tasdiqlandi.
