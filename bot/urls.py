@@ -1,5 +1,13 @@
 from django.urls import path
-from .views import miniapp_auth, miniapp_entry, telegram_webhook
+from .views import (
+    miniapp_ai,
+    miniapp_auth,
+    miniapp_courses,
+    miniapp_entry,
+    miniapp_home,
+    miniapp_profile,
+    telegram_webhook,
+)
 
 app_name = 'bot'
 
@@ -10,4 +18,8 @@ urlpatterns = [
     # Mini App (F5): kirish sahifasi + initData auth-ko'prik
     path('miniapp/', miniapp_entry, name='miniapp_entry'),
     path('miniapp/auth/', miniapp_auth, name='miniapp_auth'),
+    path('miniapp/home/', miniapp_home, name='miniapp_home'),
+    path('miniapp/courses/', miniapp_courses, name='miniapp_courses'),
+    path('miniapp/ai/', miniapp_ai, name='miniapp_ai'),
+    path('miniapp/profile/', miniapp_profile, name='miniapp_profile'),
 ]

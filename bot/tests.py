@@ -1414,6 +1414,86 @@ class MiniAppAuthTests(TestCase):
         self.assertEqual(safe_next_path("https://evil.com"), "/users/dashboard/")
         self.assertEqual(safe_next_path(""), "/users/dashboard/")
 
+    def test_miniapp_entry_defaults_to_dedicated_home(self):
+        regular_response = self.client.get("/users/login/")
+        response = self.client.get("/bot/miniapp/")
+
+        self.assertEqual(regular_response["X-Frame-Options"], "DENY")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["next_path"], "/bot/miniapp/home/")
+        self.assertNotIn("X-Frame-Options", response)
+
+    def test_local_preview_requires_login_then_opens_home(self):
+        from unittest.mock import patch
+
+        with patch("bot.views.settings.IS_LOCAL", True):
+            anonymous = self.client.get("/bot/miniapp/?preview=1")
+        self.assertEqual(anonymous.status_code, 302)
+        self.assertIn("/users/login/", anonymous.url)
+
+        user = User.objects.create_user(
+            username="mini-preview", email="preview@example.com", password="x"
+        )
+        self.client.force_login(user)
+        with patch("bot.views.settings.IS_LOCAL", True):
+            authenticated = self.client.get("/bot/miniapp/?preview=1")
+        self.assertRedirects(
+            authenticated,
+            "/bot/miniapp/home/",
+            fetch_redirect_response=False,
+        )
+
+    def test_preview_parameter_is_ignored_outside_local_environment(self):
+        from unittest.mock import patch
+
+        with patch("bot.views.settings.IS_LOCAL", False):
+            response = self.client.get("/bot/miniapp/?preview=1")
+        self.assertEqual(response.status_code, 200)
+
+    def test_miniapp_home_requires_login_and_renders_platform_links(self):
+        anonymous = self.client.get("/bot/miniapp/home/")
+        self.assertEqual(anonymous.status_code, 302)
+
+        user = User.objects.create_user(
+            username="mini-home", email="home@example.com", password="x", total_xp=120
+        )
+        self.client.force_login(user)
+        response = self.client.get("/bot/miniapp/home/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("X-Frame-Options", response)
+        self.assertContains(response, "Azure AI")
+        self.assertContains(response, "Darslarim")
+        self.assertContains(response, "Imtihonlar")
+        self.assertContains(response, "120")
+        self.assertContains(response, "/static/css/miniapp.css?v=20260721-1")
+
+    def test_miniapp_dedicated_pages_require_login_and_render_navigation(self):
+        routes = (
+            ("/bot/miniapp/courses/", "O‘qishni davom ettiring", "Darslar"),
+            ("/bot/miniapp/ai/", "Bugun nimani o‘rganamiz?", "Azure AI"),
+            ("/bot/miniapp/profile/", "O‘quv profili", "Profil"),
+        )
+
+        for path, heading, active_label in routes:
+            with self.subTest(path=path):
+                anonymous = self.client.get(path)
+                self.assertEqual(anonymous.status_code, 302)
+
+                user = User.objects.create_user(
+                    username=f"mini-{active_label.lower().replace(' ', '-')}",
+                    email=f"{active_label.lower().replace(' ', '-')}@example.com",
+                    password="x",
+                )
+                self.client.force_login(user)
+                response = self.client.get(path)
+
+                self.assertEqual(response.status_code, 200)
+                self.assertNotIn("X-Frame-Options", response)
+                self.assertContains(response, heading)
+                self.assertContains(response, 'class="miniapp-nav"')
+                self.client.logout()
+
     def test_miniapp_auth_logs_user_in(self):
         import json as jsonlib
         from unittest.mock import patch
@@ -1435,6 +1515,14 @@ class MiniAppAuthTests(TestCase):
         self.assertEqual(data["status"], "success")
         self.assertEqual(data["redirect"], "/courses/")
         self.assertEqual(int(self.client.session["_auth_user_id"]), user.id)
+        self.assertTrue(self.client.session["telegram_miniapp"])
+
+        framed_response = self.client.get("/users/dashboard/")
+        self.assertNotIn("X-Frame-Options", framed_response)
+        self.assertIn(
+            "frame-ancestors 'self' https://web.telegram.org https://*.telegram.org",
+            framed_response["Content-Security-Policy"],
+        )
 
     def test_miniapp_auth_rejects_unlinked_and_invalid(self):
         import json as jsonlib
@@ -1481,6 +1569,25 @@ class OnboardingMarkupTests(TestCase):
             markup = onboarding.register_menu_markup()
         urls = [btn.url for row in markup.inline_keyboard for btn in row if btn.url]
         self.assertEqual(urls, ["https://azurelms.uz/users/register/"])
+
+    def test_student_menu_miniapp_opens_dedicated_home(self):
+        from unittest.mock import patch
+
+        from bot.routers import workspace
+
+        with patch.object(workspace.settings, "APP_DOMAIN", "azurelms.uz"):
+            markup = workspace.student_menu_markup()
+
+        webapps = [
+            button.web_app.url
+            for row in markup.inline_keyboard
+            for button in row
+            if button.web_app
+        ]
+        self.assertEqual(
+            webapps,
+            ["https://azurelms.uz/bot/miniapp/?next=%2Fbot%2Fminiapp%2Fhome%2F"],
+        )
 
 
 class IdentityResolveTests(TestCase):

@@ -114,11 +114,17 @@ SECURITY_STRICT = env_bool("SECURITY_STRICT", not IS_LOCAL)
 if SECURITY_STRICT:
     SECURE_SSL_REDIRECT = True
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
     SECURE_HSTS_SECONDS = 31536000  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+
+# Telegram Web Mini Apps iframe ichida ishlaganda session/CSRF cookie'lari
+# third-party cookie hisoblanadi. Production defaultlari o'zgarmaydi, ammo
+# HTTPS tunnel kabi muhitlar SameSite=None ni env orqali yoqa oladi.
+SESSION_COOKIE_SECURE = env_bool("SESSION_COOKIE_SECURE", SECURITY_STRICT)
+CSRF_COOKIE_SECURE = env_bool("CSRF_COOKIE_SECURE", SECURITY_STRICT)
+SESSION_COOKIE_SAMESITE = os.getenv("SESSION_COOKIE_SAMESITE", "Lax")
+CSRF_COOKIE_SAMESITE = os.getenv("CSRF_COOKIE_SAMESITE", "Lax")
 # Production Security Headers
 if SECURITY_STRICT:
     SECURE_BROWSER_XSS_FILTER = True
@@ -168,6 +174,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
+    "bot.django_middleware.TelegramMiniAppFrameMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
@@ -180,6 +187,7 @@ if SECURITY_STRICT:
         CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net")
         CSP_IMG_SRC = ("'self'", "data:", "https://*.digitaloceanspaces.com", "https://www.google-analytics.com")
         CSP_FRAME_SRC = ("'self'", "https://www.youtube.com", "https://player.vimeo.com")
+        CSP_FRAME_ANCESTORS = ("'self'", "https://web.telegram.org", "https://*.telegram.org")
         CSP_CONNECT_SRC = ("'self'", "https://www.google-analytics.com", f"wss://{APP_DOMAIN}" if APP_DOMAIN else "ws://localhost:8000")
     else:
         print("Warning: SECURITY_STRICT is enabled, but django-csp is not installed; skipping CSP middleware.")

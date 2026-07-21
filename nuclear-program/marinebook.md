@@ -16,6 +16,53 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-22 [Codex]: Nuclear Program solo-owner control plane'ga qayta bazalandi
+
+Uch parallel agent auditidan keyin launch reja feature-first yo'ldan poydevor→control→canonical flow→mobile parity→minimal AI outcome tartibiga o'tkazildi. Agent qoidalariga product authority, adapter boundary va feature admission gate qo'shildi; roadmap/backlog/ops/kontent bir xil ID va exit kriteriylarga moslandi. Azure AI premium claim'i structured evidence, quality/latency/cost gate va yetarli sample bo'lmaganda `INSUFFICIENT_DATA → beta` qaroriga bog'landi; bu commit faqat hujjatlarni o'zgartirdi.
+
+- Branch: `codex/nuclear-program-rebaseline`
+- Commitlar: `cf147ac`
+- Test holati: `.\venv\Scripts\python.exe manage.py check` — **0 issues**; `git diff --check` — **OK**; relative Markdown links va code fences — **OK**
+- Davom etilishi kerak: backlog `A0a` Telegram auth/webhook/access security → `A0b` private media/upload/WebSocket → `A1` production runtime/CI
+
+## 2026-07-21 [Codex]: Telegram bot brendingi yangilandi
+
+`@azureLMSbot` uchun AzureLMS vizual tiliga mos yangi profil logosi yaratildi va loyiha ichida qayta ishlatish uchun branding asseti sifatida saqlandi. BotFather orqali profil rasmi hamda foydalanuvchiga ko'rinadigan tavsif yangilandi; ikkala o'zgarish ham BotFather muvaffaqiyat xabari bilan tasdiqlandi.
+
+- Branch: `codex/mini-app-interface-prototype`
+- Commitlar: `8346631`
+- Test holati: logo preview vizual QA — **OK**; BotFather description update — **Success**; BotFather profile photo update — **Success**
+- Davom etilishi kerak: Telegram keshi yangilangach bot profilining boshqa klientlarda ham tarqalishini kuzatish
+
+## 2026-07-21 [Codex]: Telegram Mini App alohida mobil interfeysi
+
+Telegram Mini App endi katta sayt sahifalariga tayangan bitta home emas, umumiy mobil shell ichidagi to'rtta alohida bo'limga ega: Bosh sahifa, Darslar, Azure AI va Profil. Yangi sahifalar real enrollment, AI suhbatlari va foydalanuvchi sozlamalari bilan ishlaydi; mavjud `initData`, lokal preview va iframe session oqimlari saqlandi. 390x844 va 720x900 browser QA'da active navigatsiya, responsive grid, overflow va console holati tekshirildi. Telegram Web eski CSS'ni cache'da ushlab qolgan holat asset URL versiyasi bilan bartaraf etildi va real iframe'da qayta tasdiqlandi.
+
+- Branch: `codex/mini-app-interface-prototype`
+- Commitlar: `629a045`, `5d30cb8`
+- Test holati: `python manage.py test bot` — **70/70 OK**; `python manage.py test bot.tests.MiniAppAuthTests` — **10/10 OK**; `python manage.py check` — **0 issues**; browser QA — gorizontal overflow va console xatolari yo'q
+- Davom etilishi kerak: real Telegram WebView'da production theme/safe-area sinovi va foydalanuvchi fikriga ko'ra vizual iteratsiya
+
+## 2026-07-21 [Codex]: Telegram Web Mini App real iframe sinovi
+
+Ngrok orqali real Telegram Web Mini App oqimi tekshirildi va ikki blok bartaraf etildi: Django `X-Frame-Options: DENY` hamda iframe ichidagi third-party session cookie. Mini App kirish/home endpointlari iframe uchun ochildi; Telegram HMAC orqali tasdiqlangan sessionlargagina platforma bo'ylab `web.telegram.org` frame ruxsati beradigan middleware qo'shildi. Real Telegram sinovida `admin` sessiyasi bilan Mini App home va ichkaridagi Azure AI sahifasi muvaffaqiyatli ochildi.
+
+- Branch: `codex/local-development-session`
+- Commitlar: `20e6660`
+- Test holati: `python manage.py test bot` — **69/69 OK**; `python manage.py test bot.tests.MiniAppAuthTests` — **9/9 OK**; `python manage.py check` — **0 issues**; real Telegram Web iframe QA — home va Azure AI ochildi
+- Davom etilishi kerak: production deployda `SESSION_COOKIE_SAMESITE=None` va `SESSION_COOKIE_SECURE=True` qiymatlarini HTTPS muhitida berish
+
+## 2026-07-21 [Codex]: Telegram Mini App lokal workspace
+
+Telegram Mini App auth-ko'prigi alohida mobil platforma home sahifasi bilan kengaytirildi: kurslar, Azure AI, imtihon, davomat, sertifikat, to'lov, reyting va yordam oqimlariga bitta WebView markazidan o'tiladi. `APP_ENV=local` uchun oddiy Django login talab qiladigan xavfsiz `?preview=1` rejimi qo'shildi; production Telegram `initData` HMAC oqimi o'zgarmadi. Mobil 390×844 va desktop browser QA'da overflow hamda console xatolari kuzatilmadi.
+
+- Branch: `codex/local-development-session`
+- Commitlar: `77cfaba`
+- Test holati: `python manage.py test bot` — **69/69 OK**; `python manage.py test` — **321/321 OK**; `python manage.py check` — **0 issues**
+- Davom etilishi kerak: public HTTPS domen bilan Telegram WebView'da real `initData` sinovi va BotFather Menu Button aktivatsiyasi
+
+---
+
 ## 2026-07-21 [Codex]: Telegram branch main'ga tayyorlandi
 
 `antigravity/telegram-bot-prod` dagi 20 ta commit `main` ustiga fast-forward qilish uchun tekshirildi. Integratsiya oldidan buzilgan `python manage.py runbot` entrypoint lazy `get_bot()` / `get_dispatcher()` API'ga moslandi va regression test bilan himoyalandi.

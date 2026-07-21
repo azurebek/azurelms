@@ -1,0 +1,52 @@
+{% extends "bot/miniapp_base.html" %}
+{% block title %}Darslar{% endblock %}
+{% block header_label %}Darslar{% endblock %}
+{% block content %}
+  <section class="miniapp-page-intro">
+    <p class="miniapp-eyebrow">Mening kurslarim</p>
+    <h1>O‘qishni davom ettiring</h1>
+    <p>Barcha kurslar, progress va keyingi qadamlar bir joyda.</p>
+  </section>
+
+  <section class="miniapp-course-summary">
+    <div><span class="summary-orbit">{{ active_enrollments|length }}</span><span><strong>Faol kurslar</strong><small>Hozir davom etmoqda</small></span></div>
+    <a href="{% url 'courses' %}">Yangi kurs <svg class="miniapp-icon"><use href="#icon-plus"></use></svg></a>
+  </section>
+
+  {% if active_enrollments %}
+  <section class="miniapp-section first">
+    <div class="miniapp-section-head"><div><p class="miniapp-overline">Faol</p><h2>Davom etayotgan kurslar</h2></div></div>
+    <div class="miniapp-course-stack">
+      {% for enrollment in active_enrollments %}
+      <article class="miniapp-course-card">
+        <div class="course-card-top">
+          <span class="course-monogram large">{{ enrollment.cohort.course.title|slice:":2"|upper }}</span>
+          <span class="course-card-copy"><small>{{ enrollment.cohort.name }}</small><strong>{{ enrollment.cohort.course.title }}</strong></span>
+          <span class="course-percent">{{ enrollment.dashboard_progress }}%</span>
+        </div>
+        <div class="miniapp-meter"><span style="width:{{ enrollment.dashboard_progress }}%"></span></div>
+        <div class="course-meta"><span><svg class="miniapp-icon"><use href="#icon-check"></use></svg>{{ enrollment.dashboard_completed_lessons }} dars</span><span><svg class="miniapp-icon"><use href="#icon-target"></use></svg>{{ enrollment.dashboard_total_lessons }} jami</span></div>
+        <a href="{% url 'course_study' enrollment.cohort.course_id %}?cohort={{ enrollment.cohort_id }}">Davom ettirish <svg class="miniapp-icon"><use href="#icon-arrow"></use></svg></a>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if enrollments %}
+  <section class="miniapp-section">
+    <div class="miniapp-section-head"><div><p class="miniapp-overline">Arxiv</p><h2>Barcha kurslar</h2></div><span>{{ enrollments|length }} ta</span></div>
+    <div class="miniapp-list">
+      {% for enrollment in enrollments %}
+      <a class="miniapp-list-item" href="{% url 'course_study' enrollment.cohort.course_id %}?cohort={{ enrollment.cohort_id }}">
+        <span class="course-monogram muted">{{ enrollment.cohort.course.title|slice:":2"|upper }}</span>
+        <span class="list-copy"><strong>{{ enrollment.cohort.course.title }}</strong><small>{{ enrollment.dashboard_status_label }} · {{ enrollment.dashboard_completed_lessons }}/{{ enrollment.dashboard_total_lessons }} dars</small></span>
+        <svg class="miniapp-icon list-chevron"><use href="#icon-chevron"></use></svg>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% else %}
+  <section class="miniapp-empty-state"><span><svg class="miniapp-icon"><use href="#icon-book"></use></svg></span><h2>Kurslar hali yo‘q</h2><p>Turk tilini o‘rganishni boshlash uchun katalogdan kurs tanlang.</p><a href="{% url 'courses' %}">Katalogni ochish</a></section>
+  {% endif %}
+{% endblock %}

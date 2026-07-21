@@ -1,176 +1,155 @@
-# 02 — Yo'l xaritasi: 11-iyul → 20-sentyabr (71 kun)
+# 02 — Yo'l xaritasi: 22-iyul → 20-sentyabr (60 kun)
 
-*Model: platforma = Azurbek jonli kursining dastagi (01-strategiya §0). Fazalar ketma-ket; KONTENT (video darslar — Azurbek + mock/test kontenti) va MARKETING parallel yo'lak. Har faza oxirida chiqish-kriteriy — o'tmasa scope qisqaradi, sana emas.*
+*Rebaseline: 2026-07-22. Model: AzureLMS — Azurbek boshqaradigan bitta kurs operatsion tizimi. Fazalar sana bilan emas, exit kriteriy bilan yopiladi. Oldingi faza gate'dan o'tmasa keyingi faza scope'i qisqaradi; yangi subsystem ochilmaydi.*
+
+## Qat'iy ishlash tartibi
+
+1. **Bitta active product slice:** bir paytda faqat bitta canonical flow state'i o'zgaradi; agentlar uning test, UI va ops qismlarida parallel ishlashi mumkin.
+2. **Poydevor featuredan oldin:** security, deploy, CI va control keyinga surilmaydi; mobile parity P0'dan boshlab har slice'ning cross-cutting gate'i.
+3. **Adapterlar state yaratmaydi:** Web, bot, Mini App va AI canonical service/policy'ni chaqiradi.
+4. **Evidence-first:** `EVIDENCE READY` bo'lmagan feature marketing claim yoki premium entitlement bo'lmaydi.
+5. **Scope freeze:** `03-mahsulot-backlog.md`dagi `NEXT/CUT` bandlari launch-critical ishni siqib chiqarmaydi.
+6. **Haftalik owner review:** juma kuni Control Center stoplight, tests, flow video, cost/quality va backlog admission qayta ko'riladi.
 
 ## Umumiy manzara
 
-```
-IYUL                    AVGUST                      SENTYABR
-11───15│16──────────5│6──────────24│25────────7│8──────16│17──20
-  P0   │     P1      │     P2      │    P3     │   P4    │  P5
-Poydevor│ Farqlovchi  │ Odat halqasi│ Ishonch + │Qattiqlash│Launch
-qarorlar│ yadro +     │ + 1-DEPLOY  │ KUZGI     │ + demo  │
-        │ ustoz oqimi │             │ GURUH 1sen│ aktivlar│
-────────┴─────────────┴─────────────┴───────────┴─────────┴──────
-KONTENT: [video yozish jadvali ──── har hafta N ta dars ────][muzlatish 13sen]
-         [placement bank][mock №1 yozma][mock og'zaki][mock №2]
-MARKETING: [bitiruvchi testimoniallar][TG kanal ~10avg][kuzgi guruh qabuli][launch]
+```text
+22–28 IYUL     29 IYUL–9 AVG     10–23 AVG       24 AVG–6 SEN      7–16 SEN       17–20 SEN
+P0             P1                P2              P3                P4              P5
+STOP-SHIP  →   CONTROL/POLICY →  GOLDEN FLOW  →  OUTCOME LOOP  →   BETA/GATES  →   LAUNCH
+security       canonical state   mobile parity   structured AI     hardening        only proven
+runtime        CI/observability   owner console   proof/escalate    price pilot      capabilities
 ```
 
-**Qat'iy qoidalar:**
-1. **Scope-freeze:** 03-backlog KESISH ro'yxati muqaddas.
-2. **Juma — yashil kun:** testlar yashil + tree toza + marinebook.
-3. **Jonli kurs birinchi o'rinda:** Azurbekning dars jadvali qurilishdan aziyat chekmasin — video-yozish bloklari haftalik rejaga *oldindan* qo'yiladi.
+Kontent va marketing parallel yuradi, lekin kod fazasining gate'ini chetlab o'tmaydi. 1-sentyabr beta faqat P0–P2 exit'lari yashil bo'lsa real to'lovli **core kurs** cohortiga ochiladi; AI Outcome capability P3 premium gate'igacha free beta/add-on yoki feature-flag off bo'ladi. P0–P2 yopilmasa Telegram fallback bilan cheklangan pilot qoladi.
 
 ---
 
-## P0 — Poydevor va qarorlar (11–15 iyul)
+## P0 — Stop-ship poydevor (22–28 iyul)
 
-| # | Vazifa | Kim |
-|---|---|---|
-| 0.1 | `claude/ai-context-understanding` → smoke → **main merge** + `reindex_ai_memory` | Claude |
-| 0.2 | B4: settings AI-model ro'yxatini DO'ga moslash | Claude |
-| 0.3 | **Kurs dasturi kiritiladi:** Azurbek mavjud o'quv dasturini modul/dars ro'yxatiga tushiradi (04-hujjat shabloni) — platforma strukturasi shundan quriladi | Azurbek |
-| 0.4 | **Qarorlar:** kurs narxi (joriy narx + platforma bilan yangi narx), video-yozish haftalik jadvali (nechta dars/hafta real?), slogan, taqdimot auditoriyasi | Azurbek |
-| 0.5 | **"Qardosh tilga B2" talqinini tasdiqlash** (211-buyruq izohi) — marketing va'dasidan oldin | Azurbek+Claude |
-| 0.6 | UZBMB turk tili imtihon spetsifikatsiyasi/demo variantini topib olish (mock dizayni uchun) + 2026–27 imtihon taqvimi | Claude |
-| 0.7 | Bitiruvchilardan testimonial/natija-ruxsat yig'ishni boshlash (eng kuchli marketing aktivi) | Azurbek |
-| 0.8 | Domen/hosting inventarizatsiyasi (DO App Platform, SSL, email provayder) | Claude |
+**Maqsad:** production va user data'ni featurelardan oldin himoyalash.
 
-**Chiqish:** main yashil; kurs dasturi hujjatda; narx/jadval qarorlari yozilgan; UZBMB format hujjati qo'lda.
+- Telegram login tokenini bir martalik va expiry'li qilish; webhook default secret/secret loggingni yo'qotish; inactive staffni bot admin deb qabul qilmaslik.
+- Payment receipt, assignment, messenger attachment va exam audio uchun private media yo'li; upload MIME/magic-byte/size validatsiyasi.
+- Production-like muhitda broker/cache/channel `memory://` yoki in-memory'ga jim fallback qilmasin.
+- `telegram_outbox --loop`ni alohida 1-replica process qilish va end-to-end DM smoke.
+- `.dockerignore`; local secret/DB/media/venv image'ga kirmasligi.
+- Minimal CI: check, deploy check, migration drift, full tests, collectstatic, secret/dependency scan.
+- `/healthz`/readiness: DB, cache/channels, broker va critical workerlar.
+- Telegram auth/payment/access permission regressionlari.
+- Har P0 fixining tegishli mobile auth/upload/access smoke'i.
 
----
+**Ketma-ket cutline:** avval A0 security, keyin A1 runtime. Bir haftaga sig'masa private-media yoki CI scope'i kesilmaydi; keyingi feature fazasi suriladi.
 
-## P1 — Farqlovchi yadro + ustoz oqimi (16-iyul – 5-avgust, 3 hafta)
+**Exit — hammasi kerak:** critical auth/webhook/private-media finding yopilgan; CI required checks yashil; broker fail-fast; outbox DM smoke; `check --deploy`; isolated targetga initial backup restore proof. Yopilmasa yangi AI skill, SRS, streak yoki placement build boshlanmaydi.
 
-**Maqsad:** kursni platformada o'tkazish uchun kerak hamma narsa silliq + farqlovchi qismlar ishlaydi.
+## P1 — Control plane va canonical policy (29-iyul – 9-avgust)
 
-### Hafta 1 (16–22 iyul): Ustoz kun-oqimi (IH-1) + exam JS qarzi
-- **A0 "Dars kuni" oqimi:** o'qituvchi panelida bitta sahifa — bugungi jonli dars: davomat (bot check-in natijasi ko'rinadi/qo'lda to'g'irlanadi), "darsni ochish" tugmasi (CohortLessonRelease + video dars + vazifa aktiv + o'quvchilarga xabar), navbatdagi vazifa-tekshiruvlar
-- Exam JS jonli brauzer sinovi (recorder/audio-limit/autosave/timer) — mock'lar bunga tayanadi
-- Bot davomat oqimini jonli guruhda sinash (start_lesson → check-in → jurnal)
+**Maqsad:** Azurbek bir joydan haqiqat, health, release va kill switchlarni ko'rsin.
 
-### Hafta 2 (23–29 iyul): Daraja testi (IH-5) + AI skilllar
-- Placement test to'liq oqim (anonim → natija → "kuzgi guruhga yozil" CTA → registratsiya)
-- `word_builder` + `conversation_partner` skilllari (sticky ro'yxat bilan)
+- Mavjud `aicontrol`ni yangi subsystem qilmay, owner-only **Azure Control Center v0**ga kengaytirish: status, queues, flags, audit va effective config; chuqur analytics keyin.
+- Capability registry: DB, cache/channels, broker, workers, Telegram webhook/outbox, media, AI provider, RAG, memory va backup.
+- Effective config: global → plan → cohort → user; runtime qaysi model/policy ishlatayotganini ko'rsatish.
+- Feature flags/kill switches; release record; append-only system audit; correlation/idempotency key contract.
+- Permission matrix: superuser control mutationlari; teacher faqat explicit course/cohort scope; student faqat o'z state/media'si.
+- Alohida domain contractlar: `LessonRun` (schedule/live/check-in), `LessonAccess` (locked/released), `AssignmentLifecycle` (open/submitted/reviewed); bitta Lesson Orchestrator ularni owner flow'ida aggregate qiladi.
+- Alohida `Application`, `Payment` va `Enrollment/Entitlement` state graphlari; Control Center bitta aggregate ko'rsatadi, mega-state yaratilmaydi.
+- P1'da contract/service/test foundation; teacher/student UI va adapter migration P2'da tugaydi.
+- AI uchun system-role, untrusted context separation, 20s global deadline, maksimal bitta fallback va quota/cost reservation dizayni.
+- A9 eval foundation: rubric/schema, 50 ta critical golden case va CI smoke; premium gate keyin.
 
-### Hafta 3 (30-iyul – 5-avg): SRS lug'at v1 (kunlik odat yadrosi)
-- `vocab` app: modellar + soddalashtirilgan SM-2 + sessiya UI + dars-lug'atidan avto-to'ldirish + dashboard karta
+**Exit:** `/backoffice/control/` v0 ownerga effective config, queues, flags, audit va release stoplightni ko'rsatadi; uchta learning va uchta acquisition state contracti permission/idempotency testli; staff scope default-deny; AI eval schema va 50 critical case CI'da. UI migration P2'ga aniq qoladi.
 
-**Parallel kontent:** video darslar yozish boshlanadi (0.4 jadvali bo'yicha); placement bank 60 savol; mock №1 yozma qism drafti; ko'priklar 1–10.
+## P2 — Oltin oqim va mobil parity (10–23 avgust)
 
-**Chiqish:** ustoz test-kohortda to'liq dars-siklini bir tugmalar bilan o'tkaza oladi; yangi foydalanuvchi placement→dars→AI→SRS zanjiridan o'tadi; exam JS tasdiqlangan.
+**Maqsad:** learner va owner asosiy siklini real telefonlarda barqaror qilish.
 
----
+- O'quvchi: registration/login/Telegram claim → checkout/receipt → active enrollment → released lesson → quiz/assignment → feedback → mock/result; P1 canonical servicelariga adapter migration.
+- Ustoz: bugungi dars → attendance → release → grading queue → feedback; P1 Lesson Orchestrator ustidagi bitta control point.
+- AI navigator platformadagi ayni release/access policy'ni chaqiradi; locked lesson tavsiya qilmaydi.
+- Messenger 320–414px layout, WebSocket reconnect va access recheck; lesson header 360px; exam 568×320/640×360 landscape.
+- Android Chrome, iOS Safari va desktop Chrome'da keyboard, upload/mic, empty/error, dark/light va accessibility smoke.
+- Checkout course/cohort/plan bog'lanishi va inactive default cohort reactivation xatosi yopiladi.
+- Placement/waitlist faqat core acquisition flow'ga zarar bermasa deterministic minimal ko'rinishda.
 
-## P2 — Odat halqasi + birinchi DEPLOY (6–24 avgust)
+**Exit:** fresh account bilan oltin yo'l 3 qurilmada video-evidence; critical parity incident `0`; owner routine flow'ni developer/DB yordamisiz tugatadi; core flow success `≥98%`.
 
-### Hafta 1 (6–12 avg): DEPLOY (launch'dan 6 hafta oldin — ataylab erta)
-- DO App Platform: Postgres+pgvector, Valkey, Spaces, Daphne+worker+beat, `SECURITY_STRICT=True`, webhook-rejim bot
-- Sentry + uptime + kunlik backup + **restore mashqi**; `/healthz`
-- Analytics: Plausible/Umami + o'z ProductEvent jadvali
+## P3 — Learner Outcome Loop minimal slice (24-avgust – 6-sentyabr)
 
-### Hafta 2 (13–19 avg): Telegram ritm (IH-4) + streak
-- Kunlik "Bugungi ko'prik" + **"bugun 20:00 jonli dars" eslatmalari** + vazifa muddati + dars-ochildi xabarlari (A0 bilan ulanadi)
-- Streak (haqiqiy modeli) + freeze; dashboard+bot ko'rinishi
+**Maqsad:** AI'ni generic chatdan o'lchanadigan o'quv jarayoniga aylantirish.
 
-### Hafta 3 (20–24 avg): Shaffoflik va oqim
-- "Mening natijalarim" ko'rinishi (IH-7): davomat+vazifa+quiz+mock bir sahifada
-- Freemium simlari: bepul qatlam (placement, 1 mock yozma, AI-lite, namunaviy dars) → kursga yozilish oqimi
-- "Azure haftaligi" hisobot + sertifikat-tayyorgarlik % vidjeti
+- Launch data contracti faqat uchta model: `PracticeSession`, `LearnerAttempt`, `MasteryEvidence`. Objective va review policy versionlangan fields/config orqali; yangi taxonomy/scheduler modeli faqat dalil bo'lsa.
+- Daily Coach: joriy dars, quiz/assignment xatosi va due review'dan deterministic 10–15 daqiqalik plan.
+- Bitta stateful practice mode: bir item → learner javobi → hint/retry → feedback → transfer check; answer key oldindan yo'q.
+- Minimal Progress Proof: oldingi/yangi natija va next action. Writing Revision va Teacher Inbox faqat P4/NEXT pilot.
+- Eval: P1'dagi 50 case'ni 75 critical case'gacha kengaytirish; prompt injection, access, Turkish correctness, CEFR va grounding. Premium narx gate'i uchun P4'da ≥150.
 
-**Parallel kontent:** video darslar davom; mock №1 to'liq (yozma) dvigatelga kiritilgan; og'zaki mock promptlari.
+**Exit:** bitta structured activity success `≥98%`; first activity completion `≥60%`; critical access/safety `0`; Turkish correctness `≥92%`; grounded support `≥95%`; p95 text `<8s`; 75-case eval va feature flag Control Center'da. Gate o'tmasa generic AI beta qoladi, premium claim yopiq.
 
-**Parallel marketing:** ~10-avg Telegram kanal start (ko'priklar + "sertifikat yo'li" postlari); **kuzgi guruh qabuli e'loni** (avgust oxiri).
+## P4 — Beta, hardening va narx piloti (7–16 sentyabr)
 
-**Chiqish:** prod'da to'liq sikl ishlaydi (yozilish→chek→tasdiq→dars→vazifa→AI→xabarlar); mock №1 topshirsa bo'ladi; restore sinalgan.
+**Maqsad:** real cohortda reliability, learning value, owner workload va economicsni isbotlash.
 
----
+- Kichik cohort rollout: avval staff, keyin 10–15 learner, so'ng kuzgi guruh; har bosqich flag bilan.
+- Backup restore mashqi, rollback drill, owner kill-switch drill, load/queue/outbox/private-media smoke.
+- Daily triage: Control Center stoplight + Sentry/log + user feedback + teacher review queue.
+- AI price ledger va per-user/day/global spend circuit breaker; budget 80% alert, 100% configured degradation/kill switch.
+- Learning/teacher baseline va post: correction rate va pre/post accuracy. Writing/teacher-review metrikasi faqat conditional pilot ochilsa.
+- Honest pricing smoke: outcome capability va human SLA; token/unlimited claim yo'q.
+- Writing Revision/Teacher Inbox faqat A7 + A9 gate o'tsa va owner capacity bo'lsa kichik flagli pilot; launch sharti emas.
+- 13-sentyabr: kontent va scope freeze; faqat Sev-0/Sev-1 blocker fix.
 
-## P3 — Ishonch + KUZGI GURUH START (25-avgust – 7-sentyabr)
+**Exit:** fresh production-like restore revalidation, rollback/kill switch va 7+ kun critical incidentsiz; `05-launch-ops.md` metric contract bo'yicha `N≥50` completed activities va `N≥20` learner bo'lmasa AI `INSUFFICIENT_DATA → beta`; premium pricing uchun ≥150 eval case va paid-user/cost denominator yetarli bo'lishi shart.
 
-**1-sentyabr: kuzgi jonli guruh platformada boshlanadi — bu bizning beta.** Real o'quvchilar, real to'lov, real darslar; launch kuni "3 haftalik jonli tizim" ko'rsatamiz, demo emas.
+## P5 — Taqdimot va boshqariladigan launch (17–20 sentyabr)
 
-### Hafta 1 (25–31 avg): konversiya va to'lov
-- Landing yangi pozitsiyada (S1 xabari: sertifikat yo'li; ustoz + natijalar; daraja testi CTA; kuzgi guruh qabuli)
-- To'lov UX + **admin Telegram-ping** (yangi chek → 2 soat ichida tasdiqlash SLA)
-- Mobil audit (360px hamma asosiy oqim) + PWA manifest
-- Kuzgi guruh onboarding tayyorgarligi: yozilish → guruhga ulanish → birinchi hafta ssenariysi
-
-### Hafta 2 (1–7 sen): guruh jonli + QA
-- 1-sen: birinchi jonli dars platforma bilan (davomat→ochilish→vazifa→xabarlar zanjiri jonli!)
-- Kunlik kuzatuv: analytics + guruh feedback → tez fixlar
-- QA to'liq matritsa (05-hujjat): mobil imtihon (mikrofon!), websocket, bo'sh/to'la holatlar
-- Qo'shimcha beta-to'lqin: kanal obunachilaridan 10–15 kishi bepul qatlamga (oqim sinovi)
-
-**Chiqish:** guruh 1 hafta uzilishsiz o'qidi; P0/P1 bug nol; to'lov real cheklar bilan ishladi; testimonial yig'ish boshlandi.
-
----
-
-## P4 — Qattiqlash (8–16 sentyabr)
-
-- Guruh/beta topilmalari yopiladi; performance (AI <3s median start, N+1, statika)
-- **AI tannarx hisobi** (real guruh ma'lumotidan) → limit/narx tasdig'i
-- Xavfsizlik o'tishi + launch checklist (05) 100%
-- Marketing aktivlari: 2-daq demo video, taqdimot slaydlar, launch-hafta 10 post
-- **13-sen: kontent muzlatish** (yangi material yo'q, faqat fix)
-
-**Chiqish:** prod 7+ kun barqaror; checklist yashil; demo aktivlar tayyor.
+- 17-sen: demo account, release record va claim-evidence freeze.
+- 18-sen: repetitsiya №1 va fallback video.
+- 19-sen: faqat blocker fix, repetitsiya №2, Control Center RED/AMBER drill.
+- 20-sen: `README.md` go/no-go bo'yicha qaror. Faqat `EVIDENCE READY` capability'lar ochiladi.
+- Demo: “bir learnerning haftasi” va “owner bir markazdan nazorat qiladi”; AI chat soni emas, outcome proof va teacher handoff ko'rsatiladi.
 
 ---
 
-## P5 — Taqdimot va launch (17–20 sentyabr)
+## Parallel yo'laklar
 
-- 17: demo-akkauntlar + taqdimot final; 18: **repetitsiya №1**; 19: fixlar + **repetitsiya №2** + fallback video
-- **20-sen: TAQDIMOT + ommaviy ochilish** — daraja testi keng e'lon, founder-taklif, kun bo'yi monitoring navbati
-- Demo yadrosi: real kuzgi guruhning 3 haftalik jonli ma'lumoti + "bir o'quvchining haftasi" ssenariysi (05)
-
----
-
-## Parallel yo'laklar xulosasi
-
-| Yo'lak | P1 | P2 | P3 | P4 |
+| Yo'lak | P0–P1 | P2 | P3 | P4–P5 |
 |---|---|---|---|---|
-| **Video darslar** (Azurbek) | jadval start | davom | davom (guruh bilan sinxron) | muzlatish 13-sen |
-| **Mock/test kontenti** | placement 60, mock№1 draft | mock№1 jonli, og'zaki promptlar | mock№2 | — |
-| **Marketing** | testimonial yig'ish | TG kanal, guruh qabuli | guruh start hikoyalari | demo video, postlar |
-| **Ops** | — | deploy, Sentry, backup | guruh monitoringi | checklist, xavfsizlik |
-
----
+| **Kontent** | curriculum/objective taxonomy, mock format | minimal lesson/mock bank | practice + writing rubric cases | freeze va faqat xato tuzatish |
+| **Marketing** | claim audit, testimonial ruxsatlari | waitlist va beta taklif | beta copy, “AI beta” halolligi | faqat evidence-ready claimlar |
+| **Ops** | CI, private media, workers, Control Center | device/flow matrix | AI eval/cost telemetry | restore/rollback/launch monitoring |
+| **Owner** | scope/admission, permission matrix | oltin flow sign-off | rubric/eval sign-off | pricing va go/no-go |
 
 ## Risk reestri
 
-| # | Risk | Ehtimol | Zarba | Javob |
-|---|---|---|---|---|
-| R1 | **Video darslar kechikadi** (Azurbek vaqti — eng uzun ustun) | Yuqori | Yuqori | P0'da real haftalik jadval; jonli guruh baribir o'qiy oladi (video darsdan keyin ham chiqsa bo'ladi — jonli dars birlamchi!); minimal launch-to'plam: guruhning 1-oyi uchun yetarli darslar |
-| R2 | **Prod deploy qilinmagan** | Aniq | Yuqori | P2 boshida, launch'dan 6 hafta oldin |
-| R3 | **Jonli kurs + qurilish parallel yuki** | Yuqori | Yuqori | Video-bloklar kalendarga oldindan; scope-freeze; AI-agentlar kod/kontent qoralamasini ko'taradi |
-| R4 | **Kuzgi guruh platformada qiynaladi** (beta og'riqlari real mijozlarda) | O'rta | Yuqori | P1'da ustoz-oqimi test-kohortda sinaladi; 1-hafta kunlik kuzatuv; Telegram-guruh zaxira kanal sifatida qoladi (hech narsa yo'qolmaydi) |
-| R5 | AI xarajat | O'rta | O'rta | aicontrol limitlar kun-1'dan; telemetriya bor; P4 hisob |
-| R6 | Mobil UX oqsashi | O'rta | Yuqori | P3 audit majburiy; guruh asosan telefonda — 1-haftada bilinadi |
-| R7 | Exam JS sinalmagan | Aniq | O'rta | P1-h1 yopiladi |
-| R8 | To'lov qo'lda | O'rta | O'rta | Telegram-ping + SLA; Payme/Click post-launch |
-| R9 | UZBMB format ma'lumoti yetarsiz (mock aniqligi) | O'rta | O'rta | P0.6 tadqiqot; topshirgan o'quvchilardan so'rov (Azurbekda bor!); "formatga YAQIN mashq" halol yorlig'i |
-| R10 | Bot token/env gotcha | Past | O'rta | hujjatlangan; webhook health monitoringda |
-
----
-
-## Metrikalar
-
-**Instrumentatsiya P2:** Plausible/Umami + ProductEvent.
-
-| Bosqich | Metrika | Maqsad |
+| # | Risk | Javob |
 |---|---|---|
-| P3 | Kuzgi guruh platformaga to'liq o'tgan | 100% |
-| P3 | Guruhda vazifa topshirish ulushi (1-hafta) | ≥70% |
-| P3 | Guruh D7 platforma-qaytish | ≥60% (jonli kurs bor — baland bo'lishi kerak) |
-| Pre-launch | TG kanal obunachi | 300+ |
-| Launch hafta | Yangi registratsiya | 100+ |
-| Launch hafta | Daraja testi tugatish | 200+ |
-| Launch hafta | Yangi kurs-arizalar (chek) | 15+ |
-| Doimiy | AI javob starti (median) | <3s |
-| Doimiy | O'quvchi-haftasiga AI tannarx | marja ichida (P4) |
+| R1 | Solo-owner capacity featurelar orasida yoyiladi | Bir active product slice; admission gate; NEXT/CUT qat'iy |
+| R2 | Security yoki private data incident | P0 stop-ship; private media; permission tests; no marketing before closure |
+| R3 | Adapter policy drift | Canonical service + parity contract + system audit |
+| R4 | Worker/outbox jim ishlamaydi | Broker fail-fast, heartbeat, queue age, 1 outbox replica, e2e smoke |
+| R5 | AI javobi yaxshi ko'rinadi, lekin o'qitmaydi | Structured outcome, teacher-authored eval va learning KPI |
+| R6 | AI cost/latency marjani buzadi | 20s deadline, one fallback, ledger/reservation, circuit breaker |
+| R7 | Mobil asosiy flow buziladi | P2 oldingi gate; real Android/iOS/landscape evidence |
+| R8 | Beta real learnerga zarar beradi | Progressive flag rollout, Telegram fallback, rollback/kill switch |
+| R9 | Video/mock kontent kechikadi | Minimal cohort slice; live lesson birlamchi; kontent scope qisqaradi |
+| R10 | Claim capabilitydan oldinga o'tadi | Claim-evidence register; NO-GO yoki beta label |
+
+## Asosiy metrikalar
+
+| Guruh | Metrika | Gate |
+|---|---|---:|
+| Reliability | core structured flow success | `≥98%` |
+| Access/safety | critical violation | `0` |
+| Mobile | critical parity/overflow/blocking issue | `0` |
+| AI quality | Turkish correctness / grounded support | `≥92% / ≥95%` |
+| AI latency | text p50 / p95; queue p95 | `≤3s / <8s; ≤1s` |
+| Learning | practice pre/post yoki writing rubric delta | `+15 pp` yoki `+0.5/5` |
+| Adoption | first activity completion | `≥60%` |
+| Teacher | review time reduction | `≥30%` premium target |
+| Economics | incremental AI cost / premium revenue | `≤25%` |
+| Owner control | manual DB rescue / unknown RED state | `0 / 0` |
 
 ---
 
-*Keyingi: [03-mahsulot-backlog.md](03-mahsulot-backlog.md).*
+*Keyingi source of truth: [03-mahsulot-backlog.md](03-mahsulot-backlog.md).*

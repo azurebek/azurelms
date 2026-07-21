@@ -1,0 +1,75 @@
+{% load static %}<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#f4f7fb">
+  <title>{% block title %}AzureLMS{% endblock %} · Mini App</title>
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/miniapp.css' %}?v=20260721-1">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+  <div class="miniapp-shell">
+    <header class="miniapp-head">
+      <a class="miniapp-brand" href="{% url 'bot:miniapp_home' %}" aria-label="AzureLMS Mini App bosh sahifasi">
+        <span class="miniapp-brand-mark">A</span>
+        <span class="miniapp-brand-copy"><strong>AzureLMS</strong><small>{% block header_label %}Mini App{% endblock %}</small></span>
+      </a>
+      <a class="miniapp-icon-button" href="{% url 'notifications' %}" aria-label="Bildirishnomalar">
+        <svg class="miniapp-icon" aria-hidden="true"><use href="#icon-bell"></use></svg>
+        {% if unread_notifications_count %}<b>{{ unread_notifications_count }}</b>{% endif %}
+      </a>
+    </header>
+
+    <main class="miniapp-main">
+      {% if is_local_preview %}<div class="miniapp-preview"><span></span>Lokal preview</div>{% endif %}
+      {% block content %}{% endblock %}
+    </main>
+
+    <nav class="miniapp-nav" aria-label="Asosiy navigatsiya">
+      <a class="{% if active_tab == 'home' %}active{% endif %}" href="{% url 'bot:miniapp_home' %}">
+        <svg class="miniapp-icon" aria-hidden="true"><use href="#icon-home"></use></svg><span>Bosh sahifa</span>
+      </a>
+      <a class="{% if active_tab == 'courses' %}active{% endif %}" href="{% url 'bot:miniapp_courses' %}">
+        <svg class="miniapp-icon" aria-hidden="true"><use href="#icon-book"></use></svg><span>Darslar</span>
+      </a>
+      <a class="{% if active_tab == 'ai' %}active{% endif %}" href="{% url 'bot:miniapp_ai' %}">
+        <span class="miniapp-nav-ai"><svg class="miniapp-icon" aria-hidden="true"><use href="#icon-sparkles"></use></svg></span><span>Azure AI</span>
+      </a>
+      <a class="{% if active_tab == 'profile' %}active{% endif %}" href="{% url 'bot:miniapp_profile' %}">
+        <svg class="miniapp-icon" aria-hidden="true"><use href="#icon-user"></use></svg><span>Profil</span>
+      </a>
+    </nav>
+  </div>
+
+  <svg class="miniapp-sprite" aria-hidden="true">
+    <symbol id="icon-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></symbol>
+    <symbol id="icon-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></symbol>
+    <symbol id="icon-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5zM4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></symbol>
+    <symbol id="icon-sparkles" viewBox="0 0 24 24"><path d="m12 3 1.25 3.75L17 8l-3.75 1.25L12 13l-1.25-3.75L7 8l3.75-1.25zM19 14l.8 2.2L22 17l-2.2.8L19 20l-.8-2.2L16 17l2.2-.8zM5 14l.7 1.8 1.8.7-1.8.7L5 19l-.7-1.8-1.8-.7 1.8-.7z"/></symbol>
+    <symbol id="icon-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+    <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+    <symbol id="icon-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+    <symbol id="icon-fire" viewBox="0 0 24 24"><path d="M12 22c4 0 7-3 7-7 0-3-1.5-5.5-4-8-1 3-2.5 4-4 5 .5-4-1-7-3-9 0 4-3 6-3 11 0 4.5 3 8 7 8Z"/></symbol>
+    <symbol id="icon-chart" viewBox="0 0 24 24"><path d="M4 20V10m6 10V4m6 16v-7m5 7H2"/></symbol>
+    <symbol id="icon-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></symbol>
+    <symbol id="icon-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="icon-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4m8-4v4M3 10h18"/></symbol>
+    <symbol id="icon-award" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="m8.5 12-1 9 4.5-3 4.5 3-1-9"/></symbol>
+    <symbol id="icon-card" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></symbol>
+    <symbol id="icon-trophy" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H4v2a4 4 0 0 0 4 4m8-6h4v2a4 4 0 0 1-4 4m-4 1v5m-4 2h8"/></symbol>
+    <symbol id="icon-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.7 2.2c-.8.45-1.2.9-1.2 1.8m0 4h.01"/></symbol>
+    <symbol id="icon-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6 1.7 1.7 0 0 0 10 3v-.2h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z"/></symbol>
+    <symbol id="icon-telegram" viewBox="0 0 24 24"><path d="m21 4-3 16-6-4-3 3-1-5-5-2zM8 14 21 4"/></symbol>
+    <symbol id="icon-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-5"/></symbol>
+    <symbol id="icon-message" viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></symbol>
+    <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="icon-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="icon-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="m15 9 6-6"/></symbol>
+    <symbol id="icon-memory" viewBox="0 0 24 24"><path d="M9 3h6v3h3v3h3v6h-3v3h-3v3H9v-3H6v-3H3V9h3V6h3z"/><path d="M9 9h6v6H9z"/></symbol>
+  </svg>
+  <script src="{% static 'js/miniapp.js' %}?v=20260721-1"></script>
+</body>
+</html>

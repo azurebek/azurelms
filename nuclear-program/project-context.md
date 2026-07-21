@@ -4,13 +4,15 @@ Bu hujjat loyihaning yashash kitobi (wiki). Yangi feature qo'shilsa shu yerda ba
 
 Source of truth har doim **kod** (model/view/task/URL/test). Bu fayl kodga moslab yangilab turiladi.
 
+> **Holat qoidasi:** “Joriy holat” faqat kodda hozir mavjud va tekshirilgan narsani bildiradi. “Maqsad arxitektura” alohida belgilangan reja bo'lib, implementatsiya va test tugamaguncha mavjud capability sifatida talqin qilinmaydi.
+
 ---
 
 ## 1. Mahsulot xulosasi
 
 **AzureLMS** — o'zbek tilida turk tili o'rgatishga qaratilgan Learning Management System. Klassik kurs/dars oqimini real-time messenger, AI tutor, RAG, memory, exam, subscription, Telegram attendance va yashirin backoffice boshqaruvi bilan birlashtiradi.
 
-**Joylashuv:** `C:\Projects\azurelms` (Windows 11)
+**Joriy workspace:** `C:\Users\azurb\azurelms` (Windows)
 **Asosiy branch:** `main` (yagona integratsiya trunk'i)
 **GitHub:** https://github.com/azurebek/azurelms.git
 
@@ -23,7 +25,7 @@ Source of truth har doim **kod** (model/view/task/URL/test). Bu fayl kodga mosla
 | Teacher / staff | attendance, student monitoring, assignment/exam review, tutor chatlarda qatnashish |
 | Admin / superuser | backoffice, Jazzmin admin, course/cohort/payment/user/chat/exam boshqaruvi |
 | Azure AI | talaba savollariga javob beradi, lesson/RAG/memory/tool contextdan foydalanadi |
-| Telegram bot | attendance va kelajakdagi Telegram ichidagi o'quv oqimlarini bog'laydi |
+| Telegram bot | account linking, attendance, o'qish/topshirish, checkout/admin notification va Mini App oqimlarini platformaga bog'laydi |
 
 ### Asosiy oqim (8 qadam)
 
@@ -81,6 +83,8 @@ web: daphne -b 0.0.0.0 -p $PORT core.asgi:application
 worker: celery -A core worker -l info
 beat: celery -A core beat -l info
 ```
+
+**Joriy cheklov:** Procfile'da `telegram_outbox --loop` process'i yo'q. Webhook production'da notification DM'lari uchun bu alohida process kerak; maqsad gate `launch-plan/05-launch-ops.md`da.
 
 **Dockerfile:**
 - Base image: `python:3.12-slim`
@@ -180,6 +184,14 @@ ai/
 └── tools/    context.py
 ```
 
+### `aicontrol`
+
+**Joriy mas'uliyat:** AI token usage siyosati va admin amallari. `AISettings` global enforcement/default limitlarni, `AIPlanPolicy` tarif limitlarini, `AIUserAllowance` user override/reset/bonus/blok holatini, `AIUsageResetEvent` esa reset/bonus auditini saqlaydi.
+
+**Joriy UI:** `/backoffice/ai-control/` token usage, global/plan limit va reset/bonusni boshqaradi; blocked userlar sonini ko'rsatadi, lekin shu sahifada per-user block mutation'i yo'q. Per-user blok amali bot yoki admin orqali. `default_model` va `default_effort` modelda saqlanadi, ammo runtime provider ularni o'qimaydi va template ularni edit input sifatida render qilmaydi.
+
+**Joriy chegarasi:** umumiy capability registry, owner-only `/backoffice/control/`, release record, system-wide feature flag/kill switch, service heartbeat, cost ledger va AI quality release gate hozir mavjud emas.
+
 ### `subscriptions`
 
 **Mas'uliyat:** Pricing plans, plan features, promo campaigns, promo codes, redemptions.
@@ -207,13 +219,14 @@ ai/
 
 ### `bot`
 
-**Mas'uliyat:** Telegram webhook/polling, lesson session, student check-in.
+**Mas'uliyat:** Telegram webhook/polling, account linking, student workspace, attendance, lesson/assignment/quiz oqimlari, payment receipt, notification outbox, AI va Mini App adapterlari.
 
-**Asosiy modellar:** `TelegramLessonSession`, `TelegramLessonCheckIn`
+**Asosiy modellar:** `TelegramLessonSession`, `TelegramLessonCheckIn`, `TelegramOutbox`, `BotPendingAction`, `BotGuest`, broadcast/payment yordamchi holatlari.
 
 **Commands:**
 - `python manage.py runbot` (polling)
 - `python manage.py setwebhook` (production)
+- `python manage.py telegram_outbox --loop` (notification DM worker; hozir Procfile'ga ulanmagan)
 
 ### `gamification`
 
@@ -364,6 +377,12 @@ Custom yashirin admin URL'lari:
 ```
 
 Access helper: `core.views._is_backoffice_user`. Legacy `/admin/` faqat `ENABLE_LEGACY_ADMIN=True`.
+
+**Joriy permission cheklovi:** `_is_backoffice_user` `is_staff` yoki `is_superuser`ni qabul qiladi; AI global control ham shu gate ortida. Teacher'ga explicit course biriktirilmagan bo'lsa teacher query hozir barcha kurslarni qaytarishi mumkin. Owner-only Control Center va default-deny teacher scope — maqsad, joriy capability emas.
+
+### 4.11 Maqsad operatsion arxitektura — hali mavjud emas
+
+Owner-only Azure Control Center, canonical lesson/enrollment state machine'lari, private media, broker fail-fast, CI/release gates va umumiy system audit rejasi `launch-plan/02-yol-xarita.md`, `03-mahsulot-backlog.md` va `05-launch-ops.md`da. Ular kod, migration, test va browser/production evidence tugamaguncha ushbu joriy URL/model xaritasiga qo'shilmaydi.
 
 ---
 
@@ -625,6 +644,19 @@ Message
 | `/messenger/api/rooms/` | `messenger:get_user_rooms` |
 | `/messenger/api/messages/<room_id>/` | `messenger:get_room_messages` |
 
+### Telegram Mini App
+
+| URL | Name |
+|---|---|
+| `/bot/miniapp/` | `bot:miniapp_entry` |
+| `/bot/miniapp/auth/` | `bot:miniapp_auth` |
+| `/bot/miniapp/home/` | `bot:miniapp_home` |
+| `/bot/miniapp/courses/` | `bot:miniapp_courses` |
+| `/bot/miniapp/ai/` | `bot:miniapp_ai` |
+| `/bot/miniapp/profile/` | `bot:miniapp_profile` |
+
+Mini App sahifalari `templates/bot/miniapp_base.html` mobil shellini ulashadi. Telegram `initData` orqali ochilgan sessiya va lokal `?preview=1` oqimi shu alohida shellga kiradi; katta platforma sahifalari faqat chuqur amallar uchun havola sifatida qoladi.
+
 ### Blog
 
 | URL | Name |
@@ -667,6 +699,7 @@ Message
 |---|---|---|
 | `runbot` | bot | Telegram polling botni ishga tushirish |
 | `setwebhook` | bot | Telegram webhook sozlash |
+| `telegram_outbox --loop` | bot | notification outbox'ni 25 tadan 15 soniyalik siklda yuborish; 3 urinishdan keyin failed |
 | `expire_overdue_enrollments` | cohorts | overdue active enrollments → expired |
 | `reindex_rag` | messenger | lesson/course RAG chunk + embeddings |
 | `setup_rag_pgvector` | messenger | pgvector extension/index setup |
@@ -722,6 +755,15 @@ Message
 - `django-csp` mavjud bo'lsa CSP middleware
 - CSP frame-source YouTube/Vimeo uchun ruxsat beradi
 
+### 2026-07-22 auditida tasdiqlangan production cheklovlari
+
+- Production-like muhitda broker env yo'q bo'lsa Celery hozir `memory://`ga fallback qilishi mumkin; Channels ham konfiguratsiya bo'lmasa in-memory qatlamga tushadi.
+- Default S3 media storage `public-read` va unsigned URL ishlatadi; protected upload klasslari hozir alohida private storage'ga ajratilmagan.
+- `.github/workflows` va `/healthz` endpoint hozir yo'q.
+- `TelegramOutbox` modeli/command'i bor, lekin Procfile'da doimiy process yo'q; worker atomic claim/lease qilmaydi, shuning uchun hozir aynan 1 replica xavfsizroq.
+- `AIResponseRun` status, model, skill, token, duration, metadata va errorni saqlaydi; pul qiymati va quality release gate saqlanmaydi.
+- Umumiy append-only `SystemAuditEvent`, capability heartbeat va `ReleaseRecord` hozir yo'q.
+
 ### `.env.local` namunasi (git'ga kirmaydi)
 
 ```dotenv
@@ -765,6 +807,16 @@ EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 - `SECRET_KEY` prod uchun majburiy
 - `SECURITY_STRICT` prod'ga yaqin muhitlarda yoqilishi kerak
 
+### 2026-07-22 auditida ochiq qolgan access gaplari
+
+- `TelegramAuthSession` authenticated tokeni status endpointda bir martalik consume/expiry qilinmaydi; replay login xavfi bor.
+- Telegram webhook secret uchun taniqli default mavjud; mismatch request yuborgan `received` token logga yoziladi. To'g'ri token shu log branch'iga tushmaydi.
+- WebSocket room authorization connect vaqtida tekshiriladi; ochiq socket uchun enrollment/access o'zgarishini qayta tekshirish yo'q.
+- Model validatorlari oddiy `save/create`da avtomatik ishlamagani sabab uploadlar real MIME/magic-byte gate'dan to'liq o'tmaydi.
+- Private uploadlar joriy default S3 storage sabab public-read bo'lishi mumkin.
+
+Bu bandlar joriy capability emas, P0 stop-ship backlog. Yopilgan har band kod/test evidence bilan shu ro'yxatdan olib tashlanadi.
+
 ---
 
 ## 12. Task → fayl xaritasi
@@ -792,7 +844,7 @@ EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 
 ```powershell
 # Venv
-cd C:\Projects\azurelms
+cd C:\Users\azurb\azurelms
 .\venv\Scripts\activate
 
 # Server
@@ -819,7 +871,7 @@ python manage.py test users.tests.DashboardProgressTests
 
 ## 14. Muhim eslatmalar
 
-1. **Loyiha OneDrive'dan ko'chirilgan:** `C:\Users\azure\OneDrive\...` → `C:\Projects\azurelms` (SQLite I/O xatolari uchun). venv qayta yaratilgan (Python 3.14 + Django 6.0.2).
+1. **Joriy clone:** `C:\Users\azurb\azurelms`; venv Python 3.14 + Django 6.0.2. Eski OneDrive/`C:\Projects` yo'llari historical sessiyalarda uchrashi mumkin — buyruqdan oldin `git worktree list` source of truth.
 2. **Bootstrap YO'Q:** barcha shell'da `tokens.css` + custom CSS. Yangi sahifa qo'shganda shu printsipga rioya qilish.
 3. **`<SAVE_MEMORY>` tag:** AI javobida `<SAVE_MEMORY>category: fakt</SAVE_MEMORY>` ko'rinishida chiqsa, extractor ajratib `AIMemoryFact`'ga yozadi. Category: `preference`, `learning_goal`, `weak_topic`, `schedule`, `profile`, `do_not_remember`, `other`.
 4. **`@azure` mention:** AI bo'lmagan xonada xabarda `@azure` so'zi bo'lsa, AI ham javob beradi.
