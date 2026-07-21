@@ -1466,6 +1466,7 @@ class MiniAppAuthTests(TestCase):
         self.assertContains(response, "Darslarim")
         self.assertContains(response, "Imtihonlar")
         self.assertContains(response, "120")
+        self.assertContains(response, "/static/css/miniapp.css?v=20260721-1")
 
     def test_miniapp_dedicated_pages_require_login_and_render_navigation(self):
         routes = (
