@@ -16,6 +16,15 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-21 [Codex]: Telegram Mini App alohida mobil interfeysi
+
+Telegram Mini App endi katta sayt sahifalariga tayangan bitta home emas, umumiy mobil shell ichidagi to'rtta alohida bo'limga ega: Bosh sahifa, Darslar, Azure AI va Profil. Yangi sahifalar real enrollment, AI suhbatlari va foydalanuvchi sozlamalari bilan ishlaydi; mavjud `initData`, lokal preview va iframe session oqimlari saqlandi. 390x844 va 720x900 browser QA'da active navigatsiya, responsive grid, overflow va console holati tekshirildi.
+
+- Branch: `codex/mini-app-interface-prototype`
+- Commitlar: `629a045`
+- Test holati: `python manage.py test bot` — **70/70 OK**; `python manage.py test bot.tests.MiniAppAuthTests` — **10/10 OK**; `python manage.py check` — **0 issues**; browser QA — gorizontal overflow va console xatolari yo'q
+- Davom etilishi kerak: real Telegram WebView'da production theme/safe-area sinovi va foydalanuvchi fikriga ko'ra vizual iteratsiya
+
 ## 2026-07-21 [Codex]: Telegram Web Mini App real iframe sinovi
 
 Ngrok orqali real Telegram Web Mini App oqimi tekshirildi va ikki blok bartaraf etildi: Django `X-Frame-Options: DENY` hamda iframe ichidagi third-party session cookie. Mini App kirish/home endpointlari iframe uchun ochildi; Telegram HMAC orqali tasdiqlangan sessionlargagina platforma bo'ylab `web.telegram.org` frame ruxsati beradigan middleware qo'shildi. Real Telegram sinovida `admin` sessiyasi bilan Mini App home va ichkaridagi Azure AI sahifasi muvaffaqiyatli ochildi.
