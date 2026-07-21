@@ -16,6 +16,15 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-21 [Codex]: Telegram Web Mini App real iframe sinovi
+
+Ngrok orqali real Telegram Web Mini App oqimi tekshirildi va ikki blok bartaraf etildi: Django `X-Frame-Options: DENY` hamda iframe ichidagi third-party session cookie. Mini App kirish/home endpointlari iframe uchun ochildi; Telegram HMAC orqali tasdiqlangan sessionlargagina platforma bo'ylab `web.telegram.org` frame ruxsati beradigan middleware qo'shildi. Real Telegram sinovida `admin` sessiyasi bilan Mini App home va ichkaridagi Azure AI sahifasi muvaffaqiyatli ochildi.
+
+- Branch: `codex/local-development-session`
+- Commitlar: `20e6660`
+- Test holati: `python manage.py test bot` — **69/69 OK**; `python manage.py test bot.tests.MiniAppAuthTests` — **9/9 OK**; `python manage.py check` — **0 issues**; real Telegram Web iframe QA — home va Azure AI ochildi
+- Davom etilishi kerak: production deployda `SESSION_COOKIE_SAMESITE=None` va `SESSION_COOKIE_SECURE=True` qiymatlarini HTTPS muhitida berish
+
 ## 2026-07-21 [Codex]: Telegram Mini App lokal workspace
 
 Telegram Mini App auth-ko'prigi alohida mobil platforma home sahifasi bilan kengaytirildi: kurslar, Azure AI, imtihon, davomat, sertifikat, to'lov, reyting va yordam oqimlariga bitta WebView markazidan o'tiladi. `APP_ENV=local` uchun oddiy Django login talab qiladigan xavfsiz `?preview=1` rejimi qo'shildi; production Telegram `initData` HMAC oqimi o'zgarmadi. Mobil 390×844 va desktop browser QA'da overflow hamda console xatolari kuzatilmadi.
