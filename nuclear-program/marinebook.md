@@ -16,6 +16,17 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-23 [Claude Code]: Sidebar hisob amallari profil menyusiga ko'chdi
+
+Azurbek sidebar pastidagi scroller'dan tashqaridagi qotgan blokdan norozi bo'ldi va uni profil dropdown'iga yig'ishni taklif qildi. Blok navigatsiya uchun ~260px joy yeb turgan edi; endi profil menyusi atigi 53px va 1280x760 da nav to'liq sig'adi (594px kontent / 594px joy, scroll kerak emas). Hisob amallari (Profil, Sozlamalar, Chiqish) va rol almashtirish (O'qituvchi/Admin paneli, O'quvchi rejimi) menyuga ko'chdi.
+
+Bitta joyda taklifdan chetlashildi: `Yig'ish` menyuga tushmadi, chunki u hisob amali emas — ko'rinish boshqaruvi. U logotip yoniga ko'chdi va mobilda yashiriladi, chunki drawer rejimida yig'iladigan narsa yo'q. Uchala shell endi bitta `templates/components/app_user_menu.html` adapteridan foydalanadi.
+
+- Branch: `claude/sidebar-profile-menu`
+- Commitlar: `90743a7`
+- Test holati: `python manage.py test` — **346/346 OK** (5 tasi yangi `core.test_app_shell.AppShellUserMenuTests`); `python manage.py check` — **0 issues**. Browser o'lchovlari (lokal dev server, owner sessiyasi): menyu yuqoriga ochiladi va ekran ichida qoladi (548–742px), `aria-expanded` almashadi, Escape va tashqi bosish yopadi, Chiqish POST forma bo'lib qoldi; yig'ilgan holatda popup 210px ga kengayadi va yorliqlar ko'rinadi (`:has()` orqali sidebar clipping'i ochiladi); 390px da yig'ish tugmasi yashirin, popup 215px va ekran ichida; console xato `0`. Uchala shell tekshirildi — o'qituvchi `is-violet`/"Muallif", backoffice `is-dark`/"Administrator", rol nishonlari joyida.
+- Davom etilishi kerak: brauzer paneli ochilmagani uchun bu sessiyada vizual skrinshot olinmadi — tekshiruv DOM o'lchovlariga tayanadi. Azurbek ko'z bilan tasdiqlashi foydali. Alohida muhokama ochiq: sozlamalar sahifasini bo'limlarga ajratib alohida sahifalar qilish (hozircha tavsiya — kechiktirish, 4 bo'lim uchun erta).
+
 ## 2026-07-22 [Claude Code]: Mobil drawer va messenger layout xatolari
 
 Azurbek telefonda ikkita jiddiy layout xatosini topdi va ikkalasi ham tasdiqlanib tuzatildi. (1) `app-shell.css` mobil rejimda `.app-side`ni `position:fixed` qilardi, lekin `.app-side-inner`da hech qanday `background` yo'q edi — drawer normal oqimdan chiqib shaffof holda kontent ustida suzardi va ikkala matn ustma-ust tushib o'qib bo'lmas edi. Bu dashboard, o'qituvchi va backoffice shell'larining uchalasiga ham tegardi. Endi drawer opaque `--panel` foniga va ortida scrim'ga ega. (2) Messenger 820px dan pastda rail va suhbat ro'yxatini qat'iy ushlab turardi, natijada 390px ekranda chatga atigi 108px qolardi; 680px dan pastda ro'yxat endi drawer, chat esa 336px oladi. Ikkala drawer tashqi bosish va Escape bilan yopiladi.
