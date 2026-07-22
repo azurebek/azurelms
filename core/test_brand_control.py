@@ -128,3 +128,19 @@ class BrandSurfaceContractTests(SimpleTestCase):
             with self.subTest(template=relative_path):
                 source = (project_root / relative_path).read_text(encoding="utf-8")
                 self.assertIn('components/brand_logo.html', source)
+
+    def test_every_standalone_document_declares_the_canonical_favicon(self):
+        """Har mustaqil <head> markaziy favicon'ni o'qishi kerak.
+
+        Yangi shell qo'shilganda bu test uni eslatadi; aks holda sahifa jim
+        ravishda brauzer default ikonkasi bilan qoladi.
+        """
+        templates_root = Path(__file__).resolve().parent.parent / "templates"
+        missing = []
+        for template_path in sorted(templates_root.rglob("*.html")):
+            source = template_path.read_text(encoding="utf-8")
+            if "<head>" not in source:
+                continue
+            if "components/brand_favicon.html" not in source:
+                missing.append(str(template_path.relative_to(templates_root)))
+        self.assertEqual(missing, [], f"Favicon include yo'q: {missing}")

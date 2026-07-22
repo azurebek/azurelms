@@ -10,6 +10,7 @@ oddiy login sahifasiga yo'naltiradi.
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ site_settings.brand_name|default:"AzureLMS" }}</title>
+  {% include "components/brand_favicon.html" %}
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body{margin:0;min-height:100vh;display:grid;place-items:center;font-family:system-ui,sans-serif;background:#f6f8fb;color:#1b2430;}
