@@ -1,0 +1,45 @@
+{% comment %}
+Sidebar profil menyusi — uchala app shell uchun yagona adapter.
+
+Parametr: shell = "app" | "teacher" | "backoffice"
+
+Bu yerda faqat HISOB amallari va ROL almashtirish yashaydi. Sidebar
+navigatsiyasi (.app-nav) va ko'rinish boshqaruvi (yig'ish tugmasi) bu
+menyuga tushmaydi — ular boshqa toifadagi amallar.
+{% endcomment %}
+<div class="app-user-menu" data-app-user-menu>
+  <button type="button" class="app-user" data-app-user-trigger aria-haspopup="true" aria-expanded="false">
+    {% if shell == "teacher" %}
+      {% if request.user.avatar %}<img class="app-user-av is-violet" src="{{ request.user.avatar.url }}" alt="" style="object-fit:cover;">{% else %}<span class="app-user-av is-violet">{{ request.user.first_name.0|default:request.user.username.0|upper }}{{ request.user.last_name.0|upper }}</span>{% endif %}
+    {% elif shell == "backoffice" %}
+      {% if request.user.avatar %}<img class="app-user-av is-dark" src="{{ request.user.avatar.url }}" alt="" style="object-fit:cover;">{% else %}<span class="app-user-av is-dark">{{ request.user.first_name.0|default:request.user.username.0|upper }}{{ request.user.last_name.0|upper }}</span>{% endif %}
+    {% else %}
+      {% if request.user.avatar %}<img class="app-user-av" src="{{ request.user.avatar.url }}" alt="" style="object-fit:cover;">{% else %}<span class="app-user-av">{{ request.user.first_name.0|default:request.user.username.0|upper }}{{ request.user.last_name.0|upper }}</span>{% endif %}
+    {% endif %}
+    <span class="app-user-id">
+      <span class="app-user-name">{{ request.user.get_full_name|default:request.user.username }}</span>
+      <span class="app-user-meta">{% if shell == "teacher" %}Muallif{% elif shell == "backoffice" %}Administrator{% else %}{{ request.user.current_level|default:"A1" }} · {{ request.user.total_xp }} XP{% endif %}</span>
+    </span>
+    <i class="bi bi-chevron-expand app-user-caret" aria-hidden="true"></i>
+  </button>
+
+  <div class="app-user-pop" data-app-user-pop role="menu" hidden>
+    <a class="app-nav-item{% if active_nav == 'profile' %} active{% endif %}" href="{% url 'profile' %}" role="menuitem"><i class="bi bi-person"></i><span class="label">Profil</span></a>
+
+    {% if shell == "app" %}
+      {% if request.user.is_staff %}
+      <a class="app-nav-item is-teacher" href="{% url 'teacher_dashboard' %}" role="menuitem"><i class="bi bi-mortarboard"></i><span class="label">O'qituvchi paneli</span></a>
+      <a class="app-nav-item is-muted" href="{% url 'backoffice_dashboard' %}" role="menuitem"><i class="bi bi-shield-lock"></i><span class="label">Admin paneli</span></a>
+      {% endif %}
+    {% else %}
+      <a class="app-nav-item" href="{% url 'dashboard' %}" role="menuitem"><i class="bi bi-arrow-left-right"></i><span class="label">O'quvchi rejimi</span></a>
+    {% endif %}
+
+    <a class="app-nav-item{% if active_nav == 'settings' %} active{% endif %}" href="{% url 'settings' %}" role="menuitem"><i class="bi bi-gear"></i><span class="label">Sozlamalar</span></a>
+
+    {% comment %}Django 6: LogoutView faqat POST qabul qiladi — link emas, forma.{% endcomment %}
+    <form method="post" action="{% url 'logout' %}" class="app-user-pop-form">{% csrf_token %}
+      <button type="submit" class="app-nav-item is-muted" role="menuitem"><i class="bi bi-box-arrow-right"></i><span class="label">Chiqish</span></button>
+    </form>
+  </div>
+</div>

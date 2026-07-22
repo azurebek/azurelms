@@ -1,0 +1,59 @@
+{% extends "users/settings/_base.html" %}
+{% load humanize %}
+{% comment %}
+  To'lov bo'limi — tarif va AI foydalanish limiti.
+  Limit tarifga bog'liq (aicontrol.AIPlanPolicy), shuning uchun shu yerda.
+{% endcomment %}
+
+{% block settings_title %}To'lov{% endblock %}
+{% block settings_lead %}Tarifingiz va unga bog'liq AI foydalanish limiti.{% endblock %}
+
+{% block settings_body %}
+<section class="set-sec">
+  <div class="set-sec-h"><i class="bi bi-credit-card"></i><span>Obuna</span></div>
+  <div class="set-sec-b">
+    <div class="set-row">
+      <div><div class="set-row-t">Tarif va to'lovlar</div><div class="set-row-s">Obuna holati, to'lov tarixi va cheklar.</div></div>
+      <a href="{% url 'subscriptions' %}" class="set-btn"><i class="bi bi-box-arrow-up-right"></i> Ochish</a>
+    </div>
+  </div>
+</section>
+
+<section class="set-sec">
+  <div class="set-sec-h"><i class="bi bi-speedometer2"></i><span>AI foydalanish limiti</span></div>
+  <div class="set-sec-b">
+    {% if ai_usage.blocked %}
+    <div style="display:flex;align-items:flex-start;gap:10px;border:1px solid var(--red);border-radius:11px;background:var(--red-soft);color:var(--red);padding:13px 15px;font-size:13.5px;line-height:1.5;"><i class="bi bi-lock-fill" style="margin-top:1px;"></i> AI yordamchidan foydalanish administrator tomonidan vaqtincha to'xtatilgan.</div>
+    {% elif ai_usage.unlimited %}
+    <div style="display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--ink-2);"><span style="width:34px;height:34px;border-radius:9px;background:var(--green-soft);color:var(--green);display:grid;place-items:center;font-size:15px;flex:0 0 auto;"><i class="bi bi-infinity"></i></span> Sizga AI cheklovi qo'llanmaydi — limitsiz foydalanishingiz mumkin.</div>
+    {% else %}
+    <div style="display:flex;flex-direction:column;gap:20px;">
+
+      {% with s=ai_usage.session %}
+      <div>
+        <div class="set-row" style="margin-bottom:8px;">
+          <div><div class="set-row-t">Joriy sessiya</div><div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);">{% if s.reset_at %}{{ s.reset_at|timeuntil }} da tiklanadi{% else %}5 soatlik oyna{% endif %}</div></div>
+          <span style="font-family:'Space Mono',monospace;font-size:15px;font-weight:700;color:{% if s.percent >= 100 %}var(--red){% elif s.percent >= 80 %}var(--amber){% else %}var(--ink){% endif %};">{{ s.percent }}%</span>
+        </div>
+        <div class="set-meter{% if s.percent >= 100 %} is-over{% elif s.percent >= 80 %} is-warn{% endif %}"><div style="width:{{ s.percent }}%;"></div></div>
+        <div class="set-mono">{{ s.used|intcomma }} / {{ s.limit|intcomma }} token</div>
+      </div>
+      {% endwith %}
+
+      {% with w=ai_usage.weekly %}
+      <div class="set-divider">
+        <div class="set-row" style="margin-bottom:8px;">
+          <div><div class="set-row-t">Haftalik limit</div><div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);">{% if w.reset_at %}{{ w.reset_at|timeuntil }} da tiklanadi{% else %}haftalik oyna{% endif %}</div></div>
+          <span style="font-family:'Space Mono',monospace;font-size:15px;font-weight:700;color:{% if w.percent >= 100 %}var(--red){% elif w.percent >= 80 %}var(--amber){% else %}var(--ink){% endif %};">{{ w.percent }}%</span>
+        </div>
+        <div class="set-meter{% if w.percent >= 100 %} is-over{% elif w.percent >= 80 %} is-warn{% endif %}"><div style="width:{{ w.percent }}%;"></div></div>
+        <div class="set-mono">{{ w.used|intcomma }} / {{ w.limit|intcomma }} token</div>
+      </div>
+      {% endwith %}
+
+      <div class="set-note">Limit tugasa AI vaqtincha javob bermaydi va yuqoridagi vaqtda avtomatik tiklanadi. Har savol matn uzunligiga qarab turlicha token sarflaydi.</div>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

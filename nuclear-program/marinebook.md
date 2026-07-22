@@ -16,6 +16,28 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-23 [Claude Code]: Sozlamalar bo'limlarga ajratildi, profil joyida tahrirlanadigan bo'ldi
+
+Azurbek sozlamalarni Claude'ning sozlamalar oynasi kabi bo'limlarga ajratishni so'radi. Endi 4 bo'lim, har biri alohida sahifa: Hisob, Maxfiylik, To'lov, Imkoniyatlar. Bo'lim nomlari app sidebar'ining o'zida — sozlamalarda dashboard navigatsiyasi o'rnini shu 4 bo'lim egallaydi (`base_app.html`dagi yangi `app_nav` bloki orqali). Birinchi urinishda men sahifa ichida ikkinchi navigatsiya yasab qo'ygan edim; Azurbek buni ko'rsatgach bitta sidebar modeliga o'tkazildi. Eski `/settings/` va `/settings/ai-memory/` havolalari redirect bilan ishlashda qoldi, chunki ularga profil menyusi, Mini App, messenger va dashboard murojaat qiladi.
+
+Shu sessiyada uchta yondosh ish ham bajarildi. (1) Profil avatari ko'k banner ostida yarim ko'rinmay qolardi: banner `position:relative`, avatar qatori esa `static` edi va CSS chizish tartibida pozitsiyalangan element statikdan yuqori turadi. (2) Profildagi "Tahrirlash" boshqa sahifaga sakrardi va u yerda sidebar ham almashardi; endi forma profil kartasi ichida ochiladi va maydonlar `ProfileFieldsForm` + `components/profile_fields_form.html` orqali Sozlamalar > Hisob bilan bitta manbadan keladi. Eski `UserProfileView.post()` `username` va `email`ni tekshiruvsiz qabul qilardi — UI'dan yetib bo'lmasdi, lekin joyida tahrirlash o'sha yo'lni ochardi, shuning uchun ModelForm bilan almashtirildi va `next` uchun ochiq-redirect himoyasi qo'shildi. (3) AI boshqaruvi sahifasidagi inputlar uslubsiz edi: `field-input` klassi CSS'da umuman aniqlanmagan, ustiga `color-scheme` hech qayerda e'lon qilinmagani uchun brauzerning native elementlari qorong'i temada ham yorug' chizilardi.
+
+- Branch: `claude/settings-sections` (`claude/sidebar-profile-menu` ustiga qo'yilgan — u hali `main`ga merge qilinmagan)
+- Commitlar: `12c659f`, `88a7580`, `22484b9`, `0b3bc8e`
+- Test holati: `python manage.py test` — **367/367 OK**; `python manage.py check` — **0 issues**; `git diff --numstat` va `-w` bilan bir xil (churn yo'q). Browser QA (lokal dev server, owner sessiyasi): 4 bo'lim 1180x820 va 390x844 da, light va dark — sidebar'da dashboard elementlari yo'q, gorizontal overflow `0`; AI sozlamasini o'zgartirgach POST Imkoniyatlarga qaytdi; profilda saqlash URL'ni o'zgartirmadi va ism darhol yangilandi; AI boshqaruvi inputlari 44px/`--paper-2`/10px radius, `color-scheme` `dark`.
+- Davom etilishi kerak: `users/views.py` va `users/urls.py` uchun `git diff --check` "trailing whitespace" beradi — bu repoda oldindan mavjud holat (fayllar CRLF bilan commit qilingan, `core.autocrlf=true`), qo'shilgan qatorlar faylning o'z konvensiyasiga mos. Ikkala branch ham `main`ga merge qilinmagan, Azurbek qaroriga qoldi.
+
+## 2026-07-23 [Claude Code]: Sidebar hisob amallari profil menyusiga ko'chdi
+
+Azurbek sidebar pastidagi scroller'dan tashqaridagi qotgan blokdan norozi bo'ldi va uni profil dropdown'iga yig'ishni taklif qildi. Blok navigatsiya uchun ~260px joy yeb turgan edi; endi profil menyusi atigi 53px va 1280x760 da nav to'liq sig'adi (594px kontent / 594px joy, scroll kerak emas). Hisob amallari (Profil, Sozlamalar, Chiqish) va rol almashtirish (O'qituvchi/Admin paneli, O'quvchi rejimi) menyuga ko'chdi.
+
+Bitta joyda taklifdan chetlashildi: `Yig'ish` menyuga tushmadi, chunki u hisob amali emas — ko'rinish boshqaruvi. U logotip yoniga ko'chdi va mobilda yashiriladi, chunki drawer rejimida yig'iladigan narsa yo'q. Uchala shell endi bitta `templates/components/app_user_menu.html` adapteridan foydalanadi.
+
+- Branch: `claude/sidebar-profile-menu`
+- Commitlar: `90743a7`
+- Test holati: `python manage.py test` — **346/346 OK** (5 tasi yangi `core.test_app_shell.AppShellUserMenuTests`); `python manage.py check` — **0 issues**. Browser o'lchovlari (lokal dev server, owner sessiyasi): menyu yuqoriga ochiladi va ekran ichida qoladi (548–742px), `aria-expanded` almashadi, Escape va tashqi bosish yopadi, Chiqish POST forma bo'lib qoldi; yig'ilgan holatda popup 210px ga kengayadi va yorliqlar ko'rinadi (`:has()` orqali sidebar clipping'i ochiladi); 390px da yig'ish tugmasi yashirin, popup 215px va ekran ichida; console xato `0`. Uchala shell tekshirildi — o'qituvchi `is-violet`/"Muallif", backoffice `is-dark`/"Administrator", rol nishonlari joyida.
+- Davom etilishi kerak: brauzer paneli ochilmagani uchun bu sessiyada vizual skrinshot olinmadi — tekshiruv DOM o'lchovlariga tayanadi. Azurbek ko'z bilan tasdiqlashi foydali. Alohida muhokama ochiq: sozlamalar sahifasini bo'limlarga ajratib alohida sahifalar qilish (hozircha tavsiya — kechiktirish, 4 bo'lim uchun erta).
+
 ## 2026-07-22 [Claude Code]: Mobil drawer va messenger layout xatolari
 
 Azurbek telefonda ikkita jiddiy layout xatosini topdi va ikkalasi ham tasdiqlanib tuzatildi. (1) `app-shell.css` mobil rejimda `.app-side`ni `position:fixed` qilardi, lekin `.app-side-inner`da hech qanday `background` yo'q edi — drawer normal oqimdan chiqib shaffof holda kontent ustida suzardi va ikkala matn ustma-ust tushib o'qib bo'lmas edi. Bu dashboard, o'qituvchi va backoffice shell'larining uchalasiga ham tegardi. Endi drawer opaque `--panel` foniga va ortida scrim'ga ega. (2) Messenger 820px dan pastda rail va suhbat ro'yxatini qat'iy ushlab turardi, natijada 390px ekranda chatga atigi 108px qolardi; 680px dan pastda ro'yxat endi drawer, chat esa 336px oladi. Ikkala drawer tashqi bosish va Escape bilan yopiladi.

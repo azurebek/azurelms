@@ -1551,7 +1551,7 @@ class AIMemoryControlTests(TestCase):
             fingerprint="fp-list-goal",
         )
 
-        response = self.client.get(reverse("ai_memory"))
+        response = self.client.get(reverse("settings_privacy"))
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Beginner darajada")
@@ -1610,7 +1610,7 @@ class AIMemoryControlTests(TestCase):
     def test_list_page_renders_report_stats_and_reject_button(self):
         fact = self._make_fact("Hisobot uchun fakt", fingerprint="fp-report-fact")
 
-        response = self.client.get(reverse("ai_memory"))
+        response = self.client.get(reverse("settings_privacy"))
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Xotira hisoboti")

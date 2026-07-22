@@ -5,6 +5,11 @@
    ============================================================ */
 
 :root{
+  /* Brauzerning o'z elementlari (raqam strelkalari, select ro'yxati,
+     scrollbar, date picker) temaga ergashishi uchun. Busiz ular qorong'i
+     rejimda ham yorug' chiziladi va sahifadan ajralib turadi. */
+  color-scheme: light;
+
   /* Sirtlar */
   --paper:#fbfcfd; --paper-2:#f1f4f9; --panel:#ffffff;
 
@@ -25,6 +30,8 @@
 }
 
 [data-theme="dark"]{
+  color-scheme: dark;
+
   --paper:#090b0f; --paper-2:#0e1117; --panel:#12151c;
 
   --ink:#e9edf4; --ink-2:#99a2b1; --ink-3:#69717f; --ink-4:#454c58;

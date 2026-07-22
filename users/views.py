@@ -8,7 +8,8 @@ from django.db.models import Count, Prefetch, Q
 import datetime
 import base64
 import calendar
-from .forms import CustomUserCreationForm
+from .forms import CustomUserCreationForm, ProfileFieldsForm
+from django.utils.http import url_has_allowed_host_and_scheme
 from .models import CustomUser, Notification
 from django.shortcuts import redirect, render, get_object_or_404
 from cohorts.models import Enrollment, Attendance, Cohort, PaymentReceipt, enrollment_active_access_q
@@ -100,30 +101,50 @@ class StartSmartOnboardingView(LoginRequiredMixin, View):
         return redirect('messenger:ai_room', room_id=room.id)
 
 
-class SettingsView(LoginRequiredMixin, UpdateView):
+def _safe_next(request, fallback):
+    """`next` faqat shu saytning ichki manzili bo'lsa qabul qilinadi.
+
+    Aks holda tashqi saytga ochiq redirect bo'lib qolardi.
+    """
+    candidate = request.POST.get('next') or request.GET.get('next')
+    if candidate and url_has_allowed_host_and_scheme(
+        candidate,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return candidate
+    return fallback
+
+
+class SettingsSectionMixin(LoginRequiredMixin):
+    """Sozlamalar bo'limlari uchun umumiy kontekst.
+
+    Har bo'lim alohida sahifa; `settings_section` chap navigatsiyada
+    qaysi element faol ekanini belgilaydi.
+    """
+
+    settings_section = None
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['active_nav'] = 'settings'
+        context['settings_section'] = self.settings_section
+        return context
+
+
+class SettingsAccountView(SettingsSectionMixin, UpdateView):
+    """Hisob — shaxsiy ma'lumotlar, avatar, parol va ko'rinish."""
+
     model = CustomUser
-    template_name = 'users/settings.html'
-    fields = ['first_name', 'last_name', 'phone_number', 'bio']
-    success_url = reverse_lazy('settings')
+    template_name = 'users/settings/account.html'
+    form_class = ProfileFieldsForm
+    settings_section = 'account'
 
     def get_object(self, queryset=None):
         return self.request.user
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        user = self.request.user
-        context['active_nav'] = 'settings'
-        context['active_courses_count'] = user.enrollments.filter(enrollment_active_access_q()).count()
-        context['certificates_count'] = CourseCertificate.objects.filter(student=user).count()
-        passed_lessons_count = Attendance.objects.filter(
-            enrollment__student=user,
-            status__in=[Attendance.STATUS_PRESENT, Attendance.STATUS_PARTIAL],
-        ).count()
-        context['total_hours'] = passed_lessons_count * 2
-        context['tone_choices'] = CustomUser.AI_TONE_CHOICES
-        from aicontrol.service import build_usage_panel
-        context['ai_usage'] = build_usage_panel(user)
-        return context
+    def get_success_url(self):
+        return _safe_next(self.request, reverse_lazy('settings_account'))
 
     def form_valid(self, form):
         messages.success(self.request, "Profil ma'lumotlari muvaffaqiyatli yangilandi.")
@@ -132,6 +153,34 @@ class SettingsView(LoginRequiredMixin, UpdateView):
     def form_invalid(self, form):
         messages.error(self.request, "Xatolik yuz berdi. Iltimos, barcha maydonlarni tekshiring.")
         return super().form_invalid(form)
+
+
+class SettingsBillingView(SettingsSectionMixin, TemplateView):
+    """To'lov — tarif va unga bog'liq AI foydalanish limiti."""
+
+    template_name = 'users/settings/billing.html'
+    settings_section = 'billing'
+
+    def get_context_data(self, **kwargs):
+        from aicontrol.service import build_usage_panel
+
+        context = super().get_context_data(**kwargs)
+        context['ai_usage'] = build_usage_panel(self.request.user)
+        return context
+
+
+class SettingsCapabilitiesView(SettingsSectionMixin, TemplateView):
+    """Imkoniyatlar — AzureAI ohangi, modeli va web qidiruv rejimi."""
+
+    template_name = 'users/settings/capabilities.html'
+    settings_section = 'capabilities'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['tone_choices'] = CustomUser.AI_TONE_CHOICES
+        context['model_choices'] = CustomUser.AI_MODEL_CHOICES
+        context['web_search_choices'] = CustomUser.AI_WEB_SEARCH_EFFORT_CHOICES
+        return context
 
 class AvatarUpdateView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
@@ -154,7 +203,8 @@ class AvatarUpdateView(LoginRequiredMixin, View):
             messages.success(request, "Profil rasmi muvaffaqiyatli yangilandi.")
         else:
             messages.error(request, "Rasm tanlanmadi.")
-        return redirect('settings')
+        # Profil sahifasidan yuklansa o'sha yerga qaytadi.
+        return redirect(_safe_next(request, 'settings_account'))
 
 class AIToneUpdateView(LoginRequiredMixin, View):
     """Update only the AI tone preference for the AzureAI assistant."""
@@ -171,7 +221,7 @@ class AIToneUpdateView(LoginRequiredMixin, View):
             if wants_json:
                 return JsonResponse({"status": "error", "message": "Noto'g'ri uslub tanlandi."}, status=400)
             messages.error(request, "Noto'g'ri uslub tanlandi.")
-            return redirect('settings')
+            return redirect('settings_capabilities')
 
         if request.user.ai_tone != tone:
             request.user.ai_tone = tone
@@ -180,7 +230,7 @@ class AIToneUpdateView(LoginRequiredMixin, View):
         if wants_json:
             label = dict(CustomUser.AI_TONE_CHOICES).get(tone, tone)
             return JsonResponse({"status": "success", "ai_tone": tone, "label": label})
-        return redirect('settings')
+        return redirect('settings_capabilities')
 
 
 class AIModelUpdateView(LoginRequiredMixin, View):
@@ -198,7 +248,7 @@ class AIModelUpdateView(LoginRequiredMixin, View):
             if wants_json:
                 return JsonResponse({"status": "error", "message": "Noto'g'ri model tanlandi."}, status=400)
             messages.error(request, "Noto'g'ri model tanlandi.")
-            return redirect('settings')
+            return redirect('settings_capabilities')
 
         if request.user.ai_model != model:
             request.user.ai_model = model
@@ -207,7 +257,7 @@ class AIModelUpdateView(LoginRequiredMixin, View):
         if wants_json:
             label = dict(CustomUser.AI_MODEL_CHOICES).get(model, model)
             return JsonResponse({"status": "success", "ai_model": model, "label": label})
-        return redirect('settings')
+        return redirect('settings_capabilities')
 
 
 class AIWebSearchEffortUpdateView(LoginRequiredMixin, View):
@@ -225,7 +275,7 @@ class AIWebSearchEffortUpdateView(LoginRequiredMixin, View):
             if wants_json:
                 return JsonResponse({"status": "error", "message": "Noto'g'ri qidiruv rejimi tanlandi."}, status=400)
             messages.error(request, "Noto'g'ri qidiruv rejimi tanlandi.")
-            return redirect('settings')
+            return redirect('settings_capabilities')
 
         if request.user.ai_web_search_effort != effort:
             request.user.ai_web_search_effort = effort
@@ -234,7 +284,7 @@ class AIWebSearchEffortUpdateView(LoginRequiredMixin, View):
         if wants_json:
             label = dict(CustomUser.AI_WEB_SEARCH_EFFORT_CHOICES).get(effort, effort)
             return JsonResponse({"status": "success", "ai_web_search_effort": effort, "label": label})
-        return redirect('settings')
+        return redirect('settings_capabilities')
 
 
 class AIMemoryToggleView(LoginRequiredMixin, View):
@@ -255,11 +305,18 @@ class AIMemoryToggleView(LoginRequiredMixin, View):
             messages.success(request, f"AzureAI xotirasi {label}.")
         if wants_json:
             return JsonResponse({"status": "success", "ai_memory_enabled": enabled})
-        return redirect('ai_memory')
+        return redirect('settings_privacy')
 
 
-class AIMemoryListView(LoginRequiredMixin, TemplateView):
-    template_name = 'users/ai_memory.html'
+class AIMemoryListView(SettingsSectionMixin, TemplateView):
+    """Maxfiylik — AzureAI xotirasi.
+
+    Avval alohida `/users/settings/ai-memory/` sahifasi edi; endi sozlamalar
+    shell'ining Maxfiylik bo'limi. Eski URL shu yerga redirect qiladi.
+    """
+
+    template_name = 'users/settings/privacy.html'
+    settings_section = 'privacy'
 
     def get_context_data(self, **kwargs):
         from messenger.models import AIMemoryFact, AIMemoryTrace, AILongTermMemory
@@ -267,7 +324,6 @@ class AIMemoryListView(LoginRequiredMixin, TemplateView):
 
         context = super().get_context_data(**kwargs)
         user = self.request.user
-        context['active_nav'] = 'ai_memory'
 
         maintenance_report = MemoryRepository().maintain_user_memory(user=user)
 
@@ -381,7 +437,7 @@ class AIMemoryArchiveView(LoginRequiredMixin, View):
             messages.info(request, "Yozuv topilmadi yoki allaqachon arxivlangan.")
         if wants_json:
             return JsonResponse({"status": "success" if archived else "noop"})
-        return redirect('ai_memory')
+        return redirect('settings_privacy')
 
 
 class AIMemoryRejectView(LoginRequiredMixin, View):
@@ -401,7 +457,7 @@ class AIMemoryRejectView(LoginRequiredMixin, View):
             messages.info(request, "Yozuv topilmadi yoki allaqachon faol emas.")
         if wants_json:
             return JsonResponse({"status": "success" if rejected else "noop"})
-        return redirect('ai_memory')
+        return redirect('settings_privacy')
 
 
 class AIMemoryClearAllView(LoginRequiredMixin, View):
@@ -418,7 +474,7 @@ class AIMemoryClearAllView(LoginRequiredMixin, View):
         messages.success(request, "AzureAI xotirasi to'liq tozalandi.")
         if wants_json:
             return JsonResponse({"status": "success", "archived": archived_count})
-        return redirect('ai_memory')
+        return redirect('settings_privacy')
 
 
 class PasswordUpdateView(LoginRequiredMixin, View):
@@ -433,22 +489,22 @@ class PasswordUpdateView(LoginRequiredMixin, View):
 
         if not user.check_password(old_pass):
             messages.error(request, "Joriy parol noto'g'ri.")
-            return redirect('settings')
+            return redirect('settings_account')
         if new_pass1 != new_pass2:
             messages.error(request, "Yangi parollar mos kelmadi.")
-            return redirect('settings')
+            return redirect('settings_account')
 
         try:
             validate_password(new_pass1, user)
         except ValidationError as e:
             messages.error(request, f"Parol juda oddiy: {' '.join(e.messages)}")
-            return redirect('settings')
+            return redirect('settings_account')
 
         user.set_password(new_pass1)
         user.save()
         update_session_auth_hash(request, user)
         messages.success(request, "Parol muvaffaqiyatli o'zgartirildi.")
-        return redirect('settings')
+        return redirect('settings_account')
 
     def form_valid(self, form):
         messages.success(self.request, "Profil ma'lumotlari yordamida muvaffaqiyatli yangilandi.")
@@ -814,8 +870,29 @@ class HelpCenterView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class UserProfileView(LoginRequiredMixin, TemplateView):
+class UserProfileView(LoginRequiredMixin, UpdateView):
+    """Profil — ko'rish sahifasi, ism/telefon/bio esa joyida tahrirlanadi.
+
+    Tahrirlash boshqa sahifaga olib o'tmaydi: forma shu sahifada ochiladi.
+    Sozlamalar > Hisob bilan bitta `ProfileFieldsForm` ishlatiladi, shuning
+    uchun ikki yuzada ikki xil validatsiya bo'lmaydi.
+    """
+
+    model = CustomUser
     template_name = 'users/profile.html'
+    form_class = ProfileFieldsForm
+    success_url = reverse_lazy('profile')
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def form_valid(self, form):
+        messages.success(self.request, "Profil ma'lumotlari saqlandi.")
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, "Ma'lumotlarda xatolik bor. Iltimos tekshiring.")
+        return super().form_invalid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -846,17 +923,6 @@ class UserProfileView(LoginRequiredMixin, TemplateView):
         context.update(_build_telegram_link_context(user))
         return context
 
-    def post(self, request, *args, **kwargs):
-        user = request.user
-        user.first_name = request.POST.get('first_name', user.first_name)
-        user.last_name = request.POST.get('last_name', user.last_name)
-        user.username = request.POST.get('username', user.username)
-        user.phone_number = request.POST.get('phone_number', user.phone_number)
-        user.email = request.POST.get('email', user.email)
-        user.bio = request.POST.get('bio', user.bio)
-        user.save()
-        messages.success(request, "Profil ma'lumotlari muvaffaqiyatli saqlandi.")
-        return redirect('profile')
 
 class AttendanceCalendarView(LoginRequiredMixin, TemplateView):
     template_name = 'users/attendance_calendar.html'

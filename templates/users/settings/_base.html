@@ -1,0 +1,29 @@
+{% extends "users/base_app.html" %}
+{% load static %}
+{% comment %}
+  Sozlamalar shell'i. Har bo'lim alohida sahifa va shu shablonni meros oladi;
+  faqat {% block settings_body %} ni to'ldiradi.
+
+  Sidebar navigatsiyasi bo'limlar bilan almashtiriladi (`app_nav` bloki), shuning
+  uchun sahifada ikkinchi navigatsiya yo'q.
+
+  Kerakli kontekst: settings_section ("account"|"privacy"|"billing"|"capabilities").
+{% endcomment %}
+
+{% block app_icon %}bi-gear{% endblock %}
+{% block app_topbar_title %}Sozlamalar{% endblock %}
+{% block app_title %}Sozlamalar{% endblock %}
+
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/settings.css' %}">{% endblock %}
+
+{% block app_nav %}{% include "components/settings_nav.html" %}{% endblock %}
+
+{% block app_content %}
+<div class="set-wrap">
+  <div class="set-head">
+    <h1>{% block settings_title %}Sozlamalar{% endblock %}</h1>
+    <p>{% block settings_lead %}{% endblock %}</p>
+  </div>
+  {% block settings_body %}{% endblock %}
+</div>
+{% endblock %}

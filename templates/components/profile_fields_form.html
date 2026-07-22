@@ -1,0 +1,35 @@
+{% comment %}
+Profil maydonlari formasi — yagona manba.
+
+Profil sahifasidagi joyida tahrirlash ham, Sozlamalar > Hisob ham shuni
+ishlatadi, shuning uchun maydonlar va validatsiya bir joyda turadi.
+
+Parametrlar:
+  form        — ProfileFieldsForm
+  action      — POST manzili
+  next_url    — saqlangach qaytadigan manzil (ixtiyoriy)
+  show_email  — o'zgartirib bo'lmaydigan email maydonini ko'rsatish
+{% endcomment %}
+<form method="post" action="{{ action }}" class="set-form" style="display:flex;flex-direction:column;gap:16px;">
+  {% csrf_token %}
+  {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
+
+  {% if form.non_field_errors %}
+  <div style="border:1px solid var(--red);border-radius:10px;background:var(--red-soft);color:var(--red);padding:11px 14px;font-size:13px;">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <div class="set-grid-2">
+    <label><span class="set-lbl">{{ form.first_name.label }}</span>{{ form.first_name }}{% for e in form.first_name.errors %}<em style="font-size:11px;color:var(--red);font-style:normal;">{{ e }}</em>{% endfor %}</label>
+    <label><span class="set-lbl">{{ form.last_name.label }}</span>{{ form.last_name }}{% for e in form.last_name.errors %}<em style="font-size:11px;color:var(--red);font-style:normal;">{{ e }}</em>{% endfor %}</label>
+  </div>
+  <div class="set-grid-2">
+    <label><span class="set-lbl">{{ form.phone_number.label }}</span>{{ form.phone_number }}{% for e in form.phone_number.errors %}<em style="font-size:11px;color:var(--red);font-style:normal;">{{ e }}</em>{% endfor %}</label>
+    {% if show_email %}<label><span class="set-lbl">Email</span><input type="email" value="{{ request.user.email }}" disabled style="opacity:.7;cursor:not-allowed;"></label>{% endif %}
+  </div>
+  <label><span class="set-lbl">{{ form.bio.label }}</span>{{ form.bio }}{% for e in form.bio.errors %}<em style="font-size:11px;color:var(--red);font-style:normal;">{{ e }}</em>{% endfor %}</label>
+
+  <div style="display:flex;gap:9px;flex-wrap:wrap;">
+    <button type="submit" class="set-save"><i class="bi bi-check2"></i> Saqlash</button>
+    {% if show_cancel %}<button type="button" class="set-btn" data-profile-edit-cancel><i class="bi bi-x-lg"></i> Bekor qilish</button>{% endif %}
+  </div>
+</form>
