@@ -24,6 +24,10 @@
     const menu = e.target.closest('[data-app-menu]');
     if (side && !side.contains(e.target) && !menu) app.classList.remove('side-open');
   });
+  // Drawer overlay bo'lgani uchun Escape ham yopadi.
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') app.classList.remove('side-open');
+  });
 
   // Nav-guruh yig'ish
   document.querySelectorAll('[data-app-group]').forEach((btn) => {

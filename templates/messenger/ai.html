@@ -11,11 +11,15 @@
 
 {% block title %}Xabarlar — {{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{% static 'css/messenger.css' %}">{% endblock %}
-{% block extra_js %}<script defer src="{% static 'js/messenger-chat.js' %}"></script>{% endblock %}
+{% block extra_js %}<script defer src="{% static 'js/messenger-shell.js' %}"></script><script defer src="{% static 'js/messenger-chat.js' %}"></script>{% endblock %}
 
 {% block body %}
 <form style="display:none;">{% csrf_token %}</form>
-<div class="msgr">
+{% comment %}
+  Ochiq suhbat bo'lmasa telefon drawer'i boshidan ochiq turadi — aks holda
+  bo'sh ekranda ro'yxatga o'tish yo'li ko'rinmay qoladi.
+{% endcomment %}
+<div class="msgr{% if not active_chat_room %} list-open{% endif %}">
 
   <!-- Icon rail -->
   <aside class="msgr-rail">
@@ -72,6 +76,7 @@
 
     <header class="chat-head">
       <div class="chat-head-id">
+        <button type="button" class="msgr-list-toggle" data-msgr-list-toggle aria-label="Suhbatlar ro'yxati"><i class="bi bi-list"></i></button>
         <span class="chat-head-av">{% if active_room == 'ai' %}<i class="bi bi-stars"></i>{% else %}{{ active_chat_room.name|default:"?"|slice:":1"|upper }}{% endif %}</span>
         <span style="min-width:0;">
           <span style="display:flex;align-items:center;gap:8px;"><span class="chat-head-name">{% if active_room == 'ai' %}Azure AI{% else %}{{ active_chat_room.name }}{% endif %}</span>{% if active_room == 'ai' %}<span style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.08em;padding:2px 6px;border-radius:5px;background:var(--azure-soft);color:var(--azure);">AI</span>{% endif %}</span>
