@@ -1,8 +1,10 @@
 {% extends "users/base_app.html" %}
-{# ============================================================
+{% comment %}
+   ============================================================
    Imtihon natijasi — AppShell sahifa (proto: app/exam-result.html).
    Holatlar: tekshirilmoqda (amber) / o'tdi (azure-green) / o'tmadi (red).
-   ============================================================ #}
+   ============================================================
+{% endcomment %}
 
 {% block app_title %}{{ exam.title }} — Natija{% endblock %}
 {% block app_icon %}bi-clipboard-check{% endblock %}
