@@ -17,6 +17,16 @@ from users.models import CustomUser, Notification
 GUEST_DEMO_QUESTION_LIMIT = 5
 
 
+def is_active_staff(user):
+    """Bot admin huquqi uchun yagona tekshiruv.
+
+    O'chirilgan (deaktivatsiya qilingan) staff hisob admin sifatida
+    qabul qilinmaydi — aks holda bloklangan xodim hali ham buyruq bera
+    olardi.
+    """
+    return bool(user and user.is_active and (user.is_staff or user.is_superuser))
+
+
 @dataclass
 class ActionResult:
     ok: bool
@@ -62,7 +72,7 @@ def get_user_role(telegram_id):
     user = CustomUser.objects.filter(telegram_id=telegram_id).first()
     if not user:
         return "Mehmon"
-    if user.is_staff or user.is_superuser:
+    if is_active_staff(user):
         return "Admin"
     is_student = Enrollment.objects.filter(enrollment_active_access_q(), student=user).exists()
     if is_student:
@@ -205,13 +215,11 @@ def handle_telegram_auth_token(token, telegram_user_id, first_name="", last_name
 
 
 def can_manage_cohort(user, cohort):
+    if not (user and user.is_active):
+        return False
     return bool(
-        user
-        and (
-            user.is_superuser
-            or user.is_staff
-            or cohort.course.instructor_id == user.id
-        )
+        is_active_staff(user)
+        or cohort.course.instructor_id == user.id
     )
 
 
@@ -1114,7 +1122,7 @@ def teacher_cohorts_overview(user):
         .select_related("course")
         .order_by("course__title", "name")
     )
-    if not (user.is_staff or user.is_superuser):
+    if not is_active_staff(user):
         cohorts = cohorts.filter(course__instructor=user)
 
     items = []
@@ -1216,7 +1224,7 @@ def verify_receipt(receipt_id, actor):
     """Chekni tasdiqlash — PaymentReceipt.save() enrollmentni o'zi faollashtiradi."""
     from cohorts.models import PaymentReceipt
 
-    if not (actor and (actor.is_staff or actor.is_superuser)):
+    if not is_active_staff(actor):
         return ActionResult(ok=False, code="forbidden", message="Ruxsat yo'q.")
     receipt = (
         PaymentReceipt.objects.select_related(
@@ -1257,7 +1265,7 @@ def reject_receipt(receipt_id, actor):
     """Chekni rad etish — receipt o'chadi (promo band bo'lsa bo'shatiladi), userga xabar."""
     from cohorts.models import PaymentReceipt
 
-    if not (actor and (actor.is_staff or actor.is_superuser)):
+    if not is_active_staff(actor):
         return ActionResult(ok=False, code="forbidden", message="Ruxsat yo'q.")
     receipt = (
         PaymentReceipt.objects.select_related(
@@ -1659,7 +1667,7 @@ def parse_start_payload(payload):
 # ================================================================ F6: Admin kengaytmasi
 
 def _require_admin(actor):
-    return bool(actor and (actor.is_staff or actor.is_superuser))
+    return is_active_staff(actor)
 
 
 def admin_search_users(query, limit=5):

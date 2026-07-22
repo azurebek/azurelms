@@ -12,6 +12,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.clickjacking import xframe_options_exempt
+from django.utils.crypto import constant_time_compare
 
 from .aiogram_app import get_bot, get_dispatcher
 from .miniapp import safe_next_path, validate_init_data
@@ -28,7 +29,7 @@ def telegram_webhook(request):
 
     # Validate the secret token
     secret_token = request.headers.get('X-Telegram-Bot-Api-Secret-Token')
-    expected_token = getattr(settings, 'TELEGRAM_WEBHOOK_SECRET', None)
+    expected_token = (getattr(settings, 'TELEGRAM_WEBHOOK_SECRET', '') or '').strip()
 
     # Localda webhook test qilinsa, flag orqali vaqtinchalik yumshatish mumkin.
     allow_insecure_local = (
@@ -36,9 +37,14 @@ def telegram_webhook(request):
         and getattr(settings, "TELEGRAM_ALLOW_INSECURE_LOCAL_WEBHOOK", False)
     )
     if allow_insecure_local and not secret_token:
-        print("Local mode: skipping webhook secret token check.")
-    elif not expected_token or secret_token != expected_token:
-        print(f"Unauthorized Webhook Access! Token mismatch. Received: {secret_token}")
+        pass  # faqat lokal test rejimida secret talab qilinmaydi
+    elif not expected_token:
+        # Secret sozlanmagan — fail-closed. Known-default bilan ochiq qolmaydi.
+        print("Webhook rad etildi: TELEGRAM_WEBHOOK_SECRET sozlanmagan.")
+        return HttpResponseForbidden()
+    elif not secret_token or not constant_time_compare(secret_token, expected_token):
+        # Kelgan tokenni logga yozmaymiz — hujumchi qiymati logga tushmasin.
+        print("Webhook rad etildi: secret token mos kelmadi.")
         return HttpResponseForbidden()
 
     try:

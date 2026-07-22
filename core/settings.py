@@ -67,7 +67,9 @@ DIGITALOCEAN_INFERENCE_MODEL = os.getenv("DIGITALOCEAN_INFERENCE_MODEL", "router
 AI_CHAT_PROVIDER = os.getenv("AI_CHAT_PROVIDER", "gemini").strip().lower()
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "YOUR_BOT_TOKEN_HERE")
 BOT_USERNAME = os.getenv("BOT_USERNAME", "AzureLMS_bot")
-TELEGRAM_WEBHOOK_SECRET = os.getenv("TELEGRAM_WEBHOOK_SECRET", "YOUR_SECRET_TOKEN_HERE")
+# Bo'sh default ataylab: known-default secret bilan webhook ochiq qolmasin.
+# Secret berilmasa webhook fail-closed bo'ladi (bot/views.py'da tekshiriladi).
+TELEGRAM_WEBHOOK_SECRET = os.getenv("TELEGRAM_WEBHOOK_SECRET", "").strip()
 TELEGRAM_MODE = os.getenv("TELEGRAM_MODE", "polling" if APP_ENV == "local" else "webhook").strip().lower()
 TELEGRAM_ALLOW_INSECURE_LOCAL_WEBHOOK = env_bool("TELEGRAM_ALLOW_INSECURE_LOCAL_WEBHOOK", False)
 

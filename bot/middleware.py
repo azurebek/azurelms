@@ -22,6 +22,9 @@ def resolve_identity(telegram_id):
     user = CustomUser.objects.filter(telegram_id=telegram_id).first()
     if not user:
         return None, "guest"
+    # O'chirilgan (bloklangan) hisob botda hech qanday huquq olmaydi.
+    if not user.is_active:
+        return None, "guest"
     if user.is_staff or user.is_superuser:
         return user, "admin"
     if Course.objects.filter(instructor=user).exists():
