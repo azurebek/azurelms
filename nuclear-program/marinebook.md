@@ -16,6 +16,15 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-22 [Claude Code]: Brend bandining ochiq uchta gap'i yopildi
+
+Oldingi yozuvda qoldirilgan uchta ochiq band yopildi. (1) `templates/bot/miniapp_entry.html`ga favicon include'i qo'shildi va bir martalik yamoq o'rniga yangi kontrakt testi yozildi: `templates/` ichidagi har mustaqil `<head>` canonical `brand_favicon.html`ni deklaratsiya qilishi shart, aks holda test yiqiladi. (2) Brend sahifasining haqiqiy browser QA'si yugurtirildi. (3) Band backlogda A2 ichidagi birinchi mutation surface sifatida yozildi — yangi parallel subsystem emas, va A2ning reason+confirmation+audit+no-op shartlarini qondirishi qayd etildi. Admission label ataylab Azurbekka qoldirildi.
+
+- Branch: `main`
+- Commitlar: `ee979aa`
+- Test holati: `python manage.py test` — **336/336 OK**; `python manage.py check` — **0 issues**; `makemigrations --check --dry-run` — **No changes**. Browser QA (lokal dev server, owner sessiyasi): `/backoffice/control/brand/` 1280x900 va 390x844, light va dark — gorizontal overflow `0`, console xato `0`, save/confirm/reason elementlari interaktiv, CSRF va `multipart/form-data` joyida, 4 ta file input `accept="image/png,image/jpeg,image/webp"` bilan. Downstream yuza (`/users/dashboard/`) markni `AL`, nomni `AzureLMS` sifatida `SiteSettings`dan o'qidi.
+- Davom etilishi kerak: yo'q. Keyingi navbat — `03-mahsulot-backlog.md` bo'yicha A0a stop-ship security pack (Telegram auth token replay, webhook secret default va secret logging, inactive staff denial, teacher scope).
+
 ## 2026-07-22 [Claude Code]: Markaziy brend boshqaruvi commit va main'ga merge
 
 Worktree'da commit qilinmagan holda turgan markaziy brend ishi tekshirildi, saqlandi va `main`'ga birlashtirildi. `SiteSettings` endi to'rtta brand assetini (asosiy wordmark, qorong'i fon wordmark, ixcham belgi, favicon) saqlaydi; barcha logo yuzalari bitta canonical `templates/components/brand_logo.html` adapteridan o'qiydi va hardcode qilingan marklar olib tashlandi. Owner-only `/backoffice/control/brand/` har saqlashda sabab + tasdiq talab qiladi va `LogEntry`ga audit yozadi. Implementatsiya oldingi sessiyada yozilgan; bu sessiya uni verifikatsiya qildi, commit qildi va bir xil commitga ishora qilayotgan ortiqcha `codex/control-center-foundation` branchini o'chirdi.
