@@ -235,16 +235,35 @@ class NotificationBroadcast(models.Model):
 
 
 class TelegramAuthSession(models.Model):
+    """Telegram deep-link orqali kirish uchun bir martalik token.
+
+    Xavfsizlik shartlari:
+    - token faqat BIR MARTA ishlatiladi (`consumed_at` bilan qulflanadi);
+    - `authenticated` holat ham muddatga bo'ysunadi, abadiy yashamaydi;
+    - tokenni boshlagan brauzergagina beriladi (`client_key`) — tokenni
+      bilgan uchinchi shaxs o'z brauzerida login bo'lolmaydi.
+    """
+
     STATUS_PENDING = 'pending'
     STATUS_AUTHENTICATED = 'authenticated'
     STATUS_EXPIRED = 'expired'
+    STATUS_USED = 'used'
     STATUS_CHOICES = [
         (STATUS_PENDING, 'Kutilmoqda'),
         (STATUS_AUTHENTICATED, 'Tizimga kirdi'),
         (STATUS_EXPIRED, 'Muddati o\'tgan'),
+        (STATUS_USED, 'Ishlatilgan'),
     ]
 
+    TOKEN_TTL = timezone.timedelta(minutes=5)
+
     token = models.CharField(max_length=64, unique=True)
+    client_key = models.CharField(
+        max_length=64,
+        blank=True,
+        default='',
+        help_text="Tokenni boshlagan brauzer sessiyasiga bog'lanish kaliti.",
+    )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -254,6 +273,7 @@ class TelegramAuthSession(models.Model):
     )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
     created_at = models.DateTimeField(auto_now_add=True)
+    consumed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         verbose_name = "Telegram Auth Sessiyasi"
@@ -262,8 +282,22 @@ class TelegramAuthSession(models.Model):
     def __str__(self):
         return f"AuthSession: {self.token[:8]}... | Status: {self.status}"
 
+    def is_expired(self):
+        return timezone.now() - self.created_at > self.TOKEN_TTL
+
     def is_valid(self):
-        # Token 5 daqiqa davomida yaroqli
-        limit = timezone.now() - timezone.timedelta(minutes=5)
-        return self.created_at >= limit and self.status == self.STATUS_PENDING
+        """Bot tomonida tasdiqlash uchun: hali kutilmoqda va muddati o'tmagan."""
+        return self.status == self.STATUS_PENDING and not self.is_expired()
+
+    def is_claimable(self):
+        """Brauzer login qilib olishi mumkinmi.
+
+        Bir marta olingach (`consumed_at`) yoki muddati o'tgach yopiladi.
+        """
+        return (
+            self.status == self.STATUS_AUTHENTICATED
+            and self.consumed_at is None
+            and self.user_id is not None
+            and not self.is_expired()
+        )
 
