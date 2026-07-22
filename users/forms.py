@@ -58,3 +58,28 @@ class CustomUserCreationForm(UserCreationForm):
         if commit:
             user.save()
         return user
+
+
+class ProfileFieldsForm(forms.ModelForm):
+    """Foydalanuvchi o'zi tahrirlaydigan profil maydonlari — yagona manba.
+
+    Profil sahifasidagi joyida tahrirlash ham, Sozlamalar > Hisob ham shu
+    formani ishlatadi. `username` va `email` ataylab yo'q: ular login
+    identifikatori va ularni bu yerdan tekshiruvsiz o'zgartirib bo'lmaydi.
+    """
+
+    class Meta:
+        model = CustomUser
+        fields = ['first_name', 'last_name', 'phone_number', 'bio']
+        labels = {
+            'first_name': 'Ism',
+            'last_name': 'Familiya',
+            'phone_number': 'Telefon',
+            'bio': 'Haqida (bio)',
+        }
+        widgets = {
+            'first_name': forms.TextInput(attrs={'autocomplete': 'given-name'}),
+            'last_name': forms.TextInput(attrs={'autocomplete': 'family-name'}),
+            'phone_number': forms.TextInput(attrs={'autocomplete': 'tel'}),
+            'bio': forms.Textarea(attrs={'rows': 4}),
+        }

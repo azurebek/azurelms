@@ -6,8 +6,12 @@
   telegram_linked / telegram_bot_link / telegram_username, + global notifications.
 {% endcomment %}
 
+{% load static %}
 {% block app_icon %}bi-person{% endblock %}
 {% block app_topbar_title %}Profil{% endblock %}
+
+{% comment %}Joyida tahrirlash formasi settings.css dagi form primitivlarini ishlatadi.{% endcomment %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/settings.css' %}">{% endblock %}
 
 {% block app_content %}
 <div style="max-width:1040px;margin:0 auto;">
@@ -27,8 +31,25 @@
       </div>
       <div style="display:flex;align-items:center;gap:8px;padding-bottom:4px;">
         <span style="display:inline-flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:11px;color:var(--azure);background:var(--azure-soft);padding:6px 12px;border-radius:999px;"><i class="bi bi-patch-check-fill"></i> {{ request.user.current_level|default:"A1" }} · {{ request.user.total_xp }} XP</span>
-        <a href="{% url 'settings' %}" style="height:38px;display:inline-flex;align-items:center;gap:7px;padding:0 16px;border-radius:9px;border:1px solid var(--line);color:var(--ink);font-size:13px;font-weight:600;"><i class="bi bi-pencil"></i> Tahrirlash</a>
+        <button type="button" class="set-btn" data-profile-edit-open aria-expanded="false" aria-controls="profile-edit"><i class="bi bi-pencil"></i> Tahrirlash</button>
       </div>
+    </div>
+
+    {% comment %}
+      Tahrirlash shu yerda ochiladi — boshqa sahifaga o'tmaydi, shuning uchun
+      navigatsiya konteksti va sahifadagi o'rin yo'qolmaydi.
+      Forma Sozlamalar > Hisob bilan bitta komponent.
+    {% endcomment %}
+    <div id="profile-edit" style="border-top:1px solid var(--line);padding:20px 24px;{% if not form.errors %}display:none;{% endif %}" data-profile-edit>
+      {% url 'profile' as profile_action %}
+      {% include "components/profile_fields_form.html" with action=profile_action show_cancel=True %}
+
+      <form method="post" action="{% url 'update_avatar' %}" enctype="multipart/form-data" class="set-form" style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-top:18px;padding-top:16px;border-top:1px solid var(--line-2);">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{% url 'profile' %}">
+        <label style="flex:1;min-width:220px;"><span class="set-lbl">Profil rasmi</span><input type="file" name="avatar" accept="image/png,image/jpeg,image/webp" style="height:auto;padding:10px 14px;"></label>
+        <button type="submit" class="set-btn"><i class="bi bi-upload"></i> Rasmni yuklash</button>
+      </form>
     </div>
   </section>
 
@@ -100,4 +121,35 @@
   </div>
 
 </div>
+
+<script>
+(function(){
+  var panel = document.querySelector('[data-profile-edit]');
+  var openBtn = document.querySelector('[data-profile-edit-open]');
+  if (!panel || !openBtn) return;
+
+  function setOpen(open){
+    panel.style.display = open ? 'block' : 'none';
+    openBtn.setAttribute('aria-expanded', String(open));
+    if (open) {
+      var first = panel.querySelector('input:not([type=hidden]), textarea');
+      if (first) first.focus();
+    }
+  }
+
+  openBtn.addEventListener('click', function(){
+    setOpen(panel.style.display === 'none');
+  });
+
+  panel.querySelectorAll('[data-profile-edit-cancel]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      setOpen(false);
+      openBtn.focus();
+    });
+  });
+
+  // Validatsiya xatosi bo'lsa panel serverdan ochiq kelgan — tugma holati mos bo'lsin.
+  if (panel.style.display !== 'none') openBtn.setAttribute('aria-expanded', 'true');
+})();
+</script>
 {% endblock %}

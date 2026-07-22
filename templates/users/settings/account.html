@@ -12,19 +12,8 @@
 <section class="set-sec">
   <div class="set-sec-h"><i class="bi bi-person-circle"></i><span>Shaxsiy ma'lumotlar</span></div>
   <div class="set-sec-b">
-    <form method="post" action="{% url 'settings_account' %}" class="set-form" style="display:flex;flex-direction:column;gap:16px;">
-      {% csrf_token %}
-      <div class="set-grid-2">
-        <label><span class="set-lbl">Ism</span>{{ form.first_name }}</label>
-        <label><span class="set-lbl">Familiya</span>{{ form.last_name }}</label>
-      </div>
-      <div class="set-grid-2">
-        <label><span class="set-lbl">Telefon</span>{{ form.phone_number }}</label>
-        <label><span class="set-lbl">Email</span><input type="email" value="{{ request.user.email }}" disabled style="opacity:.7;cursor:not-allowed;"></label>
-      </div>
-      <label><span class="set-lbl">Haqida (bio)</span>{{ form.bio }}</label>
-      <div><button type="submit" class="set-save"><i class="bi bi-check2"></i> Saqlash</button></div>
-    </form>
+    {% url 'settings_account' as account_action %}
+    {% include "components/profile_fields_form.html" with action=account_action show_email=True %}
   </div>
 </section>
 

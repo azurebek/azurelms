@@ -1,5 +1,10 @@
 /* ============================================================
-   AzureLMS — Sozlamalar
+   AzureLMS — Sozlamalar va profil formalari
+
+   Eslatma: `.set-form`, `.set-grid-*`, `.set-lbl`, `.set-save`, `.set-btn`
+   primitivlarini profil sahifasidagi joyida tahrirlash ham ishlatadi
+   (components/profile_fields_form.html orqali), shuning uchun bu fayl
+   profilda ham yuklanadi.
    Sozlamalar 4 bo'limga ajratilgan, har biri alohida sahifa.
    Bo'lim nomlari app sidebar'ining o'zida (dashboard nav'i o'rniga),
    shuning uchun bu yerda alohida navigatsiya uslubi yo'q.

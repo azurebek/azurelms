@@ -8,7 +8,8 @@ from django.db.models import Count, Prefetch, Q
 import datetime
 import base64
 import calendar
-from .forms import CustomUserCreationForm
+from .forms import CustomUserCreationForm, ProfileFieldsForm
+from django.utils.http import url_has_allowed_host_and_scheme
 from .models import CustomUser, Notification
 from django.shortcuts import redirect, render, get_object_or_404
 from cohorts.models import Enrollment, Attendance, Cohort, PaymentReceipt, enrollment_active_access_q
@@ -100,6 +101,21 @@ class StartSmartOnboardingView(LoginRequiredMixin, View):
         return redirect('messenger:ai_room', room_id=room.id)
 
 
+def _safe_next(request, fallback):
+    """`next` faqat shu saytning ichki manzili bo'lsa qabul qilinadi.
+
+    Aks holda tashqi saytga ochiq redirect bo'lib qolardi.
+    """
+    candidate = request.POST.get('next') or request.GET.get('next')
+    if candidate and url_has_allowed_host_and_scheme(
+        candidate,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return candidate
+    return fallback
+
+
 class SettingsSectionMixin(LoginRequiredMixin):
     """Sozlamalar bo'limlari uchun umumiy kontekst.
 
@@ -121,12 +137,14 @@ class SettingsAccountView(SettingsSectionMixin, UpdateView):
 
     model = CustomUser
     template_name = 'users/settings/account.html'
-    fields = ['first_name', 'last_name', 'phone_number', 'bio']
-    success_url = reverse_lazy('settings_account')
+    form_class = ProfileFieldsForm
     settings_section = 'account'
 
     def get_object(self, queryset=None):
         return self.request.user
+
+    def get_success_url(self):
+        return _safe_next(self.request, reverse_lazy('settings_account'))
 
     def form_valid(self, form):
         messages.success(self.request, "Profil ma'lumotlari muvaffaqiyatli yangilandi.")
@@ -185,7 +203,8 @@ class AvatarUpdateView(LoginRequiredMixin, View):
             messages.success(request, "Profil rasmi muvaffaqiyatli yangilandi.")
         else:
             messages.error(request, "Rasm tanlanmadi.")
-        return redirect('settings_account')
+        # Profil sahifasidan yuklansa o'sha yerga qaytadi.
+        return redirect(_safe_next(request, 'settings_account'))
 
 class AIToneUpdateView(LoginRequiredMixin, View):
     """Update only the AI tone preference for the AzureAI assistant."""
@@ -851,8 +870,29 @@ class HelpCenterView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class UserProfileView(LoginRequiredMixin, TemplateView):
+class UserProfileView(LoginRequiredMixin, UpdateView):
+    """Profil — ko'rish sahifasi, ism/telefon/bio esa joyida tahrirlanadi.
+
+    Tahrirlash boshqa sahifaga olib o'tmaydi: forma shu sahifada ochiladi.
+    Sozlamalar > Hisob bilan bitta `ProfileFieldsForm` ishlatiladi, shuning
+    uchun ikki yuzada ikki xil validatsiya bo'lmaydi.
+    """
+
+    model = CustomUser
     template_name = 'users/profile.html'
+    form_class = ProfileFieldsForm
+    success_url = reverse_lazy('profile')
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def form_valid(self, form):
+        messages.success(self.request, "Profil ma'lumotlari saqlandi.")
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, "Ma'lumotlarda xatolik bor. Iltimos tekshiring.")
+        return super().form_invalid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -883,17 +923,6 @@ class UserProfileView(LoginRequiredMixin, TemplateView):
         context.update(_build_telegram_link_context(user))
         return context
 
-    def post(self, request, *args, **kwargs):
-        user = request.user
-        user.first_name = request.POST.get('first_name', user.first_name)
-        user.last_name = request.POST.get('last_name', user.last_name)
-        user.username = request.POST.get('username', user.username)
-        user.phone_number = request.POST.get('phone_number', user.phone_number)
-        user.email = request.POST.get('email', user.email)
-        user.bio = request.POST.get('bio', user.bio)
-        user.save()
-        messages.success(request, "Profil ma'lumotlari muvaffaqiyatli saqlandi.")
-        return redirect('profile')
 
 class AttendanceCalendarView(LoginRequiredMixin, TemplateView):
     template_name = 'users/attendance_calendar.html'
