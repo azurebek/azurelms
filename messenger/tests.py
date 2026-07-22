@@ -2098,3 +2098,39 @@ class WidgetAiMessageTests(TestCase):
 
         messenger_page = self.client.get(reverse("messenger:ai"))
         self.assertNotContains(messenger_page, "azaiWidget")
+
+
+class MessengerMobileShellTests(TestCase):
+    """Telefon layout kontrakti.
+
+    CSS'ning o'zi test qilinmaydi, lekin drawer faqat shu markup bo'lsa
+    ishlaydi: ro'yxatni ochadigan tugma, shell skripti va ochiq suhbat
+    bo'lmaganda boshidan ochiq drawer. Bittasi yo'qolsa telefonda
+    suhbatlar ro'yxatiga o'tish yo'li yo'qoladi.
+    """
+
+    def setUp(self):
+        self.student = User.objects.create_user(
+            username="mobile-shell-student",
+            email="mobile-shell@example.com",
+            password="testpass123",
+        )
+        self.client.force_login(self.student)
+
+    def test_messenger_ships_list_drawer_controls(self):
+        response = self.client.get(reverse("messenger:ai"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "data-msgr-list-toggle")
+        self.assertContains(response, "js/messenger-shell.js")
+
+    def test_drawer_starts_open_when_no_conversation_is_active(self):
+        # AI yo'li kirishda xona yaratadi; guruhga yozilmagan student uchun
+        # esa ochiq suhbat bo'lmaydi — drawer boshidan ochiq turishi kerak.
+        response = self.client.get(reverse("messenger:group"))
+        self.assertIsNone(response.context.get("active_chat_room"))
+        self.assertContains(response, "msgr list-open")
+
+    def test_drawer_starts_closed_when_a_conversation_is_active(self):
+        response = self.client.get(reverse("messenger:ai"))
+        self.assertIsNotNone(response.context.get("active_chat_room"))
+        self.assertNotContains(response, "msgr list-open")
