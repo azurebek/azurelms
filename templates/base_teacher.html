@@ -25,7 +25,10 @@
 <div class="app">
   <aside class="app-side" data-appside>
     <div class="app-side-inner">
-      <a class="app-logo has-role" href="{% url 'teacher_dashboard' %}">{% include "components/brand_logo.html" with mark_class="app-logo-mark" name_class="app-logo-name" %}</a>
+      <div class="app-side-head">
+        <a class="app-logo has-role" href="{% url 'teacher_dashboard' %}">{% include "components/brand_logo.html" with mark_class="app-logo-mark" name_class="app-logo-name" %}</a>
+        <button type="button" class="app-collapse-btn" data-app-collapse aria-label="Yon panelni yig'ish"><i class="bi bi-chevron-double-left"></i></button>
+      </div>
       <div class="tch-role"><i class="bi bi-mortarboard-fill"></i> O'qituvchi</div>
       <nav class="app-nav" data-appscroll>
         <div class="app-nav-group">
@@ -46,19 +49,7 @@
           <a class="app-nav-item" href="{% url 'messenger:index' %}"><i class="bi bi-chat-dots"></i><span class="label">Xabarlar</span></a>
         </div>
       </nav>
-      <div class="app-side-bottom">
-        <a class="app-nav-item" href="{% url 'dashboard' %}"><i class="bi bi-arrow-left-right"></i><span class="label">O'quvchi rejimi</span></a>
-        <a class="app-nav-item" href="{% url 'settings' %}"><i class="bi bi-gear"></i><span class="label">Sozlamalar</span></a>
-        {# Django 6: LogoutView faqat POST qabul qiladi — link emas, forma #}
-        <form method="post" action="{% url 'logout' %}" style="margin:0;">{% csrf_token %}
-          <button type="submit" class="app-nav-item is-muted" style="width:100%;"><i class="bi bi-box-arrow-right"></i><span class="label">Chiqish</span></button>
-        </form>
-        <button type="button" class="app-nav-item is-muted" data-app-collapse><i class="bi bi-chevron-double-left"></i><span class="label">Yig'ish</span></button>
-        <a class="app-user" href="{% url 'profile' %}">
-          {% if request.user.avatar %}<img class="app-user-av is-violet" src="{{ request.user.avatar.url }}" alt="" style="object-fit:cover;">{% else %}<span class="app-user-av is-violet">{{ request.user.first_name.0|default:request.user.username.0|upper }}{{ request.user.last_name.0|upper }}</span>{% endif %}
-          <span style="flex:1;min-width:0;"><span class="app-user-name">{{ request.user.get_full_name|default:request.user.username }}</span><span class="app-user-meta">Muallif</span></span>
-        </a>
-      </div>
+      {% include "components/app_user_menu.html" with shell="teacher" %}
     </div>
   </aside>
 
