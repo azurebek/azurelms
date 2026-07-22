@@ -7,8 +7,10 @@ from django.contrib.auth.views import (
     PasswordResetConfirmView,
     PasswordResetCompleteView
 )
+from django.views.generic import RedirectView
 from .views import (
-    RegisterView, UserProfileView, SettingsView, AvatarUpdateView, PasswordUpdateView,
+    RegisterView, UserProfileView, AvatarUpdateView, PasswordUpdateView,
+    SettingsAccountView, SettingsBillingView, SettingsCapabilitiesView,
     AIModelUpdateView, AIToneUpdateView, AIWebSearchEffortUpdateView,
     AIMemoryListView, AIMemoryArchiveView, AIMemoryClearAllView, AIMemoryRejectView, AIMemoryToggleView,
     DashboardView, MyCoursesView, SubscriptionHistoryView, CertificateListView, LeaderboardView,
@@ -27,13 +29,21 @@ urlpatterns = [
     path('telegram-auth/status/<str:token>/', telegram_auth_status, name='telegram_auth_status'),
     path('logout/', LogoutView.as_view(next_page='home'), name='logout'),
     path('profile/', UserProfileView.as_view(), name='profile'),
-    path('settings/', SettingsView.as_view(), name='settings'),
+    # Sozlamalar 4 bo'limga ajratilgan. `settings` — umumiy kirish nuqtasi
+    # bo'lib qoladi (ko'p shablon shunga havola qiladi) va Hisobga yo'naltiradi.
+    path('settings/', RedirectView.as_view(pattern_name='settings_account'), name='settings'),
+    path('settings/hisob/', SettingsAccountView.as_view(), name='settings_account'),
+    path('settings/maxfiylik/', AIMemoryListView.as_view(), name='settings_privacy'),
+    path('settings/tolov/', SettingsBillingView.as_view(), name='settings_billing'),
+    path('settings/imkoniyatlar/', SettingsCapabilitiesView.as_view(), name='settings_capabilities'),
+
     path('settings/avatar/', AvatarUpdateView.as_view(), name='update_avatar'),
     path('settings/password/', PasswordUpdateView.as_view(), name='update_password'),
     path('settings/ai-tone/', AIToneUpdateView.as_view(), name='update_ai_tone'),
     path('settings/ai-model/', AIModelUpdateView.as_view(), name='update_ai_model'),
     path('settings/ai-web-search/', AIWebSearchEffortUpdateView.as_view(), name='update_ai_web_search_effort'),
-    path('settings/ai-memory/', AIMemoryListView.as_view(), name='ai_memory'),
+    # Eski xotira sahifasi Maxfiylik bo'limiga ko'chdi; havola ishlashda qoladi.
+    path('settings/ai-memory/', RedirectView.as_view(pattern_name='settings_privacy'), name='ai_memory'),
     path('settings/ai-memory/toggle/', AIMemoryToggleView.as_view(), name='ai_memory_toggle'),
     path('settings/ai-memory/clear/', AIMemoryClearAllView.as_view(), name='ai_memory_clear'),
     path('settings/ai-memory/<int:fact_id>/archive/', AIMemoryArchiveView.as_view(), name='ai_memory_archive'),

@@ -1,0 +1,18 @@
+{% comment %}
+Sozlamalar navigatsiyasi — app sidebar'ining `app_nav` blokini almashtiradi.
+
+Sozlamalarda turganda dashboard elementlari ko'rinmaydi: bitta sidebar,
+uning ichida shu 4 bo'lim. Chiqish uchun tepada qaytish havolasi.
+
+Faol bo'limni `settings_section` belgilaydi:
+"account" | "privacy" | "billing" | "capabilities".
+{% endcomment %}
+<a class="app-nav-item is-muted" href="{% url 'dashboard' %}"><i class="bi bi-arrow-left"></i><span class="label">Boshqaruv paneli</span></a>
+
+<div class="app-nav-group" style="margin-top:10px;">
+  <span class="app-nav-label"><span>Sozlamalar</span></span>
+  <a class="app-nav-item{% if settings_section == 'account' %} active{% endif %}" href="{% url 'settings_account' %}"{% if settings_section == 'account' %} aria-current="page"{% endif %}><i class="bi bi-person-circle"></i><span class="label">Hisob</span></a>
+  <a class="app-nav-item{% if settings_section == 'privacy' %} active{% endif %}" href="{% url 'settings_privacy' %}"{% if settings_section == 'privacy' %} aria-current="page"{% endif %}><i class="bi bi-shield-check"></i><span class="label">Maxfiylik</span></a>
+  <a class="app-nav-item{% if settings_section == 'billing' %} active{% endif %}" href="{% url 'settings_billing' %}"{% if settings_section == 'billing' %} aria-current="page"{% endif %}><i class="bi bi-credit-card"></i><span class="label">To'lov</span></a>
+  <a class="app-nav-item{% if settings_section == 'capabilities' %} active{% endif %}" href="{% url 'settings_capabilities' %}"{% if settings_section == 'capabilities' %} aria-current="page"{% endif %}><i class="bi bi-stars"></i><span class="label">Imkoniyatlar</span></a>
+</div>

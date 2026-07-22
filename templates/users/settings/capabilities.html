@@ -1,0 +1,50 @@
+{% extends "users/settings/_base.html" %}
+{% comment %}
+  Imkoniyatlar bo'limi — AzureAI xulqi.
+  Endpointlar: update_ai_tone, update_ai_model, update_ai_web_search_effort.
+{% endcomment %}
+
+{% block settings_title %}Imkoniyatlar{% endblock %}
+{% block settings_lead %}AzureAI qanday javob berishini va qanday manbalardan foydalanishini boshqaring.{% endblock %}
+
+{% block settings_body %}
+<section class="set-sec">
+  <div class="set-sec-h"><i class="bi bi-chat-quote"></i><span>Javob ohangi</span></div>
+  <div class="set-sec-b">
+    <div class="set-row-s" style="margin-bottom:11px;">AzureAI siz bilan qanday gaplashsin.</div>
+    <form method="post" action="{% url 'update_ai_tone' %}" style="display:flex;flex-wrap:wrap;gap:7px;">
+      {% csrf_token %}
+      {% for value, label in tone_choices %}
+      <button type="submit" name="ai_tone" value="{{ value }}" class="set-pill{% if request.user.ai_tone == value %} is-on{% endif %}">{{ label }}</button>
+      {% endfor %}
+    </form>
+  </div>
+</section>
+
+<section class="set-sec">
+  <div class="set-sec-h"><i class="bi bi-cpu"></i><span>AI modeli</span></div>
+  <div class="set-sec-b">
+    <div class="set-row-s" style="margin-bottom:11px;">Kuchliroq model sekinroq, lekin puxtaroq javob beradi.</div>
+    <form method="post" action="{% url 'update_ai_model' %}" style="display:flex;flex-wrap:wrap;gap:7px;">
+      {% csrf_token %}
+      {% for value, label in model_choices %}
+      <button type="submit" name="ai_model" value="{{ value }}" class="set-pill{% if request.user.ai_model == value %} is-on{% endif %}">{{ label }}</button>
+      {% endfor %}
+    </form>
+  </div>
+</section>
+
+<section class="set-sec">
+  <div class="set-sec-h"><i class="bi bi-globe2"></i><span>Web qidiruv</span></div>
+  <div class="set-sec-b">
+    <div class="set-row-s" style="margin-bottom:11px;">AzureAI qachon internetdan yangi ma'lumot qidirsin.</div>
+    <form method="post" action="{% url 'update_ai_web_search_effort' %}" style="display:flex;flex-wrap:wrap;gap:7px;">
+      {% csrf_token %}
+      {% for value, label in web_search_choices %}
+      <button type="submit" name="ai_web_search_effort" value="{{ value }}" class="set-pill{% if request.user.ai_web_search_effort == value %} is-on{% endif %}">{{ label }}</button>
+      {% endfor %}
+    </form>
+    <div class="set-note" style="margin-top:12px;">Yuqori daraja ko'proq qidiradi va javob sekinlashishi mumkin.</div>
+  </div>
+</section>
+{% endblock %}

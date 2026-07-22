@@ -294,7 +294,7 @@ class UsagePanelTests(TestCase):
     def test_settings_page_shows_usage_panel(self):
         _add_usage(self.user, self.room, 3_000)
         self.client.force_login(self.user)
-        response = self.client.get(reverse("settings"))
+        response = self.client.get(reverse("settings_billing"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "AI foydalanish limiti")
         self.assertContains(response, "Joriy sessiya")

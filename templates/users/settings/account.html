@@ -1,0 +1,87 @@
+{% extends "users/settings/_base.html" %}
+{% comment %}
+  Hisob bo'limi — SettingsAccountView (UpdateView:
+  first_name, last_name, phone_number, bio).
+  Sub-formalar: update_avatar, update_password.
+{% endcomment %}
+
+{% block settings_title %}Hisob{% endblock %}
+{% block settings_lead %}Shaxsiy ma'lumotlar, parol va ko'rinish.{% endblock %}
+
+{% block settings_body %}
+<section class="set-sec">
+  <div class="set-sec-h"><i class="bi bi-person-circle"></i><span>Shaxsiy ma'lumotlar</span></div>
+  <div class="set-sec-b">
+    <form method="post" action="{% url 'settings_account' %}" class="set-form" style="display:flex;flex-direction:column;gap:16px;">
+      {% csrf_token %}
+      <div class="set-grid-2">
+        <label><span class="set-lbl">Ism</span>{{ form.first_name }}</label>
+        <label><span class="set-lbl">Familiya</span>{{ form.last_name }}</label>
+      </div>
+      <div class="set-grid-2">
+        <label><span class="set-lbl">Telefon</span>{{ form.phone_number }}</label>
+        <label><span class="set-lbl">Email</span><input type="email" value="{{ request.user.email }}" disabled style="opacity:.7;cursor:not-allowed;"></label>
+      </div>
+      <label><span class="set-lbl">Haqida (bio)</span>{{ form.bio }}</label>
+      <div><button type="submit" class="set-save"><i class="bi bi-check2"></i> Saqlash</button></div>
+    </form>
+  </div>
+</section>
+
+<section class="set-sec">
+  <div class="set-sec-h"><i class="bi bi-image"></i><span>Profil rasmi</span></div>
+  <div class="set-sec-b">
+    <form method="post" action="{% url 'update_avatar' %}" enctype="multipart/form-data" class="set-form set-row">
+      {% csrf_token %}
+      <label style="flex:1;min-width:220px;"><span class="set-lbl">Yangi rasm</span><input type="file" name="avatar" accept="image/png,image/jpeg,image/webp" style="height:auto;padding:10px 14px;"></label>
+      <button type="submit" class="set-btn"><i class="bi bi-upload"></i> Yuklash</button>
+    </form>
+  </div>
+</section>
+
+<section class="set-sec">
+  <div class="set-sec-h"><i class="bi bi-key"></i><span>Parol</span></div>
+  <div class="set-sec-b">
+    <form method="post" action="{% url 'update_password' %}" class="set-form set-grid-3">
+      {% csrf_token %}
+      <label><span class="set-lbl">Joriy parol</span><input type="password" name="old_password" required autocomplete="current-password"></label>
+      <label><span class="set-lbl">Yangi parol</span><input type="password" name="new_password1" required autocomplete="new-password"></label>
+      <label><span class="set-lbl">Tasdiqlang</span><input type="password" name="new_password2" required autocomplete="new-password"></label>
+      <div style="grid-column:1 / -1;"><button type="submit" class="set-btn"><i class="bi bi-key"></i> Parolni o'zgartirish</button></div>
+    </form>
+  </div>
+</section>
+
+<section class="set-sec">
+  <div class="set-sec-h"><i class="bi bi-palette"></i><span>Ko'rinish</span></div>
+  <div class="set-sec-b">
+    <div class="set-row">
+      <div><div class="set-row-t">Mavzu</div><div class="set-row-s">Yorug' yoki qorong'i.</div></div>
+      <div style="display:flex;gap:7px;">
+        <button type="button" class="set-pill" data-theme-set="light"><i class="bi bi-sun"></i> Yorug'</button>
+        <button type="button" class="set-pill" data-theme-set="dark"><i class="bi bi-moon"></i> Qorong'i</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  function sync(){
+    var cur = document.documentElement.getAttribute('data-theme') || 'light';
+    document.querySelectorAll('[data-theme-set]').forEach(function(b){
+      b.classList.toggle('is-on', b.getAttribute('data-theme-set') === cur);
+    });
+  }
+  document.querySelectorAll('[data-theme-set]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var t = btn.getAttribute('data-theme-set');
+      document.documentElement.setAttribute('data-theme', t);
+      try{ localStorage.setItem('az-v2-theme', t); }catch(e){}
+      sync();
+    });
+  });
+  sync();
+})();
+</script>
+{% endblock %}

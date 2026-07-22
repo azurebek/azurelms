@@ -1,0 +1,100 @@
+{% extends "users/settings/_base.html" %}
+{% comment %}
+  Maxfiylik bo'limi — AzureAI xotirasi (avval alohida /settings/ai-memory/ sahifasi edi).
+  Kontekst: memory_groups [{category,label,icon,facts}], memory_total, ai_memory_enabled,
+  memory_report {active,archived,saved,retrieved,...}, legacy_memory_text.
+  Amallar: ai_memory_toggle, ai_memory_archive(fact_id), ai_memory_reject(fact_id), ai_memory_clear.
+{% endcomment %}
+
+{% block settings_title %}Maxfiylik{% endblock %}
+{% block settings_lead %}AzureAI siz haqingizda nimani eslab qolishini boshqaring.{% endblock %}
+
+{% block settings_body %}
+<section class="set-sec">
+  <div class="set-sec-h"><i class="bi bi-bookmark-star"></i><span>AI xotirasi</span></div>
+  <div class="set-sec-b">
+    <div class="set-row">
+      <div style="display:flex;align-items:center;gap:13px;">
+        <span style="width:42px;height:42px;border-radius:11px;flex:0 0 auto;display:grid;place-items:center;font-size:19px;{% if ai_memory_enabled %}background:var(--green-soft);color:var(--green);{% else %}background:var(--paper-2);color:var(--ink-4);{% endif %}"><i class="bi bi-{% if ai_memory_enabled %}check-circle{% else %}pause-circle{% endif %}"></i></span>
+        <div>
+          <div class="set-row-t">Xotira {% if ai_memory_enabled %}yoqilgan{% else %}o'chirilgan{% endif %}</div>
+          <div class="set-row-s">{% if ai_memory_enabled %}Yangi suhbatlarda muhim faktlar saqlanadi.{% else %}Yangi faktlar saqlanmaydi (mavjudlari qoladi).{% endif %}</div>
+        </div>
+      </div>
+      <form method="post" action="{% url 'ai_memory_toggle' %}">
+        {% csrf_token %}
+        <input type="hidden" name="ai_memory_enabled" value="{% if ai_memory_enabled %}0{% else %}1{% endif %}">
+        <button type="submit" class="set-toggle{% if ai_memory_enabled %} is-on{% endif %}" aria-label="Xotirani yoqish yoki o'chirish" aria-pressed="{% if ai_memory_enabled %}true{% else %}false{% endif %}"><span></span></button>
+      </form>
+    </div>
+  </div>
+</section>
+
+{% if memory_total %}
+<section class="set-sec">
+  <div class="set-sec-h"><i class="bi bi-graph-up"></i><span>Xotira hisoboti</span></div>
+  <div class="set-sec-b">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:12px;">
+      <div><div style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--ink);">{{ memory_report.active }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">Faol fakt</div></div>
+      <div><div style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--ink);">{{ memory_report.retrieved }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">Promptga olingan</div></div>
+      <div><div style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--ink);">{{ memory_report.saved }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">Saqlangan</div></div>
+      <div><div style="font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--ink);">{{ memory_report.archived }}</div><div style="font-size:11.5px;color:var(--ink-3);margin-top:3px;">Arxivlangan</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="set-sec">
+  <div class="set-sec-h"><i class="bi bi-list-ul"></i><span>Saqlangan faktlar ({{ memory_total }})</span></div>
+  <div class="set-sec-b">
+    {% for group in memory_groups %}
+    <div style="display:flex;align-items:center;gap:9px;margin:0 0 12px;{% if not forloop.first %}padding-top:18px;border-top:1px solid var(--line-2);{% endif %}">
+      <span style="width:28px;height:28px;border-radius:8px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:14px;"><i class="bi bi-{{ group.icon }}"></i></span>
+      <span style="font-size:14px;font-weight:600;color:var(--ink);">{{ group.label }}</span>
+      <span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-4);">{{ group.facts|length }}</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;">
+      {% for fact in group.facts %}
+      <div style="border:1px solid var(--line);border-radius:13px;background:var(--paper-2);padding:14px 16px;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:14px;color:var(--ink);line-height:1.5;">{{ fact.value }}</div>
+            <div style="display:flex;align-items:center;gap:14px;margin-top:10px;flex-wrap:wrap;font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-4);">
+              <span><i class="bi bi-graph-up" style="margin-right:4px;"></i>{{ fact.confidence_percent }}% ishonch</span>
+              <span><i class="bi bi-clock-history" style="margin-right:4px;"></i>{{ fact.last_used_label }}</span>
+              {% if fact.retrieval_count %}<span><i class="bi bi-arrow-repeat" style="margin-right:4px;"></i>{{ fact.retrieval_count }}× ishlatilgan</span>{% endif %}
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;flex:0 0 auto;">
+            <form method="post" action="{% url 'ai_memory_archive' fact_id=fact.id %}">{% csrf_token %}<button type="submit" aria-label="Arxivlash" title="Arxivlash" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--line);color:var(--ink-3);display:grid;place-items:center;font-size:13px;cursor:pointer;background:transparent;"><i class="bi bi-archive"></i></button></form>
+            <form method="post" action="{% url 'ai_memory_reject' fact_id=fact.id %}">{% csrf_token %}<button type="submit" aria-label="Noto'g'ri — o'chirish" title="Noto'g'ri — o'chirish" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--line);color:var(--red);display:grid;place-items:center;font-size:13px;cursor:pointer;background:transparent;"><i class="bi bi-x-lg"></i></button></form>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endfor %}
+
+    <form method="post" action="{% url 'ai_memory_clear' %}" onsubmit="return confirm('Barcha saqlangan faktlar o\'chiriladi. Davom etasizmi?');" style="display:flex;justify-content:flex-end;">
+      {% csrf_token %}
+      <button type="submit" class="set-btn" style="color:var(--red);"><i class="bi bi-trash"></i> Xotirani tozalash</button>
+    </form>
+  </div>
+</section>
+{% else %}
+<section class="set-sec">
+  <div class="set-sec-b" style="padding:44px 24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;">
+    <span style="width:60px;height:60px;border-radius:16px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:27px;"><i class="bi bi-bookmark-star"></i></span>
+    <div style="font-size:17px;font-weight:600;color:var(--ink);">Xotira hali bo'sh</div>
+    <div style="font-size:13.5px;color:var(--ink-3);max-width:42ch;line-height:1.6;">AzureAI bilan suhbatlashganingiz sayin, u siz haqingizdagi muhim ma'lumotlarni (maqsad, daraja, zaif mavzular) shu yerda eslab qoladi.</div>
+    <a href="{% url 'messenger:ai' %}" style="margin-top:8px;display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:10px;background:var(--azure);color:var(--on-azure);font-size:14px;font-weight:600;">AI bilan suhbat <i class="bi bi-arrow-right" style="font-size:13px;"></i></a>
+  </div>
+</section>
+{% endif %}
+
+{% if legacy_memory_text %}
+<section class="set-sec">
+  <div class="set-sec-h"><i class="bi bi-archive"></i><span>Eski xotira (arxiv)</span></div>
+  <div class="set-sec-b"><p style="font-size:13.5px;line-height:1.65;color:var(--ink-2);margin:0;white-space:pre-wrap;">{{ legacy_memory_text }}</p></div>
+</section>
+{% endif %}
+{% endblock %}

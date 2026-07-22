@@ -1,0 +1,57 @@
+/* ============================================================
+   AzureLMS — Sozlamalar
+   Sozlamalar 4 bo'limga ajratilgan, har biri alohida sahifa.
+   Bo'lim nomlari app sidebar'ining o'zida (dashboard nav'i o'rniga),
+   shuning uchun bu yerda alohida navigatsiya uslubi yo'q.
+   Yuklash: tokens.css → base.css → app-shell.css → bu fayl.
+   ============================================================ */
+
+.set-wrap{ max-width:760px; }
+
+/* ---------- Sahifa sarlavhasi ---------- */
+.set-head{ margin-bottom:20px; }
+.set-head h1{ font-size:clamp(21px,2.4vw,27px); font-weight:600; letter-spacing:-.03em; color:var(--ink); margin:0 0 6px; }
+.set-head p{ font-size:13.5px; color:var(--ink-3); margin:0; line-height:1.6; }
+
+/* ---------- Kartalar ---------- */
+.set-sec{ border:1px solid var(--line); border-radius:14px; background:var(--panel); margin-bottom:16px; overflow:hidden; }
+.set-sec:last-child{ margin-bottom:0; }
+.set-sec-h{ display:flex; align-items:center; gap:10px; padding:16px 20px; border-bottom:1px solid var(--line); }
+.set-sec-h i{ color:var(--azure); font-size:16px; }
+.set-sec-h span{ font-size:15px; font-weight:600; color:var(--ink); }
+.set-sec-b{ padding:20px; }
+.set-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.set-row-t{ font-size:13.5px; font-weight:600; color:var(--ink); }
+.set-row-s{ font-size:12px; color:var(--ink-3); }
+.set-divider{ margin-top:20px; padding-top:18px; border-top:1px solid var(--line-2); }
+
+/* ---------- Forma ---------- */
+.set-form input, .set-form textarea{ width:100%; padding:0 14px; border-radius:10px; border:1px solid var(--line); background:var(--paper-2); color:var(--ink); font-size:14px; outline:none; transition:border-color .2s,box-shadow .2s; }
+.set-form input{ height:44px; }
+.set-form textarea{ min-height:90px; padding:12px 14px; line-height:1.6; resize:vertical; }
+.set-form input:focus, .set-form textarea:focus{ border-color:var(--azure); box-shadow:0 0 0 3px var(--azure-soft); }
+.set-lbl{ display:block; font-family:'Space Mono',monospace; font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); margin-bottom:7px; }
+.set-grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.set-grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+.set-save{ display:inline-flex; align-items:center; gap:7px; height:42px; padding:0 18px; border-radius:10px; background:var(--azure); color:var(--on-azure); font-size:14px; font-weight:600; border:none; cursor:pointer; }
+.set-btn{ display:inline-flex; align-items:center; gap:7px; height:40px; padding:0 16px; border-radius:9px; border:1px solid var(--line); background:var(--panel); color:var(--ink); font-size:13px; font-weight:600; cursor:pointer; }
+.set-pill{ height:34px; padding:0 14px; border-radius:8px; font-size:13px; font-weight:600; border:1px solid var(--line); background:transparent; color:var(--ink-2); cursor:pointer; display:inline-flex; align-items:center; gap:7px; }
+.set-pill.is-on{ border-color:var(--azure); background:var(--azure); color:var(--on-azure); }
+
+/* ---------- Toggle ---------- */
+.set-toggle{ width:42px; height:24px; border-radius:999px; flex:0 0 auto; position:relative; border:none; cursor:pointer; background:var(--ink-4); }
+.set-toggle.is-on{ background:var(--azure); }
+.set-toggle span{ position:absolute; top:3px; left:3px; width:18px; height:18px; border-radius:50%; background:#fff; transition:left .2s cubic-bezier(.16,1,.3,1); }
+.set-toggle.is-on span{ left:21px; }
+
+/* ---------- Limit ko'rsatkichi ---------- */
+.set-meter{ height:8px; border-radius:999px; background:var(--line-2); overflow:hidden; }
+.set-meter > div{ height:100%; border-radius:999px; background:var(--azure); transition:width .4s; }
+.set-meter.is-warn > div{ background:var(--amber); }
+.set-meter.is-over > div{ background:var(--red); }
+.set-mono{ font-family:'Space Mono',monospace; font-size:10.5px; color:var(--ink-4); margin-top:6px; }
+.set-note{ font-size:11.5px; color:var(--ink-4); line-height:1.5; }
+
+@media (max-width:560px){
+  .set-grid-2, .set-grid-3{ grid-template-columns:1fr; }
+}

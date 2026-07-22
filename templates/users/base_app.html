@@ -34,7 +34,12 @@
         <button type="button" class="app-collapse-btn" data-app-collapse aria-label="Yon panelni yig'ish"><i class="bi bi-chevron-double-left"></i></button>
       </div>
 
+      {% comment %}
+        Sidebar navigatsiyasi. Sozlamalar kabi ichki bo'limlar bu blokni
+        almashtiradi — ikkita parallel navigatsiya bo'lmasligi uchun.
+      {% endcomment %}
       <nav class="app-nav" data-appscroll>
+        {% block app_nav %}
         <div class="app-nav-group">
           <button type="button" class="app-nav-label" data-app-group><span>Asosiy</span><i class="bi bi-chevron-down"></i></button>
           <a class="app-nav-item{% if active_nav == 'dashboard' %} active{% endif %}" href="{% url 'dashboard' %}"><i class="bi bi-grid-1x2"></i><span class="label">Boshqaruv paneli</span></a>
@@ -55,6 +60,7 @@
           <a class="app-nav-item{% if active_nav == 'billing' %} active{% endif %}" href="{% url 'subscriptions' %}"><i class="bi bi-credit-card"></i><span class="label">To'lovlar</span></a>
           <a class="app-nav-item{% if active_nav == 'help' %} active{% endif %}" href="{% url 'help_center' %}"><i class="bi bi-life-preserver"></i><span class="label">Yordam</span></a>
         </div>
+        {% endblock %}
       </nav>
 
       {% include "components/app_user_menu.html" with shell="app" %}
