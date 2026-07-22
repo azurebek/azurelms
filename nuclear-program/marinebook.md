@@ -16,6 +16,17 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-22 [Claude Code]: Mobil drawer va messenger layout xatolari
+
+Azurbek telefonda ikkita jiddiy layout xatosini topdi va ikkalasi ham tasdiqlanib tuzatildi. (1) `app-shell.css` mobil rejimda `.app-side`ni `position:fixed` qilardi, lekin `.app-side-inner`da hech qanday `background` yo'q edi — drawer normal oqimdan chiqib shaffof holda kontent ustida suzardi va ikkala matn ustma-ust tushib o'qib bo'lmas edi. Bu dashboard, o'qituvchi va backoffice shell'larining uchalasiga ham tegardi. Endi drawer opaque `--panel` foniga va ortida scrim'ga ega. (2) Messenger 820px dan pastda rail va suhbat ro'yxatini qat'iy ushlab turardi, natijada 390px ekranda chatga atigi 108px qolardi; 680px dan pastda ro'yxat endi drawer, chat esa 336px oladi. Ikkala drawer tashqi bosish va Escape bilan yopiladi.
+
+Yo'lda ikkita regress kiritildi va o'sha sessiyada tuzatildi: CSS kaskad tartibi sabab toggle tugmasi hech qachon ko'rinmasdi, va ko'p qatorli `{# #}` izoh sahifada matn bo'lib render bo'ldi (Django'da `{# #}` faqat bir qatorli). `messenger/tests.py` aralash qator tugashlariga ega bo'lgani uchun qo'shimcha baytma-bayt yozildi — aks holda ~130 qatorlik keraksiz diff chiqardi.
+
+- Branch: `claude/mobile-sidebar-overlay-fix`
+- Commitlar: `fa380a5`
+- Test holati: `python manage.py test` — **339/339 OK** (3 tasi yangi `MessengerMobileShellTests`); `python manage.py check` — **0 issues**; `makemigrations --check --dry-run` — **No changes**; `git diff --check` — **OK**. Browser QA (lokal dev server, owner sessiyasi), light va dark: `/users/dashboard/`, `/backoffice/`, `/messenger/ai/` — 1280, 768, 390, 320px. Drawer ochiq holatda opaque fon va scrim tasdiqlandi; messenger chat kengligi 390px da 108px → 336px; desktop 1280px o'zgarishsiz (rail 62 / ro'yxat 288 / chat 930); gorizontal overflow `0`, console xato `0`.
+- Davom etilishi kerak: alohida topilma — `templates/courses/exam_detail.html` va `exam_result.html` 1-qatorida ko'p qatorli `{# #}` izoh bor, ular sahifada matn bo'lib render bo'ladi va `<!DOCTYPE`dan oldin turgani uchun brauzerni quirks rejimiga tushirishi mumkin. Bu branch scope'idan tashqarida, alohida vazifa sifatida belgilandi.
+
 ## 2026-07-22 [Claude Code]: Brend bandining ochiq uchta gap'i yopildi
 
 Oldingi yozuvda qoldirilgan uchta ochiq band yopildi. (1) `templates/bot/miniapp_entry.html`ga favicon include'i qo'shildi va bir martalik yamoq o'rniga yangi kontrakt testi yozildi: `templates/` ichidagi har mustaqil `<head>` canonical `brand_favicon.html`ni deklaratsiya qilishi shart, aks holda test yiqiladi. (2) Brend sahifasining haqiqiy browser QA'si yugurtirildi. (3) Band backlogda A2 ichidagi birinchi mutation surface sifatida yozildi — yangi parallel subsystem emas, va A2ning reason+confirmation+audit+no-op shartlarini qondirishi qayd etildi. Admission label ataylab Azurbekka qoldirildi.
