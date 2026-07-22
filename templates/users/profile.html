@@ -15,7 +15,12 @@
   <!-- Header -->
   <section style="border:1px solid var(--line);border-radius:16px;background:var(--panel);overflow:hidden;margin-bottom:16px;">
     <div style="height:96px;background:linear-gradient(110deg,var(--azure),var(--azure-2));position:relative;"><div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.1) 1px,transparent 1px);background-size:28px 28px;opacity:.5;"></div></div>
-    <div style="padding:0 24px 22px;display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-top:-34px;">
+    {% comment %}
+      position:relative shart — ustidagi banner position:relative bo'lgani uchun
+      CSS chizish tartibida pozitsiyalangan element statikdan yuqori turadi va
+      manfiy margin bilan ko'tarilgan avatarning ustki qismini bosib qo'yadi.
+    {% endcomment %}
+    <div style="padding:0 24px 22px;display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-top:-34px;position:relative;">
       <div style="display:flex;align-items:flex-end;gap:16px;">
         {% if request.user.avatar %}<img src="{{ request.user.avatar.url }}" alt="{{ request.user.get_full_name }}" style="width:84px;height:84px;border-radius:20px;border:4px solid var(--panel);object-fit:cover;">{% else %}<span style="width:84px;height:84px;border-radius:20px;background:var(--azure);border:4px solid var(--panel);display:grid;place-items:center;color:var(--on-azure);font-weight:700;font-size:32px;">{{ request.user.first_name.0|default:request.user.username.0|upper }}{{ request.user.last_name.0|upper }}</span>{% endif %}
         <div style="padding-bottom:4px;"><div style="font-size:21px;font-weight:600;letter-spacing:-.02em;color:var(--ink);">{{ request.user.get_full_name|default:request.user.username }}</div><div style="font-size:13px;color:var(--ink-3);margin-top:2px;">{{ request.user.email }}{% if request.user.phone_number %} · {{ request.user.phone_number }}{% endif %}</div></div>
