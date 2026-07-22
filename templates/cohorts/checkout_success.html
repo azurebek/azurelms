@@ -1,6 +1,6 @@
 {% extends "base_public.html" %}
 {% comment %} To'lov tasdiqlandi (checkout_success_view). Kontekst: receipt. {% endcomment %}
-{% block title %}To'lov tasdiqlandi — AzureLMS{% endblock %}
+{% block title %}To'lov tasdiqlandi — {{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %}
 {% block content %}
 <div style="max-width:560px;margin:0 auto;padding:clamp(40px,6vw,72px) clamp(18px,4vw,32px);text-align:center;">
   <span style="width:64px;height:64px;border-radius:18px;background:var(--green-soft);color:var(--green);display:grid;place-items:center;font-size:30px;margin:0 auto 20px;"><i class="bi bi-check-circle"></i></span>

@@ -1,9 +1,12 @@
 from datetime import timedelta
 
 from django.contrib import messages
+from django.contrib.admin.models import CHANGE, LogEntry
+from django.contrib.contenttypes.models import ContentType
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from django.db.models import Count, Max, OuterRef, Q, Subquery, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.timesince import timesince
@@ -15,6 +18,7 @@ from courses.models import Course, Exam, ExamSection, Lesson, LessonProgress, Mo
 from messenger.models import ChatRoom, Message
 from messenger.rag import get_rag_index_status
 from subscriptions.models import PromoCode
+from frontend.models import SiteSettings
 
 from .backoffice_forms import (
     CourseBackofficeForm,
@@ -22,6 +26,7 @@ from .backoffice_forms import (
     ExamSectionBackofficeForm,
     LessonBackofficeForm,
 )
+from .brand_forms import BrandSettingsForm
 from .control_center import build_control_center_snapshot
 
 
@@ -103,6 +108,53 @@ def backoffice_control(request):
         "snapshot": build_control_center_snapshot(),
     }
     return render(request, "backoffice/control_center.html", context)
+
+
+@login_required
+@user_passes_test(_is_control_center_owner)
+def backoffice_brand(request):
+    """Owner-only canonical brand and logo control surface."""
+    brand_settings = SiteSettings.load()
+    if request.method == "POST":
+        form = BrandSettingsForm(request.POST, request.FILES, instance=brand_settings)
+        if form.is_valid():
+            changed_fields = form.changed_brand_fields
+            if changed_fields:
+                with transaction.atomic():
+                    brand_settings = form.save()
+                    field_labels = [form.fields[name].label for name in changed_fields]
+                    reason = form.cleaned_data["change_reason"].strip()
+                    LogEntry.objects.log_actions(
+                        user_id=request.user.pk,
+                        queryset=SiteSettings.objects.filter(pk=brand_settings.pk),
+                        action_flag=CHANGE,
+                        change_message=(
+                            f"Markaziy brend yangilandi: {', '.join(field_labels)}. "
+                            f"Sabab: {reason}"
+                        ),
+                        single_object=True,
+                    )
+                messages.success(request, "Brend yangilandi. Barcha ulangan logo yuzalari endi shu qiymatni oladi.")
+            else:
+                messages.info(request, "Brend qiymatlarida o'zgarish topilmadi; hech narsa yozilmadi.")
+            return redirect("backoffice_brand")
+    else:
+        form = BrandSettingsForm(instance=brand_settings)
+
+    content_type = ContentType.objects.get_for_model(SiteSettings)
+    context = {
+        "active_nav": "backoffice",
+        "bo_active": "brand",
+        "counts": {},
+        "form": form,
+        "brand_settings": brand_settings,
+        "recent_brand_changes": LogEntry.objects.filter(
+            content_type=content_type,
+            object_id=str(brand_settings.pk),
+            action_flag=CHANGE,
+        ).select_related("user")[:8],
+    }
+    return render(request, "backoffice/brand_control.html", context)
 
 
 @login_required

@@ -7,7 +7,7 @@
   (Landing bespoke — u to'g'ridan-to'g'ri base.html dan meros oladi.)
 {% endcomment %}
 
-{% block title %}AzureLMS — Turk tili A1–C1{% endblock %}
+{% block title %}{{ site_settings.brand_name|default:"AzureLMS" }} — Turk tili A1–C1{% endblock %}
 
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'css/public-shell.css' %}">
@@ -25,8 +25,7 @@
   <header class="pub-header" data-pub-header>
     <div class="pub-header-inner">
       <a class="pub-brand" href="{% url 'home' %}">
-        <span class="pub-brand-mark">A</span>
-        <span class="pub-brand-name">Azure<b>LMS</b></span>
+        {% include "components/brand_logo.html" with use_wordmark=True mark_class="pub-brand-mark" name_class="pub-brand-name" %}
       </a>
       <nav class="pub-nav" data-pubnav>
         <a href="{% url 'courses' %}"{% if active_nav == 'courses' %} class="active"{% endif %}>Kurslar</a>
@@ -58,7 +57,7 @@
     <div class="pub-footer-inner">
       <div class="pub-footer-cols">
         <div class="pub-foot-brand">
-          <a href="{% url 'home' %}"><span class="pub-brand-mark" style="width:28px;height:28px;font-size:15px;">A</span><span class="pub-brand-name">{{ site_settings.brand_name|default:"AzureLMS" }}</span></a>
+          <a href="{% url 'home' %}">{% include "components/brand_logo.html" with use_wordmark=True mark_class="pub-brand-mark" name_class="pub-brand-name" image_class="brand-logo-image--small" %}</a>
           <p>{{ site_settings.company_description|default:"O'zbek tilida turk tilini A1 dan C1 gacha tartibli o'rgatadigan platforma." }}</p>
         </div>
         <div>

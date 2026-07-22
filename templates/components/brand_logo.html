@@ -1,0 +1,18 @@
+{% comment %}
+Canonical brand adapter.
+Parameters: use_wordmark, dark, mark_only, mark_class, name_class, image_class.
+{% endcomment %}
+{% if use_wordmark and dark and site_settings.logo_dark_image %}
+  <img class="brand-logo-image brand-logo-image--wordmark {{ image_class|default:'' }}" src="{{ site_settings.logo_dark_image.url }}" alt="{{ site_settings.brand_name|default:'AzureLMS' }}">
+{% elif use_wordmark and not dark and site_settings.logo_image %}
+  <img class="brand-logo-image brand-logo-image--wordmark {{ image_class|default:'' }}" src="{{ site_settings.logo_image.url }}" alt="{{ site_settings.brand_name|default:'AzureLMS' }}">
+{% else %}
+  <span class="{{ mark_class|default:'brand-logo-mark' }}{% if site_settings.logo_mark_image %} brand-logo-mark--image{% endif %}">
+    {% if site_settings.logo_mark_image %}
+      <img class="brand-logo-image brand-logo-image--mark" src="{{ site_settings.logo_mark_image.url }}" alt="">
+    {% else %}
+      {{ site_settings.logo_mark_text|default:"A" }}
+    {% endif %}
+  </span>
+  {% if not mark_only %}<span class="{{ name_class|default:'brand-logo-name' }}">{{ site_settings.brand_name|default:"AzureLMS" }}</span>{% endif %}
+{% endif %}

@@ -8,7 +8,7 @@
   nav active holati view'dan kelgan `active_nav` orqali.
 {% endcomment %}
 
-{% block title %}AzureLMS — {% block app_title %}Boshqaruv paneli{% endblock %}{% endblock %}
+{% block title %}{{ site_settings.brand_name|default:"AzureLMS" }} — {% block app_title %}Boshqaruv paneli{% endblock %}{% endblock %}
 
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'css/app-shell.css' %}">
@@ -28,8 +28,7 @@
   <aside class="app-side" data-appside>
     <div class="app-side-inner">
       <a class="app-logo" href="{% url 'dashboard' %}">
-        <span class="app-logo-mark">A</span>
-        <span class="app-logo-name">Azure<b>LMS</b></span>
+        {% include "components/brand_logo.html" with mark_class="app-logo-mark" name_class="app-logo-name" %}
       </a>
 
       <nav class="app-nav" data-appscroll>

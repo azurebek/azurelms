@@ -1,6 +1,6 @@
 {% extends "registration/base_auth.html" %}
 
-{% block auth_title %}Xush kelibsiz — AzureLMS{% endblock %}
+{% block auth_title %}Xush kelibsiz — {{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %}
 
 {% block auth_form %}
 <h1 class="auth-h1" style="font-size:28px; margin-bottom:12px;">Xush kelibsiz! 🎉</h1>

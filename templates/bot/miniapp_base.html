@@ -5,17 +5,19 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="color-scheme" content="light dark">
   <meta name="theme-color" content="#f4f7fb">
-  <title>{% block title %}AzureLMS{% endblock %} · Mini App</title>
+  <title>{% block title %}{{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %} · Mini App</title>
+  {% include "components/brand_favicon.html" %}
   <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/brand.css' %}">
   <link rel="stylesheet" href="{% static 'css/miniapp.css' %}?v=20260721-1">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
   <div class="miniapp-shell">
     <header class="miniapp-head">
-      <a class="miniapp-brand" href="{% url 'bot:miniapp_home' %}" aria-label="AzureLMS Mini App bosh sahifasi">
-        <span class="miniapp-brand-mark">A</span>
-        <span class="miniapp-brand-copy"><strong>AzureLMS</strong><small>{% block header_label %}Mini App{% endblock %}</small></span>
+      <a class="miniapp-brand" href="{% url 'bot:miniapp_home' %}" aria-label="{{ site_settings.brand_name|default:'AzureLMS' }} Mini App bosh sahifasi">
+        {% include "components/brand_logo.html" with mark_only=True mark_class="miniapp-brand-mark" %}
+        <span class="miniapp-brand-copy"><strong>{{ site_settings.brand_name|default:"AzureLMS" }}</strong><small>{% block header_label %}Mini App{% endblock %}</small></span>
       </a>
       <a class="miniapp-icon-button" href="{% url 'notifications' %}" aria-label="Bildirishnomalar">
         <svg class="miniapp-icon" aria-hidden="true"><use href="#icon-bell"></use></svg>

@@ -1,7 +1,7 @@
 {% extends "registration/base_auth.html" %}
 {% comment %} Kirish (LoginView) — proto: public/auth.html (Kirish tab). {% endcomment %}
 
-{% block auth_title %}AzureLMS — Kirish{% endblock %}
+{% block auth_title %}{{ site_settings.brand_name|default:"AzureLMS" }} — Kirish{% endblock %}
 
 {% block auth_form %}
 <div class="auth-tabs">

@@ -5,7 +5,7 @@
   Kontekst: legal_page (LegalPage), active_legal_page (page_type).
 {% endcomment %}
 
-{% block title %}{{ legal_page.title }} — AzureLMS{% endblock %}
+{% block title %}{{ legal_page.title }} — {{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %}
 
 {% block page_css %}
 <style>

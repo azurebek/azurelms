@@ -6,7 +6,7 @@
   search_query, selected_levels, level_choices, current_sort, pagination (page_obj, is_paginated).
 {% endcomment %}
 
-{% block title %}Kurslar — AzureLMS{% endblock %}
+{% block title %}Kurslar — {{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %}
 {% block content %}
 <div style="max-width:1140px;margin:0 auto;padding:clamp(28px,5vw,52px) clamp(18px,4vw,32px);">
 

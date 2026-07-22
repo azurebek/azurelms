@@ -1,0 +1,5 @@
+{% if site_settings.favicon_image %}
+  <link rel="icon" href="{{ site_settings.favicon_image.url }}">
+{% elif site_settings.logo_mark_image %}
+  <link rel="icon" href="{{ site_settings.logo_mark_image.url }}">
+{% endif %}

@@ -1,7 +1,7 @@
 {% extends "registration/base_auth.html" %}
 {% comment %} Ro'yxatdan o'tish (RegisterView, CustomUserCreationForm) — proto: public/auth.html (Ro'yxat tab). {% endcomment %}
 
-{% block auth_title %}AzureLMS — Ro'yxatdan o'tish{% endblock %}
+{% block auth_title %}{{ site_settings.brand_name|default:"AzureLMS" }} — Ro'yxatdan o'tish{% endblock %}
 
 {% block auth_form %}
 <div class="auth-tabs">

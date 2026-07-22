@@ -9,7 +9,7 @@
   teacher_attendance. grading_pending_count badge'i teacher view'lardan keladi.
 {% endcomment %}
 
-{% block title %}AzureLMS — {% block t_title %}Studiya{% endblock %}{% endblock %}
+{% block title %}{{ site_settings.brand_name|default:"AzureLMS" }} — {% block t_title %}Studiya{% endblock %}{% endblock %}
 
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'css/app-shell.css' %}">
@@ -25,7 +25,7 @@
 <div class="app">
   <aside class="app-side" data-appside>
     <div class="app-side-inner">
-      <a class="app-logo has-role" href="{% url 'teacher_dashboard' %}"><span class="app-logo-mark">A</span><span class="app-logo-name">Azure<b>LMS</b></span></a>
+      <a class="app-logo has-role" href="{% url 'teacher_dashboard' %}">{% include "components/brand_logo.html" with mark_class="app-logo-mark" name_class="app-logo-name" %}</a>
       <div class="tch-role"><i class="bi bi-mortarboard-fill"></i> O'qituvchi</div>
       <nav class="app-nav" data-appscroll>
         <div class="app-nav-group">
