@@ -7,7 +7,7 @@
   (dashboard view bo_active bermaydi). counts/_backoffice_context badge'lar uchun.
 {% endcomment %}
 
-{% block title %}AzureLMS — {% block bo_title %}Boshqaruv{% endblock %}{% endblock %}
+{% block title %}{{ site_settings.brand_name|default:"AzureLMS" }} — {% block bo_title %}Boshqaruv{% endblock %}{% endblock %}
 
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'css/app-shell.css' %}">
@@ -24,11 +24,13 @@
 <div class="app">
   <aside class="app-side" data-appside>
     <div class="app-side-inner">
-      <a class="app-logo has-role" href="{% url 'backoffice_dashboard' %}"><span class="app-logo-mark is-dark">A</span><span class="app-logo-name">Azure<b>LMS</b></span></a>
+      <a class="app-logo has-role" href="{% url 'backoffice_dashboard' %}">{% include "components/brand_logo.html" with mark_class="app-logo-mark is-dark" name_class="app-logo-name" %}</a>
       <div class="adm-role"><i class="bi bi-shield-lock-fill"></i> Admin</div>
       <nav class="app-nav" data-appscroll>
         <div class="app-nav-group">
           <button type="button" class="app-nav-label" data-app-group><span>Boshqaruv</span><i class="bi bi-chevron-down"></i></button>
+          {% if request.user.is_superuser %}<a class="app-nav-item{% if url_name == 'backoffice_control' %} active{% endif %}" href="{% url 'backoffice_control' %}"><i class="bi bi-command"></i><span class="label">Control Center</span></a>
+          <a class="app-nav-item{% if url_name == 'backoffice_brand' %} active{% endif %}" href="{% url 'backoffice_brand' %}"><i class="bi bi-palette"></i><span class="label">Brend va logolar</span></a>{% endif %}
           <a class="app-nav-item{% if url_name == 'backoffice_dashboard' %} active{% endif %}" href="{% url 'backoffice_dashboard' %}"><i class="bi bi-grid-1x2"></i><span class="label">Boshqaruv paneli</span>{% if counts.pending_receipts %}<span class="app-nav-badge is-red">{{ counts.pending_receipts }}</span>{% endif %}</a>
           <a class="app-nav-item{% if url_name == 'backoffice_users' %} active{% endif %}" href="{% url 'backoffice_users' %}"><i class="bi bi-people"></i><span class="label">Foydalanuvchilar</span></a>
           <a class="app-nav-item{% if url_name == 'backoffice_chats' %} active{% endif %}" href="{% url 'backoffice_chats' %}"><i class="bi bi-chat-dots"></i><span class="label">Suhbatlar</span></a>

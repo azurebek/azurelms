@@ -455,7 +455,34 @@ class SiteSettings(SingletonModel):
         verbose_name="Logo mark matni",
         help_text="Logo rasmi yuklanmasa shu qisqa matn ko'rinadi.",
     )
-    logo_image = models.ImageField(upload_to="site/logo/", blank=True, null=True, verbose_name="Logo rasmi")
+    logo_image = models.ImageField(
+        upload_to="site/logo/primary/",
+        blank=True,
+        null=True,
+        verbose_name="Asosiy logo",
+        help_text="Oq yoki yorug' fonlarda ishlatiladigan gorizontal wordmark.",
+    )
+    logo_dark_image = models.ImageField(
+        upload_to="site/logo/dark/",
+        blank=True,
+        null=True,
+        verbose_name="Qorong'i fon uchun logo",
+        help_text="Login kabi qorong'i fonlarda ishlatiladi. Bo'sh bo'lsa matnli fallback chiqadi.",
+    )
+    logo_mark_image = models.ImageField(
+        upload_to="site/logo/mark/",
+        blank=True,
+        null=True,
+        verbose_name="Ixcham logo belgisi",
+        help_text="Sidebar, messenger, Mini App va sertifikatlar uchun kvadrat belgi.",
+    )
+    favicon_image = models.ImageField(
+        upload_to="site/logo/favicon/",
+        blank=True,
+        null=True,
+        verbose_name="Brauzer ikonkasi",
+        help_text="PNG, JPG yoki WebP. Tavsiya: kvadrat 64x64 yoki 128x128.",
+    )
     company_description = models.TextField(
         default="Professional o'qituvchilar bilan turk tilini samarali o'rganing. A1 dan C1 gacha barcha darajalar.",
         verbose_name="Kompaniya qisqacha matni",

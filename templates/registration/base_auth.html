@@ -6,7 +6,7 @@
   Sahifalar {% block auth_form %} ni to'ldiradi.
 {% endcomment %}
 
-{% block title %}{% block auth_title %}AzureLMS — Kirish{% endblock %}{% endblock %}
+{% block title %}{% block auth_title %}{{ site_settings.brand_name|default:"AzureLMS" }} — Kirish{% endblock %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -46,8 +46,7 @@
     <div style="position:absolute;top:-120px;right:-120px;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(91,141,255,.22),transparent 68%);filter:blur(6px);"></div>
 
     <a href="{% url 'home' %}" style="position:relative;display:flex;align-items:center;gap:10px;">
-      <span style="width:30px;height:30px;border-radius:7px;background:#5b8dff;display:grid;place-items:center;color:#06090f;font-weight:700;font-size:16px;">A</span>
-      <span style="font-size:17px;font-weight:600;letter-spacing:-.02em;color:#fff;">Azure<span style="color:#69717f;font-weight:500;">LMS</span></span>
+      {% include "components/brand_logo.html" with use_wordmark=True dark=True mark_class="brand-logo-mark" name_class="brand-logo-name auth-brand-name" %}
     </a>
 
     <div style="position:relative;margin-top:auto;">

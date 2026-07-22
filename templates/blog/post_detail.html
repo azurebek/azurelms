@@ -6,7 +6,7 @@
   comments_total, my_clap_count, comment_form, related_posts, *_share_url, is_preview.
 {% endcomment %}
 
-{% block title %}{{ post.title }} — AzureLMS Blog{% endblock %}
+{% block title %}{{ post.title }} — {{ site_settings.brand_name|default:"AzureLMS" }} Blog{% endblock %}
 {% block content %}
 <article style="max-width:760px;margin:0 auto;padding:clamp(24px,4vw,44px) clamp(18px,4vw,32px);">
 

@@ -8,13 +8,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ exam.title }} — Imtihon | AzureLMS</title>
+  <title>{{ exam.title }} — Imtihon | {{ site_settings.brand_name|default:"AzureLMS" }}</title>
+  {% include "components/brand_favicon.html" %}
   <script>(function(){try{var t=localStorage.getItem('az-v2-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/brand.css' %}">
   <link rel="stylesheet" href="{% static 'css/exam-shell.css' %}">
   <script defer src="{% static 'js/exam-shell.js' %}"></script>
 </head>
@@ -24,7 +26,7 @@
   <!-- ============ HEADER ============ -->
   <header class="exam-top">
     <div class="exam-brand">
-      <span class="exam-brand-mark">A</span>
+      {% include "components/brand_logo.html" with mark_only=True mark_class="exam-brand-mark" %}
       <div style="min-width:0;">
         <div class="exam-title">{{ exam.title }}</div>
         <div class="exam-sub" data-exam-sub>{{ course.title }}</div>

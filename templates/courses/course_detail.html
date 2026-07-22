@@ -7,7 +7,7 @@
   Eslatma: kurs narxi (Plan/cohort orqali) bu view'da yo'q — narx o'rniga rol-asosli CTA.
 {% endcomment %}
 
-{% block title %}{{ course.title }} — AzureLMS{% endblock %}
+{% block title %}{{ course.title }} — {{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %}
 {% block content %}
 <div style="max-width:1140px;margin:0 auto;padding:clamp(24px,4vw,44px) clamp(18px,4vw,32px);">
 

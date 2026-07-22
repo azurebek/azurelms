@@ -47,6 +47,8 @@ urlpatterns = [
     # Holat sahifalari (texnik ishlar va offline)
     path('maintenance/', core_views.maintenance, name='maintenance'),
     path('offline/', core_views.offline, name='offline'),
+    path('backoffice/control/brand/', core_views.backoffice_brand, name='backoffice_brand'),
+    path('backoffice/control/', core_views.backoffice_control, name='backoffice_control'),
     path('backoffice/', core_views.backoffice_dashboard, name='backoffice_dashboard'),
     path('backoffice/users/', core_views.backoffice_users, name='backoffice_users'),
     path('backoffice/chats/', core_views.backoffice_chats, name='backoffice_chats'),

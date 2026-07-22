@@ -9,7 +9,7 @@
   group.html/tutor.html shu shablonni meros oladi (active_room kontekstdan).
 {% endcomment %}
 
-{% block title %}Xabarlar — AzureLMS{% endblock %}
+{% block title %}Xabarlar — {{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{% static 'css/messenger.css' %}">{% endblock %}
 {% block extra_js %}<script defer src="{% static 'js/messenger-chat.js' %}"></script>{% endblock %}
 
@@ -19,7 +19,7 @@
 
   <!-- Icon rail -->
   <aside class="msgr-rail">
-    <a class="msgr-rail-logo" href="{% url 'dashboard' %}" title="Boshqaruv paneli">A</a>
+    <a class="msgr-rail-logo" href="{% url 'dashboard' %}" title="Boshqaruv paneli">{% include "components/brand_logo.html" with mark_only=True mark_class="msgr-rail-logo-content" %}</a>
     <a class="msgr-rail-btn{% if active_room == 'ai' %} active{% endif %}" href="{% url 'messenger:ai' %}" title="AI repetitor"><i class="bi bi-stars"></i></a>
     <a class="msgr-rail-btn{% if active_room == 'group' %} active{% endif %}" href="{% url 'messenger:group' %}" title="Guruh"><i class="bi bi-people"></i></a>
     <a class="msgr-rail-btn{% if active_room == 'tutor' %} active{% endif %}" href="{% url 'messenger:tutor' %}" title="Tutor"><i class="bi bi-mortarboard"></i></a>

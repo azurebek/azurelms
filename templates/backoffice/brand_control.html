@@ -1,0 +1,70 @@
+{% extends "backoffice/base.html" %}
+{% load static %}
+
+{% block bo_title %}Brend va logolar{% endblock %}
+{% block bo_icon %}bi-palette{% endblock %}
+{% block bo_topbar %}Markaziy brend boshqaruvi{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/brand-control.css' %}">{% endblock %}
+
+{% block bo_content %}
+<section class="brand-hero">
+  <div>
+    <span class="brand-kicker">SINGLE SOURCE OF TRUTH</span>
+    <h1>Bitta joydan barcha logolar</h1>
+    <p>Public sayt, o'quvchi va o'qituvchi panellari, backoffice, login, messenger, Mini App, imtihon va sertifikatlar shu konfiguratsiyani o'qiydi.</p>
+  </div>
+  <a class="brand-back" href="{% url 'backoffice_control' %}"><i class="bi bi-arrow-left"></i> Control Center</a>
+</section>
+
+<div class="brand-layout">
+  <form class="brand-form" method="post" enctype="multipart/form-data" onsubmit="return confirm('Brend va logo o‘zgarishlarini barcha platforma yuzalariga qo‘llaysizmi?');">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="brand-errors">{{ form.non_field_errors }}</div>{% endif %}
+
+    <section class="brand-panel">
+      <div class="brand-panel-head"><span>01</span><div><h2>Brend identiteti</h2><p>Rasmlar bo'lmasa, shu matnli fallback ishlaydi.</p></div></div>
+      <div class="brand-fields brand-fields--three">
+        {% for field in form %}{% if field.name == "brand_name" or field.name == "brand_tagline" or field.name == "logo_mark_text" %}
+          <label class="brand-field"><span>{{ field.label }}</span>{{ field }}{% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}{% for error in field.errors %}<em>{{ error }}</em>{% endfor %}</label>
+        {% endif %}{% endfor %}
+      </div>
+    </section>
+
+    <section class="brand-panel">
+      <div class="brand-panel-head"><span>02</span><div><h2>Logo assetlari</h2><p>PNG, JPG yoki WebP. Shaffof fonli PNG/WebP tavsiya etiladi.</p></div></div>
+      <div class="brand-upload-grid">
+        {% for field in form %}{% if field.name == "logo_image" or field.name == "logo_dark_image" or field.name == "logo_mark_image" or field.name == "favicon_image" %}
+          <label class="brand-upload"><strong>{{ field.label }}</strong><span>{{ field.help_text }}</span>{{ field }}{% for error in field.errors %}<em>{{ error }}</em>{% endfor %}</label>
+        {% endif %}{% endfor %}
+      </div>
+    </section>
+
+    <section class="brand-panel brand-approval">
+      <div class="brand-panel-head"><span>03</span><div><h2>Tasdiq va audit</h2><p>Har saqlash owner, vaqt va sabab bilan Django audit jurnaliga yoziladi.</p></div></div>
+      <label class="brand-field"><span>{{ form.change_reason.label }}</span>{{ form.change_reason }}<small>{{ form.change_reason.help_text }}</small>{% for error in form.change_reason.errors %}<em>{{ error }}</em>{% endfor %}</label>
+      <label class="brand-confirm">{{ form.confirm_change }} <span>{{ form.confirm_change.label }}</span></label>
+      {% for error in form.confirm_change.errors %}<em class="brand-check-error">{{ error }}</em>{% endfor %}
+      <button class="brand-save" type="submit"><i class="bi bi-check2-circle"></i> Barcha yuzalarga saqlash</button>
+    </section>
+  </form>
+
+  <aside class="brand-side">
+    <section class="brand-panel brand-preview">
+      <span class="brand-kicker">LIVE FALLBACK PREVIEW</span>
+      <div class="brand-preview-light"><a>{% include "components/brand_logo.html" with use_wordmark=True image_class="brand-logo-image--large" %}</a><small>Yorug' fon / public header</small></div>
+      <div class="brand-preview-dark"><a>{% include "components/brand_logo.html" with use_wordmark=True dark=True image_class="brand-logo-image--large" %}</a><small>Qorong'i fon / auth</small></div>
+      <div class="brand-preview-marks">
+        <div>{% include "components/brand_logo.html" with mark_only=True %}<small>Ixcham belgi</small></div>
+        <div class="brand-favicon-preview">{% if brand_settings.favicon_image %}<img src="{{ brand_settings.favicon_image.url }}" alt="">{% elif brand_settings.logo_mark_image %}<img src="{{ brand_settings.logo_mark_image.url }}" alt="">{% else %}<span>{{ brand_settings.logo_mark_text|default:"A" }}</span>{% endif %}<small>Favicon</small></div>
+      </div>
+    </section>
+
+    <section class="brand-panel brand-audit">
+      <span class="brand-kicker">SO'NGGI O'ZGARISHLAR</span>
+      {% for entry in recent_brand_changes %}
+        <article><strong>{{ entry.user.get_full_name|default:entry.user.username }}</strong><time>{{ entry.action_time|date:"d.m.Y H:i" }}</time><p>{{ entry.change_message }}</p></article>
+      {% empty %}<p class="brand-empty">Hali markaziy brend o'zgarishi yozilmagan.</p>{% endfor %}
+    </section>
+  </aside>
+</div>
+{% endblock %}

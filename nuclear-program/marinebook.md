@@ -16,6 +16,24 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-22 [Claude Code]: Markaziy brend boshqaruvi commit va main'ga merge
+
+Worktree'da commit qilinmagan holda turgan markaziy brend ishi tekshirildi, saqlandi va `main`'ga birlashtirildi. `SiteSettings` endi to'rtta brand assetini (asosiy wordmark, qorong'i fon wordmark, ixcham belgi, favicon) saqlaydi; barcha logo yuzalari bitta canonical `templates/components/brand_logo.html` adapteridan o'qiydi va hardcode qilingan marklar olib tashlandi. Owner-only `/backoffice/control/brand/` har saqlashda sabab + tasdiq talab qiladi va `LogEntry`ga audit yozadi. Implementatsiya oldingi sessiyada yozilgan; bu sessiya uni verifikatsiya qildi, commit qildi va bir xil commitga ishora qilayotgan ortiqcha `codex/control-center-foundation` branchini o'chirdi.
+
+- Branch: `codex/central-brand-control` → `main`
+- Commitlar: `dd76c30` (brend), oldin merge qilinmagan `e1529ce` + `39269dc` (Control Center foundation) ham shu merge bilan `main`'ga o'tdi
+- Test holati: `python manage.py test` — **335/335 OK**; `python manage.py check` — **0 issues**; `python manage.py makemigrations --check --dry-run` — **No changes**; `git diff --cached --check` — **OK**
+- Davom etilishi kerak: `templates/bot/miniapp_entry.html` o'z `<head>`iga ega, lekin `brand_favicon.html` include'i yo'q (kosmetik). Brend sahifasining browser QA'si (1280x900 / 390x844) hali yugurtirilmagan. Bu band backlogda `ADMIT` sifatida yozilmagan — admission statusini Azurbek tasdiqlashi kerak.
+
+## 2026-07-22 [Codex]: Azure Control Center read-only foundation
+
+Platforma Telegram yoki boshqa bitta adapter atrofida kengaymasligi uchun owner-only `/backoffice/control/` yaratildi. DB, cache, Channels, Celery config, Telegram outbox, media, AI provider/effective token policy, RAG, security va release identity bitta canonical capability registry/snapshot servisida GREEN/AMBER/RED sabab bilan tutashdi; shu servis `system_audit` CLI va responsive backoffice UI tomonidan qayta ishlatiladi. Foundation ataylab read-only: keyingi mutationlar append-only audit, confirmation va idempotency contractisiz qo'shilmaydi.
+
+- Branch: `codex/control-center-foundation`
+- Commitlar: `e1529ce`
+- Test holati: `python manage.py test` — **330/330 OK**; `python manage.py test core aicontrol` — **40/40 OK**; `python manage.py check` — **0 issues**; `makemigrations --check --dry-run` — **No changes**; browser QA 1280x900 va 390x844 — overflow/console xatosi yo'q, mobil menu ishladi
+- Davom etilishi kerak: A2 hali `IN PROGRESS` — `SystemAuditEvent`, feature flag/kill switch, worker/beat heartbeat, `ReleaseRecord`, backup/email/memory probes, AI cost/quality gate va allowlist mutationlar
+
 ## 2026-07-22 [Codex]: Nuclear Program solo-owner control plane'ga qayta bazalandi
 
 Uch parallel agent auditidan keyin launch reja feature-first yo'ldan poydevor→control→canonical flow→mobile parity→minimal AI outcome tartibiga o'tkazildi. Agent qoidalariga product authority, adapter boundary va feature admission gate qo'shildi; roadmap/backlog/ops/kontent bir xil ID va exit kriteriylarga moslandi. Azure AI premium claim'i structured evidence, quality/latency/cost gate va yetarli sample bo'lmaganda `INSUFFICIENT_DATA → beta` qaroriga bog'landi; bu commit faqat hujjatlarni o'zgartirdi.

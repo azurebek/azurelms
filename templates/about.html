@@ -5,7 +5,7 @@
   team_members, testimonials.
 {% endcomment %}
 
-{% block title %}Biz haqimizda — AzureLMS{% endblock %}
+{% block title %}Biz haqimizda — {{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %}
 
 {% block page_css %}
 <style>

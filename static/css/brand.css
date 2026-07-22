@@ -1,0 +1,9 @@
+.brand-logo-image{display:block;object-fit:contain}
+.brand-logo-image--mark{width:100%;height:100%;object-position:center}
+.brand-logo-image--wordmark{width:auto;max-width:min(190px,42vw);height:32px;object-position:left center}
+.brand-logo-mark--image{padding:0!important;overflow:hidden;background:transparent!important;color:transparent!important;box-shadow:none!important}
+.brand-logo-mark{width:30px;height:30px;border-radius:8px;background:var(--azure);display:grid;place-items:center;flex:0 0 auto;color:var(--on-azure);font-size:15px;font-weight:700}
+.brand-logo-name{color:var(--ink);font-size:16px;font-weight:600;letter-spacing:-.02em;white-space:nowrap}
+.auth-brand-name{color:#fff}
+.brand-logo-image--small{height:26px;max-width:150px}
+.brand-logo-image--large{height:38px;max-width:220px}

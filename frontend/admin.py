@@ -213,7 +213,9 @@ class SiteSettingsAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     ("brand_name", "brand_tagline"),
-                    ("logo_mark_text", "logo_image"),
+                    "logo_mark_text",
+                    ("logo_image", "logo_dark_image"),
+                    ("logo_mark_image", "favicon_image"),
                 )
             },
         ),
