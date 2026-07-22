@@ -16,6 +16,17 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-23 [Claude Code]: Sozlamalar bo'limlarga ajratildi, profil joyida tahrirlanadigan bo'ldi
+
+Azurbek sozlamalarni Claude'ning sozlamalar oynasi kabi bo'limlarga ajratishni so'radi. Endi 4 bo'lim, har biri alohida sahifa: Hisob, Maxfiylik, To'lov, Imkoniyatlar. Bo'lim nomlari app sidebar'ining o'zida — sozlamalarda dashboard navigatsiyasi o'rnini shu 4 bo'lim egallaydi (`base_app.html`dagi yangi `app_nav` bloki orqali). Birinchi urinishda men sahifa ichida ikkinchi navigatsiya yasab qo'ygan edim; Azurbek buni ko'rsatgach bitta sidebar modeliga o'tkazildi. Eski `/settings/` va `/settings/ai-memory/` havolalari redirect bilan ishlashda qoldi, chunki ularga profil menyusi, Mini App, messenger va dashboard murojaat qiladi.
+
+Shu sessiyada uchta yondosh ish ham bajarildi. (1) Profil avatari ko'k banner ostida yarim ko'rinmay qolardi: banner `position:relative`, avatar qatori esa `static` edi va CSS chizish tartibida pozitsiyalangan element statikdan yuqori turadi. (2) Profildagi "Tahrirlash" boshqa sahifaga sakrardi va u yerda sidebar ham almashardi; endi forma profil kartasi ichida ochiladi va maydonlar `ProfileFieldsForm` + `components/profile_fields_form.html` orqali Sozlamalar > Hisob bilan bitta manbadan keladi. Eski `UserProfileView.post()` `username` va `email`ni tekshiruvsiz qabul qilardi — UI'dan yetib bo'lmasdi, lekin joyida tahrirlash o'sha yo'lni ochardi, shuning uchun ModelForm bilan almashtirildi va `next` uchun ochiq-redirect himoyasi qo'shildi. (3) AI boshqaruvi sahifasidagi inputlar uslubsiz edi: `field-input` klassi CSS'da umuman aniqlanmagan, ustiga `color-scheme` hech qayerda e'lon qilinmagani uchun brauzerning native elementlari qorong'i temada ham yorug' chizilardi.
+
+- Branch: `claude/settings-sections` (`claude/sidebar-profile-menu` ustiga qo'yilgan — u hali `main`ga merge qilinmagan)
+- Commitlar: `12c659f`, `88a7580`, `22484b9`, `0b3bc8e`
+- Test holati: `python manage.py test` — **367/367 OK**; `python manage.py check` — **0 issues**; `git diff --numstat` va `-w` bilan bir xil (churn yo'q). Browser QA (lokal dev server, owner sessiyasi): 4 bo'lim 1180x820 va 390x844 da, light va dark — sidebar'da dashboard elementlari yo'q, gorizontal overflow `0`; AI sozlamasini o'zgartirgach POST Imkoniyatlarga qaytdi; profilda saqlash URL'ni o'zgartirmadi va ism darhol yangilandi; AI boshqaruvi inputlari 44px/`--paper-2`/10px radius, `color-scheme` `dark`.
+- Davom etilishi kerak: `users/views.py` va `users/urls.py` uchun `git diff --check` "trailing whitespace" beradi — bu repoda oldindan mavjud holat (fayllar CRLF bilan commit qilingan, `core.autocrlf=true`), qo'shilgan qatorlar faylning o'z konvensiyasiga mos. Ikkala branch ham `main`ga merge qilinmagan, Azurbek qaroriga qoldi.
+
 ## 2026-07-23 [Claude Code]: Sidebar hisob amallari profil menyusiga ko'chdi
 
 Azurbek sidebar pastidagi scroller'dan tashqaridagi qotgan blokdan norozi bo'ldi va uni profil dropdown'iga yig'ishni taklif qildi. Blok navigatsiya uchun ~260px joy yeb turgan edi; endi profil menyusi atigi 53px va 1280x760 da nav to'liq sig'adi (594px kontent / 594px joy, scroll kerak emas). Hisob amallari (Profil, Sozlamalar, Chiqish) va rol almashtirish (O'qituvchi/Admin paneli, O'quvchi rejimi) menyuga ko'chdi.
