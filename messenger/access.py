@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.db.models import Count
 
 from cohorts.models import Cohort, Enrollment, enrollment_active_access_q
 
@@ -53,6 +54,24 @@ def create_user_ai_room(user):
     room = ChatRoom.objects.create(room_type="ai", name=DEFAULT_AI_ROOM_TITLE)
     room.participants.add(user)
     return room
+
+
+def get_or_create_ai_draft_room(user):
+    """Bo'sh (xabarsiz) AI xona bo'lsa qaytaradi, aks holda yangi yaratadi.
+
+    "Yangi suhbat" har bosilganda yangi bo'sh xona yaratilmasligi uchun —
+    ilk xabar yuborilmaguncha bitta bo'sh xona qayta ishlatiladi.
+    """
+    if not user or not user.is_authenticated:
+        return None
+    empty = (
+        ChatRoom.objects.filter(room_type="ai", participants=user)
+        .annotate(_message_count=Count("messages"))
+        .filter(_message_count=0)
+        .order_by("-created_at")
+        .first()
+    )
+    return empty or create_user_ai_room(user)
 
 
 def derive_ai_room_name_from_prompt(prompt):

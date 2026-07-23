@@ -16,6 +16,14 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-24 [Claude Code]: Bo'sh AI chatlar to'planmasin (lazy new chat)
+
+"Yangi suhbat" har bosilganda yangi bo'sh AI xona yaratilib, ro'yxatda to'planib qolardi (ikki marta bossang ikkita keraksiz bo'sh chat). Endi `messenger.access.get_or_create_ai_draft_room` bo'sh (xabarsiz) xona bo'lsa uni qayta ishlatadi — `create_ai_chat` shuni chaqiradi, ko'p bosish ham bitta bo'sh xona bilan cheklanadi. Qo'shimcha: suhbatlar ro'yxati faqat xabarli yoki ayni ochiq turgan xonani ko'rsatadi (`ai.html`da `{% if room.message_count or room.id == active_ai_room_id %}`), bo'sh xona ilk xabardan keyingina ro'yxatda saqlanadi.
+
+- Branch: `claude/messenger-lazy-chat` (`origin/main`dan)
+- Test holati: `python manage.py test messenger.test_lazy_ai_chat` — **6/6 OK**; `check` — 0 issues; browser: `get_or_create_ai_draft_room` uch chaqiruvda bir xil xona (id 7,7,7) qaytardi, sidebar 5 bo'sh xona bo'lsa ham ko'rsatmadi. Churn yo'q (byte-patch).
+- Davom etilishi kerak: to'liq "xonasiz" oqim (ilk xabargacha DB'da umuman yozuv bo'lmasligi) WebSocket qayta yozishni talab qiladi. Hozircha bitta qayta ishlatiladigan bo'sh xona (ro'yxatda yashirin).
+
 ## 2026-07-23 [Claude Code]: A0a stop-ship security — auth token, bot admin va webhook
 
 P0 backlogining A0a bandidagi to'rtta security teshigi yopildi. (1) Telegram deep-link kirish tokeni jiddiy zaif edi: `authenticated` bo'lgach sessiya cheksiz yashardi va endpoint har chaqirilganda qayta login qilardi — tokenni bilgan istalgan kishi, istalgan brauzerdan kira olardi. Endi token bir martalik (`consumed_at`, `select_for_update` qulfi bilan), brauzerga bog'langan (`client_key`) va `authenticated` holat ham TTL'ga bo'ysunadi. (2) Deaktivatsiya qilingan staff hali ham bot admini edi — `is_active` hech qayerda tekshirilmasdi; yagona `is_active_staff()` helperi va middleware `resolve_identity` tuzatildi. (3) Webhook secret uchun taniqli default bor edi — default bo'sh qilindi va view fail-closed, `setwebhook` ham secret'siz o'rnatishni rad etadi. (4) Mos kelmagan secret token endi logga yozilmaydi, taqqoslash `constant_time_compare` bilan.

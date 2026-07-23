@@ -18,6 +18,7 @@ from cohorts.models import Enrollment, enrollment_active_access_q
 from courses.models import Lesson
 from .access import (
     create_user_ai_room,
+    get_or_create_ai_draft_room,
     ensure_user_ai_room,
     maybe_name_ai_room_from_first_prompt,
     sync_student_chat_access,
@@ -387,7 +388,9 @@ class MessengerTutorView(_MessengerRoomView):
 @login_required
 @require_POST
 def create_ai_chat(request):
-    room = create_user_ai_room(request.user)
+    # Bo'sh xona bo'lsa qayta ishlatiladi — har bosishda yangi bo'sh chat
+    # yaralib qolmaydi (ilk xabar yuborilguncha bitta bo'sh xona yetadi).
+    room = get_or_create_ai_draft_room(request.user)
     return redirect("messenger:ai_room", room_id=room.id)
 
 
