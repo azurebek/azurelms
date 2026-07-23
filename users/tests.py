@@ -626,32 +626,37 @@ class TelegramCustomAuthTests(TestCase):
         self.assertIsNotNone(session)
         self.assertEqual(session.status, TelegramAuthSession.STATUS_PENDING)
 
+    def _start_flow(self):
+        """Haqiqiy oqim: init token va client_key'ni brauzer sessiyasiga bog'laydi."""
+        response = self.client.get(reverse('telegram_auth_init'))
+        return response.json()['token']
+
     def test_telegram_auth_status_pending(self):
-        session = TelegramAuthSession.objects.create(token="test_pending_token")
-        response = self.client.get(reverse('telegram_auth_status', args=["test_pending_token"]))
+        token = self._start_flow()
+        response = self.client.get(reverse('telegram_auth_status', args=[token]))
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertTrue(data['ok'])
         self.assertEqual(data['status'], 'pending')
 
     def test_telegram_auth_success_logs_in_existing_user(self):
-        session = TelegramAuthSession.objects.create(token="test_success_token")
-        
-        result = handle_telegram_auth_token("auth_test_success_token", 987654321)
+        token = self._start_flow()
+
+        result = handle_telegram_auth_token(f"auth_{token}", 987654321)
         self.assertTrue(result.ok)
         self.assertEqual(result.code, "login_success")
-        
-        session.refresh_from_db()
+
+        session = TelegramAuthSession.objects.get(token=token)
         self.assertEqual(session.status, TelegramAuthSession.STATUS_AUTHENTICATED)
         self.assertEqual(session.user, self.user)
-        
-        response = self.client.get(reverse('telegram_auth_status', args=["test_success_token"]))
+
+        response = self.client.get(reverse('telegram_auth_status', args=[token]))
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertTrue(data['ok'])
         self.assertEqual(data['status'], 'authenticated')
         self.assertEqual(data['redirect_url'], '/users/dashboard/')
-        
+
         self.assertIn('_auth_user_id', self.client.session)
 
     def test_telegram_auth_creates_new_user_if_not_exists(self):

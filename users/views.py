@@ -1174,12 +1174,23 @@ class CertificateListView(LoginRequiredMixin, TemplateView):
 from django.http import JsonResponse
 import secrets
 from django.contrib.auth import login as django_login
+from django.db import transaction
+from django.utils.crypto import constant_time_compare
 from users.models import TelegramAuthSession
 
+TELEGRAM_AUTH_CLIENT_KEY = 'telegram_auth_client_key'
+
+
 def telegram_auth_init(request):
-    """Vaqtinchalik token va Telegram deep-linkini yaratadi (AJAX)."""
+    """Vaqtinchalik token va Telegram deep-linkini yaratadi (AJAX).
+
+    Token shu brauzer sessiyasiga bog'lanadi — keyin faqat shu brauzer uni
+    login uchun ishlata oladi. Bitta brauzerda bir vaqtda bitta oqim.
+    """
     token = secrets.token_urlsafe(32)
-    TelegramAuthSession.objects.create(token=token)
+    client_key = secrets.token_urlsafe(32)
+    TelegramAuthSession.objects.create(token=token, client_key=client_key)
+    request.session[TELEGRAM_AUTH_CLIENT_KEY] = client_key
     bot_username = (getattr(settings, 'BOT_USERNAME', '') or 'azureLMSbot').strip('@')
     bot_link = f"https://t.me/{bot_username}?start=auth_{token}"
     return JsonResponse({
@@ -1190,27 +1201,51 @@ def telegram_auth_init(request):
 
 
 def telegram_auth_status(request, token):
-    """Token holatini tekshiradi va u tasdiqlangan bo'lsa, foydalanuvchini login qiladi (Polling AJAX)."""
-    try:
-        session = TelegramAuthSession.objects.get(token=token)
-    except TelegramAuthSession.DoesNotExist:
-        return JsonResponse({'ok': False, 'status': 'not_found', 'message': 'Sessiya topilmadi.'})
+    """Token holatini tekshiradi va tasdiqlangan bo'lsa login qiladi (polling AJAX).
 
-    # Token yaroqlilik muddatini tekshirish
-    if session.status == TelegramAuthSession.STATUS_PENDING and not session.is_valid():
-        session.status = TelegramAuthSession.STATUS_EXPIRED
-        session.save(update_fields=['status'])
+    Token bir martalik: olingandan keyin `used` bo'ladi. Boshqa brauzer
+    tokenni bilsa ham login bo'lolmaydi — `client_key` mos kelmaydi.
+    Mavjud emas va mos kelmagan holatlar bir xil javob beradi, aks holda
+    token mavjudligini aniqlash mumkin bo'lardi.
+    """
+    unknown = JsonResponse({'ok': False, 'status': 'not_found', 'message': 'Sessiya topilmadi.'})
+    client_key = request.session.get(TELEGRAM_AUTH_CLIENT_KEY) or ''
+    if not client_key:
+        return unknown
 
-    if session.status == TelegramAuthSession.STATUS_AUTHENTICATED and session.user:
-        django_login(request, session.user, backend='django.contrib.auth.backends.ModelBackend')
-        return JsonResponse({
-            'ok': True,
-            'status': 'authenticated',
-            'redirect_url': '/users/dashboard/'
-        })
+    with transaction.atomic():
+        try:
+            session = TelegramAuthSession.objects.select_for_update().get(token=token)
+        except TelegramAuthSession.DoesNotExist:
+            return unknown
 
+        if not session.client_key or not constant_time_compare(session.client_key, client_key):
+            return unknown
+
+        # Muddati o'tgan sessiya (pending yoki authenticated) yopiladi —
+        # aks holda frontend'ga 'authenticated' deb yolg'on javob ketardi.
+        if session.status in (
+            TelegramAuthSession.STATUS_PENDING,
+            TelegramAuthSession.STATUS_AUTHENTICATED,
+        ) and session.is_expired():
+            session.status = TelegramAuthSession.STATUS_EXPIRED
+            session.save(update_fields=['status'])
+
+        if not session.is_claimable():
+            return JsonResponse({'ok': True, 'status': session.status})
+
+        # Bir martalik: tokenni login qilishdan OLDIN yopamiz, shunda
+        # parallel so'rov ikkinchi marta ololmaydi.
+        authenticated_user = session.user
+        session.status = TelegramAuthSession.STATUS_USED
+        session.consumed_at = timezone.now()
+        session.save(update_fields=['status', 'consumed_at'])
+
+    django_login(request, authenticated_user, backend='django.contrib.auth.backends.ModelBackend')
+    request.session.pop(TELEGRAM_AUTH_CLIENT_KEY, None)
     return JsonResponse({
         'ok': True,
-        'status': session.status,
+        'status': 'authenticated',
+        'redirect_url': '/users/dashboard/'
     })
 

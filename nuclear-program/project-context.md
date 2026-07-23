@@ -815,8 +815,9 @@ EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 
 ### 2026-07-22 auditida ochiq qolgan access gaplari
 
-- `TelegramAuthSession` authenticated tokeni status endpointda bir martalik consume/expiry qilinmaydi; replay login xavfi bor.
-- Telegram webhook secret uchun taniqli default mavjud; mismatch request yuborgan `received` token logga yoziladi. To'g'ri token shu log branch'iga tushmaydi.
+- ~~`TelegramAuthSession` authenticated tokeni status endpointda bir martalik consume/expiry qilinmaydi; replay login xavfi bor.~~ **Yopildi 2026-07-23** (`e7cd4a6`): token bir martalik (`consumed_at`), brauzerga bog'langan (`client_key`), `authenticated` holat TTL'ga bo'ysunadi.
+- ~~Telegram webhook secret uchun taniqli default mavjud; mismatch request yuborgan `received` token logga yoziladi.~~ **Yopildi 2026-07-23** (`5bea4a5`): default bo'sh + fail-closed webhook; mos kelmagan token logga yozilmaydi; `constant_time_compare`.
+- O'chirilgan (deaktivatsiya qilingan) staff bot admini hisoblanardi. **Yopildi 2026-07-23** (`5bea4a5`): `is_active_staff()` va `resolve_identity` orqali `is_active` tekshiriladi.
 - WebSocket room authorization connect vaqtida tekshiriladi; ochiq socket uchun enrollment/access o'zgarishini qayta tekshirish yo'q.
 - Model validatorlari oddiy `save/create`da avtomatik ishlamagani sabab uploadlar real MIME/magic-byte gate'dan to'liq o'tmaydi.
 - Private uploadlar joriy default S3 storage sabab public-read bo'lishi mumkin.

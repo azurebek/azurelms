@@ -16,6 +16,17 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-23 [Claude Code]: A0a stop-ship security — auth token, bot admin va webhook
+
+P0 backlogining A0a bandidagi to'rtta security teshigi yopildi. (1) Telegram deep-link kirish tokeni jiddiy zaif edi: `authenticated` bo'lgach sessiya cheksiz yashardi va endpoint har chaqirilganda qayta login qilardi — tokenni bilgan istalgan kishi, istalgan brauzerdan kira olardi. Endi token bir martalik (`consumed_at`, `select_for_update` qulfi bilan), brauzerga bog'langan (`client_key`) va `authenticated` holat ham TTL'ga bo'ysunadi. (2) Deaktivatsiya qilingan staff hali ham bot admini edi — `is_active` hech qayerda tekshirilmasdi; yagona `is_active_staff()` helperi va middleware `resolve_identity` tuzatildi. (3) Webhook secret uchun taniqli default bor edi — default bo'sh qilindi va view fail-closed, `setwebhook` ham secret'siz o'rnatishni rad etadi. (4) Mos kelmagan secret token endi logga yozilmaydi, taqqoslash `constant_time_compare` bilan.
+
+Yo'lda ikkita qo'shimcha xato topildi va tuzatildi: muddati o'tgan `authenticated` sessiya frontendga yolg'on `authenticated` javob berardi (login bo'lmagan holda) — endi `expired` qaytaradi; va `setwebhook` secret'siz o'rnatsa view fail-closed bo'lgani uchun bot jimgina ishlamay qolardi — endi command oldindan to'xtatadi. `users/tests.py`dagi ikki eski test haqiqiy init oqimiga moslandi, chunki auth xulqi ataylab o'zgardi.
+
+- Branch: `claude/a0a-auth-hardening`
+- Commitlar: `e7cd4a6` (auth token), `5bea4a5` (bot/webhook)
+- Test holati: `python manage.py test` — **385/385 OK**; `python manage.py check` — **0 issues**; `makemigrations --check` — **No changes**; migratsiya `0012` ikkita default'li AddField + choices, ma'lumot yo'qolmaydi. Focused: 22/22 (auth+bot security). Haqiqiy trailing bo'shliq yo'q (`--check` signali sof CRLF, fayllar repoda oldindan CRLF).
+- Davom etilishi kerak: A0a ning qolgan qismi — teacher scope default-deny (hujjatda yozilgan, hali kodda tasdiqlanmagan), private media/upload MIME-magic-byte gate (A0b). Keyingi P0 band — A1 production runtime/CI. Branch `main`ga merge qilinmagan, Azurbek qaroriga qoldi.
+
 ## 2026-07-23 [Claude Code]: Sozlamalar bo'limlarga ajratildi, profil joyida tahrirlanadigan bo'ldi
 
 Azurbek sozlamalarni Claude'ning sozlamalar oynasi kabi bo'limlarga ajratishni so'radi. Endi 4 bo'lim, har biri alohida sahifa: Hisob, Maxfiylik, To'lov, Imkoniyatlar. Bo'lim nomlari app sidebar'ining o'zida — sozlamalarda dashboard navigatsiyasi o'rnini shu 4 bo'lim egallaydi (`base_app.html`dagi yangi `app_nav` bloki orqali). Birinchi urinishda men sahifa ichida ikkinchi navigatsiya yasab qo'ygan edim; Azurbek buni ko'rsatgach bitta sidebar modeliga o'tkazildi. Eski `/settings/` va `/settings/ai-memory/` havolalari redirect bilan ishlashda qoldi, chunki ularga profil menyusi, Mini App, messenger va dashboard murojaat qiladi.
