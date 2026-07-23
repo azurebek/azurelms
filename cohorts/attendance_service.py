@@ -38,4 +38,12 @@ def upsert_attendance_and_xp(*, enrollment, lesson, date, status, marked_by):
     attendance.xp_awarded = new_xp
     attendance.marked_by = marked_by
     attendance.save(update_fields=["status", "xp_awarded", "marked_by", "marked_at"])
+
+    # Jonli darsga qatnashish ham malakali kunlik faollik — dars sanasi
+    # bo'yicha qayd etiladi. Kech belgilangan o'tmish sanani service o'zi
+    # e'tiborsiz qoldiradi (seriyani orqaga surmaydi).
+    if status in (Attendance.STATUS_PRESENT, Attendance.STATUS_PARTIAL):
+        from users.streak import record_activity
+        record_activity(enrollment.student, on_date=date)
+
     return attendance

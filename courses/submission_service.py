@@ -78,6 +78,10 @@ def submit_assignment(*, user, assignment, answer_text="", attachment=None):
     submission.awarded_xp = 0
     submission.save()
 
+    # Malakali kunlik faollik — o'quv seriyasini oshiradi.
+    from users.streak import record_activity
+    record_activity(user)
+
     return SubmissionResult(
         ok=True,
         code="submitted",
@@ -158,6 +162,10 @@ def grade_quiz(*, user, quiz, answers):
     if awarded_xp > 0:
         user.total_xp += awarded_xp
         user.save(update_fields=["total_xp"])
+
+    # Quizni yechish — malakali kunlik faollik.
+    from users.streak import record_activity
+    record_activity(user)
 
     return QuizGradeResult(
         ok=True,

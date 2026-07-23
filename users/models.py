@@ -104,9 +104,88 @@ class CustomUser(AbstractUser):
             return f"{self.first_name} {self.last_name} ({self.username})"
         return self.username
 
+    @property
+    def streak_days(self):
+        """Shablonlar uchun jonli seriya qiymati (buzilgan bo'lsa 0).
+
+        Templatelar `request.user.streak_days` ni ishlatadi. Haqiqiy manba —
+        `LearnerStreak` modeli va `users.streak` servisi. Real qiymat uchun
+        `streak` obyektini `select_related`/`prefetch_related('streak')` bilan
+        oldindan yuklang, aks holda har chaqiruv qo'shimcha so'rov qiladi.
+        """
+        try:
+            streak = self.streak
+        except LearnerStreak.DoesNotExist:
+            return 0
+        return streak.effective_current()
+
     class Meta:
         verbose_name = "Foydalanuvchi"
         verbose_name_plural = "Foydalanuvchilar"
+
+
+class LearnerStreak(models.Model):
+    """O'quvchining kunlik faollik seriyasi (Duolingo uslubidagi streak).
+
+    Seriya DAVOMATDAN emas, o'quvchining o'z tashabbusi bilan qilgan
+    kunlik MALAKALI O'QUV HARAKATIDAN oshadi (dars tugatish, quiz/vazifa
+    topshirish, imtihon urinishi, jonli darsga qatnashish). Bitta canonical
+    yozuv nuqtasi — `users.streak.record_activity`; boshqa hech joy bu
+    maydonlarni to'g'ridan-to'g'ri o'zgartirmaydi.
+
+    "Muzlatish" (freeze) o'tkazib yuborilgan bir kunni himoya qiladi: seriya
+    uzilmaydi, o'rniga bitta freeze sarflanadi.
+    """
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='streak',
+    )
+    current_streak = models.PositiveIntegerField(default=0)
+    longest_streak = models.PositiveIntegerField(default=0)
+    total_active_days = models.PositiveIntegerField(default=0)
+    last_activity_date = models.DateField(null=True, blank=True)
+    freezes_available = models.PositiveIntegerField(default=0)
+    freezes_used_total = models.PositiveIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "O'quv seriyasi"
+        verbose_name_plural = "O'quv seriyalari"
+
+    def __str__(self):
+        return f"{self.user.username}: {self.current_streak} kun"
+
+    def effective_current(self, today=None):
+        """Bugungi jonli seriya qiymati — o'qish paytida hisoblanadi, yozmaydi.
+
+        Saqlangan `current_streak` faqat keyingi faollik yoki kunlik
+        maintenance job'da yangilanadi. Ko'rsatish uchun esa "bugun holati"
+        muhim: seriya bugun yoki kecha (yoki freeze qamrovida) faol bo'lsa
+        saqlangan qiymat, aks holda uzilgan — 0.
+        """
+        if self.last_activity_date is None or self.current_streak == 0:
+            return 0
+        today = today or timezone.localdate()
+        gap = (today - self.last_activity_date).days
+        if gap <= 0:
+            return self.current_streak  # bugun faol
+        # kechagacha bo'lgan bo'shliq freeze bilan qoplanadimi (bugun hali
+        # hisobga olinmaydi — bugun uchun bir kun beriladi)
+        missed = gap - 1
+        if missed <= self.freezes_available:
+            return self.current_streak
+        return 0
+
+    def is_active_today(self, today=None):
+        today = today or timezone.localdate()
+        return self.last_activity_date == today
+
+    def at_risk(self, today=None):
+        """Seriya bor, lekin bugun hali faollik yo'q — xavf ostida."""
+        today = today or timezone.localdate()
+        return self.effective_current(today) > 0 and not self.is_active_today(today)
 
 
 class UserOnboarding(models.Model):
@@ -164,10 +243,12 @@ class Notification(models.Model):
     CATEGORY_MANUAL = "manual"
     CATEGORY_SUBSCRIPTION = "subscription"
     CATEGORY_SYSTEM = "system"
+    CATEGORY_STREAK = "streak"
     CATEGORY_CHOICES = (
         (CATEGORY_MANUAL, "Manual"),
         (CATEGORY_SUBSCRIPTION, "Subscription"),
         (CATEGORY_SYSTEM, "System"),
+        (CATEGORY_STREAK, "Streak"),
     )
 
     recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications")

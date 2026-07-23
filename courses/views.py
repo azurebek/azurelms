@@ -176,10 +176,17 @@ def _mark_lesson_progress_completed(enrollment, lesson):
             "completed_at": timezone.now(),
         },
     )
+    newly_completed = created
     if not created and not progress.is_completed:
         progress.is_completed = True
         progress.completed_at = timezone.now()
         progress.save(update_fields=["is_completed", "completed_at", "last_accessed_at"])
+        newly_completed = True
+
+    # Dars birinchi marta tugatilganda — malakali kunlik faollik.
+    if newly_completed:
+        from users.streak import record_activity
+        record_activity(enrollment.student)
 
 
 class CourseListView(ListView):
@@ -1072,7 +1079,11 @@ class SubmitExamView(LoginRequiredMixin, View):
                 status=400,
             )
         attempt.submit_for_review()
-        
+
+        # Imtihonni topshirish — malakali kunlik faollik.
+        from users.streak import record_activity
+        record_activity(request.user)
+
         return JsonResponse({'status': 'success', 'pending_review': True})
 
 class SubmitQuizView(LoginRequiredMixin, View):

@@ -77,6 +77,18 @@ if subscription_lifecycle_beat_enabled:
             minute=_env_int("SUBSCRIPTION_LIFECYCLE_MINUTE", 5),
         ),
     }
+
+# Seriya undash — kechqurun bir marta. Bugun harakat qilmagan, seriyasi
+# xavf ostidagi o'quvchi yarim tunga qadar ulgursin deb aynan shu vaqt.
+streak_nudge_beat_enabled = _env_bool("ENABLE_STREAK_NUDGE_BEAT", not is_local)
+if streak_nudge_beat_enabled:
+    beat_schedule["streak-nudge-evening"] = {
+        "task": "users.tasks.run_streak_nudges",
+        "schedule": crontab(
+            hour=_env_int("STREAK_NUDGE_HOUR", 19),
+            minute=_env_int("STREAK_NUDGE_MINUTE", 0),
+        ),
+    }
 app.conf.beat_schedule = beat_schedule
 
 @app.task(bind=True, ignore_result=True)
