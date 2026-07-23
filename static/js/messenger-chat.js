@@ -4,6 +4,12 @@
 
   const roomId = panel.getAttribute('data-chat-room-id');
   const activeRoom = panel.getAttribute('data-active-room');
+  const aiAvatarUrl = panel.getAttribute('data-ai-avatar-url') || '';
+  function aiAvatarMarkup() {
+    return aiAvatarUrl
+      ? '<img class="ai-avatar-img" src="' + aiAvatarUrl + '" alt="Azure AI" draggable="false">'
+      : '<i class="bi bi-stars"></i>';
+  }
   const currentUserId = Number(panel.getAttribute('data-current-user-id'));
   const currentUserName = panel.getAttribute('data-current-user-name') || 'Siz';
   const contextLessonId = panel.getAttribute('data-context-lesson-id') || '';
@@ -548,7 +554,7 @@
 
     const avatar = document.createElement('div');
     avatar.className = 'msg-avatar msg-avatar--ai';
-    avatar.innerHTML = '<i class="bi bi-stars"></i>';
+    avatar.innerHTML = aiAvatarMarkup();
 
     const bubble = document.createElement('div');
     bubble.className = 'typing-bubble';
@@ -573,7 +579,7 @@
     if (!senderId) {
       const avatar = document.createElement('div');
       avatar.className = 'msg-avatar msg-avatar--ai';
-      avatar.innerHTML = '<i class="bi bi-stars"></i>';
+      avatar.innerHTML = aiAvatarMarkup();
       return avatar;
     }
 
