@@ -48,6 +48,8 @@
     </div>
     <div class="msgr-list-scroll">
       {% for room in ai_rooms %}
+      {# Bo'sh (xabarsiz) xona faqat ochiq turgan bo'lsa ko'rinadi — ilk xabardan keyin ro'yxatda saqlanadi. #}
+      {% if room.message_count or room.id == active_ai_room_id %}
       <a class="sb-item{% if room.id == active_ai_room_id %} active{% endif %}" href="{% url 'messenger:ai_room' room_id=room.id %}" data-sidebar-room-id="{{ room.id }}">
         <span class="sb-item-av">{% include "components/ai_avatar.html" %}</span>
         <span class="sb-item-body">
@@ -55,6 +57,7 @@
           <span class="sb-item-bot"><span class="sb-item-preview">{{ room.last_message_text|default:"Suhbatni boshlang…"|striptags|truncatechars:40 }}</span></span>
         </span>
       </a>
+      {% endif %}
       {% empty %}
       <div style="padding:24px 14px;text-align:center;font-size:13px;color:var(--ink-3);">Hali suhbat yo'q.<br><form method="post" action="{% url 'messenger:new_ai_chat' %}" style="display:inline;margin:0;">{% csrf_token %}<button type="submit" style="background:none;border:none;padding:0;color:var(--azure);font-weight:600;font-size:13px;cursor:pointer;">Yangi suhbat boshlang</button></form></div>
       {% endfor %}

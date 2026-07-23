@@ -106,16 +106,17 @@ class ChatAccessTests(TestCase):
         self.assertEqual([room["type"] for room in rooms], ["ai"])
         self.assertTrue(ChatRoom.objects.filter(room_type="ai", participants=self.student).exists())
 
-    def test_new_ai_chat_creates_separate_room_and_redirects_to_it(self):
+    def test_new_ai_chat_reuses_empty_room_and_redirects_to_it(self):
         self.client.force_login(self.student)
-        self.client.get(reverse("messenger:ai"))
+        self.client.get(reverse("messenger:ai"))  # bo'sh AI xona yaratadi
 
         response = self.client.post(reverse("messenger:new_ai_chat"))
 
+        # Bo'sh xona qayta ishlatiladi — har bosishda yangi bo'sh xona to'planmaydi
         ai_rooms = ChatRoom.objects.filter(room_type="ai", participants=self.student)
-        self.assertEqual(ai_rooms.count(), 2)
-        new_room = ai_rooms.order_by("-created_at").first()
-        self.assertRedirects(response, reverse("messenger:ai_room", args=[new_room.id]), fetch_redirect_response=False)
+        self.assertEqual(ai_rooms.count(), 1)
+        room = ai_rooms.first()
+        self.assertRedirects(response, reverse("messenger:ai_room", args=[room.id]), fetch_redirect_response=False)
 
     def test_user_rooms_returns_all_ai_chats_with_latest_preview(self):
         older_room = ChatRoom.objects.create(room_type="ai", name="Grammar mashqi")

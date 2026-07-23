@@ -16,6 +16,21 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-24 [Claude Code]: Bo'sh AI chatlar to'planmasin (lazy new chat)
+
+"Yangi suhbat" har bosilganda yangi bo'sh AI xona yaratilib, ro'yxatda to'planib qolardi (ikki marta bossang ikkita keraksiz bo'sh chat). Endi `messenger.access.get_or_create_ai_draft_room` bo'sh (xabarsiz) xona bo'lsa uni qayta ishlatadi — `create_ai_chat` shuni chaqiradi, ko'p bosish ham bitta bo'sh xona bilan cheklanadi. Qo'shimcha: suhbatlar ro'yxati faqat xabarli yoki ayni ochiq turgan xonani ko'rsatadi (`ai.html`da `{% if room.message_count or room.id == active_ai_room_id %}`), bo'sh xona ilk xabardan keyingina ro'yxatda saqlanadi.
+
+- Branch: `claude/messenger-lazy-chat` (`origin/main`dan)
+- Test holati: `python manage.py test messenger.test_lazy_ai_chat` — **6/6 OK**; `check` — 0 issues; browser: `get_or_create_ai_draft_room` uch chaqiruvda bir xil xona (id 7,7,7) qaytardi, sidebar 5 bo'sh xona bo'lsa ham ko'rsatmadi. Churn yo'q (byte-patch).
+- Davom etilishi kerak: to'liq "xonasiz" oqim (ilk xabargacha DB'da umuman yozuv bo'lmasligi) WebSocket qayta yozishni talab qiladi. Hozircha bitta qayta ishlatiladigan bo'sh xona (ro'yxatda yashirin).
+
+## 2026-07-24 [Claude Code]: Messenger AI chat avatari owl mascot bo'ldi
+
+Messenger'dagi AI chat avatarlari `bi-stars` yulduzcha ikonasi edi. Endi Azure mascot rasmi (`img/ai-assistant-widget.png` — floating widget'dagi owl) ishlatiladi: suhbatlar ro'yxati, chat sarlavhasi, xabar pufakchalari va bo'sh holat. Yagona `components/ai_avatar.html` komponenti; owl transparent character bo'lgani uchun konteyner foni `:has(.ai-avatar-img)` bilan tozalanadi. Jonli xabarlar `messenger-chat.js` orqali quriladi — u ham owl'ni ishlatadi (URL shablondan `data-ai-avatar-url`).
+
+- Branch: `claude/messenger-owl-avatar`
+- Test holati: `check` — 0 issues; browser: 4 avatar joyi + jonli typing/javob avatari owl ko'rsatdi, console xato yo'q. Churn yo'q.
+
 ## 2026-07-23 [Claude Code]: Haqiqiy o'quv seriyasi (streak) + mascot undash tizimi
 
 Streak butunlay soxta edi — `streak_days` hech qaysi modelda maydon emas, 7 ta joyda `|default:0` bilan doim 0 ko'rsatardi. Azurbek to'liq streak tizimini qurishni so'radi (backlog uni "Defer" qilgan; bu owner qarori bilan admission oldindan berildi). Dizayn qarori: streak DAVOMATDAN emas, o'quvchining o'z tashabbusi bilan qilgan kunlik MALAKALI O'QUV HARAKATIDAN oshadi — davomat o'qituvchi belgilaydi va faqat dars kunlari bo'ladi, shuning uchun kunlik seriya undash mexanizmi uchun yaramaydi.
