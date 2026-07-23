@@ -155,3 +155,12 @@
 @media (max-width:680px) and (prefers-reduced-motion:reduce){
   .msgr-list{ transition:none; }
 }
+
+/* ---------- Azure AI mascot (owl) avatar ---------- */
+/* Owl transparent character — konteyner foni tozalanadi, owl o'zi ko'rinadi. */
+.ai-avatar-img{ width:100%; height:100%; object-fit:contain; user-select:none; -webkit-user-drag:none; }
+.sb-item-av:has(.ai-avatar-img),
+.chat-head-av:has(.ai-avatar-img),
+.msg-avatar:has(.ai-avatar-img){ background:transparent; }
+/* Bo'sh holatdagi katta owl */
+.chat-empty .ai-avatar-img{ width:72px; height:72px; }

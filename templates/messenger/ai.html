@@ -49,7 +49,7 @@
     <div class="msgr-list-scroll">
       {% for room in ai_rooms %}
       <a class="sb-item{% if room.id == active_ai_room_id %} active{% endif %}" href="{% url 'messenger:ai_room' room_id=room.id %}" data-sidebar-room-id="{{ room.id }}">
-        <span class="sb-item-av"><i class="bi bi-stars"></i></span>
+        <span class="sb-item-av">{% include "components/ai_avatar.html" %}</span>
         <span class="sb-item-body">
           <span class="sb-item-top"><span class="sb-item-name">{{ room.name|default:"Azure AI" }}</span><span class="sb-item-time">{% if room.updated_at %}{{ room.updated_at|date:"H:i" }}{% endif %}</span></span>
           <span class="sb-item-bot"><span class="sb-item-preview">{{ room.last_message_text|default:"Suhbatni boshlang…"|striptags|truncatechars:40 }}</span></span>
@@ -72,12 +72,13 @@
     data-ai-tone-url="{% url 'update_ai_tone' %}"
     data-ai-model-url="{% url 'update_ai_model' %}"
     data-ai-feedback-url-template="{% url 'messenger:submit_ai_feedback' message_id=0 %}"
+    data-ai-avatar-url="{% static 'img/ai-assistant-widget.png' %}"
     data-current-ai-skill="auto">
 
     <header class="chat-head">
       <div class="chat-head-id">
         <button type="button" class="msgr-list-toggle" data-msgr-list-toggle aria-label="Suhbatlar ro'yxati"><i class="bi bi-list"></i></button>
-        <span class="chat-head-av">{% if active_room == 'ai' %}<i class="bi bi-stars"></i>{% else %}{{ active_chat_room.name|default:"?"|slice:":1"|upper }}{% endif %}</span>
+        <span class="chat-head-av">{% if active_room == 'ai' %}{% include "components/ai_avatar.html" %}{% else %}{{ active_chat_room.name|default:"?"|slice:":1"|upper }}{% endif %}</span>
         <span style="min-width:0;">
           <span style="display:flex;align-items:center;gap:8px;"><span class="chat-head-name">{% if active_room == 'ai' %}Azure AI{% else %}{{ active_chat_room.name }}{% endif %}</span>{% if active_room == 'ai' %}<span style="font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.08em;padding:2px 6px;border-radius:5px;background:var(--azure-soft);color:var(--azure);">AI</span>{% endif %}</span>
           <span class="chat-head-sub"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;"></span><span data-chat-status>{% if active_room == 'ai' %}Shaxsiy repetitor{% else %}Onlayn{% endif %}</span></span>
@@ -138,7 +139,7 @@
       </div>
       {% else %}
       <div class="msg-row group-start group-last"{% if message.is_ai_response %} data-is-ai="true"{% endif %} data-message-id="{{ message.id }}">
-        <span class="msg-avatar {% if message.is_ai_response %}msg-avatar--ai{% else %}c-lime{% endif %}">{% if message.is_ai_response %}<i class="bi bi-stars"></i>{% else %}{{ message.sender.first_name.0|default:message.sender.username.0|upper }}{% endif %}</span>
+        <span class="msg-avatar {% if message.is_ai_response %}msg-avatar--ai{% else %}c-lime{% endif %}">{% if message.is_ai_response %}{% include "components/ai_avatar.html" %}{% else %}{{ message.sender.first_name.0|default:message.sender.username.0|upper }}{% endif %}</span>
         <div class="msg-group">
           {% if not message.is_ai_response and message.sender %}<div class="msg-author-name">{{ message.sender.get_full_name|default:message.sender.username }}</div>{% endif %}
           <div class="bubble bubble-them{% if message.is_deleted %} bubble-deleted{% endif %}" data-message-text="true">{{ message.display_body }}</div>
@@ -165,7 +166,7 @@
       {% endif %}
       {% empty %}
       <div class="chat-empty" data-empty-state>
-        <i class="bi bi-stars"></i>
+        {% include "components/ai_avatar.html" %}
         <div style="font-size:16px;font-weight:600;color:var(--ink);">Azure AI tayyor</div>
         <div style="font-size:13.5px;max-width:36ch;line-height:1.6;">Grammatika, speaking yoki dars bo'yicha savol bering — darhol javob beraman.</div>
       </div>
