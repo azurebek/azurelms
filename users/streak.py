@@ -48,7 +48,9 @@ def record_activity(user, on_date=None):
 
     # Birinchi faollik
     if last is None:
-        return _apply(streak, "started", on_date, new_current=1)
+        event = _apply(streak, "started", on_date, new_current=1)
+        _notify_done_if_today(user, on_date)
+        return event
 
     # O'sha kun ichida takror harakat — seriya o'zgarmaydi
     if on_date == last:
@@ -61,22 +63,43 @@ def record_activity(user, on_date=None):
     gap = (on_date - last).days
     if gap == 1:
         # Ketma-ket kun
-        return _apply(streak, "extended", on_date, new_current=streak.current_streak + 1)
+        event = _apply(streak, "extended", on_date, new_current=streak.current_streak + 1)
+        _notify_done_if_today(user, on_date)
+        return event
 
     # Bo'shliq bor: oradagi o'tkazib yuborilgan kunlar
     missed = gap - 1
     if missed <= streak.freezes_available:
         # Freeze bilan qoplanadi — seriya davom etadi
-        return _apply(
+        event = _apply(
             streak,
             "maintained_with_freeze",
             on_date,
             new_current=streak.current_streak + 1,
             freezes_used=missed,
         )
+        _notify_done_if_today(user, on_date)
+        return event
 
     # Seriya uzildi — bugundan qayta boshlanadi
-    return _apply(streak, "reset", on_date, new_current=1)
+    event = _apply(streak, "reset", on_date, new_current=1)
+    _notify_done_if_today(user, on_date)
+    return event
+
+
+def _notify_done_if_today(user, on_date):
+    """Bugungi haqiqiy faollikda kunlik seriya bildirishnomasini tabrikка
+    aylantiradi (agar nudge bo'lgan bo'lsa — o'sha o'zgaradi, yangisi emas).
+
+    Faqat bugungi harakat uchun — kech belgilangan o'tmish sana bugungi
+    bildirishnomaga tegmaydi. Side-effect yozuvi transaction commitidan
+    keyin bajariladi.
+    """
+    if on_date != timezone.localdate():
+        return
+    from django.db import transaction
+    from users.streak_nudge import mark_streak_done
+    transaction.on_commit(lambda: mark_streak_done(user))
 
 
 def _apply(streak, outcome, on_date, *, new_current, freezes_used=0):

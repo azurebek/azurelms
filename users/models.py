@@ -243,10 +243,12 @@ class Notification(models.Model):
     CATEGORY_MANUAL = "manual"
     CATEGORY_SUBSCRIPTION = "subscription"
     CATEGORY_SYSTEM = "system"
+    CATEGORY_STREAK = "streak"
     CATEGORY_CHOICES = (
         (CATEGORY_MANUAL, "Manual"),
         (CATEGORY_SUBSCRIPTION, "Subscription"),
         (CATEGORY_SYSTEM, "System"),
+        (CATEGORY_STREAK, "Streak"),
     )
 
     recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications")
