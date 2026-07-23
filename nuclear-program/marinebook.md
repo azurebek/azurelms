@@ -16,6 +16,17 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-23 [Claude Code]: Haqiqiy o'quv seriyasi (streak) + mascot undash tizimi
+
+Streak butunlay soxta edi — `streak_days` hech qaysi modelda maydon emas, 7 ta joyda `|default:0` bilan doim 0 ko'rsatardi. Azurbek to'liq streak tizimini qurishni so'radi (backlog uni "Defer" qilgan; bu owner qarori bilan admission oldindan berildi). Dizayn qarori: streak DAVOMATDAN emas, o'quvchining o'z tashabbusi bilan qilgan kunlik MALAKALI O'QUV HARAKATIDAN oshadi — davomat o'qituvchi belgilaydi va faqat dars kunlari bo'ladi, shuning uchun kunlik seriya undash mexanizmi uchun yaramaydi.
+
+Ikki qismda qurildi. (1) O'zak: `LearnerStreak` modeli + `users/streak.py` canonical service (`record_activity` yagona yozuv nuqtasi — kun asosida idempotent, freeze bilan bir kunlik bo'shliqni qoplaydi, aks holda reset). Dars tugatish, quiz/vazifa topshirish, imtihon urinishi va present/partial davomat shu servisni chaqiradi; 7 ta soxta display haqiqiy qiymatga ulandi, leaderboard N+1 `select_related('student__streak')` bilan. (2) Undash: mascot xabar banki (holat × kun vaqti), generator + Celery beat (kechqurun 19:00) + management command. Azurbek so'roviga ko'ra bildirishnoma **event-bound va vaqtinchalik**: kunlik bitta bildirishnoma joyida yangilanadi — "dars qil" nudge borgach o'quvchi harakat qilsa `record_activity` (on_commit) o'sha bildirishnomani tabrikка aylantiradi, va holat o'zgarganda `created_at` yangilanib ro'yxat tepasiga chiqadi.
+
+- Branch: `claude/streak-system`
+- Commitlar: `f906cb6` (o'zak), `0745664` (undash)
+- Test holati: `python manage.py test` — **422/422 OK**; `check` — 0 issues; `makemigrations --check` — No changes; migratsiyalar `0013` (LearnerStreak), `0014` (Notification.CATEGORY_STREAK) xavfsiz. Browser QA (lokal, owner sessiyasi): dashboard/topbar "🔥 5 kun"; at-risk nudge "Seriyangiz kutmoqda", harakatdan keyin joyida "Seriya saqlandi"ga aylandi (COUNT 1 da qoldi), eski xabar yo'q. `core/celery.py` CRLF churn'i baytma-bayt qayta qo'llash bilan bartaraf etildi.
+- Davom etilishi kerak: Telegram yetkazish (hozir faqat ilova bildirishnomasi; outbox infra A0b/A1 bilan); freeze token'ni o'quvchi qanday olishi (hozir faqat `grant_freeze` admin/mukofot); "done" tabriki hozir faqat kunlik bildirishnomada — istasa toast/animatsiya qo'shsa bo'ladi. Backlog `03-mahsulot-backlog.md`dagi "Streak/freeze — Defer" bandini Azurbek admission qarori bilan yangilash kerak.
+
 ## 2026-07-23 [Claude Code]: A0a stop-ship security — auth token, bot admin va webhook
 
 P0 backlogining A0a bandidagi to'rtta security teshigi yopildi. (1) Telegram deep-link kirish tokeni jiddiy zaif edi: `authenticated` bo'lgach sessiya cheksiz yashardi va endpoint har chaqirilganda qayta login qilardi — tokenni bilgan istalgan kishi, istalgan brauzerdan kira olardi. Endi token bir martalik (`consumed_at`, `select_for_update` qulfi bilan), brauzerga bog'langan (`client_key`) va `authenticated` holat ham TTL'ga bo'ysunadi. (2) Deaktivatsiya qilingan staff hali ham bot admini edi — `is_active` hech qayerda tekshirilmasdi; yagona `is_active_staff()` helperi va middleware `resolve_identity` tuzatildi. (3) Webhook secret uchun taniqli default bor edi — default bo'sh qilindi va view fail-closed, `setwebhook` ham secret'siz o'rnatishni rad etadi. (4) Mos kelmagan secret token endi logga yozilmaydi, taqqoslash `constant_time_compare` bilan.

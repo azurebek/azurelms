@@ -238,6 +238,8 @@ ai/
 
 **Asosiy modellar:** `Level`, `Badge`, `EarnedBadge`, `Certificate`
 
+**O'quv seriyasi (streak) — 2026-07-23:** `users.LearnerStreak` (OneToOne) o'quvchining kunlik faollik seriyasini saqlaydi. Seriya DAVOMATDAN emas, o'quvchining o'z tashabbusi bilan qilgan **kunlik malakali o'quv harakatidan** oshadi (dars tugatish, quiz/vazifa topshirish, imtihon urinishi, present/partial davomat). Yagona canonical yozuv nuqtasi — `users.streak.record_activity`; adapterlar faqat shuni chaqiradi. Kun asosida idempotent; freeze bir kunlik bo'shliqni qoplaydi. `CustomUser.streak_days` property jonli qiymat beradi (buzilgan bo'lsa 0). Undash: `users.streak_nudge` mascot bildirishnomalari (holat × kun vaqti xabar banki `users.streak_messages`), Celery beat `users.tasks.run_streak_nudges` (kechqurun, `ENABLE_STREAK_NUDGE_BEAT`). Kunlik bitta streak bildirishnomasi event-bound: harakatdan keyin joyida tabrikка aylanadi va ro'yxat tepasiga chiqadi. `Notification.CATEGORY_STREAK` shu turdagi bildirishnomalar uchun.
+
 ### `core/` (project settings + backoffice)
 
 **Mas'uliyat:** Django project settings, URLs, ASGI/WSGI, Celery config, **yashirin backoffice views**.
