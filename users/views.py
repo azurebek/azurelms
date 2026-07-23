@@ -620,7 +620,10 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context['ai_usage'] = build_usage_panel(user)
         context['study_hours'] = context['total_hours']
         context['xp_points'] = user.total_xp if hasattr(user, 'total_xp') else 0
-        context['streak_days'] = user.streak_days if hasattr(user, 'streak_days') else 0
+        from users.streak import streak_snapshot
+        streak = streak_snapshot(user)
+        context['streak'] = streak
+        context['streak_days'] = streak['current']
 
         context['achievements_count'] = EarnedBadge.objects.filter(student=user).count()
         context['certificates_count'] = CourseCertificate.objects.filter(student=user).count()
@@ -746,7 +749,7 @@ def get_cohort_leaderboard_context(user, cohort_id=None):
             enrollment_active_access_q(),
             cohort=current_active_enrollment.cohort,
         )
-        .select_related('student')
+        .select_related('student', 'student__streak')
         .prefetch_related(
             Prefetch(
                 'lesson_progress',
