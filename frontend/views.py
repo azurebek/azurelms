@@ -3,7 +3,10 @@ from courses.models import Course
 from django.contrib.auth import get_user_model
 from django.db.models import Count, Q
 from .models import (
+    LandingAIFeature,
+    LandingExamSkill,
     LandingHeroSlide,
+    LandingLevelStage,
     LandingPage,
     LandingPortalListItem,
     LandingPortalTab,
@@ -130,7 +133,10 @@ def home_view(request):
         return redirect('dashboard')
         
     page_content = LandingPage.load()
-    statistics = Statistic.objects.all()
+    statistics = Statistic.objects.filter(is_active=True)
+    level_stages = list(LandingLevelStage.objects.filter(is_visible=True).order_by("order", "id"))
+    ai_features = list(LandingAIFeature.objects.filter(is_visible=True).order_by("order", "id"))
+    exam_skills = list(LandingExamSkill.objects.filter(is_visible=True).order_by("order", "id"))
     hero_slides = list(
         LandingHeroSlide.objects.filter(is_active=True)
         .prefetch_related("metrics")
@@ -206,6 +212,9 @@ def home_view(request):
         'portal_tabs': portal_tabs,
         'portal_items': portal_items,
         'statistics': statistics,
+        'level_stages': level_stages,
+        'ai_features': ai_features,
+        'exam_skills': exam_skills,
         'testimonials': testimonials,
         'popular_courses': popular_courses,
         'recent_students': recent_students,

@@ -6,8 +6,11 @@ from django.urls import path
 from django.utils.html import format_html
 
 from .models import (
+    LandingAIFeature,
+    LandingExamSkill,
     LandingHeroSlide,
     LandingHeroSlideMetric,
+    LandingLevelStage,
     LandingPage,
     LandingPortalListItem,
     LandingPortalTab,
@@ -27,13 +30,38 @@ from .models import (
 class LandingPageAdmin(admin.ModelAdmin):
     fieldsets = (
         (
+            "Yon panel (rail)",
+            {
+                "fields": (
+                    "rail_tagline",
+                    ("rail_footer_line_one", "rail_footer_line_two"),
+                )
+            },
+        ),
+        (
             "Hero matnlari",
             {
                 "fields": (
+                    ("hero_kicker_left", "hero_kicker_right"),
                     "hero_badge",
                     ("hero_title_start", "hero_title_highlight", "hero_title_end"),
                     "hero_subtitle",
+                    ("hero_primary_label", "hero_secondary_label"),
                 )
+            },
+        ),
+        (
+            "Demo dashboard (mock brauzer)",
+            {
+                "description": "Hero ostidagi ko'rgazma dashboard kartasi.",
+                "fields": (
+                    "demo_url",
+                    ("demo_course_kicker", "demo_course_name", "demo_progress"),
+                    ("demo_next_title", "demo_next_time", "demo_next_badge"),
+                    ("demo_stat_one_value", "demo_stat_one_label"),
+                    ("demo_stat_two_value", "demo_stat_two_label"),
+                    ("demo_stat_three_value", "demo_stat_three_label"),
+                ),
             },
         ),
         (
@@ -83,6 +111,74 @@ class LandingPageAdmin(admin.ModelAdmin):
                     "cta_background_preset",
                     "cta_background_image",
                     "cta_background_video",
+                ),
+            },
+        ),
+        (
+            "Daraja yo'li bo'limi",
+            {
+                "description": "Bosqichlar ro'yxati alohida \"Daraja yo'li bosqichlari\"da tahrirlanadi.",
+                "fields": (
+                    "path_kicker",
+                    "path_title",
+                    "path_subtitle",
+                ),
+            },
+        ),
+        (
+            "AI repetitor bo'limi",
+            {
+                "description": "Xususiyatlar ro'yxati alohida \"AI repetitor xususiyatlari\"da tahrirlanadi.",
+                "fields": (
+                    "ai_kicker",
+                    "ai_title",
+                    "ai_subtitle",
+                    "ai_demo_session_label",
+                    "ai_demo_question",
+                    "ai_demo_answer",
+                    "ai_demo_input_placeholder",
+                ),
+            },
+        ),
+        (
+            "Imtihon muhiti bo'limi",
+            {
+                "description": "Ko'nikma kartalari alohida \"Imtihon ko'nikmalari\"da tahrirlanadi.",
+                "fields": (
+                    "exam_kicker",
+                    "exam_title",
+                    "exam_subtitle",
+                ),
+            },
+        ),
+        (
+            "Sertifikat bo'limi",
+            {
+                "fields": (
+                    "cert_kicker",
+                    "cert_title",
+                    "cert_text",
+                    "cert_cta_label",
+                    ("cert_sample_number", "cert_sample_label"),
+                    ("cert_sample_course", "cert_sample_name", "cert_sample_score"),
+                    ("cert_sample_date", "cert_sample_location"),
+                ),
+            },
+        ),
+        (
+            "Pastki CTA va footer",
+            {
+                "fields": (
+                    "final_cta_title",
+                    "final_cta_secondary_label",
+                    "footer_tagline",
+                    (
+                        "footer_col_platform_title",
+                        "footer_col_company_title",
+                        "footer_col_legal_title",
+                        "footer_col_contact_title",
+                    ),
+                    "footer_copyright",
                 ),
             },
         ),
@@ -184,10 +280,37 @@ class AboutPageAdmin(admin.ModelAdmin):
         # Yagona (Singleton) model
         return not AboutPage.objects.exists()
 
+@admin.register(LandingLevelStage)
+class LandingLevelStageAdmin(admin.ModelAdmin):
+    list_display = ("title", "level_range", "lessons_count", "duration", "status", "is_visible", "order")
+    list_editable = ("status", "is_visible", "order")
+    list_filter = ("status", "is_visible")
+    fields = (
+        ("is_visible", "order"),
+        ("title", "level_range"),
+        "description",
+        ("lessons_count", "duration"),
+        ("status", "status_label"),
+    )
+
+
+@admin.register(LandingAIFeature)
+class LandingAIFeatureAdmin(admin.ModelAdmin):
+    list_display = ("text", "is_visible", "order")
+    list_editable = ("is_visible", "order")
+
+
+@admin.register(LandingExamSkill)
+class LandingExamSkillAdmin(admin.ModelAdmin):
+    list_display = ("name", "meta", "icon_class", "is_visible", "order")
+    list_editable = ("meta", "icon_class", "is_visible", "order")
+
+
 @admin.register(Statistic)
 class StatisticAdmin(admin.ModelAdmin):
-    list_display = ('label', 'value', 'order')
-    list_editable = ('order',)
+    list_display = ('label', 'display_value', 'numeric_value', 'suffix', 'is_active', 'order')
+    list_editable = ('is_active', 'order')
+    fields = ("label", "numeric_value", ("suffix", "decimals"), "value", "is_active", "order")
 
 @admin.register(Testimonial)
 class TestimonialAdmin(admin.ModelAdmin):
