@@ -4,6 +4,7 @@
   Landing (home_view) — bespoke fixed-rail + scrollspy.
   Proto: azurelms-proto/public/landing-v2.html.
   Chrome'siz (pub-header/footer ishlatmaydi) — to'g'ridan-to'g'ri base.html.
+  Barcha kontent admin paneldan (LandingPage + child modellar + SiteSettings + LandingNavItem) boshqariladi.
 {% endcomment %}
 
 {% block title %}{{ site_settings.brand_name|default:"AzureLMS" }} — Turk tili A1–C1{% endblock %}
@@ -18,6 +19,9 @@
     [data-railhide]{display:none!important;}
     [data-2col]{grid-template-columns:1fr!important;}
   }
+  /* Rich-text (CKEditor) matnlarida ortiqcha margin bo'lmasin */
+  [data-richtext] p{margin:0;}
+  [data-richtext] p + p{margin-top:.6em;}
 </style>
 {% endblock %}
 
@@ -32,20 +36,20 @@
       <a href="#top" style="display:flex;align-items:center;gap:10px;">
         {% include "components/brand_logo.html" with use_wordmark=True %}
       </a>
-      <div style="margin-top:7px;font-family:'Space Mono',monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);">Turk tili · A1—C1</div>
+      <div style="margin-top:7px;font-family:'Space Mono',monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);">{{ page.rail_tagline }}</div>
 
       <nav data-railhide style="margin-top:40px;display:flex;flex-direction:column;gap:3px;">
-        <a href="#path" data-nav="path" style="display:flex;align-items:center;padding:8px 0;font-size:14px;color:var(--ink-3);transition:color .25s;"><span data-navbar style="height:1.5px;width:0;background:var(--azure);margin-right:12px;transition:width .3s,opacity .3s;opacity:0;"></span><span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);margin-right:12px;">01</span>Daraja yo'li</a>
-        <a href="#ai" data-nav="ai" style="display:flex;align-items:center;padding:8px 0;font-size:14px;color:var(--ink-3);transition:color .25s;"><span data-navbar style="height:1.5px;width:0;opacity:0;background:var(--azure);margin-right:12px;transition:width .3s,opacity .3s;"></span><span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);margin-right:12px;">02</span>AI repetitor</a>
-        <a href="#exam" data-nav="exam" style="display:flex;align-items:center;padding:8px 0;font-size:14px;color:var(--ink-3);transition:color .25s;"><span data-navbar style="height:1.5px;width:0;opacity:0;background:var(--azure);margin-right:12px;transition:width .3s,opacity .3s;"></span><span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);margin-right:12px;">03</span>Imtihon muhiti</a>
-        <a href="#cert" data-nav="cert" style="display:flex;align-items:center;padding:8px 0;font-size:14px;color:var(--ink-3);transition:color .25s;"><span data-navbar style="height:1.5px;width:0;opacity:0;background:var(--azure);margin-right:12px;transition:width .3s,opacity .3s;"></span><span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);margin-right:12px;">04</span>Sertifikat</a>
+        <a href="#path" data-nav="path" style="display:flex;align-items:center;padding:8px 0;font-size:14px;color:var(--ink-3);transition:color .25s;"><span data-navbar style="height:1.5px;width:0;background:var(--azure);margin-right:12px;transition:width .3s,opacity .3s;opacity:0;"></span><span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);margin-right:12px;">01</span>{{ page.path_kicker }}</a>
+        <a href="#ai" data-nav="ai" style="display:flex;align-items:center;padding:8px 0;font-size:14px;color:var(--ink-3);transition:color .25s;"><span data-navbar style="height:1.5px;width:0;opacity:0;background:var(--azure);margin-right:12px;transition:width .3s,opacity .3s;"></span><span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);margin-right:12px;">02</span>{{ page.ai_kicker }}</a>
+        <a href="#exam" data-nav="exam" style="display:flex;align-items:center;padding:8px 0;font-size:14px;color:var(--ink-3);transition:color .25s;"><span data-navbar style="height:1.5px;width:0;opacity:0;background:var(--azure);margin-right:12px;transition:width .3s,opacity .3s;"></span><span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);margin-right:12px;">03</span>{{ page.exam_kicker }}</a>
+        <a href="#cert" data-nav="cert" style="display:flex;align-items:center;padding:8px 0;font-size:14px;color:var(--ink-3);transition:color .25s;"><span data-navbar style="height:1.5px;width:0;opacity:0;background:var(--azure);margin-right:12px;transition:width .3s,opacity .3s;"></span><span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);margin-right:12px;">04</span>{{ page.cert_kicker }}</a>
       </nav>
 
       <div data-railhide style="margin-top:auto;display:flex;flex-direction:column;gap:18px;">
         {% if request.user.is_authenticated %}
         <a href="{% url 'dashboard' %}" style="display:inline-flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 14px;border-radius:9px;background:var(--azure);color:var(--on-azure);font-size:13.5px;font-weight:600;">Kabinetim <i class="bi bi-arrow-right" style="font-size:12px;"></i></a>
         {% else %}
-        <a href="{% url 'register' %}" style="display:inline-flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 14px;border-radius:9px;background:var(--azure);color:var(--on-azure);font-size:13.5px;font-weight:600;">Bepul boshlash <i class="bi bi-arrow-right" style="font-size:12px;"></i></a>
+        <a href="{% url 'register' %}" style="display:inline-flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 14px;border-radius:9px;background:var(--azure);color:var(--on-azure);font-size:13.5px;font-weight:600;">{{ page.hero_primary_label }} <i class="bi bi-arrow-right" style="font-size:12px;"></i></a>
         {% endif %}
         <div style="display:flex;align-items:center;justify-content:space-between;">
           {% if request.user.is_authenticated %}
@@ -58,7 +62,7 @@
             <button type="button" aria-label="Mavzu" style="width:30px;height:30px;border-radius:7px;border:1px solid var(--line);color:var(--ink-2);display:grid;place-items:center;font-size:13px;transition:border-color .2s,color .2s;"><i class="bi bi-moon"></i></button>
           </div>
         </div>
-        <div style="padding-top:16px;border-top:1px solid var(--line);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;color:var(--ink-4);line-height:1.7;">© 2026 AZURELMS<br>TOSHKENT · UZ</div>
+        <div style="padding-top:16px;border-top:1px solid var(--line);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;color:var(--ink-4);line-height:1.7;">{{ page.rail_footer_line_one }}<br>{{ page.rail_footer_line_two }}</div>
       </div>
     </div>
   </aside>
@@ -70,24 +74,24 @@
       <!-- HERO -->
       <section data-section="top" style="padding:clamp(40px,6vw,72px) 0 clamp(36px,4vw,56px);scroll-margin-top:80px;">
         <div data-reveal style="display:flex;align-items:center;justify-content:space-between;gap:16px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);padding-bottom:22px;border-bottom:1px solid var(--line);flex-wrap:wrap;transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);">
-          <span>Turk tili · A1—C1 · Onlayn platforma</span><span>EST. 2024</span>
+          <span>{{ page.hero_kicker_left }}</span><span>{{ page.hero_kicker_right }}</span>
         </div>
-        <h1 data-reveal style="font-size:clamp(30px,4.4vw,50px);font-weight:600;line-height:1.04;letter-spacing:-.035em;color:var(--ink);margin:32px 0 0;max-width:15ch;text-wrap:balance;transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);">A1 dan C1 gacha — bitta <span style="color:var(--azure);">aniq tizimda</span>.</h1>
-        <p data-reveal style="font-size:16px;line-height:1.6;color:var(--ink-2);margin:22px 0 0;max-width:54ch;transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);">Chalkash kurslar emas. Jonli darslar, AI repetitor, imtihon muhiti va tasdiqlangan sertifikat — boshidan oxirigacha tartibga solingan yagona ish maydoni.</p>
+        <h1 data-reveal style="font-size:clamp(30px,4.4vw,50px);font-weight:600;line-height:1.04;letter-spacing:-.035em;color:var(--ink);margin:32px 0 0;max-width:15ch;text-wrap:balance;transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);">{{ page.hero_title_start }} <span style="color:var(--azure);">{{ page.hero_title_highlight }}</span>{{ page.hero_title_end }}</h1>
+        <div data-reveal data-richtext style="font-size:16px;line-height:1.6;color:var(--ink-2);margin:22px 0 0;max-width:54ch;transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);">{{ page.hero_subtitle|safe }}</div>
         <div data-reveal style="display:flex;align-items:center;gap:22px;margin-top:30px;flex-wrap:wrap;transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);">
           {% if request.user.is_authenticated %}
           <a href="{% url 'dashboard' %}" style="display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:9px;background:var(--azure);color:var(--on-azure);font-size:14.5px;font-weight:600;transition:transform .22s cubic-bezier(.16,1,.3,1);">Kabinetimga o'tish <i class="bi bi-arrow-right" style="font-size:13px;"></i></a>
           {% else %}
-          <a href="{% url 'register' %}" style="display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:9px;background:var(--azure);color:var(--on-azure);font-size:14.5px;font-weight:600;transition:transform .22s cubic-bezier(.16,1,.3,1);">Bepul boshlash <i class="bi bi-arrow-right" style="font-size:13px;"></i></a>
+          <a href="{% url 'register' %}" style="display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:9px;background:var(--azure);color:var(--on-azure);font-size:14.5px;font-weight:600;transition:transform .22s cubic-bezier(.16,1,.3,1);">{{ page.hero_primary_label }} <i class="bi bi-arrow-right" style="font-size:13px;"></i></a>
           {% endif %}
-          <a href="#path" style="display:inline-flex;align-items:center;gap:7px;font-size:14.5px;font-weight:500;color:var(--ink);transition:gap .25s;">Daraja yo'lini ko'rish <i class="bi bi-arrow-down" style="font-size:12px;color:var(--ink-3);"></i></a>
+          <a href="#path" style="display:inline-flex;align-items:center;gap:7px;font-size:14.5px;font-weight:500;color:var(--ink);transition:gap .25s;">{{ page.hero_secondary_label }} <i class="bi bi-arrow-down" style="font-size:12px;color:var(--ink-3);"></i></a>
         </div>
 
         <!-- Mock dashboard -->
         <div data-reveal style="margin-top:44px;border:1px solid var(--line);border-radius:13px;overflow:hidden;background:var(--panel);box-shadow:0 1px 2px rgba(11,14,21,.04),0 24px 60px rgba(11,14,21,.1);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);">
           <div style="display:flex;align-items:center;gap:8px;padding:11px 14px;border-bottom:1px solid var(--line);background:var(--paper-2);">
             <span style="width:10px;height:10px;border-radius:50%;background:#e06a5a;"></span><span style="width:10px;height:10px;border-radius:50%;background:#e0b44a;"></span><span style="width:10px;height:10px;border-radius:50%;background:#5ab46a;"></span>
-            <div style="margin-left:14px;flex:1;max-width:280px;height:22px;border-radius:6px;background:var(--panel);border:1px solid var(--line);display:flex;align-items:center;gap:7px;padding:0 10px;font-family:'Space Mono',monospace;font-size:10.5px;color:var(--ink-3);"><i class="bi bi-lock-fill" style="font-size:9px;"></i> app.azurelms.uz/dashboard</div>
+            <div style="margin-left:14px;flex:1;max-width:280px;height:22px;border-radius:6px;background:var(--panel);border:1px solid var(--line);display:flex;align-items:center;gap:7px;padding:0 10px;font-family:'Space Mono',monospace;font-size:10.5px;color:var(--ink-3);"><i class="bi bi-lock-fill" style="font-size:9px;"></i> {{ page.demo_url }}</div>
           </div>
           <div style="display:flex;min-height:268px;">
             <div data-railhide style="width:148px;flex:0 0 auto;border-right:1px solid var(--line);padding:16px 12px;display:flex;flex-direction:column;gap:3px;background:var(--paper-2);">
@@ -99,19 +103,19 @@
             </div>
             <div style="flex:1;padding:18px 20px;display:flex;flex-direction:column;gap:14px;">
               <div style="display:flex;align-items:center;justify-content:space-between;">
-                <div><div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);">Joriy kurs</div><div style="font-size:15px;font-weight:600;color:var(--ink);margin-top:3px;">Turk tili — B2 Intensiv</div></div>
-                <div style="text-align:right;"><div style="font-family:'Space Mono',monospace;font-size:19px;font-weight:700;color:var(--azure);">68%</div></div>
+                <div><div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);">{{ page.demo_course_kicker }}</div><div style="font-size:15px;font-weight:600;color:var(--ink);margin-top:3px;">{{ page.demo_course_name }}</div></div>
+                <div style="text-align:right;"><div style="font-family:'Space Mono',monospace;font-size:19px;font-weight:700;color:var(--azure);">{{ page.demo_progress }}%</div></div>
               </div>
-              <div style="height:6px;border-radius:999px;background:var(--line-2);overflow:hidden;"><div data-meter data-target="68" style="height:100%;width:0;background:var(--azure);border-radius:999px;transition:width 1.2s cubic-bezier(.16,1,.3,1);"></div></div>
+              <div style="height:6px;border-radius:999px;background:var(--line-2);overflow:hidden;"><div data-meter data-target="{{ page.demo_progress }}" style="height:100%;width:0;background:var(--azure);border-radius:999px;transition:width 1.2s cubic-bezier(.16,1,.3,1);"></div></div>
               <div style="display:flex;align-items:center;gap:11px;padding:12px;border:1px solid var(--line);border-radius:9px;">
                 <span style="width:34px;height:34px;border-radius:8px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:15px;"><i class="bi bi-headphones"></i></span>
-                <div style="flex:1;"><div style="font-size:13px;font-weight:600;color:var(--ink);">Listening — Dialog 14</div><div style="font-size:11.5px;color:var(--ink-3);">Bugun · 18:00</div></div>
-                <span style="font-family:'Space Mono',monospace;font-size:10px;padding:4px 8px;border-radius:5px;background:var(--azure-soft);color:var(--azure);">KEYINGI</span>
+                <div style="flex:1;"><div style="font-size:13px;font-weight:600;color:var(--ink);">{{ page.demo_next_title }}</div><div style="font-size:11.5px;color:var(--ink-3);">{{ page.demo_next_time }}</div></div>
+                <span style="font-family:'Space Mono',monospace;font-size:10px;padding:4px 8px;border-radius:5px;background:var(--azure-soft);color:var(--azure);">{{ page.demo_next_badge }}</span>
               </div>
               <div style="display:flex;gap:10px;margin-top:auto;">
-                <div style="flex:1;border:1px solid var(--line);border-radius:9px;padding:10px 12px;"><div style="font-family:'Space Mono',monospace;font-size:17px;font-weight:700;color:var(--ink);">18</div><div style="font-size:10.5px;color:var(--ink-3);">Dars o'tildi</div></div>
-                <div style="flex:1;border:1px solid var(--line);border-radius:9px;padding:10px 12px;"><div style="font-family:'Space Mono',monospace;font-size:17px;font-weight:700;color:var(--ink);">94%</div><div style="font-size:10.5px;color:var(--ink-3);">Exam natija</div></div>
-                <div style="flex:1;border:1px solid var(--line);border-radius:9px;padding:10px 12px;"><div style="font-family:'Space Mono',monospace;font-size:17px;font-weight:700;color:var(--ink);">11</div><div style="font-size:10.5px;color:var(--ink-3);">Streak</div></div>
+                <div style="flex:1;border:1px solid var(--line);border-radius:9px;padding:10px 12px;"><div style="font-family:'Space Mono',monospace;font-size:17px;font-weight:700;color:var(--ink);">{{ page.demo_stat_one_value }}</div><div style="font-size:10.5px;color:var(--ink-3);">{{ page.demo_stat_one_label }}</div></div>
+                <div style="flex:1;border:1px solid var(--line);border-radius:9px;padding:10px 12px;"><div style="font-family:'Space Mono',monospace;font-size:17px;font-weight:700;color:var(--ink);">{{ page.demo_stat_two_value }}</div><div style="font-size:10.5px;color:var(--ink-3);">{{ page.demo_stat_two_label }}</div></div>
+                <div style="flex:1;border:1px solid var(--line);border-radius:9px;padding:10px 12px;"><div style="font-family:'Space Mono',monospace;font-size:17px;font-weight:700;color:var(--ink);">{{ page.demo_stat_three_value }}</div><div style="font-size:10.5px;color:var(--ink-3);">{{ page.demo_stat_three_label }}</div></div>
               </div>
             </div>
           </div>
@@ -119,19 +123,23 @@
 
         <!-- Stats -->
         <div data-reveal style="display:flex;align-items:stretch;margin-top:30px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);">
-          <div style="flex:1;padding:18px 4px;"><div data-count="2400" data-suffix="+" style="font-family:'Space Mono',monospace;font-size:clamp(20px,2.4vw,26px);font-weight:700;color:var(--ink);">0</div><div style="font-size:12px;color:var(--ink-3);margin-top:3px;">Faol talaba</div></div>
-          <div style="width:1px;background:var(--line);"></div>
-          <div style="flex:1;padding:18px 4px 18px 22px;"><div data-count="6" style="font-family:'Space Mono',monospace;font-size:clamp(20px,2.4vw,26px);font-weight:700;color:var(--ink);">0</div><div style="font-size:12px;color:var(--ink-3);margin-top:3px;">Daraja</div></div>
-          <div style="width:1px;background:var(--line);"></div>
-          <div style="flex:1;padding:18px 4px 18px 22px;"><div data-count="94" data-suffix="%" style="font-family:'Space Mono',monospace;font-size:clamp(20px,2.4vw,26px);font-weight:700;color:var(--ink);">0</div><div style="font-size:12px;color:var(--ink-3);margin-top:3px;">Sertifikat oldi</div></div>
-          <div style="width:1px;background:var(--line);"></div>
-          <div style="flex:1;padding:18px 4px 18px 22px;"><div data-count="4.9" data-dec="1" style="font-family:'Space Mono',monospace;font-size:clamp(20px,2.4vw,26px);font-weight:700;color:var(--ink);">0</div><div style="font-size:12px;color:var(--ink-3);margin-top:3px;">Reyting</div></div>
+          {% for stat in statistics %}
+          {% if not forloop.first %}<div style="width:1px;background:var(--line);"></div>{% endif %}
+          <div style="flex:1;padding:18px 4px{% if not forloop.first %} 18px 22px{% endif %};">
+            {% if stat.numeric_value is not None %}
+            <div data-count="{{ stat.numeric_value|floatformat:stat.decimals }}"{% if stat.suffix %} data-suffix="{{ stat.suffix }}"{% endif %}{% if stat.decimals %} data-dec="{{ stat.decimals }}"{% endif %} style="font-family:'Space Mono',monospace;font-size:clamp(20px,2.4vw,26px);font-weight:700;color:var(--ink);">0</div>
+            {% else %}
+            <div style="font-family:'Space Mono',monospace;font-size:clamp(20px,2.4vw,26px);font-weight:700;color:var(--ink);">{{ stat.display_value }}</div>
+            {% endif %}
+            <div style="font-size:12px;color:var(--ink-3);margin-top:3px;">{{ stat.label }}</div>
+          </div>
+          {% endfor %}
         </div>
       </section>
 
       <!-- HOW IT WORKS (dinamik: LandingPage + LandingProcessStep) -->
       <section data-section="how" id="how" style="padding:clamp(44px,5vw,72px) 0 0;scroll-margin-top:60px;">
-        <div data-reveal style="display:flex;align-items:center;gap:12px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:24px;opacity:0;transform:translateY(16px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);"><span style="color:var(--azure);">01</span> / Jarayon <span style="flex:1;height:1px;background:var(--line);"></span></div>
+        <div data-reveal style="display:flex;align-items:center;gap:12px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:24px;opacity:0;transform:translateY(16px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);"><span style="color:var(--azure);">01</span> / {{ page.process_section_kicker }} <span style="flex:1;height:1px;background:var(--line);"></span></div>
         <div data-reveal style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:28px;opacity:0;transform:translateY(16px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);">
           <h2 style="font-size:clamp(24px,2.8vw,34px);font-weight:600;letter-spacing:-.03em;line-height:1.08;color:var(--ink);margin:0;max-width:20ch;">{{ page.how_it_works_title|default:"Bu qanday ishlaydi?" }}</h2>
           <p style="font-size:14px;color:var(--ink-2);margin:0;max-width:34ch;line-height:1.55;">{{ page.how_it_works_subtitle|default:"Ro'yxatdan sertifikatgacha — aniq bosqichlar." }}</p>
@@ -152,59 +160,56 @@
 
       <!-- PATH -->
       <section data-section="path" id="path" style="padding:clamp(44px,5vw,72px) 0;scroll-margin-top:60px;">
-        <div data-reveal style="display:flex;align-items:center;gap:12px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:24px;opacity:0;transform:translateY(16px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);"><span style="color:var(--azure);">02</span> / Daraja yo'li <span style="flex:1;height:1px;background:var(--line);"></span></div>
+        <div data-reveal style="display:flex;align-items:center;gap:12px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:24px;opacity:0;transform:translateY(16px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);"><span style="color:var(--azure);">02</span> / {{ page.path_kicker }} <span style="flex:1;height:1px;background:var(--line);"></span></div>
         <div data-reveal style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:28px;opacity:0;transform:translateY(16px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);">
-          <h2 style="font-size:clamp(24px,2.8vw,34px);font-weight:600;letter-spacing:-.03em;line-height:1.08;color:var(--ink);margin:0;max-width:18ch;">Uch bosqich. Har biri oldingisiga ulanadi.</h2>
-          <p style="font-size:14px;color:var(--ink-2);margin:0;max-width:30ch;line-height:1.55;">Bo'sh joy yo'q, qaytariq yo'q — faqat keyingi aniq qadam.</p>
+          <h2 style="font-size:clamp(24px,2.8vw,34px);font-weight:600;letter-spacing:-.03em;line-height:1.08;color:var(--ink);margin:0;max-width:18ch;">{{ page.path_title }}</h2>
+          <p style="font-size:14px;color:var(--ink-2);margin:0;max-width:30ch;line-height:1.55;">{{ page.path_subtitle }}</p>
         </div>
         <div data-reveal style="border:1px solid var(--line);border-radius:12px;overflow:hidden;opacity:0;transform:translateY(16px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);">
           <div data-railhide style="display:grid;grid-template-columns:1.4fr 0.8fr 0.7fr 0.9fr 1fr;padding:12px 20px;background:var(--paper-2);border-bottom:1px solid var(--line);font-family:'Space Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);"><span>Bosqich</span><span>Daraja</span><span>Darslar</span><span>Davomiyligi</span><span style="text-align:right;">Holat</span></div>
-          <div style="display:grid;grid-template-columns:1.4fr 0.8fr 0.7fr 0.9fr 1fr;gap:8px 0;padding:18px 20px;border-bottom:1px solid var(--line-2);align-items:center;">
-            <div><div style="font-size:15px;font-weight:600;color:var(--ink);">Poydevor</div><div style="font-size:12px;color:var(--ink-3);">Alifbo · talaffuz · muloqot</div></div>
-            <span style="font-family:'Space Mono',monospace;font-size:14px;color:var(--ink);">A1—A2</span><span style="font-family:'Space Mono',monospace;font-size:14px;color:var(--ink-2);">36</span><span style="font-family:'Space Mono',monospace;font-size:14px;color:var(--ink-2);">14 hafta</span>
-            <span style="justify-self:end;display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--azure);"><span style="width:7px;height:7px;border-radius:50%;background:var(--azure);"></span>Ochiq</span>
+          {% for stage in level_stages %}
+          <div style="display:grid;grid-template-columns:1.4fr 0.8fr 0.7fr 0.9fr 1fr;gap:8px 0;padding:18px 20px;{% if not forloop.last %}border-bottom:1px solid var(--line-2);{% endif %}align-items:center;{% if stage.status == 'current' %}background:var(--azure-soft);{% endif %}">
+            <div><div style="font-size:15px;font-weight:600;color:var(--ink);">{{ stage.title }}</div><div style="font-size:12px;color:var(--ink-3);">{{ stage.description }}</div></div>
+            <span style="font-family:'Space Mono',monospace;font-size:14px;color:var(--ink);">{{ stage.level_range }}</span><span style="font-family:'Space Mono',monospace;font-size:14px;color:var(--ink-2);">{{ stage.lessons_count }}</span><span style="font-family:'Space Mono',monospace;font-size:14px;color:var(--ink-2);">{{ stage.duration }}</span>
+            {% if stage.status == 'current' %}
+            <span style="justify-self:end;display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--azure);"><span style="width:7px;height:7px;border-radius:50%;background:var(--azure);animation:azDot 1.8s ease infinite;"></span>{{ stage.status_text }}</span>
+            {% elif stage.status == 'locked' %}
+            <span style="justify-self:end;display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-3);"><i class="bi bi-lock" style="font-size:11px;"></i>{{ stage.status_text }}</span>
+            {% else %}
+            <span style="justify-self:end;display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--azure);"><span style="width:7px;height:7px;border-radius:50%;background:var(--azure);"></span>{{ stage.status_text }}</span>
+            {% endif %}
           </div>
-          <div style="display:grid;grid-template-columns:1.4fr 0.8fr 0.7fr 0.9fr 1fr;gap:8px 0;padding:18px 20px;border-bottom:1px solid var(--line-2);align-items:center;background:var(--azure-soft);">
-            <div><div style="font-size:15px;font-weight:600;color:var(--ink);">Ravonlik</div><div style="font-size:12px;color:var(--ink-3);">Grammatika · suhbat · matn</div></div>
-            <span style="font-family:'Space Mono',monospace;font-size:14px;color:var(--ink);">B1—B2</span><span style="font-family:'Space Mono',monospace;font-size:14px;color:var(--ink-2);">48</span><span style="font-family:'Space Mono',monospace;font-size:14px;color:var(--ink-2);">18 hafta</span>
-            <span style="justify-self:end;display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--azure);"><span style="width:7px;height:7px;border-radius:50%;background:var(--azure);animation:azDot 1.8s ease infinite;"></span>Joriy</span>
-          </div>
-          <div style="display:grid;grid-template-columns:1.4fr 0.8fr 0.7fr 0.9fr 1fr;gap:8px 0;padding:18px 20px;align-items:center;">
-            <div><div style="font-size:15px;font-weight:600;color:var(--ink);">Mahorat</div><div style="font-size:12px;color:var(--ink-3);">Akademik til · imtihon</div></div>
-            <span style="font-family:'Space Mono',monospace;font-size:14px;color:var(--ink);">C1</span><span style="font-family:'Space Mono',monospace;font-size:14px;color:var(--ink-2);">30</span><span style="font-family:'Space Mono',monospace;font-size:14px;color:var(--ink-2);">12 hafta</span>
-            <span style="justify-self:end;display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-3);"><i class="bi bi-lock" style="font-size:11px;"></i>Yopiq</span>
-          </div>
+          {% endfor %}
         </div>
       </section>
 
       <!-- AI -->
       <section data-section="ai" id="ai" style="padding:clamp(44px,5vw,72px) 0;scroll-margin-top:60px;">
-        <div data-reveal style="display:flex;align-items:center;gap:12px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:24px;opacity:0;transform:translateY(16px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);"><span style="color:var(--azure);">03</span> / AI repetitor <span style="flex:1;height:1px;background:var(--line);"></span></div>
+        <div data-reveal style="display:flex;align-items:center;gap:12px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:24px;opacity:0;transform:translateY(16px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);"><span style="color:var(--azure);">03</span> / {{ page.ai_kicker }} <span style="flex:1;height:1px;background:var(--line);"></span></div>
         <div data-2col style="display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,4vw,48px);align-items:center;">
           <div data-reveal style="opacity:0;transform:translateY(16px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);">
-            <h2 style="font-size:clamp(24px,2.8vw,34px);font-weight:600;letter-spacing:-.03em;line-height:1.08;color:var(--ink);margin:0 0 16px;max-width:16ch;">Darslaringizni biladigan shaxsiy repetitor.</h2>
-            <p style="font-size:15px;line-height:1.6;color:var(--ink-2);margin:0 0 24px;max-width:42ch;">Azure AI sizning bosqichingizni, xatolaringizni va maqsadingizni eslab qoladi — javoblar tasodifiy emas, sizga moslangan.</p>
+            <h2 style="font-size:clamp(24px,2.8vw,34px);font-weight:600;letter-spacing:-.03em;line-height:1.08;color:var(--ink);margin:0 0 16px;max-width:16ch;">{{ page.ai_title }}</h2>
+            <p style="font-size:15px;line-height:1.6;color:var(--ink-2);margin:0 0 24px;max-width:42ch;">{{ page.ai_subtitle }}</p>
             <div style="display:flex;flex-direction:column;gap:11px;">
-              <div style="display:flex;align-items:center;gap:11px;font-size:14px;color:var(--ink);"><span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--azure);">01</span><span style="flex:0 0 auto;width:1px;height:13px;background:var(--line);"></span>Darslarni o'zbek tilida tushuntiradi</div>
-              <div style="display:flex;align-items:center;gap:11px;font-size:14px;color:var(--ink);"><span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--azure);">02</span><span style="flex:0 0 auto;width:1px;height:13px;background:var(--line);"></span>Grammatik xatolarni tuzatadi</div>
-              <div style="display:flex;align-items:center;gap:11px;font-size:14px;color:var(--ink);"><span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--azure);">03</span><span style="flex:0 0 auto;width:1px;height:13px;background:var(--line);"></span>Speaking va writing'ni baholaydi</div>
-              <div style="display:flex;align-items:center;gap:11px;font-size:14px;color:var(--ink);"><span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--azure);">04</span><span style="flex:0 0 auto;width:1px;height:13px;background:var(--line);"></span>Zaif mavzular bo'yicha reja tuzadi</div>
+              {% for feat in ai_features %}
+              <div style="display:flex;align-items:center;gap:11px;font-size:14px;color:var(--ink);"><span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--azure);">{{ forloop.counter|stringformat:"02d" }}</span><span style="flex:0 0 auto;width:1px;height:13px;background:var(--line);"></span>{{ feat.text }}</div>
+              {% endfor %}
             </div>
           </div>
           <div data-reveal style="border:1px solid var(--line);border-radius:12px;background:var(--panel);overflow:hidden;opacity:0;transform:translateY(16px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);">
             <div style="display:flex;align-items:center;gap:9px;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--paper-2);">
               <span style="width:8px;height:8px;border-radius:50%;background:var(--azure);animation:azDot 1.8s ease infinite;"></span>
-              <span style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.06em;color:var(--ink-2);">azure-ai · session</span>
+              <span style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.06em;color:var(--ink-2);">{{ page.ai_demo_session_label }}</span>
             </div>
             <div style="padding:18px 16px;display:flex;flex-direction:column;gap:12px;">
-              <div style="align-self:flex-end;max-width:82%;background:var(--azure);color:var(--on-azure);padding:9px 13px;border-radius:11px 11px 3px;font-size:13.5px;line-height:1.5;">"gitmek" o'tgan zamonda qanday bo'ladi?</div>
+              <div style="align-self:flex-end;max-width:82%;background:var(--azure);color:var(--on-azure);padding:9px 13px;border-radius:11px 11px 3px;font-size:13.5px;line-height:1.5;">{{ page.ai_demo_question }}</div>
               <div style="align-self:flex-start;max-width:90%;font-size:13.5px;line-height:1.6;color:var(--ink);">
                 <span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--ink-3);display:block;margin-bottom:4px;">azure ai →</span>
-                <span data-typing data-text="gittim · gittin · gitti. Keling, uchta misol bilan mustahkamlaymiz va so'ng siz yozib ko'rasiz."></span><span style="display:inline-block;width:7px;height:14px;background:var(--azure);margin-left:2px;vertical-align:-2px;animation:azBlink 1s steps(1) infinite;"></span>
+                <span data-typing data-text="{{ page.ai_demo_answer }}"></span><span style="display:inline-block;width:7px;height:14px;background:var(--azure);margin-left:2px;vertical-align:-2px;animation:azBlink 1s steps(1) infinite;"></span>
               </div>
             </div>
             <div style="display:flex;align-items:center;gap:9px;padding:12px 16px;border-top:1px solid var(--line);">
-              <div style="flex:1;height:34px;border-radius:8px;border:1px solid var(--line);background:var(--paper-2);display:flex;align-items:center;padding:0 12px;font-size:12.5px;color:var(--ink-3);">Savol yozing…</div>
+              <div style="flex:1;height:34px;border-radius:8px;border:1px solid var(--line);background:var(--paper-2);display:flex;align-items:center;padding:0 12px;font-size:12.5px;color:var(--ink-3);">{{ page.ai_demo_input_placeholder }}</div>
               <span style="width:34px;height:34px;border-radius:8px;background:var(--azure);color:var(--on-azure);display:grid;place-items:center;font-size:13px;flex:0 0 auto;"><i class="bi bi-arrow-up"></i></span>
             </div>
           </div>
@@ -213,35 +218,34 @@
 
       <!-- EXAM -->
       <section data-section="exam" id="exam" style="padding:clamp(44px,5vw,72px) 0;scroll-margin-top:60px;">
-        <div data-reveal style="display:flex;align-items:center;gap:12px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:24px;opacity:0;transform:translateY(16px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);"><span style="color:var(--azure);">04</span> / Imtihon muhiti <span style="flex:1;height:1px;background:var(--line);"></span></div>
-        <div data-reveal style="margin-bottom:24px;opacity:0;transform:translateY(16px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);"><h2 style="font-size:clamp(24px,2.8vw,34px);font-weight:600;letter-spacing:-.03em;line-height:1.08;color:var(--ink);margin:0 0 14px;max-width:20ch;">Haqiqiy imtihon. To'rt ko'nikma, xalqaro format.</h2><p style="font-size:15px;line-height:1.6;color:var(--ink-2);margin:0;max-width:50ch;">Timer, bo'limlar va baholash — rasmiy imtihonga to'liq mos muhitda mashq qiling.</p></div>
+        <div data-reveal style="display:flex;align-items:center;gap:12px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:24px;opacity:0;transform:translateY(16px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);"><span style="color:var(--azure);">04</span> / {{ page.exam_kicker }} <span style="flex:1;height:1px;background:var(--line);"></span></div>
+        <div data-reveal style="margin-bottom:24px;opacity:0;transform:translateY(16px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);"><h2 style="font-size:clamp(24px,2.8vw,34px);font-weight:600;letter-spacing:-.03em;line-height:1.08;color:var(--ink);margin:0 0 14px;max-width:20ch;">{{ page.exam_title }}</h2><p style="font-size:15px;line-height:1.6;color:var(--ink-2);margin:0;max-width:50ch;">{{ page.exam_subtitle }}</p></div>
         <div data-reveal data-2col style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;opacity:0;transform:translateY(16px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);">
-          <div style="border:1px solid var(--line);border-radius:10px;padding:16px;"><i class="bi bi-headphones" style="color:var(--azure);font-size:18px;"></i><div style="font-size:14px;font-weight:600;color:var(--ink);margin-top:12px;">Listening</div><div style="font-family:'Space Mono',monospace;font-size:10.5px;color:var(--ink-3);margin-top:2px;">30 MIN · 40 Q</div></div>
-          <div style="border:1px solid var(--line);border-radius:10px;padding:16px;"><i class="bi bi-book" style="color:var(--azure);font-size:18px;"></i><div style="font-size:14px;font-weight:600;color:var(--ink);margin-top:12px;">Reading</div><div style="font-family:'Space Mono',monospace;font-size:10.5px;color:var(--ink-3);margin-top:2px;">60 MIN · 40 Q</div></div>
-          <div style="border:1px solid var(--line);border-radius:10px;padding:16px;"><i class="bi bi-pencil" style="color:var(--azure);font-size:18px;"></i><div style="font-size:14px;font-weight:600;color:var(--ink);margin-top:12px;">Writing</div><div style="font-family:'Space Mono',monospace;font-size:10.5px;color:var(--ink-3);margin-top:2px;">60 MIN · 2 T</div></div>
-          <div style="border:1px solid var(--line);border-radius:10px;padding:16px;"><i class="bi bi-mic" style="color:var(--azure);font-size:18px;"></i><div style="font-size:14px;font-weight:600;color:var(--ink);margin-top:12px;">Speaking</div><div style="font-family:'Space Mono',monospace;font-size:10.5px;color:var(--ink-3);margin-top:2px;">15 MIN · 3 P</div></div>
+          {% for skill in exam_skills %}
+          <div style="border:1px solid var(--line);border-radius:10px;padding:16px;"><i class="{{ skill.icon_class }}" style="color:var(--azure);font-size:18px;"></i><div style="font-size:14px;font-weight:600;color:var(--ink);margin-top:12px;">{{ skill.name }}</div><div style="font-family:'Space Mono',monospace;font-size:10.5px;color:var(--ink-3);margin-top:2px;">{{ skill.meta }}</div></div>
+          {% endfor %}
         </div>
       </section>
 
       <!-- CERT -->
       <section data-section="cert" id="cert" style="padding:clamp(44px,5vw,72px) 0;scroll-margin-top:60px;">
-        <div data-reveal style="display:flex;align-items:center;gap:12px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:24px;opacity:0;transform:translateY(16px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);"><span style="color:var(--azure);">05</span> / Sertifikat <span style="flex:1;height:1px;background:var(--line);"></span></div>
+        <div data-reveal style="display:flex;align-items:center;gap:12px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-bottom:24px;opacity:0;transform:translateY(16px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);"><span style="color:var(--azure);">05</span> / {{ page.cert_kicker }} <span style="flex:1;height:1px;background:var(--line);"></span></div>
         <div data-reveal data-2col style="display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(24px,4vw,48px);align-items:center;opacity:0;transform:translateY(16px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);">
           <div>
-            <h2 style="font-size:clamp(24px,2.8vw,34px);font-weight:600;letter-spacing:-.03em;line-height:1.08;color:var(--ink);margin:0 0 14px;max-width:16ch;">Tugatdingizmi — tasdiqlangan sertifikat.</h2>
-            <p style="font-size:15px;line-height:1.6;color:var(--ink-2);margin:0 0 22px;max-width:42ch;">Har bir sertifikat QR kod orqali tekshiriladi. Ish beruvchi yoki universitet bir soniyada haqiqiyligiga ishonch hosil qiladi.</p>
-            <a href="{% url 'register' %}" style="display:inline-flex;align-items:center;gap:7px;font-size:14.5px;font-weight:600;color:var(--azure);transition:gap .25s;">Namuna sertifikatni ko'rish <i class="bi bi-arrow-right"></i></a>
+            <h2 style="font-size:clamp(24px,2.8vw,34px);font-weight:600;letter-spacing:-.03em;line-height:1.08;color:var(--ink);margin:0 0 14px;max-width:16ch;">{{ page.cert_title }}</h2>
+            <p style="font-size:15px;line-height:1.6;color:var(--ink-2);margin:0 0 22px;max-width:42ch;">{{ page.cert_text }}</p>
+            <a href="{% url 'register' %}" style="display:inline-flex;align-items:center;gap:7px;font-size:14.5px;font-weight:600;color:var(--azure);transition:gap .25s;">{{ page.cert_cta_label }} <i class="bi bi-arrow-right"></i></a>
           </div>
           <div style="border:1px solid var(--line);border-radius:12px;padding:22px;background:var(--panel);">
             <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:14px;">
               <div style="display:flex;align-items:center;gap:8px;">{% include "components/brand_logo.html" with mark_class="brand-logo-mark" name_class="brand-logo-name" %}</div>
-              <span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--ink-3);">№ AZ-2026-0481</span>
+              <span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--ink-3);">{{ page.cert_sample_number }}</span>
             </div>
-            <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);">Sertifikat</div>
-            <div style="font-size:21px;font-weight:600;letter-spacing:-.02em;color:var(--ink);margin:4px 0 2px;">Turk tili — C1</div>
-            <div style="font-size:13px;color:var(--ink-2);">Nigora Soliyeva · <span style="color:var(--azure);font-weight:600;">96 / 100</span></div>
+            <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);">{{ page.cert_sample_label }}</div>
+            <div style="font-size:21px;font-weight:600;letter-spacing:-.02em;color:var(--ink);margin:4px 0 2px;">{{ page.cert_sample_course }}</div>
+            <div style="font-size:13px;color:var(--ink-2);">{{ page.cert_sample_name }} · <span style="color:var(--azure);font-weight:600;">{{ page.cert_sample_score }}</span></div>
             <div style="display:flex;align-items:center;justify-content:space-between;margin-top:18px;">
-              <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--ink-3);">12.06.2026<br>Toshkent</div>
+              <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--ink-3);">{{ page.cert_sample_date }}<br>{{ page.cert_sample_location }}</div>
               <div style="width:46px;height:46px;border-radius:8px;border:1px solid var(--line);display:grid;place-items:center;color:var(--ink-2);font-size:24px;"><i class="bi bi-qr-code"></i></div>
             </div>
           </div>
@@ -251,31 +255,31 @@
       <!-- CTA + FOOTER -->
       <section data-reveal style="padding:clamp(40px,5vw,64px) 0 clamp(48px,6vw,80px);border-top:1px solid var(--line);opacity:0;transform:translateY(16px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);">
         <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:28px;flex-wrap:wrap;margin-bottom:48px;">
-          <h2 style="font-size:clamp(26px,3.4vw,42px);font-weight:600;letter-spacing:-.035em;line-height:1.04;color:var(--ink);margin:0;max-width:14ch;">Bugun birinchi darsdan boshlang.</h2>
+          <h2 style="font-size:clamp(26px,3.4vw,42px);font-weight:600;letter-spacing:-.035em;line-height:1.04;color:var(--ink);margin:0;max-width:14ch;">{{ page.final_cta_title }}</h2>
           <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
             {% if request.user.is_authenticated %}
             <a href="{% url 'dashboard' %}" style="display:inline-flex;align-items:center;gap:8px;padding:13px 22px;border-radius:9px;background:var(--azure);color:var(--on-azure);font-size:15px;font-weight:600;transition:transform .22s cubic-bezier(.16,1,.3,1);">Kabinetimga o'tish <i class="bi bi-arrow-right" style="font-size:13px;"></i></a>
             {% else %}
-            <a href="{% url 'register' %}" style="display:inline-flex;align-items:center;gap:8px;padding:13px 22px;border-radius:9px;background:var(--azure);color:var(--on-azure);font-size:15px;font-weight:600;transition:transform .22s cubic-bezier(.16,1,.3,1);">Bepul boshlash <i class="bi bi-arrow-right" style="font-size:13px;"></i></a>
+            <a href="{% url 'register' %}" style="display:inline-flex;align-items:center;gap:8px;padding:13px 22px;border-radius:9px;background:var(--azure);color:var(--on-azure);font-size:15px;font-weight:600;transition:transform .22s cubic-bezier(.16,1,.3,1);">{{ page.cta_primary_label }} <i class="bi bi-arrow-right" style="font-size:13px;"></i></a>
             {% endif %}
-            <a href="{% url 'subscriptions:pricing' %}" style="font-size:14.5px;font-weight:500;color:var(--ink-2);">Narxlar bilan tanishish</a>
+            <a href="{% url 'subscriptions:pricing' %}" style="font-size:14.5px;font-weight:500;color:var(--ink-2);">{{ page.final_cta_secondary_label }}</a>
           </div>
         </div>
         <div data-2col style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:24px;padding-top:32px;border-top:1px solid var(--line);">
           <div>
             <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px;">{% include "components/brand_logo.html" with use_wordmark=True image_class="brand-logo-image--small" %}</div>
-            <p style="font-size:13px;line-height:1.6;color:var(--ink-3);margin:0;max-width:30ch;">O'zbek tilida turk tilini tartibli o'rgatadigan onlayn platforma.</p>
+            <p style="font-size:13px;line-height:1.6;color:var(--ink-3);margin:0;max-width:30ch;">{{ page.footer_tagline }}</p>
           </div>
-          <div><div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);margin-bottom:12px;">Platforma</div><div style="display:flex;flex-direction:column;gap:9px;"><a href="{% url 'courses' %}" style="font-size:13.5px;color:var(--ink-2);transition:color .2s;">Kurslar</a><a href="{% url 'subscriptions:pricing' %}" style="font-size:13.5px;color:var(--ink-2);transition:color .2s;">Narxlar</a><a href="#ai" style="font-size:13.5px;color:var(--ink-2);transition:color .2s;">AI repetitor</a></div></div>
-          <div><div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);margin-bottom:12px;">Kompaniya</div><div style="display:flex;flex-direction:column;gap:9px;"><a href="{% url 'about' %}" style="font-size:13.5px;color:var(--ink-2);transition:color .2s;">Biz haqimizda</a><a href="{% url 'blog:list' %}" style="font-size:13.5px;color:var(--ink-2);transition:color .2s;">Blog</a><a href="{% url 'faq_page' %}" style="font-size:13.5px;color:var(--ink-2);transition:color .2s;">Yordam</a></div></div>
-          <div><div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);margin-bottom:12px;">Huquqiy</div><div style="display:flex;flex-direction:column;gap:9px;"><a href="{% url 'privacy_policy' %}" style="font-size:13.5px;color:var(--ink-2);transition:color .2s;">Maxfiylik</a><a href="{% url 'terms_of_service' %}" style="font-size:13.5px;color:var(--ink-2);transition:color .2s;">Shartlar</a></div></div>
-          <div><div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);margin-bottom:12px;">Aloqa</div><div style="display:flex;flex-direction:column;gap:9px;">
+          <div><div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);margin-bottom:12px;">{{ page.footer_col_platform_title }}</div><div style="display:flex;flex-direction:column;gap:9px;">{% for link in footer_platform_links %}<a href="{{ link.url }}"{% if link.open_in_new_tab %} target="_blank" rel="noopener"{% endif %} style="font-size:13.5px;color:var(--ink-2);transition:color .2s;">{{ link.label }}</a>{% endfor %}</div></div>
+          <div><div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);margin-bottom:12px;">{{ page.footer_col_company_title }}</div><div style="display:flex;flex-direction:column;gap:9px;">{% for link in footer_company_links %}<a href="{{ link.url }}"{% if link.open_in_new_tab %} target="_blank" rel="noopener"{% endif %} style="font-size:13.5px;color:var(--ink-2);transition:color .2s;">{{ link.label }}</a>{% endfor %}</div></div>
+          <div><div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);margin-bottom:12px;">{{ page.footer_col_legal_title }}</div><div style="display:flex;flex-direction:column;gap:9px;">{% for link in footer_legal_links %}<a href="{{ link.url }}"{% if link.open_in_new_tab %} target="_blank" rel="noopener"{% endif %} style="font-size:13.5px;color:var(--ink-2);transition:color .2s;">{{ link.label }}</a>{% endfor %}</div></div>
+          <div><div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);margin-bottom:12px;">{{ page.footer_col_contact_title }}</div><div style="display:flex;flex-direction:column;gap:9px;">
             {% if site_settings.contact_phone %}<a href="tel:{{ site_settings.contact_phone|cut:" " }}" style="font-size:13.5px;color:var(--ink-2);transition:color .2s;">{{ site_settings.contact_phone }}</a>{% endif %}
             {% if site_settings.contact_email %}<a href="mailto:{{ site_settings.contact_email }}" style="font-size:13.5px;color:var(--ink-2);transition:color .2s;">{{ site_settings.contact_email }}</a>{% endif %}
           </div></div>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:32px;padding-top:20px;border-top:1px solid var(--line);font-family:'Space Mono',monospace;font-size:10.5px;letter-spacing:.06em;color:var(--ink-4);">
-          <span>© 2026 AZURELMS — BARCHA HUQUQLAR HIMOYALANGAN</span>
+          <span>{{ page.footer_copyright }}</span>
           <div style="display:flex;gap:14px;"><a href="{{ site_settings.telegram_url|default:'#' }}" style="color:var(--ink-3);">TELEGRAM</a><a href="{{ site_settings.instagram_url|default:'#' }}" style="color:var(--ink-3);">INSTAGRAM</a><a href="{{ site_settings.youtube_url|default:'#' }}" style="color:var(--ink-3);">YOUTUBE</a></div>
         </div>
       </section>

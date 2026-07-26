@@ -204,6 +204,74 @@ class LandingPage(SingletonModel):
     testimonials_section_kicker = models.CharField(max_length=80, default="Fikrlar", verbose_name="Fikrlar blok kicker")
     testimonials_section_title = models.CharField(max_length=120, default="O'quvchilar fikri", verbose_name="Fikrlar blok sarlavhasi")
 
+    # --- Yon panel (rail) ---
+    rail_tagline = models.CharField(max_length=80, default="Turk tili · A1—C1", verbose_name="Rail tagline")
+    rail_footer_line_one = models.CharField(max_length=60, default="© 2026 AZURELMS", verbose_name="Rail footer 1-qator")
+    rail_footer_line_two = models.CharField(max_length=60, default="TOSHKENT · UZ", verbose_name="Rail footer 2-qator")
+
+    # --- Hero qo'shimcha matnlari ---
+    hero_kicker_left = models.CharField(max_length=140, default="Turk tili · A1—C1 · Onlayn platforma", verbose_name="Hero kicker (chap)")
+    hero_kicker_right = models.CharField(max_length=60, default="EST. 2024", verbose_name="Hero kicker (o'ng)")
+    hero_primary_label = models.CharField(max_length=60, default="Bepul boshlash", verbose_name="Hero asosiy tugma matni")
+    hero_secondary_label = models.CharField(max_length=60, default="Daraja yo'lini ko'rish", verbose_name="Hero ikkinchi tugma matni")
+
+    # --- Demo dashboard (hero ostidagi mock brauzer) ---
+    demo_url = models.CharField(max_length=120, default="app.azurelms.uz/dashboard", verbose_name="Demo URL matni")
+    demo_course_kicker = models.CharField(max_length=60, default="Joriy kurs", verbose_name="Demo kurs kicker")
+    demo_course_name = models.CharField(max_length=90, default="Turk tili — B2 Intensiv", verbose_name="Demo kurs nomi")
+    demo_progress = models.PositiveSmallIntegerField(default=68, verbose_name="Demo progress (%)")
+    demo_next_title = models.CharField(max_length=90, default="Listening — Dialog 14", verbose_name="Demo keyingi dars nomi")
+    demo_next_time = models.CharField(max_length=60, default="Bugun · 18:00", verbose_name="Demo keyingi dars vaqti")
+    demo_next_badge = models.CharField(max_length=30, default="KEYINGI", verbose_name="Demo keyingi dars nishoni")
+    demo_stat_one_value = models.CharField(max_length=20, default="18", verbose_name="Demo stat 1 qiymati")
+    demo_stat_one_label = models.CharField(max_length=40, default="Dars o'tildi", verbose_name="Demo stat 1 nomi")
+    demo_stat_two_value = models.CharField(max_length=20, default="94%", verbose_name="Demo stat 2 qiymati")
+    demo_stat_two_label = models.CharField(max_length=40, default="Exam natija", verbose_name="Demo stat 2 nomi")
+    demo_stat_three_value = models.CharField(max_length=20, default="11", verbose_name="Demo stat 3 qiymati")
+    demo_stat_three_label = models.CharField(max_length=40, default="Streak", verbose_name="Demo stat 3 nomi")
+
+    # --- Daraja yo'li (PATH) bo'lim sarlavhasi ---
+    path_kicker = models.CharField(max_length=60, default="Daraja yo'li", verbose_name="Daraja yo'li kicker")
+    path_title = models.CharField(max_length=140, default="Uch bosqich. Har biri oldingisiga ulanadi.", verbose_name="Daraja yo'li sarlavhasi")
+    path_subtitle = models.CharField(max_length=200, default="Bo'sh joy yo'q, qaytariq yo'q — faqat keyingi aniq qadam.", verbose_name="Daraja yo'li ostsarlavhasi")
+
+    # --- AI repetitor bo'limi ---
+    ai_kicker = models.CharField(max_length=60, default="AI repetitor", verbose_name="AI bo'lim kicker")
+    ai_title = models.CharField(max_length=140, default="Darslaringizni biladigan shaxsiy repetitor.", verbose_name="AI bo'lim sarlavhasi")
+    ai_subtitle = models.CharField(max_length=240, default="Azure AI sizning bosqichingizni, xatolaringizni va maqsadingizni eslab qoladi — javoblar tasodifiy emas, sizga moslangan.", verbose_name="AI bo'lim matni")
+    ai_demo_session_label = models.CharField(max_length=60, default="azure-ai · session", verbose_name="AI demo sessiya yorlig'i")
+    ai_demo_question = models.CharField(max_length=200, default="\"gitmek\" o'tgan zamonda qanday bo'ladi?", verbose_name="AI demo savol")
+    ai_demo_answer = models.CharField(max_length=240, default="gittim · gittin · gitti. Keling, uchta misol bilan mustahkamlaymiz va so'ng siz yozib ko'rasiz.", verbose_name="AI demo javob")
+    ai_demo_input_placeholder = models.CharField(max_length=80, default="Savol yozing…", verbose_name="AI demo input placeholder")
+
+    # --- Imtihon muhiti bo'limi ---
+    exam_kicker = models.CharField(max_length=60, default="Imtihon muhiti", verbose_name="Imtihon bo'lim kicker")
+    exam_title = models.CharField(max_length=140, default="Haqiqiy imtihon. To'rt ko'nikma, xalqaro format.", verbose_name="Imtihon bo'lim sarlavhasi")
+    exam_subtitle = models.CharField(max_length=240, default="Timer, bo'limlar va baholash — rasmiy imtihonga to'liq mos muhitda mashq qiling.", verbose_name="Imtihon bo'lim matni")
+
+    # --- Sertifikat bo'limi ---
+    cert_kicker = models.CharField(max_length=60, default="Sertifikat", verbose_name="Sertifikat bo'lim kicker")
+    cert_title = models.CharField(max_length=140, default="Tugatdingizmi — tasdiqlangan sertifikat.", verbose_name="Sertifikat bo'lim sarlavhasi")
+    cert_text = models.CharField(max_length=280, default="Har bir sertifikat QR kod orqali tekshiriladi. Ish beruvchi yoki universitet bir soniyada haqiqiyligiga ishonch hosil qiladi.", verbose_name="Sertifikat bo'lim matni")
+    cert_cta_label = models.CharField(max_length=80, default="Namuna sertifikatni ko'rish", verbose_name="Sertifikat CTA matni")
+    cert_sample_number = models.CharField(max_length=40, default="№ AZ-2026-0481", verbose_name="Namuna sertifikat raqami")
+    cert_sample_label = models.CharField(max_length=40, default="Sertifikat", verbose_name="Namuna sertifikat yorlig'i")
+    cert_sample_course = models.CharField(max_length=80, default="Turk tili — C1", verbose_name="Namuna sertifikat kursi")
+    cert_sample_name = models.CharField(max_length=80, default="Nigora Soliyeva", verbose_name="Namuna sertifikat egasi")
+    cert_sample_score = models.CharField(max_length=30, default="96 / 100", verbose_name="Namuna sertifikat bahosi")
+    cert_sample_date = models.CharField(max_length=30, default="12.06.2026", verbose_name="Namuna sertifikat sanasi")
+    cert_sample_location = models.CharField(max_length=40, default="Toshkent", verbose_name="Namuna sertifikat joyi")
+
+    # --- Pastki CTA + footer ---
+    final_cta_title = models.CharField(max_length=120, default="Bugun birinchi darsdan boshlang.", verbose_name="Pastki CTA sarlavhasi")
+    final_cta_secondary_label = models.CharField(max_length=80, default="Narxlar bilan tanishish", verbose_name="Pastki CTA ikkinchi havola")
+    footer_tagline = models.CharField(max_length=160, default="O'zbek tilida turk tilini tartibli o'rgatadigan onlayn platforma.", verbose_name="Footer tavsifi")
+    footer_col_platform_title = models.CharField(max_length=40, default="Platforma", verbose_name="Footer: Platforma ustuni nomi")
+    footer_col_company_title = models.CharField(max_length=40, default="Kompaniya", verbose_name="Footer: Kompaniya ustuni nomi")
+    footer_col_legal_title = models.CharField(max_length=40, default="Huquqiy", verbose_name="Footer: Huquqiy ustuni nomi")
+    footer_col_contact_title = models.CharField(max_length=40, default="Aloqa", verbose_name="Footer: Aloqa ustuni nomi")
+    footer_copyright = models.CharField(max_length=140, default="© 2026 AZURELMS — BARCHA HUQUQLAR HIMOYALANGAN", verbose_name="Footer copyright matni")
+
     class Meta:
         verbose_name = "Bosh sahifa sozlamasi"
         verbose_name_plural = "1. Bosh sahifa sozlamalari"
@@ -221,8 +289,19 @@ class LandingPage(SingletonModel):
 
 
 class Statistic(models.Model):
-    value = models.CharField(max_length=50, help_text="Masalan: 5,000+", verbose_name="Qiymati")
+    value = models.CharField(max_length=50, blank=True, help_text="Raqamli qiymat bo'sh bo'lsa shu matn statik ko'rsatiladi. Masalan: 5,000+", verbose_name="Matnli qiymat")
+    numeric_value = models.DecimalField(
+        max_digits=10,
+        decimal_places=1,
+        null=True,
+        blank=True,
+        help_text="To'ldirilsa sahifada 0 dan shu songacha animatsiya bo'ladi. Masalan: 2400 yoki 4.9",
+        verbose_name="Raqamli qiymat (animatsiya)",
+    )
+    suffix = models.CharField(max_length=8, blank=True, help_text="Masalan: + yoki %", verbose_name="Qiymat qo'shimchasi")
+    decimals = models.PositiveSmallIntegerField(default=0, verbose_name="Kasr xonalar soni")
     label = models.CharField(max_length=100, help_text="Masalan: Faol o'quvchilar", verbose_name="Nomi")
+    is_active = models.BooleanField(default=True, verbose_name="Faolmi?")
     order = models.PositiveIntegerField(default=0, verbose_name="Tartib raqami")
 
     class Meta:
@@ -231,7 +310,21 @@ class Statistic(models.Model):
         verbose_name_plural = "2. Bosh sahifa statistikalari"
 
     def __str__(self):
-        return f"{self.value} - {self.label}"
+        return f"{self.value or self.numeric_value} - {self.label}"
+
+    @property
+    def display_value(self):
+        """Animatsiya ishlamagan holatda ko'rsatiladigan matn."""
+        if self.value:
+            return self.value
+        if self.numeric_value is None:
+            return ""
+        number = self.numeric_value
+        if self.decimals:
+            formatted = f"{number:.{self.decimals}f}"
+        else:
+            formatted = f"{int(number)}"
+        return f"{formatted}{self.suffix}"
 
 
 class LandingHeroSlide(models.Model):
@@ -374,6 +467,70 @@ class LandingProcessStep(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class LandingLevelStage(models.Model):
+    class Status(models.TextChoices):
+        OPEN = "open", "Ochiq"
+        CURRENT = "current", "Joriy"
+        LOCKED = "locked", "Yopiq"
+
+    title = models.CharField(max_length=80, verbose_name="Bosqich nomi")
+    description = models.CharField(max_length=140, verbose_name="Tavsif")
+    level_range = models.CharField(max_length=30, default="A1—A2", verbose_name="Daraja oralig'i")
+    lessons_count = models.CharField(max_length=20, default="36", verbose_name="Darslar soni")
+    duration = models.CharField(max_length=40, default="14 hafta", verbose_name="Davomiyligi")
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.OPEN, verbose_name="Holati")
+    status_label = models.CharField(max_length=40, blank=True, verbose_name="Holat matni", help_text="Bo'sh bo'lsa holat turi nomi ishlatiladi.")
+    is_visible = models.BooleanField(default=True, verbose_name="Ko'rinsinmi?")
+    order = models.PositiveIntegerField(default=0, verbose_name="Tartib")
+
+    class Meta:
+        ordering = ["order", "id"]
+        verbose_name = "Daraja bosqichi"
+        verbose_name_plural = "2.1 Daraja yo'li bosqichlari"
+
+    def __str__(self):
+        return f"{self.title} ({self.level_range})"
+
+    @property
+    def status_text(self):
+        return self.status_label or self.get_status_display()
+
+
+class LandingAIFeature(models.Model):
+    text = models.CharField(max_length=140, verbose_name="Xususiyat matni")
+    is_visible = models.BooleanField(default=True, verbose_name="Ko'rinsinmi?")
+    order = models.PositiveIntegerField(default=0, verbose_name="Tartib")
+
+    class Meta:
+        ordering = ["order", "id"]
+        verbose_name = "AI xususiyati"
+        verbose_name_plural = "2.2 AI repetitor xususiyatlari"
+
+    def __str__(self):
+        return self.text
+
+
+class LandingExamSkill(models.Model):
+    name = models.CharField(max_length=60, verbose_name="Ko'nikma nomi")
+    meta = models.CharField(max_length=60, default="30 MIN · 40 Q", verbose_name="Meta matn")
+    icon_class = models.CharField(
+        max_length=60,
+        default="bi bi-headphones",
+        verbose_name="Bootstrap icon class",
+        help_text="Masalan: bi bi-headphones, bi bi-book, bi bi-pencil, bi bi-mic",
+    )
+    is_visible = models.BooleanField(default=True, verbose_name="Ko'rinsinmi?")
+    order = models.PositiveIntegerField(default=0, verbose_name="Tartib")
+
+    class Meta:
+        ordering = ["order", "id"]
+        verbose_name = "Imtihon ko'nikmasi"
+        verbose_name_plural = "2.3 Imtihon ko'nikmalari"
+
+    def __str__(self):
+        return self.name
 
 
 class Testimonial(models.Model):
