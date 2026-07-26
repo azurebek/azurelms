@@ -83,8 +83,10 @@ Hozir bosh sahifa (`templates/index.html`) to'liq admin nazoratida (2026-07-27, 
 - Mutation `LogEntry` audit'ga tushadi; no-op yo'l bor.
 - Commit + marinebook (major bosqichlarda).
 
-## 6. Ochiq qarorlar (owner)
-1. `change_reason` content tahririda majburiymi yoki ixtiyoriy? *(taklif: ixtiyoriy)*
-2. Ruxsat: content'ni butun staff tahrirlaydimi yoki faqat owner? *(taklif: staff content, owner tuzilma)*
-3. Bosqich tugagach Jazzmin admin'dan landing modellari yashirinsinmi yoki fallback qolsinmi? *(taklif: fallback qolsin)*
-4. Live preview iframe kerakmi yoki "yangi tabda ko'rish" yetarlimi? *(taklif: 1-bosqichda anchor havola, 4-bosqichda iframe)*
+## 6. Owner qarorlari (2026-07-27 tasdiqlandi)
+1. **Ruxsat:** faqat owner (active superuser) — `_is_control_center_owner`, brend paneli kabi.
+2. **`change_reason`:** har saqlashda **majburiy** — brend paneli kabi to'liq audit izi.
+3. **Preview:** Bosqich 1'da har bo'lim yoniga "↗ sahifada ko'rish" anchor havola; to'liq iframe live preview Bosqich 4'da.
+4. **Jazzmin fallback:** hozircha qoladi (Bosqich 5'da qayta ko'riladi).
+
+Natija: Bosqich 1 brend panel pattern'iga aynan mos — `_is_control_center_owner`, majburiy `change_reason` + `confirm`, `transaction.atomic` + `LogEntry` audit, no-op yo'l, `admin-shell.css` + dedicated `landing-control.css`.
