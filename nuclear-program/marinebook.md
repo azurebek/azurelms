@@ -16,6 +16,15 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-27 [Claude Code]: Landing editor rejasi + branch (backoffice'ga ko'chirish)
+
+Landing hozir faqat Jazzmin admin (`/admin/`, `ENABLE_LEGACY_ADMIN`) orqali tahrirlanadi — owner uchun noqulay va prod'da ishonchsiz. Azurbek uni backoffice ichiga chiroyli/qulay shaklda ko'chirishni so'radi. Backoffice pattern auditi qilindi (brand mutation: `transaction.atomic` + o'zgargan maydon + no-op + `LogEntry` audit; `admin-shell.css` dizayn tizimi; nav guruhlari) va 6 bosqichli reja `nuclear-program/landing-editor-plan.md`ga saqlandi. Hali kod yozilmadi — bu bosqich faqat reja/branch.
+
+- Branch: `claude/backoffice-landing-editor` (`origin/main`dan)
+- Reja: `nuclear-program/landing-editor-plan.md` (admission gate javoblari, dizayn tamoyillari, 6 bosqich + DoD, ochiq owner qarorlari)
+- Test holati: yugurilmadi (kod yo'q)
+- Davom etilishi kerak: Bosqich 1 — `/backoffice/landing/` route + `LandingPage` singleton editor (bo'lim-markazli forma). Ochiq qarorlar: change_reason majburiymi, ruxsat darajasi, Jazzmin fallback, live preview — owner tasdig'i kerak.
+
 ## 2026-07-27 [Claude Code]: Landing page to'liq admin nazoratiga o'tkazildi
 
 Bosh sahifa (`templates/index.html`) v2 redizayni kontentni deyarli to'liq hardcode qilib, mavjud model/admin qatlamini (LandingPage hero/cta maydonlari, Statistic, hero slides, testimonials, popular_courses) e'tiborsiz qoldirgan edi — `home_view` context'ga uzatsa ham template faqat "Qanday ishlaydi?", brend va footer kontaktni dinamik ko'rsatardi. Azurbek to'liq admin nazoratini so'radi (owner admission; demolar ham tahrirlanadigan bo'lsin). Endi rail, hero, demo dashboard, statistika, daraja yo'li, AI repetitor, imtihon, sertifikat va pastki CTA/footer'ning har bir matni admin paneldan boshqariladi.
