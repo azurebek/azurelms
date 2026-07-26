@@ -213,6 +213,8 @@ ai/
 
 **Singleton pattern:** `LandingPage`, `AboutPage`, `SiteSettings`, `AuthPageSettings`, `LegalPage`.
 
+**Landing to'liq admin nazorati (2026-07-27):** `templates/index.html` (bosh sahifa) endi kontentini to'liq admin modellaridan oladi — ilgari v2 redizayn deyarli hammasini hardcode qilgan edi. Manbalar: `LandingPage` singleton (rail, hero, demo dashboard, daraja yo'li/AI/imtihon/sertifikat sarlavha va demo matnlari, pastki CTA/footer — ~50 maydon), child modellar `LandingLevelStage` (daraja bosqichlari), `LandingAIFeature` (AI xususiyatlari), `LandingExamSkill` (imtihon kartalari), `Statistic` (animatsiyali `numeric_value`/`suffix`/`decimals`), footer ustunlari `LandingNavItem` (`footer_*_links`), brend `SiteSettings`. Migratsiya `0020` joriy nusxani seed qiladi. Faqat demo dashboard sidebar navi va PATH jadval sarlavhalari ataylab statik (strukturaviy chrome).
+
 **Brend assetlari (2026-07-22):** `SiteSettings` to'rtta rasm maydonini saqlaydi — `logo_image` (yorug' fon wordmark), `logo_dark_image` (qorong'i fon wordmark), `logo_mark_image` (ixcham kvadrat belgi), `favicon_image`. Rasm bo'lmasa `logo_mark_text` + `brand_name` matnli fallback ishlaydi. Barcha logo yuzalari `templates/components/brand_logo.html` canonical adapteri orqali o'qiydi (`use_wordmark`, `dark`, `mark_only`, `mark_class`, `name_class`, `image_class` parametrlari); favicon uchun `templates/components/brand_favicon.html`. Qiymatlar global `frontend.context_processors.site_settings_context` orqali `site_settings` nomida yetkaziladi. `core.test_brand_control.BrandSurfaceContractTests` yangi shell canonical komponentni chetlab o'tsa testni yiqitadi.
 
 ### `blog`

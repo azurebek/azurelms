@@ -16,6 +16,20 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-27 [Claude Code]: Landing page to'liq admin nazoratiga o'tkazildi
+
+Bosh sahifa (`templates/index.html`) v2 redizayni kontentni deyarli to'liq hardcode qilib, mavjud model/admin qatlamini (LandingPage hero/cta maydonlari, Statistic, hero slides, testimonials, popular_courses) e'tiborsiz qoldirgan edi — `home_view` context'ga uzatsa ham template faqat "Qanday ishlaydi?", brend va footer kontaktni dinamik ko'rsatardi. Azurbek to'liq admin nazoratini so'radi (owner admission; demolar ham tahrirlanadigan bo'lsin). Endi rail, hero, demo dashboard, statistika, daraja yo'li, AI repetitor, imtihon, sertifikat va pastki CTA/footer'ning har bir matni admin paneldan boshqariladi.
+
+`LandingPage`ga ~50 yangi maydon (rail, hero kicker/tugma, demo dashboard, bo'lim sarlavhalari, AI/sertifikat demo matnlari, footer) qo'shildi; 3 yangi child model — `LandingLevelStage`, `LandingAIFeature`, `LandingExamSkill` (admin'da tahrir + tartib); `Statistic` animatsiya uchun `numeric_value`/`suffix`/`decimals`/`is_active` bilan kengaytirildi; footer ustunlari mavjud `LandingNavItem` (`footer_*_links`) ga ulandi. Defaultlar joriy ko'rinadigan matnga teng qilib data migratsiyasida seed qilindi — vizual o'zgarish yo'q.
+
+- Branch: `claude/landing-admin-control` (`origin/main`dan)
+- Commitlar: `58c8db6`
+- Migratsiyalar: `0019` (3 model + ~50 AddField, hammasi default bilan — data loss yo'q), `0020` (data seed: singleton hero matnini joriy nusxaga moslaydi + child modellarni seed qiladi + fresh install uchun footer nav; reversible)
+- Test holati: `python manage.py test frontend` — **6/6 OK** (yangi `LandingAdminControlledContentTests`: hero/section text, repeatable modellar, hidden itemlar, footer nav); `python manage.py check` — 0 issues; `makemigrations --check` — No changes. Browser QA (lokal dev server, owner sessiyasi, 800px, light): hero/stats(2,400+ count-up)/how/path(locked=lock icon)/ai(typing)/exam(4 karta)/cert(namuna)/footer — hammasi modeldan render, console xato 0, vizual baseline bilan bir xil.
+- Kontent farqi (kutilgan): footer "Platforma" ustuni endi admin-sozlangan `LandingNavItem`larni ko'rsatadi (Kurslar/Narxlar/Sertifikatlar/Qabul yo'li) — eski hardcoded "AI repetitor" o'rniga.
+- Line-ending: tegilgan `.py`/`.html` fayllar LF'ga normallashtirildi (repo indeksi oldindan mixed CRLF/LF edi), shu sabab xom diff kattaroq (2086/1217); mantiqiy o'zgarish `git diff --ignore-cr-at-eol` bilan ancha kichik (masalan `views.py` atigi 11 qator). `.md` fayllar indeksi LF bo'lgani uchun ular churn qilmadi.
+- Davom etilishi kerak: `main`ga merge qilinmagan (Azurbek qaroriga qoldi). Demo dashboard sidebar navi (Dashboard/Darslar/...) va PATH jadval sarlavhalari (Bosqich/Daraja/Darslar/...) ataylab statik qoldirildi — strukturaviy chrome, kontent emas. Mixed line-ending repo-wide holati alohida masala.
+
 ## 2026-07-24 [Claude Code]: Bo'sh AI chatlar to'planmasin (lazy new chat)
 
 "Yangi suhbat" har bosilganda yangi bo'sh AI xona yaratilib, ro'yxatda to'planib qolardi (ikki marta bossang ikkita keraksiz bo'sh chat). Endi `messenger.access.get_or_create_ai_draft_room` bo'sh (xabarsiz) xona bo'lsa uni qayta ishlatadi — `create_ai_chat` shuni chaqiradi, ko'p bosish ham bitta bo'sh xona bilan cheklanadi. Qo'shimcha: suhbatlar ro'yxati faqat xabarli yoki ayni ochiq turgan xonani ko'rsatadi (`ai.html`da `{% if room.message_count or room.id == active_ai_room_id %}`), bo'sh xona ilk xabardan keyingina ro'yxatda saqlanadi.
