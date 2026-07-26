@@ -149,11 +149,14 @@ class LandingPageForm(forms.ModelForm):
         """Template uchun: har bo'lim + unga tegishli bound field'lar."""
         result = []
         for section in LANDING_SECTIONS:
+            bound_fields = [self[name] for name in section["fields"]]
             result.append({
+                "key": section["key"],
                 "number": section["number"],
                 "title": section["title"],
                 "desc": section["desc"],
                 "anchor": section["anchor"],
-                "fields": [self[name] for name in section["fields"]],
+                "fields": bound_fields,
+                "has_error": any(bf.errors for bf in bound_fields),
             })
         return result

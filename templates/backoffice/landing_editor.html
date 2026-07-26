@@ -5,6 +5,7 @@
 {% block bo_icon %}bi-window-fullscreen{% endblock %}
 {% block bo_topbar %}Bosh sahifa (landing) boshqaruvi{% endblock %}
 {% block page_css %}<link rel="stylesheet" href="{% static 'css/landing-control.css' %}">{% endblock %}
+{% block page_js %}<script defer src="{% static 'js/landing-editor.js' %}"></script>{% endblock %}
 
 {% block bo_content %}
 <section class="lc-hero">
@@ -22,7 +23,7 @@
     {% if form.non_field_errors %}<div class="lc-errors">{{ form.non_field_errors }}</div>{% endif %}
 
     {% for section in form.sections %}
-    <section class="lc-panel" id="lc-{{ section.anchor|default:'footer' }}">
+    <section class="lc-panel lc-section" data-lc-section="{{ section.key }}"{% if section.has_error %} data-lc-error="1"{% endif %} id="lc-{{ section.key }}">
       <div class="lc-panel-head">
         <span class="lc-num">{{ section.number }}</span>
         <div class="lc-panel-title">
@@ -66,7 +67,7 @@
       <span class="lc-kicker">BO'LIMLAR</span>
       <nav class="lc-toc">
         {% for section in form.sections %}
-        <a href="#lc-{{ section.anchor|default:'footer' }}"><span>{{ section.number }}</span>{{ section.title }}</a>
+        <button type="button" class="lc-toc-item" data-lc-target="{{ section.key }}"{% if section.has_error %} data-lc-error="1"{% endif %}><span class="lc-toc-num">{{ section.number }}</span><span class="lc-toc-label">{{ section.title }}</span>{% if section.has_error %}<span class="lc-toc-dot" title="Xatolik bor"></span>{% endif %}</button>
         {% endfor %}
       </nav>
     </section>

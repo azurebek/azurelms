@@ -31,11 +31,21 @@ textarea.lc-input{resize:vertical;min-height:64px}
 .lc-save{display:inline-flex;align-items:center;justify-content:center;gap:8px;margin-top:15px;height:42px;border:0;border-radius:10px;background:var(--azure);color:var(--on-azure);font-size:13px;font-weight:650;padding:0 18px;cursor:pointer}
 .lc-errors{border:1px solid var(--red);border-radius:11px;padding:12px;background:color-mix(in srgb,var(--red) 8%,transparent);color:var(--red);font-size:12px}
 
+/* Tab rejimi: JS `lc-tabbed` qo'shsa faqat aktiv bo'lim ko'rinadi.
+   JS ishlamasa hamma bo'lim ko'rinadi (graceful degradation). */
+.lc-tabbed .lc-section{display:none}
+.lc-tabbed .lc-section.is-active{display:block;animation:lcFade .18s ease}
+@keyframes lcFade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
 .lc-nav-jump{position:sticky;top:0}
 .lc-toc{display:flex;flex-direction:column;gap:2px;margin-top:12px}
-.lc-toc a{display:flex;align-items:center;gap:10px;padding:7px 9px;border-radius:8px;font-size:12.5px;color:var(--ink-2)}
-.lc-toc a:hover{background:var(--paper-2);color:var(--ink)}
-.lc-toc a span{font-family:'Space Mono',monospace;font-size:10px;color:var(--ink-4)}
+.lc-toc-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:8px 10px;border:0;border-radius:8px;background:transparent;font:inherit;font-size:12.5px;color:var(--ink-2);cursor:pointer}
+.lc-toc-item:hover{background:var(--paper-2);color:var(--ink)}
+.lc-toc-item.is-active{background:var(--azure-soft);color:var(--azure);font-weight:600}
+.lc-toc-num{font-family:'Space Mono',monospace;font-size:10px;color:var(--ink-4)}
+.lc-toc-item.is-active .lc-toc-num{color:var(--azure)}
+.lc-toc-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lc-toc-dot{width:6px;height:6px;border-radius:50%;background:var(--red);flex:0 0 auto}
 
 .lc-audit article{padding:11px 0;border-bottom:1px solid var(--line-2)}
 .lc-audit article:last-child{border:0}
