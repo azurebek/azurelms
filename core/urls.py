@@ -48,6 +48,7 @@ urlpatterns = [
     path('maintenance/', core_views.maintenance, name='maintenance'),
     path('offline/', core_views.offline, name='offline'),
     path('backoffice/control/brand/', core_views.backoffice_brand, name='backoffice_brand'),
+    path('backoffice/landing/', core_views.backoffice_landing, name='backoffice_landing'),
     path('backoffice/control/', core_views.backoffice_control, name='backoffice_control'),
     path('backoffice/', core_views.backoffice_dashboard, name='backoffice_dashboard'),
     path('backoffice/users/', core_views.backoffice_users, name='backoffice_users'),

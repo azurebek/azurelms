@@ -18,7 +18,7 @@ from courses.models import Course, Exam, ExamSection, Lesson, LessonProgress, Mo
 from messenger.models import ChatRoom, Message
 from messenger.rag import get_rag_index_status
 from subscriptions.models import PromoCode
-from frontend.models import SiteSettings
+from frontend.models import LandingPage, SiteSettings
 
 from .backoffice_forms import (
     CourseBackofficeForm,
@@ -27,6 +27,7 @@ from .backoffice_forms import (
     LessonBackofficeForm,
 )
 from .brand_forms import BrandSettingsForm
+from .landing_forms import LandingPageForm
 from .control_center import build_control_center_snapshot
 
 
@@ -155,6 +156,52 @@ def backoffice_brand(request):
         ).select_related("user")[:8],
     }
     return render(request, "backoffice/brand_control.html", context)
+
+
+@login_required
+@user_passes_test(_is_control_center_owner)
+def backoffice_landing(request):
+    """Owner-only bosh sahifa (landing) matn editori."""
+    landing = LandingPage.load()
+    if request.method == "POST":
+        form = LandingPageForm(request.POST, instance=landing)
+        if form.is_valid():
+            changed_fields = form.changed_landing_fields
+            if changed_fields:
+                with transaction.atomic():
+                    landing = form.save()
+                    field_labels = [form.fields[name].label for name in changed_fields]
+                    reason = form.cleaned_data["change_reason"].strip()
+                    LogEntry.objects.log_actions(
+                        user_id=request.user.pk,
+                        queryset=LandingPage.objects.filter(pk=landing.pk),
+                        action_flag=CHANGE,
+                        change_message=(
+                            f"Bosh sahifa yangilandi: {', '.join(field_labels)}. "
+                            f"Sabab: {reason}"
+                        ),
+                        single_object=True,
+                    )
+                messages.success(request, "Bosh sahifa yangilandi. O'zgarishlar saytda darhol ko'rinadi.")
+            else:
+                messages.info(request, "Bosh sahifa qiymatlarida o'zgarish topilmadi; hech narsa yozilmadi.")
+            return redirect("backoffice_landing")
+    else:
+        form = LandingPageForm(instance=landing)
+
+    content_type = ContentType.objects.get_for_model(LandingPage)
+    context = {
+        "active_nav": "backoffice",
+        "bo_active": "landing",
+        "counts": {},
+        "form": form,
+        "recent_landing_changes": LogEntry.objects.filter(
+            content_type=content_type,
+            object_id=str(landing.pk),
+            action_flag=CHANGE,
+        ).select_related("user")[:8],
+    }
+    return render(request, "backoffice/landing_editor.html", context)
 
 
 @login_required

@@ -1,0 +1,82 @@
+{% extends "backoffice/base.html" %}
+{% load static %}
+
+{% block bo_title %}Bosh sahifa{% endblock %}
+{% block bo_icon %}bi-window-fullscreen{% endblock %}
+{% block bo_topbar %}Bosh sahifa (landing) boshqaruvi{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/landing-control.css' %}">{% endblock %}
+
+{% block bo_content %}
+<section class="lc-hero">
+  <div>
+    <span class="lc-kicker">SINGLE SOURCE OF TRUTH</span>
+    <h1>Bosh sahifa matnlari</h1>
+    <p>Bu yerdagi har bir maydon to'g'ridan-to'g'ri saytning bosh sahifasida (<code>/</code>) ko'rinadi. Ro'yxatlar (statistika, daraja bosqichlari, AI xususiyatlari, imtihon kartalari) keyingi bosqichda shu panelga qo'shiladi.</p>
+  </div>
+  <a class="lc-back" href="/" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i> Saytni ko'rish</a>
+</section>
+
+<div class="lc-layout">
+  <form class="lc-form" method="post" onsubmit="return confirm('Bosh sahifa o‘zgarishlarini saqlaysizmi? Sayt darhol yangilanadi.');">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="lc-errors">{{ form.non_field_errors }}</div>{% endif %}
+
+    {% for section in form.sections %}
+    <section class="lc-panel" id="lc-{{ section.anchor|default:'footer' }}">
+      <div class="lc-panel-head">
+        <span class="lc-num">{{ section.number }}</span>
+        <div class="lc-panel-title">
+          <h2>{{ section.title }}</h2>
+          <p>{{ section.desc }}</p>
+        </div>
+        <a class="lc-jump" href="/{% if section.anchor %}#{{ section.anchor }}{% endif %}" target="_blank" rel="noopener" title="Sahifada ko'rish"><i class="bi bi-arrow-up-right-circle"></i> Ko'rish</a>
+      </div>
+      <div class="lc-fields">
+        {% for field in section.fields %}
+        <label class="lc-field{% if field.field.widget.input_type == 'checkbox' %} lc-field--check{% endif %}">
+          <span class="lc-label">{{ field.label }}</span>
+          {{ field }}
+          {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+          {% for error in field.errors %}<em class="lc-error">{{ error }}</em>{% endfor %}
+        </label>
+        {% endfor %}
+      </div>
+    </section>
+    {% endfor %}
+
+    <section class="lc-panel lc-approval">
+      <div class="lc-panel-head">
+        <span class="lc-num">✓</span>
+        <div class="lc-panel-title"><h2>Tasdiq va audit</h2><p>Har saqlash owner, vaqt va sabab bilan audit jurnaliga yoziladi.</p></div>
+      </div>
+      <label class="lc-field">
+        <span class="lc-label">{{ form.change_reason.label }}</span>
+        {{ form.change_reason }}
+        <small>{{ form.change_reason.help_text }}</small>
+        {% for error in form.change_reason.errors %}<em class="lc-error">{{ error }}</em>{% endfor %}
+      </label>
+      <label class="lc-confirm">{{ form.confirm_change }} <span>{{ form.confirm_change.label }}</span></label>
+      {% for error in form.confirm_change.errors %}<em class="lc-error">{{ error }}</em>{% endfor %}
+      <button class="lc-save" type="submit"><i class="bi bi-check2-circle"></i> Bosh sahifani saqlash</button>
+    </section>
+  </form>
+
+  <aside class="lc-side">
+    <section class="lc-panel lc-nav-jump">
+      <span class="lc-kicker">BO'LIMLAR</span>
+      <nav class="lc-toc">
+        {% for section in form.sections %}
+        <a href="#lc-{{ section.anchor|default:'footer' }}"><span>{{ section.number }}</span>{{ section.title }}</a>
+        {% endfor %}
+      </nav>
+    </section>
+
+    <section class="lc-panel lc-audit">
+      <span class="lc-kicker">SO'NGGI O'ZGARISHLAR</span>
+      {% for entry in recent_landing_changes %}
+        <article><strong>{{ entry.user.get_full_name|default:entry.user.username }}</strong><time>{{ entry.action_time|date:"d.m.Y H:i" }}</time><p>{{ entry.change_message }}</p></article>
+      {% empty %}<p class="lc-empty">Hali bosh sahifa o'zgarishi yozilmagan.</p>{% endfor %}
+    </section>
+  </aside>
+</div>
+{% endblock %}
