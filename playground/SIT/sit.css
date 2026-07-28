@@ -154,6 +154,17 @@ img{max-width:100%;display:block}
 .rec-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--panel);font-size:13px}
 .rec-item b{font-size:13px}
 
+/* Announcements (e'lonlar) */
+.ann-list{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ann{display:flex;gap:14px;padding:15px;border:1px solid var(--line);border-radius:13px;background:var(--panel);transition:border-color .2s,transform .2s}
+.ann:hover{border-color:color-mix(in srgb,var(--azure) 40%,var(--line));transform:translateY(-1px)}
+.ann-date{flex:0 0 auto;width:52px;text-align:center;padding:9px 0;border-radius:10px;background:var(--azure-soft);color:var(--azure);height:fit-content}
+.ann-date b{display:block;font-size:20px;font-weight:700;line-height:1}
+.ann-date small{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase}
+.ann-body h4{font-size:14.5px;font-weight:600;margin:8px 0 5px;line-height:1.32}
+.ann-body p{font-size:12.5px;color:var(--ink-3);margin:0;display:flex;align-items:center;gap:6px}
+@media(max-width:680px){.ann-list{grid-template-columns:1fr}}
+
 /* Steps */
 .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
 .step{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:18px}
