@@ -31,6 +31,9 @@ urlpatterns = [
 
     # Public blog
     path('blog/', include(('blog.urls', 'blog'), namespace='blog')),
+
+    # Study in Turkey portal
+    path('sit/', include(('sit.urls', 'sit'), namespace='sit')),
     
     # Cohorts / Checkout
     path('checkout/', include('cohorts.urls', namespace='cohorts')),

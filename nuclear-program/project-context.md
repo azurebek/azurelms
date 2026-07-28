@@ -10,7 +10,7 @@ Source of truth har doim **kod** (model/view/task/URL/test). Bu fayl kodga mosla
 
 ## 1. Mahsulot xulosasi
 
-**AzureLMS** — o'zbek tilida turk tili o'rgatishga qaratilgan Learning Management System. Klassik kurs/dars oqimini real-time messenger, AI tutor, RAG, memory, exam, subscription, Telegram attendance va yashirin backoffice boshqaruvi bilan birlashtiradi.
+**AzureLMS** — o'zbek tilida turk tili o'rgatishga qaratilgan Learning Management System. Klassik kurs/dars oqimini real-time messenger, AI tutor, RAG, memory, exam, subscription, Telegram attendance, Study in Turkey (SIT) portali va yashirin backoffice boshqaruvi bilan birlashtiradi.
 
 **Joriy workspace:** `C:\Users\azurb\azurelms` (Windows)
 **Asosiy branch:** `main` (yagona integratsiya trunk'i)
@@ -223,6 +223,18 @@ ai/
 
 **Asosiy modellar:** `BlogHomeSettings`, `BlogTag`, `BlogPost`, `BlogPostRead`, `BlogPostClap`, `BlogComment`, `BlogCommentLike`
 
+### `sit`
+
+**Mas'uliyat:** Study in Turkey public portali — Turkiya universitetlari katalogi, fakultet/dastur/kontrakt ma'lumotlari, qabul holati, hujjatlar, e'lonlar va bilim bazasi.
+
+**Asosiy modellar:**
+- `University` — universitet identity, shahar/tur, qabul holati, kontrakt minimumi, nashr va source verification
+- `UniversityFaculty` → `UniversityProgram` — fakultet, daraja, ta'lim tili, davomiylik va kontrakt
+- `UniversityPreparationCourse`, `UniversityRequirement`, `UniversityDocument`, `UniversityServiceItem`, `UniversityMedia`
+- `Announcement`, `KnowledgeArticle`
+
+**Public contract:** faqat `is_published=True` universitet va qo'llanmalar ko'rinadi. Nashr qilish uchun rasmiy `source_url` va `last_verified_on` majburiy; bu vaqtga sezgir qabul/narx ma'lumotini manbasiz chiqarishni bloklaydi. Katalog `q`, universitet turi, shahar, til, daraja, narx va qabul holati bo'yicha server-side filter qiladi. Prototip `playground/SIT/`da referens sifatida qoladi; runtime `templates/sit/`, `static/css/sit.css`, `static/js/sit-theme.js`.
+
 ### `bot`
 
 **Mas'uliyat:** Telegram webhook/polling, account linking, student workspace, attendance, lesson/assignment/quiz oqimlari, payment receipt, notification outbox, AI va Mini App adapterlari.
@@ -390,7 +402,15 @@ Access helper: `core.views._is_backoffice_user`. Legacy `/admin/` faqat `ENABLE_
 
 **Joriy permission cheklovi:** `_is_backoffice_user` `is_staff` yoki `is_superuser`ni qabul qiladi; AI global control ham shu gate ortida. `/backoffice/control/` esa alohida `_is_control_center_owner` orqali faqat active `is_superuser`ga ochiladi va hozir read-only. Teacher'ga explicit course biriktirilmagan bo'lsa teacher query hozir barcha kurslarni qaytarishi mumkin; default-deny teacher scope hali maqsad.
 
-### 4.11 Maqsad operatsion arxitektura — foundation mavjud, control plane tugamagan
+### 4.11 Study in Turkey (SIT)
+
+1. Visitor `/sit/`da real published universitetlar, e'lonlar va qo'llanmalarni ko'radi.
+2. `/sit/universities/` katalogi GET filterlari bilan universitetlarni server-side saralaydi; default qabul holati `open`.
+3. `/sit/universities/<slug>/` universitet, fakultet/dastur, tayyorlov kursi, talab/hujjat/xizmat va media bloklarini bitta detailda beradi.
+4. Har public universitet va qo'llanmada rasmiy manba hamda oxirgi tekshirilgan sana ko'rinadi.
+5. Hujjat topshirish CTA login qilingan userni tutor messengerga, AI CTA esa mavjud Azure AI messengerga olib boradi. Alohida SIT AI retrieval va payment/help lifecycle keyingi slice.
+
+### 4.12 Maqsad operatsion arxitektura — foundation mavjud, control plane tugamagan
 
 Owner-only Azure Control Center'ning read-only registry/snapshot qatlami joriy URL xaritasiga qo'shildi. Mutation/audit/flag/release qatlamlari, canonical lesson/enrollment state machine'lari, private media, broker fail-fast va CI/release gates rejasi `launch-plan/02-yol-xarita.md`, `03-mahsulot-backlog.md` va `05-launch-ops.md`da qoladi. Ular kod, migration, test va browser/production evidence tugamaguncha mavjud capability hisoblanmaydi.
 
@@ -677,6 +697,15 @@ Mini App sahifalari `templates/bot/miniapp_base.html` mobil shellini ulashadi. T
 | `/blog/studio/<slug>/edit/` | `blog:studio_edit` |
 | `/blog/<slug>/` | `blog:detail` |
 
+### Study in Turkey
+
+| URL | Name |
+|---|---|
+| `/sit/` | `sit:home` |
+| `/sit/universities/` | `sit:university_list` |
+| `/sit/universities/<slug>/` | `sit:university_detail` |
+| `/sit/guides/<slug>/` | `sit:knowledge_detail` |
+
 ### Backoffice + Exam shell
 
 | URL | Name |
@@ -846,6 +875,7 @@ Bu bandlar joriy capability emas, P0 stop-ship backlog. Yopilgan har band kod/te
 | Dashboard | `users/views.py`, `templates/users/dashboard.html`, `app.css`/`app-shell.css` |
 | Backoffice | `core/views.py`, `templates/backoffice/`, `backoffice-*.css` |
 | Blog | `blog/models.py`, `blog/views.py`, `templates/blog/`, blog CSS |
+| Study in Turkey | `sit/models.py`, `sit/selectors.py`, `sit/views.py`, `templates/sit/`, `static/css/sit.css` |
 | Telegram | `bot/`, `messenger/tasks.send_telegram_notification`, `cohorts.Attendance` |
 | Deployment | `core/settings.py`, `core/celery.py`, `Dockerfile`, `Procfile` |
 
@@ -888,7 +918,8 @@ python manage.py test users.tests.DashboardProgressTests
 4. **`@azure` mention:** AI bo'lmagan xonada xabarda `@azure` so'zi bo'lsa, AI ham javob beradi.
 5. **AI memory toggling:** Foydalanuvchi `ai_memory_enabled=False` qilsa, `MemoryService` to'liq disable (extract ham, retrieve ham).
 6. **YouTube embed:** owner embed bloklasa platforma majburlab ocholmaydi — fallback UX kelajakda kerak bo'lishi mumkin.
-7. **`.gitignore`:** `.claude/`, `.tools/`, `.codex/`, `__pycache__/`, `*.pyc`, `db.sqlite3`, `media/`, `venv/`, `.env`.
+7. **SIT data gate:** qabul, narx va viza kabi vaqtga sezgir public ma'lumot `source_url` va `last_verified_on`siz nashr qilinmaydi. `playground/SIT/` runtime emas.
+8. **`.gitignore`:** `.claude/`, `.tools/`, `.codex/`, `__pycache__/`, `*.pyc`, `db.sqlite3`, `media/`, `venv/`, `.env`.
 
 ---
 

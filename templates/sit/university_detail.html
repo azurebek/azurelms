@@ -1,0 +1,190 @@
+{% extends "sit/base.html" %}
+
+{% block title %}{{ university.name }}{% endblock %}
+{% block meta_description %}{{ university.description|truncatechars:240 }}{% endblock %}
+
+{% block content %}
+<section class="section detail-section">
+  <div class="wrap">
+    {% if is_preview %}<div class="preview-banner">PREVIEW · bu universitet hali nashr etilmagan</div>{% endif %}
+    <div class="breadcrumbs">
+      <a href="{% url 'sit:university_list' %}">Universitetlar</a>
+      <i class="bi bi-chevron-right"></i> {{ university.city }}
+      <i class="bi bi-chevron-right"></i> {{ university.short_name }}
+    </div>
+
+    <div class="uni-hero">
+      <div class="uni-hero-cover uni-cover--{{ university.cover_theme }}">
+        {% if university.cover_image %}<img class="uni-cover-image" src="{{ university.cover_image.url }}" alt="">{% endif %}
+      </div>
+      <div class="uni-hero-body">
+        <div class="uni-hero-logo">
+          {% if university.logo_image %}<img src="{{ university.logo_image.url }}" alt="{{ university.short_name }}">{% else %}{{ university.short_name }}{% endif %}
+        </div>
+        <div class="uni-hero-main">
+          <span class="badge {{ university.admission_badge_class }}">
+            <span class="dot"></span> {{ university.get_admission_status_display }}
+            {% if university.admission_deadline %} · {{ university.admission_deadline|date:"d.m.Y" }} gacha{% endif %}
+          </span>
+          <h1>{{ university.name }}</h1>
+          <div class="uni-city">
+            <i class="bi bi-geo-alt"></i> {{ university.city }} · {{ university.get_university_type_display }} universiteti
+            {% if university.founded_year %} · {{ university.founded_year }}-yildan{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-grid">
+      <div>
+        <section class="panel">
+          <h2><i class="bi bi-info-circle accent"></i> Umumiy ma'lumot</h2>
+          <p class="prose">{{ university.description|linebreaksbr|default:"Universitet haqida ma'lumot tayyorlanmoqda." }}</p>
+          <div class="facts">
+            <div class="fact"><small>Ta'lim tili</small><b>{{ university.language_summary }}</b></div>
+            <div class="fact"><small>Joylashuv</small><b>{{ university.location_detail|default:university.city }}</b></div>
+            <div class="fact"><small>Turi</small><b>{{ university.get_university_type_display }}</b></div>
+            <div class="fact"><small>Talabalar</small><b>{% if university.student_count %}{{ university.student_count }}{% else %}Aniqlanmoqda{% endif %}</b></div>
+          </div>
+          {% if university.official_website %}
+            <a class="official-link" href="{{ university.official_website }}" rel="noopener noreferrer" target="_blank">
+              Rasmiy sayt <i class="bi bi-box-arrow-up-right"></i>
+            </a>
+          {% endif %}
+          <div class="source-note">
+            <i class="bi bi-patch-check"></i>
+            <span>{{ university.last_verified_on|date:"d.m.Y" }} kuni tekshirilgan</span>
+            <a href="{{ university.source_url }}" rel="noopener noreferrer" target="_blank">Manba <i class="bi bi-box-arrow-up-right"></i></a>
+          </div>
+        </section>
+
+        {% if program_sections %}
+        <section class="panel">
+          <h2><i class="bi bi-mortarboard accent"></i> Dasturlar va kontrakt</h2>
+          <div class="ltabs">
+            {% for section in program_sections %}
+              <input type="radio" name="lvl" id="lvl-{{ section.value }}"{% if forloop.first %} checked{% endif %}>
+            {% endfor %}
+            <div class="ltab-bar">
+              {% for section in program_sections %}<label for="lvl-{{ section.value }}">{{ section.label }}</label>{% endfor %}
+            </div>
+            {% for section in program_sections %}
+              <div class="ltab-panel" data-lvl="{{ section.value }}">
+                <div class="table-scroll">
+                  <table class="ptable">
+                    <thead><tr><th>Yo'nalish</th><th>Muddat</th><th>Kontrakt/yil</th><th>Til</th></tr></thead>
+                    <tbody>
+                      {% for group in section.faculty_groups %}
+                        <tr class="fac"><td colspan="4">{{ group.faculty.name }}</td></tr>
+                        {% for program in group.programs %}
+                          <tr>
+                            <td>{{ program.name }}</td>
+                            <td>{{ program.duration }}</td>
+                            <td class="price">{{ program.display_tuition }}</td>
+                            <td class="lang">{{ program.get_language_display }}</td>
+                          </tr>
+                        {% endfor %}
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </section>
+        {% endif %}
+
+        {% if university.visible_preparation_courses %}
+        <section class="panel">
+          <h2><i class="bi bi-translate accent"></i> Til tayyorlov kursi</h2>
+          <div class="table-scroll">
+            <table class="ptable">
+              <thead><tr><th>Til</th><th>Kontrakt/yil</th><th>Davomiylik</th></tr></thead>
+              <tbody>
+                {% for course in university.visible_preparation_courses %}
+                  <tr><td>{{ course.language }}</td><td class="price">{{ course.display_tuition }}</td><td class="lang">{{ course.duration }}</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="prep-note">
+            <i class="bi bi-lightbulb accent"></i>
+            <div><b>Tayyorlov narxini tejang.</b> Turk tilini oldindan AzureLMS'da o'rganib, tayyorlov talabini bajarishga tayyorlaning.</div>
+            <a class="btn btn-primary btn-sm" href="{% url 'courses' %}">AzureLMS kurslari</a>
+          </div>
+        </section>
+        {% endif %}
+
+        {% if university.visible_requirements %}
+        <section class="panel">
+          <h2><i class="bi bi-check2-square accent"></i> Qabul talablari</h2>
+          <ul class="docs">
+            {% for item in university.visible_requirements %}<li><i class="bi bi-check-circle-fill"></i> {{ item.text }}</li>{% endfor %}
+          </ul>
+        </section>
+        {% endif %}
+
+        {% if university.visible_required_documents %}
+        <section class="panel">
+          <h2><i class="bi bi-folder2-open accent"></i> Kerakli hujjatlar</h2>
+          <ul class="docs">
+            {% for item in university.visible_required_documents %}<li><i class="bi bi-file-earmark-text"></i> {{ item.text }}</li>{% endfor %}
+          </ul>
+        </section>
+        {% endif %}
+
+        {% if university.visible_service_items %}
+        <section class="panel">
+          <h2><i class="bi bi-hand-thumbs-up accent"></i> Yordam xizmati nimalarni o'z ichiga oladi</h2>
+          <ul class="docs">
+            {% for item in university.visible_service_items %}<li><i class="bi bi-check-circle-fill"></i> {{ item.text }}</li>{% endfor %}
+          </ul>
+        </section>
+        {% endif %}
+
+        {% if university.visible_media_items %}
+        <section class="panel">
+          <h2><i class="bi bi-play-btn accent"></i> Video va galereya</h2>
+          <div class="media-grid">
+            {% for media in university.visible_media_items %}
+              {% if media.media_type == "image" %}
+                <figure class="media-item">{% if media.image %}<img src="{{ media.image.url }}" alt="{{ media.caption }}">{% endif %}</figure>
+              {% else %}
+                <a class="media-item" href="{{ media.video_url }}" target="_blank" rel="noopener noreferrer" aria-label="{{ media.caption|default:'Videoni ochish' }}"><i class="bi bi-play-circle"></i></a>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </section>
+        {% endif %}
+      </div>
+
+      <aside>
+        {% if university.application_help_enabled %}
+        <div class="help-card" id="help">
+          <div class="eyebrow">Yordam xizmati</div>
+          <h3>Hujjat topshirishga yordam</h3>
+          <p>Ariza, hujjat tayyorlash va topshirish jarayonini mutaxassis bilan messenger orqali olib boring.</p>
+          <div class="help-price"><b>{{ university.display_help_fee }}</b></div>
+          <p class="help-copy">Boshlang'ich to'lov yakuniy xizmat narxidan chegiriladi.</p>
+          {% if request.user.is_authenticated %}
+            <a class="btn btn-primary btn-block" href="{% url 'messenger:tutor' %}"><i class="bi bi-chat-dots"></i> Yordam olishni boshlash</a>
+          {% else %}
+            <a class="btn btn-primary btn-block" href="{% url 'login' %}?next={{ request.path|urlencode }}"><i class="bi bi-box-arrow-in-right"></i> Kirish va boshlash</a>
+          {% endif %}
+          <div class="help-note"><i class="bi bi-shield-check"></i> Davom etish uchun hisobga kirish kerak</div>
+          <div class="help-note"><i class="bi bi-stars"></i> Avval AI maslahatchidan bepul so'rab ko'ring</div>
+        </div>
+        {% endif %}
+
+        <div class="panel admission-panel">
+          <div class="eyebrow">Qabul holati</div>
+          <div class="status-row"><span>Holat</span><span class="badge {{ university.admission_badge_class }}"><span class="dot"></span> {{ university.get_admission_status_display }}</span></div>
+          <div class="status-row"><span>Muddat</span><b class="mono">{% if university.admission_deadline %}{{ university.admission_deadline|date:"d.m.Y" }}{% else %}Aniqlanmagan{% endif %}</b></div>
+          <div class="status-row"><span>O'quv yili</span><b class="mono">{{ university.academic_year|default:"Aniqlanmagan" }}</b></div>
+          <div class="status-row"><span>Tekshirildi</span><b class="mono">{{ university.last_verified_on|date:"d.m.Y" }}</b></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+{% endblock %}

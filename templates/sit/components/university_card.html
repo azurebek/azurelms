@@ -1,0 +1,29 @@
+<a class="uni-card" href="{{ university.get_absolute_url }}">
+  <div class="uni-cover uni-cover--{{ university.cover_theme }}">
+    {% if university.cover_image %}
+      <img class="uni-cover-image" src="{{ university.cover_image.url }}" alt="">
+    {% endif %}
+    <span class="badge {{ university.admission_badge_class }}">
+      <span class="dot"></span> {{ university.get_admission_status_display }}
+    </span>
+    <span class="uni-logo">
+      {% if university.logo_image %}
+        <img src="{{ university.logo_image.url }}" alt="{{ university.short_name }}">
+      {% else %}
+        {{ university.short_name }}
+      {% endif %}
+    </span>
+  </div>
+  <div class="uni-body">
+    <h3>{{ university.name }}</h3>
+    <div class="uni-city"><i class="bi bi-geo-alt"></i> {{ university.city }} · {{ university.get_university_type_display }}</div>
+    <div class="uni-meta">
+      <span class="chip"><i class="bi bi-translate"></i> {{ university.language_summary }}</span>
+      <span class="chip"><i class="bi bi-mortarboard"></i> {{ university.degree_summary }}</span>
+    </div>
+    <div class="uni-foot">
+      <div class="uni-price"><small>Kontrakt / yil</small><b>{{ university.display_tuition_from }}</b></div>
+      <span class="btn btn-ghost btn-sm">Batafsil</span>
+    </div>
+  </div>
+</a>

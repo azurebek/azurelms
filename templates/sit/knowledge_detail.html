@@ -1,0 +1,23 @@
+{% extends "sit/base.html" %}
+
+{% block title %}{{ article.title }}{% endblock %}
+{% block meta_description %}{{ article.excerpt }}{% endblock %}
+
+{% block content %}
+<article class="section article-page">
+  <div class="article-wrap">
+    {% if is_preview %}<div class="preview-banner">PREVIEW · bu qo'llanma hali nashr etilmagan</div>{% endif %}
+    <a class="back-link" href="{% url 'sit:home' %}#kb"><i class="bi bi-arrow-left"></i> Bilim bazasi</a>
+    <div class="eyebrow">{{ article.category }}</div>
+    <h1>{{ article.title }}</h1>
+    {% if article.excerpt %}<p class="article-lead">{{ article.excerpt }}</p>{% endif %}
+    {% if article.cover_image %}<img class="article-cover" src="{{ article.cover_image.url }}" alt="">{% endif %}
+    <div class="article-body">{{ article.body|safe }}</div>
+    <div class="source-note article-source">
+      <i class="bi bi-patch-check"></i>
+      <span>{{ article.last_verified_on|date:"d.m.Y" }} kuni tekshirilgan</span>
+      <a href="{{ article.source_url }}" rel="noopener noreferrer" target="_blank">Asosiy manba <i class="bi bi-box-arrow-up-right"></i></a>
+    </div>
+  </div>
+</article>
+{% endblock %}

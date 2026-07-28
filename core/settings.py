@@ -158,6 +158,7 @@ INSTALLED_APPS = [
     'subscriptions',
     'frontend',
     'blog',
+    'sit',
     'bot',
     'corsheaders',
     'nested_admin',

@@ -32,6 +32,11 @@ Django 6 · Channels (WebSocket) · Celery · DigitalOcean Gradient AI (llama-4-
 ### 🛡 Backoffice (`/backoffice/`)
 - Platforma holati (KPI, kutilayotgan to'lovlar, AI RAG index holati), foydalanuvchilar, chat monitoring, kurs/dars/imtihon muharrirlari
 
+### 🎓 Study in Turkey (`/sit/`)
+- Turkiya universitetlari katalogi, fakultet va dasturlar, kontrakt narxlari, qabul talablari, hujjatlar, e'lonlar va qo'llanmalar
+- Shahar, universitet turi, ta'lim tili, daraja, narx va qabul holati bo'yicha server-side filter
+- Public qabul/narx ma'lumotlari rasmiy manba va oxirgi tekshirilgan sanasiz nashr qilinmaydi
+
 ### 💬 Messenger
 - AI / guruh / tutor chatlari — WebSocket real-time, fayl almashish (rasm preview bilan), AI javoblariga feedback + qayta-generatsiya
 
@@ -84,13 +89,14 @@ python manage.py test ai.documents courses core.tests.TeacherPanelTests   # nuqt
 | `messenger/` | Chat (WebSocket), AI xonalari, Smart Form sessiyalari |
 | `ai/` | **AI qatlami**: agent engine, skill registry, prompt builder, RAG, xotira, provayderlar (DO/Gemini), `documents/` (PDF/rasm/SVG) |
 | `subscriptions/`, `blog/`, `gamification/`, `bot/` | Tariflar, blog+studiya, XP/nishonlar, Telegram bot |
+| `sit/` | Study in Turkey universitet katalogi, dasturlar, qabul ma'lumotlari va bilim bazasi |
 | `core/` | Sozlamalar, backoffice va teacher panel view'lari |
 | `templates/`, `static/` | Yagona dizayn tizimi (shell'lar: public/app/teacher/admin/exam) |
 
 ## Hujjatlar (agentlar va hissa qo'shuvchilar uchun)
 
 - **`AGENTS.md`** — AI-agentlar uchun kirish nuqtasi (birinchi shuni o'qing)
-- **`nuclear-program/project-context.md`** — arxitektura wiki (10 app, oqimlar, data model)
+- **`nuclear-program/project-context.md`** — arxitektura wiki (Django applar, oqimlar, data model)
 - **`nuclear-program/rules-for-agents.md`** — ish qoidalari (branch/commit/test tartibi)
 - **`nuclear-program/marinebook.md`** — loyiha kundaligi (har major ish yozib boriladi)
 

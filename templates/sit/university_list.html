@@ -1,0 +1,84 @@
+{% extends "sit/base.html" %}
+
+{% block title %}Universitetlar{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="wrap">
+    <div class="eyebrow catalog-count">Katalog · {{ result_count }} universitet</div>
+    <h1 class="page-title">Turkiya universitetlari</h1>
+
+    <form class="filters" method="get">
+      <label class="search">
+        <i class="bi bi-search"></i>
+        <input name="q" value="{{ filters.q }}" placeholder="Universitet yoki shahar qidiring…">
+      </label>
+      <select class="select" name="type" aria-label="Universitet turi">
+        <option value="">Turi: barchasi</option>
+        {% for value, label in university_types %}
+          <option value="{{ value }}"{% if filters.type == value %} selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <select class="select" name="city" aria-label="Shahar">
+        <option value="">Shahar: barchasi</option>
+        {% for city in cities %}
+          <option value="{{ city }}"{% if filters.city == city %} selected{% endif %}>{{ city }}</option>
+        {% endfor %}
+      </select>
+      <select class="select" name="language" aria-label="Ta'lim tili">
+        <option value="">Til: barchasi</option>
+        {% for value, label in languages %}
+          <option value="{{ value }}"{% if filters.language == value %} selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <select class="select" name="level" aria-label="Ta'lim darajasi">
+        <option value="">Daraja: barchasi</option>
+        {% for value, label in degree_levels %}
+          <option value="{{ value }}"{% if filters.level == value %} selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <select class="select" name="price" aria-label="Kontrakt narxi">
+        <option value="">Narx: barchasi</option>
+        <option value="under_1000"{% if filters.price == "under_1000" %} selected{% endif %}>$1 000 gacha</option>
+        <option value="1000_2000"{% if filters.price == "1000_2000" %} selected{% endif %}>$1 000–2 000</option>
+        <option value="over_2000"{% if filters.price == "over_2000" %} selected{% endif %}>$2 000+</option>
+      </select>
+      <select class="select" name="status" aria-label="Qabul holati">
+        <option value="all"{% if filters.status == "all" %} selected{% endif %}>Qabul: hammasi</option>
+        {% for value, label in admission_statuses %}
+          <option value="{{ value }}"{% if filters.status == value %} selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <button class="btn btn-primary btn-sm" type="submit">Filtrlash</button>
+      <a class="btn btn-ghost btn-sm" href="{% url 'sit:university_list' %}">Tozalash</a>
+    </form>
+
+    {% if universities %}
+      <div class="grid grid-3">
+        {% for university in universities %}
+          {% include "sit/components/university_card.html" %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <i class="bi bi-search"></i>
+        <h3>Mos universitet topilmadi</h3>
+        <p>Filtrlarni yengillashtirib yoki qidiruv matnini o'zgartirib ko'ring.</p>
+        <a class="btn btn-ghost btn-sm" href="{% url 'sit:university_list' %}">Barcha universitetlar</a>
+      </div>
+    {% endif %}
+
+    {% if page_obj.paginator.num_pages > 1 %}
+      <nav class="pagination" aria-label="Katalog sahifalari">
+        {% if page_obj.has_previous %}
+          <a class="btn btn-ghost btn-sm" href="?{{ request.GET.urlencode }}&page={{ page_obj.previous_page_number }}">Oldingi</a>
+        {% endif %}
+        <span>{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+          <a class="btn btn-ghost btn-sm" href="?{{ request.GET.urlencode }}&page={{ page_obj.next_page_number }}">Keyingi</a>
+        {% endif %}
+      </nav>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

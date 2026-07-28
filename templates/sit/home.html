@@ -1,0 +1,149 @@
+{% extends "sit/base.html" %}
+
+{% block title %}Turkiyada o'qish{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Study in Turkey · Universitet qabullari · Maslahat</div>
+    <h1>Turkiyada o'qishni <span>bitta joydan</span> boshla.</h1>
+    <p>Qabuli ochiq universitetlar, kontrakt narxlari, hujjat talablari va real maslahat — hammasi bir portalda. Byudjetingizga mos universitetni toping, keyin hujjat topshirishga yordam oling.</p>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="{% url 'sit:university_list' %}">Universitetlarni ko'rish <i class="bi bi-arrow-right"></i></a>
+      <a class="btn btn-ghost" href="#advisor"><i class="bi bi-stars"></i> AI maslahatchidan so'ra</a>
+    </div>
+    <div class="hero-stats">
+      <div><b>{{ portal_stats.universities }}</b><small>Universitet</small></div>
+      <div><b>{{ portal_stats.programs }}</b><small>Dastur</small></div>
+      <div><b>{{ portal_stats.languages }}</b><small>Ta'lim tili</small></div>
+      <div><b>{{ portal_stats.cities }}</b><small>Shahar</small></div>
+    </div>
+  </div>
+</section>
+
+{% if announcements %}
+<section class="section section-compact">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow"><i class="bi bi-megaphone accent"></i> E'lonlar</div>
+        <h2>So'nggi yangiliklar va qabullar</h2>
+      </div>
+    </div>
+    <div class="ann-list">
+      {% for announcement in announcements %}
+        <a class="ann" href="{{ announcement.target_url }}">
+          <div class="ann-date"><b>{{ announcement.published_on|date:"d" }}</b><small>{{ announcement.published_on|date:"m.Y" }}</small></div>
+          <div class="ann-body">
+            <span class="badge {{ announcement.badge_class }}"><span class="dot"></span> {{ announcement.get_category_display }}</span>
+            <h4>{{ announcement.title }}</h4>
+            {% if announcement.university %}
+              <p><i class="bi bi-mortarboard"></i> {{ announcement.university.name }}</p>
+            {% endif %}
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <div><div class="eyebrow"><span class="accent">01</span> / Jarayon</div><h2>To'rt qadamda Turkiyaga</h2></div>
+      <p>Ma'lumotdan tanlovgacha, tanlovdan hujjatgacha — tartibli yo'l.</p>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="n">01</div><h4>O'rgan</h4><p>Universitetlar, dasturlar, narx va hujjat talablari bo'yicha aniq ma'lumot.</p></div>
+      <div class="step"><div class="n">02</div><h4>Solishtir</h4><p>Shahar, til, narx va qabul holati bo'yicha filtrlab, mos variantlarni tanlang.</p></div>
+      <div class="step"><div class="n">03</div><h4>AI maslahat</h4><p>Byudjet va maqsadingizni ayting — AI portal ma'lumotlaridan variant tavsiya qiladi.</p></div>
+      <div class="step"><div class="n">04</div><h4>Yordam ol</h4><p>Hujjat topshirishga tayyor bo'lsangiz, jarayonni mutaxassis bilan olib boring.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-flush-top">
+  <div class="wrap">
+    <div class="section-head">
+      <div><div class="eyebrow"><span class="accent">02</span> / Katalog</div><h2>Qabuli ochiq universitetlar</h2></div>
+      <a class="btn btn-ghost btn-sm" href="{% url 'sit:university_list' %}">Barchasi <i class="bi bi-arrow-right"></i></a>
+    </div>
+    {% if featured_universities %}
+      <div class="grid grid-3">
+        {% for university in featured_universities %}
+          {% include "sit/components/university_card.html" %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <i class="bi bi-building"></i>
+        <h3>Universitetlar tayyorlanmoqda</h3>
+        <p>Nashr etilgan universitetlar shu yerda ko'rinadi.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section section-flush-top" id="advisor">
+  <div class="wrap">
+    <div class="section-head">
+      <div><div class="eyebrow"><span class="accent">03</span> / AI maslahatchi</div><h2>Byudjetingizga mos universitetni AI topadi</h2></div>
+      <p>AI maslahatchi portalga kiritilgan nashr etilgan ma'lumotlar asosida variantlarni solishtirishga yordam beradi.</p>
+    </div>
+    <div class="advisor">
+      <div class="advisor-head"><span class="dot accent-dot"></span><span class="mono">sit-advisor · maslahat</span></div>
+      <div class="advisor-body">
+        <div class="bubble bubble-user">Byudjetim yiliga $1 300, ingliz tilida muhandislik o'qimoqchiman.</div>
+        <div class="bubble bubble-ai">
+          Universitet, dastur, til va narx filtrlari asosida mos variantlarni topamiz. Yakuniy qabul shartlarini universitetning rasmiy manbasidan tekshirish kerak.
+          <div class="advisor-action">
+            {% if request.user.is_authenticated %}
+              <a class="btn btn-primary btn-sm" href="{% url 'messenger:ai' %}">Azure AI'ni ochish</a>
+            {% else %}
+              <a class="btn btn-primary btn-sm" href="{% url 'login' %}?next={% url 'messenger:ai' %}">AI bilan maslahatlashish</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-flush-top" id="kb">
+  <div class="wrap">
+    <div class="section-head">
+      <div><div class="eyebrow"><span class="accent">04</span> / Bilim bazasi</div><h2>Turkiyada o'qish bo'yicha qo'llanmalar</h2></div>
+    </div>
+    {% if knowledge_articles %}
+      <div class="grid grid-3">
+        {% for article in knowledge_articles %}
+          <a class="uni-card knowledge-card" href="{{ article.get_absolute_url }}">
+            {% if article.cover_image %}<img class="knowledge-cover" src="{{ article.cover_image.url }}" alt="">{% endif %}
+            <div class="uni-body">
+              <div class="eyebrow">{{ article.category }}</div>
+              <h3>{{ article.title }}</h3>
+              <p class="prose">{{ article.excerpt }}</p>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state compact"><p>Qo'llanmalar tayyorlanmoqda.</p></div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section section-flush-top">
+  <div class="wrap">
+    <div class="help-band">
+      <div>
+        <div class="eyebrow">Yordam xizmati</div>
+        <h2>Hujjat topshirishga tayyormisiz?</h2>
+        <p>Universitet tanlashdan hujjat topshirishgacha mutaxassis bilan ishlang.</p>
+      </div>
+      <a class="btn help-band-btn" href="{% url 'sit:university_list' %}">Universitet tanlash <i class="bi bi-arrow-right"></i></a>
+    </div>
+  </div>
+</section>
+{% endblock %}
