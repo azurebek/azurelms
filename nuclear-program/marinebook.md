@@ -16,6 +16,16 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-28 [Codex]: Claude SIT prototipi main'ga birlashtirildi
+
+Claude tayyorlagan `playground/SIT/` statik prototipi to'liq saqlandi va fast-forward orqali `main`ga birlashtirildi. Prototipda bosh sahifa, universitetlar katalogi, universitet tafsiloti, davlat/xususiy turi, light/dark theme va responsive e'lonlar bo'limi bor. Bu hozircha faqat `playground/` referensi; Django production runtime, model yoki real universitet ma'lumotlariga ulanmagan.
+
+- Branch: `claude/sit-portal-prototype` → `main`
+- Commitlar: `7c4e909`, `3847e1e`, `18febdf`, `787c109`, `7f97d53`
+- Test holati: `python manage.py check` — **0 issues**; `node --check playground/SIT/sit-theme.js` — **OK**; 3 HTML fayl parse va local link tekshiruvi — **OK**; `git diff --check` — **OK**
+- Browser QA: bu integratsiya sessiyasida yugurilmadi; production migratsiyadan oldin desktop/mobile light/dark interaktiv tekshiruv kerak
+- Davom etilishi kerak: yangilangan `main`dan `codex/sit-migration` branchida prototipni canonical Django model/view/template oqimiga ko'chirish
+
 ## 2026-07-27 [Claude Code]: Landing editor Bosqich 1 — LandingPage matn editori
 
 Landing editor rejasining (nuclear-program/landing-editor-plan.md) 1-bosqichi bajarildi: bosh sahifa matnlari endi Jazzmin admin o'rniga backoffice ichida, `/backoffice/landing/` da, sahifa bo'limlariga mos qulay UI orqali tahrirlanadi. Owner qarorlari: faqat superuser, majburiy change_reason, anchor havola (iframe keyin). `LandingPageForm` ~55 matn maydonini 9 bo'limga guruhlaydi (rail/hero/demo/jarayon/daraja/AI/imtihon/sertifikat/footer); `backoffice_landing` view brend paneli pattern'ida (`transaction.atomic` + `LogEntry` audit + no-op). Repeatable ro'yxatlar (statistika, daraja bosqichlari, AI/imtihon kartalari) — Bosqich 2.
