@@ -16,6 +16,17 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-28 [Codex]: SIT backend va data-driven public portal
+
+`playground/SIT/` prototipi alohida `sit` Django appiga ko'chirildi: universitet, fakultet/dastur, tayyorlov kursi, talab/hujjat/xizmat, media, e'lon va qo'llanma modellari; admin boshqaruvi; katalog filterlari; public home/list/detail sahifalari; responsive light/dark interfeys tayyor. Vaqtga sezgir public ma'lumotlar rasmiy manba va oxirgi tekshirilgan sanasiz nashr qilinmaydi; boshlang'ich migratsiya ataylab tekshirilmagan demo universitetlarni seed qilmaydi.
+
+- Branch: `codex/sit-migration`
+- Commitlar: `58bcf50`
+- Migratsiya: `sit/0001_initial.py`
+- Test holati: `python manage.py test` — **443/443 OK**; SIT + template/brand contractlar — **9/9 OK**; `python manage.py check` — **0 issues**; `makemigrations --check --dry-run` — **No changes**; `collectstatic` va `node --check static/js/sit-theme.js` — **OK**
+- Browser QA: 1280×900 va 390×844; katalog qidiruv/filteri, daraja tablari, source link, light/dark theme va internal table scroll tekshirildi; gorizontal sahifa overflow **0**, console xato/warning **0**
+- Davom etilishi kerak: real universitet ma'lumotlarini faqat rasmiy manbalardan kiritish; alohida SIT AI retrieval, ariza/payment/help lifecycle va owner uchun maxsus `/backoffice/sit/` workflow keyingi slice
+
 ## 2026-07-28 [Codex]: Claude SIT prototipi main'ga birlashtirildi
 
 Claude tayyorlagan `playground/SIT/` statik prototipi to'liq saqlandi va fast-forward orqali `main`ga birlashtirildi. Prototipda bosh sahifa, universitetlar katalogi, universitet tafsiloti, davlat/xususiy turi, light/dark theme va responsive e'lonlar bo'limi bor. Bu hozircha faqat `playground/` referensi; Django production runtime, model yoki real universitet ma'lumotlariga ulanmagan.
