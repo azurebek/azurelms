@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Universitetlar — SIT · AzureLMS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="sit.css">
+</head>
+<body>
+
+<header class="sit-top">
+  <div class="wrap sit-top-in">
+    <a class="sit-brand" href="index.html"><span class="mark">AL</span><span>SIT <small>Study in Turkey</small></span></a>
+    <nav class="sit-nav">
+      <a href="index.html">Bosh sahifa</a>
+      <a class="active" href="universities.html">Universitetlar</a>
+      <a href="index.html#advisor">AI maslahatchi</a>
+      <a href="index.html#kb">Bilim bazasi</a>
+    </nav>
+    <div class="sit-top-cta">
+      <a class="btn btn-ghost btn-sm" href="#"><i class="bi bi-box-arrow-up-right"></i> AzureLMS</a>
+      <a class="btn btn-primary btn-sm" href="#">Kirish</a>
+    </div>
+  </div>
+</header>
+
+<section class="section">
+  <div class="wrap">
+    <div class="eyebrow" style="margin-bottom:10px">Katalog · 52 universitet</div>
+    <h1 style="font-size:clamp(26px,3.4vw,38px);font-weight:600;letter-spacing:-.03em;margin:0 0 20px;max-width:20ch">Qabuli ochiq universitetlar</h1>
+
+    <!-- FILTERS -->
+    <div class="filters">
+      <div class="search"><i class="bi bi-search"></i><input placeholder="Universitet yoki shahar qidiring…"></div>
+      <select class="select"><option>Shahar: barchasi</option><option>İstanbul</option><option>Ankara</option><option>İzmir</option><option>Bursa</option></select>
+      <select class="select"><option>Til: barchasi</option><option>Turk tili (TR)</option><option>Ingliz tili (EN)</option></select>
+      <select class="select"><option>Daraja: barchasi</option><option>Bakalavr</option><option>Magistr</option><option>Doktorantura</option></select>
+      <select class="select"><option>Narx: barchasi</option><option>$1 000 gacha</option><option>$1 000–2 000</option><option>$2 000+</option></select>
+      <select class="select"><option>Qabul: ochiq</option><option>Hammasi</option><option>Tez orada</option></select>
+    </div>
+
+    <!-- GRID -->
+    <div class="grid grid-3">
+
+      <a class="uni-card" href="university.html"><div class="uni-cover"><span class="badge badge-open"><span class="dot"></span> Ochiq</span><span class="uni-logo">İTÜ</span></div><div class="uni-body"><h3>İstanbul Teknik Üniversitesi</h3><div class="uni-city"><i class="bi bi-geo-alt"></i> İstanbul · Davlat</div><div class="uni-meta"><span class="chip">TR / EN</span><span class="chip">Bakalavr</span></div><div class="uni-foot"><div class="uni-price"><small>Kontrakt / yil</small><b>$1 200+</b></div><span class="btn btn-ghost btn-sm">Batafsil</span></div></div></a>
+
+      <a class="uni-card" href="university.html"><div class="uni-cover"><span class="badge badge-open"><span class="dot"></span> Ochiq</span><span class="uni-logo">BÜ</span></div><div class="uni-body"><h3>Boğaziçi Üniversitesi</h3><div class="uni-city"><i class="bi bi-geo-alt"></i> İstanbul · Davlat</div><div class="uni-meta"><span class="chip">EN</span><span class="chip">Bakalavr</span></div><div class="uni-foot"><div class="uni-price"><small>Kontrakt / yil</small><b>$1 500+</b></div><span class="btn btn-ghost btn-sm">Batafsil</span></div></div></a>
+
+      <a class="uni-card" href="university.html"><div class="uni-cover"><span class="badge badge-open"><span class="dot"></span> Ochiq</span><span class="uni-logo">YTÜ</span></div><div class="uni-body"><h3>Yıldız Teknik Üniversitesi</h3><div class="uni-city"><i class="bi bi-geo-alt"></i> İstanbul · Davlat</div><div class="uni-meta"><span class="chip">TR / EN</span><span class="chip">Bakalavr · Magistr</span></div><div class="uni-foot"><div class="uni-price"><small>Kontrakt / yil</small><b>$1 000+</b></div><span class="btn btn-ghost btn-sm">Batafsil</span></div></div></a>
+
+      <a class="uni-card" href="university.html"><div class="uni-cover"><span class="badge badge-soon"><span class="dot"></span> Tez orada</span><span class="uni-logo">AÜ</span></div><div class="uni-body"><h3>Ankara Üniversitesi</h3><div class="uni-city"><i class="bi bi-geo-alt"></i> Ankara · Davlat</div><div class="uni-meta"><span class="chip">TR</span><span class="chip">Bakalavr</span></div><div class="uni-foot"><div class="uni-price"><small>Kontrakt / yil</small><b>$900+</b></div><span class="btn btn-ghost btn-sm">Batafsil</span></div></div></a>
+
+      <a class="uni-card" href="university.html"><div class="uni-cover"><span class="badge badge-open"><span class="dot"></span> Ochiq</span><span class="uni-logo">EÜ</span></div><div class="uni-body"><h3>Ege Üniversitesi</h3><div class="uni-city"><i class="bi bi-geo-alt"></i> İzmir · Davlat</div><div class="uni-meta"><span class="chip">TR / EN</span><span class="chip">Bakalavr</span></div><div class="uni-foot"><div class="uni-price"><small>Kontrakt / yil</small><b>$1 100+</b></div><span class="btn btn-ghost btn-sm">Batafsil</span></div></div></a>
+
+      <a class="uni-card" href="university.html"><div class="uni-cover"><span class="badge badge-open"><span class="dot"></span> Ochiq</span><span class="uni-logo">MÜ</span></div><div class="uni-body"><h3>Marmara Üniversitesi</h3><div class="uni-city"><i class="bi bi-geo-alt"></i> İstanbul · Davlat</div><div class="uni-meta"><span class="chip">TR / EN</span><span class="chip">Magistr</span></div><div class="uni-foot"><div class="uni-price"><small>Kontrakt / yil</small><b>$1 300+</b></div><span class="btn btn-ghost btn-sm">Batafsil</span></div></div></a>
+
+      <a class="uni-card" href="university.html"><div class="uni-cover"><span class="badge badge-closed"><span class="dot"></span> Yopiq</span><span class="uni-logo">HÜ</span></div><div class="uni-body"><h3>Hacettepe Üniversitesi</h3><div class="uni-city"><i class="bi bi-geo-alt"></i> Ankara · Davlat</div><div class="uni-meta"><span class="chip">TR</span><span class="chip">Bakalavr · Magistr</span></div><div class="uni-foot"><div class="uni-price"><small>Kontrakt / yil</small><b>$1 000+</b></div><span class="btn btn-ghost btn-sm">Batafsil</span></div></div></a>
+
+      <a class="uni-card" href="university.html"><div class="uni-cover"><span class="badge badge-open"><span class="dot"></span> Ochiq</span><span class="uni-logo">DEÜ</span></div><div class="uni-body"><h3>Dokuz Eylül Üniversitesi</h3><div class="uni-city"><i class="bi bi-geo-alt"></i> İzmir · Davlat</div><div class="uni-meta"><span class="chip">TR / EN</span><span class="chip">Bakalavr</span></div><div class="uni-foot"><div class="uni-price"><small>Kontrakt / yil</small><b>$950+</b></div><span class="btn btn-ghost btn-sm">Batafsil</span></div></div></a>
+
+    </div>
+  </div>
+</section>
+
+<footer class="sit-foot">
+  <div class="wrap sit-foot-in">
+    <span class="mono" style="font-size:11px;letter-spacing:.06em">SIT · STUDY IN TURKEY — AZURELMS PORTALI</span>
+    <span>Prototip · placeholder kontent</span>
+  </div>
+</footer>
+
+</body>
+</html>
