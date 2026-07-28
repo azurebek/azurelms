@@ -16,6 +16,26 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-27 [Claude Code]: Landing editor Bosqich 1 — LandingPage matn editori
+
+Landing editor rejasining (nuclear-program/landing-editor-plan.md) 1-bosqichi bajarildi: bosh sahifa matnlari endi Jazzmin admin o'rniga backoffice ichida, `/backoffice/landing/` da, sahifa bo'limlariga mos qulay UI orqali tahrirlanadi. Owner qarorlari: faqat superuser, majburiy change_reason, anchor havola (iframe keyin). `LandingPageForm` ~55 matn maydonini 9 bo'limga guruhlaydi (rail/hero/demo/jarayon/daraja/AI/imtihon/sertifikat/footer); `backoffice_landing` view brend paneli pattern'ida (`transaction.atomic` + `LogEntry` audit + no-op). Repeatable ro'yxatlar (statistika, daraja bosqichlari, AI/imtihon kartalari) — Bosqich 2.
+
+- Branch: `claude/backoffice-landing-editor`
+- Commitlar: `feat(backoffice): landing editor Bosqich 1` (yuqoridagi HEAD)
+- Yangi fayllar: `core/landing_forms.py`, `templates/backoffice/landing_editor.html`, `static/css/landing-control.css`, `core/test_landing_editor.py`; tegilgan: `core/views.py`, `core/urls.py`, `templates/backoffice/base.html`
+- Test holati: `python manage.py test core.test_landing_editor frontend` — **12/12 OK** (6 yangi: owner-only access, confirm/reason majburiy, save+audit, no-op, landing'da aks etishi); `check` — 0 issues. Churn minimal (446 vs 443 real).
+- Browser QA: anonim `/backoffice/landing/` → login redirect tasdiqlandi (owner gate, crash yo'q). Authenticated visual QA qilinmadi — parol kiritib login qilmayman (xavfsizlik qoidasi); owner o'zi kirsa screenshot bosqichi qilinishi mumkin. Funksional to'g'rilik test client (200 + template + kontent) bilan tasdiqlangan.
+- Davom etilishi kerak: Bosqich 2 — repeatable ro'yxatlar menejeri (CRUD + drag-reorder). `main`ga merge qilinmagan.
+
+## 2026-07-27 [Claude Code]: Landing editor rejasi + branch (backoffice'ga ko'chirish)
+
+Landing hozir faqat Jazzmin admin (`/admin/`, `ENABLE_LEGACY_ADMIN`) orqali tahrirlanadi — owner uchun noqulay va prod'da ishonchsiz. Azurbek uni backoffice ichiga chiroyli/qulay shaklda ko'chirishni so'radi. Backoffice pattern auditi qilindi (brand mutation: `transaction.atomic` + o'zgargan maydon + no-op + `LogEntry` audit; `admin-shell.css` dizayn tizimi; nav guruhlari) va 6 bosqichli reja `nuclear-program/landing-editor-plan.md`ga saqlandi. Hali kod yozilmadi — bu bosqich faqat reja/branch.
+
+- Branch: `claude/backoffice-landing-editor` (`origin/main`dan)
+- Reja: `nuclear-program/landing-editor-plan.md` (admission gate javoblari, dizayn tamoyillari, 6 bosqich + DoD, ochiq owner qarorlari)
+- Test holati: yugurilmadi (kod yo'q)
+- Davom etilishi kerak: Bosqich 1 — `/backoffice/landing/` route + `LandingPage` singleton editor (bo'lim-markazli forma). Ochiq qarorlar: change_reason majburiymi, ruxsat darajasi, Jazzmin fallback, live preview — owner tasdig'i kerak.
+
 ## 2026-07-27 [Claude Code]: Landing page to'liq admin nazoratiga o'tkazildi
 
 Bosh sahifa (`templates/index.html`) v2 redizayni kontentni deyarli to'liq hardcode qilib, mavjud model/admin qatlamini (LandingPage hero/cta maydonlari, Statistic, hero slides, testimonials, popular_courses) e'tiborsiz qoldirgan edi — `home_view` context'ga uzatsa ham template faqat "Qanday ishlaydi?", brend va footer kontaktni dinamik ko'rsatardi. Azurbek to'liq admin nazoratini so'radi (owner admission; demolar ham tahrirlanadigan bo'lsin). Endi rail, hero, demo dashboard, statistika, daraja yo'li, AI repetitor, imtihon, sertifikat va pastki CTA/footer'ning har bir matni admin paneldan boshqariladi.
