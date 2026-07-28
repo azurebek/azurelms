@@ -61,18 +61,70 @@
 
         <div class="panel">
           <h2><i class="bi bi-mortarboard" style="color:var(--azure)"></i> Dasturlar va kontrakt</h2>
+          <div class="ltabs">
+            <input type="radio" name="lvl" id="lvl-bak" checked>
+            <input type="radio" name="lvl" id="lvl-mag">
+            <input type="radio" name="lvl" id="lvl-phd">
+            <input type="radio" name="lvl" id="lvl-tex">
+            <div class="ltab-bar">
+              <label for="lvl-bak">Bakalavr</label>
+              <label for="lvl-mag">Magistr</label>
+              <label for="lvl-phd">PhD</label>
+              <label for="lvl-tex">Texnikum</label>
+            </div>
 
-          <div class="prog">
-            <div><h4>Bilgisayar Mühendisliği (Computer Eng.)</h4><div class="meta"><span class="chip">Bakalavr</span><span class="chip">EN</span><span class="chip">4 yil</span><span class="badge badge-open"><span class="dot"></span>ochiq</span></div></div>
-            <div class="prog-price"><small>Kontrakt / yil</small><b>$1 200</b></div>
+            <div class="ltab-panel" data-lvl="bak">
+              <table class="ptable">
+                <thead><tr><th>Yo'nalish</th><th>Muddat</th><th>Kontrakt/yil</th><th>Til</th></tr></thead>
+                <tbody>
+                  <tr class="fac"><td colspan="4">Muhandislik fakulteti</td></tr>
+                  <tr><td>Kompyuter muhandisligi</td><td>4 yil</td><td class="price">$1 200</td><td class="lang">Turk</td></tr>
+                  <tr><td>Kompyuter muhandisligi</td><td>4 yil</td><td class="price">$1 600</td><td class="lang">Ingliz</td></tr>
+                  <tr><td>Elektr-elektronika</td><td>4 yil</td><td class="price">$1 100</td><td class="lang">Turk</td></tr>
+                  <tr class="fac"><td colspan="4">Arxitektura fakulteti</td></tr>
+                  <tr><td>Arxitektura</td><td>4 yil</td><td class="price">$1 300</td><td class="lang">Turk</td></tr>
+                  <tr><td>Shahar rejalashtirish</td><td>4 yil</td><td class="price">$1 200</td><td class="lang">Turk</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="ltab-panel" data-lvl="mag">
+              <table class="ptable">
+                <thead><tr><th>Yo'nalish</th><th>Muddat</th><th>Kontrakt/yil</th><th>Til</th></tr></thead>
+                <tbody>
+                  <tr class="fac"><td colspan="4">Fan-texnika instituti</td></tr>
+                  <tr><td>Mashinasozlik</td><td>2 yil</td><td class="price">$1 400</td><td class="lang">Ingliz</td></tr>
+                  <tr><td>Informatika</td><td>2 yil</td><td class="price">$1 500</td><td class="lang">Ingliz</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="ltab-panel" data-lvl="phd">
+              <table class="ptable">
+                <thead><tr><th>Yo'nalish</th><th>Muddat</th><th>Kontrakt/yil</th><th>Til</th></tr></thead>
+                <tbody>
+                  <tr class="fac"><td colspan="4">Fan-texnika instituti</td></tr>
+                  <tr><td>Kompyuter fanlari (PhD)</td><td>4 yil</td><td class="price">$1 800</td><td class="lang">Ingliz</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="ltab-panel" data-lvl="tex">
+              <p class="prose" style="margin:0">Bu universitetda texnikum ( meslek yüksekokulu) dasturlari hozircha kiritilmagan.</p>
+            </div>
           </div>
-          <div class="prog">
-            <div><h4>Elektrik-Elektronik Mühendisliği</h4><div class="meta"><span class="chip">Bakalavr</span><span class="chip">TR / EN</span><span class="chip">4 yil</span><span class="badge badge-open"><span class="dot"></span>ochiq</span></div></div>
-            <div class="prog-price"><small>Kontrakt / yil</small><b>$1 100</b></div>
-          </div>
-          <div class="prog">
-            <div><h4>Makine Mühendisliği (Magistr)</h4><div class="meta"><span class="chip">Magistr</span><span class="chip">EN</span><span class="chip">2 yil</span><span class="badge badge-soon"><span class="dot"></span>tez orada</span></div></div>
-            <div class="prog-price"><small>Kontrakt / yil</small><b>$1 400</b></div>
+        </div>
+
+        <div class="panel">
+          <h2><i class="bi bi-translate" style="color:var(--azure)"></i> Til tayyorlov kursi</h2>
+          <table class="ptable">
+            <thead><tr><th>Til</th><th></th><th>Kontrakt/yil</th><th>Davomiylik</th></tr></thead>
+            <tbody>
+              <tr><td>Ingliz tili</td><td></td><td class="price">$2 900</td><td class="lang">1 yil</td></tr>
+              <tr><td>Turk tili</td><td></td><td class="price">$1 200</td><td class="lang">1 yil</td></tr>
+            </tbody>
+          </table>
+          <div class="prep-note">
+            <i class="bi bi-lightbulb" style="color:var(--azure);font-size:18px"></i>
+            <div><b>Tayyorlov narxini tejang.</b> Turk yoki ingliz tilini oldindan AzureLMS'da o'rganib, universitet tayyorlov kursini o'tkazib yuborishingiz mumkin.</div>
+            <a class="btn btn-primary btn-sm" href="#">AzureLMS kurslari</a>
           </div>
         </div>
 
@@ -94,6 +146,28 @@
             <li><i class="bi bi-file-earmark-text"></i> YÖS/SAT yoki til sertifikati</li>
             <li><i class="bi bi-file-earmark-text"></i> Rasm (biometrik) va ariza formasi</li>
           </ul>
+        </div>
+
+        <div class="panel">
+          <h2><i class="bi bi-hand-thumbs-up" style="color:var(--azure)"></i> Yordam xizmati nimani o'z ichiga oladi</h2>
+          <ul class="docs">
+            <li><i class="bi bi-check-circle-fill"></i> Universitet va yo'nalish tanlashda maslahat</li>
+            <li><i class="bi bi-check-circle-fill"></i> Denklik (muvofiqlik sertifikati) olishda yordam</li>
+            <li><i class="bi bi-check-circle-fill"></i> Talaba vizasini olishda yordam</li>
+            <li><i class="bi bi-check-circle-fill"></i> Universitetga yakuniy ro'yxatdan o'tish jarayonida yordam</li>
+            <li><i class="bi bi-check-circle-fill"></i> Turar joy, sug'urta va yashash ruxsatnomasi bo'yicha tavsiya</li>
+            <li><i class="bi bi-check-circle-fill"></i> Ta'lim davomida bepul o'quv maslahati</li>
+          </ul>
+        </div>
+
+        <div class="panel">
+          <h2><i class="bi bi-play-btn" style="color:var(--azure)"></i> Video va galereya</h2>
+          <div class="media-grid">
+            <div class="media-item"><i class="bi bi-play-circle"></i></div>
+            <div class="media-item"><i class="bi bi-play-circle"></i></div>
+            <div class="media-item"><i class="bi bi-image"></i></div>
+            <div class="media-item"><i class="bi bi-image"></i></div>
+          </div>
         </div>
       </div>
 
