@@ -71,6 +71,10 @@ Bozor hajmi o'lchangan: **UZBMB turk tili milliy sertifikat imtihonining bitta y
 
 **Launch fokusi: S1.** Hamma xabar, kontent va mock imtihon S1 tiliga gapiradi: *"Magistraturaga sertifikat kerakmi? Turkcha — eng qisqa yo'l. Biz shu yo'lning o'zimiz."*
 
+**SIT va S3 (2026-07-28 owner qarori).** Study in Turkey portali (`03-mahsulot-backlog.md` → `S`) S3 segmentiga to'g'ridan-to'g'ri kirish eshigi ochadi va uni "post-launch fokus"dan hozirgi ishga ko'chiradi. Ikki tomonlama bog'lanish: SIT tashqi trafikni olib keladi (universitet qidiruvi), til tayyorlov narxi esa AzureLMS kursiga tabiiy o'tish beradi. **Launch fokusi baribir S1 bo'lib qoladi** — SIT S1 xabarini almashtirmaydi, yonida turadi.
+
+*Ochiq owner savoli (3.4 bilan bog'liq):* SIT yordam xizmati bizni "ta'lim agentligi" qiladimi yoki biz kurs bo'lib qolib, yordamni yondosh xizmat sifatida beramizmi? Pozitsiya bayonoti va "nima biz EMASMIZ" ro'yxati shu javobdan keyin yangilanadi.
+
 ### 1.4 Mavsumiylik (rejaga ta'siri)
 
 Magistratura qabuli yozda; sertifikat imtihonlari yil davomida. **Sentyabr = yangi tayyorgarlik mavsumining boshi** — kuzda boshlagan 2027-yil yozgi qabulga bemalol ulguradi. "20-sentyabr launch + kuzgi guruh" mavsum bilan ideal mos. Marketing kalendari UZBMB imtihon sanalariga bog'lanadi (P1'da rasmiy 2026–2027 taqvimni olib qo'yamiz).

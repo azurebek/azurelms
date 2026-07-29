@@ -26,6 +26,17 @@ Study in Turkey katalogi owner-only `/backoffice/sit/` control surface'iga uland
 - Test holati: `python manage.py test` — **453/453 OK**; SIT + backoffice/template focused suite — **42/42 OK**; `check` — **0 issues**; `makemigrations --check --dry-run` — **No changes**; `collectstatic` — **OK**
 - Browser QA: owner sessiyasi, 1280×720 va 390×844, light/dark; dashboard, katalog GET filteri, 7 ichki universitet paneli, e'lon/qo'llanma editorlari, mobile drawer va internal table scroll tekshirildi; page overflow **0**, console error/warning **0**. Screenshotda topilgan row/badge overlap shu commitda tuzatildi.
 - Davom etilishi kerak: real universitet ma'lumotini rasmiy manbadan kiritish; S2 canonical `SITInquiry` lifecycle va keyingi AI advisor alohida slice. Claude'ning `claude/sit-nuclear-program` reja branchi bu branchga aralashtirilmadi.
+## 2026-07-29 [Claude Code]: SIT launch-plan hujjatlariga yozildi (audit + admission)
+
+Codex `project-context.md`ni (arxitektura wiki) puxta yangilagan edi, lekin SIT `launch-plan/` hujjatlarida umuman yo'q edi: admission gate javoblari, ustuvorlik qarori va A-narvoni bilan ziddiyat yozilmagan. Avval codex ishi mustaqil auditdan o'tkazildi (marinebook da'volariga ishonmay), keyin SIT strategiya/roadmap/backlogga qo'shildi.
+
+Backlogda yangi `S` bo'limi: admission gate 7 javobi, `S1` (bajarildi, `EVIDENCE READY`), `S2` yordam so'rovi lifecycle, `S3` AI advisor, `S4` owner workflow; 3 ochiq owner qarori va 3 risk. Muhim ziddiyat ochiq yozildi: `Ish tartibi`ning "bir vaqtda bitta ADMIT band" qoidasi SIT bilan buziladi — owner buni bilib qabul qilgan, shuning uchun 6-band istisno sifatida qo'shildi. Yana bir topilma: **5k jiddiylik to'lovi bloklangan** — u avtomatik to'lovni talab qiladi, avtomatik to'lov esa `C. CUT`da (Payme/Click); qo'lda receipt bilan mayda to'lov owner yukini kamaytirmay, oshiradi.
+
+- Branch: `claude/sit-nuclear-program` (commit `e2a59c9`)
+- Tegilgan: `launch-plan/01-strategiya.md` (SIT ↔ S3 segmenti + pozitsiya chegarasi savoli), `02-yol-xarita.md` (parallel yo'lak qatori + R11/R12 risk), `03-mahsulot-backlog.md` (`S` bo'limi, ish tartibi istisnosi, sessiya tartibi)
+- Codex ishi auditi (mustaqil tasdiqlangan): `python manage.py test` — **443/443 OK**; `test sit` — 5/5; `check` — 0 issues; `makemigrations --check` — No changes; live `/sit/` real published data bilan render, console xato 0. Codex marinebook da'volari haqiqatga mos chiqdi.
+- Divergensiya qayd etildi: muhokamada bilim bazasi uchun `blog`ni qayta ishlatish kelishilgan edi, implementatsiya alohida `KnowledgeArticle` bilan ketdi (sababi: manba/tekshiruv gate'i). Zarari yo'q, qaror owner'ga qoldi (`S-D1`).
+- Davom etilishi kerak: `S2` (yordam so'rovi lifecycle) — SIT'ning keyingi ustuvor slice'i, chunki hozir lead oqimi kuzatilmaydi.
 
 ## 2026-07-28 [Codex]: SIT backend va data-driven public portal
 

@@ -9,6 +9,7 @@
 3. Oldingi band exit kriteriydan o'tmasa, keyingisi boshlanmaydi yoki scope'dan kesiladi.
 4. `NEXT` band faqat Azurbek admission berganda `ADMIT`ga o'tadi.
 5. Holat: `PLANNED` / `IN PROGRESS` / `EVIDENCE READY` / `BLOCKED` / `CUT`.
+6. **Istisno — `S. SIT`:** owner qarori bilan A-narvoniga parallel yuritiladi (1-qoidadan ozod). Uning slice'lari o'zaro ketma-ket boradi va A bandlarini to'xtatmaydi; narxi — owner vaqtining bo'linishi (`S-R1`).
 
 ---
 
@@ -90,6 +91,65 @@
 
 ---
 
+## S. SIT — Study in Turkey portali (parallel mahsulot yo'nalishi)
+
+*Owner admission: 2026-07-28, Azurbek — “SIT launch rejasidan oldin, zudlik bilan”. Bu band A-narvonining bir qismi emas: alohida auditoriya, alohida daromad oqimi va alohida canonical domen. Shuning uchun A0–A9 tartibiga qo'shilmaydi, yoniga qo'yiladi.*
+
+### Admission gate javoblari
+
+1. **Muammo:** platformaga faqat til kursi orqali kirish mumkin edi; “Turkiyada o'qish” niyati bor keng auditoriya uchun kirish nuqtasi va owner uchun yangi daromad oqimi yo'q edi.
+2. **Asosiy KPI:** kvalifikatsiyalangan yordam so'rovi soni (universitet sahifasi → yordam CTA → messenger handoff). Trafik yoki universitet soni KPI emas.
+3. **Canonical state:** yangi `sit` domeni. Katalog haqiqati — `University`/`UniversityFaculty`/`UniversityProgram` va yondosh ro'yxatlar; xabar haqiqati — `Announcement`; kontent — `KnowledgeArticle`. Yordam so'rovi lifecycle'i hali canonical emas (S2).
+4. **Adapterlar:** public web (`/sit/`), Django admin, messenger handoff. Keyin: AI advisor, Telegram, `/backoffice/sit/`.
+5. **Owner yuki:** **oshadi** — katalogni dolzarb tutish va lead follow-up doimiy ish. Bu ataylab qabul qilingan savdo yuki, avtomatlashtirish bilan qoplanmaydi.
+6. **Flag/rollback:** `is_published` per-record gate; butun portalni o'chirish = `/sit/` route'ini olib qo'yish. Core LMS oqimlariga bog'liq emas, shuning uchun rollback izolyatsiyalangan.
+7. **Faza:** owner qarori bilan launch rejasidan oldin. Core A-narvoni to'xtamaydi, lekin owner vaqti bo'linadi (pastdagi risk).
+
+### S1. Data foundation va public portal — `EVIDENCE READY`, `L`
+
+- **Outcome:** universitet, dastur, kontrakt, qabul holati va hujjat ma'lumoti bitta manbadan, filtrlanadigan public portalda.
+- **Canonical owner:** `sit` app modellari + `sit/selectors.py`.
+- **Adapterlar:** `/sit/`, `/sit/universities/`, `/sit/universities/<slug>/`, `/sit/guides/<slug>/`, Django admin.
+- **Evidence (2026-07-28, `58bcf50`):** `python manage.py test` — 443/443 OK (2026-07-29 mustaqil qayta yugurtirildi, o'sha natija); `check` — 0 issues; `makemigrations --check` — No changes; live `/sit/` real published data bilan render bo'ladi, console xato 0.
+- **Data integrity gate:** `is_published=True` uchun `source_url` va `last_verified_on` majburiy (`clean()`da). Vaqtga sezgir qabul/narx ma'lumoti manbasiz chiqmaydi. Migratsiya soxta universitet seed qilmaydi.
+
+### S2. Yordam so'rovi lifecycle — `PLANNED`, `M`
+
+- **Outcome:** yordam CTA bosgan real niyatli foydalanuvchi kuzatiladigan so'rovga aylanadi; owner DM oqimida yo'qotmaydi.
+- **Canonical state:** `SITInquiry` state machine (`yangi → bog'lanildi → jarayonda → yakunlandi/bekor`), universitet konteksti bilan.
+- **Adapterlar:** universitet sahifasi CTA (auth talab qiladi), messenger handoff, owner ro'yxati.
+- **Acceptance:** auth gate; duplicate/spam himoyasi; owner uchun holat ro'yxati; transition va permission testlari; hech qanday pipeline DM xotirasida qolmaydi.
+- **Ochiq:** jiddiylik to'lovi (pastda).
+
+### S3. SIT AI advisor — `PLANNED`, `M`
+
+- **Outcome:** foydalanuvchi byudjet/til/daraja aytadi, faqat portaldagi tasdiqlangan ma'lumotdan tavsiya oladi, keyin ownerga yo'naltiriladi.
+- **Canonical owner:** mavjud AI engine + yangi `sit_advisor` skill va katalog retrieval tool. Yangi AI subsystem emas.
+- **Acceptance:** javob faqat `is_published` yozuvlardan; katalogda yo'q universitet/narx **taklif qilinmaydi**; tavsiya oxirida handoff; grounded support evalida A9 qoidalari qo'llanadi.
+- **Xavf:** AI viza/qabul kabi rasmiy masalada maslahat berayotgandek ko'rinishi. Javob doirasi qat'iy cheklanadi.
+
+### S4. Owner workflow va real ma'lumot — `PLANNED`, `M`
+
+- **Outcome:** owner katalogni Jazzmin admin'siz, dolzarblik nazorati bilan yuritadi.
+- **Scope:** `/backoffice/sit/` (landing editor pattern'ida), eskirgan yozuvlarni ko'rsatuvchi signal (`last_verified_on` bo'yicha), real universitet ma'lumotini faqat rasmiy manbadan kiritish.
+- **Acceptance:** owner-only gate; audit; nashr qilishdan oldin manba/sana majburiyligi UI'da ko'rinadi.
+
+### Ochiq owner qarorlari
+
+| # | Savol | Holat |
+|---|---|---|
+| S-D1 | Bilim bazasi `KnowledgeArticle` bo'lib qoladimi yoki `blog`ga birlashadimi? | **Ochiq.** Muhokamada blog'ni qayta ishlatish kelishilgan edi; implementatsiya alohida model bilan ketdi (sababi: manba/tekshiruv gate'i blogda yo'q). Hozir ishlayapti, zarari yo'q. |
+| S-D2 | 5 000 so'mlik jiddiylik to'lovi qachon yoqiladi? | **Bloklangan.** `University.application_help_fee` modelda bor, lekin qo'lda receipt oqimi mayda to'lov uchun owner yukini **oshiradi**. Real gate uchun avtomatik to'lov kerak — u `C. CUT`da (Payme/Click/Uzum). S2 v1 = auth + intake, to'lov gate'i flag ortida keyin. |
+| S-D3 | E'lonlar uchun alohida sahifa kerakmi? | Ochiq. Hozir bosh sahifada section; “Barcha e'lonlar” havolasi hali sahifasiz. |
+
+### Risklar
+
+- **S-R1 — owner sig'imi:** `Ish tartibi`ning 1-qoidasi (“bir vaqtda bitta ADMIT band”) SIT bilan buziladi. Owner buni bilib qabul qildi. Yumshatish: SIT slice'lari kichik va ketma-ket, A-narvoni to'xtamaydi.
+- **S-R2 — ma'lumot eskirishi:** qabul muddati va kontrakt narxi tez o'zgaradi. Eskirgan public narx = ishonch va claim riski. Yumshatish: `last_verified_on` majburiy, S4'da eskirish signali.
+- **S-R3 — lead follow-up qarzi:** javobsiz qolgan so'rov obro'ga zarar beradi. S2 gacha DM oqimi kuzatilmaydi — shuning uchun S2 SIT'ning keyingi ustuvor slice'i.
+
+---
+
 ## B. NEXT — faqat core gate'lardan keyin
 
 | Band | Qaror | Qayta admission sharti |
@@ -143,3 +203,5 @@
 ## E. Sessiya tartibi
 
 `A0 → A1 → A2 + A9-foundation → A3/A4 contracts → A3/A4 adapters + A5 sign-off → A6 → A7 → A9 critical gate → conditional Writing/Teacher pilot`. Agent branch prefiksi o'ziga mos bo'ladi; product authority va merge qarori Azurbekda qoladi. Ops va mobile alohida oxirgi ish emas — har bandning release gate'i.
+
+Parallel: `S1 (bajarildi) → S2 → S4 → S3`. SIT slice'i A bandi bilan bir sessiyada aralashtirilmaydi — har sessiya bittasiga tegadi.

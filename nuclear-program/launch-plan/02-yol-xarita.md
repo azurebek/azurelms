@@ -119,6 +119,9 @@ Kontent va marketing parallel yuradi, lekin kod fazasining gate'ini chetlab o'tm
 | **Marketing** | claim audit, testimonial ruxsatlari | waitlist va beta taklif | beta copy, “AI beta” halolligi | faqat evidence-ready claimlar |
 | **Ops** | CI, private media, workers, Control Center | device/flow matrix | AI eval/cost telemetry | restore/rollback/launch monitoring |
 | **Owner** | scope/admission, permission matrix | oltin flow sign-off | rubric/eval sign-off | pricing va go/no-go |
+| **SIT** | S1 portal (bajarildi), real katalog ma'lumoti | S2 yordam so'rovi lifecycle | S4 owner workflow | S3 AI advisor; to'lov gate'i (flag) |
+
+> SIT (`03-mahsulot-backlog.md` → `S`) owner qarori bilan A-narvoniga parallel yuriladi. U core launch gate'lariga kirmaydi: SIT holati P0–P5 chiqishini bloklamaydi va bloklanmaydi.
 
 ## Risk reestri
 
@@ -134,6 +137,8 @@ Kontent va marketing parallel yuradi, lekin kod fazasining gate'ini chetlab o'tm
 | R8 | Beta real learnerga zarar beradi | Progressive flag rollout, Telegram fallback, rollback/kill switch |
 | R9 | Video/mock kontent kechikadi | Minimal cohort slice; live lesson birlamchi; kontent scope qisqaradi |
 | R10 | Claim capabilitydan oldinga o'tadi | Claim-evidence register; NO-GO yoki beta label |
+| R11 | SIT owner vaqtini core launchdan tortadi | Kichik ketma-ket slice; SIT core gate'ga kirmaydi; sekinlashsa S2/S3 kechiktiriladi, A narvoni to'xtamaydi |
+| R12 | SIT'dagi eskirgan qabul/narx ma'lumoti ishonchni buzadi | `source_url` + `last_verified_on` nashr sharti; S4'da eskirish signali; shubhali yozuv `is_published=False` |
 
 ## Asosiy metrikalar
 
