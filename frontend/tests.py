@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.urls import reverse
 
 from .models import (
     LandingAIFeature,
@@ -40,6 +41,14 @@ class LandingPageHowItWorksTests(TestCase):
         self.assertContains(response, "Natijani oling")
         self.assertIn("Bir necha soniyada ro&#x27;yxatdan o&#x27;ting", content)
         self.assertIn("Yakunida sertifikatni yuklab oling", content)
+
+
+class LandingSITLinkTests(TestCase):
+    def test_home_page_links_to_study_in_turkey_portal(self):
+        response = self.client.get("/")
+
+        self.assertContains(response, f'href="{reverse("sit:home")}"')
+        self.assertContains(response, "Turkiyada o'qish")
 
 
 class LandingFooterContactTests(TestCase):
