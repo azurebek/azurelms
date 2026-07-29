@@ -1,0 +1,47 @@
+{% extends "backoffice/base.html" %}
+{% load static %}
+
+{% block bo_title %}SIT universitetlari{% endblock %}
+{% block bo_icon %}bi-buildings{% endblock %}
+{% block bo_topbar %}SIT universitetlari{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/sit-backoffice.css' %}">{% endblock %}
+
+{% block bo_content %}
+<div class="sit-bo-wrap">
+  <div class="sit-bo-head">
+    <div><div class="sit-bo-kicker">SIT katalogi</div><h1>Universitetlar</h1><p>{{ result_count }} ta yozuv. Public katalog faqat nashr qilingan ma'lumotni ko'rsatadi.</p></div>
+    <div class="sit-bo-actions"><a class="sit-bo-btn primary" href="{% url 'sit_backoffice:university_create' %}"><i class="bi bi-plus-lg"></i> Yangi universitet</a></div>
+  </div>
+  {% include "backoffice/sit_tabs.html" with current="universities" %}
+
+  <form class="sit-bo-filters" method="get">
+    <input type="search" name="q" value="{{ filters.q }}" placeholder="Nomi, qisqa nomi yoki shahar...">
+    <select name="publication" aria-label="Nashr holati"><option value="all">Barcha nashrlar</option><option value="published"{% if filters.publication == 'published' %} selected{% endif %}>Jonli</option><option value="draft"{% if filters.publication == 'draft' %} selected{% endif %}>Draft</option></select>
+    <select name="admission" aria-label="Qabul holati"><option value="all">Barcha qabullar</option>{% for value,label in admission_choices %}<option value="{{ value }}"{% if filters.admission == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <select name="type" aria-label="Universitet turi"><option value="all">Barcha turlar</option>{% for value,label in type_choices %}<option value="{{ value }}"{% if filters.type == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+    <select name="freshness" aria-label="Ma'lumot dolzarbligi"><option value="all">Barcha dolzarblik</option><option value="stale"{% if filters.freshness == 'stale' %} selected{% endif %}>Tekshirish kerak</option></select>
+    <button class="sit-bo-btn" type="submit"><i class="bi bi-funnel"></i> Filter</button>
+  </form>
+
+  <div class="sit-bo-table-wrap">
+    <table class="sit-bo-table">
+      <thead><tr><th>Universitet</th><th>Tur / shahar</th><th>Qabul</th><th>Dastur</th><th>Tekshirildi</th><th>Nashr</th><th></th></tr></thead>
+      <tbody>
+      {% for university in universities %}
+        <tr>
+          <td><div class="sit-bo-table-name">{{ university.name }}</div><div class="sit-bo-table-sub">{{ university.short_name }}</div></td>
+          <td>{{ university.get_university_type_display }}<div class="sit-bo-table-sub">{{ university.city }}</div></td>
+          <td><span class="sit-bo-badge{% if university.admission_status == 'open' %} live{% elif university.admission_status == 'closed' %} stale{% endif %}">{{ university.get_admission_status_display }}</span></td>
+          <td>{{ university.program_count }}</td>
+          <td>{{ university.last_verified_on|date:"d.m.Y"|default:"—" }}</td>
+          <td><span class="sit-bo-badge {% if university.is_published %}live{% else %}draft{% endif %}">{% if university.is_published %}Jonli{% else %}Draft{% endif %}</span></td>
+          <td><a class="sit-bo-btn" href="{% url 'sit_backoffice:university_edit' university.id %}"><i class="bi bi-pencil"></i> Tahrirlash</a></td>
+        </tr>
+      {% empty %}<tr><td colspan="7"><div class="sit-bo-empty">Filterga mos universitet topilmadi.</div></td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if page_obj.paginator.num_pages > 1 %}<nav class="sit-bo-pagination">{% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}"><i class="bi bi-chevron-left"></i></a>{% endif %}<span>{{ page_obj.number }}</span>{% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}"><i class="bi bi-chevron-right"></i></a>{% endif %}</nav>{% endif %}
+</div>
+{% endblock %}

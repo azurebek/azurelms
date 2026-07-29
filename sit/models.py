@@ -165,12 +165,15 @@ class University(models.Model):
 
     def clean(self):
         super().clean()
+        errors = {}
         if self.is_published and not self.source_url:
-            raise ValidationError({"source_url": "Universitetni nashr qilish uchun rasmiy manba majburiy."})
+            errors["source_url"] = "Universitetni nashr qilish uchun rasmiy manba majburiy."
         if self.is_published and not self.last_verified_on:
-            raise ValidationError(
-                {"last_verified_on": "Universitetni nashr qilishdan oldin tekshirilgan sanani kiriting."}
+            errors["last_verified_on"] = (
+                "Universitetni nashr qilishdan oldin tekshirilgan sanani kiriting."
             )
+        if errors:
+            raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -443,6 +446,11 @@ class Announcement(models.Model):
     category = models.CharField(max_length=16, choices=Category.choices, default=Category.NEWS)
     published_on = models.DateField(db_index=True, verbose_name="E'lon sanasi")
     external_url = models.URLField(blank=True, verbose_name="Tashqi havola")
+    show_on_home = models.BooleanField(
+        default=False,
+        db_index=True,
+        verbose_name="Bosh sahifada ko'rsatilsin",
+    )
     is_published = models.BooleanField(default=False, db_index=True, verbose_name="Nashr etilgan")
     order = models.PositiveIntegerField(default=0, verbose_name="Tartibi")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -518,12 +526,15 @@ class KnowledgeArticle(models.Model):
 
     def clean(self):
         super().clean()
+        errors = {}
         if self.is_published and not self.source_url:
-            raise ValidationError({"source_url": "Qo'llanmani nashr qilish uchun manba majburiy."})
+            errors["source_url"] = "Qo'llanmani nashr qilish uchun manba majburiy."
         if self.is_published and not self.last_verified_on:
-            raise ValidationError(
-                {"last_verified_on": "Qo'llanmani nashr qilishdan oldin tekshirilgan sanani kiriting."}
+            errors["last_verified_on"] = (
+                "Qo'llanmani nashr qilishdan oldin tekshirilgan sanani kiriting."
             )
+        if errors:
+            raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
         if not self.slug:

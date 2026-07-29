@@ -20,7 +20,7 @@
 {% endblock %}
 
 {% block body %}
-{% with url_name=request.resolver_match.url_name %}
+{% with url_name=request.resolver_match.url_name url_namespace=request.resolver_match.namespace %}
 <div class="app">
   <aside class="app-side" data-appside>
     <div class="app-side-inner">
@@ -49,6 +49,7 @@
           <a class="app-nav-item{% if url_name == 'backoffice_lessons' or url_name == 'backoffice_lesson_edit' %} active{% endif %}" href="{% url 'backoffice_lessons' %}"><i class="bi bi-play-circle"></i><span class="label">Darslar</span></a>
           <a class="app-nav-item{% if url_name == 'backoffice_exams' or url_name == 'backoffice_exam_edit' %} active{% endif %}" href="{% url 'backoffice_exams' %}"><i class="bi bi-clipboard-check"></i><span class="label">Imtihonlar</span></a>
           <a class="app-nav-item" href="{% url 'blog:studio' %}"><i class="bi bi-pencil-square"></i><span class="label">Blog studiya</span>{% if counts.pending_posts %}<span class="app-nav-badge is-amber">{{ counts.pending_posts }}</span>{% endif %}</a>
+          {% if request.user.is_superuser %}<a class="app-nav-item{% if url_namespace == 'sit_backoffice' %} active{% endif %}" href="{% url 'sit_backoffice:dashboard' %}"><i class="bi bi-mortarboard"></i><span class="label">Study in Turkey</span></a>{% endif %}
         </div>
       </nav>
       {% include "components/app_user_menu.html" with shell="backoffice" %}

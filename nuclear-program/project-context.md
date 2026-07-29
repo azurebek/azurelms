@@ -396,6 +396,11 @@ Custom yashirin admin URL'lari:
 /backoffice/lessons/<id>/
 /backoffice/exams/
 /backoffice/exams/<id>/
+/backoffice/sit/
+/backoffice/sit/universities/
+/backoffice/sit/universities/<id>/
+/backoffice/sit/announcements/
+/backoffice/sit/guides/
 ```
 
 Access helper: `core.views._is_backoffice_user`. Legacy `/admin/` faqat `ENABLE_LEGACY_ADMIN=True`.
@@ -409,6 +414,8 @@ Access helper: `core.views._is_backoffice_user`. Legacy `/admin/` faqat `ENABLE_
 3. `/sit/universities/<slug>/` universitet, fakultet/dastur, tayyorlov kursi, talab/hujjat/xizmat va media bloklarini bitta detailda beradi.
 4. Har public universitet va qo'llanmada rasmiy manba hamda oxirgi tekshirilgan sana ko'rinadi.
 5. Hujjat topshirish CTA login qilingan userni tutor messengerga, AI CTA esa mavjud Azure AI messengerga olib boradi. Alohida SIT AI retrieval va payment/help lifecycle keyingi slice.
+6. Owner-only `/backoffice/sit/` universitetlar va ularning fakultet/dastur/talab/hujjat/xizmat/media qismlari, e'lonlar va qo'llanmalarni audit sabab bilan boshqaradi. 90 kundan eski public universitet ma'lumoti dashboardda tekshiruv signali oladi.
+7. SIT bosh sahifasidagi e'lonlar faqat `is_published=True` va `show_on_home=True` bo'lsa chiqadi; oddiy publish yozuvni avtomatik featured qilmaydi.
 
 ### 4.12 Maqsad operatsion arxitektura — foundation mavjud, control plane tugamagan
 
@@ -705,6 +712,21 @@ Mini App sahifalari `templates/bot/miniapp_base.html` mobil shellini ulashadi. T
 | `/sit/universities/` | `sit:university_list` |
 | `/sit/universities/<slug>/` | `sit:university_detail` |
 | `/sit/guides/<slug>/` | `sit:knowledge_detail` |
+
+### Study in Turkey backoffice
+
+| URL | Name |
+|---|---|
+| `/backoffice/sit/` | `sit_backoffice:dashboard` |
+| `/backoffice/sit/universities/` | `sit_backoffice:universities` |
+| `/backoffice/sit/universities/new/` | `sit_backoffice:university_create` |
+| `/backoffice/sit/universities/<id>/` | `sit_backoffice:university_edit` |
+| `/backoffice/sit/announcements/` | `sit_backoffice:announcements` |
+| `/backoffice/sit/announcements/new/` | `sit_backoffice:announcement_create` |
+| `/backoffice/sit/announcements/<id>/` | `sit_backoffice:announcement_edit` |
+| `/backoffice/sit/guides/` | `sit_backoffice:guides` |
+| `/backoffice/sit/guides/new/` | `sit_backoffice:guide_create` |
+| `/backoffice/sit/guides/<id>/` | `sit_backoffice:guide_edit` |
 
 ### Backoffice + Exam shell
 

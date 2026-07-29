@@ -1,0 +1,6 @@
+<nav class="sit-bo-tabs" aria-label="SIT boshqaruv bo'limlari">
+  <a class="sit-bo-tab{% if current == 'dashboard' %} active{% endif %}" href="{% url 'sit_backoffice:dashboard' %}"><i class="bi bi-grid"></i> Holat</a>
+  <a class="sit-bo-tab{% if current == 'universities' %} active{% endif %}" href="{% url 'sit_backoffice:universities' %}"><i class="bi bi-buildings"></i> Universitetlar</a>
+  <a class="sit-bo-tab{% if current == 'announcements' %} active{% endif %}" href="{% url 'sit_backoffice:announcements' %}"><i class="bi bi-megaphone"></i> E'lonlar</a>
+  <a class="sit-bo-tab{% if current == 'guides' %} active{% endif %}" href="{% url 'sit_backoffice:guides' %}"><i class="bi bi-journal-bookmark"></i> Qo'llanmalar</a>
+</nav>

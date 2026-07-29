@@ -1,0 +1,97 @@
+{% extends "backoffice/base.html" %}
+{% load static %}
+
+{% block bo_title %}{% if university %}{{ university.short_name }}{% else %}Yangi universitet{% endif %}{% endblock %}
+{% block bo_icon %}bi-building-gear{% endblock %}
+{% block bo_topbar %}SIT universitet muharriri{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/sit-backoffice.css' %}">{{ form.media }}{% endblock %}
+
+{% block bo_content %}
+<div class="sit-bo-wrap">
+  <form method="post" enctype="multipart/form-data" class="bo-form">
+    {% csrf_token %}
+    <div class="sit-bo-head">
+      <div>
+        <div class="sit-bo-kicker"><a href="{% url 'sit_backoffice:universities' %}">Universitetlar</a> · {% if university %}Tahrirlash{% else %}Yangi{% endif %}</div>
+        <h1>{% if university %}{{ university.name }}{% else %}Yangi universitet{% endif %}</h1>
+        <p>{% if university %}{{ university.city }} · {{ university.get_university_type_display }}{% else %}Avval asosiy ma'lumotni saqlang; fakultet va dasturlar keyingi ekranda ochiladi.{% endif %}</p>
+      </div>
+      <div class="sit-bo-actions">
+        {% if university %}<a class="sit-bo-btn" href="{{ university.get_absolute_url }}?preview=1" target="_blank"><i class="bi bi-eye"></i> Preview</a>{% endif %}
+        <button class="sit-bo-btn" type="submit" name="save_draft" value="1"><i class="bi bi-file-earmark"></i> Draft saqlash</button>
+        <button class="sit-bo-btn primary" type="submit"><i class="bi bi-check2"></i> Saqlash</button>
+      </div>
+    </div>
+
+    {% include "backoffice/sit_tabs.html" with current="universities" %}
+
+    {% if form.non_field_errors %}<div class="sit-bo-form-section has-error">{{ form.non_field_errors }}</div>{% endif %}
+    {% for section in formset_sections %}{% if section.formset.non_form_errors %}<div class="sit-bo-form-section has-error">{{ section.title }}: {{ section.formset.non_form_errors }}</div>{% endif %}{% endfor %}
+
+    <div class="sit-bo-form-layout">
+      <div class="sit-bo-form-stack">
+        {% for section in form.sections %}
+        <section class="sit-bo-form-section{% if section.has_error %} has-error{% endif %}">
+          <h2>{{ section.title }}</h2>
+          <p>{{ section.description }}</p>
+          <div class="sit-bo-fields">
+            {% for field in section.fields %}
+              {% if field.field.widget.input_type == 'checkbox' %}
+              <label class="sit-bo-checkline">{{ field }} <span>{{ field.label }}{% if field.help_text %}<small class="sit-bo-help">{{ field.help_text|safe }}</small>{% endif %}{% for error in field.errors %}<em class="sit-bo-error">{{ error }}</em>{% endfor %}</span></label>
+              {% else %}
+              <label class="sit-bo-field{% if field.name == 'description' or field.name == 'official_website' or field.name == 'source_url' %} full{% endif %}"><span class="sit-bo-label">{{ field.label }}</span>{{ field }}{% if field.help_text %}<small class="sit-bo-help">{{ field.help_text|safe }}</small>{% endif %}{% for error in field.errors %}<em class="sit-bo-error">{{ error }}</em>{% endfor %}</label>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </section>
+        {% endfor %}
+
+        {% if university %}
+          {% for section in formset_sections %}
+          <details class="sit-bo-related"{% if section.formset.errors %} open{% endif %}>
+            <summary><div><h3>{{ section.title }}</h3><p>{{ section.description }}</p></div><i class="bi bi-chevron-down"></i></summary>
+            <div class="sit-bo-related-body">
+              {{ section.formset.management_form }}
+              {% for subform in section.formset %}
+                {% for hidden in subform.hidden_fields %}{{ hidden }}{% endfor %}
+                <div class="sit-bo-formset-row">
+                  {% for field in subform.visible_fields %}
+                    {% if field.field.widget.input_type == 'checkbox' %}
+                    <label class="sit-bo-checkline">{{ field }} <span>{{ field.label }}{% for error in field.errors %}<em class="sit-bo-error">{{ error }}</em>{% endfor %}</span></label>
+                    {% else %}
+                    <label class="sit-bo-field"><span class="sit-bo-label">{{ field.label }}</span>{{ field }}{% if field.help_text %}<small class="sit-bo-help">{{ field.help_text|safe }}</small>{% endif %}{% for error in field.errors %}<em class="sit-bo-error">{{ error }}</em>{% endfor %}</label>
+                    {% endif %}
+                  {% endfor %}
+                  {% for error in subform.non_field_errors %}<em class="sit-bo-error">{{ error }}</em>{% endfor %}
+                </div>
+              {% endfor %}
+            </div>
+          </details>
+          {% endfor %}
+        {% else %}
+        <section class="sit-bo-form-section">
+          <h2>Fakultet, dastur va hujjatlar</h2>
+          <p>Universitetni birinchi marta saqlagandan keyin barcha ichki ro'yxatlar shu sahifada ochiladi.</p>
+        </section>
+        {% endif %}
+      </div>
+
+      <aside class="sit-bo-form-section sit-bo-audit">
+        <h2>Tasdiq va audit</h2>
+        <p>Har mutation owner, vaqt va sabab bilan audit jurnaliga yoziladi.</p>
+        <label class="sit-bo-field"><span class="sit-bo-label">{{ form.change_reason.label }}</span>{{ form.change_reason }}<small class="sit-bo-help">{{ form.change_reason.help_text }}</small>{% for error in form.change_reason.errors %}<em class="sit-bo-error">{{ error }}</em>{% endfor %}</label>
+        <label class="sit-bo-confirm">{{ form.confirm_change }} <span>{{ form.confirm_change.label }}</span></label>
+        {% for error in form.confirm_change.errors %}<em class="sit-bo-error">{{ error }}</em>{% endfor %}
+        <button class="sit-bo-btn primary" type="submit"><i class="bi bi-check2-circle"></i> O'zgarishlarni saqlash</button>
+
+        {% if recent_changes %}
+        <div class="sit-bo-audit-list">
+          <div class="sit-bo-label">Oxirgi o'zgarishlar</div>
+          {% for change in recent_changes %}<div class="sit-bo-audit-item"><strong>{{ change.user.get_full_name|default:change.user.username }}</strong> · {{ change.action_time|date:"d.m.Y H:i" }}<br>{{ change.change_message }}</div>{% endfor %}
+        </div>
+        {% endif %}
+      </aside>
+    </div>
+  </form>
+</div>
+{% endblock %}

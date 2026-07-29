@@ -1,0 +1,50 @@
+{% extends "backoffice/base.html" %}
+{% load static %}
+
+{% block bo_title %}{{ title }}{% endblock %}
+{% block bo_icon %}{% if content_kind == 'announcement' %}bi-megaphone{% else %}bi-journal-bookmark{% endif %}{% endblock %}
+{% block bo_topbar %}{{ title }}{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/sit-backoffice.css' %}">{% endblock %}
+
+{% block bo_content %}
+<div class="sit-bo-wrap">
+  <div class="sit-bo-head">
+    <div><div class="sit-bo-kicker">{{ eyebrow }}</div><h1>{{ title }}</h1><p>{{ result_count }} ta yozuv. Draft va public holat alohida boshqariladi.</p></div>
+    <div class="sit-bo-actions"><a class="sit-bo-btn primary" href="{% url create_url_name %}"><i class="bi bi-plus-lg"></i> Yangi {% if content_kind == 'announcement' %}e'lon{% else %}qo'llanma{% endif %}</a></div>
+  </div>
+  {% if content_kind == 'announcement' %}{% include "backoffice/sit_tabs.html" with current="announcements" %}{% else %}{% include "backoffice/sit_tabs.html" with current="guides" %}{% endif %}
+
+  <form class="sit-bo-filters" method="get">
+    <input type="search" name="q" value="{{ filters.q }}" placeholder="Sarlavha yoki kategoriya...">
+    <select name="publication" aria-label="Nashr holati"><option value="all">Barcha nashrlar</option><option value="published"{% if filters.publication == 'published' %} selected{% endif %}>Jonli</option><option value="draft"{% if filters.publication == 'draft' %} selected{% endif %}>Draft</option></select>
+    {% if content_kind == 'announcement' %}
+      <select name="category" aria-label="E'lon kategoriyasi"><option value="all">Barcha kategoriyalar</option>{% for value,label in category_choices %}<option value="{{ value }}"{% if filters.category == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+      <select name="homepage" aria-label="Bosh sahifa holati"><option value="all">Bosh sahifa: barchasi</option><option value="yes"{% if filters.homepage == 'yes' %} selected{% endif %}>Ko'rsatiladi</option><option value="no"{% if filters.homepage == 'no' %} selected{% endif %}>Ko'rsatilmaydi</option></select>
+    {% else %}
+      <select name="featured" aria-label="Bosh sahifa holati"><option value="all">Bosh sahifa: barchasi</option><option value="yes"{% if filters.featured == 'yes' %} selected{% endif %}>Ko'rsatiladi</option><option value="no"{% if filters.featured == 'no' %} selected{% endif %}>Ko'rsatilmaydi</option></select>
+    {% endif %}
+    <button class="sit-bo-btn" type="submit"><i class="bi bi-funnel"></i> Filter</button>
+  </form>
+
+  <div class="sit-bo-table-wrap">
+    <table class="sit-bo-table">
+      <thead><tr><th>Sarlavha</th><th>Kategoriya</th>{% if content_kind == 'announcement' %}<th>Universitet</th>{% endif %}<th>Sana</th><th>Bosh sahifa</th><th>Nashr</th><th></th></tr></thead>
+      <tbody>
+      {% for obj in objects %}
+        <tr>
+          <td><div class="sit-bo-table-name">{{ obj.title }}</div>{% if content_kind == 'guide' %}<div class="sit-bo-table-sub">{{ obj.excerpt|truncatechars:70 }}</div>{% endif %}</td>
+          <td>{% if content_kind == 'announcement' %}{{ obj.get_category_display }}{% else %}{{ obj.category }}{% endif %}</td>
+          {% if content_kind == 'announcement' %}<td>{{ obj.university.name|default:"—" }}</td>{% endif %}
+          <td>{% if content_kind == 'announcement' %}{{ obj.published_on|date:"d.m.Y" }}{% else %}{{ obj.published_on|date:"d.m.Y"|default:"—" }}{% endif %}</td>
+          <td>{% if content_kind == 'announcement' %}{% if obj.show_on_home %}<span class="sit-bo-badge live">Ha</span>{% else %}<span class="sit-bo-badge">Yo'q</span>{% endif %}{% else %}{% if obj.is_featured %}<span class="sit-bo-badge live">Ha</span>{% else %}<span class="sit-bo-badge">Yo'q</span>{% endif %}{% endif %}</td>
+          <td><span class="sit-bo-badge {% if obj.is_published %}live{% else %}draft{% endif %}">{% if obj.is_published %}Jonli{% else %}Draft{% endif %}</span></td>
+          <td>{% if content_kind == 'announcement' %}<a class="sit-bo-btn" href="{% url 'sit_backoffice:announcement_edit' obj.id %}"><i class="bi bi-pencil"></i> Tahrirlash</a>{% else %}<a class="sit-bo-btn" href="{% url 'sit_backoffice:guide_edit' obj.id %}"><i class="bi bi-pencil"></i> Tahrirlash</a>{% endif %}</td>
+        </tr>
+      {% empty %}<tr><td colspan="7"><div class="sit-bo-empty">Filterga mos yozuv topilmadi.</div></td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if page_obj.paginator.num_pages > 1 %}<nav class="sit-bo-pagination">{% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}"><i class="bi bi-chevron-left"></i></a>{% endif %}<span>{{ page_obj.number }}</span>{% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}"><i class="bi bi-chevron-right"></i></a>{% endif %}</nav>{% endif %}
+</div>
+{% endblock %}
