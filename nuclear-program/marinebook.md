@@ -16,6 +16,17 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-29 [Codex]: SIT owner backoffice workflow
+
+Study in Turkey katalogi owner-only `/backoffice/sit/` control surface'iga ulandi: dashboard va 90 kunlik dolzarblik signali, filterlangan universitet/e'lon/qo'llanma ro'yxatlari, universitetning fakultet/dastur/tayyorlov/talab/hujjat/xizmat/media formsetlari, preview hamda reason+confirmation+`LogEntry` audit ishlaydi. `Announcement.show_on_home` public publish'dan ajratildi — endi oddiy nashr avtomatik bosh sahifaga chiqmaydi; migratsiya mavjud published e'lonlarning oldingi ko'rinishini saqlaydi.
+
+- Branch: `codex/sit-backoffice`
+- Commitlar: `4cb3487`
+- Migratsiya: `sit/0002_announcement_show_on_home.py` — Boolean AddField + mavjud published e'lonlarni `show_on_home=True` backfill; data loss yo'q
+- Test holati: `python manage.py test` — **453/453 OK**; SIT + backoffice/template focused suite — **42/42 OK**; `check` — **0 issues**; `makemigrations --check --dry-run` — **No changes**; `collectstatic` — **OK**
+- Browser QA: owner sessiyasi, 1280×720 va 390×844, light/dark; dashboard, katalog GET filteri, 7 ichki universitet paneli, e'lon/qo'llanma editorlari, mobile drawer va internal table scroll tekshirildi; page overflow **0**, console error/warning **0**. Screenshotda topilgan row/badge overlap shu commitda tuzatildi.
+- Davom etilishi kerak: real universitet ma'lumotini rasmiy manbadan kiritish; S2 canonical `SITInquiry` lifecycle va keyingi AI advisor alohida slice. Claude'ning `claude/sit-nuclear-program` reja branchi bu branchga aralashtirilmadi.
+
 ## 2026-07-28 [Codex]: SIT backend va data-driven public portal
 
 `playground/SIT/` prototipi alohida `sit` Django appiga ko'chirildi: universitet, fakultet/dastur, tayyorlov kursi, talab/hujjat/xizmat, media, e'lon va qo'llanma modellari; admin boshqaruvi; katalog filterlari; public home/list/detail sahifalari; responsive light/dark interfeys tayyor. Vaqtga sezgir public ma'lumotlar rasmiy manba va oxirgi tekshirilgan sanasiz nashr qilinmaydi; boshlang'ich migratsiya ataylab tekshirilmagan demo universitetlarni seed qilmaydi.
