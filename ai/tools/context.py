@@ -17,6 +17,10 @@ class ToolContextService:
     """Builds deterministic app-side context for agent skills."""
 
     MAX_EXCERPT_CHARS = 700
+    # SIT katalogi o'sganda prompt cheksiz kattalashmasligi uchun chegaralar.
+    SIT_MAX_UNIVERSITIES = 25
+    SIT_MAX_PROGRAMS_PER_UNIVERSITY = 8
+    SIT_MAX_GUIDES = 12
 
     def build(self, *, request, skill) -> ToolContext:
         sections = []
@@ -219,6 +223,93 @@ class ToolContextService:
                 lines.append("  All lessons appear completed.")
             else:
                 lines.append("  No lessons found in this course.")
+        return "\n".join(lines)
+
+    def _render_sit_catalog(self, *, request) -> str:
+        """SIT (Study in Turkey) katalogining tekshirilgan snapshot'i.
+
+        Faqat `is_published=True` yozuvlar chiqadi — nashr uchun `source_url` va
+        `last_verified_on` majburiy bo'lgani sabab bu ma'lumot manbasi tekshirilgan.
+        Embedding/RAG emas, deterministik so'rov: narx yoki muddat "taxmin" qilinmaydi.
+        """
+        from django.db.models import Case, IntegerField, When
+
+        from sit.models import KnowledgeArticle, University
+        from sit.selectors import advisor_catalog_queryset
+
+        status_rank = Case(
+            When(admission_status=University.AdmissionStatus.OPEN, then=0),
+            When(admission_status=University.AdmissionStatus.SOON, then=1),
+            default=2,
+            output_field=IntegerField(),
+        )
+        universities = list(
+            advisor_catalog_queryset()
+            .annotate(_status_rank=status_rank)
+            .order_by("_status_rank", "order", "name")[: self.SIT_MAX_UNIVERSITIES]
+        )
+        total_published = University.objects.published().count()
+
+        if not universities:
+            return (
+                "SIT katalogida hozircha nashr etilgan universitet yo'q. "
+                "Universitet, kontrakt narxi yoki qabul muddati haqida MA'LUMOT BERMA va TO'QIMA — "
+                "halol ayt: katalog hali to'ldirilmoqda, va foydalanuvchini mutaxassis bilan bog'lanishga taklif qil."
+            )
+
+        lines = [
+            "SIT (Study in Turkey) tekshirilgan katalogi — universitet, kontrakt narxi va qabul muddati uchun "
+            "YAGONA ruxsat etilgan manba.",
+            f"Nashr etilgan universitetlar: {total_published} ta (quyida {len(universities)} tasi).",
+            "",
+        ]
+
+        for university in universities:
+            deadline = university.admission_deadline.strftime("%d.%m.%Y") if university.admission_deadline else "aniqlanmagan"
+            lines.append(
+                f"- {university.name} | {university.city} | {university.get_university_type_display()} "
+                f"| qabul: {university.get_admission_status_display()} | muddat: {deadline} "
+                f"| eng arzon kontrakt: {university.display_tuition_from} "
+                f"| tillar: {university.language_summary} | darajalar: {university.degree_summary}"
+            )
+
+            programs = []
+            for faculty in getattr(university, "visible_faculties", []):
+                for program in getattr(faculty, "visible_programs", []):
+                    programs.append(
+                        f"{program.name} ({faculty.name}, {program.get_degree_level_display()}, "
+                        f"{program.get_language_display()}, {program.duration}, {program.display_tuition})"
+                    )
+            if programs:
+                shown = programs[: self.SIT_MAX_PROGRAMS_PER_UNIVERSITY]
+                suffix = f" (+{len(programs) - len(shown)} ta yana)" if len(programs) > len(shown) else ""
+                lines.append(f"  dasturlar: {'; '.join(shown)}{suffix}")
+
+            preparation = [
+                f"{course.language} — {course.display_tuition} / {course.duration}"
+                for course in getattr(university, "visible_preparation_courses", [])
+            ]
+            if preparation:
+                lines.append(f"  til tayyorlov: {'; '.join(preparation)}")
+
+        if total_published > len(universities):
+            lines.append(f"... yana {total_published - len(universities)} ta universitet katalogda bor (bu ro'yxatga sig'madi).")
+
+        guides = list(
+            KnowledgeArticle.objects.published().order_by("order", "-published_on")[: self.SIT_MAX_GUIDES]
+        )
+        if guides:
+            lines.append("")
+            lines.append("Portaldagi qo'llanmalar: " + "; ".join(guide.title for guide in guides))
+
+        lines.append("")
+        lines.append(
+            "QAT'IY QOIDALAR: (1) Faqat yuqoridagi ro'yxatdagi universitet, dastur, narx va muddatni ayt — "
+            "ro'yxatda yo'q universitetni, narxni yoki sanani TO'QIMA. (2) Ma'lumot yetishmasa halol ayt va "
+            "foydalanuvchini mutaxassis bilan bog'lanishga yo'naltir. (3) Viza, denklik va rasmiy qabul "
+            "qoidalarida yakuniy huquqiy maslahat BERMA — umumiy yo'nalish ber va rasmiy manbaga/mutaxassisga "
+            "yo'naltir. (4) Narx va muddat o'zgarishi mumkinligini eslat."
+        )
         return "\n".join(lines)
 
     def _render_web_search(self, *, request) -> str:

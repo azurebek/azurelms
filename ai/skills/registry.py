@@ -82,6 +82,36 @@ BUILTIN_SKILLS: tuple[SkillDefinition, ...] = (
         priority=0,
     ),
     SkillDefinition(
+        slug="sit_advisor",
+        name="SIT Advisor",
+        description="Answers Study in Turkey questions strictly from the published SIT catalog.",
+        tool_slugs=("sit_catalog",),
+        # DIQQAT: "magistratura" ataylab yo'q — u core LMS auditoriyasining (sertifikat
+        # talabgori) so'zi; qo'shilsa til kursi savollari SIT'ga adashib ketardi.
+        trigger_keywords=(
+            "turkiyada o'qish",
+            "turkiyada o'qi",
+            "turkiyaga o'qishga",
+            "universitet",
+            "univer tanla",
+            "qabul ochiq",
+            "qabul muddati",
+            "kontrakt narxi",
+            "kontrakt to'lovi",
+            "tomer",
+            "yos imtihoni",
+            "denklik",
+            "talaba vizasi",
+            "viza",
+            "stipendiya",
+            "bakalavr",
+            "fakultet",
+            "yotoqxona",
+            "hujjat topshir",
+        ),
+        priority=95,
+    ),
+    SkillDefinition(
         slug="lesson_explainer",
         name="Lesson Explainer",
         description="Explains lesson topics using the current lesson and RAG context.",
@@ -336,7 +366,10 @@ class SkillRegistry:
         student = getattr(request, "student", None)
         effort = getattr(student, "ai_web_search_effort", "light") or "light"
         if effort in {"medium", "heavy"} and self._is_time_sensitive_info_query(question):
-            return self.get("web_search")
+            # SIT savoli bundan mustasno: katalog manba va tekshirilgan sana bilan yuritiladi,
+            # shuning uchun "yangi qabul qachon" kabi savol web'ga emas, lokal katalogga boradi.
+            if not self._score_definition(self._definitions["sit_advisor"], question):
+                return self.get("web_search")
 
         # Xonada faol SmartFormSession bo'lsa — suhbatni forma skilli boshqaradi
         room = getattr(request, "room", None)
