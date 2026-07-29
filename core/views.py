@@ -29,14 +29,10 @@ from .backoffice_forms import (
 from .brand_forms import BrandSettingsForm
 from .landing_forms import LandingPageForm
 from .control_center import build_control_center_snapshot
-
-
-def _is_backoffice_user(user):
-    return user.is_staff or user.is_superuser
-
-
-def _is_control_center_owner(user):
-    return user.is_active and user.is_superuser
+from .access import (
+    is_backoffice_user as _is_backoffice_user,
+    is_control_center_owner as _is_control_center_owner,
+)
 
 
 def _safe_int(value):

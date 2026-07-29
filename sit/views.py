@@ -29,7 +29,7 @@ def home(request):
         "active_nav": "home",
         "featured_universities": featured_universities,
         "announcements": (
-            Announcement.objects.filter(is_published=True)
+            Announcement.objects.filter(is_published=True, show_on_home=True)
             .select_related("university")
             .order_by("order", "-published_on")[:4]
         ),

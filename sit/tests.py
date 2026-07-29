@@ -76,6 +76,7 @@ class SITPublicFlowTests(TestCase):
             university=university,
             category=Announcement.Category.ADMISSION,
             published_on=date(2026, 7, 28),
+            show_on_home=True,
             is_published=True,
         )
         Announcement.objects.create(

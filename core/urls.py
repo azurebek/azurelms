@@ -50,6 +50,7 @@ urlpatterns = [
     # Holat sahifalari (texnik ishlar va offline)
     path('maintenance/', core_views.maintenance, name='maintenance'),
     path('offline/', core_views.offline, name='offline'),
+    path('backoffice/sit/', include(('sit.backoffice_urls', 'sit_backoffice'), namespace='sit_backoffice')),
     path('backoffice/control/brand/', core_views.backoffice_brand, name='backoffice_brand'),
     path('backoffice/landing/', core_views.backoffice_landing, name='backoffice_landing'),
     path('backoffice/control/', core_views.backoffice_control, name='backoffice_control'),

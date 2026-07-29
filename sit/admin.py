@@ -129,10 +129,18 @@ class UniversityProgramAdmin(admin.ModelAdmin):
 
 @admin.register(Announcement)
 class AnnouncementAdmin(admin.ModelAdmin):
-    list_display = ("title", "category", "university", "published_on", "is_published", "order")
-    list_filter = ("is_published", "category", "published_on")
+    list_display = (
+        "title",
+        "category",
+        "university",
+        "published_on",
+        "show_on_home",
+        "is_published",
+        "order",
+    )
+    list_filter = ("is_published", "show_on_home", "category", "published_on")
     search_fields = ("title", "university__name")
-    list_editable = ("is_published", "order")
+    list_editable = ("show_on_home", "is_published", "order")
     date_hierarchy = "published_on"
 
 

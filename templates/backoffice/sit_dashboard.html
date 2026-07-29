@@ -1,0 +1,80 @@
+{% extends "backoffice/base.html" %}
+{% load static %}
+
+{% block bo_title %}Study in Turkey{% endblock %}
+{% block bo_icon %}bi-mortarboard{% endblock %}
+{% block bo_topbar %}Study in Turkey{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/sit-backoffice.css' %}">{% endblock %}
+
+{% block bo_content %}
+<div class="sit-bo-wrap">
+  <div class="sit-bo-head">
+    <div>
+      <div class="sit-bo-kicker">SIT · Owner workflow</div>
+      <h1>Study in Turkey boshqaruvi</h1>
+      <p>Universitet katalogi, qabul yangiliklari va qo'llanmalarni bitta nazorat nuqtasidan boshqaring.</p>
+    </div>
+    <div class="sit-bo-actions">
+      <a class="sit-bo-btn" href="{% url 'sit:home' %}" target="_blank"><i class="bi bi-box-arrow-up-right"></i> Portalni ko'rish</a>
+      <a class="sit-bo-btn primary" href="{% url 'sit_backoffice:university_create' %}"><i class="bi bi-plus-lg"></i> Universitet</a>
+    </div>
+  </div>
+
+  {% include "backoffice/sit_tabs.html" with current="dashboard" %}
+
+  <div class="sit-bo-metrics">
+    <div class="sit-bo-metric"><i class="bi bi-buildings"></i><strong>{{ metrics.published_universities }}/{{ metrics.universities }}</strong><span>Nashrdagi universitet</span></div>
+    <div class="sit-bo-metric"><i class="bi bi-door-open"></i><strong>{{ metrics.open_admissions }}</strong><span>Qabuli ochiq</span></div>
+    <div class="sit-bo-metric"><i class="bi bi-journal-code"></i><strong>{{ metrics.programs }}</strong><span>Faol dastur</span></div>
+    <div class="sit-bo-metric{% if metrics.stale %} is-red{% endif %}"><i class="bi bi-clock-history"></i><strong>{{ metrics.stale }}</strong><span>{{ stale_after_days }}+ kun tekshirilmagan</span></div>
+  </div>
+
+  <div class="sit-bo-grid">
+    <div>
+      <section class="sit-bo-panel">
+        <div class="sit-bo-panel-head"><div><h2>Universitetlar</h2><p>Oxirgi tahrirlangan yozuvlar</p></div><a href="{% url 'sit_backoffice:universities' %}">Hammasi</a></div>
+        {% for university in recent_universities %}
+          <a class="sit-bo-row" href="{% url 'sit_backoffice:university_edit' university.id %}">
+            <span class="sit-bo-row-icon"><i class="bi bi-building"></i></span>
+            <span class="sit-bo-row-main"><span class="sit-bo-row-title">{{ university.name }}</span><span class="sit-bo-row-meta">{{ university.city }} · {{ university.program_count }} dastur · {{ university.updated_at|date:"d.m.Y H:i" }}</span></span>
+            <span class="sit-bo-badge {% if university.is_published %}live{% else %}draft{% endif %}">{% if university.is_published %}Jonli{% else %}Draft{% endif %}</span>
+          </a>
+        {% empty %}<div class="sit-bo-empty">Universitet hali qo'shilmagan.</div>{% endfor %}
+      </section>
+
+      <section class="sit-bo-panel">
+        <div class="sit-bo-panel-head"><div><h2>Dolzarblik nazorati</h2><p>Published yozuvlar {{ stale_after_days }} kunda qayta tekshiriladi</p></div></div>
+        {% for university in stale_universities %}
+          <a class="sit-bo-row" href="{% url 'sit_backoffice:university_edit' university.id %}">
+            <span class="sit-bo-row-icon"><i class="bi bi-exclamation-triangle"></i></span>
+            <span class="sit-bo-row-main"><span class="sit-bo-row-title">{{ university.name }}</span><span class="sit-bo-row-meta">Oxirgi tekshiruv: {{ university.last_verified_on|date:"d.m.Y"|default:"kiritilmagan" }}</span></span>
+            <span class="sit-bo-badge stale">Tekshirish kerak</span>
+          </a>
+        {% empty %}<div class="sit-bo-empty"><i class="bi bi-check-circle"></i> Barcha public ma'lumot dolzarb.</div>{% endfor %}
+      </section>
+    </div>
+
+    <div>
+      <section class="sit-bo-panel">
+        <div class="sit-bo-panel-head"><div><h2>E'lonlar</h2><p>{{ metrics.announcements }} ta nashrda</p></div><a href="{% url 'sit_backoffice:announcements' %}">Boshqarish</a></div>
+        {% for announcement in recent_announcements %}
+          <a class="sit-bo-row" href="{% url 'sit_backoffice:announcement_edit' announcement.id %}">
+            <span class="sit-bo-row-main"><span class="sit-bo-row-title">{{ announcement.title }}</span><span class="sit-bo-row-meta">{{ announcement.get_category_display }} · {{ announcement.published_on|date:"d.m.Y" }}</span></span>
+            {% if announcement.show_on_home %}<span class="sit-bo-badge live">Bosh sahifa</span>{% endif %}
+          </a>
+        {% empty %}<div class="sit-bo-empty">E'lon yo'q.</div>{% endfor %}
+      </section>
+
+      <section class="sit-bo-panel">
+        <div class="sit-bo-panel-head"><div><h2>Qo'llanmalar</h2><p>{{ metrics.guides }} ta nashrda</p></div><a href="{% url 'sit_backoffice:guides' %}">Boshqarish</a></div>
+        {% for guide in recent_guides %}
+          <a class="sit-bo-row" href="{% url 'sit_backoffice:guide_edit' guide.id %}">
+            <span class="sit-bo-row-main"><span class="sit-bo-row-title">{{ guide.title }}</span><span class="sit-bo-row-meta">{{ guide.category }} · {{ guide.updated_at|date:"d.m.Y" }}</span></span>
+            {% if guide.is_featured %}<span class="sit-bo-badge live">Bosh sahifa</span>{% endif %}
+          </a>
+        {% empty %}<div class="sit-bo-empty">Qo'llanma yo'q.</div>{% endfor %}
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}
