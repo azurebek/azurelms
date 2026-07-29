@@ -66,6 +66,21 @@ def university_detail_queryset(*, include_unpublished=False):
     )
 
 
+def advisor_catalog_queryset():
+    """AI maslahatchi uchun katalog: nashr etilgan universitet + dastur + tayyorlov kursi.
+
+    Detail queryset'dan farqi — talab/hujjat/xizmat/media olinmaydi, chunki ular
+    prompt'ga kirmaydi. N+1 bo'lmasligi uchun kerakli bog'lanishlar prefetch qilinadi.
+    """
+    return university_catalog_queryset().prefetch_related(
+        Prefetch(
+            "preparation_courses",
+            queryset=UniversityPreparationCourse.objects.filter(is_active=True).order_by("order", "language"),
+            to_attr="visible_preparation_courses",
+        )
+    )
+
+
 def apply_catalog_filters(queryset, params):
     search_query = params.get("q", "").strip()
     university_type = params.get("type", "").strip()
