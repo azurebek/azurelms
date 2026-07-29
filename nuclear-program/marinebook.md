@@ -16,6 +16,20 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-07-29 [Claude Code]: SIT AI maslahatchisi (`sit_advisor` skill) — S3
+
+SIT sahifalaridagi "AI bilan maslahatlashish" CTA oddiy Azure AI'ga olib borardi, u esa SIT bazasini umuman bilmasdi — ya'ni tugma AI bera olmaydigan narsani va'da qilardi (`rules-for-agents` §15 buzilishi). Endi AI portaldagi tekshirilgan katalogdan javob beradi. Owner qarorlari: kirish auth-gated (anonim AI kvota/xarajat nazoratisiz bo'lardi), tartibda S3 avval.
+
+Texnik qaror: **RAG embedding emas, deterministik so'rov**. Katalog strukturali (narx, shahar, til, daraja, holat) — `sit/selectors.advisor_catalog_queryset()` orqali aniq o'qiladi, shuning uchun AI narx yoki muddat "taxmin" qila olmaydi. Faqat `is_published` yozuvlar chiqadi. Prompt hajmi chegaralangan (25 universitet / 8 dastur / 12 qo'llanma), katalog o'sganda ham portlamaydi.
+
+Ikkita nozik joy hal qilindi. (1) Kalit so'zlarda **"magistratura" ataylab yo'q** — u core LMS (sertifikat talabgori, S1 segment) auditoriyasining so'zi; qo'shilsa til kursi savollari SIT'ga adashib ketardi, regressiya testi buni qo'riqlaydi. (2) `registry.select_for_request`da medium/heavy web-search effort vaqtga bog'liq savolni **keyword scoring'gacha** web'ga yuborardi — "yangi qabul qachon boshlanadi" kabi SIT savoli tekshirilgan lokal katalog turganda webga chiqib ketardi; endi SIT savoliga istisno bor.
+
+- Branch: `claude/sit-advisor-skill` (`main`dan; avval codex'ning merge qilinmagan S4 commitlari ustida qurilgan edi — egasi S3'ni mustaqil merge qila olishi uchun toza `main`ga ko'chirildi)
+- Yangi/tegilgan: `ai/tools/context.py` (`_render_sit_catalog`), `ai/skills/registry.py` (skill + web_search istisnosi), `ai/skills/sit_advisor/SKILL.md`, `sit/selectors.py` (`advisor_catalog_queryset`), `sit/test_ai_advisor.py`
+- Test holati: `python manage.py test sit ai messenger` — **158/158 OK** (13 yangi: routing, core-LMS regressiya, tool faqat published, inactive dastur, qo'llanma, qat'iy qoidalar, tartib); `check` — 0 issues; churn yo'q (140 qator sof qo'shimcha). Uchdan-uchiga real bazada tekshirildi: savol → `sit_advisor` → `sit_catalog` tool → real dastur/narx/tayyorlov ma'lumoti.
+- **DIQQAT — ma'lumot gigienasi:** hozir public portalda ikkita soxta universitet nashr etilgan holatda turibdi (`TEST: Bosphorus Technology University`, `TEST: Anatolia State University`, manba `example.com`, o'ylab topilgan narxlar). Ular anonim tashrifchiga ko'rinadi va endi AI ham ularni haqiqiy variant sifatida tavsiya qiladi. Bu `02-yol-xarita` R12 riskining amaldagi ko'rinishi. Ma'lumotga tegmadim — owner qarori; tavsiya: `is_published=False` qilish.
+- Davom etilishi kerak: S2 (yordam so'rovi lifecycle) hali yo'q — yordam CTA `messenger:tutor`ga universitet konteksitisiz boradi va kuzatilmaydi. Codex parallel ravishda S4 (backoffice workflow) ni qilgan, u alohida `codex/sit-backoffice` branchida.
+
 ## 2026-07-28 [Codex]: SIT backend va data-driven public portal
 
 `playground/SIT/` prototipi alohida `sit` Django appiga ko'chirildi: universitet, fakultet/dastur, tayyorlov kursi, talab/hujjat/xizmat, media, e'lon va qo'llanma modellari; admin boshqaruvi; katalog filterlari; public home/list/detail sahifalari; responsive light/dark interfeys tayyor. Vaqtga sezgir public ma'lumotlar rasmiy manba va oxirgi tekshirilgan sanasiz nashr qilinmaydi; boshlang'ich migratsiya ataylab tekshirilmagan demo universitetlarni seed qilmaydi.
