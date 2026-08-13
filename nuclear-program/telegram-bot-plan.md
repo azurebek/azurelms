@@ -4,6 +4,8 @@
 > Branch: `claude/telegram-bot`
 > Maqsad: bot — kompyuter ishlatmaydigan auditoriya uchun platformaning to'liq interfeysi.
 
+> **Rebaseline 2026-08-14:** F0–F9 va Mini App foundation main'da. DigitalOcean/public production `HOLD`; joriy ish Telegram polling + local app. F10 production gate vendor-neutral bo'lib, owner productionni qayta ochmaguncha active task emas. Gemini bot AI uchun ham umumiy free-tier budgetdan tashqarida emas.
+
 ## Vizyon (Azurbek talabi)
 
 Bot uch xil auditoriyaga uch xil rejimda xizmat qiladi:
@@ -26,8 +28,7 @@ bot ismlar bilan keldi/kech/kelmadi e'lonini beradi, kelmaganlarga shaxsiy ogohl
 - **FSM** ko'p bosqichli oqimlar uchun (ro'yxatdan o'tish, forma to'ldirish).
 - **Notification outbox**: platforma hodisalari (to'lov, yangi dars, baho, davomat ogohlantirishi)
   → navbat jadvali → yuboruvchi worker (Telegram rate-limit ~30 msg/sek hisobga olinadi).
-- **Lazy Bot init**: `bot/aiogram_app.py` hozir import vaqtida `Bot(token=...)` quradi —
-  bo'sh token butun loyihani yiqitadi (runserver/check/migrate). F0'da tuzatiladi.
+- **Lazy Bot init**: `bot/aiogram_app.py` bo'sh token bilan runserver/check/migrate'ni yiqitmaydi — F0'da bajarilgan.
 
 ## Qatlamlar sxemasi
 
@@ -53,9 +54,7 @@ Kirish (webhook prod / polling dev)
 | **F4** | O'qituvchi + Admin + Outbox | /guruhlarim, /baholash; admin: /stat, /cheklar (rasm + tasdiqlash/rad tugmalari); Notification→DM outbox (signal + worker) | ✅ 2026-07-12, outbox jonli isbotlangan |
 | **F5** | Mini App qatlami | initData HMAC auth-ko'prik (`/bot/miniapp/` + `/bot/miniapp/auth/`), avto-login, open-redirect himoya; public domenda web_app menyu tugmasi (lokalda avto-fallback) | ✅ 2026-07-13 — ko'prik tayyor; to'liq webview sinovi prod HTTPS'da |
 
-Keyingi navbat: admin broadcast, o'qituvchi e'loni, prod deploy (alohida bot token,
-webhook, `telegram_outbox --loop`), Mini App'ni og'ir sahifalarga yoyish
-(mobil-moslashuv rejasi bajarilgach).
+F6/F7 admin broadcast va AI controls, F8 dars yetkazish hamda F9 assignment/quiz keyinroq main'ga qo'shilgan. Joriy navbat production emas: A8 Gemini free-tier guard, local bot regression/phone QA va core canonical flow parity. Teacher to'liq interactive grading, exam/certificate va reminderlar alohida `NEXT`.
 
 > Yangilanish 2026-07-13: F6 (admin kengaytmasi: /qidiruv, /broadcast, /ai_stat) va
 > F7 (AI nazorat: /ai_sozlama, /ai_limit, /ai_tarif, /ai_reset, /ai_bonus, user-blok)
@@ -70,11 +69,7 @@ webhook, `telegram_outbox --loop`), Mini App'ni og'ir sahifalarga yoyish
 
 ## Hozirgi kamchilik xaritasi
 
-1-qism (F0–F7) "atrofdagi" hamma narsani qopladi: ro'yxat, yozilish, to'lov,
-davomat, kuzatuv, AI, admin-pult. Yetishmayotgan yadro — **dars jarayonining o'zi**:
-o'quvchi botdan turib darsni KO'RA olmaydi, vazifa TOPSHIRA olmaydi, quiz/imtihon
-YECHA olmaydi, sertifikatini OLA olmaydi. O'qituvchi baholay olmaydi. Shu 2-qism
-aynan shularni yopadi.
+F8/F9 bilan darsni ko'rish, assignment topshirish va quiz botda ishlaydi. Hali to'liq bo'lmagan yadro: exam/certificate, teacher interactive grading/reminder, public webhook/outbox process va production WebView. `/baholash` queue bor, lekin F12ning to'liq workflow'i emas.
 
 Model-tayyorlik tekshirildi: `Lesson.video_url` (YouTube unlisted havola),
 `Lesson.content` (HTML → matnga o'giriladi), Quiz=MCQ (inline tugmalarga ideal),
@@ -83,30 +78,22 @@ ovozli xabar) — hammasi chat-interfeysga yotadi.
 
 ## Fazalar
 
-| # | Faza | Tarkib | Hajm |
+| # | Faza | Tarkib | Holat |
 |---|------|--------|------|
-| **F8** | **Dars-yetkazish (botda o'qish)** — yadro | /darslarim → kurs → modul/dars ro'yxati (✅ o'tilgan / 🔒 qulf, sayt lock-mantig'i bilan); dars ochish: video tugmasi (YouTube unlisted), kontent HTML→matn (bo'laklab), "✅ Darsni tugatdim" → LessonProgress+XP (sayt servisi); deep-link `t.me/bot?start=dars_ID` — davomat ogohlantirishidagi havola endi botning o'zida ochiladi; "🤖 Shu dars bo'yicha savol" → AI repetitorga dars-kontekst | ~1.5 kun |
-| **F9** | **Vazifa va quiz** | Dars ichida 📝 Vazifa: topshiriq → javob matn/foto/fayl → AssignmentSubmission (pending) → o'qituvchi navbatiga; baholanganda DM (outbox tayyor). ❓ Quiz: savollar inline tugmalar bilan ketma-ket, mavjud quiz-submit servisi, natija+XP darhol | ~1 kun |
-| **F10** | **Prod-ga chiqarish** ⚡ | Alohida prod bot + BotFather profil (rasm/description); webhook + secret; `telegram_outbox --loop` alohida worker (DO App Platform/Procfile); deploy'da setup_bot_commands; Mini App Menu Button aktivatsiyasi (mobil-moslashuv tuzatishlari bilan birga); media file_id keshi; xatolik-monitoring (kritik xato → admin DM); rate hardening | ~1.5 kun |
-| **F11** | **Imtihon va sertifikat** | /imtihonlarim (jadval/holat/natija); topshirish v1: MCQ tugmalar, writing=matn, speaking=ovozli xabar (mavjud audio-upload oqimiga); vaqt nazorati xabarda; murakkab holat uchun Mini App'ga yo'naltirish opsiyasi. /sertifikatlarim: ro'yxat + PDF/rasm chatga | ~2 kun |
-| **F12** | **O'qituvchi to'liq ish stoli** | /baholash interaktiv: ishni ochish (matn/fayl) → baho + izoh → o'quvchiga avto-DM; guruhga e'lon botdan; dars eslatmalari (jadval bo'yicha guruhga avto-post) | ~1 kun |
-| **F13** | **Profil/reyting/polish** | /reyting (leaderboard), /profil (ism, AI tone/model sozlash), /yordam FAQ DB'dan; onboarding→yozilish→to'lov→o'qish voronkasining uzluksizligini end-to-end tekshirish | ~1 kun |
+| **F8** | **Dars-yetkazish (botda o'qish)** | Saytdagi lesson access/progress service'lari, video/kontent/deep-link | `IMPLEMENTED/TESTED`; phone QA pending |
+| **F9** | **Vazifa va quiz** | `BotPendingAction` DB state, canonical assignment/quiz service, result+XP | `IMPLEMENTED/TESTED`; phone QA pending |
+| **F10** | **Vendor-neutral production gate** | Alohida production bot qarori, webhook+unique secret, outbox process, commands/menu button, monitoring/rate hardening | `HOLD` — DO target emas; owner productionni qayta ochadi |
+| **F11** | **Imtihon va sertifikat** | `/imtihonlarim`, bounded bot practice, complex flow Mini App; `/sertifikatlarim` | `PLANNED`, active emas |
+| **F12** | **O'qituvchi to'liq ish stoli** | Queue mavjud; interactive grade+comment, e'lon va reminder qolgan | `PARTIAL / NEXT` |
+| **F13** | **Profil/reyting/polish** | Yordam/Mini App entry primitive'lari bor; leaderboard/profile/E2E qolgan | `PARTIAL / NEXT` |
 
-**Tavsiya tartibi:** F8 → F9 → **F10 (prod!)** → F11 → F12 → F13.
-Sabab: F8+F9 bilan bot haqiqiy "o'qish joyi"ga aylanadi — shu zahoti prod'ga
-chiqarib real o'quvchilarga berish kerak (20-sentyabr launch'iga zaxira vaqt
-qoladi), qolgan fazalar jonli foydalanish ustiga iterativ qo'shiladi.
+**Joriy tartib:** `A8 Gemini budget → A0b/A1a → core flow bilan birga local F0–F9 parity/phone QA → owner tanlagan F11 yoki F12`. F10 faqat production `HOLD` ochilganda; bot feature tayyorligi cloud deployga o'z-o'zidan ruxsat bermaydi.
 
 ## Halol chegaralar (qabul qilingan)
 
 - **Video himoyasi yo'q**: YouTube unlisted havola/Telegram fayl forward qilinishi mumkin — saytdagi bilan bir xil daraja, qo'shimcha DRM rejalashtirilmagan.
 - **Imtihon halolligi**: botda taymer "yumshoq" (xabar vaqtlari bilan), sayt darajasidagi nazorat yo'q — jiddiy imtihonlar uchun Mini App/sayt tavsiya etiladi, botdagi rejim mashq-imtihonlar uchun.
-- **FSM holati**: polling'da xotirada; webhook prod'da ko'p-jarayonlik bo'lsa DB-storage kerak bo'ladi (F10'da hal qilinadi — hozirgi oqimlar ataylab stateless qurilgan).
-
-## Sinov strategiyasi (1-qismdagidek)
-
-Har faza: servis-testlar (bot suite) + to'liq regressiya + Azurbek telefon-sinovi
-→ marinebook yozuvi → commit. F10'dan keyin sinovlar prod botda staging-kohort bilan.
+- **Ko'p bosqichli holat:** assignment/quiz oqimlari `BotPendingAction` DB state bilan restartga chidamli. Yangi F11–F13 flow xotira FSM'iga suyanmasdan shu pattern yoki canonical state ishlatadi.
 
 ## Sinov strategiyasi
 
@@ -115,8 +102,15 @@ Har faza: servis-testlar (bot suite) + to'liq regressiya + Azurbek telefon-sinov
 2. **Jonli** (Azurbek telefondan): polling (`run_bot.py`) — public URL kerak emas; test-guruh +
    lokal debug ma'lumotlar (4-kohort, debug userlar). Kod → avtotest → "telefondan sinang" →
    DB'dan tasdiqlash sikli.
-3. **Token siyosati (Azurbek qarori, 2026-07-12):** joriy bot devda ishlatiladi;
-   production uchun keyinroq ALOHIDA bot ochiladi.
+3. **Token siyosati (2026-08-14):** joriy `@azureLMSbot` local/polling integratsiya uchun ishlatiladi. Alohida production bot, webhook va public Menu Button faqat production qayta admissionida ko'riladi.
+4. **Evidence yozuvi:** har admitted faza test + telefon QA → marinebook → commit. F10 production admissioni ochilsa, staging-kohort/prod-bot sinovi alohida gate bo'ladi.
+
+## Gemini free-tier siyosati
+
+- Bog'langan user botdan ham Messenger bilan bir canonical quota/budget gate'ni ishlatadi; alohida “bot AI” supply yo'q.
+- F2 guest demo hozir har qanday unlinked user uchun ochiq va faqat 5 savol bilan cheklangan; selected-user allowlist/kill switch **mavjud emas**. Direct provider call `AIResponseRun` ledgeriga to'liq kirmaydi. A8 acceptance guest AI'ni server-side allowlist/default-off qiladi yoki deterministic FAQ/1–2 bounded demoga almashtiradi; owner bungacha ommaviy bot reklamasini ochmaydi.
+- `heavy` web search, Pro/preview model va retry fan-out botdan yoqilmaydi.
+- Budget/circuit ochiq bo'lsa bot core menu, kurs, payment, lesson, assignment/quiz va human handoffni AI'siz davom ettiradi.
 
 ## Cheklovlar (bilingan holda qabul qilingan)
 

@@ -10,9 +10,9 @@ Source of truth har doim **kod** (model/view/task/URL/test). Bu fayl kodga mosla
 
 ## 1. Mahsulot xulosasi
 
-**AzureLMS** — o'zbek tilida turk tili o'rgatishga qaratilgan Learning Management System. Klassik kurs/dars oqimini real-time messenger, AI tutor, RAG, memory, exam, subscription, Telegram attendance, Study in Turkey (SIT) portali va yashirin backoffice boshqaruvi bilan birlashtiradi.
+**AzureLMS** — o'zbek tilida turk tili o'rgatishga qaratilgan Learning Management System. Klassik kurs/dars oqimini real-time messenger, AI tutor, RAG, memory, exam, subscription, Telegram integratsiyasi, Study in Turkey (SIT) portali va yashirin backoffice boshqaruvi bilan birlashtiradi.
 
-**Joriy workspace:** `C:\Users\azurb\azurelms` (Windows)
+**Joriy workspace:** `C:\Users\AZUREBEK\Documents\Codex\2026-08-13\new-chat\azurelms` (Windows)
 **Asosiy branch:** `main` (yagona integratsiya trunk'i)
 **GitHub:** https://github.com/azurebek/azurelms.git
 
@@ -36,7 +36,7 @@ Source of truth har doim **kod** (model/view/task/URL/test). Bu fayl kodga mosla
 5. Talaba cohort/guruhga ulanadi (signal orqali).
 6. Dashboard, darslar, quiz/assignment/exam, messenger va AI yordamchidan foydalanadi.
 7. O'qituvchi/admin backoffice orqali kontent, foydalanuvchi, exam va chatlarni boshqaradi.
-8. Telegram bot attendance va kelajakdagi o'quv oqimlari uchun ishlatiladi.
+8. Telegram bot account linking, attendance, o'qish/topshirish, checkout/admin xabarlari va Mini App oqimlarini platformaga bog'laydi.
 
 ---
 
@@ -47,33 +47,36 @@ Source of truth har doim **kod** (model/view/task/URL/test). Bu fayl kodga mosla
 | Qism | Texnologiya |
 |---|---|
 | Web framework | Django 6.0.2 |
-| Local Python | venv Python 3.14 |
-| Docker Python | `python:3.12-slim` (⚠️ version drift — Dockerfile'ni 3.14'ga yangilash kerak) |
+| Local Python | venv Python 3.12.13 |
+| Docker Python | `python:3.12-slim` (major/minor mos) |
 | ASGI | Daphne 4.2.1 |
 | WebSocket | Django Channels 4.3.2 |
 | Tasks | Celery 5.6.2 |
 | Local task mode | `memory://` broker + eager tasks |
-| Cache / channel prod | Redis/Valkey via `REDIS_URL`, `VALKEY_URL` yoki component vars |
+| Cache / channel future prod | Redis/Valkey via `REDIS_URL`, `VALKEY_URL` yoki component vars |
 | DB local | SQLite `db.sqlite3` |
-| DB prod | PostgreSQL, SSL required |
+| DB future prod | PostgreSQL, SSL required |
 | Vector search | pgvector in prod, JSON/cosine fallback in code |
 | Rich text | django-ckeditor-5 |
 | Admin | Jazzmin + optional legacy `/admin/` (faqat `ENABLE_LEGACY_ADMIN=True` bo'lsa) |
-| Storage | local filesystem yoki DigitalOcean Spaces/S3 |
+| Storage | joriy local filesystem; S3-compatible adapter mavjud, pre-production'da o'chiq |
 | Static | Whitenoise compressed static |
 
 ### AI
 
 | Qism | Texnologiya |
 |---|---|
-| Chat provider | `AI_CHAT_PROVIDER`: Google Gemini yoki DigitalOcean Serverless Inference |
-| Chat models | Gemini user tanlovi; DigitalOcean uchun `DIGITALOCEAN_INFERENCE_MODEL` + fallbacklar |
+| Joriy chat provider | `AI_CHAT_PROVIDER=gemini`; oddiy chat ham, grounding ham Gemini'ga boradi |
+| Qo'llab-quvvatlanadigan adapter | DigitalOcean Serverless Inference adapteri kodda bor, ammo pre-production'da kalitsiz va HOLD; HOLD hali code-level fail-closed emas |
+| Chat models | Gemini user tanlovi; free-tier allowlist/attempt cap A8 gate'ida hali implement qilinmagan |
 | Embedding | `gemini-embedding-001`, 768 dimensions |
-| Web search | Gemini grounding / `google_search` tool; DigitalOcean adapterida hozircha o'chirilgan |
+| Web search | Gemini grounding / `google_search`; free-tier rejimida faqat explicit va hisoblangan bo'lishi A8 maqsadi |
 | Memory | structured `AIMemoryFact`, traces, summaries, semantic scoring |
 | RAG | `LessonRAGChunk`, course/lesson scoped retrieval |
 
 ### Deployment
+
+**2026-08-14 owner qarori:** joriy bosqich LOCAL/PRE-PROD. DigitalOcean hosting, Spaces va Serverless Inference ishlatilmaydi; production platforma/provider tanlovi HOLD. Local profil SQLite + filesystem + LocMem/InMemory + eager tasks bilan ishlaydi; Telegram mode `polling`, bot esa alohida `python manage.py runbot` process'i bilan boshlanadi. Quyidagi Procfile/Dockerfile faqat kelajak production baseline'i, production readiness isboti emas.
 
 **Procfile:**
 
@@ -180,7 +183,7 @@ ai/
 ├── prompts/  builder.py
 ├── providers/ gemini.py, digitalocean.py, provider factory
 ├── rag/      context.py
-├── skills/   registry.py + 10 ta SKILL.md
+├── skills/   registry.py + 14 ta SKILL.md
 └── tools/    context.py
 ```
 
@@ -193,6 +196,8 @@ ai/
 **Joriy Control Center foundation (2026-07-22):** owner-only `/backoffice/control/` `core/control_center/`dagi bitta read-only capability registry va snapshot servisidan foydalanadi. DB, cache, Channels, Celery config, Telegram outbox, media, AI provider/effective token policy, RAG, security va release identity GREEN/AMBER/RED sabab bilan ko'rinadi. Shu snapshot terminalda `python manage.py system_audit [--json] [--fail-on red|amber|never]` orqali ham ishlaydi; web va CLI alohida health mantiq yozmaydi.
 
 **Joriy chegarasi:** bu foundation mutation qilmaydi. Append-only `SystemAuditEvent`, system-wide feature flag/kill switch, active worker/beat heartbeat, `ReleaseRecord`, backup/email/memory probe, cost ledger va AI quality release gate hali mavjud emas. `/backoffice/ai-control/` compatibility control path sifatida Control Center'dan ochiladi, lekin hozircha alohida sahifa.
+
+**2026-08-14 local audit:** `system_audit --json --fail-on never` 10/10 GREEN qaytardi. Bu faqat joriy local konfiguratsiya tekshiruvi; production readiness yoki Gemini free-tier kvotasi yetarliligini isbotlamaydi.
 
 ### `subscriptions`
 
@@ -373,12 +378,13 @@ WebSocket receive
 
 AI room nomi birinchi prompt'dan avtomatik o'zgarishi mumkin (`maybe_name_ai_room_from_first_prompt`).
 
-### 4.9 Telegram attendance
+### 4.9 Telegram bot integratsiyasi
 
-- Local'da polling default; prod/remote uchun webhook.
-- Teacher `/start_lesson` qiladi → `TelegramLessonSession` yaratiladi.
-- Talabalar check-in qiladi → `TelegramLessonCheckIn` records.
-- `Attendance` LMS'ga bog'lanadi.
+- F0–F9 va Mini App foundation kod/testlarda mavjud: account linking, role-aware menyu, attendance, course/lesson/assignment/quiz oqimlari, checkout/admin bildirishnomalari, broadcast va AI boshqaruvlari.
+- Local'da polling default. Production webhook, unique secret, doimiy outbox process va prod bot admission'i production qayta ochilguncha HOLD.
+- Teacher `/start_lesson` qiladi → `TelegramLessonSession` yaratiladi; talabalar check-in qiladi → `TelegramLessonCheckIn`; natija LMS `Attendance`ga bog'lanadi.
+- Multi-step assignment/quiz holati DB'dagi `BotPendingAction` orqali restart-safe saqlanadi.
+- Guest AI demo provider'ni bevosita chaqiradi va hozir 5 savol bilan cheklangan; A8 telemetry/budget ledger'iga ulanmaguncha default-off yoki yanada qat'iy cap kerak.
 
 ### 4.10 Backoffice
 
@@ -388,6 +394,7 @@ Custom yashirin admin URL'lari:
 /backoffice/
 /backoffice/control/                 # faqat active superuser
 /backoffice/control/brand/           # faqat active superuser; markaziy brend/logo
+/backoffice/landing/                 # faqat owner; landing phase-1 editor
 /backoffice/users/
 /backoffice/chats/
 /backoffice/courses/new/
@@ -413,7 +420,7 @@ Access helper: `core.views._is_backoffice_user`. Legacy `/admin/` faqat `ENABLE_
 2. `/sit/universities/` katalogi GET filterlari bilan universitetlarni server-side saralaydi; default qabul holati `open`.
 3. `/sit/universities/<slug>/` universitet, fakultet/dastur, tayyorlov kursi, talab/hujjat/xizmat va media bloklarini bitta detailda beradi.
 4. Har public universitet va qo'llanmada rasmiy manba hamda oxirgi tekshirilgan sana ko'rinadi.
-5. Hujjat topshirish CTA login qilingan userni tutor messengerga, AI CTA esa mavjud Azure AI messengerga olib boradi. Alohida SIT AI retrieval va payment/help lifecycle keyingi slice.
+5. Hujjat topshirish CTA login qilingan userni tutor messengerga, AI CTA esa mavjud Azure AI messengerga olib boradi. `sit_advisor` published SIT katalog tool'i bilan mavjud; canonical inquiry/payment/help lifecycle (S2) keyingi slice.
 6. Owner-only `/backoffice/sit/` universitetlar va ularning fakultet/dastur/talab/hujjat/xizmat/media qismlari, e'lonlar va qo'llanmalarni audit sabab bilan boshqaradi. 90 kundan eski public universitet ma'lumoti dashboardda tekshiruv signali oladi.
 7. SIT bosh sahifasidagi e'lonlar faqat `is_published=True` va `show_on_home=True` bo'lsa chiqadi; oddiy publish yozuvni avtomatik featured qilmaydi.
 
@@ -434,17 +441,19 @@ Owner-only Azure Control Center'ning read-only registry/snapshot qatlami joriy U
 5. **Relevant memory:** top-7 fakt (lexical/semantic/vector scoring)
 6. **RAG context:** pgvector → fallback dot-product
 7. **Prompt build:** system + tone + skill instr + memory + summary + lesson + RAG + tool + user question. `is_first_message` flag salomlashish qoidasi uchun
-8. **Provider call:** `provider.generate(prompt, selected_model, enable_web_search)`
+8. **Provider call:** `provider.generate(prompt, selected_model, enable_web_search)`. Joriy `AI_CHAT_PROVIDER=gemini` sabab oddiy chat ham Gemini'ni ishlatadi; “Gemini faqat web search” farazi joriy runtime uchun to'g'ri emas.
 9. **Memory extraction:** AI reply ichidagi `<SAVE_MEMORY>` taglar
 10. **Memory save:** `AIMemoryFact` dedupe + trace
 11. **Reply sanitize:** markdown/source/greeting cleanup (`_sanitize_reply` — `(Manba N)` strip, trailing `Manbalar:` strip, follow-up'da leading salom strip)
 12. **`AIResponse` return:** text, model, skill slug, metadata
 
-### 5.2 Skills (10 ta)
+### 5.2 Skills (14 ta)
 
 | Slug | Trigger keywords | Tools | Priority |
 |---|---|---|---|
+| `smart_form` | structured conversational form | — | 100 |
 | `general_chat` | (default) | student_progress, course_navigator | 0 |
+| `sit_advisor` | universitet, qabul, kontrakt narxi/to'lovi, viza | sit_catalog | 95 |
 | `lesson_explainer` | tushuntir, dars, mavzu, izohlab ber | lesson_context, course_navigator | 20 |
 | `quiz_generator` | quiz, test, savol tuz, mashq tuz | lesson_context, quiz_context | 80 |
 | `homework_checker` | homework, vazifa, tekshir, baholab ber | lesson_context, homework_context, student_progress | 70 |
@@ -453,7 +462,11 @@ Owner-only Azure Control Center'ning read-only registry/snapshot qatlami joriy U
 | `writing_feedback` | writing, essay, insho, paragraph | lesson_context, homework_context | 60 |
 | `course_navigator` | qaysi dars, keyingi dars, roadmap | course_navigator, student_progress | 50 |
 | `student_progress_coach` | progress, natija, kuchsiz joy, reja tuz | student_progress, course_navigator | 55 |
+| `image_qa` | rasm, surat, skrinshot, chiz | lesson_context | 76 |
+| `document_qa` | PDF, hujjat, fayl, xulosa | lesson_context | 75 |
 | `web_search` | qidir, bugungi, kursi qancha, ob-havo, yangiliklar | web_search | 90 |
+
+`image_qa` tanlanishi vision mavjud degani emas. Joriy `GeminiProvider.supports_vision=False`, shuning uchun upload qilingan rasm payloadi providerga uzatilmaydi; rasmni ko'rish dormant vision provider yoki yangi adapter admissionigacha `HOLD`. Matndan SVG chizish so'rovi alohida document-safety oqimi.
 
 **Tanlash mantig'i:**
 - Explicit `requested_skill_slug` bo'lsa shu olinadi
@@ -517,7 +530,7 @@ Foydalanuvchi `/users/settings/` da tanlaydi (`CustomUser.ai_web_search_effort`)
 |---|---|
 | `light` (default) | Faqat aniq keyword (qidir, bugungi, kursi qancha, ob-havo) |
 | `medium` | Light + **pair detection**: vaqt belgisi (`hozir`/`bugun`/`kechagi`) + ma'lumot belgisi (`narx`/`kim`/`natija`) birga uchrasa majburiy web_search |
-| `heavy` | Gemini provider'da har savolda `google_search` tool yoqilgan — model o'zi qaror qiladi. DigitalOcean adapterida hozircha web search o'chirilgan |
+| `heavy` | Joriy Gemini provider'da har savolda `google_search` yoqiladi; A8 free-tier budget mode implement bo'lguncha bu owner tomonidan production'ga admit qilinmagan qimmat rejim |
 
 Manbalar javob matnida ko'rsatilmaydi. Telemetry'da saqlanadi:
 - `web_search_enabled`
@@ -527,9 +540,9 @@ Manbalar javob matnida ko'rsatilmaydi. Telemetry'da saqlanadi:
 ### 5.6 Tone, model, telemetry
 
 - **Tone:** `friendly` / `formal` / `brief` / `detailed` — prompt builder ohangni o'zgartiradi
-- **Provider:** `AI_CHAT_PROVIDER=gemini|digitalocean`. DigitalOcean adapteri OpenAI-compatible `/v1/chat/completions` endpoint'ini ishlatadi
-- **Model:** Gemini'da user setting `ai_model`; DigitalOcean'da `DIGITALOCEAN_INFERENCE_MODEL` va fallbacklar. Provider ishlamasa user'ga yumshoq fallback javob qaytadi
-- **Telemetry:** `AIResponseRun` har AI javobning metadata'sini saqlaydi: status, model, skill, duration_ms, tools, rag_sources, memory counts, web_search_*
+- **Provider:** joriy local profil `AI_CHAT_PROVIDER=gemini`. DigitalOcean'ning OpenAI-compatible adapteri kodda saqlanadi, ammo pre-production'da kalitsiz/HOLD
+- **Model:** Gemini'da user setting `ai_model`; free-tier model allowlist va 429 fail-fast A8 gate'ida hali yo'q. Provider ishlamasa user'ga yumshoq fallback javob qaytadi
+- **Telemetry:** `AIResponseRun` asosiy messenger javobining status/model/skill/duration/token va context metadata'sini saqlaydi. SmartForm extractor, guest demo va embedding chaqiriqlari to'liq ledgerga kirmaydi; global request/day, RPM, retry/failure va grounding hisoboti A8 gap'i
 
 ---
 
@@ -794,29 +807,29 @@ Mini App sahifalari `templates/bot/miniapp_base.html` mobil shellini ulashadi. T
 | `VALKEY_URL` / `REDIS_URL` | cache, channels, celery broker |
 | `CELERY_BROKER_URL` | explicit broker override |
 | `CELERY_TASK_ALWAYS_EAGER` | local eager task override |
-| `GEMINI_API_KEY` | Gemini chat provider va embeddings |
-| `AI_CHAT_PROVIDER` | `gemini` (default) yoki `digitalocean` |
-| `DIGITALOCEAN_INFERENCE_API_KEY` | DigitalOcean Serverless Inference Model Access Key |
-| `DIGITALOCEAN_INFERENCE_MODEL` | DigitalOcean chat modeli, default `router:general` |
-| `DIGITALOCEAN_INFERENCE_MODEL_FALLBACKS` | DigitalOcean chat model fallbacklari |
+| `GEMINI_API_KEY` | Joriy chat, grounding va embeddings; secret qiymat git'ga kirmaydi |
+| `AI_CHAT_PROVIDER` | Joriy local qiymat `gemini`; `digitalocean` adapteri supported, ammo HOLD |
+| `DIGITALOCEAN_INFERENCE_API_KEY` | Pre-production'da bo'sh; production qayta ochilganda qayta baholanadi |
+| `DIGITALOCEAN_INFERENCE_MODEL` | Dormant DigitalOcean chat modeli, default `router:general` |
+| `DIGITALOCEAN_INFERENCE_MODEL_FALLBACKS` | Dormant DigitalOcean chat model fallbacklari |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot |
 | `BOT_USERNAME` | Telegram bot username |
 | `TELEGRAM_MODE` | `polling` (local default), `webhook` (prod) |
-| `USE_S3` | DigitalOcean Spaces/S3 media storage |
+| `USE_S3` | Joriy `False`; future S3-compatible media storage adapterini yoqadi |
 | `PROMETHEUS_ENABLED` | optional prometheus (package yo'q bo'lsa soft-disabled) |
 | `RAG_USE_PGVECTOR`, `RAG_EMBEDDING_MODEL`, `RAG_TOP_K`, `RAG_MIN_SIMILARITY` | RAG sozlamalari |
 | `AI_MEMORY_USE_VECTOR_RETRIEVAL` | semantic memory uchun |
 
-### `SECURITY_STRICT=True` ta'siri
+### `SECURITY_STRICT=True` joriy ta'siri va cheklovi
 
 - HTTPS redirect
 - Secure session/CSRF cookies
 - HSTS
-- `X_FRAME_OPTIONS = DENY`
-- `django-csp` mavjud bo'lsa CSP middleware
-- CSP frame-source YouTube/Vimeo uchun ruxsat beradi
+- Default sahifalarda `X_FRAME_OPTIONS = DENY`; Telegram-authenticated Mini App view'lari ataylab exempt bo'lib, middleware `frame-ancestors`ni qo'shadi
+- `django-csp` middleware ulanadi, ammo installed v4 `CONTENT_SECURITY_POLICY`ni kutadi; joriy eski `CSP_*` settinglar sabab to'liq CSP header amalda chiqmaydi
+- Intended allowlist YouTube/Vimeo frame'larini ko'zlaydi, lekin Mini App yuklaydigan `https://telegram.org/js/telegram-web-app.js` joriy intended `script-src`da yo'q
 
-### 2026-07-22 auditida tasdiqlangan production cheklovlari
+### 2026-08-14 da tasdiqlangan release cheklovlari
 
 - Production-like muhitda broker env yo'q bo'lsa Celery hozir `memory://`ga fallback qilishi mumkin; Channels ham konfiguratsiya bo'lmasa in-memory qatlamga tushadi.
 - Default S3 media storage `public-read` va unsigned URL ishlatadi; protected upload klasslari hozir alohida private storage'ga ajratilmagan.
@@ -824,6 +837,9 @@ Mini App sahifalari `templates/bot/miniapp_base.html` mobil shellini ulashadi. T
 - `TelegramOutbox` modeli/command'i bor, lekin Procfile'da doimiy process yo'q; worker atomic claim/lease qilmaydi, shuning uchun hozir aynan 1 replica xavfsizroq.
 - `AIResponseRun` status, model, skill, token, duration, metadata va errorni saqlaydi; pul qiymati va quality release gate saqlanmaydi.
 - Read-only capability registry/snapshot bor; umumiy append-only `SystemAuditEvent`, active service heartbeat va `ReleaseRecord` hozir yo'q.
+- Gemini provider 9 modelgacha fallback va har modelga 2 urinish qilishi mumkin; global deadline/circuit breaker, request/day/RPM hard cap, output cap va free-tier allowlist hozir yo'q.
+- Per-user token limitlari upstream free-tier request kvotasini himoya qilmaydi: ular javobdan keyin hisoblanadi, staff default exempt va guest/embedding kabi call-pathlar to'liq ledgerda emas.
+- CSP config django-csp v4 formatiga ko'chirilmagan; middleware order sabab Mini App middleware yaratgan `frame-ancestors` headeri keyingi full policy'ni chetlab o'tishi ham mumkin. Normal sahifa, Mini App entry va authenticated Mini App'da full response-header test, Telegram script/frame allowlist va browser smoke A0b release blocker'i.
 
 ### `.env.local` namunasi (git'ga kirmaydi)
 
@@ -833,6 +849,9 @@ DEBUG=True
 SECURITY_STRICT=False
 LOCAL_USE_REMOTE_SERVICES=False
 USE_S3=False
+AI_CHAT_PROVIDER=gemini
+GEMINI_API_KEY=
+DIGITALOCEAN_INFERENCE_API_KEY=
 EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 ```
 
@@ -877,7 +896,7 @@ EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 - Model validatorlari oddiy `save/create`da avtomatik ishlamagani sabab uploadlar real MIME/magic-byte gate'dan to'liq o'tmaydi.
 - Private uploadlar joriy default S3 storage sabab public-read bo'lishi mumkin.
 
-Bu bandlar joriy capability emas, P0 stop-ship backlog. Yopilgan har band kod/test evidence bilan shu ro'yxatdan olib tashlanadi.
+Ochiq bandlar joriy capability emas, backlog `A0b` release gate'i. Yopilgan har band kod/test evidence bilan shu ro'yxatdan olib tashlanadi.
 
 ---
 
@@ -907,7 +926,7 @@ Bu bandlar joriy capability emas, P0 stop-ship backlog. Yopilgan har band kod/te
 
 ```powershell
 # Venv
-cd C:\Users\azurb\azurelms
+cd C:\Users\AZUREBEK\Documents\Codex\2026-08-13\new-chat\azurelms
 .\venv\Scripts\activate
 
 # Server
@@ -934,14 +953,16 @@ python manage.py test users.tests.DashboardProgressTests
 
 ## 14. Muhim eslatmalar
 
-1. **Joriy clone:** `C:\Users\azurb\azurelms`; venv Python 3.14 + Django 6.0.2. Eski OneDrive/`C:\Projects` yo'llari historical sessiyalarda uchrashi mumkin — buyruqdan oldin `git worktree list` source of truth.
+1. **Joriy clone:** `C:\Users\AZUREBEK\Documents\Codex\2026-08-13\new-chat\azurelms`; venv Python 3.12.13 + Django 6.0.2. Eski OneDrive/`C:\Projects` yo'llari historical sessiyalarda uchrashi mumkin — buyruqdan oldin `git worktree list` source of truth.
 2. **Bootstrap YO'Q:** barcha shell'da `tokens.css` + custom CSS. Yangi sahifa qo'shganda shu printsipga rioya qilish.
 3. **`<SAVE_MEMORY>` tag:** AI javobida `<SAVE_MEMORY>category: fakt</SAVE_MEMORY>` ko'rinishida chiqsa, extractor ajratib `AIMemoryFact`'ga yozadi. Category: `preference`, `learning_goal`, `weak_topic`, `schedule`, `profile`, `do_not_remember`, `other`.
 4. **`@azure` mention:** AI bo'lmagan xonada xabarda `@azure` so'zi bo'lsa, AI ham javob beradi.
 5. **AI memory toggling:** Foydalanuvchi `ai_memory_enabled=False` qilsa, `MemoryService` to'liq disable (extract ham, retrieve ham).
 6. **YouTube embed:** owner embed bloklasa platforma majburlab ocholmaydi — fallback UX kelajakda kerak bo'lishi mumkin.
 7. **SIT data gate:** qabul, narx va viza kabi vaqtga sezgir public ma'lumot `source_url` va `last_verified_on`siz nashr qilinmaydi. `playground/SIT/` runtime emas.
-8. **`.gitignore`:** `.claude/`, `.tools/`, `.codex/`, `__pycache__/`, `*.pyc`, `db.sqlite3`, `media/`, `venv/`, `.env`.
+8. **`.gitignore`:** `.claude/`, `.tools/`, `.codex/`, `__pycache__/`, `*.pyc`, `db.sqlite3`, `media/`, `venv/`, `.env` va `.env.local`.
+9. **2026-08-14 resurs qarori:** production va DigitalOcean integration'i HOLD; local ish davom etadi. Gemini barcha joriy AI call-pathlar uchun upstream bo'lgani sabab A8 free-tier budget gate boshqa AI feature'lardan oldin yopiladi.
+10. **Joriy vision chegarasi:** `image_qa` skill mavjud, lekin Gemini adapteri vision'ni qo'llamaydi; rasm tahlili current capability emas.
 
 ---
 

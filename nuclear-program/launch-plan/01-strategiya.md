@@ -1,6 +1,6 @@
 # 01 — Strategiya: bozor, pozitsiyalash, farqlash
 
-*2026-07-11 da jonli kurs modeli aniqlandi. 2026-07-22 audit rebaseline'i solo-owner control plane, Learner Outcome Loop va AI evidence gate'ini qo'shdi. Manbalar hujjat oxirida.*
+*2026-07-11 da jonli kurs modeli aniqlandi. 2026-07-22 audit rebaseline'i solo-owner control plane, Learner Outcome Loop va AI evidence gate'ini qo'shdi. 2026-08-14 rebaseline'i local-first ish rejimi, DigitalOcean `HOLD` va Gemini free-tier supply gate'ini belgiladi. Manbalar hujjat oxirida.*
 
 ---
 
@@ -35,6 +35,14 @@ Azure Control Center
 
 Yangi capability learner outcome yoki owner vaqtiga bitta o'lchanadigan ta'sir ko'rsatmasa, canonical owner'i va kill switch'i bo'lmasa, launch scope'ga kirmaydi. Bitta markaz mega-view yoki mega-service emas: modullar mustaqil, boshqaruv va haqiqat esa yagona.
 
+### 0.2 Resurs siyosati — local-first, provider adapter
+
+- Production alohida owner qarorigacha DigitalOcean ishlatilmaydi; bekor bo'lgan kreditlar mahsulot arxitekturasi yoki fallback va'dasiga aylantirilmaydi.
+- DO adapter kodi dormant qoladi. Hosting, DB, cache, storage va inference provider production qayta admissionida vendor-neutral gate bo'yicha tanlanadi.
+- Joriy local/pre-production AI primary — Gemini. Demak oddiy chat, web grounding va embedding ham free-tier supply'ni ishlatadi.
+- Free-tier `0 so'm = unlimited` emas. Global request/token budget, model allowlist, one-fallback, full accounting va 429 circuit breaker bo'lmaguncha AI scale/premium claim yo'q.
+- AI kvotasi tugasa deterministic kurs, payment, lesson, quiz/assignment, human messenger va Telegram flow ishlashda qoladi.
+
 ---
 
 ## 1. Bozor va foydalanuvchi
@@ -49,7 +57,7 @@ Yangi capability learner outcome yoki owner vaqtiga bitta o'lchanadigan ta'sir k
 | Gumanitar, biologiya, matematika/statistika, biznes/boshqaruv, huquq, xizmatlar, ijtimoiy fanlar, jurnalistika, AKT | **B2** |
 | Boshqa barcha sohalar (muhandislik, tibbiyot, qishloq xo'jaligi, san'at, sport...) | **B1** |
 
-**\* Hal qiluvchi izoh (buyruqning o'zida):** *"O'zbek, rus va qardosh tillar bo'yicha B2 daraja talab etiladi"* — ya'ni turkcha (qardosh til) bilan **hatto C1-yo'nalishlarga ham B2 yetadi**. Turk tili uchun shift maksimal talab — B2. *(Talqinni P0'da rasmiy manba bilan bir marta tasdiqlab olish kerak — marketing va'dasiga aylanishidan oldin.)*
+**\* Hal qiluvchi izoh (buyruqning o'zida):** *"O'zbek, rus va qardosh tillar bo'yicha B2 daraja talab etiladi"* — ya'ni turkcha (qardosh til) bilan **hatto C1-yo'nalishlarga ham B2 yetadi**. Turk tili uchun shift maksimal talab — B2. *(Talqinni marketingda ishlatishdan oldin rasmiy manba bilan qayta tasdiqlash publish gate'i.)*
 
 Doktorantura (2-ilova): ixtisosliklar bo'yicha B1/B2.
 
@@ -77,7 +85,7 @@ Bozor hajmi o'lchangan: **UZBMB turk tili milliy sertifikat imtihonining bitta y
 
 ### 1.4 Mavsumiylik (rejaga ta'siri)
 
-Magistratura qabuli yozda; sertifikat imtihonlari yil davomida. **Sentyabr = yangi tayyorgarlik mavsumining boshi** — kuzda boshlagan 2027-yil yozgi qabulga bemalol ulguradi. "20-sentyabr launch + kuzgi guruh" mavsum bilan ideal mos. Marketing kalendari UZBMB imtihon sanalariga bog'lanadi (P1'da rasmiy 2026–2027 taqvimni olib qo'yamiz).
+Magistratura qabuli yozda; sertifikat imtihonlari yil davomida. **Sentyabr = yangi tayyorgarlik mavsumining boshi** — kuzda boshlagan 2027-yil yozgi qabulga bemalol ulguradi. "20-sentyabr taqdimot + kuzgi guruh" mavsum bilan mos. Marketing kalendari UZBMB imtihon sanalariga bog'lanadi; 2026–2027 rasmiy taqvim publishdan oldin qayta tekshiriladi.
 
 ---
 
@@ -109,7 +117,7 @@ Haqiqiy raqobat maydoni o'zgardi (model aniqlangach): biz "app bozori"da emas, *
 2. **Ota-ona/homiy:** "Farzandingiz qayerda, qachon, qancha o'qigani — hammasi ko'rinadi: davomat, baho, progress."
 3. **Keng auditoriya (kontent):** "Turkchaning yarmini allaqachon bilasan" — ko'prik postlari qiziqish uyg'otadi → daraja testi → kurs.
 
-### 3.3 Slogan nomzodlari (P0 tanlovi)
+### 3.3 Slogan nomzodlari (owner pre-freeze tanlovi)
 
 1. **"Sertifikatgacha — bitta tizim"** (S1 og'rig'iga to'g'ridan)
 2. **"Jonli ustoz. Aqlli platforma. Aniq natija."** (gibrid model)
@@ -136,13 +144,13 @@ Haqiqiy raqobat maydoni o'zgardi (model aniqlangach): biz "app bozori"da emas, *
 
 ### ⭐ IH-2. Azure AI — course-grounded yordamchidan natija loop'iga
 
-**Launch capability (mavjud primitive'lar):** kurs/dars kontekstiga tayangan savol-javob, rasm/PDF tahlili, draftga izoh, conversation history/memory va texnik telemetry. Bu yordamchi o'qituvchini almashtirmaydi va high-stakes bahoni mustaqil tasdiqlamaydi.
+**Launch capability (mavjud primitive'lar):** kurs/dars kontekstiga tayangan matn savol-javobi, PDF matn tahlili, draftga izoh, conversation history/memory va texnik telemetry. `image_qa` routing primitive'i bor, ammo joriy Gemini adapteri `supports_vision=False`; rasmni haqiqiy ko'rish vision provider admissionigacha capability deb sotilmaydi. Yordamchi o'qituvchini almashtirmaydi va high-stakes bahoni mustaqil tasdiqlamaydi.
 
 **Premium outcome gate (qurilishi va isbotlanishi kerak):** item-level xato evidence → keyingi structured practice → qayta urinishdagi o'sish → Progress Proof → past confidence yoki takroriy xatoni ustozga eskalatsiya. Writing'da revision history va teacher approval; speaking'da esa real audio pipeline bo'lmasa “pronunciation coach” claim'i yo'q.
 
 **Nega kuchli bo'lishi mumkin:** AI 24/7 chat bo'lgani uchun emas, learner correction rate'ni oshirsa yoki ustozning review vaqtini kamaytirsa. Har ikkisi real cohort KPI va eval bilan o'lchanadi.
 
-**Holat:** RAG/vision/memory/chat poydevori bor; structured mastery, stateful practice, teacher review integratsiyasi, hard deadline/cost gate va audio pronunciation hali `PLANNED`. AI narx oshirishning mustaqil asosi emas.
+**Holat:** RAG/memory/chat, document flow va SIT advisor primitive'lari bor; image routing bor, lekin joriy providerda vision yo'q. Local primary Gemini; eski “maverick asosiy, Gemini faqat web search” arxitekturasi joriy envga mos emas. Structured mastery, stateful practice, teacher review, hard deadline va `A8/A9` supply-quality gate hali `PLANNED`. AI narx oshirishning mustaqil asosi emas.
 
 ### ⭐ IH-3. Milliy sertifikat mock-markazi (S1'ning yuragi)
 
@@ -158,7 +166,7 @@ Haqiqiy raqobat maydoni o'zgardi (model aniqlangach): biz "app bozori"da emas, *
 
 **Nega kuchli:** O'zbekiston Telegram mamlakati (76–88% qamrov); auditoriyani yangi kanalga ko'chirish shart emas — mavjud odatga qo'shilamiz.
 
-**Holat:** bot davomat qiladi xolos — scheduler + xabar qatlamí build (P2).
+**Holat:** F0–F9 main'da: onboarding, checkout, attendance, learner workspace/AI, admin-AI controls, outbox, Mini App foundation, botda dars, assignment va quiz bor. Public webhook/outbox process, to'liq exam/certificate, interactive grading/reminder va production WebView hali yo'q; production `HOLD`.
 
 ### ⭐ IH-5. Daraja testi — kirish eshigi
 
@@ -166,7 +174,7 @@ Haqiqiy raqobat maydoni o'zgardi (model aniqlangach): biz "app bozori"da emas, *
 
 **Nega kuchli:** kurs uchun lead-mashina (hozirgi og'zaki-tavsiya oqimini tizimlashtiradi) + viral halqa. Sertifikat konteksti bilan yanada o'tkir: "darajang B1 — imtihonga shu-shu yetishmayapti".
 
-**Holat:** build (P1). Quiz/SmartForm dvigatellari bor — o'rta hajm.
+**Holat:** `NEXT`. Quiz/SmartForm primitive'lari bor, lekin kalibrlangan placement banki va halol result formula kodda yo'q; A0–A5 gate'laridan oldinga chiqmaydi.
 
 ### ⭐ IH-6. Ko'prik metodikasi — kontent imzosi
 
@@ -174,7 +182,7 @@ Haqiqiy raqobat maydoni o'zgardi (model aniqlangach): biz "app bozori"da emas, *
 
 **Nega kuchli:** brend eslab qolinadigan qiladi; ustoz darslarida baribir shu usul bor (o'zbeklarga o'rgatish tajribasi) — biz uni nomlab, formatlab, imzoga aylantiramiz.
 
-**Holat:** format + 30 karta (04), word_builder skilli (P1).
+**Holat:** format va 30 karta kontent rejasida; `word_builder` joriy 14 skill ichida yo'q. U faqat approved morphology dataset + structured PracticeMode + eval bilan `NEXT`dan admission oladi.
 
 ### ⭐ IH-7. Shaffof tizim — ishonch dvigateli
 
@@ -182,7 +190,7 @@ Haqiqiy raqobat maydoni o'zgardi (model aniqlangach): biz "app bozori"da emas, *
 
 **Nega kuchli:** norasmiy kurslar bozorida shaffoflik = premium signal; ota-ona pul to'lovchi bo'lgan holatlarda hal qiluvchi.
 
-**Holat:** ko'p qismi bor (jurnal, statuslar, panel) — bir butun "mening natijalarim" ko'rinishiga yig'ish (P2–P3).
+**Holat:** ko'p qismi bor (jurnal, statuslar, panel) — bir butun "mening natijalarim" ko'rinishiga yig'ish (R2–R3).
 
 ### Imzo-harakatlar bir jumlada
 
@@ -208,7 +216,7 @@ DIAGNOSE: quiz / assignment / mock / learner goal
 | Daily Coach | deterministic 3-task reja | completion state + next-action policy |
 | Structured practice | item/attempt/feedback/retry | objective va outcome event |
 | Progress Proof | quiz/assignment/mock/practice evidence | validatsiyalangan formula, vanity % yo'q |
-| Teacher escalation | P4/NEXT conditional pilot | A7/A9 quality gate + review time va resolution SLA |
+| Teacher escalation | R3/NEXT conditional pilot | A7/A9 quality gate + review time va resolution SLA |
 
 SRS, streak, haftalik AI report va certificate readiness foizi mustaqil subsystem bo'lmaydi; ular shu loopning ishonchli event/evidence qatlamidan keyin capability sifatida qo'shiladi.
 
@@ -226,7 +234,7 @@ SRS, streak, haftalik AI report va certificate readiness foizi mustaqil subsyste
 
 Kurs+ narxi AI tokeni yoki “unlimited chat” bilan emas, o'lchangan learning gain, revision proof, teacher review capacity va SLA bilan oqlanadi. `+40–60%` faqat pricing experiment gipotezasi; “sertifikat kafolati” real cohort data, aniq legal shart va downside hisobi bo'lmaguncha launch scope'dan tashqarida.
 
-AI tannarx: token telemetriya bor, lekin provider price ledger, usage reservation va missing-usage estimate launchdan oldin kerak. Target: incremental AI xarajati premium incremental revenue'ning `≤25%`; kredit mahsulot iqtisodini isbotlamaydi.
+AI tannarx: final chat token telemetriyasi bor, lekin SmartForm, bot guest, embedding va failed attemptlar to'liq hisoblanmaydi. Pre-productionda birinchi economics gate — Gemini free-tier supply'ni tugatmaslik: global request/token reservation, cheap-model allowlist, one-fallback va cooldown. Keyingi premium target: incremental AI xarajati premium incremental revenue'ning `≤25%`; bepul kvota yoki vaqtinchalik kredit mahsulot iqtisodini isbotlamaydi.
 
 ---
 
@@ -235,16 +243,18 @@ AI tannarx: token telemetriya bor, lekin provider price ledger, usage reservatio
 - Platforma — **AzureLMS**; AI xarakter — **Azure** (persona yozilgan); **ustoz — brendning yuzi** (ishonch shaxsdan keladi, ayniqsa bu bozorda), Azure — texnologik imzo.
 - Vizual: azure ko'k #1257e6 + Space Grotesk (tayyor dizayn-tizim).
 - Ovoz: halol (limitlar, natija va'dalari real), tizimli, iliq; "Ko'prik" metafora oilasi (Ko'prik metodi, tovush ko'priklari, bugungi ko'prik).
-- Ijtimoiy dalil: **bitiruvchilarning sertifikat natijalari** — eng kuchli aktiv (P0: mavjud bitiruvchilardan testimonial/ruxsat yig'ishni boshlash).
+- Ijtimoiy dalil: **bitiruvchilarning sertifikat natijalari** — eng kuchli aktiv (R1 parallel owner ishi: testimonial va foydalanish ruxsatini yig'ish).
 
 ---
 
-## 8. Muvaffaqiyat mezonlari (20-sentyabr)
+## 8. Muvaffaqiyat mezonlari (20-sentyabr taqdimoti)
 
 1. **Taqdimot:** 8–10 daqiqalik demo "bir o'quvchining haftasi + ustoz paneli" uzilishsiz (fallback video tayyor)
 2. **Platforma:** kuzgi jonli guruh 3 haftadir platformada o'qiyapti (1-sentyabrdan) — demo emas, real ish
 3. **Raqamlar (launch haftasi):** kuzgi guruh to'liq platformada · 100+ yangi registratsiya · 200+ daraja testi tugatilgan · Telegram kanal 300+
 4. **Hikoya:** 3+ testimonial (shu jumladan avvalgi bitiruvchilardan) landing'da
+
+Bu bandlar target, joriy evidence emas. Public production hosting/provider admissioni ochilmasa, 20-sentyabr natijasi `DEMO GO` yoki `BETA GO`; u “production launch” deb atalmasin.
 
 ### Outcome va owner-control mezonlari
 

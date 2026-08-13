@@ -1,6 +1,6 @@
-# 03 — Mahsulot backlog: ADMIT / NEXT / CUT
+# 03 — Mahsulot backlog: ADMIT / NEXT / HOLD / CUT
 
-*Rebaseline: 2026-07-22. Platforma = Azurbek boshqaradigan bitta kurs operatsion tizimi. Har band learner outcome yoki owner workload, canonical owner, adapterlar, acceptance evidence, flag/rollback va fazaga ega bo'lmasa ish boshlanmaydi.*
+*Rebaseline: 2026-08-14. Platforma = Azurbek boshqaradigan bitta kurs operatsion tizimi. Local/pre-productionda DigitalOcean `HOLD`; Gemini free-tier global supply budgeti yangi stop-gate. Har band learner outcome yoki owner workload, canonical owner, adapterlar, acceptance evidence, flag/rollback va fazaga ega bo'lmasa ish boshlanmaydi.*
 
 ## Ish tartibi
 
@@ -8,29 +8,45 @@
 2. Agentlar uning domain, test, mobile va ops qismlarida parallel ishlashi mumkin; yangi authority yoki subsystem yaratmaydi.
 3. Oldingi band exit kriteriydan o'tmasa, keyingisi boshlanmaydi yoki scope'dan kesiladi.
 4. `NEXT` band faqat Azurbek admission berganda `ADMIT`ga o'tadi.
-5. Holat: `PLANNED` / `IN PROGRESS` / `EVIDENCE READY` / `BLOCKED` / `CUT`.
+5. Queue qarori: `ADMIT` / `NEXT` / `HOLD` / `CUT`. Execution holati: `PLANNED` / `IN PROGRESS` / `EVIDENCE READY` / `BLOCKED`.
 6. **Istisno — `S. SIT`:** owner qarori bilan A-narvoniga parallel yuritiladi (1-qoidadan ozod). Uning slice'lari o'zaro ketma-ket boradi va A bandlarini to'xtatmaydi; narxi — owner vaqtining bo'linishi (`S-R1`).
+7. **Joriy navbatdagi slice — `A8`:** Gemini free-tier budget mode. Docs rebaseline'dan keyingi birinchi kod ishi; A8 exit'i yopilmaguncha yangi AI skill, bulk generation, `heavy` search yoki ommaviy AI beta yo'q.
+
+### Joriy status snapshot
+
+| Band | Queue | Execution | Izoh |
+|---|---|---|---|
+| A0 | `ADMIT` | `IN PROGRESS` | A0a auth/webhook/inactive-staff bajarilgan; A0b va teacher/socket scope qolgan |
+| A1a | `ADMIT` | `PLANNED` | vendor-neutral local CI/readiness |
+| A1b | `HOLD` | `PLANNED` | cloud deploy va managed services |
+| A2 | `ADMIT` | `IN PROGRESS` | read-only Control Center + brand/landing mutation foundation |
+| A8 | `NEXT` | `PLANNED` | docs rebaseline'dan keyingi birinchi kod slice'i |
+| S1/S3/S4 | `— delivered` | `EVIDENCE READY` | portal, grounded advisor va owner backoffice kodda |
+| S2 | `NEXT` | `PLANNED` | canonical inquiry lifecycle yo'q |
 
 ---
 
 ## A. ADMIT — launch-critical
 
-### A0. Stop-ship security pack — `PLANNED`, `XL → A0a M + A0b L`
+### A0. Stop-ship security pack — `IN PROGRESS`, `XL → A0a DONE + A0b L`
 
 - **Outcome:** account, payment va private learner data xavfsiz; owner favqulodda manual rescue qilmaydi.
 - **Canonical owner:** auth/access/media policies.
-- **Scope A0a (M):** one-time/expiring Telegram auth token; webhook secret fail-closed va no-secret logging; inactive staff denial; owner/teacher scope. **A0b (L):** upload inventory, private media, MIME/magic-byte/size validation va WebSocket access recheck.
+- **Scope A0a (M):** one-time/expiring Telegram auth token; webhook secret fail-closed va no-secret logging; inactive staff denial. **A0b (L):** teacher default-deny scope, upload inventory, private media, MIME/magic-byte/size validation, WebSocket access recheck va django-csp v4 header/Mini App exception testi.
 - **Adapters:** web auth, Telegram webhook, media download, Messenger WebSocket.
 - **Acceptance:** replay, forged webhook, cross-user media va expired enrollment socket regressionlari; anonymous private media `403/404`; kill/rollback runbook.
-- **Faza:** P0. Boshqa featurelardan oldin.
+- **Evidence (A0a, 2026-07-23):** `e7cd4a6` va `5bea4a5` — one-time/browser-bound Telegram auth, webhook fail-closed/no-secret logging, inactive staff denial; implementatsiya paytida full suite 385/385 va check yashil.
+- **Qolgan:** teacher course/cohort default-deny, private media/upload validation va WebSocket access recheck. A0 to'liq `EVIDENCE READY` emas.
+- **Faza:** R1. A8 bilan parallel faqat test/docs ishlari; yangi product featurelardan oldin.
 
-### A1. Production runtime va CI — `PLANNED`, `L`
+### A1. Reproducible runtime va CI — `PLANNED`, `A1a M + A1b HOLD`
 
 - **Outcome:** web, AI task va Telegram notification jim yo'qolmaydi; release qayta tiklanadi.
-- **Canonical owner:** deployment config + release gate.
-- **Scope:** broker/channel fail-fast; `telegram_outbox --loop` 1-replica process; `.dockerignore`; CI required checks; health/readiness; backup/restore; static build; release smoke.
-- **Acceptance:** test Notification → outbox `sent`; broker round-trip; `check --deploy`; full suite; restore va rollback drill.
-- **Faza:** P0.
+- **Canonical owner:** deployment config + release gate; vendor alohida adapter qarori.
+- **A1a — hozir:** `.dockerignore`; local CI required checks; health/readiness contract; static build; secret/dependency scan; Telegram outbox claim/lease va local e2e; reproducible local backup/restore.
+- **A1b — `HOLD`:** public hosting, managed PostgreSQL/Valkey/object storage, webhook process va production restore. DigitalOcean majburiy target emas; owner productionni qayta ochganda vendor tanlanadi.
+- **Acceptance:** local profile remote xizmatga jim o'tmaydi; test Notification → outbox `sent`; checks/migration/static; isolated local restore. Production acceptance A1b admissionidan keyin alohida.
+- **Faza:** R1.
 
 ### A2. Azure Control Center v0 — `IN PROGRESS`, `L`
 
@@ -40,7 +56,8 @@
 - **Acceptance:** GREEN/AMBER/RED sababli; har mutation reason+confirmation+idempotency+audit; arbitrary shell yo'q; `/backoffice/ai-control/` AI tab/compatibility yo'liga tutashadi.
 - **2026-07-22 foundation evidence:** active superuser-only read-only route, 10-capability registry, safe partial-failure snapshot, effective config va shu servisdagi `system_audit` CLI tayyor; 1280x900/390x844 browser QA hamda permission/CLI testlari o'tdi. Hali kerak: mutation audit/confirmation/idempotency, flags/kill switches, active worker heartbeat, `ReleaseRecord`, cost/quality va qolgan capability probe'lari. Shu sabab band `EVIDENCE READY` emas.
 - **2026-07-22 birinchi mutation surface — markaziy brend:** `/backoffice/control/brand/` A2 scope'i ichida, mavjud backoffice ustida qurildi; yangi parallel admin subsystem yaratilmadi. A2ning mutation acceptance shartlarini qondiradi: majburiy `change_reason`, majburiy confirmation checkbox, `LogEntry` audit yozuvi va o'zgarish bo'lmasa yozmaydigan no-op yo'l. Canonical owner: `frontend.SiteSettings`; adapterlar (public, app, teacher, backoffice, messenger, Mini App, auth, exam, sertifikat, error shell'lari) faqat `templates/components/brand_logo.html` orqali iste'mol qiladi. Evidence: `python manage.py test` 336/336, 1280x900 va 390x844 light/dark browser QA — overflow `0`, console xato `0`. **Admission label Azurbekniki:** bu band alohida ADMIT sifatida ochilmadi, A2 ichidagi owner control surface deb yozildi.
-- **Faza:** P1.
+- **2026-07-27 landing editor foundation:** `/backoffice/landing/` Bosqich 1 va bo'lim TOC/tab main'da; owner-only, reason+confirmation, `LogEntry` va no-op patterni. Repeatable CRUD/reorder, iframe preview, audit history/rollback hali `HOLD/NEXT`; A2 tugagan degani emas.
+- **Faza:** R1.
 
 ### A3. Live Lesson Orchestrator — `PLANNED`, `M contract + L adapters/UI`
 
@@ -48,7 +65,7 @@
 - **Canonical state:** mega-state emas. `LessonRun` schedule/live/check-in, `LessonAccess` locked/released, `AssignmentLifecycle` open/submitted/reviewed alohida graph; orchestrator ularni owner flow'ida aggregate qiladi.
 - **Scope:** oldingi A0 “Dars kuni” + bot attendance + release + core notification + grading queue.
 - **Acceptance:** transitionlar permission/idempotency/invariant testli; notification side-effect `on_commit`; test cohortda end-to-end; adapter parity contract.
-- **Faza:** P1–P2.
+- **Faza:** R2.
 
 ### A4. Acquisition, payment va entitlement — `PLANNED`, `M contract + L adapters`
 
@@ -56,14 +73,14 @@
 - **Canonical state:** identity/claim, `Application`, `Payment` va `Enrollment/Entitlement` alohida graph; bitta chiziqli mega-state yo'q.
 - **Scope:** checkout course binding; inactive cohortni tasodifiy reactivation qilmaslik; receipt ayni tanlangan enrollmentga; typed entitlement; Telegram credential claim; idempotent receipt/approval.
 - **Acceptance:** web/Telegram parity; duplicate/replay tests; permission matrix; selected plan checkoutgacha saqlanadi.
-- **Faza:** P1–P2.
+- **Faza:** R2.
 
-### A5. Mobil oltin oqim quality gate — `CROSS-CUTTING, P0'dan`
+### A5. Mobil oltin oqim quality gate — `CROSS-CUTTING, R1'dan`
 
 - **Outcome:** asosiy learner/teacher flow'lari telefon ekranida bloklanmaydi.
 - **Scope:** Messenger 320–414px; lesson header 360px; exam 568×320/640×360 landscape; reconnect; keyboard/accessibility; checkout; teacher attendance; Mini App deep actions.
 - **Acceptance:** desktop Chrome + Android Chrome + iOS Safari video-evidence; overflow/overlap/console/blocking keyboard issue `0`; real mic/upload; empty/error/dark/light states.
-- **Faza:** sequential feature emas. A0'dan boshlab har band tegadigan mobile/auth/media flow evidence beradi; P2'da to'liq 3-qurilma sign-off.
+- **Faza:** sequential feature emas. R1'dan boshlab har band tegadigan mobile/auth/media flow evidence beradi; R2'da to'liq 3-qurilma sign-off.
 
 ### A6. Learner Outcome Ledger minimal — `PLANNED`, `M`
 
@@ -71,7 +88,7 @@
 - **Canonical contract:** launch uchun faqat `PracticeSession`, `LearnerAttempt`, `MasteryEvidence` va versionlangan outcome event. Objective/review policy fields yoki config'da; yangi model faqat evidence bilan admission oladi.
 - **Scope:** quiz/assignment/mock/practice evidence; onboarding CEFR/goal; misconception taxonomy; event correlation.
 - **Acceptance:** same attempt duplicate yozilmaydi; mastery faqat evidence'dan; AI memory preference/goal uchun, mastery system-of-record emas.
-- **Faza:** P3 foundation.
+- **Faza:** R3 foundation.
 
 ### A7. Daily Coach + bitta Structured Practice mode — `PLANNED`, `L`
 
@@ -80,14 +97,25 @@
 - **Flow:** `Diagnose → Plan → one item → hint/retry → feedback → transfer check → Proof`.
 - **Scope:** release-aware navigator; deterministic 3-task plan; one-item-at-a-time quiz; due review; no upfront answer key.
 - **Acceptance:** structured flow success `≥98%`; first activity completion `≥60%`; pre/post `+15 pp` pilot target; dashboard/course/Mini App faqat entry point.
-- **Faza:** P3.
+- **Faza:** R3.
+
+### A8. Gemini free-tier budget mode — `PLANNED — NEXT`, `M`
+
+- **Outcome:** development va kichik beta Gemini free-tierni bir foydalanuvchi, retry fan-out yoki hisoblanmagan embedding bilan tugatib qo'ymaydi; core LMS AI'siz ham ishlaydi.
+- **Canonical owner:** provider-call ledger + reservation/budget policy + Control Center. Per-user `aicontrol` allowance product policy; global Gemini supply budgeti undan yuqori hard gate.
+- **Joriy gap:** primary provider Gemini bo'lgani uchun oddiy chat ham Gemini'ga ketadi. Provider 9 model × 2 attemptgacha aylanadi; SmartForm, bot guest va embeddinglar to'liq `AIResponseRun` accountingiga kirmaydi; staff global supply'dan ozod bo'lmasligi kerak.
+- **Scope:** barcha call-path ledger; global daily request/token cap; atomic pre-call reservation/reconciliation; staffni ham qamrash; free-model allowlist; prompt/output cap; `1 primary + max 1 fallback`; `429` circuit breaker/cooldown; duplicate job idempotency; free-mode'da `heavy` va Pro/preview yopiq; deterministic degradation; local/pre-prod'da DO provider selection'ini code-level fail-closed qilish.
+- **Control Center:** mode, configured cap, used/reserved/remaining, call type, attempts, untracked usage va cooldown stoplight; exact Google quota raqamlari kod/docga hardcode qilinmaydi.
+- **Acceptance:** concurrency, duplicate, blanket 429, missing usage, chat/search/SmartForm/guest/RAG-memory embedding accounting testlari; bitta logical requestda provider attempt `≤2`; circuit ochiq paytda yangi remote call `0`; owner admissionisiz `AI_CHAT_PROVIDER=digitalocean` local/pre-prod startup/auditni fail qiladi va DO network call `0`.
+- **Rollback:** global AI kill switch; deterministic core flow, local catalog va human/Telegram handoff ishlashda qoladi.
+- **Faza:** R0. Boshqa AI behavior ishidan oldin.
 
 ### A9. AI eval, latency va cost release gate — `PLANNED`, `M foundation + rolling gate`
 
 - **Outcome:** premium AI claim'i model taassurotiga emas, fresh evidence'ga tayanadi.
-- **Scope:** 320-case target golden dataset; P1 foundation `50`, P3 critical beta gate `75`, premium price gate `≥150` teacher-authored case. 0–4 rubric; system-role/prompt-injection; Turkish/CEFR; RAG/citation; memory/privacy; routing/access; provider fallback; price ledger/reservation.
+- **Scope:** A8 supply guard ustida 320-case target golden dataset; R1 foundation `50`, R3 critical beta gate `75`, premium price gate `≥150` teacher-authored case. 0–4 rubric; system-role/prompt-injection; Turkish/CEFR; RAG/citation; memory/privacy; routing/access; provider fallback; price/quota ledger.
 - **Acceptance:** critical safety/access `0`; injection success `<1%`; Turkish `≥92%`; grounded support `≥95%`; RAG recall@4 `≥90%`; memory precision `≥97%`; p95 text `<8s`; hard deadline `20s`; max 1 fallback; AI cost/premium revenue `≤25%`.
-- **Faza:** P1 foundation A2 bilan, P3 gate A7'dan keyin, P4 premium/real-data validation.
+- **Faza:** A8'dan keyin R1 foundation, R3 gate A7'dan keyin; production/premium real-data validation alohida admission.
 
 ---
 
@@ -100,7 +128,7 @@
 1. **Muammo:** platformaga faqat til kursi orqali kirish mumkin edi; “Turkiyada o'qish” niyati bor keng auditoriya uchun kirish nuqtasi va owner uchun yangi daromad oqimi yo'q edi.
 2. **Asosiy KPI:** kvalifikatsiyalangan yordam so'rovi soni (universitet sahifasi → yordam CTA → messenger handoff). Trafik yoki universitet soni KPI emas.
 3. **Canonical state:** yangi `sit` domeni. Katalog haqiqati — `University`/`UniversityFaculty`/`UniversityProgram` va yondosh ro'yxatlar; xabar haqiqati — `Announcement`; kontent — `KnowledgeArticle`. Yordam so'rovi lifecycle'i hali canonical emas (S2).
-4. **Adapterlar:** public web (`/sit/`), Django admin, messenger handoff. Keyin: AI advisor, Telegram, `/backoffice/sit/`.
+4. **Joriy adapterlar:** public web (`/sit/`), Django admin, messenger handoff, `sit_advisor` va `/backoffice/sit/`. **Keyin:** S2 contextli handoff/lifecycle va zarur bo'lsa Telegram adapteri.
 5. **Owner yuki:** **oshadi** — katalogni dolzarb tutish va lead follow-up doimiy ish. Bu ataylab qabul qilingan savdo yuki, avtomatlashtirish bilan qoplanmaydi.
 6. **Flag/rollback:** `is_published` per-record gate; butun portalni o'chirish = `/sit/` route'ini olib qo'yish. Core LMS oqimlariga bog'liq emas, shuning uchun rollback izolyatsiyalangan.
 7. **Faza:** owner qarori bilan launch rejasidan oldin. Core A-narvoni to'xtamaydi, lekin owner vaqti bo'linadi (pastdagi risk).
@@ -121,18 +149,21 @@
 - **Acceptance:** auth gate; duplicate/spam himoyasi; owner uchun holat ro'yxati; transition va permission testlari; hech qanday pipeline DM xotirasida qolmaydi.
 - **Ochiq:** jiddiylik to'lovi (pastda).
 
-### S3. SIT AI advisor — `PLANNED`, `M`
+### S3. SIT AI advisor — `EVIDENCE READY`, `M`
 
 - **Outcome:** foydalanuvchi byudjet/til/daraja aytadi, faqat portaldagi tasdiqlangan ma'lumotdan tavsiya oladi, keyin ownerga yo'naltiriladi.
 - **Canonical owner:** mavjud AI engine + yangi `sit_advisor` skill va katalog retrieval tool. Yangi AI subsystem emas.
 - **Acceptance:** javob faqat `is_published` yozuvlardan; katalogda yo'q universitet/narx **taklif qilinmaydi**; tavsiya oxirida handoff; grounded support evalida A9 qoidalari qo'llanadi.
 - **Xavf:** AI viza/qabul kabi rasmiy masalada maslahat berayotgandek ko'rinishi. Javob doirasi qat'iy cheklanadi.
+- **Evidence (2026-07-29, `a43a654`):** deterministic `sit_catalog` retrieval, published-only selectors, bounded context va routing regressionlari; implementatsiya sessiyasida `python manage.py test sit ai messenger` 158/158, check 0.
 
-### S4. Owner workflow va real ma'lumot — `PLANNED`, `M`
+### S4. Owner workflow va real ma'lumot — `EVIDENCE READY` foundation, `M`
 
 - **Outcome:** owner katalogni Jazzmin admin'siz, dolzarblik nazorati bilan yuritadi.
 - **Scope:** `/backoffice/sit/` (landing editor pattern'ida), eskirgan yozuvlarni ko'rsatuvchi signal (`last_verified_on` bo'yicha), real universitet ma'lumotini faqat rasmiy manbadan kiritish.
 - **Acceptance:** owner-only gate; audit; nashr qilishdan oldin manba/sana majburiyligi UI'da ko'rinadi.
+- **Evidence (2026-07-29, `4cb3487`):** `/backoffice/sit/` dashboard, 90 kunlik stale signal, filter/editor/formset, preview, reason+confirmation+audit; implementatsiya sessiyasida full suite 453/453 va focused 42/42.
+- **Qolgan:** real universitet ma'lumoti owner tomonidan rasmiy manbadan kiritiladi; foundation `EVIDENCE READY`, data completeness emas.
 
 ### Ochiq owner qarorlari
 
@@ -150,16 +181,23 @@
 
 ---
 
+## Yetkazilgan, lekin active navbat emas
+
+| Capability | Joriy haqiqat | Ochiq evidence/gap |
+|---|---|---|
+| Learner streak/freeze | `LearnerStreak`, canonical `record_activity` va self-updating nudge main'da | Oldin kuzatilgan ordering failure 2026-08-14 full 467/467 va focused 1/1 yugurishda takrorlanmadi; “done” update qayta Telegram outbox yaratmaydi |
+| Landing editor | Bosqich 1 + TOC/tab main'da | Bosqich 2–5 `HOLD/NEXT`; active core slice emas |
+| Telegram F0–F9 | onboarding, checkout, attendance, AI, admin, outbox, lesson, assignment va quiz main'da | Public webhook/outbox process `HOLD`; F11–F13 to'liq emas |
+
 ## B. NEXT — faqat core gate'lardan keyin
 
 | Band | Qaror | Qayta admission sharti |
 |---|---|---|
 | Placement/daraja testi | Minimal deterministic acquisition slice mumkin | A0–A5 yashil; result claim curriculum bilan kalibrlangan |
-| Writing Revision + Teacher Inbox | P4'dagi kichik conditional pilot; launch sharti emas | A7 va A9 critical gate; owner capacity; private media/scope; teacher baseline |
+| Writing Revision + Teacher Inbox | R3dan keyingi kichik conditional pilot; taqdimot sharti emas | A7 va A9 critical gate; owner capacity; private media/scope; teacher baseline |
 | `word_builder` | Prompt skill emas, structured morphology PracticeMode | Approved dataset + objective/item schema + 30–50 eval case |
 | `conversation_partner` | Text-only bounded scenario; pronunciation claim yo'q | PracticeSession state + turn/rubric + safety/cost gate |
 | SRS “Lug'atim” | Outcome Ledger ichidagi scheduler capability | A6 stable; manual/dars vocabulary manbasi ishonchli |
-| Streak/freeze | Defer | Real activity semantics va retention baseline mavjud |
 | “Azure haftaligi” AI report | Defer | Outcome data, memory precision va report eval o'tgan |
 | “B2: 68%” tayyorgarlik foizi | Defer/rename | Validatsiyalangan mastery formula; aks holda course-requirement progress |
 | Telegram “Bugungi ko'prik” va streak-risk | Defer | Core lesson/payment/outbox xabarlari GREEN |
@@ -202,6 +240,6 @@
 
 ## E. Sessiya tartibi
 
-`A0 → A1 → A2 + A9-foundation → A3/A4 contracts → A3/A4 adapters + A5 sign-off → A6 → A7 → A9 critical gate → conditional Writing/Teacher pilot`. Agent branch prefiksi o'ziga mos bo'ladi; product authority va merge qarori Azurbekda qoladi. Ops va mobile alohida oxirgi ish emas — har bandning release gate'i.
+`A8 → A0b → A1a + A2 → A3/A4 contracts → A3/A4 adapters + A5 sign-off → shartli A6/A7 → A9 critical gate`. A1b production/cloud faqat owner `HOLD`ni ochganda. Agent branch prefiksi o'ziga mos; product authority va merge qarori Azurbekda qoladi. Ops, budget va mobile alohida oxirgi ish emas — har bandning release gate'i.
 
-Parallel: `S1 (bajarildi) → S2 → S4 → S3`. SIT slice'i A bandi bilan bir sessiyada aralashtirilmaydi — har sessiya bittasiga tegadi.
+Parallel SIT truth: `S1 + S4 + S3 (bajarildi) → S2 (keyingi)`. S2 A8 yoki core active slice'ni siqmaydi; bir sessiyada bittasiga tegiladi.

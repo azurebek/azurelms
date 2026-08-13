@@ -2,7 +2,9 @@
 
 **O'zbek tilida turk tili o'rgatuvchi zamonaviy LMS platforma** — AI repetitor, IELTS-uslubidagi imtihon tizimi, real-time messenger va to'liq o'quv jarayoni boshqaruvi bilan.
 
-Django 6 · Channels (WebSocket) · Celery · DigitalOcean Gradient AI (llama-4-maverick) · SQLite (lokal) / PostgreSQL + pgvector (prod)
+Django 6 · Channels (WebSocket) · Celery · Google Gemini (joriy local AI) · SQLite (lokal) · PostgreSQL + pgvector (future prod)
+
+> **2026-08-14 resurs holati:** loyiha LOCAL/PRE-PROD. DigitalOcean hosting, Spaces va inference ishlatilmaydi; adapter kodi keyingi production qarorigacha dormant. Gemini bepul kvotasi hard constraint, shu sabab yangi AI imkoniyatlaridan oldin global budget/telemetry gate yopiladi.
 
 ---
 
@@ -19,7 +21,7 @@ Django 6 · Channels (WebSocket) · Celery · DigitalOcean Gradient AI (llama-4-
 - **Suhbat** — samimiy "o'quv-do'st" xarakteri, foydalanuvchi tanlaydigan ohang va model, uzoq muddatli xotira (faktlarni eslab qoladi), dars-kontekstli RAG javoblar
 - **Skill'lar avtomatik tanlanadi** — grammatika tuzatish, quiz tuzish, vazifa tekshirish, speaking coach, progress tahlili, web-qidiruv va h.k.
 - **PDF bilan ishlaydi** 📄 — yuklangan PDF'ni o'qib savollarga javob beradi; "PDF qilib ber" desangiz haqiqiy hujjat yasab beradi (jadval/ro'yxatlar bilan, yuklab olinadi)
-- **Rasmlarni ko'radi** 👁 — foto/skrinshot/qo'lyozmadagi turkcha matnni o'qiydi, tarjima qiladi, xatolarni ko'rsatadi
+- **Rasm oqimi** 👁 — `image_qa` routing va upload primitive'i bor, ammo joriy Gemini adapteri vision payload qabul qilmaydi; rasmni ko'rish capability'si vision provider qayta admissionigacha `HOLD`
 - **Rasm chizadi** 🎨 — flashcard/diagramma so'rasangiz SVG chizib beradi (qat'iy xavfsizlik filtridan o'tadi)
 - **Smart onboarding** — ro'yxatdan o'tgach AI bilan qisqa suhbatda maqsad/daraja aniqlanadi (forma o'rniga)
 - **Floating widget** — istalgan sahifadan AI'ga tez murojaat
@@ -49,16 +51,19 @@ Django 6 · Channels (WebSocket) · Celery · DigitalOcean Gradient AI (llama-4-
 git clone https://github.com/azurebek/azurelms.git
 cd azurelms
 python -m venv venv
-venv\Scripts\activate        # Windows  (Linux/Mac: source venv/bin/activate)
+.\venv\Scripts\Activate.ps1 # Windows PowerShell (Linux/Mac: source venv/bin/activate)
 pip install -r requirements.txt
 
 # 2. Sozlamalar — .env.local fayl yarating:
-#    APP_ENV=local rejimida SQLite ishlatiladi, minimal kerakli kalitlar:
-#    DIGITALOCEAN_INFERENCE_API_KEY=...   (AI uchun; bo'sh bo'lsa AI fallback javob beradi)
-#    AI_CHAT_PROVIDER=digitalocean
+#    APP_ENV=local
+#    LOCAL_USE_REMOTE_SERVICES=False
+#    USE_S3=False
+#    AI_CHAT_PROVIDER=gemini
+#    GEMINI_API_KEY=                 (AI kerak bo'lsa Google AI Studio kaliti)
+#    DIGITALOCEAN_INFERENCE_API_KEY= (pre-production'da bo'sh qoldiring)
 
 # 3. Baza va admin
-set APP_ENV=local            # Linux/Mac: export APP_ENV=local
+$env:APP_ENV='local'         # Linux/Mac: export APP_ENV=local
 python manage.py migrate
 python manage.py createsuperuser
 
@@ -68,14 +73,16 @@ python manage.py runserver   # yoki: daphne core.asgi:application
 
 Ochish: http://127.0.0.1:8000 — bosh sahifa · `/users/register/` — ro'yxat · `/teacher/` va `/backoffice/` — staff uchun.
 
-> Celery lokalda shart emas — AI javoblari Celery yo'qligida avtomatik thread-fallback bilan ishlaydi. Prod uchun: `Procfile` (Daphne + Celery worker) va `Dockerfile` tayyor.
+> Celery lokalda shart emas — AI javoblari Celery yo'qligida avtomatik thread-fallback bilan ishlaydi. `Procfile` va `Dockerfile` kelajak deployment baseline'i, ammo yopilmagan security/CI/restore/health/outbox gate'lari sabab production-ready dalili emas.
 
 ## Testlar
 
 ```bash
-python manage.py test        # to'liq suite (210+ test)
+python manage.py test        # to'liq suite
 python manage.py test ai.documents courses core.tests.TeacherPanelTests   # nuqtali misollar
 ```
+
+2026-08-14 local rebaseline: full suite **467/467 OK**. Bu local regression evidence; production readiness uchun alohida security/CI/restore/AI-budget gate'lari bor.
 
 ---
 
@@ -87,7 +94,7 @@ python manage.py test ai.documents courses core.tests.TeacherPanelTests   # nuqt
 | `courses/` | Kurslar, darslar, **imtihon dvigateli** (sections/reading engine/attempt lifecycle), sertifikatlar |
 | `cohorts/` | Guruhlar, obuna-yozilish (enrollment), davomat, to'lov cheklari |
 | `messenger/` | Chat (WebSocket), AI xonalari, Smart Form sessiyalari |
-| `ai/` | **AI qatlami**: agent engine, skill registry, prompt builder, RAG, xotira, provayderlar (DO/Gemini), `documents/` (PDF/rasm/SVG) |
+| `ai/` | **AI qatlami**: agent engine, 14 skill, prompt builder, RAG, xotira, joriy Gemini va dormant DO adapteri, `documents/` (PDF/rasm/SVG) |
 | `subscriptions/`, `blog/`, `gamification/`, `bot/` | Tariflar, blog+studiya, XP/nishonlar, Telegram bot |
 | `sit/` | Study in Turkey universitet katalogi, dasturlar, qabul ma'lumotlari va bilim bazasi |
 | `core/` | Sozlamalar, backoffice va teacher panel view'lari |

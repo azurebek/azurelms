@@ -1,12 +1,14 @@
 # 04 — Kontent reja: video darslar, milliy sertifikat mock'lari, test banki, ko'priklar, blog
 
-*Model: kontentning YADROSI — Azurbekning kursi (u yillardir o'tayotgan dastur). Platforma-kontent uni o'raydi: har darsga video + konspekt + lug'at + quiz + vazifa; ustiga mock imtihonlar va oqim-kontenti. AI faqat qoralama tayyorlaydi; curriculum, level, answer key, rubric va publish qarori Azurbek tasdig'idan o'tadi. Rebaseline: 2026-07-22.*
+*Model: kontentning YADROSI — Azurbekning kursi (u yillardir o'tayotgan dastur). Platforma-kontent uni o'raydi: har darsga video + konspekt + lug'at + quiz + vazifa; ustiga mock imtihonlar va oqim-kontenti. AI faqat qoralama tayyorlaydi; curriculum, level, answer key, rubric va publish qarori Azurbek tasdig'idan o'tadi. Rebaseline: 2026-08-14.*
+
+> **Joriy evidence:** ushbu local checkout bazasida course/module/lesson/quiz/assignment/exam/blog kontenti yo'q. Bu production ma'lumoti yo'q degani emas, lekin reja “kontent tayyor” deb da'vo qila olmaydi. Birinchi ish — owner materiallari va haqiqiy production/export inventory'si.
 
 ---
 
 ## 1. Kurs strukturasi — manba: Azurbekning mavjud dasturi
 
-**Owner vazifasi (P0–P1 parallel):** Azurbek joriy o'quv dasturini shu shablonga tushiradi; agent qoralama va strukturada yordam beradi:
+**Owner vazifasi (R0–R1 parallel):** Azurbek joriy o'quv dasturini shu shablonga tushiradi; agent qoralama va strukturada yordam beradi:
 
 ```
 Modul N: <nomi>            (masalan: "Kelishiklar")
@@ -32,22 +34,25 @@ Har jonli darsga mos platforma-dars quyidagilardan iborat:
 | 6. Vazifa (modulda 1–2 marta; matn/audio) | Azurbek belgilaydi | ustoz aktivlashtiradi |
 | 7. Structured practice CTA | avtomatik | faqat A6/A7 gate'dan o'tib, feature flag ochiq bo'lsa |
 
-**AI-quvur:** jonli dars mavzusi + Azurbekning eski materiallari → Claude konspekt/lug'at/quiz qoralaydi → Azurbek 15–20 daqiqada tahrir qiladi → backoffice yoki `load_course_content` bilan kiradi. **Azurbekning darsga sarfi: video (asosiy) + 20 daq tahrir.**
+**Qoralama quvuri:** jonli dars mavzusi + Azurbekning eski materiallari → repo agenti yoki owner-approved AI kichik draft tayyorlaydi → Azurbek tahrir/tasdiq qiladi → mavjud backoffice orqali kiradi. `load_course_content` command'i hozir kodda yo'q; u alohida admission/implementatsiyasiz mavjud yo'l deb yozilmaydi.
 
-## 3. Video yozish jadvali — owner capacity bilan real bo'lsin
+Project Gemini free-tieri bulk kontent generatsiya uchun ishlatilmaydi. Har draft aniq darsga, bounded input/outputga va owner reviewga ega; bir xil shablon/deterministic transform uchun LLM chaqirilmaydi. RAG reindex/embedding ham A8 budget ledger va batch gate'dan o'tadi.
 
-Gipoteza-reja (Azurbek tasdiqlaydi/to'g'irlaydi):
+## 3. Kontent yetkazish rejasi — inventory va owner capacity bilan
 
-| Davr | Norma | Jami |
+Eski 22-iyul–13-sentyabr video sonlari evidence bilan yangilanmaganligi uchun active commitment emas. Joriy exit-gated reja:
+
+| Gate | Deliverable | Exit |
 |---|---|---|
-| P0–P1 (22 iyul – 9 avg) | haftasiga 3–4 video | ~8–10 dars |
-| P2 (10–23 avg) | haftasiga 4 video | ~8 dars (jami ~16–18) |
-| P3 (24 avg – 6 sen) | haftasiga 2–3 (beta tayyorgarligi) | jami ~21–24 |
-| P4 | 13-sen kontent va scope freeze | — |
+| Inventory | joriy curriculum, eski material, video va mock ro'yxati | owner qaysi kurs/cohort birinchi ekanini tasdiqlaydi |
+| First-cohort slice | birinchi 4–6 haftani qoplaydigan darslar + 1 sample lesson | har darsda objective, konspekt, lug'at, quiz va publish state |
+| Rolling production | guruhdan kamida 2 hafta oldinda yurish | haftalik owner capacity review; sifatsiz bulk draft yo'q |
+| Mock slice | bitta review qilingan yozma mock yoki kichik section | official-format disclaimer + answer/rubric review |
+| R4 freeze | faqat blocker/content correction | demo claim va real kontent bir xil |
 
-**Minimal launch-to'plam (pastki chegara):** kuzgi guruhning birinchi 4–6 haftasini qoplaydigan darslar + 1 to'liq namunaviy dars (bepul qatlamga). Guruh jonli o'qiydi — video "dars o'tilgach" ochilgani uchun kurs oxirigacha hamma video launch kuni SHART EMAS; guruhdan 2 hafta oldinda yurish yetadi. Bu R1 riskini keskin kamaytiradi.
+**Minimal launch-to'plam (pastki chegara):** kuzgi guruhning birinchi 4–6 haftasini qoplaydigan darslar + 1 to'liq namunaviy dars (bepul qatlamga). Guruh jonli o'qiydi — video "dars o'tilgach" ochilgani uchun kurs oxirigacha hamma video launch kuni SHART EMAS; guruhdan 2 hafta oldinda yurish yetadi. Bu kontent-readiness riskini keskin kamaytiradi.
 
-**Sifat standarti (P1 oxirigacha):** yozish sozlamasi (yorug'lik/mikrofon/ekran-yozuv sxemasi), intro/outro shablon, "bir video = bir mavzu ≤20 daq" qoidasi.
+**Sifat standarti (R1 oxirigacha):** yozish sozlamasi (yorug'lik/mikrofon/ekran-yozuv sxemasi), intro/outro shablon, "bir video = bir mavzu ≤20 daq" qoidasi.
 
 ## 4. Milliy sertifikat mock imtihonlari (IH-3 — S1'ning yuragi)
 
@@ -55,9 +60,9 @@ Gipoteza-reja (Azurbek tasdiqlaydi/to'g'irlaydi):
 
 | Mock | Tarkib | Tayyor bo'lish |
 |---|---|---|
-| **Mock №1 (yozma)** — lead-magnit nomzodi | Tinglash (2 audio, replay-limit) + O'qish (2 matn, aralash task turlari) + Yozish (2 prompt, so'z chegarasi) | P2 oxiri, exam/mobile gate'dan keyin |
-| **Mock og'zaki** | 3 prompt (audio yozish) + ustoz baholash oqimi; AI pronunciation claim'i yo'q | P3 oxiri, private media gate'dan keyin |
-| **Mock №2 (yozma, to'liq)** | №1 formatida yangi variantlar — kurs obunachilariga | P4 capacity bo'lsa; aks holda post-launch |
+| **Mock №1 (yozma)** — lead-magnit nomzodi | Tinglash (2 audio, replay-limit) + O'qish (2 matn, aralash task turlari) + Yozish (2 prompt, so'z chegarasi) | R2 oxiri, exam/mobile gate'dan keyin |
+| **Mock og'zaki** | 3 prompt (audio yozish) + ustoz baholash oqimi; AI pronunciation claim'i yo'q | R3 oxiri, private media gate'dan keyin |
+| **Mock №2 (yozma, to'liq)** | №1 formatida yangi variantlar — kurs obunachilariga | R4 capacity bo'lsa; aks holda post-presentation |
 
 Audio manba: TTS (turkcha ovozlar) + kerak joyda Azurbek ovozi. Har mock natijasi ball va bo'lim kesimini beradi; zaif mavzu faqat A6 Outcome Ledger'da objective-taglangan evidence sifatida yoziladi, AI memory mastery manbasi bo'lmaydi.
 
@@ -92,7 +97,7 @@ Format (mahsulot ichida "bugungi ko'prik" + Telegram post + reels):
 | 11 | AI bilan til o'rganish: nimaga yordam beradi, nimaga yo'q (halol) | AI til o'rganish |
 | 12 | Bepul boshlash: daraja testi + 1 mock — qanday ishlaydi | turk tili bepul test |
 
-AI-qoralama → Azurbek tahriri; haftasiga 2 post 24-avgustdan, faqat launch-critical kontent ritmiga zarar bermasa. Har biri kanalga parchalanadi.
+AI/agent qoralama → Azurbek tahriri; post ritmi faqat first-cohort inventory va core darslar oldinda bo'lgach ochiladi. Project Gemini free-tieri SEO bulk-generation uchun sarflanmaydi. Har biri kanalga parchalanadi.
 
 ## 8. Marketing mikro-kontent
 
@@ -105,7 +110,7 @@ AI-qoralama → Azurbek tahriri; haftasiga 2 post 24-avgustdan, faqat launch-cri
 
 1. Lesson'ga approved **lug'at strukturasi** — A6 Outcome Ledger/SRS uchun keyingi manba; avto-SRS launch sharti emas
 2. **Preview/entitlement** — faqat A4 typed access policy orqali
-3. **Seed quvuri:** `load_course_content` management command (qoralamalarni bir urishda kiritish; backoffice keyin tahrir)
+3. **Seed quvuri (`PLANNED`):** `load_course_content` command hozir yo'q. Faqat takroriy import real owner vaqtini kamaytirishi isbotlansa, dry-run/idempotency/validation bilan admission oladi; hozir mavjud backoffice ishlatiladi.
 4. Video hosting: MVP = YouTube unlisted embed (Lesson.video_url bor; 0 xarajat, tez) — kamchiligi: yuklab olish himoyasi zaif. Protected learner media bilan aralashtirilmaydi.
 5. Mock tinglash audiosi public/course asset policy bilan; learner speaking yozuvi private media policy bilan saqlanadi
 
