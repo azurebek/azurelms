@@ -16,6 +16,22 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-14 [Codex]: Local-first Nuclear Program rebaseline va Gemini free-tier contracti
+
+Azurbekning owner qarori bo'yicha loyiha production qayta ochilguncha **LOCAL/PRE-PROD** rejimida qoladi. DigitalOcean kreditlari bekor qilingan: App Platform, inference, Managed DB/Valkey va Spaces ishlatilmaydi; adapter kodi o'chirilmadi, ammo config bo'yicha dormant/HOLD. Joriy local primary `AI_CHAT_PROVIDER=gemini`; oddiy chat, grounding va embedding ham Gemini kvotasiga tegadi. Shu sabab keyingi birinchi kod slice'i `A8 — Gemini free-tier budget mode`, production esa alohida qayta admission.
+
+Source audit eski “maverick/DO primary, Gemini faqat web search” farazini bekor qildi. Hozir providerda 9 model × 2 urinishgacha fan-out, global daily request/token budget va circuit breaker yo'q; SmartForm, guest bot va embedding calllari to'liq ledgerda emas. DO HOLD ham hozir code-level kill switch emas, bo'sh credential va env config bilan ta'minlangan. Rejaga barcha call-path accounting, atomic reservation, free-model allowlist, `1 primary + max 1 fallback`, `429` cooldown, prompt/output cap, idempotency, staffni supply budgetga kiritish, deterministic degradation va owner admissionisiz DO network call `0` acceptance'i yozildi.
+
+Rebaseline tarixiy driftlarni ham yopdi: SIT S3/S4 va Telegram F0–F9 kodda; landing Bosqich 1 implement/test qilingan, ammo authenticated visual QA kutadi; 14 AI skill mavjud; local Python 3.12.13. Muhim yangi halol chegaralar: current Gemini adapterida vision o'chiq (`image_qa` routing bor, rasm tahlili capability emas); django-csp v4 bilan eski `CSP_*` config real full header bermaydi; guest bot selected-user allowlisti yo'q; local GREEN production GO emas. Oldingi marinebook yozuvlari historical evidence sifatida o'zgartirilmadi — ushbu yozuv ulardagi DO-primary, Gemini-search-only va F10-next-production yo'nalishlarini supersede qiladi.
+
+- Branch: `codex/nuclear-plan-rebaseline`
+- Rebaseline commit: `52fd543` — launch-plan `README` + `01–05`, Telegram/Landing/Evening rejalari, `project-context.md`, root `README.md` va `AGENTS.md`
+- Runtime kod/migration: o'zgarmadi; live Gemini request yuborilmadi, bepul token sarflanmadi
+- Test holati: `python manage.py check` — **0 issues**; `makemigrations --check --dry-run` — **No changes**; AI/provider/control target suite — **39/39 OK**; full suite — **467/467 OK**; streak focused regression — **1/1 OK**
+- Audit: `system_audit --json --fail-on never` — localda **10 GREEN / 0 AMBER / 0 RED** (`gemini`, polling mode, SQLite/LocMem/InMemory/local media); bu quota reachability yoki production readiness dalili emas
+- Docs QA: barcha changed Markdown relative linklari va code fence'lari **OK**; `git diff --check` **OK**; ikki mustaqil source/plan QA topilmalari kiritildi
+- Davom etilishi kerak: avval `A8`; keyin `A0b` (private media, teacher/socket scope, CSP) va `A1a` (local CI/readiness/restore). `A1b` production/cloud va Telegram F10 owner HOLDni ochmaguncha boshlanmaydi
+
 ## 2026-07-29 [Claude Code]: SIT AI maslahatchisi (`sit_advisor` skill) — S3
 
 SIT sahifalaridagi "AI bilan maslahatlashish" CTA oddiy Azure AI'ga olib borardi, u esa SIT bazasini umuman bilmasdi — ya'ni tugma AI bera olmaydigan narsani va'da qilardi (`rules-for-agents` §15 buzilishi). Endi AI portaldagi tekshirilgan katalogdan javob beradi. Owner qarorlari: kirish auth-gated (anonim AI kvota/xarajat nazoratisiz bo'lardi), tartibda S3 avval.
@@ -729,4 +745,4 @@ Keyinroq bu fayl `nuclear-program/project-context.md` ga ko'chirildi va kontekst
 
 ---
 
-*Eng so'nggi yangilanish: 2026-05-28 (Claude)*
+*Eng so'nggi yangilanish: 2026-08-14 (Codex)*
