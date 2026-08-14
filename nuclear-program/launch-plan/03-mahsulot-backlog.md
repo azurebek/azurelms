@@ -36,7 +36,8 @@
 - **Adapters:** web auth, Telegram webhook, media download, Messenger WebSocket.
 - **Acceptance:** replay, forged webhook, cross-user media va expired enrollment socket regressionlari; anonymous private media `403/404`; kill/rollback runbook.
 - **Evidence (A0a, 2026-07-23):** `e7cd4a6` va `5bea4a5` — one-time/browser-bound Telegram auth, webhook fail-closed/no-secret logging, inactive staff denial; implementatsiya paytida full suite 385/385 va check yashil.
-- **Qolgan:** teacher course/cohort default-deny, private media/upload validation va WebSocket access recheck. A0 to'liq `EVIDENCE READY` emas.
+- **Evidence (A0b/2, 2026-08-15):** upload MIME/magic-byte/size gate'i. `core/upload_validation.py` faylni nomiga yoki klient yuboradigan `content_type` ga emas, boshidagi baytlariga qarab tekshiradi; uchta profil (`image` 5MB, `document` 12MB, `audio` 25MB) va kengaytma izchilligi. Beshta learner upload yo'li ulandi: chat biriktirmasi (ilgari tur tekshiruvi umuman yo'q edi), to'lov cheki, vazifa fayli (canonical servisda — web va bot ulashadi), imtihon speaking audiosi (ilgari soxtalashtiriladigan `content_type`) va avatar. Model field validatorlari `.create()`/`.save()` yo'lida ishlamagani uchun gate view/servis darajasida turadi. 19 yangi test; CKEditor upload'i staff-gated deb tekshirildi.
+- **Qolgan:** private media (permission-checked stream view — owner qarori 2026-08-15), WebSocket access recheck va django-csp v4 header testi. A0 to'liq `EVIDENCE READY` emas.
 - **Faza:** R1. A8 bilan parallel faqat test/docs ishlari; yangi product featurelardan oldin.
 
 ### A1. Reproducible runtime va CI — `PLANNED`, `A1a M + A1b HOLD`
