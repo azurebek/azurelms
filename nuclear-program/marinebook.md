@@ -16,6 +16,44 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-14 [Codex]: A8 Gemini free-tier supply guard implementatsiyasi
+
+`A8` holati: **`IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`**. `AISupplyEvent` va `AISupplyState` asosidagi project-wide ledger har remote AI call oldidan kunlik request/token hamda bir daqiqalik request capacity'ni rezerv qiladi, yakunda actual usage/attempt bilan reconciliation qiladi va ledger DB xatosida fail-closed to'xtaydi. Bu per-user 5h/weekly allowance'dan alohida upstream supply gate: staff/superuser ham unga kiradi. Main chat reservation'i memory/RAG'dan oldin olinadi; `AIResponseRun.idempotency_key` duplicate taskni qayta providerga yubormaydi. SmartForm, Telegram guest, chat/grounding, RAG/memory embedding va ikkala reindex yo'li ledgerga ulandi; cache-hit embedding remote request sarflamaydi.
+
+Gemini provider SDK retry'si o'chirildi va logical call `1 primary + max 1 fallback` bilan cheklandi. `429/quota/billing` birinchi urinishdayoq fan-outni to'xtatib cooldown circuit'ini ochadi; circuit network oldidan yana tekshiriladi. Rasmiy model tekshiruvidan keyingi allowlist: stable/free-tier/cost-efficient primary `gemini-3.1-flash-lite` va faqat vaqtinchalik fallback `gemini-2.5-flash-lite`. Google deprecation jadvalida 2.5 Flash-Lite uchun shutdown sanasi e'lon qilinmagan; **2026-10-16** esa fallbackni qayta tekshirish/remove/migrate qilish uchun ichki review deadline. Text caplari: output `640` token, prompt `12,000` belgi, request timeout `8s`, deadline `20s`; embedding caplari: `64` input, har input `8,000` belgi, batch `64,000` belgi, timeout `8s`. `AI_FREE_TIER_MODE=True`; guest demo default-off va API grounding barcha effortlarda hard-off. `AI_CHAT_PROVIDER=digitalocean` explicit `AI_ALLOW_DIGITALOCEAN=True` bo'lmasa provider yaratilishidan oldin rad etiladi, noma'lum provider ham fail-closed. Control Center global supply stoplightini va xavfsiz budget/cooldown ko'rsatkichlarini chiqaradi; policy va event/state adminlari mavjud. Eski live model-list diagnostikasi o'chirildi.
+
+**Live-call shaffoflik tuzatishi:** oldingi rebaseline yozuvidagi “live Gemini request yuborilmadi” jumlasi o'sha docs-only auditga tegishli edi. Keyingi A8 ishida broad testlar noto'g'ri local credentialni ko'rib jami **3 ta tasodifiy real Gemini request** yubordi: provider subagent runida 2 ta, UI agentning 62-test runidagi attachment testida yana 1 ta. Uchalasi ham model `404` bilan tugadi; muvaffaqiyatli generation bo'lmadi. Shundan keyingi targeted runlarning barchasi mock/offline bajarildi.
+
+**2026-08-14 model/quota tekshiruvi:** Google `gemini-3.7-flash`ni 2026-08-13 kuni GA chiqardi, ammo public hujjat exact Free RPM/TPM/RPDni bermaydi. Login qilingan [AI Studio Rate Limit](https://aistudio.google.com/rate-limit?timeRange=last-28-days) oynasidagi `AzureAI` Free-tier snapshotida 3.7 Flash **5 RPM / 250K input TPM / 20 RPD**, joriy 3.1 Flash Lite esa **15 RPM / 250K input TPM / 500 RPD** ko'rsatdi. Shu sabab 3.7 A8 allowlistiga kiritilmadi: uning RPD sig'imi joriy modeldan 25 baravar past, ichki `100/day` va `10/minute` caplari bilan ham mos emas. Snapshot account/project holatiga bog'liq va vaqt o'tishi bilan o'zgarishi mumkin.
+
+**Free-tier grounding closeout:** Google pricing bo'yicha Free Standard API'da Search/Maps grounding mavjud emas. Endi `AI_FREE_TIER_MODE=True` bo'lsa engine explicit/medium/legacy-heavy search intentini specialistga yubormaydi, provider esa direct caller `enable_web_search=True` bersa ham `GoogleSearch()` toolini qurmaydi. Natija bitta plain `gemini-3.1-flash-lite` request, ledgerda `chat`, metadata'da `requested=true`, `blocked_by_free_tier=true`, `enabled=false`; paid/admitted yo'l `AI_FREE_TIER_MODE=False` va `GEMINI_GROUNDING_ENABLED=True` bo'lgandagina saqlanadi.
+
+- Branch: `codex/nuclear-plan-rebaseline`
+- Migrationlar: `aicontrol/migrations/0002_ai_supply_budget.py`; `messenger/migrations/0014_ai_response_idempotency.py`; `users/migrations/0015_free_tier_model_default.py`; `users/migrations/0016_alter_notification_options.py`
+- Apply/check buyruqlari: `python manage.py migrate`; `python manage.py check`; `python manage.py makemigrations --check --dry-run`
+- Offline target buyruqlar: `python manage.py test ai.providers.tests aicontrol.tests messenger.test_embedding_supply`; yakuniy full suite provider kalitlari va env-file loading o'chirilgan holda bajarildi
+- Test holati: **527/527 OK**; `manage.py check` — 0 issue; `makemigrations --check --dry-run` — no changes; barcha 4 migration local SQLite'ga apply; `system_audit --json --fail-on never` — **10/10 GREEN**, supply 0/100 daily request, 0/10 minute request, 0/250000 token va circuit closed
+- Full-suite closeoutda eski Windows/SQLite notification timestamp flake'i ham tuzatildi: `Notification` ordering'i `-created_at, -id`, streak holati o'zgarganda deterministic bubble timestamp; focused streak suite 15/15 OK
+- Final QA qo'shimchalari: client resend idempotency stable `client_message_id` bilan dedupe; explicit retry yangi server key oladi; Telegram guest update key ledgerda dedupe; grounding metadata faqat real groundingni “used” deb belgilaydi; `GEMINI_API_KEY` bo'lmasa ambient `GOOGLE_API_KEY` ishlatilmaydi va SDK/network `0`
+- Halol qolgan risklar: SQLite va PostgreSQL'da haqiqiy bir vaqtdagi contention/transaction proof testi hali yo'q; AI Studio tashqi quota snapshoti dynamic/account-specific; SmartForm/guest counterlari va lesson reindex uchun to'liq concurrency lease/claim hali qurilmagan; temporary `gemini-2.5-flash-lite` fallbacki 2026-10-16 ichki review deadline'ida remove/migrate uchun qayta ko'riladi; joriy Gemini adapterida vision mavjud emas
+- Davom etilishi kerak: ikki DB backendda parallel reservation/duplicate contention testi; keyin A8 production-concurrency closeout qarori. Bu holat production readiness yoki public rollout `GO` degani emas
+
+## 2026-08-14 [Codex]: Local-first Nuclear Program rebaseline va Gemini free-tier contracti
+
+Azurbekning owner qarori bo'yicha loyiha production qayta ochilguncha **LOCAL/PRE-PROD** rejimida qoladi. DigitalOcean kreditlari bekor qilingan: App Platform, inference, Managed DB/Valkey va Spaces ishlatilmaydi; adapter kodi o'chirilmadi, ammo config bo'yicha dormant/HOLD. Joriy local primary `AI_CHAT_PROVIDER=gemini`; oddiy chat, grounding va embedding ham Gemini kvotasiga tegadi. Shu sabab keyingi birinchi kod slice'i `A8 — Gemini free-tier budget mode`, production esa alohida qayta admission.
+
+Source audit eski “maverick/DO primary, Gemini faqat web search” farazini bekor qildi. Hozir providerda 9 model × 2 urinishgacha fan-out, global daily request/token budget va circuit breaker yo'q; SmartForm, guest bot va embedding calllari to'liq ledgerda emas. DO HOLD ham hozir code-level kill switch emas, bo'sh credential va env config bilan ta'minlangan. Rejaga barcha call-path accounting, atomic reservation, free-model allowlist, `1 primary + max 1 fallback`, `429` cooldown, prompt/output cap, idempotency, staffni supply budgetga kiritish, deterministic degradation va owner admissionisiz DO network call `0` acceptance'i yozildi.
+
+Rebaseline tarixiy driftlarni ham yopdi: SIT S3/S4 va Telegram F0–F9 kodda; landing Bosqich 1 implement/test qilingan, ammo authenticated visual QA kutadi; 14 AI skill mavjud; local Python 3.12.13. Muhim yangi halol chegaralar: current Gemini adapterida vision o'chiq (`image_qa` routing bor, rasm tahlili capability emas); django-csp v4 bilan eski `CSP_*` config real full header bermaydi; guest bot selected-user allowlisti yo'q; local GREEN production GO emas. Oldingi marinebook yozuvlari historical evidence sifatida o'zgartirilmadi — ushbu yozuv ulardagi DO-primary, Gemini-search-only va F10-next-production yo'nalishlarini supersede qiladi.
+
+- Branch: `codex/nuclear-plan-rebaseline`
+- Rebaseline commit: `52fd543` — launch-plan `README` + `01–05`, Telegram/Landing/Evening rejalari, `project-context.md`, root `README.md` va `AGENTS.md`
+- Runtime kod/migration: o'zgarmadi; live Gemini request yuborilmadi, bepul token sarflanmadi
+- Test holati: `python manage.py check` — **0 issues**; `makemigrations --check --dry-run` — **No changes**; AI/provider/control target suite — **39/39 OK**; full suite — **467/467 OK**; streak focused regression — **1/1 OK**
+- Audit: `system_audit --json --fail-on never` — localda **10 GREEN / 0 AMBER / 0 RED** (`gemini`, polling mode, SQLite/LocMem/InMemory/local media); bu quota reachability yoki production readiness dalili emas
+- Docs QA: barcha changed Markdown relative linklari va code fence'lari **OK**; `git diff --check` **OK**; ikki mustaqil source/plan QA topilmalari kiritildi
+- Davom etilishi kerak: avval `A8`; keyin `A0b` (private media, teacher/socket scope, CSP) va `A1a` (local CI/readiness/restore). `A1b` production/cloud va Telegram F10 owner HOLDni ochmaguncha boshlanmaydi
+
 ## 2026-07-29 [Claude Code]: SIT AI maslahatchisi (`sit_advisor` skill) — S3
 
 SIT sahifalaridagi "AI bilan maslahatlashish" CTA oddiy Azure AI'ga olib borardi, u esa SIT bazasini umuman bilmasdi — ya'ni tugma AI bera olmaydigan narsani va'da qilardi (`rules-for-agents` §15 buzilishi). Endi AI portaldagi tekshirilgan katalogdan javob beradi. Owner qarorlari: kirish auth-gated (anonim AI kvota/xarajat nazoratisiz bo'lardi), tartibda S3 avval.
@@ -729,4 +767,4 @@ Keyinroq bu fayl `nuclear-program/project-context.md` ga ko'chirildi va kontekst
 
 ---
 
-*Eng so'nggi yangilanish: 2026-05-28 (Claude)*
+*Eng so'nggi yangilanish: 2026-08-14 (Codex)*

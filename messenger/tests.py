@@ -11,6 +11,7 @@ from django.utils import timezone
 
 from ai.agent.types import AIRequest
 from ai.skills.registry import SkillRegistry
+from aicontrol.models import AISupplyEvent
 from cohorts.models import Cohort, Enrollment
 from courses.models import (
     Assignment,
@@ -233,15 +234,40 @@ class ChatAccessTests(TestCase):
 
         self.assertEqual(ai_response.status_code, 200)
         self.assertContains(ai_response, "Azure AI tayyor")
-        self.assertContains(ai_response, "Gemini 3.5 Flash")
-        self.assertContains(ai_response, "Gemini 3.1 Pro")
-        self.assertContains(ai_response, "Gemini 3.1 Flash Lite")
+        self.assertContains(ai_response, f'data-ai-model-option="{User.AI_MODEL_31_FLASH_LITE}"')
+        self.assertContains(ai_response, f'data-ai-model-option="{User.AI_MODEL_25_FLASH_LITE}"')
+        self.assertNotContains(ai_response, f'data-ai-model-option="{User.AI_MODEL_31_PRO}"')
+        self.assertNotContains(ai_response, f'data-ai-model-option="{User.AI_MODEL_35_FLASH}"')
         self.assertContains(ai_response, "Javob uslubi")
         self.assertContains(ai_response, "Qisqa va aniq")
         self.assertEqual(group_response.status_code, 200)
         self.assertContains(group_response, "Guruh chati yopiq")
         self.assertEqual(tutor_response.status_code, 200)
         self.assertContains(tutor_response, "Tutor chati yopiq")
+
+    @override_settings(
+        AI_FREE_TIER_MODE=True,
+        GEMINI_FREE_MODEL_ALLOWLIST=(
+            User.AI_MODEL_25_FLASH,
+            User.AI_MODEL_25_FLASH_LITE,
+        ),
+    )
+    def test_ai_picker_does_not_reintroduce_stored_disallowed_model(self):
+        self.student.ai_model = User.AI_MODEL_31_PRO
+        self.student.save(update_fields=["ai_model"])
+        self.client.force_login(self.student)
+
+        response = self.client.get(reverse("messenger:ai"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.context["ai_model_choices"],
+            [
+                (User.AI_MODEL_25_FLASH, "Gemini 2.5 Flash"),
+                (User.AI_MODEL_25_FLASH_LITE, "Gemini 2.5 Flash-Lite"),
+            ],
+        )
+        self.assertNotContains(response, f'data-ai-model-option="{User.AI_MODEL_31_PRO}"')
 
     def test_ai_page_uses_lesson_query_for_enrolled_student_context(self):
         module = Module.objects.create(course=self.course, title="Context Module", order=1)
@@ -327,7 +353,14 @@ class ChatAccessTests(TestCase):
         self.assertEqual(ai_response.status_code, 200)
 
 
-@override_settings(AI_CHAT_PROVIDER="gemini")
+@override_settings(
+    AI_CHAT_PROVIDER="gemini",
+    # This class intentionally exercises the Gemini path with genai.Client
+    # mocked at the network boundary. Keep an explicit project credential so
+    # the production missing-key fail-closed guard does not short-circuit the
+    # mock while the process environment remains credential-free.
+    GEMINI_API_KEY="test-key",
+)
 class GenerateAiResponseTaskTests(TestCase):
     def setUp(self):
         self.student = User.objects.create_user(
@@ -632,7 +665,7 @@ class GenerateAiResponseTaskTests(TestCase):
 
     @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
     @patch("ai.providers.gemini.genai.Client")
-    def test_generate_ai_response_routes_web_search_skill_and_enables_grounding(
+    def test_free_tier_web_search_skill_uses_one_ungrounded_request(
         self,
         mocked_client,
         _mocked_retrieve_chunks,
@@ -640,22 +673,8 @@ class GenerateAiResponseTaskTests(TestCase):
         room = ChatRoom.objects.create(room_type="ai", name="Azure AI - ai-student")
         room.participants.add(self.student)
         mocked_client.return_value.models.generate_content.return_value = SimpleNamespace(
-            text="Bugun dollar kursi ~12 600 so'm.",
-            candidates=[
-                SimpleNamespace(
-                    grounding_metadata=SimpleNamespace(
-                        web_search_queries=["bugungi dollar kursi"],
-                        grounding_chunks=[
-                            SimpleNamespace(
-                                web=SimpleNamespace(
-                                    uri="https://example.uz/usd",
-                                    title="Markaziy bank kursi",
-                                )
-                            )
-                        ],
-                    )
-                )
-            ],
+            text="Jonli kursni tekshira olmayman.",
+            candidates=[],
         )
 
         generate_ai_response.run(
@@ -664,23 +683,58 @@ class GenerateAiResponseTaskTests(TestCase):
             user_question="Bugungi dollar kursi qancha, internetdan qidirib ber",
         )
 
-        call_kwargs = mocked_client.return_value.models.generate_content.call_args.kwargs
+        calls = mocked_client.return_value.models.generate_content.call_args_list
+        self.assertEqual(len(calls), 1)
+        call_kwargs = calls[0].kwargs
         self.assertIn("ACTIVE SKILL: Web Search (web_search)", call_kwargs["contents"])
         self.assertIn("[tool:web_search]", call_kwargs["contents"])
         self.assertIn("config", call_kwargs)
-        self.assertTrue(getattr(call_kwargs["config"], "tools", None))
+        self.assertFalse(getattr(call_kwargs["config"], "tools", None))
         run = AIResponseRun.objects.get(room=room, student=self.student)
         self.assertEqual(run.skill_slug, "web_search")
-        self.assertTrue(run.metadata.get("web_search_enabled"))
-        self.assertEqual(run.metadata.get("web_search_queries"), ["bugungi dollar kursi"])
-        sources = run.metadata.get("web_search_sources") or []
-        self.assertEqual(len(sources), 1)
-        self.assertEqual(sources[0]["title"], "Markaziy bank kursi")
-        self.assertEqual(sources[0]["uri"], "https://example.uz/usd")
+        self.assertTrue(run.metadata.get("web_search_requested"))
+        self.assertTrue(run.metadata.get("web_search_blocked_by_free_tier"))
+        self.assertFalse(run.metadata.get("web_search_enabled"))
+        self.assertEqual(run.metadata.get("web_search_queries"), [])
+        self.assertEqual(run.metadata.get("web_search_sources"), [])
+        event = AISupplyEvent.objects.get(user=self.student)
+        self.assertEqual(event.call_type, AISupplyEvent.CALL_CHAT)
+        self.assertEqual(event.actual_requests, 1)
+
+    @override_settings(AI_FREE_TIER_MODE=False, GEMINI_GROUNDING_ENABLED=True)
+    @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
+    @patch("ai.providers.gemini.genai.Client")
+    def test_grounding_tool_fallback_does_not_claim_web_search_was_used(
+        self,
+        mocked_client,
+        _mocked_retrieve_chunks,
+    ):
+        room = ChatRoom.objects.create(room_type="ai", name="Azure AI - ai-student")
+        room.participants.add(self.student)
+        mocked_client.return_value.models.generate_content.side_effect = [
+            RuntimeError("google_search is not supported for this model"),
+            SimpleNamespace(text="Jonli qidiruvsiz javob.", candidates=[]),
+        ]
+
+        generate_ai_response.run(
+            room_id=room.id,
+            student_id=self.student.id,
+            user_question="Bugungi dollar kursini internetdan qidirib ber",
+        )
+
+        calls = mocked_client.return_value.models.generate_content.call_args_list
+        self.assertEqual(len(calls), 2)
+        self.assertTrue(getattr(calls[0].kwargs["config"], "tools", None))
+        self.assertFalse(getattr(calls[1].kwargs["config"], "tools", None))
+        run = AIResponseRun.objects.get(room=room, student=self.student)
+        self.assertTrue(run.metadata.get("web_search_requested"))
+        self.assertFalse(run.metadata.get("web_search_enabled"))
+        self.assertEqual(run.metadata.get("web_search_queries"), [])
+        self.assertEqual(run.metadata.get("web_search_sources"), [])
 
     @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
     @patch("ai.providers.gemini.genai.Client")
-    def test_generate_ai_response_omits_web_search_config_for_default_skill(
+    def test_generate_ai_response_keeps_bounded_config_without_web_search_for_default_skill(
         self,
         mocked_client,
         _mocked_retrieve_chunks,
@@ -699,13 +753,15 @@ class GenerateAiResponseTaskTests(TestCase):
         )
 
         call_kwargs = mocked_client.return_value.models.generate_content.call_args.kwargs
-        self.assertNotIn("config", call_kwargs)
+        self.assertIn("config", call_kwargs)
+        self.assertFalse(getattr(call_kwargs["config"], "tools", None))
+        self.assertEqual(getattr(call_kwargs["config"], "max_output_tokens", None), 640)
         run = AIResponseRun.objects.get(room=room, student=self.student)
         self.assertFalse(run.metadata.get("web_search_enabled"))
 
     @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
     @patch("ai.providers.gemini.genai.Client")
-    def test_generate_ai_response_enables_grounding_for_heavy_effort_even_on_general_chat(
+    def test_generate_ai_response_ignores_legacy_heavy_effort_when_free_tier_guard_is_on(
         self,
         mocked_client,
         _mocked_retrieve_chunks,
@@ -727,10 +783,11 @@ class GenerateAiResponseTaskTests(TestCase):
 
         call_kwargs = mocked_client.return_value.models.generate_content.call_args.kwargs
         self.assertIn("config", call_kwargs)
-        self.assertTrue(getattr(call_kwargs["config"], "tools", None))
+        self.assertFalse(getattr(call_kwargs["config"], "tools", None))
         run = AIResponseRun.objects.get(room=room, student=self.student)
-        self.assertTrue(run.metadata.get("web_search_enabled"))
+        self.assertFalse(run.metadata.get("web_search_enabled"))
 
+    @override_settings(AI_FREE_TIER_MODE=False, GEMINI_GROUNDING_ENABLED=True)
     @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
     @patch("ai.providers.gemini.genai.Client")
     def test_generate_ai_response_strips_inline_source_markers_and_trailing_sources_list(
@@ -969,7 +1026,7 @@ class GenerateAiResponseTaskTests(TestCase):
 
         prompt = mocked_client.return_value.models.generate_content.call_args.kwargs["contents"]
         model_name = mocked_client.return_value.models.generate_content.call_args.kwargs["model"]
-        self.assertEqual(model_name, User.AI_MODEL_31_PRO)
+        self.assertEqual(model_name, User.AI_MODEL_31_FLASH_LITE)
         self.assertIn("Emoji juda kam ishlat", prompt)
         self.assertIn("Faqat 1 ta neytral, mavzuga mos emoji ishlat", prompt)
         self.assertNotIn("emoji ishlatma", prompt)
@@ -1176,6 +1233,8 @@ class GenerateAiResponseTaskTests(TestCase):
             event_type=AIMemoryTrace.EVENT_RETRIEVED,
         ).latest("created_at")
         self.assertIn("semantic_vector", " ".join(trace.metadata["selected"][0]["reasons"]))
+        self.assertEqual(_mocked_embed_texts.call_args.kwargs["call_type"], "memory_embedding")
+        self.assertEqual(_mocked_embed_texts.call_args.kwargs["user"], self.student)
 
     @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
     @patch("ai.providers.gemini.genai.Client")
@@ -1432,6 +1491,8 @@ class MemoryEmbedOnWriteTests(TestCase):
         self.assertEqual(saved.fact.embedding_dim, 3)
         embed_call_text = mocked_embed.call_args.args[0][0]
         self.assertIn("Turkcha B1", embed_call_text)
+        self.assertEqual(mocked_embed.call_args.kwargs["call_type"], "memory_embedding")
+        self.assertEqual(mocked_embed.call_args.kwargs["user"], self.student)
 
     @patch("messenger.rag.embed_texts", side_effect=RuntimeError("kalit yo'q"))
     def test_save_candidate_survives_embedding_failure(self, _mocked_embed):
@@ -1852,16 +1913,17 @@ class RagPipelineTests(TestCase):
 
     @patch("messenger.rag.embed_texts")
     def test_reindex_creates_rag_chunks(self, mocked_embed_texts):
-        mocked_embed_texts.side_effect = lambda texts, embedding_model=None: [[1.0, 0.5] for _ in texts]
+        mocked_embed_texts.side_effect = lambda texts, **kwargs: [[1.0, 0.5] for _ in texts]
 
         stats = reindex_lessons(lesson_ids=[self.lesson.id], force=True)
 
         self.assertEqual(stats["indexed_lessons"], 1)
         self.assertGreater(LessonRAGChunk.objects.filter(lesson=self.lesson).count(), 0)
+        self.assertEqual(mocked_embed_texts.call_args.kwargs["call_type"], "reindex")
 
     @patch("messenger.rag.embed_texts")
     def test_reindex_skips_unchanged_content_without_force(self, mocked_embed_texts):
-        mocked_embed_texts.side_effect = lambda texts, embedding_model=None: [[1.0, 0.5] for _ in texts]
+        mocked_embed_texts.side_effect = lambda texts, **kwargs: [[1.0, 0.5] for _ in texts]
         first_stats = reindex_lessons(lesson_ids=[self.lesson.id], force=True)
         self.assertEqual(first_stats["indexed_lessons"], 1)
 
@@ -1914,6 +1976,8 @@ class RagPipelineTests(TestCase):
         self.assertEqual(len(chunks), 1)
         self.assertEqual(chunks[0]["course_id"], self.course.id)
         self.assertTrue(mocked_embed_texts.called)
+        self.assertEqual(mocked_embed_texts.call_args.kwargs["call_type"], "rag_embedding")
+        self.assertEqual(mocked_embed_texts.call_args.kwargs["user"], self.student)
 
     @patch("messenger.rag.embed_texts", return_value=[[1.0, 0.0]])
     def test_retrieval_scopes_current_lesson_to_its_module(self, _mocked_embed_texts):
@@ -1960,6 +2024,42 @@ class RagPipelineTests(TestCase):
         self.assertEqual({chunk["module_id"] for chunk in chunks}, {self.module.id})
         self.assertEqual(chunks[0]["module_title"], "Module 1")
         self.assertIn("RAG Course", chunks[0]["source_label"])
+
+    @patch("messenger.rag.embed_texts")
+    def test_retrieval_supply_denial_degrades_to_no_vector_results(self, embed_texts_mock):
+        from aicontrol.supply import SupplyDenied
+
+        embed_texts_mock.side_effect = SupplyDenied("budget tugadi")
+
+        chunks = retrieve_relevant_chunks(
+            user=self.student,
+            question="funksiya nima qiladi",
+        )
+
+        self.assertEqual(chunks, [])
+
+    @patch("messenger.rag.embed_texts")
+    def test_reindex_supply_denial_preserves_existing_chunks(self, embed_texts_mock):
+        from aicontrol.supply import SupplyDenied
+
+        existing = LessonRAGChunk.objects.create(
+            lesson=self.lesson,
+            course=self.course,
+            chunk_index=0,
+            chunk_text="Oldingi ishlaydigan chunk",
+            chunk_hash="old-chunk",
+            content_hash="old-content",
+            token_count=3,
+            embedding=[1.0, 0.0],
+            embedding_model="gemini-embedding-001",
+            embedding_dim=2,
+        )
+        embed_texts_mock.side_effect = SupplyDenied("budget tugadi")
+
+        stats = reindex_lessons(lesson_ids=[self.lesson.id], force=True)
+
+        self.assertEqual(stats["failed_lessons"], 1)
+        self.assertTrue(LessonRAGChunk.objects.filter(pk=existing.pk).exists())
 
     def test_rag_index_status_reports_missing_lessons(self):
         LessonRAGChunk.objects.filter(lesson=self.lesson).delete()

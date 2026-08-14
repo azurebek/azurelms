@@ -527,6 +527,110 @@ class OnboardingServiceTests(TestCase):
         self.assertEqual(result.code, "provider_error")
         self.assertEqual(BotGuest.objects.get(telegram_id=9002).demo_questions_used, 0)
 
+    def test_runtime_guest_demo_is_disabled_before_provider_creation_by_default(self):
+        from aicontrol.models import AISupplyEvent
+        from bot.models import BotGuest
+        from bot.services import guest_demo_answer
+
+        with patch("ai.providers.get_chat_provider") as provider_factory:
+            result = guest_demo_answer(9003, "disabled_guest", "Kurslar qanday?")
+
+        self.assertFalse(result.ok)
+        self.assertEqual(result.code, "disabled")
+        provider_factory.assert_not_called()
+        self.assertFalse(BotGuest.objects.filter(telegram_id=9003).exists())
+        self.assertFalse(AISupplyEvent.objects.exists())
+
+    def test_enabled_runtime_guest_call_is_recorded_in_supply_ledger(self):
+        from types import SimpleNamespace
+
+        from aicontrol.models import AISettings, AISupplyEvent
+        from bot.models import BotGuest
+        from bot.services import guest_demo_answer
+
+        settings_obj = AISettings.load()
+        settings_obj.guest_demo_enabled = True
+        settings_obj.save(update_fields=["guest_demo_enabled", "updated_at"])
+        provider = SimpleNamespace(
+            generate=lambda **kw: SimpleNamespace(text="Kurslarimiz mavjud."),
+        )
+
+        with patch("ai.providers.get_chat_provider", return_value=provider) as provider_factory:
+            result = guest_demo_answer(9004, "enabled_guest", "Kurslar qanday?")
+
+        self.assertTrue(result.ok)
+        provider_factory.assert_called_once_with()
+        event = AISupplyEvent.objects.get()
+        self.assertTrue(event.request_key.startswith("bot-guest:"))
+        self.assertNotIn("9004", event.request_key)
+        self.assertEqual(event.metadata, {"guest_sequence": 1})
+        self.assertEqual(event.call_type, AISupplyEvent.CALL_BOT_GUEST)
+        self.assertEqual(event.status, AISupplyEvent.STATUS_SUCCEEDED)
+        self.assertEqual(event.actual_requests, 1)
+        self.assertEqual(BotGuest.objects.get(telegram_id=9004).demo_questions_used, 1)
+
+    def test_enabled_guest_provider_factory_error_is_friendly_and_unmetered(self):
+        from aicontrol.models import AISettings, AISupplyEvent
+        from bot.models import BotGuest
+        from bot.services import guest_demo_answer
+
+        settings_obj = AISettings.load()
+        settings_obj.guest_demo_enabled = True
+        settings_obj.save(update_fields=["guest_demo_enabled", "updated_at"])
+
+        with patch(
+            "ai.providers.get_chat_provider",
+            side_effect=RuntimeError("provider unavailable"),
+        ):
+            result = guest_demo_answer(9005, "factory_error", "Kurslar qanday?")
+
+        self.assertFalse(result.ok)
+        self.assertEqual(result.code, "provider_error")
+        self.assertEqual(BotGuest.objects.get(telegram_id=9005).demo_questions_used, 0)
+        self.assertFalse(AISupplyEvent.objects.exists())
+
+    def test_failed_guest_update_is_deduped_but_next_telegram_message_can_retry(self):
+        from unittest.mock import Mock
+
+        from aicontrol.models import AISettings, AISupplyEvent
+        from bot.models import BotGuest
+        from bot.services import guest_demo_answer
+
+        settings_obj = AISettings.load()
+        settings_obj.guest_demo_enabled = True
+        settings_obj.save(update_fields=["guest_demo_enabled", "updated_at"])
+        provider = Mock()
+        provider.last_attempt_count = 1
+        provider.last_error_kind = "provider_error"
+        provider.generate.side_effect = RuntimeError("temporary upstream failure")
+
+        with patch("ai.providers.get_chat_provider", return_value=provider):
+            first = guest_demo_answer(
+                9006,
+                "retry_guest",
+                "Kurslar qanday?",
+                request_key="telegram:77:101",
+            )
+            duplicate = guest_demo_answer(
+                9006,
+                "retry_guest",
+                "Kurslar qanday?",
+                request_key="telegram:77:101",
+            )
+            next_message = guest_demo_answer(
+                9006,
+                "retry_guest",
+                "Kurslar qanday?",
+                request_key="telegram:77:102",
+            )
+
+        self.assertFalse(first.ok)
+        self.assertFalse(duplicate.ok)
+        self.assertFalse(next_message.ok)
+        self.assertEqual(provider.generate.call_count, 2)
+        self.assertEqual(AISupplyEvent.objects.count(), 2)
+        self.assertEqual(BotGuest.objects.get(telegram_id=9006).demo_questions_used, 0)
+
 
 class WorkspaceServiceTests(TestCase):
     """F3 — o'quvchi workspace servislari."""

@@ -324,6 +324,7 @@ class AIResponseRun(models.Model):
     )
     context_lesson = models.ForeignKey(Lesson, on_delete=models.SET_NULL, null=True, blank=True)
     client_message_id = models.CharField(max_length=80, blank=True, default="")
+    idempotency_key = models.CharField(max_length=180, blank=True, default="")
     user_question = models.TextField(blank=True, default="")
     status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_PENDING)
     model_name = models.CharField(max_length=120, blank=True, default="")
@@ -350,6 +351,13 @@ class AIResponseRun(models.Model):
             models.Index(fields=["room", "created_at"]),
             models.Index(fields=["student", "status", "created_at"]),
             models.Index(fields=["user_message", "status"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["idempotency_key"],
+                condition=~models.Q(idempotency_key=""),
+                name="unique_ai_run_idempotency_key",
+            ),
         ]
 
 

@@ -10,7 +10,7 @@ Bu fayl har AI agent (Claude Code / Codex / Antigravity / boshqa) sessiya boshla
 
 1. `nuclear-program/rules-for-agents.md` — to'liq ish qoidalari (branch ownership, worktree setup, test/commit discipline, conflict protocol, emergency stop)
 2. `nuclear-program/marinebook.md` — so'nggi 3-5 yozuvni o'qing (boshqa agentlar nima qildi)
-3. `nuclear-program/project-context.md` — arxitektura kerak bo'lganda (10 apps, AI agent qatlami, URLs, env, data model)
+3. `nuclear-program/project-context.md` — arxitektura kerak bo'lganda (11 domain app, AI agent qatlami, URLs, env, data model)
 4. Quyidagi buyruqlarni yugurting:
 
 ```bash
@@ -70,7 +70,9 @@ python manage.py reindex_rag --force
 python manage.py runbot
 ```
 
-Tech stack qisqacha: Django 6.0.2 + Python (local venv 3.14, Dockerfile 3.12), Channels (ASGI), Celery, PostgreSQL + pgvector (prod) / SQLite (lokal), Gemini API (`google-genai 1.65`) + optional DigitalOcean Serverless Inference chat provider, Aiogram 3.26.
+Tech stack qisqacha: Django 6.0.2 + Python (local venv 3.12.13, Dockerfile 3.12), Channels (ASGI), Celery, SQLite (joriy local) / PostgreSQL + pgvector (future prod), Gemini API (`google-genai 1.65`) + dormant DigitalOcean Serverless Inference adapteri, Aiogram 3.26.
+
+2026-08-14 owner resurs qarori: production qayta ochilmaguncha DigitalOcean hosting/Spaces/inference ishlatilmaydi. Joriy local AI provider Gemini va uning bepul kvotasi hard engineering constraint; AI feature ishidan oldin `nuclear-program/launch-plan/README.md`dagi A8 budget gate'ini tekshiring.
 
 ---
 

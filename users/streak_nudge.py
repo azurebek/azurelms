@@ -11,6 +11,8 @@ Xolatlar:
 Bugun faol bo'lganlar undalmaydi; tabrik xabari harakat vaqtida beriladi.
 """
 
+from datetime import timedelta
+
 from django.utils import timezone
 
 from users.models import LearnerStreak, Notification
@@ -53,9 +55,15 @@ def set_daily_streak_notification(user, state, now=None):
     xabariga aylanadi (event-bound, vaqtinchalik).
     """
     now = now or timezone.localtime()
-    notif, _ = Notification.objects.update_or_create(
+    external_key = _streak_notification_key(timezone.localdate())
+    previous_title = (
+        Notification.objects.filter(recipient=user, external_key=external_key)
+        .values_list("title", flat=True)
+        .first()
+    )
+    notif, created = Notification.objects.update_or_create(
         recipient=user,
-        external_key=_streak_notification_key(timezone.localdate()),
+        external_key=external_key,
         defaults={
             "title": _TITLES[state],
             "message": pick_message(state, now),
@@ -66,12 +74,21 @@ def set_daily_streak_notification(user, state, now=None):
             "read_at": None,
         },
     )
-    # Holat o'zgarganda ro'yxatning tepasiga chiqsin — aks holda joyida
-    # yangilangan bildirishnoma eski o'rnida ko'milib qolardi. Bildirishnomalar
-    # `-created_at` bo'yicha tartiblangani uchun sanani yangilaymiz (update()
-    # auto_now_add'ni chetlab o'tadi). Bu yagona qayta-yuzaga chiqadigan
-    # bildirishnoma turi.
-    Notification.objects.filter(pk=notif.pk).update(created_at=timezone.now())
+    # Faqat holat o'zgarganda ro'yxatning tepasiga chiqsin. OS clock bir xil
+    # timestamp qaytargan taqdirda ham boshqa eng yangi xabardan bir
+    # mikrosoniya keyinga suramiz; shunda ordering tasodifiy bo'lmaydi.
+    if not created and previous_title != _TITLES[state]:
+        latest_other = (
+            Notification.objects.filter(recipient=user)
+            .exclude(pk=notif.pk)
+            .order_by("-created_at", "-id")
+            .values_list("created_at", flat=True)
+            .first()
+        )
+        bubble_at = timezone.now()
+        if latest_other and bubble_at <= latest_other:
+            bubble_at = latest_other + timedelta(microseconds=1)
+        Notification.objects.filter(pk=notif.pk).update(created_at=bubble_at)
     return notif
 
 

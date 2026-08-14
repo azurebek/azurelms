@@ -1,10 +1,26 @@
 # 05 — Launch operatsiyalari: Control Center, deploy, security, QA va go/no-go
 
-*Rebaseline: 2026-07-22. Bu hujjat maqsad operatsion arxitektura va release gate'larini belgilaydi. “Maqsad” deb yozilgan capability implementatsiya va test tugamaguncha joriy tizim deb hisoblanmaydi.*
+*Rebaseline: 2026-08-14. Bu hujjat local/pre-production haqiqatini kelajak production arxitekturasidan ajratadi. “Maqsad” deb yozilgan capability implementatsiya va test tugamaguncha joriy tizim deb hisoblanmaydi.*
 
-## 1. Deploy arxitekturasi
+## 1. Runtime va kelajak deploy arxitekturasi
 
-**Maqsad platforma:** DigitalOcean App Platform. Quyidagi jadval joriy Procfile emas, production `GO` arxitekturasi; har qator implementatsiya va smoke tugamaguncha `PLANNED`.
+### Joriy local/pre-production profil — `LOCAL BOOT VERIFIED`, production emas
+
+| Qism | Joriy qiymat | Chegara |
+|---|---|---|
+| App | `APP_ENV=local`, Django/Daphne local | Public production SLA yo'q |
+| DB | SQLite | Production migration/restore dalili emas |
+| Cache/Channels | LocMem + in-memory | Multi-process coordination bermaydi |
+| Celery | `memory://` + eager | Worker/beat/outbox production heartbeati yo'q |
+| Media | local filesystem, `USE_S3=False` | Private object-storage policy hali qurilmagan |
+| Telegram | polling/local token | Public webhook va alohida outbox process `HOLD` |
+| AI | `AI_CHAT_PROVIDER=gemini`; DO key bo'sh; `AI_ALLOW_DIGITALOCEAN=False` | A8 global supply guard implement/test qilingan; real DB contention proof pending |
+
+`LOCAL_USE_REMOTE_SERVICES=False` DigitalOcean DB/cache/storage'ni o'chiradi, lekin Gemini API'ni o'chirmaydi. AI provider factory alohida fail-closed: DO faqat explicit `AI_ALLOW_DIGITALOCEAN=True` owner admissionida yaratiladi, noma'lum provider esa rad etiladi. `system_audit` local profil yoki AI supply stoplightini GREEN ko'rsatishi Google quota reachability, true concurrency yoki production readiness dalili emas.
+
+### Kelajak production target — vendor-neutral, `HOLD`
+
+DigitalOcean kreditlari bekor qilingan. App Platform, Serverless Inference, Managed PostgreSQL/Valkey va Spaces owner productionni qayta admission qilmaguncha target emas. Quyidagi contract vendor tanlashdan oldin ham amal qiladi; DigitalOcean keyin faqat nomzodlardan biri bo'lishi mumkin.
 
 | Komponent | Process/xizmat | Gate |
 |---|---|---|
@@ -12,21 +28,21 @@
 | Celery worker | `celery -A core worker -l info` | broker round-trip + heartbeat |
 | Celery beat | `celery -A core beat -l info` | subscription lifecycle schedule va heartbeat |
 | Telegram outbox | `python manage.py telegram_outbox --loop` | Majburiy alohida process; atomic claim qurilmaguncha aynan 1 replica |
-| DB | Managed PostgreSQL + pgvector | migration, DB ping, vector smoke |
-| Cache/Channels/Broker | Managed Valkey | production'da in-memory/memory fallback taqiqlanadi |
-| Public media | Spaces/S3 | marketing asset, course thumbnail, public preview; avatar va CKEditor lesson image uchun explicit policy kerak |
-| Private media | Private Spaces storage + permission-checked download | receipt, assignment, messenger attachment, exam audio |
+| DB | Managed PostgreSQL-compatible + pgvector | migration, DB ping, vector smoke, restore drill |
+| Cache/Channels/Broker | Managed Redis/Valkey-compatible | production'da in-memory/memory fallback taqiqlanadi |
+| Public media | S3-compatible object storage | marketing asset, course thumbnail, public preview; explicit policy |
+| Private media | Private object storage + permission-checked download | receipt, assignment, messenger attachment, exam audio |
 | Static | Whitenoise | `collectstatic` CI/deploy gate |
 
-**Env:** `SECRET_KEY`, `APP_ENV`, `APP_DOMAIN`, `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS`, `SECURITY_STRICT=True`, `DATABASE_URL`, `VALKEY_URL`/`REDIS_URL`, `CELERY_BROKER_URL`, private/public Spaces config, AI provider keys/model registry, `TELEGRAM_BOT_TOKEN`, unique webhook secret, `TELEGRAM_MODE=webhook`, email provider.
+**Future production env:** `SECRET_KEY`, `APP_ENV`, `APP_DOMAIN`, `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS`, `SECURITY_STRICT=True`, `DATABASE_URL`, `VALKEY_URL`/`REDIS_URL`, `CELERY_BROKER_URL`, private/public object-storage config, admitted AI provider key/model policy, `TELEGRAM_BOT_TOKEN`, unique webhook secret, `TELEGRAM_MODE=webhook`, email provider. DO-specific env hozir bo'sh qoladi.
 
 ### Broker fail-fast gate
 
-`APP_ENV != local` bo'lsa haqiqiy remote broker/cache/channel majburiy. Bo'sh qiymat, `memory://` yoki in-memory backend web/worker/beat startup'ini non-zero exit bilan to'xtatadi. Readiness URL mavjudligini emas, connection va task round-tripni tekshiradi.
+`APP_ENV != local` bo'lsa haqiqiy remote broker/cache/channel majburiy. Bo'sh qiymat, `memory://` yoki in-memory backend web/worker/beat startup'ini non-zero exit bilan to'xtatadi. Bu contract hozir `PLANNED`; local rejim ataylab in-memory ishlaydi. Readiness URL mavjudligini emas, configured connection va task round-tripni tekshiradi.
 
 ### Telegram outbox gate
 
-- **GO sharti:** App spec/Procfile'ga outbox process qo'shilgan va 1 replica ishlaydi; joriy Procfile'da u yo'q.
+- **Future production GO sharti:** app spec/Procfile'ga outbox process qo'shilgan va 1 replica ishlaydi; joriy Procfile'da u yo'q. Hozir local polling smoke yetarli, public process `HOLD`.
 - Test Notification konfiguratsiyadagi SLA ichida `TelegramOutbox.sent` bo'ladi.
 - Control Center pending soni, eng eski pending yoshi, failed soni va so'nggi muvaffaqiyatni ko'rsatadi.
 - Owner failed itemni reason bilan replay qiladi; replay auditga yoziladi.
@@ -73,7 +89,7 @@ Stoplight:
 - **AMBER:** degradatsiya bor, lekin oltin kurs oqimi ishlaydi va fallback aniq;
 - **RED:** checkout/access/data-loss/privacy xavfi, majburiy worker yo'q yoki critical eval yiqilgan. Traffic/capability ochilmaydi.
 
-**Joriy foundation (2026-07-22):** `/backoffice/control/` faqat active superuser uchun read-only stoplight sifatida ishlaydi. DB, cache, Channels, Celery config, Telegram outbox, media, AI provider/policy, RAG, security va release identity bitta `core/control_center` snapshotidan olinadi; `system_audit` CLI ham aynan shu servis adapteri. Hali mutation, append-only audit, feature flag/kill switch, active worker heartbeat, `ReleaseRecord`, cost/quality va backup/email/memory probe'lari ulanmagan.
+**Joriy foundation (2026-08-14):** `/backoffice/control/` active superuser uchun read-only stoplight; brand va landing uchun reason+confirmation+`LogEntry`li tor mutation surface'lari bor. DB, cache, Channels, Celery config, Telegram outbox, media, AI provider/policy, RAG, security va release identity bitta snapshotdan olinadi; `system_audit` shu servis adapteri. AI probe endi free-tier mode, DO admission, supply enforcement, daily request/token va minute request used/limit/remaining, attempt/event counts hamda cooldownni xavfsiz ko'rsatadi; supply policy Django admin'da owner tomonidan boshqariladi, event/state esa read-only ko'riladi. Hali umumiy append-only audit, system-wide flags/kill switch, active worker heartbeat, `ReleaseRecord`, backup/email/memory va AI quality/cost release gate ulanmagan. Credential borligi AI supply sog'lom degani emas.
 
 ## 3. Permission matrix va system audit
 
@@ -91,7 +107,7 @@ Teacher'ga kurs/cohort biriktirilmagan bo'lsa barcha ma'lumot ochilmaydi; defaul
 
 Minimum audit: permission/role, receipt qarori, enrollment transition, lesson release, grade/review, AI policy/reset/bonus/block, broadcast/outbox replay, kill switch, private-media denial, release va rollback.
 
-## 4. CI va release gate
+## 4. CI, demo va production release gate
 
 PR required checks:
 
@@ -104,7 +120,7 @@ PR required checks:
 7. secrets va dependency vulnerability scan
 8. domain permission/idempotency va cross-adapter parity tests
 
-`main` faqat gate'lar o'tgach deploy qilinadi. Migration oldidan backup/restore point qayd etiladi. Deploydan keyin readiness, login/Telegram auth, enrollment, AI async task, outbox DM va private-media permission smoke. Gate yiqilsa trafik ochilmaydi; oldingi app artifactiga rollback qilinadi, destructive DB rollback avtomatik emas.
+Hozir A1a shu checksni local runnerda reproduksiya qiladi; `.github/workflows` hali yo'q. `main`dan public deploy A1b `HOLD` ochilib, gate'lar o'tgachgina. Migration oldidan backup/restore point; deploydan keyin readiness, login/Telegram auth, enrollment, AI async task, outbox DM va private-media permission smoke. Gate yiqilsa traffic ochilmaydi; destructive DB rollback avtomatik emas.
 
 Har release uchun commit SHA, migrationlar, gate natijalari, deploy/rollback holati va owner qarori `ReleaseRecord`/system auditda saqlanadi.
 
@@ -113,13 +129,13 @@ Har release uchun commit SHA, migrationlar, gate natijalari, deploy/rollback hol
 - Sentry: Django, Channels va Celery xatolari; secret/PII redaction.
 - Uptime/readiness: public page, login, WebSocket, DB, Valkey, broker, worker, outbox va private-media denial.
 - Queue SLO: queue age, pending/failed count, last success; alertlar ownerga bitta kanal orqali.
-- Backup: managed PG daily snapshot + haftalik encrypted export; media versioning/lifecycle.
+- Backup: localda SQLite/media recoverability smoke; kelajak productionda managed DB snapshot + encrypted export va media versioning/lifecycle.
 - Restore drill: yangi isolated targetga restore → migration/schema check → owner smoke → evidence timestamp.
 - Runbook: RED sabab, user ta'siri, kill switch, fallback, escalation va recovery check.
 
-## 6. AI quality, privacy va cost gate
+## 6. AI quality, privacy va Gemini free-tier supply gate
 
-Mavjud AI panel token limit/usage/resetni boshqaradi; bu hali to'liq release control emas. Premium AI uch qatlamdan o'tadi:
+Mavjud per-user panel 5h/weekly token allowance'ni boshqaradi; u product access siyosati bo'lib, fail-open va staff-exempt xulqi saqlangan. Uning ustida alohida A8 project supply gate'i bor: staff ham kiradigan, ledger DB xatosida fail-closed, global kunlik+minute request va kunlik token pre-reservation/reconciliation. Chat, SmartForm, guest, RAG/memory embedding va reindex calllari `AISupplyEvent`da hisoblanadi; grounding call turi faqat kelajak paid/admitted rejim uchun saqlangan. Minute cap projectning ichki RPM-uslubidagi guardi; Google'ning dynamic/account-specific external RPM/RPD kvotasi emas.
 
 | Gate | Metrika |
 |---|---|
@@ -127,12 +143,47 @@ Mavjud AI panel token limit/usage/resetni boshqaradi; bu hali to'liq release con
 | Quality/safety | versionlangan golden eval, Turkish/CEFR, grounding, prompt injection, permission/data leak, negative feedback repair |
 | Cost | provider/model price snapshot, estimated cost, user/day va global/day budget, plan margin |
 
+### A8 holati — `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`
+
+- Yagona provider-call ledger: chat, grounding, SmartForm extractor, bot guest demo, RAG/memory embedding, reindex, retry/failure. Main chat auxiliary retrievaldan oldin pre-reserve qiladi va `AIResponseRun.idempotency_key` duplicate taskni to'xtatadi.
+- Global daily+minute request va daily token cap; transactional pre-call reservation va actual usage reconciliation. Staff ham global supply budgetga kiradi; usage bo'lmasa konservativ reservation charge qoladi.
+- Model allowlist: primary `gemini-3.1-flash-lite`, yagona temporary fallback `gemini-2.5-flash-lite`. Pro/preview clamp qilinadi; Free tier API grounding barcha effortlarda hard-off, guest default yopiq.
+- Text caps: output `640` token, prompt `12,000` belgi, request timeout `8s`, end-to-end deadline `20s`. Embedding: `64` input/batch, har input `8,000` belgi, batch `64,000` belgi, timeout `8s`; SDK retry `1` physical attempt.
+- `429/quota/billing` circuit breaker: birinchi quota xatosida boshqa modelga fan-out yo'q; cooldown ochiq bo'lsa yangi network call `0`. Non-quota logical chain maksimal `1 primary + 1 fallback`.
+- Control Center: mode, API grounding disabled/enabled, configured cap, daily/minute used/remaining, actual attempt, reserved/failed/rejected va cooldown stoplight. Tashqi quota raqami hardcode qilinmaydi.
+- Local/pre-prod DO HOLD fail-closed: explicit owner admissionisiz `digitalocean` provider yaratilmaydi; snapshot RED va DO network call `0`. Noma'lum provider ham fail-closed.
+- Targeted mock/offline tests yuqoridagi provider/supply/idempotency/caller guardlarini tekshirgan. Provider kalitlari va env-file loading o'chirilgan final post-A8 full suite 527/527, `manage.py check` 0 issue, migration drift yo'q va local `system_audit` 10/10 GREEN. Real SQLite/PostgreSQL concurrent contention proof hali kutilmoqda; shu sabab status `EVIDENCE READY` emas.
+
+**Model lifecycle riski:** Google'ning [3.1 Flash-Lite model kartasi](https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-lite), [pricing jadvali](https://ai.google.dev/gemini-api/docs/pricing), [rate-limit yo'riqnomasi](https://ai.google.dev/gemini-api/docs/rate-limits) va [deprecation jadvali](https://ai.google.dev/gemini-api/docs/deprecations) tekshirildi. 3.1 Flash-Lite stable/free-tier/cost-efficient primary sifatida tanlandi. 2.5 Flash-Lite uchun public shutdown sanasi e'lon qilinmagan; **2026-10-16** — ichki remove/migrate review deadline. 2026-08-14 login qilingan `AzureAI` Free-tier snapshotida 3.1 Lite **15 RPM / 250K input TPM / 500 RPD**, yangi 3.7 Flash esa **5 RPM / 250K input TPM / 20 RPD**; shu sabab 3.7 hozir admit qilinmadi. Exact tashqi limitlar project/account holatiga bog'liq va o'zgarishi mumkin.
+
+**Migrationlar va tekshiruv buyruqlari:**
+
+```powershell
+python manage.py migrate
+python manage.py check
+python manage.py makemigrations --check --dry-run
+python manage.py test ai.providers.tests aicontrol.tests messenger.test_embedding_supply
+python manage.py system_audit --json --fail-on never
+```
+
+Schema o'zgarishlari: `aicontrol/migrations/0002_ai_supply_budget.py`, `messenger/migrations/0014_ai_response_idempotency.py`, `users/migrations/0015_free_tier_model_default.py` va deterministic notification ordering uchun `users/migrations/0016_alter_notification_options.py`; to'rttalasi local SQLite'ga apply qilingan. `reindex_rag --force` va `reindex_ai_memory --force` jonli embedding supply'ini ishlatadi; faqat budget/credential ataylab yoqilganda ishga tushiriladi.
+
+### Degradatsiya tartibi
+
+1. Free tier'da automatic/explicit/heavy API groundingning barchasi yopiq; search intent bitta plain chatga tushib live tekshiruv yo'qligini halol aytadi;
+2. yangi embedding/reindex batch'i to'xtaydi, cache/lexical fallback ishlaydi;
+3. guest/demo AI deterministic FAQ yoki vaqtincha disabled bo'ladi;
+4. non-critical AI featurelar yopiladi;
+5. core enrollment, lesson, quiz, assignment, payment, messenger human flow va Telegram deterministic adapterlari ishlashda qoladi.
+
 - System instructions haqiqiy system-role'da; RAG/PDF/memory/submission typed untrusted context.
-- End-to-end hard deadline `20s`; maksimal `1 primary + 1 fallback`; widget ham async oqimda.
+- End-to-end hard deadline `20s`; maksimal `1 primary + 1 fallback` provider va targeted testlarda enforcement qilingan.
 - Request boshida transactional reservation, yakunda actual usage reconciliation; usage yo'q bo'lsa konservativ estimate.
+- SQLite va PostgreSQL'dagi haqiqiy parallel process contention/transaction proof hali pending. SmartForm/guest counterlari va lesson reindex batch'i uchun to'liq concurrency lease/claim ham qurilmagan.
+- Current Gemini adapterida vision unavailable; `image_qa` routing yoki upload primitive'i rasm tahlili capability'sini ochmaydi.
 - “Clear memory” archive emas: product copy, hard-delete/retention va trace/run redaction bir contractda.
 - Thresholdlar Control Center'da versionlanadi. Sample minimumiga yetmagan holat `PASS` emas, `INSUFFICIENT_DATA`.
-- Critical privacy/permission eval xatosi release'ni bloklaydi. Budget 80% alert; 100% configured degradation/kill switch.
+- Critical privacy/permission eval xatosi release'ni bloklaydi. Configured supply budget 80%da AMBER; 100%da RED, pre-network denial va degradatsiya. System-wide audited kill switch A2ning qolgan scope'i. “Bepul” cost=0 deb yozilmaydi — quota ham scarcity.
 
 ## 7. QA matritsasi
 
@@ -143,16 +194,16 @@ Mavjud AI panel token limit/usage/resetni boshqaradi; bu hali to'liq release con
 - Devices: desktop Chrome, Android Chrome 360/390px, iOS Safari, exam landscape 568×320/640×360.
 - States: empty, normal, full/large, expired/frozen, duplicate/replay, provider/worker degraded.
 
-Oltin oqimlar: auth/account claim; checkout/receipt/enrollment; lesson lifecycle; quiz/assignment/review; exam media/submit/result; Messenger reconnect/access expiry; AI text/image/PDF/limit/fallback; private media; owner Control Center mutation/rollback.
+Oltin oqimlar: auth/account claim; checkout/receipt/enrollment; lesson lifecycle; quiz/assignment/review; exam media/submit/result; Messenger reconnect/access expiry; AI text/PDF/limit/fallback; current Gemini'da image capability unavailable holati; private media; owner Control Center mutation/rollback.
 
-Bug bar: P0 data loss/auth/payment/access/privacy darhol; P1 core flow yoki owner control launchdan oldin; P2 faqat flag bilan yopilishi mumkin.
+Bug bar: Sev-0 data loss/auth/payment/access/privacy — darhol; Sev-1 core flow yoki owner control — taqdimot/betadan oldin; Sev-2 faqat feature flag bilan yopilishi mumkin.
 
 ## 8. Beta va monetizatsiya protokoli
 
 Rollout: staff → 10–15 learner → bitta cohort → keng launch. Har bosqich alohida flag va stop condition bilan.
 
 - Telegram guruhi jonli dars/material fallback'i sifatida qoladi.
-- Har kun: Control Center stoplight, queue/worker, Sentry, feedback, teacher review time va AI cost.
+- Har kun: Control Center stoplight, queue/worker, feedback, teacher review time va Gemini attempts/remaining/cooldown. Caller coverage regressioni alohida test contracti; joriy snapshot avtomatik “untracked call” detektori emas. Sentry production admissionidan keyin.
 - Survey: onboarding to'sig'i, first activity completion, usefulness, willingness-to-pay va testimonial consent.
 - Premium GO: structured flow `≥98%`, first completion `≥60%`, meaningful learning delta, teacher time `≥30%` kamayish, p95 text `<8s`, AI cost/revenue `≤25%`, critical safety/access `0`.
 - Gate o'tmasa core course launch qilinishi mumkin, AI premium esa beta/yopiq qoladi; narx oshirilmaydi.
@@ -169,23 +220,27 @@ Rollout: staff → 10–15 learner → bitta cohort → keng launch. Har bosqich
 
 Event nomi, numerator/denominator, cohort/plan filter va timezone versionlangan metric registry'da bo'ladi. Bepul plan monetizatsiya denominatoriga kirmaydi; eval sample minimumi alohida A9 gate bo'yicha `≥150`.
 
-## 9. 20-sentyabr taqdimoti va launch
+## 9. 20-sentyabr taqdimoti va production qarori
 
 8–10 daqiqalik demo ikki haqiqatni ko'rsatadi:
 
 1. **Learner Outcome Loop:** dars → xato evidence → structured practice/revision → oldingi/yangi proof → zarur bo'lsa teacher handoff.
 2. **Solo-owner Control:** Azurbek health, queues, release, payment/access, AI quality/cost va kill switchni bitta markazdan ko'radi.
 
-Demo account fresh state'dan qayta yaratiladi; fallback video, hotspot va Telegram fallback tayyor. 18 va 19-sentyabr repetitsiya. 20-sentyabrda `README.md` go/no-go bajarilmasa faqat proven core ochiladi.
+Demo account fresh state'dan qayta yaratiladi; fallback video, hotspot va Telegram fallback tayyor. 18 va 19-sentyabr repetitsiya. Public production ochilmagan bo'lsa demo local yoki vaqtinchalik xavfsiz tunnelda o'tadi va “production launch” deb atalmasin. 20-sentyabrda `README.md` bo'yicha alohida `DEMO GO`, `BETA GO`, `PRODUCTION HOLD` yoki `NO-GO` qarori beriladi.
 
-### Launch checklist
+### Demo/beta checklist — joriy scope
 
-**Technical:** CI required checks · broker fail-fast · outbox GREEN + DM smoke · private media tests · release SHA/record · health/readiness · Sentry · backup restore · rollback drill · owner kill-switch drill · no secret in image/log.
+**Technical:** local CI/checks · A8 budget/cooldown drill · local readiness · polling/outbox local smoke · private-media/CSP permission tests · local backup recoverability · deterministic fallback · owner kill-switch drill · no secret in repo/log.
 
 **Product:** oltin yo'l 3 qurilmada · scoped teacher flow · payment/access parity · mock/exam media · Progress Proof claim evidence · AI quality/cost gate yoki beta flag · manual DB rescue `0`.
 
 **Marketing:** landing claim audit · testimonial consent · demo/fallback · pricing typed entitlement bilan mos · “unlimited/speaking/mastery” isbotsiz claim yo'q.
 
+### Production GO qo'shimcha checklist — `HOLD`
+
+Owner hosting/provider admissioni · production-safe env/secret rotation · remote broker/cache/channel fail-fast · outbox alohida process + DM smoke · managed DB/object storage · private signed media · `ReleaseRecord`/release SHA · Sentry/alerting · isolated remote backup restore · rollback drill · production-like health/readiness va load smoke. Bular local demo uchun yolg'on majburiyat emas, lekin public trafficdan oldin barchasi kerak.
+
 ### Launch kuni
 
-T-2 soat: release/restore point, Control Center GREEN, demo account va fallback → taqdimot → traffic flag bosqichma-bosqich → har 2 soat stoplight/queue/error/conversion → blocker hotfix o'z branchida test+review+deploy → kun yakuni release record va marinebook.
+T-2 soat: demo restore point, Control Center local stoplight, Gemini budget/cooldown drill, demo account va fallback → taqdimot → agar beta admissioni bo'lsa flag bosqichma-bosqich → blocker fix o'z branchida test+review → kun yakuni evidence manifest va marinebook. Public traffic faqat production gate alohida ochilganda.

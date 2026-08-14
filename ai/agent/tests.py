@@ -1,8 +1,4 @@
-"""AIEngine provayder-tanlash testlari — Gemini FAQAT web-qidiruv uchun.
-
-Asosiy kafolat: oddiy chatda Gemini (search mutaxassisi) umuman chaqirilmaydi,
-shu tariqa uning bepul kvotasi tejaladi. Qidiruv kerak bo'lgandagina ishga tushadi.
-"""
+"""AIEngine provider routing and project-wide supply guard tests."""
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
@@ -106,7 +102,8 @@ class EngineProviderRoutingTests(TestCase):
         self.assertEqual(response.text, "maverick javob")
         self.assertFalse(response.metadata["search_specialist_used"])
 
-    def test_web_search_query_routes_to_gemini_specialist(self):
+    @override_settings(AI_FREE_TIER_MODE=False, GEMINI_GROUNDING_ENABLED=True)
+    def test_web_search_query_routes_to_gemini_specialist_in_admitted_mode(self):
         primary = _fake_provider(supports_vision=True, model="llama-4-maverick")
         search = _fake_provider(
             supports_web_search=True,
@@ -128,6 +125,32 @@ class EngineProviderRoutingTests(TestCase):
         self.assertTrue(response.metadata["search_specialist_used"])
         self.assertEqual(response.metadata["web_search_sources"], [{"title": "cbu", "uri": "https://cbu.uz"}])
 
+    @override_settings(AI_FREE_TIER_MODE=True, GEMINI_GROUNDING_ENABLED=True)
+    def test_free_tier_web_query_stays_on_primary_without_grounding(self):
+        primary = _fake_provider(
+            supports_web_search=True,
+            text="Jonli ma'lumotni tekshira olmayman.",
+            model="gemini-3.1-flash-lite",
+        )
+        search = _fake_provider(
+            supports_web_search=True,
+            text="grounded bo'lmasligi kerak",
+            model="gemini-3.1-flash-lite",
+        )
+        engine = _make_engine(primary=primary, search_provider=search, used_tools=["web_search"])
+
+        response = engine.generate_reply(
+            AIRequest(room=None, student=_student(), user_question="Bugungi kursni qidirib ber")
+        )
+
+        primary.generate.assert_called_once()
+        search.generate.assert_not_called()
+        self.assertFalse(primary.generate.call_args.kwargs["enable_web_search"])
+        self.assertTrue(response.metadata["web_search_requested"])
+        self.assertTrue(response.metadata["web_search_blocked_by_free_tier"])
+        self.assertFalse(response.metadata["web_search_enabled"])
+        self.assertFalse(response.metadata["search_specialist_used"])
+
     def test_web_query_without_specialist_falls_back_to_primary_honestly(self):
         # Kalit yo'q (search_provider=None) → maverick'da halol javob, crash yo'q
         primary = _fake_provider(supports_vision=True, text="halol javob", model="llama-4-maverick")
@@ -141,8 +164,9 @@ class EngineProviderRoutingTests(TestCase):
         self.assertFalse(primary.generate.call_args.kwargs["enable_web_search"])
         self.assertFalse(response.metadata["search_specialist_used"])
 
-    def test_search_specialist_failure_falls_back_to_primary(self):
-        # Gemini 429/kvota bilan yiqilsa — butun javob yiqilmasin, maverick halol javob bersin
+    @override_settings(AI_FREE_TIER_MODE=False, GEMINI_GROUNDING_ENABLED=True)
+    def test_search_specialist_quota_failure_does_not_fan_out_to_primary(self):
+        # 429 boshqa provider chainni boshlamasligi kerak: circuit shu yerda ochiladi.
         primary = _fake_provider(text="halol javob (qidiruvsiz)", model="llama-4-maverick")
         search = _fake_provider(supports_web_search=True, model="gemini-2.5-flash")
         search.generate.side_effect = RuntimeError("429 RESOURCE_EXHAUSTED: quota exceeded")
@@ -153,13 +177,9 @@ class EngineProviderRoutingTests(TestCase):
         )
 
         search.generate.assert_called_once()
-        primary.generate.assert_called_once()
-        self.assertEqual(response.text, "halol javob (qidiruvsiz)")
-        # Fallback xato-xabari EMAS, to'laqonli javob
-        self.assertEqual(response.model_name, "llama-4-maverick")
-        self.assertFalse(primary.generate.call_args.kwargs["enable_web_search"])
-        self.assertTrue(response.metadata["search_specialist_failed"])
-        self.assertFalse(response.metadata["search_specialist_used"])
+        primary.generate.assert_not_called()
+        self.assertIsNone(response.model_name)
+        self.assertIn("limit", response.text.lower())
 
     def test_primary_failure_still_returns_fallback_message(self):
         # Asosiy provayder yiqilsa eski xatti-harakat saqlanadi: fallback xabar

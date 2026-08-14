@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 
@@ -112,6 +112,46 @@ class SettingsSectionContentTests(TestCase):
         # Web qidiruv endpointi bor edi, lekin UI'da hech qayerda yo'q edi.
         self.assertIn(f'action="{reverse("update_ai_web_search_effort")}"', html)
 
+    @override_settings(
+        AI_FREE_TIER_MODE=True,
+        GEMINI_FREE_MODEL_ALLOWLIST=(
+            User.AI_MODEL_25_FLASH,
+            User.AI_MODEL_25_FLASH_LITE,
+        ),
+    )
+    def test_capabilities_only_shows_effective_free_tier_choices(self):
+        self.user.ai_model = User.AI_MODEL_31_PRO
+        self.user.ai_web_search_effort = User.AI_WEB_SEARCH_HEAVY
+        self.user.save(update_fields=["ai_model", "ai_web_search_effort"])
+
+        response = self.client.get(reverse("settings_capabilities"))
+        html = response.content.decode()
+
+        self.assertEqual(
+            response.context["model_choices"],
+            [
+                (User.AI_MODEL_25_FLASH, "Gemini 2.5 Flash"),
+                (User.AI_MODEL_25_FLASH_LITE, "Gemini 2.5 Flash-Lite"),
+            ],
+        )
+        self.assertEqual(
+            [value for value, _label in response.context["web_search_choices"]],
+            [User.AI_WEB_SEARCH_LIGHT, User.AI_WEB_SEARCH_MEDIUM],
+        )
+        self.assertIn(f'value="{User.AI_MODEL_25_FLASH}"', html)
+        self.assertIn(f'value="{User.AI_MODEL_25_FLASH_LITE}"', html)
+        self.assertNotIn(f'value="{User.AI_MODEL_31_PRO}"', html)
+        self.assertNotIn(f'value="{User.AI_WEB_SEARCH_HEAVY}"', html)
+
+    @override_settings(AI_FREE_TIER_MODE=False)
+    def test_non_free_mode_restores_heavy_effort_choice(self):
+        response = self.client.get(reverse("settings_capabilities"))
+
+        self.assertIn(
+            User.AI_WEB_SEARCH_HEAVY,
+            [value for value, _label in response.context["web_search_choices"]],
+        )
+
     def test_privacy_holds_the_memory_controls(self):
         response = self.client.get(reverse("settings_privacy"))
         self.assertIn(f'action="{reverse("ai_memory_toggle")}"', response.content.decode())
@@ -143,7 +183,7 @@ class SettingsMutationRedirectTests(TestCase):
     def test_ai_preference_posts_return_to_capabilities(self):
         cases = [
             ("update_ai_tone", {"ai_tone": "formal"}),
-            ("update_ai_model", {"ai_model": User.AI_MODEL_CHOICES[0][0]}),
+            ("update_ai_model", {"ai_model": User.effective_ai_model_choices()[0][0]}),
             ("update_ai_web_search_effort", {"ai_web_search_effort": "medium"}),
         ]
         for url_name, payload in cases:

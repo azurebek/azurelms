@@ -15,6 +15,11 @@ class AIRequest:
     # Xonaga yuklangan oxirgi rasm (data-URL) — vision-model'ga to'g'ridan yuboriladi
     image_data_url: str = ""
     image_name: str = ""
+    # Main remote reply is normally reserved by the Celery task before any
+    # best-effort SmartForm/RAG/memory calls. Direct engine users may provide
+    # only a request key and let the engine reserve it itself.
+    supply_request_key: str = ""
+    supply_reservation: Any | None = None
 
 
 @dataclass(frozen=True)

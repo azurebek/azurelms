@@ -86,7 +86,6 @@ class BackofficeDashboardTests(TestCase):
             (reverse("backoffice_lesson_edit", kwargs={"lesson_id": lesson.pk}), lesson.title),
             (reverse("backoffice_exams"), "Imtihon muharriri"),
             (reverse("backoffice_exam_edit", kwargs={"exam_id": exam.pk}), exam.title),
-            (reverse("backoffice_ai_control"), "AI limitlari"),
         )
 
         for url, marker in checks:
@@ -94,6 +93,9 @@ class BackofficeDashboardTests(TestCase):
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, 200)
                 self.assertContains(response, marker)
+
+        owner_only = self.client.get(reverse("backoffice_ai_control"))
+        self.assertEqual(owner_only.status_code, 302)
 
 
 class TeacherPanelTests(TestCase):
@@ -288,12 +290,15 @@ class TeacherPanelTests(TestCase):
 
 
 class BackofficeAIControlTests(TestCase):
-    """AI boshqaruv markazi sahifasi — sozlama saqlash va reset qo'llash."""
+    """Owner-only AI boshqaruv markazi — sozlama saqlash va reset qo'llash."""
 
     def setUp(self):
         User = get_user_model()
         self.staff = User.objects.create_user(
             username="aic_staff", email="aic@example.test", password="pass-12345", is_staff=True
+        )
+        self.owner = User.objects.create_superuser(
+            username="aic_owner", email="aic-owner@example.test", password="pass-12345"
         )
         self.student = User.objects.create_user(
             username="aic_student", email="aics@example.test", password="pass-12345"
@@ -304,10 +309,15 @@ class BackofficeAIControlTests(TestCase):
         response = self.client.get(reverse("backoffice_ai_control"))
         self.assertEqual(response.status_code, 302)
 
+    def test_staff_without_owner_role_is_redirected(self):
+        self.client.force_login(self.staff)
+        response = self.client.get(reverse("backoffice_ai_control"))
+        self.assertEqual(response.status_code, 302)
+
     def test_save_settings(self):
         from aicontrol.models import AISettings
 
-        self.client.force_login(self.staff)
+        self.client.force_login(self.owner)
         response = self.client.post(
             reverse("backoffice_ai_control"),
             {
@@ -326,7 +336,7 @@ class BackofficeAIControlTests(TestCase):
     def test_apply_mass_reset_event(self):
         from aicontrol.models import AIUsageResetEvent
 
-        self.client.force_login(self.staff)
+        self.client.force_login(self.owner)
         response = self.client.post(
             reverse("backoffice_ai_control"),
             {"action": "apply_event", "scope": "all", "kind": "reset", "window": "both", "reason": "Navro'z"},
@@ -334,4 +344,4 @@ class BackofficeAIControlTests(TestCase):
         self.assertEqual(response.status_code, 302)
         event = AIUsageResetEvent.objects.latest("created_at")
         self.assertEqual(event.reason, "Navro'z")
-        self.assertEqual(event.created_by, self.staff)
+        self.assertEqual(event.created_by, self.owner)

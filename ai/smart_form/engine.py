@@ -1,4 +1,7 @@
+import json
 from typing import Dict, Any, List
+
+from aicontrol.supply import fingerprint_request
 from .registry import get_form_class
 from .extractor import BaseExtractor, LLMExtractor
 from .planner import Planner
@@ -23,8 +26,42 @@ class SmartFormEngine:
 
         # 1. Extraction
         extracted_data = {}
+        latest_message_id = (
+            self.session.chat_room.messages.filter(
+                is_ai_response=False,
+                is_deleted=False,
+                text=text,
+            )
+            .order_by("-id")
+            .values_list("id", flat=True)
+            .first()
+        )
+        turn_context = (
+            f"message:{latest_message_id}"
+            if latest_message_id
+            else "state:"
+            + json.dumps(
+                self.session.state,
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            )
+            + f":text:{text}"
+        )
+        request_key = fingerprint_request(
+            "smart-form",
+            self.session.pk,
+            turn_context,
+        )
+        user = self.session.chat_room.participants.order_by("pk").first()
         for extractor in self.extractors:
-            data = extractor.extract(text, self.form_class, self.session.state)
+            data = extractor.extract(
+                text,
+                self.form_class,
+                self.session.state,
+                request_key=request_key,
+                user=user,
+            )
             if data:
                 extracted_data.update(data)
             

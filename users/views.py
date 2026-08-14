@@ -20,7 +20,7 @@ from gamification.models import EarnedBadge
 from frontend.models import LegalPage
 from django.core.signing import TimestampSigner
 from django.conf import settings
-from django.http import JsonResponse
+from django.http import HttpResponseBadRequest, JsonResponse
 from courses.models import Lesson
 import os
 import uuid
@@ -178,8 +178,9 @@ class SettingsCapabilitiesView(SettingsSectionMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['tone_choices'] = CustomUser.AI_TONE_CHOICES
-        context['model_choices'] = CustomUser.AI_MODEL_CHOICES
-        context['web_search_choices'] = CustomUser.AI_WEB_SEARCH_EFFORT_CHOICES
+        context['model_choices'] = CustomUser.effective_ai_model_choices()
+        context['web_search_choices'] = CustomUser.effective_ai_web_search_effort_choices()
+        context['ai_free_tier_mode'] = bool(getattr(settings, 'AI_FREE_TIER_MODE', False))
         return context
 
 class AvatarUpdateView(LoginRequiredMixin, View):
@@ -238,7 +239,8 @@ class AIModelUpdateView(LoginRequiredMixin, View):
 
     def post(self, request, *args, **kwargs):
         model = (request.POST.get('ai_model') or '').strip()
-        valid_models = {choice for choice, _ in CustomUser.AI_MODEL_CHOICES}
+        model_choices = CustomUser.effective_ai_model_choices()
+        valid_models = {choice for choice, _ in model_choices}
         wants_json = (
             request.headers.get("x-requested-with") == "XMLHttpRequest"
             or "application/json" in request.headers.get("accept", "")
@@ -247,15 +249,14 @@ class AIModelUpdateView(LoginRequiredMixin, View):
         if model not in valid_models:
             if wants_json:
                 return JsonResponse({"status": "error", "message": "Noto'g'ri model tanlandi."}, status=400)
-            messages.error(request, "Noto'g'ri model tanlandi.")
-            return redirect('settings_capabilities')
+            return HttpResponseBadRequest("Noto'g'ri model tanlandi.")
 
         if request.user.ai_model != model:
             request.user.ai_model = model
             request.user.save(update_fields=['ai_model'])
             messages.success(request, "AzureAI modeli yangilandi.")
         if wants_json:
-            label = dict(CustomUser.AI_MODEL_CHOICES).get(model, model)
+            label = dict(model_choices).get(model, model)
             return JsonResponse({"status": "success", "ai_model": model, "label": label})
         return redirect('settings_capabilities')
 
@@ -265,7 +266,8 @@ class AIWebSearchEffortUpdateView(LoginRequiredMixin, View):
 
     def post(self, request, *args, **kwargs):
         effort = (request.POST.get('ai_web_search_effort') or '').strip()
-        valid_efforts = {choice for choice, _ in CustomUser.AI_WEB_SEARCH_EFFORT_CHOICES}
+        effort_choices = CustomUser.effective_ai_web_search_effort_choices()
+        valid_efforts = {choice for choice, _ in effort_choices}
         wants_json = (
             request.headers.get("x-requested-with") == "XMLHttpRequest"
             or "application/json" in request.headers.get("accept", "")
@@ -274,15 +276,14 @@ class AIWebSearchEffortUpdateView(LoginRequiredMixin, View):
         if effort not in valid_efforts:
             if wants_json:
                 return JsonResponse({"status": "error", "message": "Noto'g'ri qidiruv rejimi tanlandi."}, status=400)
-            messages.error(request, "Noto'g'ri qidiruv rejimi tanlandi.")
-            return redirect('settings_capabilities')
+            return HttpResponseBadRequest("Noto'g'ri qidiruv rejimi tanlandi.")
 
         if request.user.ai_web_search_effort != effort:
             request.user.ai_web_search_effort = effort
             request.user.save(update_fields=['ai_web_search_effort'])
             messages.success(request, "AzureAI web qidiruv rejimi yangilandi.")
         if wants_json:
-            label = dict(CustomUser.AI_WEB_SEARCH_EFFORT_CHOICES).get(effort, effort)
+            label = dict(effort_choices).get(effort, effort)
             return JsonResponse({"status": "success", "ai_web_search_effort": effort, "label": label})
         return redirect('settings_capabilities')
 

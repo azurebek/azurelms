@@ -35,6 +35,17 @@ def env_list(name, default=None):
     return [item.strip() for item in value.split(",") if item.strip()]
 
 
+def env_positive_int(name, default):
+    value = os.getenv(name)
+    if value is None or not value.strip():
+        return default
+    try:
+        parsed = int(value)
+    except ValueError:
+        return default
+    return parsed if parsed > 0 else default
+
+
 def module_available(module_name):
     return importlib.util.find_spec(module_name) is not None
 
@@ -48,7 +59,8 @@ APP_ENV = _raw_env
 IS_LOCAL = APP_ENV == "local"
 LOCAL_USE_REMOTE_SERVICES = env_bool("LOCAL_USE_REMOTE_SERVICES", False)
 ENV_FILE = BASE_DIR / f".env.{APP_ENV}"
-if ENV_FILE.exists():
+SKIP_ENV_FILE = env_bool("AZURELMS_SKIP_ENV_FILE", False)
+if ENV_FILE.exists() and not SKIP_ENV_FILE:
     load_dotenv(ENV_FILE, override=True)
     LOCAL_USE_REMOTE_SERVICES = env_bool("LOCAL_USE_REMOTE_SERVICES", LOCAL_USE_REMOTE_SERVICES)
 
@@ -58,6 +70,44 @@ if _prometheus_requested and not PROMETHEUS_ENABLED:
     print("Warning: PROMETHEUS_ENABLED is set, but django_prometheus is not installed.")
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+AI_FREE_TIER_MODE = env_bool("AI_FREE_TIER_MODE", True)
+# Google API Free Standard tier'da Search/Maps grounding mavjud emas. Free
+# mode yoqilganida env xato qilib true berilgan taqdirda ham grounding qat'iy
+# o'chiq qoladi. Paid/re-admitted rejimda esa alohida flag bilan boshqariladi.
+GEMINI_GROUNDING_ENABLED = (
+    not AI_FREE_TIER_MODE
+    and env_bool("GEMINI_GROUNDING_ENABLED", True)
+)
+GEMINI_FREE_MODEL_ALLOWLIST = env_list(
+    "GEMINI_FREE_MODEL_ALLOWLIST",
+    ["gemini-3.1-flash-lite", "gemini-2.5-flash-lite"],
+)
+GEMINI_PRIMARY_MODEL = (
+    os.getenv("GEMINI_PRIMARY_MODEL", "gemini-3.1-flash-lite").strip()
+    or "gemini-3.1-flash-lite"
+)
+GEMINI_FALLBACK_MODEL = (
+    os.getenv("GEMINI_FALLBACK_MODEL", "gemini-2.5-flash-lite").strip()
+    or "gemini-2.5-flash-lite"
+)
+GEMINI_MAX_OUTPUT_TOKENS = env_positive_int("GEMINI_MAX_OUTPUT_TOKENS", 640)
+GEMINI_MAX_PROMPT_CHARS = env_positive_int("GEMINI_MAX_PROMPT_CHARS", 12000)
+GEMINI_REQUEST_TIMEOUT_MS = env_positive_int("GEMINI_REQUEST_TIMEOUT_MS", 8000)
+GEMINI_DEADLINE_MS = env_positive_int("GEMINI_DEADLINE_MS", 20000)
+GEMINI_EMBEDDING_TIMEOUT_MS = env_positive_int("GEMINI_EMBEDDING_TIMEOUT_MS", 8000)
+GEMINI_EMBEDDING_MAX_INPUTS = env_positive_int("GEMINI_EMBEDDING_MAX_INPUTS", 64)
+GEMINI_EMBEDDING_MAX_INPUT_CHARS = env_positive_int(
+    "GEMINI_EMBEDDING_MAX_INPUT_CHARS",
+    8000,
+)
+GEMINI_EMBEDDING_MAX_BATCH_CHARS = env_positive_int(
+    "GEMINI_EMBEDDING_MAX_BATCH_CHARS",
+    64000,
+)
+
+# DigitalOcean inference kodi saqlanadi, ammo owner uni alohida admission
+# qilmaguncha provider factory undan foydalanmaydi.
+AI_ALLOW_DIGITALOCEAN = env_bool("AI_ALLOW_DIGITALOCEAN", False)
 DIGITALOCEAN_INFERENCE_API_KEY = os.getenv("DIGITALOCEAN_INFERENCE_API_KEY")
 DIGITALOCEAN_INFERENCE_BASE_URL = os.getenv(
     "DIGITALOCEAN_INFERENCE_BASE_URL",

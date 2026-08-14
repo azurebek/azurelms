@@ -542,7 +542,7 @@ def backoffice_users(request):
 
 
 @login_required
-@user_passes_test(_is_backoffice_user)
+@user_passes_test(_is_control_center_owner)
 def backoffice_ai_control(request):
     """AI boshqaruv markazi — global limitlar, tarif siyosatlari, usage, reset/bonus."""
     from aicontrol.models import AISettings, AIPlanPolicy, AIUsageResetEvent, AIUserAllowance

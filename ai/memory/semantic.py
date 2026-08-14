@@ -110,7 +110,14 @@ class SemanticMemoryScorer:
             return {}
 
         try:
-            query_vectors = embed_texts([question], embedding_model=self.embedding_model)
+            memory_user = embedded_facts[0].user
+            query_vectors = embed_texts(
+                [question],
+                embedding_model=self.embedding_model,
+                call_type="memory_embedding",
+                user=memory_user,
+                request_key=f"memory-query:user:{embedded_facts[0].user_id}",
+            )
         except Exception:
             return {}
         if not query_vectors:

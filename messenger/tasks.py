@@ -9,6 +9,7 @@ from celery import shared_task
 from channels.layers import get_channel_layer
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 
 from courses.models import Lesson
@@ -208,6 +209,33 @@ def _short_error(error) -> str:
     return str(error or "").strip()[:500]
 
 
+def _ai_run_idempotency_key(*, room_id, student_id, user_message_id, client_message_id):
+    client_value = str(client_message_id or "").strip()[:80]
+    # WebSocket reconnect/resend creates a fresh Message row, but the stable
+    # client_message_id must still identify the same logical AI request. An
+    # intentional retry receives a fresh server-generated `retry:` client id.
+    if client_value:
+        suffix = f"client:{client_value}"
+    elif user_message_id:
+        suffix = f"message:{user_message_id}"
+    else:
+        return ""
+    return f"chat:{room_id}:{student_id}:{suffix}"[:180]
+
+
+def _existing_run_result(idempotency_key):
+    if not idempotency_key:
+        return None, False
+    existing = (
+        AIResponseRun.objects.filter(idempotency_key=idempotency_key)
+        .select_related("ai_message")
+        .first()
+    )
+    if existing is None:
+        return None, False
+    return existing.ai_message_id, True
+
+
 @shared_task(ignore_result=True)
 def generate_ai_response(
     room_id,
@@ -250,6 +278,17 @@ def generate_ai_response(
     if user_message_id:
         user_message = Message.objects.filter(id=user_message_id, room=room, sender=student).first()
 
+    idempotency_key = _ai_run_idempotency_key(
+        room_id=room.id,
+        student_id=student.id,
+        user_message_id=user_message.id if user_message else user_message_id,
+        client_message_id=client_message_id,
+    )
+    existing_result, duplicate = _existing_run_result(idempotency_key)
+    if duplicate:
+        logger.info("Skipping duplicate AI task idempotency_key=%s", idempotency_key)
+        return existing_result
+
     # --- AI token limiti (5 soatlik + haftalik) ---
     # Fail-open: limiter'da xato bo'lsa foydalanuvchi bloklanmaydi (nazorat, devor emas).
     try:
@@ -264,6 +303,7 @@ def generate_ai_response(
                 student=student,
                 user_message=user_message,
                 ai_message=blocked_message,
+                idempotency_key=idempotency_key,
                 user_question=user_question or "",
                 status=AIResponseRun.STATUS_FALLBACK,
                 skill_slug="quota_block",
@@ -287,16 +327,75 @@ def generate_ai_response(
     except Exception:
         logger.exception("AI quota check failed (fail-open) for student_id=%s", student_id)
 
-    run = AIResponseRun.objects.create(
-        room=room,
-        student=student,
-        user_message=user_message,
-        context_lesson=context_lesson,
-        client_message_id=(client_message_id or "")[:80],
-        user_question=user_question or "",
-        status=AIResponseRun.STATUS_RUNNING,
-        started_at=timezone.now(),
-    )
+    try:
+        with transaction.atomic():
+            run = AIResponseRun.objects.create(
+                room=room,
+                student=student,
+                user_message=user_message,
+                context_lesson=context_lesson,
+                client_message_id=(client_message_id or "")[:80],
+                idempotency_key=idempotency_key,
+                user_question=user_question or "",
+                status=AIResponseRun.STATUS_RUNNING,
+                started_at=timezone.now(),
+            )
+    except IntegrityError:
+        existing_result, duplicate = _existing_run_result(idempotency_key)
+        if duplicate:
+            logger.info("Parallel duplicate AI task stopped idempotency_key=%s", idempotency_key)
+            return existing_result
+        raise
+
+    from aicontrol.models import AISupplyEvent
+    from aicontrol.supply import SupplyError, reserve_supply
+
+    try:
+        main_reservation = reserve_supply(
+            request_key=f"{idempotency_key or f'ai-run:{run.id}'}:provider",
+            call_type=AISupplyEvent.CALL_CHAT,
+            provider=str(getattr(settings, "AI_CHAT_PROVIDER", "gemini") or "gemini"),
+            model_name=str(getattr(student, "ai_model", "") or ""),
+            user=student,
+            reserved_requests=2,
+            metadata={"ai_response_run_id": run.id},
+        )
+    except SupplyError as exc:
+        notice = (
+            "AI bepul budjeti vaqtincha mavjud emas. Asosiy LMS funksiyalari ishlashda davom etadi; "
+            "birozdan keyin qayta urinib ko'ring."
+        )
+        blocked_message = Message.objects.create(room=room, text=notice, is_ai_response=True)
+        run.status = AIResponseRun.STATUS_FALLBACK
+        run.ai_message = blocked_message
+        run.skill_slug = "supply_block"
+        run.error_message = _short_error(exc)
+        run.completed_at = timezone.now()
+        run.save(
+            update_fields=[
+                "status",
+                "ai_message",
+                "skill_slug",
+                "error_message",
+                "completed_at",
+                "updated_at",
+            ]
+        )
+        try:
+            _broadcast_ai_message(
+                blocked_message,
+                user_message_id=user_message.id if user_message else user_message_id,
+            )
+            _broadcast_ai_status(
+                room_id=room.id,
+                status=AIResponseRun.STATUS_FALLBACK,
+                run=run,
+                user_message_id=user_message.id if user_message else user_message_id,
+                message="AI supply budjeti vaqtincha yopiq.",
+            )
+        except Exception:
+            logger.exception("Supply-block broadcast failed for run_id=%s", run.id)
+        return blocked_message.id
     started = time.perf_counter()
 
     try:
@@ -336,8 +435,30 @@ def generate_ai_response(
                 document_name=document_name,
                 image_data_url=image_data_url,
                 image_name=image_name,
+                supply_request_key=f"{idempotency_key or f'ai-run:{run.id}'}:provider",
+                supply_reservation=main_reservation,
             )
         )
+
+        # A mocked/custom engine may not own the provider wrapper. Never leave
+        # the pre-reserved main slot dangling; the canonical AIEngine normally
+        # reconciles it before returning, so this branch is a no-op in runtime.
+        pending_supply = AISupplyEvent.objects.filter(
+            pk=main_reservation.event_id,
+            status=AISupplyEvent.STATUS_RESERVED,
+        ).exists()
+        if pending_supply:
+            from aicontrol.supply import reconcile_supply
+
+            response_usage = (response.metadata or {}).get("usage") or {}
+            reconcile_supply(
+                main_reservation,
+                succeeded=bool(response.model_name),
+                actual_requests=1 if response.model_name else 0,
+                usage=response_usage,
+                model_name=response.model_name or "",
+                error_kind="" if response.model_name else "engine_fallback",
+            )
 
         # AI javobida <PDF_DOC>/<SVG_IMAGE> bloklari bo'lsa — fayl yasab xabarga biriktiramiz
         from ai.documents import extract_pdf_doc_block, extract_svg_block
@@ -407,6 +528,26 @@ def generate_ai_response(
     except Exception as exc:
         error_text = _short_error(exc)
         logger.exception("AI response task failed for room_id=%s student_id=%s run_id=%s", room.id, student.id, run.id)
+        # Constructor/integration failures can happen before AIEngine receives
+        # the pre-reserved slot. Release that slot conservatively instead of
+        # leaving a stale daily reservation behind.
+        try:
+            pending_supply = AISupplyEvent.objects.filter(
+                pk=main_reservation.event_id,
+                status=AISupplyEvent.STATUS_RESERVED,
+            ).exists()
+            if pending_supply:
+                from aicontrol.supply import reconcile_supply
+
+                reconcile_supply(
+                    main_reservation,
+                    succeeded=False,
+                    actual_requests=0,
+                    error=exc,
+                    error_kind="pre_engine_error",
+                )
+        except Exception:
+            logger.exception("Failed AI task reservation reconciliation for run_id=%s", run.id)
         run.status = AIResponseRun.STATUS_FAILED
         run.error_message = error_text
         run.duration_ms = int((time.perf_counter() - started) * 1000)

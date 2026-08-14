@@ -494,7 +494,7 @@ AI'ga tegadigan o'zgarishda:
 - Prompt injection va `<SAVE_MEMORY>` safety tekshiriladi
 - Memory on/off behavior saqlanadi
 - RAG access user enrollment scope bilan cheklanadi
-- Web search faqat effort qoidalariga mos yoqiladi
+- Free tier'da API web grounding hard-off; effort qoidalari faqat non-free, explicit admitted grounding rejimida qo'llanadi
 - `AIResponseRun.metadata` telemetry buzilmaydi
 - Model/skill/token/latency operatsion metric; pedagogik outcome emas
 - Marketing copy runtime capability va fresh eval dalilidan oldinga o'tmaydi

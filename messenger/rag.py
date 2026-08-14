@@ -14,6 +14,12 @@ from django.utils.html import strip_tags
 from google import genai
 from google.genai import types
 
+from aicontrol.supply import (
+    estimate_tokens,
+    fingerprint_request,
+    reconcile_supply,
+    reserve_supply,
+)
 from cohorts.models import Enrollment, enrollment_active_access_q
 from courses.models import Course, Lesson, Module
 from .models import LessonRAGChunk
@@ -293,10 +299,55 @@ def _build_embedding_client():
     api_key = getattr(settings, "GEMINI_API_KEY", None)
     if not api_key:
         raise RuntimeError("GEMINI_API_KEY mavjud emas, embedding yaratib bo'lmadi.")
-    return genai.Client(api_key=api_key)
+    return genai.Client(
+        api_key=api_key,
+        http_options=types.HttpOptions(
+            timeout=max(1, int(getattr(settings, "GEMINI_EMBEDDING_TIMEOUT_MS", 8000))),
+            retry_options=types.HttpRetryOptions(attempts=1),
+        ),
+    )
 
 
-def embed_texts(texts: Iterable[str], embedding_model: str = DEFAULT_EMBEDDING_MODEL):
+def _embedding_cache_key(
+    text: str,
+    *,
+    embedding_model: str,
+    embedding_dim: int = DEFAULT_EMBEDDING_DIM,
+) -> str:
+    return f"emb:{_text_sha(f'{embedding_model}:{embedding_dim}:{text}')}"
+
+
+def _embedding_input_hash(texts: Iterable[str]) -> str:
+    payload = json.dumps(list(texts), ensure_ascii=False, separators=(",", ":"))
+    return _text_sha(payload)
+
+
+def _embedding_supply_request_key(
+    *,
+    request_key: str | None,
+    call_type: str,
+    embedding_model: str,
+    embedding_dim: int,
+    input_hash: str,
+) -> str:
+    return fingerprint_request(
+        request_key or "embedding",
+        call_type,
+        embedding_model,
+        embedding_dim,
+        input_hash,
+        daily=True,
+    )
+
+
+def embed_texts(
+    texts: Iterable[str],
+    embedding_model: str = DEFAULT_EMBEDDING_MODEL,
+    *,
+    call_type: str = "rag_embedding",
+    user=None,
+    request_key: str | None = None,
+):
     from django.core.cache import cache
 
     content_list = [text for text in texts if (text or "").strip()]
@@ -308,38 +359,102 @@ def embed_texts(texts: Iterable[str], embedding_model: str = DEFAULT_EMBEDDING_M
     to_embed_indices = []
 
     for i, text in enumerate(content_list):
-        text_hash = _text_sha(f"{embedding_model}:{text}")
-        cache_key = f"emb:{text_hash}"
+        cache_key = _embedding_cache_key(text, embedding_model=embedding_model)
         cached = cache.get(cache_key)
-        if cached:
+        if cached is not None:
             results[i] = cached
         else:
             to_embed.append(text)
             to_embed_indices.append(i)
 
     if to_embed:
-        client = _build_embedding_client()
+        max_inputs = int(getattr(settings, "GEMINI_EMBEDDING_MAX_INPUTS", 64))
+        max_input_chars = int(
+            getattr(settings, "GEMINI_EMBEDDING_MAX_INPUT_CHARS", 8000)
+        )
+        max_batch_chars = int(
+            getattr(settings, "GEMINI_EMBEDDING_MAX_BATCH_CHARS", 64000)
+        )
+        if len(to_embed) > max_inputs:
+            raise ValueError(f"Embedding batch input cap oshdi: {len(to_embed)} > {max_inputs}")
+        if any(len(text) > max_input_chars for text in to_embed):
+            raise ValueError("Embedding input char cap oshdi.")
+        if sum(len(text) for text in to_embed) > max_batch_chars:
+            raise ValueError("Embedding batch char cap oshdi.")
+        input_hash = _embedding_input_hash(to_embed)
+        supply_request_key = _embedding_supply_request_key(
+            request_key=request_key,
+            call_type=call_type,
+            embedding_model=embedding_model,
+            embedding_dim=DEFAULT_EMBEDDING_DIM,
+            input_hash=input_hash,
+        )
+        reservation = reserve_supply(
+            request_key=supply_request_key,
+            call_type=call_type,
+            provider="gemini",
+            model_name=embedding_model,
+            user=user,
+            reserved_requests=1,
+            reserved_tokens=estimate_tokens("\n".join(to_embed)),
+            metadata={
+                "embedding_dim": DEFAULT_EMBEDDING_DIM,
+                "input_count": len(to_embed),
+                "input_hash": input_hash,
+            },
+        )
+        network_attempted = False
         try:
+            client = _build_embedding_client()
+            network_attempted = True
             response = client.models.embed_content(
                 model=embedding_model,
                 contents=to_embed,
                 config=types.EmbedContentConfig(output_dimensionality=DEFAULT_EMBEDDING_DIM),
             )
-        except Exception:
-            response = client.models.embed_content(
-                model=embedding_model,
-                contents=to_embed,
+            response_embeddings = list(response.embeddings or [])
+            if len(response_embeddings) != len(to_embed):
+                raise RuntimeError(
+                    "Embedding soni remote input soniga mos kelmadi: "
+                    f"{len(response_embeddings)} != {len(to_embed)}"
+                )
+            vectors = [
+                [float(value) for value in list(item.values or [])]
+                for item in response_embeddings
+            ]
+            if any(not vector for vector in vectors):
+                raise RuntimeError("Gemini embedding javobida bo'sh vector qaytdi.")
+        except Exception as exc:
+            reconcile_supply(
+                reservation,
+                succeeded=False,
+                actual_requests=1 if network_attempted else 0,
+                usage=None,
+                model_name=embedding_model,
+                error=exc,
             )
+            raise
 
-        for i, item in enumerate(response.embeddings or []):
-            values = list(item.values or [])
-            vector = [float(v) for v in values]
+        # Embed endpoint usage bermasa supply ledger konservativ reservationni
+        # accounted_tokens sifatida saqlaydi.
+        reconcile_supply(
+            reservation,
+            succeeded=True,
+            actual_requests=1,
+            usage=None,
+            model_name=embedding_model,
+        )
+
+        for i, vector in enumerate(vectors):
             idx = to_embed_indices[i]
             results[idx] = vector
 
             # Cache for 7 days
-            text_hash = _text_sha(f"{embedding_model}:{to_embed[i]}")
-            cache.set(f"emb:{text_hash}", vector, timeout=60*60*24*7)
+            cache.set(
+                _embedding_cache_key(to_embed[i], embedding_model=embedding_model),
+                vector,
+                timeout=60 * 60 * 24 * 7,
+            )
 
     return results
 
@@ -689,7 +804,13 @@ def reindex_lessons(
                     stats["cleared_lessons"] += 1
                 continue
 
-            embeddings = embed_texts([chunk["chunk_text"] for chunk in chunks], embedding_model=embedding_model)
+            embeddings = embed_texts(
+                [chunk["chunk_text"] for chunk in chunks],
+                embedding_model=embedding_model,
+                call_type="reindex",
+                user=None,
+                request_key=f"rag-reindex:lesson:{lesson.pk}",
+            )
             if len(embeddings) != len(chunks):
                 raise RuntimeError(
                     f"Embedding soni mos kelmadi (lesson_id={lesson.id}): {len(embeddings)} != {len(chunks)}"
@@ -769,7 +890,14 @@ def retrieve_relevant_chunks(
         return []
 
     try:
-        query_vector_list = embed_texts([query], embedding_model=embedding_model)
+        user_id = getattr(user, "pk", None) or "anonymous"
+        query_vector_list = embed_texts(
+            [query],
+            embedding_model=embedding_model,
+            call_type="rag_embedding",
+            user=user,
+            request_key=f"rag-query:user:{user_id}",
+        )
     except Exception:
         logger.exception("RAG query embedding failed")
         return []
