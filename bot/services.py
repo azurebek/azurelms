@@ -1152,13 +1152,17 @@ def submit_payment_receipt(user, receipt_image):
 
 def teacher_cohorts_overview(user):
     """O'qituvchining guruhlari: o'quvchi soni, Telegram bog'lanishi, oxirgi sessiya."""
+    # Scope canonical: `core.access.teacher_cohort_queryset()`. Ilgari bu yerda
+    # teskari qoida turardi — har qanday active staff barcha guruhlarni ko'rardi
+    # va faqat staff bo'lmagan instructor o'z kursi bilan cheklanardi (A0b).
+    from core.access import teacher_cohort_queryset
+
     cohorts = (
-        Cohort.objects.filter(is_active=True)
+        teacher_cohort_queryset(user)
+        .filter(is_active=True)
         .select_related("course")
         .order_by("course__title", "name")
     )
-    if not is_active_staff(user):
-        cohorts = cohorts.filter(course__instructor=user)
 
     items = []
     for cohort in cohorts:
@@ -1185,14 +1189,14 @@ def teacher_cohorts_overview(user):
 
 
 def teacher_grading_queue(user, limit=8):
-    """Baholash kutayotgan ishlar — teacher_views helper'lari qayta ishlatiladi."""
+    """Baholash kutayotgan ishlar — canonical scope + teacher_views helper'lari."""
+    from core.access import teacher_course_queryset
     from core.teacher_views import (
         _pending_assignment_submissions,
         _pending_exam_attempts,
-        _teacher_courses,
     )
 
-    courses = _teacher_courses(user)
+    courses = teacher_course_queryset(user)
     exams = list(_pending_exam_attempts(courses)[:limit])
     assignments = list(_pending_assignment_submissions(courses)[:limit])
     return {

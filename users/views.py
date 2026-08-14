@@ -1022,12 +1022,16 @@ class AttendanceManageView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
         return user.is_staff or user.is_superuser
 
     def get_allowed_cohorts(self):
-        if self.request.user.is_superuser:
-            return Cohort.objects.filter(is_active=True).select_related('course').order_by('name')
-        return Cohort.objects.filter(
-            is_active=True,
-            course__instructor=self.request.user,
-        ).select_related('course').order_by('name')
+        # Scope canonical: `core.access.teacher_cohort_queryset()` — teacher
+        # paneli va Telegram adapteri ham aynan shuni iste'mol qiladi (A0b).
+        from core.access import teacher_cohort_queryset
+
+        return (
+            teacher_cohort_queryset(self.request.user)
+            .filter(is_active=True)
+            .select_related('course')
+            .order_by('name')
+        )
 
     def _safe_int(self, value):
         try:

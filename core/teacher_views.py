@@ -2,9 +2,14 @@
 
 Proto: azurelms-proto/teacher/*. Kirish huquqi backoffice bilan bir xil
 (is_staff/superuser), lekin ma'lumot ko'lami o'qituvchining O'Z kurslari
-bilan cheklanadi: superuser hammasini ko'radi; staff instructor bo'lgan
-kurslarini; agar staff'ga hech qanday kurs biriktirilmagan bo'lsa (kichik
-markaz rejimi) — barcha kurslar ko'rinadi, aks holda panel bo'sh qolardi.
+bilan cheklanadi: superuser hammasini ko'radi; staff esa faqat o'ziga
+instructor sifatida biriktirilgan kurslarni. Biriktirilmagan bo'lsa natija
+**bo'sh** — default-deny (`launch-plan/05-launch-ops.md` permission
+matritsasi, backlog `A0b`).
+
+Panelning barcha 8 view'i, shu jumladan `get_object_or_404` bilan bitta
+attempt/submission ochadigan baholash sahifalari ham, shu yagona
+`_teacher_courses()` scope'idan oziqlanadi.
 """
 from decimal import Decimal, InvalidOperation
 
@@ -16,6 +21,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from cohorts.models import Attendance, Cohort, Enrollment, enrollment_active_access_q
+from core.access import teacher_course_queryset
 from courses.models import (
     AssignmentSubmission,
     Course,
@@ -30,12 +36,13 @@ def _is_teacher(user):
 
 
 def _teacher_courses(user):
-    if user.is_superuser:
-        return Course.objects.all()
-    own = Course.objects.filter(instructor=user)
-    if own.exists():
-        return own
-    return Course.objects.all()
+    """Canonical teacher scope'ining web adapteri.
+
+    Qoidaning o'zi `core.access.teacher_course_queryset()` da — Telegram bot
+    adapteri ham aynan shuni iste'mol qiladi, shuning uchun bu yerda scope
+    mantiqi takrorlanmaydi.
+    """
+    return teacher_course_queryset(user)
 
 
 def _pending_exam_attempts(courses):
