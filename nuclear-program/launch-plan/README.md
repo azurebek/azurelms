@@ -51,7 +51,7 @@ Bu natijalardan kamida biri real cohortda o'lchanmaguncha AI kurs narxini oshiri
 
 | Yo'nalish | Joriy holat | Keyingi gate |
 |---|---|---|
-| Local runtime | `LOCAL BOOT VERIFIED`: SQLite, LocMem/in-memory, eager Celery, local media; DO credential/service yo'q; post-A8 offline full suite 524/524 va audit 10/10 GREEN | Production gate alohida |
+| Local runtime | `LOCAL BOOT VERIFIED`: SQLite, LocMem/in-memory, eager Celery, local media; DO credential/service yo'q; post-A8 offline full suite 527/527 va audit 10/10 GREEN | Production gate alohida |
 | AI provider | Gemini primary; allowlistdagi 1 primary + max 1 fallback, SDK retry off, `429`da 1 attempt/cooldown | `A8` **`IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`**; real DB contention proof va production admission alohida |
 | A0 security | A0a Telegram auth/webhook/inactive-staff qismi kodda | A0b private media, upload va WebSocket access recheck |
 | A1 runtime/CI | `PLANNED`; `.github/workflows`, `.dockerignore`, readiness yo'q | Vendor-neutral local/CI gate; cloud deploy `HOLD` |
@@ -62,7 +62,7 @@ Bu natijalardan kamida biri real cohortda o'lchanmaguncha AI kurs narxini oshiri
 
 ## Rebaseline ustuvorligi
 
-1. **A8 closeout — `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`:** barcha joriy Gemini call-pathlari ledgerga ulangan; free-model allowlist, kunlik/minute request va kunlik token cap, one-fallback, idempotency va 429 cooldown ishlaydi. Offline full suite 524/524 va local audit 10/10 GREEN; ikki DB backenddagi haqiqiy concurrent contention proof tugamaguncha A8 production-concurrency bo'yicha yopilmaydi.
+1. **A8 closeout — `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`:** barcha joriy Gemini call-pathlari ledgerga ulangan; free-model allowlist, kunlik/minute request va kunlik token cap, one-fallback, idempotency va 429 cooldown ishlaydi. Offline full suite 527/527 va local audit 10/10 GREEN; ikki DB backenddagi haqiqiy concurrent contention proof tugamaguncha A8 production-concurrency bo'yicha yopilmaydi.
 2. **A0b + vendor-neutral A1:** private media/upload/access; `.dockerignore`, CI, readiness va restore proof. Cloud xizmati shart emas.
 3. **A2 Control Center:** effective config, capability registry, flags/kill switches, event/audit ledger, health, AI quota va release gate.
 4. **Canonical oqimlar + mobil oltin yo'l:** enrollment, lesson lifecycle, access, submission/review va notificationlar shared policy/state machine orqali; real qurilma parity.

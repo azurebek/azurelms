@@ -1,6 +1,8 @@
 import logging
 import re
 
+from django.conf import settings
+
 from aicontrol.models import AISettings, AISupplyEvent
 from aicontrol.supply import (
     execute_provider_call,
@@ -122,15 +124,22 @@ class AIEngine:
                 heavy_search_enabled and effort == "heavy"
             )
             image_data_url = getattr(request, "image_data_url", "") or ""
+            web_search_requested = bool(wants_web_search and not image_data_url)
+            free_tier_mode = bool(getattr(settings, "AI_FREE_TIER_MODE", True))
+            grounding_allowed = (
+                not free_tier_mode
+                and bool(getattr(settings, "GEMINI_GROUNDING_ENABLED", False))
+            )
 
             # --- Provayderni qobiliyat bo'yicha tanlash ---
             # Local profilning asosiy provideri Gemini. Grounding faqat explicit
-            # web_search tool (yoki owner yoqqan heavy mode) bo'lganda ishlaydi.
-            # DigitalOcean esa alohida admissiongacha HOLD.
+            # web_search tool (yoki owner yoqqan heavy mode) va paid/admitted
+            # grounding policy birga yoqilganda ishlaydi. Free tier'da qat'iy
+            # o'chiq; DigitalOcean esa alohida admissiongacha HOLD.
             active_provider = self.provider
             enable_web_search = False
             used_search_specialist = False
-            if wants_web_search and not image_data_url:
+            if web_search_requested and grounding_allowed:
                 if getattr(self.provider, "supports_web_search", False):
                     enable_web_search = True
                 elif self.search_provider is not None:
@@ -219,7 +228,10 @@ class AIEngine:
                     "vision_used": bool(generate_kwargs.get("images")),
                     "search_specialist_used": used_search_specialist,
                     "search_specialist_failed": search_specialist_failed,
-                    "web_search_requested": enable_web_search,
+                    "web_search_requested": web_search_requested,
+                    "web_search_blocked_by_free_tier": bool(
+                        web_search_requested and free_tier_mode
+                    ),
                     # Requested grounding can be retried without the tool when
                     # a model rejects it. Only provider grounding metadata is
                     # evidence that web search actually ran.

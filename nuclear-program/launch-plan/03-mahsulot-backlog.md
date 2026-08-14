@@ -104,12 +104,12 @@
 - **Outcome:** development va kichik beta Gemini free-tierni bir foydalanuvchi, retry fan-out yoki hisoblanmagan embedding bilan tugatib qo'ymaydi; core LMS AI'siz ham ishlaydi.
 - **Canonical owner:** provider-call ledger + reservation/budget policy + Control Center. Per-user `aicontrol` allowance product policy; global Gemini supply budgeti undan yuqori hard gate.
 - **Implementatsiya:** `AISupplyEvent`/`AISupplyState` global kunlik+minute request va kunlik token reservation/reconciliation ledgeri; ledger DB failure fail-closed; staff ham hisoblanadi. Main chat `AIResponseRun.idempotency_key` bilan pre-reserve qiladi. Chat/grounding, SmartForm, bot guest, RAG/memory embedding va reindex calllari qamralgan; cache hit request sarflamaydi.
-- **Provider guard:** SDK retry off; `1 primary + max 1 fallback`; 429/quota/billing fail-fast+circuit; free allowlist; prompt/output/timeout/deadline caps. Free-mode'da `heavy` va guest default-off. DO explicit `AI_ALLOW_DIGITALOCEAN=True` admissionisiz, noma'lum provider esa har doim factoryda fail-closed.
+- **Provider guard:** SDK retry off; `1 primary + max 1 fallback`; 429/quota/billing fail-fast+circuit; free allowlist; prompt/output/timeout/deadline caps. Free-mode'da API grounding engine va provider chegarasida hard-off (`GoogleSearch()` construction `0`), guest default-off. DO explicit `AI_ALLOW_DIGITALOCEAN=True` admissionisiz, noma'lum provider esa har doim factoryda fail-closed.
 - **Model contract:** primary `gemini-3.1-flash-lite`, temporary fallback `gemini-2.5-flash-lite`; ikkalasi allowlistda. 3.1 Flash-Lite stable/free-tier va cost-efficient default sifatida tanlangan. 2.5 Flash-Lite uchun public shutdown e'lon qilinmagan; 2026-10-16 ichki reviewda fallbackni olib tashlash yoki yangi admitted modelga migrate qilish qayta ko'riladi. 3.7 Flash joriy projectdagi 20 RPD sabab hozir allowlistga kiritilmagan.
 - **Control Center/admin:** free-tier mode, configured cap, used/reserved/remaining, minute burst, actual attempts, event holatlari va cooldown stoplight; supply policy/event/state adminlari. Exact Google quota raqamlari hardcode qilinmaydi, chunki ular dynamic/account-specific; minute cap project ichki RPM-uslubidagi guard.
-- **Target acceptance evidence:** mocked/offline testlarda duplicate, missing usage, 429=1 attempt, non-quota fallback≤2, cooldown network=0, DO HOLD va joriy caller accounting tekshirilgan; post-A8 offline full suite 524/524 va local system audit 10/10 GREEN.
+- **Target acceptance evidence:** mocked/offline testlarda duplicate, missing usage, 429=1 attempt, non-quota fallback≤2, cooldown network=0, DO HOLD va joriy caller accounting tekshirilgan; post-A8 offline full suite 527/527 va local system audit 10/10 GREEN.
 - **Closeout pending:** SQLite/PostgreSQL haqiqiy concurrent reservation/transaction proof. SmartForm/guest counter va lesson reindex concurrency lease/claim to'liq emas; current Gemini vision unavailable.
-- **Degradatsiya:** guest/heavy default-off; supply denialda core flow, local catalog, cache/lexical retrieval va human/Telegram handoff qoladi. System-wide audited kill-switch UI A2ning qolgan scope'i.
+- **Degradatsiya:** free-mode search intent bitta plain chatga tushadi va live ma'lumot tekshirilmaganini halol aytadi; guest default-off. Supply denialda core flow, local catalog, cache/lexical retrieval va human/Telegram handoff qoladi. System-wide audited kill-switch UI A2ning qolgan scope'i.
 - **Faza:** R0 closeout. Boshqa AI behavior ishidan oldin.
 
 ### A9. AI eval, latency va cost release gate — `PLANNED`, `M foundation + rolling gate`
@@ -187,7 +187,7 @@
 
 | Capability | Joriy haqiqat | Ochiq evidence/gap |
 |---|---|---|
-| Learner streak/freeze | `LearnerStreak`, canonical `record_activity` va self-updating nudge main'da | Windows/SQLite teng timestamp ordering flake'i `-created_at, -id` tie-breaker va state-change bubble bilan tuzatildi; post-fix full 524/524 va focused streak 15/15; “done” update qayta Telegram outbox yaratmaydi |
+| Learner streak/freeze | `LearnerStreak`, canonical `record_activity` va self-updating nudge main'da | Windows/SQLite teng timestamp ordering flake'i `-created_at, -id` tie-breaker va state-change bubble bilan tuzatildi; post-fix full 527/527 va focused streak 15/15; “done” update qayta Telegram outbox yaratmaydi |
 | Landing editor | Bosqich 1 + TOC/tab main'da | Bosqich 2–5 `HOLD/NEXT`; active core slice emas |
 | Telegram F0–F9 | onboarding, checkout, attendance, AI, admin, outbox, lesson, assignment va quiz main'da | Public webhook/outbox process `HOLD`; F11–F13 to'liq emas |
 

@@ -71,6 +71,13 @@ if _prometheus_requested and not PROMETHEUS_ENABLED:
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 AI_FREE_TIER_MODE = env_bool("AI_FREE_TIER_MODE", True)
+# Google API Free Standard tier'da Search/Maps grounding mavjud emas. Free
+# mode yoqilganida env xato qilib true berilgan taqdirda ham grounding qat'iy
+# o'chiq qoladi. Paid/re-admitted rejimda esa alohida flag bilan boshqariladi.
+GEMINI_GROUNDING_ENABLED = (
+    not AI_FREE_TIER_MODE
+    and env_bool("GEMINI_GROUNDING_ENABLED", True)
+)
 GEMINI_FREE_MODEL_ALLOWLIST = env_list(
     "GEMINI_FREE_MODEL_ALLOWLIST",
     ["gemini-3.1-flash-lite", "gemini-2.5-flash-lite"],

@@ -138,6 +138,7 @@ class AIControlCenterSupplyTests(TestCase):
         self.assertEqual(details["tokens_remaining"], "249000")
         self.assertEqual(details["actual_attempts"], "8")
         self.assertEqual(details["free_tier_mode"], "on")
+        self.assertEqual(details["api_grounding"], "disabled")
         self.assertEqual(details["supply_enforcement"], "on")
         self.assertEqual(details["circuit"], "closed")
 

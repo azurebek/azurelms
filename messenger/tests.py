@@ -11,6 +11,7 @@ from django.utils import timezone
 
 from ai.agent.types import AIRequest
 from ai.skills.registry import SkillRegistry
+from aicontrol.models import AISupplyEvent
 from cohorts.models import Cohort, Enrollment
 from courses.models import (
     Assignment,
@@ -664,7 +665,7 @@ class GenerateAiResponseTaskTests(TestCase):
 
     @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
     @patch("ai.providers.gemini.genai.Client")
-    def test_generate_ai_response_routes_web_search_skill_and_enables_grounding(
+    def test_free_tier_web_search_skill_uses_one_ungrounded_request(
         self,
         mocked_client,
         _mocked_retrieve_chunks,
@@ -672,22 +673,8 @@ class GenerateAiResponseTaskTests(TestCase):
         room = ChatRoom.objects.create(room_type="ai", name="Azure AI - ai-student")
         room.participants.add(self.student)
         mocked_client.return_value.models.generate_content.return_value = SimpleNamespace(
-            text="Bugun dollar kursi ~12 600 so'm.",
-            candidates=[
-                SimpleNamespace(
-                    grounding_metadata=SimpleNamespace(
-                        web_search_queries=["bugungi dollar kursi"],
-                        grounding_chunks=[
-                            SimpleNamespace(
-                                web=SimpleNamespace(
-                                    uri="https://example.uz/usd",
-                                    title="Markaziy bank kursi",
-                                )
-                            )
-                        ],
-                    )
-                )
-            ],
+            text="Jonli kursni tekshira olmayman.",
+            candidates=[],
         )
 
         generate_ai_response.run(
@@ -696,20 +683,25 @@ class GenerateAiResponseTaskTests(TestCase):
             user_question="Bugungi dollar kursi qancha, internetdan qidirib ber",
         )
 
-        call_kwargs = mocked_client.return_value.models.generate_content.call_args.kwargs
+        calls = mocked_client.return_value.models.generate_content.call_args_list
+        self.assertEqual(len(calls), 1)
+        call_kwargs = calls[0].kwargs
         self.assertIn("ACTIVE SKILL: Web Search (web_search)", call_kwargs["contents"])
         self.assertIn("[tool:web_search]", call_kwargs["contents"])
         self.assertIn("config", call_kwargs)
-        self.assertTrue(getattr(call_kwargs["config"], "tools", None))
+        self.assertFalse(getattr(call_kwargs["config"], "tools", None))
         run = AIResponseRun.objects.get(room=room, student=self.student)
         self.assertEqual(run.skill_slug, "web_search")
-        self.assertTrue(run.metadata.get("web_search_enabled"))
-        self.assertEqual(run.metadata.get("web_search_queries"), ["bugungi dollar kursi"])
-        sources = run.metadata.get("web_search_sources") or []
-        self.assertEqual(len(sources), 1)
-        self.assertEqual(sources[0]["title"], "Markaziy bank kursi")
-        self.assertEqual(sources[0]["uri"], "https://example.uz/usd")
+        self.assertTrue(run.metadata.get("web_search_requested"))
+        self.assertTrue(run.metadata.get("web_search_blocked_by_free_tier"))
+        self.assertFalse(run.metadata.get("web_search_enabled"))
+        self.assertEqual(run.metadata.get("web_search_queries"), [])
+        self.assertEqual(run.metadata.get("web_search_sources"), [])
+        event = AISupplyEvent.objects.get(user=self.student)
+        self.assertEqual(event.call_type, AISupplyEvent.CALL_CHAT)
+        self.assertEqual(event.actual_requests, 1)
 
+    @override_settings(AI_FREE_TIER_MODE=False, GEMINI_GROUNDING_ENABLED=True)
     @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
     @patch("ai.providers.gemini.genai.Client")
     def test_grounding_tool_fallback_does_not_claim_web_search_was_used(
@@ -795,6 +787,7 @@ class GenerateAiResponseTaskTests(TestCase):
         run = AIResponseRun.objects.get(room=room, student=self.student)
         self.assertFalse(run.metadata.get("web_search_enabled"))
 
+    @override_settings(AI_FREE_TIER_MODE=False, GEMINI_GROUNDING_ENABLED=True)
     @patch("ai.rag.context.retrieve_relevant_chunks", return_value=[])
     @patch("ai.providers.gemini.genai.Client")
     def test_generate_ai_response_strips_inline_source_markers_and_trailing_sources_list(

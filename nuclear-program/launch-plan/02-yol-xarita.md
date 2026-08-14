@@ -16,7 +16,7 @@
 
 | Soha | Tasdiqlangan holat | Ochiq gate |
 |---|---|---|
-| Repo/runtime | Joriy checkout local venv bilan ishlaydi; post-A8 offline full suite 524/524, streak focused 15/15 va audit 10/10 GREEN (2026-08-14) | Local GREEN production readiness emas; real DB contention va production gate alohida |
+| Repo/runtime | Joriy checkout local venv bilan ishlaydi; post-A8 offline full suite 527/527, streak focused 15/15 va audit 10/10 GREEN (2026-08-14) | Local GREEN production readiness emas; real DB contention va production gate alohida |
 | DigitalOcean | Credential/service o'chiq; `AI_ALLOW_DIGITALOCEAN=False` provider yaratishdan oldin fail-closed | Future production uchun alohida owner admissioni va provider qayta bahosi |
 | Gemini | `AI_CHAT_PROVIDER=gemini`; allowlistdagi 1 primary + max 1 fallback; SDK retry off; prompt/output/timeout/deadline cap | A8 real-concurrency va external-quota monitoring evidence |
 | AI usage | Per-user allowance'dan alohida global daily request/token + minute request reservation ledgeri; staff, chat/search, SmartForm, guest va embedding/reindex qamralgan | SQLite/PostgreSQL real concurrent contention proof; caller-specific lease/counter risklari |
@@ -53,16 +53,16 @@ Oldingi 2026-07-22 rejasidagi `P0–P5` tarixiy rebaseline sifatida Git tarixida
 - Text request: output `640` token, prompt `12,000` belgi, timeout `8s`, deadline `20s`, maksimum `1 primary + 1 fallback`. Embedding: `64` input, input `8,000` belgi, batch `64,000` belgi, timeout `8s`, SDK retry off.
 - `429/quota/billing`da circuit breaker; cooldown davomida yangi provider request yo'q, deterministic yumshoq degradatsiya.
 - Local/pre-production profil `digitalocean` providerini env xatosi bilan tanlasa provider factory tarmoqdan oldin fail-closed, Control Center/audit RED; `manage.py check`ning o'zi startup gate emas. DO faqat owner HOLDni ochadigan explicit admission flag/policy bilan qaytadi.
-- `heavy` web-search free-mode'da yopiq; `light` default, search faqat explicit/time-sensitive evidence kerak bo'lsa.
+- Free-mode'da Google API grounding to'liq hard-off: explicit, medium/time-sensitive va legacy heavy intentlar specialist/tool request yaratmaydi; bitta plain 3.1 Lite chat va halol no-live-data degradatsiyasi ishlaydi. Paid/admitted rejim alohida ikki flag bilan ochiladi.
 - `client_message_id`/job idempotency: duplicate task bitta provider call.
 - Control Center: mode, configured budget, used/reserved/remaining, actual attempt va cooldown stoplight; supply policy/event/state adminlari.
 
 ### Exit holati
 
 - Targeted mock/offline testlarda duplicate idempotency, reservation/reconciliation, missing usage konservativ charge, call-path accounting, `429 = 1 attempt`, non-quota fallback `≤2` va cooldown paytida yangi network call `0` tekshirilgan.
-- Free-mode'da Pro/preview model tanlovi clamp qilinadi, `heavy` UI/runtime default yopiq; guest demo ham default-off.
+- Free-mode'da Pro/preview model tanlovi clamp qilinadi, API grounding barcha effortlarda hard-off; guest demo ham default-off.
 - Budget/ledger xatosida core LMS, cache/lexical retrieval va human/Telegram deterministic oqimlari ishlashda qoladi; reindex yoki auxiliary AI yumshoq degradatsiya qiladi.
-- **Local evidence:** provider kalitlari/env-file loading o'chirilgan post-A8 full suite 524/524, focused streak 15/15, `manage.py check` 0 issue, migration drift yo'q va `system_audit` 10/10 GREEN.
+- **Local evidence:** provider kalitlari/env-file loading o'chirilgan post-A8 full suite 527/527, focused streak 15/15, `manage.py check` 0 issue, migration drift yo'q va `system_audit` 10/10 GREEN.
 - **Qolgan closeout:** haqiqiy parallel processlar bilan SQLite va PostgreSQL contention/transaction testi. Transactional implementatsiyani shu testlarsiz production-concurrency proof deb bo'lmaydi.
 - **Qolgan operatsion risk:** SmartForm va guest counterlari hamda lesson reindex batch'lari uchun to'liq claim/lease yo'q; parallel workerda duplicate work oynasi qolishi mumkin.
 - Bir daqiqalik request cap — loyihaning ichki RPM-uslubidagi budgeti; u Google'ning aniq tashqi RPM/RPD kvotasini o'lchamaydi yoki kafolatlamaydi.
@@ -138,7 +138,7 @@ Oldingi 2026-07-22 rejasidagi `P0–P5` tarixiy rebaseline sifatida Git tarixida
 
 | # | Risk | Javob |
 |---|---|---|
-| K1 | Free-tier bitta 429da model fan-out bilan tugaydi | Implement qilingan: 429 fail-fast, one-fallback bound, global circuit/budget; local full regression 524/524 |
+| K1 | Free-tier bitta 429da model fan-out bilan tugaydi | Implement qilingan: 429 fail-fast, one-fallback bound, global circuit/budget; local full regression 527/527 |
 | K2 | “Bepul” staff yoki auxiliary calllar hisobga kirmaydi | Staff ham supply budgetda; SmartForm/guest/RAG/memory/reindex ledgerga ulangan |
 | K3 | DigitalOcean eski docs/env orqali tasodifan qayta yoqiladi | Owner `HOLD`; `AI_ALLOW_DIGITALOCEAN=False` factory fail-closed; Control Center RED |
 | K4 | Security/private data incident | A0b stop-ship; permission tests; public claim yo'q |

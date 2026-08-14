@@ -39,7 +39,7 @@ Yangi capability learner outcome yoki owner vaqtiga bitta o'lchanadigan ta'sir k
 
 - Production alohida owner qarorigacha DigitalOcean ishlatilmaydi; bekor bo'lgan kreditlar mahsulot arxitekturasi yoki fallback va'dasiga aylantirilmaydi.
 - DO adapter kodi dormant qoladi. Hosting, DB, cache, storage va inference provider production qayta admissionida vendor-neutral gate bo'yicha tanlanadi.
-- Joriy local/pre-production AI primary — Gemini. Demak oddiy chat, web grounding va embedding ham free-tier supply'ni ishlatadi.
+- Joriy local/pre-production AI primary — Gemini. Oddiy chat va embedding free-tier supply'ni ishlatadi; Google API web grounding Free tier'da qat'iy o'chiq va faqat kelajak paid/admitted rejimda qayta ochiladi.
 - Free-tier `0 so'm = unlimited` emas. Global request/token budget, model allowlist, one-fallback, full accounting va 429 circuit breaker bo'lmaguncha AI scale/premium claim yo'q.
 - AI kvotasi tugasa deterministic kurs, payment, lesson, quiz/assignment, human messenger va Telegram flow ishlashda qoladi.
 

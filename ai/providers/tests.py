@@ -12,6 +12,8 @@ from ai.providers.gemini import GeminiProvider
 class GeminiProviderTests(SimpleTestCase):
     settings = {
         "GEMINI_API_KEY": "test-key",
+        "AI_FREE_TIER_MODE": True,
+        "GEMINI_GROUNDING_ENABLED": False,
         "GEMINI_FREE_MODEL_ALLOWLIST": (
             "gemini-3.1-flash-lite",
             "gemini-2.5-flash-lite",
@@ -46,6 +48,51 @@ class GeminiProviderTests(SimpleTestCase):
         client_class.assert_not_called()
         self.assertEqual(provider.last_attempt_count, 0)
         self.assertEqual(provider.last_error_kind, "missing_credential")
+
+    @override_settings(**settings)
+    @patch("ai.providers.gemini.genai_types.GoogleSearch")
+    @patch("ai.providers.gemini.genai.Client")
+    def test_free_tier_strips_grounding_tool_before_single_network_call(
+        self,
+        client_class,
+        google_search,
+    ):
+        client_class.return_value.models.generate_content.return_value = SimpleNamespace(
+            text="Jonli qidiruvsiz javob.",
+            candidates=[],
+            usage_metadata=None,
+        )
+        provider = GeminiProvider()
+
+        result = provider.generate(prompt="Bugungi kursni qidir", enable_web_search=True)
+
+        call = client_class.return_value.models.generate_content.call_args
+        self.assertEqual(client_class.return_value.models.generate_content.call_count, 1)
+        google_search.assert_not_called()
+        self.assertFalse(getattr(call.kwargs["config"], "tools", None))
+        self.assertEqual(result.model_name, "gemini-3.1-flash-lite")
+        self.assertIsNone(result.web_search)
+        self.assertTrue(provider.last_grounding_requested)
+        self.assertTrue(provider.last_grounding_blocked)
+
+    @override_settings(
+        **(settings | {"AI_FREE_TIER_MODE": False, "GEMINI_GROUNDING_ENABLED": True})
+    )
+    @patch("ai.providers.gemini.genai.Client")
+    def test_admitted_paid_mode_can_attach_grounding_tool(self, client_class):
+        client_class.return_value.models.generate_content.return_value = SimpleNamespace(
+            text="Grounded javob.",
+            candidates=[],
+            usage_metadata=None,
+        )
+        provider = GeminiProvider()
+
+        provider.generate(prompt="Bugungi kursni qidir", enable_web_search=True)
+
+        config = client_class.return_value.models.generate_content.call_args.kwargs["config"]
+        self.assertTrue(getattr(config, "tools", None))
+        self.assertTrue(provider.last_grounding_requested)
+        self.assertFalse(provider.last_grounding_blocked)
 
     @override_settings(**settings)
     @patch("ai.providers.gemini.genai.Client")

@@ -56,6 +56,8 @@ class GeminiProvider:
         self.sleep = sleep
         self.last_attempt_count = 0
         self.last_error_kind = None
+        self.last_grounding_requested = False
+        self.last_grounding_blocked = False
 
     def generate(
         self,
@@ -66,6 +68,15 @@ class GeminiProvider:
     ) -> ProviderResponse:
         self.last_attempt_count = 0
         self.last_error_kind = None
+        self.last_grounding_requested = bool(enable_web_search)
+        grounding_allowed = (
+            not bool(getattr(settings, "AI_FREE_TIER_MODE", True))
+            and bool(getattr(settings, "GEMINI_GROUNDING_ENABLED", False))
+        )
+        self.last_grounding_blocked = self.last_grounding_requested and not grounding_allowed
+        # Defense in depth: engine va UI guardlari chetlab o'tilsa ham Free
+        # tier'da SDK config'iga google_search tool hech qachon kirmaydi.
+        enable_web_search = self.last_grounding_requested and grounding_allowed
 
         # google-genai `api_key=None` bo'lsa ambient GOOGLE_API_KEY kabi SDK
         # credentiallarini avtomatik qabul qiladi. Project credentiali explicit

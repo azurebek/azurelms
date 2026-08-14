@@ -102,7 +102,8 @@ class EngineProviderRoutingTests(TestCase):
         self.assertEqual(response.text, "maverick javob")
         self.assertFalse(response.metadata["search_specialist_used"])
 
-    def test_web_search_query_routes_to_gemini_specialist(self):
+    @override_settings(AI_FREE_TIER_MODE=False, GEMINI_GROUNDING_ENABLED=True)
+    def test_web_search_query_routes_to_gemini_specialist_in_admitted_mode(self):
         primary = _fake_provider(supports_vision=True, model="llama-4-maverick")
         search = _fake_provider(
             supports_web_search=True,
@@ -124,6 +125,32 @@ class EngineProviderRoutingTests(TestCase):
         self.assertTrue(response.metadata["search_specialist_used"])
         self.assertEqual(response.metadata["web_search_sources"], [{"title": "cbu", "uri": "https://cbu.uz"}])
 
+    @override_settings(AI_FREE_TIER_MODE=True, GEMINI_GROUNDING_ENABLED=True)
+    def test_free_tier_web_query_stays_on_primary_without_grounding(self):
+        primary = _fake_provider(
+            supports_web_search=True,
+            text="Jonli ma'lumotni tekshira olmayman.",
+            model="gemini-3.1-flash-lite",
+        )
+        search = _fake_provider(
+            supports_web_search=True,
+            text="grounded bo'lmasligi kerak",
+            model="gemini-3.1-flash-lite",
+        )
+        engine = _make_engine(primary=primary, search_provider=search, used_tools=["web_search"])
+
+        response = engine.generate_reply(
+            AIRequest(room=None, student=_student(), user_question="Bugungi kursni qidirib ber")
+        )
+
+        primary.generate.assert_called_once()
+        search.generate.assert_not_called()
+        self.assertFalse(primary.generate.call_args.kwargs["enable_web_search"])
+        self.assertTrue(response.metadata["web_search_requested"])
+        self.assertTrue(response.metadata["web_search_blocked_by_free_tier"])
+        self.assertFalse(response.metadata["web_search_enabled"])
+        self.assertFalse(response.metadata["search_specialist_used"])
+
     def test_web_query_without_specialist_falls_back_to_primary_honestly(self):
         # Kalit yo'q (search_provider=None) → maverick'da halol javob, crash yo'q
         primary = _fake_provider(supports_vision=True, text="halol javob", model="llama-4-maverick")
@@ -137,6 +164,7 @@ class EngineProviderRoutingTests(TestCase):
         self.assertFalse(primary.generate.call_args.kwargs["enable_web_search"])
         self.assertFalse(response.metadata["search_specialist_used"])
 
+    @override_settings(AI_FREE_TIER_MODE=False, GEMINI_GROUNDING_ENABLED=True)
     def test_search_specialist_quota_failure_does_not_fan_out_to_primary(self):
         # 429 boshqa provider chainni boshlamasligi kerak: circuit shu yerda ochiladi.
         primary = _fake_provider(text="halol javob (qidiruvsiz)", model="llama-4-maverick")

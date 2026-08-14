@@ -66,11 +66,11 @@ Source of truth har doim **kod** (model/view/task/URL/test). Bu fayl kodga mosla
 
 | Qism | Texnologiya |
 |---|---|
-| Joriy chat provider | `AI_CHAT_PROVIDER=gemini`; oddiy chat ham, grounding ham Gemini'ga boradi |
+| Joriy chat provider | `AI_CHAT_PROVIDER=gemini`; oddiy chat Gemini'ga boradi, Free tier API grounding hard-off |
 | Qo'llab-quvvatlanadigan adapter | DigitalOcean Serverless Inference adapteri kodda bor, ammo `AI_ALLOW_DIGITALOCEAN=False` defaulti bilan owner admissionigacha provider factoryda fail-closed HOLD |
 | Chat models | Primary `gemini-3.1-flash-lite`; temporary fallback `gemini-2.5-flash-lite`; free allowlist shu 2 ta, logical request maksimum 2 physical attempt |
 | Embedding | `gemini-embedding-001`, 768 dimensions |
-| Web search | Gemini grounding / `google_search`; free-tier rejimida explicit/medium routing bilan ledgerda hisoblanadi, `heavy` default-off |
+| Web search | Free tier'da Gemini `google_search` qat'iy o'chiq: explicit/medium so'rov ham bitta plain 3.1 Lite chat request bo'ladi va “live tekshira olmayman” qoidasi ishlaydi. Grounding faqat `AI_FREE_TIER_MODE=False` + explicit admission bilan qaytadi |
 | Global supply | `AISupplyEvent` reservation/reconciliation + `AISupplyState` 429 cooldown; daily/minute request va daily token internal hard budget |
 | Memory | structured `AIMemoryFact`, traces, summaries, semantic scoring |
 | RAG | `LessonRAGChunk`, course/lesson scoped retrieval |
@@ -198,7 +198,7 @@ ai/
 
 **Joriy chegarasi:** Control Center foundation mutation qilmaydi. Supply policy `AISettingsAdmin` orqali edit qilinadi, `AISupplyEvent`/`AISupplyState` adminlari read-only. Append-only umumiy `SystemAuditEvent`, system-wide feature flag/kill switch, active worker/beat heartbeat, `ReleaseRecord`, backup/email/memory probe, money cost ledger va AI quality release gate hali mavjud emas. `/backoffice/ai-control/` compatibility control path sifatida Control Center'dan ochiladi, lekin hozircha alohida sahifa.
 
-**2026-08-14 A8 holati:** **`IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`**. Supply/provider/caller target testlari va provider credential/env-file loading o'chirilgan full suite 524/524 o'tgan; local `system_audit` 10/10 GREEN. Bu production readiness yoki SQLite/PostgreSQL true concurrent contention proof emas. Shu sanadagi `AzureAI` Free-tier AI Studio snapshoti: 3.1 Flash Lite `15 RPM / 250K input TPM / 500 RPD`; 3.7 Flash `5 RPM / 250K input TPM / 20 RPD`. Tashqi quota account/project holatiga bog'liq va dynamic.
+**2026-08-14 A8 holati:** **`IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`**. Supply/provider/caller target testlari va provider credential/env-file loading o'chirilgan full suite 527/527 o'tgan; local `system_audit` 10/10 GREEN. Bu production readiness yoki SQLite/PostgreSQL true concurrent contention proof emas. Shu sanadagi `AzureAI` Free-tier AI Studio snapshoti: 3.1 Flash Lite `15 RPM / 250K input TPM / 500 RPD`; 3.7 Flash `5 RPM / 250K input TPM / 20 RPD`. Tashqi quota account/project holatiga bog'liq va dynamic.
 
 ### `subscriptions`
 
@@ -814,9 +814,10 @@ Mini App sahifalari `templates/bot/miniapp_base.html` mobil shellini ulashadi. T
 | `VALKEY_URL` / `REDIS_URL` | cache, channels, celery broker |
 | `CELERY_BROKER_URL` | explicit broker override |
 | `CELERY_TASK_ALWAYS_EAGER` | local eager task override |
-| `GEMINI_API_KEY` | Joriy chat, grounding va embeddings; secret qiymat git'ga kirmaydi |
+| `GEMINI_API_KEY` | Joriy chat va embeddings; grounding faqat paid/admitted rejimda, secret qiymat git'ga kirmaydi |
 | `AI_CHAT_PROVIDER` | Joriy local qiymat `gemini`; `digitalocean` adapteri supported, ammo HOLD |
 | `AI_FREE_TIER_MODE` | Default `True`; admitted model va qimmat search UI/runtime siyosatini toraytiradi |
+| `GEMINI_GROUNDING_ENABLED` | Free tier'da majburan `False`; env `True` ham hard-offni chetlab o'tmaydi. Faqat non-free admitted rejimda ishlaydi |
 | `GEMINI_FREE_MODEL_ALLOWLIST` | `gemini-3.1-flash-lite,gemini-2.5-flash-lite`; boshqa user model tanlovi clamp qilinadi |
 | `GEMINI_PRIMARY_MODEL` | Default `gemini-3.1-flash-lite` |
 | `GEMINI_FALLBACK_MODEL` | Temporary `gemini-2.5-flash-lite`; announced shutdown yo'q, 2026-10-16 internal review |
@@ -853,7 +854,8 @@ Mini App sahifalari `templates/bot/miniapp_base.html` mobil shellini ulashadi. T
 - `TelegramOutbox` modeli/command'i bor, lekin Procfile'da doimiy process yo'q; worker atomic claim/lease qilmaydi, shuning uchun hozir aynan 1 replica xavfsizroq.
 - `AIResponseRun` status, model, skill, token, duration, metadata, error va idempotency keyni saqlaydi; pul qiymati va quality release gate saqlanmaydi.
 - Read-only capability registry/snapshot AI supply daily request/token, minute request va cooldown stoplightini ham ko'rsatadi; umumiy append-only `SystemAuditEvent`, active service heartbeat va `ReleaseRecord` hozir yo'q.
-- Gemini provider allowlistdagi 1 primary + max 1 fallback bilan bounded; SDK retry off, `429` bir attemptda fail-fast/circuit. Prompt/output/timeout/deadline caplari implement/test qilingan; post-A8 local full regression 524/524.
+- Gemini provider allowlistdagi 1 primary + max 1 fallback bilan bounded; SDK retry off, `429` bir attemptda fail-fast/circuit. Prompt/output/timeout/deadline caplari implement/test qilingan; post-A8 local full regression 527/527.
+- Free tier'da API grounding defense-in-depth o'chiq: engine specialist/search call yaratmaydi, provider direct caller `enable_web_search=True` bersa ham `GoogleSearch()` va config tools `0`; intent `requested/blocked/actual` telemetryda ajraladi.
 - Per-user allowance upstream supply emas. Alohida `AISupplyEvent` global daily+minute request va daily token hard budgetini pre-reserve qiladi, staff va auxiliary calllarni ham qamraydi; ledger DB xatosida remote call fail-closed.
 - SQLite va PostgreSQL'da haqiqiy parallel-process reservation contention/transaction proof testi pending. SmartForm/guest counterlari hamda lesson reindex batch'lari uchun to'liq concurrency lease/claim yo'q.
 - Ichki minute request cap tashqi quota o'rnini bosmaydi. 2026-08-14 AI Studio snapshotida 3.1 Flash Lite `15 RPM / 250K TPM / 500 RPD`, 3.7 Flash `5 RPM / 250K TPM / 20 RPD`; shu sabab 3.7 allowlistga admit qilinmagan. `gemini-2.5-flash-lite` fallbacki 2026-10-16 ichki review deadline'ida qayta baholanadi. Joriy Gemini vision unavailable.
@@ -869,6 +871,7 @@ LOCAL_USE_REMOTE_SERVICES=False
 USE_S3=False
 AI_CHAT_PROVIDER=gemini
 AI_FREE_TIER_MODE=True
+GEMINI_GROUNDING_ENABLED=False
 GEMINI_FREE_MODEL_ALLOWLIST=gemini-3.1-flash-lite,gemini-2.5-flash-lite
 GEMINI_PRIMARY_MODEL=gemini-3.1-flash-lite
 GEMINI_FALLBACK_MODEL=gemini-2.5-flash-lite
@@ -992,7 +995,7 @@ python manage.py test users.tests.DashboardProgressTests
 6. **YouTube embed:** owner embed bloklasa platforma majburlab ocholmaydi — fallback UX kelajakda kerak bo'lishi mumkin.
 7. **SIT data gate:** qabul, narx va viza kabi vaqtga sezgir public ma'lumot `source_url` va `last_verified_on`siz nashr qilinmaydi. `playground/SIT/` runtime emas.
 8. **`.gitignore`:** `.claude/`, `.tools/`, `.codex/`, `__pycache__/`, `*.pyc`, `db.sqlite3`, `media/`, `venv/`, `.env` va `.env.local`.
-9. **2026-08-14 resurs/A8 qarori:** production va DigitalOcean integration'i HOLD; local ish davom etadi. A8 supply guard **`IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`** (524/524; audit 10/10); SQLite/PostgreSQL true concurrency proofdan oldin yangi AI behavior yoki ommaviy rollout yo'q.
+9. **2026-08-14 resurs/A8 qarori:** production va DigitalOcean integration'i HOLD; local ish davom etadi. A8 supply guard **`IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`** (527/527; audit 10/10); SQLite/PostgreSQL true concurrency proofdan oldin yangi AI behavior yoki ommaviy rollout yo'q.
 10. **Joriy vision chegarasi:** `image_qa` skill mavjud, lekin Gemini adapteri vision'ni qo'llamaydi; rasm tahlili current capability emas.
 11. **Schema:** `aicontrol/0002_ai_supply_budget`, `messenger/0014_ai_response_idempotency`, `users/0015_free_tier_model_default` va `users/0016_alter_notification_options` local SQLite'ga apply qilingan.
 12. **Model lifecycle:** primary `gemini-3.1-flash-lite`; temporary `gemini-2.5-flash-lite` uchun announced shutdown yo'q, ammo 2026-10-16 internal reviewda remove yoki yangi admitted modelga migrate qarori olinadi. 3.7 Flash joriy project snapshotidagi 20 RPD sabab hozir admit qilinmagan.

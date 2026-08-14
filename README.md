@@ -60,6 +60,7 @@ pip install -r requirements.txt
 #    USE_S3=False
 #    AI_CHAT_PROVIDER=gemini
 #    AI_FREE_TIER_MODE=True
+#    GEMINI_GROUNDING_ENABLED=False  (Free tier'da hard-off; env true ham override qilmaydi)
 #    GEMINI_FREE_MODEL_ALLOWLIST=gemini-3.1-flash-lite,gemini-2.5-flash-lite
 #    GEMINI_PRIMARY_MODEL=gemini-3.1-flash-lite
 #    GEMINI_FALLBACK_MODEL=gemini-2.5-flash-lite
@@ -89,7 +90,7 @@ python manage.py test        # to'liq suite
 python manage.py test ai.documents courses core.tests.TeacherPanelTests   # nuqtali misollar
 ```
 
-2026-08-14 post-A8 local evidence: tashqi provider kalitlari yuklanmagan offline rejimda full suite **524/524 OK**, `manage.py check` — 0 issue, migration drift — yo'q, `system_audit` — **10/10 GREEN**. Bu local evidence; production readiness uchun security/CI/restore, real DB-concurrency va alohida production admission gate'lari qoladi.
+2026-08-14 post-A8 local evidence: tashqi provider kalitlari yuklanmagan offline rejimda full suite **527/527 OK**, `manage.py check` — 0 issue, migration drift — yo'q, `system_audit` — **10/10 GREEN**. Bu local evidence; production readiness uchun security/CI/restore, real DB-concurrency va alohida production admission gate'lari qoladi.
 
 ---
 

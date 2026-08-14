@@ -234,6 +234,10 @@ def _ai_probe(definition: CapabilityDefinition) -> CapabilityResult:
 
     provider = str(getattr(settings, "AI_CHAT_PROVIDER", "gemini") or "gemini").lower()
     free_tier_mode = bool(getattr(settings, "AI_FREE_TIER_MODE", False))
+    grounding_enabled = (
+        not free_tier_mode
+        and bool(getattr(settings, "GEMINI_GROUNDING_ENABLED", False))
+    )
     digitalocean_allowed = bool(getattr(settings, "AI_ALLOW_DIGITALOCEAN", False))
     supply = supply_snapshot()
     key_name = {
@@ -293,6 +297,7 @@ def _ai_probe(definition: CapabilityDefinition) -> CapabilityResult:
         credential="configured" if configured else "missing",
         digitalocean_admission="allowed" if digitalocean_allowed else "hold",
         free_tier_mode="on" if free_tier_mode else "off",
+        api_grounding="enabled" if grounding_enabled else "disabled",
         user_enforcement="on" if policy.enforcement_enabled else "off",
         supply_enforcement=(
             "on" if supply_available and supply.get("enforcement") else "off"

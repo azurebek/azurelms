@@ -135,7 +135,7 @@ Har release uchun commit SHA, migrationlar, gate natijalari, deploy/rollback hol
 
 ## 6. AI quality, privacy va Gemini free-tier supply gate
 
-Mavjud per-user panel 5h/weekly token allowance'ni boshqaradi; u product access siyosati bo'lib, fail-open va staff-exempt xulqi saqlangan. Uning ustida alohida A8 project supply gate'i bor: staff ham kiradigan, ledger DB xatosida fail-closed, global kunlik+minute request va kunlik token pre-reservation/reconciliation. Chat/grounding, SmartForm, guest, RAG/memory embedding va reindex calllari `AISupplyEvent`da hisoblanadi. Minute cap projectning ichki RPM-uslubidagi guardi; Google'ning dynamic/account-specific external RPM/RPD kvotasi emas.
+Mavjud per-user panel 5h/weekly token allowance'ni boshqaradi; u product access siyosati bo'lib, fail-open va staff-exempt xulqi saqlangan. Uning ustida alohida A8 project supply gate'i bor: staff ham kiradigan, ledger DB xatosida fail-closed, global kunlik+minute request va kunlik token pre-reservation/reconciliation. Chat, SmartForm, guest, RAG/memory embedding va reindex calllari `AISupplyEvent`da hisoblanadi; grounding call turi faqat kelajak paid/admitted rejim uchun saqlangan. Minute cap projectning ichki RPM-uslubidagi guardi; Google'ning dynamic/account-specific external RPM/RPD kvotasi emas.
 
 | Gate | Metrika |
 |---|---|
@@ -147,12 +147,12 @@ Mavjud per-user panel 5h/weekly token allowance'ni boshqaradi; u product access 
 
 - Yagona provider-call ledger: chat, grounding, SmartForm extractor, bot guest demo, RAG/memory embedding, reindex, retry/failure. Main chat auxiliary retrievaldan oldin pre-reserve qiladi va `AIResponseRun.idempotency_key` duplicate taskni to'xtatadi.
 - Global daily+minute request va daily token cap; transactional pre-call reservation va actual usage reconciliation. Staff ham global supply budgetga kiradi; usage bo'lmasa konservativ reservation charge qoladi.
-- Model allowlist: primary `gemini-3.1-flash-lite`, yagona temporary fallback `gemini-2.5-flash-lite`. Pro/preview clamp qilinadi, `heavy` effort va guest default yopiq.
+- Model allowlist: primary `gemini-3.1-flash-lite`, yagona temporary fallback `gemini-2.5-flash-lite`. Pro/preview clamp qilinadi; Free tier API grounding barcha effortlarda hard-off, guest default yopiq.
 - Text caps: output `640` token, prompt `12,000` belgi, request timeout `8s`, end-to-end deadline `20s`. Embedding: `64` input/batch, har input `8,000` belgi, batch `64,000` belgi, timeout `8s`; SDK retry `1` physical attempt.
 - `429/quota/billing` circuit breaker: birinchi quota xatosida boshqa modelga fan-out yo'q; cooldown ochiq bo'lsa yangi network call `0`. Non-quota logical chain maksimal `1 primary + 1 fallback`.
-- Control Center: mode, configured cap, daily/minute used/remaining, actual attempt, reserved/failed/rejected va cooldown stoplight. Tashqi quota raqami hardcode qilinmaydi.
+- Control Center: mode, API grounding disabled/enabled, configured cap, daily/minute used/remaining, actual attempt, reserved/failed/rejected va cooldown stoplight. Tashqi quota raqami hardcode qilinmaydi.
 - Local/pre-prod DO HOLD fail-closed: explicit owner admissionisiz `digitalocean` provider yaratilmaydi; snapshot RED va DO network call `0`. Noma'lum provider ham fail-closed.
-- Targeted mock/offline tests yuqoridagi provider/supply/idempotency/caller guardlarini tekshirgan. Provider kalitlari va env-file loading o'chirilgan final post-A8 full suite 524/524, `manage.py check` 0 issue, migration drift yo'q va local `system_audit` 10/10 GREEN. Real SQLite/PostgreSQL concurrent contention proof hali kutilmoqda; shu sabab status `EVIDENCE READY` emas.
+- Targeted mock/offline tests yuqoridagi provider/supply/idempotency/caller guardlarini tekshirgan. Provider kalitlari va env-file loading o'chirilgan final post-A8 full suite 527/527, `manage.py check` 0 issue, migration drift yo'q va local `system_audit` 10/10 GREEN. Real SQLite/PostgreSQL concurrent contention proof hali kutilmoqda; shu sabab status `EVIDENCE READY` emas.
 
 **Model lifecycle riski:** Google'ning [3.1 Flash-Lite model kartasi](https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-lite), [pricing jadvali](https://ai.google.dev/gemini-api/docs/pricing), [rate-limit yo'riqnomasi](https://ai.google.dev/gemini-api/docs/rate-limits) va [deprecation jadvali](https://ai.google.dev/gemini-api/docs/deprecations) tekshirildi. 3.1 Flash-Lite stable/free-tier/cost-efficient primary sifatida tanlandi. 2.5 Flash-Lite uchun public shutdown sanasi e'lon qilinmagan; **2026-10-16** — ichki remove/migrate review deadline. 2026-08-14 login qilingan `AzureAI` Free-tier snapshotida 3.1 Lite **15 RPM / 250K input TPM / 500 RPD**, yangi 3.7 Flash esa **5 RPM / 250K input TPM / 20 RPD**; shu sabab 3.7 hozir admit qilinmadi. Exact tashqi limitlar project/account holatiga bog'liq va o'zgarishi mumkin.
 
@@ -170,7 +170,7 @@ Schema o'zgarishlari: `aicontrol/migrations/0002_ai_supply_budget.py`, `messenge
 
 ### Degradatsiya tartibi
 
-1. automatic/`heavy` web search yopiladi; explicit searchgina qoladi;
+1. Free tier'da automatic/explicit/heavy API groundingning barchasi yopiq; search intent bitta plain chatga tushib live tekshiruv yo'qligini halol aytadi;
 2. yangi embedding/reindex batch'i to'xtaydi, cache/lexical fallback ishlaydi;
 3. guest/demo AI deterministic FAQ yoki vaqtincha disabled bo'ladi;
 4. non-critical AI featurelar yopiladi;
