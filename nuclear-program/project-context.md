@@ -416,7 +416,7 @@ Custom yashirin admin URL'lari:
 
 Access helper: `core.views._is_backoffice_user`. Legacy `/admin/` faqat `ENABLE_LEGACY_ADMIN=True`.
 
-**Joriy permission cheklovi:** `_is_backoffice_user` `is_staff` yoki `is_superuser`ni qabul qiladi; AI global control ham shu gate ortida. `/backoffice/control/` esa alohida `_is_control_center_owner` orqali faqat active `is_superuser`ga ochiladi va hozir read-only. Teacher'ga explicit course biriktirilmagan bo'lsa teacher query hozir barcha kurslarni qaytarishi mumkin; default-deny teacher scope hali maqsad.
+**Joriy permission cheklovi:** `_is_backoffice_user` `is_staff` yoki `is_superuser`ni qabul qiladi; AI global control ham shu gate ortida. `/backoffice/control/` esa alohida `_is_control_center_owner` orqali faqat active `is_superuser`ga ochiladi va hozir read-only. Teacher scope 2026-08-15 dan default-deny: `core.access.teacher_course_queryset()` / `teacher_cohort_queryset()` yagona manba — superuser hammasini, qolgan har kim faqat `Course.instructor` sifatida biriktirilgan kurslarini ko'radi, anonim yoki nofaol foydalanuvchi hech nima ko'rmaydi. Web teacher paneli (8 view), Telegram bot (`/guruhlarim`, `/baholash`) va `AttendanceManageView` shu scope'ni iste'mol qiladi; adapterlarda alohida nusxa yo'q.
 
 ### 4.11 Study in Turkey (SIT)
 

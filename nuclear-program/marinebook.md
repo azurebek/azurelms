@@ -16,6 +16,26 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-15 [Claude Code]: A0b/1 — teacher scope default-deny va canonical scope
+
+A0b ning birinchi slice'i. Rejada bitta band ("teacher course/cohort default-deny") edi, amalda **bir qoidaning uchta nusxasi** topildi va ikkitasi default-allow tomonga og'gan edi:
+
+1. **Web teacher paneli** (`core/teacher_views.py`): `_teacher_courses()` biriktirilgan kursi yo'q staff uchun `Course.objects.all()` qaytarardi. Ya'ni yangi qo'shilgan har qanday staff butun platformaning kurslari, guruhlari, o'quvchilari, baholash navbati va davomatini ko'rardi. Fayl docstring'i buni ataylab "kichik markaz rejimi" deb izohlagan edi, ammo `05-launch-ops.md` permission matritsasi (*"biriktirilmagan bo'lsa default natija bo'sh"*) va backlog `A0b` uni supersede qiladi.
+2. **Telegram bot** (`bot/services.teacher_cohorts_overview`): qoida **teskari** yozilgan edi — `if not is_active_staff(user): filter(course__instructor=user)`. Ya'ni har qanday active staff barcha guruhlarni ko'rardi, faqat staff bo'lmagan instructor cheklanardi. Mavjud test faqat staff-bo'lmagan tarmoqni qoplagani uchun bu ushlanmagan.
+3. **Davomat sahifasi** (`users.AttendanceManageView.get_allowed_cohorts`): xulqi to'g'ri edi, lekin uchinchi mustaqil nusxa.
+
+Yechim rules §"Adapter biznes qoidasini egallamaydi" bo'yicha: qoida `core/access.py`ga `teacher_course_queryset()` / `teacher_cohort_queryset()` sifatida chiqarildi (superuser → hammasi; qolgan har kim → faqat `instructor=user`; anonim yoki `is_active=False` → bo'sh), uchala yuza ham faqat shuni iste'mol qiladi. Bot `teacher_grading_queue` ham view modulining private helperini import qilishdan to'xtadi. Teacher panelining 8 view'i, jumladan ID bo'yicha ochiladigan baholash sahifalari ham, shu yagona scope'dan oziqlanadi — shuning uchun bitta funksiya butun panelni yopdi.
+
+- Branch: `claude/a0b-teacher-scope` (`origin/main` dan; `claude/a8-supply-concurrency-proof` dan mustaqil, alohida merge qilinadi)
+- Yangi/tegilgan: `core/access.py` (+30, canonical scope), `core/teacher_views.py`, `bot/services.py`, `users/views.py` (har biri adapterga aylandi), `core/tests.py` (+160, `TeacherScopeDefaultDenyTests`). **Migration yo'q**
+- Testlar (10 yangi): default-deny, faqat o'z kursi, superuser hammasini ko'radi, nofaol staff bo'sh oladi, 6 ta ro'yxat sahifasi bo'sh render bo'ladi, baholash detail sahifalari `404`, begona o'qituvchi POST bilan ham baholay olmaydi, davomatda cohort yo'q, va **adapter parity** — bot bilan web bir xil scope beradi
+- Nazorat yugurishi: eski default-allow xulqi qaytarilganda 7 ta yangi testning hammasi (12 subtest) yiqiladi
+- Test holati: `manage.py test` — **537/537 OK** (baseline 527 + 10 yangi); `test core bot` — 140/140; `test users core` — 148/148; `manage.py check` — 0 issue
+- Churn: `users/views.py` HEAD'da aralash line-ending bilan saqlanadi (1226 CRLF + 29 LF); tahrir avval 29 qatorni normallashtirib yubordi, fayl HEAD baytlaridan qayta qurildi — yakuniy diff aynan 10/6 qator. `git diff --check` dagi ogohlantirishlar shu aralash fayl uchun pre-existing artefakt
+- **Owner e'tiboriga:** endi superuser bo'lmagan staff faqat `Course.instructor` sifatida biriktirilgan kurslarini ko'radi. Merge qilishdan oldin real bazada har kursga instructor biriktirilganini tekshiring, aks holda o'sha teacher uchun panel bo'sh chiqadi. Bot tomonida bo'sh holat matni allaqachon bor ("Sizga biriktirilgan faol guruhlar yo'q")
+- Qamrab olinmagan: `bot/middleware.py:30` dagi `Course.objects.filter(instructor=user)` — u rol *aniqlash*, data scoping emas, shuning uchun tegilmadi
+- Davom etilishi kerak: A0b ning qolgan 4 slice'i — upload validatsiya (MIME/magic-byte/size), private media permission endpoint, WebSocket access recheck, django-csp v4 migratsiya
+
 ## 2026-08-14 [Codex]: A8 Gemini free-tier supply guard implementatsiyasi
 
 `A8` holati: **`IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`**. `AISupplyEvent` va `AISupplyState` asosidagi project-wide ledger har remote AI call oldidan kunlik request/token hamda bir daqiqalik request capacity'ni rezerv qiladi, yakunda actual usage/attempt bilan reconciliation qiladi va ledger DB xatosida fail-closed to'xtaydi. Bu per-user 5h/weekly allowance'dan alohida upstream supply gate: staff/superuser ham unga kiradi. Main chat reservation'i memory/RAG'dan oldin olinadi; `AIResponseRun.idempotency_key` duplicate taskni qayta providerga yubormaydi. SmartForm, Telegram guest, chat/grounding, RAG/memory embedding va ikkala reindex yo'li ledgerga ulandi; cache-hit embedding remote request sarflamaydi.
