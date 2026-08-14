@@ -5,6 +5,7 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import ValidationError
 from django.db.models import Max, Count, Q, OuterRef, Subquery
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect
@@ -15,6 +16,7 @@ from django.views.generic import TemplateView
 
 from ai.skills.registry import SkillRegistry
 from cohorts.models import Enrollment, enrollment_active_access_q
+from core.upload_validation import validate_upload
 from courses.models import Lesson
 from .access import (
     create_user_ai_room,
@@ -648,8 +650,12 @@ def upload_message_attachment(request):
     upload = request.FILES.get("file")
     if not upload:
         return JsonResponse({"status": "error", "message": "Fayl tanlanmagan"}, status=400)
-    if upload.size > 12 * 1024 * 1024:
-        return JsonResponse({"status": "error", "message": "Fayl 12 MB dan kichik bo'lishi kerak"}, status=400)
+    # Hajm va tur tekshiruvi baytlar bo'yicha: `attachment_content_type` brauzer
+    # yuboradigan qiymat va unga ishonib bo'lmaydi (A0b).
+    try:
+        validate_upload(upload, profile="document")
+    except ValidationError as exc:
+        return JsonResponse({"status": "error", "message": exc.messages[0]}, status=400)
 
     text = str(request.POST.get("text", "") or "").strip()[:1000]
     from .signals import suppress_ai_signal

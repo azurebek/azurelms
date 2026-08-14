@@ -1,4 +1,5 @@
 """PDF hujjat qatlami testlari: writer/reader/parser + messenger integratsiyasi."""
+import base64
 import io
 import tempfile
 from types import SimpleNamespace
@@ -20,6 +21,13 @@ from ai.documents import (
 )
 from ai.skills.registry import SkillRegistry
 from messenger.models import ChatRoom, Message
+
+# Upload gate'i (A0b) faylni baytlariga qarab tekshiradi, shuning uchun
+# testlar ham haqiqiy konteyner baytlarini yuborishi kerak.
+PNG_1X1 = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+)
+DOCX_BYTES = b"PK\x03\x04" + b"\x00" * 32
 from messenger.signals import suppress_ai_signal
 
 User = get_user_model()
@@ -306,11 +314,17 @@ class UploadTriggersAiTests(TestCase):
     def test_image_upload_dispatches_ai_with_default_question(self):
         # Vision qo'shilgach rasm ham AI'ni chaqiradi (avval chaqirilmasdi)
         with patch("messenger.tasks.generate_ai_response.delay") as delay:
-            self._upload("rasm.png", b"\x89PNG fake", "image/png")
+            self._upload("rasm.png", PNG_1X1, "image/png")
         delay.assert_called_once()
         self.assertIn("rasm yubordim", delay.call_args.kwargs["user_question"])
 
     def test_captionless_generic_file_does_not_dispatch_ai(self):
         with patch("messenger.tasks.generate_ai_response.delay") as delay:
-            self._upload("hujjat.docx", b"PK fake docx", "application/vnd.openxmlformats")
+            response = self._upload(
+                "hujjat.docx", DOCX_BYTES, "application/vnd.openxmlformats"
+            )
+        # Upload muvaffaqiyatli bo'lishi shart: aks holda test AI
+        # chaqirilmaganini noto'g'ri sababdan (fayl rad etilgani uchun)
+        # tasdiqlagan bo'lardi.
+        self.assertEqual(response.status_code, 200)
         delay.assert_not_called()

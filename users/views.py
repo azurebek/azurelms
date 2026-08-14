@@ -18,11 +18,14 @@ from courses.models import Certificate as CourseCertificate
 from courses.models import Course, LessonProgress
 from gamification.models import EarnedBadge
 from frontend.models import LegalPage
+from django.core.exceptions import ValidationError
 from django.core.signing import TimestampSigner
 from django.conf import settings
 from django.http import HttpResponseBadRequest, JsonResponse
 from courses.models import Lesson
 import os
+
+from core.upload_validation import validate_upload
 import uuid
 
 def home_view(request):
@@ -188,6 +191,13 @@ class AvatarUpdateView(LoginRequiredMixin, View):
         user = request.user
         if 'avatar' in request.FILES:
             avatar_file = request.FILES['avatar']
+            # Baytlar bo'yicha tekshiruv: `user.save()` yo'lida model field
+            # validatorlari ishga tushmaydi (A0b).
+            try:
+                validate_upload(avatar_file, profile='image', field_label='Profil rasmi')
+            except ValidationError as exc:
+                messages.error(request, exc.messages[0])
+                return redirect(_safe_next(request, 'settings_account'))
             old_avatar_name = user.avatar.name if user.avatar else None
 
             # Cache muammosini oldini olish uchun har safar yangi, unikal fayl nomi beramiz.

@@ -11,6 +11,8 @@ from django.urls import reverse
 from django.http import Http404, JsonResponse
 from django.utils import timezone
 
+from core.upload_validation import validate_upload
+
 from .models import (
     Assignment,
     AssignmentSubmission,
@@ -987,9 +989,9 @@ class RegisterAudioPlayView(LoginRequiredMixin, View):
 
 class UploadExamAudioView(LoginRequiredMixin, View):
     """Speaking yozuvini qabul qiladi → storage'ga (S3/Spaces yoki local) saqlaydi →
-    StudentAnswer.audio_file_url'ga biriktiradi. Speaking topshirishning yetishmayotgan halqasi."""
-    MAX_BYTES = 25 * 1024 * 1024
-    ALLOWED_PREFIXES = ("audio/", "video/webm", "video/mp4", "application/octet-stream")
+    StudentAnswer.audio_file_url'ga biriktiradi. Speaking topshirishning yetishmayotgan halqasi.
+
+    Hajm va format chegaralari `core.upload_validation` dagi `audio` profilida."""
 
     def post(self, request, course_id, exam_id):
         attempt = get_in_progress_exam_attempt(student=request.user, exam_id=exam_id)
@@ -1008,11 +1010,14 @@ class UploadExamAudioView(LoginRequiredMixin, View):
         upload = request.FILES.get('audio')
         if not upload:
             return JsonResponse({'error': "Audio fayl yuborilmadi."}, status=400)
-        if upload.size > self.MAX_BYTES:
-            return JsonResponse({'error': "Audio yozuvi 25 MB dan kichik bo'lishi kerak."}, status=400)
-        content_type = getattr(upload, 'content_type', '') or ''
-        if content_type and not any(content_type.startswith(prefix) for prefix in self.ALLOWED_PREFIXES):
-            return JsonResponse({'error': "Audio formati qo'llab-quvvatlanmaydi."}, status=400)
+        # Ilgari bu yerda faqat `upload.content_type` tekshirilardi — u brauzer
+        # yuboradigan sarlavha, soxtalashtirilishi mumkin va bo'sh bo'lsa
+        # tekshiruv butunlay o'tkazib yuborilardi. Endi konteyner baytlardan
+        # aniqlanadi (A0b).
+        try:
+            validate_upload(upload, profile="audio", field_label="Audio yozuv")
+        except ValidationError as exc:
+            return JsonResponse({'error': exc.messages[0]}, status=400)
 
         import os
         import uuid

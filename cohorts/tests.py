@@ -1,3 +1,4 @@
+import base64
 import datetime
 
 from django.contrib.auth import get_user_model
@@ -9,6 +10,12 @@ from django.test import TestCase
 from django.test.utils import override_settings
 from django.urls import reverse
 from django.utils import timezone
+
+# 1x1 PNG — upload validatsiyasi baytlarni tekshirgani uchun testlar ham
+# haqiqiy fayl bilan ishlaydi.
+PNG_1X1 = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+)
 
 from courses.models import Course, Lesson, LessonProgress, Module
 from subscriptions.models import Plan, PromoCampaign, PromoCode, PromoRedemption
@@ -101,7 +108,9 @@ class CheckoutPlanSelectionTests(TestCase):
         self.client.force_login(self.student)
 
     def _fake_receipt(self):
-        return SimpleUploadedFile("receipt.png", b"fake-image-content", content_type="image/png")
+        # Haqiqiy PNG baytlari: upload gate'i (A0b) faylni nomiga emas,
+        # baytlariga qarab tekshiradi.
+        return SimpleUploadedFile("receipt.png", PNG_1X1, content_type="image/png")
 
     def test_checkout_uses_selected_plan_price_and_assigns_plan_to_enrollment(self):
         response = self.client.post(

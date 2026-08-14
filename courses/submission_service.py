@@ -7,10 +7,12 @@ View'lar endi shu funksiyalarni chaqiradi — bitta manba, bitta xatti-harakat.
 
 from dataclasses import dataclass, field
 
+from django.core.exceptions import ValidationError
 from django.db.models import Max
 from django.utils import timezone
 
 from cohorts.models import Enrollment, enrollment_active_access_q
+from core.upload_validation import validate_upload
 from courses.models import (
     AssignmentSubmission,
     Choice,
@@ -56,6 +58,15 @@ def submit_assignment(*, user, assignment, answer_text="", attachment=None):
         return SubmissionResult(
             ok=False, code="no_access", message="Vazifa yuborish uchun faol obuna kerak."
         )
+
+    if attachment is not None:
+        # Baytlar bo'yicha tekshiruv — model field validatori `save()` yo'lida
+        # ishlamaydi, shuning uchun gate shu canonical servisda turadi va uni
+        # web view ham, Telegram bot ham ulashadi (A0b).
+        try:
+            validate_upload(attachment, profile="document", field_label="Biriktirma")
+        except ValidationError as exc:
+            return SubmissionResult(ok=False, code="invalid_attachment", message=exc.messages[0])
 
     submission, _ = AssignmentSubmission.objects.get_or_create(
         assignment=assignment, student=user
