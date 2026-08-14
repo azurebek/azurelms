@@ -803,6 +803,8 @@ Mini App sahifalari `templates/bot/miniapp_base.html` mobil shellini ulashadi. T
 | Env | Vazifasi |
 |---|---|
 | `APP_ENV` | `local` (default) yoki production-like nom |
+| `AZURELMS_SKIP_ENV_FILE` | `.env.<APP_ENV>` yuklanmaydi. Test yugurtirishda **majburiy**: aks holda `.env.local`dagi haqiqiy `GEMINI_API_KEY` yuklanib, testlar bepul kvotani sarflashi mumkin |
+| `AZURELMS_TEST_FILE_DB` | Test bazasini diskdagi SQLite fayliga o'tkazadi. Concurrency proof testlari uchun kerak; default in-memory (tezroq), ammo uning qulflash semantikasi real bazadan farq qiladi |
 | `DEBUG` | Django debug |
 | `SECRET_KEY` | prod uchun majburiy |
 | `APP_DOMAIN` | prod domain, CSP va trusted origins |
@@ -857,7 +859,7 @@ Mini App sahifalari `templates/bot/miniapp_base.html` mobil shellini ulashadi. T
 - Gemini provider allowlistdagi 1 primary + max 1 fallback bilan bounded; SDK retry off, `429` bir attemptda fail-fast/circuit. Prompt/output/timeout/deadline caplari implement/test qilingan; post-A8 local full regression 527/527.
 - Free tier'da API grounding defense-in-depth o'chiq: engine specialist/search call yaratmaydi, provider direct caller `enable_web_search=True` bersa ham `GoogleSearch()` va config tools `0`; intent `requested/blocked/actual` telemetryda ajraladi.
 - Per-user allowance upstream supply emas. Alohida `AISupplyEvent` global daily+minute request va daily token hard budgetini pre-reserve qiladi, staff va auxiliary calllarni ham qamraydi; ledger DB xatosida remote call fail-closed.
-- SQLite va PostgreSQL'da haqiqiy parallel-process reservation contention/transaction proof testi pending. SmartForm/guest counterlari hamda lesson reindex batch'lari uchun to'liq concurrency lease/claim yo'q.
+- SQLite parallel reservation contention proofi 2026-08-15 da yozildi va kamchilikni ochdi: `select_for_update()` SQLite'da no-op (`has_select_for_update=False`), `BEGIN DEFERRED` esa write-upgrade paytida busy_timeout'ni kutmaydi. Local SQLite endi `transaction_mode=IMMEDIATE`, `timeout=15` va WAL bilan ishlaydi; contention testlari `AZURELMS_TEST_FILE_DB=1` bilan fayl bazasida bajariladi. PostgreSQL proofi va alohida OS processlari bilan takrorlash hali pending. SmartForm/guest counterlari hamda lesson reindex batch'lari uchun to'liq concurrency lease/claim yo'q.
 - Ichki minute request cap tashqi quota o'rnini bosmaydi. 2026-08-14 AI Studio snapshotida 3.1 Flash Lite `15 RPM / 250K TPM / 500 RPD`, 3.7 Flash `5 RPM / 250K TPM / 20 RPD`; shu sabab 3.7 allowlistga admit qilinmagan. `gemini-2.5-flash-lite` fallbacki 2026-10-16 ichki review deadline'ida qayta baholanadi. Joriy Gemini vision unavailable.
 - CSP config django-csp v4 formatiga ko'chirilmagan; middleware order sabab Mini App middleware yaratgan `frame-ancestors` headeri keyingi full policy'ni chetlab o'tishi ham mumkin. Normal sahifa, Mini App entry va authenticated Mini App'da full response-header test, Telegram script/frame allowlist va browser smoke A0b release blocker'i.
 
@@ -976,11 +978,16 @@ python manage.py reindex_rag --force
 python manage.py reindex_rag --course-id 5 --force
 python manage.py reindex_ai_memory --force
 
-# Test
+# Test — DIQQAT: kvota xavfsizligi uchun har doim `.env.local`siz yugurtiring,
+# aks holda haqiqiy GEMINI_API_KEY yuklanadi va testlar bepul kvotani sarflaydi.
+$env:AZURELMS_SKIP_ENV_FILE='1'; $env:GEMINI_API_KEY=''; $env:TELEGRAM_BOT_TOKEN=''
 python manage.py test
 python manage.py test ai.providers.tests aicontrol.tests messenger.test_embedding_supply
 python manage.py test messenger
 python manage.py test users.tests.DashboardProgressTests
+
+# A8 concurrency proof — fayl bazasini talab qiladi (default in-memory'da skip bo'ladi)
+$env:AZURELMS_TEST_FILE_DB='1'; python manage.py test aicontrol.test_supply_concurrency
 ```
 
 ---

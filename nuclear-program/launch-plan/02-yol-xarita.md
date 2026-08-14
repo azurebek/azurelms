@@ -63,7 +63,8 @@ Oldingi 2026-07-22 rejasidagi `P0–P5` tarixiy rebaseline sifatida Git tarixida
 - Free-mode'da Pro/preview model tanlovi clamp qilinadi, API grounding barcha effortlarda hard-off; guest demo ham default-off.
 - Budget/ledger xatosida core LMS, cache/lexical retrieval va human/Telegram deterministic oqimlari ishlashda qoladi; reindex yoki auxiliary AI yumshoq degradatsiya qiladi.
 - **Local evidence:** provider kalitlari/env-file loading o'chirilgan post-A8 full suite 527/527, focused streak 15/15, `manage.py check` 0 issue, migration drift yo'q va `system_audit` 10/10 GREEN.
-- **Qolgan closeout:** haqiqiy parallel processlar bilan SQLite va PostgreSQL contention/transaction testi. Transactional implementatsiyani shu testlarsiz production-concurrency proof deb bo'lmaydi.
+- **SQLite contention proof (2026-08-15):** yozildi va real kamchilikni ochdi. `select_for_update()` SQLite'da no-op bo'lgani va Django `BEGIN DEFERRED` ishlatgani sabab 8 parallel rezervatsiyadan 7 tasi `database is locked` bilan yiqilardi (budjet overshooti emas, ammo har qanday parallellikda AI callning ishdan chiqishi). Yechim: local SQLite uchun `transaction_mode=IMMEDIATE` + `timeout` + WAL. Testlar `AZURELMS_TEST_FILE_DB=1` bilan fayl bazasida ishlaydi.
+- **Qolgan closeout:** PostgreSQL contention/transaction testi. Bu mashinada PG server yoki docker yo'q (`psycopg2-binary` faqat klient), shuning uchun PG yarmi bajarilmadi. Joriy proof multi-thread/multi-connection; alohida OS processlari bilan takrorlash ham ochiq.
 - **Qolgan operatsion risk:** SmartForm va guest counterlari hamda lesson reindex batch'lari uchun to'liq claim/lease yo'q; parallel workerda duplicate work oynasi qolishi mumkin.
 - Bir daqiqalik request cap — loyihaning ichki RPM-uslubidagi budgeti; u Google'ning aniq tashqi RPM/RPD kvotasini o'lchamaydi yoki kafolatlamaydi.
 - Joriy Gemini adapteri vision payload qabul qilmaydi; `image_qa` routing borligi rasm tahlili capability'si degani emas.
@@ -148,7 +149,7 @@ Oldingi 2026-07-22 rejasidagi `P0–P5` tarixiy rebaseline sifatida Git tarixida
 | K8 | AI yaxshi ko'rinadi, lekin o'qitmaydi | Structured outcome + teacher-authored eval + beta label |
 | K9 | SIT owner vaqtini core'dan tortadi | S2 faqat active core slice'ni siqmasa |
 | K10 | Reja statusi koddan oldinga o'tadi | Commit/test/browser evidence bo'lmasa `EVIDENCE READY` yo'q |
-| K11 | SQLite/PostgreSQL parallel reservation yoki caller counteri to'qnashadi | True concurrent DB test pending; SmartForm/guest/lesson-reindex uchun lease/claim keyingi hardening |
+| K11 | SQLite/PostgreSQL parallel reservation yoki caller counteri to'qnashadi | SQLite yarmi yopildi (2026-08-15): contention testi + `transaction_mode=IMMEDIATE`/WAL. PostgreSQL testi va SmartForm/guest/lesson-reindex lease/claim hali ochiq |
 | K12 | Temporary Gemini fallback eskiradi yoki quota profili o'zgaradi | `gemini-2.5-flash-lite` uchun announced shutdown yo'q; 2026-10-16 internal reviewda remove yoki yangi verified/admitted modelga migrate qarori |
 
 ## Asosiy metrikalar

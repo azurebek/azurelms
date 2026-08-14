@@ -88,9 +88,16 @@ python manage.py check
 python manage.py makemigrations --check --dry-run
 python manage.py test        # to'liq suite
 python manage.py test ai.documents courses core.tests.TeacherPanelTests   # nuqtali misollar
+
+# DIQQAT: testni har doim `.env.local`siz yugurtiring — aks holda haqiqiy
+# GEMINI_API_KEY yuklanadi va testlar bepul kvotani sarflaydi.
+AZURELMS_SKIP_ENV_FILE=1 GEMINI_API_KEY= TELEGRAM_BOT_TOKEN= python manage.py test
+
+# A8 concurrency proofi fayl bazasini talab qiladi (default in-memory'da skip bo'ladi)
+AZURELMS_TEST_FILE_DB=1 python manage.py test aicontrol.test_supply_concurrency
 ```
 
-2026-08-14 post-A8 local evidence: tashqi provider kalitlari yuklanmagan offline rejimda full suite **527/527 OK**, `manage.py check` — 0 issue, migration drift — yo'q, `system_audit` — **10/10 GREEN**. Bu local evidence; production readiness uchun security/CI/restore, real DB-concurrency va alohida production admission gate'lari qoladi.
+2026-08-15 local evidence: tashqi provider kalitlari yuklanmagan offline rejimda full suite **536 test — OK (skipped=6)**, `manage.py check` — 0 issue, migration drift — yo'q, `system_audit` — **10/10 GREEN**. Skip qilinganlar — fayl bazasini talab qiladigan concurrency testlari; ular `AZURELMS_TEST_FILE_DB=1` bilan **9/9 OK**. Bu local evidence; production readiness uchun security/CI/restore, PostgreSQL concurrency proofi va alohida production admission gate'lari qoladi.
 
 ---
 

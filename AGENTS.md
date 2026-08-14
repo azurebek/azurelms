@@ -63,6 +63,10 @@ python manage.py runserver
 python manage.py check
 python manage.py test <changed-app>
 
+# DIQQAT — testni har doim `.env.local`siz yugurtiring: aks holda haqiqiy
+# GEMINI_API_KEY yuklanadi va testlar bepul kvotani sarflaydi.
+AZURELMS_SKIP_ENV_FILE=1 GEMINI_API_KEY= TELEGRAM_BOT_TOKEN= python manage.py test
+
 # RAG indeks
 python manage.py reindex_rag --force
 
