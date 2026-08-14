@@ -355,6 +355,7 @@ class _MessengerRoomView(LoginRequiredMixin, TemplateView):
         context["chat_locked"] = self.active_room in {"group", "tutor"} and active_chat_room is None
         if self.active_room == "ai":
             context["ai_skills"] = SkillRegistry().all()
+            context["ai_model_choices"] = self.request.user.effective_ai_model_choices()
             context["active_context_lesson"] = self._active_context_lesson()
         return context
 

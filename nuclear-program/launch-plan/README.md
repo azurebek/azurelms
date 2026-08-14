@@ -2,7 +2,7 @@
 
 **Maqsad:** 20-sentyabr 2026 — loyiha taqdimoti, boshqariladigan beta uchun dalil va production `GO/HOLD/NO-GO` qarori. **Joriy rebaseline:** 2026-08-14. Public production deploy bu sananing avtomatik natijasi emas.
 
-> **Owner resurs qarori — 2026-08-14:** DigitalOcean kreditlari bekor qilingan. Production alohida qayta admission olmaguncha DigitalOcean App Platform, Serverless Inference, Managed DB/Valkey yoki Spaces ishlatilmaydi. Adapter kodi o'chirilmaydi, lekin dormant qoladi. Bu HOLD hozir env config va bo'sh credential bilan ta'minlangan; AI provider tanlovida hali code-level fail-closed policy yo'q, shuning uchun A8/A1a buni enforcement testiga aylantiradi. Local/pre-production profil `AI_CHAT_PROVIDER=gemini`, lokal DB/cache/storage va Telegram polling mode bilan ishlaydi. Gemini free-tier “bepul va cheksiz” emas — loyiha request/token budjetini tejaydigan hard guardrail qurmaguncha ommaviy AI rollout qilinmaydi.
+> **Owner resurs qarori — 2026-08-14:** DigitalOcean kreditlari bekor qilingan. Production alohida qayta admission olmaguncha DigitalOcean App Platform, Serverless Inference, Managed DB/Valkey yoki Spaces ishlatilmaydi. Adapter kodi o'chirilmaydi, lekin dormant qoladi. Provider factory `AI_ALLOW_DIGITALOCEAN=False` defaulti bilan DO'ni provider yaratilishidan oldin, noma'lum providerlarni esa doim fail-closed rad etadi. Local/pre-production profil `AI_CHAT_PROVIDER=gemini`, lokal DB/cache/storage va Telegram polling mode bilan ishlaydi. Gemini free-tier “bepul va cheksiz” emas; A8 hard guardi implement/test qilingan, real DB contention va production admission evidence tugamaguncha ommaviy AI rollout ochilmaydi.
 
 **Model:** platforma mustaqil o'rgatuvchi SaaS emas — **Azurbekning jonli onlayn turk tili kursining operatsion tizimi**. Jonli dars Telegram video chatda qoladi; platforma enrollment, davomat, dars release, vazifa, quiz, mock, progress, AI yordamchi, muloqot va to'lov oqimlarini bitta haqiqatga bog'laydi.
 
@@ -51,18 +51,18 @@ Bu natijalardan kamida biri real cohortda o'lchanmaguncha AI kurs narxini oshiri
 
 | Yo'nalish | Joriy holat | Keyingi gate |
 |---|---|---|
-| Local runtime | `LOCAL BOOT VERIFIED`: SQLite, LocMem/in-memory, eager Celery, local media; DO credential/service yo'q; 2026-08-14 full suite 467/467 | Lokal rejimni remote xizmatga jim o'tkazmaslik testi; production gate alohida |
-| AI provider | Gemini barcha oddiy chat, web grounding va embeddinglar uchun primary | `A8` free-tier budget mode; hozirgi 9-model/2-urinish zanjiri qisqarmaguncha scale yo'q |
+| Local runtime | `LOCAL BOOT VERIFIED`: SQLite, LocMem/in-memory, eager Celery, local media; DO credential/service yo'q; post-A8 offline full suite 524/524 va audit 10/10 GREEN | Production gate alohida |
+| AI provider | Gemini primary; allowlistdagi 1 primary + max 1 fallback, SDK retry off, `429`da 1 attempt/cooldown | `A8` **`IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`**; real DB contention proof va production admission alohida |
 | A0 security | A0a Telegram auth/webhook/inactive-staff qismi kodda | A0b private media, upload va WebSocket access recheck |
 | A1 runtime/CI | `PLANNED`; `.github/workflows`, `.dockerignore`, readiness yo'q | Vendor-neutral local/CI gate; cloud deploy `HOLD` |
-| A2 Control Center | Read-only foundation + brand va landing mutation surface'lari bor | Global flags, release/audit, worker heartbeat va AI budget stoplight |
+| A2 Control Center | Read-only foundation + brand/landing mutation surface'lari + AI supply budget/cooldown stoplight bor | Global flags, release/audit va worker heartbeat |
 | Telegram | F0–F9, outbox va Mini App foundation bor | Local polling QA; webhook/public deploy `HOLD` |
 | Landing editor | Bosqich 1 + bo'lim navigatsiyasi bor | Repeatable ro'yxatlar faqat core gate'lardan keyin |
 | SIT | S1, S3 va S4 kodda; S2 yo'q | `SITInquiry` lifecycle; real data gigiyenasi |
 
 ## Rebaseline ustuvorligi
 
-1. **A8 — Gemini free-tier budget mode:** barcha Gemini call-pathlari hisoblanadi; cheap-model allowlist, request/token cap, one-fallback, idempotency va 429 cooldown ishlaydi.
+1. **A8 closeout — `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`:** barcha joriy Gemini call-pathlari ledgerga ulangan; free-model allowlist, kunlik/minute request va kunlik token cap, one-fallback, idempotency va 429 cooldown ishlaydi. Offline full suite 524/524 va local audit 10/10 GREEN; ikki DB backenddagi haqiqiy concurrent contention proof tugamaguncha A8 production-concurrency bo'yicha yopilmaydi.
 2. **A0b + vendor-neutral A1:** private media/upload/access; `.dockerignore`, CI, readiness va restore proof. Cloud xizmati shart emas.
 3. **A2 Control Center:** effective config, capability registry, flags/kill switches, event/audit ledger, health, AI quota va release gate.
 4. **Canonical oqimlar + mobil oltin yo'l:** enrollment, lesson lifecycle, access, submission/review va notificationlar shared policy/state machine orqali; real qurilma parity.
@@ -70,6 +70,8 @@ Bu natijalardan kamida biri real cohortda o'lchanmaguncha AI kurs narxini oshiri
 6. **Production va monetizatsiya:** hosting/provider faqat yangi owner qarori, learning evidence, reliability va iqtisod gate'idan keyin.
 
 Prompt-only `word_builder`, `conversation_partner`, yangi model picker, streak/PWA bezaklari va chuqur SRS avtomatikasi yuqoridagi qatlamlardan oldinga chiqmaydi.
+
+**A8 model lifecycle:** primary `gemini-3.1-flash-lite`; `gemini-2.5-flash-lite` faqat vaqtinchalik fallback. 2.5 Lite uchun public shutdown sanasi e'lon qilinmagan; 2026-10-16 — internal remove/migrate review deadline. 2026-08-14 `AzureAI` Free-tier snapshotida 3.1 Lite `15 RPM / 250K TPM / 500 RPD`, 3.7 Flash `5 RPM / 250K TPM / 20 RPD`; shu sabab 3.7 hozir admit qilinmagan. External quota dynamic/account-specific, Control Center budgetlari esa loyiha ichki hard guardlari.
 
 ## Status tili
 
@@ -81,6 +83,7 @@ Prompt-only `word_builder`, `conversation_partner`, yangi model picker, streak/P
 - `IN PROGRESS` — owner/branch va test yo'li aniq;
 - `EVIDENCE READY` — test, browser/production evidence va metric mavjud;
 - `BLOCKED` — tashqi qaror yoki critical bog'liqlik yetishmaydi.
+- `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` — kod, targeted offline testlar va post-change local full suite yashil; real-device/production yoki concurrency evidence tugamagani uchun bu hali `EVIDENCE READY` yoki production `GO` emas.
 
 Sana o'tgani task tugaganini anglatmaydi. Exit kriteriydan o'tmagan faza yopilmaydi; keyingi faza scope'i qisqaradi.
 

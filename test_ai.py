@@ -1,20 +1,15 @@
-import os
-
-from dotenv import load_dotenv
-from google import genai
-
-
 def main():
-    load_dotenv()
-    api_key = os.getenv("GEMINI_API_KEY")
-    client = genai.Client(api_key=api_key)
+    """Legacy live diagnostic intentionally disabled in free-tier mode.
 
-    print("\nAPI kalitida ishlaydigan modellar ro'yxati:\n")
-    try:
-        for model in client.models.list():
-            print(f"Model: {model.name}")
-    except Exception as exc:
-        print(f"XATOLIK: {exc}")
+    Provider/model compatibility is covered by mocked tests. Ad-hoc model-list
+    calls bypassed the project budget ledger and could consume quota merely by
+    running this helper, so this file is now a safe explanatory entry point.
+    """
+    print(
+        "Live Gemini model-list diagnostikasi o'chirilgan: u global supply "
+        "ledgerini chetlab o'tardi. Offline tekshiruv uchun "
+        "`python manage.py test ai.providers.tests` ni ishlating."
+    )
 
 
 if __name__ == "__main__":

@@ -101,7 +101,7 @@
             </div>
             <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;">AI modeli</div>
             <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
-              {% for value, label in request.user.AI_MODEL_CHOICES %}
+              {% for value, label in ai_model_choices %}
               <button type="button" data-ai-model-option="{{ value }}" class="feedback-btn{% if request.user.ai_model == value %} active{% endif %}" style="font-size:11.5px;">{{ label }}</button>
               {% endfor %}
             </div>

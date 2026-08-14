@@ -116,6 +116,9 @@ class MemoryRepository:
             vectors = embed_texts(
                 [f"{fact.category}: {fact.value}"],
                 embedding_model=DEFAULT_EMBEDDING_MODEL,
+                call_type="memory_embedding",
+                user=fact.user,
+                request_key=f"memory-write:fact:{fact.pk}",
             )
         except Exception:
             return

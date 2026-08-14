@@ -45,7 +45,13 @@ def parse_llm_json(text: str) -> Dict[str, Any]:
 
 class BaseExtractor:
     def extract(
-        self, text: str, form_class: Type[BaseSmartForm], current_state: Dict[str, Any]
+        self,
+        text: str,
+        form_class: Type[BaseSmartForm],
+        current_state: Dict[str, Any],
+        *,
+        request_key: str | None = None,
+        user=None,
     ) -> Dict[str, Any]:
         """Matndan maydonlarni ajratadi.
 
@@ -60,6 +66,7 @@ class LLMExtractor(BaseExtractor):
 
     def __init__(self, provider=None):
         self._provider = provider
+        self._provider_injected = provider is not None
 
     @property
     def provider(self):
@@ -102,7 +109,13 @@ class LLMExtractor(BaseExtractor):
         return "\n".join(lines)
 
     def extract(
-        self, text: str, form_class: Type[BaseSmartForm], current_state: Dict[str, Any]
+        self,
+        text: str,
+        form_class: Type[BaseSmartForm],
+        current_state: Dict[str, Any],
+        *,
+        request_key: str | None = None,
+        user=None,
     ) -> Dict[str, Any]:
         fields_state = current_state.get("fields", {})
         target_fields = {
@@ -115,7 +128,23 @@ class LLMExtractor(BaseExtractor):
 
         prompt = self._build_prompt(text, target_fields, fields_state)
         try:
-            response = self.provider.generate(prompt=prompt)
+            if self._provider_injected:
+                # Explicit test/dependency injection remains a pure unit seam: no
+                # project ledger or remote provider is created implicitly.
+                response = self.provider.generate(prompt=prompt)
+            else:
+                from aicontrol.models import AISupplyEvent
+                from aicontrol.supply import execute_provider_call, fingerprint_request
+
+                response = execute_provider_call(
+                    self.provider,
+                    request_key=request_key
+                    or fingerprint_request("smart-form", text, current_state),
+                    call_type=AISupplyEvent.CALL_SMART_FORM,
+                    prompt=prompt,
+                    user=user,
+                    metadata={"component": "smart_form_extractor"},
+                )
             data = parse_llm_json(response.text)
         except Exception as exc:
             logger.warning("SmartForm LLMExtractor xatosi: %s", exc)

@@ -67,10 +67,11 @@ Source of truth har doim **kod** (model/view/task/URL/test). Bu fayl kodga mosla
 | Qism | Texnologiya |
 |---|---|
 | Joriy chat provider | `AI_CHAT_PROVIDER=gemini`; oddiy chat ham, grounding ham Gemini'ga boradi |
-| Qo'llab-quvvatlanadigan adapter | DigitalOcean Serverless Inference adapteri kodda bor, ammo pre-production'da kalitsiz va HOLD; HOLD hali code-level fail-closed emas |
-| Chat models | Gemini user tanlovi; free-tier allowlist/attempt cap A8 gate'ida hali implement qilinmagan |
+| Qo'llab-quvvatlanadigan adapter | DigitalOcean Serverless Inference adapteri kodda bor, ammo `AI_ALLOW_DIGITALOCEAN=False` defaulti bilan owner admissionigacha provider factoryda fail-closed HOLD |
+| Chat models | Primary `gemini-3.1-flash-lite`; temporary fallback `gemini-2.5-flash-lite`; free allowlist shu 2 ta, logical request maksimum 2 physical attempt |
 | Embedding | `gemini-embedding-001`, 768 dimensions |
-| Web search | Gemini grounding / `google_search`; free-tier rejimida faqat explicit va hisoblangan bo'lishi A8 maqsadi |
+| Web search | Gemini grounding / `google_search`; free-tier rejimida explicit/medium routing bilan ledgerda hisoblanadi, `heavy` default-off |
+| Global supply | `AISupplyEvent` reservation/reconciliation + `AISupplyState` 429 cooldown; daily/minute request va daily token internal hard budget |
 | Memory | structured `AIMemoryFact`, traces, summaries, semantic scoring |
 | RAG | `LessonRAGChunk`, course/lesson scoped retrieval |
 
@@ -189,15 +190,15 @@ ai/
 
 ### `aicontrol`
 
-**Joriy mas'uliyat:** AI token usage siyosati va admin amallari. `AISettings` global enforcement/default limitlarni, `AIPlanPolicy` tarif limitlarini, `AIUserAllowance` user override/reset/bonus/blok holatini, `AIUsageResetEvent` esa reset/bonus auditini saqlaydi.
+**Joriy mas'uliyat:** per-user AI token allowance va project-wide remote supply siyosati/admin amallari. `AISettings` per-user defaultlar bilan birga global supply enforcement, daily/minute request, daily token, cooldown, guest/heavy switchlarini saqlaydi. `AIPlanPolicy`, `AIUserAllowance`, `AIUsageResetEvent` product allowance/auditini; `AISupplyEvent` har logical remote call reservation/reconciliation'sini; `AISupplyState` global provider circuit'ini saqlaydi.
 
 **Joriy UI:** `/backoffice/ai-control/` token usage, global/plan limit va reset/bonusni boshqaradi; blocked userlar sonini ko'rsatadi, lekin shu sahifada per-user block mutation'i yo'q. Per-user blok amali bot yoki admin orqali. `default_model` va `default_effort` modelda saqlanadi, ammo runtime provider ularni o'qimaydi va template ularni edit input sifatida render qilmaydi.
 
-**Joriy Control Center foundation (2026-07-22):** owner-only `/backoffice/control/` `core/control_center/`dagi bitta read-only capability registry va snapshot servisidan foydalanadi. DB, cache, Channels, Celery config, Telegram outbox, media, AI provider/effective token policy, RAG, security va release identity GREEN/AMBER/RED sabab bilan ko'rinadi. Shu snapshot terminalda `python manage.py system_audit [--json] [--fail-on red|amber|never]` orqali ham ishlaydi; web va CLI alohida health mantiq yozmaydi.
+**Joriy Control Center foundation (2026-08-14):** owner-only `/backoffice/control/` `core/control_center/`dagi bitta read-only capability registry va snapshot servisidan foydalanadi. DB, cache, Channels, Celery config, Telegram outbox, media, AI provider/effective token policy, RAG, security va release identity GREEN/AMBER/RED sabab bilan ko'rinadi. AI probe free-tier/DO admission, supply enforcement, daily request/token va minute request used/limit/remaining, attempt/event holati va cooldownni ham ko'rsatadi. Shu snapshot terminalda `python manage.py system_audit [--json] [--fail-on red|amber|never]` orqali ishlaydi; web va CLI alohida health mantiq yozmaydi.
 
-**Joriy chegarasi:** bu foundation mutation qilmaydi. Append-only `SystemAuditEvent`, system-wide feature flag/kill switch, active worker/beat heartbeat, `ReleaseRecord`, backup/email/memory probe, cost ledger va AI quality release gate hali mavjud emas. `/backoffice/ai-control/` compatibility control path sifatida Control Center'dan ochiladi, lekin hozircha alohida sahifa.
+**Joriy chegarasi:** Control Center foundation mutation qilmaydi. Supply policy `AISettingsAdmin` orqali edit qilinadi, `AISupplyEvent`/`AISupplyState` adminlari read-only. Append-only umumiy `SystemAuditEvent`, system-wide feature flag/kill switch, active worker/beat heartbeat, `ReleaseRecord`, backup/email/memory probe, money cost ledger va AI quality release gate hali mavjud emas. `/backoffice/ai-control/` compatibility control path sifatida Control Center'dan ochiladi, lekin hozircha alohida sahifa.
 
-**2026-08-14 local audit:** `system_audit --json --fail-on never` 10/10 GREEN qaytardi. Bu faqat joriy local konfiguratsiya tekshiruvi; production readiness yoki Gemini free-tier kvotasi yetarliligini isbotlamaydi.
+**2026-08-14 A8 holati:** **`IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`**. Supply/provider/caller target testlari va provider credential/env-file loading o'chirilgan full suite 524/524 o'tgan; local `system_audit` 10/10 GREEN. Bu production readiness yoki SQLite/PostgreSQL true concurrent contention proof emas. Shu sanadagi `AzureAI` Free-tier AI Studio snapshoti: 3.1 Flash Lite `15 RPM / 250K input TPM / 500 RPD`; 3.7 Flash `5 RPM / 250K input TPM / 20 RPD`. Tashqi quota account/project holatiga bog'liq va dynamic.
 
 ### `subscriptions`
 
@@ -369,8 +370,11 @@ WebSocket receive
   → room group echo
   → if room_type == ai or text contains @azure
   → generate_ai_response Celery task
-  → AIResponseRun running
+  → AIResponseRun idempotency check/create
+  → main provider supply pre-reservation
   → AIEngine.generate_reply
+      → memory/RAG auxiliary calls (supply-gated, fail-soft)
+      → reserved provider call + reconciliation
   → Message create is_ai_response=True
   → AIResponseRun succeeded/fallback/failed
   → broadcast AI message + status
@@ -384,7 +388,7 @@ AI room nomi birinchi prompt'dan avtomatik o'zgarishi mumkin (`maybe_name_ai_roo
 - Local'da polling default. Production webhook, unique secret, doimiy outbox process va prod bot admission'i production qayta ochilguncha HOLD.
 - Teacher `/start_lesson` qiladi → `TelegramLessonSession` yaratiladi; talabalar check-in qiladi → `TelegramLessonCheckIn`; natija LMS `Attendance`ga bog'lanadi.
 - Multi-step assignment/quiz holati DB'dagi `BotPendingAction` orqali restart-safe saqlanadi.
-- Guest AI demo provider'ni bevosita chaqiradi va hozir 5 savol bilan cheklangan; A8 telemetry/budget ledger'iga ulanmaguncha default-off yoki yanada qat'iy cap kerak.
+- Guest AI demo `AISettings.guest_demo_enabled=False` bilan default-off va 5 savol counteriga ega. Owner yoqsa runtime call `AISupplyEvent.CALL_BOT_GUEST` orqali global pre-reservation/reconciliation'dan o'tadi; injected provider faqat test seam'i. Counter update'i uchun to'liq concurrent lock/lease hali yo'q.
 
 ### 4.10 Backoffice
 
@@ -441,7 +445,7 @@ Owner-only Azure Control Center'ning read-only registry/snapshot qatlami joriy U
 5. **Relevant memory:** top-7 fakt (lexical/semantic/vector scoring)
 6. **RAG context:** pgvector → fallback dot-product
 7. **Prompt build:** system + tone + skill instr + memory + summary + lesson + RAG + tool + user question. `is_first_message` flag salomlashish qoidasi uchun
-8. **Provider call:** `provider.generate(prompt, selected_model, enable_web_search)`. Joriy `AI_CHAT_PROVIDER=gemini` sabab oddiy chat ham Gemini'ni ishlatadi; “Gemini faqat web search” farazi joriy runtime uchun to'g'ri emas.
+8. **Provider call:** task yaratgan main supply reservation routingdan keyin `chat` yoki `web_search`ga aniqlashtiriladi, so'ng `execute_reserved_provider_call(...)` providerga chiqadi va usage/attempt bilan reconcile qiladi. Direct engine test/custom caller bo'lsa `execute_provider_call(...)` o'zi reserve qiladi. Joriy `AI_CHAT_PROVIDER=gemini` sabab oddiy chat ham Gemini'ni ishlatadi; “Gemini faqat web search” farazi joriy runtime uchun to'g'ri emas.
 9. **Memory extraction:** AI reply ichidagi `<SAVE_MEMORY>` taglar
 10. **Memory save:** `AIMemoryFact` dedupe + trace
 11. **Reply sanitize:** markdown/source/greeting cleanup (`_sanitize_reply` — `(Manba N)` strip, trailing `Manbalar:` strip, follow-up'da leading salom strip)
@@ -522,6 +526,8 @@ python manage.py reindex_ai_memory --force
 
 Embedding cache: 7 kun.
 
+Cache miss bo'lsa `embed_texts` bitta remote batchdan oldin supply reservation qiladi, SDK retry'siz chaqiradi va usage metadata bo'lmasa konservativ token reservationni charge qiladi. RAG query `rag_embedding`, memory query/write `memory_embedding`, lesson/manual reindex esa `reindex` call type'ida. Cache hit remote request va supply yozuvi sarflamaydi. Supply denial/provider xatosida query cache/lexical/no-vector yo'liga yumshoq degradatsiya qiladi; memory write fakti vektorsiz saqlanadi. Lesson reindex eski chunklarni yangi embedding tayyor bo'lmaguncha o'chirmaydi, ammo parallel lesson batch'lari uchun to'liq lease/claim hali yo'q.
+
 ### 5.5 Web search effort tiers
 
 Foydalanuvchi `/users/settings/` da tanlaydi (`CustomUser.ai_web_search_effort`):
@@ -530,7 +536,7 @@ Foydalanuvchi `/users/settings/` da tanlaydi (`CustomUser.ai_web_search_effort`)
 |---|---|
 | `light` (default) | Faqat aniq keyword (qidir, bugungi, kursi qancha, ob-havo) |
 | `medium` | Light + **pair detection**: vaqt belgisi (`hozir`/`bugun`/`kechagi`) + ma'lumot belgisi (`narx`/`kim`/`natija`) birga uchrasa majburiy web_search |
-| `heavy` | Joriy Gemini provider'da har savolda `google_search` yoqiladi; A8 free-tier budget mode implement bo'lguncha bu owner tomonidan production'ga admit qilinmagan qimmat rejim |
+| `heavy` | Free-tier mode'da UI va mutation endpointdan chiqarilgan, runtime policy ham default-off; faqat owner `heavy_search_enabled`ni va non-free policy'ni ataylab admission qilsa ishlaydi |
 
 Manbalar javob matnida ko'rsatilmaydi. Telemetry'da saqlanadi:
 - `web_search_enabled`
@@ -540,9 +546,10 @@ Manbalar javob matnida ko'rsatilmaydi. Telemetry'da saqlanadi:
 ### 5.6 Tone, model, telemetry
 
 - **Tone:** `friendly` / `formal` / `brief` / `detailed` — prompt builder ohangni o'zgartiradi
-- **Provider:** joriy local profil `AI_CHAT_PROVIDER=gemini`. DigitalOcean'ning OpenAI-compatible adapteri kodda saqlanadi, ammo pre-production'da kalitsiz/HOLD
-- **Model:** Gemini'da user setting `ai_model`; free-tier model allowlist va 429 fail-fast A8 gate'ida hali yo'q. Provider ishlamasa user'ga yumshoq fallback javob qaytadi
-- **Telemetry:** `AIResponseRun` asosiy messenger javobining status/model/skill/duration/token va context metadata'sini saqlaydi. SmartForm extractor, guest demo va embedding chaqiriqlari to'liq ledgerga kirmaydi; global request/day, RPM, retry/failure va grounding hisoboti A8 gap'i
+- **Provider:** joriy local profil `AI_CHAT_PROVIDER=gemini`. DigitalOcean adapteri kodda saqlanadi, ammo pre-production'da kalitsiz/HOLD; `AI_ALLOW_DIGITALOCEAN=False` bo'lsa factory provider yaratmasdan rad etadi. Noma'lum provider ham fail-closed
+- **Model:** free allowlist `gemini-3.1-flash-lite` primary + temporary `gemini-2.5-flash-lite` fallback. Userdagi eski/Pro/preview tanlov runtime va settings UI'da allowlistga clamp qilinadi. Google hozir 2.5 Flash-Lite shutdown sanasini e'lon qilmagan; 2026-10-16 ichki review deadline'ida fallback remove/migrate uchun qayta baholanadi
+- **Provider bound:** SDK retry off; 429/quota/billing `1` attemptda fail-fast+circuit; boshqa xatoda jami `≤2`; output `640`, prompt `12,000` belgi, timeout `8s`, deadline `20s`
+- **Telemetry:** `AIResponseRun` main messenger javobining status/model/skill/duration/token/context va idempotency'sini saqlaydi. Alohida `AISupplyEvent` chat/search/SmartForm/guest/RAG-memory embedding/reindexning reserved/actual request-token, failure va user/call-type accountingini saqlaydi; `AISupplyState` cooldown circuit holati. Control Center aggregate snapshot beradi
 
 ---
 
@@ -809,6 +816,15 @@ Mini App sahifalari `templates/bot/miniapp_base.html` mobil shellini ulashadi. T
 | `CELERY_TASK_ALWAYS_EAGER` | local eager task override |
 | `GEMINI_API_KEY` | Joriy chat, grounding va embeddings; secret qiymat git'ga kirmaydi |
 | `AI_CHAT_PROVIDER` | Joriy local qiymat `gemini`; `digitalocean` adapteri supported, ammo HOLD |
+| `AI_FREE_TIER_MODE` | Default `True`; admitted model va qimmat search UI/runtime siyosatini toraytiradi |
+| `GEMINI_FREE_MODEL_ALLOWLIST` | `gemini-3.1-flash-lite,gemini-2.5-flash-lite`; boshqa user model tanlovi clamp qilinadi |
+| `GEMINI_PRIMARY_MODEL` | Default `gemini-3.1-flash-lite` |
+| `GEMINI_FALLBACK_MODEL` | Temporary `gemini-2.5-flash-lite`; announced shutdown yo'q, 2026-10-16 internal review |
+| `GEMINI_MAX_OUTPUT_TOKENS` / `GEMINI_MAX_PROMPT_CHARS` | Default `640` / `12000` |
+| `GEMINI_REQUEST_TIMEOUT_MS` / `GEMINI_DEADLINE_MS` | Default `8000` / `20000` |
+| `GEMINI_EMBEDDING_TIMEOUT_MS` | Default `8000`; embedding SDK retry off |
+| `GEMINI_EMBEDDING_MAX_INPUTS` / `GEMINI_EMBEDDING_MAX_INPUT_CHARS` / `GEMINI_EMBEDDING_MAX_BATCH_CHARS` | Default `64` / `8000` / `64000` |
+| `AI_ALLOW_DIGITALOCEAN` | Default `False`; explicit owner production admissionisiz factory DO provider bermaydi |
 | `DIGITALOCEAN_INFERENCE_API_KEY` | Pre-production'da bo'sh; production qayta ochilganda qayta baholanadi |
 | `DIGITALOCEAN_INFERENCE_MODEL` | Dormant DigitalOcean chat modeli, default `router:general` |
 | `DIGITALOCEAN_INFERENCE_MODEL_FALLBACKS` | Dormant DigitalOcean chat model fallbacklari |
@@ -835,10 +851,12 @@ Mini App sahifalari `templates/bot/miniapp_base.html` mobil shellini ulashadi. T
 - Default S3 media storage `public-read` va unsigned URL ishlatadi; protected upload klasslari hozir alohida private storage'ga ajratilmagan.
 - `.github/workflows` va `/healthz` endpoint hozir yo'q.
 - `TelegramOutbox` modeli/command'i bor, lekin Procfile'da doimiy process yo'q; worker atomic claim/lease qilmaydi, shuning uchun hozir aynan 1 replica xavfsizroq.
-- `AIResponseRun` status, model, skill, token, duration, metadata va errorni saqlaydi; pul qiymati va quality release gate saqlanmaydi.
-- Read-only capability registry/snapshot bor; umumiy append-only `SystemAuditEvent`, active service heartbeat va `ReleaseRecord` hozir yo'q.
-- Gemini provider 9 modelgacha fallback va har modelga 2 urinish qilishi mumkin; global deadline/circuit breaker, request/day/RPM hard cap, output cap va free-tier allowlist hozir yo'q.
-- Per-user token limitlari upstream free-tier request kvotasini himoya qilmaydi: ular javobdan keyin hisoblanadi, staff default exempt va guest/embedding kabi call-pathlar to'liq ledgerda emas.
+- `AIResponseRun` status, model, skill, token, duration, metadata, error va idempotency keyni saqlaydi; pul qiymati va quality release gate saqlanmaydi.
+- Read-only capability registry/snapshot AI supply daily request/token, minute request va cooldown stoplightini ham ko'rsatadi; umumiy append-only `SystemAuditEvent`, active service heartbeat va `ReleaseRecord` hozir yo'q.
+- Gemini provider allowlistdagi 1 primary + max 1 fallback bilan bounded; SDK retry off, `429` bir attemptda fail-fast/circuit. Prompt/output/timeout/deadline caplari implement/test qilingan; post-A8 local full regression 524/524.
+- Per-user allowance upstream supply emas. Alohida `AISupplyEvent` global daily+minute request va daily token hard budgetini pre-reserve qiladi, staff va auxiliary calllarni ham qamraydi; ledger DB xatosida remote call fail-closed.
+- SQLite va PostgreSQL'da haqiqiy parallel-process reservation contention/transaction proof testi pending. SmartForm/guest counterlari hamda lesson reindex batch'lari uchun to'liq concurrency lease/claim yo'q.
+- Ichki minute request cap tashqi quota o'rnini bosmaydi. 2026-08-14 AI Studio snapshotida 3.1 Flash Lite `15 RPM / 250K TPM / 500 RPD`, 3.7 Flash `5 RPM / 250K TPM / 20 RPD`; shu sabab 3.7 allowlistga admit qilinmagan. `gemini-2.5-flash-lite` fallbacki 2026-10-16 ichki review deadline'ida qayta baholanadi. Joriy Gemini vision unavailable.
 - CSP config django-csp v4 formatiga ko'chirilmagan; middleware order sabab Mini App middleware yaratgan `frame-ancestors` headeri keyingi full policy'ni chetlab o'tishi ham mumkin. Normal sahifa, Mini App entry va authenticated Mini App'da full response-header test, Telegram script/frame allowlist va browser smoke A0b release blocker'i.
 
 ### `.env.local` namunasi (git'ga kirmaydi)
@@ -850,7 +868,16 @@ SECURITY_STRICT=False
 LOCAL_USE_REMOTE_SERVICES=False
 USE_S3=False
 AI_CHAT_PROVIDER=gemini
+AI_FREE_TIER_MODE=True
+GEMINI_FREE_MODEL_ALLOWLIST=gemini-3.1-flash-lite,gemini-2.5-flash-lite
+GEMINI_PRIMARY_MODEL=gemini-3.1-flash-lite
+GEMINI_FALLBACK_MODEL=gemini-2.5-flash-lite
+GEMINI_MAX_OUTPUT_TOKENS=640
+GEMINI_MAX_PROMPT_CHARS=12000
+GEMINI_REQUEST_TIMEOUT_MS=8000
+GEMINI_DEADLINE_MS=20000
 GEMINI_API_KEY=
+AI_ALLOW_DIGITALOCEAN=False
 DIGITALOCEAN_INFERENCE_API_KEY=
 EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 ```
@@ -936,15 +963,19 @@ python manage.py runserver
 python manage.py runbot
 
 # Tekshiruvlar
-python manage.py check
 python manage.py migrate
+python manage.py check
+python manage.py makemigrations --check --dry-run
+python manage.py system_audit --json --fail-on never
 
-# RAG indeks
+# RAG/memory indeks — Gemini credential va supply budget ataylab ochiq bo'lsa
 python manage.py reindex_rag --force
 python manage.py reindex_rag --course-id 5 --force
+python manage.py reindex_ai_memory --force
 
 # Test
 python manage.py test
+python manage.py test ai.providers.tests aicontrol.tests messenger.test_embedding_supply
 python manage.py test messenger
 python manage.py test users.tests.DashboardProgressTests
 ```
@@ -961,8 +992,10 @@ python manage.py test users.tests.DashboardProgressTests
 6. **YouTube embed:** owner embed bloklasa platforma majburlab ocholmaydi — fallback UX kelajakda kerak bo'lishi mumkin.
 7. **SIT data gate:** qabul, narx va viza kabi vaqtga sezgir public ma'lumot `source_url` va `last_verified_on`siz nashr qilinmaydi. `playground/SIT/` runtime emas.
 8. **`.gitignore`:** `.claude/`, `.tools/`, `.codex/`, `__pycache__/`, `*.pyc`, `db.sqlite3`, `media/`, `venv/`, `.env` va `.env.local`.
-9. **2026-08-14 resurs qarori:** production va DigitalOcean integration'i HOLD; local ish davom etadi. Gemini barcha joriy AI call-pathlar uchun upstream bo'lgani sabab A8 free-tier budget gate boshqa AI feature'lardan oldin yopiladi.
+9. **2026-08-14 resurs/A8 qarori:** production va DigitalOcean integration'i HOLD; local ish davom etadi. A8 supply guard **`IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`** (524/524; audit 10/10); SQLite/PostgreSQL true concurrency proofdan oldin yangi AI behavior yoki ommaviy rollout yo'q.
 10. **Joriy vision chegarasi:** `image_qa` skill mavjud, lekin Gemini adapteri vision'ni qo'llamaydi; rasm tahlili current capability emas.
+11. **Schema:** `aicontrol/0002_ai_supply_budget`, `messenger/0014_ai_response_idempotency`, `users/0015_free_tier_model_default` va `users/0016_alter_notification_options` local SQLite'ga apply qilingan.
+12. **Model lifecycle:** primary `gemini-3.1-flash-lite`; temporary `gemini-2.5-flash-lite` uchun announced shutdown yo'q, ammo 2026-10-16 internal reviewda remove yoki yangi admitted modelga migrate qarori olinadi. 3.7 Flash joriy project snapshotidagi 20 RPD sabab hozir admit qilinmagan.
 
 ---
 

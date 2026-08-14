@@ -20,6 +20,7 @@ from ai.documents import (
 )
 from ai.skills.registry import SkillRegistry
 from messenger.models import ChatRoom, Message
+from messenger.signals import suppress_ai_signal
 
 User = get_user_model()
 TEMP_MEDIA = tempfile.mkdtemp(prefix="azurelms_test_media_")
@@ -176,7 +177,7 @@ class GenerateAiResponsePdfFlowTests(TestCase):
         self.assertIn("gitmek", extracted)
 
     def test_uploaded_pdf_reaches_engine_as_document_context(self):
-        with self.settings(MEDIA_ROOT=TEMP_MEDIA):
+        with self.settings(MEDIA_ROOT=TEMP_MEDIA), suppress_ai_signal():
             upload_message = Message.objects.create(
                 room=self.room,
                 sender=self.student,
@@ -219,14 +220,15 @@ class GenerateAiResponseImageFlowTests(TestCase):
         )
 
     def test_uploaded_image_reaches_engine_as_data_url(self):
-        upload_message = Message.objects.create(
-            room=self.room,
-            sender=self.student,
-            text="",
-            attachment=ContentFile(_sample_png_bytes(), name="foto.png"),
-            attachment_name="foto.png",
-            attachment_content_type="image/png",
-        )
+        with suppress_ai_signal():
+            upload_message = Message.objects.create(
+                room=self.room,
+                sender=self.student,
+                text="",
+                attachment=ContentFile(_sample_png_bytes(), name="foto.png"),
+                attachment_name="foto.png",
+                attachment_content_type="image/png",
+            )
 
         captured = {}
 

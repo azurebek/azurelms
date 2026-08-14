@@ -4,7 +4,7 @@
 
 Django 6 · Channels (WebSocket) · Celery · Google Gemini (joriy local AI) · SQLite (lokal) · PostgreSQL + pgvector (future prod)
 
-> **2026-08-14 resurs holati:** loyiha LOCAL/PRE-PROD. DigitalOcean hosting, Spaces va inference ishlatilmaydi; adapter kodi keyingi production qarorigacha dormant. Gemini bepul kvotasi hard constraint, shu sabab yangi AI imkoniyatlaridan oldin global budget/telemetry gate yopiladi.
+> **2026-08-14 resurs holati:** loyiha LOCAL/PRE-PROD. DigitalOcean hosting, Spaces va inference ishlatilmaydi; adapter kodi keyingi production qarorigacha dormant va `AI_ALLOW_DIGITALOCEAN=False` bilan fail-closed. Gemini bepul kvotasi hard constraint. `A8` global request/token reservation ledgeri, bounded provider attemptlari va cooldown circuit'i **`IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`**; bu production yoki real-concurrency readiness da'vosi emas.
 
 ---
 
@@ -59,7 +59,12 @@ pip install -r requirements.txt
 #    LOCAL_USE_REMOTE_SERVICES=False
 #    USE_S3=False
 #    AI_CHAT_PROVIDER=gemini
+#    AI_FREE_TIER_MODE=True
+#    GEMINI_FREE_MODEL_ALLOWLIST=gemini-3.1-flash-lite,gemini-2.5-flash-lite
+#    GEMINI_PRIMARY_MODEL=gemini-3.1-flash-lite
+#    GEMINI_FALLBACK_MODEL=gemini-2.5-flash-lite
 #    GEMINI_API_KEY=                 (AI kerak bo'lsa Google AI Studio kaliti)
+#    AI_ALLOW_DIGITALOCEAN=False     (owner production admissionigacha o'zgartirmang)
 #    DIGITALOCEAN_INFERENCE_API_KEY= (pre-production'da bo'sh qoldiring)
 
 # 3. Baza va admin
@@ -78,11 +83,13 @@ Ochish: http://127.0.0.1:8000 — bosh sahifa · `/users/register/` — ro'yxat 
 ## Testlar
 
 ```bash
+python manage.py check
+python manage.py makemigrations --check --dry-run
 python manage.py test        # to'liq suite
 python manage.py test ai.documents courses core.tests.TeacherPanelTests   # nuqtali misollar
 ```
 
-2026-08-14 local rebaseline: full suite **467/467 OK**. Bu local regression evidence; production readiness uchun alohida security/CI/restore/AI-budget gate'lari bor.
+2026-08-14 post-A8 local evidence: tashqi provider kalitlari yuklanmagan offline rejimda full suite **524/524 OK**, `manage.py check` — 0 issue, migration drift — yo'q, `system_audit` — **10/10 GREEN**. Bu local evidence; production readiness uchun security/CI/restore, real DB-concurrency va alohida production admission gate'lari qoladi.
 
 ---
 

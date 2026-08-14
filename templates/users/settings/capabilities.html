@@ -24,7 +24,7 @@
 <section class="set-sec">
   <div class="set-sec-h"><i class="bi bi-cpu"></i><span>AI modeli</span></div>
   <div class="set-sec-b">
-    <div class="set-row-s" style="margin-bottom:11px;">Kuchliroq model sekinroq, lekin puxtaroq javob beradi.</div>
+    <div class="set-row-s" style="margin-bottom:11px;">Faqat joriy supply siyosatida ruxsat etilgan modellar ko'rsatiladi.</div>
     <form method="post" action="{% url 'update_ai_model' %}" style="display:flex;flex-wrap:wrap;gap:7px;">
       {% csrf_token %}
       {% for value, label in model_choices %}
@@ -44,7 +44,9 @@
       <button type="submit" name="ai_web_search_effort" value="{{ value }}" class="set-pill{% if request.user.ai_web_search_effort == value %} is-on{% endif %}">{{ label }}</button>
       {% endfor %}
     </form>
-    <div class="set-note" style="margin-top:12px;">Yuqori daraja ko'proq qidiradi va javob sekinlashishi mumkin.</div>
+    <div class="set-note" style="margin-top:12px;">
+      {% if ai_free_tier_mode %}Bepul tokenlarni tejash uchun og'ir qidiruv rejimi vaqtincha yopiq.{% else %}Yuqori daraja ko'proq qidiradi va javob sekinlashishi mumkin.{% endif %}
+    </div>
   </div>
 </section>
 {% endblock %}

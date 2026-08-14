@@ -402,6 +402,7 @@ async def guest_text_handler(message: types.Message, lms_user):
         message.from_user.id,
         message.from_user.username or "",
         message.text,
+        request_key=f"telegram:{message.chat.id}:{message.message_id}",
     )
     if not result.ok:
         await message.answer(result.message, reply_markup=guest_menu_markup())

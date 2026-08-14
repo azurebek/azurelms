@@ -37,10 +37,23 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f"{updated} ta AI memory embedding yangilandi."))
 
     def _embed_batch(self, facts, *, embedding_model):
-        vectors = embed_texts(
-            [f"{fact.category}: {fact.value}" for fact in facts],
-            embedding_model=embedding_model,
-        )
+        if not facts:
+            return 0
+        try:
+            vectors = embed_texts(
+                [f"{fact.category}: {fact.value}" for fact in facts],
+                embedding_model=embedding_model,
+                call_type="reindex",
+                user=None,
+                request_key=f"memory-reindex:{facts[0].pk}:{facts[-1].pk}",
+            )
+        except Exception as exc:
+            self.stderr.write(
+                self.style.WARNING(
+                    f"AI memory embedding batch o'tkazib yuborildi: {exc}"
+                )
+            )
+            return 0
         updated = 0
         for fact, vector in zip(facts, vectors):
             if not vector:

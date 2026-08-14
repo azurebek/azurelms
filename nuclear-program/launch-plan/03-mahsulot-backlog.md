@@ -8,9 +8,9 @@
 2. Agentlar uning domain, test, mobile va ops qismlarida parallel ishlashi mumkin; yangi authority yoki subsystem yaratmaydi.
 3. Oldingi band exit kriteriydan o'tmasa, keyingisi boshlanmaydi yoki scope'dan kesiladi.
 4. `NEXT` band faqat Azurbek admission berganda `ADMIT`ga o'tadi.
-5. Queue qarori: `ADMIT` / `NEXT` / `HOLD` / `CUT`. Execution holati: `PLANNED` / `IN PROGRESS` / `EVIDENCE READY` / `BLOCKED`.
+5. Queue qarori: `ADMIT` / `NEXT` / `HOLD` / `CUT`. Execution holati: `PLANNED` / `IN PROGRESS` / `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` / `EVIDENCE READY` / `BLOCKED`.
 6. **Istisno — `S. SIT`:** owner qarori bilan A-narvoniga parallel yuritiladi (1-qoidadan ozod). Uning slice'lari o'zaro ketma-ket boradi va A bandlarini to'xtatmaydi; narxi — owner vaqtining bo'linishi (`S-R1`).
-7. **Joriy navbatdagi slice — `A8`:** Gemini free-tier budget mode. Docs rebaseline'dan keyingi birinchi kod ishi; A8 exit'i yopilmaguncha yangi AI skill, bulk generation, `heavy` search yoki ommaviy AI beta yo'q.
+7. **Joriy active closeout — `A8`:** Gemini free-tier budget mode **`IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`**. Real DB contention proof tugamaguncha yangi AI skill, bulk generation, `heavy` search yoki ommaviy AI beta yo'q.
 
 ### Joriy status snapshot
 
@@ -20,7 +20,7 @@
 | A1a | `ADMIT` | `PLANNED` | vendor-neutral local CI/readiness |
 | A1b | `HOLD` | `PLANNED` | cloud deploy va managed services |
 | A2 | `ADMIT` | `IN PROGRESS` | read-only Control Center + brand/landing mutation foundation |
-| A8 | `NEXT` | `PLANNED` | docs rebaseline'dan keyingi birinchi kod slice'i |
+| A8 | `ADMIT` | `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | supply guard kod/target/full testlarda; real concurrency proof pending |
 | S1/S3/S4 | `— delivered` | `EVIDENCE READY` | portal, grounded advisor va owner backoffice kodda |
 | S2 | `NEXT` | `PLANNED` | canonical inquiry lifecycle yo'q |
 
@@ -99,16 +99,18 @@
 - **Acceptance:** structured flow success `≥98%`; first activity completion `≥60%`; pre/post `+15 pp` pilot target; dashboard/course/Mini App faqat entry point.
 - **Faza:** R3.
 
-### A8. Gemini free-tier budget mode — `PLANNED — NEXT`, `M`
+### A8. Gemini free-tier budget mode — `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`, `M`
 
 - **Outcome:** development va kichik beta Gemini free-tierni bir foydalanuvchi, retry fan-out yoki hisoblanmagan embedding bilan tugatib qo'ymaydi; core LMS AI'siz ham ishlaydi.
 - **Canonical owner:** provider-call ledger + reservation/budget policy + Control Center. Per-user `aicontrol` allowance product policy; global Gemini supply budgeti undan yuqori hard gate.
-- **Joriy gap:** primary provider Gemini bo'lgani uchun oddiy chat ham Gemini'ga ketadi. Provider 9 model × 2 attemptgacha aylanadi; SmartForm, bot guest va embeddinglar to'liq `AIResponseRun` accountingiga kirmaydi; staff global supply'dan ozod bo'lmasligi kerak.
-- **Scope:** barcha call-path ledger; global daily request/token cap; atomic pre-call reservation/reconciliation; staffni ham qamrash; free-model allowlist; prompt/output cap; `1 primary + max 1 fallback`; `429` circuit breaker/cooldown; duplicate job idempotency; free-mode'da `heavy` va Pro/preview yopiq; deterministic degradation; local/pre-prod'da DO provider selection'ini code-level fail-closed qilish.
-- **Control Center:** mode, configured cap, used/reserved/remaining, call type, attempts, untracked usage va cooldown stoplight; exact Google quota raqamlari kod/docga hardcode qilinmaydi.
-- **Acceptance:** concurrency, duplicate, blanket 429, missing usage, chat/search/SmartForm/guest/RAG-memory embedding accounting testlari; bitta logical requestda provider attempt `≤2`; circuit ochiq paytda yangi remote call `0`; owner admissionisiz `AI_CHAT_PROVIDER=digitalocean` local/pre-prod startup/auditni fail qiladi va DO network call `0`.
-- **Rollback:** global AI kill switch; deterministic core flow, local catalog va human/Telegram handoff ishlashda qoladi.
-- **Faza:** R0. Boshqa AI behavior ishidan oldin.
+- **Implementatsiya:** `AISupplyEvent`/`AISupplyState` global kunlik+minute request va kunlik token reservation/reconciliation ledgeri; ledger DB failure fail-closed; staff ham hisoblanadi. Main chat `AIResponseRun.idempotency_key` bilan pre-reserve qiladi. Chat/grounding, SmartForm, bot guest, RAG/memory embedding va reindex calllari qamralgan; cache hit request sarflamaydi.
+- **Provider guard:** SDK retry off; `1 primary + max 1 fallback`; 429/quota/billing fail-fast+circuit; free allowlist; prompt/output/timeout/deadline caps. Free-mode'da `heavy` va guest default-off. DO explicit `AI_ALLOW_DIGITALOCEAN=True` admissionisiz, noma'lum provider esa har doim factoryda fail-closed.
+- **Model contract:** primary `gemini-3.1-flash-lite`, temporary fallback `gemini-2.5-flash-lite`; ikkalasi allowlistda. 3.1 Flash-Lite stable/free-tier va cost-efficient default sifatida tanlangan. 2.5 Flash-Lite uchun public shutdown e'lon qilinmagan; 2026-10-16 ichki reviewda fallbackni olib tashlash yoki yangi admitted modelga migrate qilish qayta ko'riladi. 3.7 Flash joriy projectdagi 20 RPD sabab hozir allowlistga kiritilmagan.
+- **Control Center/admin:** free-tier mode, configured cap, used/reserved/remaining, minute burst, actual attempts, event holatlari va cooldown stoplight; supply policy/event/state adminlari. Exact Google quota raqamlari hardcode qilinmaydi, chunki ular dynamic/account-specific; minute cap project ichki RPM-uslubidagi guard.
+- **Target acceptance evidence:** mocked/offline testlarda duplicate, missing usage, 429=1 attempt, non-quota fallback≤2, cooldown network=0, DO HOLD va joriy caller accounting tekshirilgan; post-A8 offline full suite 524/524 va local system audit 10/10 GREEN.
+- **Closeout pending:** SQLite/PostgreSQL haqiqiy concurrent reservation/transaction proof. SmartForm/guest counter va lesson reindex concurrency lease/claim to'liq emas; current Gemini vision unavailable.
+- **Degradatsiya:** guest/heavy default-off; supply denialda core flow, local catalog, cache/lexical retrieval va human/Telegram handoff qoladi. System-wide audited kill-switch UI A2ning qolgan scope'i.
+- **Faza:** R0 closeout. Boshqa AI behavior ishidan oldin.
 
 ### A9. AI eval, latency va cost release gate — `PLANNED`, `M foundation + rolling gate`
 
@@ -185,7 +187,7 @@
 
 | Capability | Joriy haqiqat | Ochiq evidence/gap |
 |---|---|---|
-| Learner streak/freeze | `LearnerStreak`, canonical `record_activity` va self-updating nudge main'da | Oldin kuzatilgan ordering failure 2026-08-14 full 467/467 va focused 1/1 yugurishda takrorlanmadi; “done” update qayta Telegram outbox yaratmaydi |
+| Learner streak/freeze | `LearnerStreak`, canonical `record_activity` va self-updating nudge main'da | Windows/SQLite teng timestamp ordering flake'i `-created_at, -id` tie-breaker va state-change bubble bilan tuzatildi; post-fix full 524/524 va focused streak 15/15; “done” update qayta Telegram outbox yaratmaydi |
 | Landing editor | Bosqich 1 + TOC/tab main'da | Bosqich 2–5 `HOLD/NEXT`; active core slice emas |
 | Telegram F0–F9 | onboarding, checkout, attendance, AI, admin, outbox, lesson, assignment va quiz main'da | Public webhook/outbox process `HOLD`; F11–F13 to'liq emas |
 

@@ -60,7 +60,7 @@ class CustomUser(AbstractUser):
     ai_model = models.CharField(
         max_length=80,
         choices=AI_MODEL_CHOICES,
-        default=AI_MODEL_25_FLASH,
+        default=AI_MODEL_31_FLASH_LITE,
         help_text="AzureAI javob yaratishda birinchi ishlatadigan Gemini modeli",
     )
     ai_memory_enabled = models.BooleanField(
@@ -81,6 +81,40 @@ class CustomUser(AbstractUser):
         default=AI_WEB_SEARCH_LIGHT,
         help_text="AzureAI internet qidiruvini qanchalik faol ishlatishi",
     )
+
+    @classmethod
+    def effective_ai_model_choices(cls):
+        """Return only models admitted by the current Gemini allowlist.
+
+        Database field choices remain backwards-compatible so old rows can be
+        read, while every current UI and mutation endpoint shares this narrower
+        runtime policy.
+        """
+        raw_models = getattr(settings, "GEMINI_FREE_MODEL_ALLOWLIST", ())
+        if isinstance(raw_models, str):
+            raw_models = raw_models.split(",")
+        try:
+            allowed = [str(value).strip() for value in raw_models if str(value).strip()]
+        except TypeError:
+            allowed = []
+        allowed = list(dict.fromkeys(allowed)) or [
+            cls.AI_MODEL_31_FLASH_LITE,
+            cls.AI_MODEL_25_FLASH_LITE,
+        ]
+        labels = dict(cls.AI_MODEL_CHOICES)
+        return [(value, labels.get(value, value)) for value in allowed]
+
+    @classmethod
+    def effective_ai_web_search_effort_choices(cls):
+        """Hide the costly heavy search mode while free-tier mode is active."""
+        choices = list(cls.AI_WEB_SEARCH_EFFORT_CHOICES)
+        if bool(getattr(settings, "AI_FREE_TIER_MODE", False)):
+            choices = [
+                (value, label)
+                for value, label in choices
+                if value != cls.AI_WEB_SEARCH_HEAVY
+            ]
+        return choices
 
     # To'qnashuvni (clash) oldini olish uchun
     groups = models.ManyToManyField(
@@ -263,7 +297,9 @@ class Notification(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ["-created_at"]
+        # A deterministic secondary key matters when two notifications are
+        # created inside the same database timestamp tick.
+        ordering = ["-created_at", "-id"]
         verbose_name = "Bildirishnoma"
         verbose_name_plural = "Bildirishnomalar"
         unique_together = ("recipient", "external_key")

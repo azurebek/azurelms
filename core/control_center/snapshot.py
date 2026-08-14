@@ -230,26 +230,95 @@ def _media_probe(definition: CapabilityDefinition) -> CapabilityResult:
 
 def _ai_probe(definition: CapabilityDefinition) -> CapabilityResult:
     from aicontrol.models import AISettings
+    from aicontrol.supply import supply_snapshot
 
     provider = str(getattr(settings, "AI_CHAT_PROVIDER", "gemini") or "gemini").lower()
+    free_tier_mode = bool(getattr(settings, "AI_FREE_TIER_MODE", False))
+    digitalocean_allowed = bool(getattr(settings, "AI_ALLOW_DIGITALOCEAN", False))
+    supply = supply_snapshot()
     key_name = {
         "gemini": "GEMINI_API_KEY",
         "digitalocean": "DIGITALOCEAN_INFERENCE_API_KEY",
     }.get(provider)
-    if not key_name:
-        return _result(definition, "red", "Noma'lum AI provider tanlangan.", provider=provider)
-
-    configured = bool(getattr(settings, key_name, None))
+    configured = bool(key_name and getattr(settings, key_name, None))
     policy = AISettings.objects.first() or AISettings()
-    status = "green" if configured else ("amber" if settings.IS_LOCAL else "red")
-    summary = "AI provider credential mavjud." if configured else "AI provider credential mavjud emas."
+    candidate_statuses = []
+    issues = []
+
+    if not key_name:
+        candidate_statuses.append("red")
+        issues.append("Noma'lum AI provider tanlangan.")
+    elif provider == "digitalocean" and not digitalocean_allowed:
+        candidate_statuses.append("red")
+        issues.append("DigitalOcean provider owner HOLD holatida.")
+
+    if configured:
+        candidate_statuses.append("green")
+    else:
+        credential_status = "amber" if settings.IS_LOCAL else "red"
+        candidate_statuses.append(credential_status)
+        issues.append("AI provider credential mavjud emas.")
+
+    supply_available = bool(supply.get("available", False))
+    supply_status = str(supply.get("status", "red"))
+    if supply_status not in STATUS_ORDER:
+        supply_status = "red"
+    candidate_statuses.append(supply_status)
+    if not supply_available:
+        issues.append("Global AI supply snapshot mavjud emas.")
+    elif bool(supply.get("circuit_open")):
+        issues.append("Global AI provider circuit cooldown holatida.")
+    elif supply_status == "red":
+        issues.append("Global AI supply request yoki token capiga yetgan.")
+    elif not bool(supply.get("enforcement", True)):
+        issues.append("Global AI supply enforcement o'chirilgan.")
+    elif supply_status == "amber":
+        issues.append("Global AI supply sarfi 80% chegaraga yetgan.")
+
+    status = max(candidate_statuses, key=STATUS_ORDER.get, default="green")
+    summary = (
+        " ".join(issues)
+        if issues
+        else "AI credential va global supply budjeti sog'lom."
+    )
+
+    def supply_value(name, default="unavailable"):
+        return supply.get(name, default) if supply_available else default
+
     return _result(
         definition,
         status,
         summary,
         provider=provider,
         credential="configured" if configured else "missing",
-        enforcement="on" if policy.enforcement_enabled else "off",
+        digitalocean_admission="allowed" if digitalocean_allowed else "hold",
+        free_tier_mode="on" if free_tier_mode else "off",
+        user_enforcement="on" if policy.enforcement_enabled else "off",
+        supply_enforcement=(
+            "on" if supply_available and supply.get("enforcement") else "off"
+            if supply_available
+            else "unavailable"
+        ),
+        supply_bucket=supply_value("bucket_date"),
+        requests_used=supply_value("requests_used"),
+        requests_limit=supply_value("requests_limit"),
+        requests_remaining=supply_value("requests_remaining"),
+        minute_requests_used=supply_value("minute_requests_used"),
+        minute_requests_limit=supply_value("minute_requests_limit"),
+        minute_requests_remaining=supply_value("minute_requests_remaining"),
+        tokens_used=supply_value("tokens_used"),
+        tokens_limit=supply_value("tokens_limit"),
+        tokens_remaining=supply_value("tokens_remaining"),
+        actual_attempts=supply_value("actual_attempts"),
+        reserved=supply_value("reserved"),
+        failed=supply_value("failed"),
+        rejected=supply_value("rejected"),
+        circuit=(
+            "open" if supply_available and supply.get("circuit_open") else "closed"
+            if supply_available
+            else "unavailable"
+        ),
+        cooldown_until=supply_value("circuit_open_until", "inactive") or "inactive",
         default_5h_tokens=policy.default_5h_token_limit,
         default_weekly_tokens=policy.default_weekly_token_limit,
     )

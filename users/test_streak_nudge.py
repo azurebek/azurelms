@@ -180,6 +180,10 @@ class NudgeBubblesToTopTests(TestCase):
         Notification.objects.create(
             recipient=self.user, message="Boshqa xabar", external_key=None
         )
+        # Ayrim OS/database kombinatsiyalarida ketma-ket yozuvlar bir xil
+        # timestamp tick'iga tushadi. Eng yangi PK deterministic tie-breaker.
+        tied_at = timezone.now()
+        Notification.objects.filter(recipient=self.user).update(created_at=tied_at)
         top_before = Notification.objects.filter(recipient=self.user).first()
         self.assertEqual(top_before.message, "Boshqa xabar")  # streak pastda
 

@@ -10,6 +10,7 @@ from ai.skills.registry import SkillRegistry
 from ai.smart_form.engine import SmartFormEngine
 from ai.smart_form.extractor import LLMExtractor, parse_llm_json
 from ai.smart_form.registry import get_form_class
+from aicontrol.models import AISupplyEvent
 from messenger.models import ChatRoom, Message, SmartFormSession
 from users.models import UserOnboarding
 from users.smart_forms import UserOnboardingSmartForm
@@ -85,6 +86,7 @@ class SmartFormExtractorTests(TestCase):
         state = {"fields": {"goal": {"value": "travel", "status": "confirmed"},
                             "level": {"value": "b1", "status": "confirmed"}}}
         self.assertEqual(extractor.extract("yana nimadir", UserOnboardingSmartForm, state), {})
+        self.assertFalse(AISupplyEvent.objects.exists())
 
     def test_extractor_survives_provider_failure(self):
         extractor = LLMExtractor(provider=_FakeProvider(error=RuntimeError("DO down")))
@@ -136,6 +138,46 @@ class SmartFormEngineFlowTests(TestCase):
         with patch.object(LLMExtractor, "extract", return_value={}):
             intent = engine.process_user_message("shunchaki salom")
         self.assertEqual(intent, "ASK_GOAL")
+
+    def test_runtime_extractor_ledgers_one_stable_smart_form_call(self):
+        from aicontrol.supply import fingerprint_request
+        from messenger.signals import suppress_ai_signal
+
+        question = "Sayohat uchun o'rganmoqchiman"
+        with suppress_ai_signal():
+            user_message = Message.objects.create(
+                room=self.room,
+                sender=self.user,
+                text=question,
+            )
+        provider = _FakeProvider(
+            text=(
+                '{"goal": {"extracted_value": "travel", '
+                '"needs_confirmation": false}}'
+            )
+        )
+        engine = SmartFormEngine(self.session)
+
+        with patch("ai.providers.get_chat_provider", return_value=provider):
+            self.assertEqual(engine.process_user_message(question), "ASK_LEVEL")
+            # A retry for the same persisted user message must not create a
+            # second remote call, even though the session state has changed.
+            self.assertEqual(engine.process_user_message(question), "ASK_LEVEL")
+
+        self.assertEqual(len(provider.prompts), 1)
+        event = AISupplyEvent.objects.get()
+        self.assertEqual(event.call_type, AISupplyEvent.CALL_SMART_FORM)
+        self.assertEqual(event.status, AISupplyEvent.STATUS_SUCCEEDED)
+        self.assertEqual(event.user, self.user)
+        self.assertEqual(event.actual_requests, 1)
+        self.assertEqual(
+            event.request_key,
+            fingerprint_request(
+                "smart-form",
+                self.session.id,
+                f"message:{user_message.id}",
+            ),
+        )
 
 
 class SmartFormSkillSelectionTests(TestCase):

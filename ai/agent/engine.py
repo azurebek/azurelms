@@ -1,6 +1,14 @@
 import logging
 import re
 
+from aicontrol.models import AISettings, AISupplyEvent
+from aicontrol.supply import (
+    execute_provider_call,
+    execute_reserved_provider_call,
+    normalize_request_key,
+    reconcile_supply,
+    set_reservation_call_type,
+)
 from ai.agent.types import AIRequest, AIResponse
 from ai.memory.service import MemoryService
 from ai.prompts.builder import PromptBuilder
@@ -42,6 +50,8 @@ class AIEngine:
         self.tool_context_service = tool_context_service or ToolContextService()
 
     def generate_reply(self, request: AIRequest) -> AIResponse:
+        supply_reservation = getattr(request, "supply_reservation", None)
+        provider_invoked = False
         try:
             skill = self.skill_registry.select_for_request(request)
             tool_context = self.tool_context_service.build(request=request, skill=skill)
@@ -102,14 +112,21 @@ class AIEngine:
                 image_name=getattr(request, "image_name", "") or "",
             )
             effort = getattr(request.student, "ai_web_search_effort", "light") or "light"
-            wants_web_search = "web_search" in tool_context.used_tools or effort == "heavy"
+            try:
+                heavy_search_enabled = AISettings.load().heavy_search_enabled
+            except Exception:
+                # Policy read failure cannot silently turn every message into a
+                # grounded request while free-tier conservation is active.
+                heavy_search_enabled = False
+            wants_web_search = "web_search" in tool_context.used_tools or (
+                heavy_search_enabled and effort == "heavy"
+            )
             image_data_url = getattr(request, "image_data_url", "") or ""
 
-            # --- Provayderni QOBILIYAT bo'yicha tanlash ---
-            # Standart: asosiy provayder (maverick/DO). Gemini FAQAT jonli web-qidiruv
-            # kerak bo'lганda va asosiy provayder buni qila olmaganda ishga tushadi —
-            # shu tariqa Gemini bepul kvotasi tejaladi. Rasm bo'lsa vision ustun turadi
-            # (vision maverick'da, qidiruv Gemini'da — bittasini tanlaymiz).
+            # --- Provayderni qobiliyat bo'yicha tanlash ---
+            # Local profilning asosiy provideri Gemini. Grounding faqat explicit
+            # web_search tool (yoki owner yoqqan heavy mode) bo'lganda ishlaydi.
+            # DigitalOcean esa alohida admissiongacha HOLD.
             active_provider = self.provider
             enable_web_search = False
             used_search_specialist = False
@@ -132,27 +149,37 @@ class AIEngine:
 
             search_specialist_failed = False
             try:
-                provider_response = active_provider.generate(**generate_kwargs)
-            except Exception:
-                if not used_search_specialist:
-                    raise
-                # Gemini mutaxassisi yiqildi (429 kvota, tarmoq va h.k.) — butun javobni
-                # yiqitmasdan asosiy provayderda davom etamiz. Prompt'dagi web_search
-                # tool-konteksti jonli natija yo'qligida halol javob berishni talab qiladi.
-                logger.exception(
-                    "Web-search mutaxassisi xatosi — asosiy provayderga qaytilmoqda (room_id=%s)",
-                    getattr(request.room, "id", None),
+                call_type = (
+                    AISupplyEvent.CALL_SEARCH
+                    if enable_web_search
+                    else AISupplyEvent.CALL_CHAT
                 )
-                search_specialist_failed = True
-                used_search_specialist = False
-                enable_web_search = False
-                active_provider = self.provider
-                generate_kwargs = {
-                    "prompt": prompt,
-                    "enable_web_search": False,
-                    "selected_model": getattr(request.student, "ai_model", None),
-                }
-                provider_response = active_provider.generate(**generate_kwargs)
+                if supply_reservation is not None:
+                    set_reservation_call_type(supply_reservation, call_type)
+                    provider_invoked = True
+                    provider_response = execute_reserved_provider_call(
+                        supply_reservation,
+                        active_provider,
+                        **generate_kwargs,
+                    )
+                else:
+                    provider_invoked = True
+                    provider_response = execute_provider_call(
+                        active_provider,
+                        request_key=normalize_request_key(
+                            getattr(request, "supply_request_key", "") or None,
+                            prefix="engine",
+                        ),
+                        call_type=call_type,
+                        user=request.student,
+                        max_requests=2,
+                        **generate_kwargs,
+                    )
+            except Exception:
+                # A failed grounded call must not fan out into a second provider
+                # chain. Gemini itself is already bounded to at most two physical
+                # attempts, and 429/quota opens the project circuit immediately.
+                raise
 
             extraction = self.memory_service.extract_from_reply(
                 provider_response.text,
@@ -192,13 +219,28 @@ class AIEngine:
                     "vision_used": bool(generate_kwargs.get("images")),
                     "search_specialist_used": used_search_specialist,
                     "search_specialist_failed": search_specialist_failed,
-                    "web_search_enabled": enable_web_search,
+                    "web_search_requested": enable_web_search,
+                    # Requested grounding can be retried without the tool when
+                    # a model rejects it. Only provider grounding metadata is
+                    # evidence that web search actually ran.
+                    "web_search_enabled": bool(web_search_meta),
                     "web_search_queries": web_search_meta.get("queries", []),
                     "web_search_sources": web_search_meta.get("sources", []),
                     "usage": provider_response.usage or {},
                 },
             )
         except Exception as exc:
+            if supply_reservation is not None and not provider_invoked:
+                try:
+                    reconcile_supply(
+                        supply_reservation,
+                        succeeded=False,
+                        actual_requests=0,
+                        error=exc,
+                        error_kind="pre_provider_error",
+                    )
+                except Exception:
+                    logger.exception("Unused main AI reservation reconciliation failed")
             logger.exception(
                 "AI engine failed for room_id=%s student_id=%s",
                 getattr(request.room, "id", None),

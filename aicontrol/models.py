@@ -40,6 +40,44 @@ class AISettings(models.Model):
     default_effort = models.CharField(
         max_length=20, blank=True, default="", verbose_name="Default web-search effort"
     )
+    supply_enforcement_enabled = models.BooleanField(
+        default=True,
+        verbose_name="Global AI supply budget yoqilganmi",
+        help_text="Provider chaqirig'idan oldin project-wide request/token budgetni tekshiradi.",
+    )
+    supply_daily_request_limit = models.PositiveIntegerField(
+        default=100,
+        verbose_name="Kunlik global provider request limiti",
+        help_text="Google quota raqami emas; owner belgilaydigan ichki hard budget.",
+    )
+    supply_minute_request_limit = models.PositiveIntegerField(
+        default=10,
+        verbose_name="Bir daqiqalik global provider request limiti",
+        help_text="Burst/fan-outni cheklaydigan owner ichki hard budgeti.",
+    )
+    supply_daily_token_limit = models.PositiveIntegerField(
+        default=250_000,
+        verbose_name="Kunlik global token limiti",
+        help_text="Usage kelmasa konservativ reservation estimate hisoblanadi.",
+    )
+    supply_default_reservation_tokens = models.PositiveIntegerField(
+        default=4_000,
+        verbose_name="Usage noma'lum call uchun token reservi",
+    )
+    supply_cooldown_seconds = models.PositiveIntegerField(
+        default=3_600,
+        verbose_name="429/quota circuit cooldown (soniya)",
+    )
+    guest_demo_enabled = models.BooleanField(
+        default=False,
+        verbose_name="Telegram guest AI demo yoqilganmi",
+        help_text="Default o'chiq: guest call ham global Gemini supply budgetini sarflaydi.",
+    )
+    heavy_search_enabled = models.BooleanField(
+        default=False,
+        verbose_name="Heavy web-search rejimi yoqilganmi",
+        help_text="Free-tier rejimida default o'chiq.",
+    )
     updated_at = models.DateTimeField(auto_now=True)
     updated_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
@@ -61,6 +99,106 @@ class AISettings(models.Model):
     def load(cls):
         obj, _ = cls.objects.get_or_create(singleton=True)
         return obj
+
+
+class AISupplyState(models.Model):
+    """Global provider circuit holati (singleton)."""
+
+    singleton = models.BooleanField(default=True, unique=True, editable=False)
+    circuit_open_until = models.DateTimeField(null=True, blank=True)
+    circuit_reason = models.CharField(max_length=120, blank=True, default="")
+    opened_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "AI supply holati"
+        verbose_name_plural = "AI supply holati"
+
+    def save(self, *args, **kwargs):
+        self.singleton = True
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def load(cls):
+        obj, _ = cls.objects.get_or_create(singleton=True)
+        return obj
+
+    def __str__(self):
+        return "AI global supply circuit"
+
+
+class AISupplyEvent(models.Model):
+    """Har logical remote AI call uchun reservation va reconciliation ledgeri."""
+
+    CALL_CHAT = "chat"
+    CALL_SEARCH = "web_search"
+    CALL_SMART_FORM = "smart_form"
+    CALL_BOT_GUEST = "bot_guest"
+    CALL_RAG_EMBEDDING = "rag_embedding"
+    CALL_MEMORY_EMBEDDING = "memory_embedding"
+    CALL_REINDEX = "reindex"
+    CALL_OTHER = "other"
+    CALL_TYPE_CHOICES = (
+        (CALL_CHAT, "Chat"),
+        (CALL_SEARCH, "Web grounding/search"),
+        (CALL_SMART_FORM, "Smart Form extractor"),
+        (CALL_BOT_GUEST, "Telegram guest demo"),
+        (CALL_RAG_EMBEDDING, "RAG embedding"),
+        (CALL_MEMORY_EMBEDDING, "Memory embedding"),
+        (CALL_REINDEX, "Reindex embedding"),
+        (CALL_OTHER, "Boshqa"),
+    )
+
+    STATUS_RESERVED = "reserved"
+    STATUS_SUCCEEDED = "succeeded"
+    STATUS_FAILED = "failed"
+    STATUS_REJECTED = "rejected"
+    STATUS_CHOICES = (
+        (STATUS_RESERVED, "Reserved"),
+        (STATUS_SUCCEEDED, "Succeeded"),
+        (STATUS_FAILED, "Failed"),
+        (STATUS_REJECTED, "Rejected"),
+    )
+
+    request_key = models.CharField(max_length=180, unique=True)
+    bucket_date = models.DateField(db_index=True)
+    call_type = models.CharField(max_length=24, choices=CALL_TYPE_CHOICES, default=CALL_OTHER)
+    provider = models.CharField(max_length=32, default="gemini")
+    model_name = models.CharField(max_length=120, blank=True, default="")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="ai_supply_events",
+    )
+    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_RESERVED)
+    reserved_requests = models.PositiveIntegerField(default=1)
+    reserved_tokens = models.PositiveIntegerField(default=0)
+    actual_requests = models.PositiveIntegerField(default=0)
+    prompt_tokens = models.PositiveIntegerField(default=0)
+    completion_tokens = models.PositiveIntegerField(default=0)
+    total_tokens = models.PositiveIntegerField(default=0)
+    accounted_requests = models.PositiveIntegerField(default=0)
+    accounted_tokens = models.PositiveIntegerField(default=0)
+    error_kind = models.CharField(max_length=40, blank=True, default="")
+    error_message = models.CharField(max_length=500, blank=True, default="")
+    metadata = models.JSONField(blank=True, default=dict)
+    reserved_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "AI supply hodisasi"
+        verbose_name_plural = "AI supply hodisalari"
+        indexes = [
+            models.Index(fields=["bucket_date", "status"]),
+            models.Index(fields=["call_type", "bucket_date"]),
+            models.Index(fields=["provider", "bucket_date"]),
+        ]
+
+    def __str__(self):
+        return f"{self.call_type} · {self.status} · {self.request_key}"
 
 
 class AIPlanPolicy(models.Model):

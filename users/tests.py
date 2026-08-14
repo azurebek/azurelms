@@ -2,7 +2,7 @@ import datetime
 
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
-from django.test import RequestFactory, TestCase
+from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -183,6 +183,13 @@ class AIToneUpdateViewTests(TestCase):
         self.assertEqual(self.user.ai_tone, User.AI_TONE_FRIENDLY)
 
 
+@override_settings(
+    AI_FREE_TIER_MODE=True,
+    GEMINI_FREE_MODEL_ALLOWLIST=(
+        User.AI_MODEL_25_FLASH,
+        User.AI_MODEL_25_FLASH_LITE,
+    ),
+)
 class AIModelUpdateViewTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
@@ -195,16 +202,29 @@ class AIModelUpdateViewTests(TestCase):
     def test_ajax_update_saves_ai_model(self):
         response = self.client.post(
             reverse("update_ai_model"),
-            {"ai_model": User.AI_MODEL_31_PRO},
+            {"ai_model": User.AI_MODEL_25_FLASH_LITE},
             HTTP_X_REQUESTED_WITH="XMLHttpRequest",
             HTTP_ACCEPT="application/json",
         )
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["status"], "success")
-        self.assertEqual(response.json()["ai_model"], User.AI_MODEL_31_PRO)
+        self.assertEqual(response.json()["ai_model"], User.AI_MODEL_25_FLASH_LITE)
         self.user.refresh_from_db()
-        self.assertEqual(self.user.ai_model, User.AI_MODEL_31_PRO)
+        self.assertEqual(self.user.ai_model, User.AI_MODEL_25_FLASH_LITE)
+
+    def test_ajax_update_rejects_pro_preview_model_in_free_tier(self):
+        response = self.client.post(
+            reverse("update_ai_model"),
+            {"ai_model": User.AI_MODEL_31_PRO},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+            HTTP_ACCEPT="application/json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["status"], "error")
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.ai_model, User.AI_MODEL_31_FLASH_LITE)
 
     def test_ajax_update_rejects_invalid_ai_model(self):
         response = self.client.post(
@@ -217,7 +237,63 @@ class AIModelUpdateViewTests(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()["status"], "error")
         self.user.refresh_from_db()
-        self.assertEqual(self.user.ai_model, User.AI_MODEL_25_FLASH)
+        self.assertEqual(self.user.ai_model, User.AI_MODEL_31_FLASH_LITE)
+
+    def test_regular_post_rejects_disallowed_model_with_400(self):
+        response = self.client.post(
+            reverse("update_ai_model"),
+            {"ai_model": User.AI_MODEL_35_FLASH},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.ai_model, User.AI_MODEL_31_FLASH_LITE)
+
+
+@override_settings(AI_FREE_TIER_MODE=True)
+class AIWebSearchEffortUpdateViewTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="effort-user",
+            email="effort-user@example.com",
+            password="testpass123",
+        )
+        self.client.force_login(self.user)
+
+    def test_medium_effort_remains_available_in_free_tier(self):
+        response = self.client.post(
+            reverse("update_ai_web_search_effort"),
+            {"ai_web_search_effort": User.AI_WEB_SEARCH_MEDIUM},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+            HTTP_ACCEPT="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.ai_web_search_effort, User.AI_WEB_SEARCH_MEDIUM)
+
+    def test_heavy_effort_is_rejected_in_free_tier(self):
+        response = self.client.post(
+            reverse("update_ai_web_search_effort"),
+            {"ai_web_search_effort": User.AI_WEB_SEARCH_HEAVY},
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+            HTTP_ACCEPT="application/json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["status"], "error")
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.ai_web_search_effort, User.AI_WEB_SEARCH_LIGHT)
+
+    def test_regular_heavy_post_is_rejected_with_400(self):
+        response = self.client.post(
+            reverse("update_ai_web_search_effort"),
+            {"ai_web_search_effort": User.AI_WEB_SEARCH_HEAVY},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.ai_web_search_effort, User.AI_WEB_SEARCH_LIGHT)
 
 
 class DashboardProgressTests(TestCase):

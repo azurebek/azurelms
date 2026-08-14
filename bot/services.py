@@ -700,7 +700,14 @@ def _build_demo_context():
     )
 
 
-def guest_demo_answer(telegram_id, telegram_username, question, *, provider=None):
+def guest_demo_answer(
+    telegram_id,
+    telegram_username,
+    question,
+    *,
+    request_key=None,
+    provider=None,
+):
     """Mehmon uchun limitli AI savol-javob. Provider xatosi halol xabar bilan qaytadi."""
     question = (question or "").strip()
     if not question:
@@ -710,6 +717,20 @@ def guest_demo_answer(telegram_id, telegram_username, question, *, provider=None
             ok=False, code="too_long",
             message="Savol juda uzun — qisqaroq yozing (500 belgigacha).",
         )
+
+    provider_injected = provider is not None
+    if not provider_injected:
+        from aicontrol.models import AISettings
+
+        if not AISettings.load().guest_demo_enabled:
+            return GuestDemoResult(
+                ok=False,
+                code="disabled",
+                message=(
+                    "AI demo hozircha o'chirilgan. Ro'yxatdan o'tib platformadagi "
+                    "mavjud imkoniyatlardan foydalanishingiz mumkin."
+                ),
+            )
 
     guest, _ = BotGuest.objects.get_or_create(
         telegram_id=telegram_id,
@@ -725,14 +746,28 @@ def guest_demo_answer(telegram_id, telegram_username, question, *, provider=None
             ),
         )
 
-    if provider is None:
-        from ai.providers import get_chat_provider
-
-        provider = get_chat_provider()
-
     prompt = f"{_build_demo_context()}\n\nMehmon savoli: {question}"
     try:
-        response = provider.generate(prompt=prompt)
+        if provider_injected:
+            response = provider.generate(prompt=prompt)
+        else:
+            from ai.providers import get_chat_provider
+            from aicontrol.models import AISupplyEvent
+            from aicontrol.supply import execute_provider_call, fingerprint_request
+
+            provider = get_chat_provider()
+            response = execute_provider_call(
+                provider,
+                request_key=fingerprint_request(
+                    "bot-guest",
+                    request_key or question,
+                    telegram_id,
+                    guest.demo_questions_used + 1,
+                ),
+                call_type=AISupplyEvent.CALL_BOT_GUEST,
+                prompt=prompt,
+                metadata={"guest_sequence": guest.demo_questions_used + 1},
+            )
         answer = (response.text or "").strip()
     except Exception:
         return GuestDemoResult(

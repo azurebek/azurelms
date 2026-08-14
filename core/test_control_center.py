@@ -5,7 +5,7 @@ from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.core.management.base import CommandError
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -86,6 +86,151 @@ class ControlCenterSnapshotTests(TestCase):
         self.assertEqual(dict(database.details)["error_type"], "RuntimeError")
         self.assertNotIn("secret infrastructure detail", snapshot.as_dict().__str__())
         self.assertEqual(len(snapshot.results), len(CAPABILITY_REGISTRY))
+
+
+class AIControlCenterSupplyTests(TestCase):
+    @staticmethod
+    def _supply(**overrides):
+        snapshot = {
+            "status": "green",
+            "available": True,
+            "enforcement": True,
+            "bucket_date": "2026-08-14",
+            "requests_used": 10,
+            "requests_limit": 100,
+            "requests_remaining": 90,
+            "minute_requests_used": 2,
+            "minute_requests_limit": 10,
+            "minute_requests_remaining": 8,
+            "tokens_used": 1_000,
+            "tokens_limit": 250_000,
+            "tokens_remaining": 249_000,
+            "actual_attempts": 8,
+            "reserved": 0,
+            "failed": 1,
+            "rejected": 0,
+            "circuit_open": False,
+            "circuit_open_until": "",
+        }
+        snapshot.update(overrides)
+        return snapshot
+
+    @override_settings(
+        AI_CHAT_PROVIDER="gemini",
+        GEMINI_API_KEY="test-key",
+        AI_FREE_TIER_MODE=True,
+        AI_ALLOW_DIGITALOCEAN=False,
+        IS_LOCAL=True,
+    )
+    @patch("aicontrol.supply.supply_snapshot")
+    def test_ai_supply_green_baseline_exposes_safe_budget_details(self, supply_snapshot):
+        from core.control_center.snapshot import _ai_probe
+
+        supply_snapshot.return_value = self._supply()
+        result = _ai_probe(capability_by_slug("ai_provider"))
+        details = dict(result.details)
+
+        self.assertEqual(result.status, "green")
+        self.assertEqual(details["requests_used"], "10")
+        self.assertEqual(details["requests_limit"], "100")
+        self.assertEqual(details["requests_remaining"], "90")
+        self.assertEqual(details["minute_requests_remaining"], "8")
+        self.assertEqual(details["tokens_remaining"], "249000")
+        self.assertEqual(details["actual_attempts"], "8")
+        self.assertEqual(details["free_tier_mode"], "on")
+        self.assertEqual(details["supply_enforcement"], "on")
+        self.assertEqual(details["circuit"], "closed")
+
+    @override_settings(
+        AI_CHAT_PROVIDER="gemini",
+        GEMINI_API_KEY="test-key",
+        AI_FREE_TIER_MODE=True,
+        AI_ALLOW_DIGITALOCEAN=False,
+        IS_LOCAL=True,
+    )
+    @patch("aicontrol.supply.supply_snapshot")
+    def test_ai_supply_at_eighty_percent_is_amber(self, supply_snapshot):
+        from core.control_center.snapshot import _ai_probe
+
+        supply_snapshot.return_value = self._supply(
+            status="amber",
+            requests_used=80,
+            requests_remaining=20,
+        )
+
+        result = _ai_probe(capability_by_slug("ai_provider"))
+
+        self.assertEqual(result.status, "amber")
+        self.assertIn("80%", result.summary)
+
+    @override_settings(
+        AI_CHAT_PROVIDER="gemini",
+        GEMINI_API_KEY="test-key",
+        AI_FREE_TIER_MODE=True,
+        AI_ALLOW_DIGITALOCEAN=False,
+        IS_LOCAL=True,
+    )
+    @patch("aicontrol.supply.supply_snapshot")
+    def test_ai_supply_open_circuit_is_red_without_raw_reason(self, supply_snapshot):
+        from core.control_center.snapshot import _ai_probe
+
+        supply_snapshot.return_value = self._supply(
+            status="red",
+            circuit_open=True,
+            circuit_open_until="2026-08-14T18:00:00+03:00",
+            circuit_reason="secret-key raw provider failure",
+        )
+
+        result = _ai_probe(capability_by_slug("ai_provider"))
+        rendered = str(result.as_dict())
+
+        self.assertEqual(result.status, "red")
+        self.assertEqual(dict(result.details)["circuit"], "open")
+        self.assertIn("cooldown", result.summary.lower())
+        self.assertNotIn("secret-key", rendered)
+        self.assertNotIn("raw provider failure", rendered)
+
+    @override_settings(
+        AI_CHAT_PROVIDER="digitalocean",
+        DIGITALOCEAN_INFERENCE_API_KEY="test-do-key",
+        AI_FREE_TIER_MODE=True,
+        AI_ALLOW_DIGITALOCEAN=False,
+        IS_LOCAL=True,
+    )
+    @patch("aicontrol.supply.supply_snapshot")
+    def test_digitalocean_owner_hold_is_red_even_with_credential(self, supply_snapshot):
+        from core.control_center.snapshot import _ai_probe
+
+        supply_snapshot.return_value = self._supply()
+        result = _ai_probe(capability_by_slug("ai_provider"))
+
+        self.assertEqual(result.status, "red")
+        self.assertIn("HOLD", result.summary)
+        self.assertEqual(dict(result.details)["digitalocean_admission"], "hold")
+
+    @override_settings(
+        AI_CHAT_PROVIDER="gemini",
+        GEMINI_API_KEY="test-key",
+        AI_FREE_TIER_MODE=True,
+        IS_LOCAL=True,
+    )
+    @patch("aicontrol.supply.supply_snapshot")
+    def test_unavailable_supply_snapshot_is_red_without_raw_error(self, supply_snapshot):
+        from core.control_center.snapshot import _ai_probe
+
+        supply_snapshot.return_value = {
+            "status": "red",
+            "available": False,
+            "enforcement": True,
+            "error": "database password=do-not-render",
+        }
+
+        result = _ai_probe(capability_by_slug("ai_provider"))
+        rendered = str(result.as_dict())
+
+        self.assertEqual(result.status, "red")
+        self.assertIn("snapshot mavjud emas", result.summary)
+        self.assertNotIn("do-not-render", rendered)
 
 
 class SystemAuditCommandTests(TestCase):

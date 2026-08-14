@@ -1,6 +1,7 @@
 import json
 import re
 import asyncio
+import uuid
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from asgiref.sync import sync_to_async
@@ -78,6 +79,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     user_question=retry_payload["text"],
                     context_lesson_id=retry_payload["context_lesson_id"],
                     user_message_id=retry_payload["message_id"],
+                    client_message_id=(
+                        f"retry:{retry_payload['message_id']}:{uuid.uuid4().hex[:20]}"
+                    ),
                     requested_skill_slug=retry_payload["requested_skill_slug"],
                 )
             )
