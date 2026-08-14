@@ -290,8 +290,28 @@ if IS_LOCAL and not LOCAL_USE_REMOTE_SERVICES:
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
+            'OPTIONS': {
+                # SQLite'da `select_for_update()` no-op (has_select_for_update=False),
+                # shuning uchun AI supply reservation kabi read-modify-write
+                # tranzaksiyalari DB darajasida ketma-ketlashtirilishi shart.
+                # `BEGIN DEFERRED` bilan o'qigan tranzaksiya yozishga ko'tarilganda
+                # SQLite busy_timeout'ni kutmasdan darhol "database is locked"
+                # qaytaradi; `IMMEDIATE` write lockni boshida oladi va raqiblar
+                # xato o'rniga navbatda kutadi.
+                'transaction_mode': 'IMMEDIATE',
+                'timeout': 15,
+                # WAL: o'quvchilar yozuvchini bloklamaydi.
+                'init_command': 'PRAGMA journal_mode=WAL;',
+            },
         }
     }
+    # Default test bazasi — tez (shared-cache in-memory). Ammo uning qulflash
+    # semantikasi real fayl bazasidan farq qiladi (SQLITE_LOCKED, busy_timeout
+    # ishlamaydi), shuning uchun haqiqiy concurrency proofi faqat fayl bazasida
+    # o'tkaziladi: `AZURELMS_TEST_FILE_DB=1 python manage.py test`.
+    # Fayl bazasi to'liq suite'ni ~2x sekinlashtiradi, shuning uchun default emas.
+    if env_bool("AZURELMS_TEST_FILE_DB", False):
+        DATABASES['default']['TEST'] = {'NAME': BASE_DIR / 'test_db.sqlite3'}
 elif DB_NAME and DB_USER and ALLOW_REMOTE_DATABASE:
     # Manual individual variables provided by user
     DATABASES = {
