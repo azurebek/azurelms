@@ -75,7 +75,7 @@
     <section class="lc-panel lc-audit">
       <span class="lc-kicker">SO'NGGI O'ZGARISHLAR</span>
       {% for entry in recent_landing_changes %}
-        <article><strong>{{ entry.user.get_full_name|default:entry.user.username }}</strong><time>{{ entry.action_time|date:"d.m.Y H:i" }}</time><p>{{ entry.change_message }}</p></article>
+        <article><strong>{{ entry.actor_label|default:"tizim" }}</strong><time>{{ entry.created_at|date:"d.m.Y H:i" }}</time><p>{{ entry.display_message }}</p></article>
       {% empty %}<p class="lc-empty">Hali bosh sahifa o'zgarishi yozilmagan.</p>{% endfor %}
     </section>
   </aside>

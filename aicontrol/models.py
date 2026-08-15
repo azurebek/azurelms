@@ -9,6 +9,7 @@ Xom usage messenger.AIResponseRun.total_tokens da yotadi; bu app faqat siyosat
 va reset markerlarini boshqaradi.
 """
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 
 
@@ -316,3 +317,108 @@ class AIUsageResetEvent(models.Model):
 
     def __str__(self):
         return f"{self.get_kind_display()} · {self.get_scope_display()} · {self.created_at:%d.%m.%Y}"
+
+
+class SystemAuditEvent(models.Model):
+    """Append-only operatsion audit ledgeri (A2).
+
+    Nega Django'ning `LogEntry` si yetarli emas: u admin uchun mo'ljallangan,
+    o'chirilishi va tahrirlanishi mumkin, `source`/`outcome`/`before-after`
+    kabi operatsion maydonlari yo'q va u faqat admin obyektlariga bog'lanadi.
+    Control plane uchun `05-launch-ops.md` §3 aniq talab qo'ygan: kim, qayerdan,
+    nima qildi, qanday sabab bilan, natija nima va qaysi release'da.
+
+    **Append-only** — yozuv yaratilgandan keyin o'zgartirib yoki o'chirib
+    bo'lmaydi. Bu model darajasida majburlanadi (`save`/`delete` bloklaydi),
+    admin darajasida emas: admin faqat oxirgi to'siq.
+    """
+
+    SOURCE_WEB = "web"
+    SOURCE_BOT = "bot"
+    SOURCE_WORKER = "worker"
+    SOURCE_CLI = "cli"
+    SOURCE_RELEASE = "release"
+    SOURCE_CHOICES = (
+        (SOURCE_WEB, "Web"),
+        (SOURCE_BOT, "Telegram bot"),
+        (SOURCE_WORKER, "Worker"),
+        (SOURCE_CLI, "CLI"),
+        (SOURCE_RELEASE, "Release"),
+    )
+
+    OUTCOME_SUCCESS = "success"
+    OUTCOME_FAILURE = "failure"
+    OUTCOME_DENIED = "denied"
+    OUTCOME_CHOICES = (
+        (OUTCOME_SUCCESS, "Muvaffaqiyatli"),
+        (OUTCOME_FAILURE, "Xato"),
+        (OUTCOME_DENIED, "Rad etildi"),
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    action = models.CharField(
+        max_length=80, db_index=True,
+        help_text="Nuqta bilan ajratilgan kod, masalan `ai.kill_switch.disable`.",
+    )
+    source = models.CharField(max_length=10, choices=SOURCE_CHOICES, default=SOURCE_WEB)
+    outcome = models.CharField(
+        max_length=10, choices=OUTCOME_CHOICES, default=OUTCOME_SUCCESS, db_index=True
+    )
+
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="audit_events", verbose_name="Kim",
+    )
+    # Actor o'chirilsa ham kim qilgani ma'lum qolishi kerak — audit yozuvi
+    # foydalanuvchi hayotidan uzoqroq yashaydi.
+    actor_label = models.CharField(max_length=150, blank=True, default="")
+
+    target_type = models.CharField(max_length=80, blank=True, default="")
+    target_id = models.CharField(max_length=80, blank=True, default="")
+    target_label = models.CharField(max_length=200, blank=True, default="")
+
+    reason = models.CharField(max_length=240, blank=True, default="")
+    before = models.JSONField(blank=True, default=dict)
+    after = models.JSONField(blank=True, default=dict)
+    error = models.CharField(max_length=300, blank=True, default="")
+
+    request_id = models.CharField(max_length=64, blank=True, default="")
+    idempotency_key = models.CharField(max_length=120, blank=True, default="")
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.CharField(max_length=300, blank=True, default="")
+    release_sha = models.CharField(max_length=40, blank=True, default="")
+
+    class Meta:
+        verbose_name = "Tizim audit yozuvi"
+        verbose_name_plural = "Tizim audit yozuvlari"
+        ordering = ["-created_at", "-id"]
+        indexes = [
+            models.Index(fields=["action", "-created_at"]),
+            models.Index(fields=["target_type", "target_id"]),
+        ]
+
+    def __str__(self):
+        who = self.actor_label or "tizim"
+        return f"{self.created_at:%d.%m.%Y %H:%M} · {self.action} · {who}"
+
+    @property
+    def display_message(self):
+        """Sahifadagi tarix uchun bitta o'qiladigan qator."""
+        parts = [self.action]
+        if self.outcome != self.OUTCOME_SUCCESS:
+            parts.append(f"[{self.get_outcome_display()}]")
+        if self.target_label:
+            parts.append(f"→ {self.target_label}")
+        if self.reason:
+            parts.append(f"Sabab: {self.reason}")
+        return " ".join(parts)
+
+    def save(self, *args, **kwargs):
+        if self.pk is not None:
+            raise ValidationError(
+                "Audit yozuvi append-only: mavjud yozuvni o'zgartirib bo'lmaydi."
+            )
+        return super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ValidationError("Audit yozuvi append-only: o'chirib bo'lmaydi.")

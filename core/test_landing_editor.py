@@ -1,4 +1,4 @@
-from django.contrib.admin.models import LogEntry
+from aicontrol.models import SystemAuditEvent
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -76,14 +76,16 @@ class BackofficeLandingEditorTests(TestCase):
         self.landing.refresh_from_db()
         self.assertEqual(self.landing.hero_title_start, "Yangi hero")
         self.assertEqual(self.landing.cert_sample_name, "Test Ism")
-        entry = LogEntry.objects.get(user=self.owner)
-        self.assertIn("Hero matni yangilandi", entry.change_message)
+        # Audit endi append-only `SystemAuditEvent` ledgerida (A2).
+        entry = SystemAuditEvent.objects.get(action="landing.update")
+        self.assertEqual(entry.actor_label, self.owner.username)
+        self.assertIn("Hero matni yangilandi", entry.reason)
 
     def test_no_op_save_writes_no_audit(self):
         self.client.force_login(self.owner)
         response = self.client.post(reverse("backoffice_landing"), self._payload())
         self.assertRedirects(response, reverse("backoffice_landing"))
-        self.assertFalse(LogEntry.objects.filter(user=self.owner).exists())
+        self.assertFalse(SystemAuditEvent.objects.exists())
 
     def test_edited_value_appears_on_landing(self):
         self.client.force_login(self.owner)

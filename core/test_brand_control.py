@@ -2,7 +2,7 @@ import base64
 import tempfile
 from pathlib import Path
 
-from django.contrib.admin.models import LogEntry
+from aicontrol.models import SystemAuditEvent
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.template.loader import render_to_string
@@ -84,9 +84,11 @@ class BrandControlViewTests(TestCase):
         self.brand.refresh_from_db()
         self.assertEqual(self.brand.brand_name, "Markaziy Brend")
         self.assertEqual(self.brand.logo_mark_text, "MB")
-        entry = LogEntry.objects.get(user=self.owner)
-        self.assertIn("Brend nomi", entry.change_message)
-        self.assertIn("Yangi brend paketi tasdiqlandi", entry.change_message)
+        # Audit endi append-only `SystemAuditEvent` ledgerida (A2).
+        entry = SystemAuditEvent.objects.get(action="brand.update")
+        self.assertEqual(entry.actor_label, self.owner.username)
+        self.assertIn("Brend nomi", entry.after["changed_fields"])
+        self.assertIn("Yangi brend paketi tasdiqlandi", entry.reason)
 
     def test_uploaded_mark_is_used_by_canonical_logo_component(self):
         self.client.force_login(self.owner)
