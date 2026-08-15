@@ -16,6 +16,30 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-15 [Claude Code]: A0b/3 — private media, ruxsat tekshiradigan stream
+
+A0b ning eng katta va eng xavfli slice'i. Oldingi holat: to'lov cheki, vazifa fayli, chat biriktirmasi va speaking yozuvi `MEDIA_ROOT` ichida yotardi, ya'ni havolani topgan (yoki taxmin qilgan) har kim ularni ocha olardi — lokalda `urls.py` dagi `static()` handleri, kelajakdagi production'da esa web server yoki object storage'ning public prefiksi uzatib yuborardi.
+
+Asosiy qaror: **himoyani faqat view qatlamiga qo'yish yetarli emas**. Fayllar jismonan `PRIVATE_MEDIA_ROOT` ga — `MEDIA_ROOT` dan tashqariga — ko'chirildi, shunda ularga hech qanday static handler yeta olmaydi. `upload_to` yo'llari o'zgarmadi, faqat ildiz boshqa. Owner qarori (2026-08-15) bo'yicha signed URL emas, ruxsat tekshiradigan `FileResponse` stream; S3 qayta ochilsa shu view redirectga kengaytiriladi va chaqiruvchi tomon o'zgarmaydi.
+
+Ruxsat qoidalari: chek — egasi va staff/owner; vazifa fayli — egasi, kurs o'qituvchisi (A0b/1 dagi canonical scope orqali) va owner; chat biriktirmasi — xona ishtirokchilari; speaking yozuvi — egasi, imtihon kursining o'qituvchisi va owner. Rad etish har doim `404`, chunki `403` faylning mavjudligini tasdiqlab qo'yardi.
+
+Yo'lda uchta nozik narsa chiqdi:
+
+1. **Django `FileField(storage=...)` callable'ini model klassi yaratilganda bir marta chaqiradi.** Oddiy `FileSystemStorage(location=...)` yo'lni o'sha paytda keshlab qo'yadi, natijada `override_settings(PRIVATE_MEDIA_ROOT=...)` hech qanday ta'sir qilmasdi va testlar haqiqiy papkaga yozib ketardi — birinchi test aynan shuni ushladi. Storage endi `location` ni har murojaatda sozlamadan o'qiydi.
+2. **`Content-Type` fayl baytlaridan aniqlanadi.** Saqlangan `attachment_content_type` ni brauzer yuboradi va u yolg'on bo'lishi mumkin; A0b/2 dagi sniffer shu yerda qayta ishlatildi. Rasm `inline`, qolgani `attachment`; `nosniff` va `no-store` sarlavhalari qo'yildi.
+3. **O'zim qo'ygan mina.** Private storage ataylab public URL bermaydi (`url()` `ValueError` ko'taradi — bu Django'ning `base_url=None` storage'lari uchun standart xulqi). Ammo Django admin'ning `ClearableFileInput` widgeti render paytida `value.url` ni o'qiydi, ya'ni chek/vazifa/xabar admin sahifalari `500` berardi. Admin default o'chiq (`ENABLE_LEGACY_ADMIN=False`), lekin yoqilishi mumkin — shuning uchun uchala admin formadan xom fayl maydoni chiqarildi va o'rniga ruxsat tekshiradigan havola qo'yildi.
+
+- Branch: `claude/a0b-private-media` (`origin/main` dan)
+- Yangi: `core/private_storage.py`, `core/private_media_views.py`, `core/test_private_media.py` (14 test). Tegilgan: `core/settings.py` (`PRIVATE_MEDIA_ROOT`), `core/test_runner.py` (private ildiz ham izolyatsiya qilinadi), 4 model, 3 `urls.py`, 3 `admin.py`, `courses/views.py`, `courses/exam_section_service.py`, 3 shablon, `.gitignore`
+- Migratsiyalar: `cohorts/0013`, `courses/0020` (`+audio_key`), `messenger/0015`. **`RemoveField` yo'q**, storage callable sifatida yozilgani uchun absolut yo'l migratsiyaga qotib qolmadi. Bazada 0 ta chek/vazifa/biriktirma/audio bo'lgani uchun data ko'chirish kerak emas edi
+- Speaking yozuvi endi `StudentAnswer.audio_key` (private storage kaliti) bilan ishlaydi; eski `audio_file_url` legacy sifatida qoldi va endi yozilmaydi — uni olib tashlash alohida kichik ish
+- Test holati: `manage.py test` — **583/583 OK** (569 + 14); `check` — 0 issue; `makemigrations --check --dry-run` — No changes
+- Testlar nimani isbotlaydi: fayl `MEDIA_ROOT` dan tashqarida ekani, anonim va begona o'quvchi hamma resursda `404` olishi, biriktirilmagan staff learner ishini ko'ra olmasligi, egasi va kurs o'qituvchisi ko'ra olishi, `Content-Type` yolg'on sarlavhadan emas baytlardan kelishi, o'chirilgan xabar biriktirmasi berilmasligi va admin formalarida xom fayl maydoni qolmagani
+- **Avatar ataylab tegilmadi:** uni boshqa foydalanuvchilar chat va reytingda ko'radi, `05-launch-ops.md` uni alohida owner qarori deb belgilagan
+- Churn: 4 fayl aralash line-ending sabab normallashib ketgandi; `difflib` bilan pozitsiya bo'yicha HEAD baytlari qaytarildi. Yakuniy xom diff mantiqiy diffga teng (144/35)
+- Davom etilishi kerak: A0b/4 WebSocket access recheck, A0b/5 django-csp v4
+
 ## 2026-08-15 [Claude Code]: Test suite endi repo ichidagi `media/` ga yozmaydi
 
 A0b/2 ustida ishlaganda sezildi: har to'liq test yugurishi `media/` ichiga fayl qoldirar ekan. Sabab — `MEDIA_ROOT` default holatda `BASE_DIR / 'media'`, ya'ni haqiqiy ishchi papka; upload qiladigan testlarda `FileField.save()` chaqirilsa fayl o'sha yerga yozilib, test tugagach ham qolib ketardi. Yig'ilib qolgan hajm: **161 fayl**, hammasi `media/receipts/2026/08` ichida.

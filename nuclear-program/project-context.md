@@ -804,6 +804,7 @@ Mini App sahifalari `templates/bot/miniapp_base.html` mobil shellini ulashadi. T
 |---|---|
 | `APP_ENV` | `local` (default) yoki production-like nom |
 | `AZURELMS_SKIP_ENV_FILE` | `.env.<APP_ENV>` yuklanmaydi. Test yugurtirishda **majburiy**: aks holda `.env.local`dagi haqiqiy `GEMINI_API_KEY` yuklanib, testlar bepul kvotani sarflashi mumkin |
+| `PRIVATE_MEDIA_ROOT` | Private fayllar ildizi; default `BASE_DIR/private-media`. `MEDIA_ROOT` dan tashqarida bo'lishi shart |
 | `AZURELMS_TEST_FILE_DB` | Test bazasini diskdagi SQLite fayliga o'tkazadi. Concurrency proof testlari uchun kerak; default in-memory (tezroq), ammo uning qulflash semantikasi real bazadan farq qiladi |
 | `DEBUG` | Django debug |
 | `SECRET_KEY` | prod uchun majburiy |
@@ -851,7 +852,7 @@ Mini App sahifalari `templates/bot/miniapp_base.html` mobil shellini ulashadi. T
 ### 2026-08-14 da tasdiqlangan release cheklovlari
 
 - Production-like muhitda broker env yo'q bo'lsa Celery hozir `memory://`ga fallback qilishi mumkin; Channels ham konfiguratsiya bo'lmasa in-memory qatlamga tushadi.
-- Default S3 media storage `public-read` va unsigned URL ishlatadi; protected upload klasslari hozir alohida private storage'ga ajratilmagan.
+- ~~Default S3 media storage `public-read` va unsigned URL ishlatadi; protected upload klasslari hozir alohida private storage'ga ajratilmagan.~~ **Yopildi 2026-08-15 (A0b/3):** to'lov cheki, vazifa fayli, chat biriktirmasi va speaking yozuvi `PRIVATE_MEDIA_ROOT` ichida — `MEDIA_ROOT` dan tashqarida — saqlanadi va faqat ruxsat tekshiradigan view orqali beriladi. Private storage public URL bermaydi. Future S3 uchun bu view signed URL'ga redirect qiladigan qilib kengaytiriladi.
 - `.github/workflows` va `/healthz` endpoint hozir yo'q.
 - `TelegramOutbox` modeli/command'i bor, lekin Procfile'da doimiy process yo'q; worker atomic claim/lease qilmaydi, shuning uchun hozir aynan 1 replica xavfsizroq.
 - `AIResponseRun` status, model, skill, token, duration, metadata, error va idempotency keyni saqlaydi; pul qiymati va quality release gate saqlanmaydi.
@@ -926,7 +927,7 @@ EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 - O'chirilgan (deaktivatsiya qilingan) staff bot admini hisoblanardi. **Yopildi 2026-07-23** (`5bea4a5`): `is_active_staff()` va `resolve_identity` orqali `is_active` tekshiriladi.
 - WebSocket room authorization connect vaqtida tekshiriladi; ochiq socket uchun enrollment/access o'zgarishini qayta tekshirish yo'q.
 - ~~Model validatorlari oddiy `save/create`da avtomatik ishlamagani sabab uploadlar real MIME/magic-byte gate'dan to'liq o'tmaydi.~~ **Yopildi 2026-08-15 (A0b/2):** `core/upload_validation.py` faylning boshidagi baytlaridan turini aniqlaydi (`image`/`document`/`audio` profillari, hajm capi va kengaytma izchilligi). Gate view/servis darajasida — chat biriktirmasi, to'lov cheki, vazifa fayli, imtihon audiosi va avatar. Klient yuboradigan `content_type` va fayl nomiga ishonilmaydi.
-- Private uploadlar joriy default S3 storage sabab public-read bo'lishi mumkin.
+- ~~Private uploadlar joriy default S3 storage sabab public-read bo'lishi mumkin.~~ **Yopildi 2026-08-15 (A0b/3)** — yuqoriga qarang. Avatar ataylab public qoldi: uni boshqa foydalanuvchilar chat va reytingda ko'radi, `05-launch-ops.md` bo'yicha bu alohida owner qarori.
 
 Ochiq bandlar joriy capability emas, backlog `A0b` release gate'i. Yopilgan har band kod/test evidence bilan shu ro'yxatdan olib tashlanadi.
 
