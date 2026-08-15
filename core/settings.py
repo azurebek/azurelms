@@ -17,6 +17,8 @@ import dj_database_url
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
+from core.csp_policy import build_csp_policy
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -231,17 +233,16 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+# Siyosat doim quriladi (test qilinadigan bo'lsin), middleware esa faqat
+# strict rejimda ulanadi. Eski `CSP_*` nomlari django-csp v4 tomonidan
+# umuman o'qilmasdi — ya'ni header aslida chiqmayotgan edi (A0b).
+CONTENT_SECURITY_POLICY = build_csp_policy(APP_DOMAIN)
+
 if SECURITY_STRICT:
     if module_available("csp"):
+        # 0-o'rin: javob fazasida oxirgi ishlaydi, ya'ni Mini App middleware
+        # qo'ygan `_csp_replace` ni ko'rib bitta to'liq header quradi.
         MIDDLEWARE.insert(0, "csp.middleware.CSPMiddleware")
-        CSP_DEFAULT_SRC = ("'self'",)
-        CSP_SCRIPT_SRC = ("'self'", "https://cdn.jsdelivr.net", "https://www.googletagmanager.com", "https://www.google-analytics.com", "'unsafe-inline'")
-        CSP_STYLE_SRC = ("'self'", "https://cdn.jsdelivr.net", "https://fonts.googleapis.com", "'unsafe-inline'")
-        CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net")
-        CSP_IMG_SRC = ("'self'", "data:", "https://*.digitaloceanspaces.com", "https://www.google-analytics.com")
-        CSP_FRAME_SRC = ("'self'", "https://www.youtube.com", "https://player.vimeo.com")
-        CSP_FRAME_ANCESTORS = ("'self'", "https://web.telegram.org", "https://*.telegram.org")
-        CSP_CONNECT_SRC = ("'self'", "https://www.google-analytics.com", f"wss://{APP_DOMAIN}" if APP_DOMAIN else "ws://localhost:8000")
     else:
         print("Warning: SECURITY_STRICT is enabled, but django-csp is not installed; skipping CSP middleware.")
 

@@ -846,8 +846,8 @@ Mini App sahifalari `templates/bot/miniapp_base.html` mobil shellini ulashadi. T
 - Secure session/CSRF cookies
 - HSTS
 - Default sahifalarda `X_FRAME_OPTIONS = DENY`; Telegram-authenticated Mini App view'lari ataylab exempt bo'lib, middleware `frame-ancestors`ni qo'shadi
-- `django-csp` middleware ulanadi, ammo installed v4 `CONTENT_SECURITY_POLICY`ni kutadi; joriy eski `CSP_*` settinglar sabab to'liq CSP header amalda chiqmaydi
-- Intended allowlist YouTube/Vimeo frame'larini ko'zlaydi, lekin Mini App yuklaydigan `https://telegram.org/js/telegram-web-app.js` joriy intended `script-src`da yo'q
+- `django-csp` v4 formatiga ko'chirildi (2026-08-15, A0b/5): siyosat `core/csp_policy.build_csp_policy()` da quriladi va `CONTENT_SECURITY_POLICY` orqali beriladi; header real javobda tekshirilgan
+- `script-src` ga Mini App yuklaydigan `https://telegram.org` qo'shildi; Mini App sessiyasi `frame-ancestors` ni per-response `_csp_replace` bilan kengaytiradi, ya'ni to'liq siyosat saqlanadi
 
 ### 2026-08-14 da tasdiqlangan release cheklovlari
 
