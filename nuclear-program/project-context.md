@@ -925,7 +925,7 @@ EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
 - ~~Telegram webhook secret uchun taniqli default mavjud; mismatch request yuborgan `received` token logga yoziladi.~~ **Yopildi 2026-07-23** (`5bea4a5`): default bo'sh + fail-closed webhook; mos kelmagan token logga yozilmaydi; `constant_time_compare`.
 - O'chirilgan (deaktivatsiya qilingan) staff bot admini hisoblanardi. **Yopildi 2026-07-23** (`5bea4a5`): `is_active_staff()` va `resolve_identity` orqali `is_active` tekshiriladi.
 - WebSocket room authorization connect vaqtida tekshiriladi; ochiq socket uchun enrollment/access o'zgarishini qayta tekshirish yo'q.
-- Model validatorlari oddiy `save/create`da avtomatik ishlamagani sabab uploadlar real MIME/magic-byte gate'dan to'liq o'tmaydi.
+- ~~Model validatorlari oddiy `save/create`da avtomatik ishlamagani sabab uploadlar real MIME/magic-byte gate'dan to'liq o'tmaydi.~~ **Yopildi 2026-08-15 (A0b/2):** `core/upload_validation.py` faylning boshidagi baytlaridan turini aniqlaydi (`image`/`document`/`audio` profillari, hajm capi va kengaytma izchilligi). Gate view/servis darajasida — chat biriktirmasi, to'lov cheki, vazifa fayli, imtihon audiosi va avatar. Klient yuboradigan `content_type` va fayl nomiga ishonilmaydi.
 - Private uploadlar joriy default S3 storage sabab public-read bo'lishi mumkin.
 
 Ochiq bandlar joriy capability emas, backlog `A0b` release gate'i. Yopilgan har band kod/test evidence bilan shu ro'yxatdan olib tashlanadi.

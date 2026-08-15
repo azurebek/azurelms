@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.http import JsonResponse
 from django.utils import timezone
 import datetime
@@ -11,6 +12,7 @@ from subscriptions.promo_service import (
     build_promo_quote,
     create_checkout_receipt_with_promo,
 )
+from core.upload_validation import validate_upload
 from .checkout_service import CheckoutUnavailable, resolve_checkout_enrollment
 from .models import PaymentReceipt
 
@@ -133,6 +135,15 @@ def checkout_view(request, course_id):
                 'period_start': tentative_start,
                 'period_end': tentative_end
             })
+
+        # Chek rasmi baytlar bo'yicha tekshiriladi: model field validatori
+        # `create_checkout_receipt_with_promo()` ichidagi `.create()` yo'lida
+        # ishga tushmaydi (A0b).
+        try:
+            validate_upload(receipt_image, profile="image", field_label="Chek rasmi")
+        except ValidationError as exc:
+            messages.error(request, exc.messages[0])
+            return redirect('cohorts:checkout', course_id=course.id)
 
         if enrollment.plan_id != selected_plan.id:
             enrollment.plan = selected_plan

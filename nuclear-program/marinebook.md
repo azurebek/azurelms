@@ -16,6 +16,35 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-15 [Claude Code]: A0b/2 — upload gate baytlar bo'yicha (MIME/magic-byte/size)
+
+A0b ning ikkinchi slice'i. Oldingi holat: `core/utils.py` da faqat ikkita tekshiruv bor edi — hajm va **kengaytma**. Ikkalasi ham faqat `CustomUser.avatar` va `PaymentReceipt.receipt_image` maydonlariga biriktirilgan, ustiga model field validatorlari `Model.objects.create()` va `instance.save()` yo'llarida umuman ishga tushmaydi — bizning upload endpointlarimiz aynan shu yo'llarni ishlatadi. Ya'ni amalda hech qanday tur tekshiruvi yo'q edi.
+
+Yangi `core/upload_validation.py` faylning **birinchi 512 baytini** o'qib turini aniqlaydi. Fayl nomi va klient yuboradigan `content_type` ga ishonilmaydi — ular brauzerdan keladi va soxtalashtirilishi mumkin. Kengaytma faqat ikkilamchi izchillik tekshiruvi: haqiqiy PDF `.png` nomi bilan kelsa rad etiladi. Uchta profil: `image` (5MB), `document` (12MB), `audio` (25MB).
+
+Beshta learner upload yo'li ulandi va har birida aniq nuqson yopildi:
+
+| Yo'l | Oldingi holat |
+|---|---|
+| `messenger.upload_message_attachment` | faqat 12MB; tur tekshiruvi **umuman yo'q** — `.html`, `.svg`, exe bemalol o'tardi |
+| `cohorts.checkout_view` chek rasmi | model validatori bor, lekin servis `.create()` qilgani uchun **ishlamasdi** |
+| `courses.submission_service.submit_assignment` | hech qanday tekshiruv yo'q |
+| `courses.UploadExamAudioView` | faqat `upload.content_type` — klient yuboradigan qiymat, bo'sh bo'lsa tekshiruv butunlay o'tkazib yuborilardi |
+| `users.AvatarUpdateView` | model validatori `save()` yo'lida **ishlamasdi** |
+
+Gate canonical joyda turadi: vazifa fayli uchun u `submission_service` da, shuning uchun web view ham, Telegram bot ham bir xil qoidani oladi.
+
+Ikkita nozik qaror. (1) `.txt` yuklashni buzib qo'ymaslik uchun matn turi qo'shildi, ammo xavfsiz shartlar bilan: matnli kengaytma + UTF-8 + `<` bilan boshlanmaslik — shunda `.txt` niqobidagi HTML/SVG o'tmaydi. (2) Audio profili brauzer MediaRecorder chiqaradigan konteynerlar (webm/ogg/wav/mp3/mp4-m4a) bilan cheklandi; ro'yxatdan biror format chiqib qolsa u bitta konfiguratsiya qatori bilan qo'shiladi.
+
+- Branch: `claude/a0b-upload-validation` (`origin/main` dan; A8 va A0b/1 branchlaridan mustaqil)
+- Yangi: `core/upload_validation.py`, `core/test_upload_validation.py` (19 test). Tegilgan: `messenger/views.py`, `cohorts/views.py`, `courses/views.py`, `courses/submission_service.py`, `users/views.py`, `cohorts/tests.py`, `ai/documents/tests.py`. **Migration yo'q**
+- Testlar: magic-byte tanish, `content_type` bilan aldash urinishi, kengaytma nomuvofiqligi, SVG/HTML rad etilishi, `.txt` niqobidagi HTML, bo'sh va katta fayl, sniff'dan keyin fayl saqlanadigan holatda qolishi, beshta audio konteyneri, hamda endpoint darajasidagi gate testlari (avatar, messenger, vazifa)
+- Test holati: `manage.py test` — **546/546 OK** (baseline 527 + 19); `manage.py check` — 0 issue
+- **Yo'lda topilgan ikkinchi nuqson:** `ai/documents/tests.py` dagi `test_captionless_generic_file_does_not_dispatch_ai` soxta `b"PK fake docx"` baytlari bilan ishlardi va **noto'g'ri sababdan o'tardi** — u "AI chaqirilmadi" deb tasdiqlardi, aslida fayl umuman qabul qilinmasdi. Endi haqiqiy `PK\x03\x04` baytlari va `assertEqual(status_code, 200)` bor
+- **Test gigienasi:** yangi endpoint testlari `TempMediaMixin` orqali vaqtinchalik `MEDIA_ROOT` ishlatadi. Mavjud testlarning bir qismi hali ham repo ichidagi `media/` ga yozadi (bugungi runlardan keyin u yerda 148 fayl) — bu alohida tozalash ishi sifatida ajratildi
+- Inventarizatsiya qo'shimchasi: CKEditor upload'i (`/ckeditor5/`) `CKEDITOR_5_FILE_UPLOAD_PERMISSION` defaulti bo'yicha **staff-gated**, ya'ni learner teshigi emas. SIT/blog/landing rasm maydonlari owner-only backoffice formalarida qoladi — bu slice ularga tegmadi
+- Line-ending intizomi: `users/views.py`, `cohorts/views.py`, `cohorts/tests.py` va `ai/documents/tests.py` repoda aralash CRLF/LF saqlanadi; tahrir ularni normallashtirib yubormasligi uchun to'rttasi ham HEAD baytlaridan qayta qurildi. Xom diff mantiqiy diffga teng (82/15), churn yo'q
+- Davom etilishi kerak: A0b/3 — private media permission-checked stream view (**owner qarori 2026-08-15**: signed URL emas, `FileResponse` bilan stream; S3 ochilsa shu view redirectga kengaytiriladi). Keyin A0b/4 WebSocket access recheck, A0b/5 django-csp v4
 ## 2026-08-15 [Claude Code]: A0b/1 — teacher scope default-deny va canonical scope
 
 A0b ning birinchi slice'i. Rejada bitta band ("teacher course/cohort default-deny") edi, amalda **bir qoidaning uchta nusxasi** topildi va ikkitasi default-allow tomonga og'gan edi:
