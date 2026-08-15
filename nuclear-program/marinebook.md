@@ -16,6 +16,22 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-15 [Claude Code]: Test suite endi repo ichidagi `media/` ga yozmaydi
+
+A0b/2 ustida ishlaganda sezildi: har to'liq test yugurishi `media/` ichiga fayl qoldirar ekan. Sabab — `MEDIA_ROOT` default holatda `BASE_DIR / 'media'`, ya'ni haqiqiy ishchi papka; upload qiladigan testlarda `FileField.save()` chaqirilsa fayl o'sha yerga yozilib, test tugagach ham qolib ketardi. Yig'ilib qolgan hajm: **161 fayl**, hammasi `media/receipts/2026/08` ichida.
+
+Yechim bitta joyda — `core/test_runner.py` dagi `MediaIsolatedTestRunner`: test muhiti tayyorlanayotganda `MEDIA_ROOT` vaqtinchalik papkaga ko'chiriladi, yakunda o'chiriladi. Har bir test moduliga alohida mixin/dekorator qo'shish shart emas, kelajakda yoziladigan testlar ham avtomatik himoyalanadi. `override_settings` ataylab ishlatilgan: u `setting_changed` signalini yuboradi va Django shu signalda storage keshlarini tozalaydi — oddiy `settings.MEDIA_ROOT = ...` bilan `FileSystemStorage` eski yo'lni keshda saqlab qolishi mumkin edi.
+
+Fayl yozadigan test modullari (statik tahlil): `cohorts/tests.py`, `bot/tests.py`, `courses/tests.py`, `messenger/tests.py`, `core/test_brand_control.py`. `ai/documents/tests.py` allaqachon o'z `override_settings(MEDIA_ROOT=TEMP_MEDIA)` ini ishlatardi — runner-darajasidagi override uning ustiga muammosiz qo'yiladi.
+
+Tozalash owner tasdig'i bilan bajarildi. Dalil: bazada **0 ta `PaymentReceipt` va 0 ta foydalanuvchi**, ya'ni 161 faylning birortasiga ham DB yozuvi ishora qilmasdi; fayl nomlari uchta test fixture naqshiga tushardi (`r_*.jpg` 66, `receipt_*.png` 51, `tg-receipt-test_*.jpg` 44). Hammasi o'chirildi, bo'sh `media/` katalogi qaytarildi.
+
+- Branch: `claude/test-media-isolation` (`origin/main` dan)
+- Yangi: `core/test_runner.py`, `core/test_media_isolation.py` (4 qo'riqchi test). Tegilgan: `core/settings.py` (+4, `TEST_RUNNER`). **Migration yo'q**, churn yo'q
+- Qo'riqchi testlar `TEST_RUNNER` o'chirilsa yoki `MEDIA_ROOT` loyiha ichiga qaytsa aniq sabab bilan yiqiladi; to'rtinchisi haqiqatan fayl saqlab, u vaqtinchalik papkaga tushganini tekshiradi
+- Test holati: `manage.py test` — **531/531 OK** (baseline 527 + 4). **Asosiy dalil:** to'liq yugurishdan oldin `media/` da 161 fayl, keyin ham 161 — yangi fayl **0**. Fix'dan oldin har yugurish o'nlab fayl qo'shardi
+- `manage.py check` — 0 issue
+- Eslatma: `claude/a0b-upload-validation` branchidagi `core/test_upload_validation.py` o'z `TempMediaMixin` iga ega. Ikkala branch merge bo'lgach u ortiqcha bo'lib qoladi (zararsiz — nested override), xohlasa soddalashtiriladi. Branchlar ataylab mustaqil qoldirildi
 ## 2026-08-15 [Claude Code]: A0b/2 — upload gate baytlar bo'yicha (MIME/magic-byte/size)
 
 A0b ning ikkinchi slice'i. Oldingi holat: `core/utils.py` da faqat ikkita tekshiruv bor edi — hajm va **kengaytma**. Ikkalasi ham faqat `CustomUser.avatar` va `PaymentReceipt.receipt_image` maydonlariga biriktirilgan, ustiga model field validatorlari `Model.objects.create()` va `instance.save()` yo'llarida umuman ishga tushmaydi — bizning upload endpointlarimiz aynan shu yo'llarni ishlatadi. Ya'ni amalda hech qanday tur tekshiruvi yo'q edi.

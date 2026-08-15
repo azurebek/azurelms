@@ -503,6 +503,10 @@ else:
     MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR / 'media'
 
+# Testlar `MEDIA_ROOT` ni vaqtinchalik papkaga ko'chiradi, aks holda upload
+# qiladigan testlar repo ichidagi `media/` ga fayl yozib qoldiradi.
+TEST_RUNNER = 'core.test_runner.MediaIsolatedTestRunner'
+
 # CKEditor 5 upload manzili nomi
 CKEDITOR_5_UPLOAD_FILE_VIEW_NAME = "ck_editor_5_upload_file"
 
