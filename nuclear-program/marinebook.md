@@ -16,6 +16,26 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-15 [Claude Code]: bog'liqlik xavfsizlik qarzi — 93 advisory → 0
+
+CI ning supply-chain gate'i ishga tushgan kuni 19 paketda 93 ta e'lon qilingan zaiflik ko'rsatdi. Eng kattasi Django `6.0.2` — 18 advisory; repo esa public. Qarz reyestrga yozilgandi, endi to'landi.
+
+**20 paket ko'tarildi.** Uchtasi major chegarani kesib o'tdi (cryptography `46 → 50`, pyOpenSSL `25 → 26`, Twisted `25.5 → 26.4`) — ular TLS/Channels/Daphne stekining o'zagi, shuning uchun eng katta xavf shu yerda edi. To'rtinchisi zanjir reaksiyasi bo'ldi: aiohttp `3.13.3 → 3.14.3` kerak edi, ammo aiogram `3.26` `aiohttp<3.14` talab qilardi — aiogram ham `3.30` ga ko'tarildi. Muqobil variant aiohttp'ni `3.13.4` da qoldirish edi, u 24 advisorydan faqat 11 tasini yopardi.
+
+**Django ataylab `6.0.8` da qoldirildi**, `6.1` mavjud bo'lsa ham. Bu xavfsizlik patchi; framework minor migratsiyasi alohida, o'ylangan qaror bo'lishi kerak va uni shu ishga qo'shib yuborish ikkala xavfni aralashtirib yuborardi.
+
+Reyestr bo'shab qolgach gate mantiqi ham kuchaydi: **bo'sh reyestr = har qanday advisory darhol qizil**, chunki uni oqlaydigan yozuv yo'q. Istisno yozish yo'li ochiq qoldi, ammo endi sanasiz istisno kod darajasida rad etiladi — sanasiz istisno gate'ni jimgina bo'shatadi.
+
+`requirements.txt` ni `pip freeze` bilan qayta yozmadim: fayl alfavit bo'yicha emas va aralash qator oxirlariga ega (97 CRLF, 8 LF), freeze esa butun faylni qayta tartiblab diffni o'qib bo'lmas holga keltirardi. O'rniga faqat versiya raqamlari joyida almashtirildi — diff aynan 20 satr.
+
+- Branch: `claude/dependency-security-upgrade` → PR
+- Tegilgan: `requirements.txt` (20 pin), `security/dependency-audit-baseline.json` (bo'shatildi), `core/dependency_audit.py` (sanasiz istisno rad etiladi), `core/test_supply_chain_gate.py`
+- Test holati: local SQLite **689/689 OK**, `manage.py check` 0 issue, migration drift yo'q, `pip check` toza; PR'da PostgreSQL ishi ham yashil
+- Nazorat yugurishi: ko'tarishdan oldingi `pip-audit` hisoboti bo'sh reyestrga qarshi ishlatilganda buyruq 93 advisoryni "YANGI" deb sanab, exit `1` berdi
+- Qaytarish yo'li: eski muhit `pip freeze` snapshoti olingan edi; `git revert` + `pip install -r requirements.txt` yetarli
+
+---
+
 ## 2026-08-15 [Claude Code]: `main` branch protection — CI endi haqiqiy gate
 
 CI yoqilgani bilan hech narsani to'xtatmasdi: checklar qizil bo'lsa ham `main` ga push o'tib ketaverardi. Owner qarori bilan `main` branch protection ostiga olindi.

@@ -90,9 +90,19 @@ def compare(report, baseline):
 
 
 def review_overdue(baseline, today=None):
-    """Reyestr qayta ko'rib chiqish muddati o'tganmi."""
+    """Reyestr qayta ko'rib chiqish muddati o'tganmi.
+
+    Bo'sh reyestrda muddat kerak emas — muddat istisnolarni abadiylashishdan
+    saqlaydi, istisno yo'q bo'lsa saqlaydigan narsa ham yo'q. Ammo istisno
+    yozilgan bo'lsa, sanasiz qoldirish gate'ni jimgina bo'shatadi.
+    """
     raw = (baseline.get("review_by") or "").strip()
     if not raw:
+        if baseline.get("known"):
+            raise DependencyAuditError(
+                "Reyestrda istisno bor, ammo `review_by` sanasi yo'q — "
+                "sanasiz istisno abadiy indulgensiyaga aylanadi."
+            )
         return None
     try:
         deadline = date.fromisoformat(raw)
