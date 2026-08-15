@@ -272,6 +272,14 @@ def _ai_probe(definition: CapabilityDefinition) -> CapabilityResult:
         candidate_statuses.append(credential_status)
         issues.append("AI provider credential mavjud emas.")
 
+    # Kill switch — ataylab qilingan operator harakati, nosozlik emas.
+    # 05-launch-ops ta'rifi bo'yicha bu AMBER: oltin kurs oqimi ishlaydi,
+    # degradatsiya esa aniq va boshqariladigan (A2).
+    kill_switch_on = not policy.ai_remote_calls_enabled
+    if kill_switch_on:
+        candidate_statuses.append("amber")
+        issues.append("AI owner tomonidan to'xtatilgan (kill switch).")
+
     supply_available = bool(supply.get("available", False))
     supply_status = str(supply.get("status", "red"))
     if supply_status not in STATUS_ORDER:
@@ -314,6 +322,7 @@ def _ai_probe(definition: CapabilityDefinition) -> CapabilityResult:
             else "unavailable"
         ),
         supply_bucket=supply_value("bucket_date"),
+        remote_calls_enabled=policy.ai_remote_calls_enabled,
         requests_used=supply_value("requests_used"),
         requests_limit=supply_value("requests_limit"),
         requests_remaining=supply_value("requests_remaining"),

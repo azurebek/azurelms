@@ -156,6 +156,63 @@ def backoffice_brand(request):
 
 @login_required
 @user_passes_test(_is_control_center_owner)
+def backoffice_ai_kill_switch(request):
+    """Owner-only AI kill switch — remote chaqiruvlarni bir tugma bilan to'xtatadi.
+
+    Bu budjet sozlamasi emas: o'chirilganda `reserve_supply()` har qanday
+    remote AI chaqirig'ini tarmoqdan **oldin** rad etadi (chat, grounding,
+    SmartForm, bot demo, embedding). Shoshilinch holat uchun, masalan kvota
+    kutilmaganda yonib ketsa (A2).
+    """
+    from aicontrol.models import AISettings
+    from core.kill_switch_forms import AIKillSwitchForm
+
+    policy = AISettings.load()
+    if request.method == "POST":
+        form = AIKillSwitchForm(request.POST, instance=policy)
+        if form.is_valid():
+            if form.switch_changed:
+                with transaction.atomic():
+                    policy = form.save()
+                    reason = form.cleaned_data["change_reason"].strip()
+                    state = "yoqildi" if policy.ai_remote_calls_enabled else "O'CHIRILDI"
+                    LogEntry.objects.log_actions(
+                        user_id=request.user.pk,
+                        queryset=AISettings.objects.filter(pk=policy.pk),
+                        action_flag=CHANGE,
+                        change_message=f"AI remote chaqiruvlari {state}. Sabab: {reason}",
+                        single_object=True,
+                    )
+                messages.success(
+                    request,
+                    "AI remote chaqiruvlari yoqildi."
+                    if policy.ai_remote_calls_enabled
+                    else "AI remote chaqiruvlari to'xtatildi — yangi chaqiruvlar ketmaydi.",
+                )
+            else:
+                messages.info(request, "Holat o'zgarmadi; hech narsa yozilmadi.")
+            return redirect("backoffice_ai_kill_switch")
+    else:
+        form = AIKillSwitchForm(instance=policy)
+
+    content_type = ContentType.objects.get_for_model(AISettings)
+    context = {
+        "active_nav": "backoffice",
+        "bo_active": "control",
+        "counts": {},
+        "form": form,
+        "policy": policy,
+        "recent_switch_changes": LogEntry.objects.filter(
+            content_type=content_type,
+            object_id=str(policy.pk),
+            action_flag=CHANGE,
+        ).select_related("user")[:8],
+    }
+    return render(request, "backoffice/ai_kill_switch.html", context)
+
+
+@login_required
+@user_passes_test(_is_control_center_owner)
 def backoffice_landing(request):
     """Owner-only bosh sahifa (landing) matn editori."""
     landing = LandingPage.load()

@@ -397,6 +397,7 @@ Custom yashirin admin URL'lari:
 ```
 /backoffice/
 /backoffice/control/                 # faqat active superuser
+/backoffice/control/ai-kill-switch/  # faqat owner; AI remote chaqiruvlarini to'xtatish
 /backoffice/control/brand/           # faqat active superuser; markaziy brend/logo
 /backoffice/landing/                 # faqat owner; landing phase-1 editor
 /backoffice/users/

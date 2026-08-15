@@ -1,0 +1,83 @@
+{% extends "backoffice/base.html" %}
+{% load static %}
+
+{% block bo_title %}AI kill switch{% endblock %}
+{% block bo_icon %}bi-power{% endblock %}
+{% block bo_topbar %}AI remote chaqiruvlarini boshqarish{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/brand-control.css' %}">{% endblock %}
+
+{% block bo_content %}
+<section class="brand-hero">
+  <div>
+    <span class="brand-kicker">SHOSHILINCH TO'XTATISH</span>
+    <h1>AI remote chaqiruvlari</h1>
+    <p>Bu budjet sozlamasi emas. O'chirilganda hech qanday remote AI chaqirig'i ketmaydi — chat, grounding, SmartForm, Telegram demo va embedding ham. Kurs, dars, to'lov va odam bilan yozishuv oqimlari ishlashda davom etadi.</p>
+  </div>
+  <a class="brand-back" href="{% url 'backoffice_control' %}"><i class="bi bi-arrow-left"></i> Control Center</a>
+</section>
+
+<div class="brand-layout">
+  <form class="brand-form" method="post"
+        onsubmit="return confirm('AI remote chaqiruvlari holatini o‘zgartirasizmi?');">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="brand-errors">{{ form.non_field_errors }}</div>{% endif %}
+
+    <section class="brand-panel">
+      <div class="brand-panel-head">
+        <span>01</span>
+        <div>
+          <h2>Joriy holat</h2>
+          <p>
+            {% if policy.ai_remote_calls_enabled %}
+              AI <strong>yoqilgan</strong> — chaqiruvlar budjet va cooldown qoidalariga bo'ysunadi.
+            {% else %}
+              AI <strong>to'xtatilgan</strong> — yangi remote chaqiruv ketmaydi.
+            {% endif %}
+          </p>
+        </div>
+      </div>
+      <div class="brand-fields">
+        <label class="brand-field">
+          <span>{{ form.ai_remote_calls_enabled.label }}</span>
+          {{ form.ai_remote_calls_enabled }}
+          {% if form.ai_remote_calls_enabled.help_text %}<small>{{ form.ai_remote_calls_enabled.help_text }}</small>{% endif %}
+          {% for error in form.ai_remote_calls_enabled.errors %}<em>{{ error }}</em>{% endfor %}
+        </label>
+      </div>
+    </section>
+
+    <section class="brand-panel">
+      <div class="brand-panel-head"><span>02</span><div><h2>Sabab va tasdiq</h2><p>Audit tarixiga yoziladi.</p></div></div>
+      <div class="brand-fields">
+        <label class="brand-field">
+          <span>{{ form.change_reason.label }}</span>
+          {{ form.change_reason }}
+          {% if form.change_reason.help_text %}<small>{{ form.change_reason.help_text }}</small>{% endif %}
+          {% for error in form.change_reason.errors %}<em>{{ error }}</em>{% endfor %}
+        </label>
+        <label class="brand-field brand-field--check">
+          {{ form.confirm_change }} <span>{{ form.confirm_change.label }}</span>
+          {% for error in form.confirm_change.errors %}<em>{{ error }}</em>{% endfor %}
+        </label>
+      </div>
+    </section>
+
+    <button class="brand-submit" type="submit"><i class="bi bi-power"></i> Holatni saqlash</button>
+  </form>
+
+  <aside class="brand-side">
+    <section class="brand-panel">
+      <div class="brand-panel-head"><span><i class="bi bi-clock-history"></i></span><div><h2>So'nggi o'zgarishlar</h2></div></div>
+      {% if recent_switch_changes %}
+        <ul class="brand-history">
+          {% for entry in recent_switch_changes %}
+            <li><strong>{{ entry.action_time|date:"d.m.Y H:i" }}</strong> — {{ entry.user }}<br><small>{{ entry.change_message }}</small></li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="brand-empty">Hali o'zgartirilmagan.</p>
+      {% endif %}
+    </section>
+  </aside>
+</div>
+{% endblock %}

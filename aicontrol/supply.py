@@ -163,7 +163,12 @@ def reserve_supply(
             bucket = timezone.localdate()
             user_value = user if getattr(user, "pk", None) else None
 
-            if policy.supply_enforcement_enabled and state.circuit_open_until:
+            # Kill switch budjetdan mustaqil: `supply_enforcement_enabled`
+            # o'chirilgan bo'lsa ham u ishlaydi, chunki bu shoshilinch
+            # to'xtatish tugmasi, budjet sozlamasi emas (A2).
+            if not policy.ai_remote_calls_enabled:
+                denied_reason = "kill_switch"
+            elif policy.supply_enforcement_enabled and state.circuit_open_until:
                 denied_reason = "circuit_open"
             elif policy.supply_enforcement_enabled:
                 totals = AISupplyEvent.objects.filter(bucket_date=bucket).aggregate(
@@ -228,6 +233,7 @@ def reserve_supply(
 
     if denied_reason:
         messages = {
+            "kill_switch": "AI vaqtincha o'chirilgan (owner kill switch).",
             "circuit_open": "AI provider quota cooldown holatida.",
             "minute_request_limit": "Global AI bir daqiqalik request budjeti tugadi.",
             "daily_request_limit": "Bugungi global AI request budjeti tugadi.",

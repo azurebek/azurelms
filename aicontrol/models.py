@@ -40,6 +40,15 @@ class AISettings(models.Model):
     default_effort = models.CharField(
         max_length=20, blank=True, default="", verbose_name="Default web-search effort"
     )
+    ai_remote_calls_enabled = models.BooleanField(
+        default=True,
+        verbose_name="AI remote chaqiruvlari yoqilganmi (kill switch)",
+        help_text=(
+            "O'chirilsa hech qanday remote AI chaqirig'i ketmaydi — chat, "
+            "grounding, SmartForm, bot demo va embedding ham. Budjet "
+            "sozlamalaridan mustaqil: bu shoshilinch to'xtatish tugmasi."
+        ),
+    )
     supply_enforcement_enabled = models.BooleanField(
         default=True,
         verbose_name="Global AI supply budget yoqilganmi",
