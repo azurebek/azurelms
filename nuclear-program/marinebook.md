@@ -16,6 +16,24 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-15 [Claude Code]: A1a — Telegram outbox atomik claim/lease
+
+A1a ning birinchi bo'lagi. Outbox worker `status=pending` bo'yicha shunchaki tanlardi va hech narsani band qilmasdi. Ikki worker bir vaqtda ishlaganda — `runbot` ichidagi va alohida `telegram_outbox --loop` — ikkalasi ham bir xil qatorlarni olib, foydalanuvchiga **bir xil DM ni ikki marta** yuborardi. `05-launch-ops.md` dagi "atomic claim qurilmaguncha aynan 1 replica" jumlasi aynan shu sababdan edi.
+
+Yechim shartli `UPDATE` ga tayanadi: `status=pending` filtri bilan yangilash faqat bitta workerda mos keladi, ikkinchisiniki `0` qator yangilaydi. `SELECT ... FOR UPDATE SKIP LOCKED` ishlatilmadi — SQLite uni qo'llab-quvvatlamaydi. Har batch o'z `claim_token` ini oladi, shuning uchun worker aynan o'zi olgan qatorlarni qaytarib oladi. Lease muddati (`LEASE_SECONDS=120`) worker o'lib qolgan qatorni navbatga qaytaradi; muvaffaqiyatsiz urinish ham claim'ni bo'shatadi va qator `pending` ga tushadi, `MAX_ATTEMPTS` da esa `failed` bo'ladi.
+
+**Yo'lda ko'r nuqta topildi.** Control Center outbox salomatligini faqat `pending` bo'yicha hisoblardi. Yangi `sending` holati bilan, o'lgan worker qatori lease tugagunicha probe uchun ko'rinmay qolardi — navbat "sog'lom" bo'lib turaverardi. Probe endi `pending + sending` ni birga hisoblaydi va alohida `in_flight` ko'rsatkichini beradi. Ya'ni o'z o'zgarishim monitoringni ko'r qilib qo'ymadi.
+
+**Halol chegara:** kafolat baribir **at-least-once**. Telegram'ga yuborish muvaffaqiyatli bo'lib, DB yangilanishidan oldin process o'lsa, lease tugagach xabar takrorlanadi. Lease bu oynani qisqartiradi, yo'q qilmaydi. Exponential backoff va terminal dead-letter hali yo'q — ikkinchi replica uchun ular ham kerak.
+
+- Branch: `claude/a1a-outbox-lease` (`origin/main` dan)
+- Yangi: `bot/test_outbox_lease.py` (8 test), `core/qa_support.py`. Tegilgan: `bot/models.py` (`claimed_at`, `claim_token`, `sending` holati), `bot/outbox.py`, `core/control_center/snapshot.py`
+- Migratsiya: `bot/0006` — 2 AddField + status choices; `RemoveField` yo'q
+- A8 testidagi `_is_file_backed_sqlite` helperi `core/qa_support.py` ga chiqarildi va ikkala contention moduli endi bittasini ishlatadi (nusxa qolmadi)
+- Test holati: `manage.py test` — **606/606 OK** (598 + 8); fayl DB bilan outbox + supply contention — 17/17; `check` — 0 issue
+- Nazorat yugurishi: claim eski "band qilmasdan tanlash" xulqiga qaytarilsa 3 ta test yiqiladi, jumladan "ikkinchi worker o'sha qatorlarni ko'rmasligi kerak"
+- Davom etilishi kerak: A1a ning qolgani — `.dockerignore`, local CI required checks, `/healthz` readiness contracti, backup/restore
+
 ## 2026-08-15 [Claude Code]: A0b/5 — django-csp v4 va A0b yopilishi
 
 A0b ning oxirgi slice'i. Paket `django-csp 4.0` o'rnatilgan edi, sozlamalar esa hali eski `CSP_*` nomlarida turardi. v4 faqat `CONTENT_SECURITY_POLICY` dictini o'qiydi — ya'ni `SECURITY_STRICT=True` bo'lganda ham **hech qanday CSP header chiqmasdi**. Himoya bor deb hisoblanardi, aslida yo'q edi.

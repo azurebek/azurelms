@@ -48,7 +48,7 @@
 
 - **Outcome:** web, AI task va Telegram notification jim yo'qolmaydi; release qayta tiklanadi.
 - **Canonical owner:** deployment config + release gate; vendor alohida adapter qarori.
-- **A1a — hozir:** `.dockerignore`; local CI required checks; health/readiness contract; static build; secret/dependency scan; Telegram outbox claim/lease va local e2e; reproducible local backup/restore.
+- **A1a — hozir:** `.dockerignore`; local CI required checks; health/readiness contract; static build; secret/dependency scan; ~~Telegram outbox claim/lease~~ **(bajarildi 2026-08-15: atomik claim + lease expiry, 8 test, Control Center `in_flight` ko'rsatkichi)** va local e2e; reproducible local backup/restore.
 - **A1b — `HOLD`:** public hosting, managed PostgreSQL/Valkey/object storage, webhook process va production restore. DigitalOcean majburiy target emas; owner productionni qayta ochganda vendor tanlanadi.
 - **Acceptance:** local profile remote xizmatga jim o'tmaydi; test Notification → outbox `sent`; checks/migration/static; isolated local restore. Production acceptance A1b admissionidan keyin alohida.
 - **Faza:** R1.

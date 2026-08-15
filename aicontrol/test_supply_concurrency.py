@@ -41,6 +41,7 @@ from django.db import connection
 from django.test import TestCase, TransactionTestCase
 
 from aicontrol.models import AISettings, AISupplyEvent, AISupplyState
+from core.qa_support import is_file_backed_sqlite, skip_unless_file_backed_db
 from aicontrol.supply import (
     SupplyDenied,
     SupplyDuplicate,
@@ -53,19 +54,6 @@ User = get_user_model()
 WORKERS = 8
 BARRIER_TIMEOUT = 15
 
-FILE_DB_HINT = (
-    "Bu test real fayl bazasini talab qiladi (shared-cache in-memory SQLite "
-    "qulflash semantikasi boshqacha). Ishga tushirish: "
-    "AZURELMS_TEST_FILE_DB=1 python manage.py test aicontrol.test_supply_concurrency"
-)
-
-
-def _is_file_backed_sqlite():
-    """Joriy test bazasi diskdagi SQLite faylimi?"""
-    if connection.vendor != "sqlite":
-        return False
-    name = str(connection.settings_dict.get("NAME") or "")
-    return bool(name) and name != ":memory:" and "mode=memory" not in name
 
 
 class SupplyReservationContentionTests(TransactionTestCase):
@@ -74,8 +62,7 @@ class SupplyReservationContentionTests(TransactionTestCase):
     reset_sequences = True
 
     def setUp(self):
-        if connection.vendor == "sqlite" and not _is_file_backed_sqlite():
-            self.skipTest(FILE_DB_HINT)
+        skip_unless_file_backed_db(self)
         AISupplyEvent.objects.all().delete()
         AISupplyState.objects.all().delete()
         AISettings.objects.all().delete()
@@ -355,7 +342,7 @@ class SQLiteConcurrencyConfigTests(TestCase):
         )
 
     def test_sqlite_runtime_journal_mode_is_wal(self):
-        if not _is_file_backed_sqlite():
+        if not is_file_backed_sqlite():
             self.skipTest("in-memory test bazasi WAL rejimini qo'llab-quvvatlamaydi")
         with connection.cursor() as cursor:
             cursor.execute("PRAGMA journal_mode;")

@@ -27,7 +27,7 @@ DigitalOcean kreditlari bekor qilingan. App Platform, Serverless Inference, Mana
 | Web | Daphne/ASGI | HTTP + WebSocket readiness |
 | Celery worker | `celery -A core worker -l info` | broker round-trip + heartbeat |
 | Celery beat | `celery -A core beat -l info` | subscription lifecycle schedule va heartbeat |
-| Telegram outbox | `python manage.py telegram_outbox --loop` | Majburiy alohida process; atomic claim qurilmaguncha aynan 1 replica |
+| Telegram outbox | `python manage.py telegram_outbox --loop` | Majburiy alohida process; atomik claim/lease qurilgan (2026-08-15), qolgani exponential backoff va dead-letter |
 | DB | Managed PostgreSQL-compatible + pgvector | migration, DB ping, vector smoke, restore drill |
 | Cache/Channels/Broker | Managed Redis/Valkey-compatible | production'da in-memory/memory fallback taqiqlanadi |
 | Public media | S3-compatible object storage | marketing asset, course thumbnail, public preview; explicit policy |
@@ -47,7 +47,7 @@ DigitalOcean kreditlari bekor qilingan. App Platform, Serverless Inference, Mana
 - Control Center pending soni, eng eski pending yoshi, failed soni va so'nggi muvaffaqiyatni ko'rsatadi.
 - Owner failed itemni reason bilan replay qiladi; replay auditga yoziladi.
 - Delivery contract `at-least-once, duplicate-tolerant`: Telegram downstream aynan-once idempotency bermaydi; send muvaffaqiyatli bo'lib DB update'dan oldin process o'lsa duplicate oynasi qoladi.
-- Ikkinchi replica faqat DB atomic claim/lease, lease expiry, exponential retry/backoff va terminal dead-letter qurilgach. User-facing notification copy duplicate kelsa ham zarar qilmaydigan bo'ladi.
+- DB atomic claim/lease va lease expiry **qurilgan** (2026-08-15, A1a): parallel workerlar bir qatorni ikki marta olmaydi va o'lgan worker qatori muzlab qolmaydi. Ikkinchi replica uchun qolgani — exponential retry/backoff va terminal dead-letter. Kafolat at-least-once bo'lgani uchun notification matni duplicate kelsa ham zarar qilmaydigan bo'lishi kerak.
 
 ### Private media gate
 

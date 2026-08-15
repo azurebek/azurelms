@@ -86,10 +86,12 @@ class TelegramOutbox(models.Model):
     """
 
     STATUS_PENDING = "pending"
+    STATUS_SENDING = "sending"
     STATUS_SENT = "sent"
     STATUS_FAILED = "failed"
     STATUS_CHOICES = (
         (STATUS_PENDING, "Kutilmoqda"),
+        (STATUS_SENDING, "Yuborilmoqda"),
         (STATUS_SENT, "Yuborildi"),
         (STATUS_FAILED, "Xato"),
     )
@@ -103,6 +105,11 @@ class TelegramOutbox(models.Model):
     last_error = models.CharField(max_length=255, blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
     sent_at = models.DateTimeField(blank=True, null=True)
+    # Lease: bir qatorni bir vaqtda faqat bitta worker olishi uchun (A1a).
+    # Worker o'lib qolsa qator `sending` da muzlab qolmasin — `claimed_at`
+    # eskirganda u yana `pending` ga qaytariladi.
+    claimed_at = models.DateTimeField(blank=True, null=True, db_index=True)
+    claim_token = models.CharField(max_length=32, blank=True, default="")
 
     class Meta:
         ordering = ["id"]
