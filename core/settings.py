@@ -17,6 +17,7 @@ import dj_database_url
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
+from core.cache_config import redis_connection_pool_kwargs
 from core.csp_policy import build_csp_policy
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -384,7 +385,7 @@ if CACHE_URL:
             "LOCATION": CACHE_URL,
             "OPTIONS": {
                 "CLIENT_CLASS": "django_redis.client.DefaultClient",
-                "CONNECTION_POOL_KWARGS": {"ssl_cert_reqs": None},
+                "CONNECTION_POOL_KWARGS": redis_connection_pool_kwargs(CACHE_URL),
             }
         }
     }
