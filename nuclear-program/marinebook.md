@@ -16,6 +16,21 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-15 [Claude Code]: A1a — liveness va readiness endpointlari
+
+`/healthz` va `/readyz` qo'shildi. Ikkalasi ataylab ajratilgan, chunki orkestrator ularga turlicha munosabatda bo'ladi: liveness yiqilsa process o'ldiriladi, readiness yiqilsa faqat trafik yuborilmaydi. Shu sabab `/healthz` DB'ga ham, cache'ga ham tegmaydi — baza yiqilganda processni qayta ishga tushirish vaziyatni yaxshilamaydi, faqat restart siklini boshlaydi. `/readyz` esa `critical` capability'larni tekshiradi va birortasi `red` bo'lsa `503` qaytaradi.
+
+Tekshiruv mantig'i qayta yozilmadi: Control Center'ning capability registry va probe'lari ishlatiladi (`rules-for-agents` §"bir control plane"). Natijada web sahifa, `system_audit` CLI va readiness endpointi bir xil haqiqatni ko'radi — uchta parallel health mantiq paydo bo'lmadi. Readiness faqat `critical` belgili 4 tasini yugurtiradi (`database`, `jobs`, `media_storage`, `security`), chunki endpoint har necha soniyada so'raladi va o'nta probe har safar bir necha DB so'rovi degani.
+
+Ikki mayda, ammo amaliy nuqta. `SECURE_REDIRECT_EXEMPT` qo'shildi — cluster ichidagi probe odatda http bilan keladi va `301` uni ko'r qilardi; sozlama strict blok ichida emas, doim ta'riflanadi, shunda qo'riqchi test har yugurishda ishlaydi. Yiqilgan probe endpointni sindirmaydi: u `red` deb hisoblanadi va readiness baribir javob qaytaradi.
+
+- Branch: `claude/a1a-readiness` (`origin/main` dan)
+- Yangi: `core/health_views.py`, `core/test_health_endpoints.py` (9 test). Tegilgan: `core/urls.py`, `core/settings.py`. **Migration yo'q**, churn yo'q
+- Testlar: liveness DB'ga tegmasligi (cursor mock bilan tasdiqlangan), readiness faqat critical capability'larni yugurtirishi, critical `red` bo'lganda `503`, yiqilgan probe crash bermasligi, auth talab qilinmasligi, redirect exempt
+- Jonli tekshiruv: dev serverda `/healthz` → `alive`, `/readyz` → `ready` + 4 capability holati
+- Test holati: `manage.py test` — **615/615 OK** (606 + 9); `check` — 0 issue
+- Davom etilishi kerak: A1a ning qolgani — `.dockerignore`, local CI required checks (`.github/workflows` yaratish owner qaroriga qoldirildi, chunki u GitHub Actions'ni yoqadi), reproducible local backup/restore
+
 ## 2026-08-15 [Claude Code]: A1a — Telegram outbox atomik claim/lease
 
 A1a ning birinchi bo'lagi. Outbox worker `status=pending` bo'yicha shunchaki tanlardi va hech narsani band qilmasdi. Ikki worker bir vaqtda ishlaganda — `runbot` ichidagi va alohida `telegram_outbox --loop` — ikkalasi ham bir xil qatorlarni olib, foydalanuvchiga **bir xil DM ni ikki marta** yuborardi. `05-launch-ops.md` dagi "atomic claim qurilmaguncha aynan 1 replica" jumlasi aynan shu sababdan edi.
