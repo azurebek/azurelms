@@ -54,10 +54,10 @@
               {{ answer.word_count }} so'z{% if answer.question.min_word_count or answer.question.max_word_count %} (talab: {% if answer.question.min_word_count %}min {{ answer.question.min_word_count }}{% endif %}{% if answer.question.max_word_count %} / max {{ answer.question.max_word_count }}{% endif %}){% endif %}
             </div>
           {% endif %}
-          {% if answer.audio_file_url %}
-            <audio controls src="{{ answer.audio_file_url }}" style="width:100%;max-width:440px;margin-bottom:12px;"></audio>
+          {% if answer.audio_playback_url %}
+            <audio controls src="{{ answer.audio_playback_url }}" style="width:100%;max-width:440px;margin-bottom:12px;"></audio>
           {% endif %}
-          {% if not answer.answer_text and not answer.audio_file_url %}
+          {% if not answer.answer_text and not answer.audio_playback_url %}
             <div style="border:1px dashed var(--line);border-radius:11px;padding:14px;font-size:13px;color:var(--ink-4);margin-bottom:12px;">Javob berilmagan.</div>
           {% endif %}
 

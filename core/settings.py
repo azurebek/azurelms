@@ -503,8 +503,14 @@ else:
     MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR / 'media'
 
-# Testlar `MEDIA_ROOT` ni vaqtinchalik papkaga ko'chiradi, aks holda upload
-# qiladigan testlar repo ichidagi `media/` ga fayl yozib qoldiradi.
+# Private fayllar (to'lov cheki, vazifa fayli, chat biriktirmasi, speaking
+# yozuvi) ataylab `MEDIA_ROOT` dan TASHQARIDA saqlanadi — shunda ularga
+# `/media/...` orqali umuman yetib bo'lmaydi. Yagona kirish nuqtasi
+# `core/private_media_views.py` dagi ruxsat tekshiradigan view'lar.
+PRIVATE_MEDIA_ROOT = Path(os.getenv('PRIVATE_MEDIA_ROOT', BASE_DIR / 'private-media'))
+
+# Testlar `MEDIA_ROOT` va `PRIVATE_MEDIA_ROOT` ni vaqtinchalik papkalarga
+# ko'chiradi, aks holda upload qiladigan testlar repo ichiga fayl yozib qoldiradi.
 TEST_RUNNER = 'core.test_runner.MediaIsolatedTestRunner'
 
 # CKEditor 5 upload manzili nomi

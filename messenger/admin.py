@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.urls import reverse
+from django.utils.html import format_html
 from .models import (
     AIFeedback,
     AIMemoryFact,
@@ -34,6 +36,18 @@ class MessageAdmin(admin.ModelAdmin):
     list_filter = ('is_ai_response', 'room__room_type')
     search_fields = ('text',)
     inlines = [AIFeedbackInline]
+    # Private biriktirma: xom FileField widgeti public URL so'raydi (A0b).
+    exclude = ('attachment',)
+    readonly_fields = ('attachment_link',)
+
+    @admin.display(description="Biriktirma")
+    def attachment_link(self, obj):
+        if not obj.pk or not obj.attachment:
+            return "—"
+        return format_html(
+            '<a href="{}" target="_blank" rel="noopener">Faylni ochish</a>',
+            reverse('messenger:message_attachment', args=[obj.pk]),
+        )
 
 
 @admin.register(LessonRAGChunk)

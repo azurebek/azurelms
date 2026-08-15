@@ -12,6 +12,8 @@ from django_ckeditor_5.fields import CKEditor5Field
 from django.db.models import Sum
 from django.utils.functional import cached_property
 from django.utils import timezone
+
+from core.private_storage import private_media_storage
 from PIL import Image, ImageOps
 
 from .cover_art import GRADIENT_PRESET_CHOICES, build_cover_data_uri
@@ -304,11 +306,14 @@ class AssignmentSubmission(models.Model):
         verbose_name="O'quvchi",
     )
     answer_text = models.TextField(blank=True, verbose_name="Javob matni")
+    # Private: o'quvchining ishi. Faqat egasi, kurs o'qituvchisi va owner
+    # `courses:submission_file` orqali ocha oladi (A0b).
     attachment = models.FileField(
         upload_to="assignments/submissions/%Y/%m/",
         blank=True,
         null=True,
         verbose_name="Biriktirma",
+        storage=private_media_storage,
     )
     status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_PENDING)
     teacher_feedback = models.TextField(blank=True, verbose_name="O'qituvchi izohi")
@@ -1238,7 +1243,12 @@ class StudentAnswer(models.Model):
     # Support different answer types based on ExamSection type
     answer_text = models.TextField(blank=True, null=True, help_text="Writing yoki ochiq savollar uchun javob")
     selected_choice = models.ForeignKey(Choice, on_delete=models.SET_NULL, null=True, blank=True)
-    audio_file_url = models.URLField(blank=True, null=True, help_text="Speaking yozuvi havolasi (S3/DigitalOcean)")
+    # Legacy: ilgari bu yerda storage'ning to'g'ridan-to'g'ri public havolasi
+    # turardi. Endi yozilmaydi — o'rniga `audio_key` + `audio_playback_url`.
+    audio_file_url = models.URLField(blank=True, null=True, help_text="Legacy: eski public havola (endi ishlatilmaydi)")
+    # Private speaking yozuvining storage kaliti; havola `audio_playback_url`
+    # orqali ruxsat tekshiradigan view'ga boradi (A0b).
+    audio_key = models.CharField(max_length=255, blank=True, default="", help_text="Private storage'dagi speaking yozuvi kaliti")
     
     # Grading
     awarded_score = models.DecimalField(max_digits=5, decimal_places=2, default=0, help_text="O'qituvchi qo'ygan yoki avto tekshirilgan ball")
@@ -1249,7 +1259,21 @@ class StudentAnswer(models.Model):
 
     @property
     def is_answered(self):
-        return bool(self.selected_choice_id or (self.answer_text or "").strip() or self.audio_file_url)
+        return bool(
+            self.selected_choice_id
+            or (self.answer_text or "").strip()
+            or self.audio_key
+            or self.audio_file_url
+        )
+
+    @property
+    def audio_playback_url(self):
+        """Speaking yozuvining ruxsat tekshiradigan havolasi (bo'sh bo'lsa '')."""
+        if not self.audio_key or not self.pk:
+            return ""
+        from django.urls import reverse
+
+        return reverse("exam_answer_audio", args=[self.pk])
 
     @property
     def word_count(self):

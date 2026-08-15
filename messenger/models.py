@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from cohorts.models import Cohort
+from core.private_storage import private_media_storage
 from courses.models import Course, Lesson
 from django.contrib.auth import get_user_model
 
@@ -41,7 +42,13 @@ class Message(models.Model):
     # Xabarni kim yozdi? (Agar AI yozgan bo'lsa, sender bo'sh qolishi mumkin)
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     text = models.TextField(verbose_name="Xabar matni")
-    attachment = models.FileField(upload_to="messenger/attachments/%Y/%m/%d", null=True, blank=True)
+    # Private: chat biriktirmasi faqat xona ishtirokchilariga ochiladi (A0b).
+    attachment = models.FileField(
+        upload_to="messenger/attachments/%Y/%m/%d",
+        null=True,
+        blank=True,
+        storage=private_media_storage,
+    )
     attachment_name = models.CharField(max_length=255, blank=True, default="")
     attachment_content_type = models.CharField(max_length=120, blank=True, default="")
     attachment_size = models.PositiveIntegerField(default=0)
@@ -70,12 +77,12 @@ class Message(models.Model):
 
     @property
     def attachment_url(self):
-        if not self.attachment or self.is_deleted:
+        """Ruxsat tekshiradigan havola — private storage public URL bermaydi."""
+        if not self.attachment or self.is_deleted or not self.pk:
             return ""
-        try:
-            return self.attachment.url
-        except ValueError:
-            return ""
+        from django.urls import reverse
+
+        return reverse("messenger:message_attachment", args=[self.pk])
 
     @property
     def is_image_attachment(self):

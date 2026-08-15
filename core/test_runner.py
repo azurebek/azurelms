@@ -33,15 +33,20 @@ class MediaIsolatedTestRunner(DiscoverRunner):
     def setup_test_environment(self, **kwargs):
         super().setup_test_environment(**kwargs)
         self._temp_media_root = tempfile.mkdtemp(prefix="azurelms-test-media-")
-        self._media_override = override_settings(MEDIA_ROOT=self._temp_media_root)
+        self._temp_private_root = tempfile.mkdtemp(prefix="azurelms-test-private-")
+        self._media_override = override_settings(
+            MEDIA_ROOT=self._temp_media_root,
+            PRIVATE_MEDIA_ROOT=self._temp_private_root,
+        )
         self._media_override.enable()
 
     def teardown_test_environment(self, **kwargs):
         media_override = getattr(self, "_media_override", None)
         if media_override is not None:
             media_override.disable()
-        temp_root = getattr(self, "_temp_media_root", None)
-        if temp_root:
-            # Test fayllari o'chirilmasa ham suite natijasi buzilmasligi kerak.
-            shutil.rmtree(temp_root, ignore_errors=True)
+        for attr in ("_temp_media_root", "_temp_private_root"):
+            temp_root = getattr(self, attr, None)
+            if temp_root:
+                # Test fayllari o'chirilmasa ham suite natijasi buzilmasligi kerak.
+                shutil.rmtree(temp_root, ignore_errors=True)
         super().teardown_test_environment(**kwargs)

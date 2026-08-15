@@ -43,6 +43,8 @@ db.sqlite3.backup*
 *.sqlite3-shm
 test_db.sqlite3
 media/
+# Private fayllar (chek, vazifa, biriktirma, speaking) — MEDIA_ROOT dan tashqarida
+private-media/
 
 # Static files (collectstatic)
 staticfiles/

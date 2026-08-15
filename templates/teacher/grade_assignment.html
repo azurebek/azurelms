@@ -31,7 +31,7 @@
       <div style="border:1px solid var(--line);border-radius:11px;background:var(--paper-2);padding:16px 18px;font-size:14.5px;line-height:1.75;color:var(--ink-2);white-space:pre-wrap;">{{ submission.answer_text }}</div>
     {% endif %}
     {% if submission.attachment %}
-      <a href="{{ submission.attachment.url }}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:10px 15px;border-radius:10px;border:1px solid var(--line);color:var(--azure);font-size:13.5px;font-weight:600;"><i class="bi bi-paperclip"></i> Biriktirilgan faylni ochish</a>
+      <a href="{% url 'submission_file' submission.id %}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:10px 15px;border-radius:10px;border:1px solid var(--line);color:var(--azure);font-size:13.5px;font-weight:600;"><i class="bi bi-paperclip"></i> Biriktirilgan faylni ochish</a>
     {% endif %}
     {% if not submission.answer_text and not submission.attachment %}
       <div style="border:1px dashed var(--line);border-radius:11px;padding:16px;font-size:13px;color:var(--ink-4);">Javob matni yo'q.</div>
