@@ -38,6 +38,10 @@ db.sqlite3
 db.sqlite3-journal
 db.sqlite3.backup*
 *.sqlite3.bak
+# WAL rejimi yon fayllari va fayl asosidagi test bazasi
+*.sqlite3-wal
+*.sqlite3-shm
+test_db.sqlite3
 media/
 
 # Static files (collectstatic)
