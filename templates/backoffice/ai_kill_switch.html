@@ -71,7 +71,7 @@
       {% if recent_switch_changes %}
         <ul class="brand-history">
           {% for entry in recent_switch_changes %}
-            <li><strong>{{ entry.action_time|date:"d.m.Y H:i" }}</strong> — {{ entry.user }}<br><small>{{ entry.change_message }}</small></li>
+            <li><strong>{{ entry.created_at|date:"d.m.Y H:i" }}</strong> — {{ entry.actor_label|default:"tizim" }}<br><small>{{ entry.display_message }}</small></li>
           {% endfor %}
         </ul>
       {% else %}

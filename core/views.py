@@ -1,8 +1,7 @@
 from datetime import timedelta
 
 from django.contrib import messages
-from django.contrib.admin.models import CHANGE, LogEntry
-from django.contrib.contenttypes.models import ContentType
+from core.audit import audit_trail_for, record_audit_event
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import get_user_model
@@ -121,15 +120,13 @@ def backoffice_brand(request):
                     brand_settings = form.save()
                     field_labels = [form.fields[name].label for name in changed_fields]
                     reason = form.cleaned_data["change_reason"].strip()
-                    LogEntry.objects.log_actions(
-                        user_id=request.user.pk,
-                        queryset=SiteSettings.objects.filter(pk=brand_settings.pk),
-                        action_flag=CHANGE,
-                        change_message=(
-                            f"Markaziy brend yangilandi: {', '.join(field_labels)}. "
-                            f"Sabab: {reason}"
-                        ),
-                        single_object=True,
+                    record_audit_event(
+                        action="brand.update",
+                        request=request,
+                        target=brand_settings,
+                        target_label="Markaziy brend",
+                        reason=reason,
+                        after={"changed_fields": ", ".join(field_labels)},
                     )
                 messages.success(request, "Brend yangilandi. Barcha ulangan logo yuzalari endi shu qiymatni oladi.")
             else:
@@ -138,18 +135,13 @@ def backoffice_brand(request):
     else:
         form = BrandSettingsForm(instance=brand_settings)
 
-    content_type = ContentType.objects.get_for_model(SiteSettings)
     context = {
         "active_nav": "backoffice",
         "bo_active": "brand",
         "counts": {},
         "form": form,
         "brand_settings": brand_settings,
-        "recent_brand_changes": LogEntry.objects.filter(
-            content_type=content_type,
-            object_id=str(brand_settings.pk),
-            action_flag=CHANGE,
-        ).select_related("user")[:8],
+        "recent_brand_changes": audit_trail_for(brand_settings),
     }
     return render(request, "backoffice/brand_control.html", context)
 
@@ -175,13 +167,15 @@ def backoffice_ai_kill_switch(request):
                 with transaction.atomic():
                     policy = form.save()
                     reason = form.cleaned_data["change_reason"].strip()
-                    state = "yoqildi" if policy.ai_remote_calls_enabled else "O'CHIRILDI"
-                    LogEntry.objects.log_actions(
-                        user_id=request.user.pk,
-                        queryset=AISettings.objects.filter(pk=policy.pk),
-                        action_flag=CHANGE,
-                        change_message=f"AI remote chaqiruvlari {state}. Sabab: {reason}",
-                        single_object=True,
+                    enabled = policy.ai_remote_calls_enabled
+                    record_audit_event(
+                        action="ai.kill_switch.enable" if enabled else "ai.kill_switch.disable",
+                        request=request,
+                        target=policy,
+                        target_label="AI remote chaqiruvlari",
+                        reason=reason,
+                        before={"ai_remote_calls_enabled": not enabled},
+                        after={"ai_remote_calls_enabled": enabled},
                     )
                 messages.success(
                     request,
@@ -195,18 +189,13 @@ def backoffice_ai_kill_switch(request):
     else:
         form = AIKillSwitchForm(instance=policy)
 
-    content_type = ContentType.objects.get_for_model(AISettings)
     context = {
         "active_nav": "backoffice",
         "bo_active": "control",
         "counts": {},
         "form": form,
         "policy": policy,
-        "recent_switch_changes": LogEntry.objects.filter(
-            content_type=content_type,
-            object_id=str(policy.pk),
-            action_flag=CHANGE,
-        ).select_related("user")[:8],
+        "recent_switch_changes": audit_trail_for(policy),
     }
     return render(request, "backoffice/ai_kill_switch.html", context)
 
@@ -225,15 +214,13 @@ def backoffice_landing(request):
                     landing = form.save()
                     field_labels = [form.fields[name].label for name in changed_fields]
                     reason = form.cleaned_data["change_reason"].strip()
-                    LogEntry.objects.log_actions(
-                        user_id=request.user.pk,
-                        queryset=LandingPage.objects.filter(pk=landing.pk),
-                        action_flag=CHANGE,
-                        change_message=(
-                            f"Bosh sahifa yangilandi: {', '.join(field_labels)}. "
-                            f"Sabab: {reason}"
-                        ),
-                        single_object=True,
+                    record_audit_event(
+                        action="landing.update",
+                        request=request,
+                        target=landing,
+                        target_label="Bosh sahifa",
+                        reason=reason,
+                        after={"changed_fields": ", ".join(field_labels)},
                     )
                 messages.success(request, "Bosh sahifa yangilandi. O'zgarishlar saytda darhol ko'rinadi.")
             else:
@@ -242,17 +229,12 @@ def backoffice_landing(request):
     else:
         form = LandingPageForm(instance=landing)
 
-    content_type = ContentType.objects.get_for_model(LandingPage)
     context = {
         "active_nav": "backoffice",
         "bo_active": "landing",
         "counts": {},
         "form": form,
-        "recent_landing_changes": LogEntry.objects.filter(
-            content_type=content_type,
-            object_id=str(landing.pk),
-            action_flag=CHANGE,
-        ).select_related("user")[:8],
+        "recent_landing_changes": audit_trail_for(landing),
     }
     return render(request, "backoffice/landing_editor.html", context)
 

@@ -2,6 +2,7 @@ from django.contrib import admin, messages
 from django.utils import timezone
 
 from .models import (
+    SystemAuditEvent,
     AIPlanPolicy,
     AISettings,
     AISupplyEvent,
@@ -207,3 +208,29 @@ class AIUsageResetEventAdmin(admin.ModelAdmin):
                 f"{obj.get_kind_display()} qo'llandi — {count} foydalanuvchiga ta'sir qildi.",
                 level=messages.SUCCESS,
             )
+
+
+@admin.register(SystemAuditEvent)
+class SystemAuditEventAdmin(admin.ModelAdmin):
+    """Append-only ledger — admin faqat o'qiydi.
+
+    Model darajasida ham himoyalangan (`save`/`delete` bloklaydi); bu yerdagi
+    ruxsatlar faqat oxirgi to'siq va UI'da adashtirmaslik uchun.
+    """
+
+    list_display = ("created_at", "action", "outcome", "actor_label", "target_label", "source")
+    list_filter = ("action", "outcome", "source", "created_at")
+    search_fields = ("action", "actor_label", "target_label", "reason", "request_id")
+    date_hierarchy = "created_at"
+    readonly_fields = tuple(
+        field.name for field in SystemAuditEvent._meta.fields
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

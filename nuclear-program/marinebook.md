@@ -16,6 +16,25 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-15 [Claude Code]: A2 — append-only audit ledgeri
+
+`05-launch-ops.md` §3 uzoq vaqtdan beri `SystemAuditEvent` ni talab qilib turardi; owner mutation yuzalari esa Django'ning `LogEntry` sidan foydalanardi. Farq shunchaki nom emas: `LogEntry` admin uchun mo'ljallangan, **o'chirilishi va tahrirlanishi mumkin**, faqat admin obyektlariga bog'lanadi va unda `source`, `outcome`, `before/after`, `request_id`, IP yoki release SHA kabi operatsion maydonlar yo'q.
+
+Yangi `aicontrol.SystemAuditEvent` — canonical uy backlog A2 belgilagan joyda (`aicontrol` kengaytmasi, yangi parallel subsystem emas). Append-only **model darajasida** majburlanadi: `save()` mavjud yozuvni rad etadi, `delete()` umuman ishlamaydi. Admin ruxsatlari faqat oxirgi to'siq — kod orqali chetlab o'tilsa ham model to'xtatadi.
+
+Yozish yagona nuqtadan — `core/audit.py:record_audit_event()`. U request'dan actor, IP, user-agent va release SHA'ni bir xil oladi va `before/after` snapshotlaridagi maxfiy kalitlarni (`password`, `token`, `api_key`, `secret`...) maskalaydi, ichma-ich dictlarda ham. Funksiya ataylab xatoni yutmaydi va mutation bilan bitta tranzaksiyada chaqiriladi: audit yozilmasa o'zgarish ham qaytarilishi kerak, chunki "amal bajarildi, lekin kim qilgani noma'lum" holati ledgerning maqsadini yo'qqa chiqaradi.
+
+Uchala mavjud owner yuzasi ko'chirildi: AI kill switch, markaziy brend va landing muharriri. `actor_label` ataylab alohida maydon — foydalanuvchi o'chirilsa ham kim qilgani ma'lum qoladi; test buni tekshiradi.
+
+- Branch: `claude/a2-audit-ledger` (`origin/main` dan)
+- Yangi: `aicontrol/models.py` da `SystemAuditEvent`, `core/audit.py`, `core/test_audit_ledger.py` (16 test). Tegilgan: `core/views.py` (3 yuza), `aicontrol/admin.py` (read-only ro'yxatga olish), 3 shablon, `core/test_brand_control.py`, `core/test_landing_editor.py`, `core/test_ai_kill_switch.py`
+- Migratsiya: `aicontrol/0004_systemauditevent` — faqat `CreateModel`
+- Mavjud uchta test `LogEntry` ga da'vo qilardi va ular yiqildi — bu kutilgan, chunki xulq ataylab o'zgardi; ular yangi ledgerga moslandi
+- Test holati: `manage.py test` — **655/655 OK**, **12s**; `check` — 0 issue; `makemigrations --check` — No changes; churn yo'q
+- **Browser QA:** kill switch orqali haqiqiy yozuv yaratildi va ledgerda to'liq chiqdi — `action=ai.kill_switch.disable`, `actor=admin`, `source=web`, `target=AISettings 1`, `before={enabled: True} → after={enabled: False}`, IP va user-agent. Append-only jonli sinaldi: `save()` va `delete()` ikkalasi ham `ValidationError` bilan rad etildi. Brend sahifasi ham yangi shablon bilan xatosiz ochildi. Lokal holat AI **yoqilgan** ko'rinishda qoldirildi
+- Halol chegara: hozircha faqat uchta owner yuzasi ledgerga yozadi. `05-launch-ops.md` §3 dagi minimal ro'yxatning qolgani — receipt qarori, enrollment transition, lesson release, grade/review, broadcast/outbox replay, private-media denial va release/rollback — hali `LogEntry` da yoki umuman auditlanmagan
+- A2 ning qolgani: umumiy feature flag registri, worker heartbeat, `ReleaseRecord`, cost/quality release gate
+
 ## 2026-08-15 [Claude Code]: A2 — AI kill switch
 
 R1 chiqish mezonlaridan biri "AI budget kill switch va audit ishlaydi" deydi. Tekshirganda ma'lum bo'ldi: `AISettings` da `supply_enforcement_enabled` bor, ammo u **budjetni** o'chiradi — ya'ni teskari ta'sir qiladi, AI ni to'xtatmaydi. Umumiy "hoziroq to'xtat" tugmasi yo'q edi. Uni Django admin orqali qilish ham mumkin emas, chunki admin default o'chiq (`ENABLE_LEGACY_ADMIN=False`). Ya'ni kvota kutilmaganda yonib ketsa, ownerda bosadigan narsa yo'q edi.

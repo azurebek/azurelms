@@ -129,7 +129,7 @@ class KillSwitchControlSurfaceTests(TestCase):
         self.assertEqual(self.client.get(self.url).status_code, 200)
 
     def test_owner_can_stop_ai_and_the_change_is_audited(self):
-        from django.contrib.admin.models import LogEntry
+        from aicontrol.models import SystemAuditEvent
 
         self.client.force_login(self.owner)
         response = self.client.post(self.url, {
@@ -140,9 +140,9 @@ class KillSwitchControlSurfaceTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertFalse(AISettings.load().ai_remote_calls_enabled)
 
-        entry = LogEntry.objects.latest("action_time")
-        self.assertIn("O'CHIRILDI", entry.change_message)
-        self.assertIn("Kvota kutilmaganda", entry.change_message)
+        entry = SystemAuditEvent.objects.get(action="ai.kill_switch.disable")
+        self.assertEqual(entry.actor_label, self.owner.username)
+        self.assertIn("Kvota kutilmaganda", entry.reason)
 
     def test_reason_is_required(self):
         self.client.force_login(self.owner)
@@ -157,16 +157,16 @@ class KillSwitchControlSurfaceTests(TestCase):
         self.assertTrue(AISettings.load().ai_remote_calls_enabled, "tasdiqsiz o'zgardi")
 
     def test_no_op_submit_writes_nothing(self):
-        from django.contrib.admin.models import LogEntry
+        from aicontrol.models import SystemAuditEvent
 
         self.client.force_login(self.owner)
-        before = LogEntry.objects.count()
+        before = SystemAuditEvent.objects.count()
         self.client.post(self.url, {
             "ai_remote_calls_enabled": "on",  # allaqachon yoqiq
             "change_reason": "o'zgarish yo'q",
             "confirm_change": "on",
         })
-        self.assertEqual(LogEntry.objects.count(), before)
+        self.assertEqual(SystemAuditEvent.objects.count(), before)
 
 
 class KillSwitchHealthTests(TestCase):
