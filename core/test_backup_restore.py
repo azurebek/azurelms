@@ -26,7 +26,7 @@ from django.db import connection
 from django.test import TransactionTestCase
 
 from core.backup_service import BackupError, create_backup, restore_backup
-from core.qa_support import skip_unless_file_backed_db
+from core.qa_support import skip_unless_file_backed_db, skip_unless_sqlite
 
 User = get_user_model()
 
@@ -44,6 +44,9 @@ class BackupRestoreTests(TransactionTestCase):
     reset_sequences = True
 
     def setUp(self):
+        # Zaxira `VACUUM INTO` ga quriladi va servis SQLite'dan boshqa backendni
+        # ataylab rad etadi; CI'ning PostgreSQL ishida bu testlar skip bo'ladi.
+        skip_unless_sqlite(self)
         skip_unless_file_backed_db(self)
         self.workdir = Path(tempfile.mkdtemp(prefix="azurelms-backup-test-"))
         self.addCleanup(shutil.rmtree, self.workdir, ignore_errors=True)

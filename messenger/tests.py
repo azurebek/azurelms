@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import connection
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -37,7 +38,13 @@ from messenger.models import (
     LessonRAGChunk,
     Message,
 )
-from messenger.rag import ensure_pgvector_schema, get_rag_index_status, reindex_lessons, retrieve_relevant_chunks
+from messenger.rag import (
+    ensure_pgvector_schema,
+    get_rag_index_status,
+    reindex_lessons,
+    reset_pgvector_cache,
+    retrieve_relevant_chunks,
+)
 from messenger.signals import suppress_ai_signal
 from messenger.tasks import generate_ai_response
 
@@ -1887,6 +1894,11 @@ class AIFeedbackApiTests(TestCase):
 
 class RagPipelineTests(TestCase):
     def setUp(self):
+        # `is_pgvector_ready()` javobi modul darajasidagi global keshda turadi.
+        # Test tranzaksiyasi qaytarilganda schema yo'qoladi, kesh esa qolib
+        # ketadi — shuning uchun har test o'z tekshiruvidan boshlaydi.
+        reset_pgvector_cache()
+        self.addCleanup(reset_pgvector_cache)
         self.student = User.objects.create_user(
             username="rag-student",
             email="rag-student@example.com",
@@ -2071,6 +2083,12 @@ class RagPipelineTests(TestCase):
         self.assertIn("reindex_rag", status["index_command"])
 
     def test_pgvector_setup_skips_on_non_postgres(self):
+        # PostgreSQL'da bu chaqiruv haqiqiy DDL bajaradi (extension + ustun) va
+        # `_PGVECTOR_READY_CACHE` ni True qilib qo'yadi. Test tranzaksiyasi
+        # qaytarilgach ustun yo'qoladi, kesh esa yolg'on gapirib qoladi va
+        # keyingi testlar pgvector yo'liga tushib yiqiladi.
+        if connection.vendor == "postgresql":
+            self.skipTest("Bu test aynan PostgreSQL bo'lmagan tarmoqni tekshiradi.")
         result = ensure_pgvector_schema(backfill=False)
         self.assertEqual(result.get("status"), "skipped_non_postgres")
 

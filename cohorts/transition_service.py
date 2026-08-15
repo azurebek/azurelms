@@ -20,6 +20,26 @@ class TransitionResult:
     transition: EnrollmentTransition
 
 
+def locked_enrollment_queryset():
+    """Transition uchun qulflangan o'qish so'rovi.
+
+    `of=("self",)` shart: `plan` nullable FK bo'lgani uchun `select_related`
+    LEFT OUTER JOIN yasaydi, PostgreSQL esa "FOR UPDATE cannot be applied to
+    the nullable side of an outer join" deb rad etadi. SQLite'da
+    `select_for_update()` umuman no-op, shuning uchun xato faqat PostgreSQL'da
+    ko'rinadi — ya'ni transfer va promotion productionda butunlay yiqilardi.
+    Qulflanishi kerak bo'lgan yagona satr — enrollmentning o'zi.
+    """
+    return (
+        Enrollment.objects.select_for_update(of=("self",))
+        .select_related("cohort", "cohort__course", "student", "plan")
+    )
+
+
+def _locked_enrollment(pk):
+    return locked_enrollment_queryset().get(pk=pk)
+
+
 def _ensure_target_cohort(target_cohort):
     if not isinstance(target_cohort, Cohort):
         raise EnrollmentTransitionError("Maqsad cohort topilmadi.")
@@ -129,11 +149,7 @@ def transfer_enrollment_to_cohort(*, source_enrollment, target_cohort, created_b
     _ensure_unique_target_enrollment(student=source_enrollment.student, target_cohort=target_cohort)
 
     with transaction.atomic():
-        source_enrollment = (
-            Enrollment.objects.select_for_update()
-            .select_related("cohort", "cohort__course", "student", "plan")
-            .get(pk=source_enrollment.pk)
-        )
+        source_enrollment = _locked_enrollment(source_enrollment.pk)
         source_status = source_enrollment.status
         _freeze_source_enrollment(source_enrollment)
         target_enrollment = _create_target_enrollment_for_transfer(
@@ -180,11 +196,7 @@ def promote_enrollment_to_cohort(*, source_enrollment, target_cohort, created_by
     )
 
     with transaction.atomic():
-        source_enrollment = (
-            Enrollment.objects.select_for_update()
-            .select_related("cohort", "cohort__course", "student", "plan")
-            .get(pk=source_enrollment.pk)
-        )
+        source_enrollment = _locked_enrollment(source_enrollment.pk)
         target_enrollment = _create_target_enrollment_for_promotion(
             source_enrollment=source_enrollment,
             target_cohort=target_cohort,
