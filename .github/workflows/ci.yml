@@ -19,9 +19,13 @@
 
 name: CI
 
+# `main` PR-only bo'lgani uchun feature branch'lar CI'ni PR orqali oladi.
+# `push` va `pull_request` ikkalasini feature branch'ga qo'yish har commitni
+# ikki marta yugirtirardi. `main` ning o'zi qolgan: merge'dan keyingi holat
+# yozib borilsin va README badge'i shu yugurishlarni ko'rsatsin.
 on:
   push:
-    branches: [main, 'claude/**', 'codex/**']
+    branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:
