@@ -16,6 +16,25 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-15 [Claude Code]: A2 — AI kill switch
+
+R1 chiqish mezonlaridan biri "AI budget kill switch va audit ishlaydi" deydi. Tekshirganda ma'lum bo'ldi: `AISettings` da `supply_enforcement_enabled` bor, ammo u **budjetni** o'chiradi — ya'ni teskari ta'sir qiladi, AI ni to'xtatmaydi. Umumiy "hoziroq to'xtat" tugmasi yo'q edi. Uni Django admin orqali qilish ham mumkin emas, chunki admin default o'chiq (`ENABLE_LEGACY_ADMIN=False`). Ya'ni kvota kutilmaganda yonib ketsa, ownerda bosadigan narsa yo'q edi.
+
+Yangi `AISettings.ai_remote_calls_enabled` `reserve_supply()` ichida, **tarmoqdan oldin** tekshiriladi. Ataylab budjetdan mustaqil: `supply_enforcement_enabled` o'chirilgan bo'lsa ham ishlaydi, chunki bu shoshilinch to'xtatish tugmasi, sozlama emas. Rad etish ledgerga `kill_switch` sababi bilan yoziladi, ya'ni keyin nima uchun to'xtaganini ko'rish mumkin.
+
+Owner yuzasi `/backoffice/control/ai-kill-switch/` — brend va landing muharrirlaridagi bir xil pattern: owner-only, majburiy sabab, majburiy tasdiqlash, `LogEntry` audit va o'zgarish bo'lmasa hech narsa yozmaydigan no-op yo'l. Control Center'dan havola qo'yildi va buni test qo'riqlaydi: shoshilinch paytda sahifa mavjud bo'lishining o'zi yetarli emas, u **topilishi** kerak.
+
+Control Center AI probe'i endi switch holatini ko'rsatadi. To'xtatilgan holat **AMBER**, RED emas — `05-launch-ops.md` ta'rifi bo'yicha bu ataylab qilingan boshqariladigan degradatsiya: oltin kurs oqimi (dars, to'lov, davomat, odam bilan yozishuv) ishlashda davom etadi.
+
+- Branch: `claude/a2-kill-switch` (`origin/main` dan)
+- Yangi: `core/kill_switch_forms.py`, `templates/backoffice/ai_kill_switch.html`, `core/test_ai_kill_switch.py` (14 test). Tegilgan: `aicontrol/models.py`, `aicontrol/supply.py`, `core/views.py`, `core/urls.py`, `core/control_center/snapshot.py`, `templates/backoffice/control_center.html`
+- Migratsiya: `aicontrol/0003` — bitta `AddField`, default `True`, `RemoveField` yo'q
+- Testlar: switch yoqiq/o'chiq holatlari, provider **umuman chaqirilmasligi**, ledgerdagi sabab, budjet enforcement o'chiq bo'lsa ham ishlashi, beshala call turi (chat, grounding, SmartForm, bot demo, embedding, reindex) to'xtashi, qayta yoqish, owner-only kirish, sabab/tasdiq majburiyligi, no-op, audit yozuvi, Control Center holati va AMBER stoplight, hamda havola mavjudligi
+- Nazorat yugurishi: tekshiruv olib tashlansa 8 ta test yiqiladi
+- Test holati: `manage.py test` — **639/639 OK** (625 + 14), **27.5s**; `check` — 0 issue; `makemigrations --check` — No changes; churn yo'q
+- Qilinmagan: authenticated vizual QA. Bazada superuser yo'q va uni yaratish sizning ma'lumotingizga yozish bo'lardi; funksional to'g'rilik test client bilan (200 + shablon + forma validatsiyasi + audit) tasdiqlangan, sahifa esa mavjud `brand-control.css` ni qayta ishlatadi
+- A2 ning qolgani: append-only `SystemAuditEvent` (hozir `LogEntry` ishlatilyapti), umumiy feature flag registri, worker heartbeat, `ReleaseRecord`
+
 ## 2026-08-15 [Claude Code]: A1a — `.dockerignore`, zaxira/tiklash va suite 6x tezlashdi
 
 Uchta ish. Ikkitasi rejadagi A1a bandlari, uchinchisi Azurbekning kuzatuvidan chiqdi.
