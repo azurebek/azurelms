@@ -17,7 +17,7 @@
 | Band | Queue | Execution | Izoh |
 |---|---|---|---|
 | A0 | `ADMIT` | `IN PROGRESS` | A0a auth/webhook/inactive-staff bajarilgan; A0b va teacher/socket scope qolgan |
-| A1a | `ADMIT` | `PLANNED` | vendor-neutral local CI/readiness |
+| A1a | `ADMIT` | `IMPLEMENTED/TESTED` | GitHub Actions CI (8 required check) + readiness/backup/outbox bajarildi; bog'liqlik zaiflik qarzi reyestrda |
 | A1b | `HOLD` | `PLANNED` | cloud deploy va managed services |
 | A2 | `ADMIT` | `IN PROGRESS` | read-only Control Center + brand/landing mutation foundation |
 | A8 | `ADMIT` | `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | supply guard kod/target/full testlarda; real concurrency proof pending |
@@ -44,11 +44,14 @@
 - **A0b holati:** beshala slice ham bajarildi (teacher scope, upload validatsiya, private media, socket recheck, CSP v4). A0 endi `EVIDENCE READY` ga nomzod — yakuniy label owner qarori.
 - **Faza:** R1. A8 bilan parallel faqat test/docs ishlari; yangi product featurelardan oldin.
 
-### A1. Reproducible runtime va CI — `PLANNED`, `A1a M + A1b HOLD`
+### A1. Reproducible runtime va CI — `A1a IMPLEMENTED/TESTED`, `A1b HOLD`
 
 - **Outcome:** web, AI task va Telegram notification jim yo'qolmaydi; release qayta tiklanadi.
 - **Canonical owner:** deployment config + release gate; vendor alohida adapter qarori.
-- **A1a — hozir:** ~~`.dockerignore`~~ **(bajarildi 2026-08-15: sirlar image'ga tushmaydi)**; local CI required checks; ~~health/readiness contract~~ **(bajarildi 2026-08-15: `/healthz` + `/readyz`, 9 test)**; static build; secret/dependency scan; ~~Telegram outbox claim/lease~~ **(bajarildi 2026-08-15: atomik claim + lease expiry, 8 test, Control Center `in_flight` ko'rsatkichi)** va local e2e; ~~reproducible local backup/restore~~ **(bajarildi 2026-08-15: `backup_db`/`restore_db`, WAL-safe `VACUUM INTO`, 8 test)**.
+- **A1a — bajarildi:** ~~`.dockerignore`~~ **(2026-08-15: sirlar image'ga tushmaydi)**; ~~CI required checks~~ **(2026-08-15: `.github/workflows/ci.yml`, §4 dagi 8 check, uchta ish)**; ~~health/readiness contract~~ **(2026-08-15: `/healthz` + `/readyz`, 9 test)**; ~~static build~~ **(CI `collectstatic` bosqichi)**; ~~secret/dependency scan~~ **(2026-08-15: `scan_secrets` + `pip-audit` reyestri)**; ~~Telegram outbox claim/lease~~ **(2026-08-15: atomik claim + lease expiry, 8 test, Control Center `in_flight` ko'rsatkichi)** va local e2e; ~~reproducible local backup/restore~~ **(2026-08-15: `backup_db`/`restore_db`, WAL-safe `VACUUM INTO`, 8 test)**.
+- **Evidence (A1a/CI, 2026-08-15):** GitHub Actions yoqildi; birinchi yashil yugurish `69004d3`. `checks` va `supply-chain` SQLite/offline profilda, `integration` esa `pgvector/pgvector:pg16` va `valkey/valkey:8` konteynerlarida: `engine=django.db.backends.postgresql`, `cache=RedisCache`, `layer=RedisChannelLayer`, pgvector `enabled=True`, to'liq suite **689/689 PostgreSQL'da**. Butun run ~2 daqiqa (uchala ish parallel). Bu A8 dan beri kutilgan **real PostgreSQL contention proofining** bir qismini yopadi: SQLite'da `select_for_update()` no-op edi, endi barcha qulf yo'llari haqiqiy `FOR UPDATE` bilan yugiradi.
+- **CI birinchi yugurishda topgan production xatosi:** enrollment transfer va promotion PostgreSQL'da butunlay yiqilardi — `select_for_update()` nullable `plan` FK ustidagi LEFT OUTER JOIN bilan birga ishlatilgan (`FOR UPDATE cannot be applied to the nullable side of an outer join`). Tuzatildi (`of=("self",)`) va SQLite'da ham ushlaydigan regressiya testi qo'shildi.
+- **Ochiq qarz:** `pip-audit` 19 paketda 93 advisory ko'rsatadi (jumladan Django `6.0.2` → `6.0.7`, 18 advisory). Holat `security/dependency-audit-baseline.json` reyestrida; CI faqat yangi advisory'ga qizil beradi. Reyestr `review_by: 2026-09-15` — o'sha sanadan keyin gate qizil bo'ladi. Bog'liqliklarni ko'tarish alohida ish.
 - **A1b — `HOLD`:** public hosting, managed PostgreSQL/Valkey/object storage, webhook process va production restore. DigitalOcean majburiy target emas; owner productionni qayta ochganda vendor tanlanadi.
 - **Acceptance:** local profile remote xizmatga jim o'tmaydi; test Notification → outbox `sent`; checks/migration/static; isolated local restore. Production acceptance A1b admissionidan keyin alohida.
 - **Faza:** R1.

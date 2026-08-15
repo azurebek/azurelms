@@ -120,7 +120,11 @@ PR required checks:
 7. secrets va dependency vulnerability scan
 8. domain permission/idempotency va cross-adapter parity tests
 
-Hozir A1a shu checksni local runnerda reproduksiya qiladi; `.github/workflows` hali yo'q. `main`dan public deploy A1b `HOLD` ochilib, gate'lar o'tgachgina. Migration oldidan backup/restore point; deploydan keyin readiness, login/Telegram auth, enrollment, AI async task, outbox DM va private-media permission smoke. Gate yiqilsa traffic ochilmaydi; destructive DB rollback avtomatik emas.
+**Holat (2026-08-15): sakkiztasi ham `.github/workflows/ci.yml` da avtomatlashtirildi** — har push (`main`, `claude/**`, `codex/**`) va har PR'da. Uchta ish: `checks` (offline: check, `check --deploy`, migration drift, collectstatic, permission/idempotency/parity to'plami, to'liq suite), `integration` (pgvector'li PostgreSQL + Valkey konteynerlari) va `supply-chain` (sir skani + `pip-audit`). Hech bir ish AI provayderiga chiqmaydi: `GEMINI_API_KEY` bo'sh va `AZURELMS_SKIP_ENV_FILE=1`, ya'ni free-tier kvota CI tomonidan yeyilmaydi.
+
+§4.7 ning ikkinchi yarmi — bog'liqlik zaifligi — reyestr modelida: bugungi holat `security/dependency-audit-baseline.json` da nomma-nom yozilgan (19 paket, 93 advisory) va CI faqat **yangi** advisory'ga qizil beradi. Reyestr `name==version` bo'yicha kalitlangan, `review_by` sanasi bilan. Mavjud qarzning o'zi hali to'lanmagan — bu alohida ish.
+
+`main`dan public deploy A1b `HOLD` ochilib, gate'lar o'tgachgina. Migration oldidan backup/restore point; deploydan keyin readiness, login/Telegram auth, enrollment, AI async task, outbox DM va private-media permission smoke. Gate yiqilsa traffic ochilmaydi; destructive DB rollback avtomatik emas.
 
 Har release uchun commit SHA, migrationlar, gate natijalari, deploy/rollback holati va owner qarori `ReleaseRecord`/system auditda saqlanadi.
 

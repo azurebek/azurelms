@@ -16,6 +16,29 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-15 [Claude Code]: A1a — GitHub Actions CI va u topgan PostgreSQL xatosi
+
+`05-launch-ops.md` §4 sakkizta required check sanab, "hozir A1a shu checksni local runnerda reproduksiya qiladi; `.github/workflows` hali yo'q" deb turardi. Owner qarori bilan GitHub Actions yoqildi va sakkiztasi ham avtomatlashtirildi.
+
+Ish uchga bo'lindi, chunki ular turli sabablarga ko'ra yiqiladi va bitta vazifada tarmoq nosozligi kod xatosini yashirar edi: `checks` (offline — check, production-safe `check --deploy`, migration drift, `collectstatic`, permission/idempotency/parity to'plami, to'liq suite), `integration` (pgvector'li PostgreSQL + Valkey konteynerlari) va `supply-chain` (sir skani + `pip-audit`). Hech biri AI provayderiga chiqmaydi — `GEMINI_API_KEY` bo'sh, `AZURELMS_SKIP_ENV_FILE=1` — ya'ni CI free-tier kvotani yemaydi.
+
+**Eng muhim natija — CI birinchi yugurishdayoq haqiqiy production xatosini topdi.** Enrollment transfer va promotion PostgreSQL'da **butunlay yiqilardi**: `select_for_update()` nullable `plan` FK ustidagi `select_related` bilan birga ishlatilgan, Django LEFT OUTER JOIN yasagan, PostgreSQL esa `FOR UPDATE cannot be applied to the nullable side of an outer join` deb butun so'rovni rad etadi. SQLite'da `select_for_update()` no-op bo'lgani uchun lokal suitening 686 testidan hech biri buni ko'rmagan. Bu aynan A8 dan beri "real DB contention proof pending" deb yozib kelingan bo'shliq edi — endi qulf yo'llari haqiqiy `FOR UPDATE` bilan yugiradi.
+
+Sir skaneri (`core/secret_scan.py`) ataylab yuqori signalli: umumiy `secret=...` uslubidagi qoidalar yuzlab false positive berib gate'ni o'chirishga olib keladi, o'chirilgan gate esa yo'q gate bilan barobar. Faqat formati aniq kalitlar (Telegram, Google, AWS, PEM, parolli DSN) va bitta strukturaviy qoida — kuzatuvda `.env` fayli bo'lmasligi. Repo public bo'lgani uchun tarix ham tekshirildi: `.env` hech qachon commit qilinmagan, `AIza...` shaklidagi kalit topilmadi.
+
+`pip-audit` bugun 19 paketda 93 advisory topadi. Gate'ni darhol qizil qilib qo'yish uni o'chirishga olib keladi, ogohlantirishga aylantirish esa gate emas; shuning uchun holat `security/dependency-audit-baseline.json` reyestriga nomma-nom yozildi va CI faqat **yangi** advisory'ga qizil beradi — qarz ko'rinib turadi va o'sishi mumkin emas.
+
+- Branch: `claude/a1a-github-actions-ci` (`origin/main` dan)
+- Yangi: `.github/workflows/ci.yml`, `core/secret_scan.py`, `core/dependency_audit.py`, `core/cache_config.py`, `security/dependency-audit-baseline.json`, `scan_secrets` va `audit_dependencies` buyruqlari, `core/test_supply_chain_gate.py` (28 test), `core/test_cache_config.py` (3), `cohorts/test_transition_locking.py` (3). Tegilgan: `cohorts/transition_service.py`, `core/settings.py`, `core/qa_support.py`, `core/test_backup_restore.py`, `messenger/tests.py`
+- Commitlar: `4418098` (CI), `69004d3` (PostgreSQL tuzatishlari)
+- Test holati: local SQLite **689/689 OK**; CI `checks` yashil; CI `integration` — PostgreSQL'da **689/689 OK** (`engine=postgresql`, `cache=RedisCache`, `layer=RedisChannelLayer`, pgvector `enabled=True`, Valkey roundtrip ok); CI `supply-chain` yashil. Butun run ~2 daqiqa
+- Nazorat yugurishi: `of=("self",)` olib tashlanganda `cohorts/test_transition_locking.py` 3 testdan 2 tasi yiqildi va yaralgan SQL `LEFT OUTER JOIN "subscriptions_plan" ... FOR UPDATE` bilan tugadi — PostgreSQL rad etadigan aynan shu shakl
+- Yo'l-yo'lakay tuzatilgan xato: `CONNECTION_POOL_KWARGS` da `ssl_cert_reqs` sxemadan qat'i nazar uzatilar edi; redis-py uni TLS'siz `redis://` Connection'ida `TypeError` bilan rad etadi, ya'ni managed bo'lmagan har qanday Redis/Valkey birinchi cache chaqirig'ida yiqilardi
+- Halol chegara: PostgreSQL test bazasida pgvector schema yo'q (u migratsiya emas, alohida DDL buyrug'i), shuning uchun RAG testlari CI'da ham lexical fallback yo'lini tekshiradi — vector retrieval yo'lining o'zi hali avtomatik qoplanmagan
+- Davom etilishi kerak: bog'liqliklarni ko'tarish (Django `6.0.2` → `6.0.7`, 18 advisory — eng kattasi); reyestr `review_by: 2026-09-15`, o'sha sanadan keyin gate qizil bo'ladi
+
+---
+
 ## 2026-08-15 [Claude Code]: A2 — append-only audit ledgeri
 
 `05-launch-ops.md` §3 uzoq vaqtdan beri `SystemAuditEvent` ni talab qilib turardi; owner mutation yuzalari esa Django'ning `LogEntry` sidan foydalanardi. Farq shunchaki nom emas: `LogEntry` admin uchun mo'ljallangan, **o'chirilishi va tahrirlanishi mumkin**, faqat admin obyektlariga bog'lanadi va unda `source`, `outcome`, `before/after`, `request_id`, IP yoki release SHA kabi operatsion maydonlar yo'q.

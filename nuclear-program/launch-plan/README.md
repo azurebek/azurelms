@@ -54,7 +54,7 @@ Bu natijalardan kamida biri real cohortda o'lchanmaguncha AI kurs narxini oshiri
 | Local runtime | `LOCAL BOOT VERIFIED`: SQLite, LocMem/in-memory, eager Celery, local media; DO credential/service yo'q; post-A8 offline full suite 527/527 va audit 10/10 GREEN | Production gate alohida |
 | AI provider | Gemini primary; allowlistdagi 1 primary + max 1 fallback, SDK retry off, `429`da 1 attempt/cooldown | `A8` **`IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`**; real DB contention proof va production admission alohida |
 | A0 security | A0a Telegram auth/webhook/inactive-staff qismi kodda | A0b private media, upload va WebSocket access recheck |
-| A1 runtime/CI | `PLANNED`; `.github/workflows`, `.dockerignore`, readiness yo'q | Vendor-neutral local/CI gate; cloud deploy `HOLD` |
+| A1 runtime/CI | A1a bajarildi: `.dockerignore`, `/healthz`+`/readyz`, backup/restore, outbox lease va `.github/workflows/ci.yml` (8 required check, PostgreSQL+Valkey ishi bilan) | A1b cloud deploy `HOLD`; bog'liqlik zaiflik qarzi reyestrda |
 | A2 Control Center | Read-only foundation + brand/landing mutation surface'lari + AI supply budget/cooldown stoplight bor | Global flags, release/audit va worker heartbeat |
 | Telegram | F0–F9, outbox va Mini App foundation bor | Local polling QA; webhook/public deploy `HOLD` |
 | Landing editor | Bosqich 1 + bo'lim navigatsiyasi bor | Repeatable ro'yxatlar faqat core gate'lardan keyin |
