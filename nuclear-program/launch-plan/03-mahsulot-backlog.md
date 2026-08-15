@@ -36,7 +36,8 @@
 - **Adapters:** web auth, Telegram webhook, media download, Messenger WebSocket.
 - **Acceptance:** replay, forged webhook, cross-user media va expired enrollment socket regressionlari; anonymous private media `403/404`; kill/rollback runbook.
 - **Evidence (A0a, 2026-07-23):** `e7cd4a6` va `5bea4a5` — one-time/browser-bound Telegram auth, webhook fail-closed/no-secret logging, inactive staff denial; implementatsiya paytida full suite 385/385 va check yashil.
-- **Qolgan:** teacher course/cohort default-deny, private media/upload validation va WebSocket access recheck. A0 to'liq `EVIDENCE READY` emas.
+- **Evidence (A0b/1, 2026-08-15):** teacher course/cohort scope default-deny. Qoida `core/access.py`da canonical (`teacher_course_queryset`/`teacher_cohort_queryset`); web teacher paneli, Telegram bot va davomat sahifasi faqat shuni iste'mol qiladi. Audit uchta nusxani topdi, ikkitasi default-allow edi — bot adapterida qoida teskari yozilgan bo'lib, har qanday active staff barcha guruhlarni ko'rardi. 10 yangi test, jumladan adapter parity; full suite 537/537.
+- **Qolgan:** private media, upload MIME/magic-byte/size validation, WebSocket access recheck va django-csp v4 header testi. A0 to'liq `EVIDENCE READY` emas.
 - **Faza:** R1. A8 bilan parallel faqat test/docs ishlari; yangi product featurelardan oldin.
 
 ### A1. Reproducible runtime va CI — `PLANNED`, `A1a M + A1b HOLD`

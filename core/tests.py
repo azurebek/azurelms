@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
+from core import teacher_views
 from courses.models import Course, Exam, ExamSection, Lesson, Module
 from messenger.models import ChatRoom, Message
 
@@ -345,3 +346,162 @@ class BackofficeAIControlTests(TestCase):
         event = AIUsageResetEvent.objects.latest("created_at")
         self.assertEqual(event.reason, "Navro'z")
         self.assertEqual(event.created_by, self.owner)
+
+
+class TeacherScopeDefaultDenyTests(TestCase):
+    """A0b — teacher paneli default-deny: biriktirilmagan staff hech nima ko'rmaydi.
+
+    Ilgari `_teacher_courses()` biriktirilgan kursi yo'q staff uchun barcha
+    kurslarni qaytarardi, ya'ni istalgan yangi staff butun platformaning
+    o'quvchilari, baholash navbati va davomatini ko'ra olardi. Panelning
+    barcha view'lari shu bitta scope'dan oziqlanadi, shuning uchun bu yerda
+    ro'yxat sahifalari ham, ID bo'yicha ochiladigan baholash sahifalari ham
+    tekshiriladi.
+    """
+
+    LIST_VIEWS = (
+        "teacher_dashboard",
+        "teacher_cohorts",
+        "teacher_students",
+        "teacher_courses",
+        "teacher_grading",
+        "teacher_attendance",
+    )
+
+    def setUp(self):
+        import datetime
+
+        from cohorts.models import Cohort, Enrollment
+        from courses.models import Assignment, AssignmentSubmission, ExamAttempt, Question
+
+        User = get_user_model()
+        self.owner_teacher = User.objects.create_user(
+            username="scope_owner", email="scope_owner@example.test",
+            password="pass-12345", is_staff=True,
+        )
+        self.other_teacher = User.objects.create_user(
+            username="scope_other", email="scope_other@example.test",
+            password="pass-12345", is_staff=True,
+        )
+        self.unassigned_teacher = User.objects.create_user(
+            username="scope_unassigned", email="scope_unassigned@example.test",
+            password="pass-12345", is_staff=True,
+        )
+        self.superuser = User.objects.create_superuser(
+            username="scope_super", email="scope_super@example.test", password="pass-12345",
+        )
+        self.student = User.objects.create_user(
+            username="scope_student", email="scope_student@example.test", password="pass-12345",
+        )
+
+        self.course = Course.objects.create(
+            title="Scoped Course", description="d",
+            instructor=self.owner_teacher, level="beginner",
+        )
+        self.cohort = Cohort.objects.create(
+            name="Scoped Cohort", course=self.course, start_date=datetime.date(2026, 5, 1),
+        )
+        Enrollment.objects.create(student=self.student, cohort=self.cohort, status="active")
+        module = Module.objects.create(course=self.course, title="1-modul", order=1)
+        lesson = Lesson.objects.create(module=module, title="Scoped Lesson", order=1)
+        assignment = Assignment.objects.create(
+            lesson=lesson, title="Scoped HW", description="<p>d</p>", max_xp=20,
+        )
+        self.submission = AssignmentSubmission.objects.create(
+            assignment=assignment, student=self.student, answer_text="javob",
+        )
+        self.exam = Exam.objects.create(
+            course=self.course, title="Scoped Exam", exam_type="final",
+            weight_percentage=100, passing_score=50, max_attempts=2,
+        )
+        section = ExamSection.objects.create(
+            exam=self.exam, title="Writing", section_type="writing",
+            instructions="Yozing.", max_score=10, time_limit_minutes=30, order=1,
+        )
+        question = Question.objects.create(
+            exam_section=section, text="Esse yozing", points=10, min_word_count=3,
+        )
+        self.attempt = ExamAttempt.objects.create(
+            student=self.student, exam=self.exam, attempt_number=1,
+        )
+        self.attempt.answers.create(question=question, answer_text="bir ikki uch")
+        self.attempt.submit_for_review()
+
+    def test_unassigned_staff_sees_no_courses(self):
+        self.assertEqual(list(teacher_views._teacher_courses(self.unassigned_teacher)), [])
+
+    def test_assigned_teacher_sees_only_own_courses(self):
+        self.assertEqual(
+            list(teacher_views._teacher_courses(self.owner_teacher)), [self.course]
+        )
+        self.assertEqual(list(teacher_views._teacher_courses(self.other_teacher)), [])
+
+    def test_superuser_still_sees_every_course(self):
+        self.assertEqual(list(teacher_views._teacher_courses(self.superuser)), [self.course])
+
+    def test_unassigned_staff_pages_render_but_stay_empty(self):
+        self.client.force_login(self.unassigned_teacher)
+        for name in self.LIST_VIEWS:
+            with self.subTest(view=name):
+                response = self.client.get(reverse(name))
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(list(response.context["teacher_courses"]), [])
+                self.assertEqual(response.context["grading_pending_count"], 0)
+
+    def test_unassigned_staff_cannot_open_grading_detail_pages(self):
+        self.client.force_login(self.unassigned_teacher)
+        for name, kwargs in (
+            ("teacher_grade_exam", {"attempt_id": self.attempt.id}),
+            ("teacher_grade_assignment", {"submission_id": self.submission.id}),
+        ):
+            with self.subTest(view=name):
+                self.assertEqual(self.client.get(reverse(name, kwargs=kwargs)).status_code, 404)
+
+    def test_other_teacher_cannot_grade_foreign_submission(self):
+        from courses.models import AssignmentSubmission
+
+        self.client.force_login(self.other_teacher)
+        response = self.client.post(
+            reverse("teacher_grade_assignment", kwargs={"submission_id": self.submission.id}),
+            {"action": "approve", "teacher_feedback": "boshqa o'qituvchi"},
+        )
+        self.assertEqual(response.status_code, 404)
+        self.submission.refresh_from_db()
+        self.assertEqual(self.submission.status, AssignmentSubmission.STATUS_PENDING)
+
+    def test_unassigned_staff_attendance_has_no_cohort(self):
+        self.client.force_login(self.unassigned_teacher)
+        response = self.client.get(reverse("teacher_attendance"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(list(response.context["cohorts"]), [])
+        self.assertIsNone(response.context["cohort"])
+
+    def test_inactive_staff_gets_empty_scope(self):
+        self.owner_teacher.is_active = False
+        self.owner_teacher.save(update_fields=["is_active"])
+        self.assertEqual(list(teacher_views._teacher_courses(self.owner_teacher)), [])
+
+    def test_telegram_adapter_shares_the_same_cohort_scope(self):
+        """Parity: bot adapteri web panel bilan bir xil scope'ni ko'rsatadi.
+
+        Ilgari bot'da teskari qoida turardi — active staff barcha guruhlarni
+        ko'rardi. Endi ikkala yuza ham `core.access` canonical scope'idan
+        oziqlanadi, shuning uchun bu test dublikat mantiq qaytib kelsa yiqiladi.
+        """
+        from bot.services import teacher_cohorts_overview
+
+        self.assertEqual(teacher_cohorts_overview(self.unassigned_teacher), [])
+        self.assertEqual(teacher_cohorts_overview(self.other_teacher), [])
+        self.assertEqual(
+            [item["name"] for item in teacher_cohorts_overview(self.owner_teacher)],
+            [self.cohort.name],
+        )
+
+    def test_telegram_grading_queue_respects_scope(self):
+        from bot.services import teacher_grading_queue
+
+        empty = teacher_grading_queue(self.unassigned_teacher)
+        self.assertEqual((empty["exam_count"], empty["assignment_count"]), (0, 0))
+
+        owned = teacher_grading_queue(self.owner_teacher)
+        self.assertEqual((owned["exam_count"], owned["assignment_count"]), (1, 1))
