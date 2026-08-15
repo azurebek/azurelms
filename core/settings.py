@@ -211,6 +211,7 @@ INSTALLED_APPS = [
     'courses',
     'cohorts',
     'messenger',
+    'core',
     'aicontrol',
     'gamification',
     'subscriptions',
@@ -518,7 +519,7 @@ PRIVATE_MEDIA_ROOT = Path(os.getenv('PRIVATE_MEDIA_ROOT', BASE_DIR / 'private-me
 
 # Testlar `MEDIA_ROOT` va `PRIVATE_MEDIA_ROOT` ni vaqtinchalik papkalarga
 # ko'chiradi, aks holda upload qiladigan testlar repo ichiga fayl yozib qoldiradi.
-TEST_RUNNER = 'core.test_runner.MediaIsolatedTestRunner'
+TEST_RUNNER = 'core.test_runner.AzureLmsTestRunner'
 
 # CKEditor 5 upload manzili nomi
 CKEDITOR_5_UPLOAD_FILE_VIEW_NAME = "ck_editor_5_upload_file"
