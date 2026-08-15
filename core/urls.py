@@ -5,6 +5,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from frontend.views import home_view, about_view, legal_page_view
+from core import health_views
 from core import views as core_views
 from core import teacher_views
 
@@ -46,6 +47,10 @@ urlpatterns = [
     
     # CKEditor rasm yuklash manzili
     path("ckeditor5/", include('django_ckeditor_5.urls'), name="ck_editor_5_upload_file"),
+
+    # Liveness/readiness — auth talab qilmaydi, orkestrator uchun (A1a).
+    path('healthz', health_views.healthz, name='healthz'),
+    path('readyz', health_views.readyz, name='readyz'),
 
     # Holat sahifalari (texnik ishlar va offline)
     path('maintenance/', core_views.maintenance, name='maintenance'),

@@ -642,6 +642,8 @@ Message
 | `/privacy-policy/` | `privacy_policy` |
 | `/terms-of-service/` | `terms_of_service` |
 | `/faq/` | `faq_page` |
+| `/healthz` | `healthz` (liveness — DB'ga tegmaydi) |
+| `/readyz` | `readyz` (readiness — critical capability'lar, `503` bera oladi) |
 | `/maintenance/` | `maintenance` |
 | `/offline/` | `offline` |
 
@@ -853,7 +855,7 @@ Mini App sahifalari `templates/bot/miniapp_base.html` mobil shellini ulashadi. T
 
 - Production-like muhitda broker env yo'q bo'lsa Celery hozir `memory://`ga fallback qilishi mumkin; Channels ham konfiguratsiya bo'lmasa in-memory qatlamga tushadi.
 - ~~Default S3 media storage `public-read` va unsigned URL ishlatadi; protected upload klasslari hozir alohida private storage'ga ajratilmagan.~~ **Yopildi 2026-08-15 (A0b/3):** to'lov cheki, vazifa fayli, chat biriktirmasi va speaking yozuvi `PRIVATE_MEDIA_ROOT` ichida — `MEDIA_ROOT` dan tashqarida — saqlanadi va faqat ruxsat tekshiradigan view orqali beriladi. Private storage public URL bermaydi. Future S3 uchun bu view signed URL'ga redirect qiladigan qilib kengaytiriladi.
-- `.github/workflows` va `/healthz` endpoint hozir yo'q.
+- `.github/workflows` hozir yo'q. `/healthz` (liveness) va `/readyz` (readiness) 2026-08-15 da qo'shildi: tekshiruv mantig'i Control Center capability registry/probe'laridan olinadi, readiness faqat `critical` capability'larni yugurtiradi va birortasi `red` bo'lsa `503` qaytaradi.
 - `TelegramOutbox` modeli/command'i bor, lekin Procfile'da doimiy process yo'q. Worker 2026-08-15 dan **atomik claim/lease** ishlatadi (shartli `UPDATE` + `LEASE_SECONDS` muddati; o'lgan worker qatori navbatga qaytadi), ya'ni bir necha replica bir xil qatorni olmaydi. Kafolat baribir at-least-once: yuborish muvaffaqiyatli bo'lib DB yangilanishidan oldin process o'lsa xabar takrorlanadi. Exponential backoff va dead-letter hali yo'q.
 - `AIResponseRun` status, model, skill, token, duration, metadata, error va idempotency keyni saqlaydi; pul qiymati va quality release gate saqlanmaydi.
 - Read-only capability registry/snapshot AI supply daily request/token, minute request va cooldown stoplightini ham ko'rsatadi; umumiy append-only `SystemAuditEvent`, active service heartbeat va `ReleaseRecord` hozir yo'q.

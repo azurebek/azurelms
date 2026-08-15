@@ -172,6 +172,12 @@ if SECURITY_STRICT:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
 
+# Liveness/readiness probe'lari odatda cluster ichidan http bilan keladi —
+# ularni 301 qilib yuborsak orkestrator holatni o'qiy olmaydi. Sozlama doim
+# ta'riflanadi (test qilinadigan bo'lsin), ta'siri esa faqat SSL redirect
+# yoqilganda bo'ladi.
+SECURE_REDIRECT_EXEMPT = [r'^healthz$', r'^readyz$']
+
 # Telegram Web Mini Apps iframe ichida ishlaganda session/CSRF cookie'lari
 # third-party cookie hisoblanadi. Production defaultlari o'zgarmaydi, ammo
 # HTTPS tunnel kabi muhitlar SameSite=None ni env orqali yoqa oladi.
