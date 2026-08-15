@@ -45,6 +45,8 @@ test_db.sqlite3
 media/
 # Private fayllar (chek, vazifa, biriktirma, speaking) — MEDIA_ROOT dan tashqarida
 private-media/
+# Baza zaxiralari (backup_db) — lokal ma’lumot
+backups/
 
 # Static files (collectstatic)
 staticfiles/

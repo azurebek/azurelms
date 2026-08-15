@@ -18,7 +18,7 @@ class MediaIsolationTests(SimpleTestCase):
     def test_test_runner_is_the_media_isolated_one(self):
         self.assertEqual(
             settings.TEST_RUNNER,
-            "core.test_runner.MediaIsolatedTestRunner",
+            "core.test_runner.AzureLmsTestRunner",
             "TEST_RUNNER o'zgartirilsa testlar yana repo `media/` ga yoza boshlaydi",
         )
 
@@ -44,3 +44,21 @@ class MediaIsolationTests(SimpleTestCase):
             )
         finally:
             default_storage.delete(name)
+
+    def test_tests_use_the_fast_password_hasher(self):
+        """Sekin PBKDF2 qaytib qolsa suite bir necha barobar sekinlashadi.
+
+        O'lchov: `users` app testlari 53.3s -> 2.1s. Bu sozlama faqat test
+        runner ichida qo'llanadi, `settings.py` da emas — production hech
+        qachon uni ko'rmaydi.
+        """
+        from core.test_runner import FAST_TEST_PASSWORD_HASHERS
+
+        self.assertEqual(settings.PASSWORD_HASHERS, FAST_TEST_PASSWORD_HASHERS)
+
+    def test_production_settings_do_not_ship_the_fast_hasher(self):
+        """Tez hasher sozlama faylida bo'lmasligi kerak — faqat runnerda."""
+        from pathlib import Path
+
+        source = (Path(settings.BASE_DIR) / "core" / "settings.py").read_text(encoding="utf-8")
+        self.assertNotIn("MD5PasswordHasher", source)

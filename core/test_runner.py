@@ -1,4 +1,4 @@
-"""Loyiha test runneri — test fayllari repo ichiga tushmasin.
+"""Loyiha test runneri — test muhitini xavfsiz va tez qiladi.
 
 Muammo: `MEDIA_ROOT` default holatda `BASE_DIR / 'media'` ga ishora qiladi, ya'ni
 haqiqiy ishchi papkaga. Test paytida `FileField.save()` chaqirilsa (checkout
@@ -18,6 +18,13 @@ saqlab qolishi mumkin edi.
 
 Alohida testlar o'z `override_settings(MEDIA_ROOT=...)` ini qo'llasa, u shunchaki
 shu ustiga qo'yiladi — ziddiyat yo'q.
+
+**Parol hasher'i.** Django default `PBKDF2` ataylab sekin — bu production
+uchun to'g'ri, ammo suite yuzlab `create_user` chaqiradi va o'lchov shuni
+ko'rsatdi: `users` app testlari 53.3s dan 2.1s ga tushdi, ya'ni vaqtning
+deyarli hammasi hashlashga ketayotgan edi. Tez hasher shu yerda, runner
+ichida qo'llanadi — `settings.py` da emas, shunda u production'ga sizib
+chiqa olmaydi.
 """
 
 import shutil
@@ -27,8 +34,12 @@ from django.test.runner import DiscoverRunner
 from django.test.utils import override_settings
 
 
-class MediaIsolatedTestRunner(DiscoverRunner):
-    """`MEDIA_ROOT` ni vaqtinchalik papkaga olib, yakunda tozalaydigan runner."""
+# Faqat test muhitida. Production sozlamalariga hech qachon tegmaydi.
+FAST_TEST_PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+
+
+class AzureLmsTestRunner(DiscoverRunner):
+    """Vaqtinchalik media ildizlari + tez parol hasher'i."""
 
     def setup_test_environment(self, **kwargs):
         super().setup_test_environment(**kwargs)
@@ -37,6 +48,7 @@ class MediaIsolatedTestRunner(DiscoverRunner):
         self._media_override = override_settings(
             MEDIA_ROOT=self._temp_media_root,
             PRIVATE_MEDIA_ROOT=self._temp_private_root,
+            PASSWORD_HASHERS=FAST_TEST_PASSWORD_HASHERS,
         )
         self._media_override.enable()
 

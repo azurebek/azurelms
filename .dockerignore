@@ -1,0 +1,55 @@
+# Docker build konteksti — `Dockerfile` da `COPY . .` turgani uchun bu fayl
+# bo'lmasa butun ishchi papka image ichiga ko'chadi (A1a).
+#
+# Eng muhimi tezlik emas, **sirlar**: `.env.local` ichida haqiqiy
+# `GEMINI_API_KEY` va `TELEGRAM_BOT_TOKEN` bor va ular image qatlamida
+# abadiy qolib ketardi — image'ni kim olsa, kalitlarni ham oladi.
+
+# --- Sirlar va muhit ---
+.env
+.env.*
+!.env.example
+
+# --- Lokal ma'lumot: image ichiga tushmasligi shart ---
+db.sqlite3
+db.sqlite3-journal
+*.sqlite3-wal
+*.sqlite3-shm
+test_db.sqlite3
+media/
+private-media/
+backups/
+
+# --- Virtual muhit va kesh ---
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- Git va IDE ---
+.git/
+.gitignore
+.github/
+.vscode/
+.idea/
+.claude/
+.codex
+.antigravityignore
+
+# --- Build natijalari (image ichida `collectstatic` qayta yugurtiriladi) ---
+staticfiles/
+
+# --- Hujjat va ishchi materiallar (runtime uchun kerak emas) ---
+nuclear-program/
+playground/
+images/
+*.md
+!README.md
+
+# --- Loglar va vaqtinchalik fayllar ---
+*.log
+scripts/
