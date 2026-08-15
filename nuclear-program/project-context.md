@@ -975,6 +975,8 @@ python manage.py migrate
 python manage.py check
 python manage.py makemigrations --check --dry-run
 python manage.py system_audit --json --fail-on never
+python manage.py backup_db                    # izchil zaxira (WAL-safe)
+python manage.py restore_db --input <fayl> --yes
 
 # RAG/memory indeks — Gemini credential va supply budget ataylab ochiq bo'lsa
 python manage.py reindex_rag --force

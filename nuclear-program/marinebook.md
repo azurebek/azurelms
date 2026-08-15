@@ -16,6 +16,26 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-15 [Claude Code]: A1a — `.dockerignore`, zaxira/tiklash va suite 6x tezlashdi
+
+Uchta ish. Ikkitasi rejadagi A1a bandlari, uchinchisi Azurbekning kuzatuvidan chiqdi.
+
+**`.dockerignore`.** `Dockerfile` da `COPY . .` turibdi va ignore fayli yo'q edi — build butun ishchi papkani image ichiga ko'chirardi. Asosiy muammo tezlik emas: `.env.local` ham ko'chardi, uning ichida esa **haqiqiy `GEMINI_API_KEY` va `TELEGRAM_BOT_TOKEN`** bor. Ular image qatlamida abadiy qolardi — image'ni kim olsa, kalitlarni ham olardi. Yonida `db.sqlite3`, `media/`, `private-media/`, butun `.git/` tarixi va `venv/`.
+
+**Zaxira/tiklash.** Bu yerda o'zim yaratgan bog'liqlik bor edi: `db.sqlite3` A8 dan keyin WAL rejimida ishlaydi, WAL'da esa so'nggi commitlar hali asosiy faylga ko'chmagan bo'lishi mumkin. Ya'ni oddiy fayl nusxasi eng oxirgi yozuvlarni jimgina yo'qotishi mumkin va buni faqat tiklaganda bilib qolasiz. `backup_db` SQLite'ning `VACUUM INTO` buyrug'ini ishlatadi — u ishlab turgan bazadan izchil nusxa yozadi — va natijani `integrity_check` bilan tekshiradi. `restore_db` esa zaxirani **avval** tekshiradi (buzuq faylni ishlayotgan baza ustiga yozish eng yomon natija) va `--yes` majburiy. Testlardan biri aynan `VACUUM INTO` ni o'sha paytdagi xom fayl nusxasi bilan solishtiradi.
+
+**Suite tezligi.** Azurbek "suite uzayib ketyapti" dedi. Taxmin qilmasdan o'lchadim: `users` app 93 testi default `PBKDF2` bilan **53.3s**, tez hasher bilan **2.1s**. Ya'ni parol hashlash hissa qo'shayotgani yo'q edi — u deyarli butun narx edi; suite yuzlab `create_user` chaqiradi, PBKDF2 esa ataylab sekin (production uchun to'g'ri, test fixture uchun ma'nosiz). To'liq suite: **~245s → 18.5s**, umumiy vaqt ~4 daqiqadan **40 soniyaga**.
+
+Sozlama `settings.py` da emas, **test runner ichida** — production uni hech qachon ko'rmaydi. Ikkita qo'riqchi: testlar haqiqatan tez hasher ishlatayotganini tekshiradi (jimgina qaytarilsa suite sekinlashishi o'rniga test yiqiladi) va `MD5PasswordHasher` `settings.py` da yo'qligini tekshiradi.
+
+- Branch: `claude/a1a-runtime-hygiene` (`origin/main` dan)
+- Yangi: `.dockerignore`, `core/backup_service.py`, `core/management/commands/backup_db.py` va `restore_db.py`, `core/test_backup_restore.py` (8 test). Tegilgan: `core/test_runner.py` (tez hasher, `AzureLmsTestRunner` ga qayta nomlandi), `core/test_media_isolation.py` (+2 qo'riqchi), `core/settings.py`, `.gitignore`
+- `core` `INSTALLED_APPS` ga qo'shildi — management buyruqlari faqat app ichida topiladi. U allaqachon app kabi ishlaydi (`access.py`, `views.py`, `control_center/`, `upload_validation.py`), modeli yo'q, migration drift ham yo'q
+- Test holati: `manage.py test` — **625/625 OK** (skipped=15), **18.5s**; fayl DB bilan zaxira testlari 8/8; `check` — 0 issue; `makemigrations --check` — No changes
+- Jonli tekshiruv: haqiqiy bazada `backup_db` — 1.8 MB, 120 jadval, `integrity ok`. `restore_db` real bazaga qarshi yugurtirilmadi (u ustidan yozadi) — faqat testlarda, vaqtinchalik fayllarda
+- Halol chegara: zaxira faqat SQLite uchun. PostgreSQL'da `pg_dump`/`pg_restore` kerak bo'ladi va buyruq buni aniq xato bilan aytadi — jim ravishda noto'g'ri ish qilmaydi
+- Davom etilishi kerak: A1a da faqat CI qoldi (`.github/workflows` — owner qaroriga qoldirilgan, chunki u GitHub Actions'ni yoqadi)
+
 ## 2026-08-15 [Claude Code]: A1a — liveness va readiness endpointlari
 
 `/healthz` va `/readyz` qo'shildi. Ikkalasi ataylab ajratilgan, chunki orkestrator ularga turlicha munosabatda bo'ladi: liveness yiqilsa process o'ldiriladi, readiness yiqilsa faqat trafik yuborilmaydi. Shu sabab `/healthz` DB'ga ham, cache'ga ham tegmaydi — baza yiqilganda processni qayta ishga tushirish vaziyatni yaxshilamaydi, faqat restart siklini boshlaydi. `/readyz` esa `critical` capability'larni tekshiradi va birortasi `red` bo'lsa `503` qaytaradi.
