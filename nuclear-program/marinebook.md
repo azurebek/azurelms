@@ -16,6 +16,23 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-15 [Claude Code]: `main` branch protection — CI endi haqiqiy gate
+
+CI yoqilgani bilan hech narsani to'xtatmasdi: checklar qizil bo'lsa ham `main` ga push o'tib ketaverardi. Owner qarori bilan `main` branch protection ostiga olindi.
+
+Birinchi urinishda `enforce_admins: false` qo'yilgandi — admin bypass qolsin degan ehtiyotkorlik. Sinovda ma'lum bo'ldiki, bu solo repoda gate'ni umuman ma'nosiz qiladi: checklar yugurmagan commit `main` ga o'tdi va GitHub faqat `Bypassed rule violations for refs/heads/main` deb yozib qo'ydi. Yagona push qiluvchi odam bypass qila oladigan gate — gate emas. Owner haqiqiy variantni tanladi.
+
+**Amaldagi holat:** `enforce_admins: true`, `strict: true`, force-push va branch o'chirish yopiq, uchala CI ishi required check. `main` ga to'g'ridan-to'g'ri push endi **hech kimga**, Azurbekka ham, ochiq emas — yagona yo'l PR. Shoshilinch ochish/yopish buyruqlari `rules-for-agents.md` §9 da.
+
+Nozik joy: required check nomlari CI job nomlari bilan bir xil bo'lishi shart. Job nomi o'zgarsa GitHub hech qachon kelmaydigan checkni kuta boshlaydi va har qanday PR abadiy bloklanadi — ogohlantirish `ci.yml` ning boshiga, nomlarning yoniga qo'yildi.
+
+- Branch: `claude/branch-protection-docs` → PR orqali `main` ga (protection'ning birinchi haqiqiy sinovi)
+- Tegilgan: `.github/workflows/ci.yml`, `AGENTS.md`, `nuclear-program/rules-for-agents.md` (§9 qayta yozildi), `nuclear-program/launch-plan/05-launch-ops.md`
+- Test holati: kod o'zgarmadi; PR'da uchala CI ishi yashil
+- Dalil: protection yoqilgunga qadar `git push origin main` o'tdi (`Bypassed rule violations`), `enforce_admins` yoqilgandan keyin rad etildi
+
+---
+
 ## 2026-08-15 [Claude Code]: A1a — GitHub Actions CI va u topgan PostgreSQL xatosi
 
 `05-launch-ops.md` §4 sakkizta required check sanab, "hozir A1a shu checksni local runnerda reproduksiya qiladi; `.github/workflows` hali yo'q" deb turardi. Owner qarori bilan GitHub Actions yoqildi va sakkiztasi ham avtomatlashtirildi.

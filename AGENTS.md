@@ -51,6 +51,8 @@ git checkout -b <prefiks>/<task-name> origin/main
 
 **Hech qachon:** boshqa agent branch'iga commit, `main`'ga bevosita push, force-push, `git reset --hard` (Azurbek ruxsat bermasa).
 
+> **2026-08-15 dan buyon bu qoida serverda majburlangan.** `main` branch protection ostida: to'g'ridan-to'g'ri push, force-push va branchni o'chirish rad etiladi — **Azurbek uchun ham** (`enforce_admins`). Yagona yo'l — PR, va CI ning uchala ishi yashil bo'lgach merge. Batafsil: [rules-for-agents.md §9](nuclear-program/rules-for-agents.md).
+
 ---
 
 ## Asosiy buyruqlar

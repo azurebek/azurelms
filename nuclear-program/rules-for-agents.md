@@ -343,6 +343,37 @@ git push -u origin codex/<task-name>
 
 ### Merge to main
 
+**`main` 2026-08-15 dan buyon branch protection ostida.** Bu qoida endi hujjatda emas, serverda turadi:
+
+| Amal | Holat |
+|---|---|
+| `git push origin main` | ❌ rad etiladi — **Azurbek uchun ham** (`enforce_admins: true`) |
+| force-push `main` ga | ❌ rad etiladi |
+| `main` ni o'chirish | ❌ rad etiladi |
+| PR merge, uchala check yashil | ✅ yagona yo'l |
+
+Required checklar (CI job nomlari bilan bir xil bo'lishi shart):
+
+- `Checks va to'liq test suite (SQLite)`
+- `PostgreSQL+pgvector va Valkey smoke`
+- `Sir va bog'liqlik zaifligi skani`
+
+`strict: true` — PR merge oldidan branch `main` bilan yangilangan bo'lishi kerak, ya'ni checklar aynan merge bo'ladigan holatda yugiradi.
+
+Shoshilinch holatda gate'ni owner vaqtincha ochadi va **darhol yopadi**:
+
+```bash
+gh api -X DELETE repos/azurebek/azurelms/branches/main/protection/enforce_admins
+```
+
+```bash
+gh api -X POST repos/azurebek/azurelms/branches/main/protection/enforce_admins
+```
+
+CI job nomini o'zgartirsangiz, protection ham o'sha commitda yangilanishi shart — aks holda GitHub hech qachon kelmaydigan checkni kutadi va har qanday PR abadiy bloklanadi.
+
+### PR tayyorlash
+
 Merge'ni **Azurbek** hal qiladi. Agent tayyorlaydi:
 
 - Branch push'lanagan
