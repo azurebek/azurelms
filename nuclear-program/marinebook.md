@@ -16,6 +16,24 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-15 [Claude Code]: A0b/5 — django-csp v4 va A0b yopilishi
+
+A0b ning oxirgi slice'i. Paket `django-csp 4.0` o'rnatilgan edi, sozlamalar esa hali eski `CSP_*` nomlarida turardi. v4 faqat `CONTENT_SECURITY_POLICY` dictini o'qiydi — ya'ni `SECURITY_STRICT=True` bo'lganda ham **hech qanday CSP header chiqmasdi**. Himoya bor deb hisoblanardi, aslida yo'q edi.
+
+Ikkinchi, jiddiyroq topilma `TelegramMiniAppFrameMiddleware` da. U `Content-Security-Policy` ni o'zi yozardi, django-csp v4 esa header allaqachon mavjud bo'lsa butun siyosatni o'tkazib yuboradi (`no_header = HEADER not in response`). Nazorat yugurishi buni raqamda ko'rsatdi — eski middleware bilan Mini App sahifasining butun siyosati shu edi: `{'frame-ancestors': ["'self'", 'https://web.telegram.org', 'https://*.telegram.org']}`. `script-src` yo'q, `object-src` yo'q, `base-uri` yo'q. Hujjatlardagi "chetlab o'tishi mumkin" degan ehtimol amalda shunday edi.
+
+Siyosat endi `core/csp_policy.py` dagi funksiyada quriladi — sozlamalar import vaqtida hisoblanadi va test qilib bo'lmaydi, funksiya esa to'g'ridan-to'g'ri tekshiriladi. Qo'shildi: `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, `media-src` va Mini App yuklaydigan `https://telegram.org` skript manbasi. Default `frame-ancestors 'self'`, Telegram istisnosi esa faqat Mini App sessiyasida per-response.
+
+**Yo'lda o'zim regressiya kiritdim va mavjud test uni ushladi.** Middleware `X-Frame-Options` ni olib tashlaydi (Telegram WebView uchun shart), demak o'rniga doim biror frame nazorati qolishi kerak. Men header yozishni v4 ning `_csp_replace` mexanizmiga o'tkazganimda, CSP middleware **faqat `SECURITY_STRICT` da ulanishini** hisobga olmadim: local profilda `X-Frame-Options` olib tashlanar, o'rniga hech narsa qo'yilmasdi — Mini App sahifasini istalgan sayt iframe'ga ola bilardi. `bot.tests.MiniAppAuthTests` shu sababdan yiqildi; bu eskirgan da'vo emas, haqiqiy kamchilik edi. Middleware endi ikkala profilni ham qoplaydi.
+
+- Branch: `claude/a0b-csp-v4` (`origin/main` dan)
+- Yangi: `core/csp_policy.py`, `core/test_csp.py` (10 test). Tegilgan: `core/settings.py`, `bot/django_middleware.py`. **Migration yo'q**, churn yo'q
+- Testlar real javob sarlavhasi darajasida: oddiy sahifada to'liq siyosat va `frame-ancestors 'self'`; Mini App sessiyasida to'liq siyosat **saqlanib**, faqat `frame-ancestors` kengayishi; CSP middleware o'chiq profilda ham frame nazorati qolishi
+- Nazorat yugurishi: eski middleware bilan Mini App testi yiqiladi ("to'liq siyosatni yo'qotdi")
+- Test holati: `manage.py test` — **598/598 OK** (588 + 10); `check` — 0 issue
+- Ochiq qolgan: `script-src` da hali `'unsafe-inline'` bor — shablonlardagi inline skriptlarni nonce'ga ko'chirish alohida ish. Header production profilida real brauzerda hali sinalmagan (local `SECURITY_STRICT=False`)
+- **A0b holati:** beshala slice ham bajarildi — teacher scope, upload validatsiya, private media, socket recheck, CSP v4. Yakuniy `EVIDENCE READY` labelini qo'yish owner qarori
+
 ## 2026-08-15 [Claude Code]: A0b/4 — ochiq WebSocket sessiya ruxsatni qayta tekshiradi
 
 Ruxsat faqat `connect()` da tekshirilardi: socket bir marta ochilgach, o'quvchining obunasi tugasa ham u xonaga yozishda davom etaverardi — qayta ulanmagunicha holat o'zgarmasdi. Nazorat yugurishi buni eng aniq shaklda ko'rsatdi: tuzatishsiz obunasi tugagan o'quvchining xabari **bazaga saqlanib ketardi**.
