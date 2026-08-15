@@ -188,8 +188,14 @@ class ReviewDeadlineTests(SimpleTestCase):
     def test_the_deadline_day_itself_is_still_in_time(self):
         self.assertIsNone(review_overdue({"review_by": "2026-08-15"}, today=date(2026, 8, 15)))
 
-    def test_a_missing_deadline_is_not_treated_as_overdue(self):
-        self.assertIsNone(review_overdue({}, today=date(2026, 8, 15)))
+    def test_an_empty_baseline_needs_no_deadline(self):
+        """Muddat istisnolarni abadiylashishdan saqlaydi; istisno yo'q — muddat ham kerak emas."""
+        self.assertIsNone(review_overdue({"known": {}}, today=date(2026, 8, 15)))
+
+    def test_an_exemption_without_a_deadline_is_rejected(self):
+        """Sanasiz istisno gate'ni jimgina bo'shatadi — bu ruxsat etilmaydi."""
+        with self.assertRaises(DependencyAuditError):
+            review_overdue({"known": {"django==6.0.2": ["PYSEC-1"]}}, today=date(2026, 8, 15))
 
     def test_a_broken_deadline_is_rejected_loudly(self):
         with self.assertRaises(DependencyAuditError):
@@ -199,10 +205,27 @@ class ReviewDeadlineTests(SimpleTestCase):
 class CommittedBaselineTests(SimpleTestCase):
     """Reyestr fayli haqiqatan repoda va o'qiladigan holatda."""
 
-    def test_the_baseline_file_parses_and_declares_a_review_date(self):
+    def test_the_shipped_baseline_carries_no_exemptions(self):
+        """Maqsad holati: bo'sh reyestr, ya'ni har qanday zaiflik darhol qizil.
+
+        Bu test yiqilsa, kimdir zaiflikni tuzatish o'rniga oqlagan. Bu ba'zan
+        to'g'ri qaror (major/RC ko'tarish talab qilinsa), ammo u ko'rinib
+        turishi kerak — testni yangilash o'sha ko'rinishning o'zi.
+        """
         baseline = load_json(baseline_path())
-        self.assertTrue(baseline["known"], "Reyestr bo'sh: pip-audit hisoboti yozilmagan.")
-        self.assertIsInstance(date.fromisoformat(baseline["review_by"]), date)
+        self.assertEqual(
+            baseline["known"], {},
+            "Reyestrda istisno paydo bo'lgan. Paketni ko'tarib bo'lmaganini "
+            "faylda sabab bilan yozing va shu testni ataylab yangilang.",
+        )
+
+    def test_an_exemption_would_require_a_review_date(self):
+        """Bo'sh reyestrda ham qoida amalda ekanini tekshiradi."""
+        baseline = dict(load_json(baseline_path()))
+        baseline["known"] = {"example==1.0.0": ["PYSEC-0000"]}
+        baseline.pop("review_by", None)
+        with self.assertRaises(DependencyAuditError):
+            review_overdue(baseline)
 
     def test_every_baseline_key_is_pinned_to_an_exact_version(self):
         for key in load_json(baseline_path())["known"]:
