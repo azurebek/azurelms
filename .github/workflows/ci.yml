@@ -10,6 +10,12 @@
 # Hech bir ish AI provayderiga chiqmaydi: `GEMINI_API_KEY` ataylab bo'sh va
 # `AZURELMS_SKIP_ENV_FILE=1` runner'dagi env fayllarni o'qishni to'xtatadi.
 # Free-tier kvota CI tomonidan yeyilmaydi.
+#
+# DIQQAT — quyidagi uchta `name:` qiymati `main` branch protection'ida required
+# check sifatida yozilgan. Ularni o'zgartirsangiz, GitHub hech qachon kelmaydigan
+# checkni kuta boshlaydi va har qanday PR abadiy bloklanadi. Nom o'zgarsa,
+# protection ham o'sha commitda yangilanishi shart:
+#   gh api -X PATCH repos/azurebek/azurelms/branches/main/protection/required_status_checks ...
 
 name: CI
 
