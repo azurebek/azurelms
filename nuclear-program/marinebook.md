@@ -16,6 +16,22 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-15 [Claude Code]: A0b/4 — ochiq WebSocket sessiya ruxsatni qayta tekshiradi
+
+Ruxsat faqat `connect()` da tekshirilardi: socket bir marta ochilgach, o'quvchining obunasi tugasa ham u xonaga yozishda davom etaverardi — qayta ulanmagunicha holat o'zgarmasdi. Nazorat yugurishi buni eng aniq shaklda ko'rsatdi: tuzatishsiz obunasi tugagan o'quvchining xabari **bazaga saqlanib ketardi**.
+
+Ikkinchi, yashiriroq qatlam: `self.user` — socket ochilgandagi nusxa, undagi `is_active` sessiya davomida yangilanmaydi. Ya'ni bloklangan hisob ham yozishda davom etardi. Bu A0a dagi "inactive staff" tuzatishining WebSocket tomondagi ochiq qolgan qismi edi. Endi `is_authorized()` foydalanuvchi holatini ham DB'dan qayta o'qiydi.
+
+Yechim: har `receive()` boshida ruxsat qayta hisoblanadi; yo'qolgan bo'lsa klientga `access_revoked` yuboriladi va socket `4403` kodi bilan yopiladi. Xona qoidalarining o'zi o'zgarmadi — `user_can_access_room()` allaqachon jonli enrollment holatini tekshirardi, faqat u qayta chaqirilmasdi.
+
+- Branch: `claude/a0b-socket-recheck` (`origin/main` dan)
+- Yangi: `messenger/test_socket_access_recheck.py` (5 test — repodagi birinchi WebSocket testlari). Tegilgan: `messenger/consumers.py` (+30/-4). **Migration yo'q**, churn yo'q
+- Testlar: faol o'quvchi yozadi; obuna tugasa socket yopiladi; hisob bloklansa ham; ruxsat bekor qilingandan keyin xabar saqlanmaydi; close kodi konstanta
+- Nazorat yugurishi: recheck olib tashlansa 5 tadan **3 tasi yiqiladi**
+- Test holati: `manage.py test` — **588/588 OK** (583 + 5); `messenger` — 113/113; `check` — 0 issue
+- Narxi: har xabarga 2 ta qo'shimcha DB so'rovi. Chat hajmida arzon, ammo yuqori yuklamada keshlash kerak bo'lishi mumkin
+- Davom etilishi kerak: A0b/5 — django-csp v4 migratsiyasi (A0b dagi oxirgi band)
+
 ## 2026-08-15 [Claude Code]: A0b/3 — private media, ruxsat tekshiradigan stream
 
 A0b ning eng katta va eng xavfli slice'i. Oldingi holat: to'lov cheki, vazifa fayli, chat biriktirmasi va speaking yozuvi `MEDIA_ROOT` ichida yotardi, ya'ni havolani topgan (yoki taxmin qilgan) har kim ularni ocha olardi — lokalda `urls.py` dagi `static()` handleri, kelajakdagi production'da esa web server yoki object storage'ning public prefiksi uzatib yuborardi.

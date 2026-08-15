@@ -14,6 +14,9 @@ from .models import AIResponseRun, ChatRoom, ChatRoomUserState, Message
 User = get_user_model()
 
 class ChatConsumer(AsyncWebsocketConsumer):
+    # WebSocket yopilish kodi: ruxsat sessiya davomida bekor qilindi.
+    ACCESS_REVOKED_CLOSE_CODE = 4403
+
     async def connect(self):
         self.user = self.scope.get('user')
         self.room_id = self.scope['url_route']['kwargs']['room_id']
@@ -48,6 +51,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     # Socketdan xabar qabul qilish
     async def receive(self, text_data):
+        # Ruxsat faqat `connect()` da tekshirilganida ochiq socket obuna
+        # tugagandan yoki hisob bloklangandan keyin ham ishlayverardi (A0b).
+        if not await self.is_authorized():
+            await self.send(text_data=json.dumps({
+                "type": "access_revoked",
+                "message": "Bu suhbatga kirish huquqingiz yakunlandi.",
+            }))
+            await self.close(code=self.ACCESS_REVOKED_CLOSE_CODE)
+            return
+
         try:
             data = json.loads(text_data)
         except json.JSONDecodeError:
@@ -221,11 +234,24 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def is_authorized(self):
-        try:
-            room = ChatRoom.objects.get(id=self.room_id)
-            return user_can_access_room(self.user, room)
-        except ChatRoom.DoesNotExist:
+        """Xonaga kirish huquqi — har safar DB holatidan hisoblanadi.
+
+        `self.user` socket ochilgandagi nusxa: sessiya davomida hisob
+        bloklangan bo'lsa ham undagi `is_active` eski qiymatda qoladi.
+        Shuning uchun foydalanuvchi holati qayta o'qiladi (A0b).
+        """
+        user = self.user
+        if not user or not user.is_authenticated:
             return False
+
+        fresh = type(user).objects.filter(pk=user.pk).first()
+        if fresh is None or not fresh.is_active:
+            return False
+
+        room = ChatRoom.objects.filter(id=self.room_id).first()
+        if room is None:
+            return False
+        return user_can_access_room(fresh, room)
 
     @database_sync_to_async
     def save_message(self, user, room_id, text, context_lesson_id=None):
