@@ -1,4 +1,6 @@
 from django.urls import path
+
+from core import private_media_views
 from . import views
 
 urlpatterns = [
@@ -33,6 +35,10 @@ urlpatterns = [
     path('<int:course_id>/exam/<int:exam_id>/api/blur/', views.LogBlurWarningView.as_view(), name='api_exam_blur'),
     path('<int:course_id>/exam/<int:exam_id>/api/submit/', views.SubmitExamView.as_view(), name='api_exam_submit'),
     
+    # Private: o'quvchi ishi va speaking yozuvi.
+    path('submission/<int:submission_id>/file/', private_media_views.submission_file, name='submission_file'),
+    path('exam/answer/<int:answer_id>/audio/', private_media_views.exam_answer_audio, name='exam_answer_audio'),
+
     path('certificate/<str:certificate_id>/', views.CertificateDetailView.as_view(), name='certificate_detail'),
     path('certificate/<str:certificate_id>/appendix/', views.CertificateAppendixView.as_view(), name='certificate_appendix'),
 ]

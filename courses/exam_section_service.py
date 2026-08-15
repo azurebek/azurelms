@@ -54,7 +54,7 @@ def _serialize_student_answer(answer, question):
     return {
         "selected_choice_id": answer.selected_choice_id,
         "answer_text": answer.answer_text or "",
-        "audio_url": answer.audio_file_url or "",
+        "audio_url": answer.audio_playback_url,
         "is_flagged_for_review": answer.is_flagged_for_review,
         "awarded_score": float(answer.awarded_score),
         "is_graded": answer.is_graded,
@@ -147,7 +147,7 @@ def save_question_answer(*, attempt, question, payload):
 
     choice_id = payload.get("choice_id")
     answer_text = payload.get("answer_text")
-    audio_url = payload.get("audio_url")
+    audio_key = payload.get("audio_key")
 
     if choice_id not in (None, ""):
         choice = Choice.objects.filter(id=int(choice_id), question=question).first()
@@ -168,8 +168,9 @@ def save_question_answer(*, attempt, question, payload):
                 f"Javob matni juda uzun ({len(answer_text)} belgi). Chegara: {MAX_ANSWER_TEXT_CHARS} belgi."
             )
         answer.answer_text = answer_text
-    if audio_url is not None:
-        answer.audio_file_url = audio_url
+    if audio_key is not None:
+        # Private storage kaliti; havola `audio_playback_url` orqali quriladi (A0b).
+        answer.audio_key = audio_key
     if "flag_for_review" in payload:
         answer.is_flagged_for_review = bool(payload.get("flag_for_review"))
 

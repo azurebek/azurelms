@@ -268,10 +268,14 @@ class PaymentReceipt(models.Model):
     enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE, related_name='receipts',
                                    verbose_name="O'quvchi obunasi")
     
+    from core.private_storage import private_media_storage
     from core.utils import validate_file_size, validate_image_extension
+    # Private: chek to'lov hujjati. `MEDIA_ROOT` dan tashqarida saqlanadi va
+    # faqat `cohorts:receipt_file` view'i orqali beriladi (A0b).
     receipt_image = models.ImageField(
-        upload_to='receipts/%Y/%m/', 
+        upload_to='receipts/%Y/%m/',
         verbose_name="Chek rasmi",
+        storage=private_media_storage,
         validators=[validate_file_size, validate_image_extension]
     )
     amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="To'lov summasi")

@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html, format_html_join
+from django.urls import reverse
 import nested_admin
 from .models import (
     Course,
@@ -225,6 +226,19 @@ class AssignmentAdmin(admin.ModelAdmin):
 
 @admin.register(AssignmentSubmission)
 class AssignmentSubmissionAdmin(admin.ModelAdmin):
+    # Private fayl: ruxsat tekshiradigan havola (A0b).
+    exclude = ("attachment",)
+    readonly_fields = ("attachment_link",)
+
+    @admin.display(description="Biriktirma")
+    def attachment_link(self, obj):
+        if not obj.pk or not obj.attachment:
+            return "—"
+        return format_html(
+            '<a href="{}" target="_blank" rel="noopener">Faylni ochish</a>',
+            reverse("submission_file", args=[obj.pk]),
+        )
+
     list_display = (
         "student",
         "assignment",
@@ -386,8 +400,8 @@ class ExamSectionAdmin(nested_admin.NestedModelAdmin):
 class StudentAnswerInline(admin.StackedInline):
     model = StudentAnswer
     extra = 0
-    fields = ('question', 'get_question_type', 'answer_text', 'word_count_display', 'audio_file_url', 'selected_choice', 'is_correct_choice', 'awarded_score', 'is_graded', 'grader_feedback')
-    readonly_fields = ('question', 'get_question_type', 'answer_text', 'word_count_display', 'audio_file_url', 'selected_choice', 'is_correct_choice')
+    fields = ('question', 'get_question_type', 'answer_text', 'word_count_display', 'audio_key', 'selected_choice', 'is_correct_choice', 'awarded_score', 'is_graded', 'grader_feedback')
+    readonly_fields = ('question', 'get_question_type', 'answer_text', 'word_count_display', 'audio_key', 'selected_choice', 'is_correct_choice')
 
     @admin.display(description='Bo\'lim turi')
     def get_question_type(self, obj):

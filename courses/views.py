@@ -989,7 +989,7 @@ class RegisterAudioPlayView(LoginRequiredMixin, View):
 
 class UploadExamAudioView(LoginRequiredMixin, View):
     """Speaking yozuvini qabul qiladi → storage'ga (S3/Spaces yoki local) saqlaydi →
-    StudentAnswer.audio_file_url'ga biriktiradi. Speaking topshirishning yetishmayotgan halqasi.
+    StudentAnswer.audio_key'ga biriktiradi. Speaking topshirishning yetishmayotgan halqasi.
 
     Hajm va format chegaralari `core.upload_validation` dagi `audio` profilida."""
 
@@ -1021,21 +1021,22 @@ class UploadExamAudioView(LoginRequiredMixin, View):
 
         import os
         import uuid
-        from django.core.files.storage import default_storage
+
+        from core.private_storage import private_media_storage
 
         ext = os.path.splitext(upload.name or '')[1].lower()
         if not ext or len(ext) > 8 or '/' in ext or '\\' in ext:
             ext = '.webm'
         key = f"exam_audio/{attempt.id}/{question.id}_{uuid.uuid4().hex}{ext}"
-        saved_path = default_storage.save(key, upload)
-        audio_url = request.build_absolute_uri(default_storage.url(saved_path))
+        # Private ildizga saqlanadi — `/media/...` orqali ochib bo'lmaydi (A0b).
+        saved_path = private_media_storage().save(key, upload)
 
         try:
             answer = save_question_answer(
                 attempt=attempt,
                 question=question,
                 payload={
-                    'audio_url': audio_url,
+                    'audio_key': saved_path,
                     'current_question_id': request.POST.get('current_question_id'),
                 },
             )
@@ -1045,10 +1046,10 @@ class UploadExamAudioView(LoginRequiredMixin, View):
 
         response_payload = {
             'status': 'success',
-            'audio_url': audio_url,
+            'audio_url': answer.audio_playback_url,
             'saved_answer': {
                 'question_id': answer.question_id,
-                'audio_url': answer.audio_file_url,
+                'audio_url': answer.audio_playback_url,
                 'is_flagged_for_review': answer.is_flagged_for_review,
             },
         }

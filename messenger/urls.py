@@ -1,4 +1,6 @@
 from django.urls import path
+
+from core import private_media_views
 from . import views
 
 app_name = 'messenger'
@@ -18,4 +20,6 @@ urlpatterns = [
     path('api/messages/<int:message_id>/edit/', views.edit_message, name='edit_message'),
     path('api/messages/<int:message_id>/delete/', views.delete_message, name='delete_message'),
     path('api/ai-feedback/<int:message_id>/', views.submit_ai_feedback, name='submit_ai_feedback'),
+    # Private: biriktirma faqat xona ishtirokchilariga.
+    path('attachment/<int:message_id>/', private_media_views.message_attachment, name='message_attachment'),
 ]

@@ -1,6 +1,8 @@
 from django import forms
 from django.contrib import admin, messages
 from django.contrib.admin.helpers import ActionForm
+from django.urls import reverse
+from django.utils.html import format_html
 
 from .models import Attendance, Cohort, Enrollment, EnrollmentTransition, PaymentReceipt
 from .transition_service import (
@@ -195,7 +197,22 @@ class PaymentReceiptAdmin(admin.ModelAdmin):
     )
     list_filter = ('is_verified', 'submitted_at', 'promo_campaign_snapshot')
     search_fields = ('enrollment__student__username', 'promo_code_snapshot', 'promo_campaign_snapshot')
-    readonly_fields = ('base_amount', 'discount_amount', 'promo_code_snapshot', 'promo_campaign_snapshot')
+    # Private fayl: storage public URL bermaydi, shuning uchun xom FileField
+    # widgeti o'rniga ruxsat tekshiradigan havola ko'rsatiladi (A0b).
+    exclude = ('receipt_image',)
+    readonly_fields = (
+        'base_amount', 'discount_amount', 'promo_code_snapshot',
+        'promo_campaign_snapshot', 'receipt_file_link',
+    )
+
+    @admin.display(description="Chek fayli")
+    def receipt_file_link(self, obj):
+        if not obj.pk or not obj.receipt_image:
+            return "—"
+        return format_html(
+            '<a href="{}" target="_blank" rel="noopener">Chekni ochish</a>',
+            reverse('cohorts:receipt_file', args=[obj.pk]),
+        )
 
     # SEHRLI QATOR: Chekni ichiga kirmasdan, ro'yxatning o'zidayoq galichka qilib tasdiqlash imkonini beradi!
     list_editable = ('is_verified',)
