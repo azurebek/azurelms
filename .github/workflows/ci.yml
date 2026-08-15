@@ -1,0 +1,240 @@
+# AzureLMS CI — `nuclear-program/launch-plan/05-launch-ops.md` §4 dagi
+# "PR required checks" ro'yxatining bajarilishi (A1a).
+#
+# Ish uchta vazifaga bo'lingan, chunki ular turli sabablarga ko'ra yiqiladi:
+#   checks       — kodning o'zi (offline, tashqi xizmatsiz)
+#   integration  — PostgreSQL+pgvector va Valkey bilan haqiqiy ulanish
+#   supply-chain — repoda sir va bog'liqliklardagi zaiflik
+# Bitta vazifada birlashtirilsa, tarmoq nosozligi kod xatosini yashirar edi.
+#
+# Hech bir ish AI provayderiga chiqmaydi: `GEMINI_API_KEY` ataylab bo'sh va
+# `AZURELMS_SKIP_ENV_FILE=1` runner'dagi env fayllarni o'qishni to'xtatadi.
+# Free-tier kvota CI tomonidan yeyilmaydi.
+
+name: CI
+
+on:
+  push:
+    branches: [main, 'claude/**', 'codex/**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: '3.12'
+  # Offline profil: env fayl o'qilmaydi, provayder kaliti yo'q.
+  AZURELMS_SKIP_ENV_FILE: '1'
+  GEMINI_API_KEY: ''
+  TELEGRAM_BOT_TOKEN: ''
+  PIP_DISABLE_PIP_VERSION_CHECK: '1'
+
+jobs:
+  checks:
+    name: Checks va to'liq test suite (SQLite)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Bog'liqliklarni o'rnatish
+        run: pip install -r requirements.txt
+
+      # §4.1
+      - name: manage.py check
+        env:
+          APP_ENV: local
+        run: python manage.py check --fail-level WARNING
+
+      # §4.2 — production-safe env. Sirlar soxta: bu ish hech qanday haqiqiy
+      # xizmatga ulanmaydi, faqat sozlama qat'iyligini tekshiradi.
+      - name: manage.py check --deploy
+        env:
+          APP_ENV: ci
+          SECRET_KEY: ci-insecure-placeholder-not-a-real-key-2f8b1d4e9c7a3560fb8e21d7
+          DATABASE_URL: postgresql://azurelms:ci-insecure@127.0.0.1:5432/azurelms
+          APP_DOMAIN: ci.invalid
+        run: python manage.py check --deploy --fail-level WARNING
+
+      # §4.3 — modelga tegilib migration yozilmagan holat.
+      - name: Migration drift
+        env:
+          APP_ENV: local
+        run: python manage.py makemigrations --check --dry-run
+
+      # §4.6 — static build.
+      - name: collectstatic
+        env:
+          APP_ENV: local
+        run: python manage.py collectstatic --noinput
+
+      # §4.8 — domen permission/idempotency va cross-adapter parity testlari.
+      # To'liq suite'dan oldin alohida yugiradi: eng xavfsizlikka oid qism
+      # birinchi bo'lib javob bersin va logda o'z satrini olsin.
+      - name: Permission, idempotency va cross-adapter parity
+        env:
+          APP_ENV: local
+        run: |
+          python manage.py test \
+            core.test_private_media \
+            core.test_upload_validation \
+            core.test_media_isolation \
+            core.test_ai_kill_switch \
+            core.test_audit_ledger \
+            bot.test_inactive_staff_denied \
+            bot.test_webhook_security \
+            bot.test_outbox_lease \
+            messenger.test_socket_access_recheck \
+            users.test_telegram_auth_security \
+            aicontrol.test_supply_concurrency
+
+      # §4.4
+      - name: To'liq test suite
+        env:
+          APP_ENV: local
+        run: python manage.py test
+
+  integration:
+    name: PostgreSQL+pgvector va Valkey smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: azurelms
+          POSTGRES_PASSWORD: ci-insecure
+          POSTGRES_DB: azurelms
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      valkey:
+        image: valkey/valkey:8-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "valkey-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      # Lokal profil, ammo haqiqiy xizmatlarga qaratilgan: aynan shu rejim
+      # `LOCAL_USE_REMOTE_SERVICES` yo'lini tekshiradi.
+      APP_ENV: local
+      LOCAL_USE_REMOTE_SERVICES: '1'
+      DATABASE_URL: postgresql://azurelms:ci-insecure@localhost:5432/azurelms
+      VALKEY_URL: redis://localhost:6379/0
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Bog'liqliklarni o'rnatish
+        run: pip install -r requirements.txt
+
+      - name: Baza haqiqatan PostgreSQL ekanini tasdiqlash
+        run: |
+          python -c "
+          import django, os
+          os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
+          django.setup()
+          from django.conf import settings
+          engine = settings.DATABASES['default']['ENGINE']
+          assert 'postgresql' in engine, f'Kutilgani PostgreSQL, olingani {engine}'
+          assert settings.CACHES['default']['BACKEND'].endswith('RedisCache'), settings.CACHES
+          print('engine:', engine)
+          print('cache :', settings.CACHES['default']['BACKEND'])
+          print('layer :', settings.CHANNEL_LAYERS['default']['BACKEND'])
+          "
+
+      # Migratsiyalar SQLite'da o'tib, PostgreSQL'da yiqilishi mumkin.
+      - name: Migratsiyalar PostgreSQL'da
+        run: python manage.py migrate --noinput
+
+      # §4.5 — pgvector. Backfill embedding chaqiradi, shuning uchun o'chirilgan.
+      - name: pgvector schema
+        run: python manage.py setup_rag_pgvector --skip-backfill
+
+      - name: Valkey cache va channel layer
+        run: |
+          python -c "
+          import django, os
+          os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
+          django.setup()
+          from django.core.cache import cache
+          cache.set('ci-smoke', 'ok', 30)
+          assert cache.get('ci-smoke') == 'ok', 'Valkey cache javob bermadi'
+          import asyncio
+          from channels.layers import get_channel_layer
+          async def roundtrip():
+              layer = get_channel_layer()
+              await layer.send('ci-smoke', {'type': 'ping'})
+              return await layer.receive('ci-smoke')
+          assert asyncio.run(roundtrip())['type'] == 'ping', 'Channel layer javob bermadi'
+          print('Valkey cache va channel layer: ok')
+          "
+
+      # SQLite'da `select_for_update()` no-op; concurrency da'volari faqat shu
+      # yerda haqiqiy qulflash bilan sinaladi.
+      - name: To'liq test suite (PostgreSQL)
+        run: python manage.py test
+
+  supply-chain:
+    name: Sir va bog'liqlik zaifligi skani
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Bog'liqliklarni o'rnatish
+        run: pip install -r requirements.txt
+
+      # §4.7 — sir skani.
+      - name: Kuzatuvdagi fayllarda sir
+        env:
+          APP_ENV: local
+        run: python manage.py scan_secrets
+
+      # §4.7 — bog'liqlik zaifligi. Bugungi holat reyestrda; CI faqat YANGI
+      # advisory'ga qizil beradi, shunda mavjud qarz o'sib ketmaydi.
+      - name: pip-audit
+        run: |
+          pip install pip-audit
+          pip-audit -r requirements.txt --no-deps -f json --progress-spinner off > pip-audit.json || true
+          test -s pip-audit.json
+
+      - name: Yangi zaiflik reyestrda yo'qmi
+        env:
+          APP_ENV: local
+        run: python manage.py audit_dependencies --report pip-audit.json
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pip-audit-report
+          path: pip-audit.json
+          retention-days: 14

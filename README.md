@@ -1,5 +1,7 @@
 # AzureLMS 🇹🇷
 
+[![CI](https://github.com/azurebek/azurelms/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/azurebek/azurelms/actions/workflows/ci.yml)
+
 **O'zbek tilida turk tili o'rgatuvchi zamonaviy LMS platforma** — AI repetitor, IELTS-uslubidagi imtihon tizimi, real-time messenger va to'liq o'quv jarayoni boshqaruvi bilan.
 
 Django 6 · Channels (WebSocket) · Celery · Google Gemini (joriy local AI) · SQLite (lokal) · PostgreSQL + pgvector (future prod)
