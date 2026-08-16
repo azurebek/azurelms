@@ -16,6 +16,28 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-16 [Claude Code]: A4/3 — chek qaysi kursga tushishi taxmin qilinmaydi
+
+Backlog A4: "receipt ayni tanlangan enrollmentga". Web'da bu bajarilgan — forma `course_id` bilan keladi. Telegram'da esa aloqa uzilgan edi: `/yozilish` da tanlangan kurs hech qayerda saqlanmasdi, chek rasmi kelganda nishon **taxmin qilinardi** — "tarifi bor, tasdiqlanmagan cheki yo'q, eng oxirgi qo'shilgan enrollment".
+
+Taxmin ikkita enrollmentli o'quvchida buziladi. Test buni ko'rsatdi: eski kursga qayta to'lamoqchi bo'lgan odam `/yozilish` da eski kursni tanladi, chek esa yangiroq kursga yozildi (`2 != 1`). Ya'ni pul noto'g'ri kursga tushardi.
+
+Ikkinchi topilma: hech narsa tanlamagan o'quvchining cheki ham taxmin bilan joylashtirilardi. Endi u "avval kurs va tarifni tanlang" javobini oladi.
+
+Yechim — niyatni yozib qo'yish: `Enrollment.checkout_started_at`. Uni yagona joy yozadi (`checkout_service.mark_checkout_started()`), web forma ham, bot ham o'sha yerdan o'tadi. Chek kelganda bot eng oxirgi **boshlangan checkout**ni oladi, eng oxirgi **qo'shilgan enrollment**ni emas. Farq shundaki, birinchisi foydalanuvchining ataylab qilgan amali, ikkinchisi tasodifiy tartib.
+
+Yon ta'sir: A4/2 dagi bitta test yiqildi, chunki uning fixture'i `checkout_started_at`siz enrollment yaratardi — xulq ataylab o'zgargani uchun fixture yangilandi.
+
+- Branch: `claude/a4-receipt-target` → PR
+- Yangi: `bot/test_receipt_target.py` (3 test). Tegilgan: `cohorts/models.py`, `cohorts/checkout_service.py`, `cohorts/views.py`, `bot/services.py`, `cohorts/test_single_pending_receipt.py`
+- Migratsiya: `cohorts/0015_enrollment_checkout_started_at` — nullable maydon, backfill kerak emas; lokal bazaga qo'llandi
+- Test holati: to'liq suite **708/708 OK**
+- Nazorat: testlar tuzatishdan oldin yozildi va 3 tadan 2 tasi yiqildi
+- Yo'l-yo'lakay tekshirildi: kirish huquqi qoidasi allaqachon yagona — `enrollment_active_access_q()` / `with_active_access()` production kodida 48 joyda ishlatiladi, hech qayerda qo'lda `status == "active"` yozilmagan. A4 ning "typed entitlement" bandi shu tomondan yopiq
+- Qolgan A4 ishi: Telegram credential claim parity
+
+---
+
 ## 2026-08-16 [Claude Code]: A4/2 — bitta enrollmentda bitta tasdiqlanmagan chek
 
 A4 "idempotent receipt" deydi. Mavjud himoya read-then-write edi: web ham, bot ham "pending chek bormi?" deb **o'qib**, keyin **yozardi**, orada hech qanday qulf yo'q. Ikki marta bosilgan tugma yoki ketma-ket yuborilgan ikkita rasm ikkala tekshiruvdan ham o'tib ketardi.

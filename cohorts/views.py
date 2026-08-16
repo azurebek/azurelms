@@ -16,6 +16,7 @@ from core.upload_validation import validate_upload
 from .checkout_service import (
     CheckoutUnavailable,
     find_checkout_enrollment,
+    mark_checkout_started,
     resolve_checkout_enrollment,
 )
 from .models import PaymentReceipt, PendingReceiptExists
@@ -170,9 +171,7 @@ def checkout_view(request, course_id):
             messages.error(request, str(exc))
             return redirect('course_detail', pk=course.id)
 
-        if enrollment.plan_id != selected_plan.id:
-            enrollment.plan = selected_plan
-            enrollment.save(update_fields=['plan'])
+        mark_checkout_started(enrollment, plan=selected_plan)
 
         try:
             receipt, _, _ = create_checkout_receipt_with_promo(

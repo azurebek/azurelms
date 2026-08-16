@@ -1054,7 +1054,11 @@ def begin_course_enrollment(user, course_id, plan_id):
     Sayt bilan bitta servis: resolve_checkout_enrollment kohortni o'zi tanlaydi,
     mavjud enrollmentni qayta ishlatadi (dublikat ochilmaydi).
     """
-    from cohorts.checkout_service import CheckoutUnavailable, resolve_checkout_enrollment
+    from cohorts.checkout_service import (
+        CheckoutUnavailable,
+        mark_checkout_started,
+        resolve_checkout_enrollment,
+    )
     from cohorts.models import PaymentReceipt
     from frontend.models import SiteSettings
     from subscriptions.models import Plan
@@ -1081,9 +1085,7 @@ def begin_course_enrollment(user, course_id, plan_id):
             ),
         )
 
-    if enrollment.plan_id != plan.id:
-        enrollment.plan = plan
-        enrollment.save(update_fields=["plan"])
+    mark_checkout_started(enrollment, plan=plan)
 
     start, end = _checkout_period(enrollment)
     site = SiteSettings.load()
@@ -1110,11 +1112,16 @@ def submit_payment_receipt(user, receipt_image):
     from cohorts.models import PendingReceiptExists
     from subscriptions.promo_service import create_checkout_receipt_with_promo
 
+    # Nishon taxmin qilinmaydi: foydalanuvchi `/yozilish` da (yoki saytdagi
+    # checkout formasida) qaysi enrollment uchun to'lov boshlaganini
+    # `checkout_started_at` yozib qo'yadi. Ilgari bu yerda "eng oxirgi
+    # qo'shilgan enrollment" olinardi va ikkita kursi bor o'quvchining puli
+    # noto'g'ri kursga tushardi.
     enrollment = (
         user.enrollments.select_related("plan", "cohort__course")
-        .filter(plan__isnull=False)
+        .filter(plan__isnull=False, checkout_started_at__isnull=False)
         .exclude(receipts__is_verified=False)
-        .order_by("-joined_at", "-id")
+        .order_by("-checkout_started_at", "-id")
         .first()
     )
     if enrollment is None:
