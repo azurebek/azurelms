@@ -1107,6 +1107,7 @@ def submit_payment_receipt(user, receipt_image):
     Nishon: tarifi tanlangan, tasdiqlanmagan cheki yo'q eng so'nggi enrollment
     (begin_course_enrollment'dan keyingi holat).
     """
+    from cohorts.models import PendingReceiptExists
     from subscriptions.promo_service import create_checkout_receipt_with_promo
 
     enrollment = (
@@ -1131,13 +1132,22 @@ def submit_payment_receipt(user, receipt_image):
         )
 
     start, end = _checkout_period(enrollment)
-    receipt, _quote, _redemption = create_checkout_receipt_with_promo(
-        enrollment=enrollment,
-        plan=enrollment.plan,
-        receipt_image=receipt_image,
-        period_start=start,
-        period_end=end,
-    )
+    try:
+        receipt, _quote, _redemption = create_checkout_receipt_with_promo(
+            enrollment=enrollment,
+            plan=enrollment.plan,
+            receipt_image=receipt_image,
+            period_start=start,
+            period_end=end,
+        )
+    except PendingReceiptExists:
+        # Yuqoridagi tanlov bilan yozuv orasida boshqa yuborish ulgurdi
+        # (masalan ikkita rasm ketma-ket). Baza cheklovi ikkinchisini rad etdi.
+        return ReceiptSubmitResult(
+            ok=False,
+            code="pending_receipt",
+            message="Oldingi chekingiz hali tasdiqlanmagan — administrator ko'rib chiqishini kuting.",
+        )
     return ReceiptSubmitResult(
         ok=True,
         code="submitted",

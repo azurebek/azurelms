@@ -16,6 +16,25 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-16 [Claude Code]: A4/2 — bitta enrollmentda bitta tasdiqlanmagan chek
+
+A4 "idempotent receipt" deydi. Mavjud himoya read-then-write edi: web ham, bot ham "pending chek bormi?" deb **o'qib**, keyin **yozardi**, orada hech qanday qulf yo'q. Ikki marta bosilgan tugma yoki ketma-ket yuborilgan ikkita rasm ikkala tekshiruvdan ham o'tib ketardi.
+
+Qulf bilan tuzatish ishlamasdi: SQLite'da `select_for_update()` no-op. Shuning uchun kafolat **bazada** — `is_verified=False` sharti bilan partial unique indeks. Bu bir vaqtning o'zida ikkala adapterni ham yopadi, chunki chek yaratadigan yagona joy bitta canonical servis.
+
+Yo'lda bitta backend farqi chiqdi: cheklovni **nom bo'yicha** ajratib bo'lmaydi. PostgreSQL xato matniga cheklov nomini qo'shadi, SQLite esa yo'q — u faqat `UNIQUE constraint failed: cohorts_paymentreceipt.enrollment_id` deydi. Birinchi urinish nom bo'yicha moslashtirgandi va lokalda xom `IntegrityError` foydalanuvchigacha yetib bordi. Yakuniy yechim: `try/except` aynan `PaymentReceipt.objects.create()` ni o'raydi, butun blokni emas — `PaymentReceipt` da boshqa unique cheklov yo'q, shuning uchun bu aniq.
+
+Tasdiqlangan cheklar cheklanmaydi: har oylik to'lov yangi yozuv, test buni qo'riqlaydi.
+
+- Branch: `claude/a4-single-pending-receipt` → PR
+- Yangi: `cohorts/test_single_pending_receipt.py` (6 test). Tegilgan: `cohorts/models.py` (cheklov + `PendingReceiptExists`), `subscriptions/promo_service.py`, `cohorts/views.py`, `bot/services.py`
+- Migratsiya: `cohorts/0014_paymentreceipt_unique_pending_receipt_per_enrollment` — faqat `AddConstraint`; lokal bazada mavjud dublikat yo'q edi (0 ta chek), qo'llandi
+- Test holati: to'liq suite **705/705 OK**; concurrency testi fayl bazasida ham alohida yugirtirildi (`AZURELMS_TEST_FILE_DB=1`) va o'tdi
+- **Nazorat:** migratsiyadagi `AddConstraint` o'chirilganda parallel yuborish testi `2 != 1 : ['created', 'created']` bilan yiqildi — ya'ni cheklovsiz ikkala oqim ham chek yaratadi. Adapter testlari nazoratda ham o'tdi: koddagi tekshiruv oddiy ketma-ket holatni ushlaydi, poygani esa faqat indeks ushlaydi
+- Qolgan A4 ishi: typed entitlement, Telegram credential claim parity
+
+---
+
 ## 2026-08-16 [Claude Code]: A4/1 — checkout sahifasi owner holatini o'zgartirmaydi
 
 R2 ning birinchi slice'i. Backlog A4 ikkita narsani aniq talab qiladi: "inactive cohortni tasodifiy reactivation qilmaslik" va checkout course binding'ining to'g'riligi. Kodni o'qiganda ikkalasi ham buzilgani ko'rindi, va ikkalasi bitta sababdan — **o'qish yo'li bilan yozuv yo'li ajratilmagan edi**.
