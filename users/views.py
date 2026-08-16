@@ -6,7 +6,6 @@ from django.contrib.auth import update_session_auth_hash, login as auth_login
 from django.utils import timezone
 from django.db.models import Count, Prefetch, Q
 import datetime
-import base64
 import calendar
 from .forms import CustomUserCreationForm, ProfileFieldsForm
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -713,13 +712,13 @@ def _build_telegram_link_context(user):
             'telegram_username': user.telegram_username,
         }
 
-    # Token generate for telegram bot binding (Signer is compact enough for Telegram's 64-char payload limit)
-    from django.core.signing import Signer
-    import base64
+    # Qisqa, muddatli va bir martalik token. Imzolangan `user.id` ning
+    # base64'i ikki sababdan yaroqsiz edi: muddati yo'q edi (havola sizib
+    # chiqsa abadiy ishlardi) va `user.id >= 10000` da Telegram'ning 64
+    # belgilik `start` chegarasidan oshib ketardi.
+    from users.models import TelegramLinkToken
 
-    signer = Signer()
-    raw_token = signer.sign(str(user.id))
-    token = base64.urlsafe_b64encode(raw_token.encode()).decode().rstrip('=')
+    token = TelegramLinkToken.issue(user).token
 
     bot_username = (getattr(settings, 'BOT_USERNAME', '') or 'lmsazurebot').strip('@')
     return {

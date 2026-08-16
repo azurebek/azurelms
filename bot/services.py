@@ -1,9 +1,8 @@
-import base64
 import datetime
+import logging
 import re
 from dataclasses import dataclass
 
-from django.core.signing import BadSignature, Signer
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 from django.utils.html import strip_tags
@@ -13,6 +12,8 @@ from cohorts.attendance_service import upsert_attendance_and_xp
 from cohorts.models import Attendance, Cohort, Enrollment, enrollment_active_access_q
 from courses.models import Course, Lesson
 from users.models import CustomUser, Notification
+
+logger = logging.getLogger(__name__)
 
 GUEST_DEMO_QUESTION_LIMIT = 5
 
@@ -84,13 +85,24 @@ def link_user_from_start_token(token, telegram_user_id, telegram_username=""):
     if not token:
         return ActionResult(ok=False, code="missing_token", message="Bog'lash tokeni topilmadi.")
 
-    try:
-        padded_token = token + "=" * ((4 - len(token) % 4) % 4)
-        raw_token = base64.urlsafe_b64decode(padded_token.encode()).decode()
-        signer = Signer()
-        user_id = signer.unsign(raw_token)
-    except (ValueError, BadSignature):
+    from users.models import TelegramLinkToken
+
+    link_token = TelegramLinkToken.objects.select_related("user").filter(token=token).first()
+    if link_token is None:
         return ActionResult(ok=False, code="invalid_token", message="Xatolik: havola yaroqsiz yoki buzilgan!")
+    if link_token.consumed_at is not None:
+        return ActionResult(
+            ok=False,
+            code="used_token",
+            message="Bu havola allaqachon ishlatilgan. Profil sahifasidan yangisini oling.",
+        )
+    if link_token.is_expired():
+        return ActionResult(
+            ok=False,
+            code="expired_token",
+            message="Havolaning muddati tugagan. Profil sahifasidan yangisini oling.",
+        )
+    user_id = link_token.user_id
 
     try:
         with transaction.atomic():
@@ -113,6 +125,8 @@ def link_user_from_start_token(token, telegram_user_id, telegram_username=""):
             user.telegram_id = telegram_user_id
             user.telegram_username = telegram_username or user.telegram_username
             user.save(update_fields=["telegram_id", "telegram_username"])
+            # Token bir martalik: muvaffaqiyatli ulanishdan keyin yopiladi.
+            link_token.consume()
 
             Notification.objects.get_or_create(
                 recipient=user,

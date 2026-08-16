@@ -1,10 +1,8 @@
-import base64
 import datetime
 import asyncio
 from unittest.mock import AsyncMock, patch
 
 from django.contrib.auth import get_user_model
-from django.core.signing import Signer
 from django.test import TestCase
 from django.utils import timezone
 
@@ -106,8 +104,12 @@ class TelegramBotFlowTests(TestCase):
         )
 
     def _make_start_token(self, user):
-        raw_token = Signer().sign(str(user.id))
-        return base64.urlsafe_b64encode(raw_token.encode()).decode().rstrip("=")
+        # Ulash tokeni endi imzolangan `user.id` emas, bazadagi bir martalik
+        # qisqa token (A4): eskisining muddati yo'q edi va `user.id >= 10000`
+        # da Telegram'ning 64 belgilik chegarasidan oshib ketardi.
+        from users.models import TelegramLinkToken
+
+        return TelegramLinkToken.issue(user).token
 
     def test_start_token_link_saves_telegram_fields_and_notification(self):
         token = self._make_start_token(self.unlinked_user)

@@ -418,3 +418,73 @@ class TelegramAuthSession(models.Model):
             and not self.is_expired()
         )
 
+
+
+class TelegramLinkToken(models.Model):
+    """Mavjud hisobga Telegram akkauntini ulash uchun bir martalik havola (A4).
+
+    Ilgari havola `Signer().sign(user.id)` ning base64'i edi. Bu ikki jihatdan
+    noto'g'ri chiqdi:
+
+    1. **Muddat yo'q edi.** `Signer` vaqt qo'shmaydi va har safar bir xil
+       token beradi, ya'ni havola abadiy yaroqli bearer credential edi. U bir
+       marta sizib chiqsa (skrinshot, forward, brauzer tarixi), topgan odam
+       o'z Telegramini o'quvchining hisobiga ulab, botda o'sha o'quvchi
+       sifatida ishlayverardi. Yonidagi login oqimi (`TelegramAuthSession`)
+       esa 5 daqiqalik va bir martalik — ulash yo'li tasodifan zaifroq edi.
+
+    2. **`user.id >= 10000` da havola umuman ishlamasdi.** Telegram `start`
+       payloadiga 64 belgi chegara qo'yadi; imzolangan IDning base64'i
+       4 xonali IDda aynan 64 ga yetib, 5 xonalisida 66 bo'lardi.
+
+    Qisqa, tasodifiy va bazada saqlanadigan token ikkala muammoni ham yopadi:
+    22 belgi (prefikssiz) va muddat/ishlatilganlik holati yozib boriladi.
+    """
+
+    TOKEN_TTL = timezone.timedelta(minutes=30)
+
+    token = models.CharField(max_length=64, unique=True, db_index=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="telegram_link_tokens",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    consumed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Telegram ulash tokeni"
+        verbose_name_plural = "Telegram ulash tokenlari"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"LinkToken: {self.token[:8]}... | user={self.user_id}"
+
+    def is_expired(self, *, now=None):
+        return (now or timezone.now()) - self.created_at > self.TOKEN_TTL
+
+    def is_valid(self, *, now=None):
+        return self.consumed_at is None and not self.is_expired(now=now)
+
+    def consume(self, *, now=None):
+        self.consumed_at = now or timezone.now()
+        self.save(update_fields=["consumed_at"])
+
+    @classmethod
+    def issue(cls, user, *, now=None):
+        """Foydalanuvchi uchun yaroqli token beradi.
+
+        Hali yaroqli token bo'lsa o'sha qaytariladi: profil sahifasini qayta
+        ochish endigina nusxalangan havolani bekor qilmasligi kerak.
+        """
+        import secrets
+
+        now = now or timezone.now()
+        existing = (
+            cls.objects.filter(user=user, consumed_at__isnull=True)
+            .order_by("-created_at")
+            .first()
+        )
+        if existing and existing.is_valid(now=now):
+            return existing
+        return cls.objects.create(user=user, token=secrets.token_urlsafe(16))
