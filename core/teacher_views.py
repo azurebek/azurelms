@@ -20,6 +20,7 @@ from django.db.models import Count, Max, Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
+from cohorts.attendance_service import upsert_attendance_and_xp
 from cohorts.models import Attendance, Cohort, Enrollment, enrollment_active_access_q
 from core.access import teacher_course_queryset
 from courses.models import (
@@ -460,24 +461,30 @@ def teacher_attendance(request):
 
     if request.method == "POST" and lesson:
         valid = dict(Attendance.STATUS_CHOICES)
+        today = timezone.localdate()
+        # Mavjud yozuvning sanasi saqlanadi: canonical servis
+        # `(enrollment, lesson, date)` bo'yicha upsert qiladi, ya'ni sanani
+        # bugunga almashtirish o'sha darsga ikkinchi qator qo'shib yuborardi.
+        existing_dates = {
+            record.enrollment_id: record.date
+            for record in Attendance.objects.filter(enrollment__in=enrollments, lesson=lesson)
+        }
         marked = 0
         for enrollment in enrollments:
             status = request.POST.get(f"att_{enrollment.id}")
             if status not in valid:
                 continue
-            record = Attendance.objects.filter(enrollment=enrollment, lesson=lesson).first()
-            if record:
-                if record.status != status:
-                    record.status = status
-                    record.marked_by = request.user
-                    record.save(update_fields=["status", "marked_by", "marked_at"])
-            else:
-                Attendance.objects.create(
-                    enrollment=enrollment,
-                    lesson=lesson,
-                    status=status,
-                    marked_by=request.user,
-                )
+            # Telegram `/yopish` bilan bitta servis: XP berish, holat
+            # o'zgarganda XP farqini to'g'rilash va kunlik faollik seriyasi
+            # shu yerda. Ilgari bu yuza `Attendance` ni o'zi yozardi va
+            # o'quvchi web orqali belgilansa XP ham, seriya ham olmasdi.
+            upsert_attendance_and_xp(
+                enrollment=enrollment,
+                lesson=lesson,
+                date=existing_dates.get(enrollment.id, today),
+                status=status,
+                marked_by=request.user,
+            )
             marked += 1
         messages.success(request, f"Davomat saqlandi ({marked} o'quvchi).")
         return redirect(f"{request.path}?cohort={cohort.id}&lesson={lesson.id}")

@@ -16,6 +16,33 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-16 [Claude Code]: A3/1 — davomat web va Telegram'da bir xil natija beradi
+
+R2 ning A3 bandi boshlandi. Outcome: "web/bot/Mini App bir xil state ko'rsatadi", acceptance: "adapter parity contract". Birinchi tekshiruv aynan shu yerda buzilganini ko'rsatdi.
+
+Telegram `/yopish` yo'li canonical `upsert_attendance_and_xp()` ni chaqiradi. O'qituvchining web davomat sahifasi esa `Attendance.objects.create()` bilan **o'zi yozardi**. Natijada bir xil amal qaysi yuzada bajarilganiga qarab boshqacha tugardi:
+
+- web orqali "keldi" belgilangan o'quvchi **XP olmasdi** (`0 != 40`);
+- "qisman" ham hech narsa bermasdi (`0 != 12`);
+- kunlik faollik **seriyasi yozilmasdi**;
+- "keldi" → "kelmadi" ga o'zgartirilsa **XP qaytarib olinmasdi**;
+- yozuv `date` siz yaratilib, servisning `(enrollment, lesson, date)` kalitidan chiqib ketardi — bot yozgan qatorning yoniga ikkinchi qator qo'shilishi mumkin edi.
+
+Ya'ni o'qituvchi qaysi qurilmadan foydalanganiga qarab o'quvchi XP olardi yoki olmasdi. Loyiha qoidasi buni aniq man qiladi: bir qoida ikki surface'da kerak bo'lsa, nusxa yozilmaydi.
+
+Tuzatish kichik — web yuzasi canonical servisga ulandi. Bitta nozik joy: mavjud yozuvning sanasi saqlanadi, aks holda upsert kaliti o'zgarib o'sha darsga ikkinchi qator qo'shilardi.
+
+**Yo'l-yo'lakay tekshirilgan va yaxshi holatda topilgan narsalar** (yangi ish talab qilmaydi): `TelegramLessonSession` da `unique_open_telegram_session_per_chat` partial cheklovi bor va `start_lesson_session` `IntegrityError` ni to'g'ri ushlaydi; `upsert_attendance_and_xp` XP farqini hisoblagani uchun qayta yugurtirishga chidamli; kelmaganlar bildirishnomasi barqaror `external_key` bilan idempotent; Telegram xabarlari faqat outbox orqali ketadi, ya'ni tranzaksiya ichida hech qanday tarmoq chaqirig'i yo'q — acceptance'dagi "notification side-effect `on_commit`" shu tarzda qanoatlantirilgan.
+
+- Branch: `claude/a3-attendance-parity` → PR
+- Yangi: `core/test_attendance_parity.py` (6 test). Tegilgan: `core/teacher_views.py`
+- Migratsiya yo'q
+- Test holati: to'liq suite **722/722 OK**
+- Nazorat: testlar tuzatishdan oldin yozildi va 6 tadan 5 tasi yiqildi. Oltinchisi ("present → absent XP ni qaytaradi") o'sha paytda arzimas sababdan o'tgan edi — XP umuman berilmagani uchun 0 == 0
+- **Ochiq qoldi:** `close_lesson_session()` `transaction.atomic()` bilan o'ralmagan. Sikl o'rtasida uzilsa davomat qisman yozilib, sessiya OPEN qoladi. Upsert idempotent bo'lgani uchun qayta yugurtirish holatni to'g'rilaydi, shuning uchun jiddiyligi past — keyingi slice
+
+---
+
 ## 2026-08-16 [Claude Code]: A4/4 — Telegram ulash havolasi muddatli va bir martalik
 
 A4 ning oxirgi bandi: "Telegram credential claim". Profil sahifasidagi `t.me/<bot>?start=<token>` havolasi `Signer().sign(user.id)` ning base64'i edi. Ikkita mustaqil nuqson chiqdi.
