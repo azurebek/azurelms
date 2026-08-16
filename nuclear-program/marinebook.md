@@ -16,6 +16,28 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-16 [Claude Code]: A3/3 — darsni ochish uchun owner yuzasi qurildi
+
+Release yuzasini parity uchun tekshirmoqchi edim; ma'lum bo'ldiki **taqqoslashga ikkinchi yuza yo'q — birinchisi ham yo'q edi.**
+
+`CohortLessonRelease` o'qish tomonida to'liq ishlaydi: `courses/views.py` bironta release qatori bo'lsa drip rejimini yoqadi va faqat ochilgan darslarni ko'rsatadi. Yozish tomoni esa faqat `courses/admin.py` da edi, Django admin esa default o'chiq (`ENABLE_LEGACY_ADMIN=False`). Ya'ni A3 sanagan uchta asosiy amaldan biri — "release" — owner uchun **umuman mavjud emas** edi. O'qituvchi panelida dashboard, guruhlar, o'quvchilar, kontent, tekshirish va davomat sahifalari bor; dars ochish yagona yetishmagani edi.
+
+Bu AI kill switch bilan bir xil naqsh: imkoniyat kodda bor, ammo unga tegadigan tugma yo'q.
+
+Yangi `courses/release_service.py` — yagona yo'l. Idempotent (holat o'zgarmasa hech narsa yozilmaydi), audit ledgeriga yozadi va o'quvchilarga bildirishnoma yuboradi. Audit tomoni A2 ning ochiq qarzidan bittasini ham yopadi: `05-launch-ops.md` §3 minimal ro'yxatida "lesson release" bor edi.
+
+Yuzada bitta ogohlantirish bor va u ataylab: drip `release_qs.exists()` bo'yicha yoqiladi, ya'ni **birinchi ochilgan dars qolgan hammasini yopib qo'yadi**. Buni oldindan aytmasa, o'qituvchi bitta darsni ochib butun kursni yopib qo'yishi mumkin edi.
+
+- Branch: `claude/a3-lesson-release-surface` → PR
+- Yangi: `courses/release_service.py`, `templates/teacher/release.html`, `courses/test_lesson_release.py` (14 test). Tegilgan: `core/teacher_views.py`, `core/urls.py`, `templates/base_teacher.html` (nav havolasi)
+- Migratsiya yo'q — model allaqachon bor edi, faqat unga yo'l yo'q edi
+- Test holati: to'liq suite **742/742 OK**
+- Testlar shablonni haqiqatan render qiladi (GET 200 + darslar ro'yxati + ogohlantirishning paydo bo'lishi va yo'qolishi), navigatsiya havolasi va o'qituvchi scope'i ham qo'riqlanadi
+- **Browser QA:** `/teacher/release/` ochildi, sarlavha va bo'sh holat to'g'ri chiqdi (lokal bazada bu hisobga bog'langan guruh yo'q). To'ldirilgan holat testlar bilan qoplangan; lokal bazaga soxta kurs ma'lumoti qo'shmadim
+- Qolgan A3 ishi: grading queue parity
+
+---
+
 ## 2026-08-16 [Claude Code]: A3/2 — dars sessiyasini yopish yarim yo'lda qolmaydi
 
 Oldingi slice'da ochiq qoldirilgan band. `close_lesson_session()` bitta amalda butun guruhning davomatini yozadi, sessiyani yopadi va kelmaganlarga bildirishnoma qo'yadi — ammo bularning hech biri tranzaksiyada emas edi.

@@ -6,7 +6,7 @@
   Panel mexanikasi app-shell.css/js (App/Teacher/Admin umumiy bazasi).
   Nav kalitlari (active_nav): teacher_dashboard · teacher_cohorts ·
   teacher_students · teacher_courses · blog_studio · teacher_grading ·
-  teacher_attendance. grading_pending_count badge'i teacher view'lardan keladi.
+  teacher_attendance · teacher_release. grading_pending_count badge'i teacher view'lardan keladi.
 {% endcomment %}
 
 {% block title %}{{ site_settings.brand_name|default:"AzureLMS" }} — {% block t_title %}Studiya{% endblock %}{% endblock %}
@@ -43,6 +43,7 @@
           <a class="app-nav-item{% if active_nav == 'blog_studio' %} active{% endif %}" href="{% url 'blog:studio' %}"><i class="bi bi-pencil-square"></i><span class="label">Blog studiya</span></a>
           <a class="app-nav-item{% if active_nav == 'teacher_grading' %} active{% endif %}" href="{% url 'teacher_grading' %}"><i class="bi bi-check2-square"></i><span class="label">Tekshirish</span>{% if grading_pending_count %}<span class="app-nav-badge is-amber">{{ grading_pending_count }}</span>{% endif %}</a>
           <a class="app-nav-item{% if active_nav == 'teacher_attendance' %} active{% endif %}" href="{% url 'teacher_attendance' %}"><i class="bi bi-calendar-check"></i><span class="label">Davomat</span></a>
+          <a class="app-nav-item{% if active_nav == 'teacher_release' %} active{% endif %}" href="{% url 'teacher_release' %}"><i class="bi bi-unlock"></i><span class="label">Dars ochish</span></a>
         </div>
         <div class="app-nav-group">
           <button type="button" class="app-nav-label" data-app-group><span>Aloqa</span><i class="bi bi-chevron-down"></i></button>

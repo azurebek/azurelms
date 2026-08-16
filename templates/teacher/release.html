@@ -1,0 +1,73 @@
+{% extends "base_teacher.html" %}
+{% comment %} Guruhga dars ochish/yopish (drip-release). Ilgari faqat Django admin qila olardi. {% endcomment %}
+
+{% block t_title %}Dars ochish{% endblock %}
+{% block t_icon %}bi-unlock{% endblock %}
+{% block t_topbar %}Darslarni ochish{% endblock %}
+
+{% block t_content %}
+<div style="max-width:960px;">
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px;">
+    <div>
+      <h1 style="font-size:clamp(22px,2.6vw,30px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:0 0 6px;">Darslarni ochish</h1>
+      <p style="font-size:14px;color:var(--ink-3);margin:0;">Guruhni tanlang va darslarni birma-bir oching.</p>
+    </div>
+    <form method="get">
+      <select name="cohort" onchange="this.form.submit()" style="height:42px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:13px;outline:none;max-width:260px;">
+        {% for c in cohorts %}
+        <option value="{{ c.id }}"{% if cohort and c.id == cohort.id %} selected{% endif %}>{{ c.name }} ({{ c.course.title|truncatechars:16 }})</option>
+        {% empty %}<option value="">Guruh yo'q</option>{% endfor %}
+      </select>
+    </form>
+  </div>
+
+  {% if not cohort %}
+    <div style="border:1px dashed var(--line);border-radius:14px;padding:36px 20px;text-align:center;color:var(--ink-3);font-size:13.5px;">Avval faol guruh yarating.</div>
+  {% elif not lesson_rows %}
+    <div style="border:1px dashed var(--line);border-radius:14px;padding:36px 20px;text-align:center;color:var(--ink-3);font-size:13.5px;">Bu kursda hali darslar yo'q.</div>
+  {% else %}
+
+    {% if not drip_active %}
+    <div style="border:1px solid var(--line);border-left:3px solid #d19a2a;border-radius:12px;padding:14px 16px;margin-bottom:18px;font-size:13.5px;color:var(--ink-2);line-height:1.6;">
+      <strong>Diqqat:</strong> hozir bu guruhda barcha darslar ochiq. Birinchi darsni ochishingiz bilan drip rejimi yoqiladi va <strong>ochilmagan darslar yopiladi</strong>.
+    </div>
+    {% endif %}
+
+    <div style="border:1px solid var(--line);border-radius:14px;overflow:hidden;">
+      {% for row in lesson_rows %}
+      <div style="display:flex;align-items:center;gap:14px;padding:13px 16px;{% if not forloop.last %}border-bottom:1px solid var(--line);{% endif %}">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:14px;color:var(--ink);font-weight:500;">{{ row.lesson.title }}</div>
+          <div style="font-size:12px;color:var(--ink-3);margin-top:2px;">{{ row.lesson.module.title }}</div>
+        </div>
+
+        <div style="flex-shrink:0;font-size:12px;">
+          {% if row.is_released is None %}
+            <span style="color:var(--ink-3);">belgilanmagan</span>
+          {% elif row.is_released %}
+            <span style="color:#3f9a54;">ochiq</span>
+          {% else %}
+            <span style="color:var(--ink-3);">yopiq</span>
+          {% endif %}
+        </div>
+
+        <form method="post" style="flex-shrink:0;display:flex;gap:8px;align-items:center;">
+          {% csrf_token %}
+          <input type="hidden" name="cohort" value="{{ cohort.id }}">
+          <input type="hidden" name="lesson" value="{{ row.lesson.id }}">
+          <input type="text" name="note" placeholder="izoh" maxlength="255"
+                 style="height:34px;width:130px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:12.5px;outline:none;">
+          {% if row.is_released %}
+            <button type="submit" name="action" value="lock"
+                    style="height:34px;padding:0 14px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--ink-2);font-size:12.5px;cursor:pointer;">Yopish</button>
+          {% else %}
+            <button type="submit" name="action" value="release"
+                    style="height:34px;padding:0 14px;border-radius:8px;border:none;background:var(--ink);color:var(--panel);font-size:12.5px;font-weight:500;cursor:pointer;">Ochish</button>
+          {% endif %}
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -519,3 +519,79 @@ def teacher_attendance(request):
         )
     context["rows"] = rows
     return render(request, "teacher/attendance.html", context)
+
+
+# ---------------------------------------------------------------- dars ochish
+
+
+@login_required
+@user_passes_test(_is_teacher)
+def teacher_release(request):
+    """Guruhga dars ochish/yopish.
+
+    Ilgari buni faqat Django admin qila olardi, u esa default o'chiq — ya'ni
+    drip-release o'qish tomonida ishlab tursa ham, owner uchun yozish yo'li
+    yo'q edi (A3).
+    """
+    from courses.release_service import drip_is_active, release_map_for_cohort, set_lesson_release
+
+    context = _base_context(request.user, "teacher_release")
+    courses = context["teacher_courses"]
+
+    cohorts = list(
+        Cohort.objects.filter(course__in=courses, is_active=True)
+        .select_related("course")
+        .order_by("-start_date")
+    )
+    context["cohorts"] = cohorts
+
+    cohort = None
+    cohort_id = request.GET.get("cohort") or request.POST.get("cohort")
+    if cohort_id and str(cohort_id).isdigit():
+        cohort = next((c for c in cohorts if c.id == int(cohort_id)), None)
+    if cohort is None and cohorts:
+        cohort = cohorts[0]
+    context["cohort"] = cohort
+    if cohort is None:
+        return render(request, "teacher/release.html", context)
+
+    lessons = list(
+        Lesson.objects.filter(module__course=cohort.course)
+        .select_related("module")
+        .order_by("module__order", "order")
+    )
+
+    if request.method == "POST":
+        lesson_id = request.POST.get("lesson")
+        action = request.POST.get("action")
+        lesson = next((l for l in lessons if str(l.id) == str(lesson_id)), None)
+        if lesson is None or action not in {"release", "lock"}:
+            messages.error(request, "Dars topilmadi yoki amal noto'g'ri.")
+            return redirect(f"{request.path}?cohort={cohort.id}")
+
+        _release, changed = set_lesson_release(
+            cohort=cohort,
+            lesson=lesson,
+            released=(action == "release"),
+            actor=request.user,
+            note=(request.POST.get("note") or "").strip()[:255],
+            request=request,
+        )
+        if changed:
+            verb = "ochildi" if action == "release" else "yopildi"
+            messages.success(request, f"\"{lesson.title}\" darsi {verb}.")
+        else:
+            messages.info(request, "Holat allaqachon shunday edi — o'zgarish yozilmadi.")
+        return redirect(f"{request.path}?cohort={cohort.id}")
+
+    releases = release_map_for_cohort(cohort)
+    context["drip_active"] = drip_is_active(cohort, cohort.course)
+    context["lesson_rows"] = [
+        {
+            "lesson": lesson,
+            "release": releases.get(lesson.id),
+            "is_released": releases[lesson.id].is_released if lesson.id in releases else None,
+        }
+        for lesson in lessons
+    ]
+    return render(request, "teacher/release.html", context)

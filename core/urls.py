@@ -80,6 +80,7 @@ urlpatterns = [
     path('teacher/grading/exam/<int:attempt_id>/', teacher_views.teacher_grade_exam, name='teacher_grade_exam'),
     path('teacher/grading/assignment/<int:submission_id>/', teacher_views.teacher_grade_assignment, name='teacher_grade_assignment'),
     path('teacher/attendance/', teacher_views.teacher_attendance, name='teacher_attendance'),
+    path('teacher/release/', teacher_views.teacher_release, name='teacher_release'),
 ]
 
 if settings.PROMETHEUS_ENABLED:
