@@ -13,21 +13,28 @@ from subscriptions.promo_service import (
     create_checkout_receipt_with_promo,
 )
 from core.upload_validation import validate_upload
-from .checkout_service import CheckoutUnavailable, resolve_checkout_enrollment
+from .checkout_service import (
+    CheckoutUnavailable,
+    find_checkout_enrollment,
+    resolve_checkout_enrollment,
+)
 from .models import PaymentReceipt
 
 @login_required
 def checkout_view(request, course_id):
     course = get_object_or_404(Course, id=course_id, is_active=True)
 
+    # Sahifani ko'rsatish o'qish amali: bu yerda hech narsa yaratilmaydi.
+    # Enrollment faqat foydalanuvchi chekni yuborganda ochiladi (pastda).
     try:
-        enrollment, enrollment_created, checkout_cohort = resolve_checkout_enrollment(
+        enrollment, checkout_cohort = find_checkout_enrollment(
             student=request.user,
             course=course,
         )
     except CheckoutUnavailable as exc:
         messages.error(request, str(exc))
         return redirect('course_detail', pk=course.id)
+    enrollment_created = False
 
     plans = Plan.objects.order_by('order', 'id')
     if not plans.exists():
@@ -36,20 +43,27 @@ def checkout_view(request, course_id):
 
     requested_plan_id = request.POST.get("plan_id") or request.GET.get("plan_id")
     requested_plan = plans.filter(id=requested_plan_id).first() if requested_plan_id else None
-    selected_plan = requested_plan or (enrollment.plan if enrollment.plan_id else plans.first())
+    selected_plan = requested_plan or (
+        enrollment.plan if enrollment is not None and enrollment.plan_id else plans.first()
+    )
     if selected_plan and not plans.filter(id=selected_plan.id).exists():
         selected_plan = plans.first()
     submitted_promo_code = (request.POST.get("promo_code") or request.GET.get("promo_code") or "").strip()
 
     # Check if there is already a pending receipt
-    has_pending_receipt = PaymentReceipt.objects.filter(
+    has_pending_receipt = enrollment is not None and PaymentReceipt.objects.filter(
         enrollment=enrollment,
         is_verified=False
     ).exists()
 
     # Calculate period_start and period_end for this payment
     today = timezone.localdate()
-    if enrollment.status == 'active' and enrollment.next_payment_deadline and enrollment.next_payment_deadline > today:
+    if (
+        enrollment is not None
+        and enrollment.status == 'active'
+        and enrollment.next_payment_deadline
+        and enrollment.next_payment_deadline > today
+    ):
         # Extend from current deadline
         tentative_start = enrollment.next_payment_deadline
     else:
@@ -65,6 +79,7 @@ def checkout_view(request, course_id):
                 enrollment=enrollment,
                 plan=selected_plan,
                 raw_code=submitted_promo_code,
+                cohort=checkout_cohort,
             )
         except PromoValidationError:
             promo_quote = None
@@ -144,6 +159,16 @@ def checkout_view(request, course_id):
         except ValidationError as exc:
             messages.error(request, exc.messages[0])
             return redirect('cohorts:checkout', course_id=course.id)
+
+        # Yozuv yo'li aynan shu yerda boshlanadi: foydalanuvchi chekni yubordi.
+        try:
+            enrollment, enrollment_created, checkout_cohort = resolve_checkout_enrollment(
+                student=request.user,
+                course=course,
+            )
+        except CheckoutUnavailable as exc:
+            messages.error(request, str(exc))
+            return redirect('course_detail', pk=course.id)
 
         if enrollment.plan_id != selected_plan.id:
             enrollment.plan = selected_plan
@@ -240,7 +265,7 @@ def checkout_success_view(request, receipt_id=None):
 def checkout_promo_preview_view(request, course_id):
     course = get_object_or_404(Course, id=course_id, is_active=True)
     try:
-        enrollment, _, checkout_cohort = resolve_checkout_enrollment(
+        enrollment, checkout_cohort = find_checkout_enrollment(
             student=request.user,
             course=course,
         )
@@ -258,6 +283,7 @@ def checkout_promo_preview_view(request, course_id):
             enrollment=enrollment,
             plan=plan,
             raw_code=raw_code,
+            cohort=checkout_cohort,
         )
     except PromoValidationError as exc:
         return JsonResponse({"valid": False, "error": str(exc), "code": exc.code}, status=400)

@@ -37,6 +37,11 @@ def _quantize_amount(value):
 
 
 def _current_checkout_kind(*, enrollment):
+    # Enrollment hali yo'q (checkout sahifasi birinchi marta ochilgan) — bu
+    # ta'rifi bo'yicha birinchi xarid. Yozuv yo'lini o'qish yo'lidan ajratgach
+    # (A4) narx ko'rsatish enrollmentsiz ham ishlashi kerak.
+    if enrollment is None or enrollment.pk is None:
+        return PromoRedemption.KIND_INITIAL
     has_verified_payment = enrollment.receipts.filter(is_verified=True).exists()
     return PromoRedemption.KIND_RENEWAL if has_verified_payment else PromoRedemption.KIND_INITIAL
 
@@ -55,20 +60,24 @@ def _active_redemptions_qs():
     return PromoRedemption.objects.filter(status__in=PromoRedemption.ACTIVE_USAGE_STATUSES)
 
 
-def _check_campaign_scopes(*, campaign, enrollment, plan):
+def _check_campaign_scopes(*, campaign, enrollment, plan, cohort=None):
+    # Kurs/cohort scope'i uchun cohort kerak; u enrollmentdan yoki (enrollment
+    # hali yaratilmagan bo'lsa) checkout tanlagan maqsad cohortdan keladi.
+    cohort = cohort or (enrollment.cohort if enrollment is not None else None)
+
     if campaign.applicable_plans.exists() and not campaign.applicable_plans.filter(pk=plan.pk).exists():
         raise PromoValidationError("Bu promokod tanlangan tarif uchun mos emas.", code="plan_scope")
-    if campaign.applicable_courses.exists() and not campaign.applicable_courses.filter(
-        pk=enrollment.cohort.course_id
-    ).exists():
+    if campaign.applicable_courses.exists() and not (
+        cohort is not None and campaign.applicable_courses.filter(pk=cohort.course_id).exists()
+    ):
         raise PromoValidationError("Bu promokod tanlangan kurs uchun mos emas.", code="course_scope")
-    if campaign.applicable_cohorts.exists() and not campaign.applicable_cohorts.filter(
-        pk=enrollment.cohort_id
-    ).exists():
+    if campaign.applicable_cohorts.exists() and not (
+        cohort is not None and campaign.applicable_cohorts.filter(pk=cohort.pk).exists()
+    ):
         raise PromoValidationError("Bu promokod tanlangan cohort uchun mos emas.", code="cohort_scope")
 
 
-def _validate_promo_code_instance(*, promo_code, student, enrollment, plan, base_amount, now=None):
+def _validate_promo_code_instance(*, promo_code, student, enrollment, plan, base_amount, now=None, cohort=None):
     now = now or timezone.now()
     campaign = promo_code.campaign
     checkout_kind = _current_checkout_kind(enrollment=enrollment)
@@ -97,7 +106,7 @@ def _validate_promo_code_instance(*, promo_code, student, enrollment, plan, base
     if checkout_kind == PromoRedemption.KIND_RENEWAL and not campaign.allow_on_renewals:
         raise PromoValidationError("Bu promokod renewal to'lovlarga ishlamaydi.", code="renewal_not_allowed")
 
-    _check_campaign_scopes(campaign=campaign, enrollment=enrollment, plan=plan)
+    _check_campaign_scopes(campaign=campaign, enrollment=enrollment, plan=plan, cohort=cohort)
 
     active_redemptions = _active_redemptions_qs()
     if campaign.max_total_redemptions is not None:
@@ -132,7 +141,7 @@ def _calculate_discount(*, campaign, base_amount):
     return _quantize_amount(discount_amount), _quantize_amount(final_amount)
 
 
-def build_promo_quote(*, student, enrollment, plan, raw_code="", now=None, lock=False):
+def build_promo_quote(*, student, enrollment, plan, raw_code="", now=None, lock=False, cohort=None):
     base_amount = _quantize_amount(plan.price)
     now = now or timezone.now()
     if not raw_code or not raw_code.strip():
@@ -156,6 +165,7 @@ def build_promo_quote(*, student, enrollment, plan, raw_code="", now=None, lock=
         plan=plan,
         base_amount=base_amount,
         now=now,
+        cohort=cohort,
     )
     discount_amount, final_amount = _calculate_discount(campaign=promo_code.campaign, base_amount=base_amount)
     return PromoPricingQuote(
