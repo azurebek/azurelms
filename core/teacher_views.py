@@ -386,22 +386,27 @@ def teacher_grade_assignment(request, submission_id):
     )
 
     if request.method == "POST":
-        submission.teacher_feedback = request.POST.get("teacher_feedback", submission.teacher_feedback)
+        from courses.submission_service import review_assignment_submission
+
         xp_raw = request.POST.get("awarded_xp")
+        awarded_xp = None
         if xp_raw not in (None, ""):
             try:
-                submission.awarded_xp = max(0, min(int(xp_raw), submission.assignment.max_xp))
+                awarded_xp = int(xp_raw)
             except (TypeError, ValueError):
-                pass
+                awarded_xp = None
 
         action = request.POST.get("action")
-        if action == "approve":
-            submission.status = AssignmentSubmission.STATUS_APPROVED
-        elif action == "revision":
-            submission.status = AssignmentSubmission.STATUS_NEEDS_REVISION
-        submission.reviewed_by = request.user
-        submission.reviewed_at = timezone.now()
-        submission.save()
+        # Hukm, XP va o'quvchiga xabar canonical servisda: XP farq bo'yicha
+        # hisoblanadi va shu sababli qayta baholash ikki marta bermaydi.
+        review_assignment_submission(
+            submission=submission,
+            approved=(action == "approve"),
+            reviewer=request.user,
+            feedback=request.POST.get("teacher_feedback", submission.teacher_feedback),
+            awarded_xp=awarded_xp,
+            request=request,
+        )
         messages.success(
             request,
             "Tasdiqlandi — keyingi dars ochildi." if action == "approve" else "Qayta ishlashga qaytarildi.",

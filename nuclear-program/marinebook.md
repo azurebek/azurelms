@@ -16,6 +16,28 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-16 [Claude Code]: A3/4 — baholangan vazifa XP ham, xabar ham beradi
+
+A3 ning oxirgi bandi. Grading queue'da ikkita nuqson topildi.
+
+**Berilgan XP o'quvchiga yetib bormasdi.** O'qituvchi `awarded_xp` kiritadi, u `AssignmentSubmission` qatoriga yoziladi — va o'sha yerda qoladi. `user.total_xp` ga hech qachon qo'shilmasdi. Bu bugun davomatda topilgan xatoning **aynan o'zi**: XP qatorda bor, o'quvchida yo'q. Mavjud test (`core/tests.py`) faqat maydonning saqlanganini tekshirardi, o'quvchining balansini emas — shuning uchun bo'shliq hech qachon ko'rinmagan. Yaxshi eslatma: to'g'ri narsani tekshirmaydigan test yashil bo'lib turaveradi.
+
+**O'quvchi baholanganini bilmasdi.** Davomatga kelmagan odam xabar oladi, to'lovi tasdiqlangan odam xabar oladi, dars ochilsa xabar boradi — ammo eng kutilgan narsa, vazifa tekshiruvi, jimgina o'tardi.
+
+Yangi `review_assignment_submission()` `courses/submission_service.py` da — hukm, XP va xabar bitta joyda. XP **farq** bo'yicha hisoblanadi (`upsert_attendance_and_xp` bilan bir xil naqsh): qayta baholash ikki marta bermaydi, bahoni pasaytirish balansdan ayiradi, qayta ishlashga qaytarish esa berilgan XP ni qaytarib oladi. Xabar faqat hukm o'zgarganda ketadi — bir xil bahoni qayta saqlash o'quvchining telefonini ikkinchi marta chalmaydi.
+
+Audit ham qo'shildi: `05-launch-ops.md` §3 minimal ro'yxatidagi "grade/review" bandi yopildi.
+
+- Branch: `claude/a3-assignment-review` → PR
+- Yangi: `courses/test_assignment_review.py` (10 test). Tegilgan: `courses/submission_service.py`, `core/teacher_views.py`
+- Migratsiya yo'q
+- Test holati: to'liq suite **752/752 OK**
+- Nazorat: testlar tuzatishdan oldin yozildi va 10 tadan 7 tasi yiqildi (`0 != 15`, xabar yo'q, audit yo'q). Qolgan uchtasi o'sha paytda arzimas sababdan o'tgan edi — XP umuman berilmagani va xabar umuman yuborilmagani uchun
+
+**A3 yakuni:** davomat parity, yopish atomikligi, release yuzasi va grading — to'rttasi ham bajarildi. Sessiya boshidagi kirish qoidasi tekshiruvi bilan birga A3 ning acceptance bandlari yopiq.
+
+---
+
 ## 2026-08-16 [Claude Code]: A3/3 — darsni ochish uchun owner yuzasi qurildi
 
 Release yuzasini parity uchun tekshirmoqchi edim; ma'lum bo'ldiki **taqqoslashga ikkinchi yuza yo'q — birinchisi ham yo'q edi.**
