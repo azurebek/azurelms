@@ -114,12 +114,23 @@ class OutboxWorkerReportsItselfTests(TransactionTestCase):
     def test_one_outbox_cycle_records_a_heartbeat(self):
         import asyncio
 
+        from asgiref.sync import sync_to_async
+        from django.db import connections
+
         from bot.outbox import process_outbox_once
 
         class _NoopBot:
             async def send_message(self, *args, **kwargs):  # pragma: no cover
                 raise AssertionError("bo'sh navbatda xabar yuborilmasligi kerak")
 
-        asyncio.run(process_outbox_once(_NoopBot()))
+        async def run_cycle():
+            await process_outbox_once(_NoopBot())
+            # `sync_to_async` ORM'ga alohida oqimdan tegadi va o'sha oqim o'z
+            # ulanishini ochiq qoldiradi. SQLite buni sezmaydi, PostgreSQL esa
+            # test bazasini o'chira olmay `database is being accessed by other
+            # users` bilan yiqiladi — CI ning PostgreSQL ishi shuni ko'rsatdi.
+            await sync_to_async(connections.close_all)()
+
+        asyncio.run(run_cycle())
 
         self.assertTrue(WorkerHeartbeat.objects.filter(name="telegram-outbox").exists())
