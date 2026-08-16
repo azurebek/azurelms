@@ -8,6 +8,7 @@ View'lar endi shu funksiyalarni chaqiradi — bitta manba, bitta xatti-harakat.
 from dataclasses import dataclass, field
 
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import Max
 from django.utils import timezone
 
@@ -187,4 +188,98 @@ def grade_quiz(*, user, quiz, answers):
         xp_earned=awarded_xp,
         attempt_xp=attempt_xp,
         results=results,
+    )
+
+
+def review_assignment_submission(
+    *,
+    submission,
+    approved,
+    reviewer,
+    feedback=None,
+    awarded_xp=None,
+    request=None,
+):
+    """Vazifani baholaydi: hukm, XP va o'quvchiga xabar — bitta joyda.
+
+    XP **farq** bo'yicha hisoblanadi (`upsert_attendance_and_xp` bilan bir xil
+    naqsh): qayta baholash ikki marta bermaydi, bahoni pasaytirish esa
+    balansdan ayiradi. Ilgari `awarded_xp` faqat `AssignmentSubmission`
+    qatoriga yozilardi va `user.total_xp` ga hech qachon qo'shilmasdi — ya'ni
+    o'qituvchi bergan XP o'quvchiga yetib bormasdi.
+
+    Xabar faqat hukm o'zgarganda yuboriladi: bir xil bahoni qayta saqlash
+    o'quvchining telefonini ikkinchi marta chalmaydi.
+    """
+    from core.audit import record_audit_event
+
+    new_status = (
+        AssignmentSubmission.STATUS_APPROVED
+        if approved
+        else AssignmentSubmission.STATUS_NEEDS_REVISION
+    )
+    previous_status = submission.status
+    previous_xp = submission.awarded_xp
+
+    if awarded_xp is None:
+        new_xp = previous_xp
+    else:
+        new_xp = max(0, min(int(awarded_xp), submission.assignment.max_xp))
+    # Qayta ishlashga qaytarilgan ish uchun XP saqlanmaydi.
+    if not approved:
+        new_xp = 0
+
+    with transaction.atomic():
+        if feedback is not None:
+            submission.teacher_feedback = feedback
+        submission.status = new_status
+        submission.awarded_xp = new_xp
+        submission.reviewed_by = reviewer
+        submission.reviewed_at = timezone.now()
+        submission.save()
+
+        xp_diff = new_xp - previous_xp
+        if xp_diff:
+            student = submission.student
+            student.total_xp = max(0, student.total_xp + xp_diff)
+            student.save(update_fields=["total_xp"])
+
+        record_audit_event(
+            action="assignment.review",
+            request=request,
+            actor=reviewer,
+            target=submission,
+            target_label=f"{submission.assignment.title} — {submission.student.username}",
+            before={"status": previous_status, "awarded_xp": previous_xp},
+            after={"status": new_status, "awarded_xp": new_xp},
+        )
+
+        if new_status != previous_status:
+            _notify_reviewed(submission=submission, approved=approved)
+
+    return submission
+
+
+def _notify_reviewed(*, submission, approved):
+    from users.notification_service import create_notification
+
+    lesson = submission.assignment.lesson
+    title = "Vazifangiz tasdiqlandi" if approved else "Vazifa qayta ishlashga qaytarildi"
+    if approved:
+        message = f"\"{submission.assignment.title}\" vazifangiz tasdiqlandi."
+        if submission.awarded_xp:
+            message += f" {submission.awarded_xp} XP qo'shildi."
+    else:
+        message = (
+            f"\"{submission.assignment.title}\" vazifangiz qayta ishlashga qaytarildi. "
+            "O'qituvchi izohini o'qib, qaytadan yuboring."
+        )
+
+    create_notification(
+        recipient=submission.student,
+        title=title,
+        message=message,
+        icon="check2-circle" if approved else "arrow-counterclockwise",
+        url=f"/courses/{lesson.module.course_id}/lesson/{lesson.id}/",
+        external_key=f"assignment-review-{submission.id}-{submission.reviewed_at.isoformat()}",
     )
