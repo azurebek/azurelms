@@ -548,39 +548,62 @@ def close_lesson_session(*, chat_id, actor_telegram_id):
         Attendance.STATUS_ABSENT: [],
     }
 
-    for enrollment in enrollments:
-        checkin = checkins.get(enrollment.id)
-        if not checkin:
-            status = Attendance.STATUS_ABSENT
-        elif checkin.checked_in_at > late_cutoff:
-            status = Attendance.STATUS_PARTIAL
-        else:
-            status = Attendance.STATUS_PRESENT
-
-        upsert_attendance_and_xp(
-            enrollment=enrollment,
-            lesson=session.lesson,
-            date=session.attendance_date,
-            status=status,
-            marked_by=actor,
+    # Butun yopish bitta tranzaksiyada: sikl o'rtasida uzilish yarim yozilgan
+    # davomat va OPEN qolgan sessiyani qoldirardi — o'qituvchi "davomat
+    # olindimi?" degan savolga javob topolmasdi.
+    with transaction.atomic():
+        # Ikkita bir vaqtdagi `/yopish` ni ketma-ketlashtiradi. `of=("self",)`
+        # — faqat sessiya satri qulflanadi; `select_related` ichida nullable
+        # bog'lanish paydo bo'lsa PostgreSQL yalang'och `FOR UPDATE` ni rad
+        # etadi. SQLite'da bu no-op, ammo amallarning o'zi idempotent.
+        locked_session = (
+            TelegramLessonSession.objects.select_for_update(of=("self",))
+            .filter(pk=session.pk, status=TelegramLessonSession.STATUS_OPEN)
+            .first()
         )
-        summary[status] += 1
-        student = enrollment.student
-        details[status].append(
-            {
-                "name": student_display_name(student),
-                "telegram_id": student.telegram_id,
-                "telegram_username": student.telegram_username or "",
-                "user_id": student.id,
-            }
-        )
+        if locked_session is None:
+            return CloseLessonResult(
+                ok=False,
+                code="session_missing",
+                message="Bu sessiya allaqachon yopilgan.",
+            )
 
-    session.status = TelegramLessonSession.STATUS_CLOSED
-    session.closed_by = actor
-    session.closed_at = timezone.now()
-    session.save(update_fields=["status", "closed_by", "closed_at"])
+        for enrollment in enrollments:
+            checkin = checkins.get(enrollment.id)
+            if not checkin:
+                status = Attendance.STATUS_ABSENT
+            elif checkin.checked_in_at > late_cutoff:
+                status = Attendance.STATUS_PARTIAL
+            else:
+                status = Attendance.STATUS_PRESENT
 
-    _notify_absent_students(session, details[Attendance.STATUS_ABSENT])
+            upsert_attendance_and_xp(
+                enrollment=enrollment,
+                lesson=session.lesson,
+                date=session.attendance_date,
+                status=status,
+                marked_by=actor,
+            )
+            summary[status] += 1
+            student = enrollment.student
+            details[status].append(
+                {
+                    "name": student_display_name(student),
+                    "telegram_id": student.telegram_id,
+                    "telegram_username": student.telegram_username or "",
+                    "user_id": student.id,
+                }
+            )
+
+        session.status = TelegramLessonSession.STATUS_CLOSED
+        session.closed_by = actor
+        session.closed_at = timezone.now()
+        session.save(update_fields=["status", "closed_by", "closed_at"])
+
+        # Bildirishnoma ham shu yerda: yopilish qaytarilsa "darsni
+        # qoldirdingiz" xabari ham qolmasligi kerak. Telegram'ga yuborish
+        # baribir outbox orqali, ya'ni commitdan keyin.
+        _notify_absent_students(session, details[Attendance.STATUS_ABSENT])
 
     return CloseLessonResult(
         ok=True,

@@ -16,6 +16,26 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-16 [Claude Code]: A3/2 — dars sessiyasini yopish yarim yo'lda qolmaydi
+
+Oldingi slice'da ochiq qoldirilgan band. `close_lesson_session()` bitta amalda butun guruhning davomatini yozadi, sessiyani yopadi va kelmaganlarga bildirishnoma qo'yadi — ammo bularning hech biri tranzaksiyada emas edi.
+
+Test aniq ko'rsatdi: uchinchi o'quvchida uzilish simulyatsiya qilinganda birinchi ikkitasining davomati **yozilib qoldi** (`2 != 0`). Sessiya esa OPEN qolardi, ya'ni o'qituvchi "davomat olindimi?" degan savolga javob topolmasdi — ro'yxatning yarmi bor, sessiya hali ochiq.
+
+Qiziq tomoni: **qolgan beshta testim allaqachon o'tdi.** Sessiya OPEN qolishi va bildirishnoma yuborilmasligi kutilgan xulq edi, chunki ular sikldan keyin turadi; qayta yugurtirish esa upsert idempotent bo'lgani uchun ishlayverardi. Ya'ni nuqson men taxmin qilgandan **torroq** chiqdi — faqat yarim yozilgan davomat.
+
+Endi butun yopish bitta `transaction.atomic()` ichida, bildirishnoma ham shu yerda: yopilish qaytarilsa "darsni qoldirdingiz" xabari ham qolmaydi. Telegram'ga yuborish baribir outbox orqali, ya'ni commitdan keyin.
+
+Qo'shimcha: sessiya satri `select_for_update(of=("self",))` bilan qulflanadi — ikkita bir vaqtdagi `/yopish` ni ketma-ketlashtiradi. `of=("self",)` ataylab: A4 da bu naqsh PostgreSQL'da nullable bog'lanish ustidagi yalang'och `FOR UPDATE` ni rad etishi bilan tanishganmiz.
+
+- Branch: `claude/a3-close-session-atomic` → PR
+- Yangi: `bot/test_close_session_atomicity.py` (6 test). Tegilgan: `bot/services.py`
+- Migratsiya yo'q
+- Test holati: to'liq suite **728/728 OK**; modul fayl bazasida ham alohida yugirtirildi (`AZURELMS_TEST_FILE_DB=1`) va o'tdi
+- Nazorat: testlar tuzatishdan oldin yozildi; 6 tadan 1 tasi yiqildi va aynan haqiqiy nuqsonni ko'rsatdi
+
+---
+
 ## 2026-08-16 [Claude Code]: A3/1 — davomat web va Telegram'da bir xil natija beradi
 
 R2 ning A3 bandi boshlandi. Outcome: "web/bot/Mini App bir xil state ko'rsatadi", acceptance: "adapter parity contract". Birinchi tekshiruv aynan shu yerda buzilganini ko'rsatdi.
