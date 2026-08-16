@@ -1,37 +1,29 @@
+"""Checkout uchun cohort va enrollment tanlash (A4).
+
+O'qish va yozuv yo'llari ataylab ajratilgan:
+
+* `find_checkout_enrollment()` — sahifa ko'rsatish uchun. Hech narsa yozmaydi.
+* `resolve_checkout_enrollment()` — forma yuborilganda. Kerak bo'lsa yaratadi.
+
+Ilgari ikkalasi bitta funksiya edi va natijada sahifani ochishning o'zi
+`Enrollment` yaratardi — promo preview AJAX chaqirig'i ham. Bundan tashqari
+yopilgan qabul o'zidan-o'zi qayta ochilardi (pastda batafsil).
+"""
+
+from django.db import transaction
 from django.utils import timezone
 
-from .models import Cohort, Enrollment
+from .models import Enrollment
+
+CLOSED_MESSAGE = "Ushbu kursga qabul hali ochilmagan."
 
 
 class CheckoutUnavailable(Exception):
     pass
 
 
-def ensure_checkout_cohort(*, course, today=None):
-    today = today or timezone.localdate()
-    existing_default = course.cohorts.filter(is_checkout_default=True).order_by("-is_active", "start_date", "id").first()
-    if existing_default:
-        updates = []
-        if not existing_default.is_active:
-            existing_default.is_active = True
-            updates.append("is_active")
-        if existing_default.start_date > today:
-            existing_default.start_date = today
-            updates.append("start_date")
-        if updates:
-            existing_default.save(update_fields=updates)
-        return existing_default
-
-    active_cohort = pick_checkout_cohort(course=course, today=today)
-    if active_cohort:
-        active_cohort.is_checkout_default = True
-        active_cohort.save(update_fields=["is_checkout_default"])
-        return active_cohort
-
-    raise CheckoutUnavailable("Ushbu kursga qabul hali ochilmagan.")
-
-
 def pick_checkout_cohort(*, course, today=None):
+    """Faol cohortlar orasidan checkout uchun mosini tanlaydi (faqat o'qish)."""
     today = today or timezone.localdate()
     active_cohorts = course.cohorts.filter(is_active=True).order_by("start_date", "id")
 
@@ -44,6 +36,24 @@ def pick_checkout_cohort(*, course, today=None):
         return upcoming_cohort
 
     return active_cohorts.order_by("-start_date", "-id").first()
+
+
+def ensure_checkout_cohort(*, course, today=None):
+    """Faol cohortlardan birini default deb belgilaydi.
+
+    **Yopiq qabulni ochmaydi.** Ilgari bu funksiya `is_active=True` qilib
+    qo'yardi va `start_date`ni bugunga tortardi — ya'ni owner qabulni
+    yopgandan keyin bitta o'quvchining checkout sahifasini ochishi uni qayta
+    ochib yuborardi. Qabulni faqat owner ochadi.
+    """
+    cohort = pick_checkout_cohort(course=course, today=today)
+    if cohort is None:
+        raise CheckoutUnavailable(CLOSED_MESSAGE)
+
+    if not cohort.is_checkout_default:
+        cohort.is_checkout_default = True
+        cohort.save(update_fields=["is_checkout_default"])
+    return cohort
 
 
 def _checkout_priority(enrollment, *, target_cohort_id=None, today=None):
@@ -59,21 +69,15 @@ def _checkout_priority(enrollment, *, target_cohort_id=None, today=None):
     return (status_rank, target_match_rank, joined_rank, -enrollment.id)
 
 
-def resolve_checkout_enrollment(*, student, course, today=None):
-    today = today or timezone.localdate()
-    target_cohort = pick_checkout_cohort(course=course, today=today) or ensure_checkout_cohort(
-        course=course,
-        today=today,
-    )
-
-    existing_enrollments = list(
+def _reusable_enrollments(*, student, course, today):
+    candidates = (
         Enrollment.objects.filter(student=student, cohort__course=course)
         .select_related("cohort", "cohort__course", "plan")
         .order_by("-joined_at", "-id")
     )
-    reusable_enrollments = [
+    return [
         enrollment
-        for enrollment in existing_enrollments
+        for enrollment in candidates
         if enrollment.get_effective_status(today=today)
         in {
             Enrollment.STATUS_ACTIVE,
@@ -81,19 +85,58 @@ def resolve_checkout_enrollment(*, student, course, today=None):
             Enrollment.STATUS_EXPIRED,
         }
     ]
-    if reusable_enrollments:
-        reusable_enrollments.sort(
-            key=lambda enrollment: _checkout_priority(
-                enrollment,
-                target_cohort_id=target_cohort.id,
-                today=today,
-            )
-        )
-        return reusable_enrollments[0], False, target_cohort
 
-    enrollment = Enrollment.objects.create(
-        student=student,
-        cohort=target_cohort,
-        status=Enrollment.STATUS_PENDING,
+
+def find_checkout_enrollment(*, student, course, today=None):
+    """Mavjud enrollment (yoki `None`) va maqsad cohort — hech narsa yozmasdan.
+
+    Qabul yopilgan bo'lsa yangi o'quvchi uchun `CheckoutUnavailable`, ammo
+    **mavjud o'quvchi to'lovni davom ettira oladi**: "qabul yopildi" degani
+    yangi a'zo olinmaydi, allaqachon o'qiyotgan odam obunasini uzaytira
+    olmaydi degani emas.
+    """
+    today = today or timezone.localdate()
+    reusable = _reusable_enrollments(student=student, course=course, today=today)
+    target_cohort = pick_checkout_cohort(course=course, today=today)
+
+    if target_cohort is None:
+        if not reusable:
+            raise CheckoutUnavailable(CLOSED_MESSAGE)
+        target_cohort = reusable[0].cohort
+
+    if not reusable:
+        return None, target_cohort
+
+    reusable.sort(
+        key=lambda enrollment: _checkout_priority(
+            enrollment,
+            target_cohort_id=target_cohort.id,
+            today=today,
+        )
     )
+    return reusable[0], target_cohort
+
+
+def resolve_checkout_enrollment(*, student, course, today=None):
+    """Yozuv yo'li: enrollment yo'q bo'lsa yaratadi.
+
+    Faqat foydalanuvchi ataylab amal qilganda chaqiriladi (forma yuborish,
+    botda kurs+tarif tanlash) — sahifa ko'rsatishda emas.
+    """
+    today = today or timezone.localdate()
+    enrollment, target_cohort = find_checkout_enrollment(
+        student=student,
+        course=course,
+        today=today,
+    )
+    if enrollment is not None:
+        return enrollment, False, target_cohort
+
+    with transaction.atomic():
+        target_cohort = ensure_checkout_cohort(course=course, today=today)
+        enrollment = Enrollment.objects.create(
+            student=student,
+            cohort=target_cohort,
+            status=Enrollment.STATUS_PENDING,
+        )
     return enrollment, True, target_cohort

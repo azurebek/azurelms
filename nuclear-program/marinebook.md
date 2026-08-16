@@ -16,6 +16,29 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-16 [Claude Code]: A4/1 — checkout sahifasi owner holatini o'zgartirmaydi
+
+R2 ning birinchi slice'i. Backlog A4 ikkita narsani aniq talab qiladi: "inactive cohortni tasodifiy reactivation qilmaslik" va checkout course binding'ining to'g'riligi. Kodni o'qiganda ikkalasi ham buzilgani ko'rindi, va ikkalasi bitta sababdan — **o'qish yo'li bilan yozuv yo'li ajratilmagan edi**.
+
+**1. Yopilgan qabul o'zidan-o'zi ochilardi.** `ensure_checkout_cohort()` default cohortni `is_active=True` qilib qo'yardi va `start_date`ni bugunga tortardi. Ya'ni owner qabulni yopgandan keyin bitta o'quvchining checkout sahifasini ochishi kursni qayta ochib yuborardi. Test buni ko'rsatdi: sana `2026-12-01` dan `2026-08-16` ga o'zgardi va `CheckoutUnavailable` umuman ko'tarilmadi.
+
+**2. GET yozuv qilardi.** Sahifani ko'rishning o'zi `Enrollment` yaratardi — promo preview AJAX endpointi ham. Har ochilgan sahifa, har qayta yuklash, har crawler bazaga qator qo'shardi. Uch marta yuklash = uchta emas, bitta enrollment (qayta ishlatilardi), ammo bitta ham ortiqcha edi.
+
+Servis endi ikkiga bo'lindi: `find_checkout_enrollment()` — hech narsa yozmaydi, sahifa ko'rsatish uchun; `resolve_checkout_enrollment()` — faqat forma yuborilganda yoki botda kurs+tarif tanlanganda.
+
+Yo'l-yo'lakay bitta mahsulot qarori kerak bo'ldi: qabul yopilganda **mavjud o'quvchi to'lovni davom ettira olishi kerak**. "Qabul yopildi" degani yangi a'zo olinmaydi degani, o'qiyotgan odam obunasini uzaytira olmaydi degani emas. Aks holda tuzatish yangi xato tug'dirardi.
+
+Promo narx ko'rsatishi enrollmentsiz ishlashi uchun `promo_service` ga ixtiyoriy `cohort` parametri qo'shildi: kurs/cohort scope tekshiruvi endi enrollmentdan yoki maqsad cohortdan keladi, `_current_checkout_kind()` esa enrollment yo'q bo'lsa "birinchi xarid" deydi.
+
+- Branch: `claude/a4-checkout-read-write-split` → PR
+- Yangi: `cohorts/test_checkout_side_effects.py` (8 test). Tegilgan: `cohorts/checkout_service.py` (qayta yozildi), `cohorts/views.py` (2 view), `subscriptions/promo_service.py`
+- Migratsiya yo'q
+- Test holati: to'liq suite **699/699 OK** (local, SQLite)
+- Nazorat: testlar tuzatishdan **oldin** yozildi va 8 tadan 6 tasi yiqildi — qolgan ikkitasi ataylab teskari tomonni qo'riqlaydi (POST hamon enrollment yaratishi kerak)
+- Qolgan A4 ishi: chek yuborishda double-submit himoyasi TOCTOU (`has_pending_receipt` o'qilib, keyin tekshiriladi — qulf ham, DB constraint ham yo'q), typed entitlement, Telegram credential claim parity
+
+---
+
 ## 2026-08-15 [Claude Code]: bog'liqlik xavfsizlik qarzi — 93 advisory → 0
 
 CI ning supply-chain gate'i ishga tushgan kuni 19 paketda 93 ta e'lon qilingan zaiflik ko'rsatdi. Eng kattasi Django `6.0.2` — 18 advisory; repo esa public. Qarz reyestrga yozilgandi, endi to'landi.
