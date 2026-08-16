@@ -3,7 +3,7 @@ import string
 from dataclasses import dataclass
 from decimal import Decimal, ROUND_HALF_UP
 
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 
 from .models import PromoCampaign, PromoCode, PromoRedemption
@@ -187,7 +187,7 @@ def create_checkout_receipt_with_promo(
     period_end,
     raw_code="",
 ):
-    from cohorts.models import PaymentReceipt
+    from cohorts.models import PaymentReceipt, PendingReceiptExists
 
     with transaction.atomic():
         quote = build_promo_quote(
@@ -197,17 +197,27 @@ def create_checkout_receipt_with_promo(
             raw_code=raw_code,
             lock=bool(raw_code and raw_code.strip()),
         )
-        receipt = PaymentReceipt.objects.create(
-            enrollment=enrollment,
-            receipt_image=receipt_image,
-            amount=quote.final_amount,
-            base_amount=quote.base_amount,
-            discount_amount=quote.discount_amount,
-            promo_code_snapshot=quote.promo_code.code if quote.promo_code else "",
-            promo_campaign_snapshot=quote.campaign.name if quote.campaign else "",
-            period_start=period_start,
-            period_end=period_end,
-        )
+        # `PaymentReceipt` dagi yagona unique cheklov — bitta enrollmentda
+        # bitta tasdiqlanmagan chek. Uni nom bo'yicha ajratib bo'lmaydi:
+        # PostgreSQL cheklov nomini xato matniga qo'shadi, SQLite esa yo'q
+        # (`UNIQUE constraint failed: cohorts_paymentreceipt.enrollment_id`).
+        # Shuning uchun aynan shu `create()` o'ralgan, butun blok emas.
+        try:
+            receipt = PaymentReceipt.objects.create(
+                enrollment=enrollment,
+                receipt_image=receipt_image,
+                amount=quote.final_amount,
+                base_amount=quote.base_amount,
+                discount_amount=quote.discount_amount,
+                promo_code_snapshot=quote.promo_code.code if quote.promo_code else "",
+                promo_campaign_snapshot=quote.campaign.name if quote.campaign else "",
+                period_start=period_start,
+                period_end=period_end,
+            )
+        except IntegrityError as exc:
+            raise PendingReceiptExists(
+                "Sizda allaqachon tasdiqlanmagan to'lov cheki mavjud."
+            ) from exc
         redemption = None
         if quote.promo_code:
             redemption = PromoRedemption.objects.create(

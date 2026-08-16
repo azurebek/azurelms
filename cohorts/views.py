@@ -18,7 +18,7 @@ from .checkout_service import (
     find_checkout_enrollment,
     resolve_checkout_enrollment,
 )
-from .models import PaymentReceipt
+from .models import PaymentReceipt, PendingReceiptExists
 
 @login_required
 def checkout_view(request, course_id):
@@ -183,6 +183,16 @@ def checkout_view(request, course_id):
                 period_end=tentative_end,
                 raw_code=submitted_promo_code,
             )
+        except PendingReceiptExists:
+            # Baza cheklovi ikkinchi chekni rad etdi (ikki marta bosilgan tugma
+            # yoki parallel yuborish). Foydalanuvchiga oddiy tekshiruvdagi bilan
+            # bir xil xabar ko'rsatiladi.
+            messages.error(
+                request,
+                "Sizda allaqachon tasdiqlanmagan to'lov cheki mavjud. "
+                "Iltimos, administrator tasdiqlashini kuting.",
+            )
+            return redirect('cohorts:checkout', course_id=course.id)
         except PromoValidationError as exc:
             messages.error(request, str(exc))
             return render(request, 'cohorts/checkout.html', {

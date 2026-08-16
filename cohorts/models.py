@@ -263,6 +263,15 @@ class EnrollmentTransition(models.Model):
         ]
 
 
+class PendingReceiptExists(Exception):
+    """Bu enrollmentda allaqachon tasdiqlanmagan chek bor.
+
+    Baza cheklovi (`unique_pending_receipt_per_enrollment`) buzilganda
+    chiqariladi. Adapterlar (web forma, Telegram bot) buni ushlab, xom
+    `IntegrityError` o'rniga odam o'qiydigan xabar ko'rsatadi.
+    """
+
+
 class PaymentReceipt(models.Model):
     # To'lov cheklarini saqlash
     enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE, related_name='receipts',
@@ -351,6 +360,23 @@ class PaymentReceipt(models.Model):
     class Meta:
         verbose_name = "To'lov cheki"
         verbose_name_plural = "To'lov cheklari"
+        constraints = [
+            # Bitta enrollmentda bir vaqtda faqat bitta tasdiqlanmagan chek.
+            #
+            # Kafolat ataylab bazada, kodda emas: web ham, bot ham chek
+            # yaratishdan oldin "pending chek bormi?" deb o'qib, keyin
+            # yozardi — orada qulf yo'q edi. Ikki marta bosilgan tugma yoki
+            # ikkita parallel yuborish ikkala tekshiruvdan ham o'tib ketardi.
+            # SQLite'da `select_for_update()` no-op bo'lgani uchun qulf bilan
+            # tuzatish lokalda umuman ishlamasdi.
+            #
+            # Tasdiqlangan cheklar cheklanmaydi: har oylik to'lov yangi yozuv.
+            models.UniqueConstraint(
+                fields=["enrollment"],
+                condition=models.Q(is_verified=False),
+                name="unique_pending_receipt_per_enrollment",
+            ),
+        ]
 
 
 class Attendance(models.Model):
