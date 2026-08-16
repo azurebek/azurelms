@@ -16,6 +16,31 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-16 [Claude Code]: A4/4 — Telegram ulash havolasi muddatli va bir martalik
+
+A4 ning oxirgi bandi: "Telegram credential claim". Profil sahifasidagi `t.me/<bot>?start=<token>` havolasi `Signer().sign(user.id)` ning base64'i edi. Ikkita mustaqil nuqson chiqdi.
+
+**1. Muddat yo'q edi.** `Signer` vaqt qo'shmaydi va har safar **bir xil** token qaytaradi — o'lchab tekshirildi. Ya'ni havola abadiy yaroqli bearer credential. U bir marta sizib chiqsa (skrinshot, forward qilingan xabar, brauzer tarixi, support yozishmasi), topgan odam **o'z** Telegramini o'quvchining hisobiga ulaydi va botda o'sha o'quvchi sifatida ishlaydi — bildirishnomalari, kurs kirishi, topshiriqlari. Yonidagi login oqimi (`TelegramAuthSession`) esa 5 daqiqalik, bir martalik va brauzerga bog'langan; ya'ni ulash yo'li ataylab emas, tasodifan zaifroq qolgan edi.
+
+**2. Havola `user.id >= 10000` da umuman ishlamaydi.** Telegram `start` payloadiga 64 belgi chegara qo'yadi. O'lchov: 4 xonali IDda aynan **64**, 5 xonalida **66**. Koddagi izoh "Signer is compact enough for Telegram's 64-char payload limit" deb turardi — bu faqat dastlabki o'n ming foydalanuvchi uchun rost edi. Lokal bazada eng katta `user.id` = 1, shuning uchun hech qachon ko'rinmagan.
+
+Yechim ikkalasini ham yopadi: `users.TelegramLinkToken` — qisqa tasodifiy token (22 belgi), 30 daqiqalik muddat, bir martalik ishlatish. Profil sahifasini qayta ochish endigina nusxalangan havolani bekor qilmasligi uchun hali yaroqli token qayta beriladi.
+
+`TimestampSigner` ko'rib chiqildi va **rad etildi**: u payloadni 70–78 belgiga cho'zadi, ya'ni ikkinchi muammoni battar qiladi.
+
+Yo'l-yo'lakay topilgan mavjud xato: `bot/services.py` da `logger` umuman aniqlanmagan edi, ya'ni `handle_telegram_auth_token` ning `except` bloki xatoni yozish o'rniga `NameError` bilan yiqilardi. Modul loggeri qo'shildi.
+
+- Branch: `claude/a4-telegram-link-token` → PR
+- Yangi: `users/test_telegram_link_claim.py` (8 test), `users.TelegramLinkToken`. Tegilgan: `users/views.py`, `bot/services.py`, `bot/tests.py`
+- Migratsiya: `users/0017_telegramlinktoken` — faqat `CreateModel`; lokal bazaga qo'llandi
+- **Buzuvchi o'zgarish:** eski imzolangan havolalar endi ishlamaydi. Bu ataylab — ularni qabul qilishda davom etish zaiflikni saqlab qolardi. Foydalanuvchi profil sahifasidan yangi havola oladi
+- Test holati: to'liq suite **716/716 OK**
+- Nazorat: uzunlik testi tuzatishdan oldin jonli kodda `66 not less than or equal to 64` bilan yiqildi; muddat testi esa model yo'qligidan `ImportError` berdi
+- Mavjud `bot.tests` dagi bitta test eski token yasagani uchun yangilandi
+- Qolgan (bu slice'da tegilmagan): `users/views.py` da ikkita ishlatilmaydigan import (`Cohort`, `TimestampSigner`) — mening o'zgarishimdan oldin ham o'lik edi
+
+---
+
 ## 2026-08-16 [Claude Code]: A4/3 — chek qaysi kursga tushishi taxmin qilinmaydi
 
 Backlog A4: "receipt ayni tanlangan enrollmentga". Web'da bu bajarilgan — forma `course_id` bilan keladi. Telegram'da esa aloqa uzilgan edi: `/yozilish` da tanlangan kurs hech qayerda saqlanmasdi, chek rasmi kelganda nishon **taxmin qilinardi** — "tarifi bor, tasdiqlanmagan cheki yo'q, eng oxirgi qo'shilgan enrollment".
