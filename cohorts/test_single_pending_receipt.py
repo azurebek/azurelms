@@ -18,6 +18,7 @@ from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
 from django.test import TestCase, TransactionTestCase
+from django.utils import timezone
 from django.test.utils import override_settings
 from django.urls import reverse
 
@@ -93,6 +94,9 @@ class ReceiptFixtureMixin:
             cohort=self.cohort,
             plan=self.plan,
             status=Enrollment.STATUS_PENDING,
+            # Foydalanuvchi checkoutni boshlagan holat: Telegram adapteri
+            # chekni aynan shu belgiga qarab joylashtiradi (A4).
+            checkout_started_at=timezone.now(),
         )
 
     def submit(self, name="receipt.png"):

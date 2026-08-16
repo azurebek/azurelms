@@ -56,6 +56,20 @@ def ensure_checkout_cohort(*, course, today=None):
     return cohort
 
 
+def mark_checkout_started(enrollment, *, plan, now=None):
+    """Tanlangan tarifni yozadi va to'lov niyatini vaqt bilan belgilaydi.
+
+    Yagona nuqta: web forma ham, Telegram `/yozilish` ham shu yerdan o'tadi.
+    `checkout_started_at` keyin chek qaysi enrollmentga tegishli ekanini
+    aniqlaydi — Telegram'dan kelgan rasm o'zi bilan kurs ma'lumotini olib
+    kelmaydi.
+    """
+    enrollment.plan = plan
+    enrollment.checkout_started_at = now or timezone.now()
+    enrollment.save(update_fields=["plan", "checkout_started_at"])
+    return enrollment
+
+
 def _checkout_priority(enrollment, *, target_cohort_id=None, today=None):
     effective_status = enrollment.get_effective_status(today=today)
     status_rank = {

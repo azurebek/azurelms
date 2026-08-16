@@ -126,6 +126,16 @@ class Enrollment(models.Model):
     )
 
     joined_at = models.DateTimeField(auto_now_add=True)
+    # Foydalanuvchi aynan shu enrollment uchun to'lovni boshlagan payt.
+    # Telegram'da chek rasmi alohida xabar bo'lib keladi va o'zi bilan hech
+    # qanday kurs ma'lumotini olib kelmaydi — nishonni shu maydon aniqlaydi.
+    # Usiz bot "eng oxirgi qo'shilgan enrollment" deb taxmin qilardi va ikkita
+    # kursi bor o'quvchining puli noto'g'ri kursga yozilardi.
+    checkout_started_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Checkout boshlangan payt",
+    )
     last_payment_date = models.DateField(null=True, blank=True, verbose_name="So'nggi to'lov sanasi")
     next_payment_deadline = models.DateField(null=True, blank=True, help_text="Navbatdagi to'lov oxirgi muddati")
     completed_at = models.DateTimeField(null=True, blank=True, verbose_name="Kurs tugallangan vaqt")
