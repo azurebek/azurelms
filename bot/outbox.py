@@ -127,6 +127,20 @@ def mark_outbox_attempt_failed(item, error):
     )
 
 
+WORKER_NAME = "telegram-outbox"
+
+
+def record_worker_heartbeat(*, sent=0, claimed=0):
+    """Workerni tirik deb belgilaydi (A2).
+
+    Sikl boshida emas, oxirida yoziladi: "men uyg'onib, ishimni qildim"
+    degani "men jarayon sifatida mavjudman" dan kuchliroq signal.
+    """
+    from aicontrol.models import WorkerHeartbeat
+
+    return WorkerHeartbeat.record(WORKER_NAME, detail={"sent": sent, "claimed": claimed})
+
+
 async def process_outbox_once(bot):
     """Bitta sikl: pending'larni olib yuborishga urinadi. Yuborilganlar sonini qaytaradi."""
     items = await sync_to_async(claim_pending_outbox)()
@@ -139,6 +153,10 @@ async def process_outbox_once(bot):
             continue
         await sync_to_async(mark_outbox_sent)(item)
         sent += 1
+
+    # Navbat bo'sh bo'lsa ham belgilanadi — aynan shu holat ilgari ko'r nuqta
+    # edi: ishlaydigan narsa yo'qligi worker tirikligini isbotlamasdi.
+    await sync_to_async(record_worker_heartbeat)(sent=sent, claimed=len(items))
     return sent
 
 

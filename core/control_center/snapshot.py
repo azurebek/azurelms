@@ -165,6 +165,54 @@ def _jobs_probe(definition: CapabilityDefinition) -> CapabilityResult:
     )
 
 
+#: Control Center kutadigan workerlar. Bugun bitta — Telegram outbox.
+EXPECTED_WORKERS = ("telegram-outbox",)
+
+
+def _workers_probe(definition: CapabilityDefinition) -> CapabilityResult:
+    """Worker tirikligini navbatdan emas, o'z belgisidan o'qiydi.
+
+    Outbox probe'i sog'liqni navbat yoshidan chiqaradi, ya'ni navbat bo'sh
+    bo'lsa o'lik worker ham yashil ko'rinadi. Bu yerda esa jarayonning o'zi
+    yozib qoldirgan `WorkerHeartbeat` o'qiladi.
+    """
+    from aicontrol.models import WorkerHeartbeat
+
+    beats = {beat.name: beat for beat in WorkerHeartbeat.objects.all()}
+    missing, stale, alive = [], [], []
+    for name in EXPECTED_WORKERS:
+        beat = beats.get(name)
+        if beat is None:
+            missing.append(name)
+        elif beat.is_dead():
+            stale.append(name)
+        elif not beat.is_alive():
+            stale.append(name)
+        else:
+            alive.append(name)
+
+    if stale:
+        status = "red"
+        summary = f"Worker javob bermayapti: {', '.join(stale)}."
+    elif missing:
+        # Lokalda bot odatda ishlamaydi — bu nosozlik emas, sozlanmagan holat.
+        status = "amber" if settings.IS_LOCAL else "red"
+        summary = f"Worker hech qachon belgi qoldirmagan: {', '.join(missing)}."
+    else:
+        status = "green"
+        summary = "Barcha kutilgan workerlar tirik."
+
+    return _result(
+        definition,
+        status,
+        summary,
+        expected=len(EXPECTED_WORKERS),
+        alive=len(alive),
+        stale=len(stale),
+        never_seen=len(missing),
+    )
+
+
 def _telegram_probe(definition: CapabilityDefinition) -> CapabilityResult:
     from bot.models import TelegramOutbox
 
@@ -413,6 +461,7 @@ PROBE_FUNCTIONS: dict[str, Callable[[CapabilityDefinition], CapabilityResult]] =
     "realtime": _realtime_probe,
     "jobs": _jobs_probe,
     "telegram_outbox": _telegram_probe,
+    "workers": _workers_probe,
     "media_storage": _media_probe,
     "ai_provider": _ai_probe,
     "rag": _rag_probe,

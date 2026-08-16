@@ -8,9 +8,12 @@ Limit birligi — TOKEN (prompt+javob). Oyna: rolling 5 soat + haftalik.
 Xom usage messenger.AIResponseRun.total_tokens da yotadi; bu app faqat siyosat
 va reset markerlarini boshqaradi.
 """
+import datetime
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
 
 
 class AISettings(models.Model):
@@ -422,3 +425,53 @@ class SystemAuditEvent(models.Model):
 
     def delete(self, *args, **kwargs):
         raise ValidationError("Audit yozuvi append-only: o'chirib bo'lmaydi.")
+
+
+class WorkerHeartbeat(models.Model):
+    """Fon jarayonining "men tirikman" yozuvi (A2).
+
+    Nega kerak: Control Center Telegram outbox'ning sog'lig'ini navbat
+    yoshidan taxmin qilardi — navbatda eskirgan xabar bo'lsa AMBER/RED. Bu
+    ko'r nuqta qoldiradi: **navbat bo'sh bo'lsa o'lik worker ham yashil
+    ko'rinadi**. Worker tunda o'lib qolsa, ertalab birinchi bildirishnoma
+    15 daqiqa turmaguncha hech kim bilmaydi.
+
+    Jarayon har siklda o'zini shu yerda belgilaydi; holat esa navbatdan emas,
+    shu yozuvdan o'qiladi.
+    """
+
+    #: Tirik deb hisoblash oynasi. Outbox sikli 15 soniyada bir yuguradi,
+    #: shuning uchun bir necha o'tkazib yuborilgan sikl hali xavotir emas.
+    ALIVE_WINDOW = datetime.timedelta(minutes=2)
+    #: Bundan oshsa shunchaki sekin emas — jarayon o'lgan.
+    DEAD_WINDOW = datetime.timedelta(minutes=15)
+
+    name = models.CharField(max_length=64, unique=True, verbose_name="Worker nomi")
+    last_seen_at = models.DateTimeField(verbose_name="Oxirgi belgi")
+    detail = models.JSONField(default=dict, blank=True, verbose_name="Qo'shimcha")
+
+    class Meta:
+        verbose_name = "Worker heartbeat"
+        verbose_name_plural = "Worker heartbeatlar"
+        ordering = ["name"]
+
+    def __str__(self):
+        return f"{self.name} @ {self.last_seen_at:%Y-%m-%d %H:%M:%S}"
+
+    @classmethod
+    def record(cls, name, *, detail=None, now=None):
+        """Workerni tirik deb belgilaydi."""
+        beat, _created = cls.objects.update_or_create(
+            name=name,
+            defaults={"last_seen_at": now or timezone.now(), "detail": detail or {}},
+        )
+        return beat
+
+    def age(self, *, now=None):
+        return (now or timezone.now()) - self.last_seen_at
+
+    def is_alive(self, *, now=None):
+        return self.age(now=now) <= self.ALIVE_WINDOW
+
+    def is_dead(self, *, now=None):
+        return self.age(now=now) > self.DEAD_WINDOW

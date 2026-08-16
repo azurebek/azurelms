@@ -16,6 +16,27 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-16 [Claude Code]: A2/1 — worker tirikligi endi to'g'ridan-to'g'ri o'lchanadi
+
+A2 backlog'ida "active worker heartbeat" uzoq vaqtdan beri ochiq turardi. Nima uchun kerakligi tekshirganda aniq bo'ldi.
+
+Control Center Telegram outbox sog'lig'ini **navbat yoshidan** chiqaradi: navbatda 15 daqiqadan oshgan xabar bo'lsa AMBER, bir soatdan oshsa RED. Bu mantiq to'g'ri, ammo ko'r nuqta qoldiradi — **navbat bo'sh bo'lsa o'lik worker ham yashil ko'rinadi**. Worker tunda o'lsa, ertalab birinchi bildirishnoma yuborilib, 15 daqiqa turmaguncha hech kim bilmaydi.
+
+Yangi `aicontrol.WorkerHeartbeat`: jarayon har siklda o'zini belgilaydi, Control Center esa alohida `workers` capability'sida shu yozuvni o'qiydi. Belgi sikl **oxirida** yoziladi — "uyg'onib ishimni qildim" degani "jarayon sifatida mavjudman" dan kuchliroq signal. Navbat bo'sh bo'lganda ham yoziladi, chunki aynan o'sha holat ko'r nuqta edi.
+
+Bostirmalar: 2 daqiqadan keyin tirik emas, 15 daqiqadan keyin o'lik. Outbox sikli 15 soniyada bir yuguradi, ya'ni bir nechta o'tkazib yuborilgan sikl hali xavotir emas. Lokalda bot odatda ishlamaydi, shuning uchun "hech qachon belgi qoldirmagan" holati lokalda AMBER, productionda RED — sozlanmagan holat nosozlik emas.
+
+Eng muhim test ko'r nuqtani **yonma-yon** ko'rsatadi: bir xil holatda outbox probe'i yashil (va bu to'g'ri — navbatda muammo yo'q), worker probe'i esa emas.
+
+- Branch: `claude/a2-worker-heartbeat` → PR
+- Yangi: `aicontrol.WorkerHeartbeat`, `core/test_worker_heartbeat.py` (10 test), `workers` capability. Tegilgan: `core/control_center/registry.py`, `core/control_center/snapshot.py`, `bot/outbox.py`
+- Migratsiya: `aicontrol/0005_workerheartbeat` — faqat `CreateModel`; lokal bazaga qo'llandi
+- Test holati: to'liq suite **762/762 OK**
+- Capability registri 10 tadan 11 taga chiqdi
+- Qolgan A2 ishi: umumiy feature flag registri, `ReleaseRecord`, cost/quality gate, va `05-launch-ops.md` §3 audit ro'yxatining qolgani (receipt qarori, enrollment transition, outbox replay, media denial, release/rollback) — bugun ulardan ikkitasi (lesson release, grade/review) A3 slice'larida yopilgan edi
+
+---
+
 ## 2026-08-16 [Claude Code]: A3/4 — baholangan vazifa XP ham, xabar ham beradi
 
 A3 ning oxirgi bandi. Grading queue'da ikkita nuqson topildi.

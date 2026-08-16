@@ -110,6 +110,16 @@ CAPABILITY_REGISTRY = (
         runbook="SECURITY_STRICT, DEBUG, secure cookie va deploy checkni tekshiring.",
     ),
     CapabilityDefinition(
+        slug="workers",
+        label="Fon workerlari",
+        category="Runtime",
+        criticality="high",
+        owner="Azurbek",
+        description="Background workers reporting a live heartbeat.",
+        dependencies=("database",),
+        runbook="Worker jarayonini qayta ishga tushiring: `python manage.py runbot` yoki `telegram_outbox`.",
+    ),
+    CapabilityDefinition(
         slug="release",
         label="Release identity",
         category="Governance",
