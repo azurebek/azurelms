@@ -90,6 +90,7 @@
 - **Outcome:** asosiy learner/teacher flow'lari telefon ekranida bloklanmaydi.
 - **Scope:** Messenger 320–414px; lesson header 360px; exam 568×320/640×360 landscape; reconnect; keyboard/accessibility; checkout; teacher attendance; Mini App deep actions.
 - **Acceptance:** desktop Chrome + Android Chrome + iOS Safari video-evidence; overflow/overlap/console/blocking keyboard issue `0`; real mic/upload; empty/error/dark/light states.
+- **Qanday sinaladi:** [`nuclear-program/mobile-qa-runbook.md`](../mobile-qa-runbook.md) — LAN va HTTPS tunnel yo'llari, qaysi band qaysi yo'l bilan qoplanishi va dalil formati. Mikrofon LAN orqali ishlamaydi (secure context talab qilinadi), shuning uchun speaking va Mini App uchun tunnel majburiy.
 - **Faza:** sequential feature emas. R1'dan boshlab har band tegadigan mobile/auth/media flow evidence beradi; R2'da to'liq 3-qurilma sign-off.
 
 ### A6. Learner Outcome Ledger minimal — `PLANNED`, `M`
