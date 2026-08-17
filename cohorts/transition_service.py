@@ -36,6 +36,25 @@ def locked_enrollment_queryset():
     )
 
 
+def _audit_transition(*, action, transition, created_by, note):
+    """Transition operatsion ledgerga ham tushadi (A2 / §3).
+
+    `EnrollmentTransition` domen yozuvi sifatida yetarli, ammo unda `source`,
+    IP va release SHA yo'q — ya'ni "kim, qayerdan" savoliga javob bermaydi.
+    """
+    from core.audit import record_audit_event
+
+    record_audit_event(
+        action=action,
+        actor=created_by,
+        target=transition,
+        target_label=f"{transition.student.username}: {transition.source_cohort.name} → {transition.target_cohort.name}",
+        reason=note,
+        before={"cohort": transition.source_cohort.name},
+        after={"cohort": transition.target_cohort.name},
+    )
+
+
 def _locked_enrollment(pk):
     return locked_enrollment_queryset().get(pk=pk)
 
@@ -172,6 +191,12 @@ def transfer_enrollment_to_cohort(*, source_enrollment, target_cohort, created_b
             note=note,
             progress_items_moved=moved_count,
         )
+        _audit_transition(
+            action="enrollment.transfer",
+            transition=transition,
+            created_by=created_by,
+            note=note,
+        )
         _notify_transfer(transition=transition)
     return TransitionResult(
         source_enrollment=source_enrollment,
@@ -215,6 +240,12 @@ def promote_enrollment_to_cohort(*, source_enrollment, target_cohort, created_by
             created_by=created_by,
             note=note,
             progress_items_moved=0,
+        )
+        _audit_transition(
+            action="enrollment.promote",
+            transition=transition,
+            created_by=created_by,
+            note=note,
         )
         _notify_promotion(transition=transition)
     return TransitionResult(

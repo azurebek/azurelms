@@ -18,7 +18,10 @@ Ikki qoida:
   `attachment` sifatida beriladi.
 """
 
+import datetime
+
 from django.http import FileResponse, Http404
+from django.utils import timezone
 
 from core.upload_validation import sniff_kind
 
@@ -40,9 +43,54 @@ _CONTENT_TYPES = {
 _INLINE_KINDS = {"png", "jpeg", "webp", "gif", "webm", "ogg", "wav", "mp3", "mp4"}
 
 
-def _require(condition):
-    """Ruxsat yo'q yoki obyekt yo'q — ikkalasi ham bir xil `404` beradi."""
+#: Bitta aktordan kelgan takroriy rad etishlar shu oynada bir marta yoziladi.
+#: Ledger append-only va tozalanmaydi — URL'larni ketma-ket sinab ko'rayotgan
+#: odam minglab qator qoldirmasligi kerak. Skaner baribir ko'rinadi: u oynada
+#: bittadan qator qoldiradi.
+DENIAL_AUDIT_WINDOW = datetime.timedelta(minutes=15)
+
+
+def _audit_denial(request, target):
+    """Xavfsizlik signali: kimdir o'ziga tegishli bo'lmagan faylga urindi.
+
+    Faqat autentifikatsiyadan o'tgan foydalanuvchi yoziladi — anonim so'rovchi
+    aktor emas va uni yozish shovqindan boshqa narsa bermaydi (§3).
+    """
+    from aicontrol.models import SystemAuditEvent
+    from core.audit import record_audit_event
+
+    user = getattr(request, "user", None)
+    if user is None or not getattr(user, "is_authenticated", False):
+        return None
+
+    target_type = target.__class__.__name__
+    recent = SystemAuditEvent.objects.filter(
+        action="private_media.denied",
+        actor=user,
+        target_type=target_type,
+        created_at__gte=timezone.now() - DENIAL_AUDIT_WINDOW,
+    ).exists()
+    if recent:
+        return None
+
+    return record_audit_event(
+        action="private_media.denied",
+        request=request,
+        outcome=SystemAuditEvent.OUTCOME_DENIED,
+        target=target,
+        target_label=f"{target_type} #{getattr(target, 'pk', '')}",
+        error="Ruxsat yo'q.",
+    )
+
+
+def _require(condition, *, request=None, target=None):
+    """Ruxsat yo'q yoki obyekt yo'q — ikkalasi ham bir xil `404` beradi.
+
+    `request` va `target` berilsa, rad etish audit ledgeriga ham tushadi.
+    """
     if not condition:
+        if request is not None and target is not None:
+            _audit_denial(request, target)
         raise Http404
 
 
@@ -83,7 +131,11 @@ def receipt_file(request, receipt_id):
     _require(user.is_authenticated and user.is_active)
     receipt = PaymentReceipt.objects.filter(pk=receipt_id).select_related("enrollment").first()
     _require(receipt is not None)
-    _require(receipt.enrollment.student_id == user.id or user.is_staff or user.is_superuser)
+    _require(
+        receipt.enrollment.student_id == user.id or user.is_staff or user.is_superuser,
+        request=request,
+        target=receipt,
+    )
     return serve_private_file(request, receipt.receipt_image)
 
 
@@ -103,7 +155,11 @@ def submission_file(request, submission_id):
 
     if submission.student_id != user.id:
         course_id = submission.assignment.lesson.module.course_id
-        _require(teacher_course_queryset(user).filter(pk=course_id).exists())
+        _require(
+            teacher_course_queryset(user).filter(pk=course_id).exists(),
+            request=request,
+            target=submission,
+        )
     return serve_private_file(request, submission.attachment)
 
 
@@ -116,7 +172,11 @@ def message_attachment(request, message_id):
     _require(user.is_authenticated and user.is_active)
     message = Message.objects.filter(pk=message_id).select_related("room").first()
     _require(message is not None and not message.is_deleted)
-    _require(user_can_access_room(user, message.room))
+    _require(
+        user_can_access_room(user, message.room),
+        request=request,
+        target=message,
+    )
     return serve_private_file(
         request, message.attachment, download_name=message.attachment_name
     )
@@ -138,7 +198,11 @@ def exam_answer_audio(request, answer_id):
     _require(answer is not None and bool(answer.audio_key))
 
     if answer.attempt.student_id != user.id:
-        _require(teacher_course_queryset(user).filter(pk=answer.attempt.exam.course_id).exists())
+        _require(
+            teacher_course_queryset(user).filter(pk=answer.attempt.exam.course_id).exists(),
+            request=request,
+            target=answer,
+        )
 
     storage = private_media_storage()
     _require(storage.exists(answer.audio_key))

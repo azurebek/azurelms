@@ -107,6 +107,8 @@ Teacher'ga kurs/cohort biriktirilmagan bo'lsa barcha ma'lumot ochilmaydi; defaul
 
 Minimum audit: permission/role, receipt qarori, enrollment transition, lesson release, grade/review, AI policy/reset/bonus/block, broadcast/outbox replay, kill switch, private-media denial, release va rollback.
 
+**Holat (2026-08-16):** kill switch, brend, landing, lesson release, grade/review, receipt qarori (tasdiq va rad etilgan urinish), enrollment transfer/promotion va private-media denial ledgerda. Private-media denial ataylab cheklangan: faqat autentifikatsiyadan o’tgan aktor va 15 daqiqalik takrorlanish oynasi — ledger append-only, ya’ni skaner uni bosib keta olmasligi kerak. **Outbox replay auditlanmagan, chunki bunday amal hali mavjud emas** ( avtomatik lease qaytarish, owner tugmasi emas); band replay yuzasi qurilganda ochiladi. Release/rollback  bilan birga keladi.
+
 ## 4. CI, demo va production release gate
 
 PR required checks:
