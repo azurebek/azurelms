@@ -38,6 +38,7 @@ To'rttala private-media yo'li ham ulandi: chek, vazifa fayli, chat biriktirmasi,
 - Migratsiya yo'q
 - Test holati: to'liq suite **775/775 OK**
 - Nazorat: uchala guruh testi tuzatishdan oldin `SystemAuditEvent.DoesNotExist` bilan yiqildi
+- **Gate yo’l-yo’lakay ish berdi:** shu PR’da supply-chain ishi qizil bo’ldi — mening o’zgarishimdan emas,  uchun kecha mavjud bo’lmagan 4 ta CVE e’lon qilingani uchun. Bo’sh reyestr aynan shuning uchun: hech qanday kod o’zgarmasa ham yangi advisory darhol ko’rinadi.  ga ko’tarildi
 
 ---
 
