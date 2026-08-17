@@ -16,6 +16,31 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-16 [Claude Code]: A2/2 — §3 audit ro'yxatining qolgani yopildi
+
+`05-launch-ops.md` §3 minimal audit ro'yxatidan qolgan bandlar. Bugun ertalab A3 slice'larida ikkitasi (lesson release, grade/review) allaqachon yopilgandi.
+
+**Chek qarori** — pulga tegadigan yagona qaror. U enrollmentni faollashtiradi va promo chegirmasini "ishlatilgan" holatiga o'tkazadi, ammo kim tasdiqlagani faqat `reviewed_by` maydonida qolardi: qaysi qurilmadan, qanday holatdan qanday holatga o'tgani yozilmasdi. Endi `receipt.verify` ledgerda, `before/after` da enrollment holati bilan. **Ruxsatsiz urinish ham yoziladi** (`outcome=denied`) — pulga tegadigan yagona qaror, kim urinib ko'rgani ko'rinishi kerak.
+
+**Enrollment transfer/promotion** — `EnrollmentTransition` domen yozuvi bor edi va u domen uchun yetarli, ammo operatsion ledger emas: `source`, IP va release SHA yo'q, ya'ni "kim, qayerdan" savoliga javob bermaydi. Endi ikkalasi ham ledgerga tushadi.
+
+**Private-media rad etilishi** — bu boshqalardan farq qiladi: owner qarori emas, xavfsizlik signali. Shu sababli hajm masalasi ataylab hal qilindi, chunki ledger append-only va hech qachon tozalanmaydi:
+
+1. faqat autentifikatsiyadan o'tgan foydalanuvchi yoziladi — anonim so'rovchi aktor emas, uni yozish shovqin;
+2. 15 daqiqalik takrorlanish oynasi — URL'larni ketma-ket sinayotgan odam minglab qator emas, oynada bittadan qator qoldiradi. Skaner baribir ko'rinadi, ammo ledgerni bosib keta olmaydi.
+
+To'rttala private-media yo'li ham ulandi: chek, vazifa fayli, chat biriktirmasi, speaking yozuvi.
+
+**Outbox replay auditlanmadi, chunki bunday amal yo'q.** Kod tekshirildi: `reclaim_expired_outbox` avtomatik lease qaytarish, owner uchun qayta yuborish tugmasi mavjud emas. Yo'q amalni auditlab bo'lmaydi — bu band replay yuzasi qurilganda ochiladi.
+
+- Branch: `claude/a2-audit-remaining` → PR
+- Yangi: `core/test_audit_money_and_enrollment.py` (7 test), `core/test_private_media_audit.py` (6 test). Tegilgan: `bot/services.py`, `cohorts/transition_service.py`, `core/private_media_views.py`
+- Migratsiya yo'q
+- Test holati: to'liq suite **775/775 OK**
+- Nazorat: uchala guruh testi tuzatishdan oldin `SystemAuditEvent.DoesNotExist` bilan yiqildi
+
+---
+
 ## 2026-08-16 [Claude Code]: A2/1 — worker tirikligi endi to'g'ridan-to'g'ri o'lchanadi
 
 A2 backlog'ida "active worker heartbeat" uzoq vaqtdan beri ochiq turardi. Nima uchun kerakligi tekshirganda aniq bo'ldi.

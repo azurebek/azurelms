@@ -1317,8 +1317,9 @@ def verify_receipt(receipt_id, actor):
     """Chekni tasdiqlash — PaymentReceipt.save() enrollmentni o'zi faollashtiradi."""
     from cohorts.models import PaymentReceipt
 
-    if not is_active_staff(actor):
-        return ActionResult(ok=False, code="forbidden", message="Ruxsat yo'q.")
+    from aicontrol.models import SystemAuditEvent
+    from core.audit import record_audit_event
+
     receipt = (
         PaymentReceipt.objects.select_related(
             "enrollment__student", "enrollment__cohort__course"
@@ -1326,13 +1327,43 @@ def verify_receipt(receipt_id, actor):
         .filter(id=receipt_id)
         .first()
     )
+
+    if not is_active_staff(actor):
+        # Ruxsatsiz urinish ham izsiz qolmaydi: pulga tegadigan yagona qaror
+        # shu, va kim urinib ko'rgani ko'rinishi kerak (A2 / §3).
+        record_audit_event(
+            action="receipt.verify",
+            actor=actor if getattr(actor, "pk", None) else None,
+            source=SystemAuditEvent.SOURCE_BOT,
+            outcome=SystemAuditEvent.OUTCOME_DENIED,
+            target=receipt,
+            target_label=f"Chek #{receipt_id}",
+            error="Ruxsat yo'q.",
+        )
+        return ActionResult(ok=False, code="forbidden", message="Ruxsat yo'q.")
     if not receipt:
         return ActionResult(ok=False, code="missing", message="Chek topilmadi.")
     if receipt.is_verified:
         return ActionResult(ok=True, code="already", message="Bu chek allaqachon tasdiqlangan.")
 
-    receipt.is_verified = True
-    receipt.save()
+    enrollment_status_before = receipt.enrollment.status
+    with transaction.atomic():
+        receipt.is_verified = True
+        receipt.save()
+        receipt.enrollment.refresh_from_db()
+        record_audit_event(
+            action="receipt.verify",
+            actor=actor,
+            source=SystemAuditEvent.SOURCE_BOT,
+            target=receipt,
+            target_label=f"Chek #{receipt.id} — {receipt.enrollment.student.username}",
+            before={"is_verified": False, "enrollment_status": enrollment_status_before},
+            after={
+                "is_verified": True,
+                "enrollment_status": receipt.enrollment.status,
+                "amount": str(receipt.amount),
+            },
+        )
 
     student = receipt.enrollment.student
     course_title = receipt.enrollment.cohort.course.title
