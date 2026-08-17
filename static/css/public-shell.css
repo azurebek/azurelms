@@ -77,4 +77,22 @@
 @media (max-width:760px){
   .pub-nav{ display:none; }
   .pub-footer-cols{ grid-template-columns:1fr 1fr; }
+
+/* Telefon: sarlavhadagi amallar sobit o'lchamda, brend esa cho'ziluvchan.
+   Ilgari brend qisqarmagani uchun "Kabinet" tugmasi ekrandan chiqib ketardi
+   va sahifa gorizontal siljirdi — tizimga kirgan holatda 320-414px da. */
+@media (max-width:480px){
+  .pub-header-inner{ gap:12px; }
+  .pub-brand{ min-width:0; flex:1 1 auto; }
+  .pub-brand-name{
+    min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    font-size:16px;
+  }
+  .pub-actions{ gap:8px; flex:0 0 auto; }
+  .pub-theme{ width:34px; height:34px; }
+  .pub-login{ font-size:13px; }
+  .pub-cta{ padding:9px 13px; font-size:13px; gap:0; }
+  /* Strelka bezak — tor ekranda joyni tugmaning o'ziga beramiz. */
+  .pub-cta i{ display:none; }
+}
 }
