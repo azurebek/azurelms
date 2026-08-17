@@ -16,6 +16,38 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-17 [Claude Code]: A2/3 — `ReleaseRecord` va migratsiya mosligi
+
+`05-launch-ops.md` §4: "Har release uchun commit SHA, migrationlar, gate natijalari, deploy/rollback holati va owner qarori `ReleaseRecord`/system auditda saqlanadi."
+
+Bandni ochishdan oldin ro'yxatni haqiqatga solishtirib chiqdim:
+
+| Talab | Bugun haqiqiymi |
+|---|---|
+| commit SHA | ha |
+| migratsiyalar | ha |
+| gate natijalari | maydon bor, ammo uni yozadigan quvur yo'q |
+| deploy/rollback holati | yo'q — deploy quvurining o'zi yo'q (A1b `HOLD`) |
+| owner qarori | ha |
+
+Shuning uchun deploy trekerini o'ylab topmadim. Bugun haqiqiy qiymat beradigan qism — **migratsiya mosligi**, va uning ortida shu loyihada sodir bo'lgan hodisa turibdi: kill switch sahifasi `OperationalError` bilan yiqilgandi, chunki beshta migratsiya haqiqiy bazaga qo'llanmagan edi. Kod yangi, baza eski — va Control Center o'nta capability'ni yashil deb turardi. Endi `release` capability shunday holatda **RED** bo'ladi.
+
+Bo'linish ataylab, va bu bugun checkout sahifasidan olib tashlagan naqshning aksi: **probe jonli holatni o'qiydi va hech narsa yozmaydi**; `ReleaseRecord` faqat aniq buyruqlar bilan yoziladi (`record_release` deploy bosqichida, `release_decision` owner qarori uchun). Qaror audit ledgeriga ham tushadi va o'zgarmasa hech narsa yozilmaydi.
+
+CI'ga `record_release` qo'shilmadi — CI bazasi vaqtinchalik, ya'ni u yerda yozilgan yozuv hech qayerda qolmaydi. Buni "keyin" deb belgilash halolroq.
+
+Testni yozishda bir narsa o'rganildi: o'rtadagi migratsiyani "qo'llanmagan" qilib qo'yish hech narsa ko'rsatmaydi, chunki `migration_plan()` maqsad sifatida **leaf** tugunlarni oladi va leaf qo'llangan bo'lsa o'rtadagi teshikni ko'rmaydi. Test fixture leafni o'chiradi — amalda ham `migrate` ketma-ket qo'llagani uchun o'rtada teshik qoladigan holat normal ishlashdan kelib chiqmaydi.
+
+- Branch: `claude/a2-release-record` → PR
+- Yangi: `aicontrol.ReleaseRecord`, `core/release_service.py`, `record_release` va `release_decision` buyruqlari, `core/test_release_record.py` (13 test), read-only admin
+- Migratsiya: `aicontrol/0006_releaserecord`; lokal bazaga qo'llandi
+- Test holati: to'liq suite **788/788 OK**
+- **Jonli tekshiruv:** haqiqiy lokal bazada `record_release` SHA `e2e9dbb5a6c5` ni 128 qo'llangan migratsiya bilan yozdi, `release_decision --decision hold` esa qarorni qo'ydi va ledgerga `pending → hold` yozuvini tushirdi. Birinchi urinishda `record_release` `no such table` bilan yiqildi — migratsiya hali qo'llanmagan edi, ya'ni feature o'zi aniqlaydigan holatga o'zi tushdi
+- Yo'l-yo'lakay tuzatildi: `release_decision` chiqishidagi `→` belgisi Windows konsolida `UnicodeEncodeError` berardi
+- Qolgan A2 ishi: umumiy feature flag registri va cost/quality release gate
+
+---
+
 ## 2026-08-16 [Claude Code]: A2/2 — §3 audit ro'yxatining qolgani yopildi
 
 `05-launch-ops.md` §3 minimal audit ro'yxatidan qolgan bandlar. Bugun ertalab A3 slice'larida ikkitasi (lesson release, grade/review) allaqachon yopilgandi.

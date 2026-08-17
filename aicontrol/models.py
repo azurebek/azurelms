@@ -475,3 +475,67 @@ class WorkerHeartbeat(models.Model):
 
     def is_dead(self, *, now=None):
         return self.age(now=now) > self.DEAD_WINDOW
+
+
+class ReleaseRecord(models.Model):
+    """Ishlab turgan release va uning bazaga mosligi (A2).
+
+    `05-launch-ops.md` §4: har release uchun commit SHA, migratsiyalar, gate
+    natijalari, deploy/rollback holati va owner qarori saqlanadi.
+
+    Bugungi haqiqat ochiq yozilsin: **deploy quvuri yo'q** (A1b `HOLD`), ya'ni
+    `gate_results` ni to'ldiradigan avtomatik yo'l ham hozircha yo'q — maydon
+    bor va buyruq uni qabul qiladi, lekin uni yozadigan CI bosqichi yaratilishi
+    kelajak ishi. Bugun haqiqiy qiymat beradigan qism — **migratsiya holati**.
+
+    Nega aynan u: shu sessiyaning o'zida kill switch sahifasi
+    `OperationalError` bilan yiqildi, chunki beshta migratsiya haqiqiy bazaga
+    qo'llanmagan edi. Kod yangi, baza eski — va Control Center o'nta
+    capability'ni yashil deb turardi.
+    """
+
+    DECISION_PENDING = "pending"
+    DECISION_GO = "go"
+    DECISION_HOLD = "hold"
+    DECISION_ROLLED_BACK = "rolled_back"
+    DECISION_CHOICES = (
+        (DECISION_PENDING, "Qaror kutilmoqda"),
+        (DECISION_GO, "Ochildi"),
+        (DECISION_HOLD, "To'xtatildi"),
+        (DECISION_ROLLED_BACK, "Qaytarildi"),
+    )
+
+    commit_sha = models.CharField(max_length=40, unique=True, verbose_name="Commit SHA")
+    first_seen_at = models.DateTimeField(auto_now_add=True)
+    last_seen_at = models.DateTimeField(verbose_name="Oxirgi ko'rilgan")
+    migrations_applied = models.PositiveIntegerField(default=0, verbose_name="Qo'llangan migratsiya")
+    unapplied_migrations = models.JSONField(default=list, blank=True, verbose_name="Qo'llanmagan migratsiya")
+    gate_results = models.JSONField(default=dict, blank=True, verbose_name="Gate natijalari")
+    decision = models.CharField(
+        max_length=16,
+        choices=DECISION_CHOICES,
+        default=DECISION_PENDING,
+        verbose_name="Owner qarori",
+    )
+    decided_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="release_decisions",
+    )
+    decided_at = models.DateTimeField(null=True, blank=True)
+    note = models.CharField(max_length=255, blank=True, default="", verbose_name="Izoh")
+
+    class Meta:
+        verbose_name = "Release yozuvi"
+        verbose_name_plural = "Release yozuvlari"
+        ordering = ["-last_seen_at"]
+
+    def __str__(self):
+        return f"{self.commit_sha[:12]} ({self.get_decision_display()})"
+
+    @property
+    def is_consistent(self):
+        """Kod va baza bir-biriga mosmi."""
+        return not self.unapplied_migrations

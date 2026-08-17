@@ -9,6 +9,7 @@ from .models import (
     AISupplyState,
     AIUsageResetEvent,
     AIUserAllowance,
+    ReleaseRecord,
 )
 from .service import apply_reset_event, get_quota_status
 
@@ -225,6 +226,33 @@ class SystemAuditEventAdmin(admin.ModelAdmin):
     readonly_fields = tuple(
         field.name for field in SystemAuditEvent._meta.fields
     )
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(ReleaseRecord)
+class ReleaseRecordAdmin(admin.ModelAdmin):
+    """Release yozuvi buyruqlar bilan boshqariladi, admin faqat ko'radi.
+
+    Qaror `manage.py release_decision` orqali qabul qilinadi — u audit
+    ledgeriga ham yozadi. Admin'dan tahrirlash o'sha izni chetlab o'tardi.
+    """
+
+    list_display = ("commit_sha", "decision", "migrations_applied", "pending_count", "last_seen_at")
+    list_filter = ("decision",)
+    search_fields = ("commit_sha", "note")
+    readonly_fields = tuple(field.name for field in ReleaseRecord._meta.fields)
+
+    @admin.display(description="Qo'llanmagan")
+    def pending_count(self, obj):
+        return len(obj.unapplied_migrations)
 
     def has_add_permission(self, request):
         return False
