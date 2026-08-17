@@ -444,14 +444,43 @@ def _security_probe(definition: CapabilityDefinition) -> CapabilityResult:
 
 
 def _release_probe(definition: CapabilityDefinition) -> CapabilityResult:
+    from aicontrol.models import ReleaseRecord
+    from core.release_service import migration_state
+
     sha = _release_sha()
+    applied, unapplied = migration_state()
+    # O'qish: eng so'nggi yozilgan release va owner qarori. Probe yozmaydi.
+    latest = ReleaseRecord.objects.order_by("-last_seen_at").first()
+    decision = latest.get_decision_display() if latest else "yozilmagan"
+
+    # Eng jiddiy holat: kod yangi, baza eski. Bu shu loyihada bir marta
+    # sodir bo'ldi va sahifa `OperationalError` bilan yiqildi, ammo Control
+    # Center hamma narsani yashil deb turdi.
+    if unapplied:
+        return _result(
+            definition,
+            "red",
+            f"{len(unapplied)} ta migratsiya qo'llanmagan — kod va baza mos emas.",
+            source_sha=sha,
+            applied=applied,
+            pending=", ".join(unapplied[:3]) + ("..." if len(unapplied) > 3 else ""),
+        )
+
     if sha == "unknown" and not settings.IS_LOCAL:
-        return _result(definition, "amber", "Running release SHA aniqlanmadi.", source_sha=sha)
+        return _result(
+            definition,
+            "amber",
+            "Running release SHA aniqlanmadi.",
+            source_sha=sha,
+            applied=applied,
+        )
+
     return _result(
         definition,
         "green",
         "Local source tree." if sha == "unknown" else "Running release identity mavjud.",
         source_sha=sha,
+        applied=applied,
     )
 
 
