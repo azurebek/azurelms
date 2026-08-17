@@ -16,6 +16,30 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-17 [Claude Code]: A5/1 — birinchi mobil skanerlash: messenger butunlay ishlamayotgan ekan
+
+Owner telefonda ochib "mayda kamchiliklar, asosan joylashuv" dedi. Skanerlashda layoutdan ancha jiddiy narsa chiqdi.
+
+**Messenger WebSocket umuman ulanmasdi — va bu mening regressiyam.** A0b/4 slice'ida `is_authorized()` ga foydalanuvchini DB'dan qayta o'qish qo'shgandim va `type(user).objects` deb yozgandim. Channels esa `scope["user"]` ni `UserLazyObject` ichiga o'raydi, o'ram klassida `.objects` yo'q. Natijada **har ulanish `AttributeError` bilan tugardi**, ya'ni jonli chat butunlay o'lik edi.
+
+Nega testlar buni ko'rmadi: mavjud socket testlari `communicator.scope["user"]` ga model nusxasini to'g'ridan-to'g'ri qo'yadi, productionda esa u yerda lazy o'ram turadi. Test productionni takrorlamagan.
+
+Yangi testni yozishda yana bir narsa o'rganildi: to'liq `application` stack orqali lazy obyektni "olib kirib" bo'lmaydi, chunki `AuthMiddlewareStack` `scope["user"]._wrapped` ni sessiyadan qayta to'ldiradi. Shuning uchun test consumer'ga to'g'ridan-to'g'ri ulanadi — regressiya aynan o'sha qatlamda edi.
+
+**Layout:** public sarlavha 320–414px da tizimga kirgan holatda ekrandan chiqib ketardi — "Kabinet" tugmasi kesilib, sahifa gorizontal siljirdi (375px da 16px, 320px da 71px). Sabab: 760px breakpoint faqat nav'ni yashirардi, amallar bloki esa to'liq o'lchamda qolardi va brend qisqarmasdi. 480px breakpoint qo'shildi: brend `text-overflow:ellipsis` bilan cho'ziladi, amallar sobit qoladi.
+
+**Soxta topilma:** avtomatik skanerlash dashboard'da ham overflow ko'rsatdi, lekin tekshirganda u iframe artefakti bo'lib chiqdi — yon menyu yig'ilmagan holda chizilgan edi. Haqiqiy sahifada element ekrandan tashqarida (chapda) yashirin. Yozib qo'yaman, chunki bu usulning chegarasi.
+
+- Branch: `claude/a5-mobile-sweep-1` → PR
+- Tegilgan: `messenger/consumers.py`, `messenger/test_socket_access_recheck.py` (1 yangi test), `static/css/public-shell.css`
+- Migratsiya yo'q
+- Test holati: to'liq suite **789/789 OK**
+- **Nazorat:** tuzatish qaytarilganda test aynan jonli xatoni chiqardi — `AttributeError: type object 'UserLazyObject' has no attribute 'objects'`
+- Layout dalili: `/pricing/` 320px — oldin `scrollWidth 391 > 320`, keyin `320`, overflow `0`; skrinshot bilan tasdiqlandi
+- **Alohida topilma (tuzatilmagan):** server logida `gemini-2.5-flash-lite` uchun `404 NOT_FOUND — no longer available to new users, use gemini-3.5-flash-lite`. Bu A8 allowlistdagi yagona fallback model. Marinebook 2026-10-16 ni ichki review deadline deb belgilagandi; hodisa erta keldi. Alohida slice kerak
+
+---
+
 ## 2026-08-17 [Claude Code]: A2/3 — `ReleaseRecord` va migratsiya mosligi
 
 `05-launch-ops.md` §4: "Har release uchun commit SHA, migrationlar, gate natijalari, deploy/rollback holati va owner qarori `ReleaseRecord`/system auditda saqlanadi."

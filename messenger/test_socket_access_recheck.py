@@ -15,6 +15,7 @@ qayta o'qiladi.
 import datetime
 import json
 
+from channels.auth import UserLazyObject
 from channels.testing import WebsocketCommunicator
 from django.contrib.auth import get_user_model
 from django.test import TransactionTestCase
@@ -131,3 +132,58 @@ class SocketAccessRecheckTests(TransactionTestCase):
 
     def test_close_code_is_declared_on_the_consumer(self):
         self.assertEqual(ChatConsumer.ACCESS_REVOKED_CLOSE_CODE, 4403)
+
+
+class LazyScopeUserTests(TransactionTestCase):
+    """Production'da `scope["user"]` — `UserLazyObject`, oddiy model emas.
+
+    `AuthMiddlewareStack` foydalanuvchini `UserLazyObject` ichiga o'raydi.
+    Yuqoridagi testlar scope'ga to'g'ridan-to'g'ri model nusxasini qo'yadi va
+    aynan shu farq jonli xatoni yashirgan: `is_authorized()` da
+    `type(user).objects` yozilgan edi, lazy o'ramda esa `.objects` yo'q —
+    natijada har ulanish `AttributeError` bilan tugab, **messenger umuman
+    ishlamasdi**. Testlar yashil turardi.
+    """
+
+    def setUp(self):
+        from cohorts.models import Cohort, Enrollment
+        from courses.models import Course
+        from messenger.models import ChatRoom
+
+        self.student = User.objects.create_user(
+            username="lazy_student", email="lazy_student@t.uz", password="pass-12345")
+        course = Course.objects.create(
+            title="Lazy kurs", description="x", level="beginner")
+        cohort = Cohort.objects.create(
+            name="Lazy cohort", course=course, start_date=datetime.date(2026, 5, 1))
+        Enrollment.objects.create(student=self.student, cohort=cohort, status="active")
+        self.room = ChatRoom.objects.create(
+            room_type="group", name="Lazy xona", cohort=cohort)
+        self.room.participants.add(self.student)
+
+    def _lazy(self, user):
+        wrapper = UserLazyObject()
+        wrapper._wrapped = user
+        return wrapper
+
+    async def test_authorization_works_when_the_scope_user_is_lazy(self):
+        """Consumer'ga to'g'ridan-to'g'ri ulanamiz, `AuthMiddlewareStack`siz.
+
+        Middleware `scope["user"]._wrapped` ni sessiyadan qayta to'ldiradi,
+        ya'ni to'liq stack orqali lazy obyektni "olib kirib" bo'lmaydi.
+        Regressiya esa aynan consumer ichida edi, shuning uchun sinov shu
+        qatlamda o'tkaziladi.
+        """
+        communicator = WebsocketCommunicator(
+            ChatConsumer.as_asgi(), f"/ws/chat/{self.room.id}/"
+        )
+        communicator.scope["url_route"] = {"kwargs": {"room_id": str(self.room.id)}}
+        communicator.scope["user"] = self._lazy(self.student)
+        try:
+            connected, code = await communicator.connect()
+            self.assertTrue(
+                connected,
+                f"Lazy scope user bilan socket ulanmadi (code={code})",
+            )
+        finally:
+            await communicator.disconnect()

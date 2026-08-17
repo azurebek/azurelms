@@ -244,7 +244,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if not user or not user.is_authenticated:
             return False
 
-        fresh = type(user).objects.filter(pk=user.pk).first()
+        # `get_user_model()`, `type(user)` emas: Channels `scope["user"]` ni
+        # `UserLazyObject` ichiga o'raydi va o'ram klassida `.objects` yo'q.
+        # `type(user).objects` har ulanishda `AttributeError` berardi, ya'ni
+        # messenger umuman ishlamasdi. Testlar buni ko'rmagan, chunki ular
+        # scope'ga model nusxasini to'g'ridan-to'g'ri qo'yardi.
+        fresh = get_user_model().objects.filter(pk=user.pk).first()
         if fresh is None or not fresh.is_active:
             return False
 
