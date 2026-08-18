@@ -30,8 +30,17 @@ DEFAULT_FREE_MODEL_ALLOWLIST = (
 )
 DEFAULT_MAX_OUTPUT_TOKENS = 640
 DEFAULT_MAX_PROMPT_CHARS = 12_000
-DEFAULT_REQUEST_TIMEOUT_MS = 8_000
-DEFAULT_DEADLINE_MS = 20_000
+#: Google qabul qiladigan eng kichik deadline. Undan past qiymat so'rovni
+#: ishlashdan **oldin** rad ettiradi:
+#:   400 INVALID_ARGUMENT: Manually set deadline 8s is too short.
+#: Xato matnida "deadline" borligi uchun u `timeout` deb tasniflanadi va
+#: sabab yashirinadi — 2026-08-19 da AI shu sababdan javob bermay qolgan.
+MIN_PROVIDER_DEADLINE_MS = 10_000
+
+#: O'lchangan haqiqiy javob vaqti to'liq kontekstda 2-3s. 15s zaxira bilan
+#: minimumdan yuqorida turadi; deadline ikkita urinishga yetadi.
+DEFAULT_REQUEST_TIMEOUT_MS = 15_000
+DEFAULT_DEADLINE_MS = 35_000
 
 
 def fallback_ai_reply(error) -> str:
@@ -97,10 +106,7 @@ class GeminiProvider:
             self.last_error_kind = "missing_credential"
             raise RuntimeError("GEMINI_API_KEY mavjud emas.")
 
-        request_timeout_ms = self._positive_int_setting(
-            "GEMINI_REQUEST_TIMEOUT_MS",
-            DEFAULT_REQUEST_TIMEOUT_MS,
-        )
+        request_timeout_ms = self.effective_request_timeout_ms()
         deadline_ms = self._positive_int_setting("GEMINI_DEADLINE_MS", DEFAULT_DEADLINE_MS)
         max_output_tokens = self._positive_int_setting(
             "GEMINI_MAX_OUTPUT_TOKENS",
@@ -128,6 +134,13 @@ class GeminiProvider:
             elapsed_ms = int((time.monotonic() - started_at) * 1000)
             remaining_ms = deadline_ms - elapsed_ms
             if remaining_ms <= 0:
+                last_error = TimeoutError("Gemini umumiy deadline tugadi")
+                self.last_error_kind = "timeout"
+                break
+
+            # Qolgan vaqt Google minimumidan kam bo'lsa, so'rov baribir `400`
+            # bilan rad etiladi — yubormaymiz va deadline tugadi deb belgilaymiz.
+            if remaining_ms < MIN_PROVIDER_DEADLINE_MS:
                 last_error = TimeoutError("Gemini umumiy deadline tugadi")
                 self.last_error_kind = "timeout"
                 break
@@ -198,6 +211,14 @@ class GeminiProvider:
         except Exception:
             logger.exception("Gemini generate konfiguratsiyasi yaratib bo'lmadi")
             raise
+
+    def effective_request_timeout_ms(self) -> int:
+        """Sozlangan timeout, Google minimumidan past bo'lmagan holda."""
+        configured = self._positive_int_setting(
+            "GEMINI_REQUEST_TIMEOUT_MS",
+            DEFAULT_REQUEST_TIMEOUT_MS,
+        )
+        return max(configured, MIN_PROVIDER_DEADLINE_MS)
 
     def _http_options(self, timeout_ms: int):
         return genai_types.HttpOptions(

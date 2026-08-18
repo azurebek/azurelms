@@ -16,13 +16,15 @@ class GeminiProviderTests(SimpleTestCase):
         "GEMINI_GROUNDING_ENABLED": False,
         "GEMINI_FREE_MODEL_ALLOWLIST": (
             "gemini-3.1-flash-lite",
-            "gemini-2.5-flash-lite",
+            "gemini-3.5-flash-lite",
         ),
         "GEMINI_PRIMARY_MODEL": "gemini-3.1-flash-lite",
-        "GEMINI_FALLBACK_MODEL": "gemini-2.5-flash-lite",
+        "GEMINI_FALLBACK_MODEL": "gemini-3.5-flash-lite",
         "GEMINI_MAX_OUTPUT_TOKENS": 640,
-        "GEMINI_REQUEST_TIMEOUT_MS": 7_000,
-        "GEMINI_DEADLINE_MS": 15_000,
+        # Google 10s dan past deadline'ni `400` bilan rad etadi, shuning uchun
+        # fixture ham haqiqiy qiymatlarni ishlatadi (ilgari 7s edi).
+        "GEMINI_REQUEST_TIMEOUT_MS": 12_000,
+        "GEMINI_DEADLINE_MS": 30_000,
     }
 
     @override_settings(**settings)
@@ -33,7 +35,7 @@ class GeminiProviderTests(SimpleTestCase):
             with self.subTest(selected_model=selected_model):
                 self.assertEqual(
                     provider._model_candidates(selected_model),
-                    ["gemini-3.1-flash-lite", "gemini-2.5-flash-lite"],
+                    ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite"],
                 )
 
     @override_settings(GEMINI_API_KEY="")
@@ -147,11 +149,11 @@ class GeminiProviderTests(SimpleTestCase):
         )
 
         self.assertEqual(result.text, "Javob tayyor.")
-        self.assertEqual(result.model_name, "gemini-2.5-flash-lite")
+        self.assertEqual(result.model_name, "gemini-3.5-flash-lite")
         self.assertEqual(client.models.generate_content.call_count, 2)
         self.assertEqual(
             [call.kwargs["model"] for call in client.models.generate_content.call_args_list],
-            ["gemini-3.1-flash-lite", "gemini-2.5-flash-lite"],
+            ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite"],
         )
         self.assertEqual(provider.last_attempt_count, 2)
         self.assertEqual(provider.last_error_kind, "provider_error")
@@ -172,7 +174,7 @@ class GeminiProviderTests(SimpleTestCase):
 
         result = provider.generate(prompt="Salom")
 
-        self.assertEqual(result.model_name, "gemini-2.5-flash-lite")
+        self.assertEqual(result.model_name, "gemini-3.5-flash-lite")
         self.assertEqual(client.models.generate_content.call_count, 2)
         self.assertEqual(provider.last_attempt_count, 2)
         self.assertEqual(provider.last_error_kind, "provider_error")
@@ -202,11 +204,11 @@ class GeminiProviderTests(SimpleTestCase):
 
         self.assertEqual(result.model_name, "gemini-3.1-flash-lite")
         client_http = client_class.call_args.kwargs["http_options"]
-        self.assertEqual(client_http.timeout, 7_000)
+        self.assertEqual(client_http.timeout, 12_000)
         self.assertEqual(client_http.retry_options.attempts, 1)
         config = client_class.return_value.models.generate_content.call_args.kwargs["config"]
         self.assertEqual(config.max_output_tokens, 640)
-        self.assertLessEqual(config.http_options.timeout, 7_000)
+        self.assertLessEqual(config.http_options.timeout, 12_000)
         self.assertEqual(config.http_options.retry_options.attempts, 1)
         self.assertEqual(provider.last_attempt_count, 1)
         self.assertIsNone(provider.last_error_kind)
