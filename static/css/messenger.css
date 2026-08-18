@@ -147,11 +147,19 @@
   .msgr-list{
     position:fixed; top:0; bottom:0; left:54px; z-index:60;
     width:min(300px, calc(100vw - 54px - 36px));
-    transform:translateX(-115%);
+    /* `left:54px` bo'lgani uchun faqat o'z kengligiga surish yetmaydi:
+       `-115%` da o'ng cheti ekranda 9px bo'lib qolardi va chapda oq
+       chiziq ko'rinardi. Shuning uchun 54px ham qo'shib suriladi. */
+    transform:translateX(calc(-100% - 54px));
     transition:transform .24s cubic-bezier(.16,1,.3,1);
+    /* Soya faqat ochiq holatda — yopiq drawerning soyasi ham ekranga
+       to'kilib, o'sha oq chiziq taassurotini kuchaytirardi. */
+    box-shadow:none;
+  }
+  .msgr.list-open .msgr-list{
+    transform:none;
     box-shadow:0 24px 60px rgba(11,14,21,.32);
   }
-  .msgr.list-open .msgr-list{ transform:none; }
   .msgr.list-open::before{ content:''; position:fixed; inset:0; z-index:59; background:rgba(11,14,21,.5); }
   .msgr-list-toggle{ display:grid; }
 
