@@ -12,9 +12,12 @@ Layout, klaviatura, navigatsiya, checkout, davomat va fayl yuklash uchun yetarli
 
 ### Kompyuterda
 
-```bash
-./venv/Scripts/python.exe manage.py runserver 0.0.0.0:8000
+```powershell
+cd C:\Users\AZUREBEK\Desktop\azurelms
+.\venv\Scripts\python.exe manage.py runserver 0.0.0.0:8000
 ```
+
+PowerShell uslubi (`.\`, teskari slash). `./venv/...` bash uslubi va PowerShell uni topa olmaydi; loyiha papkasida turish ham shart.
 
 `0.0.0.0` muhim: default `runserver` faqat `127.0.0.1` da tinglaydi va telefon uni ko'rmaydi.
 
@@ -31,6 +34,8 @@ IP ni topish:
 ```powershell
 Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -notlike '127.*' }
 ```
+
+**Wi-Fi yoki hotspot almashsa IP ham o'zgaradi.** Bir marta shu tuzoqqa tushilgan: kompyuter uy Wi-Fi'sidan (`192.168.1.x`) telefon hotspot'iga (`172.20.10.x`) o'tgan va "server ishlamayapti" deb o'ylangan. Ochilmasa — birinchi navbatda IP ni qayta tekshiring. Telefon hotspot'i aslida qulay: telefon router bo'ladi.
 
 `ALLOWED_HOSTS` lokal rejimda `*` — hech narsa sozlash shart emas. CSRF ham ishlaydi, chunki so'rov same-origin.
 
@@ -66,14 +71,15 @@ Kafega yoki ochiq Wi-Fi'ga ulanganda bu qoidani yoqib qoldirmang — server o'sh
 
 Sabab texnik va chetlab o'tib bo'lmaydi: `static/js/exam-shell.js` speaking javobini `getUserMedia` bilan yozadi, brauzerlar esa mikrofonni faqat **secure context**da (HTTPS yoki `localhost`) beradi. Telefonda `http://192.168.x.x:8000` secure context emas — mikrofon ishlamaydi. Bu kod xatosi emas.
 
-```bash
+```powershell
 ngrok http 8000
 ```
 
 ngrok bergan `https://...` manzilini oling va serverni **shu manzilni bilgan holda** yurgizing:
 
-```bash
-CSRF_TRUSTED_ORIGINS=https://SIZNING-MANZIL.ngrok-free.app ./venv/Scripts/python.exe manage.py runserver 0.0.0.0:8000
+```powershell
+$env:CSRF_TRUSTED_ORIGINS="https://SIZNING-MANZIL.ngrok-free.app"
+.\venv\Scripts\python.exe manage.py runserver 0.0.0.0:8000
 ```
 
 `CSRF_TRUSTED_ORIGINS` nima uchun kerak: ngrok brauzerga HTTPS beradi, Django esa lokal profilda so'rovni HTTP deb biladi. CSRF Origin tekshiruvi `https://...` va `http://...` ni taqqoslab rad etadi, ya'ni **har qanday forma yuborish yiqiladi**. Bu sozlama o'sha nomuvofiqlikni yopadi.
@@ -81,6 +87,16 @@ CSRF_TRUSTED_ORIGINS=https://SIZNING-MANZIL.ngrok-free.app ./venv/Scripts/python
 ngrok bepul hisobda har ishga tushirishda yangi manzil beradi — buyruqni har safar yangilash kerak.
 
 ---
+
+## Avval kontent — busiz QA ma'nosiz
+
+Bo'sh bazada faqat landing, narxlar va bo'sh ekranlar ko'rinadi; dars, imtihon, checkout va davomat sahifalari sinalmay qoladi.
+
+```powershell
+.\venv\Scripts\python.exe manage.py seed_demo
+```
+
+Ikki modulli kurs, beshta dars, vazifa, guruh va faol o'quvchi yaratiladi (`demo-student` / `demo12345`). Faqat lokal muhitda ishlaydi, `--wipe` bilan izsiz olinadi.
 
 ## Nimani qaysi yo'l bilan sinash mumkin
 
@@ -118,11 +134,17 @@ A5 acceptance uchta qurilma klassini talab qiladi: **Android Chrome, iOS Safari,
 
 ## Tez eslatma
 
-```bash
-# LAN (layout, klaviatura, checkout)
-./venv/Scripts/python.exe manage.py runserver 0.0.0.0:8000
+```powershell
+# 0. QA uchun kontent
+.\venv\Scripts\python.exe manage.py seed_demo
 
-# Tunnel (mikrofon, Mini App) — ikkita terminal
+# 1. LAN (layout, klaviatura, checkout)
+.\venv\Scripts\python.exe manage.py runserver 0.0.0.0:8000
+
+# 2. Tunnel (mikrofon, Mini App) — ikkita terminal
 ngrok http 8000
-CSRF_TRUSTED_ORIGINS=https://<manzil>.ngrok-free.app ./venv/Scripts/python.exe manage.py runserver 0.0.0.0:8000
+$env:CSRF_TRUSTED_ORIGINS="https://<manzil>.ngrok-free.app"; .\venv\Scripts\python.exe manage.py runserver 0.0.0.0:8000
+
+# QA tugagach
+.\venv\Scripts\python.exe manage.py seed_demo --wipe
 ```

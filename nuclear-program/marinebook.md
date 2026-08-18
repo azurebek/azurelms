@@ -16,6 +16,32 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-19 [Claude Code]: A5/2 — messenger telefonda: rail chatni bo'g'ib qo'ygan ekan
+
+Owner telefonda ochib xabar berdi: messenger "dahshatli darajada buzuq", xabar yozadigan joy topilmaydi, sidebarlar xunuk. Taxmini to'g'ri chiqdi — sabab aynan sidebar.
+
+**Mening avtomatik skanerlashim buni ko'rmagan edi va sababi muhim:** o'sha paytda baza bo'sh edi, messenger hech qanday xonasiz ochilardi. Bo'sh holat haqiqiy holat emas. Shuning uchun avval `seed_demo` yozildi, keyin qayta o'lchandi.
+
+**Topilma.** `messenger.css` da 680px breakpoint ro'yxatni (`.msgr-list`) drawerga aylantirgan, ammo **rail (`.msgr-rail`) asosiy o'qda 54px bo'lib qolgan**. CSS izohining o'zida "rail + ro'yxat chatga 110px atrofida joy qoldirar edi" deb yozilgan — ro'yxat tuzatilgan, rail esa unutilgan. Natijada 375px ekranda:
+
+- chat 321px ga tushardi;
+- yozish maydoni **168px** bo'lib qolardi;
+- placeholder `"Xabar yozing…  (Enter — yuborish)"` o'rtasidan kesilardi va input umuman input'ga o'xshamasdi — owner "topa olmaydi" deganining sababi shu.
+
+Rail endi ro'yxat bilan **birga** drawerga chiqadi; chat butun kenglikni oladi. Placeholder qisqartirildi, Enter haqidagi maslahat `title` ga ko'chdi — u telefonda baribir ma'nosiz.
+
+O'lchovlar (yopiq holat): 375px — chat `321 → 375`, textarea `168 → 222`; 320px — chat `320`, textarea `166`. Drawer ochiq holatda rail+ro'yxat 284px, gorizontal siljish `0`.
+
+**Halol chegara:** owner "har tarafga siljib ketyapti" degan edi; men 320 va 375px da, drawer ochiq va yopiq holatda hujjat darajasidagi gorizontal siljishni **takrorlay olmadim**. U iOS Safari'ning rubber-band effekti yoki uzun kontentli holatga tegishli bo'lishi mumkin — owner qayta tekshirishi kerak.
+
+- Branch: `claude/a5-messenger-mobile` → PR
+- Yangi: `core/demo_seed.py`, `seed_demo` buyrug'i, `core/test_seed_demo.py` (8 test). Tegilgan: `static/css/messenger.css`, `templates/messenger/ai.html`, mobil QA runbook
+- `seed_demo` ikkita qoida bilan: faqat lokal (fail-closed) va `--wipe` bilan qaytariladi. Test tozalash haqiqiy ma'lumotga tegmasligini alohida tekshiradi
+- Runbook tuzatildi: buyruqlar PowerShell uslubida edi emas, bash uslubida yozilgandi va owner'ni chalg'itdi; Wi-Fi/hotspot almashganda IP o'zgarishi ham qo'shildi (bir marta shu sababdan "server ishlamayapti" deb o'ylangan)
+- Test holati: to'liq suite **797/797 OK**
+
+---
+
 ## 2026-08-17 [Claude Code]: A5/1 — birinchi mobil skanerlash: messenger butunlay ishlamayotgan ekan
 
 Owner telefonda ochib "mayda kamchiliklar, asosan joylashuv" dedi. Skanerlashda layoutdan ancha jiddiy narsa chiqdi.
