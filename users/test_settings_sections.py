@@ -116,7 +116,7 @@ class SettingsSectionContentTests(TestCase):
         AI_FREE_TIER_MODE=True,
         GEMINI_FREE_MODEL_ALLOWLIST=(
             User.AI_MODEL_25_FLASH,
-            User.AI_MODEL_25_FLASH_LITE,
+            User.AI_MODEL_35_FLASH_LITE,
         ),
     )
     def test_capabilities_only_shows_effective_free_tier_choices(self):
@@ -131,7 +131,7 @@ class SettingsSectionContentTests(TestCase):
             response.context["model_choices"],
             [
                 (User.AI_MODEL_25_FLASH, "Gemini 2.5 Flash"),
-                (User.AI_MODEL_25_FLASH_LITE, "Gemini 2.5 Flash-Lite"),
+                (User.AI_MODEL_35_FLASH_LITE, "Gemini 3.5 Flash Lite"),
             ],
         )
         self.assertEqual(
@@ -139,7 +139,7 @@ class SettingsSectionContentTests(TestCase):
             [User.AI_WEB_SEARCH_LIGHT, User.AI_WEB_SEARCH_MEDIUM],
         )
         self.assertIn(f'value="{User.AI_MODEL_25_FLASH}"', html)
-        self.assertIn(f'value="{User.AI_MODEL_25_FLASH_LITE}"', html)
+        self.assertIn(f'value="{User.AI_MODEL_35_FLASH_LITE}"', html)
         self.assertNotIn(f'value="{User.AI_MODEL_31_PRO}"', html)
         self.assertNotIn(f'value="{User.AI_WEB_SEARCH_HEAVY}"', html)
 

@@ -187,7 +187,7 @@ class AIToneUpdateViewTests(TestCase):
     AI_FREE_TIER_MODE=True,
     GEMINI_FREE_MODEL_ALLOWLIST=(
         User.AI_MODEL_25_FLASH,
-        User.AI_MODEL_25_FLASH_LITE,
+        User.AI_MODEL_35_FLASH_LITE,
     ),
 )
 class AIModelUpdateViewTests(TestCase):
@@ -202,16 +202,16 @@ class AIModelUpdateViewTests(TestCase):
     def test_ajax_update_saves_ai_model(self):
         response = self.client.post(
             reverse("update_ai_model"),
-            {"ai_model": User.AI_MODEL_25_FLASH_LITE},
+            {"ai_model": User.AI_MODEL_35_FLASH_LITE},
             HTTP_X_REQUESTED_WITH="XMLHttpRequest",
             HTTP_ACCEPT="application/json",
         )
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["status"], "success")
-        self.assertEqual(response.json()["ai_model"], User.AI_MODEL_25_FLASH_LITE)
+        self.assertEqual(response.json()["ai_model"], User.AI_MODEL_35_FLASH_LITE)
         self.user.refresh_from_db()
-        self.assertEqual(self.user.ai_model, User.AI_MODEL_25_FLASH_LITE)
+        self.assertEqual(self.user.ai_model, User.AI_MODEL_35_FLASH_LITE)
 
     def test_ajax_update_rejects_pro_preview_model_in_free_tier(self):
         response = self.client.post(

@@ -242,7 +242,7 @@ class ChatAccessTests(TestCase):
         self.assertEqual(ai_response.status_code, 200)
         self.assertContains(ai_response, "Azure AI tayyor")
         self.assertContains(ai_response, f'data-ai-model-option="{User.AI_MODEL_31_FLASH_LITE}"')
-        self.assertContains(ai_response, f'data-ai-model-option="{User.AI_MODEL_25_FLASH_LITE}"')
+        self.assertContains(ai_response, f'data-ai-model-option="{User.AI_MODEL_35_FLASH_LITE}"')
         self.assertNotContains(ai_response, f'data-ai-model-option="{User.AI_MODEL_31_PRO}"')
         self.assertNotContains(ai_response, f'data-ai-model-option="{User.AI_MODEL_35_FLASH}"')
         self.assertContains(ai_response, "Javob uslubi")
@@ -256,7 +256,7 @@ class ChatAccessTests(TestCase):
         AI_FREE_TIER_MODE=True,
         GEMINI_FREE_MODEL_ALLOWLIST=(
             User.AI_MODEL_25_FLASH,
-            User.AI_MODEL_25_FLASH_LITE,
+            User.AI_MODEL_35_FLASH_LITE,
         ),
     )
     def test_ai_picker_does_not_reintroduce_stored_disallowed_model(self):
@@ -271,7 +271,7 @@ class ChatAccessTests(TestCase):
             response.context["ai_model_choices"],
             [
                 (User.AI_MODEL_25_FLASH, "Gemini 2.5 Flash"),
-                (User.AI_MODEL_25_FLASH_LITE, "Gemini 2.5 Flash-Lite"),
+                (User.AI_MODEL_35_FLASH_LITE, "Gemini 3.5 Flash Lite"),
             ],
         )
         self.assertNotContains(response, f'data-ai-model-option="{User.AI_MODEL_31_PRO}"')
