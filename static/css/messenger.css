@@ -137,6 +137,10 @@
 @media (max-width:820px){
   .msgr-list{ width:228px; }
   .msgr-rail{ width:54px; }
+  /* iOS 16px dan kichik maydonga bosilganda sahifani yaqinlashtiradi va
+     o'zi qaytmaydi. `base.css` dagi umumiy qoida bu yerda yetmaydi —
+     `.chat-inputrow textarea` selektori kuchliroq va keyinroq yuklanadi. */
+  .chat-inputrow textarea{ font-size:16px; }
 }
 
 /* ---------- Telefon: ro'yxat drawer'ga aylanadi ----------

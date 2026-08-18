@@ -16,6 +16,26 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-19 [Claude Code]: A5/5 — iOS input zoom: butun ilova bo'ylab tuzoq
+
+Owner qurilmadan: xabar yozish maydoniga bosilganda ekran yaqinlashib ketadi, sarlavha ko'rinmay qoladi, xabar yuborilgandan keyin ham eski holiga qaytmaydi.
+
+Sabab hujjatlashtirilgan iOS xulqi: **fokusdagi maydonning shrifti 16px dan kichik bo'lsa Safari sahifani avtomatik yaqinlashtiradi va o'zi qaytarmaydi.** Composer 14px edi.
+
+Bu bitta ekranning muammosi emas — butun ilova bo'ylab takrorlanadi. Tekshirganda 14px li maydonlar topildi: messenger composer, sozlamalar formasi, imtihon javob maydoni va har sahifada turadigan floating AI widget. Imtihonda bu ayniqsa yomon: yaqinlashgan ekranda taymer va savol xaritasi ko'rinmay qoladi.
+
+`user-scalable=no` bu xulqni to'xtatadi, ammo sahifani umuman kattalashtirib bo'lmaydigan qilib qo'yadi — accessibility uchun qabul qilib bo'lmaydi. Yagona to'g'ri yechim shrift o'lchamini ko'tarish, va faqat telefon kengligida (desktopdagi 14px dizayn saqlanadi).
+
+Yo'lda CSS darsi: `base.css` ga qo'yilgan umumiy qoida yetmadi — `.chat-inputrow textarea` selektori kuchliroq va keyinroq yuklanadi. Umumiy qoida zaxira sifatida qoldi, aniq selektorlar esa o'z fayllarida tuzatildi.
+
+- Branch: `claude/a5-ios-input-zoom` → PR
+- Tegilgan: `static/css/base.css`, `messenger.css`, `settings.css`, `exam-shell.css`, `ai-widget.css`
+- Test holati: to'liq suite **797/797 OK**
+- O'lchov (394px): composer `14px → 16px`; sozlamalar sahifasidagi 15 ta maydonning **hech biri** 16px dan past emas; gorizontal siljish `0`
+- Qurilmada qayta tekshirilishi kerak — zoom xulqi faqat haqiqiy Safari'da ko'rinadi
+
+---
+
 ## 2026-08-19 [Claude Code]: A5/4 — yopiq drawerning 9px chekkasi ekranda qolib ketardi
 
 Owner qurilmadan ko'rsatdi: chap chekkada oq chiziq turibdi, "xuddi sidebar to'liq yopila olmagandek". Aynan shunday ekan.

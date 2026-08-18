@@ -284,3 +284,11 @@
 /* ---- Bo'sh section ---- */
 .x-empty{ border:1px dashed var(--line); border-radius:14px; padding:34px 20px; text-align:center; color:var(--ink-3); font-size:13.5px; }
 .x-empty i{ font-size:26px; display:block; margin-bottom:8px; color:var(--ink-4); }
+
+/* iOS: imtihon javob maydoniga bosilganda sahifa yaqinlashib ketmasin —
+   16px dan kichik shrift Safari'da avtomatik zoom keltirib chiqaradi va u
+   o'zi qaytmaydi. Imtihon paytida bu ayniqsa yomon: taymer va savol
+   xaritasi ko'rinmay qoladi. */
+@media (max-width:820px){
+  .x-input, .exam textarea, .exam input[type=text]{ font-size:16px; }
+}
