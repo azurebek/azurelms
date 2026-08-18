@@ -150,10 +150,23 @@
   .msgr.list-open .msgr-list{ transform:none; }
   .msgr.list-open::before{ content:''; position:fixed; inset:0; z-index:59; background:rgba(11,14,21,.5); }
   .msgr-list-toggle{ display:grid; }
+
+  /* Rail ham drawerga qo'shiladi. Ilgari u asosiy o'qda 54px egallab
+     turardi: 375px ekranda chat 321px ga tushib, yozish maydoni 168px
+     bo'lib qolardi va placeholder o'rtasidan kesilardi — ya'ni u umuman
+     input'ga o'xshamasdi. Endi rail ro'yxat bilan birga chiqadi, chat esa
+     butun kenglikni oladi. */
+  .msgr-rail{
+    position:fixed; top:0; bottom:0; left:0; z-index:61;
+    transform:translateX(-100%);
+    transition:transform .24s cubic-bezier(.16,1,.3,1);
+  }
+  .msgr.list-open .msgr-rail{ transform:none; }
 }
 
 @media (max-width:680px) and (prefers-reduced-motion:reduce){
-  .msgr-list{ transition:none; }
+  .msgr-list,
+  .msgr-rail{ transition:none; }
 }
 
 /* ---------- Azure AI mascot (owl) avatar ---------- */
