@@ -16,6 +16,25 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-19 [Claude Code]: A5/4 — yopiq drawerning 9px chekkasi ekranda qolib ketardi
+
+Owner qurilmadan ko'rsatdi: chap chekkada oq chiziq turibdi, "xuddi sidebar to'liq yopila olmagandek". Aynan shunday ekan.
+
+`.msgr-list` telefonda `left:54px` da turadi (rail yonida) va `translateX(-115%)` bilan suriladi. Ammo `-115%` faqat elementning **o'z kengligiga** nisbatan hisoblanadi: 300px kenglikda bu 345px, `left:54px` bilan birga o'ng cheti `+9px` da qoladi. Ya'ni yopiq drawer ekranda 9px bo'lib ko'rinib turardi. Yopiq holatdagi `box-shadow` esa o'sha chiziqni yanada ko'rinarli qilardi.
+
+Endi `translateX(calc(-100% - 54px))` — chap ofset ham hisobga olinadi; soya faqat ochiq holatda qo'yiladi.
+
+**Nega mening skanerim buni ham ko'rmadi.** Probe faqat `right > viewport` shartini tekshirardi, ya'ni **o'ngga** chiqib ketgan elementlarni. Chapdan mo'ralab turgan element (`left < 0 < right`) bu shartga tushmaydi. Bu bugungi ikkinchi metodologik bo'shliq: birinchisi bo'sh baza edi, bu esa bir tomonlama tekshiruv. Probega `left < 0 && right > 0` sharti qo'shildi.
+
+O'lchov (394px): yopiq holatda `.msgr-list` va `.msgr-rail` ning o'ng cheti `0` — hech narsa ko'rinmaydi; ochiq holatda rail `0`, ro'yxat `54 → 354`, ekranga sig'adi.
+
+- Branch: `claude/a5-drawer-peek` → PR
+- Tegilgan: `static/css/messenger.css`
+- Test holati: to'liq suite **797/797 OK**
+- Dalil: owner qurilmasidagi skrinshot va brauzer o'lchovi
+
+---
+
 ## 2026-08-19 [Claude Code]: A5/3 — `100vh` iOS'da yozish maydonini ekran ostida qoldirardi
 
 Owner haqiqiy iPhone'dan skrinshot yubordi: xabar yozadigan qism ko'rinmaydi, unga yetish uchun pastga surish kerak. Bu **emulyatorda topilmaydigan** turdagi xato va aynan shu sababdan A5 chiqish sharti owner qo'lida turadi.
