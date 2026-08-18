@@ -16,6 +16,31 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-19 [Claude Code]: AI hali javob bermasdi — sabab timeout emas, Google minimal deadline talabi
+
+Fallback modeli almashtirilgandan keyin ham owner "xatolik" ko'rdi. Ledgerdagi xato **o'zgargan** edi: `provider_error` o'rniga `timeout`. Bu tuzatish ishlaganini, ammo ikkinchi to'siq borligini ko'rsatdi.
+
+Raqamlar bir-biriga zid edi: xom API chaqiruvi to'liq 12k kontekst bilan **1.8–2.8s** da javob berardi, ilova esa 8s timeout bilan "timeout" yozardi. Ilovaning **o'z provideri** orqali chaqirilganda haqiqat chiqdi:
+
+```
+400 INVALID_ARGUMENT: Manually set deadline 8s is too short.
+                      Minimum allowed deadline is 10s.
+```
+
+Google endi minimal 10s talab qiladi. Ilova 8s yuborardi va so'rov **ishlashdan oldin** rad etilardi — 0.5 soniyada. Provider xato matnida "deadline" so'zini ko'rib uni `timeout` deb tasniflagan, ya'ni **ledger sababni yashirgan**. Bu tasnif qoidasi o'zi to'g'ri (haqiqiy deadline xatolarini ushlaydi), lekin bu holatda chalg'itdi.
+
+Tuzatish ikki qismli. Birinchisi — qiymatlarni ko'tarish: request timeout `8s → 15s`, deadline `20s → 35s`. Ikkinchisi muhimroq: provider endi qolgan vaqt 10s dan kam bo'lsa **so'rov yubormaydi**. Aks holda ikkinchi urinishda qolgan vaqt minimumdan tushib, yana `400` olinardi — ya'ni faqat sonlarni ko'tarish yetmasdi.
+
+`effective_request_timeout_ms()` sozlamani Google minimumiga ko'taradi, ya'ni env faylida xato qiymat qolsa ham rad etiladigan so'rov ketmaydi.
+
+- Branch: `claude/gemini-deadline-floor` → PR
+- Yangi: `ai/providers/test_deadline_floor.py` (4 test), `MIN_PROVIDER_DEADLINE_MS`. Tegilgan: `ai/providers/gemini.py`, `core/settings.py`, `.env.local`, `ai/providers/tests.py`, `05-launch-ops.md`
+- Test fixture'i ham yangilandi: u 7s timeout va o'lik modelni ishlatardi — ikkalasi ham endi haqiqatga mos emas
+- Test holati: to'liq suite **806/806 OK**
+- **Jonli dalil:** ilovaning o'z provideri `1.0s` da haqiqiy javob qaytardi — "Turk tilida 'salom' "merhaba" deb aytiladi."
+
+---
+
 ## 2026-08-19 [Claude Code]: Gemini fallback modeli o'ldi — almashtirildi
 
 Owner telefonda AI dan javob o'rniga "ulanishda xatolik" ko'rdi. Server logida sabab: `gemini-2.5-flash-lite` ga chaqiruv `404 NOT_FOUND — no longer available to new users`. U A8 allowlistdagi **yagona fallback** edi. `05-launch-ops.md` bu model uchun **2026-10-16** ni ichki review deadline deb belgilagandi — Google undan ancha oldin yopdi.
