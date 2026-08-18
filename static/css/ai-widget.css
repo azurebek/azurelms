@@ -320,3 +320,10 @@
     height: min(70vh, calc(100vh - 40px));
   }
 }
+
+/* iOS: 16px dan kichik maydonga bosilganda Safari sahifani yaqinlashtiradi
+   va o'zi qaytmaydi. Floating AI widget har sahifada turadi, ya'ni bu tuzoq
+   butun ilova bo'ylab takrorlanardi. */
+@media (max-width:820px){
+  .azai-input{ font-size:16px; }
+}

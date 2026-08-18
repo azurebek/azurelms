@@ -32,6 +32,8 @@
 
 /* ---------- Forma ---------- */
 .set-form input, .set-form textarea{ width:100%; padding:0 14px; border-radius:10px; border:1px solid var(--line); background:var(--paper-2); color:var(--ink); font-size:14px; outline:none; transition:border-color .2s,box-shadow .2s; }
+/* iOS avtomatik yaqinlashtirmasligi uchun telefonda 16px (base.css bilan bir xil sabab). */
+@media (max-width:820px){ .set-form input, .set-form textarea{ font-size:16px; } }
 .set-form input{ height:44px; }
 .set-form textarea{ min-height:90px; padding:12px 14px; line-height:1.6; resize:vertical; }
 .set-form input:focus, .set-form textarea:focus{ border-color:var(--azure); box-shadow:0 0 0 3px var(--azure-soft); }
