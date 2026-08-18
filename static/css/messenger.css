@@ -4,7 +4,11 @@
    Klasslar messenger-chat.js bilan kontraktda (.msg-row/.bubble/
    .sb-item/.message-feedback/.typing-* h.k.) — o'zgartirmang.
    ============================================================ */
-.msgr{ height:100vh; display:flex; overflow:hidden; background:var(--paper); color:var(--ink); }
+/* `100dvh` iOS uchun: `100vh` brauzer panelini hisobga olmaydi va
+   pastga ilashtirilgan element (masalan xabar yozish maydoni) ekran
+   ostida qolib ketadi. `100vh` eski brauzerlar uchun zaxira bo'lib
+   oldinda turadi. */
+.msgr{ height:100vh; height:100dvh; display:flex; overflow:hidden; background:var(--paper); color:var(--ink); }
 
 /* Icon rail */
 .msgr-rail{ flex:0 0 auto; width:62px; display:flex; flex-direction:column; align-items:center; gap:6px; padding:14px 0; border-right:1px solid var(--line); background:var(--panel); }
