@@ -12,8 +12,18 @@ from ai.agent.types import ProviderResponse
 logger = logging.getLogger(__name__)
 
 
+#: Google yopgan modellar. `models.list` ularni hamon ro'yxatda ko'rsatadi,
+#: ya'ni ro'yxat hisobga xos ruxsatni bildirmaydi — faqat haqiqiy
+#: `generateContent` chaqiruvi `404 no longer available to new users` beradi.
+#: Shuning uchun ro'yxat qo'lda yuritiladi va test uni sozlamalarga qarshi
+#: tekshiradi.
+RETIRED_MODELS = frozenset({
+    # 2026-08-19: jonli 404. Google `gemini-3.5-flash-lite` ga o'tishni so'radi.
+    "gemini-2.5-flash-lite",
+})
+
 DEFAULT_PRIMARY_MODEL = "gemini-3.1-flash-lite"
-DEFAULT_FALLBACK_MODEL = "gemini-2.5-flash-lite"
+DEFAULT_FALLBACK_MODEL = "gemini-3.5-flash-lite"
 DEFAULT_FREE_MODEL_ALLOWLIST = (
     DEFAULT_PRIMARY_MODEL,
     DEFAULT_FALLBACK_MODEL,

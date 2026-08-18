@@ -83,15 +83,15 @@ GEMINI_GROUNDING_ENABLED = (
 )
 GEMINI_FREE_MODEL_ALLOWLIST = env_list(
     "GEMINI_FREE_MODEL_ALLOWLIST",
-    ["gemini-3.1-flash-lite", "gemini-2.5-flash-lite"],
+    ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite"],
 )
 GEMINI_PRIMARY_MODEL = (
     os.getenv("GEMINI_PRIMARY_MODEL", "gemini-3.1-flash-lite").strip()
     or "gemini-3.1-flash-lite"
 )
 GEMINI_FALLBACK_MODEL = (
-    os.getenv("GEMINI_FALLBACK_MODEL", "gemini-2.5-flash-lite").strip()
-    or "gemini-2.5-flash-lite"
+    os.getenv("GEMINI_FALLBACK_MODEL", "gemini-3.5-flash-lite").strip()
+    or "gemini-3.5-flash-lite"
 )
 GEMINI_MAX_OUTPUT_TOKENS = env_positive_int("GEMINI_MAX_OUTPUT_TOKENS", 640)
 GEMINI_MAX_PROMPT_CHARS = env_positive_int("GEMINI_MAX_PROMPT_CHARS", 12000)

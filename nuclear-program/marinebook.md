@@ -16,6 +16,32 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-19 [Claude Code]: Gemini fallback modeli o'ldi — almashtirildi
+
+Owner telefonda AI dan javob o'rniga "ulanishda xatolik" ko'rdi. Server logida sabab: `gemini-2.5-flash-lite` ga chaqiruv `404 NOT_FOUND — no longer available to new users`. U A8 allowlistdagi **yagona fallback** edi. `05-launch-ops.md` bu model uchun **2026-10-16** ni ichki review deadline deb belgilagandi — Google undan ancha oldin yopdi.
+
+Taxmin qilmasdan tekshirildi. Avval Google'ning `models.list` chaqirildi va u uchala modelni ham "bor" deb ko'rsatdi — **ya'ni ro'yxat hisobga xos ruxsatni bildirmaydi**. Haqiqatni faqat minimal `generateContent` chaqiruvi aytdi:
+
+| Model | Natija |
+|---|---|
+| `gemini-3.1-flash-lite` (primary) | ishlaydi |
+| `gemini-3.5-flash-lite` | ishlaydi |
+| `gemini-2.5-flash-lite` (fallback) | **404** |
+
+Ya'ni primary sog'lom edi; faqat fallback o'lgan. Muvaffaqiyatsizlik o'sha paytdagi vaqtinchalik primary xatosi ustiga tushib, zanjir butunlay uzilgan.
+
+O'lik model **beshta joyda** qotirilgan ekan: `ai/providers/gemini.py` dagi `DEFAULT_FALLBACK_MODEL`, `core/settings.py` dagi allowlist va fallback defaulti, `.env.local`, va — kutilmaganda — `users/models.py` dagi **foydalanuvchi tanlaydigan model ro'yxati**. Ya'ni o'quvchi sozlamalardan o'lik modelni tanlab qo'yishi mumkin edi. Bazada uni tanlagan foydalanuvchi yo'q, shuning uchun data migration kerak bo'lmadi.
+
+Takrorlanmasligi uchun `RETIRED_MODELS` ro'yxati qo'shildi va test uni barcha sozlamalarga qarshi tekshiradi. Google yana bir modelni yopganda: nomni ro'yxatga qo'shasiz, test qayerda hali ishlatilayotganini ko'rsatib beradi.
+
+- Branch: `claude/gemini-model-fallback` → PR
+- Yangi: `ai/providers/test_retired_models.py` (5 test), `RETIRED_MODELS`. Tegilgan: `ai/providers/gemini.py`, `core/settings.py`, `users/models.py`, uchta test fayli, `05-launch-ops.md`
+- Migratsiya: `users/0018_alter_customuser_ai_model` — faqat choices; lokal bazaga qo'llandi
+- Test holati: to'liq suite **802/802 OK**
+- **Jonli dalil:** ikkala model ham haqiqiy javob qaytardi (`gemini-3.5-flash-lite` → "Turk tilida 'salom' so'zi Merhaba")
+
+---
+
 ## 2026-08-19 [Claude Code]: A5/5 — iOS input zoom: butun ilova bo'ylab tuzoq
 
 Owner qurilmadan: xabar yozish maydoniga bosilganda ekran yaqinlashib ketadi, sarlavha ko'rinmay qoladi, xabar yuborilgandan keyin ham eski holiga qaytmaydi.

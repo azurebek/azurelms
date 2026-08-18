@@ -46,13 +46,13 @@ class CustomUser(AbstractUser):
         help_text="AzureAI yordamchisi javob beradigan uslub",
     )
     AI_MODEL_25_FLASH = 'gemini-2.5-flash'
-    AI_MODEL_25_FLASH_LITE = 'gemini-2.5-flash-lite'
+    AI_MODEL_35_FLASH_LITE = 'gemini-3.5-flash-lite'
     AI_MODEL_31_PRO = 'gemini-3.1-pro-preview'
     AI_MODEL_35_FLASH = 'gemini-3.5-flash'
     AI_MODEL_31_FLASH_LITE = 'gemini-3.1-flash-lite'
     AI_MODEL_CHOICES = [
         (AI_MODEL_25_FLASH, "Gemini 2.5 Flash"),
-        (AI_MODEL_25_FLASH_LITE, "Gemini 2.5 Flash-Lite"),
+        (AI_MODEL_35_FLASH_LITE, "Gemini 3.5 Flash Lite"),
         (AI_MODEL_31_PRO, "Gemini 3.1 Pro"),
         (AI_MODEL_35_FLASH, "Gemini 3.5 Flash"),
         (AI_MODEL_31_FLASH_LITE, "Gemini 3.1 Flash Lite"),
@@ -99,7 +99,7 @@ class CustomUser(AbstractUser):
             allowed = []
         allowed = list(dict.fromkeys(allowed)) or [
             cls.AI_MODEL_31_FLASH_LITE,
-            cls.AI_MODEL_25_FLASH_LITE,
+            cls.AI_MODEL_35_FLASH_LITE,
         ]
         labels = dict(cls.AI_MODEL_CHOICES)
         return [(value, labels.get(value, value)) for value in allowed]
