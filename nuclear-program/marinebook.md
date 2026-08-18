@@ -16,6 +16,25 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-19 [Claude Code]: A5/3 — `100vh` iOS'da yozish maydonini ekran ostida qoldirardi
+
+Owner haqiqiy iPhone'dan skrinshot yubordi: xabar yozadigan qism ko'rinmaydi, unga yetish uchun pastga surish kerak. Bu **emulyatorda topilmaydigan** turdagi xato va aynan shu sababdan A5 chiqish sharti owner qo'lida turadi.
+
+Sabab: `.msgr` va `.app` da `height:100vh`. iOS Safari'da `100vh` brauzer panellari (yuqoridagi manzil va pastdagi asboblar) **hisobga olinmagan** eng katta balandlikni beradi. Ya'ni shell haqiqiy ko'rinadigan joydan uzunroq bo'lib qoladi va pastga ilashtirilgan yozish maydoni ekran ostida qoladi. Desktop emulyatorda brauzer paneli dinamik emas, shuning uchun u yerda muammo umuman ko'rinmaydi.
+
+`100dvh` (dynamic viewport height) shu farqni yopadi: panel ko'rinib-yo'qolganda balandlik ham moslashadi. `100vh` oldinda zaxira sifatida qoldirildi.
+
+Diqqatga sazovor: `exam-shell.css` da bu allaqachon to'g'ri yozilgan (`height:100vh; height:100dvh;`) — saboq bir joyda olingan, qolgan shellarga ko'chirilmagan. Endi `.msgr`, `.app`, mobil `.app-side` va `base.css` dagi `[data-appside]` ham shunday.
+
+Ikkinchi kuzatuv: owner skrinshotida rail hali ko'rinib turibdi, garchi oldingi slice uni telefonda drawerga ko'chirgan bo'lsa ham. Sabab kod emas — Safari CSS'ni keshlagan. DEBUG rejimida static fayllar hash'siz beriladi, ya'ni brauzer eskisini ushlab qoladi.
+
+- Branch: `claude/a5-dvh-shells` → PR
+- Tegilgan: `static/css/messenger.css`, `static/css/app-shell.css`, `static/css/base.css`
+- Test holati: to'liq suite **797/797 OK**
+- Dalil: owner qurilmasidan skrinshot; tuzatish qurilmada qayta tekshirilishi kerak, chunki `100dvh` xulqi faqat haqiqiy brauzer panelida ko'rinadi
+
+---
+
 ## 2026-08-19 [Claude Code]: A5/2 — messenger telefonda: rail chatni bo'g'ib qo'ygan ekan
 
 Owner telefonda ochib xabar berdi: messenger "dahshatli darajada buzuq", xabar yozadigan joy topilmaydi, sidebarlar xunuk. Taxmini to'g'ri chiqdi — sabab aynan sidebar.

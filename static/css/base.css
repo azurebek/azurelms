@@ -33,5 +33,5 @@ input,textarea,select{font-family:inherit}
 
 /* Mobil: sidebar overlay rejimi */
 @media (max-width:820px){
-  [data-appside]{position:fixed!important;z-index:60;height:100vh}
+  [data-appside]{position:fixed!important;z-index:60;height:100vh;height:100dvh}
 }
