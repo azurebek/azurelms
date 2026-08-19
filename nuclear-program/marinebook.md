@@ -36,6 +36,10 @@ Bu xatoni topish qiyin, chunki u xato emas: Django jim o'tkazadi, test yiqilmayd
 
 Yo'lda topilgan boshqa nuqsonlar: menyu chip chetiga bog'langani uchun keng ekranda o'ngdan 115px, tor ekranda chapdan 28px chiqib ketardi — endi JS ikkala chetni bitta hisobda qisadi. 320px da yuborish tugmasi ekrandan butunlay chiqib ketgan edi.
 
+**Owner ko'rgan ikkinchi narsa:** skill ro'yxatidagi ikki qatorli tavsiflar menyuni cho'zib yuborgan edi. Tavsif `title` ga ko'chirildi — endi kursor ustiga borganda chiqadi. Band balandligi 59px → 28px, bir ekranda 5 ta o'rniga **11 ta** skill ko'rinadi.
+
+Shu tekshiruv paytida yana bitta nuqson chiqdi: menyu joyi faqat **ochilish paytida** hisoblanardi, ya'ni ochiq turганda telefon burilsa yoki oyna o'lchami o'zgarsa u eski hisob bilan ekrandan chiqib qolardi (1280 dan 320 ga o'tkazganimda 33 ta element toshdi). Endi `resize` da qayta hisoblanadi.
+
 - Branch: `claude/composer-model-skill-picker` → PR
 - Yangi: `users/test_ai_skill_preference.py` (6 test), `core/test_template_hygiene.py` (2 test), `users/migrations/0019_customuser_ai_skill.py`, `core/circuit_forms.py` emas — `users` da `AISkillUpdateView`
 - Tegilgan: `users/models.py`, `users/views.py`, `users/urls.py`, `messenger/views.py`, `messenger/tests.py`, `messenger/test_picker_contract.py`, `templates/messenger/ai.html`, `static/css/messenger.css`, `static/js/messenger-chat.js`

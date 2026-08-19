@@ -187,12 +187,13 @@
             </button>
             <div class="composer-menu composer-menu--tall" data-picker-menu>
               <div class="composer-menu-head">AI skill</div>
-              <button type="button" data-ai-skill-option="auto" class="composer-item{% if request.user.ai_skill == 'auto' %} active{% endif %}">
-                <span>Avto<small>Savolga qarab AI o'zi tanlaydi</small></span><i class="bi bi-check2" aria-hidden="true"></i>
+              {# Tavsif ro'yxatda emas, `title` da: 15 ta skill ikki qatorli izoh bilan menyuni cho'zib yuborardi #}
+              <button type="button" data-ai-skill-option="auto" title="Savolga qarab AI o'zi tanlaydi" class="composer-item{% if request.user.ai_skill == 'auto' %} active{% endif %}">
+                <span>Avto</span><i class="bi bi-check2" aria-hidden="true"></i>
               </button>
               {% for skill in ai_skills %}
-              <button type="button" data-ai-skill-option="{{ skill.slug }}" class="composer-item{% if request.user.ai_skill == skill.slug %} active{% endif %}">
-                <span>{{ skill.name }}<small>{{ skill.description }}</small></span><i class="bi bi-check2" aria-hidden="true"></i>
+              <button type="button" data-ai-skill-option="{{ skill.slug }}" title="{{ skill.description }}" class="composer-item{% if request.user.ai_skill == skill.slug %} active{% endif %}">
+                <span>{{ skill.name }}</span><i class="bi bi-check2" aria-hidden="true"></i>
               </button>
               {% endfor %}
               <div class="picker-status" data-ai-skill-status role="status" aria-live="polite"></div>

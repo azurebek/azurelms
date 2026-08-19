@@ -132,11 +132,7 @@
 
   function optionLabel(button) {
     const label = button.querySelector('span:not(.ai-current)');
-    if (!label) return '';
-    // Kompozitor variantlari ichida <small> tavsif bor — u chip yorlig'iga tushmasin.
-    const clone = label.cloneNode(true);
-    clone.querySelectorAll('small').forEach(function (node) { node.remove(); });
-    return clone.textContent.trim();
+    return label ? label.textContent.trim() : '';
   }
 
   function aiFeedbackUrl(messageId) {
@@ -512,6 +508,14 @@
     document.addEventListener('click', function () { closeAll(null); });
     document.addEventListener('keydown', function (event) {
       if (event.key === 'Escape') closeAll(null);
+    });
+
+    // Joy ochilish paytida hisoblanadi; telefon burilsa yoki oyna o'lchami
+    // o'zgarsa ochiq menyu eski hisob bilan ekrandan chiqib qoladi.
+    window.addEventListener('resize', function () {
+      pickers.forEach(function (picker) {
+        if (picker.classList.contains('is-open')) keepInsideViewport(picker);
+      });
     });
   }
 
