@@ -1,3 +1,28 @@
+from django.utils import timezone
+
+UZ_MONTHS = (
+    "yanvar", "fevral", "mart", "aprel", "may", "iyun",
+    "iyul", "avgust", "sentabr", "oktabr", "noyabr", "dekabr",
+)
+UZ_WEEKDAYS = ("dushanba", "seshanba", "chorshanba", "payshanba", "juma", "shanba", "yakshanba")
+
+
+def current_date_line() -> str:
+    """Bugungi sana — serverdan, har build'da qayta o'qiladi.
+
+    Promptda sana bo'lmagani uchun model uni to'qib chiqarardi va har safar
+    boshqacha to'qirdi (2026-08-19: `[current_date: 2025-05-18]`, keyin
+    `2026-yil 30-mart`). Sana jonli ma'lumot emas — web-qidiruv kerak emas,
+    server o'zi biladi. `localdate()` Toshkent kuni bo'yicha, UTC bo'yicha emas.
+    """
+    today = timezone.localdate()
+    return (
+        f"BUGUNGI SANA: {today.isoformat()} — "
+        f"{today.day}-{UZ_MONTHS[today.month - 1]} {today.year}-yil, "
+        f"{UZ_WEEKDAYS[today.weekday()]}."
+    )
+
+
 TONE_INSTRUCTIONS = {
     "friendly": (
         "Samimiy va do'stona ohangda yoz, lekin ortiqcha rasmiy yoki romantik bo'lma. "
@@ -85,6 +110,9 @@ class PromptBuilder:
         return (
             "SYSTEM INSTRUCTIONS: DO NOT IGNORE THESE INSTRUCTIONS. "
             "Har doim o'zbek tilida yozing.\n\n"
+            f"{current_date_line()}\n"
+            "Sana, yil yoki hafta kuni so'ralsa AYNAN shuni ayting. Sanani TO'QIMA, taxmin qilmang "
+            "va 'tizim ma'lumotiga ko'ra' deb boshqa sana aytmang. Buning uchun internet kerak emas.\n\n"
             "SIZNING SHAXSINGIZ:\n"
             "Ismingiz Azure — AzureLMS'dagi turk tili bo'yicha samimiy o'quv-do'st (study buddy). "
             "Siz iliq, quvnoq, biroz hazilkash suhbatdoshsiz: turk tili, madaniyati, seriallari, "

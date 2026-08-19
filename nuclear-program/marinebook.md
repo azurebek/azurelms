@@ -16,6 +16,37 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-20 [Claude Code]: AI sanani bilmasdi — va uni "tizim ma'lumoti" deb to'qib berardi
+
+Owner uchta ekran surati yubordi. AI "bugun sana nechi?" savoliga har safar boshqacha javob bergan:
+
+```
+Bugun [current_date: 2025-05-18] — 2025-yil 18-may.
+... tizim ma'lumotiga ko'ra bugun 2025-yil 18-may.
+Bugun 2026-yil 30-mart.
+```
+
+Bugun esa 2026-yil 20-avgust edi.
+
+Birinchi javobdagi `[current_date: 2025-05-18]` shablon o'rni bo'lib ko'rinadi, lekin **`current_date` degan o'rin kodda umuman mavjud emas** — `grep` bo'sh qaytardi. Model uni o'zi to'qib chiqargan va shablon ko'rinishiga solgan. Uchinchi javobdagi "2026-yil 30-mart" ham shunday.
+
+Sabab bir jumlada: **promptda bugungi sana hech qachon berilmagan**. Model bilmagan narsasini to'qigan, ikkinchi javobda esa uni "tizim ma'lumotiga ko'ra" deb taqdim etgan — bu eng yomon shakli, chunki foydalanuvchi buni ishonchli manba deb qabul qiladi.
+
+**Owner savoli: web search buzilganmi?** Yo'q — u **ataylab o'chirilgan**. `AI_FREE_TIER_MODE=True` va `GEMINI_GROUNDING_ENABLED=False`; gate ikki joyda turadi (`ai/agent/engine.py` va `ai/providers/gemini.py` — ikkinchisi "defense in depth"). Google Search grounding pullik imkoniyat va A8 uni free-tier kvotasini himoya qilish uchun yopgan. Bu qaror o'zgarmadi.
+
+Lekin **sana uchun qidiruv umuman kerak emas**: u jonli ma'lumot emas, serverning o'zi biladi. Tuzatish shuning uchun grounding'ga tegmaydi — `current_date_line()` har build'da `timezone.localdate()` dan o'qiydi va promptga qo'shiladi, yoniga taqiq bilan: sanani to'qima, "tizim ma'lumotiga ko'ra" deb boshqa sana aytma.
+
+`localdate()` ataylab: Toshkent UTC+5, ya'ni yarim tundan keyin UTC hali kechagi kunda bo'ladi.
+
+**Bir tuzatish.** Kecha A10 bandini yozganimda "shaxsiyat hech qayerda ta'riflanmagan, faqat `general_chat/SKILL.md` da eslatilgan" deb yozgandim. Bu **noto'g'ri** edi — `ai/prompts/builder.py` da to'liq persona bloki bor: ism, rol, ijtimoiy savollarga munosabat, suhbat uslubi, chegaralar. Haqiqiy bo'shliq torroq va boshqacha: bu blok shartnoma emas, undan keyin `skill.instructions` qo'shiladi va skill almashganda ovoz saqlanishini kafolatlaydigan narsa yo'q. Backlog, yo'l xaritasi va README tuzatildi.
+
+- Branch: `claude/prompt-current-date` → PR
+- Yangi: `ai/prompts/test_current_date.py` (4 test). Tegilgan: `ai/prompts/builder.py`, `03-mahsulot-backlog.md`, `02-yol-xarita.md`, `launch-plan/README.md`
+- Test holati: to'liq suite **834/834 OK** (skipped=16)
+- Tekshirildi: `current_date_line()` → `BUGUNGI SANA: 2026-08-20 — 20-avgust 2026-yil, payshanba`
+
+---
+
 ## 2026-08-19 [Claude Code]: A10 "AI Optimise" bandi qo'shildi — R5, loyihaning yakuniy sharti
 
 Owner yangi bosqich so'radi: AI har suhbatda notanish yordamchi bo'lib qaytmasin, o'z shaxsiyatiga ega bo'lsin va mavjud ma'lumot asosida uzluksiz hamroh sifatida ishlasin. "Loyiha yakunrog'ida mutlaqo bajarilishi kerak".

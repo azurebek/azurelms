@@ -161,7 +161,7 @@
 
 **Uch aniq bo'shliq:**
 
-1. **Shaxsiyat ta'riflanmagan.** Azure AI kimligi kodda yagona joyda yozilmagan — faqat `ai/skills/general_chat/SKILL.md` da eslatib o'tilgan. 15 ta skillning har biri o'z prompti bilan keladi, ya'ni bitta suhbat ichida skill almashsa **ovoz ham almashishi mumkin**. Kerak: canonical persona contract (ism, rol, chegaralar, ohang doirasi, nima demaydi) va uni har skill iste'mol qilishi.
+1. **Shaxsiyat bor, lekin kafolatlanmagan.** *(2026-08-20 tuzatish: dastlab "hech qayerda ta'riflanmagan" deb yozilgandi — bu noto'g'ri edi.)* `ai/prompts/builder.py` da to'liq persona bloki bor: ism (Azure), rol (turk tili bo'yicha o'quv-do'st), ijtimoiy savollarga munosabat, suhbat uslubi va chegaralar. Bo'shliq boshqa joyda: bu blok **shartnoma emas**, oddiy prompt matni. Undan keyin `skill.instructions` qo'shiladi va 15 skillning har biri o'z ovozini olib keladi; skill almashganda persona saqlanishini kafolatlaydigan hech narsa yo'q va buni tekshiradigan test ham yo'q. Kerak: personani canonical manba sifatida ajratish va skill almashuvida ovoz o'zgarmasligini test bilan majburlash.
 2. **Suhbatlararo hikoya yo'q.** `AIConversationSummary` `ChatRoom` ga `OneToOne` — yangi chat ochilganda "biz nima ustida ishlayotgan edik" yo'qoladi. Faktlar qoladi, kontekst qolmaydi. Kerak: foydalanuvchi darajasidagi davomiylik yozuvi (oxirgi mavzular, tugallanmagan ish, keyingi qadam).
 3. **Munosabat holati yo'q.** Qancha vaqt birga ishlangani, nima va'da qilingani, nima jarayonda ekani hech qayerda saqlanmaydi.
 

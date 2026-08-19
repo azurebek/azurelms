@@ -67,7 +67,7 @@ Bu natijalardan kamida biri real cohortda o'lchanmaguncha AI kurs narxini oshiri
 3. **A2 Control Center:** effective config, capability registry, flags/kill switches, event/audit ledger, health, AI quota va release gate.
 4. **Canonical oqimlar + mobil oltin yo'l:** enrollment, lesson lifecycle, access, submission/review va notificationlar shared policy/state machine orqali; real qurilma parity.
 5. **Learner Outcome Loop minimal:** poydevor gate'lari yashil bo'lsa uch evidence modeli, Daily Coach, bitta structured practice va Progress Proof.
-6. **A10 AI Optimise (R5, owner admission 2026-08-19):** AzureAI har suhbatda notanish yordamchi bo'lib qaytmaydi — canonical persona contract, suhbatlararo davomiylik va o'lchangan xotira aniqligi. Poydevor bor (`ai/memory/`, foydalanuvchi bo'yicha `AIMemoryFact`); bo'shliq — shaxsiyat ta'riflanmagani va `AIConversationSummary` ning xonaga bog'langani. Taqdimot scope'ida emas, lekin loyiha usiz yakunlanmaydi.
+6. **A10 AI Optimise (R5, owner admission 2026-08-19):** AzureAI har suhbatda notanish yordamchi bo'lib qaytmaydi — canonical persona contract, suhbatlararo davomiylik va o'lchangan xotira aniqligi. Poydevor bor (`ai/memory/`, foydalanuvchi bo'yicha `AIMemoryFact`); bo'shliq — persona (`ai/prompts/builder.py` da yozilgan) shartnoma emasligi va `AIConversationSummary` ning xonaga bog'langani. Taqdimot scope'ida emas, lekin loyiha usiz yakunlanmaydi.
 7. **Production va monetizatsiya:** hosting/provider faqat yangi owner qarori, learning evidence, reliability va iqtisod gate'idan keyin.
 
 Prompt-only `word_builder`, `conversation_partner`, yangi model picker, streak/PWA bezaklari va chuqur SRS avtomatikasi yuqoridagi qatlamlardan oldinga chiqmaydi.

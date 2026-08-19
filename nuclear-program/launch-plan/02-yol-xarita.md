@@ -129,7 +129,7 @@ Oldingi 2026-07-22 rejasidagi `P0–P5` tarixiy rebaseline sifatida Git tarixida
 
 Bu faza taqdimot scope'ida emas va R4 qaroridan keyin boshlanadi — ammo loyiha **u bajarilmaguncha yakunlangan hisoblanmaydi**.
 
-- AzureAI uchun canonical persona contract: ism, rol, chegaralar, ohang doirasi va nima demasligi. 15 skillning hammasi shu bitta manbani iste'mol qiladi, ya'ni suhbat ichida skill almashganda ovoz o'zgarmaydi.
+- Persona `ai/prompts/builder.py` da allaqachon yozilgan (ism, rol, uslub, chegaralar), ammo u shartnoma emas: undan keyin `skill.instructions` qo'shiladi va skill almashganda ovoz saqlanishini kafolatlaydigan narsa yo'q. Kerak: personani canonical manba sifatida ajratish va skill almashuvida ovoz o'zgarmasligini test bilan majburlash.
 - Foydalanuvchi darajasidagi davomiylik yozuvi: yangi chat "biz nima ustida ishlayotgan edik" ni tiklaydi. Hozir `AIConversationSummary` xonaga bog'langan, shuning uchun faktlar ko'chadi, kontekst ko'chmaydi.
 - Munosabat holati: birga ishlangan davr, tugallanmagan ish, keyingi qadam.
 - Silliqlik A9 gate'iga tayanadi: p95 latency, provayder xato darajasi va fallback xulqi. A10 bu qatlamni qayta yozmaydi.
