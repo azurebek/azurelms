@@ -26,6 +26,7 @@
 | A5 | `ADMIT` | `IN PROGRESS` | messenger mobil buzilishlari tuzatildi (5 commit); dars/imtihon/checkout/attendance va uch qurilma sign-off qolgan |
 | S1/S3/S4 | `— delivered` | `EVIDENCE READY` | portal, grounded advisor va owner backoffice kodda |
 | S2 | `NEXT` | `PLANNED` | canonical inquiry lifecycle yo'q |
+| A10 | `ADMIT` | `PLANNED` | AI Optimise — persona, suhbatlararo davomiylik; R5, owner qarori 2026-08-19 |
 
 ---
 
@@ -144,6 +145,31 @@
 - **Acceptance:** critical safety/access `0`; injection success `<1%`; Turkish `≥92%`; grounded support `≥95%`; RAG recall@4 `≥90%`; memory precision `≥97%`; p95 text `<8s`; hard deadline `35s` (**2026-08-19 da 20s dan ko'tarildi** — Google 10s dan past deadline'ni rad etadi, §A8 ga qarang); max 1 fallback; AI cost/premium revenue `≤25%`.
 - **Faza:** A8'dan keyin R1 foundation, R3 gate A7'dan keyin; production/premium real-data validation alohida admission.
 
+
+### A10. AI Optimise — `PLANNED`, `L`
+
+*Owner admission: 2026-08-19, Azurbek — "loyiha yakunrog'ida mutlaqo bajarilishi kerak".*
+
+- **Outcome:** AzureAI har suhbatda notanish yordamchi bo'lib qaytmaydi. U bitta izchil shaxsiyatga ega, o'quvchi haqida allaqachon bilganini eslaydi va uzluksiz hamroh sifatida ishlaydi — silliq, kutilmagan uzilishlarsiz.
+- **Canonical owner:** mavjud `ai/memory/` servisi va `ai/skills/` registri. Yangi parallel "persona engine" yaratilmaydi; shaxsiyat prompt qatlamining canonical qismi bo'ladi.
+
+**Poydevor allaqachon bor — bu band noldan boshlanmaydi:**
+
+- `AIMemoryFact` foydalanuvchi bo'yicha saqlanadi (xona bo'yicha emas): kategoriya, ishonch darajasi, holat, ko'rinuvchanlik, embedding va `last_used_at`. Ya'ni **faktlar suhbatlar orasida allaqachon ko'chadi**.
+- `ai/memory/` to'liq qatlam: `extractor`, `policy`, `repository`, `retriever`, `semantic` scorer, `summarizer`, `evaluation`. Decay/maintenance va o'quvchi uchun boshqaruv paneli (`/users/settings/ai-memory/`) ishlaydi.
+- Ohang (`ai_tone`) to'rtta presetdan iborat va saqlanadi; skill tanlovi 2026-08-19 dan saqlanadigan bo'ldi.
+
+**Uch aniq bo'shliq:**
+
+1. **Shaxsiyat ta'riflanmagan.** Azure AI kimligi kodda yagona joyda yozilmagan — faqat `ai/skills/general_chat/SKILL.md` da eslatib o'tilgan. 15 ta skillning har biri o'z prompti bilan keladi, ya'ni bitta suhbat ichida skill almashsa **ovoz ham almashishi mumkin**. Kerak: canonical persona contract (ism, rol, chegaralar, ohang doirasi, nima demaydi) va uni har skill iste'mol qilishi.
+2. **Suhbatlararo hikoya yo'q.** `AIConversationSummary` `ChatRoom` ga `OneToOne` — yangi chat ochilganda "biz nima ustida ishlayotgan edik" yo'qoladi. Faktlar qoladi, kontekst qolmaydi. Kerak: foydalanuvchi darajasidagi davomiylik yozuvi (oxirgi mavzular, tugallanmagan ish, keyingi qadam).
+3. **Munosabat holati yo'q.** Qancha vaqt birga ishlangani, nima va'da qilingani, nima jarayonda ekani hech qayerda saqlanmaydi.
+
+**Silliqlik — alohida ish emas, A8/A9 ning natijasi.** So'nggi kunlar buni ko'rsatdi: o'lik model, Google minimalidan past deadline va zaxira taxminidan 71 token oshgani uchun o'zini o'chirgan circuit — uchalasi ham "AI ishlamayapti" bo'lib ko'rindi. A10 bu qatlamni qayta yozmaydi; u A9 ning latency/xato gate'iga tayanadi.
+
+- **Acceptance:** persona contract testli (skill almashganda ovoz o'zgarmaydi); davomiylik yozuvi yangi chatda tiklanadi; xotira **aniqligi** o'lchanadi — noto'g'ri eslash yangidan boshlashdan yomonroq; o'quvchi eslab qolinganini ko'radi va o'chira oladi; p95 javob vaqti va provayder xato darajasi A9 gate'idan o'tadi.
+- **Chegara:** shaxsiyat mavjud bo'lmagan qobiliyatni va'da qilmaydi. "Do'st" ohangi AI ni access, baho yoki progress uchun system-of-record qilmaydi — bu qoida o'zgarmaydi.
+- **Faza:** R5. R0–R4 yopilmasa boshlanmaydi; taqdimot scope'iga kirmaydi.
 ---
 
 ## S. SIT — Study in Turkey portali (parallel mahsulot yo'nalishi)
@@ -267,6 +293,6 @@
 
 ## E. Sessiya tartibi
 
-`A8 → A0b → A1a + A2 → A3/A4 contracts → A3/A4 adapters + A5 sign-off → shartli A6/A7 → A9 critical gate`. A1b production/cloud faqat owner `HOLD`ni ochganda. Agent branch prefiksi o'ziga mos; product authority va merge qarori Azurbekda qoladi. Ops, budget va mobile alohida oxirgi ish emas — har bandning release gate'i.
+`A8 → A0b → A1a + A2 → A3/A4 contracts → A3/A4 adapters + A5 sign-off → shartli A6/A7 → A9 critical gate → A10 AI Optimise (R5)`. A1b production/cloud faqat owner `HOLD`ni ochganda. Agent branch prefiksi o'ziga mos; product authority va merge qarori Azurbekda qoladi. Ops, budget va mobile alohida oxirgi ish emas — har bandning release gate'i.
 
 Parallel SIT truth: `S1 + S4 + S3 (bajarildi) → S2 (keyingi)`. S2 A8 yoki core active slice'ni siqmaydi; bir sessiyada bittasiga tegiladi.

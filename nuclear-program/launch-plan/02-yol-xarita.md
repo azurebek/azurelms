@@ -123,6 +123,21 @@ Oldingi 2026-07-22 rejasidagi `P0–P5` tarixiy rebaseline sifatida Git tarixida
 - `PRODUCTION HOLD` — hosting/provider, remote backup/restore yoki security gate qayta admission olmagan;
 - `NO-GO` — payment/access/privacy/canonical state xatosi yoki claim reproduksiya qilinmaydi.
 
+## R5 — AI Optimise (taqdimotdan keyin, loyiha yakuni)
+
+**Backlog:** `A10`. Owner admission: 2026-08-19.
+
+Bu faza taqdimot scope'ida emas va R4 qaroridan keyin boshlanadi — ammo loyiha **u bajarilmaguncha yakunlangan hisoblanmaydi**.
+
+- AzureAI uchun canonical persona contract: ism, rol, chegaralar, ohang doirasi va nima demasligi. 15 skillning hammasi shu bitta manbani iste'mol qiladi, ya'ni suhbat ichida skill almashganda ovoz o'zgarmaydi.
+- Foydalanuvchi darajasidagi davomiylik yozuvi: yangi chat "biz nima ustida ishlayotgan edik" ni tiklaydi. Hozir `AIConversationSummary` xonaga bog'langan, shuning uchun faktlar ko'chadi, kontekst ko'chmaydi.
+- Munosabat holati: birga ishlangan davr, tugallanmagan ish, keyingi qadam.
+- Silliqlik A9 gate'iga tayanadi: p95 latency, provayder xato darajasi va fallback xulqi. A10 bu qatlamni qayta yozmaydi.
+
+**Exit:** skill almashganda persona o'zgarmasligi testli; yangi chatda davomiylik tiklanadi; xotira **aniqligi** o'lchangan (noto'g'ri eslash yangidan boshlashdan yomonroq); o'quvchi eslab qolinganini ko'radi va o'chira oladi.
+
+**Chegara:** shaxsiyat mavjud bo'lmagan qobiliyatni va'da qilmaydi; "do'st" ohangi AI ni access, baho yoki progress uchun system-of-record qilmaydi.
+
 ---
 
 ## Parallel yo'laklar
