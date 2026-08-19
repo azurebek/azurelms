@@ -356,8 +356,16 @@ class _MessengerRoomView(LoginRequiredMixin, TemplateView):
         context["chat_messages"] = _room_messages(active_chat_room, self.request.user)
         context["chat_locked"] = self.active_room in {"group", "tutor"} and active_chat_room is None
         if self.active_room == "ai":
+            user = self.request.user
+            model_choices = user.effective_ai_model_choices()
             context["ai_skills"] = SkillRegistry().all()
-            context["ai_model_choices"] = self.request.user.effective_ai_model_choices()
+            context["ai_model_choices"] = model_choices
+            # Kompozitordagi chip joriy tanlovni o'z ustida ko'rsatadi, ya'ni
+            # menyuni ochmasdan turib qaysi model/skill ishlayotgani ko'rinadi.
+            context["ai_model_current_label"] = dict(model_choices).get(user.ai_model, user.ai_model)
+            context["ai_skill_current_label"] = dict(user.effective_ai_skill_choices()).get(
+                user.ai_skill, user.ai_skill
+            )
             context["active_context_lesson"] = self._active_context_lesson()
         return context
 

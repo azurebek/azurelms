@@ -16,6 +16,35 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-19 [Claude Code]: Model/skill tanlovi kompozitorga ko'chdi — va bir izoh meni uzoq aldadi
+
+Owner Claude'ning interfeysini ko'rsatib so'radi: model/skill tanlovi sarlavhada emas, xabar yozish oynasining pastida tursin va yoyilib turadigan katta panel emas, silliq ochilib yopiladigan ixcham menyu bo'lsin.
+
+Sabab mustahkam: bu tanlov **keyingi xabarga** tegishli qaror, lekin ekranning diagonal qarama-qarshi burchagida turardi; 21 ta tugma (4 uslub + 2 model + 15 skill) tekis to'rda bir xil vaznda yoyilardi.
+
+Qamrov owner qarori bilan toraytirildi: kompozitorda faqat **model va skill**, uslub va web qidiruv chuqurligi sozlamalar sahifasida qoladi. Claude'dagi "Effort" bu yerda umuman yo'q — kodda faqat `ai_web_search_effort` bor va u modelning o'ylash chuqurligi emas, internetdan qidirish faolligi. Buni "Effort" deb atash yolg'on bo'lardi.
+
+**Skill saqlanmasdi.** `initSkillPicker` faqat JS o'zgaruvchisini o'zgartirar, shablon esa `data-current-ai-skill="auto"` ni qattiq yozardi — sahifa yangilanishi bilan tanlov yo'qolardi. Tanlagich sarlavhada yashiringanida buni hech kim sezmagan. Endi `CustomUser.ai_skill` maydoni, `update_ai_skill` endpointi va `effective_ai_skill_choices()` bor. Maydonga ataylab `choices` berilmadi: variantlar `SkillRegistry` dan olinadi, aks holda har yangi skill migratsiya talab qilardi. Test buni majburlaydi — ro'yxat registrdan chetlashsa yiqiladi.
+
+**Endi asosiy dars.** Kompozitor tor ekranda buzildi: chiplar 18px ga siqilar, `attach` bilan chiplar orasida 200px bo'shliq turar, asboblar qatori esa 36px o'rniga **166px** balandlikda edi. Men buni flex qoidasi deb o'ylab uzoq quvladim — `min-width:0`, `flex-shrink`, `flex-wrap`, `width:100%`, picker'ni flex konteyner qilish. Har bir o'lchov g'alati raqam berardi va men navbatdagi gipotezani sinardim.
+
+Haqiqiy sabab oddiy edi va uni **owner ekranga qarab topdi**: men yozgan `{# ... #}` izohi ikki qatorga cho'zilgan. Django'da bu sintaksis **faqat bitta qatorda** ishlaydi — ko'p qatorlisi izoh emas, oddiy matn. O'sha matn qatorda joy egallab, chiplarni siqib, balandlikni cho'zib turgan. `{% comment %}` ga o'tkazilishi bilan hamma raqam joyiga tushdi: 166px → 36px.
+
+Bu xatoni topish qiyin, chunki u xato emas: Django jim o'tkazadi, test yiqilmaydi, `manage.py check` toza. Faqat sahifaga qaragan odam ko'radi. Shuning uchun `core/test_template_hygiene.py` yozildi — barcha shablonlarda yopilmagan `{#` ni qidiradi.
+
+**Metodologiya xulosasi:** men DOM'ni o'lchab, hisoblangan uslublarni tekshirib, gipoteza ketidan gipoteza sinadim — lekin **render qilingan HTML'ga qaramadim**. Qaraganimda birinchi qatordayoq ko'rinardi. Struktura haqida taxmin qilish o'rniga uni o'qish kerak edi.
+
+Yo'lda topilgan boshqa nuqsonlar: menyu chip chetiga bog'langani uchun keng ekranda o'ngdan 115px, tor ekranda chapdan 28px chiqib ketardi — endi JS ikkala chetni bitta hisobda qisadi. 320px da yuborish tugmasi ekrandan butunlay chiqib ketgan edi.
+
+- Branch: `claude/composer-model-skill-picker` → PR
+- Yangi: `users/test_ai_skill_preference.py` (6 test), `core/test_template_hygiene.py` (2 test), `users/migrations/0019_customuser_ai_skill.py`, `core/circuit_forms.py` emas — `users` da `AISkillUpdateView`
+- Tegilgan: `users/models.py`, `users/views.py`, `users/urls.py`, `messenger/views.py`, `messenger/tests.py`, `messenger/test_picker_contract.py`, `templates/messenger/ai.html`, `static/css/messenger.css`, `static/js/messenger-chat.js`
+- Nazorat yugurishlari: shablon gigiyena testi ko'p qatorli izoh qaytarilganda yiqildi; kontrakt testi `.composer-item.active` qoidasi olib tashlanganda yiqildi
+- Test holati: to'liq suite **825/825 OK** (skipped=16)
+- **Brauzerda o'lchandi** (320 / 390 / 1280): toshish `0`, yuborish tugmasi ko'rinadi, ikkala menyu ekran ichida, asboblar qatori 36px. Chip matni 390 va 1280 da to'liq, 320 da 74% ko'rinadi
+
+---
+
 ## 2026-08-19 [Claude Code]: Tanlagich "tanlanmayapti" edi — aslida tanlanardi, faqat ko'rinmasdi
 
 Owner messenger tepasidagi model/skill tanlagichi haqida shikoyat qildi: ochiladi, lekin bosilsa tanlanmaydi. Serverni ishga tushirib, o'zi tekshirib tasdiqladi.

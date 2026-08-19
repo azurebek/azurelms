@@ -11,7 +11,7 @@ from django.views.generic import RedirectView
 from .views import (
     RegisterView, UserProfileView, AvatarUpdateView, PasswordUpdateView,
     SettingsAccountView, SettingsBillingView, SettingsCapabilitiesView,
-    AIModelUpdateView, AIToneUpdateView, AIWebSearchEffortUpdateView,
+    AIModelUpdateView, AISkillUpdateView, AIToneUpdateView, AIWebSearchEffortUpdateView,
     AIMemoryListView, AIMemoryArchiveView, AIMemoryClearAllView, AIMemoryRejectView, AIMemoryToggleView,
     DashboardView, MyCoursesView, SubscriptionHistoryView, CertificateListView, LeaderboardView,
     AttendanceCalendarView, AttendanceManageView,
@@ -41,6 +41,7 @@ urlpatterns = [
     path('settings/password/', PasswordUpdateView.as_view(), name='update_password'),
     path('settings/ai-tone/', AIToneUpdateView.as_view(), name='update_ai_tone'),
     path('settings/ai-model/', AIModelUpdateView.as_view(), name='update_ai_model'),
+    path('settings/ai-skill/', AISkillUpdateView.as_view(), name='update_ai_skill'),
     path('settings/ai-web-search/', AIWebSearchEffortUpdateView.as_view(), name='update_ai_web_search_effort'),
     # Eski xotira sahifasi Maxfiylik bo'limiga ko'chdi; havola ishlashda qoladi.
     path('settings/ai-memory/', RedirectView.as_view(pattern_name='settings_privacy'), name='ai_memory'),

@@ -245,8 +245,13 @@ class ChatAccessTests(TestCase):
         self.assertContains(ai_response, f'data-ai-model-option="{User.AI_MODEL_35_FLASH_LITE}"')
         self.assertNotContains(ai_response, f'data-ai-model-option="{User.AI_MODEL_31_PRO}"')
         self.assertNotContains(ai_response, f'data-ai-model-option="{User.AI_MODEL_35_FLASH}"')
-        self.assertContains(ai_response, "Javob uslubi")
-        self.assertContains(ai_response, "Qisqa va aniq")
+        # Uslub va web qidiruv sozlamalar sahifasiga ko'chdi (2026-08-19); kompozitorda
+        # faqat keyingi xabarga tegishli ikki tanlov qoladi — model va skill.
+        self.assertContains(ai_response, 'data-ai-skill-option="auto"')
+        self.assertContains(ai_response, 'data-ai-skill-option="grammar_corrector"')
+        self.assertContains(ai_response, "AI modeli")
+        self.assertContains(ai_response, "AI skill")
+        self.assertNotContains(ai_response, "Javob uslubi")
         self.assertEqual(group_response.status_code, 200)
         self.assertContains(group_response, "Guruh chati yopiq")
         self.assertEqual(tutor_response.status_code, 200)

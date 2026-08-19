@@ -24,7 +24,7 @@
   <!-- Icon rail -->
   <aside class="msgr-rail">
     <a class="msgr-rail-logo" href="{% url 'dashboard' %}" title="Boshqaruv paneli">{% include "components/brand_logo.html" with mark_only=True mark_class="msgr-rail-logo-content" %}</a>
-    <a class="msgr-rail-btn{% if active_room == 'ai' %} active{% endif %}" href="{% url 'messenger:ai' %}" title="AI repetitor"><i class="bi bi-stars"></i></a>
+    <a class="msgr-rail-btn{% if active_room == 'ai' %} active{% endif %}" href="{% url 'messenger:ai' %}" title="AI repetitor"><i class="bi bi-stars" aria-hidden="true"></i></a>
     <a class="msgr-rail-btn{% if active_room == 'group' %} active{% endif %}" href="{% url 'messenger:group' %}" title="Guruh"><i class="bi bi-people"></i></a>
     <a class="msgr-rail-btn{% if active_room == 'tutor' %} active{% endif %}" href="{% url 'messenger:tutor' %}" title="Tutor"><i class="bi bi-mortarboard"></i></a>
     <div style="flex:1;"></div>
@@ -76,7 +76,8 @@
     data-ai-model-url="{% url 'update_ai_model' %}"
     data-ai-feedback-url-template="{% url 'messenger:submit_ai_feedback' message_id=0 %}"
     data-ai-avatar-url="{% static 'img/ai-assistant-widget.png' %}"
-    data-current-ai-skill="auto">
+    data-ai-skill-url="{% url 'update_ai_skill' %}"
+    data-current-ai-skill="{{ request.user.ai_skill|default:'auto' }}">
 
     <header class="chat-head">
       <div class="chat-head-id">
@@ -88,36 +89,6 @@
         </span>
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
-        {% if active_room == 'ai' %}
-        {# AI sozlamalari — uslub/model/skill tanlovlari backend choices'dan (messenger-chat.js data-* kontrakti) #}
-        <details style="position:relative;">
-          <summary class="chat-ico" style="list-style:none;cursor:pointer;display:grid;place-items:center;" aria-label="AI sozlamalari"><i class="bi bi-sliders2"></i></summary>
-          <div style="position:absolute;right:0;top:calc(100% + 8px);z-index:30;width:280px;border:1px solid var(--line);border-radius:14px;background:var(--panel);box-shadow:0 14px 40px rgba(11,14,21,.16);padding:14px;">
-            <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;">Javob uslubi</div>
-            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
-              {% for value, label in request.user.AI_TONE_CHOICES %}
-              <button type="button" data-ai-tone-option="{{ value }}" class="feedback-btn{% if request.user.ai_tone == value %} active{% endif %}" style="font-size:11.5px;">{{ label }}</button>
-              {% endfor %}
-              <div class="picker-status" data-ai-tone-status role="status" aria-live="polite"></div>
-            </div>
-            <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;">AI modeli</div>
-            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
-              {% for value, label in ai_model_choices %}
-              <button type="button" data-ai-model-option="{{ value }}" class="feedback-btn{% if request.user.ai_model == value %} active{% endif %}" style="font-size:11.5px;">{{ label }}</button>
-              {% endfor %}
-              <div class="picker-status" data-ai-model-status role="status" aria-live="polite"></div>
-            </div>
-            <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;">AI skill</div>
-            <div style="display:flex;flex-wrap:wrap;gap:6px;">
-              <button type="button" data-ai-skill-option="auto" class="feedback-btn active" style="font-size:11.5px;">Avto</button>
-              {% for skill in ai_skills %}
-              <button type="button" data-ai-skill-option="{{ skill.slug }}" class="feedback-btn" style="font-size:11.5px;" title="{{ skill.description }}">{{ skill.name }}</button>
-              {% endfor %}
-              <div class="picker-status" data-ai-skill-status role="status" aria-live="polite"></div>
-            </div>
-          </div>
-        </details>
-        {% endif %}
         <a class="chat-ico" href="{% url 'settings' %}" aria-label="Sozlamalar"><i class="bi bi-gear"></i></a>
       </div>
     </header>
@@ -159,7 +130,7 @@
           {% if message.is_ai_response %}
           {# messenger-chat.js createFeedbackControls bilan bir xil DOM kontrakti #}
           <div class="message-feedback" data-ai-feedback="true" data-message-id="{{ message.id }}" data-user-rating="{{ message.user_feedback_rating|default:'' }}">
-            {% if message.ai_skill_label %}<span class="feedback-btn feedback-btn--icon feedback-btn--skill" role="img" tabindex="0" title="Skill: {{ message.ai_skill_label }}{% if message.ai_used_tools %} | Tools: {{ message.ai_used_tools|join:', ' }}{% endif %}"><i class="bi bi-stars"></i></span>{% endif %}
+            {% if message.ai_skill_label %}<span class="feedback-btn feedback-btn--icon feedback-btn--skill" role="img" tabindex="0" title="Skill: {{ message.ai_skill_label }}{% if message.ai_used_tools %} | Tools: {{ message.ai_used_tools|join:', ' }}{% endif %}"><i class="bi bi-stars" aria-hidden="true"></i></span>{% endif %}
             <button type="button" class="feedback-btn{% if message.user_feedback_rating == 1 %} active{% endif %}" data-feedback-rating="1"><i class="bi bi-hand-thumbs-up"></i><span data-feedback-positive>{{ message.feedback_positive_count|default:0 }}</span></button>
             <button type="button" class="feedback-btn{% if message.user_feedback_rating == -1 %} active{% endif %}" data-feedback-rating="-1"><i class="bi bi-hand-thumbs-down"></i><span data-feedback-negative>{{ message.feedback_negative_count|default:0 }}</span></button>
             <button type="button" class="feedback-btn feedback-btn--icon" data-copy-message="true" aria-label="Nusxa olish" title="Nusxa olish"><i class="bi bi-copy"></i></button>
@@ -184,10 +155,54 @@
       <div class="chat-chips"><span class="chat-chip" title="AI javoblari shu dars konteksti (RAG) bilan boyitiladi"><i class="bi bi-paperclip" style="color:var(--azure);"></i> RAG scope: {{ active_context_lesson.title|truncatechars:36 }}</span></div>
       {% endif %}
       <div class="chat-inputrow">
-        <button type="button" class="chat-icobtn" aria-label="Biriktirish" onclick="this.parentNode.querySelector('[data-upload-input]').click()"><i class="bi bi-paperclip"></i></button>
-        <input type="file" data-upload-input hidden accept="image/*,.pdf,.doc,.docx">
         <textarea rows="1" data-chat-input placeholder="Xabar yozing…" title="Enter — yuborish, Shift+Enter — yangi qator"></textarea>
-        <button type="button" class="chat-send" data-chat-send aria-label="Yuborish"><i class="bi bi-arrow-up"></i></button>
+        <input type="file" data-upload-input hidden accept="image/*,.pdf,.doc,.docx">
+        <div class="composer-tools">
+          <button type="button" class="chat-icobtn" aria-label="Biriktirish" onclick="this.closest('.chat-inputrow').querySelector('[data-upload-input]').click()"><i class="bi bi-paperclip"></i></button>
+
+          {% if active_room == 'ai' %}
+          {% comment %}
+            Model va skill — keyingi xabarga tegishli qaror, shuning uchun yozish joyida turadi.
+            Uslub va web qidiruv chuqurligi sozlamalar sahifasida (messenger-chat.js data-* kontrakti).
+            `{# #}` emas: u faqat bitta qatorda ishlaydi va ko'p qatorlisi sahifada matn bo'lib chiqadi.
+          {% endcomment %}
+          <div class="composer-picker" data-composer-picker>
+            <button type="button" class="composer-chip" data-picker-toggle aria-haspopup="true" aria-expanded="false">
+              <i class="bi bi-cpu" aria-hidden="true"></i><span data-ai-model-current-label>{{ ai_model_current_label|cut:"Gemini " }}</span><i class="bi bi-chevron-up composer-chip-caret" aria-hidden="true"></i>
+            </button>
+            <div class="composer-menu" data-picker-menu>
+              <div class="composer-menu-head">AI modeli</div>
+              {% for value, label in ai_model_choices %}
+              <button type="button" data-ai-model-option="{{ value }}" class="composer-item{% if request.user.ai_model == value %} active{% endif %}">
+                <span>{{ label }}</span><i class="bi bi-check2" aria-hidden="true"></i>
+              </button>
+              {% endfor %}
+              <div class="picker-status" data-ai-model-status role="status" aria-live="polite"></div>
+            </div>
+          </div>
+
+          <div class="composer-picker" data-composer-picker>
+            <button type="button" class="composer-chip" data-picker-toggle aria-haspopup="true" aria-expanded="false">
+              <i class="bi bi-stars" aria-hidden="true"></i><span data-ai-skill-current-label>{{ ai_skill_current_label }}</span><i class="bi bi-chevron-up composer-chip-caret" aria-hidden="true"></i>
+            </button>
+            <div class="composer-menu composer-menu--tall" data-picker-menu>
+              <div class="composer-menu-head">AI skill</div>
+              <button type="button" data-ai-skill-option="auto" class="composer-item{% if request.user.ai_skill == 'auto' %} active{% endif %}">
+                <span>Avto<small>Savolga qarab AI o'zi tanlaydi</small></span><i class="bi bi-check2" aria-hidden="true"></i>
+              </button>
+              {% for skill in ai_skills %}
+              <button type="button" data-ai-skill-option="{{ skill.slug }}" class="composer-item{% if request.user.ai_skill == skill.slug %} active{% endif %}">
+                <span>{{ skill.name }}<small>{{ skill.description }}</small></span><i class="bi bi-check2" aria-hidden="true"></i>
+              </button>
+              {% endfor %}
+              <div class="picker-status" data-ai-skill-status role="status" aria-live="polite"></div>
+            </div>
+          </div>
+          {% endif %}
+
+          <span class="composer-spacer"></span>
+          <button type="button" class="chat-send" data-chat-send aria-label="Yuborish"><i class="bi bi-arrow-up"></i></button>
+        </div>
       </div>
     </div>
 

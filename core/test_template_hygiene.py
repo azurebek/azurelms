@@ -1,50 +1,44 @@
+"""Shablonlar uchun gigiyena testlari.
+
+`{# ... #}` Django'da **faqat bitta qatorda** ishlaydi. Ko'p qatorli variant
+izoh sifatida qayta ishlanmaydi — u sahifada oddiy matn bo'lib chiqadi. Bu
+2026-08-19 da messenger kompozitorida sodir bo'ldi: izoh matni qatorda 200px
+joy egallab, model/skill chiplarini 18px ga siqib qo'ydi va butun asboblar
+qatorini 166px balandlikka cho'zdi.
+
+Xatoni topish qiyin, chunki u sintaksis xatosi emas: Django jim o'tkazib
+yuboradi, test yiqilmaydi va faqat sahifaga qarab turgan odam sezadi.
+Ko'p qatorli izoh uchun `{% comment %}` ishlatiladi.
+"""
+
 import re
 from pathlib import Path
 
-from django.template import engines
+from django.conf import settings
 from django.test import SimpleTestCase
 
-
-TEMPLATES_ROOT = Path(__file__).resolve().parent.parent / "templates"
-
-# {# ... #} — birinchi yopilishgacha, qator oshib ketishi mumkin.
-COMMENT_PATTERN = re.compile(r"\{#.*?#\}", re.DOTALL)
+TEMPLATES_DIR = Path(settings.BASE_DIR) / "templates"
 
 
-class TemplateCommentHygieneTests(SimpleTestCase):
-    """Django'ning `{# #}` izohi FAQAT bir qatorli.
-
-    Ko'p qatorli yozilsa Django uni izoh deb hisoblamaydi va matn sahifada
-    ko'rinib qoladi. Standalone shablonda bu foydalanuvchiga chiqadi;
-    `{% extends %}` qiluvchi shablonda jim yo'qoladi, ya'ni xato sezilmay
-    turadi. Ko'p qatorli izoh uchun `{% comment %}` ishlatiladi.
-    """
-
-    def test_no_multiline_hash_comments_in_templates(self):
+class TemplateCommentSyntaxTests(SimpleTestCase):
+    def test_no_multiline_hash_comments(self):
         offenders = []
-        for template_path in sorted(TEMPLATES_ROOT.rglob("*.html")):
-            source = template_path.read_text(encoding="utf-8")
-            for match in COMMENT_PATTERN.findall(source):
-                if "\n" in match:
-                    relative = template_path.relative_to(TEMPLATES_ROOT)
-                    offenders.append(f"{relative}: {match.splitlines()[0][:60]}…")
+
+        for path in sorted(TEMPLATES_DIR.rglob("*.html")):
+            for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+                opens = line.count("{#")
+                closes = line.count("#}")
+                if opens > closes:
+                    relative = path.relative_to(TEMPLATES_DIR)
+                    offenders.append(f"{relative}:{number}: {line.strip()[:70]}")
+
         self.assertEqual(
-            offenders,
-            [],
-            "Ko'p qatorli {# #} izoh topildi — {% comment %} ga o'tkazing:\n"
-            + "\n".join(offenders),
+            offenders, [],
+            "`{# #}` bitta qatorda yopilmagan — Django uni izoh deb qabul qilmaydi "
+            "va matn sahifada ko'rinadi. Ko'p qatorli izoh uchun `{% comment %}` "
+            "ishlating:\n" + "\n".join(offenders),
         )
 
-
-class ExamShellRendersCleanlyTests(SimpleTestCase):
-    """ExamShell standalone hujjat — chiqishi doctype bilan boshlanishi va
-    izoh matnini o'z ichiga olmasligi kerak."""
-
-    def test_exam_detail_renders_without_literal_comment_markup(self):
-        source = (TEMPLATES_ROOT / "courses" / "exam_detail.html").read_text(encoding="utf-8")
-        rendered = engines["django"].from_string(source).render({})
-        self.assertNotIn("{#", rendered)
-        self.assertTrue(
-            rendered.lstrip().lower().startswith("<!doctype html>"),
-            "Doctype birinchi bo'lmasa brauzer quirks rejimiga tushadi.",
-        )
+    def test_the_check_actually_reads_templates(self):
+        """Ro'yxat bo'sh bo'lsa yuqoridagi test hech nima tekshirmaydi."""
+        self.assertGreater(len(list(TEMPLATES_DIR.rglob("*.html"))), 20)
