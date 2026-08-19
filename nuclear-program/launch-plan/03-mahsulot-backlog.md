@@ -10,17 +10,20 @@
 4. `NEXT` band faqat Azurbek admission berganda `ADMIT`ga o'tadi.
 5. Queue qarori: `ADMIT` / `NEXT` / `HOLD` / `CUT`. Execution holati: `PLANNED` / `IN PROGRESS` / `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` / `EVIDENCE READY` / `BLOCKED`.
 6. **Istisno — `S. SIT`:** owner qarori bilan A-narvoniga parallel yuritiladi (1-qoidadan ozod). Uning slice'lari o'zaro ketma-ket boradi va A bandlarini to'xtatmaydi; narxi — owner vaqtining bo'linishi (`S-R1`).
-7. **Joriy active closeout — `A8`:** Gemini free-tier budget mode **`IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`**. Real DB contention proof tugamaguncha yangi AI skill, bulk generation, `heavy` search yoki ommaviy AI beta yo'q.
+7. **Joriy active closeout — `A5` (2026-08-19):** A8 yopildi (PostgreSQL contention proofi endi CI `integration` ishida), A0b, A1a bajarildi, A2 flag registridan boshqa hamma narsa kodda, A3/A4 slice'lari main'da. Qolgan gate — A5 ning uch qurilmadagi sign-off'i. Yangi AI skill, bulk generation, `heavy` search yoki ommaviy AI beta hamon yo'q.
 
 ### Joriy status snapshot
 
 | Band | Queue | Execution | Izoh |
 |---|---|---|---|
-| A0 | `ADMIT` | `IN PROGRESS` | A0a auth/webhook/inactive-staff bajarilgan; A0b va teacher/socket scope qolgan |
+| A0 | `ADMIT` | `IMPLEMENTED/TESTED` | A0a va A0b beshala slice ham bajarilgan; `EVIDENCE READY` labeli owner qarorida |
 | A1a | `ADMIT` | `IMPLEMENTED/TESTED` | GitHub Actions CI (8 required check) + readiness/backup/outbox bajarildi; bog'liqlik zaiflik qarzi reyestrda |
 | A1b | `HOLD` | `PLANNED` | cloud deploy va managed services |
-| A2 | `ADMIT` | `IN PROGRESS` | read-only Control Center + brand/landing mutation foundation |
-| A8 | `ADMIT` | `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | supply guard kod/target/full testlarda; real concurrency proof pending |
+| A2 | `ADMIT` | `IN PROGRESS` | audit ledgeri, kill switch, circuit reset, worker heartbeat va `ReleaseRecord` kodda; qolgani umumiy flag registri va cost/quality gate |
+| A8 | `ADMIT` | `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | supply guard kod/target/full testlarda; PostgreSQL contention proofi CI `integration` ishida yopildi, alohida OS processlari bilan takrorlash ochiq |
+| A3 | `ADMIT` | `IN PROGRESS` | to'rt slice main'da (davomat parity, session atomikligi, lesson release, grade→learner), 36 test; adapter parity va Mini App qolgan |
+| A4 | `ADMIT` | `IN PROGRESS` | to'rt slice main'da (checkout side-effect, yagona pending receipt, receipt binding, Telegram claim), 25 test; typed entitlement qolgan |
+| A5 | `ADMIT` | `IN PROGRESS` | messenger mobil buzilishlari tuzatildi (5 commit); dars/imtihon/checkout/attendance va uch qurilma sign-off qolgan |
 | S1/S3/S4 | `— delivered` | `EVIDENCE READY` | portal, grounded advisor va owner backoffice kodda |
 | S2 | `NEXT` | `PLANNED` | canonical inquiry lifecycle yo'q |
 
@@ -28,7 +31,7 @@
 
 ## A. ADMIT — launch-critical
 
-### A0. Stop-ship security pack — `IN PROGRESS`, `XL → A0a DONE + A0b L`
+### A0. Stop-ship security pack — `IMPLEMENTED/TESTED`, `XL → A0a DONE + A0b DONE`
 
 - **Outcome:** account, payment va private learner data xavfsiz; owner favqulodda manual rescue qilmaydi.
 - **Canonical owner:** auth/access/media policies.
@@ -65,25 +68,32 @@
 - **2026-07-22 foundation evidence:** active superuser-only read-only route, 10-capability registry, safe partial-failure snapshot, effective config va shu servisdagi `system_audit` CLI tayyor; 1280x900/390x844 browser QA hamda permission/CLI testlari o'tdi. Hali kerak: mutation audit/confirmation/idempotency, flags/kill switches, active worker heartbeat, `ReleaseRecord`, cost/quality va qolgan capability probe'lari. Shu sabab band `EVIDENCE READY` emas.
 - **2026-07-22 birinchi mutation surface — markaziy brend:** `/backoffice/control/brand/` A2 scope'i ichida, mavjud backoffice ustida qurildi; yangi parallel admin subsystem yaratilmadi. A2ning mutation acceptance shartlarini qondiradi: majburiy `change_reason`, majburiy confirmation checkbox, `LogEntry` audit yozuvi va o'zgarish bo'lmasa yozmaydigan no-op yo'l. Canonical owner: `frontend.SiteSettings`; adapterlar (public, app, teacher, backoffice, messenger, Mini App, auth, exam, sertifikat, error shell'lari) faqat `templates/components/brand_logo.html` orqali iste'mol qiladi. Evidence: `python manage.py test` 336/336, 1280x900 va 390x844 light/dark browser QA — overflow `0`, console xato `0`. **Admission label Azurbekniki:** bu band alohida ADMIT sifatida ochilmadi, A2 ichidagi owner control surface deb yozildi.
 - **2026-08-15 append-only audit ledgeri:** `aicontrol.SystemAuditEvent` — kim, qayerdan (`source`), nima qildi (`action`), qanday sabab bilan, `before/after` snapshot, natija, IP/user-agent va release SHA. Append-only model darajasida majburlangan (`save`/`delete` rad etadi), admin read-only. Yozish yagona nuqtadan (`core/audit.py`), maxfiy kalitlar maskalanadi. Uchala owner yuzasi (kill switch, brend, landing) `LogEntry` dan ko'chirildi. 16 test. Qolgani: `05-launch-ops.md` §3 dagi minimal ro'yxatning boshqa bandlari (receipt qarori, enrollment transition, lesson release, grade/review, outbox replay, media denial, release/rollback).
+- **2026-08-16 worker heartbeat:** `82f3daa` — Control Center ilgari workerning tirikligini *bilvosita* chiqarardi (navbatda ish bormi). Endi `aicontrol.WorkerHeartbeat` bevosita o'lchanadi: worker har siklda o'zi yozadi (`bot/outbox.py`), snapshot esa oxirgi zarbani o'qiydi — `ALIVE_WINDOW` 2 daqiqa, `DEAD_WINDOW` 15 daqiqa. Bo'sh navbat endi "worker o'lgan" degani emas.
+- **2026-08-18 §3 audit ro'yxatining qolgani:** `4e7aa62` — `05-launch-ops.md` §3 dagi minimal ro'yxatdan qolgan bandlar ledgerga ulandi: receipt qarori (tasdiq **va** rad etilgan urinish), enrollment transfer/promotion, lesson release, grade/review va private-media denial. Media denial ataylab cheklangan — faqat autentifikatsiyadan o'tgan aktor va 15 daqiqalik takrorlanish oynasi, chunki ledger append-only va skaner uni bosib keta olmasligi kerak. **Outbox replay ataylab qoldirildi: bunday amal hali mavjud emas** (lease avtomatik qaytadi, owner tugmasi yo'q) — mavjud bo'lmagan amalni auditlash mumkin emas.
+- **2026-08-18 `ReleaseRecord`:** `48a454e` — `aicontrol.ReleaseRecord` commit SHA, qo'llangan/qo'llanmagan migrationlar, gate natijalari va owner qarorini saqlaydi; `core/release_service.py` dagi `migration_state()` kod bilan baza o'rtasidagi drift'ni ochadi (deploy'dan keyin unapplied migration qolgani eng jim buziluvchi holat). Owner qarori `release.decision` sifatida auditlanadi. **Halol chegara:** gate natijalari va deploy holatini yozadigan tomon hali yo'q — A1b `HOLD` da; model yozuvni qabul qiladi, yozuvchi keyin keladi.
 - **2026-08-19 AI circuit cooldown tozalash:** `/backoffice/control/ai-circuit-reset/` — A8 circuit breaker provider xatolaridan keyin bir soatga ochiladi; sabab bartaraf etilganda owner cooldown'ni sabab+tasdiq bilan tozalaydi va bu `ai.circuit.reset` sifatida auditlanadi. Circuit allaqachon yopiq bo'lsa no-op — ledgerga yozilmaydi. Himoya olib tashlanmaydi: sabab tuzatilmasa circuit qayta ochiladi. 9 test.
 - **2026-08-15 AI kill switch:** `/backoffice/control/ai-kill-switch/` — owner bitta tugma bilan barcha remote AI chaqiruvini to'xtatadi. `reserve_supply()` uni tarmoqdan oldin tekshiradi va budjet enforcement o'chiq bo'lsa ham ishlaydi; rad etish ledgerga `kill_switch` sababi bilan yoziladi. Control Center to'xtatilgan holatni AMBER ko'rsatadi (ataylab qilingan degradatsiya, nosozlik emas). 14 test. Qolgani: append-only `SystemAuditEvent` (hozir `LogEntry`), umumiy flag registri, worker heartbeat, `ReleaseRecord`.
 - **2026-07-27 landing editor foundation:** `/backoffice/landing/` Bosqich 1 va bo'lim TOC/tab main'da; owner-only, reason+confirmation, `LogEntry` va no-op patterni. Repeatable CRUD/reorder, iframe preview, audit history/rollback hali `HOLD/NEXT`; A2 tugagan degani emas.
 - **Faza:** R1.
 
-### A3. Live Lesson Orchestrator — `PLANNED`, `M contract + L adapters/UI`
+### A3. Live Lesson Orchestrator — `IN PROGRESS`, `M contract + L adapters/UI`
 
 - **Outcome:** Azurbek dars kunini ≤3 asosiy amalda boshqaradi; web/bot/Mini App bir xil state ko'rsatadi.
 - **Canonical state:** mega-state emas. `LessonRun` schedule/live/check-in, `LessonAccess` locked/released, `AssignmentLifecycle` open/submitted/reviewed alohida graph; orchestrator ularni owner flow'ida aggregate qiladi.
 - **Scope:** oldingi A0 “Dars kuni” + bot attendance + release + core notification + grading queue.
 - **Acceptance:** transitionlar permission/idempotency/invariant testli; notification side-effect `on_commit`; test cohortda end-to-end; adapter parity contract.
+- **2026-08-16 to'rt slice (36 test):** (1) `a02f3fc` — teacher davomati o'z hisobini yuritardi va bot bilan XP/streak natijasi farq qilardi; endi ikkala adapter ham `upsert_attendance_and_xp` canonical servisini chaqiradi, 6 parity testi. (2) `88bb094` — dars sessiyasini yopish yarim bajarilishi mumkin edi (davomat yozildi, xabar ketmadi yoki aksincha); endi atomik, 6 test. (3) `82e428c` — `courses/release_service.py` + `/teacher/release/`: owner darsni sabab bilan ochadi/yopadi, `lesson.release` auditlanadi, drip bilan birga ishlaydi, 14 test. (4) `86940c0` — baholangan vazifa learnerga yetib bormasdi; `courses/submission_service.py` XP'ni diff bilan hisoblaydi (idempotent) va bildirishnomani faqat verdikt o'zgarganda yuboradi, 10 test.
+- **Qolgan scope:** Mini App deep action parity va test cohortdagi to'liq end-to-end o'tish.
 - **Faza:** R2.
 
-### A4. Acquisition, payment va entitlement — `PLANNED`, `M contract + L adapters`
+### A4. Acquisition, payment va entitlement — `IN PROGRESS`, `M contract + L adapters`
 
 - **Outcome:** learner to'g'ri course/cohort/plan bilan yoziladi va faqat haqiqiy active access oladi.
 - **Canonical state:** identity/claim, `Application`, `Payment` va `Enrollment/Entitlement` alohida graph; bitta chiziqli mega-state yo'q.
 - **Scope:** checkout course binding; inactive cohortni tasodifiy reactivation qilmaslik; receipt ayni tanlangan enrollmentga; typed entitlement; Telegram credential claim; idempotent receipt/approval.
 - **Acceptance:** web/Telegram parity; duplicate/replay tests; permission matrix; selected plan checkoutgacha saqlanadi.
+- **2026-08-16 to'rt slice (25 test):** (1) `f1e433e` — checkout sahifasini **ochish** owner holatini o'zgartirardi (enrollment yaratardi, promo band qilardi); o'qish va yozish yo'llari ajratildi (`find_checkout_enrollment` / `resolve_checkout_enrollment`), 8 test. (2) `70fceb2` — bitta enrollmentga bir nechta pending receipt tushishi mumkin edi; endi qisman unique constraint bilan **bazada** kafolatlanadi (`unique_pending_receipt_per_enrollment`), 6 test. (3) `70088ed` — bot chekni kursni taxmin qilib bog'lardi; endi `checkout_started_at` orqali aynan tanlangan kursga bog'lanadi, 3 test. (4) `cbf846e` — Telegram claim havolasi cheksiz va qayta ishlatiladigan edi; `TelegramLinkToken` bilan muddatli va bir martalik bo'ldi, 8 test.
+- **Qolgan scope:** typed entitlement modeli va inactive cohort reactivation qoidasining to'liq testi.
 - **Faza:** R2.
 
 ### A5. Mobil oltin oqim quality gate — `CROSS-CUTTING, R1'dan`
@@ -91,6 +101,8 @@
 - **Outcome:** asosiy learner/teacher flow'lari telefon ekranida bloklanmaydi.
 - **Scope:** Messenger 320–414px; lesson header 360px; exam 568×320/640×360 landscape; reconnect; keyboard/accessibility; checkout; teacher attendance; Mini App deep actions.
 - **Acceptance:** desktop Chrome + Android Chrome + iOS Safari video-evidence; overflow/overlap/console/blocking keyboard issue `0`; real mic/upload; empty/error/dark/light states.
+- **2026-08-18/19 messenger (5 commit):** owner telefonda ochib "dahshatli darajada buzuq" dedi va aynan shu sahifada beshta nuqson topildi: `d3f69e2` o'lik WebSocket + header overflow; `6957b5e` ikonka rail'i telefonda chatni siqib qo'yardi; `5eac801` `100vh` iOS Safari chrome'ini hisobga olmagani uchun xabar yozish qismi ekran ostida qolardi (`100dvh`); `08b3b47` yopiq drawer chap chekkada 9px bo'lib turardi; `42c3dd5` 16px dan kichik input iOS'da avtomatik zoom ochib, qaytmasdi. **Metodologiya darsi:** avtomatik overflow probe'i bularni o'tkazib yuborgan edi — bo'sh bazada yugurgani va faqat `right > viewport` ni tekshirgani uchun (chapdan chiqqan element ko'rinmagan). Ikkalasi ham tuzatildi.
+- **Qolgan scope:** dars sarlavhasi 360px, imtihon landscape, checkout, teacher attendance, reconnect va uch qurilmadagi owner sign-off'i.
 - **Qanday sinaladi:** [`nuclear-program/mobile-qa-runbook.md`](../mobile-qa-runbook.md) — LAN va HTTPS tunnel yo'llari, qaysi band qaysi yo'l bilan qoplanishi va dalil formati. Mikrofon LAN orqali ishlamaydi (secure context talab qilinadi), shuning uchun speaking va Mini App uchun tunnel majburiy.
 - **Faza:** sequential feature emas. R1'dan boshlab har band tegadigan mobile/auth/media flow evidence beradi; R2'da to'liq 3-qurilma sign-off.
 
@@ -117,19 +129,19 @@
 - **Canonical owner:** provider-call ledger + reservation/budget policy + Control Center. Per-user `aicontrol` allowance product policy; global Gemini supply budgeti undan yuqori hard gate.
 - **Implementatsiya:** `AISupplyEvent`/`AISupplyState` global kunlik+minute request va kunlik token reservation/reconciliation ledgeri; ledger DB failure fail-closed; staff ham hisoblanadi. Main chat `AIResponseRun.idempotency_key` bilan pre-reserve qiladi. Chat/grounding, SmartForm, bot guest, RAG/memory embedding va reindex calllari qamralgan; cache hit request sarflamaydi.
 - **Provider guard:** SDK retry off; `1 primary + max 1 fallback`; 429/quota/billing fail-fast+circuit; free allowlist; prompt/output/timeout/deadline caps. Free-mode'da API grounding engine va provider chegarasida hard-off (`GoogleSearch()` construction `0`), guest default-off. DO explicit `AI_ALLOW_DIGITALOCEAN=True` admissionisiz, noma'lum provider esa har doim factoryda fail-closed.
-- **Model contract:** primary `gemini-3.1-flash-lite`, temporary fallback `gemini-2.5-flash-lite`; ikkalasi allowlistda. 3.1 Flash-Lite stable/free-tier va cost-efficient default sifatida tanlangan. 2.5 Flash-Lite uchun public shutdown e'lon qilinmagan; 2026-10-16 ichki reviewda fallbackni olib tashlash yoki yangi admitted modelga migrate qilish qayta ko'riladi. 3.7 Flash joriy projectdagi 20 RPD sabab hozir allowlistga kiritilmagan.
+- **Model contract (2026-08-19 da yangilandi):** primary `gemini-3.1-flash-lite`, temporary fallback `gemini-3.5-flash-lite`; ikkalasi allowlistda. 3.1 Flash-Lite stable/free-tier va cost-efficient default sifatida tanlangan. **`gemini-2.5-flash-lite` o'lik** — Google uni `404 ... no longer available to new users` bilan rad etadi, ya'ni 2026-10-16 ichki review deadline'i voqea tomonidan bosib o'tildi. Model `RETIRED_MODELS` ro'yxatida: sozlamada qolib ketsa ham ishlatilmaydi. **Tuzoq:** `models.list` uni hamon ro'yxatda ko'rsatardi — haqiqatni faqat real `generateContent` probe'i ochdi. 3.7 Flash joriy projectdagi 20 RPD sabab hozir allowlistga kiritilmagan.
 - **Control Center/admin:** free-tier mode, configured cap, used/reserved/remaining, minute burst, actual attempts, event holatlari va cooldown stoplight; supply policy/event/state adminlari. Exact Google quota raqamlari hardcode qilinmaydi, chunki ular dynamic/account-specific; minute cap project ichki RPM-uslubidagi guard.
 - **Target acceptance evidence:** mocked/offline testlarda duplicate, missing usage, 429=1 attempt, non-quota fallback≤2, cooldown network=0, DO HOLD va joriy caller accounting tekshirilgan; post-A8 offline full suite 527/527 va local system audit 10/10 GREEN.
 - **SQLite concurrency (2026-08-15, yopildi):** `aicontrol/test_supply_concurrency.py` — 8 threadli real contention testi kunlik/minute/token cap, to'liq reserve→reconcile sikli va idempotency key uchun. Test avval kamchilikni ochdi: `select_for_update()` SQLite'da no-op, `BEGIN DEFERRED` esa write-upgrade'da busy_timeout'ni kutmaydi → 8 dan 7 rezervatsiya `database is locked`. Yechim `core/settings.py`da: `transaction_mode=IMMEDIATE` + `timeout=15` + WAL. Bu serializatsiya `supply.py`dan tashqaridagi 13 ta `select_for_update()` chaqiruv joyini ham qamraydi (enrollment transition, promo redemption, exam attempt/answer, davomat, streak, XP va Telegram auth tokenini bir martalik consume qilish).
-- **Closeout pending:** PostgreSQL concurrent reservation/transaction proof (bu mashinada PG server/docker yo'q); joriy proof multi-thread, alohida OS processlari bilan emas. SmartForm/guest counter va lesson reindex concurrency lease/claim to'liq emas; current Gemini vision unavailable.
-- **Degradatsiya:** free-mode search intent bitta plain chatga tushadi va live ma'lumot tekshirilmaganini halol aytadi; guest default-off. Supply denialda core flow, local catalog, cache/lexical retrieval va human/Telegram handoff qoladi. System-wide audited kill-switch UI A2ning qolgan scope'i.
+- **Closeout (2026-08-15 da yangilandi):** PostgreSQL proofi **yopildi** — CI `integration` ishi to'liq suite'ni `pgvector/pgvector:pg16` da yugurtiradi, ya'ni barcha qulf yo'llari haqiqiy `FOR UPDATE` bilan ishlaydi (SQLite'da ular no-op edi). Birinchi yugurishdayoq real production xatosi chiqdi: `select_for_update()` nullable FK ustidagi LEFT OUTER JOIN bilan yiqilardi. **Hali ochiq:** alohida OS processlari bilan takrorlash; SmartForm/guest counter va lesson reindex uchun to'liq lease/claim; joriy Gemini adapteri vision qabul qilmaydi.
+- **Degradatsiya:** free-mode search intent bitta plain chatga tushadi va live ma'lumot tekshirilmaganini halol aytadi; guest default-off. Supply denialda core flow, local catalog, cache/lexical retrieval va human/Telegram handoff qoladi. System-wide audited kill-switch UI **2026-08-15 da chiqdi** (`/backoffice/control/ai-kill-switch/`), cooldown'ni tozalash esa 2026-08-19 da (`/backoffice/control/ai-circuit-reset/`).
 - **Faza:** R0 closeout. Boshqa AI behavior ishidan oldin.
 
 ### A9. AI eval, latency va cost release gate — `PLANNED`, `M foundation + rolling gate`
 
 - **Outcome:** premium AI claim'i model taassurotiga emas, fresh evidence'ga tayanadi.
 - **Scope:** A8 supply guard ustida 320-case target golden dataset; R1 foundation `50`, R3 critical beta gate `75`, premium price gate `≥150` teacher-authored case. 0–4 rubric; system-role/prompt-injection; Turkish/CEFR; RAG/citation; memory/privacy; routing/access; provider fallback; price/quota ledger.
-- **Acceptance:** critical safety/access `0`; injection success `<1%`; Turkish `≥92%`; grounded support `≥95%`; RAG recall@4 `≥90%`; memory precision `≥97%`; p95 text `<8s`; hard deadline `20s`; max 1 fallback; AI cost/premium revenue `≤25%`.
+- **Acceptance:** critical safety/access `0`; injection success `<1%`; Turkish `≥92%`; grounded support `≥95%`; RAG recall@4 `≥90%`; memory precision `≥97%`; p95 text `<8s`; hard deadline `35s` (**2026-08-19 da 20s dan ko'tarildi** — Google 10s dan past deadline'ni rad etadi, §A8 ga qarang); max 1 fallback; AI cost/premium revenue `≤25%`.
 - **Faza:** A8'dan keyin R1 foundation, R3 gate A7'dan keyin; production/premium real-data validation alohida admission.
 
 ---

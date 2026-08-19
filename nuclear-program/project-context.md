@@ -198,7 +198,7 @@ ai/
 
 **Audit (2026-08-15):** owner mutationlari append-only `aicontrol.SystemAuditEvent` ledgeriga yoziladi (`core/audit.py` yagona yozish nuqtasi; maxfiy kalitlar maskalanadi; model darajasida o'zgartirib/o'chirib bo'lmaydi). Hozircha kill switch, brend va landing yuzalari ulangan.
 
-**Joriy chegarasi:** Control Center foundation mutation qilmaydi. Supply policy `AISettingsAdmin` orqali edit qilinadi, `AISupplyEvent`/`AISupplyState` adminlari read-only. Append-only umumiy `SystemAuditEvent`, system-wide feature flag/kill switch, active worker/beat heartbeat, `ReleaseRecord`, backup/email/memory probe, money cost ledger va AI quality release gate hali mavjud emas. `/backoffice/ai-control/` compatibility control path sifatida Control Center'dan ochiladi, lekin hozircha alohida sahifa.
+**Joriy chegarasi (2026-08-19):** Control Center endi mutation qiladi — kill switch, AI circuit cooldown tozalash, brend va landing yuzalari, har biri majburiy sabab + tasdiq + append-only audit va no-op yo'l bilan. Kodda mavjud: `SystemAuditEvent`, `WorkerHeartbeat` (bevosita o'lchanadi, navbatdan chiqarilmaydi) va `ReleaseRecord` + migration drift detektori. **Hali mavjud emas:** umumiy feature flag registri (kill switch — bitta qattiq yozilgan flag), backup/email/memory probe'lari, money cost ledgeri va AI quality release gate; `ReleaseRecord` uchun gate/deploy holatini yozadigan tomon A1b `HOLD` da. `/backoffice/ai-control/` compatibility control path sifatida Control Center'dan ochiladi, lekin hozircha alohida sahifa.
 
 **2026-08-14 A8 holati:** **`IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`**. Supply/provider/caller target testlari va provider credential/env-file loading o'chirilgan full suite 527/527 o'tgan; local `system_audit` 10/10 GREEN. Bu production readiness yoki SQLite/PostgreSQL true concurrent contention proof emas. Shu sanadagi `AzureAI` Free-tier AI Studio snapshoti: 3.1 Flash Lite `15 RPM / 250K input TPM / 500 RPD`; 3.7 Flash `5 RPM / 250K input TPM / 20 RPD`. Tashqi quota account/project holatiga bog'liq va dynamic.
 
@@ -400,6 +400,7 @@ Custom yashirin admin URL'lari:
 /backoffice/
 /backoffice/control/                 # faqat active superuser
 /backoffice/control/ai-kill-switch/  # faqat owner; AI remote chaqiruvlarini to'xtatish
+/backoffice/control/ai-circuit-reset/ # faqat owner; A8 circuit cooldown'ini tozalash
 /backoffice/control/brand/           # faqat active superuser; markaziy brend/logo
 /backoffice/landing/                 # faqat owner; landing phase-1 editor
 /backoffice/users/
@@ -419,7 +420,7 @@ Custom yashirin admin URL'lari:
 
 Access helper: `core.views._is_backoffice_user`. Legacy `/admin/` faqat `ENABLE_LEGACY_ADMIN=True`.
 
-**Joriy permission cheklovi:** `_is_backoffice_user` `is_staff` yoki `is_superuser`ni qabul qiladi; AI global control ham shu gate ortida. `/backoffice/control/` esa alohida `_is_control_center_owner` orqali faqat active `is_superuser`ga ochiladi va hozir read-only. Teacher scope 2026-08-15 dan default-deny: `core.access.teacher_course_queryset()` / `teacher_cohort_queryset()` yagona manba — superuser hammasini, qolgan har kim faqat `Course.instructor` sifatida biriktirilgan kurslarini ko'radi, anonim yoki nofaol foydalanuvchi hech nima ko'rmaydi. Web teacher paneli (8 view), Telegram bot (`/guruhlarim`, `/baholash`) va `AttendanceManageView` shu scope'ni iste'mol qiladi; adapterlarda alohida nusxa yo'q.
+**Joriy permission cheklovi:** `_is_backoffice_user` `is_staff` yoki `is_superuser`ni qabul qiladi; AI global control ham shu gate ortida. `/backoffice/control/` esa alohida `_is_control_center_owner` orqali faqat active `is_superuser`ga ochiladi; snapshot read-only, ammo ostidagi mutation yuzalari (kill switch, circuit reset, brend, landing) yozadi — har biri sabab + tasdiq + audit talab qiladi. Teacher scope 2026-08-15 dan default-deny: `core.access.teacher_course_queryset()` / `teacher_cohort_queryset()` yagona manba — superuser hammasini, qolgan har kim faqat `Course.instructor` sifatida biriktirilgan kurslarini ko'radi, anonim yoki nofaol foydalanuvchi hech nima ko'rmaydi. Web teacher paneli (8 view), Telegram bot (`/guruhlarim`, `/baholash`) va `AttendanceManageView` shu scope'ni iste'mol qiladi; adapterlarda alohida nusxa yo'q.
 
 ### 4.11 Study in Turkey (SIT)
 
@@ -431,9 +432,11 @@ Access helper: `core.views._is_backoffice_user`. Legacy `/admin/` faqat `ENABLE_
 6. Owner-only `/backoffice/sit/` universitetlar va ularning fakultet/dastur/talab/hujjat/xizmat/media qismlari, e'lonlar va qo'llanmalarni audit sabab bilan boshqaradi. 90 kundan eski public universitet ma'lumoti dashboardda tekshiruv signali oladi.
 7. SIT bosh sahifasidagi e'lonlar faqat `is_published=True` va `show_on_home=True` bo'lsa chiqadi; oddiy publish yozuvni avtomatik featured qilmaydi.
 
-### 4.12 Maqsad operatsion arxitektura — foundation mavjud, control plane tugamagan
+### 4.12 Maqsad operatsion arxitektura — control plane qisman qurildi (2026-08-19)
 
-Owner-only Azure Control Center'ning read-only registry/snapshot qatlami joriy URL xaritasiga qo'shildi. Mutation/audit/flag/release qatlamlari, canonical lesson/enrollment state machine'lari, private media, broker fail-fast va CI/release gates rejasi `launch-plan/02-yol-xarita.md`, `03-mahsulot-backlog.md` va `05-launch-ops.md`da qoladi. Ular kod, migration, test va browser/production evidence tugamaguncha mavjud capability hisoblanmaydi.
+Owner-only Azure Control Center'ning read-only registry/snapshot qatlami ustiga **mutation, audit va release qatlamlari qo'shildi**: kill switch, AI circuit cooldown tozalash, brend va landing yuzalari (har biri sabab + tasdiq + append-only audit), `SystemAuditEvent` ledgeri, `WorkerHeartbeat` va `ReleaseRecord`. Canonical lesson release (`courses/release_service.py`), submission review (`courses/submission_service.py`), checkout read/write ajratmasi (`cohorts/checkout_service.py`) va private media ham kodda; CI required checks `main` branch protection'ida majburiy.
+
+Hamon rejada qolgani: umumiy feature flag registri, backup/email/memory probe'lari, money cost ledgeri, AI quality/cost release gate va typed entitlement. Ular `launch-plan/02-yol-xarita.md`, `03-mahsulot-backlog.md` va `05-launch-ops.md`da; kod, migration, test va browser/production evidence tugamaguncha mavjud capability hisoblanmaydi.
 
 ---
 
@@ -550,8 +553,8 @@ Manbalar javob matnida ko'rsatilmaydi. Telemetry'da saqlanadi:
 
 - **Tone:** `friendly` / `formal` / `brief` / `detailed` — prompt builder ohangni o'zgartiradi
 - **Provider:** joriy local profil `AI_CHAT_PROVIDER=gemini`. DigitalOcean adapteri kodda saqlanadi, ammo pre-production'da kalitsiz/HOLD; `AI_ALLOW_DIGITALOCEAN=False` bo'lsa factory provider yaratmasdan rad etadi. Noma'lum provider ham fail-closed
-- **Model:** free allowlist `gemini-3.1-flash-lite` primary + temporary `gemini-2.5-flash-lite` fallback. Userdagi eski/Pro/preview tanlov runtime va settings UI'da allowlistga clamp qilinadi. Google hozir 2.5 Flash-Lite shutdown sanasini e'lon qilmagan; 2026-10-16 ichki review deadline'ida fallback remove/migrate uchun qayta baholanadi
-- **Provider bound:** SDK retry off; 429/quota/billing `1` attemptda fail-fast+circuit; boshqa xatoda jami `≤2`; output `640`, prompt `12,000` belgi, timeout `8s`, deadline `20s`
+- **Model (2026-08-19):** free allowlist `gemini-3.1-flash-lite` primary + temporary `gemini-3.5-flash-lite` fallback. Userdagi eski/Pro/preview tanlov runtime va settings UI'da allowlistga clamp qilinadi. **`gemini-2.5-flash-lite` o'lik** — Google `404 ... no longer available to new users` qaytaradi; model `ai/providers/gemini.py` dagi `RETIRED_MODELS` da, ya'ni sozlamada qolib ketsa ham ishlatilmaydi. `models.list` uni hamon ro'yxatlaydi — bu ro'yxat hisobning nimani chaqira olishini bildirmaydi
+- **Provider bound (2026-08-19):** SDK retry off; 429/quota/billing `1` attemptda fail-fast+circuit; boshqa xatoda jami `≤2`; output `640`, prompt `12,000` belgi, request timeout `15s`, end-to-end deadline `35s`. **8s/20s dan ko'tarildi:** Google 10s dan past deadline'ni `400 INVALID_ARGUMENT` bilan rad etadi va so'rov umuman bajarilmaydi. `MIN_PROVIDER_DEADLINE_MS` sozlamani shu polga ko'taradi, provider esa qolgan vaqt 10s dan kam bo'lsa so'rov **yubormaydi**
 - **Telemetry:** `AIResponseRun` main messenger javobining status/model/skill/duration/token/context va idempotency'sini saqlaydi. Alohida `AISupplyEvent` chat/search/SmartForm/guest/RAG-memory embedding/reindexning reserved/actual request-token, failure va user/call-type accountingini saqlaydi; `AISupplyState` cooldown circuit holati. Control Center aggregate snapshot beradi
 
 ---
@@ -599,36 +602,55 @@ Message
 
 ### CSS printsipi (Bootstrap YO'Q)
 
-- `tokens.css` (design tokens) + `foundation.css` (reset + primitives) + `components.css`
+- `tokens.css` (design tokenlar) + `base.css` (reset, primitivlar va global mobil qoidalar) + `brand.css`
 - Har flow uchun shell CSS
 - Sahifa-specific CSS
 
-### Shell / Page CSS inventory
+**Eslatma (2026-08-19):** bu ro'yxat ilgari `playground/Fourth Trial/assets/css/` prototipini tasvirlagan edi — `public.css`, `auth.css`, `messenger-shell.css`, `backoffice-shell.css`, `foundation.css`, `components.css` kabi fayllar **jonli ilovada mavjud emas**. Quyidagi jadval `static/css/` dagi haqiqiy fayllar va ularni yuklaydigan shablonlardan olingan.
 
-| CSS | Flow |
+### Shell / Page CSS inventory (`static/css/`)
+
+| CSS | Kim yuklaydi |
 |---|---|
-| `public.css` + `public-*.css` | public layout va landing/pricing/about/courses |
-| `auth.css`, `billing.css` | auth + checkout |
-| `app.css`, `app-shell.css`, `app-*.css` | student app shell + course detail |
-| `messenger-shell.css` | messenger |
-| `exam-shell.css`, `exam-*.css` | exam |
-| `backoffice-shell.css`, `backoffice-*.css` | backoffice |
-| `blog-shell.css`, `blog-article.css`, `blog-studio-*.css` | blog + studio |
-| `error-*.css` | error/maintenance/offline |
+| `tokens.css` | `base.html`, `bot/miniapp_base.html`, sertifikat, `courses/exam_detail.html`, error shell |
+| `base.css` | `base.html`, sertifikat, `courses/exam_detail.html`, error shell — reset + `max-width:820px` da 16px input qoidasi (iOS zoom) |
+| `brand.css` | `base.html`, Mini App, sertifikat, imtihon, error shell |
+| `public-shell.css` | `base_public.html` — landing/pricing/about/courses |
+| `app-shell.css` | `users/base_app.html`, `base_teacher.html`, `backoffice/base.html` |
+| `teacher-shell.css` | `base_teacher.html` |
+| `admin-shell.css` | `backoffice/base.html` |
+| `control-center.css` | `backoffice/control_center.html` |
+| `brand-control.css` | owner mutation yuzalari: `brand_control.html`, `ai_kill_switch.html`, `ai_circuit_reset.html` |
+| `landing-control.css` | `backoffice/landing_editor.html` |
+| `messenger.css` | `messenger/ai.html` — 680px da rail drawer bilan qo'shiladi, `100dvh` |
+| `exam-shell.css` | `courses/exam_detail.html` |
+| `miniapp.css` | `bot/miniapp_base.html` |
+| `settings.css` | `users/profile.html`, `users/settings/_base.html` |
+| `ai-widget.css` | `courses/lesson_detail.html`, `users/base_app.html` |
+| `sit.css` / `sit-backoffice.css` | SIT public / SIT backoffice |
+| `jazzmin-custom.css` | Django admin (jazzmin) |
 
-### JS inventory
+### JS inventory (`static/js/`)
 
 | JS | Flow |
 |---|---|
-| `messenger-chat.js` | WebSocket messenger client, AI state, feedback, edit/delete/upload |
-| `prototype-ui.js` | migrated prototype UI interactions |
-| `public-home.js`, `public-pages.js` | landing va public sahifalar |
-| `blog-runtime.js` | blog runtime |
+| `messenger-chat.js`, `messenger-shell.js` | WebSocket messenger klienti, AI holati, feedback, edit/delete/upload va shell |
+| `app-shell.js`, `app.js` | student app shell |
+| `ai-widget.js` | dars sahifasidagi AI drawer |
+| `exam-shell.js` | imtihon |
+| `miniapp.js` | Telegram Mini App |
 | `billing.js` | checkout |
+| `landing-editor.js` | landing muharriri |
+| `blog-runtime.js` | blog runtime |
+| `public-home.js`, `public-pages.js`, `public.js` | landing va public sahifalar |
+| `sit-theme.js` | SIT tema |
+| `prototype-ui.js` | ko'chirilgan prototip UI interaksiyalari |
 
 ### Template katalogi
 
-`templates/auth/`, `registration/`, `users/`, `courses/`, `cohorts/`, `subscriptions/`, `messenger/`, `exam/`, `backoffice/`, `blog/`, `errors/`.
+`templates/` ildizida: `base.html`, `base_public.html`, `base_teacher.html`, `index.html`, `about.html`, `legal_page.html`.
+
+Kataloglar: `backoffice/`, `blog/`, `bot/` (Mini App), `cohorts/`, `components/` (canonical brend/favicon), `courses/` (dars, imtihon, sertifikat), `errors/`, `includes/`, `messenger/`, `registration/`, `sit/`, `subscriptions/`, `teacher/`, `users/`. **`auth/` va `exam/` kataloglari yo'q** — auth `registration/` da, imtihon `courses/` da.
 
 `playground/` — static prototype/reference HTML'lar (Fourth Trial va alternative-student-journey). Production runtime uchun manba emas — current implementation Django templates va static CSS/JS.
 
@@ -758,6 +780,8 @@ Mini App sahifalari `templates/bot/miniapp_base.html` mobil shellini ulashadi. T
 | URL | Name |
 |---|---|
 | `/backoffice/` va child URL'lar | `backoffice_dashboard`, `_users`, `_chats`, `_course_create/edit`, `_lessons`, `_lesson_edit`, `_exams`, `_exam_edit` |
+| `/backoffice/control/` + `ai-kill-switch/`, `ai-circuit-reset/`, `brand/` | `backoffice_control`, `backoffice_ai_kill_switch`, `backoffice_ai_circuit_reset`, `backoffice_brand` |
+| `/teacher/release/` | `teacher_release` — owner darsni ochadi/yopadi |
 | `/exam/center/, /history/, /listening/, /writing/, /speaking/, /review/` | `exam:center`, `:history`, `:listening`, `:writing`, `:speaking`, `:review` |
 
 ---
