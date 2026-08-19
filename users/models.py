@@ -63,6 +63,16 @@ class CustomUser(AbstractUser):
         default=AI_MODEL_31_FLASH_LITE,
         help_text="AzureAI javob yaratishda birinchi ishlatadigan Gemini modeli",
     )
+    AI_SKILL_AUTO = "auto"
+    ai_skill = models.CharField(
+        max_length=40,
+        default=AI_SKILL_AUTO,
+        help_text=(
+            "AzureAI qaysi skill bilan javob berishi. `auto` — registr o'zi tanlaydi. "
+            "Ataylab `choices` berilmagan: variantlar `SkillRegistry` dan olinadi, "
+            "aks holda har yangi skill migratsiya talab qilardi."
+        ),
+    )
     ai_memory_enabled = models.BooleanField(
         default=True,
         help_text="AzureAI uzoq muddatli xotirasi yoqilganmi (o'quvchi shaxsiy faktlarni eslab qolish/foydalanishga ruxsat berishi)",
@@ -103,6 +113,20 @@ class CustomUser(AbstractUser):
         ]
         labels = dict(cls.AI_MODEL_CHOICES)
         return [(value, labels.get(value, value)) for value in allowed]
+
+    @classmethod
+    def effective_ai_skill_choices(cls):
+        """Skill variantlari — avtomatik routing va registrdagi skilllar.
+
+        Registrdan o'qiladi, chunki qo'lda yozilgan ro'yxat yangi skill
+        qo'shilganda jim eskiradi va skill UIda umuman ko'rinmay qoladi.
+        Import metod ichida: `ai` paketi `users` ga bog'liq.
+        """
+        from ai.skills.registry import SkillRegistry
+
+        return [(cls.AI_SKILL_AUTO, "Avto")] + [
+            (skill.slug, skill.name) for skill in SkillRegistry().all()
+        ]
 
     @classmethod
     def effective_ai_web_search_effort_choices(cls):

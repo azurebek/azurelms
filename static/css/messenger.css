@@ -121,8 +121,60 @@
 .chat-chips{ display:flex; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
 .chat-chip{ display:inline-flex; align-items:center; gap:7px; font-family:'Space Mono',monospace; font-size:10.5px; color:var(--ink-3); background:var(--paper-2); border:1px solid var(--line); padding:4px 10px; border-radius:999px; }
 .chat-chip.is-accent{ color:var(--azure); background:var(--azure-soft); border-color:transparent; cursor:pointer; }
-.chat-inputrow{ display:flex; align-items:flex-end; gap:10px; background:var(--panel); border:1px solid var(--line); border-radius:13px; padding:8px 8px 8px 14px; }
-.chat-inputrow textarea{ flex:1; border:none; outline:none; background:transparent; resize:none; color:var(--ink); font-size:14px; line-height:1.5; max-height:120px; padding:7px 0; font-family:inherit; }
+.chat-inputrow{ display:flex; flex-direction:column; gap:2px; background:var(--panel); border:1px solid var(--line); border-radius:13px; padding:8px 8px 6px 14px; }
+.chat-inputrow textarea{ flex:none; width:100%; border:none; outline:none; background:transparent; resize:none; color:var(--ink); font-size:14px; line-height:1.5; max-height:120px; padding:7px 0; font-family:inherit; }
+
+/* Kompozitor asboblari — model/skill tanlovi keyingi xabarga tegishli qaror,
+   shuning uchun sarlavhada emas, yozish joyida turadi. */
+/* Bitta qator (`nowrap`): o'ralishga ruxsat berilganda qator 182px balandlikka
+   cho'zilib ketardi. Joy yetmasa chiplar qisqaradi va matn ellipsis bilan
+   kesiladi — bu bashorat qilinadigan va ancha kichik yo'qotish. */
+.composer-tools{ display:flex; align-items:center; gap:4px; }
+.composer-spacer{ flex:1; min-width:0; }
+/* Biriktirish va yuborish qisqarmaydi — chiplar qisqaradi. Aks holda tor
+   ekranda yuborish tugmasi qatordan chiqib ketadi. */
+.composer-tools > .chat-icobtn, .composer-tools > .chat-send{ flex:none; }
+
+/* Picker ham flex konteyner: aks holda qator uni qisqartirganda ichidagi chip
+   o'z kengligini saqlab, ota-elementidan toshib chiqadi. `min-width:0` esa
+   flex bandining sukutdagi `min-width:auto` cheklovini ochadi. */
+.composer-picker{ position:relative; display:flex; flex:0 1 auto; min-width:0; }
+.composer-chip{ display:inline-flex; align-items:center; gap:5px; flex:1 1 auto; max-width:170px; min-width:0; height:28px; padding:0 8px; border-radius:8px; border:1px solid transparent; background:transparent; color:var(--ink-3); font-size:12px; font-family:inherit; cursor:pointer; transition:color .15s, background .15s, border-color .15s; }
+.composer-chip > span{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.composer-chip > i{ flex:none; }
+.composer-chip:hover{ color:var(--azure); background:var(--azure-soft); }
+.composer-chip-caret{ font-size:10px; opacity:.55; transition:transform .16s ease; }
+.composer-picker.is-open .composer-chip{ color:var(--azure); background:var(--azure-soft); border-color:var(--azure); }
+.composer-picker.is-open .composer-chip-caret{ transform:rotate(180deg); }
+
+/* Yuqoriga ochiladi — pastda joy yo'q. Yopiqda `visibility:hidden`, ya'ni
+   klaviatura fokusi yopiq menyuga tushmaydi. */
+.composer-menu{ position:absolute; bottom:calc(100% + 8px); left:0; z-index:40; width:264px; max-width:calc(100vw - 32px); padding:6px; border:1px solid var(--line); border-radius:12px; background:var(--panel); box-shadow:0 16px 44px rgba(11,14,21,.18); opacity:0; visibility:hidden; transform:translateY(6px) scale(.98); transform-origin:bottom left; transition:opacity .14s ease, transform .14s ease, visibility 0s .14s; }
+.composer-picker.is-open .composer-menu{ opacity:1; visibility:visible; transform:none; transition:opacity .14s ease, transform .14s ease, visibility 0s 0s; }
+.composer-menu--tall{ max-height:min(46vh,320px); overflow-y:auto; overscroll-behavior:contain; }
+/* Menyuning aniq joyini JS hisoblaydi (ikkala chetga ham qisadi); bu klass
+   faqat ochilish animatsiyasining markazini chipga qaratadi. */
+.composer-menu.is-flipped{ transform-origin:bottom right; }
+.composer-menu-head{ font-family:'Space Mono',monospace; font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); padding:6px 8px 5px; }
+
+.composer-item{ display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; padding:6px 8px; border:none; border-radius:8px; background:transparent; color:var(--ink); font-size:12.5px; font-family:inherit; text-align:left; cursor:pointer; transition:background .13s, color .13s; }
+/* Bir qatorli: tavsif `title` da, ya'ni kursor ustiga borganda chiqadi. */
+.composer-item > span{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.composer-item i{ flex:none; font-size:13px; color:var(--azure); opacity:0; transition:opacity .13s; }
+.composer-item:hover{ background:var(--azure-soft); }
+.composer-item.active{ color:var(--azure); }
+.composer-item.active i{ opacity:1; }
+
+/* 400px dan tor ekranda har piksel chip matniga ketadi: shevron dekorativ
+   (chip bosilishi allaqachon ochiq holatdan ko'rinadi), chetlar esa qisqaradi. */
+@media (max-width:400px){
+  .composer-chip{ padding:0 6px; gap:4px; }
+  .composer-chip-caret{ display:none; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .composer-menu, .composer-chip-caret, .composer-item{ transition:none; }
+}
 .chat-icobtn{ width:34px; height:34px; border-radius:8px; flex:0 0 auto; display:grid; place-items:center; font-size:16px; color:var(--ink-3); background:transparent; border:none; cursor:pointer; }
 .chat-send{ width:36px; height:36px; border-radius:9px; flex:0 0 auto; display:grid; place-items:center; font-size:15px; background:var(--azure); color:var(--on-azure); border:none; cursor:pointer; }
 

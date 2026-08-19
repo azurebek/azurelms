@@ -15,6 +15,7 @@
   const contextLessonId = panel.getAttribute('data-context-lesson-id') || '';
   const aiToneUrl = panel.getAttribute('data-ai-tone-url');
   const aiModelUrl = panel.getAttribute('data-ai-model-url');
+  const aiSkillUrl = panel.getAttribute('data-ai-skill-url');
   const aiFeedbackUrlTemplate = panel.getAttribute('data-ai-feedback-url-template');
   let selectedAiSkill = panel.getAttribute('data-current-ai-skill') || 'auto';
   const messagesArea = document.querySelector('[data-chat-messages]');
@@ -453,6 +454,81 @@
     retryAiResponse(userMessageId);
   }
 
+  function initComposerMenus() {
+    const pickers = Array.prototype.slice.call(document.querySelectorAll('[data-composer-picker]'));
+    if (!pickers.length) return;
+
+    function setOpen(picker, open) {
+      picker.classList.toggle('is-open', open);
+      const toggle = picker.querySelector('[data-picker-toggle]');
+      if (toggle) toggle.setAttribute('aria-expanded', String(open));
+      if (open) keepInsideViewport(picker);
+    }
+
+    /* Menyu chipga bog'langan, chip esa qatorning istalgan joyida bo'lishi
+       mumkin — keng ekranda o'ng chetdan, tor ekranda chap chetdan chiqib
+       ketadi. CSS buni o'zi hal qila olmaydi: joyni o'lchash kerak.
+       Ikkala chet ham bitta hisobda qisiladi. */
+    function keepInsideViewport(picker) {
+      const menu = picker.querySelector('[data-picker-menu]');
+      if (!menu) return;
+
+      const margin = 8;
+      menu.classList.remove('is-flipped');
+      menu.style.left = '';
+
+      const pickerLeft = picker.getBoundingClientRect().left;
+      const maxLeft = Math.max(margin, window.innerWidth - margin - menu.offsetWidth);
+      const wantedLeft = Math.min(Math.max(margin, pickerLeft), maxLeft);
+
+      menu.style.left = Math.round(wantedLeft - pickerLeft) + 'px';
+      if (wantedLeft < pickerLeft) menu.classList.add('is-flipped');
+    }
+    function closeAll(except) {
+      pickers.forEach(function (picker) {
+        if (picker !== except) setOpen(picker, false);
+      });
+    }
+
+    pickers.forEach(function (picker) {
+      const toggle = picker.querySelector('[data-picker-toggle]');
+      const menu = picker.querySelector('[data-picker-menu]');
+      if (toggle) {
+        toggle.addEventListener('click', function (event) {
+          event.stopPropagation();
+          const willOpen = !picker.classList.contains('is-open');
+          closeAll(picker);
+          setOpen(picker, willOpen);
+        });
+      }
+      // Menyu ichidagi bosish tashqi yopuvchiga yetib bormaydi.
+      if (menu) menu.addEventListener('click', function (event) { event.stopPropagation(); });
+    });
+
+    document.addEventListener('click', function () { closeAll(null); });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') closeAll(null);
+    });
+
+    // Joy ochilish paytida hisoblanadi; telefon burilsa yoki oyna o'lchami
+    // o'zgarsa ochiq menyu eski hisob bilan ekrandan chiqib qoladi.
+    window.addEventListener('resize', function () {
+      pickers.forEach(function (picker) {
+        if (picker.classList.contains('is-open')) keepInsideViewport(picker);
+      });
+    });
+  }
+
+  /* Muvaffaqiyatli tanlovdan keyin menyu yopiladi: natija chipning o'zida
+     ko'rinadi. Xato bo'lsa ochiq qoladi, aks holda qizil xabar ko'rinmaydi. */
+  function closePickerFor(element) {
+    const picker = element.closest('[data-composer-picker]');
+    if (!picker) return;
+    picker.classList.remove('is-open');
+    const toggle = picker.querySelector('[data-picker-toggle]');
+    if (toggle) toggle.setAttribute('aria-expanded', 'false');
+  }
+
   function initTonePicker() {
     if (!aiToneUrl) return;
     document.querySelectorAll('[data-ai-tone-option]').forEach(function (button) {
@@ -520,8 +596,11 @@
           markSelectedOption('[data-ai-model-option]', 'data-ai-model-option', payload.ai_model || model);
           panel.setAttribute('data-current-ai-model', payload.ai_model || model);
           const currentLabel = document.querySelector('[data-ai-model-current-label]');
-          if (currentLabel) currentLabel.textContent = payload.label || optionLabel(button);
+          // Shablondagi `|cut:"Gemini "` bilan bir xil qoida — chipda vendor
+          // prefiksi shart emas, to'liq nom menyuda turadi.
+          if (currentLabel) currentLabel.textContent = (payload.label || optionLabel(button)).replace(/^Gemini\s+/, '');
           setPickerStatus('[data-ai-model-status]', 'Model yangilandi.', 'success');
+          closePickerFor(button);
         } catch (error) {
           setPickerStatus('[data-ai-model-status]', error.message || 'Model saqlanmadi.', 'error');
         }
@@ -531,17 +610,52 @@
 
   function initSkillPicker() {
     document.querySelectorAll('[data-ai-skill-option]').forEach(function (button) {
-      button.addEventListener('click', function () {
+      button.addEventListener('click', async function () {
         const skill = button.getAttribute('data-ai-skill-option') || 'auto';
-        selectedAiSkill = skill;
-        panel.setAttribute('data-current-ai-skill', skill);
-        markSelectedOption('[data-ai-skill-option]', 'data-ai-skill-option', skill);
 
-        const currentLabel = document.querySelector('[data-ai-skill-current-label]');
-        if (currentLabel) currentLabel.textContent = optionLabel(button) || 'Auto';
-        setPickerStatus('[data-ai-skill-status]', 'Keyingi xabarda ishlaydi.', 'success');
+        // Endpoint bo'lmasa ham tanlov shu sahifada ishlashi kerak (eski kontrakt).
+        if (!aiSkillUrl) {
+          applySkill(skill, button);
+          setPickerStatus('[data-ai-skill-status]', 'Keyingi xabarda ishlaydi.', 'success');
+          closePickerFor(button);
+          return;
+        }
+
+        setPickerStatus('[data-ai-skill-status]', 'Saqlanmoqda...');
+        const body = new URLSearchParams();
+        body.set('ai_skill', skill);
+
+        try {
+          const response = await fetch(aiSkillUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+              'X-CSRFToken': csrfToken(),
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json',
+            },
+            body: body.toString(),
+          });
+          const payload = await response.json();
+          if (!response.ok || payload.status !== 'success') {
+            throw new Error(payload.message || 'Skill saqlanmadi.');
+          }
+          applySkill(payload.ai_skill || skill, button, payload.label);
+          setPickerStatus('[data-ai-skill-status]', 'Skill yangilandi.', 'success');
+          closePickerFor(button);
+        } catch (error) {
+          setPickerStatus('[data-ai-skill-status]', error.message || 'Skill saqlanmadi.', 'error');
+        }
       });
     });
+  }
+
+  function applySkill(skill, button, label) {
+    selectedAiSkill = skill;
+    panel.setAttribute('data-current-ai-skill', skill);
+    markSelectedOption('[data-ai-skill-option]', 'data-ai-skill-option', skill);
+    const currentLabel = document.querySelector('[data-ai-skill-current-label]');
+    if (currentLabel) currentLabel.textContent = label || optionLabel(button) || 'Avto';
   }
 
   function showAiTyping() {
@@ -968,6 +1082,7 @@
   });
 
   sendButton.disabled = true;
+  initComposerMenus();
   initModelPicker();
   initTonePicker();
   initSkillPicker();

@@ -270,6 +270,33 @@ class AIModelUpdateView(LoginRequiredMixin, View):
         return redirect('settings_capabilities')
 
 
+class AISkillUpdateView(LoginRequiredMixin, View):
+    """Update only the AzureAI skill preference."""
+
+    def post(self, request, *args, **kwargs):
+        skill = (request.POST.get('ai_skill') or '').strip()
+        skill_choices = CustomUser.effective_ai_skill_choices()
+        valid_skills = {choice for choice, _ in skill_choices}
+        wants_json = (
+            request.headers.get("x-requested-with") == "XMLHttpRequest"
+            or "application/json" in request.headers.get("accept", "")
+        )
+
+        if skill not in valid_skills:
+            if wants_json:
+                return JsonResponse({"status": "error", "message": "Noto'g'ri skill tanlandi."}, status=400)
+            return HttpResponseBadRequest("Noto'g'ri skill tanlandi.")
+
+        if request.user.ai_skill != skill:
+            request.user.ai_skill = skill
+            request.user.save(update_fields=['ai_skill'])
+            messages.success(request, "AzureAI skilli yangilandi.")
+        if wants_json:
+            label = dict(skill_choices).get(skill, skill)
+            return JsonResponse({"status": "success", "ai_skill": skill, "label": label})
+        return redirect('settings_capabilities')
+
+
 class AIWebSearchEffortUpdateView(LoginRequiredMixin, View):
     """Update only the AzureAI web-search effort preference."""
 
