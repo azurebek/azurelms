@@ -16,6 +16,40 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-19 [Claude Code]: Tanlagich "tanlanmayapti" edi — aslida tanlanardi, faqat ko'rinmasdi
+
+Owner messenger tepasidagi model/skill tanlagichi haqida shikoyat qildi: ochiladi, lekin bosilsa tanlanmaydi. Serverni ishga tushirib, o'zi tekshirib tasdiqladi.
+
+Deadlockni **server logi** buzdi. Owner bosgan paytda log shuni ko'rsatdi:
+
+```
+HTTP POST /users/settings/ai-tone/  200
+HTTP POST /users/settings/ai-tone/  200
+HTTP POST /users/settings/ai-model/ 200
+```
+
+Ya'ni bosish ro'yxatga olingan, so'rov ketgan va server **saqlagan**. "Bosish o'tmayapti" gipotezasi shu yerda o'ldi. Muammo — natija ekranda ko'rinmasligi.
+
+Sabab ikki fayl o'rtasida edi. `messenger-chat.js:126` tanlangan tugmaga **`active`** klassini qo'yadi; `messenger.css:90` esa faqat **`.feedback-btn.is-on`** ni bo'yardi. `.feedback-btn.active` qoidasi umuman mavjud emas edi, `.is-on` esa **o'lik** — uni na JS, na shablon hech qachon yozmagan. Brauzerda tasdiqlandi: tanlangan tugmaning hisoblangan uslubi tanlanmagani bilan **piksel darajasida bir xil**.
+
+Bu shablon serverda render qiladigan joriy tanlovga ham tegishli edi — ya'ni sahifa ochilganda ham qaysi model tanlanganini **umuman bilib bo'lmasdi**.
+
+Radius owner o'ylagandan keng: xuddi shu `active` klassi xabar baholash tugmalarida ham ishlatiladi (`messenger-chat.js:183`) — ular ham ko'rinmasdi.
+
+Uchinchi nuqson: `setPickerStatus()` natijani `[data-ai-tone-status]`, `[data-ai-model-status]`, `[data-ai-skill-status]` ichiga yozadi — bu elementlarning **uchtasi ham** messenger shablonida yo'q edi. Demak saqlash muvaffaqiyati ham, xatosi ham bir xil ko'rinardi: hech qanday. Agar so'rov yiqilsa, owner buni hech qachon bilmasdi.
+
+Tuzatish: o'lik `.is-on` qoidasi `.active` ga aylantirildi (messenger o'zining `.msgr-tab.active`, `.sb-item.active` konvensiyasiga mos), uchta status elementi va ularning uslublari qo'shildi.
+
+Test yozish qiyin qismi shu ediki, bu nuqsonni **na view testi, na JS testi ushlaydi** — u ikki fayl o'rtasidagi shartnomada yashiringan. Shuning uchun `messenger/test_picker_contract.py` fayllarni matn sifatida o'qiydi: JS `.feedback-btn` ga qo'yadigan har bir klass CSS'da bo'yalganmi; CSS bo'yaydigan har bir holatni kimdir yozadimi (o'lik qoidani ushlaydi); shablon serverda qo'yadigan klass JS qo'yadigani bilan bir xilmi; `setPickerStatus` yozadigan joylar shablonda bormi.
+
+- Branch: `claude/messenger-picker-state` → PR
+- Yangi: `messenger/test_picker_contract.py` (4 test). Tegilgan: `static/css/messenger.css`, `templates/messenger/ai.html`
+- Nazorat yugurishi: tuzatishdan oldin 4 testdan 3 tasi yiqildi — aynan uchala nuqson bo'yicha
+- Test holati: to'liq suite **819/819 OK** (skipped=16)
+- **Jonli dalil:** brauzerda haqiqiy bosish bilan tekshirildi — tanlov 3.1 dan 3.5 ga ko'chdi (`rgba(18,87,230,.07)` fon), "Model yangilandi." yashil rangda chiqdi
+
+---
+
 ## 2026-08-19 [Claude Code]: Hujjatlar kod bilan tenglashtirildi — eng yomoni frontend inventari edi
 
 Kod rejadan oldinda ketgan, hujjat esa 15-avgustda qolib ketgan edi. Olti faylda tekshiriladigan da'volar kodga solishtirildi. Prinsip: **sanali band tarix**, uni qayta yozmaymiz — yangi sanali band qo'shamiz; **sanasiz nasr, status yorlig'i va jadval esa joriy haqiqat** — ular tuzatiladi.
