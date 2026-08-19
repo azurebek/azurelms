@@ -202,6 +202,65 @@ def backoffice_ai_kill_switch(request):
 
 @login_required
 @user_passes_test(_is_control_center_owner)
+def backoffice_ai_circuit_reset(request):
+    """Owner-only: A8 circuit breaker cooldown'ini qo'lda tozalaydi.
+
+    Circuit ketma-ket provider xatolaridan keyin ochiladi va bir soat yopiq
+    turadi — bu to'g'ri himoya. Ammo sabab bartaraf etilganda (model
+    almashtirildi, sozlama tuzatildi) owner uchun kutishdan boshqa yo'l yo'q
+    edi: Django admin holatni faqat ko'rsatadi va u default o'chiq. Demo yoki
+    dars paytida bu qabul qilib bo'lmaydi (A2).
+    """
+    from aicontrol.models import AISupplyState
+    from core.circuit_forms import AICircuitResetForm
+
+    state = AISupplyState.load()
+    now = timezone.now()
+    is_open = bool(state.circuit_open_until and state.circuit_open_until > now)
+
+    if request.method == "POST":
+        form = AICircuitResetForm(request.POST)
+        if form.is_valid():
+            if is_open:
+                previous = state.circuit_open_until
+                with transaction.atomic():
+                    state.circuit_open_until = None
+                    state.save(update_fields=["circuit_open_until"])
+                    record_audit_event(
+                        action="ai.circuit.reset",
+                        request=request,
+                        target=state,
+                        target_label="AI supply circuit breaker",
+                        reason=form.cleaned_data["change_reason"].strip(),
+                        before={"circuit_open_until": previous.isoformat()},
+                        after={"circuit_open_until": None},
+                    )
+                messages.success(request, "Cooldown tozalandi — AI chaqiruvlari qayta ochildi.")
+            else:
+                messages.info(request, "Circuit allaqachon yopiq edi; hech narsa yozilmadi.")
+            return redirect("backoffice_ai_circuit_reset")
+    else:
+        form = AICircuitResetForm()
+
+    minutes_left = 0
+    if is_open:
+        minutes_left = max(0, int((state.circuit_open_until - now).total_seconds() // 60))
+
+    context = {
+        "active_nav": "backoffice",
+        "bo_active": "control",
+        "counts": {},
+        "form": form,
+        "state": state,
+        "circuit_is_open": is_open,
+        "minutes_left": minutes_left,
+        "recent_resets": audit_trail_for(state),
+    }
+    return render(request, "backoffice/ai_circuit_reset.html", context)
+
+
+@login_required
+@user_passes_test(_is_control_center_owner)
 def backoffice_landing(request):
     """Owner-only bosh sahifa (landing) matn editori."""
     landing = LandingPage.load()

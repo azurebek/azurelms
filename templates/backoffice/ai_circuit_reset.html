@@ -1,0 +1,75 @@
+{% extends "backoffice/base.html" %}
+{% load static %}
+
+{% block bo_title %}AI cooldown{% endblock %}
+{% block bo_icon %}bi-arrow-clockwise{% endblock %}
+{% block bo_topbar %}AI circuit breaker cooldown'i{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/brand-control.css' %}">{% endblock %}
+
+{% block bo_content %}
+<section class="brand-hero">
+  <div>
+    <span class="brand-kicker">COOLDOWN</span>
+    <h1>AI circuit breaker</h1>
+    <p>Circuit ketma-ket provider xatolaridan keyin o'zi ochiladi va yangi chaqiruvlarni to'xtatadi. Bu himoya — uni <strong>sabab bartaraf etilgandan keyin</strong> tozalang. Sababni tuzatmasdan tozalash xatoni qaytaradi va circuit yana ochiladi.</p>
+  </div>
+  <a class="brand-back" href="{% url 'backoffice_control' %}"><i class="bi bi-arrow-left"></i> Control Center</a>
+</section>
+
+<div class="brand-layout">
+  <form class="brand-form" method="post"
+        onsubmit="return confirm('Cooldown tozalansinmi?');">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="brand-errors">{{ form.non_field_errors }}</div>{% endif %}
+
+    <section class="brand-panel">
+      <div class="brand-panel-head">
+        <span>01</span>
+        <div>
+          <h2>Joriy holat</h2>
+          <p>
+            {% if circuit_is_open %}
+              Circuit <strong>ochiq</strong> — yangi AI chaqiruvi ketmaydi. O'zi yopilishiga taxminan <strong>{{ minutes_left }}</strong> daqiqa qoldi.
+            {% else %}
+              Circuit <strong>yopiq</strong> — AI chaqiruvlari odatdagidek ketadi. Tozalash uchun narsa yo'q.
+            {% endif %}
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="brand-panel">
+      <div class="brand-panel-head"><span>02</span><div><h2>Sabab va tasdiq</h2><p>Audit tarixiga yoziladi.</p></div></div>
+      <div class="brand-fields">
+        <label class="brand-field">
+          <span>{{ form.change_reason.label }}</span>
+          {{ form.change_reason }}
+          {% if form.change_reason.help_text %}<small>{{ form.change_reason.help_text }}</small>{% endif %}
+          {% for error in form.change_reason.errors %}<em>{{ error }}</em>{% endfor %}
+        </label>
+        <label class="brand-field brand-field--check">
+          {{ form.confirm_change }} <span>{{ form.confirm_change.label }}</span>
+          {% for error in form.confirm_change.errors %}<em>{{ error }}</em>{% endfor %}
+        </label>
+      </div>
+    </section>
+
+    <button class="brand-submit" type="submit"><i class="bi bi-arrow-clockwise"></i> Cooldown'ni tozalash</button>
+  </form>
+
+  <aside class="brand-side">
+    <section class="brand-panel">
+      <div class="brand-panel-head"><span><i class="bi bi-clock-history"></i></span><div><h2>So'nggi tozalashlar</h2></div></div>
+      {% if recent_resets %}
+        <ul class="brand-history">
+          {% for entry in recent_resets %}
+            <li><strong>{{ entry.created_at|date:"d.m.Y H:i" }}</strong> — {{ entry.actor_label|default:"tizim" }}<br><small>{{ entry.display_message }}</small></li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="brand-empty">Hali tozalanmagan.</p>
+      {% endif %}
+    </section>
+  </aside>
+</div>
+{% endblock %}

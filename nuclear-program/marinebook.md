@@ -16,6 +16,25 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-19 [Claude Code]: Circuit ochiq qolganda owner uchun kutishdan boshqa yo'l yo'q edi
+
+Owner AI'dan "bepul budjet vaqtincha mavjud emas" javobini oldi. Xabar noto'g'ri sababni ko'rsatardi: budjet **to'lmagan** edi (29/100 so'rov, 47 879/250 000 token) va Google ham sog'lom edi (to'g'ridan-to'g'ri probe 0.7s da javob berdi). Haqiqiy sabab — **A8 circuit breaker ochiq** turgani edi: `circuit_open_until` 13 daqiqa oldinda.
+
+Circuit'ni ochgan xatolar mening o'z buzuq konfiguratsiyamdan (o'lik model + 8s deadline) kelgan edi. Konfiguratsiya tuzatilgandan keyin ham circuit yopilishini kutish kerak edi — bir soat. Demo yoki dars paytida bu qabul qilib bo'lmaydi.
+
+Bo'shliq: `aicontrol/admin.py` `circuit_open_until` ni faqat **ko'rsatadi**, tozalash yo'li yo'q; Django admin esa default o'chiq. Ya'ni owner uchun umuman tugma yo'q edi.
+
+Yangi yuza `backoffice_ai_circuit_reset` boshqa owner mutation'lari bilan bir xil qoidaga bo'ysunadi: majburiy sabab, majburiy tasdiq, `record_audit_event(action="ai.circuit.reset")` va **no-op yo'l** — circuit allaqachon yopiq bo'lsa hech narsa yozilmaydi (audit ledgeri shovqin bilan to'lmasin).
+
+Muhim chegara: bu tugma himoyani olib tashlamaydi. Circuit ketma-ket provider xatolaridan keyin **to'g'ri** ochiladi. Tugma faqat *sabab bartaraf etilgandan keyin* kutishni qisqartiradi — sabab tuzatilmasa, birinchi chaqiruvdayoq circuit yana ochiladi. Sahifa buni ochiq yozadi.
+
+- Branch: `claude/a2-circuit-reset` → PR
+- Yangi: `core/circuit_forms.py`, `core/test_circuit_reset.py` (9 test), `templates/backoffice/ai_circuit_reset.html`. Tegilgan: `core/views.py`, `core/urls.py`, `templates/backoffice/control_center.html`
+- Testlar ruxsatni ham qamraydi: student va anonim `403`/login'ga tushadi; sabab yoki tasdiq bo'lmasa yozuv ketmaydi
+- Test holati: to'liq suite **815/815 OK** (skipped=16)
+
+---
+
 ## 2026-08-19 [Claude Code]: AI hali javob bermasdi — sabab timeout emas, Google minimal deadline talabi
 
 Fallback modeli almashtirilgandan keyin ham owner "xatolik" ko'rdi. Ledgerdagi xato **o'zgargan** edi: `provider_error` o'rniga `timeout`. Bu tuzatish ishlaganini, ammo ikkinchi to'siq borligini ko'rsatdi.
