@@ -16,6 +16,31 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-19 [Claude Code]: A10 "AI Optimise" bandi qo'shildi — R5, loyihaning yakuniy sharti
+
+Owner yangi bosqich so'radi: AI har suhbatda notanish yordamchi bo'lib qaytmasin, o'z shaxsiyatiga ega bo'lsin va mavjud ma'lumot asosida uzluksiz hamroh sifatida ishlasin. "Loyiha yakunrog'ida mutlaqo bajarilishi kerak".
+
+Band yozishdan oldin kodni tekshirdim, chunki bu **noldan boshlanmaydi** va uni "yangi capability" deb yozish yolg'on bo'lardi:
+
+- `AIMemoryFact` **foydalanuvchi** bo'yicha saqlanadi, xona bo'yicha emas — kategoriya, ishonch darajasi, holat, ko'rinuvchanlik, embedding, `last_used_at`. Ya'ni faktlar suhbatlar orasida allaqachon ko'chadi.
+- `ai/memory/` to'liq qatlam: extractor, policy, repository, retriever, semantic scorer, summarizer, evaluation. Decay va o'quvchi boshqaruv paneli ishlaydi.
+
+Haqiqiy bo'shliq uchta va ular aniq:
+
+1. **Shaxsiyat hech qayerda ta'riflanmagan** — faqat `ai/skills/general_chat/SKILL.md` da eslatilgan. 15 skillning har biri o'z prompti bilan keladi, ya'ni bitta suhbat ichida skill almashsa ovoz ham almashishi mumkin.
+2. **`AIConversationSummary` `ChatRoom` ga `OneToOne`** — yangi chat ochilganda "biz nima ustida ishlayotgan edik" yo'qoladi. Faktlar qoladi, kontekst qolmaydi. Aynan shu "doim yangidan boshlaydi" hissini beradi.
+3. **Munosabat holati yo'q** — birga ishlangan davr, va'da qilingan narsa, jarayondagi ish saqlanmaydi.
+
+"Silliq ishlash" qismi ataylab A10 ga yozilmadi: so'nggi kunlardagi uchala uzilish (o'lik model, Google minimalidan past deadline, zaxiradan 71 token oshgani uchun o'zini o'chirgan circuit) A8 qatlamida edi va ularni A9 ning latency/xato gate'i ushlashi kerak. A10 o'sha qatlamni qayta yozmaydi.
+
+Ikkita chegara yozib qo'yildi, chunki ular keyinroq bahsga sabab bo'ladi: shaxsiyat mavjud bo'lmagan qobiliyatni va'da qilmaydi, va "do'st" ohangi AI ni access/baho/progress uchun system-of-record qilmaydi. Shuningdek acceptance'ga xotira **aniqligi** kiritildi — noto'g'ri eslaydigan "do'st" yangidan boshlaydiganidan yomonroq.
+
+- Branch: `claude/a10-ai-optimise` → PR
+- Tegilgan: `03-mahsulot-backlog.md` (A10 bo'limi, status snapshot, sessiya tartibi), `02-yol-xarita.md` (R5 fazasi), `launch-plan/README.md`
+- Kod o'zgarmadi — reja hujjatlari
+
+---
+
 ## 2026-08-19 [Claude Code]: AI o'zini o'zi o'chirib turgan — 71 token ortiqcha sarf uchun
 
 Owner "AI bepul budjeti vaqtincha mavjud emas" xabarini **tinmay** olayotganini aytdi. Bu xabar avvalgi safar circuit sababli chiqqan edi, ammo bu safar sabab boshqa bo'lib chiqdi va u kodning o'zida edi.
