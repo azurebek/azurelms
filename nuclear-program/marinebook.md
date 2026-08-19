@@ -16,6 +16,29 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-20 [Claude Code]: Dars sarlavhasi 360px da kurs nomini butunlay yo'qotardi
+
+A5 ning "dars sarlavhasi 360px" bandi. Seed qilingan bazada dars sahifasi ochilib, 360px da o'lchandi — ikkita nuqson chiqdi va ikkalasi ham bitta sababdan edi.
+
+Sarlavha ikki guruhdan iborat: chapda orqaga tugmasi va kurs nomi (`min-width:0`), o'ngda progress bar, mavzu tugmasi va "AI repetitor". O'ng guruh **`flex:0 0 auto`** — hech qachon qisqarmaydi, ichida esa **qat'iy 160px** progress bar bor.
+
+Hisob: `36 + 12 + 119 + 24 + 160 = 351`, ustiga sarlavha padding'i 32 → **371px**. Ekran 360px.
+
+Natijada: (1) "AI repetitor" tugmasi o'ng chetdan 11px chiqib ketardi va u yerda hech qanday scroll yo'q — ya'ni kesilgan; (2) qisqara oladigan yagona element chap guruh bo'lgani uchun u **nolga siqilardi** — kurs nomi va "20% · 5 dars" umuman ko'rinmasdi.
+
+Tuzatish tor ekranda ortiqchani olib tashlash: 720px dan pastda progress bar yashiriladi (foiz allaqachon matn bilan yozilgan, ya'ni ma'lumot yo'qolmaydi), 420px dan pastda esa "AI repetitor" yorlig'i olib tashlanib, tugma ikonka holiga o'tadi. Yorliq yashiringani uchun `aria-label` majburiy bo'ldi — aks holda skrin riderda tugma shunchaki "link" bo'lib eshitilardi. Ikonka tugmaga `min-width:36px` berildi, aks holda u 33px bo'lib qolardi.
+
+**Probe metodologiyasi ham tuzatildi.** Birinchi yugurishda u 9 ta "siqilgan matn" ko'rsatdi — `<b>`, `<i>`, `<code>` elementlari. Bu **yolg'on ijobiy**: inline elementlar `clientWidth` ni har doim `0` qaytaradi. Endi probe faqat blok elementlarni sanaydi. Shuningdek "tap target" qoidasi ham juda qattiq edi: 283px kenglikdagi havolani balandligi 35.99px bo'lgani uchun belgilardi — muhimi kichkina kvadrat tugmalar, keng havolalar emas.
+
+- Branch: `claude/a5-lesson-header` → PR
+- Yangi: `courses/test_lesson_header_mobile.py` (3 test). Tegilgan: `templates/courses/lesson_detail.html`
+- Nazorat yugurishlari: progress bar qoidasi olib tashlanganda va `aria-label` o'chirilganda testlar yiqildi
+- Test holati: to'liq suite **837/837 OK** (skipped=16)
+- **Brauzerda o'lchandi** — 320 / 360 / 390: toshish `0`, siqilgan matn `0`, kichik tap target `0`, gorizontal scroll yo'q; "Notelar" va "Vazifa" tablari ham toza. 1280 da progress bar, "AI repetitor" matni va mundarija o'z joyida qoldi
+- **Qoplanmagan:** quiz tabi — demo ma'lumotda quiz yo'q, shuning uchun u 360px da sinalmadi
+
+---
+
 ## 2026-08-20 [Claude Code]: AI sanani bilmasdi — va uni "tizim ma'lumoti" deb to'qib berardi
 
 Owner uchta ekran surati yubordi. AI "bugun sana nechi?" savoliga har safar boshqacha javob bergan:

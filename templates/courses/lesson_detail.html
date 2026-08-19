@@ -15,6 +15,13 @@
   .lpanel{ display:none; } .lpanel.active{ display:block; }
   .lprose{ font-size:15px; line-height:1.75; color:var(--ink-2); } .lprose h2,.lprose h3{ color:var(--ink); font-weight:600; margin:24px 0 10px; } .lprose p{ margin:0 0 16px; } .lprose ul,.lprose ol{ padding-left:20px; margin:0 0 16px; }
   @media(max-width:860px){ [data-outline]{display:none!important;} }
+  /* Sarlavhaning o'ng guruhi qisqarmaydi (`flex:0 0 auto`), ichida esa qat'iy
+     160px progress bar bor — 360px da guruh 371px joy talab qilib, "AI repetitor"
+     tugmasini ekrandan chiqarib yuborardi va chap guruhni nolga siqardi, ya'ni
+     kurs nomi butunlay yo'qolardi. Tor ekranda ortiqcha elementlar olib tashlanadi:
+     foiz allaqachon sarlavhada matn bilan yozilgan. */
+  @media(max-width:720px){ .lhead-progress{ display:none; } }
+  @media(max-width:420px){ .lhead-ai-label{ display:none; } .lhead-ai{ min-width:36px; padding:0 !important; gap:0 !important; justify-content:center; } }
 </style>{% endblock %}
 
 {% block body %}
@@ -27,9 +34,9 @@
       <div style="min-width:0;"><div style="font-size:14.5px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ course.title }}</div><div style="font-family:'Space Mono',monospace;font-size:10.5px;color:var(--ink-3);">{{ course_progress_percent|default:0 }}% · {{ total_lessons }} dars</div></div>
     </div>
     <div style="display:flex;align-items:center;gap:12px;flex:0 0 auto;">
-      <div style="width:160px;height:6px;border-radius:999px;background:var(--line-2);overflow:hidden;"><div style="height:100%;width:{{ course_progress_percent|default:0 }}%;background:var(--azure);border-radius:999px;transition:width .4s;"></div></div>
+      <div class="lhead-progress" style="width:160px;height:6px;border-radius:999px;background:var(--line-2);overflow:hidden;"><div style="height:100%;width:{{ course_progress_percent|default:0 }}%;background:var(--azure);border-radius:999px;transition:width .4s;"></div></div>
       <button type="button" class="app-ico-btn" aria-label="Mavzu" style="width:36px;height:36px;border-radius:9px;border:1px solid var(--line);color:var(--ink-2);display:grid;place-items:center;font-size:14px;"><i class="bi bi-moon"></i></button>
-      <a href="{% url 'messenger:ai' %}?lesson={{ object.id }}" style="display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:9px;background:var(--azure-soft);color:var(--azure);font-size:13px;font-weight:600;"><i class="bi bi-stars"></i> AI repetitor</a>
+      <a href="{% url 'messenger:ai' %}?lesson={{ object.id }}" class="lhead-ai" aria-label="AI repetitor" title="AI repetitor" style="display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:9px;background:var(--azure-soft);color:var(--azure);font-size:13px;font-weight:600;"><i class="bi bi-stars" aria-hidden="true"></i><span class="lhead-ai-label">AI repetitor</span></a>
     </div>
   </header>
 
