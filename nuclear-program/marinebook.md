@@ -16,6 +16,45 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-19 [Claude Code]: AI o'zini o'zi o'chirib turgan — 71 token ortiqcha sarf uchun
+
+Owner "AI bepul budjeti vaqtincha mavjud emas" xabarini **tinmay** olayotganini aytdi. Bu xabar avvalgi safar circuit sababli chiqqan edi, ammo bu safar sabab boshqa bo'lib chiqdi va u kodning o'zida edi.
+
+Ledger raqamlari darhol gapirdi. Bugungi budjet **butunlay bo'sh** (`bucket_date` yangi kunga o'tgan, nol event), kill switch yoqilgan, circuit esa allaqachon yopilgan. Ya'ni odatiy uchala sabab ham yo'q. Lekin `circuit_reason` yangi qiymatda edi: `reservation_overrun`. So'nggi eventlar ketma-ketligi hammasini ochdi:
+
+```
+17:54:28 succeeded chat res_tok=4000 acc_tok=4071   ← muvaffaqiyatli javob
+17:54:30 circuit ochildi (reservation_overrun)      ← 2 soniyadan keyin
+17:54:47 rejected  chat  circuit_open
+17:57:14 rejected  chat  circuit_open
+```
+
+`reconcile_supply()` shunday yozilgan edi:
+
+```python
+reservation_overrun = (
+    event.accounted_requests > event.reserved_requests
+    or event.accounted_tokens > event.reserved_tokens   # 4071 > 4000
+)
+```
+
+Chat qo'ng'irog'i qat'iy `4000` token zaxira qiladi (`supply_default_reservation_tokens`), promptdan hisoblamaydi. Javob **71 token** ortiq chiqdi — va circuit 15 daqiqaga ochildi. Ya'ni tizim muvaffaqiyatli javobni buzilish deb hisoblab, o'zini o'zi o'chirib qo'ygan.
+
+Nima uchun aynan hozir boshlandi: suhbat uzaygan sari prompt kattalashadi va haqiqiy sarf qat'iy taxminni muntazam kesib o'ta boshlaydi. Shuning uchun "tinmay".
+
+**Mantiqiy xato shu yerda:** zaxira — bu *taxmin*, chegara emas. `reconcile_supply()` ning butun vazifasi taxminni haqiqiy sarf bilan almashtirish. Har qanday musbat farqni buzilish deb hisoblash reconciliation'ning o'z ma'nosini yo'qotadi.
+
+Tuzatish taxminni oshirish emas (oshirilsa ham bir kun oshib ketardi), balki taxmin xatosini **hisob-kitob buzilishidan ajratish**: `RESERVATION_TOKEN_TOLERANCE = 2.0`. So'rovlar soniga bag'rikenglik berilmadi — u aniq sanaladi, taxmin emas. Haqiqiy budjet himoyalari tegilmadi: kunlik project cap va provayder kvotasi avvalgidek circuit ochadi.
+
+- Branch: `claude/supply-reservation-tolerance` → PR
+- Yangi: `aicontrol/test_reservation_tolerance.py` (5 test). Tegilgan: `aicontrol/supply.py`
+- Testlar owner ko'rgan aynan holatni qamraydi (4000 zaxira / 4071 sarf), shuningdek chegara qiymati, keskin oshib ketish, ortiqcha so'rov va kunlik cap
+- Nazorat yugurishi: eski qat'iy solishtiruv qaytarilganda 5 testdan 2 tasi yiqildi
+- Test holati: to'liq suite **830/830 OK** (skipped=16)
+- **Diagnostika eslatmasi:** sababni ledger topdi, taxmin emas. `circuit_reason` maydoni bo'lmasa, bu "budjet tugadi" deb yozilib ketardi — holbuki budjet bo'sh edi
+
+---
+
 ## 2026-08-19 [Claude Code]: Model/skill tanlovi kompozitorga ko'chdi — va bir izoh meni uzoq aldadi
 
 Owner Claude'ning interfeysini ko'rsatib so'radi: model/skill tanlovi sarlavhada emas, xabar yozish oynasining pastida tursin va yoyilib turadigan katta panel emas, silliq ochilib yopiladigan ixcham menyu bo'lsin.

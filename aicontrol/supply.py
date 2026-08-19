@@ -53,6 +53,15 @@ class SupplyReservation:
     reserved_tokens: int
 
 
+# Zaxira — taxmin, chegara emas. Chat qo'ng'irog'i qat'iy `supply_default_reservation_tokens`
+# oladi va uzunroq javob undan biroz oshib ketishi tabiiy; reconciliation aynan shuni
+# haqiqiy sarf bilan almashtirish uchun bor. Har qanday musbat farqni buzilish deb
+# hisoblash AI'ni muntazam o'chirib qo'yardi (2026-08-19: 4000 zaxira, 4071 sarf → 15
+# daqiqalik circuit). Bu koeffitsient hisob-kitob **buzilishini** taxmin xatosidan
+# ajratadi; haqiqiy budjet himoyasi kunlik project cap va provayder kvotasida qoladi.
+RESERVATION_TOKEN_TOLERANCE = 2.0
+
+
 def normalize_request_key(value: str | None, *, prefix: str = "ai") -> str:
     """Return a bounded unique key without leaking full prompt/user content."""
     raw = str(value or "").strip() or f"{prefix}:{uuid.uuid4().hex}"
@@ -310,9 +319,13 @@ def reconcile_supply(
                 int(bucket_totals["requests"] or 0) > policy.supply_daily_request_limit
                 or int(bucket_totals["tokens"] or 0) > policy.supply_daily_token_limit
             )
+            # So'rov soni aniq sanaladi — unga bag'rikenglik berilmaydi.
+            # Token esa taxmin qilinadi, shuning uchun faqat taxmindan
+            # ko'p marta oshgani hisob-kitob buzilishi hisoblanadi.
+            token_ceiling = int(event.reserved_tokens * RESERVATION_TOKEN_TOLERANCE)
             reservation_overrun = (
                 event.accounted_requests > event.reserved_requests
-                or event.accounted_tokens > event.reserved_tokens
+                or event.accounted_tokens > token_ceiling
             )
             if kind == "quota" or project_overrun or reservation_overrun:
                 state = AISupplyState.objects.select_for_update().get(singleton=True)
