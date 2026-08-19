@@ -72,7 +72,7 @@ Bu jadval faqat Git write boundary. Product va integration authority Azurbekda q
 
 - ❌ Boshqa agent branch'iga commit qilma
 - ❌ Boshqa agent branch'ini force-push qilma
-- ❌ `main`'ga bevosita commit/push qilma (Azurbek aniq aytmasa)
+- ❌ `main`'ga bevosita commit/push qilma — 2026-08-15 dan buyon buni serverning o'zi rad etadi, **Azurbek uchun ham** (§9 ga qarang)
 - ❌ Begona uncommitted o'zgarishni "tozalash" uchun revert qilma
 - ❌ `git reset --hard`, `git clean -fd`, `git checkout -- .` ishlatma (Azurbek ruxsat bermasa)
 

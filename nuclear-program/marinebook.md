@@ -16,6 +16,25 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-19 [Claude Code]: Hujjatlar kod bilan tenglashtirildi — eng yomoni frontend inventari edi
+
+Kod rejadan oldinda ketgan, hujjat esa 15-avgustda qolib ketgan edi. Olti faylda tekshiriladigan da'volar kodga solishtirildi. Prinsip: **sanali band tarix**, uni qayta yozmaymiz — yangi sanali band qo'shamiz; **sanasiz nasr, status yorlig'i va jadval esa joriy haqiqat** — ular tuzatiladi.
+
+Eng jiddiy topilma A-bandlar emas, `project-context.md` ning frontend inventari bo'lib chiqdi. U `public.css`, `auth.css`, `messenger-shell.css`, `backoffice-shell.css`, `foundation.css`, `components.css` ni sanab o'tgan — bu fayllarning **bittasi ham jonli ilovada yo'q**. Ular `playground/Fourth Trial/assets/css/` prototipiga tegishli; hujjat prototipni tasvirlab, uni ilova deb atagan. Yangi agent shu ro'yxat bo'yicha fayl qidirib, topolmay, o'zi yangisini yaratishi hech gap emas edi. Endi jadval `static/css/` dagi 18 faylni va **kim yuklashini** ko'rsatadi (shablonlardan olingan, yodda emas). Template katalogida ham `auth/` va `exam/` yo'qligi yozildi.
+
+Ikkinchi jiddiy topilma — o'lik model uch joyda qolgan edi: backlog A8 model contract, launch-plan README va `project-context.md` §5.6 hamon `gemini-2.5-flash-lite` ni fallback deb, "shutdown sanasi e'lon qilinmagan, 2026-10-16 da qayta ko'riladi" deb yozardi. Aslida u 19-avgustda ilovani sindirgan edi. Deadline voqea tomonidan bosib o'tilgan. `8s/20s` timeout ham shu ikki joyda qolgan edi.
+
+Boshqa tuzatilganlar: A3 va A4 hamon `PLANNED` deb turardi (aslida to'rttadan slice main'da, 36 va 25 test) — ularga sanali dalil bandlari yozildi; A2 ning uch yetkazilgan ishi (heartbeat, §3 audit ro'yxati, `ReleaseRecord`) umuman qayd etilmagan edi; status snapshot jadvalida A3/A4/A5 qatorlari yo'q edi; "PostgreSQL contention proofi bu mashinada mumkin emas" da'vosi CI `integration` ishi paydo bo'lgach eskirgan edi; `05-launch-ops.md` §2/§3 ga yangi sanali holat xatboshilari qo'shildi (`release.decision` va `ai.circuit.reset` endi ledgerda).
+
+**Tasdiqlanmagan, ya'ni tegilmagan:** backlog snapshotidagi "8 required check" — §4 dagi sakkizta mantiqiy check uchta GitHub ishiga xaritalanadi, ya'ni to'g'ri yozilgan. `rules-for-agents.md` §9 branch protection bo'limi ham allaqachon aniq edi.
+
+- Branch: `claude/docs-truth-sync` → PR
+- Tegilgan: `03-mahsulot-backlog.md`, `05-launch-ops.md`, `02-yol-xarita.md`, `launch-plan/README.md`, `project-context.md`, `rules-for-agents.md`
+- Kod o'zgarmadi — faqat hujjat. Suite oxirgi o'lchovda 815/815 OK (skipped=16)
+- **Metodologiya eslatmasi:** bu auditni avval 7 agentli workflow qilmoqchi edim, hammasi session limitiga urildi va nol natija qaytardi. Audit qo'lda bajarildi; har bir da'vo `grep`/`git show`/`gh api` bilan tekshirildi, yodda emas
+
+---
+
 ## 2026-08-19 [Claude Code]: Circuit ochiq qolganda owner uchun kutishdan boshqa yo'l yo'q edi
 
 Owner AI'dan "bepul budjet vaqtincha mavjud emas" javobini oldi. Xabar noto'g'ri sababni ko'rsatardi: budjet **to'lmagan** edi (29/100 so'rov, 47 879/250 000 token) va Google ham sog'lom edi (to'g'ridan-to'g'ri probe 0.7s da javob berdi). Haqiqiy sabab — **A8 circuit breaker ochiq** turgani edi: `circuit_open_until` 13 daqiqa oldinda.

@@ -52,17 +52,17 @@ Bu natijalardan kamida biri real cohortda o'lchanmaguncha AI kurs narxini oshiri
 | Yo'nalish | Joriy holat | Keyingi gate |
 |---|---|---|
 | Local runtime | `LOCAL BOOT VERIFIED`: SQLite, LocMem/in-memory, eager Celery, local media; DO credential/service yo'q; post-A8 offline full suite 527/527 va audit 10/10 GREEN | Production gate alohida |
-| AI provider | Gemini primary; allowlistdagi 1 primary + max 1 fallback, SDK retry off, `429`da 1 attempt/cooldown | `A8` **`IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`**; real DB contention proof va production admission alohida |
-| A0 security | A0a Telegram auth/webhook/inactive-staff qismi kodda | A0b private media, upload va WebSocket access recheck |
+| AI provider | Gemini primary; allowlistdagi 1 primary + max 1 fallback, SDK retry off, `429`da 1 attempt/cooldown | `A8` **`IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`**; PostgreSQL contention proofi CI'da yopildi, production admission alohida |
+| A0 security | A0a **va** A0b beshala slice kodda: teacher default-deny scope, upload MIME/magic-byte gate'i, private media, WebSocket access recheck, CSP v4 | `EVIDENCE READY` labeli owner qarorida |
 | A1 runtime/CI | A1a bajarildi: `.dockerignore`, `/healthz`+`/readyz`, backup/restore, outbox lease va `.github/workflows/ci.yml` (8 required check, PostgreSQL+Valkey ishi bilan) | A1b cloud deploy `HOLD`; bog'liqlik zaiflik qarzi reyestrda |
-| A2 Control Center | Read-only foundation + brand/landing mutation surface'lari + AI supply budget/cooldown stoplight bor | Global flags, release/audit va worker heartbeat |
+| A2 Control Center | Read-only foundation, brand/landing/kill-switch/circuit-reset mutation surface'lari, append-only audit ledgeri, `WorkerHeartbeat` va `ReleaseRecord` bor | Umumiy feature flag registri va AI cost/quality release gate |
 | Telegram | F0–F9, outbox va Mini App foundation bor | Local polling QA; webhook/public deploy `HOLD` |
 | Landing editor | Bosqich 1 + bo'lim navigatsiyasi bor | Repeatable ro'yxatlar faqat core gate'lardan keyin |
 | SIT | S1, S3 va S4 kodda; S2 yo'q | `SITInquiry` lifecycle; real data gigiyenasi |
 
 ## Rebaseline ustuvorligi
 
-1. **A8 closeout — `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`:** barcha joriy Gemini call-pathlari ledgerga ulangan; free-model allowlist, kunlik/minute request va kunlik token cap, one-fallback, idempotency va 429 cooldown ishlaydi. Offline full suite 527/527 va local audit 10/10 GREEN; ikki DB backenddagi haqiqiy concurrent contention proof tugamaguncha A8 production-concurrency bo'yicha yopilmaydi.
+1. **A8 closeout — `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`:** barcha joriy Gemini call-pathlari ledgerga ulangan; free-model allowlist, kunlik/minute request va kunlik token cap, one-fallback, idempotency va 429 cooldown ishlaydi. Ikki DB backenddagi contention proofi **yopildi** — SQLite yarmi `aicontrol/test_supply_concurrency.py` bilan, PostgreSQL yarmi CI `integration` ishi bilan. Joriy full suite 815/815 (skipped=16). Alohida OS processlari bilan takrorlash ochiq qolgan yagona band.
 2. **A0b + vendor-neutral A1:** private media/upload/access; `.dockerignore`, CI, readiness va restore proof. Cloud xizmati shart emas.
 3. **A2 Control Center:** effective config, capability registry, flags/kill switches, event/audit ledger, health, AI quota va release gate.
 4. **Canonical oqimlar + mobil oltin yo'l:** enrollment, lesson lifecycle, access, submission/review va notificationlar shared policy/state machine orqali; real qurilma parity.
@@ -71,7 +71,7 @@ Bu natijalardan kamida biri real cohortda o'lchanmaguncha AI kurs narxini oshiri
 
 Prompt-only `word_builder`, `conversation_partner`, yangi model picker, streak/PWA bezaklari va chuqur SRS avtomatikasi yuqoridagi qatlamlardan oldinga chiqmaydi.
 
-**A8 model lifecycle:** primary `gemini-3.1-flash-lite`; `gemini-2.5-flash-lite` faqat vaqtinchalik fallback. 2.5 Lite uchun public shutdown sanasi e'lon qilinmagan; 2026-10-16 — internal remove/migrate review deadline. 2026-08-14 `AzureAI` Free-tier snapshotida 3.1 Lite `15 RPM / 250K TPM / 500 RPD`, 3.7 Flash `5 RPM / 250K TPM / 20 RPD`; shu sabab 3.7 hozir admit qilinmagan. External quota dynamic/account-specific, Control Center budgetlari esa loyiha ichki hard guardlari.
+**A8 model lifecycle (2026-08-19):** primary `gemini-3.1-flash-lite`; vaqtinchalik fallback endi `gemini-3.5-flash-lite`. **`gemini-2.5-flash-lite` o'lik** — Google `404 ... no longer available to new users` qaytaradi, ya'ni 2026-10-16 review deadline'i voqea tomonidan bosib o'tildi; model `RETIRED_MODELS` da. `models.list` uni hamon ro'yxatda ko'rsatgani uchun haqiqat faqat real `generateContent` probe'ida ochildi. 2026-08-14 `AzureAI` Free-tier snapshotida 3.1 Lite `15 RPM / 250K TPM / 500 RPD`, 3.7 Flash `5 RPM / 250K TPM / 20 RPD`; shu sabab 3.7 hozir admit qilinmagan. External quota dynamic/account-specific, Control Center budgetlari esa loyiha ichki hard guardlari.
 
 ## Status tili
 

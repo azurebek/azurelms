@@ -21,7 +21,7 @@
 | Gemini | `AI_CHAT_PROVIDER=gemini`; allowlistdagi 1 primary + max 1 fallback; SDK retry off; prompt/output/timeout/deadline cap | A8 real-concurrency va external-quota monitoring evidence |
 | AI usage | Per-user allowance'dan alohida global daily request/token + minute request reservation ledgeri; staff, chat/search, SmartForm, guest va embedding/reindex qamralgan | SQLite/PostgreSQL real concurrent contention proof; caller-specific lease/counter risklari |
 | A0 | Telegram one-time auth, webhook fail-closed va inactive-staff denial kodda | Private media/upload, teacher default-deny, socket access recheck |
-| A1 | Procfile mavjud | CI, `.dockerignore`, readiness, restore proof; cloud deploy `HOLD` |
+| A1 | Procfile, CI, `.dockerignore`, `/healthz`+`/readyz`, backup/restore va outbox lease mavjud (A1a bajarildi) | cloud deploy `HOLD`; production restore proofi A1b bilan |
 | A2 | Read-only Control Center, brand/landing mutation surface'lari va Gemini supply stoplight/admin bor | Flags, release/audit va active heartbeat |
 | Telegram | F0–F9, outbox, Mini App foundation | Public webhook/outbox process va real prod WebView — `HOLD` |
 | Landing | Admin-controlled landing + backoffice Bosqich 1/TOC | Repeatable CRUD/reorder va preview polish |
@@ -64,7 +64,7 @@ Oldingi 2026-07-22 rejasidagi `P0–P5` tarixiy rebaseline sifatida Git tarixida
 - Budget/ledger xatosida core LMS, cache/lexical retrieval va human/Telegram deterministic oqimlari ishlashda qoladi; reindex yoki auxiliary AI yumshoq degradatsiya qiladi.
 - **Local evidence:** provider kalitlari/env-file loading o'chirilgan post-A8 full suite 527/527, focused streak 15/15, `manage.py check` 0 issue, migration drift yo'q va `system_audit` 10/10 GREEN.
 - **SQLite contention proof (2026-08-15):** yozildi va real kamchilikni ochdi. `select_for_update()` SQLite'da no-op bo'lgani va Django `BEGIN DEFERRED` ishlatgani sabab 8 parallel rezervatsiyadan 7 tasi `database is locked` bilan yiqilardi (budjet overshooti emas, ammo har qanday parallellikda AI callning ishdan chiqishi). Yechim: local SQLite uchun `transaction_mode=IMMEDIATE` + `timeout` + WAL. Testlar `AZURELMS_TEST_FILE_DB=1` bilan fayl bazasida ishlaydi.
-- **Qolgan closeout:** PostgreSQL contention/transaction testi. Bu mashinada PG server yoki docker yo'q (`psycopg2-binary` faqat klient), shuning uchun PG yarmi bajarilmadi. Joriy proof multi-thread/multi-connection; alohida OS processlari bilan takrorlash ham ochiq.
+- **Qolgan closeout (2026-08-15 da yopildi):** PostgreSQL contention/transaction testi. Yozilganda bu mashinada PG server yoki docker yo'q edi; A1a bilan kelgan GitHub Actions `integration` ishi endi to'liq suite'ni `pgvector/pgvector:pg16` konteynerida yugurtiradi, ya'ni PG yarmi CI'da bajariladi va birinchi yugurishdayoq real production xatosini topdi (nullable FK ustidagi `select_for_update()`). **Hamon ochiq:** alohida OS processlari bilan takrorlash.
 - **Qolgan operatsion risk:** SmartForm va guest counterlari hamda lesson reindex batch'lari uchun to'liq claim/lease yo'q; parallel workerda duplicate work oynasi qolishi mumkin.
 - Bir daqiqalik request cap — loyihaning ichki RPM-uslubidagi budgeti; u Google'ning aniq tashqi RPM/RPD kvotasini o'lchamaydi yoki kafolatlamaydi.
 - Joriy Gemini adapteri vision payload qabul qilmaydi; `image_qa` routing borligi rasm tahlili capability'si degani emas.
