@@ -11,6 +11,14 @@
 
 {% block extra_css %}
 <style>
+  /* Barmoq nishoni: havolalar matn balandligini (17px) olardi. `padding:4px`
+     ularni 25px ga chiqaradi, konteyner `gap` i esa 9px dan 1px ga tushadi —
+     qatorlar orasidagi masofa o'zgarmaydi, ya'ni footer ko'rinishi o'sha-o'sha.
+     Landing ataylab `base_public.html` ni ishlatmaydi va footerini o'zi
+     chizadi, shuning uchun `public-shell.css` qoidasi bu yerga yetib kelmaydi. */
+  .lp-foot-links{ gap:1px; }
+  .lp-foot-links a{ display:inline-flex; align-items:center; min-height:24px; padding:4px 0; }
+
   /* Landing — bespoke rail responsive */
   @media (max-width:860px){
     [data-rail]{position:static!important;width:100%!important;height:auto!important;border-right:none!important;border-bottom:1px solid var(--line)!important;}
@@ -55,7 +63,7 @@
           {% if request.user.is_authenticated %}
           <span style="font-size:13px;color:var(--ink-2);">{{ request.user.first_name|default:request.user.username }}</span>
           {% else %}
-          <a href="{% url 'login' %}" style="font-size:13px;color:var(--ink-2);">Kirish</a>
+          <a href="{% url 'login' %}" style="display:inline-flex;align-items:center;min-height:24px;font-size:13px;color:var(--ink-2);">Kirish</a>
           {% endif %}
           <div style="display:flex;align-items:center;gap:12px;">
             <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.06em;"><span style="color:var(--ink);">UZ</span> <span style="color:var(--ink-4);">EN</span></div>
@@ -84,8 +92,8 @@
           {% else %}
           <a href="{% url 'register' %}" style="display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:9px;background:var(--azure);color:var(--on-azure);font-size:14.5px;font-weight:600;transition:transform .22s cubic-bezier(.16,1,.3,1);">{{ page.hero_primary_label }} <i class="bi bi-arrow-right" style="font-size:13px;"></i></a>
           {% endif %}
-          <a href="#path" style="display:inline-flex;align-items:center;gap:7px;font-size:14.5px;font-weight:500;color:var(--ink);transition:gap .25s;">{{ page.hero_secondary_label }} <i class="bi bi-arrow-down" style="font-size:12px;color:var(--ink-3);"></i></a>
-          <a href="{% url 'sit:home' %}" style="display:inline-flex;align-items:center;gap:7px;font-size:14.5px;font-weight:600;color:var(--azure);transition:gap .25s;"><i class="bi bi-mortarboard" aria-hidden="true"></i> Turkiyada o'qish <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+          <a href="#path" style="display:inline-flex;align-items:center;min-height:24px;gap:7px;font-size:14.5px;font-weight:500;color:var(--ink);transition:gap .25s;">{{ page.hero_secondary_label }} <i class="bi bi-arrow-down" style="font-size:12px;color:var(--ink-3);"></i></a>
+          <a href="{% url 'sit:home' %}" style="display:inline-flex;align-items:center;min-height:24px;gap:7px;font-size:14.5px;font-weight:600;color:var(--azure);transition:gap .25s;"><i class="bi bi-mortarboard" aria-hidden="true"></i> Turkiyada o'qish <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
         </div>
 
         <!-- Mock dashboard -->
@@ -235,7 +243,7 @@
           <div>
             <h2 style="font-size:clamp(24px,2.8vw,34px);font-weight:600;letter-spacing:-.03em;line-height:1.08;color:var(--ink);margin:0 0 14px;max-width:16ch;">{{ page.cert_title }}</h2>
             <p style="font-size:15px;line-height:1.6;color:var(--ink-2);margin:0 0 22px;max-width:42ch;">{{ page.cert_text }}</p>
-            <a href="{% url 'register' %}" style="display:inline-flex;align-items:center;gap:7px;font-size:14.5px;font-weight:600;color:var(--azure);transition:gap .25s;">{{ page.cert_cta_label }} <i class="bi bi-arrow-right"></i></a>
+            <a href="{% url 'register' %}" style="display:inline-flex;align-items:center;min-height:24px;gap:7px;font-size:14.5px;font-weight:600;color:var(--azure);transition:gap .25s;">{{ page.cert_cta_label }} <i class="bi bi-arrow-right"></i></a>
           </div>
           <div style="border:1px solid var(--line);border-radius:12px;padding:22px;background:var(--panel);">
             <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:14px;">
@@ -271,10 +279,10 @@
             <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px;">{% include "components/brand_logo.html" with use_wordmark=True image_class="brand-logo-image--small" %}</div>
             <p style="font-size:13px;line-height:1.6;color:var(--ink-3);margin:0;max-width:30ch;">{{ page.footer_tagline }}</p>
           </div>
-          <div><div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);margin-bottom:12px;">{{ page.footer_col_platform_title }}</div><div style="display:flex;flex-direction:column;gap:9px;">{% for link in footer_platform_links %}<a href="{{ link.url }}"{% if link.open_in_new_tab %} target="_blank" rel="noopener"{% endif %} style="font-size:13.5px;color:var(--ink-2);transition:color .2s;">{{ link.label }}</a>{% endfor %}</div></div>
-          <div><div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);margin-bottom:12px;">{{ page.footer_col_company_title }}</div><div style="display:flex;flex-direction:column;gap:9px;">{% for link in footer_company_links %}<a href="{{ link.url }}"{% if link.open_in_new_tab %} target="_blank" rel="noopener"{% endif %} style="font-size:13.5px;color:var(--ink-2);transition:color .2s;">{{ link.label }}</a>{% endfor %}</div></div>
-          <div><div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);margin-bottom:12px;">{{ page.footer_col_legal_title }}</div><div style="display:flex;flex-direction:column;gap:9px;">{% for link in footer_legal_links %}<a href="{{ link.url }}"{% if link.open_in_new_tab %} target="_blank" rel="noopener"{% endif %} style="font-size:13.5px;color:var(--ink-2);transition:color .2s;">{{ link.label }}</a>{% endfor %}</div></div>
-          <div><div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);margin-bottom:12px;">{{ page.footer_col_contact_title }}</div><div style="display:flex;flex-direction:column;gap:9px;">
+          <div><div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);margin-bottom:12px;">{{ page.footer_col_platform_title }}</div><div class="lp-foot-links" style="display:flex;flex-direction:column;">{% for link in footer_platform_links %}<a href="{{ link.url }}"{% if link.open_in_new_tab %} target="_blank" rel="noopener"{% endif %} style="font-size:13.5px;color:var(--ink-2);transition:color .2s;">{{ link.label }}</a>{% endfor %}</div></div>
+          <div><div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);margin-bottom:12px;">{{ page.footer_col_company_title }}</div><div class="lp-foot-links" style="display:flex;flex-direction:column;">{% for link in footer_company_links %}<a href="{{ link.url }}"{% if link.open_in_new_tab %} target="_blank" rel="noopener"{% endif %} style="font-size:13.5px;color:var(--ink-2);transition:color .2s;">{{ link.label }}</a>{% endfor %}</div></div>
+          <div><div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);margin-bottom:12px;">{{ page.footer_col_legal_title }}</div><div class="lp-foot-links" style="display:flex;flex-direction:column;">{% for link in footer_legal_links %}<a href="{{ link.url }}"{% if link.open_in_new_tab %} target="_blank" rel="noopener"{% endif %} style="font-size:13.5px;color:var(--ink-2);transition:color .2s;">{{ link.label }}</a>{% endfor %}</div></div>
+          <div><div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-4);margin-bottom:12px;">{{ page.footer_col_contact_title }}</div><div class="lp-foot-links" style="display:flex;flex-direction:column;">
             {% if site_settings.contact_phone %}<a href="tel:{{ site_settings.contact_phone|cut:" " }}" style="font-size:13.5px;color:var(--ink-2);transition:color .2s;">{{ site_settings.contact_phone }}</a>{% endif %}
             {% if site_settings.contact_email %}<a href="mailto:{{ site_settings.contact_email }}" style="font-size:13.5px;color:var(--ink-2);transition:color .2s;">{{ site_settings.contact_email }}</a>{% endif %}
           </div></div>

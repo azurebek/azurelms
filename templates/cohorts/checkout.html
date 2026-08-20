@@ -34,7 +34,7 @@
 <div style="max-width:980px;margin:0 auto;padding:clamp(28px,4vw,52px) clamp(18px,4vw,32px);">
 
   <div style="display:flex;align-items:center;gap:8px;font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);margin-bottom:26px;">
-    <a href="{% url 'course_detail' pk=course.id %}" style="color:var(--ink-3);">{{ course.title|truncatechars:24 }}</a>
+    <a href="{% url 'course_detail' pk=course.id %}" style="display:inline-flex;align-items:center;min-height:24px;color:var(--ink-3);">{{ course.title|truncatechars:24 }}</a>
     <i class="bi bi-chevron-right" style="font-size:9px;"></i><span style="color:var(--ink);">To'lov</span>
   </div>
 
