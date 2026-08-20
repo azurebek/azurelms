@@ -20,7 +20,9 @@ from django.db import transaction
 from django.utils import timezone
 
 from cohorts.models import Cohort, Enrollment
-from courses.models import Assignment, Course, Lesson, Module
+from courses.models import (
+    Assignment, Choice, Course, Exam, ExamSection, Lesson, Module, Question,
+)
 from subscriptions.models import Plan
 
 #: Demo yozuvlarini haqiqiy yozuvlardan ajratadigan belgi.
@@ -104,6 +106,8 @@ def seed_demo_data():
                     },
                 )
 
+    _seed_demo_exam(course)
+
     cohort, _ = Cohort.objects.get_or_create(
         name=f"{DEMO_MARK} Kechki guruh",
         course=course,
@@ -122,6 +126,143 @@ def seed_demo_data():
         },
     )
     return {"course": course, "cohort": cohort, "teacher": teacher, "student": student}
+
+
+#: Har bo'lim turi imtihon UIda boshqacha render qilinadi (variant tanlash,
+#: uzun o'qish matni, so'z hisoblagichli maydon, audio pleyer, mikrofon yozuvi).
+#: Bittasini qoldirish qolgan yuzalarni sinovsiz qoldiradi — shuning uchun
+#: beshalasi ham seed qilinadi. Landscape (568x320) eng tor holat.
+DEMO_EXAM_SECTIONS = (
+    {
+        "section_type": "grammar_quiz",
+        "title": "Grammatika va lug'at",
+        "instructions": "Har savol uchun bitta to'g'ri javobni tanlang.",
+        "max_score": 20,
+        "time_limit_minutes": 10,
+        "questions": [
+            {
+                "text": "Quyidagilardan qaysi biri <b>gelmek</b> fe'lining hozirgi zamon shakli?",
+                "choices": [("geliyorum", True), ("geldim", False), ("gelecegim", False)],
+            },
+            {
+                "text": "Unli uyg'unligi qoidasiga ko'ra <b>bakmak</b> fe'li qanday bo'ladi?",
+                "choices": [("bakiyorum", False), ("bakiyorum (orqa qatorli)", True), ("bakmisim", False)],
+            },
+        ],
+    },
+    {
+        "section_type": "reading",
+        "title": "O'qish",
+        "instructions": "Matnni o'qing va savolga javob bering.",
+        "reading_text": (
+            "Ankara Turkiyaning poytaxti bo'lib, mamlakatning markaziy qismida joylashgan. "
+            "Shahar 1923-yilda poytaxt maqomini olgan. Bugungi kunda u davlat idoralari, "
+            "universitetlar va yirik kutubxonalari bilan tanilgan. Ankarada yashovchilar "
+            "qishda sovuq, yozda esa quruq iqlimga o'rganib qolishgan."
+        ),
+        "max_score": 20,
+        "time_limit_minutes": 15,
+        "questions": [
+            {
+                "text": "Ankara qachon poytaxt bo'lgan?",
+                "choices": [("1923-yilda", True), ("1908-yilda", False), ("1945-yilda", False)],
+            },
+        ],
+    },
+    {
+        "section_type": "writing",
+        "title": "Yozish",
+        "instructions": "Berilgan mavzuda qisqa matn yozing.",
+        "max_score": 25,
+        "time_limit_minutes": 20,
+        "questions": [
+            {
+                "text": "O'z shahringiz haqida yozing: iqlim, odamlar va sizga yoqadigan joy.",
+                "min_word_count": 40,
+                "max_word_count": 120,
+            },
+        ],
+    },
+    {
+        "section_type": "listening",
+        "title": "Eshitish",
+        "instructions": "Audioni tinglang va savolga javob bering. Audio cheklangan marta ijro etiladi.",
+        "media_url": "https://upload.wikimedia.org/wikipedia/commons/c/c8/Example.ogg",
+        "audio_play_limit": 2,
+        "max_score": 20,
+        "time_limit_minutes": 10,
+        "questions": [
+            {
+                "text": "Audioda nima haqida gapirilyapti?",
+                "choices": [("Ob-havo", True), ("Sport", False), ("Musiqa", False)],
+            },
+        ],
+    },
+    {
+        "section_type": "speaking",
+        "title": "Gapirish",
+        "instructions": (
+            "Savolni o'qing va ovozingizni yozib javob bering. "
+            "Mikrofon faqat xavfsiz ulanishda (HTTPS yoki localhost) ishlaydi."
+        ),
+        "max_score": 15,
+        "time_limit_minutes": 10,
+        "questions": [
+            {"text": "O'zingiz haqingizda qisqacha gapiring: ism, kasb va turk tilini nima uchun o'rganyapsiz."},
+        ],
+    },
+)
+
+
+def _seed_demo_exam(course):
+    """Imtihon yuzasini sinash mumkin bo'lishi uchun demo imtihon.
+
+    Bu yerda bo'lmaganda A5 ning imtihon bandi na avtomatik probe bilan, na
+    owner tomonidan qurilmada sinalishi mumkin edi — sinaydigan narsaning
+    o'zi yo'q edi. Speaking bo'limi mikrofon oqimi uchun majburiy.
+    """
+    exam, _ = Exam.objects.get_or_create(
+        course=course,
+        title=f"{DEMO_MARK} A1 yakuniy imtihon",
+        defaults={
+            "exam_type": "final",
+            "weight_percentage": 40,
+            "passing_score": 60,
+            "max_attempts": 3,
+        },
+    )
+
+    for order, spec in enumerate(DEMO_EXAM_SECTIONS, start=1):
+        section, _ = ExamSection.objects.get_or_create(
+            exam=exam,
+            section_type=spec["section_type"],
+            defaults={
+                "title": spec["title"],
+                "instructions": spec["instructions"],
+                "reading_text": spec.get("reading_text", ""),
+                "media_url": spec.get("media_url", ""),
+                "audio_play_limit": spec.get("audio_play_limit", 0),
+                "max_score": spec["max_score"],
+                "time_limit_minutes": spec["time_limit_minutes"],
+                "order": order,
+            },
+        )
+        for question_spec in spec["questions"]:
+            question, _ = Question.objects.get_or_create(
+                exam_section=section,
+                text=question_spec["text"],
+                defaults={
+                    "points": 5,
+                    "min_word_count": question_spec.get("min_word_count", 0),
+                    "max_word_count": question_spec.get("max_word_count", 0),
+                },
+            )
+            for choice_text, is_correct in question_spec.get("choices", []):
+                Choice.objects.get_or_create(
+                    question=question, text=choice_text, defaults={"is_correct": is_correct}
+                )
+
+    return exam
 
 
 @transaction.atomic
