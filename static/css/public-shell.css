@@ -39,7 +39,9 @@
   transition:border-color .2s,color .2s;
 }
 .pub-theme:hover{ border-color:var(--azure); color:var(--azure); }
-.pub-login{ font-size:14px; font-weight:600; color:var(--ink); }
+/* Barmoq nishoni: WCAG 2.5.8 (AA) kamida 24x24 talab qiladi, loyihaning
+   boshqa boshqaruvlari esa 36px. Matnning o'z balandligi 19px edi. */
+.pub-login{ display:inline-flex; align-items:center; min-height:36px; font-size:14px; font-weight:600; color:var(--ink); }
 .pub-cta{
   display:inline-flex; align-items:center; gap:7px; padding:10px 17px; border-radius:10px;
   background:var(--azure); color:var(--on-azure); font-weight:600; font-size:14px;
@@ -63,16 +65,20 @@
 .pub-foot-brand a{ display:flex; align-items:center; gap:10px; margin-bottom:12px; }
 .pub-foot-brand p{ font-size:13.5px; line-height:1.6; color:var(--ink-3); max-width:30ch; margin:0; }
 .pub-foot-title{ font-family:'Space Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-4); margin-bottom:13px; }
-.pub-foot-links{ display:flex; flex-direction:column; gap:9px; }
-.pub-foot-links a{ font-size:13.5px; color:var(--ink-2); transition:color .2s; }
+/* Havola balandligi 17px edi. `padding:4px` uni 25px ga chiqaradi, `gap` esa
+   9px dan 1px ga tushadi — qatorlar orasidagi masofa (26px) o'zgarmaydi,
+   ya'ni footer ko'rinishi o'sha-o'sha qoladi, faqat nishon kattalashadi. */
+.pub-foot-links{ display:flex; flex-direction:column; gap:1px; }
+.pub-foot-links a{ display:inline-flex; align-items:center; min-height:24px; padding:4px 0; font-size:13.5px; color:var(--ink-2); transition:color .2s; }
 .pub-foot-links a:hover{ color:var(--azure); }
 .pub-foot-bottom{
   display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
   padding-top:22px; border-top:1px solid var(--line);
   font-family:'Space Mono',monospace; font-size:10.5px; letter-spacing:.06em; color:var(--ink-4);
 }
-.pub-foot-bottom a{ color:var(--ink-3); }
-.pub-foot-social{ display:flex; gap:14px; }
+.pub-foot-bottom a{ display:inline-flex; align-items:center; min-height:24px; color:var(--ink-3); }
+.pub-foot-social{ display:flex; align-items:center; gap:14px; }
+.pub-foot-social a{ display:inline-flex; align-items:center; justify-content:center; min-height:24px; min-width:24px; }
 
 @media (max-width:760px){
   .pub-nav{ display:none; }

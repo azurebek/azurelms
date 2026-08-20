@@ -16,6 +16,29 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-20 [Claude Code]: Public shelldagi barmoq nishonlari — va landing footerining takrorlangani
+
+Checkout ishida topilgan, ammo o'sha PR'ga qo'shilmagan band: umumiy public shellda kichik nishonlar. Footerdagi havolalar `146x17px`, headerdagi "Chiqish" `58x19px`, checkout breadcrumb'i `128x16px`. WCAG 2.5.8 (AA) kamida `24x24` talab qiladi; loyihaning o'z konvensiyasi boshqa joylarda 36px.
+
+Tuzatish footer ritmini saqlab qolish shartida qilindi: havolaga `padding:4px 0` berildi (17px → 25px), konteyner `gap` i esa 9px dan 1px ga tushirildi. Qatorlar orasidagi masofa 26px bo'lib qoladi, ya'ni footer ko'rinishi o'zgarmaydi — faqat bosish maydoni kattalashadi. `.pub-login` esa loyiha konvensiyasi bo'yicha 36px oldi.
+
+**Kutilmagan topilma: landing sahifasi shellni umuman ishlatmaydi.** `templates/index.html` `base.html` dan meros oladi va **o'z footerini o'zi chizadi** — shablonning boshida buni ataylab qilingani yozilgan ("Chrome'siz (pub-header/footer ishlatmaydi)"). Ya'ni `public-shell.css` dagi tuzatish eng ko'p ochiladigan public sahifaga **yetib bormasdi**. O'sha yerda ham xuddi shu 17px havolalar bor edi: 20 ta.
+
+Landing footeri CMS'dan keladigan havolalarni to'rtta ustunda chizadi va uslublar inline takrorlangan. Tuzatish uchun konteynerlarga bitta klass (`lp-foot-links`) berilib, qoida sahifaning o'z `<style>` blokiga yozildi. Qolgan uchta havola (header "Kirish" va ikkita CTA) inline uslublariga `min-height:24px` oldi.
+
+**O'lchov paytida ikki marta chalg'idim:**
+
+1. Iframe orqali to'rt o'lchamni bir yugurishda tekshirmoqchi bo'ldim — `SecurityError` chiqdi. Sabab: ilova `X-Frame-Options`/CSP bilan o'zini iframe'ga solishni taqiqlaydi. Bu A0b ning to'g'ri ishlashi, ya'ni to'siq emas, dalil.
+2. Tuzatishdan keyin ham `.pub-login` 17px ko'rinardi. Sabab CSS emas, **brauzer keshi** edi: server qayta ishga tushgan bo'lsa ham stylesheet eskisi qolgan. Buni "tuzatish ishlamadi" deb yozib yuborishim mumkin edi; `getComputedStyle` dagi `min-height` ni o'qish farqni ko'rsatdi.
+
+- Branch: `claude/a5-shell-tap-targets` → PR
+- Yangi: `core/test_public_shell_tap_targets.py` (4 test). Tegilgan: `static/css/public-shell.css`, `templates/index.html`, `templates/cohorts/checkout.html`
+- Nazorat yugurishi: footer `min-height` i olib tashlanganda test yiqildi
+- Test holati: to'liq suite **863/863 OK** (skipped=16)
+- **Brauzerda o'lchandi** — landing (320/360/390/1280), `/about/` (320/390), `/courses/` (390), `/pricing/` (360/390), checkout (360): toshish `0`, siqilgan matn `0`, 24px dan kichik nishon `0`
+
+---
+
 ## 2026-08-20 [Claude Code]: Messenger uzilganda o'lik qolardi — endi o'zi tiklanadi
 
 A5 ning oxirgi texnik bandi. Kodda `new WebSocket(...)` bir marta chaqirilardi va `close` hodisasida faqat "Sahifani yangilang" deb yozilardi — **qayta ulanish umuman yo'q edi**.
