@@ -16,6 +16,34 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-20 [Claude Code]: Checkout'da umumiy summa ekrandan chiqib ketardi
+
+A5 ning checkout bandi. 360px da to'lov sahifasi o'lchandi.
+
+Sahifa `grid-template-columns:1.4fr 1fr` bilan ikki ustunli qilingan va **hech qanday media qoidasi yo'q** edi. Ammo nuqson "telefonda taxlanmaydi" dan yomonroq bo'lib chiqdi. Grid bandining sukutdagi `min-width:auto` si birinchi ustunga kontent talab qilgan **265px** ni berardi, 324px lik gridda xulosa paneliga esa **31px** qolardi. Panel 31px ga siqilib, ichidagi kontent o'sha qutidan tashqariga to'kilardi:
+
+```
+"Jami"   → 332..365
+ 99000   → 365..426     ekran: 360px
+```
+
+Ya'ni **to'lov sahifasida umumiy summa ko'rinmasdi**. Foydalanuvchi qancha to'layotganini bilmay chek yuklaydi.
+
+Tuzatish: `min-width:0` (grid bandlari qisqara olsin) va 860px dan pastda bitta ustun. Taxlangan holatda `sticky` panel ham `static` ga o'tkazildi — bir ustunda u kontentni bosib turadi.
+
+**Probe yana bir yolg'on ijobiy berdi va tuzatildi.** U 20 ta "kichik tap target" ko'rsatgan edi, ular orasida 18x18 radio tugmalar. Aslida radiolar 219x161 label ichida — bosish maydoni katta. Endi probe input label ichida bo'lsa **labelni** o'lchaydi.
+
+Tuzatishdan keyin qolgan 16 ta kichik target checkout kontentida emas, **umumiy public shellda**: footerdagi 14 ta havola 146x17px, headerdagi "Chiqish" 58x19px va bitta breadcrumb 128x16px. Bu har bir public sahifaga tegadi, ya'ni checkout PR'iga qo'shib yuborish noto'g'ri bo'lardi — alohida band sifatida ajratildi.
+
+- Branch: `claude/a5-checkout-mobile` → PR
+- Yangi: `cohorts/test_checkout_mobile.py` (3 test). Tegilgan: `templates/cohorts/checkout.html`
+- Nazorat yugurishi: `min-width:0` olib tashlanganda test yiqildi
+- Test holati: to'liq suite **849/849 OK** (skipped=16)
+- **Brauzerda o'lchandi** — 320 / 360 / 390: toshish `0`, siqilgan matn `0`, checkout ichida kichik tap target `0`, umumiy summa ekran ichida. 1280 da ikki ustun (518/370) va sticky panel o'z joyida
+- **Qoplanmagan:** `checkout_pending` va `checkout_success` sahifalari — demo ma'lumotda pending chek yo'q, shuning uchun ular ochilmadi
+
+---
+
 ## 2026-08-20 [Claude Code]: Imtihon landscape'da — javob maydoni 38px, so'z hisoblagichi esa umuman yetib bo'lmas joyda
 
 A5 ning "imtihon 568x320 / 640x360 landscape" bandi. Ish sinashdan emas, **sinaydigan narsani yaratishdan** boshlandi: `seed_demo` kurs, dars, vazifa va guruh yaratardi, ammo **imtihon yaratmasdi**. Ya'ni imtihon yuzasi na avtomatik probe bilan, na owner tomonidan qurilmada sinalishi mumkin emas edi.
