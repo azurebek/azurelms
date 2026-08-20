@@ -16,6 +16,35 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-20 [Claude Code]: Messenger uzilganda o'lik qolardi — endi o'zi tiklanadi
+
+A5 ning oxirgi texnik bandi. Kodda `new WebSocket(...)` bir marta chaqirilardi va `close` hodisasida faqat "Sahifani yangilang" deb yozilardi — **qayta ulanish umuman yo'q edi**.
+
+Telefonda bu eng ko'p uchraydigan holat: ekran qulflanadi yoki ilova fonga o'tadi, socket yopiladi, foydalanuvchi qaytib kelganda chat jim o'lik turadi. Sahifani yangilash kerakligini bilish esa foydalanuvchining vazifasi emas.
+
+Ikki yopilish turini ajratish zarur bo'ldi va bu ishning eng nozik qismi:
+
+* **`4403`** — server kirish huquqi tugaganini aytadi (A0b). Bu yerda qayta ulanish mantiqsiz: har urinish yana rad etiladi, ya'ni cheksiz tsikl.
+* **boshqa yopilish** — tarmoq uzilishi, qayta ulanish o'rinli.
+
+Yechim: `connect()` funksiyasi, eksponensial backoff (1s → 30s), `MAX_RECONNECT_ATTEMPTS = 6`, va `online` / `visibilitychange` hodisalarida backoffni kutmasdan darhol urinish — chunki aynan o'sha payt foydalanuvchi ekranga qarab turadi.
+
+Yana bir nozik joy: socket **hech qachon ochilmagan** bo'lsa, sabab odatda tarmoq emas, ruxsat yoki autentifikatsiya. Bunday holatda urinishlar soni 2 ta bilan cheklanadi, aks holda rad etilgan ulanish uchun olti marta urinib o'tiriladi.
+
+**Jonli tekshirildi, ikkala tarmoq ham:**
+
+1. Server to'xtatildi → `Qayta ulanmoqda...`, tugma o'chdi. Server qaytarildi → **o'zi tiklandi**, status tozalandi, tugma yoqildi. Men `online` signalini yuborishimdan oldin ham tiklangan edi, ya'ni backoff taymerining o'zi ishladi.
+2. Socket egasining hisobi bloklandi → `receive()` dagi A0b qayta tekshiruvi ishga tushdi va server `4403` bilan yopdi. Klient `Bu suhbatga kirish huquqingiz yakunlandi.` ko'rsatdi va **16 soniya davomida nol** qayta ulanish urinishi qildi — tsikl yo'q.
+
+Ikkinchi testni o'tkazishda o'zim adashdim: avval `demo-student` ni bloklab, hech narsa bo'lmaganini ko'rdim. Sabab — tab `demo-teacher` bilan ochilgan edi (avvalgi ish uchun shu hisobga kirgandim), ya'ni socket egasi boshqa foydalanuvchi edi. Buni "A0b qayta tekshiruvi ishlamayapti" deb yozib yuborishim mumkin edi; DOM'dan `data-current-user-name` ni o'qish shuni oldini oldi.
+
+- Branch: `claude/a5-messenger-reconnect` → PR
+- Yangi: `messenger/test_reconnect_contract.py` (5 test). Tegilgan: `static/js/messenger-chat.js`
+- Test server va klient bir xil `4403` raqamini bilishini majburlaydi — ular ikki faylda yashaydi va biri o'zgarsa ikkinchisi jim eskiradi
+- Test holati: to'liq suite **859/859 OK** (skipped=16)
+
+---
+
 ## 2026-08-20 [Claude Code]: Davomat sahifasi toza chiqdi — asosiy ish uni sinash mumkin qilish edi
 
 A5 ning teacher attendance bandi. Sahifaning o'zi 320 / 360 / 1280 da **hech qanday tuzatish talab qilmadi**: toshish `0`, yetib bo'lmaydigan kontent `0`, siqilgan matn `0`, kichik tap target `0`. "Keldi / Qisman / Kelmadi" tugmalari 34px balandlikda va ekran ichida.
