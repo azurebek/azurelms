@@ -16,6 +16,34 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-20 [Claude Code]: Imtihon landscape'da — javob maydoni 38px, so'z hisoblagichi esa umuman yetib bo'lmas joyda
+
+A5 ning "imtihon 568x320 / 640x360 landscape" bandi. Ish sinashdan emas, **sinaydigan narsani yaratishdan** boshlandi: `seed_demo` kurs, dars, vazifa va guruh yaratardi, ammo **imtihon yaratmasdi**. Ya'ni imtihon yuzasi na avtomatik probe bilan, na owner tomonidan qurilmada sinalishi mumkin emas edi.
+
+Endi seed beshala bo'lim turini yaratadi — grammar quiz, o'qish, yozish, eshitish va gapirish. Har biri UIda boshqacha render qilinadi, bittasi qolib ketsa o'sha yuza sinovsiz qoladi. Gapirish bo'limi alohida muhim: mikrofon oqimini faqat shu yerda tekshirish mumkin va u qurilma sign-off'ining majburiy bandi.
+
+**Topilgan nuqson.** 568x320 da yozish bo'limida javob maydoni **38px** ga siqilgan, so'z hisoblagichi (`0 so'z`) va talab (`min 40 · max 120`) esa ekrandan 26px pastda edi. `.exam{overflow:hidden}` bo'lgani uchun ularga **yetib bo'lmasdi** — hech qanday scroll yo'q. Ya'ni landscape'da o'quvchi necha so'z yozganini va talab nima ekanini umuman ko'rmaydi.
+
+Ildiz sabab allaqachon mavjud qoidada edi:
+
+```css
+@media (max-width:900px){ .x-writing{ grid-template-rows:minmax(0,40vh) minmax(0,1fr); } }
+```
+
+`40vh` portretda to'g'ri (844px dan 337px), landscape'da esa 320px ning 40% i = 128px — butun tanaga qolgan 146px dan tahrirlash qismiga 18px qoladi. **Qoida kenglikka qarab yozilgan, muammo esa balandlikda.** Yechim `@media (max-height:520px)`: kontent tabiiy balandlikni oladi, tana vertikal siljiydi, javob maydoniga `min-height:140px`.
+
+**Probe yana ikki marta yolg'on gapirdi va ikkalasi ham tuzatildi.** Birinchisi: imtihon bosqichlari qatori "toshgan" deb belgilandi — aslida `.exam-nav` da `overflow-x:auto` bor va siljitilganda oxirgi bosqich to'liq ko'rinadi. Endi probe gorizontal siljiydigan ota-element ichidagi elementni sanamaydi. Ikkinchisi jiddiyroq: men faqat **gorizontal** toshishni tekshirayotgan edim, bu nuqson esa vertikal edi. Endi probe "ekran ostida qolgan va vertikal scroll bilan yetib bo'lmaydigan" kontentni ham qidiradi — aynan shu 38px muammosini ochdi.
+
+Yo'lda mayda tuzatish: "Imtihon markaziga qaytish" havolasi 178x16px, padding nol edi — 36px ga yetkazildi.
+
+- Branch: `claude/a5-exam-landscape` → PR
+- Yangi: `core/test_demo_seed_exam.py` (5 test), `courses/test_exam_landscape.py` (4 test). Tegilgan: `core/demo_seed.py`, `static/css/exam-shell.css`, `templates/courses/exam_detail.html`
+- Nazorat yugurishi: `.exam-body` scroll qoidasi olib tashlanganda test yiqildi
+- Test holati: to'liq suite **846/846 OK** (skipped=16)
+- **Brauzerda o'lchandi** — 568x320 va 640x360 da beshala bo'lim: toshish `0`, yetib bo'lmaydigan kontent `0`, kichik tap target `0`. 1280x860 da ikki ustunli layout va 390x844 portretda `40vh` qoidasi o'z joyida qoldi
+
+---
+
 ## 2026-08-20 [Claude Code]: Dars sarlavhasi 360px da kurs nomini butunlay yo'qotardi
 
 A5 ning "dars sarlavhasi 360px" bandi. Seed qilingan bazada dars sahifasi ochilib, 360px da o'lchandi — ikkita nuqson chiqdi va ikkalasi ham bitta sababdan edi.

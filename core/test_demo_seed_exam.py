@@ -1,0 +1,62 @@
+"""Demo seed imtihonni ham yaratishi kerak (A5).
+
+2026-08-20 da imtihonni 568x320 landscape'da sinamoqchi bo'lganda ma'lum
+bo'ldiki, `seed_demo` kurs, dars, vazifa va guruh yaratadi — ammo **imtihon
+yaratmaydi**. Ya'ni imtihon yuzasi na avtomatik probe bilan, na owner tomonidan
+qurilmada sinalishi mumkin emas edi: sinaydigan narsaning o'zi yo'q.
+
+Speaking bo'limi alohida muhim: mikrofon oqimini faqat shu yerda tekshirish
+mumkin va u qurilma sign-off'ining majburiy bandi.
+"""
+
+from django.test import TestCase, override_settings
+
+from core.demo_seed import DEMO_MARK, seed_demo_data
+from courses.models import Choice, Exam, ExamSection, Question
+
+
+@override_settings(IS_LOCAL=True)
+class DemoSeedExamTests(TestCase):
+    def setUp(self):
+        self.data = seed_demo_data()
+
+    def test_seed_creates_a_demo_exam_on_the_demo_course(self):
+        exam = Exam.objects.filter(course=self.data["course"]).first()
+        self.assertIsNotNone(exam, "imtihonsiz A5 ning imtihon bandini sinab bo'lmaydi")
+        self.assertIn(DEMO_MARK, exam.title, "demo yozuvlari `--wipe` uchun belgilanishi shart")
+
+    def test_every_section_type_the_exam_ui_renders_is_present(self):
+        """Har bo'lim turi boshqacha render qilinadi — bittasi yetmaydi."""
+        exam = Exam.objects.filter(course=self.data["course"]).first()
+        present = set(exam.sections.values_list("section_type", flat=True))
+
+        for required in ("grammar_quiz", "reading", "writing", "listening", "speaking"):
+            self.assertIn(required, present, f"`{required}` bo'limi yo'q — u yuza sinalmay qoladi")
+
+    def test_choice_based_sections_have_answerable_questions(self):
+        exam = Exam.objects.filter(course=self.data["course"]).first()
+        quiz_section = exam.sections.filter(section_type="grammar_quiz").first()
+        question = Question.objects.filter(exam_section=quiz_section).first()
+
+        self.assertIsNotNone(question, "savolsiz bo'limda javob berish oqimi sinalmaydi")
+        choices = Choice.objects.filter(question=question)
+        self.assertGreaterEqual(choices.count(), 2, "kamida ikki variant bo'lmasa tanlov yo'q")
+        self.assertEqual(choices.filter(is_correct=True).count(), 1, "aynan bitta to'g'ri javob")
+
+    def test_written_sections_carry_the_word_limits_the_ui_shows(self):
+        exam = Exam.objects.filter(course=self.data["course"]).first()
+        writing = exam.sections.filter(section_type="writing").first()
+        question = Question.objects.filter(exam_section=writing).first()
+
+        self.assertIsNotNone(question)
+        self.assertTrue(question.min_word_count, "so'z hisoblagichi UIda ko'rsatiladi — chegara kerak")
+        self.assertGreater(question.max_word_count, question.min_word_count)
+
+    def test_seeding_twice_does_not_duplicate_the_exam(self):
+        seed_demo_data()
+        self.assertEqual(Exam.objects.filter(course=self.data["course"]).count(), 1)
+        self.assertEqual(
+            ExamSection.objects.filter(exam__course=self.data["course"]).count(),
+            5,
+            "seed idempotent bo'lishi shart — runbook uni qayta-qayta chaqiradi",
+        )

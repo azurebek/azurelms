@@ -285,6 +285,21 @@
 .x-empty{ border:1px dashed var(--line); border-radius:14px; padding:34px 20px; text-align:center; color:var(--ink-3); font-size:13.5px; }
 .x-empty i{ font-size:26px; display:block; margin-bottom:8px; color:var(--ink-4); }
 
+/* Landscape telefon (320-360px balandlik). Yuqoridagi `max-width:900px` qoidasi
+   yozish panelini bir ustunga tushiradi va promptga `40vh` beradi — portretda bu
+   to'g'ri, landscape'da esa 320px ning 40% i = 128px bo'lib, butun tanaga qolgan
+   146px dan tahrirlash qismiga atigi 18px qoladi. Natijada javob maydoni 38px ga
+   siqilib, so'z hisoblagichi va "min 40 · max 120" talabi ekran ostida qolardi —
+   `.exam{overflow:hidden}` sabab ularga yetib ham bo'lmasdi.
+
+   Past ekranda ikki ustun ham, qat'iy balandlik ham ishlamaydi: kontent tabiiy
+   balandlikni oladi va tana vertikal siljiydi. */
+@media (max-height:520px){
+  .exam-body{ overflow-y:auto; }
+  .x-writing{ height:auto; min-height:100%; grid-template-columns:1fr; grid-template-rows:auto auto; }
+  .x-essay{ height:auto; min-height:140px; }
+}
+
 /* iOS: imtihon javob maydoniga bosilganda sahifa yaqinlashib ketmasin —
    16px dan kichik shrift Safari'da avtomatik zoom keltirib chiqaradi va u
    o'zi qaytmaydi. Imtihon paytida bu ayniqsa yomon: taymer va savol
