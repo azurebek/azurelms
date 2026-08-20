@@ -14,6 +14,19 @@
   .co-plan{ display:flex;align-items:center;gap:12px;padding:14px 16px;border:1px solid var(--line);border-radius:12px;cursor:pointer;transition:border-color .18s,background .18s; }
   .co-plan:has(input:checked){ border-color:var(--azure);background:var(--azure-soft); }
   .co-plan input{ accent-color:var(--azure);width:18px;height:18px;flex:0 0 auto; }
+
+  /* Grid bandining sukutdagi `min-width:auto` si birinchi ustunga kontent
+     talab qilgan 265px ni beradi va 360px ekranda xulosa paneliga atigi 31px
+     qoladi — ichidagi "Jami" summasi o'sha qutidan tashqariga to'kilib,
+     ekrandan 66px chiqib ketardi. To'lov sahifasida umumiy summa ko'rinmasligi
+     qabul qilib bo'lmaydi. */
+  .co-grid{ min-width:0; }
+  .co-grid > *{ min-width:0; }
+  @media (max-width:860px){
+    .co-grid{ grid-template-columns:1fr !important; gap:20px !important; }
+    /* Bir ustunda `sticky` ma'nosiz: panel oqim ichida, o'z joyida turadi. */
+    .co-summary{ position:static !important; }
+  }
 </style>
 {% endblock %}
 
@@ -35,7 +48,7 @@
   {% else %}
 
   <form method="post" enctype="multipart/form-data">{% csrf_token %}
-  <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:28px;align-items:start;">
+  <div class="co-grid" style="display:grid;grid-template-columns:1.4fr 1fr;gap:28px;align-items:start;">
 
     <!-- Chap: tarif + chek -->
     <div style="display:flex;flex-direction:column;gap:14px;">
@@ -67,7 +80,7 @@
     </div>
 
     <!-- O'ng: buyurtma -->
-    <aside style="position:sticky;top:88px;border:1px solid var(--line);border-radius:16px;background:var(--panel);overflow:hidden;">
+    <aside class="co-summary" style="position:sticky;top:88px;border:1px solid var(--line);border-radius:16px;background:var(--panel);overflow:hidden;">
       <div style="padding:20px;border-bottom:1px solid var(--line);">
         <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:14px;">Buyurtma</div>
         <div style="display:flex;align-items:center;gap:13px;">
