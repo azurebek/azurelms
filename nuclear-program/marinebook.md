@@ -16,6 +16,27 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-20 [Claude Code]: Davomat sahifasi toza chiqdi — asosiy ish uni sinash mumkin qilish edi
+
+A5 ning teacher attendance bandi. Sahifaning o'zi 320 / 360 / 1280 da **hech qanday tuzatish talab qilmadi**: toshish `0`, yetib bo'lmaydigan kontent `0`, siqilgan matn `0`, kichik tap target `0`. "Keldi / Qisman / Kelmadi" tugmalari 34px balandlikda va ekran ichida.
+
+Ish esa boshqa joyda kerak bo'ldi — sahifani **umuman sinab bo'lmasdi**:
+
+**1. `demo-teacher` ga parol berilmagan edi.** Seed o'qituvchi yaratardi, ammo faqat o'quvchiga parol qo'yardi. Ya'ni owner davomat, baholash va dars ochish yuzalarini telefonda ochib ko'ra olmasdi — kirishning iloji yo'q edi. Parol endi bitta `DEMO_PASSWORD` konstantasidan olinadi va `seed_demo` buyrug'i ikkala hisobni ham chiqaradi.
+
+**2. Guruhda bitta o'quvchi bor edi.** Davomat sahifasi har o'quvchi uchun uch tugmali qator chizadi; bitta qator bilan uzun ism, ko'p qatorli ro'yxat va scroll xulqi ko'rinmaydi. Endi 6 o'quvchi bor va oxirgisining ismi ataylab uzun — `Umidaxon Abdurahmonova-Yo'ldosheva` (34 belgi). 320px da u kesilmay, o'ralib joylashdi.
+
+**Probe yana bir yolg'on ijobiy berdi va bu safar qoida umumlashtirildi.** U 55 ta "toshish" ko'rsatdi — hammasi `aside.app-side` ichida, `-244..0` oralig'ida. Bu yopiq holatdagi teacher drawer'i, ataylab ekrandan tashqariga surilgan. Yangi qoida: **butunlay tashqarida bo'lgan element nuqson emas, chetni KESIB O'TGANI nuqson.** Bu messenger'dagi 9px muammosini hamon ushlaydi (u qisman ko'rinardi), yopiq drawerni esa tinch qo'yadi.
+
+Halol yozib qo'yaman: bu bandda men kod tuzatmadim. Sahifa allaqachon to'g'ri edi — topilgan narsa uni tekshirishga to'sqinlik qilayotgan ikkita bo'shliq bo'ldi.
+
+- Branch: `claude/a5-teacher-attendance` → PR
+- Tegilgan: `core/demo_seed.py`, `core/management/commands/seed_demo.py`, `core/test_demo_seed_exam.py` (+5 test)
+- Test holati: to'liq suite **854/854 OK** (skipped=16)
+- Mavjud `--wipe` testi `demo-` prefiksli barcha hisoblarni tekshirgani uchun yangi guruhdoshlar avtomatik qamrab olindi
+
+---
+
 ## 2026-08-20 [Claude Code]: Checkout'da umumiy summa ekrandan chiqib ketardi
 
 A5 ning checkout bandi. 360px da to'lov sahifasi o'lchandi.
