@@ -16,6 +16,24 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-20 [Claude Code]: A5 statusi yangilandi — texnik qism yopildi, qolgani owner qo'lida
+
+A5 ning oltita texnik bandi ham yopilgandan keyin backlog o'sha holatni aks ettirmasdi: snapshot jadvalida hamon "dars/imtihon/checkout/attendance ... qolgan" deb turardi.
+
+Status `IN PROGRESS` dan `IMPLEMENTED/TESTED` ga o'tkazildi. Bu `EVIDENCE READY` **emas** — loyihaning status tilida `EVIDENCE READY` real-device evidence'ni talab qiladi, u esa hali yo'q. Farqni saqlab qolish muhim, aks holda taqdimotda "sinalgan" deb aytiladigan narsa aslida faqat brauzerda o'lchangan bo'lib chiqadi.
+
+Sanali dalil bandlari qo'shildi (eski bandlar tarix sifatida qoldirildi, loyiha konvensiyasi bo'yicha): olti PR va ularning har biridagi haqiqiy nuqson; sinash imkoniyatidagi bo'shliqlar (imtihon seed'da yo'q edi, o'qituvchida parol yo'q edi, guruhda bitta o'quvchi bor edi); va probe metodologiyasining **besh** ta yolg'on ijobiysi.
+
+Oxirgisini alohida yozib qo'ydim, chunki u keyingi bandlarda ham kerak bo'ladi: inline element `clientWidth` ni 0 qaytaradi; gorizontal siljiydigan konteyner ichidagi element toshgan emas; yopiq drawer butunlay tashqarida, nuqson esa chetni kesib o'tgani; input `label` ichida bo'lsa nishon labelniki; va eng qimmati — faqat gorizontal toshishni tekshirish yetmaydi, imtihondagi nuqson vertikal edi.
+
+7-qoidadagi "joriy active closeout" ham yangilandi: endi u A5 ning texnik qismi emas, **owner'ning uch qurilmadagi sign-off'i**.
+
+- Branch: `claude/a5-status-update` → PR
+- Tegilgan: `03-mahsulot-backlog.md`
+- Kod o'zgarmadi
+
+---
+
 ## 2026-08-20 [Claude Code]: Public shelldagi barmoq nishonlari — va landing footerining takrorlangani
 
 Checkout ishida topilgan, ammo o'sha PR'ga qo'shilmagan band: umumiy public shellda kichik nishonlar. Footerdagi havolalar `146x17px`, headerdagi "Chiqish" `58x19px`, checkout breadcrumb'i `128x16px`. WCAG 2.5.8 (AA) kamida `24x24` talab qiladi; loyihaning o'z konvensiyasi boshqa joylarda 36px.
