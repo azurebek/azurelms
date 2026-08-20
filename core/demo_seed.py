@@ -28,6 +28,19 @@ from subscriptions.models import Plan
 #: Demo yozuvlarini haqiqiy yozuvlardan ajratadigan belgi.
 DEMO_MARK = "[demo]"
 DEMO_USER_PREFIX = "demo-"
+#: Ikkala demo hisob uchun bitta parol — runbook shuni yozadi.
+DEMO_PASSWORD = "demo12345"
+
+#: Davomat sahifasi har o'quvchi uchun uch tugmali qator chizadi. Bitta qator
+#: bilan uzun ism, ko'p qatorli ro'yxat va scroll xulqi ko'rinmaydi — 320px da
+#: aynan shular muammo chiqaradi. Oxirgi ism ataylab uzun.
+DEMO_CLASSMATES = (
+    ("aziza", "Aziza", "Rahimova"),
+    ("bekzod", "Bekzod", "To'xtayev"),
+    ("dilnoza", "Dilnoza", "Ergasheva"),
+    ("javohir", "Javohir", "Qodirov"),
+    ("umida", "Umidaxon", "Abdurahmonova-Yo'ldosheva"),
+)
 
 #: Mobil layoutni haqiqatan sinash uchun matn yetarlicha uzun bo'lishi kerak —
 #: bir qatorlik dars overflow yoki uzun so'z muammosini ko'rsatmaydi.
@@ -63,18 +76,24 @@ def seed_demo_data():
     """Yurib chiqiladigan kurs, guruh va faol o'quvchi yaratadi. Idempotent."""
     User = get_user_model()
 
-    teacher, _ = User.objects.get_or_create(
+    teacher, created_teacher = User.objects.get_or_create(
         username=f"{DEMO_USER_PREFIX}teacher",
         defaults={"email": "demo-teacher@example.com", "is_staff": True,
                   "first_name": "Demo", "last_name": "O'qituvchi"},
     )
+    # Parolsiz o'qituvchi hisobi bilan davomat, baholash va dars ochish
+    # yuzalarini qurilmada sinab bo'lmaydi — o'quvchiga parol berilib,
+    # o'qituvchi e'tibordan chetda qolgan edi.
+    if created_teacher or not teacher.check_password(DEMO_PASSWORD):
+        teacher.set_password(DEMO_PASSWORD)
+        teacher.save(update_fields=["password"])
     student, created_student = User.objects.get_or_create(
         username=f"{DEMO_USER_PREFIX}student",
         defaults={"email": "demo-student@example.com",
                   "first_name": "Demo", "last_name": "O'quvchi"},
     )
-    if created_student:
-        student.set_password("demo12345")
+    if created_student or not student.check_password(DEMO_PASSWORD):
+        student.set_password(DEMO_PASSWORD)
         student.save(update_fields=["password"])
 
     course, _ = Course.objects.get_or_create(
@@ -116,16 +135,41 @@ def seed_demo_data():
     )
 
     plan = Plan.objects.order_by("order", "id").first()
-    Enrollment.objects.get_or_create(
-        student=student,
-        cohort=cohort,
-        defaults={
-            "status": Enrollment.STATUS_ACTIVE,
-            "plan": plan,
-            "next_payment_deadline": timezone.localdate() + datetime.timedelta(days=30),
-        },
-    )
-    return {"course": course, "cohort": cohort, "teacher": teacher, "student": student}
+    deadline = timezone.localdate() + datetime.timedelta(days=30)
+
+    def _enroll(learner):
+        Enrollment.objects.get_or_create(
+            student=learner,
+            cohort=cohort,
+            defaults={
+                "status": Enrollment.STATUS_ACTIVE,
+                "plan": plan,
+                "next_payment_deadline": deadline,
+            },
+        )
+
+    _enroll(student)
+
+    classmates = []
+    for slug, first_name, last_name in DEMO_CLASSMATES:
+        classmate, _ = User.objects.get_or_create(
+            username=f"{DEMO_USER_PREFIX}{slug}",
+            defaults={
+                "email": f"{DEMO_USER_PREFIX}{slug}@example.com",
+                "first_name": first_name,
+                "last_name": last_name,
+            },
+        )
+        _enroll(classmate)
+        classmates.append(classmate)
+
+    return {
+        "course": course,
+        "cohort": cohort,
+        "teacher": teacher,
+        "student": student,
+        "classmates": classmates,
+    }
 
 
 #: Har bo'lim turi imtihon UIda boshqacha render qilinadi (variant tanlash,

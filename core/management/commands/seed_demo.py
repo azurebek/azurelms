@@ -35,5 +35,8 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS("Demo ma'lumot tayyor."))
         self.stdout.write(f"  Kurs   : {result['course'].title}")
         self.stdout.write(f"  Guruh  : {result['cohort'].name}")
-        self.stdout.write("  Kirish : demo-student / demo12345")
+        from core.demo_seed import DEMO_PASSWORD
+
+        self.stdout.write(f"  O'quvchi  : demo-student / {DEMO_PASSWORD}")
+        self.stdout.write(f"  O'qituvchi: demo-teacher / {DEMO_PASSWORD}")
         self.stdout.write("  O'chirish uchun: manage.py seed_demo --wipe")
