@@ -26,8 +26,27 @@
   if (!roomId || !messagesArea || !input || !sendButton) return;
 
   const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-  const socket = new WebSocket(`${protocol}://${window.location.host}/ws/chat/${roomId}/`);
+  const socketUrl = `${protocol}://${window.location.host}/ws/chat/${roomId}/`;
   const pendingClientMessageIds = new Map();
+
+  /* Server kirish huquqi tugaganini shu kod bilan aytadi
+     (`ChatConsumer.ACCESS_REVOKED_CLOSE_CODE`). Bunda qayta ulanish mantiqsiz:
+     har urinish yana rad etiladi. Ikki fayl bitta raqamni bilishi shart —
+     `messenger/test_reconnect_contract.py` buni tekshiradi. */
+  const ACCESS_REVOKED_CLOSE_CODE = 4403;
+  const MAX_RECONNECT_ATTEMPTS = 6;
+  const RECONNECT_BASE_DELAY = 1000;
+  const RECONNECT_MAX_DELAY = 30000;
+
+  let socket = null;
+  let reconnectAttempts = 0;
+  let reconnectTimer = null;
+  let everConnected = false;
+  let accessRevoked = false;
+
+  function socketIsOpen() {
+    return Boolean(socket) && socket.readyState === WebSocket.OPEN;
+  }
 
   function scrollToBottom() {
     messagesArea.scrollTop = messagesArea.scrollHeight;
@@ -832,7 +851,7 @@
 
   function retryAiResponse(userMessageId) {
     if (!userMessageId) return;
-    if (socket.readyState !== WebSocket.OPEN) {
+    if (!socketIsOpen()) {
       setChatStatus("Ulanish uzilgan. Sahifani yangilab qayta urinib ko'ring.", 'error');
       return;
     }
@@ -951,7 +970,7 @@
       if (!response.ok || payload.status !== 'success') throw new Error(payload.message || 'Fayl yuklanmadi');
       input.value = '';
       input.style.height = 'auto';
-      if (socket.readyState !== WebSocket.OPEN && payload.message) {
+      if (!socketIsOpen() && payload.message) {
         appendMessage(payload.message);
       }
       setChatStatus('Fayl yuborildi.', 'success');
@@ -979,7 +998,7 @@
 
   function sendMessage() {
     const text = input.value.trim();
-    if (!text || socket.readyState !== WebSocket.OPEN) return;
+    if (!text || !socketIsOpen()) return;
     const clientMessageId = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
     pendingClientMessageIds.set(clientMessageId, { text });
@@ -1007,22 +1026,73 @@
     input.style.height = 'auto';
   }
 
-  socket.addEventListener('open', function () {
-    sendButton.disabled = false;
-    setChatStatus('');
+  function scheduleReconnect() {
+    if (accessRevoked || reconnectTimer) return;
+
+    /* Socket umuman ochilmagan bo'lsa, sabab odatda tarmoq emas — ruxsat yoki
+       autentifikatsiya. Bunday holatda ko'p urinish foyda bermaydi, shuning
+       uchun urinishlar soni qisqartiriladi. */
+    const limit = everConnected ? MAX_RECONNECT_ATTEMPTS : 2;
+    if (reconnectAttempts >= limit) {
+      setChatStatus("Ulanib bo'lmadi. Sahifani yangilang.", 'error');
+      return;
+    }
+
+    const delay = Math.min(RECONNECT_BASE_DELAY * Math.pow(2, reconnectAttempts), RECONNECT_MAX_DELAY);
+    reconnectAttempts += 1;
+    setChatStatus('Qayta ulanmoqda...');
+    reconnectTimer = setTimeout(function () {
+      reconnectTimer = null;
+      connect();
+    }, delay);
+  }
+
+  /* Telefon fondan qaytganda yoki tarmoq tiklanganda backoff kutib turmasin —
+     bu aynan foydalanuvchi ekranga qarab turgan payt. */
+  function reconnectNow() {
+    if (accessRevoked || socketIsOpen()) return;
+    if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+    reconnectAttempts = 0;
+    connect();
+  }
+
+  function connect() {
+    if (accessRevoked) return;
+    socket = new WebSocket(socketUrl);
+
+    socket.addEventListener('open', function () {
+      everConnected = true;
+      reconnectAttempts = 0;
+      sendButton.disabled = false;
+      setChatStatus('');
+    });
+
+    socket.addEventListener('close', function (event) {
+      sendButton.disabled = true;
+      hideAiTyping();
+      if (event && event.code === ACCESS_REVOKED_CLOSE_CODE) {
+        accessRevoked = true;
+        setChatStatus('Bu suhbatga kirish huquqingiz yakunlandi.', 'error');
+        return;
+      }
+      scheduleReconnect();
+    });
+
+    socket.addEventListener('error', function () {
+      // `error` doim `close` bilan birga keladi; qayta ulanishni o'sha yerda
+      // rejalashtiramiz, aks holda ikki marta urinamiz.
+      if (!socketIsOpen()) hideAiTyping();
+    });
+
+    socket.addEventListener('message', onSocketMessage);
+  }
+
+  window.addEventListener('online', reconnectNow);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') reconnectNow();
   });
 
-  socket.addEventListener('close', function () {
-    sendButton.disabled = true;
-    hideAiTyping();
-    setChatStatus("Ulanish uzildi. Sahifani yangilang yoki birozdan keyin qayta urinib ko'ring.", 'error');
-  });
-
-  socket.addEventListener('error', function () {
-    setChatStatus('Ulanishda muammo bor.', 'error');
-  });
-
-  socket.addEventListener('message', function (event) {
+  function onSocketMessage(event) {
     try {
       const payload = JSON.parse(event.data);
       if (payload.event_type === 'ai_status') {
@@ -1042,7 +1112,7 @@
     } catch (_) {
       return;
     }
-  });
+  }
 
   sendButton.addEventListener('click', sendMessage);
   messagesArea.addEventListener('click', function (event) {
@@ -1082,6 +1152,7 @@
   });
 
   sendButton.disabled = true;
+  connect();
   initComposerMenus();
   initModelPicker();
   initTonePicker();
