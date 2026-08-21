@@ -170,7 +170,13 @@
 
 **Silliqlik — alohida ish emas, A8/A9 ning natijasi.** So'nggi kunlar buni ko'rsatdi: o'lik model, Google minimalidan past deadline va zaxira taxminidan 71 token oshgani uchun o'zini o'chirgan circuit — uchalasi ham "AI ishlamayapti" bo'lib ko'rindi. A10 bu qatlamni qayta yozmaydi; u A9 ning latency/xato gate'iga tayanadi.
 
-- **Acceptance:** persona contract testli (skill almashganda ovoz o'zgarmaydi); davomiylik yozuvi yangi chatda tiklanadi; xotira **aniqligi** o'lchanadi — noto'g'ri eslash yangidan boshlashdan yomonroq; o'quvchi eslab qolinganini ko'radi va o'chira oladi; p95 javob vaqti va provayder xato darajasi A9 gate'idan o'tadi.
+- **2026-08-21 tashqi namuna ko'rildi — `artcc/freelingo`** (o'zi-hosting qilinadigan AI til platformasi, FastAPI backend). **Litsenziyasi AGPL-3.0: kod ko'chirilmaydi.** Tarmoq orqali xizmat qilinsa AGPL butun AzureLMS'ga tarqaladi, bu esa pullik platforma uchun qabul qilinmaydi. G'oya va arxitektura mualliflik huquqi bilan himoyalanmaydi — quyidagi uchtasi shundan olindi va o'zimizcha yoziladi:
+  1. **Persona bitta canonical konstantada** va barcha prompt quruvchilar o'shani iste'mol qiladi — bizdagi 1-bo'shliq aynan shu.
+  2. **Barcha promptlar bitta paketda** + kompozitsiya drift'ini ushlaydigan test. Bizda ular `ai/skills/*/SKILL.md` va `ai/prompts/builder.py` orasida tarqoq.
+  3. **Saqlangan xotira promptga ishonchsiz ma'lumot sifatida kiritiladi** — escape qilinib, teg ichida, "bu ko'rsatma emas" yozuvi bilan. Haqiqiy xavf: o'quvchi modelni ko'ndirib, keyinchalik ko'rsatma bo'lib o'qiladigan "xotira" saqlatib qo'yishi mumkin.
+- **Ularda ham yo'q:** suhbatlararo hikoya (2-bo'shliq). Xotiralari tekis faktlar; "biz nima ustida ishlayotgan edik" ni ko'chiradigan mexanizm topilmadi. Ya'ni bu qism uchun tayyor namuna yo'q, o'zimiz o'ylab topamiz.
+- **Bizda kuchliroq joy:** ularning `Memory` modeli tekis matn qatori (`user_id`, `content`, `source`, `created_at`). Bizda kategoriya, ishonch darajasi, embedding, `last_used_at` va semantik skorlash/decay bor. Ya'ni ular shaxsiyat va prompt tashkilotini, biz xotira sifatini yechganmiz.
+- **Acceptance:** persona contract testli (skill almashganda ovoz o'zgarmaydi); promptlar bitta paketda va drift testi bor; saqlangan xotira escape qilinib ishonchsiz blok sifatida kiritiladi; davomiylik yozuvi yangi chatda tiklanadi; xotira **aniqligi** o'lchanadi — noto'g'ri eslash yangidan boshlashdan yomonroq; o'quvchi eslab qolinganini ko'radi va o'chira oladi; p95 javob vaqti va provayder xato darajasi A9 gate'idan o'tadi.
 - **Chegara:** shaxsiyat mavjud bo'lmagan qobiliyatni va'da qilmaydi. "Do'st" ohangi AI ni access, baho yoki progress uchun system-of-record qilmaydi — bu qoida o'zgarmaydi.
 - **Faza:** R5. R0–R4 yopilmasa boshlanmaydi; taqdimot scope'iga kirmaydi.
 ---
