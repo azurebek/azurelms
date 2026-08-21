@@ -44,6 +44,7 @@ Yo'lda mayda tuzatish: `Plan.code` avtomatik slug bir xil nomli planlarda to'qna
 - Yangi: `core/entitlements.py`, `core/test_entitlements.py` (13 test), `bot/test_checkout_parity.py` (5 test), `subscriptions/migrations/0005_plan_code.py`. Tegilgan: `subscriptions/models.py`
 - Migratsiya uch bosqichli: maydon `unique` siz qo'shiladi → qatorlar nomdan to'ldiriladi → `unique` qo'yiladi. Bir qadamda qilinsa uchala plan bo'sh kod bilan qolib, `unique` darhol buzilardi
 - Test holati: to'liq suite **947/947 OK** (skipped=23)
+- **CI ning PostgreSQL ishi yana bir haqiqiy nuqsonni topdi.** Birinchi versiyada migratsiya maydonni `SlugField` sifatida qo'shardi. `SlugField` da `db_index=True` bo'lgani uchun PostgreSQL `..._like` naqsh indeksini yaratadi, uchinchi qadamda `unique` ga o'tkazishda esa Django o'shani **qayta** yaratmoqchi bo'lib `DuplicateTable` beradi. SQLite bunday indeks yaratmaydi — ya'ni lokal suite ham, CI ning SQLite ishi ham yashil edi. Yechim: birinchi qadam indekssiz `CharField`, indekslar faqat oxirgi qadamda quriladi. Bu A1a dan beri PostgreSQL ishining **ikkinchi** haqiqiy topilmasi (birinchisi — nullable FK ustidagi `select_for_update`)
 
 ---
 

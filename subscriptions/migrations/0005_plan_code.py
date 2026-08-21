@@ -3,9 +3,13 @@
 Kirish huquqi shu kod bo'yicha aniqlanadi, `name` bo'yicha emas — ko'rsatiladigan
 nomni o'zgartirish huquqni jimgina buzmasligi kerak.
 
-Uch bosqich bitta faylda: maydon avval `unique` siz qo'shiladi, mavjud qatorlar
-nomdan to'ldiriladi, keyin `unique` qo'yiladi. Bir qadamda qilinsa uchala mavjud
-plan ham bo'sh kod bilan qolib, `unique` darhol buzilardi.
+Uch bosqich bitta faylda: maydon avval indekssiz `CharField` sifatida qo'shiladi,
+mavjud qatorlar nomdan to'ldiriladi, keyin `SlugField(unique=True)` ga o'tkaziladi.
+
+Bir qadamda qilinsa uchala mavjud plan bo'sh kod bilan qolib `unique` darhol
+buzilardi. Birinchi qadam `SlugField` bo'lsa esa PostgreSQL `..._like` indeksini
+yaratadi va uchinchi qadamda Django o'shani qayta yaratmoqchi bo'lib
+`DuplicateTable` beradi — SQLite'da ko'rinmaydigan, faqat PostgreSQL'dagi xato.
 """
 
 from django.db import migrations, models
@@ -39,10 +43,15 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # Ataylab `CharField` — indekssiz. `SlugField` da `db_index=True` bo'lgani
+        # uchun PostgreSQL `..._like` indeksini yaratadi, keyin `unique` ga
+        # o'tkazishda Django o'shani **qayta** yaratmoqchi bo'lib
+        # `DuplicateTable` beradi. SQLite `_like` indeks yaratmaydi, shuning
+        # uchun bu faqat CI ning PostgreSQL ishida ko'rindi.
         migrations.AddField(
             model_name="plan",
             name="code",
-            field=models.SlugField(
+            field=models.CharField(
                 blank=True, default="", max_length=40, verbose_name="Kod",
                 help_text="Kirish huquqi uchun barqaror identifikator. Nomdan mustaqil.",
             ),
