@@ -9,6 +9,14 @@ from django_ckeditor_5.fields import CKEditor5Field
 
 class Plan(models.Model):
     name = models.CharField(max_length=100, verbose_name="Ta'rif nomi (Masalan: Oddiy)")
+    #: Kirish huquqi shu kod bo'yicha aniqlanadi, `name` bo'yicha emas.
+    #: Ko'rsatiladigan nomni o'zgartirish huquqni jimgina buzmasligi kerak —
+    #: `core/entitlements.py` shu kodni o'qiydi.
+    code = models.SlugField(
+        max_length=40, unique=True, blank=True, default="",
+        verbose_name="Kod",
+        help_text="Kirish huquqi uchun barqaror identifikator. Nomdan mustaqil.",
+    )
     price = models.DecimalField(max_digits=10, decimal_places=0, verbose_name="Oylik to'lov (so'm)")
     description = CKEditor5Field(
         verbose_name="Qisqa izoh",
@@ -18,6 +26,25 @@ class Plan(models.Model):
     is_popular = models.BooleanField(default=False, verbose_name="Ommabopmi?")
     button_text = models.CharField(max_length=50, default="Boshlash", verbose_name="Tugma matni")
     order = models.PositiveIntegerField(default=0, verbose_name="Tartibi")
+
+    def save(self, *args, **kwargs):
+        # Mavjud planlarda kod yo'q; birinchi saqlashda nomdan olinadi va
+        # shundan keyin nomga bog'liq bo'lmay qoladi.
+        #
+        # Nomlar takrorlanishi mumkin (masalan testlarda yoki bir xil nomli
+        # arxiv tarif), kod esa unique — shuning uchun bandi bo'lsa raqam
+        # qo'shiladi. Aks holda ikkinchi plan saqlanmay qolardi.
+        if not self.code:
+            from django.utils.text import slugify
+
+            base = slugify(self.name)[:36] or "plan"
+            code = base
+            suffix = 2
+            while Plan.objects.filter(code=code).exclude(pk=self.pk).exists():
+                code = f"{base}-{suffix}"
+                suffix += 1
+            self.code = code
+        super().save(*args, **kwargs)
 
     class Meta:
         ordering = ["order"]
