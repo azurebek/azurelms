@@ -16,6 +16,37 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-20 [Claude Code]: Umumiy feature flag registri — A2 ning oxirgi haqiqiy bo'shlig'i
+
+Ilgari loyihada yagona flag `AISettings.ai_remote_calls_enabled` edi: qattiq yozilgan bitta maydon. Reja esa har capability uchun flag/kill switch talab qiladi.
+
+**Asosiy qaror — registr kodda, override DB'da.** `core/flags.py` dagi `FLAG_REGISTRY` flaglarni e'lon qiladi (slug, yorliq, izoh, default, runbook), `aicontrol.FeatureFlag` esa faqat o'zgartirilgan qiymatni saqlaydi. Uch sabab:
+
+* kodda e'lon qilingan flag **topiladigan** bo'ladi — grep bilan ham, yuzada ham;
+* har flagga hujjatlangan default va "o'chirilganda nima bo'ladi" izohi biriktiriladi;
+* registrdan olib tashlangan flagning eski DB qatori **jim ta'sir qilmaydi** — yuzada "yetim" deb ko'rsatiladi.
+
+Noma'lum slug `UnknownFlag` bilan yiqiladi. Jim `False` qaytarish xavfli bo'lardi: xato yozilgan slug capabilityni jimgina o'chirib qo'yardi va buni hech kim sezmasdi. Baza o'qilmasa e'lon qilingan default qaytariladi — flag o'qish nosozligi butun oqimni to'xtatmaydi.
+
+Kesh ataylab qo'yilmadi: eskirgan kesh tufayli o'chirilmay qolgan capability har so'rovdagi bitta arzon so'rovdan yomonroq.
+
+**Bo'sh registr qurmadim — ikkita haqiqiy flag ulandi:**
+
+1. `public_registration` — tekshiruv `dispatch` da, chunki sahifani yashirish yetmaydi: formani to'g'ridan-to'g'ri POST qilish mumkin. Mavjud foydalanuvchilar kirishda davom etadi; yopilishi kerak bo'lgani ro'yxatdan o'tish.
+2. `telegram_outbox_sending` — yopilganda xabarlar navbatda **saqlanib turadi** (ular olinmaydi, ya'ni lease ochilmaydi va hech narsa yo'qolmaydi). Nozik joyi: **heartbeat baribir yoziladi**, aks holda pauza Control Center'da worker o'lgandek ko'rinardi va owner yo'q muammoni qidirardi. `record_worker_heartbeat` endi `paused` bayrog'ini detailga yozadi, ya'ni pauza va nosozlik bir xil ko'rinmaydi.
+
+**AI kill switch ataylab ko'chirilmadi.** U fail-closed va tarmoqdan oldin tekshiriladi; umumiy flag esa o'z default'iga tushadi. Semantikasi boshqa, shuning uchun ishlab turgan xavfsizlik boshqaruvini umumiy mexanizmga majburan tiqishtirmadim.
+
+Yo'lda bitta test muammosi bo'ldi: outbox testi `database table is locked` berdi. Sabab — `process_outbox_once` `sync_to_async` orqali boshqa ulanishdan o'qiydi, oddiy `TestCase` da esa fixture tranzaksiya ichida qolib, o'sha ulanish uni ko'rmaydi. `TransactionTestCase` to'g'ri vosita.
+
+- Branch: `claude/a2-feature-flags` → PR
+- Yangi: `core/flags.py`, `core/flag_forms.py`, `templates/backoffice/feature_flags.html`, `aicontrol/migrations/0007_featureflag.py`, uchta test fayli (27 test). Tegilgan: `aicontrol/models.py`, `core/views.py`, `core/urls.py`, `users/views.py`, `bot/outbox.py`, `templates/backoffice/control_center.html`, `templates/registration/register_closed.html`
+- Nazorat yugurishlari: no-op yo'li olib tashlanganda va fail-safe `False` ga o'zgartirilganda testlar yiqildi
+- Test holati: to'liq suite **890/890 OK** (skipped=16)
+- **Brauzerda tekshirildi:** yuza 335px da toshishsiz render bo'ldi; haqiqiy o'zgartirish yuborildi va DB'da faqat **override** qatori paydo bo'ldi (`public_registration` qatorsiz, default'idan o'qiladi), audit esa aktor, sabab va before/after bilan yozildi
+
+---
+
 ## 2026-08-21 [Claude Code]: `artcc/freelingo` ko'rildi — uch g'oya A10 ga, kod esa olinmaydi
 
 Owner "juda zo'r tayyor yechim" deb eshitgan repoga ko'z yugurtirishni so'radi. Ko'rib chiqildi va A10 ga aniq acceptance sifatida yozildi.
