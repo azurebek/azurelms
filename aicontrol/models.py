@@ -427,6 +427,44 @@ class SystemAuditEvent(models.Model):
         raise ValidationError("Audit yozuvi append-only: o'chirib bo'lmaydi.")
 
 
+class AIModelPrice(models.Model):
+    """Provider narxining sanali snapshot'i (A2).
+
+    Narx **qattiq yozilmaydi**: u hisobga, mintaqaga va vaqtga bog'liq. Kodga
+    yozilgan raqam aynan o'lik model va noto'g'ri deadline kabi jim eskirardi —
+    shuning uchun uni owner manba ko'rsatib kiritadi.
+
+    Yozuvlar **append-only**: narx o'zgarsa yangi `effective_from` bilan yangi
+    qator qo'shiladi, eskisi tahrirlanmaydi. Shu sabab tarixiy xarajat keyingi
+    narx bilan qayta yozilmaydi.
+    """
+
+    provider = models.CharField(max_length=32, default="gemini")
+    model_name = models.CharField(max_length=80)
+    #: Million token uchun narx — provayderlar odatda shu birlikda e'lon qiladi.
+    input_per_million = models.DecimalField(max_digits=12, decimal_places=6)
+    output_per_million = models.DecimalField(max_digits=12, decimal_places=6)
+    currency = models.CharField(max_length=8, default="USD")
+    effective_from = models.DateField()
+    #: Qaysi manbadan olingani — raqamni keyin tekshirish mumkin bo'lsin.
+    note = models.CharField(max_length=200, blank=True, default="")
+    recorded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-effective_from", "model_name")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["provider", "model_name", "effective_from"],
+                name="unique_price_per_model_and_date",
+            )
+        ]
+        verbose_name = "AI model narxi"
+        verbose_name_plural = "AI model narxlari"
+
+    def __str__(self):
+        return f"{self.model_name} @ {self.effective_from}"
+
+
 class FeatureFlag(models.Model):
     """Registrda e'lon qilingan flagning o'zgartirilgan qiymati.
 

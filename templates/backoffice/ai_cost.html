@@ -1,0 +1,111 @@
+{% extends "backoffice/base.html" %}
+{% load static %}
+
+{% block bo_title %}AI xarajati{% endblock %}
+{% block bo_icon %}bi-cash-coin{% endblock %}
+{% block bo_topbar %}AI xarajati{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/brand-control.css' %}">{% endblock %}
+
+{% block bo_content %}
+<section class="brand-hero">
+  <div>
+    <span class="brand-kicker">XARAJAT</span>
+    <h1>AI sarfining pul ko'rinishi</h1>
+    <p>Xarajat siz kiritgan <strong>sanali narx snapshot'lari</strong> asosida hisoblanadi. Narxi kiritilmagan model uchun sarf <strong>«narxlanmagan»</strong> deb sanaladi — nol deb emas.</p>
+  </div>
+  <a class="brand-back" href="{% url 'backoffice_control' %}"><i class="bi bi-arrow-left"></i> Control Center</a>
+</section>
+
+<div class="brand-layout">
+  <div style="display:flex;flex-direction:column;gap:14px;">
+
+    <section class="brand-panel">
+      <div class="brand-panel-head">
+        <span>01</span>
+        <div>
+          <h2>Jami</h2>
+          <p>Muvaffaqiyatli chaqiruvlar bo'yicha. Yiqilgan chaqiruv uchun to'lanmaydi.</p>
+        </div>
+      </div>
+      <div class="brand-fields">
+        <p style="font-size:22px;font-family:'Space Mono',monospace;font-weight:700;color:var(--ink);margin:0 0 4px;">
+          {{ rollup.total }} {{ rollup.currency|default:"" }}
+        </p>
+        <p style="font-size:12.5px;color:var(--ink-3);margin:0 0 12px;">{{ rollup.priced_events }} ta narxlangan chaqiruv</p>
+
+        {% if rollup.unpriced_events %}
+        <p style="font-size:13px;line-height:1.65;color:var(--ink-2);background:var(--amber-soft);border:1px solid var(--amber);border-radius:11px;padding:13px 15px;margin:0;">
+          <i class="bi bi-exclamation-triangle" style="color:var(--amber);" aria-hidden="true"></i>
+          <strong>{{ rollup.unpriced_events }} ta chaqiruv narxlanmagan</strong> ({{ rollup.unpriced_tokens }} token). Ularning narxi bu jamiga <strong>kirmagan</strong>. Bu «bepul» degani emas — narxi kiritilmagan degani. Free-tier'da pul sarflanmasa ham kvota yeyiladi va u ham cheklov.
+        </p>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="brand-panel">
+      <div class="brand-panel-head"><span>02</span><div><h2>Model bo'yicha</h2></div></div>
+      <div class="brand-fields">
+        {% if rollup.by_model %}
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <thead><tr style="text-align:left;color:var(--ink-3);font-size:11px;letter-spacing:.06em;text-transform:uppercase;">
+            <th style="padding:6px 0;">Model</th><th>Chaqiruv</th><th>Token</th><th style="text-align:right;">Xarajat</th>
+          </tr></thead>
+          <tbody>
+            {% for row in rollup.by_model %}
+            <tr style="border-top:1px solid var(--line);">
+              <td style="padding:8px 0;color:var(--ink);">{{ row.model_name }}</td>
+              <td style="color:var(--ink-2);">{{ row.events }}</td>
+              <td style="color:var(--ink-2);">{{ row.tokens }}</td>
+              <td style="text-align:right;font-family:'Space Mono',monospace;color:var(--ink);">
+                {% if row.cost is None %}<span style="color:var(--ink-4);">narxlanmagan</span>{% else %}{{ row.cost }}{% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="brand-empty">Hali sarf yo'q.</p>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="brand-panel">
+      <div class="brand-panel-head">
+        <span>03</span>
+        <div>
+          <h2>Narx snapshot'i qo'shish</h2>
+          <p>Yozuvlar <strong>append-only</strong>: narx o'zgarsa yangi sana bilan yangi qator qo'shiladi, eskisi tahrirlanmaydi.</p>
+        </div>
+      </div>
+      <form method="post" class="brand-fields" onsubmit="return confirm('Narx snapshot’i yozilsinmi?');">
+        {% csrf_token %}
+        {% for field in form %}
+        <label class="brand-field{% if field.name == 'confirm_change' %} brand-field--check{% endif %}">
+          <span>{{ field.label }}</span>
+          {{ field }}
+          {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+          {% for error in field.errors %}<em>{{ error }}</em>{% endfor %}
+        </label>
+        {% endfor %}
+        <button class="brand-submit" type="submit"><i class="bi bi-plus-lg"></i> Snapshot yozish</button>
+      </form>
+    </section>
+  </div>
+
+  <aside class="brand-side">
+    <section class="brand-panel">
+      <div class="brand-panel-head"><span><i class="bi bi-clock-history"></i></span><div><h2>Narx tarixi</h2></div></div>
+      {% if prices %}
+      <ul class="brand-history">
+        {% for price in prices %}
+        <li><strong>{{ price.model_name }}</strong> — {{ price.effective_from|date:"d.m.Y" }}<br>
+          <small>{{ price.input_per_million }} / {{ price.output_per_million }} {{ price.currency }} (1M){% if price.note %} · {{ price.note }}{% endif %}</small></li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="brand-empty">Narx kiritilmagan — barcha sarf «narxlanmagan» bo'lib turadi.</p>
+      {% endif %}
+    </section>
+  </aside>
+</div>
+{% endblock %}
