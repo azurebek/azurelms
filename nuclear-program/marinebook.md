@@ -16,6 +16,38 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-21 [Claude Code]: Typed entitlement — mexanizm meniki, matritsa ownerniki
+
+A4 ning qolgan ikki bandi.
+
+**Typed entitlement.** Ilgari "bu o'quvchi nimaga haqli?" savoli ikkiga bo'lingan edi: enrollment faolmi (`has_active_access`) va AI token limiti (`aicontrol`). Plan esa kirish uchun **umuman o'qilmasdi** — grep bilan tasdiqladim: u faqat sidebar/dashboard'da ko'rsatiladi va AI limitida ishlatiladi. Ya'ni Premium to'lagan o'quvchi Starter bilan bir xil kirish olardi.
+
+Endi `core/entitlements.py`: sakkizta nomlangan qobiliyat, `entitlements_for(user, course=...)` va `has_entitlement()`.
+
+**Ikkita qaror.** Huquq **plan kodi** bo'yicha aniqlanadi, nomi bo'yicha emas — `Plan` da faqat `name` bor edi, uni owner istalgan payt o'zgartiradi va o'shanda kirish jimgina buzilardi. Faollik qoidasi esa qayta yozilmadi: `has_active_access()` chaqiriladi, ya'ni grace day va muddat mantiqi bitta joyda qoladi.
+
+**Ataylab qilmaganim — plan farqi.** Qaysi tarif nimaga haqli ekani narx qarori, u esa loyiha qoidasi bo'yicha ownerniki. `PLAN_MATRIX` bo'sh qoldirildi, barcha planlar bir xil to'plamni oladi va mavjud xulq aynan saqlanadi. Mexanizm tayyor, qaror kutilyapti — buni test mahkamlaydi.
+
+**Ikkinchi band — inactive cohort reactivation.** Backlog uni "qolgan" degan edi; tekshirsam, web tomonida allaqachon testlangan ekan. Haqiqiy bo'shliq boshqa joyda edi: Telegram adapteri sinalmagan. U bir xil servisni chaqiradi (dublikat mantiq yo'q, bu to'g'ri), ammo "servis to'g'ri qaror qildi" va "adapter o'sha qarorni foydalanuvchiga to'g'ri yetkazdi" bir xil narsa emas. 5 test yozildi, beshtasi ham darhol o'tdi — ular nuqson tuzatmadi, parity shartnomasini qulfladi.
+
+**Nazorat yugurishlari bo'yicha uchinchi saboq — endi qoida sifatida.**
+
+Birinchi holat: `PLAN_MATRIX` bo'sh bo'lgani uchun "kod bo'yicha, nom bo'yicha emas" testi hech nimani isbotlamasdi — ikkala yo'l ham `BASELINE` ga tushardi. Test `patch.dict` bilan xaritani vaqtincha to'ldiradigan qilib kuchaytirildi.
+
+Ikkinchi holat: bot testining nazoratida almashtirish `2 ta moslik` topib bajarilmadi. Avvalgi urinishlarda men bunday holatni **sezmay o'tkazib yuborgandim** — skript "olib tashlandi" deb yozar, aslida hech narsa o'zgarmas, test esa "o'tdi" bo'lib ko'rinardi. Endi nazorat skripti moslik sonini tekshiradi va o'zgarish sodir bo'lganini tasdiqlaydi; shundan keyingina `FAILED (failures=1)` chiqdi.
+
+Qoida: **nazorat yugurishining o'zi ham tekshiruvni talab qiladi.** "Test yiqildi" xulosasi faqat o'zgarish haqiqatan kiritilgani tasdiqlangandan keyin qilinadi.
+
+Yo'lda mayda tuzatish: `Plan.code` avtomatik slug bir xil nomli planlarda to'qnashib mavjud testlarni sindirdi — endi band bo'lsa raqam qo'shiladi.
+
+- Branch: `claude/a4-typed-entitlements` → PR
+- Yangi: `core/entitlements.py`, `core/test_entitlements.py` (13 test), `bot/test_checkout_parity.py` (5 test), `subscriptions/migrations/0005_plan_code.py`. Tegilgan: `subscriptions/models.py`
+- Migratsiya uch bosqichli: maydon `unique` siz qo'shiladi → qatorlar nomdan to'ldiriladi → `unique` qo'yiladi. Bir qadamda qilinsa uchala plan bo'sh kod bilan qolib, `unique` darhol buzilardi
+- Test holati: to'liq suite **947/947 OK** (skipped=23)
+- **CI ning PostgreSQL ishi yana bir haqiqiy nuqsonni topdi.** Birinchi versiyada migratsiya maydonni `SlugField` sifatida qo'shardi. `SlugField` da `db_index=True` bo'lgani uchun PostgreSQL `..._like` naqsh indeksini yaratadi, uchinchi qadamda `unique` ga o'tkazishda esa Django o'shani **qayta** yaratmoqchi bo'lib `DuplicateTable` beradi. SQLite bunday indeks yaratmaydi — ya'ni lokal suite ham, CI ning SQLite ishi ham yashil edi. Yechim: birinchi qadam indekssiz `CharField`, indekslar faqat oxirgi qadamda quriladi. Bu A1a dan beri PostgreSQL ishining **ikkinchi** haqiqiy topilmasi (birinchisi — nullable FK ustidagi `select_for_update`)
+
+---
+
 ## 2026-08-21 [Claude Code]: `restore_db --into` — zaxirani sinash uchun bazani yo'qotish shart emas edi
 
 Owner zaxira olishni so'radi. Zaxira olindi (2.0 MB, integrity ok), ammo yo'lda ikkita narsa chiqdi.
