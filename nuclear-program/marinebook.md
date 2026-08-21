@@ -16,6 +16,28 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-20 [Claude Code]: Backup, email va memory probe'lari — ular registrda umuman yo'q edi
+
+Reja capability registrida bu uchtasini talab qiladi. Kodni ochib ko'rsam, ular **probe'siz** emas, **umuman ro'yxatda yo'q** ekan: registrda 11 ta capability bor edi va bu uchtasi ular orasida emas. Ya'ni Control Center ularni na yashil, na qizil ko'rsatardi — jim o'tkazib yuborardi, bu esa "hammasi joyida" bo'lib o'qilardi.
+
+Har probe uchun halol tekshiriladigan narsani tanlash kerak bo'ldi. Uchalasi ham **read-only**: sog'liq sahifasi tekshirayotgan narsasini o'zgartirmasligi kerak, shuning uchun probe zaxira olmaydi, xat yubormaydi va xotira yozmaydi.
+
+**Zaxira** — so'nggi faylning yoshi. 7 kundan eski bo'lsa AMBER (bir haftalik yo'qotish qabul qilinadigan chegara), umuman yo'q bo'lsa local'da AMBER, production'da RED. "Zaxira yo'q" aynan e'tibordan chetda qoladigan va kerak bo'lganda kech bilinadigan holat.
+
+**Email** — backend moduli. Bu yerda bitta tuzoq bor edi: klass nomi hamma backendda `EmailBackend`, farq **modul** qismida (`...backends.console.EmailBackend`). Men avval `rsplit(".", 1)` bilan klass nomini olib, hamma backendni bir xil ko'rgandim va test buni darhol ushladi. Production'da `console`/`dummy`/`locmem` — RED: xat yuborilgandek ko'rinadi, parol tiklash va bildirishnoma esa hech kimga yetib bormaydi.
+
+**Xotira** — faol faktlarning embedding qamrovi. `embedding_dim=0` bo'lgan fakt bazada bor, ammo semantik qidiruvda **ko'rinmaydi**: jim degradatsiya, xato ham bermaydi. Bu yerda ham tafsilot muhim bo'ldi — `embedding` maydoni `JSONField(default=list)`, ya'ni NOT NULL, "yo'q" holati bo'sh ro'yxat. JSON bo'shligini so'rash backendga bog'liq, `embedding_dim` esa integer va SQLite/PostgreSQL da bir xil ishlaydi.
+
+**Birinchi yugurishdayoq bir narsa topildi:** lokal loyihada zaxira umuman yo'q. `backup_db` buyrug'i A1a dan beri bor, ammo hech qachon ishlatilmagan. Umumiy Control Center holati shu sababli AMBER'ga o'tdi — va bu to'g'ri natija.
+
+- Branch: `claude/a2-remaining-probes` → PR
+- Yangi: `core/test_capability_probes.py` (11 test). Tegilgan: `core/control_center/registry.py`, `core/control_center/snapshot.py`
+- Mavjud `test_registry_slugs_are_unique_and_all_have_probes` testi registrga probe'siz capability qo'shishdan himoya qiladi — u ham yashil
+- Nazorat yugurishi: production'dagi console backend yashil deb belgilanganda test yiqildi
+- Test holati: to'liq suite **922/922 OK** (skipped=16)
+
+---
+
 ## 2026-08-20 [Claude Code]: AI xarajat ledgeri — asosiy ish raqamni ko'rsatish emas, chalg'itmaslik edi
 
 `AISupplyEvent` so'rov va tokenni hisoblardi, ammo ular pulga aylantirilmasdi. Reja talabi: "provider/model price snapshot, estimated cost".

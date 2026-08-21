@@ -120,6 +120,45 @@ CAPABILITY_REGISTRY = (
         runbook="Worker jarayonini qayta ishga tushiring: `python manage.py runbot` yoki `telegram_outbox`.",
     ),
     CapabilityDefinition(
+        slug="backup",
+        label="Zaxira",
+        category="Ops",
+        criticality="critical",
+        owner="Azurbek",
+        description="Recoverable copy of canonical state.",
+        dependencies=("database",),
+        runbook=(
+            "So'nggi zaxira sanasini tekshiring; eskirgan bo'lsa "
+            "`manage.py backup_db` bilan yangisini oling va "
+            "`restore_db` bilan alohida targetga tiklab ko'ring."
+        ),
+    ),
+    CapabilityDefinition(
+        slug="email",
+        label="Email",
+        category="Runtime",
+        criticality="high",
+        owner="Azurbek",
+        description="Transactional mail: password reset and notifications.",
+        runbook=(
+            "Console backend production'da xatni jim yo'qotadi. "
+            "`EMAIL_HOST` va SMTP credential'larini tekshiring."
+        ),
+    ),
+    CapabilityDefinition(
+        slug="memory",
+        label="AI xotirasi",
+        category="AI",
+        criticality="medium",
+        owner="Azurbek",
+        description="Long-term learner facts used to personalise AI replies.",
+        dependencies=("database", "ai_provider"),
+        runbook=(
+            "Embedding'siz fakt semantik qidiruvda ko'rinmaydi. "
+            "Embedding provayderi va reindex holatini tekshiring."
+        ),
+    ),
+    CapabilityDefinition(
         slug="release",
         label="Release identity",
         category="Governance",
