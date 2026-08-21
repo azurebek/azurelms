@@ -130,19 +130,36 @@ def mark_outbox_attempt_failed(item, error):
 WORKER_NAME = "telegram-outbox"
 
 
-def record_worker_heartbeat(*, sent=0, claimed=0):
+def record_worker_heartbeat(*, sent=0, claimed=0, paused=False):
     """Workerni tirik deb belgilaydi (A2).
 
     Sikl boshida emas, oxirida yoziladi: "men uyg'onib, ishimni qildim"
     degani "men jarayon sifatida mavjudman" dan kuchliroq signal.
+
+    `paused` — flag bilan to'xtatilgan sikl. Bu ham tirik zarba: worker
+    ishlayapti, faqat ataylab yubormayapti. Farqi detailda ko'rinadi, aks
+    holda pauza va nosozlik bir xil ko'rinardi.
     """
     from aicontrol.models import WorkerHeartbeat
 
-    return WorkerHeartbeat.record(WORKER_NAME, detail={"sent": sent, "claimed": claimed})
+    detail = {"sent": sent, "claimed": claimed}
+    if paused:
+        detail["paused"] = True
+    return WorkerHeartbeat.record(WORKER_NAME, detail=detail)
 
 
 async def process_outbox_once(bot):
     """Bitta sikl: pending'larni olib yuborishga urinadi. Yuborilganlar sonini qaytaradi."""
+    from core.flags import flag_enabled
+
+    # Pauza qilinganda xabarlar navbatda **saqlanib turadi**: ularni olmaymiz,
+    # ya'ni lease ham ochilmaydi va hech narsa yo'qolmaydi. Heartbeat esa
+    # baribir yoziladi — aks holda pauza Control Center'da worker o'lgandek
+    # ko'rinardi va owner yo'q muammoni qidirardi.
+    if not await sync_to_async(flag_enabled)("telegram_outbox_sending"):
+        await sync_to_async(record_worker_heartbeat)(sent=0, claimed=0, paused=True)
+        return 0
+
     items = await sync_to_async(claim_pending_outbox)()
     sent = 0
     for item in items:

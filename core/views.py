@@ -202,6 +202,61 @@ def backoffice_ai_kill_switch(request):
 
 @login_required
 @user_passes_test(_is_control_center_owner)
+def backoffice_feature_flags(request):
+    """Owner-only: registrda e'lon qilingan flaglarni ko'rish va o'zgartirish (A2).
+
+    Ilgari yagona flag AI kill switch edi — qattiq yozilgan bitta maydon.
+    Bu sahifa `core/flags.py` dagi registrni ko'rsatadi: har flagning joriy
+    holati, e'lon qilingan default'i va o'chirilganda nima bo'lishi.
+    """
+    from aicontrol.models import FeatureFlag
+    from core.flag_forms import FeatureFlagForm
+    from core.flags import FLAG_REGISTRY, flag_by_slug, flag_enabled, set_flag
+
+    if request.method == "POST":
+        form = FeatureFlagForm(request.POST)
+        if form.is_valid():
+            slug = form.cleaned_data["slug"]
+            changed = set_flag(
+                slug,
+                enabled=form.cleaned_data["enabled"],
+                reason=form.cleaned_data["change_reason"],
+                request=request,
+            )
+            if changed:
+                messages.success(request, f"«{flag_by_slug(slug).label}» yangilandi.")
+            else:
+                messages.info(request, "Qiymat o'zgarmadi; hech narsa yozilmadi.")
+            return redirect("backoffice_feature_flags")
+        messages.error(request, "Sabab va tasdiqlash majburiy.")
+
+    flags = [
+        {
+            "definition": definition,
+            "enabled": flag_enabled(definition.slug),
+            "overridden": FeatureFlag.objects.filter(slug=definition.slug).exists(),
+        }
+        for definition in FLAG_REGISTRY
+    ]
+    # Registrdan olib tashlangan, ammo DB'da qolgan qatorlar: ular hech narsani
+    # boshqarmaydi, lekin ko'rinib tursin — aks holda jim chalg'itadi.
+    known = {definition.slug for definition in FLAG_REGISTRY}
+    orphans = list(
+        FeatureFlag.objects.exclude(slug__in=known).values_list("slug", flat=True)
+    )
+
+    context = {
+        "active_nav": "backoffice",
+        "bo_active": "control",
+        "counts": {},
+        "flags": flags,
+        "orphans": orphans,
+    }
+    return render(request, "backoffice/feature_flags.html", context)
+
+
+@login_required
+@user_passes_test(_is_control_center_owner)
 def backoffice_ai_circuit_reset(request):
     """Owner-only: A8 circuit breaker cooldown'ini qo'lda tozalaydi.
 

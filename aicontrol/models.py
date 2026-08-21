@@ -427,6 +427,28 @@ class SystemAuditEvent(models.Model):
         raise ValidationError("Audit yozuvi append-only: o'chirib bo'lmaydi.")
 
 
+class FeatureFlag(models.Model):
+    """Registrda e'lon qilingan flagning o'zgartirilgan qiymati.
+
+    Bu yerda faqat **override** saqlanadi: qatori yo'q flag `core/flags.py` da
+    e'lon qilingan default bilan ishlaydi. Shuning uchun `slug` ga `choices`
+    berilmagan — variantlar registrdan olinadi va yangi flag migratsiya talab
+    qilmaydi.
+    """
+
+    slug = models.CharField(max_length=64, unique=True)
+    enabled = models.BooleanField()
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("slug",)
+        verbose_name = "Feature flag"
+        verbose_name_plural = "Feature flaglar"
+
+    def __str__(self):
+        return f"{self.slug}={'on' if self.enabled else 'off'}"
+
+
 class WorkerHeartbeat(models.Model):
     """Fon jarayonining "men tirikman" yozuvi (A2).
 

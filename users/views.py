@@ -45,6 +45,13 @@ class RegisterView(CreateView):
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated:
             return redirect('dashboard')
+        # Tekshiruv `dispatch` da: sahifani yashirish yetmaydi, formani
+        # to'g'ridan-to'g'ri POST qilish mumkin. Mavjud foydalanuvchilar
+        # kirishda davom etadi — yopilishi kerak bo'lgani ro'yxatdan o'tish.
+        from core.flags import flag_enabled
+
+        if not flag_enabled("public_registration"):
+            return render(request, 'registration/register_closed.html', status=200)
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
