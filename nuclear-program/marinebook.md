@@ -16,6 +16,38 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-20 [Claude Code]: AI xarajat ledgeri — asosiy ish raqamni ko'rsatish emas, chalg'itmaslik edi
+
+`AISupplyEvent` so'rov va tokenni hisoblardi, ammo ular pulga aylantirilmasdi. Reja talabi: "provider/model price snapshot, estimated cost".
+
+Uchta qaror ishning mazmunini tashkil qildi.
+
+**1. Narx qattiq yozilmadi.** U hisobga, mintaqaga va vaqtga bog'liq. Kodga yozilgan raqam aynan o'lik model (`gemini-2.5-flash-lite`) va Google minimalidan past deadline kabi jim eskirardi — bu ikkalasi shu haftada ilovani sindirgan edi. Endi narxni owner **manba izohi bilan** kiritadi, snapshotlar esa **append-only**: narx o'zgarsa yangi `effective_from` bilan yangi qator, eskisi tahrirlanmaydi.
+
+**2. Xarajat o'qish paytida hisoblanadi, eventga muzlatilmaydi.** Sabab amaliy: owner narxni ko'pincha sarfdan **keyin** kiritadi. Muzlatilgan qiymat o'sha eventlarda abadiy bo'sh qolardi. O'qishda hisoblash o'tmishni to'g'ri to'ldiradi va xato kiritilgan raqamni yangi snapshot bilan tuzatish mumkin. Evazi bor va u yozib qo'yildi: narx tarixi o'zgarsa hisobot ham o'zgaradi — shuning uchun snapshotlar sanali va append-only.
+
+**3. Narxlanmagan sarf nol deb yozilmaydi.** Bu ishning eng muhim qismi. Reja buni ochiq talab qiladi: *"«Bepul» cost=0 deb yozilmaydi — quota ham scarcity"*. Snapshot topilmasa chaqiruv `unpriced` deb **alohida** sanaladi va jamiga hech narsa qo'shilmaydi.
+
+Farqi lokal ma'lumotda darhol ko'rindi. Sahifa hozir shuni yozadi:
+
+```
+0 · 0 ta narxlangan chaqiruv
+78 ta chaqiruv narxlanmagan (146 697 token).
+Ularning narxi bu jamiga kirmagan. Bu «bepul» degani emas.
+```
+
+Agar `cost or 0` deb yozilganda, o'sha sahifa "0 — hammasi joyida" deb ko'rsatardi, holbuki 146 ming token yeyilgan va haqiqiy cheklov — kvota — ishlab turgan bo'lardi. Nazorat yugurishida aynan shu o'zgartirish kiritildi: uch test yiqildi.
+
+Mayda, lekin muhim tafsilotlar: pul `Decimal` da (float yaxlitlash xatosi beradi), kirish va chiqish tokenlari alohida narxlanadi (provayderlar shunday sotadi), yiqilgan chaqiruv hisobga kirmaydi (yuborilmagan so'rov uchun to'lanmaydi).
+
+- Branch: `claude/a2-cost-ledger` → PR
+- Yangi: `core/ai_cost.py`, `core/cost_forms.py`, `templates/backoffice/ai_cost.html`, `aicontrol/migrations/0008_aimodelprice.py`, ikkita test fayli (21 test). Tegilgan: `aicontrol/models.py`, `core/views.py`, `core/urls.py`, `templates/backoffice/control_center.html`
+- Nazorat yugurishi: narxlanmagan sarf nol deb sanalganda 3 test yiqildi
+- Test holati: to'liq suite **911/911 OK** (skipped=16)
+- **Qolgani:** user/day va plan margin kesimlari — ular daromad ma'lumotiga bog'lanadi, ya'ni A4 entitlement bilan birga keladi
+
+---
+
 ## 2026-08-20 [Claude Code]: Umumiy feature flag registri — A2 ning oxirgi haqiqiy bo'shlig'i
 
 Ilgari loyihada yagona flag `AISettings.ai_remote_calls_enabled` edi: qattiq yozilgan bitta maydon. Reja esa har capability uchun flag/kill switch talab qiladi.

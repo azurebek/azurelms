@@ -5,7 +5,7 @@ from core.audit import audit_trail_for, record_audit_event
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import get_user_model
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db.models import Count, Max, OuterRef, Q, Subquery, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.timesince import timesince
@@ -198,6 +198,57 @@ def backoffice_ai_kill_switch(request):
         "recent_switch_changes": audit_trail_for(policy),
     }
     return render(request, "backoffice/ai_kill_switch.html", context)
+
+
+@login_required
+@user_passes_test(_is_control_center_owner)
+def backoffice_ai_cost(request):
+    """Owner-only: AI sarfining pul ko'rinishi va narx snapshot'lari (A2).
+
+    Sahifaning eng muhim vazifasi raqam ko'rsatish emas, **chalg'itmaslik**:
+    narxlanmagan sarf "0" bo'lib ko'rinmasligi kerak. Free-tier'da aynan shu
+    holat — pul sarflanmaydi, ammo kvota yeyiladi va u ham cheklov.
+    """
+    from aicontrol.models import AIModelPrice
+    from core.ai_cost import cost_rollup, record_price
+    from core.cost_forms import AIModelPriceForm
+
+    if request.method == "POST":
+        form = AIModelPriceForm(request.POST)
+        if form.is_valid():
+            data = form.cleaned_data
+            try:
+                record_price(
+                    provider=data["provider"],
+                    model_name=data["model_name"],
+                    input_per_million=data["input_per_million"],
+                    output_per_million=data["output_per_million"],
+                    currency=data["currency"],
+                    effective_from=data["effective_from"],
+                    note=data["note"],
+                    reason=data["change_reason"],
+                    request=request,
+                )
+            except IntegrityError:
+                # Bir model uchun bir sanada bitta snapshot. Tahrirlash yo'q:
+                # narx o'zgarsa boshqa sana bilan yangi qator yoziladi.
+                messages.error(request, "Bu model uchun shu sanada snapshot allaqachon bor.")
+            else:
+                messages.success(request, "Narx snapshot'i yozildi.")
+            return redirect("backoffice_ai_cost")
+        messages.error(request, "Sabab va tasdiqlash majburiy.")
+    else:
+        form = AIModelPriceForm()
+
+    context = {
+        "active_nav": "backoffice",
+        "bo_active": "control",
+        "counts": {},
+        "form": form,
+        "rollup": cost_rollup(),
+        "prices": AIModelPrice.objects.all()[:20],
+    }
+    return render(request, "backoffice/ai_cost.html", context)
 
 
 @login_required

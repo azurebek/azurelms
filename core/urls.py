@@ -59,6 +59,7 @@ urlpatterns = [
     path('backoffice/control/ai-kill-switch/', core_views.backoffice_ai_kill_switch, name='backoffice_ai_kill_switch'),
     path('backoffice/control/ai-circuit-reset/', core_views.backoffice_ai_circuit_reset, name='backoffice_ai_circuit_reset'),
     path('backoffice/control/flags/', core_views.backoffice_feature_flags, name='backoffice_feature_flags'),
+    path('backoffice/control/ai-cost/', core_views.backoffice_ai_cost, name='backoffice_ai_cost'),
     path('backoffice/control/brand/', core_views.backoffice_brand, name='backoffice_brand'),
     path('backoffice/landing/', core_views.backoffice_landing, name='backoffice_landing'),
     path('backoffice/control/', core_views.backoffice_control, name='backoffice_control'),
