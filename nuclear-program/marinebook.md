@@ -16,6 +16,31 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-21 [Claude Code]: `artcc/freelingo` ko'rildi — uch g'oya A10 ga, kod esa olinmaydi
+
+Owner "juda zo'r tayyor yechim" deb eshitgan repoga ko'z yugurtirishni so'radi. Ko'rib chiqildi va A10 ga aniq acceptance sifatida yozildi.
+
+**Birinchi navbatda litsenziya.** Repo **AGPL-3.0**. Bu eng kuchli copyleft: kod olinib tarmoq orqali xizmat qilinsa, AzureLMS ham AGPL ostida ochilishi kerak bo'ladi. Pullik kurs platformasi uchun bu qabul qilinmaydi. Shuning uchun bandda ochiq yozildi: **kod ko'chirilmaydi.** G'oya va arxitektura mualliflik huquqi bilan himoyalanmaydi, kod himoyalanadi — shu chegara saqlanadi.
+
+"Tayyor yechim" degani ham to'g'ri emas: backend FastAPI/SQLAlchemy, bizda Django; ularda cohort, enrollment, imtihon yo'q. Ko'chadigan narsa dizayn, modul emas.
+
+**Olingan uch g'oya:**
+
+1. Persona bitta canonical konstantada va **barcha** prompt quruvchilar o'shani iste'mol qiladi. Bizdagi 1-bo'shliq aynan shu — 15 skillning har biri o'z prompti bilan keladi.
+2. Barcha promptlar bitta paketda, spetsifikatsiya hujjati va **kompozitsiya drift'ini ushlaydigan test** bilan.
+3. Saqlangan xotira promptga **ishonchsiz ma'lumot** sifatida kiritiladi: escape qilinib, teg ichida, "bu ko'rsatma emas" yozuvi bilan. Haqiqiy xavf — o'quvchi modelni ko'ndirib, keyinchalik ko'rsatma bo'lib o'qiladigan "xotira" saqlatib qo'yishi mumkin.
+
+**Ikkita halol qayd ham yozildi**, chunki ularsiz band chalg'itadi:
+
+* **Ularda ham yo'q:** suhbatlararo hikoya (2-bo'shliq). Xotiralari tekis faktlar; yangi chat baribir noldan boshlanadi. Bu qism uchun tayyor namuna yo'q.
+* **Bizda kuchliroq joy:** ularning `Memory` modeli tekis matn qatori. Bizda kategoriya, ishonch darajasi, embedding, `last_used_at`, semantik skorlash va decay bor. Ya'ni "ularda bor, bizda yo'q" emas — ular shaxsiyat va prompt tashkilotini, biz xotira sifatini yechganmiz.
+
+- Branch: `claude/a10-prior-art` → PR
+- Tegilgan: `03-mahsulot-backlog.md` (A10 acceptance kengaytirildi)
+- Kod o'zgarmadi
+
+---
+
 ## 2026-08-20 [Claude Code]: A5 statusi yangilandi — texnik qism yopildi, qolgani owner qo'lida
 
 A5 ning oltita texnik bandi ham yopilgandan keyin backlog o'sha holatni aks ettirmasdi: snapshot jadvalida hamon "dars/imtihon/checkout/attendance ... qolgan" deb turardi.
