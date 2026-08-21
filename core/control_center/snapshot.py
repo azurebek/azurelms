@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Callable, Mapping
@@ -484,6 +485,107 @@ def _release_probe(definition: CapabilityDefinition) -> CapabilityResult:
     )
 
 
+#: Zaxira shu muddatdan eski bo'lsa AMBER. Tanlov: bir hafta ichida bo'lgan
+#: yo'qotish qabul qilinadigan darajada, undan eskisi esa tiklashda sezilarli
+#: ma'lumot yo'qotishni anglatadi.
+BACKUP_STALE_AFTER_DAYS = 7
+
+#: Embedding'siz faktlar ulushi shundan oshsa AMBER. Bunday fakt bazada bor,
+#: ammo semantik qidiruvda **ko'rinmaydi** — jim degradatsiya.
+MEMORY_UNEMBEDDED_AMBER_SHARE = 0.25
+
+
+def _backup_probe(definition: CapabilityDefinition) -> CapabilityResult:
+    """So'nggi zaxiraning yoshi. Zaxira **olmaydi** — faqat qaraydi."""
+    root = Path(settings.BASE_DIR) / "backups"
+    files = sorted(root.glob("*.sqlite3"), key=lambda item: item.stat().st_mtime, reverse=True) if root.exists() else []
+
+    if not files:
+        # Local'da ham yashil emas: "zaxira yo'q" holati aynan e'tibordan
+        # chetda qoladigan va kerak bo'lganda kech bilinadigan narsa.
+        return _result(
+            definition,
+            "red" if not settings.IS_LOCAL else "amber",
+            "Zaxira topilmadi.",
+            directory=str(root),
+        )
+
+    newest = files[0]
+    age_days = (timezone.now().timestamp() - newest.stat().st_mtime) / 86400
+    size_mb = newest.stat().st_size / (1024 * 1024)
+    if age_days > BACKUP_STALE_AFTER_DAYS:
+        return _result(
+            definition,
+            "amber",
+            f"So'nggi zaxira {age_days:.0f} kunlik.",
+            newest=newest.name,
+            age_days=f"{age_days:.1f}",
+            size_mb=f"{size_mb:.1f}",
+        )
+    return _result(
+        definition,
+        "green",
+        f"So'nggi zaxira {age_days:.1f} kunlik.",
+        newest=newest.name,
+        age_days=f"{age_days:.1f}",
+        size_mb=f"{size_mb:.1f}",
+        count=len(files),
+    )
+
+
+def _email_probe(definition: CapabilityDefinition) -> CapabilityResult:
+    """Backend sozlanganmi. Xat **yubormaydi** — probe yon ta'sir qoldirmaydi."""
+    path = str(getattr(settings, "EMAIL_BACKEND", ""))
+    # Klass nomi hamma backendda `EmailBackend` — farq **modul** qismida
+    # (`...backends.console.EmailBackend`), shuning uchun o'sha bo'lak olinadi.
+    parts = path.split(".")
+    backend = parts[-2] if len(parts) >= 2 else path
+    silent = backend in {"console", "dummy", "locmem"}
+
+    if silent:
+        if settings.IS_LOCAL:
+            return _result(definition, "green", "Local: xatlar konsolga yoziladi.", backend=backend)
+        # Production'da bu jim yo'qotish: parol tiklash va bildirishnoma
+        # yuborilgandek ko'rinadi, ammo hech kimga yetib bormaydi.
+        return _result(definition, "red", "Xatlar hech kimga yuborilmayapti.", backend=backend)
+
+    host = str(getattr(settings, "EMAIL_HOST", "") or "")
+    if not host or host == "localhost":
+        return _result(definition, "amber", "SMTP host sozlanmagan.", backend=backend, host=host or "-")
+    return _result(
+        definition, "green", "SMTP backend sozlangan.",
+        backend=backend, host=host, tls=str(getattr(settings, "EMAIL_USE_TLS", False)),
+    )
+
+
+def _memory_probe(definition: CapabilityDefinition) -> CapabilityResult:
+    """Faol xotira faktlari va ularning embedding qamrovi."""
+    from messenger.models import AIMemoryFact
+
+    active = AIMemoryFact.objects.filter(status=AIMemoryFact.STATUS_ACTIVE)
+    total = active.count()
+    if not total:
+        return _result(definition, "green", "Faol xotira fakti yo'q.", active="0")
+
+    # `embedding` — `JSONField(default=list)`, ya'ni NOT NULL: "yo'q" holati
+    # bo'sh ro'yxat. JSON bo'shligini so'rash backendga bog'liq, `embedding_dim`
+    # esa integer va SQLite/PostgreSQL da bir xil ishlaydi.
+    unembedded = active.filter(embedding_dim=0).count()
+    share = unembedded / total
+    if share >= MEMORY_UNEMBEDDED_AMBER_SHARE:
+        return _result(
+            definition,
+            "amber",
+            f"{unembedded}/{total} fakt embedding'siz.",
+            active=str(total),
+            unembedded=str(unembedded),
+        )
+    return _result(
+        definition, "green", f"{total} faol fakt, embedding qamrovi to'liq.",
+        active=str(total), unembedded=str(unembedded),
+    )
+
+
 PROBE_FUNCTIONS: dict[str, Callable[[CapabilityDefinition], CapabilityResult]] = {
     "database": _database_probe,
     "cache": _cache_probe,
@@ -495,6 +597,9 @@ PROBE_FUNCTIONS: dict[str, Callable[[CapabilityDefinition], CapabilityResult]] =
     "ai_provider": _ai_probe,
     "rag": _rag_probe,
     "security": _security_probe,
+    "backup": _backup_probe,
+    "email": _email_probe,
+    "memory": _memory_probe,
     "release": _release_probe,
 }
 
