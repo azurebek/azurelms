@@ -10,7 +10,7 @@
 4. `NEXT` band faqat Azurbek admission berganda `ADMIT`ga o'tadi.
 5. Queue qarori: `ADMIT` / `NEXT` / `HOLD` / `CUT`. Execution holati: `PLANNED` / `IN PROGRESS` / `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` / `EVIDENCE READY` / `BLOCKED`.
 6. **Istisno — `S. SIT`:** owner qarori bilan A-narvoniga parallel yuritiladi (1-qoidadan ozod). Uning slice'lari o'zaro ketma-ket boradi va A bandlarini to'xtatmaydi; narxi — owner vaqtining bo'linishi (`S-R1`).
-7. **Joriy active closeout — `A5` owner sign-off'i (2026-08-20):** A5 ning oltita texnik bandi ham yopildi; qolgani agent bajara olmaydigan qism — Android Chrome, iOS Safari va desktop Chrome'da uch qurilmali o'tish (mikrofon, upload, Mini App, dark/light). A8, A0b, A1a bajarildi; A2 da flag registridan boshqa hamma narsa kodda; A3/A4 slice'lari main'da. Yangi AI skill, bulk generation, `heavy` search yoki ommaviy AI beta hamon yo'q.
+7. **Joriy active closeout — `A5` owner sign-off'i (2026-08-21):** A2 ham yopildi (flag registri, cost ledgeri, backup/email/memory probe'lari va `restore_db --into` drill'i). A5 ning oltita texnik bandi ham yopildi; qolgani agent bajara olmaydigan qism — Android Chrome, iOS Safari va desktop Chrome'da uch qurilmali o'tish (mikrofon, upload, Mini App, dark/light). A8, A0b, A1a bajarildi; A2 da flag registridan boshqa hamma narsa kodda; A3/A4 slice'lari main'da. Yangi AI skill, bulk generation, `heavy` search yoki ommaviy AI beta hamon yo'q.
 
 ### Joriy status snapshot
 
@@ -19,7 +19,7 @@
 | A0 | `ADMIT` | `IMPLEMENTED/TESTED` | A0a va A0b beshala slice ham bajarilgan; `EVIDENCE READY` labeli owner qarorida |
 | A1a | `ADMIT` | `IMPLEMENTED/TESTED` | GitHub Actions CI (8 required check) + readiness/backup/outbox bajarildi; bog'liqlik zaiflik qarzi reyestrda |
 | A1b | `HOLD` | `PLANNED` | cloud deploy va managed services |
-| A2 | `ADMIT` | `IN PROGRESS` | audit ledgeri, kill switch, circuit reset, worker heartbeat va `ReleaseRecord` kodda; qolgani umumiy flag registri va cost/quality gate |
+| A2 | `ADMIT` | `IMPLEMENTED/TESTED` | audit ledgeri, kill switch, circuit reset, heartbeat, `ReleaseRecord`, flag registri, cost ledgeri va backup/email/memory probe'lari kodda; **qolgan yagona band — AI quality/cost release gate, u esa A9 ning ishi** |
 | A8 | `ADMIT` | `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | supply guard kod/target/full testlarda; PostgreSQL contention proofi CI `integration` ishida yopildi, alohida OS processlari bilan takrorlash ochiq |
 | A3 | `ADMIT` | `IN PROGRESS` | to'rt slice main'da (davomat parity, session atomikligi, lesson release, grade→learner), 36 test; adapter parity va Mini App qolgan |
 | A4 | `ADMIT` | `IN PROGRESS` | to'rt slice main'da (checkout side-effect, yagona pending receipt, receipt binding, Telegram claim), 25 test; typed entitlement qolgan |
@@ -60,7 +60,7 @@
 - **Acceptance:** local profile remote xizmatga jim o'tmaydi; test Notification → outbox `sent`; checks/migration/static; isolated local restore. Production acceptance A1b admissionidan keyin alohida.
 - **Faza:** R1.
 
-### A2. Azure Control Center v0 — `IN PROGRESS`, `L`
+### A2. Azure Control Center v0 — `IMPLEMENTED/TESTED`, `L`
 
 - **Outcome:** Azurbek bitta joydan policy, health, queues, quality, cost va release holatini boshqaradi.
 - **Canonical owner:** mavjud backoffice + `aicontrol` kengaytmasi; yangi parallel admin subsystem yo'q.
