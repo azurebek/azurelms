@@ -16,6 +16,40 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-08-21 [Claude Code]: `restore_db --into` — zaxirani sinash uchun bazani yo'qotish shart emas edi
+
+Owner zaxira olishni so'radi. Zaxira olindi (2.0 MB, integrity ok), ammo yo'lda ikkita narsa chiqdi.
+
+**Birinchisi — `backups/` gitignore'da yo'q edi.** `db-<sana>.sqlite3` mavjud naqshlarning hech biriga tushmaydi (`db.sqlite3`, `db.sqlite3.backup*`, `*.sqlite3.bak`, `*.sqlite3-wal` — hammasi boshqa shakl). Zaxira esa butun bazaning nusxasi, parol hash'lari bilan; u bitta `git add -A` masofasida edi. Zaxira olishdan **oldin** tuzatildi.
+
+**Ikkinchisi — zaxirani sinab ko'rishning xavfsiz yo'li yo'q edi.** `restore_db` faqat joriy bazani ustidan yozardi, ya'ni "zaxiram ishlaydimi?" degan savolga javob olish uchun ishlayotgan bazani almashtirish kerak edi. Hech kim buni qilmaydi — natijada zaxira sinalmagan holda qolaveradi. Hech qachon tiklanmagan zaxira — umid, zaxira emas.
+
+Endi `--into <yo'l>` bor: alohida faylga tiklaydi, joriy bazaga tegmaydi va `--yes` talab qilmaydi (xavfsiz amal xavflisi bilan bir xil qiyinlikda bo'lmasligi kerak). Drill nafaqat nusxa oladi — tiklangan nusxaning butunligi, jadval soni va **migratsiya sathini** chiqaradi. Drill'ning ma'nosi shu: nusxa ochilishi kam, uning sxemasi kod kutayotganiga mos kelishi kerak.
+
+Alohida himoya: `--into` joriy bazani ko'rsatsa rad etiladi — aks holda "drill" yashiringan destruktiv tiklash bo'lib qolardi.
+
+**Nazorat yugurishi menga saboq berdi.** Dastlab shu himoyani olib tashlab test yiqilishini kutdim — test o'tib ketdi. Sabab: joriy baza fayli mavjud, ya'ni umumiy "fayl allaqachon bor" tekshiruvi ushlab qolardi. Test himoyani emas, boshqa narsani isbotlayotgan ekan; xato **matnini** tekshiradigan qilib kuchaytirildi.
+
+Undan ham yomoni: keyingi ikki nazorat urinishimda almashtirish umuman mos kelmagan (heredoc ichidagi qo'shtirnoq va backtick), men esa "olib tashlandi" deb yozib qo'yavergandim. Uchinchi urinishda o'zgarish sodir bo'lganini **tasdiqlab** tekshirdim va shundagina `FAILED (failures=1)` chiqdi. Nazorat yugurishining o'zi ham tekshiruvni talab qilarkan.
+
+**Haqiqiy drill bajarildi:**
+
+```
+Drill bajarildi: ...\drill-check.sqlite3
+  butunlik      : ok
+  jadvallar     : 126
+  migratsiyalar : 132
+  oxirgisi      : aicontrol 0008_aimodelprice
+```
+
+Oxirgi migratsiya kod kutayotgani bilan mos. Joriy baza tegilmagani ham tekshirildi (8 foydalanuvchi o'z joyida), drill fayli tozalandi.
+
+- Branch: `claude/restore-drill` → PR (gitignore tuzatishi alohida: `claude/gitignore-backups`)
+- Tegilgan: `core/backup_service.py` (`describe_sqlite`, `restore_backup(into=...)`), `core/management/commands/restore_db.py`, `core/test_backup_restore.py` (+7 test), `05-launch-ops.md`
+- Test holati: to'liq suite **929/929 OK** (skipped=23 — drill testlari fayl bazasini talab qiladi, `VACUUM INTO` xotirada ishlamaydi)
+
+---
+
 ## 2026-08-20 [Claude Code]: Backup, email va memory probe'lari — ular registrda umuman yo'q edi
 
 Reja capability registrida bu uchtasini talab qiladi. Kodni ochib ko'rsam, ular **probe'siz** emas, **umuman ro'yxatda yo'q** ekan: registrda 11 ta capability bor edi va bu uchtasi ular orasida emas. Ya'ni Control Center ularni na yashil, na qizil ko'rsatardi — jim o'tkazib yuborardi, bu esa "hammasi joyida" bo'lib o'qilardi.

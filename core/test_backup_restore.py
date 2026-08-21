@@ -130,3 +130,111 @@ class BackupRestoreTests(TransactionTestCase):
 
         # `--yes` bilan o'tadi.
         call_command("restore_db", input=str(snapshot), yes=True)
+
+
+class RestoreDrillTests(TransactionTestCase):
+    """`--into` — zaxirani **alohida** faylga tiklash (A2 restore drill).
+
+    Ilgari `restore_db` faqat joriy bazani ustidan yozardi. Ya'ni zaxirani
+    sinab ko'rishning yagona yo'li ishlayotgan bazani almashtirish edi va
+    hech kim buni qilmasdi. Hech qachon tiklanmagan zaxira — umid, zaxira emas.
+    """
+
+    def setUp(self):
+        skip_unless_sqlite(self)
+        # `create_backup` `VACUUM INTO` ishlatadi — xotiradagi bazada ishlamaydi.
+        # Mavjud WAL testlari ham shu sababdan fayl bazasini talab qiladi.
+        skip_unless_file_backed_db(self)
+        self.tmp = Path(tempfile.mkdtemp())
+        self.source = self.tmp / "snapshot.sqlite3"
+        create_backup(self.source)
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_restore_into_an_isolated_target_leaves_the_live_database_alone(self):
+        User.objects.create_user(
+            username="zaxiradan-keyin", email="keyin@example.com", password="testpass123"
+        )
+        before = User.objects.count()
+
+        target = restore_backup(self.source, into=self.tmp / "drill.sqlite3")
+
+        self.assertTrue(target.exists())
+        self.assertEqual(
+            User.objects.count(), before,
+            "drill joriy bazaga tegmasligi kerak — aks holda uni hech kim qilmaydi",
+        )
+
+    def test_restore_into_refuses_to_overwrite_an_existing_file(self):
+        target = self.tmp / "band.sqlite3"
+        target.write_bytes(b"tegilmasin")
+
+        with self.assertRaises(BackupError):
+            restore_backup(self.source, into=target)
+        self.assertEqual(target.read_bytes(), b"tegilmasin")
+
+    def test_restore_into_refuses_to_target_the_live_database(self):
+        """Aks holda «drill» yashiringan destruktiv tiklash bo'lib qolardi.
+
+        Xabar aynan shu holatni ko'rsatishi tekshiriladi: joriy baza fayli
+        mavjud bo'lgani uchun umumiy "fayl allaqachon bor" tekshiruvi ham
+        xato beradi, ya'ni faqat `assertRaises` himoyani isbotlamaydi —
+        u olib tashlanganda ham test o'tib ketardi.
+        """
+        live = Path(connection.settings_dict["NAME"])
+
+        with self.assertRaises(BackupError) as caught:
+            restore_backup(self.source, into=live)
+
+        self.assertIn(
+            "--into", str(caught.exception),
+            "xato joriy bazaga qaratilganini aytishi kerak, shunchaki «fayl bor» emas",
+        )
+
+    def test_restore_into_rejects_a_corrupt_source_before_writing(self):
+        broken = self.tmp / "buzuq.sqlite3"
+        broken.write_bytes(b"bu sqlite emas")
+        target = self.tmp / "chiqish.sqlite3"
+
+        with self.assertRaises(BackupError):
+            restore_backup(broken, into=target)
+        self.assertFalse(target.exists(), "buzuq manbadan hech narsa yozilmasligi kerak")
+
+    def test_drill_reports_the_schema_state_of_the_restored_copy(self):
+        """Drill nafaqat nusxa oladi — tiklangan nusxa sxemasini ham ko'rsatadi."""
+        from core.backup_service import describe_sqlite
+
+        target = restore_backup(self.source, into=self.tmp / "drill.sqlite3")
+        report = describe_sqlite(target)
+
+        self.assertEqual(report["integrity"], "ok")
+        self.assertGreater(report["tables"], 0)
+        self.assertGreater(report["migrations"], 0)
+        self.assertTrue(report["latest_migration"])
+
+
+class RestoreDrillCommandTests(TransactionTestCase):
+    def setUp(self):
+        skip_unless_sqlite(self)
+        # `create_backup` `VACUUM INTO` ishlatadi — xotiradagi bazada ishlamaydi.
+        # Mavjud WAL testlari ham shu sababdan fayl bazasini talab qiladi.
+        skip_unless_file_backed_db(self)
+        self.tmp = Path(tempfile.mkdtemp())
+        self.source = self.tmp / "snapshot.sqlite3"
+        create_backup(self.source)
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def test_into_does_not_require_confirmation(self):
+        """`--yes` joriy bazani yo'qotishga rozilik; drill hech narsa yo'qotmaydi."""
+        target = self.tmp / "drill.sqlite3"
+
+        call_command("restore_db", input=str(self.source), into=str(target))
+
+        self.assertTrue(target.exists())
+
+    def test_without_into_confirmation_is_still_required(self):
+        with self.assertRaises(CommandError):
+            call_command("restore_db", input=str(self.source))

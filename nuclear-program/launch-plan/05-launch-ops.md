@@ -140,7 +140,7 @@ Har release uchun commit SHA, migrationlar, gate natijalari, deploy/rollback hol
 - Uptime/readiness: public page, login, WebSocket, DB, Valkey, broker, worker, outbox va private-media denial.
 - Queue SLO: queue age, pending/failed count, last success; alertlar ownerga bitta kanal orqali.
 - Backup: localda SQLite/media recoverability smoke; kelajak productionda managed DB snapshot + encrypted export va media versioning/lifecycle.
-- Restore drill: yangi isolated targetga restore → migration/schema check → owner smoke → evidence timestamp.
+- Restore drill: yangi isolated targetga restore → migration/schema check → owner smoke → evidence timestamp. *(2026-08-21: `manage.py restore_db --input <zaxira> --into <yo'l>` — joriy bazaga tegmaydi, tiklangan nusxaning butunligi, jadval soni va migratsiya sathini chiqaradi. `--into` joriy bazani ko'rsatsa rad etiladi.)*
 - Runbook: RED sabab, user ta'siri, kill switch, fallback, escalation va recovery check.
 
 ## 6. AI quality, privacy va Gemini free-tier supply gate

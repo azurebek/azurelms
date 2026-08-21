@@ -83,11 +83,50 @@ def create_backup(destination, alias="default"):
     return destination
 
 
-def restore_backup(source, alias="default"):
-    """Zaxirani joriy bazaning ustiga tiklaydi.
+def describe_sqlite(path):
+    """Tiklangan nusxaning holati: butunlik, jadval soni va migratsiya sathi.
 
-    Avval zaxiraning o'zi tekshiriladi — buzuq faylni ishlayotgan bazaning
-    ustiga yozib qo'yish eng yomon natija bo'lardi.
+    Drill'ning ma'nosi shu: nusxa ochilishi kam, uning **sxemasi** kod
+    kutayotganiga mos kelishi kerak. Aks holda zaxira bor, tiklash esa
+    ishlamaydi va buni faqat falokat kunida bilib qolasiz.
+    """
+    path = Path(path)
+    conn = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+    try:
+        cursor = conn.cursor()
+        integrity = cursor.execute("PRAGMA integrity_check").fetchone()[0]
+        tables = cursor.execute(
+            "SELECT count(*) FROM sqlite_master WHERE type='table'"
+        ).fetchone()[0]
+        try:
+            migrations = cursor.execute("SELECT count(*) FROM django_migrations").fetchone()[0]
+            latest_row = cursor.execute(
+                "SELECT app, name FROM django_migrations ORDER BY id DESC LIMIT 1"
+            ).fetchone()
+            latest = f"{latest_row[0]} {latest_row[1]}" if latest_row else ""
+        except sqlite3.Error:
+            # Migratsiya jadvali yo'q — bu Django bazasi emas yoki juda eski.
+            migrations, latest = 0, ""
+        return {
+            "integrity": integrity,
+            "tables": tables,
+            "migrations": migrations,
+            "latest_migration": latest,
+        }
+    finally:
+        conn.close()
+
+
+def restore_backup(source, alias="default", into=None):
+    """Zaxirani tiklaydi.
+
+    `into` berilmasa — joriy bazaning **ustiga** yoziladi.
+    `into` berilsa — alohida faylga tiklanadi va joriy bazaga tegilmaydi
+    (restore drill). Drill hech narsa yo'qotmasligi kerak, aks holda uni
+    hech kim qilmaydi va zaxira sinalmagan holda qolaveradi.
+
+    Har ikki holatda avval zaxiraning o'zi tekshiriladi — buzuq faylni
+    ishlayotgan bazaning ustiga yozib qo'yish eng yomon natija bo'lardi.
     """
     source = Path(source)
     if not source.exists():
@@ -96,6 +135,21 @@ def restore_backup(source, alias="default"):
     verdict = check_sqlite_integrity(source)
     if verdict != "ok":
         raise BackupError(f"Zaxira buzuq, tiklash to'xtatildi: {verdict}")
+
+    if into is not None:
+        target = Path(into)
+        live = Path(_sqlite_path(alias))
+        # Aks holda "drill" yashiringan destruktiv tiklash bo'lib qolardi.
+        if target.resolve() == live.resolve():
+            raise BackupError(
+                "`--into` joriy bazani ko'rsatyapti. Ustiga yozish uchun "
+                "`--into` siz, `--yes` bilan chaqiring."
+            )
+        if target.exists():
+            raise BackupError(f"Fayl allaqachon mavjud: {target}")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, target)
+        return target
 
     target = _sqlite_path(alias)
     connections[alias].close()
