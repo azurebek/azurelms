@@ -36,6 +36,9 @@ ENV/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
+# `manage.py backup_db` ning sukutdagi joyi. Bu fayllar butun bazaning
+# nusxasi — foydalanuvchi ma'lumoti va parol hash'lari bilan.
+backups/
 db.sqlite3.backup*
 *.sqlite3.bak
 # WAL rejimi yon fayllari va fayl asosidagi test bazasi
