@@ -16,6 +16,29 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-03 [Claude Code]: `read-modify-write` auditi — blur hisoblagichi butun imtihon qatorini qayta yozardi
+
+PR #55 da XP uchun `award_xp()` qo'yib, "shu naqsh boshqa hisoblagichlarda ham bormi" degan bandni ochiq qoldirgandim. Shu audit bajarildi.
+
+Beshta nomzod topildi. Uchtasi xavfsiz chiqdi: `users/streak.py` `@transaction.atomic` + `select_for_update()` bilan himoyalangan, `bot/outbox.py` dagi `attempts` qatori atomik claim bilan bitta workerga biriktirilgan, `ai/providers/gemini.py` dagi hisoblagich esa bazada emas, obyekt ichida.
+
+**Ikkitasi himoyasiz edi va biri kutganimdan jiddiyroq.**
+
+`courses/views.py::LogBlurWarningView` hisoblagichni Pythonda oshirib, `attempt.save()` ni **`update_fields`siz** chaqirardi — ya'ni bitta ustunni emas, `ExamAttempt` ning butun qatorini o'zidagi qiymatlar bilan qayta yozardi. Yo'qotish mumkin bo'lgan maydonlar: `is_completed`, `completed_time`, `score`, `passed`, `is_reviewed`, `reviewed_at`, `reviewed_by`, `review_notes`. Blur hodisasi oynadan chiqishda otiladi, ya'ni u imtihonni topshirish bilan deyarli bir vaqtda keladi — yo'lda qolgan blur so'rovi tugallangan imtihonni `in progress` ga qaytarib, ballni nolga tushirishi mumkin edi.
+
+Ikkinchisi — `bot/services.py` dagi guest demo hisoblagichi. U `F()` ga o'tkazildi, **lekin K11 yopilmadi:** limit tekshiruvi hamon alohida o'qishga tayanadi, ya'ni tez ketma-ket kelgan savollar chegaradan bittasini o'tkazib yuborishi mumkin. Endi hech bo'lmasa hisoblagichning o'zi yo'qotmaydi.
+
+**Birinchi testim yaroqsiz edi va buni nazorat yugurishi ko'rsatdi.** Men poygani "eskirgan nusxa" o'zgaruvchisi bilan modellashtirgandim; test tuzatishsiz ham o'tib ketdi, chunki view har so'rovda attemptni **yangidan** o'qiydi — bitta so'rov ichida eskirish yo'q, haqiqiy poyga esa ikkita parallel so'rovni talab qiladi va uni bitta oqimli test klienti ko'rsata olmaydi.
+
+Test qayta yozildi: `CaptureQueriesContext` bilan yuborilgan `UPDATE` tekshiriladi — u faqat `blur_warnings` ustuniga tegishi va oshirish SQL ichida (`F()`) bajarilishi kerak. Qayta yozilgan test eski naqshda 2 ta yiqiladi.
+
+Saboq: da'vo bilan test bir xil narsani aytishi kerak. "Poyga xavfsiz" deb yozib, aslida "view fresh o'qiydi" ni tekshirib qo'yish oson.
+
+- Branch: `claude/exam-blur-lost-update` → PR
+- Yangi: `courses/test_blur_warning_isolation.py` (4 test). Tegilgan: `courses/views.py`, `bot/services.py`
+- Test holati: to'liq suite **1013/1013 OK** (skipped=23); migration drift yo'q; `check --fail-level WARNING` 0 issue
+- Davom etilishi kerak: K11 (guest/SmartForm counter uchun lease/claim) ochiq qoladi
+
 ## 2026-09-03 [Claude Code]: `pip-audit` tarmoq uzilishini zaiflik deb ko'rsatmaydi
 
 PR #54 da xavfsizlik ishi qizil bo'ldi. Sababi kodda emas edi: `pip-audit` PyPI advisory bazasiga chiqadi va o'sha chiqish `ConnectionResetError` bilan uzildi. Uchala tekshiruvdan ikkitasi yashil, bittasi tarmoq sababli qizil — natijada toza PR merge bo'lmay turdi.

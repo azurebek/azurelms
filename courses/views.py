@@ -3,7 +3,7 @@ from urllib.parse import urlencode
 
 from django.core.exceptions import ValidationError
 from django.views.generic import ListView, DetailView, View
-from django.db.models import Max, Q
+from django.db.models import F, Max, Q
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
@@ -1000,8 +1000,19 @@ class LogBlurWarningView(LoginRequiredMixin, View):
                 {'error': 'Imtihon vaqti tugadi. Urinish tekshiruvga yuborildi.'},
                 status=400,
             )
-        attempt.blur_warnings += 1
-        attempt.save()
+        # `attempt.save()` (update_fields'siz) **butun qatorni** eskirgan
+        # nusxadan qayta yozardi. Blur hodisasi oynadan chiqishda otiladi,
+        # ya'ni u imtihonni topshirish bilan deyarli bir vaqtda kelishi
+        # mumkin: topshiruv `is_completed`, `completed_time` va `score` ni
+        # yozib bo'lgach, yo'lda qolgan blur so'rovi o'sha qatorni eski
+        # qiymatlar bilan bosib ketardi — tugallangan imtihon `in progress`
+        # ga qaytib, ball nolga tushardi.
+        #
+        # Endi faqat bitta ustun, faqat bazada oshiriladi.
+        ExamAttempt.objects.filter(pk=attempt.pk).update(
+            blur_warnings=F('blur_warnings') + 1
+        )
+        attempt.refresh_from_db(fields=['blur_warnings'])
         return JsonResponse({'status': 'logged', 'warnings': attempt.blur_warnings})
 
 class SubmitExamView(LoginRequiredMixin, View):
