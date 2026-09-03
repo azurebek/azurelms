@@ -784,7 +784,20 @@ def guest_demo_answer(
         telegram_id=telegram_id,
         defaults={"telegram_username": telegram_username or ""},
     )
-    if guest.demo_questions_used >= GUEST_DEMO_QUESTION_LIMIT:
+    # Slot provider chaqiruvidan **oldin** band qilinadi va shartli `UPDATE`
+    # bilan: `demo_questions_used < LIMIT` filtri faqat bitta so'rovda mos
+    # keladi, ikkinchisi `0` qator yangilaydi.
+    #
+    # Ilgari bu yerda oddiy `if` bor edi va hisoblagich javobdan **keyin**
+    # oshirilardi. Ikki savol bir vaqtda kelsa ikkalasi ham tekshiruvdan
+    # o'tib, ikkalasiga ham javob berilardi — ya'ni mehmon chegaradan ortiq
+    # bepul savol olardi. Tekshirish va band qilish bitta amalga birlashdi.
+    from django.db.models import F
+
+    claimed = BotGuest.objects.filter(
+        pk=guest.pk, demo_questions_used__lt=GUEST_DEMO_QUESTION_LIMIT
+    ).update(demo_questions_used=F("demo_questions_used") + 1)
+    if not claimed:
         return GuestDemoResult(
             ok=False,
             code="limit_reached",
@@ -793,6 +806,7 @@ def guest_demo_answer(
                 "cheklovsiz suhbatlashasiz — /start bosib \"Ro'yxatdan o'tish\"ni tanlang."
             ),
         )
+    guest.refresh_from_db(fields=["demo_questions_used"])
 
     prompt = f"{_build_demo_context()}\n\nMehmon savoli: {question}"
     try:
@@ -810,34 +824,31 @@ def guest_demo_answer(
                     "bot-guest",
                     request_key or question,
                     telegram_id,
-                    guest.demo_questions_used + 1,
+                    guest.demo_questions_used,
                 ),
                 call_type=AISupplyEvent.CALL_BOT_GUEST,
                 prompt=prompt,
-                metadata={"guest_sequence": guest.demo_questions_used + 1},
+                metadata={"guest_sequence": guest.demo_questions_used},
             )
         answer = (response.text or "").strip()
     except Exception:
+        # Band qilingan slot qaytariladi: javob bermagan chaqiruv mehmonning
+        # bepul savolini yeb qo'ymasligi kerak. `Greatest` bilan — bir vaqtda
+        # kelgan boshqa bo'shatish hisoblagichni manfiyga tushirmasin.
+        from django.db.models import Value
+        from django.db.models.functions import Greatest
+
+        BotGuest.objects.filter(pk=guest.pk).update(
+            demo_questions_used=Greatest(F("demo_questions_used") - 1, Value(0))
+        )
         return GuestDemoResult(
             ok=False,
             code="provider_error",
             message="Hozir javob bera olmadim — birozdan so'ng qayta urinib ko'ring.",
         )
 
-    # Hisoblagich bazada oshiriladi: ilgari ikki parallel savol bir xil
-    # qiymatni o'qib, bir xil natijani yozardi va bittasi **yo'qolardi**.
-    #
-    # Halol chegara: bu tekshirish-va-yozishni serializatsiya qilmaydi.
-    # Yuqoridagi limit tekshiruvi (787-qator) hamon alohida o'qishga tayanadi,
-    # ya'ni tez ketma-ket kelgan savollar chegaradan bittasini o'tkazib
-    # yuborishi mumkin. To'liq yechim lease/claim talab qiladi va u
-    # `02-yol-xarita.md` dagi `K11` da ochiq band bo'lib qoladi.
-    from django.db.models import F
-
-    BotGuest.objects.filter(pk=guest.pk).update(
-        demo_questions_used=F("demo_questions_used") + 1
-    )
-    guest.refresh_from_db(fields=["demo_questions_used"])
+    # Hisoblagich yuqorida, chaqiruvdan oldin oshirilgan — bu yerda faqat
+    # profil ma'lumoti yangilanadi.
     if telegram_username and guest.telegram_username != telegram_username:
         guest.telegram_username = telegram_username
         guest.save(update_fields=["telegram_username", "updated_at"])
