@@ -16,6 +16,29 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-04 [Claude Code]: Billing auditi — pulni web'dan qabul qilib bo'lmasdi
+
+Owner "oqimlar tayyorligiga ishonmayapman, billing tizimini tekshir" dedi. Audit qilindi va **operatsion bo'shliq** topildi.
+
+**Avval yaxshi xabar.** Pul hisobining o'zi puxta yozilgan: summa hech qachon mijozdan kelmaydi (faqat `plan_id`, narx serverda `plan.price` dan olinadi), chegirma hisobi to'g'ri va nolda cheklangan, promo kod qulf ostida tekshiriladi, bitta enrollmentda bitta kutayotgan chek **bazadagi cheklov** bilan kafolatlangan, tasdiqlash idempotent, rad etishda promo bo'shatiladi. Muddat tugashi esa `has_active_access()` da **jonli hisoblanadi** — ya'ni cron ishlamasa ham kirish o'z vaqtida yopiladi.
+
+**Bo'shliq boshqa joyda edi: chekni tasdiqlash yuzasi.** `/admin/` tekshirildi — **404**, chunki `ENABLE_LEGACY_ADMIN=False`. Backoffice bosh sahifasi kutayotgan cheklarni faqat **ko'rsatardi**, tugmasi yo'q edi. Ya'ni chekni tasdiqlashning yagona yo'li Telegram bot: bot ishlamasa yoki owner hisobi ulanmagan bo'lsa, kelgan pulni qabul qilib bo'lmasdi.
+
+Sabab arxitekturaviy: pulga tegadigan yagona qaror `bot/services.py` ichida yashagan, ya'ni **adapter biznes qoidasini egallab olgan** edi. Mantiq `cohorts/receipt_service.py` ga ko'chirildi (`source` parametri bilan), bot esa endi yupqa qobiq. Web yuzasi `/backoffice/receipts/` — sabab + tasdiqlash + audit, A2 mutation naqshi bo'yicha.
+
+Yo'lda saqlangan uch xususiyat: ruxsatsiz urinish ham auditga tushadi (pul qaroriga kim urinib ko'rgani ko'rinishi kerak), ikki marta tasdiqlash muddatni ikki marta uzaytirmaydi, rad etishda promo kod qaytadi.
+
+Nazorat yugurishi ikki qavat uchun: forma tekshiruvi chetlab o'tilganda 1 test, ruxsat tekshiruvi olib tashlanganda 2 test yiqildi.
+
+**Halol chegara:** yangi sahifa brauzerda ko'z bilan **ko'rilmadi** — pane lokal serverga ulana olmadi va owner-only sahifaga kirish uchun parol kerak. HTML darajasida tekshirildi (tugmalar, forma maydonlari, CSRF, chek ma'lumotlari, rasm havolasi). Owner sahifani ochib ko'rishi kerak.
+
+- Branch: `claude/receipt-approval-on-web` -> PR
+- Yangi: `cohorts/receipt_service.py`, `core/receipt_forms.py`, `templates/backoffice/receipts.html`, `core/test_receipt_decisions.py` (14 test). Tegilgan: `bot/services.py` (yupqa qobiqqa aylandi), `core/views.py`, `core/urls.py`, dashboard havolasi
+- Test holati: to'liq suite **1046/1046 OK** (skipped=24); `check --fail-level WARNING` 0 issue
+- Davom etilishi kerak: owner sahifani ko'rishi; tarif farqi (`PLAN_MATRIX`) hamon bo'sh — ya'ni hozir eng arzon tarif ham to'liq kirish beradi
+
+---
+
 ## 2026-09-04 [Claude Code]: "Faqat o'zgargan ustunni yoz" — blur nuqsonini butun kodda qidirish
 
 Blur hisoblagichi nuqsonidan keyin (PR #59) shu naqsh butun kod bo'ylab qidirildi: `obj.save()` ni **argumentsiz** chaqirish butun qatorni obyektdagi (ehtimol eskirgan) qiymatlar bilan qayta yozadi va parallel yozuvchining natijasini jimgina bosib ketadi.
