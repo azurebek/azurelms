@@ -16,6 +16,31 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-04 [Claude Code]: Mehmon demo chegarasi — tekshirish va band qilish bitta amalga birlashdi
+
+K11 dan qolgan oxirgi band. Oqim shunday edi: `if used >= LIMIT` tekshiruvi, keyin provider chaqiruvi, keyin hisoblagichni oshirish. Ikki savol bir vaqtda kelsa **ikkalasi ham** tekshiruvdan o'tardi — chegara 5 bo'lsa ham mehmon 6 ta bepul javob olardi.
+
+Endi slot chaqiruvdan **oldin** shartli `UPDATE` bilan band qilinadi (`demo_questions_used < LIMIT` filtri faqat bitta so'rovda mos keladi), provider yiqilsa esa slot qaytariladi — javob bermagan chaqiruv mehmonning bepul savolini yemasligi kerak.
+
+**Bugungi eng muhim saboq testda.** Parallel testni yozdim, u o'tdi. Nazorat yugurishida eski `check-then-act` kodni qaytardim — test **yana o'tdi**, ya'ni hech nimani isbotlamasdi. Sabab: default test bazasi shared-cache in-memory SQLite va u oqimlar orasidagi haqiqiy qulflash semantikasini ko'rsatmaydi. Aynan shu testni `AZURELMS_TEST_FILE_DB=1` bilan yugurtirganda esa haqiqat chiqdi:
+
+```
+AssertionError: 2 != 1 : [False, False, True, True]
+```
+
+Bitta slotdan ikkita savol o'tgan. Ya'ni nuqson ham, tuzatish ham real; faqat uni ko'rsatadigan sharoit kerak edi.
+
+Shuning uchun test `core.qa_support.skip_unless_file_backed_db` bilan defaultda **skip** bo'ladi — aynan `aicontrol/test_supply_concurrency.py` dagi naqsh. O'tib ketadigan, lekin hech nimani tekshirmaydigan test yo'qidan yomonroq: u yashil rang bilan yolg'on ishonch beradi.
+
+Bu bugungi ikkinchi holat — birinchisi blur hisoblagichi edi, u yerda ham birinchi test da'vosini emas, boshqa narsani tekshirgan edi.
+
+- Branch: `claude/guest-demo-limit-lease` -> PR
+- Yangi: `bot/test_guest_demo_limit.py` (5 test, biri fayl bazasini talab qiladi). Tegilgan: `bot/services.py`, `02-yol-xarita.md`
+- Test holati: to'liq suite **1026/1026 OK** (skipped=24); fayl bazasi bilan concurrency **14/14 OK**
+- K11: guest qismi yopildi. Ochiq qolgani — alohida OS processlari bilan takrorlash (joriy prooflar bitta process ichidagi oqimlar bilan)
+
+---
+
 ## 2026-09-03 [Claude Code]: K11 auditi — xavf ro'yxati bir narsani, kod boshqasini aytdi
 
 K11 riski shunday yozilgan edi: *"SmartForm/guest counterlari va lesson reindex batch'i uchun to'liq lease/claim yo'q, duplicate work oynasi qolishi mumkin"*. Qurishdan oldin o'lchab ko'rdim va holat **teskari** chiqdi.
