@@ -229,12 +229,23 @@ def handle_telegram_auth_token(token, telegram_user_id, first_name="", last_name
 
 
 def can_manage_cohort(user, cohort):
+    """Guruhni boshqarish huquqi — web bilan bir xil scope.
+
+    Ilgari bu yerda `is_active_staff(user)` yetarli edi, ya'ni **har qanday
+    faol staff har qanday guruhni** boshqara olardi: boshqa o'qituvchining
+    davomat sessiyasini ocha va yopa, guruhini chatga bog'lay olardi.
+
+    A0b/1 aynan shu default-allow'ni yopgan edi, lekin u yerda web paneli,
+    `/guruhlarim` va `/baholash` ko'chirilgan — bu yordamchi esa eski
+    qoidada qolib ketgan. Endi u ham `core/access.py` dagi canonical
+    scope'ni chaqiradi: superuser hammasini, qolgan har kim faqat o'ziga
+    instructor sifatida biriktirilgan kursning guruhini.
+    """
+    from core.access import teacher_cohort_queryset
+
     if not (user and user.is_active):
         return False
-    return bool(
-        is_active_staff(user)
-        or cohort.course.instructor_id == user.id
-    )
+    return teacher_cohort_queryset(user).filter(pk=cohort.pk).exists()
 
 
 def bind_chat_to_cohort(*, cohort_id, chat_id, chat_title, actor_telegram_id):
