@@ -54,6 +54,7 @@ class Command(BaseCommand):
         self.stdout.write(f"total_lessons={stats['total_lessons']}")
         self.stdout.write(f"indexed_lessons={stats['indexed_lessons']}")
         self.stdout.write(f"skipped_unchanged={stats['skipped_unchanged']}")
+        self.stdout.write(f"skipped_duplicate={stats['skipped_duplicate']}")
         self.stdout.write(f"cleared_lessons={stats['cleared_lessons']}")
         self.stdout.write(f"failed_lessons={stats['failed_lessons']}")
         self.stdout.write(f"total_chunks={stats['total_chunks']}")

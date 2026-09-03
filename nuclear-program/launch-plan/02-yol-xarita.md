@@ -164,7 +164,7 @@ Bu faza taqdimot scope'ida emas va R4 qaroridan keyin boshlanadi — ammo loyiha
 | K8 | AI yaxshi ko'rinadi, lekin o'qitmaydi | Structured outcome + teacher-authored eval + beta label |
 | K9 | SIT owner vaqtini core'dan tortadi | S2 faqat active core slice'ni siqmasa |
 | K10 | Reja statusi koddan oldinga o'tadi | Commit/test/browser evidence bo'lmasa `EVIDENCE READY` yo'q |
-| K11 | SQLite/PostgreSQL parallel reservation yoki caller counteri to'qnashadi | SQLite contention testi + `transaction_mode=IMMEDIATE`/WAL va CI PostgreSQL `FOR UPDATE` proofi yopilgan. Alohida OS-process takrori hamda SmartForm/guest/lesson-reindex lease/claim hali ochiq; guest muvaffaqiyat hisoblagichi PR #59 da atomik bo'ldi, limit check lease emas |
+| K11 | SQLite/PostgreSQL parallel reservation yoki caller counteri to'qnashadi | SQLite contention testi + `transaction_mode=IMMEDIATE`/WAL va CI PostgreSQL `FOR UPDATE` proofi yopilgan. **2026-09-03 auditi:** lesson-reindex va SmartForm uchun "duplicate work" xavfi aslida yo'q ekan — `embed_texts`/`execute_provider_call` supply kalitini kirish hash'idan quradi va `reserve_supply` takroriy kalitni tarmoqdan **oldin** rad etadi. Haqiqiy nuqson teskari edi: bu himoya `failed_lessons` va `xato` logi bo'lib ko'rinardi; PR #63 da u alohida `skipped_duplicate` holatiga ajratildi. **Ochiq qolgani:** guest demo limit tekshiruvi hamon check-then-act (hisoblagich PR #59 da atomik, lekin lease emas) va alohida OS-process takrori |
 | K12 | Temporary Gemini fallback eskiradi yoki quota profili o'zgaradi | 2.5 Lite hodisasi yopildi: model retired. Joriy temporary `gemini-3.5-flash-lite` va external quota profile owner monitoring/re-admissioniga bo'ysunadi |
 
 ## Asosiy metrikalar

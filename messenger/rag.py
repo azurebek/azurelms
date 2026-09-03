@@ -19,6 +19,7 @@ from aicontrol.supply import (
     fingerprint_request,
     reconcile_supply,
     reserve_supply,
+    SupplyDuplicate,
 )
 from cohorts.models import Enrollment, enrollment_active_access_q
 from courses.models import Course, Lesson, Module
@@ -764,6 +765,7 @@ def reindex_lessons(
         "total_lessons": 0,
         "indexed_lessons": 0,
         "skipped_unchanged": 0,
+        "skipped_duplicate": 0,
         "cleared_lessons": 0,
         "failed_lessons": 0,
         "total_chunks": 0,
@@ -849,6 +851,17 @@ def reindex_lessons(
 
             stats["indexed_lessons"] += 1
             stats["total_chunks"] += len(chunk_objects)
+        except SupplyDuplicate:
+            # Bu nosozlik emas, himoyaning ishlagani: shu dars uchun aynan
+            # shu kirish bugun allaqachon embed qilingan (yoki hozir boshqa
+            # yugurish uni bajaryapti). `reserve_supply` tarmoqqa chiqmasdan
+            # rad etadi. Ilgari bu `failed_lessons` ga tushib, operatorga
+            # "dars indekslanmadi" deb ko'rinardi va u qayta urinaverardi —
+            # holbuki qayta urinish kun oxirigacha hech qachon o'tmasdi.
+            stats["skipped_duplicate"] += 1
+            logger.info(
+                "RAG reindex skipped as duplicate for lesson_id=%s", lesson.id
+            )
         except Exception:
             stats["failed_lessons"] += 1
             logger.exception("RAG indexing failed for lesson_id=%s", lesson.id)
