@@ -406,6 +406,70 @@ def backoffice_landing(request):
 
 @login_required
 @user_passes_test(_is_backoffice_user)
+def backoffice_receipts(request):
+    """To'lov cheklarini web'dan tasdiqlash yoki rad etish.
+
+    Bu yuza yo'q edi va bo'shliq amaliy: Django admin default o'chiq
+    (`ENABLE_LEGACY_ADMIN=False`, `/admin/` → 404), backoffice esa kutayotgan
+    cheklarni faqat **ko'rsatardi**. Ya'ni chekni tasdiqlashning yagona yo'li
+    Telegram bot edi — bot ishlamasa yoki owner hisobi ulanmagan bo'lsa,
+    kelgan pulni qabul qilib bo'lmasdi.
+
+    Qaror mantig'i bu yerda emas: `cohorts/receipt_service.py` da, ya'ni bot
+    bilan bir xil ruxsat, audit va bildirishnoma ishlaydi.
+    """
+    from aicontrol.models import SystemAuditEvent
+    from cohorts.models import PaymentReceipt
+    from cohorts.receipt_service import reject_receipt, verify_receipt
+    from core.receipt_forms import ReceiptDecisionForm
+
+    if request.method == "POST":
+        form = ReceiptDecisionForm(request.POST)
+        if form.is_valid():
+            action = form.cleaned_data["action"]
+            reason = form.cleaned_data["change_reason"].strip()
+            decide = verify_receipt if action == ReceiptDecisionForm.ACTION_VERIFY else reject_receipt
+            decision = decide(
+                form.cleaned_data["receipt_id"],
+                request.user,
+                source=SystemAuditEvent.SOURCE_WEB,
+                reason=reason,
+                request=request,
+            )
+            if decision.ok:
+                messages.success(request, decision.message)
+            else:
+                messages.error(request, decision.message)
+        else:
+            messages.error(
+                request, "Sabab va tasdiqlash majburiy — qaror qabul qilinmadi."
+            )
+        return redirect("backoffice_receipts")
+
+    pending = (
+        PaymentReceipt.objects.filter(is_verified=False)
+        .select_related("enrollment__student", "enrollment__cohort__course", "enrollment__plan")
+        .order_by("submitted_at")
+    )
+    recent = (
+        PaymentReceipt.objects.filter(is_verified=True)
+        .select_related("enrollment__student", "enrollment__cohort__course")
+        .order_by("-submitted_at")[:10]
+    )
+    return render(
+        request,
+        "backoffice/receipts.html",
+        {
+            "pending_receipts": pending,
+            "recent_receipts": recent,
+            "form": ReceiptDecisionForm(),
+            "active_nav": "receipts",
+        },
+    )
+
+
+@login_required
+@user_passes_test(_is_backoffice_user)
 def backoffice_dashboard(request):
     today = timezone.localdate()
     week_start = today - timedelta(days=6)

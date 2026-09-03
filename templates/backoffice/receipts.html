@@ -1,0 +1,88 @@
+{% extends "backoffice/base.html" %}
+{% load static %}
+
+{% block bo_title %}To'lovlar{% endblock %}
+{% block bo_icon %}bi-cash-coin{% endblock %}
+{% block bo_topbar %}To'lov cheklari{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/brand-control.css' %}">{% endblock %}
+
+{% block bo_content %}
+<section class="brand-hero">
+  <div>
+    <span class="brand-kicker">TO'LOVLAR</span>
+    <h1>Tasdiq kutayotgan cheklar</h1>
+    <p>Chek tasdiqlangach obuna <strong>darhol faollashadi</strong> va o'quvchiga bildirishnoma ketadi. Rad etilgan chek o'chadi, band qilingan promokod esa bo'shatiladi. Har ikkala qaror sabab bilan audit tarixiga yoziladi.</p>
+  </div>
+</section>
+
+{% if pending_receipts %}
+<div class="brand-grid">
+  {% for receipt in pending_receipts %}
+  <section class="brand-card">
+    <header class="brand-card-head">
+      <h2>{{ receipt.enrollment.student.get_full_name|default:receipt.enrollment.student.username }}</h2>
+      <span class="brand-badge">#{{ receipt.id }}</span>
+    </header>
+
+    <dl class="brand-meta">
+      <div><dt>Kurs</dt><dd>{{ receipt.enrollment.cohort.course.title }}</dd></div>
+      <div><dt>Guruh</dt><dd>{{ receipt.enrollment.cohort.name }}</dd></div>
+      <div><dt>Tarif</dt><dd>{{ receipt.enrollment.plan.name|default:"—" }}</dd></div>
+      <div><dt>Summa</dt><dd><strong>{{ receipt.amount|floatformat:0 }} so'm</strong></dd></div>
+      {% if receipt.discount_amount %}
+      <div><dt>Chegirma</dt><dd>−{{ receipt.discount_amount|floatformat:0 }} so'm ({{ receipt.promo_code_snapshot }})</dd></div>
+      <div><dt>Asl narx</dt><dd>{{ receipt.base_amount|floatformat:0 }} so'm</dd></div>
+      {% endif %}
+      <div><dt>Yuborilgan</dt><dd>{{ receipt.submitted_at|date:"d.m.Y H:i" }}</dd></div>
+      {% if receipt.period_start %}
+      <div><dt>Davr</dt><dd>{{ receipt.period_start|date:"d.m.Y" }} — {{ receipt.period_end|date:"d.m.Y" }}</dd></div>
+      {% endif %}
+    </dl>
+
+    {% if receipt.receipt_image %}
+    <a class="brand-link" href="{% url 'cohorts:receipt_file' receipt.pk %}" target="_blank" rel="noopener">Chek rasmini ochish</a>
+    {% endif %}
+
+    <form method="post" class="brand-form">
+      {% csrf_token %}
+      <input type="hidden" name="receipt_id" value="{{ receipt.id }}">
+      <label class="brand-label" for="reason-{{ receipt.id }}">Qaror sababi</label>
+      <textarea class="brand-input" id="reason-{{ receipt.id }}" name="change_reason" rows="2" maxlength="240" required
+                placeholder="Masalan: bank ko'chirmasi mos keladi"></textarea>
+      <label class="brand-check">
+        <input type="checkbox" name="confirm_change" required>
+        Qarorni tasdiqlayman
+      </label>
+      <div class="brand-actions">
+        <button class="brand-btn" type="submit" name="action" value="verify">Tasdiqlash</button>
+        <button class="brand-btn brand-btn-danger" type="submit" name="action" value="reject">Rad etish</button>
+      </div>
+    </form>
+  </section>
+  {% endfor %}
+</div>
+{% else %}
+<section class="brand-card">
+  <p>Tasdiq kutayotgan chek yo'q.</p>
+</section>
+{% endif %}
+
+{% if recent_receipts %}
+<section class="brand-card">
+  <header class="brand-card-head"><h2>So'nggi tasdiqlanganlar</h2></header>
+  <table class="brand-table">
+    <thead><tr><th>O'quvchi</th><th>Kurs</th><th>Summa</th><th>Sana</th></tr></thead>
+    <tbody>
+      {% for receipt in recent_receipts %}
+      <tr>
+        <td>{{ receipt.enrollment.student.get_full_name|default:receipt.enrollment.student.username }}</td>
+        <td>{{ receipt.enrollment.cohort.course.title }}</td>
+        <td>{{ receipt.amount|floatformat:0 }} so'm</td>
+        <td>{{ receipt.submitted_at|date:"d.m.Y" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+{% endblock %}

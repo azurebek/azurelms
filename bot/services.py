@@ -1349,112 +1349,25 @@ def pending_receipts(limit=5):
 
 
 def verify_receipt(receipt_id, actor):
-    """Chekni tasdiqlash — PaymentReceipt.save() enrollmentni o'zi faollashtiradi."""
-    from cohorts.models import PaymentReceipt
+    """Telegram adapteri — qaror `cohorts/receipt_service.py` da.
 
+    Ilgari butun mantiq shu yerda edi, ya'ni pulga tegadigan yagona qaror
+    adapter ichida turardi va web tomonida umuman yo'q edi.
+    """
     from aicontrol.models import SystemAuditEvent
-    from core.audit import record_audit_event
+    from cohorts.receipt_service import verify_receipt as _verify
 
-    receipt = (
-        PaymentReceipt.objects.select_related(
-            "enrollment__student", "enrollment__cohort__course"
-        )
-        .filter(id=receipt_id)
-        .first()
-    )
-
-    if not is_active_staff(actor):
-        # Ruxsatsiz urinish ham izsiz qolmaydi: pulga tegadigan yagona qaror
-        # shu, va kim urinib ko'rgani ko'rinishi kerak (A2 / §3).
-        record_audit_event(
-            action="receipt.verify",
-            actor=actor if getattr(actor, "pk", None) else None,
-            source=SystemAuditEvent.SOURCE_BOT,
-            outcome=SystemAuditEvent.OUTCOME_DENIED,
-            target=receipt,
-            target_label=f"Chek #{receipt_id}",
-            error="Ruxsat yo'q.",
-        )
-        return ActionResult(ok=False, code="forbidden", message="Ruxsat yo'q.")
-    if not receipt:
-        return ActionResult(ok=False, code="missing", message="Chek topilmadi.")
-    if receipt.is_verified:
-        return ActionResult(ok=True, code="already", message="Bu chek allaqachon tasdiqlangan.")
-
-    enrollment_status_before = receipt.enrollment.status
-    with transaction.atomic():
-        receipt.is_verified = True
-        receipt.save()
-        receipt.enrollment.refresh_from_db()
-        record_audit_event(
-            action="receipt.verify",
-            actor=actor,
-            source=SystemAuditEvent.SOURCE_BOT,
-            target=receipt,
-            target_label=f"Chek #{receipt.id} — {receipt.enrollment.student.username}",
-            before={"is_verified": False, "enrollment_status": enrollment_status_before},
-            after={
-                "is_verified": True,
-                "enrollment_status": receipt.enrollment.status,
-                "amount": str(receipt.amount),
-            },
-        )
-
-    student = receipt.enrollment.student
-    course_title = receipt.enrollment.cohort.course.title
-    Notification.objects.create(
-        recipient=student,
-        title="To'lov tasdiqlandi ✅",
-        message=(
-            f"\"{course_title}\" kursi uchun {int(receipt.amount)} so'mlik to'lovingiz "
-            f"tasdiqlandi. Kursga kirish ochiq — omad!"
-        ),
-        icon="check-circle",
-        url=f"/courses/{receipt.enrollment.cohort.course_id}/",
-        category=Notification.CATEGORY_SUBSCRIPTION,
-    )
-    return ActionResult(
-        ok=True,
-        code="verified",
-        message=f"✅ Tasdiqlandi: {student_display_name(student)} — {course_title}",
-    )
+    decision = _verify(receipt_id, actor, source=SystemAuditEvent.SOURCE_BOT)
+    return ActionResult(ok=decision.ok, code=decision.code, message=decision.message)
 
 
 def reject_receipt(receipt_id, actor):
-    """Chekni rad etish — receipt o'chadi (promo band bo'lsa bo'shatiladi), userga xabar."""
-    from cohorts.models import PaymentReceipt
+    """Telegram adapteri — qaror `cohorts/receipt_service.py` da."""
+    from aicontrol.models import SystemAuditEvent
+    from cohorts.receipt_service import reject_receipt as _reject
 
-    if not is_active_staff(actor):
-        return ActionResult(ok=False, code="forbidden", message="Ruxsat yo'q.")
-    receipt = (
-        PaymentReceipt.objects.select_related(
-            "enrollment__student", "enrollment__cohort__course"
-        )
-        .filter(id=receipt_id, is_verified=False)
-        .first()
-    )
-    if not receipt:
-        return ActionResult(ok=False, code="missing", message="Chek topilmadi yoki allaqachon tasdiqlangan.")
-
-    student = receipt.enrollment.student
-    course_title = receipt.enrollment.cohort.course.title
-    receipt.delete()
-
-    Notification.objects.create(
-        recipient=student,
-        title="To'lov cheki rad etildi",
-        message=(
-            f"\"{course_title}\" kursi uchun yuborgan chekingiz qabul qilinmadi. "
-            f"To'lovni tekshirib, chekni qayta yuboring yoki administratorga murojaat qiling."
-        ),
-        icon="x-circle",
-        category=Notification.CATEGORY_SUBSCRIPTION,
-    )
-    return ActionResult(
-        ok=True,
-        code="rejected",
-        message=f"❌ Rad etildi: {student_display_name(student)} — {course_title}",
-    )
+    decision = _reject(receipt_id, actor, source=SystemAuditEvent.SOURCE_BOT)
+    return ActionResult(ok=decision.ok, code=decision.code, message=decision.message)
 
 
 # ================================================================ F8: Botda o'qish (dars-yetkazish)
