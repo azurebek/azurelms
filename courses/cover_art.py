@@ -69,9 +69,27 @@ def _split_title(title, max_lines=3, target_chars=16):
     return lines
 
 
+#: Matn uchun xavfsiz ichki kenglik (1200 canvas, ikki chetdan 100px).
+TITLE_MAX_WIDTH = 1000
+#: 800-og'irlikdagi sans shriftda belgi kengligi taxminan `0.62em`. Qiymat
+#: ataylab konservativ: data-URI SVG `<img>` sifatida yuklanganda tashqi
+#: shrift (`Manrope`) **umuman yuklanmaydi** va brauzer o'z sans fallback'ini
+#: qo'yadi, u esa kengroq. Aynan shu farq sabab hisob-kitob to'g'ri
+#: ko'ringan sarlavha ekranda kartadan chiqib ketardi.
+TITLE_CHAR_RATIO = 0.62
+TITLE_LETTER_SPACING = -3
+#: Bundan kichik shrift kartada o'qilmaydi. Shu polga yetgach kenglikni
+#: `textLength` kafolatlaydi.
+TITLE_MIN_FONT_SIZE = 46
+
+
+def _estimate_line_width(line, font_size):
+    return len(line) * (font_size * TITLE_CHAR_RATIO + TITLE_LETTER_SPACING)
+
+
 def _title_block(title, fill, stroke):
     lines = _split_title(title)
-    longest = max(len(line) for line in lines) if lines else 10
+    longest = max((len(line) for line in lines), default=10) or 1
     font_size = 112
     if len(lines) == 3:
         font_size = 96
@@ -80,20 +98,37 @@ def _title_block(title, fill, stroke):
     if longest > 24:
         font_size = 78
 
+    # Yuqoridagi zinapoya `78` da to'xtaydi va u satr **uzunligiga** qaraydi,
+    # natijaviy **kenglikka** emas. Oddiy uzun kurs nomi u bilan ham canvas'ga
+    # sig'adi (o'lchangan: eng uzun satr `1049px`), ammo `_split_title` faqat
+    # bo'sh joy bo'yicha bo'lgani uchun bitta uzun so'z bitta satr bo'lib
+    # qolaveradi va `3049px` gacha cho'ziladi. Shuning uchun shrift eng uzun
+    # satrga moslanadi.
+    fitted = (TITLE_MAX_WIDTH / longest - TITLE_LETTER_SPACING) / TITLE_CHAR_RATIO
+    font_size = int(max(TITLE_MIN_FONT_SIZE, min(font_size, fitted)))
+
     total_height = font_size * 1.05 * max(len(lines) - 1, 0)
     start_y = 565 - total_height / 2
     tspans = []
     for index, line in enumerate(lines):
         dy = 0 if index == 0 else font_size * 1.05
+        # Shrift poliga tushgan holatda taxmin yetarli emas — `textLength`
+        # kenglikni **kafolatlaydi**, chunki u shrift metrikasiga bog'liq
+        # emas. Faqat kerak bo'lganda qo'yiladi: aks holda qisqa sarlavha
+        # cho'zilib ketardi.
+        clamp = ""
+        if _estimate_line_width(line, font_size) > TITLE_MAX_WIDTH:
+            clamp = f' textLength="{TITLE_MAX_WIDTH}" lengthAdjust="spacingAndGlyphs"'
         tspans.append(
-            f'<tspan x="600" dy="{dy}" dominant-baseline="middle">{_escape(line)}</tspan>'
+            f'<tspan x="600" dy="{dy}" dominant-baseline="middle"{clamp}>'
+            f"{_escape(line)}</tspan>"
         )
 
     return (
         f'<text x="600" y="{start_y:.1f}" text-anchor="middle" fill="{fill}" '
         f'stroke="{stroke}" stroke-opacity="0.18" stroke-width="2" paint-order="stroke fill" '
         f'font-family="Manrope, Inter, Arial, sans-serif" font-size="{font_size}" '
-        f'font-weight="800" letter-spacing="-3">'
+        f'font-weight="800" letter-spacing="{TITLE_LETTER_SPACING}">'
         f'{"".join(tspans)}'
         "</text>"
     )
