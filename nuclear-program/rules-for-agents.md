@@ -372,9 +372,18 @@ gh api -X POST repos/azurebek/azurelms/branches/main/protection/enforce_admins
 
 CI job nomini o'zgartirsangiz, protection ham o'sha commitda yangilanishi shart — aks holda GitHub hech qachon kelmaydigan checkni kutadi va har qanday PR abadiy bloklanadi.
 
-### PR tayyorlash
+### PR tayyorlash va merge vakolati
 
-Merge'ni **Azurbek** hal qiladi. Agent tayyorlaydi:
+**Owner workflow qarori — 2026-09-03:** agent o'z prefiksidagi PR'ni quyidagi gate'lar bajarilgach alohida ruxsat so'ramasdan merge qiladi:
+
+- Uchala required check yashil
+- Review izohlari resolve qilingan
+- Branch `main` bilan yangilangan va conflict yo'q
+- Destructive migration, data-loss yoki secret/security anomaly yo'q
+
+Agent `--admin` ishlatmaydi, branch protection yoki required checkni bypass qilmaydi. Auto-merge mavjud bo'lsa ishlatadi; conflict, failed/missing check yoki yuqoridagi xavf signallarida merge qilmaydi va Azurbekka xabar beradi.
+
+Merge oldidan agent tayyorlaydi:
 
 - Branch push'lanagan
 - Test status (aniq command + natija)
@@ -603,7 +612,7 @@ Bunday hollarda Azurbek'ka aniq risk yoziladi.
 ### Human / Azurbek
 
 - Integration qarorini beradi
-- Main merge/push ruxsatini beradi
+- Scope va xavfli integratsiya qarorini beradi; odatiy yashil agent PR'lari uchun 2026-09-03 standing merge ruxsati amal qiladi (§9)
 - Agentlar conflict yoki duplicated effort bo'lsa final tanlovni qiladi
 
 ---

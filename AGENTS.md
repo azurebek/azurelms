@@ -53,6 +53,8 @@ git checkout -b <prefiks>/<task-name> origin/main
 
 > **2026-08-15 dan buyon bu qoida serverda majburlangan.** `main` branch protection ostida: to'g'ridan-to'g'ri push, force-push va branchni o'chirish rad etiladi — **Azurbek uchun ham** (`enforce_admins`). Yagona yo'l — PR, va CI ning uchala ishi yashil bo'lgach merge. Batafsil: [rules-for-agents.md §9](nuclear-program/rules-for-agents.md).
 
+> **Owner workflow qarori — 2026-09-03:** agent o'z prefiksidagi PR'ni required CI yashil, review izohlari resolve va branch `main` bilan yangilangan bo'lsa alohida merge ruxsati so'ramasdan merge qiladi. `--admin`/gate bypass taqiqlanadi; conflict, failed check, xavfli migration, data-loss yoki security anomaly bo'lsa agent to'xtab Azurbekka xabar beradi.
+
 ---
 
 ## Asosiy buyruqlar
@@ -76,7 +78,7 @@ python manage.py reindex_rag --force
 python manage.py runbot
 ```
 
-Tech stack qisqacha: Django 6.0.2 + Python (local venv 3.12.13, Dockerfile 3.12), Channels (ASGI), Celery, SQLite (joriy local) / PostgreSQL + pgvector (future prod), Gemini API (`google-genai 1.65`) + dormant DigitalOcean Serverless Inference adapteri, Aiogram 3.26.
+Tech stack qisqacha (2026-09-03 verified): Django 6.0.8 + Python (local venv 3.12.10, Dockerfile 3.12), Daphne 4.2.3 + Channels 4.3.2 (ASGI), Celery 5.6.2, SQLite (joriy local) / PostgreSQL + pgvector (future prod), Gemini API (`google-genai 1.65.0`) + dormant DigitalOcean Serverless Inference adapteri, Aiogram 3.30.0.
 
 2026-08-14 owner resurs qarori: production qayta ochilmaguncha DigitalOcean hosting/Spaces/inference ishlatilmaydi. Joriy local AI provider Gemini va uning bepul kvotasi hard engineering constraint; AI feature ishidan oldin `nuclear-program/launch-plan/README.md`dagi A8 budget gate'ini tekshiring.
 

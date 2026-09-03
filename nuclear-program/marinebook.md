@@ -16,6 +16,28 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-03 [Codex]: Yashil agent PR'lari uchun standing merge vakolati
+
+Azurbek odatiy merge'lar uchun qayta-qayta tasdiq so'ralmasligini belgiladi. Endi agent faqat o'z prefiksidagi, uchala required CI yashil, review izohlari yopilgan, `main` bilan yangilangan va conflictsiz PR'ni alohida so'ramasdan merge qiladi; `--admin` va branch-protection bypass taqiqlangan. Conflict, failed/missing check, destructive migration, data-loss yoki secret/security anomaly ownerga eskalatsiya qilinadi. Repository'da protected-branch gate'larini kutib merge qilish uchun auto-merge ham yoqildi.
+
+- Branch: `codex/docs-truth-sync`
+- Commit: `117fabb`
+- Tegilgan: `AGENTS.md`, `nuclear-program/rules-for-agents.md`
+- Test holati: docs-only `git diff --check` — toza
+- Davom etilishi kerak: yo'q; qoida barcha keyingi agent PR'lariga amal qiladi
+
+## 2026-09-03 [Codex]: Living docs main bilan qayta sinxronlandi
+
+Read-only audit `marinebook` yangilanayotganini, ammo `project-context.md` va launch status jadvallari turli sanalardagi haqiqatni aralashtirganini ko'rsatdi. Eng xavfli driftlar joriy fallback sifatida retired `gemini-2.5-flash-lite`ni ko'rsatish, `8s/20s` eski deadline, CI/`SystemAuditEvent`/heartbeat/`ReleaseRecord`/CSP v4 yo'q degan yopilgan da'volar, A3/A4 status zidligi va guest demo default-off holatini eskicha tasvirlash edi.
+
+Truth-sync joriy kod va merge qilingan PR daliliga tayandi: runtime Python 3.12.10, Django 6.0.8, Daphne 4.2.3, Channels 4.3.2, Celery 5.6.2, google-genai 1.65.0 va Aiogram 3.30.0; Gemini primary/fallback `3.1/3.5`, timeout/deadline `15s/35s`; SQLite va CI PostgreSQL prooflari yopilgan, K11 caller lease/claim ochiq. `project-context.md`ga canonical lesson-access, atomic XP, entitlement, audit/flags/cost va sample-content ownership xaritasi ham qo'shildi. Tarixiy test sonlari historical baseline deb belgilandi; joriy volatile dalil latest marinebook/PRga yo'naltirildi.
+
+- Branch: `codex/docs-truth-sync`
+- Commit: `76ce2b1`
+- Tegilgan: `AGENTS.md`, `project-context.md`, `telegram-bot-plan.md`, launch-plan README/strategiya/roadmap/backlog/ops va ikkita historical marinebook placeholder
+- Test holati: relative Markdown link scan — `MARKDOWN_LINKS_OK`; `git diff --check` — toza; env fayl/API keylar o'chirilgan `python manage.py check --fail-level WARNING` — 0 issue
+- Davom etilishi kerak: K11 code closeout alohida; A3 real/demo cohort, A4 `PLAN_MATRIX` va A5 uch qurilmali sign-off owner gate'lari
+
 ## 2026-09-03 [Claude Code]: `read-modify-write` auditi — blur hisoblagichi butun imtihon qatorini qayta yozardi
 
 PR #55 da XP uchun `award_xp()` qo'yib, "shu naqsh boshqa hisoblagichlarda ham bormi" degan bandni ochiq qoldirgandim. Shu audit bajarildi.
@@ -193,7 +215,7 @@ Iz uchun fayl emas, jadval tanlandi: iz aynan o'zi tavsiflayotgan baza bilan bir
 
 Nazorat yugurishi ikkala yo'nalish uchun: `_is_seeded` majburan `True` qilinganda qabul qilish testi yiqildi, `--wipe` yana nom bo'yicha o'chirganda esa saqlash testi yiqildi.
 
-- Commit: `<qo'shimcha commit>`; test: to'liq suite **965/965 OK** (skipped=23), drift yo'q
+- Commit: `9185f78`; test: to'liq suite **965/965 OK** (skipped=23), drift yo'q
 - **Lokal bazaga ta'siri:** avval seed qilingan yozuvlarda iz yo'q edi, ya'ni ular "begona" bo'lib qolgandi. Ular qo'lda olib tashlandi va qayta seed qilindi; endi 12 ta iz yozuvi bor (2 kurs, 2 guruh, 4 maqola, 4 teg)
 
 ## 2026-08-21 [Claude Code]: Typed entitlement — mexanizm meniki, matritsa ownerniki
@@ -2086,7 +2108,7 @@ Drift watchlist g'oyasi rad etildi (project-context.md doimiy ⚠️ note'lari v
 Maqsad: 3 ta AI IDE bilan parallel ishlashda chalkashlik kamaytirish, har yangi sessiyaning bootstrap token narxini 5000-10000'dan 500-1000 ga tushirish.
 
 - Branch: `main`
-- Commitlar: keyin qo'shiladi (bu yozuv bilan birga commit qilinadi)
+- Commit: `56e2aba` (ushbu tarixiy yozuvni yaratgan commit)
 - Test holati: 91/91 messenger + users yashil (oxirgi run)
 - Davom etilishi kerak: agentlar uchun worktree'larni sozlash (`git worktree add ../azurelms-claude claude/work` va h.k.)
 

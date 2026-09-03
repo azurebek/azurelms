@@ -47,22 +47,22 @@ APEX: sertifikatga tayyorlik + owner nazorati
 
 Bu natijalardan kamida biri real cohortda o'lchanmaguncha AI kurs narxini oshirishning mustaqil asosi emas. “Speaking/pronunciation coach”, “adaptiv mastery” va “ustoz ishini avtomatik kamaytiradi” kabi claimlar faqat tegishli structured flow va eval gate'dan keyin ochiladi.
 
-## 2026-08-14 source-of-truth snapshot
+## 2026-09-03 source-of-truth snapshot
 
 | Yo'nalish | Joriy holat | Keyingi gate |
 |---|---|---|
-| Local runtime | `LOCAL BOOT VERIFIED`: SQLite, LocMem/in-memory, eager Celery, local media; DO credential/service yo'q; post-A8 offline full suite 527/527 va audit 10/10 GREEN | Production gate alohida |
+| Local runtime | `LOCAL BOOT VERIFIED`: SQLite, LocMem/in-memory, eager Celery, local media; DO credential/service yo'q; eng so'nggi full suite dalili PR #59 da 1013/1013 (skipped=23) | Production gate alohida; test soni volatile, latest marinebook entry source of truth |
 | AI provider | Gemini primary; allowlistdagi 1 primary + max 1 fallback, SDK retry off, `429`da 1 attempt/cooldown | `A8` **`IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`**; PostgreSQL contention proofi CI'da yopildi, production admission alohida |
 | A0 security | A0a **va** A0b beshala slice kodda: teacher default-deny scope, upload MIME/magic-byte gate'i, private media, WebSocket access recheck, CSP v4 | `EVIDENCE READY` labeli owner qarorida |
 | A1 runtime/CI | A1a bajarildi: `.dockerignore`, `/healthz`+`/readyz`, backup/restore, outbox lease va `.github/workflows/ci.yml` (8 required check, PostgreSQL+Valkey ishi bilan) | A1b cloud deploy `HOLD`; bog'liqlik zaiflik qarzi reyestrda |
-| A2 Control Center | Read-only foundation, brand/landing/kill-switch/circuit-reset mutation surface'lari, append-only audit ledgeri, `WorkerHeartbeat` va `ReleaseRecord` bor | Umumiy feature flag registri va AI cost/quality release gate |
+| A2 Control Center | Capability registry, brand/landing/kill-switch/circuit-reset mutationlari, umumiy feature flags, append-only audit, `WorkerHeartbeat`, `ReleaseRecord`, backup/email/memory probe'lari va AI cost ledgeri bor | Qolgan yagona band — A9 AI quality/cost release gate |
 | Telegram | F0–F9, outbox va Mini App foundation bor | Local polling QA; webhook/public deploy `HOLD` |
 | Landing editor | Bosqich 1 + bo'lim navigatsiyasi bor | Repeatable ro'yxatlar faqat core gate'lardan keyin |
 | SIT | S1, S3 va S4 kodda; S2 yo'q | `SITInquiry` lifecycle; real data gigiyenasi |
 
 ## Rebaseline ustuvorligi
 
-1. **A8 closeout — `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`:** barcha joriy Gemini call-pathlari ledgerga ulangan; free-model allowlist, kunlik/minute request va kunlik token cap, one-fallback, idempotency va 429 cooldown ishlaydi. Ikki DB backenddagi contention proofi **yopildi** — SQLite yarmi `aicontrol/test_supply_concurrency.py` bilan, PostgreSQL yarmi CI `integration` ishi bilan. Joriy full suite 815/815 (skipped=16). Alohida OS processlari bilan takrorlash ochiq qolgan yagona band.
+1. **A8 closeout — `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`:** barcha joriy Gemini call-pathlari ledgerga ulangan; free-model allowlist, kunlik/minute request va kunlik token cap, one-fallback, idempotency va 429 cooldown ishlaydi. Ikki DB backenddagi contention proofi **yopildi** — SQLite yarmi `aicontrol/test_supply_concurrency.py` bilan, PostgreSQL yarmi CI `integration` ishi bilan. Eng so'nggi full suite dalili PR #59 da 1013/1013 (skipped=23). Alohida OS processlari va caller-specific guest/SmartForm/lesson-reindex lease/claim K11 sifatida ochiq.
 2. **A0b + vendor-neutral A1:** private media/upload/access; `.dockerignore`, CI, readiness va restore proof. Cloud xizmati shart emas.
 3. **A2 Control Center:** effective config, capability registry, flags/kill switches, event/audit ledger, health, AI quota va release gate.
 4. **Canonical oqimlar + mobil oltin yo'l:** enrollment, lesson lifecycle, access, submission/review va notificationlar shared policy/state machine orqali; real qurilma parity.
