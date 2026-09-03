@@ -16,6 +16,25 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-03 [Claude Code]: `pip-audit` tarmoq uzilishini zaiflik deb ko'rsatmaydi
+
+PR #54 da xavfsizlik ishi qizil bo'ldi. Sababi kodda emas edi: `pip-audit` PyPI advisory bazasiga chiqadi va o'sha chiqish `ConnectionResetError` bilan uzildi. Uchala tekshiruvdan ikkitasi yashil, bittasi tarmoq sababli qizil — natijada toza PR merge bo'lmay turdi.
+
+**Nozik joyi shundaki, exit kodiga qarab qayta urinib bo'lmaydi.** `pip-audit` zaiflik **topganda ham** nolga teng bo'lmagan kod qaytaradi. Ya'ni "yiqildi" o'zi "tarmoq uzildi" degani emas — aks holda qayta urinish haqiqiy topilmani ham yuvib yuborardi.
+
+Ajratuvchi belgi — hisobotning o'zi: JSON to'liq bo'lsa, natija haqiqiy va qayta urinish shart emas. Yaroqsiz yoki bo'sh bo'lsa — bu nosozlik. Shu mantiq bilan uch urinish qo'yildi.
+
+**Gate fail-closed bo'lib qoladi:** uch urinishdan keyin ham yaroqli hisobot bo'lmasa, ish qizil. Tarmoq uzilishi jimgina "zaiflik yo'q" ga aylanmaydi — bu eng muhim shart edi, chunki teskarisi xavfsizlik gate'ini bo'shatib qo'yardi.
+
+Workflow faylini unit test bilan qoplab bo'lmaydi, shuning uchun mantiq lokalda soxta `pip-audit` bilan uch stsenariyda yugurtirildi: muvaffaqiyat (bitta urinish, `exit=0`), zaiflik topilgan (qayta urinishsiz, `exit=0`, keyingi qadam baholaydi) va tarmoq uzilishi (uch urinish, `exit=1`). Uchalasi ham kutilgandek ishladi.
+
+Uchala required check nomi **o'zgarmadi** — fayldagi ogohlantirish aynan shu haqda: nom o'zgarsa GitHub hech qachon kelmaydigan checkni kutadi va har qanday PR abadiy bloklanadi.
+
+- Branch: `claude/ci-pip-audit-retry` → PR
+- Tegilgan: `.github/workflows/ci.yml` (faqat `pip-audit` qadami)
+- Test holati: workflow o'zgarishi — lokal suite'ga ta'sir qilmaydi; mantiq yuqoridagi uch stsenariyda tekshirildi. YAML tuzilishi va job nomlari tasdiqlandi
+- Davom etilishi kerak: yo'q
+
 ## 2026-09-03 [Claude Code]: Cover sarlavhasi — men aytgan nuqson yo'q ekan, boshqasi bor ekan
 
 **Avval tuzatish: 3-sentabr namuna kontent yozuvida "gradient cover sarlavhasi kartadan chiqib ketdi" deb yozgandim. Bu noto'g'ri.** Brauzerda o'lchab ko'rilganda eng uzun satr eski algoritmda ham `1049px` chiqdi — `1200px` canvas ichida bemalol sig'adi. O'sha xulosa skrinshotning **eskirgan kadriga** asoslangan ekan.
