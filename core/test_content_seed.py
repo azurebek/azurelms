@@ -107,13 +107,18 @@ class SeedContentTests(TestCase):
         for course in Course.objects.all():
             self.assertEqual(course.cover_mode, "gradient")
 
-    def test_cover_title_is_short_enough_not_to_overflow_the_card(self):
-        """Brauzerda topilgan nuqson.
+    def test_cover_title_is_short_enough_to_read_at_card_size(self):
+        """**Tuzatilgan da'vo.**
 
-        `cover_display_title` bo'sh `gradient_cover_title` da kurs nomiga
-        qaytadi, `courses/cover_art.py` esa uzun sarlavhani kenglikka
-        moslamaydi — matn kartadan chiqib ketdi. Bu yerda qisqa cover
-        sarlavhasi ataylab beriladi; asosiy nuqson cover_art'da qoladi.
+        Ilgari bu yerda "matn kartadan chiqib ketdi" deb yozilgandi. Keyin
+        brauzerda o'lchanganda ma'lum bo'ldiki, chiqmagan: eng uzun satr
+        `1049px` bo'lib `1200px` canvas ichida sig'adi. O'sha xulosa
+        skrinshotning eskirgan kadriga asoslangan edi.
+
+        Qisqa cover sarlavhasi baribir beriladi, lekin sababi boshqa:
+        kartadagi cover taxminan `318x128` ga siqiladi va uch satrli uzun
+        nom o'sha o'lchamda o'qilmaydi. Bu dizayn tanlovi, nuqson tuzatishi
+        emas.
         """
         seed_sample_content()
 

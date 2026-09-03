@@ -16,6 +16,27 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-03 [Claude Code]: Cover sarlavhasi — men aytgan nuqson yo'q ekan, boshqasi bor ekan
+
+**Avval tuzatish: 3-sentabr namuna kontent yozuvida "gradient cover sarlavhasi kartadan chiqib ketdi" deb yozgandim. Bu noto'g'ri.** Brauzerda o'lchab ko'rilganda eng uzun satr eski algoritmda ham `1049px` chiqdi — `1200px` canvas ichida bemalol sig'adi. O'sha xulosa skrinshotning **eskirgan kadriga** asoslangan ekan.
+
+Bu bugungi uchinchi holat: pane skrinshoti bir necha marta eski yoki yarim kompozit kadr qaytardi (sticky header ostidagi oq maydon, mavjud bo'lmagan ikki ustunli layout va shu). Saboq aniq: **skrinshot dalil emas, o'lchov dalil.** Sahifa haqidagi da'voni DOM'dan yoki `getComputedTextLength()` dan olish kerak.
+
+**Haqiqiy muammo o'lchov paytida topildi va u torroq.** `_split_title` faqat bo'sh joy bo'yicha bo'ladi, ya'ni bitta uzun so'z bitta satr bo'lib qolaveradi. `_title_block` esa shriftni zinapoya bilan tanlab `78` da to'xtardi va zinapoya satr **uzunligiga** qarardi, natijaviy **kenglikka** emas. 76 belgili bo'linmas so'z shu sababdan `3049px` chiqadi — canvas'dan ikki yarim barobar keng, matn qirqiladi va ikkala chetdan oqib ketadi.
+
+Tuzatish ikki qavatli: shrift eng uzun satrga moslanadi (`min` zinapoya bilan, `46` polida to'xtaydi), keyin taxmin yetmagan satrga `textLength` + `lengthAdjust="spacingAndGlyphs"` qo'yiladi. Ikkinchisi muhim, chunki cover data-URI SVG bo'lib `<img>` orqali yuklanadi — `Manrope` **umuman yuklanmaydi** va brauzer o'z fallback shriftini qo'yadi. Shrift metrikasiga tayangan har qanday taxmin shu yerda ishonchsiz; `textLength` esa metrikadan qat'i nazar kafolat beradi.
+
+O'lchangan natija: bo'linmas so'z eski kodda `3049px`, yangi kodda `1000px` ga qattiq cheklanadi. Oddiy uzun kurs nomi `1049px` dan `871px` ga tushdi — bu toshishni tuzatmaydi, chetgacha borib qolgan zaxirani kengaytiradi.
+
+`cover_art` da ilgari **bironta test yo'q edi**; endi 8 ta bor. Nazorat yugurishi ikki qavat uchun alohida: kenglikka moslash olib tashlanganda 1 test, `textLength` kafolati olib tashlanganda 2 test yiqildi.
+
+Yo'ldagi tuzatish: `core/test_content_seed.py` dagi noto'g'ri da'vo ham to'g'rilandi. Qisqa cover sarlavhasi baribir beriladi, lekin sababi boshqa — kartada cover `318x128` ga siqiladi va uch satrli uzun nom o'sha o'lchamda o'qilmaydi. Bu dizayn tanlovi, nuqson tuzatishi emas.
+
+- Branch: `claude/cover-art-title-fit` → PR
+- Yangi: `courses/test_cover_art_title.py` (8 test). Tegilgan: `courses/cover_art.py`, `core/test_content_seed.py`
+- Test holati: to'liq suite **1009/1009 OK** (skipped=23); migration drift yo'q; `check --fail-level WARNING` 0 issue
+- Davom etilishi kerak: `pip-audit` gate'i tarmoq uzilishida soxta qizil beradi (PR #54 da bir marta bo'ldi) — alohida band
+
 ## 2026-09-03 [Claude Code]: Mini App uchinchi adapter sifatida qulflandi — nuqson topilmadi, va bu ham natija
 
 A3 ning oxirgi agent bajara oladigan bandi: *"Mini App deep action parity"*.
