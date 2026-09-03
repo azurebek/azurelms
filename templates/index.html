@@ -36,7 +36,7 @@
 {% block extra_js %}<script defer src="{% static 'js/public.js' %}"></script>{% endblock %}
 
 {% block body %}
-<div style="min-height:100vh;background:var(--paper);color:var(--ink);overflow-x:hidden;">
+<div style="min-height:100vh;background:var(--paper);color:var(--ink);overflow-x:hidden;overflow-x:clip;">
 
   <!-- ====== FIXED RAIL ====== -->
   <aside data-rail style="position:fixed;top:0;left:0;width:264px;height:100vh;border-right:1px solid var(--line);background:color-mix(in srgb,var(--paper) 94%,transparent);backdrop-filter:blur(8px);z-index:40;">

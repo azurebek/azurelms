@@ -16,6 +16,31 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-03 [Claude Code]: Landingdagi ikkita scrollbar — CSS ning bir o'qi ikkinchisini o'zgartiradi
+
+Owner sahifani ochib "o'ng tarafda nega ikkita yonma-yon scroller bor" dedi. Codex tashxis qo'ygan edi; men uni **o'zim o'lchab** tasdiqladim, keyin tuzatdim.
+
+Sabab spetsifikatsiyadagi qoida: `overflow` ning bir o'qi `visible` bo'lmasa, ikkinchi o'qdagi `visible` **avtomatik `auto` ga aylanadi**. `templates/index.html` dagi asosiy wrapper faqat `overflow-x: hidden` deb yozgan edi, brauzer esa unga `overflow-y: auto` berdi — wrapper alohida scroll konteyneriga aylandi va sahifaning o'z scrollbari yonida yana bittasini chizdi.
+
+Brauzerda o'lchangan holat: `overflow-y: auto` (avtomatik), `scrollHeight 5914 > clientHeight 5898`, scrollbar kengligi **15px**.
+
+Yechim `overflow-x: clip` — u gorizontal chiqishni xuddi shunday yashiradi, lekin scroll konteyneri yaratmaydi. Jonli elementda sinab ko'rildi: `overflow-y` yana `visible` bo'ldi va 15px scrollbar yo'qoldi.
+
+`hidden` zaxira sifatida **oldinda** qoldirildi: `clip` ni tushunmaydigan eski Safari (< 16) uni saqlaydi va eski xulq bilan ishlaydi. Test tartibni ham tekshiradi — zaxira keyin tursa, u yangi brauzerda g'olib bo'lib qolardi.
+
+**Xuddi shu naqsh ikkinchi joyda ham bor, lekin u xavfsiz.** `static/css/sit.css` da `body{overflow-x:hidden}` yozilgan. Taxmin qilmasdan o'lchadim: SIT sahifasida `overflow-y` ham `auto` ga aylangan, ammo **ichki scrollbar yo'q** — chunki `body`/`html` dagi `overflow` viewport'ga o'tadi, yangi konteyner yaratmaydi. Shuning uchun u tegilmadi.
+
+Yo'lda: joriy dev server `--noreload` bilan ishga tushirilgani uchun shablon keshi yangilanmadi va o'zgarish jonli sahifada ko'rinmadi. Tekshiruv o'z jarayonimda render qilish orqali bajarildi; CSS xulqi esa jonli elementda alohida isbotlandi.
+
+Nazorat yugurishi: tuzatish olib tashlanganda 3 testdan 2 tasi yiqildi.
+
+- Branch: `claude/landing-double-scrollbar` -> PR
+- Yangi: `core/test_landing_scroll_container.py` (3 test). Tegilgan: `templates/index.html` (bitta qator)
+- Test holati: to'liq suite **1016/1016 OK** (skipped=23); `check --fail-level WARNING` 0 issue
+- Davom etilishi kerak: yo'q
+
+---
+
 ## 2026-09-03 [Claude Code]: Merge ruxsati usulni ham belgilaydi — auto-merge va repo sozlamasi unga kirmaydi
 
 Owner ikkala agentga bir xil doimiy ruxsat berdi: yashil PR'ni alohida so'ramay merge qilish. Ikkalamiz uni **boshqacha** talqin qildik va farq muhim chiqdi.
