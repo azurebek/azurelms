@@ -193,7 +193,7 @@ Iz uchun fayl emas, jadval tanlandi: iz aynan o'zi tavsiflayotgan baza bilan bir
 
 Nazorat yugurishi ikkala yo'nalish uchun: `_is_seeded` majburan `True` qilinganda qabul qilish testi yiqildi, `--wipe` yana nom bo'yicha o'chirganda esa saqlash testi yiqildi.
 
-- Commit: `<qo'shimcha commit>`; test: to'liq suite **965/965 OK** (skipped=23), drift yo'q
+- Commit: `9185f78`; test: to'liq suite **965/965 OK** (skipped=23), drift yo'q
 - **Lokal bazaga ta'siri:** avval seed qilingan yozuvlarda iz yo'q edi, ya'ni ular "begona" bo'lib qolgandi. Ular qo'lda olib tashlandi va qayta seed qilindi; endi 12 ta iz yozuvi bor (2 kurs, 2 guruh, 4 maqola, 4 teg)
 
 ## 2026-08-21 [Claude Code]: Typed entitlement — mexanizm meniki, matritsa ownerniki
@@ -2086,7 +2086,7 @@ Drift watchlist g'oyasi rad etildi (project-context.md doimiy ⚠️ note'lari v
 Maqsad: 3 ta AI IDE bilan parallel ishlashda chalkashlik kamaytirish, har yangi sessiyaning bootstrap token narxini 5000-10000'dan 500-1000 ga tushirish.
 
 - Branch: `main`
-- Commitlar: keyin qo'shiladi (bu yozuv bilan birga commit qilinadi)
+- Commit: `56e2aba` (ushbu tarixiy yozuvni yaratgan commit)
 - Test holati: 91/91 messenger + users yashil (oxirgi run)
 - Davom etilishi kerak: agentlar uchun worktree'larni sozlash (`git worktree add ../azurelms-claude claude/work` va h.k.)
 

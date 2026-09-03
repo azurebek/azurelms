@@ -14,7 +14,7 @@
 | Celery | `memory://` + eager | Worker/beat/outbox production heartbeati yo'q |
 | Media | local filesystem, `USE_S3=False` | Private object-storage policy hali qurilmagan |
 | Telegram | polling/local token | Public webhook va alohida outbox process `HOLD` |
-| AI | `AI_CHAT_PROVIDER=gemini`; DO key bo'sh; `AI_ALLOW_DIGITALOCEAN=False` | A8 global supply guard implement/test qilingan; real DB contention proof pending |
+| AI | `AI_CHAT_PROVIDER=gemini`; DO key bo'sh; `AI_ALLOW_DIGITALOCEAN=False` | A8 global supply guard implement/test qilingan; SQLite va CI PostgreSQL prooflari yopilgan, K11 caller lease/claim ochiq |
 
 `LOCAL_USE_REMOTE_SERVICES=False` DigitalOcean DB/cache/storage'ni o'chiradi, lekin Gemini API'ni o'chirmaydi. AI provider factory alohida fail-closed: DO faqat explicit `AI_ALLOW_DIGITALOCEAN=True` owner admissionida yaratiladi, noma'lum provider esa rad etiladi. `system_audit` local profil yoki AI supply stoplightini GREEN ko'rsatishi Google quota reachability, true concurrency yoki production readiness dalili emas.
 
@@ -91,7 +91,7 @@ Stoplight:
 
 **Joriy foundation (2026-08-19):** yuqoridagi 2026-08-14 xatboshisidan beri ochiq qolgan bandlarning aksariyati yopildi. Endi kodda: append-only `SystemAuditEvent` ledgeri (`core/audit.py` yagona yozish nuqtasi), AI kill switch (`/backoffice/control/ai-kill-switch/`), AI circuit cooldown tozalash (`/backoffice/control/ai-circuit-reset/`), bevosita o'lchanadigan `WorkerHeartbeat` va `ReleaseRecord` + migration drift detektori. **Hali ulanmagan:** AI quality/cost release gate (A9 ning ishi). *(Backup, email va memory probe'lari 2026-08-20 da qo'shildi — ular avval capability registrida umuman yo'q edi.)* *(Umumiy feature flag registri 2026-08-20 da qo'shildi: `core/flags.py` + `/backoffice/control/flags/`. Hozircha ikkita flag ulangan — ochiq ro'yxatdan o'tish va Telegram outbox; qolgan capabilitylar hamon flagsiz. Money cost ledgeri ham o'sha kuni: `core/ai_cost.py` + `/backoffice/control/ai-cost/`, narxlanmagan sarf nol deb yozilmaydi.)* `ReleaseRecord` modeli bor, ammo gate natijalari va deploy holatini yozadigan tomon A1b `HOLD` da qolgani uchun hali yo'q.
 
-**Joriy foundation (2026-08-14):** `/backoffice/control/` active superuser uchun read-only stoplight; brand va landing uchun reason+confirmation+`LogEntry`li tor mutation surface'lari bor. DB, cache, Channels, Celery config, Telegram outbox, media, AI provider/policy, RAG, security va release identity bitta snapshotdan olinadi; `system_audit` shu servis adapteri. AI probe endi free-tier mode, DO admission, supply enforcement, daily request/token va minute request used/limit/remaining, attempt/event counts hamda cooldownni xavfsiz ko'rsatadi; supply policy Django admin'da owner tomonidan boshqariladi, event/state esa read-only ko'riladi. Hali umumiy append-only audit, system-wide flags/kill switch, active worker heartbeat, `ReleaseRecord`, backup/email/memory va AI quality/cost release gate ulanmagan. Credential borligi AI supply sog'lom degani emas.
+**Historical foundation snapshot (2026-08-14):** `/backoffice/control/` active superuser uchun read-only stoplight; brand va landing uchun reason+confirmation+`LogEntry`li tor mutation surface'lari bor edi. DB, cache, Channels, Celery config, Telegram outbox, media, AI provider/policy, RAG, security va release identity bitta snapshotdan olinardi; `system_audit` shu servis adapteri. O'sha paytda umumiy append-only audit, system-wide flags/kill switch, active worker heartbeat, `ReleaseRecord`, backup/email/memory va AI quality/cost release gate ulanmagan edi. Yuqoridagi 2026-08-19/20 yozuvi keyingi implementatsiyalar bilan bu snapshotni supersede qiladi; credential borligi AI supply sog'lom degani emas.
 
 ## 3. Permission matrix va system audit
 
@@ -187,13 +187,13 @@ Schema o'zgarishlari: `aicontrol/migrations/0002_ai_supply_budget.py`, `messenge
 5. core enrollment, lesson, quiz, assignment, payment, messenger human flow va Telegram deterministic adapterlari ishlashda qoladi.
 
 - System instructions haqiqiy system-role'da; RAG/PDF/memory/submission typed untrusted context.
-- End-to-end hard deadline `20s`; maksimal `1 primary + 1 fallback` provider va targeted testlarda enforcement qilingan.
+- End-to-end hard deadline `35s` (request timeout `15s`); maksimal `1 primary + 1 fallback` provider va targeted testlarda enforcement qilingan.
 - Request boshida transactional reservation, yakunda actual usage reconciliation; usage yo'q bo'lsa konservativ estimate.
-- SQLite va PostgreSQL'dagi haqiqiy parallel process contention/transaction proof hali pending. SmartForm/guest counterlari va lesson reindex batch'i uchun to'liq concurrency lease/claim ham qurilmagan.
+- SQLite thread contention va CI PostgreSQL `FOR UPDATE` prooflari yopilgan. Alohida OS processlari bilan takrorlash hamda SmartForm/guest limit check'i va lesson reindex batch'i uchun to'liq concurrency lease/claim K11 sifatida ochiq; guestning muvaffaqiyat hisoblagichi PR #59 da atomik oshiriladigan bo'ldi.
 - Current Gemini adapterida vision unavailable; `image_qa` routing yoki upload primitive'i rasm tahlili capability'sini ochmaydi.
 - “Clear memory” archive emas: product copy, hard-delete/retention va trace/run redaction bir contractda.
 - Thresholdlar Control Center'da versionlanadi. Sample minimumiga yetmagan holat `PASS` emas, `INSUFFICIENT_DATA`.
-- Critical privacy/permission eval xatosi release'ni bloklaydi. Configured supply budget 80%da AMBER; 100%da RED, pre-network denial va degradatsiya. System-wide audited kill switch A2ning qolgan scope'i. “Bepul” cost=0 deb yozilmaydi — quota ham scarcity.
+- Critical privacy/permission eval xatosi release'ni bloklaydi. Configured supply budget 80%da AMBER; 100%da RED, pre-network denial va degradatsiya. System-wide audited kill switch implement/test qilingan; qolgan A2 bandi A9 quality/cost release gate. “Bepul” cost=0 deb yozilmaydi — quota ham scarcity.
 
 ## 7. QA matritsasi
 

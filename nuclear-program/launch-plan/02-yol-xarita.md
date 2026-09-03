@@ -6,7 +6,7 @@
 
 1. **Local-first:** `APP_ENV=local`, SQLite, LocMem/in-memory, eager Celery, local media va Telegram polling — joriy ish profili.
 2. **DigitalOcean `HOLD`:** kreditlar bekor qilingan. DO inference, App Platform, Managed DB/Valkey va Spaces production uchun yangi owner admission bo'lmaguncha chaqirilmaydi.
-3. **Gemini free-tier — hard constraint:** oddiy chat ham Gemini ishlatadi; u “faqat web search” emas. Global supply budget/circuit breaker implement/test qilingan, ammo real concurrent DB proof tugamaguncha yangi AI feature yoki ommaviy rollout boshlanmaydi.
+3. **Gemini free-tier — hard constraint:** oddiy chat ham Gemini ishlatadi; u “faqat web search” emas. Global supply budget/circuit breaker implement/test qilingan; SQLite va CI PostgreSQL contention prooflari yopilgan. Ommaviy rollout uchun production admission va ochiq K11 caller-specific lease/claim riski alohida gate.
 4. **Bitta active product slice:** agentlar test/UI/docs qismlarida parallel ishlashi mumkin, ammo bir paytda bitta canonical outcome o'zgaradi.
 5. **Adapter state yaratmaydi:** Web, Telegram, Mini App, Messenger, Celery va AI canonical Django service/policy'ni chaqiradi.
 6. **Evidence-first:** `EVIDENCE READY` bo'lmagan capability marketing claim, premium entitlement yoki production `GO` bo'lmaydi.
@@ -16,13 +16,13 @@
 
 | Soha | Tasdiqlangan holat | Ochiq gate |
 |---|---|---|
-| Repo/runtime | Joriy checkout local venv bilan ishlaydi; post-A8 offline full suite 527/527, streak focused 15/15 va audit 10/10 GREEN (2026-08-14) | Local GREEN production readiness emas; real DB contention va production gate alohida |
+| Repo/runtime | 2026-08-14 baseline: post-A8 offline full suite 527/527, streak focused 15/15 va audit 10/10 GREEN; latest recorded suite PR #59 da 1013/1013 | Local GREEN production readiness emas; production gate alohida |
 | DigitalOcean | Credential/service o'chiq; `AI_ALLOW_DIGITALOCEAN=False` provider yaratishdan oldin fail-closed | Future production uchun alohida owner admissioni va provider qayta bahosi |
-| Gemini | `AI_CHAT_PROVIDER=gemini`; allowlistdagi 1 primary + max 1 fallback; SDK retry off; prompt/output/timeout/deadline cap | A8 real-concurrency va external-quota monitoring evidence |
-| AI usage | Per-user allowance'dan alohida global daily request/token + minute request reservation ledgeri; staff, chat/search, SmartForm, guest va embedding/reindex qamralgan | SQLite/PostgreSQL real concurrent contention proof; caller-specific lease/counter risklari |
-| A0 | Telegram one-time auth, webhook fail-closed va inactive-staff denial kodda | Private media/upload, teacher default-deny, socket access recheck |
+| Gemini | `AI_CHAT_PROVIDER=gemini`; allowlistdagi 1 primary + max 1 fallback; SDK retry off; prompt/output/timeout/deadline cap | External-quota monitoring, K11 caller lease/claim va production admission |
+| AI usage | Per-user allowance'dan alohida global daily request/token + minute request reservation ledgeri; staff, chat/search, SmartForm, guest va embedding/reindex qamralgan; SQLite va CI PostgreSQL prooflari yopilgan | Alohida OS-process takrori; guest/SmartForm/lesson-reindex caller-specific lease/counter risklari (K11) |
+| A0 | A0a + A0b kod/testda: Telegram auth/webhook/staff, private media/upload, teacher default-deny, socket recheck va CSP v4 | `EVIDENCE READY` yakuniy labeli owner qarorida |
 | A1 | Procfile, CI, `.dockerignore`, `/healthz`+`/readyz`, backup/restore va outbox lease mavjud (A1a bajarildi) | cloud deploy `HOLD`; production restore proofi A1b bilan |
-| A2 | Read-only Control Center, brand/landing mutation surface'lari va Gemini supply stoplight/admin bor | Flags, release/audit va active heartbeat |
+| A2 | Control Center mutationlari, flags, append-only audit, heartbeat, release, backup/email/memory probe'lari va AI cost ledgeri bor | A9 AI quality/cost release gate |
 | Telegram | F0–F9, outbox, Mini App foundation | Public webhook/outbox process va real prod WebView — `HOLD` |
 | Landing | Admin-controlled landing + backoffice Bosqich 1/TOC | Repeatable CRUD/reorder va preview polish |
 | SIT | S1 portal, S3 advisor va S4 backoffice kodda | S2 `SITInquiry`; real source hygiene |
@@ -42,15 +42,15 @@ Oldingi 2026-07-22 rejasidagi `P0–P5` tarixiy rebaseline sifatida Git tarixida
 
 ## R0 — Gemini free-tier budget mode va haqiqat sinxroni (14–18 avgust)
 
-**Status:** backlog `A8` — **`IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`**. R0 production-concurrency closeout tugamaguncha keyingi AI behavior slice'i ochilmaydi.
+**Status:** backlog `A8` — **`IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`**. SQLite va CI PostgreSQL prooflari yopilgan; R0 dan ochiq qolgan K11 caller-specific lease/claim va alohida OS-process takrori production admissionidan oldin closeout qilinadi. Keyingi AI behavior baribir alohida owner admissionini talab qiladi.
 
 ### Implement qilingan scope
 
 - Barcha provider call turlarini bitta ledgerga kiritish: chat, web grounding, SmartForm extractor, Telegram guest demo, RAG va memory embedding, failed attempt.
 - Global kunlik va bir daqiqalik request hamda kunlik token hard cap; requestdan oldin transactional reservation, keyin actual usage reconciliation. Ledger DB xatosida fail-closed.
 - Staff/superuser ham global supply budgetga kiradi; per-user allowance alohida product policy bo'lib qoladi.
-- Free-mode model allowlist: stable/free-tier/cost-efficient primary `gemini-3.1-flash-lite` va vaqtinchalik fallback `gemini-2.5-flash-lite`; Pro/preview va boshqa model fan-out yopiq. 2.5 Lite uchun public shutdown e'lon qilinmagan; 2026-10-16 ichki remove/migrate review deadline.
-- Text request: output `640` token, prompt `12,000` belgi, timeout `8s`, deadline `20s`, maksimum `1 primary + 1 fallback`. Embedding: `64` input, input `8,000` belgi, batch `64,000` belgi, timeout `8s`, SDK retry off.
+- Free-mode model allowlist: stable/free-tier/cost-efficient primary `gemini-3.1-flash-lite` va vaqtinchalik fallback `gemini-3.5-flash-lite`; Pro/preview va boshqa model fan-out yopiq. `gemini-2.5-flash-lite` yangi chaqiruvlarda `404` bergani uchun retired va runtime'da rad etiladi.
+- Text request: output `640` token, prompt `12,000` belgi, timeout `15s`, deadline `35s`, maksimum `1 primary + 1 fallback`. Embedding: `64` input, input `8,000` belgi, batch `64,000` belgi, timeout `8s`, SDK retry off.
 - `429/quota/billing`da circuit breaker; cooldown davomida yangi provider request yo'q, deterministic yumshoq degradatsiya.
 - Local/pre-production profil `digitalocean` providerini env xatosi bilan tanlasa provider factory tarmoqdan oldin fail-closed, Control Center/audit RED; `manage.py check`ning o'zi startup gate emas. DO faqat owner HOLDni ochadigan explicit admission flag/policy bilan qaytadi.
 - Free-mode'da Google API grounding to'liq hard-off: explicit, medium/time-sensitive va legacy heavy intentlar specialist/tool request yaratmaydi; bitta plain 3.1 Lite chat va halol no-live-data degradatsiyasi ishlaydi. Paid/admitted rejim alohida ikki flag bilan ochiladi.
@@ -62,7 +62,7 @@ Oldingi 2026-07-22 rejasidagi `P0–P5` tarixiy rebaseline sifatida Git tarixida
 - Targeted mock/offline testlarda duplicate idempotency, reservation/reconciliation, missing usage konservativ charge, call-path accounting, `429 = 1 attempt`, non-quota fallback `≤2` va cooldown paytida yangi network call `0` tekshirilgan.
 - Free-mode'da Pro/preview model tanlovi clamp qilinadi, API grounding barcha effortlarda hard-off; guest demo ham default-off.
 - Budget/ledger xatosida core LMS, cache/lexical retrieval va human/Telegram deterministic oqimlari ishlashda qoladi; reindex yoki auxiliary AI yumshoq degradatsiya qiladi.
-- **Local evidence:** provider kalitlari/env-file loading o'chirilgan post-A8 full suite 527/527, focused streak 15/15, `manage.py check` 0 issue, migration drift yo'q va `system_audit` 10/10 GREEN.
+- **Historical local evidence (2026-08-14):** provider kalitlari/env-file loading o'chirilgan post-A8 full suite 527/527, focused streak 15/15, `manage.py check` 0 issue, migration drift yo'q va `system_audit` 10/10 GREEN. Latest recorded full suite PR #59 da 1013/1013; test soni uchun latest marinebook entry source of truth.
 - **SQLite contention proof (2026-08-15):** yozildi va real kamchilikni ochdi. `select_for_update()` SQLite'da no-op bo'lgani va Django `BEGIN DEFERRED` ishlatgani sabab 8 parallel rezervatsiyadan 7 tasi `database is locked` bilan yiqilardi (budjet overshooti emas, ammo har qanday parallellikda AI callning ishdan chiqishi). Yechim: local SQLite uchun `transaction_mode=IMMEDIATE` + `timeout` + WAL. Testlar `AZURELMS_TEST_FILE_DB=1` bilan fayl bazasida ishlaydi.
 - **Qolgan closeout (2026-08-15 da yopildi):** PostgreSQL contention/transaction testi. Yozilganda bu mashinada PG server yoki docker yo'q edi; A1a bilan kelgan GitHub Actions `integration` ishi endi to'liq suite'ni `pgvector/pgvector:pg16` konteynerida yugurtiradi, ya'ni PG yarmi CI'da bajariladi va birinchi yugurishdayoq real production xatosini topdi (nullable FK ustidagi `select_for_update()`). **Hamon ochiq:** alohida OS processlari bilan takrorlash.
 - **Qolgan operatsion risk:** SmartForm va guest counterlari hamda lesson reindex batch'lari uchun to'liq claim/lease yo'q; parallel workerda duplicate work oynasi qolishi mumkin.
@@ -164,8 +164,8 @@ Bu faza taqdimot scope'ida emas va R4 qaroridan keyin boshlanadi — ammo loyiha
 | K8 | AI yaxshi ko'rinadi, lekin o'qitmaydi | Structured outcome + teacher-authored eval + beta label |
 | K9 | SIT owner vaqtini core'dan tortadi | S2 faqat active core slice'ni siqmasa |
 | K10 | Reja statusi koddan oldinga o'tadi | Commit/test/browser evidence bo'lmasa `EVIDENCE READY` yo'q |
-| K11 | SQLite/PostgreSQL parallel reservation yoki caller counteri to'qnashadi | SQLite yarmi yopildi (2026-08-15): contention testi + `transaction_mode=IMMEDIATE`/WAL. PostgreSQL testi va SmartForm/guest/lesson-reindex lease/claim hali ochiq |
-| K12 | Temporary Gemini fallback eskiradi yoki quota profili o'zgaradi | `gemini-2.5-flash-lite` uchun announced shutdown yo'q; 2026-10-16 internal reviewda remove yoki yangi verified/admitted modelga migrate qarori |
+| K11 | SQLite/PostgreSQL parallel reservation yoki caller counteri to'qnashadi | SQLite contention testi + `transaction_mode=IMMEDIATE`/WAL va CI PostgreSQL `FOR UPDATE` proofi yopilgan. Alohida OS-process takrori hamda SmartForm/guest/lesson-reindex lease/claim hali ochiq; guest muvaffaqiyat hisoblagichi PR #59 da atomik bo'ldi, limit check lease emas |
+| K12 | Temporary Gemini fallback eskiradi yoki quota profili o'zgaradi | 2.5 Lite hodisasi yopildi: model retired. Joriy temporary `gemini-3.5-flash-lite` va external quota profile owner monitoring/re-admissioniga bo'ysunadi |
 
 ## Asosiy metrikalar
 

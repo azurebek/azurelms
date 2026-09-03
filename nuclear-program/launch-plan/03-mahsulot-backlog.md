@@ -10,7 +10,7 @@
 4. `NEXT` band faqat Azurbek admission berganda `ADMIT`ga o'tadi.
 5. Queue qarori: `ADMIT` / `NEXT` / `HOLD` / `CUT`. Execution holati: `PLANNED` / `IN PROGRESS` / `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` / `EVIDENCE READY` / `BLOCKED`.
 6. **Istisno — `S. SIT`:** owner qarori bilan A-narvoniga parallel yuritiladi (1-qoidadan ozod). Uning slice'lari o'zaro ketma-ket boradi va A bandlarini to'xtatmaydi; narxi — owner vaqtining bo'linishi (`S-R1`).
-7. **Joriy active closeout — `A5` owner sign-off'i (2026-08-21):** A2 ham yopildi (flag registri, cost ledgeri, backup/email/memory probe'lari va `restore_db --into` drill'i). A5 ning oltita texnik bandi ham yopildi; qolgani agent bajara olmaydigan qism — Android Chrome, iOS Safari va desktop Chrome'da uch qurilmali o'tish (mikrofon, upload, Mini App, dark/light). A8, A0b, A1a bajarildi; A2 da flag registridan boshqa hamma narsa kodda; A3/A4 slice'lari main'da. Yangi AI skill, bulk generation, `heavy` search yoki ommaviy AI beta hamon yo'q.
+7. **Joriy active closeout (2026-09-03):** A3 agent scope'i `IMPLEMENTED/TESTED`, qolgani ownerning real/demo cohort o'tishi. A5 ning oltita texnik bandi yopilgan, qolgani Android Chrome, iOS Safari va desktop Chrome'da uch qurilmali sign-off (mikrofon, upload, Mini App, dark/light). A4 da checkout slice'lari va typed entitlement kodda; qolgani owner `PLAN_MATRIX` qarori. A2 ning yagona ochiq bandi A9 AI quality/cost release gate. A8 K11 caller-specific lease/claim closeoutidan tashqari bajarilgan; yangi AI skill, bulk generation, `heavy` search yoki ommaviy AI beta hamon yo'q.
 
 ### Joriy status snapshot
 
@@ -22,7 +22,7 @@
 | A2 | `ADMIT` | `IMPLEMENTED/TESTED` | audit ledgeri, kill switch, circuit reset, heartbeat, `ReleaseRecord`, flag registri, cost ledgeri va backup/email/memory probe'lari kodda; **qolgan yagona band — AI quality/cost release gate, u esa A9 ning ishi** |
 | A8 | `ADMIT` | `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | supply guard kod/target/full testlarda; PostgreSQL contention proofi CI `integration` ishida yopildi, alohida OS processlari bilan takrorlash ochiq |
 | A3 | `ADMIT` | `IMPLEMENTED/TESTED` | to'rt slice + Codex auditidan kelgan to'rtta tuzatish + oltin oqim E2E va Mini App parity main'da; **qolgani — owner'ning real cohort bilan o'tishi** |
-| A4 | `ADMIT` | `IN PROGRESS` | to'rt slice main'da (checkout side-effect, yagona pending receipt, receipt binding, Telegram claim), 25 test; typed entitlement qolgan |
+| A4 | `ADMIT` | `IN PROGRESS` | to'rtta checkout slice + typed entitlement main'da; **qolgani ownerning `PLAN_MATRIX` narx/capability qarori** |
 | A5 | `ADMIT` | `IMPLEMENTED/TESTED` | oltita texnik band ham yopildi (messenger, dars, imtihon, checkout, attendance, reconnect) + shell tap targetlari; **qolgani faqat owner'ning uch qurilmadagi sign-off'i** |
 | S1/S3/S4 | `— delivered` | `EVIDENCE READY` | portal, grounded advisor va owner backoffice kodda |
 | S2 | `NEXT` | `PLANNED` | canonical inquiry lifecycle yo'q |
@@ -80,7 +80,7 @@
 - **2026-07-27 landing editor foundation:** `/backoffice/landing/` Bosqich 1 va bo'lim TOC/tab main'da; owner-only, reason+confirmation, `LogEntry` va no-op patterni. Repeatable CRUD/reorder, iframe preview, audit history/rollback hali `HOLD/NEXT`; A2 tugagan degani emas.
 - **Faza:** R1.
 
-### A3. Live Lesson Orchestrator — `IN PROGRESS`, `M contract + L adapters/UI`
+### A3. Live Lesson Orchestrator — `IMPLEMENTED/TESTED`, `M contract + L adapters/UI`
 
 - **Outcome:** Azurbek dars kunini ≤3 asosiy amalda boshqaradi; web/bot/Mini App bir xil state ko'rsatadi.
 - **Canonical state:** mega-state emas. `LessonRun` schedule/live/check-in, `LessonAccess` locked/released, `AssignmentLifecycle` open/submitted/reviewed alohida graph; orchestrator ularni owner flow'ida aggregate qiladi.

@@ -99,7 +99,7 @@ ovozli xabar) — hammasi chat-interfeysga yotadi.
 
 1. **Avtomatik** (har bosqich): servis testlari (mavjud `bot/tests.py` uslubi) + handler testlari
    soxta Telegram update bilan (tarmoqsiz). To'liq to'plam regressiya uchun.
-2. **Jonli** (Azurbek telefondan): polling (`run_bot.py`) — public URL kerak emas; test-guruh +
+2. **Jonli** (Azurbek telefondan): polling (`python manage.py runbot`) — public URL kerak emas; test-guruh +
    lokal debug ma'lumotlar (4-kohort, debug userlar). Kod → avtotest → "telefondan sinang" →
    DB'dan tasdiqlash sikli.
 3. **Token siyosati (2026-08-14):** joriy `@azureLMSbot` local/polling integratsiya uchun ishlatiladi. Alohida production bot, webhook va public Menu Button faqat production qayta admissionida ko'riladi.
@@ -108,7 +108,7 @@ ovozli xabar) — hammasi chat-interfeysga yotadi.
 ## Gemini free-tier siyosati
 
 - Bog'langan user botdan ham Messenger bilan bir canonical quota/budget gate'ni ishlatadi; alohida “bot AI” supply yo'q.
-- F2 guest demo hozir har qanday unlinked user uchun ochiq va faqat 5 savol bilan cheklangan; selected-user allowlist/kill switch **mavjud emas**. Direct provider call `AIResponseRun` ledgeriga to'liq kirmaydi. A8 acceptance guest AI'ni server-side allowlist/default-off qiladi yoki deterministic FAQ/1–2 bounded demoga almashtiradi; owner bungacha ommaviy bot reklamasini ochmaydi.
+- F2 guest demo A8 dan keyin **default-off** (`AISettings.guest_demo_enabled`) va global supply reservation/reconciliation ledgeriga ulangan; yoqilganda unlinked user uchun 5 muvaffaqiyatli savol bilan cheklanadi. Selected-user allowlist yo'q — rollout system-wide flag bilan boshqariladi. PR #59 hisoblagich oshishini `F()` bilan atomik qildi, ammo parallel check→provider→increment oralig'i lease emas; bu K11 closeout bandi.
 - `heavy` web search, Pro/preview model va retry fan-out botdan yoqilmaydi.
 - Budget/circuit ochiq bo'lsa bot core menu, kurs, payment, lesson, assignment/quiz va human handoffni AI'siz davom ettiradi.
 

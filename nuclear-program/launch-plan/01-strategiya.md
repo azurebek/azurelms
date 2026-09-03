@@ -140,7 +140,7 @@ Haqiqiy raqobat maydoni o'zgardi (model aniqlangach): biz "app bozori"da emas, *
 
 **Nega kuchli:** asosiy raqib (Telegram-guruh o'qituvchilari) uchun bu yetib bo'lmas tizim; o'quvchi/ota-ona uchun "jiddiy kurs" signali. **Bu launch'ning yadro va'dasi.**
 
-**Holat:** bloklar qurilgan (bot davomat, release, assignment, leaderboard) — ularni alohida state graphlar va bitta owner flow'iga bog'lash kerak (`03-backlog` A3 Live Lesson Orchestrator).
+**Holat (2026-09-03):** A3 agent scope'i `IMPLEMENTED/TESTED`: canonical attendance/release/access/submission/XP xizmatlari, web-bot-Mini App parity va avtomat golden-flow E2E main'da. `EVIDENCE READY` emas — owner real yoki demo cohort bilan jonli dars kunini boshdan-oxir o'tishi kerak.
 
 ### ⭐ IH-2. Azure AI — course-grounded yordamchidan natija loop'iga
 
@@ -150,7 +150,7 @@ Haqiqiy raqobat maydoni o'zgardi (model aniqlangach): biz "app bozori"da emas, *
 
 **Nega kuchli bo'lishi mumkin:** AI 24/7 chat bo'lgani uchun emas, learner correction rate'ni oshirsa yoki ustozning review vaqtini kamaytirsa. Har ikkisi real cohort KPI va eval bilan o'lchanadi.
 
-**Holat:** RAG/memory/chat, document flow va SIT advisor primitive'lari bor; image routing bor, lekin joriy providerda vision yo'q. Local primary Gemini; eski “maverick asosiy, Gemini faqat web search” arxitekturasi joriy envga mos emas. Structured mastery, stateful practice, teacher review, hard deadline va `A8/A9` supply-quality gate hali `PLANNED`. AI narx oshirishning mustaqil asosi emas.
+**Holat (2026-09-03):** RAG/memory/chat, document flow va SIT advisor primitive'lari bor; image routing bor, lekin joriy providerda vision yo'q. Local primary Gemini. A8 supply guard, `15s` request timeout/`35s` hard deadline, bounded fallback va cost ledger implement/test qilingan. Structured mastery/stateful practice/teacher outcome loop A6/A7 da, AI quality/cost release gate A9 da `PLANNED`; AI narx oshirishning mustaqil asosi emas.
 
 ### ⭐ IH-3. Milliy sertifikat mock-markazi (S1'ning yuragi)
 
