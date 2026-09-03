@@ -545,7 +545,11 @@ class PasswordUpdateView(LoginRequiredMixin, View):
             return redirect('settings_account')
 
         user.set_password(new_pass1)
-        user.save()
+        # Faqat parol yoziladi. `user.save()` argumentsiz butun qatorni
+        # yozardi, ya'ni parol o'zgartirilayotgan lahzada boshqa yo'l bergan
+        # XP (`users/xp.py::award_xp`) eskirgan nusxa bilan bosib ketilishi
+        # mumkin edi.
+        user.save(update_fields=["password"])
         update_session_auth_hash(request, user)
         messages.success(request, "Parol muvaffaqiyatli o'zgartirildi.")
         return redirect('settings_account')

@@ -1125,28 +1125,12 @@ class ExamAttempt(models.Model):
                 review.awarded_score = clamped_score
                 review.save(update_fields=['awarded_score', 'updated_at'])
 
-    def calculate_total_score(self):
-        """
-        Sums up the manual and auto-graded points from all related StudentAnswers,
-        determines if passed, and attempts certificate generation.
-        """
-        aggregation = self.answers.aggregate(total_score=Sum('awarded_score'))
-        total = aggregation['total_score'] or 0
-        
-        # Convert total raw score into percentage based on Exam max score (assuming sum of section max_scores)
-        exam_max = sum(sec.max_score for sec in self.exam.sections.all())
-        
-        if exam_max > 0:
-            percentage_score = (total / exam_max) * 100
-        else:
-            percentage_score = 0
-            
-        self.score = percentage_score
-        self.passed = self.score >= self.exam.passing_score
-        self.save()
-        
-        if self.passed:
-            self.check_and_issue_certificate()
+    # `calculate_total_score` shu yerda edi va olib tashlandi. Uni hech kim
+    # chaqirmasdi — jonli yo'l `finalize_review()`, u esa ballni `update_fields`
+    # bilan yozadi. O'lik nusxa esa `self.save()` ni argumentsiz chaqirar,
+    # ya'ni `ExamAttempt` ning **butun qatorini** eskirgan nusxadan qayta
+    # yozardi: `blur_warnings`, `is_completed`, `reviewed_by` va boshqalar
+    # bilan birga. Uni chaqirgan birinchi odam aynan shu nuqsonni qaytarardi.
 
     def submit_for_review(self, *, submitted_at=None):
         submitted_at = submitted_at or timezone.now()
