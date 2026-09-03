@@ -16,6 +16,16 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-03 [Codex]: Yashil agent PR'lari uchun standing merge vakolati
+
+Azurbek odatiy merge'lar uchun qayta-qayta tasdiq so'ralmasligini belgiladi. Endi agent faqat o'z prefiksidagi, uchala required CI yashil, review izohlari yopilgan, `main` bilan yangilangan va conflictsiz PR'ni alohida so'ramasdan merge qiladi; `--admin` va branch-protection bypass taqiqlangan. Conflict, failed/missing check, destructive migration, data-loss yoki secret/security anomaly ownerga eskalatsiya qilinadi. Repository'da protected-branch gate'larini kutib merge qilish uchun auto-merge ham yoqildi.
+
+- Branch: `codex/docs-truth-sync`
+- Commit: `117fabb`
+- Tegilgan: `AGENTS.md`, `nuclear-program/rules-for-agents.md`
+- Test holati: docs-only `git diff --check` — toza
+- Davom etilishi kerak: yo'q; qoida barcha keyingi agent PR'lariga amal qiladi
+
 ## 2026-09-03 [Codex]: Living docs main bilan qayta sinxronlandi
 
 Read-only audit `marinebook` yangilanayotganini, ammo `project-context.md` va launch status jadvallari turli sanalardagi haqiqatni aralashtirganini ko'rsatdi. Eng xavfli driftlar joriy fallback sifatida retired `gemini-2.5-flash-lite`ni ko'rsatish, `8s/20s` eski deadline, CI/`SystemAuditEvent`/heartbeat/`ReleaseRecord`/CSP v4 yo'q degan yopilgan da'volar, A3/A4 status zidligi va guest demo default-off holatini eskicha tasvirlash edi.
