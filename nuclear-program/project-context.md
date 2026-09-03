@@ -820,7 +820,7 @@ Mini App sahifalari `templates/bot/miniapp_base.html` mobil shellini ulashadi. T
 | `reindex_ai_memory` | messenger | memory facts embeddings reindex |
 | `generate_subscription_notifications` | users | subscription notification generation |
 | `seed_content [--wipe]` | core | owner tasdiqlagan superuser bilan idempotent sample kurs/maqola yaratish; `SeededRecord` egaligisiz begona yozuvni qabul qilmaydi/o'chirmaydi |
-| `backup_db` / `restore_db --into ...` | core | SQLite zaxira va ajratilgan targetga restore drill |
+| `backup_db` / `restore_db --input <backup> --into <target>` | core | SQLite zaxira va ajratilgan targetga restore drill |
 | `system_audit [--json] [--fail-on ...]` | core | Control Center capability snapshotini CLI'da tekshirish |
 
 ---
