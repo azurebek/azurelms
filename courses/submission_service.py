@@ -60,6 +60,16 @@ def submit_assignment(*, user, assignment, answer_text="", attachment=None):
             ok=False, code="no_access", message="Vazifa yuborish uchun faol obuna kerak."
         )
 
+    # Obuna — kurs darajasidagi ruxsat; u dars ochilganini bildirmaydi.
+    # Ilgari bu tekshiruv faqat sahifa ko'rsatishda bor edi, ya'ni yopiq
+    # darsning submit URL'iga to'g'ridan-to'g'ri POST ishlayverardi va bot
+    # tomonida `BotPendingAction` qulf o'zgargandan keyin ham amal qilardi.
+    from .access_service import check_lesson_access
+
+    access = check_lesson_access(user=user, lesson=assignment.lesson)
+    if not access.is_allowed:
+        return SubmissionResult(ok=False, code="locked", message=access.message)
+
     if attachment is not None:
         # Baytlar bo'yicha tekshiruv — model field validatori `save()` yo'lida
         # ishlamaydi, shuning uchun gate shu canonical servisda turadi va uni
@@ -111,6 +121,16 @@ def grade_quiz(*, user, quiz, answers):
     course_id = quiz.lesson.module.course_id if quiz.lesson_id else None
     if course_id and not has_course_access(user, course_id):
         return QuizGradeResult(ok=False, code="no_access", message="Kursga obuna bo'lmagansiz.")
+
+    # Dars qulfi — `submit_assignment` dagi bilan bir xil sabab. Imtihon
+    # bo'limiga tegishli quizda `lesson` yo'q, u alohida attempt lifecycle
+    # bilan boshqariladi, shuning uchun bu gate faqat dars quizlariga.
+    if quiz.lesson_id:
+        from .access_service import check_lesson_access
+
+        access = check_lesson_access(user=user, lesson=quiz.lesson)
+        if not access.is_allowed:
+            return QuizGradeResult(ok=False, code="locked", message=access.message)
     if not answers:
         return QuizGradeResult(ok=False, code="empty", message="Javoblar bo'sh.")
 
