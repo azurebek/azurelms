@@ -3,7 +3,7 @@
 O'qituvchi oqimi:
     /dars 1        → davomat sessiyasi ochiladi, "Darsga kirdim" tugmali post
     /dars tugadi   → sessiya yopiladi: ismli keldi/kech/kelmadi e'loni,
-                     kelmaganlarga DM ogohlantirish (bog'langanlarga)
+                     kelmaganlarga canonical Notification/TelegramOutbox
     /davomat       → joriy ochiq sessiya holati
 
 Eski buyruqlar (/start_lesson, /close_lesson) alias sifatida qoladi.
@@ -14,7 +14,6 @@ import html
 
 from aiogram import F, Router, types
 from aiogram.filters import Command, CommandObject
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from asgiref.sync import sync_to_async
 
 from bot.keyboards import attendance_checkin_markup
@@ -117,20 +116,10 @@ def render_close_announcement(session, summary, details):
     return "\n".join(lines)
 
 
-def render_absent_dm(session):
-    """Kelmagan o'quvchiga shaxsiy ogohlantirish matni."""
-    from django.conf import settings
-
-    lesson_url = (
-        f"https://{settings.APP_DOMAIN}/courses/{session.cohort.course_id}"
-        f"/lesson/{session.lesson_id}/"
-    )
-    return (
-        f"⚠️ <b>Darsni qoldirdingiz</b>\n\n"
-        f"{session.attendance_date.strftime('%d.%m.%Y')} kuni "
-        f"\"{html.escape(session.lesson.title)}\" darsida davomatga belgilanmadingiz.\n\n"
-        f"Mavzudan orqada qolmaslik uchun dars materialini ko'rib chiqing:\n{lesson_url}"
-    )
+# `render_absent_dm` shu yerda edi va olib tashlandi: kelmaganlarga xabar
+# endi canonical `Notification` → `TelegramOutbox` yo'li bilan yetadi, ya'ni
+# uni hech kim render qilmasdi. Ishlatilmaydigan renderer qolsa, kimdir uni
+# ko'rib bevosita DM'ni qaytarib ulaydi va dublikat qaytadi.
 
 
 # ---------------------------------------------------------------- handlers
@@ -255,30 +244,9 @@ async def _close_lesson(message):
         parse_mode=HTML_MODE,
     )
 
-    # Kelmaganlarga DM ogohlantirish (faqat botga /start bosgan bog'langan userlarga yetadi)
-    absent = (result.details or {}).get("absent", [])
-    dm_text = render_absent_dm(result.session)
-    dm_markup = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="📖 Darsni botda ochish",
-                    callback_data=f"ls:l:{result.session.lesson_id}",
-                )
-            ]
-        ]
-    )
-    for item in absent:
-        if not item.get("telegram_id"):
-            continue
-        try:
-            await message.bot.send_message(
-                item["telegram_id"], dm_text, parse_mode=HTML_MODE, reply_markup=dm_markup
-            )
-        except Exception:
-            # User botni ochmagan/bloklagan bo'lishi mumkin — jim o'tkazamiz,
-            # platforma-bildirishnoma baribir yozilgan (services._notify_absent_students).
-            pass
+    # Learner delivery `close_lesson_session()` ichida Notification sifatida
+    # yoziladi va signal orqali TelegramOutbox'ga tushadi. Bu adapterdan yana
+    # bevosita DM yuborish bir xil ogohlantirishni ikki marta yetkazardi.
 
 
 @router.callback_query(F.data.startswith(CHECKIN_CALLBACK_PREFIX))
