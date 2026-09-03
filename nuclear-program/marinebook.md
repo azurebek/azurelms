@@ -16,6 +16,46 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-03 [Claude Code]: Namuna kontent — `seed_demo` bor edi, lekin uni ko'rsatib bo'lmasdi
+
+Owner platformani ochib "bo'm-bo'sh ekan" dedi. Tekshirsam, rost: 0 kurs, 0 dars, 0 maqola, 1 foydalanuvchi (`admin`) va 3 tarif. `seed_demo` bor, ammo u boshqa maqsad uchun — sarlavhalari `[demo]` bilan belgilangan QA skeleti. U mobil probe uchun to'g'ri, birovga ko'rsatish uchun emas.
+
+**`seed_content`:** ikkita to'liq kurs (6 modul, 15 dars, 5 test, 5 vazifa), har kursga guruh va to'rtta nashr etilgan maqola. Matn haqiqiy o'quv materiali — turk alifbosi, unli uyg'unligi, hozirgi zamon; B1 tomonida ikkala o'tgan zamon, insho tuzilishi va imtihon strategiyasi.
+
+**Uchta ataylab qilinmagan narsa.** Narx qo'yilmadi — `Course.price` model defaultida qoldi, chunki qaysi kurs qancha turishi owner qarori (A4 dagi `PLAN_MATRIX` bilan bir xil naqsh). Soxta foydalanuvchi yaratilmadi — muallif mavjud superuser, yo'q bo'lsa buyruq nima qilish kerakligini aytib to'xtaydi. SIT katalogi to'ldirilmadi — S1 data gate'i qabul/narx ma'lumotini rasmiy manba va tekshiruv sanasisiz nashr qilishni taqiqlaydi, to'qib chiqarilgan universitet aynan o'sha qoidani buzardi.
+
+**Eng oson o'tkazib yuboriladigan tuzoq — release qatorlari.** `courses/views.py` drip rejimini **birorta** `CohortLessonRelease` qatori borligiga qarab yoqadi. Ya'ni "darslarni ochib qo'yaman" deb bitta qator yozsam, qolgan hammasi **yopilib** qolardi va katalog to'la ko'rinsa ham hech narsa ochilmasdi. Seed bironta qator yozmaydi; buni test qulflaydi.
+
+**Brauzer ikkita narsani ko'rsatdi, ikkalasini ham testlar ushlamagan edi.**
+
+Birinchisi — katalogda gradient cover sarlavhasi kartadan chiqib ketdi. Sabab `courses/cover_art.py` da: `cover_display_title` bo'sh `gradient_cover_title` da kurs nomiga qaytadi, `_title_block` esa satrni kenglikka moslamaydi — 3 satr chegarasi bor, font faqat ikki qadam kichrayadi va 78px da to'xtaydi. Ustiga, data-URI SVG ichida `Manrope` yuklanmaydi va tizim shrifti kengroq chiqadi. Seedda qisqa cover sarlavhasi berildi (buning uchun maxsus maydon bor). **Asosiy nuqson cover_art'da qoladi:** uzun kurs nomi yozgan va cover sarlavhasini bo'sh qoldirgan owner o'sha toshishni qayta oladi. Bu alohida task — u har mavjud kurs coverining renderini o'zgartiradi va o'z browser evidence'ini talab qiladi.
+
+Ikkinchisi — maqolalar 106-190 so'z chiqdi. O'qish vaqti 1 daqiqa bo'lib, blog kartochkasi "o'qishga arzimaydi" degan signal berardi. Matn 354-415 so'zga kengaytirildi va endi buni test tekshiradi.
+
+**Nazorat yugurishi uch da'vo uchun bajarildi** va har birida almashtirish soni oldindan tasdiqlandi (bu qoida oldingi ikki sessiyadan qolgan): maqola qoralama qilinganda, teg himoyasi (`posts__isnull=True`) olib tashlanganda va release qatori kiritilganda tegishli test yiqildi.
+
+**Bir eslatma:** qayta yugurtirish mavjud yozuvni **yangilamaydi** (`get_or_create`) — owner tahrirlagan matn jimgina ustidan yozilmasligi kerak. Moduldagi matn o'zgarsa `--wipe` va qayta seed kerak.
+
+- Branch: `claude/sample-content-seed`
+- Commit: `63f37ad`
+- Yangi: `core/content_seed.py`, `core/management/commands/seed_content.py`, `core/test_content_seed.py` (16 test). Migratsiya yo'q
+- Test holati: `python manage.py test` — **963/963 OK** (skipped=23); `makemigrations --check` — drift yo'q; `check --fail-level WARNING` — 0 issue
+- Brauzer: `/courses/`, `/blog/`, maqola va kurs sahifasi 799px va 375px da; overflow va console xato yo'q. Skrinshotdagi sticky header artefakti sahifa nuqsoni emas — DOM da `scrollY` va header `top` to'g'ri, `backdrop-filter` pane'ning skrinshot kompozitida buziladi
+- Davom etilishi kerak: (1) `cover_art` uzun sarlavha toshishi — alohida task; (2) kurslarda imtihon yo'q (`0 imtihon`), B1 kursida bu ayniqsa ko'rinadi — `seed_demo` dagi 5 bo'limli imtihon qurilishini qayta ishlatish mumkin, owner qarori kutiladi
+
+**Qo'shimcha (o'sha kuni, PR #53 review'idan keyin).** Codex reviewi P2 topilma berdi va u haq edi: men egalikni **sarlavha va slug** bo'yicha aniqlagandim. Ko'rsatiladigan identifikator esa egalik dalili emas — agar bazada aynan shu nomli **haqiqiy** kurs bo'lsa, `get_or_create` uni namuna deb qabul qilardi va `--wipe` uni modul, dars, imtihon va topshiriqlari bilan birga cascade'ga tushirardi.
+
+Diqqat qiladigan joyi: men teskari xavfni hujjatlashtirgandim ("owner nomni o'zgartirsa `--wipe` topa olmaydi") va uni qabul qilingan evaz deb yozgandim. Ikki yo'nalishning **xavflirog'ini** — ma'lumot yo'qolishini — ko'rmagan ekanman. Qolib ketgan yozuv bilan o'chib ketgan yozuv bir xil og'irlikda emas.
+
+Yechim: `core.SeededRecord` (yangi `core/models.py` va `core/migrations/0001_initial.py` — ilgari `core` da model yo'q edi). Seeder o'zi yaratgan har ildiz yozuvni (kurs, guruh, maqola, teg) belgilaydi; `--wipe` faqat izni ko'rgan yozuvni oladi. Nomi to'g'ri kelib qolgan begona yozuvni seeder **qabul qilmaydi** — `SampleContentError` bilan to'xtaydi va nima qilish kerakligini aytadi. Teg istisno: u umumiy resurs, shuning uchun mavjudini qayta ishlatadi va faqat o'zi yaratgan hamda egasiz qolganini o'chiradi.
+
+Iz uchun fayl emas, jadval tanlandi: iz aynan o'zi tavsiflayotgan baza bilan birga yashashi kerak — baza ko'chirilsa yonidagi JSON qolib ketardi.
+
+Nazorat yugurishi ikkala yo'nalish uchun: `_is_seeded` majburan `True` qilinganda qabul qilish testi yiqildi, `--wipe` yana nom bo'yicha o'chirganda esa saqlash testi yiqildi.
+
+- Commit: `<qo'shimcha commit>`; test: to'liq suite **965/965 OK** (skipped=23), drift yo'q
+- **Lokal bazaga ta'siri:** avval seed qilingan yozuvlarda iz yo'q edi, ya'ni ular "begona" bo'lib qolgandi. Ular qo'lda olib tashlandi va qayta seed qilindi; endi 12 ta iz yozuvi bor (2 kurs, 2 guruh, 4 maqola, 4 teg)
+
 ## 2026-08-21 [Claude Code]: Typed entitlement — mexanizm meniki, matritsa ownerniki
 
 A4 ning qolgan ikki bandi.
