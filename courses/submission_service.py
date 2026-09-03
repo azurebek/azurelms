@@ -192,8 +192,9 @@ def grade_quiz(*, user, quiz, answers):
     attempt.save()
 
     if awarded_xp > 0:
-        user.total_xp += awarded_xp
-        user.save(update_fields=["total_xp"])
+        from users.xp import award_xp
+
+        award_xp(user, awarded_xp)
 
     # Quizni yechish — malakali kunlik faollik.
     from users.streak import record_activity
@@ -260,9 +261,9 @@ def review_assignment_submission(
 
         xp_diff = new_xp - previous_xp
         if xp_diff:
-            student = submission.student
-            student.total_xp = max(0, student.total_xp + xp_diff)
-            student.save(update_fields=["total_xp"])
+            from users.xp import award_xp
+
+            award_xp(submission.student, xp_diff)
 
         record_audit_event(
             action="assignment.review",

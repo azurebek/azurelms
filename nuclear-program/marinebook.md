@@ -16,6 +16,34 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-03 [Claude Code]: Oltin oqim E2E — test yozilishi bilan XP yo'qolishini topdi
+
+A3 ning qolgan bandi: *"test cohortda end-to-end"* va *"adapter parity contract"*. Mavjud testlar oqimning **bo'laklarini** qamragan edi (davomat parity, sessiya atomikligi, dars release, grade→learner, checkout parity), ammo bitta o'quvchini boshidan oxirigacha olib o'tadigan yo'l yo'q edi.
+
+Farqi bor va u darhol ko'rindi. Bo'lak testlar har servis o'z ishini qilishini isbotlaydi; E2E test qadamlar **bir-biriga ulanishini** isbotlaydi. Aynan ulanishda nuqson chiqdi.
+
+**Topilma: XP `read-modify-write` bilan yozilardi va yo'qolardi.** Uch joyda bir xil naqsh bor edi (`cohorts/attendance_service.py`, `courses/submission_service.py` da ikki marta):
+
+```python
+user.total_xp = user.total_xp + delta
+user.save(update_fields=["total_xp"])
+```
+
+Qiymat Python xotirasidagi nusxadan o'qiladi va o'sha nusxa asosida qaytariladi. Bot bitta `lms_user` nusxasini bir necha servis chaqiruvi bo'ylab uzatadi — natijada o'qituvchi vazifani tasdiqlab **+25 XP** bergandan keyin quiz baholanganda jami XP `25` dan `20` ga **tushib** ketdi. Xato ham berilmadi, log ham qolmadi.
+
+Yechim — `users/xp.py::award_xp()`, yagona yozuv nuqtasi: qo'shish `F()` bilan bazada bajariladi, nol chegarasi `Greatest` bilan yana bazada qo'yiladi (aks holda uni ushlash uchun qayta o'qish kerak bo'lardi va muammo qaytardi). Uchala chaqiruvchi shunga o'tdi.
+
+**To'liq suite bitta xatoni ushladi va u qimmatli edi:** `type(user).objects` web'da yiqiladi, chunki `request.user` — `SimpleLazyObject`, ya'ni `type(user)` o'ram klassi. `get_user_model()` ga o'tildi. Faqat E2E va focused testlar bilan chegaralansam, buni o'tkazib yuborardim.
+
+E2E testning o'zi ham qoladi: `release → o'qish → vazifa → review → keyingi dars ochiladi → quiz → XP` yo'lini yurib chiqadi va **har qadamdan keyin ikkala adapterni so'roq qiladi** — web nima desa, bot ham shuni deyishi kerak, qulf sababi ham bir xil matn bo'lishi kerak. Qo'shimcha ikki teskari yo'nalish: release qaytarib olinsa ikkala yuza ham yopiladi; obuna tugasa kurs ikkala yuzada ham yopiladi va yozish rad etiladi.
+
+Nazorat yugurishi: eski `read-modify-write` qaytarilganda 10 testdan 4 tasi yiqildi.
+
+- Branch: `claude/a3-golden-flow-e2e` → PR
+- Yangi: `users/xp.py`, `users/test_xp_award.py` (7), `core/test_golden_flow_e2e.py` (3). Tegilgan: `cohorts/attendance_service.py`, `courses/submission_service.py`. Migratsiya yo'q
+- Test holati: to'liq suite **994/994 OK** (skipped=23); migration drift yo'q; `check --fail-level WARNING` 0 issue; `scan_secrets` toza
+- Davom etilishi kerak: A3 dan Mini App deep action parity qoldi. XP endi atomik, ammo `LessonProgress`/`Attendance` kabi boshqa hisoblagichlarda ham shu naqsh bor-yo'qligi alohida ko'rilmadi
+
 ## 2026-09-03 [Claude Code]: Codex auditining to'rtta topilmasi — hisobot emas, tekshirilgan tuzatish
 
 Codex A3 uchun uch yo'nalishda audit qilib, to'rtta nuqson topgan va limitiga urilgan. Owner ishni menga topshirdi. **Hech birini hisobot sifatida qabul qilmadim** — har birini kodda o'zim tasdiqladim, keyin tuzatdim; to'rttasi ham rost chiqdi.
