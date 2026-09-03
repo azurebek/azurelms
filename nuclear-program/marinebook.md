@@ -16,6 +16,18 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-03 [Codex]: Living docs main bilan qayta sinxronlandi
+
+Read-only audit `marinebook` yangilanayotganini, ammo `project-context.md` va launch status jadvallari turli sanalardagi haqiqatni aralashtirganini ko'rsatdi. Eng xavfli driftlar joriy fallback sifatida retired `gemini-2.5-flash-lite`ni ko'rsatish, `8s/20s` eski deadline, CI/`SystemAuditEvent`/heartbeat/`ReleaseRecord`/CSP v4 yo'q degan yopilgan da'volar, A3/A4 status zidligi va guest demo default-off holatini eskicha tasvirlash edi.
+
+Truth-sync joriy kod va merge qilingan PR daliliga tayandi: runtime Python 3.12.10, Django 6.0.8, Daphne 4.2.3, Channels 4.3.2, Celery 5.6.2, google-genai 1.65.0 va Aiogram 3.30.0; Gemini primary/fallback `3.1/3.5`, timeout/deadline `15s/35s`; SQLite va CI PostgreSQL prooflari yopilgan, K11 caller lease/claim ochiq. `project-context.md`ga canonical lesson-access, atomic XP, entitlement, audit/flags/cost va sample-content ownership xaritasi ham qo'shildi. Tarixiy test sonlari historical baseline deb belgilandi; joriy volatile dalil latest marinebook/PRga yo'naltirildi.
+
+- Branch: `codex/docs-truth-sync`
+- Commit: `76ce2b1`
+- Tegilgan: `AGENTS.md`, `project-context.md`, `telegram-bot-plan.md`, launch-plan README/strategiya/roadmap/backlog/ops va ikkita historical marinebook placeholder
+- Test holati: relative Markdown link scan — `MARKDOWN_LINKS_OK`; `git diff --check` — toza; env fayl/API keylar o'chirilgan `python manage.py check --fail-level WARNING` — 0 issue
+- Davom etilishi kerak: K11 code closeout alohida; A3 real/demo cohort, A4 `PLAN_MATRIX` va A5 uch qurilmali sign-off owner gate'lari
+
 ## 2026-09-03 [Claude Code]: `read-modify-write` auditi — blur hisoblagichi butun imtihon qatorini qayta yozardi
 
 PR #55 da XP uchun `award_xp()` qo'yib, "shu naqsh boshqa hisoblagichlarda ham bormi" degan bandni ochiq qoldirgandim. Shu audit bajarildi.
