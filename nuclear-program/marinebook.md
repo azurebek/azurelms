@@ -43,6 +43,19 @@ Ikkinchisi — maqolalar 106-190 so'z chiqdi. O'qish vaqti 1 daqiqa bo'lib, blog
 - Brauzer: `/courses/`, `/blog/`, maqola va kurs sahifasi 799px va 375px da; overflow va console xato yo'q. Skrinshotdagi sticky header artefakti sahifa nuqsoni emas — DOM da `scrollY` va header `top` to'g'ri, `backdrop-filter` pane'ning skrinshot kompozitida buziladi
 - Davom etilishi kerak: (1) `cover_art` uzun sarlavha toshishi — alohida task; (2) kurslarda imtihon yo'q (`0 imtihon`), B1 kursida bu ayniqsa ko'rinadi — `seed_demo` dagi 5 bo'limli imtihon qurilishini qayta ishlatish mumkin, owner qarori kutiladi
 
+**Qo'shimcha (o'sha kuni, PR #53 review'idan keyin).** Codex reviewi P2 topilma berdi va u haq edi: men egalikni **sarlavha va slug** bo'yicha aniqlagandim. Ko'rsatiladigan identifikator esa egalik dalili emas — agar bazada aynan shu nomli **haqiqiy** kurs bo'lsa, `get_or_create` uni namuna deb qabul qilardi va `--wipe` uni modul, dars, imtihon va topshiriqlari bilan birga cascade'ga tushirardi.
+
+Diqqat qiladigan joyi: men teskari xavfni hujjatlashtirgandim ("owner nomni o'zgartirsa `--wipe` topa olmaydi") va uni qabul qilingan evaz deb yozgandim. Ikki yo'nalishning **xavflirog'ini** — ma'lumot yo'qolishini — ko'rmagan ekanman. Qolib ketgan yozuv bilan o'chib ketgan yozuv bir xil og'irlikda emas.
+
+Yechim: `core.SeededRecord` (yangi `core/models.py` va `core/migrations/0001_initial.py` — ilgari `core` da model yo'q edi). Seeder o'zi yaratgan har ildiz yozuvni (kurs, guruh, maqola, teg) belgilaydi; `--wipe` faqat izni ko'rgan yozuvni oladi. Nomi to'g'ri kelib qolgan begona yozuvni seeder **qabul qilmaydi** — `SampleContentError` bilan to'xtaydi va nima qilish kerakligini aytadi. Teg istisno: u umumiy resurs, shuning uchun mavjudini qayta ishlatadi va faqat o'zi yaratgan hamda egasiz qolganini o'chiradi.
+
+Iz uchun fayl emas, jadval tanlandi: iz aynan o'zi tavsiflayotgan baza bilan birga yashashi kerak — baza ko'chirilsa yonidagi JSON qolib ketardi.
+
+Nazorat yugurishi ikkala yo'nalish uchun: `_is_seeded` majburan `True` qilinganda qabul qilish testi yiqildi, `--wipe` yana nom bo'yicha o'chirganda esa saqlash testi yiqildi.
+
+- Commit: `<qo'shimcha commit>`; test: to'liq suite **965/965 OK** (skipped=23), drift yo'q
+- **Lokal bazaga ta'siri:** avval seed qilingan yozuvlarda iz yo'q edi, ya'ni ular "begona" bo'lib qolgandi. Ular qo'lda olib tashlandi va qayta seed qilindi; endi 12 ta iz yozuvi bor (2 kurs, 2 guruh, 4 maqola, 4 teg)
+
 ## 2026-08-21 [Claude Code]: Typed entitlement — mexanizm meniki, matritsa ownerniki
 
 A4 ning qolgan ikki bandi.

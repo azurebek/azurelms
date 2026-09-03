@@ -13,11 +13,14 @@ To'rtta qoida butun modulni belgilaydi:
 
 1. **Faqat lokal.** Buyruq `settings.IS_LOCAL` ni tekshiradi. Namuna kontent
    haqiqiy katalogga tushsa, o'quvchi qaysi kurs rost ekanini ajrata olmaydi.
-2. **Sarlavhada belgi yo'q.** `demo_seed` dan farqi shu: `[demo]` prefiksi
-   ekranda ko'rinadi va taqdimotni buzadi. Shuning uchun yozuvlar quyidagi
-   ro'yxatlardagi **aynan o'z nomi/slug'i** bo'yicha tanib olinadi. Evazi bor
-   va uni yashirmaymiz: owner sarlavhani tahrirlasa, `--wipe` o'sha yozuvni
-   topa olmaydi va uni qo'lda o'chirish kerak bo'ladi.
+2. **Sarlavhada belgi yo'q, egalik esa alohida yozib boriladi.** `demo_seed`
+   dan farqi shu: `[demo]` prefiksi ekranda ko'rinadi va taqdimotni buzadi.
+   Ammo ko'rsatiladigan identifikator (sarlavha, slug) **egalik dalili emas** —
+   shu nomli haqiqiy kurs bazada bo'lishi mumkin. Shuning uchun seeder o'zi
+   yaratgan har ildiz yozuvni `core.SeededRecord` bilan belgilaydi:
+   `--wipe` faqat o'sha izni ko'rgan yozuvni oladi, boshqasiga tegmaydi.
+   Nomi to'g'ri kelib qolgan begona yozuv qabul ham qilinmaydi — seeder
+   `SampleContentError` bilan to'xtaydi va nima qilish kerakligini aytadi.
 3. **Narx qo'yilmaydi.** `Course.price` model defaultida (0) qoladi — qaysi
    kurs qancha turishi owner qarori (`rules-for-agents.md`: pricing agentga
    o'tmaydi). Joriy shablonlarda kurs narxi ko'rsatilmaydi ham; checkout
@@ -43,6 +46,7 @@ from django.utils import timezone
 
 from blog.models import BlogPost, BlogTag
 from cohorts.models import Cohort
+from core.models import SeededRecord
 from courses.models import (
     Assignment, Choice, Course, Lesson, Module, Question, Quiz,
 )
@@ -955,6 +959,56 @@ def _seed_quiz(lesson, spec):
     return quiz
 
 
+def _label(model):
+    return f"{model._meta.app_label}.{model.__name__}"
+
+
+def _mark_seeded(obj):
+    """Yozuvni "buni seeder yaratdi" deb belgilaydi."""
+    SeededRecord.objects.get_or_create(
+        model_label=_label(type(obj)), object_id=obj.pk
+    )
+
+
+def _seeded_ids(model):
+    return set(
+        SeededRecord.objects.filter(model_label=_label(model)).values_list(
+            "object_id", flat=True
+        )
+    )
+
+
+def _is_seeded(obj):
+    return SeededRecord.objects.filter(
+        model_label=_label(type(obj)), object_id=obj.pk
+    ).exists()
+
+
+def _get_or_create_owned(model, lookup, defaults, what):
+    """Faqat seeder yaratgan yozuvni qayta ishlatadi.
+
+    Ko'rsatiladigan identifikator (sarlavha, slug) **egalik dalili emas**.
+    Agar shu nomli yozuv bazada bor, lekin uni seeder yaratmagan bo'lsa —
+    u ownerniki. Uni jimgina "namuna" deb qabul qilish ikki tomondan
+    xavfli: seed unga o'z modul/darslarini qo'shib qo'yardi, `--wipe` esa
+    uni cascade bilan o'chirib yuborardi.
+    """
+    existing = model.objects.filter(**lookup).first()
+    if existing is not None:
+        if not _is_seeded(existing):
+            raise SampleContentError(
+                f"{what}: bazada shu nom bilan seeder yaratmagan yozuv bor "
+                f"(id={existing.pk}). U ownerniki deb hisoblanadi va tegilmaydi. "
+                "Namuna kontentni yuklash uchun avval o'sha yozuvni qayta "
+                "nomlang yoki moduldagi nomni o'zgartiring."
+            )
+        return existing, False
+
+    obj = model.objects.create(**lookup, **defaults)
+    _mark_seeded(obj)
+    return obj, True
+
+
 @transaction.atomic
 def seed_sample_content():
     """Kurs, dars, test, vazifa, guruh va maqolalarni yaratadi. Idempotent."""
@@ -963,9 +1017,10 @@ def seed_sample_content():
     courses = []
     lesson_count = 0
     for course_spec in COURSES:
-        course, _ = Course.objects.get_or_create(
-            title=course_spec["title"],
-            defaults={
+        course, _ = _get_or_create_owned(
+            Course,
+            {"title": course_spec["title"]},
+            {
                 "description": course_spec["description"],
                 "instructor": author,
                 "level": course_spec["level"],
@@ -978,6 +1033,7 @@ def seed_sample_content():
                 "gradient_cover_title": course_spec["gradient_cover_title"],
                 "gradient_cover_label": course_spec["gradient_cover_label"],
             },
+            what=f"Kurs «{course_spec['title']}»",
         )
         courses.append(course)
 
@@ -1014,10 +1070,10 @@ def seed_sample_content():
                 if quiz_spec:
                     _seed_quiz(lesson, quiz_spec)
 
-        Cohort.objects.get_or_create(
-            name=course_spec["cohort"],
-            course=course,
-            defaults={
+        _get_or_create_owned(
+            Cohort,
+            {"name": course_spec["cohort"], "course": course},
+            {
                 "start_date": timezone.localdate()
                 + datetime.timedelta(days=course_spec["cohort_starts_in_days"]),
                 "is_active": True,
@@ -1028,15 +1084,25 @@ def seed_sample_content():
                     course=course, is_checkout_default=True
                 ).exists(),
             },
+            what=f"Guruh «{course_spec['cohort']}»",
         )
 
-    tags = {name: BlogTag.objects.get_or_create(name=name)[0] for name in TAGS}
+    # Teg — ataylab umumiy resurs: owner o'z maqolasida ishlatgan bo'lsa,
+    # uni qayta ishlatish to'g'ri. Shuning uchun bu yerda rad etish yo'q,
+    # faqat o'zimiz yaratganini belgilaymiz — `--wipe` shunga qaraydi.
+    tags = {}
+    for name in TAGS:
+        tag, created = BlogTag.objects.get_or_create(name=name)
+        if created:
+            _mark_seeded(tag)
+        tags[name] = tag
 
     posts = []
     for article in ARTICLES:
-        post, created = BlogPost.objects.get_or_create(
-            slug=article["slug"],
-            defaults={
+        post, created = _get_or_create_owned(
+            BlogPost,
+            {"slug": article["slug"]},
+            {
                 "title": article["title"],
                 "author": author,
                 "body": article["body"],
@@ -1045,6 +1111,7 @@ def seed_sample_content():
                 "featured": article.get("featured", False),
                 "status": BlogPost.STATUS_PUBLISHED,
             },
+            what=f"Maqola «{article['slug']}»",
         )
         if created:
             post.tags.set([tags[name] for name in article["tags"]])
@@ -1060,17 +1127,34 @@ def seed_sample_content():
 
 @transaction.atomic
 def wipe_sample_content():
-    """Faqat yuqoridagi ro'yxatlarda nomlangan yozuvlarni oladi.
+    """Faqat seeder **o'zi yaratgan** yozuvlarni oladi.
+
+    Sarlavha yoki slug bo'yicha o'chirish xavfli edi: shu nomli haqiqiy kurs
+    modul, dars va imtihoni bilan birga cascade'ga tushardi. Endi manba —
+    `SeededRecord` izi.
 
     Tartib muhim: `Cohort.course` PROTECT bilan bog'langan, ya'ni kursni
     guruhidan oldin o'chirib bo'lmaydi.
     """
-    course_titles = [spec["title"] for spec in COURSES]
-    cohort_names = [spec["cohort"] for spec in COURSES]
+    for model in (Cohort, Course, BlogPost):
+        ids = _seeded_ids(model)
+        if not ids:
+            continue
+        model.objects.filter(pk__in=ids).delete()
+        SeededRecord.objects.filter(
+            model_label=_label(model), object_id__in=ids
+        ).delete()
 
-    Cohort.objects.filter(name__in=cohort_names, course__title__in=course_titles).delete()
-    Course.objects.filter(title__in=course_titles).delete()
-    BlogPost.objects.filter(slug__in=[article["slug"] for article in ARTICLES]).delete()
-    # Teglar faqat egasiz qolgani o'chiriladi: owner ularni o'z maqolasiga
-    # ishlatgan bo'lishi mumkin.
-    BlogTag.objects.filter(name__in=TAGS, posts__isnull=True).delete()
+    # Teg umumiy resurs: seeder yaratgan bo'lsa ham, owner uni o'z maqolasiga
+    # ilgan bo'lsa qoladi.
+    tag_ids = _seeded_ids(BlogTag)
+    if tag_ids:
+        orphan_ids = set(
+            BlogTag.objects.filter(pk__in=tag_ids, posts__isnull=True).values_list(
+                "pk", flat=True
+            )
+        )
+        BlogTag.objects.filter(pk__in=orphan_ids).delete()
+        SeededRecord.objects.filter(
+            model_label=_label(BlogTag), object_id__in=orphan_ids
+        ).delete()

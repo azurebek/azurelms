@@ -187,6 +187,46 @@ class WipeTests(TestCase):
         self.assertFalse(Cohort.objects.exists())
         self.assertFalse(BlogPost.objects.exists())
 
+    def test_a_real_record_with_the_same_title_is_not_adopted(self):
+        """PR #53 Codex reviewining topilmasi.
+
+        Sarlavha egalik dalili emas. Ilgari `get_or_create` shu nomli
+        haqiqiy kursni "namuna" deb qabul qilardi va `--wipe` uni modul,
+        dars va imtihoni bilan birga cascade'ga tushirardi.
+        """
+        clash = Course.objects.create(
+            title=COURSES[0]["title"],
+            description="Ownerning haqiqiy kursi",
+            level="beginner",
+        )
+        module = Module.objects.create(course=clash, title="Ownerning moduli", order=1)
+
+        with self.assertRaises(SampleContentError) as caught:
+            seed_sample_content()
+
+        self.assertIn("seeder yaratmagan", str(caught.exception))
+        clash.refresh_from_db()
+        self.assertEqual(clash.description, "Ownerning haqiqiy kursi")
+        self.assertTrue(Module.objects.filter(pk=module.pk).exists())
+
+    def test_wipe_never_touches_a_same_titled_record_it_did_not_create(self):
+        """Rad etish ishlamay qolsa ham, tozalash uni o'chirmasligi kerak."""
+        clash = Course.objects.create(
+            title=COURSES[0]["title"], description="Ownerniki", level="beginner"
+        )
+        clash_post = BlogPost.objects.create(
+            title="Ownerning maqolasi",
+            slug=ARTICLES[0]["slug"],
+            author=self.owner,
+            body="<p>tegilmasin</p>",
+            status=BlogPost.STATUS_PUBLISHED,
+        )
+
+        wipe_sample_content()
+
+        self.assertTrue(Course.objects.filter(pk=clash.pk).exists())
+        self.assertTrue(BlogPost.objects.filter(pk=clash_post.pk).exists())
+
     def test_wipe_leaves_real_data_alone(self):
         """Eng muhim da'vo: tozalash faqat o'zi yaratganini oladi."""
         real_course = Course.objects.create(
