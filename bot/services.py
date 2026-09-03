@@ -824,10 +824,23 @@ def guest_demo_answer(
             message="Hozir javob bera olmadim — birozdan so'ng qayta urinib ko'ring.",
         )
 
-    guest.demo_questions_used += 1
+    # Hisoblagich bazada oshiriladi: ilgari ikki parallel savol bir xil
+    # qiymatni o'qib, bir xil natijani yozardi va bittasi **yo'qolardi**.
+    #
+    # Halol chegara: bu tekshirish-va-yozishni serializatsiya qilmaydi.
+    # Yuqoridagi limit tekshiruvi (787-qator) hamon alohida o'qishga tayanadi,
+    # ya'ni tez ketma-ket kelgan savollar chegaradan bittasini o'tkazib
+    # yuborishi mumkin. To'liq yechim lease/claim talab qiladi va u
+    # `02-yol-xarita.md` dagi `K11` da ochiq band bo'lib qoladi.
+    from django.db.models import F
+
+    BotGuest.objects.filter(pk=guest.pk).update(
+        demo_questions_used=F("demo_questions_used") + 1
+    )
+    guest.refresh_from_db(fields=["demo_questions_used"])
     if telegram_username and guest.telegram_username != telegram_username:
         guest.telegram_username = telegram_username
-    guest.save(update_fields=["demo_questions_used", "telegram_username", "updated_at"])
+        guest.save(update_fields=["telegram_username", "updated_at"])
 
     return GuestDemoResult(
         ok=True,
