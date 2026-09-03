@@ -391,8 +391,10 @@ Ruxsat **usulni ham belgilaydi.** Auto-merge ishlatilmaydi: agent checklar tugas
 gh pr checks <N> --watch                  # uchala check tugashini kutasiz
 gh pr view <N> --json mergeStateStatus    # CLEAN bo'lishi kerak
 gh pr merge <N> --merge                   # merge commit — repo tarixi shunday
-git switch main && git pull --ff-only origin main
+git fetch origin                          # `origin/main` yangilanadi
 ```
+
+Lokal `main` ni ham yangilash kerak bo'lsa, **worktree tartibiga qarang** (§3): bitta worktree'da ishlasangiz `git switch main && git pull --ff-only origin main`; ko'p worktree'li tartibda `main` integratsiya papkasida band bo'ladi va bu buyruq `branch 'main' is already checked out` bilan yiqiladi — u holda `git -C <main-worktree> pull --ff-only`. `git fetch origin` esa har ikkala tartibda ishlaydi, shuning uchun majburiy qadam faqat o'sha.
 
 Merge'dan oldin review thread'lar ham tekshiriladi. Avtomatik reviewer (`chatgpt-codex-connector`) izoh qoldirgan bo'lsa, topilmani halol baholang: rost bo'lsa tuzating, keyin thread'ga javob yozib resolve qiling. Hal qilinmagan topilmani "tozalash uchun" resolve qilish mumkin emas.
 
