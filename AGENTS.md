@@ -53,6 +53,8 @@ git checkout -b <prefiks>/<task-name> origin/main
 
 > **2026-08-15 dan buyon bu qoida serverda majburlangan.** `main` branch protection ostida: to'g'ridan-to'g'ri push, force-push va branchni o'chirish rad etiladi — **Azurbek uchun ham** (`enforce_admins`). Yagona yo'l — PR, va CI ning uchala ishi yashil bo'lgach merge. Batafsil: [rules-for-agents.md §9](nuclear-program/rules-for-agents.md).
 
+> **Owner workflow qarori — 2026-09-03:** agent o'z prefiksidagi PR'ni required CI yashil, review izohlari resolve va branch `main` bilan yangilangan bo'lsa alohida merge ruxsati so'ramasdan merge qiladi. `--admin`/gate bypass taqiqlanadi; conflict, failed check, xavfli migration, data-loss yoki security anomaly bo'lsa agent to'xtab Azurbekka xabar beradi.
+
 ---
 
 ## Asosiy buyruqlar
