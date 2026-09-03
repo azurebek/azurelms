@@ -16,6 +16,27 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-03 [Claude Code]: Mini App uchinchi adapter sifatida qulflandi — nuqson topilmadi, va bu ham natija
+
+A3 ning oxirgi agent bajara oladigan bandi: *"Mini App deep action parity"*.
+
+**Avval audit, keyin xulosa.** Mini App'ning o'zi kutilganidan yaxshi holatda chiqdi: `initData` imzosi va muddati tekshiriladi, hisob `is_active` bo'lishi shart, ulanmagan Telegram hisob sessiya olmaydi, `safe_next_path` open-redirect'ni yopadi, hamma sahifa `@login_required`. Ma'lumot ham canonical — `users.views.build_student_enrollments` qayta ishlatiladi, dublikat hisob yo'q.
+
+**Frame masalasi ham to'g'ri yechilgan ekan.** Men bu yerda nuqson kutgandim: Mini App sahifalari `xframe_options_exempt`, lekin uning asosiy amali — "Davom ettirish" tugmasi — platforma sahifasiga olib boradi, ya'ni WebView ichida `X-Frame-Options: DENY` uni bloklashi mumkin edi. Tekshirsam, `TelegramMiniAppFrameMiddleware` **sessiya bo'yicha** ishlaydi (yo'l bo'yicha emas), ya'ni Mini App sessiyasidagi har sahifa to'g'ri header oladi. `core/test_csp.py` buni allaqachon platforma sahifasida sinaydi.
+
+**Shunda nima qoldi?** Sinalmagan yagona da'vo: Mini App sessiyasi golden flow amallarida web bilan **bir xil** javob beradimi. Bu bo'shliq nazariy emas — sessiyada `telegram_miniapp` bayrog'i bor va u allaqachon middleware xulqini o'zgartiradi. Kelajakda kimdir uni "ishonchli Telegram sessiyasi" deb talqin qilib, ruxsat qarorini unga bog'lashi mumkin.
+
+`bot/test_miniapp_parity.py` shu yo'lni oldindan yopadi: ochiq dars ochiladi, yopiq dars **rad etiladi**, yopiq vazifa topshirilmaydi, deaktivatsiya qilingan hisob sessiya olmaydi, bayroq oddiy login'ga ko'chmaydi. Eng muhimi — bir xil foydalanuvchi, bir xil to'rtta URL: web sessiyasi va Mini App sessiyasi status kodlari **teng** bo'lishi kerak.
+
+**Nuqson topilmadi va bu ham natija.** Lekin o'tib ketgan test o'zi hech nimani isbotlamaydi, shuning uchun nazorat yugurishi ikki yo'nalishda qilindi: `miniapp_auth` dan `is_active` olib tashlanganda va Mini App bayrog'i dars qulfini ochadigan qilinganda 7 testdan 3 tasi yiqildi. Ya'ni shartnoma haqiqatan qulflangan.
+
+Backlog statusi ham yangilandi: A3 `IN PROGRESS` → `IMPLEMENTED/TESTED`. Ataylab `EVIDENCE READY` emas — avtomat E2E kodni tekshiradi, jonli dars kunini emas. Qolgan qism owner'niki: real yoki demo cohort bilan boshdan-oxir o'tish.
+
+- Branch: `claude/a3-miniapp-parity-contract` → PR
+- Yangi: `bot/test_miniapp_parity.py` (7 test). Tegilgan: `nuclear-program/launch-plan/03-mahsulot-backlog.md`. **Ishlab chiqarish kodi o'zgarmadi** — bu slice mavjud xulqni qulflaydi
+- Test holati: to'liq suite **1001/1001 OK** (skipped=23); migration drift yo'q; `check --fail-level WARNING` 0 issue
+- Davom etilishi kerak: A3 uchun owner o'tishi. Ikkita kichik qarz ochiq qoladi — `cover_art` da uzun sarlavha toshishi va `pip-audit` gate'ining tarmoq flake'iga mo'rtligi (PR #54 da bir marta soxta qizil bergan)
+
 ## 2026-09-03 [Claude Code]: Oltin oqim E2E — test yozilishi bilan XP yo'qolishini topdi
 
 A3 ning qolgan bandi: *"test cohortda end-to-end"* va *"adapter parity contract"*. Mavjud testlar oqimning **bo'laklarini** qamragan edi (davomat parity, sessiya atomikligi, dars release, grade→learner, checkout parity), ammo bitta o'quvchini boshidan oxirigacha olib o'tadigan yo'l yo'q edi.
