@@ -381,7 +381,34 @@ CI job nomini o'zgartirsangiz, protection ham o'sha commitda yangilanishi shart 
 - Branch `main` bilan yangilangan va conflict yo'q
 - Destructive migration, data-loss yoki secret/security anomaly yo'q
 
-Agent `--admin` ishlatmaydi, branch protection yoki required checkni bypass qilmaydi. Auto-merge mavjud bo'lsa ishlatadi; conflict, failed/missing check yoki yuqoridagi xavf signallarida merge qilmaydi va Azurbekka xabar beradi.
+Agent `--admin` ishlatmaydi, branch protection yoki required checkni bypass qilmaydi. Conflict, failed/missing check yoki yuqoridagi xavf signallarida merge qilmaydi va Azurbekka xabar beradi.
+
+#### Merge qo'lda va kutib bajariladi (owner qarori — 2026-09-03)
+
+Ruxsat **usulni ham belgilaydi.** Auto-merge ishlatilmaydi: agent checklar tugashini o'zi kutadi, holatni o'zi ko'radi va o'zi merge qiladi. Tartib aynan shunday:
+
+```bash
+gh pr checks <N> --watch                  # uchala check tugashini kutasiz
+gh pr view <N> --json mergeStateStatus    # CLEAN bo'lishi kerak
+gh pr merge <N> --merge                   # merge commit — repo tarixi shunday
+git fetch origin                          # `origin/main` yangilanadi
+```
+
+Lokal `main` ni ham yangilash kerak bo'lsa, **worktree tartibiga qarang** (§3): bitta worktree'da ishlasangiz `git switch main && git pull --ff-only origin main`; ko'p worktree'li tartibda `main` integratsiya papkasida band bo'ladi va bu buyruq `branch 'main' is already checked out` bilan yiqiladi — u holda `git -C <main-worktree> pull --ff-only`. `git fetch origin` esa har ikkala tartibda ishlaydi, shuning uchun majburiy qadam faqat o'sha.
+
+Merge'dan oldin review thread'lar ham tekshiriladi. Avtomatik reviewer (`chatgpt-codex-connector`) izoh qoldirgan bo'lsa, topilmani halol baholang: rost bo'lsa tuzating, keyin thread'ga javob yozib resolve qiling. Hal qilinmagan topilmani "tozalash uchun" resolve qilish mumkin emas.
+
+**Bular ruxsatga kirmaydi:**
+
+| Amal | Nega yo'q |
+|---|---|
+| `gh pr merge --auto` | Merge hech kim qaramay turganda, kutilmagan paytda bajariladi |
+| `allow_auto_merge` va boshqa **repository sozlamasi** | Doimiy va **hamma uchun**; bitta PR uchun berilgan ruxsat repo konfiguratsiyasini o'zgartirishga yetmaydi |
+| Branch protection tahriri, `enforce_admins` o'chirish | Bu owner'ning shoshilinch kaliti, agentniki emas |
+| Admin bypass yoki force merge | Gate'ning butun ma'nosini yo'q qiladi |
+| Boshqa agentning PR'ini merge qilish | Har kim o'z ishini yakunlaydi |
+
+CI **infratuzilma** sababli qizil bo'lsa (masalan `pip-audit` tarmoq uzilishi) — gate'ni o'chirmang yoki chetlab o'tmang. Yo qayta yugurtiring, yo workflow'ni chidamli qiling, lekin **fail-closed** saqlang.
 
 Merge oldidan agent tayyorlaydi:
 
