@@ -63,15 +63,31 @@ class InactiveStaffDeniedTests(TestCase):
         self.assertIsNone(user)
 
     def test_blocked_staff_cannot_manage_cohort(self):
+        """`is_active` ni izolyatsiya qiladi: ikkalasi ham o'z kursining instructori.
+
+        Ilgari bu yerda instructor biriktirilmagan bitta kurs bor edi va
+        `active_admin` unga faqat "staff" bo'lgani uchun kira olardi. Ya'ni
+        test scope qoidasini emas, o'sha paytdagi default-allow'ni yozib
+        qo'ygandi. Endi yagona o'zgaruvchi — `is_active`.
+        """
         from django.utils import timezone
         from courses.models import Course
         from cohorts.models import Cohort
 
-        course = Course.objects.create(title="C", description="d", level="beginner")
-        cohort = Cohort.objects.create(name="G1", course=course, start_date=timezone.now().date())
+        today = timezone.now().date()
+        own_course = Course.objects.create(
+            title="C1", description="d", level="beginner", instructor=self.active_admin
+        )
+        own_cohort = Cohort.objects.create(name="G1", course=own_course, start_date=today)
+        blocked_course = Course.objects.create(
+            title="C2", description="d", level="beginner", instructor=self.blocked_admin
+        )
+        blocked_cohort = Cohort.objects.create(
+            name="G2", course=blocked_course, start_date=today
+        )
 
-        self.assertTrue(can_manage_cohort(self.active_admin, cohort))
-        self.assertFalse(can_manage_cohort(self.blocked_admin, cohort))
+        self.assertTrue(can_manage_cohort(self.active_admin, own_cohort))
+        self.assertFalse(can_manage_cohort(self.blocked_admin, blocked_cohort))
 
     def test_blocked_staff_cannot_act_on_payment_receipts(self):
         approve = verify_receipt(receipt_id=1, actor=self.blocked_admin)

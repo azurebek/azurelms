@@ -14,6 +14,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from asgiref.sync import sync_to_async
 from django.conf import settings
 
+from bot.keyboards import is_public_domain, miniapp_button
 from bot.services import (
     answer_quiz_question,
     begin_course_enrollment,
@@ -56,20 +57,11 @@ class AwaitingAssignment(BaseFilter):
         return {"pending_assignment_id": pending.target_id}
 
 
-def _is_public_domain():
-    domain = getattr(settings, "APP_DOMAIN", "") or ""
-    return "localhost" not in domain and not domain.startswith("127.")
-
-
-def miniapp_button(text, path):
-    """Mini App tugmasi (F5) — sayt sahifasini bot ichida avto-login bilan ochadi.
-
-    Telegram web_app tugmasi faqat public HTTPS'da ishlaydi — lokalda None.
-    """
-    if not _is_public_domain():
-        return None
-    url = f"https://{settings.APP_DOMAIN}/bot/miniapp/?next={quote(path, safe='')}"
-    return InlineKeyboardButton(text=text, web_app=WebAppInfo(url=url))
+# `_is_public_domain` va `miniapp_button` `bot/keyboards.py` ga ko'chirildi:
+# outbox worker ham o'sha tugmani yasashi kerak va router modulini import
+# qilishi noto'g'ri bo'lardi. Nomlar shu yerda qoladi — bu modulning qolgan
+# qismi va testlar ularni shu yerdan chaqiradi.
+_is_public_domain = is_public_domain
 
 
 def student_menu_markup():

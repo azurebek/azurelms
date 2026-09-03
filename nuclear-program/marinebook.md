@@ -16,6 +16,34 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-03 [Claude Code]: Codex auditining to'rtta topilmasi — hisobot emas, tekshirilgan tuzatish
+
+Codex A3 uchun uch yo'nalishda audit qilib, to'rtta nuqson topgan va limitiga urilgan. Owner ishni menga topshirdi. **Hech birini hisobot sifatida qabul qilmadim** — har birini kodda o'zim tasdiqladim, keyin tuzatdim; to'rttasi ham rost chiqdi.
+
+**Avval yo'qotmaslik.** Ishchi daraxtda Codex'ning commit qilinmagan ishi turgan edi (`bot/routers/group_ops.py` o'zgargan + yangi test fayli). Birinchi ish — patch zaxirasini olish, keyin tekshirish. U `claude/a3-attendance-delivery` branchiga ko'chirildi va Codex co-author sifatida yozildi; uning branchiga men commit qilmadim.
+
+**1. Bitta davomat hodisasi ikkita DM yuborardi.** `close_lesson_session()` `Notification` yozadi, `bot/signals.py` uni `TelegramOutbox` ga ko'chiradi, worker DM yuboradi — va handler **yana** o'zi bevosita DM yuborardi. `_notify_absent_students` dagi "DM alohida — handler yuboradi" izohi outbox ko'zgusi qo'shilishidan oldingi holatni tasvirlardi. Codex tuzatishini tugatib, o'lik qolgan `render_absent_dm` va uni sinaydigan testni ham oldim.
+
+**2. "Staff" bo'lish boshqa o'qituvchining guruhini boshqarish huquqi emas.** Bu eng jiddiysi. A0b/1 default-deny scope'ini `core/access.py` da o'rnatgan va web panelini, `/guruhlarim` ni, `/baholash` ni ko'chirgan — lekin `bot/services.py::can_manage_cohort` ko'chirilmay qolgan va `is_active_staff(user) or instructor` qoidasida turgan. Birinchi shart o'zi yetarli, ya'ni har qanday faol staff istalgan guruhning davomat sessiyasini ocha/yopa (yopilishi XP beradi va bildirishnoma yuboradi) va guruhni boshqa chatga bog'lay olardi.
+
+Yo'lda mavjud test ham tuzatildi: `test_blocked_staff_cannot_manage_cohort` instructori yo'q kurs bilan ishlab, `active_admin` ga faqat "staff" bo'lgani uchun ruxsat berilishini kutardi — ya'ni scope qoidasini emas, o'sha paytdagi default-allow'ni yozib qo'ygandi.
+
+**3. Yopiq darsga yozib bo'lardi.** Qulf faqat ko'rsatishda ishlardi. Web'da submit URL'iga to'g'ridan-to'g'ri POST yopiq darsga vazifa topshirardi va quizni baholab XP berardi; botda `start_*` qulfni tekshirardi, lekin `BotPendingAction` **bazada** saqlanadi va qulf o'zgargandan keyin ham amal qilardi. Ikkala qulf ham (drip release va ketma-ketlik) chetlab o'tilardi.
+
+Tuzatish adapterda emas, canonical servisda: `_build_lesson_access_bundle` `courses/views.py` dan `courses/access_service.py` ga ko'chirildi (view moduli yozuv servisiga import qilinmasligi kerak) va yoniga `check_lesson_access()` qo'shildi; `submit_assignment` va `grade_quiz` uni chaqiradi. Ya'ni gate'ni har ikkala adapter va kelajakdagilar meros oladi.
+
+**4. Bildirishnoma havolasi avto-loginni chetlab o'tardi.** Outbox matnga oddiy URL qo'yardi va Telegram-only o'quvchi brauzerda autentifikatsiyasiz sahifaga tushardi. `miniapp_button()` mexanizmi loyihada bor edi, faqat outbox undan foydalanmasdi. Endi nisbiy havola `web_app` tugmasiga aylanadi; tugma qo'yilganda oddiy havola matndan olib tashlanadi (ikki nusxa bo'lsa o'quvchi avto-login bermaydiganini bosishi mumkin).
+
+**Halol chegara:** bu to'rtinchisini lokalda faqat shartnoma darajasida sinash mumkin — Telegram `web_app` tugmasini faqat public HTTPS domenda qabul qiladi, `localhost` da tugma yasalmaydi va eski xulq saqlanadi. Haqiqiy qurilmada ko'rish uchun tunnel yoki A1b kerak.
+
+Har to'rt tuzatish uchun nazorat yugurishi bajarildi va har safar almashtirish soni oldindan tasdiqlandi: bevosita DM tiklanganda 1 test, default-allow qaytarilganda 5 test, ikkala lesson gate olib tashlanganda 6 test, Mini App tugmasi o'chirilganda 2 test yiqildi.
+
+- Branch: `claude/a3-attendance-delivery` → PR
+- Commitlar: `527beb3`, `6476125`, `58e9ca7`, `e114950`
+- Yangi: `courses/access_service.py`, `courses/test_locked_lesson_write_gate.py` (7), `bot/test_cohort_scope_parity.py` (7), `bot/test_attendance_delivery.py` (1, Codex), `bot/test_outbox_miniapp_link.py` (5). Tegilgan: `bot/services.py`, `bot/outbox.py`, `bot/keyboards.py`, `bot/routers/group_ops.py`, `bot/routers/workspace.py`, `courses/submission_service.py`, `courses/views.py`, `bot/tests.py`, `bot/test_inactive_staff_denied.py`. Migratsiya yo'q
+- Test holati: to'liq suite **984/984 OK** (skipped=23); migration drift yo'q; `check --fail-level WARNING` 0 issue; `scan_secrets` toza
+- Davom etilishi kerak: Mini App tugmasini real qurilmada tunnel bilan ko'rish; A3 ning qolgan qismi — Mini App deep action parity va test cohortdagi end-to-end o'tish
+
 ## 2026-09-03 [Claude Code]: Namuna kontent — `seed_demo` bor edi, lekin uni ko'rsatib bo'lmasdi
 
 Owner platformani ochib "bo'm-bo'sh ekan" dedi. Tekshirsam, rost: 0 kurs, 0 dars, 0 maqola, 1 foydalanuvchi (`admin`) va 3 tarif. `seed_demo` bor, ammo u boshqa maqsad uchun — sarlavhalari `[demo]` bilan belgilangan QA skeleti. U mobil probe uchun to'g'ri, birovga ko'rsatish uchun emas.

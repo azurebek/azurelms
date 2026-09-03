@@ -11,6 +11,7 @@ import logging
 import uuid
 from datetime import timedelta
 
+from aiogram.types import InlineKeyboardMarkup
 from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.utils import timezone
@@ -98,11 +99,41 @@ def render_outbox_text(item):
         lines.append("")
         lines.append(html.escape(note.message))
     domain = getattr(settings, "APP_DOMAIN", "") or ""
-    if note.url and "localhost" not in domain and not domain.startswith("127."):
+    # Mini App tugmasi qo'yilganda oddiy havola matnga qo'shilmaydi: aks holda
+    # bir xil manzil ikki marta ko'rinadi va o'quvchi aynan avto-login
+    # bermaydigan nusxasini bosishi mumkin.
+    if note.url and not render_outbox_markup(item) and "localhost" not in domain and not domain.startswith("127."):
         url = note.url if note.url.startswith("http") else f"https://{domain}{note.url}"
         lines.append("")
         lines.append(url)
     return "\n".join(lines)
+
+
+def render_outbox_markup(item):
+    """Bildirishnoma havolasini Mini App tugmasiga aylantiradi.
+
+    Ilgari worker matnga oddiy `https://.../courses/...` havolasini qo'shardi.
+    Telegram-only o'quvchi uni bosganda brauzerda **autentifikatsiyasiz**
+    sahifa ochilardi: "yangi dars ochildi" yoki "vazifa tekshirildi" xabari
+    kerakli joyga olib bormasdi. Mini App tugmasi esa `initData` bilan
+    ochiladi va avto-login ishlaydi (`bot/keyboards.py::miniapp_button`).
+
+    Lokalda (`localhost`) Telegram `web_app` tugmasini rad etadi — u yerda
+    `None` qaytadi va matn eski oddiy havola bilan ketaveradi.
+    """
+    from bot.keyboards import miniapp_button
+
+    note = item.notification
+    path = (note.url or "").strip()
+    # Tashqi (absolute) havola Mini App ichida ochilmaydi — u boshqa saytga
+    # ketadi, `?next=` esa faqat o'z sahifalarimiz uchun.
+    if not path.startswith("/"):
+        return None
+
+    button = miniapp_button("📱 Ilovada ochish", path)
+    if button is None:
+        return None
+    return InlineKeyboardMarkup(inline_keyboard=[[button]])
 
 
 def mark_outbox_sent(item):
@@ -164,7 +195,12 @@ async def process_outbox_once(bot):
     sent = 0
     for item in items:
         try:
-            await bot.send_message(item.telegram_id, render_outbox_text(item), parse_mode="HTML")
+            await bot.send_message(
+                item.telegram_id,
+                render_outbox_text(item),
+                parse_mode="HTML",
+                reply_markup=render_outbox_markup(item),
+            )
         except Exception as exc:  # user botni bloklagan / ochmagan bo'lishi mumkin
             await sync_to_async(mark_outbox_attempt_failed)(item, exc)
             continue

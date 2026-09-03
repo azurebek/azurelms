@@ -377,21 +377,11 @@ class GroupOpsRenderingTests(TestCase):
         self.assertIn("Hamma darsda", text)
         self.assertNotIn("Kelmadi", text)
 
-    def test_render_absent_dm_contains_lesson_link(self):
-        from types import SimpleNamespace
-
-        from bot.routers.group_ops import render_absent_dm
-
-        session = SimpleNamespace(
-            lesson=SimpleNamespace(title="Alifbo"),
-            lesson_id=7,
-            attendance_date=datetime.date(2026, 7, 12),
-            cohort=SimpleNamespace(course_id=4),
-        )
-        text = render_absent_dm(session)
-        self.assertIn("Alifbo", text)
-        self.assertIn("/courses/4/lesson/7/", text)
-        self.assertIn("Darsni qoldirdingiz", text)
+    # `test_render_absent_dm_contains_lesson_link` olib tashlandi: u sinaydigan
+    # `render_absent_dm` ham olib tashlandi. Kelmaganlarga xabar endi canonical
+    # `Notification` → `TelegramOutbox` yo'li bilan ketadi va uni
+    # `bot/test_attendance_delivery.py` tekshiradi — o'sha test bevosita DM
+    # qaytib kelsa yiqiladi.
 
 
 class OnboardingServiceTests(TestCase):

@@ -12,6 +12,7 @@ from django.http import Http404, JsonResponse
 from django.utils import timezone
 
 from core.upload_validation import validate_upload
+from .access_service import build_lesson_access_bundle
 
 from .models import (
     Assignment,
@@ -92,81 +93,10 @@ def _get_active_enrollment_for_course(user, course, cohort_id=None):
     return queryset.first()
 
 
-def _build_lesson_access_bundle(course, user, enrollment):
-    lessons = list(
-        Lesson.objects.filter(module__course=course)
-        .select_related("module")
-        .prefetch_related("assignments")
-        .order_by("module__order", "order")
-    )
-    lesson_access_map = {}
-    first_accessible_lesson = None
-
-    drip_enabled = False
-    released_lesson_ids = set()
-    if enrollment:
-        release_qs = CohortLessonRelease.objects.filter(
-            cohort=enrollment.cohort,
-            lesson__module__course=course,
-        )
-        drip_enabled = release_qs.exists()
-        released_lesson_ids = set(
-            release_qs.filter(is_released=True).values_list("lesson_id", flat=True)
-        )
-
-    approved_assignment_ids = set()
-    if user and user.is_authenticated:
-        approved_assignment_ids = set(
-            AssignmentSubmission.objects.filter(
-                student=user,
-                assignment__lesson__module__course=course,
-                status=AssignmentSubmission.STATUS_APPROVED,
-            ).values_list("assignment_id", flat=True)
-        )
-
-    assignment_ids_by_lesson = {
-        lesson.id: [assignment.id for assignment in lesson.assignments.all()]
-        for lesson in lessons
-    }
-
-    for index, lesson in enumerate(lessons):
-        state = {
-            "is_accessible": True,
-            "is_released": True,
-            "lock_reason": "",
-        }
-
-        if not enrollment:
-            state["is_accessible"] = False
-            state["lock_reason"] = "Kursga faol obuna kerak."
-        else:
-            if drip_enabled and lesson.id not in released_lesson_ids:
-                state["is_accessible"] = False
-                state["is_released"] = False
-                state["lock_reason"] = "Bu dars hali o'qituvchi tomonidan ochilmagan."
-
-            if state["is_accessible"] and index > 0:
-                previous_lesson = lessons[index - 1]
-                previous_assignment_ids = assignment_ids_by_lesson.get(previous_lesson.id, [])
-                if previous_assignment_ids and any(
-                    assignment_id not in approved_assignment_ids
-                    for assignment_id in previous_assignment_ids
-                ):
-                    state["is_accessible"] = False
-                    state["lock_reason"] = (
-                        "Oldingi dars vazifasi tekshirilib tasdiqlanmaguncha keyingi dars ochilmaydi."
-                    )
-
-        lesson_access_map[lesson.id] = state
-        if state["is_accessible"] and first_accessible_lesson is None:
-            first_accessible_lesson = lesson
-
-    return {
-        "lessons": lessons,
-        "lesson_access_map": lesson_access_map,
-        "first_accessible_lesson": first_accessible_lesson,
-        "drip_enabled": drip_enabled,
-    }
+#: Mantiq `courses/access_service.py` ga ko'chirildi — u yerdan yozuv
+#: yo'llari (vazifa topshirish, quiz baholash) ham chaqira oladi.
+#: Bu nom saqlanadi, chunki Telegram adapteri uni shu yerdan import qiladi.
+_build_lesson_access_bundle = build_lesson_access_bundle
 
 
 def _mark_lesson_progress_completed(enrollment, lesson):
