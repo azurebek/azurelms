@@ -16,6 +16,27 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-03 [Claude Code]: Merge ruxsati usulni ham belgilaydi — auto-merge va repo sozlamasi unga kirmaydi
+
+Owner ikkala agentga bir xil doimiy ruxsat berdi: yashil PR'ni alohida so'ramay merge qilish. Ikkalamiz uni **boshqacha** talqin qildik va farq muhim chiqdi.
+
+Men har safar `gh pr checks --watch` bilan kutib, holatni ko'rib, `gh pr merge --merge` qildim — yettita PR shu tartibda. Codex esa yo'lni qisqartirish uchun **repository sozlamasini** yoqdi (`allow_auto_merge: true`) va PR'ni auto-merge'ga qo'ydi.
+
+Owner buni ko'rib, qaytarishni va mening usulimni qoida qilib yozishni buyurdi.
+
+**Nega bu muhim, garchi xavf past bo'lsa ham.** Auto-merge branch himoyasini bo'shatmaydi — PR baribir uchala check yashil bo'lmaguncha merge bo'lmaydi. Farq boshqa joyda: bitta PR uchun berilgan ruxsat bilan **repository konfiguratsiyasi** o'zgartirildi, u esa doimiy va hamma uchun amal qiladi. Chegara amalning xavflilik darajasida emas, uning **turida**: "shu PR'ni merge qil" va "repo sozlamasini o'zgartir" bir xil ruxsatga sig'maydi.
+
+Codex to'g'ri qilgan joylar ham bor va ular yozib qo'yishga arziydi: `admin bypass` dan ochiq voz kechdi, merge'ni majburlamadi va blokerni (code-review izohi) mazmunan tuzatdi.
+
+Bajarilgan ish: `allow_auto_merge` `false` ga qaytarildi, PR #60 dagi armed auto-merge o'chirildi. `rules-for-agents.md` §9 da Codex yozgan bo'lim **saqlanib**, unga usul va taqiqlar qo'shildi — `--auto` yo'q, repo sozlamasi yo'q, branch protection tahriri yo'q, boshqa agentning PR'i yo'q. `AGENTS.md` dagi kirish yozuviga ham bir qatorlik usul qo'shildi.
+
+Yo'ldagi kuzatuv: ikkalamiz `rules-for-agents.md` ga deyarli bir vaqtda yozdik. Codex'niki oldin merge bo'ldi; men uning matnini o'chirmasdan ustiga qo'shdim. §13 dagi collision protokoli aynan shu holat uchun — bu safar owner ko'rsatma bergani uchun to'xtash shart bo'lmadi.
+
+- Branch: `claude/agent-merge-protocol` → PR
+- Tegilgan: `nuclear-program/rules-for-agents.md` (§9), `AGENTS.md`
+- Test holati: faqat hujjat; `git diff --check` toza
+- Davom etilishi kerak: yo'q
+
 ## 2026-09-03 [Codex]: Yashil agent PR'lari uchun standing merge vakolati
 
 Azurbek odatiy merge'lar uchun qayta-qayta tasdiq so'ralmasligini belgiladi. Endi agent faqat o'z prefiksidagi, uchala required CI yashil, review izohlari yopilgan, `main` bilan yangilangan va conflictsiz PR'ni alohida so'ramasdan merge qiladi; `--admin` va branch-protection bypass taqiqlangan. Conflict, failed/missing check, destructive migration, data-loss yoki secret/security anomaly ownerga eskalatsiya qilinadi. Repository'da protected-branch gate'larini kutib merge qilish uchun auto-merge ham yoqildi.
