@@ -231,11 +231,34 @@ jobs:
 
       # §4.7 — bog'liqlik zaifligi. Bugungi holat reyestrda; CI faqat YANGI
       # advisory'ga qizil beradi, shunda mavjud qarz o'sib ketmaydi.
+      # `pip-audit` PyPI advisory bazasiga tarmoq orqali chiqadi va o'sha
+      # chiqish uzilishi mumkin. 2026-09-03 da PR #54 aynan shundan qizil
+      # bo'ldi (`ConnectionResetError`), ya'ni kodda hech qanday muammo
+      # bo'lmasa ham merge bloklandi.
+      #
+      # Nozik joyi: `pip-audit` **zaiflik topganda ham** nolga teng bo'lmagan
+      # kod qaytaradi. Ya'ni "yiqildi" o'zi "tarmoq uzildi" degani emas va
+      # exit kodiga qarab qayta urinib bo'lmaydi. Ajratuvchi belgi —
+      # hisobotning o'zi: JSON to'liq bo'lsa, natija haqiqiy va qayta urinish
+      # shart emas.
+      #
+      # Gate fail-closed bo'lib qoladi: uch urinishdan keyin ham yaroqli
+      # hisobot bo'lmasa, ish qizil bo'ladi. Tarmoq uzilishi jimgina
+      # "zaiflik yo'q" ga aylanmaydi.
       - name: pip-audit
         run: |
           pip install pip-audit
-          pip-audit -r requirements.txt --no-deps -f json --progress-spinner off > pip-audit.json || true
-          test -s pip-audit.json
+          for attempt in 1 2 3; do
+            pip-audit -r requirements.txt --no-deps -f json --progress-spinner off > pip-audit.json && break
+            if python -c "import json; json.load(open('pip-audit.json'))" 2>/dev/null; then
+              echo "pip-audit zaiflik topdi — hisobot to'liq, keyingi qadam baholaydi."
+              break
+            fi
+            echo "::warning::pip-audit $attempt-urinishda yaroqli hisobot bermadi (tarmoq?), qayta urinaman."
+            sleep $((attempt * 10))
+          done
+          python -c "import json; json.load(open('pip-audit.json'))" \
+            || { echo "::error::pip-audit uch urinishda ham hisobot bermadi."; exit 1; }
 
       - name: Yangi zaiflik reyestrda yo'qmi
         env:
