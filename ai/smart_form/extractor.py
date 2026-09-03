@@ -10,6 +10,8 @@ import logging
 import re
 from typing import Any, Dict, Type
 
+from aicontrol.supply import SupplyDuplicate
+
 from .base import BaseSmartForm
 
 logger = logging.getLogger(__name__)
@@ -146,6 +148,14 @@ class LLMExtractor(BaseExtractor):
                     metadata={"component": "smart_form_extractor"},
                 )
             data = parse_llm_json(response.text)
+        except SupplyDuplicate:
+            # Nosozlik emas: aynan shu sessiya va shu matn uchun so'rov
+            # ledgerda bor, ya'ni bu turn allaqachon qayta ishlangan (yoki
+            # hozir parallel ishlanmoqda). Natija bir xil — bu turndan yangi
+            # ma'lumot chiqarilmaydi — lekin uni `xato` deb loglash operatorni
+            # yo'q muammoni qidirishga majburlaydi.
+            logger.info("SmartForm turn takroriy so'rov sifatida o'tkazib yuborildi.")
+            return {}
         except Exception as exc:
             logger.warning("SmartForm LLMExtractor xatosi: %s", exc)
             return {}

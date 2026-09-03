@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 
+from aicontrol.supply import SupplyDuplicate
 from messenger.models import AIMemoryFact
 from messenger.rag import DEFAULT_EMBEDDING_MODEL, embed_texts
 
@@ -47,6 +48,14 @@ class Command(BaseCommand):
                 user=None,
                 request_key=f"memory-reindex:{facts[0].pk}:{facts[-1].pk}",
             )
+        except SupplyDuplicate:
+            # Nosozlik emas: shu batch bugun allaqachon embed qilingan.
+            # Umumiy ogohlantirish bilan aralashtirilsa, operator uni xato deb
+            # o'qiydi va qayta urinaveradi.
+            self.stdout.write(
+                "Batch o'tkazib yuborildi — bugun allaqachon embed qilingan."
+            )
+            return 0
         except Exception as exc:
             self.stderr.write(
                 self.style.WARNING(

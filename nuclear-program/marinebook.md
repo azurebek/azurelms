@@ -16,6 +16,38 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-03 [Claude Code]: K11 auditi — xavf ro'yxati bir narsani, kod boshqasini aytdi
+
+K11 riski shunday yozilgan edi: *"SmartForm/guest counterlari va lesson reindex batch'i uchun to'liq lease/claim yo'q, duplicate work oynasi qolishi mumkin"*. Qurishdan oldin o'lchab ko'rdim va holat **teskari** chiqdi.
+
+`embed_texts` supply kalitini `request_key + call_type + model + dimension + input_hash` dan **kunlik** fingerprint qilib quradi; SmartForm esa `smart-form + session.pk + turn matni` dan. `reserve_supply` shu kalit ledgerda bo'lsa `SupplyDuplicate` bilan **tarmoqqa chiqmasdan** rad etadi. Ya'ni ikkita parallel reindex bir xil darsni ikki marta embed qilmaydi va kvota ikki marta sarflanmaydi — himoya allaqachon bor edi, faqat u xavf ro'yxatida yozilmagan.
+
+**Haqiqiy nuqson boshqa joyda edi va uni takrorlab ko'rsatdim.** `reindex_lessons` bu rad etishni umumiy `except Exception` bilan ushlab, darsni `failed_lessons` deb sanardi va traceback yozardi:
+
+```
+BIRINCHI: {'total_lessons': 1, 'indexed_lessons': 1, 'total_chunks': 1}
+IKKINCHI: {'total_lessons': 1, 'failed_lessons': 1}
+```
+
+Ikkinchi yugurishda hech narsa yiqilmagan — chunklar bazada, ledger to'g'ri ish qilgan. Lekin operator "1 dars indekslanmadi" deb ko'radi va qayta uraveradi; qayta urinish esa kun oxirigacha **hech qachon** o'tmaydi.
+
+Takrorlash sharti oddiy va real: `--force` bilan ikkinchi marta yugurtirish va oradagi kesh yo'qolishi. Lokal profil `LocMem` keshdan foydalanadi — ya'ni kesh **server har qayta ishga tushganda** tozalanadi.
+
+Tuzatish: dublikat alohida `skipped_duplicate` holatiga ajratildi (buyruq ham uni chiqaradi). Xuddi shu ajratish `reindex_ai_memory` va SmartForm extractorida ham qilindi — u yerlarda dublikat "xato" bo'lib loglanardi.
+
+Muhim chegara testda mahkamlangan: **haqiqiy nosozlik hamon `failed_lessons`** — dublikatni ajratish nosozlikni yashirmaydi.
+
+Nazorat yugurishi: dublikat bloki olib tashlanganda 5 testdan 1 tasi yiqildi (aynan asosiy da'vo).
+
+Xavf ro'yxati ham to'g'rilandi: K11 dan reindex/SmartForm qismi yopildi, **guest demo limit tekshiruvi** (check-then-act, hisoblagich atomik lekin lease emas) va alohida OS-process takrori ochiq qoladi.
+
+- Branch: `claude/reindex-duplicate-is-not-a-failure` -> PR
+- Yangi: `messenger/test_reindex_duplicate.py` (5 test). Tegilgan: `messenger/rag.py`, `messenger/management/commands/reindex_rag.py`, `messenger/management/commands/reindex_ai_memory.py`, `ai/smart_form/extractor.py`, `02-yol-xarita.md`
+- Test holati: to'liq suite **1021/1021 OK** (skipped=23); migration drift yo'q; `check --fail-level WARNING` 0 issue
+- Davom etilishi kerak: K11 ning guest limit qismi
+
+---
+
 ## 2026-09-03 [Claude Code]: Landingdagi ikkita scrollbar — CSS ning bir o'qi ikkinchisini o'zgartiradi
 
 Owner sahifani ochib "o'ng tarafda nega ikkita yonma-yon scroller bor" dedi. Codex tashxis qo'ygan edi; men uni **o'zim o'lchab** tasdiqladim, keyin tuzatdim.
