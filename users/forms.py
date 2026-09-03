@@ -83,3 +83,24 @@ class ProfileFieldsForm(forms.ModelForm):
             'phone_number': forms.TextInput(attrs={'autocomplete': 'tel'}),
             'bio': forms.Textarea(attrs={'rows': 4}),
         }
+
+    def save(self, commit=True):
+        """Faqat shu formadagi maydonlarni yozadi.
+
+        `ModelForm.save()` odatiy holda `instance.save()` ni argumentsiz
+        chaqiradi, ya'ni `CustomUser` ning **butun qatorini** formaga yuklangan
+        (eskirgan) qiymatlar bilan qayta yozadi. O'sha qatorda profilga aloqasi
+        yo'q, lekin boshqa yo'llardan yangilanadigan maydonlar bor:
+
+        * `total_xp` — `users/xp.py::award_xp` (davomat, quiz, vazifa bahosi);
+        * `ai_tone`, `ai_model`, `ai_skill`, `ai_memory_enabled`,
+          `ai_web_search_effort` — `/users/settings/ai-*` endpointlari.
+
+        Ya'ni bir tabda AI ohangini o'zgartirib, boshqasida profilni saqlash
+        ohangni eskisiga qaytarardi; profil saqlanayotgan lahzada berilgan XP
+        esa yo'qolardi. Ikkalasi ham jim sodir bo'lardi.
+        """
+        instance = super().save(commit=False)
+        if commit:
+            instance.save(update_fields=list(self.Meta.fields))
+        return instance

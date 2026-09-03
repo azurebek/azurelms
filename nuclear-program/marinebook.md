@@ -16,6 +16,28 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-04 [Claude Code]: "Faqat o'zgargan ustunni yoz" — blur nuqsonini butun kodda qidirish
+
+Blur hisoblagichi nuqsonidan keyin (PR #59) shu naqsh butun kod bo'ylab qidirildi: `obj.save()` ni **argumentsiz** chaqirish butun qatorni obyektdagi (ehtimol eskirgan) qiymatlar bilan qayta yozadi va parallel yozuvchining natijasini jimgina bosib ketadi.
+
+**Eng qimmatlisi kutilmagan joyda chiqdi — profil sozlamalari.** `SettingsAccountView` oddiy `UpdateView` + `ModelForm`, ya'ni saqlashda `CustomUser` ning butun qatori yoziladi. O'sha qatorda profilga aloqasi yo'q maydonlar bor: `total_xp` (uni `users/xp.py` beradi) va `ai_tone`/`ai_model`/`ai_skill`/`ai_memory_enabled` (ularni `/users/settings/ai-*` endpointlari o'zgartiradi).
+
+Amaliy oqibati ikkita va ikkalasi ham jim: bir tabda AI ohangini o'zgartirib boshqasida profilni saqlasangiz ohang **eskisiga qaytadi**; profil saqlanayotgan lahzada berilgan XP esa **yo'qoladi**. Yechim — formaning o'z `save()` i faqat `Meta.fields` ni yozadi.
+
+Qolgan uchtasi: to'lov cheki tasdiqlanganda `Enrollment` qatori to'liq yozilardi (parallel transfer/promotion natijasini bosishi mumkin), parol o'zgartirishda `CustomUser` qatori to'liq yozilardi, va `ExamAttempt.calculate_total_score` — **hech kim chaqirmaydigan** metod bo'lib, `self.save()` ni argumentsiz chaqirardi. Jonli yo'l `finalize_review()` allaqachon to'g'ri yozilgan, shuning uchun o'lik nusxa olib tashlandi: uni chaqirgan birinchi odam aynan blur nuqsonini qaytarardi.
+
+**Testda yana o'sha saboqqa urildim.** Avval ikkita test yozdim — "XP omon qoladi" va "AI ohangi omon qoladi". Ikkalasi ham tuzatishsiz **o'tib ketdi**: `UpdateView` obyektni so'rov boshida yuklaydi, ya'ni bitta so'rov ichida eskirish yo'q. Ular forma darajasidagi bitta testga almashtirildi — u formani ataylab eskirgan nusxa bilan quradi va tuzatishsiz yiqiladi.
+
+Bu bugungi uchinchi holat (blur, mehmon limiti, endi bu): **da'vo bilan test bir xil narsani aytishi kerak**, aks holda yashil rang yolg'on ishonch beradi.
+
+- Branch: `claude/write-only-what-changed` -> PR
+- Yangi: `core/test_targeted_writes.py` (6 test). Tegilgan: `users/forms.py`, `users/views.py`, `cohorts/models.py`, `courses/models.py`
+- Nazorat yugurishi: forma override olib tashlanganda 2 test, enrollment `update_fields` olib tashlanganda 1 test yiqildi
+- Test holati: to'liq suite **1032/1032 OK** (skipped=24); migration drift yo'q; `check --fail-level WARNING` 0 issue
+- Davom etilishi kerak: yo'q
+
+---
+
 ## 2026-09-04 [Claude Code]: Mehmon demo chegarasi — tekshirish va band qilish bitta amalga birlashdi
 
 K11 dan qolgan oxirgi band. Oqim shunday edi: `if used >= LIMIT` tekshiruvi, keyin provider chaqiruvi, keyin hisoblagichni oshirish. Ikki savol bir vaqtda kelsa **ikkalasi ham** tekshiruvdan o'tardi — chegara 5 bo'lsa ham mehmon 6 ta bepul javob olardi.

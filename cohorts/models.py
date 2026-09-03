@@ -350,7 +350,17 @@ class PaymentReceipt(models.Model):
                      enrollment.next_payment_deadline = self.period_end
                 else:
                      enrollment.next_payment_deadline = timezone.localdate() + datetime.timedelta(days=30)
-                enrollment.save()
+                # Faqat shu uchta maydon yoziladi. Argumentsiz `save()`
+                # butun qatorni eskirgan nusxadan qayta yozardi, ya'ni
+                # parallel ishlayotgan transfer/promotion natijasini
+                # (`cohorts/transition_service.py`) bosib ketishi mumkin edi.
+                enrollment.save(
+                    update_fields=[
+                        "status",
+                        "last_payment_date",
+                        "next_payment_deadline",
+                    ]
+                )
 
     def delete(self, *args, **kwargs):
         if not self.is_verified:
