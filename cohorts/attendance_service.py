@@ -30,9 +30,9 @@ def upsert_attendance_and_xp(*, enrollment, lesson, date, status, marked_by):
     xp_diff = new_xp - old_xp
 
     if xp_diff != 0:
-        student = enrollment.student
-        student.total_xp = max(0, student.total_xp + xp_diff)
-        student.save(update_fields=["total_xp"])
+        from users.xp import award_xp
+
+        award_xp(enrollment.student, xp_diff)
 
     attendance.status = status
     attendance.xp_awarded = new_xp
