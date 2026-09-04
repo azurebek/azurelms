@@ -13,7 +13,8 @@ class PlanFeatureInline(admin.TabularInline):
 
 @admin.register(Plan)
 class PlanAdmin(admin.ModelAdmin):
-    list_display = ("name", "price", "is_popular", "order")
+    list_display = ("name", "price", "is_available_for_purchase", "cohort_capacity_limit", "is_popular", "order")
+    readonly_fields = ("code", "cohort_capacity_limit")
     list_editable = ("price", "is_popular", "order")
     inlines = [PlanFeatureInline]
 

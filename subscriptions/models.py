@@ -24,8 +24,26 @@ class Plan(models.Model):
         config_name="default",
     )
     is_popular = models.BooleanField(default=False, verbose_name="Ommabopmi?")
+    is_available_for_purchase = models.BooleanField(default=True, verbose_name="Yangi sotuvga ochiq")
+    cohort_capacity_limit = models.PositiveSmallIntegerField(
+        null=True, blank=True, verbose_name="Guruhning maksimal sig'imi",
+        help_text="Legacy tarifda bo'sh. Delivery chegarasi; konkret guruh kichikroq bo'lishi mumkin.",
+    )
     button_text = models.CharField(max_length=50, default="Boshlash", verbose_name="Tugma matni")
     order = models.PositiveIntegerField(default=0, verbose_name="Tartibi")
+
+    def clean(self):
+        super().clean()
+        if self.pk:
+            old = Plan.objects.filter(pk=self.pk).values("code", "cohort_capacity_limit").first()
+            if old and old["code"] and old["code"] != self.code:
+                raise ValidationError({"code": "Tarif kodi barqaror. Yangi tarif yarating."})
+            if old and old["cohort_capacity_limit"] != self.cohort_capacity_limit:
+                raise ValidationError({"cohort_capacity_limit": "Delivery chegarasini o'zgartirish uchun yangi tarif yarating."})
+        if self.cohort_capacity_limit is not None and self.cohort_capacity_limit < 1:
+            raise ValidationError({"cohort_capacity_limit": "Sig'im kamida 1 bo'lishi kerak."})
+        if self.price is not None and Decimal(self.price) < 0:
+            raise ValidationError({"price": "Narx manfiy bo'lishi mumkin emas."})
 
     def save(self, *args, **kwargs):
         # Mavjud planlarda kod yo'q; birinchi saqlashda nomdan olinadi va
@@ -44,6 +62,7 @@ class Plan(models.Model):
                 code = f"{base}-{suffix}"
                 suffix += 1
             self.code = code
+        self.clean()
         super().save(*args, **kwargs)
 
     class Meta:

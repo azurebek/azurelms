@@ -1,0 +1,17 @@
+{% extends "backoffice/base.html" %}
+{% load static %}
+{% block bo_title %}{{ title }}{% endblock %}
+{% block bo_topbar %}Tariflar va guruhlar{% endblock %}
+{% block bo_icon %}bi-tags{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/brand-control.css' %}"><link rel="stylesheet" href="{% static 'css/catalog-control.css' %}">{% endblock %}
+{% block bo_content %}
+<section class="brand-hero"><div><span class="brand-kicker">KATALOG</span><h1>{{ title }}</h1><p>{{ note }}</p></div><a class="brand-back" href="{% url 'backoffice_catalog' %}">Katalogga qaytish</a></section>
+<form method="post" class="brand-panel catalog-form">{% csrf_token %}
+  {{ form.non_field_errors }}
+  {% for field in form %}<div class="brand-field">
+    {% if field.field.widget.input_type == "checkbox" %}<label class="brand-check">{{ field }} {{ field.label }}</label>{% else %}<label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% endif %}
+    {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}{{ field.errors }}
+  </div>{% endfor %}
+  <button class="catalog-save" type="submit">Saqlash</button>
+</form>
+{% endblock %}

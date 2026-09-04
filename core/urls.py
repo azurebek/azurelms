@@ -8,6 +8,7 @@ from frontend.views import home_view, about_view, legal_page_view
 from core import health_views
 from core import views as core_views
 from core import teacher_views
+from subscriptions import backoffice_views as catalog_views
 
 handler404 = "core.views.page_not_found"
 handler403 = "core.views.permission_denied"
@@ -63,6 +64,10 @@ urlpatterns = [
     path('backoffice/control/brand/', core_views.backoffice_brand, name='backoffice_brand'),
     path('backoffice/landing/', core_views.backoffice_landing, name='backoffice_landing'),
     path('backoffice/receipts/', core_views.backoffice_receipts, name='backoffice_receipts'),
+    path('backoffice/catalog/', catalog_views.catalog, name='backoffice_catalog'),
+    path('backoffice/catalog/plans/<int:plan_id>/', catalog_views.plan_editor, name='backoffice_plan_edit'),
+    path('backoffice/catalog/cohorts/new/', catalog_views.cohort_editor, name='backoffice_cohort_create'),
+    path('backoffice/catalog/cohorts/<int:cohort_id>/', catalog_views.cohort_editor, name='backoffice_cohort_edit'),
     path('backoffice/control/', core_views.backoffice_control, name='backoffice_control'),
     path('backoffice/', core_views.backoffice_dashboard, name='backoffice_dashboard'),
     path('backoffice/users/', core_views.backoffice_users, name='backoffice_users'),

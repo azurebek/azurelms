@@ -24,6 +24,7 @@ Uchta xususiyat ataylab saqlangan:
 from dataclasses import dataclass
 
 from django.db import transaction
+from django.core.exceptions import ValidationError
 
 from users.models import Notification
 
@@ -50,14 +51,15 @@ def _actor_may_decide(actor):
 
 
 def _decision_receipt(receipt_id, *, lock):
-    """Bir qaror g'olib bo'ladi: enrollment -> receipt qulf tartibi."""
+    """Bir qaror g'olib bo'ladi: cohort -> enrollment -> receipt."""
     from cohorts.models import Enrollment, PaymentReceipt
 
     enrollment_id = PaymentReceipt.objects.filter(pk=receipt_id).values_list("enrollment_id", flat=True).first()
     if enrollment_id is None:
         return None
     if lock:
-        Enrollment.objects.select_for_update().get(pk=enrollment_id)
+        from .delivery_service import lock_enrollment
+        lock_enrollment(enrollment_id)
     receipts = PaymentReceipt.objects.all()
     if lock:
         receipts = receipts.select_for_update()
@@ -96,9 +98,19 @@ def verify_receipt(receipt_id, actor, *, source=None, reason="", request=None):
 
     enrollment_status_before = receipt.enrollment.status
     plan_before = receipt.enrollment.plan_id
+    try:
+        with transaction.atomic():
+            receipt.is_verified = True
+            receipt.save()
+    except ValidationError as exc:
+        message = " ".join(exc.messages)
+        record_audit_event(
+            action="receipt.verify", request=request, actor=actor, source=source,
+            outcome=SystemAuditEvent.OUTCOME_DENIED, target=receipt,
+            target_label=f"Chek #{receipt.id}", reason=reason, error=message,
+        )
+        return ReceiptDecision(ok=False, code=getattr(exc, "code", None) or "unavailable", message=message)
     with transaction.atomic():
-        receipt.is_verified = True
-        receipt.save()
         receipt.enrollment.refresh_from_db()
         record_audit_event(
             action="receipt.verify",

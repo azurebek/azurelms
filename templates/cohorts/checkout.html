@@ -1,4 +1,5 @@
 {% extends "base_public.html" %}
+{% load static %}
 {% comment %}
   To'lov (checkout_view). Proto: azurelms-proto/public/checkout.html.
   REAL oqim: tarif tanlash + (ixtiyoriy) promokod + CHEK RASMINI yuklash → pending.
@@ -58,12 +59,13 @@
         <div style="display:flex;flex-direction:column;gap:10px;">
           {% for plan in plans %}
           <label class="co-plan">
-            <input type="radio" name="plan_id" value="{{ plan.id }}" {% if selected_plan and plan.id == selected_plan.id %}checked{% endif %}>
+            <input type="radio" name="plan_id" value="{{ plan.id }}" {% if selected_plan and plan.id == selected_plan.id %}checked{% endif %} data-checkout-plan>
             <span style="flex:1;min-width:0;"><span style="display:block;font-size:14px;font-weight:600;color:var(--ink);">{{ plan.name }}</span>{% if plan.description %}<span style="display:block;font-size:12px;color:var(--ink-3);margin-top:1px;">{{ plan.description|striptags|truncatewords:8 }}</span>{% endif %}</span>
             <span style="font-family:'Space Mono',monospace;font-size:14px;font-weight:700;color:var(--ink);flex:0 0 auto;">{% if plan.price > 0 %}{{ plan.price|floatformat:0 }}<span style="font-size:11px;font-weight:400;color:var(--ink-3);"> so'm</span>{% else %}Bepul{% endif %}</span>
           </label>
           {% endfor %}
         </div>
+        <p style="font-size:12px;color:var(--ink-3);margin:12px 0 0;">Tarif tanlanganda guruh va summa yangilanadi. Chekni keyin yuklang.</p>
       </div>
 
       <!-- 2. Chek yuklash -->
@@ -71,6 +73,7 @@
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;"><span style="width:26px;height:26px;border-radius:50%;background:var(--azure);color:var(--on-azure);display:grid;place-items:center;font-family:'Space Mono',monospace;font-size:12px;font-weight:700;">2</span><span style="font-size:15px;font-weight:600;color:var(--ink);">To'lov chekini yuklang</span></div>
         <div style="font-size:13.5px;line-height:1.6;color:var(--ink-2);background:var(--paper-2);border:1px solid var(--line);border-radius:11px;padding:14px 16px;margin-bottom:16px;">
           <i class="bi bi-info-circle" style="color:var(--azure);"></i> To'lovni administrator ko'rsatgan hisobga o'tkazing, so'ng to'lov chekining rasm/skrinshotini shu yerga yuklang. Administrator tasdiqlagach kursga kirish ochiladi.
+          {% if checkout_cohort.capacity %}<p style="margin:8px 0 0;">Joy faqat to'lov tasdiqlanganda band bo'ladi. Chek yuborish joyni kafolatlamaydi. Guruh to'lib qolsa, administrator boshqa guruh yoki pulni qaytarish masalasini hal qiladi.</p>{% endif %}
         </div>
         <label style="display:block;">
           <span style="display:block;font-family:'Space Mono',monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:7px;">Chek rasmi</span>
@@ -90,6 +93,7 @@
         <div style="display:flex;gap:8px;margin-top:16px;">
           <input name="promo_code" value="{{ submitted_promo_code }}" placeholder="Promo kod" style="width:100%;height:40px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--paper-2);color:var(--ink);font-size:14px;outline:none;">
         </div>
+        {% if checkout_cohort.capacity %}<p style="font-size:12px;color:var(--ink-2);margin:12px 0 0;">Guruh sig'imi: {{ checkout_cohort.capacity }} kishi · Band: {{ checkout_cohort.occupied_seats }}</p>{% endif %}
         {% if submitted_promo_code and not promo_quote %}<div style="font-size:11.5px;color:var(--red);margin-top:7px;">Promokod amal qilmadi yoki noto'g'ri.</div>{% elif promo_quote and promo_quote.has_discount %}<div style="font-size:11.5px;color:var(--green);margin-top:7px;"><i class="bi bi-check-circle"></i> Promokod qo'llandi.</div>{% endif %}
       </div>
       <div style="padding:20px;display:flex;flex-direction:column;gap:11px;">
@@ -115,4 +119,8 @@
   {% endif %}
 
 </div>
+{% endblock %}
+
+{% block page_js %}
+<script defer src="{% static 'js/checkout-plan.js' %}"></script>
 {% endblock %}

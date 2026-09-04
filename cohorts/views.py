@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.http import JsonResponse
 from courses.models import Course
 from subscriptions.models import Plan
+from subscriptions.catalog import purchase_plans
 from subscriptions.promo_service import (
     PromoValidationError,
     build_promo_quote,
@@ -23,30 +24,42 @@ from .models import PaymentReceipt, PendingReceiptExists
 def checkout_view(request, course_id):
     course = get_object_or_404(Course, id=course_id, is_active=True)
 
+    plans = purchase_plans(student=request.user, course=course)
+    if not plans.exists():
+        messages.error(request, "Hozircha obuna tariflari sozlanmagan. Iltimos, birozdan so'ng qayta urinib ko'ring.")
+        return redirect('subscriptions:pricing')
+    requested_plan_id = request.POST.get("plan_id") or request.GET.get("plan_id")
+    requested_plan = plans.filter(id=requested_plan_id).first() if str(requested_plan_id or "").isdigit() else None
+    current = request.user.enrollments.filter(cohort__course=course).exclude(status="frozen").order_by("-joined_at", "-id").first()
+    preferred = (current.pending_plan or current.active_plan()) if current is not None else None
+    selected_plan = requested_plan or (preferred if preferred and plans.filter(pk=preferred.pk).exists() else plans.first())
+
     # Sahifani ko'rsatish o'qish amali: bu yerda hech narsa yaratilmaydi.
     # Enrollment faqat foydalanuvchi chekni yuborganda ochiladi (pastda).
     try:
         enrollment, checkout_cohort = find_checkout_enrollment(
             student=request.user,
             course=course,
+            plan=selected_plan,
         )
     except CheckoutUnavailable as exc:
-        messages.error(request, str(exc))
-        return redirect('course_detail', pk=course.id)
+        # A course may offer Standard but not Economic. An unqualified
+        # course CTA should find an offered tier, not fail on catalog order.
+        fallback = None
+        if not requested_plan_id:
+            for candidate in plans.exclude(pk=selected_plan.pk):
+                try:
+                    fallback = find_checkout_enrollment(student=request.user, course=course, plan=candidate)
+                except CheckoutUnavailable:
+                    continue
+                selected_plan = candidate
+                break
+        if fallback is None:
+            messages.error(request, str(exc))
+            return redirect('course_detail', pk=course.id)
+        enrollment, checkout_cohort = fallback
     enrollment_created = False
 
-    plans = Plan.objects.order_by('order', 'id')
-    if not plans.exists():
-        messages.error(request, "Hozircha obuna tariflari sozlanmagan. Iltimos, birozdan so'ng qayta urinib ko'ring.")
-        return redirect('subscriptions:pricing')
-
-    requested_plan_id = request.POST.get("plan_id") or request.GET.get("plan_id")
-    requested_plan = plans.filter(id=requested_plan_id).first() if requested_plan_id else None
-    selected_plan = requested_plan or (
-        (enrollment.pending_plan or enrollment.plan or plans.first()) if enrollment is not None else plans.first()
-    )
-    if selected_plan and not plans.filter(id=selected_plan.id).exists():
-        selected_plan = plans.first()
     submitted_promo_code = (request.POST.get("promo_code") or request.GET.get("promo_code") or "").strip()
 
     # Check if there is already a pending receipt
@@ -71,7 +84,7 @@ def checkout_view(request, course_id):
             promo_quote = None
 
     if request.method == 'POST':
-        selected_plan = plans.filter(id=request.POST.get('plan_id')).first()
+        selected_plan = requested_plan
         if not selected_plan:
             messages.error(request, "Iltimos, mavjud tariflardan birini tanlang.")
             return render(request, 'cohorts/checkout.html', {
@@ -151,6 +164,7 @@ def checkout_view(request, course_id):
             enrollment, enrollment_created, checkout_cohort = resolve_checkout_enrollment(
                 student=request.user,
                 course=course,
+                plan=selected_plan,
             )
         except CheckoutUnavailable as exc:
             messages.error(request, str(exc))
@@ -190,6 +204,9 @@ def checkout_view(request, course_id):
                 'period_start': tentative_start,
                 'period_end': tentative_end
             })
+        except ValidationError as exc:
+            messages.error(request, " ".join(exc.messages))
+            return redirect('cohorts:checkout', course_id=course.id)
 
         return redirect('cohorts:checkout_pending', receipt_id=receipt.id)
 
@@ -256,17 +273,18 @@ def checkout_success_view(request, receipt_id=None):
 @login_required
 def checkout_promo_preview_view(request, course_id):
     course = get_object_or_404(Course, id=course_id, is_active=True)
+    plan_id = request.GET.get("plan_id", "")
+    plan = purchase_plans(student=request.user, course=course).filter(id=plan_id).first() if plan_id.isdigit() else None
+    if not plan:
+        return JsonResponse({"valid": False, "error": "Tarif topilmadi.", "code": "plan_not_found"}, status=400)
     try:
         enrollment, checkout_cohort = find_checkout_enrollment(
             student=request.user,
             course=course,
+            plan=plan,
         )
     except CheckoutUnavailable as exc:
         return JsonResponse({"valid": False, "error": str(exc), "code": "checkout_unavailable"}, status=400)
-
-    plan = Plan.objects.filter(id=request.GET.get("plan_id")).first()
-    if not plan:
-        return JsonResponse({"valid": False, "error": "Tarif topilmadi.", "code": "plan_not_found"}, status=400)
 
     raw_code = (request.GET.get("promo_code") or "").strip()
     try:

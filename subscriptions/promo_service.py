@@ -189,12 +189,14 @@ def create_checkout_receipt_with_promo(
 ):
     from cohorts.models import Enrollment, PaymentReceipt, PendingReceiptExists
     from .models import Plan
+    from cohorts.delivery_service import lock_enrollment, validate_checkout
 
     with transaction.atomic():
-        enrollment = Enrollment.objects.select_for_update().get(pk=enrollment.pk)
+        enrollment = lock_enrollment(enrollment.pk)
         plan = Plan.objects.select_for_update().get(pk=plan.pk)
         if PaymentReceipt.objects.filter(enrollment=enrollment, is_verified=False).exists():
             raise PendingReceiptExists("Sizda allaqachon tasdiqlanmagan to'lov cheki mavjud.")
+        validate_checkout(plan=plan, enrollment=enrollment)
         quote = build_promo_quote(
             student=enrollment.student,
             enrollment=enrollment,

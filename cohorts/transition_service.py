@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from django.db import transaction
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 from courses.models import LessonProgress
@@ -168,7 +169,15 @@ def transfer_enrollment_to_cohort(*, source_enrollment, target_cohort, created_b
     _ensure_unique_target_enrollment(student=source_enrollment.student, target_cohort=target_cohort)
 
     with transaction.atomic():
+        from .delivery_service import lock_cohorts, validate_plan_cohort, validate_seat
+        locked_cohorts = lock_cohorts(source_enrollment.cohort_id, target_cohort.pk)
+        target_cohort = locked_cohorts[target_cohort.pk]
         source_enrollment = _locked_enrollment(source_enrollment.pk)
+        try:
+            validate_plan_cohort(plan=source_enrollment.active_plan(), cohort=target_cohort)
+            validate_seat(cohort=target_cohort)
+        except ValidationError as exc:
+            raise EnrollmentTransitionError(" ".join(exc.messages)) from exc
         source_status = source_enrollment.status
         _freeze_source_enrollment(source_enrollment)
         target_enrollment = _create_target_enrollment_for_transfer(
@@ -221,7 +230,15 @@ def promote_enrollment_to_cohort(*, source_enrollment, target_cohort, created_by
     )
 
     with transaction.atomic():
+        from .delivery_service import lock_cohorts, validate_plan_cohort, validate_seat
+        locked_cohorts = lock_cohorts(source_enrollment.cohort_id, target_cohort.pk)
+        target_cohort = locked_cohorts[target_cohort.pk]
         source_enrollment = _locked_enrollment(source_enrollment.pk)
+        try:
+            validate_plan_cohort(plan=source_enrollment.active_plan(), cohort=target_cohort)
+            validate_seat(cohort=target_cohort)
+        except ValidationError as exc:
+            raise EnrollmentTransitionError(" ".join(exc.messages)) from exc
         target_enrollment = _create_target_enrollment_for_promotion(
             source_enrollment=source_enrollment,
             target_cohort=target_cohort,
