@@ -16,10 +16,24 @@ class CatalogPlanForm(forms.ModelForm):
 
     class Meta:
         model = Plan
-        fields = ("name", "price", "description", "is_available_for_purchase", "is_popular", "button_text", "order")
+        fields = ("name", "price", "cohort_capacity_limit", "description", "is_available_for_purchase", "is_popular", "button_text", "order")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        if self.instance.pk and self.instance.cohort_capacity_limit is None:
+            # Legacy tarifda delivery turkumi yo'q va uni keyin qo'shib
+            # bo'lmaydi (`Plan.clean`), shuning uchun maydon ko'rsatilmaydi.
+            self.fields.pop("cohort_capacity_limit")
+        else:
+            capacity = self.fields["cohort_capacity_limit"]
+            capacity.required = True
+            capacity.label = "Guruhning standart sig'imi"
+            capacity.help_text = (
+                "Yangi guruhlar shu sondan boshlanadi va sotuv sahifasida shu va'da "
+                "qilinadi. Uni keyin o'zgartirish mumkin — mavjud guruhlar o'z "
+                "sig'imini saqlaydi. Bitta guruhga istisno qilish uchun o'sha "
+                "guruhning sig'imini o'zgartiring."
+            )
         if self.instance.pk:
             self.fields["features_text"].initial = "\n".join(
                 ("" if f.is_included else "- ") + f.name for f in self.instance.features.order_by("order", "id")
@@ -72,7 +86,11 @@ class DeliveryCohortForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["plan"].queryset = Plan.objects.filter(cohort_capacity_limit__isnull=False)
         self.fields["plan"].required = not self.instance.pk or self.instance.plan_id is not None
-        self.fields["capacity"].help_text = "Bo'sh qoldirilsa tarif chegarasi olinadi. Uni kamaytirish mumkin, oshirish mumkin emas."
+        self.fields["capacity"].help_text = (
+            "Bo'sh qoldirilsa tarifning standart sig'imi olinadi. Kamaytirish ham, "
+            "oshirish ham mumkin — bu guruh uchun istisno qilsangiz katalogda "
+            "ko'rinib turadi. Band joylar sonidan kam bo'la olmaydi."
+        )
         for field in self.fields.values():
             if not isinstance(field.widget, forms.CheckboxInput):
                 field.widget.attrs["class"] = "brand-input"

@@ -107,8 +107,13 @@ class Cohort(models.Model):
                 raise ValidationError({"plan": "Delivery chegarasi bor tarifni tanlang."})
             if self.capacity is None:
                 self.capacity = limit
-            if not 1 <= self.capacity <= limit:
-                raise ValidationError({"capacity": f"Sig'im 1–{limit} oralig'ida bo'lishi kerak."})
+            if self.capacity < 1:
+                raise ValidationError({"capacity": "Sig'im kamida 1 bo'lishi kerak."})
+            # Tarifdagi son — shu formatning **standarti**, qattiq shift emas.
+            # Egasi bitta guruhga istisno qila olishi kerak (masalan oxirgi
+            # bitta o'quvchini qabul qilish). Tasodif emasligi uchun forma
+            # sabab va tasdiq so'raydi, qaror auditga tushadi, katalogda esa
+            # standartdan oshgani ko'rinib turadi.
         elif self.capacity is not None:
             raise ValidationError({"plan": "Sig'im uchun guruh tarifi tanlanishi kerak."})
         if self.pk:
@@ -140,6 +145,16 @@ class Cohort(models.Model):
     @property
     def is_full(self):
         return self.capacity is not None and self.occupied_seats >= self.capacity
+
+    @property
+    def seats_above_tier_standard(self):
+        """Tarif standartidan qancha ko'p joy ochilgani — istisno ko'rinib tursin."""
+        if self.capacity is None or self.plan_id is None:
+            return 0
+        standard = self.plan.cohort_capacity_limit
+        if standard is None:
+            return 0
+        return max(self.capacity - standard, 0)
 
     @property
     def stale_seats(self):

@@ -16,6 +16,35 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-04 [Claude]: Raqamlar egasiniki — qoida qat'iy emas, eshik qoldiradi
+
+Owner aytdi: «guruh to'lsa qo'shilish mutloq imkonsiz bo'lishi kerak emas,
+balki sakkiz emas 10 qilgim kelib qolar; tizim egasi bo'lib o'zim istisno
+qila olmaymanmi?» Haqli e'tiroz — ikkala son ham qotirilgan edi:
+`Plan.cohort_capacity_limit` yaratilgandan keyin **umuman** o'zgarmasdi
+(«yangi tarif yarating»), `Cohort.capacity` esa o'sha songa qattiq
+cheklangan edi.
+
+Endi tarifdagi son — o'sha formatning **standarti**: yangi guruhlar shundan
+boshlanadi va sotuv sahifasi shuni va'da qiladi. Bitta guruhga istisno
+qilish mumkin, standartning o'zini ham o'zgartirsa bo'ladi. Mavjud guruhlar
+o'z sig'imini saqlaydi, chunki u har guruhda alohida yozilgan.
+
+Qat'iy qolgan uchta narsa ataylab: sig'im band joylar sonidan kam bo'la
+olmaydi; legacy tarifni delivery tarifiga aylantirib bo'lmaydi
+(`validate_plan_cohort` aynan shu farqqa tayanadi); va standart uchun
+1–500 oralig'i — bu siyosat emas, `10` o'rniga `1000` terilishidan himoya.
+
+Tasodif emasligini forma ta'minlaydi (sabab + tasdiq + audit), istisno esa
+katalogda «tarif standartidan +N joy» bo'lib ko'rinib turadi.
+
+- Branch: `claude/owner-decides-the-numbers`
+- Test holati (env faylsiz, Gemini/Telegram keys bo'sh): `python manage.py test --noinput` — **1159 test OK (skipped=29)**; `check --fail-level WARNING` 0 issue; `makemigrations --check --dry-run` drift yo'q (schema o'zgarmadi); `scan_secrets` toza.
+- Nazorat yugurishi ikki qism uchun alohida: tarif standarti yana qotirilganda 1 test yiqildi; guruh sig'imi yana tarif bilan cheklanganda 3 test yiqildi.
+- Codex'ning uchta testi eski qat'iylikni qotirgan edi; maqsadi saqlangan holda yangi qoidaga bog'landi (nol sig'im hamon rad etiladi, kod hamon barqaror, forma xatoni 500 bermay ko'rsatadi).
+
+---
+
 ## 2026-09-04 [Claude]: Owner joyni o'zi bo'shata oladi — va chek sahifasi nihoyat bezatildi
 
 Owner savol berdi: «avtomatik bo'shatish shartmi, to'lamasa o'zim chiqarib

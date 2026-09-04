@@ -30,6 +30,7 @@ class CatalogTests(TestCase):
     def data(self, **changes):
         result = {
             "name": self.plan.name, "price": "270000", "description": "To'liq darslar",
+            "cohort_capacity_limit": str(self.plan.cohort_capacity_limit or ""),
             "is_popular": "on", "button_text": "Tanlash", "order": "2",
             "features_text": "Darslar\nSertifikat\n- Hali yo'q",
             "change_reason": "Owner tasdiqlagan narx", "confirm_change": "on",
@@ -74,7 +75,29 @@ class CatalogTests(TestCase):
         with self.assertRaises(ValidationError):
             self.plan.save()
         self.plan.refresh_from_db()
-        self.plan.cohort_capacity_limit = 9
+
+    def test_the_owner_may_change_the_tier_standard_group_size(self):
+        """8 emas 10 qilishni xohlash — yangi tarif yaratish sababi emas."""
+        self.plan.cohort_capacity_limit = 10
+
+        self.plan.save()
+
+        self.assertEqual(Plan.objects.get(pk=self.plan.pk).cohort_capacity_limit, 10)
+
+    def test_a_legacy_plan_cannot_be_turned_into_a_delivery_plan(self):
+        """Sonni o'zgartirish boshqa, turkumni almashtirish boshqa.
+
+        `validate_plan_cohort` aynan shu farqqa tayanadi: legacy tarif
+        legacy guruhga, delivery tarif o'z guruhiga. Turkum almashsa mavjud
+        guruhlar jimgina noto'g'ri tomonga tushib qolardi.
+        """
+        legacy = Plan.objects.create(name="Eski", price=99000, description="d")
+        legacy.cohort_capacity_limit = 5
+
+        with self.assertRaises(ValidationError):
+            legacy.save()
+
+        self.plan.cohort_capacity_limit = None
         with self.assertRaises(ValidationError):
             self.plan.save()
 
@@ -97,10 +120,20 @@ class CatalogTests(TestCase):
         self.plan.refresh_from_db()
         self.assertEqual(self.plan.price, 259000)
         self.assertFalse(SystemAuditEvent.objects.filter(action="catalog.plan.update").exists())
-        form = update_plan(actor=self.owner, plan_id=self.plan.pk, data=self.data(code="forged", cohort_capacity_limit="1000"))
+        form = update_plan(actor=self.owner, plan_id=self.plan.pk, data=self.data(code="forged"))
         self.assertTrue(form.is_valid(), form.errors)
         self.plan.refresh_from_db()
         self.assertEqual((self.plan.code, self.plan.cohort_capacity_limit), ("standard", 8))
+
+    def test_an_absurd_group_size_is_caught_as_a_typo(self):
+        """Chegara siyosat emas: `10` o'rniga `1000` terilishidan himoya."""
+        form = update_plan(
+            actor=self.owner, plan_id=self.plan.pk, data=self.data(cohort_capacity_limit="1000")
+        )
+
+        self.assertFalse(form.is_valid())
+        self.plan.refresh_from_db()
+        self.assertEqual(self.plan.cohort_capacity_limit, 8)
 
     def test_staff_student_inactive_owner_and_service_cannot_edit_catalog(self):
         staff = CustomUser.objects.create_user(username="catalog-staff", email="staff@example.test", is_staff=True)
@@ -137,7 +170,7 @@ class CatalogTests(TestCase):
 
     def test_cohort_form_reports_tier_capacity_errors_without_500(self):
         self.client.force_login(self.owner)
-        response = self.client.post(reverse("backoffice_cohort_create"), self.cohort_data(capacity="9"))
+        response = self.client.post(reverse("backoffice_cohort_create"), self.cohort_data(capacity="0"))
         self.assertEqual(response.status_code, 200)
         self.assertIn("capacity", response.context["form"].errors)
         self.assertFalse(Cohort.objects.filter(plan=self.plan).exists())

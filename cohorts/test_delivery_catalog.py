@@ -61,13 +61,26 @@ class DeliveryTests(DeliveryFixture, TestCase):
             self.assertEqual(group.capacity, capacity)
             self.assertEqual(plan_entitlements(plan), BASELINE)
 
-    def test_capacity_cannot_exceed_tier_or_be_zero(self):
-        for capacity in (0, 9):
-            self.cohort.capacity = capacity
-            with self.assertRaises(ValidationError):
-                self.cohort.save()
+    def test_capacity_cannot_be_zero(self):
+        self.cohort.capacity = 0
+        with self.assertRaises(ValidationError):
+            self.cohort.save()
         self.cohort.refresh_from_db()
         self.assertEqual(self.cohort.capacity, 1)
+
+    def test_the_owner_may_seat_more_than_the_tier_standard(self):
+        """Tarifdagi son — standart, qattiq shift emas.
+
+        Egasi bitta guruhga istisno qila olishi kerak (masalan oxirgi bitta
+        o'quvchini qabul qilish). Tasodif emasligini forma ta'minlaydi:
+        sabab, tasdiq va audit; katalogda esa istisno ko'rinib turadi.
+        """
+        self.cohort.capacity = 9
+
+        self.cohort.save()
+
+        self.cohort.refresh_from_db()
+        self.assertEqual(self.cohort.capacity, 9)
 
     def test_cannot_shrink_below_members_or_relabel_populated_cohort(self):
         self.cohort.capacity = 2
