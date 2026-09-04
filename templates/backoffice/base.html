@@ -46,7 +46,7 @@
         </div>{% endif %}
         <div class="app-nav-group">
           <button type="button" class="app-nav-label" data-app-group><span>Kontent</span><i class="bi bi-chevron-down"></i></button>
-          <a class="app-nav-item{% if url_name == 'backoffice_course_create' or url_name == 'backoffice_course_edit' %} active{% endif %}" href="{% url 'backoffice_course_create' %}"><i class="bi bi-journal-richtext"></i><span class="label">Yangi kurs</span></a>
+          <a class="app-nav-item{% if url_name == 'backoffice_courses' or url_name == 'backoffice_course_create' or url_name == 'backoffice_course_edit' %} active{% endif %}" href="{% url 'backoffice_courses' %}"><i class="bi bi-journal-richtext"></i><span class="label">Kurslar</span>{% if counts.courses %}<span class="app-nav-badge">{{ counts.courses }}</span>{% endif %}</a>
           <a class="app-nav-item{% if url_name == 'backoffice_lessons' or url_name == 'backoffice_lesson_edit' %} active{% endif %}" href="{% url 'backoffice_lessons' %}"><i class="bi bi-play-circle"></i><span class="label">Darslar</span></a>
           <a class="app-nav-item{% if url_name == 'backoffice_exams' or url_name == 'backoffice_exam_edit' %} active{% endif %}" href="{% url 'backoffice_exams' %}"><i class="bi bi-clipboard-check"></i><span class="label">Imtihonlar</span></a>
           <a class="app-nav-item" href="{% url 'blog:studio' %}"><i class="bi bi-pencil-square"></i><span class="label">Blog studiya</span>{% if counts.pending_posts %}<span class="app-nav-badge is-amber">{{ counts.pending_posts }}</span>{% endif %}</a>
