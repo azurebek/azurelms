@@ -16,6 +16,31 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-05 [Claude]: To'lov sahifasi nihoyat qayerga pul yuborishni aytadi
+
+UX auditda topilgan eng qimmat uzilish. Checkout sahifasida yozilgan edi:
+«To'lovni administrator ko'rsatgan hisobga o'tkazing» — ammo hisob **hech
+qayerda** ko'rsatilmasdi. Ya'ni saytdan kelgan mijoz to'lay olmasdi.
+
+Ma'lumot bor edi: `SiteSettings.payment_card_number` va yondosh maydonlar
+to'ldirilgan, Telegram boti esa ularni checkout xabarida allaqachon
+chiqarardi (`bot/services.begin_course_enrollment` → `workspace.py`). Ya'ni
+bu xususiyat yetishmasligi emas, **ikki adapter orasidagi farq** edi:
+botdan kelgan to'lardi, saytdan kelgani yo'q.
+
+Endi sahifada karta raqami, egasi, bank va ownerning o'z izohi turadi,
+yoniga «Nusxa olish» tugmasi (telefonda raqamni qo'lda ko'chirish xato
+qilishning eng oson yo'li). Owner maydonni bo'sh qoldirsa bo'sh quti
+ko'rsatilmaydi.
+
+- Branch: `claude/checkout-says-where-to-pay`
+- Test holati (env faylsiz, Gemini/Telegram keys bo'sh): `python manage.py test --noinput` — **1256 test OK (skipped=29)**.
+- Asosiy test — **parity**: bot qaytaradigan `card_number` va `card_holder` sahifada ham bo'lishi tekshiriladi, ya'ni ikki yuza bir xil hisobni aytadi.
+- Nazorat yugurishi: karta bloki yashirilganda 3 test yiqildi.
+- Brauzer (alohida vaqtinchalik baza): blok ko'rindi, nusxa tugmasi ishlaydi; 375px da gorizontal siljish yo'q.
+
+---
+
 ## 2026-09-05 [Claude]: AzureAI ning ham profili bor — va panel qotib qolmaydi
 
 Owner ikki narsani aytdi: profil paneli «Yuklanmoqda…» da qotib qolgan, va
