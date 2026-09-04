@@ -144,3 +144,19 @@ uchun alohida (5/9 va 2/9 yiqildi, tiklangach yashil).
 **Owner qarori ochiq:** agar qimmatroq tarifga o'tish darhol ishlashi kerak
 bo'lsa, davr ham o'sha kundan boshlanishi yoki farq hisoblanishi kerak
 (proration). Hozirgi tanlov — "to'langan kun = olingan kun".
+
+## Ikkinchi tuzatish — 2026-09-04 [Claude]
+
+Birinchi tuzatishning ko'zgudagi aksi: tizim to'lanmagan kunlarni berardi,
+shu bilan birga **to'langan kunlarni olib qolardi**.
+
+To'lov davri chek yuborilgan kuni hisoblanadi, tasdiqlash esa qo'lda. Kirishi
+yopiq turgan o'quvchi (birinchi xarid yoki muddati o'tgan obuna) tasdiqlash
+kutilgan kunlarni yo'qotardi — o'lchovda 3 kun kutish 30 kunlik pulga 27 kun
+berdi. Endi bunday holatda davr uzunligi kirish ochilgan kundan sanaladi
+(`PaymentReceipt.granted_deadline()`). Kirishi ochiq turgan o'quvchiga
+qo'shimcha kun berilmaydi.
+
+Dalil: `python manage.py test --noinput` **1085 OK (skipped=26)**;
+`cohorts/test_approval_delay.py` 6 test; nazorat yugurishi 2/6 yiqildi.
+Schema o'zgarmadi.

@@ -376,6 +376,33 @@ class PaymentReceipt(models.Model):
     def plan_label(self):
         return self.plan_name_snapshot or "Tarif qayd etilmagan"
 
+    def granted_deadline(self, *, access_was_open, today=None):
+        """Tasdiqlashdan keyingi haqiqiy muddat.
+
+        Davr chek yuborilgan kuni hisoblanadi, tasdiqlash esa qo'lda — owner
+        bank o'tkazmasini bir necha soatdan bir necha kungacha keyin
+        ko'radi. Kirishi yopiq turgan o'quvchi (birinchi xarid yoki muddati
+        o'tgan obuna) shu kunlarni **yo'qotardi**: 30 kunlik pulga 27 kun.
+
+        Shuning uchun kirishi yopiq bo'lgan holatda to'langan davr uzunligi
+        kirish ochilgan kundan sanaladi. Kirishi ochiq turgan o'quvchi
+        (yangilash yoki grace ichidagi) hech narsa yo'qotmagan — unda
+        chekdagi davr oxiri o'z holicha qoladi, ya'ni kechikish sovg'aga
+        aylanmaydi.
+
+        Hisob-faktura o'zgarmaydi: chekdagi davr — kelishilgan taklif,
+        `next_payment_deadline` esa haqiqatda berilgan xizmat.
+        """
+        today = today or timezone.localdate()
+        date_field = self._meta.get_field("period_start")
+        start = date_field.to_python(self.period_start)
+        end = self._meta.get_field("period_end").to_python(self.period_end)
+        if end is None:
+            return today + datetime.timedelta(days=30)
+        if access_was_open or start is None or start >= today:
+            return end
+        return today + (end - start)
+
     def plan_takes_effect_now(self, *, today=None):
         """Faol tarifni faqat davri boshlangan chek almashtiradi.
 
@@ -433,10 +460,11 @@ class PaymentReceipt(models.Model):
                 from subscriptions.promo_service import apply_redemption_for_verified_receipt
 
                 apply_redemption_for_verified_receipt(receipt=self)
+                had_access = enrollment.has_active_access()
                 enrollment.status = Enrollment.STATUS_ACTIVE
                 enrollment.last_payment_date = timezone.localdate()
-                enrollment.next_payment_deadline = self.period_end or (
-                    timezone.localdate() + datetime.timedelta(days=30)
+                enrollment.next_payment_deadline = self.granted_deadline(
+                    access_was_open=had_access
                 )
                 fields = ["status", "last_payment_date", "next_payment_deadline"]
                 if self.plan_id and self.plan_takes_effect_now():
