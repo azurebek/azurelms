@@ -71,8 +71,27 @@
       <!-- 2. Chek yuklash -->
       <div style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:22px;">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;"><span style="width:26px;height:26px;border-radius:50%;background:var(--azure);color:var(--on-azure);display:grid;place-items:center;font-family:'Space Mono',monospace;font-size:12px;font-weight:700;">2</span><span style="font-size:15px;font-weight:600;color:var(--ink);">To'lov chekini yuklang</span></div>
+        {% comment %}
+          Karta raqami shu yerda turishi shart. Ilgari sahifa «administrator
+          ko'rsatgan hisobga o'tkazing» derdi, ammo hisobni hech qayerda
+          ko'rsatmasdi — ya'ni saytdan kelgan mijoz to'lay olmasdi. Telegram
+          boti esa o'sha `SiteSettings` maydonlarini allaqachon chiqaradi
+          (`bot/services.py`), demak ma'lumot bor edi, faqat bu yuzada yo'q edi.
+        {% endcomment %}
+        {% if site_settings.payment_card_number %}
+        <div style="border:1px solid var(--azure);border-radius:11px;background:var(--azure-soft);padding:16px;margin-bottom:16px;">
+          <div style="font-family:'Space Mono',monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--azure);margin-bottom:10px;">Shu hisobga o'tkazing</div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+            <span data-card-number style="font-family:'Space Mono',monospace;font-size:19px;font-weight:700;color:var(--ink);letter-spacing:.04em;">{{ site_settings.payment_card_number }}</span>
+            <button type="button" data-copy-card style="display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink-2);font-size:12.5px;font-weight:600;cursor:pointer;"><i class="bi bi-clipboard"></i> <span data-copy-label>Nusxa olish</span></button>
+          </div>
+          <div style="font-size:13px;color:var(--ink-2);">
+            {% if site_settings.payment_card_holder %}{{ site_settings.payment_card_holder }}{% endif %}{% if site_settings.payment_provider_label %} · {{ site_settings.payment_provider_label }}{% endif %}
+          </div>
+        </div>
+        {% endif %}
         <div style="font-size:13.5px;line-height:1.6;color:var(--ink-2);background:var(--paper-2);border:1px solid var(--line);border-radius:11px;padding:14px 16px;margin-bottom:16px;">
-          <i class="bi bi-info-circle" style="color:var(--azure);"></i> To'lovni administrator ko'rsatgan hisobga o'tkazing, so'ng to'lov chekining rasm/skrinshotini shu yerga yuklang. Administrator tasdiqlagach kursga kirish ochiladi.
+          <i class="bi bi-info-circle" style="color:var(--azure);"></i> {% if site_settings.payment_instruction %}{{ site_settings.payment_instruction }}{% else %}To'lovni yuqoridagi hisobga o'tkazing, so'ng to'lov chekining rasm/skrinshotini shu yerga yuklang.{% endif %} Administrator tasdiqlagach kursga kirish ochiladi.
           {% if checkout_cohort.capacity %}<p style="margin:8px 0 0;">Joy faqat to'lov tasdiqlanganda band bo'ladi. Chek yuborish joyni kafolatlamaydi. Guruh to'lib qolsa, administrator boshqa guruh yoki pulni qaytarish masalasini hal qiladi.</p>{% endif %}
         </div>
         <label style="display:block;">
