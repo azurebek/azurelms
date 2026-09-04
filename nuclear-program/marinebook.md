@@ -16,6 +16,36 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-04 [Claude]: To'lamayotgan a'zo joyni ushlab turishi ko'rinadi
+
+#70 dagi delivery slice'ni tekshirishda topilgan operatsion tuzoq. Muddati
+o'tgan a'zolik ataylab guruhda qoladi — bir kun kechikkan o'quvchi o'z
+o'rnini boshqa odamga berib qo'ymasligi kerak. Lekin joy hech qachon
+avtomatik bo'shamaydi, ya'ni qaytmaydigan o'quvchi uni abadiy ushlab turadi.
+
+O'lchov: sig'imi 2 bo'lgan delivery guruhda 200 kun oldin to'lashni
+to'xtatgan ikki o'quvchi bo'lsa, yangi mijoz "Guruh to'ldi" javobini oladi.
+Owner backoffice'da faqat `2 / 2` raqamini ko'rardi va bu joylarni kim
+egallab turganini bilmasdi — yo'qolgan sotuv hech qayerda ko'rinmasdi.
+Intensive (3 joy) uchun uch dona tashlab ketilgan hisob eng qimmat tarifni
+o'sha kurs bo'yicha butunlay yopib qo'yadi.
+
+Siyosat o'zgarmadi: joy avtomatik bo'shatilmaydi, qaror ownerda qoladi
+(a'zolikni muzlatish joyni bo'shatadi). Faqat fakt ko'rsatiladi — nechta
+joy to'lamayotgan a'zoda va eng eskisi necha kun. "Kirishi ochiq" savoli
+qayta yozilmaydi: `enrollment_active_access_q` chaqiriladi, shuning uchun
+grace day ichidagi o'quvchi "ketgan" deb ko'rsatilmaydi, kunlik xizmat
+hali yugurmagan bo'lsa ham holat to'g'ri chiqadi.
+
+- Branch: `claude/full-cohorts-show-who-is-holding-the-seat`
+- Test holati (env faylsiz, Gemini/Telegram keys bo'sh): `python manage.py test --noinput` — **1137 test OK (skipped=29)**; `check --fail-level WARNING` 0 issue; `makemigrations --check --dry-run` drift yo'q (schema o'zgarmadi); `scan_secrets` toza.
+- Nazorat yugurishi ikki qism uchun alohida: grace qoidasi o'rniga faqat `status` tekshirilganda 1 test yiqildi; sahifadan ko'rsatkich olib tashlanganda 1 test yiqildi.
+- Codex review boti to'g'ri nuqson topdi: ko'rsatkichlar xossa bo'lgani uchun har bir guruh qatori o'z so'rovlarini yugurtirardi.
+  `Cohort.objects.with_seat_metrics()` uchalasini bitta so'rovda hisoblaydi; ta'rif takrorlanmaydi, `enrollment_active_access_q` `members__` prefiksi bilan ishlatiladi. O'lchov: guruhlar soni 1 dan 5 ga chiqqanda so'rovlar soni o'zgarmaydi (annotatsiya olib tashlanganda bu test yiqiladi).
+- Brauzer tekshiruvi qilinmadi — sahifa render'i test bilan tasdiqlangan, vizual joylashuv ownerning ko'rigiga qoladi.
+
+---
+
 ## 2026-09-04 [Claude]: Kunlik obuna xizmati bitta ta'rifdan yuguradi
 
 #70 dan keyingi audit paytida topilgan naqsh — va o'z ishimdagi teshik.

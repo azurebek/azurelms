@@ -24,6 +24,30 @@ def occupied_seats(cohort):
     return occupied_members(cohort).count()
 
 
+def stale_members(cohort, *, today=None):
+    """Joyni ushlab turgan, ammo kirishi ochiq bo'lmagan a'zolar.
+
+    Muddati o'tgan a'zolik ataylab guruhda qoladi: bir kun kechikkan
+    o'quvchi o'z o'rnini boshqa odamga berib qo'ymasligi kerak. Lekin
+    hech qachon qaytmaydigan o'quvchi ham joyni **abadiy** ushlab turadi,
+    ya'ni guruh jimgina sotuvni to'xtatadi: owner "Guruh to'ldi" ni
+    ko'radi va bu joylarni kim egallab turganini bilmaydi.
+
+    Bu yerda siyosat yo'q — joy avtomatik bo'shatilmaydi. Faqat fakt
+    ko'rsatiladi, qaror owner qaramog'ida: a'zolikni muzlatish joyni bo'shatadi.
+
+    "Kirishi ochiq" savoli qayta yozilmaydi — `enrollment_active_access_q`
+    chaqiriladi, ya'ni grace day qoidasi bitta joyda qoladi.
+    """
+    from .models import enrollment_active_access_q
+
+    return occupied_members(cohort).exclude(enrollment_active_access_q(today=today))
+
+
+def stale_seats(cohort, *, today=None):
+    return stale_members(cohort, today=today).count()
+
+
 def validate_plan_cohort(*, plan, cohort):
     if cohort.plan_id is not None:
         if plan is None or plan.pk != cohort.plan_id:

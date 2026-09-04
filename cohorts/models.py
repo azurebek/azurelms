@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from django.utils.functional import cached_property
 from django.db.models import Q
 from django.db import transaction
 import datetime
@@ -46,6 +47,30 @@ class EnrollmentQuerySet(models.QuerySet):
         return self.filter(enrollment_overdue_expiration_q(today=today, grace_days=grace_days))
 
 
+def cohort_occupied_seat_q(*, prefix="members__"):
+    """Joyni band qiladigan a'zolik (`delivery_service.occupied_members` bilan bir xil)."""
+    return Q(**{f"{prefix}status__in": (ENROLLMENT_STATUS_ACTIVE, ENROLLMENT_STATUS_EXPIRED)})
+
+
+class CohortQuerySet(models.QuerySet):
+    def with_seat_metrics(self, *, today=None):
+        """Joy ko'rsatkichlarini bitta so'rovda oldindan hisoblaydi.
+
+        Ular xossalar sifatida ham mavjud, lekin ro'yxat sahifasida har bir
+        qator o'z so'rovini yugurtirardi va guruhlar soni ortgan sari sahifa
+        sekinlashardi. Ta'rif takrorlanmaydi: shu yerda ham
+        `enrollment_active_access_q` ishlatiladi, faqat `members__` prefiksi
+        bilan.
+        """
+        occupied = cohort_occupied_seat_q()
+        stale = occupied & ~enrollment_active_access_q(today=today, prefix="members__")
+        return self.annotate(
+            occupied_seat_count=models.Count("members", filter=occupied, distinct=True),
+            stale_seat_count=models.Count("members", filter=stale, distinct=True),
+            oldest_stale_deadline=models.Min("members__next_payment_deadline", filter=stale),
+        )
+
+
 class Cohort(models.Model):
     # Guruhlar (Masalan: "Mart A1 - Kechki")
     name = models.CharField(max_length=200, verbose_name="Guruh nomi")
@@ -67,6 +92,8 @@ class Cohort(models.Model):
     telegram_group_link = models.URLField(blank=True, null=True, verbose_name="Telegram guruh havolasi")
     telegram_chat_id = models.BigIntegerField(blank=True, null=True, unique=True, verbose_name="Telegram chat ID")
     telegram_chat_title = models.CharField(max_length=255, blank=True, default="", verbose_name="Telegram chat nomi")
+
+    objects = CohortQuerySet.as_manager()
 
     def __str__(self):
         return f"{self.name} ({self.course.title})"
@@ -104,12 +131,45 @@ class Cohort(models.Model):
 
     @property
     def occupied_seats(self):
+        # `with_seat_metrics()` bilan olingan bo'lsa qayta so'ramaydi.
+        if (annotated := getattr(self, "occupied_seat_count", None)) is not None:
+            return annotated
         from .delivery_service import occupied_seats
         return occupied_seats(self)
 
     @property
     def is_full(self):
         return self.capacity is not None and self.occupied_seats >= self.capacity
+
+    @property
+    def stale_seats(self):
+        """Kirishi ochiq bo'lmagan a'zolar ushlab turgan joylar soni."""
+        if (annotated := getattr(self, "stale_seat_count", None)) is not None:
+            return annotated
+        return len(self._stale_deadlines)
+
+    @property
+    def longest_lapse_days(self):
+        """Eng uzoq to'lamay turgan a'zoning kunlari (bo'lmasa `None`).
+
+        Owner \"Guruh to'ldi\" ni ko'rganda, joyni bir kun kechikkan
+        o'quvchi ushlab turibdimi yoki yarim yil oldin ketgan odammi —
+        shu raqam ajratib beradi.
+        """
+        if hasattr(self, "oldest_stale_deadline"):
+            oldest = self.oldest_stale_deadline
+        else:
+            deadlines = [value for value in self._stale_deadlines if value is not None]
+            oldest = min(deadlines) if deadlines else None
+        if oldest is None:
+            return None
+        return (timezone.localdate() - oldest).days
+
+    @cached_property
+    def _stale_deadlines(self):
+        """Annotatsiyasiz holat uchun: bitta so'rov ikkala ko'rsatkichga yetadi."""
+        from .delivery_service import stale_members
+        return list(stale_members(self).values_list("next_payment_deadline", flat=True))
 
     class Meta:
         verbose_name = "Guruh"
