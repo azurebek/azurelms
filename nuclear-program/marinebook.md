@@ -16,6 +16,32 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-04 [Claude]: Davomat yakunlangach dars guruhga ochiladi
+
+Owner so'radi: «tomchilab berish mexanizmi ishlaydimi bizda? 100 ta dars
+birdan ochilmasin, jonli dars o'tilib o'qituvchi davomatni yakunlagach o'sha
+dars qulfi ochilsin deb gaplashgandik loyihaning eng boshida.»
+
+Javob: mexanizmning o'zi ishlaydi — o'qish tomoni `access_service` da,
+yozish tomoni `/teacher/release/` sahifasida (bu ilgari faqat o'chirilgan
+Django adminda bor edi va tuzatilgan). Ammo u **davomat bilan ulanmagan**
+edi: o'qituvchi avval davomatni saqlab, keyin boshqa sahifaga o'tib darsni
+ochishi kerak edi. Ikkinchi qadam unutilsa o'quvchi darsni ko'rmasdi, ya'ni
+kelishilgan oqim amalda esdan chiqishga bog'liq edi.
+
+Endi ochish davomatni saqlash bilan bitta amalda — katakcha belgilangan
+holda keladi va uni yechish mumkin. Bitta nozik joy ataylab ko'rsatiladi:
+guruhdagi **birinchi** ochilish butun kursni drip rejimiga o'tkazadi va
+qolgan barcha darslarni yopadi, shuning uchun birinchi safar sahifada
+ogohlantirish chiqadi. Ochilganda o'quvchilarga bildirishnoma ketadi
+(release servisi allaqachon shunday qilardi).
+
+- Branch: `claude/attendance-opens-the-lesson`
+- Test holati (env faylsiz, Gemini/Telegram keys bo'sh): `python manage.py test --noinput` — **1222 test OK (skipped=29)**; `check --fail-level WARNING` 0 issue; `makemigrations --check --dry-run` drift yo'q (schema o'zgarmadi).
+- Nazorat yugurishi ikki qism uchun alohida: ochish ulanmagan holatga qaytarilganda 6 test yiqildi; birinchi ochilish ogohlantirishi olib tashlanganda 1 test yiqildi.
+
+---
+
 ## 2026-09-04 [Claude]: Darsni ochish tugatish emas — belgini o'quvchi qo'yadi
 
 Owner xabar qildi: chap ustundagi ro'yxatni bosib chiqqanda kirgan darslar

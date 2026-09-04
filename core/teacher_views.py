@@ -423,6 +423,12 @@ def teacher_grade_assignment(request, submission_id):
 @login_required
 @user_passes_test(_is_teacher)
 def teacher_attendance(request):
+    from courses.release_service import (
+        drip_is_active,
+        release_map_for_cohort,
+        set_lesson_release,
+    )
+
     context = _base_context(request.user, "teacher_attendance")
     courses = context["teacher_courses"]
 
@@ -491,7 +497,21 @@ def teacher_attendance(request):
                 marked_by=request.user,
             )
             marked += 1
-        messages.success(request, f"Davomat saqlandi ({marked} o'quvchi).")
+
+        # Loyihaning boshidagi kelishuv: jonli dars o'tilib davomat
+        # yakunlangach o'sha dars guruhga ochiladi. Ilgari bu ikkita alohida
+        # qadam edi — davomat bu yerda, ochish esa boshqa sahifada — va
+        # ikkinchisi unutilsa o'quvchi darsni ko'rmasdi.
+        released_note = ""
+        if request.POST.get("release_lesson"):
+            _release, changed = set_lesson_release(
+                cohort=cohort, lesson=lesson, released=True, actor=request.user,
+                note="Davomat yakunlandi", request=request,
+            )
+            if changed:
+                released_note = " Dars guruhga ochildi."
+
+        messages.success(request, f"Davomat saqlandi ({marked} o'quvchi).{released_note}")
         return redirect(f"{request.path}?cohort={cohort.id}&lesson={lesson.id}")
 
     current = {}
@@ -523,6 +543,15 @@ def teacher_attendance(request):
             }
         )
     context["rows"] = rows
+    # Ochish holati: allaqachon ochiq bo'lsa taklif qilinmaydi; birinchi
+    # ochilish esa butun kursni drip rejimiga o'tkazadi va qolgan darslarni
+    # yopadi — buni ogohlantirmasdan qilib bo'lmaydi.
+    if lesson:
+        releases = release_map_for_cohort(cohort)
+        release = releases.get(lesson.id)
+        context["lesson_is_released"] = bool(release and release.is_released)
+        context["drip_active"] = drip_is_active(cohort, cohort.course)
+        context["release_starts_drip"] = not context["drip_active"]
     return render(request, "teacher/attendance.html", context)
 
 

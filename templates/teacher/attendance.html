@@ -63,6 +63,16 @@
     </section>
 
     {% if rows %}
+    {% if not lesson_is_released %}
+    <label style="display:flex;align-items:flex-start;gap:10px;margin:14px 0;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:var(--panel);cursor:pointer;">
+      <input type="checkbox" name="release_lesson" checked style="margin-top:2px;">
+      <span style="font-size:13px;line-height:1.6;color:var(--ink-2);">
+        <strong style="color:var(--ink);">Shu darsni guruhga ochish</strong><br>
+        Jonli dars o'tildi — davomat saqlangach o'quvchilar bu darsni ko'radi va ularga bildirishnoma ketadi.
+        {% if release_starts_drip %}<br><strong style="color:var(--amber);">Diqqat:</strong> bu guruhda birinchi ochilish. Shundan keyin <strong>faqat siz ochgan darslar</strong> ko'rinadi — qolgan hammasi yopiladi.{% endif %}
+      </span>
+    </label>
+    {% endif %}
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
       <button type="button" data-mark-all style="display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 16px;border-radius:10px;border:1px solid var(--line);color:var(--ink-2);background:transparent;font-size:13px;font-weight:600;cursor:pointer;"><i class="bi bi-check2-all"></i> Hammasini "Keldi" qilish</button>
       <button type="submit" style="display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 22px;border-radius:10px;background:var(--azure);color:var(--on-azure);border:none;font-size:13.5px;font-weight:600;cursor:pointer;"><i class="bi bi-save"></i> Davomatni saqlash</button>
