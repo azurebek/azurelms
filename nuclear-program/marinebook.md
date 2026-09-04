@@ -36,8 +36,8 @@ sabab/tasdiq/audit bilan boshqaradi; AI editor mavjud yuzada qoladi.
 - Branch: `codex/plan-catalog-delivery`; commitlar: `b5c2068`, `916de52`.
 - PR: [#70](https://github.com/azurebek/azurelms/pull/70) — joriy required CI/merge dalili.
 - Testlar (env faylsiz, Gemini/Telegram keys bo'sh): `python manage.py test --noinput`
-  **1121 OK, skipped=27**; file-backed delivery/payment/receipt/catalog focused
-  suite **65/65 OK**; `check --fail-level WARNING` 0 issue;
+  **1123 OK, skipped=29**; file-backed delivery/payment/receipt/catalog focused
+  suite **67/67 OK**; `check --fail-level WARNING` 0 issue;
   `makemigrations --check --dry-run` drift yo'q; `scan_secrets` toza.
 - Capacity va tier guardlarini process monkeypatch bilan olib tashlaganda
   tegishli testlar har biri **1/1 yiqildi**. Eski billing regressiyalarida faqat
@@ -49,6 +49,14 @@ sabab/tasdiq/audit bilan boshqaradi; AI editor mavjud yuzada qoladi.
   saqlanadi/muzlatiladi, yangi yozuv ham to'lovgacha joy olmaydi. Pending chek
   bo'lsa ko'chirish yo'q; owner rad etgach retry ishlaydi. Olti regression,
   shu jumladan audit rollback; eski selector bilan bot retry **1/1 yiqildi**.
+- Handoff CI'da eski `ConcurrentPaymentDecisionTests` assertioni ochildi:
+  approval yutsa kelasi davr tarifi bugunoq almashishini kutardi (#68ga zid,
+  `d4099ac`da ham shu assertion bor). Reject yutgan yugurishlar buni yashirgan.
+  Ikkala winner tartibi deterministik tekshirildi: eski expectation bilan
+  approve-first **1/2 yiqildi**, reject-first o'tdi. Runtime o'zgarmadi;
+  test bugungi old plan/quota, kelasi davrdagi haqiqiy paid plan, deadline,
+  invoice, bitta notification/auditni tekshiradi. Unordered race saqlangan;
+  ikkita yangi file-backed test in-memory muhitda mavjud guard bilan skip.
 - Browser: izolyatsiyalangan test DB/akkauntlari, katalog narx save, noto'g'ri
   sig'im xabari, sig'im kamaytirish; 390px katalog/checkout, 1280px dark
   checkout. Real tarif tanlash sinovi inline head-script timing nuqsonini

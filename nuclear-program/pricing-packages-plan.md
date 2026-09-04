@@ -113,10 +113,10 @@ joy **faqat to'lov tasdiqlanganda** band; ko'p kursli AI allowance esa
   `relocate_pending_checkout` orqali eski yozuvni muzlatib, yangi pending
   va transition/audit yaratadi. Qarori kutilayotgan chek ko'chirilmaydi;
   rad etilgach qayta checkout mumkin. Paid membership/tier o'zgarmaydi.
-- `python manage.py test --noinput`: **1121 OK, skipped=27**.
+- `python manage.py test --noinput`: **1123 OK, skipped=29**.
   `AZURELMS_TEST_FILE_DB=1 python manage.py test cohorts.test_delivery_catalog
   cohorts.test_payment_plan_integrity cohorts.test_single_pending_receipt
-  subscriptions.test_catalog --noinput`: **65/65 OK** (reviewdan keyingi head).
+  subscriptions.test_catalog --noinput`: **67/67 OK** (review/handoffdan keyingi head).
   Required PostgreSQL CI alohida gate.
 - Ikki nazorat yugurishi: `validate_seat` yo'q qilinganda oxirgi joy testi
   **1/1 yiqildi**; tier mosligi guardi yo'q qilinganda legacy guruhga noto'g'ri
@@ -125,6 +125,12 @@ joy **faqat to'lov tasdiqlanganda** band; ko'p kursli AI allowance esa
   retry regression testi **1/1 yiqildi** (`cohort_full`); tuzatilgani yashil.
   Web retry/approval, bot takrorlash, GET no-write, pending invoice immutability,
   audit rollback va yopiq guruhning same-tier fallback'i qamralgan.
+- Handoff required CI eski approve/reject race assertionini topdi: kelasi
+  davr uchun approval bugunoq plan almashishini kutgan, #68ga zid. Eski
+  assertion `d4099ac`da ham bor. Approve-first nazorat **1/2 yiqildi**,
+  reject-first o'tdi; runtime o'zgartirilmay test effective-date contractiga
+  moslandi va ikkala winnerga deterministik coverage qo'shildi. Asl unordered
+  race ham saqlangan; invoice/deadline/AI quota/audit/notification tekshiriladi.
 - `check --fail-level WARNING`: 0 issue; `makemigrations --check --dry-run`:
   drift yo'q; `scan_secrets`: toza. Barcha testlar env faylsiz va provider keys bo'sh.
 - Brauzer: haqiqiy DB'dan ajratilgan in-memory QA, test owner/student.

@@ -111,11 +111,18 @@ $env:GEMINI_API_KEY=''
 $env:TELEGRAM_BOT_TOKEN=''
 ```
 
-- `python manage.py test --noinput`: **1121 OK, skipped=27**.
+- `python manage.py test --noinput`: **1123 OK, skipped=29**.
 - `AZURELMS_TEST_FILE_DB=1` bilan `python manage.py test
   cohorts.test_delivery_catalog cohorts.test_payment_plan_integrity
   cohorts.test_single_pending_receipt subscriptions.test_catalog --noinput`:
-  **65/65 OK**, shu jumladan haqiqiy parallel approval sinovi.
+  **67/67 OK**, shu jumladan haqiqiy parallel approval sinovi.
+- Handoff CI eski approve/reject race testidagi kelasi davr tarifi darhol
+  yoqilishi kerak degan assertionni topdi. U #68ga zid edi va `main`da ham
+  bor edi. Runtime o'zgarmadi; eski expectation approve-first holatida
+  deterministik yiqilishi ko'rsatilib, test bugungi old quota/plan va kelasi
+  davrdagi new plan/deadline contractiga tuzatildi. Unordered race saqlanib,
+  ikkala winner tartibiga alohida test qo'shildi. Bu ikki file-backed test
+  in-memory suite'da mavjud platform guardi sabab skip qilinadi.
 - `check --fail-level WARNING`: 0 issue; `makemigrations --check --dry-run`:
   no drift; `scan_secrets`: toza. Eng oxirgi required CI natijasi PR #70da.
 - 390px/1280px, light/dark browser QA va haqiqiy plan-radio/narx/sig'im
