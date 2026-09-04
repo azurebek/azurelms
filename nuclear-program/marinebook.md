@@ -24,12 +24,13 @@ Web va bot bitta checkout/receipt service'lariga ulangan. Enrollment → receipt
 
 `cohorts.0016` additive: ochiq niyatlar va pending cheklar legacy metadata bilan ko'chadi. Eski tasdiqlangan cheklarga hozirgi enrollmentdan tarif tarixi to'qilmaydi. Oldingi kod faol tarifni allaqachon almashtirgan bo'lsa, haqiqiy oldingi tarifni dalilsiz tiklashga urinilmaydi. Yangi paketlar/AI quota hali sotuvga yoqilmadi; admission va qolgan bosqichlar `pricing-packages-plan.md`da, A4 backlog va project-context yangilandi.
 
-- Branch: `codex/plan-payment-foundation`
+- Branch: `codex/plan-payment-foundation`; required CI/merge dalili: [PR #67](https://github.com/azurebek/azurelms/pull/67)
 - Commit: `7efe6f2`
 - Test holati (env faylsiz, Gemini/Telegram keys bo'sh): `python manage.py test --noinput` — **1068 test OK (skipped=26)**; `AZURELMS_TEST_FILE_DB=1 python manage.py test cohorts.test_payment_plan_integrity cohorts.test_payment_plan_migration --noinput` — **22/22 OK**, concurrency ham yugurdi. `check --fail-level WARNING` 0 issue, `makemigrations --check --dry-run` drift yo'q; `scan_secrets` toza.
 - Nazorat yugurishi: eski active-plan mutation qaytarilganda 2/2, jonli enrollment nomi tarixga qaytarilganda 2/2 test yiqildi; faqat process monkeypatchi, fayllar o'zgarmadi.
 - Browser: izolyatsiyalangan in-memory test DB, soxta student/owner, pending sahifa va backoffice approve amali o'tdi; to'g'ri purchased plan ko'rindi. Haqiqiy to'lov/akkaunt ishlatilmadi. Mobile sign-off qilinmadi.
-- Davom etilishi kerak: required CI va qo'lda merge; local DB backup/migrate; keyingi slice — catalog availability, cohort tier/capacity va plan policy; undan keyin xizmat workflow/UI/analytics. Butun tarif rejasi tugadi degani emas.
+- Qo'shimcha verifikatsiya: file-backed buyruqqa `cohorts.test_single_pending_receipt` qo'shilganda **28/28 OK**. Local `backup_db` → `migrate cohorts 0016 --noinput` o'tdi; integrity-ok zaxira `backups/db-20260904-052621.sqlite3` (untracked/ignored). Read-only solishtirishda 125 jadvalning avvalgi qiymatlari saqlandi, kutilgan checkout timestamp cleanup va migration ledgeri bundan mustasno.
+- Davom etilishi kerak: keyingi slice — catalog availability, cohort tier/capacity va plan policy; undan keyin xizmat workflow/UI/analytics. Butun tarif rejasi tugadi degani emas; CI/merge joriy holati yuqoridagi PR'da.
 
 ---
 

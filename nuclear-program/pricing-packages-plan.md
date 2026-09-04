@@ -1,7 +1,7 @@
 # Economic / Standard / Intensive — implementation ledger
 
 Owner admission: 2026-09-04, `writing-block.md` rejasidan keyin «boshla qurishni».
-Status: **ADMIT — launch-critical**, birinchi slice **IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN**; required CI va merge alohida gate.
+Status: **ADMIT — launch-critical**, birinchi slice **IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN**; required CI/merge dalili [PR #67](https://github.com/azurebek/azurelms/pull/67)da.
 
 ## Product contract
 
@@ -70,6 +70,8 @@ bilan, haqiqiy provider chaqiruvisiz yugurdi.
 
 - `python manage.py test --noinput`: **1068 test, OK, skipped=26**.
 - `AZURELMS_TEST_FILE_DB=1 python manage.py test cohorts.test_payment_plan_integrity cohorts.test_payment_plan_migration --noinput`: **22/22 OK**, jumladan parallel approve/approve va approve/reject.
+- Shu buyruqqa `cohorts.test_single_pending_receipt` qo'shib qayta yugurish:
+  **28/28 OK**, parallel chek yaratish ham tekshirildi.
 - `python manage.py check --fail-level WARNING`: 0 issue;
   `python manage.py makemigrations --check --dry-run`: drift yo'q.
 - Nazorat yugurishi: eski `Enrollment.plan`ga niyat yozish qaytarilganda
@@ -85,3 +87,10 @@ legacy belgisi bilan saqlaydi; eski tasdiqlangan cheklarga nom/narx taxmin
 qilib yozmaydi. Eski kod oldin faol tarifni almashtirib ulgurgan bo'lsa,
 avvalgi haqiqiy tarifni dalilsiz tiklamaydi. Deployda avval DB backup,
 keyin migration; tarix ustunlarini reverse migration bilan o'chirmaslik kerak.
+
+Local migration bajarildi: `python manage.py backup_db` integrity-ok nusxa
+yozdi, `python manage.py migrate cohorts 0016 --noinput` o'tdi. Read-only
+SQLite solishtirishda 125 jadvaldagi avvalgi ustun qiymatlari saqlandi
+(kutilgan checkout timestamp cleanup va migration ledgeridan tashqari).
+Backup repoga commit qilinmagan; local fayl:
+`backups/db-20260904-052621.sqlite3`.
