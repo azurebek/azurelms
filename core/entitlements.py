@@ -99,7 +99,9 @@ def entitlements_for(user, *, course=None, today=None) -> frozenset[Capability]:
 
     granted: set[Capability] = set()
     for enrollment in enrollments:
-        granted |= plan_entitlements(enrollment.plan)
+        # `active_plan()`: oldindan to'langan tarif davri boshlanmaguncha
+        # huquq bermaydi (`cohorts.models.Enrollment.active_plan`).
+        granted |= plan_entitlements(enrollment.active_plan(today=today))
     return frozenset(granted)
 
 

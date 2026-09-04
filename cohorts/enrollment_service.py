@@ -1,6 +1,38 @@
 from django.db import transaction
+from django.utils import timezone
 
 from .models import Enrollment
+
+
+def promote_due_plans(*, queryset=None, today=None):
+    """Davri boshlangan tarifni `Enrollment.plan` ustuniga ko'chiradi.
+
+    `active_plan()` o'qishda allaqachon to'g'ri javob beradi, ya'ni bu ish
+    kirish huquqi uchun shart emas. Lekin denormalizatsiyalangan ustunni
+    to'g'ri holatga keltiradi: backoffice ro'yxatlari va plan bo'yicha
+    ommaviy amallar (`aicontrol` plan-scope reset) uni to'g'ridan-to'g'ri
+    o'qiydi.
+    """
+    today = today or timezone.localdate()
+    base_queryset = queryset if queryset is not None else Enrollment.objects.all()
+    candidates = (
+        base_queryset.filter(
+            receipts__is_verified=True,
+            receipts__plan__isnull=False,
+            receipts__period_start__lte=today,
+        )
+        .select_related("plan")
+        .distinct()
+    )
+    promoted = 0
+    for enrollment in candidates:
+        plan = enrollment.active_plan(today=today)
+        if plan is not None and plan.pk != enrollment.plan_id:
+            enrollment.plan = plan
+            # Faqat shu ustun: parallel to'lov/transfer natijasi bosilmasin.
+            enrollment.save(update_fields=["plan"])
+            promoted += 1
+    return promoted
 
 
 def expire_overdue_enrollments(*, queryset=None, today=None, grace_days=Enrollment.ACCESS_GRACE_DAYS):

@@ -33,5 +33,6 @@ def notification_context(request):
     return {
         "notifications": notifications,
         "unread_notifications_count": unread_count,
-        "sidebar_current_plan": sidebar_plan_enrollment.plan if sidebar_plan_enrollment else None,
+        # Ko'rsatilgan tarif huquq beradigan tarif bilan bir xil bo'lishi kerak.
+        "sidebar_current_plan": sidebar_plan_enrollment.active_plan() if sidebar_plan_enrollment else None,
     }

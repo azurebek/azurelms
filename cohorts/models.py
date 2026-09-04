@@ -155,6 +155,27 @@ class Enrollment(models.Model):
             return True
         return self.next_payment_deadline >= enrollment_grace_limit(today=today, grace_days=grace_days)
 
+    def active_plan(self, *, today=None):
+        """Bugun kuchda bo'lgan tarif.
+
+        `plan` — tez o'qish uchun denormalizatsiya; haqiqat esa tasdiqlangan
+        chekda, chunki har bir chek o'zi to'lagan davrni olib yuradi.
+        Yangilash to'lovi joriy muddat tugaganidan boshlanadi, shuning uchun
+        kelasi oy uchun oldindan to'langan tarif **o'sha davr boshlangandagina**
+        kuchga kiradi. Buning uchun cron kerak emas — vaqt o'zi hal qiladi.
+        """
+        if not self.pk:
+            return self.plan
+        receipt = (
+            self.receipts.filter(
+                is_verified=True, plan__isnull=False, period_start__lte=today or timezone.localdate()
+            )
+            .select_related("plan")
+            .order_by("-period_start", "-id")
+            .first()
+        )
+        return receipt.plan if receipt else self.plan
+
     def get_effective_status(self, *, today=None, grace_days=None):
         if self.status == self.STATUS_ACTIVE and not self.has_active_access(today=today, grace_days=grace_days):
             return self.STATUS_EXPIRED
@@ -355,6 +376,24 @@ class PaymentReceipt(models.Model):
     def plan_label(self):
         return self.plan_name_snapshot or "Tarif qayd etilmagan"
 
+    def plan_takes_effect_now(self, *, today=None):
+        """Faol tarifni faqat davri boshlangan chek almashtiradi.
+
+        Tasdiqlash paytida almashtirilsa, kelasi oyga oldindan to'langan
+        qimmatroq tarif bugundan ishlay boshlardi: 30 kunlik pulga 40 kunlik
+        AI kvotasi va o'qituvchi vaqti. Arzonroq tarifga o'tishda esa aksi —
+        o'quvchi allaqachon to'lagan kunlarini yo'qotardi.
+
+        Davri boshlanmagan chek `Enrollment.plan`ga tegmaydi;
+        `Enrollment.active_plan()` uni o'z vaqtida kuchga kiritadi.
+        """
+        # `to_python`: DateField qiymatni saqlangunicha turga keltirmaydi,
+        # ya'ni `period_start` shu paytda hali matn bo'lishi mumkin.
+        period_start = self._meta.get_field("period_start").to_python(self.period_start)
+        if period_start is None:
+            return True
+        return period_start <= (today or timezone.localdate())
+
     def save(self, *args, **kwargs):
         if kwargs.get("update_fields") is not None and not kwargs["update_fields"]:
             return
@@ -400,7 +439,7 @@ class PaymentReceipt(models.Model):
                     timezone.localdate() + datetime.timedelta(days=30)
                 )
                 fields = ["status", "last_payment_date", "next_payment_deadline"]
-                if self.plan_id:
+                if self.plan_id and self.plan_takes_effect_now():
                     # Chek tanlagan tarif; keyinroq yozilgan niyat emas.
                     enrollment.plan_id = self.plan_id
                     fields.append("plan")
