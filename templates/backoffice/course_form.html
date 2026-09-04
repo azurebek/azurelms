@@ -16,7 +16,7 @@
 
   <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:22px;">
     <div style="display:flex;align-items:center;gap:12px;min-width:0;">
-      <a href="{% url 'backoffice_dashboard' %}" aria-label="Orqaga" style="width:38px;height:38px;border-radius:10px;border:1px solid var(--line);color:var(--ink-2);display:grid;place-items:center;font-size:15px;flex:0 0 auto;"><i class="bi bi-arrow-left"></i></a>
+      <a href="{% url 'backoffice_courses' %}" aria-label="Kurslar ro'yxatiga qaytish" style="width:38px;height:38px;border-radius:10px;border:1px solid var(--line);color:var(--ink-2);display:grid;place-items:center;font-size:15px;flex:0 0 auto;"><i class="bi bi-arrow-left"></i></a>
       <div style="min-width:0;"><div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);margin-bottom:2px;">Kontent{% if course %} · {{ lessons_count }} dars · {{ students_count }} o'quvchi{% endif %}</div><h1 style="font-size:clamp(18px,2.2vw,24px);font-weight:600;letter-spacing:-.02em;color:var(--ink);margin:0;">{% if course %}{{ course.title }}{% else %}Yangi kurs{% endif %}</h1></div>
     </div>
     <div style="display:flex;gap:10px;">

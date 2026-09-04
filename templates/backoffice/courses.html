@@ -1,0 +1,130 @@
+{% extends "backoffice/base.html" %}
+
+{% block bo_title %}Kurslar{% endblock %}
+{% block bo_icon %}bi-journal-richtext{% endblock %}
+{% block bo_topbar %}Kurslar{% endblock %}
+
+{% block page_css %}
+<style>
+  .bo-courses{max-width:1160px}
+  .bo-courses-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:20px}
+  .bo-courses-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .bo-course-search{position:relative}
+  .bo-course-search i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--ink-3);font-size:13px}
+  .bo-course-search input{height:42px;width:min(270px,68vw);padding:0 13px 0 36px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:13.5px;outline:none}
+  .bo-course-create{height:42px;display:inline-flex;align-items:center;gap:8px;padding:0 17px;border-radius:10px;background:var(--azure);color:var(--on-azure);font-size:13.5px;font-weight:700}
+  .bo-course-stats{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:12px;margin-bottom:18px}
+  .bo-course-stat{border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:14px 16px}
+  .bo-course-stat strong{display:block;font-family:'Space Mono',monospace;font-size:20px;color:var(--ink)}
+  .bo-course-stat span{display:block;font-size:11.5px;color:var(--ink-3);margin-top:3px}
+  .bo-course-filters{display:flex;gap:6px;background:var(--paper-2);border:1px solid var(--line);border-radius:10px;padding:4px;margin-bottom:18px;width:max-content;max-width:100%}
+  .bo-course-filter{height:32px;display:inline-flex;align-items:center;padding:0 14px;border-radius:7px;font-size:12.5px;font-weight:600;color:var(--ink-3)}
+  .bo-course-filter.active{background:var(--azure-soft);color:var(--azure)}
+  .bo-course-table{border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden}
+  .bo-course-grid{display:grid;grid-template-columns:minmax(250px,2.2fr) minmax(135px,1fr) minmax(145px,1.1fr) minmax(100px,.7fr) 104px;align-items:center;gap:16px}
+  .bo-course-table-head{padding:12px 20px;background:var(--paper-2);border-bottom:1px solid var(--line);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+  .bo-course-row{padding:15px 20px}
+  .bo-course-row+.bo-course-row{border-top:1px solid var(--line-2)}
+  .bo-course-title{font-size:14px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bo-course-owner{font-family:'Space Mono',monospace;font-size:10.5px;color:var(--ink-3);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bo-course-status{display:inline-flex;align-items:center;gap:6px;margin-top:7px;font-size:11.5px;font-weight:600}
+  .bo-course-status:before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+  .bo-course-status.active{color:var(--green)}
+  .bo-course-status.draft{color:var(--amber)}
+  .bo-course-level{font-size:12.5px;color:var(--ink-2)}
+  .bo-course-numbers{display:flex;gap:15px}
+  .bo-course-number strong{display:block;font-family:'Space Mono',monospace;font-size:13px;color:var(--ink)}
+  .bo-course-number span{display:block;font-size:10.5px;color:var(--ink-3);margin-top:2px}
+  .bo-course-edit{height:36px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 12px;border-radius:9px;border:1px solid var(--line);color:var(--ink-2);font-size:12.5px;font-weight:700;transition:border-color .2s,color .2s}
+  .bo-course-edit:hover{border-color:var(--azure);color:var(--azure)}
+  .bo-course-empty{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:52px 24px;text-align:center}
+  .bo-course-empty i{display:grid;place-items:center;width:48px;height:48px;margin:0 auto 14px;border-radius:13px;background:var(--azure-soft);color:var(--azure);font-size:20px}
+  @media(max-width:900px){
+    .bo-course-table-head{display:none}
+    .bo-course-row{grid-template-columns:minmax(0,1fr) auto;gap:14px 18px}
+    .bo-course-row>div:nth-child(2),.bo-course-row>div:nth-child(3),.bo-course-row>div:nth-child(4){grid-column:1}
+    .bo-course-row>a{grid-column:2;grid-row:1}
+  }
+  @media(max-width:620px){
+    .bo-courses-actions,.bo-course-search,.bo-course-search input{width:100%}
+    .bo-course-create{width:100%;justify-content:center}
+    .bo-course-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .bo-course-filters{width:100%}.bo-course-filter{flex:1;justify-content:center;padding:0 8px}
+    .bo-course-row{grid-template-columns:minmax(0,1fr) auto;padding:15px}
+    .bo-course-numbers{gap:12px;flex-wrap:wrap}
+    .bo-course-level{font-size:12px}
+    .bo-course-edit{width:36px;padding:0}.bo-course-edit span{display:none}
+  }
+</style>
+{% endblock %}
+
+{% block bo_content %}
+<div class="bo-courses">
+  <div class="bo-courses-head">
+    <div>
+      <h1 style="font-size:clamp(22px,2.6vw,30px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:0 0 6px;">Kurslar</h1>
+      <p style="font-size:14px;color:var(--ink-3);margin:0;">Mavjud kurslarni ko'ring, toping va tahrirlang.</p>
+    </div>
+    <div class="bo-courses-actions">
+      <form method="get" class="bo-course-search">
+        {% if filters.status != 'all' %}<input type="hidden" name="status" value="{{ filters.status }}">{% endif %}
+        <i class="bi bi-search"></i>
+        <input type="search" name="q" value="{{ filters.q }}" placeholder="Kurs yoki o'qituvchi…" aria-label="Kurslarni qidirish">
+      </form>
+      <a class="bo-course-create" href="{% url 'backoffice_course_create' %}"><i class="bi bi-plus-lg"></i> Yangi kurs</a>
+    </div>
+  </div>
+
+  <div class="bo-course-stats">
+    <div class="bo-course-stat"><strong>{{ course_stats.total }}</strong><span>Jami kurs</span></div>
+    <div class="bo-course-stat"><strong style="color:var(--green);">{{ course_stats.active }}</strong><span>Faol</span></div>
+    <div class="bo-course-stat"><strong style="color:var(--amber);">{{ course_stats.draft }}</strong><span>Qoralama</span></div>
+    <div class="bo-course-stat"><strong>{{ course_stats.lessons }}</strong><span>Jami dars</span></div>
+  </div>
+
+  <div class="bo-course-filters" aria-label="Kurs holati filtri">
+    <a class="bo-course-filter{% if filters.status == 'all' %} active{% endif %}" href="?status=all{% if filters.q %}&amp;q={{ filters.q|urlencode }}{% endif %}">Hammasi</a>
+    <a class="bo-course-filter{% if filters.status == 'active' %} active{% endif %}" href="?status=active{% if filters.q %}&amp;q={{ filters.q|urlencode }}{% endif %}">Faol</a>
+    <a class="bo-course-filter{% if filters.status == 'draft' %} active{% endif %}" href="?status=draft{% if filters.q %}&amp;q={{ filters.q|urlencode }}{% endif %}">Qoralama</a>
+  </div>
+
+  {% if page_obj.object_list %}
+  <section class="bo-course-table" aria-label="Kurslar ro'yxati">
+    <div class="bo-course-grid bo-course-table-head"><span>Kurs</span><span>Daraja</span><span>Kontent</span><span>Guruh / o'quvchi</span><span></span></div>
+    {% for course in page_obj %}
+    <article class="bo-course-grid bo-course-row">
+      <div style="min-width:0;">
+        <div class="bo-course-title">{{ course.title }}</div>
+        <div class="bo-course-owner">{{ course.instructor_display_name }}</div>
+        <span class="bo-course-status {% if course.is_active %}active{% else %}draft{% endif %}">{% if course.is_active %}Faol{% else %}Qoralama{% endif %}</span>
+      </div>
+      <div class="bo-course-level">{{ course.get_level_display }}<div style="font-family:'Space Mono',monospace;font-size:10.5px;color:var(--ink-4);margin-top:4px;">{{ course.duration }} soat</div></div>
+      <div class="bo-course-numbers">
+        <div class="bo-course-number"><strong>{{ course.annotated_modules_count }}</strong><span>modul</span></div>
+        <div class="bo-course-number"><strong>{{ course.annotated_lessons_count }}</strong><span>dars</span></div>
+      </div>
+      <div class="bo-course-numbers">
+        <div class="bo-course-number"><strong>{{ course.annotated_cohorts_count }}</strong><span>guruh</span></div>
+        <div class="bo-course-number"><strong>{{ course.annotated_students_count }}</strong><span>o'quvchi</span></div>
+      </div>
+      <a class="bo-course-edit" href="{% url 'backoffice_course_edit' course_id=course.pk %}" aria-label="{{ course.title }} kursini tahrirlash"><i class="bi bi-pencil"></i><span>Tahrirlash</span></a>
+    </article>
+    {% endfor %}
+  </section>
+
+  {% if page_obj.has_other_pages %}
+  <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:24px;">
+    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}{% if filters.q %}&amp;q={{ filters.q|urlencode }}{% endif %}{% if filters.status != 'all' %}&amp;status={{ filters.status }}{% endif %}" style="height:38px;display:inline-flex;align-items:center;gap:6px;padding:0 14px;border-radius:9px;border:1px solid var(--line);color:var(--ink-2);font-size:13px;font-weight:600;"><i class="bi bi-chevron-left"></i> Oldingi</a>{% endif %}
+    <span style="font-family:'Space Mono',monospace;font-size:12.5px;color:var(--ink-3);">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}{% if filters.q %}&amp;q={{ filters.q|urlencode }}{% endif %}{% if filters.status != 'all' %}&amp;status={{ filters.status }}{% endif %}" style="height:38px;display:inline-flex;align-items:center;gap:6px;padding:0 14px;border-radius:9px;border:1px solid var(--line);color:var(--ink-2);font-size:13px;font-weight:600;">Keyingi <i class="bi bi-chevron-right"></i></a>{% endif %}
+  </div>
+  {% endif %}
+  {% else %}
+  <div class="bo-course-empty">
+    <i class="bi bi-journal-x"></i>
+    <div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px;">Kurs topilmadi</div>
+    <div style="font-size:13px;color:var(--ink-3);">Filtr yoki qidiruvni o'zgartiring, yoxud yangi kurs yarating.</div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

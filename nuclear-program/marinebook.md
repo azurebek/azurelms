@@ -16,6 +16,35 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-05 [Codex]: Backoffice'da mavjud kurslar endi ko'rinadi va tahrirlanadi
+
+Owner topgan bo'shliq yopildi: sidebar'dagi yagona kurs amali faqat yangi kurs
+yaratardi, mavjud kurslar soni va muharrirga yo'l yo'q edi. Endi `Kurslar`
+sahifasi scope ichidagi jami/faol/qoralama kurslar va jami darslar sonini,
+nom/o'qituvchi qidiruvi, holat filtri, modul/dars/guruh/faol o'quvchi
+ko'rsatkichlari hamda har bir kurs uchun `Tahrirlash` amalini beradi. `Yangi
+kurs` shu inventar ichidagi aniq action bo'ldi, muharrirdagi orqaga tugmasi ham
+ro'yxatga qaytadi.
+
+Yangi canonical state yoki migration yo'q: ro'yxat read-only, yozish mavjud
+`backoffice_course_editor` orqali qoladi. Teacher scope'i
+`teacher_course_queryset()` bilan bir xil qilindi; staff boshqa o'qituvchining
+kurs ID sini taxmin qilib muharrirni ocholmaydi. Admission va rollback chegarasi
+`nuclear-program/backoffice-courses-plan.md`da yozildi.
+
+PR review ikki P2 regressionni merge'dan oldin ushladi: non-superuser
+instructor dropdown orqali kursni o'z scope'idan chiqarib yuborib, redirectdan
+keyin 404 olishi mumkin edi; qolgan backoffice sahifalaridagi kurs badge'i esa
+global sonni ko'rsatardi. Endi oddiy staff instructor sifatida faqat o'zini
+tanlaydi (soxta POST ham form validationdan o'tmaydi), kurs badge'i esa barcha
+staff-accessible backoffice sahifalarida ayni teacher scope'idan hisoblanadi.
+
+- Branch: `codex/backoffice-course-list`
+- Commitlar: `fa0d22b`
+- Test holati (env faylsiz, Gemini/Telegram keylari bo'sh): focused backoffice — **10/10 OK**; `python manage.py test core courses --noinput` — **502 OK (skipped=15)**; `check --fail-level WARNING` — 0 issue; `makemigrations --check --dry-run` — drift yo'q; `scan_secrets` — toza.
+- Browser QA: default desktop va 390×844; mobil `body.scrollWidth == viewport == 390`, `Tahrirlash` haqiqiy kurs muharririni ochdi, console error 0.
+- Davom etilishi kerak: yo'q; PR CI va review gate'idan keyin merge.
+
 ## 2026-09-04 [Claude]: Davomat yakunlangach dars guruhga ochiladi
 
 Owner so'radi: «tomchilab berish mexanizmi ishlaydimi bizda? 100 ta dars
