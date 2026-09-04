@@ -16,6 +16,28 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-04 [Claude]: Tasdiqlash kechikkani uchun to'langan kunlar yo'qolmaydi
+
+Oldingi tuzatishning ko'zgudagi aksi. To'lov davri chek yuborilgan kuni
+hisoblanadi, tasdiqlash esa qo'lda — owner bank o'tkazmasini bir necha
+soatdan bir necha kungacha keyin ko'radi. Muddat to'g'ridan-to'g'ri chekdagi
+davr oxiriga qo'yilgani uchun kirishi yopiq turgan o'quvchi kutgan kunlarini
+yo'qotardi: o'lchovda 3 kun kutgan birinchi xarid 30 kunlik pulga **27 kun**
+berdi, va o'sha 3 kun davomida kirish umuman yo'q edi.
+
+Endi kirishi yopiq bo'lgan holatda (birinchi xarid yoki muddati o'tgan
+obuna) to'langan davr uzunligi kirish ochilgan kundan sanaladi. Kirishi
+ochiq turgan o'quvchi — yangilash yoki grace ichidagi — hech narsa
+yo'qotmagani uchun unga qo'shimcha kun berilmaydi, ya'ni kechikish sovg'aga
+aylanmaydi. Hisob-faktura o'zgarmaydi: chekdagi davr kelishilgan taklif,
+`next_payment_deadline` esa haqiqatda berilgan xizmat.
+
+- Branch: `claude/paid-days-survive-approval-delay`
+- Test holati (env faylsiz, Gemini/Telegram keys bo'sh): `python manage.py test --noinput` — **1085 test OK (skipped=26)**; `check --fail-level WARNING` 0 issue; `makemigrations --check --dry-run` drift yo'q; `scan_secrets` toza.
+- Nazorat yugurishi: `granted_deadline()` chaqiruvi eski qatorga qaytarilganda 2/6 test yiqildi; tiklangach 6/6.
+
+---
+
 ## 2026-09-04 [Claude]: Tarif o'zi to'langan davr boshlanganda kuchga kiradi
 
 PR #67 poydevorini tekshirishda pul teshigi topildi. Yangilash to'lovi joriy
