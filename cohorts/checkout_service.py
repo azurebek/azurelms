@@ -10,10 +10,12 @@ Ilgari ikkalasi bitta funksiya edi va natijada sahifani ochishning o'zi
 yopilgan qabul o'zidan-o'zi qayta ochilardi (pastda batafsil).
 """
 
+from datetime import timedelta
+
 from django.db import transaction
 from django.utils import timezone
 
-from .models import Enrollment
+from .models import Enrollment, PaymentReceipt, PendingReceiptExists
 
 CLOSED_MESSAGE = "Ushbu kursga qabul hali ochilmagan."
 
@@ -64,10 +66,30 @@ def mark_checkout_started(enrollment, *, plan, now=None):
     aniqlaydi — Telegram'dan kelgan rasm o'zi bilan kurs ma'lumotini olib
     kelmaydi.
     """
-    enrollment.plan = plan
-    enrollment.checkout_started_at = now or timezone.now()
-    enrollment.save(update_fields=["plan", "checkout_started_at"])
+    with transaction.atomic():
+        locked = Enrollment.objects.select_for_update().get(pk=enrollment.pk)
+        if PaymentReceipt.objects.filter(enrollment=locked, is_verified=False).exists():
+            raise PendingReceiptExists("Tasdiqlanmagan chek mavjud. Qarorni kuting.")
+        locked.pending_plan = plan
+        locked.checkout_started_at = now or timezone.now()
+        locked.save(update_fields=["pending_plan", "checkout_started_at"])
+        enrollment.pending_plan = plan
+        enrollment.checkout_started_at = locked.checkout_started_at
     return enrollment
+
+
+def checkout_period(enrollment, *, today=None):
+    """Web va bot uchun yagona 30 kunlik billing hisobi."""
+    today = today or timezone.localdate()
+    start = today
+    if (
+        enrollment is not None
+        and enrollment.status == Enrollment.STATUS_ACTIVE
+        and enrollment.next_payment_deadline
+        and enrollment.next_payment_deadline > today
+    ):
+        start = enrollment.next_payment_deadline
+    return start, start + timedelta(days=30)
 
 
 def _checkout_priority(enrollment, *, target_cohort_id=None, today=None):

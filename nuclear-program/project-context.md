@@ -158,6 +158,14 @@ beat: celery -A core beat -l info
 
 **Access grace:** `ENROLLMENT_ACCESS_GRACE_DAYS = 2` — active enrollment'ning next payment deadline'i grace'dan oldin bo'lsa effective status `expired`'ga tushadi.
 
+**Paid plan vs intent (2026-09-04):** `Enrollment.plan` — faol tarif;
+`pending_plan` va `checkout_started_at` — to'lov niyati, entitlement/AI quota
+manbai emas. `PaymentReceipt.plan` + code/name/price/discount/period
+snapshotlari invoice tarixini saqlaydi. Oddiy save billing ustunlarini
+qayta yoza olmaydi, tasdiqlangan chekni unverify/delete qilib bo'lmaydi.
+Legacy tasdiqlangan cheklarda tarif qayd etilmagan bo'lishi mumkin;
+hozirgi enrollment nomi bilan tarix taxmin qilinmaydi.
+
 ### `messenger`
 
 **Mas'uliyat:** Chat rooms (AI/group/tutor), WebSocket real-time messaging, room list, pin/unread state, attachments, edit/delete, AI feedback, AI response run telemetry, memory DB models, RAG chunks.
@@ -287,10 +295,10 @@ ai/
 
 1. User pricing yoki course detail'dan checkout'ga o'tadi.
 2. `cohorts.checkout_view` course uchun default yoki tanlangan cohortni topadi.
-3. Plan/promo tanlanadi.
-4. `PaymentReceipt` yaratiladi.
-5. Admin receipt'ni tasdiqlaydi.
-6. `Enrollment` active bo'ladi.
+3. Plan/promo tanlanadi; bu faol tarifni o'zgartirmaydi. Davr hisobi `cohorts.checkout_service.checkout_period`da.
+4. `subscriptions.promo_service.create_checkout_receipt_with_promo` pending niyat, immutable invoice snapshot va promo reservationni atomik yozadi.
+5. Operator web backoffice yoki bot orqali `cohorts.receipt_service`da tasdiqlaydi/rad etadi; enrollment → receipt lock tartibi qaror, audit va notificationni bir marta bajaradi.
+6. Tasdiqda `Enrollment` active bo'ladi va aynan receipt tarifi aktivlashadi; pending niyat tozalanadi. Rad etish faol tarifga tegmaydi va promo bandini bo'shatadi.
 7. `messenger.signals.setup_student_chats` orqali student chat access sync qilinadi.
 8. Student group/tutor/AI room'larda ko'rina boshlaydi.
 

@@ -49,20 +49,29 @@ def _actor_may_decide(actor):
     return bool(actor and actor.is_active and (actor.is_staff or actor.is_superuser))
 
 
+def _decision_receipt(receipt_id, *, lock):
+    """Bir qaror g'olib bo'ladi: enrollment -> receipt qulf tartibi."""
+    from cohorts.models import Enrollment, PaymentReceipt
+
+    enrollment_id = PaymentReceipt.objects.filter(pk=receipt_id).values_list("enrollment_id", flat=True).first()
+    if enrollment_id is None:
+        return None
+    if lock:
+        Enrollment.objects.select_for_update().get(pk=enrollment_id)
+    receipts = PaymentReceipt.objects.all()
+    if lock:
+        receipts = receipts.select_for_update()
+    return receipts.filter(pk=receipt_id).first()
+
+
+@transaction.atomic
 def verify_receipt(receipt_id, actor, *, source=None, reason="", request=None):
     """Chekni tasdiqlaydi. `PaymentReceipt.save()` enrollmentni faollashtiradi."""
     from aicontrol.models import SystemAuditEvent
-    from cohorts.models import PaymentReceipt
     from core.audit import record_audit_event
 
     source = source or SystemAuditEvent.SOURCE_BOT
-    receipt = (
-        PaymentReceipt.objects.select_related(
-            "enrollment__student", "enrollment__cohort__course"
-        )
-        .filter(id=receipt_id)
-        .first()
-    )
+    receipt = _decision_receipt(receipt_id, lock=_actor_may_decide(actor))
 
     if not _actor_may_decide(actor):
         # Ruxsatsiz urinish ham izsiz qolmaydi: pulga tegadigan yagona qaror
@@ -86,6 +95,7 @@ def verify_receipt(receipt_id, actor, *, source=None, reason="", request=None):
         )
 
     enrollment_status_before = receipt.enrollment.status
+    plan_before = receipt.enrollment.plan_id
     with transaction.atomic():
         receipt.is_verified = True
         receipt.save()
@@ -98,11 +108,15 @@ def verify_receipt(receipt_id, actor, *, source=None, reason="", request=None):
             target=receipt,
             target_label=f"Chek #{receipt.id} — {receipt.enrollment.student.username}",
             reason=reason,
-            before={"is_verified": False, "enrollment_status": enrollment_status_before},
+            before={"is_verified": False, "enrollment_status": enrollment_status_before, "plan_id": plan_before},
             after={
                 "is_verified": True,
                 "enrollment_status": receipt.enrollment.status,
                 "amount": str(receipt.amount),
+                "plan_id": receipt.plan_id,
+                "plan_code": receipt.plan_code_snapshot,
+                "plan_name": receipt.plan_name_snapshot,
+                "plan_snapshot_source": receipt.plan_snapshot_source,
             },
         )
 
@@ -126,20 +140,14 @@ def verify_receipt(receipt_id, actor, *, source=None, reason="", request=None):
     )
 
 
+@transaction.atomic
 def reject_receipt(receipt_id, actor, *, source=None, reason="", request=None):
     """Chekni rad etadi — yozuv o'chadi, band qilingan promo bo'shatiladi."""
     from aicontrol.models import SystemAuditEvent
-    from cohorts.models import PaymentReceipt
     from core.audit import record_audit_event
 
     source = source or SystemAuditEvent.SOURCE_BOT
-    receipt = (
-        PaymentReceipt.objects.select_related(
-            "enrollment__student", "enrollment__cohort__course"
-        )
-        .filter(id=receipt_id, is_verified=False)
-        .first()
-    )
+    receipt = _decision_receipt(receipt_id, lock=_actor_may_decide(actor))
 
     if not _actor_may_decide(actor):
         record_audit_event(
@@ -153,7 +161,7 @@ def reject_receipt(receipt_id, actor, *, source=None, reason="", request=None):
             error="Ruxsat yo'q.",
         )
         return ReceiptDecision(ok=False, code="forbidden", message="Ruxsat yo'q.")
-    if not receipt:
+    if not receipt or receipt.is_verified:
         return ReceiptDecision(
             ok=False,
             code="missing",
@@ -174,7 +182,15 @@ def reject_receipt(receipt_id, actor, *, source=None, reason="", request=None):
             target=receipt,
             target_label=f"Chek #{receipt_id_snapshot} — {student.username}",
             reason=reason,
-            before={"is_verified": False, "amount": amount_snapshot},
+            before={
+                "is_verified": False, "amount": amount_snapshot,
+                "plan_code": receipt.plan_code_snapshot,
+                "plan_name": receipt.plan_name_snapshot,
+                "base_amount": str(receipt.base_amount),
+                "discount_amount": str(receipt.discount_amount),
+                "period_start": str(receipt.period_start), "period_end": str(receipt.period_end),
+                "plan_snapshot_source": receipt.plan_snapshot_source,
+            },
             after={"deleted": True},
         )
         # `delete()` band qilingan promo kodni bo'shatadi (`PaymentReceipt.delete`).

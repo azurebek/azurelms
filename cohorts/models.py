@@ -1,7 +1,6 @@
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from django.db.models import Q
 from django.db import transaction
@@ -116,6 +115,11 @@ class Enrollment(models.Model):
         blank=True,
         related_name="enrollments",
         verbose_name="Tarif",
+    )
+    # Niyat faol tarif emas: quota/entitlement faqat `plan`ni o'qiydi.
+    pending_plan = models.ForeignKey(
+        "subscriptions.Plan", on_delete=models.PROTECT, null=True, blank=True,
+        related_name="pending_enrollments", verbose_name="Tasdiq kutilayotgan tarif",
     )
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_PENDING, verbose_name="Holati")
     completion_state = models.CharField(
@@ -286,6 +290,19 @@ class PaymentReceipt(models.Model):
     # To'lov cheklarini saqlash
     enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE, related_name='receipts',
                                    verbose_name="O'quvchi obunasi")
+    plan = models.ForeignKey(
+        "subscriptions.Plan", on_delete=models.PROTECT, null=True, blank=True,
+        related_name="payment_receipts", verbose_name="Sotib olinayotgan tarif",
+    )
+    plan_code_snapshot = models.CharField(max_length=40, blank=True, default="", editable=False)
+    plan_name_snapshot = models.CharField(max_length=100, blank=True, default="", editable=False)
+    plan_price_snapshot = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True, editable=False,
+    )
+    plan_snapshot_source = models.CharField(
+        max_length=12, default="legacy", editable=False,
+        choices=(("checkout", "Checkout vaqtida"), ("legacy", "Tarixiy yozuv")),
+    )
     
     from core.private_storage import private_media_storage
     from core.utils import validate_file_size, validate_image_extension
@@ -324,58 +341,87 @@ class PaymentReceipt(models.Model):
     def __str__(self):
         return f"Chek: {self.enrollment.student.username} - {self.amount} UZS"
 
+    # Hisob-faktura bir marta yoziladi. Nom/narx yoki faol enrollment
+    # o'zgarsa ham tarix o'zgarmaydi. QuerySet.update kabi low-level amallar
+    # uchun emas; barcha qo'llab-quvvatlangan write yo'llari shu guarddan o'tadi.
+    BILLING_FIELDS = (
+        "enrollment", "plan", "plan_code_snapshot", "plan_name_snapshot",
+        "plan_price_snapshot", "plan_snapshot_source", "amount", "base_amount",
+        "discount_amount", "promo_code_snapshot", "promo_campaign_snapshot",
+        "period_start", "period_end",
+    )
+
+    @property
+    def plan_label(self):
+        return self.plan_name_snapshot or "Tarif qayd etilmagan"
+
     def save(self, *args, **kwargs):
-        is_new_verification = False
-        if self.pk:
-            old_receipt = PaymentReceipt.objects.get(pk=self.pk)
-            if not old_receipt.is_verified and self.is_verified:
-                is_new_verification = True
-        elif self.is_verified:
-            is_new_verification = True
-
-        if self.base_amount is None:
-            self.base_amount = self.amount
-
+        if kwargs.get("update_fields") is not None and not kwargs["update_fields"]:
+            return
         with transaction.atomic():
-            super().save(*args, **kwargs)
+            # Barcha checkout/decision yozuvlarida bir xil lock tartibi:
+            # enrollment -> receipt. SQLite IMMEDIATE, PostgreSQL row lock.
+            enrollment = Enrollment.objects.select_for_update().get(pk=self.enrollment_id)
+            old = None
+            if not self._state.adding:
+                old = PaymentReceipt.objects.select_for_update().get(pk=self.pk)
+                for name in self.BILLING_FIELDS:
+                    field = self._meta.get_field(name)
+                    current = field.to_python(field.value_from_object(self))
+                    previous = field.to_python(field.value_from_object(old))
+                    if current != previous:
+                        raise ValidationError({name: "Chek tarixi o'zgartirilmaydi. Yangi chek yarating."})
+                if old.is_verified and not self.is_verified:
+                    raise ValidationError("Tasdiqlangan chekni qayta pending qilish mumkin emas.")
+            else:
+                from subscriptions.models import Plan
 
-            if is_new_verification:
+                plan_id = self.plan_id or enrollment.pending_plan_id or enrollment.plan_id
+                if plan_id:
+                    self.plan = Plan.objects.get(pk=plan_id)
+                    self.plan_code_snapshot = self.plan.code
+                    self.plan_name_snapshot = self.plan.name
+                    self.plan_price_snapshot = self.plan.price
+                    self.plan_snapshot_source = "checkout"
+                if self.base_amount is None:
+                    self.base_amount = self.amount
+
+            # update_fields is_verifiedni yozmasa side-effect ham bo'lmaydi.
+            writes_verification = kwargs.get("update_fields") is None or "is_verified" in kwargs["update_fields"]
+            newly_verified = writes_verification and self.is_verified and (old is None or not old.is_verified)
+            super().save(*args, **kwargs)
+            if newly_verified:
                 from subscriptions.promo_service import apply_redemption_for_verified_receipt
 
                 apply_redemption_for_verified_receipt(receipt=self)
-                enrollment = self.enrollment
                 enrollment.status = Enrollment.STATUS_ACTIVE
                 enrollment.last_payment_date = timezone.localdate()
-                if self.period_end:
-                     enrollment.next_payment_deadline = self.period_end
-                else:
-                     enrollment.next_payment_deadline = timezone.localdate() + datetime.timedelta(days=30)
-                # Faqat shu uchta maydon yoziladi. Argumentsiz `save()`
-                # butun qatorni eskirgan nusxadan qayta yozardi, ya'ni
-                # parallel ishlayotgan transfer/promotion natijasini
-                # (`cohorts/transition_service.py`) bosib ketishi mumkin edi.
-                enrollment.save(
-                    update_fields=[
-                        "status",
-                        "last_payment_date",
-                        "next_payment_deadline",
-                    ]
+                enrollment.next_payment_deadline = self.period_end or (
+                    timezone.localdate() + datetime.timedelta(days=30)
                 )
+                fields = ["status", "last_payment_date", "next_payment_deadline"]
+                if self.plan_id:
+                    # Chek tanlagan tarif; keyinroq yozilgan niyat emas.
+                    enrollment.plan_id = self.plan_id
+                    fields.append("plan")
+                enrollment.pending_plan = None
+                enrollment.checkout_started_at = None
+                fields += ["pending_plan", "checkout_started_at"]
+                enrollment.save(update_fields=fields)
 
     def delete(self, *args, **kwargs):
-        if not self.is_verified:
-            try:
-                self.promo_redemption
-            except ObjectDoesNotExist:
-                pass
-            else:
-                from subscriptions.promo_service import release_redemption_for_receipt
+        with transaction.atomic():
+            enrollment = Enrollment.objects.select_for_update().get(pk=self.enrollment_id)
+            current = PaymentReceipt.objects.select_for_update().get(pk=self.pk)
+            if current.is_verified:
+                raise ValidationError("Tasdiqlangan to'lov tarixini o'chirish mumkin emas.")
+            from subscriptions.promo_service import release_redemption_for_receipt
 
-                release_redemption_for_receipt(
-                    receipt=self,
-                    reason="Pending receipt deleted",
-                )
-        return super().delete(*args, **kwargs)
+            release_redemption_for_receipt(receipt=current, reason="Pending receipt deleted")
+            enrollment.pending_plan = None
+            enrollment.checkout_started_at = None
+            enrollment.save(update_fields=["pending_plan", "checkout_started_at"])
+            return super().delete(*args, **kwargs)
 
     class Meta:
         verbose_name = "To'lov cheki"

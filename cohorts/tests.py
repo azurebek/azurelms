@@ -112,7 +112,7 @@ class CheckoutPlanSelectionTests(TestCase):
         # baytlariga qarab tekshiradi.
         return SimpleUploadedFile("receipt.png", PNG_1X1, content_type="image/png")
 
-    def test_checkout_uses_selected_plan_price_and_assigns_plan_to_enrollment(self):
+    def test_checkout_uses_selected_price_but_only_sets_pending_plan(self):
         response = self.client.post(
             self.checkout_url,
             {
@@ -131,7 +131,9 @@ class CheckoutPlanSelectionTests(TestCase):
         enrollment = Enrollment.objects.get(student=self.student, cohort=self.cohort)
         receipt = PaymentReceipt.objects.get(enrollment=enrollment)
 
-        self.assertEqual(enrollment.plan_id, self.plan_pro.id)
+        self.assertIsNone(enrollment.plan_id)
+        self.assertEqual(enrollment.pending_plan_id, self.plan_pro.id)
+        self.assertEqual(receipt.plan_id, self.plan_pro.id)
         self.assertEqual(receipt.amount, self.plan_pro.price)
 
     def test_checkout_rejects_invalid_plan_id(self):

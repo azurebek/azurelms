@@ -223,9 +223,15 @@ class PaymentReceiptAdmin(admin.ModelAdmin):
     get_student.short_description = "O'quvchi"
 
     def get_plan(self, obj):
-        if obj.enrollment.plan:
-            return obj.enrollment.plan.name
-        return "-"
+        return obj.plan_label
+
+    def get_readonly_fields(self, request, obj=None):
+        fields = super().get_readonly_fields(request, obj)
+        return tuple(dict.fromkeys((*fields, *PaymentReceipt.BILLING_FIELDS))) if obj else fields
+
+    def has_delete_permission(self, request, obj=None):
+        # Qaror auditi va promo release uchun backoffice receipt service.
+        return False
 
     get_plan.short_description = "Tarif"
 

@@ -139,7 +139,9 @@ class ReceiptVerificationWriteTests(TestCase):
         for column in ("status", "last_payment_date", "next_payment_deadline"):
             self.assertIn(column, sql)
         for column in ("plan_id", "joined_at", "cohort_id"):
-            self.assertNotIn(column, sql, f"{column} ham qayta yozilyapti")
+            # `pending_plan_id` endi payment ustuni; substring testi uni
+            # faol `plan_id` bilan adashtirmasligi kerak.
+            self.assertNotIn(f'"{column}"', sql, f"{column} ham qayta yozilyapti")
 
     def test_the_enrollment_still_becomes_active(self):
         receipt = PaymentReceipt.objects.create(

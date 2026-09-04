@@ -94,6 +94,7 @@ class ReceiptFixtureMixin:
             cohort=self.cohort,
             plan=self.plan,
             status=Enrollment.STATUS_PENDING,
+            pending_plan=self.plan,
             # Foydalanuvchi checkoutni boshlagan holat: Telegram adapteri
             # chekni aynan shu belgiga qarab joylashtiradi (A4).
             checkout_started_at=timezone.now(),

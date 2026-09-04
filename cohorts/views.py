@@ -3,8 +3,6 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.http import JsonResponse
-from django.utils import timezone
-import datetime
 from courses.models import Course
 from subscriptions.models import Plan
 from subscriptions.promo_service import (
@@ -16,7 +14,7 @@ from core.upload_validation import validate_upload
 from .checkout_service import (
     CheckoutUnavailable,
     find_checkout_enrollment,
-    mark_checkout_started,
+    checkout_period,
     resolve_checkout_enrollment,
 )
 from .models import PaymentReceipt, PendingReceiptExists
@@ -45,7 +43,7 @@ def checkout_view(request, course_id):
     requested_plan_id = request.POST.get("plan_id") or request.GET.get("plan_id")
     requested_plan = plans.filter(id=requested_plan_id).first() if requested_plan_id else None
     selected_plan = requested_plan or (
-        enrollment.plan if enrollment is not None and enrollment.plan_id else plans.first()
+        (enrollment.pending_plan or enrollment.plan or plans.first()) if enrollment is not None else plans.first()
     )
     if selected_plan and not plans.filter(id=selected_plan.id).exists():
         selected_plan = plans.first()
@@ -58,20 +56,7 @@ def checkout_view(request, course_id):
     ).exists()
 
     # Calculate period_start and period_end for this payment
-    today = timezone.localdate()
-    if (
-        enrollment is not None
-        and enrollment.status == 'active'
-        and enrollment.next_payment_deadline
-        and enrollment.next_payment_deadline > today
-    ):
-        # Extend from current deadline
-        tentative_start = enrollment.next_payment_deadline
-    else:
-        # Start immediately
-        tentative_start = today
-
-    tentative_end = tentative_start + datetime.timedelta(days=30)
+    tentative_start, tentative_end = checkout_period(enrollment)
     promo_quote = None
     if submitted_promo_code and selected_plan:
         try:
@@ -170,8 +155,6 @@ def checkout_view(request, course_id):
         except CheckoutUnavailable as exc:
             messages.error(request, str(exc))
             return redirect('course_detail', pk=course.id)
-
-        mark_checkout_started(enrollment, plan=selected_plan)
 
         try:
             receipt, _, _ = create_checkout_receipt_with_promo(

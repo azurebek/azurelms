@@ -1107,17 +1107,10 @@ class ReceiptSubmitResult(ActionResult):
 
 
 def _checkout_period(enrollment, today=None):
-    """Sayt checkout'i bilan BIR XIL davr hisobi (cohorts/views.checkout_view)."""
-    today = today or timezone.localdate()
-    if (
-        enrollment.status == Enrollment.STATUS_ACTIVE
-        and enrollment.next_payment_deadline
-        and enrollment.next_payment_deadline > today
-    ):
-        start = enrollment.next_payment_deadline
-    else:
-        start = today
-    return start, start + datetime.timedelta(days=30)
+    """Eski adapter API; billing qoidasi canonical servisda."""
+    from cohorts.checkout_service import checkout_period
+
+    return checkout_period(enrollment, today=today)
 
 
 def begin_course_enrollment(user, course_id, plan_id):
@@ -1131,7 +1124,7 @@ def begin_course_enrollment(user, course_id, plan_id):
         mark_checkout_started,
         resolve_checkout_enrollment,
     )
-    from cohorts.models import PaymentReceipt
+    from cohorts.models import PaymentReceipt, PendingReceiptExists
     from frontend.models import SiteSettings
     from subscriptions.models import Plan
 
@@ -1157,7 +1150,10 @@ def begin_course_enrollment(user, course_id, plan_id):
             ),
         )
 
-    mark_checkout_started(enrollment, plan=plan)
+    try:
+        mark_checkout_started(enrollment, plan=plan)
+    except PendingReceiptExists:
+        return EnrollBeginResult(ok=False, code="pending_receipt", message="Tasdiqlanmagan chek mavjud. Qarorni kuting.")
 
     start, end = _checkout_period(enrollment)
     site = SiteSettings.load()
@@ -1175,6 +1171,7 @@ def begin_course_enrollment(user, course_id, plan_id):
     )
 
 
+@transaction.atomic
 def submit_payment_receipt(user, receipt_image):
     """Telegram'dan kelgan chek rasmi → PaymentReceipt (sayt bilan bitta servis).
 
@@ -1190,8 +1187,9 @@ def submit_payment_receipt(user, receipt_image):
     # qo'shilgan enrollment" olinardi va ikkita kursi bor o'quvchining puli
     # noto'g'ri kursga tushardi.
     enrollment = (
-        user.enrollments.select_related("plan", "cohort__course")
-        .filter(plan__isnull=False, checkout_started_at__isnull=False)
+        user.enrollments.select_related("pending_plan", "cohort__course")
+        .select_for_update(of=("self",))
+        .filter(pending_plan__isnull=False, checkout_started_at__isnull=False)
         .exclude(receipts__is_verified=False)
         .order_by("-checkout_started_at", "-id")
         .first()
@@ -1214,7 +1212,7 @@ def submit_payment_receipt(user, receipt_image):
     try:
         receipt, _quote, _redemption = create_checkout_receipt_with_promo(
             enrollment=enrollment,
-            plan=enrollment.plan,
+            plan=enrollment.pending_plan,
             receipt_image=receipt_image,
             period_start=start,
             period_end=end,
@@ -1339,7 +1337,7 @@ def pending_receipts(limit=5):
             "id": r.id,
             "student": student_display_name(r.enrollment.student),
             "course": r.enrollment.cohort.course.title,
-            "plan": r.enrollment.plan.name if r.enrollment.plan else "—",
+            "plan": r.plan_label,
             "amount": int(r.amount),
             "submitted": r.submitted_at.strftime("%d.%m %H:%M"),
             "image_path": r.receipt_image.path if r.receipt_image else None,

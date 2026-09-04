@@ -10,7 +10,7 @@
 4. `NEXT` band faqat Azurbek admission berganda `ADMIT`ga o'tadi.
 5. Queue qarori: `ADMIT` / `NEXT` / `HOLD` / `CUT`. Execution holati: `PLANNED` / `IN PROGRESS` / `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` / `EVIDENCE READY` / `BLOCKED`.
 6. **Istisno — `S. SIT`:** owner qarori bilan A-narvoniga parallel yuritiladi (1-qoidadan ozod). Uning slice'lari o'zaro ketma-ket boradi va A bandlarini to'xtatmaydi; narxi — owner vaqtining bo'linishi (`S-R1`).
-7. **Joriy active closeout (2026-09-03):** A3 agent scope'i `IMPLEMENTED/TESTED`, qolgani ownerning real/demo cohort o'tishi. A5 ning oltita texnik bandi yopilgan, qolgani Android Chrome, iOS Safari va desktop Chrome'da uch qurilmali sign-off (mikrofon, upload, Mini App, dark/light). A4 da checkout slice'lari va typed entitlement kodda; qolgani owner `PLAN_MATRIX` qarori. A2 ning yagona ochiq bandi A9 AI quality/cost release gate. A8 K11 caller-specific lease/claim closeoutidan tashqari bajarilgan; yangi AI skill, bulk generation, `heavy` search yoki ommaviy AI beta hamon yo'q.
+7. **Joriy active closeout (A4 yangilanishi 2026-09-04):** A3 agent scope'i `IMPLEMENTED/TESTED`, qolgani ownerning real/demo cohort o'tishi. A5 ning oltita texnik bandi yopilgan, qolgani Android Chrome, iOS Safari va desktop Chrome'da uch qurilmali sign-off (mikrofon, upload, Mini App, dark/light). A4 uchun owner Economic/Standard/Intensive rejasini berdi: payment foundation lokal testlangan, catalog/cohort va xizmat workflow'lari navbatda ([ledger](../pricing-packages-plan.md)). A2 ning yagona ochiq bandi A9 AI quality/cost release gate. A8 K11 caller-specific lease/claim closeoutidan tashqari bajarilgan; yangi AI skill, bulk generation, `heavy` search yoki ommaviy AI beta hamon yo'q.
 
 ### Joriy status snapshot
 
@@ -22,7 +22,7 @@
 | A2 | `ADMIT` | `IMPLEMENTED/TESTED` | audit ledgeri, kill switch, circuit reset, heartbeat, `ReleaseRecord`, flag registri, cost ledgeri va backup/email/memory probe'lari kodda; **qolgan yagona band — AI quality/cost release gate, u esa A9 ning ishi** |
 | A8 | `ADMIT` | `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | supply guard kod/target/full testlarda; PostgreSQL contention proofi CI `integration` ishida yopildi, alohida OS processlari bilan takrorlash ochiq |
 | A3 | `ADMIT` | `IMPLEMENTED/TESTED` | to'rt slice + Codex auditidan kelgan to'rtta tuzatish + oltin oqim E2E va Mini App parity main'da; **qolgani — owner'ning real cohort bilan o'tishi** |
-| A4 | `ADMIT` | `IN PROGRESS` | to'rtta checkout slice + typed entitlement main'da; **qolgani ownerning `PLAN_MATRIX` narx/capability qarori** |
+| A4 | `ADMIT` | `IN PROGRESS` | ownerning uch tarif rejasi qabul qilindi; payment foundation lokal testlangan; catalog/cohort/workflow/UI bosqichlari [ledgerda](../pricing-packages-plan.md) |
 | A5 | `ADMIT` | `IMPLEMENTED/TESTED` | oltita texnik band ham yopildi (messenger, dars, imtihon, checkout, attendance, reconnect) + shell tap targetlari; **qolgani faqat owner'ning uch qurilmadagi sign-off'i** |
 | S1/S3/S4 | `— delivered` | `EVIDENCE READY` | portal, grounded advisor va owner backoffice kodda |
 | S2 | `NEXT` | `PLANNED` | canonical inquiry lifecycle yo'q |
@@ -103,7 +103,9 @@
 - **2026-08-21 typed entitlement:** `core/entitlements.py` — "bu o'quvchi nimaga haqli?" savoli bitta joyga yig'ildi. Ilgari u ikkiga bo'lingan edi (enrollment faolmi + AI token limiti), plan esa kirish uchun **umuman o'qilmasdi**: Premium to'lagan Starter bilan bir xil huquq olardi. Endi `Capability` enum'i sakkizta nomlangan qobiliyatni e'lon qiladi, `entitlements_for(user, course=...)` esa enrollment holati va plan kodidan kelib chiqib to'plam qaytaradi. **Plan kodi bo'yicha, nomi bo'yicha emas:** `Plan.code` qo'shildi (`unique`), migratsiya mavjud qatorlarni nomdan to'ldiradi — ko'rsatiladigan nomni tahrirlash kirishni jimgina buzmasligi kerak. Faollik qoidasi qayta yozilmadi: `has_active_access()` chaqiriladi, grace day bitta joyda qoladi. Noma'lum qobiliyat `UnknownCapability` beradi; xaritada yo'q plan asos to'plamni oladi. 13 test.
 - **Ataylab qilinmagani — plan farqi.** Qaysi tarif nimaga haqli ekani **narx qarori va u ownerniki**. `PLAN_MATRIX` bo'sh qoldirildi, barcha planlar bir xil to'plamni oladi, mavjud xulq **aynan** saqlanadi. Owner matritsani berganda u to'ldiriladi va farq testlar bilan qulflanadi.
 - **2026-08-21 Telegram checkout parity testi:** inactive cohort qoidasi web tomonida allaqachon testlangan edi; Telegram adapteri esa sinalmagan edi. Adapter bir xil servisni chaqiradi (dublikat mantiq yo'q), ammo "servis to'g'ri qaror qildi" va "adapter uni to'g'ri yetkazdi" bir xil narsa emas. 5 test.
-- **Qolgan scope:** `PLAN_MATRIX` uchun owner qarori. Undan keyin cost ledgerining `plan margin` kesimi ham ochiladi.
+- **2026-09-04 owner qarori:** Economic/Standard/Intensive, bir xil core ta'lim, farqi teacher attention va AI quota. Yuqoridagi 2026-08-21 narx qarori kutish holati yopildi; yangi runtime matritsa hali yoqilmadi. [Admission va bosqichlar](../pricing-packages-plan.md).
+- **2026-09-04 payment foundation — lokal regression green:** unpaid plan `pending_plan`da; faqat tasdiqlangan receipt faol tarifni o'zgartiradi. Invoice snapshotlar, web/bot parity, immutable history, concurrency va legacy migration bilan 22 yangi test; full suite 1068 test (skipped=26). Required CI/merge alohida gate.
+- **Qolgan scope:** catalog availability + AI policy, cohort tier/capacity, service-level workflow, pricing/dashboard va plan analytics. Bu slice yangi tariflarni sotuvga ochmaydi.
 - **Faza:** R2.
 
 ### A5. Mobil oltin oqim quality gate — `CROSS-CUTTING, R1'dan`

@@ -187,9 +187,14 @@ def create_checkout_receipt_with_promo(
     period_end,
     raw_code="",
 ):
-    from cohorts.models import PaymentReceipt, PendingReceiptExists
+    from cohorts.models import Enrollment, PaymentReceipt, PendingReceiptExists
+    from .models import Plan
 
     with transaction.atomic():
+        enrollment = Enrollment.objects.select_for_update().get(pk=enrollment.pk)
+        plan = Plan.objects.select_for_update().get(pk=plan.pk)
+        if PaymentReceipt.objects.filter(enrollment=enrollment, is_verified=False).exists():
+            raise PendingReceiptExists("Sizda allaqachon tasdiqlanmagan to'lov cheki mavjud.")
         quote = build_promo_quote(
             student=enrollment.student,
             enrollment=enrollment,
@@ -205,6 +210,7 @@ def create_checkout_receipt_with_promo(
         try:
             receipt = PaymentReceipt.objects.create(
                 enrollment=enrollment,
+                plan=plan,
                 receipt_image=receipt_image,
                 amount=quote.final_amount,
                 base_amount=quote.base_amount,
@@ -218,6 +224,9 @@ def create_checkout_receipt_with_promo(
             raise PendingReceiptExists(
                 "Sizda allaqachon tasdiqlanmagan to'lov cheki mavjud."
             ) from exc
+        enrollment.pending_plan = plan
+        enrollment.checkout_started_at = timezone.now()
+        enrollment.save(update_fields=["pending_plan", "checkout_started_at"])
         redemption = None
         if quote.promo_code:
             redemption = PromoRedemption.objects.create(

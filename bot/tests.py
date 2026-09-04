@@ -753,7 +753,8 @@ class EnrollmentFlowTests(TestCase):
 
         enrollment = Enrollment.objects.get(student=self.student)
         self.assertEqual(enrollment.status, "pending")
-        self.assertEqual(enrollment.plan_id, self.plan.id)
+        self.assertIsNone(enrollment.plan_id)
+        self.assertEqual(enrollment.pending_plan_id, self.plan.id)
 
         # Ikkinchi chaqiruv dublikat enrollment ochmaydi
         begin_course_enrollment(self.student, self.course.id, self.plan.id)
