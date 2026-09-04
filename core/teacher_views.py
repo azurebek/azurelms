@@ -502,8 +502,24 @@ def teacher_attendance(request):
         # yakunlangach o'sha dars guruhga ochiladi. Ilgari bu ikkita alohida
         # qadam edi — davomat bu yerda, ochish esa boshqa sahifada — va
         # ikkinchisi unutilsa o'quvchi darsni ko'rmasdi.
+        # Kelishuv «davomat **yakunlangach**» edi: yarim to'ldirilgan forma
+        # darsni ochib yubormasligi kerak, chunki birinchi ochilish qolgan
+        # barcha darslarni yopadi. Shuning uchun har bir faol o'quvchida shu
+        # dars uchun yozuv borligi tekshiriladi.
+        marked_ids = set(
+            Attendance.objects.filter(enrollment__in=enrollments, lesson=lesson)
+            .values_list("enrollment_id", flat=True)
+        )
+        attendance_is_complete = bool(enrollments) and all(
+            enrollment.id in marked_ids for enrollment in enrollments
+        )
+
         released_note = ""
-        if request.POST.get("release_lesson"):
+        if request.POST.get("release_lesson") and not attendance_is_complete:
+            released_note = (
+                " Dars ochilmadi: davomat to'liq emas — har bir o'quvchi uchun holat tanlang."
+            )
+        elif request.POST.get("release_lesson"):
             _release, changed = set_lesson_release(
                 cohort=cohort, lesson=lesson, released=True, actor=request.user,
                 note="Davomat yakunlandi", request=request,

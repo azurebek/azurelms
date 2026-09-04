@@ -37,8 +37,9 @@ ogohlantirish chiqadi. Ochilganda o'quvchilarga bildirishnoma ketadi
 (release servisi allaqachon shunday qilardi).
 
 - Branch: `claude/attendance-opens-the-lesson`
-- Test holati (env faylsiz, Gemini/Telegram keys bo'sh): `python manage.py test --noinput` — **1222 test OK (skipped=29)**; `check --fail-level WARNING` 0 issue; `makemigrations --check --dry-run` drift yo'q (schema o'zgarmadi).
-- Nazorat yugurishi ikki qism uchun alohida: ochish ulanmagan holatga qaytarilganda 6 test yiqildi; birinchi ochilish ogohlantirishi olib tashlanganda 1 test yiqildi.
+- Test holati (env faylsiz, Gemini/Telegram keys bo'sh): `python manage.py test --noinput` — **1225 test OK (skipped=29)**; `check --fail-level WARNING` 0 issue; `makemigrations --check --dry-run` drift yo'q (schema o'zgarmadi).
+- Codex review boti to'g'ri **P1** topdi: yarim to'ldirilgan (yoki bo'sh) forma ham darsni ochib yuborardi, ya'ni bitta e'tiborsizlik birinchi ochilish sifatida butun guruhning qolgan darslarini yopib qo'yardi. Kelishuv «davomat **yakunlangach**» edi, shuning uchun endi har bir faol o'quvchida shu dars uchun yozuv borligi tekshiriladi; bo'lmasa ochilmaydi va sabab aytiladi.
+- Nazorat yugurishi uch qism uchun alohida: ochish ulanmagan holatga qaytarilganda 6 test, birinchi ochilish ogohlantirishi olib tashlanganda 1 test, davomat to'liqligi sharti olib tashlanganda 2 test yiqildi.
 
 ---
 

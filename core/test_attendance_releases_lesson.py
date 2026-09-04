@@ -123,6 +123,59 @@ class AttendanceOpensTheLessonTests(AttendanceReleaseFixture, TestCase):
             Attendance.objects.filter(enrollment=self.enrollment, lesson=self.first).exists()
         )
 
+    def test_an_incomplete_attendance_does_not_open_the_lesson(self):
+        """Kelishuv «davomat yakunlangach» edi.
+
+        Yarim to'ldirilgan forma darsni ochib yuborsa, birinchi ochilish
+        qolgan barcha darslarni yopardi — ya'ni bitta e'tiborsizlik butun
+        guruhning kursini yopib qo'yardi.
+        """
+        second_student = User.objects.create_user(
+            username="ikkinchi", email="i@example.test", password="x"
+        )
+        Enrollment.objects.create(
+            student=second_student, cohort=self.cohort, status=Enrollment.STATUS_ACTIVE,
+            next_payment_deadline=self.today + datetime.timedelta(days=30),
+        )
+        self.client.force_login(self.teacher)
+
+        # Faqat birinchi o'quvchi belgilandi.
+        self.save_attendance(self.first)
+
+        self.assertFalse(CohortLessonRelease.objects.filter(cohort=self.cohort).exists())
+        self.assertTrue(self.is_open(self.second))
+
+    def test_an_empty_submission_does_not_open_the_lesson(self):
+        self.client.force_login(self.teacher)
+
+        self.client.post(self.url, {
+            "cohort": self.cohort.id, "lesson": self.first.id, "release_lesson": "on",
+        })
+
+        self.assertFalse(CohortLessonRelease.objects.filter(cohort=self.cohort).exists())
+
+    def test_it_opens_once_every_learner_has_a_status(self):
+        second_student = User.objects.create_user(
+            username="ikkinchi", email="i@example.test", password="x"
+        )
+        second = Enrollment.objects.create(
+            student=second_student, cohort=self.cohort, status=Enrollment.STATUS_ACTIVE,
+            next_payment_deadline=self.today + datetime.timedelta(days=30),
+        )
+        self.client.force_login(self.teacher)
+
+        self.client.post(self.url, {
+            "cohort": self.cohort.id, "lesson": self.first.id, "release_lesson": "on",
+            f"att_{self.enrollment.id}": "present",
+            f"att_{second.id}": "absent",
+        })
+
+        self.assertTrue(
+            CohortLessonRelease.objects.filter(
+                cohort=self.cohort, lesson=self.first, is_released=True
+            ).exists()
+        )
+
     def test_saving_twice_does_not_write_a_second_release(self):
         self.client.force_login(self.teacher)
         self.save_attendance(self.first)
