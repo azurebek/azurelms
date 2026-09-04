@@ -68,10 +68,16 @@ guruhlararo avtomatik upgrade/downgrade qilmaydi. Ular keyingi slice'lar.
 Barcha testlar `AZURELMS_SKIP_ENV_FILE=1 GEMINI_API_KEY= TELEGRAM_BOT_TOKEN=`
 bilan, haqiqiy provider chaqiruvisiz yugurdi.
 
-- `python manage.py test --noinput`: **1068 test, OK, skipped=26**.
+- `python manage.py test --noinput`: **1070 test, OK, skipped=26** (legacy admin review tuzatishi bilan).
 - `AZURELMS_TEST_FILE_DB=1 python manage.py test cohorts.test_payment_plan_integrity cohorts.test_payment_plan_migration --noinput`: **22/22 OK**, jumladan parallel approve/approve va approve/reject.
 - Shu buyruqqa `cohorts.test_single_pending_receipt` qo'shib qayta yugurish:
   **28/28 OK**, parallel chek yaratish ham tekshirildi.
+- Legacy admin review tuzatishidan keyin shu uch modul: **30/30 OK**.
+  Invoice inline formasi billing maydonlarini tahrirlashga taklif qilmaydi;
+  crafted POST ham ularni o'zgartirmaydi. Standalone changelistdan auditni
+  chetlab o'tadigan verification checkboxi olib tashlandi.
+- `7c7fff3` uchun required CI uchalasi yashil: PostgreSQL full suite
+  **1070 test OK (skipped=20)**. Eng so'nggi head holati PR checklarida.
 - `python manage.py check --fail-level WARNING`: 0 issue;
   `python manage.py makemigrations --check --dry-run`: drift yo'q.
 - Nazorat yugurishi: eski `Enrollment.plan`ga niyat yozish qaytarilganda
@@ -94,3 +100,13 @@ SQLite solishtirishda 125 jadvaldagi avvalgi ustun qiymatlari saqlandi
 (kutilgan checkout timestamp cleanup va migration ledgeridan tashqari).
 Backup repoga commit qilinmagan; local fayl:
 `backups/db-20260904-052621.sqlite3`.
+
+**Alohida, pre-existing Windows test qarzi:** butun suite'ni faylli SQLite
+bilan birga yuritish `core.test_backup_restore` restore testida ochiq WAL
+handle (`WinError 32`) va keyingi test-DB corruptionga olib keladi. O'zgarishdan
+oldingi `f4e348b`ning alohida temp nusxasida ham aynan shu test yiqildi
+(`--keepdb --failfast`: 954 yugurdi, 2 error). Backup/restore moduli yakka
+holda 15/15 OK; billing focused file suite 30/30 OK. Bu PR backup/restore
+kodini o'zgartirmaydi va full file-suite green deb da'vo qilmaydi. Real DB
+hamda zaxira `integrity_check=ok`; ochiq connectionlar bilan live restore
+qilish xavfsiz deb hisoblanmasin — alohida lifecycle tuzatishi kerak.

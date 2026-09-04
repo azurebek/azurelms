@@ -16,6 +16,19 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-04 [Codex]: Payment review yopildi; Windows full-file restore qarzi ajratildi
+
+PR #67 review'i to'g'ri nuqson topdi: standalone receipt admin billing maydonlarini read-only qilgan, lekin enrollment inline'i tahrir taklif qilardi va model guardida 500 berishi mumkin edi. Inline endi invoice/verification tarixini faqat ko'rsatadi, add/delete yopiq va private faylga gate'li havola ishlatadi. Standalone verification checkboxi ham olib tashlandi — qaror canonical auditli backoffice/bot oqimida qoladi.
+
+- Branch: `codex/plan-payment-foundation`; commit: `7c7fff3`; [PR #67](https://github.com/azurebek/azurelms/pull/67) review thread'i dalil bilan resolve qilindi.
+- Testlar (env faylsiz, provider keys bo'sh): `python manage.py test --noinput` **1070 OK (skipped=26)**; `AZURELMS_TEST_FILE_DB=1 python manage.py test cohorts.test_payment_plan_integrity cohorts.test_payment_plan_migration cohorts.test_single_pending_receipt --noinput` **30/30 OK**; `check --fail-level WARNING` 0 issue. Eski inline readonly siyosati processda qaytarilganda yangi test **1/1 yiqildi**.
+- `7c7fff3`ning uchala required CI check'i yashil; PostgreSQL full suite **1070 OK (skipped=20)**. Yakuniy head/merge statusi PR'da.
+- **Halol test chegarasi:** qo'shimcha Windows full-file suite green emas. To'liq suite'dagi restore testi WAL faylini boshqa connection ushlab turganda almashtiradi; `WinError 32`dan keyin test DB buziladi. Pre-task `f4e348b` alohida temp source nusxasida `AZURELMS_TEST_FILE_DB=1 python manage.py test --noinput --keepdb --failfast` aynan `test_restore_brings_back_the_snapshot_state`da yiqildi (**954 test, 2 error**). Joriy full-file diagnostikasi 1062 testda 28 kaskad error berdi; yakka `core.test_backup_restore` esa **15/15 OK**. Demak bu billing regressiyasi emas, oldindan mavjud suite-wide connection/restore lifecycle qarzi; ushbu PR'da unrelated fix qilinmadi.
+- Diagnostik yordamchining bir urinishida loyiha runneri o'rniga oddiy Django runner ishlatilgani aniqlanib run bekor qilindi. Uning 25 sinov media fayli live DB'da ishlatilmasligi tekshirilib recoverable temp quarantine'ga ko'chirildi; keyingi dalil loyiha `AzureLmsTestRunner`i bilan olindi. Real DB va migrationdan oldingi backup integrity qayta **ok**.
+- Keyingi ish: uch tarif catalog/cohort/policy slice'i. Backup/restore qarzi alohida: ochiq connectionlar bilan live restore ishlatmaslik; full-file test lifecycle'ni tuzatish. Tariflarni sotuvga ochish hali bajarilmagan.
+
+---
+
 ## 2026-09-04 [Codex]: Uch tarif uchun poydevor — unpaid niyat faol tarif emas
 
 Owner `writing-block.md` orqali Economic/Standard/Intensive rejasini berdi va qurishni boshlashni buyurdi. Birinchi bounded slice payment integrity: eski `mark_checkout_started` faol `Enrollment.plan`ni almashtirardi, shuning uchun hali to'lanmagan tarif AI limitini oshirishi mumkin edi. Endi niyat `pending_plan`da, tasdiq esa aynan receipt'da qayd etilgan tarifni aktivlashtiradi. Chekning nom/narx/discount/davr snapshoti keyingi katalog yoki enrollment o'zgarishidan mustaqil.
