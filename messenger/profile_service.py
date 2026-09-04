@@ -63,6 +63,69 @@ def _shared_rooms(viewer, target):
     return labels[:4]
 
 
+def _running_model(viewer):
+    """Provider ishlatadigan model (yoki `None` — aniqlab bo'lmasa).
+
+    Aniqlab bo'lmasa qator umuman ko'rsatilmaydi: noto'g'ri nom
+    ko'rsatgandan ko'ra hech narsa ko'rsatmagan yaxshi.
+    """
+    from django.conf import settings
+
+    if str(getattr(settings, "AI_CHAT_PROVIDER", "") or "").strip().lower() != "gemini":
+        return None
+    try:
+        from ai.providers.gemini import effective_model
+
+        return effective_model(getattr(viewer, "ai_model", "") or None)
+    except Exception:
+        return None
+
+
+def assistant_card(viewer):
+    """AzureAI ning kartasi — u odam emas, shuning uchun alohida.
+
+    Ko'rsatiladigan narsalar **haqiqiy**: model va uslub — foydalanuvchining
+    o'zi tanlagan sozlamalari, tavsif esa AI amalda qiladigan ish. Bu yerga
+    hali ishlamayotgan imkoniyat yozilmaydi.
+    """
+    facts = []
+
+    # Foydalanuvchi tanlagan model emas, provider **aslida** ishlatadigani.
+    # Saqlangan tanlov allowlist'dan chiqib ketgan bo'lsa, provider uni
+    # jimgina almashtiradi — kartada esa eski nom turaverar va ishlamaydigan
+    # narsa va'da qilingan bo'lardi.
+    model_name = _running_model(viewer)
+    if model_name:
+        choices = dict(viewer.effective_ai_model_choices())
+        facts.append({"label": "Model", "value": str(choices.get(model_name, model_name))})
+
+    tone_label = dict(getattr(viewer, "AI_TONE_CHOICES", ())).get(viewer.ai_tone, viewer.ai_tone)
+    if tone_label:
+        facts.append({"label": "Uslub", "value": str(tone_label)})
+
+    skill_label = dict(viewer.effective_ai_skill_choices()).get(viewer.ai_skill, viewer.ai_skill)
+    if skill_label:
+        facts.append({"label": "Rejim", "value": str(skill_label)})
+
+    return {
+        "id": "ai",
+        "name": "Azure AI",
+        "initial": "AI",
+        "avatar_url": "",
+        "is_assistant": True,
+        "role": "AI repetitor",
+        "bio": (
+            "Dars materiallaringiz asosida savollarga javob beradi, mavzuni "
+            "tushuntiradi va mashq tuzadi. Javoblar kurs kontentidan izlanadi."
+        ),
+        "facts": facts,
+        # Halollik eslatmasi: AI adashishi mumkinligi foydalanuvchiga
+        # ko'rinib tursin, aks holda javob o'qituvchi tekshiruvi o'rniga
+        # qabul qilinadi.
+        "note": "AI adashishi mumkin — muhim narsani o'qituvchi bilan tekshiring.",
+    }
+
+
 def profile_card(viewer, target_id):
     """Profil kartasi (yoki `None` — ko'rish huquqi yo'q).
 

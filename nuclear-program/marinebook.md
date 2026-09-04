@@ -16,6 +16,43 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-05 [Claude]: AzureAI ning ham profili bor — va panel qotib qolmaydi
+
+Owner ikki narsani aytdi: profil paneli «Yuklanmoqda…» da qotib qolgan, va
+AzureAI uchun ham profil bo'lsin.
+
+**Qotib qolish aslida qotish emas edi.** `.chat-profile{ display:flex }`
+`hidden` atributini bekor qilgan — CSS'da `display` e'lon qilinsa
+`[hidden]` ning `display:none` i yo'qoladi. Ya'ni panel **doim ochiq**
+turgan va o'zining server chizgan boshlang'ich «Yuklanmoqda…» matnini
+ko'rsatgan. `.chat-profile[hidden]{ display:none }` bilan tuzatildi.
+
+Ustiga `fetch` ga 10 soniyalik muddat va «Qayta urinish» tugmasi qo'shildi:
+server qayta yuklansa yoki tarmoq uzilsa panel haqiqatan ham cheksiz
+kutishi mumkin edi.
+
+**AzureAI kartasi** alohida yo'ldan keladi (`api/profile/ai/`), chunki u
+odam emas — `User` qatori yo'q. Kartada faqat haqiqiy narsa: nima
+qilishi, foydalanuvchining o'zi tanlagan model, uslub va rejim, hamda
+halollik eslatmasi («AI adashishi mumkin»). Sarlavhadagi va xabardagi AI
+avatari bosiladigan bo'ldi.
+
+**Yo'l-yo'lakay topilgan jiddiy bo'shliq:** buzilgan JavaScript butun
+suite'dan o'tib ketardi. Aynan shu sodir bo'ldi — apostrof noto'g'ri
+qochirilib `messenger-chat.js` butunlay ishlamay qoldi (chat yuborish
+tugmasi ham), Django testlari esa **to'liq yashil** edi, chunki ular
+JavaScriptni umuman o'qimaydi. `core/test_javascript_syntax.py` endi har
+bir `static/js/*.js` faylni `node --check` bilan tekshiradi.
+
+- Branch: `claude/profile-panel-never-hangs`
+- Test holati (env faylsiz, Gemini/Telegram keys bo'sh): `python manage.py test --noinput` — **1250 test OK (skipped=29)**; `check --fail-level WARNING` 0 issue; `makemigrations --check --dry-run` drift yo'q; `scan_secrets` toza.
+- Nazorat yugurishi: apostrof qaytarilganda JS sintaksis testi yiqildi (1/1).
+- Brauzer: AI avatariga bosilganda panel ochildi va kartani ko'rsatdi (Model «Gemini 3.1 Flash Lite», Uslub «Samimiy va do'stona», Rejim «Avto»). Tuzatishdan oldin panel boshidan ochiq turardi — endi `hidden` ishlaydi.
+- Codex review boti uchta to'g'ri **P2** topdi: (1) jonli kelgan AI javobining avatari `data-ai-profile` olmagani uchun sahifa yangilanmaguncha bosilmasdi; (2) `role="button"` va'da qilgan klaviatura xulqi AI avatarida ishlamasdi; (3) eng muhimi — kartada foydalanuvchining **saqlangan** modeli ko'rsatilardi, provider esa allowlist'dan chiqib ketgan tanlovni jimgina almashtiradi, ya'ni karta ishlamaydigan narsani va'da qilardi. Endi model provider siyosatidan (`gemini.effective_model`) olinadi va aniqlab bo'lmasa qator umuman ko'rsatilmaydi.
+- **Ochiq masala:** production'da statik fayllar hash'lanmaydi (`CompressedStaticFilesStorage`, `Manifest` emas). Deploydan keyin qaytgan foydalanuvchi eski JS/CSS ni keshdan olishi mumkin — bu shu tekshiruv paytida ham aniq ko'rindi (`304 Not Modified`). Alohida ish.
+
+---
+
 ## 2026-09-05 [Claude]: Suhbatdosh profili — rasmga bosilsa o'ngdan ochiladi
 
 Owner so'radi: guruhda profil rasmiga bosilsa Telegram'dagidek o'ngdan

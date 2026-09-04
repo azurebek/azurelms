@@ -138,6 +138,78 @@ class WhoMayLookAtAllTests(ChatProfileFixture, TestCase):
         self.assertEqual(card["shared"], [])  # ammo AI xonasi ro'yxatga chiqmaydi
 
 
+class TheAssistantHasAProfileTooTests(ChatProfileFixture, TestCase):
+    """AzureAI odam emas, shuning uchun kartasi alohida yo'ldan keladi."""
+
+    def test_the_assistant_card_describes_what_it_actually_does(self):
+        self.client.force_login(self.student)
+
+        card = self.client.get(reverse("messenger:chat_assistant_profile")).json()["profile"]
+
+        self.assertEqual(card["name"], "Azure AI")
+        self.assertEqual(card["role"], "AI repetitor")
+        self.assertTrue(card["is_assistant"])
+        self.assertIn("Dars materiallaringiz", card["bio"])
+
+    def test_it_admits_the_assistant_can_be_wrong(self):
+        """Javob o'qituvchi tekshiruvi o'rniga qabul qilinmasin."""
+        self.client.force_login(self.student)
+
+        card = self.client.get(reverse("messenger:chat_assistant_profile")).json()["profile"]
+
+        self.assertIn("adashishi mumkin", card["note"])
+
+    def test_it_shows_the_settings_the_learner_actually_chose(self):
+        self.client.force_login(self.student)
+
+        card = self.client.get(reverse("messenger:chat_assistant_profile")).json()["profile"]
+
+        labels = [f["label"] for f in card["facts"]]
+        self.assertIn("Model", labels)
+        self.assertIn("Uslub", labels)
+
+    def test_an_anonymous_visitor_gets_nothing(self):
+        response = self.client.get(reverse("messenger:chat_assistant_profile"))
+
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_a_stale_saved_model_is_not_advertised(self):
+        """Kartada tanlov emas, natija turishi kerak.
+
+        Saqlangan model allowlist'dan chiqib ketgan bo'lsa provider uni
+        jimgina almashtiradi. Kartada eski nom qolsa, u ishlamaydigan
+        narsani va'da qilgan bo'lardi.
+        """
+        from django.test import override_settings
+
+        from messenger.profile_service import assistant_card
+
+        self.student.ai_model = "gemini-2.5-flash-eskirgan"
+        self.student.save(update_fields=["ai_model"])
+
+        with override_settings(
+            AI_CHAT_PROVIDER="gemini",
+            GEMINI_FREE_MODEL_ALLOWLIST=["gemini-3.1-flash-lite"],
+            GEMINI_PRIMARY_MODEL="gemini-3.1-flash-lite",
+        ):
+            card = assistant_card(self.student)
+
+        model = next(f["value"] for f in card["facts"] if f["label"] == "Model")
+        self.assertNotIn("eskirgan", model)
+        self.assertIn("3.1", model)
+
+    def test_no_model_row_when_the_provider_is_not_gemini(self):
+        """Noto'g'ri nom ko'rsatgandan ko'ra hech narsa ko'rsatmagan yaxshi."""
+        from django.test import override_settings
+
+        from messenger.profile_service import assistant_card
+
+        with override_settings(AI_CHAT_PROVIDER="boshqa-provider"):
+            card = assistant_card(self.student)
+
+        self.assertNotIn("Model", [f["label"] for f in card["facts"]])
+
+
 class TheChatPageOffersTheProfileTests(TestCase):
     """Panel haqiqiy guruh sahifasida bor va avatar bosiladigan."""
 

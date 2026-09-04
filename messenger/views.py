@@ -593,6 +593,14 @@ def get_room_messages(request, room_id):
 
 
 @login_required
+def chat_assistant_profile(request):
+    """AzureAI kartasi — u odam emas, shuning uchun alohida yo'l."""
+    from .profile_service import assistant_card
+
+    return JsonResponse({"status": "ok", "profile": assistant_card(request.user)})
+
+
+@login_required
 def chat_profile(request, user_id):
     """Suhbatdoshning profil kartasi (o'ngdagi panel uchun).
 

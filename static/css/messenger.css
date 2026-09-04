@@ -254,6 +254,7 @@
 .msg-avatar[data-sender-id],.msg-author-name[data-sender-id]{ cursor:pointer; }
 .msg-avatar[data-sender-id]:hover{ filter:brightness(1.12); }
 .msg-author-name[data-sender-id]:hover{ text-decoration:underline; }
+.chat-profile[hidden]{ display:none; }  /* `display:flex` bo'lmasa hidden ishlamaydi */
 .chat-profile{ flex:0 0 300px; width:300px; display:flex; flex-direction:column; border-left:1px solid var(--line); background:var(--panel); overflow:hidden; }
 .chat-profile-head{ flex:0 0 auto; display:flex; align-items:center; gap:10px; height:58px; padding:0 14px; border-bottom:1px solid var(--line); font-size:13px; font-weight:600; color:var(--ink); }
 .chat-profile-body{ flex:1; overflow-y:auto; padding:22px 18px; text-align:center; }
@@ -271,3 +272,8 @@
 .chat-profile-shared ul{ margin:6px 0 0; padding-left:18px; }
 .chat-profile-shared li{ font-size:12.5px; color:var(--ink-2); line-height:1.5; }
 @media(max-width:1000px){ .chat-profile{ position:fixed; inset:0 0 0 auto; width:min(320px,88vw); z-index:60; box-shadow:-18px 0 40px rgba(0,0,0,.28); } }
+.chat-profile-retry{ display:inline-block; margin-top:10px; padding:7px 14px; border-radius:9px; border:1px solid var(--line); background:var(--paper-2); color:var(--ink-2); font:inherit; font-size:12.5px; cursor:pointer; }
+.chat-profile-av--ai{ background:linear-gradient(135deg,var(--azure),var(--azure-2)); padding:10px; }
+.chat-profile-av--ai img{ border-radius:0; }
+.chat-profile-role{ font-size:12px; color:var(--azure); margin:-8px 0 12px; font-weight:600; }
+.chat-profile-note{ font-size:11.5px; line-height:1.55; color:var(--ink-3); text-align:left; margin:14px 0 0; padding-top:12px; border-top:1px solid var(--line); }
