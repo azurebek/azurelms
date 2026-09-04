@@ -16,6 +16,39 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-04 [Claude]: Tariflar orasida ko'chirish — ilgari hech kim uchun mumkin emas edi
+
+Owner savol berdi: «arzon tarifga kirgan o'quvchi bir haftadan keyin qimmatga
+o'tmoqchi bo'lsa nima bo'ladi? yoki aksincha? bir kishi yoki butun guruh
+uchun transfer imkonsizmi?» Tekshiruv uchta qulfni ochdi:
+
+* checkout to'lagan o'quvchiga «Tarifni almashtirish uchun administrator
+  orqali mos guruhga o'ting» deb yozardi;
+* administratorda esa hech qanday yo'l yo'q edi —
+  `transfer_enrollment_to_cohort` faqat eski Django admindan chaqirilardi,
+  u esa default o'chiq;
+* funksiyaning o'zi ham tarif almashishini rad etardi, chunki
+  `validate_plan_cohort` mavjud tarifni maqsad guruhga solishtirardi.
+
+Ustiga butun guruhning tarifini o'zgartirish ham taqiqlangan («a'zolari bor
+guruhning tarifi o'zgarmaydi»). Ya'ni arzondan qimmatga ham, qimmatdan
+arzonga ham o'tish **hech kim uchun** mumkin emas edi — bu sotuvdagi eng
+qimmatli harakat.
+
+Endi ko'chirish a'zolar sahifasida. Tarif almashishi **alohida** tasdiq
+so'raydi, chunki pulga tegadi: yangi tarif joriy davr oxirigacha ishlaydi.
+Tizim narx farqini ataylab hisoblamaydi — proration hali qabul qilinmagan
+product qarori, shuning uchun farqni owner odatdagi to'lov oqimi orqali
+oladi. Eski a'zolik muzlatiladi va joyini bo'shatadi, progress ko'chadi,
+muddat saqlanadi, joy yo'q bo'lsa ko'chirish rad etiladi.
+
+- Branch: `claude/owner-can-move-a-student-between-tiers`
+- Test holati (env faylsiz, Gemini/Telegram keys bo'sh): `python manage.py test --noinput` — **1176 test OK (skipped=29)**; `check --fail-level WARNING` 0 issue; `makemigrations --check --dry-run` drift yo'q (schema o'zgarmadi); `scan_secrets` toza.
+- Nazorat yugurishi ikki qism uchun alohida: tasdiq talabi olib tashlanganda 2 test yiqildi; yangi tarif yozilmay qolganda 5 test yiqildi.
+- Ochiq qolgani: butun guruhni bir amalda ko'chirish qo'shilmadi (hozircha a'zolarni birma-bir), va o'quvchining o'zi tarif almashtira olishi — u narx qaroriga bog'liq.
+
+---
+
 ## 2026-09-04 [Claude]: Raqamlar egasiniki — qoida qat'iy emas, eshik qoldiradi
 
 Owner aytdi: «guruh to'lsa qo'shilish mutloq imkonsiz bo'lishi kerak emas,

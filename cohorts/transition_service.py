@@ -98,11 +98,11 @@ def _freeze_source_enrollment(source_enrollment, *, completion_state=None):
         source_enrollment.save(update_fields=update_fields)
 
 
-def _create_target_enrollment_for_transfer(*, source_enrollment, target_cohort, source_status):
+def _create_target_enrollment_for_transfer(*, source_enrollment, target_cohort, source_status, plan):
     return Enrollment.objects.create(
         student=source_enrollment.student,
         cohort=target_cohort,
-        plan=source_enrollment.plan,
+        plan=plan,
         status=source_status,
         completion_state=source_enrollment.completion_state,
         last_payment_date=source_enrollment.last_payment_date,
@@ -200,7 +200,18 @@ def relocate_pending_checkout(*, source_enrollment, target_cohort, plan):
         return TransitionResult(source, replacement, transition)
 
 
-def transfer_enrollment_to_cohort(*, source_enrollment, target_cohort, created_by=None, note=""):
+def transfer_enrollment_to_cohort(
+    *, source_enrollment, target_cohort, created_by=None, note="", allow_tier_change=False,
+):
+    """O'quvchini shu kursning boshqa guruhiga ko'chiradi.
+
+    `allow_tier_change` — tarifni ham almashtirish uchun **ataylab** beriladi.
+    Sukut bo'yicha rad etiladi, chunki tarif o'zgarishi pulga tegadi: yangi
+    tarif joriy davr oxirigacha to'lanmagan holda ishlaydi. Tizim narx
+    farqini hisoblamaydi — u ownerning qaroriga qoladi (`pricing-packages-plan.md`
+    dagi ochiq savol). Shuning uchun bu yerda faqat "ataylabmi" degan
+    savolga javob beriladi, hisob-kitob emas.
+    """
     target_cohort = _ensure_target_cohort(target_cohort)
     if source_enrollment.cohort_id == target_cohort.id:
         raise EnrollmentTransitionError("Transfer uchun boshqa cohort tanlanishi kerak.")
@@ -214,8 +225,22 @@ def transfer_enrollment_to_cohort(*, source_enrollment, target_cohort, created_b
         locked_cohorts = lock_cohorts(source_enrollment.cohort_id, target_cohort.pk)
         target_cohort = locked_cohorts[target_cohort.pk]
         source_enrollment = _locked_enrollment(source_enrollment.pk)
+        current_plan = source_enrollment.active_plan()
+        target_plan = current_plan
         try:
-            validate_plan_cohort(plan=source_enrollment.active_plan(), cohort=target_cohort)
+            # "Tarif almashadimi" savoli qayta yozilmaydi: mavjud tarif
+            # maqsad guruhda hamon amal qiladimi — shu bitta tekshiruv
+            # javob beradi (legacy guruhlar tarifsiz bo'lgani uchun
+            # oddiy `plan_id` solishtiruvi noto'g'ri javob berardi).
+            validate_plan_cohort(plan=current_plan, cohort=target_cohort)
+        except ValidationError:
+            if not allow_tier_change:
+                raise EnrollmentTransitionError(
+                    "Bu guruh boshqa tarifda. Tarifni ham o'zgartirishni ataylab tasdiqlang."
+                )
+            target_plan = target_cohort.plan
+        try:
+            validate_plan_cohort(plan=target_plan, cohort=target_cohort)
             validate_seat(cohort=target_cohort)
         except ValidationError as exc:
             raise EnrollmentTransitionError(" ".join(exc.messages)) from exc
@@ -225,6 +250,7 @@ def transfer_enrollment_to_cohort(*, source_enrollment, target_cohort, created_b
             source_enrollment=source_enrollment,
             target_cohort=target_cohort,
             source_status=source_status,
+            plan=target_plan,
         )
         moved_count = _move_lesson_progress(
             source_enrollment=source_enrollment,
