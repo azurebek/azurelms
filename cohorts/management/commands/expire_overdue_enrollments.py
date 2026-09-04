@@ -1,18 +1,16 @@
 from django.core.management.base import BaseCommand
 
-from cohorts.enrollment_service import expire_overdue_enrollments, promote_due_plans
+from cohorts.enrollment_service import run_daily_subscription_lifecycle
 
 
 class Command(BaseCommand):
-    help = "Expire active enrollments whose payment deadline is past the grace period."
+    help = "Run the daily subscription lifecycle: expire overdue, activate due plans, notify."
 
     def handle(self, *args, **options):
-        expired_count = expire_overdue_enrollments()
-        # Kunlik obuna xizmati: muddati o'tganini yopadi, davri kelganini ochadi.
-        promoted_count = promote_due_plans()
+        result = run_daily_subscription_lifecycle()
         self.stdout.write(
             self.style.SUCCESS(
-                f"Expired {expired_count} overdue enrollments. "
-                f"Promoted {promoted_count} due plans."
+                f"Expired {result.expired} overdue enrollments. "
+                f"Promoted {result.promoted} due plans."
             )
         )

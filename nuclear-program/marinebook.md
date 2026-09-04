@@ -16,6 +16,37 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-04 [Claude]: Kunlik obuna xizmati bitta ta'rifdan yuguradi
+
+#70 dan keyingi audit paytida topilgan naqsh — va o'z ishimdagi teshik.
+Kunlik obuna ishi uchta joyda alohida yozilgan edi va uchtasi uch xil qadam
+bajarardi: Celery beat muddatni yopib bildirishnoma yuborardi, `cohorts`
+buyrug'i muddatni yopib tarifni ko'chirardi, `users` buyrug'i esa yana
+boshqacha. Production'da faqat Celery yuguradi, ya'ni #68 da qo'shgan
+"davri kelgan tarifni yoqish" qadamim u yerda hech qachon ishlamasdi.
+
+Bu "bir boshqaruv nuqtasi, ko'p adapter" qoidasining buzilishi: adapterlar
+qadamlarni o'zlari sanab chiqargan edi. Endi qadamlar
+`cohorts.enrollment_service.run_daily_subscription_lifecycle()` da, uchala
+yuza esa faqat chaqiradi va natijani ko'rsatadi. Tartib ataylab: muddatni
+yopish → davri kelgan tarifni yoqish → bildirishnoma.
+
+Kirish huquqiga ta'sir yo'q edi: `Enrollment.active_plan()` o'qish paytida
+hisoblaydi, ya'ni tarif cronsiz ham o'z kunida ishlaydi. Eskirib qoladigani
+denormalizatsiyalangan ustun edi — backoffice ro'yxatlari va `aicontrol`
+plan-scope reset uni to'g'ridan-to'g'ri o'qiydi.
+
+Test shartnomasi ikki qavatli: qadamlar haqiqatan bajarilishi, **va** har
+bir yuza aynan canonical funksiyani chaqirishi. Patch manba modulida emas,
+har bir yuza ko'radigan nomda — aks holda `from ... import ...` qilgan
+modul patchni ko'rmay, test yolg'on yashil berardi.
+
+- Branch: `claude/one-daily-subscription-lifecycle`
+- Test holati (env faylsiz, Gemini/Telegram keys bo'sh): `python manage.py test --noinput` — **1128 test OK (skipped=29)**; `check --fail-level WARNING` 0 issue; `makemigrations --check --dry-run` drift yo'q; `scan_secrets` toza.
+- Nazorat yugurishi: Celery vazifasiga qadamlarning o'z nusxasi qaytarilganda parity testi va xulq testi yiqildi (1 error + 1 failure); tiklangach 5/5.
+
+---
+
 ## 2026-09-04 [Codex]: Uch draft tarif, delivery sig'imi va owner katalogi
 
 Owner dam olishga ketayotgani uchun shu bosqichdan keyin to'xtash so'raldi.
