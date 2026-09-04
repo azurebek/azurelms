@@ -121,6 +121,55 @@ class BackofficeCourseListTests(TestCase):
         self.assertEqual(own_edit.status_code, 200)
         self.assertEqual(other_edit.status_code, 404)
 
+    def test_teacher_cannot_transfer_course_outside_teacher_scope(self):
+        self.client.force_login(self.teacher)
+        url = reverse("backoffice_course_edit", kwargs={"course_id": self.active_course.pk})
+
+        get_response = self.client.get(url)
+        self.assertEqual(
+            list(get_response.context["form"].fields["instructor"].queryset),
+            [self.teacher],
+        )
+
+        response = self.client.post(
+            url,
+            {
+                "title": self.active_course.title,
+                "description": self.active_course.description,
+                "instructor": self.other_teacher.pk,
+                "level": self.active_course.level,
+                "duration": self.active_course.duration,
+                "price": self.active_course.price,
+                "cover_mode": self.active_course.cover_mode,
+                "gradient_preset": self.active_course.gradient_preset,
+                "gradient_cover_title": self.active_course.gradient_cover_title,
+                "gradient_cover_label": self.active_course.gradient_cover_label,
+                "certificate_min_lesson_completion_percent": 0,
+                "certificate_min_attendance_percent": 0,
+                "is_active": "on",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("instructor", response.context["form"].errors)
+        self.active_course.refresh_from_db()
+        self.assertEqual(self.active_course.instructor, self.teacher)
+
+    def test_course_badge_uses_teacher_scope_across_backoffice_pages(self):
+        self.client.force_login(self.teacher)
+
+        for url_name in (
+            "backoffice_dashboard",
+            "backoffice_chats",
+            "backoffice_lessons",
+            "backoffice_exams",
+            "backoffice_users",
+        ):
+            with self.subTest(url_name=url_name):
+                response = self.client.get(reverse(url_name))
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.context["counts"]["courses"], 1)
+
     def test_student_cannot_open_course_inventory(self):
         self.client.force_login(self.student)
 

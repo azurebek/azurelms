@@ -43,9 +43,13 @@ class CourseBackofficeForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
         User = get_user_model()
-        self.fields["instructor"].queryset = User.objects.filter(is_staff=True).order_by(
+        instructors = User.objects.filter(is_staff=True)
+        if user is not None and not user.is_superuser:
+            instructors = instructors.filter(pk=user.pk)
+        self.fields["instructor"].queryset = instructors.order_by(
             "first_name",
             "last_name",
             "username",

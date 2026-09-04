@@ -521,7 +521,7 @@ def backoffice_dashboard(request):
             "students": User.objects.filter(is_staff=False, is_superuser=False).count(),
             "teachers": User.objects.filter(is_staff=True, is_superuser=False).count(),
             "admins": User.objects.filter(is_superuser=True).count(),
-            "courses": Course.objects.count(),
+            "courses": teacher_course_queryset(request.user).count(),
             "lessons": Lesson.objects.count(),
             "exams": Exam.objects.count(),
             "cohorts": Cohort.objects.count(),
@@ -577,7 +577,7 @@ def backoffice_chats(request):
     page_obj = Paginator(rooms_qs.order_by("-last_message_at", "-created_at"), 12).get_page(request.GET.get("page"))
     today = timezone.localdate()
     context = {
-        **_backoffice_context("chats"),
+        **_backoffice_context("chats", request.user),
         "filters": {"q": query, "type": room_type},
         "page_obj": page_obj,
         "room_type_choices": (
@@ -656,7 +656,7 @@ def backoffice_course_editor(request, course_id=None):
         if course_id
         else None
     )
-    form = CourseBackofficeForm(request.POST or None, instance=course)
+    form = CourseBackofficeForm(request.POST or None, instance=course, user=request.user)
     if not course and not form.initial.get("instructor"):
         form.initial["instructor"] = request.user.pk
 
@@ -717,7 +717,7 @@ def backoffice_lesson_editor(request, lesson_id=None):
     assignments = list(lesson.assignments.all()) if lesson else []
     quizzes = list(lesson.quizzes.all()) if lesson else []
     context = {
-        **_backoffice_context("lessons"),
+        **_backoffice_context("lessons", request.user),
         "lesson": lesson,
         "form": form,
         "courses": courses,
@@ -752,7 +752,7 @@ def backoffice_exam_editor(request, exam_id=None):
     total_time = sections.aggregate(total=Sum("time_limit_minutes")).get("total") or 0
     questions_count = section.questions.count() if section else 0
     context = {
-        **_backoffice_context("exams"),
+        **_backoffice_context("exams", request.user),
         "exam": exam,
         "section": section,
         "sections": sections,
@@ -852,7 +852,7 @@ def backoffice_users(request):
     active_users = User.objects.filter(is_active=True).count()
     week_start = timezone.now() - timedelta(days=7)
     context = {
-        **_backoffice_context("users"),
+        **_backoffice_context("users", request.user),
         "filters": {"q": query, "role": role, "status": status},
         "page_obj": page_obj,
         "user_rows": user_rows,
@@ -957,7 +957,7 @@ def backoffice_ai_control(request):
         plan_rows.append({"plan": plan, "policy": policy})
 
     context = {
-        **_backoffice_context("ai_control"),
+        **_backoffice_context("ai_control", request.user),
         "ai_settings": ai_settings,
         "plan_rows": plan_rows,
         "cohorts": Cohort.objects.select_related("course").order_by("-start_date")[:100],

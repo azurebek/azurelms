@@ -32,9 +32,16 @@ Yangi canonical state yoki migration yo'q: ro'yxat read-only, yozish mavjud
 kurs ID sini taxmin qilib muharrirni ocholmaydi. Admission va rollback chegarasi
 `nuclear-program/backoffice-courses-plan.md`da yozildi.
 
+PR review ikki P2 regressionni merge'dan oldin ushladi: non-superuser
+instructor dropdown orqali kursni o'z scope'idan chiqarib yuborib, redirectdan
+keyin 404 olishi mumkin edi; qolgan backoffice sahifalaridagi kurs badge'i esa
+global sonni ko'rsatardi. Endi oddiy staff instructor sifatida faqat o'zini
+tanlaydi (soxta POST ham form validationdan o'tmaydi), kurs badge'i esa barcha
+staff-accessible backoffice sahifalarida ayni teacher scope'idan hisoblanadi.
+
 - Branch: `codex/backoffice-course-list`
 - Commitlar: `fa0d22b`
-- Test holati (env faylsiz, Gemini/Telegram keylari bo'sh): focused backoffice — **8/8 OK**; `python manage.py test core --noinput` — **398 OK (skipped=15)**; `python manage.py test courses --noinput` — **102/102 OK**; `check --fail-level WARNING` — 0 issue; `makemigrations --check --dry-run` — drift yo'q; `scan_secrets` — toza.
+- Test holati (env faylsiz, Gemini/Telegram keylari bo'sh): focused backoffice — **10/10 OK**; `python manage.py test core courses --noinput` — **502 OK (skipped=15)**; `check --fail-level WARNING` — 0 issue; `makemigrations --check --dry-run` — drift yo'q; `scan_secrets` — toza.
 - Browser QA: default desktop va 390×844; mobil `body.scrollWidth == viewport == 390`, `Tahrirlash` haqiqiy kurs muharririni ochdi, console error 0.
 - Davom etilishi kerak: yo'q; PR CI va review gate'idan keyin merge.
 
