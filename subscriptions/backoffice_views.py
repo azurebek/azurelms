@@ -2,10 +2,10 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 
-from cohorts.membership_service import release_seat, restore_seat
+from cohorts.membership_service import release_seat, restore_seat, transfer_member
 from cohorts.models import Cohort, Enrollment, enrollment_active_access_q
 from core.views import _backoffice_context
-from .catalog_forms import CatalogPlanForm, DeliveryCohortForm, SeatDecisionForm
+from .catalog_forms import CatalogPlanForm, DeliveryCohortForm, MemberTransferForm, SeatDecisionForm
 from .catalog_service import require_owner, save_cohort, update_plan
 from .models import Plan
 
@@ -27,6 +27,24 @@ def catalog(request):
     })
 
 
+def _transfer_targets(cohort):
+    """Shu kursning boshqa faol guruhlari — boshqa tarifdagilari ham.
+
+    Tarif almashishi ro'yxatdan chiqarilmaydi: aynan shu ko'chirish kerak
+    bo'ladi. Ammo u alohida tasdiq so'raydi, chunki pulga tegadi.
+    """
+    return (
+        # `with_seat_metrics()`: shablonda `target.is_full` a'zolar sikli
+        # ichida o'qiladi, ya'ni annotatsiyasiz har bir a'zo uchun har bir
+        # maqsad guruhga alohida COUNT ketardi.
+        Cohort.objects.with_seat_metrics()
+        .filter(course_id=cohort.course_id, is_active=True)
+        .exclude(pk=cohort.pk)
+        .select_related("plan")
+        .order_by("plan__order", "start_date", "pk")
+    )
+
+
 @login_required
 def cohort_members(request, cohort_id):
     """Guruh a'zolari va joy bo'yicha qaror.
@@ -39,7 +57,21 @@ def cohort_members(request, cohort_id):
     cohort = get_object_or_404(
         Cohort.objects.with_seat_metrics().select_related("course", "plan"), pk=cohort_id
     )
+    targets = _transfer_targets(cohort)
     if request.method == "POST":
+        if request.POST.get("action") == "transfer":
+            form = MemberTransferForm(request.POST, targets=targets)
+            if form.is_valid():
+                decision = transfer_member(
+                    form.cleaned_data["enrollment_id"], form.cleaned_data["target_cohort"].pk,
+                    request.user, reason=form.cleaned_data["change_reason"], request=request,
+                    allow_tier_change=form.cleaned_data["allow_tier_change"],
+                )
+                (messages.success if decision.ok else messages.error)(request, decision.message)
+            else:
+                messages.error(request, "Guruhni tanlang, sabab yozing va tasdiqlang.")
+            return redirect("backoffice_cohort_members", cohort_id=cohort_id)
+
         form = SeatDecisionForm(request.POST)
         if form.is_valid():
             decide = release_seat if form.cleaned_data["action"] == SeatDecisionForm.ACTION_RELEASE else restore_seat
@@ -66,6 +98,7 @@ def cohort_members(request, cohort_id):
         )
     return render(request, "subscriptions/backoffice_cohort_members.html", {
         **_backoffice_context("catalog"), "cohort": cohort, "members": members,
+        "transfer_targets": targets,
     })
 
 

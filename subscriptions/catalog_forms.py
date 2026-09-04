@@ -73,6 +73,34 @@ class SeatDecisionForm(forms.Form):
     confirm_change = forms.BooleanField(label="Qarorni tasdiqlayman", required=True)
 
 
+class MemberTransferForm(forms.Form):
+    """Boshqa guruhga ko'chirish — tarif almashsa alohida tasdiq so'raladi."""
+
+    enrollment_id = forms.IntegerField(widget=forms.HiddenInput)
+    target_cohort = forms.ModelChoiceField(
+        queryset=Cohort.objects.none(), label="Yangi guruh", empty_label="Guruhni tanlang",
+    )
+    change_reason = forms.CharField(
+        label="Ko'chirish sababi", max_length=240,
+        widget=forms.Textarea(attrs={"rows": 2, "class": "brand-input"}),
+    )
+    confirm_change = forms.BooleanField(label="Ko'chirishni tasdiqlayman", required=True)
+    allow_tier_change = forms.BooleanField(
+        label="Tarif ham o'zgarishini tasdiqlayman", required=False,
+        help_text=(
+            "Boshqa tarifdagi guruhga ko'chirilsa kerak. Tizim narx farqini "
+            "hisoblamaydi — yangi tarif joriy davr oxirigacha ishlaydi, farqni "
+            "odatdagi to'lov oqimi orqali olasiz."
+        ),
+    )
+
+    def __init__(self, *args, targets=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if targets is not None:
+            self.fields["target_cohort"].queryset = targets
+        self.fields["target_cohort"].widget.attrs["class"] = "brand-input"
+
+
 class DeliveryCohortForm(forms.ModelForm):
     change_reason = forms.CharField(label="O'zgartirish sababi", max_length=240)
     confirm_change = forms.BooleanField(label="Guruh sozlamalarini tasdiqlayman")

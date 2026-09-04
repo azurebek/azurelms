@@ -53,6 +53,30 @@
     {% else %}
     <p class="brand-empty">To'lovi amal qiladi — joyi bo'shatilmaydi.</p>
     {% endif %}
+
+    {% if transfer_targets %}
+    <details>
+      <summary class="brand-label">Boshqa guruhga ko'chirish</summary>
+      <form method="post" class="brand-form">{% csrf_token %}
+        <input type="hidden" name="enrollment_id" value="{{ member.pk }}">
+        <input type="hidden" name="action" value="transfer">
+        <label class="brand-label" for="target-{{ member.pk }}">Yangi guruh</label>
+        <select class="brand-input" id="target-{{ member.pk }}" name="target_cohort" required>
+          <option value="">Guruhni tanlang</option>
+          {% for target in transfer_targets %}
+          <option value="{{ target.pk }}">{{ target.name }} — {{ target.plan.name|default:"Legacy" }}{% if target.is_full %} (to'lgan){% endif %}</option>
+          {% endfor %}
+        </select>
+        <label class="brand-label" for="move-reason-{{ member.pk }}">Ko'chirish sababi</label>
+        <textarea class="brand-input" id="move-reason-{{ member.pk }}" name="change_reason" rows="2" maxlength="240" required
+                  placeholder="Masalan: o'quvchi qimmatroq tarifga o'tmoqchi"></textarea>
+        <label class="brand-check"><input type="checkbox" name="confirm_change" required> Ko'chirishni tasdiqlayman</label>
+        <label class="brand-check"><input type="checkbox" name="allow_tier_change"> Tarif ham o'zgarishini tasdiqlayman</label>
+        <p class="brand-empty">Tarif almashsa tizim narx farqini hisoblamaydi: yangi tarif joriy davr oxirigacha ishlaydi, farqni odatdagi to'lov oqimi orqali olasiz.</p>
+        <div class="brand-actions"><button class="brand-btn" type="submit">Ko'chirish</button></div>
+      </form>
+    </details>
+    {% endif %}
   </section>
   {% endfor %}
 </div>

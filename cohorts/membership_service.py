@@ -118,6 +118,59 @@ def release_seat(enrollment_id, actor, *, reason="", request=None):
 
 
 @transaction.atomic
+def transfer_member(
+    enrollment_id, target_cohort_id, actor, *, reason="", request=None, allow_tier_change=False,
+):
+    """O'quvchini shu kursning boshqa guruhiga ko'chiradi.
+
+    Ilgari bu amal faqat eski Django adminda bor edi, u esa o'chiq. Ya'ni
+    checkout "Tarifni almashtirish uchun administrator orqali mos guruhga
+    o'ting" deb yozardi, administratorda esa hech qanday yo'l yo'q edi.
+
+    `allow_tier_change` — narx qaroriga tegadigan qadam, shuning uchun
+    ataylab beriladi. Tizim narx farqini **hisoblamaydi**: yangi tarif
+    joriy davr oxirigacha ishlaydi va farqni owner odatdagi to'lov oqimi
+    orqali oladi.
+    """
+    from .models import Cohort, Enrollment
+    from .transition_service import EnrollmentTransitionError, transfer_enrollment_to_cohort
+
+    if not _actor_may_decide(actor):
+        return _denied("membership.transfer", enrollment_id, actor, request)
+
+    enrollment = Enrollment.objects.filter(pk=enrollment_id).select_related("cohort").first()
+    target = Cohort.objects.filter(pk=target_cohort_id).select_related("plan").first()
+    if enrollment is None or target is None:
+        return MembershipDecision(ok=False, code="missing", message="Guruh yoki a'zolik topilmadi.")
+
+    try:
+        result = transfer_enrollment_to_cohort(
+            source_enrollment=enrollment, target_cohort=target,
+            created_by=actor, note=reason, allow_tier_change=allow_tier_change,
+        )
+    except EnrollmentTransitionError as exc:
+        record_audit_event(
+            action="enrollment.transfer",
+            request=request,
+            actor=actor,
+            source=SystemAuditEvent.SOURCE_WEB,
+            outcome=SystemAuditEvent.OUTCOME_FAILURE,
+            target=enrollment,
+            target_label=f"A'zolik #{enrollment_id} → {target.name}",
+            reason=reason,
+            error=str(exc),
+        )
+        return MembershipDecision(ok=False, code="refused", message=str(exc))
+
+    suffix = " (tarif ham o'zgardi)" if allow_tier_change else ""
+    return MembershipDecision(
+        ok=True,
+        code="transferred",
+        message=f"Ko'chirildi: {_display_name(enrollment.student)} → {target.name}{suffix}",
+    )
+
+
+@transaction.atomic
 def restore_seat(enrollment_id, actor, *, reason="", request=None):
     """Muzlatilgan a'zolikni guruhga qaytaradi — joy bo'lsa."""
     from django.core.exceptions import ValidationError
