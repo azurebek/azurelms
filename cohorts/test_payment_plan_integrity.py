@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 from django.core.exceptions import ValidationError
 from django.db import connection
-from django.test import TestCase, TransactionTestCase, override_settings
+from django.test import RequestFactory, TestCase, TransactionTestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -238,6 +238,52 @@ class InvoiceSnapshotTests(PaymentFixture, TestCase):
             receipt.save()
         with self.assertRaises(ValidationError):
             receipt.delete()
+
+
+class LegacyReceiptAdminTests(PaymentFixture, TestCase):
+    def test_inline_does_not_offer_or_accept_invoice_edits(self):
+        from django.contrib import admin
+        from cohorts.admin import PaymentReceiptInline
+
+        receipt = self.submit()
+        request = RequestFactory().get("/")
+        request.user = self.owner
+        inline = PaymentReceiptInline(Enrollment, admin.site)
+        formset_class = inline.get_formset(request, self.enrollment)
+        protected = set(PaymentReceipt.BILLING_FIELDS) - {"enrollment"}
+        self.assertFalse(protected.intersection(formset_class.form.base_fields))
+        self.assertNotIn("is_verified", formset_class.form.base_fields)
+        self.assertNotIn("receipt_image", formset_class.form.base_fields)
+        self.assertFalse(inline.has_add_permission(request, self.enrollment))
+        self.assertFalse(formset_class.can_delete)
+        self.assertIn(reverse("cohorts:receipt_file", args=[receipt.pk]), inline.receipt_file_link(receipt))
+        prefix = formset_class.get_default_prefix()
+        formset = formset_class(instance=self.enrollment, data={
+            f"{prefix}-TOTAL_FORMS": "1", f"{prefix}-INITIAL_FORMS": "1",
+            f"{prefix}-0-id": str(receipt.pk), f"{prefix}-0-enrollment": str(self.enrollment.pk),
+            f"{prefix}-0-amount": "1", f"{prefix}-0-is_verified": "on",
+        })
+        self.assertTrue(formset.is_valid(), formset.errors)
+        formset.save()
+        receipt.refresh_from_db()
+        self.assertEqual(receipt.amount, Decimal("399000"))
+        self.assertFalse(receipt.is_verified)
+
+    def test_standalone_admin_cannot_bypass_the_audited_decision_service(self):
+        from django.contrib import admin
+        from cohorts.admin import PaymentReceiptAdmin
+
+        receipt = self.submit()
+        request = RequestFactory().get("/")
+        request.user = self.owner
+        model_admin = PaymentReceiptAdmin(PaymentReceipt, admin.site)
+        self.assertNotIn("is_verified", model_admin.list_editable)
+        for verified in (False, True):
+            receipt.is_verified = verified
+            fields = model_admin.get_form(request, receipt).base_fields
+            self.assertNotIn("is_verified", fields)
+            self.assertFalse(set(PaymentReceipt.BILLING_FIELDS).intersection(fields))
+            self.assertFalse(model_admin.has_delete_permission(request, receipt))
 
 
 class ConcurrentPaymentDecisionTests(PaymentFixture, TransactionTestCase):

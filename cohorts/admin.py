@@ -30,11 +30,32 @@ class EnrollmentInline(admin.TabularInline):
     )
 
 
-class PaymentReceiptInline(admin.TabularInline):
+class ReceiptFileLinkMixin:
+    # Private storage public URL bermaydi; barcha admin yuzalari gate'li
+    # havoladan foydalanadi, xom FileField widgetidan emas.
+    exclude = ('receipt_image',)
+
+    @admin.display(description="Chek fayli")
+    def receipt_file_link(self, obj):
+        if not obj.pk or not obj.receipt_image:
+            return "—"
+        return format_html(
+            '<a href="{}" target="_blank" rel="noopener">Chekni ochish</a>',
+            reverse('cohorts:receipt_file', args=[obj.pk]),
+        )
+
+
+class PaymentReceiptInline(ReceiptFileLinkMixin, admin.TabularInline):
     # O'quvchi obunasining ichida uning to'lov cheklarini ko'rish uchun
     model = PaymentReceipt
     extra = 0
-    readonly_fields = ('submitted_at',)
+    readonly_fields = (*PaymentReceipt.BILLING_FIELDS, 'submitted_at', 'is_verified', 'receipt_file_link')
+    can_delete = False
+
+    def has_add_permission(self, request, obj=None):
+        # Bu tarix ko'rinishi; invoice checkoutdan, qaror esa auditli
+        # backoffice/bot receipt service'dan o'tadi.
+        return False
 
 
 class EnrollmentTransitionActionForm(ActionForm):
@@ -184,7 +205,7 @@ class EnrollmentAdmin(admin.ModelAdmin):
 
 
 @admin.register(PaymentReceipt)
-class PaymentReceiptAdmin(admin.ModelAdmin):
+class PaymentReceiptAdmin(ReceiptFileLinkMixin, admin.ModelAdmin):
     list_display = (
         'get_student',
         'get_plan',
@@ -197,25 +218,12 @@ class PaymentReceiptAdmin(admin.ModelAdmin):
     )
     list_filter = ('is_verified', 'submitted_at', 'promo_campaign_snapshot')
     search_fields = ('enrollment__student__username', 'promo_code_snapshot', 'promo_campaign_snapshot')
-    # Private fayl: storage public URL bermaydi, shuning uchun xom FileField
-    # widgeti o'rniga ruxsat tekshiradigan havola ko'rsatiladi (A0b).
-    exclude = ('receipt_image',)
     readonly_fields = (
         'base_amount', 'discount_amount', 'promo_code_snapshot',
-        'promo_campaign_snapshot', 'receipt_file_link',
+        'promo_campaign_snapshot', 'receipt_file_link', 'is_verified',
     )
-
-    @admin.display(description="Chek fayli")
-    def receipt_file_link(self, obj):
-        if not obj.pk or not obj.receipt_image:
-            return "—"
-        return format_html(
-            '<a href="{}" target="_blank" rel="noopener">Chekni ochish</a>',
-            reverse('cohorts:receipt_file', args=[obj.pk]),
-        )
-
-    # SEHRLI QATOR: Chekni ichiga kirmasdan, ro'yxatning o'zidayoq galichka qilib tasdiqlash imkonini beradi!
-    list_editable = ('is_verified',)
+    # Tasdiqlash/rad etish canonical servisli backoffice'da. Changelist
+    # checkboxi auditni chetlab o'tmasin yoki verified chekni unverify qilmasin.
 
     def get_student(self, obj):
         return obj.enrollment.student.username
