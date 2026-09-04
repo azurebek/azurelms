@@ -77,7 +77,9 @@ def mark_checkout_started(enrollment, *, plan, now=None):
     """
     with transaction.atomic():
         locked = lock_enrollment(enrollment.pk)
-        if PaymentReceipt.objects.filter(enrollment=locked, is_verified=False).exists():
+        if PaymentReceipt.objects.filter(
+            enrollment=locked, is_verified=False, kind=PaymentReceipt.KIND_PERIOD
+        ).exists():
             raise PendingReceiptExists("Tasdiqlanmagan chek mavjud. Qarorni kuting.")
         validate_checkout(plan=plan, enrollment=locked)
         locked.pending_plan = plan
@@ -180,7 +182,9 @@ def find_checkout_enrollment(*, student, course, today=None, plan=None):
         existing = reusable[0]
         # A submitted invoice stays attached to its original group until the
         # owner decides it. Keep the pending-receipt UI reachable even if full.
-        if existing.status == Enrollment.STATUS_PENDING and existing.receipts.filter(is_verified=False).exists():
+        if existing.status == Enrollment.STATUS_PENDING and existing.receipts.filter(
+            is_verified=False, kind=PaymentReceipt.KIND_PERIOD
+        ).exists():
             return existing, existing.cohort
         try:
             validate_checkout(plan=plan, enrollment=existing)

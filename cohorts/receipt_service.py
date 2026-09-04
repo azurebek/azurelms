@@ -70,6 +70,7 @@ def _decision_receipt(receipt_id, *, lock):
 def verify_receipt(receipt_id, actor, *, source=None, reason="", request=None):
     """Chekni tasdiqlaydi. `PaymentReceipt.save()` enrollmentni faollashtiradi."""
     from aicontrol.models import SystemAuditEvent
+    from cohorts.models import PaymentReceipt
     from core.audit import record_audit_event
 
     source = source or SystemAuditEvent.SOURCE_BOT
@@ -134,10 +135,15 @@ def verify_receipt(receipt_id, actor, *, source=None, reason="", request=None):
 
     student = receipt.enrollment.student
     course_title = receipt.enrollment.cohort.course.title
+    is_difference = receipt.kind == PaymentReceipt.KIND_DIFFERENCE
     Notification.objects.create(
         recipient=student,
         title="To'lov tasdiqlandi ✅",
         message=(
+            # Farq to'lovi muddatni uzaytirmaydi — xabar buni va'da qilmasin.
+            f"\"{course_title}\" kursi bo'yicha tarif farqi uchun "
+            f"{int(receipt.amount)} so'mlik to'lovingiz tasdiqlandi."
+            if is_difference else
             f"\"{course_title}\" kursi uchun {int(receipt.amount)} so'mlik to'lovingiz "
             f"tasdiqlandi. Kursga kirish ochiq — omad!"
         ),

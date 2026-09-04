@@ -1207,6 +1207,17 @@ class SubscriptionHistoryView(LoginRequiredMixin, ListView):
             .select_related("enrollment", "enrollment__cohort", "enrollment__cohort__course", "enrollment__plan")
             .order_by("-submitted_at", "-id")
         )
+        # Ochiq tarif farqi: owner so'ragan, o'quvchi hali chek yuklamagan.
+        context["open_difference"] = (
+            PaymentReceipt.objects.filter(
+                enrollment__student=self.request.user,
+                kind=PaymentReceipt.KIND_DIFFERENCE,
+                is_verified=False,
+            )
+            .select_related("enrollment__cohort__course")
+            .order_by("-id")
+            .first()
+        )
         return context
 
 class CertificateListView(LoginRequiredMixin, TemplateView):

@@ -2,10 +2,23 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 
-from cohorts.membership_service import release_seat, restore_seat, transfer_member
+from cohorts.membership_service import (
+    difference_between,
+    release_seat,
+    request_tier_difference,
+    restore_seat,
+    suggest_difference_amount,
+    transfer_member,
+)
 from cohorts.models import Cohort, Enrollment, enrollment_active_access_q
 from core.views import _backoffice_context
-from .catalog_forms import CatalogPlanForm, DeliveryCohortForm, MemberTransferForm, SeatDecisionForm
+from .catalog_forms import (
+    CatalogPlanForm,
+    DeliveryCohortForm,
+    DifferenceRequestForm,
+    MemberTransferForm,
+    SeatDecisionForm,
+)
 from .catalog_service import require_owner, save_cohort, update_plan
 from .models import Plan
 
@@ -59,6 +72,19 @@ def cohort_members(request, cohort_id):
     )
     targets = _transfer_targets(cohort)
     if request.method == "POST":
+        if request.POST.get("action") == "difference":
+            form = DifferenceRequestForm(request.POST)
+            if form.is_valid():
+                decision = request_tier_difference(
+                    form.cleaned_data["enrollment_id"], request.user,
+                    amount=form.cleaned_data["amount"],
+                    reason=form.cleaned_data["change_reason"], request=request,
+                )
+                (messages.success if decision.ok else messages.error)(request, decision.message)
+            else:
+                messages.error(request, "Summa kiriting, sabab yozing va tasdiqlang.")
+            return redirect("backoffice_cohort_members", cohort_id=cohort_id)
+
         if request.POST.get("action") == "transfer":
             form = MemberTransferForm(request.POST, targets=targets)
             if form.is_valid():
@@ -91,10 +117,36 @@ def cohort_members(request, cohort_id):
     live_ids = set(
         cohort.members.filter(enrollment_active_access_q()).values_list("pk", flat=True)
     )
+    # Eski tariflar bitta so'rovda: aks holda har bir a'zo uchun alohida
+    # so'rov ketardi. Yangi tarif sifatida `plan` ustuni olinadi — ko'chirish
+    # uni bevosita yozadi.
+    previous_plans = {}
+    for frozen in (
+        Enrollment.objects.filter(
+            student_id__in=[member.student_id for member in members],
+            cohort__course_id=cohort.course_id,
+            status=Enrollment.STATUS_FROZEN,
+            plan__isnull=False,
+        )
+        .select_related("plan")
+        .order_by("id")
+    ):
+        previous_plans[frozen.student_id] = frozen.plan
+    open_differences = set(
+        cohort.members.filter(
+            receipts__is_verified=False, receipts__kind="difference"
+        ).values_list("pk", flat=True)
+    )
     for member in members:
         member.access_is_open = member.pk in live_ids
         member.holds_a_seat = member.status in (
             Enrollment.STATUS_ACTIVE, Enrollment.STATUS_EXPIRED,
+        )
+        member.has_open_difference = member.pk in open_differences
+        member.suggested_difference = None if member.has_open_difference else difference_between(
+            new_plan=member.plan,
+            previous_plan=previous_plans.get(member.student_id),
+            deadline=member.next_payment_deadline,
         )
     return render(request, "subscriptions/backoffice_cohort_members.html", {
         **_backoffice_context("catalog"), "cohort": cohort, "members": members,
