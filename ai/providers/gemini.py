@@ -65,6 +65,18 @@ def fallback_ai_reply(error) -> str:
     return "Kechirasiz, hozircha ulanishda xatolik yuz berdi. Iltimos, birozdan so'ng qayta urinib ko'ring."
 
 
+def effective_model(selected_model: str | None = None) -> str:
+    """Provider **aslida** ishlatadigan model nomi.
+
+    Foydalanuvchining saqlangan tanlovi allowlist'dan chiqib ketgan bo'lishi
+    mumkin (masalan eski `gemini-2.5-flash`). Bunda provider uni jimgina
+    tashlab, sozlangan asosiy modelga o'tadi. UI saqlangan qiymatni
+    ko'rsatsa, ishlamaydigan narsani va'da qilgan bo'lardi — shuning uchun
+    bu yerda tanlov emas, **natija** hisoblanadi.
+    """
+    return GeminiProvider(api_key="")._model_candidates(selected_model)[0]
+
+
 class GeminiProvider:
     # Gemini Google Search grounding orqali jonli web-qidiruvni qo'llab-quvvatlaydi
     supports_web_search = True

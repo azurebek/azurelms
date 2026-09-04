@@ -45,9 +45,10 @@ JavaScriptni umuman o'qimaydi. `core/test_javascript_syntax.py` endi har
 bir `static/js/*.js` faylni `node --check` bilan tekshiradi.
 
 - Branch: `claude/profile-panel-never-hangs`
-- Test holati (env faylsiz, Gemini/Telegram keys bo'sh): `python manage.py test --noinput` — **1248 test OK (skipped=29)**; `check --fail-level WARNING` 0 issue; `makemigrations --check --dry-run` drift yo'q; `scan_secrets` toza.
+- Test holati (env faylsiz, Gemini/Telegram keys bo'sh): `python manage.py test --noinput` — **1250 test OK (skipped=29)**; `check --fail-level WARNING` 0 issue; `makemigrations --check --dry-run` drift yo'q; `scan_secrets` toza.
 - Nazorat yugurishi: apostrof qaytarilganda JS sintaksis testi yiqildi (1/1).
 - Brauzer: AI avatariga bosilganda panel ochildi va kartani ko'rsatdi (Model «Gemini 3.1 Flash Lite», Uslub «Samimiy va do'stona», Rejim «Avto»). Tuzatishdan oldin panel boshidan ochiq turardi — endi `hidden` ishlaydi.
+- Codex review boti uchta to'g'ri **P2** topdi: (1) jonli kelgan AI javobining avatari `data-ai-profile` olmagani uchun sahifa yangilanmaguncha bosilmasdi; (2) `role="button"` va'da qilgan klaviatura xulqi AI avatarida ishlamasdi; (3) eng muhimi — kartada foydalanuvchining **saqlangan** modeli ko'rsatilardi, provider esa allowlist'dan chiqib ketgan tanlovni jimgina almashtiradi, ya'ni karta ishlamaydigan narsani va'da qilardi. Endi model provider siyosatidan (`gemini.effective_model`) olinadi va aniqlab bo'lmasa qator umuman ko'rsatilmaydi.
 - **Ochiq masala:** production'da statik fayllar hash'lanmaydi (`CompressedStaticFilesStorage`, `Manifest` emas). Deploydan keyin qaytgan foydalanuvchi eski JS/CSS ni keshdan olishi mumkin — bu shu tekshiruv paytida ham aniq ko'rindi (`304 Not Modified`). Alohida ish.
 
 ---

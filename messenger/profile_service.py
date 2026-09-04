@@ -63,6 +63,24 @@ def _shared_rooms(viewer, target):
     return labels[:4]
 
 
+def _running_model(viewer):
+    """Provider ishlatadigan model (yoki `None` — aniqlab bo'lmasa).
+
+    Aniqlab bo'lmasa qator umuman ko'rsatilmaydi: noto'g'ri nom
+    ko'rsatgandan ko'ra hech narsa ko'rsatmagan yaxshi.
+    """
+    from django.conf import settings
+
+    if str(getattr(settings, "AI_CHAT_PROVIDER", "") or "").strip().lower() != "gemini":
+        return None
+    try:
+        from ai.providers.gemini import effective_model
+
+        return effective_model(getattr(viewer, "ai_model", "") or None)
+    except Exception:
+        return None
+
+
 def assistant_card(viewer):
     """AzureAI ning kartasi — u odam emas, shuning uchun alohida.
 
@@ -72,9 +90,14 @@ def assistant_card(viewer):
     """
     facts = []
 
-    model_label = dict(viewer.effective_ai_model_choices()).get(viewer.ai_model, viewer.ai_model)
-    if model_label:
-        facts.append({"label": "Model", "value": str(model_label)})
+    # Foydalanuvchi tanlagan model emas, provider **aslida** ishlatadigani.
+    # Saqlangan tanlov allowlist'dan chiqib ketgan bo'lsa, provider uni
+    # jimgina almashtiradi — kartada esa eski nom turaverar va ishlamaydigan
+    # narsa va'da qilingan bo'lardi.
+    model_name = _running_model(viewer)
+    if model_name:
+        choices = dict(viewer.effective_ai_model_choices())
+        facts.append({"label": "Model", "value": str(choices.get(model_name, model_name))})
 
     tone_label = dict(getattr(viewer, "AI_TONE_CHOICES", ())).get(viewer.ai_tone, viewer.ai_tone)
     if tone_label:

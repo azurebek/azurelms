@@ -173,6 +173,42 @@ class TheAssistantHasAProfileTooTests(ChatProfileFixture, TestCase):
 
         self.assertNotEqual(response.status_code, 200)
 
+    def test_a_stale_saved_model_is_not_advertised(self):
+        """Kartada tanlov emas, natija turishi kerak.
+
+        Saqlangan model allowlist'dan chiqib ketgan bo'lsa provider uni
+        jimgina almashtiradi. Kartada eski nom qolsa, u ishlamaydigan
+        narsani va'da qilgan bo'lardi.
+        """
+        from django.test import override_settings
+
+        from messenger.profile_service import assistant_card
+
+        self.student.ai_model = "gemini-2.5-flash-eskirgan"
+        self.student.save(update_fields=["ai_model"])
+
+        with override_settings(
+            AI_CHAT_PROVIDER="gemini",
+            GEMINI_FREE_MODEL_ALLOWLIST=["gemini-3.1-flash-lite"],
+            GEMINI_PRIMARY_MODEL="gemini-3.1-flash-lite",
+        ):
+            card = assistant_card(self.student)
+
+        model = next(f["value"] for f in card["facts"] if f["label"] == "Model")
+        self.assertNotIn("eskirgan", model)
+        self.assertIn("3.1", model)
+
+    def test_no_model_row_when_the_provider_is_not_gemini(self):
+        """Noto'g'ri nom ko'rsatgandan ko'ra hech narsa ko'rsatmagan yaxshi."""
+        from django.test import override_settings
+
+        from messenger.profile_service import assistant_card
+
+        with override_settings(AI_CHAT_PROVIDER="boshqa-provider"):
+            card = assistant_card(self.student)
+
+        self.assertNotIn("Model", [f["label"] for f in card["facts"]])
+
 
 class TheChatPageOffersTheProfileTests(TestCase):
     """Panel haqiqiy guruh sahifasida bor va avatar bosiladigan."""

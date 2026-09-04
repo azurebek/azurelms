@@ -713,6 +713,12 @@
       const avatar = document.createElement('div');
       avatar.className = 'msg-avatar msg-avatar--ai';
       avatar.innerHTML = aiAvatarMarkup();
+      // Server chizgan AI avatari bilan bir xil kontrakt: aks holda jonli
+      // kelgan javobning avatari sahifa yangilanmaguncha bosilmasdi.
+      avatar.dataset.aiProfile = 'true';
+      avatar.setAttribute('role', 'button');
+      avatar.tabIndex = 0;
+      avatar.title = 'Azure AI haqida';
       return avatar;
     }
 
@@ -1165,9 +1171,16 @@
   messagesArea.addEventListener('keydown', function (event) {
     if (event.key !== 'Enter' && event.key !== ' ') return;
     const person = event.target.closest('[data-sender-id]');
-    if (!person) return;
+    if (person) {
+      event.preventDefault();
+      openProfile(person.dataset.senderId);
+      return;
+    }
+    // `role="button"` va'da qilgan xulq klaviaturada ham ishlashi kerak.
+    const assistant = event.target.closest('[data-ai-profile]');
+    if (!assistant) return;
     event.preventDefault();
-    openProfile(person.dataset.senderId);
+    openAssistantProfile();
   });
   input.addEventListener('keydown', function (event) {
     if (event.key === 'Enter' && !event.shiftKey) {
