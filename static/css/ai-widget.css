@@ -4,6 +4,14 @@
    Token tizimiga tayanadi (tokens.css) — dark/light avtomatik.
    ══════════════════════════════════════════════════════ */
 
+:root {
+  /* Suzuvchi qush pastki-o'ng burchakni egallaydi: 24px chet + 66px kenglik
+     + 12px bo'shliq. Pastki panel qo'yadigan sahifalar (masalan dars
+     sahifasi) shu qiymatni o'ngdagi bo'sh joy sifatida ishlatadi, aks
+     holda oxirgi tugma qush ostida qolib bosilmaydi. */
+  --azai-safe-right: 102px;
+}
+
 .azai-widget {
   position: fixed;
   right: 24px;
