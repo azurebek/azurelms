@@ -18,6 +18,10 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ## 2026-09-04 [Codex]: Uch draft tarif, delivery sig'imi va owner katalogi
 
+Owner dam olishga ketayotgani uchun shu bosqichdan keyin to'xtash so'raldi.
+Claude uchun [topshirish xabari](handoff-to-claude.md) keyingi slice'lar,
+o'zgarmas qarorlar, test va rollout chegaralarini saqlaydi.
+
 Owner rejasining ikkinchi slice'i. Ikki product qarori yozildi: joy faqat
 to'lov tasdiqlanganda band, AI limiti eng oxirgi faol enrollmentdan (max/sum
 emas). Yangi Economic/Standard/Intensive va AI policy draft; eski tarif,
