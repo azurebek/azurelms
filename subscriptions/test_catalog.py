@@ -30,6 +30,7 @@ class CatalogTests(TestCase):
     def data(self, **changes):
         result = {
             "name": self.plan.name, "price": "270000", "description": "To'liq darslar",
+            "cohort_capacity_limit": str(self.plan.cohort_capacity_limit or ""),
             "is_popular": "on", "button_text": "Tanlash", "order": "2",
             "features_text": "Darslar\nSertifikat\n- Hali yo'q",
             "change_reason": "Owner tasdiqlagan narx", "confirm_change": "on",
@@ -74,7 +75,29 @@ class CatalogTests(TestCase):
         with self.assertRaises(ValidationError):
             self.plan.save()
         self.plan.refresh_from_db()
-        self.plan.cohort_capacity_limit = 9
+
+    def test_the_owner_may_change_the_tier_standard_group_size(self):
+        """8 emas 10 qilishni xohlash — yangi tarif yaratish sababi emas."""
+        self.plan.cohort_capacity_limit = 10
+
+        self.plan.save()
+
+        self.assertEqual(Plan.objects.get(pk=self.plan.pk).cohort_capacity_limit, 10)
+
+    def test_a_legacy_plan_cannot_be_turned_into_a_delivery_plan(self):
+        """Sonni o'zgartirish boshqa, turkumni almashtirish boshqa.
+
+        `validate_plan_cohort` aynan shu farqqa tayanadi: legacy tarif
+        legacy guruhga, delivery tarif o'z guruhiga. Turkum almashsa mavjud
+        guruhlar jimgina noto'g'ri tomonga tushib qolardi.
+        """
+        legacy = Plan.objects.create(name="Eski", price=99000, description="d")
+        legacy.cohort_capacity_limit = 5
+
+        with self.assertRaises(ValidationError):
+            legacy.save()
+
+        self.plan.cohort_capacity_limit = None
         with self.assertRaises(ValidationError):
             self.plan.save()
 
@@ -97,10 +120,20 @@ class CatalogTests(TestCase):
         self.plan.refresh_from_db()
         self.assertEqual(self.plan.price, 259000)
         self.assertFalse(SystemAuditEvent.objects.filter(action="catalog.plan.update").exists())
-        form = update_plan(actor=self.owner, plan_id=self.plan.pk, data=self.data(code="forged", cohort_capacity_limit="1000"))
+        form = update_plan(actor=self.owner, plan_id=self.plan.pk, data=self.data(code="forged"))
         self.assertTrue(form.is_valid(), form.errors)
         self.plan.refresh_from_db()
         self.assertEqual((self.plan.code, self.plan.cohort_capacity_limit), ("standard", 8))
+
+    def test_an_absurd_group_size_is_caught_as_a_typo(self):
+        """Chegara siyosat emas: `10` o'rniga `1000` terilishidan himoya."""
+        form = update_plan(
+            actor=self.owner, plan_id=self.plan.pk, data=self.data(cohort_capacity_limit="1000")
+        )
+
+        self.assertFalse(form.is_valid())
+        self.plan.refresh_from_db()
+        self.assertEqual(self.plan.cohort_capacity_limit, 8)
 
     def test_staff_student_inactive_owner_and_service_cannot_edit_catalog(self):
         staff = CustomUser.objects.create_user(username="catalog-staff", email="staff@example.test", is_staff=True)
@@ -137,7 +170,7 @@ class CatalogTests(TestCase):
 
     def test_cohort_form_reports_tier_capacity_errors_without_500(self):
         self.client.force_login(self.owner)
-        response = self.client.post(reverse("backoffice_cohort_create"), self.cohort_data(capacity="9"))
+        response = self.client.post(reverse("backoffice_cohort_create"), self.cohort_data(capacity="0"))
         self.assertEqual(response.status_code, 200)
         self.assertIn("capacity", response.context["form"].errors)
         self.assertFalse(Cohort.objects.filter(plan=self.plan).exists())
@@ -191,3 +224,53 @@ class CatalogMigrationTests(TransactionTestCase):
         self.assertEqual(new.get_model("cohorts", "Enrollment").objects.get(pk=enrollment.pk).plan_id, plan.pk)
         history = new.get_model("cohorts", "PaymentReceipt").objects.get(pk=receipt.pk)
         self.assertEqual((history.plan_name_snapshot, history.amount), ("Historic", 12345))
+
+
+class GroupSizeClaimTests(TestCase):
+    """Sotuv sahifasidagi guruh o'lchami raqamdan chiqadi, matndan emas.
+
+    Ilgari bu da'vo seed paytida `PlanFeature` ga yozib qo'yilgan edi. Egasi
+    standartni 8 dan 10 ga o'zgartirsa, sotuv sahifasi va Telegram ro'yxati
+    eskisini ko'rsatishda davom etardi — mijoz bir narsani o'qib, boshqa
+    narsani olardi.
+    """
+
+    def setUp(self):
+        self.plan = Plan.objects.create(
+            name="Standard", price=259000, description="d",
+            cohort_capacity_limit=8, is_available_for_purchase=True,
+        )
+
+    def test_the_claim_follows_the_standard(self):
+        self.assertEqual(self.plan.group_size_claim, "Maksimum 8 kishilik guruh")
+
+        self.plan.cohort_capacity_limit = 10
+        self.plan.save(update_fields=["cohort_capacity_limit"])
+
+        self.assertEqual(
+            Plan.objects.get(pk=self.plan.pk).group_size_claim, "Maksimum 10 kishilik guruh"
+        )
+
+    def test_a_legacy_plan_makes_no_group_size_claim(self):
+        legacy = Plan.objects.create(name="Eski", price=99000, description="d")
+
+        self.assertEqual(legacy.group_size_claim, "")
+
+    def test_the_pricing_page_shows_the_current_standard(self):
+        self.plan.cohort_capacity_limit = 10
+        self.plan.save(update_fields=["cohort_capacity_limit"])
+
+        response = self.client.get(reverse("subscriptions:pricing"))
+
+        self.assertContains(response, "Maksimum 10 kishilik guruh")
+        self.assertNotContains(response, "Maksimum 8 kishilik guruh")
+
+    def test_the_telegram_listing_shows_the_current_standard(self):
+        from bot.services import list_plans
+
+        self.plan.cohort_capacity_limit = 10
+        self.plan.save(update_fields=["cohort_capacity_limit"])
+
+        items = [item for item in list_plans() if item["id"] == self.plan.pk]
+
+        self.assertIn("Maksimum 10 kishilik guruh", items[0]["features"])

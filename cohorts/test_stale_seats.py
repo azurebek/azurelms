@@ -200,3 +200,40 @@ class CatalogPageShowsStaleSeatsTests(TestCase):
 
         self.assertContains(response, "tasi to'lamayapti")
         self.assertEqual(len(many.captured_queries), len(single.captured_queries))
+
+
+class TierStandardExceptionTests(TestCase):
+    """Istisno qilingan guruh katalogda ko'rinib turadi."""
+
+    def setUp(self):
+        self.today = timezone.localdate()
+        self.owner = User.objects.create_superuser(
+            username="istisno-owner", email="owner@example.test", password="x"
+        )
+        course = Course.objects.create(title="Kurs", description="d", level="beginner")
+        self.plan = Plan.objects.create(
+            code="istisno-standard", name="Standard", price=259000,
+            description="d", cohort_capacity_limit=8,
+        )
+        self.cohort = Cohort.objects.create(
+            name="Standard guruh", course=course, start_date=self.today,
+            plan=self.plan, capacity=8,
+        )
+
+    def test_a_cohort_at_the_standard_is_not_marked(self):
+        self.assertEqual(self.cohort.seats_above_tier_standard, 0)
+
+    def test_an_exception_is_counted(self):
+        self.cohort.capacity = 10
+        self.cohort.save(update_fields=["capacity"])
+
+        self.assertEqual(self.cohort.seats_above_tier_standard, 2)
+
+    def test_the_catalog_page_shows_the_exception(self):
+        self.cohort.capacity = 10
+        self.cohort.save(update_fields=["capacity"])
+        self.client.force_login(self.owner)
+
+        response = self.client.get(reverse("backoffice_catalog"))
+
+        self.assertContains(response, "tarif standartidan +2 joy")

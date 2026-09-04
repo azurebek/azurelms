@@ -32,16 +32,46 @@ class Plan(models.Model):
     button_text = models.CharField(max_length=50, default="Boshlash", verbose_name="Tugma matni")
     order = models.PositiveIntegerField(default=0, verbose_name="Tartibi")
 
+    #: Terish xatosidan himoya uchun oqilona yuqori chegara (siyosat emas).
+    SANE_GROUP_SIZE = 500
+
+    @property
+    def group_size_claim(self):
+        """Sotuv sahifasidagi guruh o'lchami — `cohort_capacity_limit` dan.
+
+        Ilgari bu matn seed paytida `PlanFeature` ga yozib qo'yilgan edi.
+        Egasi standartni 8 dan 10 ga o'zgartirsa, sotuv sahifasi va Telegram
+        ro'yxati eski sonni ko'rsatishda davom etardi — mijoz bir narsani
+        o'qib, boshqa narsani olardi. Endi da'vo raqamdan hosil qilinadi.
+        """
+        if self.cohort_capacity_limit is None:
+            return ""
+        return f"Maksimum {self.cohort_capacity_limit} kishilik guruh"
+
     def clean(self):
         super().clean()
         if self.pk:
             old = Plan.objects.filter(pk=self.pk).values("code", "cohort_capacity_limit").first()
             if old and old["code"] and old["code"] != self.code:
                 raise ValidationError({"code": "Tarif kodi barqaror. Yangi tarif yarating."})
-            if old and old["cohort_capacity_limit"] != self.cohort_capacity_limit:
-                raise ValidationError({"cohort_capacity_limit": "Delivery chegarasini o'zgartirish uchun yangi tarif yarating."})
-        if self.cohort_capacity_limit is not None and self.cohort_capacity_limit < 1:
-            raise ValidationError({"cohort_capacity_limit": "Sig'im kamida 1 bo'lishi kerak."})
+            was_delivery = old and old["cohort_capacity_limit"] is not None
+            now_delivery = self.cohort_capacity_limit is not None
+            if old and was_delivery != now_delivery:
+                # Sonni o'zgartirish — egasining qarori. Legacy tarifni
+                # delivery tarifiga (yoki teskarisi) aylantirish esa boshqa
+                # narsa: `validate_plan_cohort` shu farqqa tayanadi va mavjud
+                # guruhlar jimgina noto'g'ri turkumga tushib qolardi.
+                raise ValidationError({"cohort_capacity_limit": (
+                    "Legacy tarifni delivery tarifiga aylantirib bo'lmaydi. Yangi tarif yarating."
+                )})
+        if self.cohort_capacity_limit is not None and not 1 <= self.cohort_capacity_limit <= self.SANE_GROUP_SIZE:
+            # Yuqori chegara siyosat emas, terish xatosidan himoya: `10` o'rniga
+            # `1000` yozilsa sotuv sahifasi shuni va'da qilib qo'yardi. Haqiqiy
+            # o'quv guruhi bu songa yaqinlashmaydi.
+            raise ValidationError({"cohort_capacity_limit": (
+                f"Sig'im 1–{self.SANE_GROUP_SIZE} oralig'ida bo'lishi kerak. "
+                f"Kattaroq son kerak bo'lsa, avval raqamni tekshiring."
+            )})
         if self.price is not None and Decimal(self.price) < 0:
             raise ValidationError({"price": "Narx manfiy bo'lishi mumkin emas."})
 
