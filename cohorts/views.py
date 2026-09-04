@@ -108,6 +108,7 @@ def checkout_view(request, course_id):
                     enrollment=enrollment,
                     plan=selected_plan,
                     raw_code=submitted_promo_code,
+                    cohort=checkout_cohort,
                 )
             except PromoValidationError as exc:
                 messages.error(request, str(exc))

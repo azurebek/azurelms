@@ -2,6 +2,7 @@
 
 import datetime
 import threading
+from unittest.mock import patch
 
 from django.core.exceptions import ValidationError
 from django.db import connection
@@ -15,7 +16,7 @@ from bot.services import begin_course_enrollment, submit_payment_receipt
 from cohorts.checkout_service import CheckoutUnavailable, checkout_period, find_checkout_enrollment, resolve_checkout_enrollment
 from cohorts.delivery_service import occupied_seats
 from cohorts.enrollment_service import expire_overdue_enrollments
-from cohorts.models import Cohort, Enrollment, PaymentReceipt
+from cohorts.models import Cohort, Enrollment, EnrollmentTransition, PaymentReceipt
 from cohorts.receipt_service import reject_receipt, verify_receipt
 from cohorts.test_single_pending_receipt import build_receipt_file
 from cohorts.transition_service import EnrollmentTransitionError, transfer_enrollment_to_cohort
@@ -171,6 +172,106 @@ class DeliveryTests(DeliveryFixture, TestCase):
         fallback.refresh_from_db()
         self.assertFalse(fallback.is_checkout_default)
         self.assertEqual(enrollment.cohort_id, fallback.pk)
+
+    def stranded_checkout(self, *, keep_receipt=False):
+        self.assertTrue(begin_course_enrollment(self.student, self.course.pk, self.plan.pk).ok)
+        pending = Enrollment.objects.get(student=self.student)
+        receipt = self.receipt(pending)
+        self.enrollment(self.second_student(), plan=self.plan, status="active")
+        self.assertEqual(verify_receipt(receipt.pk, self.owner).code, "cohort_full")
+        if not keep_receipt:
+            self.assertTrue(reject_receipt(receipt.pk, self.owner).ok)
+        fallback = Cohort.objects.create(name="Fallback", course=self.course, plan=self.plan, capacity=1, start_date=timezone.localdate())
+        return pending, fallback, receipt
+
+    def test_stranded_pending_preview_uses_fallback_without_writes(self):
+        pending, fallback, _ = self.stranded_checkout()
+        self.client.force_login(self.student)
+        before = list(Enrollment.objects.values())
+        response = self.client.get(reverse("cohorts:checkout", args=[self.course.pk]), {"plan_id": self.plan.pk})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["checkout_cohort"].pk, fallback.pk)
+        self.client.get(reverse("cohorts:checkout_promo_preview", args=[self.course.pk]), {"plan_id": self.plan.pk})
+        self.assertEqual(list(Enrollment.objects.values()), before)
+        self.assertFalse(EnrollmentTransition.objects.exists())
+        self.assertEqual(occupied_seats(fallback), 0)
+
+    def test_web_retry_after_rejection_reassigns_and_can_be_approved(self):
+        pending, fallback, _ = self.stranded_checkout()
+        self.client.force_login(self.student)
+        response = self.client.post(reverse("cohorts:checkout", args=[self.course.pk]), {
+            "plan_id": self.plan.pk, "receipt_image": build_receipt_file(),
+        })
+        self.assertEqual(response.status_code, 302)
+        replacement = Enrollment.objects.get(student=self.student, cohort=fallback)
+        pending.refresh_from_db()
+        self.assertEqual(pending.status, "frozen")
+        self.assertIsNone(pending.pending_plan_id)
+        self.assertIsNone(pending.checkout_started_at)
+        self.assertEqual(replacement.status, "pending")
+        self.assertEqual(occupied_seats(fallback), 0)
+        transition = EnrollmentTransition.objects.get()
+        self.assertEqual(transition.source_enrollment_id, pending.pk)
+        self.assertEqual(transition.target_enrollment_id, replacement.pk)
+        self.assertTrue(SystemAuditEvent.objects.filter(action="enrollment.checkout_reassign", actor=self.student).exists())
+        receipt = replacement.receipts.get()
+        self.assertEqual(receipt.plan_id, self.plan.pk)
+        self.assertTrue(verify_receipt(receipt.pk, self.owner).ok)
+        self.assertEqual(occupied_seats(fallback), 1)
+        self.assertEqual(occupied_seats(self.cohort), 1)
+
+    def test_bot_retry_reassigns_once_and_routes_image_to_new_group(self):
+        pending, fallback, _ = self.stranded_checkout()
+        for _ in range(2):
+            result = begin_course_enrollment(self.student, self.course.pk, self.plan.pk)
+            self.assertTrue(result.ok, result.message)
+        self.assertEqual(EnrollmentTransition.objects.count(), 1)
+        receipt_result = submit_payment_receipt(self.student, build_receipt_file())
+        self.assertTrue(receipt_result.ok, receipt_result.message)
+        receipt = PaymentReceipt.objects.get(pk=receipt_result.receipt_id)
+        self.assertEqual(receipt.enrollment.cohort_id, fallback.pk)
+        self.assertNotEqual(receipt.enrollment_id, pending.pk)
+        self.assertTrue(verify_receipt(receipt.pk, self.owner).ok)
+
+    def test_unresolved_receipt_stays_in_original_group_and_blocks_reassignment(self):
+        pending, fallback, receipt = self.stranded_checkout(keep_receipt=True)
+        result = begin_course_enrollment(self.student, self.course.pk, self.plan.pk)
+        self.assertEqual(result.code, "pending_receipt")
+        self.client.force_login(self.student)
+        response = self.client.get(reverse("cohorts:checkout", args=[self.course.pk]), {"plan_id": self.plan.pk})
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["has_pending_receipt"])
+        self.assertEqual(response.context["checkout_cohort"].pk, self.cohort.pk)
+        receipt.refresh_from_db()
+        self.assertEqual(receipt.enrollment_id, pending.pk)
+        self.assertFalse(receipt.is_verified)
+        self.assertFalse(EnrollmentTransition.objects.exists())
+        self.assertFalse(fallback.members.exists())
+
+    def test_reassignment_audit_failure_rolls_back_membership_and_intent(self):
+        pending, fallback, _ = self.stranded_checkout()
+        before = list(Enrollment.objects.values())
+        with patch("cohorts.transition_service._audit_transition", side_effect=RuntimeError("audit offline")):
+            with self.assertRaises(RuntimeError):
+                resolve_checkout_enrollment(student=self.student, course=self.course, plan=self.plan)
+        self.assertEqual(list(Enrollment.objects.values()), before)
+        self.assertFalse(fallback.members.exists())
+        self.assertFalse(EnrollmentTransition.objects.exists())
+
+    def test_closed_unpaid_group_can_fall_back_but_never_to_another_tier(self):
+        pending = self.enrollment(pending_plan=self.plan)
+        self.cohort.is_active = False
+        self.cohort.save(update_fields=["is_active"])
+        Cohort.objects.create(name="Wrong tier", course=self.course, plan=self.other, start_date=timezone.localdate())
+        with self.assertRaises(CheckoutUnavailable):
+            resolve_checkout_enrollment(student=self.student, course=self.course, plan=self.plan)
+        pending.refresh_from_db()
+        self.assertEqual(pending.status, "pending")
+        fallback = Cohort.objects.create(name="Fallback", course=self.course, plan=self.plan, start_date=timezone.localdate())
+        replacement, created, target = resolve_checkout_enrollment(student=self.student, course=self.course, plan=self.plan)
+        self.assertTrue(created)
+        self.assertEqual(replacement.cohort_id, fallback.pk)
+        self.assertEqual(target.pk, fallback.pk)
 
     def test_bot_submission_uses_same_tier_capacity_and_approval(self):
         self.assertTrue(begin_course_enrollment(self.student, self.course.pk, self.plan.pk).ok)

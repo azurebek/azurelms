@@ -159,6 +159,47 @@ def _notify_promotion(*, transition):
     )
 
 
+def relocate_pending_checkout(*, source_enrollment, target_cohort, plan):
+    """Move an unpaid intent, never an invoice or paid membership.
+
+    Preserve the old enrollment and record the transition; direct cohort FK
+    edits remain forbidden. Called only on an explicit web/bot checkout write.
+    """
+    from .delivery_service import lock_cohorts, validate_checkout
+
+    with transaction.atomic():
+        locked = lock_cohorts(source_enrollment.cohort_id, target_cohort.pk)
+        source = _locked_enrollment(source_enrollment.pk)
+        target = locked[target_cohort.pk]
+        if (
+            source.status != Enrollment.STATUS_PENDING or source.plan_id is not None
+            or source.last_payment_date is not None or source.next_payment_deadline is not None
+            or source.receipts.exists() or LessonProgress.objects.filter(enrollment=source).exists()
+        ):
+            raise EnrollmentTransitionError("To'lov yoki o'qish tarixi bor guruhni administrator orqali almashtiring.")
+        if source.cohort_id == target.pk or source.cohort.course_id != target.course_id or source.cohort.plan_id != target.plan_id:
+            raise EnrollmentTransitionError("Checkout faqat shu kurs va tarifning boshqa guruhiga o'tadi.")
+        _ensure_unique_target_enrollment(student=source.student, target_cohort=target)
+        replacement = Enrollment(
+            student=source.student, cohort=target, status=Enrollment.STATUS_PENDING,
+            pending_plan=plan, checkout_started_at=source.checkout_started_at,
+        )
+        validate_checkout(plan=plan, enrollment=replacement)
+        _freeze_source_enrollment(source)
+        source.pending_plan = None
+        source.checkout_started_at = None
+        source.save(update_fields=["pending_plan", "checkout_started_at"])
+        replacement.save()
+        note = "To'lgan/yopilgan guruhdagi to'lanmagan checkout mos bo'sh guruhga o'tkazildi."
+        transition = EnrollmentTransition.objects.create(
+            student=source.student, kind=EnrollmentTransition.KIND_TRANSFER,
+            source_enrollment=source, target_enrollment=replacement,
+            source_cohort=source.cohort, target_cohort=target, note=note,
+        )
+        _audit_transition(action="enrollment.checkout_reassign", transition=transition, created_by=source.student, note=note)
+        return TransitionResult(source, replacement, transition)
+
+
 def transfer_enrollment_to_cohort(*, source_enrollment, target_cohort, created_by=None, note=""):
     target_cohort = _ensure_target_cohort(target_cohort)
     if source_enrollment.cohort_id == target_cohort.id:

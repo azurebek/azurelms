@@ -177,11 +177,25 @@ def find_checkout_enrollment(*, student, course, today=None, plan=None):
         )
     )
     if plan is not None:
+        existing = reusable[0]
+        # A submitted invoice stays attached to its original group until the
+        # owner decides it. Keep the pending-receipt UI reachable even if full.
+        if existing.status == Enrollment.STATUS_PENDING and existing.receipts.filter(is_verified=False).exists():
+            return existing, existing.cohort
         try:
-            validate_checkout(plan=plan, enrollment=reusable[0])
+            validate_checkout(plan=plan, enrollment=existing)
         except ValidationError as exc:
+            if existing.status == Enrollment.STATUS_PENDING and target_cohort.pk != existing.cohort_id:
+                # Preview the replacement without mutating either enrollment.
+                # The write path performs an audited pending-only transition.
+                preview = Enrollment(student=student, cohort=target_cohort, status=Enrollment.STATUS_PENDING)
+                try:
+                    validate_checkout(plan=plan, enrollment=preview)
+                except ValidationError as target_exc:
+                    raise CheckoutUnavailable(" ".join(target_exc.messages)) from target_exc
+                return existing, target_cohort
             raise CheckoutUnavailable(" ".join(exc.messages)) from exc
-        return reusable[0], reusable[0].cohort
+        return existing, existing.cohort
     return reusable[0], target_cohort
 
 
@@ -192,21 +206,21 @@ def resolve_checkout_enrollment(*, student, course, today=None, plan=None):
     botda kurs+tarif tanlash) — sahifa ko'rsatishda emas.
     """
     today = today or timezone.localdate()
-    enrollment, target_cohort = find_checkout_enrollment(
-        student=student,
-        course=course,
-        today=today,
-        plan=plan,
-    )
-    if enrollment is not None:
-        return enrollment, False, target_cohort
-
     with transaction.atomic():
         # A GET remains read-only; on a write re-resolve under the course lock
         # so two web/bot starts reuse the same pending enrollment.
         type(course).objects.select_for_update().get(pk=course.pk)
         enrollment, target_cohort = find_checkout_enrollment(student=student, course=course, today=today, plan=plan)
         if enrollment is not None:
+            if plan is not None and enrollment.cohort_id != target_cohort.pk:
+                from .transition_service import EnrollmentTransitionError, relocate_pending_checkout
+                try:
+                    enrollment = relocate_pending_checkout(
+                        source_enrollment=enrollment, target_cohort=target_cohort, plan=plan,
+                    ).target_enrollment
+                except (EnrollmentTransitionError, ValidationError) as exc:
+                    raise CheckoutUnavailable(str(exc)) from exc
+                return enrollment, True, target_cohort
             return enrollment, False, target_cohort
         target_cohort = ensure_checkout_cohort(course=course, today=today, plan=plan)
         enrollment = Enrollment.objects.create(
