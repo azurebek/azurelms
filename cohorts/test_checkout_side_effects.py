@@ -206,5 +206,6 @@ class SubmittingCheckoutStillWorksTests(CheckoutFixtureMixin, TestCase):
         self.assertEqual(response.status_code, 302)
         enrollment = Enrollment.objects.get(student=self.student)
         self.assertEqual(enrollment.cohort, self.cohort)
-        self.assertEqual(enrollment.plan, self.plan)
+        self.assertIsNone(enrollment.plan)
+        self.assertEqual(enrollment.pending_plan, self.plan)
         self.assertEqual(PaymentReceipt.objects.filter(enrollment=enrollment).count(), 1)

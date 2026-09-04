@@ -9,7 +9,7 @@
 
   <div style="border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:20px;text-align:left;display:flex;flex-direction:column;gap:12px;margin-bottom:26px;">
     <div style="display:flex;justify-content:space-between;font-size:13.5px;"><span style="color:var(--ink-3);">Kurs</span><span style="color:var(--ink);font-weight:600;">{{ receipt.enrollment.cohort.course.title }}</span></div>
-    {% if receipt.enrollment.plan %}<div style="display:flex;justify-content:space-between;font-size:13.5px;"><span style="color:var(--ink-3);">Tarif</span><span style="color:var(--ink);">{{ receipt.enrollment.plan.name }}</span></div>{% endif %}
+    {% if receipt %}<div style="display:flex;justify-content:space-between;font-size:13.5px;"><span style="color:var(--ink-3);">Tarif</span><span style="color:var(--ink);">{{ receipt.plan_label }}</span></div>{% endif %}
     <div style="display:flex;justify-content:space-between;font-size:13.5px;"><span style="color:var(--ink-3);">Summa</span><span style="font-family:'Space Mono',monospace;color:var(--ink);">{{ receipt.amount|floatformat:0 }} so'm</span></div>
     <div style="display:flex;justify-content:space-between;font-size:13.5px;"><span style="color:var(--ink-3);">Holat</span><span style="display:inline-flex;align-items:center;gap:6px;color:var(--amber);font-weight:600;"><span style="width:6px;height:6px;border-radius:50%;background:var(--amber);"></span>Tekshirilmoqda</span></div>
     <div style="display:flex;justify-content:space-between;font-size:13.5px;"><span style="color:var(--ink-3);">Yuborilgan</span><span style="font-family:'Space Mono',monospace;color:var(--ink-2);">{{ receipt.submitted_at|date:"d.m.Y H:i" }}</span></div>
