@@ -718,7 +718,9 @@ def list_plans():
                 "name": plan.name,
                 "price": int(plan.price),
                 "is_popular": plan.is_popular,
-                "features": [f.name for f in plan.features.all() if f.is_included][:6],
+                # Guruh o'lchami raqamdan: erkin matnli xususiyat eskirib qolardi.
+                "features": ([plan.group_size_claim] if plan.group_size_claim else [])
+                + [f.name for f in plan.features.all() if f.is_included][:6],
                 "description": strip_tags(plan.description or "")[:160].strip(),
             }
         )

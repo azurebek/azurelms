@@ -39,8 +39,9 @@ Tasodif emasligini forma ta'minlaydi (sabab + tasdiq + audit), istisno esa
 katalogda «tarif standartidan +N joy» bo'lib ko'rinib turadi.
 
 - Branch: `claude/owner-decides-the-numbers`
-- Test holati (env faylsiz, Gemini/Telegram keys bo'sh): `python manage.py test --noinput` — **1159 test OK (skipped=29)**; `check --fail-level WARNING` 0 issue; `makemigrations --check --dry-run` drift yo'q (schema o'zgarmadi); `scan_secrets` toza.
+- Test holati (env faylsiz, Gemini/Telegram keys bo'sh): `python manage.py test --noinput` — **1164 test OK (skipped=29)**; `check --fail-level WARNING` 0 issue; `makemigrations --check --dry-run` drift yo'q (schema o'zgarmadi); `scan_secrets` toza.
 - Nazorat yugurishi ikki qism uchun alohida: tarif standarti yana qotirilganda 1 test yiqildi; guruh sig'imi yana tarif bilan cheklanganda 3 test yiqildi.
+- Codex review boti ikkita to'g'ri nuqson topdi: (1) seed yozgan `Maksimum 8 kishilik guruh` matni standart o'zgarganda eskirib qolardi — endi da'vo `cohort_capacity_limit` dan hosil bo'ladi va sotuv sahifasi hamda Telegram ro'yxati bir xil raqamni ko'rsatadi (`0008` seed qatorini olib tashlaydi, egasi yozgan matnga tegmaydi); (2) terish xatosi chegarasi faqat tarif standartiga qo'yilib, guruh sig'imiga qo'yilmagan edi — endi ikkalasida ham 1-500.
 - Codex'ning uchta testi eski qat'iylikni qotirgan edi; maqsadi saqlangan holda yangi qoidaga bog'landi (nol sig'im hamon rad etiladi, kod hamon barqaror, forma xatoni 500 bermay ko'rsatadi).
 
 ---

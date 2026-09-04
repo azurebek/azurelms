@@ -107,8 +107,14 @@ class Cohort(models.Model):
                 raise ValidationError({"plan": "Delivery chegarasi bor tarifni tanlang."})
             if self.capacity is None:
                 self.capacity = limit
-            if self.capacity < 1:
-                raise ValidationError({"capacity": "Sig'im kamida 1 bo'lishi kerak."})
+            from subscriptions.models import Plan as PlanModel
+            if not 1 <= self.capacity <= PlanModel.SANE_GROUP_SIZE:
+                # Tarif standarti bilan bir xil terish-xatosi chegarasi:
+                # `10` o'rniga `1000` yozilsa checkout shuni e'lon qilardi.
+                raise ValidationError({"capacity": (
+                    f"Sig'im 1–{PlanModel.SANE_GROUP_SIZE} oralig'ida bo'lishi kerak. "
+                    f"Kattaroq son kerak bo'lsa, avval raqamni tekshiring."
+                )})
             # Tarifdagi son — shu formatning **standarti**, qattiq shift emas.
             # Egasi bitta guruhga istisno qila olishi kerak (masalan oxirgi
             # bitta o'quvchini qabul qilish). Tasodif emasligi uchun forma

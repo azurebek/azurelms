@@ -35,6 +35,19 @@ class Plan(models.Model):
     #: Terish xatosidan himoya uchun oqilona yuqori chegara (siyosat emas).
     SANE_GROUP_SIZE = 500
 
+    @property
+    def group_size_claim(self):
+        """Sotuv sahifasidagi guruh o'lchami — `cohort_capacity_limit` dan.
+
+        Ilgari bu matn seed paytida `PlanFeature` ga yozib qo'yilgan edi.
+        Egasi standartni 8 dan 10 ga o'zgartirsa, sotuv sahifasi va Telegram
+        ro'yxati eski sonni ko'rsatishda davom etardi — mijoz bir narsani
+        o'qib, boshqa narsani olardi. Endi da'vo raqamdan hosil qilinadi.
+        """
+        if self.cohort_capacity_limit is None:
+            return ""
+        return f"Maksimum {self.cohort_capacity_limit} kishilik guruh"
+
     def clean(self):
         super().clean()
         if self.pk:

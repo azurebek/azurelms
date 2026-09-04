@@ -68,6 +68,21 @@ class DeliveryTests(DeliveryFixture, TestCase):
         self.cohort.refresh_from_db()
         self.assertEqual(self.cohort.capacity, 1)
 
+    def test_an_absurd_capacity_is_caught_as_a_typo(self):
+        """Istisnoga eshik ochiq, terish xatosiga emas.
+
+        Tarif standarti bilan bir xil chegara: `10` o'rniga `1000` yozilsa
+        checkout 1000 kishilik guruh e'lon qilib, qabulni shu songacha ochiq
+        qoldirardi.
+        """
+        self.cohort.capacity = 1000
+
+        with self.assertRaises(ValidationError):
+            self.cohort.save()
+
+        self.cohort.refresh_from_db()
+        self.assertEqual(self.cohort.capacity, 1)
+
     def test_the_owner_may_seat_more_than_the_tier_standard(self):
         """Tarifdagi son — standart, qattiq shift emas.
 

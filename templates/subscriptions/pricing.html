@@ -31,9 +31,14 @@
         {% if plan.price > 0 %}<span style="font-family:'Space Mono',monospace;font-size:34px;font-weight:700;color:var(--ink);letter-spacing:-.02em;">{{ plan.price|floatformat:0 }}</span><span style="font-size:13px;color:var(--ink-3);">so'm/oy</span>{% else %}<span style="font-family:'Space Mono',monospace;font-size:34px;font-weight:700;color:var(--ink);letter-spacing:-.02em;">Bepul</span>{% endif %}
       </div>
       <a href="{% if user.is_authenticated %}{% url 'courses' %}{% else %}{% url 'register' %}{% endif %}" style="display:flex;align-items:center;justify-content:center;gap:8px;height:44px;border-radius:11px;font-size:14px;font-weight:600;margin-top:20px;{% if plan.is_popular %}background:var(--azure);color:var(--on-azure);{% else %}background:transparent;border:1px solid var(--line);color:var(--ink);{% endif %}">{{ plan.button_text }}</a>
-      {% if plan.features.all %}
+      {% if plan.features.all or plan.group_size_claim %}
       <div style="height:1px;background:var(--line);margin:22px 0;"></div>
       <div style="display:flex;flex-direction:column;gap:11px;">
+        {% if plan.group_size_claim %}
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <i class="bi bi-check-lg" style="font-size:15px;flex:0 0 auto;margin-top:1px;color:var(--azure);"></i><span style="font-size:13.5px;line-height:1.45;color:var(--ink-2);">{{ plan.group_size_claim }}</span>
+        </div>
+        {% endif %}
         {% for f in plan.features.all %}
         <div style="display:flex;align-items:flex-start;gap:10px;">
           {% if f.is_included %}<i class="bi bi-check-lg" style="font-size:15px;flex:0 0 auto;margin-top:1px;color:var(--azure);"></i><span style="font-size:13.5px;line-height:1.45;color:var(--ink-2);">{{ f.name }}</span>{% else %}<i class="bi bi-dash" style="font-size:15px;flex:0 0 auto;margin-top:1px;color:var(--ink-4);"></i><span style="font-size:13.5px;line-height:1.45;color:var(--ink-4);">{{ f.name }}</span>{% endif %}

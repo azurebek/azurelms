@@ -224,3 +224,53 @@ class CatalogMigrationTests(TransactionTestCase):
         self.assertEqual(new.get_model("cohorts", "Enrollment").objects.get(pk=enrollment.pk).plan_id, plan.pk)
         history = new.get_model("cohorts", "PaymentReceipt").objects.get(pk=receipt.pk)
         self.assertEqual((history.plan_name_snapshot, history.amount), ("Historic", 12345))
+
+
+class GroupSizeClaimTests(TestCase):
+    """Sotuv sahifasidagi guruh o'lchami raqamdan chiqadi, matndan emas.
+
+    Ilgari bu da'vo seed paytida `PlanFeature` ga yozib qo'yilgan edi. Egasi
+    standartni 8 dan 10 ga o'zgartirsa, sotuv sahifasi va Telegram ro'yxati
+    eskisini ko'rsatishda davom etardi — mijoz bir narsani o'qib, boshqa
+    narsani olardi.
+    """
+
+    def setUp(self):
+        self.plan = Plan.objects.create(
+            name="Standard", price=259000, description="d",
+            cohort_capacity_limit=8, is_available_for_purchase=True,
+        )
+
+    def test_the_claim_follows_the_standard(self):
+        self.assertEqual(self.plan.group_size_claim, "Maksimum 8 kishilik guruh")
+
+        self.plan.cohort_capacity_limit = 10
+        self.plan.save(update_fields=["cohort_capacity_limit"])
+
+        self.assertEqual(
+            Plan.objects.get(pk=self.plan.pk).group_size_claim, "Maksimum 10 kishilik guruh"
+        )
+
+    def test_a_legacy_plan_makes_no_group_size_claim(self):
+        legacy = Plan.objects.create(name="Eski", price=99000, description="d")
+
+        self.assertEqual(legacy.group_size_claim, "")
+
+    def test_the_pricing_page_shows_the_current_standard(self):
+        self.plan.cohort_capacity_limit = 10
+        self.plan.save(update_fields=["cohort_capacity_limit"])
+
+        response = self.client.get(reverse("subscriptions:pricing"))
+
+        self.assertContains(response, "Maksimum 10 kishilik guruh")
+        self.assertNotContains(response, "Maksimum 8 kishilik guruh")
+
+    def test_the_telegram_listing_shows_the_current_standard(self):
+        from bot.services import list_plans
+
+        self.plan.cohort_capacity_limit = 10
+        self.plan.save(update_fields=["cohort_capacity_limit"])
+
+        items = [item for item in list_plans() if item["id"] == self.plan.pk]
+
+        self.assertIn("Maksimum 10 kishilik guruh", items[0]["features"])
