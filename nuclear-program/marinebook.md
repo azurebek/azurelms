@@ -16,6 +16,23 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-04 [Codex]: Uch tarif uchun poydevor — unpaid niyat faol tarif emas
+
+Owner `writing-block.md` orqali Economic/Standard/Intensive rejasini berdi va qurishni boshlashni buyurdi. Birinchi bounded slice payment integrity: eski `mark_checkout_started` faol `Enrollment.plan`ni almashtirardi, shuning uchun hali to'lanmagan tarif AI limitini oshirishi mumkin edi. Endi niyat `pending_plan`da, tasdiq esa aynan receipt'da qayd etilgan tarifni aktivlashtiradi. Chekning nom/narx/discount/davr snapshoti keyingi katalog yoki enrollment o'zgarishidan mustaqil.
+
+Web va bot bitta checkout/receipt service'lariga ulangan. Enrollment → receipt lock tartibi parallel approve/approve va approve/reject uchun bir g'olib, bitta audit va notification beradi. Oddiy save billing tarixini o'zgartirishni, tasdiqlangan chekni unverify/delete qilishni rad etadi; bu low-level QuerySet/cascade uchun DB-wide append-only claim emas.
+
+`cohorts.0016` additive: ochiq niyatlar va pending cheklar legacy metadata bilan ko'chadi. Eski tasdiqlangan cheklarga hozirgi enrollmentdan tarif tarixi to'qilmaydi. Oldingi kod faol tarifni allaqachon almashtirgan bo'lsa, haqiqiy oldingi tarifni dalilsiz tiklashga urinilmaydi. Yangi paketlar/AI quota hali sotuvga yoqilmadi; admission va qolgan bosqichlar `pricing-packages-plan.md`da, A4 backlog va project-context yangilandi.
+
+- Branch: `codex/plan-payment-foundation`
+- Commit: `7efe6f2`
+- Test holati (env faylsiz, Gemini/Telegram keys bo'sh): `python manage.py test --noinput` — **1068 test OK (skipped=26)**; `AZURELMS_TEST_FILE_DB=1 python manage.py test cohorts.test_payment_plan_integrity cohorts.test_payment_plan_migration --noinput` — **22/22 OK**, concurrency ham yugurdi. `check --fail-level WARNING` 0 issue, `makemigrations --check --dry-run` drift yo'q; `scan_secrets` toza.
+- Nazorat yugurishi: eski active-plan mutation qaytarilganda 2/2, jonli enrollment nomi tarixga qaytarilganda 2/2 test yiqildi; faqat process monkeypatchi, fayllar o'zgarmadi.
+- Browser: izolyatsiyalangan in-memory test DB, soxta student/owner, pending sahifa va backoffice approve amali o'tdi; to'g'ri purchased plan ko'rindi. Haqiqiy to'lov/akkaunt ishlatilmadi. Mobile sign-off qilinmadi.
+- Davom etilishi kerak: required CI va qo'lda merge; local DB backup/migrate; keyingi slice — catalog availability, cohort tier/capacity va plan policy; undan keyin xizmat workflow/UI/analytics. Butun tarif rejasi tugadi degani emas.
+
+---
+
 ## 2026-09-04 [Claude Code]: Billing auditi — pulni web'dan qabul qilib bo'lmasdi
 
 Owner "oqimlar tayyorligiga ishonmayapman, billing tizimini tekshir" dedi. Audit qilindi va **operatsion bo'shliq** topildi.
