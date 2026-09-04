@@ -2,9 +2,10 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 
-from cohorts.models import Cohort
+from cohorts.membership_service import release_seat, restore_seat
+from cohorts.models import Cohort, Enrollment, enrollment_active_access_q
 from core.views import _backoffice_context
-from .catalog_forms import CatalogPlanForm, DeliveryCohortForm
+from .catalog_forms import CatalogPlanForm, DeliveryCohortForm, SeatDecisionForm
 from .catalog_service import require_owner, save_cohort, update_plan
 from .models import Plan
 
@@ -23,6 +24,48 @@ def catalog(request):
             .select_related("course", "plan")
             .order_by("-start_date", "-pk")
         ),
+    })
+
+
+@login_required
+def cohort_members(request, cohort_id):
+    """Guruh a'zolari va joy bo'yicha qaror.
+
+    Ilgari obuna holatini odam o'zgartiradigan yagona joy o'chirilgan eski
+    admin edi, ya'ni qaytmaydigan o'quvchining joyini hech kim bo'shata
+    olmasdi va guruh sotuvni jimgina to'xtatardi.
+    """
+    require_owner(request.user, request=request)
+    cohort = get_object_or_404(
+        Cohort.objects.with_seat_metrics().select_related("course", "plan"), pk=cohort_id
+    )
+    if request.method == "POST":
+        form = SeatDecisionForm(request.POST)
+        if form.is_valid():
+            decide = release_seat if form.cleaned_data["action"] == SeatDecisionForm.ACTION_RELEASE else restore_seat
+            decision = decide(
+                form.cleaned_data["enrollment_id"], request.user,
+                reason=form.cleaned_data["change_reason"], request=request,
+            )
+            (messages.success if decision.ok else messages.error)(request, decision.message)
+        else:
+            messages.error(request, "Sabab yozing va qarorni tasdiqlang.")
+        return redirect("backoffice_cohort_members", cohort_id=cohort_id)
+
+    members = list(
+        cohort.members.select_related("student", "plan")
+        .order_by("status", "next_payment_deadline", "pk")
+    )
+    live_ids = set(
+        cohort.members.filter(enrollment_active_access_q()).values_list("pk", flat=True)
+    )
+    for member in members:
+        member.access_is_open = member.pk in live_ids
+        member.holds_a_seat = member.status in (
+            Enrollment.STATUS_ACTIVE, Enrollment.STATUS_EXPIRED,
+        )
+    return render(request, "subscriptions/backoffice_cohort_members.html", {
+        **_backoffice_context("catalog"), "cohort": cohort, "members": members,
     })
 
 
