@@ -1151,6 +1151,12 @@
       return;
     }
 
+    const assistant = event.target.closest('[data-ai-profile]');
+    if (assistant && messagesArea.contains(assistant)) {
+      openAssistantProfile();
+      return;
+    }
+
     const button = event.target.closest('[data-feedback-rating]');
     if (!button || !messagesArea.contains(button)) return;
     submitFeedback(button);
@@ -1178,12 +1184,27 @@
   let profilePanel = null;
   let profileBody = null;
 
+  function initAssistantHeader() {
+    const head = document.querySelector('.chat-head-av[data-ai-profile]');
+    if (!head) return;
+    head.addEventListener('click', openAssistantProfile);
+    head.addEventListener('keydown', function (event) {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      openAssistantProfile();
+    });
+  }
+
   function initProfilePanel() {
     profilePanel = document.querySelector('[data-chat-profile]');
     if (!profilePanel) return;
     profileBody = profilePanel.querySelector('[data-profile-body]');
     const close = profilePanel.querySelector('[data-profile-close]');
     if (close) close.addEventListener('click', closeProfile);
+    profilePanel.addEventListener('click', function (event) {
+      const retry = event.target.closest('[data-profile-retry]');
+      if (retry) openProfile(retry.dataset.profileRetry);
+    });
     document.addEventListener('keydown', function (event) {
       if (event.key === 'Escape') closeProfile();
     });
@@ -1197,6 +1218,20 @@
     const div = document.createElement('div');
     div.textContent = value == null ? '' : String(value);
     return div.innerHTML;
+  }
+
+  function renderAssistant(card) {
+    let facts = '';
+    (card.facts || []).forEach(function (f) {
+      facts += '<div><dt>' + esc(f.label) + '</dt><dd>' + esc(f.value) + '</dd></div>';
+    });
+    profileBody.innerHTML =
+      '<div class="chat-profile-av chat-profile-av--ai">' + aiAvatarMarkup() + '</div>' +
+      '<h2 class="chat-profile-name">' + esc(card.name) + '</h2>' +
+      '<p class="chat-profile-role">' + esc(card.role) + '</p>' +
+      '<p class="chat-profile-bio">' + esc(card.bio) + '</p>' +
+      (facts ? '<dl class="chat-profile-facts">' + facts + '</dl>' : '') +
+      (card.note ? '<p class="chat-profile-note">' + esc(card.note) + '</p>' : '');
   }
 
   function renderProfile(card) {
@@ -1224,21 +1259,62 @@
       rows.join('');
   }
 
+  function profileError(senderId, message) {
+    profileBody.innerHTML =
+      '<div class="chat-profile-loading">' + esc(message) +
+      '<br><button type="button" class="chat-profile-retry" data-profile-retry="' + esc(senderId) +
+      '">Qayta urinish</button></div>';
+  }
+
+  function openAssistantProfile() {
+    if (!profilePanel) return;
+    const url = panel.getAttribute('data-chat-assistant-profile-url') || '';
+    if (!url) return;
+    profilePanel.hidden = false;
+    profileBody.innerHTML = '<div class="chat-profile-loading">Yuklanmoqda…</div>';
+    const abort = new AbortController();
+    const timer = setTimeout(function () { abort.abort(); }, 10000);
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }, signal: abort.signal })
+      .then(function (res) { return res.ok ? res.json() : Promise.reject(res.status); })
+      .then(function (data) { renderAssistant(data.profile); })
+      .catch(function () {
+        profileBody.innerHTML = '<div class="chat-profile-loading">Ma’lumotni yuklab bo’lmadi.</div>';
+      })
+      .finally(function () { clearTimeout(timer); });
+  }
+
   function openProfile(senderId) {
     if (!profilePanel || !senderId) return;
     const template = panel.getAttribute('data-chat-profile-url-template') || '';
     if (!template) return;
     profilePanel.hidden = false;
     profileBody.innerHTML = '<div class="chat-profile-loading">Yuklanmoqda…</div>';
-    fetch(template.replace(/0\/$/, senderId + '/'), { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+
+    // Muddat majburiy: server qayta yuklansa yoki tarmoq uzilsa `fetch`
+    // hech qachon hal bo'lmaydi va panel «Yuklanmoqda…» holatida qotib
+    // qoladi. Foydalanuvchi uchun bu «buzuq» degani — xato ko'rsatib,
+    // qayta urinish taklif qilgan ma'qul.
+    const abort = new AbortController();
+    const timer = setTimeout(function () { abort.abort(); }, 10000);
+
+    fetch(template.replace(/0\/$/, senderId + '/'), {
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      signal: abort.signal,
+    })
       .then(function (res) { return res.ok ? res.json() : Promise.reject(res.status); })
       .then(function (data) { renderProfile(data.profile); })
-      .catch(function () {
-        profileBody.innerHTML = '<div class="chat-profile-loading">Bu profil sizga ochiq emas.</div>';
-      });
+      .catch(function (reason) {
+        if (reason === 404 || reason === 403) {
+          profileBody.innerHTML = '<div class="chat-profile-loading">Bu profil sizga ochiq emas.</div>';
+          return;
+        }
+        profileError(senderId, 'Profilni yuklab bo’lmadi.');
+      })
+      .finally(function () { clearTimeout(timer); });
   }
 
   initProfilePanel();
+  initAssistantHeader();
   sendButton.disabled = true;
   connect();
   initComposerMenus();

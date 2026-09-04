@@ -138,6 +138,42 @@ class WhoMayLookAtAllTests(ChatProfileFixture, TestCase):
         self.assertEqual(card["shared"], [])  # ammo AI xonasi ro'yxatga chiqmaydi
 
 
+class TheAssistantHasAProfileTooTests(ChatProfileFixture, TestCase):
+    """AzureAI odam emas, shuning uchun kartasi alohida yo'ldan keladi."""
+
+    def test_the_assistant_card_describes_what_it_actually_does(self):
+        self.client.force_login(self.student)
+
+        card = self.client.get(reverse("messenger:chat_assistant_profile")).json()["profile"]
+
+        self.assertEqual(card["name"], "Azure AI")
+        self.assertEqual(card["role"], "AI repetitor")
+        self.assertTrue(card["is_assistant"])
+        self.assertIn("Dars materiallaringiz", card["bio"])
+
+    def test_it_admits_the_assistant_can_be_wrong(self):
+        """Javob o'qituvchi tekshiruvi o'rniga qabul qilinmasin."""
+        self.client.force_login(self.student)
+
+        card = self.client.get(reverse("messenger:chat_assistant_profile")).json()["profile"]
+
+        self.assertIn("adashishi mumkin", card["note"])
+
+    def test_it_shows_the_settings_the_learner_actually_chose(self):
+        self.client.force_login(self.student)
+
+        card = self.client.get(reverse("messenger:chat_assistant_profile")).json()["profile"]
+
+        labels = [f["label"] for f in card["facts"]]
+        self.assertIn("Model", labels)
+        self.assertIn("Uslub", labels)
+
+    def test_an_anonymous_visitor_gets_nothing(self):
+        response = self.client.get(reverse("messenger:chat_assistant_profile"))
+
+        self.assertNotEqual(response.status_code, 200)
+
+
 class TheChatPageOffersTheProfileTests(TestCase):
     """Panel haqiqiy guruh sahifasida bor va avatar bosiladigan."""
 

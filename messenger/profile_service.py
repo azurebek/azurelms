@@ -63,6 +63,46 @@ def _shared_rooms(viewer, target):
     return labels[:4]
 
 
+def assistant_card(viewer):
+    """AzureAI ning kartasi — u odam emas, shuning uchun alohida.
+
+    Ko'rsatiladigan narsalar **haqiqiy**: model va uslub — foydalanuvchining
+    o'zi tanlagan sozlamalari, tavsif esa AI amalda qiladigan ish. Bu yerga
+    hali ishlamayotgan imkoniyat yozilmaydi.
+    """
+    facts = []
+
+    model_label = dict(viewer.effective_ai_model_choices()).get(viewer.ai_model, viewer.ai_model)
+    if model_label:
+        facts.append({"label": "Model", "value": str(model_label)})
+
+    tone_label = dict(getattr(viewer, "AI_TONE_CHOICES", ())).get(viewer.ai_tone, viewer.ai_tone)
+    if tone_label:
+        facts.append({"label": "Uslub", "value": str(tone_label)})
+
+    skill_label = dict(viewer.effective_ai_skill_choices()).get(viewer.ai_skill, viewer.ai_skill)
+    if skill_label:
+        facts.append({"label": "Rejim", "value": str(skill_label)})
+
+    return {
+        "id": "ai",
+        "name": "Azure AI",
+        "initial": "AI",
+        "avatar_url": "",
+        "is_assistant": True,
+        "role": "AI repetitor",
+        "bio": (
+            "Dars materiallaringiz asosida savollarga javob beradi, mavzuni "
+            "tushuntiradi va mashq tuzadi. Javoblar kurs kontentidan izlanadi."
+        ),
+        "facts": facts,
+        # Halollik eslatmasi: AI adashishi mumkinligi foydalanuvchiga
+        # ko'rinib tursin, aks holda javob o'qituvchi tekshiruvi o'rniga
+        # qabul qilinadi.
+        "note": "AI adashishi mumkin — muhim narsani o'qituvchi bilan tekshiring.",
+    }
+
+
 def profile_card(viewer, target_id):
     """Profil kartasi (yoki `None` — ko'rish huquqi yo'q).
 
