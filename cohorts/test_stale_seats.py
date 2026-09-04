@@ -17,7 +17,9 @@ ko'rsatiladi, qaror ownerda qoladi (a'zolikni muzlatish joyni bo'shatadi).
 import datetime
 
 from django.contrib.auth import get_user_model
+from django.db import connection
 from django.test import TestCase
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
 
@@ -154,6 +156,21 @@ class CatalogPageShowsStaleSeatsTests(TestCase):
             next_payment_deadline=self.today - datetime.timedelta(days=214),
         )
 
+    def _another_stale_cohort(self, index):
+        course = Course.objects.create(
+            title=f"Kurs {index}", description="d", level="beginner"
+        )
+        cohort = Cohort.objects.create(
+            name=f"Guruh {index}", course=course, start_date=self.today
+        )
+        student = User.objects.create_user(
+            username=f"ketgan{index}", email=f"ketgan{index}@example.test", password="x"
+        )
+        Enrollment.objects.create(
+            student=student, cohort=cohort, status=Enrollment.STATUS_EXPIRED,
+            next_payment_deadline=self.today - datetime.timedelta(days=100 + index),
+        )
+
     def test_the_owner_sees_who_is_holding_the_seat(self):
         self.client.force_login(self.owner)
 
@@ -161,3 +178,25 @@ class CatalogPageShowsStaleSeatsTests(TestCase):
 
         self.assertContains(response, "tasi to'lamayapti")
         self.assertContains(response, "214 kun")
+
+    def test_the_page_cost_does_not_grow_with_the_number_of_cohorts(self):
+        """Ko'rsatkichlar xossa bo'lgani uchun har qator o'z so'rovini yugurtirardi.
+
+        Sahifa ownerga ochiq va guruhlar vaqt o'tishi bilan yig'iladi, ya'ni
+        qator boshiga so'rov sekin-asta sezilarli bo'lardi. Shuning uchun
+        o'lchov: guruhlar soni ortganda so'rovlar soni **o'zgarmasligi** kerak.
+        """
+        self.client.force_login(self.owner)
+        url = reverse("backoffice_catalog")
+        self.client.get(url)  # sessiya/auth so'rovlarini isitib qo'yish
+        with CaptureQueriesContext(connection) as single:
+            self.client.get(url)
+
+        for index in range(4):
+            self._another_stale_cohort(index)
+
+        with CaptureQueriesContext(connection) as many:
+            response = self.client.get(url)
+
+        self.assertContains(response, "tasi to'lamayapti")
+        self.assertEqual(len(many.captured_queries), len(single.captured_queries))

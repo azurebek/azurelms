@@ -15,7 +15,14 @@ def catalog(request):
     return render(request, "subscriptions/backoffice_catalog.html", {
         **_backoffice_context("catalog"),
         "plans": Plan.objects.select_related("ai_policy").order_by("order", "id"),
-        "cohorts": Cohort.objects.select_related("course", "plan").order_by("-start_date", "-pk"),
+        # Joy ko'rsatkichlari annotatsiya bilan: aks holda har bir qator
+        # o'z so'rovlarini yugurtirardi va guruhlar soni ortgan sari sahifa
+        # sekinlashardi.
+        "cohorts": (
+            Cohort.objects.with_seat_metrics()
+            .select_related("course", "plan")
+            .order_by("-start_date", "-pk")
+        ),
     })
 
 

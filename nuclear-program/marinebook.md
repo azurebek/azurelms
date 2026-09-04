@@ -38,8 +38,10 @@ grace day ichidagi o'quvchi "ketgan" deb ko'rsatilmaydi, kunlik xizmat
 hali yugurmagan bo'lsa ham holat to'g'ri chiqadi.
 
 - Branch: `claude/full-cohorts-show-who-is-holding-the-seat`
-- Test holati (env faylsiz, Gemini/Telegram keys bo'sh): `python manage.py test --noinput` — **1136 test OK (skipped=29)**; `check --fail-level WARNING` 0 issue; `makemigrations --check --dry-run` drift yo'q (schema o'zgarmadi); `scan_secrets` toza.
+- Test holati (env faylsiz, Gemini/Telegram keys bo'sh): `python manage.py test --noinput` — **1137 test OK (skipped=29)**; `check --fail-level WARNING` 0 issue; `makemigrations --check --dry-run` drift yo'q (schema o'zgarmadi); `scan_secrets` toza.
 - Nazorat yugurishi ikki qism uchun alohida: grace qoidasi o'rniga faqat `status` tekshirilganda 1 test yiqildi; sahifadan ko'rsatkich olib tashlanganda 1 test yiqildi.
+- Codex review boti to'g'ri nuqson topdi: ko'rsatkichlar xossa bo'lgani uchun har bir guruh qatori o'z so'rovlarini yugurtirardi.
+  `Cohort.objects.with_seat_metrics()` uchalasini bitta so'rovda hisoblaydi; ta'rif takrorlanmaydi, `enrollment_active_access_q` `members__` prefiksi bilan ishlatiladi. O'lchov: guruhlar soni 1 dan 5 ga chiqqanda so'rovlar soni o'zgarmaydi (annotatsiya olib tashlanganda bu test yiqiladi).
 - Brauzer tekshiruvi qilinmadi — sahifa render'i test bilan tasdiqlangan, vizual joylashuv ownerning ko'rigiga qoladi.
 
 ---
