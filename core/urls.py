@@ -68,6 +68,7 @@ urlpatterns = [
     path('backoffice/catalog/plans/<int:plan_id>/', catalog_views.plan_editor, name='backoffice_plan_edit'),
     path('backoffice/catalog/cohorts/new/', catalog_views.cohort_editor, name='backoffice_cohort_create'),
     path('backoffice/catalog/cohorts/<int:cohort_id>/', catalog_views.cohort_editor, name='backoffice_cohort_edit'),
+    path('backoffice/catalog/cohorts/<int:cohort_id>/members/', catalog_views.cohort_members, name='backoffice_cohort_members'),
     path('backoffice/control/', core_views.backoffice_control, name='backoffice_control'),
     path('backoffice/', core_views.backoffice_dashboard, name='backoffice_dashboard'),
     path('backoffice/users/', core_views.backoffice_users, name='backoffice_users'),

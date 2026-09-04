@@ -16,6 +16,38 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-04 [Claude]: Owner joyni o'zi bo'shata oladi — va chek sahifasi nihoyat bezatildi
+
+Owner savol berdi: «avtomatik bo'shatish shartmi, to'lamasa o'zim chiqarib
+yubora olmaymanmi?» Tekshirsam javob — **yo'q, chiqara olmaydi**. Obuna
+holatini odam o'zgartiradigan yagona joy eski Django admin edi, u esa default
+o'chiq (`ENABLE_LEGACY_ADMIN=False`, `/admin/` → 404). `frozen` holati esa
+faqat guruhdan guruhga ko'chirishning yon ta'siri sifatida qo'yilardi. Ya'ni
+#72 da bergan «muzlatsangiz joy bo'shaydi» maslahatim amalda bajarib
+bo'lmaydigan maslahat edi.
+
+Endi `/backoffice/catalog/cohorts/<id>/members/` sahifasi bor: a'zolar,
+ularning kirishi ochiq/yopiqligi, va sabab + tasdiq bilan auditga yoziladigan
+qaror. Mantiq `cohorts.membership_service` da. Ikkita himoya ataylab:
+kirishi ochiq a'zolik bo'shatilmaydi (to'lagan o'quvchining kirishi tasodifan
+uzilmasin), va bo'shagan joy sotilgan bo'lsa a'zolik jimgina qaytarilmaydi.
+
+**Yo'l-yo'lakay topilgan ikkinchi narsa:** brauzerda ko'rganimda ma'lum
+bo'ldiki, #66 da yozgan to'lov cheklari sahifasi **umuman bezatilmagan** —
+ishlaydi, lekin `brand-card`, `brand-meta`, `brand-btn` kabi klasslar
+`brand-control.css` da mavjud emas edi. Ya'ni ownerning pul tasdiqlaydigan
+sahifasi xom HTML ko'rinishida turgan. O'sha paytda «brauzerda ko'rilmagan»
+deb yozgan edim; endi ko'rildi va yetishmayotgan uslublar qo'shildi. Ikkala
+sahifa bir xil kartochka naqshidan foydalanadi.
+
+- Branch: `claude/owner-can-free-a-held-seat`
+- Test holati (env faylsiz, Gemini/Telegram keys bo'sh): `python manage.py test --noinput` — **1152 test OK (skipped=29)**; `check --fail-level WARNING` 0 issue; `makemigrations --check --dry-run` drift yo'q (schema o'zgarmadi); `scan_secrets` toza.
+- Nazorat yugurishi ikki qism uchun alohida: to'layotgan a'zo himoyasi olib tashlanganda 2 test yiqildi; ruxsat tekshiruvi olib tashlanganda 4 test yiqildi.
+- Brauzer: alohida vaqtinchalik SQLite bazasi va soxta hisoblar bilan (haqiqiy `db.sqlite3` ga tegilmadi). Joyni bo'shatish amali oxirigacha tekshirildi — xabar chiqdi, sarlavhadagi hisob `3 / 3` dan `2 / 3` ga tushdi, a'zolik «muzlatilgan» bo'limiga o'tdi. 375px mobil: sahifa gorizontal siljimaydi (`scrollWidth == innerWidth`). Yorug'/qorong'i: kartochka va tugma ranglari tokenlardan kelib ikkala rejimda farq qiladi.
+- Ochiq chegara: sahifa owner uchun. O'qituvchi o'z guruhi a'zoligini boshqarishi alohida qaror.
+
+---
+
 ## 2026-09-04 [Claude]: To'lamayotgan a'zo joyni ushlab turishi ko'rinadi
 
 #70 dagi delivery slice'ni tekshirishda topilgan operatsion tuzoq. Muddati

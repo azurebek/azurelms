@@ -1,0 +1,62 @@
+{% extends "backoffice/base.html" %}
+{% load static %}
+{% block bo_title %}{{ cohort.name }} — a'zolar{% endblock %}
+{% block bo_topbar %}Guruh a'zolari{% endblock %}
+{% block bo_icon %}bi-people{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/brand-control.css' %}">{% endblock %}
+{% block bo_content %}
+<section class="brand-hero">
+  <div>
+    <span class="brand-kicker">{{ cohort.course.title }}</span>
+    <h1>{{ cohort.name }}</h1>
+    <p>Band: <strong>{{ cohort.occupied_seats }} / {{ cohort.capacity|default:"chegarasiz" }}</strong>{% if cohort.stale_seats %} · {{ cohort.stale_seats }} tasi to'lamayapti{% endif %}. Joy bo'shatilganda o'quvchi guruhdan chiqmaydi — a'zolik muzlatiladi va o'rni sotuvga qaytadi. To'lovi hali amal qiladigan o'quvchining joyi bo'shatilmaydi.</p>
+  </div>
+  <a class="brand-back" href="{% url 'backoffice_catalog' %}">Katalogga qaytish</a>
+</section>
+
+{% if members %}
+<div class="brand-grid">
+  {% for member in members %}
+  <section class="brand-card">
+    <header class="brand-card-head">
+      <h2>{{ member.student.get_full_name|default:member.student.username }}</h2>
+      <span class="brand-badge">{% if member.holds_a_seat %}joy band{% else %}joy bo'sh{% endif %}</span>
+    </header>
+
+    <dl class="brand-meta">
+      <div><dt>Holati</dt><dd>{{ member.get_status_display }}</dd></div>
+      <div><dt>Tarif</dt><dd>{{ member.plan.name|default:"—" }}</dd></div>
+      <div><dt>To'lov muddati</dt><dd>{{ member.next_payment_deadline|date:"d.m.Y"|default:"—" }}</dd></div>
+      <div><dt>Kirishi</dt><dd>{% if member.access_is_open %}ochiq{% else %}yopiq{% endif %}</dd></div>
+    </dl>
+
+    {% if member.holds_a_seat and not member.access_is_open %}
+    <form method="post" class="brand-form">{% csrf_token %}
+      <input type="hidden" name="enrollment_id" value="{{ member.pk }}">
+      <input type="hidden" name="action" value="release">
+      <label class="brand-label" for="reason-{{ member.pk }}">Qaror sababi</label>
+      <textarea class="brand-input" id="reason-{{ member.pk }}" name="change_reason" rows="2" maxlength="240" required
+                placeholder="Masalan: yarim yildan beri to'lamayapti"></textarea>
+      <label class="brand-check"><input type="checkbox" name="confirm_change" required> Qarorni tasdiqlayman</label>
+      <div class="brand-actions"><button class="brand-btn" type="submit">Joyni bo'shatish</button></div>
+    </form>
+    {% elif member.status == "frozen" %}
+    <form method="post" class="brand-form">{% csrf_token %}
+      <input type="hidden" name="enrollment_id" value="{{ member.pk }}">
+      <input type="hidden" name="action" value="restore">
+      <label class="brand-label" for="reason-{{ member.pk }}">Qaror sababi</label>
+      <textarea class="brand-input" id="reason-{{ member.pk }}" name="change_reason" rows="2" maxlength="240" required
+                placeholder="Masalan: xato muzlatilgan edi"></textarea>
+      <label class="brand-check"><input type="checkbox" name="confirm_change" required> Qarorni tasdiqlayman</label>
+      <div class="brand-actions"><button class="brand-btn" type="submit">Qaytarish</button></div>
+    </form>
+    {% else %}
+    <p class="brand-empty">To'lovi amal qiladi — joyi bo'shatilmaydi.</p>
+    {% endif %}
+  </section>
+  {% endfor %}
+</div>
+{% else %}
+<section class="brand-card"><p>Bu guruhda hali a'zo yo'q.</p></section>
+{% endif %}
+{% endblock %}

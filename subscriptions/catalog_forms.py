@@ -42,6 +42,23 @@ class CatalogPlanForm(forms.ModelForm):
         return data
 
 
+class SeatDecisionForm(forms.Form):
+    """Joy bo'yicha qaror — chek qarori bilan bir xil naqsh: sabab + tasdiq."""
+
+    ACTION_RELEASE = "release"
+    ACTION_RESTORE = "restore"
+    ACTION_CHOICES = ((ACTION_RELEASE, "Joyni bo'shatish"), (ACTION_RESTORE, "Qaytarish"))
+
+    enrollment_id = forms.IntegerField(widget=forms.HiddenInput)
+    action = forms.ChoiceField(choices=ACTION_CHOICES, widget=forms.HiddenInput)
+    change_reason = forms.CharField(
+        label="Qaror sababi", max_length=240,
+        widget=forms.Textarea(attrs={"rows": 2, "class": "brand-input"}),
+        help_text="Audit tarixida saqlanadi. Masalan: “yarim yildan beri to’lamayapti”.",
+    )
+    confirm_change = forms.BooleanField(label="Qarorni tasdiqlayman", required=True)
+
+
 class DeliveryCohortForm(forms.ModelForm):
     change_reason = forms.CharField(label="O'zgartirish sababi", max_length=240)
     confirm_change = forms.BooleanField(label="Guruh sozlamalarini tasdiqlayman")
