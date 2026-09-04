@@ -44,16 +44,23 @@ def get_allowance(user):
 
 
 def _effective_plan(user):
-    """Foydalanuvchining amaldagi tarifi — so'nggi faol enrollment plani (bo'lmasa None)."""
+    """Foydalanuvchining amaldagi tarifi — so'nggi faol enrollment plani (bo'lmasa None).
+
+    `Enrollment.plan` emas, `active_plan()` o'qiladi: kelasi oy uchun oldindan
+    to'langan qimmatroq tarif o'z davri boshlanmaguncha AI kvotasini oshirmaydi.
+    """
     from cohorts.models import Enrollment, enrollment_active_access_q
 
-    enrollment = (
-        Enrollment.objects.filter(enrollment_active_access_q(), student=user, plan__isnull=False)
+    enrollments = (
+        Enrollment.objects.filter(enrollment_active_access_q(), student=user)
         .select_related("plan")
         .order_by("-joined_at", "-id")
-        .first()
     )
-    return enrollment.plan if enrollment else None
+    for enrollment in enrollments:
+        plan = enrollment.active_plan()
+        if plan is not None:
+            return plan
+    return None
 
 
 def resolve_limits(user, *, allowance=None, settings_obj=None):

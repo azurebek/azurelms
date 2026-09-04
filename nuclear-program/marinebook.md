@@ -16,6 +16,38 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-04 [Claude]: Tarif o'zi to'langan davr boshlanganda kuchga kiradi
+
+PR #67 poydevorini tekshirishda pul teshigi topildi. Yangilash to'lovi joriy
+muddat tugaganidan boshlanadi (`checkout_service.checkout_period`), ammo chek
+tasdiqlanishi bilanoq `Enrollment.plan` almashardi — ya'ni qaror vaqti bilan
+xizmat vaqti aralashib ketgan edi. Muddatiga 10 kun qolgan o'quvchi Intensive
+uchun 30 kunlik pul to'lab, **40 kunlik** AI kvotasi va o'qituvchi vaqtini
+olardi; buni ataylab ham qilish mumkin: muddat boshida yangilab, eng qimmat
+tarifni deyarli ikki barobar uzoq ishlatish. Arzonroq tarifga o'tishda esa
+aksi — o'quvchi allaqachon to'lagan kunlarini yo'qotardi.
+
+O'lchov: `checkout_period` 2026-09-14 → 2026-10-14 qaytardi, tasdiqlash
+2026-09-04 da bo'ldi, natijada Intensive 40 kun ishladi. Endi davri
+boshlanmagan chek `Enrollment.plan`ga tegmaydi; `Enrollment.active_plan()`
+tasdiqlangan chekning davridan o'qiydi, ya'ni tarif o'z kunida cronsiz kuchga
+kiradi. Kunlik obuna buyrug'i denormalizatsiyalangan ustunni ko'chiradi.
+Huquq (`core.entitlements`), AI limiti (`aicontrol.service`) va o'quvchiga
+ko'rsatiladigan tarif endi bitta manbadan o'qiydi.
+
+Codex'ning ikkita testi eski xulqni to'g'ri deb qotirgan edi
+(`test_approval_activates_the_receipt_plan_and_clears_intent`,
+`test_intent_does_not_grant_capabilities`) — ular niyat/to'lov farqini
+saqlagan holda davr boshlanishiga bog'landi. To'lovning o'zi darhol ishlaydi:
+muddat va status tasdiqlash paytida uzayadi, faqat tarif kutadi.
+
+- Branch: `claude/plan-takes-effect-when-paid-period-starts`
+- Test holati (env faylsiz, Gemini/Telegram keys bo'sh): `python manage.py test --noinput` — **1079 test OK (skipped=26)**; `check --fail-level WARNING` 0 issue; `makemigrations --check --dry-run` drift yo'q (schema o'zgarmadi); `scan_secrets` toza.
+- Nazorat yugurishi ikki qismga alohida: `plan_takes_effect_now()` guardi olib tashlanganda 5/9 test yiqildi, `active_plan()` yana denormalizatsiyalangan ustunni qaytarganda 2/9 yiqildi; ikkalasi ham tiklangach 1079 OK. Billing modullarida guardsiz 7 test yiqildi.
+- Ochiq owner qarori: qimmatroq tarifga o'tish **darhol** ishlashi kerak bo'lsa, u holda davr ham o'sha kundan boshlanishi (yoki farq hisoblanishi) kerak — hozirgi tuzatish "to'langan kun = olingan kun" variantini tanladi.
+
+---
+
 ## 2026-09-04 [Codex]: Payment review yopildi; Windows full-file restore qarzi ajratildi
 
 PR #67 review'i to'g'ri nuqson topdi: standalone receipt admin billing maydonlarini read-only qilgan, lekin enrollment inline'i tahrir taklif qilardi va model guardida 500 berishi mumkin edi. Inline endi invoice/verification tarixini faqat ko'rsatadi, add/delete yopiq va private faylga gate'li havola ishlatadi. Standalone verification checkboxi ham olib tashlandi — qaror canonical auditli backoffice/bot oqimida qoladi.

@@ -16,6 +16,7 @@ from aicontrol.models import AIPlanPolicy, SystemAuditEvent
 from aicontrol.service import resolve_limits
 from bot.services import begin_course_enrollment, submit_payment_receipt, pending_receipts
 from cohorts.checkout_service import checkout_period, mark_checkout_started
+from cohorts.enrollment_service import promote_due_plans
 from cohorts.models import Cohort, Enrollment, PaymentReceipt, PendingReceiptExists
 from cohorts.receipt_service import reject_receipt, verify_receipt
 from cohorts.test_single_pending_receipt import build_receipt_file
@@ -76,7 +77,15 @@ class PendingPlanTests(PaymentFixture, TestCase):
             receipt = self.submit()
             self.assertEqual(entitlements_for(self.student, course=self.course), before)
             verify_receipt(receipt.id, self.owner)
-            self.assertIn(Capability.AI_TUTOR, entitlements_for(self.student, course=self.course))
+            # Fixture'dagi obunaning muddatiga 10 kun qolgan, ya'ni to'lov
+            # kelasi davr uchun. Huquq o'sha davr boshlanganda beriladi —
+            # aks holda o'quvchi to'lamagan 10 kunni ham olardi
+            # (`cohorts/test_plan_effective_date.py`).
+            self.assertEqual(entitlements_for(self.student, course=self.course), before)
+            self.assertIn(
+                Capability.AI_TUTOR,
+                entitlements_for(self.student, course=self.course, today=receipt.period_start),
+            )
 
     def test_submitted_receipt_still_does_not_raise_ai_allowance(self):
         receipt = self.submit()
@@ -88,9 +97,16 @@ class PendingPlanTests(PaymentFixture, TestCase):
         receipt = self.submit()
         self.assertTrue(verify_receipt(receipt.id, self.owner).ok)
         self.enrollment.refresh_from_db()
-        self.assertEqual(self.enrollment.plan_id, self.new.id)
         self.assertIsNone(self.enrollment.pending_plan_id)
         self.assertIsNone(self.enrollment.checkout_started_at)
+        # To'lov kelasi davr uchun (fixture muddatiga 10 kun bor), shuning
+        # uchun tarif o'sha davr boshlanganda kuchga kiradi. Kunlik xizmat
+        # ustunni o'sha kuni ko'chiradi va AI limiti o'shanda ko'tariladi.
+        self.assertEqual(self.enrollment.active_plan().id, self.old.id)
+        self.assertEqual(self.enrollment.active_plan(today=receipt.period_start).id, self.new.id)
+        self.assertEqual(promote_due_plans(today=receipt.period_start), 1)
+        self.enrollment.refresh_from_db()
+        self.assertEqual(self.enrollment.plan_id, self.new.id)
         self.assertEqual(resolve_limits(self.student), (200000, 1500000))
 
     def test_rejection_preserves_paid_access_and_clears_intent(self):

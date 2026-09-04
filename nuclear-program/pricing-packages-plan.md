@@ -110,3 +110,37 @@ holda 15/15 OK; billing focused file suite 30/30 OK. Bu PR backup/restore
 kodini o'zgartirmaydi va full file-suite green deb da'vo qilmaydi. Real DB
 hamda zaxira `integrity_check=ok`; ochiq connectionlar bilan live restore
 qilish xavfsiz deb hisoblanmasin — alohida lifecycle tuzatishi kerak.
+
+## Birinchi slice'dan keyingi tuzatish — 2026-09-04 [Claude]
+
+Poydevor tekshirilganda bitta xulq nuqsoni topildi va tuzatildi: tarif
+tasdiqlash paytida emas, **o'zi to'langan davr boshlanganda** kuchga kiradi.
+
+Sabab: yangilash to'lovi joriy muddat tugaganidan boshlanadi, lekin
+`PaymentReceipt.save()` faol tarifni darhol almashtirardi. Muddatiga 10 kun
+qolgan o'quvchi 30 kunlik pulga 40 kunlik qimmat tarif olardi (arzonga
+o'tishda esa to'langan kunlarini yo'qotardi). Bu slice'ning o'z KPI'siga zid:
+to'lanmagan kun uchun huquq va AI kvotasi oshmasligi kerak.
+
+Tuzatish schema o'zgartirmaydi:
+
+* `PaymentReceipt.plan_takes_effect_now()` — davri boshlanmagan chek
+  `Enrollment.plan`ga tegmaydi;
+* `Enrollment.active_plan()` — haqiqat tasdiqlangan chekning davrida, ya'ni
+  tarif o'z kunida cronsiz kuchga kiradi;
+* `cohorts.enrollment_service.promote_due_plans()` — kunlik obuna buyrug'i
+  denormalizatsiyalangan ustunni ko'chiradi (backoffice ro'yxatlari va
+  `aicontrol` plan-scope reset uni to'g'ridan-to'g'ri o'qiydi);
+* huquq, AI limiti va o'quvchiga ko'rsatiladigan tarif `active_plan()`dan
+  o'qiydi.
+
+To'lovning o'zi kutmaydi: status va `next_payment_deadline` tasdiqlash
+paytida darhol uzayadi.
+
+Dalil: `python manage.py test --noinput` **1079 OK (skipped=26)**;
+`cohorts/test_plan_effective_date.py` 9 test; nazorat yugurishi ikki qism
+uchun alohida (5/9 va 2/9 yiqildi, tiklangach yashil).
+
+**Owner qarori ochiq:** agar qimmatroq tarifga o'tish darhol ishlashi kerak
+bo'lsa, davr ham o'sha kundan boshlanishi yoki farq hisoblanishi kerak
+(proration). Hozirgi tanlov — "to'langan kun = olingan kun".

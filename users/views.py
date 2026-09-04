@@ -695,9 +695,9 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         ]
         context['active_dashboard_enrollments'] = active_dashboard_enrollments
         context['current_plan'] = (
-            context['primary_enrollment'].plan
+            context['primary_enrollment'].active_plan()
             if context['primary_enrollment'] and context['primary_enrollment'].plan_id
-            else next((item.plan for item in enrollments if item.plan_id), None)
+            else next((item.active_plan() for item in enrollments if item.plan_id), None)
         )
 
         enrolled_course_ids = {item.cohort.course_id for item in enrollments}
@@ -964,7 +964,7 @@ class UserProfileView(LoginRequiredMixin, UpdateView):
         context['active_nav'] = 'profile'
         context['earned_badges'] = EarnedBadge.objects.filter(student=user).order_by('-earned_at')
         context['course_certificates'] = CourseCertificate.objects.filter(student=user).order_by('-issued_at')
-        context['current_plan'] = current_plan_enrollment.plan if current_plan_enrollment else None
+        context['current_plan'] = current_plan_enrollment.active_plan() if current_plan_enrollment else None
 
         passed_lessons_count = Attendance.objects.filter(
             enrollment__student=user,
