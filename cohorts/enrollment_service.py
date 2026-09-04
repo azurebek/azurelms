@@ -1,7 +1,40 @@
+from dataclasses import dataclass
+
 from django.db import transaction
 from django.utils import timezone
 
 from .models import Enrollment
+
+
+@dataclass
+class DailyLifecycleResult:
+    expired: int
+    promoted: int
+
+
+def run_daily_subscription_lifecycle(*, today=None):
+    """Kunlik obuna xizmati — yagona ta'rif.
+
+    Ilgari bu ish uchta joyda alohida yozilgan edi va uchtasi uch xil
+    qadamni bajarardi: Celery vazifasi muddatni yopib bildirishnoma
+    yuborardi, `expire_overdue_enrollments` buyrug'i esa tarifni ko'chirardi
+    va bildirishnoma yubormasdi. Production'da faqat Celery yuguradi, ya'ni
+    buyruqqa qo'shilgan qadam hech qachon ishlamasdi.
+
+    Bu "bir boshqaruv nuqtasi, ko'p adapter" qoidasining buzilishi edi:
+    adapterlar qadamlarni o'zlari sanab chiqardi. Endi qadamlar shu yerda,
+    adapterlar esa faqat chaqiradi va natijani ko'rsatadi.
+
+    Tartib ataylab: avval muddati o'tganini yopish, keyin davri kelgan
+    tarifni yoqish, oxirida bildirishnoma — shunda o'quvchi eng so'nggi
+    holat bo'yicha xabar oladi.
+    """
+    from users.notification_service import ensure_subscription_notifications_for_all_users
+
+    expired = expire_overdue_enrollments(today=today)
+    promoted = promote_due_plans(today=today)
+    ensure_subscription_notifications_for_all_users()
+    return DailyLifecycleResult(expired=expired, promoted=promoted)
 
 
 def promote_due_plans(*, queryset=None, today=None):

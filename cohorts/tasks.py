@@ -2,9 +2,7 @@ import logging
 
 from celery import shared_task
 
-from users.notification_service import ensure_subscription_notifications_for_all_users
-
-from .enrollment_service import expire_overdue_enrollments
+from .enrollment_service import run_daily_subscription_lifecycle
 
 
 logger = logging.getLogger(__name__)
@@ -12,11 +10,14 @@ logger = logging.getLogger(__name__)
 
 @shared_task(ignore_result=True)
 def run_subscription_lifecycle():
+    """Beat adapteri. Qadamlar `cohorts.enrollment_service` da."""
     try:
-        expired_count = expire_overdue_enrollments()
-        ensure_subscription_notifications_for_all_users()
-        logger.info("Subscription lifecycle completed. Expired overdue enrollments: %s", expired_count)
-        return expired_count
+        result = run_daily_subscription_lifecycle()
+        logger.info(
+            "Subscription lifecycle completed. Expired: %s, promoted plans: %s",
+            result.expired, result.promoted,
+        )
+        return result.expired
     except Exception:
         logger.exception("Subscription lifecycle task failed")
         return None

@@ -1,17 +1,17 @@
 from django.core.management.base import BaseCommand
 
-from cohorts.enrollment_service import expire_overdue_enrollments
-from users.notification_service import ensure_subscription_notifications_for_all_users
+from cohorts.enrollment_service import run_daily_subscription_lifecycle
 
 
 class Command(BaseCommand):
-    help = "Generate subscription reminder/frozen/expired notifications for all active users."
+    help = "Run the daily subscription lifecycle: expire overdue, activate due plans, notify."
 
     def handle(self, *args, **options):
-        expired_count = expire_overdue_enrollments()
-        ensure_subscription_notifications_for_all_users()
+        result = run_daily_subscription_lifecycle()
         self.stdout.write(
             self.style.SUCCESS(
-                f"Subscription notifications generated successfully. Expired {expired_count} overdue enrollments."
+                f"Subscription notifications generated successfully. "
+                f"Expired {result.expired} overdue enrollments. "
+                f"Promoted {result.promoted} due plans."
             )
         )
