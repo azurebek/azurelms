@@ -10,7 +10,7 @@
 4. `NEXT` band faqat Azurbek admission berganda `ADMIT`ga o'tadi.
 5. Queue qarori: `ADMIT` / `NEXT` / `HOLD` / `CUT`. Execution holati: `PLANNED` / `IN PROGRESS` / `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` / `EVIDENCE READY` / `BLOCKED`.
 6. **Istisno — `S. SIT`:** owner qarori bilan A-narvoniga parallel yuritiladi (1-qoidadan ozod). Uning slice'lari o'zaro ketma-ket boradi va A bandlarini to'xtatmaydi; narxi — owner vaqtining bo'linishi (`S-R1`).
-7. **Joriy active closeout (A4 yangilanishi 2026-09-04):** A3 agent scope'i `IMPLEMENTED/TESTED`, qolgani ownerning real/demo cohort o'tishi. A5 ning oltita texnik bandi yopilgan, qolgani Android Chrome, iOS Safari va desktop Chrome'da uch qurilmali sign-off (mikrofon, upload, Mini App, dark/light). A4 uchun owner Economic/Standard/Intensive rejasini berdi: payment foundation lokal testlangan, catalog/cohort va xizmat workflow'lari navbatda ([ledger](../pricing-packages-plan.md)). A2 ning yagona ochiq bandi A9 AI quality/cost release gate. A8 K11 caller-specific lease/claim closeoutidan tashqari bajarilgan; yangi AI skill, bulk generation, `heavy` search yoki ommaviy AI beta hamon yo'q.
+7. **Joriy active closeout (A4 yangilanishi 2026-09-04):** A3 agent scope'i `IMPLEMENTED/TESTED`, qolgani ownerning real/demo cohort o'tishi. A5 ning oltita texnik bandi yopilgan, qolgani Android Chrome, iOS Safari va desktop Chrome'da uch qurilmali sign-off (mikrofon, upload, Mini App, dark/light). A4 uchun owner Economic/Standard/Intensive rejasini berdi: payment foundation main'da, catalog/cohort lokal testlangan (#70); xizmat workflow'lari va rollout navbatda ([ledger](../pricing-packages-plan.md)). A2 ning yagona ochiq bandi A9 AI quality/cost release gate. A8 K11 caller-specific lease/claim closeoutidan tashqari bajarilgan; yangi AI skill, bulk generation, `heavy` search yoki ommaviy AI beta hamon yo'q.
 
 ### Joriy status snapshot
 
@@ -22,7 +22,7 @@
 | A2 | `ADMIT` | `IMPLEMENTED/TESTED` | audit ledgeri, kill switch, circuit reset, heartbeat, `ReleaseRecord`, flag registri, cost ledgeri va backup/email/memory probe'lari kodda; **qolgan yagona band — AI quality/cost release gate, u esa A9 ning ishi** |
 | A8 | `ADMIT` | `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | supply guard kod/target/full testlarda; PostgreSQL contention proofi CI `integration` ishida yopildi, alohida OS processlari bilan takrorlash ochiq |
 | A3 | `ADMIT` | `IMPLEMENTED/TESTED` | to'rt slice + Codex auditidan kelgan to'rtta tuzatish + oltin oqim E2E va Mini App parity main'da; **qolgani — owner'ning real cohort bilan o'tishi** |
-| A4 | `ADMIT` | `IN PROGRESS` | ownerning uch tarif rejasi qabul qilindi; payment foundation lokal testlangan; catalog/cohort/workflow/UI bosqichlari [ledgerda](../pricing-packages-plan.md) |
+| A4 | `ADMIT` | `IN PROGRESS` | payment foundation main'da, catalog/cohort lokal testlangan (#70); premium workflow/UI/rollout keyingi bosqichlar — [ledger](../pricing-packages-plan.md) |
 | A5 | `ADMIT` | `IMPLEMENTED/TESTED` | oltita texnik band ham yopildi (messenger, dars, imtihon, checkout, attendance, reconnect) + shell tap targetlari; **qolgani faqat owner'ning uch qurilmadagi sign-off'i** |
 | S1/S3/S4 | `— delivered` | `EVIDENCE READY` | portal, grounded advisor va owner backoffice kodda |
 | S2 | `NEXT` | `PLANNED` | canonical inquiry lifecycle yo'q |

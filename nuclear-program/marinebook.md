@@ -30,6 +30,7 @@ Owner-only `/backoffice/catalog/` narx, sotuv, marketing, cohort sozlamalarini
 sabab/tasdiq/audit bilan boshqaradi; AI editor mavjud yuzada qoladi.
 
 - Branch: `codex/plan-catalog-delivery`; commit: `b5c2068`.
+- PR: [#70](https://github.com/azurebek/azurelms/pull/70) — joriy required CI/merge dalili.
 - Testlar (env faylsiz, Gemini/Telegram keys bo'sh): `python manage.py test --noinput`
   **1115 OK, skipped=27**; file-backed delivery/payment/receipt/catalog focused
   suite **58/58 OK**; `check --fail-level WARNING` 0 issue;
@@ -45,6 +46,10 @@ sabab/tasdiq/audit bilan boshqaradi; AI editor mavjud yuzada qoladi.
 - Schema: `subscriptions.0006/0007`, `cohorts.0017`; additive, eski ustunlar
   saqlanadi, owner-created code collision qayta yozilmaydi. Rollbackda yangi
   sotuv yopiladi, tarix/schema reverse qilinmaydi. Required CI/merge keyingi gate.
+- Local: `backup_db` → `migrate cohorts 0017 --noinput` o'tdi; backup
+  `backups/db-20260904-070703.sqlite3` (1.9 MB, integrity ok). Read-only old/new
+  SQLite comparison: 125 jadvalda eski qator/ustun yo'qolishi yoki o'zgarishi
+  **0**; uch yangi paket yopiq, eski cohortlar null/null. `check` 0 issue.
 - Davom etiladi: Standard feedback / Intensive personal assignment,
   progress review / priority, so'ng haqiqiy pricing copy/dashboard/analytics.
   Full tariff plan va real-device/bank sign-off tugadi degani emas.

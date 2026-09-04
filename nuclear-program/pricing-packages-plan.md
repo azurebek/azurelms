@@ -3,7 +3,7 @@
 Owner admission: 2026-09-04, `writing-block.md` rejasidan keyin «boshla qurishni».
 Status: **ADMIT — launch-critical**. Payment foundation va keyingi tuzatishlar
 main'da (#67–69). Catalog + delivery **IMPLEMENTED/TESTED — LOCAL REGRESSION
-GREEN** (`b5c2068`); ushbu slice required CI/merge gate'idan alohida o'tadi.
+GREEN** (`b5c2068`); required CI/merge dalili [PR #70](https://github.com/azurebek/azurelms/pull/70)da.
 
 ## Product contract
 
@@ -139,6 +139,14 @@ bunday collision alohida owner rollout qarorini talab qiladi.
 review/priority; keyin pricing/dashboard/analytics. Course detail'dagi eski
 «Cheksiz AI repetitor» va «umrbod kirish» copy'si presentation bosqichida
 to'lov/quota contractiga moslanishi kerak; yangi seed bunday claim yozmaydi.
+
+Local migration ham bajarildi: `python manage.py backup_db` →
+`python manage.py migrate cohorts 0017 --noinput` → `check --fail-level WARNING`.
+Backup `backups/db-20260904-070703.sqlite3`, 1.9 MB, integrity ok (gitga kirmaydi).
+Read-only SQLite solishtirishda 125 jadvalning barcha oldingi ustun/yozuvlari
+saqlandi (migration ledgeridan tashqari): yo'qolgan/o'zgargan eski qator **0**.
+Yangi uch paket sotuvga yopiq, eski cohortlar null/null. Haqiqiy learner,
+guruh yoki payment holati o'zgartirilmadi.
 
 ## Birinchi slice dalili — 2026-09-04
 
