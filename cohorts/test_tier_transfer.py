@@ -23,14 +23,16 @@ oladi. Bu ataylab: proration hali qabul qilinmagan product qarori.
 import datetime
 
 from django.contrib.auth import get_user_model
+from django.db import connection
 from django.test import TestCase
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
 
 from aicontrol.models import AIPlanPolicy, SystemAuditEvent
 from aicontrol.service import resolve_limits
 from cohorts.membership_service import transfer_member
-from cohorts.models import Cohort, Enrollment
+from cohorts.models import Cohort, Enrollment, PaymentReceipt
 from cohorts.transition_service import (
     EnrollmentTransitionError,
     transfer_enrollment_to_cohort,
@@ -150,6 +152,30 @@ class TierTransferServiceTests(TierTransferFixture, TestCase):
 
         self.assertEqual(resolve_limits(self.student), (200_000, 1_500_000))
 
+    def test_a_pending_receipt_blocks_the_move(self):
+        """Kelgan pul noto'g'ri ishlatilib qolmasin.
+
+        Chek eski a'zolikka bog'langan va hisob-faktura o'zgarmas
+        (`PaymentReceipt.BILLING_FIELDS`), ya'ni uni yangi a'zolikka
+        ko'chirib bo'lmaydi. Ko'chirsak, keyin tasdiqlangan chek muzlatilgan
+        eski guruhni qayta faollashtirardi yoki "bitta kursda bitta faol
+        a'zolik" tekshiruvida yiqilardi.
+        """
+        PaymentReceipt.objects.create(
+            enrollment=self.enrollment, plan=self.cheap, amount=89000,
+            period_start=self.today, period_end=self.today + datetime.timedelta(days=30),
+        )
+
+        with self.assertRaises(EnrollmentTransitionError):
+            transfer_enrollment_to_cohort(
+                source_enrollment=self.enrollment, target_cohort=self.rich_cohort,
+                created_by=self.owner, allow_tier_change=True,
+            )
+
+        self.enrollment.refresh_from_db()
+        self.assertEqual(self.enrollment.cohort_id, self.cheap_cohort.pk)
+        self.assertEqual(self.enrollment.status, Enrollment.STATUS_ACTIVE)
+
     def test_a_full_target_group_refuses_the_move(self):
         for index in range(3):
             Enrollment.objects.create(
@@ -236,6 +262,31 @@ class TierTransferOwnerSurfaceTests(TierTransferFixture, TestCase):
         event = SystemAuditEvent.objects.filter(action="enrollment.transfer").latest("id")
         self.assertEqual(event.actor, self.owner)
         self.assertIn("qimmatroq tarifga", event.reason)
+
+    def test_the_page_cost_does_not_grow_with_the_number_of_members(self):
+        """Ko'chirish ro'yxati har bir a'zo uchun qayta hisoblanmasin.
+
+        `target.is_full` a'zolar sikli ichida o'qiladi, ya'ni annotatsiyasiz
+        har bir a'zo uchun har bir maqsad guruhga alohida COUNT ketardi.
+        """
+        self.client.force_login(self.owner)
+        self.client.get(self.url)
+        with CaptureQueriesContext(connection) as single:
+            self.client.get(self.url)
+
+        for index in range(4):
+            Enrollment.objects.create(
+                student=User.objects.create_user(
+                    username=f"qoshimcha{index}", email=f"q{index}@example.test", password="x"
+                ),
+                cohort=self.cheap_cohort, plan=self.cheap, status=Enrollment.STATUS_ACTIVE,
+                next_payment_deadline=self.today + datetime.timedelta(days=20),
+            )
+
+        with CaptureQueriesContext(connection) as many:
+            self.client.get(self.url)
+
+        self.assertEqual(len(many.captured_queries), len(single.captured_queries))
 
     def test_a_refused_move_is_audited_too(self):
         self.client.force_login(self.owner)

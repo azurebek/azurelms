@@ -34,7 +34,11 @@ def _transfer_targets(cohort):
     bo'ladi. Ammo u alohida tasdiq so'raydi, chunki pulga tegadi.
     """
     return (
-        Cohort.objects.filter(course_id=cohort.course_id, is_active=True)
+        # `with_seat_metrics()`: shablonda `target.is_full` a'zolar sikli
+        # ichida o'qiladi, ya'ni annotatsiyasiz har bir a'zo uchun har bir
+        # maqsad guruhga alohida COUNT ketardi.
+        Cohort.objects.with_seat_metrics()
+        .filter(course_id=cohort.course_id, is_active=True)
         .exclude(pk=cohort.pk)
         .select_related("plan")
         .order_by("plan__order", "start_date", "pk")

@@ -43,8 +43,9 @@ oladi. Eski a'zolik muzlatiladi va joyini bo'shatadi, progress ko'chadi,
 muddat saqlanadi, joy yo'q bo'lsa ko'chirish rad etiladi.
 
 - Branch: `claude/owner-can-move-a-student-between-tiers`
-- Test holati (env faylsiz, Gemini/Telegram keys bo'sh): `python manage.py test --noinput` — **1176 test OK (skipped=29)**; `check --fail-level WARNING` 0 issue; `makemigrations --check --dry-run` drift yo'q (schema o'zgarmadi); `scan_secrets` toza.
+- Test holati (env faylsiz, Gemini/Telegram keys bo'sh): `python manage.py test --noinput` — **1178 test OK (skipped=29)**; `check --fail-level WARNING` 0 issue; `makemigrations --check --dry-run` drift yo'q (schema o'zgarmadi); `scan_secrets` toza.
 - Nazorat yugurishi ikki qism uchun alohida: tasdiq talabi olib tashlanganda 2 test yiqildi; yangi tarif yozilmay qolganda 5 test yiqildi.
+- Codex review boti ikkita to'g'ri nuqson topdi: (1) **P1** — tasdiq kutayotgan chek turganda ko'chirish kelgan pulni ishlatib bo'lmaydigan holatga tushirardi (chek muzlatilgan eski a'zolikda qolardi, keyin tasdiqlansa eski guruhni qayta faollashtirardi yoki «bitta kursda bitta faol a'zolik» tekshiruvida yiqilardi); endi ko'chirish rad etiladi va avval chek hal qilinadi. (2) **P2** — `target.is_full` a'zolar sikli ichida o'qilib, a'zolar × maqsad guruhlar so'rovi ketardi; endi maqsad ro'yxati ham `with_seat_metrics()` bilan. O'lchov test bo'lib qotirildi.
 - Ochiq qolgani: butun guruhni bir amalda ko'chirish qo'shilmadi (hozircha a'zolarni birma-bir), va o'quvchining o'zi tarif almashtira olishi — u narx qaroriga bog'liq.
 
 ---

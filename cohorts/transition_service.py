@@ -225,6 +225,18 @@ def transfer_enrollment_to_cohort(
         locked_cohorts = lock_cohorts(source_enrollment.cohort_id, target_cohort.pk)
         target_cohort = locked_cohorts[target_cohort.pk]
         source_enrollment = _locked_enrollment(source_enrollment.pk)
+        if source_enrollment.receipts.filter(is_verified=False).exists():
+            # Chek eski a'zolikka bog'langan va uni ko'chirib bo'lmaydi
+            # (`PaymentReceipt.BILLING_FIELDS` — hisob-faktura o'zgarmas).
+            # Ko'chirsak, keyin tasdiqlangan chek muzlatilgan eski guruhni
+            # qayta faollashtirardi yoki "bitta kursda bitta faol a'zolik"
+            # tekshiruvida yiqilardi: kelgan pul noto'g'ri ishlatilardi yoki
+            # umuman tasdiqlab bo'lmasdi. Shuning uchun avval chek hal
+            # qilinadi — tasdiqlanadi yoki rad etiladi.
+            raise EnrollmentTransitionError(
+                "Bu o'quvchida tasdiq kutayotgan chek bor. Avval to'lov cheklari "
+                "sahifasida qaror qabul qiling, keyin ko'chiring."
+            )
         current_plan = source_enrollment.active_plan()
         target_plan = current_plan
         try:
