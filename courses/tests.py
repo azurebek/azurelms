@@ -1123,19 +1123,26 @@ class LessonDetailPageRenderTests(TestCase):
         self.assertContains(response, "Notelar")
         self.assertContains(response, "Videodars")
 
-    def test_lesson_detail_visit_marks_lesson_progress(self):
+    def test_lesson_detail_visit_does_not_mark_lesson_progress(self):
+        """Ochish o'rganish emas.
+
+        Ilgari sahifani ochishning o'zi darsni tugatilgan deb belgilardi,
+        ya'ni chap ustundagi ro'yxatni bosib chiqqan o'quvchi hamma darsni
+        yashil qilib qo'yardi va foiz haqiqatni ko'rsatmasdi.
+        """
         response = self.client.get(
             reverse("lesson_detail", kwargs={"course_id": self.course.id, "lesson_id": self.lesson.id})
         )
 
         self.assertEqual(response.status_code, 200)
-        progress = LessonProgress.objects.filter(
-            enrollment__student=self.student,
-            enrollment__cohort__course=self.course,
-            lesson=self.lesson,
-            is_completed=True,
-        ).first()
-        self.assertIsNotNone(progress)
+        self.assertFalse(
+            LessonProgress.objects.filter(
+                enrollment__student=self.student,
+                enrollment__cohort__course=self.course,
+                lesson=self.lesson,
+                is_completed=True,
+            ).exists()
+        )
 
 
 class LessonAccessFlowTests(TestCase):

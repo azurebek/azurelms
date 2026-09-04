@@ -27,7 +27,8 @@ from django.utils import timezone
 
 from bot.models import TelegramOutbox
 from bot.services import (
-    answer_quiz_question, start_quiz, student_course_map, student_open_lesson,
+    answer_quiz_question, start_quiz, student_course_map, student_mark_lesson,
+    student_open_lesson,
     submit_assignment_answer,
 )
 from cohorts.models import Cohort, Enrollment
@@ -128,14 +129,24 @@ class GoldenFlowEndToEndTests(TestCase):
         self._assert_both_surfaces_agree(self.lesson_one, expected_open=True)
         self._assert_both_surfaces_agree(self.lesson_two, expected_open=False)
 
-        # --- 2. O'quvchi darsni botda ochadi ------------------------------
+        # --- 2. O'quvchi darsni botda ochadi va o'zi belgilaydi -----------
+        # Ochish tugatish emas: belgini o'quvchi qo'yadi (ikkala yuzada ham).
         opened = student_open_lesson(self.student, self.lesson_one.id)
         self.assertTrue(opened.ok, opened.message)
+        self.assertFalse(
+            LessonProgress.objects.filter(
+                enrollment=self.enrollment, lesson=self.lesson_one, is_completed=True
+            ).exists(),
+            "ochishning o'zi darsni tugatilgan deb belgilamasligi kerak",
+        )
+
+        marked = student_mark_lesson(self.student, self.lesson_one.id)
+        self.assertTrue(marked.ok, marked.message)
         self.assertTrue(
             LessonProgress.objects.filter(
                 enrollment=self.enrollment, lesson=self.lesson_one, is_completed=True
             ).exists(),
-            "dars ochilgani progress sifatida yozilmadi",
+            "o'quvchi belgilagandan keyin progress yozilmadi",
         )
 
         # --- 3. Vazifani botda topshiradi ---------------------------------

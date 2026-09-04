@@ -27,6 +27,7 @@ from bot.services import (
     start_assignment_answer,
     start_quiz,
     student_course_map,
+    student_mark_lesson,
     student_open_lesson,
     student_overview,
     student_payment_overview,
@@ -302,7 +303,12 @@ async def send_lesson_view(message: types.Message, lms_user, lesson_id):
         f"📖 <b>{html.escape(lesson['title'])}</b>\n"
         f"{html.escape(lesson['module'])} · {html.escape(lesson['course'])}\n"
     )
-    footer = "\n\n✅ Dars o'tildi deb belgilandi."
+    footer = (
+        "\n\n✅ Bu darsni bajarildi deb belgilagansiz."
+        if lesson.get("is_completed")
+        # Ochish tugatish emas — belgini o'quvchi o'zi qo'yadi (sayt bilan bir xil).
+        else "\n\nDarsni o'rganib bo'lgach «Bajarildi» tugmasini bosing."
+    )
 
     rows = []
     if lesson["video_url"]:
@@ -325,6 +331,14 @@ async def send_lesson_view(message: types.Message, lms_user, lesson_id):
                 )
             ]
         )
+    rows.append(
+        [
+            InlineKeyboardButton(
+                text="↩️ Belgini olish" if lesson.get("is_completed") else "✅ Bajarildi",
+                callback_data=f"ls:{'undone' if lesson.get('is_completed') else 'done'}:{lesson['id']}",
+            )
+        ]
+    )
     rows.append(
         [InlineKeyboardButton(text="⬅️ Darslar ro'yxati", callback_data=f"ls:c:{lesson['course_id']}")]
     )
@@ -358,6 +372,32 @@ async def cb_open_lesson(callback: types.CallbackQuery, lms_user):
     lesson_id = callback.data.split(":")[2]
     if lesson_id.isdigit():
         await send_lesson_view(callback.message, lms_user, int(lesson_id))
+
+
+@router.callback_query(F.data.startswith("ls:done:"))
+async def cb_mark_lesson_done(callback: types.CallbackQuery, lms_user):
+    await _toggle_lesson_completion(callback, lms_user, completed=True)
+
+
+@router.callback_query(F.data.startswith("ls:undone:"))
+async def cb_mark_lesson_undone(callback: types.CallbackQuery, lms_user):
+    await _toggle_lesson_completion(callback, lms_user, completed=False)
+
+
+async def _toggle_lesson_completion(callback: types.CallbackQuery, lms_user, *, completed):
+    await callback.answer()
+    if not _require_user(lms_user):
+        return
+    lesson_id = callback.data.split(":")[2]
+    if not lesson_id.isdigit():
+        return
+    result = await sync_to_async(student_mark_lesson)(
+        lms_user, int(lesson_id), completed=completed
+    )
+    if not result.ok:
+        await callback.message.answer(result.message)
+        return
+    await send_lesson_view(callback.message, lms_user, int(lesson_id))
 
 
 # ---------------------------------------------------------------- vazifa (F9)

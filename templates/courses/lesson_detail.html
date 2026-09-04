@@ -129,7 +129,16 @@
       <!-- Footer -->
       <div style="flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;padding-right:var(--azai-safe-right,16px);border-top:1px solid var(--line);background:var(--paper);flex-wrap:wrap;">
         <a href="{% url 'course_detail' pk=course.id %}" style="display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 16px;border-radius:10px;border:1px solid var(--line);color:var(--ink);font-size:13.5px;font-weight:600;"><i class="bi bi-list-ul"></i> Kurs sahifasi</a>
-        {% if object.id in completed_lesson_ids %}<span style="display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 18px;border-radius:10px;background:var(--green-soft);color:var(--green);font-size:13.5px;font-weight:600;"><i class="bi bi-check-circle-fill"></i> Bajarildi</span>{% endif %}
+        {% if enrollment_for_completion %}
+        <form method="post" action="{% url 'lesson_completion' course_id=course.id lesson_id=object.id %}{{ cohort_query }}" style="display:inline-flex;">{% csrf_token %}
+          {% if object.id in completed_lesson_ids %}
+          <input type="hidden" name="action" value="clear">
+          <button type="submit" title="Belgini olib tashlash" style="display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 18px;border-radius:10px;border:1px solid var(--green);background:var(--green-soft);color:var(--green);font-size:13.5px;font-weight:600;cursor:pointer;"><i class="bi bi-check-circle-fill"></i> Bajarildi</button>
+          {% else %}
+          <button type="submit" style="display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 18px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:13.5px;font-weight:600;cursor:pointer;"><i class="bi bi-circle"></i> Bajarildi deb belgilash</button>
+          {% endif %}
+        </form>
+        {% endif %}
         {% if has_course_exams and first_course_exam %}<a href="{% url 'exam_detail' course_id=course.id exam_id=first_course_exam.id %}" style="display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 16px;border-radius:10px;background:var(--azure);color:var(--on-azure);font-size:13.5px;font-weight:600;">Imtihon <i class="bi bi-arrow-right"></i></a>{% endif %}
       </div>
     </main>

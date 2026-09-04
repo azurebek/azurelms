@@ -1135,8 +1135,9 @@ class LessonDeliveryTests(TestCase):
             lesson["locked"] for lesson in outsider_map["modules"]["Alifbo moduli"]
         ))
 
-    def test_open_lesson_marks_completed_like_site(self):
-        from bot.services import student_course_map, student_open_lesson
+    def test_open_lesson_does_not_mark_completed_like_site(self):
+        """Ikkala yuzada ham ochish tugatish emas — belgini o'quvchi qo'yadi."""
+        from bot.services import student_course_map, student_mark_lesson, student_open_lesson
         from courses.models import LessonProgress
 
         result = student_open_lesson(self.student, self.lesson1.id)
@@ -1147,12 +1148,16 @@ class LessonDeliveryTests(TestCase):
         self.assertIn("29 ta harf", lesson["content"])
         self.assertIn("• A harfi", lesson["content"])
 
-        # Sayt bilan bir xil: ochish = LessonProgress completed
-        self.assertTrue(
+        # Sayt bilan bir xil: ochish belgilamaydi
+        self.assertFalse(
             LessonProgress.objects.filter(
                 enrollment__student=self.student, lesson=self.lesson1, is_completed=True
             ).exists()
         )
+        self.assertFalse(lesson["is_completed"])
+
+        # Tugma bosilgach — belgilanadi
+        self.assertTrue(student_mark_lesson(self.student, self.lesson1.id).ok)
         data = student_course_map(self.student, self.course.id)
         first = data["modules"]["Alifbo moduli"][0]
         self.assertTrue(first["completed"])
