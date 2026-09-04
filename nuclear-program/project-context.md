@@ -158,13 +158,39 @@ beat: celery -A core beat -l info
 
 **Access grace:** `ENROLLMENT_ACCESS_GRACE_DAYS = 2` — active enrollment'ning next payment deadline'i grace'dan oldin bo'lsa effective status `expired`'ga tushadi.
 
-**Paid plan vs intent (2026-09-04):** `Enrollment.plan` — faol tarif;
+**Paid plan vs intent (2026-09-04):** `Enrollment.plan` — materialized tarif;
+jonli haqiqat `active_plan()`da: tasdiqlangan chekning davri boshlanmaguncha
+oldindan to'langan yangi tarif kuchga kirmaydi (#68). Tasdiqlashni kirishi
+yopiq kutgan o'quvchi to'lagan kunlarini yo'qotmaydi (`granted_deadline`, #69).
 `pending_plan` va `checkout_started_at` — to'lov niyati, entitlement/AI quota
 manbai emas. `PaymentReceipt.plan` + code/name/price/discount/period
 snapshotlari invoice tarixini saqlaydi. Oddiy save billing ustunlarini
 qayta yoza olmaydi, tasdiqlangan chekni unverify/delete qilib bo'lmaydi.
 Legacy tasdiqlangan cheklarda tarif qayd etilmagan bo'lishi mumkin;
 hozirgi enrollment nomi bilan tarix taxmin qilinmaydi.
+
+**Catalog + delivery (2026-09-04, `b5c2068`):** `Plan.is_available_for_purchase`
+yangi sotuvlarni yopadi, mavjud active/expired a'zolarning o'z tarifini
+yangilashini yoki huquq/quota/tarixini bekor qilmaydi. Uch yangi paket
+economic/standard/intensive draft bo'lib seed qilinadi, AIPlanPolicy limitlari
+mos ravishda 50k/300k, 100k/800k, 200k/1.5m. AI multi-course tanlovi o'zgarmadi:
+eng oxirgi faol enrollmentning `active_plan()`i, yig'indi yoki maximum emas.
+
+`Cohort.plan/capacity` format va sig'imni saqlaydi (60/8/3 maksimum,
+konkret cohort kichikroq bo'lishi mumkin). Legacy guruhlar null/null,
+ularga yangi delivery paketi sotilmaydi. `cohorts.delivery_service` tier
+mosligi va active/expired occupancy guardlarini barcha write adapterlarga
+beradi. Pending/chek upload joy olmaydi; approvalda course → cohort →
+enrollment → plan/receipt locklari ostida qayta tekshiriladi. Full bo'lsa
+chek pending qoladi va operatorga xato qaytadi; transfer ham shu guardni oladi.
+
+Owner control surface `/backoffice/catalog/`, plan edit
+`/backoffice/catalog/plans/<id>/`, cohort create/edit
+`/backoffice/catalog/cohorts/new/` va `/backoffice/catalog/cohorts/<id>/`.
+`subscriptions.catalog_service` form validation + audit + atomic write uchun
+yagona nuqta; mavjud AI boshqaruv sahifasi quota editori bo'lib qoladi.
+Yangi paketning premium xizmatlari/sotuv rollout'i hali gate'dan o'tmagan;
+[implementation ledger](pricing-packages-plan.md) acceptance va chegaralarni saqlaydi.
 
 ### `messenger`
 

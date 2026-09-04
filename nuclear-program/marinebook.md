@@ -16,6 +16,41 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-04 [Codex]: Uch draft tarif, delivery sig'imi va owner katalogi
+
+Owner rejasining ikkinchi slice'i. Ikki product qarori yozildi: joy faqat
+to'lov tasdiqlanganda band, AI limiti eng oxirgi faol enrollmentdan (max/sum
+emas). Yangi Economic/Standard/Intensive va AI policy draft; eski tarif,
+guruh, student va invoice tarixiga majburiy ko'chirish yo'q.
+
+Cohort tier/capacity va purchase availability canonical servis orqali
+web/bot/approval/transferda tekshiriladi. Oxirgi joyga ikki tasdiqdan biri
+o'tadi, ikkinchisining cheki pending qoladi; narx/davr snapshoti o'zgarmaydi.
+Owner-only `/backoffice/catalog/` narx, sotuv, marketing, cohort sozlamalarini
+sabab/tasdiq/audit bilan boshqaradi; AI editor mavjud yuzada qoladi.
+
+- Branch: `codex/plan-catalog-delivery`; commit: `b5c2068`.
+- Testlar (env faylsiz, Gemini/Telegram keys bo'sh): `python manage.py test --noinput`
+  **1115 OK, skipped=27**; file-backed delivery/payment/receipt/catalog focused
+  suite **58/58 OK**; `check --fail-level WARNING` 0 issue;
+  `makemigrations --check --dry-run` drift yo'q; `scan_secrets` toza.
+- Capacity va tier guardlarini process monkeypatch bilan olib tashlaganda
+  tegishli testlar har biri **1/1 yiqildi**. Eski billing regressiyalarida faqat
+  fixture kodlari legacy namespace'ga o'tdi: yangi seed bilan code collision
+  edi, test assertion/davr qoidalari susaytirilmadi.
+- Browser: izolyatsiyalangan test DB/akkauntlari, katalog narx save, noto'g'ri
+  sig'im xabari, sig'im kamaytirish; 390px katalog/checkout, 1280px dark
+  checkout. Real tarif tanlash sinovi inline head-script timing nuqsonini
+  topdi; deferred asset bilan tuzatilib qayta tekshirildi. QA yopildi.
+- Schema: `subscriptions.0006/0007`, `cohorts.0017`; additive, eski ustunlar
+  saqlanadi, owner-created code collision qayta yozilmaydi. Rollbackda yangi
+  sotuv yopiladi, tarix/schema reverse qilinmaydi. Required CI/merge keyingi gate.
+- Davom etiladi: Standard feedback / Intensive personal assignment,
+  progress review / priority, so'ng haqiqiy pricing copy/dashboard/analytics.
+  Full tariff plan va real-device/bank sign-off tugadi degani emas.
+
+---
+
 ## 2026-09-04 [Claude]: Tasdiqlash kechikkani uchun to'langan kunlar yo'qolmaydi
 
 Oldingi tuzatishning ko'zgudagi aksi. To'lov davri chek yuborilgan kuni
