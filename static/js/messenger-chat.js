@@ -720,6 +720,11 @@
     avatar.className = activeRoom === 'tutor' ? 'msg-avatar msg-avatar--tutor' : 'msg-avatar c-lime';
     const cleanName = senderName || 'User';
     avatar.textContent = cleanName.slice(0, 2).toUpperCase();
+    // Server chizgan avatar bilan bir xil kontrakt: bosilsa profil ochiladi.
+    avatar.dataset.senderId = String(senderId);
+    avatar.setAttribute('role', 'button');
+    avatar.tabIndex = 0;
+    avatar.title = "Profilni ko'rish";
     return avatar;
   }
 
@@ -1140,9 +1145,23 @@
       return;
     }
 
+    const person = event.target.closest('[data-sender-id]');
+    if (person && messagesArea.contains(person)) {
+      openProfile(person.dataset.senderId);
+      return;
+    }
+
     const button = event.target.closest('[data-feedback-rating]');
     if (!button || !messagesArea.contains(button)) return;
     submitFeedback(button);
+  });
+
+  messagesArea.addEventListener('keydown', function (event) {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    const person = event.target.closest('[data-sender-id]');
+    if (!person) return;
+    event.preventDefault();
+    openProfile(person.dataset.senderId);
   });
   input.addEventListener('keydown', function (event) {
     if (event.key === 'Enter' && !event.shiftKey) {
@@ -1151,6 +1170,75 @@
     }
   });
 
+
+  // ---------------------------------------------------------------- profil
+  // Telegram naqshi: suhbatdoshning rasmiga bosilsa o'ngdan panel ochiladi.
+  // Nima ko'rsatilishi serverda hal qilinadi (`messenger/profile_service.py`),
+  // shuning uchun bu yerda faqat chizish bor — qaror yo'q.
+  let profilePanel = null;
+  let profileBody = null;
+
+  function initProfilePanel() {
+    profilePanel = document.querySelector('[data-chat-profile]');
+    if (!profilePanel) return;
+    profileBody = profilePanel.querySelector('[data-profile-body]');
+    const close = profilePanel.querySelector('[data-profile-close]');
+    if (close) close.addEventListener('click', closeProfile);
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') closeProfile();
+    });
+  }
+
+  function closeProfile() {
+    if (profilePanel) profilePanel.hidden = true;
+  }
+
+  function esc(value) {
+    const div = document.createElement('div');
+    div.textContent = value == null ? '' : String(value);
+    return div.innerHTML;
+  }
+
+  function renderProfile(card) {
+    const avatar = card.avatar_url
+      ? '<img src="' + esc(card.avatar_url) + '" alt="">'
+      : esc(card.initial);
+    const rows = [];
+    if (card.bio) rows.push('<p class="chat-profile-bio">' + esc(card.bio) + '</p>');
+    const facts = [['Rol', card.role], ['Daraja', card.total_xp + ' XP'], ["Ro'yxatdan o'tgan", card.joined]];
+    (card.contacts || []).forEach(function (c) { facts.push([c.label, c.value]); });
+    let list = '';
+    facts.forEach(function (pair) {
+      if (!pair[1]) return;
+      list += '<div><dt>' + esc(pair[0]) + '</dt><dd>' + esc(pair[1]) + '</dd></div>';
+    });
+    if (list) rows.push('<dl class="chat-profile-facts">' + list + '</dl>');
+    if ((card.shared || []).length) {
+      let shared = '';
+      card.shared.forEach(function (name) { shared += '<li>' + esc(name) + '</li>'; });
+      rows.push('<div class="chat-profile-shared"><span>Umumiy guruh</span><ul>' + shared + '</ul></div>');
+    }
+    profileBody.innerHTML =
+      '<div class="chat-profile-av">' + avatar + '</div>' +
+      '<h2 class="chat-profile-name">' + esc(card.name) + '</h2>' +
+      rows.join('');
+  }
+
+  function openProfile(senderId) {
+    if (!profilePanel || !senderId) return;
+    const template = panel.getAttribute('data-chat-profile-url-template') || '';
+    if (!template) return;
+    profilePanel.hidden = false;
+    profileBody.innerHTML = '<div class="chat-profile-loading">Yuklanmoqda…</div>';
+    fetch(template.replace(/0\/$/, senderId + '/'), { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(function (res) { return res.ok ? res.json() : Promise.reject(res.status); })
+      .then(function (data) { renderProfile(data.profile); })
+      .catch(function () {
+        profileBody.innerHTML = '<div class="chat-profile-loading">Bu profil sizga ochiq emas.</div>';
+      });
+  }
+
+  initProfilePanel();
   sendButton.disabled = true;
   connect();
   initComposerMenus();

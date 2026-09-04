@@ -14,6 +14,7 @@ urlpatterns = [
     path('group/', views.MessengerGroupView.as_view(), name='group'),
     path('tutor/', views.MessengerTutorView.as_view(), name='tutor'),
     path('api/rooms/', views.get_user_rooms, name='get_user_rooms'),
+    path('api/profile/<int:user_id>/', views.chat_profile, name='chat_profile'),
     path('api/rooms/<int:room_id>/pin/', views.toggle_room_pin, name='toggle_room_pin'),
     path('api/messages/<int:room_id>/', views.get_room_messages, name='get_room_messages'),
     path('api/messages/upload/', views.upload_message_attachment, name='upload_message_attachment'),

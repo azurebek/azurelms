@@ -16,6 +16,36 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-05 [Claude]: Suhbatdosh profili — rasmga bosilsa o'ngdan ochiladi
+
+Owner so'radi: guruhda profil rasmiga bosilsa Telegram'dagidek o'ngdan
+ma'lumot paneli ochilsin.
+
+Qo'shildi: avatar va ism bosiladigan bo'ldi, o'ngda panel ochiladi — rasm,
+ism, rol, bio, daraja, ro'yxatdan o'tgan sana va umumiy guruh. Tor ekranda
+panel ustidan ochiladi (overlay), sahifa gorizontal siljimaydi.
+
+**Telegram'dan ataylab farq qiladigan joyi.** Telegram — kontaktlar
+ilovasi, bu esa o'quv platformasi: guruhdagi o'quvchining telefon raqami va
+emailini sinfdoshlariga ko'rsatish shaxsiy ma'lumotni tarqatish bo'lardi.
+Shuning uchun ikki qatlam — suhbatdosh ochiq qismini ko'radi (bular reyting
+jadvalida allaqachon ochiq), aloqa ma'lumotlarini esa faqat xodim va
+odamning o'zi ko'radi. Xodim buni backoffice'da ham ko'ra oladi, ya'ni yangi
+ruxsat ochilmadi.
+
+Yagona gate `profile_service.shares_a_room`: umumiy xonasi bo'lmagan odam
+hech narsa ko'rmaydi — aks holda istalgan o'quvchi manzildagi id'ni
+almashtirib butun bazani o'qib chiqardi. «Yo'q» va «sizga ko'rsatilmaydi»
+tashqaridan bir xil ko'rinadi. AI xonasi umumiy guruh sifatida sanalmaydi
+(u shaxsiy).
+
+- Branch: `claude/who-is-this-person`
+- Test holati (env faylsiz, Gemini/Telegram keys bo'sh): `python manage.py test --noinput` — **1243 test OK (skipped=29)**; `check --fail-level WARNING` 0 issue; `makemigrations --check --dry-run` drift yo'q (schema o'zgarmadi); `scan_secrets` toza.
+- Nazorat yugurishi ikki qism uchun alohida: aloqa ma'lumotlari hammaga ochilganda 1 test yiqildi; umumiy xona sharti olib tashlanganda 2 test yiqildi.
+- Brauzer (alohida vaqtinchalik baza): sinfdosh sifatida bosilganda panel ochildi va telefon raqami **ko'rinmadi**; o'qituvchi uchun email va telefon chiqdi. 375px da panel 320px overlay, gorizontal siljish yo'q.
+
+---
+
 ## 2026-09-05 [Codex]: Backoffice'da mavjud kurslar endi ko'rinadi va tahrirlanadi
 
 Owner topgan bo'shliq yopildi: sidebar'dagi yagona kurs amali faqat yangi kurs

@@ -593,6 +593,21 @@ def get_room_messages(request, room_id):
 
 
 @login_required
+def chat_profile(request, user_id):
+    """Suhbatdoshning profil kartasi (o'ngdagi panel uchun).
+
+    Ruxsat `profile_service` da: umumiy xonasi bo'lmagan odam hech narsa
+    ko'rmaydi, aloqa ma'lumotlari esa faqat xodimga va odamning o'ziga.
+    """
+    from .profile_service import profile_card
+
+    card = profile_card(request.user, user_id)
+    if card is None:
+        return JsonResponse({"status": "error", "message": "Topilmadi."}, status=404)
+    return JsonResponse({"status": "ok", "profile": card})
+
+
+@login_required
 @require_POST
 def toggle_room_pin(request, room_id):
     room = ChatRoom.objects.filter(id=room_id).first()
