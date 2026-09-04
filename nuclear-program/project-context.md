@@ -183,6 +183,11 @@ mosligi va active/expired occupancy guardlarini barcha write adapterlarga
 beradi. Pending/chek upload joy olmaydi; approvalda course → cohort →
 enrollment → plan/receipt locklari ostida qayta tekshiriladi. Full bo'lsa
 chek pending qoladi va operatorga xato qaytadi; transfer ham shu guardni oladi.
+To'lanmagan pending checkoutning guruhi to'lsa/yopilsa, GET mos bo'sh guruhni
+faqat preview qiladi. POST/bot `transition_service.relocate_pending_checkout`
+orqali eski yozuv/intentni muzlatadi/tozalaydi, yangi pending va auditli
+transition yaratadi. Qarori kutilayotgan chek ko'chirilmaydi — avval owner
+qarori kerak. Paid membership, invoice yoki boshqa tarif avtomatik ko'chmaydi.
 
 Owner control surface `/backoffice/catalog/`, plan edit
 `/backoffice/catalog/plans/<id>/`, cohort create/edit

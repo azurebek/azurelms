@@ -29,16 +29,22 @@ o'tadi, ikkinchisining cheki pending qoladi; narx/davr snapshoti o'zgarmaydi.
 Owner-only `/backoffice/catalog/` narx, sotuv, marketing, cohort sozlamalarini
 sabab/tasdiq/audit bilan boshqaradi; AI editor mavjud yuzada qoladi.
 
-- Branch: `codex/plan-catalog-delivery`; commit: `b5c2068`.
+- Branch: `codex/plan-catalog-delivery`; commitlar: `b5c2068`, `916de52`.
 - PR: [#70](https://github.com/azurebek/azurelms/pull/70) — joriy required CI/merge dalili.
 - Testlar (env faylsiz, Gemini/Telegram keys bo'sh): `python manage.py test --noinput`
-  **1115 OK, skipped=27**; file-backed delivery/payment/receipt/catalog focused
-  suite **58/58 OK**; `check --fail-level WARNING` 0 issue;
+  **1121 OK, skipped=27**; file-backed delivery/payment/receipt/catalog focused
+  suite **65/65 OK**; `check --fail-level WARNING` 0 issue;
   `makemigrations --check --dry-run` drift yo'q; `scan_secrets` toza.
 - Capacity va tier guardlarini process monkeypatch bilan olib tashlaganda
   tegishli testlar har biri **1/1 yiqildi**. Eski billing regressiyalarida faqat
   fixture kodlari legacy namespace'ga o'tdi: yangi seed bilan code collision
   edi, test assertion/davr qoidalari susaytirilmadi.
+- PR reviewdagi P1 tasdiqlandi/tuzatildi: pending yozuvning eski guruhi to'lsa
+  yoki yopilsa, GET bo'sh same-tier guruhni ko'rsatadi, POST/bot esa
+  `relocate_pending_checkout` orqali auditli transition qiladi. Eski yozuv
+  saqlanadi/muzlatiladi, yangi yozuv ham to'lovgacha joy olmaydi. Pending chek
+  bo'lsa ko'chirish yo'q; owner rad etgach retry ishlaydi. Olti regression,
+  shu jumladan audit rollback; eski selector bilan bot retry **1/1 yiqildi**.
 - Browser: izolyatsiyalangan test DB/akkauntlari, katalog narx save, noto'g'ri
   sig'im xabari, sig'im kamaytirish; 390px katalog/checkout, 1280px dark
   checkout. Real tarif tanlash sinovi inline head-script timing nuqsonini

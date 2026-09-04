@@ -108,14 +108,23 @@ joy **faqat to'lov tasdiqlanganda** band; ko'p kursli AI allowance esa
 - `/backoffice/catalog/`: narx/sotuv/marketing, cohort yaratish va tahrir;
   AI limitlari mavjud `/backoffice/ai-control/` orqali. O'qituvchi course'dan.
   Faol mos guruhsiz delivery tarifini backoffice sotuvga ochmaydi.
-- `python manage.py test --noinput`: **1115 OK, skipped=27**.
+- Review tuzatishi `916de52`: to'lgan/yopilgan guruhdagi to'lanmagan intent
+  uchun GET mos bo'sh guruhni faqat ko'rsatadi; POST/bot course lock ostida
+  `relocate_pending_checkout` orqali eski yozuvni muzlatib, yangi pending
+  va transition/audit yaratadi. Qarori kutilayotgan chek ko'chirilmaydi;
+  rad etilgach qayta checkout mumkin. Paid membership/tier o'zgarmaydi.
+- `python manage.py test --noinput`: **1121 OK, skipped=27**.
   `AZURELMS_TEST_FILE_DB=1 python manage.py test cohorts.test_delivery_catalog
   cohorts.test_payment_plan_integrity cohorts.test_single_pending_receipt
-  subscriptions.test_catalog --noinput`: **58/58 OK** (keyingi faqat course CTA
-  regression testi full suite'da ham o'tdi). Required PostgreSQL CI alohida gate.
+  subscriptions.test_catalog --noinput`: **65/65 OK** (reviewdan keyingi head).
+  Required PostgreSQL CI alohida gate.
 - Ikki nazorat yugurishi: `validate_seat` yo'q qilinganda oxirgi joy testi
   **1/1 yiqildi**; tier mosligi guardi yo'q qilinganda legacy guruhga noto'g'ri
   xarid testi **1/1 yiqildi**. Faqat test process monkeypatchi.
+- Eski checkout tanlash funksiyasi test processida qaytarilganda yangi bot
+  retry regression testi **1/1 yiqildi** (`cohort_full`); tuzatilgani yashil.
+  Web retry/approval, bot takrorlash, GET no-write, pending invoice immutability,
+  audit rollback va yopiq guruhning same-tier fallback'i qamralgan.
 - `check --fail-level WARNING`: 0 issue; `makemigrations --check --dry-run`:
   drift yo'q; `scan_secrets`: toza. Barcha testlar env faylsiz va provider keys bo'sh.
 - Brauzer: haqiqiy DB'dan ajratilgan in-memory QA, test owner/student.
