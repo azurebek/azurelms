@@ -16,6 +16,41 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-04 [Claude]: Darsni ochish tugatish emas — belgini o'quvchi qo'yadi
+
+Owner xabar qildi: chap ustundagi ro'yxatni bosib chiqqanda kirgan darslar
+o'z-o'zidan yashil belgi olib ketyapti; Coursera'dagidek o'quvchining o'zi
+tasdiqlashi kerak.
+
+Sabab aniq edi: `LessonDetailView.get_context_data` sahifani **ochishning
+o'zida** `LessonProgress`ni tugatilgan deb yozardi. Bot ham xuddi shunday
+qilardi (`student_open_lesson`), ya'ni bu ikkala yuzadagi bir xil xulq edi.
+Natijada foiz «o'rganilgan» emas, «ochilgan» degani bo'lib qolgandi.
+
+Endi belgi `courses/progress_service.py` orqali qo'yiladi va uni faqat
+o'quvchi bosadi — saytda tugma, botda «✅ Bajarildi» inline tugmasi. Xato
+bosilsa belgini olib tashlash mumkin.
+
+Bu xavfsiz, chunki belgi hech qanday qulfni ochmaydi va XP bermaydi:
+qulflar `access_service` da (drip release va oldingi dars vazifasi), XP esa
+davomatdan keladi. Yozuv yo'li ham gate'dan o'tadi — yopiq darsni belgilab
+bo'lmaydi.
+
+Seriya faqat **birinchi** tugatishda yoziladi: `completed_at` saqlanadi,
+shuning uchun bekor qilib qayta bosish kunlik faollikni takrorlamaydi.
+
+**Ochiq qolgan kuzatuv:** imtihonga kirish shartlarida
+`minimum_lesson_completion_percent` bor, u esa endi ham, ilgari ham
+o'quvchining o'z belgisiga tayanadi. Qattiq shart kerak bo'lsa davomat yoki
+vazifa foizini ishlatish kerak — ular o'qituvchi qo'lida.
+
+- Branch: `claude/student-confirms-the-lesson`
+- Test holati (env faylsiz, Gemini/Telegram keys bo'sh): `python manage.py test --noinput` — **1212 test OK (skipped=29)**; `check --fail-level WARNING` 0 issue; `makemigrations --check --dry-run` drift yo'q (schema o'zgarmadi); `scan_secrets` toza.
+- Nazorat yugurishi ikki qism uchun alohida: yozuv yo'lidagi qulf tekshiruvi olib tashlanganda 2 test yiqildi; seriya qoidasi «har safar» qilinganda 1 test yiqildi.
+- Uchta mavjud test eski xulqni qotirgan edi (`bot.tests`, `courses.tests`, `core.test_golden_flow_e2e`) — maqsadi saqlangan holda yangi qoidaga bog'landi: ochish belgilamaydi, belgilash esa ishlaydi.
+
+---
+
 ## 2026-09-04 [Claude]: Dars sahifasidagi «Bajarildi» qush ostida qolgan edi
 
 Owner skrinshot bilan xabar qildi: dars sahifasining pastki panelidagi

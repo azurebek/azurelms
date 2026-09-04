@@ -9,6 +9,7 @@ urlpatterns = [
     path('<int:pk>/', views.CourseDetailView.as_view(), name='course_detail'),
     path('<int:course_id>/study/', views.CourseStudyRedirectView.as_view(), name='course_study'),
     path('<int:course_id>/lesson/<int:lesson_id>/', views.LessonDetailView.as_view(), name='lesson_detail'),
+    path('<int:course_id>/lesson/<int:lesson_id>/completion/', views.lesson_completion_view, name='lesson_completion'),
     path(
         '<int:course_id>/lesson/<int:lesson_id>/assignment/<int:assignment_id>/submit/',
         views.SubmitAssignmentView.as_view(),

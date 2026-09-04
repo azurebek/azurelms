@@ -1447,11 +1447,15 @@ def student_course_map(user, course_id):
 
 
 def student_open_lesson(user, lesson_id):
-    """Darsni botda ochish. Sayt bilan bir xil: ochish = LessonProgress completed.
+    """Darsni botda ochish. Sayt bilan bir xil: **ochish tugatish emas**.
 
-    Qulf mantig'i ham sayt bilan bitta (_build_lesson_access_bundle).
+    Ilgari ikkala yuza ham ochishning o'zida darsni tugatilgan deb
+    belgilardi. Endi belgini o'quvchi o'zi qo'yadi
+    (`courses/progress_service.py`), botda ham xuddi shunday.
+
+    Qulf mantig'i sayt bilan bitta (`build_lesson_access_bundle`).
     """
-    from courses.views import _mark_lesson_progress_completed
+    from courses.models import LessonProgress
 
     lesson = (
         Lesson.objects.select_related("module__course")
@@ -1476,14 +1480,15 @@ def student_open_lesson(user, lesson_id):
             message="Bu kursga faol obunangiz yo'q. Yozilish: /yozilish",
         )
 
-    _mark_lesson_progress_completed(enrollment, lesson)
-
     return LessonOpenResult(
         ok=True,
         code="opened",
         message="OK",
         lesson={
             "id": lesson.id,
+            "is_completed": LessonProgress.objects.filter(
+                enrollment=enrollment, lesson=lesson, is_completed=True
+            ).exists(),
             "title": lesson.title,
             "module": lesson.module.title,
             "course_id": course.id,
@@ -1494,6 +1499,38 @@ def student_open_lesson(user, lesson_id):
             "quizzes": lesson.quizzes.count(),
         },
     )
+
+
+def student_mark_lesson(user, lesson_id, *, completed=True):
+    """Botdagi «Bajarildi» tugmasi — sayt bilan bitta servis va bitta gate."""
+    from courses.access_service import check_lesson_access
+    from courses.progress_service import mark_lesson_completed, unmark_lesson_completed
+
+    lesson = (
+        Lesson.objects.select_related("module__course")
+        .filter(id=lesson_id, module__course__is_active=True)
+        .first()
+    )
+    if not lesson:
+        return LessonOpenResult(ok=False, code="missing", message="Dars topilmadi.")
+
+    enrollment, _bundle = _course_enrollment_and_access(user, lesson.module.course)
+    if not enrollment:
+        return LessonOpenResult(
+            ok=False, code="not_enrolled",
+            message="Bu kursga faol obunangiz yo'q. Yozilish: /yozilish",
+        )
+
+    access = check_lesson_access(user=user, lesson=lesson, enrollment=enrollment)
+    if not access.is_allowed:
+        return LessonOpenResult(
+            ok=False, code="locked",
+            message=f"🔒 {access.message or 'Bu dars hozircha yopiq.'}",
+        )
+
+    decide = mark_lesson_completed if completed else unmark_lesson_completed
+    decision = decide(enrollment, lesson)
+    return LessonOpenResult(ok=True, code=decision.code, message=decision.message)
 
 
 # ---------------------------------------------------------------- F9: vazifa va quiz

@@ -15,7 +15,7 @@ from courses.models import (
     Quiz,
 )
 from courses.submission_service import grade_quiz, submit_assignment
-from courses.views import _mark_lesson_progress_completed
+from courses.progress_service import mark_lesson_completed
 from users.models import LearnerStreak
 
 
@@ -54,7 +54,7 @@ class StreakWiringTests(TestCase):
 
     def test_lesson_completion_advances_streak(self):
         self.assertEqual(self._current(), 0)
-        _mark_lesson_progress_completed(self.enrollment, self.lesson)
+        mark_lesson_completed(self.enrollment, self.lesson)
         self.assertEqual(self._current(), 1)
 
     def test_assignment_submission_advances_streak(self):
@@ -98,7 +98,7 @@ class StreakWiringTests(TestCase):
     def test_two_actions_same_day_count_once(self):
         assignment = Assignment.objects.create(lesson=self.lesson, title="A", description="d")
         submit_assignment(user=self.student, assignment=assignment, answer_text="javob")
-        _mark_lesson_progress_completed(self.enrollment, self.lesson)
+        mark_lesson_completed(self.enrollment, self.lesson)
         streak = LearnerStreak.objects.get(user=self.student)
         self.assertEqual(streak.current_streak, 1)
         self.assertEqual(streak.total_active_days, 1)

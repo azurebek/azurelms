@@ -12,7 +12,10 @@ from django.http import Http404, JsonResponse
 from django.utils import timezone
 
 from core.upload_validation import validate_upload
-from .access_service import build_lesson_access_bundle
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+
+from .access_service import build_lesson_access_bundle, check_lesson_access
 
 from .models import (
     Assignment,
@@ -99,26 +102,40 @@ def _get_active_enrollment_for_course(user, course, cohort_id=None):
 _build_lesson_access_bundle = build_lesson_access_bundle
 
 
-def _mark_lesson_progress_completed(enrollment, lesson):
-    progress, created = LessonProgress.objects.get_or_create(
-        enrollment=enrollment,
-        lesson=lesson,
-        defaults={
-            "is_completed": True,
-            "completed_at": timezone.now(),
-        },
-    )
-    newly_completed = created
-    if not created and not progress.is_completed:
-        progress.is_completed = True
-        progress.completed_at = timezone.now()
-        progress.save(update_fields=["is_completed", "completed_at", "last_accessed_at"])
-        newly_completed = True
+@login_required
+@require_POST
+def lesson_completion_view(request, course_id, lesson_id):
+    """O'quvchi darsni o'zi tugatilgan deb belgilaydi (yoki belgini oladi).
 
-    # Dars birinchi marta tugatilganda — malakali kunlik faollik.
-    if newly_completed:
-        from users.streak import record_activity
-        record_activity(enrollment.student)
+    Qulf tekshiruvi majburiy: yopiq darsni belgilab bo'lmaydi. Belgi hech
+    qanday qulfni ochmaydi va XP bermaydi — u faqat o'quvchining o'z
+    hisobidagi foiz.
+    """
+    from .progress_service import mark_lesson_completed, unmark_lesson_completed
+
+    course = get_object_or_404(Course, id=course_id)
+    lesson = get_object_or_404(Lesson, id=lesson_id, module__course=course)
+    enrollment = _get_active_enrollment_for_course(
+        request.user, course, _requested_cohort_id(request)
+    )
+    if not enrollment:
+        messages.error(request, "Bu kursga faol obuna kerak.")
+        return redirect("course_detail", pk=course_id)
+
+    access = check_lesson_access(user=request.user, lesson=lesson, enrollment=enrollment)
+    if not access.is_allowed:
+        messages.warning(request, access.message or "Bu dars hozircha siz uchun yopiq.")
+        return redirect("course_detail", pk=course_id)
+
+    decide = unmark_lesson_completed if request.POST.get("action") == "clear" else mark_lesson_completed
+    decision = decide(enrollment, lesson)
+    messages.success(request, decision.message)
+    return redirect(
+        _build_url_with_query(
+            reverse("lesson_detail", kwargs={"course_id": course_id, "lesson_id": lesson_id}),
+            cohort=enrollment.cohort_id,
+        )
+    )
 
 
 class CourseListView(ListView):
@@ -324,8 +341,10 @@ class LessonDetailView(LoginRequiredMixin, DetailView):
             )
         active_cohort_id = enrollment.cohort_id if enrollment else getattr(self, "_selected_cohort_id", None)
 
-        if enrollment:
-            _mark_lesson_progress_completed(enrollment, self.object)
+        # Sahifani ochish tugatilgan degani emas — belgini o'quvchi o'zi
+        # qo'yadi (`courses/progress_service.py`). Ilgari ro'yxatni bosib
+        # chiqishning o'zi hamma darsni yashil qilib qo'yardi va foiz
+        # haqiqatni ko'rsatmasdi.
 
         access_bundle = getattr(self, "_lesson_access_bundle", None)
         if access_bundle is None:
@@ -435,6 +454,8 @@ class LessonDetailView(LoginRequiredMixin, DetailView):
         context['lesson_section_count'] = len(context['lesson_sections'])
         context["drip_enabled"] = access_bundle["drip_enabled"]
         context["lesson_access_map"] = lesson_access_map
+        # Tugma faqat faol obunasi bor o'quvchida ko'rinadi.
+        context["enrollment_for_completion"] = enrollment
         context["completed_lesson_ids"] = set(
             LessonProgress.objects.filter(
                 enrollment=enrollment,
