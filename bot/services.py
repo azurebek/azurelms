@@ -708,10 +708,10 @@ def list_public_courses():
 
 def list_plans():
     """Faol tariflar + belgilangan xususiyatlar."""
-    from subscriptions.models import Plan
+    from subscriptions.catalog import purchase_plans
 
     items = []
-    for plan in Plan.objects.prefetch_related("features").order_by("order"):
+    for plan in purchase_plans().prefetch_related("features"):
         items.append(
             {
                 "id": plan.id,
@@ -1127,17 +1127,19 @@ def begin_course_enrollment(user, course_id, plan_id):
     from cohorts.models import PaymentReceipt, PendingReceiptExists
     from frontend.models import SiteSettings
     from subscriptions.models import Plan
+    from subscriptions.catalog import purchase_plans
+    from django.core.exceptions import ValidationError
 
     course = Course.objects.filter(id=course_id, is_active=True).first()
     if not course:
         return EnrollBeginResult(ok=False, code="course_missing", message="Kurs topilmadi yoki faol emas.")
-    plan = Plan.objects.filter(id=plan_id).first()
+    plan = purchase_plans(student=user, course=course).filter(id=plan_id).first()
     if not plan:
         return EnrollBeginResult(ok=False, code="plan_missing", message="Tarif topilmadi.")
 
     try:
-        enrollment, _created, _cohort = resolve_checkout_enrollment(student=user, course=course)
-    except CheckoutUnavailable as exc:
+        enrollment, _created, _cohort = resolve_checkout_enrollment(student=user, course=course, plan=plan)
+    except (CheckoutUnavailable, ValidationError) as exc:
         return EnrollBeginResult(ok=False, code="unavailable", message=str(exc))
 
     if PaymentReceipt.objects.filter(enrollment=enrollment, is_verified=False).exists():
@@ -1154,6 +1156,8 @@ def begin_course_enrollment(user, course_id, plan_id):
         mark_checkout_started(enrollment, plan=plan)
     except PendingReceiptExists:
         return EnrollBeginResult(ok=False, code="pending_receipt", message="Tasdiqlanmagan chek mavjud. Qarorni kuting.")
+    except ValidationError as exc:
+        return EnrollBeginResult(ok=False, code="unavailable", message=" ".join(exc.messages))
 
     start, end = _checkout_period(enrollment)
     site = SiteSettings.load()
@@ -1180,6 +1184,8 @@ def submit_payment_receipt(user, receipt_image):
     """
     from cohorts.models import PendingReceiptExists
     from subscriptions.promo_service import create_checkout_receipt_with_promo
+    from cohorts.delivery_service import lock_enrollment
+    from django.core.exceptions import ValidationError
 
     # Nishon taxmin qilinmaydi: foydalanuvchi `/yozilish` da (yoki saytdagi
     # checkout formasida) qaysi enrollment uchun to'lov boshlaganini
@@ -1188,7 +1194,6 @@ def submit_payment_receipt(user, receipt_image):
     # noto'g'ri kursga tushardi.
     enrollment = (
         user.enrollments.select_related("pending_plan", "cohort__course")
-        .select_for_update(of=("self",))
         .filter(pending_plan__isnull=False, checkout_started_at__isnull=False)
         .exclude(receipts__is_verified=False)
         .order_by("-checkout_started_at", "-id")
@@ -1208,6 +1213,9 @@ def submit_payment_receipt(user, receipt_image):
             message="Avval kurs va tarifni tanlang: /yozilish",
         )
 
+    enrollment = lock_enrollment(enrollment.pk)
+    if enrollment.pending_plan_id is None:
+        return ReceiptSubmitResult(ok=False, code="no_target", message="Avval kurs va tarifni tanlang: /yozilish")
     start, end = _checkout_period(enrollment)
     try:
         receipt, _quote, _redemption = create_checkout_receipt_with_promo(
@@ -1225,6 +1233,8 @@ def submit_payment_receipt(user, receipt_image):
             code="pending_receipt",
             message="Oldingi chekingiz hali tasdiqlanmagan — administrator ko'rib chiqishini kuting.",
         )
+    except ValidationError as exc:
+        return ReceiptSubmitResult(ok=False, code="unavailable", message=" ".join(exc.messages))
     return ReceiptSubmitResult(
         ok=True,
         code="submitted",

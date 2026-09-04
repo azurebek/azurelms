@@ -16,6 +16,64 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-04 [Codex]: Uch draft tarif, delivery sig'imi va owner katalogi
+
+Owner dam olishga ketayotgani uchun shu bosqichdan keyin to'xtash so'raldi.
+Claude uchun [topshirish xabari](handoff-to-claude.md) keyingi slice'lar,
+o'zgarmas qarorlar, test va rollout chegaralarini saqlaydi.
+
+Owner rejasining ikkinchi slice'i. Ikki product qarori yozildi: joy faqat
+to'lov tasdiqlanganda band, AI limiti eng oxirgi faol enrollmentdan (max/sum
+emas). Yangi Economic/Standard/Intensive va AI policy draft; eski tarif,
+guruh, student va invoice tarixiga majburiy ko'chirish yo'q.
+
+Cohort tier/capacity va purchase availability canonical servis orqali
+web/bot/approval/transferda tekshiriladi. Oxirgi joyga ikki tasdiqdan biri
+o'tadi, ikkinchisining cheki pending qoladi; narx/davr snapshoti o'zgarmaydi.
+Owner-only `/backoffice/catalog/` narx, sotuv, marketing, cohort sozlamalarini
+sabab/tasdiq/audit bilan boshqaradi; AI editor mavjud yuzada qoladi.
+
+- Branch: `codex/plan-catalog-delivery`; commitlar: `b5c2068`, `916de52`.
+- PR: [#70](https://github.com/azurebek/azurelms/pull/70) — joriy required CI/merge dalili.
+- Testlar (env faylsiz, Gemini/Telegram keys bo'sh): `python manage.py test --noinput`
+  **1123 OK, skipped=29**; file-backed delivery/payment/receipt/catalog focused
+  suite **67/67 OK**; `check --fail-level WARNING` 0 issue;
+  `makemigrations --check --dry-run` drift yo'q; `scan_secrets` toza.
+- Capacity va tier guardlarini process monkeypatch bilan olib tashlaganda
+  tegishli testlar har biri **1/1 yiqildi**. Eski billing regressiyalarida faqat
+  fixture kodlari legacy namespace'ga o'tdi: yangi seed bilan code collision
+  edi, test assertion/davr qoidalari susaytirilmadi.
+- PR reviewdagi P1 tasdiqlandi/tuzatildi: pending yozuvning eski guruhi to'lsa
+  yoki yopilsa, GET bo'sh same-tier guruhni ko'rsatadi, POST/bot esa
+  `relocate_pending_checkout` orqali auditli transition qiladi. Eski yozuv
+  saqlanadi/muzlatiladi, yangi yozuv ham to'lovgacha joy olmaydi. Pending chek
+  bo'lsa ko'chirish yo'q; owner rad etgach retry ishlaydi. Olti regression,
+  shu jumladan audit rollback; eski selector bilan bot retry **1/1 yiqildi**.
+- Handoff CI'da eski `ConcurrentPaymentDecisionTests` assertioni ochildi:
+  approval yutsa kelasi davr tarifi bugunoq almashishini kutardi (#68ga zid,
+  `d4099ac`da ham shu assertion bor). Reject yutgan yugurishlar buni yashirgan.
+  Ikkala winner tartibi deterministik tekshirildi: eski expectation bilan
+  approve-first **1/2 yiqildi**, reject-first o'tdi. Runtime o'zgarmadi;
+  test bugungi old plan/quota, kelasi davrdagi haqiqiy paid plan, deadline,
+  invoice, bitta notification/auditni tekshiradi. Unordered race saqlangan;
+  ikkita yangi file-backed test in-memory muhitda mavjud guard bilan skip.
+- Browser: izolyatsiyalangan test DB/akkauntlari, katalog narx save, noto'g'ri
+  sig'im xabari, sig'im kamaytirish; 390px katalog/checkout, 1280px dark
+  checkout. Real tarif tanlash sinovi inline head-script timing nuqsonini
+  topdi; deferred asset bilan tuzatilib qayta tekshirildi. QA yopildi.
+- Schema: `subscriptions.0006/0007`, `cohorts.0017`; additive, eski ustunlar
+  saqlanadi, owner-created code collision qayta yozilmaydi. Rollbackda yangi
+  sotuv yopiladi, tarix/schema reverse qilinmaydi. Required CI/merge keyingi gate.
+- Local: `backup_db` → `migrate cohorts 0017 --noinput` o'tdi; backup
+  `backups/db-20260904-070703.sqlite3` (1.9 MB, integrity ok). Read-only old/new
+  SQLite comparison: 125 jadvalda eski qator/ustun yo'qolishi yoki o'zgarishi
+  **0**; uch yangi paket yopiq, eski cohortlar null/null. `check` 0 issue.
+- Davom etiladi: Standard feedback / Intensive personal assignment,
+  progress review / priority, so'ng haqiqiy pricing copy/dashboard/analytics.
+  Full tariff plan va real-device/bank sign-off tugadi degani emas.
+
+---
+
 ## 2026-09-04 [Claude]: Tasdiqlash kechikkani uchun to'langan kunlar yo'qolmaydi
 
 Oldingi tuzatishning ko'zgudagi aksi. To'lov davri chek yuborilgan kuni

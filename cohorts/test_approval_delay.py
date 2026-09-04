@@ -44,7 +44,7 @@ class ApprovalDelayTests(TestCase):
             name="Guruh", course=course, start_date=self.today
         )
         self.plan = Plan.objects.create(
-            code="standard", name="Standard", price=259000, description="d"
+            code="delay-legacy-standard", name="Standard", price=259000, description="d"
         )
 
     def _submit(self, enrollment, *, days_ago=0, days=30):

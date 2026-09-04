@@ -16,9 +16,9 @@ Ikkita qoida:
 
 **Bu modul narx qarorini qabul qilmaydi.** Qaysi plan nimaga haqli ekani
 owner qarori (`rules-for-agents.md`: scope va pricing agentga o'tmaydi).
-Shuning uchun hozircha barcha planlar bir xil to'plamni oladi va mavjud xulq
-aynan saqlanadi. Mexanizm tayyor; matritsa ownerdan kelganda `PLAN_MATRIX`
-to'ldiriladi va o'sha paytda farq testlar bilan mahkamlanadi.
+2026-09-04 owner matritsasida Economic/Standard/Intensive bir xil core
+ta'lim huquqlarini oladi. Farq — xizmat intensivligi, kontent sifati emas.
+Premium service kafolatlari alohida workflow bilan keyingi slice'da.
 """
 
 from __future__ import annotations
@@ -57,9 +57,10 @@ class Capability(Enum):
 #: va uni topish qiyinroq.
 BASELINE = frozenset(Capability)
 
-#: Plan kodi → qobiliyatlar. **Ataylab bo'sh**: farqlash narx qarori.
-#: Owner matritsani berganda shu yerga yoziladi.
-PLAN_MATRIX: dict[str, frozenset[Capability]] = {}
+#: Ownerning uch paketi: curriculum, exam va certificate hammasida mavjud.
+PLAN_MATRIX: dict[str, frozenset[Capability]] = {
+    "economic": BASELINE, "standard": BASELINE, "intensive": BASELINE,
+}
 
 
 def plan_entitlements(plan) -> frozenset[Capability]:

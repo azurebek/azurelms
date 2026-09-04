@@ -1,0 +1,27 @@
+{% extends "backoffice/base.html" %}
+{% load static %}
+{% block bo_title %}Tariflar va guruhlar{% endblock %}
+{% block bo_topbar %}Tariflar va guruhlar{% endblock %}
+{% block bo_icon %}bi-tags{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/brand-control.css' %}"><link rel="stylesheet" href="{% static 'css/catalog-control.css' %}">{% endblock %}
+{% block bo_content %}
+<section class="brand-hero"><div><span class="brand-kicker">KATALOG · UZS</span><h1>Tariflar va guruhlar</h1><p>Narx, sotuv holati va guruh sig'imi shu yerdan boshqariladi. Arxivlash mavjud o'quvchining huquqini o'chirmaydi. Yangi paketlar tayyor guruh va xizmatlar tekshirilgach sotuvga ochiladi.</p></div></section>
+<div class="catalog-grid">
+{% for plan in plans %}
+<section class="brand-panel">
+  <header class="catalog-heading"><h2>{{ plan.name }}</h2><span class="catalog-badge">{% if plan.is_available_for_purchase %}Sotuv ochiq{% else %}Sotuv yopiq{% endif %}</span></header>
+  <p class="catalog-price">{{ plan.price|floatformat:0 }} <small>so'm / oy</small></p>
+  <dl class="catalog-meta"><div><dt>Kod</dt><dd>{{ plan.code }}</dd></div><div><dt>Guruh chegarasi</dt><dd>{{ plan.cohort_capacity_limit|default:"Legacy" }}</dd></div><div><dt>AI · 5 soat / 7 kun</dt><dd>{% if plan.ai_policy %}{{ plan.ai_policy.token_limit_5h }} / {{ plan.ai_policy.token_limit_weekly }}{% else %}Global default{% endif %}</dd></div></dl>
+  <a class="brand-back" href="{% url 'backoffice_plan_edit' plan.pk %}">Tarifni tahrirlash</a>
+</section>
+{% endfor %}
+</div>
+<section class="brand-panel catalog-section">
+<header class="catalog-heading"><h2>Delivery guruhlari</h2><a class="brand-back" href="{% url 'backoffice_cohort_create' %}">Yangi guruh</a></header>
+<p class="brand-empty">Pending cheklar joyni band qilmaydi. Active va expired a'zolik joyni saqlaydi; frozen a'zolik joyni bo'shatadi.</p>
+<div class="catalog-scroll"><table class="catalog-table"><thead><tr><th>Guruh / kurs</th><th>Tarif</th><th>Band / sig'im</th><th>Qabul</th><th></th></tr></thead><tbody>
+{% for cohort in cohorts %}<tr><td>{{ cohort.name }}<small>{{ cohort.course.title }}</small></td><td>{{ cohort.plan.name|default:"Legacy" }}</td><td>{{ cohort.occupied_seats }} / {{ cohort.capacity|default:"—" }}</td><td>{% if not cohort.is_active %}Yopiq{% elif cohort.is_full %}Guruh to'ldi{% else %}Ochiq{% endif %}</td><td><a href="{% url 'backoffice_cohort_edit' cohort.pk %}">Tahrirlash</a></td></tr>{% empty %}<tr><td colspan="5">Hali guruh yo'q.</td></tr>{% endfor %}
+</tbody></table></div>
+</section>
+<p class="catalog-section"><a class="brand-back" href="{% url 'backoffice_ai_control' %}">AI limitlarini boshqarish</a> <a class="brand-back" href="{% url 'backoffice_receipts' %}">To'lov cheklari</a></p>
+{% endblock %}

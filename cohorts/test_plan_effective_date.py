@@ -48,8 +48,10 @@ class PlanEffectiveDateTests(TestCase):
         self.cohort = Cohort.objects.create(
             name="Guruh", course=course, start_date=self.today
         )
-        self.cheap = Plan.objects.create(code="economic", name="Economic", price=89000, description="d")
-        self.rich = Plan.objects.create(code="intensive", name="Intensive", price=399000, description="d")
+        # This is the pre-catalog legacy renewal contract (same cohort may
+        # change price tier). New delivery cohorts have an explicit tier.
+        self.cheap = Plan.objects.create(code="legacy-economic", name="Economic", price=89000, description="d")
+        self.rich = Plan.objects.create(code="legacy-intensive", name="Intensive", price=399000, description="d")
 
     def _renewing_enrollment(self, *, plan, days_left=10):
         """Faol obuna: muddati tugashiga `days_left` kun qolgan."""
@@ -79,7 +81,7 @@ class PlanEffectiveDateTests(TestCase):
 
         self._buy(enrollment, self.rich)
 
-        self.assertEqual(enrollment.active_plan().code, "economic")
+        self.assertEqual(enrollment.active_plan().code, "legacy-economic")
         self.assertEqual(enrollment.plan_id, self.cheap.id)
 
     def test_the_paid_plan_takes_effect_when_its_period_starts(self):
@@ -88,7 +90,7 @@ class PlanEffectiveDateTests(TestCase):
 
         receipt = self._buy(enrollment, self.rich)
 
-        self.assertEqual(enrollment.active_plan(today=receipt.period_start).code, "intensive")
+        self.assertEqual(enrollment.active_plan(today=receipt.period_start).code, "legacy-intensive")
 
     def test_the_payment_still_extends_the_deadline_right_away(self):
         """Tarif kutadi, pul emas: to'lov muddatni darhol uzaytiradi."""
@@ -104,7 +106,7 @@ class PlanEffectiveDateTests(TestCase):
 
         self._buy(enrollment, self.cheap)
 
-        self.assertEqual(enrollment.active_plan().code, "intensive")
+        self.assertEqual(enrollment.active_plan().code, "legacy-intensive")
 
     # ------------------------------------------------------ birinchi xarid
 
@@ -117,7 +119,7 @@ class PlanEffectiveDateTests(TestCase):
         self._buy(enrollment, self.rich)
 
         self.assertEqual(enrollment.plan_id, self.rich.id)
-        self.assertEqual(enrollment.active_plan().code, "intensive")
+        self.assertEqual(enrollment.active_plan().code, "legacy-intensive")
 
     # --------------------------------------------------------- AI kvotasi
 
@@ -167,4 +169,4 @@ class PlanEffectiveDateTests(TestCase):
             period_end=self.today + datetime.timedelta(days=25),
         )
 
-        self.assertEqual(enrollment.active_plan().code, "economic")
+        self.assertEqual(enrollment.active_plan().code, "legacy-economic")

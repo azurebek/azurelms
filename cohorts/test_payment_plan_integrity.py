@@ -307,21 +307,27 @@ class ConcurrentPaymentDecisionTests(PaymentFixture, TransactionTestCase):
         skip_unless_file_backed_db(self)
         super().setUp()
 
-    def race(self, actions):
+    def race(self, actions, *, first_action=None):
         receipt = self.submit()
         barrier = threading.Barrier(len(actions), timeout=15)
         results = []
         guard = threading.Lock()
+        first_done = threading.Event()
 
         def run(action):
             try:
                 actor = CustomUser.objects.get(pk=self.owner.pk)
                 barrier.wait()
+                if first_action is not None and action is not first_action:
+                    if not first_done.wait(timeout=15):
+                        raise RuntimeError("First decision did not finish")
                 result = action(receipt.pk, actor).code
             except Exception as exc:
                 result = f"{type(exc).__name__}: {exc}"
             finally:
                 connection.close()
+                if action is first_action:
+                    first_done.set()
             with guard:
                 results.append(result)
 
@@ -341,14 +347,35 @@ class ConcurrentPaymentDecisionTests(PaymentFixture, TransactionTestCase):
 
     def test_approval_vs_rejection_has_one_winner(self):
         receipt, results = self.race([verify_receipt, reject_receipt])
+        self.assert_single_decision(receipt, results)
+
+    def test_approval_winning_keeps_current_plan_until_paid_period(self):
+        receipt, results = self.race([verify_receipt, reject_receipt], first_action=verify_receipt)
+        self.assertCountEqual(results, ["verified", "missing"])
+        self.assert_single_decision(receipt, results)
+
+    def test_rejection_winning_never_grants_the_requested_plan(self):
+        receipt, results = self.race([verify_receipt, reject_receipt], first_action=reject_receipt)
+        self.assertCountEqual(results, ["rejected", "missing"])
+        self.assert_single_decision(receipt, results)
+
+    def assert_single_decision(self, receipt, results):
         self.assertEqual(results.count("missing"), 1, results)
         self.assertEqual(len(set(results) & {"verified", "rejected"}), 1, results)
         self.assertEqual(Notification.objects.filter(category=Notification.CATEGORY_SUBSCRIPTION).count(), 1)
         self.assertEqual(SystemAuditEvent.objects.filter(action__in=["receipt.verify", "receipt.reject"]).count(), 1)
         self.enrollment.refresh_from_db()
+        # This is a renewal ten days in advance (#68): whichever decision
+        # wins, today's paid plan/quota must remain unchanged.
+        self.assert_original_access()
+        self.assertIsNone(self.enrollment.pending_plan_id)
         if "verified" in results:
-            self.assertTrue(PaymentReceipt.objects.get(pk=receipt.pk).is_verified)
-            self.assertEqual(self.enrollment.plan_id, self.new.id)
+            saved = PaymentReceipt.objects.get(pk=receipt.pk)
+            self.assertTrue(saved.is_verified)
+            self.assertEqual(saved.plan_id, self.new.id)
+            self.assertEqual(self.enrollment.next_payment_deadline, receipt.period_end)
+            self.assertEqual(self.enrollment.active_plan(today=receipt.period_start).pk, self.new.pk)
         else:
             self.assertFalse(PaymentReceipt.objects.filter(pk=receipt.pk).exists())
-            self.assertEqual(self.enrollment.plan_id, self.old.id)
+            self.assertEqual(self.enrollment.next_payment_deadline, receipt.period_start)
+            self.assertEqual(self.enrollment.active_plan(today=receipt.period_start).pk, self.old.pk)

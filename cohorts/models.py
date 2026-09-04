@@ -50,6 +50,11 @@ class Cohort(models.Model):
     # Guruhlar (Masalan: "Mart A1 - Kechki")
     name = models.CharField(max_length=200, verbose_name="Guruh nomi")
     course = models.ForeignKey(Course, on_delete=models.PROTECT, related_name='cohorts')
+    plan = models.ForeignKey(
+        "subscriptions.Plan", on_delete=models.PROTECT, null=True, blank=True,
+        related_name="delivery_cohorts", verbose_name="Guruh tarifi",
+    )
+    capacity = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name="Guruh sig'imi")
     start_date = models.DateField(verbose_name="Boshlanish sanasi")
     is_active = models.BooleanField(default=True, verbose_name="Faolmi?")
     is_checkout_default = models.BooleanField(
@@ -66,14 +71,62 @@ class Cohort(models.Model):
     def __str__(self):
         return f"{self.name} ({self.course.title})"
 
+    def clean(self):
+        super().clean()
+        if self.plan_id:
+            from subscriptions.models import Plan
+            limit = Plan.objects.get(pk=self.plan_id).cohort_capacity_limit
+            if limit is None:
+                raise ValidationError({"plan": "Delivery chegarasi bor tarifni tanlang."})
+            if self.capacity is None:
+                self.capacity = limit
+            if not 1 <= self.capacity <= limit:
+                raise ValidationError({"capacity": f"Sig'im 1–{limit} oralig'ida bo'lishi kerak."})
+        elif self.capacity is not None:
+            raise ValidationError({"plan": "Sig'im uchun guruh tarifi tanlanishi kerak."})
+        if self.pk:
+            old = Cohort.objects.filter(pk=self.pk).first()
+            if old and self.members.exists() and (old.plan_id != self.plan_id or old.course_id != self.course_id):
+                raise ValidationError("A'zolari bor guruhning kursi/tarifi o'zgarmaydi. Yangi guruh yarating.")
+            if self.capacity is not None:
+                from .delivery_service import occupied_seats
+                if occupied_seats(self) > self.capacity:
+                    raise ValidationError({"capacity": "Sig'im band joylar sonidan kam bo'lishi mumkin emas."})
+
+    def save(self, *args, **kwargs):
+        with transaction.atomic():
+            if self.course_id:
+                Course.objects.select_for_update().get(pk=self.course_id)
+            if self.pk:
+                Cohort.objects.select_for_update().filter(pk=self.pk).first()
+            self.clean()
+            return super().save(*args, **kwargs)
+
+    @property
+    def occupied_seats(self):
+        from .delivery_service import occupied_seats
+        return occupied_seats(self)
+
+    @property
+    def is_full(self):
+        return self.capacity is not None and self.occupied_seats >= self.capacity
+
     class Meta:
         verbose_name = "Guruh"
         verbose_name_plural = "Guruhlar"
         constraints = [
             models.UniqueConstraint(
                 fields=["course"],
-                condition=Q(is_checkout_default=True),
+                condition=Q(is_checkout_default=True, plan__isnull=True),
                 name="cohorts_one_checkout_default_per_course",
+            ),
+            models.UniqueConstraint(
+                fields=["course", "plan"], condition=Q(is_checkout_default=True, plan__isnull=False),
+                name="cohorts_one_default_per_course_plan",
+            ),
+            models.CheckConstraint(
+                condition=Q(plan__isnull=True, capacity__isnull=True) | Q(plan__isnull=False, capacity__gte=1, capacity__isnull=False),
+                name="cohorts_delivery_capacity_pair",
             ),
         ]
 
@@ -116,7 +169,7 @@ class Enrollment(models.Model):
         related_name="enrollments",
         verbose_name="Tarif",
     )
-    # Niyat faol tarif emas: quota/entitlement faqat `plan`ni o'qiydi.
+    # Niyat faol tarif emas: quota/entitlement `active_plan()`ni o'qiydi.
     pending_plan = models.ForeignKey(
         "subscriptions.Plan", on_delete=models.PROTECT, null=True, blank=True,
         related_name="pending_enrollments", verbose_name="Tasdiq kutilayotgan tarif",
@@ -192,6 +245,17 @@ class Enrollment(models.Model):
 
     def clean(self):
         super().clean()
+        if self.cohort_id:
+            from .delivery_service import validate_plan_cohort, validate_seat
+            cohort = self.cohort
+            for plan in (self.plan, self.pending_plan):
+                if plan is not None:
+                    validate_plan_cohort(plan=plan, cohort=cohort)
+            if self.status in (self.STATUS_ACTIVE, self.STATUS_EXPIRED):
+                validate_plan_cohort(plan=self.plan, cohort=cohort)
+                validate_seat(cohort=cohort, enrollment=self)
+            elif self._state.adding:
+                validate_seat(cohort=cohort)
         if not self.student_id or not self.cohort_id or self.status != self.STATUS_ACTIVE:
             return
 
@@ -215,8 +279,16 @@ class Enrollment(models.Model):
             )
 
     def save(self, *args, **kwargs):
-        self.full_clean()
-        return super().save(*args, **kwargs)
+        from .delivery_service import lock_cohorts
+        with transaction.atomic():
+            if self.cohort_id:
+                self.cohort = lock_cohorts(self.cohort_id)[self.cohort_id]
+            if self.pk:
+                old_cohort = Enrollment.objects.filter(pk=self.pk).values_list("cohort_id", flat=True).first()
+                if old_cohort is not None and old_cohort != self.cohort_id:
+                    raise ValidationError("Guruhni almashtirish uchun transfer oqimidan foydalaning.")
+            self.full_clean()
+            return super().save(*args, **kwargs)
 
     class Meta:
         unique_together = ('student', 'cohort')  # Bir o'quvchi bitta guruhga faqat bir marta a'zo bo'la oladi
@@ -426,8 +498,9 @@ class PaymentReceipt(models.Model):
             return
         with transaction.atomic():
             # Barcha checkout/decision yozuvlarida bir xil lock tartibi:
-            # enrollment -> receipt. SQLite IMMEDIATE, PostgreSQL row lock.
-            enrollment = Enrollment.objects.select_for_update().get(pk=self.enrollment_id)
+            # course -> cohort -> enrollment -> receipt. SQLite IMMEDIATE / PG row lock.
+            from .delivery_service import lock_enrollment, validate_plan_cohort, validate_seat
+            enrollment = lock_enrollment(self.enrollment_id)
             old = None
             if not self._state.adding:
                 old = PaymentReceipt.objects.select_for_update().get(pk=self.pk)
@@ -451,10 +524,17 @@ class PaymentReceipt(models.Model):
                     self.plan_snapshot_source = "checkout"
                 if self.base_amount is None:
                     self.base_amount = self.amount
+                from subscriptions.catalog import validate_purchase_plan
+                if self.plan_id:
+                    validate_purchase_plan(plan=self.plan, enrollment=enrollment)
+                    validate_plan_cohort(plan=self.plan, cohort=enrollment.cohort)
 
             # update_fields is_verifiedni yozmasa side-effect ham bo'lmaydi.
             writes_verification = kwargs.get("update_fields") is None or "is_verified" in kwargs["update_fields"]
             newly_verified = writes_verification and self.is_verified and (old is None or not old.is_verified)
+            if newly_verified:
+                validate_plan_cohort(plan=self.plan, cohort=enrollment.cohort)
+                validate_seat(cohort=enrollment.cohort, enrollment=enrollment)
             super().save(*args, **kwargs)
             if newly_verified:
                 from subscriptions.promo_service import apply_redemption_for_verified_receipt
@@ -478,7 +558,8 @@ class PaymentReceipt(models.Model):
 
     def delete(self, *args, **kwargs):
         with transaction.atomic():
-            enrollment = Enrollment.objects.select_for_update().get(pk=self.enrollment_id)
+            from .delivery_service import lock_enrollment
+            enrollment = lock_enrollment(self.enrollment_id)
             current = PaymentReceipt.objects.select_for_update().get(pk=self.pk)
             if current.is_verified:
                 raise ValidationError("Tasdiqlangan to'lov tarixini o'chirish mumkin emas.")

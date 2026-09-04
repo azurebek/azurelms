@@ -77,7 +77,7 @@ class EnrollmentTransitionActionForm(ActionForm):
 
 @admin.register(Cohort)
 class CohortAdmin(admin.ModelAdmin):
-    list_display = ('name', 'course', 'start_date', 'is_active', 'is_checkout_default')
+    list_display = ('name', 'course', 'plan', 'capacity', 'start_date', 'is_active', 'is_checkout_default')
     list_filter = ('course', 'is_active', 'is_checkout_default')
     search_fields = ('name',)
     actions = ("mark_as_checkout_default",)
@@ -87,7 +87,7 @@ class CohortAdmin(admin.ModelAdmin):
     def mark_as_checkout_default(self, request, queryset):
         updated_courses = set()
         for cohort in queryset.select_related("course").order_by("course_id", "-start_date", "-id"):
-            Cohort.objects.filter(course=cohort.course, is_checkout_default=True).exclude(pk=cohort.pk).update(
+            Cohort.objects.filter(course=cohort.course, plan_id=cohort.plan_id, is_checkout_default=True).exclude(pk=cohort.pk).update(
                 is_checkout_default=False
             )
             if not cohort.is_checkout_default:

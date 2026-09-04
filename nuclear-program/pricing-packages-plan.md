@@ -1,7 +1,9 @@
 # Economic / Standard / Intensive — implementation ledger
 
 Owner admission: 2026-09-04, `writing-block.md` rejasidan keyin «boshla qurishni».
-Status: **ADMIT — launch-critical**, birinchi slice **IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN**; required CI/merge dalili [PR #67](https://github.com/azurebek/azurelms/pull/67)da.
+Status: **ADMIT — launch-critical**. Payment foundation va keyingi tuzatishlar
+main'da (#67–69). Catalog + delivery **IMPLEMENTED/TESTED — LOCAL REGRESSION
+GREEN** (`b5c2068`); required CI/merge dalili [PR #70](https://github.com/azurebek/azurelms/pull/70)da.
 
 ## Product contract
 
@@ -28,11 +30,10 @@ taqiqlash emas, kafolatlangan xizmat darajasi.
    tozalaydi. Web/Telegram bir canonical yozuv yo'lidan foydalanadi.
    Eski tasdiqlangan cheklarga hozirgi enrollmentdan tarix to'qilmaydi;
    legacy metadata yo'qligi ochiq ko'rsatiladi.
-2. **PLANNED — catalog + delivery.** Yangi uch plan/policy, sotuv availability,
+2. **IMPLEMENTED/TESTED — catalog + delivery.** Yangi uch plan/policy, sotuv availability,
    eski planlarni tarix uchun saqlash; cohort tier/capacity va mos enrollment.
-   Sotuvga ochishdan oldin oxirgi joy contention testi. Pending joy bandi
-   muddati, bir nechta kursdagi AI allowance va eski o'quvchilarni ko'chirish
-   alohida product qarorlari sifatida aniqlashtiriladi.
+   Sotuvga ochishdan oldin oxirgi joy contention testi. Owner qarorlari va
+   eski o'quvchilar uchun rollout chegarasi quyidagi admissionda.
 3. **PLANNED — service workflows.** Standard individual feedback;
    Intensive personal assignment, progress review, priority queue. Marketing
    hali ishlamaydigan xizmatni va'da qilmaydi. Mavjud core ruxsatlar saqlanadi.
@@ -59,9 +60,108 @@ taqiqlash emas, kafolatlangan xizmat darajasi.
 
 ## Ochiq chegaralar
 
-Ushbu slice yangi delivery formatini sotuvga chiqarmaydi, eski faol
+Birinchi slice yangi delivery formatini sotuvga chiqarmaydi, eski faol
 enrollment tarifini migratsiya bilan almashtirmaydi, proration yoki
 guruhlararo avtomatik upgrade/downgrade qilmaydi. Ular keyingi slice'lar.
+
+## Catalog + delivery admission — 2026-09-04
+
+**ADMIT — launch-critical.** Owner «davom et reja bo'yicha»; ikki aniq javob:
+joy **faqat to'lov tasdiqlanganda** band; ko'p kursli AI allowance esa
+**hozirgidek eng oxirgi faol enrollment** tarifidan, yig'indi/max emas.
+
+- Outcome/KPI: sotilgan guruh sig'imidan ortiq tasdiqlangan a'zolik **0**;
+  paketga mos bo'lmagan guruhga xarid **0**.
+- Canonical state: Plan catalog/availability, AIPlanPolicy, Cohort plan/capacity,
+  Enrollment status. Policy/locklar domain serviceda; web/bot bir xil ishlatadi.
+- Checkoutni ochish va chek yuborish joyni band qilmaydi. Tasdiqlashda qayta
+  tekshiriladi; joy qolmasa chek pending qoladi, pul/huquq o'zgarmaydi,
+  owner boshqa guruh yoki qaytarish masalasini qo'lda hal qiladi.
+- Tasdiqlangan enrollment active/expired holatda guruh a'zosi hisoblanadi:
+  obuna muddati tugashi pedagogik guruhdan avtomatik chiqarish emas.
+  Frozen a'zolik joyni bo'shatadi; qayta ochishda sig'im qayta tekshiriladi.
+- Adapterlar: pricing, web/bot checkout, receipt review, transfer/promotion,
+  owner catalog/delivery backoffice. AI tanlash algoritmi o'zgarmaydi.
+- Owner yuki: narx/sotuv/guruh sozlamasi bitta backofficeda; faqat oxirgi
+  joyga parallel chek kelsa mavjud qo'lda ko'rib chiqish oqimi ishlaydi.
+- Rollout/rollback: yangi uch paket draft (sotuv yopiq), faqat ishlayotgan
+  core imkoniyatlar matni; eski plan/cohort/enrollmentlar o'zgarishsiz.
+  Tier belgilanmagan legacy guruh legacy xaridni davom ettiradi, yangi
+  paket unga sotilmaydi. Archive eski access/quota/tarixni o'chirmaydi.
+  Rollbackda yangi sotuvni yoping; additive ustun/tarixni reverse qilmang.
+- Verification: availability web/bot parity; capacity/tier validation;
+  pending joy olmaydi; so'nggi joyga parallel approval; archived renewal
+  chegarasi; eski tarix va effective-date/delayed-approval regressiyalari;
+  migration preservation, SQLite va PostgreSQL CI, backoffice browser QA.
+- Scope tashqarisi: avtomatik tier upgrade/ko'chirish, premium workflow,
+  proration, kundalik subscription job refaktori, analytics va to'liq marketing.
+
+### Catalog + delivery dalili — 2026-09-04
+
+- Commit `b5c2068`: yangi uch paket + AI policy **draft**, stable code va
+  guruh maksimumi; `is_available_for_purchase` archive, legacy paid renewal
+  istisnosi. Narx/marketing/sotuv holati owner-only auditli backofficeda.
+- `Cohort.plan/capacity` additive; eski guruhlar null/null holda qoladi.
+  Default guruh course+plan scope'da. Course → cohort → enrollment →
+  plan/receipt lock tartibi, tartiblangan ko'p-guruh transfer qulflari.
+  Sig'im statusdan hisoblanadi: active/expired band, pending/frozen band emas.
+- `/backoffice/catalog/`: narx/sotuv/marketing, cohort yaratish va tahrir;
+  AI limitlari mavjud `/backoffice/ai-control/` orqali. O'qituvchi course'dan.
+  Faol mos guruhsiz delivery tarifini backoffice sotuvga ochmaydi.
+- Review tuzatishi `916de52`: to'lgan/yopilgan guruhdagi to'lanmagan intent
+  uchun GET mos bo'sh guruhni faqat ko'rsatadi; POST/bot course lock ostida
+  `relocate_pending_checkout` orqali eski yozuvni muzlatib, yangi pending
+  va transition/audit yaratadi. Qarori kutilayotgan chek ko'chirilmaydi;
+  rad etilgach qayta checkout mumkin. Paid membership/tier o'zgarmaydi.
+- `python manage.py test --noinput`: **1123 OK, skipped=29**.
+  `AZURELMS_TEST_FILE_DB=1 python manage.py test cohorts.test_delivery_catalog
+  cohorts.test_payment_plan_integrity cohorts.test_single_pending_receipt
+  subscriptions.test_catalog --noinput`: **67/67 OK** (review/handoffdan keyingi head).
+  Required PostgreSQL CI alohida gate.
+- Ikki nazorat yugurishi: `validate_seat` yo'q qilinganda oxirgi joy testi
+  **1/1 yiqildi**; tier mosligi guardi yo'q qilinganda legacy guruhga noto'g'ri
+  xarid testi **1/1 yiqildi**. Faqat test process monkeypatchi.
+- Eski checkout tanlash funksiyasi test processida qaytarilganda yangi bot
+  retry regression testi **1/1 yiqildi** (`cohort_full`); tuzatilgani yashil.
+  Web retry/approval, bot takrorlash, GET no-write, pending invoice immutability,
+  audit rollback va yopiq guruhning same-tier fallback'i qamralgan.
+- Handoff required CI eski approve/reject race assertionini topdi: kelasi
+  davr uchun approval bugunoq plan almashishini kutgan, #68ga zid. Eski
+  assertion `d4099ac`da ham bor. Approve-first nazorat **1/2 yiqildi**,
+  reject-first o'tdi; runtime o'zgartirilmay test effective-date contractiga
+  moslandi va ikkala winnerga deterministik coverage qo'shildi. Asl unordered
+  race ham saqlangan; invoice/deadline/AI quota/audit/notification tekshiriladi.
+- `check --fail-level WARNING`: 0 issue; `makemigrations --check --dry-run`:
+  drift yo'q; `scan_secrets`: toza. Barcha testlar env faylsiz va provider keys bo'sh.
+- Brauzer: haqiqiy DB'dan ajratilgan in-memory QA, test owner/student.
+  Narxni saqlash; Standard sig'imi 9 rad etilishi, 7 saqlanishi; 390px
+  katalog; 390px checkout Economic → Standard; 1280px dark checkout →
+  Intensive. Tarif/guruh/summa birga o'zgardi, horizontal overflow yo'q,
+  checkout konsolida JS error yo'q. Topilgan head-script timing xatosi
+  `defer` asset bilan tuzatilib qayta real bosish orqali tekshirildi.
+- QA server/tab yopildi. Bu real Android/iOS, mikrofon, Telegram yoki
+  haqiqiy bank to'lovining sign-off'i emas.
+
+**Rollout hali yopiq:** eski Starter/Pro/Premium o'chirilmagan/arxivlanmagan,
+eski a'zolar avtomatik yangi paketga o'tmagan. Owner avval mos yangi guruhni
+yaratadi; premium workflow va copy release gate'idan keyin sotuvni ochib,
+eski tariflarni yangi sotuvdan yopadi. Mavjud paid a'zolar arxiv tarifini
+yangilashi mumkin, yangi o'quvchi arxiv tarifni sotib ololmaydi. Migration
+oldindan shu kodli owner planini topsa nom/narx/policy'ni qayta yozmaydi:
+bunday collision alohida owner rollout qarorini talab qiladi.
+
+**Keyingi slice:** Standard feedback, Intensive personal assignment/progress
+review/priority; keyin pricing/dashboard/analytics. Course detail'dagi eski
+«Cheksiz AI repetitor» va «umrbod kirish» copy'si presentation bosqichida
+to'lov/quota contractiga moslanishi kerak; yangi seed bunday claim yozmaydi.
+
+Local migration ham bajarildi: `python manage.py backup_db` →
+`python manage.py migrate cohorts 0017 --noinput` → `check --fail-level WARNING`.
+Backup `backups/db-20260904-070703.sqlite3`, 1.9 MB, integrity ok (gitga kirmaydi).
+Read-only SQLite solishtirishda 125 jadvalning barcha oldingi ustun/yozuvlari
+saqlandi (migration ledgeridan tashqari): yo'qolgan/o'zgargan eski qator **0**.
+Yangi uch paket sotuvga yopiq, eski cohortlar null/null. Haqiqiy learner,
+guruh yoki payment holati o'zgartirilmadi.
 
 ## Birinchi slice dalili — 2026-09-04
 
