@@ -101,6 +101,21 @@ class MemberTransferForm(forms.Form):
         self.fields["target_cohort"].widget.attrs["class"] = "brand-input"
 
 
+class DifferenceRequestForm(forms.Form):
+    """Tarif farqi uchun to'lov so'rovi."""
+
+    enrollment_id = forms.IntegerField(widget=forms.HiddenInput)
+    amount = forms.IntegerField(
+        label="Farq summasi (so'm)", min_value=1,
+        help_text="Taklif qolgan kunlar bo'yicha hisoblangan. O'zgartirsangiz bo'ladi.",
+    )
+    change_reason = forms.CharField(
+        label="Sababi", max_length=240,
+        widget=forms.Textarea(attrs={"rows": 2, "class": "brand-input"}),
+    )
+    confirm_change = forms.BooleanField(label="So'rovni yuborishni tasdiqlayman", required=True)
+
+
 class DeliveryCohortForm(forms.ModelForm):
     change_reason = forms.CharField(label="O'zgartirish sababi", max_length=240)
     confirm_change = forms.BooleanField(label="Guruh sozlamalarini tasdiqlayman")

@@ -473,6 +473,19 @@ class PaymentReceipt(models.Model):
     plan_price_snapshot = models.DecimalField(
         max_digits=10, decimal_places=2, null=True, blank=True, editable=False,
     )
+    KIND_PERIOD = "period"
+    KIND_DIFFERENCE = "difference"
+    KIND_CHOICES = (
+        (KIND_PERIOD, "Davr uchun to'lov"),
+        (KIND_DIFFERENCE, "Tarif farqi"),
+    )
+    #: Farq to'lovi davrni uzaytirmaydi va tarifni o'zgartirmaydi — o'quvchi
+    #: allaqachon to'lagan davr ichida yangi tarifga o'tgan, bu esa faqat
+    #: ustiga qo'shiladigan summa.
+    kind = models.CharField(
+        max_length=12, choices=KIND_CHOICES, default=KIND_PERIOD,
+        editable=False, verbose_name="To'lov turi",
+    )
     plan_snapshot_source = models.CharField(
         max_length=12, default="legacy", editable=False,
         choices=(("checkout", "Checkout vaqtida"), ("legacy", "Tarixiy yozuv")),
@@ -519,7 +532,7 @@ class PaymentReceipt(models.Model):
     # o'zgarsa ham tarix o'zgarmaydi. QuerySet.update kabi low-level amallar
     # uchun emas; barcha qo'llab-quvvatlangan write yo'llari shu guarddan o'tadi.
     BILLING_FIELDS = (
-        "enrollment", "plan", "plan_code_snapshot", "plan_name_snapshot",
+        "enrollment", "kind", "plan", "plan_code_snapshot", "plan_name_snapshot",
         "plan_price_snapshot", "plan_snapshot_source", "amount", "base_amount",
         "discount_amount", "promo_code_snapshot", "promo_campaign_snapshot",
         "period_start", "period_end",
@@ -613,10 +626,15 @@ class PaymentReceipt(models.Model):
             # update_fields is_verifiedni yozmasa side-effect ham bo'lmaydi.
             writes_verification = kwargs.get("update_fields") is None or "is_verified" in kwargs["update_fields"]
             newly_verified = writes_verification and self.is_verified and (old is None or not old.is_verified)
-            if newly_verified:
+            if newly_verified and self.kind == self.KIND_PERIOD:
                 validate_plan_cohort(plan=self.plan, cohort=enrollment.cohort)
                 validate_seat(cohort=enrollment.cohort, enrollment=enrollment)
             super().save(*args, **kwargs)
+            if newly_verified and self.kind == self.KIND_DIFFERENCE:
+                # Farq to'lovi a'zolikka tegmaydi: davr ham, tarif ham
+                # o'zgarmaydi. U faqat allaqachon amalga oshgan tarif
+                # o'zgarishining pul tomonini yopadi.
+                return
             if newly_verified:
                 from subscriptions.promo_service import apply_redemption_for_verified_receipt
 
@@ -667,7 +685,7 @@ class PaymentReceipt(models.Model):
             #
             # Tasdiqlangan cheklar cheklanmaydi: har oylik to'lov yangi yozuv.
             models.UniqueConstraint(
-                fields=["enrollment"],
+                fields=["enrollment", "kind"],
                 condition=models.Q(is_verified=False),
                 name="unique_pending_receipt_per_enrollment",
             ),

@@ -54,6 +54,27 @@
     <p class="brand-empty">To'lovi amal qiladi — joyi bo'shatilmaydi.</p>
     {% endif %}
 
+    {% if member.has_open_difference %}
+    <p class="brand-empty">Tarif farqi uchun to'lov so'ralgan — chek to'lovlar sahifasida kutilmoqda.</p>
+    {% elif member.holds_a_seat %}
+    <details>
+      <summary class="brand-label">Tarif farqi uchun to'lov so'rash</summary>
+      <form method="post" class="brand-form">{% csrf_token %}
+        <input type="hidden" name="enrollment_id" value="{{ member.pk }}">
+        <input type="hidden" name="action" value="difference">
+        <label class="brand-label" for="amount-{{ member.pk }}">Farq summasi (so'm)</label>
+        <input class="brand-input" id="amount-{{ member.pk }}" name="amount" type="number" min="1" step="1"
+               value="{{ member.suggested_difference|default_if_none:'' }}" required>
+        <p class="brand-empty">{% if member.suggested_difference %}Taklif qolgan kunlar bo'yicha hisoblangan — o'zgartirsangiz bo'ladi.{% else %}Taklif hisoblanmadi (tarif o'zgarishi topilmadi yoki muddat tugagan). Summani o'zingiz kiriting.{% endif %}</p>
+        <label class="brand-label" for="diff-reason-{{ member.pk }}">Sababi</label>
+        <textarea class="brand-input" id="diff-reason-{{ member.pk }}" name="change_reason" rows="2" maxlength="240" required
+                  placeholder="Masalan: Economic dan Intensive ga o'tdi, qolgan 20 kun uchun farq"></textarea>
+        <label class="brand-check"><input type="checkbox" name="confirm_change" required> So'rovni yuborishni tasdiqlayman</label>
+        <div class="brand-actions"><button class="brand-btn" type="submit">So'rov yuborish</button></div>
+      </form>
+    </details>
+    {% endif %}
+
     {% if transfer_targets %}
     <details>
       <summary class="brand-label">Boshqa guruhga ko'chirish</summary>

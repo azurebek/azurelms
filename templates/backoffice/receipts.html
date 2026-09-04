@@ -21,7 +21,7 @@
   <section class="brand-card">
     <header class="brand-card-head">
       <h2>{{ receipt.enrollment.student.get_full_name|default:receipt.enrollment.student.username }}</h2>
-      <span class="brand-badge">#{{ receipt.id }}</span>
+      <span class="brand-badge">{% if receipt.kind == "difference" %}tarif farqi · {% endif %}#{{ receipt.id }}</span>
     </header>
 
     <dl class="brand-meta">
@@ -29,6 +29,8 @@
       <div><dt>Guruh</dt><dd>{{ receipt.enrollment.cohort.name }}</dd></div>
       <div><dt>Tarif</dt><dd>{{ receipt.plan_label }}</dd></div>
       <div><dt>Summa</dt><dd><strong>{{ receipt.amount|floatformat:0 }} so'm</strong></dd></div>
+      {% if receipt.kind == "difference" %}<div><dt>Turi</dt><dd>Tarif farqi — obuna muddatini uzaytirmaydi</dd></div>{% endif %}
+      {% if not receipt.receipt_image %}<div><dt>Chek</dt><dd>O'quvchi hali yuklamagan</dd></div>{% endif %}
       {% if receipt.discount_amount %}
       <div><dt>Chegirma</dt><dd>−{{ receipt.discount_amount|floatformat:0 }} so'm ({{ receipt.promo_code_snapshot }})</dd></div>
       <div><dt>Asl narx</dt><dd>{{ receipt.base_amount|floatformat:0 }} so'm</dd></div>

@@ -170,6 +170,139 @@ def transfer_member(
     )
 
 
+def suggest_difference_amount(enrollment, *, today=None):
+    """Tarif farqi uchun taklif qilinadigan summa (yoki `None`).
+
+    Hisob oddiy va tushuntirsa bo'ladigan: qolgan kunlar × (yangi tarif
+    kunlik narxi − eski tarif kunlik narxi), 30 kunlik davr bo'yicha, 1000
+    so'mgacha yaxlitlanadi. Bu **taklif**, majburiy raqam emas — owner
+    formada o'zgartira oladi, chunki chegirma yoki kelishuv bo'lishi mumkin.
+
+    Eski tarif muzlatilgan a'zolikdan olinadi: ko'chirishda manba a'zolik
+    o'z tarifi bilan qoladi (`transition_service`).
+    """
+    from decimal import Decimal
+
+    from django.utils import timezone
+
+    from .models import Enrollment
+
+    previous = (
+        Enrollment.objects.filter(
+            student_id=enrollment.student_id,
+            cohort__course_id=enrollment.cohort.course_id,
+            status=Enrollment.STATUS_FROZEN,
+            plan__isnull=False,
+        )
+        .exclude(pk=enrollment.pk)
+        .select_related("plan")
+        .order_by("-id")
+        .first()
+    )
+    return difference_between(
+        new_plan=enrollment.active_plan(),
+        previous_plan=previous.plan if previous else None,
+        deadline=enrollment.next_payment_deadline,
+        today=today,
+    )
+
+
+def difference_between(*, new_plan, previous_plan, deadline, today=None):
+    """Hisobning o'zi — ro'yxat sahifasi uni ommaviy ma'lumot bilan chaqiradi.
+
+    Alohida turishining sababi: a'zolar ro'yxatida har bir qator uchun
+    alohida so'rov yugurtirmaslik kerak, shuning uchun eski tarif va muddat
+    tashqaridan beriladi.
+    """
+    from decimal import Decimal
+
+    from django.utils import timezone
+
+    today = today or timezone.localdate()
+    if new_plan is None or previous_plan is None or not deadline:
+        return None
+    if previous_plan.pk == new_plan.pk:
+        return None
+    days_left = (deadline - today).days
+    if days_left <= 0:
+        return None
+    gap = Decimal(new_plan.price) - Decimal(previous_plan.price)
+    if gap <= 0:
+        return None
+    amount = gap / Decimal(30) * Decimal(min(days_left, 30))
+    return int(amount / 1000) * 1000
+
+
+@transaction.atomic
+def request_tier_difference(enrollment_id, actor, *, amount, reason="", request=None):
+    """Tarif farqi uchun to'lov so'rovini yaratadi.
+
+    So'rov — bu chekning o'zi: summasi ma'lum, rasmi hali yo'q. O'quvchi
+    to'lovlar sahifasida chek rasmini yuklaydi, owner esa odatdagi to'lov
+    cheklari sahifasida tasdiqlaydi. Ya'ni yangi qaror yuzasi yaratilmaydi.
+
+    Farq to'lovi davrni uzaytirmaydi va tarifni o'zgartirmaydi
+    (`PaymentReceipt.save`): tarif allaqachon ko'chirishda o'zgargan.
+    """
+    from django.db import IntegrityError
+
+    from .delivery_service import lock_enrollment
+    from .models import PaymentReceipt
+
+    if not _actor_may_decide(actor):
+        return _denied("receipt.difference.request", enrollment_id, actor, request)
+
+    amount = int(amount or 0)
+    if amount <= 0:
+        return MembershipDecision(ok=False, code="amount", message="Summa musbat bo'lishi kerak.")
+
+    enrollment = lock_enrollment(enrollment_id)
+    plan = enrollment.active_plan()
+    try:
+        with transaction.atomic():
+            receipt = PaymentReceipt.objects.create(
+                enrollment=enrollment,
+                plan=plan,
+                kind=PaymentReceipt.KIND_DIFFERENCE,
+                amount=amount,
+                base_amount=amount,
+            )
+    except IntegrityError:
+        # `unique_pending_receipt_per_enrollment` endi turni ham hisobga
+        # oladi: bitta a'zolikda bir vaqtda bitta ochiq farq so'rovi.
+        return MembershipDecision(
+            ok=False, code="already",
+            message="Bu o'quvchida ochiq farq to'lovi allaqachon bor.",
+        )
+
+    record_audit_event(
+        action="receipt.difference.request",
+        request=request,
+        actor=actor,
+        source=SystemAuditEvent.SOURCE_WEB,
+        target=receipt,
+        target_label=f"Farq #{receipt.id} — {enrollment.student.username}",
+        reason=reason,
+        after={"amount": str(amount), "plan": getattr(plan, "code", "")},
+    )
+    Notification.objects.create(
+        recipient=enrollment.student,
+        title="Tarif farqi uchun to'lov",
+        message=(
+            f"\"{enrollment.cohort.course.title}\" kursida tarifingiz o'zgardi. "
+            f"Farq uchun {amount} so'm to'lash kerak. To'lovlar sahifasida chekni yuklang."
+        ),
+        icon="cash-coin",
+        url="/users/subscriptions/",
+        category=Notification.CATEGORY_SUBSCRIPTION,
+    )
+    return MembershipDecision(
+        ok=True,
+        code="requested",
+        message=f"Farq so'rovi yuborildi: {_display_name(enrollment.student)} — {amount} so'm",
+    )
+
+
 @transaction.atomic
 def restore_seat(enrollment_id, actor, *, reason="", request=None):
     """Muzlatilgan a'zolikni guruhga qaytaradi — joy bo'lsa."""

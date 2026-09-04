@@ -1144,7 +1144,9 @@ def begin_course_enrollment(user, course_id, plan_id):
     except (CheckoutUnavailable, ValidationError) as exc:
         return EnrollBeginResult(ok=False, code="unavailable", message=str(exc))
 
-    if PaymentReceipt.objects.filter(enrollment=enrollment, is_verified=False).exists():
+    if PaymentReceipt.objects.filter(
+        enrollment=enrollment, is_verified=False, kind=PaymentReceipt.KIND_PERIOD
+    ).exists():
         return EnrollBeginResult(
             ok=False,
             code="pending_receipt",
@@ -1184,7 +1186,7 @@ def submit_payment_receipt(user, receipt_image):
     Nishon: tarifi tanlangan, tasdiqlanmagan cheki yo'q eng so'nggi enrollment
     (begin_course_enrollment'dan keyingi holat).
     """
-    from cohorts.models import PendingReceiptExists
+    from cohorts.models import PaymentReceipt, PendingReceiptExists
     from subscriptions.promo_service import create_checkout_receipt_with_promo
     from cohorts.delivery_service import lock_enrollment
     from django.core.exceptions import ValidationError
@@ -1197,12 +1199,14 @@ def submit_payment_receipt(user, receipt_image):
     enrollment = (
         user.enrollments.select_related("pending_plan", "cohort__course")
         .filter(pending_plan__isnull=False, checkout_started_at__isnull=False)
-        .exclude(receipts__is_verified=False)
+        .exclude(receipts__is_verified=False, receipts__kind=PaymentReceipt.KIND_PERIOD)
         .order_by("-checkout_started_at", "-id")
         .first()
     )
     if enrollment is None:
-        has_pending = user.enrollments.filter(receipts__is_verified=False).exists()
+        has_pending = user.enrollments.filter(
+            receipts__is_verified=False, receipts__kind=PaymentReceipt.KIND_PERIOD
+        ).exists()
         if has_pending:
             return ReceiptSubmitResult(
                 ok=False,

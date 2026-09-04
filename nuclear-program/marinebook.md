@@ -16,6 +16,40 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-04 [Claude]: Tarif farqi uchun to'lov — owner so'raydi, o'quvchi chekni yuklaydi
+
+Owner qarori: «tarif almashtirilganda farqini to'lash uchun maxsus formani
+admin o'quvchiga yuborsin; o'quvchi chekni yuklaydi, admin tasdiqlaydi va bu
+to'lovlar sahifasida farq to'lash shaklida qayd etiladi.» Shu qurildi.
+
+So'rovning o'zi yangi yuza emas — u `PaymentReceipt`ning o'zi: summasi bor,
+rasmi hali yo'q. O'quvchi to'lovlar sahifasida rasm biriktiradi, owner esa
+odatdagi to'lov cheklari sahifasida tasdiqlaydi. Ya'ni qaror, audit va
+bildirishnoma yo'llari o'zgarmadi.
+
+Ikkita invariant ataylab:
+
+* **farq to'lovi davrni uzaytirmaydi va tarifni o'zgartirmaydi** — tarif
+  allaqachon ko'chirishda o'zgargan, bu esa faqat o'sha o'zgarishning pul
+  tomonini yopadi. Aks holda o'quvchi bir oyning o'rniga ikki oy olardi;
+* **farq so'rovi oddiy yangilanishni to'smaydi** — «bitta a'zolikda bitta
+  ochiq chek» cheklovi endi turni ham hisobga oladi (`cohorts.0018`), aks
+  holda to'lanmagan farq o'quvchini keyingi oyga to'lay olmaydigan holatga
+  tushirardi.
+
+Taklif qilinadigan summa qolgan kunlar bo'yicha hisoblanadi (bir oylikdan
+oshmaydi, 1000 so'mgacha yaxlitlanadi) va owner uni o'zgartira oladi —
+chegirma yoki kelishuv bo'lishi mumkin.
+
+- Branch: `claude/tier-difference-invoice`
+- Test holati (env faylsiz, Gemini/Telegram keys bo'sh): `python manage.py test --noinput` — **1197 test OK (skipped=29)**; `check --fail-level WARNING` 0 issue; `makemigrations --check --dry-run` drift yo'q; `scan_secrets` toza.
+- Nazorat yugurishi ikki qism uchun alohida: farq to'lovi ham davrni uzaytiradigan qilinganda 2 test yiqildi; cheklov turni hisobga olmaganda (migratsiya darajasida) 1 test yiqildi.
+- Migratsiya haqiqiy `db.sqlite3` nusxasida tekshirildi: `cohorts.0018` o'tdi, `integrity_check=ok`, mavjud cheklar `period` turiga tushdi, cheklov qayta yaratildi. Nusxa o'chirildi, haqiqiy bazaga tegilmadi.
+- Brauzer (alohida vaqtinchalik baza, soxta hisoblar): owner formasi taklifni `206000` deb to'ldirdi, so'rov yuborildi, karta «chek kutilmoqda» holatiga o'tdi. O'quvchi sahifasida «Tarif farqi · 206000 so'm», tushuntirish va yuklash formasi ko'rindi, to'lov tarixida «tarif farqi» belgisi bilan qatordi. 375px mobil: gorizontal siljish yo'q.
+- **Brauzer topgan nuqson:** summa maydonida `min="1"` va `step="1000"` birga qo'yilgani uchun brauzer hech qanday yaxlit sonni qabul qilmasdi va forma umuman yuborilmasdi. Server tomoni to'g'ri bo'lgani uchun testlar buni ushlamagan. `step="1"` ga tuzatildi.
+
+---
+
 ## 2026-09-04 [Claude]: Tariflar orasida ko'chirish — ilgari hech kim uchun mumkin emas edi
 
 Owner savol berdi: «arzon tarifga kirgan o'quvchi bir haftadan keyin qimmatga
