@@ -16,6 +16,35 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-04 [Claude]: Dars sahifasidagi «Bajarildi» qush ostida qolgan edi
+
+Owner skrinshot bilan xabar qildi: dars sahifasining pastki panelidagi
+«Bajarildi» belgisini o'ng pastdagi AzureAI qushi to'sib turibdi.
+
+O'lchandi (1280x800): belgi 1154–1264px, qush 1190–1256px — ustma-ust.
+Sabab: qush `position: fixed; right: 24px` bilan turadi va hech qanday joy
+band qilmaydi, pastki panel esa o'ng chetgacha cho'ziladi.
+
+Tuzatish: qushning izi `--azai-safe-right` (24 chet + 66 kenglik + 12
+bo'shliq = 102px) sifatida e'lon qilinadi va pastki panel shuni o'ngdagi
+bo'sh joy sifatida oladi. Panelga `flex-wrap` ham qo'shildi: 375px da
+ikkita tugma yonma-yon sig'maydi, ular endi ustma-ust joylashadi.
+
+Tekshiruv (alohida vaqtinchalik baza, seed kontenti, soxta o'quvchi):
+1280px da belgi o'ng cheti 1178, qush chap cheti 1190 — 12px bo'shliq,
+ustma-ustlik yo'q. 375px da tugmalar ustma-ust tushdi (708 va 760),
+qush 293px da — hech qaysi biri bilan kesishmaydi, sahifa gorizontal
+siljimaydi.
+
+- Branch: `claude/lesson-footer-clears-the-owl`
+- Test holati: `python manage.py test --noinput` — **1200 test OK (skipped=29)**.
+- Nazorat yugurishi: shablondan bo'sh joy olib tashlanganda 2 test yiqildi.
+- Test chegarasi halol: piksel o'lchovi brauzerda qilinadi, testda emas.
+  Test faqat o'zgaruvchi e'lon qilinganini va panel undan foydalanishini
+  ushlab turadi — tuzatish jimgina yo'qolib qolmasligi uchun.
+
+---
+
 ## 2026-09-04 [Claude]: Tarif farqi uchun to'lov — owner so'raydi, o'quvchi chekni yuklaydi
 
 Owner qarori: «tarif almashtirilganda farqini to'lash uchun maxsus formani
