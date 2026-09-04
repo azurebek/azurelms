@@ -111,6 +111,32 @@ class Cohort(models.Model):
     def is_full(self):
         return self.capacity is not None and self.occupied_seats >= self.capacity
 
+    @property
+    def stale_seats(self):
+        """Kirishi ochiq bo'lmagan a'zolar ushlab turgan joylar soni."""
+        from .delivery_service import stale_seats
+        return stale_seats(self)
+
+    @property
+    def longest_lapse_days(self):
+        """Eng uzoq to'lamay turgan a'zoning kunlari (bo'lmasa `None`).
+
+        Owner \"Guruh to'ldi\" ni ko'rganda, joyni bir kun kechikkan
+        o'quvchi ushlab turibdimi yoki yarim yil oldin ketgan odammi —
+        shu raqam ajratib beradi.
+        """
+        from .delivery_service import stale_members
+        oldest = (
+            stale_members(self)
+            .exclude(next_payment_deadline__isnull=True)
+            .order_by("next_payment_deadline")
+            .values_list("next_payment_deadline", flat=True)
+            .first()
+        )
+        if oldest is None:
+            return None
+        return (timezone.localdate() - oldest).days
+
     class Meta:
         verbose_name = "Guruh"
         verbose_name_plural = "Guruhlar"

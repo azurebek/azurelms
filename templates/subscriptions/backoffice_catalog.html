@@ -18,9 +18,9 @@
 </div>
 <section class="brand-panel catalog-section">
 <header class="catalog-heading"><h2>Delivery guruhlari</h2><a class="brand-back" href="{% url 'backoffice_cohort_create' %}">Yangi guruh</a></header>
-<p class="brand-empty">Pending cheklar joyni band qilmaydi. Active va expired a'zolik joyni saqlaydi; frozen a'zolik joyni bo'shatadi.</p>
+<p class="brand-empty">Pending cheklar joyni band qilmaydi. Active va expired a'zolik joyni saqlaydi; frozen a'zolik joyni bo'shatadi. Muddati o'tgan a'zolik joyni <strong>avtomatik bo'shatmaydi</strong> — qaytmaydigan o'quvchini muzlatmasangiz, guruh sotuvni to'xtatadi.</p>
 <div class="catalog-scroll"><table class="catalog-table"><thead><tr><th>Guruh / kurs</th><th>Tarif</th><th>Band / sig'im</th><th>Qabul</th><th></th></tr></thead><tbody>
-{% for cohort in cohorts %}<tr><td>{{ cohort.name }}<small>{{ cohort.course.title }}</small></td><td>{{ cohort.plan.name|default:"Legacy" }}</td><td>{{ cohort.occupied_seats }} / {{ cohort.capacity|default:"—" }}</td><td>{% if not cohort.is_active %}Yopiq{% elif cohort.is_full %}Guruh to'ldi{% else %}Ochiq{% endif %}</td><td><a href="{% url 'backoffice_cohort_edit' cohort.pk %}">Tahrirlash</a></td></tr>{% empty %}<tr><td colspan="5">Hali guruh yo'q.</td></tr>{% endfor %}
+{% for cohort in cohorts %}<tr><td>{{ cohort.name }}<small>{{ cohort.course.title }}</small></td><td>{{ cohort.plan.name|default:"Legacy" }}</td><td>{{ cohort.occupied_seats }} / {{ cohort.capacity|default:"—" }}{% if cohort.stale_seats %}<small class="catalog-stale">{{ cohort.stale_seats }} tasi to'lamayapti{% if cohort.longest_lapse_days %} · eng eskisi {{ cohort.longest_lapse_days }} kun{% endif %}</small>{% endif %}</td><td>{% if not cohort.is_active %}Yopiq{% elif cohort.is_full %}Guruh to'ldi{% else %}Ochiq{% endif %}</td><td><a href="{% url 'backoffice_cohort_edit' cohort.pk %}">Tahrirlash</a></td></tr>{% empty %}<tr><td colspan="5">Hali guruh yo'q.</td></tr>{% endfor %}
 </tbody></table></div>
 </section>
 <p class="catalog-section"><a class="brand-back" href="{% url 'backoffice_ai_control' %}">AI limitlarini boshqarish</a> <a class="brand-back" href="{% url 'backoffice_receipts' %}">To'lov cheklari</a></p>
