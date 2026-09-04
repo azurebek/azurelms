@@ -77,6 +77,7 @@
     data-ai-feedback-url-template="{% url 'messenger:submit_ai_feedback' message_id=0 %}"
     data-ai-avatar-url="{% static 'img/ai-assistant-widget.png' %}"
     data-ai-skill-url="{% url 'update_ai_skill' %}"
+    data-chat-profile-url-template="{% url 'messenger:chat_profile' user_id=0 %}"
     data-current-ai-skill="{{ request.user.ai_skill|default:'auto' }}">
 
     <header class="chat-head">
@@ -116,9 +117,9 @@
       </div>
       {% else %}
       <div class="msg-row group-start group-last"{% if message.is_ai_response %} data-is-ai="true"{% endif %} data-message-id="{{ message.id }}">
-        <span class="msg-avatar {% if message.is_ai_response %}msg-avatar--ai{% else %}c-lime{% endif %}">{% if message.is_ai_response %}{% include "components/ai_avatar.html" %}{% else %}{{ message.sender.first_name.0|default:message.sender.username.0|upper }}{% endif %}</span>
+        <span class="msg-avatar {% if message.is_ai_response %}msg-avatar--ai{% else %}c-lime{% endif %}"{% if message.sender_id and not message.is_ai_response %} data-sender-id="{{ message.sender_id }}" role="button" tabindex="0" title="Profilni ko'rish"{% endif %}>{% if message.is_ai_response %}{% include "components/ai_avatar.html" %}{% else %}{{ message.sender.first_name.0|default:message.sender.username.0|upper }}{% endif %}</span>
         <div class="msg-group">
-          {% if not message.is_ai_response and message.sender %}<div class="msg-author-name">{{ message.sender.get_full_name|default:message.sender.username }}</div>{% endif %}
+          {% if not message.is_ai_response and message.sender %}<div class="msg-author-name" data-sender-id="{{ message.sender_id }}" role="button" tabindex="0" title="Profilni ko'rish">{{ message.sender.get_full_name|default:message.sender.username }}</div>{% endif %}
           <div class="bubble bubble-them{% if message.is_deleted %} bubble-deleted{% endif %}" data-message-text="true">{{ message.display_body }}</div>
           {% if message.attachment and not message.is_deleted %}
           <a class="bubble-file{% if message.is_image_attachment %} bubble-file--image{% endif %}" href="{{ message.attachment_url }}" target="_blank" rel="noopener">
@@ -208,6 +209,22 @@
     </div>
 
   </section>
+
+  {% comment %}
+    Suhbatdosh profili — Telegram naqshi: rasmga bosilsa o'ngdan ochiladi.
+    Ma'lumot serverdan keladi, chunki nimani ko'rsatish ruxsatga bog'liq
+    (`messenger/profile_service.py`).
+  {% endcomment %}
+  <aside class="chat-profile" data-chat-profile hidden aria-label="Suhbatdosh profili">
+    <header class="chat-profile-head">
+      <button type="button" class="chat-ico" data-profile-close aria-label="Yopish"><i class="bi bi-x-lg"></i></button>
+      <span>Profil</span>
+    </header>
+    <div class="chat-profile-body" data-profile-body>
+      <div class="chat-profile-loading">Yuklanmoqda…</div>
+    </div>
+  </aside>
+
   {% else %}
   <section class="msgr-chat" style="align-items:center;justify-content:center;">
     <div class="chat-empty">
