@@ -1,4 +1,4 @@
-{% extends "base_public.html" %}
+{% extends base_template|default:"base_public.html" %}
 {% comment %} To'lov tasdiqlandi (checkout_success_view). Kontekst: receipt. {% endcomment %}
 {% block title %}To'lov tasdiqlandi — {{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %}
 {% block content %}

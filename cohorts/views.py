@@ -20,6 +20,28 @@ from .checkout_service import (
 )
 from .models import PaymentReceipt, PendingReceiptExists
 
+def _checkout_shell(request):
+    """Tizimga kirgan odam to'lov jarayonida ham ilova qobig'ida qoladi.
+
+    Ilgari checkout `base_public.html` da chizilardi. Ya'ni o'quvchi
+    panelidan tugma bosgan odam birdan boshqa saytga tushgandek bo'lardi:
+    yon panel yo'qoladi, sarlavha «Kirish / Ro'yxatdan o'tish» ga
+    almashadi — garchi u allaqachon kirgan bo'lsa ham. To'lovni tugatib
+    qaytishning yagona yo'li brauzerning «orqaga» tugmasi edi.
+
+    Mehmon uchun public qobiq to'g'ri bo'lardi — ammo bu sahifalar
+    `@login_required`, ya'ni amalda mehmon bu yerga umuman tushmaydi.
+    Zaxira shunday qoldirilgan: qoida o'zgarsa sahifa buzilmaydi.
+    """
+    return "users/base_app.html" if request.user.is_authenticated else "base_public.html"
+
+
+def _render_checkout(request, template, context):
+    context.setdefault("base_template", _checkout_shell(request))
+    context.setdefault("active_nav", "billing")
+    return render(request, template, context)
+
+
 @login_required
 def checkout_view(request, course_id):
     course = get_object_or_404(Course, id=course_id, is_active=True)
@@ -87,7 +109,7 @@ def checkout_view(request, course_id):
         selected_plan = requested_plan
         if not selected_plan:
             messages.error(request, "Iltimos, mavjud tariflardan birini tanlang.")
-            return render(request, 'cohorts/checkout.html', {
+            return _render_checkout(request, 'cohorts/checkout.html', {
                 'course': course,
                 'enrollment': enrollment,
                 'checkout_cohort': checkout_cohort,
@@ -112,7 +134,7 @@ def checkout_view(request, course_id):
                 )
             except PromoValidationError as exc:
                 messages.error(request, str(exc))
-                return render(request, 'cohorts/checkout.html', {
+                return _render_checkout(request, 'cohorts/checkout.html', {
                     'course': course,
                     'enrollment': enrollment,
                     'checkout_cohort': checkout_cohort,
@@ -137,7 +159,7 @@ def checkout_view(request, course_id):
 
         if not receipt_image:
             messages.error(request, "Iltimos, to'lov chek rasmini yuklang.")
-            return render(request, 'cohorts/checkout.html', {
+            return _render_checkout(request, 'cohorts/checkout.html', {
                 'course': course,
                 'enrollment': enrollment,
                 'checkout_cohort': checkout_cohort,
@@ -192,7 +214,7 @@ def checkout_view(request, course_id):
             return redirect('cohorts:checkout', course_id=course.id)
         except PromoValidationError as exc:
             messages.error(request, str(exc))
-            return render(request, 'cohorts/checkout.html', {
+            return _render_checkout(request, 'cohorts/checkout.html', {
                 'course': course,
                 'enrollment': enrollment,
                 'checkout_cohort': checkout_cohort,
@@ -211,7 +233,7 @@ def checkout_view(request, course_id):
 
         return redirect('cohorts:checkout_pending', receipt_id=receipt.id)
 
-    return render(request, 'cohorts/checkout.html', {
+    return _render_checkout(request, 'cohorts/checkout.html', {
         'course': course,
         'enrollment': enrollment,
         'checkout_cohort': checkout_cohort,
@@ -243,7 +265,7 @@ def checkout_pending_view(request, receipt_id):
     receipt = _get_user_receipt_or_404(request, receipt_id)
     if receipt.is_verified:
         return redirect("cohorts:checkout_success", receipt_id=receipt.id)
-    return render(request, "cohorts/checkout_pending.html", {"receipt": receipt})
+    return _render_checkout(request, "cohorts/checkout_pending.html", {"receipt": receipt})
 
 
 @login_required
@@ -268,7 +290,7 @@ def checkout_success_view(request, receipt_id=None):
     if not receipt.is_verified:
         return redirect("cohorts:checkout_pending", receipt_id=receipt.id)
 
-    return render(request, "cohorts/checkout_success.html", {"receipt": receipt})
+    return _render_checkout(request, "cohorts/checkout_success.html", {"receipt": receipt})
 
 
 @login_required

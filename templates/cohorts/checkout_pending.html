@@ -1,4 +1,4 @@
-{% extends "base_public.html" %}
+{% extends base_template|default:"base_public.html" %}
 {% comment %} Chek yuborildi — tasdiq kutilmoqda (checkout_pending_view). Kontekst: receipt. {% endcomment %}
 {% block title %}Chek yuborildi — {{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %}
 {% block content %}
