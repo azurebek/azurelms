@@ -55,6 +55,21 @@
           <a class="app-nav-item{% if active_nav == 'attendance' %} active{% endif %}" href="{% url 'attendance_calendar' %}"><i class="bi bi-calendar-check"></i><span class="label">Davomat</span></a>
         </div>
 
+        {% comment %}
+          Blog va Turkiyada o'qish portali auth qilgan foydalanuvchi uchun
+          umuman ko'rinmasdi: ular faqat public shell navigatsiyasida edi,
+          ilova qobig'ida esa yo'q. Ya'ni tizimga kirgan odam butun bir
+          portalga yo'l topa olmasdi.
+
+          Bu ikkisida `active` holati yo'q: ikkalasi ham public shellda
+          ochiladi, ya'ni bu yon panel o'sha sahifalarda umuman chizilmaydi.
+        {% endcomment %}
+        <div class="app-nav-group">
+          <button type="button" class="app-nav-label" data-app-group><span>Kashf etish</span><i class="bi bi-chevron-down"></i></button>
+          <a class="app-nav-item" href="{% url 'blog:list' %}"><i class="bi bi-newspaper"></i><span class="label">Blog</span></a>
+          <a class="app-nav-item" href="{% url 'sit:home' %}"><i class="bi bi-mortarboard"></i><span class="label">Turkiyada o'qish</span></a>
+        </div>
+
         <div class="app-nav-group">
           <button type="button" class="app-nav-label" data-app-group><span>Hisob</span><i class="bi bi-chevron-down"></i></button>
           <a class="app-nav-item{% if active_nav == 'billing' %} active{% endif %}" href="{% url 'subscriptions' %}"><i class="bi bi-credit-card"></i><span class="label">To'lovlar</span></a>

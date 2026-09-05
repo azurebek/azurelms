@@ -16,6 +16,36 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-05 [Claude]: Blog va «Turkiyada o'qish» ga yon paneldan yo'l
+
+UX auditning 8-topilmasi. Owner'ning aynan so'zi: «oddiy auth qilgan bir
+user uchun blog va SIT uchun yo'l yo'q, eng kamida men ko'rmayapman».
+
+Ikkalasi ham ishlaydigan, to'ldirilgan bo'lim edi — faqat eshigi yo'q edi.
+Blog public shell navigatsiyasida turardi, ilova qobig'ida esa yo'q.
+«Turkiyada o'qish» portali esa hech qayerda yo'q edi. Ilova qobig'iga
+yangi «Kashf etish» guruhi qo'shildi.
+
+**Public sarlavhaga qo'shilmadi va buning sababi bor.** Beshinchi element
+sig'maydi: o'lchab ko'rildi — 780px da sarlavha 830px joy talab qiladi,
+ya'ni 760-900px oralig'ida sahifa gorizontal siljiydi. Breakpoint'ni
+ko'tarish ham yaramaydi, chunki 760px dan pastda `.pub-nav` umuman
+`display:none` bo'ladi va uning o'rnini bosadigan **mobil menyu yo'q** —
+ya'ni telefon sarlavhasida hozir hech qanday navigatsiya yo'q. Mehmon
+uchun eshik o'sha mobil menyu bilan birga qo'yilishi kerak.
+
+Yo'l-yo'lakay topilgan bu holat test docstring'ida qayd etildi
+(`core/test_sidebar_reaches_blog_and_sit.py`) va keyingi ish sifatida
+qoldirildi.
+
+- Branch: `claude/sidebar-reaches-blog-and-sit`
+- Test holati: 1332/1332 yashil (29 skip); nazorat yugurishi — guruhni
+  olib tashlash 6 ta testni qizartirdi
+- Brauzerda: 1280px da to'rtta guruh, «Kashf etish» ichida ikkala havola
+
+---
+
+
 ## 2026-09-05 [Claude]: «Davom etish» qayerda to'xtagan bo'lsangiz, o'sha yerdan
 
 UX auditning 6-topilmasi. Tugmada «Davom etish» yozilgan edi, ammo u
