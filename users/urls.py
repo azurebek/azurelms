@@ -8,6 +8,7 @@ from django.contrib.auth.views import (
     PasswordResetCompleteView
 )
 from django.views.generic import RedirectView
+from .forms import UzbekSetPasswordForm
 from .views import (
     RegisterView, UserProfileView, AvatarUpdateView, PasswordUpdateView,
     SettingsAccountView, SettingsBillingView, SettingsCapabilitiesView,
@@ -64,6 +65,6 @@ urlpatterns = [
     # Password Reset
     path('password-reset/', PasswordResetView.as_view(), name='password_reset'),
     path('password-reset/done/', PasswordResetDoneView.as_view(), name='password_reset_done'),
-    path('password-reset-confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path('password-reset-confirm/<uidb64>/<token>/', PasswordResetConfirmView.as_view(form_class=UzbekSetPasswordForm), name='password_reset_confirm'),
     path('password-reset-complete/', PasswordResetCompleteView.as_view(), name='password_reset_complete'),
 ]

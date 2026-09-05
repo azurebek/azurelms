@@ -401,18 +401,20 @@ else:
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
+# Tekshiruv mantig'i Django'niki, matni o'zbekcha — sabab
+# `users/password_validation.py` boshida yozilgan.
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "NAME": "users.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "NAME": "users.password_validation.MinimumLengthValidator",
     },
     {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+        "NAME": "users.password_validation.CommonPasswordValidator",
     },
     {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+        "NAME": "users.password_validation.NumericPasswordValidator",
     },
 ]
 

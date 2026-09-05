@@ -1,0 +1,12 @@
+{% comment %}
+  Maydon xatolari — har biri alohida qatorda.
+
+  Ilgari hamma joyda `{{ field.errors|striptags }}` edi. Bitta xatoda bu
+  yaxshi ishlaydi, ikkitasida esa `<li>` teglari olib tashlanib matnlar
+  bir-biriga yopishib qoladi: «...bo'lsin.Bu parol juda ko'p...». Parol
+  maydoni aynan shu holat — Django uchta qoidani birdan aytishi mumkin.
+
+  Chaqirilishi:
+    {% include "includes/field_errors.html" with errors=form.password1.errors css="auth-fielderr" %}
+{% endcomment %}
+{% if errors %}<div class="{{ css|default:'auth-fielderr' }}">{% for error in errors %}<div>{{ error }}</div>{% endfor %}</div>{% endif %}
