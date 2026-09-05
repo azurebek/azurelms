@@ -6,7 +6,7 @@
 {% block auth_form %}
 <div class="auth-tabs">
   <a class="auth-tab active" href="{% url 'login' %}">Kirish</a>
-  <a class="auth-tab" href="{% url 'register' %}">Ro'yxatdan o'tish</a>
+  <a class="auth-tab" href="{% url 'register' %}{% if next %}?next={{ next|urlencode:"" }}{% endif %}">Ro'yxatdan o'tish</a>
 </div>
 
 <h1 class="auth-h1">Xush kelibsiz</h1>
@@ -37,7 +37,7 @@
 <div class="auth-divider"><span class="ln"></span><span class="tx">yoki</span><span class="ln"></span></div>
 <a href="#" id="telegram-auth-btn" class="auth-alt"><i class="bi bi-telegram" style="color:#229ed9;font-size:16px;"></i> Telegram orqali davom etish</a>
 
-<p class="auth-foot-link">Hisobingiz yo'qmi? <a href="{% url 'register' %}">Ro'yxatdan o'ting</a></p>
+<p class="auth-foot-link">Hisobingiz yo'qmi? <a href="{% url 'register' %}{% if next %}?next={{ next|urlencode:"" }}{% endif %}">Ro'yxatdan o'ting</a></p>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

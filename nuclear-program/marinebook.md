@@ -16,6 +16,32 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-05 [Claude]: Ro'yxatdan o'tish manzilni unutmaydi
+
+UX auditning 5-topilmasi. Mehmon kirish talab qiladigan sahifaga bosadi va
+`/users/login/?next=/checkout/course/7/` ga tushadi. Hisobi yo'q, «Ro'yxatdan
+o'tish» tabiga o'tadi — va **aynan shu bosishda** `next` yo'qolardi: tab
+havolasi oddiy `{% url 'register' %}` edi. Odam ro'yxatdan o'tib bo'lib
+dashboardga tushardi va to'lamoqchi bo'lgan kursini qaytadan qidirardi.
+
+Endi `next` login tabidan ro'yxatdan o'tishga, undan yashirin maydon orqali
+onboardingga o'tadi. Onboardingdagi birinchi karta `next` bor bo'lsa
+«Davom etish» ga aylanadi va o'sha sahifaga eltadi. AI suhbati yo'li `next`
+ni ko'tarmaydi — u ataylab tanlangan uzoq yo'l va messenger'da tugaydi.
+
+Xavfsizlik: `next` hech qayerda xom ishlatilmaydi, hammasi mavjud
+`users/views.py::_safe_next` orqali — aks holda `?next=https://...` bilan
+bizning domendan boshqa saytga eltadigan havola tarqatish mumkin bo'lardi.
+Uchta test aynan shuni tekshiradi.
+
+- Branch: `claude/register-keeps-next`
+- Test holati: 1302/1302 yashil (29 skip); ikkita nazorat yugurishi
+  (tab havolasidan `next` ni olib tashlash, `_safe_next` o'rniga xom
+  `GET.get`) — ikkalasi ham tegishli testni qizartirdi
+
+---
+
+
 ## 2026-09-05 [Claude]: Parol qoidalari o'zbekcha gapiradi
 
 UX auditning 4-topilmasi. Ro'yxatdan o'tishda ikkita alohida nuqson bor edi.

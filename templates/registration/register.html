@@ -5,8 +5,8 @@
 
 {% block auth_form %}
 <div class="auth-tabs">
-  <a class="auth-tab" href="{% url 'login' %}">Kirish</a>
-  <a class="auth-tab active" href="{% url 'register' %}">Ro'yxatdan o'tish</a>
+  <a class="auth-tab" href="{% url 'login' %}{% if next %}?next={{ next|urlencode:"" }}{% endif %}">Kirish</a>
+  <a class="auth-tab active" href="{% url 'register' %}{% if next %}?next={{ next|urlencode:"" }}{% endif %}">Ro'yxatdan o'tish</a>
 </div>
 
 <h1 class="auth-h1">Hisob yarating</h1>
@@ -14,6 +14,8 @@
 
 <form method="post" action="{% url 'register' %}" class="auth-form">
   {% csrf_token %}
+  {% comment %}Odam qayerga bormoqchi edi — ro'yxatdan o'tish uni unutmasin.{% endcomment %}
+  {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
   {% if form.non_field_errors %}
   <div class="auth-errors">{{ form.non_field_errors }}</div>
   {% endif %}
@@ -56,7 +58,7 @@
 <div class="auth-divider"><span class="ln"></span><span class="tx">yoki</span><span class="ln"></span></div>
 <a href="#" id="telegram-auth-btn" class="auth-alt"><i class="bi bi-telegram" style="color:#229ed9;font-size:16px;"></i> Telegram orqali davom etish</a>
 
-<p class="auth-foot-link">Hisobingiz bormi? <a href="{% url 'login' %}">Kirish</a></p>
+<p class="auth-foot-link">Hisobingiz bormi? <a href="{% url 'login' %}{% if next %}?next={{ next|urlencode:"" }}{% endif %}">Kirish</a></p>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
