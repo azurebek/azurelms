@@ -16,6 +16,35 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-05 [Claude]: Dars tugagach o'quvchi qayerga borishni biladi
+
+UX auditning 3-topilmasi. Dars sahifasining pastida faqat «Kurs sahifasi»,
+«Bajarildi» va (agar bo'lsa) «Imtihon» turardi. Darslar ro'yxati esa faqat
+yon mundarijada, u 375px da yopiladi — ya'ni **telefonda sahifada birorta
+ham dars havolasi qolmasdi**. O'quvchi darsni tugatib qayerga borishni
+bilmasdi.
+
+Qiziq tomoni: view allaqachon `prev_lesson`, `next_lesson`,
+`next_lesson_locked` va `next_lesson_lock_reason` ni hisoblab qo'yardi
+(`courses/views.py`) — shablon ulardan foydalanmasdi. Yo'qolgan ma'lumot
+emas, ishlatilmagan ma'lumot edi.
+
+Qo'shildi: «← Oldingi» va «Keyingi dars →». Keyingi dars yopiq bo'lsa
+o'rniga sababi **ko'rinadigan matn** bo'lib turadi (auditning 7-topilmasi:
+ilgari sabab faqat yon ro'yxatdagi `title=` da edi — telefonda `title`
+umuman yo'q). Imtihon havolasi keyingi dars turganda ikkilamchi ko'rinishga
+o'tadi: ikkita ko'k tugma yonma-yon tursa qaysi biri asosiyligi bilinmaydi.
+
+- Branch: `claude/lesson-footer-goes-forward`
+- Test holati: 1274/1274 yashil (29 skip); uchta nazorat yugurishi
+  (keyingi havola, qulf sababi, imtihon uslubi) — har biri tegishli
+  testni qizartirdi
+- Brauzerda: 375px da gorizontal overflow yo'q, yon mundarija yopiq,
+  qulf sababi pastda o'qiladi
+
+---
+
+
 ## 2026-09-05 [Claude]: Har bir sahifa endi javob qaytaradi
 
 UX auditning ikkinchi topilmasi — tizimli jimlik. Xabar bloki faqat uchta
