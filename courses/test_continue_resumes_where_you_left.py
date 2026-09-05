@@ -133,6 +133,112 @@ class ALockedLessonIsNeverResumedTests(ResumeFixture, TestCase):
         self.assertIsNone(self.resume())
 
 
+class OpeningALessonLeavesATraceTests(ResumeFixture, TestCase):
+    """Codex review (#88, P2): iz qoldirilmasa «davom etish» ishlamaydi.
+
+    Ilgari `LessonProgress` faqat «Bajarildi» bosilganda paydo bo'lardi.
+    Ya'ni yarim o'qib tashlab ketilgan darsning izi umuman qolmasdi va
+    tanlashning birinchi qoidasi — «yarim qolgan dars» — amalda hech
+    qachon ishlamasdi.
+    """
+
+    def open_lesson(self, lesson):
+        self.client.force_login(self.student)
+        return self.client.get(reverse("lesson_detail", kwargs={
+            "course_id": self.course.id, "lesson_id": lesson.id,
+        }))
+
+    def test_visiting_a_lesson_records_it(self):
+        self.open_lesson(self.lessons[1])
+
+        progress = LessonProgress.objects.get(
+            enrollment=self.enrollment, lesson=self.lessons[1]
+        )
+        self.assertFalse(progress.is_completed)
+
+    def test_the_visit_is_what_resume_comes_back_to(self):
+        """Auditning asl va'dasi: hech narsa belgilanmasa ham qaytariladi."""
+        self.open_lesson(self.lessons[0])
+        self.open_lesson(self.lessons[2])
+
+        self.assertEqual(self.resume(), self.lessons[2])
+
+    def test_revisiting_a_finished_lesson_refreshes_the_timestamp(self):
+        self.touch(self.lessons[0], completed=True, minutes_ago=90)
+        for lesson in self.lessons[1:]:
+            self.touch(lesson, completed=True, minutes_ago=60)
+
+        self.open_lesson(self.lessons[0])
+
+        self.assertEqual(self.resume(), self.lessons[0])
+
+    def test_a_visit_never_marks_the_lesson_done(self):
+        """Ochish — o'qib tugatish emas."""
+        self.open_lesson(self.lessons[0])
+
+        self.assertFalse(
+            LessonProgress.objects.filter(
+                enrollment=self.enrollment, is_completed=True
+            ).exists()
+        )
+
+    def test_a_locked_lesson_leaves_no_trace(self):
+        for index, lesson in enumerate(self.lessons):
+            CohortLessonRelease.objects.create(
+                cohort=self.cohort, lesson=lesson, is_released=index == 0,
+            )
+
+        self.open_lesson(self.lessons[3])
+
+        self.assertFalse(
+            LessonProgress.objects.filter(
+                enrollment=self.enrollment, lesson=self.lessons[3]
+            ).exists()
+        )
+
+
+class TheDashboardShortcutNeedsAnActiveSubscriptionTests(ResumeFixture, TestCase):
+    """Codex review (#88, P2): faol bo'lmagan obuna darsga yuborilmaydi.
+
+    `primary_enrollment` faol obuna topilmasa ham birinchi tarixiy obunani
+    oladi. Havola `course_study` ga ketsa, u obunani rad etib odamni kurs
+    sahifasiga «siz obuna bo'lmagansiz» degan ogohlantirish bilan
+    qaytarardi — to'lovi tasdiq kutayotgan odam uchun bu noto'g'ri xabar.
+    """
+
+    def test_an_active_learner_gets_the_lesson_shortcut(self):
+        self.client.force_login(self.student)
+
+        response = self.client.get(reverse("dashboard"))
+
+        self.assertContains(response, "Darsni davom ettirish")
+        self.assertContains(
+            response,
+            f'href="{reverse("course_study", kwargs={"course_id": self.course.id})}',
+        )
+
+    def test_a_pending_learner_is_sent_to_the_course_page_instead(self):
+        self.enrollment.status = Enrollment.STATUS_PENDING
+        self.enrollment.save(update_fields=["status"])
+        self.client.force_login(self.student)
+
+        response = self.client.get(reverse("dashboard"))
+
+        self.assertNotContains(response, "Darsni davom ettirish")
+        self.assertContains(response, "Kursga o'tish")
+
+    def test_a_pending_learner_never_sees_the_study_link(self):
+        self.enrollment.status = Enrollment.STATUS_PENDING
+        self.enrollment.save(update_fields=["status"])
+        self.client.force_login(self.student)
+
+        response = self.client.get(reverse("dashboard"))
+
+        self.assertNotContains(
+            response, reverse("course_study", kwargs={"course_id": self.course.id})
+        )
+
+
 class TheButtonActuallyGoesThereTests(ResumeFixture, TestCase):
     def study_url(self):
         return reverse("course_study", kwargs={"course_id": self.course.id})

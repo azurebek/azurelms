@@ -317,6 +317,16 @@ class LessonDetailView(LoginRequiredMixin, DetailView):
                         )
                     )
                 return redirect("course_detail", pk=course_id)
+
+            # Ochilgan dars izi qoldiriladi — «Davom etish» shu izdan
+            # qayerda to'xtaganini biladi. Belgi qo'yilmaydi.
+            lesson = Lesson.objects.filter(
+                id=lesson_id, module__course_id=course_id
+            ).first()
+            if lesson is not None:
+                from .progress_service import record_lesson_visit
+
+                record_lesson_visit(enrollment, lesson)
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):

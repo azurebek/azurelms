@@ -729,6 +729,13 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             item for item in enrollments if item.dashboard_effective_status == Enrollment.STATUS_ACTIVE
         ]
         context['active_dashboard_enrollments'] = active_dashboard_enrollments
+        # `primary_enrollment` faol bo'lmasligi ham mumkin (yuqoridagi
+        # `enrollments[0]` zaxirasi). «Darsni davom ettirish» esa faqat faol
+        # obunada ishlaydi — aks holda `course_study` uni rad etib, to'lovi
+        # tasdiq kutayotgan odamga «obuna bo'lmagansiz» deb aytardi.
+        context['resume_enrollment'] = (
+            active_dashboard_enrollments[0] if active_dashboard_enrollments else None
+        )
         context['current_plan'] = (
             context['primary_enrollment'].active_plan()
             if context['primary_enrollment'] and context['primary_enrollment'].plan_id

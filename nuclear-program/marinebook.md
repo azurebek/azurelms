@@ -46,6 +46,20 @@ keyin yopilgan darsga qaytarilmaydi.
 - Test holati: 1315/1315 yashil (29 skip); uchta nazorat yugurishi
   (eski xatti-harakatni qaytarish, qulf tekshiruvini olib tashlash,
   dashboard havolasini qaytarish) — 6, 3 va 2 ta test qizardi
+Codex review (#88) ikkita P2 topdi va ikkalasi ham to'g'ri edi:
+
+* **Iz qoldirilmasdi.** `LessonProgress` faqat «Bajarildi» bosilganda
+  paydo bo'lardi, ya'ni yarim o'qib tashlab ketilgan darsning izi
+  qolmasdi va birinchi qoida amalda hech qachon ishlamasdi.
+  `record_lesson_visit()` qo'shildi — belgi qo'ymaydi, XP bermaydi,
+  faqat `last_accessed_at` ni yangilaydi.
+* **Dashboard yorlig'i faol bo'lmagan obunani ham yuborardi.**
+  `primary_enrollment` faol obuna topilmasa birinchi tarixiy obunani
+  oladi; `course_study` uni rad etib, to'lovi tasdiq kutayotgan odamga
+  «siz obuna bo'lmagansiz» derdi. Endi `resume_enrollment` faqat faol
+  obunada to'ladi, aks holda «Kursga o'tish» ko'rsatiladi.
+
+
 - Brauzerda: dashboard tugmasi `/courses/7/study/?cohort=7` ga,
   u esa `/courses/7/lesson/46/?cohort=7` ga eltdi
 
