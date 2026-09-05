@@ -16,6 +16,52 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-05 [Claude]: Codex'ning UX closeout ishi yakunlandi
+
+Codex auditdan keyin qolgan beshta bo'shliqni yopishga kirishgan —
+davomat sahifasi, mobil menyu, owner CSS, statik fayllar hash'i va AI
+uchun onboarding konteksti — kodini yozib bo'lib, **bironta ham slice'ni
+tekshirmasdan** limitga urilgan. Ish `azurelms-codex` worktree'sida
+commit qilinmagan holda qolgan edi.
+
+Ishga tushirilganda to'rtta haqiqiy nuqson chiqdi:
+
+* **`collectstatic` butunlay yiqilardi** — ya'ni deploy to'xtardi.
+  `jazzmin` paketi o'zining Bootstrap bundle'ini mavjud bo'lmagan `.map`
+  ga ishora bilan yuboradi, manifest storage esa buni jiddiy xato deb
+  biladi. Codex'ning sintetik ikki faylli testi buni sezmagan, chunki
+  unda o'lik ishora umuman yo'q edi. `HashedStaticFilesStorage`
+  qo'shildi: **ichki havola** kechiriladi, `{% static %}` esa qat'iy
+  qoladi — xavfsizlik to'ri joyida.
+* **Kontekst noto'g'ri view'ga qo'yilgan** — `RegisterView` ga, holbuki
+  sahifani `OnboardingChoiceView` chizadi. Matn hech qachon ko'rinmasdi.
+* **Testlarda emailsiz `create_user`** — `email` `unique=True`, ikkinchi
+  foydalanuvchi bo'sh satrda to'qnashardi; 5 ta test `IntegrityError`.
+* **Escape faqat fokus menyu ichida bo'lganda ishlardi** — sichqoncha
+  bilan ochgan odam menyuni yopa olmasdi.
+
+Qo'shimcha: `brand-logo-image--large` shablonda ishlatilardi, hech qayerda
+aniqlanmagan edi. Endi `brand_control.html` da aniqlanmagan klass yo'q.
+
+Mobil menyu qo'shilgani auditning bir qaroriniham o'zgartirdi: ilgari
+«Turkiyada o'qish» ni public sarlavhaga qo'ymagan edim, chunki beshinchi
+element 760-900px da gorizontal siljish berardi va o'rnini bosadigan
+menyu yo'q edi. Shart bajarilgach havola public navigatsiyaga ham
+qo'yildi va o'sha vaqtinchalik testim yangi haqiqatga qayta yozildi.
+
+- Branch: `claude/finish-codex-ux-closeout` (asl reja:
+  `codex/ux-context-closeout`)
+- Test holati: 1372/1372 yashil (29 skip); haqiqiy `collectstatic`:
+  359 fayl, 1053 post-processed, xatosiz
+- Nazorat yugurishlari: storage'ni qaytarish `MissingFileError` berdi;
+  davomat shablonini o'chirish 4 ta, kontekstni bo'shatish 2 ta testni
+  qizartirdi
+- Brauzerda: mobil menyu 320/375px, Escape/tashqi bosish/havola bosish,
+  1042px da to'liq navigatsiya; davomat sahifasi ro'yxat bilan chizildi
+
+---
+
+
 ## 2026-09-05 [Claude]: To'lov jarayoni ilova qobig'ida qoladi
 
 UX auditning 10-topilmasi (oxirgisi). Checkout `base_public.html` da

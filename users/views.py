@@ -102,6 +102,12 @@ class OnboardingChoiceView(LoginRequiredMixin, TemplateView):
         # yo'li bu yerda `next` ni ko'tarmaydi: u ataylab tanlangan uzoq
         # yo'l va oxiri messenger'da tugaydi.
         context["next"] = _safe_next(self.request, "")
+        # Matn faqat kontekst rostdan yoqilganda ko'rsatiladi: aks holda
+        # sahifa «AI hisobga oladi» deb va'da qilib, hech narsa qilmagan
+        # bo'lardi. Bayroq yoki xotira o'chirilsa qator ham yo'qoladi.
+        from users.onboarding_context import onboarding_context_enabled
+
+        context["onboarding_context_enabled"] = onboarding_context_enabled(self.request.user)
         return context
 
 class StartSmartOnboardingView(LoginRequiredMixin, View):
@@ -1130,7 +1136,7 @@ class AttendanceManageView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
 
     def build_context(self):
         context = {
-            'active_nav': 'attendance_manage',
+            'active_nav': 'teacher_attendance',
         }
 
         cohorts = self.get_allowed_cohorts()

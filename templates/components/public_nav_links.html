@@ -1,0 +1,5 @@
+<a href="{% url 'courses' %}"{% if active_nav == 'courses' %} class="active" aria-current="page"{% endif %}>Kurslar</a>
+<a href="{% url 'subscriptions:pricing' %}"{% if active_nav == 'pricing' %} class="active" aria-current="page"{% endif %}>Narxlar</a>
+<a href="{% url 'blog:list' %}"{% if active_nav == 'blog' %} class="active" aria-current="page"{% endif %}>Blog</a>
+<a href="{% url 'sit:home' %}"{% if active_nav == 'sit' %} class="active" aria-current="page"{% endif %}>Turkiyada o'qish</a>
+<a href="{% url 'home' %}#ai">AI repetitor</a>

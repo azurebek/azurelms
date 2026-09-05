@@ -1,0 +1,40 @@
+{% extends "base_teacher.html" %}
+{% block t_title %}Davomat{% endblock %}
+{% block t_icon %}bi-calendar-check{% endblock %}
+{% block t_topbar %}Sana bo'yicha davomat{% endblock %}
+{% block t_content %}
+<section class="attendance-manage">
+  <h1>Sana bo'yicha davomat</h1>
+  <p>Guruh, dars va sanani tanlang. Saqlangan davomatni shu yerda tuzatishingiz mumkin.</p>
+  <form method="get" class="attendance-filters">
+    <label>Guruh<select name="cohort_id">
+      {% for cohort in cohorts %}<option value="{{ cohort.id }}"{% if cohort.id == selected_cohort.id %} selected{% endif %}>{{ cohort.name }}</option>{% empty %}<option value="">Guruh yo'q</option>{% endfor %}
+    </select></label>
+    <label>Dars<select name="lesson_id">
+      {% for lesson in lessons %}<option value="{{ lesson.id }}"{% if lesson.id == selected_lesson.id %} selected{% endif %}>{{ lesson.title }}</option>{% empty %}<option value="">Dars yo'q</option>{% endfor %}
+    </select></label>
+    <label>Sana<input type="date" name="date" value="{{ selected_date|date:'Y-m-d' }}" required></label>
+    <button type="submit" class="attendance-button">Ko'rsatish</button>
+  </form>
+  {% if selected_lesson and member_rows %}
+  <form method="post" class="attendance-records">
+    {% csrf_token %}
+    <h2>{{ selected_lesson.title }} · {{ selected_date|date:"d.m.Y" }}</h2>
+    {% for row in member_rows %}
+    <label class="attendance-row">
+      <span>{{ row.enrollment.student.get_full_name|default:row.enrollment.student.username }}</span>
+      <select name="status_{{ row.enrollment.id }}">
+        {% for value,label in status_choices %}<option value="{{ value }}"{% if value == row.status %} selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+    </label>
+    {% endfor %}
+    <button type="submit" class="attendance-button">Davomatni saqlash</button>
+  </form>
+  {% else %}<p class="attendance-empty">Tanlangan guruhda dars yoki faol o'quvchi yo'q. Guruhni tanlab, «Ko'rsatish»ni bosing.</p>{% endif %}
+</section>
+{% endblock %}
+{% block page_css %}{{ block.super }}
+<style>
+.attendance-manage{max-width:960px}.attendance-manage h1{font-size:clamp(22px,3vw,30px);margin:0 0 8px}.attendance-manage p{color:var(--ink-3);line-height:1.6}.attendance-filters{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin:24px 0}.attendance-filters label{display:grid;gap:6px;flex:1 1 180px;min-width:0;font-size:13px}.attendance-manage select,.attendance-manage input{width:100%;min-width:0;min-height:44px;padding:9px 12px;border:1px solid var(--line);border-radius:9px;background:var(--panel);color:var(--ink);font:inherit}.attendance-button{min-height:44px;padding:10px 18px;border:0;border-radius:9px;background:var(--azure);color:var(--on-azure);font:inherit;font-weight:600;cursor:pointer}.attendance-records{padding:20px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}.attendance-records h2{font-size:17px;margin:0 0 14px;overflow-wrap:anywhere}.attendance-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 0;border-top:1px solid var(--line);overflow-wrap:anywhere}.attendance-row select{width:160px;flex:0 0 160px}.attendance-records>.attendance-button{margin-top:18px}.attendance-empty{padding:20px;border:1px dashed var(--line);border-radius:12px}@media(max-width:480px){.attendance-row{align-items:stretch;flex-direction:column;gap:8px}.attendance-row select{width:100%;flex:auto}.attendance-records{padding:14px}}
+</style>
+{% endblock %}
