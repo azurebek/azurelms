@@ -16,6 +16,42 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-05 [Claude]: «Davom etish» qayerda to'xtagan bo'lsangiz, o'sha yerdan
+
+UX auditning 6-topilmasi. Tugmada «Davom etish» yozilgan edi, ammo u
+`course_detail` ga eltardi: 20 ta darsni tugatgan o'quvchi kurs tavsifiga
+tushib, mundarijadan o'zi qayerda qolganini qidirishi kerak edi.
+
+Ikkita alohida nuqson bor edi:
+
+1. **Havola noto'g'ri joyga ketardi.** Veb'dagi uchta tugma `course_detail`
+   ga bog'langan edi. Telegram Mini App esa allaqachon `course_study` ga
+   borardi — yana adapter farqi.
+2. **`course_study` ning o'zi davom ettirmasdi.** Docstring'ida «current
+   lesson (or the first lesson)» deb yozilgan, kod esa faqat
+   `first_accessible_lesson` ni ishlatardi — ya'ni har safar birinchi
+   ochiq darsni ochardi.
+
+Tanlash tartibi `courses/resume_service.py` ga chiqarildi:
+
+1. yarim qolgan dars (eng oxirgi ochilgan, tugallanmagan, hamon ochiq);
+2. hech narsa yarim qolmagan bo'lsa — birinchi ochiq va tugallanmagan dars;
+3. hammasi tugagan bo'lsa — oxirgi ochilgan ochiq dars.
+
+Uchinchi holat ataylab kurs sahifasiga eltmaydi: «davom etish» bosgan odam
+darsni ko'rmoqchi, tavsifni emas. Qulf har uch holatdan kuchliroq —
+keyin yopilgan darsga qaytarilmaydi.
+
+- Branch: `claude/continue-resumes-where-you-left`
+- Test holati: 1315/1315 yashil (29 skip); uchta nazorat yugurishi
+  (eski xatti-harakatni qaytarish, qulf tekshiruvini olib tashlash,
+  dashboard havolasini qaytarish) — 6, 3 va 2 ta test qizardi
+- Brauzerda: dashboard tugmasi `/courses/7/study/?cohort=7` ga,
+  u esa `/courses/7/lesson/46/?cohort=7` ga eltdi
+
+---
+
+
 ## 2026-09-05 [Claude]: Ro'yxatdan o'tish manzilni unutmaydi
 
 UX auditning 5-topilmasi. Mehmon kirish talab qiladigan sahifaga bosadi va

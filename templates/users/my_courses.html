@@ -31,7 +31,7 @@
       <div style="font-size:13px;opacity:.85;margin-top:3px;">{{ feat.cohort.name }} · {{ feat.dashboard_completed_lessons }}/{{ feat.dashboard_total_lessons }} dars · {{ feat.dashboard_progress }}% tugadi</div>
       <div style="width:260px;max-width:100%;height:6px;border-radius:999px;background:rgba(255,255,255,.25);overflow:hidden;margin-top:14px;"><div style="height:100%;width:{{ feat.dashboard_progress }}%;background:#fff;border-radius:999px;"></div></div>
     </div>
-    <a href="{% url 'course_detail' pk=feat.cohort.course.id %}" style="display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 22px;border-radius:11px;background:#fff;color:var(--azure-2);font-size:14.5px;font-weight:700;flex:0 0 auto;"><i class="bi bi-play-fill"></i> Davom etish</a>
+    <a href="{% url 'course_study' course_id=feat.cohort.course.id %}?cohort={{ feat.cohort_id }}" style="display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 22px;border-radius:11px;background:#fff;color:var(--azure-2);font-size:14.5px;font-weight:700;flex:0 0 auto;"><i class="bi bi-play-fill"></i> Davom etish</a>
   </div>
 </section>
 {% endwith %}
@@ -60,7 +60,7 @@
       <h3 style="font-size:16px;font-weight:600;color:var(--ink);margin:11px 0 4px;letter-spacing:-.01em;">{{ e.cohort.course.title }}</h3>
       <div style="font-size:12.5px;color:var(--ink-3);">{{ e.cohort.name }} · {{ e.dashboard_completed_lessons }}/{{ e.dashboard_total_lessons }} dars</div>
       <div style="height:5px;border-radius:999px;background:var(--line-2);overflow:hidden;margin-top:14px;"><div style="height:100%;width:{{ e.dashboard_progress }}%;background:{{ tone_c }};border-radius:999px;"></div></div>
-      <a href="{% url 'course_detail' pk=e.cohort.course.id %}" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:16px;height:40px;padding:0 14px;border-radius:10px;border:1px solid var(--line);font-size:13.5px;font-weight:600;color:var(--azure);">Davom etish <i class="bi bi-arrow-right" style="font-size:12px;"></i></a>
+      <a href="{% url 'course_study' course_id=e.cohort.course.id %}?cohort={{ e.cohort_id }}" style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:16px;height:40px;padding:0 14px;border-radius:10px;border:1px solid var(--line);font-size:13.5px;font-weight:600;color:var(--azure);">Davom etish <i class="bi bi-arrow-right" style="font-size:12px;"></i></a>
     </div>
   </article>
   {% endwith %}

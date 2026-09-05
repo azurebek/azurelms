@@ -19,7 +19,7 @@
     <h1 style="font-size:clamp(24px,2.6vw,32px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:0;">Xush kelibsiz, {{ request.user.first_name|default:request.user.username }}.</h1>
   </div>
   {% if primary_enrollment %}
-  <a href="{% url 'course_detail' pk=primary_enrollment.cohort.course.id %}" style="display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:9px;background:var(--azure);color:var(--on-azure);font-size:14px;font-weight:600;"><i class="bi bi-play-fill"></i> Darsni davom ettirish</a>
+  <a href="{% url 'course_study' course_id=primary_enrollment.cohort.course.id %}?cohort={{ primary_enrollment.cohort_id }}" style="display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:9px;background:var(--azure);color:var(--on-azure);font-size:14px;font-weight:600;"><i class="bi bi-play-fill"></i> Darsni davom ettirish</a>
   {% else %}
   <a href="{% url 'courses' %}" style="display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:9px;background:var(--azure);color:var(--on-azure);font-size:14px;font-weight:600;"><i class="bi bi-search"></i> Kurslarni ko'rish</a>
   {% endif %}
