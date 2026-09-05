@@ -242,34 +242,35 @@ class CourseDetailView(DetailView):
         return context
 
 class CourseStudyRedirectView(LoginRequiredMixin, View):
+    """O'quvchini qayerda to'xtagan bo'lsa, o'sha darsga qaytaradi.
+
+    Ilgari bu yerda faqat `first_accessible_lesson` bor edi — ya'ni 20 ta
+    darsni tugatgan odam ham har safar birinchi darsni ochardi. Tanlash
+    tartibi endi `courses/resume_service.py` da va u yerda izohlangan.
     """
-    Redirects an enrolled student to their current lesson (or the first lesson) 
-    in the interactive study environment.
-    """
+
     def get(self, request, course_id):
+        from .resume_service import resume_lesson
+
         course = get_object_or_404(Course, id=course_id)
         selected_cohort_id = _requested_cohort_id(request)
-        
-        # Check active enrollment
+
         enrollment = _get_active_enrollment_for_course(request.user, course, selected_cohort_id)
-        
         if not enrollment:
             messages.warning(request, "Siz ushbu kursga obuna bo'lmagansiz yoki obunangiz faol emas.")
             return redirect('course_detail', pk=course.id)
 
-        access_bundle = _build_lesson_access_bundle(course, request.user, enrollment)
-        first_accessible_lesson = access_bundle["first_accessible_lesson"]
-
-        if first_accessible_lesson:
-            return redirect(
-                _build_url_with_query(
-                    reverse('lesson_detail', kwargs={'course_id': course.id, 'lesson_id': first_accessible_lesson.id}),
-                    cohort=enrollment.cohort_id,
-                )
-            )
-        else:
+        lesson, _bundle = resume_lesson(request.user, course, enrollment)
+        if lesson is None:
             messages.info(request, "Hozircha siz uchun ochiq dars mavjud emas.")
             return redirect('course_detail', pk=course.id)
+
+        return redirect(
+            _build_url_with_query(
+                reverse('lesson_detail', kwargs={'course_id': course.id, 'lesson_id': lesson.id}),
+                cohort=enrollment.cohort_id,
+            )
+        )
 
 class LessonDetailView(LoginRequiredMixin, DetailView):
     """
@@ -316,6 +317,16 @@ class LessonDetailView(LoginRequiredMixin, DetailView):
                         )
                     )
                 return redirect("course_detail", pk=course_id)
+
+            # Ochilgan dars izi qoldiriladi — «Davom etish» shu izdan
+            # qayerda to'xtaganini biladi. Belgi qo'yilmaydi.
+            lesson = Lesson.objects.filter(
+                id=lesson_id, module__course_id=course_id
+            ).first()
+            if lesson is not None:
+                from .progress_service import record_lesson_visit
+
+                record_lesson_visit(enrollment, lesson)
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):

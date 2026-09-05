@@ -78,3 +78,23 @@ def unmark_lesson_completed(enrollment, lesson):
         ok=True, code="cleared", is_completed=False,
         message="Belgi olib tashlandi.",
     )
+
+
+def record_lesson_visit(enrollment, lesson):
+    """Dars ochilganini yozadi — «qayerda to'xtadingiz» shu izdan biladi.
+
+    Ilgari `LessonProgress` faqat «Bajarildi» bosilganda paydo bo'lardi.
+    Ya'ni yarim o'qib tashlab ketilgan darsning izi umuman qolmasdi va
+    `resume_service` uni topa olmasdi — «davom etish» aslida «keyingi
+    tugallanmagan dars» bo'lib qolardi.
+
+    Belgi qo'yilmaydi: `is_completed` tegilmaydi, XP berilmaydi, seriya
+    yozilmaydi. Faqat «shu darsni ochgan edingiz» degan iz.
+    """
+    progress, created = LessonProgress.objects.get_or_create(
+        enrollment=enrollment, lesson=lesson,
+    )
+    if not created:
+        # `last_accessed_at` — `auto_now`, ya'ni saqlashning o'zi yangilaydi.
+        progress.save(update_fields=["last_accessed_at"])
+    return progress
