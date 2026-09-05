@@ -99,7 +99,13 @@
     <div class="app-body" data-appscroll>
       {% block app_body %}
       <div class="app-content">
-        {% block app_content %}{% endblock %}
+        {% comment %}
+          Ichkaridagi `content` — `base_public.html` bilan bir xil nom.
+          Shu tufayli ikkala qobiqda ham chiziladigan sahifa (masalan
+          to'lov: mehmonga public, kirganga ilova) bitta blok yozadi va
+          `{% extends base_template %}` bilan qobiqni tanlaydi.
+        {% endcomment %}
+        {% block app_content %}{% block content %}{% endblock %}{% endblock %}
       </div>
       {% endblock %}
     </div>

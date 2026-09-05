@@ -16,6 +16,36 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-05 [Claude]: To'lov jarayoni ilova qobig'ida qoladi
+
+UX auditning 10-topilmasi (oxirgisi). Checkout `base_public.html` da
+chizilardi. Ya'ni o'quvchi panelidan «To'lov» tugmasini bosgan odam birdan
+boshqa saytga tushgandek bo'lardi: yon panel yo'qoladi, sarlavha marketing
+navigatsiyasiga va «Kirish / Ro'yxatdan o'tish» tugmalariga almashadi —
+garchi u allaqachon kirgan bo'lsa ham. Panelga qaytishning yagona yo'li
+brauzerning «orqaga» tugmasi edi.
+
+Yechim kichik: `base_app.html` ichidagi `{% block app_content %}` endi
+`{% block content %}` ni o'raydi — `base_public.html` dagi bilan bir xil
+nom. Shu tufayli sahifaning **o'zi umuman o'zgarmadi**, faqat birinchi
+qatori `{% extends base_template|default:"base_public.html" %}` bo'ldi.
+View `_render_checkout()` orqali qobiqni tanlaydi va `active_nav` ni
+«To'lovlar» ga qo'yadi.
+
+Uchala to'lov sahifasi ham shu yo'ldan o'tadi: checkout, «tasdiq
+kutilmoqda» va «muvaffaqiyatli». Oraliqda qobiq almashib turishi
+tuzatishdan ham yomon bo'lardi.
+
+- Branch: `claude/checkout-in-the-app-shell`
+- Test holati: 1357/1357 yashil (29 skip); ikkita nazorat yugurishi
+  (qobiqni public ga qaytarish 6 ta, ichki `content` blokini olib tashlash
+  2 ta testni qizartirdi)
+- Brauzerda: yon panel joyida, «To'lovlar» yoqilgan, `pub-nav` yo'q,
+  uchta tarif va karta bloki o'z joyida; 375px da overflow yo'q
+
+---
+
+
 ## 2026-09-05 [Claude]: Onboardingdan halol chiqish yo'li
 
 UX auditning 9-topilmasi. Ro'yxatdan o'tgan odam darhol onboarding
