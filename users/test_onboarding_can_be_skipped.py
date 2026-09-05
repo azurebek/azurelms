@@ -74,6 +74,35 @@ class ThePageNoLongerPromisesAFormItDoesNotHaveTests(TestCase):
         self.assertContains(response, "Azure AI bilan suhbat")
         self.assertContains(response, reverse("start_smart_onboarding"))
 
+    def test_it_does_not_promise_personalised_lessons(self):
+        """Codex review (#90, P2): va'da qilingan narsa mavjud bo'lishi kerak.
+
+        Suhbat `UserOnboarding` ga `goal` va `current_level` ni yozadi,
+        xolos. Uni hozircha hech kim o'qimaydi — na katalog tartibi
+        (`courses/views.py`), na dashboard tavsiyalari (`users/views.py`),
+        na AI prompti. Ya'ni «darslar shunga qarab tartiblanadi» degan
+        matn yolg'on bo'lardi.
+        """
+        response = self.client.get(reverse("onboarding_choice"))
+
+        for promise in ("tartiblanadi", "moslab", "moslashtir"):
+            self.assertNotContains(response, promise)
+
+    def test_it_says_exactly_what_the_conversation_does(self):
+        response = self.client.get(reverse("onboarding_choice"))
+
+        self.assertContains(response, "profilingizga yozib qo'yadi")
+
+    def test_the_page_describes_the_fields_the_form_actually_stores(self):
+        """Matn va sxema bir xil ikki narsani aytadi."""
+        from users.smart_forms import UserOnboardingSmartForm
+
+        fields = set(UserOnboardingSmartForm.model_fields)
+
+        self.assertIn("goal", fields)
+        self.assertIn("level", fields)
+        self.assertEqual(len(fields), 2)
+
     def test_what_the_page_says_about_later_is_true(self):
         """AI repetitor «Xabarlar» bo'limida rostdan ochiq."""
         response = self.client.get(reverse("onboarding_choice"))

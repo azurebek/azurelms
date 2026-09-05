@@ -4,7 +4,7 @@
 
 {% block auth_form %}
 <h1 class="auth-h1" style="font-size:28px; margin-bottom:12px;">Xush kelibsiz! 🎉</h1>
-<p class="auth-lead" style="margin-bottom:32px;">Maqsadingizni bilsak, darslarni sizga moslab beramiz. Bu bir necha daqiqa oladi — yoki keyinroq qilasiz.</p>
+<p class="auth-lead" style="margin-bottom:32px;">Maqsadingiz va darajangizni bir necha daqiqada aytib bering — yoki keyinroq qilasiz.</p>
 
 {% comment %}
   Ilgari bu yerda ikkita teng karta turardi va birinchisi «Tezkor anketa»
@@ -15,6 +15,11 @@
   Endi bitta tavsiya etilgan yo'l (AI suhbati — profilni haqiqatan
   to'ldiradigan yagona narsa) va uning ostida ochiq chiqish havolasi.
   `next` bo'lsa chiqish odam boshidan bormoqchi bo'lgan sahifaga eltadi.
+
+  Matn ataylab kamtar: suhbat `UserOnboarding` ga `goal` va `current_level`
+  ni yozadi, xolos. Uni hozircha hech kim o'qimaydi (na katalog tartibi, na
+  dashboard tavsiyalari, na AI prompti) — shuning uchun bu yerda darslar
+  moslashadi deb va'da qilinmaydi.
 {% endcomment %}
 <div style="display:flex; flex-direction:column; gap:16px;">
     <form method="post" action="{% url 'start_smart_onboarding' %}" style="margin:0;">
@@ -24,7 +29,7 @@
                 <div style="font-size:32px; line-height:1;">🤖</div>
                 <div>
                     <h4 style="margin:0 0 6px 0; font-size:16px; font-weight:700; color:var(--azure);">Azure AI bilan suhbat</h4>
-                    <p style="margin:0; font-size:13.5px; color:var(--ink-2); line-height:1.5;">Qisqa suhbat: darajangiz va maqsadingizni so'raydi, keyin darslar shunga qarab tartiblanadi.</p>
+                    <p style="margin:0; font-size:13.5px; color:var(--ink-2); line-height:1.5;">Qisqa suhbat: maqsadingiz va hozirgi darajangizni so'raydi hamda profilingizga yozib qo'yadi.</p>
                 </div>
             </div>
         </button>

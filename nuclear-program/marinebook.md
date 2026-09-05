@@ -38,6 +38,17 @@ chunki `start_smart_onboarding` faqat shu sahifadan POST bilan ishga
 tushadi. Matn «Xabarlar bo'limida AI repetitor doim ochiq» ga o'zgartirildi
 va test buni tasdiqlaydi.
 
+Codex review (#90) yana bitta va'dani ushladi. Men yozgan «keyin darslar
+shunga qarab tartiblanadi» matni yolg'on edi: suhbat `UserOnboarding` ga
+`goal` va `current_level` ni yozadi, xolos. **Uni hozircha hech kim
+o'qimaydi** — na katalog tartibi, na dashboard tavsiyalari, na AI prompti;
+yagona o'quvchi — Django admin. Matn «profilingizga yozib qo'yadi» ga
+o'zgartirildi va uchta test buni ushlab turadi.
+
+Ya'ni onboarding javoblari amalda hech qayerga bormaydi — bu alohida
+mahsulot bo'shlig'i va owner'ga aytildi.
+
+
 - Branch: `claude/onboarding-can-be-skipped`
 - Test holati: 1342/1342 yashil (29 skip); nazorat yugurishi — chiqish
   havolasini olib tashlash 4 ta testni qizartirdi
