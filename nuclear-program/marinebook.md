@@ -16,6 +16,36 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-05 [Claude]: Onboardingdan halol chiqish yo'li
+
+UX auditning 9-topilmasi. Ro'yxatdan o'tgan odam darhol onboarding
+sahifasiga tushardi va uni tark etishning ochiq yo'li yo'q edi: ikkita teng
+karta, ikkalasi ham «onboarding qilyapman» degan taassurot berardi.
+
+Tekshirganda yomonrog'i chiqdi: birinchi karta «Tezkor anketa» deb atalardi
+va «An'anaviy shaklni to'ldirib, darhol ta'limni boshlang» derdi — ammo
+**hech qanday anketa yo'q edi**. U to'g'ridan-to'g'ri dashboardga eltardi.
+Ya'ni bu «skip yo'q» emas, «sahifa va'da qilgan narsani bermaydi» edi.
+
+Endi bitta tavsiya etilgan yo'l (AI suhbati — profilni haqiqatan
+to'ldiradigan yagona narsa) va uning ostida ochiq «hozircha o'tkazib
+yuboraman» havolasi. `next` bo'lsa chiqish odam boshidan bormoqchi bo'lgan
+sahifaga eltadi (5-topilma bilan bog'lanadi).
+
+Ostidagi izoh ham tekshirildi. Avval «Suhbatni istagan payt Xabarlar
+bo'limidan boshlashingiz mumkin» deb yozilgan edi — bu yolg'on bo'lardi,
+chunki `start_smart_onboarding` faqat shu sahifadan POST bilan ishga
+tushadi. Matn «Xabarlar bo'limida AI repetitor doim ochiq» ga o'zgartirildi
+va test buni tasdiqlaydi.
+
+- Branch: `claude/onboarding-can-be-skipped`
+- Test holati: 1342/1342 yashil (29 skip); nazorat yugurishi — chiqish
+  havolasini olib tashlash 4 ta testni qizartirdi
+- Brauzerda: bitta karta va uning ostida chiqish havolasi
+
+---
+
+
 ## 2026-09-05 [Claude]: Blog va «Turkiyada o'qish» ga yon paneldan yo'l
 
 UX auditning 8-topilmasi. Owner'ning aynan so'zi: «oddiy auth qilgan bir
