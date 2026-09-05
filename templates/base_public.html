@@ -27,11 +27,8 @@
       <a class="pub-brand" href="{% url 'home' %}">
         {% include "components/brand_logo.html" with use_wordmark=True mark_class="pub-brand-mark" name_class="pub-brand-name" %}
       </a>
-      <nav class="pub-nav" data-pubnav>
-        <a href="{% url 'courses' %}"{% if active_nav == 'courses' %} class="active"{% endif %}>Kurslar</a>
-        <a href="{% url 'subscriptions:pricing' %}"{% if active_nav == 'pricing' %} class="active"{% endif %}>Narxlar</a>
-        <a href="{% url 'blog:list' %}"{% if active_nav == 'blog' %} class="active"{% endif %}>Blog</a>
-        <a href="{% url 'home' %}#ai">AI repetitor</a>
+      <nav class="pub-nav" data-pubnav aria-label="Asosiy navigatsiya">
+        {% include "components/public_nav_links.html" %}
       </nav>
       <div class="pub-actions">
         <button type="button" class="pub-theme" aria-label="Mavzu"><i class="bi bi-moon"></i></button>
@@ -45,6 +42,15 @@
           <a class="pub-login" href="{% url 'login' %}">Kirish</a>
           <a class="pub-cta" href="{% url 'register' %}">Boshlash <i class="bi bi-arrow-right"></i></a>
         {% endif %}
+        <details class="pub-mobile-menu" data-public-menu>
+          <summary aria-label="Menyu"><i class="bi bi-list" aria-hidden="true"></i></summary>
+          <nav class="pub-mobile-nav" aria-label="Mobil navigatsiya">
+            {% include "components/public_nav_links.html" %}
+            {% if request.user.is_authenticated %}
+            <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit">Chiqish</button></form>
+            {% else %}<a href="{% url 'login' %}">Kirish</a>{% endif %}
+          </nav>
+        </details>
       </div>
     </div>
   </header>

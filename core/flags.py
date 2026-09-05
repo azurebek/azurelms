@@ -68,6 +68,18 @@ FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
             "Bot noto'g'ri xabar yuborayotganda yoki Telegram tomonida muammo bo'lganda yopiladi."
         ),
     ),
+    FlagDefinition(
+        slug="ai_onboarding_context",
+        label="AI uchun onboarding konteksti",
+        description="Xotira yoqilganida foydalanuvchi bildirgan maqsad va darajani AI izohlarida hisobga olish.",
+        default=True,
+        category="AI",
+        runbook=(
+            "O'chirilsa onboarding javoblari AI promptiga qo'shilmaydi. "
+            "Javoblar profilda saqlanadi; baho, progress va kurs tartibi o'zgarmaydi. "
+            "Qo'shimcha provider so'rovi yo'q."
+        ),
+    ),
 )
 
 _BY_SLUG = {flag.slug: flag for flag in FLAG_REGISTRY}

@@ -80,9 +80,26 @@
 .pub-foot-social{ display:flex; align-items:center; gap:14px; }
 .pub-foot-social a{ display:inline-flex; align-items:center; justify-content:center; min-height:24px; min-width:24px; }
 
-@media (max-width:760px){
+.pub-mobile-menu{display:none}
+.pub-header-inner{position:relative}
+.pub-mobile-menu summary{display:grid;place-items:center;width:44px;height:44px;border:1px solid var(--line);border-radius:10px;color:var(--ink);cursor:pointer;list-style:none;font-size:23px}
+.pub-mobile-menu summary::-webkit-details-marker{display:none}
+.pub-mobile-menu summary:focus-visible,.pub-mobile-nav a:focus-visible{outline:2px solid var(--azure);outline-offset:3px}
+.pub-mobile-nav{position:absolute;top:100%;left:16px;right:16px;max-height:calc(100dvh - 100px);overflow-y:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px;box-shadow:0 12px 30px rgba(0,0,0,.12);z-index:50}
+.pub-mobile-nav a,.pub-mobile-nav button{display:flex;align-items:center;min-height:44px;width:100%;padding:10px 14px;border:0;border-radius:8px;background:transparent;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.pub-mobile-nav a:hover,.pub-mobile-nav a.active,.pub-mobile-nav button:hover{background:var(--azure-soft);color:var(--azure)}
+.pub-mobile-nav form{margin:0;border-top:1px solid var(--line)}
+@media (max-width:1040px){
   .pub-nav{ display:none; }
+  .pub-mobile-menu{display:block}
+  .pub-actions>.pub-login,.pub-actions>form{display:none}
+  .pub-brand{min-width:0;flex:1 1 auto}
+  .pub-brand-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pub-actions{flex:0 0 auto}
+}
+@media (max-width:760px){
   .pub-footer-cols{ grid-template-columns:1fr 1fr; }
+}
 
 /* Telefon: sarlavhadagi amallar sobit o'lchamda, brend esa cho'ziluvchan.
    Ilgari brend qisqarmagani uchun "Kabinet" tugmasi ekrandan chiqib ketardi
@@ -100,5 +117,4 @@
   .pub-cta{ padding:9px 13px; font-size:13px; gap:0; }
   /* Strelka bezak — tor ekranda joyni tugmaning o'ziga beramiz. */
   .pub-cta i{ display:none; }
-}
 }

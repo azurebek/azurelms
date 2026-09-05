@@ -498,7 +498,7 @@ if USE_S3:
             "BACKEND": "core.custom_storage.MediaStorage",
         },
         "staticfiles": {
-            "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+            "BACKEND": "core.custom_storage.HashedStaticFilesStorage",
         },
     }
     MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
@@ -508,7 +508,7 @@ else:
             "BACKEND": "django.core.files.storage.FileSystemStorage",
         },
         "staticfiles": {
-            "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+            "BACKEND": "core.custom_storage.HashedStaticFilesStorage",
         },
     }
     MEDIA_URL = '/media/'

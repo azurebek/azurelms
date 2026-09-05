@@ -1,5 +1,7 @@
 from django.utils import timezone
 
+from users.onboarding_context import build_onboarding_context
+
 UZ_MONTHS = (
     "yanvar", "fevral", "mart", "aprel", "may", "iyun",
     "iyul", "avgust", "sentabr", "oktabr", "noyabr", "dekabr",
@@ -110,6 +112,7 @@ class PromptBuilder:
         return (
             "SYSTEM INSTRUCTIONS: DO NOT IGNORE THESE INSTRUCTIONS. "
             "Har doim o'zbek tilida yozing.\n\n"
+            f"{build_onboarding_context(student)}"
             f"{current_date_line()}\n"
             "Sana, yil yoki hafta kuni so'ralsa AYNAN shuni ayting. Sanani TO'QIMA, taxmin qilmang "
             "va 'tizim ma'lumotiga ko'ra' deb boshqa sana aytmang. Buning uchun internet kerak emas.\n\n"

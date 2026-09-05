@@ -9,11 +9,11 @@ kirgan odam uni ko'rmasdi. «Turkiyada o'qish» portali esa **hech qayerda**
 yo'q edi — na public navigatsiyada, na ilova qobig'ida. Unga faqat to'g'ridan
 to'g'ri manzil yozib kirish mumkin edi.
 
-Bu o'zgarish **ilova qobig'iga** eshik qo'yadi. Public sarlavhaga
-beshinchi element sig'maydi (760-900px da gorizontal siljish), 760px dan
-pastda esa `.pub-nav` umuman `display:none` bo'ladi va uning o'rnini
-bosadigan mobil menyu yo'q — ya'ni mehmon uchun eshik mobil menyu bilan
-birga qo'yilishi kerak, alohida ish sifatida.
+Avval faqat **ilova qobig'iga** eshik qo'yilgan edi: public sarlavhaga
+beshinchi element sig'masdi va 760px dan pastda `.pub-nav` umuman
+yo'qolar, o'rnini bosadigan menyu yo'q edi. Keyin o'sha mobil menyu
+qo'shilgach (`<details>` asosida, JS'siz ham ochiladi) beshinchi element
+public navigatsiyaga ham qo'yildi.
 """
 
 from django.contrib.auth import get_user_model
@@ -60,17 +60,14 @@ class TheAppSidebarHasADoorTests(TestCase):
                 self.assertIn(reverse("sit:home"), sidebar)
 
 
-class ThePublicNavIsLeftAloneTests(TestCase):
-    """Mehmon uchun eshik hali ham yo'q — bu alohida ish.
+class TheGuestHasADoorTooNowTests(TestCase):
+    """Mehmon uchun eshik mobil menyu bilan birga keldi.
 
-    Public sarlavhaga beshinchi element sig'maydi: 760-900px oralig'ida
-    sahifa gorizontal siljiydi, 760px dan pastda esa `.pub-nav` umuman
-    `display:none` bo'ladi va uning o'rnini bosadigan mobil menyu yo'q.
-    Ya'ni telefon sarlavhasida hozir umuman navigatsiya yo'q.
-
-    Shuning uchun bu yerda faqat holat qayd etiladi: mehmon uchun eshik
-    mobil menyu bilan birga qo'yiladi, aks holda tuzatish o'rniga
-    gorizontal siljish qo'shilgan bo'lardi.
+    Bu sinf ilgari teskarisini yozib qo'ygan edi: public sarlavhaga
+    beshinchi element sig'masdi (760-900px da gorizontal siljish), 760px
+    dan pastda esa `.pub-nav` umuman yo'qolar va uning o'rnini bosadigan
+    menyu yo'q edi. Shart bajarilgach — `<details>` asosidagi mobil menyu
+    qo'shilgach — beshinchi element ham qo'yildi.
     """
 
     def nav(self, response):
@@ -78,13 +75,35 @@ class ThePublicNavIsLeftAloneTests(TestCase):
         start = html.index('<nav class="pub-nav"')
         return html[start:html.index("</nav>", start)]
 
-    def test_the_public_navigation_still_has_four_items(self):
-        nav = self.nav(self.client.get(reverse("courses")))
-
-        self.assertEqual(nav.count("<a "), 4)
+    def test_the_public_navigation_now_reaches_the_portal(self):
+        self.assertIn(reverse("sit:home"), self.nav(self.client.get(reverse("courses"))))
 
     def test_the_blog_door_is_still_there(self):
         self.assertIn(reverse("blog:list"), self.nav(self.client.get(reverse("courses"))))
+
+    def test_a_phone_visitor_gets_a_menu_instead_of_nothing(self):
+        """Ilgari `.pub-nav` yashirilar, o'rniga hech narsa qolmasdi."""
+        response = self.client.get(reverse("courses"))
+
+        self.assertContains(response, "data-public-menu")
+        self.assertContains(response, "pub-mobile-nav")
+
+    def test_both_menus_are_fed_by_the_same_list(self):
+        """Ikki nusxa bo'lsa biri eskirib qolardi."""
+        from pathlib import Path
+
+        from django.conf import settings
+
+        shell = (Path(settings.BASE_DIR) / "templates/base_public.html").read_text(encoding="utf-8")
+
+        self.assertEqual(shell.count('components/public_nav_links.html'), 2)
+
+    def test_the_menu_works_without_javascript(self):
+        """`<details>` brauzerning o'zida ochiladi — JS faqat qulaylik."""
+        response = self.client.get(reverse("courses"))
+
+        self.assertContains(response, "<details class=\"pub-mobile-menu\"")
+        self.assertContains(response, "<summary")
 
 
 class TheDoorsActuallyOpenTests(TestCase):

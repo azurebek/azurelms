@@ -30,6 +30,7 @@ chiqa olmaydi.
 import shutil
 import tempfile
 
+from django.conf import settings
 from django.test.runner import DiscoverRunner
 from django.test.utils import override_settings
 
@@ -49,6 +50,12 @@ class AzureLmsTestRunner(DiscoverRunner):
             MEDIA_ROOT=self._temp_media_root,
             PRIVATE_MEDIA_ROOT=self._temp_private_root,
             PASSWORD_HASHERS=FAST_TEST_PASSWORD_HASHERS,
+            # Ordinary unit tests need no collectstatic build. Manifest behavior
+            # has its own integration test with a temporary asset build.
+            STORAGES={
+                **settings.STORAGES,
+                "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+            },
         )
         self._media_override.enable()
 
