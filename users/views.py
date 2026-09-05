@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.db.models import Count, Prefetch, Q
 import datetime
 import calendar
+from urllib.parse import quote
 from .forms import CustomUserCreationForm, ProfileFieldsForm
 from django.utils.http import url_has_allowed_host_and_scheme
 from .models import CustomUser, Notification
@@ -38,6 +39,19 @@ def home_view(request):
 
 
 class RegisterView(CreateView):
+    """Ro'yxatdan o'tish — va odam qayerga bormoqchi bo'lganini unutmaslik.
+
+    Kirishni talab qiladigan sahifaga bosgan mehmon
+    `/users/login/?next=/checkout/course/7/` ga tushadi. U yerdan
+    «Ro'yxatdan o'tish» ga o'tsa `next` yo'qolardi va odam ro'yxatdan
+    o'tib bo'lib dashboardga tushardi — to'lamoqchi bo'lgan kursini
+    qaytadan qidirishga majbur.
+
+    `next` shu yerdan onboardinggacha olib boriladi. Tekshiruv
+    `_safe_next` da: faqat shu saytning ichki manzili qabul qilinadi,
+    aks holda ochiq redirect bo'lardi.
+    """
+
     form_class = CustomUserCreationForm
     template_name = 'registration/register.html'
     success_url = reverse_lazy('onboarding_choice')
@@ -54,6 +68,18 @@ class RegisterView(CreateView):
             return render(request, 'registration/register_closed.html', status=200)
         return super().dispatch(request, *args, **kwargs)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Shablon buni yashirin maydonga va «Kirish» havolasiga qo'yadi.
+        context["next"] = _safe_next(self.request, "")
+        return context
+
+    def get_success_url(self):
+        destination = _safe_next(self.request, "")
+        if not destination:
+            return str(self.success_url)
+        return f"{self.success_url}?next={quote(destination, safe='')}"
+
     def form_valid(self, form):
         self.object = form.save()
         # Wizard yakunida darhol login qilamiz — onboardingdan keyin dashboardga.
@@ -68,6 +94,15 @@ class RegisterView(CreateView):
 
 class OnboardingChoiceView(LoginRequiredMixin, TemplateView):
     template_name = 'registration/onboarding_choice.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # `next` bor bo'lsa «Tezkor anketa» dashboardga emas, odam
+        # boshidan bormoqchi bo'lgan sahifaga olib boradi. AI suhbati
+        # yo'li bu yerda `next` ni ko'tarmaydi: u ataylab tanlangan uzoq
+        # yo'l va oxiri messenger'da tugaydi.
+        context["next"] = _safe_next(self.request, "")
+        return context
 
 class StartSmartOnboardingView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):

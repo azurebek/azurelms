@@ -8,12 +8,12 @@
 
 <div style="display:flex; flex-direction:column; gap:16px;">
     <!-- Traditional Form -->
-    <a href="{% url 'dashboard' %}" class="choice-card" style="display:block; text-decoration:none; border:1px solid var(--line); border-radius:14px; padding:24px; background:var(--panel); transition:all 0.2s ease; cursor:pointer;">
+    <a href="{% if next %}{{ next }}{% else %}{% url 'dashboard' %}{% endif %}" class="choice-card" style="display:block; text-decoration:none; border:1px solid var(--line); border-radius:14px; padding:24px; background:var(--panel); transition:all 0.2s ease; cursor:pointer;">
         <div style="display:flex; align-items:flex-start; gap:18px;">
             <div style="font-size:32px; line-height:1;">⚡</div>
             <div>
-                <h4 style="margin:0 0 6px 0; font-size:16px; font-weight:600; color:var(--ink);">Tezkor anketa</h4>
-                <p style="margin:0; font-size:13.5px; color:var(--ink-3); line-height:1.5;">An'anaviy shaklni to'ldirib, darhol ta'limni boshlang.</p>
+                <h4 style="margin:0 0 6px 0; font-size:16px; font-weight:600; color:var(--ink);">{% if next %}Davom etish{% else %}Tezkor anketa{% endif %}</h4>
+                <p style="margin:0; font-size:13.5px; color:var(--ink-3); line-height:1.5;">{% if next %}To'g'ridan-to'g'ri ochmoqchi bo'lgan sahifangizga o'ting.{% else %}An'anaviy shaklni to'ldirib, darhol ta'limni boshlang.{% endif %}</p>
             </div>
         </div>
     </a>
