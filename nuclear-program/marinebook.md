@@ -16,6 +16,48 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-05 [Claude]: Parol qoidalari o'zbekcha gapiradi
+
+UX auditning 4-topilmasi. Ro'yxatdan o'tishda ikkita alohida nuqson bor edi.
+
+**Til.** Sayt boshdan-oyoq o'zbekcha, parol xatosi esa «This password is too
+short. It must contain at least 8 characters.» Bular Django'ning o'z
+xabarlari, `LANGUAGE_CODE` esa `en-us`.
+
+`LANGUAGE_CODE` ni `uz` ga o'tkazish yechim emas edi — tekshirib ko'rildi:
+Django'ning `uz` tarjimasida aynan shu to'rt validator **tarjima
+qilinmagan** (faqat «ikkala parol mos kelmadi» bor), qolgan yuzlab satr esa
+kutilmaganda o'zgarardi. Shuning uchun `users/password_validation.py` da
+to'rttasi meros olinib, faqat matni almashtirildi. Tekshiruv mantig'i
+Django'niki bo'lib qoldi: 20 000 ta ommabop parol ro'yxati ham, o'xshashlik
+hisobi ham o'z joyida.
+
+**Joy.** Django parol kuchi xatosini `password2` ga — ya'ni **tasdiqlash**
+maydoniga — qo'yadi. Foydalanuvchi parolni yuqoridagi maydonga yozgan, xato
+pastda chiqadi: u pastdagini tuzatib qayta yuboradi va yana o'sha xatoni
+oladi. Xato yozilgan joyga ko'chirildi; «ikkalasi bir xil emas» esa
+haqiqatan tasdiqlash haqida — o'z joyida qoldi. Ajratish matn bo'yicha
+emas, `code` bo'yicha.
+
+Yo'lda: `{{ field.errors|striptags }}` ikkita xatoda `<li>` larni yechib
+matnlarni yopishtirib qo'yardi («...bo'lsin.Bu parol juda ko'p...»). Parol
+maydoni aynan shu holat. `templates/includes/field_errors.html` qo'shildi,
+to'rtta auth shabloni unga o'tkazildi. Backoffice va blog shablonlarida
+ayni naqsh qoldi — u yerda maydonlar bittadan xato beradi, ya'ni ko'rinmaydi.
+
+Parolni tiklash sahifasi ham ayni ikki nuqsonga ega edi —
+`UzbekSetPasswordForm` qo'shildi.
+
+- Branch: `claude/register-speaks-uzbek`
+- Test holati: 1292/1292 yashil (29 skip); uchta nazorat yugurishi
+  (Django validatorlarini qaytarish, ko'chirishni o'chirish, run-on'ni
+  qaytarish) — har biri tegishli testlarni qizartirdi
+- Brauzerda: uchta xato alohida qatorda, PAROL maydoni ostida;
+  mos kelmaslik esa PAROLNI TASDIQLANG ostida
+
+---
+
+
 ## 2026-09-05 [Claude]: Dars tugagach o'quvchi qayerga borishni biladi
 
 UX auditning 3-topilmasi. Dars sahifasining pastida faqat «Kurs sahifasi»,
