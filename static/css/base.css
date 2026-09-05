@@ -49,3 +49,22 @@ input,textarea,select{font-family:inherit}
   select,
   textarea{ font-size:16px; }
 }
+
+/* Server javobi — hamma sahifada bir xil (templates/includes/messages.html). */
+/* Yopishqoq sarlavha ostida: xato toasti yopilmaguncha turadi, ustiga
+   chiqsa navigatsiyani berkitib qo'yardi (pub 69px, app-top ~56px). */
+.toasts{ position:fixed; top:78px; left:50%; transform:translateX(-50%); z-index:1200; display:flex; flex-direction:column; gap:8px; width:min(560px,calc(100vw - 24px)); pointer-events:none; }
+.toast{ display:flex; align-items:flex-start; gap:10px; padding:12px 14px; border-radius:11px; font-size:13.5px; line-height:1.5; box-shadow:0 10px 30px rgba(0,0,0,.16); pointer-events:auto; animation:toast-in .18s ease-out; }
+.toast>span{ flex:1; min-width:0; overflow-wrap:anywhere; }
+.toast>i{ flex:0 0 auto; margin-top:1px; font-size:15px; }
+/* Suzuvchi blok: `*-soft` tokenlari 10-14% shaffof, shuning uchun tag'ida
+   qattiq sirt kerak - aks holda ostidagi menyu toast ichidan ko'rinadi.
+   Ilgarigi ichki bloklar oq sahifa ustida turgani uchun buni sezdirmagan. */
+.toast--success,.toast--info,.toast--debug{ background:linear-gradient(var(--green-soft),var(--green-soft)),var(--panel); color:var(--green); border:1px solid var(--green); }
+.toast--warning{ background:linear-gradient(var(--amber-soft),var(--amber-soft)),var(--panel); color:var(--amber); border:1px solid var(--amber); }
+.toast--error{ background:linear-gradient(var(--red-soft),var(--red-soft)),var(--panel); color:var(--red); border:1px solid var(--red); }
+.toast-close{ flex:0 0 auto; border:0; background:transparent; color:inherit; opacity:.65; cursor:pointer; font-size:12px; padding:0 2px; }
+.toast-close:hover{ opacity:1; }
+.toast.is-leaving{ opacity:0; transform:translateY(-6px); transition:opacity .2s, transform .2s; }
+@keyframes toast-in{ from{ opacity:0; transform:translateY(-8px); } to{ opacity:1; transform:none; } }
+@media(prefers-reduced-motion:reduce){ .toast{ animation:none; } .toast.is-leaving{ transition:none; } }

@@ -16,6 +16,42 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-05 [Claude]: Har bir sahifa endi javob qaytaradi
+
+UX auditning ikkinchi topilmasi — tizimli jimlik. Xabar bloki faqat uchta
+qobiqda (`users/base_app.html`, `backoffice/base.html`, `base_teacher.html`)
+bor edi. `base.html` va undan meros olgan `base_public.html` da yo'q edi —
+ya'ni dars, kurs va **to'lov** sahifalaridagi har bir `messages.*` chaqiruvi
+jimgina yo'qolardi. Amalda: yopiq darsni ochmoqchi bo'lgan o'quvchi sababsiz
+birinchi darsga otib yuborilardi; checkout xatolari (tasdiqlanmagan chek,
+promo kod, yetishmayotgan chek) umuman ko'rinmasdi.
+
+Endi bitta `templates/includes/messages.html` `base.html` da — hamma
+sahifada, bir xil ko'rinishda. Uchta qobiqdagi ichki nusxalar olib
+tashlandi (aks holda ikki marta chizilardi). Muvaffaqiyat 6 soniyada o'zi
+yo'qoladi, xato yopilmaguncha turadi.
+
+Yo'lda ikkita narsa topildi:
+
+* **Fayl matnini tekshiradigan test yolg'on gapiradi.** Ichki bloklarni
+  olib tashlaganda uchala qobiqda yopuvchi `{% endfor %}`/`{% endif %}`
+  qolib ketgan edi — «`for m in messages` yo'q» degan test yashil turdi,
+  sahifa esa `TemplateSyntaxError` bilan yiqilardi. Test almashtirildi:
+  endi u uchala qobiqni **chizadi**.
+* **`*-soft` tokenlari suzuvchi blok uchun yaramaydi.** Ular 10-14%
+  shaffof; ichki blok oq sahifa ustida turgani uchun buni sezdirmagan,
+  toast esa menyu ustida turadi va ostidagi matn ichidan ko'rinardi.
+  Tag'iga `var(--panel)` qo'yildi. Toast yopishqoq sarlavha ostiga
+  (`top:78px`) tushirildi — navigatsiyani berkitmasin.
+
+- Branch: `claude/every-page-answers-back`
+- Test holati: 1264/1264 yashil (29 skip); nazorat yugurishi bajarildi
+  (include o'chirilganda 5 ta test qizardi, qobiq buzilganda 2 tasi)
+- Brauzerda tekshirildi: checkout (base_public), sozlamalar (app shell),
+  dars sahifasi (base), mobil 375px, dark tokenlar
+
+---
+
 ## 2026-09-05 [Claude]: To'lov sahifasi nihoyat qayerga pul yuborishni aytadi
 
 UX auditda topilgan eng qimmat uzilish. Checkout sahifasida yozilgan edi:

@@ -1,0 +1,26 @@
+{% comment %}
+  Server javobi ko'rinadigan yagona joy.
+
+  Ilgari xabar bloki faqat ilova, backoffice va o'qituvchi shellarida bor edi.
+  `base.html` va `base_public.html` da yo'q edi — ya'ni dars, kurs va **to'lov**
+  sahifalaridagi har bir `messages.success/error` jimgina yo'qolardi. Amalda:
+  chek yuklamasdan «Chekni yuborish» bosilsa sahifa hech narsa demay qayta
+  yuklanardi; yopiq darsni ochmoqchi bo'lgan o'quvchi sababsiz birinchi darsga
+  otib yuborilardi.
+
+  Endi bitta blok `base.html` da — hamma sahifada, bir xil ko'rinishda.
+  Muvaffaqiyat o'zi yo'qoladi, xato esa yopilmaguncha turadi: xatoni
+  o'qishga ulgurmaslik kerak emas.
+{% endcomment %}
+{% if messages %}
+<div class="toasts" data-toasts aria-live="polite">
+  {% for m in messages %}
+  <div class="toast toast--{% if m.tags %}{{ m.tags }}{% else %}info{% endif %}"
+       {% if m.level < 30 %}data-toast-autohide="true"{% endif %} role="status">
+    <i class="bi {% if m.level >= 40 %}bi-exclamation-octagon{% elif m.level >= 30 %}bi-exclamation-triangle{% else %}bi-check-circle{% endif %}" aria-hidden="true"></i>
+    <span>{{ m }}</span>
+    <button type="button" class="toast-close" data-toast-close aria-label="Yopish"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}

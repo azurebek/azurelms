@@ -107,3 +107,20 @@
     initSpy();
   });
 })();
+
+/* Toast: muvaffaqiyat o'zi yo'qoladi, xato yopilmaguncha turadi. */
+(function () {
+  const stack = document.querySelector('[data-toasts]');
+  if (!stack) return;
+  function dismiss(toast) {
+    toast.classList.add('is-leaving');
+    setTimeout(function () { toast.remove(); }, 220);
+  }
+  stack.addEventListener('click', function (event) {
+    const button = event.target.closest('[data-toast-close]');
+    if (button) dismiss(button.closest('.toast'));
+  });
+  stack.querySelectorAll('[data-toast-autohide]').forEach(function (toast) {
+    setTimeout(function () { dismiss(toast); }, 6000);
+  });
+})();
