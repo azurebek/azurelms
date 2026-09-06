@@ -16,6 +16,19 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-06 [Codex]: Mustaqil icon tizimi prototipi
+
+Owner so'rovi bilan `playground/Sixth Trial/icon-tizim.html`, ikki mustaqil SVG va qayta yaratish skripti qo'shildi. Nuqta oralig'i miter cho'qqisidan hisoblanadi; 16px micro variantda 2.20px, 24px asosiy variantda 3.20px. Chetlar teng, jadval chizmadan hisoblanadi, internet/JavaScript talab qilinmaydi.
+
+- Admission: EXPERIMENT — canonical state yozmaydi; maqsad kichik o'lchamda belgi aniqligi, mezon 16px da kamida 2px nuqta oralig'i. Adapter/service/migration yo'q; rollback faqat prototip fayllarini olib tashlash.
+- Branch: `codex/icon-system-geometry`
+- Commit: `5b309c9`
+- Tekshiruv: `python playground/Sixth Trial/build_icon_system.py` (yo'l qo'shtirnoqda) va `git diff --cached --check` muvaffaqiyatli; `AZURELMS_SKIP_ENV_FILE=1`, bo'sh Gemini/Telegram kalitlari bilan loyiha `venv/Scripts/python.exe manage.py check`: 0 muammo. Tizim Python'ida Django yo'q edi; mavjud loyiha venv'ida qayta tekshirildi.
+- Brauzer: desktop va 320px screenshot; mobil document kengligi 305px, viewport 320px; 96/48/32/24/20/16px namunalar actual o'lchamlari bilan mos. Console error yo'q.
+- Production integratsiyasi qilinmadi; original `belgi-tizim.html` boshqa worktree'da saqlandi.
+
+---
+
 ## 2026-09-05 [Claude]: Codex'ning UX closeout ishi yakunlandi
 
 Codex auditdan keyin qolgan beshta bo'shliqni yopishga kirishgan —
