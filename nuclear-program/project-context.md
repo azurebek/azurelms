@@ -282,7 +282,7 @@ ai/
 - `UniversityPreparationCourse`, `UniversityRequirement`, `UniversityDocument`, `UniversityServiceItem`, `UniversityMedia`
 - `Announcement`, `KnowledgeArticle`
 
-**Public contract:** faqat `is_published=True` universitet va qo'llanmalar ko'rinadi. Nashr qilish uchun rasmiy `source_url` va `last_verified_on` majburiy; bu vaqtga sezgir qabul/narx ma'lumotini manbasiz chiqarishni bloklaydi. Katalog `q`, universitet turi, shahar, til, daraja, narx va qabul holati bo'yicha server-side filter qiladi. Prototip `playground/SIT/`da referens sifatida qoladi; runtime `templates/sit/`, `static/css/sit.css`, `static/js/sit-theme.js`.
+**Public contract:** faqat `is_published=True` universitet va qo'llanmalar ko'rinadi. Nashr qilish uchun rasmiy `source_url` va `last_verified_on` majburiy; bu vaqtga sezgir qabul/narx ma'lumotini manbasiz chiqarishni bloklaydi. Katalog `q`, universitet turi, shahar, til, daraja, narx va qabul holati bo'yicha server-side filter qiladi. Runtime `templates/sit/`, `static/css/sit.css`, `static/js/sit-theme.js`; eski lokal prototiplar source of truth emas va repository'da saqlanmaydi.
 
 ### `bot`
 
@@ -695,7 +695,7 @@ Message
 
 Kataloglar: `backoffice/`, `blog/`, `bot/` (Mini App), `cohorts/`, `components/` (canonical brend/favicon), `courses/` (dars, imtihon, sertifikat), `errors/`, `includes/`, `messenger/`, `registration/`, `sit/`, `subscriptions/`, `teacher/`, `users/`. **`auth/` va `exam/` kataloglari yo'q** — auth `registration/` da, imtihon `courses/` da.
 
-`playground/` — static prototype/reference HTML'lar (Fourth Trial va alternative-student-journey). Production runtime uchun manba emas — current implementation Django templates va static CSS/JS.
+`playground/` Git tomonidan kuzatilmaydigan lokal tajriba maydoni. U yerdagi fayllar production runtime yoki arxitektura uchun source of truth emas; current implementation Django templates va `static/` ichidagi CSS/JS.
 
 ---
 

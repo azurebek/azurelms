@@ -16,6 +16,18 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-10 [Codex]: Playground lokal tajriba maydoniga aylantirildi
+
+`playground/` to'liq `.gitignore` ga qo'shildi va avval kuzatilgan 171 ta
+prototip fayli Git indeksidan chiqarildi. Fayllar lokal diskda saqlandi;
+kelajakdagi playground tajribalari repository statusiga aralashmaydi.
+Keraksiz `claude/silliqlik-audit` lokal branchi ham o'chirildi.
+
+- Branch: `codex/ignore-playground`
+- Commitlar: `e683852`, `55da157`
+- Test holati: `git diff --cached --check` pass; Django kodi o'zgarmadi
+- Davom etilishi kerak: PR orqali `main` ga qo'shish
+
 ## 2026-09-05 [Claude]: Codex'ning UX closeout ishi yakunlandi
 
 Codex auditdan keyin qolgan beshta bo'shliqni yopishga kirishgan —

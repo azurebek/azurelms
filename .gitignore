@@ -109,3 +109,8 @@ ngrok.zip
 .tools/
 .codex/
 .antigravityignore
+
+# ========================
+# Local design playgrounds
+# ========================
+playground/
