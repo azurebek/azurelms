@@ -24,7 +24,7 @@ kelajakdagi playground tajribalari repository statusiga aralashmaydi.
 Keraksiz `claude/silliqlik-audit` lokal branchi ham o'chirildi.
 
 - Branch: `codex/ignore-playground`
-- Commitlar: `e683852`
+- Commitlar: `e683852`, `55da157`
 - Test holati: `git diff --cached --check` pass; Django kodi o'zgarmadi
 - Davom etilishi kerak: PR orqali `main` ga qo'shish
 
