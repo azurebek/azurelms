@@ -16,6 +16,46 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-10 [Claude]: PostgreSQL zaxira va tiklash canonical servisga ulandi
+
+Server PostgreSQL'da ishlaydi, `core/backup_service.py` esa faqat SQLite'ni
+bilardi (`VACUUM INTO`). Ya'ni serverda zaxira olishning **canonical yo'li
+umuman yo'q** edi: `backup_db` xato berardi, operator qo'lda `pg_dump` qilishga
+majbur bo'lardi va Control Center backup probe'i doim qizil turardi — u faqat
+`*.sqlite3` qidirardi, ya'ni har kuni zaxira olinib turgan taqdirda ham
+"Zaxira topilmadi" derdi.
+
+`core/pg_backup.py` qo'shildi, `backup_service.py` esa dispatcher bo'ldi.
+Zaxira `pg_dump -Fc` bilan olinadi va **darhol** `pg_restore --list` bilan
+tekshiriladi: `pg_dump` disk to'lganda yoki ulanish uzilganda yarim yozilgan
+fayl qoldirib ketishi mumkin va buni faqat tiklash kunida bilib qolgan
+bo'lardik; buzuq fayl o'chiriladi, "zaxira bor" degan yolg'on taassurot
+qolmasin. Parol `PGPASSWORD` orqali uzatiladi — buyruq qatoriga qo'yilsa
+`ps` chiqishida ko'rinib qolardi.
+
+**Joriy baza ustidan tiklash ataylab qurilmadi.** U `pg_restore --clean
+--if-exists` bilan ishlab turgan bazadagi hamma obyektni tashlab qaytadan
+yozish degani; sinalmagan destruktiv yo'l falokat kunida birinchi marta
+yugurtiriladigan kod bo'lardi va u ishlamasa na zaxira, na baza qoladi.
+Servis buni aniq xabar bilan rad etadi va operatorga qo'lda buyruqni beradi
+(`deploy/README.md` §6). Drill (`--into <yangi-baza>`) esa to'liq qurilgan —
+GO checklistidagi "isolated restore" aynan shu.
+
+Dockerfile'ga `postgresql-client` qo'shildi (usiz `pg_dump` konteynerda yo'q),
+CI'ning `integration` ishiga esa klient vositalari majburlanadigan qadam —
+runner image'i o'zgarganda testlar jimgina skip bo'lib, gate yolg'on yashil
+qolmasligi uchun.
+
+- Branch: `claude/postgres-backup-restore`
+- Test holati: to'liq suite — **1447/1447 OK (skipped=40)**, 90s.
+  `AZURELMS_TEST_FILE_DB=1` bilan `core.test_backup_restore core.test_pg_backup
+  core.test_capability_probes` — 45/45 OK (10 skip, PostgreSQL-only).
+  Yangi `core/test_pg_backup.py` — 19 test; PG qatlami lokalda skip bo'ladi,
+  dalil CI `integration` ishidan keladi. Nazorat yugurishi: backup probe glob'i
+  `*.sqlite3` ga qaytarilganda 2 test qizardi (sabotaj grep bilan tasdiqlandi).
+- Davom etilishi kerak: drill'ning **o'zi** real serverda hali yugurtirilmagan;
+  media zaxirasi (S3 versioning yoki volume snapshot) va offsite nusxa ochiq.
+
 ## 2026-09-10 [Claude]: AWS EC2 deploy tayyorgarligi — uchta blocker va fail-fast gate
 
 Owner qarori bilan hosting AWS bo'ldi. Deployni **mumkin** qiladigan ish qilindi:

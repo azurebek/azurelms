@@ -22,8 +22,12 @@ FILE_DB_HINT = (
     "AZURELMS_TEST_FILE_DB=1 python manage.py test <modul>"
 )
 SQLITE_ONLY_HINT = (
-    "Bu imkoniyat ataylab faqat SQLite uchun qurilgan (joriy backend: {vendor}). "
-    "PostgreSQL varianti provayder tanlangandan keyin alohida quriladi."
+    "Bu yo'l ataylab faqat SQLite uchun qurilgan (joriy backend: {vendor}). "
+    "PostgreSQL varianti `core/pg_backup.py` da va o'z testlarida sinaladi."
+)
+POSTGRES_ONLY_HINT = (
+    "Bu test haqiqiy PostgreSQL talab qiladi (joriy backend: {vendor}). "
+    "CI ning `integration` ishida yuguradi."
 )
 
 
@@ -45,3 +49,15 @@ def skip_unless_sqlite(testcase):
     """SQLite'ga xos imkoniyat testini boshqa backendlarda skip qiladi."""
     if connection.vendor != "sqlite":
         testcase.skipTest(SQLITE_ONLY_HINT.format(vendor=connection.vendor))
+
+
+def skip_unless_postgres(testcase):
+    """PostgreSQL'ga xos yo'l testini boshqa backendlarda skip qiladi.
+
+    Ishlab chiqish mashinasida PostgreSQL yo'q, shuning uchun bu testlar
+    lokalda skip bo'ladi va haqiqiy dalil CI ning `integration` ishidan
+    keladi. Skip sababi ataylab matnli — "0 test yugurdi" jimgina
+    "hammasi yashil" ga aylanmasin.
+    """
+    if connection.vendor != "postgresql":
+        testcase.skipTest(POSTGRES_ONLY_HINT.format(vendor=connection.vendor))

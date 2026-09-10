@@ -23,12 +23,12 @@ class BackupProbeTests(TestCase):
     def setUp(self):
         self.definition = capability_by_slug("backup")
 
-    def _probe_with_backups(self, ages_in_days):
+    def _probe_with_backups(self, ages_in_days, suffix=".sqlite3"):
         with TemporaryDirectory() as tmp:
             root = Path(tmp)
             (root / "backups").mkdir()
             for age in ages_in_days:
-                path = root / "backups" / f"db-{age}.sqlite3"
+                path = root / "backups" / f"db-{age}{suffix}"
                 path.write_bytes(b"x" * 1024)
                 stamp = (timezone.now() - datetime.timedelta(days=age)).timestamp()
                 import os
@@ -53,6 +53,35 @@ class BackupProbeTests(TestCase):
 
     def test_the_newest_backup_decides(self):
         self.assertEqual(self._probe_with_backups([30, 0]).status, "green")
+
+    def test_a_postgres_dump_counts_as_a_backup(self):
+        """Serverdagi zaxira `.dump`, `.sqlite3` emas.
+
+        Probe faqat `*.sqlite3` qidirganda productionda har kuni zaxira
+        olinib turgan bo'lsa ham "Zaxira topilmadi" deb qizil turardi — va
+        aynan shu holat e'tibordan chetda qoladigan turdagi nosozlik.
+        """
+        self.assertEqual(
+            self._probe_with_backups([0], suffix=".dump").status, "green"
+        )
+
+    def test_the_newest_backup_decides_across_both_formats(self):
+        """Eski `.sqlite3` yangi `.dump` ni bosib ketmasin."""
+        with TemporaryDirectory() as tmp:
+            import os
+
+            root = Path(tmp)
+            (root / "backups").mkdir()
+            for age, suffix in ((30, ".sqlite3"), (0, ".dump")):
+                path = root / "backups" / f"db-{age}{suffix}"
+                path.write_bytes(b"x" * 1024)
+                stamp = (timezone.now() - datetime.timedelta(days=age)).timestamp()
+                os.utime(path, (stamp, stamp))
+            with override_settings(BASE_DIR=root):
+                result = _backup_probe(self.definition)
+        self.assertEqual(result.status, "green")
+        # Detail qiymatlari matn sifatida saqlanadi.
+        self.assertEqual(dict(result.details).get("count"), "2")
 
 
 class EmailProbeTests(TestCase):

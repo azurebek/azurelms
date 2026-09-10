@@ -169,6 +169,18 @@ jobs:
       - name: Bog'liqliklarni o'rnatish
         run: pip install -r requirements.txt
 
+      # `pg_dump`/`pg_restore` — zaxira va restore drill testlari uchun.
+      # GitHub runner'ida odatda bor, ammo image versiyasi o'zgarganda jimgina
+      # yo'qolishi mumkin va o'shanda testlar "skip" bo'lib, gate jimgina
+      # yashil qolardi. Shu sabab mavjudligi majburlanadi.
+      - name: PostgreSQL klient vositalari
+        run: |
+          if ! command -v pg_dump > /dev/null; then
+            sudo apt-get update && sudo apt-get install -y postgresql-client
+          fi
+          pg_dump --version
+          pg_restore --version
+
       - name: Baza haqiqatan PostgreSQL ekanini tasdiqlash
         run: |
           python -c "

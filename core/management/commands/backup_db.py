@@ -12,24 +12,27 @@ from pathlib import Path
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
-from core.backup_service import BackupError, create_backup
+from core.backup_service import BackupError, create_backup, default_backup_suffix
 
 
 class Command(BaseCommand):
-    help = "Bazaning izchil zaxirasini yozadi (SQLite: VACUUM INTO)"
+    help = "Bazaning izchil zaxirasini yozadi (SQLite: VACUUM INTO, PostgreSQL: pg_dump -Fc)"
 
     def add_arguments(self, parser):
         parser.add_argument(
             "--output",
             default="",
-            help="Zaxira fayli yo'li. Berilmasa: backups/db-<sana>.sqlite3",
+            help="Zaxira fayli yo'li. Berilmasa: backups/db-<sana>.<kengaytma>",
         )
 
     def handle(self, *args, **options):
         destination = options["output"]
         if not destination:
             stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-            destination = Path(settings.BASE_DIR) / "backups" / f"db-{stamp}.sqlite3"
+            # Kengaytma backendni aytib turadi: `.dump` faylni SQLite deb
+            # ochishga urinish chalkash xato beradi, va aksincha.
+            suffix = default_backup_suffix()
+            destination = Path(settings.BASE_DIR) / "backups" / f"db-{stamp}{suffix}"
 
         try:
             written = create_backup(destination)
