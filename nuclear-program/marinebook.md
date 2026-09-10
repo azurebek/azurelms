@@ -16,6 +16,21 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-10 [Codex]: Classbook jonli dars operatsion tizimi qurildi
+
+Yangi `classbook` domain app'i teacherning bitta start/finish oqimiga mavjud
+Telegram sessiya va davomatini, materiallarni, 10 turdagi mashqni, avtomatik
+grading/leaderboardni, individual natija DM'larini, lesson release va homeworkni
+uladi. Answer key revealgacha serverda qoladi; activity snapshotlari,
+permission/reconnect tekshiruvlari, private media, CSV eksport va Telegram
+guruh outbox'i 50 learner kontrakti bilan yopildi.
+
+- Branch: `codex/classbook-live-orchestrator`
+- Commitlar: `72fbe94`
+- Test holati: `python manage.py test` — 1409/1409 yashil (30 skip); `classbook` — 37/37 yashil (1 PostgreSQL-only skip); check/deploy-check, migration drift, collectstatic va secret scan pass
+- Brauzerda: teacher → matching activity ochish → student mobil submit → automatic result/teacher breakdown; websocket va polling ishladi, console xatosi `0`
+- Davom etilishi kerak: PR CI'dagi PostgreSQL 50-parallel gate; so'ng real Telegram guruh/Mini App va Android/iOS/desktop owner sign-off
+
 ## 2026-09-10 [Codex]: Playground lokal tajriba maydoniga aylantirildi
 
 `playground/` to'liq `.gitignore` ga qo'shildi va avval kuzatilgan 171 ta
