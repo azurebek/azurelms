@@ -1091,7 +1091,7 @@ $env:AZURELMS_TEST_FILE_DB='1'; python manage.py test aicontrol.test_supply_conc
 
 ## 14. Muhim eslatmalar
 
-1. **Joriy checkout (2026-09-03):** `C:\Users\azizb\Desktop\project\azurelms`; venv Python 3.12.10 + Django 6.0.8. Yo'l va branch volatile: har sessiyada `git status --short --branch` va `git worktree list` source of truth; eski OneDrive/`C:\Projects` yo'llari faqat historical yozuvlarda uchrashi mumkin.
+1. **Joriy checkout (2026-09-03):** `C:\Users\azizb\Desktop\project\azurelms`; venv Python 3.12.10 + Django 6.0.8. Yo'l va branch volatile: har sessiyada `git status --short --branch` va `git branch -a` source of truth (2026-09-10 dan worktree ishlatilmaydi — bitta checkout); eski OneDrive/`C:\Projects` yo'llari faqat historical yozuvlarda uchrashi mumkin.
 2. **Bootstrap YO'Q:** barcha shell'da `tokens.css` + custom CSS. Yangi sahifa qo'shganda shu printsipga rioya qilish.
 3. **`<SAVE_MEMORY>` tag:** AI javobida `<SAVE_MEMORY>category: fakt</SAVE_MEMORY>` ko'rinishida chiqsa, extractor ajratib `AIMemoryFact`'ga yozadi. Category: `preference`, `learning_goal`, `weak_topic`, `schedule`, `profile`, `do_not_remember`, `other`.
 4. **`@azure` mention:** AI bo'lmagan xonada xabarda `@azure` so'zi bo'lsa, AI ham javob beradi.
