@@ -16,6 +16,44 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-11 [Claude]: Classbook media testining ikki varianti solishtirildi — `main`dagi yechim qoldi
+
+2026-09-10 dan qolgan yagona ochiq savol yopildi. Antigravity va Codex ayni bir
+nosozlikni (PostgreSQL CI'da `InterfaceError: connection already closed`, 9 test)
+bir-biridan bexabar ikki yo'l bilan tuzatgan edi; `main`ga Antigravityning
+varianti tushgan, Codexning varianti esa arxivdagi `tracked.patch` da qolgan.
+
+**Qaror: `main`dagi yechim qoladi** —
+`classbook/tests.py` da `response.close()` o'rniga `response.file_to_stream.close()`.
+
+Solishtiruv:
+
+| | `main` (Antigravity) | Arxiv (Codex) |
+|---|---|---|
+| Yo'l | faqat fayl oqimi yopiladi, `request_finished` signali yuborilmaydi | test `TransactionTestCase` ga ko'chiriladi, `response.close()` qoladi |
+| Narxi | yo'q | har testdan keyin 125 jadval `TRUNCATE` (+`reset_sequences`) |
+| Tuzilishi | test qo'shnilari bilan `ClassbookViewTests` da qoladi | alohida sinf, fixture mixin takrorlanadi |
+| Zaifligi | `file_to_stream` — Django ichki atributi | yo'q |
+
+Ikkalasi ham ishlaydi, ya'ni tanlov narx bo'yicha: `TestCase` tranzaksiya bilan
+ishlaydi va rollback qiladi, `TransactionTestCase` esa butun sxemani tozalaydi —
+bu 1447 testli suite'da bekorga to'lanadigan vaqt. `file_to_stream` zaifligi
+o'rniga sabab test ichiga izoh bilan yozildi: eng ehtimolli regressiya — kimning
+ham bo'lsa buni "tozalab" `response.close()` ga qaytarishi, va o'shanda CI
+PostgreSQL ishida 9 test qaytadan qizarishi.
+
+Arxivdagi patch o'chirilmadi (`worktree-arxiv-2026-09-10/azurelms-codex-classbook/tracked.patch`) —
+u endi bekor qilingan variant sifatida qoladi.
+
+- Branch: `claude/classbook-test-qoldigi`
+- Test holati: `AZURELMS_SKIP_ENV_FILE=1 GEMINI_API_KEY= TELEGRAM_BOT_TOKEN= APP_ENV=local python manage.py test classbook`
+  — **38/38 OK (skipped=1)**; skip — `test_load.py` dagi PostgreSQL-only 50-parallel gate.
+  Nazorat yugurishi: `file_to_stream.close()` o'rniga `response.close()` qo'yilganda
+  SQLite'da suite yashil qoldi — ya'ni bu nosozlikni **faqat** CI'ning PostgreSQL
+  ishi ushlaydi, va aynan shu sabab izoh kodga yozildi.
+- Davom etilishi kerak: yo'q. Classbook kod tomoni yopiq; qolgan yagona gate —
+  ownerning real Telegram guruh / Mini App va uch qurilmadagi sign-off'i.
+
 ## 2026-09-10 [Claude]: PostgreSQL zaxira va tiklash canonical servisga ulandi
 
 Server PostgreSQL'da ishlaydi, `core/backup_service.py` esa faqat SQLite'ni
@@ -137,8 +175,8 @@ chiqdi — ularga tegilmadi.
 - Branch: `claude/nuclear-program-audit`
 - Test holati: `AZURELMS_SKIP_ENV_FILE=1 GEMINI_API_KEY= TELEGRAM_BOT_TOKEN= APP_ENV=local python manage.py test`
   — **1411/1411 OK (skipped=30)**, 82s, `main` `da07d0c` ustida
-- Davom etilishi kerak: repo-local git identity (`user.name=Codex`) Azurbek qaroriga qoldi;
-  Codex'ning `TransactionTestCase` varianti hamon arxivda va hal qilinmagan.
+- Davom etilishi kerak: repo-local git identity (`user.name=Codex`) Azurbek qaroriga qoldi.
+  *(2026-09-11: `TransactionTestCase` masalasi hal qilindi — pastdagi yozuvga qarang.)*
 
 ## 2026-09-10 [Claude]: Worktree tartibi yopildi — bitta checkout, bitta branch
 
@@ -164,8 +202,9 @@ tartibi»), §1/§4/§9 dagi worktree havolalari, `project-context.md` §14 va
 - Arxiv: `C:\Users\azizb\Desktop\project\worktree-arxiv-2026-09-10\` — har worktree'ning commit qilinmagan ishi (`tracked.patch` + untracked fayllar),
   `azurelms-codex-classbook/db.sqlite3`, va `barcha-branchlar-2026-09-10.bundle` (o'chirishdan oldingi barcha ref'lar).
 - Test holati: hujjat o'zgarishi; `AZURELMS_SKIP_ENV_FILE=1 GEMINI_API_KEY= TELEGRAM_BOT_TOKEN= python manage.py test classbook bot` — 170/170 pass (3 skip)
-- Davom etilishi kerak: Codex'ning `TransactionTestCase` variantini (arxivda) main'dagi
-  `file_to_stream.close()` yechimi bilan solishtirib, qaysi biri qolishini hal qilish.
+- Davom etilishi kerak: ~~Codex'ning `TransactionTestCase` variantini (arxivda) main'dagi
+  `file_to_stream.close()` yechimi bilan solishtirib, qaysi biri qolishini hal qilish.~~
+  **2026-09-11: hal qilindi — `main`dagi yechim qoldi (pastdagi yozuv).**
 
 ## 2026-09-10 [Antigravity]: Classbook darsini Telegramdan yopishda announce_names maxfiyligi ta'minlandi
 
