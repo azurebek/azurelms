@@ -350,6 +350,20 @@ class ClassbookViewTests(ClassbookFixtureMixin, TestCase):
 
             self.assertEqual(response.status_code, 200)
             self.assertEqual(b"".join(response.streaming_content), old_bytes)
+            # `response.close()` ATAYLAB ishlatilmaydi: u Django'ning
+            # `request_finished` signalini yuboradi, signal esa `TestCase`
+            # tranzaksiyasini tutib turgan DB ulanishini yopadi. SQLite bunga
+            # e'tibor bermaydi, PostgreSQL esa shu testdan keyingi hammasini
+            # `InterfaceError: connection already closed` bilan yiqitadi —
+            # CI'ning `integration` ishida aynan 9 ta test shundan qizargan.
+            # Bu yerda faqat fayl oqimi yopiladi: Windowsda fayl qulfi
+            # bo'shaydi (`TemporaryDirectory` tozalanadi), ulanish tirik qoladi.
+            #
+            # Ikkinchi yechim ham bor edi — testni `TransactionTestCase` ga
+            # ko'chirish. U ishlaydi, ammo har testdan keyin 125 jadvalni
+            # `TRUNCATE` qiladi va testni qo'shnilaridan ajratib, fixture
+            # sinfini takrorlashni talab qiladi. 2026-09-11 da shu variant
+            # rad etildi (marinebook).
             if hasattr(response, "file_to_stream") and response.file_to_stream:
                 response.file_to_stream.close()
 
