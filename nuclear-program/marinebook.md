@@ -16,6 +16,20 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-10 [Antigravity]: Activity ochish poygasi session qulflash bilan bartaraf etildi
+
+Codex review botining PR #94 dagi tavsiyasi bo'yicha `classbook/services.py` dagi `open_activity`
+funksiyasida faqat activity qatori emas, balki umumiy `TelegramLessonSession` qatori ham
+`select_for_update(of=("self",))` bilan qulflandi. Bu bir vaqtning o'zida ikkita har xil mashqni
+ochishga urinilganda bazadagi conditional unique constraint buzilishi natijasida yuzaga keluvchi
+500 IntegrityError o'rniga toza `another_open` kodi qaytishini kafolatlaydi; PostgreSQL outer join
+qulf xatosi `of=("self",)` orqali oldi olindi.
+
+- Branch: `antigravity/classbook-postgres-test-fix`
+- Commitlar: `e831241`
+- Test holati: `python manage.py test classbook` — 38/38 pass (1 skip); `python manage.py check --fail-level WARNING` — 0 issues
+- Davom etilishi kerak: PR #94 ga push, review commentni resolve qilish va merge
+
 ## 2026-09-10 [Antigravity]: Classbook private media testidagi PostgreSQL DB uzilishi tuzatildi
 
 `classbook/tests.py` dagi `test_activity_media_uses_the_session_snapshot_not_later_exercise_edits` testida

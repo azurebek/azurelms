@@ -152,6 +152,27 @@ class SessionLifecycleTests(ClassbookFixtureMixin, TestCase):
         result = start_class_session(actor=self.teacher, cohort=self.cohort, lesson=self.lesson)
         self.assertEqual(result.code, "playbook_not_ready")
 
+    def test_open_activity_serializes_on_session_and_rejects_second_open(self):
+        second_exercise = Exercise.objects.create(
+            course=self.course,
+            lesson=self.lesson,
+            created_by=self.teacher,
+            title="Ikkinchi mashq",
+            kind="single_choice",
+            prompt="2 + 2 = ?",
+            config={"options": [{"id": "a", "text": "4"}, {"id": "b", "text": "5"}]},
+            answer_key={"correct": ["a"]},
+        )
+        PlaybookExercise.objects.create(playbook=self.playbook, exercise=second_exercise, order=2)
+        session = self.start()
+        first_act, second_act = list(session.classbook_activities.order_by("order"))
+        opened1 = open_activity(actor=self.teacher, activity=first_act)
+        self.assertTrue(opened1.ok)
+
+        opened2 = open_activity(actor=self.teacher, activity=second_act)
+        self.assertFalse(opened2.ok)
+        self.assertEqual(opened2.code, "another_open")
+
     def test_activity_submission_results_and_finish_are_one_persistent_flow(self):
         session = self.start()
         activity = session.classbook_activities.get()

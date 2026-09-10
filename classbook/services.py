@@ -277,18 +277,24 @@ def _activity_link(activity):
 
 @transaction.atomic
 def open_activity(*, actor, activity):
-    activity = (
-        ActivityRun.objects.select_for_update()
-        .select_related("session__cohort", "session__lesson", "exercise")
-        .get(pk=activity.pk)
+    session = (
+        TelegramLessonSession.objects.select_for_update(of=("self",))
+        .select_related("cohort", "lesson")
+        .get(pk=activity.session_id)
     )
-    if not can_manage_cohort(actor, activity.session.cohort):
+    activity = (
+        ActivityRun.objects.select_for_update(of=("self",))
+        .select_related("exercise")
+        .get(pk=activity.pk, session=session)
+    )
+    activity.session = session
+    if not can_manage_cohort(actor, session.cohort):
         return ServiceResult(False, "permission_denied", "Mashqni ochish huquqi sizda yo'q.", activity=activity)
-    if activity.session.status != TelegramLessonSession.STATUS_OPEN:
+    if session.status != TelegramLessonSession.STATUS_OPEN:
         return ServiceResult(False, "session_closed", "Dars sessiyasi yopilgan.", activity=activity)
     if activity.status != ActivityRun.STATUS_QUEUED:
         return ServiceResult(False, "wrong_state", "Bu mashq navbatda emas.", activity=activity)
-    if ActivityRun.objects.filter(session=activity.session, status=ActivityRun.STATUS_OPEN).exists():
+    if ActivityRun.objects.filter(session=session, status=ActivityRun.STATUS_OPEN).exists():
         return ServiceResult(False, "another_open", "Avval ochiq mashqni yakunlang.", activity=activity)
 
     now = timezone.now()
