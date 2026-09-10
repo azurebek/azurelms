@@ -1,6 +1,8 @@
-# AzureLMS — 20-sentyabr taqdimot va readiness rejasi
+# AzureLMS — 30-sentyabr ishga tushirish va readiness rejasi
 
-**Maqsad:** 20-sentyabr 2026 — loyiha taqdimoti, boshqariladigan beta uchun dalil va production `GO/HOLD/NO-GO` qarori. **Joriy rebaseline:** 2026-08-14. Public production deploy bu sananing avtomatik natijasi emas.
+**Maqsad:** 30-sentyabr 2026 — 50 kishigacha bo'lgan boshqariladigan jonli guruhni Classbook oqimida ishga tushirish, beta dalilini yig'ish va production `GO/HOLD/NO-GO` qarori. **Joriy rebaseline:** 2026-09-10. Public production deploy bu sananing avtomatik natijasi emas.
+
+> **Owner rebaseline — 2026-09-10:** oldingi 20-sentyabr taqdimot checkpointi 30-sentyabr ishga tushirish maqsadiga uzaytirildi. `A3b Classbook` launch-critical scope'ga qabul qilindi: o'qituvchi bitta `Darsni boshlash` amali bilan davomat/material oqimini ochadi, turli mashqlarni jonli boshqaradi, 50 learner natijasi avtomatik baholanadi va reytingga tushadi; yakunlash attendance, access, homework va shaxsiy Telegram natijalarini bitta canonical oqimda yopadi. Hosting/provider admissioni bundan alohida gate bo'lib qoladi.
 
 > **Owner resurs qarori — 2026-08-14:** DigitalOcean kreditlari bekor qilingan. Production alohida qayta admission olmaguncha DigitalOcean App Platform, Serverless Inference, Managed DB/Valkey yoki Spaces ishlatilmaydi. Adapter kodi o'chirilmaydi, lekin dormant qoladi. Provider factory `AI_ALLOW_DIGITALOCEAN=False` defaulti bilan DO'ni provider yaratilishidan oldin, noma'lum providerlarni esa doim fail-closed rad etadi. Local/pre-production profil `AI_CHAT_PROVIDER=gemini`, lokal DB/cache/storage va Telegram polling mode bilan ishlaydi. Gemini free-tier “bepul va cheksiz” emas; A8 hard guardi implement/test qilingan, real DB contention va production admission evidence tugamaguncha ommaviy AI rollout ochilmaydi.
 
@@ -47,7 +49,7 @@ APEX: sertifikatga tayyorlik + owner nazorati
 
 Bu natijalardan kamida biri real cohortda o'lchanmaguncha AI kurs narxini oshirishning mustaqil asosi emas. “Speaking/pronunciation coach”, “adaptiv mastery” va “ustoz ishini avtomatik kamaytiradi” kabi claimlar faqat tegishli structured flow va eval gate'dan keyin ochiladi.
 
-## 2026-09-03 source-of-truth snapshot
+## 2026-09-10 source-of-truth snapshot
 
 | Yo'nalish | Joriy holat | Keyingi gate |
 |---|---|---|
@@ -57,18 +59,20 @@ Bu natijalardan kamida biri real cohortda o'lchanmaguncha AI kurs narxini oshiri
 | A1 runtime/CI | A1a bajarildi: `.dockerignore`, `/healthz`+`/readyz`, backup/restore, outbox lease va `.github/workflows/ci.yml` (8 required check, PostgreSQL+Valkey ishi bilan) | A1b cloud deploy `HOLD`; bog'liqlik zaiflik qarzi reyestrda |
 | A2 Control Center | Capability registry, brand/landing/kill-switch/circuit-reset mutationlari, umumiy feature flags, append-only audit, `WorkerHeartbeat`, `ReleaseRecord`, backup/email/memory probe'lari va AI cost ledgeri bor | Qolgan yagona band — A9 AI quality/cost release gate |
 | Telegram | F0–F9, outbox va Mini App foundation bor | Local polling QA; webhook/public deploy `HOLD` |
+| Classbook | `codex/classbook-live-orchestrator`da canonical session/activity/response, 10 mashq turi, realtime+poll fallback va Telegram group outbox `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | PostgreSQL 50-parallel CI gate + real Telegram/Mini App owner sign-off |
 | Landing editor | Bosqich 1 + bo'lim navigatsiyasi bor | Repeatable ro'yxatlar faqat core gate'lardan keyin |
 | SIT | S1, S3 va S4 kodda; S2 yo'q | `SITInquiry` lifecycle; real data gigiyenasi |
 
 ## Rebaseline ustuvorligi
 
-1. **A8 closeout — `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`:** barcha joriy Gemini call-pathlari ledgerga ulangan; free-model allowlist, kunlik/minute request va kunlik token cap, one-fallback, idempotency va 429 cooldown ishlaydi. Ikki DB backenddagi contention proofi **yopildi** — SQLite yarmi `aicontrol/test_supply_concurrency.py` bilan, PostgreSQL yarmi CI `integration` ishi bilan. Eng so'nggi full suite dalili PR #59 da 1013/1013 (skipped=23). Alohida OS processlari va caller-specific guest/SmartForm/lesson-reindex lease/claim K11 sifatida ochiq.
-2. **A0b + vendor-neutral A1:** private media/upload/access; `.dockerignore`, CI, readiness va restore proof. Cloud xizmati shart emas.
-3. **A2 Control Center:** effective config, capability registry, flags/kill switches, event/audit ledger, health, AI quota va release gate.
-4. **Canonical oqimlar + mobil oltin yo'l:** enrollment, lesson lifecycle, access, submission/review va notificationlar shared policy/state machine orqali; real qurilma parity.
-5. **Learner Outcome Loop minimal:** poydevor gate'lari yashil bo'lsa uch evidence modeli, Daily Coach, bitta structured practice va Progress Proof.
-6. **A10 AI Optimise (R5, owner admission 2026-08-19):** AzureAI har suhbatda notanish yordamchi bo'lib qaytmaydi — canonical persona contract, suhbatlararo davomiylik va o'lchangan xotira aniqligi. Poydevor bor (`ai/memory/`, foydalanuvchi bo'yicha `AIMemoryFact`); bo'shliq — persona (`ai/prompts/builder.py` da yozilgan) shartnoma emasligi va `AIConversationSummary` ning xonaga bog'langani. Taqdimot scope'ida emas, lekin loyiha usiz yakunlanmaydi.
-7. **Production va monetizatsiya:** hosting/provider faqat yangi owner qarori, learning evidence, reliability va iqtisod gate'idan keyin.
+1. **A3b Classbook closeout:** bitta start/finish control plane, turli deterministic mashqlar, 50 learner grading/leaderboard, Telegram guruh outbox va shaxsiy natija DM'lari. Merge gate: full suite, PostgreSQL parallel test, mobile browser va real Telegram owner sign-off.
+2. **A8 closeout — `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`:** barcha joriy Gemini call-pathlari ledgerga ulangan; free-model allowlist, kunlik/minute request va kunlik token cap, one-fallback, idempotency va 429 cooldown ishlaydi. Ikki DB backenddagi contention proofi **yopildi** — SQLite yarmi `aicontrol/test_supply_concurrency.py` bilan, PostgreSQL yarmi CI `integration` ishi bilan. Eng so'nggi full suite dalili PR #59 da 1013/1013 (skipped=23). Alohida OS processlari va caller-specific guest/SmartForm/lesson-reindex lease/claim K11 sifatida ochiq.
+3. **A0b + vendor-neutral A1:** private media/upload/access; `.dockerignore`, CI, readiness va restore proof. Cloud xizmati shart emas.
+4. **A2 Control Center:** effective config, capability registry, flags/kill switches, event/audit ledger, health, AI quota va release gate.
+5. **Canonical oqimlar + mobil oltin yo'l:** enrollment, lesson lifecycle, access, submission/review va notificationlar shared policy/state machine orqali; real qurilma parity.
+6. **Learner Outcome Loop minimal:** poydevor gate'lari yashil bo'lsa uch evidence modeli, Daily Coach, bitta structured practice va Progress Proof.
+7. **A10 AI Optimise (R5, owner admission 2026-08-19):** AzureAI har suhbatda notanish yordamchi bo'lib qaytmaydi — canonical persona contract, suhbatlararo davomiylik va o'lchangan xotira aniqligi. Poydevor bor (`ai/memory/`, foydalanuvchi bo'yicha `AIMemoryFact`); bo'shliq — persona (`ai/prompts/builder.py` da yozilgan) shartnoma emasligi va `AIConversationSummary` ning xonaga bog'langani. Taqdimot scope'ida emas, lekin loyiha usiz yakunlanmaydi.
+8. **Production va monetizatsiya:** hosting/provider faqat yangi owner qarori, learning evidence, reliability va iqtisod gate'idan keyin.
 
 Prompt-only `word_builder`, `conversation_partner`, yangi model picker, streak/PWA bezaklari va chuqur SRS avtomatikasi yuqoridagi qatlamlardan oldinga chiqmaydi.
 

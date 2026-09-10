@@ -139,6 +139,24 @@ beat: celery -A core beat -l info
 - Darsni ko'rish **va yozish** gate'i `courses/access_service.py::check_lesson_access`da canonical; web, bot va Mini App adapterlari yopiq darsni chetlab o'tmaydi
 - Assignment review/progress notification qoidasi `courses/submission_service.py`da; XP yozuvi `users/xp.py::award_xp()` orqali bazada atomik bajariladi
 
+### `classbook`
+
+**Mas'uliyat:** jonli darsni bitta teacher control plane'dan boshqarish: playbook, Telegram davomat/material, turli mashqlar, avtomatik baholash, realtime leaderboard, yakuniy davomat/access/homework va natija eksporti.
+
+**Asosiy modellar:**
+- `Exercise` — 10 turdagi versionlangan mashq ta'rifi; media private storage'da
+- `LessonPlaybook`, `PlaybookExercise` — cohort+dars uchun tayyor timeline
+- `ActivityRun` — dars boshlangandagi immutable mashq snapshoti va reveal holati
+- `StudentResponse` — bitta learner/activity javobi, server-side grading va tezlik bonusi
+- `TelegramGroupDelivery` — guruh xabarlari uchun claim/lease/retry outbox
+
+**Muhim qoidalar:**
+- Classbook parallel davomat yoki release haqiqatini yaratmaydi: mavjud `bot.TelegramLessonSession`/`TelegramLessonCheckIn`, `cohorts.attendance_service`, `courses.release_service` va `Notification`→`TelegramOutbox`ni chaqiradi.
+- Answer key faqat server snapshotida; public payload va submit javobida reveal oldidan score/key chiqmaydi.
+- Teacher scope `core.access.teacher_cohort_queryset()` orqali default-deny; student faqat effective-active enrollment bilan kiradi; Channels socket har message'da accessni qayta tekshiradi.
+- Realtime Channels asosiy tezkor adapter, HTTP polling uning mobil/network fallback'i.
+- `/dars` va `/dars tugadi` tayyor Classbook playbook bo'lsa aynan shu orchestratorni chaqiradi; davomat posti adapter tomonidan bevosita yuborilganda duplicate group delivery yaratilmaydi.
+
 ### `cohorts`
 
 **Mas'uliyat:** Cohort va guruhlar, enrollment status va payment lifecycle, checkout, attendance.
@@ -431,7 +449,8 @@ AI room nomi birinchi prompt'dan avtomatik o'zgarishi mumkin (`maybe_name_ai_roo
 
 - F0–F9 va Mini App foundation kod/testlarda mavjud: account linking, role-aware menyu, attendance, course/lesson/assignment/quiz oqimlari, checkout/admin bildirishnomalari, broadcast va AI boshqaruvlari.
 - Local'da polling default. Production webhook, unique secret, doimiy outbox process va prod bot admission'i production qayta ochilguncha HOLD.
-- Teacher `/start_lesson` qiladi → `TelegramLessonSession` yaratiladi; talabalar check-in qiladi → `TelegramLessonCheckIn`; natija LMS `Attendance`ga bog'lanadi.
+- Teacher webdan `Darsni boshlash` yoki botdan `/dars N` qiladi → `TelegramLessonSession` yaratiladi; tayyor Classbook playbook activity snapshotlarini va material outboxini yaratadi; talabalar check-in yoki mashq orqali `TelegramLessonCheckIn` oladi. `/dars tugadi` ham Classbook finish servisidan o'tib, natijani LMS `Attendance`, lesson release va homeworkga bog'laydi.
+- Individual `Notification` DM'lari va Classbook `TelegramGroupDelivery` guruh xabarlari bitta `telegram-outbox` worker/heartbeat va Control Center probe'i orqali kuzatiladi.
 - Multi-step assignment/quiz holati DB'dagi `BotPendingAction` orqali restart-safe saqlanadi.
 - Guest AI demo `AISettings.guest_demo_enabled=False` bilan default-off va 5 savol counteriga ega. Owner yoqsa runtime call `AISupplyEvent.CALL_BOT_GUEST` orqali global pre-reservation/reconciliation'dan o'tadi; injected provider faqat test seam'i. PR #59 muvaffaqiyat hisoblagichini bazada atomik oshiradi, ammo parallel limit check→provider→increment oralig'i uchun to'liq lock/lease hali yo'q.
 

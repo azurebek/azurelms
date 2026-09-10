@@ -399,6 +399,34 @@ def start_lesson_session(*, chat_id, chat_title, actor_telegram_id, lesson_ref):
     if error:
         return StartLessonResult(ok=False, code=error.code, message=error.message)
 
+    # Classbook playbook'i tayyor bo'lsa Telegram buyrug'i ham aynan webdagi
+    # canonical orchestratorga kiradi: activity snapshotlari va material
+    # outbox'i yaratiladi. Davomat postini esa shu Telegram handler darhol
+    # yuboradi, shu sabab orchestratorga ikkinchi nusxani navbatlamaslikni
+    # aytamiz. Playbook yo'q eski cohortlar legacy davomat oqimida qoladi.
+    from classbook.models import LessonPlaybook
+
+    if LessonPlaybook.objects.filter(
+        cohort=cohort, lesson=lesson, status=LessonPlaybook.STATUS_READY
+    ).exists():
+        from classbook.services import start_class_session
+
+        orchestrated = start_class_session(
+            actor=actor,
+            cohort=cohort,
+            lesson=lesson,
+            require_telegram=True,
+            queue_attendance=False,
+        )
+        return StartLessonResult(
+            ok=orchestrated.ok,
+            code=orchestrated.code,
+            message=orchestrated.message,
+            session=orchestrated.session,
+            lesson_index=lesson_index,
+            checkin_count=(orchestrated.session.checkins.count() if orchestrated.session else 0),
+        )
+
     try:
         session = TelegramLessonSession.objects.create(
             cohort=cohort,
@@ -498,6 +526,13 @@ def register_checkin(*, session_id, telegram_user_id, telegram_username=""):
             checkin_count=session.checkins.count(),
         )
 
+    # Webdagi teacher console davomat sonini darhol ko'rsin. Telegram
+    # callback adapter bo'lib qoladi; real-time event canonical sessionga.
+    from classbook.realtime import broadcast_after_commit
+    broadcast_after_commit(session.id, "attendance_changed", {
+        "checkin_count": session.checkins.count(),
+    })
+
     return CheckInResult(
         ok=True,
         code="checked_in",
@@ -535,6 +570,33 @@ def close_lesson_session(*, chat_id, actor_telegram_id):
             code="permission_denied",
             message="Bu cohort uchun sessiyani yopish huquqi sizda yo'q.",
             session=session,
+        )
+
+    # Classbook'da boshlangan dars botdan yakunlansa ham access/homework va
+    # activity wrap-up chetlab o'tmaydi. Yakuniy davomat postini Telegram
+    # handlerning o'zi darhol yozadi; canonical service faqat homeworkni
+    # outboxga qo'yadi va qolgan domen amallarini bajaradi.
+    from classbook.models import LessonPlaybook
+
+    if session.classbook_activities.exists() or LessonPlaybook.objects.filter(
+        cohort=session.cohort,
+        lesson=session.lesson,
+        status=LessonPlaybook.STATUS_READY,
+    ).exists():
+        from classbook.services import finish_class_session
+
+        orchestrated = finish_class_session(
+            actor=actor,
+            session=session,
+            queue_attendance_summary=False,
+        )
+        return CloseLessonResult(
+            ok=orchestrated.ok,
+            code=orchestrated.code,
+            message=orchestrated.message,
+            session=orchestrated.session,
+            summary=orchestrated.summary,
+            details=orchestrated.details,
         )
 
     enrollments = list(

@@ -1,0 +1,17 @@
+{% extends "users/base_app.html" %}{% load static %}
+{% block app_title %}Jonli mashq{% endblock %}{% block app_icon %}bi-lightning-charge{% endblock %}{% block app_topbar_title %}Classbook mashqi{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'classbook/classbook.css' %}">{% endblock %}
+{% block page_js %}<script defer src="{% static 'classbook/socket.js' %}"></script><script defer src="{% static 'classbook/live-activity.js' %}"></script>{% endblock %}
+{% block app_content %}
+<div class="cb-wrap cb-activity-wrap" data-live-activity data-submit-url="{% url 'classbook:live_activity_submit' activity.id %}" data-state-url="{% url 'classbook:live_activity_state' activity.id %}" data-result-url="{% url 'classbook:activity_result' activity.id %}" data-session-id="{{ activity.session_id }}">
+  <div class="cb-activity-top"><a href="{% url 'classbook:live_session' activity.session_id %}"><i class="bi bi-arrow-left"></i> Darsga qaytish</a><span class="cb-timer" data-timer>--:--</span></div>
+  <section class="cb-panel cb-question">
+    <span class="cb-eyebrow">{{ activity.exercise.get_kind_display }}</span><h1>{{ activity.snapshot.title }}</h1>
+    {% if activity.snapshot.instructions %}<p class="cb-instructions">{{ activity.snapshot.instructions }}</p>{% endif %}
+    {% if activity.snapshot.media_name %}{% if activity.snapshot.media_kind == 'image' %}<img class="cb-media" src="{% url 'classbook:activity_media' activity.id %}" alt="Mashq rasmi">{% else %}<audio class="cb-audio" controls preload="metadata" src="{% url 'classbook:activity_media' activity.id %}"></audio>{% endif %}{% endif %}
+    <div class="cb-prompt">{{ activity.snapshot.prompt|linebreaksbr }}</div>
+    {% if response %}<div class="cb-success"><i class="bi bi-check2-circle"></i><strong>Javobingiz qabul qilingan.</strong><span>O'qituvchi natijani ochishini kuting.</span></div>{% elif activity.status != 'open' %}<div class="cb-warning">Bu mashq hozir javob qabul qilmayapti.</div>{% else %}<form data-answer-form><div data-exercise-renderer></div><button class="cb-btn cb-btn-primary cb-submit" type="submit">Javobni yuborish <i class="bi bi-arrow-right"></i></button><div class="cb-form-status" data-form-status role="status"></div></form>{% endif %}
+  </section>
+</div>
+{{ exercise_payload|json_script:"exercisePayload" }}
+{% endblock %}

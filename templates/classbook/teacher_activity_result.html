@@ -1,0 +1,22 @@
+{% extends "base_teacher.html" %}
+{% load static %}
+{% block t_title %}Mashq natijasi{% endblock %}
+{% block t_icon %}bi-bar-chart-fill{% endblock %}
+{% block t_topbar %}Classbook · Natija{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'classbook/classbook.css' %}">{% endblock %}
+{% block t_content %}
+<div class="cb-wrap">
+  <header class="cb-page-head">
+    <div><span class="cb-eyebrow">{{ activity.session.cohort.name }} · {{ activity.get_status_display }}</span><h1>{{ activity.snapshot.title }}</h1><p>{{ activity.snapshot.prompt }}</p></div>
+    <div class="cb-actions"><a class="cb-btn cb-btn-secondary" href="{% url 'classbook:teacher_activity_export' activity.id %}"><i class="bi bi-download"></i> CSV</a><a class="cb-btn cb-btn-primary" href="{% url 'classbook:teacher_session' activity.session_id %}">Dars boshqaruvi</a></div>
+  </header>
+  <section class="cb-panel">
+    <div class="cb-panel-head"><span><i class="bi bi-trophy"></i> Natijalar</span><small>{{ rows|length }} ta javob</small></div>
+    <div class="cb-table-wrap"><table class="cb-table"><thead><tr><th>O‘rin / o‘quvchi</th><th>Ball</th><th>Aniqlik</th><th>Vaqt</th><th>Javob</th><th>To‘g‘ri javob</th></tr></thead><tbody>
+      {% for row in rows %}<tr><td><strong>{{ row.rank }}. {{ row.student.get_full_name|default:row.student.username }}</strong><small>@{{ row.student.username }}</small></td><td><strong>{{ row.response.score }} / {{ row.response.max_score }}</strong><small>+{{ row.response.speed_bonus }} tezlik</small></td><td>{{ row.response.accuracy_percent|floatformat:0 }}%</td><td>{{ row.response.response_ms }} ms</td><td>{{ row.breakdown.submitted|default:"—" }}</td><td>{{ row.breakdown.correct|default:"—" }}</td></tr>
+      {% empty %}<tr><td colspan="6" class="cb-empty">Hali javob yo‘q.</td></tr>{% endfor %}
+    </tbody></table></div>
+  </section>
+  {% if activity.snapshot.explanation %}<section class="cb-panel cb-form"><h2>Tushuntirish</h2><p>{{ activity.snapshot.explanation }}</p></section>{% endif %}
+</div>
+{% endblock %}

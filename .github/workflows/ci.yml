@@ -106,6 +106,9 @@ jobs:
             bot.test_inactive_staff_denied \
             bot.test_webhook_security \
             bot.test_outbox_lease \
+            classbook.tests \
+            classbook.test_delivery_worker \
+            classbook.test_realtime \
             messenger.test_socket_access_recheck \
             users.test_telegram_auth_security \
             aicontrol.test_supply_concurrency

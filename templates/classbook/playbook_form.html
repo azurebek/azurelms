@@ -1,0 +1,38 @@
+{% extends "base_teacher.html" %}
+{% load static %}
+{% block t_title %}Dars playbook'i{% endblock %}
+{% block t_icon %}bi-list-check{% endblock %}
+{% block t_topbar %}Classbook · Playbook{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'classbook/classbook.css' %}">{% endblock %}
+{% block t_content %}
+<div class="cb-wrap">
+  <header class="cb-page-head"><div><span class="cb-eyebrow">{{ cohort.name }}</span><h1>{{ lesson.title }}</h1><p>Dars boshlanganda bajariladigan barcha protseduralar shu yerda tayyorlanadi.</p></div><a class="cb-btn cb-btn-secondary" href="{% url 'classbook:teacher_home' %}">Classbook</a></header>
+  <div class="cb-layout">
+    <form method="post" class="cb-panel cb-form">
+      {% csrf_token %}<input type="hidden" name="action" value="save">
+      <h2>Dars oqimi</h2>
+      {% include "classbook/field.html" with field=form.status %}
+      {% include "classbook/field.html" with field=form.opening_message %}
+      {% include "classbook/field.html" with field=form.materials_message %}
+      {% include "classbook/field.html" with field=form.homework_message %}
+      {% include "classbook/field.html" with field=form.late_after_minutes %}
+      <label class="cb-check">{{ form.auto_release_lesson }} <span>Dars yakunida platformadagi darsni avtomatik ochish</span></label>
+      <label class="cb-check">{{ form.announce_names }} <span>Telegram guruhda davomat ismlarini ko'rsatish</span></label>
+      <button class="cb-btn cb-btn-primary" type="submit">Playbook'ni saqlash</button>
+    </form>
+    <section class="cb-panel">
+      <div class="cb-panel-head"><span><i class="bi bi-lightning"></i> Mashqlar timeline'i</span><small>{{ steps|length }} ta</small></div>
+      <div class="cb-step-list">
+        {% for step in steps %}<div class="cb-step"><span class="cb-order">{{ step.order }}</span><span class="cb-grow"><strong>{{ step.exercise.title }}</strong><small>{{ step.exercise.get_kind_display }} · {{ step.exercise.time_limit_seconds }} soniya</small></span><div class="cb-step-actions">{% if not forloop.first %}<form method="post" action="{% url 'classbook:playbook_move_exercise' step.id 'up' %}">{% csrf_token %}<button class="cb-icon-btn" type="submit" aria-label="Yuqoriga"><i class="bi bi-arrow-up"></i></button></form>{% endif %}{% if not forloop.last %}<form method="post" action="{% url 'classbook:playbook_move_exercise' step.id 'down' %}">{% csrf_token %}<button class="cb-icon-btn" type="submit" aria-label="Pastga"><i class="bi bi-arrow-down"></i></button></form>{% endif %}<form method="post" action="{% url 'classbook:playbook_remove_exercise' step.id %}">{% csrf_token %}<button class="cb-icon-btn" type="submit" aria-label="Olib tashlash"><i class="bi bi-x-lg"></i></button></form></div></div>
+        {% empty %}<div class="cb-empty">Mashq qo'shilmagan. Dars davomat va material bilan ishlaydi, ammo interaktiv bosqich bo'lmaydi.</div>{% endfor %}
+      </div>
+      <form class="cb-add-row" method="post" action="{% url 'classbook:playbook_add_exercise' playbook.id %}">{% csrf_token %}<select name="exercise_id" required><option value="">Mashq tanlang…</option>{% for item in available_exercises %}<option value="{{ item.id }}">{{ item.title }} · {{ item.get_kind_display }}</option>{% endfor %}</select><button class="cb-btn cb-btn-secondary" type="submit"><i class="bi bi-plus"></i> Qo'shish</button></form>
+      <a class="cb-btn cb-btn-quiet" href="{% url 'classbook:exercise_create' %}"><i class="bi bi-plus-lg"></i> Yangi mashq yaratish</a>
+    </section>
+  </div>
+  {% if playbook.status == "ready" %}
+  <section class="cb-launchbar"><div><strong>Darsga tayyor</strong><small>Telegram davomat, materiallar, {{ steps|length }} mashq, access va vazifa bitta oqimda.</small></div>{% if cohort.telegram_chat_id %}<form method="post" action="{% url 'classbook:session_start' cohort.id lesson.id %}" data-confirm="Darsni hozir boshlaysizmi?">{% csrf_token %}<button class="cb-btn cb-btn-start" type="submit"><i class="bi bi-play-fill"></i> Darsni boshlash</button></form>{% else %}<span class="cb-warning">Telegram guruhi bog'lanmagan</span>{% endif %}</section>
+  {% endif %}
+</div>
+<script>document.querySelectorAll('[data-confirm]').forEach(function(form){form.addEventListener('submit',function(event){if(!confirm(form.dataset.confirm))event.preventDefault();});});</script>
+{% endblock %}

@@ -1,6 +1,6 @@
 # 03 — Mahsulot backlog: ADMIT / NEXT / HOLD / CUT
 
-*Rebaseline: 2026-08-14. Platforma = Azurbek boshqaradigan bitta kurs operatsion tizimi. Local/pre-productionda DigitalOcean `HOLD`; Gemini free-tier global supply budgeti yangi stop-gate. Har band learner outcome yoki owner workload, canonical owner, adapterlar, acceptance evidence, flag/rollback va fazaga ega bo'lmasa ish boshlanmaydi.*
+*Rebaseline: 2026-09-10. Platforma = Azurbek boshqaradigan bitta kurs operatsion tizimi. 30-sentyabrgacha 50 kishilik boshqariladigan guruhni ishga tushirish uchun A3b Classbook joriy active product slice. Local/pre-productionda DigitalOcean `HOLD`; Gemini free-tier global supply budgeti stop-gate bo'lib qoladi. Har band learner outcome yoki owner workload, canonical owner, adapterlar, acceptance evidence, flag/rollback va fazaga ega bo'lmasa ish boshlanmaydi.*
 
 ## Ish tartibi
 
@@ -10,7 +10,7 @@
 4. `NEXT` band faqat Azurbek admission berganda `ADMIT`ga o'tadi.
 5. Queue qarori: `ADMIT` / `NEXT` / `HOLD` / `CUT`. Execution holati: `PLANNED` / `IN PROGRESS` / `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` / `EVIDENCE READY` / `BLOCKED`.
 6. **Istisno — `S. SIT`:** owner qarori bilan A-narvoniga parallel yuritiladi (1-qoidadan ozod). Uning slice'lari o'zaro ketma-ket boradi va A bandlarini to'xtatmaydi; narxi — owner vaqtining bo'linishi (`S-R1`).
-7. **Joriy active closeout (A4 yangilanishi 2026-09-04):** A3 agent scope'i `IMPLEMENTED/TESTED`, qolgani ownerning real/demo cohort o'tishi. A5 ning oltita texnik bandi yopilgan, qolgani Android Chrome, iOS Safari va desktop Chrome'da uch qurilmali sign-off (mikrofon, upload, Mini App, dark/light). A4 uchun owner Economic/Standard/Intensive rejasini berdi: payment foundation main'da, catalog/cohort lokal testlangan (#70); xizmat workflow'lari va rollout navbatda ([ledger](../pricing-packages-plan.md)). A2 ning yagona ochiq bandi A9 AI quality/cost release gate. A8 K11 caller-specific lease/claim closeoutidan tashqari bajarilgan; yangi AI skill, bulk generation, `heavy` search yoki ommaviy AI beta hamon yo'q.
+7. **Joriy active slice (owner re-admission 2026-09-10):** `A3b Classbook` — 50 learner uchun jonli mashq, avtomatik grading/leaderboard va bitta start/finish dars protsedurasi. A4 premium workflow hamda A6/A7/A9 yangi outcome scope'i Classbook closeoutigacha oldinga chiqmaydi. A5 real-device sign-off Classbook student/teacher oqimlarini ham qamraydi.
 
 ### Joriy status snapshot
 
@@ -21,7 +21,7 @@
 | A1b | `HOLD` | `PLANNED` | cloud deploy va managed services |
 | A2 | `ADMIT` | `IMPLEMENTED/TESTED` | audit ledgeri, kill switch, circuit reset, heartbeat, `ReleaseRecord`, flag registri, cost ledgeri va backup/email/memory probe'lari kodda; **qolgan yagona band — AI quality/cost release gate, u esa A9 ning ishi** |
 | A8 | `ADMIT` | `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | supply guard kod/target/full testlarda; PostgreSQL contention proofi CI `integration` ishida yopildi, alohida OS processlari bilan takrorlash ochiq |
-| A3 | `ADMIT` | `IMPLEMENTED/TESTED` | to'rt slice + Codex auditidan kelgan to'rtta tuzatish + oltin oqim E2E va Mini App parity main'da; **qolgani — owner'ning real cohort bilan o'tishi** |
+| A3/A3b | `ADMIT` | `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | oldingi canonical oqimlar main'da; Classbook live session/activity/response, turli mashqlar, Telegram group outbox va 50 learner gate'i `codex/classbook-live-orchestrator`da |
 | A4 | `ADMIT` | `IN PROGRESS` | payment foundation main'da, catalog/cohort lokal testlangan (#70); premium workflow/UI/rollout keyingi bosqichlar — [ledger](../pricing-packages-plan.md) |
 | A5 | `ADMIT` | `IMPLEMENTED/TESTED` | oltita texnik band ham yopildi (messenger, dars, imtihon, checkout, attendance, reconnect) + shell tap targetlari; **qolgani faqat owner'ning uch qurilmadagi sign-off'i** |
 | S1/S3/S4 | `— delivered` | `EVIDENCE READY` | portal, grounded advisor va owner backoffice kodda |
@@ -80,9 +80,9 @@
 - **2026-07-27 landing editor foundation:** `/backoffice/landing/` Bosqich 1 va bo'lim TOC/tab main'da; owner-only, reason+confirmation, `LogEntry` va no-op patterni. Repeatable CRUD/reorder, iframe preview, audit history/rollback hali `HOLD/NEXT`; A2 tugagan degani emas.
 - **Faza:** R1.
 
-### A3. Live Lesson Orchestrator — `IMPLEMENTED/TESTED`, `M contract + L adapters/UI`
+### A3. Live Lesson Orchestrator + Classbook — `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`, `M contract + L adapters/UI`
 
-- **Outcome:** Azurbek dars kunini ≤3 asosiy amalda boshqaradi; web/bot/Mini App bir xil state ko'rsatadi.
+- **Outcome:** Azurbek darsni bitta `Darsni boshlash` amali bilan ochadi, mashqlarni timeline'dan boshqaradi va bitta `Darsni yakunlash` bilan davomat/access/homework oqimini yopadi; web/bot/Mini App bir xil state ko'rsatadi.
 - **Canonical state:** mega-state emas. `LessonRun` schedule/live/check-in, `LessonAccess` locked/released, `AssignmentLifecycle` open/submitted/reviewed alohida graph; orchestrator ularni owner flow'ida aggregate qiladi.
 - **Scope:** oldingi A0 “Dars kuni” + bot attendance + release + core notification + grading queue.
 - **Acceptance:** transitionlar permission/idempotency/invariant testli; notification side-effect `on_commit`; test cohortda end-to-end; adapter parity contract.
@@ -90,7 +90,9 @@
 - **2026-09-03 Codex auditidan kelgan to'rtta tuzatish:** (1) `527beb3` — bitta davomat hodisasi ikkita Telegram DM yuborardi (canonical `Notification`→`TelegramOutbox` ustiga adapter o'zi ham DM qo'shardi); (2) `6476125` — `bot/services.py::can_manage_cohort` A0b/1 ko'chishidan chetda qolgan va `is_active_staff` o'zi yetarli edi, ya'ni har qanday faol staff **boshqa o'qituvchining** guruh sessiyasini ocha/yopa olardi; (3) `58e9ca7` — yopiq darsga yozib bo'lardi: qulf faqat ko'rsatishda ishlardi, web'da to'g'ridan-to'g'ri POST va botda saqlangan `BotPendingAction` ikkala qulfni ham chetlab o'tardi, tuzatish `courses/access_service.py::check_lesson_access` bilan canonical servisga qo'yildi; (4) `e114950` — bildirishnoma havolasi Mini App avto-loginini chetlab o'tardi.
 - **2026-09-03 oltin oqim E2E (`c0cb9b2`):** `core/test_golden_flow_e2e.py` bitta o'quvchini `release → o'qish → vazifa → review → keyingi dars ochiladi → quiz → XP` yo'lidan olib o'tadi va har qadamdan keyin ikkala adapterni so'roq qiladi (qulf sababi matni ham solishtiriladi). Test yozilishi bilan haqiqiy nuqson topdi: XP uch joyda `read-modify-write` bilan yozilardi va o'qituvchi bergan +25 XP quiz baholanganda jimgina yo'qolardi. Yagona yozuv nuqtasi `users/xp.py::award_xp()` (`F()` + `Greatest`).
 - **2026-09-03 Mini App parity:** `bot/test_miniapp_parity.py` — Mini App uchinchi adapter sifatida shartnomaga qo'shildi. Nuqson topilmadi: `telegram_miniapp` bayrog'i imtiyoz emas, sessiya web bilan bir xil javob beradi va deaktivatsiya qilingan hisob sessiya olmaydi. Nazorat yugurishida bayroq qulfni ochadigan qilinganda 3 test yiqildi, ya'ni shartnoma haqiqatan qulflangan.
-- **Qolgan scope:** agent bajara olmaydigan qism — owner'ning real (yoki demo) cohort bilan boshdan-oxir o'tishi. Avtomat E2E bu o'tishning o'rnini bosmaydi: u kodni tekshiradi, jonli dars kunini emas.
+- **2026-09-10 A3b owner admission — Classbook:** oddiy quiz emas, 10 deterministic mashq turi (single/multiple choice, true/false, short answer, fill blank, matching, ordering, categorization, unscramble, poll); versionlangan exercise snapshot va server-side answer key; `ActivityRun`/`StudentResponse`; realtime Channels + HTTP polling fallback; tezlik bonusi va 50 learner leaderboard. Mavjud `TelegramLessonSession`/`CheckIn`, canonical attendance/XP, lesson release va `Notification`→DM oqimlari qayta ishlatiladi. Guruh xabarlari alohida lease/retry outboxda, ammo o'sha Telegram worker va Control Center orqali ishlaydi. O'qituvchi va o'quvchi uchun 390px responsive yuzalar, private media, alohida natija paneli va CSV eksport mavjud.
+- **A3b acceptance:** 50 javob duplicate'siz grade/rank; PostgreSQL real parallel test; answer key/score reveal'dan oldin chiqmaydi; teacher default-deny va socket revocation; web `/dars` adapter parity; worker group delivery smoke; start/finish idempotency; real Telegram guruh + Android/iOS/desktop owner sign-off.
+- **Qolgan scope:** PR CI'dagi PostgreSQL parallel gate va ownerning real (yoki demo) cohort bilan Telegram/Mini App boshdan-oxir o'tishi. Avtomat E2E bu o'tishning o'rnini bosmaydi: u kodni tekshiradi, jonli dars kunini emas.
 - **Faza:** R2.
 
 ### A4. Acquisition, payment va entitlement — `IN PROGRESS`, `M contract + L adapters`

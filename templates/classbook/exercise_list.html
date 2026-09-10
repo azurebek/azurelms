@@ -1,0 +1,24 @@
+{% extends "base_teacher.html" %}
+{% load static %}
+{% block t_title %}Mashqlar banki{% endblock %}
+{% block t_icon %}bi-collection{% endblock %}
+{% block t_topbar %}Classbook · Mashqlar{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'classbook/classbook.css' %}">{% endblock %}
+{% block t_content %}
+<div class="cb-wrap">
+  <header class="cb-page-head">
+    <div><span class="cb-eyebrow">Qayta ishlatiladigan kontent</span><h1>Mashqlar banki</h1><p>Bir mashqni turli playbook va darslarda ishlatishingiz mumkin.</p></div>
+    <div class="cb-actions"><a class="cb-btn cb-btn-secondary" href="{% url 'classbook:teacher_home' %}">Classbook</a><a class="cb-btn cb-btn-primary" href="{% url 'classbook:exercise_create' %}"><i class="bi bi-plus-lg"></i> Yangi mashq</a></div>
+  </header>
+  <section class="cb-panel">
+    <div class="cb-table-wrap"><table class="cb-table"><thead><tr><th>Mashq</th><th>Tur</th><th>Kurs</th><th>Vaqt</th><th>Ball</th><th></th></tr></thead><tbody>
+    {% for exercise in exercises %}<tr>
+      <td><strong>{{ exercise.title }}</strong><small>{{ exercise.prompt|truncatechars:80 }}</small></td>
+      <td><span class="cb-badge">{{ exercise.get_kind_display }}</span></td><td>{{ exercise.course.title }}</td>
+      <td>{{ exercise.time_limit_seconds }}s</td><td>{{ exercise.max_points }} + {{ exercise.speed_bonus_percent }}%</td>
+      <td><a class="cb-btn cb-btn-secondary" href="{% url 'classbook:exercise_edit' exercise.id %}">Tahrirlash</a></td>
+    </tr>{% empty %}<tr><td colspan="6" class="cb-empty">Mashq hali yaratilmagan.</td></tr>{% endfor %}
+    </tbody></table></div>
+  </section>
+</div>
+{% endblock %}

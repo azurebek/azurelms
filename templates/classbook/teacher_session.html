@@ -1,0 +1,37 @@
+{% extends "base_teacher.html" %}
+{% load static %}
+{% block t_title %}Jonli dars{% endblock %}
+{% block t_icon %}bi-broadcast{% endblock %}
+{% block t_topbar %}Classbook · Jonli dars{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'classbook/classbook.css' %}">{% endblock %}
+{% block page_js %}<script defer src="{% static 'classbook/socket.js' %}"></script><script defer src="{% static 'classbook/teacher-live.js' %}"></script>{% endblock %}
+{% block t_content %}
+<div class="cb-wrap" data-teacher-session data-session-id="{{ session.id }}" data-state-url="{% url 'classbook:teacher_session_state' session.id %}">
+  <header class="cb-session-head">
+    <div><span class="cb-live-pill"><i></i>{% if session.status == 'open' %}Jonli{% else %}Yakunlangan{% endif %}</span><h1>{{ session.lesson.title }}</h1><p>{{ session.cohort.name }} · {{ session.started_at|date:"d.m.Y H:i" }}</p></div>
+    <div class="cb-actions"><a class="cb-btn cb-btn-secondary" href="{% url 'classbook:teacher_session_export' session.id %}"><i class="bi bi-download"></i> CSV</a>{% if session.status == 'open' %}<form method="post" action="{% url 'classbook:session_finish' session.id %}" data-confirm="Darsni yakunlaysizmi? Davomat yoziladi, dars ochiladi va uyga vazifa yuboriladi.">{% csrf_token %}<button class="cb-btn cb-btn-danger" type="submit"><i class="bi bi-stop-fill"></i> Darsni yakunlash</button></form>{% endif %}</div>
+  </header>
+  <div class="cb-stat-grid">
+    <div class="cb-stat"><span>Davomat</span><strong><b data-attendance-count>{{ attendance_count }}</b>/{{ roster_count }}</strong><small>check-in yoki mashq</small></div>
+    <div class="cb-stat"><span>Joriy mashq</span><strong>{% if current_activity %}{{ current_activity.order }}{% else %}—{% endif %}</strong><small>{% if current_activity %}{{ current_activity.snapshot.title }}{% else %}ochiq mashq yo'q{% endif %}</small></div>
+    <div class="cb-stat"><span>Telegram navbati</span><strong data-delivery-pending>{{ delivery_counts.queued|default:0 }}</strong><small>{{ delivery_counts.failed|default:0 }} xato</small></div>
+  </div>
+  <div class="cb-layout cb-control-layout">
+    <section class="cb-panel">
+      <div class="cb-panel-head"><span><i class="bi bi-list-ol"></i> Dars timeline'i</span><small>Keyingi amal shu yerda</small></div>
+      <div class="cb-step-list">
+      <div class="cb-step cb-step-done"><span class="cb-order"><i class="bi bi-check"></i></span><span class="cb-grow"><strong>Davomat va materiallar</strong><small>Telegram navbatiga qo'yilgan</small></span></div>
+      {% for activity in activities %}<div class="cb-step {% if activity.status == 'open' %}cb-step-live{% elif activity.status == 'revealed' %}cb-step-done{% endif %}" data-activity-row="{{ activity.id }}">
+        <span class="cb-order">{{ activity.order }}</span><span class="cb-grow"><strong>{{ activity.snapshot.title }}</strong><small>{{ activity.exercise.get_kind_display }} · <b data-response-count>{{ activity.response_count }}</b> javob · {{ activity.get_status_display }}</small></span>
+        {% if session.status == 'open' and activity.status == 'queued' and not current_activity %}<form method="post" action="{% url 'classbook:activity_open' activity.id %}">{% csrf_token %}<button class="cb-btn cb-btn-start" type="submit"><i class="bi bi-play-fill"></i> Ochish</button></form>{% elif activity.status == 'open' %}<form method="post" action="{% url 'classbook:activity_close' activity.id %}">{% csrf_token %}<button class="cb-btn cb-btn-danger" type="submit"><i class="bi bi-stop-fill"></i> Natijani chiqarish</button></form>{% elif activity.status == 'revealed' %}<a class="cb-btn cb-btn-secondary" href="{% url 'classbook:teacher_activity_result' activity.id %}">Natija</a>{% endif %}
+      </div>{% empty %}<div class="cb-empty">Bu playbook'da mashq yo'q.</div>{% endfor %}
+      </div>
+    </section>
+    <aside class="cb-panel">
+      <div class="cb-panel-head"><span><i class="bi bi-trophy"></i> Dars reytingi</span><small>Top 10</small></div>
+      <div class="cb-leaderboard" data-leaderboard>{% for row in leaderboard %}<div><b>{{ row.rank }}</b><span>{{ row.student.get_full_name|default:row.student.username }}</span><strong>{{ row.score }}</strong></div>{% empty %}<p class="cb-empty">Natija hali yo'q.</p>{% endfor %}</div>
+    </aside>
+  </div>
+</div>
+<script>document.querySelectorAll('[data-confirm]').forEach(function(form){form.addEventListener('submit',function(event){if(!confirm(form.dataset.confirm))event.preventDefault();});});</script>
+{% endblock %}

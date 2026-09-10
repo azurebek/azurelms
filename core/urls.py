@@ -42,6 +42,7 @@ urlpatterns = [
     
     # Messenger / Chat
     path('messenger/', include('messenger.urls', namespace='messenger')),
+    path('classbook/', include('classbook.urls', namespace='classbook')),
     
     # Bot Webhooks
     path('bot/', include('bot.urls')),

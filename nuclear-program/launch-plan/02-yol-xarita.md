@@ -1,6 +1,6 @@
-# 02 — Yo'l xaritasi: 14-avgust → 20-sentyabr (37 kun)
+# 02 — Yo'l xaritasi: 14-avgust → 30-sentyabr
 
-*Rebaseline: 2026-08-14. AzureLMS hozir local/pre-production rejimida. 20-sentyabr maqsadi — evidence-backed taqdimot va production readiness qarori; public cloud deploy avtomatik scope emas. Fazalar sana bilan emas, exit kriteriy bilan yopiladi.*
+*Rebaseline: 2026-09-10. AzureLMS hozir local/pre-production rejimida. 30-sentyabr maqsadi — Classbook bilan 50 kishigacha boshqariladigan guruhni ishga tushirish va production readiness qarori; public cloud deploy avtomatik scope emas. Fazalar sana bilan emas, exit kriteriy bilan yopiladi.*
 
 ## Qat'iy qarorlar
 
@@ -11,6 +11,7 @@
 5. **Adapter state yaratmaydi:** Web, Telegram, Mini App, Messenger, Celery va AI canonical Django service/policy'ni chaqiradi.
 6. **Evidence-first:** `EVIDENCE READY` bo'lmagan capability marketing claim, premium entitlement yoki production `GO` bo'lmaydi.
 7. **Cloudsiz poydevor mumkin:** CI, `.dockerignore`, health/readiness, private-media policy, idempotency, budget ledger va browser QA vendor tanlamasdan quriladi.
+8. **Joriy P0 — Classbook:** A3b full suite/CI va real Telegram/Mini App sign-offdan o'tmaguncha A4 premium polish yoki yangi AI capability boshlanmaydi.
 
 ## 2026-08-14 baseline
 
@@ -24,16 +25,17 @@
 | A1 | Procfile, CI, `.dockerignore`, `/healthz`+`/readyz`, backup/restore va outbox lease mavjud (A1a bajarildi) | cloud deploy `HOLD`; production restore proofi A1b bilan |
 | A2 | Control Center mutationlari, flags, append-only audit, heartbeat, release, backup/email/memory probe'lari va AI cost ledgeri bor | A9 AI quality/cost release gate |
 | Telegram | F0–F9, outbox, Mini App foundation | Public webhook/outbox process va real prod WebView — `HOLD` |
+| Classbook | session/activity/response contracti, 10 mashq turi, realtime+poll fallback va group outbox `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | PostgreSQL 50-parallel CI, real Telegram/Mini App sign-off |
 | Landing | Admin-controlled landing + backoffice Bosqich 1/TOC | Repeatable CRUD/reorder va preview polish |
 | SIT | S1 portal, S3 advisor va S4 backoffice kodda | S2 `SITInquiry`; real source hygiene |
 
 ## Umumiy manzara
 
 ```text
-14–18 AVG        19–30 AVG          31 AVG–8 SEN       9–15 SEN          16–20 SEN
+14–18 AVG        19–30 AVG          31 AVG–9 SEN       10–22 SEN         23–30 SEN
 R0               R1                 R2                 R3                R4
-AI BUDGET    →   SAFETY/CONTROL  →  GOLDEN FLOW    →  EVIDENCE/BETA  →  DEMO/DECISION
-truth + caps      local CI/media     mobile parity      minimal outcome   no fake prod
+AI BUDGET    →   SAFETY/CONTROL  →  GOLDEN FLOW    →  CLASSBOOK      →  BETA LAUNCH
+truth + caps      local CI/media     mobile parity      50 learner live   evidence + fallback
 ```
 
 Oldingi 2026-07-22 rejasidagi `P0–P5` tarixiy rebaseline sifatida Git tarixida qoladi. Joriy bajarish tartibi faqat quyidagi `R0–R4` bo'yicha.
@@ -95,9 +97,14 @@ Oldingi 2026-07-22 rejasidagi `P0–P5` tarixiy rebaseline sifatida Git tarixida
 
 **Exit:** fresh account bilan core flow local/test muhitda 3 device classda reproduksiya qilinadi; critical permission/parity incident `0`; owner routine flow uchun DB qo'lda tahriri `0`. Public production shart emas.
 
-## R3 — Minimal outcome evidence va boshqariladigan beta (9–15 sentyabr)
+## R3 — Classbook va boshqariladigan beta poydevori (10–22 sentyabr)
 
-**Backlog:** `A6`, keyin shartli `A7/A9`. R0–R2 yopilmasa bu scope qisqaradi.
+**Backlog:** birinchi `A3b Classbook`; faqat uning gate'lari yopilsa `A6`, keyin shartli `A7/A9`.
+
+- Teacher `Darsni boshlash` → Telegram davomat/material → timeline'dan mashq → avtomatik grade/realtime leaderboard → `Darsni yakunlash` oltin oqimi.
+- 10 turdagi mashq, server-side answer key va reveal policy; 50 learner sequential + PostgreSQL parallel proof.
+- Guruh xabarlari lease/retry outbox orqali; individual natija va kelmaganlar canonical `Notification`→Telegram DM orqali.
+- Teacher/student 390px browser QA, reconnect/poll fallback, permission va CSV eksport.
 
 - Uchta minimal evidence contract: `PracticeSession`, `LearnerAttempt`, `MasteryEvidence`; AI memory mastery system-of-record emas.
 - Bitta structured practice: item → answer → hint/retry → feedback → transfer check.
@@ -108,13 +115,13 @@ Oldingi 2026-07-22 rejasidagi `P0–P5` tarixiy rebaseline sifatida Git tarixida
 
 **Exit:** structured flow success `≥98%`, critical access/safety `0`; sample yetmasa `INSUFFICIENT_DATA → beta`, premium claim yo'q. Gemini global budget buzilmasa ham token soni learner outcome o'rnini bosmaydi.
 
-## R4 — Taqdimot, freeze va production qarori (16–20 sentyabr)
+## R4 — Freeze, boshqariladigan launch va production qarori (23–30 sentyabr)
 
-- 16-sen: claim/evidence register va scope freeze.
-- 17-sen: fresh demo account, release manifest, local backup/restore va fallback video.
-- 18-sen: repetitsiya №1; internet/Gemini yo'q holatdagi deterministic fallback.
-- 19-sen: faqat blocker fix; repetitsiya №2; Control Center RED/AMBER va Gemini budget exhaustion drill.
-- 20-sen: “bir learnerning haftasi + owner control” demo. Production bo'lmasa local yoki vaqtinchalik xavfsiz tunnel; bu public launch deb atalmasin.
+- 23–24-sen: Classbook scope freeze, fresh demo account, release manifest, local backup/restore va fallback video.
+- 25–26-sen: 50 demo learner dry-run; Telegram group/DM, reconnect va Control Center navbat/worker drill.
+- 27-sen: Android Chrome, iOS Safari va desktop Chrome owner sign-off; Mini App deep-link va dark/light.
+- 28–29-sen: faqat blocker fix, repetitsiya va rollback mashqi; internet/Gemini yo'q holatda Classbook deterministic ishlashi shart.
+- 30-sen: boshqariladigan cohort launch va `BETA GO`/`PRODUCTION HOLD`/`NO-GO` qarori. Public production bo'lmasa xavfsiz tunnel/local demo public launch deb atalmasin.
 
 **Qaror:**
 
@@ -123,7 +130,7 @@ Oldingi 2026-07-22 rejasidagi `P0–P5` tarixiy rebaseline sifatida Git tarixida
 - `PRODUCTION HOLD` — hosting/provider, remote backup/restore yoki security gate qayta admission olmagan;
 - `NO-GO` — payment/access/privacy/canonical state xatosi yoki claim reproduksiya qilinmaydi.
 
-## R5 — AI Optimise (taqdimotdan keyin, loyiha yakuni)
+## R5 — AI Optimise (30-sentyabr launch qaroridan keyin, loyiha yakuni)
 
 **Backlog:** `A10`. Owner admission: 2026-08-19.
 

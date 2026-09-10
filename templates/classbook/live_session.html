@@ -1,0 +1,14 @@
+{% extends "users/base_app.html" %}{% load static %}
+{% block app_title %}{{ session.lesson.title }}{% endblock %}{% block app_icon %}bi-broadcast{% endblock %}{% block app_topbar_title %}Classbook{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'classbook/classbook.css' %}">{% endblock %}
+{% block page_js %}<script defer src="{% static 'classbook/socket.js' %}"></script><script defer src="{% static 'classbook/student-session.js' %}"></script>{% endblock %}
+{% block app_content %}
+<div class="cb-wrap cb-narrow" data-student-session data-session-id="{{ session.id }}" data-state-url="{% url 'classbook:live_session_state' session.id %}">
+  <header class="cb-session-head"><div><span class="cb-live-pill"><i></i>{% if session.status == 'open' %}Dars davom etmoqda{% else %}Dars yakunlandi{% endif %}</span><h1>{{ session.lesson.title }}</h1><p>{{ session.cohort.name }}</p></div></header>
+  {% if session.status == 'open' %}
+    {% if current_activity %}<a class="cb-active-card" href="{% url 'classbook:live_activity' current_activity.id %}"><span><i class="bi bi-lightning-charge-fill"></i></span><div><small>Hozirgi mashq</small><strong>{{ current_activity.snapshot.title }}</strong><p>{{ current_activity.snapshot.instructions }}</p></div><b>Mashqni ochish <i class="bi bi-arrow-right"></i></b></a>
+    {% else %}<div class="cb-panel cb-wait"><span class="cb-pulse"><i class="bi bi-hourglass-split"></i></span><h2>Keyingi mashqni kuting</h2><p>O'qituvchi mashqni ochganda sahifa avtomatik yangilanadi.</p></div>{% endif %}
+  {% else %}<div class="cb-panel cb-wait"><span class="cb-pulse"><i class="bi bi-check2"></i></span><h2>Dars yakunlandi</h2><p>Materiallar va uyga vazifa darslar bo'limida ochildi.</p></div>{% endif %}
+  <section class="cb-panel"><div class="cb-panel-head"><span><i class="bi bi-trophy"></i> Dars reytingi</span><small>Top 10</small></div><div class="cb-leaderboard">{% for row in leaderboard %}<div{% if row.student.id == request.user.id %} class="is-me"{% endif %}><b>{{ row.rank }}</b><span>{{ row.student.get_full_name|default:row.student.username }}</span><strong>{{ row.score }}</strong></div>{% empty %}<p class="cb-empty">Mashqlar boshlangach reyting chiqadi.</p>{% endfor %}</div>{% if my_rank and my_rank.rank > 10 %}<div class="cb-my-rank">Siz: {{ my_rank.rank }}-o'rin · {{ my_rank.score }} ball</div>{% endif %}</section>
+</div>
+{% endblock %}
