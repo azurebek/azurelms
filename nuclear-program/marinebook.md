@@ -16,6 +16,19 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-10 [Antigravity]: Classbook darsini Telegramdan yopishda announce_names maxfiyligi ta'minlandi
+
+Codex review botining PR #94 dagi P1 tavsiyasi bo'yicha: agar dars playbook'ida `announce_names=False` bo'lsa,
+`/dars tugadi` Telegram orqali yopilganda guruhga o'quvchilarning ismlari oshkor bo'lib ketmasligi ta'minlandi.
+`classbook/services.py::finish_class_session` va `bot/services.py::close_lesson_session` public details ro'yxatini
+tozalaydi hamda `announce_names=False` bayrog'ini qaytaradi; `bot/routers/group_ops.py::render_close_announcement`
+esa ismlar o'rniga faqat umumiy statistik sonlarni chiqaradi.
+
+- Branch: `antigravity/classbook-postgres-test-fix`
+- Commitlar: `f734812`
+- Test holati: `python manage.py test classbook bot` — 170/170 pass (3 skip); `python manage.py check --fail-level WARNING` — 0 issues
+- Davom etilishi kerak: PR #94 ga push, review commentlarni resolve qilish va merge
+
 ## 2026-09-10 [Antigravity]: Activity ochish poygasi session qulflash bilan bartaraf etildi
 
 Codex review botining PR #94 dagi tavsiyasi bo'yicha `classbook/services.py` dagi `open_activity`

@@ -92,13 +92,28 @@ def render_attendance_post(session, checkin_count, *, closed=False, summary=None
     return "\n".join(lines)
 
 
-def render_close_announcement(session, summary, details):
-    """Yakuniy ismli e'lon (guruhga)."""
+def render_close_announcement(session, summary, details, announce_names=True):
+    """Yakuniy e'lon (guruhga)."""
     lines = [
         "📋 <b>Davomat yakunlandi</b>",
         f"Dars: <b>{html.escape(session.lesson.title)}</b> · {session.attendance_date.strftime('%d.%m.%Y')}",
         "",
     ]
+    if not announce_names:
+        summary = summary or {}
+        lines.extend([
+            f"✅ Keldi: <b>{summary.get('present', 0)}</b>",
+            f"🕒 Kech: <b>{summary.get('partial', 0)}</b>",
+            f"❌ Kelmadi: <b>{summary.get('absent', 0)}</b>",
+        ])
+        if summary.get("absent", 0) > 0:
+            lines.append("")
+            lines.append("Kelmaganlarga eslatma yuborildi. Darsni qoldirmang! 💪")
+        else:
+            lines.append("")
+            lines.append("Hamma darsda — ajoyib! 🎉")
+        return "\n".join(lines)
+
     present = details.get("present", [])
     partial = details.get("partial", [])
     absent = details.get("absent", [])
@@ -238,9 +253,14 @@ async def _close_lesson(message):
         except Exception:
             pass
 
-    # Ismli yakuniy e'lon
+    # Yakuniy e'lon
     await message.answer(
-        render_close_announcement(result.session, result.summary, result.details or {}),
+        render_close_announcement(
+            result.session,
+            result.summary,
+            result.details or {},
+            announce_names=getattr(result, "announce_names", True),
+        ),
         parse_mode=HTML_MODE,
     )
 

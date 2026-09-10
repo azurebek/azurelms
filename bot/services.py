@@ -55,6 +55,7 @@ class CloseLessonResult(ActionResult):
     # Ismli ro'yxatlar: {"present": [...], "partial": [...], "absent": [...]}
     # har element: {"name", "telegram_id", "telegram_username", "user_id"}
     details: dict | None = None
+    announce_names: bool = True
 
 
 @dataclass
@@ -597,6 +598,7 @@ def close_lesson_session(*, chat_id, actor_telegram_id):
             session=orchestrated.session,
             summary=orchestrated.summary,
             details=orchestrated.details,
+            announce_names=getattr(orchestrated, "announce_names", True),
         )
 
     enrollments = list(

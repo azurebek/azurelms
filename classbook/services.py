@@ -33,6 +33,7 @@ class ServiceResult:
     response: StudentResponse | None = None
     summary: dict | None = None
     details: dict | None = None
+    announce_names: bool = True
 
 
 def display_name(user):
@@ -676,14 +677,17 @@ def finish_class_session(*, actor, session, queue_attendance_summary=True):
         before={"status": TelegramLessonSession.STATUS_OPEN},
         after={"status": session.status, "attendance": summary},
     )
-    broadcast_after_commit(session.id, "session_finished", summary)
-    public_details = {
-        key: [{"name": item["name"], "student_id": item["student"].id} for item in value]
-        for key, value in details.items()
-    }
+    announce_names = bool(playbook and playbook.announce_names)
+    if not announce_names:
+        public_details = {key: [] for key in details}
+    else:
+        public_details = {
+            key: [{"name": item["name"], "student_id": item["student"].id} for item in value]
+            for key, value in details.items()
+        }
     return ServiceResult(
         True, "finished", "Dars, davomat, access va uyga vazifa oqimi yakunlandi.",
-        session=session, summary=summary, details=public_details,
+        session=session, summary=summary, details=public_details, announce_names=announce_names,
     )
 
 

@@ -502,3 +502,6 @@ class TelegramAdapterParityTests(ClassbookFixtureMixin, TestCase):
         self.assertFalse(
             TelegramGroupDelivery.objects.filter(session=session, external_key__endswith="attendance-close").exists()
         )
+        self.assertFalse(result.announce_names)
+        self.assertEqual(result.details["present"], [])
+        self.assertEqual(result.details["absent"], [])
