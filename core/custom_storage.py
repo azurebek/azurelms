@@ -3,18 +3,24 @@ from storages.backends.s3boto3 import S3Boto3Storage
 
 
 class MediaStorage(S3Boto3Storage):
+    """Public media uchun S3-mos storage (AWS S3 yoki DigitalOcean Spaces).
+
+    - `location`: barcha public media `media/` prefiksi ostiga yuklanadi.
+    - `file_overwrite=False`: `HeadObject` so'rovi o'tkazib yuboriladi, ya'ni
+      list ruxsati yo'q bucketda 403 bermaydi.
+
+    `object_parameters` ataylab **bu yerda yo'q**. django-storages klass
+    atributini settingsdan ustun qo'yadi (`BaseStorage.__init__` da
+    `if not hasattr(self, name)`), shuning uchun bu yerda turgan
+    `'ACL': 'public-read'` ni env bilan o'chirib bo'lmasdi — va aynan shu
+    yangi AWS bucketida har bir uploadni `AccessControlListNotSupported`
+    (400) bilan yiqitardi, chunki Object Ownership "Bucket owner enforced"
+    da ACL umuman qabul qilinmaydi. Parametrlar endi
+    `settings.AWS_S3_OBJECT_PARAMETERS` da quriladi.
     """
-    DigitalOcean Spaces uchun media fayl storage.
-    - location: Barcha media fayllar 'media/' papkasiga yuklanadi
-    - file_overwrite: HeadObject so'rovini o'tkazib yuboradi (403 xatosini oldini oladi)
-    - ACL: Bucket darajasida boshqariladi (File Listing = Enabled), per-object ACL o'rnatilmaydi
-    """
+
     location = 'media'
     file_overwrite = False
-    object_parameters = {
-        'CacheControl': 'max-age=86400',
-        'ACL': 'public-read',
-    }
 
 
 class HashedStaticFilesStorage(CompressedManifestStaticFilesStorage):

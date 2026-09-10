@@ -1,25 +1,50 @@
-# 1. Muhitni tayyorlash
+# AzureLMS production image.
+#
+# Bitta image — besh process (web, worker, beat, outbox va migratsiya qadami).
+# Ular `deploy/docker-compose.prod.yml` da bir xil image ustidan turli
+# `command` bilan ko‘tariladi: kod hammasida bir xil bo‘lishi shart, aks holda
+# migratsiya bir versiyada, worker boshqasida ishlab qolardi.
+
 FROM python:3.12-slim
 
-# 2. Ishchi papka
+# `PYTHONUNBUFFERED` — log darhol `docker logs` ga chiqsin; buferlansa
+# konteyner o‘lganda oxirgi, ya‘ni eng kerakli satrlar yo‘qolardi.
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    APP_ENV=production
+
 WORKDIR /app
 
-# 3. Kerakli tizim paketlari (Postgres va Media fayllar uchun)
-RUN apt-get update && apt-get install -y \
-    libpq-dev \
-    gcc \
-    ffmpeg \
+# `ffmpeg` — speaking audio uchun; `libpq5` — PostgreSQL klient kutubxonasi.
+# Build-only `gcc` va `libpq-dev` ataylab olinmadi: `psycopg2-binary` tayyor
+# g‘ildirak bo‘lib keladi, kompilyator esa image ichida qolib ketardi.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        ffmpeg \
+        libpq5 \
     && rm -rf /var/lib/apt/lists/*
 
-# 4. Kutubxonalarni o'rnatish
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 5. Kodni ko'chirish
 COPY . .
 
-# Statik fayllarni yig'ish (Baza ulanishi talab etilmasligi uchun dummy DATABASE_URL beramiz)
-RUN DATABASE_URL=sqlite:///:memory: SECRET_KEY=build_pure_secret python manage.py collectstatic --noinput
+# Statikni build paytida yig‘amiz: runtime‘da qilinsa har bir konteyner uni
+# takrorlab, `staticfiles/` manifesti processlarda har xil bo‘lishi mumkin edi.
+# `APP_ENV=local` aynan shu qadam uchun — runtime gate non-local profilda
+# DB va Redis manzilini talab qiladi, build mashinasida esa ularning hech
+# biri yo‘q (`core/runtime_gate.py`).
+RUN APP_ENV=local DATABASE_URL=sqlite:///:memory: SECRET_KEY=build-only-not-a-runtime-secret \
+    python manage.py collectstatic --noinput
 
-# 7. ASGI server (WebSocket qo'llab-quvvatlashi uchun)
+# Root emas: konteyner ichidagi ixtiyoriy kod ijrosi root bo‘lsa, mount
+# qilingan `media` va `private-media` volume‘lariga ham to‘liq egalik olardi.
+RUN useradd --create-home --uid 10001 azurelms \
+    && mkdir -p /app/media /app/private-media \
+    && chown -R azurelms:azurelms /app/media /app/private-media /app/staticfiles
+USER azurelms
+
+EXPOSE 8080
+
+# Default — web. Qolgan processlar compose‘da `command` bilan almashtiriladi.
 CMD ["daphne", "-b", "0.0.0.0", "-p", "8080", "core.asgi:application"]

@@ -1,0 +1,171 @@
+# AzureLMS — bitta serverda (AWS EC2) to'liq production stack.
+#
+# Nega managed xizmatlar emas (RDS + ElastiCache + ECS): joriy bosqichda
+# maqsad 50 kishilik boshqariladigan guruh va 30-sentyabr ishga tushirishi.
+# Bitta `t3.small`/`t3.medium` mashina bu yukni ko'taradi, xarajati bitta
+# qatorda tushunarli va butun stack `docker compose logs` bilan bir joydan
+# ko'rinadi. Managed xizmatlarga o'tish keyinchalik faqat env manzillarini
+# almashtirish bo'ladi (`DATABASE_URL`, `VALKEY_URL`) — kod o'zgarmaydi.
+#
+# Ishlatish: `deploy/` ichidan
+#   cp env.example .env        # va to'ldiring
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# To'liq runbook: `deploy/README.md`.
+
+name: azurelms
+
+# Beshala app processi bitta image ustida yuguradi — farqi faqat `command`.
+x-app: &app
+  build:
+    context: ..
+    dockerfile: Dockerfile
+  image: azurelms:latest
+  # `.env` ataylab shu nom bilan: docker compose faqat shu fayldan
+  # `${...}` interpolyatsiyasini o'qiydi. `env_file:` esa uni konteyner
+  # ichiga uzatadi. Ikkalasi bitta fayl bo'lgani uchun `POSTGRES_PASSWORD`
+  # compose'da bir, konteynerda boshqa qiymatga ega bo'lib qololmaydi.
+  env_file:
+    - .env
+  restart: unless-stopped
+  volumes:
+    # Public media (`USE_S3=False` holatida) va private media disk volume'da:
+    # konteyner qayta qurilganda o'quvchining yuklagan fayli yo'qolmasligi kerak.
+    - media:/app/media
+    - private-media:/app/private-media
+  depends_on:
+    db:
+      condition: service_healthy
+    cache:
+      condition: service_healthy
+
+services:
+  db:
+    # CI'ning `integration` ishi aynan shu image'da yuguradi — production va
+    # CI bir xil PostgreSQL major versiyasini ko'rishi uchun ataylab bir xil.
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER kerak}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD kerak}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB kerak}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Zaxira `pg_dump` fayllari host papkasiga tushadi — konteyner
+      # o'chirilsa ham qolsin.
+      - ./backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    # Portlar ataylab tashqariga chiqarilmagan: baza faqat compose tarmog'i
+    # ichidan ko'rinadi. EC2 security group'iga ishonib qolmaymiz.
+
+  cache:
+    image: valkey/valkey:8-alpine
+    restart: unless-stopped
+    command: ["valkey-server", "--appendonly", "yes"]
+    volumes:
+      - valkeydata:/data
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # Migratsiya alohida bir martalik qadam. Web bilan bitta konteynerda
+  # qilinsa, uch replika bir vaqtda migratsiya qilishga urinardi.
+  migrate:
+    <<: *app
+    command: ["python", "manage.py", "migrate", "--noinput"]
+    restart: "no"
+
+  web:
+    <<: *app
+    command: ["daphne", "-b", "0.0.0.0", "-p", "8080", "core.asgi:application"]
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      # `/healthz` — liveness: DB'ga tegmaydi. Readiness (`/readyz`) bu yerda
+      # ataylab ishlatilmaydi: baza bir daqiqaga cho'kkanda konteynerni
+      # qayta ishga tushirish vaziyatni yaxshilamaydi, faqat restart siklini
+      # boshlaydi (`core/health_views.py`).
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8080/healthz', timeout=5).status == 200 else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  worker:
+    <<: *app
+    command: ["celery", "-A", "core", "worker", "-l", "info"]
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  beat:
+    <<: *app
+    command: ["celery", "-A", "core", "beat", "-l", "info"]
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  # `05-launch-ops.md` §1: Telegram outbox — **majburiy alohida process**.
+  # Bitta replika: claim/lease atomik bo'lsa ham, ikkinchi replika uchun
+  # kerakli exponential backoff va dead-letter hali qurilmagan.
+  outbox:
+    <<: *app
+    command: ["python", "manage.py", "telegram_outbox", "--loop"]
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  caddy:
+    # HTTPS avtomatik (Let's Encrypt). Bu qulaylik emas, talab: mikrofon
+    # (speaking mashqlari) faqat secure contextda ishlaydi va Telegram
+    # webhook ham faqat HTTPS qabul qiladi.
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:?APP_DOMAIN kerak}
+      TLS_EMAIL: ${TLS_EMAIL:?TLS_EMAIL kerak}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Django `MEDIA_URL` ni faqat `DEBUG=True` da o'zi tarqatadi
+      # (`core/urls.py`), shuning uchun public media'ni Caddy beradi.
+      # Private media Caddy'ga umuman ko'rsatilmaydi: unga yagona yo'l —
+      # ruxsat tekshiradigan Django view.
+      - media:/srv/media:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - web
+
+volumes:
+  pgdata:
+  valkeydata:
+  media:
+  private-media:
+  caddy-data:
+  caddy-config:
