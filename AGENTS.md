@@ -8,7 +8,7 @@ Bu fayl har AI agent (Claude Code / Codex / Antigravity / boshqa) sessiya boshla
 
 ## O'zgartirish kiritishdan oldin
 
-1. `nuclear-program/rules-for-agents.md` — to'liq ish qoidalari (branch ownership, worktree setup, test/commit discipline, conflict protocol, emergency stop)
+1. `nuclear-program/rules-for-agents.md` — to'liq ish qoidalari (branch ownership, bitta checkout tartibi, test/commit discipline, conflict protocol, emergency stop)
 2. `nuclear-program/marinebook.md` — so'nggi 3-5 yozuvni o'qing (boshqa agentlar nima qildi)
 3. `nuclear-program/project-context.md` — arxitektura kerak bo'lganda (12 domain app, AI agent qatlami, URLs, env, data model)
 4. Quyidagi buyruqlarni yugurting:
@@ -16,7 +16,7 @@ Bu fayl har AI agent (Claude Code / Codex / Antigravity / boshqa) sessiya boshla
 ```bash
 git status --short --branch
 git log --oneline --decorate -8
-git worktree list
+git branch -a
 ```
 
 5. Branch siz uchun mo'ljallangan prefiks ekanini tasdiqlang (pastdagi jadval).
@@ -27,7 +27,7 @@ git worktree list
 
 1. **`main`** integratsiya trunk'i. Unga **faqat Azurbek** ruxsati bilan ishlanadi.
 2. Har agent **o'z prefiks branch'ida** ishlaydi: `codex/`, `claude/`, `antigravity/`.
-3. Har agent imkon qadar **o'z worktree papkasi**da ishlaydi (`azurelms-codex/`, `azurelms-claude/`, ...).
+3. Hamma **bitta checkout**da ishlaydi: `C:\Users\azizb\Desktop\project\azurelms`. Worktree ochilmaydi.
 4. Bitta task tugasa: **test → commit → marinebook yozuvi**.
 5. **Begona uncommitted o'zgarishni** revert, delete yoki overwrite **qilmang**.
 
@@ -49,11 +49,13 @@ git fetch origin
 git checkout -b <prefiks>/<task-name> origin/main
 ```
 
-**Hech qachon:** boshqa agent branch'iga commit, `main`'ga bevosita push, force-push, `git reset --hard` (Azurbek ruxsat bermasa).
+**Hech qachon:** boshqa agent branch'iga commit yoki push (uning PR branch'iga ham), `main`'ga bevosita push, force-push, yangi worktree ochish, `git reset --hard` (Azurbek ruxsat bermasa).
 
 > **2026-08-15 dan buyon bu qoida serverda majburlangan.** `main` branch protection ostida: to'g'ridan-to'g'ri push, force-push va branchni o'chirish rad etiladi — **Azurbek uchun ham** (`enforce_admins`). Yagona yo'l — PR, va CI ning uchala ishi yashil bo'lgach merge. Batafsil: [rules-for-agents.md §9](nuclear-program/rules-for-agents.md).
 
-> **Owner workflow qarori — 2026-09-03:** agent o'z prefiksidagi PR'ni required CI yashil, review izohlari resolve va branch `main` bilan yangilangan bo'lsa alohida merge ruxsati so'ramasdan merge qiladi. **Qo'lda va kutib:** `gh pr checks <N> --watch` → `gh pr merge <N> --merge` → `git fetch origin` (lokal `main` ni yangilash worktree tartibiga bog'liq, §9 ga qarang). Auto-merge (`--auto`), repository sozlamasini o'zgartirish (`allow_auto_merge` va h.k.), `--admin`/gate bypass va boshqa agentning PR'ini merge qilish taqiqlanadi. Conflict, failed check, xavfli migration, data-loss yoki security anomaly bo'lsa agent to'xtab Azurbekka xabar beradi. Batafsil: [rules-for-agents.md §9](nuclear-program/rules-for-agents.md).
+> **Owner workflow qarori — 2026-09-03:** agent o'z prefiksidagi PR'ni required CI yashil, review izohlari resolve va branch `main` bilan yangilangan bo'lsa alohida merge ruxsati so'ramasdan merge qiladi. **Qo'lda va kutib:** `gh pr checks <N> --watch` → `gh pr merge <N> --merge` → `git fetch origin` → `git switch main && git pull --ff-only origin main`. Auto-merge (`--auto`), repository sozlamasini o'zgartirish (`allow_auto_merge` va h.k.), `--admin`/gate bypass va boshqa agentning PR'ini merge qilish taqiqlanadi. Conflict, failed check, xavfli migration, data-loss yoki security anomaly bo'lsa agent to'xtab Azurbekka xabar beradi. Batafsil: [rules-for-agents.md §9](nuclear-program/rules-for-agents.md).
+
+> **Owner qarori — 2026-09-10:** repo'da **git worktree ishlatilmaydi**. Hamma agent bitta checkout'da (`C:\Users\azizb\Desktop\project\azurelms`) o'z prefiks branch'ida ishlaydi; `azurelms-codex*`, `azurelms-antigravity*` kabi worktree papkalari o'chirildi va merge bo'lgan branchlar tozalandi — `main` yagona branch bo'lib qoldi. Yangi ish har doim `git fetch origin && git switch -c <prefiks>/<task> origin/main` bilan boshlanadi; PR merge bo'lgach agent o'z branch'ini o'chiradi (`git push origin --delete <branch>`, so'ng `git branch -d <branch>`). Boshqa agentning branch'iga — shu jumladan uning ochiq PR branch'iga — push qilish taqiqlanadi: tuzatish kerak bo'lsa o'z prefiksingizda branch ochib alohida PR yuboring. Batafsil: [rules-for-agents.md §3](nuclear-program/rules-for-agents.md).
 
 ---
 

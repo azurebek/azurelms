@@ -12,7 +12,7 @@ Agar faqat 5 ta narsani eslab qolish kerak bo'lsa:
 
 1. `main` integratsiya trunk'i. Unda faqat Azurbek ruxsati bilan ishlanadi.
 2. Har agent o'z prefiks branch'ida ishlaydi: `codex/`, `claude/`, `antigravity/`.
-3. Har agent imkon qadar o'z worktree papkasida ishlaydi.
+3. Hamma bitta checkout'da ishlaydi (`C:\Users\azizb\Desktop\project\azurelms`); worktree ochilmaydi.
 4. Bitta task tugasa: **test → commit → marinebook yozuvi**.
 5. **Begona uncommitted o'zgarishni revert, delete yoki overwrite qilma.**
 
@@ -45,7 +45,7 @@ Sessiya boshlanganda quyidagilar source of truth hisoblanadi:
 |---|---|---|
 | 1 | `git status --short --branch` | qaysi branch va dirty state |
 | 2 | `git log --oneline --decorate -8` | so'nggi ishlar |
-| 3 | `git worktree list` | papka/branch ownership |
+| 3 | `git branch -a` | mavjud branchlar va ownership |
 | 4 | `nuclear-program/marinebook.md` (so'nggi 3-5 yozuv) | so'nggi major sessionlar |
 | 5 | `nuclear-program/project-context.md` | loyiha arxitekturasi |
 | 6 | task tegadigan app fayllari (model/view/url/test) | haqiqiy kod source of truth |
@@ -88,47 +88,52 @@ git checkout -b codex/<task-name> origin/main
 Yaxshi: `codex/ai-widget-fallback`, `claude/rag-source-panel`, `antigravity/mobile-dashboard-polish`
 Yomon: `codex/work`, `claude/fix`, `antigravity/test2`
 
-`<agent>/work` faqat **uzoq muddatli worktree base branch** sifatida ishlatilsa bo'ladi. Har feature uchun alohida branch ochiladi.
+`<agent>/work` kabi umumiy branchlar ishlatilmaydi. Har feature uchun `origin/main`dan alohida branch ochiladi va PR merge bo'lgach o'chiriladi.
 
 ---
 
-## 3. Worktree setup
+## 3. Bitta checkout tartibi (worktree yo'q)
 
-Tavsiya etilgan papkalar:
+**Owner qarori — 2026-09-10:** loyihada `git worktree` ishlatilmaydi. Hamma agent
+bitta papkada ishlaydi:
 
 ```text
-C:\Projects\azurelms                main / integration
-C:\Projects\azurelms-codex          Codex worktree
-C:\Projects\azurelms-claude         Claude worktree
-C:\Projects\azurelms-antigravity    Antigravity worktree
+C:\Users\azizb\Desktop\project\azurelms     yagona checkout (venv, .env.local, db.sqlite3 shu yerda)
 ```
 
-**Branchlar hali mavjud bo'lmasa:**
+Sabab: parallel worktree'lar ikki agentga bitta muammoni bir-biridan bexabar
+tuzatish imkonini berdi (2026-09-10, classbook Postgres testi), `main` integratsiya
+papkasida band bo'lgani uchun oddiy `git pull` yiqilardi, va har papka o'z venv/DB'sini
+talab qilardi. Endi izolyatsiya faqat **branch** darajasida.
 
-```powershell
-cd C:\Projects\azurelms
-git worktree add -b codex/work ../azurelms-codex main
-git worktree add -b claude/work ../azurelms-claude main
-git worktree add -b antigravity/work ../azurelms-antigravity main
+### Ish tartibi
+
+```bash
+git fetch origin
+git switch -c <prefiks>/<task-nomi> origin/main   # yangi ish
+git switch <mavjud-branch>                        # boshlangan ishni davom ettirish
 ```
 
-**Branchlar mavjud bo'lsa:**
+Bir vaqtda ikki task ustida ishlash kerak bo'lsa: birini commit qiling (WIP commit
+ham bo'ladi), keyin `git switch`. `git stash` ishlatmang — stash stack repo bo'ylab
+umumiy va boshqa sessiyaning ishini tortib olishi mumkin.
 
-```powershell
-git worktree add ../azurelms-codex codex/work
-```
+### Qoidalar
 
-### Worktree qoidalari
-
-- Har IDE o'z worktree papkasini ochadi
-- Agent boshqa agent papkasiga fayl yozmaydi
-- Worktree o'chirishdan oldin `git status` tekshiriladi
-- Worktree branch'ini almashtirishdan oldin dirty state hal qilinadi
+- Yangi worktree ochilmaydi — `git worktree add` taqiqlangan.
+- Branch almashtirishdan oldin checkout toza bo'lishi kerak.
+- Begona uncommitted o'zgarish ustidan `git switch` qilinmaydi: avval kimniki ekanini
+  aniqlang (§4 dagi triage), keraksa Azurbekdan so'rang.
+- Boshqa agentning branch'iga — uning ochiq PR branch'iga ham — push qilinmaydi.
+  Tuzatish kerak bo'lsa o'z prefiksingizda branch ochib alohida PR yuboring.
+- PR merge bo'lgach branch o'chiriladi: `git push origin --delete <branch>`, so'ng
+  `git branch -d <branch>`. Maqsad — `main`dan boshqa branch faqat hozir ishlanayotgani bo'lsin.
 
 Verify:
 
-```powershell
-git worktree list
+```bash
+git worktree list        # faqat bitta qator chiqishi kerak
+git branch -a
 git status --short --branch
 ```
 
@@ -141,7 +146,7 @@ Har yangi sessiya ~5 daqiqalik bootstrap bilan boshlanadi:
 ```powershell
 git status --short --branch
 git log --oneline --decorate -8
-git worktree list
+git branch -a
 ```
 
 Keyin:
@@ -150,9 +155,9 @@ Keyin:
 2. Arxitektura kerak bo'lsa `nuclear-program/project-context.md`'ni o'qi
 3. Task tegadigan app'ning `models.py`, `urls.py`, `views.py`, `tests.py`'sini tekshir
 4. Branch to'g'ri prefiksda ekanini tasdiqla
-5. Dirty worktree bo'lsa — kim qilganini ajrat (quyidagi triage)
+5. Checkout dirty bo'lsa — kim qilganini ajrat (quyidagi triage)
 
-### Dirty worktree triage
+### Dirty checkout triage
 
 `git status` dirty bo'lsa:
 
@@ -315,7 +320,7 @@ Co-Authored-By: <Agent Name> <noreply@anthropic.com>
 feat(messenger): add AI room pinning
 fix(courses): preserve lesson cohort query
 test(ai): cover medium web search routing
-docs(agent): add worktree playbook
+docs(agent): add branch workflow playbook
 ```
 
 ---
@@ -394,7 +399,7 @@ gh pr merge <N> --merge                   # merge commit — repo tarixi shunday
 git fetch origin                          # `origin/main` yangilanadi
 ```
 
-Lokal `main` ni ham yangilash kerak bo'lsa, **worktree tartibiga qarang** (§3): bitta worktree'da ishlasangiz `git switch main && git pull --ff-only origin main`; ko'p worktree'li tartibda `main` integratsiya papkasida band bo'ladi va bu buyruq `branch 'main' is already checked out` bilan yiqiladi — u holda `git -C <main-worktree> pull --ff-only`. `git fetch origin` esa har ikkala tartibda ishlaydi, shuning uchun majburiy qadam faqat o'sha.
+Lokal `main` ni ham yangilash uchun: `git switch main && git pull --ff-only origin main`. Bitta checkout tartibida (§3) `main` hech qayerda band emas, shuning uchun bu buyruq har doim ishlaydi. So'ng merge bo'lgan branch o'chiriladi: `git push origin --delete <branch>` va `git branch -d <branch>`.
 
 Merge'dan oldin review thread'lar ham tekshiriladi. Avtomatik reviewer (`chatgpt-codex-connector`) izoh qoldirgan bo'lsa, topilmani halol baholang: rost bo'lsa tuzating, keyin thread'ga javob yozib resolve qiling. Hal qilinmagan topilmani "tozalash uchun" resolve qilish mumkin emas.
 

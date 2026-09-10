@@ -11,9 +11,9 @@ catalog/delivery poydevori topshirilmoqda.
    `pricing-packages-plan.md`ni o'qi. To'liq owner hujjati shu kompyuterda:
    `C:\Users\azizb\Downloads\writing-block.md`; asosiy contract va keyingi
    aniqlashtirilgan qarorlar repo ledgerida saqlangan.
-2. `git status --short --branch`, `git log --oneline -8`, `git worktree list`,
-   `git fetch origin` bilan haqiqiy holatni tekshir. User bitta checkout va
-   oddiy branchlar bilan ishlashni afzal ko'radi; yangi worktree majburiy emas.
+2. `git status --short --branch`, `git log --oneline -8`, `git branch -a`,
+   `git fetch origin` bilan haqiqiy holatni tekshir. Loyiha bitta checkout va
+   oddiy branchlar bilan ishlaydi; worktree ochish taqiqlangan (2026-09-10).
 3. [PR #70](https://github.com/azurebek/azurelms/pull/70)ning yakuniy state/checklarini
    tekshir. Bu xabar merge oldidan o'sha PRga commit qilinmoqda; merge natijasi
    haqida taxmin qilma. Codex required CI va review gate'idan keyin o'zi merge

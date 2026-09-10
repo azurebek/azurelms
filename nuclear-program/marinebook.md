@@ -16,6 +16,33 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-10 [Claude]: Worktree tartibi yopildi — bitta checkout, bitta branch
+
+Azurbek qarori bilan `git worktree` tartibi bekor qilindi. To'rtta worktree papkasi
+(`azurelms-codex`, `azurelms-codex-classbook`, `azurelms-codex-icons`,
+`azurelms-codex-seventh`) o'chirildi va merge bo'lgan barcha branchlar tozalandi:
+32 ta lokal, 44 ta remote branch. Endi `main` yagona branch, ish faqat
+`C:\Users\azizb\Desktop\project\azurelms` checkout'ida `<prefiks>/<task>` branchlarida boradi.
+
+Sabab — shu kuni ko'ringan real zarar: Antigravity `codex/classbook-live-orchestrator`
+branch'iga to'g'ridan-to'g'ri push qilib, Codex'ning PR #94 ini merge qildi (AGENTS.md
+buni taqiqlaydi), va ayni paytda Codex o'z worktree'sida **xuddi shu** Postgres test
+muammosini boshqa yo'l bilan (`TransactionTestCase`) tuzatib o'tirgan edi — ikkalasi
+bir-biridan bexabar. Marinebookdagi uchta commit hash'i ham amend'dan oldingi holatda
+qolib ketgan edi (`f734812`, `e831241`, `6774126`) — haqiqiysiga to'g'rilandi.
+
+Hujjatlar yangilandi: `AGENTS.md` (5-qoida, bootstrap, «abadan taqiqlar» ro'yxati,
+2026-09-10 owner qarori), `rules-for-agents.md` §3 to'liq qayta yozildi («Bitta checkout
+tartibi»), §1/§4/§9 dagi worktree havolalari, `project-context.md` §14 va
+`handoff-to-claude.md` bootstrap qadami.
+
+- Branch: `claude/single-checkout-no-worktrees`
+- Arxiv: `C:\Users\azizb\Desktop\project\worktree-arxiv-2026-09-10\` — har worktree'ning commit qilinmagan ishi (`tracked.patch` + untracked fayllar),
+  `azurelms-codex-classbook/db.sqlite3`, va `barcha-branchlar-2026-09-10.bundle` (o'chirishdan oldingi barcha ref'lar).
+- Test holati: hujjat o'zgarishi; `AZURELMS_SKIP_ENV_FILE=1 GEMINI_API_KEY= TELEGRAM_BOT_TOKEN= python manage.py test classbook bot` — 170/170 pass (3 skip)
+- Davom etilishi kerak: Codex'ning `TransactionTestCase` variantini (arxivda) main'dagi
+  `file_to_stream.close()` yechimi bilan solishtirib, qaysi biri qolishini hal qilish.
+
 ## 2026-09-10 [Antigravity]: Classbook darsini Telegramdan yopishda announce_names maxfiyligi ta'minlandi
 
 Codex review botining PR #94 dagi P1 tavsiyasi bo'yicha: agar dars playbook'ida `announce_names=False` bo'lsa,
@@ -25,7 +52,7 @@ tozalaydi hamda `announce_names=False` bayrog'ini qaytaradi; `bot/routers/group_
 esa ismlar o'rniga faqat umumiy statistik sonlarni chiqaradi.
 
 - Branch: `antigravity/classbook-postgres-test-fix`
-- Commitlar: `f734812`
+- Commitlar: `889b3d6`
 - Test holati: `python manage.py test classbook bot` — 170/170 pass (3 skip); `python manage.py check --fail-level WARNING` — 0 issues
 - Davom etilishi kerak: PR #94 ga push, review commentlarni resolve qilish va merge
 
@@ -39,7 +66,7 @@ ochishga urinilganda bazadagi conditional unique constraint buzilishi natijasida
 qulf xatosi `of=("self",)` orqali oldi olindi.
 
 - Branch: `antigravity/classbook-postgres-test-fix`
-- Commitlar: `e831241`
+- Commitlar: `ae54042`
 - Test holati: `python manage.py test classbook` — 38/38 pass (1 skip); `python manage.py check --fail-level WARNING` — 0 issues
 - Davom etilishi kerak: PR #94 ga push, review commentni resolve qilish va merge
 
@@ -53,7 +80,7 @@ bilan yiqilayotgan edi. `response.close()` o'rniga faqat fayl oqimini yopuvchi `
 qo'yildi; Windows'da fayl tozalanishi saqlandi, PostgreSQL va SQLite testlari barqarorlashtirildi.
 
 - Branch: `antigravity/classbook-postgres-test-fix`
-- Commitlar: `6774126`
+- Commitlar: `ab45b7d`
 - Test holati: `python manage.py test classbook` — 37/37 pass (1 skip); `python manage.py check --fail-level WARNING` — 0 issues
 - Davom etilishi kerak: PR ochish yoki `codex/classbook-live-orchestrator` ga qo'shish
 
