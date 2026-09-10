@@ -76,6 +76,12 @@ jobs:
           SECRET_KEY: ci-insecure-placeholder-not-a-real-key-2f8b1d4e9c7a3560fb8e21d7
           DATABASE_URL: postgresql://azurelms:ci-insecure@127.0.0.1:5432/azurelms
           APP_DOMAIN: ci.invalid
+          # Non-local profilda cache/channel/broker majburiy
+          # (`core/runtime_gate.py`). Manzil soxta va hech qayerga ulanmaydi:
+          # gate ulanishni emas, **konfiguratsiya**ni tekshiradi. Shu qator
+          # o'chirilsa qadam `ImproperlyConfigured` bilan yiqiladi — ya'ni
+          # gate CI'da ham tirik ekani shu yerda ko'rinadi.
+          VALKEY_URL: redis://127.0.0.1:6379/0
         run: python manage.py check --deploy --fail-level WARNING
 
       # §4.3 — modelga tegilib migration yozilmagan holat.
@@ -274,3 +280,13 @@ jobs:
           name: pip-audit-report
           path: pip-audit.json
           retention-days: 14
+
+      # Deploy image'i CI'dan tashqarida hech qayerda qurilmaydi: ishlab
+      # chiqish mashinasida Docker yo'q. Shu qadamsiz Dockerfile'dagi xato
+      # birinchi marta serverda, deploy paytida chiqardi.
+      #
+      # `--build-arg` yoki sir uzatilmaydi — image build paytida hech qanday
+      # tashqi xizmatga ulanmasligi kerak (`collectstatic` `APP_ENV=local` da
+      # yuguradi).
+      - name: Production image quriladimi
+        run: docker build --tag azurelms:ci --file Dockerfile .

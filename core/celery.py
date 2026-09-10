@@ -14,9 +14,8 @@ app = Celery('core')
 #   should have a `CELERY_` prefix.
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
-# Broker tanlovi:
-# - Localda default tarzda production Redis/Valkeyga ulanmaymiz.
-# - Agar ataylab kerak bo'lsa LOCAL_USE_REMOTE_SERVICES=true qo'yiladi.
+# Quyidagi yordamchilar `app.conf` ni sozlashda ishlatiladi. Broker
+# tanlovining o’zi settingsda (pastdagi izohga qarang).
 def _env_bool(name, default=False):
     value = os.getenv(name)
     if value is None:
@@ -37,16 +36,15 @@ def _env_int(name, default):
 is_local = (os.getenv("APP_ENV", "").strip().lower() or "local") == "local"
 local_use_remote_services = _env_bool("LOCAL_USE_REMOTE_SERVICES", False)
 
-explicit_broker = os.getenv("CELERY_BROKER_URL")
-remote_redis_url = os.getenv("VALKEY_URL") or os.getenv("REDIS_URL")
-local_default_broker = "memory://"
-
-if explicit_broker:
-    app.conf.broker_url = explicit_broker
-elif is_local and not local_use_remote_services:
-    app.conf.broker_url = local_default_broker
-else:
-    app.conf.broker_url = remote_redis_url or local_default_broker
+# Broker manzili endi `core/settings.py` da `CELERY_BROKER_URL` sifatida
+# hisoblanadi, `config_from_object(..., namespace="CELERY")` esa uni shu
+# yerga olib keladi. Tanlov ataylab bitta joyda qoldi: ilgari settings
+# LocMem cache’ga, celery esa `memory://` brokerga mustaqil tushardi,
+# ya’ni bitta unutilgan env ikki xil jim degradatsiya berardi.
+#
+# `core/runtime_gate.py` gate’i settings ichida ishlagani uchun non-local
+# profil bu yergacha yetib kelolmaydi: `memory://` bilan worker umuman
+# ko’tarilmaydi.
 
 app.conf.result_backend = os.getenv('CELERY_RESULT_BACKEND') or None
 app.conf.accept_content = ['application/json']
@@ -57,7 +55,8 @@ app.conf.task_ignore_result = True
 app.conf.task_always_eager = _env_bool("CELERY_TASK_ALWAYS_EAGER", is_local and not local_use_remote_services)
 app.conf.task_eager_propagates = _env_bool("CELERY_TASK_EAGER_PROPAGATES", False)
 
-# DigitalOcean Valkey (rediss) uchun TLS sozlamasi
+# TLS bilan ishlaydigan Redis/Valkey (`rediss://`) uchun — AWS ElastiCache
+# in-transit encryption ham, DigitalOcean Valkey ham shu sxemani beradi.
 if str(app.conf.broker_url).startswith('rediss://'):
     app.conf.broker_use_ssl = {"ssl_cert_reqs": ssl.CERT_NONE}
 

@@ -1,0 +1,51 @@
+# AzureLMS — Caddy reverse proxy (TLS avtomatik).
+#
+# Nega Nginx + certbot emas: Caddy sertifikatni o'zi oladi va o'zi yangilaydi,
+# ya'ni bitta owner boshqaradigan serverda "sertifikat muddati tugab qoldi"
+# degan nosozlik sinfi umuman yo'qoladi. Sertifikat `caddy-data` volume'ida
+# saqlanadi — konteyner qayta qurilganda Let's Encrypt limitiga urilmaydi.
+#
+# HTTPS bu yerda qulaylik emas, talab:
+#   - mikrofon (speaking mashqlari) faqat secure contextda ishlaydi;
+#   - Telegram webhook faqat HTTPS manzil qabul qiladi;
+#   - Django `SECURITY_STRICT` da `SECURE_SSL_REDIRECT` va HSTS yoqadi.
+
+{
+	email {$TLS_EMAIL}
+}
+
+{$APP_DOMAIN} {
+	encode zstd gzip
+
+	# Public media. Django uni faqat `DEBUG=True` da tarqatadi
+	# (`core/urls.py`), ya'ni productionda tarqatuvchi shu yerda bo'lishi shart.
+	#
+	# `private-media` volume'i Caddy'ga ATAYLAB mount qilinmagan: to'lov cheki,
+	# vazifa fayli, chat biriktirmasi va speaking audiosi faqat ruxsat
+	# tekshiradigan Django view orqali beriladi (`core/private_media_views.py`).
+	# Bu yerga bitta `file_server` qo'shilsa, butun A0b private media ishi
+	# bir qatorda bekor bo'lardi.
+	handle_path /media/* {
+		root * /srv/media
+		file_server
+		header Cache-Control "public, max-age=86400"
+	}
+
+	# Qolgan hamma narsa — Daphne. `reverse_proxy` WebSocket upgrade'ini
+	# o'zi uzatadi (messenger va classbook realtime shunga bog'liq) va
+	# `X-Forwarded-Proto: https` qo'yadi — Django `SECURE_PROXY_SSL_HEADER`
+	# aynan shuni o'qiydi, aks holda `SECURE_SSL_REDIRECT` cheksiz
+	# redirect siklini yasardi.
+	reverse_proxy web:8080 {
+		# WebSocket uzoq turadi: classbook jonli darsi bir soatdan oshadi.
+		transport http {
+			read_timeout 300s
+			write_timeout 300s
+		}
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

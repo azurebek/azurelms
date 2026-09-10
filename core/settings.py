@@ -19,6 +19,7 @@ from dotenv import load_dotenv
 
 from core.cache_config import redis_connection_pool_kwargs
 from core.csp_policy import build_csp_policy
+from core.runtime_gate import enforce_remote_services, resolve_broker_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -398,6 +399,26 @@ else:
         }
     }
 
+# Celery broker manzili `core/celery.py` da emas, shu yerda hisoblanadi:
+# gate uni settings ko'tarilayotgan paytdayoq ko'rishi kerak, aks holda
+# `manage.py` toza ishga tushib, nosozlik faqat worker ko'tarilganda —
+# ya'ni deploy tugagach — chiqardi.
+CELERY_BROKER_URL = resolve_broker_url(
+    app_env=APP_ENV,
+    explicit_broker=os.getenv("CELERY_BROKER_URL"),
+    remote_redis_url=REMOTE_CACHE_URL,
+    local_use_remote_services=LOCAL_USE_REMOTE_SERVICES,
+)
+
+# Non-local profilda in-memory cache/channel/broker fallbacklari taqiqlanadi
+# (`05-launch-ops.md` §1 "Broker fail-fast gate"). Sabab va nima uchun
+# ulanish emas, konfiguratsiya tekshirilishi `core/runtime_gate.py` da.
+enforce_remote_services(
+    app_env=APP_ENV,
+    cache_url=CACHE_URL,
+    broker_url=CELERY_BROKER_URL,
+)
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -479,19 +500,54 @@ if IS_LOCAL and not LOCAL_USE_REMOTE_SERVICES:
     USE_S3 = False
 
 if USE_S3:
-    # DigitalOcean Spaces (fra1 - Frankfurt) sozlamalari
+    # S3-mos public object storage. Ikkala nomzod ham qo’llab-quvvatlanadi:
+    # AWS S3 (endpoint bo’sh, region majburiy) va endpointi o’zining xizmatlari
+    # (DigitalOcean Spaces). Ilgari bu blok Spaces’ga qattiq bog’langan edi —
+    # `AWS_S3_REGION_NAME` da `'fra1'` literal turardi va `AWS_S3_ENDPOINT_URL`
+    # bo’sh bo’lsa `None.replace(...)` bilan settings import paytidayoq
+    # `AttributeError` berardi. Ya’ni haqiqiy AWS S3 bilan loyiha umuman
+    # ko’tarilmasdi.
     AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
     AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
     AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
-    AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL')  # https://fra1.digitaloceanspaces.com
-    AWS_S3_REGION_NAME = 'fra1'
+    # AWS uchun bo’sh qoldiriladi; Spaces uchun https://fra1.digitaloceanspaces.com
+    AWS_S3_ENDPOINT_URL = (os.getenv('AWS_S3_ENDPOINT_URL') or '').strip() or None
+    AWS_S3_REGION_NAME = (
+        os.getenv('AWS_S3_REGION_NAME') or os.getenv('AWS_REGION') or ''
+    ).strip() or None
     AWS_S3_SIGNATURE_VERSION = 's3v4'
-    AWS_QUERYSTRING_AUTH = False  # Ochiq URL lar uchun
-    AWS_DEFAULT_ACL = 'public-read'  # Media obyektlar brauzerda ochilishi uchun public read
+    AWS_QUERYSTRING_AUTH = env_bool('AWS_QUERYSTRING_AUTH', False)
+    # ACL ataylab default `None`. Yangi AWS bucket’larida Object Ownership
+    # “Bucket owner enforced” bo’ladi va ACL yuborilgan har qanday PUT
+    # `AccessControlListNotSupported` (400) bilan rad etiladi — ya’ni har bir
+    # upload yiqilardi. Kerak bo’lsa (Spaces) `AWS_DEFAULT_ACL=public-read`.
+    AWS_DEFAULT_ACL = (os.getenv('AWS_DEFAULT_ACL') or '').strip() or None
 
-    # Clean CDN-style URL for media files
-    _endpoint_host = AWS_S3_ENDPOINT_URL.replace('https://', '').replace('http://', '')
-    AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.{_endpoint_host}'
+    if not AWS_STORAGE_BUCKET_NAME:
+        raise ImproperlyConfigured("USE_S3=True bo'lsa AWS_STORAGE_BUCKET_NAME majburiy.")
+    if not AWS_S3_ENDPOINT_URL and not AWS_S3_REGION_NAME:
+        raise ImproperlyConfigured(
+            "AWS S3 uchun AWS_S3_REGION_NAME (yoki AWS_REGION) majburiy; "
+            "S3-mos boshqa xizmat uchun AWS_S3_ENDPOINT_URL bering."
+        )
+
+    # Public URL manbai: CloudFront/CDN domeni bo'lsa o'sha, bo'lmasa endpointli
+    # xizmat uchun `<bucket>.<endpoint-host>`. Toza AWS'da `None` qoladi va
+    # django-storages regional `https://<bucket>.s3.<region>.amazonaws.com`
+    # manzilini o'zi quradi — qo'lda yasalgan domen noto'g'ri bo'lardi.
+    _custom_domain = (os.getenv('AWS_S3_CUSTOM_DOMAIN') or '').strip()
+    if not _custom_domain and AWS_S3_ENDPOINT_URL:
+        _endpoint_host = AWS_S3_ENDPOINT_URL.split('://', 1)[-1].strip('/')
+        _custom_domain = f'{AWS_STORAGE_BUCKET_NAME}.{_endpoint_host}'
+    AWS_S3_CUSTOM_DOMAIN = _custom_domain or None
+
+    # Obyekt parametrlari klassda emas, shu yerda: `MediaStorage` da class
+    # atributi bo'lsa django-storages settingsni umuman o'qimaydi
+    # (`BaseStorage.__init__` — `if not hasattr`), ya'ni ACL'ni env bilan
+    # o'chirib bo'lmasdi.
+    AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
+    if AWS_DEFAULT_ACL:
+        AWS_S3_OBJECT_PARAMETERS['ACL'] = AWS_DEFAULT_ACL
 
     STORAGES = {
         # Media fayllar uchun maxsus storage klassi
@@ -502,7 +558,12 @@ if USE_S3:
             "BACKEND": "core.custom_storage.HashedStaticFilesStorage",
         },
     }
-    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
+    if AWS_S3_CUSTOM_DOMAIN:
+        MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
+    else:
+        MEDIA_URL = (
+            f'https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/media/'
+        )
 else:
     STORAGES = {
         "default": {

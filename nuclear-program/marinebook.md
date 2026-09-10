@@ -16,6 +16,57 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-10 [Claude]: AWS EC2 deploy tayyorgarligi — uchta blocker va fail-fast gate
+
+Owner qarori bilan hosting AWS bo'ldi. Deployni **mumkin** qiladigan ish qilindi:
+uchta haqiqiy blocker tuzatildi, `05-launch-ops.md` §1 da `PLANNED` bo'lib turgan
+broker fail-fast gate qurildi va bitta EC2 mashinasida ishlaydigan to'liq stack
+`deploy/` ga yozildi.
+
+**Uchta blocker — hammasi audit paytida topildi, hech biri nazariy emas:**
+
+- `USE_S3=True` bilan loyiha AWS S3 da **umuman ko'tarilmasdi**. Blok Spaces'ga
+  qattiq bog'langan edi: region literal `'fra1'`, va `AWS_S3_ENDPOINT_URL` bo'sh
+  bo'lsa `None.replace(...)` settings import paytidayoq `AttributeError` berardi.
+- `MediaStorage` da `ACL='public-read'` qattiq yozilgan edi. Yangi AWS bucketida
+  Object Ownership "Bucket owner enforced" bo'lib, ACL yuborilgan har qanday PUT
+  `AccessControlListNotSupported` (400) bilan rad etiladi — har bir upload
+  yiqilardi. Uni env bilan o'chirib ham bo'lmasdi: django-storages klass
+  atributini settingsdan ustun qo'yadi (`BaseStorage.__init__` — `if not hasattr`).
+- Telegram outbox `Procfile` da yo'q edi, holbuki §1 uni majburiy alohida process
+  deb yozadi.
+
+**Broker fail-fast gate** (`core/runtime_gate.py`): `APP_ENV != local` bo'lsa
+cache/channel/broker manzili majburiy. Sababi jim degradatsiya — `VALKEY_URL`
+unutilsa hech narsa yiqilmaydi, log toza qoladi, `/healthz` yashil turadi, lekin
+har process o'z xotirasidagi cache va channel layerni ko'taradi: WebSocket xabari
+processlar orasida yo'qoladi va `memory://` brokerga ketgan Celery taski processi
+bilan birga o'ladi. Gate **konfiguratsiya**ni tekshiradi, ulanishni emas — aks
+holda har bir `manage.py` chaqiruvi, CI va `collectstatic` ham real Valkey talab
+qilardi. Broker manzili endi settingsda hisoblanadi va `celery.py` shundan oladi.
+
+`deploy/`: `docker-compose.prod.yml` (PostgreSQL+pgvector, Valkey, web, worker,
+beat, outbox, Caddy), `Caddyfile`, `env.example` va o'zbekcha runbook. Caddy
+public media'ni ham tarqatadi (Django uni faqat `DEBUG=True` da beradi);
+`private-media` volume'i Caddy'ga **ataylab** mount qilinmagan — unga yagona yo'l
+ruxsat tekshiradigan Django view bo'lib qoladi (A0b).
+
+CI'ga `docker build` qadami qo'shildi: ishlab chiqish mashinasida Docker yo'q,
+shusiz Dockerfile'dagi xato birinchi marta deploy paytida chiqardi.
+
+- Branch: `claude/aws-deploy-tayyorgarlik`
+- Test holati: `AZURELMS_SKIP_ENV_FILE=1 GEMINI_API_KEY= TELEGRAM_BOT_TOKEN= APP_ENV=local python manage.py test`
+  — **1428/1428 OK (skipped=30)**, 77s. Yangi `core/test_runtime_gate.py` — 17 test.
+  Nazorat yugurishi: `collect_service_problems` doim `[]` qaytarilganda 3 test
+  qizardi (sabotaj qo'llangani grep bilan tasdiqlandi).
+  `check --fail-level WARNING` 0 issue, migration drift yo'q, `collectstatic` 981
+  post-processed, `scan_secrets` toza.
+- Davom etilishi kerak: (1) `core/backup_service.py` faqat SQLite biladi — production
+  zaxira/tiklash `pg_dump` yo'li bilan hali ulanmagan, Control Center backup probe'i
+  serverda AMBER bo'lib turadi; (2) Docker image lokalda qurib ko'rilmadi, birinchi
+  haqiqiy build CI'da bo'ladi; (3) real EC2 deploy, Sentry/alerting va §9 dagi
+  Production GO checklisti ochiq.
+
 ## 2026-09-10 [Claude]: Nuclear-program hujjatlari haqiqatga qarab audit qilindi
 
 Worktree yopilgandan keyin `nuclear-program/` dagi da'volar kod, CI va git holati bilan
