@@ -17,11 +17,15 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app
 
 # `ffmpeg` — speaking audio uchun; `libpq5` — PostgreSQL klient kutubxonasi.
+# `postgresql-client` — `manage.py backup_db`/`restore_db` ichida ishlatiladigan
+# `pg_dump`/`pg_restore`. Usiz zaxira olishning canonical yo‘li konteynerda
+# umuman bo‘lmasdi va operator uni qo‘lda, tekshiruvsiz qilishga majbur edi.
 # Build-only `gcc` va `libpq-dev` ataylab olinmadi: `psycopg2-binary` tayyor
 # g‘ildirak bo‘lib keladi, kompilyator esa image ichida qolib ketardi.
 RUN apt-get update && apt-get install -y --no-install-recommends \
         ffmpeg \
         libpq5 \
+        postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .

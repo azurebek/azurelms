@@ -526,7 +526,14 @@ MEMORY_UNEMBEDDED_AMBER_SHARE = 0.25
 def _backup_probe(definition: CapabilityDefinition) -> CapabilityResult:
     """So'nggi zaxiraning yoshi. Zaxira **olmaydi** — faqat qaraydi."""
     root = Path(settings.BASE_DIR) / "backups"
-    files = sorted(root.glob("*.sqlite3"), key=lambda item: item.stat().st_mtime, reverse=True) if root.exists() else []
+    # Ikkala kengaytma ham: server PostgreSQL'da ishlaydi va uning zaxirasi
+    # `.dump`. Faqat `*.sqlite3` qidirilganda productionda zaxira olinib
+    # turgan bo'lsa ham probe "zaxira topilmadi" deb qizil turardi.
+    candidates = []
+    if root.exists():
+        for pattern in ("*.sqlite3", "*.dump"):
+            candidates.extend(root.glob(pattern))
+    files = sorted(candidates, key=lambda item: item.stat().st_mtime, reverse=True)
 
     if not files:
         # Local'da ham yashil emas: "zaxira yo'q" holati aynan e'tibordan

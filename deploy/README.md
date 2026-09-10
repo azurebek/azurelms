@@ -195,27 +195,62 @@ git pull && docker compose -f docker-compose.prod.yml up -d --build
 
 ### Zaxira
 
-```bash
-docker compose -f docker-compose.prod.yml exec -T db pg_dump -U azurelms -Fc azurelms > backups/azurelms-$(date +%F-%H%M).dump
-```
-
-Har kuni avtomatik olish uchun `crontab -e` ga bitta qator qo'shing (ichidagi
-`%` belgilari cron uchun `\%` bilan ekranlanadi):
-
-```
-0 3 * * * cd /home/ubuntu/azurelms/deploy && docker compose -f docker-compose.prod.yml exec -T db pg_dump -U azurelms -Fc azurelms > backups/azurelms-$(date +\%F).dump 2>>backups/cron.log
-```
-
-> Zaxira olinganini emas, **tiklanishini** tekshiring. Tiklash mashqi alohida
-> bo'sh bazaga qilinadi, ishlab turgan bazaga emas:
+Zaxira **canonical buyruq** orqali olinadi — u `pg_dump -Fc` ni chaqiradi va
+yozilgan faylni darhol `pg_restore --list` bilan tekshiradi. Yarim yozilgan
+dump (masalan disk to'lganda) shu yerda ushlanadi va o'chiriladi, ya'ni
+"zaxira bor" degan yolg'on taassurot qolmaydi:
 
 ```bash
-docker compose -f docker-compose.prod.yml exec -T db createdb -U azurelms restore_drill
+docker compose -f docker-compose.prod.yml run --rm web python manage.py backup_db
+```
+
+Fayl `backups/db-<sana>.dump` bo'lib tushadi va Azure Control Center'ning
+backup probe'i uni ko'radi (7 kundan eski bo'lsa AMBER).
+
+Har kuni avtomatik olish uchun `crontab -e` ga bitta qator:
+
+```
+0 3 * * * cd /home/ubuntu/azurelms/deploy && docker compose -f docker-compose.prod.yml run --rm web python manage.py backup_db >> backups/cron.log 2>&1
+```
+
+### Tiklash mashqi (restore drill)
+
+> Zaxira olinganini emas, **tiklanishini** tekshiring. Mashq alohida bo'sh
+> bazaga qilinadi va ishlab turgan bazaga umuman tegmaydi:
+
+```bash
+docker compose -f docker-compose.prod.yml run --rm web python manage.py restore_db --input backups/db-<sana>.dump --into restore_drill_2026_09
+```
+
+Buyruq tiklangan bazaning jadval sonini va migratsiya sathini chiqaradi —
+dump ochilishi kam, uning **sxemasi** kod kutayotganiga mos kelishi kerak.
+Mashqdan keyin bazani tozalang:
+
+```bash
+docker compose -f docker-compose.prod.yml exec -T db dropdb -U azurelms restore_drill_2026_09
+```
+
+### Haqiqiy falokat tiklashi
+
+Joriy bazaning ustidan tiklash `restore_db` orqali **ataylab qilinmaydi**: u
+ishlab turgan bazadagi hamma obyektni tashlab qaytadan yozish degani va
+sinalmagan destruktiv yo'l falokat kunida birinchi marta ishlab ko'riladigan
+kod bo'lardi. Buni qo'lda, app to'xtatilgan holda qiling:
+
+```bash
+docker compose -f docker-compose.prod.yml stop web worker beat outbox
 ```
 
 ```bash
-docker compose -f docker-compose.prod.yml exec -T db pg_restore -U azurelms -d restore_drill < backups/<fayl>.dump
+docker compose -f docker-compose.prod.yml exec -T db pg_restore --clean --if-exists --no-owner -U azurelms -d azurelms < backups/db-<sana>.dump
 ```
+
+```bash
+docker compose -f docker-compose.prod.yml up -d
+```
+
+Avval **albatta** drill qiling: yuqoridagi buyruq mavjud ma'lumotni
+qaytarib bo'lmaydigan tarzda almashtiradi.
 
 ### Orqaga qaytarish
 
@@ -255,7 +290,9 @@ qoladi (`05-launch-ops.md` §9 "Production GO qo'shimcha checklist"):
   mikrofon, upload, Mini App, dark/light.
 - Real Telegram guruhda Classbook jonli darsini o'tkazish.
 - Sentry / alerting hali ulanmagan.
-- Izolyatsiyalangan tiklash mashqi va rollback mashqi dalili.
+- Izolyatsiyalangan tiklash mashqi va rollback mashqi **dalili**. Mexanizm
+  qurilgan (`restore_db --into`, yuqoridagi §6), ammo uni real serverda
+  bir marta yugurtirib, natijani yozib qo'yish kerak.
 - `ReleaseRecord` ga release SHA yozadigan tomon (`A1b`).
 
 Ularning holati `nuclear-program/launch-plan/03-mahsulot-backlog.md` da

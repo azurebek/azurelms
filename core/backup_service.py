@@ -13,6 +13,13 @@ commitlarni ham qamrab oladi.
 Mantiq management buyruqlarida emas, shu yerda — shunda uni test to'g'ridan
 to'g'ri chaqira oladi va `backup_db`/`restore_db` buyruqlari yupqa qobiq
 bo'lib qoladi.
+
+**PostgreSQL (2026-09-10, A1b).** Server PostgreSQL'da ishlagani uchun bu
+modul endi dispatcher: SQLite yo'li o'zgarmadi, PG yo'li esa
+`core/pg_backup.py` da (`pg_dump`/`pg_restore`). Ilgari PG backendida
+`backup_db` shunchaki xato berardi — ya'ni serverda zaxira olishning
+canonical yo'li umuman yo'q edi va Control Center backup probe'i doim
+qizil turardi.
 """
 
 import shutil
@@ -21,9 +28,28 @@ from pathlib import Path
 
 from django.db import connections
 
+from core import pg_backup
+
 
 class BackupError(RuntimeError):
     """Zaxira yoki tiklash bajarilmadi."""
+
+
+def engine_of(alias="default"):
+    return connections[alias].settings_dict.get("ENGINE", "")
+
+
+def is_postgres(alias="default"):
+    return "postgresql" in engine_of(alias)
+
+
+def default_backup_suffix(alias="default"):
+    """Zaxira faylining kengaytmasi.
+
+    Nomi backendni aytib turishi kerak: `.dump` faylni SQLite deb ochishga
+    urinish chalkash xato beradi, va aksincha.
+    """
+    return ".dump" if is_postgres(alias) else ".sqlite3"
 
 
 def _sqlite_path(alias="default"):
@@ -32,9 +58,8 @@ def _sqlite_path(alias="default"):
     engine = settings_dict.get("ENGINE", "")
     if "sqlite" not in engine:
         raise BackupError(
-            f"Bu buyruq faqat SQLite uchun (joriy backend: {engine}). "
-            "PostgreSQL uchun `pg_dump`/`pg_restore` ishlatiladi — u production "
-            "provayderi tanlangandan keyin alohida quriladi."
+            f"Bu yo'l faqat SQLite uchun (joriy backend: {engine}). "
+            "PostgreSQL yo'li `core/pg_backup.py` da."
         )
     name = str(settings_dict.get("NAME") or "")
     if not name or name == ":memory:" or "mode=memory" in name:
@@ -63,9 +88,46 @@ def check_sqlite_integrity(path):
 def create_backup(destination, alias="default"):
     """Izchil zaxira yozadi va uni tekshiradi. Yozilgan yo'lni qaytaradi.
 
-    `VACUUM INTO` ataylab tanlangan: u ishlab turgan bazadan ham izchil nusxa
-    oladi va WAL'dagi commitlarni qoldirib ketmaydi.
+    Backendga qarab yo'l tanlanadi. Chaqiruvchi (management buyruq, test,
+    Control Center) qaysi baza ekanini bilishi shart emas.
     """
+    if is_postgres(alias):
+        return _create_backup_postgres(destination, alias)
+    return _create_backup_sqlite(destination, alias)
+
+
+def _create_backup_postgres(destination, alias="default"):
+    """`pg_dump -Fc` bilan zaxira; keyin `pg_restore --list` bilan tekshiruv.
+
+    Tekshiruv ataylab: `pg_dump` disk to'lganda yoki ulanish uzilganda ham
+    yarim yozilgan fayl qoldirib ketishi mumkin, va buni faqat tiklash
+    kunida bilib qolgan bo'lardik. Buzuq fayl o'chiriladi — "zaxira bor"
+    degan yolg'on taassurot qolmasin.
+    """
+    destination = Path(destination)
+    if destination.exists():
+        raise BackupError(f"Zaxira fayli allaqachon mavjud: {destination}")
+    destination.parent.mkdir(parents=True, exist_ok=True)
+
+    params = pg_backup.connection_params(alias)
+    try:
+        failure = pg_backup.dump(params, destination)
+    except pg_backup.PgToolMissing as exc:
+        raise BackupError(str(exc)) from exc
+    if failure:
+        destination.unlink(missing_ok=True)
+        raise BackupError(f"pg_dump yiqildi: {failure}")
+
+    verdict = pg_backup.verify_dump(destination, params)
+    if verdict != "ok":
+        destination.unlink(missing_ok=True)
+        raise BackupError(f"Zaxira buzuq chiqdi: {verdict}")
+    return destination
+
+
+def _create_backup_sqlite(destination, alias="default"):
+    """`VACUUM INTO` ataylab tanlangan: u ishlab turgan bazadan ham izchil
+    nusxa oladi va WAL'dagi commitlarni qoldirib ketmaydi."""
     source = _sqlite_path(alias)
     destination = Path(destination)
     if destination.exists():
@@ -117,17 +179,80 @@ def describe_sqlite(path):
         conn.close()
 
 
+def describe_backup(target, alias="default"):
+    """Tiklangan nusxaning holati — backendga qarab.
+
+    SQLite'da `target` fayl yo'li, PostgreSQL'da esa baza nomi.
+    """
+    if is_postgres(alias):
+        return pg_backup.describe_database(pg_backup.connection_params(alias), str(target))
+    return describe_sqlite(target)
+
+
 def restore_backup(source, alias="default", into=None):
     """Zaxirani tiklaydi.
 
     `into` berilmasa — joriy bazaning **ustiga** yoziladi.
-    `into` berilsa — alohida faylga tiklanadi va joriy bazaga tegilmaydi
-    (restore drill). Drill hech narsa yo'qotmasligi kerak, aks holda uni
-    hech kim qilmaydi va zaxira sinalmagan holda qolaveradi.
+    `into` berilsa — alohida joyga tiklanadi va joriy bazaga tegilmaydi
+    (restore drill). SQLite'da bu alohida **fayl**, PostgreSQL'da alohida
+    **baza**. Drill hech narsa yo'qotmasligi kerak, aks holda uni hech kim
+    qilmaydi va zaxira sinalmagan holda qolaveradi.
 
     Har ikki holatda avval zaxiraning o'zi tekshiriladi — buzuq faylni
     ishlayotgan bazaning ustiga yozib qo'yish eng yomon natija bo'lardi.
     """
+    if is_postgres(alias):
+        return _restore_backup_postgres(source, alias, into)
+    return _restore_backup_sqlite(source, alias, into)
+
+
+def _restore_backup_postgres(source, alias="default", into=None):
+    """PostgreSQL drill: zaxirani **alohida** bazaga tiklaydi.
+
+    Joriy bazaning ustiga tiklash bu yerda ataylab **rad etiladi**. U
+    `pg_restore --clean --if-exists` bilan ishlab turgan bazadagi hamma
+    obyektni tashlab qaytadan yozish degani; sinalmagan destruktiv yo'l
+    falokat kunida birinchi marta yugurtiriladigan kod bo'lardi va u
+    ishlamasa na zaxira, na baza qoladi. Operator uchun aniq qo'lda
+    buyruq beriladi (`deploy/README.md` §6).
+    """
+    source = Path(source)
+    if not source.exists():
+        raise BackupError(f"Zaxira fayli topilmadi: {source}")
+
+    params = pg_backup.connection_params(alias)
+    try:
+        verdict = pg_backup.verify_dump(source, params)
+    except pg_backup.PgToolMissing as exc:
+        raise BackupError(str(exc)) from exc
+    if verdict != "ok":
+        raise BackupError(f"Zaxira buzuq, tiklash to'xtatildi: {verdict}")
+
+    if not into:
+        raise BackupError(
+            "PostgreSQL'da joriy bazani ustidan tiklash bu buyruq orqali "
+            "qilinmaydi. Drill uchun `--into <yangi-baza-nomi>` bering. "
+            "Haqiqiy falokat tiklashi qo'lda va app to'xtatilgan holda: "
+            "`pg_restore --clean --if-exists --no-owner -d <baza> <fayl>` "
+            "(`deploy/README.md` §6)."
+        )
+
+    if str(into) == params["name"]:
+        # Aks holda "drill" yashiringan destruktiv tiklash bo'lib qolardi.
+        raise BackupError("`--into` joriy bazani ko'rsatyapti — drill emas.")
+
+    try:
+        pg_backup.create_database(params, str(into))
+    except Exception as exc:
+        raise BackupError(f"Drill bazasini yaratib bo'lmadi: {exc}") from exc
+
+    failure = pg_backup.restore_into(params, source, str(into))
+    if failure:
+        raise BackupError(f"pg_restore yiqildi: {failure}")
+    return into
+
+
+def _restore_backup_sqlite(source, alias="default", into=None):
     source = Path(source)
     if not source.exists():
         raise BackupError(f"Zaxira fayli topilmadi: {source}")
