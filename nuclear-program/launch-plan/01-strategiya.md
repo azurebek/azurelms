@@ -247,7 +247,9 @@ AI tannarx: final chat token telemetriyasi bor, lekin SmartForm, bot guest, embe
 
 ---
 
-## 8. Muvaffaqiyat mezonlari (20-sentyabr taqdimoti)
+## 8. Muvaffaqiyat mezonlari (taqdimot checkpointi)
+
+> **2026-09-10 rebaseline:** quyidagi 20-sentyabr sanasi 30-sentyabr ishga tushirish maqsadiga uzaytirildi — [launch-plan/README.md](README.md) source of truth. Mezonlarning mazmuni o'zgarmadi.
 
 1. **Taqdimot:** 8–10 daqiqalik demo "bir o'quvchining haftasi + ustoz paneli" uzilishsiz (fallback video tayyor)
 2. **Platforma:** kuzgi jonli guruh 3 haftadir platformada o'qiyapti (1-sentyabrdan) — demo emas, real ish

@@ -880,6 +880,13 @@ Mini App sahifalari `templates/bot/miniapp_base.html` mobil shellini ulashadi. T
 | `seed_content [--wipe]` | core | owner tasdiqlagan superuser bilan idempotent sample kurs/maqola yaratish; `SeededRecord` egaligisiz begona yozuvni qabul qilmaydi/o'chirmaydi |
 | `backup_db` / `restore_db --input <backup> --into <target>` | core | SQLite zaxira va ajratilgan targetga restore drill |
 | `system_audit [--json] [--fail-on ...]` | core | Control Center capability snapshotini CLI'da tekshirish |
+| `scan_secrets` | core | kuzatuvdagi fayllarda sir (API kalit, token, parolli DSN) qidiradi; CI `supply-chain` ishida majburiy |
+| `audit_dependencies` | core | `pip-audit` hisobotini `security/dependency-audit-baseline.json` reyestri bilan solishtiradi |
+| `record_release` | core | ishlab turgan commit SHA va migratsiya holatini `ReleaseRecord` ga yozadi |
+| `release_decision` | core | release bo'yicha owner qarorini yozadi (`go` / `hold` / `rolled_back`) |
+| `seed_demo` | core | mobil QA va demo uchun kurs/guruh/o'quvchi yaratadi (faqat lokal) |
+| `prune_ai_memory [--user-id] [--dry-run]` | messenger | `AIMemoryFact` dagi shablon-axlat va near-dubllarni arxivlaydi |
+| `send_streak_nudges` | users | xavf ostidagi/uzilgan seriyalar uchun mascot undash bildirishnomalarini yuboradi |
 
 ---
 
@@ -951,7 +958,7 @@ Mini App sahifalari `templates/bot/miniapp_base.html` mobil shellini ulashadi. T
 - `TelegramOutbox` modeli/command'i bor, lekin Procfile'da doimiy process yo'q. Worker 2026-08-15 dan **atomik claim/lease** ishlatadi (shartli `UPDATE` + `LEASE_SECONDS` muddati; o'lgan worker qatori navbatga qaytadi), ya'ni bir necha replica bir xil qatorni olmaydi. Kafolat baribir at-least-once: yuborish muvaffaqiyatli bo'lib DB yangilanishidan oldin process o'lsa xabar takrorlanadi. Exponential backoff va dead-letter hali yo'q.
 - `AIResponseRun` status, model, skill, token, duration, metadata, error va idempotency keyni saqlaydi. Pul bahosi `AIModelPrice` snapshotlari + `core/ai_cost.py` orqali alohida hisoblanadi; AI quality/cost release gate A9 sifatida ochiq.
 - Capability registry/snapshot AI supply budget/cooldown bilan birga append-only `SystemAuditEvent`, `WorkerHeartbeat`, `ReleaseRecord`, backup/email/memory probe'lari, feature flags va AI cost holatini ko'rsatadi.
-- Gemini provider allowlistdagi 1 primary + max 1 fallback bilan bounded; SDK retry off, `429` bir attemptda fail-fast/circuit. Prompt/output/timeout/deadline caplari implement/test qilingan. Eng so'nggi to'liq suite dalili PR #59 da **1013/1013 OK** (skipped=23); bu local regression dalili, production `GO` emas.
+- Gemini provider allowlistdagi 1 primary + max 1 fallback bilan bounded; SDK retry off, `429` bir attemptda fail-fast/circuit. Prompt/output/timeout/deadline caplari implement/test qilingan. Eng so'nggi to'liq suite dalili — 2026-09-10 da `main` (`da07d0c`) ustida 1411/1411 (skipped=30) **OK**; bu local regression dalili, production `GO` emas.
 - Free tier'da API grounding defense-in-depth o'chiq: engine specialist/search call yaratmaydi, provider direct caller `enable_web_search=True` bersa ham `GoogleSearch()` va config tools `0`; intent `requested/blocked/actual` telemetryda ajraladi.
 - Per-user allowance upstream supply emas. Alohida `AISupplyEvent` global daily+minute request va daily token hard budgetini pre-reserve qiladi, staff va auxiliary calllarni ham qamraydi; ledger DB xatosida remote call fail-closed.
 - SQLite parallel reservation contention proofi 2026-08-15 da yozildi va kamchilikni ochdi: `select_for_update()` SQLite'da no-op (`has_select_for_update=False`), `BEGIN DEFERRED` esa write-upgrade paytida busy_timeout'ni kutmaydi. Local SQLite endi `transaction_mode=IMMEDIATE`, `timeout=15` va WAL bilan ishlaydi; contention testlari `AZURELMS_TEST_FILE_DB=1` bilan fayl bazasida bajariladi. PostgreSQL `FOR UPDATE` proofi GitHub Actions integration ishida yopildi. **Ochiq K11:** alohida OS processlari bilan takrorlash; SmartForm/guest limit check'i va lesson reindex batch'i uchun to'liq lease/claim. Guestning muvaffaqiyatli savol hisoblagichi PR #59 da `F()` bilan atomik oshiriladi, lekin check→provider→increment oralig'i hamon lease emas.
@@ -1099,7 +1106,7 @@ $env:AZURELMS_TEST_FILE_DB='1'; python manage.py test aicontrol.test_supply_conc
 6. **YouTube embed:** owner embed bloklasa platforma majburlab ocholmaydi — fallback UX kelajakda kerak bo'lishi mumkin.
 7. **SIT data gate:** qabul, narx va viza kabi vaqtga sezgir public ma'lumot `source_url` va `last_verified_on`siz nashr qilinmaydi. `playground/SIT/` runtime emas.
 8. **`.gitignore`:** `.claude/`, `.tools/`, `.codex/`, `__pycache__/`, `*.pyc`, `db.sqlite3`, `media/`, `venv/`, `.env` va `.env.local`.
-9. **Resurs/A8 qarori:** production va DigitalOcean integration'i HOLD; local ish davom etadi. A8 supply guard **`IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`**; SQLite va CI PostgreSQL prooflari yopilgan. Ochiq K11 — alohida OS-process takrori va guest/SmartForm/lesson-reindex lease/claim. Eng so'nggi to'liq suite dalili PR #59 da 1013/1013; bu ommaviy rollout yoki production `GO` emas.
+9. **Resurs/A8 qarori:** production va DigitalOcean integration'i HOLD; local ish davom etadi. A8 supply guard **`IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`**; SQLite va CI PostgreSQL prooflari yopilgan. Ochiq K11 — alohida OS-process takrori va guest/SmartForm/lesson-reindex lease/claim. Eng so'nggi to'liq suite dalili — 2026-09-10 da `main` (`da07d0c`) ustida 1411/1411 (skipped=30); bu ommaviy rollout yoki production `GO` emas.
 10. **Joriy vision chegarasi:** `image_qa` skill mavjud, lekin Gemini adapteri vision'ni qo'llamaydi; rasm tahlili current capability emas.
 11. **Schema:** `aicontrol/0002_ai_supply_budget`, `messenger/0014_ai_response_idempotency`, `users/0015_free_tier_model_default` va `users/0016_alter_notification_options` local SQLite'ga apply qilingan.
 12. **Model lifecycle:** primary `gemini-3.1-flash-lite`, temporary fallback `gemini-3.5-flash-lite`. `gemini-2.5-flash-lite` yangi chaqiruvlarda `404` bergani uchun retired va runtime'da rad etiladi. 3.7 Flash joriy project snapshotidagi 20 RPD sabab hozir admit qilinmagan.

@@ -309,7 +309,7 @@ Commit qilma:
 
 <optional body>
 
-Co-Authored-By: <Agent Name> <noreply@anthropic.com>
+Co-Authored-By: <Agent Name> <agent-noreply-email>
 ```
 
 **Types:** `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `style`, `perf`
@@ -322,6 +322,26 @@ fix(courses): preserve lesson cohort query
 test(ai): cover medium web search routing
 docs(agent): add branch workflow playbook
 ```
+
+### Commit identity
+
+Repo-local `git config user.name` **`Codex`** ga o'rnatilgan, ya'ni hech narsa qilmasangiz
+commitingiz Codex nomida ko'rinadi. Bitta checkout tartibida (§3) bu ayniqsa chalg'itadi —
+tarixda kim nima qilganini ajratib bo'lmaydi. 2026-09-10 da Antigravity yozgan uchta commit
+aynan shu sababdan `Codex` muallifligida turibdi.
+
+Shuning uchun:
+
+- `Co-Authored-By:` trailer **har commitda majburiy** — u ishni kim qilganini aytadi.
+- Codex bo'lmasangiz, identityni bir martalik bering:
+
+```bash
+git -c user.name="<Agent>" -c user.email="<agent-noreply>" commit -F - <<'MSG'
+...
+MSG
+```
+
+- `git config` ni doimiy o'zgartirish Azurbekning qarori; agent o'zi jimgina qilmaydi.
 
 ---
 
@@ -387,6 +407,16 @@ CI job nomini o'zgartirsangiz, protection ham o'sha commitda yangilanishi shart 
 - Destructive migration, data-loss yoki secret/security anomaly yo'q
 
 Agent `--admin` ishlatmaydi, branch protection yoki required checkni bypass qilmaydi. Conflict, failed/missing check yoki yuqoridagi xavf signallarida merge qilmaydi va Azurbekka xabar beradi.
+
+**Faqat o'z PR'ingiz.** Boshqa agentning PR'ini merge qilish taqiqlanadi — uchala check yashil bo'lsa ham.
+Uning branch'iga, shu jumladan ochiq PR branch'iga, commit yoki push qilish ham taqiqlanadi.
+
+> **2026-09-10 hodisasi.** Antigravity Codex review botining PR #94 dagi ikki topilmasini tuzatib,
+> commitlarni to'g'ridan-to'g'ri `codex/classbook-live-orchestrator` ga push qildi va PR #94 ni o'zi
+> merge qildi. Kod to'g'ri edi va CI yashil edi, lekin: (a) Codex ayni paytda o'z ishida xuddi shu
+> PostgreSQL test muammosini boshqa yo'l bilan (`TransactionTestCase`) tuzatayotgan edi — ikkala tomon
+> bir-biridan bexabar qoldi; (b) merge qilingan PR egasi o'z ishining yakuniy holatini ko'rmay qoldi.
+> To'g'ri yo'l: `antigravity/<task>` branchida alohida PR ochib, uni Codex PR'idan keyin merge qilish.
 
 #### Merge qo'lda va kutib bajariladi (owner qarori — 2026-09-03)
 
@@ -468,6 +498,8 @@ Yangi yozuv **eng tepaga** (teskari xronologik):
 
 - ❌ Commit hali yo'q bo'lsa "keyin qo'shiladi" deb yozma — commit'dan keyin yoz
 - ❌ Test yugurmagan bo'lsa "yashil" deb yozma — "yugurilmadi" deb yoz
+- ❌ `--amend` yoki rebase'dan **oldingi** hashni yozma: amend hashni o'zgartiradi. Yozishdan oldin
+  `git log --oneline -1` bilan tasdiqla — 2026-09-10 da uchta yozuv shu sababdan noto'g'ri hash bilan `main` ga kirdi
 - ❌ Pre-existing failure'ni o'z ishingga aybdor qilma — alohida ayt
 
 ---
@@ -632,7 +664,7 @@ Bunday hollarda Azurbek'ka aniq risk yoziladi.
 - Branch prefiks: `claude/`
 - Kuchli tomon: refactor, dokumentatsiya, structured analysis, tests
 - Long context'da session'ni erta yopish foydali
-- Imzo: `Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>`
+- Imzo: `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>` (model yangilansa shu qator ham yangilanadi)
 
 ### Antigravity
 
@@ -640,6 +672,8 @@ Bunday hollarda Azurbek'ka aniq risk yoziladi.
 - Kuchli tomon: frontend/UI exploration
 - **Har 10-15 daqiqada kichik commit/checkpoint** tavsiya etiladi
 - Katta uncommitted UI experimentlarni main branch'da saqlama (bugun bo'lgan ish — 3000+ qator yo'qoldi)
+- **2026-09-10:** boshqa agentning branch'iga push qilma va uning PR'ini merge qilma (§9); tuzatishing bo'lsa `antigravity/<task>` da alohida PR och
+- Commit hash'ini marinebook'ga yozishdan oldin `--amend` qilib bo'lgan bo'l — amend hashni o'zgartiradi (§10)
 
 ### Human / Azurbek
 

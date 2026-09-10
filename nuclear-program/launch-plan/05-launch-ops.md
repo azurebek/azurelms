@@ -230,7 +230,9 @@ Rollout: staff → 10–15 learner → bitta cohort → keng launch. Har bosqich
 
 Event nomi, numerator/denominator, cohort/plan filter va timezone versionlangan metric registry'da bo'ladi. Bepul plan monetizatsiya denominatoriga kirmaydi; eval sample minimumi alohida A9 gate bo'yicha `≥150`.
 
-## 9. 20-sentyabr taqdimoti va production qarori
+## 9. Taqdimot va production qarori
+
+> **2026-09-10 rebaseline:** quyidagi 20-sentyabr sanasi 30-sentyabr ishga tushirish maqsadiga uzaytirildi ([README.md](README.md)); repetitsiya va qaror tartibi o'zgarmadi, sanalar shunga surildi.
 
 8–10 daqiqalik demo ikki haqiqatni ko'rsatadi:
 

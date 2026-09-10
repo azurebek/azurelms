@@ -16,6 +16,39 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-10 [Claude]: Nuclear-program hujjatlari haqiqatga qarab audit qilindi
+
+Worktree yopilgandan keyin `nuclear-program/` dagi da'volar kod, CI va git holati bilan
+solishtirildi. Eskirgan yoki noto'g'ri 15 ta band tuzatildi; «8 required check», app ro'yxati,
+Django 6.0.8 / Python 3.12.10 va Gemini model lifecycle da'volari esa tekshirilib **to'g'ri**
+chiqdi — ularga tegilmadi.
+
+**Tuzatildi:**
+
+- O'chirilgan branchlarga havolalar: `codex/classbook-live-orchestrator` (launch-plan README + backlog),
+  `codex/ux-context-closeout`, `claude/backoffice-landing-editor`, `claude/telegram-bot`.
+- Classbook holati: PR #94 bilan `main`da; PostgreSQL 50-parallel gate **yopilgan** — `classbook/test_load.py`
+  CI `integration` ishida yashil. Qolgan gate faqat real Telegram/Mini App owner sign-off.
+- Full suite dalili to'rt joyda «PR #59 da 1013/1013 (skipped=23)» da qolib ketgan edi.
+- «8 required check» ikki joyda «8 mantiqiy gate → 3 required check» ga aniqlashtirildi (branch
+  protection'da aynan uchta context bor).
+- 20-sentyabr checkpointi: `01-strategiya.md` §8 va `05-launch-ops.md` §9 ga 30-sentyabr rebaseline izohi.
+- `rules-for-agents.md` §9: «faqat o'z PR'ingiz» qoidasi yozildi — AGENTS.md unga havola qilardi,
+  lekin qoidaning o'zi §9 da yo'q edi. 2026-09-10 hodisasi misol sifatida qo'shildi.
+- `rules-for-agents.md` §8 ga «Commit identity» bo'limi: repo-local `user.name=Codex` bo'lgani uchun
+  har agentning commiti Codex nomida ko'rinadi.
+- §10 ga hash qoidasi: `--amend` dan keyin `git log --oneline -1` bilan tasdiqlab yoz.
+- §18: Claude imzosi `Opus 4.7` → `Opus 5`; Antigravity bo'limiga 2026-09-10 saboqlari.
+- `project-context.md` §9: hujjatsiz qolgan 7 ta management command qo'shildi — `scan_secrets`,
+  `audit_dependencies`, `record_release`, `release_decision`, `seed_demo`, `prune_ai_memory`,
+  `send_streak_nudges`.
+
+- Branch: `claude/nuclear-program-audit`
+- Test holati: `AZURELMS_SKIP_ENV_FILE=1 GEMINI_API_KEY= TELEGRAM_BOT_TOKEN= APP_ENV=local python manage.py test`
+  — **1411/1411 OK (skipped=30)**, 82s, `main` `da07d0c` ustida
+- Davom etilishi kerak: repo-local git identity (`user.name=Codex`) Azurbek qaroriga qoldi;
+  Codex'ning `TransactionTestCase` varianti hamon arxivda va hal qilinmagan.
+
 ## 2026-09-10 [Claude]: Worktree tartibi yopildi — bitta checkout, bitta branch
 
 Azurbek qarori bilan `git worktree` tartibi bekor qilindi. To'rtta worktree papkasi
