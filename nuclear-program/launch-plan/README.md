@@ -56,17 +56,17 @@ Bu natijalardan kamida biri real cohortda o'lchanmaguncha AI kurs narxini oshiri
 | Local runtime | `LOCAL BOOT VERIFIED`: SQLite, LocMem/in-memory, eager Celery, local media; DO credential/service yo'q; eng so'nggi full suite dalili PR #59 da 1013/1013 (skipped=23) | Production gate alohida; test soni volatile, latest marinebook entry source of truth |
 | AI provider | Gemini primary; allowlistdagi 1 primary + max 1 fallback, SDK retry off, `429`da 1 attempt/cooldown | `A8` **`IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`**; PostgreSQL contention proofi CI'da yopildi, production admission alohida |
 | A0 security | A0a **va** A0b beshala slice kodda: teacher default-deny scope, upload MIME/magic-byte gate'i, private media, WebSocket access recheck, CSP v4 | `EVIDENCE READY` labeli owner qarorida |
-| A1 runtime/CI | A1a bajarildi: `.dockerignore`, `/healthz`+`/readyz`, backup/restore, outbox lease va `.github/workflows/ci.yml` (8 required check, PostgreSQL+Valkey ishi bilan) | A1b cloud deploy `HOLD`; bog'liqlik zaiflik qarzi reyestrda |
+| A1 runtime/CI | A1a bajarildi: `.dockerignore`, `/healthz`+`/readyz`, backup/restore, outbox lease va `.github/workflows/ci.yml` (8 mantiqiy gate → 3 required check, PostgreSQL+Valkey ishi bilan) | A1b cloud deploy `HOLD`; bog'liqlik zaiflik qarzi reyestrda |
 | A2 Control Center | Capability registry, brand/landing/kill-switch/circuit-reset mutationlari, umumiy feature flags, append-only audit, `WorkerHeartbeat`, `ReleaseRecord`, backup/email/memory probe'lari va AI cost ledgeri bor | Qolgan yagona band — A9 AI quality/cost release gate |
 | Telegram | F0–F9, outbox va Mini App foundation bor | Local polling QA; webhook/public deploy `HOLD` |
-| Classbook | `codex/classbook-live-orchestrator`da canonical session/activity/response, 10 mashq turi, realtime+poll fallback va Telegram group outbox `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | PostgreSQL 50-parallel CI gate + real Telegram/Mini App owner sign-off |
+| Classbook | `main`da (PR #94, 2026-09-10): canonical session/activity/response, 10 mashq turi, realtime+poll fallback va Telegram group outbox `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`. PostgreSQL 50-parallel gate yopildi — `classbook/test_load.py` CI `integration` ishida yashil | Real Telegram guruh / Mini App va Android/iOS/desktop owner sign-off |
 | Landing editor | Bosqich 1 + bo'lim navigatsiyasi bor | Repeatable ro'yxatlar faqat core gate'lardan keyin |
 | SIT | S1, S3 va S4 kodda; S2 yo'q | `SITInquiry` lifecycle; real data gigiyenasi |
 
 ## Rebaseline ustuvorligi
 
 1. **A3b Classbook closeout:** bitta start/finish control plane, turli deterministic mashqlar, 50 learner grading/leaderboard, Telegram guruh outbox va shaxsiy natija DM'lari. Merge gate: full suite, PostgreSQL parallel test, mobile browser va real Telegram owner sign-off.
-2. **A8 closeout — `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`:** barcha joriy Gemini call-pathlari ledgerga ulangan; free-model allowlist, kunlik/minute request va kunlik token cap, one-fallback, idempotency va 429 cooldown ishlaydi. Ikki DB backenddagi contention proofi **yopildi** — SQLite yarmi `aicontrol/test_supply_concurrency.py` bilan, PostgreSQL yarmi CI `integration` ishi bilan. Eng so'nggi full suite dalili PR #59 da 1013/1013 (skipped=23). Alohida OS processlari va caller-specific guest/SmartForm/lesson-reindex lease/claim K11 sifatida ochiq.
+2. **A8 closeout — `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN`:** barcha joriy Gemini call-pathlari ledgerga ulangan; free-model allowlist, kunlik/minute request va kunlik token cap, one-fallback, idempotency va 429 cooldown ishlaydi. Ikki DB backenddagi contention proofi **yopildi** — SQLite yarmi `aicontrol/test_supply_concurrency.py` bilan, PostgreSQL yarmi CI `integration` ishi bilan. Eng so'nggi full suite dalili — 2026-09-10 da `main` (`da07d0c`) ustida 1411/1411 (skipped=30). Alohida OS processlari va caller-specific guest/SmartForm/lesson-reindex lease/claim K11 sifatida ochiq.
 3. **A0b + vendor-neutral A1:** private media/upload/access; `.dockerignore`, CI, readiness va restore proof. Cloud xizmati shart emas.
 4. **A2 Control Center:** effective config, capability registry, flags/kill switches, event/audit ledger, health, AI quota va release gate.
 5. **Canonical oqimlar + mobil oltin yo'l:** enrollment, lesson lifecycle, access, submission/review va notificationlar shared policy/state machine orqali; real qurilma parity.
@@ -108,7 +108,7 @@ Sana o'tgani task tugaganini anglatmaydi. Exit kriteriydan o'tmagan faza yopilma
 
 - Non-core AI, SRS, streak yoki vizual feature feature flag bilan yopiladi yoki `beta` deb belgilanadi.
 - Core jonli kurs oqimi va fallback Telegram kanali buzilmagan.
-- 20-sentyabr taqdimoti local yoki vaqtinchalik xavfsiz tunnelda o'tishi mumkin; bunday demo **production GO** deb talqin qilinmaydi.
+- Taqdimot/ishga tushirish checkpointi (2026-09-10 rebaseline bo'yicha 30-sentyabr) local yoki vaqtinchalik xavfsiz tunnelda o'tishi mumkin; bunday demo **production GO** deb talqin qilinmaydi.
 
 ### NO-GO
 

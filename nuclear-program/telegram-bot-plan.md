@@ -1,7 +1,7 @@
 # Telegram bot qayta-arxitektura rejasi
 
 > Muallif: Claude · 2026-07-12 · Azurbek bilan kelishilgan
-> Branch: `claude/telegram-bot`
+> Branch: `claude/telegram-bot` (ish `main` da; branch 2026-09-10 da o'chirilgan)
 > Maqsad: bot — kompyuter ishlatmaydigan auditoriya uchun platformaning to'liq interfeysi.
 
 > **Rebaseline 2026-08-14:** F0–F9 va Mini App foundation main'da. DigitalOcean/public production `HOLD`; joriy ish Telegram polling + local app. F10 production gate vendor-neutral bo'lib, owner productionni qayta ochmaguncha active task emas. Gemini bot AI uchun ham umumiy free-tier budgetdan tashqarida emas.

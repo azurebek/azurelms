@@ -17,7 +17,7 @@
 
 | Soha | Tasdiqlangan holat | Ochiq gate |
 |---|---|---|
-| Repo/runtime | 2026-08-14 baseline: post-A8 offline full suite 527/527, streak focused 15/15 va audit 10/10 GREEN; latest recorded suite PR #59 da 1013/1013 | Local GREEN production readiness emas; production gate alohida |
+| Repo/runtime | 2026-08-14 baseline: post-A8 offline full suite 527/527, streak focused 15/15 va audit 10/10 GREEN; latest recorded suite — 2026-09-10 da `main` (`da07d0c`) ustida 1411/1411 (skipped=30) | Local GREEN production readiness emas; production gate alohida |
 | DigitalOcean | Credential/service o'chiq; `AI_ALLOW_DIGITALOCEAN=False` provider yaratishdan oldin fail-closed | Future production uchun alohida owner admissioni va provider qayta bahosi |
 | Gemini | `AI_CHAT_PROVIDER=gemini`; allowlistdagi 1 primary + max 1 fallback; SDK retry off; prompt/output/timeout/deadline cap | External-quota monitoring, K11 caller lease/claim va production admission |
 | AI usage | Per-user allowance'dan alohida global daily request/token + minute request reservation ledgeri; staff, chat/search, SmartForm, guest va embedding/reindex qamralgan; SQLite va CI PostgreSQL prooflari yopilgan | Alohida OS-process takrori; guest/SmartForm/lesson-reindex caller-specific lease/counter risklari (K11) |

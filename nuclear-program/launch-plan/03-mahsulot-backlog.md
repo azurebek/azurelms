@@ -17,11 +17,11 @@
 | Band | Queue | Execution | Izoh |
 |---|---|---|---|
 | A0 | `ADMIT` | `IMPLEMENTED/TESTED` | A0a va A0b beshala slice ham bajarilgan; `EVIDENCE READY` labeli owner qarorida |
-| A1a | `ADMIT` | `IMPLEMENTED/TESTED` | GitHub Actions CI (8 required check) + readiness/backup/outbox bajarildi; bog'liqlik zaiflik qarzi reyestrda |
+| A1a | `ADMIT` | `IMPLEMENTED/TESTED` | GitHub Actions CI (8 mantiqiy gate → 3 required check) + readiness/backup/outbox bajarildi; bog'liqlik zaiflik qarzi reyestrda |
 | A1b | `HOLD` | `PLANNED` | cloud deploy va managed services |
 | A2 | `ADMIT` | `IMPLEMENTED/TESTED` | audit ledgeri, kill switch, circuit reset, heartbeat, `ReleaseRecord`, flag registri, cost ledgeri va backup/email/memory probe'lari kodda; **qolgan yagona band — AI quality/cost release gate, u esa A9 ning ishi** |
 | A8 | `ADMIT` | `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | supply guard kod/target/full testlarda; PostgreSQL contention proofi CI `integration` ishida yopildi, alohida OS processlari bilan takrorlash ochiq |
-| A3/A3b | `ADMIT` | `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | oldingi canonical oqimlar main'da; Classbook live session/activity/response, turli mashqlar, Telegram group outbox va 50 learner gate'i `codex/classbook-live-orchestrator`da |
+| A3/A3b | `ADMIT` | `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | oldingi canonical oqimlar va Classbook (live session/activity/response, turli mashqlar, Telegram group outbox, 50 learner gate'i) `main`da — PR #94, 2026-09-10 |
 | A4 | `ADMIT` | `IN PROGRESS` | payment foundation main'da, catalog/cohort lokal testlangan (#70); premium workflow/UI/rollout keyingi bosqichlar — [ledger](../pricing-packages-plan.md) |
 | A5 | `ADMIT` | `IMPLEMENTED/TESTED` | oltita texnik band ham yopildi (messenger, dars, imtihon, checkout, attendance, reconnect) + shell tap targetlari; **qolgani faqat owner'ning uch qurilmadagi sign-off'i** |
 | S1/S3/S4 | `— delivered` | `EVIDENCE READY` | portal, grounded advisor va owner backoffice kodda |

@@ -1,6 +1,6 @@
 # UX audit closeout — 2026-09-05
 
-Owner: Azurbek, «endi ishni boshla». Branch: `codex/ux-context-closeout`.
+Owner: Azurbek, «endi ishni boshla». Branch: `codex/ux-context-closeout` — ish PR #92 da `main` ga qo'shildi, branch o'chirilgan (2026-09-10).
 Admission: **ADMIT — launch-critical**, mavjud buzilgan oqimlarni yakunlash.
 
 | Slice | Outcome / asosiy KPI | Canonical state va adapter | Verification / rollback |

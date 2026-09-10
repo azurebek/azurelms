@@ -48,7 +48,7 @@ Historical muammo: bosh sahifa modeli bor edi, lekin tahrirlash faqat **Jazzmin 
 ## 4. Bosqichlar
 
 ### Bosqich 0 — Poydevor va reja — `DONE`
-- Branch `claude/backoffice-landing-editor` ochildi.
+- Branch `claude/backoffice-landing-editor` ochilgan edi; ish `main` ga qo'shilib, branch o'chirilgan (2026-09-10).
 - Backoffice pattern auditi (view/template/CSS/nav/brand mutation) qilindi.
 - Shu reja nuclear-program'ga saqlandi.
 - **DoD:** reja hujjati + branch + marinebook yozuvi.
