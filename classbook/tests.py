@@ -329,7 +329,8 @@ class ClassbookViewTests(ClassbookFixtureMixin, TestCase):
 
             self.assertEqual(response.status_code, 200)
             self.assertEqual(b"".join(response.streaming_content), old_bytes)
-            response.close()
+            if hasattr(response, "file_to_stream") and response.file_to_stream:
+                response.file_to_stream.close()
 
             self.client.force_login(self.outsider)
             self.assertEqual(

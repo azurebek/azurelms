@@ -16,6 +16,20 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-10 [Antigravity]: Classbook private media testidagi PostgreSQL DB uzilishi tuzatildi
+
+`classbook/tests.py` dagi `test_activity_media_uses_the_session_snapshot_not_later_exercise_edits` testida
+chaqirilgan `response.close()` Django'ning `request_finished` signalini yuborib, `TestCase` tranzaksiyasi
+ichida aktiv PostgreSQL ulanishini (`psycopg2`) yopib qo'yayotgan edi. Buning oqibatida CI'dagi
+`PostgreSQL+pgvector va Valkey smoke` jobida 9 ta test `InterfaceError: connection already closed`
+bilan yiqilayotgan edi. `response.close()` o'rniga faqat fayl oqimini yopuvchi `response.file_to_stream.close()`
+qo'yildi; Windows'da fayl tozalanishi saqlandi, PostgreSQL va SQLite testlari barqarorlashtirildi.
+
+- Branch: `antigravity/classbook-postgres-test-fix`
+- Commitlar: `6774126`
+- Test holati: `python manage.py test classbook` — 37/37 pass (1 skip); `python manage.py check --fail-level WARNING` — 0 issues
+- Davom etilishi kerak: PR ochish yoki `codex/classbook-live-orchestrator` ga qo'shish
+
 ## 2026-09-10 [Codex]: Classbook jonli dars operatsion tizimi qurildi
 
 Yangi `classbook` domain app'i teacherning bitta start/finish oqimiga mavjud
