@@ -216,20 +216,44 @@ def _workers_probe(definition: CapabilityDefinition) -> CapabilityResult:
 
 def _telegram_probe(definition: CapabilityDefinition) -> CapabilityResult:
     from bot.models import TelegramOutbox
+    from classbook.models import TelegramGroupDelivery
 
     # Navbat = hali olinmagan (`pending`) + workerga berilgan (`sending`).
     # `sending` ni hisobdan chiqarish ko'r nuqta yaratardi: worker o'lib qolsa
     # qator lease tugagunicha ko'rinmay, navbat sog'lom bo'lib turardi (A1a).
-    queued = TelegramOutbox.objects.filter(
+    dm_queued = TelegramOutbox.objects.filter(
         status__in=(TelegramOutbox.STATUS_PENDING, TelegramOutbox.STATUS_SENDING)
     )
-    failed_count = TelegramOutbox.objects.filter(status=TelegramOutbox.STATUS_FAILED).count()
-    in_flight_count = TelegramOutbox.objects.filter(
-        status=TelegramOutbox.STATUS_SENDING
-    ).count()
-    pending_count = queued.count()
-    oldest_pending = queued.aggregate(oldest=Min("created_at"))["oldest"]
-    last_sent = TelegramOutbox.objects.filter(status=TelegramOutbox.STATUS_SENT).aggregate(last=Max("sent_at"))["last"]
+    group_queued = TelegramGroupDelivery.objects.filter(
+        status__in=(TelegramGroupDelivery.STATUS_PENDING, TelegramGroupDelivery.STATUS_SENDING)
+    )
+    dm_failed = TelegramOutbox.objects.filter(status=TelegramOutbox.STATUS_FAILED).count()
+    group_failed = TelegramGroupDelivery.objects.filter(status=TelegramGroupDelivery.STATUS_FAILED).count()
+    dm_in_flight = TelegramOutbox.objects.filter(status=TelegramOutbox.STATUS_SENDING).count()
+    group_in_flight = TelegramGroupDelivery.objects.filter(status=TelegramGroupDelivery.STATUS_SENDING).count()
+    dm_pending = dm_queued.count()
+    group_pending = group_queued.count()
+    failed_count = dm_failed + group_failed
+    in_flight_count = dm_in_flight + group_in_flight
+    pending_count = dm_pending + group_pending
+    oldest_candidates = [
+        value
+        for value in (
+            dm_queued.aggregate(oldest=Min("created_at"))["oldest"],
+            group_queued.aggregate(oldest=Min("created_at"))["oldest"],
+        )
+        if value
+    ]
+    oldest_pending = min(oldest_candidates) if oldest_candidates else None
+    last_candidates = [
+        value
+        for value in (
+            TelegramOutbox.objects.filter(status=TelegramOutbox.STATUS_SENT).aggregate(last=Max("sent_at"))["last"],
+            TelegramGroupDelivery.objects.filter(status=TelegramGroupDelivery.STATUS_SENT).aggregate(last=Max("sent_at"))["last"],
+        )
+        if value
+    ]
+    last_sent = max(last_candidates) if last_candidates else None
     token = str(getattr(settings, "TELEGRAM_BOT_TOKEN", "") or "")
     configured = bool(token and token != "YOUR_BOT_TOKEN_HERE")
     oldest_minutes = 0
@@ -254,9 +278,13 @@ def _telegram_probe(definition: CapabilityDefinition) -> CapabilityResult:
         summary,
         mode=getattr(settings, "TELEGRAM_MODE", "unknown"),
         pending=pending_count,
+        dm_pending=dm_pending,
+        group_pending=group_pending,
         in_flight=in_flight_count,
         oldest_pending_minutes=oldest_minutes,
         failed=failed_count,
+        dm_failed=dm_failed,
+        group_failed=group_failed,
         last_sent=timezone.localtime(last_sent).isoformat(timespec="minutes") if last_sent else "never",
     )
 

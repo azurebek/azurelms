@@ -1,0 +1,67 @@
+{% extends "base_teacher.html" %}
+{% load static %}
+{% block t_title %}Classbook{% endblock %}
+{% block t_icon %}bi-lightning-charge{% endblock %}
+{% block t_topbar %}Classbook{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'classbook/classbook.css' %}">{% endblock %}
+
+{% block t_content %}
+<div class="cb-wrap">
+  <header class="cb-page-head">
+    <div>
+      <span class="cb-eyebrow">Jonli dars operatsion tizimi</span>
+      <h1>Classbook</h1>
+      <p>Playbook tayyorlang. Dars kuni bitta tugma davomat, material, mashq va yakunni bir oqimda boshqaradi.</p>
+    </div>
+    <a class="cb-btn cb-btn-secondary" href="{% url 'classbook:exercise_list' %}"><i class="bi bi-collection"></i> Mashqlar banki <span>{{ exercise_count }}</span></a>
+  </header>
+
+  {% if open_sessions %}
+  <section class="cb-panel cb-live-panel">
+    <div class="cb-panel-head"><span><i class="bi bi-broadcast"></i> Davom etayotgan darslar</span></div>
+    {% for session in open_sessions %}
+    <a class="cb-live-row" href="{% url 'classbook:teacher_session' session.id %}">
+      <span class="cb-live-dot"></span>
+      <span><strong>{{ session.cohort.name }}</strong><small>{{ session.lesson.title }} · {{ session.started_at|timesince }} oldin</small></span>
+      <span class="cb-btn cb-btn-primary">Boshqarish <i class="bi bi-arrow-right"></i></span>
+    </a>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% for cohort in cohorts %}
+  <section class="cb-panel cb-cohort">
+    <div class="cb-panel-head">
+      <span><i class="bi bi-people"></i> {{ cohort.name }}</span>
+      <small>{{ cohort.active_members }} o'quvchi · {{ cohort.course.title }}</small>
+    </div>
+    {% if not cohort.telegram_chat_id %}
+    <div class="cb-warning"><i class="bi bi-telegram"></i> Telegram guruhi bog'lanmagan. Guruhda <code>/link_cohort {{ cohort.id }}</code> yuboring.</div>
+    {% endif %}
+    <div class="cb-lesson-list">
+      {% for lesson in cohort.classbook_lessons %}
+      <div class="cb-lesson-row">
+        <span class="cb-order">{{ forloop.counter }}</span>
+        <span class="cb-grow">
+          <strong>{{ lesson.title }}</strong>
+          <small>{{ lesson.module.title }}{% if lesson.classbook_playbook %} · {{ lesson.classbook_playbook.step_count }} mashq{% else %} · Playbook yo'q{% endif %}</small>
+        </span>
+        {% if lesson.classbook_playbook and lesson.classbook_playbook.status == "ready" %}
+          <span class="cb-badge cb-ready">Tayyor</span>
+        {% else %}
+          <span class="cb-badge">Qoralama</span>
+        {% endif %}
+        <a class="cb-btn cb-btn-secondary" href="{% url 'classbook:playbook_edit' cohort.id lesson.id %}">Sozlash</a>
+        {% if lesson.classbook_playbook and lesson.classbook_playbook.status == "ready" and cohort.telegram_chat_id %}
+        <form method="post" action="{% url 'classbook:session_start' cohort.id lesson.id %}" data-confirm="{{ lesson.title }} darsini hozir boshlaysizmi?">
+          {% csrf_token %}<button class="cb-btn cb-btn-start" type="submit"><i class="bi bi-play-fill"></i> Darsni boshlash</button>
+        </form>
+        {% endif %}
+      </div>
+      {% empty %}<div class="cb-empty">Bu kursda darslar yo'q.</div>{% endfor %}
+    </div>
+  </section>
+  {% empty %}<div class="cb-empty cb-panel">Sizga biriktirilgan faol cohort yo'q.</div>{% endfor %}
+</div>
+<script>document.querySelectorAll('[data-confirm]').forEach(function(form){form.addEventListener('submit',function(event){if(!confirm(form.dataset.confirm))event.preventDefault();});});</script>
+{% endblock %}

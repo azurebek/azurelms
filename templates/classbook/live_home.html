@@ -1,0 +1,4 @@
+{% extends "users/base_app.html" %}{% load static %}
+{% block app_title %}Jonli dars{% endblock %}{% block app_icon %}bi-broadcast{% endblock %}{% block app_topbar_title %}Jonli dars{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'classbook/classbook.css' %}">{% endblock %}
+{% block app_content %}<div class="cb-wrap cb-narrow"><header class="cb-page-head"><div><span class="cb-eyebrow">Classbook</span><h1>Jonli dars</h1><p>O'qituvchi darsni boshlaganda shu yerda ko'rinadi.</p></div></header>{% for session in sessions %}<a class="cb-panel cb-live-row" href="{% url 'classbook:live_session' session.id %}"><span class="cb-live-dot"></span><span><strong>{{ session.lesson.title }}</strong><small>{{ session.cohort.name }}</small></span><span class="cb-btn cb-btn-primary">Kirish</span></a>{% empty %}<div class="cb-panel cb-empty">Hozir guruhingizda jonli dars yo'q.</div>{% endfor %}</div>{% endblock %}

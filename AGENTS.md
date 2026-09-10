@@ -10,7 +10,7 @@ Bu fayl har AI agent (Claude Code / Codex / Antigravity / boshqa) sessiya boshla
 
 1. `nuclear-program/rules-for-agents.md` — to'liq ish qoidalari (branch ownership, worktree setup, test/commit discipline, conflict protocol, emergency stop)
 2. `nuclear-program/marinebook.md` — so'nggi 3-5 yozuvni o'qing (boshqa agentlar nima qildi)
-3. `nuclear-program/project-context.md` — arxitektura kerak bo'lganda (11 domain app, AI agent qatlami, URLs, env, data model)
+3. `nuclear-program/project-context.md` — arxitektura kerak bo'lganda (12 domain app, AI agent qatlami, URLs, env, data model)
 4. Quyidagi buyruqlarni yugurting:
 
 ```bash

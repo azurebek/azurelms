@@ -191,8 +191,38 @@ async def process_outbox_once(bot):
         await sync_to_async(record_worker_heartbeat)(sent=0, claimed=0, paused=True)
         return 0
 
-    items = await sync_to_async(claim_pending_outbox)()
+    # Classbook web yuzasidan boshlangan dars Telegram guruhiga bevosita
+    # HTTP request ichida yozmaydi. Xabar ham shu worker orqali, lease va
+    # retry bilan yetadi. Guruhdagi jonli buyruq eski DM navbatidan oldin
+    # borishi kerak; aks holda o'qituvchi "Ochish"ni bosib, 25 ta DM
+    # tugashini kutib qoladi. Lazy import app-registry siklini oldini oladi.
+    from classbook.delivery import (
+        claim_pending_group_deliveries,
+        mark_group_delivery_failed,
+        mark_group_delivery_sent,
+        render_group_delivery_markup,
+        render_group_delivery_text,
+    )
+
+    group_items = await sync_to_async(claim_pending_group_deliveries)()
     sent = 0
+    for item in group_items:
+        try:
+            message = await bot.send_message(
+                item.chat_id,
+                render_group_delivery_text(item),
+                parse_mode="HTML",
+                reply_markup=render_group_delivery_markup(item),
+            )
+        except Exception as exc:
+            await sync_to_async(mark_group_delivery_failed)(item, exc)
+            continue
+        await sync_to_async(mark_group_delivery_sent)(
+            item, getattr(message, "message_id", None)
+        )
+        sent += 1
+
+    items = await sync_to_async(claim_pending_outbox)()
     for item in items:
         try:
             await bot.send_message(
@@ -209,7 +239,7 @@ async def process_outbox_once(bot):
 
     # Navbat bo'sh bo'lsa ham belgilanadi — aynan shu holat ilgari ko'r nuqta
     # edi: ishlaydigan narsa yo'qligi worker tirikligini isbotlamasdi.
-    await sync_to_async(record_worker_heartbeat)(sent=sent, claimed=len(items))
+    await sync_to_async(record_worker_heartbeat)(sent=sent, claimed=len(items) + len(group_items))
     return sent
 
 

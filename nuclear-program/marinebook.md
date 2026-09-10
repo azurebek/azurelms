@@ -16,6 +16,62 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-10 [Antigravity]: Classbook darsini Telegramdan yopishda announce_names maxfiyligi ta'minlandi
+
+Codex review botining PR #94 dagi P1 tavsiyasi bo'yicha: agar dars playbook'ida `announce_names=False` bo'lsa,
+`/dars tugadi` Telegram orqali yopilganda guruhga o'quvchilarning ismlari oshkor bo'lib ketmasligi ta'minlandi.
+`classbook/services.py::finish_class_session` va `bot/services.py::close_lesson_session` public details ro'yxatini
+tozalaydi hamda `announce_names=False` bayrog'ini qaytaradi; `bot/routers/group_ops.py::render_close_announcement`
+esa ismlar o'rniga faqat umumiy statistik sonlarni chiqaradi.
+
+- Branch: `antigravity/classbook-postgres-test-fix`
+- Commitlar: `f734812`
+- Test holati: `python manage.py test classbook bot` — 170/170 pass (3 skip); `python manage.py check --fail-level WARNING` — 0 issues
+- Davom etilishi kerak: PR #94 ga push, review commentlarni resolve qilish va merge
+
+## 2026-09-10 [Antigravity]: Activity ochish poygasi session qulflash bilan bartaraf etildi
+
+Codex review botining PR #94 dagi tavsiyasi bo'yicha `classbook/services.py` dagi `open_activity`
+funksiyasida faqat activity qatori emas, balki umumiy `TelegramLessonSession` qatori ham
+`select_for_update(of=("self",))` bilan qulflandi. Bu bir vaqtning o'zida ikkita har xil mashqni
+ochishga urinilganda bazadagi conditional unique constraint buzilishi natijasida yuzaga keluvchi
+500 IntegrityError o'rniga toza `another_open` kodi qaytishini kafolatlaydi; PostgreSQL outer join
+qulf xatosi `of=("self",)` orqali oldi olindi.
+
+- Branch: `antigravity/classbook-postgres-test-fix`
+- Commitlar: `e831241`
+- Test holati: `python manage.py test classbook` — 38/38 pass (1 skip); `python manage.py check --fail-level WARNING` — 0 issues
+- Davom etilishi kerak: PR #94 ga push, review commentni resolve qilish va merge
+
+## 2026-09-10 [Antigravity]: Classbook private media testidagi PostgreSQL DB uzilishi tuzatildi
+
+`classbook/tests.py` dagi `test_activity_media_uses_the_session_snapshot_not_later_exercise_edits` testida
+chaqirilgan `response.close()` Django'ning `request_finished` signalini yuborib, `TestCase` tranzaksiyasi
+ichida aktiv PostgreSQL ulanishini (`psycopg2`) yopib qo'yayotgan edi. Buning oqibatida CI'dagi
+`PostgreSQL+pgvector va Valkey smoke` jobida 9 ta test `InterfaceError: connection already closed`
+bilan yiqilayotgan edi. `response.close()` o'rniga faqat fayl oqimini yopuvchi `response.file_to_stream.close()`
+qo'yildi; Windows'da fayl tozalanishi saqlandi, PostgreSQL va SQLite testlari barqarorlashtirildi.
+
+- Branch: `antigravity/classbook-postgres-test-fix`
+- Commitlar: `6774126`
+- Test holati: `python manage.py test classbook` — 37/37 pass (1 skip); `python manage.py check --fail-level WARNING` — 0 issues
+- Davom etilishi kerak: PR ochish yoki `codex/classbook-live-orchestrator` ga qo'shish
+
+## 2026-09-10 [Codex]: Classbook jonli dars operatsion tizimi qurildi
+
+Yangi `classbook` domain app'i teacherning bitta start/finish oqimiga mavjud
+Telegram sessiya va davomatini, materiallarni, 10 turdagi mashqni, avtomatik
+grading/leaderboardni, individual natija DM'larini, lesson release va homeworkni
+uladi. Answer key revealgacha serverda qoladi; activity snapshotlari,
+permission/reconnect tekshiruvlari, private media, CSV eksport va Telegram
+guruh outbox'i 50 learner kontrakti bilan yopildi.
+
+- Branch: `codex/classbook-live-orchestrator`
+- Commitlar: `72fbe94`
+- Test holati: `python manage.py test` — 1409/1409 yashil (30 skip); `classbook` — 37/37 yashil (1 PostgreSQL-only skip); check/deploy-check, migration drift, collectstatic va secret scan pass
+- Brauzerda: teacher → matching activity ochish → student mobil submit → automatic result/teacher breakdown; websocket va polling ishladi, console xatosi `0`
+- Davom etilishi kerak: PR CI'dagi PostgreSQL 50-parallel gate; so'ng real Telegram guruh/Mini App va Android/iOS/desktop owner sign-off
+
 ## 2026-09-10 [Codex]: Playground lokal tajriba maydoniga aylantirildi
 
 `playground/` to'liq `.gitignore` ga qo'shildi va avval kuzatilgan 171 ta

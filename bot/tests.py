@@ -377,6 +377,33 @@ class GroupOpsRenderingTests(TestCase):
         self.assertIn("Hamma darsda", text)
         self.assertNotIn("Kelmadi", text)
 
+    def test_render_close_announcement_without_names(self):
+        from types import SimpleNamespace
+
+        from bot.routers.group_ops import render_close_announcement
+
+        session = SimpleNamespace(
+            lesson=SimpleNamespace(title="Dars 1"),
+            attendance_date=datetime.date(2026, 7, 12),
+        )
+        text = render_close_announcement(
+            session,
+            {"present": 5, "partial": 1, "absent": 2, "total": 8},
+            {
+                "present": [{"name": "Aziza", "telegram_id": 1, "telegram_username": "aziza"}],
+                "partial": [{"name": "Bekzod", "telegram_id": 2, "telegram_username": "bekzod"}],
+                "absent": [{"name": "Malika", "telegram_id": 3, "telegram_username": ""}],
+            },
+            announce_names=False,
+        )
+        self.assertNotIn("Aziza", text)
+        self.assertNotIn("Bekzod", text)
+        self.assertNotIn("Malika", text)
+        self.assertIn("Keldi: <b>5</b>", text)
+        self.assertIn("Kech: <b>1</b>", text)
+        self.assertIn("Kelmadi: <b>2</b>", text)
+        self.assertIn("Kelmaganlarga eslatma yuborildi", text)
+
     # `test_render_absent_dm_contains_lesson_link` olib tashlandi: u sinaydigan
     # `render_absent_dm` ham olib tashlandi. Kelmaganlarga xabar endi canonical
     # `Notification` → `TelegramOutbox` yo'li bilan ketadi va uni

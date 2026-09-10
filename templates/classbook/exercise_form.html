@@ -1,0 +1,32 @@
+{% extends "base_teacher.html" %}
+{% load static %}
+{% block t_title %}{% if exercise %}Mashqni tahrirlash{% else %}Yangi mashq{% endif %}{% endblock %}
+{% block t_icon %}bi-lightning{% endblock %}
+{% block t_topbar %}Classbook · Mashq muharriri{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'classbook/classbook.css' %}">{% endblock %}
+{% block page_js %}<script defer src="{% static 'classbook/exercise-form.js' %}"></script>{% endblock %}
+{% block t_content %}
+<div class="cb-wrap cb-narrow">
+  <header class="cb-page-head"><div><span class="cb-eyebrow">Mashq muharriri</span><h1>{% if exercise %}{{ exercise.title }}{% else %}Yangi mashq{% endif %}</h1><p>Javob kaliti o'quvchiga yuborilmaydi; tekshirish faqat serverda bajariladi.</p></div><a class="cb-btn cb-btn-secondary" href="{% url 'classbook:exercise_list' %}">Bekor qilish</a></header>
+  <form method="post" enctype="multipart/form-data" class="cb-panel cb-form">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="cb-error">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="cb-grid-2">
+      {% include "classbook/field.html" with field=form.course %}
+      {% include "classbook/field.html" with field=form.lesson %}
+    </div>
+    <div class="cb-grid-2">
+      {% include "classbook/field.html" with field=form.title %}
+      {% include "classbook/field.html" with field=form.kind %}
+    </div>
+    {% include "classbook/field.html" with field=form.prompt %}
+    {% include "classbook/field.html" with field=form.instructions %}
+    <div class="cb-field"><label for="{{ form.definition.id_for_label }}">{{ form.definition.label }}</label>{{ form.definition }}<small id="definitionHelp">{{ form.definition.help_text }}</small>{{ form.definition.errors }}</div>
+    {% include "classbook/field.html" with field=form.explanation %}
+    <div class="cb-grid-2">{% include "classbook/field.html" with field=form.media %}{% include "classbook/field.html" with field=form.media_kind %}</div>
+    <div class="cb-grid-3">{% include "classbook/field.html" with field=form.time_limit_seconds %}{% include "classbook/field.html" with field=form.max_points %}{% include "classbook/field.html" with field=form.speed_bonus_percent %}</div>
+    <div class="cb-form-actions"><button class="cb-btn cb-btn-primary" type="submit"><i class="bi bi-check2"></i> Mashqni saqlash</button></div>
+  </form>
+</div>
+{{ help_by_kind|json_script:"exerciseHelpMap" }}
+{% endblock %}
