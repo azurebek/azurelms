@@ -18,7 +18,7 @@
 |---|---|---|---|
 | A0 | `ADMIT` | `IMPLEMENTED/TESTED` | A0a va A0b beshala slice ham bajarilgan; `EVIDENCE READY` labeli owner qarorida |
 | A1a | `ADMIT` | `IMPLEMENTED/TESTED` | GitHub Actions CI (8 mantiqiy gate → 3 required check) + readiness/backup/outbox bajarildi; bog'liqlik zaiflik qarzi reyestrda |
-| A1b | `HOLD` | `PLANNED` | cloud deploy va managed services |
+| A1b | `ADMIT` | `IN PROGRESS` | Owner 2026-09-10 da AWS'ni tanladi. Deploy artefaktlari va runbook `deploy/` da, broker fail-fast gate qurildi; **hali deploy qilinmagan** — production GO checklisti ochiq |
 | A2 | `ADMIT` | `IMPLEMENTED/TESTED` | audit ledgeri, kill switch, circuit reset, heartbeat, `ReleaseRecord`, flag registri, cost ledgeri va backup/email/memory probe'lari kodda; **qolgan yagona band — AI quality/cost release gate, u esa A9 ning ishi** |
 | A8 | `ADMIT` | `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | supply guard kod/target/full testlarda; PostgreSQL contention proofi CI `integration` ishida yopildi, alohida OS processlari bilan takrorlash ochiq |
 | A3/A3b | `ADMIT` | `IMPLEMENTED/TESTED — LOCAL REGRESSION GREEN` | oldingi canonical oqimlar va Classbook (live session/activity/response, turli mashqlar, Telegram group outbox, 50 learner gate'i) `main`da — PR #94, 2026-09-10 |

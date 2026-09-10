@@ -18,7 +18,9 @@
 
 `LOCAL_USE_REMOTE_SERVICES=False` DigitalOcean DB/cache/storage'ni o'chiradi, lekin Gemini API'ni o'chirmaydi. AI provider factory alohida fail-closed: DO faqat explicit `AI_ALLOW_DIGITALOCEAN=True` owner admissionida yaratiladi, noma'lum provider esa rad etiladi. `system_audit` local profil yoki AI supply stoplightini GREEN ko'rsatishi Google quota reachability, true concurrency yoki production readiness dalili emas.
 
-### Kelajak production target — vendor-neutral, `HOLD`
+### Production target — vendor **AWS** (owner qarori 2026-09-10), deploy hali qilinmagan
+
+> **Owner qarori — 2026-09-10:** hosting AWS bo'ladi va loyihaning davomi serverda olib boriladi. Deploy artefaktlari `deploy/` da: bitta EC2 mashinasida PostgreSQL+pgvector, Valkey, web/worker/beat/outbox va Caddy (avtomatik HTTPS). Managed xizmatlar (RDS/ElastiCache/ECS) ataylab olinmadi — o'tish keyin faqat `DATABASE_URL`/`VALKEY_URL` almashtirish bo'lib qoladi, quyidagi kontrakt esa o'zgarmaydi. **Bu qator deploy qilingan degani emas:** `A1b` ochiq, §9 dagi Production GO checklisti hamon yopilmagan.
 
 DigitalOcean kreditlari bekor qilingan. App Platform, Serverless Inference, Managed PostgreSQL/Valkey va Spaces owner productionni qayta admission qilmaguncha target emas. Quyidagi contract vendor tanlashdan oldin ham amal qiladi; DigitalOcean keyin faqat nomzodlardan biri bo'lishi mumkin.
 
@@ -38,7 +40,9 @@ DigitalOcean kreditlari bekor qilingan. App Platform, Serverless Inference, Mana
 
 ### Broker fail-fast gate
 
-`APP_ENV != local` bo'lsa haqiqiy remote broker/cache/channel majburiy. Bo'sh qiymat, `memory://` yoki in-memory backend web/worker/beat startup'ini non-zero exit bilan to'xtatadi. Bu contract hozir `PLANNED`; local rejim ataylab in-memory ishlaydi. Readiness URL mavjudligini emas, configured connection va task round-tripni tekshiradi.
+`APP_ENV != local` bo'lsa haqiqiy remote broker/cache/channel majburiy. Bo'sh qiymat, `memory://` yoki in-memory backend web/worker/beat startup'ini non-zero exit bilan to'xtatadi; local rejim ataylab in-memory ishlaydi. Readiness URL mavjudligini emas, configured connection va task round-tripni tekshiradi.
+
+**2026-09-10 evidence — `IMPLEMENTED/TESTED`:** `core/runtime_gate.py`. Gate **konfiguratsiya** darajasida ishlaydi (ulanish emas): ulanish tekshirilsa har bir `manage.py` chaqiruvi, CI va `collectstatic` ham real Valkey talab qilib qolardi. Broker manzili endi `core/settings.py` da `CELERY_BROKER_URL` sifatida hisoblanadi va `core/celery.py` shundan oladi — ilgari settings LocMem'ga, celery esa `memory://` ga mustaqil tushardi. Task round-trip qismi `/readyz` va Control Center probe'larida qoladi. 17 test (`core/test_runtime_gate.py`), shundan to'rttasi haqiqiy settingsni alohida processda ko'taradi. CI'ning `check --deploy` qadami endi `VALKEY_URL` bilan yuguradi — gate o'sha yerda ham tirik.
 
 ### Telegram outbox gate
 
