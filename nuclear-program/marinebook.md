@@ -16,6 +16,70 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-11 [Claude]: T1 — rolga mos doimiy klaviatura
+
+Auditda o'lchangan birinchi bo'shliq yopildi: 23 ta slash buyruq bor edi,
+doimiy klaviatura esa yo'q. Hujjatning o'z vizyonida auditoriya «kompyuter
+ishlatmaydigan» deb yozilgan, ammo undan `/davomatim` ni eslab qolish talab
+qilinardi.
+
+Rollar: student (Darslarim / Davomatim / To'lov / AI), teacher (Guruhlarim /
+Baholash / AI / Yordam), admin (Statistika / Cheklar / Guruhlarim / Baholash),
+linked (Kursga yozilish / Yordam). Har rolda to'rtta amal va `⌨️ Yopish`.
+
+**Nusxa yozilmadi.** Tugma mavjud handlerga *stacked dekorator* bilan ulandi —
+`@router.message(Command("darslarim"))` ustiga `@router.message(F.text ==
+BTN_COURSES)`. Bitta funksiya, ikki kirish yo'li; parity qurilish jihatidan
+kafolatlangan, uni alohida tekshirish ham shart emas.
+
+**Ikki qaror sabab bilan:**
+
+1. **Guestga klaviatura qo'yilmaydi.** Telegramda chatda bir vaqtda faqat
+   bitta reply klaviatura bo'ladi — yangisi eskisini almashtiradi. Guest
+   oqimida `request_contact` tugmasi ishlatiladi; ish stoli klaviaturasi
+   qo'yilsa, ro'yxatdan o'tish o'rtasida telefon tugmasi yo'qolib qolardi.
+2. **Klaviatura alohida ikkinchi xabar bilan.** Bitta xabarda bitta
+   `reply_markup` bo'ladi, xush kelibsiz xabari esa inline menyuni ko'taradi.
+
+**Yo'lda tuzatilgan parity nuqsoni:** inline «Darslarim» (`ws:courses`) buyruq
+varianti beradigan kurs tugmalarini bermasdi — bitta amal ikki yuzada ikki xil
+javob berardi. Endi uchala yuza bir xil.
+
+**Nazorat yugurishi testning o'zidagi nuqsonni topdi.** «O'lik tugma yo'q»
+testi handlerlarni introspeksiya qiladi. Birinchi variantda bitta tugma
+handleri olib tashlanganda test **yashil qolaverdi**: routerda `F.text` kabi
+keng filtrlar bor (vazifa javobi, AI suhbati) va ular har qanday matnga rost
+qaytaradi, ya'ni har tugma «handlerli» bo'lib ko'rinardi. Filtr endi
+aniqlashtirildi — matn aynan shu tugmaga mos kelishi **va** o'zgartirilgan
+matnga mos kelmasligi tekshiriladi. Shundan keyin sabotaj to'g'ri ushlandi.
+
+- Branch: `claude/t1-doimiy-klaviatura`
+- Migration: yo'q.
+- Test holati: to'liq suite — **1540/1540 OK (skipped=40)**, 88s. Yangi
+  `bot/test_workspace_keyboard.py` — 10 test (rol to'plamlari, guest uchun
+  `None`, tugma soni chegarasi, o'lik tugma yo'qligi, klaviatura ikkinchi
+  xabarda kelishi).
+  `check --fail-level WARNING` 0 issue, migration drift yo'q, `scan_secrets` toza.
+**PR #106 review ikkita haqiqiy nuqson topdi:**
+
+1. **P1 — tugma vazifa javobi bo'lib ketardi.** Vazifa kutayotgan o'quvchi
+   «Klaviaturani yopish» yoki «Yordam» bosganda o'sha matn javob sifatida
+   topshirilardi va pending action tozalanardi. Sabab router tartibi:
+   onboarding workspace'dan keyin ulanadi, workspace'dagi `AwaitingAssignment()`
+   esa buyruq bo'lmagan har qanday matnni qabul qilardi. Tuzatish filtrga
+   qo'shildi (`~F.text.in_(ALL_BUTTON_LABELS)`) — router tartibiga bog'liq
+   bo'lmasin va kelajakdagi tugmalar uchun ham amal qilsin.
+2. **P2 — ro'yxatdan o'tgan zahoti klaviatura qo'yilmasdi.** Kontakt orqali
+   ro'yxatdan o'tish `ReplyKeyboardRemove()` bilan tugardi, `/start auth_*`
+   yo'li esa umuman qo'ymasdi — ya'ni navigatsiya yaxshilanishi aynan eng
+   muhim daqiqada, birinchi kirishda ishlamasdi. Ikkala yo'l ham tuzatildi.
+
+- Davom etilishi kerak: klaviatura **haqiqiy Telegramda sinalmagan** — bu
+  ownerning telefon QA qadami (`A5` sign-off'ining bir qismi). Lokal
+  `manage.py runbot` haqiqiy token talab qiladi va botni jonli javob
+  beradigan holatga keltiradi, shuning uchun agent uni o'zi yugurtirmadi.
+  Keyingi band — **T2** (oldinga qaragan eslatmalar).
+
 ## 2026-09-11 [Claude]: T0 — operatsion qiymatlar owner sozlamasiga ko'chirildi
 
 Owner qoidasi (qotirib qo'yilgan qiymat yo'q) amalga oshirildi. Ikki singleton,

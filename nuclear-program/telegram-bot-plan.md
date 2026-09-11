@@ -286,7 +286,7 @@ o'z ichiga olmadi.
 
 ---
 
-## T1 — Rolga mos doimiy klaviatura · `S` · **tavsiya: birinchi**
+## T1 — Rolga mos doimiy klaviatura · `S` — `IMPLEMENTED/TESTED` (2026-09-11)
 
 - **Outcome:** o'quvchi hech qanday buyruqni eslab qolmasdan asosiy to'rt amalga
   yetadi. Buyruqni eslash talabidan voz kechish — bu auditoriya uchun eng katta
@@ -300,6 +300,40 @@ o'z ichiga olmadi.
   va `/yordam` da qayta tiklanadi; guruh chatlarida **chiqmaydi**.
 - **Riskni boshqarish:** klaviatura ekranning pastini egallaydi — tugma soni 4 dan
   oshmaydi va "⌨️ Yopish" yo'li bo'ladi.
+
+**Bajarildi — 2026-09-11:**
+
+- `bot/keyboards.py`: tugma matn konstantalari + `workspace_keyboard(role)`.
+  Matn ikki tomon uchun bitta manba — klaviatura quruvchi va router filtri
+  (`F.text == ...`). Ikki joyda qo'lda yozilsa, bittasini o'zgartirib
+  ikkinchisini unutish tugmani jimgina ishlamaydigan qilardi.
+- Tugma → mavjud handler **stacked dekorator** bilan ulandi
+  (`@router.message(Command(...))` ustiga `@router.message(F.text == BTN_...)`).
+  Ya'ni nusxa yozilmadi va parity qurilish jihatidan kafolatlangan: bitta
+  funksiya, ikki kirish yo'li.
+- Rollar: student (Darslarim / Davomatim / To'lov / AI), teacher (Guruhlarim /
+  Baholash / AI / Yordam), admin (Statistika / Cheklar / Guruhlarim /
+  Baholash), linked (Kursga yozilish / Yordam). **Guest — klaviatura yo'q**
+  (sabab pastda).
+- Klaviatura `/start`, `/yordam` va start-token bilan bog'langan zahoti
+  qo'yiladi; `⌨️ Klaviaturani yopish` uni olib tashlaydi, `/yordam` qaytaradi.
+
+**Ikki qaror sabab bilan:**
+
+1. **Guestga klaviatura qo'yilmaydi.** Telegramda chatda bir vaqtda faqat
+   bitta reply klaviatura bo'ladi — yangisi eskisini almashtiradi. Guest
+   oqimida telefon ulashish tugmasi (`request_contact`) ishlatiladi; ish stoli
+   klaviaturasi qo'yilsa, ro'yxatdan o'tish o'rtasida o'sha tugma yo'qolib
+   qolardi.
+2. **Klaviatura alohida ikkinchi xabar bilan yuboriladi.** Bitta xabarda bitta
+   `reply_markup` bo'ladi, xush kelibsiz xabari esa inline menyuni ko'taradi.
+
+**Yo'lda tuzatilgan parity nuqsoni:** inline «Darslarim» (`ws:courses`) buyruq
+varianti ko'rsatadigan kurs tugmalarini bermasdi — bitta amal ikki yuzada ikki
+xil javob berardi. Endi uchala yuza (buyruq, inline, klaviatura) bir xil.
+
+**Owner qarori (2026-09-11):** klaviatura buyruqlarni **almashtirmaydi**,
+ularga qo'shiladi — muskul xotira buzilmasin.
 
 ## T2 — Oldinga qaragan eslatmalar · `M` · **tavsiya: ikkinchi**
 
@@ -405,7 +439,7 @@ o'z ichiga olmadi.
 
 | Bosqich | Bandlar | Nega shu tartib |
 |---|---|---|
-| **Hozir (serversiz)** | ~~T0~~ (2026-09-11 bajarildi) → **T1 → T2 → T4 → T6** | T0 birinchi bo'ldi, chunki keyingi bandlar o'z sozlamalarini shu singletonlarga yozadi. Qolganlari — eng katta foydalanuvchi ta'siri va launch kuni ko'rinish; hech biri AWS'ni kutmaydi |
+| **Hozir (serversiz)** | ~~T0~~ ~~T1~~ (2026-09-11 bajarildi) → **T2 → T4 → T6** | T0 va T1 yopildi. Qolganlari — eng katta foydalanuvchi ta'siri va launch kuni ko'rinish; hech biri AWS'ni kutmaydi |
 | **Server ochilganda** | T7 tekshiruvi, F10 qoldig'i | Webhook, Menu Button, Mini App webview |
 | **Launchdan keyin** | T3, T5, T8 | T3 owner tanlovini kutadi; T5 o'lchovni kutadi |
 
@@ -424,12 +458,12 @@ Qolgan bandlar muhim, ammo hech biri qatnashuvga bunday bevosita tegmaydi.
    mavjud `@azureLMSbot` lokal polling bilan ishlatiladi. Alohida production bot,
    webhook va public Menu Button production haqiqatan ochilganda ko'riladi.
 
-**Ochiq qolgan:**
+**Ochiq qolgan (bittasi):**
 
 3. **F11 yoki F12 (T8 yoki T3):** hujjat bu tanlovni ochiq qoldirgan. T3 sizning
    ish vaqtingizni qisqartiradi, T8 o'quvchi natijasiga tegadi.
-4. **T1 qamrovi:** doimiy klaviatura buyruqlarni **almashtiradimi** yoki ularga
-   **qo'shiladimi**? Taklifim — qo'shiladi.
+4. ~~T1 qamrovi: klaviatura buyruqlarni almashtiradimi?~~ → **Qo'shiladi**
+   (2026-09-11 da tasdiqlandi va shunday bajarildi).
 
 ## Bu reja ataylab qilmaydigan ishlar
 
