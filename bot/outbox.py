@@ -1,8 +1,13 @@
 """Telegram outbox yuboruvchisi (F4).
 
 Sinxron DB funksiyalari (testlanadi) + yupqa async worker (run_bot ichida
-polling bilan yonma-yon yuguradi). Telegram rate-limit: har siklda ko'pi
-bilan BATCH_SIZE ta xabar, sikllar orasi POLL_INTERVAL soniya.
+polling bilan yonma-yon yuguradi). Telegram rate-limit ikki qatlamda: har
+siklda ko'pi bilan BATCH_SIZE ta xabar, sikllar orasi POLL_INTERVAL soniya,
+va sikl **ichida** har yuborish orasida kichik oraliq.
+
+Qayta urinish, backoff va dead-letter qarorlari bu yerda emas,
+`bot/retry_policy.py` da (F10): xuddi shu siyosat Classbook guruh navbatida
+ham ishlatiladi va ikki joyda takrorlanishi kerak emas.
 """
 
 import asyncio
@@ -14,15 +19,20 @@ from datetime import timedelta
 from aiogram.types import InlineKeyboardMarkup
 from asgiref.sync import sync_to_async
 from django.conf import settings
+from django.db.models import Q
 from django.utils import timezone
 
+from bot import retry_policy
 from bot.models import TelegramOutbox
+# `MAX_ATTEMPTS` eski import yo'li orqali ham ochiq qoladi (mavjud testlar).
+from bot.retry_policy import MAX_ATTEMPTS, plan_retry  # noqa: F401
 
 logger = logging.getLogger(__name__)
 
 BATCH_SIZE = 25
 POLL_INTERVAL = 15  # soniya
-MAX_ATTEMPTS = 3
+# `MAX_ATTEMPTS` va backoff siyosati `bot/retry_policy.py` da — DM navbati
+# bilan Classbook guruh navbati bitta siyosatni ishlatishi uchun.
 # Lease muddati: worker o'lib qolsa qator shuncha vaqtdan keyin qayta oqimga
 # qaytadi. Bitta sikl (BATCH_SIZE ta xabar) bundan ancha tez tugaydi.
 LEASE_SECONDS = 120
@@ -59,8 +69,14 @@ def claim_pending_outbox(limit=BATCH_SIZE, lease_seconds=LEASE_SECONDS):
     reclaim_expired_outbox(lease_seconds)
 
     token = uuid.uuid4().hex
+    # `next_attempt_at` kelajakda bo'lsa qator olinmaydi — backoff aynan shu
+    # bilan amalga oshadi. `Q(isnull=True)` shart: eski qatorlarda va birinchi
+    # urinishda qiymat yo'q, va ularni chiqarib tashlash butun navbatni
+    # to'xtatib qo'yardi.
+    now = timezone.now()
     candidate_ids = list(
         TelegramOutbox.objects.filter(status=TelegramOutbox.STATUS_PENDING)
+        .filter(Q(next_attempt_at__isnull=True) | Q(next_attempt_at__lte=now))
         .order_by("id")
         .values_list("id", flat=True)[:limit]
     )
@@ -140,21 +156,42 @@ def mark_outbox_sent(item):
     item.status = TelegramOutbox.STATUS_SENT
     item.sent_at = timezone.now()
     item.claim_token = ""
-    item.save(update_fields=["status", "sent_at", "claim_token"])
+    # Oldingi nosozlik izi tozalanadi: aks holda muvaffaqiyatli yuborilgan
+    # qator Control Center'da hamon "permanent xato" deb ko'rinardi.
+    item.next_attempt_at = None
+    item.failure_kind = ""
+    item.save(
+        update_fields=[
+            "status", "sent_at", "claim_token", "next_attempt_at", "failure_kind",
+        ]
+    )
 
 
 def mark_outbox_attempt_failed(item, error):
-    """Urinish muvaffaqiyatsiz: lease bo'shatiladi, qator yana navbatga qaytadi."""
-    item.attempts += 1
+    """Urinish muvaffaqiyatsiz: qaror `bot/retry_policy.py` dan olinadi.
+
+    Uch yo'l bor va ular ataylab farq qiladi: `429` urinishni sarflamaydi va
+    qatorni Telegram aytgan vaqtga suradi; foydalanuvchi botni bloklagan bo'lsa
+    qator darhol terminal bo'ladi; qolgan nosozliklar exponential backoff bilan
+    qayta urinadi. Sabab modul docstringida.
+    """
+    kind, attempts, give_up, next_attempt_at = plan_retry(
+        error=error, attempts=item.attempts
+    )
+    item.attempts = attempts
     item.last_error = str(error)[:255]
-    if item.attempts >= MAX_ATTEMPTS:
-        item.status = TelegramOutbox.STATUS_FAILED
-    else:
-        item.status = TelegramOutbox.STATUS_PENDING
+    item.failure_kind = kind
+    item.status = (
+        TelegramOutbox.STATUS_FAILED if give_up else TelegramOutbox.STATUS_PENDING
+    )
+    item.next_attempt_at = next_attempt_at
     item.claimed_at = None
     item.claim_token = ""
     item.save(
-        update_fields=["attempts", "last_error", "status", "claimed_at", "claim_token"]
+        update_fields=[
+            "attempts", "last_error", "status", "claimed_at", "claim_token",
+            "next_attempt_at", "failure_kind",
+        ]
     )
 
 
@@ -177,6 +214,20 @@ def record_worker_heartbeat(*, sent=0, claimed=0, paused=False):
     if paused:
         detail["paused"] = True
     return WorkerHeartbeat.record(WORKER_NAME, detail=detail)
+
+
+async def _space_out_sends():
+    """Ketma-ket yuborishlar orasiga kichik oraliq qo'yadi.
+
+    Telegram turli chatlarga ~30 xabar/sekundga ruxsat beradi. Ilgari sikl 25
+    ta `send_message` ni orasiz otardi va 50 o'quvchilik Classbook darsidan
+    keyin aynan shu `429 Flood control` ni keltirardi. Oraliq `retry_policy`
+    da, chunki u navbat tezligi siyosatining bir qismi; test uni `0` ga
+    qo'yib sikllarni tezlashtira oladi.
+    """
+    interval = retry_policy.SEND_INTERVAL_SECONDS
+    if interval > 0:
+        await asyncio.sleep(interval)
 
 
 async def process_outbox_once(bot):
@@ -221,6 +272,7 @@ async def process_outbox_once(bot):
             item, getattr(message, "message_id", None)
         )
         sent += 1
+        await _space_out_sends()
 
     items = await sync_to_async(claim_pending_outbox)()
     for item in items:
@@ -236,6 +288,7 @@ async def process_outbox_once(bot):
             continue
         await sync_to_async(mark_outbox_sent)(item)
         sent += 1
+        await _space_out_sends()
 
     # Navbat bo'sh bo'lsa ham belgilanadi — aynan shu holat ilgari ko'r nuqta
     # edi: ishlaydigan narsa yo'qligi worker tirikligini isbotlamasdi.

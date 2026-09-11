@@ -92,7 +92,14 @@ class OutboxLeaseTests(TestCase):
         claim_pending_outbox()
         self.assertEqual(reclaim_expired_outbox(), 0)
 
-    def test_failed_attempt_releases_the_claim_for_retry(self):
+    def test_failed_attempt_releases_the_claim_but_waits_for_backoff(self):
+        """Nosoz qator navbatga qaytadi, ammo **darhol** olinmaydi (F10).
+
+        Ilgari u keyingi siklda (15 soniya) yana urinardi va uch urinish 45
+        soniyaga sig'ib ketardi — bir daqiqalik tarmoq uzilishi xabarni
+        butunlay yo'qotardi. Endi `next_attempt_at` backoff muddatini
+        belgilaydi va claim uni hisobga oladi.
+        """
         item = _make_outbox(1)[0]
         claimed = claim_pending_outbox()[0]
         mark_outbox_attempt_failed(claimed, "network xatosi")
@@ -101,7 +108,15 @@ class OutboxLeaseTests(TestCase):
         self.assertEqual(row.status, TelegramOutbox.STATUS_PENDING)
         self.assertEqual(row.attempts, 1)
         self.assertEqual(row.claim_token, "")
-        # Qayta navbatga tushgani uchun keyingi sikl uni yana oladi.
+        self.assertIsNotNone(row.next_attempt_at)
+        self.assertGreater(row.next_attempt_at, timezone.now())
+        # Backoff tugamaguncha qator olinmaydi.
+        self.assertEqual(claim_pending_outbox(), [])
+
+        # Muddat o'tgach yana oqimga qaytadi.
+        TelegramOutbox.objects.filter(pk=item.pk).update(
+            next_attempt_at=timezone.now() - timedelta(seconds=1)
+        )
         self.assertEqual(len(claim_pending_outbox()), 1)
 
     def test_row_stops_retrying_after_max_attempts(self):
@@ -112,9 +127,15 @@ class OutboxLeaseTests(TestCase):
             claimed = claim_pending_outbox()
             self.assertEqual(len(claimed), 1)
             mark_outbox_attempt_failed(claimed[0], "yana xato")
+            # Backoff muddatini "o'tkazamiz": bu test urinish sonini
+            # tekshiradi, kutish vaqtini emas (u alohida testda).
+            TelegramOutbox.objects.filter(pk=item.pk).update(
+                next_attempt_at=timezone.now() - timedelta(seconds=1)
+            )
 
         row = TelegramOutbox.objects.get(pk=item.pk)
         self.assertEqual(row.status, TelegramOutbox.STATUS_FAILED)
+        self.assertEqual(row.failure_kind, "transient")
         self.assertEqual(claim_pending_outbox(), [])
 
     def test_sent_row_leaves_the_queue(self):

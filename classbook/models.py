@@ -285,6 +285,15 @@ class TelegramGroupDelivery(models.Model):
     last_error = models.CharField(max_length=255, blank=True, default="")
     claimed_at = models.DateTimeField(null=True, blank=True, db_index=True)
     claim_token = models.CharField(max_length=32, blank=True, default="")
+    # Qayta urinish rejasi (F10). `next_attempt_at` kelajakda bo'lsa qator
+    # claim qilinmaydi — backoff shu bilan amalga oshadi. Ilgari nosoz qator
+    # darhol `pending` ga qaytib, keyingi siklda (15s) yana urinardi va uch
+    # urinish 45 soniyaga sig'ib ketardi.
+    next_attempt_at = models.DateTimeField(blank=True, null=True, db_index=True)
+    # Nosozlik turi: `rate_limited` / `permanent` / `transient`. Owner uchun
+    # "botni bloklagan" bilan "tarmoq uzildi" bir xil ko'rinmasligi kerak —
+    # birinchisi hech qachon tuzalmaydi, ikkinchisi o'zi tuzaladi.
+    failure_kind = models.CharField(max_length=16, blank=True, default="")
     telegram_message_id = models.BigIntegerField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     sent_at = models.DateTimeField(null=True, blank=True)

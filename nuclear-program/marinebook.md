@@ -16,6 +16,53 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-11 [Claude]: Telegram outbox 429 ni to'g'ri tushunadigan bo'ldi (F10)
+
+`05-launch-ops.md` §1 "Telegram outbox gate" da 2026-08-15 dan beri ochiq turgan
+band yopildi: atomik claim/lease qurilgan edi, **exponential retry/backoff va
+terminal dead-letter** qolgan edi.
+
+Ikkala navbat ham (`bot/outbox.py` DM va `classbook/delivery.py` guruh)
+`except Exception` bilan hamma nosozlikni bir xil hisoblardi: `attempts += 1`,
+qator darhol `pending`, keyingi sikl 15 soniyadan keyin. Uch urinishdan keyin
+`failed` — abadiy. Bu uch xil noto'g'ri natija berardi, va birinchisi
+**launch scenariysining aynan o'zi**:
+
+- **`429 Flood control`.** Classbook darsi tugagach 50 o'quvchiga natija DM
+  ketadi; sikl 25 ta `send_message` ni **orasiz** otardi, Telegram esa turli
+  chatlarga ~30 xabar/sekund beradi. Ya'ni 429 kutilgan hol edi. Har 429 bitta
+  urinishni yeb, xabar ≈45 soniyada `failed` bo'lib qolardi — o'quvchi
+  natijasini **hech qachon** ko'rmasdi, sabab esa faqat bizning tezligimiz.
+- **Foydalanuvchi botni bloklagan (`403`).** Uch urinish hech narsa bermaydi,
+  faqat rate budjetini yeb navbatni sekinlashtiradi.
+- **Tarmoq/`5xx`.** Backoff'siz uch urinish 45 soniyaga sig'adi — bir daqiqalik
+  uzilish xabarni yo'qotadi.
+
+Siyosat `bot/retry_policy.py` da **canonical** va ikkala navbat bittasini
+ishlatadi (ilgari `classbook/delivery.py` o'zining `MAX_ATTEMPTS = 3` ini
+yuritardi — mustaqil eskirishi mumkin edi). `429` urinish sarflamaydi va qator
+Telegram aytgan vaqtga suriladi; permanent xato darhol dead-letter; qolgani
+`30s → 1m → 2m → 4m` backoff bilan (jitter bilan — 50 qator bir vaqtda qaytib
+yana 429 olmasin), 5 urinishgacha. Sikl ichiga ham oraliq qo'yildi (~20/sek).
+
+`next_attempt_at` va `failure_kind` maydonlari ikkala modelga qo'shildi
+(additive migration: `bot.0007`, `classbook.0002`). Control Center endi
+`dead_permanent` va `waiting_backoff` ni alohida ko'rsatadi — "hech qachon
+tuzalmaydi" bilan "o'zi tuzaladi" bitta son ostida turmasin.
+
+- Branch: `claude/bot-outbox-retry`
+- Test holati: to'liq suite — **1494/1494 OK (skipped=40)**, 189s.
+  Yangi `bot/test_retry_policy.py` — 21 test; `classbook/test_delivery_worker.py`
+  ga guruh navbati uchun 3 test. Mavjud ikki test yangi shartnomaga moslandi
+  (nosoz qator endi **darhol** claim qilinmaydi — backoff kutadi) va ular
+  o'zgarishning ma'nosini yozib qo'ydi.
+  Nazorat yugurishi: `429` urinish yeydigan qilib qaytarilganda **5 test**
+  qizardi (sabotaj grep bilan tasdiqlandi).
+- Davom etilishi kerak: F10 ning qolgan qismi — alohida production bot tokeni
+  qarori (owner), public domenda Menu Button/commands tekshiruvi va haqiqiy
+  webhook o'tkazish. Ikkinchi outbox replikasi endi texnik jihatdan xavfsiz,
+  ammo uni yoqish owner qarori.
+
 ## 2026-09-11 [Claude]: Media zaxirasi qurildi — va compose'dagi jim zaxira yo'qotuvchi nuqson topildi
 
 `backup_db` faqat **bazani** olardi. Baza esa fayllarning o'zini emas, ularga

@@ -1,4 +1,9 @@
-"""Telegram guruhiga yuboriladigan Classbook xabarlari uchun outbox."""
+"""Telegram guruhiga yuboriladigan Classbook xabarlari uchun outbox.
+
+Qayta urinish, backoff va dead-letter qarorlari `bot/retry_policy.py` da —
+DM navbati bilan **bitta** siyosat. Ilgari bu fayl o'zining `MAX_ATTEMPTS = 3`
+ini yuritardi va DM navbati bilan mustaqil ravishda eskirib ketishi mumkin edi.
+"""
 
 import html
 import uuid
@@ -6,15 +11,17 @@ from datetime import timedelta
 
 from aiogram.types import InlineKeyboardMarkup
 from django.conf import settings
+from django.db.models import Q
 from django.utils import timezone
 
 from bot.keyboards import attendance_checkin_markup, miniapp_button
+# Eski import yo'li saqlanadi (mavjud testlar `MAX_ATTEMPTS` ni shu yerdan oladi).
+from bot.retry_policy import MAX_ATTEMPTS, plan_retry  # noqa: F401
 
 from .models import TelegramGroupDelivery
 
 
 BATCH_SIZE = 10
-MAX_ATTEMPTS = 3
 LEASE_SECONDS = 120
 
 
@@ -48,8 +55,12 @@ def reclaim_expired_group_deliveries(lease_seconds=LEASE_SECONDS):
 def claim_pending_group_deliveries(limit=BATCH_SIZE, lease_seconds=LEASE_SECONDS):
     reclaim_expired_group_deliveries(lease_seconds)
     token = uuid.uuid4().hex
+    # Backoff: `next_attempt_at` kelajakda bo'lsa qator olinmaydi. `isnull`
+    # sharti majburiy — birinchi urinishda va eski qatorlarda qiymat yo'q.
+    now = timezone.now()
     ids = list(
         TelegramGroupDelivery.objects.filter(status=TelegramGroupDelivery.STATUS_PENDING)
+        .filter(Q(next_attempt_at__isnull=True) | Q(next_attempt_at__lte=now))
         .order_by("id")
         .values_list("id", flat=True)[:limit]
     )
@@ -97,8 +108,13 @@ def mark_group_delivery_sent(delivery, telegram_message_id=None):
     delivery.claim_token = ""
     delivery.claimed_at = None
     delivery.telegram_message_id = telegram_message_id
+    # Oldingi nosozlik izi tozalanadi — muvaffaqiyatli xabar Control Center'da
+    # hamon xatoli bo'lib ko'rinmasin.
+    delivery.next_attempt_at = None
+    delivery.failure_kind = ""
     delivery.save(update_fields=[
-        "status", "sent_at", "claim_token", "claimed_at", "telegram_message_id"
+        "status", "sent_at", "claim_token", "claimed_at", "telegram_message_id",
+        "next_attempt_at", "failure_kind",
     ])
     if delivery.kind == TelegramGroupDelivery.KIND_ATTENDANCE and telegram_message_id:
         type(delivery.session).objects.filter(pk=delivery.session_id).update(
@@ -107,13 +123,29 @@ def mark_group_delivery_sent(delivery, telegram_message_id=None):
 
 
 def mark_group_delivery_failed(delivery, error):
-    delivery.attempts += 1
+    """Qarorni `bot/retry_policy.py` beradi — DM navbati bilan bir xil siyosat.
+
+    Guruh xabari uchun farq sezilarli: `429` bitta urinishni yeb qo'ysa,
+    o'qituvchi "Ochish" bosgan mashq e'loni guruhga umuman bormasligi mumkin —
+    va jonli dars o'rtasida buni tuzatib bo'lmaydi.
+    """
+    kind, attempts, give_up, next_attempt_at = plan_retry(
+        error=error, attempts=delivery.attempts
+    )
+    delivery.attempts = attempts
     delivery.last_error = str(error)[:255]
+    delivery.failure_kind = kind
     delivery.status = (
         TelegramGroupDelivery.STATUS_FAILED
-        if delivery.attempts >= MAX_ATTEMPTS
+        if give_up
         else TelegramGroupDelivery.STATUS_PENDING
     )
+    delivery.next_attempt_at = next_attempt_at
     delivery.claimed_at = None
     delivery.claim_token = ""
-    delivery.save(update_fields=["attempts", "last_error", "status", "claimed_at", "claim_token"])
+    delivery.save(
+        update_fields=[
+            "attempts", "last_error", "status", "claimed_at", "claim_token",
+            "next_attempt_at", "failure_kind",
+        ]
+    )
