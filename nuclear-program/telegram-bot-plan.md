@@ -82,7 +82,7 @@ ovozli xabar) — hammasi chat-interfeysga yotadi.
 |---|------|--------|------|
 | **F8** | **Dars-yetkazish (botda o'qish)** | Saytdagi lesson access/progress service'lari, video/kontent/deep-link | `IMPLEMENTED/TESTED`; phone QA pending |
 | **F9** | **Vazifa va quiz** | `BotPendingAction` DB state, canonical assignment/quiz service, result+XP | `IMPLEMENTED/TESTED`; phone QA pending |
-| **F10** | **Vendor-neutral production gate** | Alohida production bot qarori, webhook+unique secret, outbox process, commands/menu button, monitoring/rate hardening | `PARTIAL` — owner 2026-09-10 da AWS'ni tanladi, ya'ni gate ochildi. **Bajarildi:** webhook + unique secret fail-closed (`setwebhook` secret'siz ishga tushmaydi), outbox alohida process (PR #97: `Procfile` + compose `outbox` servisi), rate/retry hardening (PR #101: `bot/retry_policy.py` — 429 backoff, dead-letter, yuborish oralig'i). **Qolgan:** alohida production bot tokeni qarori (owner), public domenda Menu Button/commands tekshiruvi va haqiqiy webhook o'tkazish |
+| **F10** | **Vendor-neutral production gate** | Alohida production bot qarori, webhook+unique secret, outbox process, commands/menu button, monitoring/rate hardening | `PARTIAL` — owner 2026-09-10 da AWS'ni tanladi, ya'ni gate ochildi. **Bajarildi:** webhook + unique secret fail-closed (`setwebhook` secret'siz ishga tushmaydi), outbox alohida process (PR #97: `Procfile` + compose `outbox` servisi), rate/retry hardening (PR #101: `bot/retry_policy.py` — 429 backoff, dead-letter, yuborish oralig'i). **Qolgan (owner 2026-09-11 da keyinga qoldirdi):** qurish davomida mavjud `@azureLMSbot` lokal polling bilan ishlatiladi; alohida production bot tokeni, public domenda Menu Button/commands va haqiqiy webhook production ochilganda ko'riladi |
 | **F11** | **Imtihon va sertifikat** | `/imtihonlarim`, bounded bot practice, complex flow Mini App; `/sertifikatlarim` | `PLANNED`, active emas |
 | **F12** | **O'qituvchi to'liq ish stoli** | Queue mavjud; interactive grade+comment, e'lon va reminder qolgan | `PARTIAL / NEXT` |
 | **F13** | **Profil/reyting/polish** | Yordam/Mini App entry primitive'lari bor; leaderboard/profile/E2E qolgan | `PARTIAL / NEXT` |
@@ -178,6 +178,90 @@ Bot **imkoniyat jihatidan to'liq, boshqarish jihatidan qiyin va jim**.
 
 ---
 
+## Kesuvchi talab — qotirib qo'yilgan qiymat yo'q
+
+> **Owner qarori — 2026-09-11:** «qotirib qo'yiladigan qiymatlar qo'yma, masalan
+> 1 soat oldin yuborilsin desam 1 soat qilma uni — men admin paneldan
+> o'zgartira olayin kerak bo'lganda.»
+
+Bu quyidagi **barcha** bandlarga tegadi, faqat T2 ga emas. Har operatsion yoki
+mahsulot parametri — vaqt, oyna, limit, chegara, yoqish/o'chirish — **ishlab
+turgan tizimda, deploy'siz** o'zgarishi kerak.
+
+**Mexanizm yangi emas, ammo naqsh ikki qismdan iborat** va ularni aralashtirish
+xato bo'ladi:
+
+- **Model shakli — `aicontrol.AISettings`.** Singleton, maydonda `default=`,
+  `help_text` bilan izoh, `default_model` da «bo'sh bo'lsa `settings.py` qiymati»
+  fallback'i. Shuni ko'chirish to'g'ri.
+- **Mutation yuzasi — `core/views.py` dagi brend/landing/kill-switch yuzalari.**
+  Majburiy `change_reason`, majburiy tasdiq checkbox'i, `SystemAuditEvent` va
+  o'zgarish bo'lmasa yozmaydigan no-op yo'l. Audit talabi **shundan** olinadi.
+
+> **Diqqat — mavjud AI sozlama yuzalari audit naqshi EMAS.**
+> `AISettingsAdmin` faqat `updated_by` yozadi; `backoffice_ai_control`
+> singletonni to'g'ridan-to'g'ri saqlaydi. Ikkisida ham sabab, tasdiq va
+> `SystemAuditEvent` yo'q. `AISettings` ni audit namunasi deb ko'chirish yana
+> bitta auditlanmagan operatsion yuza yasaydi. Mavjud yuzalarni retrofit qilish
+> alohida **A2 qarzi** sifatida ochiq qoladi va bu reja uni o'z ichiga olmaydi.
+
+Yangi parametr uchun to'rt shart:
+
+1. **Qiymat DB'da**, Python konstantasida emas; env faqat fallback.
+2. **Default bor** — toza o'rnatish hech narsa sozlamasdan ishlashi kerak.
+3. **Chegaralar tekshiriladi** — `0` yoki `999999` kiritilganda tizim
+   to'xtamasligi kerak. Validator maydonda bo'ladi, izohda emas.
+4. **O'zgarish auditlanadi** — sabab + tasdiq + `SystemAuditEvent` (yuqoridagi
+   ikkinchi naqsh).
+
+**Effective policy manbasi bitta bo'ladi.** Vaqt, oyna, limit va chegara —
+sozlamada. Yoqilgan/o'chirilgan — **faqat** `core/flags.py` registrida. Bitta
+narsani ikki DB manbasi boshqarsa (sozlamadagi `enabled` va flag) ular
+bir-biriga zid bo'lishi mumkin va owner qaysi qiymat amalda ekanini aniqlay
+olmaydi.
+
+**Chegara — hamma konstanta emas.** Ikki narsa ataylab kodda qoladi:
+
+- **Protokol faktlari:** Telegram xabarining 4096 belgisi, HMAC algoritmi.
+  Bularni «sozlash» sozlama emas, xato.
+- **Kafolatni ushlab turuvchi qo'riqchilar:** masalan
+  `MIN_RATE_LIMIT_DELAY_SECONDS` — u `retry_after=0` kelganda issiq siklni
+  oldini oladi. Uni `0` ga qo'yish mumkin bo'lsa, sozlamaning o'zi nosozlikka
+  aylanadi.
+
+Sinov savoli: *«Azurbek buni jonli dars kunida o'zgartirishni xohlashi
+mumkinmi, va o'zgartirish xavfsizmi?»* Ikkisiga ham «ha» bo'lsa — sozlama.
+Ikkinchisiga «yo'q» bo'lsa — kodda qoladi yoki chegara bilan o'raladi.
+
+---
+
+## T0 — Mavjud qotirib qo'yilgan qiymatlarni sozlanuvchi qilish · `S/M`
+
+Qoida orqaga ham qaraydi: joriy kodda owner o'zgartirishi kerak bo'ladigan,
+ammo bugun faqat deploy bilan o'zgaradigan qiymatlar bor.
+
+| Qiymat | Joy | Nega sozlama bo'lishi kerak |
+|---|---|---|
+| `SEND_INTERVAL_SECONDS = 0.05` | `bot/retry_policy.py` | PR #101 ning o'zida yozib qo'yilgan: «jonli darsda hamon `429` ko'rinsa, oraliqni oshirish kerak». Ya'ni bu **isbotlangan** knob |
+| `BATCH_SIZE = 25`, `POLL_INTERVAL = 15` | `bot/outbox.py` | 50 o'quvchilik darsdan keyin navbat tezligini owner boshqarishi kerak |
+| `MAX_ATTEMPTS = 5`, `BASE_BACKOFF_SECONDS = 30`, `MAX_BACKOFF_SECONDS = 900` | `bot/retry_policy.py` | Telegram yoki tarmoq qanday tutishiga qarab moslanadi |
+| `BATCH_SIZE = 10` (guruh navbati) | `classbook/delivery.py` | `process_outbox_once()` guruh batch'ini DM batch'idan **oldin** oladi, ya'ni bu ham o'sha workerning jonli throughput chegarasi |
+| `LEASE_SECONDS = 120` | `bot/outbox.py`, `classbook/delivery.py` | Ikkinchi replika yoqilganda qayta o'lchanadi |
+| `BACKUP_STALE_AFTER_DAYS = 7` | `core/control_center/snapshot.py` | Zaxira qachon AMBER bo'lishi — operatsion qaror |
+
+**Kodda qoladi:** `MIN_RATE_LIMIT_DELAY_SECONDS` (issiq sikl qo'riqchisi),
+`TG_MESSAGE_LIMIT` (protokol), `JITTER_SHARE` (o'zgartirishdan foyda yo'q).
+
+- **Canonical owner:** yangi singleton (masalan `bot.BotRuntimeSettings`) —
+  `AISettings` bilan bir xil shakl. Chegara/probe tomoni Control Center'da.
+- **Acceptance:** sozlama bo'sh yoki noto'g'ri bo'lsa kod defaultiga tushadi va
+  jim buzilmaydi; har maydonda chegara validatori; o'zgarish auditlanadi; mavjud
+  testlar default qiymat bilan o'tishda davom etadi.
+- **Nega T0:** keyingi bandlar ham shu singletonga yozadi. Avval u qurilsa, T2
+  o'z sozlamalarini qo'shadi va yangi naqsh o'ylab topmaydi.
+
+---
+
 ## T1 — Rolga mos doimiy klaviatura · `S` · **tavsiya: birinchi**
 
 - **Outcome:** o'quvchi hech qanday buyruqni eslab qolmasdan asosiy to'rt amalga
@@ -204,12 +288,22 @@ Bot **imkoniyat jihatidan to'liq, boshqarish jihatidan qiyin va jim**.
   1. **Dars eslatmasi** — rejalashtirilgan dars boshlanishidan `N` soat oldin.
   2. **Vazifa muddati** — tugashidan bir kun oldin, faqat topshirmaganlarga.
   3. **O'qituvchi navbati** — `N` kundan beri ko'rilmagan topshiriq bo'lsa.
+- **Hamma vaqt va oyna sozlanuvchi** (kesuvchi talab, yuqoriga qarang): darsdan
+  necha soat yoki daqiqa oldin, vazifa muddatidan necha kun oldin, o'qituvchi
+  navbati necha kundan keyin, jim soatlar boshlanishi va tugashi. Hech biri kodda
+  raqam bo'lib turmaydi: default bor, owner esa admin panelidan istagan payt
+  o'zgartiradi.
+- **Yoqish/o'chirish sozlamada EMAS.** Har eslatma turining yoqilgani faqat
+  `core/flags.py` registrida bo'ladi. Agar u ham sozlamada `enabled` maydoni
+  bo'lsa, ikki DB manbasi bir-biriga zid bo'lib qolishi mumkin va owner qaysi
+  biri amalda ekanini aniqlay olmaydi. Bo'linish: **vaqt → sozlama, yoqilgan →
+  flag.**
 - **Acceptance:** `external_key` bilan **idempotent** (bitta voqea uchun bitta
-  xabar, beat ikki marta yugursa ham); har tur uchun alohida feature flag va kill
-  switch (A2 registri); jim soatlar (kechasi yuborilmaydi); "o'tkazib yuborilgan"
-  eslatma keyin yuborilmaydi — eskirgan eslatma zarar.
-- **Ochiq qaror (Azurbek):** necha soat oldin? Ertalabki bitta digest kerakmi yoki
-  har voqea uchun alohida xabar? Bu mahsulot ovozi — men tanlamayman.
+  xabar, beat ikki marta yugursa ham); har tur uchun `core/flags.py` da alohida
+  flag/kill switch va u **yagona** yoqish manbasi; jim soatlar **sozlamadan**
+  o'qiladi; "o'tkazib yuborilgan" eslatma keyin yuborilmaydi — eskirgan eslatma
+  zarar; sozlama o'zgarsa keyingi beat sikli **darhol** yangi qiymat bilan
+  ishlaydi, restart kutmaydi.
 - **Nega endi:** bu bandning butun qiymati Classbook jonli darsiga qatnashuvda.
   30-sentyabr maqsadi aynan shu.
 
@@ -287,22 +381,29 @@ Bot **imkoniyat jihatidan to'liq, boshqarish jihatidan qiyin va jim**.
 
 | Bosqich | Bandlar | Nega shu tartib |
 |---|---|---|
-| **Hozir (serversiz)** | **T1 → T2 → T4 → T6** | Eng katta foydalanuvchi ta'siri va launch kuni ko'rinish; hech biri AWS'ni kutmaydi |
+| **Hozir (serversiz)** | **T0 → T1 → T2 → T4 → T6** | T0 birinchi, chunki keyingi bandlar o'z sozlamalarini shu singletonga yozadi. Qolganlari — eng katta foydalanuvchi ta'siri va launch kuni ko'rinish; hech biri AWS'ni kutmaydi |
 | **Server ochilganda** | T7 tekshiruvi, F10 qoldig'i | Webhook, Menu Button, Mini App webview |
 | **Launchdan keyin** | T3, T5, T8 | T3 owner tanlovini kutadi; T5 o'lchovni kutadi |
 
-**Tavsiyam: T1 va T2.** Sababi bitta — ularning ikkalasi ham bitta narsani
+**Tavsiyam: T0, so'ng T1 va T2.** Sababi bitta — ularning ikkalasi ham bitta narsani
 beradi: o'quvchi darsga **keladi** va platformani **eslab qolishga majbur emas**.
 Qolgan bandlar muhim, ammo hech biri qatnashuvga bunday bevosita tegmaydi.
 
-## Azurbek qaror qilishi kerak bo'lgan to'rt savol
+## Owner qarorlari
 
-1. **T2 eslatma ovozi:** dars boshlanishidan necha soat oldin? Har voqea alohida
-   xabarmi yoki ertalabki bitta digest?
-2. **F11 yoki F12 (T8 yoki T3):** hujjat bu tanlovni ochiq qoldirgan. T3 sizning
+**Javob berilgan (2026-09-11):**
+
+1. ~~T2 eslatma vaqti: necha soat oldin?~~ → **Savol emas.** Vaqt kodda
+   belgilanmaydi; sozlama bo'ladi va Azurbek uni admin panelidan o'zgartiradi.
+   Shu qoida butun rejaga tarqaldi (kesuvchi talab + T0).
+2. ~~Production bot tokeni?~~ → **Keyinga qoldirildi.** Qurish davom etayotganda
+   mavjud `@azureLMSbot` lokal polling bilan ishlatiladi. Alohida production bot,
+   webhook va public Menu Button production haqiqatan ochilganda ko'riladi.
+
+**Ochiq qolgan:**
+
+3. **F11 yoki F12 (T8 yoki T3):** hujjat bu tanlovni ochiq qoldirgan. T3 sizning
    ish vaqtingizni qisqartiradi, T8 o'quvchi natijasiga tegadi.
-3. **Production bot tokeni:** alohida prod bot ochiladimi yoki `@azureLMSbot`
-   qoladimi? (F10 qoldig'i)
 4. **T1 qamrovi:** doimiy klaviatura buyruqlarni **almashtiradimi** yoki ularga
    **qo'shiladimi**? Taklifim — qo'shiladi.
 

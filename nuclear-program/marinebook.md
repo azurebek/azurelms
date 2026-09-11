@@ -16,6 +16,72 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-11 [Claude]: Owner qoidasi — operatsion qiymat kodda qotirib qo'yilmaydi
+
+Azurbek rejani ko'rib ikki ko'rsatma berdi va ikkalasi ham shu kommitda
+bajarildi.
+
+**1. «Qotirib qo'yiladigan qiymatlar qo'yma.»** Misoli: eslatma darsdan 1 soat
+oldin yuborilsin degan qiymat kodda raqam bo'lib turmasligi kerak — u admin
+panelidan o'zgartiriladigan sozlama bo'lishi kerak. Bu rejaning bitta bandiga
+emas, **butun loyihaga** tegadigan qoida, shuning uchun u uch joyga yozildi:
+
+- `rules-for-agents.md` §0 «Product authority va arxitektura doktrinasi» ga
+  7-qoida bo'lib (mexanizm, chegara validatori, audit talabi va ikki istisno
+  bilan);
+- `telegram-bot-plan.md` 3-QISM ga «Kesuvchi talab» bo'limi bo'lib;
+- yangi **T0** bandi bo'lib — qoida orqaga ham qaraydi.
+
+Mexanizm yangi emas: `aicontrol.AISettings` naqshi (singleton, maydonda
+`default=`, `help_text`, env faqat fallback) allaqachon aynan shuni qiladi.
+
+**Ikki istisno ataylab yozildi**, aks holda qoida o'z ziddiga aylanardi:
+protokol faktlari (Telegram 4096 belgisi, HMAC algoritmi) va kafolatni ushlab
+turuvchi qo'riqchilar — masalan `MIN_RATE_LIMIT_DELAY_SECONDS`, u `retry_after=0`
+kelganda issiq siklni to'xtatadi; uni `0` ga qo'yish mumkin bo'lsa sozlamaning
+o'zi nosozlik yo'liga aylanadi.
+
+**T0 o'zimning yaqinda yozgan kodimga ham qaraydi.** PR #101 da men
+`SEND_INTERVAL_SECONDS = 0.05` ni qotirib qo'ydim va o'sha PR body'sining
+o'zida «jonli darsda hamon 429 ko'rinsa, oraliqni oshirish kerak» deb yozdim —
+ya'ni bu qiymat isbotlangan knob bo'lib chiqdi. T0 ro'yxatiga `BATCH_SIZE`,
+`POLL_INTERVAL`, `MAX_ATTEMPTS`, backoff chegaralari, `LEASE_SECONDS` va
+`BACKUP_STALE_AFTER_DAYS` ham kirdi.
+
+**2. «Hali production qilmayapmizku, qurish davomida eski botimizni ishlataver
+lokalda.»** Production bot tokeni savoli yopildi: qurish davomida mavjud
+`@azureLMSbot` lokal polling bilan ishlatiladi. F10 qatori va rejadagi
+savollar ro'yxati shunga moslandi; ochiq savol ikkita qoldi (F11/F12 tanlovi,
+klaviatura qamrovi).
+
+**Codex review uchta P2 topdi va uchalasi ham haqiqiy chiqdi:**
+
+1. **`AISettings` ni audit naqshi deb ko'rsatish xato edi.** Kod bilan
+   tekshirdim: `AISettingsAdmin` faqat `updated_by` yozadi,
+   `backoffice_ai_control` singletonni to'g'ridan-to'g'ri saqlaydi — ikkisida ham
+   sabab, tasdiq va `SystemAuditEvent` yo'q. Ya'ni uni ko'chirgan odam yana bitta
+   auditlanmagan operatsion yuza yasardi. Naqsh ikkiga bo'lindi: **model shakli**
+   `AISettings` dan, **mutation yuzasi** esa `core/views.py` dagi
+   brend/landing/kill-switch yuzalaridan (ularda `change_reason`, tasdiq,
+   `SystemAuditEvent` va no-op yo'l bor). Mavjud AI yuzalarini retrofit qilish
+   alohida A2 qarzi sifatida ochiq yozildi.
+2. **Ikki yoqish manbasi.** T2 da har eslatma turi uchun sozlamada `enabled`
+   maydoni **va** `core/flags.py` da flag bo'lishi ko'rsatilgan edi — ikkisi
+   bir-biriga zid bo'lib, owner qaysi qiymat amalda ekanini aniqlay olmasdi.
+   Bo'linish aniqlandi: **vaqt/limit → sozlama, yoqilgan/o'chirilgan → faqat
+   flag.** Qoida §0.7 ga ham yozildi.
+3. **T0 ro'yxatida `classbook/delivery.py:BATCH_SIZE = 10` yo'q edi.**
+   `process_outbox_once()` guruh batch'ini DM
+   batch'idan oldin oladi, ya'ni bu ham o'sha workerning jonli throughput
+   chegarasi. Jadvalga qo'shildi.
+
+- Branch: `claude/bot-reja-sozlanuvchi`
+- Test holati: faqat hujjat o'zgarishi, kod tegilmagan.
+  `AZURELMS_SKIP_ENV_FILE=1 GEMINI_API_KEY= TELEGRAM_BOT_TOKEN= APP_ENV=local
+  python manage.py check --fail-level WARNING` — 0 issue.
+- Davom etilishi kerak: T0 ni implement qilish (`bot.BotRuntimeSettings`), so'ng
+  T1.
+
 ## 2026-09-11 [Claude]: Bot takomillashtirish rejasi — audit va T1–T8 taklifi
 
 Azurbek so'rovi bilan botni keskin takomillashtirish rejasi ishlab chiqildi.
