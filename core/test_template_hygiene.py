@@ -42,3 +42,76 @@ class TemplateCommentSyntaxTests(SimpleTestCase):
     def test_the_check_actually_reads_templates(self):
         """Ro'yxat bo'sh bo'lsa yuqoridagi test hech nima tekshirmaydi."""
         self.assertGreater(len(list(TEMPLATES_DIR.rglob("*.html"))), 20)
+
+
+#: `class="..."` ichidagi Django tagi/o'zgaruvchisi klass nomi emas.
+#: Masalan `class="brand-field--check{% if x %} is-on{% endif %}"` da
+#: `brand-field--check{%` degan "klass" paydo bo'ladi — shuning uchun tag avval
+#: olib tashlanadi.
+DJANGO_TAG = re.compile(r"\{[%{].*?[%}]\}", re.S)
+
+
+class BrandControlCssClassTests(SimpleTestCase):
+    """Backoffice shablonlarida aniqlanmagan `brand-*` klass qolmasligi kerak.
+
+    Bu nuqson turi loyihada allaqachon uchragan: 2026-09-05 UX auditida
+    `brand-logo-image--large` shablonda ishlatilib, hech qayerda aniqlanmagan
+    edi va yuklangan logo ko'rik panelini yorib yuborgan. Xatoning yomon
+    tomoni — u **jim**: sahifa ochiladi, test yashil turadi, faqat ko'rinish
+    buziladi. 2026-09-11 da T0 sahifasida aynan shu takrorlandi
+    (`brand-note`), shu sabab tekshiruv avtomatlashtirildi.
+
+    Qamrov ataylab `brand-*` bilan cheklangan: `cc-*` klasslari boshqa faylda
+    (`control-center.css`), Bootstrap va `bi-*` esa umuman boshqa paketda.
+    Tekshirilmaydigan prefiksni qo'shib qo'yish testni yolg'on qizil qilardi.
+    """
+
+    CSS_PATH = Path(settings.BASE_DIR) / "static" / "css" / "brand-control.css"
+    PREFIX = "brand-"
+
+    def _templates(self):
+        root = Path(settings.BASE_DIR) / "templates" / "backoffice"
+        return sorted(root.glob("*.html"))
+
+    def _used_classes(self, html):
+        names = set()
+        for chunk in re.findall(r'class="([^"]*)"', html):
+            for name in DJANGO_TAG.sub(" ", chunk).split():
+                if name.startswith(self.PREFIX):
+                    names.add(name)
+        return names
+
+    def test_every_brand_class_used_in_backoffice_templates_is_defined(self):
+        css = self.CSS_PATH.read_text(encoding="utf-8")
+        undefined = {}
+        for template in self._templates():
+            missing = sorted(
+                name
+                for name in self._used_classes(template.read_text(encoding="utf-8"))
+                if f".{name}" not in css
+            )
+            if missing:
+                undefined[template.name] = missing
+        self.assertEqual(
+            undefined,
+            {},
+            "shablonda aniqlanmagan CSS klass bor — yuklanganda jim buziladi",
+        )
+
+    def test_django_tags_are_not_mistaken_for_class_names(self):
+        """Nazorat: tag olib tashlanmasa test yolg'on qizil bo'lardi."""
+        html = '<div class="brand-field{% if x %} brand-field--check{% endif %}">'
+        self.assertEqual(
+            self._used_classes(html), {"brand-field", "brand-field--check"}
+        )
+
+    def test_the_check_actually_reads_the_stylesheet(self):
+        """Nazorat: tekshiruv haqiqatan CSS o'qiydimi.
+
+        Aks holda fayl nomi o'zgarsa yoki yo'l buzilsa test "hammasi joyida"
+        deb ko'rsatib turardi.
+        """
+        self.assertTrue(self.CSS_PATH.exists(), self.CSS_PATH)
+        css = self.CSS_PATH.read_text(encoding="utf-8")
+        self.assertIn(".brand-panel", css)
+        self.assertGreater(len(self._templates()), 3)

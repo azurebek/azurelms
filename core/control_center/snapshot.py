@@ -14,6 +14,8 @@ from django.db import connection
 from django.db.models import Max, Min
 from django.utils import timezone
 
+from core.operational_settings import current_thresholds
+
 from .registry import CAPABILITY_REGISTRY, CapabilityDefinition
 
 
@@ -282,15 +284,23 @@ def _telegram_probe(definition: CapabilityDefinition) -> CapabilityResult:
     if oldest_pending:
         oldest_minutes = max(0, int((timezone.now() - oldest_pending).total_seconds() // 60))
 
+    # Chegaralar owner sozlamasida (T0): "navbat qancha kutganda qizil bo'ladi"
+    # operatsion qaror. Ilgari `60` va `15` kodda turardi.
+    thresholds = current_thresholds()
     status = "green"
     summary = "Outbox navbati sog'lom."
     if not configured:
         status = "amber" if settings.IS_LOCAL else "red"
         summary = "Telegram token sozlanmagan."
-    elif pending_count and oldest_minutes >= 60:
+    elif pending_count and oldest_minutes >= thresholds.queue_age_red_minutes:
         status = "red"
-        summary = "Outbox navbatidagi xabar bir soatdan oshgan."
-    elif failed_count or (pending_count and oldest_minutes >= 15):
+        summary = (
+            f"Outbox navbatidagi xabar {thresholds.queue_age_red_minutes} "
+            "daqiqadan oshgan."
+        )
+    elif failed_count or (
+        pending_count and oldest_minutes >= thresholds.queue_age_amber_minutes
+    ):
         status = "amber"
         summary = "Outbox operator e'tiborini talab qiladi."
 
@@ -540,6 +550,10 @@ def _release_probe(definition: CapabilityDefinition) -> CapabilityResult:
 #: Zaxira shu muddatdan eski bo'lsa AMBER. Tanlov: bir hafta ichida bo'lgan
 #: yo'qotish qabul qilinadigan darajada, undan eskisi esa tiklashda sezilarli
 #: ma'lumot yo'qotishni anglatadi.
+#: Kod defaulti. Amaldagi chegara owner sozlamasida
+#: (`core.OperationalSettings.backup_stale_after_days`, T0) — "zaxira qachon
+#: eskirgan" operatsion qaror bo'lib, uni o'zgartirish uchun deploy kerak
+#: bo'lmasligi kerak.
 BACKUP_STALE_AFTER_DAYS = 7
 
 #: Embedding'siz faktlar ulushi shundan oshsa AMBER. Bunday fakt bazada bor,
@@ -572,7 +586,7 @@ def _backup_probe(definition: CapabilityDefinition) -> CapabilityResult:
     newest = files[0]
     age_days = (timezone.now().timestamp() - newest.stat().st_mtime) / 86400
     size_mb = newest.stat().st_size / (1024 * 1024)
-    if age_days > BACKUP_STALE_AFTER_DAYS:
+    if age_days > current_thresholds().backup_stale_after_days:
         return _result(
             definition,
             "amber",
@@ -619,7 +633,8 @@ def _media_backup_probe(definition: CapabilityDefinition) -> CapabilityResult:
     newest = files[0]
     age_days = (timezone.now().timestamp() - newest.stat().st_mtime) / 86400
     size_mb = newest.stat().st_size / (1024 * 1024)
-    status = "amber" if age_days > BACKUP_STALE_AFTER_DAYS else "green"
+    stale_after = current_thresholds().backup_stale_after_days
+    status = "amber" if age_days > stale_after else "green"
     summary = (
         f"So'nggi media zaxirasi {age_days:.0f} kunlik."
         if status == "amber"

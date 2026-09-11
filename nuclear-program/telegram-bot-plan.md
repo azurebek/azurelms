@@ -235,7 +235,7 @@ Ikkinchisiga «yo'q» bo'lsa — kodda qoladi yoki chegara bilan o'raladi.
 
 ---
 
-## T0 — Mavjud qotirib qo'yilgan qiymatlarni sozlanuvchi qilish · `S/M`
+## T0 — Mavjud qotirib qo'yilgan qiymatlarni sozlanuvchi qilish · `S/M` — `IMPLEMENTED/TESTED` (2026-09-11)
 
 Qoida orqaga ham qaraydi: joriy kodda owner o'zgartirishi kerak bo'ladigan,
 ammo bugun faqat deploy bilan o'zgaradigan qiymatlar bor.
@@ -259,6 +259,30 @@ ammo bugun faqat deploy bilan o'zgaradigan qiymatlar bor.
   testlar default qiymat bilan o'tishda davom etadi.
 - **Nega T0:** keyingi bandlar ham shu singletonga yozadi. Avval u qurilsa, T2
   o'z sozlamalarini qo'shadi va yangi naqsh o'ylab topmaydi.
+
+**Bajarildi — 2026-09-11:** ikki singleton qurildi, chunki bir modelga ikki
+domenni tiqish noto'g'ri uy bo'lardi:
+
+- `bot.BotRuntimeSettings` — yetkazish tezligi va qayta urinish siyosati
+  (8 maydon). Jadvaldagi `SEND_INTERVAL_SECONDS` → `send_interval_ms`
+  (millisekund, admin uchun qulay va `0` ma'noli).
+- `core.OperationalSettings` — Control Center chegaralari (3 maydon). Jadvalda
+  `BACKUP_STALE_AFTER_DAYS` bor edi; yonidagi `_telegram_probe` ning qotirib
+  qo'yilgan `60`/`15` daqiqasi ham shu yerga kirdi — ular bir xil sinf va
+  bittasini qoldirish sahifani o'z qoidasiga zid qilardi.
+
+Qiymat `resolved()` orqali o'qiladi: sozlama qatori bo'lmasa kod defaulti,
+chegaradan chiqqan qiymat esa xavfsiz oraliqqa **qisiladi**. Sabab — validator
+faqat formani qo'riqlaydi, `update()` va fixture uni chetlab o'tadi; owner esa
+sozlamani jonli dars kunida o'zgartiradi.
+
+Yozish yuzasi `/backoffice/control/runtime-settings/` — majburiy sabab, majburiy
+tasdiq, `SystemAuditEvent` va no-op yo'l. **Django admin'da ikki model ham
+faqat o'qish uchun**: admin orqali tahrirlash o'zgarishni izsiz qoldirardi, ya'ni
+`AISettingsAdmin` dagi nuqsonni takrorlardi. Buni test qulflaydi.
+
+Mavjud AI sozlama yuzalarini retrofit qilish hamon **A2 qarzi** — bu slice uni
+o'z ichiga olmadi.
 
 ---
 
@@ -381,7 +405,7 @@ ammo bugun faqat deploy bilan o'zgaradigan qiymatlar bor.
 
 | Bosqich | Bandlar | Nega shu tartib |
 |---|---|---|
-| **Hozir (serversiz)** | **T0 → T1 → T2 → T4 → T6** | T0 birinchi, chunki keyingi bandlar o'z sozlamalarini shu singletonga yozadi. Qolganlari — eng katta foydalanuvchi ta'siri va launch kuni ko'rinish; hech biri AWS'ni kutmaydi |
+| **Hozir (serversiz)** | ~~T0~~ (2026-09-11 bajarildi) → **T1 → T2 → T4 → T6** | T0 birinchi bo'ldi, chunki keyingi bandlar o'z sozlamalarini shu singletonlarga yozadi. Qolganlari — eng katta foydalanuvchi ta'siri va launch kuni ko'rinish; hech biri AWS'ni kutmaydi |
 | **Server ochilganda** | T7 tekshiruvi, F10 qoldig'i | Webhook, Menu Button, Mini App webview |
 | **Launchdan keyin** | T3, T5, T8 | T3 owner tanlovini kutadi; T5 o'lchovni kutadi |
 

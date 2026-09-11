@@ -1,3 +1,5 @@
+from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
@@ -127,6 +129,147 @@ class TelegramOutbox(models.Model):
 
     def __str__(self):
         return f"outbox:{self.id} → {self.telegram_id} [{self.status}]"
+
+
+class BotRuntimeSettings(models.Model):
+    """Telegram yetkazish tezligi va qayta urinish siyosati — owner sozlamasi (T0).
+
+    Owner qarori (2026-09-11): operatsion qiymat kodda qotirib qo'yilmaydi.
+    Bu qiymatlarning har biri ilgari Python konstantasi edi, ya'ni ularni
+    o'zgartirish uchun deploy kerak bo'lardi. Eng aniq misol —
+    `send_interval_ms`: PR #101 ning o'zida «jonli darsda hamon 429 ko'rinsa,
+    oraliqni oshirish kerak» deb yozilgan edi, ya'ni u isbotlangan knob.
+
+    **Yoqish/o'chirish bu yerda yo'q.** U `core/flags.py` registrida
+    (`telegram_outbox_sending`). Bitta narsani ikki DB manbasi boshqarsa ular
+    bir-biriga zid bo'lishi mumkin va owner qaysi biri amalda ekanini aniqlay
+    olmaydi. Bo'linish: vaqt/limit shu yerda, yoqilgan/o'chirilgan flagda.
+
+    Qiymatlar `resolved()` orqali o'qiladi — u hech qachon xato tashlamaydi va
+    chegaradan chiqqan qiymatni kodning xavfsiz oralig'iga qisadi. Sabab: bu
+    sozlamani owner jonli dars kunida o'zgartiradi, va bitta noto'g'ri raqam
+    butun navbatni to'xtatib qo'ymasligi kerak.
+    """
+
+    singleton = models.BooleanField(default=True, unique=True, editable=False)
+
+    dm_batch_size = models.PositiveIntegerField(
+        default=25,
+        validators=[MinValueValidator(1), MaxValueValidator(200)],
+        verbose_name="DM navbati: bir siklda nechta xabar",
+        help_text="Shaxsiy xabarlar (bildirishnoma DM) uchun bir sikldagi chegara.",
+    )
+    group_batch_size = models.PositiveIntegerField(
+        default=10,
+        validators=[MinValueValidator(1), MaxValueValidator(200)],
+        verbose_name="Guruh navbati: bir siklda nechta xabar",
+        help_text=(
+            "Classbook guruh xabarlari DM'dan OLDIN olinadi, shuning uchun bu "
+            "ham jonli darsdagi tezlikka bevosita ta'sir qiladi."
+        ),
+    )
+    poll_interval_seconds = models.PositiveIntegerField(
+        default=15,
+        validators=[MinValueValidator(1), MaxValueValidator(600)],
+        verbose_name="Sikllar orasidagi kutish (soniya)",
+        help_text="Worker navbatni qancha vaqtda bir tekshiradi.",
+    )
+    lease_seconds = models.PositiveIntegerField(
+        default=120,
+        validators=[MinValueValidator(10), MaxValueValidator(3600)],
+        verbose_name="Lease muddati (soniya)",
+        help_text=(
+            "Worker xabarni yuborayotganda o'lib qolsa, qator shuncha vaqtdan "
+            "keyin yana navbatga qaytadi. Juda qisqa qilinsa bitta xabar ikki "
+            "marta ketishi ehtimoli oshadi."
+        ),
+    )
+    send_interval_ms = models.PositiveIntegerField(
+        default=50,
+        validators=[MaxValueValidator(5000)],
+        verbose_name="Yuborishlar orasidagi oraliq (millisekund)",
+        help_text=(
+            "Telegram turli chatlarga ~30 xabar/sekund beradi. 50 ms ≈ 20/sek. "
+            "Jonli darsda 429 ko'rinsa shu qiymatni oshiring. 0 — oraliqsiz "
+            "(faqat test/debug uchun)."
+        ),
+    )
+    max_attempts = models.PositiveIntegerField(
+        default=5,
+        validators=[MinValueValidator(1), MaxValueValidator(20)],
+        verbose_name="Maksimal urinish soni",
+        help_text=(
+            "Shundan keyin xabar terminal (dead-letter) bo'ladi. 429 va "
+            "noto'g'ri token urinish sarflamaydi."
+        ),
+    )
+    base_backoff_seconds = models.PositiveIntegerField(
+        default=30,
+        validators=[MinValueValidator(1), MaxValueValidator(3600)],
+        verbose_name="Birinchi kutish (soniya)",
+        help_text="Keyingi urinishlarda ikkilanadi: 30 → 60 → 120 → 240.",
+    )
+    max_backoff_seconds = models.PositiveIntegerField(
+        default=900,
+        validators=[MinValueValidator(5), MaxValueValidator(86400)],
+        verbose_name="Maksimal kutish (soniya)",
+        help_text="Kutish shundan oshmaydi.",
+    )
+
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(
+        "users.CustomUser",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name="Kim o'zgartirdi",
+    )
+
+    class Meta:
+        verbose_name = "Bot yetkazish sozlamasi"
+        verbose_name_plural = "Bot yetkazish sozlamasi"
+
+    def __str__(self):
+        return "Bot yetkazish sozlamasi"
+
+    def clean(self):
+        """Maksimal kutish bazadan kichik bo'lsa backoff ma'nosini yo'qotadi."""
+        super().clean()
+        if self.max_backoff_seconds < self.base_backoff_seconds:
+            raise ValidationError(
+                {
+                    "max_backoff_seconds": (
+                        "Maksimal kutish birinchi kutishdan kichik bo'lmasligi kerak."
+                    )
+                }
+            )
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def load(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+    @classmethod
+    def resolved(cls):
+        """Amaldagi qiymatlar — hech qachon xato tashlamaydi.
+
+        Sozlama qatori yo'q bo'lsa (migratsiyadan oldin, yangi o'rnatish) yoki
+        DB javob bermasa kod defaultlari qaytadi. Worker sozlama jadvali
+        sababli to'xtab qolmasligi kerak: `core/runtime_gate.py` dagi fail-fast
+        **yetishmayotgan xizmat** uchun, bu esa ixtiyoriy moslash qatlami.
+        """
+        from bot.runtime_settings import DeliveryPolicy
+
+        try:
+            row = cls.objects.filter(pk=1).first()
+        except Exception:  # noqa: BLE001 — jadval hali yo'q yoki DB yetib bormadi
+            row = None
+        return DeliveryPolicy.from_row(row)
 
 
 class BotBroadcastDraft(models.Model):

@@ -207,6 +207,94 @@ def backoffice_ai_kill_switch(request):
 
 @login_required
 @user_passes_test(_is_control_center_owner)
+def backoffice_runtime_settings(request):
+    """Owner-only: operatsion qiymatlarni deploy'siz o'zgartirish (T0).
+
+    Owner qarori (2026-09-11): «qotirib qo'yiladigan qiymatlar qo'yma... men
+    admin paneldan o'zgartira olayin kerak bo'lganda.» Sahifada ikki guruh bor:
+    Telegram yetkazish tezligi/qayta urinish siyosati va Control Center
+    chiroqlarining chegaralari.
+
+    **Nega Django admin emas.** Admin orqali tahrirlash operatsion o'zgarishni
+    izsiz qoldiradi — `AISettingsAdmin` faqat `updated_by` ni yozadi. Bu yerda
+    esa A2 mutation shartlari bajariladi: majburiy sabab, majburiy tasdiq,
+    `SystemAuditEvent` va o'zgarish bo'lmasa hech narsa yozmaydigan no-op yo'l.
+    """
+    from bot.models import BotRuntimeSettings
+    from core.models import OperationalSettings
+    from core.runtime_settings_forms import (
+        BotDeliverySettingsForm,
+        OperationalThresholdsForm,
+    )
+
+    delivery = BotRuntimeSettings.load()
+    thresholds = OperationalSettings.load()
+
+    # Ikki forma bitta sahifada: qaysi biri yuborilgani `form_name` bilan
+    # ajratiladi, aks holda bir formani saqlash ikkinchisini validatsiyadan
+    # o'tmagan deb ko'rsatardi.
+    groups = {
+        "delivery": {
+            "form_class": BotDeliverySettingsForm,
+            "instance": delivery,
+            "action": "settings.bot_delivery.update",
+            "label": "Telegram yetkazish sozlamasi",
+            "message": "Yetkazish sozlamasi saqlandi.",
+        },
+        "thresholds": {
+            "form_class": OperationalThresholdsForm,
+            "instance": thresholds,
+            "action": "settings.operational_thresholds.update",
+            "label": "Operatsion chegaralar",
+            "message": "Chegaralar saqlandi.",
+        },
+    }
+
+    forms_out = {}
+    submitted = request.POST.get("form_name") if request.method == "POST" else None
+
+    for name, spec in groups.items():
+        if submitted == name:
+            form = spec["form_class"](request.POST, instance=spec["instance"])
+            if form.is_valid():
+                if form.settings_changed:
+                    before, after = form.changed_values()
+                    with transaction.atomic():
+                        obj = form.save(commit=False)
+                        obj.updated_by = request.user
+                        obj.save()
+                        record_audit_event(
+                            action=spec["action"],
+                            request=request,
+                            target=obj,
+                            target_label=spec["label"],
+                            reason=form.cleaned_data["change_reason"].strip(),
+                            before=before,
+                            after=after,
+                        )
+                    messages.success(request, spec["message"])
+                else:
+                    messages.info(request, "Qiymatlar o'zgarmadi; hech narsa yozilmadi.")
+                return redirect("backoffice_runtime_settings")
+            forms_out[name] = form
+        else:
+            forms_out[name] = spec["form_class"](instance=spec["instance"])
+
+    context = {
+        "active_nav": "backoffice",
+        "bo_active": "control",
+        "counts": {},
+        "delivery_form": forms_out["delivery"],
+        "thresholds_form": forms_out["thresholds"],
+        "delivery": delivery,
+        "thresholds": thresholds,
+        "recent_changes": list(audit_trail_for(delivery)) + list(audit_trail_for(thresholds)),
+    }
+    return render(request, "backoffice/runtime_settings.html", context)
+
+
+@login_required
+@user_passes_test(_is_control_center_owner)
 def backoffice_ai_cost(request):
     """Owner-only: AI sarfining pul ko'rinishi va narx snapshot'lari (A2).
 

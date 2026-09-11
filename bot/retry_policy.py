@@ -34,6 +34,12 @@ from datetime import timedelta
 
 from django.utils import timezone
 
+# DIQQAT — quyidagi to'rt qiymat **kod defaulti**, amaldagi qiymat emas.
+# Owner qarori (2026-09-11) bo'yicha ular `bot.BotRuntimeSettings` da
+# sozlanadi; bu yerdagi raqamlar faqat sozlama bo'lmaganda (yangi o'rnatish,
+# `migrate` dan oldin) ishlatiladi. `plan_retry(..., policy=...)` ga sikl
+# boshida o'qilgan siyosat uzatiladi.
+
 #: Urinishlar soni. Ilgari 3 edi; backoff bilan birga 3 urinish ≈90 soniyaga
 #: sig'ib qolardi, ya'ni bir daqiqalik uzilish xabarni yo'qotardi. 5 urinish
 #: backoff bilan ≈8 daqiqani qoplaydi.
@@ -53,9 +59,10 @@ JITTER_SHARE = 0.2
 #: o'sha zahoti qayta urinish yana flood control'ga tushadi.
 MIN_RATE_LIMIT_DELAY_SECONDS = 1
 
-#: Bir sikl ichida xabarlar orasidagi oraliq. Telegram turli chatlarga ~30
-#: xabar/sekundga ruxsat beradi; 25 ta `send_message` ni orasiz yuborish aynan
-#: `429` ning sababi. 20/sekund ataylab chegaradan pastda turadi.
+#: Bir sikl ichida xabarlar orasidagi oraliq (kod defaulti). Telegram turli
+#: chatlarga ~30 xabar/sekundga ruxsat beradi; 25 ta `send_message` ni orasiz
+#: yuborish aynan `429` ning sababi. 20/sekund ataylab chegaradan pastda.
+#: Amaldagi qiymat — `BotRuntimeSettings.send_interval_ms`.
 SEND_INTERVAL_SECONDS = 0.05
 
 KIND_RATE_LIMITED = "rate_limited"
@@ -152,7 +159,16 @@ def backoff_seconds(attempts, *, base=BASE_BACKOFF_SECONDS, cap=MAX_BACKOFF_SECO
     return max(delay + random.uniform(-jitter, jitter), 1.0)
 
 
-def plan_retry(*, error, attempts, max_attempts=MAX_ATTEMPTS, now=None):
+def _backoff(attempts, policy):
+    """Siyosat berilgan bo'lsa uning chegaralari bilan, aks holda kod defaulti."""
+    if policy is None:
+        return backoff_seconds(attempts)
+    return backoff_seconds(
+        attempts, base=policy.base_backoff_seconds, cap=policy.max_backoff_seconds
+    )
+
+
+def plan_retry(*, error, attempts, max_attempts=None, now=None, policy=None):
     """Nosozlikdan keyin nima qilishni aytadi.
 
     Qaytaradi: `(kind, attempts, give_up, next_attempt_at)`.
@@ -160,8 +176,17 @@ def plan_retry(*, error, attempts, max_attempts=MAX_ATTEMPTS, now=None):
     * `attempts` — saqlanishi kerak bo'lgan yangi qiymat. `429` da o'zgarmaydi.
     * `give_up` — `True` bo'lsa qator terminal (dead-letter).
     * `next_attempt_at` — `None` bo'lsa darhol navbatga qaytadi.
+
+    `policy` — sikl boshida o'qilgan `DeliveryPolicy` (owner sozlamasi, T0).
+    Berilmasa kod defaultlari ishlatiladi: siyosat **argument** orqali keladi,
+    funksiya ichida DB'dan o'qilmaydi — aks holda har nosozlik bitta qo'shimcha
+    so'rov bo'lardi va sof funksiyani test qilish qiyinlashardi.
+    `max_attempts` esa aniq berilsa hammasidan ustun (mavjud testlar uchun).
     """
     now = now or timezone.now()
+    limit = max_attempts
+    if limit is None:
+        limit = policy.max_attempts if policy is not None else MAX_ATTEMPTS
     kind, retry_after = classify(error)
 
     if kind == KIND_RATE_LIMITED:
@@ -173,7 +198,7 @@ def plan_retry(*, error, attempts, max_attempts=MAX_ATTEMPTS, now=None):
         # tuzatgach butun navbat tiklanishi kerak. Backoff bilan kutadi,
         # shunda noto'g'ri token log va rate budjetini ham yemaydi.
         return kind, attempts, False, now + timedelta(
-            seconds=backoff_seconds(max(attempts, 1))
+            seconds=_backoff(max(attempts, 1), policy)
         )
 
     if kind == KIND_PERMANENT:
@@ -181,6 +206,8 @@ def plan_retry(*, error, attempts, max_attempts=MAX_ATTEMPTS, now=None):
         return kind, attempts + 1, True, None
 
     new_attempts = attempts + 1
-    if new_attempts >= max_attempts:
+    if new_attempts >= limit:
         return kind, new_attempts, True, None
-    return kind, new_attempts, False, now + timedelta(seconds=backoff_seconds(new_attempts))
+    return kind, new_attempts, False, now + timedelta(
+        seconds=_backoff(new_attempts, policy)
+    )
