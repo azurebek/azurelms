@@ -225,10 +225,13 @@ def backoffice_runtime_settings(request):
     from core.runtime_settings_forms import (
         BotDeliverySettingsForm,
         OperationalThresholdsForm,
+        ReminderSettingsForm,
     )
+    from users.models import ReminderSettings
 
     delivery = BotRuntimeSettings.load()
     thresholds = OperationalSettings.load()
+    reminders = ReminderSettings.load()
 
     # Ikki forma bitta sahifada: qaysi biri yuborilgani `form_name` bilan
     # ajratiladi, aks holda bir formani saqlash ikkinchisini validatsiyadan
@@ -247,6 +250,13 @@ def backoffice_runtime_settings(request):
             "action": "settings.operational_thresholds.update",
             "label": "Operatsion chegaralar",
             "message": "Chegaralar saqlandi.",
+        },
+        "reminders": {
+            "form_class": ReminderSettingsForm,
+            "instance": reminders,
+            "action": "settings.reminders.update",
+            "label": "Eslatma sozlamasi",
+            "message": "Eslatma sozlamasi saqlandi.",
         },
     }
 
@@ -286,9 +296,15 @@ def backoffice_runtime_settings(request):
         "counts": {},
         "delivery_form": forms_out["delivery"],
         "thresholds_form": forms_out["thresholds"],
+        "reminders_form": forms_out["reminders"],
         "delivery": delivery,
         "thresholds": thresholds,
-        "recent_changes": list(audit_trail_for(delivery)) + list(audit_trail_for(thresholds)),
+        "reminders": reminders,
+        "recent_changes": (
+            list(audit_trail_for(delivery))
+            + list(audit_trail_for(thresholds))
+            + list(audit_trail_for(reminders))
+        ),
     }
     return render(request, "backoffice/runtime_settings.html", context)
 

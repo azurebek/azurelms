@@ -335,7 +335,7 @@ xil javob berardi. Endi uchala yuza (buyruq, inline, klaviatura) bir xil.
 **Owner qarori (2026-09-11):** klaviatura buyruqlarni **almashtirmaydi**,
 ularga qo'shiladi — muskul xotira buzilmasin.
 
-## T2 — Oldinga qaragan eslatmalar · `M` · **tavsiya: ikkinchi**
+## T2 — Oldinga qaragan eslatmalar · `M` — `PARTIAL` (2026-09-11)
 
 - **Outcome:** o'quvchi darsni **o'tkazib yubormaydi** va vazifa muddatini
   bilmasdan qolmaydi. O'qituvchi ko'rilmagan topshiriqni eslatmasdan ko'radi.
@@ -364,6 +364,43 @@ ularga qo'shiladi — muskul xotira buzilmasin.
   ishlaydi, restart kutmaydi.
 - **Nega endi:** bu bandning butun qiymati Classbook jonli darsiga qatnashuvda.
   30-sentyabr maqsadi aynan shu.
+
+**Bajarildi — 2026-09-11, `PARTIAL`.** Uchta eslatmadan **ikkitasi ma'lumot
+modelida umuman yo'q** ekan, shuning uchun ular taxmin qilinmadi:
+
+| Eslatma | Holat |
+|---|---|
+| Dars boshlanishi | **Blok.** Hech qayerda rejalashtirilgan dars vaqti saqlanmaydi — `Cohort.start_date` kurs boshlanishi, `attendance_date` o'tgan darsning yozuvi, jonli dars esa `/dars N` bilan ad-hoc boshlanadi |
+| Vazifa muddati | **Blok.** `Assignment` da muddat maydoni yo'q (faqat lesson, title, description, max_xp) |
+| O'qituvchi navbati | **Qurildi** — kunlik yig'ma eslatma |
+| *(qo'shimcha)* To'lov muddati | **Bor edi**, lekin oynasi kodda qotib turardi (`days_left in {3, 1, 0}`) — sozlamaga ko'chirildi |
+
+Ikki blok **mahsulot qaroriga** bog'liq (jadval haftalik takrorlanuvchimi yoki
+har sessiya alohidami; vazifa muddati kurs bo'yichami yoki dars bo'yicha).
+Ularsiz eslatma yozish soxta bo'lardi.
+
+**Qurilgani:**
+
+- `users/reminder_service.py` — o'qituvchi navbati yig'ma eslatmasi. Har
+  kutayotgan topshiriq uchun alohida xabar emas, **kuniga bitta**: o'nta
+  topshiriq o'nta bildirishnoma bo'lsa, u o'qituvchining haqiqiy ishidan
+  ko'ra ko'proq shovqin yasardi. Navbat bo'shagach o'z-o'zidan to'xtaydi.
+  Scope canonical funksiyadan (`core/access.py`) — A0b/1 aynan shu
+  nusxalanishda buzilgan edi.
+- `users.ReminderSettings` — to'lov oynasi (`3,1,0` ko'rinishida), o'qituvchi
+  chegarasi va **jim soatlar**. Hammasi
+  `/backoffice/control/runtime-settings/` da, T0 bilan bir sahifada.
+- Yoqish/o'chirish `core/flags.py` da (`reminder_payment_due`,
+  `reminder_teacher_review`) — sozlamada `enabled` maydoni yo'q, effective
+  policy manbasi bitta.
+
+**Jim soatlar — topilgan haqiqiy nosozlik.** Obuna eslatmasi kunlik lifecycle
+ishi bilan **soat 03:05 da** yaratiladi va outbox uni o'sha zahoti yuborardi:
+o'quvchi tunda DM olardi. Endi eslatma turidagi qatorlar jim soatlarda
+navbatdan **olinmaydi** — hech narsa yozilmaydi, qator joyida qoladi va
+ertalab o'z-o'zidan oqimga qaytadi. Hodisaga javob beruvchi xabar (chek
+tasdiqlandi, vazifa baholandi) hech qachon kechiktirilmaydi, Classbook guruh
+navbati esa umuman boshqa jadvalda.
 
 ## T3 — O'qituvchi to'liq ish stoli (F12 closeout) · `L`
 
@@ -439,7 +476,7 @@ ularga qo'shiladi — muskul xotira buzilmasin.
 
 | Bosqich | Bandlar | Nega shu tartib |
 |---|---|---|
-| **Hozir (serversiz)** | ~~T0~~ ~~T1~~ (2026-09-11 bajarildi) → **T2 → T4 → T6** | T0 va T1 yopildi. Qolganlari — eng katta foydalanuvchi ta'siri va launch kuni ko'rinish; hech biri AWS'ni kutmaydi |
+| **Hozir (serversiz)** | ~~T0~~ ~~T1~~ ~~T2~~ (2026-09-11; T2 `PARTIAL`) → **T4 → T6** | T2 ning ikki qismi ma'lumot modeliga bog'liq va owner qaroriga qoldi. Qolganlari — launch kuni ko'rinish; hech biri AWS'ni kutmaydi |
 | **Server ochilganda** | T7 tekshiruvi, F10 qoldig'i | Webhook, Menu Button, Mini App webview |
 | **Launchdan keyin** | T3, T5, T8 | T3 owner tanlovini kutadi; T5 o'lchovni kutadi |
 
@@ -458,12 +495,21 @@ Qolgan bandlar muhim, ammo hech biri qatnashuvga bunday bevosita tegmaydi.
    mavjud `@azureLMSbot` lokal polling bilan ishlatiladi. Alohida production bot,
    webhook va public Menu Button production haqiqatan ochilganda ko'riladi.
 
-**Ochiq qolgan (bittasi):**
-
-3. **F11 yoki F12 (T8 yoki T3):** hujjat bu tanlovni ochiq qoldirgan. T3 sizning
-   ish vaqtingizni qisqartiradi, T8 o'quvchi natijasiga tegadi.
-4. ~~T1 qamrovi: klaviatura buyruqlarni almashtiradimi?~~ → **Qo'shiladi**
+3. ~~T1 qamrovi: klaviatura buyruqlarni almashtiradimi?~~ → **Qo'shiladi**
    (2026-09-11 da tasdiqlandi va shunday bajarildi).
+
+**Ochiq qolgan:**
+
+4. **F11 yoki F12 (T8 yoki T3):** hujjat bu tanlovni ochiq qoldirgan. T3 sizning
+   ish vaqtingizni qisqartiradi, T8 o'quvchi natijasiga tegadi.
+5. **Dars jadvali modeli — T2 ning bloki:** dars vaqti qayerda saqlanadi?
+   Guruh bo'yicha haftalik takrorlanuvchi jadvalmi (masalan dushanba va
+   chorshanba 19:00) yoki har sessiya alohida rejalashtiriladimi? Bu javobsiz
+   «darsingiz bir soatdan keyin» eslatmasini yozib bo'lmaydi — hozir hech
+   qayerda rejalashtirilgan dars vaqti saqlanmaydi.
+6. **Vazifa muddati — T2 ning ikkinchi bloki:** `Assignment` ga muddat
+   qo'shiladimi, va u dars ochilganidan necha kun keyin bo'ladimi (nisbiy)
+   yoki har vazifaga alohida sana yoziladimi (absolyut)?
 
 ## Bu reja ataylab qilmaydigan ishlar
 

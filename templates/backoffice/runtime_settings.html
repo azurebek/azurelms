@@ -111,6 +111,52 @@
 
       <button class="brand-submit" type="submit"><i class="bi bi-sliders"></i> Chegaralarni saqlash</button>
     </form>
+
+    <form class="brand-form" method="post">
+      {% csrf_token %}
+      <input type="hidden" name="form_name" value="reminders">
+      {% if reminders_form.non_field_errors %}<div class="brand-errors">{{ reminders_form.non_field_errors }}</div>{% endif %}
+
+      <section class="brand-panel">
+        <div class="brand-panel-head">
+          <span>05</span>
+          <div>
+            <h2>Eslatmalar</h2>
+            <p>Qaysi turdagi eslatma <strong>yoqilgani</strong> bu yerda emas — u <a href="{% url 'backoffice_feature_flags' %}">feature flaglarda</a>. Bu yerda faqat vaqt.</p>
+          </div>
+        </div>
+        <div class="brand-fields brand-fields--nums">
+          {% for field, unit in reminders_form.numeric_fields %}
+            <label class="brand-field">
+              <span>{{ field.label }}</span>
+              <span class="brand-numfield">
+                {{ field }}
+                {% if unit %}<span class="brand-unit">{{ unit }}</span>{% endif %}
+              </span>
+              {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+              {% for error in field.errors %}<em>{{ error }}</em>{% endfor %}
+            </label>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="brand-panel">
+        <div class="brand-panel-head"><span>06</span><div><h2>Sabab va tasdiq</h2><p>Audit tarixiga yoziladi.</p></div></div>
+        <div class="brand-fields">
+          <label class="brand-field">
+            <span>{{ reminders_form.change_reason.label }}</span>
+            {{ reminders_form.change_reason }}
+            {% for error in reminders_form.change_reason.errors %}<em>{{ error }}</em>{% endfor %}
+          </label>
+          <label class="brand-field brand-field--check">
+            {{ reminders_form.confirm_change }} <span>{{ reminders_form.confirm_change.label }}</span>
+            {% for error in reminders_form.confirm_change.errors %}<em>{{ error }}</em>{% endfor %}
+          </label>
+        </div>
+      </section>
+
+      <button class="brand-submit" type="submit"><i class="bi bi-bell"></i> Eslatma sozlamasini saqlash</button>
+    </form>
   </div>
 
   <aside class="brand-side">

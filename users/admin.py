@@ -1,6 +1,12 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser, Notification, NotificationBroadcast, UserOnboarding
+from .models import (
+    CustomUser,
+    Notification,
+    NotificationBroadcast,
+    ReminderSettings,
+    UserOnboarding,
+)
 from .notification_service import send_broadcast
 
 
@@ -57,3 +63,30 @@ class NotificationBroadcastAdmin(admin.ModelAdmin):
         if not obj.is_sent:
             count = send_broadcast(obj)
             self.message_user(request, f"Bildirishnoma yuborildi: {count} ta foydalanuvchi.")
+
+
+@admin.register(ReminderSettings)
+class ReminderSettingsAdmin(admin.ModelAdmin):
+    """Faqat o'qish uchun — yozish auditlangan yuzadan boradi.
+
+    Admin orqali tahrirlash operatsion o'zgarishni izsiz qoldiradi (sabab,
+    tasdiq va `SystemAuditEvent` bo'lmaydi). O'zgartirish joyi —
+    `/backoffice/control/runtime-settings/`.
+    """
+
+    list_display = (
+        "__str__",
+        "payment_days_before",
+        "teacher_review_after_days",
+        "teacher_review_hour",
+        "quiet_hours_start",
+        "quiet_hours_end",
+        "updated_at",
+    )
+    readonly_fields = [f.name for f in ReminderSettings._meta.fields]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

@@ -22,6 +22,7 @@ from django import forms
 
 from bot.models import BotRuntimeSettings
 from core.models import OperationalSettings
+from users.models import ReminderSettings
 
 REASON_HELP = (
     "Audit tarixida saqlanadi. Masalan: jonli darsda 429 ko'rindi, oraliq oshirildi."
@@ -51,12 +52,18 @@ class _AuditedSettingsForm(forms.ModelForm):
         required=True,
     )
 
+    #: Raqam bo'lmagan maydonlar — ularga `--num` uslubi (strelkasiz, tor,
+    #: monospace) qo'yilmaydi, chunki ichida vergulli ro'yxat turadi.
+    TEXT_FIELDS: tuple = ()
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for name in self.Meta.fields:
-            self.fields[name].widget.attrs.update(
-                {"class": NUMBER_WIDGET_CLASS, "inputmode": "numeric"}
-            )
+            css = "brand-input" if name in self.TEXT_FIELDS else NUMBER_WIDGET_CLASS
+            attrs = {"class": css}
+            if name not in self.TEXT_FIELDS:
+                attrs["inputmode"] = "numeric"
+            self.fields[name].widget.attrs.update(attrs)
 
     def numeric_fields(self):
         """`(bound_field, birlik)` juftliklari — shablon shu ustidan yuradi.
@@ -125,6 +132,37 @@ class BotDeliverySettingsForm(_AuditedSettingsForm):
             "max_attempts": "Maksimal urinish soni",
             "base_backoff_seconds": "Birinchi kutish",
             "max_backoff_seconds": "Maksimal kutish",
+        }
+
+
+class ReminderSettingsForm(_AuditedSettingsForm):
+    """Eslatma vaqtlari va jim soatlar (T2)."""
+
+    TEXT_FIELDS = ("payment_days_before",)
+
+    UNITS = {
+        "payment_days_before": "kun",
+        "teacher_review_after_days": "kundan keyin",
+        "teacher_review_hour": "soat",
+        "quiet_hours_start": "soat",
+        "quiet_hours_end": "soat",
+    }
+
+    class Meta:
+        model = ReminderSettings
+        fields = (
+            "payment_days_before",
+            "teacher_review_after_days",
+            "teacher_review_hour",
+            "quiet_hours_start",
+            "quiet_hours_end",
+        )
+        labels = {
+            "payment_days_before": "To'lov eslatmasi: necha kun oldin",
+            "teacher_review_after_days": "O'qituvchi eslatmasi",
+            "teacher_review_hour": "O'qituvchi eslatmasi: yuborish soati",
+            "quiet_hours_start": "Jim soatlar: boshlanishi",
+            "quiet_hours_end": "Jim soatlar: tugashi",
         }
 
 
