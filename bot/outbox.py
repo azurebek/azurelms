@@ -15,6 +15,7 @@ import html
 import logging
 import uuid
 from datetime import timedelta
+from functools import partial
 
 from aiogram.types import InlineKeyboardMarkup
 from asgiref.sync import sync_to_async
@@ -24,11 +25,17 @@ from django.utils import timezone
 
 from bot import retry_policy
 from bot.models import TelegramOutbox
+from bot.runtime_settings import current_policy
 # `MAX_ATTEMPTS` eski import yo'li orqali ham ochiq qoladi (mavjud testlar).
 from bot.retry_policy import MAX_ATTEMPTS, plan_retry  # noqa: F401
 
 logger = logging.getLogger(__name__)
 
+# DIQQAT — quyidagi uch qiymat **kod defaulti**. Amaldagi qiymatlar owner
+# sozlamasida (`bot.BotRuntimeSettings`, T0) va ular sikl boshida bir marta
+# o'qilib pastga argument sifatida uzatiladi. Bu yerda qoldirilishining sababi:
+# sozlama jadvali bo'lmagan holatda ham (yangi o'rnatish, `migrate` dan oldin)
+# worker ishlashi kerak.
 BATCH_SIZE = 25
 POLL_INTERVAL = 15  # soniya
 # `MAX_ATTEMPTS` va backoff siyosati `bot/retry_policy.py` da — DM navbati
@@ -186,7 +193,7 @@ def mark_outbox_sent(item):
     )
 
 
-def mark_outbox_attempt_failed(item, error):
+def mark_outbox_attempt_failed(item, error, policy=None):
     """Urinish muvaffaqiyatsiz: qaror `bot/retry_policy.py` dan olinadi.
 
     Uch yo'l bor va ular ataylab farq qiladi: `429` urinishni sarflamaydi va
@@ -195,7 +202,7 @@ def mark_outbox_attempt_failed(item, error):
     qayta urinadi. Sabab modul docstringida.
     """
     kind, attempts, give_up, next_attempt_at = plan_retry(
-        error=error, attempts=item.attempts
+        error=error, attempts=item.attempts, policy=policy
     )
     item.attempts = attempts
     item.last_error = str(error)[:255]
@@ -235,22 +242,35 @@ def record_worker_heartbeat(*, sent=0, claimed=0, paused=False):
     return WorkerHeartbeat.record(WORKER_NAME, detail=detail)
 
 
-async def _space_out_sends():
+async def _space_out_sends(policy=None):
     """Ketma-ket yuborishlar orasiga kichik oraliq qo'yadi.
 
     Telegram turli chatlarga ~30 xabar/sekundga ruxsat beradi. Ilgari sikl 25
     ta `send_message` ni orasiz otardi va 50 o'quvchilik Classbook darsidan
-    keyin aynan shu `429 Flood control` ni keltirardi. Oraliq `retry_policy`
-    da, chunki u navbat tezligi siyosatining bir qismi; test uni `0` ga
-    qo'yib sikllarni tezlashtira oladi.
+    keyin aynan shu `429 Flood control` ni keltirardi.
+
+    Oraliq owner sozlamasidan keladi (`send_interval_ms`, T0) — PR #101 ning
+    o'zida «jonli darsda hamon 429 ko'rinsa, oraliqni oshirish kerak» deb
+    yozilgan edi. Siyosat **argument** sifatida uzatiladi: har xabar uchun
+    DB'dan o'qish tezlikni boshqaradigan sozlamaning o'zini sekinlashtirish
+    manbasiga aylantirardi.
     """
-    interval = retry_policy.SEND_INTERVAL_SECONDS
+    if policy is not None:
+        interval = policy.send_interval_seconds
+    else:
+        interval = retry_policy.SEND_INTERVAL_SECONDS
     if interval > 0:
         await asyncio.sleep(interval)
 
 
 async def process_outbox_once(bot):
-    """Bitta sikl: pending'larni olib yuborishga urinadi. Yuborilganlar sonini qaytaradi."""
+    """Bitta sikl: pending'larni olib yuborishga urinadi. Yuborilganlar sonini qaytaradi.
+
+    Owner sozlamasi (`BotRuntimeSettings`, T0) sikl boshida **bir marta**
+    o'qiladi va pastga argument sifatida uzatiladi. Har xabar uchun qayta
+    o'qilsa, tezlikni boshqaradigan sozlamaning o'zi qo'shimcha DB yuki bo'lib
+    qolardi. Sikl o'rtasida o'zgargan qiymat keyingi siklda kuchga kiradi.
+    """
     from core.flags import flag_enabled
 
     # Pauza qilinganda xabarlar navbatda **saqlanib turadi**: ularni olmaymiz,
@@ -274,7 +294,15 @@ async def process_outbox_once(bot):
         render_group_delivery_text,
     )
 
-    group_items = await sync_to_async(claim_pending_group_deliveries)()
+    policy = await sync_to_async(current_policy)()
+
+    group_items = await sync_to_async(
+        partial(
+            claim_pending_group_deliveries,
+            limit=policy.group_batch_size,
+            lease_seconds=policy.lease_seconds,
+        )
+    )()
     sent = 0
     for item in group_items:
         try:
@@ -285,15 +313,23 @@ async def process_outbox_once(bot):
                 reply_markup=render_group_delivery_markup(item),
             )
         except Exception as exc:
-            await sync_to_async(mark_group_delivery_failed)(item, exc)
+            await sync_to_async(partial(mark_group_delivery_failed, policy=policy))(
+                item, exc
+            )
             continue
         await sync_to_async(mark_group_delivery_sent)(
             item, getattr(message, "message_id", None)
         )
         sent += 1
-        await _space_out_sends()
+        await _space_out_sends(policy)
 
-    items = await sync_to_async(claim_pending_outbox)()
+    items = await sync_to_async(
+        partial(
+            claim_pending_outbox,
+            limit=policy.dm_batch_size,
+            lease_seconds=policy.lease_seconds,
+        )
+    )()
     for item in items:
         try:
             await bot.send_message(
@@ -303,11 +339,13 @@ async def process_outbox_once(bot):
                 reply_markup=render_outbox_markup(item),
             )
         except Exception as exc:  # user botni bloklagan / ochmagan bo'lishi mumkin
-            await sync_to_async(mark_outbox_attempt_failed)(item, exc)
+            await sync_to_async(partial(mark_outbox_attempt_failed, policy=policy))(
+                item, exc
+            )
             continue
         await sync_to_async(mark_outbox_sent)(item)
         sent += 1
-        await _space_out_sends()
+        await _space_out_sends(policy)
 
     # Navbat bo'sh bo'lsa ham belgilanadi — aynan shu holat ilgari ko'r nuqta
     # edi: ishlaydigan narsa yo'qligi worker tirikligini isbotlamasdi.
@@ -316,11 +354,22 @@ async def process_outbox_once(bot):
 
 
 async def outbox_worker(bot):
-    """Cheksiz worker — run_bot polling bilan parallel yuguradi."""
-    logger.info("Telegram outbox worker ishga tushdi (har %ss).", POLL_INTERVAL)
+    """Cheksiz worker — run_bot polling bilan parallel yuguradi.
+
+    Kutish oralig'i **har siklda** qayta o'qiladi: owner sozlamani
+    o'zgartirganda worker restartini kutmasligi kerak (T0).
+    """
+    logger.info("Telegram outbox worker ishga tushdi.")
     while True:
         try:
             await process_outbox_once(bot)
         except Exception:
             logger.exception("Outbox siklida kutilmagan xato")
-        await asyncio.sleep(POLL_INTERVAL)
+        try:
+            policy = await sync_to_async(current_policy)()
+            delay = policy.poll_interval_seconds
+        except Exception:
+            # Sozlamani o'qib bo'lmasa ham worker to'xtamaydi.
+            logger.exception("Outbox sozlamasini o'qib bo'lmadi, default ishlatiladi")
+            delay = POLL_INTERVAL
+        await asyncio.sleep(delay)

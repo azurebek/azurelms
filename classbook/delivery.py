@@ -21,6 +21,9 @@ from bot.retry_policy import MAX_ATTEMPTS, plan_retry  # noqa: F401
 from .models import TelegramGroupDelivery
 
 
+# Kod defaultlari. Amaldagi qiymatlar owner sozlamasida
+# (`bot.BotRuntimeSettings` — `group_batch_size`, `lease_seconds`, T0) va ular
+# `process_outbox_once()` dan argument sifatida keladi.
 BATCH_SIZE = 10
 LEASE_SECONDS = 120
 
@@ -132,7 +135,7 @@ def mark_group_delivery_sent(delivery, telegram_message_id=None):
         )
 
 
-def mark_group_delivery_failed(delivery, error):
+def mark_group_delivery_failed(delivery, error, policy=None):
     """Qarorni `bot/retry_policy.py` beradi — DM navbati bilan bir xil siyosat.
 
     Guruh xabari uchun farq sezilarli: `429` bitta urinishni yeb qo'ysa,
@@ -140,7 +143,7 @@ def mark_group_delivery_failed(delivery, error):
     va jonli dars o'rtasida buni tuzatib bo'lmaydi.
     """
     kind, attempts, give_up, next_attempt_at = plan_retry(
-        error=error, attempts=delivery.attempts
+        error=error, attempts=delivery.attempts, policy=policy
     )
     delivery.attempts = attempts
     delivery.last_error = str(error)[:255]

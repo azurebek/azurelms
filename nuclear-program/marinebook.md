@@ -16,6 +16,77 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-11 [Claude]: T0 — operatsion qiymatlar owner sozlamasiga ko'chirildi
+
+Owner qoidasi (qotirib qo'yilgan qiymat yo'q) amalga oshirildi. Ikki singleton,
+chunki bir modelga ikki domenni tiqish noto'g'ri uy bo'lardi:
+
+- **`bot.BotRuntimeSettings`** (8 maydon) — `dm_batch_size`,
+  `group_batch_size`, `poll_interval_seconds`, `lease_seconds`,
+  `send_interval_ms`, `max_attempts`, `base_backoff_seconds`,
+  `max_backoff_seconds`.
+- **`core.OperationalSettings`** (3 maydon) — `backup_stale_after_days`,
+  `queue_age_amber_minutes`, `queue_age_red_minutes`. T0 jadvalida faqat
+  birinchisi bor edi; `_telegram_probe` ning qotirib qo'yilgan `60`/`15`
+  daqiqasi ham qo'shildi — ular bir xil sinf va bittasini qoldirish sahifani
+  o'z qoidasiga zid qilardi.
+
+`SEND_INTERVAL_SECONDS` → `send_interval_ms` (millisekund): admin uchun qulay va
+`0` ma'noli. Qiymat `resolved()` orqali o'qiladi — sozlama qatori bo'lmasa kod
+defaulti, chegaradan chiqqan qiymat esa xavfsiz oraliqqa **qisiladi**. Sabab:
+validator faqat formani qo'riqlaydi, `update()` va fixture uni chetlab o'tadi,
+owner esa sozlamani jonli dars kunida o'zgartiradi.
+
+Siyosat sikl boshida **bir marta** o'qilib pastga argument sifatida uzatiladi
+(`plan_retry(..., policy=...)`, `_space_out_sends(policy)`). Aks holda
+`send_interval_ms` har xabar uchun bitta DB so'roviga aylanardi — ya'ni
+tezlikni boshqaradigan sozlamaning o'zi sekinlashtirish manbasi bo'lib
+qolardi. `poll_interval_seconds` esa har siklda qayta o'qiladi: owner
+o'zgartirganda worker restartini kutmaydi.
+
+Yozish yuzasi `/backoffice/control/runtime-settings/` — majburiy sabab,
+majburiy tasdiq, `SystemAuditEvent` va no-op yo'l. **Ikki model Django admin'da
+faqat o'qish uchun**: admin orqali tahrirlash o'zgarishni izsiz qoldirardi,
+ya'ni PR #103 review ko'rsatgan `AISettingsAdmin` nuqsonini takrorlardi. Buni
+alohida test qulflaydi.
+
+**Yo'lda UX auditidagi nuqson turi qaytarildi va ushlandi.** Yangi shablonda
+`brand-note` klassi ishlatilgan, CSS'da esa u yo'q edi — xuddi 2026-09-05 dagi
+`brand-logo-image--large` kabi. Xato **jim**: sahifa ochiladi, test yashil
+turadi, faqat ko'rinish buziladi. Shu sabab tekshiruv avtomatlashtirildi:
+`core/test_template_hygiene.py` endi backoffice shablonlaridagi har bir
+`brand-*` klassi `brand-control.css` da aniqlanganini tekshiradi (`cc-*`
+ataylab qamrovdan tashqarida — u boshqa faylda). Regexda Django tagini olib
+tashlash shart bo'ldi, aks holda `brand-field--check{%` degan soxta "klass"
+chiqardi; buni ham alohida nazorat testi qulflaydi.
+
+- Branch: `claude/t0-sozlanuvchi-qiymatlar`
+- Migration: `bot.0008`, `core.0002` — ikkisi ham yangi jadval, data migration
+  yo'q, mavjud qatorlarga tegmaydi.
+- Test holati: to'liq suite — **1527/1527 OK (skipped=40)**, 80s.
+  Yangi `core/test_runtime_settings.py` — 25 test (o'qish/chegara, model
+  validatsiyasi, iste'molchilar haqiqatan sozlamadan o'qishi, auditlangan yuza,
+  admin faqat o'qish uchunligi). `core/test_template_hygiene.py` ga 2 test.
+  Nazorat yugurishi: sikl sozlamani o'qimaydigan va probe chegarani
+  sozlamadan olmaydigan qilib qaytarilganda **4 test** qizardi (sabotaj grep
+  bilan tasdiqlandi).
+  `collectstatic` 981 post-processed, `check --fail-level WARNING` 0 issue,
+  migration drift yo'q.
+- Brauzerda tasdiqlandi (Azurbek owner sifatida login qildi): ikkala forma ham
+  chizildi, 11 maydon help-text bilan, dark mavzu joyida, konsol xatosi `0`,
+  Control Center'dagi yangi havola to'g'ri manzilga boradi. Login'siz esa
+  `302` — owner gate ishlaydi.
+  **Brauzer tekshiruvi darhol foyda berdi:** birinchi ochilishda
+  `OperationalError: no such table: bot_botruntimesettings` chiqdi — dev bazaga
+  migratsiya qo'llanmagan edi. Test bazasi jadvalni o'zi yaratgani uchun butun
+  suite yashil turardi va bu faqat sahifaga qarab turgan odamga ko'rinardi.
+  `migrate` qo'llandi (ikkala migratsiya ham qo'shimcha, data migration yo'q).
+- Davom etilishi kerak: `.claude/launch.json` dagi dev server yo'li o'tgan
+  sessiya scratchpad'iga ishora qilardi (fayl mavjud emas edi, ya'ni preview
+  umuman ko'tarilmasdi) — shu sessiyaga yangilandi, lekin keyingi sessiyada
+  yana eskiradi. Doimiy yechim repo ichida kichik dev wrapper bo'lishi kerak.
+  Keyingi band — **T1** (rolga mos doimiy klaviatura).
+
 ## 2026-09-11 [Claude]: Owner qoidasi — operatsion qiymat kodda qotirib qo'yilmaydi
 
 Azurbek rejani ko'rib ikki ko'rsatma berdi va ikkalasi ham shu kommitda

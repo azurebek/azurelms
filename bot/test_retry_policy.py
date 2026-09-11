@@ -287,18 +287,15 @@ class SendSpacingTests(TransactionTestCase):
     ichida qolib, o'sha ulanish uni ko'rmaydi (`database table is locked`).
     """
 
-    def test_each_send_is_followed_by_the_configured_pause(self):
-        """Ilgari 25 ta `send_message` orasiz otilardi — 429 ning bevosita sababi."""
+    class _Bot:
+        async def send_message(self, *args, **kwargs):
+            return mock.Mock(message_id=1)
+
+    def _run_cycle(self):
+        """Bitta siklni yugurtiradi va `asyncio.sleep` chaqiruvlarini qaytaradi."""
         import asyncio
 
         from bot.outbox import process_outbox_once
-
-        for index in range(3):
-            _make_outbox(600 + index)
-
-        class _Bot:
-            async def send_message(self, *args, **kwargs):
-                return mock.Mock(message_id=1)
 
         sleeps = []
 
@@ -306,32 +303,52 @@ class SendSpacingTests(TransactionTestCase):
             sleeps.append(seconds)
 
         with mock.patch("bot.outbox.asyncio.sleep", _fake_sleep):
-            sent = asyncio.run(process_outbox_once(_Bot()))
+            sent = asyncio.run(process_outbox_once(self._Bot()))
+        return sent, sleeps
+
+    def test_each_send_is_followed_by_the_owner_configured_pause(self):
+        """Ilgari 25 ta `send_message` orasiz otilardi — 429 ning bevosita sababi.
+
+        Oraliq endi owner sozlamasidan keladi (T0), kod konstantasidan emas.
+        """
+        from bot.models import BotRuntimeSettings
+
+        BotRuntimeSettings.objects.update_or_create(
+            pk=1, defaults={"send_interval_ms": 120}
+        )
+        for index in range(3):
+            _make_outbox(600 + index)
+
+        sent, sleeps = self._run_cycle()
 
         self.assertEqual(sent, 3)
         self.assertEqual(len(sleeps), 3)
-        self.assertTrue(all(value == retry_policy.SEND_INTERVAL_SECONDS for value in sleeps))
+        self.assertTrue(
+            all(value == 0.12 for value in sleeps),
+            f"sozlamadagi 120 ms ishlatilmadi: {sleeps}",
+        )
 
-    def test_zero_interval_disables_the_pause(self):
-        """Testlar va lokal debug uchun oraliqni o'chirib bo'lishi kerak."""
-        import asyncio
+    def test_default_pause_applies_when_the_owner_has_not_set_anything(self):
+        """Sozlama qatori yo'q — kod defaulti ishlaydi, sikl to'xtamaydi."""
+        from bot.models import BotRuntimeSettings
 
-        from bot.outbox import process_outbox_once
+        BotRuntimeSettings.objects.all().delete()
+        _make_outbox(650)
 
+        sent, sleeps = self._run_cycle()
+
+        self.assertEqual(sent, 1)
+        self.assertEqual(sleeps, [retry_policy.SEND_INTERVAL_SECONDS])
+
+    def test_owner_can_switch_the_pause_off(self):
+        """`0` — oraliqsiz. Lokal debug va test uchun kerak."""
+        from bot.models import BotRuntimeSettings
+
+        BotRuntimeSettings.objects.update_or_create(
+            pk=1, defaults={"send_interval_ms": 0}
+        )
         _make_outbox(700)
 
-        class _Bot:
-            async def send_message(self, *args, **kwargs):
-                return mock.Mock(message_id=1)
-
-        sleeps = []
-
-        async def _fake_sleep(seconds):
-            sleeps.append(seconds)
-
-        with mock.patch.object(retry_policy, "SEND_INTERVAL_SECONDS", 0), mock.patch(
-            "bot.outbox.asyncio.sleep", _fake_sleep
-        ):
-            asyncio.run(process_outbox_once(_Bot()))
+        _, sleeps = self._run_cycle()
 
         self.assertEqual(sleeps, [])

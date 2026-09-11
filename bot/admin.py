@@ -1,6 +1,10 @@
 from django.contrib import admin
 
-from bot.models import TelegramLessonCheckIn, TelegramLessonSession
+from bot.models import (
+    BotRuntimeSettings,
+    TelegramLessonCheckIn,
+    TelegramLessonSession,
+)
 
 
 @admin.register(TelegramLessonSession)
@@ -17,3 +21,24 @@ class TelegramLessonCheckInAdmin(admin.ModelAdmin):
     list_filter = ("checked_in_at",)
     search_fields = ("enrollment__student__username", "telegram_username")
     raw_id_fields = ("session", "enrollment")
+
+
+@admin.register(BotRuntimeSettings)
+class BotRuntimeSettingsAdmin(admin.ModelAdmin):
+    """Faqat o'qish uchun — yozish auditlangan yuzadan boradi.
+
+    Admin orqali tahrirlash operatsion o'zgarishni **izsiz** qoldiradi: sabab,
+    tasdiq va `SystemAuditEvent` bo'lmaydi. Aynan shu nuqson `AISettingsAdmin`
+    da bor va PR #103 dagi review uni ko'rsatdi — shu xatoni takrorlamaslik
+    uchun bu yerda qiymatlar ko'rinadi, o'zgartirish esa
+    `/backoffice/control/runtime-settings/` da sabab bilan boradi.
+    """
+
+    list_display = ("__str__", "dm_batch_size", "send_interval_ms", "max_attempts", "updated_at")
+    readonly_fields = [f.name for f in BotRuntimeSettings._meta.fields]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
