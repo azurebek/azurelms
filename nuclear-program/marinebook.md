@@ -54,6 +54,27 @@ lokalda.»** Production bot tokeni savoli yopildi: qurish davomida mavjud
 savollar ro'yxati shunga moslandi; ochiq savol ikkita qoldi (F11/F12 tanlovi,
 klaviatura qamrovi).
 
+**Codex review uchta P2 topdi va uchalasi ham haqiqiy chiqdi:**
+
+1. **`AISettings` ni audit naqshi deb ko'rsatish xato edi.** Kod bilan
+   tekshirdim: `AISettingsAdmin` faqat `updated_by` yozadi,
+   `backoffice_ai_control` singletonni to'g'ridan-to'g'ri saqlaydi — ikkisida ham
+   sabab, tasdiq va `SystemAuditEvent` yo'q. Ya'ni uni ko'chirgan odam yana bitta
+   auditlanmagan operatsion yuza yasardi. Naqsh ikkiga bo'lindi: **model shakli**
+   `AISettings` dan, **mutation yuzasi** esa `core/views.py` dagi
+   brend/landing/kill-switch yuzalaridan (ularda `change_reason`, tasdiq,
+   `SystemAuditEvent` va no-op yo'l bor). Mavjud AI yuzalarini retrofit qilish
+   alohida A2 qarzi sifatida ochiq yozildi.
+2. **Ikki yoqish manbasi.** T2 da har eslatma turi uchun sozlamada `enabled`
+   maydoni **va** `core/flags.py` da flag bo'lishi ko'rsatilgan edi — ikkisi
+   bir-biriga zid bo'lib, owner qaysi qiymat amalda ekanini aniqlay olmasdi.
+   Bo'linish aniqlandi: **vaqt/limit → sozlama, yoqilgan/o'chirilgan → faqat
+   flag.** Qoida §0.7 ga ham yozildi.
+3. **T0 ro'yxatida `classbook/delivery.py:BATCH_SIZE = 10` yo'q edi.**
+   `process_outbox_once()` guruh batch'ini DM
+   batch'idan oldin oladi, ya'ni bu ham o'sha workerning jonli throughput
+   chegarasi. Jadvalga qo'shildi.
+
 - Branch: `claude/bot-reja-sozlanuvchi`
 - Test holati: faqat hujjat o'zgarishi, kod tegilmagan.
   `AZURELMS_SKIP_ENV_FILE=1 GEMINI_API_KEY= TELEGRAM_BOT_TOKEN= APP_ENV=local

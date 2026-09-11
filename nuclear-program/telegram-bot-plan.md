@@ -188,16 +188,37 @@ Bu quyidagi **barcha** bandlarga tegadi, faqat T2 ga emas. Har operatsion yoki
 mahsulot parametri — vaqt, oyna, limit, chegara, yoqish/o'chirish — **ishlab
 turgan tizimda, deploy'siz** o'zgarishi kerak.
 
-**Mexanizm yangi emas, mavjud naqsh.** `aicontrol.AISettings` aynan shu shaklda:
-singleton model, maydonda `default=`, `help_text` bilan izoh, owner admin yoki
-Control Center'dan tahrirlaydi; `default_model` esa «bo'sh bo'lsa `settings.py`
-qiymati» deb env'ni fallback qoldiradi. Yangi parametr ham shu yo'ldan boradi:
+**Mexanizm yangi emas, ammo naqsh ikki qismdan iborat** va ularni aralashtirish
+xato bo'ladi:
+
+- **Model shakli — `aicontrol.AISettings`.** Singleton, maydonda `default=`,
+  `help_text` bilan izoh, `default_model` da «bo'sh bo'lsa `settings.py` qiymati»
+  fallback'i. Shuni ko'chirish to'g'ri.
+- **Mutation yuzasi — `core/views.py` dagi brend/landing/kill-switch yuzalari.**
+  Majburiy `change_reason`, majburiy tasdiq checkbox'i, `SystemAuditEvent` va
+  o'zgarish bo'lmasa yozmaydigan no-op yo'l. Audit talabi **shundan** olinadi.
+
+> **Diqqat — mavjud AI sozlama yuzalari audit naqshi EMAS.**
+> `AISettingsAdmin` faqat `updated_by` yozadi; `backoffice_ai_control`
+> singletonni to'g'ridan-to'g'ri saqlaydi. Ikkisida ham sabab, tasdiq va
+> `SystemAuditEvent` yo'q. `AISettings` ni audit namunasi deb ko'chirish yana
+> bitta auditlanmagan operatsion yuza yasaydi. Mavjud yuzalarni retrofit qilish
+> alohida **A2 qarzi** sifatida ochiq qoladi va bu reja uni o'z ichiga olmaydi.
+
+Yangi parametr uchun to'rt shart:
 
 1. **Qiymat DB'da**, Python konstantasida emas; env faqat fallback.
 2. **Default bor** — toza o'rnatish hech narsa sozlamasdan ishlashi kerak.
 3. **Chegaralar tekshiriladi** — `0` yoki `999999` kiritilganda tizim
    to'xtamasligi kerak. Validator maydonda bo'ladi, izohda emas.
-4. **O'zgarish auditlanadi** — A2 qoidasi: sabab + tasdiq + `SystemAuditEvent`.
+4. **O'zgarish auditlanadi** — sabab + tasdiq + `SystemAuditEvent` (yuqoridagi
+   ikkinchi naqsh).
+
+**Effective policy manbasi bitta bo'ladi.** Vaqt, oyna, limit va chegara —
+sozlamada. Yoqilgan/o'chirilgan — **faqat** `core/flags.py` registrida. Bitta
+narsani ikki DB manbasi boshqarsa (sozlamadagi `enabled` va flag) ular
+bir-biriga zid bo'lishi mumkin va owner qaysi qiymat amalda ekanini aniqlay
+olmaydi.
 
 **Chegara — hamma konstanta emas.** Ikki narsa ataylab kodda qoladi:
 
@@ -224,6 +245,7 @@ ammo bugun faqat deploy bilan o'zgaradigan qiymatlar bor.
 | `SEND_INTERVAL_SECONDS = 0.05` | `bot/retry_policy.py` | PR #101 ning o'zida yozib qo'yilgan: «jonli darsda hamon `429` ko'rinsa, oraliqni oshirish kerak». Ya'ni bu **isbotlangan** knob |
 | `BATCH_SIZE = 25`, `POLL_INTERVAL = 15` | `bot/outbox.py` | 50 o'quvchilik darsdan keyin navbat tezligini owner boshqarishi kerak |
 | `MAX_ATTEMPTS = 5`, `BASE_BACKOFF_SECONDS = 30`, `MAX_BACKOFF_SECONDS = 900` | `bot/retry_policy.py` | Telegram yoki tarmoq qanday tutishiga qarab moslanadi |
+| `BATCH_SIZE = 10` (guruh navbati) | `classbook/delivery.py` | `process_outbox_once()` guruh batch'ini DM batch'idan **oldin** oladi, ya'ni bu ham o'sha workerning jonli throughput chegarasi |
 | `LEASE_SECONDS = 120` | `bot/outbox.py`, `classbook/delivery.py` | Ikkinchi replika yoqilganda qayta o'lchanadi |
 | `BACKUP_STALE_AFTER_DAYS = 7` | `core/control_center/snapshot.py` | Zaxira qachon AMBER bo'lishi — operatsion qaror |
 
@@ -268,14 +290,20 @@ ammo bugun faqat deploy bilan o'zgaradigan qiymatlar bor.
   3. **O'qituvchi navbati** — `N` kundan beri ko'rilmagan topshiriq bo'lsa.
 - **Hamma vaqt va oyna sozlanuvchi** (kesuvchi talab, yuqoriga qarang): darsdan
   necha soat yoki daqiqa oldin, vazifa muddatidan necha kun oldin, o'qituvchi
-  navbati necha kundan keyin, jim soatlar boshlanishi va tugashi, har turning
-  yoqilgan/o'chirilgani. Hech biri kodda raqam bo'lib turmaydi: default bor,
-  owner esa admin panelidan istagan payt o'zgartiradi.
+  navbati necha kundan keyin, jim soatlar boshlanishi va tugashi. Hech biri kodda
+  raqam bo'lib turmaydi: default bor, owner esa admin panelidan istagan payt
+  o'zgartiradi.
+- **Yoqish/o'chirish sozlamada EMAS.** Har eslatma turining yoqilgani faqat
+  `core/flags.py` registrida bo'ladi. Agar u ham sozlamada `enabled` maydoni
+  bo'lsa, ikki DB manbasi bir-biriga zid bo'lib qolishi mumkin va owner qaysi
+  biri amalda ekanini aniqlay olmaydi. Bo'linish: **vaqt → sozlama, yoqilgan →
+  flag.**
 - **Acceptance:** `external_key` bilan **idempotent** (bitta voqea uchun bitta
-  xabar, beat ikki marta yugursa ham); har tur uchun alohida feature flag va kill
-  switch (A2 registri); jim soatlar **sozlamadan** o'qiladi; "o'tkazib yuborilgan"
-  eslatma keyin yuborilmaydi — eskirgan eslatma zarar; sozlama o'zgarsa keyingi
-  beat sikli **darhol** yangi qiymat bilan ishlaydi, restart kutmaydi.
+  xabar, beat ikki marta yugursa ham); har tur uchun `core/flags.py` da alohida
+  flag/kill switch va u **yagona** yoqish manbasi; jim soatlar **sozlamadan**
+  o'qiladi; "o'tkazib yuborilgan" eslatma keyin yuborilmaydi — eskirgan eslatma
+  zarar; sozlama o'zgarsa keyingi beat sikli **darhol** yangi qiymat bilan
+  ishlaydi, restart kutmaydi.
 - **Nega endi:** bu bandning butun qiymati Classbook jonli darsiga qatnashuvda.
   30-sentyabr maqsadi aynan shu.
 
