@@ -9,6 +9,13 @@ yozadi — sabab, tasdiq va `SystemAuditEvent` yo'q (PR #103 dagi Codex review
 aynan shuni ko'rsatdi). Ya'ni admin orqali tahrirlash operatsion o'zgarishni
 **izsiz** qoldiradi. Shu sabab bu ikki sozlama admin'da faqat **o'qish uchun**
 ko'rinadi, yozish esa shu yerdan — sabab va audit bilan — boradi.
+
+**Nega label va birlik alohida.** Modeldagi `verbose_name` da birlik qavs ichida
+turadi (`"Lease muddati (soniya)"`) — admin ro'yxati uchun to'g'ri, chunki u
+yerda ustun sarlavhasidan boshqa joy yo'q. Formada esa birlik maydonning
+**ichida** suffiks bo'lib chiqadi: shunda label qisqa qoladi va qiymat qaysi
+o'lchovda ekani aynan yozayotgan joyda ko'rinadi. Shu sabab formalar o'z
+labellarini va `UNITS` ini beradi.
 """
 
 from django import forms
@@ -20,9 +27,18 @@ REASON_HELP = (
     "Audit tarixida saqlanadi. Masalan: jonli darsda 429 ko'rindi, oraliq oshirildi."
 )
 
+#: Raqam maydonlari uchun umumiy widget sinflari. `brand-input` — backoffice'ning
+#: mavjud input uslubi (ramka, radius, fokus halqasi); `--num` esa raqamga xos
+#: qism: brauzerning o'z strelkalari o'chiriladi va kenglik cheklanadi, chunki
+#: to'rt xonali son to'liq kenglikdagi maydonda tasodifiy ko'rinadi.
+NUMBER_WIDGET_CLASS = "brand-input brand-input--num"
+
 
 class _AuditedSettingsForm(forms.ModelForm):
     """Sabab + tasdiq majburiy bo'lgan umumiy asos."""
+
+    #: `{maydon: birlik}` — maydon ichidagi suffiks uchun.
+    UNITS: dict = {}
 
     change_reason = forms.CharField(
         label="O'zgartirish sababi",
@@ -34,6 +50,23 @@ class _AuditedSettingsForm(forms.ModelForm):
         label="O'zgartirishni tasdiqlayman",
         required=True,
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name in self.Meta.fields:
+            self.fields[name].widget.attrs.update(
+                {"class": NUMBER_WIDGET_CLASS, "inputmode": "numeric"}
+            )
+
+    def numeric_fields(self):
+        """`(bound_field, birlik)` juftliklari — shablon shu ustidan yuradi.
+
+        Django shablonida `{{ UNITS|get:field.name }}` qilib bo'lmaydi (dictdan
+        o'zgaruvchi kalit bilan olish uchun filtr kerak), shuning uchun juftlik
+        shu yerda tayyorlanadi.
+        """
+        for name in self.Meta.fields:
+            yield self[name], self.UNITS.get(name, "")
 
     @property
     def settings_changed(self):
@@ -60,6 +93,17 @@ class _AuditedSettingsForm(forms.ModelForm):
 class BotDeliverySettingsForm(_AuditedSettingsForm):
     """Telegram yetkazish tezligi va qayta urinish siyosati."""
 
+    UNITS = {
+        "dm_batch_size": "xabar",
+        "group_batch_size": "xabar",
+        "poll_interval_seconds": "soniya",
+        "lease_seconds": "soniya",
+        "send_interval_ms": "ms",
+        "max_attempts": "urinish",
+        "base_backoff_seconds": "soniya",
+        "max_backoff_seconds": "soniya",
+    }
+
     class Meta:
         model = BotRuntimeSettings
         fields = (
@@ -72,10 +116,26 @@ class BotDeliverySettingsForm(_AuditedSettingsForm):
             "base_backoff_seconds",
             "max_backoff_seconds",
         )
+        labels = {
+            "dm_batch_size": "DM navbati: bir siklda",
+            "group_batch_size": "Guruh navbati: bir siklda",
+            "poll_interval_seconds": "Sikllar orasidagi kutish",
+            "lease_seconds": "Lease muddati",
+            "send_interval_ms": "Yuborishlar orasidagi oraliq",
+            "max_attempts": "Maksimal urinish soni",
+            "base_backoff_seconds": "Birinchi kutish",
+            "max_backoff_seconds": "Maksimal kutish",
+        }
 
 
 class OperationalThresholdsForm(_AuditedSettingsForm):
     """Control Center chiroqlarining chegaralari."""
+
+    UNITS = {
+        "backup_stale_after_days": "kundan keyin",
+        "queue_age_amber_minutes": "daqiqa",
+        "queue_age_red_minutes": "daqiqa",
+    }
 
     class Meta:
         model = OperationalSettings
@@ -84,3 +144,8 @@ class OperationalThresholdsForm(_AuditedSettingsForm):
             "queue_age_amber_minutes",
             "queue_age_red_minutes",
         )
+        labels = {
+            "backup_stale_after_days": "Zaxira eskirgan hisoblanadi",
+            "queue_age_amber_minutes": "Navbat yoshi: AMBER chegarasi",
+            "queue_age_red_minutes": "Navbat yoshi: RED chegarasi",
+        }
