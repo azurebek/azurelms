@@ -254,6 +254,28 @@ def _telegram_probe(definition: CapabilityDefinition) -> CapabilityResult:
         if value
     ]
     last_sent = max(last_candidates) if last_candidates else None
+    # Dead-letter sababi (F10): "foydalanuvchi botni bloklagan" bilan "tarmoq
+    # uzildi" bir xil son ostida ko'rinmasligi kerak. Birinchisi hech qachon
+    # tuzalmaydi va owner qatorni qo'lda yopadi; ikkinchisi o'zi tuzaladi va
+    # faqat kuzatiladi.
+    dead_permanent = (
+        TelegramOutbox.objects.filter(
+            status=TelegramOutbox.STATUS_FAILED, failure_kind="permanent"
+        ).count()
+        + TelegramGroupDelivery.objects.filter(
+            status=TelegramGroupDelivery.STATUS_FAILED, failure_kind="permanent"
+        ).count()
+    )
+    # Backoff kutayotgan qatorlar navbatda, ammo hozir olinmaydi. Ularni
+    # "muzlab qolgan" deb o'qimaslik uchun alohida ko'rsatiladi.
+    waiting_backoff = (
+        TelegramOutbox.objects.filter(
+            status=TelegramOutbox.STATUS_PENDING, next_attempt_at__gt=timezone.now()
+        ).count()
+        + TelegramGroupDelivery.objects.filter(
+            status=TelegramGroupDelivery.STATUS_PENDING, next_attempt_at__gt=timezone.now()
+        ).count()
+    )
     token = str(getattr(settings, "TELEGRAM_BOT_TOKEN", "") or "")
     configured = bool(token and token != "YOUR_BOT_TOKEN_HERE")
     oldest_minutes = 0
@@ -285,6 +307,8 @@ def _telegram_probe(definition: CapabilityDefinition) -> CapabilityResult:
         failed=failed_count,
         dm_failed=dm_failed,
         group_failed=group_failed,
+        dead_permanent=dead_permanent,
+        waiting_backoff=waiting_backoff,
         last_sent=timezone.localtime(last_sent).isoformat(timespec="minutes") if last_sent else "never",
     )
 

@@ -82,7 +82,7 @@ ovozli xabar) — hammasi chat-interfeysga yotadi.
 |---|------|--------|------|
 | **F8** | **Dars-yetkazish (botda o'qish)** | Saytdagi lesson access/progress service'lari, video/kontent/deep-link | `IMPLEMENTED/TESTED`; phone QA pending |
 | **F9** | **Vazifa va quiz** | `BotPendingAction` DB state, canonical assignment/quiz service, result+XP | `IMPLEMENTED/TESTED`; phone QA pending |
-| **F10** | **Vendor-neutral production gate** | Alohida production bot qarori, webhook+unique secret, outbox process, commands/menu button, monitoring/rate hardening | `HOLD` — DO target emas; owner productionni qayta ochadi |
+| **F10** | **Vendor-neutral production gate** | Alohida production bot qarori, webhook+unique secret, outbox process, commands/menu button, monitoring/rate hardening | `PARTIAL` — owner 2026-09-10 da AWS'ni tanladi, ya'ni gate ochildi. **Bajarildi:** webhook + unique secret fail-closed (`setwebhook` secret'siz ishga tushmaydi), outbox alohida process (PR #97: `Procfile` + compose `outbox` servisi), rate/retry hardening (PR #101: `bot/retry_policy.py` — 429 backoff, dead-letter, yuborish oralig'i). **Qolgan:** alohida production bot tokeni qarori (owner), public domenda Menu Button/commands tekshiruvi va haqiqiy webhook o'tkazish |
 | **F11** | **Imtihon va sertifikat** | `/imtihonlarim`, bounded bot practice, complex flow Mini App; `/sertifikatlarim` | `PLANNED`, active emas |
 | **F12** | **O'qituvchi to'liq ish stoli** | Queue mavjud; interactive grade+comment, e'lon va reminder qolgan | `PARTIAL / NEXT` |
 | **F13** | **Profil/reyting/polish** | Yordam/Mini App entry primitive'lari bor; leaderboard/profile/E2E qolgan | `PARTIAL / NEXT` |
