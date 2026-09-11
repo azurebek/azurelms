@@ -25,7 +25,7 @@ bot ismlar bilan keldi/kech/kelmadi e'lonini beradi, kelmaganlarga shaxsiy ogohl
   huquq tekshiruvi, kech qolish). AI ham: messenger'dagi tayyor engine (skill, xotira, kvota).
 - **Modulli router'lar** (aiogram 3 `Router` per modul) + identity-middleware
   (har update'da telegram_id → user + rol bir marta aniqlanadi).
-- **FSM** ko'p bosqichli oqimlar uchun (ro'yxatdan o'tish, forma to'ldirish).
+- **Ko'p bosqichli oqim holati DB'da** (`BotPendingAction`), xotiradagi FSM'da emas — 2026-09-11 auditi: kodda bitta `StatesGroup` yo'q va bu ataylab shunday. Xotira FSM'i process restartida yo'qoladi, ya'ni vazifa yozayotgan o'quvchi deploy paytida javobini boy beradi.
 - **Notification outbox**: platforma hodisalari (to'lov, yangi dars, baho, davomat ogohlantirishi)
   → navbat jadvali → yuboruvchi worker (Telegram rate-limit ~30 msg/sek hisobga olinadi).
 - **Lazy Bot init**: `bot/aiogram_app.py` bo'sh token bilan runserver/check/migrate'ni yiqitmaydi — F0'da bajarilgan.
@@ -122,3 +122,209 @@ ovozli xabar) — hammasi chat-interfeysga yotadi.
 
 - Davomat mexanikasi: `bot/services.py` (start/checkin/close, Attendance+XP yozuvi)
 - Mobil-moslashuv auditi va reja: marinebook 2026-07-12 yozuvi (Mini App F5 shunga tayanadi)
+
+---
+
+# 3-QISM: Keskin takomillashtirish rejasi (T1–T8)
+
+> Muallif: Claude · 2026-09-11 · **Taklif** — scope qarori Azurbekda.
+> Asos: shu kunda `main` (`2635453`) ustida o'tkazilgan kod auditi. Har band
+> o'lchangan faktga tayanadi; taxminlar alohida belgilangan.
+
+## Auditning raqamlari
+
+| O'lchov | Qiymat | Izoh |
+|---|---|---|
+| Bot kodi | ~9 300 satr (`bot/`), shundan `services.py` **2 343** | Bitta fayl butun facade'ni ko'taradi |
+| Router | 4 ta (`group_ops`, `staff`, `workspace`, `onboarding`) | Tartib `__init__.py` da, catch-all oxirida |
+| Buyruq | **23 ta** slash buyruq | Menyuda: 8 private, 9 admin, 3 guruh |
+| Doimiy klaviatura | **yo'q** | `ReplyKeyboardMarkup` faqat telefon ulashish uchun |
+| Identity narxi | har update'ga **3 DB so'rovi** | `user` + `Course.instructor.exists` + `Enrollment.exists`, kesh yo'q |
+| Proaktiv xabar triggerlari | **11 ta**, hammasi **reaktiv** | Voqea sodir bo'lgandan **keyin** yuboriladi |
+| Beat jadvali | **2 ta** task | Obuna lifecycle (03:05), streak undash (19:00) |
+| Bot tomonidagi metrika | **yo'q** | Outbox'da heartbeat bor, handler yo'lida hech narsa yo'q |
+
+## Avval: nima allaqachon yaxshi (qayta qurilmaydi)
+
+Audit bir necha taxminni **rad etdi** — bu bandlarga vaqt sarflanmaydi:
+
+- **Xato qatlami bor.** `bot/routers/__init__.py::error_boundary` har handler xatosini
+  ushlaydi, logga yozadi va foydalanuvchiga javob beradi. "O'lik tugma" holati yo'q.
+- **Xabar uzunligi boshqarilgan.** `TG_MESSAGE_LIMIT = 4000` bilan bo'lib yuborish,
+  guruh ro'yxatlarida `MAX_NAMES_PER_LIST = 60`.
+- **Holat restartga chidamli.** Reja hujjati arxitektura tamoyillarida FSM deb yozgan,
+  amalda esa `BotPendingAction` (DB) ishlatiladi — **bu yaxshiroq** va hujjatning o'z
+  "halol chegaralar" bo'limi shuni tasdiqlaydi. Tamoyillar ro'yxati shu bilan tuzatildi.
+- **Proaktiv kanal tayyor va mustahkam.** `users.Notification` yaratilsa
+  `bot/signals.py` uni avtomatik `TelegramOutbox` ga ko'chiradi; navbat esa 2026-09-11
+  dan `429` backoff, dead-letter va yuborish oralig'i bilan ishlaydi (PR #101).
+  **Ya'ni yangi xabar turi qo'shish uchun kanal qurish kerak emas** — faqat trigger.
+
+## Asosiy tashxis
+
+Bot **imkoniyat jihatidan to'liq, boshqarish jihatidan qiyin va jim**.
+
+1. **Navigatsiya yo'q, buyruq ro'yxati bor.** 23 ta slash buyruq. Hujjatning o'z
+   vizyonida auditoriya "kompyuter ishlatmaydigan" deb yozilgan, ammo undan
+   `/davomatim` ni **eslab qolish** talab qilinadi. Doimiy klaviatura yo'q.
+2. **Bot hech qachon birinchi gapirmaydi.** 11 ta xabar triggeri bor va
+   **hammasi** allaqachon sodir bo'lgan voqeaga javob: chek tasdiqlandi, dars
+   ochildi, vazifa baholandi. Oldinga qaragan bitta xabar yo'q — "darsingiz bir
+   soatdan keyin", "vazifa muddati ertaga". Jonli kurs uchun eng qimmatli xabar
+   aynan shu va u mavjud emas.
+3. **Launch kuni bot holatini ko'rsatadigan hech narsa yo'q.** Outbox navbati
+   ko'rinadi, handler yo'li ko'rinmaydi. "Bot sekinlashdimi?" savoliga bugun
+   javob beradigan o'lchov yo'q.
+
+---
+
+## T1 — Rolga mos doimiy klaviatura · `S` · **tavsiya: birinchi**
+
+- **Outcome:** o'quvchi hech qanday buyruqni eslab qolmasdan asosiy to'rt amalga
+  yetadi. Buyruqni eslash talabidan voz kechish — bu auditoriya uchun eng katta
+  bitta yaxshilanish.
+- **Canonical owner:** `bot/keyboards.py` — rolga qarab klaviatura quradi
+  (`student` / `teacher` / `admin` / `linked`). Rol allaqachon middleware'dan keladi.
+- **Adapterlar:** tugma matni mavjud handlerlarga **aynan** tushadi; yangi biznes
+  yo'li yaratilmaydi. Buyruqlar ham o'z joyida qoladi (muskul xotira buzilmasin).
+- **Acceptance:** har rol uchun to'g'ri tugma to'plami; tugma bosilganda slash
+  buyruq bilan **bir xil** javob (parity testi); klaviatura `/start` da o'rnatiladi
+  va `/yordam` da qayta tiklanadi; guruh chatlarida **chiqmaydi**.
+- **Riskni boshqarish:** klaviatura ekranning pastini egallaydi — tugma soni 4 dan
+  oshmaydi va "⌨️ Yopish" yo'li bo'ladi.
+
+## T2 — Oldinga qaragan eslatmalar · `M` · **tavsiya: ikkinchi**
+
+- **Outcome:** o'quvchi darsni **o'tkazib yubormaydi** va vazifa muddatini
+  bilmasdan qolmaydi. O'qituvchi ko'rilmagan topshiriqni eslatmasdan ko'radi.
+- **Canonical owner:** yangi `users/reminder_service.py` (yoki `courses/`) —
+  **faqat** `create_notification` ni chaqiradi. Adapter umuman o'zgarmaydi, chunki
+  kanal tayyor.
+- **Scope (birinchi uchta, ko'pi emas):**
+  1. **Dars eslatmasi** — rejalashtirilgan dars boshlanishidan `N` soat oldin.
+  2. **Vazifa muddati** — tugashidan bir kun oldin, faqat topshirmaganlarga.
+  3. **O'qituvchi navbati** — `N` kundan beri ko'rilmagan topshiriq bo'lsa.
+- **Acceptance:** `external_key` bilan **idempotent** (bitta voqea uchun bitta
+  xabar, beat ikki marta yugursa ham); har tur uchun alohida feature flag va kill
+  switch (A2 registri); jim soatlar (kechasi yuborilmaydi); "o'tkazib yuborilgan"
+  eslatma keyin yuborilmaydi — eskirgan eslatma zarar.
+- **Ochiq qaror (Azurbek):** necha soat oldin? Ertalabki bitta digest kerakmi yoki
+  har voqea uchun alohida xabar? Bu mahsulot ovozi — men tanlamayman.
+- **Nega endi:** bu bandning butun qiymati Classbook jonli darsiga qatnashuvda.
+  30-sentyabr maqsadi aynan shu.
+
+## T3 — O'qituvchi to'liq ish stoli (F12 closeout) · `L`
+
+- **Outcome:** Azurbek kun o'rtasida saytga kirmasdan baholaydi.
+- **Holat:** `/baholash` bugun **faqat navbat ko'rsatadi** (`teacher_grading_queue`).
+  Ball qo'yish, izoh yozish va qayta topshirishga yuborish yo'q.
+- **Canonical owner:** mavjud `courses/submission_service.py::review_assignment_submission`
+  — yangi review engine **yozilmaydi**, bot uni chaqiradi.
+- **Acceptance:** teacher default-deny scope saqlanadi; ball/izoh sayt bilan bir xil
+  natija beradi (adapter parity testi); `BotPendingAction` bilan restartga chidamli;
+  XP diff idempotent (PR #92 da tuzatilgan yo'l buzilmaydi).
+- **Ochiq qaror:** hujjat F11 va F12 orasidagi tanlovni ownerga qoldirgan.
+
+## T4 — Bot observability · `S/M` · **tavsiya: launchdan oldin**
+
+- **Outcome:** launch kuni "bot tirikmi va tezmi?" savoliga **raqam bilan** javob.
+- **Canonical owner:** `aicontrol.WorkerHeartbeat` va Control Center capability
+  registri — yangi monitoring tizimi qurilmaydi, mavjudi kengaytiriladi.
+- **Scope:** dispatcher heartbeat'i (oxirgi update vaqti); handler davomiyligi
+  (o'rtacha va p95, middleware'da o'lchanadi); xato soni. Control Center'da bitta
+  `telegram_dispatcher` chirog'i.
+- **Acceptance:** o'lchash handler javobini sekinlashtirmaydi (yozuv batch/async);
+  polling to'xtasa chiroq AMBER→RED bo'ladi; probe **hech narsa yubormaydi**.
+
+## T5 — Identity narxini kamaytirish · `S` · **ehtiyot bilan**
+
+- **Muammo:** har update 3 DB so'rovi. 50 o'quvchi bir vaqtda "Keldim" bosganda —
+  faqat identity uchun ~150 so'rov, ish boshlanmasdan.
+- **Yechim:** `telegram_id → (user_id, rol)` ni qisqa TTL bilan keshlash (Valkey
+  productionda bor).
+- **Ogohlantirish — bu bandning asosiy gapi:** rolni keshlash **xavfsizlik
+  regressiyasi** bo'lishi mumkin. Bloklangan hisob (`is_active=False`) kesh
+  muddati tugaguncha botda huquqini saqlab qolardi, holbuki A0a aynan shuni
+  yopgan. Shuning uchun: TTL ≤ 60 sekund **va** `is_active`/enrollment
+  o'zgarganda explicit invalidatsiya, **yoki** faqat `user_id` keshlanadi, rol
+  esa har safar hisoblanadi. Tezlik uchun xavfsizlik chegirmasi qilinmaydi.
+- **Acceptance:** bloklangan foydalanuvchi **darhol** huquqsiz qoladi (test);
+  enrollment tugaganda rol darhol o'zgaradi (test); keshsiz ham to'g'ri ishlaydi.
+- **Prioritet:** o'lchanmaguncha past. Avval T4 bilan haqiqiy latency ko'riladi —
+  bugun bu band **taxmin**, muammo sifatida isbotlanmagan.
+
+## T6 — Dead-letter replay · `S`
+
+- **Outcome:** terminal bo'lgan xabarni owner sababi bilan qayta yuboradi.
+- **Kelib chiqishi:** PR #101 dead-letter'ni qurdi, replay amalini qurmadi.
+  `05-launch-ops.md` §2 ilgari "mavjud bo'lmagan amalni auditlash mumkin emas"
+  deb yozgan edi — endi amal mantiqiy.
+- **Canonical owner:** Control Center mutation surface'i (reason + confirmation +
+  idempotency + audit — A2 shartlari).
+- **Acceptance:** replay `SystemAuditEvent` ga yoziladi; `permanent` turdagi qator
+  uchun ogohlantirish beriladi (bloklagan foydalanuvchiga qayta yuborish befoyda);
+  replay urinish hisoblagichini nolga qaytaradi.
+
+## T7 — Mini App'ni haqiqiy yuzaga aylantirish · `L` · **serverni kutadi**
+
+- **Holat:** F5 **ko'prik** berdi (initData HMAC, avto-login, open-redirect himoya).
+  To'liq webview HTTPS'da hali sinalmagan.
+- **Nega muhim:** uzun forma, imtihon va murakkab oqim sof chatda noqulay — hujjat
+  buni 2026-07-13 da yozgan va shundan beri holat o'zgarmagan.
+- **Bog'liqlik:** AWS serveri va domen. Lokalda Telegram `web_app` tugmasini rad
+  etadi, ya'ni bu bandni serversiz **yopib bo'lmaydi**.
+
+## T8 — F11 imtihon va sertifikat · `L` · **T7 dan keyin**
+
+- Hujjatning o'z qarori: botdagi imtihon taymeri "yumshoq", jiddiy imtihon uchun
+  Mini App/sayt tavsiya etiladi. Shu sabab T8 T7 ga bog'langan: botda faqat
+  **mashq** imtihonlari, jiddiysi Mini App'da.
+- `/sertifikatlarim` — mustaqil va kichik qism, T8 dan ajratib olinishi mumkin.
+
+---
+
+## Tartib taklifi
+
+| Bosqich | Bandlar | Nega shu tartib |
+|---|---|---|
+| **Hozir (serversiz)** | **T1 → T2 → T4 → T6** | Eng katta foydalanuvchi ta'siri va launch kuni ko'rinish; hech biri AWS'ni kutmaydi |
+| **Server ochilganda** | T7 tekshiruvi, F10 qoldig'i | Webhook, Menu Button, Mini App webview |
+| **Launchdan keyin** | T3, T5, T8 | T3 owner tanlovini kutadi; T5 o'lchovni kutadi |
+
+**Tavsiyam: T1 va T2.** Sababi bitta — ularning ikkalasi ham bitta narsani
+beradi: o'quvchi darsga **keladi** va platformani **eslab qolishga majbur emas**.
+Qolgan bandlar muhim, ammo hech biri qatnashuvga bunday bevosita tegmaydi.
+
+## Azurbek qaror qilishi kerak bo'lgan to'rt savol
+
+1. **T2 eslatma ovozi:** dars boshlanishidan necha soat oldin? Har voqea alohida
+   xabarmi yoki ertalabki bitta digest?
+2. **F11 yoki F12 (T8 yoki T3):** hujjat bu tanlovni ochiq qoldirgan. T3 sizning
+   ish vaqtingizni qisqartiradi, T8 o'quvchi natijasiga tegadi.
+3. **Production bot tokeni:** alohida prod bot ochiladimi yoki `@azureLMSbot`
+   qoladimi? (F10 qoldig'i)
+4. **T1 qamrovi:** doimiy klaviatura buyruqlarni **almashtiradimi** yoki ularga
+   **qo'shiladimi**? Taklifim — qo'shiladi.
+
+## Bu reja ataylab qilmaydigan ishlar
+
+- **Yangi AI imkoniyati yo'q.** Gemini bepul kvotasi qattiq cheklov bo'lib qoladi;
+  hech bir band yangi remote chaqiruv qo'shmaydi.
+- **`bot/services.py` ni 2 343 satrdan bo'lish rejaga kiritilmadi.** Fayl katta,
+  ammo uni bo'lish o'z-o'zidan na o'quvchiga, na ownerga foyda bermaydi — bu
+  churn. Bo'lish faqat biror band shu faylni jiddiy o'zgartirganda, shu bandning
+  ichida qilinadi.
+- **Bot dizayni bo'yicha "to'liq qayta yozish" yo'q.** Audit ko'rsatdi: arxitektura
+  sog'lom (yupqa adapter, canonical servislar, DB holati, xato qatlami). Muammo
+  arxitekturada emas, **yetishmayotgan uchta qatlam**da: navigatsiya, proaktivlik,
+  ko'rinish.
+
+## Halol chegaralar
+
+- T1–T6 ning hammasini avtomatik test qoplaydi, ammo **hech biri haqiqiy telefonda
+  sinalmagan bo'ladi** — bu `A5` owner sign-off'ining bir qismi bo'lib qoladi.
+- T2 ning qiymati (qatnashuv oshishi) **o'lchanmagan taxmin**. Birinchi cohortdan
+  keyin `LessonRun` davomati bilan solishtirilsa o'lchanadi; undan oldin bu
+  "kutilgan foyda", isbot emas.
+- T4 latency o'lchovi polling rejimida olinadi; webhook rejimida raqamlar boshqa
+  bo'ladi va qayta o'lchash kerak.
