@@ -53,6 +53,22 @@ def reclaim_expired_outbox(lease_seconds=LEASE_SECONDS):
     ).update(status=TelegramOutbox.STATUS_PENDING, claimed_at=None, claim_token="")
 
 
+def eligible_outbox_ids(*, limit=BATCH_SIZE, now=None):
+    """Hozir olinishi mumkin bo'lgan qator id'lari.
+
+    Alohida funksiya: claim ikki qadamdan iborat (tanlash + shartli `UPDATE`)
+    va ikkinchi qadamning himoyasini test qilish uchun birinchisini almashtirib
+    ko'rish kerak bo'ladi.
+    """
+    now = now or timezone.now()
+    return list(
+        TelegramOutbox.objects.filter(status=TelegramOutbox.STATUS_PENDING)
+        .filter(Q(next_attempt_at__isnull=True) | Q(next_attempt_at__lte=now))
+        .order_by("id")
+        .values_list("id", flat=True)[:limit]
+    )
+
+
 def claim_pending_outbox(limit=BATCH_SIZE, lease_seconds=LEASE_SECONDS):
     """Bir necha pending qatorni atomik ravishda shu workerga biriktiradi.
 
@@ -74,18 +90,21 @@ def claim_pending_outbox(limit=BATCH_SIZE, lease_seconds=LEASE_SECONDS):
     # urinishda qiymat yo'q, va ularni chiqarib tashlash butun navbatni
     # to'xtatib qo'yardi.
     now = timezone.now()
-    candidate_ids = list(
-        TelegramOutbox.objects.filter(status=TelegramOutbox.STATUS_PENDING)
-        .filter(Q(next_attempt_at__isnull=True) | Q(next_attempt_at__lte=now))
-        .order_by("id")
-        .values_list("id", flat=True)[:limit]
-    )
+    candidate_ids = eligible_outbox_ids(limit=limit, now=now)
     if not candidate_ids:
         return []
 
+    # Backoff sharti shartli `UPDATE` da ham takrorlanadi. Faqat `SELECT` da
+    # bo'lsa ikki replika orasida teshik qolardi: A qatorni tanlaydi va oladi,
+    # tez `429` oladi, `next_attempt_at` ni kelajakka qo'yib `pending` ga
+    # qaytaradi — B esa o'zining (endi eskirgan) nomzod ro'yxati bilan faqat
+    # `status=pending` ni tekshirib uni darhol olib, Telegram so'ragan kutishni
+    # chetlab o'tib yana `429` chaqirardi.
     TelegramOutbox.objects.filter(
         id__in=candidate_ids,
         status=TelegramOutbox.STATUS_PENDING,
+    ).filter(
+        Q(next_attempt_at__isnull=True) | Q(next_attempt_at__lte=now)
     ).update(
         status=TelegramOutbox.STATUS_SENDING,
         claimed_at=timezone.now(),

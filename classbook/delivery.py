@@ -52,22 +52,32 @@ def reclaim_expired_group_deliveries(lease_seconds=LEASE_SECONDS):
     ).update(status=TelegramGroupDelivery.STATUS_PENDING, claimed_at=None, claim_token="")
 
 
+def eligible_group_delivery_ids(*, limit=BATCH_SIZE, now=None):
+    """Hozir olinishi mumkin bo'lgan guruh xabari id'lari."""
+    now = now or timezone.now()
+    return list(
+        TelegramGroupDelivery.objects.filter(status=TelegramGroupDelivery.STATUS_PENDING)
+        .filter(Q(next_attempt_at__isnull=True) | Q(next_attempt_at__lte=now))
+        .order_by("id")
+        .values_list("id", flat=True)[:limit]
+    )
+
+
 def claim_pending_group_deliveries(limit=BATCH_SIZE, lease_seconds=LEASE_SECONDS):
     reclaim_expired_group_deliveries(lease_seconds)
     token = uuid.uuid4().hex
     # Backoff: `next_attempt_at` kelajakda bo'lsa qator olinmaydi. `isnull`
     # sharti majburiy — birinchi urinishda va eski qatorlarda qiymat yo'q.
     now = timezone.now()
-    ids = list(
-        TelegramGroupDelivery.objects.filter(status=TelegramGroupDelivery.STATUS_PENDING)
-        .filter(Q(next_attempt_at__isnull=True) | Q(next_attempt_at__lte=now))
-        .order_by("id")
-        .values_list("id", flat=True)[:limit]
-    )
+    ids = eligible_group_delivery_ids(limit=limit, now=now)
     if not ids:
         return []
+    # Backoff sharti `UPDATE` da ham: sabab `bot/outbox.py` dagi bilan bir xil
+    # (ikki replika orasidagi eskirgan nomzod ro'yxati).
     TelegramGroupDelivery.objects.filter(
         id__in=ids, status=TelegramGroupDelivery.STATUS_PENDING
+    ).filter(
+        Q(next_attempt_at__isnull=True) | Q(next_attempt_at__lte=now)
     ).update(
         status=TelegramGroupDelivery.STATUS_SENDING,
         claimed_at=timezone.now(),

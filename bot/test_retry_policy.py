@@ -25,6 +25,7 @@ from bot import retry_policy
 from bot.models import TelegramOutbox
 from bot.outbox import claim_pending_outbox, mark_outbox_attempt_failed, mark_outbox_sent
 from bot.retry_policy import (
+    KIND_CONFIG,
     KIND_PERMANENT,
     KIND_RATE_LIMITED,
     KIND_TRANSIENT,
@@ -70,10 +71,18 @@ class ClassifyTests(SimpleTestCase):
         kind, _ = classify(TelegramNotFound(_FakeMethod(), "chat not found"))
         self.assertEqual(kind, KIND_PERMANENT)
 
-    def test_bad_token_is_permanent(self):
-        """Konfiguratsiya nosozligi — qayta urinish faqat logni to'ldiradi."""
+    def test_bad_token_is_a_config_failure_not_a_permanent_one(self):
+        """Sabab xabarda emas, **butun botda** — shuning uchun terminal emas.
+
+        Codex review (PR #101, P1): noto'g'ri/eskirgan token bilan chiqilgan
+        deploy har bir claim qilingan qatorga `401` beradi. Agar u permanent
+        bo'lsa, butun navbat dead-letter bo'ladi va tokenni tuzatish ularni
+        qaytarmaydi — replay amali hali yo'q. To'xtab turgan navbat esa
+        ko'rinadi (Control Center eng qadimgi pending uchun RED beradi) va
+        tuzatilgach o'zi ketadi.
+        """
         kind, _ = classify(TelegramUnauthorizedError(_FakeMethod(), "Unauthorized"))
-        self.assertEqual(kind, KIND_PERMANENT)
+        self.assertEqual(kind, KIND_CONFIG)
 
     def test_bad_request_about_a_dead_chat_is_permanent(self):
         kind, _ = classify(TelegramBadRequest(_FakeMethod(), "Bad Request: chat not found"))
@@ -123,6 +132,19 @@ class PlanRetryTests(SimpleTestCase):
         self.assertEqual(attempts, 1)
         self.assertTrue(give_up)
         self.assertIsNone(next_at)
+
+    def test_config_failure_keeps_every_row_recoverable(self):
+        """Token tuzatilgach navbatdagi hamma xabar yetib borishi kerak."""
+        attempts = 0
+        for _ in range(MAX_ATTEMPTS * 3):
+            kind, attempts, give_up, next_at = plan_retry(
+                error=TelegramUnauthorizedError(_FakeMethod(), "Unauthorized"),
+                attempts=attempts,
+            )
+            self.assertEqual(kind, KIND_CONFIG)
+            self.assertFalse(give_up, "noto'g'ri token butun navbatni o'ldirmasin")
+            self.assertIsNotNone(next_at)
+        self.assertEqual(attempts, 0, "urinish sarflanmasligi kerak")
 
     def test_transient_failure_schedules_a_future_attempt(self):
         now = timezone.now()
@@ -220,6 +242,41 @@ class OutboxUsesThePolicyTests(TestCase):
         self.assertEqual(row.status, TelegramOutbox.STATUS_SENT)
         self.assertIsNone(row.next_attempt_at)
         self.assertEqual(row.failure_kind, "")
+
+
+class ClaimRespectsBackoffUnderRaceTests(TestCase):
+    """Backoff sharti shartli `UPDATE` da ham bormi (Codex review P1 #101, P2).
+
+    Ikki replika sahnasi: A qatorni tanlaydi va oladi, tez `429` oladi,
+    `next_attempt_at` ni kelajakka qo'yib `pending` ga qaytaradi. B esa
+    o'zining **eskirgan** nomzod ro'yxati bilan keladi. Agar `UPDATE` faqat
+    `status=pending` ni tekshirsa, B qatorni darhol olib, Telegram so'ragan
+    kutishni chetlab o'tib yana `429` chaqiradi.
+
+    Test aynan o'sha eskirgan ro'yxatni taqlid qiladi: tanlash qadami qatorni
+    baribir qaytaradi, himoya esa faqat `UPDATE` da qolgan bo'lishi kerak.
+    """
+
+    def test_stale_candidate_list_cannot_claim_a_backing_off_row(self):
+        row = _make_outbox(801)
+        mark_outbox_attempt_failed(claim_pending_outbox()[0], _retry_after(60))
+        row.refresh_from_db()
+        self.assertEqual(row.status, TelegramOutbox.STATUS_PENDING)
+        self.assertGreater(row.next_attempt_at, timezone.now())
+
+        with mock.patch("bot.outbox.eligible_outbox_ids", return_value=[row.pk]):
+            self.assertEqual(claim_pending_outbox(), [])
+
+        row.refresh_from_db()
+        self.assertEqual(row.status, TelegramOutbox.STATUS_PENDING, "qator olinmasligi kerak")
+        self.assertEqual(row.claim_token, "")
+
+    def test_stale_candidate_list_still_claims_an_eligible_row(self):
+        """Himoya kerakligidan ko'p ushlamasin."""
+        row = _make_outbox(802)
+        with mock.patch("bot.outbox.eligible_outbox_ids", return_value=[row.pk]):
+            claimed = claim_pending_outbox()
+        self.assertEqual([item.pk for item in claimed], [row.pk])
 
 
 class SendSpacingTests(TransactionTestCase):

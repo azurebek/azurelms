@@ -56,12 +56,29 @@ tuzalmaydi" bilan "o'zi tuzaladi" bitta son ostida turmasin.
   ga guruh navbati uchun 3 test. Mavjud ikki test yangi shartnomaga moslandi
   (nosoz qator endi **darhol** claim qilinmaydi — backoff kutadi) va ular
   o'zgarishning ma'nosini yozib qo'ydi.
-  Nazorat yugurishi: `429` urinish yeydigan qilib qaytarilganda **5 test**
-  qizardi (sabotaj grep bilan tasdiqlandi).
+  Nazorat yugurishlari: `429` urinish yeydigan qilib qaytarilganda **5 test**
+  qizardi; review tuzatishlari qaytarilganda (401 → permanent va `UPDATE` dan
+  backoff sharti olib tashlanganda) **4 test** qizardi. Har ikkisida sabotaj
+  qo'llangani grep bilan tasdiqlandi.
+  Review tuzatishlaridan keyin to'liq suite — **1498/1498 OK (skipped=40)**.
+- Codex review botining ikki topishi **haqiqiy chiqdi** va tuzatildi:
+  **(P1)** `TelegramUnauthorizedError` ni permanent deb belgilash noto'g'ri edi —
+  noto'g'ri/eskirgan token bilan chiqilgan deploy har bir claim qilingan qatorga
+  `401` beradi va butun navbat dead-letter bo'lib qolardi; tokenni tuzatish
+  ularni qaytarmaydi, chunki replay amali hali yo'q. Endi u alohida `config`
+  turi: urinish sarflamaydi, terminal bo'lmaydi, backoff bilan kutadi. To'xtab
+  turgan navbat ko'rinadi (Control Center eng qadimgi pending uchun RED beradi)
+  va tuzatilgach o'zi ketadi. **(P2)** backoff sharti faqat `SELECT` da edi;
+  ikki replika orasida teshik qolardi — A qatorni olib tez `429` olsa va
+  `next_attempt_at` ni kelajakka qo'yib qaytarsa, B o'zining eskirgan nomzod
+  ro'yxati bilan faqat `status=pending` ni tekshirib uni darhol olardi. Shart
+  endi shartli `UPDATE` da ham; nomzod tanlash alohida funksiyaga chiqarildi
+  (`eligible_outbox_ids` / `eligible_group_delivery_ids`) — shunda ikkinchi
+  qadamning himoyasini alohida test qilish mumkin.
 - Davom etilishi kerak: F10 ning qolgan qismi — alohida production bot tokeni
   qarori (owner), public domenda Menu Button/commands tekshiruvi va haqiqiy
-  webhook o'tkazish. Ikkinchi outbox replikasi endi texnik jihatdan xavfsiz,
-  ammo uni yoqish owner qarori.
+  webhook o'tkazish. Dead-letter bo'lgan qatorni owner qo'lda replay qiladigan
+  tugma hamon yo'q — endi dead-letter mavjud, ya'ni replay mantiqiy keyingi ish.
 
 ## 2026-09-11 [Claude]: Media zaxirasi qurildi — va compose'dagi jim zaxira yo'qotuvchi nuqson topildi
 

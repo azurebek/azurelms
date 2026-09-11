@@ -61,6 +61,14 @@ SEND_INTERVAL_SECONDS = 0.05
 KIND_RATE_LIMITED = "rate_limited"
 KIND_PERMANENT = "permanent"
 KIND_TRANSIENT = "transient"
+#: Bot darajasidagi konfiguratsiya nosozligi (noto'g'ri/eskirgan token).
+#: Ataylab `permanent` emas: sabab **xabarda emas, butun botda**. Agar u
+#: terminal bo'lsa, bir marta noto'g'ri token bilan chiqilgan deploy butun
+#: navbatni dead-letter qilib yuboradi va tokenni tuzatish ularni qaytarmaydi
+#: (replay amali hali yo'q). Navbat to'xtab turgani esa ko'rinadi va
+#: tuzatiladi: Control Center eng qadimgi pending bir soatdan oshganda RED
+#: beradi. Shu sabab urinish ham sarflanmaydi.
+KIND_CONFIG = "config"
 
 #: `TelegramBadRequest` matnida shular uchrasa qayta urinish befoyda: chat
 #: o'chirilgan yoki bot u yerdan chiqarilgan. Aiogram bularni alohida sinf
@@ -112,10 +120,11 @@ def classify(error):
     if isinstance(error, (TelegramForbiddenError, TelegramNotFound)):
         return KIND_PERMANENT, None
 
-    # Noto'g'ri token — qayta urinish yordam bermaydi va har urinish logni
-    # to'ldiradi. Bu konfiguratsiya nosozligi, navbat nosozligi emas.
+    # Noto'g'ri yoki eskirgan token: butun bot uchun nosozlik, bitta xabar
+    # uchun emas. Shuning uchun terminal qilinmaydi — tokenni tuzatgach
+    # navbatdagi hamma xabar yetib borishi kerak.
     if isinstance(error, TelegramUnauthorizedError):
-        return KIND_PERMANENT, None
+        return KIND_CONFIG, None
 
     if isinstance(error, TelegramBadRequest):
         text = str(error).lower()
@@ -158,6 +167,14 @@ def plan_retry(*, error, attempts, max_attempts=MAX_ATTEMPTS, now=None):
     if kind == KIND_RATE_LIMITED:
         # Urinish sarflanmaydi: sabab xabarda emas, bizning tezligimizda.
         return kind, attempts, False, now + timedelta(seconds=retry_after)
+
+    if kind == KIND_CONFIG:
+        # Urinish sarflanmaydi va qator terminal bo'lmaydi: owner tokenni
+        # tuzatgach butun navbat tiklanishi kerak. Backoff bilan kutadi,
+        # shunda noto'g'ri token log va rate budjetini ham yemaydi.
+        return kind, attempts, False, now + timedelta(
+            seconds=backoff_seconds(max(attempts, 1))
+        )
 
     if kind == KIND_PERMANENT:
         # Darhol dead-letter: qayta urinish hech qachon yordam bermaydi.

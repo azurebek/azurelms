@@ -133,3 +133,24 @@ class ClassbookGroupDeliveryRetryTests(ClassbookFixtureMixin, TestCase):
         details = dict(result.details)
         self.assertEqual(details["dead_permanent"], "1")
         self.assertEqual(details["waiting_backoff"], "1")
+
+    def test_stale_candidate_list_cannot_claim_a_backing_off_delivery(self):
+        """Codex review (PR #101, P2): himoya `UPDATE` da ham bo'lishi kerak."""
+        from unittest import mock
+
+        from django.utils import timezone
+
+        delivery = self._pending()
+        mark_group_delivery_failed(delivery, _retry_after(60))
+        delivery.refresh_from_db()
+        self.assertGreater(delivery.next_attempt_at, timezone.now())
+
+        with mock.patch(
+            "classbook.delivery.eligible_group_delivery_ids", return_value=[delivery.pk]
+        ):
+            claimed = claim_pending_group_deliveries()
+        self.assertNotIn(delivery.pk, [row.pk for row in claimed])
+
+        delivery.refresh_from_db()
+        self.assertEqual(delivery.status, TelegramGroupDelivery.STATUS_PENDING)
+        self.assertEqual(delivery.claim_token, "")
