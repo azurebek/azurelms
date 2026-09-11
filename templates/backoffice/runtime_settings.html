@@ -32,16 +32,17 @@
             <p>Navbat tezligi va qayta urinish siyosati. Jonli darsda <code>429 Flood control</code> ko'rinsa, birinchi o'zgartiriladigan qiymat — <strong>yuborishlar orasidagi oraliq</strong>.</p>
           </div>
         </div>
-        <div class="brand-fields">
-          {% for field in delivery_form %}
-            {% if field.name != "change_reason" and field.name != "confirm_change" %}
-              <label class="brand-field">
-                <span>{{ field.label }}</span>
+        <div class="brand-fields brand-fields--nums">
+          {% for field, unit in delivery_form.numeric_fields %}
+            <label class="brand-field">
+              <span>{{ field.label }}</span>
+              <span class="brand-numfield">
                 {{ field }}
-                {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
-                {% for error in field.errors %}<em>{{ error }}</em>{% endfor %}
-              </label>
-            {% endif %}
+                {% if unit %}<span class="brand-unit">{{ unit }}</span>{% endif %}
+              </span>
+              {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+              {% for error in field.errors %}<em>{{ error }}</em>{% endfor %}
+            </label>
           {% endfor %}
         </div>
       </section>
@@ -78,16 +79,17 @@
             <p>Bu qiymatlar nosozlikni o'lchamaydi — faqat uni qachon ko'rsatishni belgilaydi.</p>
           </div>
         </div>
-        <div class="brand-fields">
-          {% for field in thresholds_form %}
-            {% if field.name != "change_reason" and field.name != "confirm_change" %}
-              <label class="brand-field">
-                <span>{{ field.label }}</span>
+        <div class="brand-fields brand-fields--nums">
+          {% for field, unit in thresholds_form.numeric_fields %}
+            <label class="brand-field">
+              <span>{{ field.label }}</span>
+              <span class="brand-numfield">
                 {{ field }}
-                {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
-                {% for error in field.errors %}<em>{{ error }}</em>{% endfor %}
-              </label>
-            {% endif %}
+                {% if unit %}<span class="brand-unit">{{ unit }}</span>{% endif %}
+              </span>
+              {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+              {% for error in field.errors %}<em>{{ error }}</em>{% endfor %}
+            </label>
           {% endfor %}
         </div>
       </section>

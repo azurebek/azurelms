@@ -346,6 +346,57 @@ class RuntimeSettingsSurfaceTests(TestCase):
         )
 
 
+class FieldPresentationTests(TestCase):
+    """Maydonlar backoffice uslubida chiziladimi.
+
+    Birinchi urinishda widget'larga hech qanday klass berilmagan edi va
+    brauzerning xom `input[type=number]` ko'rinishi chiqdi — kulrang
+    strelkalar, ramkasiz fon. Nuqson jim: sahifa ochiladi, test yashil
+    turadi. Shu sabab uslub shartnomasi shu yerda qulflanadi.
+    """
+
+    def test_every_numeric_widget_carries_the_backoffice_input_class(self):
+        from core.runtime_settings_forms import (
+            BotDeliverySettingsForm,
+            OperationalThresholdsForm,
+        )
+
+        for form_class in (BotDeliverySettingsForm, OperationalThresholdsForm):
+            form = form_class()
+            for name in form.Meta.fields:
+                css = form.fields[name].widget.attrs.get("class", "")
+                self.assertIn(
+                    "brand-input", css, f"{form_class.__name__}.{name} uslubsiz qolgan"
+                )
+
+    def test_every_numeric_field_has_a_unit(self):
+        """Birlik maydon ichida suffiks bo'lib chiqadi — labelda qavs emas."""
+        from core.runtime_settings_forms import (
+            BotDeliverySettingsForm,
+            OperationalThresholdsForm,
+        )
+
+        for form_class in (BotDeliverySettingsForm, OperationalThresholdsForm):
+            form = form_class()
+            pairs = list(form.numeric_fields())
+            self.assertEqual(len(pairs), len(form.Meta.fields))
+            for field, unit in pairs:
+                self.assertTrue(unit, f"{field.name} uchun birlik yo'q")
+                self.assertNotIn(
+                    "(", str(field.label), f"{field.name} labelida qavs qolgan"
+                )
+
+    def test_page_renders_the_unit_suffix_markup(self):
+        owner = User.objects.create_superuser(
+            username="t0style", email="t0style@azurelms.test", password="pass-12345"
+        )
+        self.client.force_login(owner)
+        response = self.client.get(reverse("backoffice_runtime_settings"))
+        self.assertContains(response, "brand-numfield")
+        self.assertContains(response, "brand-unit")
+        self.assertContains(response, "brand-input--num")
+
+
 class AdminIsReadOnlyTests(TestCase):
     """Admin auditlanmagan yozish yo'li bo'lib qolmasligi kerak.
 
