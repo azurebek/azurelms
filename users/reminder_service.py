@@ -91,12 +91,21 @@ def _review_message(count, oldest, now):
     return head + " Navbatni ochish uchun bosing."
 
 
-def send_teacher_review_reminders(*, now=None):
+def send_teacher_review_reminders(*, now=None, force=False):
     """Uzoq tekshirilmagan topshiriqlar haqida kunlik yig'ma eslatma.
 
     Yuborilgan xabarlar sonini qaytaradi. Idempotent: `external_key` da sana
-    bor, ya'ni beat kuniga bir necha marta yugursa ham o'qituvchi bitta
-    eslatma oladi.
+    bor, ya'ni kuniga bir necha marta chaqirilsa ham o'qituvchi bitta eslatma
+    oladi.
+
+    **Yuborish soati sozlamada, Celery jadvalida emas.** Beat jadvali process
+    ishga tushganda bir marta o'qiladi, ya'ni soatni `crontab()` ichiga yozish
+    uni o'zgartirish uchun worker restartini talab qilardi — bu owner
+    qoidasiga zid. Shuning uchun task har soat uyg'onadi va bu funksiya o'zi
+    «hozir o'sha soatmi?» deb tekshiradi.
+
+    `force=True` — qo'lda yugurtirish uchun (management buyruq): soatni
+    kutmasdan hozir yuboradi.
     """
     from core.flags import flag_enabled
     from users.models import Notification
@@ -108,6 +117,8 @@ def send_teacher_review_reminders(*, now=None):
 
     now = now or timezone.now()
     policy = current_policy()
+    if not force and timezone.localtime(now).hour != policy.teacher_review_hour:
+        return 0
     today = timezone.localdate()
     url = reverse("teacher_grading")
 

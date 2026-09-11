@@ -78,6 +78,7 @@ class ReminderSettingsAdmin(admin.ModelAdmin):
         "__str__",
         "payment_days_before",
         "teacher_review_after_days",
+        "teacher_review_hour",
         "quiet_hours_start",
         "quiet_hours_end",
         "updated_at",

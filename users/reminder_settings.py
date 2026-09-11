@@ -21,12 +21,14 @@ DEFAULT_PAYMENT_DAYS_BEFORE = "3,1,0"
 DEFAULTS = {
     "payment_days_before": DEFAULT_PAYMENT_DAYS_BEFORE,
     "teacher_review_after_days": 2,
+    "teacher_review_hour": 9,
     "quiet_hours_start": 22,
     "quiet_hours_end": 8,
 }
 
 BOUNDS = {
     "teacher_review_after_days": (1, 60),
+    "teacher_review_hour": (0, 23),
     "quiet_hours_start": (0, 23),
     "quiet_hours_end": (0, 23),
 }
@@ -80,6 +82,7 @@ def _parse_clean(text):
 class ReminderPolicy:
     payment_days_before: tuple
     teacher_review_after_days: int
+    teacher_review_hour: int
     quiet_hours_start: int
     quiet_hours_end: int
 
@@ -88,6 +91,7 @@ class ReminderPolicy:
         return cls(
             payment_days_before=tuple(_parse_clean(DEFAULT_PAYMENT_DAYS_BEFORE)),
             teacher_review_after_days=DEFAULTS["teacher_review_after_days"],
+            teacher_review_hour=DEFAULTS["teacher_review_hour"],
             quiet_hours_start=DEFAULTS["quiet_hours_start"],
             quiet_hours_end=DEFAULTS["quiet_hours_end"],
         )
@@ -103,6 +107,9 @@ class ReminderPolicy:
             teacher_review_after_days=clamp(
                 "teacher_review_after_days",
                 getattr(row, "teacher_review_after_days", None),
+            ),
+            teacher_review_hour=clamp(
+                "teacher_review_hour", getattr(row, "teacher_review_hour", None)
             ),
             quiet_hours_start=clamp(
                 "quiet_hours_start", getattr(row, "quiet_hours_start", None)

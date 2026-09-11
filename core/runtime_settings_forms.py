@@ -143,6 +143,7 @@ class ReminderSettingsForm(_AuditedSettingsForm):
     UNITS = {
         "payment_days_before": "kun",
         "teacher_review_after_days": "kundan keyin",
+        "teacher_review_hour": "soat",
         "quiet_hours_start": "soat",
         "quiet_hours_end": "soat",
     }
@@ -152,12 +153,14 @@ class ReminderSettingsForm(_AuditedSettingsForm):
         fields = (
             "payment_days_before",
             "teacher_review_after_days",
+            "teacher_review_hour",
             "quiet_hours_start",
             "quiet_hours_end",
         )
         labels = {
             "payment_days_before": "To'lov eslatmasi: necha kun oldin",
             "teacher_review_after_days": "O'qituvchi eslatmasi",
+            "teacher_review_hour": "O'qituvchi eslatmasi: yuborish soati",
             "quiet_hours_start": "Jim soatlar: boshlanishi",
             "quiet_hours_end": "Jim soatlar: tugashi",
         }

@@ -553,6 +553,16 @@ class ReminderSettings(models.Model):
         verbose_name="O'qituvchi eslatmasi: necha kundan keyin",
         help_text="Topshiriq shuncha kundan beri tekshirilmagan bo'lsa eslatiladi.",
     )
+    teacher_review_hour = models.PositiveIntegerField(
+        default=9,
+        validators=[MaxValueValidator(23)],
+        verbose_name="O'qituvchi eslatmasi: yuborish soati",
+        help_text=(
+            "Kunning qaysi soatida yuboriladi (0-23). Task har soat uyg'onadi "
+            "va o'zi tekshiradi, ya'ni bu qiymatni o'zgartirish uchun worker "
+            "qayta ishga tushirilmaydi."
+        ),
+    )
     quiet_hours_start = models.PositiveIntegerField(
         default=22,
         validators=[MaxValueValidator(23)],

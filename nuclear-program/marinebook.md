@@ -66,12 +66,38 @@ Yoqish/o'chirish esa `core/flags.py` da (`reminder_payment_due`,
 `reminder_teacher_review`) — sozlamada `enabled` maydoni yo'q, effective
 policy manbasi bitta.
 
+**PR #107 review uchta topilma berdi, uchalasi ham haqiqiy:**
+
+1. **P1 — `subscription` kategoriyasi jim soatlarga kirmasligi kerak edi.**
+   Men to'lov eslatmasini `reminder` ga ko'chirdim, lekin `subscription` ni
+   jim ro'yxatda qoldirdim. Holbuki o'sha kategoriyani **hodisa xabarlari**
+   ham ishlatadi: chek tasdiqlandi/rad etildi (`receipt_service`), obuna
+   muzlatildi/faollashtirildi (`signals`), guruh o'zgardi
+   (`membership_service`). Ya'ni o'zim yozgan qoidaga zid chiqdim — chek
+   tasdig'i ertalabgacha ushlanardi.
+2. **P2 — `streak` ham chiqarildi.** Seriya undashi vaqtga bog'langan: u
+   yarim tungacha ulgurish haqida. Ertalabgacha ushlansa, o'quvchi allaqachon
+   uzilgan seriyani saqlash haqida xabar olardi — kechikkan emas, **noto'g'ri**
+   xabar. Ro'yxat endi faqat `("reminder",)`.
+3. **P2 — yuborish soati sozlanuvchi emas edi.** `TEACHER_REVIEW_HOUR` faqat
+   env'dan o'qilardi va Celery beat jadvali process ishga tushganda bir marta
+   o'qiladi, ya'ni soatni o'zgartirish uchun worker restarti kerak bo'lardi —
+   owner qoidasiga zid. Endi beat **har soat** uyg'onadi, task esa o'zi
+   sozlamadagi soatni tekshiradi; `--soat-kutma` bayrog'i qo'lda yugurtirish
+   uchun.
+
+**Nazorat yugurishi testdagi bo'shliqni ham ochdi:** birinchi urinishda
+`subscription` ni jim ro'yxatga qaytarganimda **hech bir test qizarmadi** —
+ya'ni P1 uchun qulf yo'q edi. Ikki test qo'shildi (`subscription` va `streak`
+hech qachon ushlanmaydi), shundan keyin sabotaj to'g'ri ushlandi.
+
 - Branch: `claude/t2-eslatmalar`
-- Migration: `users.0020` — yangi `ReminderSettings` jadvali va
+- Migration: `users.0020` va `users.0021` — yangi `ReminderSettings` jadvali,
+  yuborish soati maydoni va
   `Notification.category` ga `reminder` qiymati qo'shildi (choices
   o'zgarishi, mavjud qatorlarga tegmaydi).
-- Test holati: to'liq suite — **1566/1566 OK (skipped=40)**, 164s. Yangi
-  `users/test_reminders.py` — 24 test. Nazorat yugurishi: jim soatlar sharti
+- Test holati: to'liq suite — **1570/1570 OK (skipped=40)**, 171s. Yangi
+  `users/test_reminders.py` — 28 test. Nazorat yugurishi: jim soatlar sharti
   va sozlamadan o'qish olib tashlanganda 2 test qizardi (sabotaj grep bilan
   tasdiqlandi).
   `check --fail-level WARNING` 0 issue, migration drift yo'q, sahifa `302`

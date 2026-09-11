@@ -12,6 +12,7 @@ Uch qatlam:
 """
 
 import datetime
+from dataclasses import replace
 
 from django.contrib.auth import get_user_model
 from django.test import SimpleTestCase, TestCase
@@ -55,10 +56,8 @@ class DaysBeforeParsingTests(SimpleTestCase):
 
 class QuietHoursTests(SimpleTestCase):
     def _policy(self, start, end):
-        base = ReminderPolicy.defaults()
-        return ReminderPolicy(
-            payment_days_before=base.payment_days_before,
-            teacher_review_after_days=base.teacher_review_after_days,
+        return replace(
+            ReminderPolicy.defaults(),
             quiet_hours_start=start,
             quiet_hours_end=end,
         )
@@ -112,8 +111,14 @@ class TeacherReviewReminderTests(TestCase):
         )
         self.course = Course.objects.create(title="Turk tili A1", instructor=self.teacher)
         self.other_course = Course.objects.create(title="Boshqa", instructor=self.other)
+        # Yuborish soati sozlamada: testlar uni joriy soatga qo'yadi, aks
+        # holda natija testni yugurtirgan vaqtga bog'liq bo'lib qolardi.
         ReminderSettings.objects.update_or_create(
-            pk=1, defaults={"teacher_review_after_days": 2}
+            pk=1,
+            defaults={
+                "teacher_review_after_days": 2,
+                "teacher_review_hour": timezone.localtime().hour,
+            },
         )
 
     def _submission(self, course, *, days_old):
@@ -172,6 +177,26 @@ class TeacherReviewReminderTests(TestCase):
         self._submission(self.course, days_old=5)
         set_flag("reminder_teacher_review", enabled=False, reason="test")
         self.assertEqual(send_teacher_review_reminders(), 0)
+
+    def test_nothing_is_sent_outside_the_configured_hour(self):
+        """Yuborish soati sozlamadan — Celery jadvalidan emas.
+
+        Beat jadvali process ishga tushganda bir marta o'qiladi, ya'ni soatni
+        `crontab()` ichiga yozish uni o'zgartirish uchun worker restartini
+        talab qilardi (owner qoidasiga zid).
+        """
+        self._submission(self.course, days_old=5)
+        wrong_hour = (timezone.localtime().hour + 3) % 24
+        ReminderSettings.objects.filter(pk=1).update(teacher_review_hour=wrong_hour)
+        self.assertEqual(send_teacher_review_reminders(), 0)
+        self.assertFalse(Notification.objects.exists())
+
+    def test_force_ignores_the_hour(self):
+        """Qo'lda yugurtirish (`--soat-kutma`) soatni kutmaydi."""
+        self._submission(self.course, days_old=5)
+        wrong_hour = (timezone.localtime().hour + 3) % 24
+        ReminderSettings.objects.filter(pk=1).update(teacher_review_hour=wrong_hour)
+        self.assertEqual(send_teacher_review_reminders(force=True), 1)
 
     def test_summary_counts_only_pending(self):
         first = self._submission(self.course, days_old=5)
@@ -295,6 +320,34 @@ class QuietHoursOutboxTests(TestCase):
         from bot.outbox import eligible_outbox_ids
 
         row = self._queue(Notification.CATEGORY_SYSTEM)
+        night = _aware(2026, 9, 11, 3)
+        self.assertIn(row.id, eligible_outbox_ids(now=night))
+
+    def test_subscription_event_is_never_held(self):
+        """`subscription` kategoriyasi hodisa xabarlari bilan **ulashiladi**.
+
+        PR #107 dagi review topdi: chek tasdiqlandi/rad etildi
+        (`cohorts/receipt_service.py`), obuna muzlatildi/faollashtirildi
+        (`cohorts/signals.py`) va guruh o'zgardi
+        (`cohorts/membership_service.py`) — hammasi shu kategoriyada. Ularni
+        ertalabgacha ushlab turish foydalanuvchini o'z amalining natijasidan
+        bexabar qoldirardi.
+        """
+        from bot.outbox import eligible_outbox_ids
+
+        row = self._queue(Notification.CATEGORY_SUBSCRIPTION)
+        night = _aware(2026, 9, 11, 3)
+        self.assertIn(row.id, eligible_outbox_ids(now=night))
+
+    def test_streak_nudge_is_never_held(self):
+        """Seriya undashi vaqtga bog'langan — ushlansa noto'g'ri xabar bo'ladi.
+
+        U yarim tungacha ulgurish haqida. Ertalabgacha ushlansa, o'quvchi
+        allaqachon uzilgan seriyani saqlash haqida xabar olardi.
+        """
+        from bot.outbox import eligible_outbox_ids
+
+        row = self._queue(Notification.CATEGORY_STREAK)
         night = _aware(2026, 9, 11, 3)
         self.assertIn(row.id, eligible_outbox_ids(now=night))
 

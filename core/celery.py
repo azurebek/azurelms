@@ -96,9 +96,12 @@ teacher_review_beat_enabled = _env_bool("ENABLE_TEACHER_REVIEW_BEAT", not is_loc
 if teacher_review_beat_enabled:
     beat_schedule["teacher-review-reminders"] = {
         "task": "users.tasks.run_teacher_review_reminders",
+        # Har soat uyg'onadi; qaysi soatda yuborish kerakligini task
+        # o'zi sozlamadan o'qiydi. Beat jadvali process ishga tushganda
+        # bir marta o'qilgani uchun soatni bu yerga yozish uni
+        # o'zgartirish uchun worker restartini talab qilardi.
         "schedule": crontab(
-            hour=_env_int("TEACHER_REVIEW_HOUR", 9),
-            minute=_env_int("TEACHER_REVIEW_MINUTE", 0),
+            minute=_env_int("TEACHER_REVIEW_MINUTE", 5),
         ),
     }
 app.conf.beat_schedule = beat_schedule

@@ -60,13 +60,25 @@ def reclaim_expired_outbox(lease_seconds=LEASE_SECONDS):
     ).update(status=TelegramOutbox.STATUS_PENDING, claimed_at=None, claim_token="")
 
 
-#: Jim soatlarda kechiktiriladigan kategoriyalar (T2). Bular **kutishi
-#: mumkin** bo'lgan xabarlar: eslatma, obuna eslatmasi va seriya undashi.
-#: Hodisaga javob beruvchi xabar (chek tasdiqlandi, vazifa baholandi, dars
-#: ochildi) bu ro'yxatga ataylab kirmaydi — foydalanuvchi o'z amalining
-#: natijasini ertalabgacha kutib o'tirmasligi kerak. Classbook guruh navbati
-#: esa umuman boshqa jadvalda, ya'ni jonli darsga bu qoida tegmaydi.
-QUIET_HOUR_CATEGORIES = ("reminder", "subscription", "streak")
+#: Jim soatlarda kechiktiriladigan kategoriyalar (T2). Ro'yxat ataylab
+#: **bitta** kategoriyadan iborat va u ikki marta toraytirilgan:
+#:
+#: * `subscription` olib tashlandi — bu kategoriyani hodisaga javob beruvchi
+#:   xabarlar ham ishlatadi: chek tasdiqlandi/rad etildi
+#:   (`cohorts/receipt_service.py`), obuna muzlatildi/faollashtirildi
+#:   (`cohorts/signals.py`), guruh o'zgardi (`cohorts/membership_service.py`).
+#:   Ularni ertalabgacha ushlab turish foydalanuvchini o'z amalining
+#:   natijasidan bexabar qoldirardi. To'lov muddati eslatmasi endi
+#:   `reminder` kategoriyasida, ya'ni u baribir qamrab olinadi.
+#: * `streak` olib tashlandi — seriya undashi **vaqtga bog'langan**: u
+#:   yarim tungacha ulgurish haqida. Ertalabgacha ushlansa, o'quvchi
+#:   allaqachon uzilgan seriyani saqlash haqida xabar olardi, ya'ni
+#:   kechikkan emas, **noto'g'ri** xabar bo'lardi. Kechikkan holda ham
+#:   darhol yuborilgani foydaliroq (beat 19:00 da, jim soatlardan oldin).
+#:
+#: Classbook guruh navbati umuman boshqa jadvalda, ya'ni jonli darsga bu
+#: qoida hech qachon tegmaydi.
+QUIET_HOUR_CATEGORIES = ("reminder",)
 
 
 def quiet_hours_active(now=None):
