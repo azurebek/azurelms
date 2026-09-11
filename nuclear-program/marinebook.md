@@ -16,6 +16,53 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-11 [Claude]: Bot takomillashtirish rejasi — audit va T1–T8 taklifi
+
+Azurbek so'rovi bilan botni keskin takomillashtirish rejasi ishlab chiqildi.
+Reja alohida hujjat emas: `telegram-bot-plan.md` ga **3-QISM** bo'lib qo'shildi,
+shunda bot rejasining yagona manbasi saqlanadi.
+
+**Audit avval bir necha taxminni rad etdi** — bu bandlarga vaqt sarflanmaydi:
+xato qatlami bor (`routers/__init__.py::error_boundary`), xabar uzunligi
+boshqarilgan (`TG_MESSAGE_LIMIT = 4000`), holat restartga chidamli
+(`BotPendingAction`, kodda bitta `StatesGroup` yo'q), va proaktiv kanal tayyor —
+`users.Notification` → `bot/signals.py` → `TelegramOutbox`, navbat esa PR #101
+dan keyin mustahkam. Ya'ni yangi xabar turi uchun kanal qurish kerak emas,
+faqat trigger.
+
+**Uchta haqiqiy bo'shliq o'lchandi:**
+
+1. **Navigatsiya yo'q.** 23 ta slash buyruq, doimiy klaviatura **yo'q**
+   (`ReplyKeyboardMarkup` faqat telefon ulashish uchun ishlatiladi). Hujjatning
+   o'z vizyonida auditoriya "kompyuter ishlatmaydigan" deb yozilgan, ammo undan
+   `/davomatim` ni eslab qolish talab qilinadi.
+2. **Bot hech qachon birinchi gapirmaydi.** 11 ta xabar triggeri bor va
+   hammasi allaqachon sodir bo'lgan voqeaga javob. Oldinga qaragan bitta xabar
+   yo'q; beat jadvalida faqat ikki task (obuna lifecycle, streak undash).
+   Jonli kurs uchun eng qimmatli xabar — "darsingiz bir soatdan keyin" — yo'q.
+3. **Handler yo'lida metrika yo'q.** Outbox heartbeat bor, dispatcher'da hech
+   narsa yo'q — launch kuni "bot sekinlashdimi?" savoliga o'lchov yo'q.
+
+Sakkiz band taklif qilindi (T1 klaviatura, T2 oldinga qaragan eslatmalar,
+T3 F12 teacher closeout, T4 observability, T5 identity keshi, T6 dead-letter
+replay, T7 Mini App yuzasi, T8 F11 imtihon). Tavsiya: **T1 → T2 → T4 → T6** —
+hech biri AWS'ni kutmaydi. Ownerga to'rt savol qoldirildi (eslatma ovozi,
+F11/F12 tanlovi, production bot tokeni, klaviatura qamrovi).
+
+Rejaga ataylab **kirmagan** ikki narsa yozildi: yangi AI imkoniyati (Gemini
+kvotasi cheklovi) va `bot/services.py` ni 2 343 satrdan bo'lish (o'z-o'zidan
+na o'quvchiga, na ownerga foyda bermaydigan churn).
+
+Yo'lda hujjatning bitta eskirgan da'vosi tuzatildi: arxitektura tamoyillarida
+"FSM ko'p bosqichli oqimlar uchun" deb turardi, amalda esa DB holati
+ishlatiladi va bu yaxshiroq.
+
+- Branch: `claude/bot-v2-reja`
+- Test holati: hujjat o'zgarishi, kod tegilmagan. Tekshiruv uchun
+  `AZURELMS_SKIP_ENV_FILE=1 GEMINI_API_KEY= TELEGRAM_BOT_TOKEN= APP_ENV=local
+  python manage.py test bot classbook` — 198/198 OK (3 skip).
+- Davom etilishi kerak: Azurbekning to'rt qaroriga javob; so'ng T1 dan boshlash.
+
 ## 2026-09-11 [Claude]: Telegram outbox 429 ni to'g'ri tushunadigan bo'ldi (F10)
 
 `05-launch-ops.md` §1 "Telegram outbox gate" da 2026-08-15 dan beri ochiq turgan
