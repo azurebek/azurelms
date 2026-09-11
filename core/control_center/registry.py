@@ -134,6 +134,24 @@ CAPABILITY_REGISTRY = (
         ),
     ),
     CapabilityDefinition(
+        slug="media_backup",
+        label="Media zaxirasi",
+        category="Ops",
+        # `critical` emas, ataylab: `/readyz` faqat critical probe'larni
+        # yugurtiradi, va media zaxirasi eskirgani shu instance trafik
+        # qabul qila olmasligini bildirmaydi. Zaxirasizlik uchun butun
+        # saytni `503` qilish nosozlikni tuzatmaydi, faqat ko'paytiradi.
+        criticality="high",
+        owner="Azurbek",
+        description="Recoverable copy of learner-uploaded files.",
+        dependencies=("media_storage",),
+        runbook=(
+            "Baza zaxirasi fayllarni saqlamaydi, faqat yo'lini. "
+            "`manage.py backup_media` bilan arxiv oling va "
+            "`restore_media --into <bo'sh-papka>` bilan tiklab ko'ring."
+        ),
+    ),
+    CapabilityDefinition(
         slug="email",
         label="Email",
         category="Runtime",

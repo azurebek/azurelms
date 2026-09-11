@@ -207,11 +207,32 @@ docker compose -f docker-compose.prod.yml run --rm web python manage.py backup_d
 Fayl `backups/db-<sana>.dump` bo'lib tushadi va Azure Control Center'ning
 backup probe'i uni ko'radi (7 kundan eski bo'lsa AMBER).
 
-Har kuni avtomatik olish uchun `crontab -e` ga bitta qator:
+**Baza zaxirasi yolg'iz o'zi yetarli emas.** Baza fayllarning o'zini emas,
+ularga **yo'lni** saqlaydi: to'lov cheki, vazifa fayli, chat biriktirmasi va
+speaking audiosi diskda turadi. Faqat bazani tiklasangiz, har bir chek qatori
+mavjud bo'lmagan faylga ishora qiladi — tiklash ishlagandek ko'rinadi, aslida
+chek ham, vazifa ham qaytmaydi. Shuning uchun ikkinchi buyruq:
+
+```bash
+docker compose -f docker-compose.prod.yml run --rm web python manage.py backup_media
+```
+
+Arxiv `backups/media-<sana>.tar.gz` bo'lib tushadi; ichida `public/` va
+`private/` alohida bo'limlar. Control Center'da bu alohida chiroq
+(«Media zaxirasi») — baza zaxirasi yashil turib media zaxirasi yo'qligi
+ko'rinmay ketmasligi uchun.
+
+Har kuni avtomatik olish uchun `crontab -e` ga ikki qator:
 
 ```
 0 3 * * * cd /home/ubuntu/azurelms/deploy && docker compose -f docker-compose.prod.yml run --rm web python manage.py backup_db >> backups/cron.log 2>&1
+15 3 * * * cd /home/ubuntu/azurelms/deploy && docker compose -f docker-compose.prod.yml run --rm web python manage.py backup_media >> backups/cron.log 2>&1
 ```
+
+> `deploy/backups/` host papkasi compose'da konteynerning `/app/backups` iga
+> mount qilingan. Mount bo'lmasa buyruqlar faylni ephemeral konteyner ichiga
+> yozardi va u konteyner bilan birga yo'qolardi — cron har kuni ishlab
+> turgandek ko'rinib, aslida hech narsa saqlamagan bo'lardi.
 
 ### Tiklash mashqi (restore drill)
 
@@ -229,6 +250,16 @@ Mashqdan keyin bazani tozalang:
 ```bash
 docker compose -f docker-compose.prod.yml exec -T db dropdb -U azurelms restore_drill_2026_09
 ```
+
+Media arxivi ham xuddi shunday — alohida **bo'sh papkaga**:
+
+```bash
+docker compose -f docker-compose.prod.yml run --rm web python manage.py restore_media --input backups/media-<sana>.tar.gz --into /tmp/media-mashq
+```
+
+Buyruq `public/` va `private/` bo'yicha fayl sonini chiqaradi va joriy holat
+bilan solishtiradi. Joriy media ildizining **ichiga** chiqarishga urinish rad
+etiladi — aks holda «mashq» yashiringan destruktiv tiklash bo'lib qolardi.
 
 ### Haqiqiy falokat tiklashi
 
@@ -249,7 +280,20 @@ docker compose -f docker-compose.prod.yml exec -T db pg_restore --clean --if-exi
 docker compose -f docker-compose.prod.yml up -d
 ```
 
-Avval **albatta** drill qiling: yuqoridagi buyruq mavjud ma'lumotni
+Media fayllarini tiklash ham qo'lda. Arxivni bo'sh papkaga chiqarib,
+so'ng volume'ga ko'chiring — `public/` va `private/` **aralashmasligi**
+shart, aks holda har bir to'lov cheki `/media/` ostida hech qanday
+tekshiruvsiz tarqatiladigan URL bo'lib qoladi:
+
+```bash
+docker compose -f docker-compose.prod.yml run --rm web python manage.py restore_media --input backups/media-<sana>.tar.gz --into /tmp/tiklash
+```
+
+```bash
+docker compose -f docker-compose.prod.yml run --rm web sh -c "cp -a /tmp/tiklash/public/. /app/media/ && cp -a /tmp/tiklash/private/. /app/private-media/"
+```
+
+Avval **albatta** mashq qiling: yuqoridagi buyruqlar mavjud ma'lumotni
 qaytarib bo'lmaydigan tarzda almashtiradi.
 
 ### Orqaga qaytarish
@@ -291,8 +335,10 @@ qoladi (`05-launch-ops.md` §9 "Production GO qo'shimcha checklist"):
 - Real Telegram guruhda Classbook jonli darsini o'tkazish.
 - Sentry / alerting hali ulanmagan.
 - Izolyatsiyalangan tiklash mashqi va rollback mashqi **dalili**. Mexanizm
-  qurilgan (`restore_db --into`, yuqoridagi §6), ammo uni real serverda
-  bir marta yugurtirib, natijani yozib qo'yish kerak.
+  qurilgan (`restore_db --into` va `restore_media --into`, yuqoridagi §6),
+  ammo uni real serverda bir marta yugurtirib, natijani yozib qo'yish kerak.
+- **Offsite nusxa yo'q:** zaxiralar o'sha EC2 diskida qoladi. Disk yo'qolsa
+  zaxira ham yo'qoladi — S3 ga ko'chirish alohida ish.
 - `ReleaseRecord` ga release SHA yozadigan tomon (`A1b`).
 
 Ularning holati `nuclear-program/launch-plan/03-mahsulot-backlog.md` da

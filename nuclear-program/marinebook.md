@@ -16,6 +16,55 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-11 [Claude]: Media zaxirasi qurildi — va compose'dagi jim zaxira yo'qotuvchi nuqson topildi
+
+`backup_db` faqat **bazani** olardi. Baza esa fayllarning o'zini emas, ularga
+**yo'lni** saqlaydi: to'lov cheki, vazifa fayli, chat biriktirmasi va speaking
+audiosi diskda turadi. Bitta serverda disk yo'qolsa baza tiklanadi, ammo har bir
+`PaymentReceipt` qatori mavjud bo'lmagan faylga ishora qiladi — tiklash
+**ishlagandek ko'rinadi**, aslida o'quvchining cheki ham, vazifasi ham qaytmaydi.
+Lokal dev bazasida hozir ham 2.4 MB haqiqiy private media bor.
+
+`core/media_backup.py` + `backup_media`/`restore_media`. Uch qaror sabab bilan:
+
+- **Arxiv ichida `public/` va `private/` ajratilgan.** `PRIVATE_MEDIA_ROOT`
+  ataylab `MEDIA_ROOT` dan tashqarida (A0b); arxiv ularni aralashtirsa, tiklashda
+  bitta xato bilan hamma to'lov cheki public `/media/` ostiga tushib qolardi va
+  Caddy ularni hech qanday tekshiruvsiz tarqatardi.
+- **`extractall(filter="data")`.** Tar ichidagi nom `../..` bo'lishi mumkin;
+  filtrsiz `extractall` uni aytganidek yozadi. Nazorat yugurishida filtr olib
+  tashlanganda test darhol qizardi.
+- **Joriy ildiz ustiga tiklash yo'q.** Arxivdan keyin yuklangan har bir yangi
+  fayl jim yo'qolardi — tar faqat mos kelganini almashtiradi, yo'qolganini
+  qaytarmaydi. `--into` bo'sh papka majburiy, qo'lda tartib runbookda.
+
+Control Center'ga alohida `media_backup` capability'si qo'shildi (`high`, `critical`
+emas — media zaxirasi eskirgani shu instance trafik qabul qila olmasligini
+bildirmaydi, va zaxirasizlik uchun butun saytni `503` qilish nosozlikni
+tuzatmaydi). Ikkita test aynan shuni qulflaydi: `.dump` yolg'iz o'zi media
+chirog'ini yashil qilmaydi va aksincha.
+
+**Yo'lda topilgan haqiqiy nuqson (PR #97 dagi o'z ishimda):**
+`deploy/docker-compose.prod.yml` da `backups/` host papkasi app konteynerlariga
+**mount qilinmagan** edi. `docker compose run --rm web python manage.py backup_db`
+faylni ephemeral konteyner ichidagi `/app/backups` ga yozib, konteyner o'chishi
+bilan yo'qotardi — ya'ni runbookdagi cron qatori har kuni muvaffaqiyatli ishlab
+turgandek ko'rinib, aslida **bitta ham zaxira saqlamagan** bo'lardi. Buni faqat
+tiklash kuni bilib qolgan bo'lardik. `- ./backups:/app/backups` qo'shildi.
+
+- Branch: `claude/media-zaxirasi`
+- Test holati: to'liq suite — **1470/1470 OK (skipped=40)**, 178s.
+  Yangi `core/test_media_backup.py` — 23 test; ko'pi tiklash xavfsizligi haqida
+  (traversal, public/private aralashmasligi, joriy ildiz ichiga mashq qilishni
+  rad etish). Nazorat yugurishi: `filter="data"` olib tashlanganda traversal
+  testi qizardi (sabotaj grep bilan tasdiqlandi).
+  Haqiqiy smoke: lokal dev media'sidan arxiv olindi (public=1, private=2, 2.4 MB)
+  va bo'sh papkaga mashq qilib tiklandi — `private/receipts/...` public bo'limga
+  tushmadi.
+- Davom etilishi kerak: **offsite nusxa yo'q** — zaxiralar o'sha EC2 diskida
+  qoladi, disk yo'qolsa ular ham yo'qoladi. S3 ga ko'chirish AWS hisobi
+  ochilgandan keyingi alohida ish.
+
 ## 2026-09-11 [Claude]: Classbook media testining ikki varianti solishtirildi — `main`dagi yechim qoldi
 
 2026-09-10 dan qolgan yagona ochiq savol yopildi. Antigravity va Codex ayni bir
