@@ -568,6 +568,50 @@ def _backup_probe(definition: CapabilityDefinition) -> CapabilityResult:
     )
 
 
+def _media_backup_probe(definition: CapabilityDefinition) -> CapabilityResult:
+    """So'nggi media arxivining yoshi. Arxiv **olmaydi** — faqat qaraydi.
+
+    Alohida capability, `backup` ichida emas: ikkisi alohida buziladi va
+    alohida tiklanadi. Bitta yashil chiroq ostida berilsa, baza zaxirasi
+    olinib turgan holatda media zaxirasi umuman yo'qligi ko'rinmay ketardi —
+    va aynan o'sha holat tiklash kunida "baza qaytdi, cheklar qaytmadi" ga
+    aylanadi.
+    """
+    root = Path(settings.BASE_DIR) / "backups"
+    files = sorted(
+        root.glob("media-*.tar.gz"),
+        key=lambda item: item.stat().st_mtime,
+        reverse=True,
+    ) if root.exists() else []
+
+    if not files:
+        return _result(
+            definition,
+            "red" if not settings.IS_LOCAL else "amber",
+            "Media zaxirasi topilmadi.",
+            directory=str(root),
+        )
+
+    newest = files[0]
+    age_days = (timezone.now().timestamp() - newest.stat().st_mtime) / 86400
+    size_mb = newest.stat().st_size / (1024 * 1024)
+    status = "amber" if age_days > BACKUP_STALE_AFTER_DAYS else "green"
+    summary = (
+        f"So'nggi media zaxirasi {age_days:.0f} kunlik."
+        if status == "amber"
+        else f"So'nggi media zaxirasi {age_days:.1f} kunlik."
+    )
+    return _result(
+        definition,
+        status,
+        summary,
+        newest=newest.name,
+        age_days=f"{age_days:.1f}",
+        size_mb=f"{size_mb:.1f}",
+        count=len(files),
+    )
+
+
 def _email_probe(definition: CapabilityDefinition) -> CapabilityResult:
     """Backend sozlanganmi. Xat **yubormaydi** — probe yon ta'sir qoldirmaydi."""
     path = str(getattr(settings, "EMAIL_BACKEND", ""))
@@ -633,6 +677,7 @@ PROBE_FUNCTIONS: dict[str, Callable[[CapabilityDefinition], CapabilityResult]] =
     "rag": _rag_probe,
     "security": _security_probe,
     "backup": _backup_probe,
+    "media_backup": _media_backup_probe,
     "email": _email_probe,
     "memory": _memory_probe,
     "release": _release_probe,

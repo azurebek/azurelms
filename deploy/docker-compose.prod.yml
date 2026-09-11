@@ -33,6 +33,13 @@ x-app: &app
     # konteyner qayta qurilganda o'quvchining yuklagan fayli yo'qolmasligi kerak.
     - media:/app/media
     - private-media:/app/private-media
+    # Zaxiralar host papkasiga. Bu mount BO'LMASA `docker compose run --rm web
+    # python manage.py backup_db` faylni ephemeral konteyner ichidagi
+    # `/app/backups` ga yozadi va konteyner o'chishi bilan zaxira ham
+    # yo'qoladi — ya'ni runbookdagi cron qatori har kuni ishlab turgandek
+    # ko'rinib, aslida hech narsa saqlamaydi. Control Center backup probe'i
+    # ham aynan shu papkaga qaraydi (`BASE_DIR/backups`).
+    - ./backups:/app/backups
   depends_on:
     db:
       condition: service_healthy
