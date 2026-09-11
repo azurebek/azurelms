@@ -185,3 +185,48 @@ class SendWorkspaceKeyboardTests(SimpleTestCase):
 
         message = asyncio.run(self._send("guest"))
         self.assertEqual(message.answers, [], "guestga klaviatura yuborilmasligi kerak")
+
+
+class ButtonIsNeverAnAnswerTests(SimpleTestCase):
+    """Klaviatura tugmasi vazifa javobi sifatida topshirilmasligi kerak.
+
+    PR #106 dagi Codex review topdi: vazifa kutayotgan o'quvchi
+    "Klaviaturani yopish" bosganda o'sha matn **javob sifatida** ketardi va
+    pending action tozalanardi — tugma ishlamaydi, ustiga vazifa noto'g'ri
+    javob bilan yopiladi. Sabab router tartibi edi: onboarding routeri
+    workspace'dan keyin ulanadi, workspace'dagi `AwaitingAssignment()` esa
+    buyruq bo'lmagan har qanday matnni qabul qilardi.
+    """
+
+    def _assignment_text_filter(self):
+        from bot.routers.workspace import router as workspace_router
+
+        for handler in workspace_router.message.handlers:
+            names = {
+                type(getattr(f, "callback", None)).__name__ for f in handler.filters or []
+            }
+            if "AwaitingAssignment" not in names:
+                continue
+            for flt in handler.filters or []:
+                magic = getattr(flt, "magic", None)
+                if magic is not None:
+                    return magic
+        return None
+
+    def test_the_assignment_handler_rejects_every_button_label(self):
+        magic = self._assignment_text_filter()
+        self.assertIsNotNone(magic, "vazifa matn handleri topilmadi")
+        for label in ALL_BUTTON_LABELS:
+            self.assertFalse(
+                bool(magic.resolve(SimpleNamespace(text=label))),
+                f"{label} vazifa javobi sifatida qabul qilinyapti",
+            )
+
+    def test_the_assignment_handler_still_accepts_a_real_answer(self):
+        """Nazorat: filtr haqiqiy javobni bloklab qo'ymasin."""
+        magic = self._assignment_text_filter()
+        self.assertTrue(
+            bool(magic.resolve(SimpleNamespace(text="Mening javobim: merhaba")))
+        )
+        # Buyruq esa avvalgidek o'tmaydi.
+        self.assertFalse(bool(magic.resolve(SimpleNamespace(text="/bekor"))))

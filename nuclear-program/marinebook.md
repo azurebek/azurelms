@@ -60,6 +60,20 @@ matnga mos kelmasligi tekshiriladi. Shundan keyin sabotaj to'g'ri ushlandi.
   `None`, tugma soni chegarasi, o'lik tugma yo'qligi, klaviatura ikkinchi
   xabarda kelishi).
   `check --fail-level WARNING` 0 issue, migration drift yo'q, `scan_secrets` toza.
+**PR #106 review ikkita haqiqiy nuqson topdi:**
+
+1. **P1 — tugma vazifa javobi bo'lib ketardi.** Vazifa kutayotgan o'quvchi
+   «Klaviaturani yopish» yoki «Yordam» bosganda o'sha matn javob sifatida
+   topshirilardi va pending action tozalanardi. Sabab router tartibi:
+   onboarding workspace'dan keyin ulanadi, workspace'dagi `AwaitingAssignment()`
+   esa buyruq bo'lmagan har qanday matnni qabul qilardi. Tuzatish filtrga
+   qo'shildi (`~F.text.in_(ALL_BUTTON_LABELS)`) — router tartibiga bog'liq
+   bo'lmasin va kelajakdagi tugmalar uchun ham amal qilsin.
+2. **P2 — ro'yxatdan o'tgan zahoti klaviatura qo'yilmasdi.** Kontakt orqali
+   ro'yxatdan o'tish `ReplyKeyboardRemove()` bilan tugardi, `/start auth_*`
+   yo'li esa umuman qo'ymasdi — ya'ni navigatsiya yaxshilanishi aynan eng
+   muhim daqiqada, birinchi kirishda ishlamasdi. Ikkala yo'l ham tuzatildi.
+
 - Davom etilishi kerak: klaviatura **haqiqiy Telegramda sinalmagan** — bu
   ownerning telefon QA qadami (`A5` sign-off'ining bir qismi). Lokal
   `manage.py runbot` haqiqiy token talab qiladi va botni jonli javob

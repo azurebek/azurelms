@@ -15,6 +15,7 @@ from asgiref.sync import sync_to_async
 from django.conf import settings
 
 from bot.keyboards import (
+    ALL_BUTTON_LABELS,
     BTN_AI,
     BTN_ATTENDANCE,
     BTN_COURSES,
@@ -702,7 +703,16 @@ async def _download_to_content_file(message, file_id, name):
 
 # --- Vazifa javobi (matn/rasm/fayl) — pending bo'lganda BIRINCHI bo'lib ushlaydi ---
 
-@router.message(AwaitingAssignment(), F.text & ~F.text.startswith("/"))
+# Klaviatura tugmasi hech qachon vazifa javobi emas. Bu shart bo'lmasa,
+# vazifa kutayotgan o'quvchi "Klaviaturani yopish" yoki "Yordam" bosganda
+# o'sha matn **javob sifatida topshirilardi** va pending action tozalanardi:
+# tugma o'z ishini qilmaydi, ustiga vazifa ham noto'g'ri javob bilan ketadi.
+# Filtr aynan shu yerda, chunki bu qoida router tartibiga bog'liq bo'lmasligi
+# kerak — kelajakda yangi tugma qo'shilganda ham o'z-o'zidan amal qiladi.
+@router.message(
+    AwaitingAssignment(),
+    F.text & ~F.text.startswith("/") & ~F.text.in_(ALL_BUTTON_LABELS),
+)
 async def assignment_text_answer(message: types.Message, lms_user, pending_assignment_id):
     result = await sync_to_async(submit_assignment_answer)(
         lms_user, pending_assignment_id, text=message.text

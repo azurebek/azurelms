@@ -247,6 +247,15 @@ async def cmd_start_handler(
                 message.from_user.username or "",
             )
             await message.answer(result.message)
+            if result.ok:
+                # Bu yo'l ham hisob yaratishi/bog'lashi mumkin — rol endi
+                # ma'lum, ya'ni klaviatura shu zahoti qo'yilishi kerak.
+                from bot.middleware import resolve_identity
+
+                _, auth_role = await sync_to_async(resolve_identity)(
+                    message.from_user.id
+                )
+                await send_workspace_keyboard(message, auth_role)
             return
 
         result = await sync_to_async(link_user_from_start_token)(
@@ -407,10 +416,16 @@ async def contact_handler(message: types.Message, lms_user):
     from bot.middleware import resolve_identity
 
     lms_user, lms_role = await sync_to_async(resolve_identity)(message.from_user.id)
+    # Telefon klaviaturasi o'rnini ish stoli klaviaturasi egallaydi. Ilgari bu
+    # yerda `ReplyKeyboardRemove()` turardi va yangi ro'yxatdan o'tgan
+    # foydalanuvchi **hech qanday tugmasiz** qolardi — ya'ni navigatsiya
+    # yaxshilanishi aynan eng muhim daqiqada, birinchi kirishda ishlamasdi.
+    # Rol noma'lum bo'lsa (bo'lmasligi kerak) telefon tugmasi baribir olib
+    # tashlanadi, aks holda u chatda osilib qolardi.
     await message.answer(
         f"🎉 {result.message}\n\n" + render_welcome(lms_user, lms_role),
         parse_mode=HTML_MODE,
-        reply_markup=ReplyKeyboardRemove(),
+        reply_markup=workspace_keyboard(lms_role) or ReplyKeyboardRemove(),
     )
 
 
