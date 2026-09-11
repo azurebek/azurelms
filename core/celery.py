@@ -88,6 +88,19 @@ if streak_nudge_beat_enabled:
             minute=_env_int("STREAK_NUDGE_MINUTE", 0),
         ),
     }
+
+# Tekshiruv navbati eslatmasi (T2). Ertalab, jim soatlardan keyin: xabar
+# o'qituvchi ish kunini boshlaganda kelsin. Yoqish/o'chirish esa
+# `core/flags.py` dagi `reminder_teacher_review` flagida.
+teacher_review_beat_enabled = _env_bool("ENABLE_TEACHER_REVIEW_BEAT", not is_local)
+if teacher_review_beat_enabled:
+    beat_schedule["teacher-review-reminders"] = {
+        "task": "users.tasks.run_teacher_review_reminders",
+        "schedule": crontab(
+            hour=_env_int("TEACHER_REVIEW_HOUR", 9),
+            minute=_env_int("TEACHER_REVIEW_MINUTE", 0),
+        ),
+    }
 app.conf.beat_schedule = beat_schedule
 
 @app.task(bind=True, ignore_result=True)

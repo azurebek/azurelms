@@ -16,6 +16,70 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-11 [Claude]: T2 — oldinga qaragan eslatmalar (`PARTIAL`)
+
+Auditdagi ikkinchi bo'shliq: 11 ta bildirishnoma triggeri bor va **hammasi
+reaktiv**, ya'ni bot hech qachon birinchi gapirmaydi.
+
+**Rejadagi uchta eslatmadan ikkitasi ma'lumot modelida umuman yo'q ekan** va
+ular taxmin qilinmadi:
+
+- «Darsingiz bir soatdan keyin» — hech qayerda **rejalashtirilgan dars vaqti
+  saqlanmaydi**. `Cohort.start_date` kurs boshlanishi, `attendance_date`
+  o'tgan darsning yozuvi; jonli dars `/dars N` bilan ad-hoc boshlanadi.
+  Tekshirdim: `courses/classbook/cohorts/bot` dagi **har bir** `DateTimeField`
+  `auto_now_add`/`auto_now` yoki «tekshirilgan vaqt» — ya'ni hammasi o'tmish
+  yozuvi, birorta ham rejalashtirilgan kelajak vaqti emas.
+- «Vazifa muddati ertaga» — `Assignment` da muddat maydoni **yo'q** (faqat
+  lesson, title, description, max_xp).
+
+Ikkalasi ham mahsulot qaroriga bog'liq (jadval haftalik takrorlanuvchimi;
+muddat nisbiymi yoki absolyut), shuning uchun rejaga ikki yangi owner savoli
+qo'shildi.
+
+**Qurilgani:**
+
+1. **O'qituvchi navbati eslatmasi** (`users/reminder_service.py`) — uzoq
+   tekshirilmagan topshiriqlar haqida **kuniga bitta yig'ma** xabar. Har
+   topshiriq uchun alohida emas: o'nta topshiriq o'nta bildirishnoma bo'lsa,
+   u o'qituvchining haqiqiy ishidan ko'ra ko'proq shovqin yasardi. Navbat
+   bo'shagach o'z-o'zidan to'xtaydi. Scope canonical funksiyadan
+   (`core/access.py::teacher_course_queryset`) — A0b/1 aynan shu
+   nusxalanishda buzilgan edi.
+2. **To'lov eslatmasi oynasi sozlamaga ko'chirildi.** U allaqachon bor edi,
+   lekin `users/notification_service.py` da `days_left in {3, 1, 0}` bo'lib
+   qotib turardi — ya'ni «necha kun oldin eslatamiz» degan mahsulot qarorini
+   o'zgartirish uchun deploy kerak bo'lardi (owner qoidasiga zid).
+3. **Jim soatlar — yo'lda topilgan haqiqiy nosozlik.** Obuna eslatmasi kunlik
+   lifecycle ishi bilan **soat 03:05 da** yaratiladi va outbox uni o'sha
+   zahoti yuborardi: o'quvchi tunda DM olardi. Endi eslatma turidagi qatorlar
+   jim soatlarda navbatdan **olinmaydi**. Ataylab hech narsa yozilmaydi
+   (`next_attempt_at` surilmaydi): qator joyida qoladi va ertalab o'z-o'zidan
+   oqimga qaytadi — aks holda owner sozlamani o'zgartirganda eskirgan
+   rejalashtirish qolib ketardi. Hodisaga javob beruvchi xabar (chek
+   tasdiqlandi, vazifa baholandi) hech qachon kechiktirilmaydi; Classbook
+   guruh navbati esa umuman boshqa jadvalda, ya'ni jonli darsga tegmaydi.
+
+Sozlamalar `users.ReminderSettings` da va T0 bilan **bir sahifada**
+(`/backoffice/control/runtime-settings/`), admin'da faqat o'qish uchun.
+Yoqish/o'chirish esa `core/flags.py` da (`reminder_payment_due`,
+`reminder_teacher_review`) — sozlamada `enabled` maydoni yo'q, effective
+policy manbasi bitta.
+
+- Branch: `claude/t2-eslatmalar`
+- Migration: `users.0020` — yangi `ReminderSettings` jadvali va
+  `Notification.category` ga `reminder` qiymati qo'shildi (choices
+  o'zgarishi, mavjud qatorlarga tegmaydi).
+- Test holati: to'liq suite — **1566/1566 OK (skipped=40)**, 164s. Yangi
+  `users/test_reminders.py` — 24 test. Nazorat yugurishi: jim soatlar sharti
+  va sozlamadan o'qish olib tashlanganda 2 test qizardi (sabotaj grep bilan
+  tasdiqlandi).
+  `check --fail-level WARNING` 0 issue, migration drift yo'q, sahifa `302`
+  (owner gate), CSS klass testi yashil.
+- Davom etilishi kerak: brauzerda ko'rish **qilinmadi** — Chrome kengaytmasi
+  shu payt uzilgan edi. Sahifa test klienti orqali render qilinib, 15 maydon
+  va uch forma tekshirildi. Keyingi band — **T4** (bot observability).
+
 ## 2026-09-11 [Claude]: T1 — rolga mos doimiy klaviatura
 
 Auditda o'lchangan birinchi bo'shliq yopildi: 23 ta slash buyruq bor edi,

@@ -280,15 +280,19 @@ class RuntimeSettingsSurfaceTests(TestCase):
             "base_backoff_seconds", "max_backoff_seconds",
             "backup_stale_after_days", "queue_age_amber_minutes",
             "queue_age_red_minutes",
+            # T2 — eslatma vaqtlari ham shu sahifada: operatsion qiymatlar
+            # owner uchun bitta joyda turishi kerak.
+            "payment_days_before", "teacher_review_after_days",
+            "quiet_hours_start", "quiet_hours_end",
         ]
         for name in expected:
             self.assertContains(
                 response, f'name="{name}"', msg_prefix=f"{name} maydoni chizilmadi"
             )
-        # Ikki forma, ikkita sabab/tasdiq juftligi va ikki `form_name`.
-        self.assertContains(response, 'name="form_name"', count=2)
-        self.assertContains(response, 'name="change_reason"', count=2)
-        self.assertContains(response, 'name="confirm_change"', count=2)
+        # Uch forma, uchta sabab/tasdiq juftligi va uch `form_name`.
+        self.assertContains(response, 'name="form_name"', count=3)
+        self.assertContains(response, 'name="change_reason"', count=3)
+        self.assertContains(response, 'name="confirm_change"', count=3)
 
     def test_non_owner_cannot_open_the_page(self):
         student = User.objects.create_user(
@@ -408,7 +412,9 @@ class AdminIsReadOnlyTests(TestCase):
     def test_settings_admins_do_not_allow_writes(self):
         from django.contrib import admin as dj_admin
 
-        for model in (BotRuntimeSettings, OperationalSettings):
+        from users.models import ReminderSettings
+
+        for model in (BotRuntimeSettings, OperationalSettings, ReminderSettings):
             site_admin = dj_admin.site._registry[model]
             editable = [
                 f.name

@@ -1,3 +1,5 @@
+from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
@@ -302,11 +304,17 @@ class Notification(models.Model):
     CATEGORY_SUBSCRIPTION = "subscription"
     CATEGORY_SYSTEM = "system"
     CATEGORY_STREAK = "streak"
+    #: Oldinga qaragan eslatma (T2). Ajratilishining sababi operatsion:
+    #: eslatma **kutishi mumkin**, ya'ni jim soatlarda Telegramga
+    #: yuborilmay turadi. Hodisaga javob beruvchi xabar (chek tasdiqlandi,
+    #: dars ochildi) esa kechiktirilmaydi.
+    CATEGORY_REMINDER = "reminder"
     CATEGORY_CHOICES = (
         (CATEGORY_MANUAL, "Manual"),
         (CATEGORY_SUBSCRIPTION, "Subscription"),
         (CATEGORY_SYSTEM, "System"),
         (CATEGORY_STREAK, "Streak"),
+        (CATEGORY_REMINDER, "Reminder"),
     )
 
     recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications")
@@ -512,3 +520,104 @@ class TelegramLinkToken(models.Model):
         if existing and existing.is_valid(now=now):
             return existing
         return cls.objects.create(user=user, token=secrets.token_urlsafe(16))
+
+
+class ReminderSettings(models.Model):
+    """Eslatma vaqtlari — owner sozlamasi (T2).
+
+    Owner qarori (2026-09-11): operatsion qiymat kodda qotirib qo'yilmaydi.
+    To'lov eslatmasi ilgari `users/notification_service.py` da
+    `days_left in {3, 1, 0}` bo'lib turardi — ya'ni "necha kun oldin
+    eslatamiz" degan **mahsulot** qarorini o'zgartirish uchun deploy kerak
+    bo'lardi.
+
+    **Yoqish/o'chirish bu yerda yo'q** — u `core/flags.py` registrida.
+    Bitta narsani ikki DB manbasi boshqarsa, owner qaysi biri amalda ekanini
+    aniqlay olmaydi.
+    """
+
+    singleton = models.BooleanField(default=True, unique=True, editable=False)
+
+    payment_days_before = models.CharField(
+        max_length=60,
+        default="3,1,0",
+        verbose_name="To'lov eslatmasi: necha kun oldin",
+        help_text=(
+            "Vergul bilan: 3,1,0 — uch kun, bir kun qolganda va muddat kuni. "
+            "Har qiymat bitta xabar degani."
+        ),
+    )
+    teacher_review_after_days = models.PositiveIntegerField(
+        default=2,
+        validators=[MinValueValidator(1), MaxValueValidator(60)],
+        verbose_name="O'qituvchi eslatmasi: necha kundan keyin",
+        help_text="Topshiriq shuncha kundan beri tekshirilmagan bo'lsa eslatiladi.",
+    )
+    quiet_hours_start = models.PositiveIntegerField(
+        default=22,
+        validators=[MaxValueValidator(23)],
+        verbose_name="Jim soatlar: boshlanishi",
+        help_text="Shu soatdan keyin eslatma Telegramga yuborilmay turadi (0-23).",
+    )
+    quiet_hours_end = models.PositiveIntegerField(
+        default=8,
+        validators=[MaxValueValidator(23)],
+        verbose_name="Jim soatlar: tugashi",
+        help_text=(
+            "Shu soatda kutib turgan eslatmalar yuboriladi. Boshlanish bilan "
+            "teng bo'lsa jim soatlar o'chiriladi."
+        ),
+    )
+
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(
+        "users.CustomUser",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+        verbose_name="Kim o'zgartirdi",
+    )
+
+    class Meta:
+        verbose_name = "Eslatma sozlamasi"
+        verbose_name_plural = "Eslatma sozlamasi"
+
+    def __str__(self):
+        return "Eslatma sozlamasi"
+
+    def clean(self):
+        super().clean()
+        from users.reminder_settings import _parse_clean
+
+        if not _parse_clean(self.payment_days_before):
+            raise ValidationError(
+                {
+                    "payment_days_before": (
+                        "Kamida bitta to'g'ri kun kerak. Masalan: 3,1,0"
+                    )
+                }
+            )
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def load(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+    @classmethod
+    def resolved(cls):
+        """Amaldagi siyosat — hech qachon xato tashlamaydi.
+
+        Kunlik beat ishi sozlama jadvali sababli to'xtamasligi kerak.
+        """
+        from users.reminder_settings import ReminderPolicy
+
+        try:
+            row = cls.objects.filter(pk=1).first()
+        except Exception:  # noqa: BLE001 — jadval hali yo'q yoki DB yetib bormadi
+            row = None
+        return ReminderPolicy.from_row(row)

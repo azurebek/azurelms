@@ -54,7 +54,27 @@ def _subscription_due_message(enrollment, days_left):
 
 
 def ensure_subscription_notifications_for_user(user):
+    """Obuna holati bo'yicha bildirishnomalar.
+
+    Uch turdan **faqat bittasi** — to'lov muddati eslatmasi — oldinga
+    qaragan, ya'ni hodisa sodir bo'lishidan oldin yuboriladi. Muzlatish va
+    muddat tugashi esa allaqachon sodir bo'lgan holatning xabari, shuning
+    uchun ular flagdan ham, eslatma sozlamasidan ham qat'i nazar
+    yuboriladi: ularni o'chirish foydalanuvchini o'z hisobi haqida bexabar
+    qoldirardi.
+    """
+    from core.flags import flag_enabled
+    from users.reminder_settings import current_policy
+
     today = timezone.localdate()
+    policy = current_policy()
+    # Ilgari bu yerda `{3, 1, 0}` qotib turardi. Endi owner admin
+    # panelidan o'zgartiradi (T0 qoidasi); flag esa faqat yoqish/o'chirish.
+    due_days = (
+        set(policy.payment_days_before)
+        if flag_enabled("reminder_payment_due")
+        else set()
+    )
     enrollments = (
         Enrollment.objects.filter(student=user)
         .select_related("cohort", "cohort__course")
@@ -66,7 +86,7 @@ def ensure_subscription_notifications_for_user(user):
         if deadline:
             days_left = (deadline - today).days
 
-            if effective_status == Enrollment.STATUS_ACTIVE and days_left in {3, 1, 0}:
+            if effective_status == Enrollment.STATUS_ACTIVE and days_left in due_days:
                 key = f"sub-due-{enrollment.id}-{deadline.isoformat()}-{days_left}"
                 create_notification(
                     recipient=user,
@@ -74,7 +94,10 @@ def ensure_subscription_notifications_for_user(user):
                     message=_subscription_due_message(enrollment, days_left),
                     icon="clock-history",
                     url="/users/subscriptions/",
-                    category=Notification.CATEGORY_SUBSCRIPTION,
+                    # Eslatma kategoriyasi: jim soatlarda Telegramga
+                    # yuborilmay turadi (T2). Web bildirishnomasi shu
+                    # zahoti ko'rinadi — kechikayotgani faqat DM.
+                    category=Notification.CATEGORY_REMINDER,
                     external_key=key,
                 )
 

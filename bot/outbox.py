@@ -60,20 +60,53 @@ def reclaim_expired_outbox(lease_seconds=LEASE_SECONDS):
     ).update(status=TelegramOutbox.STATUS_PENDING, claimed_at=None, claim_token="")
 
 
+#: Jim soatlarda kechiktiriladigan kategoriyalar (T2). Bular **kutishi
+#: mumkin** bo'lgan xabarlar: eslatma, obuna eslatmasi va seriya undashi.
+#: Hodisaga javob beruvchi xabar (chek tasdiqlandi, vazifa baholandi, dars
+#: ochildi) bu ro'yxatga ataylab kirmaydi — foydalanuvchi o'z amalining
+#: natijasini ertalabgacha kutib o'tirmasligi kerak. Classbook guruh navbati
+#: esa umuman boshqa jadvalda, ya'ni jonli darsga bu qoida tegmaydi.
+QUIET_HOUR_CATEGORIES = ("reminder", "subscription", "streak")
+
+
+def quiet_hours_active(now=None):
+    """Hozir jim soatlar ichidamizmi (owner sozlamasi, T2)."""
+    from users.reminder_settings import current_policy
+
+    try:
+        policy = current_policy()
+    except Exception:  # noqa: BLE001 — sozlama jadvali hali yo'q bo'lishi mumkin
+        return False
+    return policy.is_quiet_at(timezone.localtime(now or timezone.now()))
+
+
 def eligible_outbox_ids(*, limit=BATCH_SIZE, now=None):
     """Hozir olinishi mumkin bo'lgan qator id'lari.
 
     Alohida funksiya: claim ikki qadamdan iborat (tanlash + shartli `UPDATE`)
     va ikkinchi qadamning himoyasini test qilish uchun birinchisini almashtirib
     ko'rish kerak bo'ladi.
+
+    Jim soatlarda eslatma turidagi qatorlar **umuman olinmaydi**. Ataylab
+    shunday, `next_attempt_at` ni surish o'rniga: qator hech narsa yozilmasdan
+    navbatda qoladi va jim soatlar tugashi bilan o'z-o'zidan oqimga qaytadi.
+    Vaqtni yozib qo'yish esa owner sozlamani o'zgartirganda eskirgan
+    rejalashtirishni qoldirardi.
+
+    Kelib chiqishi aniq: obuna eslatmasi kunlik lifecycle ishi bilan birga
+    **soat 03:05 da** yaratiladi va outbox uni o'sha zahoti yuborardi — ya'ni
+    o'quvchi tunda DM olardi.
     """
     now = now or timezone.now()
-    return list(
+    queryset = (
         TelegramOutbox.objects.filter(status=TelegramOutbox.STATUS_PENDING)
         .filter(Q(next_attempt_at__isnull=True) | Q(next_attempt_at__lte=now))
-        .order_by("id")
-        .values_list("id", flat=True)[:limit]
     )
+    if quiet_hours_active(now):
+        queryset = queryset.exclude(
+            notification__category__in=QUIET_HOUR_CATEGORIES
+        )
+    return list(queryset.order_by("id").values_list("id", flat=True)[:limit])
 
 
 def claim_pending_outbox(limit=BATCH_SIZE, lease_seconds=LEASE_SECONDS):

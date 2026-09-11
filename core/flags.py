@@ -69,6 +69,32 @@ FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
         ),
     ),
     FlagDefinition(
+        slug="reminder_payment_due",
+        label="To'lov muddati eslatmasi",
+        description="To'lov muddati yaqinlashganda o'quvchiga eslatma yuboriladimi.",
+        default=True,
+        category="Eslatmalar",
+        runbook=(
+            "O'chirilganda eslatma **yaratilmaydi** — obuna muzlagani yoki "
+            "muddati tugagani haqidagi xabarlar esa hodisaga javob bo'lgani "
+            "uchun ishlashda davom etadi. Necha kun oldin eslatish "
+            "sozlamada (`/backoffice/control/runtime-settings/`), bu yerda "
+            "faqat yoqish/o'chirish."
+        ),
+    ),
+    FlagDefinition(
+        slug="reminder_teacher_review",
+        label="O'qituvchi navbati eslatmasi",
+        description="Uzoq tekshirilmagan topshiriqlar haqida o'qituvchiga kunlik eslatma.",
+        default=True,
+        category="Eslatmalar",
+        runbook=(
+            "O'chirilganda o'qituvchi eslatma olmaydi; navbatning o'zi "
+            "(`/baholash` va web teacher paneli) o'zgarmaydi. "
+            "Necha kundan keyin eslatish sozlamada."
+        ),
+    ),
+    FlagDefinition(
         slug="ai_onboarding_context",
         label="AI uchun onboarding konteksti",
         description="Xotira yoqilganida foydalanuvchi bildirgan maqsad va darajani AI izohlarida hisobga olish.",
