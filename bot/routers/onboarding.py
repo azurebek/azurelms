@@ -22,6 +22,7 @@ from aiogram.types import (
 from asgiref.sync import sync_to_async
 from django.conf import settings
 
+from bot.keyboards import BTN_HELP, BTN_HIDE, hide_keyboard, workspace_keyboard
 from bot.services import (
     GUEST_DEMO_QUESTION_LIMIT,
     guest_demo_answer,
@@ -182,6 +183,35 @@ def render_welcome(lms_user, lms_role):
 
 # ---------------------------------------------------------------- commands
 
+async def send_workspace_keyboard(message, lms_role):
+    """Ish stoli klaviaturasini o'rnatadi (T1).
+
+    Alohida **ikkinchi** xabar bilan yuboriladi, chunki Telegramda bitta
+    xabarda faqat bitta `reply_markup` bo'ladi: xush kelibsiz xabari inline
+    menyuni ko'taradi, klaviatura esa chatda doimiy qoladi. Bir marta
+    qo'yilgach u o'z-o'zidan yo'qolmaydi — har javobga ilashtirish shart emas.
+
+    Guest uchun `workspace_keyboard()` `None` qaytaradi va bu funksiya hech
+    narsa yubormaydi: telefon ulashish klaviaturasi almashib ketmasligi kerak.
+    """
+    markup = workspace_keyboard(lms_role)
+    if markup is None:
+        return
+    await message.answer(
+        "Pastdagi tugmalar doim qo'l ostida. Buyruqlar ham ishlaydi.",
+        reply_markup=markup,
+    )
+
+
+@router.message(F.text == BTN_HIDE)
+async def btn_hide_keyboard(message: types.Message):
+    """Klaviaturani yopadi — `/start` yoki `/yordam` uni qaytaradi."""
+    await message.answer(
+        "Klaviatura yopildi. Qaytarish uchun /yordam yozing.",
+        reply_markup=hide_keyboard(),
+    )
+
+
 @router.message(CommandStart())
 async def cmd_start_handler(
     message: types.Message,
@@ -234,6 +264,10 @@ async def cmd_start_handler(
             f"✅ {result.message}\n\n" + render_welcome(lms_user, lms_role),
             parse_mode=HTML_MODE,
         )
+        # Hisob endi bog'landi, ya'ni rol ma'lum — klaviatura shu zahoti
+        # qo'yiladi va foydalanuvchi birinchi qadamdanoq buyruq eslab
+        # qolishga majbur bo'lmaydi.
+        await send_workspace_keyboard(message, lms_role)
         return
 
     if lms_user is None:
@@ -249,9 +283,11 @@ async def cmd_start_handler(
         parse_mode=HTML_MODE,
         reply_markup=student_menu_markup(),
     )
+    await send_workspace_keyboard(message, lms_role)
 
 
 @router.message(Command("yordam", "help"))
+@router.message(F.text == BTN_HELP)
 async def help_handler(message: types.Message, lms_user, lms_role):
     if lms_user is None:
         await message.answer(
@@ -265,6 +301,7 @@ async def help_handler(message: types.Message, lms_user, lms_role):
         parse_mode=HTML_MODE,
         reply_markup=student_menu_markup(),
     )
+    await send_workspace_keyboard(message, lms_role)
 
 
 # ---------------------------------------------------------------- callbacks

@@ -14,7 +14,15 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from asgiref.sync import sync_to_async
 from django.conf import settings
 
-from bot.keyboards import is_public_domain, miniapp_button
+from bot.keyboards import (
+    BTN_AI,
+    BTN_ATTENDANCE,
+    BTN_COURSES,
+    BTN_ENROLL,
+    BTN_PAYMENT,
+    is_public_domain,
+    miniapp_button,
+)
 from bot.services import (
     answer_quiz_question,
     begin_course_enrollment,
@@ -184,6 +192,7 @@ def _courses_overview_markup(items):
 
 
 @router.message(Command("darslarim"))
+@router.message(F.text == BTN_COURSES)
 async def cmd_courses(message: types.Message, lms_user):
     if not _require_user(lms_user):
         await message.answer("Avval ro'yxatdan o'ting: /start")
@@ -198,6 +207,7 @@ async def cmd_courses(message: types.Message, lms_user):
 
 
 @router.message(Command("davomatim"))
+@router.message(F.text == BTN_ATTENDANCE)
 async def cmd_attendance(message: types.Message, lms_user):
     if not _require_user(lms_user):
         await message.answer("Avval ro'yxatdan o'ting: /start")
@@ -207,6 +217,7 @@ async def cmd_attendance(message: types.Message, lms_user):
 
 
 @router.message(Command("tolov", "tolovim"))
+@router.message(F.text == BTN_PAYMENT)
 async def cmd_payment(message: types.Message, lms_user):
     if not _require_user(lms_user):
         await message.answer("Avval ro'yxatdan o'ting: /start")
@@ -221,7 +232,15 @@ async def cb_courses(callback: types.CallbackQuery, lms_user):
     if not _require_user(lms_user):
         return
     items = await sync_to_async(student_overview)(lms_user)
-    await send_long(callback.message, render_courses_overview(items), parse_mode=HTML_MODE)
+    # `reply_markup` ataylab qo'shildi: buyruq varianti kurs tugmalarini
+    # ko'rsatardi, inline varianti esa yo'q — bir xil amal ikki yuzada ikki
+    # xil javob berardi.
+    await send_long(
+        callback.message,
+        render_courses_overview(items),
+        parse_mode=HTML_MODE,
+        reply_markup=_courses_overview_markup(items),
+    )
 
 
 @router.callback_query(F.data == "ws:attendance")
@@ -242,16 +261,28 @@ async def cb_payment(callback: types.CallbackQuery, lms_user):
     await send_long(callback.message, render_payment(items), parse_mode=HTML_MODE)
 
 
+AI_HINT = (
+    "🤖 Shunchaki savolingizni yozib yuboring — AI repetitor javob beradi.\n"
+    "Suhbat saytdagi Messenger'da \"Telegram AI suhbati\" bo'lib saqlanadi, "
+    "xotira va limitlar sayt bilan bir xil."
+)
+
+
 @router.callback_query(F.data == "ws:ai")
 async def cb_ai(callback: types.CallbackQuery, lms_user):
     await callback.answer()
     if not _require_user(lms_user):
         return
-    await callback.message.answer(
-        "🤖 Shunchaki savolingizni yozib yuboring — AI repetitor javob beradi.\n"
-        "Suhbat saytdagi Messenger'da \"Telegram AI suhbati\" bo'lib saqlanadi, "
-        "xotira va limitlar sayt bilan bir xil."
-    )
+    await callback.message.answer(AI_HINT)
+
+
+@router.message(F.text == BTN_AI)
+async def btn_ai(message: types.Message, lms_user):
+    """Klaviaturadagi AI tugmasi — inline tugma bilan bir xil matn (T1)."""
+    if not _require_user(lms_user):
+        await message.answer("Avval ro'yxatdan o'ting: /start")
+        return
+    await message.answer(AI_HINT)
 
 
 # ---------------------------------------------------------------- botda o'qish (F8)
@@ -601,6 +632,7 @@ async def _show_enrollable_courses(message: types.Message):
 
 
 @router.message(Command("yozilish", "kurslar"))
+@router.message(F.text == BTN_ENROLL)
 async def cmd_enroll(message: types.Message, lms_user):
     if not _require_user(lms_user):
         await message.answer("Avval ro'yxatdan o'ting: /start")

@@ -11,6 +11,7 @@ from aiogram.filters import Command, CommandObject
 from aiogram.types import FSInputFile, InlineKeyboardButton, InlineKeyboardMarkup
 from asgiref.sync import sync_to_async
 
+from bot.keyboards import BTN_GRADING, BTN_GROUPS, BTN_RECEIPTS, BTN_STATS
 from bot.services import (
     admin_ai_usage,
     admin_search_users,
@@ -51,6 +52,7 @@ def _fmt_sum(value):
 # ---------------------------------------------------------------- o'qituvchi
 
 @router.message(Command("guruhlarim"))
+@router.message(F.text == BTN_GROUPS)
 async def cmd_cohorts(message: types.Message, lms_user, lms_role):
     if lms_role not in STAFF_ROLES:
         await message.answer("Bu buyruq o'qituvchilar uchun.")
@@ -71,6 +73,7 @@ async def cmd_cohorts(message: types.Message, lms_user, lms_role):
 
 
 @router.message(Command("baholash"))
+@router.message(F.text == BTN_GRADING)
 async def cmd_grading(message: types.Message, lms_user, lms_role):
     if lms_role not in STAFF_ROLES:
         await message.answer("Bu buyruq o'qituvchilar uchun.")
@@ -97,6 +100,7 @@ async def cmd_grading(message: types.Message, lms_user, lms_role):
 # ---------------------------------------------------------------- admin
 
 @router.message(Command("stat"))
+@router.message(F.text == BTN_STATS)
 async def cmd_stats(message: types.Message, lms_role):
     if lms_role != "admin":
         await message.answer("Bu buyruq administratorlar uchun.")
@@ -127,6 +131,7 @@ def _receipt_markup(receipt_id):
 
 
 @router.message(Command("cheklar"))
+@router.message(F.text == BTN_RECEIPTS)
 async def cmd_receipts(message: types.Message, lms_role):
     if lms_role != "admin":
         await message.answer("Bu buyruq administratorlar uchun.")
