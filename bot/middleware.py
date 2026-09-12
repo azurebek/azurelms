@@ -9,7 +9,11 @@ Rollar: "admin" (is_staff/superuser), "teacher" (biror kursning instructori),
 "guest" (bog'lanmagan).
 """
 
+import asyncio
+import time
+
 from aiogram import BaseMiddleware
+from aiogram.dispatcher.event.bases import UNHANDLED, CancelHandler, SkipHandler
 from asgiref.sync import sync_to_async
 
 
@@ -32,6 +36,52 @@ def resolve_identity(telegram_id):
     if Enrollment.objects.filter(enrollment_active_access_q(), student=user).exists():
         return user, "student"
     return user, "linked"
+
+
+class MetricsMiddleware(BaseMiddleware):
+    """Har update'ning davomiyligi va natijasini o'lchaydi (T4).
+
+    **Nega `IdentityMiddleware` dan tashqarida.** Identity har update'da 3 DB
+    so'rovi qiladi (T5 ning mavzusi) va bu narx handler'ning o'zi qadar
+    muhim. O'lchov identity'dan **tashqarida** turganda p95 foydalanuvchi
+    haqiqatan kutgan vaqtni ko'rsatadi, uning bir qismini emas.
+
+    **Nega xato bu yerda sanaladi.** aiogram o'zining `ErrorsMiddleware` ini
+    eng tashqi qatlamga qo'yadi, ya'ni u bizdan **keyin** istisnoni ushlaydi.
+    Shuning uchun handler xatosi bu middleware ichidan o'tib ketadi va u
+    yerda ko'rinadi. `bot/routers/__init__.py::error_boundary` da qayta
+    sanash ikki hisob bo'lardi.
+
+    `SkipHandler`/`CancelHandler` — aiogram ning boshqaruv oqimi, xato emas:
+    filtr mos kelmaganda tashlanadi. Ularni xato deb sanash bot ishlab
+    turganda ham doimiy qizil chiroq berardi.
+    """
+
+    async def __call__(self, handler, event, data):
+        from bot import metrics
+
+        started = time.perf_counter()
+        failed = False
+        unhandled = False
+        try:
+            result = await handler(event, data)
+            unhandled = result is UNHANDLED
+            return result
+        except (SkipHandler, CancelHandler, asyncio.CancelledError):
+            raise
+        except Exception:
+            failed = True
+            raise
+        finally:
+            metrics.METRICS.record(
+                duration_ms=(time.perf_counter() - started) * 1000.0,
+                failed=failed,
+                unhandled=unhandled,
+            )
+            # Webhook rejimida yozuvni olib boradigan fon sikli yo'q, shuning
+            # uchun u shu yerdan — oraliqqa bir marta — ilashtiriladi.
+            # Polling rejimida bu darhol qaytadi.
+            await metrics.maybe_flush()
 
 
 class IdentityMiddleware(BaseMiddleware):

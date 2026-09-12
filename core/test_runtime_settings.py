@@ -246,6 +246,20 @@ class RuntimeSettingsSurfaceTests(TestCase):
                 "max_attempts": 5,
                 "base_backoff_seconds": 30,
                 "max_backoff_seconds": 900,
+                "metrics_flush_seconds": 30,
+                "metrics_window_seconds": 300,
+                "change_reason": "sinov",
+                "confirm_change": "on",
+            }
+        elif form_name == "dispatcher":
+            data = {
+                "form_name": "dispatcher",
+                "dispatcher_stale_after_seconds": 120,
+                "dispatcher_dead_after_seconds": 600,
+                "handler_latency_amber_ms": 1500,
+                "handler_latency_red_ms": 4000,
+                "handler_error_amber_percent": 5,
+                "handler_error_red_percent": 20,
                 "change_reason": "sinov",
                 "confirm_change": "on",
             }
@@ -285,15 +299,21 @@ class RuntimeSettingsSurfaceTests(TestCase):
             "payment_days_before", "teacher_review_after_days",
             "teacher_review_hour",
             "quiet_hours_start", "quiet_hours_end",
+            # T4 — bot kuzatuvi: jarayonning o'lchov kadensi va chiroq
+            # chegaralari ham owner qo'lida bo'lishi kerak.
+            "metrics_flush_seconds", "metrics_window_seconds",
+            "dispatcher_stale_after_seconds", "dispatcher_dead_after_seconds",
+            "handler_latency_amber_ms", "handler_latency_red_ms",
+            "handler_error_amber_percent", "handler_error_red_percent",
         ]
         for name in expected:
             self.assertContains(
                 response, f'name="{name}"', msg_prefix=f"{name} maydoni chizilmadi"
             )
-        # Uch forma, uchta sabab/tasdiq juftligi va uch `form_name`.
-        self.assertContains(response, 'name="form_name"', count=3)
-        self.assertContains(response, 'name="change_reason"', count=3)
-        self.assertContains(response, 'name="confirm_change"', count=3)
+        # To'rt forma, to'rtta sabab/tasdiq juftligi va to'rt `form_name`.
+        self.assertContains(response, 'name="form_name"', count=4)
+        self.assertContains(response, 'name="change_reason"', count=4)
+        self.assertContains(response, 'name="confirm_change"', count=4)
 
     def test_non_owner_cannot_open_the_page(self):
         student = User.objects.create_user(
@@ -350,6 +370,55 @@ class RuntimeSettingsSurfaceTests(TestCase):
             ).exists()
         )
 
+    def test_dispatcher_thresholds_save_without_touching_the_queue_thresholds(self):
+        """Ikki forma bitta modelda — biri ikkinchisini tiklamasligi kerak.
+
+        `DispatcherThresholdsForm` va `OperationalThresholdsForm` bir xil
+        qatorni tahrirlaydi. ModelForm faqat o'z maydonlarini yozadi; bu test
+        aynan shu kafolatni qulflaydi, chunki buzilsa nuqson **jim** bo'ladi:
+        owner bot chegarasini o'zgartiradi va navbat chegarasi sezilmasdan
+        defaultga qaytadi.
+        """
+        self.client.force_login(self.owner)
+        self.client.post(self.url, self._payload("thresholds", queue_age_red_minutes=90))
+        self.assertEqual(OperationalSettings.load().queue_age_red_minutes, 90)
+
+        self.client.post(
+            self.url, self._payload("dispatcher", handler_latency_amber_ms=800)
+        )
+
+        row = OperationalSettings.load()
+        self.assertEqual(row.handler_latency_amber_ms, 800)
+        self.assertEqual(row.queue_age_red_minutes, 90, "navbat chegarasi tiklandi")
+        self.assertTrue(
+            SystemAuditEvent.objects.filter(
+                action="settings.dispatcher_thresholds.update"
+            ).exists(),
+            "audit yozuvi alohida amal nomi bilan yozilishi kerak",
+        )
+
+    def test_dispatcher_thresholds_reject_red_at_or_below_amber(self):
+        self.client.force_login(self.owner)
+        response = self.client.post(
+            self.url,
+            self._payload(
+                "dispatcher", handler_latency_amber_ms=4000, handler_latency_red_ms=1000
+            ),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotEqual(OperationalSettings.load().handler_latency_amber_ms, 4000)
+
+    def test_the_owner_can_widen_the_measurement_window_from_the_page(self):
+        self.client.force_login(self.owner)
+        self.client.post(
+            self.url, self._payload(metrics_flush_seconds=60, metrics_window_seconds=1800)
+        )
+
+        policy = BotRuntimeSettings.resolved()
+        self.assertEqual(policy.metrics_flush_seconds, 60)
+        self.assertEqual(policy.metrics_window_seconds, 1800)
+
 
 class FieldPresentationTests(TestCase):
     """Maydonlar backoffice uslubida chiziladimi.
@@ -363,10 +432,15 @@ class FieldPresentationTests(TestCase):
     def test_every_numeric_widget_carries_the_backoffice_input_class(self):
         from core.runtime_settings_forms import (
             BotDeliverySettingsForm,
+            DispatcherThresholdsForm,
             OperationalThresholdsForm,
         )
 
-        for form_class in (BotDeliverySettingsForm, OperationalThresholdsForm):
+        for form_class in (
+            BotDeliverySettingsForm,
+            OperationalThresholdsForm,
+            DispatcherThresholdsForm,
+        ):
             form = form_class()
             for name in form.Meta.fields:
                 css = form.fields[name].widget.attrs.get("class", "")
@@ -378,10 +452,15 @@ class FieldPresentationTests(TestCase):
         """Birlik maydon ichida suffiks bo'lib chiqadi — labelda qavs emas."""
         from core.runtime_settings_forms import (
             BotDeliverySettingsForm,
+            DispatcherThresholdsForm,
             OperationalThresholdsForm,
         )
 
-        for form_class in (BotDeliverySettingsForm, OperationalThresholdsForm):
+        for form_class in (
+            BotDeliverySettingsForm,
+            OperationalThresholdsForm,
+            DispatcherThresholdsForm,
+        ):
             form = form_class()
             pairs = list(form.numeric_fields())
             self.assertEqual(len(pairs), len(form.Meta.fields))

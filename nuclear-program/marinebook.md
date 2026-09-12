@@ -16,6 +16,99 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-12 [Claude]: T4 — bot observability
+
+Auditdagi uchinchi bo'shliq: «Launch kuni bot holatini ko'rsatadigan hech narsa
+yo'q.» Outbox navbati Control Center'da ko'rinardi, **kiruvchi** yo'l esa
+butunlay jim — ya'ni «bot tirikmi?» degan savolga javob beradigan yagona usul
+botga yozib ko'rish edi, va bu javob **xabar yuborishni** talab qilardi.
+
+Endi Control Center'da `telegram_dispatcher` chirog'i bor: tiriklik, javob
+vaqti (o'rtacha va p95) va xato ulushi. Probe hech narsa yubormaydi — faqat
+jarayonning o'zi yozgan `WorkerHeartbeat` ni o'qiydi.
+
+**Dizayndagi eng muhim qaror — tiriklikni trafikdan ajratish.** Eng tabiiy
+yechim «oxirgi update vaqti = sog'liq» bo'lardi va u **har tongda yolg'on
+qizil** berardi: tunda hech kim yozmasa sog'lom bot o'lik ko'rinadi. Shuning
+uchun tiriklik `last_seen_at` dan o'qiladi (uni flush sikli trafikdan qat'i
+nazar yozadi), `detail["last_update_at"]` esa faqat foydalanuvchi faolligini
+ko'rsatadi va **sog'liq signali sifatida ishlatilmaydi**.
+
+**O'lchovning narxi.** `DispatcherMetrics` faqat xotiraga yozadi (lock +
+`deque`), DB'ga esa sikl bo'yicha bitta yozuv boradi. Sabab o'lchangan: jonli
+darsda 50 o'quvchi bir vaqtda «Keldim» bosadi va har update uchun bitta
+`UPDATE` o'lchovning o'zini nosozlik manbasiga aylantirardi. Shart testda
+qulflangan — `MeasurementCostTests` `SimpleTestCase` da yuguradi, ya'ni **DB
+so'rovi taqiqlangan**: kimdir o'lchov yo'liga yozuv qo'shsa test o'z-o'zidan
+yiqiladi.
+
+**Ikki rejim, ikki yo'l.** Polling'da uzoq yashovchi event loop bor → `asyncio`
+sikli yozadi. Webhook'da har so'rov o'z loop'ini ochib yopadi → yozuv
+update'ga ilashadi, ammo oraliqqa bir marta. Sikl `aiogram` ning
+`startup`/`shutdown` hodisalariga ulangan, `runbot` yoki `run_bot.py` ga emas:
+ikkita polling kirish nuqtasi bor va har biriga qo'lda ulash bittasini unutish
+yo'li.
+
+**Yo'lda yopilgan ikki soxta-yashil:**
+
+1. **Rejali to'xtatish.** `shutdown` da `stopped_at` yoziladi — ammo o'sha
+   yozuvning `last_seen_at` i **yangi**, ya'ni yosh bo'yicha bot tirik bo'lib
+   ko'rinardi. Probe bayroqni yoshdan **oldin** ko'radi. Bot qaytib ko'tarilsa
+   bayroq o'z-o'zidan yo'qoladi (buning uchun alohida test bor).
+2. **Sozlama o'zini nosozlikka aylantirishi.** Eskirish chegarasi sozlanuvchi,
+   ammo probe uni jarayon **o'zi ishlatayotgan** yozuv oralig'idan ikki baravar
+   pastga tushirmaydi. Aks holda owner `metrics_flush_seconds` ni 300 qilsa,
+   chegara 120 bo'lib qolib chiroq abadiy sariq bo'lardi. Oraliq heartbeat'dan
+   o'qiladi, sozlamadan emas: owner bir daqiqa oldin o'zgartirgan qiymat hali
+   kuchga kirmagan bo'lishi mumkin.
+
+**Nazorat yugurishi — 9 ta sabotaj, 9 tasi ushlandi.** `stopped_at` ni yoshdan
+keyinga surish, tiriklikni update vaqtidan o'qish, flush poli'ni olib tashlash,
+xato foizi namuna polini o'chirish, o'lchovni identity ichiga kiritish, o'lchov
+yo'liga DB yozuvi qo'shish, oynani e'tiborsiz qoldirish, lifecycle hooklarini
+olib tashlash va maydonni formadan chiqarish — har biri kamida bitta testni
+qizartirdi. Birinchi yugurishda 6-sabotaj «tasdiqlanmadi» deb chiqdi, ammo
+nuqson **tekshiruv skriptida** edi: yangi matn eskisini ichiga olgani uchun
+«eski matn yo'q» sharti hech qachon bajarilmasdi. Qayta yugurtirildi.
+
+**Sozlamalar (owner qoidasi).** Yozuv oralig'i va o'lchov oynasi
+`bot.BotRuntimeSettings` da; chiroqning oltita chegarasi (bot belgisi, javob
+vaqti, xato foizi — har biri AMBER/RED) `core.OperationalSettings` da. Hammasi
+`/backoffice/control/runtime-settings/` da, T0/T2 bilan bir sahifada.
+`MAX_SAMPLES` va `MIN_ERROR_SAMPLES` ataylab sozlamada **yo'q**: biri xotira
+kafolati, ikkinchisi statistik to'r (bittadan bitta xato 100% bo'lib qizil
+chiroq berardi) — ikkalasi ham owner uchun ma'noli operatsion savol emas.
+
+**Flag ataylab qo'shilmadi:** «kuzatuvni o'chirish» flagi chiroqni qizil
+qilardi (heartbeat yo'q = bot o'lik), ya'ni o'chirish nosozlikdan farq
+qilmasdi. Yuk muammo bo'lsa to'g'ri knob — oraliqni oshirish, va u sozlamada
+bor.
+
+**Chiroq `critical` emas, `high`:** `/readyz` faqat critical probe'larni
+yugurtiradi va bot ishlamayotgani web instance trafik qabul qila olmasligini
+bildirmaydi. Shu sabab `telegram-dispatcher` `EXPECTED_WORKERS` ga ham
+qo'shilmadi — bitta uzilish ikkita qizil chiroq bermasligi kerak.
+
+**T5 uchun asos tayyor.** Reja T5 ni «o'lchanmaguncha past prioritet» deb
+yozgan edi. `MetricsMiddleware` identity'dan **tashqarida** turadi, ya'ni p95
+identity'ning 3 DB so'rovini ham qamrab oladi. Endi T5 ni ochishdan oldin
+haqiqiy raqam bor — va band hamon o'sha raqam ko'rilmaguncha ochilmaydi.
+
+Jonli tekshiruv (dev bazasida, Telegram'ga ulanmasdan): sikl ishga tushmasdan
+AMBER «hech qachon ishga tushmagan» → 30 update o'lchangach GREEN «oynada 30
+update, p95 34.2 ms» → rejali to'xtatishdan keyin «ataylab to'xtatilgan
+(halokat emas)». Tekshiruv qatori o'chirildi.
+
+- Branch: `claude/t4-bot-kuzatuvi`
+- Test holati: to'liq suite OK; yangi `bot/test_metrics.py` (28) va
+  `core/test_dispatcher_probe.py` (26)
+- Migratsiya: `bot.0009`, `core.0003` — ikkalasi ham additive
+- Davom etilishi kerak: **T6** (dead-letter replay). Brauzerda ko'rilmadi —
+  sahifa owner login'ini talab qiladi; render server tomonida test bilan
+  tasdiqlangan
+
+---
+
 ## 2026-09-11 [Claude]: T2 — oldinga qaragan eslatmalar (`PARTIAL`)
 
 Auditdagi ikkinchi bo'shliq: 11 ta bildirishnoma triggeri bor va **hammasi

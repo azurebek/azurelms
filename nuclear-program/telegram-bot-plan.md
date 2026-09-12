@@ -414,7 +414,7 @@ navbati esa umuman boshqa jadvalda.
   XP diff idempotent (PR #92 da tuzatilgan yo'l buzilmaydi).
 - **Ochiq qaror:** hujjat F11 va F12 orasidagi tanlovni ownerga qoldirgan.
 
-## T4 — Bot observability · `S/M` · **tavsiya: launchdan oldin**
+## T4 — Bot observability · `S/M` — `IMPLEMENTED/TESTED` (2026-09-12)
 
 - **Outcome:** launch kuni "bot tirikmi va tezmi?" savoliga **raqam bilan** javob.
 - **Canonical owner:** `aicontrol.WorkerHeartbeat` va Control Center capability
@@ -424,6 +424,78 @@ navbati esa umuman boshqa jadvalda.
   `telegram_dispatcher` chirog'i.
 - **Acceptance:** o'lchash handler javobini sekinlashtirmaydi (yozuv batch/async);
   polling to'xtasa chiroq AMBER→RED bo'ladi; probe **hech narsa yubormaydi**.
+
+**Bajarildi — 2026-09-12.** Uchala acceptance sharti test bilan qulflangan.
+
+**O'lchovning narxi nolga yaqin.** `bot/metrics.py::DispatcherMetrics` faqat
+xotiraga yozadi (lock + `deque`), DB'ga esa **sikl bo'yicha bitta** yozuv
+boradi. Buning sababi o'lchangan: jonli darsda 50 o'quvchi bir vaqtda «Keldim»
+bosadi va har update uchun bitta `UPDATE` o'lchovning o'zini nosozlik manbasiga
+aylantirardi. Shart testda qulflangan — `bot/test_metrics.py::MeasurementCostTests`
+`SimpleTestCase` da yuguradi, ya'ni **DB so'rovi taqiqlangan**: kimdir o'lchov
+yo'liga yozuv qo'shsa test o'z-o'zidan yiqiladi.
+
+**Tiriklik trafikdan ajratilgan — bu bandning eng muhim qarori.** Eng tabiiy
+dizayn «oxirgi update vaqti = sog'liq» bo'lardi va u **har tongda yolg'on
+qizil** berardi: tunda hech kim yozmasa sog'lom bot o'lik ko'rinadi. Shuning
+uchun:
+
+| Nima | Qaydan o'qiladi | Nimani bildiradi |
+|---|---|---|
+| Tiriklik | `last_seen_at` — flush sikli yozadi | jarayon bor |
+| Trafik | `detail["last_update_at"]` | foydalanuvchi faolligi, sog'liq **emas** |
+| Tezlik | oynadagi p95/o'rtacha | sekinlashdimi |
+| Xato | oynadagi xato ulushi | nosozlik chastotasi |
+
+**Ikki yo'l, chunki ikki rejim bor.** Polling'da uzoq yashovchi event loop bor
+→ `asyncio` sikli trafikdan qat'i nazar yozadi. Webhook'da har so'rov o'z
+loop'ini ochib yopadi → yozuv update'ga ilashadi, ammo **oraliqqa bir marta**.
+Sikl `aiogram` ning `startup`/`shutdown` hodisalariga ulangan, `runbot` yoki
+`run_bot.py` ga emas: ikkita polling kirish nuqtasi bor va har biriga qo'lda
+ulash bittasini unutish yo'li.
+
+**Rejali to'xtatish halokatdan ajratiladi.** `shutdown` da `stopped_at`
+yoziladi va probe uni **yoshdan oldin** ko'radi — aks holda to'xtatish
+yozuvining yangi `last_seen_at` i botni tirik qilib ko'rsatardi (soxta-yashil).
+Bot qaytib ko'tarilsa bayroq o'z-o'zidan yo'qoladi.
+
+**Sozlama o'zini nosozlikka aylantirmaydi.** Eskirish chegarasi sozlanuvchi,
+ammo probe uni jarayon **o'zi ishlatayotgan** yozuv oralig'idan ikki baravar
+pastga tushirmaydi. Aks holda owner `metrics_flush_seconds` ni 300 qilsa,
+chegara 120 bo'lib qolib, chiroq abadiy sariq bo'lib turardi — ya'ni sozlamani
+o'zgartirish mavjud bo'lmagan nosozlik yasardi. Oraliq heartbeat'dan o'qiladi,
+sozlamadan emas: owner bir daqiqa oldin o'zgartirgan qiymat hali kuchga
+kirmagan bo'lishi mumkin.
+
+**Statistik to'rlar rang bermaydi.** Bittadan bitta xato 100% bo'ladi, ya'ni
+bot ishga tushgan zahoti qizil chiroq berardi — shuning uchun xato foizi
+kamida 20 namunadan keyin rang beradi. Namuna umuman bo'lmasa javob «namuna
+yo'q», «hammasi tez» emas.
+
+**Sozlamalar (owner qoidasi):** yozuv oralig'i va o'lchov oynasi
+`bot.BotRuntimeSettings` da; chiroqning oltita chegarasi (bot belgisi,
+javob vaqti, xato foizi — har biri AMBER/RED) `core.OperationalSettings` da.
+Hammasi `/backoffice/control/runtime-settings/` da, T0/T2 bilan bir sahifada.
+`MAX_SAMPLES` va `MIN_ERROR_SAMPLES` ataylab **sozlamada yo'q**: biri xotira
+kafolati, ikkinchisi statistik to'r — ikkalasi ham owner uchun ma'noli
+operatsion savol emas.
+
+**Flag ataylab qo'shilmadi.** «Kuzatuvni o'chirish» flagi chiroqni qizil
+qilardi (heartbeat yo'q = bot o'lik), ya'ni o'chirish nosozlikdan farq
+qilmasdi. Yozuv yuki muammo bo'lsa to'g'ri knob — oraliqni oshirish, va u
+sozlamada bor.
+
+**Chiroq `critical` emas, `high`.** `/readyz` faqat critical probe'larni
+yugurtiradi; bot ishlamayotgani web instance trafik qabul qila olmasligini
+bildirmaydi. Butun saytni `503` qilish nosozlikni tuzatmay, ko'paytirardi.
+Shu sabab `telegram-dispatcher` `EXPECTED_WORKERS` ga ham qo'shilmadi —
+bitta uzilish ikkita qizil chiroq bermasligi kerak.
+
+**T5 uchun asos tayyor.** Reja T5 ni «o'lchanmaguncha past prioritet» deb
+yozgan edi: identity har update'da 3 DB so'rovi qiladi, ammo bu muammo
+sifatida **isbotlanmagan** taxmin edi. O'lchov `MetricsMiddleware` da
+identity'dan **tashqarida** turadi, ya'ni p95 aynan shu narxni ham qamrab
+oladi. Endi T5 ni ochishdan oldin haqiqiy raqam bor.
 
 ## T5 — Identity narxini kamaytirish · `S` · **ehtiyot bilan**
 
@@ -439,8 +511,11 @@ navbati esa umuman boshqa jadvalda.
   esa har safar hisoblanadi. Tezlik uchun xavfsizlik chegirmasi qilinmaydi.
 - **Acceptance:** bloklangan foydalanuvchi **darhol** huquqsiz qoladi (test);
   enrollment tugaganda rol darhol o'zgaradi (test); keshsiz ham to'g'ri ishlaydi.
-- **Prioritet:** o'lchanmaguncha past. Avval T4 bilan haqiqiy latency ko'riladi —
-  bugun bu band **taxmin**, muammo sifatida isbotlanmagan.
+- **Prioritet:** o'lchanmaguncha past. T4 (2026-09-12) o'lchovni berdi:
+  `MetricsMiddleware` identity'dan tashqarida turadi, ya'ni Control Center'dagi
+  p95 identity narxini ham qamrab oladi. **Raqam ko'rilmaguncha bu band hamon
+  ochilmaydi** — kesh xavfsizlik regressiyasi bo'lishi mumkin va uni
+  isbotlanmagan taxmin uchun olish mantiqsiz.
 
 ## T6 — Dead-letter replay · `S`
 
@@ -476,7 +551,7 @@ navbati esa umuman boshqa jadvalda.
 
 | Bosqich | Bandlar | Nega shu tartib |
 |---|---|---|
-| **Hozir (serversiz)** | ~~T0~~ ~~T1~~ ~~T2~~ (2026-09-11; T2 `PARTIAL`) → **T4 → T6** | T2 ning ikki qismi ma'lumot modeliga bog'liq va owner qaroriga qoldi. Qolganlari — launch kuni ko'rinish; hech biri AWS'ni kutmaydi |
+| **Hozir (serversiz)** | ~~T0~~ ~~T1~~ ~~T2~~ ~~T4~~ (2026-09-11/12; T2 `PARTIAL`) → **T6** | T2 ning ikki qismi ma'lumot modeliga bog'liq va owner qaroriga qoldi. T4 endi T5 uchun haqiqiy o'lchov beradi. Qolgani — dead-letter replay; AWS'ni kutmaydi |
 | **Server ochilganda** | T7 tekshiruvi, F10 qoldig'i | Webhook, Menu Button, Mini App webview |
 | **Launchdan keyin** | T3, T5, T8 | T3 owner tanlovini kutadi; T5 o'lchovni kutadi |
 
