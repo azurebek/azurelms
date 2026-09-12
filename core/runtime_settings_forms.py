@@ -180,6 +180,7 @@ class OperationalThresholdsForm(_AuditedSettingsForm):
 
     UNITS = {
         "backup_stale_after_days": "kundan keyin",
+        "backup_retention_days": "kun",
         "queue_age_amber_minutes": "daqiqa",
         "queue_age_red_minutes": "daqiqa",
     }
@@ -188,11 +189,13 @@ class OperationalThresholdsForm(_AuditedSettingsForm):
         model = OperationalSettings
         fields = (
             "backup_stale_after_days",
+            "backup_retention_days",
             "queue_age_amber_minutes",
             "queue_age_red_minutes",
         )
         labels = {
             "backup_stale_after_days": "Zaxira eskirgan hisoblanadi",
+            "backup_retention_days": "Zaxira saqlash muddati",
             "queue_age_amber_minutes": "Navbat yoshi: AMBER chegarasi",
             "queue_age_red_minutes": "Navbat yoshi: RED chegarasi",
         }

@@ -78,11 +78,48 @@ Saboq takrorlanuvchi: matn ustidagi tekshiruvda izohlar avval olib
 tashlanishi kerak, va meros olingan sozlama merosning **manbasida** ham
 tekshirilishi kerak.
 
+**PR #111 review to'rtta topilma berdi, hammasi haqiqiy, va birinchisi
+mening tuzatishimning UCHINCHI qurboni edi.**
+
+1. **P1 — rotatsiya `Permission denied` bilan yiqilardi.** Men qo'shgan
+   `find -delete` qatorini host cron'i `ubuntu` ostida yugurtiradi, lekin
+   faylni o'chirish uchun **papkaga yozish** huquqi kerak va `backups/`
+   men bergan `chown` bilan uid 10001 ga o'tgan. Ya'ni rotatsiya faqat
+   qog'ozda qolardi va to'sishi kerak bo'lgan disk to'lishi baribir sodir
+   bo'lardi. Bu `chown` ning uchinchi qurboni: avval cron logi (#110
+   review), endi rotatsiya.
+2. **P1 — muddat crontabda qotib turardi**, ya'ni siyosatni o'zgartirish
+   uchun SSH kerak bo'lardi — owner qoidasiga to'g'ridan-to'g'ri zid.
+3. **P1 — media probe faqat `MEDIA_ROOT` ni tekshirardi.** Holbuki to'lov
+   cheki, vazifa fayli, chat biriktirmasi va speaking audiosi ataylab
+   **`PRIVATE_MEDIA_ROOT`** da — alohida volume'da. Public volume ulanib
+   private mount unutilsa probe yashil turardi. Yomoni: `USE_S3=True`
+   faqat public media'ni uzoqqa ko'chiradi, private baribir lokal diskda
+   qoladi — ya'ni S3 rejimida probe uni umuman tekshirmasdan yashil
+   qaytarardi.
+4. **P2 — `SOURCE_VERSION` faqat birinchi ishga tushirishda** berilgan
+   edi; yangilash va rollback yo'llari konteynerlarni bo'sh qiymat bilan
+   qayta yaratib, release identity'ni yana `unknown` qilardi.
+
+Birinchi ikkitasi **bitta yechim** bilan yopildi va u to'g'ri yechim edi:
+`manage.py prune_backups` konteyner ichida yuguradi (huquq muammosi
+yo'qoladi) va muddatni `OperationalSettings.backup_retention_days` dan
+oladi (SSH'siz o'zgaradi). Bir qoida bo'yicha tuzatish ikkinchisini ham
+tuzatdi — belgi shuki, host'dan konteyner papkasiga tegish boshidan
+noto'g'ri qatlam edi.
+
+Yo'lda bitta qo'shimcha himoya: **eng yangi zaxira hech qachon
+o'chirilmaydi**, muddati o'tgan bo'lsa ham. Zaxira olish bir hafta yiqilib
+tursa hammasi "eski" bo'lib qoladi va rotatsiya oxirgi tiklash nuqtasini
+ham olib tashlardi.
+
+Review tuzatishi uchun yana besh sabotaj — beshtasi ham ushlandi.
+
 - Branch: `claude/deploy-blockers`
-- Test holati: to'liq suite **1733/1733 OK** (skipped=41); yangi
+- Test holati: to'liq suite **1754/1754 OK** (skipped=41); yangi
   `core/test_media_persistence.py` (12), `bot/test_setwebhook.py` (12),
-  `core/test_deploy_artifacts.py` (15)
-- Migratsiya: yo'q
+  `core/test_deploy_artifacts.py` (18), `core/test_backup_rotation.py` (14)
+- Migratsiya: `core.0004` — additive
 - Davom etilishi kerak: offsite zaxira; deploy owner qo'lida
 
 ---

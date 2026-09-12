@@ -544,51 +544,61 @@ def _media_probe(definition: CapabilityDefinition) -> CapabilityResult:
     from core.storage_persistence import EPHEMERAL, describe_media_root
 
     use_s3 = bool(getattr(settings, "USE_S3", False))
-    if use_s3:
-        if getattr(settings, "AWS_DEFAULT_ACL", None) == "public-read":
-            return _result(
-                definition,
-                "red",
-                "Remote media public-read; private learner fayllari uchun xavfli.",
-                backend="S3/Spaces",
-                access="public-read",
-            )
+    if use_s3 and getattr(settings, "AWS_DEFAULT_ACL", None) == "public-read":
         return _result(
             definition,
-            "green",
-            "Remote private storage sozlangan.",
+            "red",
+            "Remote media public-read; private learner fayllari uchun xavfli.",
             backend="S3/Spaces",
+            access="public-read",
         )
 
-    media_root = getattr(settings, "MEDIA_ROOT", "")
+    backend = "S3/Spaces" if use_s3 else "FileSystemStorage"
     if settings.IS_LOCAL:
         return _result(
             definition,
             "green",
-            "Local filesystem development rejimida.",
-            backend="FileSystemStorage",
-            media_root=str(media_root),
+            "Local filesystem development rejimida." if not use_s3
+            else "Remote private storage sozlangan.",
+            backend=backend,
         )
 
-    verdict, note = describe_media_root(media_root)
-    if verdict == EPHEMERAL:
+    # **Ikki ildiz, ikki alohida tekshiruv** (PR #111 review). `USE_S3=True`
+    # faqat **public** media'ni uzoqqa ko'chiradi; to'lov cheki, vazifa
+    # fayli, chat biriktirmasi va speaking audiosi ataylab `MEDIA_ROOT` dan
+    # tashqarida, `PRIVATE_MEDIA_ROOT` da qoladi va ular har doim lokal
+    # diskda. Faqat bittasini tekshirish ko'r nuqta edi: public volume
+    # ulanib, `private-media` mount unutilsa, probe yashil turib eng
+    # nozik fayllar konteyner bilan birga yo'qolardi.
+    roots = []
+    if not use_s3:
+        roots.append(("public", getattr(settings, "MEDIA_ROOT", "")))
+    roots.append(("private", getattr(settings, "PRIVATE_MEDIA_ROOT", "")))
+
+    details = {"backend": backend}
+    ephemeral = []
+    for name, root in roots:
+        verdict, note = describe_media_root(root)
+        details[f"{name}_root"] = str(root)
+        details[f"{name}_persistence"] = verdict
+        if verdict == EPHEMERAL:
+            ephemeral.append(name)
+
+    if ephemeral:
+        which = " va ".join(ephemeral)
         return _result(
             definition,
             "red",
-            "Media konteyner ichida, volume ulanmagan — konteyner qayta "
-            "qurilganda o'quvchi yuklagan fayllar yo'qoladi.",
-            backend="FileSystemStorage",
-            persistence=verdict,
-            media_root=str(media_root),
-            note=note,
+            f"Media ({which}) konteyner ichida, volume ulanmagan — konteyner "
+            "qayta qurilganda o'quvchi yuklagan fayllar yo'qoladi.",
+            **details,
         )
     return _result(
         definition,
         "green",
-        f"Media saqlanadigan diskda ({note}).",
-        backend="FileSystemStorage",
-        persistence=verdict,
-        media_root=str(media_root),
+        "Media saqlanadigan diskda"
+        + (" (public S3'da, private volume'da)." if use_s3 else "."),
+        **details,
     )
 
 

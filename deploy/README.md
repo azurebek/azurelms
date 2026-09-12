@@ -220,10 +220,16 @@ docker compose -f docker-compose.prod.yml run --rm web python manage.py shell
 Yangi versiyani chiqarish:
 
 ```bash
-git pull && docker compose -f docker-compose.prod.yml up -d --build
+git pull && export SOURCE_VERSION=$(git -C .. rev-parse HEAD) && docker compose -f docker-compose.prod.yml up -d --build
 ```
 
 `up -d --build` migratsiyani `migrate` servisi orqali o'zi qayta yugurtiradi.
+
+> `SOURCE_VERSION` bu yerda ham kerak. U faqat birinchi ishga tushirishda
+> berilsa, keyingi har bir yangilanish konteynerlarni bo'sh qiymat bilan
+> qayta yaratadi va Control Center release identity'ni yana `unknown`
+> ko'rsatadi — ya'ni nosozlik paytida serverda qaysi kod turgani noma'lum
+> bo'ladi.
 
 ### To'xtagan xabarlar
 
@@ -271,15 +277,33 @@ Har kuni avtomatik olish uchun `crontab -e` ga ikki qator:
 ```
 0 3 * * * cd /home/ubuntu/azurelms/deploy && docker compose -f docker-compose.prod.yml run --rm web python manage.py backup_db >> /home/ubuntu/azurelms/deploy/backup-cron.log 2>&1
 15 3 * * * cd /home/ubuntu/azurelms/deploy && docker compose -f docker-compose.prod.yml run --rm web python manage.py backup_media >> /home/ubuntu/azurelms/deploy/backup-cron.log 2>&1
-30 3 * * * find /home/ubuntu/azurelms/deploy/backups -maxdepth 1 \( -name 'db-*' -o -name 'media-*' \) -mtime +14 -delete
+30 3 * * * cd /home/ubuntu/azurelms/deploy && docker compose -f docker-compose.prod.yml run --rm web python manage.py prune_backups >> /home/ubuntu/azurelms/deploy/backup-cron.log 2>&1
 ```
 
 > **Uchinchi qator — rotatsiya, va usiz disk to'ladi.** Kuniga ikkita fayl
 > qo'shiladi va hech kim eskisini o'chirmaydi. Disk to'lganda nima
 > bo'lishini aniq bilamiz: `pg_dump` yiqiladi, yarim yozilgan fayl
 > o'chiriladi (ataylab), va siz buni zaxira chirog'i sariq bo'lgach —
-> ya'ni **zaxirasiz qolganingizda** — bilib qolasiz. 14 kun kamdek
-> tuyulsa oshiring, ammo cheksiz qoldirmang.
+> ya'ni **zaxirasiz qolganingizda** — bilib qolasiz.
+>
+> **Nega host'dagi `find -delete` emas.** Faylni o'chirish uchun
+> **papkaga yozish** huquqi kerak. `backups/` §3 da konteyner
+> foydalanuvchisiga (uid 10001) berilgan va `0755`, ya'ni `ubuntu`
+> undan fayl o'chira olmaydi — `find -delete` "Permission denied" bilan
+> chiqib, rotatsiya faqat qog'ozda qolardi. Buyruq esa konteyner ichida,
+> o'sha uid ostida yuguradi.
+>
+> **Muddat sozlamada**, crontabda emas:
+> `/backoffice/control/runtime-settings/` → «Zaxira saqlash muddati»
+> (default 14 kun). SSH'siz o'zgaradi. Nima o'chishini oldindan ko'rish:
+>
+> ```bash
+> docker compose -f docker-compose.prod.yml run --rm web python manage.py prune_backups --dry-run
+> ```
+>
+> Eng yangi zaxira **hech qachon** o'chirilmaydi, muddati o'tgan bo'lsa
+> ham — aks holda zaxira olish bir hafta yiqilib turgan holatda rotatsiya
+> oxirgi tiklash nuqtasini ham olib tashlardi.
 
 > **Log ataylab `backups/` dan TASHQARIDA.** `>>` redirecti cron'ning host
 > shelli tomonidan, `ubuntu` foydalanuvchi ostida ochiladi — Docker hali
@@ -337,7 +361,7 @@ docker compose -f docker-compose.prod.yml exec -T db pg_restore --clean --if-exi
 ```
 
 ```bash
-docker compose -f docker-compose.prod.yml up -d
+export SOURCE_VERSION=$(git -C .. rev-parse HEAD) && docker compose -f docker-compose.prod.yml up -d
 ```
 
 Media fayllarini tiklash ham qo'lda. Arxivni bo'sh papkaga chiqarib,
@@ -378,7 +402,7 @@ git log --oneline -5
 ```
 
 ```bash
-git checkout <oldingi-commit> && docker compose -f docker-compose.prod.yml up -d --build
+git checkout <oldingi-commit> && export SOURCE_VERSION=$(git -C .. rev-parse HEAD) && docker compose -f docker-compose.prod.yml up -d --build
 ```
 
 > Migratsiya qo'llangan release'dan orqaga qaytish sxemani o'zi qaytarmaydi.
@@ -400,6 +424,7 @@ git checkout <oldingi-commit> && docker compose -f docker-compose.prod.yml up -d
 | `Zaxira papkasi yozishga tayyor emas` | `backups/` host papkasi konteyner foydalanuvchisiga tegishli emas | Xato matnidagi `chown` buyrug'ini bajaring (§3) |
 | Zaxira chirog'i sariq, cron logida `Permission denied` | Yuqoridagi bilan bir xil sabab, eski deployda | `sudo chown -R 10001:10001 backups`, so'ng zaxirani qo'lda bir marta yugurting |
 | Cron logi umuman yozilmaydi / bo'sh | Log `backups/` ichiga yo'naltirilgan, u esa uid 10001 ga tegishli | Log yo'lini `deploy/backup-cron.log` ga ko'chiring (§6) |
+| Eski zaxiralar to'planyapti, disk to'lyapti | Rotatsiya host'dan `find -delete` bilan yugurtirilgan | `prune_backups` ni konteyner ichida yugurting (§6); host `ubuntu` o'sha papkadan fayl o'chira olmaydi |
 | `Telegram dispatcher` chirog'i qizil (polling) yoki uzoq sariq (webhook) | Polling'da bot jarayoni yo'q; webhook'da update umuman kelmayapti | `setwebhook` ni qayta yugurting va `logs web` da update ko'rinishini tekshiring |
 
 ---

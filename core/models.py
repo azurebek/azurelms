@@ -73,6 +73,16 @@ class OperationalSettings(models.Model):
         verbose_name="Zaxira necha kundan keyin eskirgan hisoblanadi",
         help_text="Shundan oshsa Control Center zaxira chirog'ini AMBER qiladi.",
     )
+    backup_retention_days = models.PositiveIntegerField(
+        default=14,
+        validators=[MinValueValidator(1), MaxValueValidator(3650)],
+        verbose_name="Zaxira necha kun saqlanadi",
+        help_text=(
+            "`manage.py prune_backups` shundan eski zaxiralarni o'chiradi. "
+            "Rotatsiyasiz disk to'ladi va buni zaxirasiz qolganingizda bilib "
+            "qolasiz. Qiymat kichik bo'lsa tiklanadigan nuqtalar kamayadi."
+        ),
+    )
     queue_age_amber_minutes = models.PositiveIntegerField(
         default=15,
         validators=[MinValueValidator(1), MaxValueValidator(1440)],

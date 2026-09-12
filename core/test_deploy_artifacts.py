@@ -222,8 +222,50 @@ class RunbookTests(SimpleTestCase):
 
     def test_old_backups_are_rotated(self):
         """Rotatsiyasiz disk to'ladi va buni zaxirasiz qolganda bilib qolasiz."""
-        text = readme_text()
-        self.assertIn("-mtime +", text, "eski zaxiralarni o'chiradigan qator yo'q")
+        self.assertIn("prune_backups", readme_text(), "rotatsiya qatori yo'q")
+
+    def test_rotation_does_not_delete_from_the_host(self):
+        """Host'dagi `find -delete` ishlamaydi (PR #111 review).
+
+        Faylni o'chirish uchun **papkaga yozish** huquqi kerak. `backups/`
+        konteyner foydalanuvchisiga (uid 10001) tegishli va `0755`, ya'ni
+        `ubuntu` undan fayl o'chira olmaydi — rotatsiya "Permission denied"
+        bilan chiqib, faqat qog'ozda qolardi.
+        """
+        for block in fenced_blocks(readme_text()):
+            for line in block.splitlines():
+                if "-delete" not in line:
+                    continue
+                self.assertIn(
+                    "docker compose", line,
+                    f"o'chirish host'dan bajarilyapti: {line.strip()}",
+                )
+
+    def test_the_retention_window_is_owner_configurable(self):
+        """Operatsion qiymat crontabda qotib qolmasligi kerak."""
+        from core.operational_settings import DEFAULTS
+
+        self.assertIn("backup_retention_days", DEFAULTS)
+        self.assertIn("runtime-settings", readme_text())
+
+    def test_every_compose_up_exports_the_release_sha(self):
+        """Aks holda keyingi deploy release identity'ni `unknown` qiladi.
+
+        Birinchi versiyada `SOURCE_VERSION` faqat birinchi ishga tushirish
+        buyrug'ida bor edi; yangilash va rollback yo'llari uni bermay,
+        konteynerlarni bo'sh qiymat bilan qayta yaratardi.
+        """
+        offenders = []
+        for block in fenced_blocks(readme_text()):
+            for line in block.splitlines():
+                if "compose" not in line or " up -d" not in line:
+                    continue
+                if "SOURCE_VERSION" not in line:
+                    offenders.append(line.strip()[:70])
+
+        self.assertEqual(
+            offenders, [], f"SOURCE_VERSION berilmagan `up -d` buyruqlari: {offenders}"
+        )
 
     def test_the_runbook_uses_the_webhook_command_without_dropping_updates(self):
         """`--drop-pending` ataylab so'raladi; runbook uni tavsiya qilmasin."""

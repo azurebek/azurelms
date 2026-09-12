@@ -112,10 +112,15 @@ class MediaProbeTests(TestCase):
         with patch("core.storage_persistence.in_container", return_value=True), patch(
             "core.storage_persistence.is_mount_point", return_value=True
         ):
-            result = self._probe(IS_LOCAL=False, USE_S3=False, MEDIA_ROOT="/app/media")
+            result = self._probe(
+                IS_LOCAL=False, USE_S3=False,
+                MEDIA_ROOT="/app/media", PRIVATE_MEDIA_ROOT="/app/private-media",
+            )
 
+        details = dict(result.details)
         self.assertEqual(result.status, "green")
-        self.assertEqual(dict(result.details)["persistence"], PERSISTENT)
+        self.assertEqual(details["public_persistence"], PERSISTENT)
+        self.assertEqual(details["private_persistence"], PERSISTENT)
 
     def test_production_without_a_volume_is_red(self):
         """Mount unutilgan bo'lsa fayllar haqiqatan yo'qoladi — RED to'g'ri."""
@@ -124,7 +129,10 @@ class MediaProbeTests(TestCase):
         with patch("core.storage_persistence.in_container", return_value=True), patch(
             "core.storage_persistence.is_mount_point", return_value=False
         ):
-            result = self._probe(IS_LOCAL=False, USE_S3=False, MEDIA_ROOT="/app/media")
+            result = self._probe(
+                IS_LOCAL=False, USE_S3=False,
+                MEDIA_ROOT="/app/media", PRIVATE_MEDIA_ROOT="/app/private-media",
+            )
 
         self.assertEqual(result.status, "red")
         self.assertIn("volume ulanmagan", result.summary)
@@ -134,10 +142,70 @@ class MediaProbeTests(TestCase):
         from unittest.mock import patch
 
         with patch("core.storage_persistence.in_container", return_value=False):
-            result = self._probe(IS_LOCAL=False, USE_S3=False, MEDIA_ROOT="/srv/media")
+            result = self._probe(
+                IS_LOCAL=False, USE_S3=False,
+                MEDIA_ROOT="/srv/media", PRIVATE_MEDIA_ROOT="/srv/private",
+            )
 
         self.assertEqual(result.status, "green")
-        self.assertEqual(dict(result.details)["persistence"], HOST_DISK)
+        self.assertEqual(dict(result.details)["public_persistence"], HOST_DISK)
+
+    def test_a_missing_private_volume_is_red_even_when_public_is_mounted(self):
+        """PR #111 review: eng nozik fayllar aynan `private-media` da.
+
+        To'lov cheki, vazifa fayli, chat biriktirmasi va speaking audiosi
+        ataylab `MEDIA_ROOT` dan tashqarida. Public volume ulanib, private
+        mount unutilsa, probe yashil turib ular konteyner bilan birga
+        yo'qolardi.
+        """
+        from unittest.mock import patch
+
+        def only_public_mounted(path):
+            return str(path) == "/app/media"
+
+        with patch("core.storage_persistence.in_container", return_value=True), patch(
+            "core.storage_persistence.is_mount_point", side_effect=only_public_mounted
+        ):
+            result = self._probe(
+                IS_LOCAL=False, USE_S3=False,
+                MEDIA_ROOT="/app/media", PRIVATE_MEDIA_ROOT="/app/private-media",
+            )
+
+        self.assertEqual(result.status, "red")
+        self.assertIn("private", result.summary)
+
+    def test_s3_still_checks_the_private_root(self):
+        """`USE_S3=True` faqat **public** media'ni uzoqqa ko'chiradi.
+
+        Private media dizayn bo'yicha lokal diskda qoladi va Django view
+        orqali beriladi. Ilgari S3 rejimida probe uni umuman tekshirmay
+        yashil qaytarardi.
+        """
+        from unittest.mock import patch
+
+        with patch("core.storage_persistence.in_container", return_value=True), patch(
+            "core.storage_persistence.is_mount_point", return_value=False
+        ):
+            result = self._probe(
+                IS_LOCAL=False, USE_S3=True, AWS_DEFAULT_ACL=None,
+                PRIVATE_MEDIA_ROOT="/app/private-media",
+            )
+
+        self.assertEqual(result.status, "red")
+        self.assertIn("private", result.summary)
+
+    def test_s3_with_a_mounted_private_volume_is_green(self):
+        from unittest.mock import patch
+
+        with patch("core.storage_persistence.in_container", return_value=True), patch(
+            "core.storage_persistence.is_mount_point", return_value=True
+        ):
+            result = self._probe(
+                IS_LOCAL=False, USE_S3=True, AWS_DEFAULT_ACL=None,
+                PRIVATE_MEDIA_ROOT="/app/private-media",
+            )
+
+        self.assertEqual(result.status, "green")
 
     def test_public_read_s3_is_still_red(self):
         """Eski himoya buzilmasligi kerak — private fayllar uchun xavfli."""
@@ -163,7 +231,10 @@ class ReadinessTests(TestCase):
         with patch("core.storage_persistence.in_container", return_value=True), patch(
             "core.storage_persistence.is_mount_point", return_value=True
         ):
-            with override_settings(IS_LOCAL=False, USE_S3=False, MEDIA_ROOT="/app/media"):
+            with override_settings(
+                IS_LOCAL=False, USE_S3=False,
+                MEDIA_ROOT="/app/media", PRIVATE_MEDIA_ROOT="/app/private-media",
+            ):
                 result = _media_probe(DEFINITION)
 
         self.assertNotEqual(
