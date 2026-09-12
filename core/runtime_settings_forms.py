@@ -111,6 +111,7 @@ class BotDeliverySettingsForm(_AuditedSettingsForm):
         "max_backoff_seconds": "soniya",
         "metrics_flush_seconds": "soniya",
         "metrics_window_seconds": "soniya",
+        "dead_letter_replay_limit": "qator",
     }
 
     class Meta:
@@ -126,6 +127,7 @@ class BotDeliverySettingsForm(_AuditedSettingsForm):
             "max_backoff_seconds",
             "metrics_flush_seconds",
             "metrics_window_seconds",
+            "dead_letter_replay_limit",
         )
         labels = {
             "dm_batch_size": "DM navbati: bir siklda",
@@ -138,6 +140,7 @@ class BotDeliverySettingsForm(_AuditedSettingsForm):
             "max_backoff_seconds": "Maksimal kutish",
             "metrics_flush_seconds": "Kuzatuv yozuvi oralig'i",
             "metrics_window_seconds": "O'lchov oynasi",
+            "dead_letter_replay_limit": "Dead-letter: bir amalda",
         }
 
 

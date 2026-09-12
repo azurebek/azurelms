@@ -63,6 +63,7 @@ urlpatterns = [
     path('backoffice/control/flags/', core_views.backoffice_feature_flags, name='backoffice_feature_flags'),
     path('backoffice/control/runtime-settings/', core_views.backoffice_runtime_settings, name='backoffice_runtime_settings'),
     path('backoffice/control/ai-cost/', core_views.backoffice_ai_cost, name='backoffice_ai_cost'),
+    path('backoffice/control/dead-letter/', core_views.backoffice_dead_letter, name='backoffice_dead_letter'),
     path('backoffice/control/brand/', core_views.backoffice_brand, name='backoffice_brand'),
     path('backoffice/landing/', core_views.backoffice_landing, name='backoffice_landing'),
     path('backoffice/receipts/', core_views.backoffice_receipts, name='backoffice_receipts'),

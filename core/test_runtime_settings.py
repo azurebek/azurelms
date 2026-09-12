@@ -313,6 +313,7 @@ class RuntimeSettingsSurfaceTests(TestCase):
                 "max_backoff_seconds": 900,
                 "metrics_flush_seconds": 30,
                 "metrics_window_seconds": 300,
+                "dead_letter_replay_limit": 200,
                 "change_reason": "sinov",
                 "confirm_change": "on",
             }
@@ -370,6 +371,8 @@ class RuntimeSettingsSurfaceTests(TestCase):
             "dispatcher_stale_after_seconds", "dispatcher_dead_after_seconds",
             "handler_latency_amber_ms", "handler_latency_red_ms",
             "handler_error_amber_percent", "handler_error_red_percent",
+            # T6 — dead-letter replay chegarasi.
+            "dead_letter_replay_limit",
         ]
         for name in expected:
             self.assertContains(

@@ -1,0 +1,137 @@
+{% extends "backoffice/base.html" %}
+{% load static %}
+
+{% block bo_title %}Dead-letter{% endblock %}
+{% block bo_icon %}bi-arrow-counterclockwise{% endblock %}
+{% block bo_topbar %}To'xtagan xabarlarni navbatga qaytarish{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/brand-control.css' %}">{% endblock %}
+
+{% block bo_content %}
+<section class="brand-hero">
+  <div>
+    <span class="brand-kicker">DEAD-LETTER</span>
+    <h1>To'xtagan xabarlar</h1>
+    <p>Urinishlari tugagan yoki tuzalmaydigan xato olgan xabar navbatda <strong>terminal</strong> bo'ladi — o'zi hech qachon qaytmaydi. Sabab bartaraf etilgach (token tuzatildi, tarmoq tiklandi, blok yechildi) uni shu yerdan qaytarasiz.</p>
+    <p>Qaytarish urinish hisoblagichini <strong>noldan</strong> boshlaydi va xabar keyingi worker siklida olinadi. Har amal sababi bilan audit tarixiga yoziladi.</p>
+  </div>
+  <a class="brand-back" href="{% url 'backoffice_control' %}"><i class="bi bi-arrow-left"></i> Control Center</a>
+</section>
+
+<div class="brand-layout">
+  <div>
+    <form class="brand-form" method="post">
+      {% csrf_token %}
+      {% if form.non_field_errors %}<div class="brand-errors">{{ form.non_field_errors }}</div>{% endif %}
+
+      <section class="brand-panel">
+        <div class="brand-panel-head">
+          <span>01</span>
+          <div>
+            <h2>Terminal navbat</h2>
+            {% if summary.total %}
+              <p>Jami <strong>{{ summary.total }}</strong> ta: {{ summary.dm }} shaxsiy, {{ summary.group }} guruh. Shundan <strong>{{ summary.permanent }}</strong> tasi «hech qachon tuzalmaydi» turida.</p>
+            {% else %}
+              <p>Navbatda terminal xabar yo'q.</p>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if rows %}
+          {% if truncated %}
+            <p class="brand-empty">Ro'yxat <strong>{{ limit }}</strong> qator bilan cheklangan — yana {{ truncated }} tasi ko'rinmayapti. Bularni qaytargach sahifani qayta ochsangiz keyingi guruh chiqadi. Chegara <a class="brand-link" href="{% url 'backoffice_runtime_settings' %}">operatsion sozlamalarda</a>.</p>
+          {% endif %}
+          {% for error in form.rows.errors %}<em class="brand-check-error">{{ error }}</em>{% endfor %}
+          <table class="brand-table">
+            <thead>
+              <tr>
+                <th>Qaytarish</th>
+                <th>Navbat</th>
+                <th>Kimga</th>
+                <th>Xabar</th>
+                <th>Nosozlik</th>
+                <th>Urinish</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for checkbox, row in form.selectable_rows %}
+                <tr>
+                  <td>{{ checkbox.tag }}</td>
+                  <td>{{ row.queue_label }}<br><span class="brand-badge">{{ row.label }}</span></td>
+                  <td>{{ row.target }}</td>
+                  <td>{{ row.preview|default:"—" }}<br><small>{{ row.created_at|date:"d.m.Y H:i" }}</small></td>
+                  <td>
+                    {% if row.is_permanent %}
+                      <span class="brand-badge brand-badge--warn">hech qachon tuzalmaydi</span>
+                    {% else %}
+                      <span class="brand-badge">{{ row.failure_kind|default:"noma'lum" }}</span>
+                    {% endif %}
+                    {% if row.last_error %}<br><small>{{ row.last_error }}</small>{% endif %}
+                  </td>
+                  <td>{{ row.attempts }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p class="brand-empty">Qaytariladigan narsa yo'q — bu yaxshi holat. Xabar bu yerga faqat urinishlari tugaganda yoki tuzalmaydigan xato olganda tushadi.</p>
+        {% endif %}
+      </section>
+
+      {% if rows %}
+        <section class="brand-panel">
+          <div class="brand-panel-head"><span>02</span><div><h2>Sabab va tasdiq</h2><p>Audit tarixiga yoziladi.</p></div></div>
+          <div class="brand-fields">
+            <label class="brand-field">
+              <span>{{ form.change_reason.label }}</span>
+              {{ form.change_reason }}
+              {% if form.change_reason.help_text %}<small>{{ form.change_reason.help_text }}</small>{% endif %}
+              {% for error in form.change_reason.errors %}<em>{{ error }}</em>{% endfor %}
+            </label>
+            <label class="brand-field brand-field--check">
+              {{ form.confirm_change }} <span>{{ form.confirm_change.label }}</span>
+              {% for error in form.confirm_change.errors %}<em>{{ error }}</em>{% endfor %}
+            </label>
+            {% if form.permanent_available %}
+              <label class="brand-field brand-field--check">
+                {{ form.acknowledge_permanent }} <span>{{ form.acknowledge_permanent.label }}</span>
+                <small>{{ form.acknowledge_permanent.help_text }}</small>
+                {% for error in form.acknowledge_permanent.errors %}<em>{{ error }}</em>{% endfor %}
+              </label>
+            {% endif %}
+          </div>
+        </section>
+
+        <button class="brand-submit" type="submit"><i class="bi bi-arrow-counterclockwise"></i> Tanlanganlarni navbatga qaytarish</button>
+      {% endif %}
+    </form>
+  </div>
+
+  <aside class="brand-side">
+    <section class="brand-panel">
+      <div class="brand-panel-head"><span><i class="bi bi-clock-history"></i></span><div><h2>So'nggi qaytarishlar</h2></div></div>
+      <ul class="brand-history">
+        {% for event in recent_replays %}
+          <li>
+            <strong>{{ event.created_at|date:"d.m.Y H:i" }}</strong>
+            <span>{{ event.after.replayed }} xabar qaytarildi</span>
+            {% if event.actor %}<small>{{ event.actor.get_full_name|default:event.actor.username }}</small>{% endif %}
+            {% if event.reason %}<em>{{ event.reason }}</em>{% endif %}
+          </li>
+        {% empty %}
+          <li><span>Hali hech narsa qaytarilmagan.</span></li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    <section class="brand-panel">
+      <div class="brand-panel-head"><span><i class="bi bi-info-circle"></i></span><div><h2>Nima o'zgaradi</h2></div></div>
+      <ul class="brand-history">
+        <li><span>Urinish hisoblagichi <strong>nolga</strong> qaytadi — aks holda xabar birinchi xatoda darhol yana to'xtardi.</span></li>
+        <li><span>Kutish vaqti tozalanadi: xabar keyingi siklda darhol olinadi.</span></li>
+        <li><span>Eski xato matni o'chiriladi, ammo audit yozuvining <strong>oldingi holati</strong>da saqlanib qoladi.</span></li>
+        <li><span>Ikki marta bosilsa xabar ikki marta ketmaydi: faqat hamon to'xtagan qatorlar qaytariladi.</span></li>
+      </ul>
+    </section>
+  </aside>
+</div>
+{% endblock %}
