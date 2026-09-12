@@ -17,6 +17,7 @@ from pathlib import Path
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
+from core.backup_target import describe_write_problem
 from core.media_backup import (
     ARCHIVE_SUFFIX,
     MediaBackupError,
@@ -47,6 +48,12 @@ class Command(BaseCommand):
         roots = media_roots()
         for section, root in roots:
             self.stdout.write(f"  {section:8s}: {root}")
+
+        # `tarfile` ning `PermissionError` i xom traceback bo'lib chiqadi va
+        # cron logida sababni tushuntirmaydi.
+        problem = describe_write_problem(Path(destination).parent)
+        if problem:
+            raise CommandError(problem)
 
         try:
             written = create_media_backup(destination)

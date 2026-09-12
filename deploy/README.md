@@ -84,8 +84,17 @@ sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swapf
 ## 3. Kodni olish va env to'ldirish
 
 ```bash
-git clone https://github.com/azurebek/azurelms.git && cd azurelms/deploy && mkdir -p backups && cp env.example .env && chmod 600 .env
+git clone https://github.com/azurebek/azurelms.git && cd azurelms/deploy && mkdir -p backups && sudo chown -R 10001:10001 backups && cp env.example .env && chmod 600 .env
 ```
+
+> **`chown` ni o'tkazib yubormang.** `backups/` konteynerga **bind mount**
+> bilan beriladi, bind mount esa host papkasining egaligini saqlaydi.
+> `git clone` qilgan foydalanuvchi (`ubuntu`, uid 1000) yaratgan `0755`
+> papkaga konteynerdagi ilova foydalanuvchisi (`Dockerfile`, uid **10001**)
+> yoza olmaydi — ya'ni kechasi yuguradigan zaxira cron'i **har kuni
+> yiqilardi** va buni Control Center zaxira chirog'i sariq bo'lgunicha
+> (default 7 kun) hech kim sezmasdi. Unutilsa `backup_db`/`backup_media`
+> yozishdan oldin to'xtaydi va aynan shu buyruqni ko'rsatadi.
 
 ```bash
 nano .env
@@ -153,6 +162,24 @@ capability'lar; birortasi `red` bo'lsa `503` qaytadi va javobda **qaysi biri**
 ekani yozilgan bo'ladi. To'liq manzara: `/backoffice/control/`
 (Azure Control Center).
 
+Zaxira yo'lini **birinchi kuni** bir marta qo'lda yugurtiring — cron kechasi
+birinchi marta ishlaganda emas, hozir bilib qo'ygan yaxshi:
+
+```bash
+docker compose -f docker-compose.prod.yml run --rm web python manage.py backup_media
+```
+
+**Birinchi ochilishda ikki chiroq sariq bo'lishi normal:**
+
+| Chiroq | Nega sariq | Qachon yashil bo'ladi |
+|---|---|---|
+| `Telegram dispatcher` | Webhook rejimida bot o'z holatini faqat **update kelganda** yozadi, ya'ni hali hech kim yozmagan | Botga birinchi `/start` kelganda |
+| `Zaxira` | Hali birorta zaxira olinmagan | Yuqoridagi buyruqdan keyin |
+
+Dispatcher chirog'i birinchi update'dan keyin ham sariq qolsa, xabar
+aniq bo'ladi: «hali birorta update kelmagan» — bu odatda `setwebhook`
+qilinmaganini bildiradi (keyingi bo'lim).
+
 ---
 
 ## 5. Telegram webhook
@@ -193,6 +220,18 @@ git pull && docker compose -f docker-compose.prod.yml up -d --build
 
 `up -d --build` migratsiyani `migrate` servisi orqali o'zi qayta yugurtiradi.
 
+### To'xtagan xabarlar
+
+Telegram xabari urinishlari tugagach yoki tuzalmaydigan xato olgach
+**terminal** bo'ladi va o'zi hech qachon qaytmaydi. Sabab bartaraf
+etilgandan keyin (token tuzatildi, tarmoq tiklandi, blok yechildi) uni
+`/backoffice/control/dead-letter/` dan sabab bilan navbatga qaytarasiz.
+
+Ikki marta bosish xabarni ikki marta yubormaydi, va har qaytarish audit
+tarixiga yoziladi. «Hech qachon tuzalmaydi» turidagi xabar (foydalanuvchi
+botni bloklagan, bot guruhdan chiqarilgan) alohida tasdiq so'raydi — uni
+blok yechilmasdan qaytarish faqat rate budjetini yeydi.
+
 ### Zaxira
 
 Zaxira **canonical buyruq** orqali olinadi — u `pg_dump -Fc` ni chaqiradi va
@@ -225,10 +264,18 @@ ko'rinmay ketmasligi uchun.
 Har kuni avtomatik olish uchun `crontab -e` ga ikki qator:
 
 ```
-0 3 * * * cd /home/ubuntu/azurelms/deploy && docker compose -f docker-compose.prod.yml run --rm web python manage.py backup_db >> backups/cron.log 2>&1
-15 3 * * * cd /home/ubuntu/azurelms/deploy && docker compose -f docker-compose.prod.yml run --rm web python manage.py backup_media >> backups/cron.log 2>&1
+0 3 * * * cd /home/ubuntu/azurelms/deploy && docker compose -f docker-compose.prod.yml run --rm web python manage.py backup_db >> /home/ubuntu/azurelms/deploy/backup-cron.log 2>&1
+15 3 * * * cd /home/ubuntu/azurelms/deploy && docker compose -f docker-compose.prod.yml run --rm web python manage.py backup_media >> /home/ubuntu/azurelms/deploy/backup-cron.log 2>&1
 ```
 
+> **Log ataylab `backups/` dan TASHQARIDA.** `>>` redirecti cron'ning host
+> shelli tomonidan, `ubuntu` foydalanuvchi ostida ochiladi — Docker hali
+> ishga tushmasdan oldin. `backups/` esa §3 da konteyner foydalanuvchisiga
+> (uid 10001) berilgan, ya'ni log o'sha yerda bo'lsa `ubuntu` faylni yarata
+> olmay, **redirect yiqilardi va zaxira buyrug'i umuman ishga tushmasdi**.
+> Bu avvalgi nuqsondan ham yomon holat: hech narsa yugurmaydi va sababni
+> yozadigan log ham yo'q.
+>
 > `deploy/backups/` host papkasi compose'da konteynerning `/app/backups` iga
 > mount qilingan. Mount bo'lmasa buyruqlar faylni ephemeral konteyner ichiga
 > yozardi va u konteyner bilan birga yo'qolardi — cron har kuni ishlab
@@ -322,6 +369,10 @@ git checkout <oldingi-commit> && docker compose -f docker-compose.prod.yml up -d
 | Bot javob bermaydi | Webhook secret'siz o'rnatilgan yoki `TELEGRAM_MODE` `webhook` emas | `.env` ni tekshirib `setwebhook` ni qayta yugurting |
 | Rasm/fayl 404 | `USE_S3=False` da public media'ni Caddy tarqatadi | `media` volume Caddy'ga mount qilinganini tekshiring |
 | AI javob bermaydi, logda kvota xatosi | Gemini bepul kvotasi tugagan | Control Center'dagi AI supply ledgerini ko'ring; kvota kunlik tiklanadi |
+| `Zaxira papkasi yozishga tayyor emas` | `backups/` host papkasi konteyner foydalanuvchisiga tegishli emas | Xato matnidagi `chown` buyrug'ini bajaring (§3) |
+| Zaxira chirog'i sariq, cron logida `Permission denied` | Yuqoridagi bilan bir xil sabab, eski deployda | `sudo chown -R 10001:10001 backups`, so'ng zaxirani qo'lda bir marta yugurting |
+| Cron logi umuman yozilmaydi / bo'sh | Log `backups/` ichiga yo'naltirilgan, u esa uid 10001 ga tegishli | Log yo'lini `deploy/backup-cron.log` ga ko'chiring (§6) |
+| `Telegram dispatcher` chirog'i qizil (polling) yoki uzoq sariq (webhook) | Polling'da bot jarayoni yo'q; webhook'da update umuman kelmayapti | `setwebhook` ni qayta yugurting va `logs web` da update ko'rinishini tekshiring |
 
 ---
 

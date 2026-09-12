@@ -16,6 +16,106 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-12 [Claude]: Deploy oldi tekshiruvi — zaxira papkasi nuqsoni
+
+Azurbek AWS hisobi ochilganini aytdi, ya'ni deploy endi haqiqiy. Serverga
+chiqishdan oldin `deploy/` artefaktlarini qatorma-qator tekshirdim — oxirgi
+marta shunday qilganda `backups/` mount nuqsoni topilgan edi (PR #100).
+
+**Topilgani — yana o'sha oila, endi egalik tomondan.** `deploy/backups`
+konteynerga **bind mount** bilan beriladi, bind mount esa host papkasining
+egaligini saqlaydi: image ichidagi `chown` unga tegmaydi. Runbook `mkdir -p
+backups` ni `git clone` qilgan foydalanuvchi (`ubuntu`, uid 1000) ostida
+bajaradi, konteyner esa ataylab root emas — `Dockerfile` da
+`useradd --uid 10001`. Ya'ni uid 10001 uid 1000 ga tegishli `0755` papkaga
+**yoza olmaydi** va kechasi yuguradigan zaxira cron'i **har kuni yiqilardi**.
+
+Nuqson sof jim emas — `pg_dump` xatosi cron logiga tushardi — lekin
+chalg'ituvchi: Control Center zaxira chirog'i faqat `backup_stale_after_days`
+(default 7) o'tgach sariq bo'ladi. Beta guruhi ishlab turgan haftada zaxirasiz
+qolish qabul qilib bo'lmaydigan narx.
+
+**Uch qatlam qilindi:**
+
+1. **Runbook** — `git clone` qatoriga `sudo chown -R 10001:10001 backups`
+   qo'shildi, sababi bilan.
+2. **Compose izohi** — bind mount egalikni saqlashi o'sha volume qatorining
+   yonida yozildi.
+3. **Buyruqlarning o'zi** (`core/backup_target.py`) — `backup_db` va
+   `backup_media` yozishdan **oldin** papkani tekshiradi va yozib bo'lmasa
+   aynan shu `chown` buyrug'ini ko'rsatib to'xtaydi. Sabab: `pg_dump` ning
+   o'z xatosi («could not open output file») **alomatni** aytadi, serverdagi
+   haqiqiy sababni emas. Soat uchda cron logini o'qiyotgan odam uchun bu
+   ikki soatlik qidiruv bilan ikki daqiqalik tuzatish orasidagi farq.
+
+Tekshiruv `os.access` bilan emas, **haqiqiy yozib ko'rish** bilan: `os.access`
+faqat mode bitlariga qaraydi va read-only mount, to'lgan disk yoki SELinux'ni
+ko'rmaydi.
+
+**Nazorat yugurishi 5 sabotaj, 4 tasi ushlandi.** Ikkita qayd:
+
+- **Mening testim substring nuqsoni bilan yozilgan edi.** «Dockerfile dagi uid
+  bilan mos» testi `assertIn(f"--uid {UID}")` qilardi — `--uid 1000` matni
+  `--uid 10001` ning **ichida bor**, ya'ni noto'g'ri uid ham "topilgan"
+  bo'lardi. Regex bilan raqam butunligicha solishtiriladigan qilindi.
+- **Beshinchi sabotaj (`os.access` ga qaytish) unit test bilan ajratilmaydi**
+  va buni yashirmadim: ikki usul ham mode bitlarini bir xil o'qiydi, farq
+  faqat real serverdagi holatlarda ko'rinadi. Kod izohida ham, test faylida
+  ham yozib qo'yildi — kimdir keyinroq "soddalashtirsa" testlar yashil
+  qolishini biladigan bo'lsin.
+
+**Qolgan audit toza chiqdi:** `env.example` da `settings.py` talab qiladigan
+majburiy o'zgaruvchilarning hammasi bor (yo'qlari — S3, DigitalOcean va
+`DB_*`/`REDIS_*` alternativ yo'llari, ular ataylab yopiq); production-shaklidagi
+muhitda `check --deploy` toza; `collectstatic` build paytida
+`APP_ENV=local` bilan yugursa ham `staticfiles` storage'i ikkala tarmoqda bir
+xil (`HashedStaticFilesStorage`), ya'ni manifest farqi yo'q.
+
+Runbookka T4 va T6 ham qo'shildi: birinchi ochilishda **ikki chiroq sariq
+bo'lishi normal** (webhook rejimida dispatcher birinchi update'gacha, zaxira
+esa birinchi zaxiragacha) va to'xtagan xabarlar sahifasi kundalik ish
+bo'limida.
+
+**PR #110 review ikki topilma berdi va birinchisi mening tuzatishim yasagan
+YANGI nuqson edi.** Buni alohida yozib qo'yaman, chunki saboq aniq: nosozlikni
+tuzatayotganda o'sha yo'ldagi **boshqa** foydalanuvchini unutish oson.
+
+1. **P1 — `chown` cron logini o'ldirardi.** Runbookdagi cron qatorlari
+   `>> backups/cron.log` bilan yozadi, va bu redirectni **host shelli**
+   `ubuntu` ostida, Docker ishga tushmasdan **oldin** ochadi. Men `backups/`
+   ni uid 10001 ga berib, `ubuntu` ni o'sha papkadan chiqarib yubordim —
+   ya'ni redirect yiqilib, zaxira buyrug'i **umuman ishga tushmasdi**. Bu
+   asl nuqsondan ham yomon holat: hech narsa yugurmaydi va sababni yozadigan
+   log ham yo'q. Log `deploy/backup-cron.log` ga ko'chirildi — u zaxira
+   artefakti emas, shuning uchun zaxira papkasida turishi ham kerak emas edi.
+2. **P2 — tavsiya har doim `chown deploy/backups` deb yozardi.** `--output`
+   boshqa papkani ko'rsatganda, disk to'lganda va fayl tizimi read-only
+   bo'lganda bu **noto'g'ri** maslahat edi. Noto'g'ri tavsiya tavsiyasizlikdan
+   yomonroq: operator uni bajaradi, muammo davom etadi va endi u xato
+   matniga ham ishonmaydi. Endi tavsiya `errno` ga qarab tanlanadi
+   (`ENOSPC` → `df -h`, `EROFS` → `mount`, `EACCES` → egalik, `EEXIST` →
+   `ls -la`) va bind mount bo'lmagan yo'l uchun **o'sha yo'l** ko'rsatiladi.
+
+Ikkinchisida nozik qism bor: konteyner ichida yo'l `/app/backups`, ammo
+`chown` **host** papkasiga qilinadi. Konteyner ichidagi yo'lni ko'rsatish
+bajarib bo'lmaydigan buyruq bergan bo'lardi, shuning uchun bind mount alohida
+aniqlanadi. Buyruq matnlaridagi yo'l POSIX shaklida — ular Linuxda
+bajariladi, Windows'dagi `Path` esa teskari chiziq qo'yardi.
+
+Review tuzatishi uchun yana uch sabotaj: hamma sababga bitta chown,
+bind mountga konteyner yo'li, read-only'ni huquq muammosi deb qarash —
+uchalasi ham ushlandi.
+
+- Branch: `claude/deploy-preflight`
+- Test holati: to'liq suite **1694/1694 OK** (skipped=41); yangi
+  `core/test_backup_target.py` (14)
+- Migratsiya: yo'q
+- Davom etilishi kerak: deploy owner qo'lida — AWS konsolidagi qadamlar
+  (EC2, Elastic IP, DNS, security group) va `.env` dagi sirlar men
+  kirmaydigan joy
+
+---
+
 ## 2026-09-12 [Claude]: T6 — dead-letter replay
 
 PR #101 dead-letter'ni **qurdi** va u yerda to'xtadi: urinishlari tugagan

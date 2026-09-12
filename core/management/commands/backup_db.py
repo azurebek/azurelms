@@ -12,6 +12,7 @@ from pathlib import Path
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
+from core.backup_target import describe_write_problem
 from core.backup_service import BackupError, create_backup, default_backup_suffix
 
 
@@ -33,6 +34,14 @@ class Command(BaseCommand):
             # ochishga urinish chalkash xato beradi, va aksincha.
             suffix = default_backup_suffix()
             destination = Path(settings.BASE_DIR) / "backups" / f"db-{stamp}{suffix}"
+
+        # Yozib bo'lmasligini OLDIN aytamiz. `pg_dump` ning o'z xatosi
+        # ("could not open output file") sababni emas, alomatni ko'rsatadi
+        # va serverdagi haqiqiy sabab — bind mount egaligi — undan
+        # ko'rinmaydi.
+        problem = describe_write_problem(Path(destination).parent)
+        if problem:
+            raise CommandError(problem)
 
         try:
             written = create_backup(destination)

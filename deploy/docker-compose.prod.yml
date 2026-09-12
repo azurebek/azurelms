@@ -39,6 +39,14 @@ x-app: &app
     # yo'qoladi — ya'ni runbookdagi cron qatori har kuni ishlab turgandek
     # ko'rinib, aslida hech narsa saqlamaydi. Control Center backup probe'i
     # ham aynan shu papkaga qaraydi (`BASE_DIR/backups`).
+    #
+    # Bind mount host papkasining EGALIGINI saqlaydi — image ichidagi
+    # `chown` unga tegmaydi. Konteyner esa root emas (`Dockerfile`:
+    # `useradd --uid 10001`), ya'ni `git clone` qilgan foydalanuvchi
+    # yaratgan `0755` papkaga yoza olmaydi. Serverda bir marta:
+    #   sudo chown -R 10001:10001 backups
+    # Unutilsa `backup_db`/`backup_media` yozishdan oldin to'xtaydi va shu
+    # buyruqni ko'rsatadi (`core/backup_target.py`).
     - ./backups:/app/backups
   depends_on:
     db:
