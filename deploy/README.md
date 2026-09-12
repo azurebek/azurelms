@@ -264,10 +264,18 @@ ko'rinmay ketmasligi uchun.
 Har kuni avtomatik olish uchun `crontab -e` ga ikki qator:
 
 ```
-0 3 * * * cd /home/ubuntu/azurelms/deploy && docker compose -f docker-compose.prod.yml run --rm web python manage.py backup_db >> backups/cron.log 2>&1
-15 3 * * * cd /home/ubuntu/azurelms/deploy && docker compose -f docker-compose.prod.yml run --rm web python manage.py backup_media >> backups/cron.log 2>&1
+0 3 * * * cd /home/ubuntu/azurelms/deploy && docker compose -f docker-compose.prod.yml run --rm web python manage.py backup_db >> /home/ubuntu/azurelms/deploy/backup-cron.log 2>&1
+15 3 * * * cd /home/ubuntu/azurelms/deploy && docker compose -f docker-compose.prod.yml run --rm web python manage.py backup_media >> /home/ubuntu/azurelms/deploy/backup-cron.log 2>&1
 ```
 
+> **Log ataylab `backups/` dan TASHQARIDA.** `>>` redirecti cron'ning host
+> shelli tomonidan, `ubuntu` foydalanuvchi ostida ochiladi — Docker hali
+> ishga tushmasdan oldin. `backups/` esa §3 da konteyner foydalanuvchisiga
+> (uid 10001) berilgan, ya'ni log o'sha yerda bo'lsa `ubuntu` faylni yarata
+> olmay, **redirect yiqilardi va zaxira buyrug'i umuman ishga tushmasdi**.
+> Bu avvalgi nuqsondan ham yomon holat: hech narsa yugurmaydi va sababni
+> yozadigan log ham yo'q.
+>
 > `deploy/backups/` host papkasi compose'da konteynerning `/app/backups` iga
 > mount qilingan. Mount bo'lmasa buyruqlar faylni ephemeral konteyner ichiga
 > yozardi va u konteyner bilan birga yo'qolardi — cron har kuni ishlab
@@ -363,6 +371,7 @@ git checkout <oldingi-commit> && docker compose -f docker-compose.prod.yml up -d
 | AI javob bermaydi, logda kvota xatosi | Gemini bepul kvotasi tugagan | Control Center'dagi AI supply ledgerini ko'ring; kvota kunlik tiklanadi |
 | `Zaxira papkasi yozishga tayyor emas` | `backups/` host papkasi konteyner foydalanuvchisiga tegishli emas | Xato matnidagi `chown` buyrug'ini bajaring (§3) |
 | Zaxira chirog'i sariq, cron logida `Permission denied` | Yuqoridagi bilan bir xil sabab, eski deployda | `sudo chown -R 10001:10001 backups`, so'ng zaxirani qo'lda bir marta yugurting |
+| Cron logi umuman yozilmaydi / bo'sh | Log `backups/` ichiga yo'naltirilgan, u esa uid 10001 ga tegishli | Log yo'lini `deploy/backup-cron.log` ga ko'chiring (§6) |
 | `Telegram dispatcher` chirog'i qizil (polling) yoki uzoq sariq (webhook) | Polling'da bot jarayoni yo'q; webhook'da update umuman kelmayapti | `setwebhook` ni qayta yugurting va `logs web` da update ko'rinishini tekshiring |
 
 ---

@@ -76,9 +76,39 @@ bo'lishi normal** (webhook rejimida dispatcher birinchi update'gacha, zaxira
 esa birinchi zaxiragacha) va to'xtagan xabarlar sahifasi kundalik ish
 bo'limida.
 
+**PR #110 review ikki topilma berdi va birinchisi mening tuzatishim yasagan
+YANGI nuqson edi.** Buni alohida yozib qo'yaman, chunki saboq aniq: nosozlikni
+tuzatayotganda o'sha yo'ldagi **boshqa** foydalanuvchini unutish oson.
+
+1. **P1 — `chown` cron logini o'ldirardi.** Runbookdagi cron qatorlari
+   `>> backups/cron.log` bilan yozadi, va bu redirectni **host shelli**
+   `ubuntu` ostida, Docker ishga tushmasdan **oldin** ochadi. Men `backups/`
+   ni uid 10001 ga berib, `ubuntu` ni o'sha papkadan chiqarib yubordim —
+   ya'ni redirect yiqilib, zaxira buyrug'i **umuman ishga tushmasdi**. Bu
+   asl nuqsondan ham yomon holat: hech narsa yugurmaydi va sababni yozadigan
+   log ham yo'q. Log `deploy/backup-cron.log` ga ko'chirildi — u zaxira
+   artefakti emas, shuning uchun zaxira papkasida turishi ham kerak emas edi.
+2. **P2 — tavsiya har doim `chown deploy/backups` deb yozardi.** `--output`
+   boshqa papkani ko'rsatganda, disk to'lganda va fayl tizimi read-only
+   bo'lganda bu **noto'g'ri** maslahat edi. Noto'g'ri tavsiya tavsiyasizlikdan
+   yomonroq: operator uni bajaradi, muammo davom etadi va endi u xato
+   matniga ham ishonmaydi. Endi tavsiya `errno` ga qarab tanlanadi
+   (`ENOSPC` → `df -h`, `EROFS` → `mount`, `EACCES` → egalik, `EEXIST` →
+   `ls -la`) va bind mount bo'lmagan yo'l uchun **o'sha yo'l** ko'rsatiladi.
+
+Ikkinchisida nozik qism bor: konteyner ichida yo'l `/app/backups`, ammo
+`chown` **host** papkasiga qilinadi. Konteyner ichidagi yo'lni ko'rsatish
+bajarib bo'lmaydigan buyruq bergan bo'lardi, shuning uchun bind mount alohida
+aniqlanadi. Buyruq matnlaridagi yo'l POSIX shaklida — ular Linuxda
+bajariladi, Windows'dagi `Path` esa teskari chiziq qo'yardi.
+
+Review tuzatishi uchun yana uch sabotaj: hamma sababga bitta chown,
+bind mountga konteyner yo'li, read-only'ni huquq muammosi deb qarash —
+uchalasi ham ushlandi.
+
 - Branch: `claude/deploy-preflight`
-- Test holati: to'liq suite **1688/1688 OK** (skipped=41); yangi
-  `core/test_backup_target.py` (8)
+- Test holati: to'liq suite **1694/1694 OK** (skipped=41); yangi
+  `core/test_backup_target.py` (14)
 - Migratsiya: yo'q
 - Davom etilishi kerak: deploy owner qo'lida — AWS konsolidagi qadamlar
   (EC2, Elastic IP, DNS, security group) va `.env` dagi sirlar men
