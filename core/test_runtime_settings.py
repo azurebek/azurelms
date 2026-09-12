@@ -333,6 +333,7 @@ class RuntimeSettingsSurfaceTests(TestCase):
             data = {
                 "form_name": "thresholds",
                 "backup_stale_after_days": 7,
+                "backup_retention_days": 14,
                 "queue_age_amber_minutes": 15,
                 "queue_age_red_minutes": 60,
                 "change_reason": "sinov",
@@ -358,7 +359,8 @@ class RuntimeSettingsSurfaceTests(TestCase):
             "dm_batch_size", "group_batch_size", "poll_interval_seconds",
             "lease_seconds", "send_interval_ms", "max_attempts",
             "base_backoff_seconds", "max_backoff_seconds",
-            "backup_stale_after_days", "queue_age_amber_minutes",
+            "backup_stale_after_days", "backup_retention_days",
+            "queue_age_amber_minutes",
             "queue_age_red_minutes",
             # T2 — eslatma vaqtlari ham shu sahifada: operatsion qiymatlar
             # owner uchun bitta joyda turishi kerak.

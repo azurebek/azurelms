@@ -10,6 +10,10 @@ from dataclasses import dataclass
 
 DEFAULTS = {
     "backup_stale_after_days": 7,
+    # Zaxira saqlash muddati (PR #111 review). Ilgari bu qiymat host
+    # crontab'ida qotib turardi, ya'ni siyosatni o'zgartirish uchun SSH
+    # kerak bo'lardi — owner qoidasiga zid.
+    "backup_retention_days": 14,
     "queue_age_amber_minutes": 15,
     "queue_age_red_minutes": 60,
     # Bot dispatcher chiroqlari (T4).
@@ -23,6 +27,7 @@ DEFAULTS = {
 
 BOUNDS = {
     "backup_stale_after_days": (1, 365),
+    "backup_retention_days": (1, 3650),
     "queue_age_amber_minutes": (1, 1440),
     "queue_age_red_minutes": (2, 10080),
     "dispatcher_stale_after_seconds": (30, 86400),
@@ -89,6 +94,7 @@ def repair_order(values, red_name, amber_name):
 @dataclass(frozen=True)
 class Thresholds:
     backup_stale_after_days: int
+    backup_retention_days: int
     queue_age_amber_minutes: int
     queue_age_red_minutes: int
     dispatcher_stale_after_seconds: int

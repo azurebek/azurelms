@@ -120,12 +120,17 @@ python3 -c "import secrets; print('SECRET_KEY=' + secrets.token_urlsafe(64)); pr
 ## 4. Birinchi ishga tushirish
 
 ```bash
-docker compose -f docker-compose.prod.yml up -d --build
+export SOURCE_VERSION=$(git -C .. rev-parse HEAD) && docker compose -f docker-compose.prod.yml up -d --build
 ```
 
 ```bash
 docker compose -f docker-compose.prod.yml ps
 ```
+
+> `SOURCE_VERSION` — Control Center «Release identity» chirog'i shu
+> o'zgaruvchini o'qiydi. Berilmasa u `unknown` ko'rsatadi, ya'ni nosozlik
+> paytida «serverda qaysi kod turibdi?» degan savolga javob bo'lmaydi.
+> Har `up -d --build` dan oldin qo'ying — yoki `.env` ga yozib qo'ying.
 
 `migrate` servisi bir marta ishlab `exited (0)` bo'ladi — bu normal; web,
 worker, beat va outbox faqat shundan keyin ko'tariladi.
@@ -215,10 +220,16 @@ docker compose -f docker-compose.prod.yml run --rm web python manage.py shell
 Yangi versiyani chiqarish:
 
 ```bash
-git pull && docker compose -f docker-compose.prod.yml up -d --build
+git pull && export SOURCE_VERSION=$(git -C .. rev-parse HEAD) && docker compose -f docker-compose.prod.yml up -d --build
 ```
 
 `up -d --build` migratsiyani `migrate` servisi orqali o'zi qayta yugurtiradi.
+
+> `SOURCE_VERSION` bu yerda ham kerak. U faqat birinchi ishga tushirishda
+> berilsa, keyingi har bir yangilanish konteynerlarni bo'sh qiymat bilan
+> qayta yaratadi va Control Center release identity'ni yana `unknown`
+> ko'rsatadi — ya'ni nosozlik paytida serverda qaysi kod turgani noma'lum
+> bo'ladi.
 
 ### To'xtagan xabarlar
 
@@ -266,7 +277,33 @@ Har kuni avtomatik olish uchun `crontab -e` ga ikki qator:
 ```
 0 3 * * * cd /home/ubuntu/azurelms/deploy && docker compose -f docker-compose.prod.yml run --rm web python manage.py backup_db >> /home/ubuntu/azurelms/deploy/backup-cron.log 2>&1
 15 3 * * * cd /home/ubuntu/azurelms/deploy && docker compose -f docker-compose.prod.yml run --rm web python manage.py backup_media >> /home/ubuntu/azurelms/deploy/backup-cron.log 2>&1
+30 3 * * * cd /home/ubuntu/azurelms/deploy && docker compose -f docker-compose.prod.yml run --rm web python manage.py prune_backups >> /home/ubuntu/azurelms/deploy/backup-cron.log 2>&1
 ```
+
+> **Uchinchi qator — rotatsiya, va usiz disk to'ladi.** Kuniga ikkita fayl
+> qo'shiladi va hech kim eskisini o'chirmaydi. Disk to'lganda nima
+> bo'lishini aniq bilamiz: `pg_dump` yiqiladi, yarim yozilgan fayl
+> o'chiriladi (ataylab), va siz buni zaxira chirog'i sariq bo'lgach —
+> ya'ni **zaxirasiz qolganingizda** — bilib qolasiz.
+>
+> **Nega host'dagi `find -delete` emas.** Faylni o'chirish uchun
+> **papkaga yozish** huquqi kerak. `backups/` §3 da konteyner
+> foydalanuvchisiga (uid 10001) berilgan va `0755`, ya'ni `ubuntu`
+> undan fayl o'chira olmaydi — `find -delete` "Permission denied" bilan
+> chiqib, rotatsiya faqat qog'ozda qolardi. Buyruq esa konteyner ichida,
+> o'sha uid ostida yuguradi.
+>
+> **Muddat sozlamada**, crontabda emas:
+> `/backoffice/control/runtime-settings/` → «Zaxira saqlash muddati»
+> (default 14 kun). SSH'siz o'zgaradi. Nima o'chishini oldindan ko'rish:
+>
+> ```bash
+> docker compose -f docker-compose.prod.yml run --rm web python manage.py prune_backups --dry-run
+> ```
+>
+> Eng yangi zaxira **hech qachon** o'chirilmaydi, muddati o'tgan bo'lsa
+> ham — aks holda zaxira olish bir hafta yiqilib turgan holatda rotatsiya
+> oxirgi tiklash nuqtasini ham olib tashlardi.
 
 > **Log ataylab `backups/` dan TASHQARIDA.** `>>` redirecti cron'ning host
 > shelli tomonidan, `ubuntu` foydalanuvchi ostida ochiladi — Docker hali
@@ -324,7 +361,7 @@ docker compose -f docker-compose.prod.yml exec -T db pg_restore --clean --if-exi
 ```
 
 ```bash
-docker compose -f docker-compose.prod.yml up -d
+export SOURCE_VERSION=$(git -C .. rev-parse HEAD) && docker compose -f docker-compose.prod.yml up -d
 ```
 
 Media fayllarini tiklash ham qo'lda. Arxivni bo'sh papkaga chiqarib,
@@ -333,12 +370,27 @@ shart, aks holda har bir to'lov cheki `/media/` ostida hech qanday
 tekshiruvsiz tarqatiladigan URL bo'lib qoladi:
 
 ```bash
-docker compose -f docker-compose.prod.yml run --rm web python manage.py restore_media --input backups/media-<sana>.tar.gz --into /tmp/tiklash
+docker compose -f docker-compose.prod.yml run --rm web sh -c '
+  set -e
+  rm -rf /app/backups/.restore-tmp
+  python manage.py restore_media --input backups/media-<sana>.tar.gz --into /app/backups/.restore-tmp
+  cp -a /app/backups/.restore-tmp/public/.  /app/media/
+  cp -a /app/backups/.restore-tmp/private/. /app/private-media/
+  rm -rf /app/backups/.restore-tmp
+'
 ```
 
-```bash
-docker compose -f docker-compose.prod.yml run --rm web sh -c "cp -a /tmp/tiklash/public/. /app/media/ && cp -a /tmp/tiklash/private/. /app/private-media/"
-```
+> **Nega bitta buyruq va nega `/tmp` emas.** Ilgari bu yerda ikki qadam
+> turgan edi: birinchisi arxivni `/tmp/tiklash` ga chiqarardi, ikkinchisi
+> undan `/app/media` ga ko'chirardi. **Ikkinchisi hech qachon ishlamasdi.**
+> `run --rm` konteynerni tugagach o'chiradi va u bilan birga uning
+> yoziladigan qatlamini ham; `/tmp` esa volume emas, ya'ni o'sha qatlamda
+> yotadi. Ikkinchi buyruq **yangi** konteynerda yugurib, bo'sh `/tmp` ni
+> ko'rardi. Endi ikkala qadam bitta konteynerda, oraliq papka esa
+> `backups/` ichida — u host'ga mount qilingan va saqlanadi.
+>
+> Oraliq papka media'ning **ikkinchi nusxasi**, ya'ni diskda vaqtincha
+> ikki barobar joy kerak bo'ladi. Buyruq oxirida u o'chiriladi.
 
 Avval **albatta** mashq qiling: yuqoridagi buyruqlar mavjud ma'lumotni
 qaytarib bo'lmaydigan tarzda almashtiradi.
@@ -350,7 +402,7 @@ git log --oneline -5
 ```
 
 ```bash
-git checkout <oldingi-commit> && docker compose -f docker-compose.prod.yml up -d --build
+git checkout <oldingi-commit> && export SOURCE_VERSION=$(git -C .. rev-parse HEAD) && docker compose -f docker-compose.prod.yml up -d --build
 ```
 
 > Migratsiya qo'llangan release'dan orqaga qaytish sxemani o'zi qaytarmaydi.
@@ -372,6 +424,7 @@ git checkout <oldingi-commit> && docker compose -f docker-compose.prod.yml up -d
 | `Zaxira papkasi yozishga tayyor emas` | `backups/` host papkasi konteyner foydalanuvchisiga tegishli emas | Xato matnidagi `chown` buyrug'ini bajaring (§3) |
 | Zaxira chirog'i sariq, cron logida `Permission denied` | Yuqoridagi bilan bir xil sabab, eski deployda | `sudo chown -R 10001:10001 backups`, so'ng zaxirani qo'lda bir marta yugurting |
 | Cron logi umuman yozilmaydi / bo'sh | Log `backups/` ichiga yo'naltirilgan, u esa uid 10001 ga tegishli | Log yo'lini `deploy/backup-cron.log` ga ko'chiring (§6) |
+| Eski zaxiralar to'planyapti, disk to'lyapti | Rotatsiya host'dan `find -delete` bilan yugurtirilgan | `prune_backups` ni konteyner ichida yugurting (§6); host `ubuntu` o'sha papkadan fayl o'chira olmaydi |
 | `Telegram dispatcher` chirog'i qizil (polling) yoki uzoq sariq (webhook) | Polling'da bot jarayoni yo'q; webhook'da update umuman kelmayapti | `setwebhook` ni qayta yugurting va `logs web` da update ko'rinishini tekshiring |
 
 ---
@@ -388,6 +441,10 @@ qoladi (`05-launch-ops.md` §9 "Production GO qo'shimcha checklist"):
 - Izolyatsiyalangan tiklash mashqi va rollback mashqi **dalili**. Mexanizm
   qurilgan (`restore_db --into` va `restore_media --into`, yuqoridagi §6),
   ammo uni real serverda bir marta yugurtirib, natijani yozib qo'yish kerak.
+- **Release yozuvi qo'lda:** `up -d --build` dan keyin
+  `docker compose -f docker-compose.prod.yml run --rm web python manage.py record_release`
+  ni yugurtiring, aks holda `ReleaseRecord` bo'sh qoladi va rollback
+  qaysi versiyaga qaytishni bilmaydi.
 - **Offsite nusxa yo'q:** zaxiralar o'sha EC2 diskida qoladi. Disk yo'qolsa
   zaxira ham yo'qoladi — S3 ga ko'chirish alohida ish.
 - `ReleaseRecord` ga release SHA yozadigan tomon (`A1b`).

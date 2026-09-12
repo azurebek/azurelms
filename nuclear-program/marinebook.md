@@ -16,6 +16,114 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-13 [Claude]: Uchta deploy blocker — Codex auditidan keyin
+
+Azurbek Codex'ning deploy oldi auditini uzatdi: uchta P1 va bir necha
+operatsion qarz. **Uchalasini ham o'zim tekshirdim va uchalasi ham haqiqiy
+edi** — hech biri yolg'on emas.
+
+**P1-1 — `/readyz` productionda doim `503`.** Eng og'iri. `_media_probe`
+shunday o'ylardi: «`USE_S3=False` va profil local emas → fayllar ephemeral
+konteynerda → RED». O'sha taxmin compose yozilgunga qadar to'g'ri edi;
+compose esa media'ni **nomli volume** ga mount qiladi. Birinchi deploy
+rejasi aynan `USE_S3=False` + volume, `media_storage` esa `critical` — ya'ni
+`/readyz` doim `503` qaytarardi va tashqi uptime tekshiruvi instance'ni
+yaroqsiz deb hisoblardi.
+
+Yechim — taxmin o'rniga **o'lchov** (`core/storage_persistence.py`).
+Saqlanish kuzatiladigan xossa: konteynerda emasmizmi (oddiy VM diski),
+konteynerdamiz va papka mount nuqtasimi (volume ulangan), yoki
+konteynerdamiz va papka oddiy katalogmi (**aynan shu RED**). Endi probe
+ikkala xatoni ham qilmaydi: haqiqiy volume'ni qoralamaydi va mount
+unutilgan holatni yashil qilmaydi.
+
+Nuqson `_media_probe` uchun **birorta test bo'lmagani** uchun o'tib ketgan.
+
+**P1-2 — media restore yo'riqnomasi hech qachon ishlamasdi.** Ikki qadam
+turgan edi: birinchisi arxivni `/tmp/tiklash` ga chiqarardi, ikkinchisi
+undan ko'chirardi. `run --rm` konteynerni va uning yoziladigan qatlamini
+o'chiradi, `/tmp` esa volume emas — ikkinchi buyruq **yangi** konteynerda
+bo'sh `/tmp` ni ko'rardi. Endi ikkala qadam bitta konteynerda, oraliq papka
+`backups/` ichida (u host'ga mount qilingan).
+
+**P1-3 — `setwebhook` fail-safe emas edi**, uch nuqson bilan va uchalasi
+bir xil oqibatga olib borardi: bot jimgina o'ladi, buyruq muvaffaqiyat deb
+ko'rinadi. (a) URL bir xil bo'lsa **secret tekshirilmasdan** chiqib ketardi —
+Telegram `getWebhookInfo` da secret'ni qaytarmaydi, ya'ni URL tengligi
+secret tengligini isbotlamaydi; secret rotatsiyasidan keyin har bir update
+rad etilardi. (b) `except Exception` xatoni `stdout` ga yozib exit-code `0`
+qoldirardi. (c) `drop_pending_updates=True` doim yoqilgan — bot to'xtab
+turgan vaqtda kelgan xabarlar jimgina o'chirilardi.
+
+**Operatsion qarzlar ham yopildi:** zaxira rotatsiyasi (14 kun), har servis
+uchun log hajmi cheklovi (10m × 3), `SOURCE_VERSION` compose orqali uzatiladi
+(aks holda release identity `unknown`), Caddy `read_timeout 0` (300s bo'sh
+WebSocket'ni dars o'rtasida uzardi va bu o'sha yerdagi izohning o'ziga zid
+edi). **Offsite zaxira hamon ochiq** — u alohida ish.
+
+**`deploy/` uchun birinchi marta testlar yozildi.** Bu fayllar hech qachon
+qoplanmagan va shu sababli to'rtta haqiqiy nuqson ishlab chiqargan (mount,
+egalik, cron log, restore). Endi `core/test_deploy_artifacts.py` compose,
+runbook va Caddyfile'ni matn sifatida tekshiradi.
+
+**Nazorat yugurishi 13 sabotaj, boshida 10 tasi ushlandi.** Uchtasi o'tib
+ketdi va uchalasi ham **mening testlarimning** kamchiligi edi, bitta oiladan:
+**config o'rniga izohdagi matnni tekshirish**. Caddy testi o'zim yozgan
+izohdagi `read_timeout 300s` ni topardi; `SOURCE_VERSION` testi kalit
+o'chirilganda ham izohdagi so'zni ko'rib yashil qolardi; log testi esa
+`<<: *app` markerini ko'rib, `x-app` da `logging:` borligini
+**tekshirmasdan** qanoatlanardi. Uchalasi tuzatilgach 13/13.
+
+Saboq takrorlanuvchi: matn ustidagi tekshiruvda izohlar avval olib
+tashlanishi kerak, va meros olingan sozlama merosning **manbasida** ham
+tekshirilishi kerak.
+
+**PR #111 review to'rtta topilma berdi, hammasi haqiqiy, va birinchisi
+mening tuzatishimning UCHINCHI qurboni edi.**
+
+1. **P1 — rotatsiya `Permission denied` bilan yiqilardi.** Men qo'shgan
+   `find -delete` qatorini host cron'i `ubuntu` ostida yugurtiradi, lekin
+   faylni o'chirish uchun **papkaga yozish** huquqi kerak va `backups/`
+   men bergan `chown` bilan uid 10001 ga o'tgan. Ya'ni rotatsiya faqat
+   qog'ozda qolardi va to'sishi kerak bo'lgan disk to'lishi baribir sodir
+   bo'lardi. Bu `chown` ning uchinchi qurboni: avval cron logi (#110
+   review), endi rotatsiya.
+2. **P1 — muddat crontabda qotib turardi**, ya'ni siyosatni o'zgartirish
+   uchun SSH kerak bo'lardi — owner qoidasiga to'g'ridan-to'g'ri zid.
+3. **P1 — media probe faqat `MEDIA_ROOT` ni tekshirardi.** Holbuki to'lov
+   cheki, vazifa fayli, chat biriktirmasi va speaking audiosi ataylab
+   **`PRIVATE_MEDIA_ROOT`** da — alohida volume'da. Public volume ulanib
+   private mount unutilsa probe yashil turardi. Yomoni: `USE_S3=True`
+   faqat public media'ni uzoqqa ko'chiradi, private baribir lokal diskda
+   qoladi — ya'ni S3 rejimida probe uni umuman tekshirmasdan yashil
+   qaytarardi.
+4. **P2 — `SOURCE_VERSION` faqat birinchi ishga tushirishda** berilgan
+   edi; yangilash va rollback yo'llari konteynerlarni bo'sh qiymat bilan
+   qayta yaratib, release identity'ni yana `unknown` qilardi.
+
+Birinchi ikkitasi **bitta yechim** bilan yopildi va u to'g'ri yechim edi:
+`manage.py prune_backups` konteyner ichida yuguradi (huquq muammosi
+yo'qoladi) va muddatni `OperationalSettings.backup_retention_days` dan
+oladi (SSH'siz o'zgaradi). Bir qoida bo'yicha tuzatish ikkinchisini ham
+tuzatdi — belgi shuki, host'dan konteyner papkasiga tegish boshidan
+noto'g'ri qatlam edi.
+
+Yo'lda bitta qo'shimcha himoya: **eng yangi zaxira hech qachon
+o'chirilmaydi**, muddati o'tgan bo'lsa ham. Zaxira olish bir hafta yiqilib
+tursa hammasi "eski" bo'lib qoladi va rotatsiya oxirgi tiklash nuqtasini
+ham olib tashlardi.
+
+Review tuzatishi uchun yana besh sabotaj — beshtasi ham ushlandi.
+
+- Branch: `claude/deploy-blockers`
+- Test holati: to'liq suite **1754/1754 OK** (skipped=41); yangi
+  `core/test_media_persistence.py` (12), `bot/test_setwebhook.py` (12),
+  `core/test_deploy_artifacts.py` (18), `core/test_backup_rotation.py` (14)
+- Migratsiya: `core.0004` — additive
+- Davom etilishi kerak: offsite zaxira; deploy owner qo'lida
+
+---
+
 ## 2026-09-12 [Claude]: Deploy oldi tekshiruvi — zaxira papkasi nuqsoni
 
 Azurbek AWS hisobi ochilganini aytdi, ya'ni deploy endi haqiqiy. Serverga
