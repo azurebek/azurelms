@@ -215,6 +215,27 @@ class BotRuntimeSettings(models.Model):
         verbose_name="Maksimal kutish (soniya)",
         help_text="Kutish shundan oshmaydi.",
     )
+    metrics_flush_seconds = models.PositiveIntegerField(
+        default=30,
+        validators=[MinValueValidator(5), MaxValueValidator(3600)],
+        verbose_name="Kuzatuv yozuvi oralig'i (soniya)",
+        help_text=(
+            "Bot o'z holatini shuncha vaqtda bir marta yozadi. Kichik qiymat "
+            "Control Center'da yangiroq raqam beradi, ammo DB'ga ko'proq "
+            "yozadi. Bu qiymat chiroqning eskirish chegarasiga ham ta'sir "
+            "qiladi: chegara bu oraliqdan ikki baravar past bo'lib qolmaydi."
+        ),
+    )
+    metrics_window_seconds = models.PositiveIntegerField(
+        default=300,
+        validators=[MinValueValidator(30), MaxValueValidator(86400)],
+        verbose_name="O'lchov oynasi (soniya)",
+        help_text=(
+            "O'rtacha va p95 shu oynadagi update'lardan hisoblanadi. "
+            "Oynadan tashqaridagi o'lchov tashlanadi — aks holda uch soat "
+            "oldingi sekinlik hozirgi tezlik bo'lib ko'rinardi."
+        ),
+    )
 
     updated_at = models.DateTimeField(auto_now=True)
     updated_by = models.ForeignKey(
@@ -241,6 +262,16 @@ class BotRuntimeSettings(models.Model):
                 {
                     "max_backoff_seconds": (
                         "Maksimal kutish birinchi kutishdan kichik bo'lmasligi kerak."
+                    )
+                }
+            )
+        if self.metrics_window_seconds < self.metrics_flush_seconds:
+            raise ValidationError(
+                {
+                    "metrics_window_seconds": (
+                        "O'lchov oynasi yozuv oralig'idan qisqa bo'lmasligi kerak, "
+                        "aks holda o'lchovlarning bir qismi hech qachon "
+                        "hisobga olinmaydi."
                     )
                 }
             )

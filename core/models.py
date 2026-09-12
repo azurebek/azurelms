@@ -18,6 +18,8 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
+from core.operational_settings import ORDERED_PAIRS
+
 
 class SeededRecord(models.Model):
     """Namuna kontent seeder **o'zi yaratgan** yozuvning izi.
@@ -84,6 +86,54 @@ class OperationalSettings(models.Model):
         help_text="Eng qadimgi kutayotgan xabar shundan oshsa nosozlik deb qaraladi.",
     )
 
+    # --- Bot dispatcher chiroqlari (T4) ---------------------------------- #
+    # Bu oltita chegara `telegram_dispatcher` chirog'ini boshqaradi. Ular
+    # `queue_age_*` bilan bir modelda, chunki ikkisi ham **ko'rsatish**
+    # qarori: nosozlikni o'lchamaydi, faqat uni qachon ko'rsatishni belgilaydi.
+    dispatcher_stale_after_seconds = models.PositiveIntegerField(
+        default=120,
+        validators=[MinValueValidator(30), MaxValueValidator(86400)],
+        verbose_name="Bot belgisi: AMBER chegarasi (soniya)",
+        help_text=(
+            "Bot shuncha vaqt o'zini belgilamasa e'tibor talab qiladi. "
+            "Qiymat yozuv oralig'idan ikki baravar past bo'lsa, probe "
+            "avtomatik oshiradi — aks holda chiroq doim sariq bo'lib turardi."
+        ),
+    )
+    dispatcher_dead_after_seconds = models.PositiveIntegerField(
+        default=600,
+        validators=[MinValueValidator(60), MaxValueValidator(604800)],
+        verbose_name="Bot belgisi: RED chegarasi (soniya)",
+        help_text="Shundan oshsa bot sekin emas, to'xtagan deb qaraladi.",
+    )
+    handler_latency_amber_ms = models.PositiveIntegerField(
+        default=1500,
+        validators=[MinValueValidator(50), MaxValueValidator(60000)],
+        verbose_name="Javob vaqti: AMBER chegarasi (ms)",
+        help_text="Oynadagi p95 shundan oshsa bot sekinlashgan hisoblanadi.",
+    )
+    handler_latency_red_ms = models.PositiveIntegerField(
+        default=4000,
+        validators=[MinValueValidator(100), MaxValueValidator(120000)],
+        verbose_name="Javob vaqti: RED chegarasi (ms)",
+        help_text="Telegram tugma bosilganda bu qadar kutish uzilish bilan teng.",
+    )
+    handler_error_amber_percent = models.PositiveIntegerField(
+        default=5,
+        validators=[MinValueValidator(1), MaxValueValidator(100)],
+        verbose_name="Xato foizi: AMBER chegarasi (%)",
+        help_text=(
+            "Oynadagi xato ulushi. Kamida 20 ta update bo'lmaguncha rang "
+            "o'zgarmaydi — bittadan bitta xato 100% bo'lib ko'rinmasligi uchun."
+        ),
+    )
+    handler_error_red_percent = models.PositiveIntegerField(
+        default=20,
+        validators=[MinValueValidator(1), MaxValueValidator(100)],
+        verbose_name="Xato foizi: RED chegarasi (%)",
+        help_text="Oynadagi xato ulushi shundan oshsa nosozlik deb qaraladi.",
+    )
+
     updated_at = models.DateTimeField(auto_now=True)
     updated_by = models.ForeignKey(
         "users.CustomUser",
@@ -102,20 +152,29 @@ class OperationalSettings(models.Model):
         return "Operatsion chegaralar"
 
     def clean(self):
-        """RED chegarasi AMBER dan keyin bo'lishi kerak.
+        """Har AMBER/RED juftligi to'g'ri tartibda bo'lishi kerak.
 
-        Teskari bo'lsa navbat AMBER bosqichini butunlay o'tkazib yuboradi va
+        Teskari bo'lsa chiroq AMBER bosqichini butunlay o'tkazib yuboradi va
         owner ogohlantirishni ko'rmasdan to'g'ridan-to'g'ri qizilni oladi.
+        Juftliklar ro'yxati `core/operational_settings.py::ORDERED_PAIRS` da —
+        **bitta joyda**. U yerdan `Thresholds.from_row()` ham o'qiydi, ya'ni
+        forma qo'riqlaydigan shart va o'qishda qo'llanadigan to'r bir xil
+        ro'yxatdan keladi. Ikki nusxa bo'lsa yangi juftlik qo'shilganda
+        bittasiga yozib, ikkinchisini unutish oson bo'lardi.
         """
         super().clean()
-        if self.queue_age_red_minutes <= self.queue_age_amber_minutes:
-            raise ValidationError(
-                {
-                    "queue_age_red_minutes": (
-                        "RED chegarasi AMBER chegarasidan katta bo'lishi kerak."
-                    )
-                }
-            )
+        errors = {}
+        for red_name, amber_name in ORDERED_PAIRS:
+            red = getattr(self, red_name, None)
+            amber = getattr(self, amber_name, None)
+            if red is None or amber is None:
+                continue
+            if red <= amber:
+                errors[red_name] = (
+                    "RED chegarasi AMBER chegarasidan katta bo'lishi kerak."
+                )
+        if errors:
+            raise ValidationError(errors)
 
     def save(self, *args, **kwargs):
         self.pk = 1

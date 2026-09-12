@@ -33,6 +33,11 @@ DEFAULTS = {
     "max_attempts": 5,
     "base_backoff_seconds": 30,
     "max_backoff_seconds": 900,
+    # Kuzatuv (T4) — bot jarayonining o'z o'lchov kadensi. Yetkazish bilan
+    # bir qatorda turishining sababi: ikkisi ham **bot jarayonining**
+    # sozlamasi va bir sikl boshida bitta DB o'qishi bilan olinadi.
+    "metrics_flush_seconds": 30,
+    "metrics_window_seconds": 300,
 }
 
 #: Xavfsiz oraliqlar — modeldagi validatorlar bilan bir xil. Ikki joyda
@@ -46,6 +51,8 @@ BOUNDS = {
     "max_attempts": (1, 20),
     "base_backoff_seconds": (1, 3600),
     "max_backoff_seconds": (5, 86400),
+    "metrics_flush_seconds": (5, 3600),
+    "metrics_window_seconds": (30, 86400),
 }
 
 
@@ -71,6 +78,8 @@ class DeliveryPolicy:
     max_attempts: int
     base_backoff_seconds: int
     max_backoff_seconds: int
+    metrics_flush_seconds: int
+    metrics_window_seconds: int
 
     @classmethod
     def defaults(cls):
@@ -89,6 +98,12 @@ class DeliveryPolicy:
         # chetlab o'tgan yozuv uchun to'r.
         if values["max_backoff_seconds"] < values["base_backoff_seconds"]:
             values["max_backoff_seconds"] = values["base_backoff_seconds"]
+        # O'lchov oynasi flush oralig'idan qisqa bo'lsa har yozuv o'zidan
+        # oldingi siklni ko'rmaydi, ya'ni o'lchovlarning bir qismi hech
+        # qachon hisobga olinmaydi. `clean()` buni formada ushlaydi; bu
+        # yerda formani chetlab o'tgan yozuv uchun to'r.
+        if values["metrics_window_seconds"] < values["metrics_flush_seconds"]:
+            values["metrics_window_seconds"] = values["metrics_flush_seconds"]
         return cls(**values)
 
     @property

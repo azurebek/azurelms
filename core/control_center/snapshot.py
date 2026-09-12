@@ -169,6 +169,12 @@ def _jobs_probe(definition: CapabilityDefinition) -> CapabilityResult:
 
 
 #: Control Center kutadigan workerlar. Bugun bitta — Telegram outbox.
+#:
+#: Bot dispatcher'i (`telegram-dispatcher`) ataylab bu ro'yxatda **yo'q**,
+#: garchi u ham `WorkerHeartbeat` yozsa. Sabab: u o'z chirog'iga ega
+#: (`telegram_dispatcher`), chunki tiriklikdan tashqari javob vaqti va xato
+#: foizini ham ko'taradi. Ikki joyda hisoblash bitta uzilishni ikkita qizil
+#: chiroq qilib ko'rsatardi va owner ikki alohida nosozlik qidirardi.
 EXPECTED_WORKERS = ("telegram-outbox",)
 
 
@@ -213,6 +219,201 @@ def _workers_probe(definition: CapabilityDefinition) -> CapabilityResult:
         alive=len(alive),
         stale=len(stale),
         never_seen=len(missing),
+    )
+
+
+def _detail_number(detail: dict, key, default=None, cast=int):
+    """`WorkerHeartbeat.detail` — erkin JSON, ya'ni ishonchsiz kirish.
+
+    Yozuvni **boshqa jarayon** va ehtimol **boshqa release** qoldirgan:
+    deploy paytida eski bot hali yozayotgan, yangi probe esa allaqachon
+    o'qiyotgan bo'lishi mumkin. Bunday nomuvofiqlik chiroqni «probe xatoga
+    tushdi» degan qizilga aylantirmasligi kerak — u owner uchun noto'g'ri
+    signal bo'lardi.
+    """
+    value = detail.get(key)
+    if value is None:
+        return default
+    try:
+        return cast(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _dispatcher_probe(definition: CapabilityDefinition) -> CapabilityResult:
+    """Kiruvchi update yo'li: tirikmi va tezmi (T4).
+
+    **Probe hech narsa yubormaydi.** Bot tirikligini Telegram API'dan so'rash
+    ham, test xabari yozish ham mumkin emas: sog'liq sahifasi tekshirayotgan
+    narsasini o'zgartirmasligi kerak, va har sahifa ochilishida `getMe`
+    chaqirish `/readyz` ni tashqi xizmatga bog'lab qo'yardi. Shuning uchun
+    faqat jarayonning o'zi yozgan `WorkerHeartbeat` o'qiladi.
+
+    **Trafiksizlik nosozlik emas.** `last_update_at` (oxirgi update) sog'liq
+    signali sifatida ishlatilmaydi — tunda hech kim yozmasa sog'lom bot ham
+    qizil bo'lib qolardi. Tiriklik `last_seen_at` dan o'qiladi, uni esa
+    update'lardan mustaqil ishlaydigan flush sikli yozadi.
+
+    **Ikki rejimda yosh ikki xil narsani bildiradi** — bu PR #108 review
+    topilmasi va u haqiqiy nuqsonni ko'rsatdi:
+
+    * **polling** — bot alohida jarayon va unda flush sikli bor, ya'ni yosh
+      to'g'ridan-to'g'ri **tiriklik**: sikl yozmayotgan bo'lsa jarayon yo'q.
+    * **webhook** — alohida bot jarayoni **yo'q**; update'lar web tier'ga
+      (Daphne) keladi va har so'rov `async_to_sync` bilan o'z event loop'ini
+      ochib yopadi, ya'ni fon sikli tirik qolmaydi. Shuning uchun yozuvni
+      faqat update'ning o'zi olib keladi va yosh **o'lchovning yangiligini**
+      bildiradi, jarayon tirikligini emas. Bu rejimda yosh bo'yicha RED
+      berish yangi deploy'ni (hali hech kim yozmagan) va jim tunni nosozlik
+      deb ko'rsatardi — ya'ni aynan shu docstring rad etgan xatoni webhook
+      tarmog'ida takrorlardi. Web tier tirikligi boshqa chiroqlarning va
+      `/readyz` ning ishi.
+
+    **Oynadan eski raqam rang bermaydi.** `samples`/`p95` heartbeat yozilgan
+    paytdagi oynani tasvirlaydi. Yozuvning o'zi o'sha oynadan eski bo'lsa,
+    raqamlar muddati o'tgan: uch soat oldin o'lchangan sekinlik hozirgi
+    sekinlik emas. Shu holatda rang berilmaydi, ammo raqam owner uchun
+    ko'rinib turadi.
+    """
+    from aicontrol.models import WorkerHeartbeat
+    from bot.metrics import MIN_ERROR_SAMPLES, WORKER_NAME as DISPATCHER_WORKER
+
+    thresholds = current_thresholds()
+    beat = WorkerHeartbeat.objects.filter(name=DISPATCHER_WORKER).first()
+    if beat is None:
+        settings_mode = str(getattr(settings, "TELEGRAM_MODE", "unknown"))
+        # Webhook rejimida yozuvni faqat update olib keladi, ya'ni yangi
+        # deploy'dan keyin birinchi xabargacha yozuv bo'lmasligi **normal**.
+        # Lokalda esa bot odatda umuman ishlamaydi.
+        expected_quiet = settings.IS_LOCAL or settings_mode == "webhook"
+        return _result(
+            definition,
+            "amber" if expected_quiet else "red",
+            (
+                "Webhook rejimi: hali birorta update kelmagan, o'lchov yo'q. "
+                "Webhook ro'yxatdan o'tganini tekshiring."
+                if settings_mode == "webhook" and not settings.IS_LOCAL
+                else "Bot hech qachon ishga tushmagan — o'lchov yo'q."
+            ),
+            mode=settings_mode,
+        )
+
+    detail = dict(beat.detail or {})
+    age_seconds = max(0, int(beat.age().total_seconds()))
+    # Rejimni jarayonning o'zi yozgan qiymatdan o'qiymiz: sozlama keyin
+    # o'zgartirilgan bo'lishi mumkin, bu yozuv esa eski rejimda qilingan.
+    mode = str(detail.get("mode") or getattr(settings, "TELEGRAM_MODE", "unknown"))
+    polling = mode != "webhook"
+
+    # Rejali to'xtatish yoshdan OLDIN tekshiriladi: to'xtatish yozuvining
+    # `last_seen_at` i yangi, ya'ni yosh bo'yicha u "tirik" bo'lib ko'rinardi.
+    if detail.get("stopped_at"):
+        return _result(
+            definition,
+            "amber" if settings.IS_LOCAL else "red",
+            "Bot ataylab to'xtatilgan (halokat emas).",
+            stopped_at=str(detail["stopped_at"]),
+            mode=mode,
+            age_seconds=age_seconds,
+        )
+
+    # Eskirish chegarasi sozlanuvchi, ammo jarayonning yozuv oralig'idan
+    # ikki baravar past bo'lib qolmaydi. Aks holda owner `metrics_flush_seconds`
+    # ni oshirganda chiroq abadiy sariq bo'lib turardi — sozlama o'zini
+    # nosozlikka aylantirardi. Oraliq heartbeat'dan o'qiladi, sozlamadan emas:
+    # jarayon **o'zi ishlatayotgan** qiymat muhim.
+    flush_seconds = max(0, _detail_number(detail, "flush_seconds", 0))
+    stale_after = max(thresholds.dispatcher_stale_after_seconds, flush_seconds * 2)
+    dead_after = max(thresholds.dispatcher_dead_after_seconds, stale_after + 1)
+
+    samples = max(0, _detail_number(detail, "samples", 0))
+    errors = max(0, _detail_number(detail, "errors", 0))
+    p95_ms = _detail_number(detail, "p95_ms", cast=float)
+    avg_ms = _detail_number(detail, "avg_ms", cast=float)
+    error_percent = round(100.0 * errors / samples, 1) if samples else 0.0
+    window_seconds = max(0, _detail_number(detail, "window_seconds", 0))
+    updates_total = max(0, _detail_number(detail, "updates_total", 0))
+
+    statuses, issues = ["green"], []
+
+    if polling:
+        if age_seconds > dead_after:
+            statuses.append("red")
+            issues.append(f"Bot {age_seconds} soniyadan beri belgi qoldirmadi.")
+        elif age_seconds > stale_after:
+            statuses.append("amber")
+            issues.append(f"Bot belgisi {age_seconds} soniya oldin — kechikyapti.")
+    elif age_seconds > dead_after:
+        # Webhook: yosh tiriklik emas, o'lchov yangiligi. RED berilmaydi.
+        statuses.append("amber")
+        issues.append(
+            f"O'lchov {age_seconds} soniya oldingi — webhook rejimida u faqat "
+            "update kelganda yangilanadi, ya'ni bu jarayon tirikligini "
+            "bildirmaydi."
+        )
+    if not polling and not updates_total:
+        statuses.append("amber")
+        issues.append("Webhook rejimida hali birorta update kelmagan.")
+
+    # Oynadan eski raqam rang bermaydi: u o'zi tasvirlayotgan oyna
+    # tugagandan keyin shunchaki tarix. Yozuv oralig'i qadar bo'shashma
+    # qo'shiladi, aks holda normal sikl ham "eskirgan" bo'lib ko'rinardi.
+    data_fresh = window_seconds <= 0 or age_seconds <= window_seconds + flush_seconds
+    if not data_fresh and samples:
+        issues.append("O'lchov oynasi muddati o'tgan — raqamlar tarix.")
+
+    if p95_ms is not None and data_fresh:
+        if p95_ms >= thresholds.handler_latency_red_ms:
+            statuses.append("red")
+            issues.append(f"Javob vaqti p95 = {p95_ms} ms.")
+        elif p95_ms >= thresholds.handler_latency_amber_ms:
+            statuses.append("amber")
+            issues.append(f"Javob vaqti p95 = {p95_ms} ms — sekinlashgan.")
+
+    # Xato foizi kamida `MIN_ERROR_SAMPLES` namunadan keyin rang beradi:
+    # bittadan bitta xato 100% bo'lib, bot ishga tushgan zahoti qizil
+    # chiroq berardi.
+    if samples >= MIN_ERROR_SAMPLES and data_fresh:
+        if error_percent >= thresholds.handler_error_red_percent:
+            statuses.append("red")
+            issues.append(f"Update'larning {error_percent}% i xato bilan tugadi.")
+        elif error_percent >= thresholds.handler_error_amber_percent:
+            statuses.append("amber")
+            issues.append(f"Xato ulushi {error_percent}%.")
+
+    status = max(statuses, key=STATUS_ORDER.get)
+    alive = "Bot tirik" if polling else "Webhook yo'li ishlayapti"
+    if issues:
+        summary = " ".join(issues)
+    elif samples:
+        summary = f"{alive}; oynada {samples} update, p95 {p95_ms} ms."
+    else:
+        summary = f"{alive}; o'lchov oynasida update bo'lmagan."
+
+    return _result(
+        definition,
+        status,
+        summary,
+        mode=mode,
+        age_seconds=age_seconds,
+        stale_after_seconds=stale_after,
+        dead_after_seconds=dead_after,
+        liveness=(
+            "heartbeat (flush sikli)" if polling
+            else "web tier — yosh faqat o'lchov yangiligi"
+        ),
+        window_seconds=window_seconds or "unknown",
+        data_fresh="ha" if data_fresh else "yo'q",
+        samples=samples,
+        updates_total=updates_total,
+        errors=errors,
+        errors_total=detail.get("errors_total", 0),
+        error_percent=error_percent,
+        unhandled=detail.get("unhandled", 0),
+        avg_ms=avg_ms if avg_ms is not None else "namuna yo'q",
+        p95_ms=p95_ms if p95_ms is not None else "namuna yo'q",
+        max_ms=detail.get("max_ms", "namuna yo'q"),
+        last_update_at=detail.get("last_update_at") or "never",
     )
 
 
@@ -710,6 +911,7 @@ PROBE_FUNCTIONS: dict[str, Callable[[CapabilityDefinition], CapabilityResult]] =
     "realtime": _realtime_probe,
     "jobs": _jobs_probe,
     "telegram_outbox": _telegram_probe,
+    "telegram_dispatcher": _dispatcher_probe,
     "workers": _workers_probe,
     "media_storage": _media_probe,
     "ai_provider": _ai_probe,

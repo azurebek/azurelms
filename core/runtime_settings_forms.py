@@ -109,6 +109,8 @@ class BotDeliverySettingsForm(_AuditedSettingsForm):
         "max_attempts": "urinish",
         "base_backoff_seconds": "soniya",
         "max_backoff_seconds": "soniya",
+        "metrics_flush_seconds": "soniya",
+        "metrics_window_seconds": "soniya",
     }
 
     class Meta:
@@ -122,6 +124,8 @@ class BotDeliverySettingsForm(_AuditedSettingsForm):
             "max_attempts",
             "base_backoff_seconds",
             "max_backoff_seconds",
+            "metrics_flush_seconds",
+            "metrics_window_seconds",
         )
         labels = {
             "dm_batch_size": "DM navbati: bir siklda",
@@ -132,6 +136,8 @@ class BotDeliverySettingsForm(_AuditedSettingsForm):
             "max_attempts": "Maksimal urinish soni",
             "base_backoff_seconds": "Birinchi kutish",
             "max_backoff_seconds": "Maksimal kutish",
+            "metrics_flush_seconds": "Kuzatuv yozuvi oralig'i",
+            "metrics_window_seconds": "O'lchov oynasi",
         }
 
 
@@ -186,4 +192,45 @@ class OperationalThresholdsForm(_AuditedSettingsForm):
             "backup_stale_after_days": "Zaxira eskirgan hisoblanadi",
             "queue_age_amber_minutes": "Navbat yoshi: AMBER chegarasi",
             "queue_age_red_minutes": "Navbat yoshi: RED chegarasi",
+        }
+
+
+class DispatcherThresholdsForm(_AuditedSettingsForm):
+    """Bot dispatcher chirog'ining chegaralari (T4).
+
+    `OperationalThresholdsForm` bilan **bir modelda**, ammo alohida forma.
+    Ikki sabab: sahifada to'qqizta raqam bitta panelda o'qilmas bo'lib
+    qolardi, va audit yozuvi aniqroq bo'ladi — «navbat chegarasi» bilan
+    «bot javob vaqti» bir xil amal nomi ostida ko'rinmaydi.
+
+    ModelForm faqat o'z maydonlarini yozadi, shuning uchun bu formani saqlash
+    navbat chegaralariga tegmaydi.
+    """
+
+    UNITS = {
+        "dispatcher_stale_after_seconds": "soniya",
+        "dispatcher_dead_after_seconds": "soniya",
+        "handler_latency_amber_ms": "ms",
+        "handler_latency_red_ms": "ms",
+        "handler_error_amber_percent": "%",
+        "handler_error_red_percent": "%",
+    }
+
+    class Meta:
+        model = OperationalSettings
+        fields = (
+            "dispatcher_stale_after_seconds",
+            "dispatcher_dead_after_seconds",
+            "handler_latency_amber_ms",
+            "handler_latency_red_ms",
+            "handler_error_amber_percent",
+            "handler_error_red_percent",
+        )
+        labels = {
+            "dispatcher_stale_after_seconds": "Bot belgisi: AMBER chegarasi",
+            "dispatcher_dead_after_seconds": "Bot belgisi: RED chegarasi",
+            "handler_latency_amber_ms": "Javob vaqti: AMBER chegarasi",
+            "handler_latency_red_ms": "Javob vaqti: RED chegarasi",
+            "handler_error_amber_percent": "Xato foizi: AMBER chegarasi",
+            "handler_error_red_percent": "Xato foizi: RED chegarasi",
         }

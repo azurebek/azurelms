@@ -70,6 +70,25 @@ CAPABILITY_REGISTRY = (
         runbook="telegram_outbox worker, token va failed yozuvlarni tekshiring.",
     ),
     CapabilityDefinition(
+        slug="telegram_dispatcher",
+        label="Telegram dispatcher",
+        category="Integrations",
+        # `high`, `critical` emas — ataylab. `/readyz` faqat critical
+        # probe'larni yugurtiradi, va bot ishlamayotgani **web instance**
+        # trafik qabul qila olmasligini bildirmaydi. Sayt botsiz to'liq
+        # ishlaydi; teskarisi (butun saytni `503` qilish) nosozlikni
+        # tuzatmaydi, faqat ko'paytiradi.
+        criticality="high",
+        owner="Azurbek",
+        description="Incoming Telegram update handling: liveness and handler latency.",
+        dependencies=("database",),
+        runbook=(
+            "Bot jarayonini tekshiring: `python manage.py runbot` yoki "
+            "`python run_bot.py`. Javob vaqti sekin bo'lsa avval DB "
+            "so'rovlarini va identity yo'lini ko'ring."
+        ),
+    ),
+    CapabilityDefinition(
         slug="media_storage",
         label="Media storage",
         category="Storage",

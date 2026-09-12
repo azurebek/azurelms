@@ -224,6 +224,7 @@ def backoffice_runtime_settings(request):
     from core.models import OperationalSettings
     from core.runtime_settings_forms import (
         BotDeliverySettingsForm,
+        DispatcherThresholdsForm,
         OperationalThresholdsForm,
         ReminderSettingsForm,
     )
@@ -257,6 +258,13 @@ def backoffice_runtime_settings(request):
             "action": "settings.reminders.update",
             "label": "Eslatma sozlamasi",
             "message": "Eslatma sozlamasi saqlandi.",
+        },
+        "dispatcher": {
+            "form_class": DispatcherThresholdsForm,
+            "instance": thresholds,
+            "action": "settings.dispatcher_thresholds.update",
+            "label": "Bot kuzatuvi chegaralari",
+            "message": "Bot kuzatuvi chegaralari saqlandi.",
         },
     }
 
@@ -297,6 +305,7 @@ def backoffice_runtime_settings(request):
         "delivery_form": forms_out["delivery"],
         "thresholds_form": forms_out["thresholds"],
         "reminders_form": forms_out["reminders"],
+        "dispatcher_form": forms_out["dispatcher"],
         "delivery": delivery,
         "thresholds": thresholds,
         "reminders": reminders,
