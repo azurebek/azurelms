@@ -101,6 +101,71 @@ class ThresholdResolutionTests(TestCase):
 
 
 # ===================================================== 2) model validatsiyasi
+class OrderRepairStaysInBoundsTests(SimpleTestCase):
+    """Tartibni tuzatish chegaradan chiqmasligi kerak (PR #108 review).
+
+    Sodda tuzatish `red = amber + 1` edi. Xato foizida ikkala chegara ham
+    0–100 oralig'ida, ya'ni fixture/`update()`/SQL ikkisini 100 qilib
+    yozsa RED 101 ga chiqardi. 101% xato kuzatilishi mumkin emas, demak
+    chiroq xato sababli **hech qachon qizil bo'lmasdi** — tuzatishning o'zi
+    yangi ko'r nuqta yasagan bo'lardi.
+    """
+
+    def _repair(self, **values):
+        from core.operational_settings import BOUNDS, repair_order
+
+        for red_name, amber_name in (
+            ("handler_error_red_percent", "handler_error_amber_percent"),
+        ):
+            repair_order(values, red_name, amber_name)
+            for name in (red_name, amber_name):
+                low, high = BOUNDS[name]
+                self.assertGreaterEqual(values[name], low, f"{name} past chegaradan chiqdi")
+                self.assertLessEqual(values[name], high, f"{name} yuqori chegaradan chiqdi")
+        return values
+
+    def test_both_at_the_maximum_lowers_amber_instead_of_overflowing_red(self):
+        values = self._repair(
+            handler_error_amber_percent=100, handler_error_red_percent=100
+        )
+
+        self.assertEqual(values["handler_error_red_percent"], 100)
+        self.assertEqual(values["handler_error_amber_percent"], 99)
+
+    def test_red_below_amber_in_the_middle_of_the_range_raises_red(self):
+        values = self._repair(
+            handler_error_amber_percent=40, handler_error_red_percent=10
+        )
+
+        self.assertEqual(values["handler_error_amber_percent"], 40)
+        self.assertEqual(values["handler_error_red_percent"], 41)
+
+    def test_a_correct_pair_is_left_alone(self):
+        values = self._repair(
+            handler_error_amber_percent=5, handler_error_red_percent=20
+        )
+
+        self.assertEqual(values["handler_error_amber_percent"], 5)
+        self.assertEqual(values["handler_error_red_percent"], 20)
+
+    def test_the_resolved_thresholds_never_exceed_a_measurable_error_share(self):
+        """100% dan katta xato ulushi kuzatilishi mumkin emas."""
+        from core.operational_settings import Thresholds
+
+        row = type("Row", (), {
+            "handler_error_amber_percent": 100,
+            "handler_error_red_percent": 100,
+        })()
+
+        thresholds = Thresholds.from_row(row)
+
+        self.assertLessEqual(thresholds.handler_error_red_percent, 100)
+        self.assertLess(
+            thresholds.handler_error_amber_percent,
+            thresholds.handler_error_red_percent,
+        )
+
+
 class ModelValidationTests(TestCase):
     def test_delivery_rejects_max_backoff_below_base(self):
         row = BotRuntimeSettings(base_backoff_seconds=600, max_backoff_seconds=60)

@@ -275,6 +275,134 @@ class ErrorRateTests(TestCase):
         self.assertEqual(details["error_percent"], "50.0")
 
 
+class WebhookModeTests(TestCase):
+    """Webhook rejimida yosh tiriklik EMAS (PR #108 review).
+
+    Webhook'da alohida bot jarayoni yo'q: update'lar Daphne'ga keladi va har
+    so'rov `async_to_sync` bilan o'z event loop'ini ochib yopadi, ya'ni fon
+    sikli tirik qolmaydi. Demak yozuvni faqat update olib keladi. Yosh
+    bo'yicha RED berish yangi deploy'ni (hali hech kim yozmagan) va jim tunni
+    nosozlik deb ko'rsatardi — aynan shu probe rad etgan xatoni boshqa
+    tarmoqda takrorlardi. `TELEGRAM_MODE` productionda **default webhook**,
+    ya'ni bu asosiy yo'l.
+    """
+
+    def test_a_quiet_night_is_never_red_in_webhook_mode(self):
+        write_beat(age_seconds=7200, mode="webhook", updates_total=12)
+
+        with override_settings(IS_LOCAL=False, TELEGRAM_MODE="webhook"):
+            result = _dispatcher_probe(DEFINITION)
+
+        self.assertEqual(result.status, "amber")
+        self.assertIn("jarayon tirikligini", result.summary)
+
+    def test_the_same_age_is_red_in_polling_mode(self):
+        """Qarama-qarshi holat — polling'da yosh hamon tiriklik."""
+        write_beat(age_seconds=7200, mode="polling", updates_total=12)
+
+        with override_settings(IS_LOCAL=False, TELEGRAM_MODE="polling"):
+            result = _dispatcher_probe(DEFINITION)
+
+        self.assertEqual(result.status, "red")
+
+    def test_a_fresh_deployment_without_traffic_is_amber_not_red(self):
+        """Webhook'da birinchi xabargacha yozuv bo'lmasligi normal."""
+        with override_settings(IS_LOCAL=False, TELEGRAM_MODE="webhook"):
+            result = _dispatcher_probe(DEFINITION)
+
+        self.assertEqual(result.status, "amber")
+        self.assertIn("webhook", result.summary.lower())
+
+    def test_a_webhook_that_never_received_an_update_is_actionable(self):
+        """Ro'yxatdan o'tmagan webhook jim qolardi — shuni aytib beramiz."""
+        write_beat(mode="webhook", updates_total=0)
+
+        with override_settings(IS_LOCAL=False, TELEGRAM_MODE="webhook"):
+            result = _dispatcher_probe(DEFINITION)
+
+        self.assertEqual(result.status, "amber")
+        self.assertIn("update kelmagan", result.summary)
+
+    def test_the_mode_comes_from_the_heartbeat_not_the_current_setting(self):
+        """Sozlama keyin o'zgartirilgan bo'lishi mumkin; yozuv eski rejimda."""
+        write_beat(age_seconds=7200, mode="webhook", updates_total=5)
+
+        with override_settings(IS_LOCAL=False, TELEGRAM_MODE="polling"):
+            result = _dispatcher_probe(DEFINITION)
+
+        self.assertEqual(result.status, "amber", "yozuv webhook rejimida qilingan")
+
+    def test_webhook_latency_still_colours_the_light(self):
+        """Tiriklik o'qilmasa ham o'lchangan sekinlik haqiqiy fakt."""
+        write_beat(mode="webhook", updates_total=50, samples=50, p95_ms=9000.0, avg_ms=4000.0)
+
+        with override_settings(IS_LOCAL=False, TELEGRAM_MODE="webhook"):
+            result = _dispatcher_probe(DEFINITION)
+
+        self.assertEqual(result.status, "red")
+        self.assertIn("p95", result.summary)
+
+
+class ExpiredWindowTests(TestCase):
+    """Oynadan eski raqam rang bermaydi.
+
+    `samples`/`p95` heartbeat yozilgan paytdagi oynani tasvirlaydi. Yozuvning
+    o'zi o'sha oynadan eski bo'lsa, raqamlar muddati o'tgan — uch soat oldin
+    o'lchangan sekinlik hozirgi sekinlik emas.
+    """
+
+    def test_a_stale_slow_measurement_does_not_turn_the_light_red(self):
+        write_beat(
+            age_seconds=7200,
+            mode="webhook",
+            updates_total=50,
+            samples=50,
+            p95_ms=9000.0,
+            avg_ms=4000.0,
+            window_seconds=300,
+        )
+
+        with override_settings(IS_LOCAL=False, TELEGRAM_MODE="webhook"):
+            result = _dispatcher_probe(DEFINITION)
+
+        self.assertEqual(result.status, "amber", "eski raqam qizil bermaydi")
+        self.assertIn("muddati o'tgan", result.summary)
+
+    def test_a_stale_error_share_does_not_turn_the_light_red(self):
+        samples = MIN_ERROR_SAMPLES * 2
+        write_beat(
+            age_seconds=7200,
+            mode="webhook",
+            updates_total=samples,
+            samples=samples,
+            errors=samples,
+            p95_ms=10.0,
+            avg_ms=10.0,
+            window_seconds=300,
+        )
+
+        with override_settings(IS_LOCAL=False, TELEGRAM_MODE="webhook"):
+            result = _dispatcher_probe(DEFINITION)
+
+        self.assertEqual(result.status, "amber")
+
+    def test_freshness_is_reported_so_the_owner_can_see_why(self):
+        write_beat(age_seconds=7200, mode="webhook", updates_total=5, samples=5, window_seconds=300)
+
+        details = dict(_dispatcher_probe(DEFINITION).details)
+
+        self.assertEqual(details["data_fresh"], "yo'q")
+
+    def test_a_normal_cycle_is_not_called_expired(self):
+        """Oddiy sikl yoshida (oyna + oraliq ichida) raqamlar amalda."""
+        write_beat(age_seconds=310, mode="polling", updates_total=5, samples=5,
+                   window_seconds=300, flush_seconds=30)
+
+        details = dict(_dispatcher_probe(DEFINITION).details)
+
+        self.assertEqual(details["data_fresh"], "ha")
+
+
 class SnapshotIntegrationTests(TestCase):
     def test_the_light_appears_in_the_control_center_snapshot(self):
         from core.control_center import build_control_center_snapshot

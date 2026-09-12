@@ -57,6 +57,35 @@ def clamp(name, value):
     return max(low, min(number, high))
 
 
+def repair_order(values, red_name, amber_name):
+    """AMBER/RED tartibini **chegaradan chiqmasdan** tuzatadi.
+
+    Sodda tuzatish (`red = amber + 1`) xatoga olib kelardi: xato foizida
+    ikkala chegara ham 0–100 oralig'ida, ya'ni ikkisi 100 bo'lib kelsa RED
+    101 ga chiqardi. 101% xato kuzatilishi mumkin emas, demak chiroq xato
+    sababli **hech qachon qizil bo'lmasdi** — tuzatish o'zi yangi ko'r
+    nuqta yasardi (PR #108 review topilmasi).
+
+    Shu sabab uch bosqich: avval RED ni ko'taramiz; chegara ruxsat bermasa
+    AMBER ni tushiramiz; ikkisi ham mumkin bo'lmasa juftlikni kod
+    defaultiga qaytaramiz.
+    """
+    if values[red_name] > values[amber_name]:
+        return
+    red_high = BOUNDS[red_name][1]
+    amber_low = BOUNDS[amber_name][0]
+    raised = values[amber_name] + 1
+    if raised <= red_high:
+        values[red_name] = raised
+        return
+    lowered = values[red_name] - 1
+    if lowered >= amber_low:
+        values[amber_name] = lowered
+        return
+    values[red_name] = DEFAULTS[red_name]
+    values[amber_name] = DEFAULTS[amber_name]
+
+
 @dataclass(frozen=True)
 class Thresholds:
     backup_stale_after_days: int
@@ -83,8 +112,7 @@ class Thresholds:
         # to'g'ridan-to'g'ri qizilni ko'radi. `clean()` buni formada ushlaydi;
         # bu yerda formani chetlab o'tgan yozuv uchun to'r.
         for red_name, amber_name in ORDERED_PAIRS:
-            if values[red_name] <= values[amber_name]:
-                values[red_name] = values[amber_name] + 1
+            repair_order(values, red_name, amber_name)
         return cls(**values)
 
 

@@ -454,6 +454,33 @@ Sikl `aiogram` ning `startup`/`shutdown` hodisalariga ulangan, `runbot` yoki
 `run_bot.py` ga emas: ikkita polling kirish nuqtasi bor va har biriga qo'lda
 ulash bittasini unutish yo'li.
 
+**Shu bo'linishning oqibati — probe rejimga qarab o'qiydi.** Bu PR #108
+review topilmasi va u haqiqiy nuqsonni ko'rsatdi: birinchi versiyada yosh
+ikki rejimda ham tiriklik deb o'qilardi, holbuki webhook'da alohida bot
+jarayoni **yo'q** va yozuvni faqat update olib keladi. Natijada yangi
+deploy «hech qachon ishga tushmagan» bo'lib ko'rinardi va jim tun chiroqni
+qizil qilardi — ya'ni bu bandning o'z qoidasi (`trafiksizlik nosozlik emas`)
+productionning **default** rejimida buzilgan edi, chunki `TELEGRAM_MODE`
+local'dan tashqarida `webhook`.
+
+| Rejim | Yosh nimani bildiradi | Eng yomon rang |
+|---|---|---|
+| `polling` | tiriklik — sikl yozmasa jarayon yo'q | RED |
+| `webhook` | o'lchovning yangiligi, tiriklik emas | AMBER |
+
+Webhook'da web tier tirikligi boshqa chiroqlarning va `/readyz` ning ishi.
+Yo'qolgan signal o'rniga yangi, amal qilinadigan signal qo'shildi: webhook
+rejimida hech qachon update kelmagan bo'lsa AMBER — bu odatda webhook
+ro'yxatdan o'tmaganini bildiradi. Rejim **heartbeat'dan** o'qiladi, joriy
+sozlamadan emas: sozlama keyin o'zgartirilgan bo'lishi mumkin, yozuv esa
+eski rejimda qilingan.
+
+**Oynadan eski raqam rang bermaydi.** `samples`/`p95` heartbeat yozilgan
+paytdagi oynani tasvirlaydi. Yozuvning o'zi o'sha oynadan eski bo'lsa
+raqamlar muddati o'tgan: uch soat oldin o'lchangan sekinlik hozirgi sekinlik
+emas. Bu qoida ikki rejimda ham ishlaydi va yana bitta yolg'on qizilni
+yopadi.
+
 **Rejali to'xtatish halokatdan ajratiladi.** `shutdown` da `stopped_at`
 yoziladi va probe uni **yoshdan oldin** ko'radi — aks holda to'xtatish
 yozuvining yangi `last_seen_at` i botni tirik qilib ko'rsatardi (soxta-yashil).
@@ -471,6 +498,14 @@ kirmagan bo'lishi mumkin.
 bot ishga tushgan zahoti qizil chiroq berardi — shuning uchun xato foizi
 kamida 20 namunadan keyin rang beradi. Namuna umuman bo'lmasa javob «namuna
 yo'q», «hammasi tez» emas.
+
+**Tartib tuzatishi chegarani buzmaydi.** Review ikkinchi topilma berdi:
+AMBER/RED tartibini `red = amber + 1` bilan tuzatish xato foizida ishlamaydi
+— ikkala chegara ham 0–100 oralig'ida, ya'ni fixture yoki `update()` ikkisini
+100 qilib yozsa RED 101 ga chiqardi. 101% xato kuzatilishi mumkin emas,
+demak chiroq xato sababli **hech qachon qizil bo'lmasdi** va tuzatishning
+o'zi yangi ko'r nuqta yasagan bo'lardi. Endi uch bosqich: RED ni ko'tarish →
+bo'lmasa AMBER ni tushirish → bo'lmasa juftlikni kod defaultiga qaytarish.
 
 **Sozlamalar (owner qoidasi):** yozuv oralig'i va o'lchov oynasi
 `bot.BotRuntimeSettings` da; chiroqning oltita chegarasi (bot belgisi,

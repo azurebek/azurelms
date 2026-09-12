@@ -62,7 +62,34 @@ yo'li.
    o'qiladi, sozlamadan emas: owner bir daqiqa oldin o'zgartirgan qiymat hali
    kuchga kirmagan bo'lishi mumkin.
 
-**Nazorat yugurishi — 9 ta sabotaj, 9 tasi ushlandi.** `stopped_at` ni yoshdan
+**PR #108 review ikki topilma berdi, ikkalasi ham haqiqiy:**
+
+1. **P1 — webhook rejimida tiriklik trafikka bog'langan qolgan.** Men
+   polling uchun «trafiksizlik nosozlik emas» qoidasini yozdim va
+   productionning **default** rejimida (`TELEGRAM_MODE` local'dan tashqarida
+   `webhook`) uni buzdim: webhook'da alohida bot jarayoni yo'q, yozuvni faqat
+   update olib keladi, ya'ni yangi deploy «hech qachon ishga tushmagan»
+   bo'lib ko'rinardi va jim tun chiroqni qizil qilardi. Endi probe rejimga
+   qarab o'qiydi: polling'da yosh tiriklik (RED mumkin), webhook'da
+   o'lchovning yangiligi (eng yomoni AMBER). Yo'qolgan signal o'rniga
+   amal qilinadigan yangisi qo'shildi — webhook'da hech qachon update
+   kelmagan bo'lsa AMBER, bu odatda webhook ro'yxatdan o'tmaganini bildiradi.
+   Yo'lda uchinchi yolg'on qizil ham yopildi: oynadan eski `p95`/xato ulushi
+   endi rang bermaydi, chunki raqam o'zi tasvirlayotgan oyna tugagach
+   shunchaki tarix.
+2. **P2 — tartib tuzatishi chegaradan chiqardi.** `red = amber + 1` xato
+   foizida ishlamaydi: ikkala chegara ham 0–100 oralig'ida, ya'ni ikkisi 100
+   bo'lib kelsa RED 101 ga chiqardi. 101% xato kuzatilishi mumkin emas,
+   demak chiroq xato sababli hech qachon qizil bo'lmasdi — tuzatishning o'zi
+   ko'r nuqta yasagan bo'lardi. Endi uch bosqich: RED ni ko'tarish → bo'lmasa
+   AMBER ni tushirish → bo'lmasa juftlikni defaultga qaytarish.
+
+**Nazorat yugurishi — 14 ta sabotaj, 14 tasi ushlandi** (9 tasi birinchi
+yozuvda, 5 tasi review tuzatishlari uchun: webhook yoshini tiriklik deb
+o'qish, oynadan eski p95 va xato ulushi bilan rang berish, rejimni sozlamadan
+o'qish, tartib tuzatishida chegarani e'tiborsiz qoldirish).
+
+**Birinchi yozuvdagi 9 sabotaj.** `stopped_at` ni yoshdan
 keyinga surish, tiriklikni update vaqtidan o'qish, flush poli'ni olib tashlash,
 xato foizi namuna polini o'chirish, o'lchovni identity ichiga kiritish, o'lchov
 yo'liga DB yozuvi qo'shish, oynani e'tiborsiz qoldirish, lifecycle hooklarini
@@ -101,7 +128,7 @@ update, p95 34.2 ms» → rejali to'xtatishdan keyin «ataylab to'xtatilgan
 
 - Branch: `claude/t4-bot-kuzatuvi`
 - Test holati: to'liq suite OK; yangi `bot/test_metrics.py` (28) va
-  `core/test_dispatcher_probe.py` (26)
+  `core/test_dispatcher_probe.py` (36)
 - Migratsiya: `bot.0009`, `core.0003` — ikkalasi ham additive
 - Davom etilishi kerak: **T6** (dead-letter replay). Brauzerda ko'rilmadi —
   sahifa owner login'ini talab qiladi; render server tomonida test bilan
