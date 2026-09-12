@@ -195,6 +195,47 @@ class ReplayServiceTests(TestCase):
 
         self.assertEqual(result.permanent, 1)
 
+    def test_the_permanent_count_describes_rows_that_actually_moved(self):
+        """Son `UPDATE` dan keladi, alohida `COUNT` dan emas (PR #109 review).
+
+        Ilgari `permanent` alohida `COUNT` bilan olinardi va keyin `UPDATE`
+        qatorlarni qaytarardi. Ikkisi orasida qator holatini boshqa
+        tranzaksiya o'zgartirsa, son sodir bo'lmagan ishni bildirardi — ya'ni
+        ogohlantirish ham, audit yozuvi ham yolg'on bo'lardi.
+
+        Shart shu yerda invariant sifatida qulflanadi: `permanent` soni
+        so'ralgan va **hozir navbatda turgan** permanent qatorlar sonidan
+        oshmasligi kerak.
+        """
+        moved = make_dm(username="dl-perm-moved", kind=retry_policy.KIND_PERMANENT)
+        # Bu qator allaqachon navbatda — ya'ni `UPDATE` unga tegmaydi.
+        already = make_dm(
+            username="dl-perm-already",
+            kind=retry_policy.KIND_PERMANENT,
+            status=TelegramOutbox.STATUS_PENDING,
+        )
+
+        result = replay(keys=[f"dm:{moved.pk}", f"dm:{already.pk}"])
+
+        self.assertEqual(result.total_replayed, 1)
+        self.assertEqual(result.permanent, 1, "tegilmagan qator sanalmasligi kerak")
+        self.assertLessEqual(result.permanent, result.total_replayed)
+
+    def test_the_two_updates_do_not_double_count_a_row(self):
+        """Permanent qator ikkinchi `UPDATE` ga qayta tushmasligi kerak.
+
+        Ikkinchi so'rov `status='failed'` bo'yicha filtrlaydi, birinchisi esa
+        qatorni allaqachon `pending` qilgan — shu sabab u avtomatik chetlab
+        o'tiladi. Aks holda bitta qator ikki marta sanalardi.
+        """
+        permanent = make_dm(username="dl-dbl-p", kind=retry_policy.KIND_PERMANENT)
+        transient = make_dm(username="dl-dbl-t", kind=retry_policy.KIND_TRANSIENT)
+
+        result = replay(keys=[f"dm:{permanent.pk}", f"dm:{transient.pk}"])
+
+        self.assertEqual(result.total_replayed, 2)
+        self.assertEqual(result.permanent, 1)
+
     def test_the_limit_is_enforced(self):
         rows = [make_dm(username=f"dl{index}") for index in range(3)]
 

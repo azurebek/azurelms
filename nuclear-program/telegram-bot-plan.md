@@ -578,6 +578,14 @@ sinalsa guruh yo'li jim buzilishi mumkin edi.
 vaqtda bossa ham xabar bir marta ketadi. Ikkinchi chaqiruv nol qator
 o'zgartiradi va yuza hech narsa yozmaydi.
 
+**Har son o'zining `UPDATE` idan keladi.** PR #109 review topilmasi: `permanent`
+soni alohida `COUNT` bilan olinsa, u bilan `UPDATE` orasida holat o'zgarganda
+son **sodir bo'lmagan** ishni bildirardi — ogohlantirish ham, audit yozuvi ham
+yolg'on bo'lardi. Endi ikkita `UPDATE` (avval permanent, keyin qolgani) va
+har biri o'zi o'zgartirgan qatorlar sonini qaytaradi. Ikkinchisi
+`status='failed'` bo'yicha filtrlagani uchun birinchisi tekkanlarini
+avtomatik chetlab o'tadi.
+
 **Nima tiklanadi va nega:**
 
 | Maydon | Nima bo'ladi | Nega |

@@ -275,24 +275,51 @@ def replay(*, keys, limit=None, now=None):
             if not ids:
                 result.replayed[queue] = 0
                 continue
-            model = queue_model(queue)
-            failed = model.objects.filter(pk__in=ids, status=model.STATUS_FAILED)
-            result.permanent += failed.filter(
-                failure_kind=retry_policy.KIND_PERMANENT
-            ).count()
-            # Shartli `UPDATE` — idempotentlik va poyga himoyasi shu yerda.
-            result.replayed[queue] = model.objects.filter(
-                pk__in=ids, status=model.STATUS_FAILED
-            ).update(
-                status=model.STATUS_PENDING,
-                attempts=0,
-                last_error="",
-                failure_kind="",
-                next_attempt_at=None,
-                claimed_at=None,
-                claim_token="",
-            )
+            permanent, other = _replay_queue(queue, ids)
+            result.permanent += permanent
+            result.replayed[queue] = permanent + other
     return result
+
+
+#: Qaytarilgan qator qanday holatga keltiriladi. Lug'at alohida, chunki uni
+#: ikki `UPDATE` ham ishlatadi va ikkisi bir xil bo'lishi **shart**.
+REPLAY_RESET = {
+    "attempts": 0,
+    "last_error": "",
+    "failure_kind": "",
+    "next_attempt_at": None,
+    "claimed_at": None,
+    "claim_token": "",
+}
+
+
+def _replay_queue(queue, ids):
+    """Bitta navbatni qaytaradi; `(permanent, qolgan)` sonini qaytaradi.
+
+    **Nega ikkita `UPDATE`, bittasi emas.** Ilgari `permanent` soni alohida
+    `COUNT` bilan olinardi, keyin bitta `UPDATE` hammasini qaytarardi. Ikkala
+    so'rov orasida qator holatini boshqa tranzaksiya o'zgartirsa, `COUNT`
+    uni sanagan, `UPDATE` esa o'tkazib yuborgan bo'lardi — natijada owner
+    ko'rgan ogohlantirish va `SystemAuditEvent.after["permanent"]` **sodir
+    bo'lmagan** ishni bildirardi (PR #109 review topilmasi). Audit ledgeri
+    uchun bu qabul qilib bo'lmaydi.
+
+    Endi har son o'zining `UPDATE` idan keladi, ya'ni u aynan **o'zgargan**
+    qatorlarni bildiradi. Birinchi so'rov permanent qatorlarni qaytaradi;
+    ikkinchisi `status='failed'` bo'yicha filtrlagani uchun ularni
+    avtomatik chetlab o'tadi va faqat qolganini oladi. Qulf kerak emas:
+    har `UPDATE` ning o'zi atomik va `WHERE status='failed'` uning shartidir.
+    """
+    model = queue_model(queue)
+    permanent = model.objects.filter(
+        pk__in=ids,
+        status=model.STATUS_FAILED,
+        failure_kind=retry_policy.KIND_PERMANENT,
+    ).update(status=model.STATUS_PENDING, **REPLAY_RESET)
+    other = model.objects.filter(pk__in=ids, status=model.STATUS_FAILED).update(
+        status=model.STATUS_PENDING, **REPLAY_RESET
+    )
+    return permanent, other
 
 
 def snapshot_for_audit(rows):

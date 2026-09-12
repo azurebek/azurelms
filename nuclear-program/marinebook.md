@@ -69,6 +69,21 @@ ketdi.** Ikkala bo'shliq ham haqiqiy edi:
 
 Tuzatishdan keyin 9/9 ushlandi.
 
+**PR #109 review yana bitta topilma berdi va u ham haqiqiy edi.** `permanent`
+soni alohida `COUNT` bilan olinardi, keyin bitta `UPDATE` qatorlarni
+qaytarardi. Ikkala so'rov orasida qator holatini boshqa tranzaksiya
+o'zgartirsa, `COUNT` uni sanagan, `UPDATE` esa o'tkazib yuborgan bo'lardi —
+ya'ni owner ko'rgan ogohlantirish va `SystemAuditEvent.after["permanent"]`
+**sodir bo'lmagan** ishni bildirardi. Audit ledgeri uchun bu qabul qilib
+bo'lmaydi: yozuv ishonchli bo'lmasa, uning butun maqsadi yo'qoladi.
+
+Endi ikkita `UPDATE`: birinchisi permanent qatorlarni qaytaradi, ikkinchisi
+qolganini. Har son o'zining `UPDATE` idan keladi, ya'ni u aynan **o'zgargan**
+qatorlarni bildiradi. Ikkinchi so'rov `status='failed'` bo'yicha filtrlagani
+uchun birinchisi tekkanlarini avtomatik chetlab o'tadi — ikki marta sanash
+yo'q. Qulf kerak emas: har `UPDATE` ning o'zi atomik. Nazorat yugurishi ikki
+sabotaj bilan tasdiqladi (11/11).
+
 **Chegara sozlamada:** `BotRuntimeSettings.dead_letter_replay_limit` (default
 200) sahifa nechta qator ko'rsatishini ham, bitta amal nechtasiga tegishini
 ham belgilaydi. Ortiqcha qator bo'lsa sahifa buni aytadi — aks holda owner
@@ -86,7 +101,7 @@ yozilmadi); tasdiq bilan ikkitasi qaytdi, ogohlantirish chiqdi, audit tarixi
 sabab va aktor bilan yozildi. Sinov ma'lumotlari o'chirildi.
 
 - Branch: `claude/t6-dead-letter-replay`
-- Test holati: to'liq suite OK; yangi `bot/test_dead_letter.py` (37)
+- Test holati: to'liq suite OK; yangi `bot/test_dead_letter.py` (39)
 - Migratsiya: `bot.0010` — additive
 - Davom etilishi kerak: serversiz navbat tugadi. Qolgan bandlar owner
   tanlovini (T3/T8), o'lchovni (T5) yoki serverni (T7) kutadi
