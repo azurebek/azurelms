@@ -27,7 +27,22 @@ x-app: &app
   # compose'da bir, konteynerda boshqa qiymatga ega bo'lib qololmaydi.
   env_file:
     - .env
+  environment:
+    # Control Center «Release identity» shu o'zgaruvchini o'qiydi
+    # (`core/control_center/snapshot.py::_release_sha`). Bo'sh bo'lsa
+    # `unknown` ko'rinadi — ya'ni nosozlik paytida serverda qaysi kod
+    # turgani noma'lum bo'ladi. Deploy paytida:
+    #   export SOURCE_VERSION=$(git -C .. rev-parse HEAD)
+    SOURCE_VERSION: ${SOURCE_VERSION:-}
   restart: unless-stopped
+  # Log hajmi cheklanmasa `json-file` drayveri diskni sekin-asta yeydi va
+  # buni hech kim sezmaydi — 30 GB diskda bu haqiqiy xavf. Uch fayl ×
+  # 10 MB = har servis uchun ko'pi bilan 30 MB.
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
   volumes:
     # Public media (`USE_S3=False` holatida) va private media disk volume'da:
     # konteyner qayta qurilganda o'quvchining yuklagan fayli yo'qolmasligi kerak.
@@ -60,6 +75,11 @@ services:
     # CI bir xil PostgreSQL major versiyasini ko'rishi uchun ataylab bir xil.
     image: pgvector/pgvector:pg16
     restart: unless-stopped
+    logging: &log
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     environment:
       POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER kerak}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD kerak}
@@ -80,6 +100,7 @@ services:
   cache:
     image: valkey/valkey:8-alpine
     restart: unless-stopped
+    logging: *log
     command: ["valkey-server", "--appendonly", "yes"]
     volumes:
       - valkeydata:/data
@@ -159,6 +180,7 @@ services:
     # webhook ham faqat HTTPS qabul qiladi.
     image: caddy:2-alpine
     restart: unless-stopped
+    logging: *log
     ports:
       - "80:80"
       - "443:443"

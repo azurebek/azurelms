@@ -37,10 +37,17 @@
 	# aynan shuni o'qiydi, aks holda `SECURE_SSL_REDIRECT` cheksiz
 	# redirect siklini yasardi.
 	reverse_proxy web:8080 {
-		# WebSocket uzoq turadi: classbook jonli darsi bir soatdan oshadi.
+		# WebSocket uzoq turadi: classbook jonli darsi bir soatdan oshadi,
+		# va dars o'rtasida o'quvchi hech narsa yozmasligi ham normal.
+		#
+		# `read_timeout 300s` bu izohga ZID edi: u bo'sh turgan ulanishni
+		# besh daqiqadan keyin uzardi. Klient qayta ulanadi, ya'ni bu
+		# blocker emas — lekin jonli darsda har besh daqiqada uzilish
+		# ko'rinadigan sifat muammosi. `0` — cheksiz; ulanishni Daphne
+		# va klientning o'z ping/pong mexanizmi boshqaradi.
 		transport http {
-			read_timeout 300s
-			write_timeout 300s
+			read_timeout 0
+			write_timeout 0
 		}
 	}
 

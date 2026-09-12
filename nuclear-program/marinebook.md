@@ -16,6 +16,77 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-13 [Claude]: Uchta deploy blocker — Codex auditidan keyin
+
+Azurbek Codex'ning deploy oldi auditini uzatdi: uchta P1 va bir necha
+operatsion qarz. **Uchalasini ham o'zim tekshirdim va uchalasi ham haqiqiy
+edi** — hech biri yolg'on emas.
+
+**P1-1 — `/readyz` productionda doim `503`.** Eng og'iri. `_media_probe`
+shunday o'ylardi: «`USE_S3=False` va profil local emas → fayllar ephemeral
+konteynerda → RED». O'sha taxmin compose yozilgunga qadar to'g'ri edi;
+compose esa media'ni **nomli volume** ga mount qiladi. Birinchi deploy
+rejasi aynan `USE_S3=False` + volume, `media_storage` esa `critical` — ya'ni
+`/readyz` doim `503` qaytarardi va tashqi uptime tekshiruvi instance'ni
+yaroqsiz deb hisoblardi.
+
+Yechim — taxmin o'rniga **o'lchov** (`core/storage_persistence.py`).
+Saqlanish kuzatiladigan xossa: konteynerda emasmizmi (oddiy VM diski),
+konteynerdamiz va papka mount nuqtasimi (volume ulangan), yoki
+konteynerdamiz va papka oddiy katalogmi (**aynan shu RED**). Endi probe
+ikkala xatoni ham qilmaydi: haqiqiy volume'ni qoralamaydi va mount
+unutilgan holatni yashil qilmaydi.
+
+Nuqson `_media_probe` uchun **birorta test bo'lmagani** uchun o'tib ketgan.
+
+**P1-2 — media restore yo'riqnomasi hech qachon ishlamasdi.** Ikki qadam
+turgan edi: birinchisi arxivni `/tmp/tiklash` ga chiqarardi, ikkinchisi
+undan ko'chirardi. `run --rm` konteynerni va uning yoziladigan qatlamini
+o'chiradi, `/tmp` esa volume emas — ikkinchi buyruq **yangi** konteynerda
+bo'sh `/tmp` ni ko'rardi. Endi ikkala qadam bitta konteynerda, oraliq papka
+`backups/` ichida (u host'ga mount qilingan).
+
+**P1-3 — `setwebhook` fail-safe emas edi**, uch nuqson bilan va uchalasi
+bir xil oqibatga olib borardi: bot jimgina o'ladi, buyruq muvaffaqiyat deb
+ko'rinadi. (a) URL bir xil bo'lsa **secret tekshirilmasdan** chiqib ketardi —
+Telegram `getWebhookInfo` da secret'ni qaytarmaydi, ya'ni URL tengligi
+secret tengligini isbotlamaydi; secret rotatsiyasidan keyin har bir update
+rad etilardi. (b) `except Exception` xatoni `stdout` ga yozib exit-code `0`
+qoldirardi. (c) `drop_pending_updates=True` doim yoqilgan — bot to'xtab
+turgan vaqtda kelgan xabarlar jimgina o'chirilardi.
+
+**Operatsion qarzlar ham yopildi:** zaxira rotatsiyasi (14 kun), har servis
+uchun log hajmi cheklovi (10m × 3), `SOURCE_VERSION` compose orqali uzatiladi
+(aks holda release identity `unknown`), Caddy `read_timeout 0` (300s bo'sh
+WebSocket'ni dars o'rtasida uzardi va bu o'sha yerdagi izohning o'ziga zid
+edi). **Offsite zaxira hamon ochiq** — u alohida ish.
+
+**`deploy/` uchun birinchi marta testlar yozildi.** Bu fayllar hech qachon
+qoplanmagan va shu sababli to'rtta haqiqiy nuqson ishlab chiqargan (mount,
+egalik, cron log, restore). Endi `core/test_deploy_artifacts.py` compose,
+runbook va Caddyfile'ni matn sifatida tekshiradi.
+
+**Nazorat yugurishi 13 sabotaj, boshida 10 tasi ushlandi.** Uchtasi o'tib
+ketdi va uchalasi ham **mening testlarimning** kamchiligi edi, bitta oiladan:
+**config o'rniga izohdagi matnni tekshirish**. Caddy testi o'zim yozgan
+izohdagi `read_timeout 300s` ni topardi; `SOURCE_VERSION` testi kalit
+o'chirilganda ham izohdagi so'zni ko'rib yashil qolardi; log testi esa
+`<<: *app` markerini ko'rib, `x-app` da `logging:` borligini
+**tekshirmasdan** qanoatlanardi. Uchalasi tuzatilgach 13/13.
+
+Saboq takrorlanuvchi: matn ustidagi tekshiruvda izohlar avval olib
+tashlanishi kerak, va meros olingan sozlama merosning **manbasida** ham
+tekshirilishi kerak.
+
+- Branch: `claude/deploy-blockers`
+- Test holati: to'liq suite **1733/1733 OK** (skipped=41); yangi
+  `core/test_media_persistence.py` (12), `bot/test_setwebhook.py` (12),
+  `core/test_deploy_artifacts.py` (15)
+- Migratsiya: yo'q
+- Davom etilishi kerak: offsite zaxira; deploy owner qo'lida
+
+---
+
 ## 2026-09-12 [Claude]: Deploy oldi tekshiruvi — zaxira papkasi nuqsoni
 
 Azurbek AWS hisobi ochilganini aytdi, ya'ni deploy endi haqiqiy. Serverga

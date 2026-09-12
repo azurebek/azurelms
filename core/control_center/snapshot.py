@@ -525,27 +525,70 @@ def _telegram_probe(definition: CapabilityDefinition) -> CapabilityResult:
 
 
 def _media_probe(definition: CapabilityDefinition) -> CapabilityResult:
+    """Media saqlanadimi — **o'lchov bilan**, `USE_S3` taxminidan emas.
+
+    Ilgari bu probe `USE_S3=False` va non-local profilni ko'rib darhol RED
+    berardi: "production media ephemeral local filesystemda". O'sha taxmin
+    `deploy/docker-compose.prod.yml` yozilgunga qadar to'g'ri edi — compose
+    esa media'ni **nomli volume** ga mount qiladi va fayllar saqlanadi.
+
+    Oqibati og'ir edi: birinchi deploy rejasi aynan `USE_S3=False` +
+    persistent volume, `media_storage` esa `critical`, ya'ni `/readyz`
+    **doim `503`** qaytarardi va tashqi uptime tekshiruvi instance'ni
+    yaroqsiz deb hisoblardi (2026-09-13 deploy oldi auditi).
+
+    Endi savol to'g'ri qo'yiladi: fayl konteyner o'chganda yo'qoladimi?
+    Bunga `core/storage_persistence.py` javob beradi va u taxmin qilmaydi —
+    konteynerdamizmi va papka mount nuqtasimi, shuni ko'radi.
+    """
+    from core.storage_persistence import EPHEMERAL, describe_media_root
+
     use_s3 = bool(getattr(settings, "USE_S3", False))
-    if use_s3 and getattr(settings, "AWS_DEFAULT_ACL", None) == "public-read":
+    if use_s3:
+        if getattr(settings, "AWS_DEFAULT_ACL", None) == "public-read":
+            return _result(
+                definition,
+                "red",
+                "Remote media public-read; private learner fayllari uchun xavfli.",
+                backend="S3/Spaces",
+                access="public-read",
+            )
         return _result(
             definition,
-            "red",
-            "Remote media public-read; private learner fayllari uchun xavfli.",
+            "green",
+            "Remote private storage sozlangan.",
             backend="S3/Spaces",
-            access="public-read",
         )
-    if not use_s3 and not settings.IS_LOCAL:
+
+    media_root = getattr(settings, "MEDIA_ROOT", "")
+    if settings.IS_LOCAL:
+        return _result(
+            definition,
+            "green",
+            "Local filesystem development rejimida.",
+            backend="FileSystemStorage",
+            media_root=str(media_root),
+        )
+
+    verdict, note = describe_media_root(media_root)
+    if verdict == EPHEMERAL:
         return _result(
             definition,
             "red",
-            "Production media ephemeral local filesystemda.",
+            "Media konteyner ichida, volume ulanmagan — konteyner qayta "
+            "qurilganda o'quvchi yuklagan fayllar yo'qoladi.",
             backend="FileSystemStorage",
+            persistence=verdict,
+            media_root=str(media_root),
+            note=note,
         )
     return _result(
         definition,
         "green",
-        "Local filesystem development rejimida." if not use_s3 else "Remote private storage sozlangan.",
-        backend="FileSystemStorage" if not use_s3 else "S3/Spaces",
+        f"Media saqlanadigan diskda ({note}).",
+        backend="FileSystemStorage",
+        persistence=verdict,
+        media_root=str(media_root),
     )
 
 
