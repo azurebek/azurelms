@@ -552,7 +552,7 @@ oladi. Endi T5 ni ochishdan oldin haqiqiy raqam bor.
   ochilmaydi** — kesh xavfsizlik regressiyasi bo'lishi mumkin va uni
   isbotlanmagan taxmin uchun olish mantiqsiz.
 
-## T6 — Dead-letter replay · `S`
+## T6 — Dead-letter replay · `S` — `IMPLEMENTED/TESTED` (2026-09-12)
 
 - **Outcome:** terminal bo'lgan xabarni owner sababi bilan qayta yuboradi.
 - **Kelib chiqishi:** PR #101 dead-letter'ni qurdi, replay amalini qurmadi.
@@ -563,6 +563,48 @@ oladi. Endi T5 ni ochishdan oldin haqiqiy raqam bor.
 - **Acceptance:** replay `SystemAuditEvent` ga yoziladi; `permanent` turdagi qator
   uchun ogohlantirish beriladi (bloklagan foydalanuvchiga qayta yuborish befoyda);
   replay urinish hisoblagichini nolga qaytaradi.
+
+**Bajarildi — 2026-09-12.** Yuza: `/backoffice/control/dead-letter/`.
+
+**Ikki navbat bitta modulda.** `bot.TelegramOutbox` (DM) va
+`classbook.TelegramGroupDelivery` (guruh) alohida modellar, ammo bu amal uchun
+bir xil shaklda. Qayta urinish siyosati allaqachon ikkisi uchun **bitta**
+(`bot/retry_policy.py`) — replay ham shunday, aks holda bittasi tuzatilib
+ikkinchisi eskirib qolardi. Test ikkala navbatni ham qamrab oladi: faqat DM
+sinalsa guruh yo'li jim buzilishi mumkin edi.
+
+**Idempotentlik sahifa holatida emas, shartli `UPDATE` da.** Qator faqat
+`WHERE status='failed'` bo'lganda qaytadi, ya'ni ikki brauzer oynasi bir
+vaqtda bossa ham xabar bir marta ketadi. Ikkinchi chaqiruv nol qator
+o'zgartiradi va yuza hech narsa yozmaydi.
+
+**Nima tiklanadi va nega:**
+
+| Maydon | Nima bo'ladi | Nega |
+|---|---|---|
+| `attempts` | `0` | Aks holda qaytarilgan xabar birinchi transient xatoda darhol yana dead-letter bo'lardi — amal amalda hech narsa bermasdi |
+| `next_attempt_at` | `None` | Keyingi siklda darhol olinadi |
+| `failure_kind`, `last_error` | tozalanadi | `pending` qatorda eski nosozlik matni chalg'itadi; qiymat audit yozuvining `before` snapshotida saqlanadi |
+| `claimed_at`, `claim_token` | tozalanadi | Himoya: terminal qatorda ular bo'sh bo'lishi kerak, lekin bo'sh emas deb ishonmaymiz |
+
+**`permanent` uchun ikkinchi tasdiq, to'siq emas.** Bu tur — foydalanuvchi
+botni bloklagan, chat o'chirilgan yoki bot guruhdan chiqarilgan; qayta urinish
+hech qachon yordam bermaydi va faqat rate budjetini yeydi. Baribir
+taqiqlanmaydi: blok yechilgan bo'lishi mumkin va buni faqat owner biladi.
+Shu sabab ro'yxatda alohida belgi, formada esa alohida tasdiq va yuborilgandan
+keyin alohida ogohlantirish.
+
+**Chegara sozlamada.** `BotRuntimeSettings.dead_letter_replay_limit` (default
+200) sahifa nechta qator ko'rsatishini ham, bitta amal nechtasiga tegishini
+ham belgilaydi — «bir o'tirishda qanchasini qaytaraman» bitta qaror, ikki
+knob emas. Chegaradan oshiq qator bo'lsa sahifa buni aytadi, aks holda owner
+«hammasini qaytardim» degan xato xulosa chiqarardi.
+
+**Yopilgan qarz.** `05-launch-ops.md` §2 ikki joyda «outbox replay
+auditlanmagan, chunki bunday amal hali mavjud emas» deb yozgan edi; ikkalasi
+ham yangilandi. `bot/retry_policy.py` dagi `KIND_CONFIG` izohi ham
+«(replay amali hali yo'q)» deb turgan edi — endi amal bor, lekin u **qo'lda**,
+o'sha qarorning o'zi esa avtomatik bo'lib qoladi.
 
 ## T7 — Mini App'ni haqiqiy yuzaga aylantirish · `L` · **serverni kutadi**
 
@@ -586,7 +628,7 @@ oladi. Endi T5 ni ochishdan oldin haqiqiy raqam bor.
 
 | Bosqich | Bandlar | Nega shu tartib |
 |---|---|---|
-| **Hozir (serversiz)** | ~~T0~~ ~~T1~~ ~~T2~~ ~~T4~~ (2026-09-11/12; T2 `PARTIAL`) → **T6** | T2 ning ikki qismi ma'lumot modeliga bog'liq va owner qaroriga qoldi. T4 endi T5 uchun haqiqiy o'lchov beradi. Qolgani — dead-letter replay; AWS'ni kutmaydi |
+| **Hozir (serversiz)** | ~~T0~~ ~~T1~~ ~~T2~~ ~~T4~~ ~~T6~~ (2026-09-11/12; T2 `PARTIAL`) — **serversiz navbat tugadi** | T2 ning ikki qismi ma'lumot modeliga bog'liq va owner qaroriga qoldi. Qolgan bandlar (T3, T5, T7, T8) yo owner tanlovini, yo o'lchovni, yo serverni kutadi |
 | **Server ochilganda** | T7 tekshiruvi, F10 qoldig'i | Webhook, Menu Button, Mini App webview |
 | **Launchdan keyin** | T3, T5, T8 | T3 owner tanlovini kutadi; T5 o'lchovni kutadi |
 

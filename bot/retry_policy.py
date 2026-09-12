@@ -71,10 +71,12 @@ KIND_TRANSIENT = "transient"
 #: Bot darajasidagi konfiguratsiya nosozligi (noto'g'ri/eskirgan token).
 #: Ataylab `permanent` emas: sabab **xabarda emas, butun botda**. Agar u
 #: terminal bo'lsa, bir marta noto'g'ri token bilan chiqilgan deploy butun
-#: navbatni dead-letter qilib yuboradi va tokenni tuzatish ularni qaytarmaydi
-#: (replay amali hali yo'q). Navbat to'xtab turgani esa ko'rinadi va
-#: tuzatiladi: Control Center eng qadimgi pending bir soatdan oshganda RED
-#: beradi. Shu sabab urinish ham sarflanmaydi.
+#: navbatni dead-letter qilib yuborardi. T6 (2026-09-12) replay amalini
+#: qurdi, ya'ni bunday qatorni endi qaytarish mumkin — lekin qaytarish
+#: **qo'lda** amal, bu yerdagi qaror esa avtomatik: token tuzatilgach navbat
+#: owner aralashuvisiz tiklanishi kerak. Navbat to'xtab turgani ko'rinadi:
+#: Control Center eng qadimgi pending chegaradan oshganda RED beradi. Shu
+#: sabab urinish ham sarflanmaydi.
 KIND_CONFIG = "config"
 
 #: `TelegramBadRequest` matnida shular uchrasa qayta urinish befoyda: chat

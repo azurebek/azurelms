@@ -105,3 +105,15 @@ def audit_trail_for(target, *, limit=8):
         target_type=target.__class__.__name__,
         target_id=str(target.pk),
     ).select_related("actor")[:limit]
+
+
+def audit_trail_for_action(action, *, limit=8):
+    """Amal nomi bo'yicha oxirgi yozuvlar.
+
+    `audit_trail_for()` obyektga bog'langan yozuvlar uchun; ba'zi amallarda
+    esa **bitta nishon yo'q**. Dead-letter replay (T6) aynan shunday: bitta
+    amal ikki navbatdagi bir necha qatorga tegadi, ya'ni `target_id` ga
+    yozadigan yakka obyekt mavjud emas. Tarixni amal nomi bilan o'qish
+    to'g'riroq — sun'iy nishon yaratish yozuvni chalg'ituvchi qilardi.
+    """
+    return SystemAuditEvent.objects.filter(action=action).select_related("actor")[:limit]

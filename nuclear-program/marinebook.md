@@ -16,6 +16,83 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-12 [Claude]: T6 — dead-letter replay
+
+PR #101 dead-letter'ni **qurdi** va u yerda to'xtadi: urinishlari tugagan
+xabar `failed` bo'lib navbatda abadiy o'lik yotardi, uni qaytarishning yagona
+yo'li SQL yozish edi. `05-launch-ops.md` §2 buni ikki joyda ochiq qarz deb
+yozgan: «Outbox replay auditlanmagan, chunki bunday amal hali mavjud emas.»
+Ikkalasi ham yopildi.
+
+Yuza: `/backoffice/control/dead-letter/`. Owner terminal qatorlarni ko'radi
+(kimga, qanday xabar, qanday nosozlik, nechta urinish), tanlaydi, sabab
+yozadi va navbatga qaytaradi.
+
+**Ikki navbat bitta modulda.** `bot.TelegramOutbox` (DM) va
+`classbook.TelegramGroupDelivery` (guruh) alohida modellar, ammo bu amal
+uchun bir xil shaklda. Qayta urinish siyosati allaqachon ikkisi uchun bitta
+(`bot/retry_policy.py`) — replay ham shunday bo'lishi kerak edi, aks holda
+bittasi tuzatilib ikkinchisi eskirib qolardi.
+
+**Idempotentlik sahifa holatida emas, shartli `UPDATE` da:** qator faqat
+`WHERE status='failed'` bo'lganda qaytadi. Ikki brauzer oynasi bir vaqtda
+bossa ham xabar bir marta ketadi.
+
+**Urinish hisoblagichi nolga qaytadi** — aks holda qaytarilgan xabar birinchi
+transient xatoda darhol yana dead-letter bo'lardi va amal amalda hech narsa
+bermasdi. `last_error`/`failure_kind` tozalanadi (pending qatorda eski
+nosozlik matni chalg'itadi), ammo ular **audit yozuvining `before`
+snapshotida** saqlanadi — «nima uchun o'lgan edi» savolining javobi faqat shu
+yerda qoladi.
+
+**`permanent` uchun ikkinchi tasdiq, to'siq emas.** Foydalanuvchi botni
+bloklagan yoki bot guruhdan chiqarilgan qatorni qaytarish faqat rate
+budjetini yeydi. Baribir taqiqlanmaydi: blok yechilgan bo'lishi mumkin va
+buni faqat owner biladi.
+
+**Nazorat yugurishi — 9 sabotaj, boshida 7 tasi ushlandi, ikkitasi o'tib
+ketdi.** Ikkala bo'shliq ham haqiqiy edi:
+
+1. **No-op tarmog'i umuman testlanmagan.** `if result.total_replayed:` ni
+   olib tashlaganda hech bir test qizarmadi. Sabab: mening
+   «ikkinchi POST audit yozmaydi» testim yuzaning bu tarmog'iga **yetib
+   bormasdi** — qator birinchi replaydan keyin `pending` bo'ladi, ya'ni
+   sahifada ko'rinmaydi va forma tanlovni umuman qabul qilmaydi. Ikki xil
+   himoya bir xil natija berardi va men ikkinchisini sinaganman deb
+   o'ylagandim. Poygani tabiiy yo'l bilan yasab bo'lmaydi, shuning uchun
+   servis natijasi almashtiriladi: tekshirilayotgan narsa yuzaning qarori.
+2. **Umumiy chegara testi yolg'on yashil edi.** `visible_rows()` har navbatni
+   alohida `[:limit]` bilan qirqadi, ya'ni faqat DM qatorlari bo'lgan
+   fixture'da oxirgi umumiy chegarani olib tashlash **hech narsani
+   o'zgartirmasdi**. Chegara faqat ikki navbatda ham qator bo'lganda ma'no
+   kasb etadi — test shunday qayta yozildi.
+
+Tuzatishdan keyin 9/9 ushlandi.
+
+**Chegara sozlamada:** `BotRuntimeSettings.dead_letter_replay_limit` (default
+200) sahifa nechta qator ko'rsatishini ham, bitta amal nechtasiga tegishini
+ham belgilaydi. Ortiqcha qator bo'lsa sahifa buni aytadi — aks holda owner
+«hammasini qaytardim» degan xato xulosa chiqarardi.
+
+Yo'lda ikki eskirgan da'vo ham tuzatildi: `bot/retry_policy.py` dagi
+`KIND_CONFIG` izohi «(replay amali hali yo'q)» deb turgan edi, Control
+Center'dagi «Keyingi qatlam» bloki esa allaqachon qurilgan to'rt narsani
+(feature flag, mutation audit, worker heartbeat, ReleaseRecord) hali
+ulanmagan deb ko'rsatardi.
+
+Brauzerda tekshirildi: uchta terminal qator yaratildi, `permanent` ni
+tasdiqsiz qaytarishga urinildi — **rad etildi** (qator tegilmadi, ledgerga
+yozilmadi); tasdiq bilan ikkitasi qaytdi, ogohlantirish chiqdi, audit tarixi
+sabab va aktor bilan yozildi. Sinov ma'lumotlari o'chirildi.
+
+- Branch: `claude/t6-dead-letter-replay`
+- Test holati: to'liq suite OK; yangi `bot/test_dead_letter.py` (37)
+- Migratsiya: `bot.0010` — additive
+- Davom etilishi kerak: serversiz navbat tugadi. Qolgan bandlar owner
+  tanlovini (T3/T8), o'lchovni (T5) yoki serverni (T7) kutadi
+
+---
+
 ## 2026-09-12 [Claude]: T4 — bot observability
 
 Auditdagi uchinchi bo'shliq: «Launch kuni bot holatini ko'rsatadigan hech narsa

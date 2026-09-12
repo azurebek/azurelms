@@ -38,6 +38,10 @@ DEFAULTS = {
     # sozlamasi va bir sikl boshida bitta DB o'qishi bilan olinadi.
     "metrics_flush_seconds": 30,
     "metrics_window_seconds": 300,
+    # Dead-letter replay (T6) — bitta amalda nechta terminal qator navbatga
+    # qaytariladi. Sahifa ham shu qadar qator ko'rsatadi: «bir o'tirishda
+    # qanchasini qaytaraman» bitta qaror, ikki knob emas.
+    "dead_letter_replay_limit": 200,
 }
 
 #: Xavfsiz oraliqlar — modeldagi validatorlar bilan bir xil. Ikki joyda
@@ -53,6 +57,7 @@ BOUNDS = {
     "max_backoff_seconds": (5, 86400),
     "metrics_flush_seconds": (5, 3600),
     "metrics_window_seconds": (30, 86400),
+    "dead_letter_replay_limit": (1, 5000),
 }
 
 
@@ -80,6 +85,7 @@ class DeliveryPolicy:
     max_backoff_seconds: int
     metrics_flush_seconds: int
     metrics_window_seconds: int
+    dead_letter_replay_limit: int
 
     @classmethod
     def defaults(cls):

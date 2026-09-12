@@ -29,3 +29,7 @@
 .brand-unit{position:absolute;top:50%;right:11px;transform:translateY(-50%);pointer-events:none;font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-4);white-space:nowrap}
 .brand-numfield:focus-within .brand-unit{color:var(--azure)}
 @media(max-width:680px){.brand-numfield{max-width:none}}
+
+/* Dead-letter (T6): «hech qachon tuzalmaydi» turini qolganidan ajratadi —
+   owner qaysi qatorni qaytarish befoyda ekanini ro'yxatda ko'rishi kerak. */
+.brand-badge--warn{background:var(--red-soft);color:var(--red)}

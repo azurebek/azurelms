@@ -1,7 +1,11 @@
 from datetime import timedelta
 
 from django.contrib import messages
-from core.audit import audit_trail_for, record_audit_event
+from core.audit import (
+    audit_trail_for,
+    audit_trail_for_action,
+    record_audit_event,
+)
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import get_user_model
@@ -481,6 +485,106 @@ def backoffice_ai_circuit_reset(request):
         "recent_resets": audit_trail_for(state),
     }
     return render(request, "backoffice/ai_circuit_reset.html", context)
+
+
+@login_required
+@user_passes_test(_is_control_center_owner)
+def backoffice_dead_letter(request):
+    """Owner-only: terminal bo'lgan Telegram xabarlarini navbatga qaytaradi (T6).
+
+    PR #101 dead-letter'ni qurdi, qaytarish amalini qurmadi — ya'ni xabar
+    navbatda abadiy o'lik yotardi va uni qaytarishning yagona yo'li SQL yozish
+    edi. `05-launch-ops.md` §2 buni ochiq qarz deb yozgan: «Outbox replay
+    auditlanmagan, chunki bunday amal hali mavjud emas.»
+
+    A2 shartlari: majburiy sabab, majburiy tasdiq, `SystemAuditEvent` va
+    o'zgarish bo'lmasa hech narsa yozmaydigan no-op yo'l. Qo'shimcha shart —
+    `permanent` turdagi qator uchun ikkinchi tasdiq (formada).
+
+    **Nega audit yozuvi bu yerda, servisda emas.** `bot/dead_letter.py` sof:
+    u nimani o'zgartirganini aytadi, kim va nega so'raganini bilmaydi.
+    Aktor, sabab va request kontekstini faqat yuza biladi, va `core/audit.py`
+    ledgerga yozishning yagona nuqtasi bo'lib qoladi.
+    """
+    from bot.dead_letter import counts, replay, snapshot_for_audit, visible_rows
+    from bot.runtime_settings import current_policy
+    from core.dead_letter_forms import DeadLetterReplayForm
+
+    limit = current_policy().dead_letter_replay_limit
+    rows = visible_rows(limit=limit)
+    summary = counts()
+
+    if request.method == "POST":
+        form = DeadLetterReplayForm(request.POST, available=rows, limit=limit)
+        if form.is_valid():
+            selected = form.selected_rows()
+            before = snapshot_for_audit(selected)
+            # Qaytarish va audit **bitta** tranzaksiyada: `core/audit.py`
+            # ning qoidasi — audit yozilmasa o'zgarishning o'zi ham
+            # qaytarilishi kerak, chunki "amal bajarildi, lekin kim qilgani
+            # noma'lum" holati ledgerning maqsadini yo'qqa chiqaradi.
+            # `replay()` ning ichki `atomic()` i bu yerda savepoint bo'ladi.
+            with transaction.atomic():
+                result = replay(keys=form.cleaned_data["rows"], limit=limit)
+                if result.total_replayed:
+                    record_audit_event(
+                        action="telegram.dead_letter.replay",
+                        request=request,
+                        target_label="Telegram dead-letter replay",
+                        reason=form.cleaned_data["change_reason"].strip(),
+                        before=before,
+                        after={
+                            "replayed": result.total_replayed,
+                            "dm": result.replayed.get("dm", 0),
+                            "group": result.replayed.get("group", 0),
+                            "permanent": result.permanent,
+                            "skipped": result.skipped,
+                        },
+                    )
+            if result.total_replayed:
+                messages.success(
+                    request,
+                    f"{result.total_replayed} xabar navbatga qaytarildi.",
+                )
+                if result.permanent:
+                    messages.warning(
+                        request,
+                        f"Shundan {result.permanent} tasi «hech qachon tuzalmaydi» "
+                        "turida edi — blok yechilmagan bo'lsa ular yana o'sha "
+                        "xato bilan qaytadi.",
+                    )
+                if result.skipped:
+                    messages.info(
+                        request,
+                        f"{result.skipped} qator o'tkazib yuborildi: ular "
+                        "allaqachon navbatga qaytgan edi.",
+                    )
+            else:
+                # No-op yo'l: hech narsa o'zgarmadi, ya'ni ledgerga ham
+                # yozilmaydi. Aks holda audit tarixi hech narsa qilmagan
+                # bosishlar bilan to'lib ketardi.
+                messages.info(
+                    request,
+                    "Tanlangan xabarlar allaqachon navbatda; hech narsa yozilmadi.",
+                )
+            return redirect("backoffice_dead_letter")
+    else:
+        form = DeadLetterReplayForm(available=rows, limit=limit)
+
+    context = {
+        "active_nav": "backoffice",
+        "bo_active": "control",
+        "counts": {},
+        "form": form,
+        "rows": rows,
+        "summary": summary,
+        "limit": limit,
+        # Ro'yxat chegara bilan qirqilgan bo'lsa owner buni bilishi kerak:
+        # aks holda «hammasini qaytardim» degan xato xulosa chiqarardi.
+        "truncated": max(0, summary["total"] - len(rows)),
+        "recent_replays": audit_trail_for_action("telegram.dead_letter.replay"),
+    }
+    return render(request, "backoffice/dead_letter.html", context)
 
 
 @login_required

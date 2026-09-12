@@ -236,6 +236,16 @@ class BotRuntimeSettings(models.Model):
             "oldingi sekinlik hozirgi tezlik bo'lib ko'rinardi."
         ),
     )
+    dead_letter_replay_limit = models.PositiveIntegerField(
+        default=200,
+        validators=[MinValueValidator(1), MaxValueValidator(5000)],
+        verbose_name="Dead-letter: bir amalda nechta qator",
+        help_text=(
+            "Qayta yuborish sahifasi shu qadar terminal qator ko'rsatadi va "
+            "bitta amal shu qadariga tegadi. Katta qilinsa minglab xabar bir "
+            "vaqtda navbatga qaytib, 429 Flood control keltirishi mumkin."
+        ),
+    )
 
     updated_at = models.DateTimeField(auto_now=True)
     updated_by = models.ForeignKey(
