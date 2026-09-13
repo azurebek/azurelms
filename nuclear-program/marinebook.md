@@ -16,6 +16,22 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-13 [Codex]: `www` TLS alias va canonical redirect
+
+Production browser tekshiruvida apex domen 200 qaytardi, ammo Namecheap'dagi
+`www` CNAME Caddy konfiguratsiyasida alohida host bo'lmagani uchun TLS
+handshake yiqildi. `www.azurebek.me` endi o'z sertifikatiga ega Caddy site
+bo'lib, barcha path va query'larni canonical `https://azurebek.me` ga 308
+redirect qiladi; artefakt testi bu blokni qayta yo'qolishdan saqlaydi.
+
+- Branch: `codex/www-tls-redirect`
+- Commitlar: `61d7c74`
+- Test holati: `core.test_deploy_artifacts` — 19/19 OK
+- Davom etilishi kerak: PR CI'dan keyin Caddy'ni serverda reload qilib,
+  apex va `www` HTTPS natijasini tekshirish
+
+---
+
 ## 2026-09-13 [Codex]: Production backup restore — PostgreSQL klient majori
 
 Frankfurtdagi birinchi production deploy ishga tushdi, lekin izolyatsiyalangan
