@@ -16,6 +16,24 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-13 [Codex]: Celery beat production restart-loop tuzatildi
+
+Yakuniy server auditida `beat` konteyneri 109 marta restart bo'lgani
+aniqlandi: non-root uid 10001 default `celerybeat-schedule` faylini
+root-owned `/app` ga yoza olmagan. Schedule endi image'da uid 10001 ga
+tegishli `/app/beat` ichida turadi va alohida `beatdata` named volume bilan
+konteyner recreate'idan keyin ham saqlanadi; deploy testi command, mount va
+egalikning uchalasini birga tekshiradi.
+
+- Branch: `codex/celery-beat-schedule`
+- Commitlar: `ce3503c`
+- Test holati: `core.test_deploy_artifacts core.test_backup_target` —
+  35/35 OK (skipped=1)
+- Davom etilishi kerak: PR CI'dan keyin server image'ini qayta qurib,
+  `beat` restart count 0 va schedule fayli uid 10001 ekanini tekshirish
+
+---
+
 ## 2026-09-13 [Codex]: `www` TLS alias va canonical redirect
 
 Production browser tekshiruvida apex domen 200 qaytardi, ammo Namecheap'dagi
