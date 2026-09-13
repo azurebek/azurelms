@@ -158,6 +158,19 @@ class ComposeTests(SimpleTestCase):
         db_block = text[text.index("  db:"):text.index("  cache:")]
         self.assertNotIn("5432:", db_block)
 
+    def test_celery_beat_schedule_is_writable_and_persistent(self):
+        """Root-owned `/app` dagi default schedule beat'ni restart-loop qiladi."""
+        beat = service_blocks()["beat"]
+        dockerfile = (Path(settings.BASE_DIR) / "Dockerfile").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("--schedule", beat)
+        self.assertIn("/app/beat/celerybeat-schedule", beat)
+        self.assertIn("beatdata:/app/beat", beat)
+        self.assertIn("/app/beat", dockerfile)
+        self.assertRegex(dockerfile, r"chown[^\n]*/app/beat")
+
 
 class RunbookTests(SimpleTestCase):
     def test_the_media_restore_runs_in_one_container(self):

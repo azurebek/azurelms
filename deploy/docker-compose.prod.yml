@@ -151,7 +151,12 @@ services:
 
   beat:
     <<: *app
-    command: ["celery", "-A", "core", "beat", "-l", "info"]
+    # Default `celerybeat-schedule` WORKDIR (`/app`) ichiga yoziladi, u esa
+    # root'ga tegishli va uid 10001 uchun read-only. Alohida volume schedule'ni
+    # yoziladigan va konteyner recreate'idan keyin ham saqlanadigan qiladi.
+    command: ["celery", "-A", "core", "beat", "-l", "info", "--schedule", "/app/beat/celerybeat-schedule"]
+    volumes:
+      - beatdata:/app/beat
     depends_on:
       db:
         condition: service_healthy
@@ -205,5 +210,6 @@ volumes:
   valkeydata:
   media:
   private-media:
+  beatdata:
   caddy-data:
   caddy-config:
