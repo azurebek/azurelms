@@ -186,6 +186,7 @@ services:
       - "443:443"
     environment:
       APP_DOMAIN: ${APP_DOMAIN:?APP_DOMAIN kerak}
+      APP_WWW_DOMAIN: ${APP_WWW_DOMAIN:?APP_WWW_DOMAIN kerak}
       TLS_EMAIL: ${TLS_EMAIL:?TLS_EMAIL kerak}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
