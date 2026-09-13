@@ -101,7 +101,7 @@ nano .env
 ```
 
 `.env` da **majburiy** to'ldiriladiganlar: `SECRET_KEY`, `APP_DOMAIN`,
-`TLS_EMAIL`, `POSTGRES_PASSWORD`, `DATABASE_URL` (ichidagi parol bilan),
+`APP_WWW_DOMAIN`, `TLS_EMAIL`, `POSTGRES_PASSWORD`, `DATABASE_URL` (ichidagi parol bilan),
 `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, `GEMINI_API_KEY`.
 
 Kalit yasash:
@@ -113,7 +113,9 @@ python3 -c "import secrets; print('SECRET_KEY=' + secrets.token_urlsafe(64)); pr
 > `ALLOWED_HOSTS` ni qo'lda yozmang. Yozsangiz default ro'yxat butunlay
 > almashadi va `127.0.0.1` yo'qoladi — compose'ning `/healthz` tekshiruvi
 > `DisallowedHost` (400) bilan yiqilib, web konteyner cheksiz restart
-> bo'ladi. `APP_DOMAIN` yetarli.
+> bo'ladi. `APP_DOMAIN` yetarli. DNS'dagi `APP_WWW_DOMAIN` CNAME'i
+> Caddy'da alohida TLS site sifatida turadi va canonical `APP_DOMAIN`
+> manziliga doimiy redirect qiladi.
 
 ---
 
