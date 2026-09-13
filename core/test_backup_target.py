@@ -79,6 +79,34 @@ class WritableTargetTests(SimpleTestCase):
         # solishtiriladi.
         self.assertEqual(found, [str(CONTAINER_UID)], "Dockerfile dagi uid boshqacha")
 
+    def test_postgres_client_major_matches_the_database_image(self):
+        """Backup klienti serverdan yangi bo'lsa dump tiklanmay qolishi mumkin.
+
+        PG17 `pg_dump` PG16 serverdan dump olishga ruxsat beradi, ammo dumpga
+        PG16 tanimaydigan `SET transaction_timeout` yozadi. `pg_restore`
+        qolgan obyektlarni tiklasa ham non-zero bilan tugaydi; canonical
+        restore drill buni to'g'ri ravishda xato deb hisoblaydi.
+        """
+        import re
+
+        from django.conf import settings
+
+        root = Path(settings.BASE_DIR)
+        dockerfile = (root / "Dockerfile").read_text(encoding="utf-8")
+        compose = (root / "deploy" / "docker-compose.prod.yml").read_text(
+            encoding="utf-8"
+        )
+        client = re.search(r"postgresql-client-(\d+)", dockerfile)
+        server = re.search(r"pgvector/pgvector:pg(\d+)", compose)
+
+        self.assertIsNotNone(client, "Dockerfile PostgreSQL klient majorini pin qilmagan")
+        self.assertIsNotNone(server, "Compose PostgreSQL server majorini pin qilmagan")
+        self.assertEqual(
+            client.group(1),
+            server.group(1),
+            "pg_dump/pg_restore majori PostgreSQL server bilan bir xil emas",
+        )
+
 
 class RemediationTests(SimpleTestCase):
     """Tavsiya sababga va yo'lga mos bo'lishi kerak (PR #110 review).

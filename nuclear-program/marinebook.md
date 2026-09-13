@@ -16,6 +16,24 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-13 [Codex]: Production backup restore — PostgreSQL klient majori
+
+Frankfurtdagi birinchi production deploy ishga tushdi, lekin izolyatsiyalangan
+restore drill haqiqiy moslik xatosini topdi: Debian'dan o'rnatilgan PG17
+`pg_dump` PG16 bazaning dumpiga `transaction_timeout` parametrini yozgan,
+PG16 `pg_restore` esa uni tanimay non-zero bilan tugagan. `Dockerfile` endi
+PostgreSQL rasmiy repozitoriysidan aynan PG16 klientini o'rnatadi; regression
+test compose'dagi server majorini klient bilan solishtiradi, CI esa qurilgan
+image ichidagi `pg_dump` va `pg_restore` versiyasini bevosita tekshiradi.
+
+- Branch: `codex/pg16-backup-restore`
+- Commitlar: `32effa3`
+- Test holati: `core.test_backup_target` — 15/15 OK (skipped=1)
+- Davom etilishi kerak: PR CI'dan keyin server image'ini qayta qurish, yangi
+  dump olish va `restore_drill_2026_09` ga tiklashni qayta isbotlash
+
+---
+
 ## 2026-09-13 [Claude]: Uchta deploy blocker — Codex auditidan keyin
 
 Azurbek Codex'ning deploy oldi auditini uzatdi: uchta P1 va bir necha
