@@ -113,7 +113,9 @@ python3 -c "import secrets; print('SECRET_KEY=' + secrets.token_urlsafe(64)); pr
 > `ALLOWED_HOSTS` ni qo'lda yozmang. Yozsangiz default ro'yxat butunlay
 > almashadi va `127.0.0.1` yo'qoladi — compose'ning `/healthz` tekshiruvi
 > `DisallowedHost` (400) bilan yiqilib, web konteyner cheksiz restart
-> bo'ladi. `APP_DOMAIN` yetarli.
+> bo'ladi. `APP_DOMAIN` yetarli. Production DNS'dagi `www.azurebek.me`
+> CNAME'i Caddy'da alohida TLS site sifatida turadi va canonical
+> `https://azurebek.me` manziliga doimiy redirect qiladi.
 
 ---
 

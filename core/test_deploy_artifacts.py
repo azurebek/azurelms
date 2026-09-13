@@ -275,6 +275,13 @@ class RunbookTests(SimpleTestCase):
 
 
 class CaddyTests(SimpleTestCase):
+    def test_www_has_tls_site_and_redirects_to_the_canonical_domain(self):
+        """DNS aliasning o'zi HTTPS bermaydi; Caddy SNI hostni bilishi kerak."""
+        text = strip_caddy_comments(CADDYFILE.read_text(encoding="utf-8"))
+
+        self.assertRegex(text, r"(?m)^www\.azurebek\.me\s*\{")
+        self.assertIn("redir https://azurebek.me{uri} permanent", text)
+
     def test_websockets_are_not_cut_off_mid_lesson(self):
         """Classbook darsi bir soatdan oshadi va jim daqiqalar normal.
 

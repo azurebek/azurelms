@@ -14,6 +14,14 @@
 	email {$TLS_EMAIL}
 }
 
+# Namecheap'dagi `www` CNAME ham shu serverga keladi. Alohida site block
+# Caddy'ga `www.azurebek.me` uchun ham sertifikat olishni buyuradi; redirect
+# Django'ga yetmasdan canonical apex hostga o'tadi, shuning uchun session va
+# CSRF hostlari ikkiga bo'linmaydi.
+www.azurebek.me {
+	redir https://azurebek.me{uri} permanent
+}
+
 {$APP_DOMAIN} {
 	encode zstd gzip
 
