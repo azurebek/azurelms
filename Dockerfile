@@ -60,8 +60,8 @@ RUN APP_ENV=local DATABASE_URL=sqlite:///:memory: SECRET_KEY=build-only-not-a-ru
 # Root emas: konteyner ichidagi ixtiyoriy kod ijrosi root bo‘lsa, mount
 # qilingan `media` va `private-media` volume‘lariga ham to‘liq egalik olardi.
 RUN useradd --create-home --uid 10001 azurelms \
-    && mkdir -p /app/media /app/private-media \
-    && chown -R azurelms:azurelms /app/media /app/private-media /app/staticfiles
+    && mkdir -p /app/media /app/private-media /app/beat \
+    && chown -R azurelms:azurelms /app/media /app/private-media /app/beat /app/staticfiles
 USER azurelms
 
 EXPOSE 8080
