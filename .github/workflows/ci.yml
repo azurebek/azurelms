@@ -302,3 +302,8 @@ jobs:
       # yuguradi).
       - name: Production image quriladimi
         run: docker build --tag azurelms:ci --file Dockerfile .
+
+      - name: Production image PostgreSQL 16 klientini ishlatadimi
+        run: |
+          docker run --rm azurelms:ci pg_dump --version | grep -qE ' 16\.'
+          docker run --rm azurelms:ci pg_restore --version | grep -qE ' 16\.'

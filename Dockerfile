@@ -7,6 +7,12 @@
 
 FROM python:3.12-slim
 
+# `deploy/docker-compose.prod.yml` dagi PostgreSQL server majori bilan bir xil
+# bo'lishi shart. Yangi klient eski serverdan dump ola oladi, ammo restore
+# paytida yangi GUC'larni (masalan PG17 `transaction_timeout`) yozib, eski
+# serverda tiklashni yiqitishi mumkin.
+ARG POSTGRES_MAJOR=16
+
 # `PYTHONUNBUFFERED` — log darhol `docker logs` ga chiqsin; buferlansa
 # konteyner o‘lganda oxirgi, ya‘ni eng kerakli satrlar yo‘qolardi.
 ENV PYTHONUNBUFFERED=1 \
@@ -17,15 +23,25 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app
 
 # `ffmpeg` — speaking audio uchun; `libpq5` — PostgreSQL klient kutubxonasi.
-# `postgresql-client` — `manage.py backup_db`/`restore_db` ichida ishlatiladigan
+# `postgresql-client-16` — `manage.py backup_db`/`restore_db` ichida ishlatiladigan
 # `pg_dump`/`pg_restore`. Usiz zaxira olishning canonical yo‘li konteynerda
 # umuman bo‘lmasdi va operator uni qo‘lda, tekshiruvsiz qilishga majbur edi.
 # Build-only `gcc` va `libpq-dev` ataylab olinmadi: `psycopg2-binary` tayyor
 # g‘ildirak bo‘lib keladi, kompilyator esa image ichida qolib ketardi.
 RUN apt-get update && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        curl \
         ffmpeg \
-        libpq5 \
-        postgresql-client \
+    && install -d /usr/share/postgresql-common/pgdg \
+    && curl -fsS https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+        -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+    && . /etc/os-release \
+    && echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt ${VERSION_CODENAME}-pgdg main" \
+        > /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+        "postgresql-client-${POSTGRES_MAJOR}" \
+    && apt-get purge -y --auto-remove curl \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
