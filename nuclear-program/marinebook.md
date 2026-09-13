@@ -20,12 +20,14 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 Production browser tekshiruvida apex domen 200 qaytardi, ammo Namecheap'dagi
 `www` CNAME Caddy konfiguratsiyasida alohida host bo'lmagani uchun TLS
-handshake yiqildi. `www.azurebek.me` endi o'z sertifikatiga ega Caddy site
-bo'lib, barcha path va query'larni canonical `https://azurebek.me` ga 308
-redirect qiladi; artefakt testi bu blokni qayta yo'qolishdan saqlaydi.
+handshake yiqildi. `APP_WWW_DOMAIN` endi o'z sertifikatiga ega Caddy site
+bo'lib, barcha path va query'larni canonical `APP_DOMAIN` ga 308 redirect
+qiladi; artefakt testi bu blokni qayta yo'qolishdan saqlaydi. PR review
+aliasni `azurebek.me` ga qotirib qo'ygan birinchi yechimni tutdi va domenlar
+ikkita majburiy env qiymatiga parametrlandi.
 
 - Branch: `codex/www-tls-redirect`
-- Commitlar: `61d7c74`
+- Commitlar: `61d7c74`, `21257f4`
 - Test holati: `core.test_deploy_artifacts` — 19/19 OK
 - Davom etilishi kerak: PR CI'dan keyin Caddy'ni serverda reload qilib,
   apex va `www` HTTPS natijasini tekshirish
