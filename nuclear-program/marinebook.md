@@ -31,9 +31,14 @@ eski hujjatlardagi Procfile va production-deploy drift'i ham aniq belgilandi.
   — drift yo'q; `core.test_golden_flow_e2e classbook.tests` — 24/24 OK;
   `system_audit --json --fail-on never` — 9 GREEN / 7 AMBER / 0 RED;
   `git diff --check` — pass. Django buyruqlari `.env.local`siz repo venv'i
-  bilan yugurtirildi.
-- Davom etilishi kerak: major canonical write owner, runtime topology yoki
-  launch admission o'zgarsa Codex kontekst snapshotini ham yangilash
+  bilan yugurtirildi. PR #115 supply-chain tekshiruvi o'tdi; SQLite va
+  PostgreSQL full-suite tekshiruvlari bir xil oldindan mavjud, vaqtga bog'liq
+  `core.test_backup_rotation.CommandTests.test_the_retention_window_comes_from_the_owner_setting`
+  testida 1 tadan failure berdi (har ikkisi 1756 ta test yugurtirdi).
+- Davom etilishi kerak: backup-retention testini real soatdan ajratishni
+  alohida branch/PRda tuzatish, so'ng PR #115 tekshiruvlarini qayta yugurtirish;
+  major canonical write owner, runtime topology yoki launch admission o'zgarsa
+  Codex kontekst snapshotini ham yangilash
 
 ---
 
