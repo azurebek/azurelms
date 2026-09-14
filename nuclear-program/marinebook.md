@@ -16,6 +16,56 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-14 [Codex]: Backup-retention testining kalendarga bog'liqligi
+
+PR #115 CI'dagi ikkala full-suite failure `core.test_backup_rotation` ichida
+qayta takrorlandi: fixture sanasi `2026-09-13`, management buyruq soati esa
+real vaqt bo'lgani uchun 2 kunlik deb yaratilgan fayl 3 kunlik oynadan chiqib
+ketgan. `CommandTests.setUp()` endi servis soatini fixture `NOW` qiymatiga
+bog'laydi; sana parsing'i, retention siyosati va fayl o'chirish haqiqiy kodda
+tekshiriladi. Shu himoya `--days` va dry-run testlariga ham tatbiq qilindi.
+
+- Branch: `codex/backup-retention-test-clock`
+- Commitlar: `425f730`; PR #116 merge — `423e74b`
+- Test holati: avval `manage.py test core.test_backup_rotation` — 15 test,
+  1 failure; tuzatishdan keyin `manage.py test core.test_backup_rotation
+  core.test_backup_target core.test_backup_restore core.test_media_backup
+  core.test_pg_backup` — 85 test, OK (26 skipped, lokal backend/PG vositalari);
+  `manage.py check` — 0 issue; `git diff --check` — pass. Django buyruqlari
+  repo venv'ida `AZURELMS_SKIP_ENV_FILE=1`, bo'sh `GEMINI_API_KEY` va
+  `TELEGRAM_BOT_TOKEN` bilan yugurtirildi. PR #116 dagi uchala required check
+  (SQLite full-suite, PostgreSQL+pgvector/Valkey, supply-chain) yashil.
+- Integratsiya: PR #115 ni yangilashda marinebook tepasiga parallel qo'shilgan
+  ikkita yozuv konflikti ikkalasini vaqt tartibida saqlash bilan hal qilindi;
+  production kodida conflict bo'lmadi.
+- Davom etilishi kerak: PR #115 ning yangilangan holatida CI'ni yakunlash
+
+---
+
+## 2026-09-14 [Codex]: Koddan tekshirilgan ishchi kontekst xaritasi
+
+Loyiha wiki'si, launch rebaseline'i va actual kod qatlamlari solishtirilib,
+kelgusi Codex sessiyalari uchun `nuclear-program/codex-context.md` yaratildi.
+Fayl canonical write ownerlari, domain invariantlari, adapter chegaralari,
+AI/runtime/deploy contractlari, yuqori signal testlari va capability deb
+da'vo qilib bo'lmaydigan ochiq gate'larni bitta tezkor xaritada jamlaydi;
+eski hujjatlardagi Procfile va production-deploy drift'i ham aniq belgilandi.
+
+- Branch: `codex/repository-context`
+- Commitlar: `69f52c7`
+- Test holati: `manage.py check` — 0 issue; `makemigrations --check --dry-run`
+  — drift yo'q; `core.test_golden_flow_e2e classbook.tests` — 24/24 OK;
+  `system_audit --json --fail-on never` — 9 GREEN / 7 AMBER / 0 RED;
+  `git diff --check` — pass. Django buyruqlari `.env.local`siz repo venv'i
+  bilan yugurtirildi. Dastlab PR #115 SQLite va PostgreSQL full-suite'lari
+  `core.test_backup_rotation.CommandTests.test_the_retention_window_comes_from_the_owner_setting`
+  testida 1 tadan failure berdi (har ikkisi 1756 ta test yugurtirdi);
+  bu kalendarga bog'liq test PR #116 bilan tuzatilib, `main`dan olindi.
+- Davom etilishi kerak: major canonical write owner, runtime topology yoki
+  launch admission o'zgarsa Codex kontekst snapshotini ham yangilash
+
+---
+
 ## 2026-09-13 [Codex]: Celery beat production restart-loop tuzatildi
 
 Yakuniy server auditida `beat` konteyneri 109 marta restart bo'lgani

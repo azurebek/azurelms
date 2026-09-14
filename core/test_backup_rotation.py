@@ -18,6 +18,7 @@ Yechim: management buyruq (konteyner ichida yuguradi) + muddat
 from datetime import datetime, timedelta, timezone as dt_timezone
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 from django.core.management import call_command
 from django.core.management.base import CommandError
@@ -139,6 +140,13 @@ class PlanTests(SimpleTestCase):
 
 
 class CommandTests(TestCase):
+    def setUp(self):
+        super().setUp()
+        # Buyruqning implicit soati fixture sanasiga mos bo'lsin: aks holda
+        # make_backup() yaratgan 'yangi' fayllar kalendar o'tishi bilan eskiradi.
+        clock = self.enterContext(patch("core.backup_rotation.datetime", wraps=datetime))
+        clock.now.return_value = NOW
+
     def test_the_retention_window_comes_from_the_owner_setting(self):
         """Crontabda emas, sozlamada — SSH'siz o'zgaradi."""
         from core.models import OperationalSettings

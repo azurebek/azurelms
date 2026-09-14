@@ -307,3 +307,19 @@ jobs:
         run: |
           docker run --rm azurelms:ci pg_dump --version | grep -qE ' 16\.'
           docker run --rm azurelms:ci pg_restore --version | grep -qE ' 16\.'
+
+      - name: Beat schedule non-root volume'da saqlanadimi
+        run: |
+          set -eu
+          volume="azurelms-beat-ci-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          docker volume create "$volume"
+          trap 'docker volume rm "$volume"' EXIT
+          # Docker yangi volume'ga image papkasining egaligini ham ko'chiradi.
+          # Default USER bilan haqiqiy shelve fayli yozilsin (Celery beat formati).
+          docker run --rm --network none \
+            --mount "type=volume,source=$volume,target=/app/beat" azurelms:ci \
+            python -c "import os, shelve; assert os.getuid() == 10001; db = shelve.open('/app/beat/celerybeat-schedule'); db['ci_probe'] = 'persisted'; db.close()"
+          # Birinchi konteyner o'chirilgach, yangi konteyner o'sha faylni o'qiydi.
+          docker run --rm --network none \
+            --mount "type=volume,source=$volume,target=/app/beat" azurelms:ci \
+            python -c "import os, shelve; assert os.getuid() == 10001; db = shelve.open('/app/beat/celerybeat-schedule', flag='r'); assert db['ci_probe'] == 'persisted'; db.close()"
