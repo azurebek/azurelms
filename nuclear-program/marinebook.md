@@ -16,6 +16,27 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-14 [Codex]: Koddan tekshirilgan ishchi kontekst xaritasi
+
+Loyiha wiki'si, launch rebaseline'i va actual kod qatlamlari solishtirilib,
+kelgusi Codex sessiyalari uchun `nuclear-program/codex-context.md` yaratildi.
+Fayl canonical write ownerlari, domain invariantlari, adapter chegaralari,
+AI/runtime/deploy contractlari, yuqori signal testlari va capability deb
+da'vo qilib bo'lmaydigan ochiq gate'larni bitta tezkor xaritada jamlaydi;
+eski hujjatlardagi Procfile va production-deploy drift'i ham aniq belgilandi.
+
+- Branch: `codex/repository-context`
+- Commitlar: `69f52c7`
+- Test holati: `manage.py check` — 0 issue; `makemigrations --check --dry-run`
+  — drift yo'q; `core.test_golden_flow_e2e classbook.tests` — 24/24 OK;
+  `system_audit --json --fail-on never` — 9 GREEN / 7 AMBER / 0 RED;
+  `git diff --check` — pass. Django buyruqlari `.env.local`siz repo venv'i
+  bilan yugurtirildi.
+- Davom etilishi kerak: major canonical write owner, runtime topology yoki
+  launch admission o'zgarsa Codex kontekst snapshotini ham yangilash
+
+---
+
 ## 2026-09-13 [Codex]: `www` TLS alias va canonical redirect
 
 Production browser tekshiruvida apex domen 200 qaytardi, ammo Namecheap'dagi
