@@ -864,6 +864,9 @@ Mini App sahifalari `templates/bot/miniapp_base.html` mobil shellini ulashadi. T
 
 - `subscription-lifecycle-daily` — prod-like default
 - Local'da odatda off/eager
+- Production compose'da schedule fayli `/app/beat/celerybeat-schedule`:
+  image papkasi uid 10001 ga tegishli, `beatdata:/app/beat` named volume
+  konteyner recreate'idan keyin schedule holatini saqlaydi (PR #114).
 
 ### Management commands
 

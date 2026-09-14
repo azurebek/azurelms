@@ -21,6 +21,7 @@ narsa YAML strukturasi emas — runbookdagi **buyruqlar** va compose'dagi
 nomlaydi.
 """
 
+import json
 import re
 from pathlib import Path
 
@@ -157,6 +158,30 @@ class ComposeTests(SimpleTestCase):
         text = compose_text()
         db_block = text[text.index("  db:"):text.index("  cache:")]
         self.assertNotIn("5432:", db_block)
+
+    def test_celery_beat_schedule_is_writable_and_persistent(self):
+        """Root-owned `/app` dagi default schedule beat'ni restart-loop qiladi."""
+        beat = strip_yaml_comments(service_blocks()["beat"])
+        dockerfile = strip_yaml_comments(
+            (Path(settings.BASE_DIR) / "Dockerfile").read_text(encoding="utf-8")
+        )
+
+        command_line = re.search(r"(?m)^    command:\s*(\[.*\])\s*$", beat)
+        self.assertIsNotNone(command_line, "beat command topilmadi")
+        command = json.loads(command_line.group(1))
+        self.assertIn("--schedule", command)
+        self.assertEqual(
+            command[command.index("--schedule") + 1],
+            "/app/beat/celerybeat-schedule",
+        )
+        self.assertRegex(beat, r"(?m)^      - beatdata:/app/beat\s*$")
+        volumes = strip_yaml_comments(compose_text()).split("\nvolumes:", 1)[1]
+        self.assertRegex(volumes, r"(?m)^  beatdata:\s*$")
+        self.assertRegex(dockerfile, r"mkdir -p[^\n]*/app/beat(?:\s|$)")
+        self.assertRegex(
+            dockerfile, r"chown -R azurelms:azurelms[^\n]*/app/beat(?:\s|$)"
+        )
+        self.assertRegex(dockerfile, r"(?m)^USER azurelms\s*$")
 
 
 class RunbookTests(SimpleTestCase):

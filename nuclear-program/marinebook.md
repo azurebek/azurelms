@@ -16,6 +16,30 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-15 [Codex]: PR #114 integratsiyasi va beat volume tekshiruvi
+
+`codex/celery-beat-schedule` yangi `main` bilan birlashtirildi: yagona
+conflict marinebook tepasidagi yozuvlar bo'lib, barchasi teskari sana
+tartibida saqlandi. Review'dagi hash e'tirozi GitHub commit API va lokal
+ancestry bilan tekshirildi: `ce3503c` haqiqatan `84cd912`ning bevosita
+ota commit'i, shu dalil bilan thread yopildi. Schedule testi endi izohlarni
+hisoblamaydi; aniq command argumenti, writable mount, volume deklaratsiyasi,
+mkdir/chown va non-root USER'ni tekshiradi. CI production image'da uid 10001
+bilan shelve faylini yozib, yangi konteynerda o'qish qadamini ham bajaradi.
+
+- Branch: `codex/celery-beat-schedule`
+- Commitlar: `ce3503c` (asl fix), `76d9db3` (main integratsiyasi va tekshiruvlar)
+- Test holati: repo venv'ida `manage.py test core.test_deploy_artifacts
+  core.test_backup_target core.test_backup_rotation` — 50 test, OK (1 skipped);
+  `manage.py check` — 0 issue; `git diff --check` — pass.
+  `AZURELMS_SKIP_ENV_FILE=1`, `GEMINI_API_KEY` va `TELEGRAM_BOT_TOKEN` bo'sh.
+  Lokal Docker yo'q; yangi image/volume smoke GitHub CI'da bajariladi.
+- Davom etilishi kerak: required CI yashil bo'lgach PR #114 merge;
+  production deploy va serverdagi beat restart/schedule tekshiruvi alohida
+  operatsion qadam (bu sessiyada server o'zgartirilmadi)
+
+---
+
 ## 2026-09-14 [Codex]: Backup-retention testining kalendarga bog'liqligi
 
 PR #115 CI'dagi ikkala full-suite failure `core.test_backup_rotation` ichida
@@ -63,6 +87,24 @@ eski hujjatlardagi Procfile va production-deploy drift'i ham aniq belgilandi.
   bu kalendarga bog'liq test PR #116 bilan tuzatilib, `main`dan olindi.
 - Davom etilishi kerak: major canonical write owner, runtime topology yoki
   launch admission o'zgarsa Codex kontekst snapshotini ham yangilash
+
+---
+
+## 2026-09-13 [Codex]: Celery beat production restart-loop tuzatildi
+
+Yakuniy server auditida `beat` konteyneri 109 marta restart bo'lgani
+aniqlandi: non-root uid 10001 default `celerybeat-schedule` faylini
+root-owned `/app` ga yoza olmagan. Schedule endi image'da uid 10001 ga
+tegishli `/app/beat` ichida turadi va alohida `beatdata` named volume bilan
+konteyner recreate'idan keyin ham saqlanadi; deploy testi command, mount va
+egalikning uchalasini birga tekshiradi.
+
+- Branch: `codex/celery-beat-schedule`
+- Commitlar: `ce3503c`
+- Test holati: `core.test_deploy_artifacts core.test_backup_target` —
+  35/35 OK (skipped=1)
+- Davom etilishi kerak: PR CI'dan keyin server image'ini qayta qurib,
+  `beat` restart count 0 va schedule fayli uid 10001 ekanini tekshirish
 
 ---
 

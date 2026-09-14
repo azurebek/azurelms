@@ -324,6 +324,8 @@ Caddy public `/media/`ni beradi, private-media unga umuman mount qilinmaydi.
 `SOURCE_VERSION` release identity uchun har deploy/update/rollbackda uzatiladi.
 Docker image root emas, uid 10001 bilan ishlaydi; backup papkasi ownershipi
 runbookdagi kabi tayyorlanadi.
+Beat schedule `/app/beat/celerybeat-schedule` da: uid 10001 yozadi,
+`beatdata:/app/beat` named volume konteyner recreate'idan keyin uni saqlaydi.
 
 Liveness `/healthz` tashqi service'ga tegmaydi. Readiness `/readyz` faqat
 critical capability probe'larini yugurtiradi va RED bo'lsa 503 beradi. To'liq
