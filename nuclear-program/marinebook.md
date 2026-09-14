@@ -16,6 +16,29 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-14 [Codex]: Backup-retention testining kalendarga bog'liqligi
+
+PR #115 CI'dagi ikkala full-suite failure `core.test_backup_rotation` ichida
+qayta takrorlandi: fixture sanasi `2026-09-13`, management buyruq soati esa
+real vaqt bo'lgani uchun 2 kunlik deb yaratilgan fayl 3 kunlik oynadan chiqib
+ketgan. `CommandTests.setUp()` endi servis soatini fixture `NOW` qiymatiga
+bog'laydi; sana parsing'i, retention siyosati va fayl o'chirish haqiqiy kodda
+tekshiriladi. Shu himoya `--days` va dry-run testlariga ham tatbiq qilindi.
+
+- Branch: `codex/backup-retention-test-clock`
+- Commitlar: `425f730`
+- Test holati: avval `manage.py test core.test_backup_rotation` — 15 test,
+  1 failure; tuzatishdan keyin `manage.py test core.test_backup_rotation
+  core.test_backup_target core.test_backup_restore core.test_media_backup
+  core.test_pg_backup` — 85 test, OK (26 skipped, lokal backend/PG vositalari);
+  `manage.py check` — 0 issue; `git diff --check` — pass. Django buyruqlari
+  repo venv'ida `AZURELMS_SKIP_ENV_FILE=1`, bo'sh `GEMINI_API_KEY` va
+  `TELEGRAM_BOT_TOKEN` bilan yugurtirildi.
+- Davom etilishi kerak: required CI yashil bo'lgach fix PR'ini merge qilish,
+  so'ng PR #115 ni yangi `main` bilan yangilab tekshiruvlarini yakunlash
+
+---
+
 ## 2026-09-13 [Codex]: `www` TLS alias va canonical redirect
 
 Production browser tekshiruvida apex domen 200 qaytardi, ammo Namecheap'dagi
