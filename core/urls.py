@@ -27,6 +27,9 @@ urlpatterns = [
 
     # Courses
     path('courses/', include('courses.urls')),
+
+    # Darsga biriktirilgan materialning fayli (o'quvchi uchun yagona manzil).
+    path('library/', include(('library.urls', 'library'), namespace='library')),
     
     # Pricing/Subscriptions
     path('pricing/', include('subscriptions.urls', namespace='subscriptions')),
@@ -84,6 +87,12 @@ urlpatterns = [
     path('backoffice/exams/', core_views.backoffice_exam_editor, name='backoffice_exams'),
     path('backoffice/exams/<int:exam_id>/', core_views.backoffice_exam_editor, name='backoffice_exam_edit'),
     path('backoffice/ai-control/', core_views.backoffice_ai_control, name='backoffice_ai_control'),
+
+    # Material kutubxonasi - ichki kontent ombori (faqat staff).
+    path(
+        'backoffice/library/',
+        include(('library.backoffice_urls', 'library_backoffice'), namespace='library_backoffice'),
+    ),
 
     # TeacherShell — o'qituvchi paneli
     path('teacher/', teacher_views.teacher_dashboard, name='teacher_dashboard'),

@@ -1,0 +1,43 @@
+{% comment %}
+  Kutubxona filtr paneli — ro'yxat va dars muharriridagi tanlov bir xil
+  filtrlardan foydalanadi, shuning uchun markup bitta joyda.
+  Kontekst: filters, type_choices, language_choices, level_choices,
+  kind_choices, tag_choices, courses.
+{% endcomment %}
+<form method="get" class="lib-filters" role="search">
+  <div class="lib-filter-search">
+    <i class="bi bi-search"></i>
+    <input type="search" name="q" value="{{ filters.query }}" placeholder="Nom, tavsif, mavzu yoki teg…" aria-label="Materiallarni qidirish">
+  </div>
+  <select name="type" class="lib-filter-select" aria-label="Material turi">
+    <option value="">Tur: hammasi</option>
+    {% for value, label in type_choices %}<option value="{{ value }}"{% if filters.resource_type == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+  </select>
+  <select name="level" class="lib-filter-select" aria-label="Daraja">
+    <option value="">Daraja: hammasi</option>
+    {% for value, label in level_choices %}<option value="{{ value }}"{% if filters.level == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+  </select>
+  <select name="language" class="lib-filter-select" aria-label="Til">
+    <option value="">Til: hammasi</option>
+    {% for value, label in language_choices %}<option value="{{ value }}"{% if filters.language == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+  </select>
+  <select name="kind" class="lib-filter-select" aria-label="Fayl turi">
+    <option value="">Fayl: hammasi</option>
+    {% for value, label in kind_choices %}<option value="{{ value }}"{% if filters.file_kind == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+  </select>
+  <select name="course" class="lib-filter-select" aria-label="Kurs">
+    <option value="">Kurs: hammasi</option>
+    {% for c in courses %}<option value="{{ c.pk }}"{% if filters.course_id == c.pk %} selected{% endif %}>{{ c.title }}</option>{% endfor %}
+  </select>
+  <select name="tag" class="lib-filter-select" aria-label="Teg">
+    <option value="">Teg: hammasi</option>
+    {% for tag in tag_choices %}<option value="{{ tag.name }}"{% if filters.tag == tag.name %} selected{% endif %}>{{ tag.name }} ({{ tag.usage }})</option>{% endfor %}
+  </select>
+  {% if show_archive_filter %}
+  <label class="lib-filter-check"><input type="checkbox" name="archived" value="1"{% if filters.only_archived %} checked{% endif %}> Arxiv</label>
+  {% endif %}
+  <button type="submit" class="lib-filter-apply"><i class="bi bi-funnel"></i> Qo'llash</button>
+  {% if filters.query or filters.resource_type or filters.level or filters.language or filters.file_kind or filters.course_id or filters.tag or filters.only_archived %}
+  <a class="lib-filter-reset" href="{{ request.path }}">Tozalash</a>
+  {% endif %}
+</form>

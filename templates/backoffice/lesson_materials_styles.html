@@ -1,0 +1,24 @@
+{% comment %}Dars muharriridagi «Materiallar» bo'limining uslublari.{% endcomment %}
+<style>
+  .lm-card{border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;max-width:1080px;margin-top:22px}
+  .lm-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid var(--line)}
+  .lm-head-title{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+  .lm-row{padding:13px 18px}
+  .lm-row+.lm-row{border-top:1px solid var(--line-2)}
+  .lm-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .lm-order{width:58px;height:34px;border-radius:8px;border:1px solid var(--line);background:var(--paper-2);color:var(--ink);font-size:13px;text-align:center}
+  .lm-name{font-size:13.5px;font-weight:600;color:var(--ink);min-width:0;flex:1 1 220px}
+  .lm-sub{font-family:'Space Mono',monospace;font-size:10.5px;color:var(--ink-3);margin-top:3px}
+  .lm-flag{font-size:11.5px;font-weight:600;border-radius:999px;padding:3px 9px;background:var(--paper-2);color:var(--ink-3)}
+  .lm-flag.is-green{background:var(--green-soft);color:var(--green)}
+  .lm-flag.is-amber{background:var(--amber-soft);color:var(--amber)}
+  .lm-btn{height:34px;display:inline-flex;align-items:center;gap:6px;padding:0 12px;border-radius:8px;border:1px solid var(--line);background:none;color:var(--ink-2);font-size:12.5px;font-weight:600;cursor:pointer;text-decoration:none}
+  .lm-btn.is-primary{background:var(--azure);color:var(--on-azure);border-color:var(--azure)}
+  .lm-details{margin-top:10px}
+  .lm-details summary{cursor:pointer;font-size:12.5px;color:var(--ink-3)}
+  .lm-settings{margin-top:10px;padding:12px;border:1px dashed var(--line);border-radius:10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;align-items:end}
+  .lm-settings .bo-lbl{display:block;font-size:11.5px;color:var(--ink-3);margin-bottom:5px}
+  .lm-settings .field-input{width:100%}
+  .lm-empty{padding:18px;font-size:13px;color:var(--ink-3)}
+  @media(max-width:620px){.lm-name{flex:1 1 100%}}
+</style>
