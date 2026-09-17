@@ -16,6 +16,43 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-18 [Claude]: Imtihon muharririning scope'i (default-deny)
+
+Dars muharriridagi bo'shliqning aynan o'zi `backoffice_exam_editor` da ham
+bor edi: `Exam.objects` scope'siz ochilardi, ID'siz manzil esa bazadagi eng
+birinchi imtihonni tanlardi. `ExamBackofficeForm` dagi `course` ro'yxati
+barcha kursni ko'rsatardi — imtihonni begona kursga ko'chirish mumkin edi;
+`prerequisite_exam` ro'yxati esa bazadagi hamma imtihon nomini ochib qo'yardi.
+Uchalasi ham `teacher_course_queryset()` bilan yopildi; rad etish `404`.
+
+- Branch: `claude/exam-editor-scope`
+- Fayllar: `core/views.py` (imtihon queryset'i scope'landi, formaga `user`
+  uzatiladi), `core/backoffice_forms.py` (`course` va `prerequisite_exam`),
+  `core/test_backoffice_exams.py` (yangi)
+- `ExamSectionBackofficeForm` ga scope kerak emas va qo'shilmadi: uning
+  maydonlari orasida boshqa obyektga havola yo'q, `exam` esa view'da —
+  allaqachon tekshirilgan imtihondan — qo'yiladi. Bu tekshirib chiqildi.
+- Test holati: repo venv'ida `.env.local`siz (`AZURELMS_SKIP_ENV_FILE=1`, bo'sh
+  `GEMINI_API_KEY`/`TELEGRAM_BOT_TOKEN`) to'liq suite — **1768 test, 90.7s,
+  skipped=41; 1 failure + 4 error, hammasi `ai.documents`da** (`fpdf` ->
+  `fontTools` DLL'i Windows Application Control tomonidan bloklangan;
+  Django'siz `from fpdf import FPDF` ham shu xatoni beradi). Yangi
+  `core.test_backoffice_exams` — 11 test OK. `manage.py check` — 0 issue;
+  `makemigrations --check` — drift yo'q; `git diff --check` — pass.
+- Nazorat yugurishi: (1) view'dagi scope olib tashlanganda 3 test yiqildi
+  (begona imtihonni ochish, saqlash, kurssiz o'qituvchi); (2) formadagi scope
+  olib tashlanganda 3 test yiqildi (kurs ro'yxati, prerequisite ro'yxati va
+  begona kursga ko'chirish). Ikkala sabotaj ham qo'llanganini tekshirib, keyin
+  fayllar zaxiradan tiklandi.
+- Eslatma: `Exam.clean()` allaqachon prerequisite shu kurs ichida bo'lishini
+  talab qiladi, ya'ni u yerdagi tuzatish ma'lumot sizishiga qarshi (ro'yxatda
+  begona imtihon nomi ko'rinmasin), ko'chirishga qarshi emas.
+- Davom etilishi kerak: shu oila bo'yicha qolgani — `backoffice_chats` va
+  `backoffice_users` kabi yuzalar alohida ko'rib chiqilsin (bu ishda
+  tegilmadi).
+
+---
+
 ## 2026-09-15 [Codex]: PR #114 integratsiyasi va beat volume tekshiruvi
 
 `codex/celery-beat-schedule` yangi `main` bilan birlashtirildi: yagona
