@@ -994,13 +994,29 @@ def backoffice_lesson_editor(request, lesson_id=None):
 @login_required
 @user_passes_test(_is_backoffice_user)
 def backoffice_exam_editor(request, exam_id=None):
+    """Imtihon muharriri — faqat foydalanuvchining **o'z** kursidagi imtihonlar.
+
+    `backoffice_lesson_editor` dagi bilan bir xil bo'shliq edi: yonidagi kurs
+    yuzalari `teacher_course_queryset()` ni ishlatardi, bu yer esa butun
+    `Exam.objects` ni ochardi — har qanday `is_staff` begona kursning
+    imtihonini ocha va saqlay olardi, ID'siz manzil esa bazadagi eng birinchi
+    imtihonni tanlardi. Rad etish `404`: `403` begona kursda shu ID li imtihon
+    borligini tasdiqlab qo'yardi.
+
+    Bo'lim formasiga (`ExamSectionBackofficeForm`) scope kerak emas: uning
+    maydonlari orasida boshqa obyektga havola yo'q, `exam` esa shu yerda —
+    allaqachon tekshirilgan imtihondan — qo'yiladi.
+    """
+    scoped_exams = Exam.objects.select_related("course").filter(
+        course__in=teacher_course_queryset(request.user)
+    )
     exam = (
-        get_object_or_404(Exam.objects.select_related("course"), pk=exam_id)
+        get_object_or_404(scoped_exams, pk=exam_id)
         if exam_id
-        else Exam.objects.select_related("course").order_by("course__title", "title").first()
+        else scoped_exams.order_by("course__title", "title").first()
     )
     section = exam.sections.order_by("order").first() if exam else None
-    exam_form = ExamBackofficeForm(request.POST or None, instance=exam)
+    exam_form = ExamBackofficeForm(request.POST or None, instance=exam, user=request.user)
     section_form = ExamSectionBackofficeForm(request.POST or None, instance=section, prefix="section")
 
     if request.method == "POST" and exam_form.is_valid() and section_form.is_valid():

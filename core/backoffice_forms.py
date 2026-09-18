@@ -93,6 +93,19 @@ class LessonBackofficeForm(forms.ModelForm):
 
 
 class ExamBackofficeForm(forms.ModelForm):
+    """Imtihon muharririning formasi.
+
+    `course` va `prerequisite_exam` ro'yxatlari `user` bo'yicha cheklanadi.
+    Ikki sabab, va ikkalasi ham alohida:
+
+    * `course` — view'dagi tekshiruvni chetlab o'tish yo'li: imtihon scope
+      ichida ochilib, begona kursga **ko'chirib** saqlanardi;
+    * `prerequisite_exam` — bu yerda ko'chirish xavfi yo'q (`Exam.clean()`
+      prerequisite shu kurs ichida bo'lishini talab qiladi), lekin ro'yxat
+      bazadagi **barcha** imtihon nomini ko'rsatardi, ya'ni begona kurs
+      tarkibi ochilib qolardi.
+    """
+
     class Meta:
         model = Exam
         fields = [
@@ -124,9 +137,16 @@ class ExamBackofficeForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
-        self.fields["course"].queryset = Course.objects.order_by("title")
-        prerequisite_qs = Exam.objects.select_related("course").order_by("course__title", "title")
+        courses = Course.objects.all()
+        prerequisite_qs = Exam.objects.select_related("course")
+        if user is not None:
+            scope = teacher_course_queryset(user)
+            courses = scope
+            prerequisite_qs = prerequisite_qs.filter(course__in=scope)
+        self.fields["course"].queryset = courses.order_by("title")
+        prerequisite_qs = prerequisite_qs.order_by("course__title", "title")
         if self.instance and self.instance.pk:
             prerequisite_qs = prerequisite_qs.exclude(pk=self.instance.pk)
         self.fields["prerequisite_exam"].queryset = prerequisite_qs
