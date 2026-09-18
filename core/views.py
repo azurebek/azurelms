@@ -931,19 +931,39 @@ def backoffice_course_editor(request, course_id=None):
 @login_required
 @user_passes_test(_is_backoffice_user)
 def backoffice_lesson_editor(request, lesson_id=None):
-    lesson = (
-        get_object_or_404(Lesson.objects.select_related("module__course"), pk=lesson_id)
-        if lesson_id
-        else Lesson.objects.select_related("module__course").order_by("module__course__title", "module__order", "order").first()
+    """Dars muharriri — faqat foydalanuvchining **o'z** kursidagi darslar.
+
+    Ilgari bu yerda scope umuman yo'q edi: yonidagi `backoffice_courses` va
+    `backoffice_course_editor` `teacher_course_queryset()` ni ishlatardi, dars
+    muharriri esa butun `Lesson.objects` ni ochardi. Ya'ni har qanday `is_staff`
+    begona kursning darsini ocha va **saqlay** olardi, `module` ro'yxati esa
+    bazadagi hamma modulni ko'rsatardi — darsni boshqa kursga ko'chirish ham
+    mumkin edi. Default-deny qoidasi (`launch-plan/05-launch-ops.md`) bu yuzaga
+    ham tegishli.
+
+    Rad etish `404`: `403` begona kursda shu ID li dars borligini tasdiqlab
+    qo'yardi (`library/backoffice_views.py::_editable_lesson` bilan bir xil).
+    """
+    scoped_lessons = Lesson.objects.select_related("module__course").filter(
+        module__course__in=teacher_course_queryset(request.user)
     )
-    form = LessonBackofficeForm(request.POST or None, instance=lesson)
+    lesson = (
+        get_object_or_404(scoped_lessons, pk=lesson_id)
+        if lesson_id
+        else scoped_lessons.order_by("module__course__title", "module__order", "order").first()
+    )
+    form = LessonBackofficeForm(request.POST or None, instance=lesson, user=request.user)
 
     if request.method == "POST" and form.is_valid():
         lesson = form.save()
         messages.success(request, "Dars saqlandi.")
         return redirect("backoffice_lesson_edit", lesson_id=lesson.pk)
 
-    courses = Course.objects.prefetch_related("modules__lessons").order_by("title")
+    courses = (
+        teacher_course_queryset(request.user)
+        .prefetch_related("modules__lessons")
+        .order_by("title")
+    )
     assignments = list(lesson.assignments.all()) if lesson else []
     quizzes = list(lesson.quizzes.all()) if lesson else []
     # Kutubxona biriktirmalari. Import funksiya ichida: `library` `courses` ga

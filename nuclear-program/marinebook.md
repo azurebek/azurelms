@@ -16,6 +16,41 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-18 [Claude]: Dars muharririning scope'i (default-deny)
+
+`backoffice_lesson_editor` yagona backoffice yuzasi bo'lib, `Lesson.objects`
+ni scope'siz ochardi: yonidagi kurslar ro'yxati va kurs muharriri
+`teacher_course_queryset()` ni ishlatardi. Natijada har qanday `is_staff`
+begona kursning darsini ocha va saqlay olardi. `LessonBackofficeForm` dagi
+`module` ro'yxati ham bazadagi barcha modulni ko'rsatardi — ya'ni darsni
+boshqa o'qituvchining kursiga ko'chirish mumkin edi. Ikkala yo'l ham yopildi;
+rad etish `403` emas, `404` (mavjudligini tasdiqlamaslik uchun).
+
+- Branch: `claude/lesson-editor-scope`
+- Fayllar: `core/views.py` (dars va `courses` konteksti scope'landi, formaga
+  `user` uzatiladi), `core/backoffice_forms.py` (`module` queryset'i),
+  `core/test_backoffice_lessons.py` (yangi)
+- Test holati: repo venv'ida `.env.local`siz (`AZURELMS_SKIP_ENV_FILE=1`, bo'sh
+  `GEMINI_API_KEY`/`TELEGRAM_BOT_TOKEN`) to'liq suite — **1767 test, 173.4s,
+  skipped=41; 1 failure + 4 error, hammasi `ai.documents`da**: `fpdf` ->
+  `fontTools` DLL'ini Windows Application Control bloklagan (Django'siz
+  `from fpdf import FPDF` ham shu xatoni beradi), o'zgarishga aloqasi yo'q.
+  Yangi `core.test_backoffice_lessons` — 10 test OK. `manage.py check` — 0
+  issue; `makemigrations --check` — drift yo'q; `git diff --check` — pass.
+- Nazorat yugurishi: (1) view'dagi scope olib tashlanganda 3 test yiqildi
+  (begona darsni ochish, saqlash, kurssiz o'qituvchi); (2) formadagi `module`
+  scope'i olib tashlanganda 2 test yiqildi (ro'yxat tarkibi va darsni begona
+  modulga ko'chirish). Ikkala sabotaj ham haqiqatan qo'llanganini tekshirib,
+  keyin fayllar zaxiradan tiklandi.
+- Eslatma: `lesson_form.html` `courses` kontekstini render qilmaydi (faqat
+  izohda qayd etilgan), lekin u ham scope'landi — shablon keyin ishlatsa
+  bo'shliq qayta ochilmasin.
+- Davom etilishi kerak: shu yuzadagi `assignments`/`quizzes` bloklari dars
+  orqali keladi, ya'ni avtomatik scope ichida; `backoffice_exam_editor` esa
+  hamon scope'siz — alohida ish.
+
+---
+
 ## 2026-09-18 [Claude]: Material kutubxonasi — ichki kontent ombori
 
 Kurs mualliflari uchun yangi `library` app: material bir marta yuklanadi,
