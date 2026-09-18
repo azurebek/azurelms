@@ -58,6 +58,15 @@ class CourseBackofficeForm(forms.ModelForm):
 
 
 class LessonBackofficeForm(forms.ModelForm):
+    """Dars muharririning formasi.
+
+    `module` ro'yxati `user` bo'yicha cheklanadi (`CourseBackofficeForm` dagi
+    `instructor` bilan bir xil sabab): aks holda o'qituvchi darsni begona
+    kursning moduliga **ko'chirib** yuborardi va bu view'dagi tekshiruvni
+    chetlab o'tardi — dars scope ichida ochiladi, keyin scope tashqarisiga
+    saqlanardi. Shuning uchun scope ikki joyda ham majburlanadi.
+    """
+
     class Meta:
         model = Lesson
         fields = ["title", "module", "video_url", "content", "order", "xp_reward"]
@@ -71,8 +80,12 @@ class LessonBackofficeForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
-        self.fields["module"].queryset = Module.objects.select_related("course").order_by(
+        modules = Module.objects.select_related("course")
+        if user is not None:
+            modules = modules.filter(course__in=teacher_course_queryset(user))
+        self.fields["module"].queryset = modules.order_by(
             "course__title",
             "order",
             "title",

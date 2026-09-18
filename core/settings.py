@@ -211,6 +211,7 @@ INSTALLED_APPS = [
     'channels',
     'users',
     'courses',
+    'library',
     'cohorts',
     'classbook',
     'messenger',

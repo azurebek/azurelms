@@ -71,6 +71,17 @@ PROFILES = {
     "document": {"kinds": DOCUMENT_KINDS, "max_bytes": 12 * MB, "label": "hujjat yoki rasm"},
     # Imtihon speaking yozuvi — brauzer MediaRecorder chiqaradigan konteynerlar.
     "audio": {"kinds": AUDIO_KINDS, "max_bytes": 25 * MB, "label": "audio yozuv"},
+    # Material kutubxonasi — ichki ombor, shu sabab eng keng ro'yxat: hujjat,
+    # rasm, audio va video konteynerlari. Bu yerdagi `max_bytes` faqat kod
+    # defaulti: amaldagi chegarani owner sozlamadan beradi
+    # (`library.models.LibrarySettings`) va u `validate_upload(max_bytes=...)`
+    # orqali uzatiladi — jonli dars kunida taqdimot hajmi uchun deploy kutib
+    # o'tirilmasin.
+    "library": {
+        "kinds": DOCUMENT_KINDS + AUDIO_KINDS,
+        "max_bytes": 50 * MB,
+        "label": "o'quv materiali",
+    },
 }
 
 _HUMAN_KINDS = {
@@ -131,20 +142,26 @@ def _looks_like_plain_text(head, name):
     return not decoded.lstrip("﻿ \t\r\n").startswith("<")
 
 
-def validate_upload(upload, *, profile="document", field_label=""):
+def validate_upload(upload, *, profile="document", field_label="", max_bytes=None):
     """Yuklangan faylni profil bo'yicha tekshiradi; xato bo'lsa `ValidationError`.
 
     Tartib muhim: avval hajm (katta faylni o'qishdan oldin), keyin baytlar,
     oxirida kengaytma izchilligi.
+
+    `max_bytes` — profil defaultini **almashtiradigan** chegara. U sozlamadan
+    keladigan profillar uchun kerak; berilmasa profil qiymati ishlaydi. Ruxsat
+    etilgan turlar ro'yxati almashtirilmaydi: tur allowlisti xavfsizlik
+    qarori, hajm esa operatsion qaror.
     """
     spec = PROFILES[profile]
     prefix = f"{field_label}: " if field_label else ""
+    limit = int(max_bytes) if max_bytes else spec["max_bytes"]
 
     size = getattr(upload, "size", 0) or 0
     if size <= 0:
         raise ValidationError(f"{prefix}Fayl bo'sh.")
-    if size > spec["max_bytes"]:
-        limit_mb = spec["max_bytes"] // MB
+    if size > limit:
+        limit_mb = limit // MB
         raise ValidationError(f"{prefix}Fayl hajmi {limit_mb} MB dan oshmasligi kerak.")
 
     kind = sniff_kind(upload)

@@ -94,8 +94,15 @@ def _require(condition, *, request=None, target=None):
         raise Http404
 
 
-def serve_private_file(request, file_field, *, download_name=""):
-    """Ruxsat allaqachon tekshirilgan faylni xavfsiz sarlavhalar bilan uzatadi."""
+def serve_private_file(request, file_field, *, download_name="", inline=None):
+    """Ruxsat allaqachon tekshirilgan faylni xavfsiz sarlavhalar bilan uzatadi.
+
+    `inline=True` — faylni yuklab olish o'rniga brauzerda ochish (kutubxonaning
+    "faqat ko'rish" biriktirmasi shuni so'raydi). Bu xavfsizlikni bo'shatmaydi:
+    `Content-Type` baribir **baytlardan** aniqlanadi va allowlistda yo'q tur
+    `application/octet-stream` bo'lib qolaveradi, ya'ni HTML/SVG brauzerda
+    bajarilib ketmaydi.
+    """
     _require(bool(file_field))
     try:
         handle = file_field.open("rb")
@@ -104,7 +111,10 @@ def serve_private_file(request, file_field, *, download_name=""):
 
     kind = sniff_kind(handle)
     content_type = _CONTENT_TYPES.get(kind, "application/octet-stream")
-    as_attachment = kind not in _INLINE_KINDS
+    if inline is None:
+        as_attachment = kind not in _INLINE_KINDS
+    else:
+        as_attachment = not (inline and kind is not None)
 
     name = download_name or (file_field.name or "fayl").rsplit("/", 1)[-1]
     response = FileResponse(

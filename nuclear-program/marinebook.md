@@ -53,6 +53,86 @@ Uchalasi ham `teacher_course_queryset()` bilan yopildi; rad etish `404`.
 
 ---
 
+## 2026-09-18 [Claude]: Dars muharririning scope'i (default-deny)
+
+`backoffice_lesson_editor` yagona backoffice yuzasi bo'lib, `Lesson.objects`
+ni scope'siz ochardi: yonidagi kurslar ro'yxati va kurs muharriri
+`teacher_course_queryset()` ni ishlatardi. Natijada har qanday `is_staff`
+begona kursning darsini ocha va saqlay olardi. `LessonBackofficeForm` dagi
+`module` ro'yxati ham bazadagi barcha modulni ko'rsatardi — ya'ni darsni
+boshqa o'qituvchining kursiga ko'chirish mumkin edi. Ikkala yo'l ham yopildi;
+rad etish `403` emas, `404` (mavjudligini tasdiqlamaslik uchun).
+
+- Branch: `claude/lesson-editor-scope`
+- Fayllar: `core/views.py` (dars va `courses` konteksti scope'landi, formaga
+  `user` uzatiladi), `core/backoffice_forms.py` (`module` queryset'i),
+  `core/test_backoffice_lessons.py` (yangi)
+- Test holati: repo venv'ida `.env.local`siz (`AZURELMS_SKIP_ENV_FILE=1`, bo'sh
+  `GEMINI_API_KEY`/`TELEGRAM_BOT_TOKEN`) to'liq suite — **1767 test, 173.4s,
+  skipped=41; 1 failure + 4 error, hammasi `ai.documents`da**: `fpdf` ->
+  `fontTools` DLL'ini Windows Application Control bloklagan (Django'siz
+  `from fpdf import FPDF` ham shu xatoni beradi), o'zgarishga aloqasi yo'q.
+  Yangi `core.test_backoffice_lessons` — 10 test OK. `manage.py check` — 0
+  issue; `makemigrations --check` — drift yo'q; `git diff --check` — pass.
+- Nazorat yugurishi: (1) view'dagi scope olib tashlanganda 3 test yiqildi
+  (begona darsni ochish, saqlash, kurssiz o'qituvchi); (2) formadagi `module`
+  scope'i olib tashlanganda 2 test yiqildi (ro'yxat tarkibi va darsni begona
+  modulga ko'chirish). Ikkala sabotaj ham haqiqatan qo'llanganini tekshirib,
+  keyin fayllar zaxiradan tiklandi.
+- Eslatma: `lesson_form.html` `courses` kontekstini render qilmaydi (faqat
+  izohda qayd etilgan), lekin u ham scope'landi — shablon keyin ishlatsa
+  bo'shliq qayta ochilmasin.
+- Davom etilishi kerak: shu yuzadagi `assignments`/`quizzes` bloklari dars
+  orqali keladi, ya'ni avtomatik scope ichida; `backoffice_exam_editor` esa
+  hamon scope'siz — alohida ish.
+
+---
+
+## 2026-09-18 [Claude]: Material kutubxonasi — ichki kontent ombori
+
+Kurs mualliflari uchun yangi `library` app: material bir marta yuklanadi,
+tasniflanadi, qidiriladi va darslarga biriktiriladi. Ikki model ataylab
+ajratilgan — `LibraryResource` (asl fayl + metadata) va `LessonMaterial`
+(darsdagi ko'rinish: tartib, auditoriya, ko'rinuvchanlik, yuklab olish,
+ochilish vaqti), shu sabab bitta fayl bir necha darsda qayta ishlatiladi.
+Fayllar `PRIVATE_MEDIA_ROOT` da; o'quvchi uchun yagona manzil — ruxsat
+tekshiradigan `library:material_file`, u biriktirma ochiqligini, faol
+obunani va dars qulfini birga tekshiradi. Kutubxonaning o'zi o'quvchiga
+umuman ochilmaydi.
+
+- Branch: `claude/material-library`
+- Fayllar: `library/` (models/services/selectors/forms/views/urls/admin,
+  migratsiya `0001_initial`), `templates/backoffice/library_*.html`,
+  `core/urls.py`, `core/settings.py`, `core/views.py` (dars muharriri +
+  runtime-settings guruhi), `core/upload_validation.py` (`library` profili
+  va `max_bytes` override), `core/private_media_views.py` (`inline=`),
+  `courses/views.py` + `templates/courses/lesson_detail.html` (Materiallar
+  bo'limi), `core/runtime_settings_forms.py`
+- Test holati: repo venv'ida `.env.local`siz (`AZURELMS_SKIP_ENV_FILE=1`,
+  bo'sh `GEMINI_API_KEY`/`TELEGRAM_BOT_TOKEN`) to'liq suite —
+  **1801 test, 186.8s, skipped=41; 1 failure + 4 error, hammasi
+  `ai.documents`da**: `fpdf` -> `fontTools`
+  DLL'ini Windows Application Control bloklagan (`manage.py`siz
+  `from fpdf import FPDF` ham shu xatoni beradi), ya'ni muhit muammosi.
+  Yangi testlar: `library` 43 test OK, `core.test_runtime_settings` 36 OK.
+  `manage.py check` — 0 issue; `makemigrations --check` — drift yo'q;
+  `git diff --check` — pass.
+- Nazorat yugurishi: (1) `library/views.py` dagi `student_can_open`
+  tekshiruvi olib tashlanganda 10 tadan **6 test yiqildi**; (2)
+  `_editable_lesson` dagi `teacher_course_queryset` scope'i olib
+  tashlanganda begona o'qituvchi testi yiqildi. Ikkala sabotaj ham qo'llanib,
+  keyin fayllar zaxiradan tiklandi (`grep` bilan tasdiqlandi).
+- Owner qaroriga qolgani: kutubxona **barcha staff uchun umumiy** (muallif
+  bo'yicha scope yo'q); darsga biriktirish esa faqat o'z kursida. Mavjud
+  `backoffice_lesson_editor` hamon scope'siz — begona kursning darsini
+  tahrirlash mumkin; men uni kengaytirmadim, faqat yangi yuzalarni
+  default-deny qildim. Bu alohida tuzatishni talab qiladi.
+- Davom etilishi kerak: PR ochish va uchala required CI yashil bo'lishi;
+  keyingi bosqichlar uchun asos qo'yilgan (versiya tarixi uchun `version` +
+  `checksum`, PDF matn indeksatsiyasi uchun `description`/`topic`/teglar).
+
+---
+
 ## 2026-09-15 [Codex]: PR #114 integratsiyasi va beat volume tekshiruvi
 
 `codex/celery-beat-schedule` yangi `main` bilan birlashtirildi: yagona

@@ -395,10 +395,19 @@ class LessonDetailView(LoginRequiredMixin, DetailView):
                 lesson_item.is_released_for_student = state.get("is_released", True)
             module.lesson_items = lesson_items
 
+        # Kutubxonadan biriktirilgan materiallar. Ro'yxatni servis tayyorlaydi:
+        # ko'rinuvchanlik, auditoriya va ochilish vaqti qoidasi bitta joyda
+        # (`library/services.py`), fayl esa ruxsat tekshiradigan view orqali
+        # beriladi — bu yerdagi ro'yxat himoya emas, ko'rinish.
+        from library.services import student_materials
+
+        lesson_materials = student_materials(self.object)
+
         has_video = bool(self.object.video_url)
         has_content = bool((self.object.content or '').strip())
         has_assignments = bool(assignments)
         has_quizzes = quizzes.exists()
+        has_materials = bool(lesson_materials)
 
         default_tab = None
         if has_video:
@@ -409,6 +418,8 @@ class LessonDetailView(LoginRequiredMixin, DetailView):
             default_tab = 'homework'
         elif has_quizzes:
             default_tab = 'quiz'
+        elif has_materials:
+            default_tab = 'materials'
 
         context['modules'] = modules
         context['course_exams'] = course_exams
@@ -418,6 +429,8 @@ class LessonDetailView(LoginRequiredMixin, DetailView):
         context['has_content'] = has_content
         context['has_assignments'] = has_assignments
         context['has_quizzes'] = has_quizzes
+        context['lesson_materials'] = lesson_materials
+        context['has_materials'] = has_materials
         context['has_course_exams'] = course_exams.exists()
         context['first_course_exam'] = course_exams.first()
         context['default_study_tab'] = default_tab
@@ -425,7 +438,9 @@ class LessonDetailView(LoginRequiredMixin, DetailView):
         context['course_module_count'] = len(modules)
         context['current_module'] = current_module
         context['module_lesson_count'] = len(module_lessons)
-        context['resource_count'] = int(has_video) + int(has_content) + len(assignments) + quizzes.count()
+        context['resource_count'] = (
+            int(has_video) + int(has_content) + len(assignments) + quizzes.count() + len(lesson_materials)
+        )
         context['practice_count'] = len(assignments) + quizzes.count()
         context['active_nav'] = 'my_courses'
         context['lesson_sections'] = [
@@ -454,6 +469,12 @@ class LessonDetailView(LoginRequiredMixin, DetailView):
                     'label': 'Quiz',
                     'meta': f"{quizzes.count()} ta test bloki",
                     'enabled': has_quizzes,
+                },
+                {
+                    'key': 'materials',
+                    'label': 'Materiallar',
+                    'meta': f"{len(lesson_materials)} ta fayl",
+                    'enabled': has_materials,
                 },
             ]
             if section['enabled']

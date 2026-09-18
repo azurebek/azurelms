@@ -22,6 +22,7 @@ from django import forms
 
 from bot.models import BotRuntimeSettings
 from core.models import OperationalSettings
+from library.models import LibrarySettings
 from users.models import ReminderSettings
 
 REASON_HELP = (
@@ -240,3 +241,19 @@ class DispatcherThresholdsForm(_AuditedSettingsForm):
             "handler_error_amber_percent": "Xato foizi: AMBER chegarasi",
             "handler_error_red_percent": "Xato foizi: RED chegarasi",
         }
+
+
+class MaterialLibrarySettingsForm(_AuditedSettingsForm):
+    """Material kutubxonasining fayl hajmi chegarasi.
+
+    Ruxsat etilgan fayl **turlari** bu yerda yo'q: turlar allowlisti
+    xavfsizlik qarori va `core/upload_validation.py` da qoladi. Sozlamaga
+    faqat operatsion qiymat — hajm chiqariladi.
+    """
+
+    UNITS = {"max_upload_mb": "MB"}
+
+    class Meta:
+        model = LibrarySettings
+        fields = ("max_upload_mb",)
+        labels = {"max_upload_mb": "Material fayli uchun hajm chegarasi"}
