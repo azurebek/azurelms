@@ -1,0 +1,76 @@
+{% extends "backoffice/base.html" %}
+{% comment %}
+  Material kutubxonasi ro'yxati (library_backoffice:resources).
+  Kontekst: page_obj, stats, filters + filtr tanlovlari, courses, querystring.
+{% endcomment %}
+
+{% block bo_title %}Materiallar{% endblock %}
+{% block bo_icon %}bi-archive{% endblock %}
+{% block bo_topbar %}Material kutubxonasi{% endblock %}
+
+{% block page_css %}{% include "backoffice/library_styles.html" %}{% endblock %}
+
+{% block bo_content %}
+<div class="lib-wrap">
+  <div class="lib-head">
+    <div>
+      <h1>Material kutubxonasi</h1>
+      <p>Ichki ombor: bir marta yuklang, tasniflang, keyin kerakli darsga biriktiring. O'quvchi bu sahifani ko'rmaydi.</p>
+    </div>
+    <a class="lib-primary" href="{% url 'library_backoffice:resource_create' %}"><i class="bi bi-plus-lg"></i> Material yuklash</a>
+  </div>
+
+  <div class="lib-stats">
+    <div class="lib-stat"><strong>{{ stats.total }}</strong><span>Jami material</span></div>
+    <div class="lib-stat"><strong style="color:var(--green);">{{ stats.active }}</strong><span>Faol</span></div>
+    <div class="lib-stat"><strong style="color:var(--amber);">{{ stats.archived }}</strong><span>Arxivda</span></div>
+  </div>
+
+  {% include "backoffice/library_filters.html" with show_archive_filter=1 %}
+
+  {% if page_obj.object_list %}
+  <section class="lib-table" aria-label="Materiallar ro'yxati">
+    <div class="lib-grid lib-table-head"><span>Material</span><span>Tasnif</span><span>Fayl</span><span>Ishlatilgan</span><span></span></div>
+    {% for resource in page_obj %}
+    <article class="lib-grid lib-row">
+      <div style="min-width:0;">
+        <div class="lib-title">{{ resource.title }}{% if resource.is_teacher_only %} <i class="bi bi-lock-fill" style="font-size:11px;color:var(--amber);" title="Faqat ustoz uchun"></i>{% endif %}</div>
+        <div class="lib-sub">{{ resource.get_resource_type_display }}{% if resource.topic %} · {{ resource.topic }}{% endif %}{% if resource.course %} · {{ resource.course.title }}{% endif %}</div>
+        {% if resource.tags.all %}<div class="lib-tags">{% for tag in resource.tags.all %}<span class="lib-tag">{{ tag.name }}</span>{% endfor %}</div>{% endif %}
+        {% if resource.is_archived %}<span class="lib-badge is-amber" style="margin-top:7px;">Arxivda</span>{% endif %}
+      </div>
+      <div class="lib-meta">
+        <span class="lib-badge is-muted">{{ resource.get_level_display }}</span>
+        <div style="margin-top:6px;">{{ resource.get_language_display }}</div>
+      </div>
+      <div class="lib-meta">
+        {{ resource.file_kind_label }}
+        <div class="lib-sub">{{ resource.size_display }} · v{{ resource.version }}</div>
+      </div>
+      <div class="lib-meta">
+        <strong style="font-family:'Space Mono',monospace;">{{ resource.usage_total }}</strong>
+        <div class="lib-sub">darsda</div>
+      </div>
+      <div class="lib-row-actions" style="display:flex;gap:6px;justify-content:flex-end;">
+        <a class="lib-action" href="{% url 'library_backoffice:resource_edit' resource_id=resource.pk %}" aria-label="{{ resource.title }} materialini tahrirlash"><i class="bi bi-pencil"></i><span>Ochish</span></a>
+      </div>
+    </article>
+    {% endfor %}
+  </section>
+
+  {% if page_obj.has_other_pages %}
+  <div class="lib-pager">
+    {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}{% if querystring %}&amp;{{ querystring }}{% endif %}"><i class="bi bi-chevron-left"></i> Oldingi</a>{% endif %}
+    <span>{{ page_obj.number }} / {{ page_obj.paginator.num_pages }} · {{ page_obj.paginator.count }} ta</span>
+    {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}{% if querystring %}&amp;{{ querystring }}{% endif %}">Keyingi <i class="bi bi-chevron-right"></i></a>{% endif %}
+  </div>
+  {% endif %}
+  {% else %}
+  <div class="lib-empty">
+    <i class="bi bi-archive"></i>
+    <div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px;">Material topilmadi</div>
+    <div style="font-size:13px;color:var(--ink-3);">Filtrni o'zgartiring yoki birinchi materialni yuklang.</div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

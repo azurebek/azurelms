@@ -16,6 +16,51 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-18 [Claude]: Material kutubxonasi — ichki kontent ombori
+
+Kurs mualliflari uchun yangi `library` app: material bir marta yuklanadi,
+tasniflanadi, qidiriladi va darslarga biriktiriladi. Ikki model ataylab
+ajratilgan — `LibraryResource` (asl fayl + metadata) va `LessonMaterial`
+(darsdagi ko'rinish: tartib, auditoriya, ko'rinuvchanlik, yuklab olish,
+ochilish vaqti), shu sabab bitta fayl bir necha darsda qayta ishlatiladi.
+Fayllar `PRIVATE_MEDIA_ROOT` da; o'quvchi uchun yagona manzil — ruxsat
+tekshiradigan `library:material_file`, u biriktirma ochiqligini, faol
+obunani va dars qulfini birga tekshiradi. Kutubxonaning o'zi o'quvchiga
+umuman ochilmaydi.
+
+- Branch: `claude/material-library`
+- Fayllar: `library/` (models/services/selectors/forms/views/urls/admin,
+  migratsiya `0001_initial`), `templates/backoffice/library_*.html`,
+  `core/urls.py`, `core/settings.py`, `core/views.py` (dars muharriri +
+  runtime-settings guruhi), `core/upload_validation.py` (`library` profili
+  va `max_bytes` override), `core/private_media_views.py` (`inline=`),
+  `courses/views.py` + `templates/courses/lesson_detail.html` (Materiallar
+  bo'limi), `core/runtime_settings_forms.py`
+- Test holati: repo venv'ida `.env.local`siz (`AZURELMS_SKIP_ENV_FILE=1`,
+  bo'sh `GEMINI_API_KEY`/`TELEGRAM_BOT_TOKEN`) to'liq suite —
+  **1801 test, 186.8s, skipped=41; 1 failure + 4 error, hammasi
+  `ai.documents`da**: `fpdf` -> `fontTools`
+  DLL'ini Windows Application Control bloklagan (`manage.py`siz
+  `from fpdf import FPDF` ham shu xatoni beradi), ya'ni muhit muammosi.
+  Yangi testlar: `library` 43 test OK, `core.test_runtime_settings` 36 OK.
+  `manage.py check` — 0 issue; `makemigrations --check` — drift yo'q;
+  `git diff --check` — pass.
+- Nazorat yugurishi: (1) `library/views.py` dagi `student_can_open`
+  tekshiruvi olib tashlanganda 10 tadan **6 test yiqildi**; (2)
+  `_editable_lesson` dagi `teacher_course_queryset` scope'i olib
+  tashlanganda begona o'qituvchi testi yiqildi. Ikkala sabotaj ham qo'llanib,
+  keyin fayllar zaxiradan tiklandi (`grep` bilan tasdiqlandi).
+- Owner qaroriga qolgani: kutubxona **barcha staff uchun umumiy** (muallif
+  bo'yicha scope yo'q); darsga biriktirish esa faqat o'z kursida. Mavjud
+  `backoffice_lesson_editor` hamon scope'siz — begona kursning darsini
+  tahrirlash mumkin; men uni kengaytirmadim, faqat yangi yuzalarni
+  default-deny qildim. Bu alohida tuzatishni talab qiladi.
+- Davom etilishi kerak: PR ochish va uchala required CI yashil bo'lishi;
+  keyingi bosqichlar uchun asos qo'yilgan (versiya tarixi uchun `version` +
+  `checksum`, PDF matn indeksatsiyasi uchun `description`/`topic`/teglar).
+
+---
+
 ## 2026-09-15 [Codex]: PR #114 integratsiyasi va beat volume tekshiruvi
 
 `codex/celery-beat-schedule` yangi `main` bilan birlashtirildi: yagona

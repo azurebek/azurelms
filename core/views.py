@@ -229,14 +229,17 @@ def backoffice_runtime_settings(request):
     from core.runtime_settings_forms import (
         BotDeliverySettingsForm,
         DispatcherThresholdsForm,
+        MaterialLibrarySettingsForm,
         OperationalThresholdsForm,
         ReminderSettingsForm,
     )
+    from library.models import LibrarySettings
     from users.models import ReminderSettings
 
     delivery = BotRuntimeSettings.load()
     thresholds = OperationalSettings.load()
     reminders = ReminderSettings.load()
+    library_settings = LibrarySettings.load()
 
     # Ikki forma bitta sahifada: qaysi biri yuborilgani `form_name` bilan
     # ajratiladi, aks holda bir formani saqlash ikkinchisini validatsiyadan
@@ -269,6 +272,13 @@ def backoffice_runtime_settings(request):
             "action": "settings.dispatcher_thresholds.update",
             "label": "Bot kuzatuvi chegaralari",
             "message": "Bot kuzatuvi chegaralari saqlandi.",
+        },
+        "library": {
+            "form_class": MaterialLibrarySettingsForm,
+            "instance": library_settings,
+            "action": "settings.material_library.update",
+            "label": "Material kutubxonasi sozlamasi",
+            "message": "Kutubxona sozlamasi saqlandi.",
         },
     }
 
@@ -310,13 +320,16 @@ def backoffice_runtime_settings(request):
         "thresholds_form": forms_out["thresholds"],
         "reminders_form": forms_out["reminders"],
         "dispatcher_form": forms_out["dispatcher"],
+        "library_form": forms_out["library"],
         "delivery": delivery,
         "thresholds": thresholds,
         "reminders": reminders,
+        "library_settings": library_settings,
         "recent_changes": (
             list(audit_trail_for(delivery))
             + list(audit_trail_for(thresholds))
             + list(audit_trail_for(reminders))
+            + list(audit_trail_for(library_settings))
         ),
     }
     return render(request, "backoffice/runtime_settings.html", context)
@@ -933,6 +946,18 @@ def backoffice_lesson_editor(request, lesson_id=None):
     courses = Course.objects.prefetch_related("modules__lessons").order_by("title")
     assignments = list(lesson.assignments.all()) if lesson else []
     quizzes = list(lesson.quizzes.all()) if lesson else []
+    # Kutubxona biriktirmalari. Import funksiya ichida: `library` `courses` ga
+    # tayanadi, ya'ni modul darajasidagi import halqa yasashi mumkin.
+    materials = []
+    material_forms = []
+    if lesson is not None:
+        from library.backoffice_forms import LessonMaterialForm
+        from library.services import teacher_materials
+
+        materials = list(teacher_materials(lesson))
+        material_forms = [
+            (material, LessonMaterialForm(instance=material)) for material in materials
+        ]
     context = {
         **_backoffice_context("lessons", request.user),
         "lesson": lesson,
@@ -940,6 +965,8 @@ def backoffice_lesson_editor(request, lesson_id=None):
         "courses": courses,
         "assignments": assignments,
         "quizzes": quizzes,
+        "materials": materials,
+        "material_forms": material_forms,
     }
     return render(request, "backoffice/lesson_form.html", context)
 

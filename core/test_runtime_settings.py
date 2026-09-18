@@ -329,6 +329,13 @@ class RuntimeSettingsSurfaceTests(TestCase):
                 "change_reason": "sinov",
                 "confirm_change": "on",
             }
+        elif form_name == "library":
+            data = {
+                "form_name": "library",
+                "max_upload_mb": 50,
+                "change_reason": "sinov",
+                "confirm_change": "on",
+            }
         else:
             data = {
                 "form_name": "thresholds",
@@ -375,15 +382,35 @@ class RuntimeSettingsSurfaceTests(TestCase):
             "handler_error_amber_percent", "handler_error_red_percent",
             # T6 — dead-letter replay chegarasi.
             "dead_letter_replay_limit",
+            # Material kutubxonasi — fayl hajmi chegarasi ham owner qo'lida.
+            "max_upload_mb",
         ]
         for name in expected:
             self.assertContains(
                 response, f'name="{name}"', msg_prefix=f"{name} maydoni chizilmadi"
             )
-        # To'rt forma, to'rtta sabab/tasdiq juftligi va to'rt `form_name`.
-        self.assertContains(response, 'name="form_name"', count=4)
-        self.assertContains(response, 'name="change_reason"', count=4)
-        self.assertContains(response, 'name="confirm_change"', count=4)
+        # Besh forma, beshta sabab/tasdiq juftligi va besh `form_name`.
+        self.assertContains(response, 'name="form_name"', count=5)
+        self.assertContains(response, 'name="change_reason"', count=5)
+        self.assertContains(response, 'name="confirm_change"', count=5)
+
+    def test_library_upload_limit_is_saved_and_audited(self):
+        """Kutubxona hajmi ham deploy'siz o'zgaradi va izsiz qolmaydi."""
+        from library.models import LibrarySettings
+
+        self.client.force_login(self.owner)
+        self.client.post(
+            self.url,
+            self._payload("library", max_upload_mb=120, change_reason="80 MB taqdimot"),
+        )
+
+        self.assertEqual(LibrarySettings.load().max_upload_mb, 120)
+        event = SystemAuditEvent.objects.filter(
+            action="settings.material_library.update"
+        ).first()
+        self.assertIsNotNone(event)
+        self.assertEqual(event.reason, "80 MB taqdimot")
+        self.assertEqual(event.after.get("max_upload_mb"), 120)
 
     def test_non_owner_cannot_open_the_page(self):
         student = User.objects.create_user(
