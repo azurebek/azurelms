@@ -120,6 +120,22 @@
               </div>
               {% empty %}<p class="lprose" style="margin:0;">Test yo'q.</p>{% endfor %}
             </div>
+            <!-- Materiallar: kutubxonadan biriktirilgan fayllar -->
+            <div class="lpanel{% if default_study_tab == 'materials' %} active{% endif %}" data-lpanel="materials">
+              {% for material in lesson_materials %}
+              <div style="display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:14px 16px;margin-bottom:10px;flex-wrap:wrap;">
+                <span style="width:34px;height:34px;border-radius:9px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:15px;flex:0 0 auto;"><i class="bi bi-file-earmark-text"></i></span>
+                <div style="flex:1 1 200px;min-width:0;">
+                  <div style="font-size:14.5px;font-weight:600;color:var(--ink);">{{ material.title }}{% if material.is_required %} <span style="font-size:11.5px;font-weight:600;color:var(--amber);background:var(--amber-soft);padding:2px 8px;border-radius:999px;">Majburiy</span>{% endif %}</div>
+                  <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);margin-top:3px;">{{ material.resource.file_kind_label }} · {{ material.resource.size_display }}</div>
+                  {% if material.resource.description %}<div style="font-size:13px;color:var(--ink-2);margin-top:6px;">{{ material.resource.description }}</div>{% endif %}
+                </div>
+                <a href="{% url 'library:material_file' material_id=material.pk %}" style="display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 14px;border-radius:10px;border:1px solid var(--line);color:var(--ink);font-size:13px;font-weight:600;">
+                  {% if material.is_downloadable %}<i class="bi bi-download"></i> Yuklab olish{% else %}<i class="bi bi-eye"></i> Ochish{% endif %}
+                </a>
+              </div>
+              {% empty %}<p class="lprose" style="margin:0;">Material yo'q.</p>{% endfor %}
+            </div>
           </div>
 
           <div style="height:24px;"></div>

@@ -7,7 +7,9 @@
 {% block bo_title %}Dars muharriri{% endblock %}
 {% block bo_icon %}bi-play-circle{% endblock %}
 {% block bo_topbar %}Dars muharriri{% endblock %}
-{% block page_css %}{{ form.media }}{% endblock %}
+{% block page_css %}{{ form.media }}
+{% include "backoffice/lesson_materials_styles.html" %}
+{% endblock %}
 
 {% block bo_content %}
 <form method="post" enctype="multipart/form-data" class="bo-form" style="max-width:1080px;">
@@ -51,4 +53,70 @@
     </div>
   </div>
 </form>
+
+{% if lesson %}
+{% comment %}
+  Materiallar — kutubxonadagi manbaga havola (fayl nusxalanmaydi).
+  Tartib formasi alohida e'lon qilinadi va qatorlardagi inputlar unga
+  `form="lm-reorder"` bilan bog'lanadi: shunda HTML ichma-ich form bo'lmaydi.
+{% endcomment %}
+<section class="lm-card" aria-label="Darsdagi materiallar">
+  <div class="lm-head">
+    <div>
+      <div class="lm-head-title">Materiallar ({{ materials|length }})</div>
+      <div style="font-size:12.5px;color:var(--ink-3);margin-top:4px;">Kutubxonadagi bitta material bir necha darsga biriktirilaveradi.</div>
+    </div>
+    <a class="lm-btn is-primary" href="{% url 'library_backoffice:lesson_picker' lesson_id=lesson.pk %}"><i class="bi bi-plus-lg"></i> Kutubxonadan tanlash</a>
+  </div>
+
+  <form id="lm-reorder" method="post" action="{% url 'library_backoffice:material_reorder' lesson_id=lesson.pk %}">{% csrf_token %}</form>
+
+  {% for material, mform in material_forms %}
+  <div class="lm-row">
+    <div class="lm-top">
+      <input class="lm-order" type="number" min="0" name="order-{{ material.pk }}" value="{{ material.order }}" form="lm-reorder" aria-label="{{ material.title }} tartibi">
+      <div class="lm-name" style="min-width:0;">
+        {{ material.title }}
+        <div class="lm-sub">{{ material.resource.get_resource_type_display }} · {{ material.resource.file_kind_label }} · {{ material.resource.size_display }}</div>
+      </div>
+      {% if material.audience == 'student' %}<span class="lm-flag is-green">O'quvchiga</span>{% else %}<span class="lm-flag is-amber">Ustozga</span>{% endif %}
+      {% if not material.is_visible %}<span class="lm-flag">Yopiq</span>{% endif %}
+      {% if not material.is_downloadable %}<span class="lm-flag">Faqat ko'rish</span>{% endif %}
+      {% if material.is_required %}<span class="lm-flag">Majburiy</span>{% endif %}
+      {% if material.available_from %}<span class="lm-flag">{{ material.available_from|date:"d.m.Y H:i" }} dan</span>{% endif %}
+      <a class="lm-btn" href="{% url 'library_backoffice:resource_edit' resource_id=material.resource_id %}"><i class="bi bi-box-arrow-up-right"></i> Manba</a>
+      <form method="post" action="{% url 'library_backoffice:material_detach' material_id=material.pk %}" onsubmit="return confirm('Material darsdan uziladi. Kutubxonada qoladi. Davom etasizmi?');">
+        {% csrf_token %}
+        <button type="submit" class="lm-btn"><i class="bi bi-x-lg"></i> Uzish</button>
+      </form>
+    </div>
+
+    <details class="lm-details">
+      <summary>Darsga xos sozlama</summary>
+      <form method="post" action="{% url 'library_backoffice:material_update' material_id=material.pk %}">
+        {% csrf_token %}
+        <div class="lm-settings">
+          {% for field in mform %}
+            {% if field.field.widget.input_type == 'checkbox' %}
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink);">{{ field }} {{ field.label }}{% if field.errors %}<span class="bo-err">{{ field.errors|striptags }}</span>{% endif %}</label>
+            {% else %}
+            <label><span class="bo-lbl">{{ field.label }}</span>{{ field }}{% if field.errors %}<span class="bo-err">{{ field.errors|striptags }}</span>{% endif %}</label>
+            {% endif %}
+          {% endfor %}
+          <button type="submit" class="lm-btn is-primary" style="justify-self:start;"><i class="bi bi-check2"></i> Saqlash</button>
+        </div>
+      </form>
+    </details>
+  </div>
+  {% empty %}
+  <div class="lm-empty">Bu darsga hali material biriktirilmagan.</div>
+  {% endfor %}
+
+  {% if materials %}
+  <div class="lm-row" style="display:flex;justify-content:flex-end;">
+    <button type="submit" class="lm-btn" form="lm-reorder"><i class="bi bi-sort-numeric-down"></i> Tartibni saqlash</button>
+  </div>
+  {% endif %}
+</section>
+{% endif %}
 {% endblock %}

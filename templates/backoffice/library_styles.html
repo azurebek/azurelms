@@ -1,0 +1,53 @@
+{% comment %}Kutubxona sahifalarining umumiy uslublari (ro'yxat, tanlov, muharrir).{% endcomment %}
+<style>
+  .lib-wrap{max-width:1160px}
+  .lib-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:18px}
+  .lib-head h1{font-size:clamp(22px,2.6vw,30px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:0 0 6px}
+  .lib-head p{font-size:14px;color:var(--ink-3);margin:0}
+  .lib-primary{height:42px;display:inline-flex;align-items:center;gap:8px;padding:0 17px;border-radius:10px;background:var(--azure);color:var(--on-azure);font-size:13.5px;font-weight:700;border:none;cursor:pointer}
+  .lib-stats{display:grid;grid-template-columns:repeat(3,minmax(120px,1fr));gap:12px;margin-bottom:16px}
+  .lib-stat{border:1px solid var(--line);border-radius:13px;background:var(--panel);padding:14px 16px}
+  .lib-stat strong{display:block;font-family:'Space Mono',monospace;font-size:20px;color:var(--ink)}
+  .lib-stat span{display:block;font-size:11.5px;color:var(--ink-3);margin-top:3px}
+  .lib-filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+  .lib-filter-search{position:relative;flex:1 1 240px;min-width:0}
+  .lib-filter-search i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--ink-3);font-size:13px}
+  .lib-filter-search input{width:100%;height:40px;padding:0 13px 0 36px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:13.5px;outline:none}
+  .lib-filter-select{height:40px;padding:0 10px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:13px;max-width:190px}
+  .lib-filter-check{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-2);height:40px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+  .lib-filter-apply{height:40px;display:inline-flex;align-items:center;gap:7px;padding:0 15px;border-radius:10px;border:1px solid var(--line);background:var(--paper-2);color:var(--ink);font-size:13px;font-weight:600;cursor:pointer}
+  .lib-filter-reset{height:40px;display:inline-flex;align-items:center;padding:0 12px;font-size:13px;color:var(--ink-3)}
+  .lib-table{border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden}
+  .lib-grid{display:grid;grid-template-columns:minmax(240px,2.4fr) minmax(130px,1fr) minmax(110px,.8fr) minmax(90px,.6fr) 116px;align-items:center;gap:16px}
+  .lib-table-head{padding:12px 20px;background:var(--paper-2);border-bottom:1px solid var(--line);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+  .lib-row{padding:15px 20px}
+  .lib-row+.lib-row{border-top:1px solid var(--line-2)}
+  .lib-title{font-size:14px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lib-sub{font-family:'Space Mono',monospace;font-size:10.5px;color:var(--ink-3);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lib-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+  .lib-tag{font-size:11px;color:var(--ink-2);background:var(--paper-2);border:1px solid var(--line-2);border-radius:999px;padding:2px 9px}
+  .lib-badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;border-radius:999px;padding:3px 10px;background:var(--azure-soft);color:var(--azure)}
+  .lib-badge.is-amber{background:var(--amber-soft);color:var(--amber)}
+  .lib-badge.is-green{background:var(--green-soft);color:var(--green)}
+  .lib-badge.is-muted{background:var(--paper-2);color:var(--ink-3)}
+  .lib-meta{font-size:12.5px;color:var(--ink-2)}
+  .lib-action{height:36px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 12px;border-radius:9px;border:1px solid var(--line);color:var(--ink-2);font-size:12.5px;font-weight:700;background:none;cursor:pointer;transition:border-color .2s,color .2s}
+  .lib-action:hover{border-color:var(--azure);color:var(--azure)}
+  .lib-action.is-primary{background:var(--azure);color:var(--on-azure);border-color:var(--azure)}
+  .lib-empty{border:1px solid var(--line);border-radius:14px;background:var(--panel);padding:52px 24px;text-align:center}
+  .lib-empty i{display:grid;place-items:center;width:48px;height:48px;margin:0 auto 14px;border-radius:13px;background:var(--azure-soft);color:var(--azure);font-size:20px}
+  .lib-pager{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:24px}
+  .lib-pager a{height:38px;display:inline-flex;align-items:center;gap:6px;padding:0 14px;border-radius:9px;border:1px solid var(--line);color:var(--ink-2);font-size:13px;font-weight:600}
+  .lib-pager span{font-family:'Space Mono',monospace;font-size:12.5px;color:var(--ink-3)}
+  @media(max-width:960px){
+    .lib-table-head{display:none}
+    .lib-grid{grid-template-columns:minmax(0,1fr) auto}
+    .lib-row>div:nth-child(2),.lib-row>div:nth-child(3),.lib-row>div:nth-child(4){grid-column:1}
+    .lib-row>.lib-row-actions{grid-column:2;grid-row:1}
+  }
+  @media(max-width:620px){
+    .lib-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .lib-filter-select,.lib-filter-check{max-width:none;flex:1 1 140px}
+    .lib-primary{width:100%;justify-content:center}
+  }
+</style>
