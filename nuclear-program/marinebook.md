@@ -16,6 +16,31 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-25 [Codex]: Public V1 AWS’da yoqildi — 363ff95
+
+Owner so‘ragan public-first deploy yakunlandi. Clean image, tekshirilgan
+DB zaxirasi va schema drilldan keyin xizmatlar yangilandi; faqat public V1
+yoqildi. Learning/lesson/teacher/messenger V1 flaglari OFF saqlandi.
+
+- Deployed/main: `363ff95` (PR127); public PR126 `2787e86`.
+  Evidence branch: `codex/public-release-evidence`.
+- Final CI `36179879066` all3PASS; `python manage.py test`: SQLite1948
+  skip44, PostgreSQL1948 skip20. Image recursive env/backup canary PASS.
+- Server `check --deploy`0issue, `migrate --check`PASS, ReleaseRecord152migration.
+  Health alive/ready; 4 app process bir xil image/restart0, beat loop yo‘q.
+- Public10×200/private-no-store, auth2×200, assets11×200, www301;
+  IAB320/1280 no-overflow, dark/light, menu/Escape/focus, explicit GET filter,
+  console0 va auditlangan OFF→legacy→ON→V1 renderer rollback PASS.
+- DB backup server+lokal nusxa hash mos. Isolated restore/schema drill PASS;
+  faqat drill DB tozalandi. Media0fayl sabab backup_media N/A, PASS emas.
+- Qolgan: real-device/real-account/content qabul; eski image/cache sir
+  nusxalari/rotation; scheduled offsite va heartbeat. Landing marketing
+  raqamlari mavjud boshqariladigan yozuvlar, haqiqiy hisoblagich emas.
+- [Exact dalil va rollback](frontend-v1/R1-PUBLIC-RELEASE.md). Prototype,
+  credentiallar, production kontenti o‘zgarmagan. Keyingi port I4b.
+
+---
+
 ## 2026-09-25 [Codex]: AWS public release — zaxira/drill va nested image boundary fix
 
 Owner tasdiqlagan narrow SSH access orqali serverga kirildi. Baza zaxirasi

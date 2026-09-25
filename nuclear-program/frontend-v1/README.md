@@ -21,9 +21,11 @@ main’da (`9eb3830`), final CI `36162882956` uchala PASS. I3 yopildi.
 Owner yangi navbati: [I5a public](I5A-PUBLIC.md) → `azurebek.me` AWS release
 qabuli → I4b va qolgan qismlar. Tayyor bo‘laklar qolgan portni kutmaydi.
 I5a lokal runtime `74818ee`: 14 public route adapteri va ixcham mobil menu;
-1945 Python OK (skip45), 53 Node PASS. CI/integratsiya hamda real-content
-visual/AWS qabul hali ochiq; production flaglari o‘zgartirilmadi.
-R1 device/AWS qabuli, I4b AI va I5–I9 ochiq.
+1945 Python OK (skip45), 53 Node PASS. PR126 main’da `2787e86`;
+image-boundary fix PR127 bilan AWS **`363ff95` deployed**, faqat public V1 ON.
+[R1-public dalili](R1-PUBLIC-RELEASE.md): final CI1948×2, zaxira/drill,
+clean image, HTTPS/mobile va renderer rollback PASS. Real-device/real-content
+qabuli, qolgan V1 flaglar rollouti, I4b AI va I5ning qolgan qismlari–I9 ochiq.
 
 ## 1. Qayerdamiz
 
@@ -158,7 +160,7 @@ UI+adapter+test bitta mantiqiy bo‘lakda. Test va ruxsatlar evaziga tezlashtiri
 | Course/lesson preview formasi production formadan kichik | Existing full-form maydonlarini default bilan overwrite qilmaslik; to‘liq xavfsiz mapping bo‘lmasa editor legacy qoladi |
 | Existing teacher release invalid cohortdan birinchi cohortga fallback qiladi | I2da explicit target/confirm; noma’lum POST context boshqa guruhga yozmasligi uchun adapter regression |
 | Old shell tests klass/nav joylashuviga ham bog‘langan | Yangi approved UI uchun variant-aware assertions; POST logout, role scope va eski variant coverage’ni yo‘qotmaslik |
-| Wiki’dagi eski hosting holati | AWS deploy qilinganligi owner fakti; joriy server SHA/config/health bu ishda tekshirilmagan |
+| Wiki’dagi eski hosting holati | 2026-09-25 AWS SHA/config/health tekshirildi; `363ff95` public relizining fresh dalili [R1-public](R1-PUBLIC-RELEASE.md)da, eski preflight statuslari tarixiy |
 
 ## 7. Har bo‘lakni chiqarish shartlari
 
@@ -171,24 +173,30 @@ UI+adapter+test bitta mantiqiy bo‘lakda. Test va ruxsatlar evaziga tezlashtiri
   kvota ishlatilmaydi; jonli tashqi test uchun alohida test muhit/vakolat.
 - PR uch required CI: SQLite suite, PostgreSQL+pgvector/Valkey, sir/dependency
   skani. `collectstatic`/hashed asset va Django `check` ham o‘tadi. Gate bypass yo‘q.
-- Stagingda real test user/cohort/lesson/material, staff va student bilan bitta
-  yo‘l; real qurilmada asosiy amal. Yangi UI faqat shu bo‘lak uchun yoqiladi.
+- Authenticated bo‘lak uchun real test user/cohort/lesson/material, staff va
+  student bilan bitta yo‘l; real qurilmada asosiy amal. Staging mavjud emas:
+  controlled production test hisobi/dataset uchun owner bilan alohida kelishuv
+  kerak. Yangi UI faqat qabul qilingan bo‘lak uchun yoqiladi.
 - Deploy SHA, health/static/private media, smoke, rollback flag va owner
-  go/no-go qaydi. **Staging/AWS vakolat va test account hozir tasdiqlanmagan**;
-  bu local implementationni emas, tashqi release’ni to‘xtatadigan aniq gate.
-  Ownerning 2026-09-25 javobi: alohida staging yo‘q, faqat AWS asosiy server
-  bor. Zaxira/rollback/test hisobi va chiqarish tartibi alohida kelishiladi;
-  bu javob productionda write yoki flag yoqishga ruxsat emas.
+  go/no-go qaydi. **Public deploy vakolati berildi va reliz bajarildi**:
+  zaxira/restore/schema drill, clean image, health/assets va renderer rollback
+  dalili [R1-public](R1-PUBLIC-RELEASE.md)da. Bu ishni qayta boshlash kerak emas.
+  Qolgan gate — real-device/account/content qabuli va har bir keyingi bo‘lak
+  uchun release vakolati. Public ruxsati boshqa V1 flaglarini yoqish yoki
+  productionda sinov yozuvlari yaratish ruxsati emas.
 - Ruxsatli kosmetik qarz alohida ro‘yxatda; broken submit, data loss, access
   buzilishi va real bo‘lmagan success “V1 mukammal emas” bahonasi bilan qolmaydi.
 
 ## 8. Keyingi agent/turn uchun kirish
 
-Avval **I4a branch PRining required CI/merge yakuni**ni tekshiring;
-lokal implementatsiyani qayta boshlamang. Keyin **R1** uchun test
-hisob/device/AWS vakolati, zaxira va rollback usulini aniqlang; alohida staging
-yo‘qligi tasdiqlangan. Shu tashqi gate ochiqligida **I4b Messenger B — AI**
-keyingi alohida bo‘lak. Mavjud provider/quota/context adapteri; yangi AI engine
+Avval git/flag/live SHA holatini fresh tekshiring va
+[R1-public reliz dalili](R1-PUBLIC-RELEASE.md)ni o‘qing. I4a PR125 main’da
+`89f89b7`, public PR126 `2787e86`, image-boundary PR127 `363ff95` — tugagan;
+ularning implementatsiya, initial zaxira yoki rollout ishini qayta boshlamang.
+Public ON, boshqa V1 flaglar OFF. R1da qolganlari: real-device/account/content
+qabuli, history image/cache xavfi va keyingi bo‘laklarning alohida rollouti.
+Navbatdagi kod ishi **I4b Messenger B — AI**. Mavjud provider/quota/context
+adapteri; yangi AI engine
 yoki prototip yaratilmaydi. Submission/grade/XP canonical servislar orqali qoladi.
 Yangi trial, framework, global shell rewrite yoki DB ko‘chirish boshlamang.
 Single checkout saqlanadi.

@@ -49,7 +49,9 @@ o‘zgarmaydi; private/no-store, sanitized rich content va family-scoped
 return links. `public-header.js` native compact menu keyboard/exit nazorati,
 `public.js` explicit CSRF reactions (unknown no-retry) va unsent comment
 warning; persistent comment draft emas. [Dalil](frontend-v1/I5A-PUBLIC.md).
-Bu port AWS deploy yoki owner visual/release qabuli degani emas.
+2026-09-25 AWS `363ff95`da public V1 override ON; boshqa V1 flaglar OFF.
+HTTPS, 320/1280 browser va renderer rollback tekshirildi. Real-device va
+populated kontent qabuli alohida ochiq. [Reliz dalili](frontend-v1/R1-PUBLIC-RELEASE.md).
 
 I1 kodi: `core/frontend_v1.py`dagi presentation-only mixin va LoginView
 adapteri, `users.views`dagi existing dashboard/my-courses contexti.

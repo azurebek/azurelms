@@ -4,7 +4,8 @@ Qabul: `[ ]` ochiq; `[-]` ishda; `[x] ~~...~~` dalil bilan tugagan.
 “Prototype bor” real portga `[x]` qo‘yish uchun yetmaydi.
 Sana emas, tugallangan natija bilan kuzatiladi. I1/I2/I3 main’da;
 I4a PR #125 bilan main’da (`89f89b7`); final CI `36170298967` uchala PASS.
-Flaglar default OFF. Ushbu port doirasida deploy hali 0.
+Flaglar kodda default OFF. AWS `363ff95`: faqat public V1 override ON;
+boshqa V1 flaglar OFF. [R1-public dalili](R1-PUBLIC-RELEASE.md).
 
 ## Navbat
 
@@ -32,8 +33,12 @@ Flaglar default OFF. Ushbu port doirasida deploy hali 0.
   - [x] ~~I2b required CI va integratsiya.~~ PR #122 MERGED `c8c3864`;
     final CI `36089727327` uchala PASS: SQLite1882 skip41,
     PostgreSQL1882 skip20, Node28. I2 yopildi, R1 release ochiq.
-- [ ] **R1 — Birinchi ishlaydigan bo‘lakni chiqarish.** I1+I2ning relevant
+- [-] **R1 — Birinchi ishlaydigan bo‘lakni chiqarish.** I1+I2ning relevant
   test/browser, required CI, staging, deploy smoke va rollbacki. I3–I9ni kutmaydi.
+  - [x] ~~Owner ustuvor qilgan R1-public texnik relizi.~~ AWS `363ff95`;
+    backup/restore/schema drill, clean image, public ON, HTTPS/mobile va
+    renderer OFF/ON rollback PASS. [Dalil](R1-PUBLIC-RELEASE.md).
+  - [ ] Real device/real account qabuli va learning/teacher/messenger rollout.
 - [x] ~~I3 — Teacher review + ro‘yxatlar/davomat.~~ Learner assignment/quiz
   qismi I2bda ulandi.
   - [x] ~~I3a lokal implementatsiya: navbat → yozma ish qarori → learner natijasi.~~
@@ -61,11 +66,12 @@ Flaglar default OFF. Ushbu port doirasida deploy hali 0.
 - [-] **I5 — Tayyor yordamchi yuzalar.** 5a public/records/help,
   5b auth/account/profile, 5c preferences/privacy/notifications. Har kichik
   tugallangan oqim alohida qabul; hammasi bir relizga bog‘lanmaydi.
-  - [-] I5a-public: owner qarori bilan I4bdan oldin. Barcha 14 public route
+  - [x] ~~I5a-public implementatsiya/integratsiya va texnik reliz.~~ Owner qarori bilan I4bdan oldin. Barcha 14 public route
     oilasi → `azurebek.me` release qabuli → I4bga qaytish. [Dalil](I5A-PUBLIC.md).
     Lokal runtime `74818ee`: 1945 Python OK (skip45), 53 Node PASS.
-    Owner ko‘rsatgan mobil header tuzatildi; required CI/integratsiya va
-    real-content/AWS go-no-go ochiq. Hali deploy qilinmagan.
+    PR126 `2787e86`, final CI36176730769 all3PASS. AWS release `363ff95`
+    image-boundary fix bilan, final CI36179879066 all3PASS. Public ON;
+    real-device va populated real-content owner qabuli alohida ochiq.
     Records/help bu public portga aralashtirilmaydi, keyingi yordamchi paketda.
 - [ ] **I6 — Library + course/lesson editor.** Common resource/link/private
   storage parity; real forms existing fieldsni saqlaydi. Qisman field/save
@@ -119,8 +125,9 @@ CI / staging / deployed SHA / smoke / owner go-no-go:
 ## Hozir ochiq release ma’lumotlari
 
 2026-09-25 owner javobi: **alohida staging yo‘q, faqat AWS asosiy server bor**.
-Bu deploy yoki yangi UI flaglarini yoqishga ruxsat emas. Target SHA, xavfsiz
-sinov hisobi/dataset, zaxira va rollout/rollback usuli, haqiqiy mobil qurilma
-sinovchisi va owner go/no-go release oldidan aniqlanadi. Yangi pulli muhit
+Keyinchalik owner public deploy va image-boundary blocker fixni tasdiqladi;
+public reliz bajarildi. Bu qolgan V1 flaglarini yoqishga ruxsat emas. Xavfsiz
+sinov hisobi/dataset, haqiqiy mobil qurilma sinovchisi va keyingi release
+go/no-go hali aniqlanadi. Yangi pulli muhit
 ochish yoki productionda sinov yozuvlari yaratish alohida kelishiladi;
 secrets hujjatga yozilmaydi.
