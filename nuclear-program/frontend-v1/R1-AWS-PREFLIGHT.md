@@ -7,7 +7,7 @@
 [Amaliy reliz, zaxira, smoke va qolgan risklar](R1-PUBLIC-RELEASE.md).
 Quyidagi checkpointlar tarixiy; yakuniy holatni almashtirmaydi.
 
-## SSHdan keyingi checkpoint — 2026-09-25
+## Tarixiy SSHdan keyingi checkpoint — 2026-09-25
 
 - Owner SSH /32 yangilanishini tasdiqladi; faqat mavjud 22-port source
   almashtirildi. Key yo‘li owner ko‘rsatgan lokal yozuvdan olindi;
@@ -63,7 +63,7 @@ Quyidagi checkpointlar tarixiy; yakuniy holatni almashtirmaydi.
   /32 qiymatini hozirgi IP’ga yangilash ruxsati va lokal SSH key yo‘li
   so‘ralgan. Secret mazmunini yuborish so‘ralmagan.
 
-## Kod va compatibility
+## Dastlabki kod va compatibility rejasi (tarixiy)
 
 PR #126: initial CI `36175187721` uchala PASS; review correction
 `d7c3e43`dan keyingi final CI/merge hali kutilmoqda.
@@ -83,7 +83,7 @@ I1/I2/I3/I4a, library va deploy tuzatishlari ham bor. Shuning uchun:
 - `frontend_v1_*` flaglar default OFF. Public flag birinchi tekshiriladi;
   boshqa flaglar avtomatik ravishda yoqilmaydi yoki o‘chirilmaydi.
 
-## Serverga kirilgach bajariladigan tartib
+## Dastlabki serverga kirilgach bajarish tartibi (tarixiy)
 
 1. Haqiqiy repo/compose path, clean checkout, SOURCE_VERSION/image,
    disk/RAM, process health va migration plan; secretlarsiz env presence.
@@ -97,5 +97,7 @@ I1/I2/I3/I4a, library va deploy tuzatishlari ham bor. Shuning uchun:
 5. Muammo bo‘lsa avval public flag OFF; kerak bo‘lsa old verified imagega
    code rollback. Ishlab turgan DBni avtomatik restore/delete qilish yo‘q.
 
-**Hali deploy yoki flag activation bajarilmadi.** Offsite backup,
-real-device sign-off va controlled real-account flow yakunlanmagan.
+**Ushbu dastlabki checkpoint vaqtida** deploy/flag activation bajarilmagan
+edi. Keyinchalik public rollout va bir martalik off-host backup yakunlandi;
+[joriy holat](R1-PUBLIC-RELEASE.md)ga qarang. Real-device/account qabuli va
+scheduled offsite mexanizm ochiq qoladi.
