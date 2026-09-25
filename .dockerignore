@@ -6,9 +6,10 @@
 # abadiy qolib ketardi — image'ni kim olsa, kalitlarni ham oladi.
 
 # --- Sirlar va muhit ---
-.env
-.env.*
-!.env.example
+# `**` majburiy: production env `deploy/.env` ichida, rootda emas.
+# Sirlar COPY qatlamiga kirib, keyin o'chirilishi ham xavfsiz emas.
+**/.env
+**/.env.*
 
 # --- Lokal ma'lumot: image ichiga tushmasligi shart ---
 db.sqlite3
@@ -18,7 +19,7 @@ db.sqlite3-journal
 test_db.sqlite3
 media/
 private-media/
-backups/
+**/backups/
 
 # --- Virtual muhit va kesh ---
 venv/
