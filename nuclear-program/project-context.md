@@ -42,6 +42,15 @@ Source of truth har doim **kod** (model/view/task/URL/test). Bu fayl kodga mosla
 
 ## Frontend V1 — bosqichma-bosqich renderer (2026-09-25)
 
+I5a public adapteri `frontend/public_v1.py`: `frontend_v1_public` default OFF
+home/about/catalog/detail/pricing/legal/blog/SIT uchun template tanlaydi.
+Canonical query/access/publication/pricing va blog mutation endpointlari
+o‘zgarmaydi; private/no-store, sanitized rich content va family-scoped
+return links. `public-header.js` native compact menu keyboard/exit nazorati,
+`public.js` explicit CSRF reactions (unknown no-retry) va unsent comment
+warning; persistent comment draft emas. [Dalil](frontend-v1/I5A-PUBLIC.md).
+Bu port AWS deploy yoki owner visual/release qabuli degani emas.
+
 I1 kodi: `core/frontend_v1.py`dagi presentation-only mixin va LoginView
 adapteri, `users.views`dagi existing dashboard/my-courses contexti.
 `frontend_v1_learning` — `core/flags.py` registrida **default OFF**;

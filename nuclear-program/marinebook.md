@@ -16,6 +16,26 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-25 [Codex]: I5a public port va owner ko‘rsatgan mobil header tuzatishi
+
+Owner navbatni public → azurebek.me release → I4b deb o‘zgartirdi.
+14 public route oilasi canonical ma’lumot/actionlarga alohida default-OFF
+renderer bilan ulandi. 320px headerdagi katta auth qatori va gorizontal
+menyu owner tomonidan rad etildi; ~65px logo/theme/menu qatori va native
+disclosure bilan tuzatildi. Frozen trial va production o‘zgartirilmadi.
+
+- Branch: `codex/frontend-v1-public-pages`; runtime: `74818ee`.
+- Test: offline `manage.py test --noinput --verbosity 0` — 1945 OK,
+  skipped45 (123.170s); focused public 14 OK; Node53 PASS; check0issue.
+- Browser: catalog filtered-return, blog login/comment/reply/clap/like;
+  dark/light, 320/1280 public layout va 640/1024 university no-overflow;
+  menu open/close/Escape/focus. Isolated temp DB/media, no provider calls.
+- Keyingi: required CI/review/integratsiya; real-content visual qabul,
+  deployed SHA/backup/rollback va owner go/no-go. AWS console taqdim etilgan,
+  lekin deploy/flag yozish bajarilmadi. [To‘liq dalil](frontend-v1/I5A-PUBLIC.md).
+
+---
+
 ## 2026-09-25 [Codex]: I4a — tasdiqlangan keng guruh/ustoz chati real backendga ulandi
 
 Messenger B layouti real room/history/socket, fayl, edit/delete bilan
