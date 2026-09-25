@@ -24,9 +24,12 @@ class HumanMessengerV1Mixin(FrontendV1Mixin):
         return context
 
 
-def select_human_room(request, context, active_room, default):
+def select_human_room(request, context, active_room, default, *, sort_key):
     room_type = "group" if active_room == "group" else "private"
-    human_rooms = [r for r in context["messenger_rooms"] if r.room_type in {"group", "private"}]
+    human_rooms = sorted(
+        (r for r in context["messenger_rooms"] if r.room_type in {"group", "private"}),
+        key=sort_key, reverse=True,
+    )
     for room in human_rooms:
         name = "messenger:group" if room.room_type == "group" else "messenger:tutor"
         room.v1_url = f"{reverse(name)}?room={room.pk}"

@@ -58,6 +58,16 @@ class HumanMessengerV1Tests(TestCase):
         for room in self.groups:
             self.assertContains(response, f'?room={room.pk}')
 
+    def test_human_rooms_use_canonical_pin_and_recent_activity_order(self):
+        Message.objects.create(room=self.private, sender=self.user, text='Most recent')
+        url = reverse('messenger:group')
+        self.assertEqual(self.client.get(url).context['human_rooms'][0].pk, self.private.pk)
+        response = self.client.post(reverse('messenger:toggle_room_pin', args=[self.room.pk]))
+        self.assertTrue(response.json()['is_pinned'])
+        self.assertEqual(self.client.get(url).context['human_rooms'][0].pk, self.room.pk)
+        self.client.post(reverse('messenger:toggle_room_pin', args=[self.room.pk]))
+        self.assertEqual(self.client.get(url).context['human_rooms'][0].pk, self.private.pk)
+
     def test_invalid_room_never_falls_back_or_marks_a_different_room_read(self):
         for value in ['0', '-1', 'nope', '１２', str(self.private.pk), str(10**30)]:
             with self.subTest(value=value):
