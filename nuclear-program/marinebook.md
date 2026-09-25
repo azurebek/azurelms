@@ -29,6 +29,11 @@ trackerda I3 yopildi. I4a default OFF, AWS va frozen prototype o‘zgarmagan.
   boshqa suhbatga fallback yo‘q; final focused V1 16 OK. PR #125.
   Review P2 `8766716`: human room list canonical pin/recent tartibiga
   keltirildi; pin/unpin/recent regression bilan final focused V1 17 OK.
+  CI `36169222052` PostgreSQLda 14 error berdi: attachment testi bevosita
+  response.close orqali TestCase connectionini yopgan. `84e94eb` client
+  streaming iterator lifecycle va exact fayl bytes assertion bilan tuzatdi;
+  runtime o‘zgarmadi, skip yo‘q. Tuzatishdan so‘ng Messenger 162 OK (8.948s).
+  Required CI qayta tekshiriladi; IAB pin→reload→ro‘yxat boshi ham PASS.
 - Admission/KPI/canonical mapping/rollback: [I4a](frontend-v1/I4A-HUMAN-MESSENGER.md).
   Staff membership student syncdan ajratildi; read-only socket broadcast
   oldidan fresh accessni tekshiradi. Model/migration/provider o‘zgarishi yo‘q.

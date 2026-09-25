@@ -87,6 +87,16 @@ Kalitlar bo‘sh, `AZURELMS_SKIP_ENV_FILE=1`; vaqtinchalik DB/media.
   pin→last activity→created/PK tartibida. Pin/unpin/recent regression
   qo‘shildi; final focused V1 command 17 OK. IAB pin yozilishi oldin sinalgan;
   tartiblash regression server contextda tekshirildi.
+- Yakuniy IAB tekshiruv: staff group pin → reload → mahkamlangan xona
+  ro‘yxat boshida. `manage.py test messenger --noinput --verbosity 0`: 162 OK.
+- CI `36169222052`: SQLite va secret/dependency PASS, PostgreSQL FAIL
+  (1931 test, 14 error). Birinchi xato attachment testidagi bevosita
+  `response.close()` test transaction connectionini yopgani; keyingi 13
+  error shu yopilgan connectiondan. `84e94eb` testni Django client streaming
+  iteratori orqali to‘liq o‘qishga o‘tkazdi: fayl byte equality va response
+  yopilishi ham tekshiriladi. Runtime o‘zgarmadi, testlar skip qilinmadi.
+  Tuzatishdan keyingi lokal Messenger: 162 OK, 8.948s. Final required CI
+  qayta ishga tushiriladi; PostgreSQL PASS oldindan da’vo qilinmaydi.
 
 ## Release / cheklovlar
 
