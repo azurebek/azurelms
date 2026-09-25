@@ -2,8 +2,8 @@
 
 Qabul: `[ ]` ochiq; `[-]` ishda; `[x] ~~...~~` dalil bilan tugagan.
 “Prototype bor” real portga `[x]` qo‘yish uchun yetmaydi.
-Sana emas, tugallangan natija bilan kuzatiladi. I1/I2/I3a main’da;
-I3b lokal implementatsiyasi tekshirildi, required CI/integratsiya PRda tekshiriladi.
+Sana emas, tugallangan natija bilan kuzatiladi. I1/I2/I3 main’da;
+I4a lokal implementatsiyasi tekshirildi, required CI/integratsiya PRda tekshiriladi.
 Flaglar default OFF. Ushbu port doirasida deploy hali 0.
 
 ## Navbat
@@ -34,7 +34,7 @@ Flaglar default OFF. Ushbu port doirasida deploy hali 0.
     PostgreSQL1882 skip20, Node28. I2 yopildi, R1 release ochiq.
 - [ ] **R1 — Birinchi ishlaydigan bo‘lakni chiqarish.** I1+I2ning relevant
   test/browser, required CI, staging, deploy smoke va rollbacki. I3–I9ni kutmaydi.
-- [-] **I3 — Teacher review + ro‘yxatlar/davomat.** Learner assignment/quiz
+- [x] ~~I3 — Teacher review + ro‘yxatlar/davomat.~~ Learner assignment/quiz
   qismi I2bda ulandi.
   - [x] ~~I3a lokal implementatsiya: navbat → yozma ish qarori → learner natijasi.~~
     Native CSRF/PRG, explicit tasdiq, stale/duplicate no-write, canonical XP.
@@ -45,10 +45,18 @@ Flaglar default OFF. Ushbu port doirasida deploy hali 0.
   - [x] ~~I3b lokal implementatsiya: kurslar/guruhlar/o‘quvchilar/davomat.~~
     Real scope/count/search/pagination; native atomic davomat va canonical XP,
     stale/duplicate no-write, session-scoped qoralama. [Dalil](I3B-TEACHER-DIRECTORY.md).
-  - [ ] I3b required CI va integratsiya — branch PRida tekshiriladi.
-- [ ] **I4 — Messenger B.** Guruh/ustoz: real room/history/send/edit/delete/
+  - [x] ~~I3b required CI va integratsiya.~~ PR #124 MERGED `9eb3830`;
+    final CI `36162882956` uchala PASS: SQLite1914 skip44,
+    PostgreSQL1914 skip20, Node34. Resume/finish locking P2 regression yopilgan.
+- [-] **I4 — Messenger B.** Guruh/ustoz: real room/history/send/edit/delete/
   attachment/reconnect; AI: mavjud provider/choice/quota/context/error.
   Qoralama saqlansin, layout barcha gap holatlarida ishlasin; yangi AI engine yo‘q.
+  - [x] ~~I4a lokal implementatsiya va tekshiruv: guruh/ustoz human chat.~~
+    Tasdiqlangan B layout, canonical socket/HTTP/private fayl, multi-room,
+    session draft, unknown no-resend va atomic stale edit/delete.
+    [Dalil](I4A-HUMAN-MESSENGER.md).
+  - [ ] I4a required CI va integratsiya — branch PRida tekshiriladi.
+  - [ ] I4b AI adapteri: provider/choice/quota/context/error va mavjud amallar.
 - [ ] **I5 — Tayyor yordamchi yuzalar.** 5a public/records/help,
   5b auth/account/profile, 5c preferences/privacy/notifications. Har kichik
   tugallangan oqim alohida qabul; hammasi bir relizga bog‘lanmaydi.
