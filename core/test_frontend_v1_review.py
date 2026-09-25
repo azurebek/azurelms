@@ -2,11 +2,13 @@
 from concurrent.futures import ThreadPoolExecutor
 from tempfile import TemporaryDirectory
 from threading import Barrier
+from unittest.mock import patch
 
+from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import connections
-from django.test import Client, TestCase, TransactionTestCase, override_settings, skipUnlessDBFeature
+from django.test import Client, RequestFactory, TestCase, TransactionTestCase, override_settings, skipUnlessDBFeature
 from django.urls import reverse
 from django.utils import timezone
 
@@ -187,6 +189,27 @@ class TeacherReviewTests(TestCase):
         self.assertEqual(self.client.post(self.url, data).status_code, 409)
         self.submission.refresh_from_db(); self.assertEqual(self.submission.teacher_feedback, 'New grade')
         self.assertEqual(self.submission.awarded_xp, 20)
+
+    def test_admin_bulk_decisions_advance_revision_and_reject_stale_teacher(self):
+        from courses.admin import AssignmentSubmissionAdmin
+        owner = get_user_model().objects.create_superuser('bulk-owner', 'bulk@example.test', 'test')
+        request = RequestFactory().post('/admin/courses/assignmentsubmission/')
+        request.user = owner
+        model_admin = AssignmentSubmissionAdmin(AssignmentSubmission, admin.site)
+        for action, status in (('mark_pending', 'pending'), ('mark_approved', 'approved'), ('mark_needs_revision', 'needs_revision')):
+            with self.subTest(action=action):
+                review_assignment_submission(submission=self.submission, approved=True, reviewer=self.teacher, awarded_xp=20)
+                data = self.payload()
+                with patch.object(model_admin, 'message_user'):
+                    getattr(model_admin, action)(request, AssignmentSubmission.objects.filter(pk=self.submission.pk))
+                self.submission.refresh_from_db()
+                self.assertNotEqual(self.submission.updated_at.isoformat(), data['revision'])
+                stamp, reviewer, reviewed = self.submission.updated_at, self.submission.reviewed_by_id, self.submission.reviewed_at
+                before = SystemAuditEvent.objects.filter(action='assignment.review').count()
+                self.assertEqual(self.client.post(self.url, data).status_code, 409)
+                self.submission.refresh_from_db()
+                self.assertEqual((self.submission.status, self.submission.updated_at, self.submission.reviewed_by_id, self.submission.reviewed_at), (status, stamp, reviewer, reviewed))
+                self.assertEqual(SystemAuditEvent.objects.filter(action='assignment.review').count(), before)
 
     def test_draft_scope_changes_on_new_login_and_no_confirmation_is_persistable(self):
         first = self.client.get(self.url)
