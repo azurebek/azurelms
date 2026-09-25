@@ -183,6 +183,17 @@ class PublicV1Tests(TestCase):
         self.client.post(reverse('blog:comment_create', args=[self.post.slug]), {'content': 'Closed'})
         self.assertFalse(BlogComment.objects.exists())
 
+    def test_blog_only_root_comments_offer_reply_forms(self):
+        root = BlogComment.objects.create(post=self.post, user=self.staff, content='Root comment')
+        reply = BlogComment.objects.create(post=self.post, user=self.user, parent=root, content='Existing reply')
+        self.client.force_login(self.user)
+        response = self.client.get(self.post.get_absolute_url())
+        self.assertContains(response, 'Existing reply')
+        self.assertContains(response, 'Javob yozish', count=1)
+        self.assertContains(response, f'name="parent_id" value="{root.pk}"')
+        self.assertNotContains(response, f'name="parent_id" value="{reply.pk}"')
+        self.assertContains(response, reverse('blog:comment_like', args=[reply.pk]))
+
     def test_empty_lists_keep_navigation_and_no_fake_data(self):
         Course.objects.all().delete(); BlogPost.objects.all().delete()
         University.objects.all().delete(); Plan.objects.all().delete()
