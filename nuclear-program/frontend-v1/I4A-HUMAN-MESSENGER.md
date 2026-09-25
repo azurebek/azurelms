@@ -83,6 +83,10 @@ Kalitlar bo‘sh, `AZURELMS_SKIP_ENV_FILE=1`; vaqtinchalik DB/media.
   manzilini boshqa guruhga burmaydi; foreign/type mismatch404. Final
   `manage.py test messenger.test_frontend_v1 --noinput --verbosity 1`:
   16 OK. Browserda tutor pin→server saved, native info dialog ham sinaldi.
+- PR #125 P2 `8766716`: human room list existing `_room_sort_key` bilan
+  pin→last activity→created/PK tartibida. Pin/unpin/recent regression
+  qo‘shildi; final focused V1 command 17 OK. IAB pin yozilishi oldin sinalgan;
+  tartiblash regression server contextda tekshirildi.
 
 ## Release / cheklovlar
 
