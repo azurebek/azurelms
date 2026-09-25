@@ -1,0 +1,28 @@
+{% extends "frontend_v1/platform.html" %}
+{% block content %}
+<div class="p-page-heading"><div><p class="c-eyebrow">{% now "d.m.Y" %}</p><h1>Salom, {{ request.user.first_name|default:request.user.username }}<span class="f-wave" aria-hidden="true">.</span></h1><p class="c-lead">Kichik qadamlar bilan katta natijalarga.</p></div>{% if streak.active_today %}<span class="c-badge c-badge--success">{% include "frontend_v1/icon.html" with name="sprout" %}Bugun o‘rgandingiz</span>{% endif %}</div>
+<div class="f-dashboard-top">
+  <section class="f-resume c-card"><div class="f-resume__content">
+    <p class="c-eyebrow">QOLGAN JOYINGIZDAN DAVOM ETING</p>
+    {% if resume_enrollment %}
+      <span class="f-resume__course">{{ resume_enrollment.cohort.name }}</span><h2>{{ resume_enrollment.cohort.course.title }}</h2>
+      <p>{{ resume_enrollment.cohort.course.get_level_display }}</p>
+      <div class="f-resume__meta"><span>{% include "frontend_v1/icon.html" with name="book" %}{{ resume_enrollment.dashboard_completed_lessons }}/{{ resume_enrollment.dashboard_total_lessons }} dars</span><span>{{ resume_enrollment.dashboard_progress }}% tugatilgan</span></div>
+      <a class="c-button c-button--primary" href="{% url 'course_study' course_id=resume_enrollment.cohort.course_id %}?cohort={{ resume_enrollment.cohort_id }}">Kursni davom ettirish{% include "frontend_v1/icon.html" with name="arrow" %}</a><p class="c-caption">Dars sahifasi hozircha avvalgi ko‘rinishda.</p>
+    {% elif primary_enrollment %}
+      <h2>Faol obuna kerak</h2><p>{{ primary_enrollment.cohort.course.title }} · {{ primary_enrollment.dashboard_status_label }}</p><div class="c-actions"><a class="c-button c-button--primary" href="{% url 'subscriptions' %}">Obuna holatini ko‘rish{% include "frontend_v1/icon.html" with name="arrow" %}</a></div>
+    {% else %}
+      <h2>Birinchi qadamingizni boshlang</h2><p>Hali kursga yozilmagansiz. O‘zingizga mos o‘quv yo‘lini tanlang.</p><div class="c-actions"><a class="c-button c-button--primary" href="{% url 'courses' %}">Kurslarni ko‘rish{% include "frontend_v1/icon.html" with name="arrow" %}</a></div>
+    {% endif %}
+  </div></section>
+  <aside class="c-card f-next-live"><div class="c-section-title"><span class="c-badge c-badge--soft">{% include "frontend_v1/icon.html" with name="sprout" %}O‘quv faolligingiz</span></div><div><p class="f-next-live__time">{{ xp_points }} <span>XP</span></p><h2>Har kuni oz-ozdan</h2><p>Eng uzun seriya: {{ streak.longest }} kun. Jami faol kun: {{ streak.total_active_days }}.</p></div><a class="c-button c-button--secondary" href="{% url 'attendance_calendar' %}">Davomatni ko‘rish{% include "frontend_v1/icon.html" with name="arrow" %}</a></aside>
+</div>
+<section class="f-stats" aria-label="O‘quv ko‘rsatkichlari">
+  <div class="c-stat"><span class="c-stat__icon">{% include "frontend_v1/icon.html" with name="book" %}</span><div><strong>{{ active_courses_count }}</strong><span>Faol guruh</span></div></div>
+  <div class="c-stat"><span class="c-stat__icon">{% include "frontend_v1/icon.html" with name="check-circle" %}</span><div><strong>{{ completed_lessons_count }}</strong><span>Tugatilgan dars</span></div></div>
+  <div class="c-stat"><span class="c-stat__icon">{% include "frontend_v1/icon.html" with name="calendar" %}</span><div><strong>{{ streak_days }} <small>kun</small></strong><span>Ketma-ket o‘rganish</span></div></div>
+</section>
+<section aria-labelledby="courses-title"><div class="c-section-title"><div><p class="c-eyebrow">O‘QUV YO‘LINGIZ</p><h2 id="courses-title">{% if active_dashboard_enrollments|length > 1 %}Barcha guruhlaringiz{% elif resume_enrollment %}Davom etayotgan kurs{% else %}Kurslarim{% endif %}</h2></div><a class="c-text-link" href="{% url 'my_courses' %}">Barcha kurslar{% include "frontend_v1/icon.html" with name="arrow" %}</a></div>
+  <div class="f-course-layout">{% for enrollment in active_enrollments %}{% include "frontend_v1/course_card.html" %}{% empty %}<div class="c-card p-panel"><p class="c-muted">Kursga yozilgach, natijalaringiz shu yerda ko‘rinadi.</p></div>{% endfor %}</div>
+</section>
+{% endblock %}

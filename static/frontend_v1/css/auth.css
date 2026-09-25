@@ -1,0 +1,25 @@
+/* Explicit public/auth context; shared foundation and controls remain unchanged. */
+.s-auth-header { height: var(--az-header); display: flex; align-items: center; justify-content: space-between; gap: var(--az-space-4); padding-inline: var(--az-space-8); border-bottom: 1px solid var(--az-border); background: var(--az-surface); }
+.s-auth-header .s-brand { padding: 0; min-height: var(--az-control); }
+.s-auth-main { width: min(100%, calc(var(--az-dialog) + var(--az-space-8))); margin-inline: auto; padding: var(--az-space-8) var(--az-space-4); }
+.p-auth-card { padding: var(--az-space-8); }
+.p-auth-heading { display: grid; gap: var(--az-space-3); }
+.p-auth-state { display: flex; align-items: baseline; gap: var(--az-space-2); color: var(--az-muted); font-size: var(--az-text-xs); padding-block: var(--az-space-4); }
+.p-auth-notice { margin-bottom: var(--az-space-5); }
+.p-auth-fields { display: grid; gap: var(--az-space-5); margin: 0; padding: 0; border: 0; min-width: 0; }
+.p-auth-legend { font-size: var(--az-text-sm); color: var(--az-muted); margin-bottom: var(--az-space-4); }
+.p-auth-input { display: flex; gap: var(--az-space-2); align-items: stretch; }
+.p-auth-input input { flex: 1; }
+.p-auth-field .c-caption { margin-top: var(--az-space-2); }
+.p-auth-visibility { flex-shrink: 0; }
+.p-auth-submit { width: 100%; }
+.p-auth-links { display: flex; justify-content: space-between; gap: var(--az-space-3); flex-wrap: wrap; margin-top: var(--az-space-4); }
+.s-auth-footer { text-align: center; color: var(--az-muted); font-size: var(--az-text-xs); padding-block: var(--az-space-4); }
+@media (width < 640px) {
+  .s-auth-header { padding-inline: var(--az-space-4); }
+  .s-auth-main { padding-top: var(--az-space-4); }
+  .p-auth-card { padding: var(--az-space-5); }
+  .p-auth-input { flex-wrap: wrap; }
+  .p-auth-input input { flex-basis: 100%; }
+  .p-auth-visibility { margin-left: auto; }
+}

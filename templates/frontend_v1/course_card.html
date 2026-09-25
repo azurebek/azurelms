@@ -1,0 +1,14 @@
+<article class="c-card f-course-detail" data-enrollment="{{ enrollment.pk }}">
+  <div class="f-course-cover"><div><small>{{ enrollment.cohort.course.get_level_display }}</small><strong>{{ enrollment.cohort.course.title }}</strong></div>{% include "frontend_v1/icon.html" with name="book" %}</div>
+  <div class="f-course-detail__body">
+    <div class="c-section-title"><h2>{{ enrollment.cohort.name }}</h2><span class="c-badge{% if enrollment.dashboard_effective_status == 'active' %} c-badge--success{% endif %}">{{ enrollment.dashboard_status_label }}</span></div>
+    {% include "frontend_v1/progress.html" %}
+    {% if enrollment.dashboard_effective_status == 'active' %}
+      <a class="c-button c-button--primary" href="{% url 'course_study' course_id=enrollment.cohort.course_id %}?cohort={{ enrollment.cohort_id }}">{% if enrollment.dashboard_progress >= 100 %}Darslarni takrorlash{% else %}Davom etish{% endif %}{% include "frontend_v1/icon.html" with name="arrow" %}</a>
+    {% else %}
+      <p class="c-muted v1-card-note">{% if enrollment.dashboard_effective_status == 'pending' %}Tasdiq kutilmoqda. Darslarga kirish hali ochilmagan.{% else %}Darslarga kirish uchun obuna holatini tekshiring.{% endif %}</p>
+      <a class="c-button c-button--secondary" href="{% url 'subscriptions' %}">Obuna holatini ko‘rish{% include "frontend_v1/icon.html" with name="arrow" %}</a>
+    {% endif %}
+    <p class="c-caption v1-card-note">Dars va to‘lov sahifalari hozircha avvalgi ko‘rinishda.</p>
+  </div>
+</article>

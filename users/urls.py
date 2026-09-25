@@ -1,6 +1,5 @@
 from django.urls import path
 from django.contrib.auth.views import (
-    LoginView,
     LogoutView,
     PasswordResetView,
     PasswordResetDoneView,
@@ -9,6 +8,7 @@ from django.contrib.auth.views import (
 )
 from django.views.generic import RedirectView
 from .forms import UzbekSetPasswordForm
+from core.frontend_v1 import FrontendLoginView
 from .views import (
     RegisterView, UserProfileView, AvatarUpdateView, PasswordUpdateView,
     SettingsAccountView, SettingsBillingView, SettingsCapabilitiesView,
@@ -25,7 +25,7 @@ urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
     path('register/onboarding/', OnboardingChoiceView.as_view(), name='onboarding_choice'),
     path('register/onboarding/ai/', StartSmartOnboardingView.as_view(), name='start_smart_onboarding'),
-    path('login/', LoginView.as_view(template_name='registration/login.html', redirect_authenticated_user=True), name='login'),
+    path('login/', FrontendLoginView.as_view(template_name='registration/login.html', redirect_authenticated_user=True), name='login'),
     path('telegram-auth/init/', telegram_auth_init, name='telegram_auth_init'),
     path('telegram-auth/status/<str:token>/', telegram_auth_status, name='telegram_auth_status'),
     path('logout/', LogoutView.as_view(next_page='home'), name='logout'),

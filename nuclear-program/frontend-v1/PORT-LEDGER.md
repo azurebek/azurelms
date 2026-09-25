@@ -2,14 +2,17 @@
 
 Qabul: `[ ]` ochiq; `[-]` ishda; `[x] ~~...~~` dalil bilan tugagan.
 “Prototype bor” real portga `[x]` qo‘yish uchun yetmaydi.
-Sana emas, tugallangan natija bilan kuzatiladi. Runtime ko‘chirish hali 0.
+Sana emas, tugallangan natija bilan kuzatiladi. I1ning 3 real URLi lokal
+ulandi; flag default OFF. Deploy hali 0, I2–I9 ochiq.
 
 ## Navbat
 
 - [x] ~~I0 — V1 freeze, zaxira reference, joriy inventar, mapping, baseline va reja.~~
   2026-09-25: 95 preview → 76 source UI name, 54 template; 44 unmapped UI/alias.
   [Inventar](INVENTORY.md), [strategiya](README.md). Runtime o‘zgartirilmagan.
-- [ ] **I1 — V1 foundation + login/dashboard/my-courses.** Flag OFF: existing
+- [-] **I1 — V1 foundation + login/dashboard/my-courses.** Lokal runtime va
+  test/browser PASS; PR/CI hali ochiq. [Adapter dalili](I1-LEARNING-SHELL.md).
+  Flag OFF: existing
   UI ishlaydi. Flag ON: haqiqiy user va real enrollmentlar; logout POST,
   CSRF, safe next, role menu, empty/multi-course, theme/draft isolation.
 - [ ] **I2 — O‘qish/material + teacher home/release.** Real lesson kontenti,

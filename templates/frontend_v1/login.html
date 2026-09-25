@@ -1,0 +1,31 @@
+{% extends "frontend_v1/base.html" %}
+{% load static %}
+{% block extra_head %}<script defer src="{% static 'frontend_v1/js/login.js' %}"></script>{% endblock %}
+{% block body %}
+<header class="s-auth-header"><a class="s-brand" href="{% url 'home' %}">{% include "components/brand_logo.html" with mark_class="s-brand__mark" %}</a>{% include "frontend_v1/theme_button.html" %}</header>
+<main id="main" class="s-auth-main" tabindex="-1">
+  {% include "frontend_v1/messages.html" %}
+  <section class="c-card p-auth-card" aria-labelledby="auth-title">
+    <div class="p-auth-heading"><p class="c-eyebrow">O‘ZBEKCHA O‘RGANING · TURKCHA GAPIRING</p><h1 id="auth-title">Hisobga kirish</h1><p class="c-muted">O‘qishni qolgan joyingizdan davom ettiring.</p></div>
+    {% if form.errors %}<div class="c-alert v1-error" role="alert" tabindex="-1" data-form-errors><div>{% if form.non_field_errors %}{{ form.non_field_errors }}{% else %}Belgilangan maydonlarni tekshiring.{% endif %}</div></div>{% endif %}
+    <form method="post" action="{% url 'login' %}" class="v1-login-form">
+      {% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
+      <div class="p-auth-fields">
+        <div><label class="c-field__label" for="{{ form.username.id_for_label }}">Email yoki username</label>{{ form.username }}{{ form.username.errors }}</div>
+        <div><label class="c-field__label" for="{{ form.password.id_for_label }}">Parol</label><div class="p-auth-input">{{ form.password }}<button class="c-button c-button--secondary p-auth-visibility" type="button" aria-controls="{{ form.password.id_for_label }}" aria-pressed="false" data-password-toggle>Ko‘rsatish</button></div>{{ form.password.errors }}</div>
+        <button class="c-button c-button--primary p-auth-submit" type="submit">Kirish{% include "frontend_v1/icon.html" with name="arrow" %}</button>
+      </div>
+    </form>
+    <div class="p-auth-links"><a class="c-text-link" href="{% url 'password_reset' %}">Parolni unutdingizmi?</a><a class="c-text-link" href="{% url 'register' %}{% if next %}?next={{ next|urlencode:'' }}{% endif %}">Yangi hisob ochish</a></div>
+    <div class="v1-telegram" data-telegram-auth data-init-url="{% url 'telegram_auth_init' %}" data-status-url="{% url 'telegram_auth_status' token='TOKEN' %}" data-login-url="{% url 'login' %}{% if next %}?next={{ next|urlencode:'' }}{% endif %}">
+      <button class="c-button c-button--secondary" type="button" data-telegram-start>Telegram orqali kirish</button>
+      <a class="c-text-link" data-telegram-link hidden target="_blank" rel="noopener noreferrer">Telegramni ochish{% include "frontend_v1/icon.html" with name="external" %}</a>
+      <p class="c-caption" role="status" aria-live="polite" data-telegram-status></p>
+      <button class="c-button c-button--secondary" type="button" data-telegram-check hidden>Natijani tekshirish</button>
+      <button class="c-button c-button--quiet" type="button" data-telegram-cancel hidden>Tekshirishni to‘xtatish</button>
+    </div>
+    <noscript><p class="c-caption">Email va parol bilan kirish ishlaydi. Telegram orqali kirish uchun JavaScript kerak.</p></noscript>
+  </section>
+  <footer class="s-auth-footer">{{ site_settings.brand_name|default:"AzureLMS" }} · <a href="{% url 'privacy_policy' %}">Maxfiylik</a> · <a href="{% url 'terms_of_service' %}">Foydalanish shartlari</a></footer>
+</main>
+{% endblock %}

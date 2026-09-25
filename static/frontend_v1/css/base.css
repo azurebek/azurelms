@@ -1,0 +1,26 @@
+* { box-sizing: border-box; }
+html { font-family: var(--az-font); font-size: 100%; background: var(--az-canvas); color: var(--az-text); scrollbar-gutter: stable; }
+body { margin: 0; font-size: var(--az-text-md); line-height: var(--az-leading); }
+h1, h2, h3, p { margin: 0; }
+h1 { font-size: var(--az-text-title); font-weight: var(--az-weight-bold); letter-spacing: var(--az-tracking); line-height: var(--az-leading-tight); }
+h2 { font-size: var(--az-text-xl); font-weight: var(--az-weight-bold); line-height: 1.35; letter-spacing: var(--az-tracking); }
+h3 { font-size: var(--az-text-lg); font-weight: var(--az-weight-bold); }
+a { color: inherit; text-decoration: none; }
+button, input, textarea, select { font: inherit; }
+button, select { cursor: pointer; }
+button { color: inherit; }
+a, button, input, textarea, select { -webkit-tap-highlight-color: transparent; }
+button:disabled, input:disabled { cursor: not-allowed; }
+svg, img { max-width: 100%; vertical-align: middle; }
+svg { flex-shrink: 0; }
+ul, ol, dl, dd { margin: 0; padding: 0; }
+strong { font-weight: var(--az-weight-bold); }
+small { font-size: var(--az-text-xs); }
+a, h1, h2, h3, p, strong, small, td { overflow-wrap: anywhere; }
+:focus-visible { outline: 2px solid var(--az-focus); outline-offset: var(--az-space-1); }
+::selection { background: var(--az-action); color: var(--az-on-action); }
+/* Documented exceptions: native hidden semantics and reduced-motion preference. */
+[hidden] { display: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}

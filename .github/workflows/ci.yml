@@ -62,6 +62,13 @@ jobs:
       - name: Bog'liqliklarni o'rnatish
         run: pip install -r requirements.txt
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Frontend V1 offline controller regressiyasi
+        run: node --test tests/frontend_v1/*.test.mjs
+
       # §4.1
       - name: manage.py check
         env:

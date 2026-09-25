@@ -26,6 +26,7 @@ from courses.models import Lesson
 import os
 
 from core.upload_validation import validate_upload
+from core.frontend_v1 import FrontendV1Mixin
 import uuid
 
 def home_view(request):
@@ -674,8 +675,10 @@ def build_student_enrollments(user, today=None):
     return enrollments
 
 
-class DashboardView(LoginRequiredMixin, TemplateView):
+class DashboardView(LoginRequiredMixin, FrontendV1Mixin, TemplateView):
     template_name = 'users/dashboard.html'
+    frontend_v1_template = 'frontend_v1/dashboard.html'
+    frontend_v1_title = 'Bosh sahifa'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -767,13 +770,15 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class MyCoursesView(LoginRequiredMixin, TemplateView):
+class MyCoursesView(LoginRequiredMixin, FrontendV1Mixin, TemplateView):
     """App-shell ichidagi "Mening kurslarim" — o'quvchi yozilgan kurslar.
 
     Public `/courses/` katalogidan farqli: bu app-shell oqimida qoladi va
     faqat foydalanuvchi enrollmentlarini progress bilan ko'rsatadi.
     """
     template_name = 'users/my_courses.html'
+    frontend_v1_template = 'frontend_v1/courses.html'
+    frontend_v1_title = 'Kurslarim'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

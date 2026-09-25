@@ -3,6 +3,11 @@
 Sana: 2026-09-25. Runtime source: `d0cce32eec392717e9bb6d0c1488740bc34b3831`.
 [Ko‘chirish tartibi](README.md), [bajarish jurnali](PORT-LEDGER.md).
 
+Bu jadval **I0 boshlang‘ich inventari**. Keyingi ijro holati:
+[I1ning 3 real URLi lokal ulandi](I1-LEARNING-SHELL.md); default OFF,
+CI/release ochiq. Quyidagi NOT PORTED yozuvlari boshlang‘ich snapshot,
+joriy progress uchun bajarish jurnaliga qarang.
+
 ## Hisob nimani anglatadi
 
 **95 preview manzil → 54 page template → 76 noyob real UI/alias URL nomi.**

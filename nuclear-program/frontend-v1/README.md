@@ -6,6 +6,9 @@ Tayyor qismlar real Django platformasiga ko‘chiriladi; 1-oktyabrda kamida
 bitta tugallangan real oqim maqsad qilinadi. Keyin qolgan prototiplarga
 qaytiladi. **Bu hujjat ko‘chirish rejasi; ko‘chirish bajarildi degani emas.**
 
+Joriy ijro: [I1 — 3 real sahifa lokal ulandi](I1-LEARNING-SHELL.md),
+default OFF; CI/release ochiq. Qolgan I2–I9 navbatlari saqlanadi.
+
 ## 1. Qayerdamiz
 
 - [Inventar va barcha manzillar xaritasi](INVENTORY.md): 95 sinov manzili,
@@ -111,7 +114,7 @@ UI+adapter+test bitta mantiqiy bo‘lakda. Test va ruxsatlar evaziga tezlashtiri
    Django form/error/CSRF, progress/release/grade/payment policy asl manbada.
    Presentation mapper yangi permission/XP/price hisoblamaydi.
 4. **Flag orqali qaytish:** `core/flags.py` registrida per-flow V1 flag
-   (masalan, `frontend_v1_learning`, hali mavjud emas), default off, mavjud
+   (I1da `frontend_v1_learning` qo‘shildi), default off, mavjud
    audited control yo‘li. Flag faqat renderer tanlaydi, accessni o‘zgartirmaydi.
    Flag o‘chirilganda eski UI+controller qaytadi; rollback ma’lumotni o‘chirmaydi.
 5. **Toza runtime:** preview settings/fixtures/state, `/_preview/*`, scenario
