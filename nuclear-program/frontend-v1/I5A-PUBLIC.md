@@ -91,3 +91,14 @@ Provider/bot kalitlari bo‘sh va `AZURELMS_SKIP_ENV_FILE=1`:
 - Haqiqiy iOS/Android qurilmasi, AWS target/deployed SHA, backup/rollback,
   real-content visual qabul va owner go/no-go **hali bajarilmagan**.
   Owner ko‘rinish bo‘yicha e’tirozidan keyin deploymentga o‘tilmadi.
+
+### Deployga qaytish — 2026-09-25
+
+Owner mobil ko‘rinishni ko‘rib, «deploy qilamizmi» deb davom ettirdi.
+PR #126 ready qilindi. Initial CI `36175187721` uchala PASS bo‘ldi.
+Review P2 `d7c3e43` bilan yopildi: canonical blog modeli bitta reply
+darajasini qo‘llaydi; V1 ham replyga yana reply formasini ko‘rsatmaydi.
+Root formasi va reply like saqlangan; regression qo‘shildi.
+Offline `manage.py test frontend.test_public_v1 blog --noinput --verbosity 0`:
+**20 OK** (16.007s). Bu fixdan keyin required CI yana tekshiriladi.
+AWS ulanishi va live release holati [R1 preflight](R1-AWS-PREFLIGHT.md)da.

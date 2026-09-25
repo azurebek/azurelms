@@ -25,6 +25,12 @@ menyu owner tomonidan rad etildi; ~65px logo/theme/menu qatori va native
 disclosure bilan tuzatildi. Frozen trial va production o‘zgartirilmadi.
 
 - Branch: `codex/frontend-v1-public-pages`; runtime: `74818ee`.
+- Review correction `d7c3e43`: blog reply-depth modeli bilan V1 reply
+  controls moslashtirildi; focused public/blog **20 OK** (16.007s).
+  Initial PR #126 CI `36175187721` uchala PASS; fixdan keyin qayta CI kerak.
+  Owner mobil ko‘rinishdan so‘ng deployni davom ettirdi. Live HTTPS ready,
+  SHA `1ddd23e19556`; SSH source /32 eski IP, hozirgi ulanish yopiq.
+  Ruxsatsiz network o‘zgarishi qilinmadi. [R1 preflight](frontend-v1/R1-AWS-PREFLIGHT.md).
 - Test: offline `manage.py test --noinput --verbosity 0` — 1945 OK,
   skipped45 (123.170s); focused public 14 OK; Node53 PASS; check0issue.
 - Browser: catalog filtered-return, blog login/comment/reply/clap/like;
