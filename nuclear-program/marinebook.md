@@ -23,6 +23,12 @@ queryset/form/canonical attendance servisiga ulandi. Yangi prototip,
 dependency yoki migration yo‘q; bu local port, production relizi emas.
 
 - Branch: `codex/frontend-v1-teacher-directory`; runtime/test `77cc15b`.
+- PR #124 initial CI `36161783187` all3PASS (SQLite1913 skip43,
+  PostgreSQL1913 skip20, Node34). Review P2 fixed in `3d90d1d`: Classbook
+  finish and legacy bot close lock cohort before session, matching resume
+  and attendance. Coordinated PostgreSQL resume/finish regression added;
+  final classbook/directory/bot-close/parity/release focused **83 OK (skip=3)**.
+  Exact command in I3b evidence. Fresh CI required before merge.
 - Haqiqiy count/search/SQL pagination; native guruh/dars qo‘llash o‘zicha
   navigatsiya qilmaydi. Davomat explicit CSRF/tasdiq/revision, bir transaction,
   canonical XP/streak, cohort lock va shared user-ID tartibidagi writes bilan.

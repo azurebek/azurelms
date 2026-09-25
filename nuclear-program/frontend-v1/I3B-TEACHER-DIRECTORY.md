@@ -89,3 +89,22 @@ Required CI/merge evidence is completed in the branch PR. R1 remains OPEN:
 only AWS primary exists, backup/rollback/test account/device/go-no-go need
 agreement; default OFF and deploy0. I4 human Messenger B is the next port,
 separate from its AI adapter. Frozen trial and backup unchanged.
+
+## PR #124 — lock-order correction
+
+Initial CI `36161783187` passed all three required jobs: SQLite1913 skip43,
+PostgreSQL1913 skip20, Node34. Review P2 identified the new cohort lock's
+interaction with Classbook resume/finish: holding session then cohort could
+deadlock against a resumer inserting session-referencing activities/delivery.
+Classbook finish and legacy bot close now acquire cohort before session.
+New PostgreSQL regression coordinates concurrent resume/finish and checks
+activity insertion, closed session and finalized attendance. No grading,
+XP or release formula changes. Fresh CI is required for this correction;
+the initial green run does not verify the new commit.
+
+Correction `3d90d1d`. Offline `venv\Scripts\python.exe manage.py test classbook
+core.test_frontend_v1_directory bot.test_close_session_atomicity
+core.test_attendance_parity core.test_attendance_releases_lesson
+--noinput --verbosity 1`: **83 OK (skip=3)**, 55.240 s. New lock interaction
+is PostgreSQL-only and awaits required integration CI; local SQLite cannot
+prove row-lock behavior. `git diff --check` PASS.
