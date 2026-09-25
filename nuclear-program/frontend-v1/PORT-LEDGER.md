@@ -68,7 +68,11 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
     [Dalil](I4A-HUMAN-MESSENGER.md).
   - [x] ~~I4a required CI va integratsiya.~~ PR #125 MERGED `89f89b7`;
     final CI `36170298967`: SQLite1931 skip44, PostgreSQL1931 skip20, Node45.
-  - [ ] I4b AI adapteri: provider/choice/quota/context/error va mavjud amallar.
+  - [x] ~~I4b lokal AI adapteri va tekshiruv.~~ Alohida default-OFF flag,
+    canonical model/skill/context/status/feedback/retry; owner so‘ragan
+    ixcham transcript va xabar menyusi. [Dalil](I4B-AI-MESSENGER.md).
+    1961 Python OK (skip45), 60 Node PASS; browser320/1280, fake provider.
+  - [ ] I4b required CI/review/integratsiya; AWS AI rollout alohida.
 - [-] **I5 — Tayyor yordamchi yuzalar.** 5a public/records/help,
   5b auth/account/profile, 5c preferences/privacy/notifications. Har kichik
   tugallangan oqim alohida qabul; hammasi bir relizga bog‘lanmaydi.

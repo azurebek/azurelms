@@ -54,6 +54,9 @@ class FrontendV1Mixin:
                 for item in context["frontend_v1_legacy_nav"]:
                     if item["url"] == reverse("messenger:ai"):
                         item["label"] = "Azure AI"
+            if flag_enabled("frontend_v1_ai_messenger"):
+                context["frontend_v1_nav"].append(dict(url=reverse("messenger:ai"), name="messenger:ai", label="Azure AI", icon="message"))
+                context["frontend_v1_legacy_nav"] = [item for item in context["frontend_v1_legacy_nav"] if item["url"] != reverse("messenger:ai")]
         return context
 
     def render_to_response(self, context, **response_kwargs):
@@ -99,6 +102,8 @@ def teacher_v1_navigation(active_nav):
     )
     if flag_enabled("frontend_v1_messenger"):
         pages += (("messenger:group", "Xabarlar", "message"),)
+    if flag_enabled("frontend_v1_ai_messenger"):
+        pages += (("messenger:ai", "Azure AI", "message"),)
     return dict(
         frontend_v1_title=dict((name, label) for name, label, _ in pages)[active_nav],
         frontend_v1_workspace="Ustoz maydoni",

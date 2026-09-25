@@ -44,6 +44,14 @@ class FlagDefinition:
 
 FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
     FlagDefinition(
+        slug="frontend_v1_ai_messenger",
+        label="Frontend V1 — Azure AI chati",
+        description="Keng Messenger B AI ko‘rinishi; mavjud provider va quota o‘zgarmaydi.",
+        default=False,
+        category="Frontend",
+        runbook="OFF eski AI rendererini qaytaradi; xabar/preference saqlanadi. Human chat flagidan mustaqil. ON faqat AI chat release tekshiruvlaridan keyin.",
+    ),
+    FlagDefinition(
         slug="frontend_v1_public",
         label="Frontend V1 — public sahifalar",
         description="Bosh sahifa, katalog/tarif, about/legal, blog va SIT uchun V1 renderer.",
@@ -54,7 +62,7 @@ FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
     FlagDefinition(
         slug="frontend_v1_messenger",
         label="Frontend V1 — guruh va ustoz chati",
-        description="Tasdiqlangan keng Messenger B; AI sahifasi avvalgi ko‘rinishda qoladi.",
+        description="Tasdiqlangan keng Messenger B; AI sahifasi alohida renderer flagi bilan boshqariladi.",
         default=False,
         category="Frontend",
         runbook="OFF eski guruh/ustoz rendererini qaytaradi; xabar va fayllarni o‘chirmaydi. ON faqat chat release tekshiruvlaridan keyin.",

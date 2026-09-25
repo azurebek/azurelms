@@ -1,0 +1,40 @@
+{% extends "frontend_v1/messenger.html" %}{% load static %}
+{% block chat_attributes %}data-ai-url="{% static 'frontend_v1/js/messenger-ai.mjs' %}" data-context-lesson="{{ active_context_lesson.pk|default:'' }}" data-feedback-url="{% url 'messenger:submit_ai_feedback' 0 %}"{% endblock %}
+{% block room_heading %}
+<div class="s-mw-rooms-heading"><div><p class="c-eyebrow">SHAXSIY YORDAMCHI</p><h1 id="rooms-title" tabindex="-1">Azure AI</h1></div>
+  <form method="post" action="{% url 'messenger:new_ai_chat' %}" data-new-chat>{% csrf_token %}{% if active_context_lesson %}<input type="hidden" name="lesson" value="{{ active_context_lesson.pk }}">{% endif %}<button type="submit" class="c-icon-button" aria-label="Yangi AI suhbat">＋</button></form>
+</div>
+{% endblock %}
+{% block room_list %}
+{% for room in v1_ai_rooms %}<a class="s-mw-room" href="{{ room.v1_url }}" data-room-link data-ai-room="{{ room.pk }}"{% if room.pk == active_chat_room.pk %} aria-current="page"{% endif %}>
+  <span class="c-avatar c-avatar--small">AI</span><span class="s-mw-room-copy"><strong>{{ room.name|default:"Azure AI" }}</strong><small>Shaxsiy{% if room.is_pinned %} · Mahkamlangan{% endif %}</small><span class="s-mw-preview">{{ room.last_message_text|default:"Suhbatni boshlang" }}</span></span>
+</a>{% endfor %}
+{% endblock %}
+{% block room_footer %}<a class="s-mw-room-foot c-text-link" href="{% url 'messenger:group' %}">Guruh va ustoz chatlari{% if not human_v1_enabled %} — avvalgi ko‘rinishda ↗{% endif %}</a>{% endblock %}
+{% block chat_title %}Azure AI{% endblock %}
+{% block composer_context %}
+{% if active_context_lesson %}<p class="s-mw-context"><span title="{{ active_context_lesson.title }}">Dars: {{ active_context_lesson.title }}</span><a href="{% url 'messenger:ai_room' active_chat_room.pk %}" aria-label="Dars kontekstini olib tashlash">×</a></p>{% endif %}
+{% endblock %}
+{% block chat_info %}
+<p class="c-muted">AI javobi xato bo‘lishi mumkin. Model va mashq turi keyingi xabarga tegishli; tanlovni saqlash AI so‘rovini boshlamaydi.</p>
+<form data-ai-preference action="{% url 'update_ai_model' %}" method="post">{% csrf_token %}
+  <label class="c-field__label" for="ai-model">AI modeli</label><select class="c-field" id="ai-model" name="ai_model">{% for value, label in ai_model_choices %}<option value="{{ value }}"{% if request.user.ai_model == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+  <button class="c-button c-button--secondary" type="submit">Modelni saqlash</button><p role="status" data-preference-status></p>
+</form>
+<form data-ai-preference action="{% url 'update_ai_skill' %}" method="post">{% csrf_token %}
+  <label class="c-field__label" for="ai-skill">Mashq turi</label><select class="c-field" id="ai-skill" name="ai_skill">{% for value, label in ai_skill_choices %}<option value="{{ value }}"{% if request.user.ai_skill == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+  <button class="c-button c-button--secondary" type="submit">Mashq turini saqlash</button><p role="status" data-preference-status></p>
+</form>
+<p class="c-muted">Uslub va qidiruv: <a class="c-text-link" href="{% url 'settings_capabilities' %}">AI sozlamalari ↗</a>. Xotira: <a class="c-text-link" href="{% url 'settings_privacy' %}">Maxfiylik ↗</a>. Hozircha avvalgi ko‘rinishda.</p>
+{% endblock %}
+{% block chat_dialogs %}
+<dialog class="c-dialog s-mw-message-menu" data-message-menu aria-labelledby="message-menu-title">
+  <div class="c-dialog__heading"><h2 id="message-menu-title" tabindex="-1">Xabar amallari</h2><button type="button" class="c-icon-button" data-close aria-label="Xabar menyusini yopish">×</button></div>
+  <div data-message-menu-body></div>
+</dialog>
+<dialog class="c-dialog" data-ai-retry-dialog aria-labelledby="ai-retry-title"><form method="dialog">
+  <div class="c-dialog__heading"><h2 id="ai-retry-title">AI javobini qayta so‘rash</h2><button type="button" class="c-icon-button" data-close aria-label="Yopish">×</button></div>
+  <p>Xabaringiz qayta yuborilmaydi. Shu savol uchun yangi AI so‘rovi limit sarflashi mumkin. Avtomatik qayta urinish yo‘q.</p>
+  <button type="submit" class="c-button" value="retry">Qayta so‘rashni tasdiqlayman</button>
+</form></dialog>
+{% endblock %}
