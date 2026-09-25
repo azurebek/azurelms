@@ -71,7 +71,7 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
   - [x] ~~I4b lokal AI adapteri va tekshiruv.~~ Alohida default-OFF flag,
     canonical model/skill/context/status/feedback/retry; owner so‘ragan
     ixcham transcript va xabar menyusi. [Dalil](I4B-AI-MESSENGER.md).
-    1961 Python OK (skip45), 60 Node PASS; browser320/1280, fake provider.
+    1961 Python OK (skip45), 61 Node PASS; browser320/1280, fake provider.
   - [ ] I4b required CI/review/integratsiya; AWS AI rollout alohida.
 - [-] **I5 — Tayyor yordamchi yuzalar.** 5a public/records/help,
   5b auth/account/profile, 5c preferences/privacy/notifications. Har kichik

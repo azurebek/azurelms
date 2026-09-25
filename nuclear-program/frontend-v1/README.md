@@ -28,7 +28,7 @@ keyingi owner ruxsati bilan learning/lesson/teacher/human messenger ham ON.
 oqim va renderer rollback, mobile/desktop owner sessiyasi tekshirildi.
 Hisob/settings hali port qilinmagan, eski ko‘rinishda qoladi.
 I4b AI adapteri lokal tayyor: [scope, compact transcript va tekshiruv](I4B-AI-MESSENGER.md).
-1961 Python OK/60 Node PASS; default-OFF AI flag. Required CI va integratsiya
+1961 Python OK/61 Node PASS; default-OFF AI flag. Required CI va integratsiya
 hali ochiq; AWS AI sahifasi hanuz legacy.
 [R1-public dalili](R1-PUBLIC-RELEASE.md): final CI1948×2, zaxira/drill,
 clean image, HTTPS/mobile va renderer rollback PASS. Real-device/real-content

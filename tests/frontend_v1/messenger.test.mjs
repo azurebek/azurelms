@@ -160,6 +160,7 @@ test('AI message actions are hidden in a menu; long press and keyboard reveal wi
   const h=await harness({ai:true}); await h.open();
   h.echo({message_id:9,room_id:2,sender_id:1,message:'Small message'});
   const list=h.q('[data-messages]'), row={dataset:{messageId:'9'}};
+  assert.ok(list.children[0]['aria-label'].includes('Small message'));
   const target={closest:selector=>selector==='[data-message-id]'?row:null};
   const textTree=node=>[node.textContent||'',...(node.children||[]).map(textTree)].join(' ');
   assert.equal(textTree(list).includes('Nusxa olish'),false);
@@ -176,4 +177,15 @@ test('AI message actions are hidden in a menu; long press and keyboard reveal wi
   const event={key:'F10',shiftKey:true,target,preventDefault(){this.prevented=true;}};
   list.events.keydown(event); assert.equal(event.prevented,true); assert.equal(h.q('[data-message-menu]').open,true);
   assert.equal(h.sockets[0].sent.length,0);
+});
+
+test('keyboard-focused AI rows announce distinct message text and attachment names', async () => {
+  const h=await harness({ai:true}); await h.open();
+  h.echo({message_id:1,room_id:2,sender_id:1,sender_name:'Same user',message:'First question'});
+  h.echo({message_id:2,room_id:2,sender_id:1,sender_name:'Same user',message:'Second question',attachment:{name:'Exercise.pdf',url:'/messenger/attachment/2/'}});
+  const rows=h.q('[data-messages]').children;
+  assert.notEqual(rows[0]['aria-label'],rows[1]['aria-label']);
+  assert.ok(rows[0]['aria-label'].includes('First question'));
+  assert.ok(rows[1]['aria-label'].includes('Second question'));
+  assert.ok(rows[1]['aria-label'].includes('Exercise.pdf'));
 });

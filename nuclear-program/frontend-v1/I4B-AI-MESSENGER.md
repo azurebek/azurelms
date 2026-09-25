@@ -42,7 +42,8 @@ takroriy AI so‘rovi = 0. Ownerga yangi operatsion vazifa qo‘shilmaydi.
 - `manage.py test messenger.test_frontend_v1_ai messenger.test_frontend_v1
   core.test_feature_flags --noinput --verbosity 1`: **41 OK** (3.431s).
   `manage.py check`: 0 issue. `node --test tests/frontend_v1/*.test.mjs`:
-  **60 PASS**, shu jumladan real controller no-resend va long-press cancellation.
+  **61 PASS**, shu jumladan real controller no-resend, long-press cancellation
+  va klaviatura fokusidagi row matn/fayl nomi bilan farqlanishi.
 - Birinchi test fixtureda unique email yetishmagan, bitta komanda noto‘g‘ri
   `core.test_flags` nomi bilan yugurgan; ikkalasi aniqlanib tuzatildi.
   Node test harness import aliasi tuzatildi; testlar susaytirilmagan.
@@ -57,6 +58,13 @@ takroriy AI so‘rovi = 0. Ownerga yangi operatsion vazifa qo‘shilmaydi.
 - 320×568 document overflow0, history305px; 1280×800 overflow0,
   history521px, composer pastda. Light/dark ko‘rildi. Qayta dizayn emas,
   owner so‘ragan AI transcript ixchamligi.
+- Qo‘shimcha 320/639/640/1023/1024/1280 ×800: overflow0, composer bottom800.
+  Eski 8055 development asset keshi lesson draft tekshiruvida shubha berdi;
+  fresh-origin8056 bilan context→none bo‘sh draft, Back→original draft PASS.
+  Production dynamic module URLlari static manifest hashidan keladi.
+- PR #130 dastlabki CI `36191990829` uchala PASS. Review P2: row accessible
+  name ichiga xabar/fayl matni kiritildi; bir senderning ikki xabari endi
+  klaviatura fokusida farqlanadi. Fixdan keyingi required CI PR’da tekshiriladi.
 
 ## Ochiq cheklovlar
 

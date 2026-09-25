@@ -113,7 +113,8 @@ if (root) {
       }
       if (ai) {
         item.tabIndex = 0;
-        item.setAttribute('aria-label', `${m.sender_name || 'Azure AI'} xabari. Amallar: Shift+F10 yoki bosib turing.`);
+        const attachmentName = m.attachment && !m.is_deleted ? ` · ${m.attachment.name || 'Fayl'}` : '';
+        item.setAttribute('aria-label', `${m.sender_name || 'Azure AI'}: ${m.message ?? m.text ?? ''}${attachmentName}. Amallar: Shift+F10 yoki bosib turing.`);
         const menu = button('⋯', () => openMessageMenu(id)); menu.className = 'c-icon-button s-mw-menu-trigger'; menu.setAttribute('aria-label', 'Xabar amallari');
         menu.setAttribute('aria-haspopup', 'dialog'); bubble.append(menu);
       }
