@@ -8,7 +8,7 @@ qaytiladi. **Bu hujjat ko‘chirish rejasi; ko‘chirish bajarildi degani emas.*
 
 Joriy ijro: [I1 — 3 real sahifa](I1-LEARNING-SHELL.md) PR #120 orqali
 `b991a68` bilan main’ga qo‘shildi; uch required CI PASS. Advisory 0,
-default OFF, AWS release ochiq. [I2a — dars/material va ustoz release](I2-LESSON-RELEASE.md)
+koddagi default OFF, joriy AWS override quyida. [I2a — dars/material va ustoz release](I2-LESSON-RELEASE.md)
 PR #121 bilan main’da (`5528c74`, uch required CI PASS).
 [I2b — assignment/quiz](I2B-PRACTICE.md) PR #122 bilan main’da (`c8c3864`),
 final required CI `36089727327` uchala PASS. I2 yopildi.
