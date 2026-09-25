@@ -16,6 +16,43 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-25 [Codex]: I4a — tasdiqlangan keng guruh/ustoz chati real backendga ulandi
+
+Messenger B layouti real room/history/socket, fayl, edit/delete bilan
+alohida V1 namespacega ko‘chirildi. No-resend unknown holati, session/room
+draft va signed revisionli atomic edit/delete bor. I3b PR #124 main’da
+`9eb3830`, final CI `36162882956` uchala PASS ekanligi fresh tekshirildi;
+trackerda I3 yopildi. I4a default OFF, AWS va frozen prototype o‘zgarmagan.
+
+- Branch: `codex/frontend-v1-human-messenger`; runtime commit `a3af24f`;
+  rollback hardening `d48256c`: flag OFF explicit room identityni saqlaydi,
+  boshqa suhbatga fallback yo‘q; final focused V1 16 OK. PR #125.
+  Review P2 `8766716`: human room list canonical pin/recent tartibiga
+  keltirildi; pin/unpin/recent regression bilan final focused V1 17 OK.
+  CI `36169222052` PostgreSQLda 14 error berdi: attachment testi bevosita
+  response.close orqali TestCase connectionini yopgan. `84e94eb` client
+  streaming iterator lifecycle va exact fayl bytes assertion bilan tuzatdi;
+  runtime o‘zgarmadi, skip yo‘q. Tuzatishdan so‘ng Messenger 162 OK (8.948s).
+  Required CI qayta tekshiriladi; IAB pin→reload→ro‘yxat boshi ham PASS.
+- Admission/KPI/canonical mapping/rollback: [I4a](frontend-v1/I4A-HUMAN-MESSENGER.md).
+  Staff membership student syncdan ajratildi; read-only socket broadcast
+  oldidan fresh accessni tekshiradi. Model/migration/provider o‘zgarishi yo‘q.
+- Offline `venv/Scripts/python.exe manage.py check`: 0 issue;
+  `manage.py test messenger --noinput --verbosity 0`: 159 OK;
+  `manage.py test messenger.test_frontend_v1 --noinput --verbosity 1`:
+  oxirgi teacher-nav regression bilan 15 OK;
+  `manage.py test --noinput --verbosity 0`: 1928 OK (skipped45, 246.009s).
+  `node --test tests/frontend_v1/*.test.mjs`: 45 PASS. Final full CI PRda.
+- IAB actual ASGI temporary DB8053: learner va teacher send/echo, edit,
+  file/private URL/confirmed delete, 100→108 history, per-room draft/Back,
+  mobile search/list/detail, Enter va Ctrl+Enter. Light/dark ko‘rildi;
+  320×568 history324 va 1120×680 history420; 639/640/1023/1024/1120 overflow0.
+  Teacher menu o‘z maydonida qoldi; yangilangan sahifa console warn/error0.
+- Keyingi: I4a required CI/review/manual merge; keyin I4b AI adapter.
+  R1 AWS/test-account/backup/rollback/real-device qabuli alohida ochiq.
+  Human backend durable send receipt yo‘q: unknown auto-reconciliation
+  yoki exactly-once da’vo qilinmaydi. Live AI/Telegram chaqirilmagan.
+
 ## 2026-09-25 [Codex]: I3b — to‘rtta ustoz sahifasi real V1ga ko‘chirildi
 
 Kurslar, guruhlar, o‘quvchilar va davomat frozen V1 naqshi bilan real

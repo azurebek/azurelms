@@ -1,6 +1,6 @@
 {% load static %}
 <!doctype html>
-<html lang="uz" data-theme="light">
+<html lang="uz" data-theme="light" class="{% block document_class %}{% endblock %}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -17,7 +17,7 @@
   <script defer src="{% static 'frontend_v1/js/shell.js' %}"></script>
   {% block extra_head %}{% endblock %}
 </head>
-<body data-frontend="v1" data-screen="{{ request.resolver_match.url_name }}">
+<body data-frontend="v1" data-screen="{{ request.resolver_match.url_name }}" class="{% block body_class %}{% endblock %}">
   <a class="s-skip" href="#main">Asosiy mazmunga o‘tish</a>
   {% block body %}{% endblock %}
 </body>

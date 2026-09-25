@@ -44,6 +44,14 @@ class FlagDefinition:
 
 FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
     FlagDefinition(
+        slug="frontend_v1_messenger",
+        label="Frontend V1 — guruh va ustoz chati",
+        description="Tasdiqlangan keng Messenger B; AI sahifasi avvalgi ko‘rinishda qoladi.",
+        default=False,
+        category="Frontend",
+        runbook="OFF eski guruh/ustoz rendererini qaytaradi; xabar va fayllarni o‘chirmaydi. ON faqat chat release tekshiruvlaridan keyin.",
+    ),
+    FlagDefinition(
         slug="frontend_v1_learning",
         label="Frontend V1 — kirish va kurslarim",
         description="Kirish, o‘quvchi bosh sahifasi va kurslarim uchun V1 ko‘rinishi.",

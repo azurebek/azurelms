@@ -453,6 +453,18 @@ Uch asosiy tajriba: AI suhbat, group chat, tutor/private chat.
 
 **WebSocket endpoint:** `ws/chat/<room_id>/`
 
+**Frontend V1 human port (2026-09-25):** default-OFF
+`frontend_v1_messenger` group/tutor uchun approved Messenger B rendererini
+tanlaydi (`templates/frontend_v1/messenger.html`). `?room=ID` faqat shu
+turdagi canonical ruxsatli xonani tanlaydi; AI legacy qoladi. History API
+latest100 contractiga optional `before=ID` pagination va room-scoped
+`message=ID` lookup qo‘shilgan. Edit/delete optional signed `revision`
+preconditionni atomic row lock ostida tekshiradi (stale409); legacy
+clients uchun parametr majburiy emas. Consumer endi read-only ochiq
+socketga broadcast berishdan oldin ham fresh accessni tekshiradi (4403).
+Staff membership student enrollment sync bilan o‘chirilmaydi. UI rollback
+flag orqali, xabar/fayl o‘chirilmaydi; [qabul dalili](frontend-v1/I4A-HUMAN-MESSENGER.md).
+
 **Client send payload:**
 
 ```json

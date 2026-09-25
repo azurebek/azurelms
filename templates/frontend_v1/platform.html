@@ -6,7 +6,7 @@
   {% include "frontend_v1/nav.html" with label="Asosiy navigatsiya" %}
   <div class="s-sidebar__bottom">{% include "frontend_v1/account.html" %}</div>
 </aside>
-<div class="s-frame">
+<div class="s-frame {% block frame_class %}{% endblock %}">
   <header class="s-topbar">
     <div class="s-topbar__start">
       <button class="c-icon-button s-mobile-menu" type="button" aria-label="Asosiy menyuni ochish" aria-controls="nav-dialog" aria-expanded="false" data-nav-open>{% include "frontend_v1/icon.html" with name="menu" %}</button>
@@ -17,11 +17,11 @@
       {% include "frontend_v1/theme_button.html" %}
     </div>
   </header>
-  <main id="main" class="s-main" tabindex="-1">
+  {% block main %}<main id="main" class="s-main" tabindex="-1">
     {% include "frontend_v1/messages.html" %}
     {% block content %}{% endblock %}
     <footer class="s-footer"><span>{{ site_settings.brand_name|default:"AzureLMS" }} · O‘zbekcha o‘rganing, turkcha gapiring.</span><span>V1 · Ko‘chirish bosqichma-bosqich</span></footer>
-  </main>
+  </main>{% endblock %}
 </div>
 <dialog id="nav-dialog" class="c-dialog c-dialog--drawer" aria-labelledby="nav-title">
   <div class="c-dialog__heading"><strong id="nav-title">{{ site_settings.brand_name|default:"AzureLMS" }}</strong><button class="c-icon-button" type="button" aria-label="Menyuni yopish" data-nav-close>{% include "frontend_v1/icon.html" with name="close" %}</button></div>

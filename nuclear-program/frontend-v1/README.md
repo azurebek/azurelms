@@ -14,9 +14,11 @@ PR #121 bilan main’da (`5528c74`, uch required CI PASS).
 final required CI `36089727327` uchala PASS. I2 yopildi.
 [I3a — teacher navbat/review](I3A-TEACHER-REVIEW.md) PR #123 bilan main’da
 (`4e48416`), final CI `36092407070` uchala PASS.
-[I3b — teacher ro‘yxatlar/davomat](I3B-TEACHER-DIRECTORY.md) lokal tayyor;
-required CI/integratsiya yakuni uning PRida tekshiriladi. R1 device/AWS
-qabuli va I4–I9 ochiq.
+[I3b — teacher ro‘yxatlar/davomat](I3B-TEACHER-DIRECTORY.md) PR #124 bilan
+main’da (`9eb3830`), final CI `36162882956` uchala PASS. I3 yopildi.
+[I4a — human Messenger B](I4A-HUMAN-MESSENGER.md) lokal implementatsiya va
+tekshiruv bajarildi; required CI/integratsiya o‘z PRida tekshiriladi.
+R1 device/AWS qabuli, I4b AI va I5–I9 ochiq.
 
 ## 1. Qayerdamiz
 
@@ -177,11 +179,11 @@ UI+adapter+test bitta mantiqiy bo‘lakda. Test va ruxsatlar evaziga tezlashtiri
 
 ## 8. Keyingi agent/turn uchun kirish
 
-Avval **I3b branch PRining required CI/merge yakuni**ni tekshiring;
+Avval **I4a branch PRining required CI/merge yakuni**ni tekshiring;
 lokal implementatsiyani qayta boshlamang. Keyin **R1** uchun test
 hisob/device/AWS vakolati, zaxira va rollback usulini aniqlang; alohida staging
-yo‘qligi tasdiqlangan. Shu tashqi gate ochiqligida **I4 Messenger B — human
-chat** keyingi alohida bo‘lak. AI adapterini undan ajrating; yangi AI engine
+yo‘qligi tasdiqlangan. Shu tashqi gate ochiqligida **I4b Messenger B — AI**
+keyingi alohida bo‘lak. Mavjud provider/quota/context adapteri; yangi AI engine
 yoki prototip yaratilmaydi. Submission/grade/XP canonical servislar orqali qoladi.
 Yangi trial, framework, global shell rewrite yoki DB ko‘chirish boshlamang.
 Single checkout saqlanadi.

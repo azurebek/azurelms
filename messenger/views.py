@@ -6,10 +6,12 @@ from channels.layers import get_channel_layer
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.db.models import Max, Count, Q, OuterRef, Subquery
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect
 from django.utils import timezone
+from django.utils.crypto import constant_time_compare, salted_hmac
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
 from django.views.generic import TemplateView
@@ -29,6 +31,7 @@ from .access import (
     user_has_active_enrollment,
 )
 from .models import AIResponseRun, ChatRoom, ChatRoomUserState, Message, AIFeedback
+from .frontend_v1 import HumanMessengerV1Mixin, select_human_room
 
 
 logger = logging.getLogger(__name__)
@@ -234,6 +237,7 @@ def _message_payload(message, user, *, run=None, last_user_message_id=None):
         "is_deleted": message.is_deleted,
         "can_edit": _can_manage_message(user, message),
         "attachment": _attachment_payload(message),
+        "revision": _message_revision(message),
     }
     if is_ai:
         payload.update(
@@ -248,6 +252,17 @@ def _message_payload(message, user, *, run=None, last_user_message_id=None):
             }
         )
     return payload
+
+
+def _message_revision(message):
+    return salted_hmac("messenger-message", json.dumps([
+        message.pk, message.text, message.is_deleted, str(message.edited_at),
+    ])).hexdigest()
+
+
+def _stale_message(data, message):
+    # Optional precondition keeps legacy clients compatible.
+    return "revision" in data and not constant_time_compare(str(data["revision"]), _message_revision(message))
 
 
 def _broadcast_message_event(message, *, event_type="message_update", user=None):
@@ -322,12 +337,7 @@ def _room_messages(room, user=None):
 
 
 class _MessengerRoomView(LoginRequiredMixin, TemplateView):
-    """Base for the three messenger shell variants (AI / group / tutor).
-
-    For now each page ships with prototype mock data and inline JS;
-    real room/message loading goes through the existing JSON APIs
-    (get_user_rooms, get_room_messages) and the WebSocket consumer.
-    """
+    """Real room context shared by legacy and V1 renderers."""
 
     active_room = ""
 
@@ -349,11 +359,20 @@ class _MessengerRoomView(LoginRequiredMixin, TemplateView):
                 "tutor": context["tutor_room"],
             }
             active_chat_room = active_room_map.get(self.active_room)
+            if getattr(self, "frontend_v1_enabled", False) or "room" in self.request.GET:
+                active_chat_room = select_human_room(self.request, context, self.active_room, active_chat_room, sort_key=_room_sort_key)
+                # A flag rollback must not retarget an existing V1 room link.
+                context["group_room" if self.active_room == "group" else "tutor_room"] = active_chat_room
         context["active_chat_room"] = active_chat_room
         context["active_ai_room_id"] = active_chat_room.id if self.active_room == "ai" and active_chat_room else None
         if active_chat_room:
             _mark_room_read(self.request.user, active_chat_room)
-        context["chat_messages"] = _room_messages(active_chat_room, self.request.user)
+        if getattr(self, "frontend_v1_enabled", False):
+            # The client loads authoritative recent history after connecting.
+            # Do not render the legacy first-100 snapshot and then replace it.
+            context["chat_messages"] = []
+        else:
+            context["chat_messages"] = _room_messages(active_chat_room, self.request.user)
         context["chat_locked"] = self.active_room in {"group", "tutor"} and active_chat_room is None
         if self.active_room == "ai":
             user = self.request.user
@@ -386,12 +405,12 @@ class MessengerAIView(_MessengerRoomView):
     active_room = "ai"
 
 
-class MessengerGroupView(_MessengerRoomView):
+class MessengerGroupView(HumanMessengerV1Mixin, _MessengerRoomView):
     template_name = "messenger/group.html"
     active_room = "group"
 
 
-class MessengerTutorView(_MessengerRoomView):
+class MessengerTutorView(HumanMessengerV1Mixin, _MessengerRoomView):
     template_name = "messenger/tutor.html"
     active_room = "tutor"
 
@@ -530,10 +549,27 @@ def get_room_messages(request, room_id):
         if not user_can_access_room(request.user, room):
             return JsonResponse({'status': 'error', 'message': 'Chat xonasi topilmadi yoki huquq yo\'q'}, status=403)
         _mark_room_read(request.user, room)
+        if 'message' in request.GET:
+            values = request.GET.getlist('message')
+            if len(values) != 1 or not values[0].isascii() or not values[0].isdigit() or len(values[0]) > 18:
+                return JsonResponse({'status': 'error', 'message': 'Noto‘g‘ri xabar manzili'}, status=400)
+            message = room.messages.select_related('sender').filter(pk=int(values[0])).first()
+            if message is None:
+                return JsonResponse({'status': 'error', 'message': 'Xabar topilmadi'}, status=404)
+            return JsonResponse({'status': 'success', 'messages': [_message_payload(message, request.user)], 'has_more': False})
         # Oxirgi 100 ta xabarni olib, keyin UI uchun kronologik tartibda qaytaramiz.
-        recent_messages = list(
-            room.messages.select_related('sender').order_by('-created_at')[:100]
-        )
+        history = room.messages.select_related('sender')
+        if 'before' in request.GET:
+            values = request.GET.getlist('before')
+            if len(values) != 1 or not values[0].isascii() or not values[0].isdigit() or len(values[0]) > 18:
+                return JsonResponse({'status': 'error', 'message': 'Noto‘g‘ri tarix manzili'}, status=400)
+            anchor = history.filter(pk=int(values[0])).first()
+            if anchor is None:
+                return JsonResponse({'status': 'error', 'message': 'Xabar topilmadi'}, status=404)
+            history = history.filter(Q(created_at__lt=anchor.created_at) | Q(created_at=anchor.created_at, pk__lt=anchor.pk))
+        recent_messages = list(history.order_by('-created_at', '-pk')[:101])
+        has_more = len(recent_messages) > 100
+        recent_messages = recent_messages[:100]
         recent_messages.reverse()
 
         ai_message_ids = [message.id for message in recent_messages if message.is_ai_response]
@@ -586,7 +622,8 @@ def get_room_messages(request, room_id):
             })
             msgs_data.append(payload)
 
-        return JsonResponse({'status': 'success', 'messages': msgs_data})
+        return JsonResponse({'status': 'success', 'messages': msgs_data, 'has_more': has_more,
+                             'before': recent_messages[0].pk if has_more else None})
 
     except ChatRoom.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Chat xonasi topilmadi yoki huquq yo\'q'}, status=403)
@@ -630,8 +667,9 @@ def toggle_room_pin(request, room_id):
 
 @login_required
 @require_POST
+@transaction.atomic
 def edit_message(request, message_id):
-    message = Message.objects.select_related("room", "sender").filter(id=message_id).first()
+    message = Message.objects.select_for_update(of=("self",)).select_related("room", "sender").filter(id=message_id).first()
     if not message or not user_can_access_room(request.user, message.room):
         return JsonResponse({"status": "error", "message": "Xabar topilmadi"}, status=404)
     if not _can_manage_message(request.user, message):
@@ -641,6 +679,10 @@ def edit_message(request, message_id):
         data = json.loads(request.body or "{}")
     except json.JSONDecodeError:
         data = {}
+    if not isinstance(data, dict):
+        return JsonResponse({"status": "error", "message": "Noto‘g‘ri xabar"}, status=400)
+    if _stale_message(data, message):
+        return JsonResponse({"status": "error", "message": "Xabar o‘zgargan. Tarixni yangilab qayta oching."}, status=409)
     text = str(data.get("text", "") or "").strip()
     if not text:
         return JsonResponse({"status": "error", "message": "Xabar matni bo'sh bo'lmasin"}, status=400)
@@ -648,25 +690,35 @@ def edit_message(request, message_id):
     message.text = text[:4000]
     message.edited_at = timezone.now()
     message.save(update_fields=["text", "edited_at"])
-    _broadcast_message_event(message, event_type="message_edited", user=request.user)
+    transaction.on_commit(lambda: _broadcast_message_event(message, event_type="message_edited", user=request.user))
     return JsonResponse({"status": "success", "message": _message_payload(message, request.user)})
 
 
 @login_required
 @require_POST
+@transaction.atomic
 def delete_message(request, message_id):
-    message = Message.objects.select_related("room", "sender").filter(id=message_id).first()
+    message = Message.objects.select_for_update(of=("self",)).select_related("room", "sender").filter(id=message_id).first()
     if not message or not user_can_access_room(request.user, message.room):
         return JsonResponse({"status": "error", "message": "Xabar topilmadi"}, status=404)
     if not _can_manage_message(request.user, message):
         return JsonResponse({"status": "error", "message": "Bu xabarni o'chirib bo'lmaydi"}, status=403)
+
+    try:
+        data = json.loads(request.body or "{}") if request.content_type == "application/json" else {}
+    except json.JSONDecodeError:
+        data = None
+    if not isinstance(data, dict):
+        return JsonResponse({"status": "error", "message": "Noto‘g‘ri xabar"}, status=400)
+    if _stale_message(data, message):
+        return JsonResponse({"status": "error", "message": "Xabar o‘zgargan. Tarixni yangilab qayta oching."}, status=409)
 
     message.is_deleted = True
     message.deleted_at = timezone.now()
     message.edited_at = None
     message.text = ""
     message.save(update_fields=["is_deleted", "deleted_at", "edited_at", "text"])
-    _broadcast_message_event(message, event_type="message_deleted", user=request.user)
+    transaction.on_commit(lambda: _broadcast_message_event(message, event_type="message_deleted", user=request.user))
     return JsonResponse({"status": "success", "message": _message_payload(message, request.user)})
 
 
