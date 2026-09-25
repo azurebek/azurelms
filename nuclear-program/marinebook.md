@@ -16,6 +16,46 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-25 [Codex]: I3b — to‘rtta ustoz sahifasi real V1ga ko‘chirildi
+
+Kurslar, guruhlar, o‘quvchilar va davomat frozen V1 naqshi bilan real
+queryset/form/canonical attendance servisiga ulandi. Yangi prototip,
+dependency yoki migration yo‘q; bu local port, production relizi emas.
+
+- Branch: `codex/frontend-v1-teacher-directory`; runtime/test `77cc15b`.
+- PR #124 initial CI `36161783187` all3PASS (SQLite1913 skip43,
+  PostgreSQL1913 skip20, Node34). Review P2 fixed in `3d90d1d`: Classbook
+  finish and legacy bot close lock cohort before session, matching resume
+  and attendance. Coordinated PostgreSQL resume/finish regression added;
+  final classbook/directory/bot-close/parity/release focused **83 OK (skip=3)**.
+  Exact command in I3b evidence. Fresh CI required before merge.
+- Haqiqiy count/search/SQL pagination; native guruh/dars qo‘llash o‘zicha
+  navigatsiya qilmaydi. Davomat explicit CSRF/tasdiq/revision, bir transaction,
+  canonical XP/streak, cohort lock va shared user-ID tartibidagi writes bilan.
+  Eski varaq/takror POST 409/no-write; blank eski qaydni o‘chirmaydi.
+  Admin save ham sheet lockda, avvalgi admin XP semantikasi o‘zgarmagan.
+- V1 attendance darsni avtomatik ochmaydi; release mavjud alohida yo‘lda.
+  OFF legacy optional release saqlanadi; noto‘g‘ri explicit target boshqa
+  guruhga fallback qilmaydi. Barcha V1 flaglar default OFF.
+- Offline full `venv\Scripts\python.exe manage.py test --noinput --verbosity 1`:
+  **1912 OK (skip=44)**. So‘ng localized errors/stack CSS/shared user-write
+  order tuzatildi; final focused directory/core/parity/release **57 OK (skip=1)**.
+  `node --test tests/frontend_v1/*.test.mjs`: **34 PASS**, check 0 issue,
+  isolated collectstatic/diff-check PASS. Exact commands: `frontend-v1/I3B-TEACHER-DIRECTORY.md`.
+- Computer-use/IAB8052: desktop1440, mobile320, light/dark, long names,
+  filtered empty search, explicit bulk draft, Enter/mobile native save,
+  two-tab stale409/current server status/retained inputs verified. Mobile
+  error paragraphs stacked and localized after visual inspection; no overflow.
+  Final tab console warn/error0. Real device/AWS check remains R1.
+- I3a fresh PR #123 MERGED `4e48416`; final CI `36092407070` all3PASS
+  (SQLite1898 skip42, PostgreSQL1898 skip20, Node31), ledger updated.
+- I3b required CI/merge outcome is verified in its PR. Next: I4 human
+  Messenger B; AI adapter separate. R1 backup/rollback/test user/device and
+  owner go/no-go OPEN (no staging, only AWS primary). Deploy0; canonical DB,
+  frozen trial and its backup unchanged.
+
+---
+
 ## 2026-09-25 [Codex]: I3a — ustoz navbati va yozma ish qarori real V1ga ulandi
 
 Tasdiqlangan navbat/review dizayni real queryset va canonical baholashga

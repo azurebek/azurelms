@@ -12,7 +12,7 @@ from django.utils import timezone
 
 from bot.models import TelegramLessonCheckIn, TelegramLessonSession
 from cohorts.attendance_service import upsert_attendance_and_xp
-from cohorts.models import Attendance, Enrollment, enrollment_active_access_q
+from cohorts.models import Attendance, Cohort, Enrollment, enrollment_active_access_q
 from courses.release_service import set_lesson_release
 from users.models import Notification
 
@@ -583,10 +583,16 @@ def _attendance_close_text(session, summary, details, announce_names=False):
 
 @transaction.atomic
 def finish_class_session(*, actor, session, queue_attendance_summary=True):
+    # Same order as start/resume and attendance: cohort -> session -> records.
+    # Never hold the session while waiting for a cohort held by a resumer
+    # inserting activity/delivery rows whose FK check needs this session.
+    cohort_id = TelegramLessonSession.objects.filter(pk=session.pk).values_list('cohort_id', flat=True).first()
+    if cohort_id is None or not Cohort.objects.select_for_update().filter(pk=cohort_id).exists():
+        return ServiceResult(False, "missing", "Dars sessiyasi topilmadi.")
     session = (
         TelegramLessonSession.objects.select_for_update(of=("self",))
         .select_related("cohort", "cohort__course", "lesson")
-        .filter(pk=session.pk)
+        .filter(pk=session.pk, cohort_id=cohort_id)
         .first()
     )
     if not session:

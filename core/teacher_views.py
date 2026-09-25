@@ -151,11 +151,12 @@ def teacher_cohorts(request):
                 filter=Q(members__status=Enrollment.STATUS_PENDING),
                 distinct=True,
             ),
+            enrollment_count=Count('members', distinct=True),
         )
         .order_by("-is_active", "-start_date")
     )
     context["cohorts"] = cohorts
-    return render(request, "teacher/cohorts.html", context)
+    return render_teacher_v1(request, "teacher/cohorts.html", context)
 
 
 # ---------------------------------------------------------------- o'quvchilar
@@ -182,9 +183,11 @@ def teacher_students(request):
     )
 
     cohort_id = request.GET.get("cohort")
-    if cohort_id and cohort_id.isdigit():
-        enrollments = enrollments.filter(cohort_id=int(cohort_id))
-        context["selected_cohort_id"] = int(cohort_id)
+    if cohort_id:
+        from courses.submission_service import _positive_id
+        cohort = get_object_or_404(Cohort, pk=_positive_id(cohort_id), course__in=courses)
+        enrollments = enrollments.filter(cohort=cohort)
+        context["selected_cohort_id"] = cohort.pk
 
     query = (request.GET.get("q") or "").strip()
     if query:
@@ -202,19 +205,19 @@ def teacher_students(request):
         .values("module__course")
         .annotate(total=Count("id"))
     }
-    enrollments = list(enrollments)
-    for enrollment in enrollments:
+    paginator = Paginator(enrollments.order_by('-joined_at', '-pk'), 25)
+    page = paginator.get_page(request.GET.get('page'))
+    for enrollment in page:
         total = lessons_by_course.get(enrollment.cohort.course_id, 0)
         enrollment.total_lessons = total
         enrollment.progress_percent = (
             int(round(enrollment.completed_lessons / total * 100)) if total else 0
         )
 
-    paginator = Paginator(enrollments, 25)
-    context["page_obj"] = paginator.get_page(request.GET.get("page"))
+    context["page_obj"] = page
     context["cohort_choices"] = Cohort.objects.filter(course__in=courses).select_related("course").order_by("-start_date")
     context["total_count"] = paginator.count
-    return render(request, "teacher/students.html", context)
+    return render_teacher_v1(request, "teacher/students.html", context)
 
 
 # ---------------------------------------------------------------- kontent
@@ -236,10 +239,11 @@ def teacher_courses_view(request):
             ),
             exams_total=Count("exams", distinct=True),
         )
-        .order_by("-is_active", "title")
+        .prefetch_related('cohorts')
+        .order_by("-is_active", "title", 'pk')
     )
     context["courses"] = courses
-    return render(request, "teacher/courses.html", context)
+    return render_teacher_v1(request, "teacher/courses.html", context)
 
 
 # ---------------------------------------------------------------- tekshirish
@@ -487,6 +491,14 @@ def teacher_attendance(request):
 
     context = _base_context(request.user, "teacher_attendance")
     courses = context["teacher_courses"]
+    v1_enabled = flag_enabled('frontend_v1_teacher')
+    from courses.submission_service import _positive_id
+    if request.method == 'POST':
+        if not v1_enabled and request.POST.get('v1_attendance') == '1':
+            return HttpResponseBadRequest('Yangi ko‘rinish o‘chirilgan. Qayta oching; hech narsa saqlanmadi.')
+        for key in ('cohort', 'lesson'):
+            if not request.POST.get(key) or (key in request.GET and request.GET[key] != request.POST[key]):
+                return HttpResponseBadRequest('Guruh yoki dars manzili mos kelmadi. Hech narsa saqlanmadi.')
 
     cohorts = list(
         Cohort.objects.filter(course__in=courses, is_active=True)
@@ -496,14 +508,16 @@ def teacher_attendance(request):
     context["cohorts"] = cohorts
 
     cohort = None
-    cohort_id = request.GET.get("cohort") or request.POST.get("cohort")
-    if cohort_id and str(cohort_id).isdigit():
-        cohort = next((c for c in cohorts if c.id == int(cohort_id)), None)
-    if cohort is None and cohorts:
+    cohort_id = request.POST.get('cohort') if request.method == 'POST' else request.GET.get('cohort')
+    if cohort_id is not None:
+        cohort = next((c for c in cohorts if c.id == _positive_id(cohort_id)), None)
+        if cohort is None:
+            raise Http404('Guruh topilmadi.')
+    if cohort_id is None and cohorts:
         cohort = cohorts[0]
     context["cohort"] = cohort
     if cohort is None:
-        return render(request, "teacher/attendance.html", context)
+        return render_teacher_v1(request, "teacher/attendance.html", context)
 
     lessons = list(
         Lesson.objects.filter(module__course=cohort.course)
@@ -513,10 +527,12 @@ def teacher_attendance(request):
     context["lessons"] = lessons
 
     lesson = None
-    lesson_id = request.GET.get("lesson") or request.POST.get("lesson")
-    if lesson_id and str(lesson_id).isdigit():
-        lesson = next((l for l in lessons if l.id == int(lesson_id)), None)
-    if lesson is None and lessons:
+    lesson_id = request.POST.get('lesson') if request.method == 'POST' else request.GET.get('lesson')
+    if lesson_id is not None:
+        lesson = next((l for l in lessons if l.id == _positive_id(lesson_id)), None)
+        if lesson is None:
+            raise Http404('Dars guruh kursida topilmadi.')
+    if lesson_id is None and lessons:
         lesson = lessons[0]
     context["lesson"] = lesson
 
@@ -526,7 +542,7 @@ def teacher_attendance(request):
         .order_by("student__first_name", "student__username")
     )
 
-    if request.method == "POST" and lesson:
+    if request.method == "POST" and lesson and not v1_enabled:
         valid = dict(Attendance.STATUS_CHOICES)
         today = timezone.localdate()
         # Mavjud yozuvning sanasi saqlanadi: canonical servis
@@ -624,6 +640,9 @@ def teacher_attendance(request):
         context["lesson_is_released"] = bool(release and release.is_released)
         context["drip_active"] = drip_is_active(cohort, cohort.course)
         context["release_starts_drip"] = not context["drip_active"]
+    if v1_enabled:
+        from core.frontend_v1_attendance import attendance_page
+        return attendance_page(request, context)
     return render(request, "teacher/attendance.html", context)
 
 

@@ -627,6 +627,10 @@ def close_lesson_session(*, chat_id, actor_telegram_id):
     # davomat va OPEN qolgan sessiyani qoldirardi — o'qituvchi "davomat
     # olindimi?" degan savolga javob topolmasdi.
     with transaction.atomic():
+        # Match Classbook start/finish and canonical attendance lock order.
+        # Otherwise a Classbook resume can hold the cohort while waiting for
+        # this session's FK lock, as the legacy closer waits for that cohort.
+        Cohort.objects.select_for_update().get(pk=session.cohort_id)
         # Ikkita bir vaqtdagi `/yopish` ni ketma-ketlashtiradi. `of=("self",)`
         # — faqat sessiya satri qulflanadi; `select_related` ichida nullable
         # bog'lanish paydo bo'lsa PostgreSQL yalang'och `FOR UPDATE` ni rad

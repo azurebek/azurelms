@@ -88,12 +88,12 @@ def render_teacher_v1(request, legacy_template, context, *, enabled=None, status
         ("teacher_dashboard", "Bosh sahifa", "home"),
         ("teacher_release", "Darslarni ochish", "book"),
         ("teacher_grading", "Tekshiruv navbati", "exam"),
-    )
-    legacy = (
         ("teacher_cohorts", "Guruhlar", "users"),
         ("teacher_students", "O‘quvchilar", "users"),
         ("teacher_courses", "Kurslar", "book"),
         ("teacher_attendance", "Davomat", "calendar"),
+    )
+    legacy = (
         ("classbook:teacher_home", "Classbook", "live"),
     )
     context.update(

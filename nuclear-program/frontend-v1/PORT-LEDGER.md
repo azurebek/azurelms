@@ -2,8 +2,8 @@
 
 Qabul: `[ ]` ochiq; `[-]` ishda; `[x] ~~...~~` dalil bilan tugagan.
 “Prototype bor” real portga `[x]` qo‘yish uchun yetmaydi.
-Sana emas, tugallangan natija bilan kuzatiladi. I1/I2 main’da;
-I3a lokal implementatsiyasi tekshirildi, required CI/integratsiya PRda tekshiriladi.
+Sana emas, tugallangan natija bilan kuzatiladi. I1/I2/I3a main’da;
+I3b lokal implementatsiyasi tekshirildi, required CI/integratsiya PRda tekshiriladi.
 Flaglar default OFF. Ushbu port doirasida deploy hali 0.
 
 ## Navbat
@@ -39,8 +39,13 @@ Flaglar default OFF. Ushbu port doirasida deploy hali 0.
   - [x] ~~I3a lokal implementatsiya: navbat → yozma ish qarori → learner natijasi.~~
     Native CSRF/PRG, explicit tasdiq, stale/duplicate no-write, canonical XP.
     [Dalil va cheklovlar](I3A-TEACHER-REVIEW.md).
-  - [ ] I3a required CI va integratsiya — branch PRida tekshiriladi.
-  - [ ] I3b teacher ro‘yxatlar/davomat — mavjud legacy sahifalar ishlaydi.
+  - [x] ~~I3a required CI va integratsiya.~~ PR #123 MERGED `4e48416`;
+    final CI `36092407070` uchala PASS: SQLite1898 skip42,
+    PostgreSQL1898 skip20, Node31.
+  - [x] ~~I3b lokal implementatsiya: kurslar/guruhlar/o‘quvchilar/davomat.~~
+    Real scope/count/search/pagination; native atomic davomat va canonical XP,
+    stale/duplicate no-write, session-scoped qoralama. [Dalil](I3B-TEACHER-DIRECTORY.md).
+  - [ ] I3b required CI va integratsiya — branch PRida tekshiriladi.
 - [ ] **I4 — Messenger B.** Guruh/ustoz: real room/history/send/edit/delete/
   attachment/reconnect; AI: mavjud provider/choice/quota/context/error.
   Qoralama saqlansin, layout barcha gap holatlarida ishlasin; yangi AI engine yo‘q.

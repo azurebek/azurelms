@@ -75,8 +75,19 @@ I3a: teacher flag navbat va assignment reviewni ham tanlaydi. Presentation/form
 tasdiq va `expected_revision` bilan boradi. Student user-lock ostida revision
 o‘zgargan bo‘lsa 409/no-write, bound izoh saqlanadi. Queue scope/pagination,
 native PRG va scoped qoralama bor; durable operation receipt emas.
-Exam detail I8gacha, ro‘yxatlar/davomat I3bgacha legacy.
+I3a PR #123 main’da (`4e48416`, final uch required CI PASS).
+Exam detail I8gacha legacy.
 [I3a dalili](frontend-v1/I3A-TEACHER-REVIEW.md).
+I3b: teacher flag courses/cohorts/students/attendance rendererlarini ham
+tanlaydi; ro‘yxatlar real scoped queryset, SQL pagination va count bilan.
+`core/frontend_v1_attendance.py` native forma/PRG, `attendance_sheet_state`
+roster/record HMAC revision, `save_attendance_sheet` atomic canonical row
+writer adapteri. Cohort lock + tartibli user writes; eski varaq 409/no-write.
+Bo‘sh belgi eski davomatni o‘chirmaydi, tarixdagi eng oxirgi sana saqlanadi.
+V1da darsni ochish alohida release yo‘li; OFF legacy optional release saqlanadi.
+Admin save sheet lockda qatnashadi, lekin uning avvalgi XP semantikasi
+bu portda o‘zgartirilmagan. Native flash durable operation receipt emas.
+[I3b dalili](frontend-v1/I3B-TEACHER-DIRECTORY.md).
 Teacher release explicit POST cohort talab qiladi; query/body mismatch yoki
 noma’lum guruh boshqa guruhga fallback qilmaydi, hatto flag OFF bo‘lsa ham.
 V1da GET faqat confirmation tayyorlaydi, CSRF POST canonical release servisiga

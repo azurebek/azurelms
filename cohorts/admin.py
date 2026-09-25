@@ -250,6 +250,16 @@ class AttendanceAdmin(admin.ModelAdmin):
     list_filter = ('status', 'date', 'lesson')
     search_fields = ('enrollment__student__username',)
 
+    def save_model(self, request, obj, form, change):
+        # Participate in the same sheet lock as canonical attendance writers.
+        from django.db import transaction
+        with transaction.atomic():
+            cohort_ids = {obj.enrollment.cohort_id}
+            if change:
+                cohort_ids.update(Attendance.objects.filter(pk=obj.pk).values_list('enrollment__cohort_id', flat=True))
+            list(Cohort.objects.select_for_update().filter(pk__in=cohort_ids).order_by('pk'))
+            super().save_model(request, obj, form, change)
+
 
 @admin.register(EnrollmentTransition)
 class EnrollmentTransitionAdmin(admin.ModelAdmin):

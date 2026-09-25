@@ -67,7 +67,7 @@ FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
     FlagDefinition(
         slug="frontend_v1_teacher",
         label="Frontend V1 — ustoz maydoni",
-        description="Ustoz bosh sahifasi, dars ochish/yopish, tekshiruv navbati va yozma ishni baholashning V1 ko‘rinishi.",
+        description="Ustoz bosh sahifasi, dars ruxsati, yozma ish tekshiruvi, kurs/guruh/o‘quvchi ro‘yxatlari va davomatning V1 ko‘rinishi.",
         default=False,
         category="Frontend",
         runbook="OFF eski ustoz sahifalarini qaytaradi. Release/review yozuvlari saqlanadi. Noto‘g‘ri guruhga fallback hech qaysi variantda ruxsat etilmaydi.",

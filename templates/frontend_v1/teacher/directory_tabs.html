@@ -1,0 +1,5 @@
+<nav class="c-tabs c-tabs--wrap" aria-label="Ustoz ro‘yxatlari">
+<a class="c-tabs__item{% if active_nav == 'teacher_cohorts' %} is-active{% endif %}" href="{% url 'teacher_cohorts' %}"{% if active_nav == 'teacher_cohorts' %} aria-current="page"{% endif %}>Guruhlar</a>
+<a class="c-tabs__item{% if active_nav == 'teacher_students' %} is-active{% endif %}" href="{% url 'teacher_students' %}"{% if active_nav == 'teacher_students' %} aria-current="page"{% endif %}>O‘quvchilar</a>
+<a class="c-tabs__item{% if active_nav == 'teacher_courses' %} is-active{% endif %}" href="{% url 'teacher_courses' %}"{% if active_nav == 'teacher_courses' %} aria-current="page"{% endif %}>Kurslar</a>
+</nav>

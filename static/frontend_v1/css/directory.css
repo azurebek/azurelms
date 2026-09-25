@@ -1,0 +1,23 @@
+/* Frozen teacher-directory pattern, namespaced to these V1 pages. */
+.f-directory-groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--az-space-6); list-style: none; padding: 0; margin: 0; }
+.f-directory-group { display: flex; flex-direction: column; gap: var(--az-space-4); min-width: 0; }
+.f-directory-group .c-button { align-self: flex-start; }
+.f-directory-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); align-items: start; gap: var(--az-space-6); }
+.f-directory-person h2 { font-size: var(--az-text-md); }
+.f-directory-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--az-space-4); margin: 0; }
+.f-directory-facts > div { min-width: 0; }
+.f-directory-facts dt { font-size: var(--az-text-xs); color: var(--az-muted); margin-bottom: var(--az-space-2); }
+.f-directory-facts dd { margin: 0; font-size: var(--az-text-sm); }
+.f-directory-facts small { display: block; color: var(--az-muted); margin-top: var(--az-space-2); }
+.f-directory-facts .c-progress { display: block; width: 100%; margin-top: var(--az-space-3); }
+.f-directory-links { list-style: none; padding: 0; display: grid; gap: var(--az-space-3); }
+.f-directory-links li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--az-space-3); }
+.f-directory-pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--az-space-4); }
+.f-attendance-inputs { border: 0; padding: 0; margin: 0; min-width: 0; }
+#attendance-errors.c-alert { flex-direction: column; align-items: stretch; }
+@media (width < 1024px) { .f-directory-row { grid-template-columns: minmax(0, 1fr); gap: var(--az-space-4); } }
+@media (width < 640px) {
+  .f-directory-groups, .f-directory-facts { grid-template-columns: minmax(0, 1fr); }
+  .f-directory-facts > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: var(--az-space-4); border-top: 1px solid var(--az-border); padding-top: var(--az-space-3); }
+  .f-directory-pagination { justify-content: flex-start; }
+}
