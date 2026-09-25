@@ -25,12 +25,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         # 1. Autentifikatsiya tekshiruvi
         if not self.user or not self.user.is_authenticated:
-            await self.close()
+            await self.close(code=self.ACCESS_REVOKED_CLOSE_CODE)
             return
 
         # 2. Avtorizatsiya tekshiruvi (Xonaga kirish ruxsati)
         if not await self.is_authorized():
-            await self.close()
+            await self.close(code=self.ACCESS_REVOKED_CLOSE_CODE)
             return
 
         # Guruhga obuna bo'lish
@@ -160,6 +160,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     # Guruhdan kelgan xabarni WebSocket orqali jo'natish
     async def chat_message(self, event):
+        if not await self.authorize_delivery():
+            return
         message = event['message']
         sender_id = event['sender_id']
         sender_name = event.get('sender_name', "User")
@@ -204,11 +206,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
         }))
 
     async def message_update(self, event):
+        if not await self.authorize_delivery():
+            return
         payload = event.get("payload") or {}
         payload["event_type"] = event.get("event_type") or "message_update"
         await self.send(text_data=json.dumps(payload))
 
     async def ai_status(self, event):
+        if not await self.authorize_delivery():
+            return
         await self.send(text_data=json.dumps({
             'event_type': 'ai_status',
             'status': event.get('status'),
@@ -226,6 +232,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'message': message,
             'error_message': error_message,
         }))
+
+    async def authorize_delivery(self):
+        # A read-only open socket must lose access too, not only the next sender.
+        if await self.is_authorized():
+            return True
+        await self.send(text_data=json.dumps({
+            "type": "access_revoked", "message": "Bu suhbatga kirish huquqingiz yakunlandi.",
+        }))
+        await self.close(code=self.ACCESS_REVOKED_CLOSE_CODE)
+        return False
 
     def enqueue_background_task(self, coroutine):
         task = asyncio.create_task(coroutine)

@@ -129,6 +129,9 @@ def user_can_access_room(user, room):
 
 def sync_student_chat_access(student):
     ensure_user_ai_room(student)
+    # Staff room membership is assigned explicitly, not by student enrollment.
+    if student.is_staff or student.is_superuser:
+        return
 
     active_cohort_ids = list(
         Enrollment.objects.filter(enrollment_active_access_q(), student=student).values_list("cohort_id", flat=True)

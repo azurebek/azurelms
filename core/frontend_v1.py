@@ -49,6 +49,11 @@ class FrontendV1Mixin:
                     ("help_center", "Yordam", "bulb"),
                 )
             ]
+            if flag_enabled("frontend_v1_messenger"):
+                context["frontend_v1_nav"].append(dict(url=reverse("messenger:group"), name="messenger:group", label="Xabarlar", icon="message"))
+                for item in context["frontend_v1_legacy_nav"]:
+                    if item["url"] == reverse("messenger:ai"):
+                        item["label"] = "Azure AI"
         return context
 
     def render_to_response(self, context, **response_kwargs):
@@ -78,12 +83,8 @@ class FrontendLoginView(FrontendV1Mixin, LoginView):
         return form
 
 
-def render_teacher_v1(request, legacy_template, context, *, enabled=None, status=200):
-    """Select presentation only; caller has already applied the teacher scope."""
-    if enabled is None:
-        enabled = flag_enabled("frontend_v1_teacher")
-    if not enabled:
-        return render(request, legacy_template, context, status=status)
+def teacher_v1_navigation(active_nav):
+    """One teacher navigation definition, including the conversation mode."""
     pages = (
         ("teacher_dashboard", "Bosh sahifa", "home"),
         ("teacher_release", "Darslarni ochish", "book"),
@@ -96,14 +97,25 @@ def render_teacher_v1(request, legacy_template, context, *, enabled=None, status
     legacy = (
         ("classbook:teacher_home", "Classbook", "live"),
     )
-    context.update(
-        frontend_v1_title=dict((name, label) for name, label, _ in pages)[context["active_nav"]],
+    if flag_enabled("frontend_v1_messenger"):
+        pages += (("messenger:group", "Xabarlar", "message"),)
+    return dict(
+        frontend_v1_title=dict((name, label) for name, label, _ in pages)[active_nav],
         frontend_v1_workspace="Ustoz maydoni",
         frontend_v1_tagline="Darslar va o‘quvchilar",
         frontend_v1_home=reverse("teacher_dashboard"),
         frontend_v1_nav=[dict(url=reverse(name), name=name, label=label, icon=icon) for name, label, icon in pages],
         frontend_v1_legacy_nav=[dict(url=reverse(name), label=label, icon=icon) for name, label, icon in legacy],
     )
+
+
+def render_teacher_v1(request, legacy_template, context, *, enabled=None, status=200):
+    """Select presentation only; caller has already applied the teacher scope."""
+    if enabled is None:
+        enabled = flag_enabled("frontend_v1_teacher")
+    if not enabled:
+        return render(request, legacy_template, context, status=status)
+    context.update(teacher_v1_navigation(context["active_nav"]))
     response = render(request, f"frontend_v1/{legacy_template}", context, status=status)
     patch_cache_control(response, private=True, no_store=True)
     return response

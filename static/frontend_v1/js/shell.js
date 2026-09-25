@@ -35,7 +35,7 @@
     try {
       for (let i = sessionStorage.length - 1; i >= 0; i--) {
         const key = sessionStorage.key(i);
-        if (key.startsWith('azurelms:v1:practice:')) sessionStorage.removeItem(key);
+        if (key.startsWith('azurelms:v1:practice:') || key.startsWith('azurelms:v1:messenger:')) sessionStorage.removeItem(key);
       }
     } catch { /* Storage denied: native POST logout still works. */ }
   }));

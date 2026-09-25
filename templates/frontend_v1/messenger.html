@@ -1,0 +1,77 @@
+{% extends "frontend_v1/platform.html" %}{% load static %}
+{% block document_class %}s-mw-document{% endblock %}
+{% block body_class %}s-mw-body{% endblock %}
+{% block frame_class %}s-mw-frame{% endblock %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'frontend_v1/css/messenger.css' %}">
+<script type="module" src="{% static 'frontend_v1/js/messenger.mjs' %}"></script>
+{% endblock %}
+{% block main %}
+<main id="main" class="s-mw-workspace" tabindex="-1" data-view="chat" data-chat-root data-state-url="{% static 'frontend_v1/js/messenger-state.mjs' %}" data-room-id="{{ active_chat_room.pk|default:'' }}" data-user-id="{{ request.user.pk }}" data-scope="{{ chat_scope }}"
+  {% if active_chat_room %}data-history-url="{% url 'messenger:get_room_messages' active_chat_room.pk %}" data-pin-url="{% url 'messenger:toggle_room_pin' active_chat_room.pk %}"{% endif %}
+  data-upload-url="{% url 'messenger:upload_message_attachment' %}" data-edit-url="{% url 'messenger:edit_message' 0 %}" data-delete-url="{% url 'messenger:delete_message' 0 %}">
+  <section class="s-mw-rooms" aria-labelledby="rooms-title">
+    <div class="s-mw-rooms-heading"><div><p class="c-eyebrow">MULOQOT</p><h1 id="rooms-title" tabindex="-1">Suhbatlar</h1></div><span class="c-badge">{{ human_rooms|length }}</span></div>
+    <div class="s-mw-search"><label class="c-field__label" for="room-search">Suhbatni qidirish</label><input class="c-field" id="room-search" type="search" placeholder="Ism yoki guruh nomi" autocomplete="off"></div>
+    <nav class="s-mw-room-list" aria-label="Suhbatlar">
+      {% for room in human_rooms %}<a class="s-mw-room" href="{{ room.v1_url }}" data-room-link{% if room.pk == active_chat_room.pk %} aria-current="page"{% endif %}>
+        <span class="c-avatar c-avatar--small">{% include "frontend_v1/icon.html" with name="message" %}</span>
+        <span class="s-mw-room-copy"><strong>{{ room.name|default:"Suhbat" }}</strong><small>{% if room.room_type == 'group' %}Guruh{% else %}Shaxsiy suhbat{% endif %}{% if room.is_pinned %} · Mahkamlangan{% endif %}</small><span class="s-mw-preview">{{ room.last_message_text|default:"Hali xabar yo‘q" }}</span></span>
+        {% if room.unread_count %}<span class="c-badge" aria-label="{{ room.unread_count }} ta o‘qilmagan">{{ room.unread_count }}</span>{% endif %}
+      </a>{% empty %}<p class="s-mw-no-results">Hozircha ruxsatli suhbat yo‘q. Guruhga kirish uchun faol a’zolik kerak.</p>{% endfor %}
+      <p class="s-mw-no-results" data-no-results hidden>Bu nomdagi suhbat topilmadi.</p>
+    </nav>
+    <a class="s-mw-room-foot c-text-link" href="{% url 'messenger:ai' %}">Azure AI — avvalgi ko‘rinishda ↗</a>
+  </section>
+  <section class="s-mw-chat" aria-labelledby="chat-title" data-conversation>
+    <header class="s-mw-chat-header">
+      <a class="c-icon-button s-mw-back" href="#rooms" aria-label="Suhbatlar ro‘yxatiga qaytish">{% include "frontend_v1/icon.html" with name="back" %}</a>
+      <span class="c-avatar s-mw-room-avatar">{% include "frontend_v1/icon.html" with name="message" %}</span>
+      <div class="s-mw-chat-heading"><h2 id="chat-title">{{ active_chat_room.name|default:"Suhbat mavjud emas" }}</h2><p class="c-caption" data-connection>{% if active_chat_room %}Ulanmoqda…{% else %}Faol guruh yoki shaxsiy suhbat tanlang{% endif %}</p></div>
+      {% if active_chat_room %}<button class="c-icon-button" type="button" data-info aria-label="Suhbat haqida">{% include "frontend_v1/icon.html" with name="sliders" %}</button>{% endif %}
+    </header>
+    <div class="s-mw-notice" role="status" data-notice hidden></div>
+    <div class="s-mw-history-wrap">
+      <div class="s-mw-history" role="region" aria-label="Suhbat tarixi" tabindex="0" data-history>
+        <button class="c-button c-button--secondary" type="button" data-older hidden>Avvalgi xabarlar</button>
+        <ol class="s-mw-messages" data-messages><li class="s-mw-empty">{% if active_chat_room %}Xabarlar yuklanmoqda…{% else %}Ruxsatli suhbat paydo bo‘lganda shu yerda ko‘rinadi.{% endif %}</li></ol>
+      </div>
+      <button class="c-button c-button--secondary s-mw-latest" type="button" data-latest hidden>↓ Oxirgi xabarlar</button>
+    </div>
+    {% if active_chat_room %}<form class="s-mw-composer" data-composer>
+      {% csrf_token %}
+      <label class="c-field__label" for="chat-message">Xabar yozing</label>
+      <div class="s-mw-composer-row"><button class="c-icon-button" type="button" data-attach aria-label="Fayl biriktirish" disabled>＋</button><textarea id="chat-message" name="text" rows="1" maxlength="4000" placeholder="Xabaringiz…" aria-describedby="composer-hint" disabled></textarea><button class="c-icon-button s-mw-send" type="submit" aria-label="Xabarni yuborish" disabled>{% include "frontend_v1/icon.html" with name="arrow" %}</button></div>
+      <input type="file" data-file hidden>
+      <div class="s-mw-file" data-file-row hidden><span data-file-name></span><button type="button" class="c-icon-button" data-file-clear aria-label="Tanlangan faylni olib tashlash">×</button></div>
+      <div class="s-mw-composer-foot"><span id="composer-hint" data-draft-status>Enter — yangi qator</span><span class="s-mw-key-hint">Ctrl + Enter — yuborish</span></div>
+    </form>{% endif %}
+  </section>
+</main>
+<dialog class="c-dialog" data-info-dialog aria-labelledby="info-title">
+  <div class="c-dialog__heading"><h2 id="info-title">Suhbat haqida</h2><button class="c-icon-button" type="button" data-close aria-label="Oynani yopish">×</button></div>
+  <p>{{ active_chat_room.name }}</p><p class="c-muted">Xabarlar va fayllar faqat shu suhbatga kirish huquqi bor ishtirokchilarga ochiladi.</p>
+  <button type="button" class="c-button c-button--secondary" data-pin>{% if active_chat_room.is_pinned %}Mahkamlashni bekor qilish{% else %}Suhbatni mahkamlash{% endif %}</button>
+  <p role="status" data-pin-status></p>
+</dialog>
+<dialog class="c-dialog" data-edit-dialog aria-labelledby="edit-title">
+  <form data-edit-form><div class="c-dialog__heading"><h2 id="edit-title">Xabarni tahrirlash</h2><button class="c-icon-button" type="button" data-close aria-label="Tahrir oynasini yopish">×</button></div>
+    <label class="c-field__label" for="edit-text">Xabar matni</label><textarea class="c-field" id="edit-text" rows="5" maxlength="4000" required></textarea>
+    <p class="c-muted">Faqat tanlangan xabar o‘zgaradi.</p><p role="status" data-edit-status></p><button type="submit" class="c-button">Saqlash</button>
+  </form>
+</dialog>
+<dialog class="c-dialog" data-delete-dialog aria-labelledby="delete-title">
+  <form data-delete-form><div class="c-dialog__heading"><h2 id="delete-title">Xabarni o‘chirish</h2><button class="c-icon-button" type="button" data-close aria-label="O‘chirish oynasini yopish">×</button></div>
+    <p data-delete-preview></p><label class="s-mw-confirm"><input type="checkbox" required> Shu xabar barcha ishtirokchilar uchun o‘chirilishini tasdiqlayman.</label>
+    <p role="status" data-delete-status></p><button type="submit" class="c-button">Xabarni o‘chirish</button>
+  </form>
+</dialog>
+<dialog class="c-dialog" data-unknown-dialog aria-labelledby="unknown-title">
+  <form method="dialog"><div class="c-dialog__heading"><h2 id="unknown-title">Yuborish tasdiqlanmadi</h2><button class="c-icon-button" type="button" data-close aria-label="Yopish">×</button></div>
+    <p>Xabar yetgan bo‘lishi mumkin. Tarixni tekshirmasdan yana yuborish dublikat yaratishi mumkin. Avtomatik qayta yuborilmaydi.</p>
+    <label class="s-mw-confirm"><input type="checkbox" required> Tarixni tekshirdim. Yuborish holati noaniq bo‘lgan qoralamani olib tashlab, yangi xabar yozaman.</label>
+    <button type="submit" class="c-button" value="discard">Yangi xabar yozish</button>
+  </form>
+</dialog>
+<noscript><p class="c-alert">Jonli suhbat uchun JavaScript kerak. <a href="{% url 'dashboard' %}">Bosh sahifaga qaytish</a></p></noscript>
+{% endblock %}
