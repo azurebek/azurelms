@@ -24,7 +24,9 @@ draft va signed revisionli atomic edit/delete bor. I3b PR #124 main’da
 `9eb3830`, final CI `36162882956` uchala PASS ekanligi fresh tekshirildi;
 trackerda I3 yopildi. I4a default OFF, AWS va frozen prototype o‘zgarmagan.
 
-- Branch: `codex/frontend-v1-human-messenger`; runtime commit `a3af24f`.
+- Branch: `codex/frontend-v1-human-messenger`; runtime commit `a3af24f`;
+  rollback hardening `d48256c`: flag OFF explicit room identityni saqlaydi,
+  boshqa suhbatga fallback yo‘q; final focused V1 16 OK. PR #125.
 - Admission/KPI/canonical mapping/rollback: [I4a](frontend-v1/I4A-HUMAN-MESSENGER.md).
   Staff membership student syncdan ajratildi; read-only socket broadcast
   oldidan fresh accessni tekshiradi. Model/migration/provider o‘zgarishi yo‘q.

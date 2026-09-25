@@ -79,6 +79,10 @@ Kalitlar bo‘sh, `AZURELMS_SKIP_ENV_FILE=1`; vaqtinchalik DB/media.
   tests. Hech qanday AI/Telegram providerga jonli call yuborilmadi.
 - Final updated serverda teacher menu o‘z maydonida qoldi, staff ham
   real group send/echo qildi. Console warn/error0. Runtime `a3af24f`.
+- Rollback review `d48256c`: flag OFF ham mavjud explicit `?room=ID`
+  manzilini boshqa guruhga burmaydi; foreign/type mismatch404. Final
+  `manage.py test messenger.test_frontend_v1 --noinput --verbosity 1`:
+  16 OK. Browserda tutor pin→server saved, native info dialog ham sinaldi.
 
 ## Release / cheklovlar
 
