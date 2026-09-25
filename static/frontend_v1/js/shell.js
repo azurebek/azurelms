@@ -31,4 +31,12 @@
     }
   });
   document.querySelector("[data-form-errors]")?.focus();
+  document.querySelectorAll('[data-v1-logout]').forEach(form => form.addEventListener('submit', () => {
+    try {
+      for (let i = sessionStorage.length - 1; i >= 0; i--) {
+        const key = sessionStorage.key(i);
+        if (key.startsWith('azurelms:v1:practice:')) sessionStorage.removeItem(key);
+      }
+    } catch { /* Storage denied: native POST logout still works. */ }
+  }));
 })();

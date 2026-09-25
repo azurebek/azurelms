@@ -25,6 +25,23 @@
 .v1-release-dialog { margin: auto; width: var(--az-dialog); }
 html:has(.v1-release-dialog[open]) { overflow: hidden; }
 .v1-release-dialog > section { border: 0; padding: 0; box-shadow: none; }
+.f-assignment { padding: var(--az-space-8); min-width: 0; }
+.f-assignment h2 { margin-block: var(--az-space-4); }
+.f-quiz-question { border: 0; padding: 0; margin: 0; min-width: 0; }
+.f-quiz-question legend { font-weight: var(--az-weight-medium); }
+.f-quiz-question .v1-lesson-prose { margin-block: var(--az-space-3); }
+.f-quiz-question .c-choice + .c-choice { margin-top: var(--az-space-2); }
+.f-assignment .c-choice span, .f-quiz-result dd { min-width: 0; overflow-wrap: anywhere; }
+.f-quiz-result { border-top: 1px solid var(--az-border); padding-top: var(--az-space-6); }
+.f-quiz-score { display: flex; align-items: center; flex-wrap: wrap; gap: var(--az-space-3); margin-block: var(--az-space-4); }
+.f-quiz-score > strong { font-size: var(--az-text-2xl); }
+.f-quiz-result-row { margin-block: var(--az-space-5); padding-block: var(--az-space-4); border-bottom: 1px solid var(--az-border); }
+.f-quiz-result-row dl { display: grid; gap: var(--az-space-3); margin-top: var(--az-space-3); }
+.f-quiz-result-row dt { font-size: var(--az-text-xs); color: var(--az-muted); }
+.v1-practice-editor > summary { cursor: pointer; min-height: var(--az-control); font-weight: var(--az-weight-medium); }
+.v1-review-result p + p { margin-top: var(--az-space-3); }
+.f-form-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--az-space-4); }
+.f-form-footer > p { flex: 1 1 var(--az-art-width); }
 @media (width < 1024px) {
   .f-lesson-layout, .f-dashboard-bottom { grid-template-columns: 1fr; }
 }
@@ -34,5 +51,6 @@ html:has(.v1-release-dialog[open]) { overflow: hidden; }
   .f-directory-row { gap: var(--az-space-4); }
   .f-directory-row > .f-records-stack { flex-basis: 100%; }
   .f-material-row > .c-button { width: 100%; }
-  .f-lesson-text, .f-lesson-materials, .f-course-outline { padding: var(--az-space-5); }
+  .f-lesson-text, .f-lesson-materials, .f-course-outline, .f-assignment { padding: var(--az-space-5); }
+  .f-form-footer > .c-button { width: 100%; }
 }

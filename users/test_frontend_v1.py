@@ -237,8 +237,13 @@ class FrontendV1Tests(TestCase):
         asset_root = Path(settings.BASE_DIR) / "static" / "frontend_v1"
         for path in asset_root.rglob("*.js"):
             source = path.read_text(encoding="utf-8")
-            for forbidden in ("/_preview/", "preview-bootstrap", "boot.snapshot", "sessionStorage", "fixture"):
+            for forbidden in ("/_preview/", "preview-bootstrap", "boot.snapshot", "fixture"):
                 self.assertNotIn(forbidden, source, str(path))
+            # I2b admits session-scoped answer drafts, not credentials or
+            # preview state. Only the draft controller and logout cleanup
+            # may touch sessionStorage; their field isolation has Node tests.
+            if path.name not in ('practice.js', 'shell.js'):
+                self.assertNotIn('sessionStorage', source, str(path))
         self.assertNotIn("localStorage", (asset_root / "js" / "login.js").read_text(encoding="utf-8"))
 
 
@@ -257,7 +262,7 @@ class FrontendV1StaticTests(SimpleTestCase):
                 STORAGES={"staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"}},
             ):
                 call_command("collectstatic", interactive=False, verbosity=0, stdout=StringIO())
-                for asset in ("css/tokens.css", "css/learning.css", "css/study.css", "js/theme.js", "js/shell.js", "js/login.js", "js/release.js", "icons.svg"):
+                for asset in ("css/tokens.css", "css/learning.css", "css/study.css", "js/theme.js", "js/shell.js", "js/login.js", "js/release.js", "js/practice.js", "icons.svg"):
                     url = staticfiles_storage.url("frontend_v1/" + asset)
                     self.assertNotEqual(url, "/static/frontend_v1/" + asset)
                     self.assertTrue(staticfiles_storage.exists(staticfiles_storage.stored_name("frontend_v1/" + asset)))

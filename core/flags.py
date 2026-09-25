@@ -59,7 +59,7 @@ FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
     FlagDefinition(
         slug="frontend_v1_lesson",
         label="Frontend V1 — dars va material",
-        description="Matn/video/material darsining V1 ko‘rinishi; assignment/quizli dars avvalgi ko‘rinishda qoladi.",
+        description="Matn/video/material, topshiriq va quizli darsning V1 ko‘rinishi.",
         default=False,
         category="Frontend",
         runbook="ON faqat tegishli release tekshiruvidan keyin. OFF eski dars ko‘rinishini qaytaradi; access/material/progress o‘zgarmaydi.",

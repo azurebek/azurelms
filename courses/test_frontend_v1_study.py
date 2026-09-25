@@ -217,23 +217,24 @@ class FrontendStudyTests(TestCase):
         response = self.client.post(completion, {'tab': 'https://example.test/'})
         self.assertRedirects(response, self.lesson_url + f'?cohort={self.cohort.pk}', fetch_redirect_response=False)
 
-    def assert_practice_legacy(self, tab):
-        response = self.client.get(self.lesson_url, {'tab': tab})
-        self.assertTemplateUsed(response, 'courses/lesson_detail.html')
-        self.assertNotContains(response, 'data-frontend="v1"')
-        self.assertEqual(response.context['default_study_tab'], tab)
+    def assert_practice_variants(self, tab):
+        for enabled in (True, False):
+            set_flag('frontend_v1_lesson', enabled=enabled, reason='I2b rollback')
+            response = self.client.get(self.lesson_url, {'tab': tab})
+            self.assertTemplateUsed(response, 'frontend_v1/lesson.html' if enabled else 'courses/lesson_detail.html')
+            self.assertEqual(response.context['default_study_tab'], tab)
 
-    def test_assignment_keeps_whole_legacy_renderer(self):
+    def test_assignment_supports_v1_and_legacy_rollback(self):
         self.enable()
         self.client.force_login(self.student)
         Assignment.objects.create(lesson=self.lesson, title='Existing assignment')
-        self.assert_practice_legacy('homework')
+        self.assert_practice_variants('homework')
 
-    def test_quiz_keeps_whole_legacy_renderer(self):
+    def test_quiz_supports_v1_and_legacy_rollback(self):
         self.enable()
         self.client.force_login(self.student)
         Quiz.objects.create(lesson=self.lesson, title='Existing quiz')
-        self.assert_practice_legacy('quiz')
+        self.assert_practice_variants('quiz')
 
     def test_outsider_and_inactive_student_cannot_read(self):
         self.enable()

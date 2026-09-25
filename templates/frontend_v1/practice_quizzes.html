@@ -1,0 +1,19 @@
+{% for quiz in quizzes %}
+<section class="c-card f-assignment f-quiz f-records-stack" id="quiz-{{ quiz.pk }}" aria-labelledby="quiz-title-{{ quiz.pk }}">
+  <div><span class="c-badge c-badge--soft">DARS QUIZI · {{ quiz.form_questions|length }} SAVOL</span><h2 id="quiz-title-{{ quiz.pk }}">{{ quiz.title }}</h2><p class="c-caption">Har savolga bitta javob. Natija serverda hisoblanadi; quiz darsga “bajarildi” belgisi qo‘ymaydi.</p></div>
+  {% if quiz.latest_attempt %}<section class="f-quiz-result" aria-label="Oxirgi saqlangan natija"><h3>Oxirgi saqlangan natija</h3><div class="f-quiz-score"><strong>{{ quiz.latest_attempt.score }}%</strong><span>{{ quiz.latest_attempt.total_correct }}/{{ quiz.latest_attempt.total_questions }} to‘g‘ri</span><span class="c-badge">Urinish qiymati: {{ quiz.latest_attempt.xp_earned }} XP</span></div><p class="c-caption">{{ quiz.latest_attempt.completed_at|date:'d.m.Y H:i' }}. XP faqat eng yaxshi natijadan oshgan farq uchun qo‘shiladi. Quyida savollarning joriy tahriri.</p>
+    {% for question in quiz.form_questions %}<div class="f-quiz-result-row"><h4>{{ forloop.counter }}-savol · {% if question.last_answer.is_correct %}To‘g‘ri{% else %}To‘g‘ri emas yoki javobsiz{% endif %}</h4><div class="v1-lesson-prose">{{ question.text|safe }}</div><dl><div><dt>Sizning javobingiz</dt><dd>{{ question.last_answer.selected_choice.text|default:'Javob tanlanmagan' }}</dd></div><div><dt>To‘g‘ri javob</dt><dd>{{ question.correct_choice.text|default:'Variant belgilanmagan' }}</dd></div></dl></div>{% endfor %}
+  </section>{% endif %}
+  {% if quiz.form_questions %}
+  <details class="v1-practice-editor"{% if not quiz.latest_attempt or quiz.form_bound %} open{% endif %}><summary>{% if quiz.latest_attempt %}Qayta ishlash{% else %}Javoblaringiz{% endif %}</summary>
+  <form method="post" action="{% url 'api_quiz_submit' course_id=course.pk lesson_id=lesson.pk quiz_id=quiz.pk %}{{ cohort_query }}" class="f-records-stack" data-practice-form="quiz-{{ quiz.pk }}" data-revision="{{ quiz.form_revision }}"{% if quiz.form_bound %} data-bound="true"{% endif %}>
+    {% csrf_token %}
+    {% if quiz.form_bound %}<p class="c-alert c-alert--info" role="alert" tabindex="-1" data-form-errors>{{ practice_error }}</p>{% endif %}
+    {% for question in quiz.form_questions %}<fieldset class="f-quiz-question" data-question-name="answer_{{ question.pk }}" data-saved-choice="{{ question.last_answer.selected_choice_id|default:'' }}"><legend>{{ forloop.counter }}-savol</legend><div class="v1-lesson-prose">{{ question.text|safe }}</div>{% for choice in question.form_choices %}<label class="c-choice"><input type="radio" name="answer_{{ question.pk }}" value="{{ choice.pk }}" data-draft-field{% if choice.form_selected %} checked{% endif %}><span>{{ choice.text }}</span></label>{% empty %}<p class="c-caption">Variantlar hali kiritilmagan.</p>{% endfor %}</fieldset>{% endfor %}
+    <label class="c-choice"><input type="checkbox" name="accept_incomplete" value="yes"><span>Javobsiz savollar bo‘lsa, ular noto‘g‘ri hisoblanishini tushunaman.</span></label>
+    {% include 'frontend_v1/practice_draft.html' %}
+    <div class="f-form-footer"><span class="c-caption" data-answer-count></span><button class="c-button c-button--primary" type="submit">Javoblarni tekshirish</button></div>
+  </form></details>
+  {% else %}<p class="c-alert c-alert--info">Quiz savollari hali kiritilmagan. Hozir yuborish mumkin emas.</p>{% endif %}
+</section>
+{% endfor %}

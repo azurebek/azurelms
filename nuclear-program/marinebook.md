@@ -16,6 +16,39 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-25 [Codex]: I2b — dars topshirig‘i va quiz real platformaga ulandi
+
+V1 dars endi assignment/quiz bo‘lsa ham legacyga tushmaydi. Native form,
+serverdagi review/natija, private fayl va session-scoped qoralamalar bor;
+baholash/XP mavjud canonical servisda. Yangi dizayn yoki migration yo‘q.
+
+- Branch: `codex/frontend-v1-lesson-practice`; runtime/test commit `7e2efb6`.
+- PR #122, dastlabki CI `36088931120` uchala PASS (SQLite1879 skip41,
+  PostgreSQL1879 skip20, Node28). Reviewdagi P2 `82fb6b7` bilan tuzatildi:
+  canonical review replacement default False; botdagi ogohlantirish + explicit
+  tasdiq user/assignment pending holatiga bog‘langan. 3 yangi regression;
+  bot/practice/review/locked focused **42 OK (skip=1)**. Fresh CI qayta kerak.
+- Malformed/foreign quiz ID no-write; explicit cohort fallback yo‘q;
+  assignment/quiz/review transaction va per-user lock. Resubmit reset qilgan
+  XP balansdan ham qaytariladi; stale review ikki marta kredit bermaydi.
+- Offline `venv\Scripts\python.exe manage.py test --noinput --verbosity 1`:
+  **1879 OK (skip=42)**. Focused practice/study/users: **57 OK (skip=1)**;
+  canonical streak/review/locked regression **23 PASS**. `manage.py check` 0.
+  `node --test tests/frontend_v1/*.test.mjs`: **28 PASS**. Exact commands va
+  browser cheklovlari: `frontend-v1/I2B-PRACTICE.md`.
+- IAB real isolated Django 8050: desktop1440/dark, mobile320/dark/390/light;
+  native validation, text submit, quiz 100→50 va delta XP, reload, Enter
+  unchanged resubmit tekshirildi. Overflow kuzatilmadi, console warn/error 0.
+- I2a PR #121 fresh **MERGED `5528c74`**, CI `36086594312` uchala PASS
+  (SQLite1862 skip40, PostgreSQL1862 skip20, Node13). Oldingi kutilish yopildi.
+- I2b required CI/merge yakuni branch PRida tekshiriladi; R1 staging/device/
+  AWS gate ochiq. Default-OFF flaglar canonical DBda yoqilmadi. Trial va zaxira
+  untouched. Keyingi port: I3 teacher review/ro‘yxatlar/davomat; R1 alohida.
+  Owner javobi: alohida staging yo‘q, faqat AWS asosiy server; bu production
+  write yoki flag activation ruxsati emas. R1 zaxira/rollback/account gate ochiq.
+
+---
+
 ## 2026-09-25 [Codex]: I2a — real dars/material va ustoz release adapteri
 
 V1 matn/video/material dars, ustoz dashboard/release mavjud Django

@@ -51,15 +51,24 @@ template/assets qoladi; ON holatda faqat login/dashboard/my-courses
 
 Auth/CSRF/safe-next, enrollment/access va progressning canonical manbasi
 almashtirilmagan. Course CTA course/cohortni mavjud `course_study`ga beradi;
-darsning qolgan practice qismi va boshqa ko‘chmagan sahifalar legacy qoladi. Yangi DB model/migration,
+boshqa ko‘chmagan sahifalar legacy qoladi. Yangi DB model/migration,
 prototype fixture/API yoki frontenddagi mustaqil biznes hisobi yo‘q.
 Lokal kod borligi AWS deploy yoki release qabuli degani emas.
 [Port rejasi](frontend-v1/README.md), [joriy dalil](frontend-v1/I1-LEARNING-SHELL.md),
 [qabul jurnali](frontend-v1/PORT-LEDGER.md).
 
 I2a: `frontend_v1_lesson` matn/video/materialli darsni, `frontend_v1_teacher`
-ustoz dashboard/release’ni tanlaydi; ikkalasi default OFF. Assignment/quiz
-bor dars butunlay existing template/controllerda qoladi (I2b ochiq).
+ustoz dashboard/release’ni tanlaydi; ikkalasi default OFF. I2b lesson flagini
+assignment/quizli darsga ham kengaytiradi; native CSRF POST/PRG va bound
+errorlar, private attachment havolasi, review status va oxirgi quiz natijasi
+`courses/frontend_v1_practice.py` + V1 partiallardan keladi. `practice.js`
+faqat session/user/lesson/cohort/recordga scoped qoralama va submit guard;
+fayl/CSRF/score browser storagega yozilmaydi, noaniq javob avtomatik yuborilmaydi.
+`submission_service` explicit faol enrollmentni qayta tekshiradi; quiz IDlari
+write oldidan validatsiya qilinadi. Quiz/assignment/review per-user lock va
+transactionda; best-XP farqi ikki marta berilmaydi. Resubmit avvalgi bahoni
+tozalaganda tegishli XPni ham qaytaradi; pending bir xil matn no-op.
+Teacher review UI hozircha legacy. [I2b dalili](frontend-v1/I2B-PRACTICE.md).
 Teacher release explicit POST cohort talab qiladi; query/body mismatch yoki
 noma’lum guruh boshqa guruhga fallback qilmaydi, hatto flag OFF bo‘lsa ham.
 V1da GET faqat confirmation tayyorlaydi, CSRF POST canonical release servisiga

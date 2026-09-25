@@ -8,7 +8,7 @@
       <span class="f-resume__course">{{ resume_enrollment.cohort.name }}</span><h2>{{ resume_enrollment.cohort.course.title }}</h2>
       <p>{{ resume_enrollment.cohort.course.get_level_display }}</p>
       <div class="f-resume__meta"><span>{% include "frontend_v1/icon.html" with name="book" %}{{ resume_enrollment.dashboard_completed_lessons }}/{{ resume_enrollment.dashboard_total_lessons }} dars</span><span>{{ resume_enrollment.dashboard_progress }}% tugatilgan</span></div>
-      <a class="c-button c-button--primary" href="{% url 'course_study' course_id=resume_enrollment.cohort.course_id %}?cohort={{ resume_enrollment.cohort_id }}">Kursni davom ettirish{% include "frontend_v1/icon.html" with name="arrow" %}</a><p class="c-caption">Topshiriq va quizli darslar hozircha avvalgi ko‘rinishda.</p>
+      <a class="c-button c-button--primary" href="{% url 'course_study' course_id=resume_enrollment.cohort.course_id %}?cohort={{ resume_enrollment.cohort_id }}">Kursni davom ettirish{% include "frontend_v1/icon.html" with name="arrow" %}</a><p class="c-caption">Tanlangan guruh va haqiqiy dars holati bilan davom eting.</p>
     {% elif primary_enrollment %}
       <h2>Faol obuna kerak</h2><p>{{ primary_enrollment.cohort.course.title }} · {{ primary_enrollment.dashboard_status_label }}</p><div class="c-actions"><a class="c-button c-button--primary" href="{% url 'subscriptions' %}">Obuna holatini ko‘rish{% include "frontend_v1/icon.html" with name="arrow" %}</a></div>
     {% else %}
