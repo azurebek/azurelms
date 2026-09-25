@@ -16,6 +16,38 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-25 [Codex]: I1 — V1 kirish, bosh sahifa va kurslarim real adapteri
+
+Approved Eleventh Trial shell/assets uchta mavjud Django viewga ulandi.
+Prototype fixture/controller ko‘chmadi: haqiqiy auth, enrollment, progress,
+cohort va access mavjud backenddan keladi. `frontend_v1_learning` flagi
+default OFF; eski UI saqlanadi. Bu lokal implementatsiya, production reliz emas.
+
+- Branch: `codex/frontend-v1-learning-shell`; commit: `1dcaf49`.
+- Fayllar: `core/frontend_v1.py`, `core/flags.py`, `users/views.py`,
+  `users/urls.py`, `templates/frontend_v1/`, `static/frontend_v1/`,
+  `users/test_frontend_v1.py`, `tests/frontend_v1/login.test.mjs`.
+  CI SQLite jobida Node controller testi qo‘shildi; required job nomlari o‘zgarmadi.
+- `.env.local`siz, bo‘sh provider/bot tokenlari bilan `manage.py check`:
+  0 issue. `python manage.py test users core.test_app_shell
+  core.test_feature_flags core.test_feature_flag_effects core.test_flag_surface
+  core.test_golden_flow_e2e courses.test_locked_lesson_write_gate
+  courses.test_lesson_release courses.test_lesson_completion
+  library.test_student_access --noinput --verbosity 1`: **294 PASS**,
+  jumladan 24 yangi V1 test. `node --test tests/frontend_v1/login.test.mjs`:
+  **8 PASS**. Hashed V1 static build va `git diff --check`: PASS.
+- Alohida vaqtinchalik DB/cookie bilan real browser: 1440/390/320px,
+  light/dark, noto‘g‘ri/to‘g‘ri login, safe next, multi-course/pending/empty,
+  native mobil drawer/Escape/focus, POST logout, real darsga CTA va Back.
+  Console error/warn 0; Telegram faqat lokal init/cancel, bot ochilmadi.
+- To‘liq root suite lokal qayta yugurilmadi; PR/required CI hali ochiq.
+  Yangi migration yo‘q; mavjud DB, AWS va trial runtime o‘zgartirilmadi.
+- Davom: I2 real dars/material + teacher release. Qolgan UI legacy;
+  staging/device/deploy/rollback va owner go/no-go alohida release gate.
+  Dalil va cheklovlar: `frontend-v1/I1-LEARNING-SHELL.md`.
+
+---
+
 ## 2026-09-25 [Codex]: Frontend V1 freeze va qisman real ko‘chirish rejasi
 
 Owner joriy Eleventh Trialni V1 deb olish, yangi prototype/redesignni
