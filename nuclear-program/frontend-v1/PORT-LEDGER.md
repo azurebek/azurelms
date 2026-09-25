@@ -12,8 +12,9 @@ ulandi; flag default OFF. Deploy hali 0, I2–I9 ochiq.
   [Inventar](INVENTORY.md), [strategiya](README.md). Runtime o‘zgartirilmagan.
 - [-] **I1 — V1 foundation + login/dashboard/my-courses.** Lokal runtime va
   test/browser PASS; [PR #120](https://github.com/azurebek/azurelms/pull/120).
-  CI security BLOCKED: existing anyio/autobahn bo‘yicha 3 yangi advisory;
-  merge/deploy qilinmadi. [Adapter dalili](I1-LEARNING-SHELL.md).
+  Uch advisory `18b5a0b`dagi anyio/autobahn yangilanishi bilan lokal yopildi
+  (107 dependency / 0 advisory). Yangi pinlar bilan CI qayta tekshiriladi;
+  latest CI/merge holati PRda. Deploy qilinmadi. [Adapter dalili](I1-LEARNING-SHELL.md).
   Flag OFF: existing
   UI ishlaydi. Flag ON: haqiqiy user va real enrollmentlar; logout POST,
   CSRF, safe next, role menu, empty/multi-course, theme/draft isolation.

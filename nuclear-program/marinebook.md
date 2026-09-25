@@ -16,6 +16,30 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-25 [Codex]: PR #120 xavfsizlik to‘sig‘i — patched dependency pinlari
+
+Owner tasdig‘idan keyin maintainer advisorylaridagi patched relizlar olindi:
+`anyio 4.12.1 → 4.14.2`, `autobahn 25.12.2 → 26.7.1`.
+`CVE-2026-63374`, `CVE-2026-64847`, `CVE-2026-77528` uchun istisno
+qo‘shilmadi; security baseline bo‘sh, CI gate o‘zgarmagan.
+
+- Branch: `codex/frontend-v1-learning-shell`; commit: `18b5a0b`.
+- `requirements.txt`da faqat ikki pin. Project venv ham shu ikkisiga yangilandi;
+  audit tool dependencies alohida ignored `.tools/` venvga o‘rnatildi.
+- `python -m pip check`: PASS. `pip-audit -r requirements.txt --no-deps -f json`
+  va `manage.py audit_dependencies --report ...`: **107 dependency,
+  0 skipped, 0 advisory**. `manage.py check`: 0 issue.
+- `.env.local`siz, bo‘sh provider/bot tokenlari bilan `python manage.py test
+  core.test_supply_chain_gate users messenger classbook --noinput --verbosity 1`:
+  **433 test, OK (skipped=1)**. Exact buyruqlar va maintainer havolalari
+  `frontend-v1/I1-LEARNING-SHELL.md`da.
+- Eski `13e24e6` uchun SQLite/PostgreSQL full CI PASS, security FAIL edi;
+  yangi pinlarning uch required jobi alohida tekshiriladi. Latest holat PR #120da.
+- AWS, mavjud DB, frontend/prototype dizayni va domain qoidalari o‘zgarmadi.
+  Oldingi lokal processlar dependency importini restartgacha saqlashi mumkin.
+
+---
+
 ## 2026-09-25 [Codex]: I1 PR #120 — dependency security gate blokladi
 
 `1dcaf49` implementatsiya va `08ee934` dalil/wiki yozuvi o‘z branch’iga

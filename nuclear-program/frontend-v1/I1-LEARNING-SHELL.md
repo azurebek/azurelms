@@ -1,7 +1,7 @@
 # I1 — kirish, bosh sahifa va kurslarim
 
 2026-09-25. Branch: `codex/frontend-v1-learning-shell`.
-Status: **LOCAL IMPLEMENTED / CI SECURITY BLOCKED / NOT DEPLOYED**.
+Status: **LOCAL IMPLEMENTED / SECURITY FIX VERIFIED LOCALLY / CI RECHECK / NOT DEPLOYED**.
 Owner “yangi branch ochib ishni boshla” bilan I1 ijrosini boshladi.
 
 ## Admission va chegarasi
@@ -104,7 +104,7 @@ seed/migrate qilinmadi. Provider/bot tokenlari bo‘sh. Harness ignored
 - Kuzatilgan browser console error/warn: 0. Bu barcha device/transport
   kombinatsiyasi yoki real telefon testi emas.
 
-## PR va integratsiya to‘sig‘i
+## PR va xavfsizlik tuzatishi
 
 Implementation: `1dcaf49`; birinchi CI head: `08ee934`.
 [PR #120](https://github.com/azurebek/azurelms/pull/120),
@@ -117,10 +117,38 @@ Bu PR `requirements.txt`ni o‘zgartirmagan. Secret scan PASS, lekin
 paket xavfsizlik gate’i yiqilgani sabab production image qadamlari SKIPPED.
 Bu logdagi advisory identifikatorlari; ta’sir/fix-versiya auditi hali qilinmadi.
 
-Merge/deploy qilinmadi, gate bypass va advisory allowlist qo‘shilmadi.
-Paketlarni yangilash/tekshirish alohida tuzatishni talab qiladi; keyin
-uchala required job yana yashil bo‘lishi kerak. SQLite/PostgreSQL full-suite
-yakunlari run sahifasidan tekshiriladi; lokal 294 PASS ularning o‘rnini bosmaydi.
+Owner tasdig‘idan so‘ng `18b5a0b`da faqat ikki pin yangilandi:
+`anyio==4.14.2`, `autobahn==26.7.1`. Maintainer manbalari:
+[AnyIO TLS tuzatishi](https://github.com/agronholm/anyio/security/advisories/GHSA-82r6-8w77-94w6),
+[AnyIO process-pool tuzatishi](https://github.com/agronholm/anyio/security/advisories/GHSA-5p39-cfhj-2xmp),
+[Autobahn message-limit tuzatishi](https://github.com/crossbario/autobahn-python/security/advisories/GHSA-hxp9-w8x3-p566).
+Tegishli zaifliklar TLS hostname tekshiruvi, worker stderr bloklanishi va
+siqilgan WebSocket xabari hajm chekloviga taalluqli; backend/UI qoidasi
+o‘zgartirilmadi. Audit reyestri bo‘sh qoladi; gate bypass yo‘q.
+
+Yangilangan local venv uchun yangi dalil:
+
+```powershell
+.\venv\Scripts\python.exe -m pip check
+.\.tools\dependency-audit-20260925\Scripts\python.exe -m pip_audit -r requirements.txt --no-deps -f json --progress-spinner off -o .tools/dependency-audit-20260925/report.json
+$env:AZURELMS_SKIP_ENV_FILE='1'
+$env:GEMINI_API_KEY=''
+$env:TELEGRAM_BOT_TOKEN=''
+.\venv\Scripts\python.exe manage.py audit_dependencies --report .tools/dependency-audit-20260925/report.json
+.\venv\Scripts\python.exe manage.py check
+.\venv\Scripts\python.exe manage.py test core.test_supply_chain_gate users messenger classbook --noinput --verbosity 1
+```
+
+`pip check`: moslik xatosi yo‘q. `pip-audit` + existing gate:
+**107 pinned dependency, 0 skipped, 0 advisory**. Django check: 0 issue.
+Focused suite: **433 test, OK (skipped=1)**. Audit tool alohida ignored
+`.tools/` venvda; project venvda faqat ikki paket yangilandi. Ishlab turgan
+oldingi lokal preview processlari restartgacha eski importni tutishi mumkin.
+
+Eski `13e24e6` CI’da SQLite va PostgreSQL full-suite joblari PASS;
+security job FAIL edi. Yangi pinlar bilan uch required job qayta o‘tishi
+shart; oldingi yashil natija yangi pinlar uchun dalil emas. Latest CI/merge
+holati PR #120da. AWS deploy/flag enable bu tuzatish doirasiga kirmaydi.
 
 ## Release oldidan qolganlar
 
