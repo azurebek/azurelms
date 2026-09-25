@@ -1,0 +1,15 @@
+{% extends "frontend_v1/base.html" %}{% load static public_v1 %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'frontend_v1/css/public.css' %}"><script defer src="{% static 'frontend_v1/js/public-header.js' %}"></script>{% block public_head %}{% endblock %}{% endblock %}
+{% block body %}
+<header class="s-public-header"><div class="s-public-header__inner">
+  <a class="s-brand" href="{% url 'home' %}">{% include "components/brand_logo.html" with mark_class="s-brand__mark" %}</a>
+  <nav class="s-public-nav s-public-nav--desktop" aria-label="Asosiy navigatsiya">{% include "frontend_v1/public/header_links.html" %}</nav>
+  <div class="s-public-header__actions">{% include "frontend_v1/theme_button.html" %}<div class="s-public-auth s-public-auth--desktop">{% include "frontend_v1/public/header_auth.html" %}</div></div>
+  <details class="s-public-menu" data-public-menu>
+    <summary class="c-icon-button" aria-label="Menyu"><span class="s-public-menu__open">{% include "frontend_v1/icon.html" with name="menu" %}</span><span class="s-public-menu__close">{% include "frontend_v1/icon.html" with name="close" %}</span></summary>
+    <div class="s-public-menu__panel"><nav class="s-public-nav" aria-label="Mobil navigatsiya">{% include "frontend_v1/public/header_links.html" %}</nav><div class="s-public-auth">{% include "frontend_v1/public/header_auth.html" %}</div></div>
+  </details>
+</div></header>
+<main id="main" class="s-public-main" tabindex="-1">{% include "frontend_v1/messages.html" %}{% if is_preview %}<p class="c-alert c-alert--info">Ko‘rib chiqish — bu sahifa hali hammaga nashr qilinmagan.</p>{% endif %}{% block content %}{% endblock %}</main>
+<footer class="s-public-footer"><div><strong>{{ site_settings.brand_name }}</strong><p>{{ public_page_settings.footer_tagline }}</p><small>{{ public_page_settings.footer_copyright }}</small></div><nav aria-label="Footer navigatsiyasi">{% for item in footer_platform_links %}{% include "frontend_v1/public/nav_link.html" %}{% endfor %}{% for item in footer_company_links %}{% include "frontend_v1/public/nav_link.html" %}{% endfor %}<a href="{% url 'sit:home' %}">Turkiyada o‘qish</a>{% for item in footer_legal_links %}{% include "frontend_v1/public/nav_link.html" %}{% endfor %}</nav></footer>
+{% endblock %}

@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from .public_v1 import render_public
 from courses.models import Course
 from django.contrib.auth import get_user_model
 from django.db.models import Count, Q
@@ -221,7 +222,7 @@ def home_view(request):
         'how_it_works_steps': how_it_works_steps,
     }
     
-    return render(request, 'index.html', context)
+    return render_public(request, 'index.html', context)
 
 def about_view(request):
     page_content = AboutPage.load()
@@ -245,7 +246,7 @@ def about_view(request):
         'testimonials': testimonials,
     }
     
-    return render(request, 'about.html', context)
+    return render_public(request, 'about.html', context)
 
 
 def _get_legal_page(page_type):
@@ -259,7 +260,7 @@ def _get_legal_page(page_type):
 
 def legal_page_view(request, page_type):
     page = _get_legal_page(page_type)
-    return render(
+    return render_public(
         request,
         "legal_page.html",
         {

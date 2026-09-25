@@ -16,8 +16,13 @@ final required CI `36089727327` uchala PASS. I2 yopildi.
 (`4e48416`), final CI `36092407070` uchala PASS.
 [I3b — teacher ro‘yxatlar/davomat](I3B-TEACHER-DIRECTORY.md) PR #124 bilan
 main’da (`9eb3830`), final CI `36162882956` uchala PASS. I3 yopildi.
-[I4a — human Messenger B](I4A-HUMAN-MESSENGER.md) lokal implementatsiya va
-tekshiruv bajarildi; required CI/integratsiya o‘z PRida tekshiriladi.
+[I4a — human Messenger B](I4A-HUMAN-MESSENGER.md) PR #125 bilan main’da
+(`89f89b7`), final CI `36170298967` uchala PASS.
+Owner yangi navbati: [I5a public](I5A-PUBLIC.md) → `azurebek.me` AWS release
+qabuli → I4b va qolgan qismlar. Tayyor bo‘laklar qolgan portni kutmaydi.
+I5a lokal runtime `74818ee`: 14 public route adapteri va ixcham mobil menu;
+1945 Python OK (skip45), 53 Node PASS. CI/integratsiya hamda real-content
+visual/AWS qabul hali ochiq; production flaglari o‘zgartirilmadi.
 R1 device/AWS qabuli, I4b AI va I5–I9 ochiq.
 
 ## 1. Qayerdamiz

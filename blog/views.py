@@ -1,4 +1,5 @@
 from urllib.parse import quote
+from frontend.public_v1 import PublicFrontendV1Mixin
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -24,7 +25,7 @@ class BlogStaffRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
         return user.is_staff or user.is_superuser
 
 
-class BlogListView(ListView):
+class BlogListView(PublicFrontendV1Mixin, ListView):
     template_name = "blog/post_list.html"
     context_object_name = "posts"
     paginate_by = 9
@@ -85,7 +86,7 @@ class BlogListView(ListView):
         return context
 
 
-class BlogDetailView(DetailView):
+class BlogDetailView(PublicFrontendV1Mixin, DetailView):
     template_name = "blog/post_detail.html"
     context_object_name = "post"
 

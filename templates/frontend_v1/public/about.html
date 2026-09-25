@@ -1,0 +1,8 @@
+{% extends "frontend_v1/public/base.html" %}{% load bleach_tags %}
+{% block content %}
+<div class="p-public-heading"><p class="c-eyebrow">PLATFORMA HAQIDA</p><h1>{{ page.hero_title_start }} {{ page.hero_title_highlight }}</h1><div class="c-lead p-public-rich">{{ page.hero_subtitle|sanitize }}</div></div>
+<section class="p-public-card-grid"><article class="c-card p-public-info-card"><h2>{{ page.mission_title }}</h2><div class="p-public-rich">{{ page.mission_text|sanitize }}</div></article><article class="c-card p-public-info-card"><h2>{{ page.vision_title }}</h2><div class="p-public-rich">{{ page.vision_text|sanitize }}</div></article></section>
+{% if statistics %}<div class="p-public-facts">{% for item in statistics %}<div class="c-card p-public-info-card"><strong>{{ item.value }}</strong><span>{{ item.label }}</span></div>{% endfor %}</div>{% endif %}
+{% if team %}<section class="p-public-section"><div class="c-section-title"><h2>Jamoamiz</h2></div><div class="p-public-card-grid">{% for item in team %}<article class="c-card p-public-info-card">{% if item.avatar %}<img class="c-avatar" src="{{ item.avatar.url }}" alt="">{% endif %}<h2>{{ item.name }}</h2><p class="c-caption">{{ item.role_1 }}{% if item.role_2 %} · {{ item.role_2 }}{% endif %}</p><div class="p-public-rich">{{ item.bio|sanitize }}</div></article>{% endfor %}</div></section>{% endif %}
+<section class="c-card p-public-cta"><div><h2>Qaysi kursdan boshlaysiz?</h2></div><a class="c-button c-button--primary" href="{% url 'courses' %}">Kurslarni ko‘rish</a></section>
+{% endblock %}

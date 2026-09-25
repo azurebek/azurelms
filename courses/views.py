@@ -14,6 +14,7 @@ from django.utils import timezone
 from core.upload_validation import validate_upload
 from core.frontend_v1 import FrontendV1Mixin
 from core.flags import flag_enabled
+from frontend.public_v1 import PublicFrontendV1Mixin
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 
@@ -144,7 +145,7 @@ def lesson_completion_view(request, course_id, lesson_id):
     )
 
 
-class CourseListView(ListView):
+class CourseListView(PublicFrontendV1Mixin, ListView):
     model = Course
     template_name = 'courses/course_list.html'
     context_object_name = 'courses'
@@ -201,7 +202,7 @@ class CourseListView(ListView):
         return context
 
 
-class CourseDetailView(DetailView):
+class CourseDetailView(PublicFrontendV1Mixin, DetailView):
     model = Course
     template_name = 'courses/course_detail.html'
     context_object_name = 'course'

@@ -3,7 +3,7 @@
 Qabul: `[ ]` ochiq; `[-]` ishda; `[x] ~~...~~` dalil bilan tugagan.
 “Prototype bor” real portga `[x]` qo‘yish uchun yetmaydi.
 Sana emas, tugallangan natija bilan kuzatiladi. I1/I2/I3 main’da;
-I4a lokal implementatsiyasi tekshirildi, required CI/integratsiya PRda tekshiriladi.
+I4a PR #125 bilan main’da (`89f89b7`); final CI `36170298967` uchala PASS.
 Flaglar default OFF. Ushbu port doirasida deploy hali 0.
 
 ## Navbat
@@ -55,11 +55,18 @@ Flaglar default OFF. Ushbu port doirasida deploy hali 0.
     Tasdiqlangan B layout, canonical socket/HTTP/private fayl, multi-room,
     session draft, unknown no-resend va atomic stale edit/delete.
     [Dalil](I4A-HUMAN-MESSENGER.md).
-  - [ ] I4a required CI va integratsiya — branch PRida tekshiriladi.
+  - [x] ~~I4a required CI va integratsiya.~~ PR #125 MERGED `89f89b7`;
+    final CI `36170298967`: SQLite1931 skip44, PostgreSQL1931 skip20, Node45.
   - [ ] I4b AI adapteri: provider/choice/quota/context/error va mavjud amallar.
-- [ ] **I5 — Tayyor yordamchi yuzalar.** 5a public/records/help,
+- [-] **I5 — Tayyor yordamchi yuzalar.** 5a public/records/help,
   5b auth/account/profile, 5c preferences/privacy/notifications. Har kichik
   tugallangan oqim alohida qabul; hammasi bir relizga bog‘lanmaydi.
+  - [-] I5a-public: owner qarori bilan I4bdan oldin. Barcha 14 public route
+    oilasi → `azurebek.me` release qabuli → I4bga qaytish. [Dalil](I5A-PUBLIC.md).
+    Lokal runtime `74818ee`: 1945 Python OK (skip45), 53 Node PASS.
+    Owner ko‘rsatgan mobil header tuzatildi; required CI/integratsiya va
+    real-content/AWS go-no-go ochiq. Hali deploy qilinmagan.
+    Records/help bu public portga aralashtirilmaydi, keyingi yordamchi paketda.
 - [ ] **I6 — Library + course/lesson editor.** Common resource/link/private
   storage parity; real forms existing fieldsni saqlaydi. Qisman field/save
   contract mos kelmasa tegishli editor legacy qoladi va qarz ochiq yoziladi.
