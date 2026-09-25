@@ -27,7 +27,8 @@ keyingi owner ruxsati bilan learning/lesson/teacher/human messenger ham ON.
 [Ichki rollout dalili](R1-INTERNAL-RELEASE.md): haqiqiy HTTPS/WSS synthetic
 oqim va renderer rollback, mobile/desktop owner sessiyasi tekshirildi.
 AWS Hisob/settings hali eski ko‘rinishda. [I5b.1 Profil/Hisob](I5B-ACCOUNT-PROFILE.md)
-porti ishda; qolgan settings va auth alohida ochiq.
+porti lokal tayyor (`1a4d6a3`, full1975 OK/Node67 PASS); required CI/review
+va integratsiya ochiq. Qolgan settings va auth alohida ochiq.
 I4b AI adapteri PR #130 bilan main’da `a25cf4b`:
 [scope, compact transcript va tekshiruv](I4B-AI-MESSENGER.md).
 1961 Python OK/61 Node PASS; final CI `36192585672` uchala PASS;

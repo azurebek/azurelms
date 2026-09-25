@@ -44,7 +44,7 @@ Production SMTP yo‘q: email reset delivery tayyor deb aytilmaydi.
 
 - [x] Focused offline regression va Node controller testlari.
 - [x] Izolyatsiyalangan local DB, desktop/mobile/light/dark/keyboard.
-- [ ] Full regression yakuniy natijasi.
+- [x] Full regression: **1975 OK, skipped45**, 371.752s.
 - [ ] Required CI, review va main integratsiyasi.
 - [ ] AWS release va real-device/owner qabuli (alohida).
 
@@ -57,7 +57,11 @@ Offline (`AZURELMS_SKIP_ENV_FILE=1`, `GEMINI_API_KEY=''`,
 - `node --test tests/frontend_v1/*.test.mjs`: **67 PASS**.
   Duplicate/dirty exit/other-form consent/password lifecycle/known offline.
 - `venv/Scripts/python.exe manage.py check`: **0 issue**.
-- Full `manage.py test --noinput --verbosity 0` ishda; yakuniy natija hali yo‘q.
+- Full `venv/Scripts/python.exe manage.py test --noinput --verbosity 0`:
+  **1975 OK, skipped45**, 371.752s. Mocked failure loglari kutilgan;
+  live provider yoki bot token ishlatilmagan.
+
+Runtime commit: `1a4d6a3`. Required CI/review/integratsiya keyingi gate.
 
 IAB + disposable SQLite8057: native login → profile save → account bir xil
 ma’lumot; ikkinchi tabdagi profile save → eski account POST409, bound matn

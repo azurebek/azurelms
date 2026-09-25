@@ -85,8 +85,10 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
     image-boundary fix bilan, final CI36179879066 all3PASS. Public ON;
     real-device va populated real-content owner qabuli alohida ochiq.
     Records/help bu public portga aralashtirilmaydi, keyingi yordamchi paketda.
-  - [-] I5b.1 — Profil va Hisob: shared form, avatar/parol canonical POST,
+  - [x] ~~I5b.1 lokal implementatsiya — Profil va Hisob.~~ Shared form, avatar/parol canonical POST,
     stale-profile guard va learner/teacher shell. [Scope/dalil](I5B-ACCOUNT-PROFILE.md).
+    `1a4d6a3`: full1975 OK (skip45), Node67 PASS, browser320–1280 overflow0.
+  - [ ] I5b.1 required CI/review/integratsiya va keyingi alohida release.
     Register/reset/onboarding hamda qolgan I5 hali ochiq.
 - [ ] **I6 — Library + course/lesson editor.** Common resource/link/private
   storage parity; real forms existing fieldsni saqlaydi. Qisman field/save
