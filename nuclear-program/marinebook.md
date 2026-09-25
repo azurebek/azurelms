@@ -16,6 +16,43 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-25 [Codex]: I3a — ustoz navbati va yozma ish qarori real V1ga ulandi
+
+Tasdiqlangan navbat/review dizayni real queryset va canonical baholashga
+ulandi. Native forma orqali qaror, izoh va XP; learnerda aynan saqlangan
+natija. Yangi prototip, dependency yoki migration yo‘q.
+
+- Branch: `codex/frontend-v1-teacher-review`; runtime/test commit `4348242`.
+- PR #123, dastlabki CI `36091941117` uchala PASS (SQLite1897 skip42,
+  PostgreSQL1897 skip20, Node31). Review P2 `2fbd308` bilan tuzatildi:
+  uchala admin bulk action revisionni yangilaydi; canonical review student
+  lockdan so‘ng submission rowni ham lock qiladi. Admin qarori ustiga stale
+  teacher yozolmasligi regression; focused qayta **66 OK (skip=2)**.
+  Fresh required CI kerak; eski yashil natija yangi fixni tasdiqlamaydi.
+- Explicit qaror/tasdiq, integer XP, CSRF; stale ish/qaror yoki takror POST
+  canonical user-lock ostida 409/no-write. Bound xatoda izoh qoladi,
+  tasdiq qayta olinadi. Flag OFF legacy, eski V1 POSTi rollbackda yozmaydi.
+- Queue pending/reviewed/all, real course scope va 25-record pagination;
+  attachment existing private endpoint. `practice.js` qayta ishlatilgan,
+  user/session/record qoralama; tasdiq/token/fayl persist qilinmaydi.
+- `.env.local`siz, bo‘sh provider/bot tokenlari bilan `venv\Scripts\python.exe
+  manage.py test --noinput --verbosity 1`: **1897 OK (skip=43)**.
+  Review/practice/core focused **65 OK (skip=2)**; `manage.py check` 0.
+  `node --test tests/frontend_v1/*.test.mjs`: **31 PASS**; diff-check PASS.
+  Exact commands va adapter xaritasi: `frontend-v1/I3A-TEACHER-REVIEW.md`.
+- Computer-use/IAB isolated Django8051: desktop1440 dark, mobile320 dark /
+  390 light. Revision15→0, approve15→learner dashboard/homework15+izoh,
+  Enter submit/reload/return/filter/empty tekshirildi. Mobile blockquote yon
+  chekinishi tuzatildi; overflow yo‘q, console warn/error 0. Real telefon ochiq.
+- I2b fresh PR #122 **MERGED `c8c3864`**, final CI `36089727327` uchala PASS
+  (SQLite1882 skip41, PostgreSQL1882 skip20, Node28). I2 jurnalida yopildi.
+- I3a required CI/merge yakuni branch PRida tekshiriladi. I3b ro‘yxatlar/davomat
+  keyingi port, exam detail I8da. R1 uchun staging yo‘q (owner tasdiqlagan),
+  AWS zaxira/rollback/test account/device/go-no-go gate ochiq. Deploy 0,
+  flaglar default OFF, canonical DB/trial/zaxira untouched.
+
+---
+
 ## 2026-09-25 [Codex]: I2b — dars topshirig‘i va quiz real platformaga ulandi
 
 V1 dars endi assignment/quiz bo‘lsa ham legacyga tushmaydi. Native form,

@@ -6,31 +6,54 @@ import test from 'node:test';
 const source = readFileSync(new URL('../../static/frontend_v1/js/practice.js', import.meta.url), 'utf8');
 const prefix = 'azurelms:v1:practice:';
 const key = prefix + 'session:1:1:assignment-1';
-function harness({draft, revision='new', serverAnswer='', serverStatus='', bound=false, blockedStorage=false, online=true, quiz=false, pendingValues, secondFile=false} = {}) {
+function harness({draft, revision='new', serverAnswer='', serverStatus='', bound=false, blockedStorage=false, online=true, quiz=false, review=false, reviewAck=false, pendingValues, secondFile=false} = {}) {
   const element = () => ({events:{}, dataset:{}, attrs:{}, hidden:true, value:'', type:'textarea', name:'answer_text',
     addEventListener(n,f){this.events[n]=f;}, setAttribute(n,v){this.attrs[n]=v;}, removeAttribute(n){delete this.attrs[n];}, focus(){this.focused=true;}});
   const field=element(), radio=element(), status=element(), conflict=element(), restore=element(), discard=element(), button=element(), count=element(), details={open:false};
   field.value=bound ? 'bound answer' : serverAnswer;
   if (quiz) {field.type='radio';field.name='answer_1';field.value='1';field.checked=false; radio.type='radio';radio.name='answer_1';radio.value='2';radio.checked=false;}
   const fields=quiz?[field,radio]:[field];
+  if (review) {
+    fields.splice(0, fields.length, ...['action', 'teacher_feedback', 'awarded_xp'].map(name => ({...element(), name, value: name === 'awarded_xp' ? '0' : '', dataset:{draftSaved: pendingValues?.[name] || ''}})));
+  }
   const file={files:[]};
   const question={dataset:{questionName:'answer_1',savedChoice:pendingValues || ''}};
   const form=element();
-  form.dataset={practiceForm:quiz?'quiz-1':'assignment-1',revision,serverAnswer,serverStatus,...(bound?{bound:'true'}:{})};
+  form.dataset={practiceForm:review?'review-1':quiz?'quiz-1':'assignment-1',revision,serverAnswer,serverStatus,...(bound?{bound:'true'}:{}),...(reviewAck?{draftConfirmed:'true'}:{})};
   form.closest=()=>details;
   form.querySelector=s=>({'[data-draft-status]':status,'[data-draft-conflict]':conflict,'[type="submit"]':button,'[data-answer-count]':quiz?count:null,'[data-draft-restore]':restore,'[data-draft-discard]':discard}[s]);
   form.querySelectorAll=s=>({'[data-draft-field]':fields,'[type="file"]':[file],'[data-question-name]':quiz?[question]:[]}[s]||[]);
   const otherForm={...form,events:{},dataset:{...form.dataset,practiceForm:'assignment-2'},querySelectorAll:s=>s==='[type="file"]'?[{files:[{name:'other.pdf'}]}]:form.querySelectorAll(s)};
   const store=new Map([[prefix+'old-session:1:1:assignment-1','old']]);
-  const ownKey=quiz?key.replace('assignment-1','quiz-1'):key;
+  const ownKey=review?key.replace('assignment-1','review-1'):quiz?key.replace('assignment-1','quiz-1'):key;
   if (draft) store.set(ownKey,JSON.stringify(draft));
   const sessionStorage={get length(){return store.size;},key:i=>[...store.keys()][i],getItem:k=>store.get(k)||null,removeItem:k=>store.delete(k),setItem:(k,v)=>{if(blockedStorage)throw Error('denied');store.set(k,v);}};
   const root={dataset:{practiceScope:'session',practiceLesson:'1:1'},querySelectorAll:()=>secondFile?[form,otherForm]:[form]};
   const events={},location={reload(){location.reloaded=true;}};
   runInNewContext(source,{document:{querySelector:s=>s==='[data-practice-scope]'?root:null},window:{sessionStorage,navigator:{onLine:online},location,confirm:()=>false,addEventListener:(n,f)=>events[n]=f}});
   const fire=fn=>{const e={prevented:false,preventDefault(){this.prevented=true;}};fn(e);return e;};
-  return {form,field,radio,file,status,conflict,restore,discard,button,count,details,store,ownKey,events,location,fire};
+  return {form,field,fields,radio,file,status,conflict,restore,discard,button,count,details,store,ownKey,events,location,fire};
 }
+test('teacher review restores input only, not confirmation or persisted XP',()=>{
+  const values={action:'revision',teacher_feedback:'Keep this draft',awarded_xp:'15'};
+  const h=harness({review:true,revision:'old',draft:{revision:'old',values,pending:false}});
+  assert.deepEqual(h.fields.map(f=>f.value),Object.values(values));
+  h.form.events.input();assert.deepEqual(JSON.parse(h.store.get(h.ownKey)).values,values);
+  assert.match(h.status.textContent,/hali yuborilmagan|Serverga hali yuborilmagan/);
+});
+test('native review redirect acknowledges accepted raw input even when server normalized XP',()=>{
+  const values={action:'revision',teacher_feedback:'Revise',awarded_xp:'15'};
+  const h=harness({review:true,reviewAck:true,revision:'newer',pendingValues:values,draft:{revision:'old',values,pending:true}});
+  assert.equal(h.store.has(h.ownKey),false);assert.equal(h.fields[2].value,'0');
+  assert.match(h.status.textContent,/Yakuniy qaror va XP saqlangan tekshiruvda/);
+});
+test('review acknowledgement cannot clear another pending decision or an unchanged revision',()=>{
+  const values={action:'approve',teacher_feedback:'Good',awarded_xp:'15'};
+  for (const [revision,pendingValues] of [['old',values],['newer',{...values,awarded_xp:'20'}]]) {
+    const h=harness({review:true,reviewAck:true,revision,pendingValues,draft:{revision:'old',values,pending:true}});
+    assert.equal(h.button.disabled,true);assert.equal(h.store.has(h.ownKey),true);
+  }
+});
 test('draft serialization only includes marked answer fields, not files/CSRF/password',()=>{
   const h=harness();h.field.value='my answer';h.file.files=[{name:'private.pdf',bytes:'secret'}];h.form.events.input();
   const d=JSON.parse(h.store.get(h.ownKey));assert.deepEqual(d,{revision:'new',values:{answer_text:'my answer'},pending:false,hadFile:true});

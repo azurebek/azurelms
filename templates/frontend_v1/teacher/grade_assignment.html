@@ -1,0 +1,23 @@
+{% extends "frontend_v1/platform.html" %}
+{% load static %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'frontend_v1/css/study.css' %}"><script src="{% static 'frontend_v1/js/practice.js' %}" defer></script>{% endblock %}
+{% block content %}
+<div data-practice-scope="{{ practice_scope }}" data-practice-lesson="teacher-review">
+<div class="p-page-heading"><div><a class="c-text-link" href="{{ queue_url }}">{% include 'frontend_v1/icon.html' with name='back' %}Tekshiruv navbatiga qaytish</a><h1>{{ submission.assignment.title }}</h1><p class="c-lead">{{ submission.assignment.lesson.module.course.title }} · {{ submission.assignment.lesson.title }}</p></div><span class="c-badge">{{ submission.get_status_display }}</span></div>
+<div class="p-review-layout"><div class="p-stack">
+<section class="c-card p-panel"><div class="p-queue-row__person"><span class="c-avatar">{{ submission.student.first_name.0|default:submission.student.username.0|upper }}</span><div><h2>{{ submission.student.get_full_name|default:submission.student.username }}</h2><p class="c-caption">Yuborilgan: {{ submission.submitted_at|date:'d.m.Y H:i' }} · Yangilangan: {{ submission.updated_at|date:'d.m.Y H:i' }}</p></div></div><div class="p-task-brief"><h3>Topshiriq sharti</h3><div class="v1-lesson-prose">{{ submission.assignment.description|safe }}</div></div><h3>O‘quvchi javobi</h3><blockquote class="p-answer-text p-preserve-text">{{ submission.answer_text|default:'Matn yuborilmagan.' }}</blockquote><p class="c-caption">Bu o‘quvchi yuborgan javob. Ustoz bu matnni tahrirlamaydi.</p>{% if submission.attachment %}<p class="v1-lesson-prose"><a class="c-text-link" href="{% url 'submission_file' submission.pk %}">Biriktirilgan faylni yuklab olish</a></p>{% endif %}</section>
+<section class="p-review-result" aria-label="Saqlangan tekshiruv"><h2>Saqlangan tekshiruv</h2><p>{{ submission.get_status_display }} · {{ submission.awarded_xp }} XP</p>{% if submission.reviewed_at %}<p class="c-caption">{{ submission.reviewed_at|date:'d.m.Y H:i' }} · {{ submission.reviewed_by.get_full_name|default:submission.reviewed_by.username }}</p>{% endif %}{% if submission.teacher_feedback %}<p class="p-preserve-text">{{ submission.teacher_feedback }}</p>{% else %}<p class="c-caption">Saqlangan izoh yo‘q.</p>{% endif %}</section>
+</div>
+<section class="c-card p-panel" aria-labelledby="review-title"><p class="c-eyebrow">FIKR-MULOHAZA</p><h2 id="review-title">Tekshiruv qarori</h2><p class="c-muted">Qaror va izoh o‘quvchiga ko‘rinadi. Tanlovni o‘zgartirishning o‘zi hech narsani saqlamaydi.</p>
+<form method="post" class="p-review-form" data-practice-form="review-{{ submission.pk }}" data-revision="{{ revision }}"{% if review_ack %} data-draft-confirmed="true"{% endif %}{% if review_form.is_bound %} data-bound="true"{% endif %}>
+{% csrf_token %}<input type="hidden" name="v1_review" value="1">{{ review_form.revision }}
+<div id="review-errors"{% if review_form.errors %} class="c-alert c-alert--info f-records-stack" role="alert" tabindex="-1" data-form-errors{% endif %}>{% for error in review_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}{% for field in review_form %}{% for error in field.errors %}<p>{{ field.label }}: {{ error }}</p>{% endfor %}{% endfor %}</div>
+{{ review_form.action.label_tag }}{{ review_form.action }}
+{{ review_form.teacher_feedback.label_tag }}{{ review_form.teacher_feedback }}<p class="c-caption">Izoh ixtiyoriy. Yaxshi tomonlari va nimani to‘ldirish kerakligini yozing.</p>
+{{ review_form.awarded_xp.label_tag }}{{ review_form.awarded_xp }}
+<p class="c-caption">Tasdiqlashda shu XP belgilanadi; faqat avvalgi bahodan farqi balansga qo‘shiladi. Qayta ishlashga qaytarishda ushbu ishning XPsi 0 bo‘ladi. Keyingi darsga kirish boshqa ruxsat shartlariga ham bog‘liq.</p>
+<label class="c-choice">{{ review_form.confirm_review }}<span>{{ review_form.confirm_review.label }}</span></label>
+{% include 'frontend_v1/practice_draft.html' %}
+<button class="c-button c-button--primary" type="submit">Qarorni saqlash{% include 'frontend_v1/icon.html' with name='check' %}</button>
+</form></section></div></div>
+{% endblock %}

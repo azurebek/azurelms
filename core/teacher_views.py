@@ -257,7 +257,10 @@ def teacher_grading(request):
         .select_related("student", "exam")
         .order_by("-reviewed_at")[:5]
     )
-    return render(request, "teacher/grading.html", context)
+    if flag_enabled('frontend_v1_teacher'):
+        from core.frontend_v1_review import queue_context
+        queue_context(request, context)
+    return render_teacher_v1(request, "teacher/grading.html", context)
 
 
 def _clamp_score(raw, maximum):
@@ -388,7 +391,55 @@ def teacher_grade_assignment(request, submission_id):
         assignment__lesson__module__course__in=context["teacher_courses"],
     )
 
+    if flag_enabled('frontend_v1_teacher'):
+        from django.core.exceptions import ValidationError
+        from core.frontend_v1_review import AssignmentReviewForm, review_context
+        from courses.submission_service import review_assignment_submission
+
+        data = request.POST.copy() if request.method == 'POST' else None
+        form = AssignmentReviewForm(data, submission=submission, initial={
+            'teacher_feedback': submission.teacher_feedback, 'awarded_xp': submission.awarded_xp,
+            'revision': submission.updated_at.isoformat(),
+        })
+        response_status = 200
+        if request.method == 'POST':
+            response_status = 400
+            if form.is_valid():
+                try:
+                    review_assignment_submission(
+                        submission=submission, approved=form.cleaned_data['action'] == 'approve',
+                        reviewer=request.user, feedback=form.cleaned_data['teacher_feedback'],
+                        awarded_xp=form.cleaned_data['awarded_xp'], request=request,
+                        expected_revision=form.cleaned_data['revision'],
+                    )
+                except ValidationError as exc:
+                    # Show the fresh work but preserve the teacher's input. A
+                    # new explicit confirmation is required before another POST.
+                    submission.refresh_from_db()
+                    data['revision'] = submission.updated_at.isoformat()
+                    data.pop('confirm_review', None)
+                    form = AssignmentReviewForm(data, submission=submission)
+                    form.is_valid()
+                    form.add_error(None, exc)
+                    response_status = 409
+                else:
+                    request.session['frontend_v1_review_saved'] = {
+                        'submission_id': submission.pk, 'revision': submission.updated_at.isoformat(),
+                        'values': {name: request.POST.get(name, '') for name in ('action', 'teacher_feedback', 'awarded_xp')},
+                    }
+                    messages.success(request, 'Qaror saqlandi. O‘quvchidagi holat va XP yangilandi.')
+                    return redirect(request.get_full_path())
+            if response_status == 400:
+                # Browser validation is not authority; never retain consent
+                # through a server validation response.
+                form.data = form.data.copy()
+                form.data.pop('confirm_review', None)
+        review_context(request, context, submission, form)
+        return render_teacher_v1(request, 'teacher/grade_assignment.html', context, status=response_status)
+
     if request.method == "POST":
+        if request.POST.get('v1_review') == '1':
+            return HttpResponseBadRequest('Yangi ko‘rinish o‘chirilgan. Sahifani qayta oching; qaror saqlanmadi.')
         from courses.submission_service import review_assignment_submission
 
         xp_raw = request.POST.get("awarded_xp")
@@ -400,6 +451,8 @@ def teacher_grade_assignment(request, submission_id):
                 awarded_xp = None
 
         action = request.POST.get("action")
+        if action not in ('approve', 'revision'):
+            return HttpResponseBadRequest('Qaror noto‘g‘ri; hech narsa saqlanmadi.')
         # Hukm, XP va o'quvchiga xabar canonical servisda: XP farq bo'yicha
         # hisoblanadi va shu sababli qayta baholash ikki marta bermaydi.
         review_assignment_submission(

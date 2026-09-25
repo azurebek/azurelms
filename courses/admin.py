@@ -263,10 +263,13 @@ class AssignmentSubmissionAdmin(admin.ModelAdmin):
 
     @admin.action(description="Tekshiruvga qaytarish (Pending)")
     def mark_pending(self, request, queryset):
+        from django.utils import timezone
+
         updated = queryset.update(
             status=AssignmentSubmission.STATUS_PENDING,
             reviewed_by=None,
             reviewed_at=None,
+            updated_at=timezone.now(),
         )
         self.message_user(request, f"{updated} ta submission pending holatga o'tkazildi.")
 
@@ -278,6 +281,7 @@ class AssignmentSubmissionAdmin(admin.ModelAdmin):
             status=AssignmentSubmission.STATUS_APPROVED,
             reviewed_by=request.user,
             reviewed_at=timezone.now(),
+            updated_at=timezone.now(),
         )
         self.message_user(request, f"{updated} ta submission tasdiqlandi.")
 
@@ -289,6 +293,7 @@ class AssignmentSubmissionAdmin(admin.ModelAdmin):
             status=AssignmentSubmission.STATUS_NEEDS_REVISION,
             reviewed_by=request.user,
             reviewed_at=timezone.now(),
+            updated_at=timezone.now(),
         )
         self.message_user(request, f"{updated} ta submission revision holatiga o'tdi.")
 
