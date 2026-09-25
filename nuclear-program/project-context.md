@@ -42,6 +42,17 @@ Source of truth har doim **kod** (model/view/task/URL/test). Bu fayl kodga mosla
 
 ## Frontend V1 — bosqichma-bosqich renderer (2026-09-25)
 
+I5b.1: `frontend_v1_account` default OFF — profil va Hisob rendererlarini
+tanlaydi. `users/frontend_v1_account.py` existing `ProfileFieldsForm`ni
+ishlatadi; ikkala V1 profil POSTida user-scoped HMAC snapshot + row lock
+eskirgan ma’lumotni 409/no-write bilan qaytaradi. Guard legacy yoki admin
+writerlar uchun global revision emas; XP/preference fingerprintga kirmaydi.
+Avatar/password canonical endpointlari o‘zgarmagan. Teacher flag ON bo‘lsa
+account/profile ham teacher navigatsiyasini saqlaydi. Native form, dirty
+warning/duplicate guard/known-offline block; shaxsiy draft storagega yozilmaydi,
+parol page lifecycle’da tozalanadi. Auth qoldig‘i va boshqa settings hali
+legacy. [Qamrov va dalil](frontend-v1/I5B-ACCOUNT-PROFILE.md); AWS yoqilmagan.
+
 I4b AI port: `frontend_v1_ai_messenger` alohida default-OFF renderer.
 `AIMessengerV1Mixin` existing AI viewga ulanadi; shared `messenger.mjs`
 transporti va `messenger-ai.mjs` model/skill, feedback, context va explicit

@@ -11,7 +11,7 @@
     <a class="c-nav-item" href="{% url 'teacher_dashboard' %}">O‘qituvchi paneli</a>
     <a class="c-nav-item" href="{% url 'backoffice_dashboard' %}">Admin paneli</a>
     {% endif %}
-    <small class="c-muted">Profil, sozlamalar va admin paneli avvalgi ko‘rinishda ochiladi.</small>
+    <small class="c-muted">Ayrim bo‘limlar hali avvalgi ko‘rinishda ochiladi.</small>
     <form method="post" action="{% url 'logout' %}" data-v1-logout>{% csrf_token %}<button class="c-button c-button--secondary" type="submit">Hisobdan chiqish</button></form>
   </div>
 </details>

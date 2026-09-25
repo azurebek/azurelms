@@ -26,13 +26,15 @@ image-boundary fix PR127 bilan AWS **`363ff95` deployed**. Dastlab public ON;
 keyingi owner ruxsati bilan learning/lesson/teacher/human messenger ham ON.
 [Ichki rollout dalili](R1-INTERNAL-RELEASE.md): haqiqiy HTTPS/WSS synthetic
 oqim va renderer rollback, mobile/desktop owner sessiyasi tekshirildi.
-Hisob/settings hali port qilinmagan, eski ko‘rinishda qoladi.
-I4b AI adapteri lokal tayyor: [scope, compact transcript va tekshiruv](I4B-AI-MESSENGER.md).
-1961 Python OK/61 Node PASS; default-OFF AI flag. Required CI va integratsiya
-hali ochiq; AWS AI sahifasi hanuz legacy.
+AWS Hisob/settings hali eski ko‘rinishda. [I5b.1 Profil/Hisob](I5B-ACCOUNT-PROFILE.md)
+porti ishda; qolgan settings va auth alohida ochiq.
+I4b AI adapteri PR #130 bilan main’da `a25cf4b`:
+[scope, compact transcript va tekshiruv](I4B-AI-MESSENGER.md).
+1961 Python OK/61 Node PASS; final CI `36192585672` uchala PASS;
+default-OFF AI flag. AWS AI sahifasi hanuz legacy.
 [R1-public dalili](R1-PUBLIC-RELEASE.md): final CI1948×2, zaxira/drill,
 clean image, HTTPS/mobile va renderer rollback PASS. Real-device/real-content
-qabuli, I4b AI va I5ning qolgan qismlari–I9 ochiq.
+qabuli, AI relizi va I5ning qolgan qismlari–I9 ochiq.
 
 ## 1. Qayerdamiz
 
@@ -204,8 +206,8 @@ ularning implementatsiya, initial zaxira yoki rollout ishini qayta boshlamang.
 Public/learning/lesson/teacher/human messenger ON; [ichki rollout](R1-INTERNAL-RELEASE.md)
 ham bajarildi. Uni yoki synthetic datasetni qayta yaratmang. R1da qolganlari:
 real-device/owner-content qabuli, history image/cache xavfi va yangi portlar.
-Navbatdagi kod ishi **I4b Messenger B — AI**. Mavjud provider/quota/context
-adapteri; yangi AI engine
-yoki prototip yaratilmaydi. Submission/grade/XP canonical servislar orqali qoladi.
+I4b ham PR130 `a25cf4b` bilan main’da; qayta port qilinmaydi.
+Navbatdagi kod ishi **I5b.1 Profil/Hisob**, so‘ng I5 auth/settings/records qoldig‘i.
+Yangi AI engine yoki prototip yaratilmaydi. Submission/grade/XP canonical servislar orqali qoladi.
 Yangi trial, framework, global shell rewrite yoki DB ko‘chirish boshlamang.
 Single checkout saqlanadi.
