@@ -1,0 +1,17 @@
+{% extends 'frontend_v1/platform.html' %}
+{% load static %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'frontend_v1/css/study.css' %}"><link rel="stylesheet" href="{% static 'frontend_v1/css/directory.css' %}">{% endblock %}
+{% block content %}
+<div class="p-page-heading"><div><p class="c-eyebrow">USTOZ / O‘QUV JARAYONI</p><h1>Kurslar</h1><p class="c-lead">Biriktirilgan kurslaringiz, kontent holati va guruhlar.</p></div></div>
+{% include 'frontend_v1/teacher/directory_tabs.html' %}
+<div class="f-records-stack">
+<div class="c-actions"><a class="c-button c-button--primary" href="{% url 'backoffice_course_create' %}">Yangi kurs</a><a class="c-button c-button--secondary" href="{% url 'backoffice_lessons' %}">Darslar muharriri</a><a class="c-button c-button--secondary" href="{% url 'backoffice_exams' %}">Imtihonlar muharriri</a></div><p class="c-caption">Muharrirlar avvalgi ko‘rinishda ochiladi. Ro‘yxatni ko‘rish kursni nashr qilmaydi.</p>
+<ul class="f-directory-groups" aria-label="Biriktirilgan kurslar">
+{% for course in courses %}<li class="c-card p-panel f-directory-group">
+<div class="c-section-title"><span class="c-badge">{{ course.get_level_display }}</span><span class="c-badge">{% if course.is_active %}Nashr etilgan{% else %}Qoralama{% endif %}</span></div><h2>{{ course.title }}</h2>
+<dl class="f-directory-facts"><div><dt>Darslar</dt><dd>{{ course.lessons_total }}</dd></div><div><dt>Imtihonlar</dt><dd>{{ course.exams_total }}</dd></div><div><dt>Faol kirishli a’zoliklar</dt><dd>{{ course.students_total }}</dd></div></dl>
+<h3>Kurs guruhlari</h3><ul class="f-directory-links">{% for cohort in course.cohorts.all %}<li><strong>{{ cohort.name }}</strong><a class="c-text-link" href="{% url 'teacher_students' %}?cohort={{ cohort.pk }}">O‘quvchilar{% include 'frontend_v1/icon.html' with name='arrow' %}</a></li>{% empty %}<li>Bu kursga hali guruh biriktirilmagan.</li>{% endfor %}</ul>
+<a class="c-button c-button--secondary" href="{% url 'backoffice_course_edit' course.pk %}">Kurs ma’lumotlarini tahrirlash</a>
+</li>{% empty %}<li class="c-card c-empty"><h2>Biriktirilgan kurslar yo‘q</h2><p>Boshqa ustozlarning kurslari ko‘rsatilmaydi.</p></li>{% endfor %}</ul>
+<p class="c-caption">Faol a’zoliklar soni alohida odamlar soni emas. Bir o‘quvchi turli guruhlarda a’zo bo‘lishi mumkin.</p>
+</div>{% endblock %}

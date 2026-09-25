@@ -6,7 +6,7 @@ import test from 'node:test';
 const source = readFileSync(new URL('../../static/frontend_v1/js/practice.js', import.meta.url), 'utf8');
 const prefix = 'azurelms:v1:practice:';
 const key = prefix + 'session:1:1:assignment-1';
-function harness({draft, revision='new', serverAnswer='', serverStatus='', bound=false, blockedStorage=false, online=true, quiz=false, review=false, reviewAck=false, pendingValues, secondFile=false} = {}) {
+function harness({draft, revision='new', serverAnswer='', serverStatus='', bound=false, blockedStorage=false, online=true, quiz=false, review=false, attendance=false, reviewAck=false, pendingValues, secondFile=false} = {}) {
   const element = () => ({events:{}, dataset:{}, attrs:{}, hidden:true, value:'', type:'textarea', name:'answer_text',
     addEventListener(n,f){this.events[n]=f;}, setAttribute(n,v){this.attrs[n]=v;}, removeAttribute(n){delete this.attrs[n];}, focus(){this.focused=true;}});
   const field=element(), radio=element(), status=element(), conflict=element(), restore=element(), discard=element(), button=element(), count=element(), details={open:false};
@@ -16,24 +16,46 @@ function harness({draft, revision='new', serverAnswer='', serverStatus='', bound
   if (review) {
     fields.splice(0, fields.length, ...['action', 'teacher_feedback', 'awarded_xp'].map(name => ({...element(), name, value: name === 'awarded_xp' ? '0' : '', dataset:{draftSaved: pendingValues?.[name] || ''}})));
   }
+  if (attendance) fields.splice(0, fields.length, ...['att_1','att_2'].map(name=>({...element(),name,value:pendingValues?.[name]||'',dataset:{draftSaved:pendingValues?.[name]||''}})));
+  const allPresent=element();
   const file={files:[]};
   const question={dataset:{questionName:'answer_1',savedChoice:pendingValues || ''}};
   const form=element();
-  form.dataset={practiceForm:review?'review-1':quiz?'quiz-1':'assignment-1',revision,serverAnswer,serverStatus,...(bound?{bound:'true'}:{}),...(reviewAck?{draftConfirmed:'true'}:{})};
+  form.dataset={practiceForm:attendance?'attendance-1-1':review?'review-1':quiz?'quiz-1':'assignment-1',revision,serverAnswer,serverStatus,...(bound?{bound:'true'}:{}),...(reviewAck?{draftConfirmed:'true'}:{})};
   form.closest=()=>details;
-  form.querySelector=s=>({'[data-draft-status]':status,'[data-draft-conflict]':conflict,'[type="submit"]':button,'[data-answer-count]':quiz?count:null,'[data-draft-restore]':restore,'[data-draft-discard]':discard}[s]);
+  form.querySelector=s=>({'[data-attendance-all]':attendance?allPresent:null,'[data-draft-status]':status,'[data-draft-conflict]':conflict,'[type="submit"]':button,'[data-answer-count]':quiz?count:null,'[data-draft-restore]':restore,'[data-draft-discard]':discard}[s]);
   form.querySelectorAll=s=>({'[data-draft-field]':fields,'[type="file"]':[file],'[data-question-name]':quiz?[question]:[]}[s]||[]);
   const otherForm={...form,events:{},dataset:{...form.dataset,practiceForm:'assignment-2'},querySelectorAll:s=>s==='[type="file"]'?[{files:[{name:'other.pdf'}]}]:form.querySelectorAll(s)};
   const store=new Map([[prefix+'old-session:1:1:assignment-1','old']]);
-  const ownKey=review?key.replace('assignment-1','review-1'):quiz?key.replace('assignment-1','quiz-1'):key;
+  const ownKey=attendance?key.replace('assignment-1','attendance-1-1'):review?key.replace('assignment-1','review-1'):quiz?key.replace('assignment-1','quiz-1'):key;
   if (draft) store.set(ownKey,JSON.stringify(draft));
   const sessionStorage={get length(){return store.size;},key:i=>[...store.keys()][i],getItem:k=>store.get(k)||null,removeItem:k=>store.delete(k),setItem:(k,v)=>{if(blockedStorage)throw Error('denied');store.set(k,v);}};
   const root={dataset:{practiceScope:'session',practiceLesson:'1:1'},querySelectorAll:()=>secondFile?[form,otherForm]:[form]};
   const events={},location={reload(){location.reloaded=true;}};
   runInNewContext(source,{document:{querySelector:s=>s==='[data-practice-scope]'?root:null},window:{sessionStorage,navigator:{onLine:online},location,confirm:()=>false,addEventListener:(n,f)=>events[n]=f}});
   const fire=fn=>{const e={prevented:false,preventDefault(){this.prevented=true;}};fn(e);return e;};
-  return {form,field,fields,radio,file,status,conflict,restore,discard,button,count,details,store,ownKey,events,location,fire};
+  return {form,field,fields,allPresent,radio,file,status,conflict,restore,discard,button,count,details,store,ownKey,events,location,fire};
 }
+test('attendance bulk selection changes draft only and never submits',()=>{
+  const h=harness({attendance:true}); assert.equal(h.allPresent.hidden,false);
+  h.allPresent.events.click(); assert.deepEqual(h.fields.map(f=>f.value),['present','present']);
+  assert.deepEqual(JSON.parse(h.store.get(h.ownKey)).values,{att_1:'present',att_2:'present'});
+  assert.equal(JSON.parse(h.store.get(h.ownKey)).pending,false); assert.equal(h.form.attrs['aria-busy'],undefined);
+});
+test('stale attendance disables bulk changes until explicit reconciliation',()=>{
+  const h=harness({attendance:true,revision:'new',draft:{revision:'old',values:{att_1:'absent',att_2:''},pending:false}});
+  assert.equal(h.allPresent.disabled,true); h.allPresent.events.click(); assert.equal(h.fields[0].value,'');
+  h.restore.events.click(); assert.equal(h.fields[0].value,'absent'); assert.equal(h.allPresent.disabled,false);
+});
+test('blank attendance no-op is acknowledged only by a matching native redirect flash',()=>{
+  const values={att_1:'',att_2:''};
+  for (const ack of [true,false]) {
+    const h=harness({attendance:true,revision:'same',reviewAck:ack,pendingValues:values,draft:{revision:'same',values,pending:true}});
+    assert.equal(h.store.has(h.ownKey),!ack);
+    if (ack) assert.match(h.status.textContent,/Davomat yuborilishi serverda tasdiqlandi/);
+    else assert.equal(h.button.disabled,true);
+  }
+});
 test('teacher review restores input only, not confirmation or persisted XP',()=>{
   const values={action:'revision',teacher_feedback:'Keep this draft',awarded_xp:'15'};
   const h=harness({review:true,revision:'old',draft:{revision:'old',values,pending:false}});

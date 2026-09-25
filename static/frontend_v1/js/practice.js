@@ -28,9 +28,12 @@
     const block = value => {
       blocked = value; button.disabled = value; conflict.hidden = !value;
       [...fields, ...form.querySelectorAll('[type="file"]')].forEach(field => { field.disabled = value; });
+      const bulk = form.querySelector('[data-attendance-all]');
+      if (bulk) bulk.disabled = value;
     };
     const apply = data => fields.forEach(f => { if (f.type === 'radio') f.checked = data[f.name] === f.value; else if (typeof data[f.name] === 'string') f.value = data[f.name]; });
-    const saved = form.dataset.practiceForm.startsWith('review-') ? Object.fromEntries(fields.map(f => [f.name, f.dataset.draftSaved])) :
+    const attendance = form.dataset.practiceForm.startsWith('attendance-');
+    const saved = attendance || form.dataset.practiceForm.startsWith('review-') ? Object.fromEntries(fields.map(f => [f.name, f.dataset.draftSaved])) :
       form.dataset.practiceForm.startsWith('assignment-') ? {answer_text: form.dataset.serverAnswer} :
       Object.fromEntries([...form.querySelectorAll('[data-question-name]')].filter(q => q.dataset.savedChoice).map(q => [q.dataset.questionName, q.dataset.savedChoice]));
     let pending = false, blocked = false;
@@ -52,10 +55,12 @@
       save(); // The authoritative validation response keeps posted text/choices.
     } else if (draft && draft.pending && same(draft.values, saved) && (
       draft.revision !== form.dataset.revision ||
+      (attendance && form.dataset.draftConfirmed === 'true') ||
       (draft.hadFile === false && form.dataset.serverStatus === 'pending' && form.dataset.revision !== 'new')
     )) {
       storage(store => store.removeItem(key));
-      status.textContent = form.dataset.draftConfirmed === 'true' ?
+      status.textContent = attendance && form.dataset.draftConfirmed === 'true' ?
+        'Davomat yuborilishi serverda tasdiqlandi. Saqlangan holat har bir qatorda ko‘rsatilgan.' : form.dataset.draftConfirmed === 'true' ?
         'Yuborish serverda tasdiqlandi. Yakuniy qaror va XP saqlangan tekshiruvda.' :
         'Yuborilgan javob serverdagi saqlangan natijaga mos.';
     } else if (draft && (draft.pending || draft.revision !== form.dataset.revision)) {
@@ -82,6 +87,15 @@
     });
     form.addEventListener('input', () => { if (!blocked && !submitting) save(); });
     form.addEventListener('change', () => { if (!blocked && !submitting) save(); });
+    const allPresent = form.querySelector('[data-attendance-all]');
+    if (attendance && allPresent) {
+      allPresent.hidden = false;
+      allPresent.addEventListener('click', () => {
+        if (blocked || submitting) return;
+        fields.forEach(field => { field.value = 'present'; });
+        save();
+      });
+    }
     form.addEventListener('submit', event => {
       if (blocked || submitting) { event.preventDefault(); return; }
       if (window.navigator.onLine === false) {

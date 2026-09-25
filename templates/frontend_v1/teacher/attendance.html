@@ -1,0 +1,27 @@
+{% extends 'frontend_v1/platform.html' %}
+{% load static %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'frontend_v1/css/study.css' %}"><link rel="stylesheet" href="{% static 'frontend_v1/css/directory.css' %}"><script src="{% static 'frontend_v1/js/practice.js' %}" defer></script>{% endblock %}
+{% block content %}
+<div class="p-page-heading"><div><p class="c-eyebrow">USTOZ / O‘QUV JARAYONI</p><h1>Davomat</h1><p class="c-lead">Guruh va darsni tanlang. Belgilarni tekshirib, alohida saqlang.</p></div></div>
+<div class="f-records-stack"{% if attendance_form %} data-practice-scope="{{ practice_scope }}" data-practice-lesson="attendance-{{ cohort.pk }}-{{ lesson.pk }}"{% endif %}>
+{% if cohorts %}<section class="c-card p-panel f-records-stack" aria-label="Davomat varag‘ini tanlash">
+<p class="c-caption">Hozir ochiq: {{ cohort.name }} · {{ lesson.title|default:'Darslar yo‘q' }}</p>
+<form method="get" class="f-records-filter"><div><label class="c-field__label" for="attendance-cohort">Guruh</label><select class="c-field" id="attendance-cohort" name="cohort">{% for group in cohorts %}<option value="{{ group.pk }}"{% if group.pk == cohort.pk %} selected{% endif %}>{{ group.name }} · {{ group.course.title }}</option>{% endfor %}</select></div><button class="c-button c-button--secondary" type="submit">Guruhni qo‘llash</button></form>
+{% if lessons %}<form method="get" class="f-records-filter"><input type="hidden" name="cohort" value="{{ cohort.pk }}"><div><label class="c-field__label" for="attendance-lesson">Dars</label><select class="c-field" id="attendance-lesson" name="lesson">{% for item in lessons %}<option value="{{ item.pk }}"{% if item.pk == lesson.pk %} selected{% endif %}>{{ item.module.title }} · {{ item.title }}</option>{% endfor %}</select></div><button class="c-button c-button--secondary" type="submit">Darsni qo‘llash</button></form>{% endif %}
+<p class="c-caption">Tanlashning o‘zi varaqni almashtirmaydi. Tegishli “Qo‘llash” tugmasini bosing.</p></section>{% endif %}
+{% if not cohort %}<section class="c-card c-empty"><h2>Faol guruhlar yo‘q</h2><p>Boshqa ustozning guruhi ochilmaydi.</p></section>
+{% elif not lesson %}<section class="c-card c-empty"><h2>Bu kursda hali darslar yo‘q</h2></section>
+{% elif not rows %}<section class="c-card c-empty"><h2>Davomat uchun o‘quvchilar yo‘q</h2><p>Guruhda faol kirishli a’zoliklar bo‘lishi kerak.</p></section>
+{% else %}<section class="c-card p-panel f-records-stack" aria-labelledby="attendance-sheet-title"><div class="c-section-title"><div><p class="c-eyebrow">{{ cohort.name }}</p><h2 id="attendance-sheet-title">{{ lesson.title }}</h2></div><span class="c-badge">{{ rows|length }} o‘quvchi</span></div>
+<p class="c-caption">Yangi qayd sanasi: {{ attendance_date|date:'d.m.Y' }}. Avvalgi qaydning sanasi saqlanadi; tarixda bir nechta qayd bo‘lsa eng oxirgisi tahrirlanadi.</p>
+<div class="c-alert c-alert--info"><p>Davomat saqlanganda tegishli XP va faollik serverda hisoblanadi. Bu amal dars ruxsatini yoki bajarilganlik belgisini o‘zgartirmaydi. Tanlanmagan qator “Kelmadi” emas; bo‘sh tanlov avvalgi qaydni o‘chirmaydi.</p></div>
+<form method="post" class="f-records-stack" data-practice-form="attendance-{{ cohort.pk }}-{{ lesson.pk }}" data-revision="{{ attendance_revision }}"{% if attendance_form.is_bound %} data-bound="true"{% endif %}{% if attendance_ack %} data-draft-confirmed="true"{% endif %}>
+{% csrf_token %}<input type="hidden" name="v1_attendance" value="1"><input type="hidden" name="cohort" value="{{ cohort.pk }}"><input type="hidden" name="lesson" value="{{ lesson.pk }}">{{ attendance_form.revision }}
+<div id="attendance-errors"{% if attendance_form.errors %} class="c-alert c-alert--info" role="alert" tabindex="-1" data-form-errors{% endif %}>{% for error in attendance_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}{% for field in attendance_form %}{% for error in field.errors %}<p>{{ field.label }}: {{ error }}</p>{% endfor %}{% endfor %}</div>
+<fieldset class="f-attendance-inputs"><legend class="c-field__label">O‘quvchilar holati</legend><button class="c-button c-button--secondary" type="button" data-attendance-all hidden>Hammasini “Keldi” qilish</button>
+<ul class="f-directory-roster">{% for row in rows %}<li class="f-directory-row"><div class="f-directory-person"><h3>{{ row.enrollment.student.get_full_name|default:row.enrollment.student.username }}</h3><p class="c-caption">Server: {% if row.record %}{{ row.record.get_status_display }} · {{ row.record.date|date:'d.m.Y' }} · {{ row.record.xp_awarded }} XP{% else %}Hali qayd etilmagan{% endif %}</p>{% if row.percent != None %}<p class="c-caption">Umumiy davomat: {{ row.percent }}%</p>{% endif %}</div><div>{{ row.field.label_tag }}{{ row.field }}</div></li>{% endfor %}</ul>
+<label class="c-choice">{{ attendance_form.confirm_attendance }}<span>{{ attendance_form.confirm_attendance.label }}</span></label></fieldset>
+{% include 'frontend_v1/practice_draft.html' %}<button class="c-button c-button--primary" type="submit">Davomatni saqlash</button>
+</form><div class="c-actions"><a class="c-text-link" href="{% url 'teacher_students' %}?cohort={{ cohort.pk }}">Shu guruh o‘quvchilari</a><a class="c-text-link" href="{% url 'teacher_release' %}?cohort={{ cohort.pk }}">Dars ruxsatini alohida boshqarish</a></div>
+</section>{% endif %}</div>
+{% endblock %}

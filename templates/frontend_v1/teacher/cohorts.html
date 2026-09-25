@@ -1,0 +1,14 @@
+{% extends 'frontend_v1/platform.html' %}
+{% load static %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'frontend_v1/css/study.css' %}"><link rel="stylesheet" href="{% static 'frontend_v1/css/directory.css' %}">{% endblock %}
+{% block content %}
+<div class="p-page-heading"><div><p class="c-eyebrow">USTOZ / O‘QUV JARAYONI</p><h1>Guruhlar</h1><p class="c-lead">Biriktirilgan guruhlar, o‘quvchilar va davomat.</p></div><span class="c-badge">{{ cohorts|length }} ta guruh</span></div>
+{% include 'frontend_v1/teacher/directory_tabs.html' %}
+<ul class="f-directory-groups" aria-label="Biriktirilgan guruhlar">
+{% for cohort in cohorts %}<li class="c-card p-panel f-directory-group"><div class="c-section-title"><h2>{{ cohort.name }}</h2><span class="c-badge">{% if cohort.is_active %}Faol{% else %}Yopiq{% endif %}</span></div><p class="c-lead">{{ cohort.course.title }}</p>
+<dl class="f-directory-facts"><div><dt>Boshlangan sana</dt><dd>{{ cohort.start_date|date:'d.m.Y' }}</dd></div><div><dt>Faol kirishli a’zoliklar</dt><dd>{{ cohort.members_count }}</dd></div><div><dt>Qabul kutilmoqda</dt><dd>{{ cohort.pending_count }}</dd></div><div><dt>Jami a’zoliklar</dt><dd>{{ cohort.enrollment_count }}</dd></div></dl>
+<a class="c-button c-button--secondary" href="{% url 'teacher_students' %}?cohort={{ cohort.pk }}">O‘quvchilarni ko‘rish</a>
+{% if cohort.is_active %}<a class="c-text-link" href="{% url 'teacher_attendance' %}?cohort={{ cohort.pk }}">Davomat olish</a><a class="c-text-link" href="{% url 'teacher_release' %}?cohort={{ cohort.pk }}">Dars ruxsatlarini boshqarish</a>{% else %}<p class="c-caption">Yopiq guruhda davomat va dars ruxsatlari o‘zgartirilmaydi.</p>{% endif %}
+{% if cohort.telegram_group_link %}<a class="c-text-link" href="{{ cohort.telegram_group_link }}" target="_blank" rel="noopener noreferrer">Telegram guruhi — yangi oynada</a>{% endif %}
+</li>{% empty %}<li class="c-card c-empty"><h2>Biriktirilgan guruhlar yo‘q</h2><p>Boshqa ustozlarning guruhlari ko‘rsatilmaydi.</p></li>{% endfor %}</ul>
+{% endblock %}
