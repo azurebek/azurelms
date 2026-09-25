@@ -7,7 +7,9 @@ bitta tugallangan real oqim maqsad qilinadi. Keyin qolgan prototiplarga
 qaytiladi. **Bu hujjat ko‘chirish rejasi; ko‘chirish bajarildi degani emas.**
 
 Joriy ijro: [I1 — 3 real sahifa lokal ulandi](I1-LEARNING-SHELL.md),
-default OFF; CI/release ochiq. Qolgan I2–I9 navbatlari saqlanadi.
+default OFF; PR #120 CI security gate’da to‘xtadi (existing anyio/autobahn
+paketlaridagi 3 advisory). Merge/release ochiq; tafsilot I1 dalilida.
+Qolgan I2–I9 navbatlari saqlanadi.
 
 ## 1. Qayerdamiz
 

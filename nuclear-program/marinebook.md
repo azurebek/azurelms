@@ -16,6 +16,22 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-25 [Codex]: I1 PR #120 — dependency security gate blokladi
+
+`1dcaf49` implementatsiya va `08ee934` dalil/wiki yozuvi o‘z branch’iga
+push qilinib PR #120 ochildi. Birinchi CI run `36082028361`da secret scan
+PASS, lekin mavjud `anyio==4.12.1` (`CVE-2026-63374`, `CVE-2026-64847`)
+va `autobahn==25.12.2` (`CVE-2026-77528`) bo‘yicha yangi advisory gate’ni
+yiqitdi; production image tekshiruvi shuning uchun SKIPPED.
+
+- `requirements.txt` main bilan bir xil; bu PR paket versiyalarini o‘zgartirmadi.
+- Merge/deploy yo‘q, advisoryni jimgina allowlist qilish yoki gate bypass yo‘q.
+- Lokal 294 Python + 8 Node PASS; full CI yakunlari PR/run sahifasida.
+- Davom: ownerga blocker ma’lum qilinsin; dependency xavfsizlik tuzatishi va
+  uch required check PASSdan so‘ng I1 integratsiyasi. I2 navbati saqlanadi.
+
+---
+
 ## 2026-09-25 [Codex]: I1 — V1 kirish, bosh sahifa va kurslarim real adapteri
 
 Approved Eleventh Trial shell/assets uchta mavjud Django viewga ulandi.

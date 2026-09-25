@@ -1,7 +1,7 @@
 # I1 — kirish, bosh sahifa va kurslarim
 
 2026-09-25. Branch: `codex/frontend-v1-learning-shell`.
-Status: **LOCAL IMPLEMENTED / CI PENDING / NOT DEPLOYED**.
+Status: **LOCAL IMPLEMENTED / CI SECURITY BLOCKED / NOT DEPLOYED**.
 Owner “yangi branch ochib ishni boshla” bilan I1 ijrosini boshladi.
 
 ## Admission va chegarasi
@@ -92,7 +92,7 @@ seed/migrate qilinmadi. Provider/bot tokenlari bo‘sh. Harness ignored
 `playground/frontend-v1-smoke/serve.py`; productionga qo‘shilmaydi.
 
 - 1440×900: desktop login/dashboard, light/dark; uzun course/cohort nomlari.
-- 320×740: login/course list; horizontal overflow yo‘q (document width 305).
+- 320×740: login/dashboard/course list; horizontal overflow yo‘q (document width 305).
 - 390×844: kursi yo‘q hisob, dark; document width 375, layout sig‘adi.
 - Noto‘g‘ri parol → o‘zbekcha xato + username/next qoladi; to‘g‘ri kirish
   → so‘ralgan kurslarim; boshqa hisobga o‘tganda oldingi kurslar ko‘rinmaydi.
@@ -103,6 +103,24 @@ seed/migrate qilinmadi. Provider/bot tokenlari bo‘sh. Harness ignored
   ochilmadi, jonli Telegram tasdig‘i tekshirilmagan.
 - Kuzatilgan browser console error/warn: 0. Bu barcha device/transport
   kombinatsiyasi yoki real telefon testi emas.
+
+## PR va integratsiya to‘sig‘i
+
+Implementation: `1dcaf49`; birinchi CI head: `08ee934`.
+[PR #120](https://github.com/azurebek/azurelms/pull/120),
+[CI run 36082028361](https://github.com/azurebek/azurelms/actions/runs/36082028361).
+
+Required xavfsizlik jobidagi `audit_dependencies` FAIL: mavjud
+`anyio==4.12.1` uchun `CVE-2026-63374`, `CVE-2026-64847`; mavjud
+`autobahn==25.12.2` uchun `CVE-2026-77528` reyestrda yo‘q.
+Bu PR `requirements.txt`ni o‘zgartirmagan. Secret scan PASS, lekin
+paket xavfsizlik gate’i yiqilgani sabab production image qadamlari SKIPPED.
+Bu logdagi advisory identifikatorlari; ta’sir/fix-versiya auditi hali qilinmadi.
+
+Merge/deploy qilinmadi, gate bypass va advisory allowlist qo‘shilmadi.
+Paketlarni yangilash/tekshirish alohida tuzatishni talab qiladi; keyin
+uchala required job yana yashil bo‘lishi kerak. SQLite/PostgreSQL full-suite
+yakunlari run sahifasidan tekshiriladi; lokal 294 PASS ularning o‘rnini bosmaydi.
 
 ## Release oldidan qolganlar
 

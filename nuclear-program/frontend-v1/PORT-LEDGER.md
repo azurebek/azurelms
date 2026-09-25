@@ -11,7 +11,9 @@ ulandi; flag default OFF. Deploy hali 0, I2–I9 ochiq.
   2026-09-25: 95 preview → 76 source UI name, 54 template; 44 unmapped UI/alias.
   [Inventar](INVENTORY.md), [strategiya](README.md). Runtime o‘zgartirilmagan.
 - [-] **I1 — V1 foundation + login/dashboard/my-courses.** Lokal runtime va
-  test/browser PASS; PR/CI hali ochiq. [Adapter dalili](I1-LEARNING-SHELL.md).
+  test/browser PASS; [PR #120](https://github.com/azurebek/azurelms/pull/120).
+  CI security BLOCKED: existing anyio/autobahn bo‘yicha 3 yangi advisory;
+  merge/deploy qilinmadi. [Adapter dalili](I1-LEARNING-SHELL.md).
   Flag OFF: existing
   UI ishlaydi. Flag ON: haqiqiy user va real enrollmentlar; logout POST,
   CSRF, safe next, role menu, empty/multi-course, theme/draft isolation.
