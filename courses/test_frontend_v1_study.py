@@ -12,7 +12,7 @@ from core.flags import flag_by_slug, set_flag
 from courses.models import Assignment, CohortLessonRelease, Course, Lesson, LessonProgress, Module, Quiz
 from library import services
 from library.models import LibraryResource
-from library.test_resources import pdf_upload
+from library.test_resources import PDF_BYTES, pdf_upload
 from users.models import Notification
 
 
@@ -167,7 +167,10 @@ class FrontendStudyTests(TestCase):
         self.assertTemplateUsed(self.client.get(self.lesson_url), 'frontend_v1/lesson.html')
         file_response = self.client.get(file_url)
         self.assertEqual(file_response.status_code, 200)
-        file_response.close()
+        # Consume via Django's test-client wrapper: direct close() emits
+        # request_finished and closes PostgreSQL's TestCase transaction.
+        self.assertEqual(b''.join(file_response.streaming_content), PDF_BYTES)
+        self.assertTrue(file_response.closed)
         self.assertEqual(self.client.get(reverse('lesson_detail', args=[self.course.pk, self.second.pk])).status_code, 302)
         completion = reverse('lesson_completion', args=[self.course.pk, self.lesson.pk]) + f'?cohort={self.cohort.pk}'
         self.client.post(completion)
