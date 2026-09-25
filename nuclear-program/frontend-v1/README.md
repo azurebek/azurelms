@@ -22,10 +22,14 @@ Owner yangi navbati: [I5a public](I5A-PUBLIC.md) → `azurebek.me` AWS release
 qabuli → I4b va qolgan qismlar. Tayyor bo‘laklar qolgan portni kutmaydi.
 I5a lokal runtime `74818ee`: 14 public route adapteri va ixcham mobil menu;
 1945 Python OK (skip45), 53 Node PASS. PR126 main’da `2787e86`;
-image-boundary fix PR127 bilan AWS **`363ff95` deployed**, faqat public V1 ON.
+image-boundary fix PR127 bilan AWS **`363ff95` deployed**. Dastlab public ON;
+keyingi owner ruxsati bilan learning/lesson/teacher/human messenger ham ON.
+[Ichki rollout dalili](R1-INTERNAL-RELEASE.md): haqiqiy HTTPS/WSS synthetic
+oqim va renderer rollback, mobile/desktop owner sessiyasi tekshirildi.
+Hisob/settings hali port qilinmagan, eski ko‘rinishda qoladi.
 [R1-public dalili](R1-PUBLIC-RELEASE.md): final CI1948×2, zaxira/drill,
 clean image, HTTPS/mobile va renderer rollback PASS. Real-device/real-content
-qabuli, qolgan V1 flaglar rollouti, I4b AI va I5ning qolgan qismlari–I9 ochiq.
+qabuli, I4b AI va I5ning qolgan qismlari–I9 ochiq.
 
 ## 1. Qayerdamiz
 
@@ -176,14 +180,15 @@ UI+adapter+test bitta mantiqiy bo‘lakda. Test va ruxsatlar evaziga tezlashtiri
 - Authenticated bo‘lak uchun real test user/cohort/lesson/material, staff va
   student bilan bitta yo‘l; real qurilmada asosiy amal. Staging mavjud emas:
   controlled production test hisobi/dataset uchun owner bilan alohida kelishuv
-  kerak. Yangi UI faqat qabul qilingan bo‘lak uchun yoqiladi.
+  kerak. R1-internal uchun tor kelishuv olindi, pilot bajarildi va dataset
+  faol ishlashdan chiqarildi. Yangi dataset uchun ruxsatni taxmin qilmang.
 - Deploy SHA, health/static/private media, smoke, rollback flag va owner
   go/no-go qaydi. **Public deploy vakolati berildi va reliz bajarildi**:
   zaxira/restore/schema drill, clean image, health/assets va renderer rollback
   dalili [R1-public](R1-PUBLIC-RELEASE.md)da. Bu ishni qayta boshlash kerak emas.
-  Qolgan gate — real-device/account/content qabuli va har bir keyingi bo‘lak
-  uchun release vakolati. Public ruxsati boshqa V1 flaglarini yoqish yoki
-  productionda sinov yozuvlari yaratish ruxsati emas.
+  Keyin ichki rendererlar uchun ham owner vakolati va synthetic account
+  pilot olindi: [R1-internal](R1-INTERNAL-RELEASE.md). Qolgan gate — haqiqiy
+  device/content qabuli va hali port qilinmagan keyingi bo‘laklarning relizi.
 - Ruxsatli kosmetik qarz alohida ro‘yxatda; broken submit, data loss, access
   buzilishi va real bo‘lmagan success “V1 mukammal emas” bahonasi bilan qolmaydi.
 
@@ -193,8 +198,9 @@ Avval git/flag/live SHA holatini fresh tekshiring va
 [R1-public reliz dalili](R1-PUBLIC-RELEASE.md)ni o‘qing. I4a PR125 main’da
 `89f89b7`, public PR126 `2787e86`, image-boundary PR127 `363ff95` — tugagan;
 ularning implementatsiya, initial zaxira yoki rollout ishini qayta boshlamang.
-Public ON, boshqa V1 flaglar OFF. R1da qolganlari: real-device/account/content
-qabuli, history image/cache xavfi va keyingi bo‘laklarning alohida rollouti.
+Public/learning/lesson/teacher/human messenger ON; [ichki rollout](R1-INTERNAL-RELEASE.md)
+ham bajarildi. Uni yoki synthetic datasetni qayta yaratmang. R1da qolganlari:
+real-device/owner-content qabuli, history image/cache xavfi va yangi portlar.
 Navbatdagi kod ishi **I4b Messenger B — AI**. Mavjud provider/quota/context
 adapteri; yangi AI engine
 yoki prototip yaratilmaydi. Submission/grade/XP canonical servislar orqali qoladi.

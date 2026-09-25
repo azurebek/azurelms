@@ -4,8 +4,10 @@ Qabul: `[ ]` ochiq; `[-]` ishda; `[x] ~~...~~` dalil bilan tugagan.
 “Prototype bor” real portga `[x]` qo‘yish uchun yetmaydi.
 Sana emas, tugallangan natija bilan kuzatiladi. I1/I2/I3 main’da;
 I4a PR #125 bilan main’da (`89f89b7`); final CI `36170298967` uchala PASS.
-Flaglar kodda default OFF. AWS `363ff95`: faqat public V1 override ON;
-boshqa V1 flaglar OFF. [R1-public dalili](R1-PUBLIC-RELEASE.md).
+Flaglar kodda default OFF. AWS `363ff95`: public, learning, lesson,
+teacher va human messenger V1 override ON. [R1-public](R1-PUBLIC-RELEASE.md),
+[ichki rollout dalili](R1-INTERNAL-RELEASE.md). Hisob/settings va boshqa
+ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
 
 ## Navbat
 
@@ -38,7 +40,11 @@ boshqa V1 flaglar OFF. [R1-public dalili](R1-PUBLIC-RELEASE.md).
   - [x] ~~Owner ustuvor qilgan R1-public texnik relizi.~~ AWS `363ff95`;
     backup/restore/schema drill, clean image, public ON, HTTPS/mobile va
     renderer OFF/ON rollback PASS. [Dalil](R1-PUBLIC-RELEASE.md).
-  - [ ] Real device/real account qabuli va learning/teacher/messenger rollout.
+  - [x] ~~Owner tasdiqlagan learning/lesson/teacher/human messenger texnik rollout.~~
+    HTTPS synthetic login → release/material → submission/review/quiz,
+    WSS send/edit/stale409, to‘rt renderer rollback; 320/1280 browser PASS.
+    [Dalil va inactive sinov yozuvlari](R1-INTERNAL-RELEASE.md).
+  - [ ] Haqiqiy Android/iOS va owner real-content qabuli.
 - [x] ~~I3 — Teacher review + ro‘yxatlar/davomat.~~ Learner assignment/quiz
   qismi I2bda ulandi.
   - [x] ~~I3a lokal implementatsiya: navbat → yozma ish qarori → learner natijasi.~~
@@ -126,8 +132,8 @@ CI / staging / deployed SHA / smoke / owner go-no-go:
 
 2026-09-25 owner javobi: **alohida staging yo‘q, faqat AWS asosiy server bor**.
 Keyinchalik owner public deploy va image-boundary blocker fixni tasdiqladi;
-public reliz bajarildi. Bu qolgan V1 flaglarini yoqishga ruxsat emas. Xavfsiz
-sinov hisobi/dataset, haqiqiy mobil qurilma sinovchisi va keyingi release
-go/no-go hali aniqlanadi. Yangi pulli muhit
-ochish yoki productionda sinov yozuvlari yaratish alohida kelishiladi;
-secrets hujjatga yozilmaydi.
+public reliz bajarildi. Keyingi yozma `boshla` bilan tayyor ichki rendererlar
+rollouti, alohida javob bilan yopiq sinov course/accounts tasdiqlandi va
+bajarildi. Test accounts inactive, cohort inactive, course publicdan yashirin.
+Haqiqiy mobil qurilma va real-content qabuli ochiq. Yangi pulli muhit yoki
+boshqa production dataset bu tor ruxsatga kirmaydi; secrets yozilmaydi.
