@@ -9,8 +9,11 @@ qaytiladi. **Bu hujjat ko‘chirish rejasi; ko‘chirish bajarildi degani emas.*
 Joriy ijro: [I1 — 3 real sahifa](I1-LEARNING-SHELL.md) PR #120 orqali
 `b991a68` bilan main’ga qo‘shildi; uch required CI PASS. Advisory 0,
 default OFF, AWS release ochiq. [I2a — dars/material va ustoz release](I2-LESSON-RELEASE.md)
-keyingi adapter bo‘lagi; practice darslari fallbacki sababli I2 hali to‘liq yopilmaydi.
-I3–I9 navbatlari saqlanadi.
+PR #121 bilan main’da (`5528c74`, uch required CI PASS).
+[I2b — assignment/quiz](I2B-PRACTICE.md) real adapteri va lokal tekshiruvi
+bajarildi (`7e2efb6`); required CI/merge yakuni branch PRida tekshiriladi.
+Practice darslari fallbacki olib tashlandi. R1 staging/device/AWS qabuli,
+I3ning teacher review/ro‘yxatlar/davomat qismi va I4–I9 ochiq.
 
 ## 1. Qayerdamiz
 
@@ -75,11 +78,11 @@ hozircha ishlaydi, shuning uchun yangi editorlar birinchi release sharti emas.
 | I8 | Learner exam → result → ustoz review | Juda katta: timer, answer/audio, draft/publication kontraktlari |
 | I9 | Classbook tayyorlash → live session → natija | Juda katta: ko‘p foydalanuvchi, socket/reconnect, turli mashqlar |
 
-I3 assignment/quiz lesson tabsiga tegishli: I2da amaldagi tab funksiyasi
-yo‘qotilmaydi. I3 tayyor bo‘lmaguncha existing renderer/controller izolyatsiyasi
-sinovdan o‘tadi; bu imkonsiz bo‘lsa **dars sahifasi to‘liq eski rendererda qoladi**,
-yarim ishlaydigan yangi dars yoqilmaydi. I2 PASS yozilmaydi; shu bog‘liq I3
-qismi tugatiladi. Har navbat yangi muhokama/approval turn talab qilmaydi;
+I3ning learner assignment/quiz tablari I2 bog‘liqligi sifatida **I2b**ga
+ko‘chirildi; amaldagi tab funksiyasi yo‘qotilmaydi. I2a vaqtida practice
+darsi to‘liq eski rendererda qolgan edi; I2b native form + canonical service
+orqali shu bog‘liqlikni yopadi. I3ning teacher review/ro‘yxatlar/davomati
+alohida qoladi. Har navbat yangi muhokama/approval turn talab qilmaydi;
 faqat mahsulot qarori yoki yangi tashqi vakolat zarur bo‘lsa so‘raladi.
 
 I5 bitta ulkan PR emas: public/records read-only, auth/account, privacy/preferences
@@ -168,8 +171,10 @@ UI+adapter+test bitta mantiqiy bo‘lakda. Test va ruxsatlar evaziga tezlashtiri
 
 ## 8. Keyingi agent/turn uchun kirish
 
-`PORT-LEDGER.md`dagi birinchi ochiq band — **I2**. I2a dalili va branch/PR
-holatini tekshiring; keyin **I2b — assignment/quizli darsning to‘liq adapteri**.
-Bu bog‘liq I3 qismi tugamaguncha I2 PASS yozilmaydi. Admission launch-critical;
-submission/grade/XP canonical servislar orqali qoladi. Yangi trial, framework,
-global shell rewrite yoki DB ko‘chirish boshlamang. Single checkout saqlanadi.
+Avval **I2b branch PRining required CI/merge yakuni**ni tekshiring;
+lokal implementatsiyani qayta boshlamang. Keyin **R1** uchun staging/test
+hisob/device/AWS vakolatini aniqlang; uni kutayotgan paytda **I3 teacher
+review/ro‘yxatlar/davomat** real porti alohida xavfsiz bo‘lak bo‘lib davom
+etishi mumkin. Submission/grade/XP canonical servislar orqali qoladi.
+Yangi trial, framework, global shell rewrite yoki DB ko‘chirish boshlamang.
+Single checkout saqlanadi.

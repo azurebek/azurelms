@@ -2,7 +2,8 @@
 
 Qabul: `[ ]` ochiq; `[-]` ishda; `[x] ~~...~~` dalil bilan tugagan.
 “Prototype bor” real portga `[x]` qo‘yish uchun yetmaydi.
-Sana emas, tugallangan natija bilan kuzatiladi. I1 main’da; I2 ishda.
+Sana emas, tugallangan natija bilan kuzatiladi. I1/I2a main’da; I2b lokal tayyor,
+required CI va integratsiya yakuni uning PRida tekshiriladi.
 Flaglar default OFF. Ushbu port doirasida deploy hali 0.
 
 ## Navbat
@@ -21,14 +22,19 @@ Flaglar default OFF. Ushbu port doirasida deploy hali 0.
 - [-] **I2 — O‘qish/material + teacher home/release.** Real lesson kontenti,
   cohort saqlanishi, direct private file gate; teacher open/lock→student
   read/write/file. Assignment/quiz mavjud funksiyasi saqlanmasa I2 yopilmaydi.
-  - I2a: matn/video/material + teacher home/release real adapteri.
-    [Implementatsiya va dalil](I2-LESSON-RELEASE.md); PR/CI holati shu dalilda.
-  - [ ] I2b: assignment/quizli darsning to‘liq ko‘chirilishi; hozir bu
-    darslar to‘liq legacy rendererda. I2/R1 tayyor deb hisoblanmaydi.
+  - [x] ~~I2a: matn/video/material + teacher home/release.~~ PR #121,
+    `5528c74`, required CI `36086594312` uchala PASS.
+    [Implementatsiya va dalil](I2-LESSON-RELEASE.md).
+  - [x] ~~I2b implementatsiya va lokal tekshiruv: assignment/quizli dars.~~
+    `7e2efb6`; 1879 Python OK (skip=42), 28 Node PASS; native yuborish,
+    review status, latest result, private fayl va scoped qoralama.
+    [Dalil va cheklovlar](I2B-PRACTICE.md). Integration required CI/merge
+    yakuni PRda; uning PASSisiz umumiy I2 yoki R1 PASS deb hisoblanmaydi.
 - [ ] **R1 — Birinchi ishlaydigan bo‘lakni chiqarish.** I1+I2ning relevant
   test/browser, required CI, staging, deploy smoke va rollbacki. I3–I9ni kutmaydi.
-- [ ] **I3 — Assignment/quiz/review + teacher ro‘yxatlar/davomat.** Juft
-  learner/teacher projection; saved draft vs grade, double-submit, XP parity.
+- [ ] **I3 — Teacher review + ro‘yxatlar/davomat.** Learner assignment/quiz
+  qismi I2bda ulandi. Teacherning yangi review projectioni hali ko‘chmagan;
+  mavjud real review endpoint/navbati ishlaydi. XP parity testi I2bda bor.
 - [ ] **I4 — Messenger B.** Guruh/ustoz: real room/history/send/edit/delete/
   attachment/reconnect; AI: mavjud provider/choice/quota/context/error.
   Qoralama saqlansin, layout barcha gap holatlarida ishlasin; yangi AI engine yo‘q.
@@ -64,7 +70,8 @@ Runtime source: `d0cce32`. Production kod o‘zgarmagan.
 
 Root tekshiruvlarda `AZURELMS_SKIP_ENV_FILE=1`, `GEMINI_API_KEY=''`,
 `TELEGRAM_BOT_TOKEN=''`. Test DB vaqtinchalik; current DBga seed/migrate yo‘q.
-Full root suite bugun yugurilmadi. 18-sentabr marinebook’da Windows
+Baseline vaqtida full root suite yugurilmagan edi. Keyingi I1/I2a/I2b
+full natijalari tegishli dalil hujjatlarida. 18-sentabr marinebook’da Windows
 fontTools/DLL bilan bog‘liq `ai.documents` failure’lari bor; yangi full CI
 natijasi ularni taxminan PASS deb almashtirmaydi.
 

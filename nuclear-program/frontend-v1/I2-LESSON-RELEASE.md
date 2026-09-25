@@ -18,7 +18,7 @@ Admission: **ADMIT — launch-critical** (ownerning V1 port qarori).
 - Verification: ON/OFF, auth/scope/CSRF, explicit target, duplicate/no-op,
   teacher open/lock → student read/file/completion; desktop/mobile/theme.
 
-## I2a chegarasi
+## I2a chegarasi (tarixiy; I2b bilan kengaytirildi)
 
 Ustoz home/release va matn/video/material dars adapteri. Assignment yoki
 quizli dars **butunlay existing rendererda qoladi**; hech bir tab olib
@@ -92,3 +92,12 @@ qilinadi; PDF baytlari va response yopilgani ham assert qilinadi. Hech bir
 permission/DB assertion yoki CI gate olib tashlanmadi. Lokal yuqoridagi
 focused command qayta: **40 PASS**. Tuzatilgan HEAD uchun uchala required
 CI qayta o‘tishi shart; yakuniy holat PRda, merge/deploy hali da’vo qilinmaydi.
+
+### Yakuniy fresh tekshiruv — 2026-09-25
+
+PR #121 **MERGED**, main commit `5528c74dc5cf1d4f8675e8cda0361769d84836bd`.
+Tuzatilgan HEAD uchun CI `36086594312`: uchala required job PASS;
+SQLite 1862 OK (skip=40), PostgreSQL 1862 OK (skip=20), Node 13 PASS.
+Bu tekshiruv I2b ishining boshida GHdan olindi. Yuqoridagi CI-kutiladi va
+practice-fallback holatlari I2a bosqichining tarixiy cheklovi;
+[I2b](I2B-PRACTICE.md) practice darsini ham V1ga ulaydi. R1 release ochiq.

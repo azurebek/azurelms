@@ -28,3 +28,73 @@ I2a oldingi PR #121 (`5528c74`) main’da. CI `36086594312` uchala PASS;
 SQLite 1862 OK (skip=40), PostgreSQL 1862 OK (skip=20), Node 13 PASS.
 I2b uchun natijalar quyida faqat haqiqiy tekshiruvdan keyin yoziladi.
 Staging, haqiqiy telefon, AWS rollout va owner go/no-go **ochiq**.
+
+## Implementatsiya va dalil
+
+Runtime/test commit: `7e2efb6`. Required CI/merge yakuni shu branchning PRida;
+bu yozuv paytida lokal implementatsiya va browser tekshiruvi tugadi.
+
+| Yo‘l | Renderer/controller | Canonical manba |
+|---|---|---|
+| Lesson `?cohort=…&tab=homework` | `practice_assignments.html`, `practice.js` | Existing assignment/submission, review feedback/status |
+| Assignment submit | Native multipart CSRF POST → same tab/cohort GET | `submit_assignment`; invalid input bound 400, locked 403 |
+| Submission file | Existing private file endpoint | Auth/access/file validation; raw media URL yo‘q |
+| Lesson `?cohort=…&tab=quiz` | `practice_quizzes.html`, `practice.js` | Current questions, latest persisted attempt/answers |
+| Quiz submit | Native POST/PRG; legacy JSON saqlangan | `grade_quiz`, best-attempt XP delta, transaction |
+| Teacher review | Existing legacy view/navbat | `review_assignment_submission`; stale instance refresh under lock |
+
+### Lokal tekshiruv
+
+Barcha Django buyruqlari: `AZURELMS_SKIP_ENV_FILE=1`, `GEMINI_API_KEY=''`,
+`TELEGRAM_BOT_TOKEN=''`; `.env.local` va real provider kvotasi ishlatilmadi.
+
+- `venv\Scripts\python.exe manage.py check`: **0 issue**.
+- `venv\Scripts\python.exe manage.py test courses.test_streak_wiring
+  courses.test_assignment_review courses.test_locked_lesson_write_gate
+  --noinput --verbosity 1`: **23 PASS**.
+- `venv\Scripts\python.exe manage.py test courses.test_frontend_v1_practice
+  courses.test_frontend_v1_study users.test_frontend_v1 --noinput --verbosity 1`:
+  **57 OK (skip=1)**; oxirgi template/controller patchdan keyin qayta PASS.
+  PostgreSQL row-lock parallel test SQLite’da capability sabab skip;
+  PostgreSQL required CI uni bajarishi kerak.
+- `venv\Scripts\python.exe manage.py test --noinput --verbosity 1`:
+  **1879 OK (skip=42), 119.225 s**, failure/error 0.
+- `node --test tests/frontend_v1/*.test.mjs`: **28 PASS** (15 practice).
+- Hashed static asset tekshiruvi focused suite ichida; `git diff --check`: PASS.
+
+Backend testlari: ON/OFF, CSRF/auth/foreign/inactive/locked cohort, empty
+assignment no-write, haqiqiy PDF upload/download bytes va outsider 404,
+teacher review→learner feedback, resubmit confirmation/XP reset/reapprove,
+stale review no double credit, malformed quiz no-write, partial answers,
+latest attempt 100→50, JSON/direct-service parity, exception rollback.
+Node: text/choice-only draft, session isolation, bound server error,
+revision/unknown outcome explicit restore/discard, input block until choice,
+pending matching server va unchanged-text no-op, file outcome no false ack,
+other-form file warning, offline, double-submit, denied storage, Back reload.
+
+### Browser
+
+Computer-use orqali IAB, alohida vaqtinchalik DB/media va cookieli **haqiqiy
+Django** server `127.0.0.1:8050`; production DB/flaglar untouched.
+1440px desktop dark, 320px compact dark, 390px light ko‘rildi; horizontal
+overflow kuzatilmadi. Actual learner login→empty assignment 400→text POST→
+persisted pending; quiz partial 400 tanlovni saqladi→100%/20 XP→retake 50%/
+0 added XP→reload latest 50% sinandi. Empty quiz va existing needs-revision
+feedback ko‘rindi. Oxirgi patchdan keyin server restart qilinib, yangi login→
+text submit→keyboard Enter bilan unchanged resubmit native no-op va server
+natijasiga mos qoralama tozalanishi qayta tekshirildi. Console warn/error **0**.
+Viewport override olib tashlandi. Real telefon testi emas.
+
+### Chegara va keyingi qadam
+
+- Fayl baytlari draftga kirmaydi; xatoda faylni qayta tanlash kerak. Session
+  storage bloklansa matnni nusxalash ogohlantiriladi. DB transaction filesystem
+  rollbackini kafolatlamaydi; parallel tabs uchun server CAS/operation receipt
+  mavjud deb da’vo qilinmaydi. Duplicate file POST idempotency qo‘shilmadi.
+- Grade formulasi o‘zgarmadi. Reset qilingan bahoning eski XPsi user balansida
+  qolib ketishi tuzatildi, shunda qayta review ikki marta kredit bermaydi.
+- Renderer flag default OFF. OFF legacy UIga qaytaradi, xavfsiz input/atomic
+  invariantlarni qaytarmaydi; model/migration yo‘q. Trial/backup o‘zgarmadi.
+- I2bning required CI/merge yakuni tekshirilsin. Keyin R1 staging/test
+  accounts/haqiqiy qurilma/AWS rollout vakolati va owner go/no-go kerak.
+  I3 teacher review/ro‘yxatlar/davomat yangi UI porti alohida ochiq.
