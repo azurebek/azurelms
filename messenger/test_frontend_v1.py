@@ -167,13 +167,18 @@ class HumanMessengerV1Tests(TestCase):
             self.assertEqual(client.post(reverse('messenger:' + name, args=args)).status_code, 403)
 
     def test_attachment_real_validator_private_download_and_deleted_gate(self):
-        from library.test_resources import pdf_upload
+        from library.test_resources import PDF_BYTES, pdf_upload
         with tempfile.TemporaryDirectory() as media, override_settings(PRIVATE_MEDIA_ROOT=media):
             response = self.client.post(reverse('messenger:upload_message_attachment'), {'room_id': self.room.pk, 'text': 'PDF', 'file': pdf_upload()})
             self.assertEqual(response.status_code, 200)
             payload = response.json()['message']
             self.assertTrue(payload['attachment']['url'].startswith('/messenger/attachment/'))
-            response = self.client.get(payload['attachment']['url']); self.assertEqual(response.status_code, 200); response.close()
+            response = self.client.get(payload['attachment']['url'])
+            self.assertEqual(response.status_code, 200)
+            # Consume via the test client's iterator so its close wrapper preserves
+            # TestCase's transaction (a direct close drops the PostgreSQL connection).
+            self.assertEqual(b''.join(response.streaming_content), PDF_BYTES)
+            self.assertTrue(response.closed)
             self.client.force_login(self.other)
             self.assertEqual(self.client.get(payload['attachment']['url']).status_code, 404)
             self.client.force_login(self.user)
