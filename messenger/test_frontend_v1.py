@@ -70,6 +70,14 @@ class HumanMessengerV1Tests(TestCase):
         self.assertIsNotNone(ChatRoomUserState.objects.get(room=self.room, user=self.user).last_read_at)
         self.assertIsNone(ChatRoomUserState.objects.get(room=self.groups[1], user=self.user).last_read_at)
 
+    def test_flag_rollback_keeps_explicit_room_identity_and_rejects_foreign_type(self):
+        FeatureFlag.objects.filter(slug='frontend_v1_messenger').update(enabled=False)
+        response = self.client.get(reverse('messenger:group'), {'room': self.room.pk})
+        self.assertTemplateUsed(response, 'messenger/group.html')
+        self.assertEqual(response.context['active_chat_room'].pk, self.room.pk)
+        self.assertEqual(response.context['group_room'].pk, self.room.pk)
+        self.assertEqual(self.client.get(reverse('messenger:group'), {'room': self.private.pk}).status_code, 404)
+
     def test_staff_membership_survives_page_and_room_list(self):
         self.client.force_login(self.teacher)
         for url in [reverse('messenger:group') + f'?room={self.room.pk}', reverse('messenger:get_user_rooms')]:

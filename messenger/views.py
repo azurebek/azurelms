@@ -359,8 +359,10 @@ class _MessengerRoomView(LoginRequiredMixin, TemplateView):
                 "tutor": context["tutor_room"],
             }
             active_chat_room = active_room_map.get(self.active_room)
-            if getattr(self, "frontend_v1_enabled", False):
+            if getattr(self, "frontend_v1_enabled", False) or "room" in self.request.GET:
                 active_chat_room = select_human_room(self.request, context, self.active_room, active_chat_room)
+                # A flag rollback must not retarget an existing V1 room link.
+                context["group_room" if self.active_room == "group" else "tutor_room"] = active_chat_room
         context["active_chat_room"] = active_chat_room
         context["active_ai_room_id"] = active_chat_room.id if self.active_room == "ai" and active_chat_room else None
         if active_chat_room:
