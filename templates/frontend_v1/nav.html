@@ -1,5 +1,5 @@
 <nav aria-label="{{ label }}">
-  <p class="s-nav__label">O‘QUV MAYDONI</p>
+  <p class="s-nav__label">{{ frontend_v1_workspace|default:"O‘quv maydoni"|upper }}</p>
   {% for item in frontend_v1_nav %}
   <a class="c-nav-item{% if active_nav == item.name %} is-active{% endif %}" href="{{ item.url }}"{% if active_nav == item.name %} aria-current="page"{% endif %}>{% include "frontend_v1/icon.html" with name=item.icon %}<span>{{ item.label }}</span></a>
   {% endfor %}

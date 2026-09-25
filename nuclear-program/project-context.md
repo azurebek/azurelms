@@ -51,11 +51,21 @@ template/assets qoladi; ON holatda faqat login/dashboard/my-courses
 
 Auth/CSRF/safe-next, enrollment/access va progressning canonical manbasi
 almashtirilmagan. Course CTA course/cohortni mavjud `course_study`ga beradi;
-dars va boshqa ko‘chmagan sahifalar legacy qoladi. Yangi DB model/migration,
+darsning qolgan practice qismi va boshqa ko‘chmagan sahifalar legacy qoladi. Yangi DB model/migration,
 prototype fixture/API yoki frontenddagi mustaqil biznes hisobi yo‘q.
 Lokal kod borligi AWS deploy yoki release qabuli degani emas.
 [Port rejasi](frontend-v1/README.md), [joriy dalil](frontend-v1/I1-LEARNING-SHELL.md),
 [qabul jurnali](frontend-v1/PORT-LEDGER.md).
+
+I2a: `frontend_v1_lesson` matn/video/materialli darsni, `frontend_v1_teacher`
+ustoz dashboard/release’ni tanlaydi; ikkalasi default OFF. Assignment/quiz
+bor dars butunlay existing template/controllerda qoladi (I2b ochiq).
+Teacher release explicit POST cohort talab qiladi; query/body mismatch yoki
+noma’lum guruh boshqa guruhga fallback qilmaydi, hatto flag OFF bo‘lsa ham.
+V1da GET faqat confirmation tayyorlaydi, CSRF POST canonical release servisiga
+boradi; majburiy target/first-drip tasdiqlari serverda ham tekshiriladi.
+Completion optional allowlisted `tab`ni redirectda saqlaydi. Material havolasi
+existing permission-checked endpoint; raw private storage URL ishlatilmaydi.
 
 ---
 

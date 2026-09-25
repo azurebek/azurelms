@@ -18,11 +18,14 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.paginator import Paginator
 from django.db.models import Count, Max, Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
+from django.http import Http404, HttpResponseBadRequest
 from django.utils import timezone
 
 from cohorts.attendance_service import upsert_attendance_and_xp
 from cohorts.models import Attendance, Cohort, Enrollment, enrollment_active_access_q
 from core.access import teacher_course_queryset
+from core.flags import flag_enabled
+from core.frontend_v1 import render_teacher_v1
 from courses.models import (
     AssignmentSubmission,
     Course,
@@ -124,7 +127,7 @@ def teacher_dashboard(request):
             "queue_assignments": pending_assignments[:5],
         }
     )
-    return render(request, "teacher/dashboard.html", context)
+    return render_teacher_v1(request, "teacher/dashboard.html", context)
 
 
 # ---------------------------------------------------------------- guruhlar
@@ -587,6 +590,7 @@ def teacher_release(request):
 
     context = _base_context(request.user, "teacher_release")
     courses = context["teacher_courses"]
+    v1_enabled = flag_enabled("frontend_v1_teacher")
 
     cohorts = list(
         Cohort.objects.filter(course__in=courses, is_active=True)
@@ -596,14 +600,25 @@ def teacher_release(request):
     context["cohorts"] = cohorts
 
     cohort = None
-    cohort_id = request.GET.get("cohort") or request.POST.get("cohort")
-    if cohort_id and str(cohort_id).isdigit():
-        cohort = next((c for c in cohorts if c.id == int(cohort_id)), None)
-    if cohort is None and cohorts:
+    # Reject ambiguous or missing POST targets rather than selecting a different group.
+    cohort_id = request.POST.get("cohort") if request.method == "POST" else request.GET.get("cohort")
+    if request.method == "POST" and (
+        not cohort_id or ("cohort" in request.GET and request.GET["cohort"] != cohort_id)
+    ):
+        return HttpResponseBadRequest("Guruh manzili mos kelmadi. Guruhni qayta tanlang.")
+    try:
+        parsed_cohort_id = int(cohort_id)
+    except (TypeError, ValueError):
+        parsed_cohort_id = None
+    if parsed_cohort_id is not None:
+        cohort = next((c for c in cohorts if c.id == parsed_cohort_id), None)
+    if cohort_id is not None and cohort is None:
+        raise Http404("Guruh topilmadi.")
+    if cohort_id is None and cohorts:
         cohort = cohorts[0]
     context["cohort"] = cohort
     if cohort is None:
-        return render(request, "teacher/release.html", context)
+        return render_teacher_v1(request, "teacher/release.html", context, enabled=v1_enabled)
 
     lessons = list(
         Lesson.objects.filter(module__course=cohort.course)
@@ -611,7 +626,17 @@ def teacher_release(request):
         .order_by("module__order", "order")
     )
 
-    if request.method == "POST":
+    context["drip_active"] = drip_is_active(cohort, cohort.course)
+    confirmation_error = ""
+    if v1_enabled and request.method == "POST":
+        if request.POST.get("confirm_scope") != "yes":
+            confirmation_error = "Guruh, dars va amalni tekshirib, tasdiq belgisini qo‘ying."
+        elif not context["drip_active"] and request.POST.get("confirm_impact") != "yes":
+            confirmation_error = "Birinchi o‘zgarish qolgan darslarni yopishini tasdiqlang."
+        elif len(request.POST.get("note", "")) > 255:
+            confirmation_error = "Izoh 255 belgidan oshmasin."
+
+    if request.method == "POST" and not confirmation_error:
         lesson_id = request.POST.get("lesson")
         action = request.POST.get("action")
         lesson = next((l for l in lessons if str(l.id) == str(lesson_id)), None)
@@ -635,7 +660,6 @@ def teacher_release(request):
         return redirect(f"{request.path}?cohort={cohort.id}")
 
     releases = release_map_for_cohort(cohort)
-    context["drip_active"] = drip_is_active(cohort, cohort.course)
     context["lesson_rows"] = [
         {
             "lesson": lesson,
@@ -644,4 +668,19 @@ def teacher_release(request):
         }
         for lesson in lessons
     ]
-    return render(request, "teacher/release.html", context)
+    if v1_enabled:
+        data = request.POST if request.method == "POST" else request.GET
+        if "lesson" in data or "action" in data:
+            target = next((lesson for lesson in lessons if str(lesson.pk) == data.get("lesson")), None)
+            if target is None or data.get("action") not in {"release", "lock"}:
+                return HttpResponseBadRequest("Dars topilmadi yoki amal noto‘g‘ri.")
+            context.update(
+                release_target=target,
+                release_action=data["action"],
+                release_note=request.POST.get("note", ""),
+                confirmation_error=confirmation_error,
+            )
+    return render_teacher_v1(
+        request, "teacher/release.html", context, enabled=v1_enabled,
+        status=400 if confirmation_error else 200,
+    )
