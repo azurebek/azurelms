@@ -102,3 +102,14 @@ Root formasi va reply like saqlangan; regression qo‘shildi.
 Offline `manage.py test frontend.test_public_v1 blog --noinput --verbosity 0`:
 **20 OK** (16.007s). Bu fixdan keyin required CI yana tekshiriladi.
 AWS ulanishi va live release holati [R1 preflight](R1-AWS-PREFLIGHT.md)da.
+
+### Reliz yakuni — 2026-09-25
+
+PR126 `2787e86` bilan merge; final CI36176730769 all3PASS. Nested Docker
+context blocker owner tasdiqlagan PR127 bilan yopildi; final CI36179879066
+all3PASS, har backend1948 test. AWS **363ff95**, faqat public V1 ON.
+10 public listing/page HTTP200, 2 auth200, 11 asset200; 320/1280 browser,
+menu/filter/theme va OFF/ON rollback PASS. **Bu texnik public reliz**;
+real-device, populated real-content va authenticated flow gate ochiq.
+Oldingi “deploy bajarilmagan” bandlari o‘sha vaqtdagi tarixiy checkpoint.
+[Zaxira, image, audit va qolgan risklar](R1-PUBLIC-RELEASE.md).

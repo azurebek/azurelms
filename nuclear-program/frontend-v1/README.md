@@ -21,9 +21,11 @@ main’da (`9eb3830`), final CI `36162882956` uchala PASS. I3 yopildi.
 Owner yangi navbati: [I5a public](I5A-PUBLIC.md) → `azurebek.me` AWS release
 qabuli → I4b va qolgan qismlar. Tayyor bo‘laklar qolgan portni kutmaydi.
 I5a lokal runtime `74818ee`: 14 public route adapteri va ixcham mobil menu;
-1945 Python OK (skip45), 53 Node PASS. CI/integratsiya hamda real-content
-visual/AWS qabul hali ochiq; production flaglari o‘zgartirilmadi.
-R1 device/AWS qabuli, I4b AI va I5–I9 ochiq.
+1945 Python OK (skip45), 53 Node PASS. PR126 main’da `2787e86`;
+image-boundary fix PR127 bilan AWS **`363ff95` deployed**, faqat public V1 ON.
+[R1-public dalili](R1-PUBLIC-RELEASE.md): final CI1948×2, zaxira/drill,
+clean image, HTTPS/mobile va renderer rollback PASS. Real-device/real-content
+qabuli, qolgan V1 flaglar rollouti, I4b AI va I5ning qolgan qismlari–I9 ochiq.
 
 ## 1. Qayerdamiz
 

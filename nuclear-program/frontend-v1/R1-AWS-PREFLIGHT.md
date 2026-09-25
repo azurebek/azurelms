@@ -3,6 +3,10 @@
 2026-09-25. Owner public sahifalarni avval chiqarishni so‘radi, domenni
 `azurebek.me` deb ko‘rsatdi va mobil tekshiruvdan keyin deployni davom ettirdi.
 
+**Yakuniy holat:** `363ff95` productionda, faqat public V1 ON.
+[Amaliy reliz, zaxira, smoke va qolgan risklar](R1-PUBLIC-RELEASE.md).
+Quyidagi checkpointlar tarixiy; yakuniy holatni almashtirmaydi.
+
 ## SSHdan keyingi checkpoint — 2026-09-25
 
 - Owner SSH /32 yangilanishini tasdiqladi; faqat mavjud 22-port source
