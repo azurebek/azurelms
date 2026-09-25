@@ -87,7 +87,7 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
     Records/help bu public portga aralashtirilmaydi, keyingi yordamchi paketda.
   - [x] ~~I5b.1 lokal implementatsiya — Profil va Hisob.~~ Shared form, avatar/parol canonical POST,
     stale-profile guard va learner/teacher shell. [Scope/dalil](I5B-ACCOUNT-PROFILE.md).
-    `1a4d6a3`: full1975 OK (skip45), Node67 PASS, browser320–1280 overflow0.
+    `1a4d6a3`: full1975 OK (skip45); follow-up Node68 PASS, browser320–1280 overflow0.
   - [ ] I5b.1 required CI/review/integratsiya va keyingi alohida release.
     Register/reset/onboarding hamda qolgan I5 hali ochiq.
 - [ ] **I6 — Library + course/lesson editor.** Common resource/link/private

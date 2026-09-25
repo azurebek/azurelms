@@ -72,6 +72,7 @@ class AccountV1Tests(TestCase):
         self.assertContains(response, 'v1-profile-editor" open')
         self.assertContains(response, '&lt;script&gt;bound input&lt;/script&gt;')
         self.assertContains(response, 'data-form-errors')
+        self.assertContains(response, 'data-account-unsaved')
         self.user.refresh_from_db()
         self.assertEqual(self.user.first_name, 'O‘quvchi')
 
@@ -97,6 +98,7 @@ class AccountV1Tests(TestCase):
         response = self.client.post(reverse('settings_account'), {**first, 'bio': 'Stale matn'})
         self.assertEqual(response.status_code, 409)
         self.assertContains(response, 'Stale matn', status_code=409)
+        self.assertContains(response, 'data-account-unsaved', status_code=409)
         self.assertContains(response, 'boshqa oynada', status_code=409)
         self.assertNotContains(response, 'muvaffaqiyatli yangilandi', status_code=409)
         self.assertEqual(response.context['profile_revision'], first['profile_revision'])

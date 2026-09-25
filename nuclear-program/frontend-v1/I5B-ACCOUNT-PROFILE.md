@@ -54,14 +54,17 @@ Offline (`AZURELMS_SKIP_ENV_FILE=1`, `GEMINI_API_KEY=''`,
 - `venv/Scripts/python.exe manage.py test users.test_frontend_v1_account
   users.test_profile_inline_edit users.test_settings_sections core.test_feature_flags
   --noinput --verbosity 1`: **48 OK**, 12.261s.
-- `node --test tests/frontend_v1/*.test.mjs`: **67 PASS**.
+- `node --test tests/frontend_v1/*.test.mjs`: **68 PASS**.
   Duplicate/dirty exit/other-form consent/password lifecycle/known offline.
 - `venv/Scripts/python.exe manage.py check`: **0 issue**.
 - Full `venv/Scripts/python.exe manage.py test --noinput --verbosity 0`:
   **1975 OK, skipped45**, 371.752s. Mocked failure loglari kutilgan;
   live provider yoki bot token ishlatilmagan.
 
-Runtime commit: `1a4d6a3`. Required CI/review/integratsiya keyingi gate.
+Runtime commit: `1a4d6a3`. Follow-up: rejected bound form ham yangi
+keystrokesiz unsaved deb olinadi; cached markupda offline notice yo‘qligi
+native submitni buzmaydi. `manage.py test users.test_frontend_v1_account
+--noinput --verbosity 1`: **14 OK**, 1.308s. Required CI/review keyingi gate.
 
 IAB + disposable SQLite8057: native login → profile save → account bir xil
 ma’lumot; ikkinchi tabdagi profile save → eski account POST409, bound matn

@@ -25,7 +25,8 @@ haqiqiy profil statistikasi saqlandi; alohida default-OFF account flag.
 - Branch: `codex/frontend-v1-account-profile`; runtime commit `1a4d6a3`.
 - Offline full `manage.py test --noinput --verbosity 0`: **1975 OK, skip45**
   (371.752s); focused account/legacy sections/flags **48 OK** (12.261s),
-  `manage.py check`0issue; `node --test tests/frontend_v1/*.test.mjs` **67 PASS**.
+  `manage.py check`0issue; `node --test tests/frontend_v1/*.test.mjs` **68 PASS**.
+  Bound-error dirty protection follow-up: focused account14 OK (1.308s).
 - Ikki V1 profil formasi user-bound snapshot + row lock: stale409/no-write,
   bound matn saqlanadi, yolg‘on success yo‘q. XP/identity/AI maydonlari chetda.
   Sensitive draft storage yo‘q; dirty exit/other-form consent/duplicate va

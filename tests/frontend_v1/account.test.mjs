@@ -3,13 +3,13 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 
-function harness() {
+function harness({boundError = false} = {}) {
   const events = {};
   const forms = ['text', 'file', 'password'].map(type => {
     const field = { type, value: '', files: [] };
     const button = { disabled: false, setAttribute() {}, removeAttribute() {} };
     const status = {hidden:true};
-    return { field, button, status, querySelector() { return status; }, querySelectorAll(selector) {
+    return { field, button, status, hasAttribute() { return type === 'text' && boundError; }, querySelector() { return status; }, querySelectorAll(selector) {
       if (selector.startsWith('button')) return [button];
       if (selector === 'input[type="password"]') return type === 'password' ? [field] : [];
       return [field];
@@ -37,6 +37,8 @@ test('dirty navigation warns, restored value no longer dirty', () => {
 
 test('native submit locks duplicate requests, bfcache restores controls', () => {
   const h = harness(); h.forms[0].field.value = 'Yangi';
+  // A cached template without the new notice must not break native submit.
+  h.forms[0].querySelector = () => null;
   h.forms[0].submit(h.event()); assert.equal(h.forms[0].button.disabled, true);
   const duplicate = h.event(); h.forms[0].submit(duplicate); assert.equal(duplicate.defaultPrevented, true);
   const leave = h.event(); h.events.beforeunload(leave); assert.equal(leave.defaultPrevented, false);
@@ -68,4 +70,12 @@ test('known offline keeps values and does not post or lock controls', () => {
   const e = h.event(); h.forms[0].submit(e);
   assert.equal(e.defaultPrevented, true); assert.equal(h.forms[0].button.disabled, false);
   assert.equal(h.forms[0].status.hidden, false); assert.equal(h.forms[0].field.value, 'Qoralama');
+  h.navigator.onLine = true; h.forms[0].submit(h.event()); assert.equal(h.forms[0].status.hidden, true);
+});
+
+test('server-rejected bound input is unsaved before any new keystroke', () => {
+  const h = harness({boundError:true});
+  const leave = h.event(); h.events.beforeunload(leave); assert.equal(leave.defaultPrevented, true);
+  h.forms[0].submit(h.event());
+  const submitLeave = h.event(); h.events.beforeunload(submitLeave); assert.equal(submitLeave.defaultPrevented, false);
 });
