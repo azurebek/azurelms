@@ -1294,6 +1294,68 @@ class AssignmentAndQuizTests(TestCase):
         self.assertFalse(empty.ok)
         self.assertEqual(empty.code, "empty")
 
+    def test_reviewed_assignment_requires_explicit_bot_confirmation(self):
+        from bot.models import BotPendingAction
+        from bot.services import start_assignment_answer, submit_assignment_answer
+        from courses.models import AssignmentSubmission
+        from courses.submission_service import review_assignment_submission, submit_assignment
+
+        submission = submit_assignment(user=self.student, assignment=self.assignment, answer_text='Original').submission
+        review_assignment_submission(submission=submission, approved=True, reviewer=self.teacher, awarded_xp=20, feedback='Good')
+        # Canonical callers cannot opt in accidentally by omitting the argument.
+        refused = submit_assignment(user=self.student, assignment=self.assignment, answer_text='Replacement')
+        self.assertEqual(refused.code, 'confirm_review')
+        prompt = start_assignment_answer(self.student, self.assignment.pk)
+        self.assertEqual(prompt.code, 'confirm_review')
+        self.assertIn('XP', prompt.message)
+        denied = submit_assignment_answer(self.student, self.assignment.pk, text='Replacement')
+        self.assertEqual(denied.code, 'confirm_review')
+        submission.refresh_from_db(); self.student.refresh_from_db()
+        self.assertEqual((submission.answer_text, submission.status, submission.teacher_feedback, submission.awarded_xp, self.student.total_xp), ('Original', 'approved', 'Good', 20, 20))
+        confirmed = start_assignment_answer(self.student, self.assignment.pk, replace_review=True)
+        self.assertTrue(confirmed.ok)
+        self.assertTrue(submit_assignment_answer(self.student, self.assignment.pk, text='Replacement').ok)
+        submission.refresh_from_db(); self.student.refresh_from_db()
+        self.assertEqual((submission.answer_text, submission.status, submission.teacher_feedback, submission.awarded_xp, self.student.total_xp), ('Replacement', 'pending', '', 0, 0))
+        self.assertFalse(BotPendingAction.objects.filter(user=self.student).exists())
+        self.assertEqual(AssignmentSubmission.objects.count(), 1)
+
+    def test_bot_confirmation_is_scoped_to_assignment_and_access_rechecked(self):
+        from bot.models import BotPendingAction
+        from bot.services import start_assignment_answer, submit_assignment_answer
+        from courses.models import Assignment
+        from courses.submission_service import review_assignment_submission, submit_assignment
+
+        submission = submit_assignment(user=self.student, assignment=self.assignment, answer_text='Original').submission
+        review_assignment_submission(submission=submission, approved=True, reviewer=self.teacher, awarded_xp=20)
+        other = Assignment.objects.create(lesson=self.lesson, title='Other')
+        start_assignment_answer(self.student, other.pk, replace_review=True)
+        self.assertEqual(submit_assignment_answer(self.student, self.assignment.pk, text='Bad').code, 'confirm_review')
+        start_assignment_answer(self.student, self.assignment.pk, replace_review=True)
+        Enrollment.objects.filter(student=self.student).update(status='frozen')
+        self.assertEqual(submit_assignment_answer(self.student, self.assignment.pk, text='Bad').code, 'no_access')
+        submission.refresh_from_db(); self.student.refresh_from_db()
+        self.assertEqual((submission.answer_text, submission.status, self.student.total_xp), ('Original', 'approved', 20))
+        self.assertTrue(BotPendingAction.objects.filter(user=self.student).exists())
+
+    def test_bot_review_confirmation_callback_requires_explicit_button(self):
+        from types import SimpleNamespace
+        from bot.routers.workspace import cb_assignment_start
+        from bot.services import AssignmentPromptResult
+
+        callback = SimpleNamespace(data=f'as:s:{self.assignment.pk}', answer=AsyncMock(), message=SimpleNamespace(answer=AsyncMock()))
+        warning = AssignmentPromptResult(ok=False, code='confirm_review', message='Baho, XP va izoh tozalanadi.', assignment={'id': self.assignment.pk})
+        with patch('bot.routers.workspace.start_assignment_answer', return_value=warning) as start:
+            asyncio.run(cb_assignment_start(callback, self.student))
+            start.assert_called_once_with(self.student, self.assignment.pk, replace_review=False)
+        markup = callback.message.answer.call_args.kwargs['reply_markup']
+        self.assertEqual(markup.inline_keyboard[0][0].callback_data, f'as:r:{self.assignment.pk}')
+        callback.data = markup.inline_keyboard[0][0].callback_data
+        prompt = AssignmentPromptResult(ok=True, code='prompt', message='OK', assignment={'id': self.assignment.pk, 'title':'Work', 'max_xp':20, 'description':'Task'})
+        with patch('bot.routers.workspace.start_assignment_answer', return_value=prompt) as start, patch('bot.routers.workspace.send_long', new_callable=AsyncMock):
+            asyncio.run(cb_assignment_start(callback, self.student))
+            start.assert_called_once_with(self.student, self.assignment.pk, replace_review=True)
+
     # ---- quiz
 
     def test_quiz_full_flow_awards_xp(self):

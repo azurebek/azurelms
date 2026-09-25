@@ -471,16 +471,24 @@ async def cb_lesson_assignments(callback: types.CallbackQuery, lms_user):
 
 
 @router.callback_query(F.data.startswith("as:s:"))
+@router.callback_query(F.data.startswith("as:r:"))
 async def cb_assignment_start(callback: types.CallbackQuery, lms_user):
     await callback.answer()
     if not _require_user(lms_user):
         return
-    assignment_id = callback.data.split(":")[2]
-    if not assignment_id.isdigit():
+    parts = callback.data.split(":")
+    if len(parts) != 3 or parts[1] not in ('s', 'r') or not parts[2].isdigit():
         return
-    result = await sync_to_async(start_assignment_answer)(lms_user, int(assignment_id))
+    result = await sync_to_async(start_assignment_answer)(
+        lms_user, int(parts[2]), replace_review=parts[1] == 'r',
+    )
     if not result.ok:
-        await callback.message.answer(result.message)
+        markup = None
+        if result.code == 'confirm_review':
+            markup = InlineKeyboardMarkup(inline_keyboard=[[
+                InlineKeyboardButton(text="Tasdiqlayman — qayta yuboraman", callback_data=f"as:r:{result.assignment['id']}")
+            ]])
+        await callback.message.answer(result.message, reply_markup=markup)
         return
     a = result.assignment
     body = html.escape(a["description"]) if a["description"] else "Shart berilmagan."

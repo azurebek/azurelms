@@ -62,7 +62,7 @@ def _active_submission_enrollment(user, course_id, enrollment):
 
 @transaction.atomic
 def submit_assignment(*, user, assignment, answer_text="", attachment=None,
-                      enrollment=None, replace_review=True):
+                      enrollment=None, replace_review=False):
     """Vazifa javobini saqlash (yangi yoki qayta topshirish).
 
     Qayta topshirilganda holat pending'ga qaytadi va oldingi baho/izoh tozalanadi.

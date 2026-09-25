@@ -1669,10 +1669,10 @@ def lesson_assignments(user, lesson_id):
     return {"lesson": lesson.title, "lesson_id": lesson.id, "assignments": items}
 
 
-def start_assignment_answer(user, assignment_id):
+def start_assignment_answer(user, assignment_id, *, replace_review=False):
     """Vazifa shartini berib, javob kutish holatini yozadi."""
     from bot.models import BotPendingAction
-    from courses.models import Assignment
+    from courses.models import Assignment, AssignmentSubmission
 
     assignment = (
         Assignment.objects.select_related("lesson__module__course")
@@ -1691,9 +1691,17 @@ def start_assignment_answer(user, assignment_id):
         defaults={
             "kind": BotPendingAction.KIND_ASSIGNMENT,
             "target_id": assignment.id,
-            "data": {},
+            "data": {"replace_review": replace_review is True},
         },
     )
+    if not replace_review and AssignmentSubmission.objects.filter(
+        assignment=assignment, student=user
+    ).exclude(status=AssignmentSubmission.STATUS_PENDING).exists():
+        return AssignmentPromptResult(
+            ok=False, code="confirm_review",
+            message="Qayta yuborish avvalgi baho, berilgan XP va ustoz izohini tozalaydi. Ish yana tekshiruvga tushishini tasdiqlaysizmi? Bekor qilish: /bekor",
+            assignment={"id": assignment.pk},
+        )
     return AssignmentPromptResult(
         ok=True,
         code="prompt",
@@ -1721,8 +1729,15 @@ def submit_assignment_answer(user, assignment_id, *, text="", attachment=None):
     if not assignment:
         return ActionResult(ok=False, code="missing", message="Vazifa topilmadi.")
 
+    pending = get_pending_action(user)
+    from bot.models import BotPendingAction
+    replace_review = bool(
+        pending and pending.kind == BotPendingAction.KIND_ASSIGNMENT
+        and pending.target_id == assignment.pk and pending.data.get('replace_review') is True
+    )
     result = submit_assignment(
-        user=user, assignment=assignment, answer_text=text, attachment=attachment
+        user=user, assignment=assignment, answer_text=text, attachment=attachment,
+        replace_review=replace_review,
     )
     if result.ok:
         clear_pending_action(user)
@@ -1734,7 +1749,10 @@ def submit_assignment_answer(user, assignment_id, *, text="", attachment=None):
                 f"O'qituvchi tekshirgach xabar beramiz. Holat: /darslarim"
             ),
         )
-    return ActionResult(ok=False, code=result.code, message=result.message)
+    message = result.message
+    if result.code == 'confirm_review':
+        message += " /darslarim orqali vazifani qayta tanlang va tasdiqlang. Yuborilgan javob saqlanmadi; keyin qayta yuboring."
+    return ActionResult(ok=False, code=result.code, message=message)
 
 
 def _quiz_question_payload(quiz, index):
