@@ -44,6 +44,19 @@ class FlagDefinition:
 
 FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
     FlagDefinition(
+        slug="frontend_v1_learning",
+        label="Frontend V1 — kirish va kurslarim",
+        description="Kirish, o‘quvchi bosh sahifasi va kurslarim uchun V1 ko‘rinishi.",
+        default=False,
+        category="Frontend",
+        runbook=(
+            "OFF: uchala sahifa avvalgi template va assetlar bilan ochiladi. "
+            "ON: Eleventh Trial V1 ko‘rinishi, haqiqiy Django auth/enrollment context. "
+            "Ruxsat, progress, baho va ma’lumotlar o‘zgarmaydi. "
+            "Faqat tegishli release tekshiruvlaridan keyin yoqing; xatoda o‘chiring."
+        ),
+    ),
+    FlagDefinition(
         slug="public_registration",
         label="Ochiq ro'yxatdan o'tish",
         description="Yangi foydalanuvchilar o'zi hisob ocha oladimi.",

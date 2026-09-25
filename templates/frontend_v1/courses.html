@@ -1,0 +1,10 @@
+{% extends "frontend_v1/platform.html" %}
+{% block content %}
+<div class="p-page-heading"><div><p class="c-eyebrow">O‘QUV YO‘LINGIZ</p><h1>Kurslarim</h1><p class="c-lead">Maqsadingizga olib boradigan keyingi qadam.</p></div><span class="c-badge c-badge--soft">{{ count_active }} ta faol guruh</span></div>
+{% if enrollments %}
+<p class="c-caption v1-list-count">Jami {{ count_all }} ta guruh · {{ count_completed }} tasida darslar tugatilgan</p>
+<div class="f-course-layout">{% for enrollment in enrollments %}{% include "frontend_v1/course_card.html" %}{% endfor %}</div>
+{% else %}
+<section class="c-card c-empty"><span class="c-empty__icon">{% include "frontend_v1/icon.html" with name="book" %}</span><h2>Hali kursga yozilmagansiz</h2><p>O‘zingizga mos kursni tanlang. Yozilgan kurslaringiz shu yerda ko‘rinadi.</p><a class="c-button c-button--primary" href="{% url 'courses' %}">Kurslarni ko‘rish{% include "frontend_v1/icon.html" with name="arrow" %}</a><small>Katalog avvalgi ko‘rinishda ochiladi.</small></section>
+{% endif %}
+{% endblock %}

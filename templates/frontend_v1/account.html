@@ -1,0 +1,17 @@
+<details class="v1-account">
+  <summary class="s-person">
+    <span class="c-avatar">{% if request.user.avatar %}<img src="{{ request.user.avatar.url }}" alt="" data-avatar-image>{% else %}{{ request.user.first_name.0|default:request.user.username.0|upper }}{{ request.user.last_name.0|upper }}{% endif %}</span>
+    <span><strong>{{ request.user.get_full_name|default:request.user.username }}</strong><small>Hisob menyusi</small></span>
+    {% include "frontend_v1/icon.html" with name="chevron" %}
+  </summary>
+  <div class="v1-account__links">
+    <a class="c-nav-item" href="{% url 'profile' %}">Profil</a>
+    <a class="c-nav-item" href="{% url 'settings' %}">Sozlamalar</a>
+    {% if request.user.is_staff %}
+    <a class="c-nav-item" href="{% url 'teacher_dashboard' %}">O‘qituvchi paneli</a>
+    <a class="c-nav-item" href="{% url 'backoffice_dashboard' %}">Admin paneli</a>
+    {% endif %}
+    <small class="c-muted">Avvalgi ko‘rinishda ochiladi.</small>
+    <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="c-button c-button--secondary" type="submit">Hisobdan chiqish</button></form>
+  </div>
+</details>

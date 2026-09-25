@@ -40,6 +40,25 @@ Source of truth har doim **kod** (model/view/task/URL/test). Bu fayl kodga mosla
 
 ---
 
+## Frontend V1 — bosqichma-bosqich renderer (2026-09-25)
+
+I1 kodi: `core/frontend_v1.py`dagi presentation-only mixin va LoginView
+adapteri, `users.views`dagi existing dashboard/my-courses contexti.
+`frontend_v1_learning` — `core/flags.py` registrida **default OFF**;
+existing audited flag boshqaruvi orqali yoqiladi. OFF holatda legacy
+template/assets qoladi; ON holatda faqat login/dashboard/my-courses
+`templates/frontend_v1/` va `static/frontend_v1/`dan render bo‘ladi.
+
+Auth/CSRF/safe-next, enrollment/access va progressning canonical manbasi
+almashtirilmagan. Course CTA course/cohortni mavjud `course_study`ga beradi;
+dars va boshqa ko‘chmagan sahifalar legacy qoladi. Yangi DB model/migration,
+prototype fixture/API yoki frontenddagi mustaqil biznes hisobi yo‘q.
+Lokal kod borligi AWS deploy yoki release qabuli degani emas.
+[Port rejasi](frontend-v1/README.md), [joriy dalil](frontend-v1/I1-LEARNING-SHELL.md),
+[qabul jurnali](frontend-v1/PORT-LEDGER.md).
+
+---
+
 ## 2. Tech stack
 
 ### Backend

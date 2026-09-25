@@ -1,0 +1,1 @@
+{% if messages %}<div class="v1-messages" aria-live="polite">{% for message in messages %}<div class="c-alert c-alert--info{% if message.level >= 40 %} v1-error{% endif %}">{{ message }}</div>{% endfor %}</div>{% endif %}

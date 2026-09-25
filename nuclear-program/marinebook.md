@@ -16,6 +16,120 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-25 [Codex]: PR #120 xavfsizlik to‘sig‘i — patched dependency pinlari
+
+Owner tasdig‘idan keyin maintainer advisorylaridagi patched relizlar olindi:
+`anyio 4.12.1 → 4.14.2`, `autobahn 25.12.2 → 26.7.1`.
+`CVE-2026-63374`, `CVE-2026-64847`, `CVE-2026-77528` uchun istisno
+qo‘shilmadi; security baseline bo‘sh, CI gate o‘zgarmagan.
+
+- Branch: `codex/frontend-v1-learning-shell`; commit: `18b5a0b`.
+- `requirements.txt`da faqat ikki pin. Project venv ham shu ikkisiga yangilandi;
+  audit tool dependencies alohida ignored `.tools/` venvga o‘rnatildi.
+- `python -m pip check`: PASS. `pip-audit -r requirements.txt --no-deps -f json`
+  va `manage.py audit_dependencies --report ...`: **107 dependency,
+  0 skipped, 0 advisory**. `manage.py check`: 0 issue.
+- `.env.local`siz, bo‘sh provider/bot tokenlari bilan `python manage.py test
+  core.test_supply_chain_gate users messenger classbook --noinput --verbosity 1`:
+  **433 test, OK (skipped=1)**. Exact buyruqlar va maintainer havolalari
+  `frontend-v1/I1-LEARNING-SHELL.md`da.
+- Eski `13e24e6` uchun SQLite/PostgreSQL full CI PASS, security FAIL edi;
+  yangi pinlarning uch required jobi alohida tekshiriladi. Latest holat PR #120da.
+- Keyingi fresh lokal full run: `venv\Scripts\python.exe manage.py test
+  --noinput --verbosity 1` — **1846 test, OK (skipped=41), 118.355 s**;
+  failure/error 0. Oldingi fontTools xatosi bu safar kuzatilmadi, test/skip
+  qoidasi o‘zgarmadi. Full requirements dry-run va Daphne/AnyIO import/run PASS.
+- AWS, mavjud DB, frontend/prototype dizayni va domain qoidalari o‘zgarmadi.
+  Oldingi lokal processlar dependency importini restartgacha saqlashi mumkin.
+
+---
+
+## 2026-09-25 [Codex]: I1 PR #120 — dependency security gate blokladi
+
+`1dcaf49` implementatsiya va `08ee934` dalil/wiki yozuvi o‘z branch’iga
+push qilinib PR #120 ochildi. Birinchi CI run `36082028361`da secret scan
+PASS, lekin mavjud `anyio==4.12.1` (`CVE-2026-63374`, `CVE-2026-64847`)
+va `autobahn==25.12.2` (`CVE-2026-77528`) bo‘yicha yangi advisory gate’ni
+yiqitdi; production image tekshiruvi shuning uchun SKIPPED.
+
+- `requirements.txt` main bilan bir xil; bu PR paket versiyalarini o‘zgartirmadi.
+- Merge/deploy yo‘q, advisoryni jimgina allowlist qilish yoki gate bypass yo‘q.
+- Lokal 294 Python + 8 Node PASS; full CI yakunlari PR/run sahifasida.
+- Davom: ownerga blocker ma’lum qilinsin; dependency xavfsizlik tuzatishi va
+  uch required check PASSdan so‘ng I1 integratsiyasi. I2 navbati saqlanadi.
+
+---
+
+## 2026-09-25 [Codex]: I1 — V1 kirish, bosh sahifa va kurslarim real adapteri
+
+Approved Eleventh Trial shell/assets uchta mavjud Django viewga ulandi.
+Prototype fixture/controller ko‘chmadi: haqiqiy auth, enrollment, progress,
+cohort va access mavjud backenddan keladi. `frontend_v1_learning` flagi
+default OFF; eski UI saqlanadi. Bu lokal implementatsiya, production reliz emas.
+
+- Branch: `codex/frontend-v1-learning-shell`; commit: `1dcaf49`.
+- Fayllar: `core/frontend_v1.py`, `core/flags.py`, `users/views.py`,
+  `users/urls.py`, `templates/frontend_v1/`, `static/frontend_v1/`,
+  `users/test_frontend_v1.py`, `tests/frontend_v1/login.test.mjs`.
+  CI SQLite jobida Node controller testi qo‘shildi; required job nomlari o‘zgarmadi.
+- `.env.local`siz, bo‘sh provider/bot tokenlari bilan `manage.py check`:
+  0 issue. `python manage.py test users core.test_app_shell
+  core.test_feature_flags core.test_feature_flag_effects core.test_flag_surface
+  core.test_golden_flow_e2e courses.test_locked_lesson_write_gate
+  courses.test_lesson_release courses.test_lesson_completion
+  library.test_student_access --noinput --verbosity 1`: **294 PASS**,
+  jumladan 24 yangi V1 test. `node --test tests/frontend_v1/login.test.mjs`:
+  **8 PASS**. Hashed V1 static build va `git diff --check`: PASS.
+- Alohida vaqtinchalik DB/cookie bilan real browser: 1440/390/320px,
+  light/dark, noto‘g‘ri/to‘g‘ri login, safe next, multi-course/pending/empty,
+  native mobil drawer/Escape/focus, POST logout, real darsga CTA va Back.
+  Console error/warn 0; Telegram faqat lokal init/cancel, bot ochilmadi.
+- To‘liq root suite lokal qayta yugurilmadi; PR/required CI hali ochiq.
+  Yangi migration yo‘q; mavjud DB, AWS va trial runtime o‘zgartirilmadi.
+- Davom: I2 real dars/material + teacher release. Qolgan UI legacy;
+  staging/device/deploy/rollback va owner go/no-go alohida release gate.
+  Dalil va cheklovlar: `frontend-v1/I1-LEARNING-SHELL.md`.
+
+---
+
+## 2026-09-25 [Codex]: Frontend V1 freeze va qisman real ko‘chirish rejasi
+
+Owner joriy Eleventh Trialni V1 deb olish, yangi prototype/redesignni
+vaqtincha to‘xtatish va 1-oktyabrgacha tayyor bo‘laklardan real ishlaydigan
+oqim chiqarishni tanladi. D30 bilan avvalgi barcha-G3-oldin-G4 ketma-ketligi
+qisman portga almashtirildi; umumiy INCLUDED scope va security/release
+gate’lari qoladi. Bu to‘liq G2/G3 PASS yoki deploy ruxsati emas.
+
+- Branch: `codex/frontend-v1-port-plan`
+- Commit: `e50d00a` — `nuclear-program/frontend-v1/README.md`, `INVENTORY.md`,
+  `PORT-LEDGER.md`. 95 preview URL / 54 template / 76 unique source UI name;
+  120 source UI/aliasdan 44tasi named prototypesiz. Bu port foizi emas.
+- Reja: I1 shell/login/dashboard/my-courses → I2 real lesson/material va
+  teacher release → birinchi release; keyin I3–I9. Namespace + per-flow
+  default-OFF renderer flag + legacy fallback. Demo controller/fixture
+  productionga kirmaydi; yangi biznes qoidalari yo‘q.
+- Admission: `ADMIT — launch-critical`; KPI haqiqiy hisob bilan
+  login→kurs→dars/material va teacher open→student access natijasi.
+- Baseline source: `d0cce32`; runtime o‘zgarmagan. `.env.local`siz va bo‘sh
+  provider/bot tokenlari bilan root `venv\Scripts\python.exe manage.py check`
+  — 0 issue; `manage.py test core.test_golden_flow_e2e
+  courses.test_locked_lesson_write_gate courses.test_lesson_release
+  courses.test_lesson_completion library.test_student_access --noinput
+  --verbosity 1` — 46 PASS. Root full suite bu safar yugurilmadi.
+- Trialdan `..\..\venv\Scripts\python.exe manage.py test --verbosity 1
+  --noinput` — 590 PASS; root `node --test "playground/Eleventh Trial/tests/*.test.mjs"`
+  — 164 PASS. Inventar/link/source-SHA va `git diff --check` — PASS.
+  Bu testlar yangi runtime UI yoki AWS release PASS emas.
+- Lokal trialda faqat D30/freeze/link hujjatlari yangilandi; ignored
+  `playground/` staged/push qilinmadi. Immutable original backup:
+  `C:\Users\azizb\AzureLMS-Backups\Eleventh-Trial-20260925-033842\` (hash rejada).
+- Davom: I1 real port. I2da mavjud assignment/quiz yo‘qotilmasin; kerak bo‘lsa
+  tegishli I3 adapteri avval tugaydi. AWS/staging SHA/test account/rollout hali
+  tekshirilmagan; tashqi release alohida qabul. Yangi prototype qurishni
+  yoki hamma UI oilalarini bitta relizga majburlashni qayta boshlamang.
+
+---
+
 ## 2026-09-18 [Claude]: Imtihon muharririning scope'i (default-deny)
 
 Dars muharriridagi bo'shliqning aynan o'zi `backoffice_exam_editor` da ham
