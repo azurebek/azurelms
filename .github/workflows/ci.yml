@@ -307,8 +307,40 @@ jobs:
       # `--build-arg` yoki sir uzatilmaydi — image build paytida hech qanday
       # tashqi xizmatga ulanmasligi kerak (`collectstatic` `APP_ENV=local` da
       # yuguradi).
+      - name: Docker context uchun sir bo'lmagan regressiya namunalari
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          # Never overwrite an existing file, even if this step is run locally.
+          paths = [Path(prefix) / name
+                   for prefix in ('.', 'deploy', 'deploy/ci-context-probe/deep')
+                   for name in ('.env', '.env.local', 'backups/context-canary.dump')]
+          paths.append(Path('deploy/ci-context-probe/keep.txt'))
+          assert not any(path.exists() for path in paths), 'Canary target already exists'
+          for path in paths:
+              path.parent.mkdir(parents=True, exist_ok=True)
+              with path.open('x') as stream:
+                  stream.write('BUILD_CONTEXT_CANARY=not-a-secret\n')
+          PY
+
       - name: Production image quriladimi
         run: docker build --tag azurelms:ci --file Dockerfile .
+
+      - name: Ichki env va zaxiralar image ichiga kirmadimi
+        run: |
+          docker run --rm -i --network none azurelms:ci python - <<'PY'
+          from pathlib import Path
+          root = Path('/app')
+          leaked = [str(path.relative_to(root)) for path in root.rglob('*')
+                    if path.name == '.env' or path.name.startswith('.env.')
+                    or 'backups' in path.relative_to(root).parts]
+          assert not leaked, f'Forbidden build-context paths: {leaked}'
+          for path in ('manage.py', 'deploy/docker-compose.prod.yml',
+                       'deploy/ci-context-probe/keep.txt',
+                       'staticfiles/frontend_v1/css/public.css'):
+              assert (root / path).is_file(), f'Required file missing: {path}'
+          print('Recursive env/backup boundary verified in the built production image')
+          PY
 
       - name: Production image PostgreSQL 16 klientini ishlatadimi
         run: |

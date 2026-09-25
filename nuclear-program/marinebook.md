@@ -16,6 +16,27 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-25 [Codex]: AWS public release — zaxira/drill va nested image boundary fix
+
+Owner tasdiqlagan narrow SSH access orqali serverga kirildi. Baza zaxirasi
+alohida bazaga tiklandi va kompyuterga ikkinchi nusxa olindi. Image ichiga
+nested env/backups kirgani aniqlangach rollout to‘xtatildi; owner minimal
+tuzatish, CI va toza rebuilddan so‘ng deployni davom ettirishni tasdiqladi.
+
+- Branch: `codex/public-aws-release`; fix/test `cc861c8`.
+- Test: offline `manage.py test core.test_deploy_artifacts --noinput --verbosity 1`
+  **22 OK**, check0issue; diff-check PASS. CI real-image canary gate qo‘shildi.
+- PR #126 main’da `2787e86`; final CI `36176730769` all3PASS:
+  SQLite1946 skip44, PostgreSQL1946 skip20, Node53.
+- Live hali `1ddd23e19556`; public flag OFF. Media papkalari 0 fayl,
+  shuning uchun media backup PASS emas. DB restore135table/151migration PASS.
+- Davomi: fix required CI/review/merge → clean image gate → migration/deploy
+  → public flag + HTTPS/mobile smoke. [Exact checkpoint](frontend-v1/R1-AWS-PREFLIGHT.md).
+  Old layer/cache sir nusxalari va credential rotation alohida qoladi;
+  secret mazmuni log/chat/gitga chiqarilmadi, production data o‘chirilmagan.
+
+---
+
 ## 2026-09-25 [Codex]: I5a public port va owner ko‘rsatgan mobil header tuzatishi
 
 Owner navbatni public → azurebek.me release → I4b deb o‘zgartirdi.

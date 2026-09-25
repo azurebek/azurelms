@@ -3,7 +3,46 @@
 2026-09-25. Owner public sahifalarni avval chiqarishni so‘radi, domenni
 `azurebek.me` deb ko‘rsatdi va mobil tekshiruvdan keyin deployni davom ettirdi.
 
-## Tasdiqlangan joriy holat
+## SSHdan keyingi checkpoint — 2026-09-25
+
+- Owner SSH /32 yangilanishini tasdiqladi; faqat mavjud 22-port source
+  almashtirildi. Key yo‘li owner ko‘rsatgan lokal yozuvdan olindi;
+  plaintext secret chiqarilmadi. Serverga SSH muvaffaqiyatli.
+- PR #126 MERGED `2787e86`; final CI `36176730769` uchala PASS:
+  SQLite1946 skip44, PostgreSQL1946 skip20, Node53.
+- Host checkout oldin clean `ef99cb2`, running image esa
+  `0123d4f41895fcde82edac95c2a970c1cace2ba5dd6e6ff75874808195c2b001`,
+  SOURCE_VERSION `1ddd23e195563d2c3328c57bfa6092ece9c74743` edi.
+  Web/db/cache healthy; beat restart100015 (old schedule permission bug).
+  Hostda 35GB bo‘sh, available RAM ~2.5GB; APP_WWW_DOMAIN mos.
+- `backup_db` → `/app/backups/db-20260926-001254.dump`, integrity OK.
+  Server timezone sabab fayl sanasi 26-sentabr. `restore_db --input
+  backups/db-20260926-001254.dump --into restore_drill_r1_20260925` PASS:
+  135 jadval, 151 migration. Production DB ustidan tiklash bajarilmadi.
+- Lokal ikkinchi nusxa `C:\Users\azizb\AzureLMS-Backups\AWS-Public-Release-20260925`.
+  Ikkala SHA256: `219ee7e97d3d5091f35c5d322d1b35d5fa6d8d26111f02b93d1ff549b8722176`.
+  Bu bir martalik off-host nusxa; scheduled offsite mexanizm emas.
+- `backup_media` bo‘sh arxivni ataylab rad etdi. Tekshiruv: mavjud
+  public/private volume ildizlari, USE_S3=False, har birida 0 fayl.
+  Media zaxirasi/drill PASS deb belgilanmaydi; ko‘chirish/o‘chirish yo‘q.
+- Old image `azurelms:rollback-20260925-1ddd23e`; old compose/Caddy
+  `/home/ubuntu/azurelms-release-20260925/`da saqlandi. Host checkout
+  `2787e86`ga fast-forward; image build bo‘ldi, lekin rollout **HOLD**.
+- Sabab: eski va yangi image’da `/app/deploy/.env` va
+  `/app/deploy/backups` borligi mazmunni o‘qimasdan tekshirildi.
+  Root-only `.dockerignore` nested production fayllarini to‘smagan.
+  Image registryga push qilinmagan; tashqi sizishga dalil yo‘q.
+  Old image/layer/cachelarda tarixiy nusxalar qolishi alohida xavf;
+  bu patch ularni o‘chirib yoki secretlarni rotate qilib bermaydi.
+- Owner minimal fix + CI + clean rebuild + deployni tasdiqladi.
+  `cc861c8`: recursive `**/.env`, `**/.env.*`, `**/backups/`;
+  CI haqiqiy image’da 3-depth harmless canarylar yo‘qligini tekshiradi.
+  Offline `manage.py test core.test_deploy_artifacts --noinput --verbosity 1`:
+  **22 OK**, check0issue; `git diff --check` PASS. Required CI hali ochiq.
+- Migration/restart/public flag activation hali **bajarilmadi**.
+  FeatureFlag override jadvali bo‘sh; old effective holatlar o‘zgarmadi.
+
+## Dastlabki, SSHdan oldingi holat (tarixiy)
 
 - AWS EC2 `azurelms-prod`, Frankfurt `eu-central-1`, Ubuntu 24.04,
   `t3.medium`, Running, 3/3 instance checks. Domen A yozuvi aynan shu

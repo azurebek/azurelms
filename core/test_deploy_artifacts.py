@@ -184,6 +184,28 @@ class ComposeTests(SimpleTestCase):
         self.assertRegex(dockerfile, r"(?m)^USER azurelms\s*$")
 
 
+class DockerContextTests(SimpleTestCase):
+    """Nested production files must be excluded before Docker's COPY layer.
+
+    CI additionally builds a real image with harmless canaries at three depths;
+    these fast tests keep the intended recursive boundary explicit locally.
+    """
+
+    def rules(self):
+        text = (Path(settings.BASE_DIR) / ".dockerignore").read_text(encoding="utf-8")
+        return [line.strip() for line in text.splitlines()
+                if line.strip() and not line.lstrip().startswith("#")]
+
+    def test_environment_files_are_excluded_at_every_depth(self):
+        rules = self.rules()
+        self.assertIn("**/.env", rules)
+        self.assertIn("**/.env.*", rules)
+        self.assertFalse(any(rule.startswith("!") and ".env" in rule for rule in rules))
+
+    def test_backups_are_excluded_at_every_depth(self):
+        self.assertIn("**/backups/", self.rules())
+
+
 class RunbookTests(SimpleTestCase):
     def test_the_media_restore_runs_in_one_container(self):
         """2026-09-13 blocker: ikki `run --rm` orasida `/tmp` saqlanmaydi.
