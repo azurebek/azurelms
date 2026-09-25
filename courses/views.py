@@ -13,7 +13,7 @@ from django.utils import timezone
 
 from core.upload_validation import validate_upload
 from core.frontend_v1 import FrontendV1Mixin
-from django.utils.functional import cached_property
+from core.flags import flag_enabled
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 
@@ -290,15 +290,6 @@ class LessonDetailView(FrontendV1Mixin, LoginRequiredMixin, DetailView):
     frontend_v1_title = 'Dars'
     frontend_v1_flag = 'frontend_v1_lesson'
 
-    @cached_property
-    def frontend_v1_enabled(self):
-        # Keep the entire existing practice renderer until its I2b/I3 port is
-        # verified; never silently omit an assignment/quiz tab in a new shell.
-        return (
-            super().frontend_v1_enabled
-            and not self.object.assignments.exists()
-            and not self.object.quizzes.exists()
-        )
     
     def dispatch(self, request, *args, **kwargs):
         # Override dispatch to block access before hitting get_context_data
@@ -309,6 +300,9 @@ class LessonDetailView(FrontendV1Mixin, LoginRequiredMixin, DetailView):
             selected_cohort_id = _requested_cohort_id(request)
 
             enrollment = _get_active_enrollment_for_course(request.user, course, selected_cohort_id)
+            if 'cohort' in request.GET and flag_enabled('frontend_v1_lesson'):
+                from .frontend_v1_practice import practice_enrollment
+                enrollment = practice_enrollment(request, course_id)
             if not enrollment:
                 messages.error(request, "Siz bu kursning darslarini ko'rish uchun obuna bo'lishingiz kerak.")
                 return redirect("course_detail", pk=course_id)
@@ -520,11 +514,9 @@ class LessonDetailView(FrontendV1Mixin, LoginRequiredMixin, DetailView):
 
         # Oldingi quiz urinishlarini yuklash
         quiz_ids = list(quizzes.values_list('id', flat=True))
-        context['quiz_attempts'] = {
-            a.quiz_id: a for a in QuizAttempt.objects.filter(
-                student=user, quiz_id__in=quiz_ids
-            ).order_by('-completed_at')
-        } if quiz_ids else {}
+        context['quiz_attempts'] = {}
+        for attempt in QuizAttempt.objects.filter(student=user, quiz_id__in=quiz_ids).order_by('-completed_at', '-pk'):
+            context['quiz_attempts'].setdefault(attempt.quiz_id, attempt)
 
         # Determine previous and next lessons
         try:
@@ -558,6 +550,9 @@ class LessonDetailView(FrontendV1Mixin, LoginRequiredMixin, DetailView):
             context['course_progress_percent'] = 100
             context['module_progress_percent'] = 100
             
+        if self.frontend_v1_enabled:
+            from .frontend_v1_practice import decorate_practice
+            decorate_practice(context, self.request)
         return context
 
 
@@ -572,6 +567,10 @@ class SubmitAssignmentView(LoginRequiredMixin, View):
         course = assignment.lesson.module.course
         selected_cohort_id = _requested_cohort_id(request)
         enrollment = _get_active_enrollment_for_course(request.user, course, selected_cohort_id)
+        v1 = flag_enabled('frontend_v1_lesson')
+        if v1:
+            from .frontend_v1_practice import practice_enrollment
+            enrollment = practice_enrollment(request, course_id)
         redirect_url = _build_url_with_query(
             reverse('lesson_detail', kwargs={'course_id': course_id, 'lesson_id': lesson_id}),
             tab='homework',
@@ -590,14 +589,21 @@ class SubmitAssignmentView(LoginRequiredMixin, View):
             assignment=assignment,
             answer_text=request.POST.get("answer_text") or "",
             attachment=request.FILES.get("attachment"),
+            enrollment=enrollment,
+            replace_review=not v1 or request.POST.get('replace_review') == 'yes',
         )
         if not result.ok:
+            if v1:
+                from .frontend_v1_practice import form_error
+                return form_error(request, lesson=assignment.lesson, enrollment=enrollment,
+                                  kind='assignment', record_id=assignment.pk, message=result.message,
+                                  answer_text=request.POST.get('answer_text', ''))
             messages.error(request, result.message)
             return redirect(redirect_url)
 
         messages.success(
             request,
-            "Vazifa yuborildi. O'qituvchi tekshiruvigacha keyingi dars yopiq qoladi.",
+            result.message,
         )
         return redirect(redirect_url)
 
@@ -1117,18 +1123,46 @@ class SubmitQuizView(LoginRequiredMixin, View):
     def post(self, request, course_id, lesson_id, quiz_id):
         quiz = get_object_or_404(Quiz, id=quiz_id, lesson_id=lesson_id, lesson__module__course_id=course_id)
 
-        try:
-            data = json.loads(request.body)
-            answers = data.get('answers', {})  # {question_id: choice_id}
-        except (json.JSONDecodeError, AttributeError):
-            return JsonResponse({'error': "Noto'g'ri ma'lumot formati."}, status=400)
+        native = request.content_type in ('application/x-www-form-urlencoded', 'multipart/form-data')
+        if native:
+            if not flag_enabled('frontend_v1_lesson'):
+                return JsonResponse({'error': 'Yangi dars ko‘rinishi o‘chirilgan. Sahifani qayta oching.'}, status=400)
+            from .frontend_v1_practice import form_error, practice_enrollment
+            enrollment = practice_enrollment(request, course_id)
+            answers = {key.removeprefix('answer_'): value for key, value in request.POST.items() if key.startswith('answer_')}
+            question_count = quiz.questions.count()
+            if len(answers) < question_count and request.POST.get('accept_incomplete') != 'yes':
+                return form_error(request, lesson=quiz.lesson, enrollment=enrollment, kind='quiz',
+                                  record_id=quiz.pk, answers=answers,
+                                  message='Barcha savolga javob bering yoki javobsiz savollar uchun tasdiqni belgilang.')
+        else:
+            enrollment = None
+
+            try:
+                data = json.loads(request.body)
+                answers = data.get('answers', {})  # {question_id: choice_id}
+            except (json.JSONDecodeError, AttributeError, UnicodeDecodeError):
+                return JsonResponse({'error': "Noto'g'ri ma'lumot formati."}, status=400)
+            if 'cohort' in request.GET:
+                from .frontend_v1_practice import practice_enrollment
+                enrollment = practice_enrollment(request, course_id)
 
         from courses.submission_service import grade_quiz
 
-        result = grade_quiz(user=request.user, quiz=quiz, answers=answers)
+        result = grade_quiz(user=request.user, quiz=quiz, answers=answers, enrollment=enrollment)
         if not result.ok:
+            if native:
+                return form_error(request, lesson=quiz.lesson, enrollment=enrollment, kind='quiz',
+                                  record_id=quiz.pk, answers=answers, message=result.message)
             status = 403 if result.code == 'no_access' else 400
             return JsonResponse({'error': result.message}, status=status)
+
+        if native:
+            messages.success(request, f'Quiz tekshirildi: {result.score}%. Qo‘shilgan XP: {result.xp_earned}.')
+            return redirect(_build_url_with_query(
+                reverse('lesson_detail', kwargs={'course_id': course_id, 'lesson_id': lesson_id}),
+                cohort=enrollment.cohort_id, tab='quiz',
+            ) + f'#quiz-{quiz.pk}')
 
         return JsonResponse({
             'status': 'success',

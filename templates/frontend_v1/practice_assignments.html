@@ -1,0 +1,17 @@
+{% for assignment in assignments %}
+<section class="c-card f-assignment f-records-stack" id="assignment-{{ assignment.pk }}" aria-labelledby="assignment-title-{{ assignment.pk }}">
+  <div><span class="c-badge c-badge--soft">YOZMA TOPSHIRIQ · {{ forloop.counter }}/{{ assignments|length }}</span><h2 id="assignment-title-{{ assignment.pk }}">{{ assignment.title }}</h2><div class="v1-lesson-prose">{{ assignment.description|safe }}</div></div>
+  {% with submission=assignment.current_submission %}
+  {% if submission %}<section class="c-alert c-alert--info v1-review-result" aria-label="Ustoz tekshiruvi"><div><strong>{{ submission.get_status_display }}</strong><p class="c-caption">Saqlangan: {{ submission.updated_at|date:'d.m.Y H:i' }}{% if submission.status == 'approved' %} · {{ submission.awarded_xp }} XP{% endif %}</p>{% if submission.teacher_feedback %}<p>{{ submission.teacher_feedback|linebreaksbr }}</p>{% endif %}{% if submission.reviewed_by %}<p class="c-caption">Ustoz: {{ submission.reviewed_by.get_full_name|default:submission.reviewed_by.username }}</p>{% endif %}{% if submission.attachment %}<a class="c-text-link" href="{% url 'submission_file' submission_id=submission.pk %}">Yuborilgan fayl: {{ assignment.file_name }}</a>{% endif %}</div></section>{% endif %}
+  <form method="post" enctype="multipart/form-data" action="{% url 'assignment_submit' course_id=course.pk lesson_id=lesson.pk assignment_id=assignment.pk %}{{ cohort_query }}" class="f-records-stack" data-practice-form="assignment-{{ assignment.pk }}" data-revision="{{ assignment.form_revision }}" data-server-status="{{ submission.status }}" data-server-answer="{{ submission.answer_text|default:'' }}"{% if assignment.form_bound %} data-bound="true"{% endif %}>
+    {% csrf_token %}
+    {% if assignment.form_bound %}<p class="c-alert c-alert--info" role="alert" tabindex="-1" data-form-errors>{{ practice_error }}{% if request.FILES %} Faylni qayta tanlang — matningiz saqlandi.{% endif %}</p>{% endif %}
+    <div><label class="c-field__label" for="answer-{{ assignment.pk }}">Javobingiz</label><textarea class="c-field" id="answer-{{ assignment.pk }}" name="answer_text" rows="7" data-draft-field>{{ assignment.form_answer }}</textarea></div>
+    <div><label class="c-field__label" for="attachment-{{ assignment.pk }}">Fayl biriktirish · ixtiyoriy</label><input class="c-field" id="attachment-{{ assignment.pk }}" type="file" name="attachment" aria-describedby="file-hint-{{ assignment.pk }}"><p class="c-caption" id="file-hint-{{ assignment.pk }}">Hujjat yoki rasm. Fayl turi va hajmi serverda tekshiriladi. Yangi fayl tanlanmasa, yuborilgan biriktirma saqlanadi. Tanlangan fayl sahifa yangilanganda tiklanmaydi.</p></div>
+    {% if submission and submission.status != 'pending' %}<label class="c-choice"><input type="checkbox" name="replace_review" value="yes" required><span>Qayta yuborish avvalgi baho, berilgan XP va ustoz izohini tozalaydi. Ish yana tekshiruvga tushishini tasdiqlayman.</span></label>{% endif %}
+    {% include 'frontend_v1/practice_draft.html' %}
+    <div class="f-form-footer"><p class="c-caption">Matn yoki fayl yuboring. Bu amal darsga “bajarildi” belgisi qo‘ymaydi.</p><button class="c-button c-button--primary" type="submit">{% if submission %}Qayta yuborish{% else %}Topshiriqni yuborish{% endif %}</button></div>
+  </form>
+  {% endwith %}
+</section>
+{% endfor %}
