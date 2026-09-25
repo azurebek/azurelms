@@ -35,6 +35,10 @@ qo‘shilmadi; security baseline bo‘sh, CI gate o‘zgarmagan.
   `frontend-v1/I1-LEARNING-SHELL.md`da.
 - Eski `13e24e6` uchun SQLite/PostgreSQL full CI PASS, security FAIL edi;
   yangi pinlarning uch required jobi alohida tekshiriladi. Latest holat PR #120da.
+- Keyingi fresh lokal full run: `venv\Scripts\python.exe manage.py test
+  --noinput --verbosity 1` — **1846 test, OK (skipped=41), 118.355 s**;
+  failure/error 0. Oldingi fontTools xatosi bu safar kuzatilmadi, test/skip
+  qoidasi o‘zgarmadi. Full requirements dry-run va Daphne/AnyIO import/run PASS.
 - AWS, mavjud DB, frontend/prototype dizayni va domain qoidalari o‘zgarmadi.
   Oldingi lokal processlar dependency importini restartgacha saqlashi mumkin.
 

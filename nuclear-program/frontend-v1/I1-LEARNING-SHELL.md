@@ -145,6 +145,13 @@ Focused suite: **433 test, OK (skipped=1)**. Audit tool alohida ignored
 `.tools/` venvda; project venvda faqat ikki paket yangilandi. Ishlab turgan
 oldingi lokal preview processlari restartgacha eski importni tutishi mumkin.
 
+Keyingi fresh full run, shu offline env bilan:
+`venv\Scripts\python.exe manage.py test --noinput --verbosity 1`:
+**1846 test, OK (skipped=41), 118.355 s**. Failure/error 0.
+Oldingi Windows fontTools xatosi bu run’da kuzatilmadi; testlar o‘zgartirilmadi
+yoki yangi skip qo‘shilmadi. `pip install --dry-run -r requirements.txt`
+moslik tekshiruvi, Daphne server importi va AnyIO asyncio backend smoke PASS.
+
 Eski `13e24e6` CI’da SQLite va PostgreSQL full-suite joblari PASS;
 security job FAIL edi. Yangi pinlar bilan uch required job qayta o‘tishi
 shart; oldingi yashil natija yangi pinlar uchun dalil emas. Latest CI/merge
