@@ -16,6 +16,32 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-25 [Codex]: Ichki V1 rendererlar AWS’da yoqildi
+
+Owner `boshla` va alohida yopiq synthetic dataset tasdig‘idan so‘ng,
+learning/lesson/teacher/human messenger flaglari ham ON. Server hanuz
+`363ff95`; rebuild/restart/migration yoki prototip o‘zgarishi yo‘q.
+
+- Branch: `codex/frontend-v1-internal-rollout`; dalil commit `37c4fa7`.
+- Offline `manage.py test users.test_frontend_v1 courses.test_frontend_v1_study
+  messenger.test_frontend_v1 --noinput --verbosity 1`: 57 OK.
+  `manage.py test courses.test_frontend_v1_practice core.test_frontend_v1_review
+  core.test_frontend_v1_directory --noinput --verbosity 1`: 48 OK, skip3.
+- Real HTTPS CSRF/login, hidden course, release→lesson/private PDF,
+  assignment→review→learner feedback, quiz, WSS send/echo, JSON edit/stale409,
+  barcha to‘rt renderer OFF/ON va readyz PASS. Scriptning form-vs-JSON
+  xatosi aniqlanib, runtimega tegmasdan ayni datasetda davom etildi.
+- IAB owner sessiyasi 320/1280 overflow0; menu/Escape/focus, release
+  confirm/cancel, chat light/dark; mobile history496 / desktop540px.
+- Synthetic users4/5/6 inactive+unusable password; cohort1 inactive,
+  enrollment frozen; course1 doim publicdan yashirin; resource1 arxivda.
+  Audit/yozuv/fayllar saqlandi, real user hisoblari o‘zgarmadi.
+- [Aniq scope, rollback va ochiq gate](frontend-v1/R1-INTERNAL-RELEASE.md).
+  Hisob/settings, AI va boshqa port qilinmagan sahifalar legacy; real
+  telefon/owner content qabuli ochiq. Keyingi kod navbati I4b/I5 qoldig‘i.
+
+---
+
 ## 2026-09-25 [Codex]: Public V1 AWS’da yoqildi — 363ff95
 
 Owner so‘ragan public-first deploy yakunlandi. Clean image, tekshirilgan

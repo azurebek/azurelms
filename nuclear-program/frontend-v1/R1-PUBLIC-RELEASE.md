@@ -4,6 +4,10 @@
 https://azurebek.me/. Bu barcha LMS oqimlari yoki 1-oktyabr uchun umumiy
 GO emas; quyidagi scope va ochiq gate’lar saqlanadi.
 
+Keyingi holat: [R1-internal](R1-INTERNAL-RELEASE.md) bilan owner ruxsatidan
+so‘ng learning/lesson/teacher/human messenger ham yoqildi. Pastdagi public-only
+flag va auth holatlari dastlabki public reliz snapshotidir, joriy holat emas.
+
 ## Versiya va yoqilgan qism
 
 - Public port PR #126 → `2787e86`; Docker boundary fix PR #127 →
