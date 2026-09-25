@@ -1,5 +1,6 @@
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, render
+from frontend.public_v1 import render_public
 
 from .models import Announcement, KnowledgeArticle, University, UniversityProgram
 from .selectors import (
@@ -36,7 +37,7 @@ def home(request):
         "knowledge_articles": KnowledgeArticle.objects.published().filter(is_featured=True)[:3],
         "portal_stats": portal_stats(),
     }
-    return render(request, "sit/home.html", context)
+    return render_public(request, "sit/home.html", context)
 
 
 def university_list(request):
@@ -51,7 +52,7 @@ def university_list(request):
         "filters": filter_state,
         **catalog_filter_options(),
     }
-    return render(request, "sit/university_list.html", context)
+    return render_public(request, "sit/university_list.html", context)
 
 
 def _program_sections(university):
@@ -93,7 +94,7 @@ def university_detail(request, slug):
         "program_sections": _program_sections(university),
         "is_preview": include_unpublished and not university.is_published,
     }
-    return render(request, "sit/university_detail.html", context)
+    return render_public(request, "sit/university_detail.html", context)
 
 
 def knowledge_detail(request, slug):
@@ -104,7 +105,7 @@ def knowledge_detail(request, slug):
     )
     queryset = KnowledgeArticle.objects.all() if include_unpublished else KnowledgeArticle.objects.published()
     article = get_object_or_404(queryset, slug=slug)
-    return render(
+    return render_public(
         request,
         "sit/knowledge_detail.html",
         {

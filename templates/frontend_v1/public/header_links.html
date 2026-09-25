@@ -1,0 +1,1 @@
+{% load public_v1 %}{% for item in landing_nav_items %}{% with href=item.url|public_url %}{% if href %}<a href="{{ href }}"{% if item.is_active %} aria-current="page"{% endif %}{% if item.open_in_new_tab %} target="_blank" rel="noopener noreferrer"{% endif %}>{{ item.label }}</a>{% endif %}{% endwith %}{% endfor %}

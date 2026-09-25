@@ -44,6 +44,14 @@ class FlagDefinition:
 
 FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
     FlagDefinition(
+        slug="frontend_v1_public",
+        label="Frontend V1 — public sahifalar",
+        description="Bosh sahifa, katalog/tarif, about/legal, blog va SIT uchun V1 renderer.",
+        default=False,
+        category="Frontend",
+        runbook="OFF eski public template va assetlarni qaytaradi. Kontent, tarif, publication va access o‘zgarmaydi. ON faqat public release tekshiruvlaridan keyin.",
+    ),
+    FlagDefinition(
         slug="frontend_v1_messenger",
         label="Frontend V1 — guruh va ustoz chati",
         description="Tasdiqlangan keng Messenger B; AI sahifasi avvalgi ko‘rinishda qoladi.",

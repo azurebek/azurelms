@@ -1,8 +1,9 @@
 from django.views.generic import ListView
 from .models import Plan
 from .catalog import purchase_plans
+from frontend.public_v1 import PublicFrontendV1Mixin
 
-class PricingView(ListView):
+class PricingView(PublicFrontendV1Mixin, ListView):
     model = Plan
     template_name = 'subscriptions/pricing.html'
     context_object_name = 'plans'

@@ -1,0 +1,1 @@
+{% if user.is_authenticated %}<a class="c-button c-button--primary" href="{% url 'dashboard' %}">O‘quv maydoni</a>{% else %}<a class="c-button c-button--secondary" href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}">Kirish</a><a class="c-button c-button--primary" href="{% url 'register' %}">Ro‘yxatdan o‘tish</a>{% endif %}
