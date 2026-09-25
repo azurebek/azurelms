@@ -269,6 +269,7 @@ def review_assignment_submission(
     feedback=None,
     awarded_xp=None,
     request=None,
+    expected_revision=None,
 ):
     """Vazifani baholaydi: hukm, XP va o'quvchiga xabar — bitta joyda.
 
@@ -287,6 +288,11 @@ def review_assignment_submission(
     # a stale instance from another tab or bot interaction.
     get_user_model().objects.select_for_update().get(pk=submission.student_id)
     submission.refresh_from_db()
+    if expected_revision is not None and expected_revision != submission.updated_at.isoformat():
+        raise ValidationError(
+            'Ish siz ochganingizdan keyin yangilangan. Qaror saqlanmadi. Joriy javobni qayta o‘qing va tasdiqlang.',
+            code='stale_review',
+        )
 
     new_status = (
         AssignmentSubmission.STATUS_APPROVED

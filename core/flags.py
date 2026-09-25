@@ -66,11 +66,11 @@ FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
     ),
     FlagDefinition(
         slug="frontend_v1_teacher",
-        label="Frontend V1 — ustoz home va dars ochish",
-        description="Ustoz bosh sahifasi va aniq guruhga dars ochish/yopishning V1 ko‘rinishi.",
+        label="Frontend V1 — ustoz maydoni",
+        description="Ustoz bosh sahifasi, dars ochish/yopish, tekshiruv navbati va yozma ishni baholashning V1 ko‘rinishi.",
         default=False,
         category="Frontend",
-        runbook="OFF eski ikki sahifani qaytaradi. Release yozuvlari saqlanadi. Noto‘g‘ri guruhga fallback hech qaysi variantda ruxsat etilmaydi.",
+        runbook="OFF eski ustoz sahifalarini qaytaradi. Release/review yozuvlari saqlanadi. Noto‘g‘ri guruhga fallback hech qaysi variantda ruxsat etilmaydi.",
     ),
     FlagDefinition(
         slug="public_registration",

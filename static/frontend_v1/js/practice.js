@@ -1,4 +1,4 @@
-/* Native forms own writes. Session-scoped drafts never contain files or scores. */
+/* Native forms own writes. Draft inputs are not persisted grades or outcomes. */
 (() => {
   'use strict';
   const root = document.querySelector('[data-practice-scope]');
@@ -30,7 +30,8 @@
       [...fields, ...form.querySelectorAll('[type="file"]')].forEach(field => { field.disabled = value; });
     };
     const apply = data => fields.forEach(f => { if (f.type === 'radio') f.checked = data[f.name] === f.value; else if (typeof data[f.name] === 'string') f.value = data[f.name]; });
-    const saved = form.dataset.practiceForm.startsWith('assignment-') ? {answer_text: form.dataset.serverAnswer} :
+    const saved = form.dataset.practiceForm.startsWith('review-') ? Object.fromEntries(fields.map(f => [f.name, f.dataset.draftSaved])) :
+      form.dataset.practiceForm.startsWith('assignment-') ? {answer_text: form.dataset.serverAnswer} :
       Object.fromEntries([...form.querySelectorAll('[data-question-name]')].filter(q => q.dataset.savedChoice).map(q => [q.dataset.questionName, q.dataset.savedChoice]));
     let pending = false, blocked = false;
     let draft = storage(store => JSON.parse(store.getItem(key)));
@@ -54,7 +55,9 @@
       (draft.hadFile === false && form.dataset.serverStatus === 'pending' && form.dataset.revision !== 'new')
     )) {
       storage(store => store.removeItem(key));
-      status.textContent = 'Yuborilgan javob serverdagi saqlangan natijaga mos.';
+      status.textContent = form.dataset.draftConfirmed === 'true' ?
+        'Yuborish serverda tasdiqlandi. Yakuniy qaror va XP saqlangan tekshiruvda.' :
+        'Yuborilgan javob serverdagi saqlangan natijaga mos.';
     } else if (draft && (draft.pending || draft.revision !== form.dataset.revision)) {
       block(true);
       const details = form.closest('details');
