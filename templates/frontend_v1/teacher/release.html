@@ -1,0 +1,36 @@
+{% extends "frontend_v1/platform.html" %}
+{% load static %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'frontend_v1/css/study.css' %}"><script defer src="{% static 'frontend_v1/js/release.js' %}"></script>{% endblock %}
+{% block content %}
+<div class="p-page-heading"><div><p class="c-eyebrow">USTOZ / GURUH RUXSATI</p><h1>Darslarni ochish</h1><p class="c-lead">O‘zgartirishdan oldin guruh, dars va ta’sirini tekshiring.</p></div></div>
+<div class="f-records-stack">
+{% if cohort %}
+  <section class="c-card p-panel f-records-stack"><p class="c-caption">Hozir ochiq: <strong>{{ cohort.name }}</strong> · {{ cohort.course.title }}</p>
+    <form action="{% url 'teacher_release' %}" method="get" class="f-records-filter"><div><label class="c-field__label" for="release-cohort">Guruh</label><select id="release-cohort" class="c-field" name="cohort" aria-describedby="filter-hint">{% for group in cohorts %}<option value="{{ group.pk }}"{% if group.pk == cohort.pk %} selected{% endif %}>{{ group.name }} · {{ group.course.title }}</option>{% endfor %}</select></div><button class="c-button c-button--secondary" type="submit">Guruhni qo‘llash</button></form>
+    <p class="c-caption" id="filter-hint">Tanlashning o‘zi guruhni almashtirmaydi. “Guruhni qo‘llash”ni bosing.</p>
+  </section>
+  <section class="c-card p-panel f-records-stack"><div class="c-section-title"><h2>{{ cohort.course.title }}</h2><span class="c-badge">{{ lesson_rows|length }} dars</span></div>
+    {% if not drip_active %}<div class="c-alert c-alert--info"><p><strong>Birinchi o‘zgarish butun guruh kursiga ta’sir qiladi.</strong> Alohida ochilmagan boshqa darslar yopiladi (drip rejimi).</p></div>{% endif %}
+    <p class="c-caption">{% if drip_active %}Darslar bittadan ochiladigan rejim faol. {% endif %}“Guruhga ochiq” barcha kirish talablari bajarilgan degani emas: obuna va oldingi topshiriq talablari ham tekshiriladi.</p>
+    <ul class="f-directory-roster">{% for row in lesson_rows %}<li class="f-directory-row"><div class="f-directory-person"><h3>{{ row.lesson.title }}</h3><p class="c-caption">{{ row.lesson.module.title }}</p><span class="c-badge">{% if row.is_released %}Guruhga ochiq{% elif drip_active %}Guruhga yopiq{% else %}Alohida cheklov yo‘q{% endif %}</span></div><div class="f-records-stack"><p class="c-caption">Izoh: {{ row.release.release_note|default:"—" }}</p>{% if row.release %}<p class="c-caption">{{ row.release.updated_at|date:"d.m.Y H:i" }}</p>{% endif %}<a class="c-button c-button--secondary" href="?cohort={{ cohort.pk }}&amp;lesson={{ row.lesson.pk }}&amp;action={% if row.is_released %}lock{% else %}release{% endif %}#release-confirm" aria-label="{{ row.lesson.title }} — {% if row.is_released %}yopishni{% else %}ochishni{% endif %} tayyorlash">{% if row.is_released %}Yopishni tayyorlash{% else %}Ochishni tayyorlash{% endif %}</a></div></li>{% empty %}<li class="c-empty"><h3>Bu kursda darslar yo‘q</h3><p>Boshqa kurs darslari bu yerda ko‘rsatilmaydi.</p></li>{% endfor %}</ul>
+    <div class="c-actions"><a class="c-text-link" href="{% url 'teacher_attendance' %}?cohort={{ cohort.pk }}">Shu guruh davomati</a><a class="c-text-link" href="{% url 'teacher_students' %}?cohort={{ cohort.pk }}">Shu guruh o‘quvchilari</a></div>
+  </section>
+  {% if release_target %}
+  <section id="release-confirm" class="c-card p-panel f-records-stack" aria-labelledby="release-title" data-release-confirm>
+    <div class="c-dialog__heading"><div><p class="c-eyebrow">ANIQ GURUH / ANIQ DARS</p><h2 id="release-title">{% if release_action == 'release' %}Darsni ochish{% else %}Darsni yopish{% endif %}</h2></div></div>
+    <form method="post" action="{% url 'teacher_release' %}?cohort={{ cohort.pk }}" class="f-records-stack" data-release-form>
+      {% csrf_token %}<input type="hidden" name="cohort" value="{{ cohort.pk }}"><input type="hidden" name="lesson" value="{{ release_target.pk }}"><input type="hidden" name="action" value="{{ release_action }}">
+      <p class="c-lead">{{ cohort.name }} · {{ release_target.title }}</p>
+      <p class="c-caption">{% if release_action == 'release' %}Dars guruhga ochiladi. Faol o‘quvchilarga ochilish bildirishnomasi takrorlanmaydi.{% else %}Dars va uning materiallariga guruh ruxsati yopiladi.{% endif %} Davomat, topshiriq, baho va progress saqlanadi.</p>
+      {% if not drip_active %}<div class="c-alert c-alert--info"><p><strong>Birinchi o‘zgarish:</strong> alohida ochilmagan boshqa darslar yopiladi. Oxirgi ochiq darsni yopish bu rejimni o‘chirmaydi.</p></div>{% endif %}
+      {% if confirmation_error %}<p class="c-alert v1-error" role="alert" tabindex="-1" data-release-error>{{ confirmation_error }}</p>{% endif %}
+      <div><label class="c-field__label" for="release-note">Izoh (ixtiyoriy)</label><textarea class="c-field" id="release-note" name="note" maxlength="255" rows="3" aria-describedby="release-note-hint">{{ release_note }}</textarea><p class="c-caption" id="release-note-hint">255 belgigacha. Izoh faqat tasdiqlab saqlanganda yoziladi.</p></div>
+      <label class="c-choice"><input type="checkbox" name="confirm_scope" value="yes" required><span>Ko‘rsatilgan guruh, dars va amalni tekshirdim.</span></label>
+      {% if not drip_active %}<label class="c-choice"><input type="checkbox" name="confirm_impact" value="yes" required><span>Boshqa ochilmagan darslar yopilishini tushunaman.</span></label>{% endif %}
+      <div class="c-actions"><button class="c-button c-button--primary" type="submit">Tasdiqlab saqlash</button><a class="c-button c-button--secondary" href="{% url 'teacher_release' %}?cohort={{ cohort.pk }}" data-release-cancel>Bekor qilish</a></div>
+    </form>
+  </section>
+  {% endif %}
+{% else %}<section class="c-card c-empty"><h2>Faol guruh yo‘q</h2><p>Sizga biriktirilgan faol guruhlar shu yerda ko‘rinadi.</p><a class="c-button c-button--secondary" href="{% url 'teacher_dashboard' %}">Ustoz bosh sahifasi</a></section>{% endif %}
+</div>
+{% endblock %}

@@ -16,6 +16,37 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-25 [Codex]: I2a — real dars/material va ustoz release adapteri
+
+V1 matn/video/material dars, ustoz dashboard/release mavjud Django
+context/servislariga ulandi. `frontend_v1_lesson` va `frontend_v1_teacher`
+default OFF. Assignment/quizli darslar butunlay legacy rendererda qoladi;
+**I2b ochiq, I2/R1 to‘liq PASS emas**. Yangi trial dizayni qurilmadi.
+
+- Branch: `codex/frontend-v1-lesson-release`; implementatsiya: `6ea865f`.
+- PR #121: dastlabki CI `36086106798`da SQLite/security PASS, PostgreSQL
+  4 error. Yangi file-response testi to‘g‘ridan-to‘g‘ri close qilib TestCase
+  connectionini yopgan; `a2a5907` streamni client wrapper orqali iste’mol
+  qilish va exact PDF bytes/closed assertions bilan tuzatdi. Runtime kod
+  o‘zgarmadi; focused 40 test qayta PASS. Fresh required CI hali kutiladi.
+- Teacher POST target fallbacki yo‘q: missing/unknown/inactive/foreign cohort
+  va query/body mismatch yozmaydi, OFF variantda ham. V1 native confirmation,
+  CSRF va first-drip impact tasdig‘i; invalid note qaytadi; canonical audit/
+  notification/no-op saqlanadi. Completion joriy allowlisted tabni saqlaydi.
+- `venv\Scripts\python.exe manage.py check`: 0 issue. `.env.local`siz,
+  bo‘sh provider/bot tokenlari bilan `manage.py test --noinput --verbosity 1`:
+  **1862 test OK (skipped=41)**. Final `manage.py test courses.test_frontend_v1_study
+  users.test_frontend_v1 --noinput --verbosity 1`: **40 PASS**. Node
+  `node --test tests/frontend_v1/*.test.mjs`: **13 PASS**. Hashed V1 static PASS.
+- Computer-use/IAB: isolated real server 8049, 1440/390/320px, light/dark,
+  teacher open + note, cancel/reopen, learner material download va completion
+  tab saqlanishi. Console warn/error 0; haqiqiy telefon/tashqi video hali yo‘q.
+- I1 fresh PR #120 MERGED (`b991a68`, uch required CI PASS) jurnalga kiritildi.
+  I2a PR/CI keyingi gate; AWS/staging/deploy yo‘q, canonical DB/backup untouched.
+  Tafsilot: `frontend-v1/I2-LESSON-RELEASE.md`. Keyingi ish: I2b practice darsi.
+
+---
+
 ## 2026-09-25 [Codex]: PR #120 xavfsizlik to‘sig‘i — patched dependency pinlari
 
 Owner tasdig‘idan keyin maintainer advisorylaridagi patched relizlar olindi:

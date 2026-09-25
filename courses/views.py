@@ -12,6 +12,8 @@ from django.http import Http404, JsonResponse
 from django.utils import timezone
 
 from core.upload_validation import validate_upload
+from core.frontend_v1 import FrontendV1Mixin
+from django.utils.functional import cached_property
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 
@@ -130,10 +132,14 @@ def lesson_completion_view(request, course_id, lesson_id):
     decide = unmark_lesson_completed if request.POST.get("action") == "clear" else mark_lesson_completed
     decision = decide(enrollment, lesson)
     messages.success(request, decision.message)
+    study_tab = request.POST.get("tab")
+    if study_tab not in {"video", "text", "homework", "quiz", "materials"}:
+        study_tab = None
     return redirect(
         _build_url_with_query(
             reverse("lesson_detail", kwargs={"course_id": course_id, "lesson_id": lesson_id}),
             cohort=enrollment.cohort_id,
+            tab=study_tab,
         )
     )
 
@@ -272,7 +278,7 @@ class CourseStudyRedirectView(LoginRequiredMixin, View):
             )
         )
 
-class LessonDetailView(LoginRequiredMixin, DetailView):
+class LessonDetailView(FrontendV1Mixin, LoginRequiredMixin, DetailView):
     """
     Renders the tabbed interactive study environment for a specific lesson.
     """
@@ -280,6 +286,19 @@ class LessonDetailView(LoginRequiredMixin, DetailView):
     template_name = 'courses/lesson_detail.html'
     context_object_name = 'lesson'
     pk_url_kwarg = 'lesson_id'
+    frontend_v1_template = 'frontend_v1/lesson.html'
+    frontend_v1_title = 'Dars'
+    frontend_v1_flag = 'frontend_v1_lesson'
+
+    @cached_property
+    def frontend_v1_enabled(self):
+        # Keep the entire existing practice renderer until its I2b/I3 port is
+        # verified; never silently omit an assignment/quiz tab in a new shell.
+        return (
+            super().frontend_v1_enabled
+            and not self.object.assignments.exists()
+            and not self.object.quizzes.exists()
+        )
     
     def dispatch(self, request, *args, **kwargs):
         # Override dispatch to block access before hitting get_context_data
@@ -369,7 +388,10 @@ class LessonDetailView(LoginRequiredMixin, DetailView):
         context['active_cohort_id'] = active_cohort_id
         context['cohort_query'] = f"?cohort={active_cohort_id}" if active_cohort_id else ""
 
-        modules = list(course.modules.all().prefetch_related('lessons'))
+        module_queryset = course.modules.all().prefetch_related('lessons')
+        if self.frontend_v1_enabled:
+            module_queryset = module_queryset.prefetch_related('lessons__assignments', 'lessons__quizzes')
+        modules = list(module_queryset)
         course_exams = course.exams.all().order_by('id')
         assignments = list(self.object.assignments.all())
         quizzes = self.object.quizzes.prefetch_related('questions__choices').all()

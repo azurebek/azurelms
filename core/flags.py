@@ -57,6 +57,22 @@ FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
         ),
     ),
     FlagDefinition(
+        slug="frontend_v1_lesson",
+        label="Frontend V1 — dars va material",
+        description="Matn/video/material darsining V1 ko‘rinishi; assignment/quizli dars avvalgi ko‘rinishda qoladi.",
+        default=False,
+        category="Frontend",
+        runbook="ON faqat tegishli release tekshiruvidan keyin. OFF eski dars ko‘rinishini qaytaradi; access/material/progress o‘zgarmaydi.",
+    ),
+    FlagDefinition(
+        slug="frontend_v1_teacher",
+        label="Frontend V1 — ustoz home va dars ochish",
+        description="Ustoz bosh sahifasi va aniq guruhga dars ochish/yopishning V1 ko‘rinishi.",
+        default=False,
+        category="Frontend",
+        runbook="OFF eski ikki sahifani qaytaradi. Release yozuvlari saqlanadi. Noto‘g‘ri guruhga fallback hech qaysi variantda ruxsat etilmaydi.",
+    ),
+    FlagDefinition(
         slug="public_registration",
         label="Ochiq ro'yxatdan o'tish",
         description="Yangi foydalanuvchilar o'zi hisob ocha oladimi.",

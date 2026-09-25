@@ -1,8 +1,8 @@
 {% extends "frontend_v1/base.html" %}
 {% block body %}
 <aside class="s-sidebar">
-  <a class="s-brand" href="{% url 'dashboard' %}">{% include "components/brand_logo.html" with mark_class="s-brand__mark" %}</a>
-  <div class="s-workspace"><span class="c-avatar c-avatar--small">{% include "frontend_v1/icon.html" with name="book" %}</span><div><strong>Turk tili</strong><small>O‘rganish — har kuni</small></div></div>
+  <a class="s-brand" href="{% if frontend_v1_home %}{{ frontend_v1_home }}{% else %}{% url 'dashboard' %}{% endif %}">{% include "components/brand_logo.html" with mark_class="s-brand__mark" %}</a>
+  <div class="s-workspace"><span class="c-avatar c-avatar--small">{% include "frontend_v1/icon.html" with name="book" %}</span><div><strong>{{ frontend_v1_workspace|default:"Turk tili" }}</strong><small>{{ frontend_v1_tagline|default:"O‘rganish — har kuni" }}</small></div></div>
   {% include "frontend_v1/nav.html" with label="Asosiy navigatsiya" %}
   <div class="s-sidebar__bottom">{% include "frontend_v1/account.html" %}</div>
 </aside>
@@ -10,7 +10,7 @@
   <header class="s-topbar">
     <div class="s-topbar__start">
       <button class="c-icon-button s-mobile-menu" type="button" aria-label="Asosiy menyuni ochish" aria-controls="nav-dialog" aria-expanded="false" data-nav-open>{% include "frontend_v1/icon.html" with name="menu" %}</button>
-      <span class="s-breadcrumb"><span class="s-breadcrumb__workspace">O‘quv maydoni <span aria-hidden="true">/</span></span><strong>{{ frontend_v1_title }}</strong></span>
+      <span class="s-breadcrumb"><span class="s-breadcrumb__workspace">{{ frontend_v1_workspace|default:"O‘quv maydoni" }} <span aria-hidden="true">/</span></span><strong>{{ frontend_v1_title }}</strong></span>
     </div>
     <div class="s-topbar__end">
       <a class="c-icon-button" href="{% url 'notifications' %}" aria-label="Bildirishnomalar{% if unread_notifications_count %}: {{ unread_notifications_count }} ta o‘qilmagan{% endif %}" title="Bildirishnomalar — avvalgi ko‘rinishda">{% include "frontend_v1/icon.html" with name="message" %}{% if unread_notifications_count %}<span class="c-dot" aria-hidden="true"></span>{% endif %}</a>

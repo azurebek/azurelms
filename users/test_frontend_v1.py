@@ -257,7 +257,7 @@ class FrontendV1StaticTests(SimpleTestCase):
                 STORAGES={"staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"}},
             ):
                 call_command("collectstatic", interactive=False, verbosity=0, stdout=StringIO())
-                for asset in ("css/tokens.css", "css/learning.css", "js/theme.js", "js/shell.js", "js/login.js", "icons.svg"):
+                for asset in ("css/tokens.css", "css/learning.css", "css/study.css", "js/theme.js", "js/shell.js", "js/login.js", "js/release.js", "icons.svg"):
                     url = staticfiles_storage.url("frontend_v1/" + asset)
                     self.assertNotEqual(url, "/static/frontend_v1/" + asset)
                     self.assertTrue(staticfiles_storage.exists(staticfiles_storage.stored_name("frontend_v1/" + asset)))

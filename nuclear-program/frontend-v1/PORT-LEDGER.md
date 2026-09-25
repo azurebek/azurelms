@@ -2,25 +2,29 @@
 
 Qabul: `[ ]` ochiq; `[-]` ishda; `[x] ~~...~~` dalil bilan tugagan.
 “Prototype bor” real portga `[x]` qo‘yish uchun yetmaydi.
-Sana emas, tugallangan natija bilan kuzatiladi. I1ning 3 real URLi lokal
-ulandi; flag default OFF. Deploy hali 0, I2–I9 ochiq.
+Sana emas, tugallangan natija bilan kuzatiladi. I1 main’da; I2 ishda.
+Flaglar default OFF. Ushbu port doirasida deploy hali 0.
 
 ## Navbat
 
 - [x] ~~I0 — V1 freeze, zaxira reference, joriy inventar, mapping, baseline va reja.~~
   2026-09-25: 95 preview → 76 source UI name, 54 template; 44 unmapped UI/alias.
   [Inventar](INVENTORY.md), [strategiya](README.md). Runtime o‘zgartirilmagan.
-- [-] **I1 — V1 foundation + login/dashboard/my-courses.** Lokal runtime va
-  test/browser PASS; [PR #120](https://github.com/azurebek/azurelms/pull/120).
-  Uch advisory `18b5a0b`dagi anyio/autobahn yangilanishi bilan lokal yopildi
-  (107 dependency / 0 advisory). Yangi pinlar bilan CI qayta tekshiriladi;
-  latest CI/merge holati PRda. Deploy qilinmadi. [Adapter dalili](I1-LEARNING-SHELL.md).
+- [x] ~~I1 — V1 foundation + login/dashboard/my-courses.~~
+  [PR #120](https://github.com/azurebek/azurelms/pull/120) main’da: `b991a68`.
+  Required CI run `36082949974`: uchala job PASS. Lokal full 1846 test
+  OK (skipped=41); audit 107 dependency / 0 advisory. Deploy qilinmadi.
+  [Adapter dalili](I1-LEARNING-SHELL.md).
   Flag OFF: existing
   UI ishlaydi. Flag ON: haqiqiy user va real enrollmentlar; logout POST,
   CSRF, safe next, role menu, empty/multi-course, theme/draft isolation.
-- [ ] **I2 — O‘qish/material + teacher home/release.** Real lesson kontenti,
+- [-] **I2 — O‘qish/material + teacher home/release.** Real lesson kontenti,
   cohort saqlanishi, direct private file gate; teacher open/lock→student
   read/write/file. Assignment/quiz mavjud funksiyasi saqlanmasa I2 yopilmaydi.
+  - I2a: matn/video/material + teacher home/release real adapteri.
+    [Implementatsiya va dalil](I2-LESSON-RELEASE.md); PR/CI holati shu dalilda.
+  - [ ] I2b: assignment/quizli darsning to‘liq ko‘chirilishi; hozir bu
+    darslar to‘liq legacy rendererda. I2/R1 tayyor deb hisoblanmaydi.
 - [ ] **R1 — Birinchi ishlaydigan bo‘lakni chiqarish.** I1+I2ning relevant
   test/browser, required CI, staging, deploy smoke va rollbacki. I3–I9ni kutmaydi.
 - [ ] **I3 — Assignment/quiz/review + teacher ro‘yxatlar/davomat.** Juft

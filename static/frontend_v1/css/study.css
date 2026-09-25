@@ -1,0 +1,38 @@
+/* Approved Eleventh Trial records/lesson patterns, scoped to the V1 document. */
+.f-records-stack { display: grid; gap: var(--az-space-6); min-width: 0; align-content: start; }
+.f-records-filter { display: flex; flex-wrap: wrap; align-items: end; gap: var(--az-space-4); }
+.f-records-filter > div { flex: 1 1 var(--az-art-width); min-width: 0; }
+.f-records-filter .c-button { min-width: var(--az-button-min); }
+.f-directory-roster { display: grid; gap: var(--az-space-3); list-style: none; padding: 0; margin-block: var(--az-space-5); }
+.f-directory-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: start; gap: var(--az-space-6); padding-block: var(--az-space-4); border-bottom: 1px solid var(--az-border); }
+.f-directory-row > div { min-width: 0; flex: 1 1 var(--az-art-width); }
+.f-directory-row > .f-records-stack { flex: 0 1 var(--az-aside); }
+.f-directory-person { display: grid; justify-items: start; gap: var(--az-space-2); min-width: 0; }
+.f-directory-person h3 { font-size: var(--az-text-md); }
+.f-directory-person p { max-width: 100%; }
+.f-material-list { display: grid; gap: var(--az-space-3); list-style: none; padding: 0; margin: 0; }
+.f-material-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--az-space-4); min-width: 0; padding: var(--az-space-4); border: 1px solid var(--az-border); border-radius: var(--az-radius-sm); }
+.f-material-copy { flex: 1 1 var(--az-art-width); min-width: 0; }
+.v1-module-title { margin-top: var(--az-space-6); font-size: var(--az-text-sm); color: var(--az-muted); }
+.v1-lesson-prose { margin-top: var(--az-space-6); overflow-x: auto; overflow-wrap: anywhere; }
+.v1-lesson-prose > * + * { margin-top: var(--az-space-4); }
+.v1-lesson-prose ul, .v1-lesson-prose ol { padding-inline-start: var(--az-space-6); }
+.v1-lesson-prose table { max-width: 100%; border-collapse: collapse; }
+.v1-lesson-prose td, .v1-lesson-prose th { border: 1px solid var(--az-border); padding: var(--az-space-3); }
+.v1-lesson-prose a { color: var(--az-action); text-decoration: underline; }
+.v1-lesson-prose img, .v1-lesson-prose video, .v1-lesson-prose iframe { max-width: 100%; height: auto; }
+.v1-lesson-video { width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: var(--az-radius-sm); }
+.v1-release-dialog { margin: auto; width: var(--az-dialog); }
+html:has(.v1-release-dialog[open]) { overflow: hidden; }
+.v1-release-dialog > section { border: 0; padding: 0; box-shadow: none; }
+@media (width < 1024px) {
+  .f-lesson-layout, .f-dashboard-bottom { grid-template-columns: 1fr; }
+}
+@media (width < 640px) {
+  .f-records-filter { align-items: stretch; flex-direction: column; }
+  .f-records-filter > div { flex: auto; }
+  .f-directory-row { gap: var(--az-space-4); }
+  .f-directory-row > .f-records-stack { flex-basis: 100%; }
+  .f-material-row > .c-button { width: 100%; }
+  .f-lesson-text, .f-lesson-materials, .f-course-outline { padding: var(--az-space-5); }
+}

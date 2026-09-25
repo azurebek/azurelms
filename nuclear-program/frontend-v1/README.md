@@ -6,11 +6,11 @@ Tayyor qismlar real Django platformasiga ko‘chiriladi; 1-oktyabrda kamida
 bitta tugallangan real oqim maqsad qilinadi. Keyin qolgan prototiplarga
 qaytiladi. **Bu hujjat ko‘chirish rejasi; ko‘chirish bajarildi degani emas.**
 
-Joriy ijro: [I1 — 3 real sahifa lokal ulandi](I1-LEARNING-SHELL.md),
-default OFF; PR #120dagi 3 advisory ikki paketni yangilash bilan lokal
-yopildi (107 dependency / 0 advisory). Yangi pinlar uchun CI qayta tekshiruvi
-PRda; AWS release ochiq. Tafsilot I1 dalilida.
-Qolgan I2–I9 navbatlari saqlanadi.
+Joriy ijro: [I1 — 3 real sahifa](I1-LEARNING-SHELL.md) PR #120 orqali
+`b991a68` bilan main’ga qo‘shildi; uch required CI PASS. Advisory 0,
+default OFF, AWS release ochiq. [I2a — dars/material va ustoz release](I2-LESSON-RELEASE.md)
+keyingi adapter bo‘lagi; practice darslari fallbacki sababli I2 hali to‘liq yopilmaydi.
+I3–I9 navbatlari saqlanadi.
 
 ## 1. Qayerdamiz
 
@@ -168,10 +168,8 @@ UI+adapter+test bitta mantiqiy bo‘lakda. Test va ruxsatlar evaziga tezlashtiri
 
 ## 8. Keyingi agent/turn uchun kirish
 
-`PORT-LEDGER.md`dagi birinchi ochiq band — **I1**. Avval inventardagi uch
-source URL/controller va existing testsni o‘qing. Shu flow uchun admission:
-**ADMIT — launch-critical**, learner natijasi = haqiqiy hisob bilan o‘z kursiga
-barqaror kirish; KPI = login→dashboard→my-courses success + denied access
-regressiyasi. Canonical state o‘zgarmaydi; owner yuki oshmaydi; old-renderer
-rollback bor. Yangi trial, framework, global shell rewrite yoki DB ko‘chirish
-boshlamang. Yangi ish o‘z `codex/` branchida; single checkout saqlanadi.
+`PORT-LEDGER.md`dagi birinchi ochiq band — **I2**. I2a dalili va branch/PR
+holatini tekshiring; keyin **I2b — assignment/quizli darsning to‘liq adapteri**.
+Bu bog‘liq I3 qismi tugamaguncha I2 PASS yozilmaydi. Admission launch-critical;
+submission/grade/XP canonical servislar orqali qoladi. Yangi trial, framework,
+global shell rewrite yoki DB ko‘chirish boshlamang. Single checkout saqlanadi.
