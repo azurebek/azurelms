@@ -68,7 +68,15 @@ fayl/CSRF/score browser storagega yozilmaydi, noaniq javob avtomatik yuborilmayd
 write oldidan validatsiya qilinadi. Quiz/assignment/review per-user lock va
 transactionda; best-XP farqi ikki marta berilmaydi. Resubmit avvalgi bahoni
 tozalaganda tegishli XPni ham qaytaradi; pending bir xil matn no-op.
-Teacher review UI hozircha legacy. [I2b dalili](frontend-v1/I2B-PRACTICE.md).
+I2b PR #122 main’da (`c8c3864`, final uch required CI PASS).
+[I2b dalili](frontend-v1/I2B-PRACTICE.md).
+I3a: teacher flag navbat va assignment reviewni ham tanlaydi. Presentation/form
+`core/frontend_v1_review.py`da; haqiqiy qaror canonical servicega explicit
+tasdiq va `expected_revision` bilan boradi. Student user-lock ostida revision
+o‘zgargan bo‘lsa 409/no-write, bound izoh saqlanadi. Queue scope/pagination,
+native PRG va scoped qoralama bor; durable operation receipt emas.
+Exam detail I8gacha, ro‘yxatlar/davomat I3bgacha legacy.
+[I3a dalili](frontend-v1/I3A-TEACHER-REVIEW.md).
 Teacher release explicit POST cohort talab qiladi; query/body mismatch yoki
 noma’lum guruh boshqa guruhga fallback qilmaydi, hatto flag OFF bo‘lsa ham.
 V1da GET faqat confirmation tayyorlaydi, CSRF POST canonical release servisiga

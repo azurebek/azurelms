@@ -2,8 +2,8 @@
 
 Qabul: `[ ]` ochiq; `[-]` ishda; `[x] ~~...~~` dalil bilan tugagan.
 “Prototype bor” real portga `[x]` qo‘yish uchun yetmaydi.
-Sana emas, tugallangan natija bilan kuzatiladi. I1/I2a main’da; I2b lokal tayyor,
-required CI va integratsiya yakuni uning PRida tekshiriladi.
+Sana emas, tugallangan natija bilan kuzatiladi. I1/I2 main’da;
+I3a lokal implementatsiyasi tekshirildi, required CI/integratsiya PRda tekshiriladi.
 Flaglar default OFF. Ushbu port doirasida deploy hali 0.
 
 ## Navbat
@@ -19,7 +19,7 @@ Flaglar default OFF. Ushbu port doirasida deploy hali 0.
   Flag OFF: existing
   UI ishlaydi. Flag ON: haqiqiy user va real enrollmentlar; logout POST,
   CSRF, safe next, role menu, empty/multi-course, theme/draft isolation.
-- [-] **I2 — O‘qish/material + teacher home/release.** Real lesson kontenti,
+- [x] ~~I2 — O‘qish/material + teacher home/release.~~ Real lesson kontenti,
   cohort saqlanishi, direct private file gate; teacher open/lock→student
   read/write/file. Assignment/quiz mavjud funksiyasi saqlanmasa I2 yopilmaydi.
   - [x] ~~I2a: matn/video/material + teacher home/release.~~ PR #121,
@@ -28,13 +28,19 @@ Flaglar default OFF. Ushbu port doirasida deploy hali 0.
   - [x] ~~I2b implementatsiya va lokal tekshiruv: assignment/quizli dars.~~
     `7e2efb6`; 1879 Python OK (skip=42), 28 Node PASS; native yuborish,
     review status, latest result, private fayl va scoped qoralama.
-    [Dalil va cheklovlar](I2B-PRACTICE.md). Integration required CI/merge
-    yakuni PRda; uning PASSisiz umumiy I2 yoki R1 PASS deb hisoblanmaydi.
+    [Dalil va cheklovlar](I2B-PRACTICE.md).
+  - [x] ~~I2b required CI va integratsiya.~~ PR #122 MERGED `c8c3864`;
+    final CI `36089727327` uchala PASS: SQLite1882 skip41,
+    PostgreSQL1882 skip20, Node28. I2 yopildi, R1 release ochiq.
 - [ ] **R1 — Birinchi ishlaydigan bo‘lakni chiqarish.** I1+I2ning relevant
   test/browser, required CI, staging, deploy smoke va rollbacki. I3–I9ni kutmaydi.
-- [ ] **I3 — Teacher review + ro‘yxatlar/davomat.** Learner assignment/quiz
-  qismi I2bda ulandi. Teacherning yangi review projectioni hali ko‘chmagan;
-  mavjud real review endpoint/navbati ishlaydi. XP parity testi I2bda bor.
+- [-] **I3 — Teacher review + ro‘yxatlar/davomat.** Learner assignment/quiz
+  qismi I2bda ulandi.
+  - [x] ~~I3a lokal implementatsiya: navbat → yozma ish qarori → learner natijasi.~~
+    Native CSRF/PRG, explicit tasdiq, stale/duplicate no-write, canonical XP.
+    [Dalil va cheklovlar](I3A-TEACHER-REVIEW.md).
+  - [ ] I3a required CI va integratsiya — branch PRida tekshiriladi.
+  - [ ] I3b teacher ro‘yxatlar/davomat — mavjud legacy sahifalar ishlaydi.
 - [ ] **I4 — Messenger B.** Guruh/ustoz: real room/history/send/edit/delete/
   attachment/reconnect; AI: mavjud provider/choice/quota/context/error.
   Qoralama saqlansin, layout barcha gap holatlarida ishlasin; yangi AI engine yo‘q.

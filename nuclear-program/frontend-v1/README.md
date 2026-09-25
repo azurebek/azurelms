@@ -10,10 +10,11 @@ Joriy ijro: [I1 — 3 real sahifa](I1-LEARNING-SHELL.md) PR #120 orqali
 `b991a68` bilan main’ga qo‘shildi; uch required CI PASS. Advisory 0,
 default OFF, AWS release ochiq. [I2a — dars/material va ustoz release](I2-LESSON-RELEASE.md)
 PR #121 bilan main’da (`5528c74`, uch required CI PASS).
-[I2b — assignment/quiz](I2B-PRACTICE.md) real adapteri va lokal tekshiruvi
-bajarildi (`7e2efb6`); required CI/merge yakuni branch PRida tekshiriladi.
-Practice darslari fallbacki olib tashlandi. R1 staging/device/AWS qabuli,
-I3ning teacher review/ro‘yxatlar/davomat qismi va I4–I9 ochiq.
+[I2b — assignment/quiz](I2B-PRACTICE.md) PR #122 bilan main’da (`c8c3864`),
+final required CI `36089727327` uchala PASS. I2 yopildi.
+[I3a — teacher navbat/review](I3A-TEACHER-REVIEW.md) lokal tayyor;
+required CI/integratsiya yakuni uning PRida tekshiriladi. R1 staging/device/AWS
+qabuli, I3b ro‘yxatlar/davomat va I4–I9 ochiq.
 
 ## 1. Qayerdamiz
 
@@ -174,10 +175,11 @@ UI+adapter+test bitta mantiqiy bo‘lakda. Test va ruxsatlar evaziga tezlashtiri
 
 ## 8. Keyingi agent/turn uchun kirish
 
-Avval **I2b branch PRining required CI/merge yakuni**ni tekshiring;
-lokal implementatsiyani qayta boshlamang. Keyin **R1** uchun staging/test
-hisob/device/AWS vakolatini aniqlang; uni kutayotgan paytda **I3 teacher
-review/ro‘yxatlar/davomat** real porti alohida xavfsiz bo‘lak bo‘lib davom
-etishi mumkin. Submission/grade/XP canonical servislar orqali qoladi.
+Avval **I3a branch PRining required CI/merge yakuni**ni tekshiring;
+lokal implementatsiyani qayta boshlamang. Keyin **R1** uchun test
+hisob/device/AWS vakolati, zaxira va rollback usulini aniqlang; alohida staging
+yo‘qligi tasdiqlangan. Shu tashqi gate ochiqligida **I3b teacher
+ro‘yxatlar/davomat** alohida xavfsiz bo‘lak bo‘lib davom etishi mumkin.
+Submission/grade/XP canonical servislar orqali qoladi.
 Yangi trial, framework, global shell rewrite yoki DB ko‘chirish boshlamang.
 Single checkout saqlanadi.
