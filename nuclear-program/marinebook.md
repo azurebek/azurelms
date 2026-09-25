@@ -16,6 +16,44 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-25 [Codex]: Frontend V1 freeze va qisman real ko‘chirish rejasi
+
+Owner joriy Eleventh Trialni V1 deb olish, yangi prototype/redesignni
+vaqtincha to‘xtatish va 1-oktyabrgacha tayyor bo‘laklardan real ishlaydigan
+oqim chiqarishni tanladi. D30 bilan avvalgi barcha-G3-oldin-G4 ketma-ketligi
+qisman portga almashtirildi; umumiy INCLUDED scope va security/release
+gate’lari qoladi. Bu to‘liq G2/G3 PASS yoki deploy ruxsati emas.
+
+- Branch: `codex/frontend-v1-port-plan`
+- Commit: `e50d00a` — `nuclear-program/frontend-v1/README.md`, `INVENTORY.md`,
+  `PORT-LEDGER.md`. 95 preview URL / 54 template / 76 unique source UI name;
+  120 source UI/aliasdan 44tasi named prototypesiz. Bu port foizi emas.
+- Reja: I1 shell/login/dashboard/my-courses → I2 real lesson/material va
+  teacher release → birinchi release; keyin I3–I9. Namespace + per-flow
+  default-OFF renderer flag + legacy fallback. Demo controller/fixture
+  productionga kirmaydi; yangi biznes qoidalari yo‘q.
+- Admission: `ADMIT — launch-critical`; KPI haqiqiy hisob bilan
+  login→kurs→dars/material va teacher open→student access natijasi.
+- Baseline source: `d0cce32`; runtime o‘zgarmagan. `.env.local`siz va bo‘sh
+  provider/bot tokenlari bilan root `venv\Scripts\python.exe manage.py check`
+  — 0 issue; `manage.py test core.test_golden_flow_e2e
+  courses.test_locked_lesson_write_gate courses.test_lesson_release
+  courses.test_lesson_completion library.test_student_access --noinput
+  --verbosity 1` — 46 PASS. Root full suite bu safar yugurilmadi.
+- Trialdan `..\..\venv\Scripts\python.exe manage.py test --verbosity 1
+  --noinput` — 590 PASS; root `node --test "playground/Eleventh Trial/tests/*.test.mjs"`
+  — 164 PASS. Inventar/link/source-SHA va `git diff --check` — PASS.
+  Bu testlar yangi runtime UI yoki AWS release PASS emas.
+- Lokal trialda faqat D30/freeze/link hujjatlari yangilandi; ignored
+  `playground/` staged/push qilinmadi. Immutable original backup:
+  `C:\Users\azizb\AzureLMS-Backups\Eleventh-Trial-20260925-033842\` (hash rejada).
+- Davom: I1 real port. I2da mavjud assignment/quiz yo‘qotilmasin; kerak bo‘lsa
+  tegishli I3 adapteri avval tugaydi. AWS/staging SHA/test account/rollout hali
+  tekshirilmagan; tashqi release alohida qabul. Yangi prototype qurishni
+  yoki hamma UI oilalarini bitta relizga majburlashni qayta boshlamang.
+
+---
+
 ## 2026-09-18 [Claude]: Imtihon muharririning scope'i (default-deny)
 
 Dars muharriridagi bo'shliqning aynan o'zi `backoffice_exam_editor` da ham
