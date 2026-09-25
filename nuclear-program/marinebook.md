@@ -24,6 +24,11 @@ default OFF. Assignment/quizli darslar butunlay legacy rendererda qoladi;
 **I2b ochiq, I2/R1 to‘liq PASS emas**. Yangi trial dizayni qurilmadi.
 
 - Branch: `codex/frontend-v1-lesson-release`; implementatsiya: `6ea865f`.
+- PR #121: dastlabki CI `36086106798`da SQLite/security PASS, PostgreSQL
+  4 error. Yangi file-response testi to‘g‘ridan-to‘g‘ri close qilib TestCase
+  connectionini yopgan; `a2a5907` streamni client wrapper orqali iste’mol
+  qilish va exact PDF bytes/closed assertions bilan tuzatdi. Runtime kod
+  o‘zgarmadi; focused 40 test qayta PASS. Fresh required CI hali kutiladi.
 - Teacher POST target fallbacki yo‘q: missing/unknown/inactive/foreign cohort
   va query/body mismatch yozmaydi, OFF variantda ham. V1 native confirmation,
   CSRF va first-drip impact tasdig‘i; invalid note qaytadi; canonical audit/

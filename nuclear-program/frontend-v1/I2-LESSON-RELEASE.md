@@ -1,6 +1,7 @@
 # I2 — real dars/material va ustoz release
 
 2026-09-25. Branch: `codex/frontend-v1-lesson-release`.
+[PR #121](https://github.com/azurebek/azurelms/pull/121).
 Admission: **ADMIT — launch-critical** (ownerning V1 port qarori).
 
 - Outcome/KPI: ustoz aniq guruh darsini ochadi/yopadi; o‘quvchining dars
@@ -77,3 +78,17 @@ Haqiqiy telefon, tashqi video playback, AWS/staging tekshiruvi bajarilmadi.
 Native PRG parallel tab version/reconciliation kafolati emas. I2b practice
 fallback ochiq; shu sababli **I2 va R1 PASS emas**. Flaglar canonical DBda
 yoqilmadi, trial runtime/backup o‘zgarmadi. PR required CI alohida tekshiriladi.
+
+### CI regression va tuzatish
+
+Run `36086106798`: SQLite va sir/dependency skani PASS, PostgreSQL suite
+1862 testda 4 error (skipped=20). Birinchi xato yangi download testidagi
+`FileResponse.close()` bo‘lib, `request_finished` orqali `TestCase`ning
+PostgreSQL connectionini yopgan; qolgan uchta error shu classning keyingi
+testlarida yopiq connectiondan kelgan. Runtime xatosi deb talqin qilinmadi.
+
+`a2a5907`: download stream Django test client wrapperi orqali iste’mol
+qilinadi; PDF baytlari va response yopilgani ham assert qilinadi. Hech bir
+permission/DB assertion yoki CI gate olib tashlanmadi. Lokal yuqoridagi
+focused command qayta: **40 PASS**. Tuzatilgan HEAD uchun uchala required
+CI qayta o‘tishi shart; yakuniy holat PRda, merge/deploy hali da’vo qilinmaydi.
