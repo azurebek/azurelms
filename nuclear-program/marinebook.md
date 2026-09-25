@@ -23,6 +23,12 @@ ulandi. Native forma orqali qaror, izoh va XP; learnerda aynan saqlangan
 natija. Yangi prototip, dependency yoki migration yo‘q.
 
 - Branch: `codex/frontend-v1-teacher-review`; runtime/test commit `4348242`.
+- PR #123, dastlabki CI `36091941117` uchala PASS (SQLite1897 skip42,
+  PostgreSQL1897 skip20, Node31). Review P2 `2fbd308` bilan tuzatildi:
+  uchala admin bulk action revisionni yangilaydi; canonical review student
+  lockdan so‘ng submission rowni ham lock qiladi. Admin qarori ustiga stale
+  teacher yozolmasligi regression; focused qayta **66 OK (skip=2)**.
+  Fresh required CI kerak; eski yashil natija yangi fixni tasdiqlamaydi.
 - Explicit qaror/tasdiq, integer XP, CSRF; stale ish/qaror yoki takror POST
   canonical user-lock ostida 409/no-write. Bound xatoda izoh qoladi,
   tasdiq qayta olinadi. Flag OFF legacy, eski V1 POSTi rollbackda yozmaydi.

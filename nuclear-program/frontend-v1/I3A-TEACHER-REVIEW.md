@@ -35,8 +35,9 @@ R1 release hali ochiq. Owner: alohida staging yo‘q, faqat AWS asosiy server.
 
 ## Implementatsiya va verifikatsiya
 
-Runtime/test commit: `4348242`. Required CI va merge yakuni branch PRida;
-AWS release yoki umumiy I3 PASS emas.
+Runtime/test commit: `4348242`, review fix `2fbd308`.
+[PR #123](https://github.com/azurebek/azurelms/pull/123).
+Required CI va merge yakuni PRda; AWS release yoki umumiy I3 PASS emas.
 
 - `core/frontend_v1_review.py`: real scoped queue va Django form;
   har tur 25 yozuvdan pagination, status/course/query saqlanadi.
@@ -76,3 +77,16 @@ AWS release yoki umumiy I3 PASS emas.
 - Chegara: haqiqiy telefon, AWS/static/private-media production smoke va
   deploy/rollback hali tekshirilmagan. Source trial/backup/canonical DB untouched.
   I3 umumiy yopilmaydi: ro‘yxatlar/davomat keyingi bo‘lak. Exam detail I8.
+
+### Review correction
+
+Dastlabki CI `36091941117` uchala PASS: SQLite1897 skip42,
+PostgreSQL1897 skip20 (same-revision concurrency testi ham o‘tdi), Node31.
+Reviewer topgan P2 haqiqiy: admin bulk `queryset.update()` revisionni
+o‘zgartirmagan. `2fbd308` uchala bulk actionda `updated_at`ni yangilaydi;
+canonical review student lockdan so‘ng submission rowni ham lock qilib
+yangidan o‘qiydi. Shu tariqa admin row update bilan compare/write oralig‘i
+ham himoyalanadi. Har actiondan keyin eski teacher POST409 va admin qarori/
+reviewer/time o‘zgarmasligi regressionda tekshirildi. Focused yuqoridagi buyruq
+qayta: **66 OK (skip=2)**. Fresh required CI/merge hali PRda tekshiriladi.
+Adminning mavjud XP/notification semantikasi bu tor fixda o‘zgarmadi.
