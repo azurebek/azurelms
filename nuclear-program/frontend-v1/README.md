@@ -166,6 +166,9 @@ UI+adapter+test bitta mantiqiy bo‘lakda. Test va ruxsatlar evaziga tezlashtiri
 - Deploy SHA, health/static/private media, smoke, rollback flag va owner
   go/no-go qaydi. **Staging/AWS vakolat va test account hozir tasdiqlanmagan**;
   bu local implementationni emas, tashqi release’ni to‘xtatadigan aniq gate.
+  Ownerning 2026-09-25 javobi: alohida staging yo‘q, faqat AWS asosiy server
+  bor. Zaxira/rollback/test hisobi va chiqarish tartibi alohida kelishiladi;
+  bu javob productionda write yoki flag yoqishga ruxsat emas.
 - Ruxsatli kosmetik qarz alohida ro‘yxatda; broken submit, data loss, access
   buzilishi va real bo‘lmagan success “V1 mukammal emas” bahonasi bilan qolmaydi.
 

@@ -92,6 +92,9 @@ CI / staging / deployed SHA / smoke / owner go-no-go:
 
 ## Hozir ochiq release ma’lumotlari
 
-Staging manzili va target branch/SHA, ruxsatli test hisoblari va dataset,
-AWS rollout/rollback usuli, haqiqiy mobil qurilma sinovchisi — hali tekshirilmagan.
-Ular release oldidan bir joyda aniqlanadi; secrets hujjatga yozilmaydi.
+2026-09-25 owner javobi: **alohida staging yo‘q, faqat AWS asosiy server bor**.
+Bu deploy yoki yangi UI flaglarini yoqishga ruxsat emas. Target SHA, xavfsiz
+sinov hisobi/dataset, zaxira va rollout/rollback usuli, haqiqiy mobil qurilma
+sinovchisi va owner go/no-go release oldidan aniqlanadi. Yangi pulli muhit
+ochish yoki productionda sinov yozuvlari yaratish alohida kelishiladi;
+secrets hujjatga yozilmaydi.

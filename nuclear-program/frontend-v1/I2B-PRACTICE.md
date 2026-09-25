@@ -98,3 +98,26 @@ Viewport override olib tashlandi. Real telefon testi emas.
 - I2bning required CI/merge yakuni tekshirilsin. Keyin R1 staging/test
   accounts/haqiqiy qurilma/AWS rollout vakolati va owner go/no-go kerak.
   I3 teacher review/ro‘yxatlar/davomat yangi UI porti alohida ochiq.
+
+## PR #122 review tuzatishi
+
+`d42b200` uchun CI `36088931120` uchala PASS: SQLite1879 skip41,
+PostgreSQL1879 skip20, Node28. Reviewda P2 topildi: Telegram adapteri
+default `replace_review=True` orqali yangi XP resetini tasdiqsiz bajara olardi.
+`82fb6b7` canonical defaultni **False** qildi. Botda avvalgi baho/XP/izoh
+tozalanishi aytiladi; alohida `as:r` tugmasi rozilikni user/assignment pending
+holatiga bog‘laydi. Submit target/kindni tekshiradi, canonical service faol
+accessni yana tekshiradi. Xatoda qayta yuborish kerakligi aniq aytiladi.
+Legacy web view o‘z existing opt-in semantikasini explicit uzatishda qoladi;
+V1 web checkbox talab qiladi. Quizga bu tuzatish taalluqli emas.
+
+Offline `venv\Scripts\python.exe manage.py test bot.tests.AssignmentAndQuizTests
+courses.test_frontend_v1_practice courses.test_assignment_review
+courses.test_locked_lesson_write_gate --noinput --verbosity 1`:
+**42 OK (skip=1)**, jumladan 3 yangi bot service/callback testi. Birinchi
+test fixture’da majburiy dataclass argument yetishmagani tuzatilib, to‘liq
+focused command qayta PASS bo‘ldi. Yangi HEAD uchun required CI qayta kerak.
+
+Owner aniqlashtirishi: **alohida staging yo‘q, faqat AWS asosiy server bor**.
+Production rollout, flaglar va test yozuvlari uchun vakolat bundan kelib
+chiqmaydi. R1 zaxira/rollback/test hisob/device/owner qarori ochiq qoladi.

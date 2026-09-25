@@ -23,6 +23,11 @@ serverdagi review/natija, private fayl va session-scoped qoralamalar bor;
 baholash/XP mavjud canonical servisda. Yangi dizayn yoki migration yo‘q.
 
 - Branch: `codex/frontend-v1-lesson-practice`; runtime/test commit `7e2efb6`.
+- PR #122, dastlabki CI `36088931120` uchala PASS (SQLite1879 skip41,
+  PostgreSQL1879 skip20, Node28). Reviewdagi P2 `82fb6b7` bilan tuzatildi:
+  canonical review replacement default False; botdagi ogohlantirish + explicit
+  tasdiq user/assignment pending holatiga bog‘langan. 3 yangi regression;
+  bot/practice/review/locked focused **42 OK (skip=1)**. Fresh CI qayta kerak.
 - Malformed/foreign quiz ID no-write; explicit cohort fallback yo‘q;
   assignment/quiz/review transaction va per-user lock. Resubmit reset qilgan
   XP balansdan ham qaytariladi; stale review ikki marta kredit bermaydi.
@@ -39,6 +44,8 @@ baholash/XP mavjud canonical servisda. Yangi dizayn yoki migration yo‘q.
 - I2b required CI/merge yakuni branch PRida tekshiriladi; R1 staging/device/
   AWS gate ochiq. Default-OFF flaglar canonical DBda yoqilmadi. Trial va zaxira
   untouched. Keyingi port: I3 teacher review/ro‘yxatlar/davomat; R1 alohida.
+  Owner javobi: alohida staging yo‘q, faqat AWS asosiy server; bu production
+  write yoki flag activation ruxsati emas. R1 zaxira/rollback/account gate ochiq.
 
 ---
 
