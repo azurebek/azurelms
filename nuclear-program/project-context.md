@@ -42,6 +42,17 @@ Source of truth har doim **kod** (model/view/task/URL/test). Bu fayl kodga mosla
 
 ## Frontend V1 — bosqichma-bosqich renderer (2026-09-25)
 
+I4b AI port: `frontend_v1_ai_messenger` alohida default-OFF renderer.
+`AIMessengerV1Mixin` existing AI viewga ulanadi; shared `messenger.mjs`
+transporti va `messenger-ai.mjs` model/skill, feedback, context va explicit
+retry presentationini boshqaradi. AI transcriptda ism/matn; amallar
+long-press/right-click/Shift+F10/`⋯` orqali native dialogda.
+History API `ai_runs` — faqat ruxsatli roomdagi o‘z userining joriy sahifa
+promptlari uchun eng so‘nggi canonical run/status IDlari, raw error yo‘q.
+Draft user/session/room/lesson bo‘yicha, retry receipt room bo‘yicha ajralgan.
+Provider/quota/memory/task policy va human chat ko‘rinishi o‘zgarmagan.
+[Lokal dalil, cheklov va release gate](frontend-v1/I4B-AI-MESSENGER.md).
+
 I5a public adapteri `frontend/public_v1.py`: `frontend_v1_public` default OFF
 home/about/catalog/detail/pricing/legal/blog/SIT uchun template tanlaydi.
 Canonical query/access/publication/pricing va blog mutation endpointlari

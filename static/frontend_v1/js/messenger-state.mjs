@@ -1,6 +1,6 @@
 /* Transport-independent draft/delivery rules. No fabricated receipts or retry. */
 export const prefix = 'azurelms:v1:messenger:';
-export function draftKey(scope, room) { return `${prefix}${scope}:${room}`; }
+export function draftKey(scope, room, context = null) { return `${prefix}${scope}:${room}${context === null ? '' : ':lesson:' + context}`; }
 export function parseDraft(raw) {
   try {
     const value = JSON.parse(raw);

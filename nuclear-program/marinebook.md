@@ -16,6 +16,29 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-26 [Codex]: I4b AI Messenger B — ixcham transcript bilan
+
+AI real view/socket/history/preference/feedback/retry oqimlari tasdiqlangan
+B layoutga alohida default-OFF flag bilan ulandi. Owner browser ko‘rib
+doimiy katta action qatorlarini rad etdi: endi ism/xabar, amallar esa
+long-press/right-click/Shift+F10/`⋯` native menyusida. Human layout saqlandi.
+
+- Branch: `codex/frontend-v1-ai-messenger`; runtime commit `f7443ac`.
+- Offline `manage.py test --noinput --verbosity 0`: 1961 OK, skip45;
+  focused AI/human/flag41 OK; check0issue; `node --test
+  tests/frontend_v1/*.test.mjs`: 60 PASS. Boshlang‘ich email fixture,
+  noto‘g‘ri test module nomi va VM alias xatolari tuzatildi, skip qo‘shilmadi.
+- IAB isolated DB8055 + mocked AI dispatch: send/ack, failure→cancel→retry,
+  limit, feedback, model/skill, context, draft/Back, clipboard va menu keyboard.
+  320×568 history305px / 1280×800 history521px, overflow0, light/dark.
+- Canonical AI run read-only projection; raw error/telemetry export yo‘q.
+  No-resend, session/room/lesson draft; provider/quota/engine o‘zgarmagan.
+- AWS, frozen trial, real AI/Telegram va production ma’lumotlariga tegilmadi.
+  Native touch/virtual keyboard qabuli ochiq. [Aniq dalil](frontend-v1/I4B-AI-MESSENGER.md).
+- Davomi: required CI/review/integratsiya; AI release alohida; keyin I5 qoldig‘i.
+
+---
+
 ## 2026-09-25 [Codex]: Ichki V1 rendererlar AWS’da yoqildi
 
 Owner `boshla` va alohida yopiq synthetic dataset tasdig‘idan so‘ng,

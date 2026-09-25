@@ -9,8 +9,8 @@ if (root) {
   const latest = q('[data-latest]'), older = q('[data-older]');
   let socket, retryTimer, ackTimer, attempts = 0, stopped = false, loaded = false, blocked = false;
   let messages = [], cursor = null, historyBusy = false, eventBuffer = [], historyVersion = 0;
-  let storageOK = true, mutationBusy = false;
-  const key = draftKey(root.dataset.scope, room);
+  let storageOK = true, mutationBusy = false, ai = null;
+  const key = draftKey(root.dataset.scope, room, root.dataset.aiUrl ? (root.dataset.contextLesson || 'none') : null);
   const storage = fn => { try { return fn(sessionStorage); } catch { storageOK = false; return null; } };
   storage(store => {
     for (let i = store.length - 1; i >= 0; i--) {
@@ -22,7 +22,7 @@ if (root) {
   const save = () => {
     if (input) draft.text = input.value;
     storage(store => store.setItem(key, JSON.stringify(draft)));
-    if (q('[data-draft-status]')) q('[data-draft-status]').textContent = storageOK ? 'Enter — yangi qator · matn shu tabda saqlanadi' : 'Matnni nusxalang: brauzer qoralamani saqlay olmadi.';
+    if (q('[data-draft-status]')) q('[data-draft-status]').textContent = storageOK ? (root.dataset.aiUrl ? 'Xabar amallari: bosib turing yoki ⋯' : 'Enter — yangi qator · matn shu tabda saqlanadi') : 'Matnni nusxalang: brauzer qoralamani saqlay olmadi.';
   };
   const element = (tag, text, className) => {
     const node = document.createElement(tag); node.textContent = text || '';
@@ -59,7 +59,7 @@ if (root) {
     q('[data-attach]').disabled = !ready || !loaded || locked;
     q('[data-file-clear]').disabled = locked;
     composer.querySelector('[type=submit]').disabled = !canSend({connected: ready, loaded, blocked, pending: draft.pending, text: input.value, file: file.files[0]});
-    q('[data-connection]').textContent = blocked ? 'Kirish huquqi yakunlangan' : ready && loaded ? 'Ulangan' : 'Ulanish kutilmoqda';
+    q('[data-connection]').textContent = blocked ? 'Kirish huquqi yakunlangan' : ready && loaded ? (ai?.connectionLabel() || 'Ulangan') : 'Ulanish kutilmoqda';
   }
   function unknown() {
     showNotice('Yuborish tasdiqlanmadi. Tarixni tekshiring; qayta yuborilmaydi.', () => {
@@ -87,6 +87,8 @@ if (root) {
   history.addEventListener('scroll', () => { latest.hidden = atBottom(); storage(store => store.setItem(key + ':scroll', String(history.scrollTop))); });
   function render() {
     const stick = atBottom(), top = history.scrollTop;
+    const focused = document.activeElement, focusedRow = list.contains(focused) ? focused.closest('[data-message-id]') : null;
+    const focusId = focusedRow?.dataset.messageId, focusIndex = focusedRow ? [...focusedRow.querySelectorAll('button')].indexOf(focused) : -1;
     list.replaceChildren();
     if (!messages.length) list.append(element('li', 'Hali xabar yo‘q. Suhbatni boshlashingiz mumkin.', 's-mw-empty'));
     for (const m of messages) {
@@ -103,15 +105,74 @@ if (root) {
           link.href = url.href; link.target = '_blank'; link.rel = 'noopener'; bubble.append(link);
         }
       }
-      bubble.append(element('small', `${m.created_at || ''}${m.edited_at ? ' · tahrirlangan' : ''}`, 's-mw-message-meta'));
-      if (String(m.sender_id) === user && !m.is_ai && !m.is_deleted) {
+      if (!ai) bubble.append(element('small', `${m.created_at || ''}${m.edited_at ? ' · tahrirlangan' : ''}`, 's-mw-message-meta'));
+      if (!ai && String(m.sender_id) === user && !m.is_ai && !m.is_deleted) {
         const actions = element('div', '', 's-mw-actions');
         actions.append(button('Tahrirlash', () => manage(id, 'edit')), button('O‘chirish', () => manage(id, 'delete')));
         bubble.append(actions);
       }
+      if (ai) {
+        item.tabIndex = 0;
+        const attachmentName = m.attachment && !m.is_deleted ? ` · ${m.attachment.name || 'Fayl'}` : '';
+        item.setAttribute('aria-label', `${m.sender_name || 'Azure AI'}: ${m.message ?? m.text ?? ''}${attachmentName}. Amallar: Shift+F10 yoki bosib turing.`);
+        const menu = button('⋯', () => openMessageMenu(id)); menu.className = 'c-icon-button s-mw-menu-trigger'; menu.setAttribute('aria-label', 'Xabar amallari');
+        menu.setAttribute('aria-haspopup', 'dialog'); bubble.append(menu);
+      }
       item.append(bubble); list.append(item);
     }
     if (stick) bottom(); else { history.scrollTop = top; latest.hidden = false; }
+    if (focusId && focusIndex >= 0) {
+      const target = list.querySelector(`[data-message-id="${focusId}"]`)?.querySelectorAll('button')[focusIndex];
+      if (target && !target.disabled) target.focus({preventScroll: true}); else history.focus({preventScroll: true});
+    }
+    if (q('[data-message-menu]')?.open) fillMessageMenu();
+  }
+  function fillMessageMenu() {
+    const dialog = q('[data-message-menu]'), body = q('[data-message-menu-body]');
+    const message = messages.find(m => String(m.id || m.message_id) === dialog.dataset.message);
+    const focused = document.activeElement, wasInside = body.contains(focused);
+    const index = wasInside ? [...body.querySelectorAll('button')].indexOf(focused) : -1;
+    body.replaceChildren();
+    if (!message) { dialog.close(); return; }
+    const id = message.id || message.message_id;
+    ai.actions(message, body);
+    if (String(message.sender_id) === user && !message.is_ai && !message.is_deleted) {
+      body.append(button('Tahrirlash', () => { dialog.close(); manage(id, 'edit'); }), button('O‘chirish', () => { dialog.close(); manage(id, 'delete'); }));
+    }
+    if (wasInside) {
+      const target = body.querySelectorAll('button')[index];
+      if (target && !target.disabled) target.focus(); else q('#message-menu-title').focus();
+    }
+  }
+  function openMessageMenu(id) {
+    if (!ai) return;
+    const dialog = q('[data-message-menu]'); dialog.dataset.message = String(id);
+    fillMessageMenu(); if (!dialog.open) dialog.showModal();
+  }
+  if (root.dataset.aiUrl) {
+    let holdTimer, origin;
+    const cancelHold = () => { clearTimeout(holdTimer); origin = null; };
+    list.addEventListener('contextmenu', event => {
+      const row = event.target.closest('[data-message-id]');
+      if (row) { event.preventDefault(); cancelHold(); openMessageMenu(row.dataset.messageId); }
+    });
+    list.addEventListener('keydown', event => {
+      const row = event.target.closest('[data-message-id]');
+      if (row && (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10'))) { event.preventDefault(); openMessageMenu(row.dataset.messageId); }
+    });
+    list.addEventListener('pointerdown', event => {
+      if (!['touch', 'pen'].includes(event.pointerType) || event.target.closest('a, button')) return;
+      const row = event.target.closest('[data-message-id]'); if (!row) return;
+      cancelHold(); origin = {x: event.clientX, y: event.clientY};
+      holdTimer = setTimeout(() => { origin = null; openMessageMenu(row.dataset.messageId); }, 550);
+    });
+    list.addEventListener('pointermove', event => { if (origin && Math.hypot(event.clientX - origin.x, event.clientY - origin.y) > 10) cancelHold(); });
+    for (const name of ['pointerup', 'pointercancel', 'pointerleave']) list.addEventListener(name, cancelHold);
+    history.addEventListener('scroll', cancelHold);
+    q('[data-message-menu]').addEventListener('close', () => {
+      const id = q('[data-message-menu]').dataset.message;
+      list.querySelector(`[data-message-id="${id}"]`)?.focus({preventScroll: true});
+    });
   }
   async function refresh(earlier = false) {
     if (!room || historyBusy || blocked) return;
@@ -121,6 +182,7 @@ if (root) {
     try {
       const data = await api(root.dataset.historyUrl + (earlier ? `?before=${cursor}` : ''));
       if (version !== historyVersion || blocked) return;
+      ai?.hydrate(data);
       messages = mergeMessages(earlier ? messages : [], data.messages);
       messages = mergeMessages(messages, eventBuffer); eventBuffer = [];
       cursor = data.before; older.hidden = !data.has_more;
@@ -145,12 +207,14 @@ if (root) {
       let m; try { m = JSON.parse(event.data); } catch { return; }
       if (m.type === 'access_revoked') { blocked = true; showNotice(m.message); socket.close(); update(); return; }
       if (m.event_type === 'ai_status') {
+        if (ai) { ai.event(m); update(); return; }
         // Existing @azure mentions may produce status events even in human rooms.
         if (!draft.pending) showNotice(m.message || (m.status === 'failed' ? 'AI javobi olinmadi. Azure AI bo‘limini tekshiring.' : ''));
         return;
       }
       if (m.room_id && String(m.room_id) !== room) return;
       if (!(m.id || m.message_id)) return;
+      ai?.event(m);
       if (historyBusy) eventBuffer.push(m);
       messages = mergeMessages(messages, [m]); render();
       if (confirms(draft.pending, m, user, room)) {
@@ -168,6 +232,12 @@ if (root) {
       if (attempts < 6) retryTimer = setTimeout(connect, Math.min(1000 * 2 ** attempts++, 30000));
     });
     socket.addEventListener('error', () => update());
+  }
+  if (root.dataset.aiUrl) {
+    const {initAI} = await import(root.dataset.aiUrl);
+    ai = initAI({root, q, element, button, api, post, render, refresh, storage, key: draftKey(root.dataset.scope, room), showNotice,
+      isReady: () => loaded && !blocked && socket?.readyState === WebSocket.OPEN,
+      transmit: payload => socket.send(JSON.stringify(payload))});
   }
   if (composer) {
     input.value = draft.text; input.disabled = false; resize(); save(); update(); refresh(); connect();
@@ -189,7 +259,7 @@ if (root) {
       draft.pending = {id: crypto.randomUUID(), kind: file.files.length ? 'file' : 'text'}; save(); update();
       showNotice('Yuborilmoqda… Tasdiq kutilmoqda.');
       if (!file.files.length) {
-        try { socket.send(JSON.stringify({action: 'message', message: input.value.trim(), client_message_id: draft.pending.id})); ackTimer = setTimeout(unknown, 15000); }
+        try { socket.send(JSON.stringify({action: 'message', message: input.value.trim(), client_message_id: draft.pending.id, ...ai?.payload()})); ackTimer = setTimeout(unknown, 15000); }
         catch { unknown(); }
       } else {
         const form = new FormData(); form.set('room_id', room); form.set('text', input.value); form.set('file', file.files[0]);

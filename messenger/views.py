@@ -10,6 +10,7 @@ from django.db import transaction
 from django.db.models import Max, Count, Q, OuterRef, Subquery
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import constant_time_compare, salted_hmac
 from django.views.decorators.cache import never_cache
@@ -31,7 +32,7 @@ from .access import (
     user_has_active_enrollment,
 )
 from .models import AIResponseRun, ChatRoom, ChatRoomUserState, Message, AIFeedback
-from .frontend_v1 import HumanMessengerV1Mixin, select_human_room
+from .frontend_v1 import AIMessengerV1Mixin, HumanMessengerV1Mixin, select_human_room
 
 
 logger = logging.getLogger(__name__)
@@ -400,7 +401,7 @@ class _MessengerRoomView(LoginRequiredMixin, TemplateView):
         return None
 
 
-class MessengerAIView(_MessengerRoomView):
+class MessengerAIView(AIMessengerV1Mixin, _MessengerRoomView):
     template_name = "messenger/ai.html"
     active_room = "ai"
 
@@ -421,6 +422,12 @@ def create_ai_chat(request):
     # Bo'sh xona bo'lsa qayta ishlatiladi — har bosishda yangi bo'sh chat
     # yaralib qolmaydi (ilk xabar yuborilguncha bitta bo'sh xona yetadi).
     room = get_or_create_ai_draft_room(request.user)
+    # Only an authorized, bounded numeric lesson can survive the POST redirect.
+    raw_lesson = request.POST.get("lesson", "")
+    if raw_lesson.isascii() and raw_lesson.isdigit() and len(raw_lesson) <= 18:
+        lesson = Lesson.objects.filter(pk=int(raw_lesson)).select_related("module__course").first()
+        if lesson and user_can_use_lesson_context(request.user, lesson):
+            return redirect(reverse("messenger:ai_room", args=[room.pk]) + f"?lesson={lesson.pk}")
     return redirect("messenger:ai_room", room_id=room.id)
 
 
@@ -622,8 +629,22 @@ def get_room_messages(request, room_id):
             })
             msgs_data.append(payload)
 
+        # Additive read-only projection for reconnect; no provider request here.
+        # Only this user's runs in this room/page, never raw provider diagnostics.
+        ai_runs = {}
+        if room.room_type == "ai":
+            latest_runs = AIResponseRun.objects.filter(
+                room=room, student=request.user,
+                user_message_id__in=[m.pk for m in recent_messages if m.sender_id == request.user.pk],
+            ).order_by().values("user_message_id").annotate(latest=Max("pk")).values("latest")
+            for run in AIResponseRun.objects.filter(pk__in=Subquery(latest_runs)).order_by("pk").values("pk", "user_message_id", "status", "ai_message_id"):
+                ai_runs.setdefault(run["user_message_id"], {
+                    "run_id": run["pk"], "user_message_id": run["user_message_id"],
+                    "status": run["status"], "ai_message_id": run["ai_message_id"],
+                })
         return JsonResponse({'status': 'success', 'messages': msgs_data, 'has_more': has_more,
-                             'before': recent_messages[0].pk if has_more else None})
+                             'before': recent_messages[0].pk if has_more else None,
+                             'ai_runs': list(ai_runs.values())})
 
     except ChatRoom.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Chat xonasi topilmadi yoki huquq yo\'q'}, status=403)
