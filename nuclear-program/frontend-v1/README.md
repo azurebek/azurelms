@@ -12,9 +12,11 @@ default OFF, AWS release ochiq. [I2a — dars/material va ustoz release](I2-LESS
 PR #121 bilan main’da (`5528c74`, uch required CI PASS).
 [I2b — assignment/quiz](I2B-PRACTICE.md) PR #122 bilan main’da (`c8c3864`),
 final required CI `36089727327` uchala PASS. I2 yopildi.
-[I3a — teacher navbat/review](I3A-TEACHER-REVIEW.md) lokal tayyor;
-required CI/integratsiya yakuni uning PRida tekshiriladi. R1 staging/device/AWS
-qabuli, I3b ro‘yxatlar/davomat va I4–I9 ochiq.
+[I3a — teacher navbat/review](I3A-TEACHER-REVIEW.md) PR #123 bilan main’da
+(`4e48416`), final CI `36092407070` uchala PASS.
+[I3b — teacher ro‘yxatlar/davomat](I3B-TEACHER-DIRECTORY.md) lokal tayyor;
+required CI/integratsiya yakuni uning PRida tekshiriladi. R1 device/AWS
+qabuli va I4–I9 ochiq.
 
 ## 1. Qayerdamiz
 
@@ -175,11 +177,11 @@ UI+adapter+test bitta mantiqiy bo‘lakda. Test va ruxsatlar evaziga tezlashtiri
 
 ## 8. Keyingi agent/turn uchun kirish
 
-Avval **I3a branch PRining required CI/merge yakuni**ni tekshiring;
+Avval **I3b branch PRining required CI/merge yakuni**ni tekshiring;
 lokal implementatsiyani qayta boshlamang. Keyin **R1** uchun test
 hisob/device/AWS vakolati, zaxira va rollback usulini aniqlang; alohida staging
-yo‘qligi tasdiqlangan. Shu tashqi gate ochiqligida **I3b teacher
-ro‘yxatlar/davomat** alohida xavfsiz bo‘lak bo‘lib davom etishi mumkin.
-Submission/grade/XP canonical servislar orqali qoladi.
+yo‘qligi tasdiqlangan. Shu tashqi gate ochiqligida **I4 Messenger B — human
+chat** keyingi alohida bo‘lak. AI adapterini undan ajrating; yangi AI engine
+yoki prototip yaratilmaydi. Submission/grade/XP canonical servislar orqali qoladi.
 Yangi trial, framework, global shell rewrite yoki DB ko‘chirish boshlamang.
 Single checkout saqlanadi.
