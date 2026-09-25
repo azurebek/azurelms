@@ -33,7 +33,8 @@ takroriy AI so‘rovi = 0. Ownerga yangi operatsion vazifa qo‘shilmaydi.
 - [x] ~~History/status privacy, feedback/retry va offline regressiya.~~
 - [x] ~~Reconnect/no-resend, room/session/lesson draft, keyboard va no implicit save.~~
 - [x] ~~Local ASGI + mocked AI: desktop/mobile, dark/light, asosiy amallar.~~
-- [ ] Required CI/review/integratsiya. Production release alohida gate.
+- [x] Required CI/review/integratsiya: PR130 `a25cf4b`, final CI `36192585672`
+  all3PASS. Production release alohida gate.
 
 ## Lokal dalil
 
@@ -64,7 +65,8 @@ takroriy AI so‘rovi = 0. Ownerga yangi operatsion vazifa qo‘shilmaydi.
   Production dynamic module URLlari static manifest hashidan keladi.
 - PR #130 dastlabki CI `36191990829` uchala PASS. Review P2: row accessible
   name ichiga xabar/fayl matni kiritildi; bir senderning ikki xabari endi
-  klaviatura fokusida farqlanadi. Fixdan keyingi required CI PR’da tekshiriladi.
+  klaviatura fokusida farqlanadi. Fix `1910aed`; final CI `36192585672`
+  uchala PASS. Review thread resolved; PR130 MERGED `a25cf4b`.
 
 ## Ochiq cheklovlar
 

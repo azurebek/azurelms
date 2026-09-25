@@ -1,0 +1,30 @@
+{% extends "frontend_v1/platform.html" %}
+{% load static %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'frontend_v1/css/account.css' %}"><script defer src="{% static 'frontend_v1/js/account.js' %}"></script>{% endblock %}
+{% block content %}
+<div class="p-page-heading"><div><p class="c-eyebrow">SHAXSIY MAYDON</p><h1>Sozlamalar</h1><p class="c-lead">Hisobingiz va o‘rganish tajribangiz.</p></div></div>
+<nav class="c-tabs c-tabs--wrap" aria-label="Sozlamalar bo‘limlari">
+  <a class="c-tabs__item" href="{% url 'profile' %}">Profil</a><a class="c-tabs__item is-active" href="{% url 'settings_account' %}" aria-current="page">Hisob</a><a class="c-tabs__item" href="{% url 'settings_privacy' %}" title="Avvalgi ko‘rinishda">Maxfiylik</a><a class="c-tabs__item" href="{% url 'settings_billing' %}" title="Avvalgi ko‘rinishda">To‘lov</a><a class="c-tabs__item" href="{% url 'settings_capabilities' %}" title="Avvalgi ko‘rinishda">Imkoniyatlar</a>
+</nav>
+<div class="v1-account-layout">
+  <div class="v1-account-stack">
+    <section class="c-card p-panel"><h2>Shaxsiy ma’lumotlar</h2>{% include "frontend_v1/profile_fields.html" %}</section>
+    <section class="c-card p-panel">{% include "frontend_v1/avatar_editor.html" %}</section>
+    <section class="c-card p-panel"><h2>Parol</h2>
+      <form method="post" action="{% url 'update_password' %}" class="v1-account-form" data-account-form data-password-form>
+        {% csrf_token %}
+        <div><label class="c-field__label" for="account-old-password">Joriy parol</label><input class="c-field" id="account-old-password" type="password" name="old_password" required autocomplete="current-password"></div>
+        <div><label class="c-field__label" for="account-new-password">Yangi parol</label><input class="c-field" id="account-new-password" type="password" name="new_password1" required autocomplete="new-password" aria-describedby="password-hint"><p class="c-caption" id="password-hint">Kamida 8 ta belgi; faqat raqam bo‘lmasin va ism/emailga o‘xshamasin.</p></div>
+        <div><label class="c-field__label" for="account-confirm-password">Yangi parolni tasdiqlang</label><input class="c-field" id="account-confirm-password" type="password" name="new_password2" required autocomplete="new-password"></div>
+        <div><button class="c-button c-button--secondary" type="submit">Parolni o‘zgartirish</button></div>
+        <p class="v1-field-errors" role="alert" hidden data-account-offline>Aloqa yo‘q. Parol yuborilmadi; ulanishni tekshiring.</p>
+      </form>
+    </section>
+  </div>
+  <aside class="v1-account-stack">
+    <section class="c-card p-panel"><p class="c-eyebrow">HISOBINGIZ</p><div class="v1-profile-person"><span class="c-avatar">{% if request.user.avatar %}<img src="{{ request.user.avatar.url }}" alt="" data-avatar-image>{% else %}{{ request.user.first_name.0|default:request.user.username.0|upper }}{% endif %}</span><div><h2>{{ request.user.get_full_name|default:request.user.username }}</h2><p class="c-muted">{{ request.user.email }}</p></div></div><p class="c-caption c-lead">Kirish e-pochtasi bu formadan o‘zgartirilmaydi.</p></section>
+    <section class="c-card p-panel"><h2>Ko‘rinish</h2><p class="c-lead">Yorug‘ va qorong‘i tema barcha sahifalarda bir xil saqlanadi.</p><button class="c-button c-button--secondary c-actions" type="button" data-action="theme.toggle" aria-pressed="false">Temani almashtirish</button></section>
+    <p class="c-caption">Maxfiylik, To‘lov va Imkoniyatlar hozircha avvalgi ko‘rinishda ochiladi.</p>
+  </aside>
+</div>
+{% endblock %}

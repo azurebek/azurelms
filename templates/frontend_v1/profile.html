@@ -1,0 +1,27 @@
+{% extends "frontend_v1/platform.html" %}
+{% load static %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'frontend_v1/css/account.css' %}"><script defer src="{% static 'frontend_v1/js/account.js' %}"></script>{% endblock %}
+{% block content %}
+<div class="p-page-heading"><div><p class="c-eyebrow">SHAXSIY MAYDON</p><h1>Profil</h1><p class="c-lead">Ma’lumotlaringiz va yutuqlaringiz bir joyda.</p></div></div>
+<div class="v1-account-layout">
+  <div class="v1-account-stack">
+    <section class="c-card p-panel">
+      <div class="v1-profile-person"><span class="c-avatar">{% if request.user.avatar %}<img src="{{ request.user.avatar.url }}" alt="" data-avatar-image>{% else %}{{ request.user.first_name.0|default:request.user.username.0|upper }}{% endif %}</span><div><h2>{{ request.user.get_full_name|default:request.user.username }}</h2><p class="c-muted">{{ request.user.email }}</p>{% if request.user.phone_number %}<p class="c-muted">{{ request.user.phone_number }}</p>{% endif %}</div></div>
+      <h3 class="c-small-heading">O‘zim haqimda</h3><p class="v1-profile-bio">{{ request.user.bio|default:"Hali ma’lumot kiritilmagan." }}</p>
+      <dl class="v1-profile-stats"><div><dt>Daraja</dt><dd>{{ request.user.current_level|default:"A1" }}</dd></div><div><dt>XP</dt><dd>{{ request.user.total_xp }}</dd></div><div><dt>Soat o‘qildi</dt><dd>{{ total_hours }}</dd></div><div><dt>Ketma-ket kun</dt><dd>{{ request.user.streak_days|default:0 }}</dd></div><div><dt>Sertifikat</dt><dd>{{ course_certificates|length }}</dd></div><div><dt>Nishon</dt><dd>{{ earned_badges|length }}</dd></div></dl>
+    </section>
+    <details class="c-card p-panel v1-profile-editor"{% if form.errors %} open{% endif %}>
+      <summary><strong>Profilni tahrirlash</strong></summary>
+      {% include "frontend_v1/profile_fields.html" %}
+    </details>
+    <section class="c-card p-panel">{% include "frontend_v1/avatar_editor.html" %}</section>
+    <section class="c-card p-panel"><h2>Nishonlar</h2><ul class="v1-profile-badges">{% for earned in earned_badges %}<li>{% if earned.badge.icon %}<img src="{{ earned.badge.icon.url }}" alt="" loading="lazy">{% endif %}<span>{{ earned.badge.name }}</span></li>{% empty %}<li class="c-muted">Hali nishon olinmagan.</li>{% endfor %}</ul></section>
+  </div>
+  <aside class="v1-account-stack">
+    <section class="c-card p-panel"><h2>Hisob</h2><p class="c-muted c-lead">Kirish e-pochtasi bu formadan o‘zgartirilmaydi.</p><a class="c-text-link" href="{% url 'settings_account' %}">Hisob sozlamalari</a>{% if not request.user.is_staff %}<div><a class="c-text-link" href="{% url 'certificates' %}">Sertifikatlar</a></div>{% endif %}</section>
+    <section class="c-card p-panel"><h2>Joriy tarif</h2><p class="c-lead">{{ current_plan|default:"Hozir faol tarif yo‘q." }}</p><a class="c-text-link" href="{% url 'subscriptions' %}">To‘lovlar tarixi</a><p class="c-caption">Avvalgi ko‘rinishda ochiladi.</p></section>
+    <section class="c-card p-panel"><h2>Telegram</h2>{% if telegram_linked %}<p class="c-lead">Ulangan{% if telegram_username %} · @{{ telegram_username }}{% endif %}</p>{% else %}<p class="c-lead">Bildirishnomalarni Telegram orqali ham oling.</p><a class="c-text-link" href="{{ telegram_bot_link }}" target="_blank" rel="noopener">Telegramni ulash ↗</a>{% endif %}</section>
+    {% if notifications %}<section class="c-card p-panel"><h2>So‘nggi faollik</h2><ul class="v1-profile-activity">{% for note in notifications|slice:":4" %}<li><p>{{ note.title|default:note.message }}</p><small class="c-muted">{{ note.created_at|date:"d.m.Y" }}</small></li>{% endfor %}</ul><a class="c-text-link" href="{% url 'notifications' %}">Barcha bildirishnomalar</a></section>{% endif %}
+  </aside>
+</div>
+{% endblock %}

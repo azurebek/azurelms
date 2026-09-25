@@ -1,0 +1,7 @@
+<h2>Profil rasmi</h2>
+<form method="post" action="{% url 'update_avatar' %}" enctype="multipart/form-data" class="v1-account-form" data-account-form>
+  {% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}">
+  <div><label for="account-avatar" class="c-field__label">Yangi rasm</label><input id="account-avatar" class="c-field" type="file" name="avatar" accept="image/png,image/jpeg,image/webp,image/gif" required aria-describedby="avatar-hint"><p class="c-caption" id="avatar-hint">PNG, JPEG, WebP yoki GIF · 5 MB gacha. Rasm tanlashning o‘zi uni yuklamaydi.</p></div>
+  <div><button class="c-button c-button--secondary" type="submit">Rasmni yuklash</button></div>
+  <p class="v1-field-errors" role="alert" hidden data-account-offline>Aloqa yo‘q. Rasm yuborilmadi; ulanishni tekshiring.</p>
+</form>

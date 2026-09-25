@@ -16,6 +16,34 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-26 [Codex]: I5b.1 — Profil va Hisob real V1ga ulandi
+
+Frozen ACC-01 profil/disclosure/settings-tab ko‘rinishi real Django formaga
+ulandi. Ism/familiya/telefon/bio, avatar/parol canonical endpointlari va
+haqiqiy profil statistikasi saqlandi; alohida default-OFF account flag.
+
+- Branch: `codex/frontend-v1-account-profile`; runtime commit `1a4d6a3`.
+- Offline full `manage.py test --noinput --verbosity 0`: **1975 OK, skip45**
+  (371.752s); focused account/legacy sections/flags **48 OK** (12.261s),
+  `manage.py check`0issue; `node --test tests/frontend_v1/*.test.mjs` **68 PASS**.
+  Bound-error dirty protection follow-up: focused account14 OK (1.308s).
+- Ikki V1 profil formasi user-bound snapshot + row lock: stale409/no-write,
+  bound matn saqlanadi, yolg‘on success yo‘q. XP/identity/AI maydonlari chetda.
+  Sensitive draft storage yo‘q; dirty exit/other-form consent/duplicate va
+  known-offline guard; parol pagehide/pageshowda tozalanadi.
+- Isolated DB8057: save→account/profile, ikkinchi tab stale409 va GET,
+  learner/staff shell, drawer Escape/focus; ikki route320/639/640/1023/1024/1280
+  overflow0, light/dark. Browser credential-change bajarilmadi; canonical
+  password validator/session va valid/invalid avatar backend testida.
+- I4b PR130 MERGED `a25cf4b`, finalCI36192585672 all3PASS fresh tekshirildi;
+  trackerda I4 yopildi. AI hali AWS’da chiqarilmagan.
+- Davomi: I5b.1 required CI/review/integratsiya; AWS/device qabuli alohida.
+  Register/reset/onboarding, boshqa settings va records/help ochiq.
+  AWS, frozen trial va real user/providerlarga tegilmadi.
+  [Aniq scope va dalil](frontend-v1/I5B-ACCOUNT-PROFILE.md).
+
+---
+
 ## 2026-09-26 [Codex]: I4b AI Messenger B — ixcham transcript bilan
 
 AI real view/socket/history/preference/feedback/retry oqimlari tasdiqlangan

@@ -59,7 +59,7 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
   - [x] ~~I3b required CI va integratsiya.~~ PR #124 MERGED `9eb3830`;
     final CI `36162882956` uchala PASS: SQLite1914 skip44,
     PostgreSQL1914 skip20, Node34. Resume/finish locking P2 regression yopilgan.
-- [-] **I4 — Messenger B.** Guruh/ustoz: real room/history/send/edit/delete/
+- [x] ~~I4 — Messenger B kod integratsiyasi.~~ Guruh/ustoz: real room/history/send/edit/delete/
   attachment/reconnect; AI: mavjud provider/choice/quota/context/error.
   Qoralama saqlansin, layout barcha gap holatlarida ishlasin; yangi AI engine yo‘q.
   - [x] ~~I4a lokal implementatsiya va tekshiruv: guruh/ustoz human chat.~~
@@ -72,7 +72,9 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
     canonical model/skill/context/status/feedback/retry; owner so‘ragan
     ixcham transcript va xabar menyusi. [Dalil](I4B-AI-MESSENGER.md).
     1961 Python OK (skip45), 61 Node PASS; browser320/1280, fake provider.
-  - [ ] I4b required CI/review/integratsiya; AWS AI rollout alohida.
+  - [x] ~~I4b required CI/review/integratsiya.~~ PR #130 MERGED `a25cf4b`;
+    final CI `36192585672` uchala PASS; accessibility P2 fix `1910aed`,
+    61 Node PASS. AWS AI rollout va native-device qabuli alohida ochiq.
 - [-] **I5 — Tayyor yordamchi yuzalar.** 5a public/records/help,
   5b auth/account/profile, 5c preferences/privacy/notifications. Har kichik
   tugallangan oqim alohida qabul; hammasi bir relizga bog‘lanmaydi.
@@ -83,6 +85,11 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
     image-boundary fix bilan, final CI36179879066 all3PASS. Public ON;
     real-device va populated real-content owner qabuli alohida ochiq.
     Records/help bu public portga aralashtirilmaydi, keyingi yordamchi paketda.
+  - [x] ~~I5b.1 lokal implementatsiya — Profil va Hisob.~~ Shared form, avatar/parol canonical POST,
+    stale-profile guard va learner/teacher shell. [Scope/dalil](I5B-ACCOUNT-PROFILE.md).
+    `1a4d6a3`: full1975 OK (skip45); follow-up Node68 PASS, browser320–1280 overflow0.
+  - [ ] I5b.1 required CI/review/integratsiya va keyingi alohida release.
+    Register/reset/onboarding hamda qolgan I5 hali ochiq.
 - [ ] **I6 — Library + course/lesson editor.** Common resource/link/private
   storage parity; real forms existing fieldsni saqlaydi. Qisman field/save
   contract mos kelmasa tegishli editor legacy qoladi va qarz ochiq yoziladi.

@@ -44,6 +44,14 @@ class FlagDefinition:
 
 FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
     FlagDefinition(
+        slug="frontend_v1_account",
+        label="Frontend V1 — profil va hisob",
+        description="Profil va Hisob ko‘rinishi; mavjud profil/avatar/parol endpointlari.",
+        default=False,
+        category="Frontend",
+        runbook="OFF legacy profil/Hisobni qaytaradi, ma’lumot saqlanadi. Boshqa settings mustaqil. ON faqat account release tekshiruvidan keyin.",
+    ),
+    FlagDefinition(
         slug="frontend_v1_ai_messenger",
         label="Frontend V1 — Azure AI chati",
         description="Keng Messenger B AI ko‘rinishi; mavjud provider va quota o‘zgarmaydi.",

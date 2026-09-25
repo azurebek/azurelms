@@ -27,6 +27,7 @@ import os
 
 from core.upload_validation import validate_upload
 from core.frontend_v1 import FrontendV1Mixin
+from .frontend_v1_account import AccountV1Mixin
 import uuid
 
 def home_view(request):
@@ -183,11 +184,13 @@ class SettingsSectionMixin(LoginRequiredMixin):
         return context
 
 
-class SettingsAccountView(SettingsSectionMixin, UpdateView):
+class SettingsAccountView(SettingsSectionMixin, AccountV1Mixin, UpdateView):
     """Hisob — shaxsiy ma'lumotlar, avatar, parol va ko'rinish."""
 
     model = CustomUser
     template_name = 'users/settings/account.html'
+    frontend_v1_template = 'frontend_v1/settings_account.html'
+    frontend_v1_title = 'Hisob'
     form_class = ProfileFieldsForm
     settings_section = 'account'
 
@@ -198,8 +201,10 @@ class SettingsAccountView(SettingsSectionMixin, UpdateView):
         return _safe_next(self.request, reverse_lazy('settings_account'))
 
     def form_valid(self, form):
-        messages.success(self.request, "Profil ma'lumotlari muvaffaqiyatli yangilandi.")
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        if response.status_code == 302:
+            messages.success(self.request, "Profil ma'lumotlari muvaffaqiyatli yangilandi.")
+        return response
 
     def form_invalid(self, form):
         messages.error(self.request, "Xatolik yuz berdi. Iltimos, barcha maydonlarni tekshiring.")
@@ -974,7 +979,7 @@ class HelpCenterView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class UserProfileView(LoginRequiredMixin, UpdateView):
+class UserProfileView(LoginRequiredMixin, AccountV1Mixin, UpdateView):
     """Profil — ko'rish sahifasi, ism/telefon/bio esa joyida tahrirlanadi.
 
     Tahrirlash boshqa sahifaga olib o'tmaydi: forma shu sahifada ochiladi.
@@ -984,6 +989,8 @@ class UserProfileView(LoginRequiredMixin, UpdateView):
 
     model = CustomUser
     template_name = 'users/profile.html'
+    frontend_v1_template = 'frontend_v1/profile.html'
+    frontend_v1_title = 'Profil'
     form_class = ProfileFieldsForm
     success_url = reverse_lazy('profile')
 
@@ -991,8 +998,10 @@ class UserProfileView(LoginRequiredMixin, UpdateView):
         return self.request.user
 
     def form_valid(self, form):
-        messages.success(self.request, "Profil ma'lumotlari saqlandi.")
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        if response.status_code == 302:
+            messages.success(self.request, "Profil ma'lumotlari saqlandi.")
+        return response
 
     def form_invalid(self, form):
         messages.error(self.request, "Ma'lumotlarda xatolik bor. Iltimos tekshiring.")
