@@ -16,6 +16,30 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-26 [Codex]: I6a — real material kutubxonasi V1 porti
+
+Frozen list/create/edit/picker to‘rtta route oilasi real Django writerlariga
+ulandi. O‘nta form maydoni, private file va teacher-scoped attach saqlandi;
+default-OFF `frontend_v1_library`, explicit consent va stale409/no-write.
+
+- Branch `codex/frontend-v1-library-port`; runtime `9a76fed`.
+- Upload almashtirishda ModelForm yo‘qotadigan eski filename oldindan
+  olinadi, commitdan keyin old-file cleanup ishlaydi. Atomic resource lock;
+  invalid bound form saved sidebarni chalg‘itmaydi. Duplicate PDF filter
+  options va untouched selectning yolg‘on dirty holati tuzatildi.
+- Offline `manage.py test library --noinput`: final66 OK (6.336s).
+  `manage.py test --noinput`: 2063 OK skip45 (149.846s), oxirgi DISTINCT
+  tuzatishdan oldin; keyin focused66 PASS. Node95 PASS; check issue0,
+  migration drift yo‘q, diff check PASS. [Batafsil](frontend-v1/I6A-LIBRARY.md).
+- IAB8062 temporary DB: 24 responsive check overflow0; explicit filter,
+  attach same-query/page, edit PRG, two-tab stale409/draft; keyboard va
+  console error0. Real file/destructive UI amali bajarilmadi; backend test bor.
+- Required CI/review/main keyingi gate. AWS deploy/native-device alohida.
+  I6b course/lesson editor + per-link settings/reorder/detach hali legacy;
+  I7 checkout, I8 exam, I9 Classbook navbatda. Yangi prototip yaratilmagan.
+- Oldingi I5d PR134 MERGED `337a73c`, CI36211060029 all3PASS,
+  SQLite2040 skip44/PostgreSQL2040 skip20/Node87; tracker shu dalil bilan yopildi.
+
 ## 2026-09-26 [Codex]: I5d — olti records/support sahifasi real V1ga ulandi
 
 Sertifikatlar ro‘yxati, learner davomat, obunalar/cheklar, guruh reytingi,

@@ -92,8 +92,10 @@ guards Node VMda; actual network loss/native iOS/Android qabuli emas.
 
 ## Ochiq chegara va keyingi ish
 
-Required CI/review/main final holati shu branchning PR acceptance commentida
-yoziladi. AWS deploy va haqiqiy qurilma qabuli **NOT TESTED**. OFF faqat
+PR134 MERGED `337a73c`; final CI36211060029 all3PASS: SQLite2040 skip44,
+PostgreSQL2040 skip20, Node87; final local2040 skip45. Review open finding0.
+[Acceptance](https://github.com/azurebek/azurelms/pull/134#issuecomment-5842321154).
+AWS deploy va haqiqiy qurilma qabuli **NOT TESTED**. OFF faqat
 renderer rollback, read belgisi yoki yuklangan faylni o‘chirmaydi.
 Sertifikat detail/appendix legacy; I6 library/editor, I7 checkout/receipt,
 I8 exam, I9 Classbook ochiq. Yangi prototiplar hanuz pauzada.

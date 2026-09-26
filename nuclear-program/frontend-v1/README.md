@@ -39,8 +39,13 @@ Node82 PASS. PR133 MERGED `75bba33`; final CI36208937362 uchala PASS
 (SQLite2019 skip44, PostgreSQL2019 skip20). [Final dalil](https://github.com/azurebek/azurelms/pull/133#issuecomment-5842048014).
 [I5d records/help/notifications](I5D-RECORDS-SUPPORT.md) lokal tayyor `d3aa3dc`:
 olti route, 2040 full OK (skip45), 508 app OK (skip6), 87 Node PASS,
-48 mobile/desktop readback overflow0. Default-OFF flag; required CI/main
-va AWS alohida gate. Certificate detail/appendix hanuz legacy.
+48 mobile/desktop readback overflow0. PR134 MERGED `337a73c`, final CI
+`36211060029` all3PASS (SQLite2040 skip44, PostgreSQL2040 skip20, Node87).
+AWS alohida gate. Certificate detail/appendix hanuz legacy.
+[I6a — kutubxona](I6A-LIBRARY.md) lokal `9a76fed`: list/create/edit/picker,
+canonical upload/private-file/attach va stale-form guard. Library66 OK,
+full2063 OK (skip45), Node95 PASS; 24 responsive readback overflow0.
+Default-OFF; required CI/main alohida. I6b course/lesson editor ochiq.
 I4b AI adapteri PR #130 bilan main’da `a25cf4b`:
 [scope, compact transcript va tekshiruv](I4B-AI-MESSENGER.md).
 1961 Python OK/61 Node PASS; final CI `36192585672` uchala PASS;
