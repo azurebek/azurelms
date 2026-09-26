@@ -35,7 +35,9 @@ Yangi dizayn, AI engine/provider, to‘lov yoki yangi prototip yo‘q.
 ## Holat
 
 - [x] ~~Runtime, regressiya va lokal browser.~~ `d3c286e`.
-- [ ] Required CI/review/main integratsiya.
+- [x] ~~Required CI/review/main integratsiya.~~ PR132 MERGED `dd198b7`;
+  final CI `36206802175` uchala PASS (SQLite2000 skip44,
+  PostgreSQL2000 skip20, Node73). Review izohlari resolve.
 - [ ] AWS release va haqiqiy qurilma qabuli — alohida.
 
 Oldingi I5b.1 PR131 MERGED `af4ed76`; final CI `36196388190` uchala PASS.
@@ -51,9 +53,8 @@ Offline env: `AZURELMS_SKIP_ENV_FILE=1`, `GEMINI_API_KEY=''`,
   users.test_frontend_v1_account users.test_settings_sections core.test_feature_flags
   --noinput --verbosity 1`: **65 OK**, 5.735s; 25 yangi settings regressiyasi.
   Rendered privacy snapshot bilan real POST ham tekshirildi (test-only token emas).
-- `venv/Scripts/python.exe manage.py test --noinput --verbosity 0`: **PASS,
-  exit0** (review follow-updan OLDIN; yangi full suite qayta boshlangan).
-  Lokal output truncation sabab aniq count/time bu yerda da’vo qilinmaydi.
+- `venv/Scripts/python.exe manage.py test --noinput --verbosity 0`:
+  review follow-updan keyingi final lokal run **2000 OK, skip45**, 120.525s.
 - `node --test tests/frontend_v1/*.test.mjs`: **73 PASS**, 0 fail.
 - `manage.py check`: 0 issue; `manage.py makemigrations --check --dry-run`:
   No changes detected; `git diff --check`: PASS. Quyidagi additive migration bor.
@@ -96,5 +97,5 @@ Existing legacy clear-all kontrakti defaults bilan saqlangan.
 AI writerlar uchun global revision/durable receipt da’vosi yo‘q. Private
 draft storage/automatic resend yo‘q; privacy GET maintenance/decay saqlangan.
 
-Keyingi port: register/reset/onboarding; records/help/notifications.
+Keyingi port: [register/reset/onboarding](I5B2-AUTH.md); records/help/notifications.
 I6–I9 ochiq, bu paket notifications yoki checkoutni o‘z ichiga olmaydi.

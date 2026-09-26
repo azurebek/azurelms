@@ -94,9 +94,14 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
     focused65 OK, Node73 PASS, uch route320–1280 overflow0.
     Review fix `725d47c`: ABA counter/users0022 va confirmed-ID clear.
     [Scope/rollback/dalil](I5C-SETTINGS.md). Canonical writer/quota saqlandi.
-  - [ ] I5c.1 required CI/review/integratsiya.
-  - [ ] I5b.1/I5c.1 AWS release va haqiqiy qurilma qabuli — alohida.
-    Register/reset/onboarding, records/help/notifications hamda qolgan I5 ochiq.
+  - [x] ~~I5c.1 required CI/review/integratsiya.~~ PR132 MERGED `dd198b7`;
+    CI `36206802175` uchala PASS: SQLite2000 skip44, PostgreSQL2000 skip20, Node73.
+  - [x] ~~I5b.2 lokal — Register/reset/onboarding.~~ `ec0ff27`; 6 route +
+    closed/invalid/expired/complete holatlari. [Scope/dalil](I5B2-AUTH.md).
+    Focused100 OK, full2019 OK (skip45), Node79 PASS, 42 responsive check overflow0.
+  - [ ] I5b.2 required CI/review/integratsiya.
+  - [ ] I5b.1/I5b.2/I5c.1 AWS/SMTP release va haqiqiy qurilma qabuli — alohida.
+    Records/help/notifications hamda qolgan I5 ochiq.
 - [ ] **I6 — Library + course/lesson editor.** Common resource/link/private
   storage parity; real forms existing fieldsni saqlaydi. Qisman field/save
   contract mos kelmasa tegishli editor legacy qoladi va qarz ochiq yoziladi.

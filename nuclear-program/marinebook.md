@@ -16,6 +16,28 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-26 [Codex]: I5b.2 — qolgan auth sahifalari real V1ga ulandi
+
+Register/closed, optional onboarding va password-resetning to‘rt bosqichi
+frozen auth shellga ulandi. Canonical CSRF/token/session/form/kill-switch
+saqlandi; yangi default-OFF auth flag login uchun learning flag bilan OR.
+Yangi prototip, model/migration yoki AWS deploy yo‘q.
+
+- Branch: `codex/frontend-v1-auth-remainder`; runtime `ec0ff27`.
+- Offline focused100 OK (8.906s), final auth19 OK (1.819s); full2019 OK
+  (skip45, 122.653s; oxirgi help-text tarjimasidan oldin), Node79 PASS.
+  `manage.py check` issue0; migration drift yo‘q; diff check PASS.
+- IAB8060 temporary DB: 42 route/state-width readback overflow0,
+  dark/light, native validation/toggle/login/keyboard skip va dirty exit.
+  Hisob yaratish/parolni o‘zgartirish browserda emas, backend clientda.
+- [Scope, test commands va release chegaralari](frontend-v1/I5B2-AUTH.md).
+  CI/review/main ochiq; SMTP/native device/AWS alohida. Keyingi I5:
+  records/help/notifications; I6–I9 hali ochiq.
+- Oldingi I5c.1 yakuni fresh qayd: PR132 MERGED `dd198b7`,
+  CI36206802175 all3PASS (SQLite2000 skip44, PostgreSQL2000 skip20, Node73).
+  Reviewdan keyingi lokal full2000 OK (skip45, 120.525s). Eski pending qaydlar
+  tarixiy; settings porti qayta boshlanmaydi, AWS hali yoqilmagan.
+
 ## 2026-09-26 [Codex]: I5c.1 — qolgan uch settings sahifasi real V1ga ulandi
 
 Maxfiylik, To‘lov va Imkoniyatlar frozen V1 shellga mustaqil default-OFF

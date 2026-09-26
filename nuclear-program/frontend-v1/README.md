@@ -28,11 +28,13 @@ keyingi owner ruxsati bilan learning/lesson/teacher/human messenger ham ON.
 oqim va renderer rollback, mobile/desktop owner sessiyasi tekshirildi.
 AWS Hisob/settings hali eski ko‘rinishda. [I5b.1 Profil/Hisob](I5B-ACCOUNT-PROFILE.md)
 porti PR131 bilan main’da `af4ed76`; final CI `36196388190` uchala PASS.
-[I5c.1 Maxfiylik/To‘lov/Imkoniyatlar](I5C-SETTINGS.md) lokal tayyor `d3c286e`:
-focused65 OK, Node73 PASS; uch route320–1280 overflow0. Review fix `725d47c`:
-monotonic preference counter va confirmed-ID clear; additive users0022 migration.
-Settings required CI/review/integratsiya ochiq; AWS deploy alohida.
-Register/reset/onboarding, records/help/notifications keyingi portlar.
+[I5c.1 Maxfiylik/To‘lov/Imkoniyatlar](I5C-SETTINGS.md) PR132 bilan main’da
+`dd198b7`; final CI `36206802175` uchala PASS, 2000 Python/73 Node.
+Review fix `725d47c`: monotonic preference counter va confirmed-ID clear;
+additive users0022 migration. AWS deploy alohida.
+[I5b.2 Register/reset/onboarding](I5B2-AUTH.md) lokal tayyor `ec0ff27`:
+100 focused, 2019 full (skip45), 79 Node; 42 responsive o‘lchov overflow0.
+Auth CI/review/integratsiya ochiq. Keyingi port records/help/notifications.
 I4b AI adapteri PR #130 bilan main’da `a25cf4b`:
 [scope, compact transcript va tekshiruv](I4B-AI-MESSENGER.md).
 1961 Python OK/61 Node PASS; final CI `36192585672` uchala PASS;
