@@ -47,6 +47,12 @@ theme va empty/long-content. Ko‘rinish porti butun I8 tayyor degani emas.
 
 ## I8a dalil
 
+PR138 review fix `17a9e62`: legacy natija matni va section ranglari endi
+snapshotdagi passing thresholdni ishlatadi; tarixiy snapshot yo‘q bo‘lsa
+live fallback qoladi, zero threshold yo‘q deb olinmaydi. Provider-free
+`manage.py test courses.test_frontend_v1_exams --noinput`: **33 OK, 3.229s**;
+3 yangi regression. Yangi full/required CI final acceptance’da yoziladi.
+
 - `AZURELMS_SKIP_ENV_FILE=1 GEMINI_API_KEY= TELEGRAM_BOT_TOKEN=` bilan
   `venv/Scripts/python.exe manage.py test --noinput`: **2156 OK, skip45,
   151.359s** (`playground/frontend-v1-smoke/i8-full.log`). 30 yangi test.

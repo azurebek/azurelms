@@ -39,6 +39,10 @@ projection. Retake link endi yozuvsiz shartlarga olib boradi, result loop yo‘q
 - I8a CI/review/main ochiq. I8b attempt/audio/timer/revision va I8c teacher
   review UI hali legacy; I9 Classbook va I5 certificate UI qoladi.
   AWS va frozen prototype o‘zgarmadi.
+- PR138 review fix `17a9e62`: legacy pass/fail copy va section ranglari
+  published thresholddan, historical fallback alohida; zero saqlanadi.
+  `manage.py test courses.test_frontend_v1_exams --noinput`: 33 OK (3.229s),
+  3 qo‘shimcha test. Fresh full/CI yakuniy acceptance’da qayd etiladi.
 - I7 reconciliation: PR137 MERGED `df054c1`, finalCI36217772724 all3PASS;
   SQLite2126 skip44/PostgreSQL2126 skip20/Node95. Final local2126 skip45
   (135.378s), focused71 PASS. Oldingi TTL finding resolve qilingan.
