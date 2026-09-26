@@ -91,7 +91,7 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
   - [x] ~~I5b.1 required CI/review/integratsiya.~~ PR131 MERGED `af4ed76`;
     final CI `36196388190` uchala PASS; bound-error dirty guard `3d51a61`.
   - [x] ~~I5c.1 lokal — Maxfiylik, To‘lov va Imkoniyatlar.~~ `d3c286e`;
-    focused61 OK, full Django exit0, Node73 PASS, uch route320–1280 overflow0.
+    focused62 OK, full Django exit0, Node73 PASS, uch route320–1280 overflow0.
     [Scope/rollback/dalil](I5C-SETTINGS.md). Canonical writer/quota saqlandi.
   - [ ] I5c.1 required CI/review/integratsiya.
   - [ ] I5b.1/I5c.1 AWS release va haqiqiy qurilma qabuli — alohida.

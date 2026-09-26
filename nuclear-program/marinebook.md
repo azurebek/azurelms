@@ -24,6 +24,7 @@ alohida explicit-save, stale form va confirmation himoyasi qo‘shildi.
 
 - Branch: `codex/frontend-v1-settings-remainder`; runtime `d3c286e`.
 - Offline focused settings/account/sections/flags **61 OK** (6.755s);
+  rendered privacy token bilan POST follow-up: **62 OK**, 8.340s;
   full `manage.py test --noinput --verbosity 0` **exit0** (output truncation,
   count da’vo qilinmaydi); `node --test tests/frontend_v1/*.test.mjs` **73 PASS**.
 - Isolated DB8059: preference save/PRG, ikki tab stale409/bound value/saved

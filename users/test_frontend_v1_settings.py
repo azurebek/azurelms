@@ -153,6 +153,24 @@ class SettingsV1Tests(TestCase):
         self.assertEqual(self.fact.status, 'active')
         self.assertFalse(self.user.ai_memory_enabled)
 
+    def test_rendered_privacy_revisions_match_displayed_snapshot_and_submit(self):
+        AILongTermMemory.objects.create(user=self.user, learned_facts='  Eski xotira  ')
+        response = self.client.get(reverse('settings_privacy'))
+        self.user.refresh_from_db()
+        shown = response.context['memory_groups'][0]['facts'][0]
+        for action in ('archive', 'reject'):
+            self.assertEqual(getattr(shown, action + '_revision'), settings_revision(self.user, action, shown.pk))
+        self.assertEqual(response.context['toggle_revision'], settings_revision(self.user, 'ai_memory_enabled'))
+        self.assertEqual(response.context['clear_revision'], settings_revision(self.user, 'clear'))
+        # Use the revision actually emitted by the view, not a test-only token.
+        result = self.client.post(reverse('ai_memory_clear'), {
+            'frontend_v1_settings': '1', 'settings_revision': response.context['clear_revision'],
+            'confirm_change': 'yes',
+        })
+        self.assertRedirects(result, reverse('settings_privacy'))
+        self.fact.refresh_from_db()
+        self.assertEqual(self.fact.status, 'archived')
+
     def test_archive_and_reject_require_confirmation_and_use_repository_trace(self):
         for action in ('archive', 'reject'):
             fact = AIMemoryFact.objects.create(user=self.user, value=action, fingerprint=action, confidence=0.9)

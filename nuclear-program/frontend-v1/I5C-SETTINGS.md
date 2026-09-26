@@ -48,9 +48,11 @@ Offline env: `AZURELMS_SKIP_ENV_FILE=1`, `GEMINI_API_KEY=''`,
 
 - `venv/Scripts/python.exe manage.py test users.test_frontend_v1_settings
   users.test_frontend_v1_account users.test_settings_sections core.test_feature_flags
-  --noinput --verbosity 1`: **61 OK**, 6.755s; 21 yangi settings regressiyasi.
+  --noinput --verbosity 1`: **62 OK**, 8.340s; 22 yangi settings regressiyasi.
+  Rendered privacy snapshot bilan real POST ham tekshirildi (test-only token emas).
 - `venv/Scripts/python.exe manage.py test --noinput --verbosity 0`: **PASS,
-  exit0**. Lokal output truncation sabab aniq count/time bu yerda da’vo qilinmaydi.
+  exit0** (yakuniy qo‘shimcha testdan oldin, runtime o‘zgarmagan).
+  Lokal output truncation sabab aniq count/time bu yerda da’vo qilinmaydi.
 - `node --test tests/frontend_v1/*.test.mjs`: **73 PASS**, 0 fail.
 - `manage.py check`: 0 issue; `manage.py makemigrations --check --dry-run`:
   No changes detected; `git diff --check`: PASS. Model/migration yo‘q.

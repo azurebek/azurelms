@@ -29,7 +29,7 @@ oqim va renderer rollback, mobile/desktop owner sessiyasi tekshirildi.
 AWS Hisob/settings hali eski ko‘rinishda. [I5b.1 Profil/Hisob](I5B-ACCOUNT-PROFILE.md)
 porti PR131 bilan main’da `af4ed76`; final CI `36196388190` uchala PASS.
 [I5c.1 Maxfiylik/To‘lov/Imkoniyatlar](I5C-SETTINGS.md) lokal tayyor `d3c286e`:
-focused61 OK, full Django exit0, Node73 PASS; uch route320–1280 overflow0.
+focused62 OK, full Django exit0, Node73 PASS; uch route320–1280 overflow0.
 Settings required CI/review/integratsiya ochiq; AWS deploy alohida.
 Register/reset/onboarding, records/help/notifications keyingi portlar.
 I4b AI adapteri PR #130 bilan main’da `a25cf4b`:
