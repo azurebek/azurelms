@@ -16,6 +16,17 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-26 [Codex]: I9a start snapshot locki
+
+`ae4f02d`: V1 start tasdig'idan canonical snapshot yaratilguncha mashq
+qatorlari parent-first lock ostida. Parallel exercise tahriri tasdiqlangan
+definition o'rniga yangi definitionni jimgina snapshotga kiritmaydi.
+
+- Provider-free `manage.py test classbook.test_frontend_v1 --noinput --failfast`:
+  23 OK skip2 (3.640s); PG add-race va snapshot-lock tartibi CI’da.
+- [PR142](https://github.com/azurebek/azurelms/pull/142) final CI/review/main uchun
+  authoritative acceptance. AWS/current DB/frozen prototype tegilmadi.
+
 ## 2026-09-26 [Codex]: I9a — Classbook tayyorlovi real V1ga ulandi
 
 Owner davom ettirishni so'radi. `eacce59`: teacher home, bank, 10 turdagi

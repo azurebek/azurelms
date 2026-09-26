@@ -55,3 +55,9 @@ AWS, haqiqiy Telegram, real qurilma va owner content acceptance bu paket emas.
   template screenshotida eski sarlavha qolishi mumkin. Runtime CI final headni tekshiradi.
 - CI/review/main acceptance: [PR142](https://github.com/azurebek/azurelms/pull/142).
   AWS/current DB/prototype o'zgarmadi.
+
+Yakuniy start guard: V1 session_start cohort→playbook→Exercise locklari bilan
+tasdiqlangan definitionni canonical ActivityRun snapshot yaratilguncha ushlab
+turadi. Focused `manage.py test classbook.test_frontend_v1 --noinput --failfast`:
+**23 OK skip2 (3.640s)**. Ikki PG-only test: parallel same-token add va
+exercise lock snapshot INSERTdan oldin olinishi. Final required CI PRda.
