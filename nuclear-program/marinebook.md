@@ -16,6 +16,28 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-26 [Codex]: I8b — real imtihon topshirish va qoralama himoyasi
+
+Frozen exam-focus real Django’ga ulandi: explicit savol Save, server revision,
+receipt/unknown reconciliation, audio va topshirish tasdig‘i. Ball/access yangi
+UI ichida hisoblanmaydi; mavjud canonical writerlar ishlaydi. Default-OFF
+frontend_v1_exam_attempt, additive courses0022; AWS/prototype o‘zgarmadi.
+
+- Branch `codex/frontend-v1-exam-attempt`; runtime `fc80c7f`, polish/test `deef10c`.
+- Provider-free courses250 OK skip5 (18.813s), full2210 OK skip49 (150.345s).
+  Keyingi ikki test bilan final focused86 OK skip4 (8.761s); Node104 PASS.
+  4 yangi skip SQLite’da row-lock yo‘qligi, PG required CI’da bajariladi.
+  Eski storage allowlist failure tor I8b istisnosi va privacy/logout testlari
+  bilan yopildi; migration drift/check/diff PASS.
+- IAB8066 synthetic temp DB: start/save/stale-rebase/confirm/pending,
+  lost acknowledgement va before-write failure recovery, reload draft,
+  silent listening limit; 12 responsive readback overflow0, dark/light,
+  Escape focus. [Qamrov va dalil](frontend-v1/I8B-ATTEMPT.md).
+- CI/review/main keyingi gate. Native microphone/device/codec va AWS hali
+  qabul qilinmagan. Keyingi UI: I8c review, I9 Classbook, certificate details.
+- PR139 reconciliation: MERGED `b8c1604`, CI36221144145 all3PASS,
+  Python2183/Node95; final dalil security hujjatiga bog‘landi.
+
 ## 2026-09-26 [Codex]: I8 attempt API — joriy ruxsat va unpublished grade himoyasi
 
 Owner `ha` degach tasdiqlangan security blocker alohida paketda yopildi.

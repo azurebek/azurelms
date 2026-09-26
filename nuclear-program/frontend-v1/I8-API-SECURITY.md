@@ -70,6 +70,12 @@ tasdiqlanmagan ball/feedback learner runtime JSONida umuman yo‘q.
 
 ## Qolgan chegara
 
+Final acceptance: PR139 MERGED `b8c1604`, CI36221144145 all3PASS;
+SQLite2183 skip44 (134.522s), PostgreSQL2183 skip20 (164.956s), Node95.
+[Final dalil](https://github.com/azurebek/azurelms/pull/139#issuecomment-5843593323).
+Keyingi attempt portining yangi revision/receipt shartlari [I8b](I8B-ATTEMPT.md)da;
+pastdagi yozuv security paketining o‘z chegarasini qayd etadi.
+
 Bu access tekshiruvi har so‘rov boshida joriy policyga qaraydi; parallel
 enrollment revoke/write uchun yangi global lock yoki revision protokoli
 emas. Attempt autosave/submit revision, duplicate/unknown reconciliation,

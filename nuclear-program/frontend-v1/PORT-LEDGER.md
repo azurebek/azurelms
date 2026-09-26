@@ -148,7 +148,11 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
   - [x] ~~[I8b oldidan attempt API access/privacy lokal tuzatishi](I8-API-SECURITY.md).~~
     `40c6ba6`, 24 yangi test; courses223 OK skip1, full2183 OK skip45,
     Node95. Required CI/review/main final dalili security PRda.
-  - [ ] I8b attempt/answer/audio/timer/revision/submit UI.
+  - [x] ~~I8b attempt/answer/audio/timer/revision/submit lokal port.~~
+    `fc80c7f`, `deef10c`; full2210 OK skip49, final focused86 OK skip4,
+    Node104 PASS; 12 width readback overflow0, stale/unknown browser proof.
+    [Dalil va native release chegarasi](I8B-ATTEMPT.md). Additive courses0022.
+  - [ ] I8b required CI/review/main (4 PG race testi ham).
   - [ ] I8c teacher review UI va stale-form confirmation.
   - [ ] I8 AWS/native-device release.
 - [ ] **I9 — Classbook.** Preparation→session→activity→result; multi-user,

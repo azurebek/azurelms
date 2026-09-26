@@ -68,7 +68,13 @@ UI oilasidan 2 renderer ulandi; attempt/audio/timer va teacher review UI
 hali legacy. PR138 MERGED `17cfc3a`; finalCI36219639823 all3PASS,
 SQLite/PostgreSQL2159, Node95; final local2159 OK skip45 (139.635s).
 I8b oldidan owner tasdiqlagan [attempt API ruxsat/privacy](I8-API-SECURITY.md)
-tuzatishi bajariladi. AWS gate alohida; yangi attempt UI hali port qilinmagan.
+PR139 MERGED `b8c1604`, CI36221144145 all3PASS (2183 Python/95 Node).
+[I8b real topshirish](I8B-ATTEMPT.md) lokal `fc80c7f`/`deef10c`:
+explicit save, per-answer revision va receipt, scoped draft, server vaqt,
+audio va submit tasdig‘i; additive courses0022, default-OFF. Full2210 OK
+skip49; final focused86 OK skip4, Node104. 12 width readback overflow0,
+two-tab stale va ikkita unknown-response recovery oqimi brauzerda o‘tdi.
+I8b required CI/review/main va native-device/AWS gate ochiq; I8c review UI qoladi.
 I4b AI adapteri PR #130 bilan main’da `a25cf4b`:
 [scope, compact transcript va tekshiruv](I4B-AI-MESSENGER.md).
 1961 Python OK/61 Node PASS; final CI `36192585672` uchala PASS;

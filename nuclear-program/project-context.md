@@ -159,7 +159,8 @@ tasdiq va `expected_revision` bilan boradi. Student user-lock ostida revision
 o‘zgargan bo‘lsa 409/no-write, bound izoh saqlanadi. Queue scope/pagination,
 native PRG va scoped qoralama bor; durable operation receipt emas.
 I3a PR #123 main’da (`4e48416`, final uch required CI PASS).
-Exam detail I8gacha legacy.
+Exam detail I8b default-OFF `frontend_v1_exam_attempt` bilan V1ga tanlanadi;
+ustoz exam review UI I8cgacha legacy.
 [I3a dalili](frontend-v1/I3A-TEACHER-REVIEW.md).
 I3b: teacher flag courses/cohorts/students/attendance rendererlarini ham
 tanlaydi; ro‘yxatlar real scoped queryset, SQL pagination va count bilan.
@@ -536,9 +537,22 @@ Teacher draft save bu projectionni o‘zgartirmaydi; republish yangilaydi.
 `courses.exam_publication.learner_result` V1/legacy result, markaz va public
 appendixning yagona read policy’si. Eski approved aggregate qoladi, nusxasi
 yo‘q mutable tafsilotlar yashiriladi. Default-OFF `frontend_v1_exams` faqat
-markaz/result rendereri; privacy flagdan mustaqil. Attempt/review UI legacy.
+markaz/result rendereri; privacy flagdan mustaqil. Teacher review UI legacy.
 `?retake=1` eligible failed attemptning shartlarini GET orqali yozuvsiz
 ochadi; start POST canonical entry policy/limitni qayta tekshiradi.
+
+**I8b attempt — 2026-09-26:** mustaqil default-OFF `frontend_v1_exam_attempt`,
+`courses.exam_attempt_v1` state/action adapteri `/courses/<course>/exam/<exam>/api/v1/`.
+Explicit savol Save; mavjud Question/Reading/private-audio/listen/submit writerlar.
+Additive courses0022: attempt input_revision/answer_versions + ExamActionReceipt
+identity/hash ledger. User/attempt row lock, stale409, duplicate UUID no-repeat;
+GET receipt missing hali unknown, explicit reconcile cancelled barrier orqali
+kechikkan yozuvni to‘sadi. Legacy answer/flag/upload writerlari ham revisionni
+oshiradi; baholash formulasi va publication alohida. HMAC-scoped session text
+draft, credentials/file bytes yo‘q, logout cleanup; dirty/stale/unknown finishni
+bloklaydi. Server remaining snapshot, client clock submit qilmaydi.
+Flag OFF mutationlarni yopadi, receipt/state va identity reconciliation qoladi;
+schema migration OFFda ham kerak. Native mic/AWS release alohida.
 
 ### 4.7 Messenger
 
