@@ -229,6 +229,7 @@ def backoffice_runtime_settings(request):
     from core.models import OperationalSettings
     from core.runtime_settings_forms import (
         BotDeliverySettingsForm,
+        CheckoutSettingsForm,
         DispatcherThresholdsForm,
         MaterialLibrarySettingsForm,
         OperationalThresholdsForm,
@@ -246,6 +247,13 @@ def backoffice_runtime_settings(request):
     # ajratiladi, aks holda bir formani saqlash ikkinchisini validatsiyadan
     # o'tmagan deb ko'rsatardi.
     groups = {
+        "checkout": {
+            "form_class": CheckoutSettingsForm,
+            "instance": thresholds,
+            "action": "settings.checkout.update",
+            "label": "Checkout tasdiq muddati",
+            "message": "Checkout tasdiq muddati saqlandi.",
+        },
         "delivery": {
             "form_class": BotDeliverySettingsForm,
             "instance": delivery,
@@ -295,7 +303,9 @@ def backoffice_runtime_settings(request):
                     with transaction.atomic():
                         obj = form.save(commit=False)
                         obj.updated_by = request.user
-                        obj.save()
+                        # Several panels share one singleton. Do not overwrite
+                        # unrelated values loaded before a concurrent panel save.
+                        obj.save(update_fields=[*after, 'updated_by', 'updated_at'])
                         record_audit_event(
                             action=spec["action"],
                             request=request,
@@ -322,6 +332,7 @@ def backoffice_runtime_settings(request):
         "reminders_form": forms_out["reminders"],
         "dispatcher_form": forms_out["dispatcher"],
         "library_form": forms_out["library"],
+        "checkout_form": forms_out["checkout"],
         "delivery": delivery,
         "thresholds": thresholds,
         "reminders": reminders,

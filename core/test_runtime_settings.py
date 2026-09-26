@@ -389,10 +389,11 @@ class RuntimeSettingsSurfaceTests(TestCase):
             self.assertContains(
                 response, f'name="{name}"', msg_prefix=f"{name} maydoni chizilmadi"
             )
-        # Besh forma, beshta sabab/tasdiq juftligi va besh `form_name`.
-        self.assertContains(response, 'name="form_name"', count=5)
-        self.assertContains(response, 'name="change_reason"', count=5)
-        self.assertContains(response, 'name="confirm_change"', count=5)
+        # Olti forma, oltita sabab/tasdiq juftligi va olti `form_name`.
+        self.assertContains(response, 'name="checkout_quote_minutes"')
+        self.assertContains(response, 'name="form_name"', count=6)
+        self.assertContains(response, 'name="change_reason"', count=6)
+        self.assertContains(response, 'name="confirm_change"', count=6)
 
     def test_library_upload_limit_is_saved_and_audited(self):
         """Kutubxona hajmi ham deploy'siz o'zgaradi va izsiz qolmaydi."""

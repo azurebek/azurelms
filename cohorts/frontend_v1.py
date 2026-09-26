@@ -9,6 +9,7 @@ from django.views.generic import TemplateView
 
 from core.flags import flag_enabled
 from core.frontend_v1 import FrontendV1Mixin
+from core.operational_settings import current_thresholds
 from core.upload_validation import MB, PROFILES, validate_upload
 from courses.models import Course
 from subscriptions.catalog import purchase_plans
@@ -23,7 +24,6 @@ from .delivery_service import lock_enrollment
 from .models import PaymentReceipt, PendingReceiptExists
 
 SALT = 'frontend-v1.checkout.quote'
-MAX_AGE = 30 * 60
 
 
 class CheckoutPage(FrontendV1Mixin, TemplateView):
@@ -61,7 +61,9 @@ def checkout(request, course_id):
     data = request.POST if request.method == 'POST' else request.GET
     raw_plan = data.get('plan_id', '')
     raw_promo = data.get('promo_code', '').strip()
+    quote_minutes = current_thresholds().checkout_quote_minutes
     context = dict(course=course, plans=plans, submitted_promo_code=raw_promo,
+                   quote_minutes=quote_minutes,
                    max_upload_mb=PROFILES['image']['max_bytes'] // MB)
     allowed = {'plan_id', 'promo_code'}
     if request.method == 'POST':
@@ -105,7 +107,7 @@ def checkout(request, course_id):
                        quote_token=signing.dumps(values, salt=SALT, compress=True))
         if request.method == 'POST':
             try:
-                confirmed = signing.loads(data.get('quote_token', ''), salt=SALT, max_age=MAX_AGE)
+                confirmed = signing.loads(data.get('quote_token', ''), salt=SALT, max_age=quote_minutes * 60)
             except signing.BadSignature:
                 return page(request, dict(context, checkout_error='Summa tasdig‘i eskirgan yoki noto‘g‘ri. Qayta tekshiring; chek yuborilmadi.', quote_token=''), status=409)
             if confirmed != values:

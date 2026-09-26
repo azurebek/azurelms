@@ -20,6 +20,19 @@
 <div class="brand-layout">
   <div>
     <form class="brand-form" method="post">
+      {% csrf_token %}<input type="hidden" name="form_name" value="checkout">
+      <section class="brand-panel">
+        <div class="brand-panel-head"><span>To‘lov</span><div><h2>Checkout tasdiq muddati</h2><p>Saqlangach, keyingi so‘rovdan amal qiladi. Narx va chegirma yuborish vaqtida qayta tekshiriladi.</p></div></div>
+        {% if checkout_form.non_field_errors %}<div class="brand-errors">{{ checkout_form.non_field_errors }}</div>{% endif %}
+        <div class="brand-fields brand-fields--nums">{% for field, unit in checkout_form.numeric_fields %}<label class="brand-field"><span>{{ field.label }}</span><span class="brand-numfield">{{ field }}<span class="brand-unit">{{ unit }}</span></span><small>{{ field.help_text }}</small>{% for error in field.errors %}<em>{{ error }}</em>{% endfor %}</label>{% endfor %}</div>
+      </section>
+      <section class="brand-panel"><div class="brand-fields">
+        <label class="brand-field"><span>{{ checkout_form.change_reason.label }}</span>{{ checkout_form.change_reason }}{% for error in checkout_form.change_reason.errors %}<em>{{ error }}</em>{% endfor %}</label>
+        <label class="brand-field brand-field--check">{{ checkout_form.confirm_change }}<span>{{ checkout_form.confirm_change.label }}</span>{% for error in checkout_form.confirm_change.errors %}<em>{{ error }}</em>{% endfor %}</label>
+      </div></section>
+      <button class="brand-submit" type="submit">Checkout muddatini saqlash</button>
+    </form>
+    <form class="brand-form" method="post">
       {% csrf_token %}
       <input type="hidden" name="form_name" value="delivery">
       {% if delivery_form.non_field_errors %}<div class="brand-errors">{{ delivery_form.non_field_errors }}</div>{% endif %}

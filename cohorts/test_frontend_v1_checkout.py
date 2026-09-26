@@ -12,6 +12,7 @@ from django.utils import timezone
 from django.template.defaultfilters import floatformat
 
 from core.flags import flag_by_slug, set_flag
+from core.models import OperationalSettings
 from subscriptions.models import Plan, PromoCampaign, PromoCode, PromoRedemption
 from . import frontend_v1 as v1
 from .models import Enrollment, PaymentReceipt
@@ -137,6 +138,23 @@ class CheckoutV1Tests(CheckoutFixtureMixin, TestCase):
         with patch('django.core.signing.time.time', return_value=timezone.now().timestamp() + 2000):
             self.assertEqual(self.send(data).status_code, 409)
         self.assertFalse(Enrollment.objects.exists())
+
+    def test_owner_can_shorten_existing_quote_lifetime(self):
+        data = self.form()
+        OperationalSettings.objects.update_or_create(pk=1, defaults={'checkout_quote_minutes': 1})
+        response = self.client.get(self.url)
+        self.assertContains(response, 'Tasdiq 1 daqiqa')
+        with patch('django.core.signing.time.time', return_value=timezone.now().timestamp() + 65):
+            self.assertEqual(self.send(data).status_code, 409)
+        self.assertFalse(PaymentReceipt.objects.exists())
+
+    def test_owner_can_extend_quote_lifetime_without_restart(self):
+        data = self.form()
+        OperationalSettings.objects.update_or_create(pk=1, defaults={'checkout_quote_minutes': 60})
+        self.assertContains(self.client.get(self.url), 'Tasdiq 60 daqiqa')
+        with patch('django.core.signing.time.time', return_value=timezone.now().timestamp() + 2000):
+            self.assertEqual(self.send(data).status_code, 302)
+        self.assertEqual(PaymentReceipt.objects.count(), 1)
 
     def test_quote_bound_to_user(self):
         data = self.form()
