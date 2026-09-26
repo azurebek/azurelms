@@ -14,3 +14,9 @@
 .f-exam-stack .c-button { white-space: normal; }
 .f-exam-stack .p-page-heading > * { min-width: 0; max-width: 100%; }
 @media (width < 1024px) { .f-exam-catalog { grid-template-columns: minmax(0, 1fr); } }
+.f-review-answer-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--az-space-6); padding-block: var(--az-space-6); border-top: 1px solid var(--az-border); }
+.f-review-answer-grid > * { min-width: 0; }
+.f-review-answer-grid audio { display: block; width: 100%; max-width: 100%; }
+.f-review-answer-grid blockquote { margin-inline: 0; }
+.f-exam-stack label { display: block; margin-bottom: var(--az-space-2); }
+@media (width < 1024px) { .f-review-answer-grid { grid-template-columns: minmax(0, 1fr); } }

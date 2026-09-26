@@ -294,13 +294,22 @@ def teacher_grade_exam(request, attempt_id):
         exam__course__in=context["teacher_courses"],
         is_completed=True,
     )
+    review_data = request.POST
+    v1_review = flag_enabled('frontend_v1_exam_review')
+    if v1_review:
+        from core.frontend_v1_exam_review import prepare_review
+        review_data, response = prepare_review(request, context, attempt)
+        if response is not None:
+            return response
+    elif request.method == 'POST' and request.POST.get('v1_exam_review') == '1':
+        return HttpResponseBadRequest('Yangi ko‘rinish o‘chirilgan. Qayta oching; hech narsa saqlanmadi.')
     attempt.ensure_section_reviews()
 
     if request.method == "POST":
         # 1) Javob ballari + per-javob izohlar (writing/speaking va h.k.)
         for answer in attempt.answers.select_related("question"):
-            score_raw = request.POST.get(f"answer_score_{answer.id}")
-            feedback_raw = request.POST.get(f"answer_feedback_{answer.id}")
+            score_raw = review_data.get(f"answer_score_{answer.id}")
+            feedback_raw = review_data.get(f"answer_feedback_{answer.id}")
             changed = []
             if score_raw not in (None, ""):
                 score = _clamp_score(score_raw, answer.question.points)
@@ -316,8 +325,8 @@ def teacher_grade_exam(request, attempt_id):
 
         # 2) Bo'lim ballari + izohlari
         for review in attempt.section_reviews.select_related("section"):
-            score_raw = request.POST.get(f"section_score_{review.id}")
-            feedback_raw = request.POST.get(f"section_feedback_{review.id}")
+            score_raw = review_data.get(f"section_score_{review.id}")
+            feedback_raw = review_data.get(f"section_feedback_{review.id}")
             changed = []
             if score_raw not in (None, ""):
                 score = _clamp_score(score_raw, review.section.max_score)
@@ -331,21 +340,31 @@ def teacher_grade_exam(request, attempt_id):
                 review.save(update_fields=changed + ["updated_at"])
 
         # 3) Yakuniy izoh
-        review_notes = request.POST.get("review_notes")
+        review_notes = review_data.get("review_notes")
         if review_notes is not None and review_notes != attempt.review_notes:
             attempt.review_notes = review_notes
             attempt.save(update_fields=["review_notes"])
 
-        if request.POST.get("action") == "finalize":
+        # Every successful draft POST advances even for no-op/same-clock ABA;
+        # finalize_review advances the same revision for admin publications too.
+        if review_data.get('action') != 'finalize':
+            attempt.review_revision += 1
+            attempt.save(update_fields=['review_revision'])
+
+        if review_data.get("action") == "finalize":
             certificate, created = attempt.finalize_review(reviewed_by=request.user)
             attempt.refresh_from_db()
             note = f"Natija tasdiqlandi: {attempt.score}% — {'o‘tdi' if attempt.passed else 'o‘tmadi'}."
             if created and certificate:
                 note += " Sertifikat berildi."
             messages.success(request, note)
+            if v1_review:
+                return redirect(request.get_full_path())
             return redirect("teacher_grading")
 
         messages.success(request, "Baholar saqlandi (hali tasdiqlanmadi).")
+        if v1_review:
+            return redirect(request.get_full_path())
         return redirect("teacher_grade_exam", attempt_id=attempt.id)
 
     # GET — bo'limma-bo'lim ma'lumot yig'ish

@@ -152,7 +152,8 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
     `fc80c7f`, `deef10c`; full2210 OK skip49, final focused86 OK skip4,
     Node104 PASS; 12 width readback overflow0, stale/unknown browser proof.
     [Dalil va native release chegarasi](I8B-ATTEMPT.md). Additive courses0022.
-  - [ ] I8b required CI/review/main (5 PG race testi ham).
+  - [x] ~~I8b required CI/review/main.~~ PR140 MERGED `8b95460`;
+    finalCI36256184621 all3PASS, local2239 OK skip53, Node110 PASS.
     Final lock-order `948878c`, focused111 OK skip5 (9.839s), Node104.
     Review P1/P2 lokal fix `6085156`: same-origin audio/preload, bounded epoch
     barrier (additive courses0023). Final local2221 OK skip50 (143.232s),
@@ -173,7 +174,10 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
     CI/review/main acceptance kutilmoqda.
     Head86eaf08 CI36255695367 all3PASS; outer audio rollback review fix
     `e39a263` focused73 OK skip7. Fresh full/CI/review/main acceptance ochiq.
-  - [ ] I8c teacher review UI va stale-form confirmation.
+  - [x] ~~I8c lokal teacher review UI va stale-form confirmation.~~
+    [Qamrov va dalil](I8C-REVIEW.md): native draft/publish, additive0024,
+    49 focused OK skip1, Node110; 6 responsive width overflow0.
+  - [ ] I8c required CI/review/main.
   - [ ] I8 AWS/native-device release.
 - [ ] **I9 — Classbook.** Preparation→session→activity→result; multi-user,
   late join/reconnect va 10 exercise type’ning tegishli adapterlari.

@@ -44,6 +44,13 @@ class FlagDefinition:
 
 FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
     FlagDefinition(
+        slug="frontend_v1_exam_review",
+        label="Frontend V1 — ustoz imtihon tekshiruvi",
+        description="Qoralama va alohida e’lon qilish; eski forma yangi bahoni bosmaydi.",
+        default=False, category="Frontend",
+        runbook="OFF legacy renderer; in-flight V1 POST rad etiladi. courses0024 migration kerak. Baholar/publication saqlanadi, AWS qabuli alohida.",
+    ),
+    FlagDefinition(
         slug="frontend_v1_exam_attempt",
         label="Frontend V1 — imtihon topshirish",
         description="Explicit savol saqlash, versiya va topshirish tasdig‘i bilan exam-focus.",
