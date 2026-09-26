@@ -1236,6 +1236,16 @@ class ExamSectionReview(models.Model):
         return f"{self.attempt.student.username} - {self.section.title}"
 
 
+class ExamActionGate(models.Model):
+    """One cancellation epoch per learner/exam, not one row per cancelled UUID."""
+    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
+    epoch = models.UUIDField(default=uuid.uuid4, editable=False)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['student', 'exam'], name='exam_action_gate_uniq')]
+
+
 class ExamActionReceipt(models.Model):
     """Identity-only acknowledgement; no answer text, media bytes or grades."""
     student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

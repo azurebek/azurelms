@@ -45,3 +45,23 @@ export function clockLabel(seconds) {
   if (seconds === null) return 'Vaqt cheklanmagan';
   return `Serverda qolgan: ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
 }
+
+// Load without playing or spending a server listen. No timeout policy: the
+// visible cancel control aborts a stalled load without issuing a mutation.
+export function prepareListening(player, source, signal) {
+  return new Promise((resolve, reject) => {
+    const cleanup = () => {
+      player.removeEventListener('canplay', ready);
+      player.removeEventListener('error', failed);
+      signal.removeEventListener('abort', aborted);
+    };
+    const ready = () => { cleanup(); resolve(); };
+    const failed = () => { cleanup(); reject(new Error('media-unavailable')); };
+    const aborted = () => { cleanup(); player.pause(); player.removeAttribute('src'); player.load(); reject(new Error('media-cancelled')); };
+    if (signal.aborted) { aborted(); return; }
+    player.addEventListener('canplay', ready);
+    player.addEventListener('error', failed);
+    signal.addEventListener('abort', aborted, {once: true});
+    player.pause(); player.preload = 'auto'; player.src = source; player.load();
+  });
+}

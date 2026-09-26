@@ -1,4 +1,4 @@
-import {valueOf, dirty, blocked, makeRow, receive, rebase, answered, packDraft, acknowledgedKey, clockLabel} from './exam-attempt-state.mjs';
+import {valueOf, dirty, blocked, makeRow, receive, rebase, answered, packDraft, acknowledgedKey, clockLabel, prepareListening} from './exam-attempt-state.mjs';
 
 const root = document.querySelector('[data-exam-attempt]');
 if (root) initialize();
@@ -8,6 +8,7 @@ function initialize() {
   const forms = [...root.querySelectorAll('[data-answer]')];
   const rows = {}, files = new Map(), recorders = new Map(), objectUrls = new Map();
   let state = config.state, busy = false, checking = false, leaving = false, activeRequest = null;
+  let loadingMedia = null;
   const operationKey = `azurelms:v1:exam:${config.scope}:operation`;
   const draftKey = `azurelms:v1:exam:${config.scope}:${state.attempt_id}:drafts`;
   const read = key => { try { return JSON.parse(sessionStorage.getItem(key)); } catch { return null; } };
@@ -38,7 +39,7 @@ function initialize() {
     return valueOf({choice_id: data.get('choice_id'), option_ids: data.getAll('option_ids'), answer_text: data.get('answer_text'), flagged: data.has('flagged'), audio_url: row.base.audio_url});
   }
   function render() {
-    const locked = Boolean(busy || pending || closed());
+    const locked = Boolean(busy || pending || loadingMedia || closed());
     find('[data-clock]').textContent = state.status === 'not_started' ? 'Hali boshlanmagan' : closed() ? 'Urinish yopilgan' : clockLabel(state.remaining_seconds);
     find('[data-unknown]').hidden = !pending;
     find('[data-closed]').hidden = !closed();
@@ -66,12 +67,12 @@ function initialize() {
     }
     for (const panel of root.querySelectorAll('[data-listening]')) {
       const section = state.sections.find(item => String(item.id) === panel.dataset.listening);
-      panel.querySelector('[data-listen]').disabled = locked || !section || section.plays_left === 0;
+      panel.querySelector('[data-listen]').disabled = locked || !section?.media_url || section.plays_left === 0;
       if (section) panel.querySelector('[data-listen-count]').textContent = `Tinglangan: ${section.plays_used}. ` + (section.plays_left === null ? 'Tinglash cheklanmagan.' : `Qolgan: ${section.plays_left}.`);
     }
     const prepare = find('[data-prepare]');
     if (prepare) {
-      prepare.disabled = blocked(rows, pending, busy, closed());
+      prepare.disabled = blocked(rows, pending, busy || loadingMedia, closed());
       find('[data-submit-hint]').textContent = prepare.disabled ? 'Avval qoralama va noma’lum holatlarni hal qiling.' : `${total - count} ta javobsiz savol bor. Saqlangan javoblarni topshirishingiz mumkin.`;
       find('[data-submit-summary]').textContent = `${count} ta javob saqlangan, ${total - count} ta savol javobsiz.`;
     }
@@ -100,6 +101,7 @@ function initialize() {
       pending = null; persist(); leaving = true; location.reload(); return;
     }
     if (closed()) {
+      loadingMedia?.abort();
       for (const recorder of recorders.values()) if (recorder.state !== 'inactive') recorder.stop();
       for (const audio of root.querySelectorAll('audio')) audio.pause();
       find('#exam-submit-dialog')?.close();
@@ -114,10 +116,10 @@ function initialize() {
     return {response, data};
   }
   async function action(command, payload = {}, file = null) {
-    if (busy || pending || closed()) return;
+    if (busy || pending || loadingMedia || closed()) return;
     if (Object.values(rows).some(row => row.recording)) { tell('Avval ovoz yozishni tugating.'); return; }
-    const operation = {command, operation_id: crypto.randomUUID(), attempt_id: state.attempt_id, ...payload};
-    pending = {command, operation_id: operation.operation_id, attempt_id: operation.attempt_id, key: operation.key, version: operation.version};
+    const operation = {command, operation_id: crypto.randomUUID(), operation_epoch: state.operation_epoch, attempt_id: state.attempt_id, ...payload};
+    pending = {command, operation_id: operation.operation_id, operation_epoch: operation.operation_epoch, attempt_id: operation.attempt_id, key: operation.key, version: operation.version};
     if (!write(operationKey, pending)) { pending = null; tell('Amalni tiklash yozuvi saqlanmadi. So‘rov yuborilmadi; brauzer xotirasini tekshiring.'); return; }
     const controller = new AbortController(); activeRequest = controller;
     busy = true; persist(); render(); tell('Server javobi kutilmoqda…');
@@ -146,7 +148,7 @@ function initialize() {
     checking = true;
     try {
       const operation = pending;
-      const options = reconcile && operation ? {method: 'POST', headers: {'X-CSRFToken': csrf, 'Content-Type': 'application/json'}, body: JSON.stringify({command: 'reconcile', operation_id: operation.operation_id})} : {};
+      const options = reconcile && operation ? {method: 'POST', headers: {'X-CSRFToken': csrf, 'Content-Type': 'application/json'}, body: JSON.stringify({command: 'reconcile', operation_id: operation.operation_id, operation_epoch: operation.operation_epoch})} : {};
       const url = options.method ? config.url : config.url + (operation ? `?operation=${encodeURIComponent(operation.operation_id)}` : '');
       const {response, data} = await fetchJSON(url, options);
       if (!response.ok) { tell(data.error || 'Holatni tekshirib bo‘lmadi.'); return; }
@@ -193,7 +195,7 @@ function initialize() {
     if (record) {
       const stop = form.querySelector('[data-stop]'), status = form.querySelector('[data-audio-status]');
       record.addEventListener('click', async () => {
-        if (busy || pending || rows[key].recording) return;
+        if (busy || pending || loadingMedia || rows[key].recording) return;
         if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) { status.textContent = 'Bu brauzerda mikrofon qo‘llanmaydi. Audio fayl tanlang.'; return; }
         rows[key].recording = true; record.disabled = true; persist(); render();
         let stream;
@@ -218,34 +220,47 @@ function initialize() {
   }
   for (const panel of root.querySelectorAll('[data-listening]')) {
     const player = panel.querySelector('audio'), pause = panel.querySelector('[data-pause]'), status = panel.querySelector('[data-media-status]');
+    let preloadController = null, charged = false;
     panel.querySelector('[data-listen]').addEventListener('click', async () => {
-      const data = await action('listen', {section_id: Number(panel.dataset.listening)});
+      if (busy || pending || loadingMedia || closed()) return;
+      if (Object.values(rows).some(row => row.recording)) { tell('Avval ovoz yozishni tugating.'); return; }
+      const section = state.sections.find(item => String(item.id) === panel.dataset.listening);
+      if (!section?.media_url) return;
+      const controller = new AbortController();
+      preloadController = loadingMedia = controller; charged = false;
+      pause.disabled = false; pause.textContent = 'Yuklashni bekor qilish';
+      status.textContent = 'Audio tekshirilmoqda. Hali limit sarflanmadi.'; render();
+      try { await prepareListening(player, section.media_url, controller.signal); }
+      catch { status.textContent = controller.signal.aborted ? 'Yuklash bekor qilindi. Limit sarflanmadi.' : 'Audio yuklanmadi. Limit sarflanmadi; ustozga xabar bering.'; return; }
+      finally { loadingMedia = preloadController = null; pause.disabled = true; pause.textContent = 'Pauza'; render(); }
+      if (controller.signal.aborted || closed()) return;
+      const data = await action('listen', {section_id: Number(panel.dataset.listening), media_url: section.media_url});
       if (!data) return;
-      const section = data.state.sections.find(item => String(item.id) === panel.dataset.listening);
-      player.src = section.media_url; player.currentTime = 0;
+      charged = true; player.currentTime = 0;
       try { await player.play(); pause.disabled = false; pause.textContent = 'Pauza'; status.textContent = 'Tinglanmoqda. Bu boshlash limitdan hisoblandi.'; }
       catch { status.textContent = 'Audio boshlanmadi, urinish hisoblandi. Davom ettirishni bosing.'; pause.disabled = false; pause.textContent = 'Davom ettirish'; }
     });
     pause.addEventListener('click', async () => {
+      if (preloadController) { preloadController.abort(); return; }
       if (closed() || player.ended) return;
       if (player.paused) { try { await player.play(); pause.textContent = 'Pauza'; } catch { status.textContent = 'Audio ochilmadi. Holatni tekshiring.'; } }
       else { player.pause(); pause.textContent = 'Davom ettirish'; }
     });
     player.addEventListener('ended', () => { pause.disabled = true; status.textContent = 'Tinglash tugadi. Qayta boshlash yana limitdan hisoblanadi.'; });
-    player.addEventListener('error', () => { status.textContent = 'Audio yuklanmadi. Tinglash urinishi hisoblangan; avtomatik qaytarilmaydi.'; });
+    player.addEventListener('error', () => { if (charged) status.textContent = 'Audio uzildi. Tinglash urinishi hisoblangan; avtomatik qaytarilmaydi.'; });
   }
   const start = find('[data-start]');
   start?.addEventListener('change', render);
   start?.addEventListener('submit', event => { event.preventDefault(); action('start', {confirmed: start.elements.confirmed.checked}); });
   const dialog = find('#exam-submit-dialog');
   find('[data-prepare]')?.addEventListener('click', () => {
-    if (blocked(rows, pending, busy, closed())) return;
+    if (blocked(rows, pending, busy || loadingMedia, closed())) return;
     dialog.querySelector('[name=confirmed]').checked = false; dialog.showModal();
   });
   for (const button of root.querySelectorAll('[data-dialog-close]')) button.addEventListener('click', () => dialog.close());
   find('[data-submit]')?.addEventListener('submit', event => {
     event.preventDefault();
-    if (blocked(rows, pending, busy, closed())) { dialog.close(); return; }
+    if (blocked(rows, pending, busy || loadingMedia, closed())) { dialog.close(); return; }
     action('submit', {version: state.revision, confirmed: event.target.elements.confirmed.checked});
   });
   find('[data-refresh]').addEventListener('click', () => refresh());
@@ -253,7 +268,7 @@ function initialize() {
   window.addEventListener('beforeunload', event => {
     if (!leaving && (pending || busy || Object.values(rows).some(dirty))) { persist(); event.preventDefault(); event.returnValue = ''; }
   });
-  window.addEventListener('pagehide', () => { for (const recorder of recorders.values()) if (recorder.state !== 'inactive') recorder.stop(); });
+  window.addEventListener('pagehide', () => { loadingMedia?.abort(); for (const recorder of recorders.values()) if (recorder.state !== 'inactive') recorder.stop(); });
   persist(); render();
   if (pending) refresh();
 }

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
-import {makeRow, dirty, blocked, receive, rebase, packDraft, acknowledgedKey, clockLabel} from '../../static/frontend_v1/js/exam-attempt-state.mjs';
+import {makeRow, dirty, blocked, receive, rebase, packDraft, acknowledgedKey, clockLabel, prepareListening} from '../../static/frontend_v1/js/exam-attempt-state.mjs';
 const saved = {choice_id: '1', option_ids: [], answer_text: '', flagged: false, audio_url: '', version: 1};
 test('editing is draft only and blocks finishing', () => {
   const row = makeRow(saved); row.draft.choice_id = '2';
@@ -61,4 +61,38 @@ test('native logout clears exam drafts and operation IDs but not unrelated stora
   const storage = {get length(){return store.size;}, key(i){return [...store.keys()][i];}, removeItem(key){store.delete(key);}};
   runInNewContext(source, {sessionStorage:storage, document:{querySelector(){return null;},addEventListener(){},querySelectorAll(){return [form];}}});
   logout(); assert.deepEqual([...store.keys()], ['unrelated']);
+});
+
+class AudioDouble extends EventTarget {
+  plays = 0; loads = 0;
+  pause() {}
+  play() { this.plays++; }
+  load() { this.loads++; }
+  removeAttribute(name) { delete this[name]; }
+}
+test('listening readiness never plays and resolves only after canplay', async () => {
+  const player = new AudioDouble(), controller = new AbortController();
+  let ready = false;
+  const promise = prepareListening(player, '/a.wav', controller.signal).then(() => {ready = true;});
+  await Promise.resolve(); assert.equal(ready, false); assert.equal(player.plays, 0);
+  player.dispatchEvent(new Event('canplay')); await promise;
+  assert.equal(ready, true); assert.equal(player.plays, 0);
+  controller.abort(); assert.equal(player.src, '/a.wav'); // listeners cleaned up
+});
+test('failed or cancelled listening preload cannot reach the mutation step', async () => {
+  for (const failure of ['error', 'abort']) {
+    const player = new AudioDouble(), controller = new AbortController();
+    let mutations = 0;
+    const promise = prepareListening(player, '/a.wav', controller.signal).then(() => {mutations++;});
+    const rejected = assert.rejects(promise, /media-/);
+    if (failure === 'error') player.dispatchEvent(new Event('error')); else controller.abort();
+    await rejected; player.dispatchEvent(new Event('canplay'));
+    assert.equal(mutations, 0); assert.equal(player.plays, 0);
+    if (failure === 'abort') assert.equal(player.src, undefined);
+  }
+});
+test('an already cancelled preload does not attach or start a source', async () => {
+  const player = new AudioDouble(), controller = new AbortController(); controller.abort();
+  await assert.rejects(prepareListening(player, '/a.wav', controller.signal), /media-cancelled/);
+  assert.equal(player.src, undefined); assert.equal(player.plays, 0);
 });

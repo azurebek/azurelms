@@ -19,13 +19,16 @@ from .exam_service import (ExamAttemptStartBlocked,
                           expire_attempt_if_time_limit_reached,
                           start_exam_attempt)
 from .exam_section_service import build_section_payload, register_audio_play, save_question_answer, save_exam_audio
-from .models import Exam, ExamAttempt, ExamActionReceipt, ExamSection, Question, ReadingItem
+from .exam_media import listening_media_url
+from .models import Exam, ExamAttempt, ExamActionGate, ExamActionReceipt, ExamSection, Question, ReadingItem
 from .policy_service import check_exam_access_policy
 from .reading_service import save_reading_response
 
 
-def exam_snapshot(exam, attempt):
+def exam_snapshot(exam, attempt, request):
+    gate = ExamActionGate.objects.filter(student=request.user, exam=exam).first()
     data = {'attempt_id': attempt.pk if attempt else None,
+            'operation_epoch': str(gate.epoch) if gate else None,
             'revision': attempt.input_revision if attempt else 0,
             'status': attempt.review_status if attempt else 'not_started',
             'remaining_seconds': None, 'sections': [], 'answers': {},
@@ -36,6 +39,8 @@ def exam_snapshot(exam, attempt):
     data['remaining_seconds'] = max(0, int((deadline - timezone.now()).total_seconds())) if deadline else None
     for section in exam.sections.order_by('order', 'id'):
         payload = build_section_payload(attempt=attempt, section=section)
+        payload['section']['media_url'] = listening_media_url(section, request)
+        payload['section']['media_unavailable'] = bool(section.section_type == 'listening' and not payload['section']['media_url'])
         questions = []
         if 'tasks' in payload:
             for task in payload['tasks']:
@@ -93,6 +98,8 @@ class ExamAttemptV1View(ExamAPIResponseMixin, LoginRequiredMixin, View):
         if denied is not None:
             return denied
         get_user_model().objects.select_for_update().get(pk=request.user.pk)
+        if flag_enabled('frontend_v1_exam_attempt'):
+            ExamActionGate.objects.get_or_create(student=request.user, exam=exam)
         attempt = ExamAttempt.objects.select_for_update().filter(student=request.user, exam=exam).order_by('-attempt_number', '-id').first()
         expire_attempt_if_time_limit_reached(attempt)
         receipt = None
@@ -104,7 +111,7 @@ class ExamAttemptV1View(ExamAPIResponseMixin, LoginRequiredMixin, View):
             row = ExamActionReceipt.objects.filter(student=request.user, exam=exam, operation_id=operation).first()
             if row:
                 receipt = {'id': str(row.operation_id), 'command': row.command, 'attempt_id': row.attempt_id}
-        return JsonResponse({'state': exam_snapshot(exam, attempt), 'receipt': receipt})
+        return JsonResponse({'state': exam_snapshot(exam, attempt, request), 'receipt': receipt})
 
     @transaction.atomic
     def post(self, request, course_id, exam_id):
@@ -116,6 +123,7 @@ class ExamAttemptV1View(ExamAPIResponseMixin, LoginRequiredMixin, View):
             if not isinstance(data, dict):
                 raise ValueError
             operation = uuid.UUID(str(data.get('operation_id', '')))
+            epoch = uuid.UUID(str(data.get('operation_epoch', '')))
             command = data.get('command')
             if command not in ('start', 'save', 'submit', 'listen', 'reconcile') or 'audio_key' in data:
                 raise ValueError
@@ -132,15 +140,19 @@ class ExamAttemptV1View(ExamAPIResponseMixin, LoginRequiredMixin, View):
             return JsonResponse({'error': 'So‘rov formati noto‘g‘ri.'}, status=400)
         get_user_model().objects.select_for_update().get(pk=request.user.pk)
         previous = ExamActionReceipt.objects.filter(student=request.user, exam=exam, operation_id=operation).first()
+        gate = ExamActionGate.objects.filter(student=request.user, exam=exam).first()
         if command == 'reconcile':
-            # Explicit cancellation barrier. A missing GET receipt alone cannot
-            # prove an earlier request is not still on its way to this server.
+            # Rotation is a bounded cancellation barrier under the same user lock
+            # as all actions. Never INSERT one cancelled receipt per supplied UUID.
             attempt = ExamAttempt.objects.select_for_update().filter(student=request.user, exam=exam).order_by('-attempt_number', '-id').first()
-            if previous is None:
-                previous = ExamActionReceipt.objects.create(student=request.user, exam=exam, attempt=attempt,
-                    operation_id=operation, command='cancelled', payload_digest='')
-            return JsonResponse({'receipt': {'id': str(operation), 'command': previous.command, 'attempt_id': previous.attempt_id},
-                                 'state': exam_snapshot(exam, attempt)})
+            if not gate:
+                return JsonResponse({'error': 'Amal sessiyasi berilmagan. Sahifani qayta oching.'}, status=409)
+            if previous is None and gate.epoch == epoch:
+                gate.epoch = uuid.uuid4()
+                gate.save(update_fields=['epoch'])
+            return JsonResponse({'receipt': {'id': str(operation), 'command': previous.command if previous else 'cancelled',
+                                             'attempt_id': previous.attempt_id if previous else (attempt.pk if attempt else None)},
+                                 'state': exam_snapshot(exam, attempt, request)})
         if not flag_enabled('frontend_v1_exam_attempt'):
             return JsonResponse({'error': 'Yangi ko‘rinish o‘chirilgan. Sahifani qayta oching.'}, status=409)
         if previous:
@@ -150,12 +162,15 @@ class ExamAttemptV1View(ExamAPIResponseMixin, LoginRequiredMixin, View):
                 return JsonResponse({'error': 'Bu amal IDsi boshqa so‘rov uchun ishlatilgan.'}, status=409)
             return JsonResponse({'receipt': {'id': str(operation), 'command': command, 'attempt_id': previous.attempt_id},
                                  'state': exam_snapshot(exam, ExamAttempt.objects.select_for_update().filter(
-                                     student=request.user, exam=exam).order_by('-attempt_number', '-id').first())})
+                                     student=request.user, exam=exam).order_by('-attempt_number', '-id').first(), request)})
         attempt = ExamAttempt.objects.select_for_update().filter(student=request.user, exam=exam).order_by('-attempt_number', '-id').first()
+        if not gate or gate.epoch != epoch:
+            return JsonResponse({'error': 'Amal sessiyasi yangilangan. Qoralama saqlandi; holatni tekshiring.',
+                                 'state': exam_snapshot(exam, attempt, request)}, status=409)
         if data.get('attempt_id') != (attempt.pk if attempt else None):
             return JsonResponse({'error': 'Urinish boshqa oynada o‘zgardi. Holatni tekshiring.'}, status=409)
         if expire_attempt_if_time_limit_reached(attempt):
-            return JsonResponse({'error': 'Vaqt tugadi. Faqat saqlangan javoblar topshirildi.', 'state': exam_snapshot(exam, attempt)}, status=409)
+            return JsonResponse({'error': 'Vaqt tugadi. Faqat saqlangan javoblar topshirildi.', 'state': exam_snapshot(exam, attempt, request)}, status=409)
         try:
             # A savepoint rolls back a partially validated command, not prior expiry.
             with transaction.atomic():
@@ -173,10 +188,16 @@ class ExamAttemptV1View(ExamAPIResponseMixin, LoginRequiredMixin, View):
                         if not isinstance(key, str):
                             raise ValidationError('Savol identifikatori noto‘g‘ri.')
                         if _number(data.get('version')) != attempt.answer_versions.get(key, 0):
-                            return JsonResponse({'error': 'Javob boshqa oynada o‘zgardi.', 'state': exam_snapshot(exam, attempt)}, status=409)
+                            return JsonResponse({'error': 'Javob boshqa oynada o‘zgardi.', 'state': exam_snapshot(exam, attempt, request)}, status=409)
                         self._save(attempt, key, data.get('value'), upload)
                     elif command == 'listen':
                         section = get_object_or_404(ExamSection, pk=_number(data.get('section_id')), exam=exam)
+                        source = listening_media_url(section, request)
+                        if not source:
+                            raise ValidationError('Audio manbasi bu sahifada ochilmaydi. Ustozga xabar bering; limit sarflanmadi.')
+                        if data.get('media_url') != source:
+                            return JsonResponse({'error': 'Audio manbasi o‘zgargan. Holatni tekshiring; limit sarflanmadi.',
+                                                 'state': exam_snapshot(exam, attempt, request)}, status=409)
                         result = register_audio_play(attempt=attempt, section=section)
                         if not result['allowed']:
                             return JsonResponse({'error': 'Tinglash limiti tugagan.'}, status=403)
@@ -195,7 +216,7 @@ class ExamAttemptV1View(ExamAPIResponseMixin, LoginRequiredMixin, View):
             return JsonResponse({'error': message or 'Javob formati noto‘g‘ri.'}, status=400)
         attempt.refresh_from_db()
         return JsonResponse({'receipt': {'id': str(operation), 'command': command, 'attempt_id': attempt.pk},
-                             'state': exam_snapshot(exam, attempt)})
+                             'state': exam_snapshot(exam, attempt, request)})
 
     @staticmethod
     def _save(attempt, key, value, upload):

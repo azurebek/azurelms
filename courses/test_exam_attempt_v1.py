@@ -4,12 +4,13 @@ from datetime import timedelta
 from unittest.mock import patch
 
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase, Client, TransactionTestCase, skipUnlessDBFeature
+from django.test import TestCase, Client, TransactionTestCase, skipUnlessDBFeature, override_settings
+from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
 
 from core.flags import set_flag
-from courses.models import ExamAttempt, ExamActionReceipt, ExamSection, Question, StudentAnswer, ReadingResponse
+from courses.models import ExamAttempt, ExamActionGate, ExamActionReceipt, ExamSection, ExamSectionAttemptState, Question, StudentAnswer, ReadingResponse
 from courses.exam_section_service import save_question_answer, toggle_question_review_flag
 from courses import test_exam_api_security as fixtures
 from cohorts.models import Enrollment
@@ -21,6 +22,8 @@ class ExamAttemptV1Tests(TestCase):
         fixtures.ExamAPISecurityTests.setUpTestData.__func__(cls)
         cls.speaking = ExamSection.objects.create(exam=cls.exam, title='Speaking', section_type='speaking', max_score=10)
         cls.audio_question = Question.objects.create(exam_section=cls.speaking, text='Gapiring', points=10)
+        cls.listening = ExamSection.objects.create(exam=cls.exam, title='Listening', section_type='listening',
+                                                  max_score=10, media_url='/media/listen.wav', audio_play_limit=2)
 
     def setUp(self):
         self.client.force_login(self.student)
@@ -29,9 +32,10 @@ class ExamAttemptV1Tests(TestCase):
         self.url = reverse('api_exam_v1', args=[self.course.pk, self.exam.pk])
         self.page = reverse('exam_detail', args=[self.course.pk, self.exam.pk])
         self.key = f'q:{self.question.pk}'
+        self.epoch = self.client.get(self.url).json()['state']['operation_epoch']
 
     def payload(self, command='save', **kwargs):
-        return {'operation_id': str(uuid.uuid4()), 'command': command, 'attempt_id': self.attempt.pk,
+        return {'operation_id': str(uuid.uuid4()), 'operation_epoch': self.epoch, 'command': command, 'attempt_id': self.attempt.pk,
                 'key': self.key, 'version': 0, 'value': {'choice_id': str(self.choice.pk), 'flagged': False}, **kwargs}
 
     def post(self, payload):
@@ -141,7 +145,7 @@ class ExamAttemptV1Tests(TestCase):
         data = self.payload()
         self.assertIsNone(self.client.get(self.url, {'operation': data['operation_id']}).json()['receipt'])
         self.assertFalse(ExamActionReceipt.objects.exists())
-        cancelled = self.post({'command': 'reconcile', 'operation_id': data['operation_id']})
+        cancelled = self.post(self.payload('reconcile', operation_id=data['operation_id']))
         self.assertEqual(cancelled.json()['receipt']['command'], 'cancelled')
         self.assertEqual(self.post(data).status_code, 409)
         self.assertFalse(StudentAnswer.objects.exists())
@@ -149,7 +153,7 @@ class ExamAttemptV1Tests(TestCase):
     def test_cancel_before_first_start_has_no_attempt_side_effect(self):
         self.attempt.delete()
         data = self.payload('start', attempt_id=None, confirmed=True)
-        self.post({'command': 'reconcile', 'operation_id': data['operation_id']})
+        self.post(self.payload('reconcile', operation_id=data['operation_id']))
         self.assertEqual(self.post(data).status_code, 409)
         self.assertFalse(ExamAttempt.objects.exists())
 
@@ -158,7 +162,7 @@ class ExamAttemptV1Tests(TestCase):
         self.post(data)
         set_flag('frontend_v1_exam_attempt', enabled=False, reason='Rollback')
         for _ in range(2):
-            self.assertEqual(self.post({'command': 'reconcile', 'operation_id': data['operation_id']}).json()['receipt']['command'], 'save')
+            self.assertEqual(self.post(self.payload('reconcile', operation_id=data['operation_id'])).json()['receipt']['command'], 'save')
         self.attempt.refresh_from_db()
         self.assertEqual(self.attempt.input_revision, 1)
 
@@ -200,10 +204,10 @@ class ExamAttemptV1Tests(TestCase):
         self.assertEqual(self.post(data).status_code, 409)
 
     def test_listen_duplicate_consumes_once_and_limit_enforced(self):
-        data = self.payload('listen', section_id=self.section.pk)
+        data = self.payload('listen', section_id=self.listening.pk, media_url='http://testserver/media/listen.wav')
         for _ in range(2): self.assertEqual(self.post(data).status_code, 200)
-        self.assertEqual(self.post(self.payload('listen', section_id=self.section.pk)).status_code, 200)
-        self.assertEqual(self.post(self.payload('listen', section_id=self.section.pk)).status_code, 403)
+        self.assertEqual(self.post(dict(data, operation_id=str(uuid.uuid4()))).status_code, 200)
+        self.assertEqual(self.post(dict(data, operation_id=str(uuid.uuid4()))).status_code, 403)
         self.attempt.refresh_from_db()
         self.assertEqual(self.attempt.input_revision, 0)
 
@@ -254,6 +258,104 @@ class ExamAttemptV1Tests(TestCase):
         self.client.force_login(self.student)
         self.assertNotEqual(first, self.client.get(self.page).context['attempt_config']['scope'])
 
+    def test_cancelled_uuid_flood_is_bounded_and_old_epoch_is_read_only(self):
+        self.attempt.delete()
+        for enabled in (True, False):
+            set_flag('frontend_v1_exam_attempt', enabled=enabled, reason='Bounded cancellation')
+            for _ in range(12):
+                # Even a client obtaining each new epoch cannot grow the ledger.
+                self.epoch = str(ExamActionGate.objects.get().epoch)
+                result = self.post(self.payload('reconcile'))
+                self.assertEqual(result.status_code, 200)
+                self.assertEqual(result.json()['receipt']['command'], 'cancelled')
+                epoch = ExamActionGate.objects.get().epoch
+                self.post(self.payload('reconcile'))  # old epoch, a different UUID
+                self.assertEqual(ExamActionGate.objects.get().epoch, epoch)
+        self.assertEqual(ExamActionGate.objects.count(), 1)
+        self.assertEqual(ExamActionReceipt.objects.count(), 0)
+        self.assertFalse(ExamAttempt.objects.exists())
+
+    def test_unissued_epoch_and_off_get_cannot_allocate_gate_or_receipt(self):
+        ExamActionGate.objects.all().delete()
+        set_flag('frontend_v1_exam_attempt', enabled=False, reason='Rollback')
+        self.assertIsNone(self.client.get(self.url).json()['state']['operation_epoch'])
+        for _ in range(12):
+            self.assertEqual(self.post(self.payload('reconcile', operation_epoch=str(uuid.uuid4()))).status_code, 409)
+        self.assertFalse(ExamActionGate.objects.exists())
+        self.assertFalse(ExamActionReceipt.objects.exists())
+
+    def test_cancel_invalidates_all_late_actions_but_fresh_epoch_preserves_draft_save(self):
+        old = self.payload()
+        result = self.post(self.payload('reconcile'))
+        self.assertEqual(self.post(old).status_code, 409)
+        self.assertEqual(self.post(self.payload('listen', section_id=self.listening.pk)).status_code, 409)
+        self.assertEqual(self.post(self.payload('submit', confirmed=True)).status_code, 409)
+        self.assertFalse(StudentAnswer.objects.exists())
+        self.epoch = result.json()['state']['operation_epoch']
+        self.assertEqual(self.post(self.payload()).status_code, 200)
+        self.assertEqual(StudentAnswer.objects.count(), 1)
+
+    def test_applied_receipt_survives_rotation_and_gate_is_user_exam_scoped(self):
+        data = self.payload()
+        self.post(data)
+        self.post(self.payload('reconcile'))
+        self.assertEqual(self.post(data).json()['receipt']['command'], 'save')
+        Enrollment.objects.create(student=self.peer, cohort=self.cohort, status='active')
+        self.client.force_login(self.peer)
+        other_epoch = self.client.get(self.url).json()['state']['operation_epoch']
+        self.post(self.payload('reconcile'))
+        self.assertEqual(str(ExamActionGate.objects.get(student=self.peer).epoch), other_epoch)
+        self.assertEqual(self.post(data).status_code, 409)
+
+    def test_missing_or_malformed_epoch_never_writes(self):
+        for value in (None, '', 'invalid', [], True):
+            self.assertEqual(self.post(self.payload(operation_epoch=value)).status_code, 400)
+        self.assertFalse(ExamActionReceipt.objects.exists())
+        self.assertFalse(StudentAnswer.objects.exists())
+
+    def test_unplayable_sources_never_consume_listen_quota(self):
+        for source in ('https://outside.example/audio.mp3', '//outside.example/audio.mp3',
+                       'http://testserver:8080/audio.mp3', 'http://user@testserver/audio.mp3',
+                       'javascript:alert(1)', 'data:audio/wav;base64,AA', 'blob:http://testserver/id',
+                       '/\\outside.example/audio.mp3', '/audio\n.mp3', ''):
+            with self.subTest(source=source):
+                ExamSection.objects.filter(pk=self.listening.pk).update(media_url=source)
+                state = self.client.get(self.url).json()['state']
+                section = next(s for s in state['sections'] if s['id'] == self.listening.pk)
+                self.assertEqual(section['media_url'], '')
+                self.assertTrue(section['media_unavailable'])
+                self.assertEqual(self.post(self.payload('listen', section_id=self.listening.pk, media_url=source)).status_code, 400)
+        self.assertFalse(ExamSectionAttemptState.objects.filter(state__plays_used__gt=0).exists())
+        self.assertFalse(ExamActionReceipt.objects.exists())
+        self.assertContains(self.client.get(self.page), 'Audio manbasi bu sahifada ochilmaydi.')
+
+    def test_changed_source_and_non_listening_section_do_not_consume(self):
+        response = self.post(self.payload('listen', section_id=self.listening.pk, media_url='http://testserver/media/old.wav'))
+        self.assertEqual(response.status_code, 409)
+        self.assertIn('state', response.json())
+        self.assertEqual(self.post(self.payload('listen', section_id=self.section.pk, media_url='http://testserver/a.wav')).status_code, 400)
+        self.assertFalse(ExamSectionAttemptState.objects.filter(state__plays_used__gt=0).exists())
+
+    def test_strict_csp_local_preview_exception_only_on_v1_attempt(self):
+        from core.csp_policy import build_csp_policy
+        with override_settings(CONTENT_SECURITY_POLICY=build_csp_policy(),
+                               MIDDLEWARE=['csp.middleware.CSPMiddleware', *settings.MIDDLEWARE]):
+            strict_client = Client()
+            strict_client.force_login(self.student)
+            response = strict_client.get(self.page)
+            self.assertIn("media-src 'self' blob:", response['Content-Security-Policy'])
+            self.assertIn("object-src 'none'", response['Content-Security-Policy'])
+            session = strict_client.session
+            session['telegram_miniapp'] = True
+            session.save()
+            mini_policy = strict_client.get(self.page)['Content-Security-Policy']
+            self.assertIn("media-src 'self' blob:", mini_policy)
+            self.assertIn('https://web.telegram.org', mini_policy)
+            set_flag('frontend_v1_exam_attempt', enabled=False, reason='Rollback')
+            legacy = strict_client.get(self.page)['Content-Security-Policy']
+            self.assertIn("media-src 'self'", legacy)
+            self.assertNotIn('blob:', legacy)
+
 
 @skipUnlessDBFeature('has_select_for_update')
 class ExamAttemptV1ConcurrencyTests(TransactionTestCase):
@@ -263,6 +365,8 @@ class ExamAttemptV1ConcurrencyTests(TransactionTestCase):
         set_flag('frontend_v1_exam_attempt', enabled=True, reason='Concurrency test')
         self.attempt = ExamAttempt.objects.create(student=self.student, exam=self.exam)
         self.url = reverse('api_exam_v1', args=[self.course.pk, self.exam.pk])
+        self.client.force_login(self.student)
+        self.epoch = self.client.get(self.url).json()['state']['operation_epoch']
 
     def race(self, *payloads, urls=None):
         from concurrent.futures import ThreadPoolExecutor
@@ -283,7 +387,7 @@ class ExamAttemptV1ConcurrencyTests(TransactionTestCase):
             return list(pool.map(request, zip(clients, payloads, urls or [self.url] * len(payloads))))
 
     def data(self, **extra):
-        return {'command': 'save', 'operation_id': str(uuid.uuid4()), 'attempt_id': self.attempt.pk,
+        return {'command': 'save', 'operation_id': str(uuid.uuid4()), 'operation_epoch': self.epoch, 'attempt_id': self.attempt.pk,
                 'key': f'q:{self.question.pk}', 'version': 0, 'value': {'choice_id': self.choice.pk, 'flagged': False}, **extra}
 
     def test_concurrent_stale_writers_only_one_commits(self):
@@ -300,11 +404,12 @@ class ExamAttemptV1ConcurrencyTests(TransactionTestCase):
 
     def test_reconcile_racing_save_is_applied_or_cancelled_never_both(self):
         data = self.data()
-        outcomes = self.race(data, {'command': 'reconcile', 'operation_id': data['operation_id']})
+        outcomes = self.race(data, {'command': 'reconcile', 'operation_id': data['operation_id'], 'operation_epoch': self.epoch})
         self.assertEqual(outcomes[1], 200)
-        receipt = ExamActionReceipt.objects.get()
-        self.assertIn(receipt.command, ('save', 'cancelled'))
-        self.assertEqual(StudentAnswer.objects.count(), int(receipt.command == 'save'))
+        self.assertIn(outcomes[0], (200, 409))
+        self.assertEqual(ExamActionReceipt.objects.count(), int(outcomes[0] == 200))
+        self.assertEqual(StudentAnswer.objects.count(), int(outcomes[0] == 200))
+        self.assertEqual(ExamActionGate.objects.count(), 1)
 
     def test_two_initial_starts_create_one_attempt(self):
         self.attempt.delete()

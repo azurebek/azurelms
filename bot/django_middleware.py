@@ -38,7 +38,8 @@ class TelegramMiniAppFrameMiddleware:
 
         response.headers.pop("X-Frame-Options", None)
         # django-csp v4 per-response override'i.
-        response._csp_replace = {"frame-ancestors": list(TELEGRAM_FRAME_ANCESTORS)}
+        response._csp_replace = {**getattr(response, '_csp_replace', {}),
+                                 "frame-ancestors": list(TELEGRAM_FRAME_ANCESTORS)}
 
         if CSP_MIDDLEWARE not in settings.MIDDLEWARE:
             response.headers.setdefault(

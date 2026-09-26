@@ -662,6 +662,13 @@ class ExamDetailView(FrontendV1Mixin, LoginRequiredMixin, DetailView):
     context_object_name = 'exam'
     pk_url_kwarg = 'exam_id'
 
+    def render_to_response(self, context, **response_kwargs):
+        response = super().render_to_response(context, **response_kwargs)
+        if self.frontend_v1_enabled:
+            # Only this renderer needs local File/MediaRecorder blob previews.
+            response._csp_replace = {'media-src': ["'self'", 'blob:']}
+        return response
+
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated:
             course_id = self.kwargs.get('course_id')
@@ -718,13 +725,17 @@ class ExamDetailView(FrontendV1Mixin, LoginRequiredMixin, DetailView):
 
         if self.frontend_v1_enabled:
             from .exam_attempt_v1 import exam_snapshot
+            from .models import ExamActionGate
+            from django.contrib.auth import get_user_model
             from django.db import transaction
             from django.utils.crypto import salted_hmac
             with transaction.atomic():
+                get_user_model().objects.select_for_update().get(pk=user.pk)
+                ExamActionGate.objects.get_or_create(student=user, exam=self.object)
                 if latest_attempt:
                     latest_attempt = ExamAttempt.objects.select_for_update().get(pk=latest_attempt.pk)
                     expire_attempt_if_time_limit_reached(latest_attempt)
-                state = exam_snapshot(self.object, latest_attempt)
+                state = exam_snapshot(self.object, latest_attempt, self.request)
             context['attempt_state'] = state
             context['can_start_exam'] = context['can_start_exam'] and context['remaining_attempts'] > 0
             context['active_nav'] = 'exam_center'
