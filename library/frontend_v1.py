@@ -84,6 +84,7 @@ def render_library(request, page, context, *, status=200):
         context['archive_revision'] = revision(request.user, resource, 'archive')
         context['delete_revision'] = revision(request.user, resource, 'delete')
     if page == 'picker':
+        context['editor_ready'] = flag_enabled('frontend_v1_editors')
         context['attached_materials'] = context['lesson'].materials.select_related('resource').order_by('order', 'pk')
         for resource in context['page_obj']:
             resource.attach_revision = revision(request.user, resource, 'attach', context['lesson'].pk)

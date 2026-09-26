@@ -32,6 +32,7 @@ from .backoffice_forms import (
 from .brand_forms import BrandSettingsForm
 from .landing_forms import LandingPageForm
 from .control_center import build_control_center_snapshot
+from . import frontend_v1_editors as editor_v1
 from .access import (
     is_backoffice_user as _is_backoffice_user,
     is_control_center_owner as _is_control_center_owner,
@@ -875,22 +876,35 @@ def backoffice_courses(request):
         "filters": {"q": query, "status": status},
         "page_obj": page_obj,
     }
-    return render(request, "backoffice/courses.html", context)
+    params = request.GET.copy()
+    params.pop('page', None)
+    context['querystring'] = params.urlencode()
+    return editor_v1.render_editor(request, 'list', context)
 
 
 @login_required
 @user_passes_test(_is_backoffice_user)
+@transaction.atomic
 def backoffice_course_editor(request, course_id=None):
+    scope = teacher_course_queryset(request.user)
+    if request.method == 'POST':
+        scope = scope.select_for_update()
     course = (
-        get_object_or_404(teacher_course_queryset(request.user), pk=course_id)
+        get_object_or_404(scope, pk=course_id)
         if course_id
         else None
     )
-    form = CourseBackofficeForm(request.POST or None, instance=course, user=request.user)
+    error = editor_v1.write_error(request, editor_v1.revision(request.user, course, 'course')) if request.method == 'POST' else None
+    form = CourseBackofficeForm(request.POST if request.method == 'POST' else None, instance=course, user=request.user)
     if not course and not form.initial.get("instructor"):
         form.initial["instructor"] = request.user.pk
+    if not course and editor_v1.enabled(request):
+        form.initial['is_active'] = False
 
-    if request.method == "POST" and form.is_valid():
+    valid = form.is_valid() if request.method == 'POST' else False
+    if error:
+        form.add_error(None, error[0])
+    if request.method == "POST" and valid and not error:
         course = form.save(commit=False)
         if "save_draft" in request.POST:
             course.is_active = False
@@ -902,6 +916,8 @@ def backoffice_course_editor(request, course_id=None):
         messages.success(request, "Kurs saqlandi.")
         return redirect("backoffice_course_edit", course_id=course.pk)
 
+    if course and request.method == 'POST':
+        course.refresh_from_db()
     modules = (
         course.modules.prefetch_related("lessons").order_by("order")
         if course
@@ -924,12 +940,15 @@ def backoffice_course_editor(request, course_id=None):
         "modules": modules,
         "lessons_count": lessons_count,
         "students_count": students_count,
+        "editor_conflict": bool(error and error[1] == 409),
     }
-    return render(request, "backoffice/course_form.html", context)
+    status = error[1] if error else (400 if request.method == 'POST' and editor_v1.enabled(request) else 200)
+    return editor_v1.render_editor(request, 'course', context, status=status)
 
 
 @login_required
 @user_passes_test(_is_backoffice_user)
+@transaction.atomic
 def backoffice_lesson_editor(request, lesson_id=None):
     """Dars muharriri — faqat foydalanuvchining **o'z** kursidagi darslar.
 
@@ -944,21 +963,39 @@ def backoffice_lesson_editor(request, lesson_id=None):
     Rad etish `404`: `403` begona kursda shu ID li dars borligini tasdiqlab
     qo'yardi (`library/backoffice_views.py::_editable_lesson` bilan bir xil).
     """
-    scoped_lessons = Lesson.objects.select_related("module__course").filter(
+    scoped_lessons = Lesson.objects.filter(
         module__course__in=teacher_course_queryset(request.user)
     )
+    # V1 makes selection explicit; OFF retains the original first-lesson route.
+    if not lesson_id and editor_v1.enabled(request) and scoped_lessons.exists():
+        if request.method == 'POST':
+            return editor_v1.render_editor(request, 'conflict', {
+                'editor_error': 'Avval aniq darsni tanlang. Hech narsa saqlanmadi.',
+                'reload_url': request.path,
+            }, status=409)
+        return editor_v1.lesson_index(request, _backoffice_context('lessons', request.user))
+    if request.method == 'POST':
+        scoped_lessons = scoped_lessons.select_for_update()
+    else:
+        scoped_lessons = scoped_lessons.select_related('module__course')
     lesson = (
         get_object_or_404(scoped_lessons, pk=lesson_id)
         if lesson_id
         else scoped_lessons.order_by("module__course__title", "module__order", "order").first()
     )
-    form = LessonBackofficeForm(request.POST or None, instance=lesson, user=request.user)
+    error = editor_v1.write_error(request, editor_v1.revision(request.user, lesson, 'lesson')) if request.method == 'POST' else None
+    form = LessonBackofficeForm(request.POST if request.method == 'POST' else None, instance=lesson, user=request.user)
 
-    if request.method == "POST" and form.is_valid():
+    valid = form.is_valid() if request.method == 'POST' else False
+    if error:
+        form.add_error(None, error[0])
+    if request.method == "POST" and valid and not error:
         lesson = form.save()
         messages.success(request, "Dars saqlandi.")
         return redirect("backoffice_lesson_edit", lesson_id=lesson.pk)
 
+    if lesson and request.method == 'POST':
+        lesson.refresh_from_db()
     courses = (
         teacher_course_queryset(request.user)
         .prefetch_related("modules__lessons")
@@ -987,8 +1024,12 @@ def backoffice_lesson_editor(request, lesson_id=None):
         "quizzes": quizzes,
         "materials": materials,
         "material_forms": material_forms,
+        "editor_conflict": bool(error and error[1] == 409),
     }
-    return render(request, "backoffice/lesson_form.html", context)
+    status = error[1] if error else (400 if request.method == 'POST' and editor_v1.enabled(request) else 200)
+    if not lesson and request.method == 'GET' and editor_v1.enabled(request):
+        return editor_v1.lesson_index(request, context)
+    return editor_v1.render_editor(request, 'lesson', context, status=status)
 
 
 @login_required

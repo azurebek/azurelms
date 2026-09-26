@@ -35,6 +35,7 @@ from django.views.decorators.http import require_POST
 
 from core.access import is_backoffice_user, teacher_course_queryset
 from core.audit import audit_trail_for, record_audit_event
+from core import frontend_v1_editors as editor_v1
 from core.private_media_views import serve_private_file
 from courses.models import Lesson
 
@@ -304,6 +305,8 @@ def lesson_picker(request, lesson_id):
 def material_attach(request, lesson_id):
     """Tanlangan manbani darsga biriktiradi (fayl nusxalanmaydi)."""
     lesson = _editable_lesson(request.user, lesson_id)
+    # Same lock order as link settings/detach/reorder: lesson before resource.
+    lesson = Lesson.objects.select_for_update().get(pk=lesson.pk)
     resource_id = request.POST.get('resource', '')
     if not resource_id.isascii() or not resource_id.isdecimal() or len(resource_id) > 18:
         raise Http404
@@ -338,20 +341,28 @@ def material_attach(request, lesson_id):
 @login_required
 @user_passes_test(is_backoffice_user)
 @require_POST
+@transaction.atomic
 def material_update(request, material_id):
     """Biriktirmaning darsga xos sozlamasini saqlaydi."""
-    material = get_object_or_404(
-        LessonMaterial.objects.select_related("lesson__module__course", "resource"),
-        pk=material_id,
-    )
-    _editable_lesson(request.user, material.lesson_id)
+    material = _locked_material(request, material_id)
+    error = editor_v1.write_error(request, editor_v1.material_revision(request.user, material, 'material'))
     form = LessonMaterialForm(request.POST, instance=material)
-    if form.is_valid():
+    valid = form.is_valid()
+    if error:
+        form.add_error(None, error[0])
+    if valid and not error:
         form.save()
         messages.success(request, "Material sozlamasi saqlandi.")
+    elif editor_v1.enabled(request):
+        material.refresh_from_db()
+        return editor_v1.render_editor(request, 'material', {
+            'material': material, 'form': form,
+            'editor_revision': request.POST.get('editor_revision', ''),
+            'editor_conflict': bool(error and error[1] == 409),
+        }, status=error[1] if error else 400)
     else:
         errors = "; ".join(
-            f"{form.fields[name].label}: {', '.join(errs)}" for name, errs in form.errors.items()
+            f"{form.fields[name].label if name in form.fields else 'Sozlama'}: {', '.join(errs)}" for name, errs in form.errors.items()
         )
         messages.error(request, errors or "Sozlamani saqlab bo'lmadi.")
     return redirect("backoffice_lesson_edit", lesson_id=material.lesson_id)
@@ -360,12 +371,16 @@ def material_update(request, material_id):
 @login_required
 @user_passes_test(is_backoffice_user)
 @require_POST
+@transaction.atomic
 def material_detach(request, material_id):
     """Biriktirmani uzadi — manba va fayl kutubxonada qoladi."""
-    material = get_object_or_404(
-        LessonMaterial.objects.select_related("lesson", "resource"), pk=material_id
-    )
-    _editable_lesson(request.user, material.lesson_id)
+    material = _locked_material(request, material_id)
+    error = editor_v1.write_error(request, editor_v1.material_revision(request.user, material, 'detach'))
+    if error:
+        return editor_v1.render_editor(request, 'conflict', {
+            'editor_error': error[0],
+            'reload_url': reverse('backoffice_lesson_edit', args=[material.lesson_id]),
+        }, status=error[1])
     lesson_id = material.lesson_id
     label = f"{material.lesson.title} ← {material.resource.title}"
     material.delete()
@@ -382,6 +397,7 @@ def material_detach(request, material_id):
 @login_required
 @user_passes_test(is_backoffice_user)
 @require_POST
+@transaction.atomic
 def material_reorder(request, lesson_id):
     """Biriktirmalar tartibini saqlaydi.
 
@@ -390,15 +406,43 @@ def material_reorder(request, lesson_id):
     raqam kiritilsa ham tartib aniq bo'lib qoladi.
     """
     lesson = _editable_lesson(request.user, lesson_id)
+    lesson = Lesson.objects.select_for_update().get(pk=lesson.pk)
+    error = editor_v1.write_error(request, editor_v1.reorder_revision(request.user, lesson))
     positions = []
-    for material in LessonMaterial.objects.filter(lesson=lesson):
+    materials = list(services.teacher_materials(lesson))
+    expected_keys = {f'order-{item.pk}' for item in materials}
+    submitted_keys = {key for key in request.POST if key.startswith('order-')}
+    invalid = expected_keys != submitted_keys
+    for material in materials:
         raw = request.POST.get(f"order-{material.pk}")
+        material.posted_order = raw if raw is not None else ''
+        if (len(request.POST.getlist(f'order-{material.pk}')) != 1 or not raw
+                or not raw.isascii() or not raw.isdecimal() or len(raw) > 10 or int(raw) > 2147483647):
+            invalid = True
         try:
             value = int(raw)
         except (TypeError, ValueError):
             value = material.order
         positions.append((value, material.order, material.pk))
+    if editor_v1.enabled(request) and (error or invalid):
+        return editor_v1.render_editor(request, 'reorder', {
+            'lesson': lesson, 'materials': materials,
+            'editor_error': error[0] if error else 'Har bir material uchun 0–2147483647 oralig‘ida bitta butun tartib raqamini kiriting.',
+            'editor_revision': request.POST.get('editor_revision', ''),
+            'editor_conflict': bool(error and error[1] == 409),
+        }, status=error[1] if error else 400)
     positions.sort()
     services.reorder_materials(lesson, [pk for _, _, pk in positions])
     messages.success(request, "Materiallar tartibi saqlandi.")
     return redirect("backoffice_lesson_edit", lesson_id=lesson.pk)
+
+
+def _locked_material(request, material_id):
+    """Called only inside atomic writers. No lock on a nullable joined table."""
+    material = get_object_or_404(LessonMaterial, pk=material_id)
+    lesson = _editable_lesson(request.user, material.lesson_id)
+    Lesson.objects.select_for_update().get(pk=lesson.pk)
+    resource = LibraryResource.objects.select_for_update().get(pk=material.resource_id)
+    material = get_object_or_404(LessonMaterial.objects.select_for_update(), pk=material_id, lesson_id=lesson.pk)
+    material.resource = resource
+    return material

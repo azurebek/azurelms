@@ -1,0 +1,15 @@
+{% extends "frontend_v1/editors/base.html" %}
+{% block editor_intro %}Tanlangan darsni saqlash mashqlar, materiallar yoki o‘quvchi progressini o‘chirmaydi.{% endblock %}
+{% block editor_body %}
+<div class="c-actions"><a class="c-text-link" href="{% url 'backoffice_lessons' %}{% if lesson %}?course={{ lesson.module.course_id }}{% endif %}">← Darslar tanlovi</a>{% if lesson %}<a class="c-text-link" href="{% url 'backoffice_course_edit' lesson.module.course_id %}">Kurs ma’lumotlari</a>{% endif %}</div>
+<div class="f-records-layout">
+<form method="post" class="c-card p-panel f-records-stack" data-library-form{% if form.is_bound %} data-library-unsaved{% endif %}>
+  {% include 'frontend_v1/editors/guard.html' %}<h2>{{ lesson.title|default:'Birinchi dars' }}</h2><p class="c-caption">Modul tanlovi ruxsatli kurslaringiz bilan cheklangan. XP maydoni sozlama; hozir o‘quvchiga ball yozilmaydi. Dars matnida mavjud HTML tahrirlanadi.</p>
+  {% include 'frontend_v1/editors/fields.html' %}
+  <label class="c-choice"><input type="checkbox" name="confirm_scope" value="yes" required><span>Aynan shu darsning 6 maydoni va modul joylashuvini tasdiqlayman.</span></label><button class="c-button c-button--primary" type="submit"{% if editor_conflict %} disabled{% endif %}>Darsni saqlash</button>
+  {% if lesson %}<a class="c-text-link" href="{% url 'backoffice_lesson_edit' lesson.pk %}">Saqlangan holatni qayta ochish</a>{% endif %}
+</form>
+<aside class="c-card p-panel f-records-stack" aria-label="Bog‘langan mashqlar"><h2>Bog‘langan mashqlar</h2><p class="c-caption">Faqat ko‘rish. Bu forma mashqlarni tahrirlamaydi.</p><h3>Topshiriqlar · {{ assignments|length }}</h3>{% for item in assignments %}<p>{{ item.title }}</p>{% empty %}<p>Topshiriq yo‘q.</p>{% endfor %}<h3>Quizlar · {{ quizzes|length }}</h3>{% for item in quizzes %}<p>{{ item.title }}</p>{% empty %}<p>Quiz yo‘q.</p>{% endfor %}</aside>
+</div>
+{% if lesson %}{% include 'frontend_v1/editors/materials.html' %}{% endif %}
+{% endblock %}
