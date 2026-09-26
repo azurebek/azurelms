@@ -641,9 +641,10 @@ class ReadingSectionEngineTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         payload = response.json()
-        self.assertEqual(payload["saved_response"]["awarded_score"], 2.0)
+        self.assertNotIn("awarded_score", payload["saved_response"])
         self.assertEqual(payload["section_state"]["counts"]["done"], 1)
         reading_response = ReadingResponse.objects.get(item=item)
+        self.assertEqual(float(reading_response.awarded_score), 2.0)
         self.assertEqual(reading_response.selected_option_id, correct_option.id)
         self.assertTrue(reading_response.is_graded)
 
@@ -657,7 +658,8 @@ class ReadingSectionEngineTests(TestCase):
             content_type="application/json",
         )
         self.assertEqual(wrong.status_code, 200)
-        self.assertEqual(wrong.json()["saved_response"]["awarded_score"], 0.0)
+        self.assertNotIn("awarded_score", wrong.json()["saved_response"])
+        self.assertEqual(float(ReadingResponse.objects.get(item=item).awarded_score), 0.0)
 
         correct = self.client.post(
             self.save_url,
@@ -665,7 +667,8 @@ class ReadingSectionEngineTests(TestCase):
             content_type="application/json",
         )
         self.assertEqual(correct.status_code, 200)
-        self.assertEqual(correct.json()["saved_response"]["awarded_score"], 3.0)
+        self.assertNotIn("awarded_score", correct.json()["saved_response"])
+        self.assertEqual(float(ReadingResponse.objects.get(item=item).awarded_score), 3.0)
 
     def test_matching_and_tfng_tasks_use_shared_options_and_accepted_answer_keys(self):
         matching_item, _, matching_correct = self._create_matching_item()
@@ -685,8 +688,10 @@ class ReadingSectionEngineTests(TestCase):
 
         self.assertEqual(matching_response.status_code, 200)
         self.assertEqual(tfng_response.status_code, 200)
-        self.assertEqual(matching_response.json()["saved_response"]["awarded_score"], 2.0)
-        self.assertEqual(tfng_response.json()["saved_response"]["awarded_score"], 2.0)
+        self.assertNotIn("awarded_score", matching_response.json()["saved_response"])
+        self.assertNotIn("awarded_score", tfng_response.json()["saved_response"])
+        self.assertEqual(float(ReadingResponse.objects.get(item=matching_item).awarded_score), 2.0)
+        self.assertEqual(float(ReadingResponse.objects.get(item=tfng_item).awarded_score), 2.0)
 
     def test_text_tasks_enforce_word_limit_and_auto_grade(self):
         text_item = self._create_text_input_item()
@@ -714,8 +719,10 @@ class ReadingSectionEngineTests(TestCase):
 
         self.assertEqual(text_ok.status_code, 200)
         self.assertEqual(structured_ok.status_code, 200)
-        self.assertEqual(text_ok.json()["saved_response"]["awarded_score"], 2.0)
-        self.assertEqual(structured_ok.json()["saved_response"]["awarded_score"], 2.0)
+        self.assertNotIn("awarded_score", text_ok.json()["saved_response"])
+        self.assertNotIn("awarded_score", structured_ok.json()["saved_response"])
+        self.assertEqual(float(ReadingResponse.objects.get(item=text_item).awarded_score), 2.0)
+        self.assertEqual(float(ReadingResponse.objects.get(item=structured_item).awarded_score), 2.0)
 
     def test_review_flag_endpoint_marks_item_for_follow_up(self):
         item = self._create_single_choice_item()

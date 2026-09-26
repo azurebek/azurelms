@@ -44,13 +44,13 @@ from .exam_service import (
     ExamAttemptStartBlocked,
     can_retake_exam,
     expire_attempt_if_time_limit_reached,
-    get_in_progress_exam_attempt,
     get_latest_exam_attempt,
     get_latest_exam_attempt_for_exam_id,
     start_exam_attempt,
 )
 from .policy_service import check_exam_entry_policy
 from .exam_publication import learner_result
+from .exam_api import ExamAPIResponseMixin, ExamRuntimeAccessMixin
 from .reading_service import (
     build_reading_section_payload,
     save_reading_response,
@@ -820,7 +820,7 @@ class ExamResultView(FrontendV1Mixin, LoginRequiredMixin, DetailView):
         patch_cache_control(response, private=True, no_store=True)
         return response
 
-class StartExamView(LoginRequiredMixin, View):
+class StartExamView(ExamAPIResponseMixin, LoginRequiredMixin, View):
     def post(self, request, course_id, exam_id):
         exam = get_object_or_404(Exam, id=exam_id, course_id=course_id)
 
@@ -844,10 +844,10 @@ class StartExamView(LoginRequiredMixin, View):
             }
         )
 
-class ExamSectionStateView(LoginRequiredMixin, View):
+class ExamSectionStateView(ExamRuntimeAccessMixin, View):
     def get(self, request, course_id, exam_id, section_id):
         section = get_object_or_404(ExamSection, id=section_id, exam_id=exam_id)
-        attempt = get_in_progress_exam_attempt(student=request.user, exam_id=exam_id)
+        attempt = self.exam_attempt
         if not attempt:
             return JsonResponse({'error': 'Faol imtihon urinishi topilmadi.'}, status=404)
         if expire_attempt_if_time_limit_reached(attempt):
@@ -859,15 +859,18 @@ class ExamSectionStateView(LoginRequiredMixin, View):
         return JsonResponse({'status': 'success', **payload})
 
 
-class SaveExamAnswerView(LoginRequiredMixin, View):
+class SaveExamAnswerView(ExamRuntimeAccessMixin, View):
     def post(self, request, course_id, exam_id):
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
             return JsonResponse({'error': "JSON formati noto'g'ri."}, status=400)
 
+        if not isinstance(data, dict) or 'audio_key' in data:
+            return JsonResponse({'error': "Javob formati noto'g'ri. Audio faylni yuklash endpointidan foydalaning."}, status=400)
+
         try:
-            attempt = get_in_progress_exam_attempt(student=request.user, exam_id=exam_id)
+            attempt = self.exam_attempt
             if not attempt:
                 return JsonResponse({'error': 'Faol imtihon urinishi topilmadi.'}, status=404)
             if expire_attempt_if_time_limit_reached(attempt):
@@ -889,21 +892,17 @@ class SaveExamAnswerView(LoginRequiredMixin, View):
                         'section_state': payload['state'],
                         'saved_response': {
                             'item_id': response.item_id,
-                            'awarded_score': float(response.awarded_score),
-                            'is_graded': response.is_graded,
                             'is_flagged_for_review': response.is_flagged_for_review,
                         },
                     }
                 )
 
-            question = get_object_or_404(Question, id=data.get('question_id'))
+            question = get_object_or_404(Question, id=_safe_int(data.get('question_id')), exam_section__exam_id=exam_id)
             answer = save_question_answer(attempt=attempt, question=question, payload=data)
             response_payload = {
                 'status': 'success',
                 'saved_answer': {
                     'question_id': answer.question_id,
-                    'awarded_score': float(answer.awarded_score),
-                    'is_graded': answer.is_graded,
                     'is_flagged_for_review': answer.is_flagged_for_review,
                     'word_count': answer.word_count,
                     'word_count_status': word_count_status(question, answer.word_count),
@@ -923,14 +922,16 @@ class SaveExamAnswerView(LoginRequiredMixin, View):
             return JsonResponse({'error': message}, status=400)
 
 
-class ToggleExamReviewFlagView(LoginRequiredMixin, View):
+class ToggleExamReviewFlagView(ExamRuntimeAccessMixin, View):
     def post(self, request, course_id, exam_id):
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
             return JsonResponse({'error': "JSON formati noto'g'ri."}, status=400)
 
-        attempt = get_in_progress_exam_attempt(student=request.user, exam_id=exam_id)
+        if not isinstance(data, dict):
+            return JsonResponse({'error': "JSON obyekt yuborilishi shart."}, status=400)
+        attempt = self.exam_attempt
         if not attempt:
             return JsonResponse({'error': 'Faol imtihon urinishi topilmadi.'}, status=404)
         if expire_attempt_if_time_limit_reached(attempt):
@@ -957,9 +958,7 @@ class ToggleExamReviewFlagView(LoginRequiredMixin, View):
                     }
                 )
             if question_id not in (None, ""):
-                question = get_object_or_404(Question, id=question_id)
-                if question.exam_section and question.exam_section.exam_id != attempt.exam_id:
-                    raise Http404("Savol topilmadi.")
+                question = get_object_or_404(Question, id=_safe_int(question_id), exam_section__exam_id=exam_id)
                 answer = toggle_question_review_flag(attempt=attempt, question=question, flagged=data.get("flagged"))
                 section_state = {}
                 if question.exam_section_id:
@@ -978,10 +977,10 @@ class ToggleExamReviewFlagView(LoginRequiredMixin, View):
             message = exc.messages[0] if isinstance(exc, ValidationError) and exc.messages else str(exc)
             return JsonResponse({'error': message}, status=400)
 
-class RegisterAudioPlayView(LoginRequiredMixin, View):
+class RegisterAudioPlayView(ExamRuntimeAccessMixin, View):
     """Listening audiosi tinglanishini qayd qiladi va tinglash limitini server tomonda majburlaydi."""
     def post(self, request, course_id, exam_id):
-        attempt = get_in_progress_exam_attempt(student=request.user, exam_id=exam_id)
+        attempt = self.exam_attempt
         if not attempt:
             return JsonResponse({'error': 'Faol imtihon urinishi topilmadi.'}, status=404)
         if expire_attempt_if_time_limit_reached(attempt):
@@ -993,7 +992,9 @@ class RegisterAudioPlayView(LoginRequiredMixin, View):
             data = json.loads(request.body or '{}')
         except json.JSONDecodeError:
             data = {}
-        section = get_object_or_404(ExamSection, id=data.get('section_id'), exam_id=exam_id)
+        if not isinstance(data, dict):
+            return JsonResponse({'error': "JSON obyekt yuborilishi shart."}, status=400)
+        section = get_object_or_404(ExamSection, id=_safe_int(data.get('section_id')), exam_id=exam_id)
         try:
             result = register_audio_play(attempt=attempt, section=section)
         except ValidationError as exc:
@@ -1005,14 +1006,14 @@ class RegisterAudioPlayView(LoginRequiredMixin, View):
         )
 
 
-class UploadExamAudioView(LoginRequiredMixin, View):
+class UploadExamAudioView(ExamRuntimeAccessMixin, View):
     """Speaking yozuvini qabul qiladi → storage'ga (S3/Spaces yoki local) saqlaydi →
     StudentAnswer.audio_key'ga biriktiradi. Speaking topshirishning yetishmayotgan halqasi.
 
     Hajm va format chegaralari `core.upload_validation` dagi `audio` profilida."""
 
     def post(self, request, course_id, exam_id):
-        attempt = get_in_progress_exam_attempt(student=request.user, exam_id=exam_id)
+        attempt = self.exam_attempt
         if not attempt:
             return JsonResponse({'error': 'Faol imtihon urinishi topilmadi.'}, status=404)
         if expire_attempt_if_time_limit_reached(attempt):
@@ -1021,9 +1022,7 @@ class UploadExamAudioView(LoginRequiredMixin, View):
                 status=400,
             )
 
-        question = get_object_or_404(Question, id=request.POST.get('question_id'))
-        if question.exam_section and question.exam_section.exam_id != attempt.exam_id:
-            return JsonResponse({'error': 'Bu savol ushbu imtihonga tegishli emas.'}, status=400)
+        question = get_object_or_404(Question, id=_safe_int(request.POST.get('question_id')), exam_section__exam_id=exam_id)
 
         upload = request.FILES.get('audio')
         if not upload:
@@ -1078,9 +1077,9 @@ class UploadExamAudioView(LoginRequiredMixin, View):
         return JsonResponse(response_payload)
 
 
-class LogBlurWarningView(LoginRequiredMixin, View):
+class LogBlurWarningView(ExamRuntimeAccessMixin, View):
     def post(self, request, course_id, exam_id):
-        attempt = get_in_progress_exam_attempt(student=request.user, exam_id=exam_id)
+        attempt = self.exam_attempt
         if not attempt:
             return JsonResponse({'error': 'Faol imtihon urinishi topilmadi.'}, status=404)
         if expire_attempt_if_time_limit_reached(attempt):
@@ -1103,9 +1102,9 @@ class LogBlurWarningView(LoginRequiredMixin, View):
         attempt.refresh_from_db(fields=['blur_warnings'])
         return JsonResponse({'status': 'logged', 'warnings': attempt.blur_warnings})
 
-class SubmitExamView(LoginRequiredMixin, View):
+class SubmitExamView(ExamRuntimeAccessMixin, View):
     def post(self, request, course_id, exam_id):
-        attempt = get_in_progress_exam_attempt(student=request.user, exam_id=exam_id)
+        attempt = self.exam_attempt
         if not attempt:
             return JsonResponse({'error': 'Faol imtihon urinishi topilmadi.'}, status=404)
         if expire_attempt_if_time_limit_reached(attempt):

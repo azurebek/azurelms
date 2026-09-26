@@ -81,20 +81,26 @@ def build_course_progress_metrics(*, student, course):
     )
 
 
-def check_exam_entry_policy(*, student, exam):
-    active_enrollment = (
+def check_exam_access_policy(*, student, exam):
+    """Current membership gate shared by entry and every attempt API request."""
+    has_access = (
         Enrollment.objects.with_active_access()
         .filter(student=student, cohort__course=exam.course)
-        .select_related("cohort")
-        .order_by("-joined_at", "-id")
-        .first()
+        .exists()
     )
-    if not active_enrollment:
+    if not has_access:
         return PolicyCheckResult(
             is_allowed=False,
             code="not_enrolled",
             message="Siz ushbu kursga faol obuna bilan biriktirilmagansiz.",
         )
+    return PolicyCheckResult(is_allowed=True)
+
+
+def check_exam_entry_policy(*, student, exam):
+    access = check_exam_access_policy(student=student, exam=exam)
+    if not access.is_allowed:
+        return access
 
     if exam.prerequisite_exam_id:
         prerequisite_passed = ExamAttempt.objects.filter(

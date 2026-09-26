@@ -38,15 +38,13 @@ def _serialize_choice(choice):
 
 
 def _serialize_student_answer(answer, question):
+    # Learner attempt projection only; grades/feedback use result publication.
     if not answer:
         return {
             "selected_choice_id": None,
             "answer_text": "",
             "audio_url": "",
             "is_flagged_for_review": False,
-            "awarded_score": 0,
-            "is_graded": False,
-            "grader_feedback": "",
             "word_count": 0,
             "word_count_status": word_count_status(question, 0),
         }
@@ -56,9 +54,6 @@ def _serialize_student_answer(answer, question):
         "answer_text": answer.answer_text or "",
         "audio_url": answer.audio_playback_url,
         "is_flagged_for_review": answer.is_flagged_for_review,
-        "awarded_score": float(answer.awarded_score),
-        "is_graded": answer.is_graded,
-        "grader_feedback": answer.grader_feedback or "",
         "word_count": word_count,
         "word_count_status": word_count_status(question, word_count),
     }
@@ -140,7 +135,7 @@ def build_question_section_payload(*, attempt, section):
 @transaction.atomic
 def save_question_answer(*, attempt, question, payload):
     """StudentAnswer'ni upsert qiladi, choice'ni avto-baholaydi, section-state'ni yangilaydi."""
-    if question.exam_section_id and question.exam_section.exam_id != attempt.exam_id:
+    if not question.exam_section_id or question.exam_section.exam_id != attempt.exam_id:
         raise ValidationError("Savol ushbu imtihon urinishiga tegishli emas.")
 
     answer, _ = StudentAnswer.objects.select_for_update().get_or_create(attempt=attempt, question=question)
@@ -191,6 +186,8 @@ def save_question_answer(*, attempt, question, payload):
 
 @transaction.atomic
 def toggle_question_review_flag(*, attempt, question, flagged=None):
+    if not question.exam_section_id or question.exam_section.exam_id != attempt.exam_id:
+        raise ValidationError("Savol ushbu imtihon urinishiga tegishli emas.")
     answer, _ = StudentAnswer.objects.select_for_update().get_or_create(attempt=attempt, question=question)
     answer.is_flagged_for_review = (not answer.is_flagged_for_review) if flagged is None else bool(flagged)
     answer.save(update_fields=["is_flagged_for_review", "updated_at"])
