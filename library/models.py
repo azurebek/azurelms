@@ -34,7 +34,7 @@ yopish faylni yopmasdi — public havola qolaverardi. Shuning uchun hamma narsa
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db import models
+from django.db import models, router, transaction
 from django.utils import timezone
 
 from core.private_storage import private_media_storage
@@ -271,6 +271,8 @@ class LibraryResource(models.Model):
     #: Fayl har almashtirilganda bittaga oshadi. Tarix hali saqlanmaydi — maydon
     #: versiyalash qo'shilganda mavjud yozuvlarga asos bo'ladi.
     version = models.PositiveIntegerField(default=1, editable=False, verbose_name="Versiya")
+    # Metadata save revision, deliberately separate from the uploaded file version.
+    edit_revision = models.PositiveBigIntegerField(default=0, editable=False)
 
     is_teacher_only = models.BooleanField(
         default=False,
@@ -317,6 +319,20 @@ class LibraryResource(models.Model):
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        update_fields = kwargs.get('update_fields')
+        if update_fields is not None and not update_fields:
+            return super().save(*args, **kwargs)
+        using = kwargs.get('using') or router.db_for_write(type(self), instance=self)
+        kwargs['using'] = using
+        with transaction.atomic(using=using):
+            current = (type(self)._base_manager.using(using).select_for_update()
+                       .filter(pk=self.pk).values_list('edit_revision', flat=True).first()) if self.pk is not None else None
+            self.edit_revision = current + 1 if current is not None else 0
+            if update_fields is not None:
+                kwargs['update_fields'] = set(update_fields) | {'edit_revision'}
+            return super().save(*args, **kwargs)
 
     @property
     def file_kind_label(self):

@@ -20,7 +20,7 @@ def enabled(request):
 def revision(user, resource, action, lesson_id=None):
     state = None
     if resource is not None:
-        state = [resource.pk, str(resource.updated_at), resource.is_archived,
+        state = [resource.pk, resource.edit_revision, str(resource.updated_at), resource.is_archived,
                  resource.version, resource.checksum,
                  [str(resource._meta.get_field(name).value_from_object(resource))
                   for name in LibraryResourceForm.Meta.fields],
