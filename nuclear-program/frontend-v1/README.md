@@ -55,9 +55,17 @@ PR136 MERGED `0278331`; final CI36215540990 all3PASS
 [I7 — checkout va chek holati](I7-CHECKOUT.md) lokal runtime `3621e9c`:
 canonical narx/access, explicit quote va native receipt POST; 262 focused,
 2119 full OK skip45, Node95. To‘rt holat × olti width =24 overflow0.
-Required CI/main va AWS release alohida gate.
+Required CI/main yopiq, AWS release alohida gate.
 I7 review fix `f681a5b`: owner-audited DB quote TTL, bounded core0005;
-UI/enforcement bitta qiymatdan. Final focused71 PASS, yangi CI kutiladi.
+UI/enforcement bitta qiymatdan. Final focused71 PASS, full2126 OK skip45,
+PR137 MERGED `df054c1`; CI36217772724 uchala PASS (SQLite2126 skip44,
+PostgreSQL2126 skip20/Node95).
+[I8a — imtihonlar markazi va natija](I8-EXAMS.md) runtime `2fe920f`:
+2156 full OK skip45, 95 Node, 36 responsive readback overflow0. Ownerning
+“faqat tasdiqlangan natija” qarori: canonical publication snapshot,
+V1/legacy/appendixda qoralama chiqmaydi. Additive courses0021. I8dagi 4
+UI oilasidan 2 renderer ulandi; attempt/audio/timer va teacher review UI
+hali legacy. CI/main va AWS gate’lari alohida.
 I4b AI adapteri PR #130 bilan main’da `a25cf4b`:
 [scope, compact transcript va tekshiruv](I4B-AI-MESSENGER.md).
 1961 Python OK/61 Node PASS; final CI `36192585672` uchala PASS;

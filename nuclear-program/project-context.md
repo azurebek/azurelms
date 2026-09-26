@@ -518,6 +518,18 @@ Bo'limlar: listening, reading, writing, speaking.
 7. Submit exam yakunlaydi.
 8. Result/review/certificate views ishlaydi.
 
+**I8a publication — 2026-09-26:** owner qarori bilan o‘quvchi faqat
+tasdiqlangan ball/izohni ko‘radi. `ExamAttempt.finalize_review` canonical
+formulani o‘zgartirmay, shu transactionda `ExamResultPublication`ga oxirgi
+tasdiqlangan projectionni yozadi (courses0021, additive, backfill yo‘q).
+Teacher draft save bu projectionni o‘zgartirmaydi; republish yangilaydi.
+`courses.exam_publication.learner_result` V1/legacy result, markaz va public
+appendixning yagona read policy’si. Eski approved aggregate qoladi, nusxasi
+yo‘q mutable tafsilotlar yashiriladi. Default-OFF `frontend_v1_exams` faqat
+markaz/result rendereri; privacy flagdan mustaqil. Attempt/review UI legacy.
+`?retake=1` eligible failed attemptning shartlarini GET orqali yozuvsiz
+ochadi; start POST canonical entry policy/limitni qayta tekshiradi.
+
 ### 4.7 Messenger
 
 Uch asosiy tajriba: AI suhbat, group chat, tutor/private chat.

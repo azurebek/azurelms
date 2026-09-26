@@ -34,8 +34,8 @@ urinish yaratmaydi; 320–1280 pxda asosiy amal yo‘qolmaydi.
 
 ## Qabul
 
-- [ ] I8a runtime va regressiya.
-- [ ] I8a mobile/desktop browser.
+- [x] ~~I8a runtime `2fe920f` va regressiya.~~
+- [x] ~~I8a mobile/desktop browser.~~
 - [ ] Required CI/review/main.
 - [ ] I8b/c: attempt/audio/timer, result/publication va teacher review.
 - [ ] AWS/native-device release.
@@ -44,3 +44,46 @@ Sinov: isolated provider-free `manage.py test courses`, yangi focused
 tests, full suite, Node suite, check/migration drift/diff; browserda
 list → aniq pending/reviewed result yoki instructions → Back, mobil drawer,
 theme va empty/long-content. Ko‘rinish porti butun I8 tayyor degani emas.
+
+## I8a dalil
+
+- `AZURELMS_SKIP_ENV_FILE=1 GEMINI_API_KEY= TELEGRAM_BOT_TOKEN=` bilan
+  `venv/Scripts/python.exe manage.py test --noinput`: **2156 OK, skip45,
+  151.359s** (`playground/frontend-v1-smoke/i8-full.log`). 30 yangi test.
+  Dastlab yangi test fixturelarida canonical duplicate-active-enrollment
+  cheklovi, qo‘lda seed qilingan certificate IDsi va en-us decimal belgisi
+  noto‘g‘ri berilgan edi; fixture/assertlar real contractga moslandi.
+  Runtime yoki eski testlar yumshatilmadi; yangi skip yo‘q.
+- `node --test tests/frontend_v1/*.test.mjs`: **95 PASS**; yangi JS yo‘q.
+  `manage.py check --fail-level WARNING`: 0 issue;
+  `manage.py makemigrations --check --dry-run`: no changes;
+  `git diff --check`: PASS.
+- IAB8065 alohida temporary SQLite/media: login → 7 holatli markaz →
+  pending/refresh → published → failed/retake instructions/Back → historical
+  → empty-account. Qoralama HTMLda yo‘q; tegishli urinish/course URL saqlandi.
+  Markaz, pending, published, failed, historical va empty ×
+  320/639/640/1023/1024/1280 = **36 readback, positive overflow0**.
+  Light/dark desktop/mobile ko‘rildi, mobile drawer Escape focus qaytardi,
+  console warn/error0. Temporary viewport reset; 8065 tab deliverable.
+- Haqiqiy grading/draft/finalize, republish, failure transaction rollback,
+  CSRF/teacher scope, immutable rubric va appendix disclosure Django
+  testlarida. Browserda yangi urinish yoki baholash amalga oshirilmadi.
+  Native-device, audio/mic, timer/submit va haqiqiy network loss bu slice’da
+  NOT TESTED. Bog‘liq attempt/review UI hali legacy; bu butun I8 qabuli emas.
+- `?retake=1` faqat reviewed-failed/remaining holatida eski instructionni
+  ko‘rsatadi, GET yozmaydi. Yangi urinish existing start POST bilan;
+  `check_exam_entry_policy` yana tekshiradi. Pending/passed/limit bypass yo‘q.
+- Tasdiqlash writeri va teacher draft POST attempt lock + transactionda.
+  Admin aggregate score/passed/is_reviewed readonly; explicit approve action
+  yagona publication yo‘li. Certificate issuance/formula o‘zgarmadi.
+
+## Rollout
+
+**Main/CI ≠ AWS.** `courses0021`ni yangi koddan oldin migrate qilish kerak,
+hatto renderer OFF bo‘lsa ham; publication privacy ikkalasiga tegishli.
+Migration faqat yangi jadval qo‘shadi, mavjud draft/grade/certificatelarni
+ko‘chirmaydi yoki o‘chirmaydi. `frontend_v1_exams=OFF` renderer rollback;
+old code rollbacki esa yangi privacy kafolatini olib tashlaydi, shuning
+uchun alohida release qarori va backup bilan. Oldingi reviewed urinishlarda
+snapshot yo‘q bo‘lsa, live tafsilotlar o‘rniga izohli bo‘sh holat ko‘rsatiladi;
+ularni taxminan tasdiqlangan deb backfill qilish taqiqlanadi.
