@@ -109,7 +109,11 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
     CI36211060029 all3PASS, SQLite2040 skip44/PostgreSQL2040 skip20/Node87.
     [Final acceptance](https://github.com/azurebek/azurelms/pull/134#issuecomment-5842321154).
   - [ ] I5b.1/I5b.2/I5c.1 AWS/SMTP release va haqiqiy qurilma qabuli — alohida.
-    I5d AWS va sertifikat detail/appendix legacy porti ham ochiq.
+    I5d AWS hali ochiq.
+  - [x] ~~Sertifikat detail/appendix lokal V1 porti.~~ `66f671c`,
+    [dalil](I5-CERTIFICATE-DOCUMENTS.md): exact-ID public policy saqlandi,
+    published-only appendix, explicit print; 12 responsive readback overflow0.
+  - [ ] Sertifikat detail/appendix required CI/review/main (PR141), AWS/device.
 - [x] ~~I6 — Library + course/lesson editor kod integratsiyasi.~~ Common resource/link/private
   storage parity; real forms existing fieldsni saqlaydi. Qisman field/save
   contract mos kelmasa tegishli editor legacy qoladi va qarz ochiq yoziladi.

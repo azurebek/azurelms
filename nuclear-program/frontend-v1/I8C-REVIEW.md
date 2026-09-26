@@ -20,6 +20,13 @@ yangiroq tekshiruvni bosmaydi. Yangi prototype/provider/AWS ishi yo‘q.
 
 ## Lokal dalil va chegaralar
 
+PR141 review4112099281 metadata gap `1ce783b`da yopildi: displayed Choice,
+ReadingTask/Item/Option qatorlari ham HMACga kirdi; to‘rt obyektning ketma-ket
+edit→stale409 regressiyasi bor. Snapshot nonparticipating ORM/admin writer
+bilan ayni transaction ichidagi global lock/ABA kafolatini da’vo qilmaydi.
+Old headfb26c3c CI36257842408 all3PASS; sertifikat porti va bu fixdan keyin
+fresh gate kerak.
+
 - Provider-free `manage.py test core.test_frontend_v1_exam_review courses.test_frontend_v1_exams --noinput`:
   **49 OK skip1 (10.304s)**. Yangi16 test; skip SQLite row-lock yo‘qligi,
   PostgreSQL CI bir snapshotdan parallel POST → 302/409ni tekshiradi.

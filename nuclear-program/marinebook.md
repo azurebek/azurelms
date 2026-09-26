@@ -16,6 +16,23 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-26 [Codex]: Sertifikat hujjatlari va I8c metadata review
+
+Owner limit sababli portni tezlashtirishni so‘radi: yangi prototype yo‘q,
+qolgan certificate detail/appendix ham shu PR141 paketiga qo‘shildi.
+Mavjud exact-ID public policy, canonical Certificate va published_result
+saqlandi. Native print explicit, fake PDF-success yo‘q; default-OFF flag.
+
+- Runtime certificate `66f671c`; I8c metadata fix `1ce783b`.
+- `manage.py test courses.test_frontend_v1_certificates core.test_frontend_v1_exam_review courses.test_frontend_v1_exams --noinput`:
+  provider-free **57 OK skip1 (9.195s)**; Node111 PASS, check0/drift0.
+- IAB8071 synthetic anonymous detail/appendix ×6width overflow0,
+  dark desktop/light mobile/console0. [Dalil](frontend-v1/I5-CERTIFICATE-DOCUMENTS.md).
+- I8c old CI36257842408 all3PASS. Review4112099281 displayed choice/reading
+  metadata snapshotga qo‘shilib regression bilan yopildi. Fresh full/CI va
+  main acceptance kutilmoqda; AWS/native printer/device tekshirilmagan.
+- Qolgan real port: I9 Classbook. Frozen prototype/current DB/AWS o‘zgarmadi.
+
 ## 2026-09-26 [Codex]: I8c — ustoz imtihon tekshiruvi real V1da
 
 Frozen review yangi prototype ochmasdan canonical writerga ulandi. Native
