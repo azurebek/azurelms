@@ -241,6 +241,19 @@ class ExamAttemptV1Tests(TestCase):
         self.assertFalse(ExamAttempt.objects.exists())
         self.assertNotContains(self.client.get(self.page), 'data-start')
 
+    def test_center_handoff_copy_matches_independent_attempt_flag(self):
+        set_flag('frontend_v1_exams', enabled=True, reason='Center test')
+        self.assertContains(self.client.get(reverse('exam_center')), 'Javoblar har savolda alohida saqlanadi.')
+        set_flag('frontend_v1_exam_attempt', enabled=False, reason='Rollback')
+        self.assertContains(self.client.get(reverse('exam_center')), 'Urinish sahifasi hozircha avvalgi ko‘rinishda ochiladi.')
+
+    def test_draft_scope_changes_between_sessions_and_never_exposes_session_key(self):
+        first = self.client.get(self.page).context['attempt_config']['scope']
+        self.assertNotEqual(first, self.client.session.session_key)
+        self.client.logout()
+        self.client.force_login(self.student)
+        self.assertNotEqual(first, self.client.get(self.page).context['attempt_config']['scope'])
+
 
 @skipUnlessDBFeature('has_select_for_update')
 class ExamAttemptV1ConcurrencyTests(TransactionTestCase):

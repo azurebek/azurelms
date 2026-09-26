@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {runInNewContext} from 'node:vm';
 import {makeRow, dirty, blocked, receive, rebase, packDraft, acknowledgedKey, clockLabel} from '../../static/frontend_v1/js/exam-attempt-state.mjs';
 const saved = {choice_id: '1', option_ids: [], answer_text: '', flagged: false, audio_url: '', version: 1};
 test('editing is draft only and blocks finishing', () => {
@@ -50,4 +52,13 @@ test('persisted draft is a field allowlist, never credentials or audio bytes', (
   assert.equal(JSON.stringify(packed).includes('do-not-store'), false);
   assert.deepEqual(Object.keys(packed).sort(), ['audioLost', 'base', 'draft']);
   assert.equal(packed.audioLost, true); assert.equal(packed.base.version, 1);
+});
+test('native logout clears exam drafts and operation IDs but not unrelated storage', () => {
+  const source = readFileSync(new URL('../../static/frontend_v1/js/shell.js', import.meta.url), 'utf8');
+  const store = new Map([['azurelms:v1:exam:scope:operation','id'],['azurelms:v1:exam:scope:1:drafts','text'],['unrelated','keep']]);
+  let logout;
+  const form = {addEventListener(name, fn) {if(name === 'submit') logout = fn;}};
+  const storage = {get length(){return store.size;}, key(i){return [...store.keys()][i];}, removeItem(key){store.delete(key);}};
+  runInNewContext(source, {sessionStorage:storage, document:{querySelector(){return null;},addEventListener(){},querySelectorAll(){return [form];}}});
+  logout(); assert.deepEqual([...store.keys()], ['unrelated']);
 });
