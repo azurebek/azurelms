@@ -56,6 +56,8 @@ PR136 MERGED `0278331`; final CI36215540990 all3PASS
 canonical narx/access, explicit quote va native receipt POST; 262 focused,
 2119 full OK skip45, Node95. To‘rt holat × olti width =24 overflow0.
 Required CI/main va AWS release alohida gate.
+I7 review fix `f681a5b`: owner-audited DB quote TTL, bounded core0005;
+UI/enforcement bitta qiymatdan. Final focused71 PASS, yangi CI kutiladi.
 I4b AI adapteri PR #130 bilan main’da `a25cf4b`:
 [scope, compact transcript va tekshiruv](I4B-AI-MESSENGER.md).
 1961 Python OK/61 Node PASS; final CI `36192585672` uchala PASS;

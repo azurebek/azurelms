@@ -14,8 +14,9 @@ va required SQLite/PostgreSQL/security CI.
   hisoblaydi/yozadi. Tasdiq/rad qarori `receipt_service`da qoladi.
 - Adapter faqat renderer va native form orchestration: default-OFF
   `frontend_v1_checkout`, explicit GET quote, CSRF multipart POST → PRG.
-  JS summa/access hisoblamaydi; yangi payment engine yoki migration yo‘q.
-- User/course/plan/cohort/period/promo/amount-bound 30 daqiqalik signed
+  JS summa/access hisoblamaydi; yangi payment engine yo‘q. Reviewdan keyin
+  bitta bounded operatsion maydon uchun additive core0005 qo‘shildi.
+- User/course/plan/cohort/period/promo/amount-bound, DBdagi muddatli signed
   quote; POST canonical Course → Cohort → Enrollment → Plan → Promo
   lock tartibida qayta hisoblab solishtiradi. Eskirgan quote409, transaction
   rollback; yangi enrollment ham qolmaydi. Bu bank transferi yoki global
@@ -36,11 +37,25 @@ va required SQLite/PostgreSQL/security CI.
 
 ## Qabul
 
-- [x] ~~Runtime `3621e9c` va backend/browser regression.~~
+- [x] ~~Runtime `3621e9c` va backend/browser regression; review fix `f681a5b`.~~
 - [ ] Required CI/review/main.
 - [ ] AWS/native-device release (alohida).
 
 ## Implementatsiya va dalil
+
+PR137 review fix `f681a5b`: quote TTL operatsion qiymat, shuning uchun 30 daqiqa
+faqat default bo‘ladi. Mavjud `OperationalSettings` singletoniga bounded
+`checkout_quote_minutes` va additive core0005; mavjud owner-only auditlangan
+runtime-settings yuzasiga alohida checkout formasi. Sabab/tasdiq/no-op/audit
+saqlanadi, sahifa matni va signature tekshiruvi bir effective qiymatni o‘qiydi.
+Bu schema addition oldingi “migration yo‘q” boshlang‘ich rejasini almashtiradi.
+`core.test_checkout_settings`, `core.test_runtime_settings` va
+`cohorts.test_frontend_v1_checkout`: final71 OK (5.713s), 7 qo‘shimcha
+regression. Eski 5 forma asserti yangi checkout paneli bilan 6 ga yangilandi;
+undan oldin boshlangan 2126 full run shu eski assertda yiqildi. Fresh full
+va yangi required CI yakuniy acceptance’da yoziladi. Skip qo‘shilmadi.
+Auditli umumiy singleton writer faqat o‘zgargan maydonlarni yozadi; boshqa
+panelning parallel o‘zgarishini eski nusxa bilan bosib ketmaydi.
 
 `cohorts/frontend_v1.py` presentation/native form adapteri. Uch URL oilasi
 va latest-success alias existing views orqali ishlaydi. Browserda pul hisobi,
@@ -70,13 +85,16 @@ private ownership va difference overwrite rad etish Django testlarida.
 
 Chegaralar: real bank transfer, provider/Telegram, native iOS/Android,
 haqiqiy network loss va light-theme browser qabuli bajarilmagan. Browser
-error headingining oxirgi matn tahriri backend regression bilan tekshirildi;
-preview loader eski headingni keshda saqlagan, qolgan readback yuqorida.
+Yangi previewda non-default12 daqiqa UIga DBdan keldi; xato headingi ham
+qayta tekshirildi. Final checkout yana 6 widthda overflow0; jami30 readback.
 Snapshot saved-value confirmation, monotonic revision/ABA kafolati emas.
 Rejected receipt canonical servisda o‘chadi: oldingi URL404; yangi rejection
 ledger yoki qaytarilgan pul lifecycle bu portga kirmaydi. Legacy difference
 endpoint renderer OFF paytda eski xulqini saqlaydi; V1 markerli in-flight
 POST rollbackda bloklanadi. Flag OFF saqlangan receipt/accessni bekor qilmaydi.
+Release: core0005ni flag ONdan oldin migrate qiling. Additive sozlama
+receipt/enrollment ma’lumotini ko‘chirmaydi; renderer rollbackda migrationni
+orqaga qaytarish shart emas. AWS bazasi bu turn’da o‘zgartirilmadi.
 
 Keyingi yirik portlar I8 exam/review va I9 Classbook; I5 certificate
 detail/appendix legacy. Main/CI va AWS/device release alohida hisoblanadi.

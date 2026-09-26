@@ -23,7 +23,7 @@ servislariga ulandi. Explicit tarif/promo quote, user-bound signed summa,
 locked stale recheck/rollback; tasdiq va access bir xil deb ko‘rsatilmaydi.
 
 - Branch `codex/frontend-v1-checkout-port`; runtime `3621e9c`.
-- Default-OFF `frontend_v1_checkout`, migration yo‘q. Difference upload
+- Default-OFF `frontend_v1_checkout`. Difference upload
   V1da image-only/first-file-wins; owner qaroridan keyin overwrite yo‘q.
   Existing records tarixidan statusga havola; no new prototype/provider.
 - Offline focused262 OK skip6 (19.304s), full2119 OK skip45 (125.505s),
@@ -34,6 +34,11 @@ locked stale recheck/rollback; tasdiq va access bir xil deb ko‘rsatilmaydi.
   o‘tdi. [Dalil va cheklovlar](frontend-v1/I7-CHECKOUT.md).
 - CI/review/main va AWS/device release ochiq. Keyingi katta portlar I8/I9;
   I5 certificate detail/appendix hali legacy. AWS/prototype o‘zgarmadi.
+- PR137 review fix `f681a5b`: quote TTL endi owner-only auditli runtime
+  setting; bounded core0005 additive migration. Text/enforcement bir xil
+  effective qiymat. Partial singleton save boshqa panel qiymatini saqlaydi.
+  Final focused71 PASS; 7 yangi regression. Fresh full/CI keyingi gate.
+  Preview non-default12 daqiqa va final6width overflow0; jami30 readback.
 - Oldingi I6b PR136 MERGED `0278331`, final CI36215540990 all3PASS,
   SQLite2091 skip44/PostgreSQL2091 skip20/Node95; tracker reconciliation.
 
