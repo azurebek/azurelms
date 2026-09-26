@@ -65,7 +65,10 @@ PostgreSQL2126 skip20/Node95).
 “faqat tasdiqlangan natija” qarori: canonical publication snapshot,
 V1/legacy/appendixda qoralama chiqmaydi. Additive courses0021. I8dagi 4
 UI oilasidan 2 renderer ulandi; attempt/audio/timer va teacher review UI
-hali legacy. CI/main va AWS gate’lari alohida.
+hali legacy. PR138 MERGED `17cfc3a`; finalCI36219639823 all3PASS,
+SQLite/PostgreSQL2159, Node95; final local2159 OK skip45 (139.635s).
+I8b oldidan owner tasdiqlagan [attempt API ruxsat/privacy](I8-API-SECURITY.md)
+tuzatishi bajariladi. AWS gate alohida; yangi attempt UI hali port qilinmagan.
 I4b AI adapteri PR #130 bilan main’da `a25cf4b`:
 [scope, compact transcript va tekshiruv](I4B-AI-MESSENGER.md).
 1961 Python OK/61 Node PASS; final CI `36192585672` uchala PASS;

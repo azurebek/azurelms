@@ -142,7 +142,12 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
     Owner qarori bilan qoralama izoh/ball faqat explicit publicationdan
     keyin ko‘rinadi; canonical snapshot, additive courses0021.
     [Dalil va release chegarasi](I8-EXAMS.md).
-  - [ ] I8a required CI/review/main.
+  - [x] ~~I8a required CI/review/main.~~ PR138 MERGED `17cfc3a`;
+    finalCI36219639823 all3PASS, SQLite/PostgreSQL2159, Node95.
+    Final local2159 OK skip45 (139.635s), focused33 OK.
+  - [x] ~~[I8b oldidan attempt API access/privacy lokal tuzatishi](I8-API-SECURITY.md).~~
+    `40c6ba6`, 24 yangi test; courses223 OK skip1, full2183 OK skip45,
+    Node95. Required CI/review/main final dalili security PRda.
   - [ ] I8b attempt/answer/audio/timer/revision/submit UI.
   - [ ] I8c teacher review UI va stale-form confirmation.
   - [ ] I8 AWS/native-device release.

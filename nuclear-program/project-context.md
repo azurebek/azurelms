@@ -42,6 +42,16 @@ Source of truth har doim **kod** (model/view/task/URL/test). Bu fayl kodga mosla
 
 ## Frontend V1 — bosqichma-bosqich renderer (2026-09-25)
 
+I8 attempt API security (2026-09-26): `check_exam_access_policy` start va
+har runtime so‘rov uchun active enrollmentning yagona qoidasi.
+`get_accessible_exam_attempt` course/exam juftligi va own-current attemptni
+tanlaydi, `courses.exam_api` HTTP adapteri uni yetti runtime viewga ulaydi.
+Learner question/reading JSON projectionlarida grade/is_graded/feedback
+yo‘q; canonical DB grading va published result saqlanadi. Raw audio_key
+JSON save orqali olinmaydi; existing validated private upload qoladi.
+Xavfsizlik renderer flagidan mustaqil, migration yo‘q.
+[Qamrov va concurrency chegarasi](frontend-v1/I8-API-SECURITY.md).
+
 I6b `frontend_v1_editors` default OFF: existing course list/create/edit,
 explicit lesson index/edit va per-link settings/reorder/detach. Adapter
 `core/frontend_v1_editors.py`; canonical forms/teacher scope/services

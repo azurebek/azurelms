@@ -16,6 +16,30 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-26 [Codex]: I8 attempt API — joriy ruxsat va unpublished grade himoyasi
+
+Owner `ha` degach tasdiqlangan security blocker alohida paketda yopildi.
+Start va barcha runtime APIlar bir active-access policydan foydalanadi;
+course/exam/question/item scope tekshiriladi. Learner JSONida grading
+maydonlari yo‘q, haqiqiy DB baholashi va result publication saqlanadi.
+
+- Branch `codex/exam-api-access-privacy`, runtime `40c6ba6`.
+- Flagdan mustaqil ruxsat, private/no-store; quiz/foreign question rad,
+  raw audio_key JSONdan yozilmaydi, tekshirilgan upload writeri saqlandi.
+  Yangi migration/UI/prototype/provider/AWS o‘zgarishi yo‘q.
+- Provider-free `venv/Scripts/python.exe manage.py test courses --noinput`:
+  **223 OK skip1 (17.853s)**; `manage.py test --noinput`: **2183 OK skip45
+  (130.929s)**. 24 yangi test, `node --test tests/frontend_v1/*.test.mjs`:
+  **95 PASS**; check0, drift0, diff PASS. Fixture unique-email xatosi
+  tuzatildi; eski grading assertlari DBga ko‘chib privacy assert bilan kuchaydi.
+- [Scope, dalil va cheklov](frontend-v1/I8-API-SECURITY.md).
+  CI/review/main PR acceptance’da; concurrent revoke/global revision
+  kafolati qo‘shilmadi. I8b attempt/audio/timer UI va I8c teacher review,
+  I9 Classbook, qolgan certificate UI/release gate’lari ochiq.
+- I8a tracker reconciliation: PR138 MERGED `17cfc3a`, finalCI36219639823
+  all3PASS; SQLite/PostgreSQL2159/Node95. Final local2159 skip45
+  (139.635s), focused33 PASS; oldingi pending yozuv tarixiy.
+
 ## 2026-09-26 [Codex]: I8a — imtihonlar markazi va faqat tasdiqlangan natija
 
 Frozen markaz/result ikki sahifasi real V1ga ulandi. Owner qoralama

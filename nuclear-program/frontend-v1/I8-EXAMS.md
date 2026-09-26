@@ -36,8 +36,11 @@ urinish yaratmaydi; 320–1280 pxda asosiy amal yo‘qolmaydi.
 
 - [x] ~~I8a runtime `2fe920f` va regressiya.~~
 - [x] ~~I8a mobile/desktop browser.~~
-- [ ] Required CI/review/main.
-- [ ] I8b/c: attempt/audio/timer, result/publication va teacher review.
+- [x] ~~I8a required CI/review/main.~~ PR138 MERGED `17cfc3a`;
+  finalCI36219639823 uchala PASS, final local2159 OK skip45 (139.635s),
+  focused33 OK, Node95. [Final acceptance](https://github.com/azurebek/azurelms/pull/138#issuecomment-5843413967).
+- [ ] I8b/c: attempt/audio/timer/revision va teacher review UI.
+- [ ] I8b oldidan [API ruxsat/privacy tuzatishi](I8-API-SECURITY.md).
 - [ ] AWS/native-device release.
 
 Sinov: isolated provider-free `manage.py test courses`, yangi focused
