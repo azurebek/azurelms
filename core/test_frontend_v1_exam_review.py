@@ -160,6 +160,22 @@ class ExamTeacherV1Tests(TestCase):
         self.answer.answer_text = 'New submitted answer'; self.answer.save()
         self.assertEqual(self.client.post(self.url, data).status_code, 409)
 
+    def test_displayed_choice_and_reading_metadata_invalidate_snapshot(self):
+        from courses.models import Choice, ReadingItem, ReadingOption, ReadingResponse, ReadingTask
+        choice = Choice.objects.create(question=self.question, text='Original choice')
+        self.answer.selected_choice = choice; self.answer.save()
+        task = ReadingTask.objects.create(section=self.section, title='Original task', task_type='single_choice')
+        item = ReadingItem.objects.create(task=task, prompt='Original prompt')
+        option = ReadingOption.objects.create(item=item, text='Original option')
+        ReadingResponse.objects.create(attempt=self.attempt, item=item, selected_option=option)
+        for instance, field in [(choice, 'text'), (task, 'title'), (item, 'prompt'), (option, 'text')]:
+            with self.subTest(model=type(instance).__name__):
+                data = self.payload()
+                setattr(instance, field, 'New rubric content')
+                instance.save()
+                self.assertEqual(self.client.post(self.url, data).status_code, 409)
+        self.attempt.refresh_from_db(); self.assertEqual(self.attempt.review_revision, 0)
+
     def test_legacy_notes_only_aba_and_admin_publish_advance_revision(self):
         data = self.payload()
         set_flag('frontend_v1_exam_review', enabled=False, reason='Legacy writer')

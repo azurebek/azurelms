@@ -9,7 +9,7 @@ from django.utils.crypto import constant_time_compare, salted_hmac
 
 from core.frontend_v1 import render_teacher_v1
 from core.frontend_v1_review import return_query
-from courses.models import Question, ReadingOption
+from courses.models import Choice, Question, ReadingItem, ReadingOption, ReadingTask
 
 
 def review_snapshot(user, attempt):
@@ -24,6 +24,12 @@ def review_snapshot(user, attempt):
         'exam': [attempt.exam_id, attempt.exam.title, attempt.exam.passing_score],
         'sections': list(attempt.exam.sections.order_by('pk').values()),
         'questions': list(Question.objects.filter(exam_section__exam=attempt.exam).order_by('pk').values()),
+        'choices': list(Choice.objects.filter(question__exam_section__exam=attempt.exam).order_by('pk').values()),
+        'reading_tasks': list(ReadingTask.objects.filter(section__exam=attempt.exam).order_by('pk').values()),
+        'reading_items': list(ReadingItem.objects.filter(task__section__exam=attempt.exam).order_by('pk').values()),
+        'reading_options': list(ReadingOption.objects.filter(
+            Q(item__task__section__exam=attempt.exam) | Q(task__section__exam=attempt.exam)
+        ).order_by('pk').values()),
         'answers': list(attempt.answers.order_by('pk').values()),
         'reading': list(attempt.reading_responses.order_by('pk').values()),
         'reviews': list(attempt.section_reviews.order_by('pk').values()),
