@@ -45,7 +45,8 @@ Production SMTP yo‘q: email reset delivery tayyor deb aytilmaydi.
 - [x] Focused offline regression va Node controller testlari.
 - [x] Izolyatsiyalangan local DB, desktop/mobile/light/dark/keyboard.
 - [x] Full regression: **1975 OK, skipped45**, 371.752s.
-- [ ] Required CI, review va main integratsiyasi.
+- [x] ~~Required CI, review va main integratsiyasi.~~ PR131 `af4ed76`;
+  final CI `36196388190` uchala PASS.
 - [ ] AWS release va real-device/owner qabuli (alohida).
 
 Offline (`AZURELMS_SKIP_ENV_FILE=1`, `GEMINI_API_KEY=''`,
