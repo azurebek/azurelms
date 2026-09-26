@@ -53,4 +53,5 @@ AWS, haqiqiy Telegram, real qurilma va owner content acceptance bu paket emas.
   real qurilma browser drilli bu paketda o'tkazilmadi.
 - Bo'sh legacy-nav sarlavhasi endi render qilinmaydi; preview serverning cached
   template screenshotida eski sarlavha qolishi mumkin. Runtime CI final headni tekshiradi.
-- CI/review/main acceptance PRda qayd etiladi. AWS/current DB/prototype o'zgarmadi.
+- CI/review/main acceptance: [PR142](https://github.com/azurebek/azurelms/pull/142).
+  AWS/current DB/prototype o'zgarmadi.

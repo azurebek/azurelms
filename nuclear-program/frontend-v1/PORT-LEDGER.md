@@ -191,7 +191,7 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
     create/edit va playbook; native confirmed stale/replay-safe yozish.
     [Qamrov/dalil](I9A-PREPARATION.md): classbook64 OK skip3, full2286 OK skip55,
     Node111, 30 responsive check overflow0. Additive classbook0003.
-  - [ ] I9a required CI/review/main acceptance (joriy task PRida).
+  - I9a required CI/review/main acceptance: [PR142 joriy holati](https://github.com/azurebek/azurelms/pull/142).
   - [ ] I9b live teacher session, learner home/session/activity/result va teacher result.
   - [ ] I9 AWS/native-device release.
 - [ ] **R-next — Har qo‘shimcha tayyor bo‘lakning o‘z release qabuli.** R1
