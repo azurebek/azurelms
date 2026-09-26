@@ -39,5 +39,7 @@ yangiroq tekshiruvni bosmaydi. Yangi prototype/provider/AWS ishi yo‘q.
 - Prototip receipt/reconcile mocki ko‘chirilmagan: native PRG tasdiq,
   connection-unknown holatda avtomatik resend yo‘q, yangi GETda saqlangan
   holatni ko‘rish kerak. Private draft faqat DOMda, reloadga persistence yo‘q.
-- Full suite va required CI/review/main navbatda. AWS/current DB tegilmadi.
+- Full provider-free `venv/Scripts/python.exe manage.py test --noinput`:
+  **2255 OK skip54 (180.790s)**. Required CI/review/main navbatda; runtime
+  `4eb3df1`. AWS/current DB tegilmadi.
   Native telefon/audio codec va printer acceptance ochiq.

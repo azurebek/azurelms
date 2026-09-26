@@ -16,6 +16,23 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-26 [Codex]: I8c — ustoz imtihon tekshiruvi real V1da
+
+Frozen review yangi prototype ochmasdan canonical writerga ulandi. Native
+qoralama va faqat saqlangan natijani alohida e’lon qilish; teacher-bound
+snapshot + locked review_revision stale/replayni409 bilan rad etadi.
+Legacy draft va admin finalize ham revisionni oshiradi. courses0024 additive.
+
+- Branch `codex/frontend-v1-exam-review`, runtime `4eb3df1`.
+- Provider-free `manage.py test core.test_frontend_v1_exam_review courses.test_frontend_v1_exams --noinput`:
+  **49 OK skip1 (10.304s)**. `manage.py test --noinput`: **2255 OK skip54
+  (180.790s)**. Node110 PASS, check0/drift0. Yangi PG parallel-POST testi.
+- IAB8070 tempDB: save→two-tab stale409/draft retained→publish60.83%,
+  mobile320/light/dark/desktop, 6 width positive overflow0, console0.
+- [Dalil/chegara](frontend-v1/I8C-REVIEW.md). CI/review/main navbatda;
+  AWS/current DB/frozen prototype o‘zgarmadi. Keyin certificate va Classbook.
+- I8b PR140 main `8b95460`, finalCI36256184621 all3PASS: tracker moslandi.
+
 ## 2026-09-26 [Codex]: I8b audio — butun action rollbackdan keyingi cleanup
 
 Review4111999822 topgan nested-transaction file leak `e39a263`da yopildi.
