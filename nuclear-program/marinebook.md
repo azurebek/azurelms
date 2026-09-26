@@ -16,6 +16,24 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-26 [Codex]: Tayyor V1 paketi AWSga chiqarildi
+
+Owner deployni tasdiqladi. AWS `363ff95`dan reviewed main `8bb6b95`ga
+yangilandi; barcha19 frontend renderer ON,9 additive migration, schema161.
+Public/live DB/media saqlandi; DB/cache/Caddy restart qilinmadi.
+
+- Release dalili commit `875934e`, branch `codex/frontend-v1-aws-release`.
+  [R2](frontend-v1/R2-READY-V1-AWS.md): zaxira/off-host SHA256, isolated
+  restore+upgrade, clean image, `migrate --check` PASS, `check --deploy`0.
+- Deployed mainCI36267650359 uchala PASS; real HTTPS327 assertion,
+  WSS send/edit/stale409, browser42width overflow0/menu/Escape/console0.
+  `/healthz` alive, `/readyz` ready8bb6b95; app processlar restart0.
+- Synthetic course2/users7–9 quarantine qilindi, real users1–3 tegilmadi.
+  Parollar log/Gitga chiqmagan. Ma’lumotlar o‘chirilmagan.
+- SMTP oldingi console backend, xat yubormaydi: ownerga aytildi;
+  AI/email/payment/Telegram va native device/load qabuli PASS deb berilmadi.
+  Keyingi owner navbati Q14 imtihon muharriri prototipi; hali boshlanmadi.
+
 ## 2026-09-26 [Codex]: I9b — qolgan olti Classbook live/result renderer porti
 
 `7c3c906`: frozen V1 live sahifalari canonical open/submit/reveal/finishga
