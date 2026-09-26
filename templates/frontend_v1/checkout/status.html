@@ -1,0 +1,24 @@
+{% extends "frontend_v1/checkout/base.html" %}
+{% block checkout_title %}{% if receipt.is_verified %}To‘lov tasdiqlandi{% elif not receipt.receipt_image %}Chek rasmi kutilmoqda{% else %}Chek tekshirilmoqda{% endif %}{% endblock %}
+{% block checkout_intro %}Chek #{{ receipt.pk }} · {{ receipt.enrollment.cohort.course.title }}{% endblock %}
+{% block checkout_body %}
+<div class="f-records-layout">
+<section class="c-card p-panel f-records-stack"><h2>{% if receipt.is_verified %}Natija{% else %}Joriy holat{% endif %}</h2>
+{% if receipt.is_verified %}
+  <p>Administrator bu chekni tasdiqlagan.</p>
+  {% if receipt.kind == 'difference' %}<p>Bu tarif farqi to‘lovi. U obuna davrini alohida uzaytirmaydi.</p>{% endif %}
+  {% if access_open %}<p class="c-alert c-alert--info">Ushbu guruh bo‘yicha kursga kirish ruxsati hozir faol.</p>{% else %}<p class="c-alert c-alert--info">Hozir kursga kirish ruxsati faol emas. Obunaning amaldagi holatini tekshiring yoki yordamga murojaat qiling.</p>{% endif %}
+  <a class="c-button c-button--primary" href="{% url 'my_courses' %}">Kurslarimga o‘tish</a>
+{% elif not receipt.receipt_image %}
+  <p>Tarif farqi uchun hali chek rasmi yuborilmagan. Obunalar sahifasida shu so‘rovga chek biriktiring.</p><a class="c-button c-button--primary" href="{% url 'subscriptions' %}">Obunalarda chek yuborish</a>
+{% else %}
+  <p>Chek yuborilgan. Administrator qarori kutilmoqda; bu hali to‘lov tasdig‘i emas.</p><p class="c-caption">Sahifani yopish mumkin — yuborilgan chek serverda saqlanadi. Tekshirish vaqtining aniq muddati ko‘rsatilmagan.</p><a class="c-button c-button--secondary" href="{% url 'cohorts:checkout_pending' receipt.pk %}">Holatni yangilash</a>
+{% endif %}
+</section>
+<aside class="c-card p-panel f-records-stack" aria-label="Chek tafsilotlari"><h2>Yuborilgan hisob</h2><p class="c-caption">{% if receipt.kind == 'difference' %}Tarif farqi{% else %}Obuna davri{% endif %} · #{{ receipt.pk }}</p>
+<dl class="f-records-facts"><div><dt>Tarif</dt><dd>{{ receipt.plan_label }}</dd></div><div><dt>Davr</dt><dd>{{ receipt.period_start|date:'d.m.Y' }} — {{ receipt.period_end|date:'d.m.Y' }}</dd></div><div><dt>Chegirma</dt><dd>{{ receipt.discount_amount|floatformat:2 }} so‘m</dd></div><div><dt>Summa</dt><dd>{{ receipt.amount|floatformat:2 }} so‘m</dd></div><div><dt>Yuborilgan</dt><dd>{{ receipt.submitted_at|date:'d.m.Y H:i' }}</dd></div></dl>
+{% if receipt.promo_code_snapshot %}<p class="c-caption">Promokod: {{ receipt.promo_code_snapshot }}</p>{% endif %}
+{% if receipt.receipt_image %}<a class="c-button c-button--secondary" href="{% url 'cohorts:receipt_file' receipt.pk %}">Chek rasmini ochish</a>{% else %}<p>Fayl hali yuklanmagan.</p>{% endif %}
+</aside>
+</div>
+{% endblock %}

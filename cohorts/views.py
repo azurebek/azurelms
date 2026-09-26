@@ -12,6 +12,7 @@ from subscriptions.promo_service import (
     create_checkout_receipt_with_promo,
 )
 from core.upload_validation import validate_upload
+from core.flags import flag_enabled
 from .checkout_service import (
     CheckoutUnavailable,
     find_checkout_enrollment,
@@ -37,6 +38,9 @@ def _checkout_shell(request):
 
 
 def _render_checkout(request, template, context):
+    if flag_enabled('frontend_v1_checkout') and 'receipt' in context:
+        from .frontend_v1 import render_receipt
+        return render_receipt(request, context['receipt'])
     context.setdefault("base_template", _checkout_shell(request))
     context.setdefault("active_nav", "billing")
     return render(request, template, context)
@@ -44,6 +48,9 @@ def _render_checkout(request, template, context):
 
 @login_required
 def checkout_view(request, course_id):
+    if flag_enabled('frontend_v1_checkout') or request.POST.get('frontend_v1_checkout'):
+        from .frontend_v1 import checkout
+        return checkout(request, course_id)
     course = get_object_or_404(Course, id=course_id, is_active=True)
 
     plans = purchase_plans(student=request.user, course=course)

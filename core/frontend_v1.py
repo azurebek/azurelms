@@ -28,6 +28,7 @@ class FrontendV1Mixin:
         if self.frontend_v1_enabled:
             context["frontend_v1_title"] = self.frontend_v1_title
             context["frontend_v1_records_ready"] = flag_enabled("frontend_v1_records")
+            context["frontend_v1_checkout_ready"] = flag_enabled("frontend_v1_checkout")
             context["frontend_v1_nav"] = [
                 {"url": reverse(name), "name": name, "label": label, "icon": icon}
                 for name, label, icon in (

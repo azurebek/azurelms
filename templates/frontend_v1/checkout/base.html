@@ -1,0 +1,13 @@
+{% extends "frontend_v1/platform.html" %}
+{% load static %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'frontend_v1/css/records.css' %}"><link rel="stylesheet" href="{% static 'frontend_v1/css/library.css' %}"><script defer src="{% static 'frontend_v1/js/library.js' %}"></script>{% endblock %}
+{% block content %}
+<div class="p-page-heading"><div><p class="c-eyebrow">OBUNA / TO‘LOV</p><h1>{% block checkout_title %}To‘lovni tayyorlash{% endblock %}</h1><p class="c-lead">{% block checkout_intro %}Tarif va summani tekshiring, so‘ng to‘lov chekini yuboring.{% endblock %}</p></div></div>
+<div class="f-records-stack" data-library-root>
+  <p class="c-caption">1. Tarif va chek → 2. Tekshiruv → 3. Natija</p>
+  <p class="c-alert v1-error" role="alert" tabindex="-1" data-library-offline hidden>Aloqa yo‘q. Amal yuborilmadi; tanlovingiz shu sahifada qoldi.</p>
+  <p class="c-alert c-alert--info" role="status" data-library-pending hidden>So‘rov yuborilmoqda. Natija kelmasa, yana chek yuborishdan oldin Obunalardagi holatni tekshiring.</p>
+  {% block checkout_body %}{% endblock %}
+  <div class="c-actions"><a class="c-text-link" href="{% url 'subscriptions' %}">Obunalar va to‘lov tarixi</a><a class="c-text-link" href="{% url 'help_center' %}">Yordam</a></div>
+</div>
+{% endblock %}

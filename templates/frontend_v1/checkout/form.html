@@ -1,0 +1,35 @@
+{% extends "frontend_v1/checkout/base.html" %}
+{% block checkout_body %}
+<a class="c-text-link" href="{% url 'course_detail' course.pk %}">← {{ course.title }}</a>
+{% if checkout_error %}<div class="c-alert v1-error" role="alert" tabindex="-1" data-library-error><h2>{% if request.method == 'POST' %}Chek yuborilmadi{% else %}Hisobni tekshiring{% endif %}</h2><p>{{ checkout_error }}</p>{% if request.method == 'POST' %}<p>Fayl saqlanmadi. Qayta yuborish uchun uni yana tanlang.</p>{% endif %}<a class="c-text-link" href="{{ request.path }}">To‘lov sahifasini qayta ochish</a></div>{% endif %}
+{% if pending_receipt %}<section class="c-card p-panel f-records-stack"><h2>Tekshiruvdagi chek mavjud</h2><p>Yangi chek yuborish shart emas. Shu chek bo‘yicha holatni oching.</p><a class="c-button c-button--primary" href="{% url 'cohorts:checkout_pending' pending_receipt.pk %}">Chek #{{ pending_receipt.pk }} holati</a></section>{% endif %}
+<div class="f-records-layout">
+<div class="f-records-stack">
+  {% if plans %}<form method="get" action="{{ request.path }}" class="c-card p-panel f-records-stack" data-library-form>
+    <h2>1. Tarif va promokod</h2>
+    <div><label class="c-field__label" for="checkout-plan">Tarif</label><select id="checkout-plan" name="plan_id" class="c-field" required><option value="">Tarifni tanlang</option>{% for plan in plans %}<option value="{{ plan.pk }}"{% if plan.pk == selected_plan.pk %} selected{% endif %}>{{ plan.name }} · {{ plan.price|floatformat:2 }} so‘m</option>{% endfor %}</select></div>
+    <div><label class="c-field__label" for="checkout-promo">Promokod (ixtiyoriy)</label><input id="checkout-promo" name="promo_code" class="c-field" value="{{ submitted_promo_code }}" maxlength="64" autocomplete="off"></div>
+    <p class="c-caption">Tanlashning o‘zi hisobni o‘zgartirmaydi. Quyidagi tugma bilan yangi summani tekshiring.</p>
+    <button class="c-button c-button--secondary" type="submit">Summani tekshirish</button>
+  </form>{% endif %}
+  {% if promo_quote and quote_token and not pending_receipt %}
+  <section class="c-card p-panel f-records-stack"><h2>2. To‘lov ma’lumotlari</h2>
+    {% if site_settings.payment_card_number %}<dl class="f-records-facts"><div><dt>Karta raqami</dt><dd>{{ site_settings.payment_card_number }}</dd></div>{% if site_settings.payment_card_holder %}<div><dt>Qabul qiluvchi</dt><dd>{{ site_settings.payment_card_holder }}</dd></div>{% endif %}{% if site_settings.payment_provider_label %}<div><dt>To‘lov usuli</dt><dd>{{ site_settings.payment_provider_label }}</dd></div>{% endif %}</dl>{% else %}<p class="c-alert c-alert--info">To‘lov rekvizitlari hali ko‘rsatilmagan. To‘lov qilishdan oldin yordam bo‘limi orqali aniqlashtiring.</p>{% endif %}
+    {% if site_settings.payment_instruction %}<p>{{ site_settings.payment_instruction|linebreaksbr }}</p>{% endif %}
+  </section>
+  <form method="post" action="{{ request.path }}" enctype="multipart/form-data" class="c-card p-panel f-records-stack" data-library-form>
+    {% csrf_token %}<input type="hidden" name="frontend_v1_checkout" value="1"><input type="hidden" name="quote_token" value="{{ quote_token }}"><input type="hidden" name="plan_id" value="{{ selected_plan.pk }}"><input type="hidden" name="promo_code" value="{{ submitted_promo_code }}">
+    <h2>3. Chekni yuborish</h2>
+    <p><strong>{{ selected_plan.name }} · {{ promo_quote.final_amount|floatformat:2 }} so‘m</strong></p>
+    <div><label class="c-field__label" for="receipt-image">To‘lov cheki rasmi</label><input id="receipt-image" type="file" name="receipt_image" accept="image/png,image/jpeg,image/webp,image/gif" required aria-describedby="receipt-hint"><p id="receipt-hint" class="c-caption">PNG, JPEG, WebP yoki GIF · {{ max_upload_mb }} MB gacha.</p></div>
+    <label class="c-choice"><input type="checkbox" name="confirm_scope" value="yes" required><span>Chek shu tarif va summaga tegishli ekanini tekshirdim. Yuborish hali to‘lov tasdig‘i emasligini tushunaman.</span></label>
+    <button class="c-button c-button--primary" type="submit">Chekni tekshiruvga yuborish</button>
+  </form>{% endif %}
+</div>
+<aside class="f-records-stack" aria-label="Tekshirilgan hisob">
+  <section class="c-card p-panel f-records-stack"><h2>Buyurtma tafsilotlari</h2><p>{{ course.title }}</p>
+  {% if promo_quote %}<dl class="f-records-facts"><div><dt>Tarif</dt><dd>{{ selected_plan.name }}</dd></div><div><dt>Guruh</dt><dd>{{ checkout_cohort.name }}</dd></div><div><dt>Davr</dt><dd>{{ period_start|date:'d.m.Y' }} — {{ period_end|date:'d.m.Y' }}</dd></div><div><dt>Asosiy summa</dt><dd>{{ promo_quote.base_amount|floatformat:2 }} so‘m</dd></div><div><dt>Chegirma</dt><dd>{{ promo_quote.discount_amount|floatformat:2 }} so‘m</dd></div><div><dt>Jami</dt><dd>{{ promo_quote.final_amount|floatformat:2 }} so‘m</dd></div></dl>{% if promo_quote.is_discounted %}<p class="c-caption">Promokod: {{ promo_quote.promo_code.code }}</p>{% endif %}<p class="c-caption">Tasdiq 30 daqiqa amal qiladi. Yuborishda summa qayta tekshiriladi. Yakuniy kurs ruxsatini platforma tasdiqlangan to‘lov va amaldagi obuna bo‘yicha aniqlaydi.</p>{% else %}<p>Hisob hali tasdiqlanmagan. Tarif va promokodni tekshiring.</p>{% endif %}
+  </section>
+</aside>
+</div>
+{% endblock %}

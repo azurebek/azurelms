@@ -44,6 +44,14 @@ class FlagDefinition:
 
 FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
     FlagDefinition(
+        slug="frontend_v1_checkout",
+        label="Frontend V1 — checkout va chek holati",
+        description="Tarif/promo tekshirish, chek yuborish va pending/success V1 ko‘rinishi.",
+        default=False,
+        category="Frontend",
+        runbook="OFF eski rendererga qaytaradi, to‘lov/accessni emas. In-flight V1 POST yozilmaydi: sahifani qayta ochish kerak. AWS release alohida.",
+    ),
+    FlagDefinition(
         slug="frontend_v1_editors",
         label="Frontend V1 — kurs va dars muharrirlari",
         description="Kurs list/create/edit, aniq dars tanlovi va dars materiallari uchun V1.",
