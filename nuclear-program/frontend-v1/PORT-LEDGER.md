@@ -15,7 +15,8 @@ prototipi yo‘q Q14+ sahifalari yangi bo‘ldi degani emas.
 bu I1–I9ni qayta ochish yoki yangi deploy topshirig‘i emas.
 
 2026-09-27 continuation: [Q14 source-supported prototip](Q14-EXAM-EDITOR-PROTOTYPE.md)
-lokal qurildi; U01/U02 bor, endi40 UI +3 handler /10 keyingi qadam.
+lokal qurildi; keyin [Q15a](Q15A-DAILY-BACKOFFICE-PROTOTYPE.md) U03–U06
+qo‘shildi. Endi36 UI +3 handler; Q15adan keyin9 keyingi qadam.
 Bu **yangi real port yoki AWS relizi emas**; keng Q14 capability ochiq.
 
 ## Navbat

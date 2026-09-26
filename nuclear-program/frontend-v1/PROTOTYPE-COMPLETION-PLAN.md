@@ -1,9 +1,9 @@
 # Qolgan prototiplar — aniq qamrov va tugatish rejasi
 
-**2026-09-27 ijro:** Q14ning mavjud backendga mos U01/U02 prototipi
-qurildi va lokal tekshirildi: [Paket67 dalili](Q14-EXAM-EDITOR-PROTOTYPE.md).
-Joriy son **99 URL /56 template /78 source nomi**. Endi prototipi yo‘q
-**40 UI +3 handler =43 band**, navbatdagi **10 qadam** qolgan.
+**2026-09-27 ijro:** Q14 U01/U02dan keyin Q15a U03–U06 qurildi:
+[Paket67](Q14-EXAM-EDITOR-PROTOTYPE.md), [Paket68 dalili](Q15A-DAILY-BACKOFFICE-PROTOTYPE.md).
+Joriy son **103 URL /60 template /82 source nomi**. Endi prototipi yo‘q
+**36 UI +3 handler =39 band**, navbatdagi **9 qadam** qolgan.
 Keng Q14 savol/ko‘p-bo‘lim/nashr capabilitysi alohida ochiq; real port
 va AWS bu turn o‘zgarmadi. Quyidagi45 soni boshlang‘ich audit snapshotidir.
 
@@ -61,11 +61,14 @@ Eski Q raqamlari saqlanadi; a/b bo‘linishi faqat paket chegarasidir.
   **Dalil:** [Paket67](Q14-EXAM-EDITOR-PROTOTYPE.md), 18/18 maydon,
   606 Django +168 JS PASS; local-only. Keng Q14 capability va owner/native
   qabul yopilmadi; yuqoridagi chiziq faqat U01/U02 source-supported UI uchun.
-- [ ] **2. Q15a — Kundalik boshqaruv (4 URL).** Bosh panel, cheklar,
+- [x] ~~2. Q15a — Kundalik boshqaruv (4 URL).~~ Bosh panel, cheklar,
   foydalanuvchilar va chatlar ro‘yxati. **Yakun:** qidiruv/filtr/pagination
   → tafsilot yoki mavjud oqimga kirish → ayni filtrga qaytish; chek
   tasdiqlash/rad etish sababi va natijasi ravshan. Foydalanuvchini
   bloklash yoki chatni o‘chirish kabi mavjud bo‘lmagan amallar ixtiro qilinmaydi.
+  **Ijro:** [Paket68](Q15A-DAILY-BACKOFFICE-PROTOTYPE.md); 4 lokal UI,
+  checkout→owner qarori→learner holati, 40 responsive ko‘rinish tekshirildi.
+  **630 Django +170 JS PASS**; real port va owner/native qabul ochiq.
 - [ ] **3. Q15b — Tarif va guruh boshqaruvi (5 URL).** Katalog, tarif
   formasi, guruh yaratish/tahrirlash, a’zolar. **Yakun:** tarif/guruh → a’zo
   → joyni bo‘shatish/tiklash yoki ko‘chirish/farq summasi → qayta ko‘rish;
@@ -119,8 +122,10 @@ alohida backlogda turadi; shu rejaning ichiga yashirincha kiritilmaydi.
 
 ## 3. To‘liq sahifa/manzil ro‘yxati
 
-Har qatorning hozirgi prototip holati: **YO‘Q**. Jadvaldagi IDlar
-progress/dalilni bog‘lash uchun barqaror. `<...>` parametr, demo ID emas.
+Jadval boshlang‘ich **YO‘Q** inventaridir. **2026-09-27 delta:** U01/U02
+Paket67da, U03–U06 Paket68da lokal qurildi; qolgan36 UI +3 handler ochiq.
+Jadvaldagi IDlar progress/dalilni bog‘lash uchun barqaror. `<...>` parametr,
+demo ID emas. Lokal UI borligi real port yoki G3 qabul degani emas.
 
 | ID | Paket | Real URL nomi yoki handler | Manzil / holat |
 |---|---|---|---|

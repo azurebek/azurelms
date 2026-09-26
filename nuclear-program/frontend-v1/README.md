@@ -9,7 +9,8 @@ Owner keyingi qurishdan oldin qolgan prototip qamrovini aniqlashni so‘radi.
 [Joriy tugatish rejasi](PROTOTYPE-COMPLETION-PLAN.md): 42 UI manzili +
 3 xato sahifasi, 11 qadam boshlang‘ich hisob edi. **2026-09-27:**
 [Q14 source-supported muharrir](Q14-EXAM-EDITOR-PROTOTYPE.md) lokal qurildi:
-18 maydon, 2 source URL; endi **40 UI +3 handler, 10 keyingi qadam**.
+18 maydon, 2 source URL. Keyin [Q15a kundalik boshqaruv](Q15A-DAILY-BACKOFFICE-PROTOTYPE.md)
+4 URL lokal qurildi; endi **36 UI +3 handler, Q15adan keyin9 qadam**.
 Q14 keng savol/bo‘lim capabilitysi, real port va native qabul alohida ochiq.
 Quyidagi paket yozuvlari tarixiy snapshotlar.
 
