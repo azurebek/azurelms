@@ -1,0 +1,3 @@
+{% extends "frontend_v1/library/base.html" %}
+{% block library_intro %}{{ resource.title }}{% endblock %}
+{% block library_body %}<section class="c-card p-panel f-records-stack"><p class="c-alert v1-error" role="alert" tabindex="-1" data-library-error>{{ library_error }}</p><a class="c-button c-button--secondary" href="{{ reload_url }}">So‘nggi holatni ochish</a></section>{% endblock %}

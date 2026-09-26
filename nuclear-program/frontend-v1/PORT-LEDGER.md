@@ -105,12 +105,20 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
   - [x] ~~I5d lokal — sertifikatlar ro‘yxati/davomat/obunalar/reyting/bildirishnomalar/yordam.~~
     `d3aa3dc`: full2040 OK (skip45), app508 OK (skip6), Node87 PASS;
     48 responsive check overflow0. [Scope va dalil](I5D-RECORDS-SUPPORT.md).
-  - [ ] I5d required CI/review/main — alohida final acceptance.
+  - [x] ~~I5d required CI/review/main.~~ PR134 MERGED `337a73c`;
+    CI36211060029 all3PASS, SQLite2040 skip44/PostgreSQL2040 skip20/Node87.
+    [Final acceptance](https://github.com/azurebek/azurelms/pull/134#issuecomment-5842321154).
   - [ ] I5b.1/I5b.2/I5c.1 AWS/SMTP release va haqiqiy qurilma qabuli — alohida.
     I5d AWS va sertifikat detail/appendix legacy porti ham ochiq.
-- [ ] **I6 — Library + course/lesson editor.** Common resource/link/private
+- [-] **I6 — Library + course/lesson editor.** Common resource/link/private
   storage parity; real forms existing fieldsni saqlaydi. Qisman field/save
   contract mos kelmasa tegishli editor legacy qoladi va qarz ochiq yoziladi.
+  - [x] ~~I6a lokal — kutubxona list/create/edit/picker.~~ Runtime `9a76fed`;
+    library66/full2063 OK (skip45), Node95 PASS, 24 responsive readback overflow0.
+    [Scope va dalil](I6A-LIBRARY.md); 10 real form field, private upload,
+    scoped attach, lifecycle confirmation va stale409/no-write.
+  - [ ] I6a required CI/review/main va AWS/device release alohida gate.
+  - [ ] I6b course/lesson editor, per-link settings/reorder/detach V1.
 - [ ] **I7 — Checkout/receipt.** Quote→upload→pending→owner decision→access;
   difference/rejected, direct URL permission, duplicate/unknown reconciliation.
 - [ ] **I8 — Exam va teacher review.** Real attempt/audio/timer/revision,

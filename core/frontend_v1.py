@@ -114,6 +114,8 @@ def teacher_v1_navigation(active_nav):
     if flag_enabled("frontend_v1_ai_messenger"):
         pages += (("messenger:ai", "Azure AI", "message"),)
     records_ready = flag_enabled("frontend_v1_records")
+    if flag_enabled("frontend_v1_library"):
+        pages += (("library_backoffice:resources", "Kutubxona", "book"),)
     if records_ready:
         pages += (("help_center", "Yordam", "bulb"),)
     return dict(
