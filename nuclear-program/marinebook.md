@@ -37,6 +37,9 @@ default-OFF `frontend_v1_library`, explicit consent va stale409/no-write.
 - Required CI/review/main keyingi gate. AWS deploy/native-device alohida.
   I6b course/lesson editor + per-link settings/reorder/detach hali legacy;
   I7 checkout, I8 exam, I9 Classbook navbatda. Yangi prototip yaratilmagan.
+- PR135 birinchi PG CI: testdagi FileResponse ikkinchi `close()`si umumiy
+  TestCase connectionni yopgan; ortiqcha close olindi, yopilgan response va
+  ishlaydigan DB assert qo‘shildi. Runtime o‘zgarmadi, skip yo‘q; final CI kutiladi.
 - Oldingi I5d PR134 MERGED `337a73c`, CI36211060029 all3PASS,
   SQLite2040 skip44/PostgreSQL2040 skip20/Node87; tracker shu dalil bilan yopildi.
 

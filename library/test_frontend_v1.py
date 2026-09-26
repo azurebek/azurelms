@@ -3,6 +3,7 @@ import tempfile
 
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import connection
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
@@ -282,4 +283,9 @@ class LibraryV1Tests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['X-Content-Type-Options'], 'nosniff')
         self.assertEqual(b''.join(response.streaming_content), PDF_BYTES)
-        response.close()
+        # Client's closing_iterator_wrapper already closes safely after consume.
+        # Closing twice fires request_finished outside its test-safe wrapper and
+        # closes PostgreSQL's class-level TestCase transaction.
+        self.assertTrue(response.closed)
+        self.assertFalse(connection.closed_in_transaction)
+        self.assertTrue(LibraryResource.objects.filter(pk=self.resource.pk).exists())

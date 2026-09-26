@@ -96,3 +96,14 @@ File upload/replacement/delete/CSRF/role/learner gate backend testlarda;
 brauzerda synthetic metadata/attach tekshirildi, real file upload yoki
 destructive lifecycle bosilmadi. Actual network loss/native iOS/Android
 va light-theme qabuli NOT TESTED. AWS release alohida.
+
+## PR135 CI tuzatishi
+
+Final local HEAD full2063 OK skip45 (143.929s). Birinchi CI36213682493
+PostgreSQL runida file-response testi oqimni to‘liq o‘qigach `close()`ni
+ikkinchi marta chaqirgan: Django Client wrapperi allaqachon response’ni
+yopgan, ortiqcha chaqiruv esa `request_finished` bilan TestCase umumiy PG
+tranzaksiyasini yopgan. Natijada keyingi 5 test setupida connection-closed.
+Runtime emas, test harness xatosi: ortiqcha close olib tashlandi, response
+closed va DB hali ishlashiga assert qo‘shildi. Test skip qilinmadi.
+Required CI qayta yashil bo‘lmaguncha merge qilinmaydi.
