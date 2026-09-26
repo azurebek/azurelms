@@ -1188,13 +1188,17 @@ class SubmitQuizView(LoginRequiredMixin, View):
             'results': result.results,
         })
 
-class CertificateDetailView(DetailView):
+from .frontend_v1_certificates import CertificateV1Mixin
+
+
+class CertificateDetailView(CertificateV1Mixin, DetailView):
     """
     Renders the professional certificate for printing/downloading.
     Publicly accessible to verify the certificate if one has the exact ID.
     """
     model = Certificate
     template_name = 'courses/certificate.html'
+    certificate_v1_template = 'frontend_v1/certificates/detail.html'
     context_object_name = 'certificate'
     
     def get_object(self, queryset=None):
@@ -1207,9 +1211,10 @@ class CertificateDetailView(DetailView):
         return context
 
 
-class CertificateAppendixView(DetailView):
+class CertificateAppendixView(CertificateV1Mixin, DetailView):
     model = Certificate
     template_name = 'courses/certificate_appendix.html'
+    certificate_v1_template = 'frontend_v1/certificates/appendix.html'
     context_object_name = 'certificate'
 
     def get_object(self, queryset=None):

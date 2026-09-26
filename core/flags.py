@@ -90,6 +90,13 @@ FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
         runbook="OFF eski rendererga qaytaradi; file/link/archive ma’lumotini qaytarmaydi. In-flight V1 POST snapshot himoyasi qoladi. File replacement rollbacki backup talab qiladi.",
     ),
     FlagDefinition(
+        slug="frontend_v1_certificates",
+        label="Frontend V1 — sertifikat hujjatlari",
+        description="Berilgan sertifikat va tasdiqlangan ballar ilovasi; mavjud exact-ID public policy saqlanadi.",
+        default=False, category="Frontend",
+        runbook="OFF legacy detail/appendix; sertifikat va baho o‘zgarmaydi. V1 chop etish faqat tugma orqali. AWS/device qabuli alohida.",
+    ),
+    FlagDefinition(
         slug="frontend_v1_records",
         label="Frontend V1 — yozuvlar va yordam",
         description="Sertifikatlar, davomat, obunalar, reyting, bildirishnomalar va yordam rendererlariga V1.",

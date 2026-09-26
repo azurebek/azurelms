@@ -1,0 +1,16 @@
+{% extends "frontend_v1/base.html" %}{% load static %}
+{% block body_class %}f-certificate-root{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'frontend_v1/css/certificates.css' %}"><script defer src="{% static 'frontend_v1/js/certificates.js' %}"></script>{% endblock %}
+{% block body %}
+<main id="main" class="f-certificate-page" tabindex="-1">
+  <header class="f-certificate-chrome f-certificate-tools"><a class="s-brand" href="{% url 'home' %}">{% include 'components/brand_logo.html' with mark_class='s-brand__mark' %}</a>{% include 'frontend_v1/theme_button.html' %}</header>
+  <nav class="f-certificate-chrome c-actions" aria-label="Hujjat amallari">{% if request.user.is_authenticated %}<a class="c-button c-button--secondary" href="{% url 'certificates' %}">Sertifikatlarim</a>{% endif %}{% block document_links %}{% endblock %}<button class="c-button c-button--primary" type="button" data-certificate-print>Chop etish / PDF</button></nav>
+  <p class="c-caption f-certificate-chrome">Bu havola aniq sertifikat IDsi orqali ochiq tekshiriladi. Chop etish / PDF saqlash brauzer oynasida boshqariladi.</p>
+  <noscript><p class="c-caption f-certificate-chrome">Chop etish uchun brauzerning Chop etish menyusidan foydalaning.</p></noscript>
+  <article class="c-card f-certificate-document" aria-labelledby="certificate-document-title">
+    <div class="f-certificate-document-head"><strong>{{ site_settings.brand_name|default:'AzureLMS' }}</strong><p class="c-caption">{{ certificate.certificate_id }}<br>{{ certificate.issued_at|date:'d.m.Y' }}</p></div>
+    {% block document_content %}{% endblock %}
+    <footer class="f-certificate-document-foot"><p>Tekshirish: <a href="{% url 'certificate_detail' certificate.certificate_id %}">{{ request.scheme }}://{{ request.get_host }}{% url 'certificate_detail' certificate.certificate_id %}</a></p><p>Bu sahifa berilgan hujjatni ko‘rsatadi. Sertifikat berish va ball hisoblash server qoidalari bilan boshqariladi.</p></footer>
+  </article>
+</main>
+{% endblock %}
