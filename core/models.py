@@ -67,6 +67,13 @@ class OperationalSettings(models.Model):
 
     singleton = models.BooleanField(default=True, unique=True, editable=False)
 
+    exam_receipt_limit = models.PositiveIntegerField(
+        default=1000,
+        validators=[MinValueValidator(1), MaxValueValidator(10000)],
+        verbose_name="Imtihon amallari jurnali sig‘imi",
+        help_text="Har o‘quvchi–imtihon uchun 1–10000 ta oxirgi texnik tasdiq. Keyingi muvaffaqiyatli amaldan qo‘llanadi. Eski tasdiqlar chiqariladi, javob va baholar o‘chirilmaydi; eski oynada holatni yangilash kerak bo‘lishi mumkin.",
+    )
+
     checkout_quote_minutes = models.PositiveIntegerField(
         default=30,
         validators=[MinValueValidator(1), MaxValueValidator(1440)],

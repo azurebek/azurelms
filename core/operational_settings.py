@@ -9,6 +9,7 @@ sozlama o'qishdagi xato butun instance'ni trafikdan chiqarib yuborardi.
 from dataclasses import dataclass
 
 DEFAULTS = {
+    "exam_receipt_limit": 1000,
     "checkout_quote_minutes": 30,
     "backup_stale_after_days": 7,
     # Zaxira saqlash muddati (PR #111 review). Ilgari bu qiymat host
@@ -27,6 +28,7 @@ DEFAULTS = {
 }
 
 BOUNDS = {
+    "exam_receipt_limit": (1, 10000),
     "checkout_quote_minutes": (1, 1440),
     "backup_stale_after_days": (1, 365),
     "backup_retention_days": (1, 3650),
@@ -95,6 +97,7 @@ def repair_order(values, red_name, amber_name):
 
 @dataclass(frozen=True)
 class Thresholds:
+    exam_receipt_limit: int
     checkout_quote_minutes: int
     backup_stale_after_days: int
     backup_retention_days: int

@@ -20,6 +20,7 @@ from .exam_service import (ExamAttemptStartBlocked,
                           start_exam_attempt)
 from .exam_section_service import build_section_payload, register_audio_play, save_question_answer, save_exam_audio
 from .exam_media import listening_media_url
+from .exam_receipts import trim_receipts
 from .models import Exam, ExamAttempt, ExamActionGate, ExamActionReceipt, ExamSection, Question, ReadingItem
 from .policy_service import check_exam_access_policy
 from .reading_service import save_reading_response
@@ -149,10 +150,12 @@ class ExamAttemptV1View(ExamAPIResponseMixin, LoginRequiredMixin, View):
             attempt = ExamAttempt.objects.select_for_update().filter(student=request.user, exam=exam).order_by('-attempt_number', '-id').first()
             if not gate:
                 return JsonResponse({'error': 'Amal sessiyasi berilmagan. Sahifani qayta oching.'}, status=409)
+            resolution = previous.command if previous else 'unconfirmed_closed'
             if previous is None and gate.epoch == epoch:
                 gate.epoch = uuid.uuid4()
                 gate.save(update_fields=['epoch'])
-            return JsonResponse({'receipt': {'id': str(operation), 'command': previous.command if previous else 'cancelled',
+                resolution = 'cancelled'
+            return JsonResponse({'receipt': {'id': str(operation), 'command': resolution,
                                              'attempt_id': previous.attempt_id if previous else (attempt.pk if attempt else None)},
                                  'state': exam_snapshot(exam, attempt, request)})
         if not flag_enabled('frontend_v1_exam_attempt'):
@@ -213,6 +216,7 @@ class ExamAttemptV1View(ExamAPIResponseMixin, LoginRequiredMixin, View):
                         record_activity(request.user)
                 ExamActionReceipt.objects.create(student=request.user, exam=exam, attempt=attempt,
                                                  operation_id=operation, command=command, payload_digest=digest)
+                trim_receipts(gate)
         except (ValidationError, ExamAttemptStartBlocked, ValueError, TypeError) as exc:
             message = exc.messages[0] if isinstance(exc, ValidationError) else str(exc)
             return JsonResponse({'error': message or 'Javob formati noto‘g‘ri.'}, status=400)

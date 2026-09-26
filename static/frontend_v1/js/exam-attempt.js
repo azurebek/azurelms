@@ -1,4 +1,4 @@
-import {valueOf, dirty, blocked, makeRow, receive, rebase, answered, packDraft, acknowledgedKey, clockLabel, prepareListening, limitSelections} from './exam-attempt-state.mjs';
+import {valueOf, dirty, blocked, makeRow, receive, rebase, answered, packDraft, acknowledgedKey, clockLabel, prepareListening, limitSelections, recoveryMessage} from './exam-attempt-state.mjs';
 
 const root = document.querySelector('[data-exam-attempt]');
 if (root) initialize();
@@ -156,7 +156,7 @@ function initialize() {
       if (!response.ok) { tell(data.error || 'Holatni tekshirib bo‘lmadi.'); return; }
       accept(data.state, data.receipt, operation);
       if (operation && data.receipt?.id === operation.operation_id) activeRequest?.abort();
-      tell(data.receipt?.command === 'cancelled' ? 'Amal bajarilmagan; kechikkan so‘rov yopildi. Qoralamangizni qayta ko‘rib saqlashingiz mumkin.' : pending ? 'Amal tasdig‘i hali topilmadi. Noma’lum amalni tekshirib yoping.' : 'Server holati yangilandi.');
+      tell(recoveryMessage(data.receipt, pending));
     } catch { tell('Server bilan aloqa yo‘q. Qoralama va noma’lum amal saqlandi.'); }
     finally { checking = false; render(); }
   }

@@ -46,6 +46,12 @@ export function clockLabel(seconds) {
   return `Serverda qolgan: ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
 }
 
+export function recoveryMessage(receipt, pending) {
+  if (receipt?.command === 'cancelled') return 'Amal bajarilmagan; kechikkan so‘rov yopildi. Qoralamangizni qayta ko‘rib saqlashingiz mumkin.';
+  if (receipt?.command === 'unconfirmed_closed') return 'Eski amalning tasdig‘i topilmadi; bajarilgan yoki bajarilmagan deb bo‘lmaydi. Kechikkan so‘rov yopildi. Serverdagi javob va qoralamangizni solishtiring; hech narsa qayta yuborilmadi.';
+  return pending ? 'Amal tasdig‘i hali topilmadi. Noma’lum amalni tekshirib yoping.' : 'Server holati yangilandi.';
+}
+
 export function limitSelections(inputs, maximum) {
   const selected = inputs.filter(input => input.checked).length;
   for (const input of inputs) input.disabled = !input.checked && selected >= maximum;

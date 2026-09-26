@@ -243,6 +243,20 @@ class DispatcherThresholdsForm(_AuditedSettingsForm):
         }
 
 
+class ExamReceiptSettingsForm(_AuditedSettingsForm):
+    UNITS = {"exam_receipt_limit": "yozuv"}
+
+    class Meta:
+        model = OperationalSettings
+        fields = ("exam_receipt_limit",)
+        labels = {"exam_receipt_limit": "Texnik tasdiqlar sig‘imi"}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            field.widget.attrs['id'] = f'id_exam_receipts_{name}'
+
+
 class CheckoutSettingsForm(_AuditedSettingsForm):
     UNITS = {"checkout_quote_minutes": "daqiqa"}
 

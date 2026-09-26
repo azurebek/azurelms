@@ -12,6 +12,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from core.flags import set_flag
+from core.models import OperationalSettings
 from courses.models import ExamAttempt, ExamActionGate, ExamActionReceipt, ExamSection, ExamSectionAttemptState, Question, StudentAnswer, ReadingResponse, ReadingTask, ReadingOption
 from courses.reading_service import save_reading_response, toggle_reading_review_flag
 from courses.exam_section_service import save_question_answer, toggle_question_review_flag
@@ -316,6 +317,66 @@ class ExamAttemptV1Tests(TestCase):
         self.assertFalse(ExamActionReceipt.objects.exists())
         self.assertFalse(StudentAnswer.objects.exists())
 
+    def test_applied_receipts_are_bounded_and_evicted_listen_never_replays(self):
+        OperationalSettings.objects.create(exam_receipt_limit=2)
+        self.listening.audio_play_limit = 0
+        self.listening.save()
+        first = self.payload('listen', section_id=self.listening.pk, media_url='http://testserver/media/listen.wav')
+        self.assertEqual(self.post(first).status_code, 200)
+        for _ in range(9):
+            data = self.payload('listen', section_id=self.listening.pk, media_url='http://testserver/media/listen.wav')
+            result = self.post(data)
+            self.assertEqual(result.status_code, 200)
+            self.epoch = result.json()['state']['operation_epoch']
+            self.assertLessEqual(ExamActionReceipt.objects.count(), 2)
+        self.assertFalse(ExamActionReceipt.objects.filter(operation_id=first['operation_id']).exists())
+        self.assertEqual(self.post(first).status_code, 409)
+        self.assertEqual(self.post(data).status_code, 200)  # retained exact retry
+        self.assertEqual(ExamSectionAttemptState.objects.get(section=self.listening).state['plays_used'], 10)
+        result = self.post(dict(first, command='reconcile'))
+        self.assertEqual(result.json()['receipt']['command'], 'unconfirmed_closed')
+        self.assertEqual(ExamActionReceipt.objects.count(), 2)
+
+    def test_receipt_cap_changes_live_preserving_answer_and_other_scope(self):
+        settings_row = OperationalSettings.objects.create(exam_receipt_limit=3)
+        other = ExamActionReceipt.objects.create(student=self.peer, exam=self.exam,
+            operation_id=uuid.uuid4(), command='save', payload_digest='synthetic')
+        first = self.payload()
+        self.post(first)
+        self.post(self.payload(version=1))
+        settings_row.exam_receipt_limit = 1
+        settings_row.save()
+        result = self.post(self.payload(version=2))
+        self.assertEqual(result.status_code, 200)
+        self.assertEqual(ExamActionReceipt.objects.filter(student=self.student).count(), 1)
+        self.assertTrue(ExamActionReceipt.objects.filter(pk=other.pk).exists())
+        self.assertEqual(self.post(first).status_code, 409)
+        self.attempt.refresh_from_db()
+        self.assertEqual(self.attempt.input_revision, 3)
+        answer = StudentAnswer.objects.get()
+        self.assertEqual((answer.selected_choice_id, answer.awarded_score), (self.choice.pk, self.question.points))
+        set_flag('frontend_v1_exam_attempt', enabled=False, reason='Rollback')
+        self.assertEqual(self.post(dict(first, command='reconcile')).json()['receipt']['command'], 'unconfirmed_closed')
+
+    def test_pruning_failure_rolls_back_answer_receipt_and_epoch(self):
+        from django.db.models.query import QuerySet
+        OperationalSettings.objects.create(exam_receipt_limit=1)
+        self.post(self.payload())
+        old_epoch = ExamActionGate.objects.get().epoch
+        old_ids = list(ExamActionReceipt.objects.values_list('pk', flat=True))
+        real_delete = QuerySet.delete
+        def fail_receipt_delete(query):
+            if query.model is ExamActionReceipt:
+                raise ValidationError('Simulated pruning failure')
+            return real_delete(query)
+        with patch.object(QuerySet, 'delete', fail_receipt_delete):
+            result = self.post(self.payload(version=1))
+        self.assertEqual(result.status_code, 400)
+        self.assertEqual(ExamActionGate.objects.get().epoch, old_epoch)
+        self.assertEqual(list(ExamActionReceipt.objects.values_list('pk', flat=True)), old_ids)
+        self.attempt.refresh_from_db()
+        self.assertEqual(self.attempt.input_revision, 1)
+
     def test_unplayable_sources_never_consume_listen_quota(self):
         for source in ('https://outside.example/audio.mp3', '//outside.example/audio.mp3',
                        'http://testserver:8080/audio.mp3', 'http://user@testserver/audio.mp3',
@@ -459,6 +520,15 @@ class ExamAttemptV1ConcurrencyTests(TransactionTestCase):
         self.attempt.refresh_from_db()
         self.assertEqual(self.attempt.input_revision, 1)
         self.assertEqual(ExamActionReceipt.objects.count(), 1)
+
+    def test_eviction_and_parallel_write_cannot_cross_the_epoch_barrier(self):
+        OperationalSettings.objects.create(exam_receipt_limit=1)
+        self.assertEqual(self.client.post(self.url, self.data(), content_type='application/json').status_code, 200)
+        self.assertEqual(sorted(self.race(self.data(version=1), self.data(version=1))), [200, 409])
+        self.assertEqual(ExamActionReceipt.objects.count(), 1)
+        self.attempt.refresh_from_db()
+        self.assertEqual(self.attempt.input_revision, 2)
+        self.assertNotEqual(str(ExamActionGate.objects.get().epoch), self.epoch)
 
     def test_reconcile_racing_save_is_applied_or_cancelled_never_both(self):
         data = self.data()

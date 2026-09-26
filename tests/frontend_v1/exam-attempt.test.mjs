@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
-import {makeRow, dirty, blocked, receive, rebase, packDraft, acknowledgedKey, clockLabel, prepareListening, limitSelections} from '../../static/frontend_v1/js/exam-attempt-state.mjs';
+import {makeRow, dirty, blocked, receive, rebase, packDraft, acknowledgedKey, clockLabel, prepareListening, limitSelections, recoveryMessage} from '../../static/frontend_v1/js/exam-attempt-state.mjs';
 const saved = {choice_id: '1', option_ids: [], answer_text: '', flagged: false, audio_url: '', version: 1};
 test('editing is draft only and blocks finishing', () => {
   const row = makeRow(saved); row.draft.choice_id = '2';
@@ -43,6 +43,18 @@ test('receipt cannot acknowledge another operation, newer remote answer, or reta
 test('timer formats server snapshot only, including zero and unlimited', () => {
   assert.equal(clockLabel(61), 'Serverda qolgan: 1:01'); assert.equal(clockLabel(0), 'Serverda qolgan: 0:00');
   assert.equal(clockLabel(null), 'Vaqt cheklanmagan');
+});
+
+test('an evicted acknowledgement closes uncertainty without claiming a save or discarding draft', () => {
+  const row = makeRow(saved); row.draft.choice_id = '2';
+  const op = {operation_id: 'old', key: 'q', version: 1};
+  const receipt = {id: 'old', command: 'unconfirmed_closed', attempt_id: 1};
+  const remote = {...saved, version: 2};
+  const ack = acknowledgedKey(op, receipt, {attempt_id: 1, answers: {q: remote}});
+  assert.equal(ack, null); receive(row, remote, Boolean(ack));
+  assert.equal(row.draft.choice_id, '2'); assert.equal(row.stale, true);
+  assert.match(recoveryMessage(receipt, null), /hech narsa qayta yuborilmadi/);
+  assert.doesNotMatch(recoveryMessage(receipt, null), /^Amal bajarilmagan/);
 });
 test('persisted draft is a field allowlist, never credentials or audio bytes', () => {
   const row = makeRow(saved);
