@@ -44,6 +44,14 @@ class FlagDefinition:
 
 FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
     FlagDefinition(
+        slug="frontend_v1_auth",
+        label="Frontend V1 — ro‘yxatdan o‘tish va tiklash",
+        description="Register/onboarding/password-reset va mavjud V1 login ko‘rinishi; canonical auth saqlanadi.",
+        default=False,
+        category="Frontend",
+        runbook="OFF qolgan auth sahifalarini legacyga qaytaradi; login learning flag ON bo‘lsa V1da qoladi. Hisob/parol/token o‘zgarmaydi. SMTP va auth release tekshiruvlaridan keyin yoqing.",
+    ),
+    FlagDefinition(
         slug="frontend_v1_settings",
         label="Frontend V1 — qolgan sozlamalar",
         description="Maxfiylik, To‘lov va Imkoniyatlar; canonical xotira/preference/quota saqlanadi.",
@@ -90,7 +98,7 @@ FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
         default=False,
         category="Frontend",
         runbook=(
-            "OFF: uchala sahifa avvalgi template va assetlar bilan ochiladi. "
+            "OFF: dashboard/kurslarim legacy; login auth flag ham OFF bo‘lsa legacy. "
             "ON: Eleventh Trial V1 ko‘rinishi, haqiqiy Django auth/enrollment context. "
             "Ruxsat, progress, baho va ma’lumotlar o‘zgarmaydi. "
             "Faqat tegishli release tekshiruvlaridan keyin yoqing; xatoda o‘chiring."

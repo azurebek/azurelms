@@ -14,6 +14,9 @@
 .p-auth-visibility { flex-shrink: 0; }
 .p-auth-submit { width: 100%; }
 .p-auth-links { display: flex; justify-content: space-between; gap: var(--az-space-3); flex-wrap: wrap; margin-top: var(--az-space-4); }
+.p-auth-content { margin-top: var(--az-space-6); overflow-wrap: anywhere; }
+.p-auth-onboarding { display: grid; gap: var(--az-space-5); }
+.p-auth-heading + .p-auth-notice { margin-top: var(--az-space-5); }
 .s-auth-footer { text-align: center; color: var(--az-muted); font-size: var(--az-text-xs); padding-block: var(--az-space-4); }
 @media (width < 640px) {
   .s-auth-header { padding-inline: var(--az-space-4); }

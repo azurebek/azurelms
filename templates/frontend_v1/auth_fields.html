@@ -1,0 +1,8 @@
+<div class="p-auth-fields">
+  {% for field in form %}<div class="p-auth-field">
+    <label class="c-field__label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {% if field.field.widget.input_type == 'password' %}<div class="p-auth-input">{{ field }}<button class="c-button c-button--secondary p-auth-visibility" type="button" data-auth-toggle aria-controls="{{ field.id_for_label }}" aria-label="{{ field.label }}: ko‘rsatish" aria-pressed="false">Ko‘rsatish</button></div>{% else %}{{ field }}{% endif %}
+    {{ field.errors }}{% if field.help_text %}<p class="c-caption" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</p>{% endif %}
+  </div>{% endfor %}
+  <button class="c-button c-button--primary p-auth-submit" type="submit">{{ submit_label }}{% include "frontend_v1/icon.html" with name="arrow" %}</button>
+</div>

@@ -1,0 +1,4 @@
+{% extends "frontend_v1/auth_base.html" %}
+{% block auth_content %}
+<a class="c-button c-button--primary p-auth-submit" href="{% url 'login' %}{% if next %}?next={{ next|urlencode:'' }}{% endif %}">Hisobga kirish</a>
+{% endblock %}

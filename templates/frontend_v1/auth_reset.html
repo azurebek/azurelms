@@ -1,0 +1,5 @@
+{% extends "frontend_v1/auth_base.html" %}
+{% block auth_content %}
+<form method="post" action="{% url 'password_reset' %}" data-auth-form{% if form.is_bound %} data-auth-unsaved{% endif %}>{% csrf_token %}{% include "frontend_v1/auth_fields.html" with submit_label="Tiklash havolasini so‘rash" %}</form>
+<div class="p-auth-links"><a class="c-text-link" href="{% url 'login' %}">Kirishga qaytish</a></div>
+{% endblock %}
