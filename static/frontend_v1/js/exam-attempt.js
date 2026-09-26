@@ -1,4 +1,4 @@
-import {valueOf, dirty, blocked, makeRow, receive, rebase, answered, packDraft, acknowledgedKey, clockLabel, prepareListening} from './exam-attempt-state.mjs';
+import {valueOf, dirty, blocked, makeRow, receive, rebase, answered, packDraft, acknowledgedKey, clockLabel, prepareListening, limitSelections} from './exam-attempt-state.mjs';
 
 const root = document.querySelector('[data-exam-attempt]');
 if (root) initialize();
@@ -51,13 +51,15 @@ function initialize() {
     for (const form of forms) {
       const key = form.dataset.answer, row = rows[key];
       form.querySelector('fieldset').disabled = locked;
-      const status = row.stale ? 'Boshqa oynada o‘zgargan — qoralama saqlandi.' : row.audioLost ? 'Audio qoralama qayta ochilganda yo‘qoldi. Faylni qayta tanlang yoki qoralamani bekor qiling.' : row.recording ? 'Ovoz yozilmoqda. Yozishni tugating.' : dirty(row) ? 'Qoralama — hali serverda saqlanmagan.' : answered(row.base) ? 'Serverda saqlangan.' : 'Javobsiz.';
+      const question = state.sections.flatMap(section => section.questions).find(item => item.key === key);
+      const overLimit = question?.kind === 'multi' && limitSelections([...form.querySelectorAll('[name=option_ids]')], question.max_selections);
+      const status = row.stale ? 'Boshqa oynada o‘zgargan — qoralama saqlandi.' : overLimit ? `Ko‘pi bilan ${question.max_selections} ta variant tanlang.` : row.audioLost ? 'Audio qoralama qayta ochilganda yo‘qoldi. Faylni qayta tanlang yoki qoralamani bekor qiling.' : row.recording ? 'Ovoz yozilmoqda. Yozishni tugating.' : dirty(row) ? 'Qoralama — hali serverda saqlanmagan.' : answered(row.base) ? 'Serverda saqlangan.' : 'Javobsiz.';
       form.querySelector('[data-answer-status]').textContent = status;
       root.querySelector(`[data-map="${key}"]`).textContent = row.stale ? 'O‘zgargan' : dirty(row) ? 'Qoralama' : row.base.flagged ? 'Tekshirish' : answered(row.base) ? 'Saqlangan' : 'Javobsiz';
       form.querySelector('[data-stale]').hidden = !row.stale;
       form.querySelector('[data-server-answer]').textContent = serverText(key, row.server);
       form.querySelector('[data-rebase]').disabled = locked;
-      form.querySelector('[type=submit]').disabled = locked || row.stale || row.recording || row.audioLost || !dirty(row);
+      form.querySelector('[type=submit]').disabled = locked || overLimit || row.stale || row.recording || row.audioLost || !dirty(row);
       const audio = form.querySelector('[data-saved-audio]');
       if (audio) {
         audio.hidden = !row.server.audio_url;

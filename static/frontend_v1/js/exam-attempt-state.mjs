@@ -46,6 +46,12 @@ export function clockLabel(seconds) {
   return `Serverda qolgan: ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
 }
 
+export function limitSelections(inputs, maximum) {
+  const selected = inputs.filter(input => input.checked).length;
+  for (const input of inputs) input.disabled = !input.checked && selected >= maximum;
+  return selected > maximum;
+}
+
 // Load without playing or spending a server listen. No timeout policy: the
 // visible cancel control aborts a stalled load without issuing a mutation.
 export function prepareListening(player, source, signal) {

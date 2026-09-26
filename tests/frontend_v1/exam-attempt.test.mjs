@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
-import {makeRow, dirty, blocked, receive, rebase, packDraft, acknowledgedKey, clockLabel, prepareListening} from '../../static/frontend_v1/js/exam-attempt-state.mjs';
+import {makeRow, dirty, blocked, receive, rebase, packDraft, acknowledgedKey, clockLabel, prepareListening, limitSelections} from '../../static/frontend_v1/js/exam-attempt-state.mjs';
 const saved = {choice_id: '1', option_ids: [], answer_text: '', flagged: false, audio_url: '', version: 1};
 test('editing is draft only and blocks finishing', () => {
   const row = makeRow(saved); row.draft.choice_id = '2';
@@ -95,4 +95,17 @@ test('an already cancelled preload does not attach or start a source', async () 
   const player = new AudioDouble(), controller = new AbortController(); controller.abort();
   await assert.rejects(prepareListening(player, '/a.wav', controller.signal), /media-cancelled/);
   assert.equal(player.src, undefined); assert.equal(player.plays, 0);
+});
+
+test('configured selection cap disables only unselected options and allows deselection', () => {
+  const inputs = [{checked:true}, {checked:true}, {checked:false}];
+  assert.equal(limitSelections(inputs, 2), false);
+  assert.deepEqual(inputs.map(input=>input.disabled), [false,false,true]);
+  inputs[0].checked = false; limitSelections(inputs, 2);
+  assert.deepEqual(inputs.map(input=>input.disabled), [false,false,false]);
+});
+test('an over-cap restored draft is invalid but checked controls remain editable', () => {
+  const inputs = [{checked:true}, {checked:true}, {checked:true}, {checked:false}];
+  assert.equal(limitSelections(inputs, 2), true);
+  assert.deepEqual(inputs.map(input=>input.disabled), [false,false,false,true]);
 });

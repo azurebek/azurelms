@@ -53,11 +53,12 @@ def exam_snapshot(exam, attempt, request):
                     questions.append({'key': key, 'anchor': key.replace(':', '-'), 'kind': kind,
                                       'prompt': item['prompt'], 'context': task['body'], 'instructions': task['instructions'],
                                       'choices': item['options'] or task['shared_options'], 'title': task['title'],
-                                      'max_words': task['max_words_per_answer'], 'max_selections': task['max_selections_per_item']})
+                                      'max_words': task['max_words_per_answer'], 'max_selections': task['max_selections_per_item'],
+                                      'allow_review_flag': task['allow_review_flag']})
                     data['answers'][key] = {'choice_id': str(response['selected_option_id'] or ''),
                                            'option_ids': sorted(str(value) for value in response['selected_option_ids']),
                                            'answer_text': response['text_answer'], 'audio_url': '',
-                                           'flagged': response['is_flagged_for_review'], 'version': attempt.answer_versions.get(key, 0)}
+                                           'flagged': task['allow_review_flag'] and response['is_flagged_for_review'], 'version': attempt.answer_versions.get(key, 0)}
         else:
             for question in payload['questions']:
                 response = question['response']
@@ -65,7 +66,8 @@ def exam_snapshot(exam, attempt, request):
                 questions.append({'key': key, 'anchor': key.replace(':', '-'),
                                   'kind': 'choice' if question['choices'] else 'audio' if section.section_type == 'speaking' else 'text',
                                   'prompt': question['text'], 'context': '', 'choices': question['choices'],
-                                  'title': section.title, 'min_words': question['min_word_count'], 'max_words': question['max_word_count']})
+                                  'title': section.title, 'min_words': question['min_word_count'], 'max_words': question['max_word_count'],
+                                  'allow_review_flag': True})
                 data['answers'][key] = {'choice_id': str(response['selected_choice_id'] or ''), 'option_ids': [],
                                        'answer_text': response['answer_text'], 'audio_url': response['audio_url'],
                                        'flagged': response['is_flagged_for_review'], 'version': attempt.answer_versions.get(key, 0)}

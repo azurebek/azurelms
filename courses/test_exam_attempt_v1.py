@@ -1,16 +1,19 @@
 import json
+import re
 import uuid
 from datetime import timedelta
 from unittest.mock import patch
 
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.exceptions import ValidationError
 from django.test import TestCase, Client, TransactionTestCase, skipUnlessDBFeature, override_settings
 from django.conf import settings
 from django.urls import reverse
 from django.utils import timezone
 
 from core.flags import set_flag
-from courses.models import ExamAttempt, ExamActionGate, ExamActionReceipt, ExamSection, ExamSectionAttemptState, Question, StudentAnswer, ReadingResponse
+from courses.models import ExamAttempt, ExamActionGate, ExamActionReceipt, ExamSection, ExamSectionAttemptState, Question, StudentAnswer, ReadingResponse, ReadingTask, ReadingOption
+from courses.reading_service import save_reading_response, toggle_reading_review_flag
 from courses.exam_section_service import save_question_answer, toggle_question_review_flag
 from courses import test_exam_api_security as fixtures
 from cohorts.models import Enrollment
@@ -355,6 +358,61 @@ class ExamAttemptV1Tests(TestCase):
             legacy = strict_client.get(self.page)['Content-Security-Policy']
             self.assertIn("media-src 'self'", legacy)
             self.assertNotIn('blob:', legacy)
+
+    def test_multi_select_cap_is_canonical_and_invalid_save_is_no_write(self):
+        ReadingTask.objects.filter(pk=self.item.task_id).update(task_type='multiple_choice', max_selections_per_item=2)
+        self.item.refresh_from_db()
+        options = [ReadingOption.objects.create(item=self.item, text=f'Option {i}', order=i, is_correct=i < 2).pk for i in range(3)]
+        too_many = {'option_ids': options, 'flagged': False}
+        self.assertEqual(self.post(self.payload(key=f'r:{self.item.pk}', value=too_many)).status_code, 400)
+        self.assertFalse(ReadingResponse.objects.exists())
+        self.assertFalse(ExamActionReceipt.objects.exists())
+        with self.assertRaises(ValidationError):
+            save_reading_response(attempt=self.attempt, item=self.item, payload={'option_ids': options})
+        allowed = self.payload(key=f'r:{self.item.pk}', value={'option_ids': options[:2], 'flagged': False})
+        self.assertEqual(self.post(allowed).status_code, 200)
+        self.assertEqual(ReadingResponse.objects.get().awarded_score, self.item.points)
+        self.assertEqual(self.post(self.payload(key=f'r:{self.item.pk}', version=1, value=too_many)).status_code, 400)
+        self.attempt.refresh_from_db()
+        self.assertEqual(self.attempt.input_revision, 1)
+        self.assertEqual(ReadingResponse.objects.get().selected_option_ids, options[:2])
+        self.assertEqual(ExamActionReceipt.objects.count(), 1)
+
+    def test_disabled_review_flag_not_rendered_and_server_rejects_forged_flag(self):
+        ReadingTask.objects.filter(pk=self.item.task_id).update(allow_review_flag=False)
+        response = self.client.get(self.page)
+        form = re.search(rf'<form data-answer="r:{self.item.pk}".*?</form>', response.content.decode(), re.S).group()
+        self.assertNotIn('name="flagged"', form)
+        questions = [q for section in response.context['attempt_state']['sections'] for q in section['questions']]
+        self.assertFalse(next(q for q in questions if q['key'] == f'r:{self.item.pk}')['allow_review_flag'])
+        self.assertTrue(next(q for q in questions if q['key'] == self.key)['allow_review_flag'])
+        data = self.payload(key=f'r:{self.item.pk}', value={'answer_text': 'ankara', 'flagged': True})
+        self.assertEqual(self.post(data).status_code, 400)
+        self.assertFalse(ReadingResponse.objects.exists())
+        self.assertFalse(ExamActionReceipt.objects.exists())
+        data['value']['flagged'] = False
+        self.assertEqual(self.post(data).status_code, 200)
+        self.assertFalse(ReadingResponse.objects.get().is_flagged_for_review)
+
+    def test_disabled_flag_cannot_bypass_canonical_toggle_or_save_branches(self):
+        for kind in ('single_choice', 'matching', 'text_input'):
+            ReadingTask.objects.filter(pk=self.item.task_id).update(task_type=kind, allow_review_flag=False)
+            self.item.refresh_from_db()
+            with self.assertRaises(ValidationError):
+                save_reading_response(attempt=self.attempt, item=self.item, payload={'flag_for_review': True})
+            for flagged in (None, True):
+                with self.assertRaises(ValidationError):
+                    toggle_reading_review_flag(attempt=self.attempt, item=self.item, flagged=flagged)
+        self.assertFalse(ReadingResponse.objects.exists())
+        self.attempt.refresh_from_db()
+        self.assertEqual(self.attempt.input_revision, 0)
+
+    def test_previously_flagged_disabled_task_remains_answerable_without_hidden_flag(self):
+        save_reading_response(attempt=self.attempt, item=self.item, payload={'text_answer': 'ankara', 'flag_for_review': True})
+        ReadingTask.objects.filter(pk=self.item.task_id).update(allow_review_flag=False)
+        self.assertFalse(self.client.get(self.url).json()['state']['answers'][f'r:{self.item.pk}']['flagged'])
+        self.assertEqual(self.post(self.payload(key=f'r:{self.item.pk}', version=1, value={'answer_text': 'ankara', 'flagged': False})).status_code, 200)
+        self.assertFalse(ReadingResponse.objects.get().is_flagged_for_review)
 
 
 @skipUnlessDBFeature('has_select_for_update')

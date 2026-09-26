@@ -250,6 +250,9 @@ def save_reading_response(*, attempt, item, payload):
     selected_option = None
     selected_option_ids = []
     text_answer = (payload.get("text_answer") or "").strip()
+    if not task.allow_review_flag and payload.get('flag_for_review'):
+        raise ValidationError('Ustoz bu topshiriq uchun tekshirish belgisini o‘chirgan.')
+    review_flag = task.allow_review_flag and bool(payload.get('flag_for_review', response.is_flagged_for_review))
 
     if task.task_type == "single_choice":
         option_id = payload.get("option_id")
@@ -259,7 +262,7 @@ def save_reading_response(*, attempt, item, payload):
             response.text_answer = ""
             response.awarded_score = 0
             response.is_graded = False
-            response.is_flagged_for_review = bool(payload.get("flag_for_review", response.is_flagged_for_review))
+            response.is_flagged_for_review = review_flag
             response.full_clean()
             response.save()
             bump_answer_revision(attempt, f'r:{item.pk}')
@@ -270,6 +273,8 @@ def save_reading_response(*, attempt, item, payload):
 
     elif task.task_type == "multiple_choice":
         selected_option_ids = _resolve_selected_option_ids(item, payload.get("option_ids"))
+        if len(selected_option_ids) > task.max_selections_per_item:
+            raise ValidationError(f'Ko‘pi bilan {task.max_selections_per_item} ta variant tanlang.')
 
     elif task.task_type in READING_TASK_SHARED_OPTION_TYPES:
         option_id = payload.get("option_id")
@@ -279,7 +284,7 @@ def save_reading_response(*, attempt, item, payload):
             response.text_answer = ""
             response.awarded_score = 0
             response.is_graded = False
-            response.is_flagged_for_review = bool(payload.get("flag_for_review", response.is_flagged_for_review))
+            response.is_flagged_for_review = review_flag
             response.full_clean()
             response.save()
             bump_answer_revision(attempt, f'r:{item.pk}')
@@ -304,7 +309,7 @@ def save_reading_response(*, attempt, item, payload):
     response.text_answer = text_answer
     response.awarded_score = awarded_score
     response.is_graded = is_graded
-    response.is_flagged_for_review = bool(payload.get("flag_for_review", response.is_flagged_for_review))
+    response.is_flagged_for_review = review_flag
     response.full_clean()
     response.save()
     bump_answer_revision(attempt, f'r:{item.pk}')
@@ -324,6 +329,8 @@ def save_reading_response(*, attempt, item, payload):
 def toggle_reading_review_flag(*, attempt, item, flagged=None):
     if item.task.section.exam_id != attempt.exam_id:
         raise ValidationError("Reading item ushbu imtihon urinishiga tegishli emas.")
+    if not item.task.allow_review_flag and (flagged is None or bool(flagged)):
+        raise ValidationError('Ustoz bu topshiriq uchun tekshirish belgisini o‘chirgan.')
     attempt = lock_writable_attempt(attempt)
     response, _ = ReadingResponse.objects.select_for_update().get_or_create(
         attempt=attempt,
