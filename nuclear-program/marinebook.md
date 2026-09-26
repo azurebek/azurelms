@@ -23,16 +23,20 @@ guruh new/edit/members qurildi. Source-shaped seat/tier/receipt guardlar,
 native reason/consent/result va stale/replay/unknown/reset tekshirildi.
 Runtime, DB, checkout/purchase va AWS o‘zgarmadi; farq so‘rovi metadata-only.
 
-- Branch `codex/q15b-catalog-prototype`; dalil commit **`773b5e9`**.
+- Branch `codex/q15b-catalog-prototype`; dalil commit **`773b5e9`**,
+  yakuniy regression/checkpoint dalili **`921de4c`**.
   [Q15b dalili](frontend-v1/Q15B-CATALOG-PROTOTYPE.md).
 - Trial cwd `venv/Scripts/python.exe manage.py test tests --verbosity 1`:
-  **656 PASS** (283.950s), yangi26; yakuniy focused27 PASS (5.144s).
+  **657 full PASS** (229.072s), old656 ham PASS. Yakuniy nullable legacy
+  target fixdan keyin **28 focused PASS** (2.157s); current inventory658,
+  oxirgi full657 shu final localized fixdan oldin. Exact result draft-clear
+  boshqa a’zo/yangi revision qoralamasini o‘chirmasligi browserda ham PASS.
   Provider-free check0; `node --test <expanded tests/*.test.mjs>` **174 PASS**;
   JS syntax va `git diff --check` PASS. CSS token typo topilib tuzatildi.
 - IAB5 route ×5 width ×2 tema =50, overflow0; create/readback/draft,
   tier consent422→transfer, amount request, unknown→result, menu/focus PASS.
-- Checkpoint `packet-69-20260927-015747.zip`,501 fayl hash-verified;
-  SHA256 `913A1C27DEEF545A3617B7C3993B68B0F8B4AE3EBA40A4F0026A6832BEFD6E17`.
+- Final checkpoint `packet-69-20260927-020555.zip`,501 fayl hash-verified;
+  SHA256 `ECC5E5B82643A0E350DDFA7C1E5C368A68EF096BE8B9A0A1E2E2A9DCD69482BF`.
   Source/screenshots ignored lokal scope, Paket68 saqlandi.
 - Joriy108 route /63 template /87 source nomi. Q15b U07–U11 lokal yopildi;
   **31 UI +3 handler =34 band,8 keyingi qadam**. Navbat Q16a (8 URL).
