@@ -37,6 +37,9 @@ frontend_v1_exam_attempt, additive courses0022; AWS/prototype o‘zgarmadi.
   qabul qilinmagan. Keyingi UI: I8c review, I9 Classbook, certificate details.
 - PR139 reconciliation: MERGED `b8c1604`, CI36221144145 all3PASS,
   Python2183/Node95; final dalil security hujjatiga bog‘landi.
+- Final mixed-renderer lock-order hardening `948878c`: legacy/V1 user →
+  attempt tartibi; beshinchi PG race testi. Focused111 OK skip5 (9.839s).
+  [PR140](https://github.com/azurebek/azurelms/pull/140) final CI/reviewda.
 
 ## 2026-09-26 [Codex]: I8 attempt API — joriy ruxsat va unpublished grade himoyasi
 

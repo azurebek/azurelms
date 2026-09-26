@@ -152,7 +152,8 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
     `fc80c7f`, `deef10c`; full2210 OK skip49, final focused86 OK skip4,
     Node104 PASS; 12 width readback overflow0, stale/unknown browser proof.
     [Dalil va native release chegarasi](I8B-ATTEMPT.md). Additive courses0022.
-  - [ ] I8b required CI/review/main (4 PG race testi ham).
+  - [ ] I8b required CI/review/main (5 PG race testi ham).
+    Final lock-order `948878c`, focused111 OK skip5 (9.839s), Node104.
   - [ ] I8c teacher review UI va stale-form confirmation.
   - [ ] I8 AWS/native-device release.
 - [ ] **I9 — Classbook.** Preparation→session→activity→result; multi-user,

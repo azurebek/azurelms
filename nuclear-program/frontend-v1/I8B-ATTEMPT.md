@@ -121,6 +121,15 @@ Oddiy oqimda console0; synthetic 503 va stale409 faultlari kutilgan transport
 xatolari. Dastlabki QA matching fixture noto‘g‘ri task_type ishlatgan edi;
 modelning `matching` qiymatiga tuzatilib real matching save qayta o‘tdi.
 
+Final lock-order hardening `948878c`: legacy va V1 APIlar bir xil
+user → attempt tartibida; legacy submit streak/FK yozuvi bilan aralash
+ochilgan eski-yangi oynada lock inversion oldi olindi. Beshinchi PG testi
+legacy-submit/V1-save racing invariantini tekshiradi. Final focused
+`manage.py test courses.test_exam_attempt_v1 courses.test_exam_api_security
+courses.test_frontend_v1_exams users.test_frontend_v1 --noinput`:
+**111 OK, skip5, 9.839s**. Besh skip SQLite’da row-lock imkoniyati yo‘qligi;
+final full/PG count PR140 CI’da. Oldingi 4-skip sonlar o‘sha checkpoint dalili.
+
 ### Ochiq release chegarasi
 
 Native iOS/Android microphone permission/recording/codec/upload va real audio,
