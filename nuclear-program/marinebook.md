@@ -24,6 +24,9 @@ saqlandi; yangi default-OFF auth flag login uchun learning flag bilan OR.
 Yangi prototip, model/migration yoki AWS deploy yo‘q.
 
 - Branch: `codex/frontend-v1-auth-remainder`; runtime `ec0ff27`.
+- PR133 review follow-up `ac2d13b`: Telegram authenticated/used redirect
+  dirty form guardga tushmaydi; pending/error/cancel himoyasi va pageshow
+  reset saqlandi. Uch cross-controller regression, Node82 PASS.
 - Offline focused100 OK (8.906s), final auth19 OK (1.819s); full2019 OK
   (skip45, 122.653s; oxirgi help-text tarjimasidan oldin), Node79 PASS.
   `manage.py check` issue0; migration drift yo‘q; diff check PASS.
@@ -31,7 +34,8 @@ Yangi prototip, model/migration yoki AWS deploy yo‘q.
   dark/light, native validation/toggle/login/keyboard skip va dirty exit.
   Hisob yaratish/parolni o‘zgartirish browserda emas, backend clientda.
 - [Scope, test commands va release chegaralari](frontend-v1/I5B2-AUTH.md).
-  CI/review/main ochiq; SMTP/native device/AWS alohida. Keyingi I5:
+  Final CI/review/main dalili [PR133 acceptance comment](https://github.com/azurebek/azurelms/pull/133)da;
+  SMTP/native device/AWS alohida. Keyingi I5:
   records/help/notifications; I6–I9 hali ochiq.
 - Oldingi I5c.1 yakuni fresh qayd: PR132 MERGED `dd198b7`,
   CI36206802175 all3PASS (SQLite2000 skip44, PostgreSQL2000 skip20, Node73).

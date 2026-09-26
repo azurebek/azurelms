@@ -34,6 +34,9 @@ invalid/expired token holatlari ham shu paketda. Yangi prototip yo‘q.
 
 - [x] ~~Runtime, regressiya va lokal browser.~~ `ec0ff27`.
 - [ ] Required CI/review/main.
+- PR: [#133](https://github.com/azurebek/azurelms/pull/133).
+  Merge holati va final CI run/SHA uchun PRdagi yakuniy acceptance comment
+  authoritative; quyidagi lokal yozuv o‘sha remote natijani oldindan da’vo qilmaydi.
 - [ ] AWS/SMTP/native-device qabuli — alohida.
 
 Oldingi I5c.1 PR132 MERGED `dd198b7`; final CI36206802175 all3PASS:
@@ -91,3 +94,17 @@ unit testda; real network loss yoki provider qabuli deb da’vo qilinmaydi.
 - AWS deploy/SMTP delivery va Android/iOS/screen-reader qabuli **NOT TESTED**.
   Auth flagni production’da yoqishdan oldin shu release gate bajariladi.
 - Keyingi I5: records/help/notifications. I6–I9 alohida ochiq.
+
+## Review follow-up — `ac2d13b`
+
+PR133 P2: register draft/autofill va Telegram transport bir sahifada
+ishlaganda authenticated/used javobidan keyingi canonical login redirect
+beforeunload guardga tushishi mumkin edi. Faqat shu ikki canonical holat
+uchun `frontend-v1:auth-redirect` UI event guardni chiqaradi; LoginView
+session va safe-nextni avvalgidek qayta tekshiradi. Event auth credential
+yoki login muvaffaqiyatining server dalili emas.
+
+Pending/expired/network-error/cancel guardni o‘chirmaydi; pageshow himoyani
+qayta tiklaydi. Ikkala production scriptni bir contextda yugurtiruvchi
+3 yangi Node regression bilan **82 PASS**, 314.8868ms. Real Telegram bot
+yoki production account ishlatilmadi. Final HEAD required CI qayta kutiladi.

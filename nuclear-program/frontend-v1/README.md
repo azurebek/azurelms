@@ -34,7 +34,9 @@ Review fix `725d47c`: monotonic preference counter va confirmed-ID clear;
 additive users0022 migration. AWS deploy alohida.
 [I5b.2 Register/reset/onboarding](I5B2-AUTH.md) lokal tayyor `ec0ff27`:
 100 focused, 2019 full (skip45), 79 Node; 42 responsive o‘lchov overflow0.
-Auth CI/review/integratsiya ochiq. Keyingi port records/help/notifications.
+PR133 review fix `ac2d13b`: Telegram-success redirect dirty guarddan chiqadi;
+Node82 PASS. Final CI/integratsiya [PR133](https://github.com/azurebek/azurelms/pull/133)
+acceptance commentida qayd etiladi. Keyingi port records/help/notifications.
 I4b AI adapteri PR #130 bilan main’da `a25cf4b`:
 [scope, compact transcript va tekshiruv](I4B-AI-MESSENGER.md).
 1961 Python OK/61 Node PASS; final CI `36192585672` uchala PASS;
