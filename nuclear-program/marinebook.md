@@ -16,6 +16,27 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-26 [Codex]: I5d — olti records/support sahifasi real V1ga ulandi
+
+Sertifikatlar ro‘yxati, learner davomat, obunalar/cheklar, guruh reytingi,
+bildirishnomalar va yordam frozen shellga ulandi. Canonical XP/access/payment
+va sertifikat qoidasi saqlandi; alohida default-OFF renderer flag.
+
+- Branch `codex/frontend-v1-records-support`; runtime `d3aa3dc`.
+- Offline `manage.py test users cohorts subscriptions --noinput --verbosity 0`:
+  508 OK (skip6,30.929s); full2040 OK (skip45,114.098s); Node87 PASS.
+  Final huge-year guarddan keyin focused records21 OK (2.402s).
+  check issue0, migration drift yo‘q, diff check PASS.
+- IAB8061 temporary DB: 48 responsive readback overflow0, dark/light,
+  explicit filter/Back, notification single/read-all PRG, FAQ/menu keyboard.
+  Read-all barcha recipient unread scope; stable pagination, no fake ack.
+- [Scope, commands va rollback](frontend-v1/I5D-RECORDS-SUPPORT.md).
+  Required CI/review/main keyingi gate; AWS/device alohida. Certificate
+  detail/appendix legacy; keyingi katta port I6 library/editor, so‘ng I7–I9.
+- Oldingi PR133 MERGED `75bba33`, CI36208937362 all3PASS, Node82;
+  auth tracker pending qaydlari shu dalil bilan yangilandi. Yangi prototip,
+  migration, AWS deploy yoki real provider/user ma’lumotiga tegilmadi.
+
 ## 2026-09-26 [Codex]: I5b.2 — qolgan auth sahifalari real V1ga ulandi
 
 Register/closed, optional onboarding va password-resetning to‘rt bosqichi

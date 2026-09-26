@@ -108,3 +108,12 @@ Pending/expired/network-error/cancel guardni o‘chirmaydi; pageshow himoyani
 qayta tiklaydi. Ikkala production scriptni bir contextda yugurtiruvchi
 3 yangi Node regression bilan **82 PASS**, 314.8868ms. Real Telegram bot
 yoki production account ishlatilmadi. Final HEAD required CI qayta kutiladi.
+
+## Yakun — keyingi paket boshida fresh tasdiqlangan
+
+PR133 MERGED `75bba33754470d0c6c377ac6ae38d7551b20efdf`.
+Final CI36208937362 uch required job PASS: SQLite2019 skip44,
+PostgreSQL2019 skip20, Node82. Final lokal full2019 OK, skip45,117.077s.
+Review thread resolved, final head `a6923c4` reviewida yangi topilma yo‘q.
+[Acceptance comment](https://github.com/azurebek/azurelms/pull/133#issuecomment-5842048014).
+Yuqoridagi pending-CI qaydlari tarixiy; AWS/SMTP/device hali ochiq.
