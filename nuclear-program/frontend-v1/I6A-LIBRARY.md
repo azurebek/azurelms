@@ -1,5 +1,10 @@
 # I6a — kutubxonani real kodga ko‘chirish
 
+2026-09-26 follow-up: owner-approved [same-timestamp ABA guard](LIBRARY-ABA.md),
+runtime `453b6dd`, additive library0002 edit_revision. Existing file version
+and storage behavior stay unchanged; the V1 fingerprint no longer relies on
+clock advancement for resource.save. This follow-up requires fresh CI/release.
+
 ## Admission — runtime tahriridan oldin
 
 **ADMIT — launch-critical.** Owner tasdiqlagan frozen V1: kutubxona list,

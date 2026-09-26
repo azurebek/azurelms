@@ -16,6 +16,24 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-26 [Codex]: Owner-approved library same-timestamp ABA himoyasi
+
+Full suite topgan existing kutubxona xatosi owner ruxsatidan keyin alohida
+`453b6dd`da yopildi. LibraryResource.save persisted edit_revisionni lock
+ostida oshiradi; V1 form fingerprint soatga qaram emas. File version/storage
+va ma’lumotlar o‘zgartirilmadi, additive library0002.
+
+- Branch `codex/frontend-v1-exam-attempt` (PR140 release blocker follow-up).
+- Provider-free `manage.py test library courses.test_exam_attempt_v1 --noinput`:
+  112 OK skip6 (10.349s); check0/drift0. Yangi skip PG-only parallel-save
+  sinovi; qolgan5 exam PG race. Original controlled same-clock assertion
+  endi PASS (0.060s), test susaytirilmadi.
+- Final provider-free `venv/Scripts/python.exe manage.py test --noinput`:
+  **2229 OK skip51 (145.501s)**; Node109 PASS. Old full2225 failure yopildi,
+  frozen-clock regression doimiy testda. Assertion/skip bilan yashirilmadi.
+- [Admission/chegara/dalil](frontend-v1/LIBRARY-ABA.md). Fresh CI/review/main
+  acceptance kutilmoqda; AWS/current DB/prototype o‘zgarmadi.
+
 ## 2026-09-26 [Codex]: I8b review — bounded cancel va strict-CSP audio
 
 Owner davom ettirishni tasdiqlagach PR140 P1/P2 lokal yopildi. Audio source

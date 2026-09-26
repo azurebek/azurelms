@@ -163,6 +163,10 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
     full2225da unrelated existing library ABA test1 FAIL; same-timestamp
     controlled repro tasdiqlandi, owner yo‘nalishi kutilmoqda. Old head12f9c4e
     CI36225064864 all3PASS yangi full failure’ni yashirmaydi.
+    Owner library fixga ruxsat berdi: `453b6dd`, additive library0002.
+    [Same-clock ABA guard](LIBRARY-ABA.md), focused112 OK skip6, controlled
+    same-clock repro PASS. Final full2229 OK skip51 (145.501s), Node109 PASS.
+    Fresh required CI/review/main acceptance kutilmoqda.
   - [ ] I8c teacher review UI va stale-form confirmation.
   - [ ] I8 AWS/native-device release.
 - [ ] **I9 — Classbook.** Preparation→session→activity→result; multi-user,

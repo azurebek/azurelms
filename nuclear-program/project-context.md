@@ -52,6 +52,13 @@ JSON save orqali olinmaydi; existing validated private upload qoladi.
 Xavfsizlik renderer flagidan mustaqil, migration yo‘q.
 [Qamrov va concurrency chegarasi](frontend-v1/I8-API-SECURITY.md).
 
+LibraryResource metadata save (2026-09-26) row lock ostida persisted
+`edit_revision`ni oshiradi; bu file `version`dan alohida (additive library0002).
+V1 HMAC shu counterga ham bog‘liq: bir timestampdagi A→B→A eski formani
+yangi deb ko‘rsatmaydi. Partial/admin/legacy model.save ham qatnashadi;
+empty update_fields no-op. Bulk/SQL yoki resource.save’siz tag-only yozuvlar
+global counter kafolatiga kirmaydi. [Qamrov](frontend-v1/LIBRARY-ABA.md).
+
 I6b `frontend_v1_editors` default OFF: existing course list/create/edit,
 explicit lesson index/edit va per-link settings/reorder/detach. Adapter
 `core/frontend_v1_editors.py`; canonical forms/teacher scope/services

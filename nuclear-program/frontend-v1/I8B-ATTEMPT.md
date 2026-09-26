@@ -1,11 +1,22 @@
 # I8b — real imtihon topshirish
 
-**MERGE HELD — independent library ABA regression, 2026-09-26.** I8b review
-fixlar `6085156`, `425ecc3`da. Yangi imtihon/canonical reading slice PASS;
-yakuniy full suite esa library’dagi mavjud clock-dependent ABA himoyasida
-yiqildi. Ownerga alohida tor tuzatish uchun savol yuborildi. Merge/AWS yo‘q.
+**FINAL VALIDATION — 2026-09-26.** I8b review fixlar `6085156`, `425ecc3`da.
+Owner library ABA fixni ham tasdiqladi; alohida `453b6dd` commitda
+clock-independent edit counter qo‘shildi. Old full failure ostida tarixiy
+dalil saqlandi; yangi full **2229 OK skip51 (145.501s)**. Fresh CI/review
+acceptance kutilmoqda. AWS yo‘q.
+[Library admission va dalil](LIBRARY-ABA.md).
 
-### Latest checkpoint — reading config parity
+### Final local checkpoint — library guard included
+
+- Runtime `453b6dd`: clock-independent, row-locked library save revision;
+  owner-approved additive library0002. Focused library/exam112 OK skip6,
+  controlled original same-clock test PASS. Final full2229 OK skip51;
+  Node109 PASS, check0/drift0. Six domain concurrency tests require PG CI.
+- All four existing PR140 review findings have implementation/test replies
+  and resolved threads. Fresh head CI/review and main acceptance still open.
+
+### Previous checkpoint — reading config parity and discovered blocker
 
 - Runtime `425ecc3`: canonical multi-select cap validation, V1 checkbox cap,
   disabled review-flag projection/control va canonical save/toggle rejection.
@@ -21,8 +32,9 @@ yiqildi. Ownerga alohida tor tuzatish uchun savol yuborildi. Merge/AWS yo‘q.
   original test/assertion bilan controlled repro1 FAIL (0.032s).
   `library/frontend_v1.py` snapshot `updated_at`ga suyanadi; bir clock tickda
   A→B→A bo‘lsa fingerprint teng. Bu uch library fayli baseline `b8c1604`dan
-  o‘zgarmagan (`git diff b8c1604 -- library/...` empty). Kutubxona runtime/test
-  o‘zgartirilmadi, assertion susaytirilmadi, yangi full PASS da’vosi yo‘q.
+  o‘zgarmagan (`git diff b8c1604 -- library/...` empty). Shu checkpointda
+  library runtime/test o‘zgartirilmagan edi; keyin owner-approved `453b6dd`
+  bilan tuzatildi. Assertion susaytirilmadi; yangi full dalili yuqorida.
 - Old head12f9c4e CI36225064864 **all3PASS** (SQLite5m47s, PG4m2s,
   security2m0s). Bu eski checkpoint, `425ecc3` uchun CI o‘rnini bosmaydi.
 

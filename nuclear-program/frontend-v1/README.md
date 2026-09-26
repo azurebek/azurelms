@@ -81,6 +81,9 @@ Node107 PASS; [fresh evidence](I8B-ATTEMPT.md). AWSga chiqarilmagan.
 Second review `425ecc3` reading cap/disabled flagni ham tuzatdi: courses265
 OK/Node109. Final full2225da existing library same-timestamp ABA1 FAIL;
 merge held, ownerga alohida fix savoli berildi. I8b main’da deb qabul qilmang.
+Owner roziligidan keyin library guard `453b6dd`da tuzatildi (library0002);
+same-clock regression endi PASS. [Qamrov](LIBRARY-ABA.md). Final full2229
+OK skip51 (145.501s); fresh CI/review/main acceptance ochiq.
 I4b AI adapteri PR #130 bilan main’da `a25cf4b`:
 [scope, compact transcript va tekshiruv](I4B-AI-MESSENGER.md).
 1961 Python OK/61 Node PASS; final CI `36192585672` uchala PASS;
