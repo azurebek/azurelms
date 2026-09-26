@@ -79,6 +79,9 @@ def prepare_review(request, context, attempt):
     never whatever happens to be typed into the independent draft form.
     """
     revision = review_snapshot(request.user, attempt)
+    section_ids = set(attempt.exam.sections.values_list('pk', flat=True))
+    saved_section_ids = set(attempt.section_reviews.values_list('section_id', flat=True))
+    publish_ready = bool(section_ids) and section_ids.issubset(saved_section_ids)
     data = request.POST.copy() if request.method == 'POST' else None
     publishing = bool(data is not None and data.get('action') == 'finalize')
     form = ExamReviewForm(data, attempt=attempt, publish=publishing,
@@ -87,6 +90,9 @@ def prepare_review(request, context, attempt):
     if data is not None:
         status = 400
         valid = form.is_valid()
+        if publishing and not publish_ready:
+            form.add_error(None, 'Har bir bo‘lim bali avval qoralamada saqlanishi kerak. Hali saqlanmagan bo‘lim bor yoki imtihon bo‘sh; natija e’lon qilinmadi.')
+            valid = False
         if not constant_time_compare(data.get('revision', ''), revision):
             status = 409
             form.add_error(None, 'Saqlangan holat o‘zgargan. Qoralamangiz quyida qoldi. Joriy ball va izohlarni solishtiring, so‘ng qayta tasdiqlang.')
@@ -134,6 +140,7 @@ def prepare_review(request, context, attempt):
                              reading=[r for r in reading if r.item.task.section_id == section.pk],
                              score=form[f'score_{section.pk}'], feedback=form[f'feedback_{section.pk}']))
     context.update(attempt=attempt, review_form=form, publish_form=publish_form,
+                   publish_ready=publish_ready,
                    review_errors=errors, sections=sections,
                    saved_total=sum((r.awarded_score for r in reviews.values()), Decimal(0)),
                    exam_max=sum(s.max_score for s in attempt.exam.sections.all()),

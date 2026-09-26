@@ -112,6 +112,27 @@ class ExamTeacherV1Tests(TestCase):
         self.client.post(self.url, self.payload('finalize'))
         self.assertNotEqual(ExamResultPublication.objects.get(attempt=self.attempt).payload, original)
 
+    def test_missing_section_review_requires_explicit_draft_save_before_publish(self):
+        self.review.delete()
+        page = self.client.get(self.url)
+        self.assertFalse(page.context['publish_ready'])
+        self.assertContains(page, 'Hali saqlanmagan')
+        self.assertEqual(self.client.post(self.url, self.payload('finalize')).status_code, 400)
+        self.assertFalse(ExamSectionReview.objects.exists())
+        self.assertFalse(ExamResultPublication.objects.exists())
+        self.assertEqual(self.client.post(self.url, self.payload(**{f'score_{self.section.pk}': '6'})).status_code, 302)
+        self.assertEqual(self.client.post(self.url, self.payload('finalize')).status_code, 302)
+        self.attempt.refresh_from_db(); self.assertEqual(self.attempt.score, 60)
+
+    def test_section_added_after_submission_and_empty_exam_cannot_publish_zeros(self):
+        new_section = ExamSection.objects.create(exam=self.exam, title='Added later', section_type='reading', max_score=10)
+        self.assertEqual(self.client.post(self.url, self.payload('finalize')).status_code, 400)
+        self.assertFalse(ExamSectionReview.objects.filter(section=new_section).exists())
+        self.assertFalse(ExamResultPublication.objects.exists())
+        self.exam.sections.all().delete()
+        self.assertEqual(self.client.post(self.url, self.payload('finalize')).status_code, 400)
+        self.assertFalse(ExamResultPublication.objects.exists())
+
     def test_replayed_save_and_publish_are_409_no_reexecution(self):
         for action in ('save', 'finalize'):
             data = self.payload(action)
