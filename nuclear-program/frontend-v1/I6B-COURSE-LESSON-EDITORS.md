@@ -37,11 +37,50 @@ bound invalid draft, 320–1280 overflow0 va uch required CI PASS.
 
 ## Qabul
 
-- [-] Runtime va regressiya.
-- [ ] Isolated browser desktop/mobile va asosiy amallar.
+- [x] ~~Runtime va regressiya — `c72c1fd`.~~
+- [x] ~~Isolated browser desktop/mobile va asosiy amallar.~~
 - [ ] Required CI/review/main.
 - [ ] AWS/native-device release (alohida).
 
 I6a PR135 MERGED `12b0e3c`; final CI36214042911 uchala PASS:
 SQLite2063 skip44, PostgreSQL2063 skip20, Node95.
 [Final acceptance](https://github.com/azurebek/azurelms/pull/135#issuecomment-5842697120).
+
+## Implementatsiya va dalil
+
+`core/frontend_v1_editors.py` — presentation/snapshot adapteri. Mavjud
+`core/views.py` va `library/backoffice_views.py` canonical form/servicesga
+yozadi; yangi writer engine yo‘q. Ustoz nav va library picker havolasi
+flag holatini ko‘rsatadi. Link form IDlari noyob; barcha order inputlar o‘z
+native formasi ichida, dirty guard ularni ham qamraydi. Material xato
+javobida bound qoralama qaytariladi; qayta GET bo‘lmagan mutation URLiga
+emas, saqlangan darsga qaytish havolasi bor. Non-field validation errors
+legacy yo‘lda ham KeyErrorga aylanmaydi.
+
+Offline barcha buyruqlar `AZURELMS_SKIP_ENV_FILE=1 GEMINI_API_KEY= TELEGRAM_BOT_TOKEN=`:
+
+| Buyruq | Natija |
+|---|---|
+| `venv/Scripts/python.exe manage.py test core.test_frontend_v1_editors library core.test_backoffice_courses core.test_backoffice_lessons --noinput` | final111 OK (11.479s), 28 yangi editor test |
+| `venv/Scripts/python.exe manage.py test --noinput` | 2089 OK, skip45 (129.631s); oxirgi labels/2 qo‘shimcha testdan oldin |
+| `node --test tests/frontend_v1/*.test.mjs` | 95 PASS; mavjud library controller qayta ishlatiladi |
+| `manage.py check --fail-level WARNING` | 0 issue |
+| `manage.py makemigrations --check --dry-run` | no changes |
+| `git diff --check` | PASS |
+
+Final2091 full run va required SQLite/PostgreSQL CI alohida tasdiqlanadi.
+Temporary SQLite/private files IAB8063: explicit course filter → course
+edit PRG → explicit lesson index → lesson save → per-link metadata →
+reorder PRG; second-tab stale409, old draft retained, Save disabled.
+Besh route × 320/639/640/1023/1024/1280 = 30 readback, positive overflow0.
+Dark screenshot ko‘zdan kechirildi. Browserda resource/detach delete yo‘q;
+ular backend testda. Real network loss, light theme/native iOS/Android va
+AWS release NOT TESTED. Previewdagi hamma ma’lumot sintetik.
+
+## Qolgan chegara
+
+I6 runtime besh editor oilasi + I6a kutubxona bilan qamraladi; CI/integratsiya
+va AWS/device release alohida gate. Yangi lesson-create route, modul yoki
+quiz authoring va yangi prototip qurilmadi. Keyingi katta portlar: I7
+checkout/receipt, I8 exam/review, I9 Classbook; I5 certificate detail/appendix
+hanuz legacy. No-op/ABA/global idempotency yuqoridagi cheklovlar bilan.

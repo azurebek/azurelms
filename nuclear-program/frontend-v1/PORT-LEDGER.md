@@ -117,8 +117,14 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
     library66/full2063 OK (skip45), Node95 PASS, 24 responsive readback overflow0.
     [Scope va dalil](I6A-LIBRARY.md); 10 real form field, private upload,
     scoped attach, lifecycle confirmation va stale409/no-write.
-  - [ ] I6a required CI/review/main va AWS/device release alohida gate.
-  - [ ] I6b course/lesson editor, per-link settings/reorder/detach V1.
+  - [x] ~~I6a required CI/review/main.~~ PR135 MERGED `12b0e3c`,
+    final CI36214042911 all3PASS, SQLite2063 skip44/PostgreSQL2063 skip20/Node95.
+    [Final acceptance](https://github.com/azurebek/azurelms/pull/135#issuecomment-5842697120).
+  - [x] ~~I6b lokal course/lesson editor, per-link settings/reorder/detach V1.~~
+    `c72c1fd`: 111 focused OK, 2089 full OK skip45 (final labels/2 testdan oldin),
+    Node95, 30 responsive check overflow0. [Scope va dalil](I6B-COURSE-LESSON-EDITORS.md).
+  - [ ] I6b required CI/review/main.
+  - [ ] I6 AWS/device release.
 - [ ] **I7 — Checkout/receipt.** Quote→upload→pending→owner decision→access;
   difference/rejected, direct URL permission, duplicate/unknown reconciliation.
 - [ ] **I8 — Exam va teacher review.** Real attempt/audio/timer/revision,
