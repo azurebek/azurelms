@@ -63,6 +63,10 @@ class FrontendV1Mixin:
                 records = {reverse(name): name for name in ("certificates", "leaderboard", "attendance_calendar", "subscriptions", "help_center")}
                 context["frontend_v1_nav"].extend(dict(item, name=records[item["url"]]) for item in context["frontend_v1_legacy_nav"] if item["url"] in records)
                 context["frontend_v1_legacy_nav"] = [item for item in context["frontend_v1_legacy_nav"] if item["url"] not in records]
+            if flag_enabled("frontend_v1_exams"):
+                exam_url = reverse("exam_center")
+                context["frontend_v1_nav"].append(dict(url=exam_url, name="exam_center", label="Imtihonlar", icon="exam"))
+                context["frontend_v1_legacy_nav"] = [item for item in context["frontend_v1_legacy_nav"] if item["url"] != exam_url]
         return context
 
     def render_to_response(self, context, **response_kwargs):

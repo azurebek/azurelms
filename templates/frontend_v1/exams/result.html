@@ -1,0 +1,43 @@
+{% extends "frontend_v1/platform.html" %}
+{% load static %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'frontend_v1/css/exams.css' %}"><link rel="stylesheet" href="{% static 'frontend_v1/css/records.css' %}">{% endblock %}
+{% block content %}
+<div class="f-exam-stack" data-exam-result>
+  <div class="p-page-heading"><div><a class="c-text-link" href="{% url 'exam_center' %}">{% include "frontend_v1/icon.html" with name="back" %}Imtihonlarga qaytish</a><h1>Imtihon natijasi</h1><p class="c-lead">{{ exam.title }}</p></div><span class="c-badge">{{ course.title }}</span></div>
+  <div class="f-records-layout">
+    <div class="f-exam-stack">
+      <section class="c-card p-panel" aria-labelledby="result-status">
+        <span class="c-empty__icon">{% include "frontend_v1/icon.html" with name="exam" %}</span><p class="c-eyebrow">URINISH HOLATI</p>
+        {% if result.is_reviewed %}
+          <h2 id="result-status">{% if result.passed %}Imtihondan o‘tdingiz{% else %}Bu safar yetmadi{% endif %}</h2>
+          <p class="f-exam-score">{{ result.score|floatformat:"-2" }}%</p>
+          <p class="c-muted">Ustoz tasdiqlagan natija.{% if result.passing_score != None %} O‘tish bali: {{ result.passing_score }}%.{% endif %}{% if result.reviewed_at %} {{ result.reviewed_at|date:"d.m.Y H:i" }}.{% endif %}</p>
+          {% if result.review_notes %}<h3 class="f-exam-status">Ustoz izohi</h3><p class="f-review-text">{{ result.review_notes }}</p>{% endif %}
+          {% if result.details_unavailable %}<p class="c-caption f-exam-status">Bu eski urinishning tasdiqlangan tafsilotlari alohida saqlanmagan. Umumiy ball saqlangan; bo‘limlar va izohlar ustoz qayta tasdiqlagandan keyin ko‘rinadi.</p>{% endif %}
+        {% else %}
+          <h2 id="result-status">Ustoz tekshiruvi kutilmoqda</h2>
+          <p class="c-muted f-exam-status">Javoblaringiz topshirilgan. Ball va izohlar ustoz tasdiqlagandan keyin ko‘rinadi.</p>
+          <p class="c-caption f-exam-status">Qoralama baho yakuniy natija emas. Bu sahifani yangilash yangi urinish boshlamaydi.</p>
+          <a class="c-button c-button--secondary f-exam-status" href="{% url 'exam_result' course.id exam.id %}">Holatni yangilash</a>
+        {% endif %}
+      </section>
+      {% if section_reviews %}
+      <section class="c-card p-panel" aria-labelledby="result-sections"><h2 id="result-sections">Bo‘limlar bo‘yicha natija</h2>
+        {% for review in section_reviews %}<section class="f-review-entry"><div class="c-section-title"><h3>{{ review.section.title }}</h3><span class="c-badge">{{ review.awarded_score|floatformat:"-2" }} / {{ review.section.max_score }} ball</span></div><p class="c-caption">{{ review.section.get_section_type_display }}</p>{% if review.feedback %}<p class="f-review-text">{{ review.feedback }}</p>{% endif %}</section>{% endfor %}
+      </section>{% endif %}
+      {% if feedback_answers %}
+      <section class="c-card p-panel" aria-labelledby="result-feedback"><h2 id="result-feedback">Javoblaringizga izohlar</h2>
+        {% for answer in feedback_answers %}<section class="f-review-entry"><p class="c-eyebrow">{{ answer.question.exam_section.get_section_type_display|default:"Savol" }}</p><h3>{{ answer.question.text|striptags }}</h3><p class="c-caption f-exam-status">{{ answer.awarded_score|floatformat:"-2" }} / {{ answer.question.points }} ball</p><p class="f-review-text">{{ answer.grader_feedback }}</p></section>{% endfor %}
+      </section>{% endif %}
+    </div>
+    <aside class="f-exam-stack" aria-label="Urinish ma’lumoti va keyingi qadam">
+      <section class="c-card p-panel"><h2>Urinish ma’lumoti</h2><dl class="f-records-facts"><div><dt>Urinish</dt><dd>{{ attempt.attempt_number }} / {{ exam.max_attempts }}</dd></div><div><dt>Topshirilgan</dt><dd>{{ attempt.completed_time|date:"d.m.Y H:i"|default:"Qayd etilmagan" }}</dd></div><div><dt>Sarflangan vaqt</dt><dd>{% if duration_minutes != None %}{{ duration_minutes }} daqiqa{% else %}Qayd etilmagan{% endif %}</dd></div><div><dt>Qolgan urinishlar</dt><dd>{{ remaining_attempts }}</dd></div></dl></section>
+      <section class="c-card p-panel f-exam-stack"><h2>Keyingi qadam</h2>
+        {% if can_retake %}<a class="c-button c-button--primary" href="{% url 'exam_detail' course.id exam.id %}?retake=1" aria-describedby="retake-handoff">Qayta topshirish shartlari</a><p class="c-caption" id="retake-handoff">Shartlar avvalgi ko‘rinishda ochiladi. Yangi urinish faqat “Imtihonni boshlash” bosilganda boshlanadi.</p>{% endif %}
+        {% if course_certificate %}<a class="c-button c-button--secondary" href="{% url 'certificate_detail' course_certificate.certificate_id %}">Sertifikatni ko‘rish</a>{% elif result.is_reviewed and result.passed %}<p class="c-muted">Imtihondan o‘tishning o‘zi sertifikat berilganini anglatmaydi. Kursning barcha yakunlash shartlari tekshiriladi.</p><a class="c-text-link" href="{% url 'certificates' %}">Sertifikatlarim</a>{% endif %}
+        <a class="c-text-link" href="{% url 'course_detail' course.id %}">Kursga qaytish</a><a class="c-text-link" href="{% url 'exam_center' %}">Imtihonlar ro‘yxati</a>
+      </section>
+    </aside>
+  </div>
+</div>
+{% endblock %}

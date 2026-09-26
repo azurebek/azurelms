@@ -130,11 +130,22 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
   - [x] ~~Lokal V1 port `3621e9c`.~~ 28 yangi test, 262 focused OK skip6,
     full2119 OK skip45, Node95; 24 responsive readback overflow0.
     [Dalil va chegaralar](I7-CHECKOUT.md).
-  - [ ] Required CI/review/main.
+  - [x] ~~I7 required CI/review/main.~~ PR137 MERGED `df054c1`,
+    finalCI36217772724 all3PASS: SQLite2126 skip44/PostgreSQL2126 skip20,
+    Node95; final local2126 skip45 (135.378s), TTL review fix `f681a5b`.
   - [ ] AWS/device release.
   difference/rejected, direct URL permission, duplicate/unknown reconciliation.
-- [ ] **I8 — Exam va teacher review.** Real attempt/audio/timer/revision,
+- [-] **I8 — Exam va teacher review.** Real attempt/audio/timer/revision,
   save/submit/review/publication; backend natijasi o‘zgarmaydi.
+  - [x] ~~I8a markaz va result lokal porti `2fe920f`.~~ 30 yangi test,
+    full2156 OK skip45, Node95; 36 responsive readback overflow0.
+    Owner qarori bilan qoralama izoh/ball faqat explicit publicationdan
+    keyin ko‘rinadi; canonical snapshot, additive courses0021.
+    [Dalil va release chegarasi](I8-EXAMS.md).
+  - [ ] I8a required CI/review/main.
+  - [ ] I8b attempt/answer/audio/timer/revision/submit UI.
+  - [ ] I8c teacher review UI va stale-form confirmation.
+  - [ ] I8 AWS/native-device release.
 - [ ] **I9 — Classbook.** Preparation→session→activity→result; multi-user,
   late join/reconnect va 10 exercise type’ning tegishli adapterlari.
 - [ ] **R-next — Har qo‘shimcha tayyor bo‘lakning o‘z release qabuli.** R1

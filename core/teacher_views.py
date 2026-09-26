@@ -16,6 +16,7 @@ from decimal import Decimal, InvalidOperation
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.paginator import Paginator
+from django.db import transaction
 from django.db.models import Count, Max, Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.http import Http404, HttpResponseBadRequest
@@ -281,10 +282,14 @@ def _clamp_score(raw, maximum):
 
 @login_required
 @user_passes_test(_is_teacher)
+@transaction.atomic
 def teacher_grade_exam(request, attempt_id):
     context = _base_context(request.user, "teacher_grading")
+    attempts = ExamAttempt.objects.select_related("student", "exam", "exam__course")
+    if request.method == 'POST':
+        attempts = attempts.select_for_update(of=('self',))
     attempt = get_object_or_404(
-        ExamAttempt.objects.select_related("student", "exam", "exam__course"),
+        attempts,
         id=attempt_id,
         exam__course__in=context["teacher_courses"],
         is_completed=True,

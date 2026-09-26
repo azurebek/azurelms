@@ -1,0 +1,53 @@
+{% extends "frontend_v1/platform.html" %}
+{% load static %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'frontend_v1/css/exams.css' %}">{% endblock %}
+{% block content %}
+<div data-exam-center class="f-exam-stack">
+  <div class="p-page-heading">
+    <div><p class="c-eyebrow">O‘QUV MAYDONI / IMTIHONLAR</p><h1>Bilimingizni sinab ko‘ring.</h1><p class="c-lead">Boshlashdan oldin shartlar bilan tanishing. Ro‘yxatni ochish urinishni boshlamaydi.</p></div>
+    <span class="c-badge">{{ exams|length }} ta imtihon</span>
+  </div>
+  {% for exam in exams %}
+  <article class="c-card p-panel f-exam-catalog" aria-labelledby="exam-{{ exam.id }}-title" data-exam-id="{{ exam.id }}">
+    <div>
+      <span class="c-empty__icon">{% include "frontend_v1/icon.html" with name="exam" %}</span>
+      <p class="c-eyebrow">{{ exam.course.title }}</p>
+      <h2 id="exam-{{ exam.id }}-title">{{ exam.title }}</h2>
+      <p class="c-muted">{{ exam.get_exam_type_display }}</p>
+      <ul class="f-exam-meta">
+        <li>{{ exam.section_count }} bo‘lim</li>
+        <li>{% with minutes=exam.total_time_limit_minutes %}{% if minutes %}{{ minutes }} daqiqa{% else %}Umumiy vaqt cheklanmagan{% endif %}{% endwith %}</li>
+        <li>O‘tish bali: {{ exam.passing_score }}%</li>
+        <li>{{ exam.attempts_used }} / {{ exam.max_attempts }} urinish</li>
+      </ul>
+    </div>
+    <div class="f-exam-stack">
+      <div>
+        {% if exam.latest_result.is_reviewed %}
+          <span class="c-badge">Tasdiqlangan</span><p class="f-exam-status">{% if exam.latest_result.passed %}O‘tdingiz{% else %}O‘ta olmadingiz{% endif %} · {{ exam.latest_result.score|floatformat:"-2" }}%</p>
+        {% elif exam.latest_attempt.is_completed %}
+          <span class="c-badge">Tekshiruv kutilmoqda</span><p class="c-caption f-exam-status">Javoblar topshirilgan. Yakuniy natija hali tasdiqlanmagan.</p>
+        {% elif exam.latest_attempt %}
+          <span class="c-badge">Jarayonda</span><p class="c-caption f-exam-status">Mavjud urinishni ochasiz. Ro‘yxatga qaytish taymerni to‘xtatmaydi.</p>
+        {% else %}
+          <span class="c-badge">Boshlanmagan</span>
+        {% endif %}
+      </div>
+      {% if exam.latest_attempt.is_completed %}
+        <a class="c-button c-button--primary" href="{% url 'exam_result' exam.course_id exam.id %}" aria-describedby="exam-{{ exam.id }}-title">{% if exam.latest_result.is_reviewed %}Natijani ko‘rish{% else %}Topshirish holatini ko‘rish{% endif %}{% include "frontend_v1/icon.html" with name="arrow" %}</a>
+      {% elif exam.latest_attempt %}
+        <a class="c-button c-button--primary" href="{% url 'exam_detail' exam.course_id exam.id %}" aria-describedby="exam-{{ exam.id }}-title exam-{{ exam.id }}-handoff">Davom etish{% include "frontend_v1/icon.html" with name="arrow" %}</a>
+      {% elif exam.attempts_left > 0 %}
+        <a class="c-button c-button--primary" href="{% url 'exam_detail' exam.course_id exam.id %}" aria-describedby="exam-{{ exam.id }}-title exam-{{ exam.id }}-handoff">Shartlarni ko‘rish{% include "frontend_v1/icon.html" with name="arrow" %}</a>
+      {% else %}
+        <p class="c-muted">Urinishlar limiti tugagan. Ustozingizga murojaat qiling.</p>
+      {% endif %}
+      {% if not exam.latest_attempt.is_completed %}{% if exam.latest_attempt or exam.attempts_left > 0 %}<p class="c-caption" id="exam-{{ exam.id }}-handoff">Urinish sahifasi hozircha avvalgi ko‘rinishda ochiladi.</p>{% endif %}{% endif %}
+    </div>
+  </article>
+  {% empty %}
+  <section class="c-card c-empty"><span class="c-empty__icon">{% include "frontend_v1/icon.html" with name="exam" %}</span><h2>Hozircha imtihon yo‘q</h2><p>Faol kirishingiz bor kurslarning imtihonlari shu yerda ko‘rinadi.</p><a class="c-button c-button--secondary" href="{% url 'my_courses' %}">Kurslarimga o‘tish</a></section>
+  {% endfor %}
+  {% if exams %}<a class="c-text-link" href="{% url 'my_courses' %}">{% include "frontend_v1/icon.html" with name="back" %}Kurslarimga qaytish</a>{% endif %}
+</div>
+{% endblock %}

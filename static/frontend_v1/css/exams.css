@@ -1,0 +1,16 @@
+/* Frozen Eleventh Trial exam catalog; real content can wrap at any length. */
+.f-exam-stack { display: grid; gap: var(--az-space-6); min-width: 0; align-content: start; overflow-wrap: anywhere; }
+.f-exam-catalog { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, var(--az-aside)); align-items: center; gap: var(--az-space-8); }
+.f-exam-catalog > * { min-width: 0; }
+.f-exam-catalog .c-empty__icon { margin-bottom: var(--az-space-4); }
+.f-exam-catalog h2 { margin-block: var(--az-space-2); }
+.f-exam-catalog .c-button { width: 100%; white-space: normal; }
+.f-exam-meta { display: flex; flex-wrap: wrap; gap: var(--az-space-3) var(--az-space-6); list-style: none; padding: 0; margin-top: var(--az-space-5); color: var(--az-muted); font-size: var(--az-text-sm); }
+.f-exam-status { margin-top: var(--az-space-3); }
+.f-exam-score { font-size: var(--az-text-display); font-weight: var(--az-weight-bold); margin-block: var(--az-space-6); }
+.f-review-entry { margin-top: var(--az-space-6); padding-top: var(--az-space-6); border-top: 1px solid var(--az-border); }
+.f-review-text { white-space: pre-wrap; overflow-wrap: anywhere; margin-block: var(--az-space-4); }
+.f-exam-stack .c-section-title { flex-wrap: wrap; }
+.f-exam-stack .c-button { white-space: normal; }
+.f-exam-stack .p-page-heading > * { min-width: 0; max-width: 100%; }
+@media (width < 1024px) { .f-exam-catalog { grid-template-columns: minmax(0, 1fr); } }

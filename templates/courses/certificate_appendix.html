@@ -70,21 +70,21 @@
         <div class="apx-exam-head">
           <span class="t">{{ attempt.exam.title }} <span style="font-weight:400;color:var(--ink-3);">· {{ attempt.exam.get_exam_type_display }}</span></span>
           <span style="display:flex;align-items:center;gap:10px;">
-            <span class="s">{{ attempt.score|floatformat:0 }}%</span>
-            <span class="apx-pass {% if attempt.passed %}ok{% else %}no{% endif %}">{% if attempt.passed %}<i class="bi bi-check-circle-fill"></i> O'tdi{% else %}<i class="bi bi-x-circle-fill"></i> O'tmadi{% endif %}</span>
+            <span class="s">{{ attempt.published_result.score|floatformat:"-2" }}%</span>
+            <span class="apx-pass {% if attempt.published_result.passed %}ok{% else %}no{% endif %}">{% if attempt.published_result.passed %}<i class="bi bi-check-circle-fill"></i> O'tdi{% else %}<i class="bi bi-x-circle-fill"></i> O'tmadi{% endif %}</span>
           </span>
         </div>
         <table>
           <thead><tr><th>Bo'lim</th><th>Turi</th><th style="text-align:right;">Ball</th></tr></thead>
           <tbody>
-            {% for review in attempt.section_reviews.all %}
+            {% for review in attempt.published_result.section_reviews %}
               <tr>
                 <td>{{ review.section.title }}</td>
                 <td>{{ review.section.get_section_type_display }}</td>
                 <td class="score">{{ review.awarded_score|floatformat:"-2" }} / {{ review.section.max_score }}</td>
               </tr>
             {% empty %}
-              <tr><td colspan="3" style="text-align:center;color:var(--ink-3);">Bo'lim ballari kiritilmagan.</td></tr>
+              <tr><td colspan="3" style="text-align:center;color:var(--ink-3);">Tasdiqlangan bo'lim tafsilotlari saqlanmagan.</td></tr>
             {% endfor %}
           </tbody>
         </table>

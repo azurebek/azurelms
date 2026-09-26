@@ -16,6 +16,37 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-26 [Codex]: I8a — imtihonlar markazi va faqat tasdiqlangan natija
+
+Frozen markaz/result ikki sahifasi real V1ga ulandi. Owner qoralama
+baholar/izohlar faqat Tasdiqlashdan keyin chiqishini tanladi; canonical
+finalize bilan atomic publication snapshot, legacy va appendixda ham shu
+projection. Retake link endi yozuvsiz shartlarga olib boradi, result loop yo‘q.
+
+- Branch `codex/frontend-v1-exam-port`, runtime `2fe920f`.
+- `AZURELMS_SKIP_ENV_FILE=1 GEMINI_API_KEY= TELEGRAM_BOT_TOKEN=` bilan
+  `venv/Scripts/python.exe manage.py test --noinput`: **2156 OK, skip45,
+  151.359s**; 30 yangi test. `node --test tests/frontend_v1/*.test.mjs`:
+  **95 PASS**. Check0, migration drift0, diff PASS.
+- IAB8065 temporary DB/media: center→pending/refresh→published→failed/
+  retake instructions/Back→historical→empty. 36 width readback overflow0,
+  dark/light desktop/mobile, drawer Escape focus, console0. Native audio,
+  timer/network loss va browser grading bu slice’da tekshirilmadi.
+- Default-OFF `frontend_v1_exams`; additive courses0021 **flag OFF bo‘lsa
+  ham release oldidan kerak**. Old approved ball qoladi, snapshot yo‘q
+  tafsilotlar ustoz qayta tasdiqlamaguncha ko‘rinmaydi; backfill yo‘q.
+  [Dalil va chegaralar](frontend-v1/I8-EXAMS.md).
+- I8a CI/review/main ochiq. I8b attempt/audio/timer/revision va I8c teacher
+  review UI hali legacy; I9 Classbook va I5 certificate UI qoladi.
+  AWS va frozen prototype o‘zgarmadi.
+- PR138 review fix `17a9e62`: legacy pass/fail copy va section ranglari
+  published thresholddan, historical fallback alohida; zero saqlanadi.
+  `manage.py test courses.test_frontend_v1_exams --noinput`: 33 OK (3.229s),
+  3 qo‘shimcha test. Fresh full/CI yakuniy acceptance’da qayd etiladi.
+- I7 reconciliation: PR137 MERGED `df054c1`, finalCI36217772724 all3PASS;
+  SQLite2126 skip44/PostgreSQL2126 skip20/Node95. Final local2126 skip45
+  (135.378s), focused71 PASS. Oldingi TTL finding resolve qilingan.
+
 ## 2026-09-26 [Codex]: I7 — checkout va chek holatlari real V1ga ulandi
 
 Frozen checkout, pending/success va latest-success alias canonical billing

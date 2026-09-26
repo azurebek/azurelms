@@ -480,7 +480,8 @@ class ExamAttemptAdmin(admin.ModelAdmin):
     list_filter = ('passed', 'is_completed', 'is_reviewed', 'exam__course', 'exam')
     search_fields = ('student__username', 'student__email', 'exam__title')
     inlines = [ExamSectionReviewInline, StudentAnswerInline, ReadingResponseInline]
-    readonly_fields = ('attempt_number', 'start_time', 'blur_warnings', 'completed_time', 'reviewed_at', 'reviewed_by')
+    # Final grade/publication must go through finalize_review, not a checkbox.
+    readonly_fields = ('attempt_number', 'start_time', 'blur_warnings', 'completed_time', 'reviewed_at', 'reviewed_by', 'score', 'passed', 'is_reviewed')
     
     actions = ['prepare_reviews', 'approve_selected_attempts', 'recalculate_scores']
 

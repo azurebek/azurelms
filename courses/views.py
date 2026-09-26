@@ -42,6 +42,7 @@ from .models import (
 from cohorts.models import Enrollment, enrollment_active_access_q
 from .exam_service import (
     ExamAttemptStartBlocked,
+    can_retake_exam,
     expire_attempt_if_time_limit_reached,
     get_in_progress_exam_attempt,
     get_latest_exam_attempt,
@@ -49,6 +50,7 @@ from .exam_service import (
     start_exam_attempt,
 )
 from .policy_service import check_exam_entry_policy
+from .exam_publication import learner_result
 from .reading_service import (
     build_reading_section_payload,
     save_reading_response,
@@ -608,13 +610,16 @@ class SubmitAssignmentView(LoginRequiredMixin, View):
         )
         return redirect(redirect_url)
 
-class ExamCenterView(LoginRequiredMixin, ListView):
+class ExamCenterView(FrontendV1Mixin, LoginRequiredMixin, ListView):
     """O'quvchining faol kurslaridagi imtihonlar markazi (AppShell 'Imtihon').
 
     Eski stub `exam:` app o'rnini bosadi — haqiqiy courses exam oqimiga ulaydi.
     """
     model = Exam
     template_name = 'courses/exam_center.html'
+    frontend_v1_template = 'frontend_v1/exams/center.html'
+    frontend_v1_flag = 'frontend_v1_exams'
+    frontend_v1_title = 'Imtihonlar'
     context_object_name = 'exams'
 
     def get_queryset(self):
@@ -632,19 +637,20 @@ class ExamCenterView(LoginRequiredMixin, ListView):
                 section_count=Count('sections', distinct=True),
                 attempts_used=Count('attempts', filter=Q(attempts__student=user), distinct=True),
             )
-            .order_by('course__title', 'exam_type')
+            .order_by('course__title', 'exam_type', 'id')
         )
         latest_by_exam = {}
-        for attempt in ExamAttempt.objects.filter(student=user, exam__in=exams).order_by('exam_id', '-attempt_number'):
+        for attempt in ExamAttempt.objects.filter(student=user, exam__in=exams).select_related('result_publication').order_by('exam_id', '-attempt_number', '-id'):
             latest_by_exam.setdefault(attempt.exam_id, attempt)
         for exam in exams:
             exam.latest_attempt = latest_by_exam.get(exam.id)
+            exam.latest_result = learner_result(exam.latest_attempt)
             exam.attempts_left = max(exam.max_attempts - exam.attempts_used, 0)
         return exams
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['active_nav'] = 'exam'
+        context['active_nav'] = 'exam_center' if self.frontend_v1_enabled else 'exam'
         return context
 
 
@@ -669,7 +675,11 @@ class ExamDetailView(LoginRequiredMixin, DetailView):
                 
             attempt = get_latest_exam_attempt_for_exam_id(student=request.user, exam_id=exam_id)
             if attempt and attempt.is_completed:
-                return redirect('exam_result', course_id=course_id, exam_id=exam_id)
+                # Reading retake instructions is not starting a new attempt.
+                # Explicit POST via the existing start API remains authoritative.
+                exam = get_object_or_404(Exam, id=exam_id, course_id=course_id)
+                if request.GET.getlist('retake') != ['1'] or not can_retake_exam(attempt=attempt, exam=exam):
+                    return redirect('exam_result', course_id=course_id, exam_id=exam_id)
                 
         return super().dispatch(request, *args, **kwargs)
 
@@ -738,9 +748,12 @@ class ExamDetailView(LoginRequiredMixin, DetailView):
 
         return context
 
-class ExamResultView(LoginRequiredMixin, DetailView):
+class ExamResultView(FrontendV1Mixin, LoginRequiredMixin, DetailView):
     model = Exam
     template_name = 'courses/exam_result.html'
+    frontend_v1_template = 'frontend_v1/exams/result.html'
+    frontend_v1_flag = 'frontend_v1_exams'
+    frontend_v1_title = 'Imtihon natijasi'
     context_object_name = 'exam'
     pk_url_kwarg = 'exam_id'
 
@@ -786,33 +799,26 @@ class ExamResultView(LoginRequiredMixin, DetailView):
             self.object.max_attempts - (attempt.attempt_number if attempt else 0),
             0,
         )
-        context['can_retake'] = bool(
-            attempt
-            and attempt.is_completed
-            and attempt.is_reviewed
-            and not attempt.passed
-            and attempt.attempt_number < self.object.max_attempts
-        )
+        context['can_retake'] = can_retake_exam(attempt=attempt, exam=self.object)
 
-        context['active_nav'] = 'exam'
-        context['section_reviews'] = []
-        context['feedback_answers'] = []
+        context['active_nav'] = 'exam_center' if self.frontend_v1_enabled else 'exam'
+        context['result'] = result = learner_result(attempt)
+        context['result_passing_score'] = result['passing_score'] if result['passing_score'] is not None else self.object.passing_score
+        context['section_reviews'] = result['section_reviews']
+        context['feedback_answers'] = result['feedback_answers']
         context['duration_minutes'] = None
         if attempt:
-            context['section_reviews'] = list(
-                attempt.section_reviews.select_related('section').order_by('section__order')
-            )
-            # per-esse/javob o'qituvchi izohlari (writing/speaking)
-            context['feedback_answers'] = list(
-                attempt.answers.exclude(grader_feedback="")
-                .select_related('question', 'question__exam_section')
-                .order_by('question__exam_section__order', 'question_id')
-            )
             if attempt.completed_time and attempt.start_time:
                 context['duration_minutes'] = max(
                     int((attempt.completed_time - attempt.start_time).total_seconds() // 60), 0
                 )
         return context
+
+    def render_to_response(self, context, **response_kwargs):
+        from django.utils.cache import patch_cache_control
+        response = super().render_to_response(context, **response_kwargs)
+        patch_cache_control(response, private=True, no_store=True)
+        return response
 
 class StartExamView(LoginRequiredMixin, View):
     def post(self, request, course_id, exam_id):
@@ -1215,10 +1221,11 @@ class CertificateAppendixView(DetailView):
                 exam__course=certificate.course,
                 is_reviewed=True,
             )
-            .select_related('exam')
-            .prefetch_related('section_reviews__section')
+            .select_related('exam', 'result_publication')
             .order_by('exam__exam_type', 'exam__title')
         )
         context['reviewed_attempts'] = reviewed_attempts
+        for attempt in reviewed_attempts:
+            attempt.published_result = learner_result(attempt)
         context['auto_print'] = self.request.GET.get('download') == '1'
         return context

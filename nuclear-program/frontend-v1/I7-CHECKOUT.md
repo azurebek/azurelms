@@ -38,7 +38,7 @@ va required SQLite/PostgreSQL/security CI.
 ## Qabul
 
 - [x] ~~Runtime `3621e9c` va backend/browser regression; review fix `f681a5b`.~~
-- [ ] Required CI/review/main.
+- [x] ~~Required CI/review/main.~~ PR137 MERGED `df054c1`; final CI36217772724 all3PASS.
 - [ ] AWS/native-device release (alohida).
 
 ## Implementatsiya va dalil
@@ -53,7 +53,11 @@ Bu schema addition oldingi “migration yo‘q” boshlang‘ich rejasini almash
 `cohorts.test_frontend_v1_checkout`: final71 OK (5.713s), 7 qo‘shimcha
 regression. Eski 5 forma asserti yangi checkout paneli bilan 6 ga yangilandi;
 undan oldin boshlangan 2126 full run shu eski assertda yiqildi. Fresh full
-va yangi required CI yakuniy acceptance’da yoziladi. Skip qo‘shilmadi.
+va yangi required CI yakuniy acceptance’da yozildi: full2126 OK skip45
+(135.378s); CI36217772724 SQLite2126 skip44 (185.616s), PostgreSQL2126
+skip20 (181.883s), parity141 skip7, Node95 va security/image build PASS.
+[Final acceptance](https://github.com/azurebek/azurelms/pull/137#issuecomment-5843182496).
+Skip qo‘shilmadi.
 Auditli umumiy singleton writer faqat o‘zgargan maydonlarni yozadi; boshqa
 panelning parallel o‘zgarishini eski nusxa bilan bosib ketmaydi.
 
@@ -84,7 +88,7 @@ owner verify/reject, no-access-until-approval, duplicate/stale/rollback,
 private ownership va difference overwrite rad etish Django testlarida.
 
 Chegaralar: real bank transfer, provider/Telegram, native iOS/Android,
-haqiqiy network loss va light-theme browser qabuli bajarilmagan. Browser
+haqiqiy network loss va light-theme browser qabuli bajarilmagan.
 Yangi previewda non-default12 daqiqa UIga DBdan keldi; xato headingi ham
 qayta tekshirildi. Final checkout yana 6 widthda overflow0; jami30 readback.
 Snapshot saved-value confirmation, monotonic revision/ABA kafolati emas.
