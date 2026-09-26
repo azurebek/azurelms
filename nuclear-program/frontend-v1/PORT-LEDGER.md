@@ -10,6 +10,10 @@ Quyidagi old package CI/hold/AWS yozuvlari tarixiy; R2 joriy deploy manbasi.
 SMTP/native device/provider/real-content qabuli alohida ochiq. Bu hali
 prototipi yo‘q Q14+ sahifalari yangi bo‘ldi degani emas.
 
+**Keyingi prototip qamrovi:** owner avval inventar/reja so‘radi.
+[42 UI + 3 handler, 11 qadam](PROTOTYPE-COMPLETION-PLAN.md) alohida kuzatiladi;
+bu I1–I9ni qayta ochish yoki yangi deploy topshirig‘i emas.
+
 ## Navbat
 
 - [x] ~~I0 — V1 freeze, zaxira reference, joriy inventar, mapping, baseline va reja.~~
