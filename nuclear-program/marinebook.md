@@ -16,6 +16,27 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-26 [Codex]: Qolgan prototiplar qamrovi va sanasiz yakunlash rejasi
+
+Owner yangi qurishdan oldin inventar/reja so‘radi. `6d23b6e`:
+95 preview /54 template /76 source nomi qayta tekshirildi; eski44 unmatched
+nom =42 UI +2 mavjud-renderer aliasi. Uch error handler bilan45 qamrov bandi,
+11 qadamli [reja](frontend-v1/PROTOTYPE-COMPLETION-PLAN.md) tayyorlandi.
+
+- Branch `codex/prototype-completion-plan`; faqat hujjatlar. Frozen trial,
+  runtime kod, DB va AWS o‘zgarmadi. I1–I9 porti qayta ochilmadi.
+- Provider-free `venv/Scripts/python.exe -` read-only audit PASS: 42 unique
+  planned URL +3 handler,120 UI path mos,76 preview nomi resolved,
+  54 template joyida,11 ochiq qadam. `git diff --cached --check` PASS.
+- Muhim chegara: Q14 canonical editor savol CRUD emas; eski davomat
+  manzili alohida UI. Bu qarorlar yashirin feature/defer sifatida yopilmadi.
+- PR145 reviewga javob `cd5a4ce`: U17 AI sozlamalarining sabab/tasdiq/
+  audit/no-op retrofiti A2-D01 alohida admission/backend dependency sifatida
+  ajratildi; Q16a UI borligi to‘liq write-parity qabulini yopmaydi.
+  Docs-only `git diff --check` PASS; sahifa soni va navbat o‘zgarmadi.
+- Keyingi: rejani asos qilib Q14 paketini boshlash; ushbu turn faqat reja.
+  Browser/full test suite qayta yugurilmadi — runtime o‘zgarishi yo‘q.
+
 ## 2026-09-26 [Codex]: Tayyor V1 paketi AWSga chiqarildi
 
 Owner deployni tasdiqladi. AWS `363ff95`dan reviewed main `8bb6b95`ga

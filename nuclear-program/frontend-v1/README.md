@@ -5,8 +5,10 @@ AWS **8bb6b95**, barcha19 frontend renderer flag ON. Backup/restore,
 9 migration,327 HTTPS assertion, WSS va42 responsive readback PASS.
 [R2 dalili va chegaralar](R2-READY-V1-AWS.md). SMTP hali console backend:
 email reset delivery, native device/provider/real-content qabuli ochiq.
-Owner endi Q14 imtihon muharriri prototipiga qaytishni tanladi; shu turnida
-yangi prototype boshlanmagan. Quyidagi paket yozuvlari tarixiy snapshotlar.
+Owner keyingi qurishdan oldin qolgan prototip qamrovini aniqlashni so‘radi.
+[Joriy tugatish rejasi](PROTOTYPE-COMPLETION-PLAN.md): 42 UI manzili +
+3 xato sahifasi, 11 qadam; yangi prototype hali boshlanmagan.
+Quyidagi paket yozuvlari tarixiy snapshotlar.
 
 Sana: 2026-09-25. Owner qarori: Eleventh Trial birinchi versiya sifatida
 qabul qilinadi; yangi prototiplar va jiddiy qayta dizayn vaqtincha to‘xtaydi.

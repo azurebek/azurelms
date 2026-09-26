@@ -1,5 +1,11 @@
 # Frontend V1 — tayyorlik inventari va source xaritasi
 
+**2026-09-26 qayta audit:** tayyor I1–I9 kodi AWSga chiqarildi;
+[R2](R2-READY-V1-AWS.md) joriy release manbasi. Quyidagi NOT PORTED
+yozuvlari tarixiy. Hali prototipi yo‘q **42 UI + 3 error handler** va
+11 qadamli yangi reja: [qolgan prototiplar](PROTOTYPE-COMPLETION-PLAN.md).
+Oldingi44 unmapped nomning ikkitasi mavjud renderer aliasi, yangi ekran emas.
+
 Sana: 2026-09-25. Runtime source: `d0cce32eec392717e9bb6d0c1488740bc34b3831`.
 [Ko‘chirish tartibi](README.md), [bajarish jurnali](PORT-LEDGER.md).
 
