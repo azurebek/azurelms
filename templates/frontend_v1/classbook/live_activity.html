@@ -1,0 +1,13 @@
+{% extends 'frontend_v1/classbook/live_base.html' %}
+{% block live_heading %}{{ activity.snapshot.title }}{% endblock %}{% block live_intro %}{{ activity.session.cohort.name }} · {{ activity.session.lesson.title }}{% endblock %}
+{% block live_back %}<a class="c-button c-button--secondary" href="{% url 'classbook:live_session' activity.session_id %}">Darsga qaytish</a>{% endblock %}
+{% block live_body %}<div class="f-classbook-stack" data-classbook-live="activity" data-session-id="{{ activity.session_id }}" data-state-url="{% url 'classbook:live_activity_state' activity.id %}" data-submit-url="{% url 'classbook:live_activity_submit' activity.id %}" data-submitted="{% if response %}1{% else %}0{% endif %}">
+<section class="c-card p-panel f-classbook-stack"><div class="c-section-title"><p class="c-eyebrow">MASHQ {{ activity.order }}</p><span class="c-badge" data-live-timer aria-label="Qolgan vaqt">Vaqt tekshirilmoqda</span></div>
+{% if activity.snapshot.instructions %}<p>{{ activity.snapshot.instructions|linebreaksbr }}</p>{% endif %}
+{% if activity.snapshot.media_name %}{% if activity.snapshot.media_kind == 'image' %}<img class="f-classbook-media" src="{% url 'classbook:activity_media' activity.id %}" alt="Mashq rasmi">{% else %}<audio class="f-classbook-media" controls preload="none" src="{% url 'classbook:activity_media' activity.id %}"></audio>{% endif %}{% endif %}
+<h2>{{ activity.snapshot.prompt|linebreaksbr }}</h2>{% if activity.snapshot.kind == 'poll' %}<p class="c-caption">Bu so‘rov baholanmaydi.</p>{% endif %}
+{% if response %}<p class="c-alert c-alert--info">Javobingiz serverda qabul qilingan. Natijani ustoz ochadi.</p>{% else %}<form data-live-answer class="f-classbook-form">{% csrf_token %}<fieldset data-live-fields class="f-classbook-form"><legend class="c-caption">Javobingiz</legend><div class="f-classbook-stack" data-live-renderer></div></fieldset><button class="c-button c-button--primary" type="submit" data-live-submit disabled>Javobni yuborish</button><p class="c-caption">Bir mashqqa bitta javob. Yuborilgan javob o‘zgartirilmaydi.</p></form><noscript><p>Javob berish uchun JavaScript yoqilgan bo‘lishi kerak.</p></noscript>{% endif %}
+<p role="status" aria-live="polite" data-answer-status></p>
+<a class="c-button c-button--primary" href="{% url 'classbook:activity_result' activity.id %}" data-live-result hidden>Natijani ko‘rish</a>
+{% include 'frontend_v1/classbook/live_status.html' %}</section>
+</div>{{ exercise_payload|json_script:'classbook-live-payload' }}{% endblock %}

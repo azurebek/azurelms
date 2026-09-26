@@ -1,0 +1,7 @@
+{% extends 'frontend_v1/classbook/live_base.html' %}
+{% block live_heading %}{{ session.lesson.title }}{% endblock %}{% block live_intro %}{{ session.cohort.name }}{% endblock %}
+{% block live_body %}<div class="f-classbook-stack" data-classbook-live="session" data-session-id="{{ session.id }}" data-state-url="{% url 'classbook:live_session_state' session.id %}">
+<section class="c-card p-panel f-classbook-stack"><h2 data-session-heading>{% if session.status == 'open' %}Dars davom etmoqda{% else %}Dars yakunlandi{% endif %}</h2><p>Mashq ochilganda quyida ko‘rinadi. Sahifa o‘z-o‘zidan almashmaydi.</p>{% include 'frontend_v1/classbook/live_status.html' %}</section>
+<section class="c-card p-panel f-classbook-stack"><h2>Mashqlar</h2><ol class="f-classbook-steps" data-live-activities>{% for item in live_activities %}<li><strong>{{ item.title }}</strong><a class="c-button c-button--secondary" href="{{ item.url }}">{% if item.status == 'open' %}Mashqni ochish{% else %}Natijani ko‘rish{% endif %}</a></li>{% empty %}<li>Ustoz keyingi mashqni ochishini kuting.</li>{% endfor %}</ol></section>
+<section class="c-card p-panel f-classbook-stack"><h2>E’lon qilingan natijalar</h2>{% include 'frontend_v1/classbook/leaderboard.html' %}{% if my_rank and my_rank.rank > 10 %}<p>Siz: {{ my_rank.rank }}-o‘rin · {{ my_rank.score }} ball</p>{% endif %}<p class="c-caption">Reyting sahifa ochilgan paytdagi holat. Yangisini ko‘rish uchun sahifani qayta oching.</p></section>
+</div>{% endblock %}

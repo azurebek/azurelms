@@ -13,6 +13,7 @@ from django.db.models.fields.files import FieldFile
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.crypto import constant_time_compare
 from django.utils.text import slugify
 from django.views.decorators.http import require_POST
 
@@ -24,6 +25,7 @@ from courses.models import Lesson
 
 from .access import active_enrollment_for, can_join_session, can_manage_cohort
 from . import frontend_v1 as v1
+from . import frontend_v1_live as live_v1
 from .forms import ExerciseForm, HELP_BY_KIND, LessonPlaybookForm
 from .models import ActivityRun, Exercise, LessonPlaybook, PlaybookExercise, StudentResponse
 from .services import (
@@ -32,6 +34,7 @@ from .services import (
     current_activity_for_session,
     finish_class_session,
     next_activity_for_session,
+    lock_class_session,
     open_activity,
     response_breakdown,
     session_leaderboard,
@@ -372,7 +375,14 @@ def teacher_session(request, session_id):
     session = _teacher_session(request.user, session_id)
     context = _teacher_context(request.user)
     context.update(_session_context(session))
-    return render(request, "classbook/teacher_session.html", context)
+    if live_v1.enabled(request):
+        state = live_v1.session_revision(request.user, session)
+        context['session_revision'] = state
+        context['finish_revision'] = live_v1.action_revision(request.user, session, 'finish', state)
+        for activity in context['activities']:
+            activity.open_revision = live_v1.action_revision(request.user, session, f'open:{activity.pk}', state)
+            activity.close_revision = live_v1.action_revision(request.user, session, f'close:{activity.pk}', state)
+    return live_v1.render_page(request, 'teacher_session', context, teacher=True)
 
 
 def _csv_safe(value):
@@ -453,7 +463,9 @@ def teacher_session_state(request, session_id):
         "status": item.status,
         "responses": item.response_count,
     } for item in data["activities"]]
-    return JsonResponse({
+    return live_v1.no_store({
+        "revision": live_v1.session_revision(request.user, session) if live_v1.enabled(request) else '',
+        "enabled": live_v1.flag_enabled(live_v1.FLAG),
         "status": session.status,
         "attendance_count": data["attendance_count"],
         "roster_count": data["roster_count"],
@@ -470,12 +482,18 @@ def teacher_session_state(request, session_id):
 @login_required
 @user_passes_test(_is_teacher)
 @require_POST
+@transaction.atomic
 def activity_open(request, activity_id):
     activity = get_object_or_404(
         ActivityRun.objects.select_related("session__cohort"),
         pk=activity_id,
         session__cohort__in=teacher_cohort_queryset(request.user),
     )
+    if live_v1.enabled(request):
+        session = lock_class_session(activity.session_id)
+        error = live_v1.write_error(request, session, f'open:{activity.pk}')
+        if error:
+            return live_v1.conflict(request, error, session)
     result = open_activity(actor=request.user, activity=activity)
     (messages.success if result.ok else messages.error)(request, result.message)
     return redirect("classbook:teacher_session", session_id=activity.session_id)
@@ -484,12 +502,18 @@ def activity_open(request, activity_id):
 @login_required
 @user_passes_test(_is_teacher)
 @require_POST
+@transaction.atomic
 def activity_close(request, activity_id):
     activity = get_object_or_404(
         ActivityRun.objects.select_related("session__cohort"),
         pk=activity_id,
         session__cohort__in=teacher_cohort_queryset(request.user),
     )
+    if live_v1.enabled(request):
+        session = lock_class_session(activity.session_id)
+        error = live_v1.write_error(request, session, f'close:{activity.pk}')
+        if error:
+            return live_v1.conflict(request, error, session)
     result = close_activity(actor=request.user, activity=activity, publish=True)
     (messages.success if result.ok else messages.error)(request, result.message)
     return redirect("classbook:teacher_session", session_id=activity.session_id)
@@ -504,7 +528,7 @@ def teacher_activity_result(request, activity_id):
         row["breakdown"] = response_breakdown(activity, row["response"])
     context = _teacher_context(request.user)
     context.update({"activity": activity, "rows": rows})
-    return render(request, "classbook/teacher_activity_result.html", context)
+    return live_v1.render_page(request, 'teacher_activity_result', context, teacher=True)
 
 
 @login_required
@@ -552,8 +576,14 @@ def teacher_activity_export(request, activity_id):
 @login_required
 @user_passes_test(_is_teacher)
 @require_POST
+@transaction.atomic
 def session_finish(request, session_id):
     session = _teacher_session(request.user, session_id)
+    if live_v1.enabled(request):
+        session = lock_class_session(session.pk)
+        error = live_v1.write_error(request, session, 'finish')
+        if error:
+            return live_v1.conflict(request, error, session)
     result = finish_class_session(actor=request.user, session=session)
     (messages.success if result.ok else messages.error)(request, result.message)
     return redirect("classbook:teacher_session", session_id=session.id)
@@ -602,9 +632,9 @@ def live_home(request):
             cohort_id__in=active_cohort_ids, status=TelegramLessonSession.STATUS_OPEN
         ).select_related("cohort", "lesson")
     )
-    if len(sessions) == 1:
+    if len(sessions) == 1 and not live_v1.enabled(request):
         return redirect("classbook:live_session", session_id=sessions[0].id)
-    return render(request, "classbook/live_home.html", {"active_nav": "classbook_live", "sessions": sessions})
+    return live_v1.render_page(request, 'live_home', {"active_nav": "classbook_live", "sessions": sessions})
 
 
 @login_required
@@ -614,12 +644,13 @@ def live_session(request, session_id):
     full_leaderboard = session_leaderboard(session, revealed_only=True)
     leaderboard = full_leaderboard[:10]
     my_rank = next((row for row in full_leaderboard if row["student"].id == request.user.id), None)
-    return render(request, "classbook/live_session.html", {
+    return live_v1.render_page(request, 'live_session', {
         "active_nav": "classbook_live",
         "session": session,
         "current_activity": current,
         "leaderboard": leaderboard,
         "my_rank": my_rank,
+        "live_activities": live_v1.learner_activities(session) if live_v1.enabled(request) else [],
     })
 
 
@@ -627,7 +658,9 @@ def live_session(request, session_id):
 def live_session_state(request, session_id):
     session = _student_session(request, session_id)
     current = current_activity_for_session(session)
-    return JsonResponse({
+    return live_v1.no_store({
+        "enabled": live_v1.flag_enabled(live_v1.FLAG),
+        "activities": live_v1.learner_activities(session) if live_v1.enabled(request) else [],
         "status": session.status,
         "current_activity_id": current.id if current else None,
         "current_activity_url": (
@@ -649,10 +682,13 @@ def live_activity(request, activity_id):
     if activity.status != ActivityRun.STATUS_OPEN:
         raise Http404
     response = StudentResponse.objects.filter(activity=activity, enrollment=enrollment).first()
-    return render(request, "classbook/live_activity.html", {
+    payload = _shuffle_activity_config(activity, request.user)
+    if live_v1.enabled(request):
+        payload = live_v1.public_payload(request.user, activity, payload)
+    return live_v1.render_page(request, 'live_activity', {
         "active_nav": "classbook_live",
         "activity": activity,
-        "exercise_payload": _shuffle_activity_config(activity, request.user),
+        "exercise_payload": payload,
         "response": response,
     })
 
@@ -663,10 +699,13 @@ def live_activity_state(request, activity_id):
     enrollment = active_enrollment_for(request.user, activity.session.cohort)
     if not enrollment:
         raise Http404
-    if activity.status not in {ActivityRun.STATUS_OPEN, ActivityRun.STATUS_REVEALED}:
+    if activity.status not in {ActivityRun.STATUS_OPEN, ActivityRun.STATUS_REVEALED, ActivityRun.STATUS_CLOSED}:
         raise Http404
-    return JsonResponse({
+    return live_v1.no_store({
+        "enabled": live_v1.flag_enabled(live_v1.FLAG),
         "status": activity.status,
+        "session_status": activity.session.status,
+        "expired": activity.deadline_passed,
         "submitted": StudentResponse.objects.filter(activity=activity, enrollment=enrollment).exists(),
     })
 
@@ -678,12 +717,26 @@ def live_activity_submit(request, activity_id):
     if not active_enrollment_for(request.user, activity.session.cohort):
         raise Http404
     try:
-        payload = json.loads(request.body or b"{}")
-    except (json.JSONDecodeError, UnicodeDecodeError):
+        payload = json.loads(request.body or b"{}", object_pairs_hook=live_v1.unique_object if live_v1.enabled(request) else dict)
+    except (ValueError, UnicodeDecodeError):
         return JsonResponse({"ok": False, "message": "Javob formati noto'g'ri."}, status=400)
-    result = submit_response(user=request.user, activity=activity, answer=payload.get("answer"))
+    if not isinstance(payload, dict):
+        return live_v1.no_store({'ok': False, 'message': 'Javob formati noto‘g‘ri.'}, status=400)
+    answer = payload.get('answer')
+    if live_v1.enabled(request):
+        if not live_v1.flag_enabled(live_v1.FLAG):
+            return live_v1.no_store({'ok': False, 'code': 'disabled', 'message': 'Yangi jonli ko‘rinish o‘chirilgan. Javob yuborilmadi.'}, status=400)
+        if set(payload) != {'answer', 'revision'}:
+            return live_v1.no_store({'ok': False, 'code': 'invalid_answer', 'message': 'Javob formati noto‘g‘ri.'}, status=400)
+        if not constant_time_compare(str(payload.get('revision', '')), live_v1.answer_revision(request.user, activity)):
+            return live_v1.no_store({'ok': False, 'code': 'stale', 'message': 'Mashq formasi eskirgan. Javob yuborilmadi.'}, status=409)
+        try:
+            answer = live_v1.decode_answer(request.user, activity, answer)
+        except (ValueError, KeyError, TypeError):
+            return live_v1.no_store({'ok': False, 'code': 'invalid_answer', 'message': 'Variantlarni qayta tekshiring.'}, status=400)
+    result = submit_response(user=request.user, activity=activity, answer=answer)
     status = 200 if result.ok else (403 if result.code == "no_access" else 400)
-    return JsonResponse({"ok": result.ok, "code": result.code, "message": result.message}, status=status)
+    return live_v1.no_store({"ok": result.ok, "code": result.code, "message": result.message}, status=status)
 
 
 @login_required
@@ -707,7 +760,7 @@ def activity_result(request, activity_id):
         response = StudentResponse.objects.filter(activity=activity, enrollment=enrollment).first()
         if response:
             breakdown = response_breakdown(activity, response)
-    return render(request, "classbook/activity_result.html", {
+    return live_v1.render_page(request, 'activity_result', {
         "active_nav": "classbook_live",
         "activity": activity,
         "response": response,

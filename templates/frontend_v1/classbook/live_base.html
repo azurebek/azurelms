@@ -1,0 +1,9 @@
+{% extends 'frontend_v1/platform.html' %}{% load static %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'frontend_v1/css/classbook.css' %}"><script defer src="{% static 'classbook/socket.js' %}"></script><script defer src="{% static 'frontend_v1/js/library.js' %}"></script><script defer src="{% static 'frontend_v1/js/classbook-live.js' %}"></script>{% endblock %}
+{% block content %}
+<div class="p-page-heading"><div><p class="c-eyebrow">{% if live_teacher %}USTOZ{% else %}O‘QUVCHI{% endif %} / CLASSBOOK</p><h1>{% block live_heading %}Jonli dars{% endblock %}</h1><p class="c-lead">{% block live_intro %}{% endblock %}</p></div>{% block live_back %}<a class="c-button c-button--secondary" href="{% if live_teacher %}{% url 'classbook:teacher_home' %}{% else %}{% url 'classbook:live_home' %}{% endif %}">Darslarga qaytish</a>{% endblock %}</div>
+<div class="f-classbook-stack">
+<p class="c-alert c-alert--info" role="alert" tabindex="-1" data-library-offline hidden>Aloqa yo‘q. Amal yuborilmadi.</p>
+<p class="c-alert c-alert--info" role="status" data-library-pending hidden>Server javobi kutilmoqda. Qayta yubormang. Aloqa uzilsa, dars holatini alohida oynada tekshiring.</p>
+{% block live_body %}{% endblock %}
+</div>{% endblock %}

@@ -276,19 +276,26 @@ def _activity_link(activity):
     return f"/classbook/live/activity/{activity.id}/"
 
 
+def lock_class_session(session_id):
+    """Inside atomic: cohort -> session, shared by live writers and finish/start."""
+    cohort_id = TelegramLessonSession.objects.values_list('cohort_id', flat=True).get(pk=session_id)
+    Cohort.objects.select_for_update().get(pk=cohort_id)
+    return TelegramLessonSession.objects.select_for_update(of=('self',)).select_related(
+        'cohort', 'lesson').get(pk=session_id, cohort_id=cohort_id)
+
+
+def _lock_activity(activity):
+    session = lock_class_session(activity.session_id)
+    activity = ActivityRun.objects.select_for_update(of=('self',)).select_related('exercise').get(
+        pk=activity.pk, session=session)
+    activity.session = session
+    return activity
+
+
 @transaction.atomic
 def open_activity(*, actor, activity):
-    session = (
-        TelegramLessonSession.objects.select_for_update(of=("self",))
-        .select_related("cohort", "lesson")
-        .get(pk=activity.session_id)
-    )
-    activity = (
-        ActivityRun.objects.select_for_update(of=("self",))
-        .select_related("exercise")
-        .get(pk=activity.pk, session=session)
-    )
-    activity.session = session
+    activity = _lock_activity(activity)
+    session = activity.session
     if not can_manage_cohort(actor, session.cohort):
         return ServiceResult(False, "permission_denied", "Mashqni ochish huquqi sizda yo'q.", activity=activity)
     if session.status != TelegramLessonSession.STATUS_OPEN:
@@ -329,14 +336,10 @@ def open_activity(*, actor, activity):
 
 @transaction.atomic
 def submit_response(*, user, activity, answer):
-    # Bitta activity qatori qisqa muddatga qulflanadi: yopilish bilan javob
-    # qabul qilish orasida race bo'lmasin. Grader pure va tez; 50 foydalanuvchi
-    # uchun bu keyingi load testda alohida o'lchanadi.
-    activity = (
-        ActivityRun.objects.select_for_update()
-        .select_related("session__cohort", "exercise")
-        .get(pk=activity.pk)
-    )
+    # Same parent-first order as start/finish/open/close. Joining parent rows in
+    # an implicit activity lock could invert that order. Production concurrency
+    # throughput still needs a real load test; the grader remains pure and fast.
+    activity = _lock_activity(activity)
     enrollment = active_enrollment_for(user, activity.session.cohort)
     if not enrollment:
         return ServiceResult(False, "no_access", "Siz bu jonli dars guruhiga kirmaysiz.", activity=activity)
@@ -500,11 +503,7 @@ def _publish_activity_notifications(activity):
 
 @transaction.atomic
 def close_activity(*, actor, activity, publish=True):
-    activity = (
-        ActivityRun.objects.select_for_update()
-        .select_related("session__cohort", "exercise")
-        .get(pk=activity.pk)
-    )
+    activity = _lock_activity(activity)
     if not can_manage_cohort(actor, activity.session.cohort):
         return ServiceResult(False, "permission_denied", "Mashqni yopish huquqi sizda yo'q.", activity=activity)
     if activity.status not in {ActivityRun.STATUS_OPEN, ActivityRun.STATUS_CLOSED}:
