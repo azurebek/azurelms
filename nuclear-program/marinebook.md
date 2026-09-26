@@ -16,6 +16,28 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-26 [Codex]: I5c.1 — qolgan uch settings sahifasi real V1ga ulandi
+
+Maxfiylik, To‘lov va Imkoniyatlar frozen V1 shellga mustaqil default-OFF
+flag bilan ulandi. Canonical preference/memory writer va quota saqlandi;
+alohida explicit-save, stale form va confirmation himoyasi qo‘shildi.
+
+- Branch: `codex/frontend-v1-settings-remainder`; runtime `d3c286e`.
+- Offline focused settings/account/sections/flags **61 OK** (6.755s);
+  full `manage.py test --noinput --verbosity 0` **exit0** (output truncation,
+  count da’vo qilinmaydi); `node --test tests/frontend_v1/*.test.mjs` **73 PASS**.
+- Isolated DB8059: preference save/PRG, ikki tab stale409/bound value/saved
+  label/dirty exit; uch route320/639/640/1023/1024/1280 overflow0;
+  light/dark, privacy disclosure, drawer Escape/focus, console0.
+  Privacy mutationlar browserda emas, Django test clientda tekshirildi.
+- I5b.1 PR131 MERGED `af4ed76`, final CI36196388190 all3PASS;
+  tracker va oldingi package dalili yangilandi.
+- Davomi: I5c.1 required CI/review/main; keyin auth qoldig‘i va records/help/
+  notifications. AWS/native-device qabuli alohida; provider/prototype/real
+  userlarga tegilmadi. [Scope va chegaralar](frontend-v1/I5C-SETTINGS.md).
+
+---
+
 ## 2026-09-26 [Codex]: I5b.1 — Profil va Hisob real V1ga ulandi
 
 Frozen ACC-01 profil/disclosure/settings-tab ko‘rinishi real Django formaga

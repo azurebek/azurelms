@@ -64,7 +64,9 @@ Offline (`AZURELMS_SKIP_ENV_FILE=1`, `GEMINI_API_KEY=''`,
 Runtime commit: `1a4d6a3`. Follow-up: rejected bound form ham yangi
 keystrokesiz unsaved deb olinadi; cached markupda offline notice yo‘qligi
 native submitni buzmaydi. `manage.py test users.test_frontend_v1_account
---noinput --verbosity 1`: **14 OK**, 1.308s. Required CI/review keyingi gate.
+--noinput --verbosity 1`: **14 OK**, 1.308s. Follow-up `3d51a61`.
+PR131 MERGED `af4ed76`; final CI `36196388190` uchala PASS.
+AWS rollout va haqiqiy qurilma qabuli alohida ochiq.
 
 IAB + disposable SQLite8057: native login → profile save → account bir xil
 ma’lumot; ikkinchi tabdagi profile save → eski account POST409, bound matn
