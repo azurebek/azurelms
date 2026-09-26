@@ -16,6 +16,34 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-27 [Codex]: Q15a kundalik boshqaruv — to‘rtta lokal prototip
+
+D31 continuation: ignored Eleventh Trial Paket68da dashboard, cheklar,
+foydalanuvchilar va chatlar qurildi. Native filter/pagination/detail/return,
+chek reason/consent/receipt va existing checkout→owner→learner yagona
+sintetik holati tekshirildi. Real runtime, DB va AWS o‘zgarmadi.
+
+- Branch `codex/q15a-backoffice-prototype`; dalil commit **`530449b`**.
+  [Q15a dalili](frontend-v1/Q15A-DAILY-BACKOFFICE-PROTOTYPE.md).
+- Trial cwd `venv/Scripts/python.exe manage.py test tests --verbosity 1`:
+  **630 PASS** (204.472s), yangi24 test; check0 issue, provider-free env.
+  `node --test <expanded tests/*.test.mjs>` **170 PASS**; JS syntax,
+  `git diff --check` PASS. Initial action-metadata/lab-return400 tuzatildi;
+  query guard va stale-deleted reason uchun regression qo‘shildi.
+- IAB4 route ×5 width ×2 tema =40 responsive ko‘rinish: no overflow.
+  User12→3 pagination/Back, chat search, receipt draft reload/unchecked
+  consent, exact approve/reject, unknown→result, menu Escape va
+  checkout31→owner approve→learner tasdiqi PASS. JS error/warn0.
+- Checkpoint485 fayl: `packet-68-20260927-011831.zip`, SHA256
+  `6F5354ADB7DD1D9D55712CBF1E56787145C355AFB6D7AB67818FC526F0DFE356`.
+  Har source/archive hash tekshirildi; Paket67 saqlangan. Gitga faqat docs.
+- 103 preview /60 template /82 source nomi /915 route-state; Q15a chizildi.
+  **36 UI +3 handler =39 band,9 qadam** qoladi. Keyingi **Q15b5 URL**.
+  Keng Q14 capability/state parity, owner/native qabul va G2/G3 ochiq.
+- Receipt bayti/RBAC/durable audit/notification/real transaction portda;
+  user block/chatdelete ixtiro qilinmadi. Moliyaviy KPI fixture snapshot.
+  AWS `8bb6b95` o‘zgarishsiz; yangi prototip real port qilingan emas.
+
 ## 2026-09-27 [Codex]: Q14 source-supported imtihon muharriri — lokal prototip
 
 Ownerning rejadan keyingi “Davom et” topshirig‘i bilan D31 continuation.
