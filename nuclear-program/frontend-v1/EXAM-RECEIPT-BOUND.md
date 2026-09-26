@@ -62,3 +62,24 @@ runtime/assertions. The earlier3 failure names were lost in truncated tool
 output, so sleep is a supported environmental concern, not a proven cause
 of each assertion. Fresh cloud CI is independently required. Machine power
 settings were not changed. Merge stays held until fresh CI/review acceptance.
+
+## Outer audio rollback follow-up (before runtime edits)
+
+ADMIT — same transaction-integrity scope, review4111999822. The nested audio
+writer currently cannot see later receipt/pruning/snapshot/commit failures.
+V1 will track only files created by this action and clean unreferenced files
+after its complete atomic boundary exits. Never delete the previous recording,
+or a new file still referenced by a committed answer (including on-commit
+callback errors). If the database/storage cannot confirm safe cleanup, log the
+failure and preserve the file; no false distributed-transaction guarantee.
+Crash/power-loss between filesystem and DB remains a separate reconciliation
+limit. No new product policy, migration, quota or UI is introduced.
+
+Implemented `e39a263`. Provider-free `manage.py test courses.test_exam_attempt_v1
+courses.test_exam_api_security --noinput`:73 OK skip7 (9.180s), diff PASS.
+Receipt/eviction/snapshot failure removes only the new file and rolls back
+answer/revision/receipt; referenced/unverifiable files are preserved. New PG
+transaction test makes an on_commit callback fail after a successful audio
+commit and verifies the recording and receipt still exist. Full/latest-head
+CI/review pending; prior head86eaf08 CI36255695367 all3PASS (SQLite5m27s,
+PostgreSQL4m42s, security2m12s) remains a historical checkpoint.

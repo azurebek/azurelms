@@ -171,6 +171,8 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
     focused85 OK skip6/Node110 PASS; owner audit/two-tab uncertainty browser proof.
     Final full2236 OK skip52 (168.837s), Node110 PASS. Fresh required
     CI/review/main acceptance kutilmoqda.
+    Head86eaf08 CI36255695367 all3PASS; outer audio rollback review fix
+    `e39a263` focused73 OK skip7. Fresh full/CI/review/main acceptance ochiq.
   - [ ] I8c teacher review UI va stale-form confirmation.
   - [ ] I8 AWS/native-device release.
 - [ ] **I9 — Classbook.** Preparation→session→activity→result; multi-user,

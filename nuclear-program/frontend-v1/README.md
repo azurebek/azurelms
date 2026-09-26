@@ -88,6 +88,8 @@ Head110cfd2 CI all3PASS; keyingi review applied-receipt growthni topdi.
 Owner-approved `842edb4` [jurnal sig‘imi](EXAM-RECEIPT-BOUND.md)ni auditlangan
 sozlamaga chiqardi; final full2236 OK skip52 (168.837s), Node110 PASS.
 Fresh CI/review kutilmoqda. AWS o‘zgarmadi.
+Head86eaf08 CI all3PASS; outer audio rollback follow-up `e39a263` focused73
+OK skip7. New full/CI/review hali ochiq; bu deployment tasdig‘i emas.
 I4b AI adapteri PR #130 bilan main’da `a25cf4b`:
 [scope, compact transcript va tekshiruv](I4B-AI-MESSENGER.md).
 1961 Python OK/61 Node PASS; final CI `36192585672` uchala PASS;

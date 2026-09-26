@@ -15,6 +15,9 @@ Focused85 OK skip6/Node110 PASS, IAB two-tab recovery va owner audit PASS.
 Final provider-free full2236 OK skip52 (168.837s). Fresh CI/review/main
 acceptance kerak; hali merge/deploy emas. Long sleep-interrupted run and
 rerun evidence are retained in the follow-up document.
+Next review4111999822 outer audio rollback fixed in `e39a263`; focused73 OK
+skip7 (9.180s), no migration/UI delta. Prior86eaf08 CI all3PASS; fresh
+full/CI/review required. [Complete rollback scope](EXAM-RECEIPT-BOUND.md).
 
 ### Final local checkpoint — library guard included
 

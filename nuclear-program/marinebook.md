@@ -16,6 +16,21 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-26 [Codex]: I8b audio — butun action rollbackdan keyingi cleanup
+
+Review4111999822 topgan nested-transaction file leak `e39a263`da yopildi.
+V1 faqat request yaratgan fayllarni kuzatadi; tashqi atomic tugagach
+unreferenced faylni tozalaydi. Old recording va commit bo‘lgan yangi
+recording saqlanadi, hatto on_commit callback xato bersa ham. DB/storage
+tekshirib bo‘lmasa xavfsiz saqlab, xatoni loglaydi; crash atomiklik da’vosi yo‘q.
+
+- Branch `codex/frontend-v1-exam-attempt`, runtime `e39a263`; no migration/UI.
+- Provider-free `manage.py test courses.test_exam_attempt_v1 courses.test_exam_api_security --noinput`:
+  **73 OK skip7 (9.180s)**. Receipt/pruning/snapshot failure va referenced
+  file cleanup regressions; real post-commit callback testi PG CI’da.
+- Head86eaf08 CI36255695367 all3PASS historical. Fresh full/CI/review/main
+  acceptance kutilmoqda. AWS/current DB o‘zgarmadi.
+
 ## 2026-09-26 [Codex]: Owner-approved imtihon texnik jurnali sig‘imi
 
 PR140 yangi review4110573482 muvaffaqiyatli amallar receiptlari cheksiz
