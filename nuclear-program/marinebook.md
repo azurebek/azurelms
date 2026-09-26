@@ -16,6 +16,31 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-27 [Codex]: Q14 source-supported imtihon muharriri — lokal prototip
+
+Ownerning rejadan keyingi “Davom et” topshirig‘i bilan D31 continuation.
+Ignored Eleventh Trial Paket67: index + exact exam101/102/201,18 maydon,
+native save/receipt, qoralama va stale/unknown/replay himoyasi. Keng Q14
+savol CRUD/multi-section/publish capability ochiq; real runtime/AWS tegilmadi.
+
+- Branch: `codex/q14-exam-editor-prototype`; dalil commit **`2300388`**.
+- Trial cwd `venv/Scripts/python.exe manage.py test tests --verbosity 1`:
+  **606 PASS** (yakuniy qayta run190.471s); isolated check0 issue.
+  Provider-free env; `node --test <expanded tests/*.test.mjs>` **168 PASS**;
+  `node --check prototype/static/js/exam_editor.js` va `git diff --check` PASS.
+- IAB320/390/768/1024/1280px light/dark: no overflow, >=45px controls;
+  save/validation/error-focus/draft dialog/unknown receipt/reset tekshirildi.
+  Native confirm sinovda IABni to‘xtatgani uchun existing HTML dialogga
+  almashtirildi; Escape va restore focus qayta tekshirildi. Real touch/AT ochiq.
+- Paket67 checkpoint466 fayl: `packet-67-20260927-003746.zip`, SHA256
+  `855BC5BE22F979FFF961EE7ADE52F6E65EDE3C29A4F10399218A0F521B5F1D10`.
+  Old V1 packet66 hash ham [dalilda](frontend-v1/Q14-EXAM-EDITOR-PROTOTYPE.md).
+- Joriy99 preview /56 template /78 source nomi; U01/U02 source-supported
+  qism chizildi. **40 UI +3 handler,10 keyingi qadam**; keng Q14 capability,
+  state parity va owner/native acceptance alohida ochiq. Keyingi Q15a.
+- Gitga faqat hujjatlar; ignored source force-add/push qilinmadi. AWS8bb6b95
+  o‘zgarishsiz. Source-backed yangi UI real port qilingani deb da’vo yo‘q.
+
 ## 2026-09-26 [Codex]: Qolgan prototiplar qamrovi va sanasiz yakunlash rejasi
 
 Owner yangi qurishdan oldin inventar/reja so‘radi. `6d23b6e`:
