@@ -1,0 +1,62 @@
+/* Frozen Eleventh Trial records/support layout; real-data wrapping only. */
+.f-records-stack { display: grid; gap: var(--az-space-6); min-width: 0; align-content: start; overflow-wrap: anywhere; }
+.f-records-layout { display: grid; grid-template-columns: minmax(0, 1fr) var(--az-aside); gap: var(--az-space-6); align-items: start; }
+.f-records-filter { display: flex; flex-wrap: wrap; align-items: end; gap: var(--az-space-4); }
+.f-records-filter > div { flex: 1 1 var(--az-art-width); min-width: 0; }
+.f-records-filter .c-button { min-width: var(--az-button-min); }
+.f-records-hint { margin-top: var(--az-space-3); }
+.f-records-applied { margin-bottom: var(--az-space-4); }
+.f-records-facts { display: grid; gap: var(--az-space-3); margin-top: var(--az-space-5); }
+.f-records-facts > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--az-space-3); padding-bottom: var(--az-space-3); border-bottom: 1px solid var(--az-border); }
+.f-records-facts dt { color: var(--az-muted); font-size: var(--az-text-sm); }
+.f-records-facts dd { margin: 0; text-align: right; font-weight: var(--az-weight-medium); }
+.f-records-number { margin-block: var(--az-space-4); font-size: var(--az-text-title); }
+.f-records-empty { padding-block: var(--az-space-8); }
+.f-records-empty p { margin-top: var(--az-space-3); }
+.f-attendance-calendar { width: 100%; table-layout: fixed; border-collapse: collapse; margin-top: var(--az-space-5); }
+.f-attendance-calendar caption { caption-side: bottom; padding-top: var(--az-space-4); color: var(--az-muted); font-size: var(--az-text-xs); text-align: left; }
+.f-attendance-calendar th { font-size: var(--az-text-xs); font-weight: var(--az-weight-medium); color: var(--az-muted); padding-bottom: var(--az-space-3); }
+.f-attendance-calendar td { padding: var(--az-space-1); vertical-align: top; }
+.f-attendance-day { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: var(--az-space-16); border: 1px solid var(--az-border); border-radius: var(--az-radius-sm); background: var(--az-canvas); font-size: var(--az-text-sm); }
+.f-attendance-day--present { background: var(--az-success-soft); color: var(--az-success); }
+.f-attendance-day--partial { background: var(--az-soft); color: var(--az-warning); }
+.f-attendance-day--absent { background: var(--az-danger-soft); color: var(--az-danger); }
+.f-attendance-mark { font-size: var(--az-text-xs); font-weight: var(--az-weight-bold); }
+.f-ranking-list { list-style: none; padding: 0; margin-top: var(--az-space-5); }
+.f-ranking-row { display: grid; grid-template-columns: var(--az-control) minmax(0, 1fr) auto; align-items: center; gap: var(--az-space-3); padding: var(--az-space-4) var(--az-space-2); border-top: 1px solid var(--az-border); }
+.f-ranking-row--self { background: var(--az-action-soft); border-radius: var(--az-radius-sm); }
+.f-ranking-row .c-badge { margin-left: var(--az-space-2); }
+.f-ranking-rank { color: var(--az-muted); text-align: center; font-variant-numeric: tabular-nums; }
+.f-ranking-score { display: grid; justify-items: end; }
+.f-records-badges { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: var(--az-space-4); }
+.f-records-badge-icon { width: var(--az-control); height: var(--az-control); object-fit: contain; }
+.p-support-layout { display: grid; gap: var(--az-space-6); align-items: start; }
+.p-support-stack { display: grid; gap: var(--az-space-4); min-width: 0; }
+.p-support-stack > .c-section-title { margin-bottom: 0; }
+.p-notice__meta { display: flex; flex-wrap: wrap; gap: var(--az-space-3); align-items: center; margin-bottom: var(--az-space-4); }
+.p-notice h3 { margin-bottom: var(--az-space-2); }
+.p-notice:target { border-color: var(--az-action); }
+.p-notice__message { white-space: pre-wrap; }
+.p-support-stack .p-panel h2 { margin-bottom: var(--az-space-3); }
+.p-help-question summary { min-height: var(--az-control); padding: var(--az-space-5); cursor: pointer; font-weight: var(--az-weight-medium); overflow-wrap: anywhere; }
+.p-help-question > div { padding: 0 var(--az-space-5) var(--az-space-5); color: var(--az-muted); }
+.f-records-rich { overflow-wrap: anywhere; min-width: 0; }
+.f-records-rich > * + * { margin-top: var(--az-space-4); }
+.f-records-rich * { max-width: 100%; }
+.f-records-rich table, .f-records-rich pre { display: block; overflow: auto; }
+.f-records-rich ul, .f-records-rich ol { padding-left: var(--az-space-5); }
+.f-records-rich a { color: var(--az-action); text-decoration: underline; }
+.f-records-stack input[type=file] { width: 100%; min-width: 0; }
+.f-records-stack .c-section-title { flex-wrap: wrap; }
+.f-records-stack .c-section-title > *, .f-records-stack .c-actions > * { min-width: 0; max-width: 100%; }
+@media (width >= 1024px) { .p-support-layout { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); } }
+@media (width < 1024px) { .f-records-layout { grid-template-columns: minmax(0, 1fr); } }
+@media (width < 640px) {
+  .f-records-filter { align-items: stretch; flex-direction: column; }
+  .f-records-filter > div { flex: auto; }
+  .f-records-facts > div { grid-template-columns: minmax(0, 1fr); gap: var(--az-space-1); }
+  .f-records-facts dd { text-align: left; }
+  .f-attendance-calendar td { padding: 0; }
+  .f-attendance-day { min-height: var(--az-control); }
+  .f-ranking-row { grid-template-columns: var(--az-space-6) minmax(0, 1fr) auto; gap: var(--az-space-2); }
+}

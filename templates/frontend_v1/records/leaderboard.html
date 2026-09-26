@@ -1,0 +1,11 @@
+{% extends "frontend_v1/records/base.html" %}
+{% block records_intro %}Tanlangan guruhdagi o‘rningiz va o‘quv natijalaringiz.{% endblock %}
+{% block records_body %}
+{% include "frontend_v1/records/filter.html" %}
+<div class="f-records-layout">
+  <section class="c-card p-panel" aria-labelledby="ranking-title"><div class="c-section-title"><div><p class="c-eyebrow">{{ leaderboard_cohort.name|default:'FAOL GURUH' }}</p><h2 id="ranking-title">Guruh natijalari</h2></div><span class="c-badge">Eng yuqori 10 o‘rin</span></div>
+  {% if leaderboard_top %}<ol class="f-ranking-list" aria-label="O‘quvchilar reytingi">{% for row in leaderboard_top %}<li class="f-ranking-row{% if row.is_me %} f-ranking-row--self{% endif %}"><span class="f-ranking-rank" aria-label="{{ row.rank }}-o‘rin">{{ row.rank }}</span><div><strong>{{ row.student.get_full_name|default:row.student.username }}</strong>{% if row.is_me %}<span class="c-badge c-badge--soft">Siz</span>{% endif %}<p class="c-caption">{{ row.student.current_level }} · {{ row.student.streak_days }} kunlik seriya</p></div><div class="f-ranking-score"><strong>{{ row.cohort_score }}</strong><span class="c-caption">XP</span></div></li>{% endfor %}</ol>{% else %}<div class="f-records-empty"><h3>Reyting hali yo‘q</h3><p class="c-muted">Faol guruhga qo‘shilgach natijalar ko‘rinadi. Hozir o‘rin yoki ball taxmin qilinmaydi.</p></div>{% endif %}
+  </section>
+  <aside class="f-records-stack" aria-label="Shaxsiy reyting"><section class="c-card p-panel"><p class="c-eyebrow">SIZNING O‘RNINGIZ</p>{% if leaderboard_my_row %}<h2 class="f-records-number">{{ leaderboard_my_row.rank }}-o‘rin</h2><dl class="f-records-facts"><div><dt>Guruhdagi XP</dt><dd>{{ leaderboard_my_row.cohort_score }}</dd></div></dl>{% if leaderboard_my_row.rank > 10 %}<p class="c-caption f-records-hint">Siz birinchi o‘ntalikdan tashqaridasiz. Natijangiz shu yerda alohida ko‘rsatilgan.</p>{% endif %}{% else %}<h2>Natija mavjud emas</h2>{% endif %}</section><section class="c-card p-panel"><h2>Ball nimani anglatadi?</h2><p class="c-muted f-records-hint">Bu tanlangan guruhga tegishli natija, umumiy hisob XP’i emas. Boshqa guruhda o‘rin va ball boshqacha bo‘lishi mumkin.</p><a class="c-text-link" href="{% url 'my_courses' %}">Kurslarimga qaytish</a></section></aside>
+</div>
+{% endblock %}

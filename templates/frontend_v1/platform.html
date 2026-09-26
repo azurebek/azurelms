@@ -13,7 +13,7 @@
       <span class="s-breadcrumb"><span class="s-breadcrumb__workspace">{{ frontend_v1_workspace|default:"O‘quv maydoni" }} <span aria-hidden="true">/</span></span><strong>{{ frontend_v1_title }}</strong></span>
     </div>
     <div class="s-topbar__end">
-      <a class="c-icon-button" href="{% url 'notifications' %}" aria-label="Bildirishnomalar{% if unread_notifications_count %}: {{ unread_notifications_count }} ta o‘qilmagan{% endif %}" title="Bildirishnomalar — avvalgi ko‘rinishda">{% include "frontend_v1/icon.html" with name="message" %}{% if unread_notifications_count %}<span class="c-dot" aria-hidden="true"></span>{% endif %}</a>
+      <a class="c-icon-button" href="{% url 'notifications' %}" aria-label="Bildirishnomalar{% if unread_notifications_count %}: {{ unread_notifications_count }} ta o‘qilmagan{% endif %}" title="Bildirishnomalar{% if not frontend_v1_records_ready %} — avvalgi ko‘rinishda{% endif %}">{% include "frontend_v1/icon.html" with name="message" %}{% if unread_notifications_count %}<span class="c-dot" aria-hidden="true"></span>{% endif %}</a>
       {% include "frontend_v1/theme_button.html" %}
     </div>
   </header>
