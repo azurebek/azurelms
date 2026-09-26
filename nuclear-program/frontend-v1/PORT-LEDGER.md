@@ -110,7 +110,7 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
     [Final acceptance](https://github.com/azurebek/azurelms/pull/134#issuecomment-5842321154).
   - [ ] I5b.1/I5b.2/I5c.1 AWS/SMTP release va haqiqiy qurilma qabuli — alohida.
     I5d AWS va sertifikat detail/appendix legacy porti ham ochiq.
-- [-] **I6 — Library + course/lesson editor.** Common resource/link/private
+- [x] ~~I6 — Library + course/lesson editor kod integratsiyasi.~~ Common resource/link/private
   storage parity; real forms existing fieldsni saqlaydi. Qisman field/save
   contract mos kelmasa tegishli editor legacy qoladi va qarz ochiq yoziladi.
   - [x] ~~I6a lokal — kutubxona list/create/edit/picker.~~ Runtime `9a76fed`;
@@ -123,9 +123,15 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
   - [x] ~~I6b lokal course/lesson editor, per-link settings/reorder/detach V1.~~
     `c72c1fd`: 111 focused OK, 2089 full OK skip45 (final labels/2 testdan oldin),
     Node95, 30 responsive check overflow0. [Scope va dalil](I6B-COURSE-LESSON-EDITORS.md).
-  - [ ] I6b required CI/review/main.
+  - [x] ~~I6b required CI/review/main.~~ PR136 MERGED `0278331`,
+    finalCI36215540990 all3PASS: SQLite2091 skip44/PostgreSQL2091 skip20/Node95.
   - [ ] I6 AWS/device release.
-- [ ] **I7 — Checkout/receipt.** Quote→upload→pending→owner decision→access;
+- [-] **I7 — Checkout/receipt.** Quote→upload→pending→owner decision→access;
+  - [x] ~~Lokal V1 port `3621e9c`.~~ 28 yangi test, 262 focused OK skip6,
+    full2119 OK skip45, Node95; 24 responsive readback overflow0.
+    [Dalil va chegaralar](I7-CHECKOUT.md).
+  - [ ] Required CI/review/main.
+  - [ ] AWS/device release.
   difference/rejected, direct URL permission, duplicate/unknown reconciliation.
 - [ ] **I8 — Exam va teacher review.** Real attempt/audio/timer/revision,
   save/submit/review/publication; backend natijasi o‘zgarmaydi.
