@@ -27,6 +27,10 @@ class ExamRuntimeAccessMixin(ExamAPIResponseMixin, LoginRequiredMixin):
                     course_id=kwargs['course_id'],
                     exam_id=kwargs['exam_id'],
                 )
+                # Match V1's user -> attempt order, including legacy submit's
+                # streak/receipt FK work, when both renderers are open.
+                from django.contrib.auth import get_user_model
+                get_user_model().objects.select_for_update().get(pk=request.user.pk)
                 from .models import ExamAttempt
                 self.exam_attempt = ExamAttempt.objects.select_for_update().get(pk=self.exam_attempt.pk)
                 if self.exam_attempt.is_completed:

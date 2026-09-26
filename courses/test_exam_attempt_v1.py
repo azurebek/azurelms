@@ -264,7 +264,7 @@ class ExamAttemptV1ConcurrencyTests(TransactionTestCase):
         self.attempt = ExamAttempt.objects.create(student=self.student, exam=self.exam)
         self.url = reverse('api_exam_v1', args=[self.course.pk, self.exam.pk])
 
-    def race(self, *payloads):
+    def race(self, *payloads, urls=None):
         from concurrent.futures import ThreadPoolExecutor
         from threading import Barrier
         from django.db import connections, close_old_connections
@@ -272,15 +272,15 @@ class ExamAttemptV1ConcurrencyTests(TransactionTestCase):
         for client in clients: client.force_login(self.student)
         barrier = Barrier(len(payloads))
         def request(pair):
-            client, payload = pair
+            client, payload, url = pair
             close_old_connections()
             try:
                 barrier.wait(timeout=15)
-                return client.post(self.url, payload, content_type='application/json').status_code
+                return client.post(url, payload, content_type='application/json').status_code
             finally:
                 connections.close_all()
         with ThreadPoolExecutor(max_workers=len(payloads)) as pool:
-            return list(pool.map(request, zip(clients, payloads)))
+            return list(pool.map(request, zip(clients, payloads, urls or [self.url] * len(payloads))))
 
     def data(self, **extra):
         return {'command': 'save', 'operation_id': str(uuid.uuid4()), 'attempt_id': self.attempt.pk,
@@ -312,3 +312,12 @@ class ExamAttemptV1ConcurrencyTests(TransactionTestCase):
         other = dict(data, operation_id=str(uuid.uuid4()))
         self.assertEqual(sorted(self.race(data, other)), [200, 409])
         self.assertEqual(ExamAttempt.objects.count(), 1)
+
+    def test_legacy_submit_and_v1_save_share_lock_order_and_cannot_reopen_attempt(self):
+        old_url = reverse('api_exam_submit', args=[self.course.pk, self.exam.pk])
+        statuses = self.race({}, self.data(), urls=[old_url, self.url])
+        self.assertEqual(statuses[0], 200)
+        self.assertIn(statuses[1], (200, 400))
+        self.attempt.refresh_from_db()
+        self.assertTrue(self.attempt.is_completed)
+        self.assertEqual(self.attempt.input_revision, int(statuses[1] == 200))
