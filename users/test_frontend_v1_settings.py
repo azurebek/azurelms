@@ -130,6 +130,33 @@ class SettingsV1Tests(TestCase):
         self.user.refresh_from_db()
         self.assertEqual(self.user.ai_tone, 'friendly')
 
+    def test_legacy_and_json_aba_changes_stale_all_four_preference_forms(self):
+        for action, endpoint, initial, alternate in (
+            ('ai_tone', 'update_ai_tone', 'friendly', 'formal'),
+            ('ai_model', 'update_ai_model', User.effective_ai_model_choices()[0][0], User.effective_ai_model_choices()[-1][0]),
+            ('ai_web_search_effort', 'update_ai_web_search_effort', 'light', 'medium'),
+            ('ai_memory_enabled', 'ai_memory_toggle', '1', '0'),
+        ):
+            with self.subTest(action=action):
+                url = reverse(endpoint)
+                self.client.post(url, {action: initial})
+                old_form = self.payload(action, **{action: alternate})
+                version = self.user.ai_preferences_version
+                for value in (alternate, initial):
+                    self.assertEqual(self.client.post(url, {action: value}, HTTP_ACCEPT='application/json').status_code, 200)
+                self.user.refresh_from_db()
+                self.assertEqual(self.user.ai_preferences_version, version + 2)
+                self.assertEqual(self.client.post(url, old_form).status_code, 409)
+                self.user.refresh_from_db()
+                self.assertEqual(str(int(self.user.ai_memory_enabled)) if action == 'ai_memory_enabled' else getattr(self.user, action), initial)
+
+    def test_preference_noop_does_not_increment_version_or_change_other_fields(self):
+        before = self.user.ai_preferences_version
+        self.client.post(reverse('update_ai_tone'), {'ai_tone': self.user.ai_tone})
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.ai_preferences_version, before)
+        self.assertEqual(self.user.total_xp, 34)
+
     def test_legacy_and_json_clients_keep_existing_contract(self):
         response = self.client.post(reverse('update_ai_tone'), {'ai_tone': 'formal'}, HTTP_ACCEPT='application/json')
         self.assertEqual(response.json()['ai_tone'], 'formal')
@@ -212,6 +239,26 @@ class SettingsV1Tests(TestCase):
         new = AIMemoryFact.objects.create(user=self.user, value='Keyin kelgan fakt', fingerprint='new-fact', confidence=0.9)
         self.assertEqual(self.client.post(reverse('ai_memory_clear'), {**payload, 'confirm_change': 'yes'}).status_code, 409)
         new.refresh_from_db(); self.assertEqual(new.status, 'active')
+
+    def test_clear_does_not_archive_inserts_after_snapshot_verification(self):
+        from ai.memory.repository import MemoryRepository
+        original = MemoryRepository.archive_all_for_user
+        inserted = {}
+
+        def insert_then_archive(repository, **kwargs):
+            inserted['fact'] = AIMemoryFact.objects.create(
+                user=self.user, value='Concurrent new fact', fingerprint='after-check', confidence=0.9)
+            inserted['legacy'] = AILongTermMemory.objects.create(user=self.user, learned_facts='After confirmation')
+            return original(repository, **kwargs)
+
+        with patch.object(MemoryRepository, 'archive_all_for_user', autospec=True, side_effect=insert_then_archive):
+            result = self.client.post(reverse('ai_memory_clear'), self.payload('clear', confirm_change='yes'))
+        self.assertRedirects(result, reverse('settings_privacy'))
+        self.fact.refresh_from_db()
+        inserted['fact'].refresh_from_db(); inserted['legacy'].refresh_from_db()
+        self.assertEqual(self.fact.status, 'archived')
+        self.assertEqual(inserted['fact'].status, 'active')
+        self.assertEqual(inserted['legacy'].learned_facts, 'After confirmation')
 
     def test_clear_legacy_only_is_not_disabled_and_legacy_change_stales_it(self):
         self.fact.delete()

@@ -185,13 +185,25 @@ class MemoryRepository:
         )
         return True
 
-    def archive_all_for_user(self, *, user, clear_legacy: bool = True) -> int:
-        archived_count = AIMemoryFact.objects.filter(
+    def archive_all_for_user(self, *, user, clear_legacy: bool = True,
+                             confirmed_fact_ids=None, confirmed_legacy_ids=None) -> int:
+        """Optionally restrict a confirmed clear to its verified snapshot rows.
+
+        Empty lists mean no rows, unlike None (legacy clear-all contract).
+        Row locks alone do not protect against concurrently inserted facts.
+        """
+        facts = AIMemoryFact.objects.filter(
             user=user,
             status=AIMemoryFact.STATUS_ACTIVE,
-        ).update(status=AIMemoryFact.STATUS_ARCHIVED, updated_at=timezone.now())
+        )
+        if confirmed_fact_ids is not None:
+            facts = facts.filter(pk__in=confirmed_fact_ids)
+        archived_count = facts.update(status=AIMemoryFact.STATUS_ARCHIVED, updated_at=timezone.now())
         if clear_legacy:
-            AILongTermMemory.objects.filter(user=user).update(learned_facts="")
+            legacy = AILongTermMemory.objects.filter(user=user)
+            if confirmed_legacy_ids is not None:
+                legacy = legacy.filter(pk__in=confirmed_legacy_ids)
+            legacy.update(learned_facts="")
         return archived_count
 
     def archive_conflicting_facts(self, *, user, category: str, key: str, keep_id: int | None = None) -> int:

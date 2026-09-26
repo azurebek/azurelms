@@ -29,6 +29,7 @@ from core.upload_validation import validate_upload
 from core.frontend_v1 import FrontendV1Mixin
 from .frontend_v1_account import AccountV1Mixin
 from .frontend_v1_settings import SettingsV1Mixin, SettingsWriteGuard
+from .preferences import save_ai_preference
 import uuid
 
 def home_view(request):
@@ -293,9 +294,7 @@ class AIToneUpdateView(LoginRequiredMixin, SettingsWriteGuard, View):
             messages.error(request, "Noto'g'ri uslub tanlandi.")
             return redirect('settings_capabilities')
 
-        if request.user.ai_tone != tone:
-            request.user.ai_tone = tone
-            request.user.save(update_fields=['ai_tone'])
+        if save_ai_preference(request.user, 'ai_tone', tone):
             messages.success(request, "AzureAI uslubi yangilandi.")
         if wants_json:
             label = dict(CustomUser.AI_TONE_CHOICES).get(tone, tone)
@@ -321,9 +320,7 @@ class AIModelUpdateView(LoginRequiredMixin, SettingsWriteGuard, View):
                 return JsonResponse({"status": "error", "message": "Noto'g'ri model tanlandi."}, status=400)
             return HttpResponseBadRequest("Noto'g'ri model tanlandi.")
 
-        if request.user.ai_model != model:
-            request.user.ai_model = model
-            request.user.save(update_fields=['ai_model'])
+        if save_ai_preference(request.user, 'ai_model', model):
             messages.success(request, "AzureAI modeli yangilandi.")
         if wants_json:
             label = dict(model_choices).get(model, model)
@@ -376,9 +373,7 @@ class AIWebSearchEffortUpdateView(LoginRequiredMixin, SettingsWriteGuard, View):
                 return JsonResponse({"status": "error", "message": "Noto'g'ri qidiruv rejimi tanlandi."}, status=400)
             return HttpResponseBadRequest("Noto'g'ri qidiruv rejimi tanlandi.")
 
-        if request.user.ai_web_search_effort != effort:
-            request.user.ai_web_search_effort = effort
-            request.user.save(update_fields=['ai_web_search_effort'])
+        if save_ai_preference(request.user, 'ai_web_search_effort', effort):
             messages.success(request, "AzureAI web qidiruv rejimi yangilandi.")
         if wants_json:
             label = dict(effort_choices).get(effort, effort)
@@ -398,9 +393,7 @@ class AIMemoryToggleView(LoginRequiredMixin, SettingsWriteGuard, View):
             or "application/json" in request.headers.get("accept", "")
         )
 
-        if request.user.ai_memory_enabled != enabled:
-            request.user.ai_memory_enabled = enabled
-            request.user.save(update_fields=['ai_memory_enabled'])
+        if save_ai_preference(request.user, 'ai_memory_enabled', enabled):
             label = "yoqildi" if enabled else "o'chirildi"
             messages.success(request, f"AzureAI xotirasi {label}.")
         if wants_json:
@@ -577,8 +570,13 @@ class AIMemoryClearAllView(LoginRequiredMixin, SettingsWriteGuard, View):
             request.headers.get("x-requested-with") == "XMLHttpRequest"
             or "application/json" in request.headers.get("accept", "")
         )
-        archived_count = MemoryRepository().archive_all_for_user(user=request.user, clear_legacy=True)
-        messages.success(request, "AzureAI xotirasi to'liq tozalandi.")
+        snapshot = getattr(request, '_settings_memory_snapshot', None)
+        archived_count = MemoryRepository().archive_all_for_user(
+            user=request.user, clear_legacy=True,
+            confirmed_fact_ids=snapshot['fact_ids'] if snapshot is not None else None,
+            confirmed_legacy_ids=snapshot['legacy_ids'] if snapshot is not None else None,
+        )
+        messages.success(request, "Ko‘rsatilgan xotira tozalandi. Keyin kelgan faktlar saqlanadi." if snapshot is not None else "AzureAI xotirasi to'liq tozalandi.")
         if wants_json:
             return JsonResponse({"status": "success", "archived": archived_count})
         return redirect('settings_privacy')

@@ -24,12 +24,12 @@ def _sign_revision(user, action, fact_id, state):
     ), algorithm='sha256').hexdigest()
 
 
-def settings_revision(user, action, fact_id=None, *, lock=False):
+def settings_revision(user, action, fact_id=None, *, lock=False, snapshot=None):
     """Opaque, per-user/action snapshot; no private fact text in HTML tokens."""
     from messenger.models import AIMemoryFact, AILongTermMemory
 
     if action.startswith('ai_'):
-        state = getattr(user, action)
+        state = [getattr(user, action), user.ai_preferences_version]
     else:
         facts = AIMemoryFact.objects.filter(user=user, status=AIMemoryFact.STATUS_ACTIVE)
         if lock:
@@ -41,7 +41,10 @@ def settings_revision(user, action, fact_id=None, *, lock=False):
             legacy = AILongTermMemory.objects.filter(user=user)
             if lock:
                 legacy = legacy.select_for_update()
-            state.append((legacy.values_list('learned_facts', flat=True).first() or '').strip())
+            legacy_row = legacy.values_list('pk', 'learned_facts').first()
+            if snapshot is not None:
+                snapshot.update(fact_ids=[row[0] for row in state], legacy_ids=[legacy_row[0]] if legacy_row else [])
+            state.append((legacy_row[1] or '').strip() if legacy_row else '')
     return _sign_revision(user, action, fact_id, state)
 
 
@@ -115,7 +118,8 @@ class SettingsWriteGuard:
             request.user = CustomUser.objects.select_for_update().get(pk=request.user.pk)
             error = None
             status = 409
-            if not constant_time_compare(revision, settings_revision(request.user, action, kwargs.get('fact_id'), lock=True)):
+            snapshot = {}
+            if not constant_time_compare(revision, settings_revision(request.user, action, kwargs.get('fact_id'), lock=True, snapshot=snapshot)):
                 error = 'Ma’lumot boshqa oynada o‘zgargan yoki forma eskirgan. Holatni yangilang; bu amal bajarilmadi.'
             elif action in ('archive', 'reject', 'clear') and request.POST.get('confirm_change') != 'yes':
                 error, status = 'Amalni bajarish uchun tasdiq belgisini qo‘ying. Hech narsa o‘zgarmadi.', 400
@@ -138,4 +142,6 @@ class SettingsWriteGuard:
                         if pref['name'] == action:
                             pref.update(value=request.POST.get(action, ''), revision=revision, unsaved=True)
                 return view.render_to_response(context, status=status)
+            if action == 'clear':
+                request._settings_memory_snapshot = snapshot
             return super().dispatch(request, *args, **kwargs)

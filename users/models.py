@@ -79,6 +79,7 @@ class CustomUser(AbstractUser):
         default=True,
         help_text="AzureAI uzoq muddatli xotirasi yoqilganmi (o'quvchi shaxsiy faktlarni eslab qolish/foydalanishga ruxsat berishi)",
     )
+    ai_preferences_version = models.PositiveBigIntegerField(default=0, editable=False)
     AI_WEB_SEARCH_LIGHT = "light"
     AI_WEB_SEARCH_MEDIUM = "medium"
     AI_WEB_SEARCH_HEAVY = "heavy"
