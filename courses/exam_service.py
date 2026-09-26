@@ -1,14 +1,39 @@
 from django.db import transaction
 from django.utils import timezone
 
-from .policy_service import check_exam_entry_policy
-from .models import ExamAttempt
+from .policy_service import check_exam_access_policy, check_exam_entry_policy
+from .models import Exam, ExamAttempt
 
 
 class ExamAttemptStartBlocked(Exception):
     def __init__(self, message, *, code):
         super().__init__(message)
         self.code = code
+
+
+class ExamAttemptAccessBlocked(Exception):
+    def __init__(self, message, *, code):
+        super().__init__(message)
+        self.code = code
+
+
+def get_accessible_exam_attempt(*, student, course_id, exam_id):
+    """Resolve current own attempt only after the course/access boundary.
+
+    Entry prerequisites are not replayed mid-attempt, but an earlier start
+    is not a lasting entitlement after membership is frozen or expires.
+    This lookup deliberately does not expire or otherwise mutate a denied attempt.
+    """
+    exam = Exam.objects.filter(pk=exam_id, course_id=course_id).select_related('course').first()
+    if exam is None:
+        raise ExamAttemptAccessBlocked('Imtihon topilmadi.', code='not_found')
+    access = check_exam_access_policy(student=student, exam=exam)
+    if not access.is_allowed:
+        raise ExamAttemptAccessBlocked(access.message, code=access.code)
+    attempt = get_in_progress_exam_attempt(student=student, exam_id=exam.pk)
+    if attempt is None:
+        raise ExamAttemptAccessBlocked('Faol imtihon urinishi topilmadi.', code='no_attempt')
+    return attempt
 
 
 def can_retake_exam(*, attempt, exam):

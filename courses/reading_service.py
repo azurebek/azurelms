@@ -36,22 +36,19 @@ def _serialize_option(option):
 
 
 def _serialize_response(response):
+    # Autosave must not reveal whether a choice/text matches the answer key.
     if not response:
         return {
             "selected_option_id": None,
             "selected_option_ids": [],
             "text_answer": "",
             "is_flagged_for_review": False,
-            "awarded_score": 0,
-            "is_graded": False,
         }
     return {
         "selected_option_id": response.selected_option_id,
         "selected_option_ids": response.selected_option_ids or [],
         "text_answer": response.text_answer or "",
         "is_flagged_for_review": response.is_flagged_for_review,
-        "awarded_score": float(response.awarded_score),
-        "is_graded": response.is_graded,
     }
 
 
@@ -320,6 +317,8 @@ def save_reading_response(*, attempt, item, payload):
 
 @transaction.atomic
 def toggle_reading_review_flag(*, attempt, item, flagged=None):
+    if item.task.section.exam_id != attempt.exam_id:
+        raise ValidationError("Reading item ushbu imtihon urinishiga tegishli emas.")
     response, _ = ReadingResponse.objects.select_for_update().get_or_create(
         attempt=attempt,
         item=item,
