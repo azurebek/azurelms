@@ -1,0 +1,16 @@
+{% extends "frontend_v1/base.html" %}
+{% load static %}
+{% block extra_head %}<script defer src="{% static 'frontend_v1/js/auth-form.js' %}"></script>{% endblock %}
+{% block body %}
+<header class="s-auth-header"><a class="s-brand" href="{% url 'home' %}">{% include "components/brand_logo.html" with mark_class="s-brand__mark" %}</a>{% include "frontend_v1/theme_button.html" %}</header>
+<main id="main" class="s-auth-main" tabindex="-1">
+  {% include "frontend_v1/messages.html" %}
+  <section class="c-card p-auth-card" aria-labelledby="auth-title">
+    <div class="p-auth-heading"><p class="c-eyebrow">O‘ZBEKCHA O‘RGANING · TURKCHA GAPIRING</p><h1 id="auth-title">{{ frontend_v1_title }}</h1>{% if auth_intro %}<p class="c-muted">{{ auth_intro }}</p>{% endif %}</div>
+    {% if form.errors %}<div class="c-alert v1-error p-auth-notice" role="alert" tabindex="-1" data-form-errors>{% if form.non_field_errors %}{{ form.non_field_errors }}{% else %}Belgilangan maydonlarni tekshiring.{% endif %}</div>{% endif %}
+    <p class="c-alert v1-error p-auth-notice" role="alert" tabindex="-1" data-auth-offline hidden>Aloqa yo‘q. Forma yuborilmadi; kiritgan ma’lumotlaringiz shu sahifada qoldi.</p>
+    <div class="p-auth-content">{% block auth_content %}{% endblock %}</div>
+  </section>
+  <footer class="s-auth-footer">{{ site_settings.brand_name|default:"AzureLMS" }} · <a href="{% url 'privacy_policy' %}">Maxfiylik</a> · <a href="{% url 'terms_of_service' %}">Foydalanish shartlari</a></footer>
+</main>
+{% endblock %}

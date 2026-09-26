@@ -1,0 +1,5 @@
+{% extends "frontend_v1/auth_base.html" %}
+{% block auth_content %}
+{% if validlink %}<form method="post" data-auth-form{% if form.is_bound %} data-auth-unsaved{% endif %}>{% csrf_token %}{% include "frontend_v1/auth_fields.html" with submit_label="Yangi parolni saqlash" %}</form>{% else %}<a class="c-button c-button--primary p-auth-submit" href="{% url 'password_reset' %}">Yangi tiklash havolasini so‘rash</a>{% endif %}
+<div class="p-auth-links"><a class="c-text-link" href="{% url 'login' %}">Kirishga qaytish</a></div>
+{% endblock %}

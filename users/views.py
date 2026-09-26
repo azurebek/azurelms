@@ -30,6 +30,7 @@ from core.frontend_v1 import FrontendV1Mixin
 from .frontend_v1_account import AccountV1Mixin
 from .frontend_v1_settings import SettingsV1Mixin, SettingsWriteGuard
 from .preferences import save_ai_preference
+from .frontend_v1_auth import AuthV1Mixin
 import uuid
 
 def home_view(request):
@@ -42,7 +43,7 @@ def home_view(request):
     return render(request, 'index.html')
 
 
-class RegisterView(CreateView):
+class RegisterView(AuthV1Mixin, CreateView):
     """Ro'yxatdan o'tish — va odam qayerga bormoqchi bo'lganini unutmaslik.
 
     Kirishni talab qiladigan sahifaga bosgan mehmon
@@ -58,6 +59,9 @@ class RegisterView(CreateView):
 
     form_class = CustomUserCreationForm
     template_name = 'registration/register.html'
+    frontend_v1_template = 'frontend_v1/auth_register.html'
+    frontend_v1_title = 'Hisob yarating'
+    auth_intro = 'Ma’lumotlaringizni kiriting. Keyingi tanishuv bosqichini o‘tkazib yuborish mumkin.'
     success_url = reverse_lazy('onboarding_choice')
 
     def dispatch(self, request, *args, **kwargs):
@@ -69,6 +73,12 @@ class RegisterView(CreateView):
         from core.flags import flag_enabled
 
         if not flag_enabled("public_registration"):
+            if self.frontend_v1_enabled:
+                self.object = None
+                self.frontend_v1_template = 'frontend_v1/auth_register_closed.html'
+                self.frontend_v1_title = 'Ro‘yxatdan o‘tish yopiq'
+                self.auth_intro = 'Hozircha yangi hisob ochilmaydi. Mavjud hisob bilan kirish mumkin.'
+                return self.render_to_response(self.get_context_data(form=None))
             return render(request, 'registration/register_closed.html', status=200)
         return super().dispatch(request, *args, **kwargs)
 
@@ -96,8 +106,11 @@ class RegisterView(CreateView):
             messages.error(self.request, "Ma'lumotlarda xatolik bor. Iltimos qaytadan tekshiring.")
         return super().form_invalid(form)
 
-class OnboardingChoiceView(LoginRequiredMixin, TemplateView):
+class OnboardingChoiceView(LoginRequiredMixin, AuthV1Mixin, TemplateView):
     template_name = 'registration/onboarding_choice.html'
+    frontend_v1_template = 'frontend_v1/auth_onboarding.html'
+    frontend_v1_title = 'Xush kelibsiz!'
+    auth_intro = 'Maqsadingiz va til darajangiz haqida aytib berishingiz mumkin. Bu bosqich majburiy emas.'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

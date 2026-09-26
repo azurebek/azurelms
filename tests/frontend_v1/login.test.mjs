@@ -5,7 +5,7 @@ import test from 'node:test';
 
 const source = readFileSync(new URL('../../static/frontend_v1/js/login.js', import.meta.url), 'utf8');
 
-function harness() {
+function harness({registration = false} = {}) {
   const elements = {};
   function element(name) {
     return elements[name] = {
@@ -28,13 +28,28 @@ function harness() {
     dataset: {initUrl: '/users/telegram-auth/init/', statusUrl: '/users/telegram-auth/status/TOKEN/', loginUrl: '/users/login/?next=%2Fusers%2Fmy-courses%2F'},
     querySelector: select,
   };
-  runInNewContext(source, {
+  const email = {value: 'typed@example.test', defaultValue: ''};
+  const form = {hasAttribute: () => false, querySelectorAll: () => [email],
+    addEventListener() {}, removeAttribute() {}};
+  const context = {
     document: {
       querySelector: selector => selector === '[data-telegram-auth]' ? panel : select(selector),
       getElementById: () => password,
+      querySelectorAll: selector => registration && selector === '[data-auth-form]' ? [form] : [],
     },
-    window: {location: {assign: url => navigation.push(url)}, addEventListener: (name, fn) => events[name] = fn},
-    URL, AbortController,
+    window: {
+      location: {assign: url => {
+        const leaving = {defaultPrevented: false, preventDefault() {this.defaultPrevented = true;}};
+        events.beforeunload?.(leaving);
+        if (!leaving.defaultPrevented) navigation.push(url);
+      }},
+      addEventListener: (name, fn) => {
+        const previous = events[name];
+        events[name] = event => {previous?.(event); return fn(event);};
+      },
+      dispatchEvent: event => events[event.type]?.(event),
+    },
+    URL, AbortController, Event,
     setTimeout: (fn, delay) => { const id = ++sequence; timers.set(id, {fn, delay}); return id; },
     clearTimeout: id => timers.delete(id),
     fetch: async (url, options) => {
@@ -44,7 +59,9 @@ function harness() {
       const data = await value;
       return {ok: true, json: async () => data};
     },
-  });
+  };
+  if (registration) runInNewContext(readFileSync(new URL('../../static/frontend_v1/js/auth-form.js', import.meta.url), 'utf8'), context);
+  runInNewContext(source, context);
   const tick = async () => {
     const entry = [...timers].find(([, timer]) => timer.delay === 2000);
     assert.ok(entry, 'a single poll should be scheduled');
@@ -145,4 +162,30 @@ test('unexpected external deep-link is never offered', async () => {
   assert.equal(h.elements['telegram-link'].hidden, true);
   assert.equal(h.navigation.length, 0);
   assert.equal(h.elements['telegram-start'].disabled, false);
+});
+
+for (const status of ['authenticated', 'used']) {
+  test(`dirty registration cannot block Telegram ${status} redirect; pageshow restores protection`, async () => {
+    const h = harness({registration: true});
+    await h.init();
+    let leave = {preventDefault() {this.blocked = true;}};
+    h.events.beforeunload(leave); assert.equal(leave.blocked, true);
+    h.queue.push({ok: true, status});
+    await h.tick();
+    assert.deepEqual(h.navigation, [h.panel.dataset.loginUrl]);
+    h.events.pageshow();
+    leave = {preventDefault() {this.blocked = true;}};
+    h.events.beforeunload(leave); assert.equal(leave.blocked, true);
+  });
+}
+
+test('pending, failed and cancelled Telegram attempts retain the registration dirty guard', async () => {
+  for (const result of [{ok: true, status: 'pending'}, {ok: true, status: 'expired'}, new Error('network')]) {
+    const h = harness({registration: true});
+    await h.init(); h.queue.push(result); await h.tick();
+    await h.elements['telegram-cancel'].click();
+    const leave = {preventDefault() {this.blocked = true;}};
+    h.events.beforeunload(leave);
+    assert.equal(leave.blocked, true); assert.equal(h.navigation.length, 0);
+  }
 });

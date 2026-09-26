@@ -55,11 +55,13 @@
         stop();
         status.textContent = "Kirish tasdiqlandi. Davom etilmoqda…";
         // LoginView rechecks the authenticated session and validates `next`.
+        window.dispatchEvent(new Event("frontend-v1:auth-redirect"));
         window.location.assign(panel.dataset.loginUrl);
       } else if (result.ok && result.status === "pending") {
         timer = setTimeout(() => poll(run), POLL_MS);
       } else if (result.ok && result.status === "used") {
         stop();
+        window.dispatchEvent(new Event("frontend-v1:auth-redirect"));
         window.location.assign(panel.dataset.loginUrl);
       } else {
         stop();

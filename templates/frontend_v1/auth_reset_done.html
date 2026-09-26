@@ -1,0 +1,4 @@
+{% extends "frontend_v1/auth_base.html" %}
+{% block auth_content %}
+<div class="p-auth-onboarding"><p class="c-muted">Pochtangiz va spam papkasini tekshiring. Bu sahifa xat yetib borganini tasdiqlamaydi.</p><a class="c-button c-button--primary p-auth-submit" href="{% url 'login' %}">Kirishga qaytish</a><a class="c-text-link" href="{% url 'password_reset' %}">Emailni tekshirib, qayta so‘rash</a></div>
+{% endblock %}

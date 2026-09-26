@@ -1,0 +1,4 @@
+{% extends "frontend_v1/auth_base.html" %}
+{% block auth_content %}
+<div class="p-auth-onboarding"><p class="c-muted">{% if auth_reset_completed %}Parolingiz yangilandi. Endi yangi parol bilan kiring.{% else %}Bu sahifani ochish parolni o‘zgartirmaydi. Tiklashni yakunlagan bo‘lsangiz, yangi parolingiz bilan kiring.{% endif %}</p><a class="c-button c-button--primary p-auth-submit" href="{{ login_url }}">Hisobga kirish</a><a class="c-text-link" href="{% url 'password_reset' %}">Parolni tiklashni boshlash</a></div>
+{% endblock %}

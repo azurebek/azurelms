@@ -1,0 +1,7 @@
+<div class="v1-telegram" data-telegram-auth data-init-url="{% url 'telegram_auth_init' %}" data-status-url="{% url 'telegram_auth_status' token='TOKEN' %}" data-login-url="{% url 'login' %}{% if next %}?next={{ next|urlencode:'' }}{% endif %}">
+  <button class="c-button c-button--secondary" type="button" data-telegram-start>Telegram orqali kirish</button>
+  <a class="c-text-link" data-telegram-link hidden target="_blank" rel="noopener noreferrer">Telegramni ochish{% include "frontend_v1/icon.html" with name="external" %}</a>
+  <p class="c-caption" role="status" aria-live="polite" data-telegram-status></p>
+  <button class="c-button c-button--secondary" type="button" data-telegram-check hidden>Natijani tekshirish</button>
+  <button class="c-button c-button--quiet" type="button" data-telegram-cancel hidden>Tekshirishni to‘xtatish</button>
+</div>

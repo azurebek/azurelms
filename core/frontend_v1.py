@@ -72,6 +72,10 @@ class FrontendLoginView(FrontendV1Mixin, LoginView):
     frontend_v1_template = "frontend_v1/login.html"
     frontend_v1_title = "Hisobga kirish"
 
+    @cached_property
+    def frontend_v1_enabled(self):
+        return flag_enabled('frontend_v1_learning') or flag_enabled('frontend_v1_auth')
+
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
         if self.frontend_v1_enabled:

@@ -1,0 +1,9 @@
+{% extends "frontend_v1/auth_base.html" %}
+{% block auth_content %}
+<div class="p-auth-onboarding">
+  <section class="c-alert c-alert--info"><div><h2>Azure AI bilan tanishuv</h2><p>Qisqa suhbat maqsadingiz va hozirgi darajangizni so‘raydi, javoblaringizni profilingizga yozadi.</p>{% if onboarding_context_enabled %}<p>AI misol va izohlarda shu javoblarni hisobga oladi. Buni sozlamalarda AI xotirasini o‘chirib to‘xtatishingiz mumkin.</p>{% endif %}</div></section>
+  <form method="post" action="{% url 'start_smart_onboarding' %}" data-auth-form>{% csrf_token %}<button type="submit" class="c-button c-button--secondary p-auth-submit">Azure AI bilan suhbat</button></form>
+  <p class="c-caption">Suhbatni tanlasangiz AI chatiga o‘tasiz. Oldingi sahifaga davom etish uchun quyidagi havoladan foydalaning.</p>
+  <a class="c-button c-button--primary p-auth-submit" href="{% if next %}{{ next }}{% else %}{% url 'dashboard' %}{% endif %}" data-onboarding-skip>Hozircha o‘tkazib yuborish{% include "frontend_v1/icon.html" with name="arrow" %}</a>
+</div>
+{% endblock %}
