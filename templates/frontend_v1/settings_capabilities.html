@@ -1,0 +1,22 @@
+{% extends "frontend_v1/settings_base.html" %}
+{% block settings_body %}
+<div class="v1-account-layout">
+  <div class="v1-account-stack">
+    {% for pref in preferences %}<section class="c-card p-panel" aria-labelledby="title-{{ pref.name }}"><p class="c-eyebrow">AZUREAI</p><h2 id="title-{{ pref.name }}">{{ pref.label }}</h2>
+      <form method="post" action="{{ pref.url }}" class="v1-account-form" data-settings-form{% if pref.unsaved %} data-settings-unsaved{% endif %}>
+        {% include "frontend_v1/settings_guard.html" with revision=pref.revision %}
+        <div><label class="c-field__label" for="{{ pref.name }}">{{ pref.label }}</label><select class="c-field" id="{{ pref.name }}" name="{{ pref.name }}" required aria-describedby="hint-{{ pref.name }}">
+          <option value="">Variantni tanlang</option>{% for value, label in pref.choices %}<option value="{{ value }}"{% if pref.value == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select></div>
+        <p class="c-caption" id="hint-{{ pref.name }}">Tanlashning o‘zi saqlamaydi. Saqlangan tanlov: <strong>{{ pref.saved_label }}</strong>.</p>
+        {% if not pref.available %}<p class="c-caption">Oldingi tanlov hozirgi ruxsatli variantlar orasida yo‘q. Yangi variantni tanlab saqlashingiz mumkin.</p>{% endif %}
+        <div><button class="c-button c-button--primary" type="submit"{% if not pref.choices %} disabled{% endif %}>{{ pref.label }}ni saqlash</button></div>
+      </form>
+    </section>{% endfor %}
+  </div>
+  <aside class="v1-account-stack">
+    <section class="c-card p-panel"><h2>Keyingi javoblar uchun</h2><p class="c-lead">Har bir tanlov alohida saqlanadi. Bu sahifada AI javobi olinmaydi va token sarflanmaydi.</p></section>
+    <section class="c-card p-panel"><h2>Web qidiruv</h2><p class="c-lead">{% if ai_free_tier_mode %}Bepul rejimda Google API orqali jonli qidiruv o‘chiq. Tanlov saqlanadi, ammo qidiruv xizmatini yoqmaydi.{% else %}Qidiruv amaldagi xizmat ruxsatlariga bog‘liq. Yuqori daraja javobni sekinlashtirishi mumkin.{% endif %}</p><p class="c-caption v1-card-note">Faqat server ruxsat bergan variantlar ko‘rsatiladi.</p></section>
+  </aside>
+</div>
+{% endblock %}

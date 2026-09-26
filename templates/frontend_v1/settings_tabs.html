@@ -1,0 +1,4 @@
+<div class="p-page-heading"><div><p class="c-eyebrow">SHAXSIY MAYDON</p><h1>Sozlamalar</h1><p class="c-lead">Hisobingiz va o‘rganish tajribangiz.</p></div></div>
+<nav class="c-tabs c-tabs--wrap" aria-label="Sozlamalar bo‘limlari">
+  {% for tab in settings_tabs %}<a class="c-tabs__item{% if tab.active %} is-active{% endif %}" href="{{ tab.url }}"{% if tab.active %} aria-current="page"{% endif %}{% if tab.legacy %} title="Avvalgi ko‘rinishda"{% endif %}>{{ tab.label }}</a>{% endfor %}
+</nav>

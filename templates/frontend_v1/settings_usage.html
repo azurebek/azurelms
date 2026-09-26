@@ -1,0 +1,9 @@
+{% load humanize %}
+<div><h3>{{ label }}</h3>
+  {% if window.percent is not None and window.used is not None and window.limit is not None and window.remaining is not None %}
+    <div class="v1-usage-heading"><span>Ishlatilgan</span><strong>{{ window.percent }}%</strong></div>
+    <progress class="c-progress" value="{{ window.percent }}" max="100" aria-label="{{ label }}: ishlatilgan limit"></progress>
+    <p class="c-caption v1-card-note">{{ window.used|intcomma }} / {{ window.limit|intcomma }} token · {{ window.remaining|intcomma }} token qoldi</p>
+    {% if window.reset_at %}<p class="c-caption">Tiklanish: {{ window.reset_at|date:"d.m.Y H:i" }} ({{ window.reset_at|timeuntil }}).</p>{% else %}<p class="c-caption">Tiklanish vaqti hali belgilanmagan.</p>{% endif %}
+  {% else %}<p class="c-lead">Bu oyna uchun ko‘rsatkich mavjud emas.</p>{% endif %}
+</div>

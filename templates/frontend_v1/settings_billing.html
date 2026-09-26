@@ -1,0 +1,20 @@
+{% extends "frontend_v1/settings_base.html" %}
+{% load humanize %}
+{% block settings_body %}
+<div class="v1-account-layout">
+  <div class="v1-account-stack">
+    <section class="c-card p-panel"><p class="c-eyebrow">OBUNA</p><h2>Tarif va to‘lovlar</h2><p class="c-lead">Obuna holati, cheklar va tarix alohida sahifada. Bu yerda to‘lov yuborilmaydi.</p><a class="c-button c-button--secondary v1-card-note" href="{% url 'subscriptions' %}">{% if request.user.is_staff %}Shaxsiy obunalarim{% else %}Obunalarimni ochish{% endif %}</a><p class="c-caption v1-card-note">Obunalar bo‘limi hozircha avvalgi ko‘rinishda ochiladi.</p></section>
+    <section class="c-card p-panel"><p class="c-eyebrow">AI YORDAMCHI</p><h2>AI foydalanish limiti</h2>
+      {% if not ai_usage %}<p class="c-lead">Ko‘rsatkich hozir mavjud emas. Bu nol ishlatilgan degani emas.</p>
+      {% elif ai_usage.blocked %}<div class="c-alert v1-error v1-card-note"><p>AI yordamchidan foydalanish administrator tomonidan vaqtincha to‘xtatilgan.</p></div>
+      {% elif ai_usage.unlimited %}<p class="c-lead">Sizga hisobning AI token limiti qo‘llanmaydi.</p><p class="c-caption v1-card-note">Bu xizmat doim mavjud degani emas; umumiy xizmat va ta’minot cheklovlari saqlanadi.</p>
+      {% else %}<div class="v1-account-stack v1-card-note">
+        {% include "frontend_v1/settings_usage.html" with window=ai_usage.session label="Joriy sessiya" %}
+        {% include "frontend_v1/settings_usage.html" with window=ai_usage.weekly label="Haftalik limit" %}
+        <p class="c-caption">Limit tugasa AI vaqtincha javob bermaydi. Har savol matn uzunligiga qarab turlicha token sarflaydi.</p>
+      </div>{% endif %}
+    </section>
+  </div>
+  <aside class="c-card p-panel"><h2>Joriy hisobingiz</h2><p class="c-lead">Ko‘rsatkichlar serverdagi hisobingizdan olinadi. Yangilash limitni tiklamaydi va obunani o‘zgartirmaydi.</p><a class="c-text-link v1-card-note" href="{% url 'settings_billing' %}">Holatni yangilash</a></aside>
+</div>
+{% endblock %}
