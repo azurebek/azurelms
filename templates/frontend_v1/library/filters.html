@@ -1,0 +1,24 @@
+<section class="c-card p-panel f-records-stack" aria-labelledby="library-filter-title">
+<h2 id="library-filter-title">Qidirish va filtrlash</h2>
+<form method="get" action="{{ library_clean_url }}" class="f-records-stack" data-library-form data-library-filter>
+  <div><label class="c-field__label" for="library-q">Kalit so‘z</label><input class="c-field" id="library-q" name="q" value="{{ filters.query }}" placeholder="Nom, tavsif, mavzu yoki teg"></div>
+  <div class="f-records-filter">
+    <div><label class="c-field__label" for="library-type">Tur</label><select class="c-field" id="library-type" name="type"><option value="">Barcha turlar</option>{% for key, label in type_choices %}<option value="{{ key }}"{% if filters.resource_type == key %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+    <div><label class="c-field__label" for="library-language">Til</label><select class="c-field" id="library-language" name="language"><option value="">Barcha tillar</option>{% for key, label in language_choices %}<option value="{{ key }}"{% if filters.language == key %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+    <div><label class="c-field__label" for="library-level">Daraja</label><select class="c-field" id="library-level" name="level"><option value="">Barcha darajalar</option>{% for key, label in level_choices %}<option value="{{ key }}"{% if filters.level == key %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+  </div>
+  <details><summary>Qo‘shimcha filtrlar</summary><div class="f-records-stack f-records-hint">
+    <div class="f-records-filter">
+      <div><label class="c-field__label" for="library-course">Kurs</label><select class="c-field" id="library-course" name="course"><option value="">Barcha kurslar</option>{% if filters.course_id %}<option value="{{ filters.course_id }}" selected>Kurs #{{ filters.course_id }}</option>{% endif %}{% for course in courses %}{% if course.pk != filters.course_id %}<option value="{{ course.pk }}">{{ course.title }}</option>{% endif %}{% endfor %}</select></div>
+      <div><label class="c-field__label" for="library-kind">Fayl turi</label><select class="c-field" id="library-kind" name="kind"><option value="">Barcha formatlar</option>{% if filters.file_kind %}<option value="{{ filters.file_kind }}" selected>{{ filters.file_kind|upper }}</option>{% endif %}{% for key, label in kind_choices %}{% if key != filters.file_kind %}<option value="{{ key }}">{{ label }}</option>{% endif %}{% endfor %}</select></div>
+      <div><label class="c-field__label" for="library-archived">Holat</label><select class="c-field" id="library-archived" name="archived"><option value="">Faol</option><option value="1"{% if filters.only_archived %} selected{% endif %}>Arxiv</option></select></div>
+    </div>
+    <div class="f-records-filter">
+      <div><label class="c-field__label" for="library-topic">Mavzu</label><input class="c-field" id="library-topic" name="topic" value="{{ filters.topic }}"></div>
+      <div><label class="c-field__label" for="library-tag">Teg</label><input class="c-field" id="library-tag" name="tag" value="{{ filters.tag }}" list="library-tags"><datalist id="library-tags">{% for tag in tag_choices %}<option value="{{ tag.name }}">{% endfor %}</datalist></div>
+    </div>
+  </div></details>
+  <p class="c-caption" data-library-filter-hint>Tanlashning o‘zi natijani o‘zgartirmaydi. “Filtrni qo‘llash”ni bosing.</p>
+  <div class="c-actions"><button class="c-button c-button--primary" type="submit">Filtrni qo‘llash</button><a class="c-button c-button--secondary" href="{{ library_clean_url }}">Tozalash</a></div>
+</form>
+</section>

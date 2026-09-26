@@ -44,6 +44,14 @@ class FlagDefinition:
 
 FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
     FlagDefinition(
+        slug="frontend_v1_library",
+        label="Frontend V1 — material kutubxonasi",
+        description="Kutubxona list/create/edit va scoped lesson picker V1 rendererlarini yoqadi.",
+        default=False,
+        category="Frontend",
+        runbook="OFF eski rendererga qaytaradi; file/link/archive ma’lumotini qaytarmaydi. In-flight V1 POST snapshot himoyasi qoladi. File replacement rollbacki backup talab qiladi.",
+    ),
+    FlagDefinition(
         slug="frontend_v1_records",
         label="Frontend V1 — yozuvlar va yordam",
         description="Sertifikatlar, davomat, obunalar, reyting, bildirishnomalar va yordam rendererlariga V1.",

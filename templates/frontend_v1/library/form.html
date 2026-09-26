@@ -1,0 +1,39 @@
+{% extends "frontend_v1/library/base.html" %}
+{% block library_title %}{% if resource %}{{ resource.title }}{% else %}Yangi material{% endif %}{% endblock %}
+{% block library_intro %}{% if resource %}Umumiy manba. O‘zgarish undan foydalanuvchi barcha darslarga ta’sir qiladi.{% else %}Fayl yuklang va ma’lumotlarini to‘ldiring. Darsga biriktirish alohida bajariladi.{% endif %}{% endblock %}
+{% block library_body %}
+<a class="c-text-link" href="{% url 'library_backoffice:resources' %}">← Kutubxonaga qaytish</a>
+{% if resource.is_archived %}<p class="c-alert c-alert--info">Material arxivda. Mavjud biriktirmalar saqlanadi, yangi darsga biriktirilmaydi.</p>{% endif %}
+{% if duplicates %}<p class="c-alert c-alert--info">Shu faylning boshqa nusxasi bor: {% for item in duplicates %}<a class="c-text-link" href="{% url 'library_backoffice:resource_edit' item.pk %}">{{ item.title }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}. Yangi nusxa yaratishdan oldin tekshiring.</p>{% endif %}
+<div class="f-records-layout">
+  <form method="post" enctype="multipart/form-data" class="c-card p-panel f-records-stack" data-library-form{% if form.is_bound %} data-library-unsaved{% endif %}>
+    {% csrf_token %}<input type="hidden" name="frontend_v1_library" value="1"><input type="hidden" name="library_revision" value="{{ library_revision }}">
+    <h2>Manba ma’lumotlari</h2>
+    {% if form.errors %}<div class="c-alert v1-error" role="alert" tabindex="-1" data-library-error><h3>Saqlanmadi</h3>{{ form.non_field_errors }}<p>Maydonlarni tekshiring. Fayl tanlangan bo‘lsa, uni qayta tanlang.</p>{% if library_conflict %}<a class="c-text-link" href="{{ request.path }}">Matnimni olib, so‘nggi holatni ochish</a>{% endif %}</div>{% endif %}
+    {% for field in form %}<div>
+      {% if field.field.widget.input_type == 'checkbox' %}<label class="c-choice" for="{{ field.id_for_label }}">{{ field }}<span>{{ field.label }}</span></label>{% else %}<label class="c-field__label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>{{ field }}{% endif %}
+      {% if field.help_text %}<p class="c-caption" id="{{ field.id_for_label }}_helptext">{{ field.help_text }}</p>{% endif %}
+      {% if field.errors %}<div class="v1-error" id="{{ field.id_for_label }}_error">{{ field.errors }}</div>{% endif %}
+    </div>{% endfor %}
+    <label class="c-choice"><input type="checkbox" name="confirm_scope" value="yes" required><span>{% if resource %}Umumiy materialni o‘zgartirishni tasdiqlayman. Yangi fayl tanlasam, u barcha bog‘langan darslarda eskisini almashtiradi; eski fayl bu sahifadan qaytarilmaydi.{% else %}Bitta umumiy material yaratishni tasdiqlayman; u darsga avtomatik biriktirilmaydi.{% endif %}</span></label>
+    <button class="c-button c-button--primary" type="submit"{% if library_conflict %} disabled{% endif %}>Saqlash</button>
+  </form>
+  <aside class="f-records-stack" aria-label="Saqlangan material">
+  {% if resource %}
+    <section class="c-card p-panel f-records-stack"><h2>Saqlangan fayl</h2><p>{{ resource.original_filename|default:'—' }}</p><p class="c-caption">{{ resource.file_kind_label }} · {{ resource.size_display }} · v{{ resource.version }}</p><a class="c-button c-button--secondary" href="{% url 'library_backoffice:resource_file' resource.pk %}">Faylni ochish</a></section>
+    <section class="c-card p-panel f-records-stack"><h2>Qayerda ishlatilgan ({{ usage|length }})</h2>{% for link in usage %}<div class="f-library-row"><p>{{ link.lesson.title }}</p><p class="c-caption">{{ link.lesson.module.course.title }} · {{ link.get_audience_display }}{% if not link.is_visible %} · Yashirin{% endif %}</p></div>{% empty %}<p>Hali darsga biriktirilmagan.</p>{% endfor %}</section>
+    <section class="c-card p-panel f-records-stack"><h2>Material holati</h2>
+      <form method="post" action="{% url 'library_backoffice:resource_archive' resource.pk %}" class="f-records-stack" data-library-form>{% csrf_token %}<input type="hidden" name="frontend_v1_library" value="1"><input type="hidden" name="library_revision" value="{{ archive_revision }}">
+        <label class="c-choice"><input type="checkbox" name="confirm_scope" value="yes" required><span>{% if resource.is_archived %}Yangi darslarga yana tanlash mumkin bo‘lishini tasdiqlayman.{% else %}Arxivlashni tasdiqlayman. Mavjud dars bog‘lanishlari ishlashda qoladi.{% endif %}</span></label>
+        <button class="c-button c-button--secondary" type="submit">{% if resource.is_archived %}Arxivdan qaytarish{% else %}Arxivlash{% endif %}</button>
+      </form>
+      {% if resource.is_in_use %}<p class="c-caption">Ishlatilayotgan materialni o‘chirib bo‘lmaydi. Arxivlash mumkin.</p>{% else %}
+      <form method="post" action="{% url 'library_backoffice:resource_delete' resource.pk %}" class="f-records-stack" data-library-form>{% csrf_token %}<input type="hidden" name="frontend_v1_library" value="1"><input type="hidden" name="library_revision" value="{{ delete_revision }}">
+        <label class="c-choice"><input type="checkbox" name="confirm_scope" value="yes" required><span>“{{ resource.title }}” yozuvi va fayli butunlay o‘chishini tasdiqlayman. Amal qaytarilmaydi.</span></label><button class="c-button c-button--secondary" type="submit">Butunlay o‘chirish</button>
+      </form>{% endif %}
+    </section>
+    {% if audit_events %}<section class="c-card p-panel f-records-stack"><h2>So‘nggi amallar</h2>{% for event in audit_events %}<div class="f-library-row"><p>{{ event.action }}</p><p class="c-caption">{{ event.created_at|date:'d.m.Y H:i' }} · {{ event.actor_label|default:'—' }}</p></div>{% endfor %}</section>{% endif %}
+  {% else %}<section class="c-card p-panel f-records-stack"><h2>Fayl haqida</h2><p>Chegara: {{ max_upload_mb }} MB. PDF, Office/ZIP, matn, rasm, audio va video tekshiruvdan o‘tadi.</p><p class="c-caption">Fayl umumiy ochiq havola bilan tarqatilmaydi. O‘quvchi unga faqat ruxsat berilgan dars orqali kiradi.</p></section>{% endif %}
+  </aside>
+</div>
+{% endblock %}

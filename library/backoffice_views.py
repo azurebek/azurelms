@@ -26,8 +26,10 @@ degan savolni tug'diradi.
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.paginator import Paginator
+from django.db import transaction
 from django.db.models import Count, Q
-from django.shortcuts import get_object_or_404, redirect, render
+from django.http import Http404
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
@@ -37,6 +39,7 @@ from core.private_media_views import serve_private_file
 from courses.models import Lesson
 
 from . import selectors, services
+from . import frontend_v1 as v1
 from .backoffice_forms import LessonMaterialForm, LibraryResourceForm
 from .models import (
     FILE_KIND_LABELS,
@@ -110,30 +113,41 @@ def resource_list(request):
         querystring=query_params.urlencode(),
         **_filter_options(filters),
     )
-    return render(request, "backoffice/library_list.html", context)
+    return v1.render_library(request, 'list', context)
 
 
 @login_required
 @user_passes_test(is_backoffice_user)
+@transaction.atomic
 def resource_editor(request, resource_id=None):
     """Material yuklash (yangi) yoki metadatasini tahrirlash."""
+    resources = (LibraryResource.objects.select_for_update() if request.method == 'POST'
+                 else LibraryResource.objects.select_related('course'))
     resource = (
-        get_object_or_404(LibraryResource.objects.select_related("course"), pk=resource_id)
+        get_object_or_404(resources, pk=resource_id)
         if resource_id
         else None
     )
+    error = v1.write_error(request, resource, 'save') if request.method == 'POST' else None
+    previous_file = resource.file.name if resource and resource.file else ''
     form = LibraryResourceForm(
-        request.POST or None,
+        request.POST if request.method == 'POST' else None,
         request.FILES or None,
         instance=resource,
         user=request.user,
     )
 
-    if request.method == "POST" and form.is_valid():
+    valid = form.is_valid() if request.method == 'POST' else False
+    if error:
+        form.add_error(None, error[0])
+    if request.method == "POST" and valid and not error:
         is_new = resource is None
         upload = form.uploaded_file
         obj = form.save(commit=False)
         if upload is not None:
+            # ModelForm has already assigned the new upload to obj.file.
+            # apply_upload must see the OLD stored name for commit-time cleanup.
+            obj.file = previous_file
             services.apply_upload(obj, upload, actor=request.user)
         if is_new and not obj.created_by_id:
             obj.created_by = request.user
@@ -151,6 +165,11 @@ def resource_editor(request, resource_id=None):
             )
         messages.success(request, "Material saqlandi.")
         return redirect("library_backoffice:resource_edit", resource_id=obj.pk)
+
+    if resource and request.method == 'POST':
+        # Invalid ModelForm mutates its instance: sidebar must show saved state,
+        # while bound inputs retain exactly the rejected user's draft.
+        resource = LibraryResource.objects.select_related('course').get(pk=resource.pk)
 
     usage = (
         LessonMaterial.objects.filter(resource=resource)
@@ -172,16 +191,22 @@ def resource_editor(request, resource_id=None):
         duplicates=duplicates,
         audit_events=audit_trail_for(resource) if resource else [],
         max_upload_mb=LibrarySettings.max_upload_bytes() // (1024 * 1024),
+        library_conflict=bool(error and error[1] == 409),
     )
-    return render(request, "backoffice/library_form.html", context)
+    status = error[1] if error else (400 if request.method == 'POST' and v1.enabled(request) else 200)
+    return v1.render_library(request, 'form', context, status=status)
 
 
 @login_required
 @user_passes_test(is_backoffice_user)
 @require_POST
+@transaction.atomic
 def resource_archive(request, resource_id):
     """Arxivlash/tiklash — o'chirishning xavfsiz muqobili."""
-    resource = get_object_or_404(LibraryResource, pk=resource_id)
+    resource = get_object_or_404(LibraryResource.objects.select_for_update(), pk=resource_id)
+    error = v1.write_error(request, resource, 'archive')
+    if error:
+        return v1.action_error(request, error, resource)
     if resource.is_archived:
         resource.restore(actor=request.user)
         action, note = "library.resource.restore", "Material arxivdan qaytarildi."
@@ -202,9 +227,13 @@ def resource_archive(request, resource_id):
 @login_required
 @user_passes_test(is_backoffice_user)
 @require_POST
+@transaction.atomic
 def resource_delete(request, resource_id):
     """Butunlay o'chirish — faqat hech qayerda ishlatilmagan material uchun."""
-    resource = get_object_or_404(LibraryResource, pk=resource_id)
+    resource = get_object_or_404(LibraryResource.objects.select_for_update(), pk=resource_id)
+    error = v1.write_error(request, resource, 'delete')
+    if error:
+        return v1.action_error(request, error, resource)
     title = resource.title
     try:
         services.delete_resource(resource)
@@ -265,18 +294,25 @@ def lesson_picker(request, lesson_id):
         querystring=query_params.urlencode(),
         **_filter_options(filters),
     )
-    return render(request, "backoffice/library_picker.html", context)
+    return v1.render_library(request, 'picker', context)
 
 
 @login_required
 @user_passes_test(is_backoffice_user)
 @require_POST
+@transaction.atomic
 def material_attach(request, lesson_id):
     """Tanlangan manbani darsga biriktiradi (fayl nusxalanmaydi)."""
     lesson = _editable_lesson(request.user, lesson_id)
+    resource_id = request.POST.get('resource', '')
+    if not resource_id.isascii() or not resource_id.isdecimal() or len(resource_id) > 18:
+        raise Http404
     resource = get_object_or_404(
-        LibraryResource.objects.filter(is_archived=False), pk=request.POST.get("resource")
+        LibraryResource.objects.select_for_update().filter(is_archived=False), pk=int(resource_id)
     )
+    error = v1.write_error(request, resource, 'attach', lesson.pk)
+    if error:
+        return v1.action_error(request, error, resource, lesson)
     material, created = services.attach_to_lesson(lesson, resource, actor=request.user)
     if created:
         record_audit_event(

@@ -1,0 +1,30 @@
+{% if library_invalid_filters %}
+<section class="c-card c-empty"><h2>Filtr tanilmadi</h2><p>Noma’lum yoki takror parametr boshqa tanlovga almashtirilmadi.</p><a class="c-button c-button--secondary" href="{{ library_clean_url }}">Toza ro‘yxat</a></section>
+{% else %}
+{% include 'frontend_v1/library/filters.html' %}
+<section class="f-records-stack" aria-labelledby="library-results-title">
+  <div class="c-section-title"><h2 id="library-results-title">Materiallar</h2><span class="c-badge">{{ page_obj.paginator.count }} ta</span></div>
+  <ul class="f-library-grid" aria-label="Materiallar">
+  {% for item in page_obj %}
+    <li class="c-card p-panel f-records-stack" data-library-resource="{{ item.pk }}">
+      <p class="c-eyebrow">{{ item.get_resource_type_display }} · {{ item.get_language_display }} · {{ item.get_level_display }}</p>
+      <h3>{{ item.title }}</h3><p>{{ item.description|truncatechars:240 }}</p>
+      <p class="c-caption">{{ item.file_kind_label }} · {{ item.size_display }} · {{ item.usage_total }} darsda{% if item.is_teacher_only %} · Faqat ustozga{% endif %}{% if item.is_archived %} · Arxiv{% endif %}</p>
+      <a class="c-button c-button--secondary" href="{% url 'library_backoffice:resource_edit' item.pk %}">Tafsilot</a>
+      {% if lesson %}
+        {% if item.pk in attached_ids %}<p class="c-badge">Shu darsga biriktirilgan</p>
+        {% elif item.is_archived %}<p class="c-caption">Arxivdagi material yangidan biriktirilmaydi.</p>
+        {% else %}
+        <form method="post" action="{% url 'library_backoffice:material_attach' lesson.pk %}" class="f-records-stack" data-library-form>{% csrf_token %}
+          <input type="hidden" name="frontend_v1_library" value="1"><input type="hidden" name="library_revision" value="{{ item.attach_revision }}"><input type="hidden" name="resource" value="{{ item.pk }}"><input type="hidden" name="next" value="picker"><input type="hidden" name="querystring" value="{{ picker_return_query }}">
+          <label class="c-choice"><input type="checkbox" name="confirm_scope" value="yes" required><span>“{{ item.title }}” materialini “{{ lesson.title }}” darsiga biriktirishni tasdiqlayman.</span></label>
+          <button class="c-button c-button--primary" type="submit">Darsga biriktirish</button>
+        </form>
+        {% endif %}
+      {% endif %}
+    </li>
+  {% empty %}<li class="c-card c-empty"><h3>Bu filtrda material yo‘q</h3><p>Boshqa material avtomatik ko‘rsatilmaydi. Filtrni o‘zgartiring yoki tozalang.</p></li>{% endfor %}
+  </ul>
+  {% if page_obj.paginator.num_pages > 1 %}<nav class="c-actions" aria-label="Kutubxona sahifalari">{% if page_obj.has_previous %}<a class="c-button c-button--secondary" href="?{{ querystring }}&amp;page={{ page_obj.previous_page_number }}">Oldingi</a>{% endif %}<span>{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>{% if page_obj.has_next %}<a class="c-button c-button--secondary" href="?{{ querystring }}&amp;page={{ page_obj.next_page_number }}">Keyingi</a>{% endif %}</nav>{% endif %}
+</section>
+{% endif %}

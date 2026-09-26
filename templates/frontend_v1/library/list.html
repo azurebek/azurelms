@@ -1,0 +1,6 @@
+{% extends "frontend_v1/library/base.html" %}
+{% block library_intro %}Barcha ustozlar uchun umumiy materiallar ombori. Fayl bir marta yuklanadi, darslarga alohida biriktiriladi.{% endblock %}
+{% block library_body %}
+<div class="c-actions"><a class="c-button c-button--primary" href="{% url 'library_backoffice:resource_create' %}">Yangi material</a><span class="c-badge">{{ stats.active }} faol · {{ stats.archived }} arxiv</span></div>
+{% include 'frontend_v1/library/results.html' %}
+{% endblock %}

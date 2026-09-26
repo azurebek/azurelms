@@ -91,12 +91,15 @@ def filters_from_request(request):
     """GET parametrlarini normallashtirib beradi (bo'sh qiymat = hammasi)."""
     get = request.GET
     course_id = get.get("course", "").strip()
+    # Invalid nonempty IDs must not broaden the result or overflow the DB type.
+    course_id = (int(course_id) if course_id.isascii() and course_id.isdecimal()
+                 and len(course_id) <= 18 and int(course_id) > 0 else -1) if course_id else None
     return {
         "query": get.get("q", "").strip(),
         "resource_type": get.get("type", "").strip(),
         "language": get.get("language", "").strip(),
         "level": get.get("level", "").strip(),
-        "course_id": int(course_id) if course_id.isdigit() else None,
+        "course_id": course_id,
         "topic": get.get("topic", "").strip(),
         "tag": get.get("tag", "").strip(),
         "file_kind": get.get("kind", "").strip(),
@@ -109,6 +112,7 @@ def used_file_kinds():
     return sorted(
         value
         for value in LibraryResource.objects.exclude(file_kind="")
+        .order_by()
         .values_list("file_kind", flat=True)
         .distinct()
         if value

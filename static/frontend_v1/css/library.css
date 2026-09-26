@@ -1,0 +1,13 @@
+/* Frozen library cards/forms. Responsive wrapping uses shared V1 tokens. */
+.f-library-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--az-space-5); list-style: none; padding: 0; margin: 0; }
+.f-library-grid > *, [data-library-root] .c-card { min-width: 0; }
+.f-library-row + .f-library-row { padding-top: var(--az-space-4); border-top: 1px solid var(--az-border); }
+[data-library-root] summary { cursor: pointer; min-height: var(--az-control); display: flex; align-items: center; }
+[data-library-root] .c-choice { align-items: start; }
+[data-library-root] .c-choice input { flex: 0 0 auto; margin-top: var(--az-space-1); }
+[data-library-root] .c-field { max-width: 100%; min-width: 0; }
+[data-library-root] .c-caption { margin-top: var(--az-space-2); }
+[data-library-root] .errorlist { padding-left: var(--az-space-5); }
+[data-library-root] .c-alert { display: block; }
+[data-library-root] .c-alert .c-text-link { display: inline; }
+@media (width < 640px) { .f-library-grid { grid-template-columns: minmax(0, 1fr); } }
