@@ -169,7 +169,8 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
     Head110cfd2 CI36226414409 all3PASS (PG2229 OK skip20). New P2 applied
     receipt growth owner-approved fix `842edb4`: [configurable bound](EXAM-RECEIPT-BOUND.md),
     focused85 OK skip6/Node110 PASS; owner audit/two-tab uncertainty browser proof.
-    Fresh full/required CI/review/main acceptance kutilmoqda.
+    Final full2236 OK skip52 (168.837s), Node110 PASS. Fresh required
+    CI/review/main acceptance kutilmoqda.
   - [ ] I8c teacher review UI va stale-form confirmation.
   - [ ] I8 AWS/native-device release.
 - [ ] **I9 — Classbook.** Preparation→session→activity→result; multi-user,

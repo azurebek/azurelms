@@ -31,11 +31,14 @@ qilinmaydi. Javoblar/baholar/fayllar saqlanadi.
   owner cap2→3, reason/confirmation/audit accepted. Desktop1280 overflow0.
   Hidden tab viewport320 apply bo‘lmadi; yangi panel mobile gate ochiq.
 - Old head110cfd2 CI36226414409 all3PASS (PG2229 OK skip20,154.690s).
-  Fresh full/CI/review/main acceptance kutilmoqda. AWS/current DB tegilmadi.
+  Final provider-free `venv/Scripts/python.exe manage.py test --noinput`:
+  **2236 OK skip52 (168.837s)**. Fresh CI/review/main acceptance kutilmoqda.
+  AWS/current DB tegilmadi.
 - Full repeat2236 FAIL3 skip52 (11103.767s); Windows power events hostning
-  10:41Z→13:42Z uyqusini tasdiqladi. Diagnostic rerun ham 13:45Z→16:26Z
-  uyqu oralig‘iga tushdi. Sababni yakuniy deb taxmin qilmaymiz; failure detail
-  va fresh cloud CI kutiladi, assertion o‘zgarmadi, merge held.
+  10:41Z→13:42Z uyqusini tasdiqladi. Ish davomida yana13:45Z→16:26Z uyqu
+  bo‘lgan, ammo final diagnostic2236 OK168.837s edi. Old3 failure nomlari
+  tool truncationda yo‘qoldi; har assert sababini isbotlangan deb aytmaymiz.
+  Runtime/assertion o‘zgartirmay full PASS olindi; fresh cloud CI kerak.
 
 ## 2026-09-26 [Codex]: Owner-approved library same-timestamp ABA himoyasi
 

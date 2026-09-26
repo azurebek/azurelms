@@ -12,7 +12,9 @@ skip20 (154.690s). Review4110573482 applied receipt growthni topdi; owner
 sozlanadigan himoyaga ruxsat berdi. `842edb4`: audited cap + atomic epoch
 rotation before eviction. [Admission va dalil](EXAM-RECEIPT-BOUND.md).
 Focused85 OK skip6/Node110 PASS, IAB two-tab recovery va owner audit PASS.
-Fresh full/CI/review/main acceptance kerak; hali merge/deploy emas.
+Final provider-free full2236 OK skip52 (168.837s). Fresh CI/review/main
+acceptance kerak; hali merge/deploy emas. Long sleep-interrupted run and
+rerun evidence are retained in the follow-up document.
 
 ### Final local checkpoint — library guard included
 

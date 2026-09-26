@@ -86,7 +86,8 @@ same-clock regression endi PASS. [Qamrov](LIBRARY-ABA.md). Final full2229
 OK skip51 (145.501s); fresh CI/review/main acceptance ochiq.
 Head110cfd2 CI all3PASS; keyingi review applied-receipt growthni topdi.
 Owner-approved `842edb4` [jurnal sig‘imi](EXAM-RECEIPT-BOUND.md)ni auditlangan
-sozlamaga chiqardi; fresh full/CI/review kutilmoqda. AWS o‘zgarmadi.
+sozlamaga chiqardi; final full2236 OK skip52 (168.837s), Node110 PASS.
+Fresh CI/review kutilmoqda. AWS o‘zgarmadi.
 I4b AI adapteri PR #130 bilan main’da `a25cf4b`:
 [scope, compact transcript va tekshiruv](I4B-AI-MESSENGER.md).
 1961 Python OK/61 Node PASS; final CI `36192585672` uchala PASS;

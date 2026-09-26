@@ -40,7 +40,8 @@ Runtime `842edb4`, additive `core0006`. Owner mutation path remains
 - [x] ~~Isolated IAB8069: lost ack in first tab, two later saves in second tab
   evict it; explicit recovery reports uncertainty, preserves stale draft,
   never resends. Owner changes cap2→3 with reason/confirmation and audit.~~
-- [ ] Final full suite and fresh required CI/review/main acceptance.
+- [x] ~~Final provider-free full suite2236 OK skip52 (168.837s).~~
+- [ ] Fresh required CI/review/main acceptance.
 
 Browser screenshot: `playground/frontend-v1-smoke/i8b-receipt-admin-desktop.png`.
 Desktop actual1280, page overflow0 and owner console0. Viewport requests320
@@ -51,10 +52,13 @@ The initial student→owner URL attempt redirected repeatedly; explicitly
 logging out of the synthetic student and signing in as synthetic owner worked.
 No auth/access policy was weakened or bypassed.
 
-Full-suite checkpoint: first run exited0 (summary output truncated); repeat
-reported2236, failures3, skip52 in11103.767s. Do not claim final full green.
+Full-suite history: first run exited0 (summary output truncated); repeat
+reported2236, failures3, skip52 in11103.767s.
 Windows Power-Troubleshooter event1 confirms the host slept during that run:
-2026-09-26T10:41:17Z→13:42:48Z. A diagnostic rerun also crossed host sleep
-13:45:15Z→16:26:07Z; failure names/isolated rerun and fresh cloud CI are pending.
-No assertion was weakened and no speculative runtime fix was made for these
-failures. Machine power settings were not changed. Merge remains held.
+2026-09-26T10:41:17Z→13:42:48Z. Another host sleep during the work session was
+13:45:15Z→16:26:07Z; do not infer it overlapped the diagnostic rerun.
+The final diagnostic full run completed2236 OK skip52 (168.837s), unchanged
+runtime/assertions. The earlier3 failure names were lost in truncated tool
+output, so sleep is a supported environmental concern, not a proven cause
+of each assertion. Fresh cloud CI is independently required. Machine power
+settings were not changed. Merge stays held until fresh CI/review acceptance.
