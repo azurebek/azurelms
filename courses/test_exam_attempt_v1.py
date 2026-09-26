@@ -235,6 +235,49 @@ class ExamAttemptV1Tests(TestCase):
         self.assertFalse(StudentAnswer.objects.exists())
         self.assertFalse(ExamActionReceipt.objects.exists())
 
+    def test_outer_audio_failures_remove_only_the_new_upload(self):
+        import os
+        from core.private_storage import private_media_storage
+        storage = private_media_storage()
+        def upload():
+            return SimpleUploadedFile('answer.webm', b'\x1a\x45\xdf\xa3' + b'\x00' * 64, content_type='audio/webm')
+        data = self.payload(key=f'q:{self.audio_question.pk}')
+        self.assertEqual(self.client.post(self.url, {'payload': json.dumps(data), 'audio': upload()}).status_code, 200)
+        old = StudentAnswer.objects.get().audio_key
+        folder = os.path.dirname(old)
+        before = set(storage.listdir(folder)[1])
+        for target, error in (
+            ('courses.exam_attempt_v1.ExamActionReceipt.objects.create', ValidationError('Receipt failure')),
+            ('courses.exam_attempt_v1.trim_receipts', ValidationError('Eviction failure')),
+            ('courses.exam_attempt_v1.exam_snapshot', RuntimeError('Response failure')),
+        ):
+            with self.subTest(target=target), patch(target, side_effect=error):
+                data = self.payload(key=f'q:{self.audio_question.pk}', version=1)
+                if isinstance(error, ValidationError):
+                    self.assertEqual(self.client.post(self.url, {'payload': json.dumps(data), 'audio': upload()}).status_code, 400)
+                else:
+                    with self.assertRaisesMessage(RuntimeError, 'Response failure'):
+                        self.client.post(self.url, {'payload': json.dumps(data), 'audio': upload()})
+            self.assertEqual(set(storage.listdir(folder)[1]), before)
+            self.assertTrue(storage.exists(old))
+            self.assertEqual(StudentAnswer.objects.get().audio_key, old)
+            self.assertEqual(ExamActionReceipt.objects.count(), 1)
+            self.attempt.refresh_from_db()
+            self.assertEqual(self.attempt.input_revision, 1)
+
+    def test_cleanup_never_deletes_a_referenced_or_unverifiable_file(self):
+        from unittest.mock import Mock
+        from courses.exam_section_service import discard_unreferenced_exam_uploads
+        storage = Mock()
+        with patch('courses.exam_section_service.StudentAnswer.objects.filter') as query:
+            query.return_value.exists.return_value = True
+            discard_unreferenced_exam_uploads([(storage, 'new-but-committed.webm')])
+            storage.delete.assert_not_called()
+            query.side_effect = RuntimeError('Database unavailable')
+            with self.assertLogs('courses.exam_section_service', level='ERROR'):
+                discard_unreferenced_exam_uploads([(storage, 'cannot-prove-unreferenced.webm')])
+            storage.delete.assert_not_called()
+
     def test_validation_rollback_does_not_leave_partial_answer(self):
         self.assertEqual(self.post(self.payload(value={'choice_id': self.foreign_question.pk + 900, 'flagged': False})).status_code, 400)
         self.attempt.refresh_from_db()
@@ -529,6 +572,24 @@ class ExamAttemptV1ConcurrencyTests(TransactionTestCase):
         self.attempt.refresh_from_db()
         self.assertEqual(self.attempt.input_revision, 2)
         self.assertNotEqual(str(ExamActionGate.objects.get().epoch), self.epoch)
+
+    def test_audio_commit_callback_failure_preserves_committed_recording(self):
+        from django.db import transaction
+        from core.private_storage import private_media_storage
+        speaking = ExamSection.objects.create(exam=self.exam, title='Speaking', section_type='speaking', max_score=10)
+        question = Question.objects.create(exam_section=speaking, text='Speak', points=10)
+        def after_commit_failure():
+            raise RuntimeError('After commit failure')
+        def register_failure(gate):
+            transaction.on_commit(after_commit_failure)
+        data = self.data(key=f'q:{question.pk}')
+        upload = SimpleUploadedFile('answer.webm', b'\x1a\x45\xdf\xa3' + b'\x00' * 64, content_type='audio/webm')
+        with patch('courses.exam_attempt_v1.trim_receipts', side_effect=register_failure):
+            with self.assertRaisesMessage(RuntimeError, 'After commit failure'):
+                self.client.post(self.url, {'payload': json.dumps(data), 'audio': upload})
+        answer = StudentAnswer.objects.get(question=question)
+        self.assertTrue(private_media_storage().exists(answer.audio_key))
+        self.assertEqual(ExamActionReceipt.objects.count(), 1)
 
     def test_reconcile_racing_save_is_applied_or_cancelled_never_both(self):
         data = self.data()

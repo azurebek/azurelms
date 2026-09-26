@@ -6,6 +6,8 @@ writing / speaking (StudentAnswer matn/audio, qo'lda) uchun beradi — saqlab-bo
 per-savol holat (question_map/counts), review-flag. `build_section_payload`
 dispatcher ikkalasini birlashtiradi.
 """
+import logging
+
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
@@ -18,7 +20,7 @@ MAX_ANSWER_TEXT_CHARS = 60_000
 
 
 @transaction.atomic
-def save_exam_audio(*, attempt, question, upload, flagged=None, current_question_id=None):
+def save_exam_audio(*, attempt, question, upload, flagged=None, current_question_id=None, created_uploads=None):
     """The single validated private-file writer for both exam renderers."""
     import os
     import uuid
@@ -34,14 +36,33 @@ def save_exam_audio(*, attempt, question, upload, flagged=None, current_question
         ext = '.webm'
     storage = private_media_storage()
     saved_path = storage.save(f'exam_audio/{attempt.pk}/{question.pk}_{uuid.uuid4().hex}{ext}', upload)
+    if created_uploads is not None:
+        # The caller owns the complete transaction, beyond this nested savepoint.
+        created_uploads.append((storage, saved_path))
     payload = {'audio_key': saved_path, 'current_question_id': current_question_id}
     if flagged is not None:
         payload['flag_for_review'] = flagged
     try:
         return save_question_answer(attempt=attempt, question=question, payload=payload)
     except Exception:
-        storage.delete(saved_path)
+        if created_uploads is None:
+            storage.delete(saved_path)
         raise
+
+
+def discard_unreferenced_exam_uploads(created_uploads):
+    """Only after the enclosing action atomic block has exited.
+
+    An on_commit callback can fail *after* a successful DB commit. Verify that
+    the new file is unreferenced instead of deleting a committed recording.
+    If that check/storage is unavailable, preserving a file is safer than loss.
+    """
+    for storage, path in created_uploads:
+        try:
+            if not StudentAnswer.objects.filter(audio_key=path).exists():
+                storage.delete(path)
+        except Exception:
+            logging.getLogger(__name__).exception('Exam upload cleanup could not safely complete.')
 
 
 def _word_count(value):

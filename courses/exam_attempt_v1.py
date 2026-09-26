@@ -18,7 +18,8 @@ from .exam_api import ExamAPIResponseMixin
 from .exam_service import (ExamAttemptStartBlocked,
                           expire_attempt_if_time_limit_reached,
                           start_exam_attempt)
-from .exam_section_service import build_section_payload, register_audio_play, save_question_answer, save_exam_audio
+from .exam_section_service import (build_section_payload, register_audio_play, save_question_answer,
+                                   save_exam_audio, discard_unreferenced_exam_uploads)
 from .exam_media import listening_media_url
 from .exam_receipts import trim_receipts
 from .models import Exam, ExamAttempt, ExamActionGate, ExamActionReceipt, ExamSection, Question, ReadingItem
@@ -116,8 +117,19 @@ class ExamAttemptV1View(ExamAPIResponseMixin, LoginRequiredMixin, View):
                 receipt = {'id': str(row.operation_id), 'command': row.command, 'attempt_id': row.attempt_id}
         return JsonResponse({'state': exam_snapshot(exam, attempt, request), 'receipt': receipt})
 
-    @transaction.atomic
     def post(self, request, course_id, exam_id):
+        created_uploads = []
+        try:
+            with transaction.atomic():
+                response = self._post(request, course_id, exam_id, created_uploads)
+        except Exception:
+            discard_unreferenced_exam_uploads(created_uploads)
+            raise
+        if response.status_code >= 400:
+            discard_unreferenced_exam_uploads(created_uploads)
+        return response
+
+    def _post(self, request, course_id, exam_id, created_uploads):
         exam, denied = self._scope(request, course_id, exam_id)
         if denied is not None:
             return denied
@@ -194,7 +206,7 @@ class ExamAttemptV1View(ExamAPIResponseMixin, LoginRequiredMixin, View):
                             raise ValidationError('Savol identifikatori noto‘g‘ri.')
                         if _number(data.get('version')) != attempt.answer_versions.get(key, 0):
                             return JsonResponse({'error': 'Javob boshqa oynada o‘zgardi.', 'state': exam_snapshot(exam, attempt, request)}, status=409)
-                        self._save(attempt, key, data.get('value'), upload)
+                        self._save(attempt, key, data.get('value'), upload, created_uploads)
                     elif command == 'listen':
                         section = get_object_or_404(ExamSection, pk=_number(data.get('section_id')), exam=exam)
                         source = listening_media_url(section, request)
@@ -225,7 +237,7 @@ class ExamAttemptV1View(ExamAPIResponseMixin, LoginRequiredMixin, View):
                              'state': exam_snapshot(exam, attempt, request)})
 
     @staticmethod
-    def _save(attempt, key, value, upload):
+    def _save(attempt, key, value, upload, created_uploads):
         if not isinstance(value, dict) or not isinstance(value.get('answer_text', ''), str) or not isinstance(value.get('flagged'), bool):
             raise ValidationError('Javob formati noto‘g‘ri.')
         kind, pk = key.split(':')
@@ -242,7 +254,8 @@ class ExamAttemptV1View(ExamAPIResponseMixin, LoginRequiredMixin, View):
             if upload:
                 if question.exam_section.section_type != 'speaking':
                     raise ValidationError('Audio faqat speaking savoliga biriktiriladi.')
-                save_exam_audio(attempt=attempt, question=question, upload=upload, flagged=value['flagged'])
+                save_exam_audio(attempt=attempt, question=question, upload=upload, flagged=value['flagged'],
+                                created_uploads=created_uploads)
             else:
                 payload = {'flag_for_review': value['flagged']}
                 if question.choices.exists():
