@@ -329,6 +329,11 @@ def session_start(request, cohort_id, lesson_id):
     lesson = get_object_or_404(Lesson.objects.select_related("module"), pk=lesson_id, module__course=cohort.course)
     if v1.enabled(request):
         playbook = LessonPlaybook.objects.select_for_update().filter(cohort=cohort, lesson=lesson).first() or LessonPlaybook(cohort=cohort, lesson=lesson)
+        if playbook.pk:
+            # The confirmed exercise definitions must remain the same until
+            # start_class_session freezes them into ActivityRun snapshots.
+            list(Exercise.objects.select_for_update(of=('self',))
+                 .filter(playbook_steps__playbook=playbook).order_by('pk').values_list('pk', flat=True))
         error = v1.write_error(request, 'start', playbook, cohort=cohort, lesson=lesson)
         if error:
             return v1.conflict(request, error, cohort, lesson)

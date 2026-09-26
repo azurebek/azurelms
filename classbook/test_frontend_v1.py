@@ -3,8 +3,9 @@ from concurrent.futures import ThreadPoolExecutor
 from threading import Barrier
 from unittest.mock import patch
 
-from django.db import connections
+from django.db import connection, connections
 from django.test import Client, TestCase, TransactionTestCase, skipUnlessDBFeature
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
 
@@ -220,6 +221,13 @@ class PreparationV1Tests(ClassbookFixtureMixin, TestCase):
         self.assertEqual(TelegramLessonSession.objects.count(), 1)
         self.assertEqual(TelegramLessonSession.objects.get().classbook_activities.count(), 1)
 
+    def test_start_rejects_changed_exercise_definition(self):
+        url = reverse('classbook:session_start', args=[self.cohort.pk, self.lesson.pk])
+        data = self.action('start')
+        self.exercise.prompt = 'New question'; self.exercise.save()
+        self.assertEqual(self.client.post(url, data).status_code, 409)
+        self.assertEqual(TelegramLessonSession.objects.count(), 0)
+
     def test_rollback_inflight_no_write_and_legacy_get(self):
         exercise_data = self.exercise_data(); play_data = self.play_data()
         add = self.action('add'); add['exercise_id'] = self.exercise.pk
@@ -232,6 +240,20 @@ class PreparationV1Tests(ClassbookFixtureMixin, TestCase):
 
 
 class PreparationConcurrencyTests(ClassbookFixtureMixin, TransactionTestCase):
+    @skipUnlessDBFeature('has_select_for_update')
+    def test_start_locks_exercises_before_creating_immutable_snapshots(self):
+        set_flag(FLAG, enabled=True, reason='PG snapshot lock')
+        self.client.force_login(self.teacher)
+        data = {'frontend_v1_classbook': '1', 'confirm_scope': 'yes', 'revision': revision(
+            self.teacher, 'start', self.playbook, cohort=self.cohort, lesson=self.lesson)}
+        with CaptureQueriesContext(connection) as queries:
+            response = self.client.post(reverse('classbook:session_start', args=[self.cohort.pk, self.lesson.pk]), data)
+        self.assertEqual(response.status_code, 302)
+        sql = [q['sql'] for q in queries.captured_queries]
+        lock = next(i for i, query in enumerate(sql) if 'FROM "classbook_exercise"' in query and 'FOR UPDATE' in query)
+        snapshot = next(i for i, query in enumerate(sql) if 'INSERT INTO "classbook_activityrun"' in query)
+        self.assertLess(lock, snapshot)
+
     @skipUnlessDBFeature('has_select_for_update')
     def test_parallel_add_same_snapshot_once(self):
         set_flag(FLAG, enabled=True, reason='PG race')
