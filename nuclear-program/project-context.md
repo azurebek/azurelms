@@ -42,6 +42,13 @@ Source of truth har doim **kod** (model/view/task/URL/test). Bu fayl kodga mosla
 
 ## Frontend V1 — bosqichma-bosqich renderer (2026-09-25)
 
+Joriy deployment2026-09-26: AWS `8bb6b95`, barcha19 `frontend_v1_*`
+renderer override ON (kod defaultlari OFF). 161 migration, backup/restore,
+327 HTTPS assertion, WSS va42 responsive readback; [R2 release](frontend-v1/R2-READY-V1-AWS.md).
+Ready I1–I9 port chiqarildi, Q14+ hali legacy/prototype navbatida. SMTP
+console backend bo‘lib qolgan: email reset delivery tayyor emas; native
+device/provider/real-content sign-off bu texnik reliz bilan yopilmaydi.
+
 I8c frontend_v1_exam_review default OFF: teacher_grade_exam canonical
 writeriga frozen review adapteri, native draft va saved-only publication.
 courses0024 review_revision legacy draft/V1/admin finalize POSTlarini

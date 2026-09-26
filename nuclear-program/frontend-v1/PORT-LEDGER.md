@@ -4,11 +4,11 @@ Qabul: `[ ]` ochiq; `[-]` ishda; `[x] ~~...~~` dalil bilan tugagan.
 “Prototype bor” real portga `[x]` qo‘yish uchun yetmaydi.
 Sana emas, tugallangan natija bilan kuzatiladi. I1/I2/I3 main’da;
 I4a PR #125 bilan main’da (`89f89b7`); final CI `36170298967` uchala PASS.
-Flaglar kodda default OFF. AWS `363ff95`: public, learning, lesson,
-teacher va human messenger V1 override ON. [R1-public](R1-PUBLIC-RELEASE.md),
-[ichki rollout dalili](R1-INTERNAL-RELEASE.md). Hisob/settings va keyingi
-portlar kodda tayyorlangan bo‘lsa ham bu deployed SHAga kirmaydi;
-barcha sahifa productionda yangi degani emas.
+Flaglar kodda default OFF. **Joriy AWS `8bb6b95`: barcha19 V1 renderer ON.**
+[R2 texnik reliz](R2-READY-V1-AWS.md): tayyor I1–I9 port kodi chiqarildi.
+Quyidagi old package CI/hold/AWS yozuvlari tarixiy; R2 joriy deploy manbasi.
+SMTP/native device/provider/real-content qabuli alohida ochiq. Bu hali
+prototipi yo‘q Q14+ sahifalari yangi bo‘ldi degani emas.
 
 ## Navbat
 
@@ -109,8 +109,8 @@ barcha sahifa productionda yangi degani emas.
   - [x] ~~I5d required CI/review/main.~~ PR134 MERGED `337a73c`;
     CI36211060029 all3PASS, SQLite2040 skip44/PostgreSQL2040 skip20/Node87.
     [Final acceptance](https://github.com/azurebek/azurelms/pull/134#issuecomment-5842321154).
-  - [ ] I5b.1/I5b.2/I5c.1 AWS/SMTP release va haqiqiy qurilma qabuli — alohida.
-    I5d AWS hali ochiq.
+  - [x] ~~I5 account/auth/settings/records/certificate AWS renderer relizi.~~ R2.
+  - [ ] SMTP delivery va haqiqiy qurilma qabuli; console backend xat yubormaydi.
   - [x] ~~Sertifikat detail/appendix lokal V1 porti.~~ `66f671c`,
     [dalil](I5-CERTIFICATE-DOCUMENTS.md): exact-ID public policy saqlandi,
     published-only appendix, explicit print; 12 responsive readback overflow0.
@@ -131,7 +131,8 @@ barcha sahifa productionda yangi degani emas.
     Node95, 30 responsive check overflow0. [Scope va dalil](I6B-COURSE-LESSON-EDITORS.md).
   - [x] ~~I6b required CI/review/main.~~ PR136 MERGED `0278331`,
     finalCI36215540990 all3PASS: SQLite2091 skip44/PostgreSQL2091 skip20/Node95.
-  - [ ] I6 AWS/device release.
+  - [x] ~~I6 AWS renderer relizi.~~ R2.
+  - [ ] I6 native-device/real-content qabuli.
 - [-] **I7 — Checkout/receipt.** Quote→upload→pending→owner decision→access;
   - [x] ~~Lokal V1 port `3621e9c`.~~ 28 yangi test, 262 focused OK skip6,
     full2119 OK skip45, Node95; 24 responsive readback overflow0.
@@ -139,7 +140,8 @@ barcha sahifa productionda yangi degani emas.
   - [x] ~~I7 required CI/review/main.~~ PR137 MERGED `df054c1`,
     finalCI36217772724 all3PASS: SQLite2126 skip44/PostgreSQL2126 skip20,
     Node95; final local2126 skip45 (135.378s), TTL review fix `f681a5b`.
-  - [ ] AWS/device release.
+  - [x] ~~I7 AWS kodi va renderer flagi.~~ R2; hidden-course404 tekshirildi.
+  - [ ] Active course bilan real checkout/receipt va device qabuli.
   difference/rejected, direct URL permission, duplicate/unknown reconciliation.
 - [-] **I8 — Exam va teacher review.** Real attempt/audio/timer/revision,
   save/submit/review/publication; backend natijasi o‘zgarmaydi.
@@ -185,7 +187,8 @@ barcha sahifa productionda yangi degani emas.
     49 focused OK skip1, Node110; 6 responsive width overflow0.
   - I8c CI/review/main: [PR141 joriy holati](https://github.com/azurebek/azurelms/pull/141).
     Runtime `4eb3df1`, review fixes `1ce783b`/`907425a`, latest focused59 OK skip1.
-  - [ ] I8 AWS/native-device release.
+  - [x] ~~I8 AWS text answer→review→publication texnik relizi.~~ R2.
+  - [ ] Native audio/codec/device va real-content qabuli.
 - [-] **I9 — Classbook.** Preparation→session→activity→result; multi-user,
   late join/reconnect va 10 exercise type’ning tegishli adapterlari.
   - [x] ~~I9a lokal preparation porti.~~ `eacce59`: teacher home, mashq banki,
@@ -197,13 +200,18 @@ barcha sahifa productionda yangi degani emas.
   - [x] ~~I9b lokal — live teacher session, learner home/session/activity/result va teacher result.~~
     `7c3c906`; [qamrov va cheklovlar](I9B-LIVE.md): full2301 OK skip57,
     final focused80 OK skip5, Node122; 36 actual responsive readback overflow0.
-  - I9b required CI/review/main acceptance: [PR143 joriy holati](https://github.com/azurebek/azurelms/pull/143).
-  - [ ] I9 AWS/native-device release.
-- [ ] **R-next — Har qo‘shimcha tayyor bo‘lakning o‘z release qabuli.** R1
-  shartlari qaytariladi; oldingi ishlaydigan release keyingisini kutmaydi.
+  - [x] ~~I9b required CI/review/main.~~ PR143 merged `8bb6b95`;
+    final CI36267213566 all3PASS2303/Node122.
+  - [x] ~~I9 AWS prepare/live/result texnik relizi.~~ R2 real HTTPS oqimi.
+  - [ ] I9 native-device/10-type live load/real Telegram qabuli.
+- [x] ~~R-next — tayyor V1 paketining texnik AWS relizi.~~
+  [R2](R2-READY-V1-AWS.md): backup/restore, schema161,327 HTTPS assertion,
+  WSS,42 responsive o‘lchov; above device/provider gate’lari ochiq qoladi.
 - [ ] **P-resume — Tanlangan V1 ko‘chirish/relizidan so‘ng prototip ishiga qaytish.**
   Q14dan yangi oilalar; Q02–Q12 ochiq qarzlari yo‘qolmaydi. 1-oktyabrgacha
   faqat ulgurgan va gate’dan o‘tgan qo‘shimcha natija, majburiy yangi redesign yo‘q.
+  Owner2026-09-26 relizdan keyin qaytishni tasdiqladi. Keyingi faol navbat
+  Q14 — imtihon muharriri; bu deploy turnida prototype edit qilinmagan.
 
 ## Portdan oldingi fresh tekshiruv — 2026-09-25
 
