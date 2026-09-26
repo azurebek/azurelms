@@ -1,0 +1,43 @@
+/* Frozen certificate document layout, real public ID-backed data. */
+.f-certificate-page { display: grid; gap: var(--az-space-5); max-width: var(--az-reading); margin-inline: auto; padding: var(--az-space-8) var(--az-space-4); overflow-wrap: anywhere; }
+.f-certificate-page > *, .f-certificate-document > * { min-width: 0; }
+.f-certificate-tools { display: flex; justify-content: space-between; align-items: center; gap: var(--az-space-5); }
+.f-certificate-document { width: 100%; padding: var(--az-space-8); }
+.f-certificate-document-head { display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--az-space-4); padding-bottom: var(--az-space-5); border-bottom: 1px solid var(--az-border); }
+.f-certificate-document-head strong { font-size: var(--az-text-xl); }
+.f-certificate-document-head p { text-align: right; }
+.f-certificate-content { text-align: center; padding-block: var(--az-space-8); }
+.f-certificate-content h1 { font-size: var(--az-text-display); margin-top: var(--az-space-3); }
+.f-certificate-name { font-size: var(--az-text-2xl); font-weight: var(--az-weight-bold); line-height: var(--az-leading-tight); margin-block: var(--az-space-8) var(--az-space-4); }
+.f-certificate-course { margin-block: var(--az-space-6) var(--az-space-2); color: var(--az-action); }
+.f-certificate-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--az-space-5); padding-block: var(--az-space-5); border-block: 1px solid var(--az-border); }
+.f-certificate-facts dt { font-size: var(--az-text-xs); color: var(--az-muted); }
+.f-certificate-facts dd { margin: var(--az-space-2) 0 0; font-size: var(--az-text-md); font-weight: var(--az-weight-bold); }
+.f-certificate-document-foot { display: grid; gap: var(--az-space-3); margin-top: var(--az-space-6); color: var(--az-muted); font-size: var(--az-text-xs); }
+.f-certificate-appendix-heading, .f-certificate-exam { margin-block: var(--az-space-6); }
+.f-certificate-exam .c-section-title { flex-wrap: wrap; }
+.f-certificate-table { width: 100%; border-collapse: collapse; table-layout: fixed; text-align: left; font-size: var(--az-text-sm); }
+.f-certificate-table caption { text-align: left; color: var(--az-muted); font-size: var(--az-text-xs); margin-block: var(--az-space-3); }
+.f-certificate-table th, .f-certificate-table td { padding: var(--az-space-3); border-bottom: 1px solid var(--az-border); overflow-wrap: anywhere; }
+.f-certificate-table th:last-child, .f-certificate-table td { width: 30%; text-align: right; font-variant-numeric: tabular-nums; }
+.f-certificate-table tbody th span { display: block; margin-top: var(--az-space-1); }
+.f-certificate-table td[colspan] { text-align: left; }
+.f-certificate-root .c-button { white-space: normal; }
+@media (width < 640px) {
+  .f-certificate-document { padding: var(--az-space-4); }
+  .f-certificate-facts { grid-template-columns: minmax(0, 1fr); gap: var(--az-space-3); }
+  .f-certificate-content { padding-block: var(--az-space-5); }
+  .f-certificate-table th, .f-certificate-table td { padding-inline: var(--az-space-1); }
+}
+@media print {
+  /* Physical paper uses neutral ink regardless of the screen theme. */
+  .f-certificate-root { background: white; color: black; }
+  .f-certificate-root .s-skip, .f-certificate-chrome { display: none; }
+  .f-certificate-page { max-width: none; padding: 0; display: block; }
+  .f-certificate-document { background: white; color: black; border: 0; border-radius: 0; padding: var(--az-space-4); box-shadow: none; }
+  .f-certificate-document .c-muted, .f-certificate-document .c-caption, .f-certificate-document-foot, .f-certificate-facts dt, .f-certificate-course, .f-certificate-table caption { color: black; }
+  .f-certificate-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .f-certificate-document-head, .f-certificate-facts, .f-certificate-table tr { break-inside: avoid; }
+  .f-certificate-exam h2 { break-after: avoid; }
+  .f-certificate-table thead { display: table-header-group; }
+}

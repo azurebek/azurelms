@@ -39,6 +39,7 @@ class RecordsV1Mixin(FrontendV1Mixin):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if self.frontend_v1_enabled:
+            context['certificate_documents_v1'] = flag_enabled('frontend_v1_certificates')
             context['records_tabs'] = [dict(name=name, label=label, url=reverse(name)) for name, label in RECORD_TABS]
             if self.request.user.is_staff and flag_enabled('frontend_v1_teacher'):
                 context.update(teacher_v1_navigation('teacher_dashboard'))

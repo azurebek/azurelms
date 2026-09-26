@@ -16,6 +16,52 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-26 [Codex]: I8c saved-only publication yakuniy guardi
+
+Review4112129460 missing section reviewni publish vaqtida nolga aylantirish
+holatini topdi. `907425a`: avval barcha bo‘limlar explicit draftda saqlanadi;
+aks holda V1 publish400/no-write, missing0 emas «Hali saqlanmagan».
+
+- Provider-free focused review/exams/certificates **59 OK skip1 (13.582s)**.
+  Old combined full2263 OK skip54 (220.319s), Node111 PASS;
+  oldCI36258423702 all3PASS. Final CI/main [PR141](https://github.com/azurebek/azurelms/pull/141)da.
+- Branch `codex/frontend-v1-exam-review`; safe commits pushed, no AWS.
+  Sertifikat ikki yuzasi ham port qilingan; qolgan kod porti I9 Classbook.
+
+## 2026-09-26 [Codex]: Sertifikat hujjatlari va I8c metadata review
+
+Owner limit sababli portni tezlashtirishni so‘radi: yangi prototype yo‘q,
+qolgan certificate detail/appendix ham shu PR141 paketiga qo‘shildi.
+Mavjud exact-ID public policy, canonical Certificate va published_result
+saqlandi. Native print explicit, fake PDF-success yo‘q; default-OFF flag.
+
+- Runtime certificate `66f671c`; I8c metadata fix `1ce783b`.
+- `manage.py test courses.test_frontend_v1_certificates core.test_frontend_v1_exam_review courses.test_frontend_v1_exams --noinput`:
+  provider-free **57 OK skip1 (9.195s)**; Node111 PASS, check0/drift0.
+- IAB8071 synthetic anonymous detail/appendix ×6width overflow0,
+  dark desktop/light mobile/console0. [Dalil](frontend-v1/I5-CERTIFICATE-DOCUMENTS.md).
+- I8c old CI36257842408 all3PASS. Review4112099281 displayed choice/reading
+  metadata snapshotga qo‘shilib regression bilan yopildi. Fresh full/CI va
+  main acceptance kutilmoqda; AWS/native printer/device tekshirilmagan.
+- Qolgan real port: I9 Classbook. Frozen prototype/current DB/AWS o‘zgarmadi.
+
+## 2026-09-26 [Codex]: I8c — ustoz imtihon tekshiruvi real V1da
+
+Frozen review yangi prototype ochmasdan canonical writerga ulandi. Native
+qoralama va faqat saqlangan natijani alohida e’lon qilish; teacher-bound
+snapshot + locked review_revision stale/replayni409 bilan rad etadi.
+Legacy draft va admin finalize ham revisionni oshiradi. courses0024 additive.
+
+- Branch `codex/frontend-v1-exam-review`, runtime `4eb3df1`.
+- Provider-free `manage.py test core.test_frontend_v1_exam_review courses.test_frontend_v1_exams --noinput`:
+  **49 OK skip1 (10.304s)**. `manage.py test --noinput`: **2255 OK skip54
+  (180.790s)**. Node110 PASS, check0/drift0. Yangi PG parallel-POST testi.
+- IAB8070 tempDB: save→two-tab stale409/draft retained→publish60.83%,
+  mobile320/light/dark/desktop, 6 width positive overflow0, console0.
+- [Dalil/chegara](frontend-v1/I8C-REVIEW.md). CI/review/main navbatda;
+  AWS/current DB/frozen prototype o‘zgarmadi. Keyin certificate va Classbook.
+- I8b PR140 main `8b95460`, finalCI36256184621 all3PASS: tracker moslandi.
+
 ## 2026-09-26 [Codex]: I8b audio — butun action rollbackdan keyingi cleanup
 
 Review4111999822 topgan nested-transaction file leak `e39a263`da yopildi.

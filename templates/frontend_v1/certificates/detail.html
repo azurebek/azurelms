@@ -1,0 +1,6 @@
+{% extends 'frontend_v1/certificates/base.html' %}
+{% block document_links %}<a class="c-button c-button--secondary" href="{% url 'certificate_appendix' certificate.certificate_id %}">Ballar ilovasi</a>{% endblock %}
+{% block document_content %}
+<div class="f-certificate-content"><p class="c-eyebrow">KURSNI YAKUNLASH</p><h1 id="certificate-document-title">Sertifikat</h1><p class="f-certificate-name">{{ certificate.student.get_full_name|default:certificate.student.username }}</p><p class="c-muted">quyidagi kursni yakunlagani uchun berildi</p><h2 class="f-certificate-course">{{ certificate.course.title }}</h2></div>
+<dl class="f-certificate-facts"><div><dt>Yakuniy ball</dt><dd>{{ certificate.final_score }} / 100</dd></div><div><dt>Daraja</dt><dd>{{ certificate.course.get_level_display }}</dd></div><div><dt>Berilgan sana</dt><dd>{{ certificate.issued_at|date:'d.m.Y' }}</dd></div></dl>
+{% endblock %}

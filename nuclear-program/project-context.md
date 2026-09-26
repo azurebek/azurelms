@@ -42,6 +42,18 @@ Source of truth har doim **kod** (model/view/task/URL/test). Bu fayl kodga mosla
 
 ## Frontend V1 — bosqichma-bosqich renderer (2026-09-25)
 
+I8c frontend_v1_exam_review default OFF: teacher_grade_exam canonical
+writeriga frozen review adapteri, native draft va saved-only publication.
+courses0024 review_revision legacy draft/V1/admin finalize POSTlarini
+ajratadi; teacher-bound HMAC va attempt row lock stale409/no-write beradi.
+Private draft DOMda, consent har xatodan keyin yangilanadi. GET yozmaydi.
+Direct child ORM writerlar uchun global revision emas. [Dalil](frontend-v1/I8C-REVIEW.md).
+
+Certificate documents frontend_v1_certificates default OFF: existing public
+exact-ID detail/appendix frozen V1 layoutda, Certificate + learner_result
+projection o‘zgarmagan. Explicit print, ?download auto-print yo‘q; yangi
+issuance/formula/provider/migration yo‘q. [Dalil](frontend-v1/I5-CERTIFICATE-DOCUMENTS.md).
+
 I8 attempt API security (2026-09-26): `check_exam_access_policy` start va
 har runtime so‘rov uchun active enrollmentning yagona qoidasi.
 `get_accessible_exam_attempt` course/exam juftligi va own-current attemptni

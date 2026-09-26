@@ -44,6 +44,13 @@ class FlagDefinition:
 
 FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
     FlagDefinition(
+        slug="frontend_v1_exam_review",
+        label="Frontend V1 — ustoz imtihon tekshiruvi",
+        description="Qoralama va alohida e’lon qilish; eski forma yangi bahoni bosmaydi.",
+        default=False, category="Frontend",
+        runbook="OFF legacy renderer; in-flight V1 POST rad etiladi. courses0024 migration kerak. Baholar/publication saqlanadi, AWS qabuli alohida.",
+    ),
+    FlagDefinition(
         slug="frontend_v1_exam_attempt",
         label="Frontend V1 — imtihon topshirish",
         description="Explicit savol saqlash, versiya va topshirish tasdig‘i bilan exam-focus.",
@@ -81,6 +88,13 @@ FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
         default=False,
         category="Frontend",
         runbook="OFF eski rendererga qaytaradi; file/link/archive ma’lumotini qaytarmaydi. In-flight V1 POST snapshot himoyasi qoladi. File replacement rollbacki backup talab qiladi.",
+    ),
+    FlagDefinition(
+        slug="frontend_v1_certificates",
+        label="Frontend V1 — sertifikat hujjatlari",
+        description="Berilgan sertifikat va tasdiqlangan ballar ilovasi; mavjud exact-ID public policy saqlanadi.",
+        default=False, category="Frontend",
+        runbook="OFF legacy detail/appendix; sertifikat va baho o‘zgarmaydi. V1 chop etish faqat tugma orqali. AWS/device qabuli alohida.",
     ),
     FlagDefinition(
         slug="frontend_v1_records",

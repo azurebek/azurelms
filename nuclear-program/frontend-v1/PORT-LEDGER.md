@@ -109,7 +109,12 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
     CI36211060029 all3PASS, SQLite2040 skip44/PostgreSQL2040 skip20/Node87.
     [Final acceptance](https://github.com/azurebek/azurelms/pull/134#issuecomment-5842321154).
   - [ ] I5b.1/I5b.2/I5c.1 AWS/SMTP release va haqiqiy qurilma qabuli — alohida.
-    I5d AWS va sertifikat detail/appendix legacy porti ham ochiq.
+    I5d AWS hali ochiq.
+  - [x] ~~Sertifikat detail/appendix lokal V1 porti.~~ `66f671c`,
+    [dalil](I5-CERTIFICATE-DOCUMENTS.md): exact-ID public policy saqlandi,
+    published-only appendix, explicit print; 12 responsive readback overflow0.
+  - Sertifikat detail/appendix CI/review/main: [PR141 joriy holati](https://github.com/azurebek/azurelms/pull/141).
+    Local2263 OK skip54, Node111; AWS/device release hali ochiq.
 - [x] ~~I6 — Library + course/lesson editor kod integratsiyasi.~~ Common resource/link/private
   storage parity; real forms existing fieldsni saqlaydi. Qisman field/save
   contract mos kelmasa tegishli editor legacy qoladi va qarz ochiq yoziladi.
@@ -152,7 +157,8 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
     `fc80c7f`, `deef10c`; full2210 OK skip49, final focused86 OK skip4,
     Node104 PASS; 12 width readback overflow0, stale/unknown browser proof.
     [Dalil va native release chegarasi](I8B-ATTEMPT.md). Additive courses0022.
-  - [ ] I8b required CI/review/main (5 PG race testi ham).
+  - [x] ~~I8b required CI/review/main.~~ PR140 MERGED `8b95460`;
+    finalCI36256184621 all3PASS, local2239 OK skip53, Node110 PASS.
     Final lock-order `948878c`, focused111 OK skip5 (9.839s), Node104.
     Review P1/P2 lokal fix `6085156`: same-origin audio/preload, bounded epoch
     barrier (additive courses0023). Final local2221 OK skip50 (143.232s),
@@ -173,7 +179,11 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
     CI/review/main acceptance kutilmoqda.
     Head86eaf08 CI36255695367 all3PASS; outer audio rollback review fix
     `e39a263` focused73 OK skip7. Fresh full/CI/review/main acceptance ochiq.
-  - [ ] I8c teacher review UI va stale-form confirmation.
+  - [x] ~~I8c lokal teacher review UI va stale-form confirmation.~~
+    [Qamrov va dalil](I8C-REVIEW.md): native draft/publish, additive0024,
+    49 focused OK skip1, Node110; 6 responsive width overflow0.
+  - I8c CI/review/main: [PR141 joriy holati](https://github.com/azurebek/azurelms/pull/141).
+    Runtime `4eb3df1`, review fixes `1ce783b`/`907425a`, latest focused59 OK skip1.
   - [ ] I8 AWS/native-device release.
 - [ ] **I9 — Classbook.** Preparation→session→activity→result; multi-user,
   late join/reconnect va 10 exercise type’ning tegishli adapterlari.

@@ -1011,6 +1011,7 @@ class ExamAttempt(models.Model):
     exam = models.ForeignKey(Exam, on_delete=models.CASCADE, related_name='attempts', verbose_name="Imtihon")
     attempt_number = models.PositiveIntegerField(default=1, verbose_name="Urinish raqami")
     input_revision = models.PositiveIntegerField(default=0, editable=False)
+    review_revision = models.PositiveBigIntegerField(default=0, editable=False)
     answer_versions = models.JSONField(default=dict, editable=False)
     
     start_time = models.DateTimeField(auto_now_add=True)
@@ -1166,6 +1167,8 @@ class ExamAttempt(models.Model):
         # Serialize explicit publication with the teacher's draft transaction.
         locked = type(self).objects.select_for_update().get(pk=self.pk)
         self.review_notes = locked.review_notes
+        self.review_revision = locked.review_revision + 1
+        self.save(update_fields=['review_revision'])
         self.ensure_section_reviews()
         reviews = list(self.section_reviews.select_related('section').order_by('section__order', 'section_id'))
         section_total = sum(review.awarded_score for review in reviews)
