@@ -13,7 +13,7 @@ from cohorts.models import Attendance
 from .frontend_v1_live import FLAG, action_revision
 from .grading import parse_author_definition
 from .models import ActivityRun, StudentResponse
-from .services import close_activity, open_activity
+from .services import close_activity, finish_class_session, open_activity, submit_response
 from .tests import ClassbookFixtureMixin
 
 
@@ -209,6 +209,30 @@ class LiveV1Tests(ClassbookFixtureMixin, TestCase):
 
 
 class LiveV1ConcurrencyTests(ClassbookFixtureMixin, TransactionTestCase):
+    @skipUnlessDBFeature('has_select_for_update')
+    def test_submit_and_finish_share_parent_first_order(self):
+        session = self.start(); activity = session.classbook_activities.get()
+        self.assertTrue(open_activity(actor=self.teacher, activity=activity).ok)
+        barrier = Barrier(2)
+        def run(action):
+            connections.close_all()
+            try:
+                barrier.wait(timeout=10)
+                if action == 'submit':
+                    return submit_response(user=self.student, activity=activity, answer='o2')
+                return finish_class_session(actor=self.teacher, session=session)
+            finally: connections.close_all()
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            submitted, finished = list(pool.map(run, ['submit', 'finish']))
+        self.assertTrue(finished.ok)
+        session.refresh_from_db(); activity.refresh_from_db()
+        self.assertEqual((session.status, activity.status), ('closed', 'revealed'))
+        self.assertEqual(StudentResponse.objects.filter(activity=activity).count(), int(submitted.ok))
+        if not submitted.ok:
+            self.assertIn(submitted.code, ['session_closed', 'activity_closed'])
+        attendance = Attendance.objects.get(enrollment=self.enrollment, lesson=self.lesson)
+        self.assertEqual(attendance.status, Attendance.STATUS_PRESENT if submitted.ok else Attendance.STATUS_ABSENT)
+
     @skipUnlessDBFeature('has_select_for_update')
     def test_parallel_teacher_open_same_page_once(self):
         set_flag(FLAG, enabled=True, reason='PG race')

@@ -317,7 +317,17 @@ lock tartibi session_startga mos; view step amallari parent revisionni oshiradi.
 Normal model save (admin/legacy ham) revisionni oshiradi; arbitrary bulk/direct
 child writer uchun global CAS kafolati yo'q. Canonical ExerciseForm parser va
 start_class_session qayta ishlatiladi, existing live snapshot o'zgarmaydi.
-I9b live/result rendererlar legacy. [Scope/tests](frontend-v1/I9A-PREPARATION.md).
+[Preparation scope/tests](frontend-v1/I9A-PREPARATION.md).
+
+Frontend V1 live (2026-09-26): default-OFF `frontend_v1_classbook_live`
+6 live/result rendererni tanlaydi; yangi migration yo'q. Explicit teacher
+POST va locked lifecycle fingerprint, learner JSON submit/GET reconcile.
+Canonical bir javob constraint/grader/davomat/release saqlanadi. Jonli writerlar
+cohort→session→activity tartibida lock oladi. Matching/order/categorization
+IDlari V1 transportda HMAC alias va secret permutation; snapshot o'zgarmaydi.
+Frontend avtomatik navigatsiya/POST retry qilmaydi; qoralama faqat DOMda,
+crash/reload recovery va durable exact-operation receipt emas.
+[Scope/tests/release chegarasi](frontend-v1/I9B-LIVE.md), acceptance PR143da.
 
 **Mas'uliyat:** jonli darsni bitta teacher control plane'dan boshqarish: playbook, Telegram davomat/material, turli mashqlar, avtomatik baholash, realtime leaderboard, yakuniy davomat/access/homework va natija eksporti.
 

@@ -16,6 +16,24 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-26 [Codex]: I9b — qolgan olti Classbook live/result renderer porti
+
+`7c3c906`: frozen V1 live sahifalari canonical open/submit/reveal/finishga
+ulandi. Teacher explicit confirmation va stale409; learner key-free alias
+transport, GET acknowledgement, no auto navigation/retry, DOM draft guard.
+Live writerlar parent-first lock tartibida; yangi grading/policy/migration yo'q.
+
+- Branch `codex/frontend-v1-classbook-live`; [PR143](https://github.com/azurebek/azurelms/pull/143)
+  required CI/review/main acceptance manbai. AWS/current DB/prototype tegilmadi.
+- Provider-free full2301 OK skip57 (197.702s), final classbook80 OK skip5
+  (9.530s), Node122 PASS. Qo'shimcha PG submit/finish race final CI’da.
+- IAB8075 synthetic teacher→learner→reveal→result→finish PASS, score109.88/110,
+  36 actual width overflow0, desktop dark/mobile light. One stale tab timeout
+  yangi tab orqali tiklandi. [Dalil/chegaralar](frontend-v1/I9B-LIVE.md).
+- I9a oldingi PR142 main `929e623`, final CI all3PASS2288/Node111.
+  I9b acceptance'dan keyin rejalangan tayyor V1 port kodi tugaydi; bu AWS,
+  real-device, barcha10tur live load yoki hali qurilmagan Q14+ degani emas.
+
 ## 2026-09-26 [Codex]: I9a start snapshot locki
 
 `ae4f02d`: V1 start tasdig'idan canonical snapshot yaratilguncha mashq
