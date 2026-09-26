@@ -1,0 +1,4 @@
+{% extends 'frontend_v1/classbook/live_base.html' %}
+{% block live_heading %}Jonli darslar{% endblock %}{% block live_intro %}Ustoz boshlagan guruh darsini tanlang.{% endblock %}
+{% block live_back %}<a class="c-button c-button--secondary" href="{{ request.path }}">Ro‘yxatni yangilash</a>{% endblock %}
+{% block live_body %}{% for session in sessions %}<section class="c-card p-panel f-classbook-stack"><p class="c-eyebrow">{{ session.cohort.name }}</p><h2>{{ session.lesson.title }}</h2><a class="c-button c-button--primary" href="{% url 'classbook:live_session' session.pk %}">Darsni ochish</a></section>{% empty %}<section class="c-card p-panel"><h2>Hozir jonli dars yo‘q</h2><p>Ustoz boshlagach ro‘yxatni yangilang. Faqat sizga ochiq guruh darslari ko‘rinadi.</p></section>{% endfor %}{% endblock %}

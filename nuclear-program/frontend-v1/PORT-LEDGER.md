@@ -6,8 +6,9 @@ Sana emas, tugallangan natija bilan kuzatiladi. I1/I2/I3 main’da;
 I4a PR #125 bilan main’da (`89f89b7`); final CI `36170298967` uchala PASS.
 Flaglar kodda default OFF. AWS `363ff95`: public, learning, lesson,
 teacher va human messenger V1 override ON. [R1-public](R1-PUBLIC-RELEASE.md),
-[ichki rollout dalili](R1-INTERNAL-RELEASE.md). Hisob/settings va boshqa
-ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
+[ichki rollout dalili](R1-INTERNAL-RELEASE.md). Hisob/settings va keyingi
+portlar kodda tayyorlangan bo‘lsa ham bu deployed SHAga kirmaydi;
+barcha sahifa productionda yangi degani emas.
 
 ## Navbat
 
@@ -191,8 +192,12 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
     create/edit va playbook; native confirmed stale/replay-safe yozish.
     [Qamrov/dalil](I9A-PREPARATION.md): classbook64 OK skip3, full2286 OK skip55,
     Node111, 30 responsive check overflow0. Additive classbook0003.
-  - I9a required CI/review/main acceptance: [PR142 joriy holati](https://github.com/azurebek/azurelms/pull/142).
-  - [ ] I9b live teacher session, learner home/session/activity/result va teacher result.
+  - [x] ~~I9a required CI/review/main.~~ PR142 MERGED `929e623`;
+    finalCI36262073369 all3PASS: SQLite2288 skip55/PostgreSQL2288 skip20/Node111.
+  - [x] ~~I9b lokal — live teacher session, learner home/session/activity/result va teacher result.~~
+    `7c3c906`; [qamrov va cheklovlar](I9B-LIVE.md): full2301 OK skip57,
+    final focused80 OK skip5, Node122; 36 actual responsive readback overflow0.
+  - I9b required CI/review/main acceptance: [PR143 joriy holati](https://github.com/azurebek/azurelms/pull/143).
   - [ ] I9 AWS/native-device release.
 - [ ] **R-next — Har qo‘shimcha tayyor bo‘lakning o‘z release qabuli.** R1
   shartlari qaytariladi; oldingi ishlaydigan release keyingisini kutmaydi.

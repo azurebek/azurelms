@@ -68,6 +68,10 @@ class FrontendV1Mixin:
                 exam_url = reverse("exam_center")
                 context["frontend_v1_nav"].append(dict(url=exam_url, name="exam_center", label="Imtihonlar", icon="exam"))
                 context["frontend_v1_legacy_nav"] = [item for item in context["frontend_v1_legacy_nav"] if item["url"] != exam_url]
+            if flag_enabled("frontend_v1_classbook_live"):
+                live_url = reverse("classbook:live_home")
+                context["frontend_v1_nav"].append(dict(url=live_url, name="classbook:live_home", label="Jonli dars", icon="live"))
+                context["frontend_v1_legacy_nav"] = [item for item in context["frontend_v1_legacy_nav"] if item["url"] != live_url]
         return context
 
     def render_to_response(self, context, **response_kwargs):

@@ -44,6 +44,12 @@ class FlagDefinition:
 
 FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
     FlagDefinition(
+        slug="frontend_v1_classbook_live", label="Frontend V1 — Classbook jonli dars",
+        description="Ustoz boshqaruvi, learner mashqlari va real natijalar; explicit amallar.",
+        default=False, category="Frontend",
+        runbook="OFF eski renderer; in-flight V1 write rad etiladi. Javob, baho va davomat saqlanadi. AWS/native device qabuli alohida.",
+    ),
+    FlagDefinition(
         slug="frontend_v1_classbook_preparation",
         label="Frontend V1 — Classbook tayyorlovi",
         description="Guruh/dars, mashq banki va playbook; live ekranlar alohida port.",
