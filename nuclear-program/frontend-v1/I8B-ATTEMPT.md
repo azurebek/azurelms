@@ -1,8 +1,32 @@
 # I8b — real imtihon topshirish
 
-**REVIEW FIX VERIFIED LOCALLY — PR140, 2026-09-26.** Owner `davom et`
-yo‘nalishi bilan P1/P2 runtime `6085156`da tuzatildi. Required CI/review/main
-hali acceptance gate; AWSga tegilmadi.
+**MERGE HELD — independent library ABA regression, 2026-09-26.** I8b review
+fixlar `6085156`, `425ecc3`da. Yangi imtihon/canonical reading slice PASS;
+yakuniy full suite esa library’dagi mavjud clock-dependent ABA himoyasida
+yiqildi. Ownerga alohida tor tuzatish uchun savol yuborildi. Merge/AWS yo‘q.
+
+### Latest checkpoint — reading config parity
+
+- Runtime `425ecc3`: canonical multi-select cap validation, V1 checkbox cap,
+  disabled review-flag projection/control va canonical save/toggle rejection.
+  Model/operatsion limit qo‘shilmadi; mavjud task sozlamalari ishlatiladi.
+- `manage.py test courses --noinput`: **265 OK skip6 (26.850s)**;
+  `node --test tests/frontend_v1/*.test.mjs`: **109 PASS**. 4 backend/2 Node
+  regression qo‘shildi. IAB8068: 2 tanlovdan keyin uchinchisi disabled,
+  uncheckdan keyin enabled, 2 tanlov va flagsiz short-answer Save accepted.
+  Mobile320 overflow0, console0; `i8b-reading-cap-mobile.png` local proof.
+- **Final full2225 FAILED (1 failure, skip50, 147.156s):**
+  `library.test_frontend_v1.LibraryV1Tests.test_snapshot_changes_on_aba_tags_and_usage`
+  line158. Yakka qayta test1 PASS (0.040s), ammo timestampni bir xil ushlab
+  original test/assertion bilan controlled repro1 FAIL (0.032s).
+  `library/frontend_v1.py` snapshot `updated_at`ga suyanadi; bir clock tickda
+  A→B→A bo‘lsa fingerprint teng. Bu uch library fayli baseline `b8c1604`dan
+  o‘zgarmagan (`git diff b8c1604 -- library/...` empty). Kutubxona runtime/test
+  o‘zgartirilmadi, assertion susaytirilmadi, yangi full PASS da’vosi yo‘q.
+- Old head12f9c4e CI36225064864 **all3PASS** (SQLite5m47s, PG4m2s,
+  security2m0s). Bu eski checkpoint, `425ecc3` uchun CI o‘rnini bosmaydi.
+
+### First review fixes — previous green checkpoint
 
 - Provider-free `venv/Scripts/python.exe manage.py test --noinput`:
   **2221 OK skip50 (143.232s)**; Node **107 PASS**; check0/drift0/diff PASS.
@@ -21,6 +45,14 @@ hali acceptance gate; AWSga tegilmadi.
   so‘ng yakuniy full2221 (Mini App assertion bilan) PASS.
 
 ### Review-fix admission (runtime tahriridan oldin)
+
+Second review (head12f9c4e) P2/P2: reading multi-select cap va disabled
+review-flag. ADMIT — shu I8b config-parity doirasida; yangi feature/sozlama
+emas. Canonical reading writer configured maximumni reject qiladi, V1 tanlash
+controlida unchecked variantlar capga yetganda yopiladi (checked variantni
+olib tashlash mumkin). Disabled flag projection/templatega o‘tadi, canonical
+save/toggle forbidden true flagni yozmaydi. Barcha adapter bir writerdan
+foydalanadi; current DB/backfill/grades recalculation yo‘q.
 
 ADMIT — launch-critical; mavjud I8b doirasida. P1: V1 listening faqat
 same-origin HTTP(S) manbani qabul qiladi, blocked/missing manbani limitdan

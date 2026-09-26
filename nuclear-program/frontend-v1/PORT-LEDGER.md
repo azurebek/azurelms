@@ -158,6 +158,11 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
     barrier (additive courses0023). Final local2221 OK skip50 (143.232s),
     Node107 PASS; strict-CSP audio va cancel/draft browser proof. PR140
     required CI/review/main acceptance kutilmoqda; AWS yo‘q.
+    Second review config-parity fix `425ecc3`: courses265 OK skip6,
+    Node109 PASS; browser cap/disabled flag PASS. **Merge HELD:** final
+    full2225da unrelated existing library ABA test1 FAIL; same-timestamp
+    controlled repro tasdiqlandi, owner yo‘nalishi kutilmoqda. Old head12f9c4e
+    CI36225064864 all3PASS yangi full failure’ni yashirmaydi.
   - [ ] I8c teacher review UI va stale-form confirmation.
   - [ ] I8 AWS/native-device release.
 - [ ] **I9 — Classbook.** Preparation→session→activity→result; multi-user,

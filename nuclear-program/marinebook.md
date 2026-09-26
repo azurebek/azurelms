@@ -35,6 +35,14 @@ slotini almashtiradi. Applied receipt/revision va draft himoyasi saqlandi.
   [Dalil va aniq chegaralar](frontend-v1/I8B-ATTEMPT.md).
 - Required CI/review/main acceptance kutilmoqda. Native mic/codec/real-device
   va AWS alohida; keyingi UI I8c teacher review, I9 Classbook.
+- Second review `425ecc3`: reading cap va disabled review-flag V1/canonical
+  writerlarda enforce qilindi; courses265 OK skip6 (26.850s), Node109 PASS,
+  IAB8068 configured cap/uncheck/flagsiz Save PASS, mobile320 overflow0.
+- **Final full2225 FAILED1 skip50 (147.156s):** library existing timestamp
+  ABA testi line158. Yakka rerun1 PASS, bir xil timestamp bilan original
+  assertion1 FAIL; library fayllari baseline b8c1604dan o‘zgarmagan.
+  Runtime/test chetlab o‘tilmadi. Ownerga alohida fix savoli yuborildi,
+  **merge/deploy HELD**. Old12f9c4e CI36225064864 all3PASS tarixiy checkpoint.
 
 ## 2026-09-26 [Codex]: I8b — real imtihon topshirish va qoralama himoyasi
 

@@ -561,6 +561,8 @@ V1 listening same-origin HTTP(S), preload ready bo‘lmaguncha limit POST yo‘q
 POST source URLni qayta solishtiradi. Tashqi originlar/proxy yo‘q. V1 attempt
 HTML `media-src 'self' blob:` (local speaking preview), global/legacy CSP self
 bo‘lib qoladi. Mini App frame override boshqa per-response direktivani saqlaydi.
+Canonical reading save configured multi-select maximumni va disabled
+review-flagni enforce qiladi; V1 ham shu task settinglarini ko‘rsatadi.
 
 ### 4.7 Messenger
 

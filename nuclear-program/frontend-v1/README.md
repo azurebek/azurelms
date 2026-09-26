@@ -78,6 +78,9 @@ I8b required CI/review/main va native-device/AWS gate ochiq; I8c review UI qolad
 PR140 P1/P2 review fix `6085156`: bounded cancellation epoch (courses0023),
 same-origin audio/preflight va scoped blob CSP. Final local2221 OK skip50,
 Node107 PASS; [fresh evidence](I8B-ATTEMPT.md). AWSga chiqarilmagan.
+Second review `425ecc3` reading cap/disabled flagni ham tuzatdi: courses265
+OK/Node109. Final full2225da existing library same-timestamp ABA1 FAIL;
+merge held, ownerga alohida fix savoli berildi. I8b main’da deb qabul qilmang.
 I4b AI adapteri PR #130 bilan main’da `a25cf4b`:
 [scope, compact transcript va tekshiruv](I4B-AI-MESSENGER.md).
 1961 Python OK/61 Node PASS; final CI `36192585672` uchala PASS;
