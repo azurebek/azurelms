@@ -16,6 +16,27 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-26 [Codex]: Owner-approved imtihon texnik jurnali sig‘imi
+
+PR140 yangi review4110573482 muvaffaqiyatli amallar receiptlari cheksiz
+o‘sishini topdi. Owner alohida tasdiqlagach `842edb4` audited runtime capni
+qo‘shdi (core0006). Evictiondan oldin epoch atomic aylantiriladi: exact old
+payload qayta bajarilmaydi; yo‘qolgan eski tasdiq «bajarilmadi» deb talqin
+qilinmaydi. Javoblar/baholar/fayllar saqlanadi.
+
+- Branch `codex/frontend-v1-exam-attempt`; [admission/chegara/dalil](frontend-v1/EXAM-RECEIPT-BOUND.md).
+- Provider-free `manage.py test courses.test_exam_attempt_v1 core.test_runtime_settings --noinput`:
+  85 OK skip6 (9.511s); Node110 PASS, drift0/diff PASS. Yangi PG eviction race.
+- IAB8069 tempDB: two-tab lost-ack eviction → honest uncertainty/draft retained;
+  owner cap2→3, reason/confirmation/audit accepted. Desktop1280 overflow0.
+  Hidden tab viewport320 apply bo‘lmadi; yangi panel mobile gate ochiq.
+- Old head110cfd2 CI36226414409 all3PASS (PG2229 OK skip20,154.690s).
+  Fresh full/CI/review/main acceptance kutilmoqda. AWS/current DB tegilmadi.
+- Full repeat2236 FAIL3 skip52 (11103.767s); Windows power events hostning
+  10:41Z→13:42Z uyqusini tasdiqladi. Diagnostic rerun ham 13:45Z→16:26Z
+  uyqu oralig‘iga tushdi. Sababni yakuniy deb taxmin qilmaymiz; failure detail
+  va fresh cloud CI kutiladi, assertion o‘zgarmadi, merge held.
+
 ## 2026-09-26 [Codex]: Owner-approved library same-timestamp ABA himoyasi
 
 Full suite topgan existing kutubxona xatosi owner ruxsatidan keyin alohida

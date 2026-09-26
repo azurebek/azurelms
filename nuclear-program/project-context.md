@@ -52,6 +52,13 @@ JSON save orqali olinmaydi; existing validated private upload qoladi.
 Xavfsizlik renderer flagidan mustaqil, migration yo‘q.
 [Qamrov va concurrency chegarasi](frontend-v1/I8-API-SECURITY.md).
 
+Exam V1 recovery receipts (2026-09-26): OperationalSettings.exam_receipt_limit
+(core0006, default1000,1–10000) owner-only audited runtime panelda. Canonical
+exam_receipts.trim_receipts user lock/action transaction ichida newest capni
+saqlaydi va evictiondan oldin epochni aylantiradi. Exact old payload fail-closed;
+retained retry deduplicated, missing old-epoch receipt unconfirmed_closed.
+Draft saqlanadi; answers/grades o‘chirilmaydi. [Chegara](frontend-v1/EXAM-RECEIPT-BOUND.md).
+
 LibraryResource metadata save (2026-09-26) row lock ostida persisted
 `edit_revision`ni oshiradi; bu file `version`dan alohida (additive library0002).
 V1 HMAC shu counterga ham bog‘liq: bir timestampdagi A→B→A eski formani

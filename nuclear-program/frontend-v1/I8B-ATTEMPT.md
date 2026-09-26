@@ -7,6 +7,13 @@ dalil saqlandi; yangi full **2229 OK skip51 (145.501s)**. Fresh CI/review
 acceptance kutilmoqda. AWS yo‘q.
 [Library admission va dalil](LIBRARY-ABA.md).
 
+Latest follow-up: head110cfd2 CI36226414409 all3PASS, PostgreSQL2229 OK
+skip20 (154.690s). Review4110573482 applied receipt growthni topdi; owner
+sozlanadigan himoyaga ruxsat berdi. `842edb4`: audited cap + atomic epoch
+rotation before eviction. [Admission va dalil](EXAM-RECEIPT-BOUND.md).
+Focused85 OK skip6/Node110 PASS, IAB two-tab recovery va owner audit PASS.
+Fresh full/CI/review/main acceptance kerak; hali merge/deploy emas.
+
 ### Final local checkpoint — library guard included
 
 - Runtime `453b6dd`: clock-independent, row-locked library save revision;

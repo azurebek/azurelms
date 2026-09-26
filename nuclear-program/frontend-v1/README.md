@@ -84,6 +84,9 @@ merge held, ownerga alohida fix savoli berildi. I8b main’da deb qabul qilmang.
 Owner roziligidan keyin library guard `453b6dd`da tuzatildi (library0002);
 same-clock regression endi PASS. [Qamrov](LIBRARY-ABA.md). Final full2229
 OK skip51 (145.501s); fresh CI/review/main acceptance ochiq.
+Head110cfd2 CI all3PASS; keyingi review applied-receipt growthni topdi.
+Owner-approved `842edb4` [jurnal sig‘imi](EXAM-RECEIPT-BOUND.md)ni auditlangan
+sozlamaga chiqardi; fresh full/CI/review kutilmoqda. AWS o‘zgarmadi.
 I4b AI adapteri PR #130 bilan main’da `a25cf4b`:
 [scope, compact transcript va tekshiruv](I4B-AI-MESSENGER.md).
 1961 Python OK/61 Node PASS; final CI `36192585672` uchala PASS;

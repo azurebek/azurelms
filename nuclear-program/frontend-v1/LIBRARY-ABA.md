@@ -44,3 +44,7 @@ Final provider-free `venv/Scripts/python.exe manage.py test --noinput`:
 **109 PASS** (unchanged JS since that run). Courses265 OK skip6 (26.850s).
 The previous full2225 failure is now covered by the permanent frozen-clock
 regression and the new stale-form/parallel-save tests; no assertion was removed.
+
+Head110cfd2 CI36226414409 all3PASS (including PostgreSQL2229 OK skip20,
+154.690s and library parallel save). A new independent exam receipt-growth
+review held the combined PR; owner approved [that follow-up](EXAM-RECEIPT-BOUND.md).
