@@ -16,6 +16,26 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-26 [Codex]: I8b review — bounded cancel va strict-CSP audio
+
+Owner davom ettirishni tasdiqlagach PR140 P1/P2 lokal yopildi. Audio source
+same-origin/preload/POST-source check bilan limitdan oldin tekshiriladi;
+bekor so‘rovlar receipt qatorlarini ko‘paytirmaydi, bitta user/exam epoch
+slotini almashtiradi. Applied receipt/revision va draft himoyasi saqlandi.
+
+- Branch `codex/frontend-v1-exam-attempt`, runtime `6085156`.
+- Additive courses0023; V1-only blob preview CSP, Mini App frame override
+  bilan kompozitsiya. Global CSP/external hosts/current DB/AWS o‘zgarmadi.
+- Provider-free `venv/Scripts/python.exe manage.py test --noinput`:
+  **2221 OK skip50 (143.232s)**; `node --test tests/frontend_v1/*.test.mjs`:
+  **107 PASS**; check0/drift0/diff PASS. Dastlabki test wiring xatolari
+  tuzatildi, regression assertlari susaytirilmadi.
+- IAB8067 temp DB strict CSP: valid WAV1/count1, missing404/count0,
+  external unavailable; cancel → draft preserved → Save, 6width overflow0.
+  [Dalil va aniq chegaralar](frontend-v1/I8B-ATTEMPT.md).
+- Required CI/review/main acceptance kutilmoqda. Native mic/codec/real-device
+  va AWS alohida; keyingi UI I8c teacher review, I9 Classbook.
+
 ## 2026-09-26 [Codex]: I8b — real imtihon topshirish va qoralama himoyasi
 
 Frozen exam-focus real Django’ga ulandi: explicit savol Save, server revision,

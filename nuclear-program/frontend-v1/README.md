@@ -75,6 +75,9 @@ audio va submit tasdig‘i; additive courses0022, default-OFF. Full2210 OK
 skip49; final focused86 OK skip4, Node104. 12 width readback overflow0,
 two-tab stale va ikkita unknown-response recovery oqimi brauzerda o‘tdi.
 I8b required CI/review/main va native-device/AWS gate ochiq; I8c review UI qoladi.
+PR140 P1/P2 review fix `6085156`: bounded cancellation epoch (courses0023),
+same-origin audio/preflight va scoped blob CSP. Final local2221 OK skip50,
+Node107 PASS; [fresh evidence](I8B-ATTEMPT.md). AWSga chiqarilmagan.
 I4b AI adapteri PR #130 bilan main’da `a25cf4b`:
 [scope, compact transcript va tekshiruv](I4B-AI-MESSENGER.md).
 1961 Python OK/61 Node PASS; final CI `36192585672` uchala PASS;

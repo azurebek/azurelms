@@ -546,13 +546,21 @@ ochadi; start POST canonical entry policy/limitni qayta tekshiradi.
 Explicit savol Save; mavjud Question/Reading/private-audio/listen/submit writerlar.
 Additive courses0022: attempt input_revision/answer_versions + ExamActionReceipt
 identity/hash ledger. User/attempt row lock, stale409, duplicate UUID no-repeat;
-GET receipt missing hali unknown, explicit reconcile cancelled barrier orqali
-kechikkan yozuvni to‘sadi. Legacy answer/flag/upload writerlari ham revisionni
+GET receipt missing hali unknown. Additive courses0023 `ExamActionGate`
+unique(student,exam) server-issued UUID epoch: flag-ON authorized GET bitta
+slot ajratadi, POST ajratmaydi. Explicit reconcile applied receiptni o‘qiydi
+yoki epochni almashtirib barcha eski-epoch kechikkan yozuvlarni to‘sadi;
+cancelled receipt INSERT yo‘q. OFFda faqat existing slot reconcile qilinadi.
+Legacy answer/flag/upload writerlari ham revisionni
 oshiradi; baholash formulasi va publication alohida. HMAC-scoped session text
 draft, credentials/file bytes yo‘q, logout cleanup; dirty/stale/unknown finishni
 bloklaydi. Server remaining snapshot, client clock submit qilmaydi.
 Flag OFF mutationlarni yopadi, receipt/state va identity reconciliation qoladi;
 schema migration OFFda ham kerak. Native mic/AWS release alohida.
+V1 listening same-origin HTTP(S), preload ready bo‘lmaguncha limit POST yo‘q;
+POST source URLni qayta solishtiradi. Tashqi originlar/proxy yo‘q. V1 attempt
+HTML `media-src 'self' blob:` (local speaking preview), global/legacy CSP self
+bo‘lib qoladi. Mini App frame override boshqa per-response direktivani saqlaydi.
 
 ### 4.7 Messenger
 

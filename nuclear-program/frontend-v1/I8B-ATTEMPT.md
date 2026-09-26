@@ -1,8 +1,45 @@
 # I8b — real imtihon topshirish
 
-**RELEASE BLOCKED — PR140 review, 2026-09-26.** Main/AWSga qo‘shilmagan.
-Repo security-anomaly gate sabab runtime tuzatish/merge owner yo‘nalishigacha
-to‘xtadi. Quyidagi lokal PASSlar release acceptance emas.
+**REVIEW FIX VERIFIED LOCALLY — PR140, 2026-09-26.** Owner `davom et`
+yo‘nalishi bilan P1/P2 runtime `6085156`da tuzatildi. Required CI/review/main
+hali acceptance gate; AWSga tegilmadi.
+
+- Provider-free `venv/Scripts/python.exe manage.py test --noinput`:
+  **2221 OK skip50 (143.232s)**; Node **107 PASS**; check0/drift0/diff PASS.
+  8 yangi backend / 3 yangi Node regression; 5 PG race testi CI’da.
+- Isolated IAB8067, real CSP header: same-origin WAV ended, count1/left0;
+  missing404 audio count0/left1, POST yo‘q; external URL unavailable.
+  Before-write503 → explicit reconcile → draft qoladi → fresh Save accepted.
+  6 breakpoint readback320–1280 overflow0; dark/light mobile inspection.
+  Local proof: `playground/frontend-v1-smoke/i8b-review-mobile.png`.
+- Strict CSP real response testida V1-only blob preview istisnosi va Mini App
+  frame policy bilan birga saqlanishi; legacy/global media policy o‘zgarmagan.
+  Native microphone/codec/real-device va haqiqiy audio kontent release hali ochiq.
+- Birinchi regression run’da fixture assert JSON `state.plays_used` o‘rniga
+  yo‘q model fieldga qaradi va old middleware-cached Client ishlatildi;
+  test wiring tuzatilib barcha assertlar saqlandi. Keyingi focused48 OK skip5,
+  so‘ng yakuniy full2221 (Mini App assertion bilan) PASS.
+
+### Review-fix admission (runtime tahriridan oldin)
+
+ADMIT — launch-critical; mavjud I8b doirasida. P1: V1 listening faqat
+same-origin HTTP(S) manbani qabul qiladi, blocked/missing manbani limitdan
+oldin rad etadi. Browser audio tayyorligini tekshiradi (xato/bekor qilishda
+POST yo‘q); POST aynan tekshirilgan URLni qayta solishtiradi. Tashqi host,
+proxy/SSRF yoki global CSP ruxsati qo‘shilmaydi. Faqat V1 attempt HTMLda
+`media-src 'self' blob:` local speaking preview uchun tor istisno.
+
+P2: student/exam uchun bitta UUID epoch yozuvi (additive courses0023).
+Faqat ruxsatli, flag-ON GET bu slotni bir marta yaratadi; POST yaratmaydi.
+Har action server bergan joriy epochni olib keladi. Reconcile applied receiptni
+o‘qiydi yoki slotni almashtirib eski epochdagi barcha kechikkan actionlarni
+bloklaydi; cancelled receipt INSERT yo‘q. Eski epoch bilan reconcile read-only,
+OFFda faqat avval berilgan slot yopiladi. Ikkinchi tab eski epochda fail-closed
+409 + fresh state oladi, qoralama qoladi. Applied receiptlar saqlanadi.
+Bu protokolning strukturaviy bounded holati; yangi vaqt/retention/quota yoki
+owner operatsion sozlamasi emas. Eski data/receiptlar o‘chirilmaydi.
+
+### Oldingi review blockerlar (fixdan oldingi tarix)
 
 - P1: `SECURITY_STRICT` CSP `media-src 'self'`; tashqi section media URL
   bloklanadi, lekin listen count undan oldin yoziladi. Manba mosligini
@@ -35,7 +72,7 @@ per-question form va submit dialog olinadi; yangi dizayn/prototype yo‘q.
   user/exam/operation-bound receipt: ikki tab stale409 no-write; noaniq
   mutation GET receipt orqali tekshiriladi. Receipt yo‘qligi kechikkan
   so‘rov yo‘qligini isbotlamaydi: explicit reconcile POST user lock ostida
-  mavjud receiptni qaytaradi yoki identity-only cancelled barrier yozadi.
+  mavjud receiptni qaytaradi yoki bounded gate epochini almashtiradi.
   Kechikkan original so‘rov bundan keyin yozolmaydi; javob qayta yuborilmaydi.
   Bu real transport adaptatsiyasi; baho/access yangi biznes qoidasi emas.
   Legacy answer writerlari ham
@@ -79,18 +116,32 @@ Listen counter attempt answer revisionini o‘zgartirmaydi. Start first-attempt
 race uchun stable user row lock; max_attempts=0 endi birinchi startni ham rad
 etadi (centerning mavjud yopiq holatiga mos). Ball/publication formulasi o‘sha.
 
-Identity receipt (UUID + request digest) ayni so‘rovni ikki marta bajarmaydi;
+Identity receipt (UUID + epoch-bound request digest) ayni so‘rovni ikki marta bajarmaydi;
 o‘sha UUID boshqa payload bilan rad etiladi. Missing GET receipt hali noma’lum;
-explicit reconcile applied receipt yoki cancelled barrier qaytaradi. Kechikkan
-POST barrier’dan keyin javob yozmaydi. OFFda faqat state/receipt va shu identity
+explicit reconcile applied receipt yoki virtual cancelled acknowledgement qaytaradi.
+Cancelled INSERT yo‘q: courses0023 ExamActionGate unique(student,exam) epochini
+user lock ostida almashtiradi. Slot faqat flag-ON authorized GETda yaratiladi,
+POST hech qachon slot yaratmaydi. Eski epochning har qanday actioni rad etiladi;
+eski epochni yana reconcile qilish no-op. Applied receiptlar qoladi, cancel
+butun o‘sha epochdagi in-flight actionlarga ta’sir qiladi; boshqa tab fresh state
+olib qoralamasini qayta ko‘radi. Kechikkan POST barrier’dan keyin javob yozmaydi.
+OFFda faqat state/receipt va avval berilgan slotning identity
 reconciliation qoladi. Enrollment revoke bilan global linearizability da’vosi
 yo‘q; joriy per-request access policy PR139dagi kabi.
 
 `courses0022_exam_action_revisions` additive: ikki defaultli attempt maydoni,
 identity-only `ExamActionReceipt` jadvali, yangi jadvalda unique constraint.
-Cancelled start uchun attempt nullable; answer text/media/grade receiptga kirmaydi.
+Receipt attempt nullable eski schema bilan moslik uchun qoladi; yangi cancelled
+row yaratilmaydi. Answer text/media/grade receiptga kirmaydi. Additive courses0023
+faqat yangi bounded gate jadvali, data delete/backfill yo‘q.
 Flag OFF bo‘lsa ham yangi kod deployidan **oldin migration kerak**. Eski ball,
 answer, publication backfill/delete yo‘q. Rollback: flag OFF, additive schema qoladi.
+Listening URL same-origin HTTP(S), exact preloaded source POSTda qayta tekshiriladi.
+Preload error/cancel limit sarflamaydi. Playback boshlanganidan keyingi tarmoq/codec
+xatosida avtomatik refund yo‘q; listen count play-start authorization hisobidir,
+DRM yoki audioni eshitganlik kafolati emas. External media hostlar ochilmagan;
+reliz oldidan kontent first-party audio URLga mosligi tekshiriladi.
+
 Storage faylni SQL rollback bilan atomik o‘chira olmaydi; writer ichida rad
 etilgan yangi upload tozalanadi, oldingi learner fayllari o‘chirilmaydi.
 

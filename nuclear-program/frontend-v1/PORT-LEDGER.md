@@ -154,9 +154,10 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
     [Dalil va native release chegarasi](I8B-ATTEMPT.md). Additive courses0022.
   - [ ] I8b required CI/review/main (5 PG race testi ham).
     Final lock-order `948878c`, focused111 OK skip5 (9.839s), Node104.
-    **Review BLOCKED:** strict-CSP tashqi audio/count va cheklanmagan
-    cancellation receipt yaratish. Final local2213 OK skip50 (166.277s)
-    bu blockerlarni yopmaydi; PR140 merge/AWS yo‘q.
+    Review P1/P2 lokal fix `6085156`: same-origin audio/preload, bounded epoch
+    barrier (additive courses0023). Final local2221 OK skip50 (143.232s),
+    Node107 PASS; strict-CSP audio va cancel/draft browser proof. PR140
+    required CI/review/main acceptance kutilmoqda; AWS yo‘q.
   - [ ] I8c teacher review UI va stale-form confirmation.
   - [ ] I8 AWS/native-device release.
 - [ ] **I9 — Classbook.** Preparation→session→activity→result; multi-user,
