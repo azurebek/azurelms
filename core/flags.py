@@ -44,6 +44,14 @@ class FlagDefinition:
 
 FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
     FlagDefinition(
+        slug="frontend_v1_settings",
+        label="Frontend V1 — qolgan sozlamalar",
+        description="Maxfiylik, To‘lov va Imkoniyatlar; canonical xotira/preference/quota saqlanadi.",
+        default=False,
+        category="Frontend",
+        runbook="OFF uch settings sahifasining legacy rendererini qaytaradi; ma’lumot saqlanadi. Account/AI flaglaridan mustaqil. ON faqat settings release tekshiruvidan keyin.",
+    ),
+    FlagDefinition(
         slug="frontend_v1_account",
         label="Frontend V1 — profil va hisob",
         description="Profil va Hisob ko‘rinishi; mavjud profil/avatar/parol endpointlari.",

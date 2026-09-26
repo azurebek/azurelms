@@ -1,0 +1,39 @@
+{% extends "frontend_v1/settings_base.html" %}
+{% block settings_body %}
+<div class="v1-account-layout">
+  <div class="v1-account-stack">
+    <section class="c-card p-panel"><h2>AI xotirasi</h2><p class="c-lead">{% if ai_memory_enabled %}Yoqilgan. Suhbatlardagi muhim faktlar saqlanishi mumkin.{% else %}O‘chirilgan. Yangi faktlar saqlanmaydi; avvalgi yozuvlar joyida qoladi.{% endif %}</p>
+      <form method="post" action="{% url 'ai_memory_toggle' %}" class="v1-account-form" data-settings-form>
+        {% include "frontend_v1/settings_guard.html" with revision=toggle_revision %}
+        <input type="hidden" name="ai_memory_enabled" value="{% if ai_memory_enabled %}0{% else %}1{% endif %}">
+        <div><button class="c-button c-button--secondary" type="submit">Xotirani {% if ai_memory_enabled %}o‘chirish{% else %}yoqish{% endif %}</button></div>
+      </form><p class="c-caption v1-card-note">Bu tanlov mavjud faktlarni olib tashlamaydi. Ularni boshqarish quyida.</p>
+    </section>
+    <section class="v1-account-stack" aria-labelledby="memory-facts-title"><h2 id="memory-facts-title">Saqlangan faol faktlar · {{ memory_total }}</h2>
+      {% for group in memory_groups %}<h3>{{ group.label }}</h3>{% for fact in group.facts %}<article class="c-card p-panel v1-memory-fact" aria-labelledby="fact-{{ fact.id }}">
+        <h4 id="fact-{{ fact.id }}">{{ fact.value }}</h4><p class="c-caption v1-card-note">{{ fact.confidence_percent }}% ishonch · {{ fact.last_used_label }}{% if fact.retrieval_count %} · {{ fact.retrieval_count }} marta ishlatilgan{% endif %}</p>
+        <details class="v1-profile-editor v1-card-note"><summary>Faktni boshqarish</summary><div class="v1-account-stack">
+          <form method="post" action="{% url 'ai_memory_archive' fact_id=fact.id %}" class="v1-account-form" data-settings-form>
+            {% include "frontend_v1/settings_guard.html" with revision=fact.archive_revision %}
+            <label class="v1-settings-confirm"><input type="checkbox" name="confirm_change" value="yes" required> Shu faktni arxivlashni tasdiqlayman</label><div><button class="c-button c-button--secondary" type="submit">Arxivlash</button></div>
+          </form>
+          <form method="post" action="{% url 'ai_memory_reject' fact_id=fact.id %}" class="v1-account-form" data-settings-form>
+            {% include "frontend_v1/settings_guard.html" with revision=fact.reject_revision %}
+            <label class="v1-settings-confirm"><input type="checkbox" name="confirm_change" value="yes" required> Bu fakt noto‘g‘ri ekanini tasdiqlayman</label><div><button class="c-button c-button--secondary" type="submit">Noto‘g‘ri deb belgilash</button></div>
+          </form>
+        </div></details>
+      </article>{% endfor %}{% empty %}<div class="c-card c-empty"><h3>Faol fakt yo‘q</h3><p>Bu sahifa yangi fakt yaratmaydi. Xotira yoqilgan bo‘lsa, suhbatdagi muhim ma’lumotlar shu yerda ko‘rinishi mumkin.</p></div>{% endfor %}
+    </section>
+    {% if legacy_memory_text %}<section class="c-card p-panel"><h2>Eski xotira</h2><p class="v1-profile-bio v1-card-note">{{ legacy_memory_text }}</p></section>{% endif %}
+  </div>
+  <aside class="v1-account-stack">
+    <section class="c-card p-panel"><h2>Xotira hisoboti</h2><dl class="v1-memory-report"><dt>Faol</dt><dd>{{ memory_report.active }}</dd><dt>Arxivlangan</dt><dd>{{ memory_report.archived }}</dd><dt>Noto‘g‘ri belgilangan</dt><dd>{{ memory_report.rejected }}</dd><dt>Saqlash hodisalari</dt><dd>{{ memory_report.saved }}</dd><dt>Promptga olingan</dt><dd>{{ memory_report.retrieved }}</dd></dl><a class="c-text-link v1-card-note" href="{% url 'settings_privacy' %}">Holatni yangilash</a></section>
+    <section class="c-card p-panel"><h2>Xotirani tozalash</h2><p class="c-lead">Ko‘rsatilgan faol faktlar arxivlanadi va ko‘rsatilgan eski xotira matni tozalanadi. Keyin kelgan faktlar va xotirani yoqish/o‘chirish tanlovi saqlanadi.</p>
+      <form method="post" action="{% url 'ai_memory_clear' %}" class="v1-account-form" data-settings-form>
+        {% include "frontend_v1/settings_guard.html" with revision=clear_revision %}
+        <label class="v1-settings-confirm"><input type="checkbox" name="confirm_change" value="yes" required{% if not memory_total and not legacy_memory_text %} disabled{% endif %}> Barcha faol faktlar va eski xotirani tozalashni tasdiqlayman</label><div><button class="c-button c-button--secondary" type="submit"{% if not memory_total and not legacy_memory_text %} disabled{% endif %}>Xotirani tozalash</button></div>
+      </form>
+    </section>
+  </aside>
+</div>
+{% endblock %}

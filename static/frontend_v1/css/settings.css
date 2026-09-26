@@ -1,0 +1,8 @@
+.v1-memory-fact h4 { overflow-wrap: anywhere; white-space: pre-wrap; font-size: var(--az-text-md); }
+.v1-settings-confirm { display: flex; gap: var(--az-space-3); align-items: start; min-height: var(--az-control); font-size: var(--az-text-sm); overflow-wrap: anywhere; }
+.v1-settings-confirm input { flex: 0 0 auto; margin-top: var(--az-space-1); }
+.v1-memory-report { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--az-space-3); margin-top: var(--az-space-5); }
+.v1-memory-report dt { color: var(--az-muted); font-size: var(--az-text-sm); }
+.v1-memory-report dd { margin: 0; font-weight: var(--az-weight-bold); }
+.v1-usage-heading { display: flex; justify-content: space-between; gap: var(--az-space-3); margin-block: var(--az-space-3); }
+.v1-account-form select { width: 100%; min-width: 0; }

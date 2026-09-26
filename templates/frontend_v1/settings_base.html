@@ -1,0 +1,9 @@
+{% extends "frontend_v1/platform.html" %}
+{% load static %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'frontend_v1/css/account.css' %}"><link rel="stylesheet" href="{% static 'frontend_v1/css/settings.css' %}"><script defer src="{% static 'frontend_v1/js/settings.js' %}"></script>{% endblock %}
+{% block content %}
+{% include "frontend_v1/settings_tabs.html" %}
+{% if settings_error %}<div class="c-alert v1-error" role="alert" tabindex="-1" data-form-errors><div><p>{{ settings_error }}</p><a class="c-text-link" href="{{ settings_refresh_url }}">Holatni yangilash</a></div></div>{% endif %}
+<p class="c-alert v1-error" role="alert" data-settings-offline hidden>Aloqa yo‘q. Amal yuborilmadi; tanlovlaringiz shu sahifada qoldi.</p>
+{% block settings_body %}{% endblock %}
+{% endblock %}

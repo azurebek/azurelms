@@ -28,6 +28,8 @@ import os
 from core.upload_validation import validate_upload
 from core.frontend_v1 import FrontendV1Mixin
 from .frontend_v1_account import AccountV1Mixin
+from .frontend_v1_settings import SettingsV1Mixin, SettingsWriteGuard
+from .preferences import save_ai_preference
 import uuid
 
 def home_view(request):
@@ -211,10 +213,12 @@ class SettingsAccountView(SettingsSectionMixin, AccountV1Mixin, UpdateView):
         return super().form_invalid(form)
 
 
-class SettingsBillingView(SettingsSectionMixin, TemplateView):
+class SettingsBillingView(SettingsSectionMixin, SettingsV1Mixin, TemplateView):
     """To'lov — tarif va unga bog'liq AI foydalanish limiti."""
 
     template_name = 'users/settings/billing.html'
+    frontend_v1_template = 'frontend_v1/settings_billing.html'
+    frontend_v1_title = 'To‘lov'
     settings_section = 'billing'
 
     def get_context_data(self, **kwargs):
@@ -225,10 +229,12 @@ class SettingsBillingView(SettingsSectionMixin, TemplateView):
         return context
 
 
-class SettingsCapabilitiesView(SettingsSectionMixin, TemplateView):
+class SettingsCapabilitiesView(SettingsSectionMixin, SettingsV1Mixin, TemplateView):
     """Imkoniyatlar — AzureAI ohangi, modeli va web qidiruv rejimi."""
 
     template_name = 'users/settings/capabilities.html'
+    frontend_v1_template = 'frontend_v1/settings_capabilities.html'
+    frontend_v1_title = 'Imkoniyatlar'
     settings_section = 'capabilities'
 
     def get_context_data(self, **kwargs):
@@ -270,8 +276,9 @@ class AvatarUpdateView(LoginRequiredMixin, View):
         # Profil sahifasidan yuklansa o'sha yerga qaytadi.
         return redirect(_safe_next(request, 'settings_account'))
 
-class AIToneUpdateView(LoginRequiredMixin, View):
+class AIToneUpdateView(LoginRequiredMixin, SettingsWriteGuard, View):
     """Update only the AI tone preference for the AzureAI assistant."""
+    settings_action = 'ai_tone'
 
     def post(self, request, *args, **kwargs):
         tone = (request.POST.get('ai_tone') or '').strip()
@@ -287,9 +294,7 @@ class AIToneUpdateView(LoginRequiredMixin, View):
             messages.error(request, "Noto'g'ri uslub tanlandi.")
             return redirect('settings_capabilities')
 
-        if request.user.ai_tone != tone:
-            request.user.ai_tone = tone
-            request.user.save(update_fields=['ai_tone'])
+        if save_ai_preference(request.user, 'ai_tone', tone):
             messages.success(request, "AzureAI uslubi yangilandi.")
         if wants_json:
             label = dict(CustomUser.AI_TONE_CHOICES).get(tone, tone)
@@ -297,8 +302,9 @@ class AIToneUpdateView(LoginRequiredMixin, View):
         return redirect('settings_capabilities')
 
 
-class AIModelUpdateView(LoginRequiredMixin, View):
+class AIModelUpdateView(LoginRequiredMixin, SettingsWriteGuard, View):
     """Update only the Gemini model preference for the AzureAI assistant."""
+    settings_action = 'ai_model'
 
     def post(self, request, *args, **kwargs):
         model = (request.POST.get('ai_model') or '').strip()
@@ -314,9 +320,7 @@ class AIModelUpdateView(LoginRequiredMixin, View):
                 return JsonResponse({"status": "error", "message": "Noto'g'ri model tanlandi."}, status=400)
             return HttpResponseBadRequest("Noto'g'ri model tanlandi.")
 
-        if request.user.ai_model != model:
-            request.user.ai_model = model
-            request.user.save(update_fields=['ai_model'])
+        if save_ai_preference(request.user, 'ai_model', model):
             messages.success(request, "AzureAI modeli yangilandi.")
         if wants_json:
             label = dict(model_choices).get(model, model)
@@ -351,8 +355,9 @@ class AISkillUpdateView(LoginRequiredMixin, View):
         return redirect('settings_capabilities')
 
 
-class AIWebSearchEffortUpdateView(LoginRequiredMixin, View):
+class AIWebSearchEffortUpdateView(LoginRequiredMixin, SettingsWriteGuard, View):
     """Update only the AzureAI web-search effort preference."""
+    settings_action = 'ai_web_search_effort'
 
     def post(self, request, *args, **kwargs):
         effort = (request.POST.get('ai_web_search_effort') or '').strip()
@@ -368,9 +373,7 @@ class AIWebSearchEffortUpdateView(LoginRequiredMixin, View):
                 return JsonResponse({"status": "error", "message": "Noto'g'ri qidiruv rejimi tanlandi."}, status=400)
             return HttpResponseBadRequest("Noto'g'ri qidiruv rejimi tanlandi.")
 
-        if request.user.ai_web_search_effort != effort:
-            request.user.ai_web_search_effort = effort
-            request.user.save(update_fields=['ai_web_search_effort'])
+        if save_ai_preference(request.user, 'ai_web_search_effort', effort):
             messages.success(request, "AzureAI web qidiruv rejimi yangilandi.")
         if wants_json:
             label = dict(effort_choices).get(effort, effort)
@@ -378,8 +381,9 @@ class AIWebSearchEffortUpdateView(LoginRequiredMixin, View):
         return redirect('settings_capabilities')
 
 
-class AIMemoryToggleView(LoginRequiredMixin, View):
+class AIMemoryToggleView(LoginRequiredMixin, SettingsWriteGuard, View):
     """Toggle the user's AI long-term memory on/off."""
+    settings_action = 'ai_memory_enabled'
 
     def post(self, request, *args, **kwargs):
         raw = (request.POST.get('ai_memory_enabled') or '').strip().lower()
@@ -389,9 +393,7 @@ class AIMemoryToggleView(LoginRequiredMixin, View):
             or "application/json" in request.headers.get("accept", "")
         )
 
-        if request.user.ai_memory_enabled != enabled:
-            request.user.ai_memory_enabled = enabled
-            request.user.save(update_fields=['ai_memory_enabled'])
+        if save_ai_preference(request.user, 'ai_memory_enabled', enabled):
             label = "yoqildi" if enabled else "o'chirildi"
             messages.success(request, f"AzureAI xotirasi {label}.")
         if wants_json:
@@ -399,7 +401,7 @@ class AIMemoryToggleView(LoginRequiredMixin, View):
         return redirect('settings_privacy')
 
 
-class AIMemoryListView(SettingsSectionMixin, TemplateView):
+class AIMemoryListView(SettingsSectionMixin, SettingsV1Mixin, TemplateView):
     """Maxfiylik — AzureAI xotirasi.
 
     Avval alohida `/users/settings/ai-memory/` sahifasi edi; endi sozlamalar
@@ -407,6 +409,8 @@ class AIMemoryListView(SettingsSectionMixin, TemplateView):
     """
 
     template_name = 'users/settings/privacy.html'
+    frontend_v1_template = 'frontend_v1/settings_privacy.html'
+    frontend_v1_title = 'Maxfiylik'
     settings_section = 'privacy'
 
     def get_context_data(self, **kwargs):
@@ -508,11 +512,14 @@ class AIMemoryListView(SettingsSectionMixin, TemplateView):
         )
         legacy = AILongTermMemory.objects.filter(user=user).first()
         context['legacy_memory_text'] = (legacy.learned_facts or '').strip() if legacy else ''
+        if self.frontend_v1_enabled:
+            context['memory_revision_facts'] = facts
         return context
 
 
-class AIMemoryArchiveView(LoginRequiredMixin, View):
+class AIMemoryArchiveView(LoginRequiredMixin, SettingsWriteGuard, View):
     """Soft-delete (archive) a single fact owned by the current user."""
+    settings_action = 'archive'
 
     def post(self, request, fact_id, *args, **kwargs):
         from ai.memory.repository import MemoryRepository
@@ -531,8 +538,9 @@ class AIMemoryArchiveView(LoginRequiredMixin, View):
         return redirect('settings_privacy')
 
 
-class AIMemoryRejectView(LoginRequiredMixin, View):
+class AIMemoryRejectView(LoginRequiredMixin, SettingsWriteGuard, View):
     """Mark a memory fact as incorrect so it is no longer used by AI."""
+    settings_action = 'reject'
 
     def post(self, request, fact_id, *args, **kwargs):
         from ai.memory.repository import MemoryRepository
@@ -551,8 +559,9 @@ class AIMemoryRejectView(LoginRequiredMixin, View):
         return redirect('settings_privacy')
 
 
-class AIMemoryClearAllView(LoginRequiredMixin, View):
+class AIMemoryClearAllView(LoginRequiredMixin, SettingsWriteGuard, View):
     """Archive every active fact for the current user and clear legacy memory."""
+    settings_action = 'clear'
 
     def post(self, request, *args, **kwargs):
         from ai.memory.repository import MemoryRepository
@@ -561,8 +570,13 @@ class AIMemoryClearAllView(LoginRequiredMixin, View):
             request.headers.get("x-requested-with") == "XMLHttpRequest"
             or "application/json" in request.headers.get("accept", "")
         )
-        archived_count = MemoryRepository().archive_all_for_user(user=request.user, clear_legacy=True)
-        messages.success(request, "AzureAI xotirasi to'liq tozalandi.")
+        snapshot = getattr(request, '_settings_memory_snapshot', None)
+        archived_count = MemoryRepository().archive_all_for_user(
+            user=request.user, clear_legacy=True,
+            confirmed_fact_ids=snapshot['fact_ids'] if snapshot is not None else None,
+            confirmed_legacy_ids=snapshot['legacy_ids'] if snapshot is not None else None,
+        )
+        messages.success(request, "Ko‘rsatilgan xotira tozalandi. Keyin kelgan faktlar saqlanadi." if snapshot is not None else "AzureAI xotirasi to'liq tozalandi.")
         if wants_json:
             return JsonResponse({"status": "success", "archived": archived_count})
         return redirect('settings_privacy')

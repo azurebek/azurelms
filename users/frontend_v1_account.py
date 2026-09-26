@@ -9,6 +9,7 @@ from core.flags import flag_enabled
 from core.frontend_v1 import FrontendV1Mixin, teacher_v1_navigation
 from .forms import ProfileFieldsForm
 from .models import CustomUser
+from .frontend_v1_settings import settings_navigation
 
 
 def profile_revision(user):
@@ -33,6 +34,8 @@ class AccountV1Mixin(FrontendV1Mixin):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if self.frontend_v1_enabled:
+            context['settings_tabs'] = settings_navigation(getattr(self, 'settings_section', 'profile'))
+            context['settings_legacy'] = not flag_enabled('frontend_v1_settings')
             if self.request.user.is_staff and flag_enabled("frontend_v1_teacher"):
                 context.update(teacher_v1_navigation("teacher_dashboard"))
                 context["frontend_v1_title"] = self.frontend_v1_title

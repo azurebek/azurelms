@@ -50,8 +50,22 @@ writerlar uchun global revision emas; XP/preference fingerprintga kirmaydi.
 Avatar/password canonical endpointlari o‘zgarmagan. Teacher flag ON bo‘lsa
 account/profile ham teacher navigatsiyasini saqlaydi. Native form, dirty
 warning/duplicate guard/known-offline block; shaxsiy draft storagega yozilmaydi,
-parol page lifecycle’da tozalanadi. Auth qoldig‘i va boshqa settings hali
-legacy. [Qamrov va dalil](frontend-v1/I5B-ACCOUNT-PROFILE.md); AWS yoqilmagan.
+parol page lifecycle’da tozalanadi. PR131 `af4ed76` main’da;
+[qamrov va dalil](frontend-v1/I5B-ACCOUNT-PROFILE.md); AWS yoqilmagan.
+
+I5c.1: `frontend_v1_settings` mustaqil default OFF — Maxfiylik/To‘lov/Imkoniyatlar.
+`users/frontend_v1_settings.py` presentation mixin va opt-in V1 POST guard;
+user/action-bound snapshot, user/fact row locks, stale409, archive/reject/clear
+uchun explicit confirmation. `users/preferences.py` V1/legacy/JSON endpoint
+save uchun user lock + monotonic `ai_preferences_version` (users0022),
+A→B→A ham stale; no-op increment0. MemoryRepository confirmed clear faqat
+tekshirilgan fact/legacy IDlarini o‘zgartiradi, keyingi insertlar saqlanadi.
+Memory maintenance/trace va `build_usage_panel` yagona haqiqat; direct
+admin/ORM/AI yozuvlari uchun global revision deb da’vo qilinmaydi.
+Native forms/CSRF/PRG, bound preference dirty guard; private draft storage yo‘q.
+Shared tabs flag holatiga ko‘ra legacy chegarasini bildiradi; teacher shell
+saqlanadi. [Scope va dalil](frontend-v1/I5C-SETTINGS.md); AWS yoqilmagan.
+Auth qoldig‘i, records/help/notifications hali legacy.
 
 I4b AI port: `frontend_v1_ai_messenger` alohida default-OFF renderer.
 `AIMessengerV1Mixin` existing AI viewga ulanadi; shared `messenger.mjs`

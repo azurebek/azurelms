@@ -88,8 +88,15 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
   - [x] ~~I5b.1 lokal implementatsiya — Profil va Hisob.~~ Shared form, avatar/parol canonical POST,
     stale-profile guard va learner/teacher shell. [Scope/dalil](I5B-ACCOUNT-PROFILE.md).
     `1a4d6a3`: full1975 OK (skip45); follow-up Node68 PASS, browser320–1280 overflow0.
-  - [ ] I5b.1 required CI/review/integratsiya va keyingi alohida release.
-    Register/reset/onboarding hamda qolgan I5 hali ochiq.
+  - [x] ~~I5b.1 required CI/review/integratsiya.~~ PR131 MERGED `af4ed76`;
+    final CI `36196388190` uchala PASS; bound-error dirty guard `3d51a61`.
+  - [x] ~~I5c.1 lokal — Maxfiylik, To‘lov va Imkoniyatlar.~~ `d3c286e`;
+    focused65 OK, Node73 PASS, uch route320–1280 overflow0.
+    Review fix `725d47c`: ABA counter/users0022 va confirmed-ID clear.
+    [Scope/rollback/dalil](I5C-SETTINGS.md). Canonical writer/quota saqlandi.
+  - [ ] I5c.1 required CI/review/integratsiya.
+  - [ ] I5b.1/I5c.1 AWS release va haqiqiy qurilma qabuli — alohida.
+    Register/reset/onboarding, records/help/notifications hamda qolgan I5 ochiq.
 - [ ] **I6 — Library + course/lesson editor.** Common resource/link/private
   storage parity; real forms existing fieldsni saqlaydi. Qisman field/save
   contract mos kelmasa tegishli editor legacy qoladi va qarz ochiq yoziladi.
