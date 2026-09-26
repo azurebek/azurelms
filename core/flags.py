@@ -44,6 +44,13 @@ class FlagDefinition:
 
 FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
     FlagDefinition(
+        slug="frontend_v1_classbook_preparation",
+        label="Frontend V1 — Classbook tayyorlovi",
+        description="Guruh/dars, mashq banki va playbook; live ekranlar alohida port.",
+        default=False, category="Frontend",
+        runbook="OFF eski UI; in-flight V1 POST rad etiladi. classbook0003 additive schema. Mashqlar, playbook va sessionlar saqlanadi; AWS alohida.",
+    ),
+    FlagDefinition(
         slug="frontend_v1_exam_review",
         label="Frontend V1 — ustoz imtihon tekshiruvi",
         description="Qoralama va alohida e’lon qilish; eski forma yangi bahoni bosmaydi.",

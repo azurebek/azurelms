@@ -115,6 +115,9 @@ def teacher_v1_navigation(active_nav):
     legacy = (
         ("classbook:teacher_home", "Classbook", "live"),
     )
+    if flag_enabled("frontend_v1_classbook_preparation"):
+        pages += legacy
+        legacy = ()
     if flag_enabled("frontend_v1_messenger"):
         pages += (("messenger:group", "Xabarlar", "message"),)
     if flag_enabled("frontend_v1_ai_messenger"):

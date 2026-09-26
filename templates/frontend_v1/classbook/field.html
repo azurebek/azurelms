@@ -1,0 +1,2 @@
+<div>{% if field.field.widget.input_type == 'checkbox' %}<label class="c-choice" for="{{ field.id_for_label }}">{{ field }}<span>{{ field.label }}</span></label>{% else %}<label class="c-field__label" for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>{{ field }}{% endif %}
+{% if field.help_text %}<p class="c-caption" id="{{ field.id_for_label }}_helptext">{{ field.help_text }}</p>{% endif %}{% if field.errors %}<div class="v1-error" id="{{ field.id_for_label }}_error">{{ field.errors }}</div>{% endif %}</div>

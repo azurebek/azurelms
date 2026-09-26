@@ -1,0 +1,5 @@
+{% extends 'frontend_v1/classbook/base.html' %}
+{% block heading %}Mashqlar banki{% endblock %}
+{% block intro %}Mashq bitta kursga tegishli. Shu kursdagi bir nechta playbookda ishlatilishi mumkin.{% endblock %}
+{% block classbook_body %}<div class="c-actions"><a class="c-button c-button--primary" href="{% url 'classbook:exercise_create' %}">Yangi mashq</a></div>
+<section class="c-card p-panel f-classbook-stack"><h2>Biriktirilgan kurs mashqlari</h2><ul class="f-classbook-list">{% for item in exercises %}<li><div><strong>{{ item.title }}</strong><p class="c-caption">{{ item.course.title }} · {{ item.get_kind_display }}{% if not item.is_active %} · Nofaol{% endif %}</p><p>{{ item.prompt|truncatechars:180 }}</p></div><div><span class="c-badge">{{ item.time_limit_seconds }} soniya</span><p class="c-caption">{{ item.max_points }} ball + {{ item.speed_bonus_percent }}% tezlik</p></div><a class="c-button c-button--secondary" href="{% url 'classbook:exercise_edit' item.pk %}">Tahrirlash</a></li>{% empty %}<li><div><h3>Mashq hali yo‘q</h3><p>Yangi mashq yarating, keyin uni kerakli dars playbook’iga qo‘shing.</p></div></li>{% endfor %}</ul></section>{% endblock %}
