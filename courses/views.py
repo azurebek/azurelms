@@ -803,6 +803,7 @@ class ExamResultView(FrontendV1Mixin, LoginRequiredMixin, DetailView):
 
         context['active_nav'] = 'exam_center' if self.frontend_v1_enabled else 'exam'
         context['result'] = result = learner_result(attempt)
+        context['result_passing_score'] = result['passing_score'] if result['passing_score'] is not None else self.object.passing_score
         context['section_reviews'] = result['section_reviews']
         context['feedback_answers'] = result['feedback_answers']
         context['duration_minutes'] = None

@@ -45,10 +45,10 @@
           <p style="font-size:14.5px;line-height:1.6;color:var(--ink-2);margin:0 0 18px;max-width:52ch;">O'qituvchi writing/speaking javoblaringizni tekshirmoqda. Yakuniy natija tasdiqlangach shu sahifada ko'rinadi va bildirishnoma keladi.</p>
         {% elif result.passed %}
           <h1 style="font-size:clamp(22px,2.6vw,28px);font-weight:600;letter-spacing:-.02em;color:var(--ink);margin:0 0 10px;">Tabriklaymiz, {{ request.user.first_name|default:request.user.username }}!</h1>
-          <p style="font-size:14.5px;line-height:1.6;color:var(--ink-2);margin:0 0 18px;max-width:52ch;">Siz "{{ exam.title }}" imtihonidan muvaffaqiyatli o'tdingiz. O'tish bali: {{ exam.passing_score }}%.</p>
+          <p style="font-size:14.5px;line-height:1.6;color:var(--ink-2);margin:0 0 18px;max-width:52ch;">Siz "{{ exam.title }}" imtihonidan muvaffaqiyatli o'tdingiz. O'tish bali: {{ result_passing_score }}%.</p>
         {% else %}
           <h1 style="font-size:clamp(22px,2.6vw,28px);font-weight:600;letter-spacing:-.02em;color:var(--ink);margin:0 0 10px;">Bu safar yetmadi</h1>
-          <p style="font-size:14.5px;line-height:1.6;color:var(--ink-2);margin:0 0 18px;max-width:52ch;">O'tish uchun {{ exam.passing_score }}% kerak edi. Quyidagi bo'lim tahlilini ko'rib chiqing{% if can_retake %} va qayta urinib ko'ring{% endif %}.</p>
+          <p style="font-size:14.5px;line-height:1.6;color:var(--ink-2);margin:0 0 18px;max-width:52ch;">O'tish uchun {{ result_passing_score }}% kerak edi. Quyidagi bo'lim tahlilini ko'rib chiqing{% if can_retake %} va qayta urinib ko'ring{% endif %}.</p>
         {% endif %}
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
           {% if course_certificate %}
@@ -105,10 +105,10 @@
               <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);">{{ review.awarded_score|floatformat:"-2" }}/{{ review.section.max_score }} ball</div>
             </div>
             {% widthratio review.awarded_score review.section.max_score 100 as sec_pct %}
-            <span style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:{% if sec_pct|add:0 >= exam.passing_score %}var(--green){% else %}var(--amber){% endif %};">{{ sec_pct }}</span>
+            <span style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:{% if sec_pct|add:0 >= result_passing_score %}var(--green){% else %}var(--amber){% endif %};">{{ sec_pct }}</span>
           </div>
           <div style="height:7px;border-radius:999px;background:var(--line-2);overflow:hidden;">
-            <div style="height:100%;width:{{ sec_pct }}%;background:{% if sec_pct|add:0 >= exam.passing_score %}var(--green){% else %}var(--amber){% endif %};border-radius:999px;"></div>
+            <div style="height:100%;width:{{ sec_pct }}%;background:{% if sec_pct|add:0 >= result_passing_score %}var(--green){% else %}var(--amber){% endif %};border-radius:999px;"></div>
           </div>
           {% if review.feedback %}
             <div style="margin-top:12px;border-left:3px solid var(--azure);border-radius:0 10px 10px 0;background:var(--paper-2);padding:10px 13px;font-size:12.5px;line-height:1.55;color:var(--ink-2);"><b style="color:var(--ink);">O'qituvchi izohi:</b> {{ review.feedback }}</div>

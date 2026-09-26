@@ -311,6 +311,33 @@ class ExamV1Tests(TestCase):
         self.assertNotContains(response, 'Changed section')
         self.assertNotContains(response, 'Changed prompt')
 
+    def test_legacy_uses_published_threshold_not_changed_live_threshold(self):
+        self.publish()
+        Exam.objects.filter(pk=self.exam.pk).update(passing_score=90)
+        set_flag('frontend_v1_exams', enabled=False, reason='Published threshold parity')
+        response = self.client.get(self.result)
+        self.assertEqual(response.context['result_passing_score'], 60)
+        self.assertContains(response, "O'tish bali: 60%.")
+        self.assertNotContains(response, "O'tish bali: 90%.")
+
+    def test_published_zero_threshold_is_not_replaced_by_fallback(self):
+        Exam.objects.filter(pk=self.exam.pk).update(passing_score=0)
+        self.exam.refresh_from_db()
+        self.publish()
+        Exam.objects.filter(pk=self.exam.pk).update(passing_score=90)
+        set_flag('frontend_v1_exams', enabled=False, reason='Zero threshold parity')
+        response = self.client.get(self.result)
+        self.assertEqual(response.context['result_passing_score'], 0)
+        self.assertContains(response, "O'tish bali: 0%.")
+
+    def test_legacy_without_snapshot_retains_current_threshold_fallback(self):
+        self.attempt(is_completed=True, is_reviewed=True, passed=False, score=55)
+        Exam.objects.filter(pk=self.exam.pk).update(passing_score=73)
+        set_flag('frontend_v1_exams', enabled=False, reason='Historical threshold fallback')
+        response = self.client.get(self.result)
+        self.assertEqual(response.context['result_passing_score'], 73)
+        self.assertContains(response, "O'tish uchun 73% kerak edi.")
+
     def test_public_appendix_uses_published_sections_not_live_drafts(self):
         attempt, review, _ = self.publish()
         certificate = Certificate.objects.create(student=self.student, course=self.course, final_score=Decimal('72.50'), certificate_id='I8-QA-CERT')
