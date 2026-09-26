@@ -42,6 +42,16 @@ Source of truth har doim **kod** (model/view/task/URL/test). Bu fayl kodga mosla
 
 ## Frontend V1 — bosqichma-bosqich renderer (2026-09-25)
 
+I6b `frontend_v1_editors` default OFF: existing course list/create/edit,
+explicit lesson index/edit va per-link settings/reorder/detach. Adapter
+`core/frontend_v1_editors.py`; canonical forms/teacher scope/services
+saqlanadi. Course14/lesson6 maydon, native CSRF/PRG, atomic write locks,
+user/action/object saved-value HMAC stale409, bound draft va shared library
+dirty controller. Course/Lesson snapshot global monotonic/ABA kafolati emas;
+model/migration yo‘q. OFF original first-lesson indexni qaytaradi, V1 index
+aniq tanlov; darsi yo‘q scoped ustozning mavjud first-lesson create yo‘li qoladi.
+[Qamrov va release chegarasi](frontend-v1/I6B-COURSE-LESSON-EDITORS.md).
+
 I5b.1: `frontend_v1_account` default OFF — profil va Hisob rendererlarini
 tanlaydi. `users/frontend_v1_account.py` existing `ProfileFieldsForm`ni
 ishlatadi; ikkala V1 profil POSTida user-scoped HMAC snapshot + row lock

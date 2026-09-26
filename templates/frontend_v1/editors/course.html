@@ -1,0 +1,18 @@
+{% extends "frontend_v1/editors/base.html" %}
+{% block editor_intro %}Kurs ma’lumotlarini tekshirib saqlang. Narx, faollik va sertifikat shartlari ham shu kursga tegishli.{% endblock %}
+{% block editor_body %}
+<a class="c-text-link" href="{% url 'backoffice_courses' %}">← Kurslar boshqaruvi</a>
+<div class="f-records-layout">
+<form method="post" class="c-card p-panel f-records-stack" data-library-form{% if form.is_bound %} data-library-unsaved{% endif %}>
+  {% include 'frontend_v1/editors/guard.html' %}<h2>{% if course %}{{ course.title }}{% else %}Yangi kurs{% endif %}</h2>
+  {% include 'frontend_v1/editors/fields.html' %}
+  <label class="c-choice"><input type="checkbox" name="confirm_scope" value="yes" required><span>Aynan shu kurs ma’lumotlarini tasdiqlayman. “Qoralama” kurs faolligini o‘chiradi; “Saqlash” tanlangan faollikni saqlaydi.</span></label>
+  <div class="c-actions"><button class="c-button c-button--primary" type="submit"{% if editor_conflict %} disabled{% endif %}>Saqlash</button><button class="c-button c-button--secondary" type="submit" name="save_draft" value="1"{% if editor_conflict %} disabled{% endif %}>Qoralama</button></div>
+  {% if course %}<a class="c-text-link" href="{% url 'backoffice_course_edit' course.pk %}">Saqlangan holatni qayta ochish</a>{% endif %}
+</form>
+<aside class="f-records-stack" aria-label="Kurs tarkibi">
+  <section class="c-card p-panel f-records-stack"><h2>Saqlangan kurs</h2>{% if course %}<p>{{ lessons_count }} dars · {{ students_count }} o‘quvchi</p><span class="c-badge">{% if course.is_active %}Faol{% else %}Qoralama{% endif %}</span><a class="c-button c-button--secondary" href="{% url 'backoffice_lessons' %}?course={{ course.pk }}">Darslarni tanlash</a>{% else %}<p>Saqlangach boshlang‘ich modul yaratiladi. Darslar avtomatik yaratilmaydi.</p>{% endif %}</section>
+  {% for module in modules %}<section class="c-card p-panel f-records-stack"><h3>{{ module.title }}</h3>{% for lesson in module.lessons.all %}<a class="c-text-link" href="{% url 'backoffice_lesson_edit' lesson.pk %}">{{ lesson.order }} · {{ lesson.title }}</a>{% empty %}<p class="c-caption">Modulda hali dars yo‘q.</p>{% endfor %}</section>{% endfor %}
+</aside>
+</div>
+{% endblock %}

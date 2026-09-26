@@ -45,7 +45,12 @@ AWS alohida gate. Certificate detail/appendix hanuz legacy.
 [I6a — kutubxona](I6A-LIBRARY.md) lokal `9a76fed`: list/create/edit/picker,
 canonical upload/private-file/attach va stale-form guard. Library66 OK,
 full2063 OK (skip45), Node95 PASS; 24 responsive readback overflow0.
-Default-OFF; required CI/main alohida. I6b course/lesson editor ochiq.
+Default-OFF; PR135 MERGED `12b0e3c`, final CI36214042911 all3PASS
+(SQLite2063 skip44/PostgreSQL2063 skip20/Node95).
+[I6b — kurs/dars muharrirlari](I6B-COURSE-LESSON-EDITORS.md) runtime `c72c1fd`:
+besh URL oilasi + material settings/reorder/detach; 111 focused OK,
+2089 full OK skip45 (oxirgi labels/2 testdan oldin), Node95.
+30 responsive readback overflow0; required CI/main hali alohida gate.
 I4b AI adapteri PR #130 bilan main’da `a25cf4b`:
 [scope, compact transcript va tekshiruv](I4B-AI-MESSENGER.md).
 1961 Python OK/61 Node PASS; final CI `36192585672` uchala PASS;

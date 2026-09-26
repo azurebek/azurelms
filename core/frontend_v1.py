@@ -116,6 +116,9 @@ def teacher_v1_navigation(active_nav):
     records_ready = flag_enabled("frontend_v1_records")
     if flag_enabled("frontend_v1_library"):
         pages += (("library_backoffice:resources", "Kutubxona", "book"),)
+    if flag_enabled("frontend_v1_editors"):
+        pages += (("backoffice_courses", "Kurs muharriri", "book"),
+                  ("backoffice_lessons", "Dars muharriri", "book"))
     if records_ready:
         pages += (("help_center", "Yordam", "bulb"),)
     return dict(

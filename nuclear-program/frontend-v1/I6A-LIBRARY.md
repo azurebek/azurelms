@@ -37,7 +37,7 @@ overflow0 va required CI3/3. Yangi prototip/design/provider yo‘q.
 
 - [x] ~~Runtime va regressiya — `9a76fed`.~~
 - [x] ~~Browser desktop/mobile/keyboard — isolated IAB8062.~~
-- [ ] Required CI/review/main.
+- [x] ~~Required CI/review/main — PR135 MERGED `12b0e3c`.~~
 - [ ] AWS/native-device release.
 
 I5d oldingi paket PR134 MERGED `337a73c`, CI36211060029 all3PASS,
@@ -106,4 +106,6 @@ yopgan, ortiqcha chaqiruv esa `request_finished` bilan TestCase umumiy PG
 tranzaksiyasini yopgan. Natijada keyingi 5 test setupida connection-closed.
 Runtime emas, test harness xatosi: ortiqcha close olib tashlandi, response
 closed va DB hali ishlashiga assert qo‘shildi. Test skip qilinmadi.
-Required CI qayta yashil bo‘lmaguncha merge qilinmaydi.
+Final CI36214042911 uchala PASS: SQLite2063 skip44, PostgreSQL2063 skip20,
+Node95. PR135 review findings0, MERGED `12b0e3c`.
+[Final acceptance](https://github.com/azurebek/azurelms/pull/135#issuecomment-5842697120).

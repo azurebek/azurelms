@@ -1,0 +1,5 @@
+{% extends 'frontend_v1/editors/base.html' %}
+{% block editor_body %}
+<a class="c-text-link" href="{% url 'backoffice_lesson_edit' material.lesson_id %}#material-{{ material.pk }}">← Saqlangan dars holatiga qaytish</a>
+<form method="post" action="{% url 'library_backoffice:material_update' material.pk %}" class="c-card p-panel f-records-stack" data-library-form data-library-unsaved><h2>{{ material.title }}</h2>{% include 'frontend_v1/editors/guard.html' %}{% include 'frontend_v1/editors/fields.html' %}<label class="c-choice"><input type="checkbox" name="confirm_scope" value="yes" required><span>Faqat shu darsdagi biriktirma sozlamasini tasdiqlayman.</span></label><button class="c-button c-button--primary" type="submit"{% if editor_conflict %} disabled{% endif %}>Sozlamani saqlash</button></form>
+{% endblock %}

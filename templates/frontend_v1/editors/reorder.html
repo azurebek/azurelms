@@ -1,0 +1,6 @@
+{% extends 'frontend_v1/editors/base.html' %}
+{% block editor_body %}
+<a class="c-text-link" href="{% url 'backoffice_lesson_edit' lesson.pk %}">← Saqlangan dars holatiga qaytish</a>
+<div class="c-alert v1-error" role="alert" tabindex="-1" data-library-error>{{ editor_error }}</div>
+<form method="post" action="{% url 'library_backoffice:material_reorder' lesson.pk %}" class="c-card p-panel f-records-stack" data-library-form data-library-unsaved>{% include 'frontend_v1/editors/guard.html' %}{% for material in materials %}<div><label class="c-field__label" for="order-{{ material.pk }}">{{ material.title }}</label><input class="c-field" id="order-{{ material.pk }}" name="order-{{ material.pk }}" value="{{ material.posted_order }}" inputmode="numeric" required></div>{% endfor %}<label class="c-choice"><input type="checkbox" name="confirm_scope" value="yes" required><span>Shu darsdagi barcha materiallar tartibini tasdiqlayman.</span></label><button class="c-button c-button--primary" type="submit"{% if editor_conflict %} disabled{% endif %}>Tartibni saqlash</button></form>
+{% endblock %}

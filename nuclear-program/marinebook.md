@@ -16,6 +16,27 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-26 [Codex]: I6b — kurs/dars muharriri va per-link material porti
+
+Frozen besh editor URL oilasi real Django formalariga ulandi. Kurs14/dars6
+maydon saqlandi; V1 dars indeksi birinchi darsni yashirin tanlamaydi.
+Kutubxonadagi per-link sozlama/tartib/uzish ham shu rendererda.
+
+- Branch `codex/frontend-v1-course-editors`; runtime `c72c1fd`.
+- Default-OFF `frontend_v1_editors`; atomic rows + user/action/object HMAC,
+  stale409 no-write, invalid bound draft, shared native form dirty/duplicate
+  guard. Course/Lesson snapshot global ABA/revision emas; migration yo‘q.
+- Offline final focused111 OK (11.479s), old-label full2089 OK skip45
+  (129.631s), Node95 PASS; check issue0, migration drift0, diff PASS.
+  Final2091 full va required CI keyingi gate; test skip qo‘shilmadi.
+- IAB8063 isolated DB: course filter/save → lesson index/save → material
+  settings/reorder; two-tab stale409/draft; 5routes×6width =30 overflow0.
+  Dark desktop/mobile visual check. [Dalil](frontend-v1/I6B-COURSE-LESSON-EDITORS.md).
+- AWS/prototype o‘zgarmadi. CI/review/main va device/release ochiq;
+  keyingi port I7 checkout, I8 exam/review, I9 Classbook.
+- I6a PR135 MERGED `12b0e3c`, final CI36214042911 uchala PASS:
+  SQLite2063 skip44, PostgreSQL2063 skip20, Node95. Tracker dalil bilan yopildi.
+
 ## 2026-09-26 [Codex]: I6a — real material kutubxonasi V1 porti
 
 Frozen list/create/edit/picker to‘rtta route oilasi real Django writerlariga

@@ -1,7 +1,7 @@
 {% extends "frontend_v1/library/base.html" %}
 {% block library_intro %}{{ lesson.module.course.title }} / {{ lesson.title }}{% endblock %}
 {% block library_body %}
-<div class="c-actions"><a class="c-text-link" href="{% url 'backoffice_lesson_edit' lesson.pk %}">← Dars muharriri (avvalgi ko‘rinish)</a><a class="c-text-link" href="{% url 'library_backoffice:resources' %}">Umumiy kutubxona</a></div>
+<div class="c-actions"><a class="c-text-link" href="{% url 'backoffice_lesson_edit' lesson.pk %}">← Dars muharriri{% if not editor_ready %} (avvalgi ko‘rinish){% endif %}</a><a class="c-text-link" href="{% url 'library_backoffice:resources' %}">Umumiy kutubxona</a></div>
 <p class="c-alert c-alert--info">Biriktirish shu darsga ta’sir qiladi; fayl nusxalanmaydi. O‘quvchi uchun darsga kirish, ochilish va auditoriya qoidalari saqlanadi.</p>
 <section class="c-card p-panel f-records-stack" aria-labelledby="attached-title">
   <h2 id="attached-title">Shu darsga biriktirilganlar</h2>

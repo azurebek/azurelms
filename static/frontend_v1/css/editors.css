@@ -1,0 +1,8 @@
+/* Frozen V1 cards/forms; no new palette or breakpoints. */
+[data-editor-root] .c-field { max-width: 100%; min-width: 0; }
+[data-editor-root] textarea { resize: vertical; }
+[data-editor-root] h2, [data-editor-root] h3, [data-editor-root] strong { overflow-wrap: anywhere; min-width: 0; }
+[data-editor-root] .c-section-title { flex-wrap: wrap; }
+.f-editor-details > summary { cursor: pointer; min-height: 44px; padding-block: 10px; font-weight: 600; overflow-wrap: anywhere; }
+.f-editor-details > form { padding-top: var(--az-space-4); }
+.f-editor-details > summary:focus-visible { outline: 2px solid var(--az-focus); outline-offset: 3px; }
