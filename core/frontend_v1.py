@@ -27,6 +27,7 @@ class FrontendV1Mixin:
         context = super().get_context_data(**kwargs)
         if self.frontend_v1_enabled:
             context["frontend_v1_title"] = self.frontend_v1_title
+            context["frontend_v1_records_ready"] = flag_enabled("frontend_v1_records")
             context["frontend_v1_nav"] = [
                 {"url": reverse(name), "name": name, "label": label, "icon": icon}
                 for name, label, icon in (
@@ -57,6 +58,10 @@ class FrontendV1Mixin:
             if flag_enabled("frontend_v1_ai_messenger"):
                 context["frontend_v1_nav"].append(dict(url=reverse("messenger:ai"), name="messenger:ai", label="Azure AI", icon="message"))
                 context["frontend_v1_legacy_nav"] = [item for item in context["frontend_v1_legacy_nav"] if item["url"] != reverse("messenger:ai")]
+            if context["frontend_v1_records_ready"]:
+                records = {reverse(name): name for name in ("certificates", "leaderboard", "attendance_calendar", "subscriptions", "help_center")}
+                context["frontend_v1_nav"].extend(dict(item, name=records[item["url"]]) for item in context["frontend_v1_legacy_nav"] if item["url"] in records)
+                context["frontend_v1_legacy_nav"] = [item for item in context["frontend_v1_legacy_nav"] if item["url"] not in records]
         return context
 
     def render_to_response(self, context, **response_kwargs):
@@ -108,7 +113,11 @@ def teacher_v1_navigation(active_nav):
         pages += (("messenger:group", "Xabarlar", "message"),)
     if flag_enabled("frontend_v1_ai_messenger"):
         pages += (("messenger:ai", "Azure AI", "message"),)
+    records_ready = flag_enabled("frontend_v1_records")
+    if records_ready:
+        pages += (("help_center", "Yordam", "bulb"),)
     return dict(
+        frontend_v1_records_ready=records_ready,
         frontend_v1_title=dict((name, label) for name, label, _ in pages)[active_nav],
         frontend_v1_workspace="Ustoz maydoni",
         frontend_v1_tagline="Darslar va o‘quvchilar",

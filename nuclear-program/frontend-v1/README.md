@@ -35,8 +35,12 @@ additive users0022 migration. AWS deploy alohida.
 [I5b.2 Register/reset/onboarding](I5B2-AUTH.md) lokal tayyor `ec0ff27`:
 100 focused, 2019 full (skip45), 79 Node; 42 responsive o‘lchov overflow0.
 PR133 review fix `ac2d13b`: Telegram-success redirect dirty guarddan chiqadi;
-Node82 PASS. Final CI/integratsiya [PR133](https://github.com/azurebek/azurelms/pull/133)
-acceptance commentida qayd etiladi. Keyingi port records/help/notifications.
+Node82 PASS. PR133 MERGED `75bba33`; final CI36208937362 uchala PASS
+(SQLite2019 skip44, PostgreSQL2019 skip20). [Final dalil](https://github.com/azurebek/azurelms/pull/133#issuecomment-5842048014).
+[I5d records/help/notifications](I5D-RECORDS-SUPPORT.md) lokal tayyor `d3aa3dc`:
+olti route, 2040 full OK (skip45), 508 app OK (skip6), 87 Node PASS,
+48 mobile/desktop readback overflow0. Default-OFF flag; required CI/main
+va AWS alohida gate. Certificate detail/appendix hanuz legacy.
 I4b AI adapteri PR #130 bilan main’da `a25cf4b`:
 [scope, compact transcript va tekshiruv](I4B-AI-MESSENGER.md).
 1961 Python OK/61 Node PASS; final CI `36192585672` uchala PASS;
@@ -216,7 +220,9 @@ Public/learning/lesson/teacher/human messenger ON; [ichki rollout](R1-INTERNAL-R
 ham bajarildi. Uni yoki synthetic datasetni qayta yaratmang. R1da qolganlari:
 real-device/owner-content qabuli, history image/cache xavfi va yangi portlar.
 I4b ham PR130 `a25cf4b` bilan main’da; qayta port qilinmaydi.
-Navbatdagi kod ishi **I5b.1 Profil/Hisob**, so‘ng I5 auth/settings/records qoldig‘i.
+I5b.1/I5c.1/I5b.2 main’da tugagan; qayta boshlamang. I5d olti route lokal
+tayyor, navbat CI/review/main; keyin I6 library/course/lesson editor.
+Certificate detail/appendixning legacy chegarasi ochiq, I5 to‘liq yopilmagan.
 Yangi AI engine yoki prototip yaratilmaydi. Submission/grade/XP canonical servislar orqali qoladi.
 Yangi trial, framework, global shell rewrite yoki DB ko‘chirish boshlamang.
 Single checkout saqlanadi.

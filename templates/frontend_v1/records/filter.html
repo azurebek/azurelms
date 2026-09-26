@@ -1,0 +1,11 @@
+{% if records_filter_notice %}<div class="c-alert c-alert--info" role="status"><p>Filtr to‘liq qo‘llanmadi. Quyida joriy ruxsatli tanlov ko‘rsatilgan; kerakli guruh yoki sanani qayta tanlang.</p></div>{% endif %}
+{% if records_choices %}
+<section class="c-card p-panel" aria-label="Yozuvlarni saralash">
+  <p class="c-caption f-records-applied">Qo‘llangan filtr: {{ records_cohort.name }}{% if selected_month %} · {{ records_month_label }} {{ selected_month.year }}{% endif %}</p>
+  <form method="get" class="f-records-filter" data-record-filter>
+    <div><label class="c-field__label" for="records-cohort">Guruh</label><select class="c-field" id="records-cohort" name="cohort" aria-describedby="records-filter-hint">{% for item in records_choices %}<option value="{{ item.cohort_id }}"{% if item.cohort_id == records_selected_cohort %} selected{% endif %}>{{ item.cohort.name }}</option>{% endfor %}</select></div>
+    {% if selected_month %}<div><label class="c-field__label" for="records-year">Yil</label><input class="c-field" id="records-year" name="year" type="number" min="1" max="9999" required value="{{ selected_month.year }}"></div><div><label class="c-field__label" for="records-month">Oy</label><select class="c-field" id="records-month" name="month">{% for number,label in records_months %}<option value="{{ number }}"{% if number == selected_month.month %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>{% endif %}
+    <button class="c-button c-button--primary" type="submit">Qo‘llash</button>
+  </form><p class="c-caption f-records-hint" id="records-filter-hint" role="status" data-record-filter-hint>Tanlashning o‘zi natijani o‘zgartirmaydi. “Qo‘llash”ni bosing.</p>
+</section>
+{% endif %}

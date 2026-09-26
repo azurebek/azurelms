@@ -65,7 +65,20 @@ admin/ORM/AI yozuvlari uchun global revision deb da’vo qilinmaydi.
 Native forms/CSRF/PRG, bound preference dirty guard; private draft storage yo‘q.
 Shared tabs flag holatiga ko‘ra legacy chegarasini bildiradi; teacher shell
 saqlanadi. [Scope va dalil](frontend-v1/I5C-SETTINGS.md); AWS yoqilmagan.
-Auth qoldig‘i, records/help/notifications hali legacy.
+I5b.2 `frontend_v1_auth` default OFF: register/closed, onboarding va reset
+to‘rt bosqichi; canonical Django CSRF/session/token/form saqlandi. PR133
+`75bba33` main’da; [scope](frontend-v1/I5B2-AUTH.md), AWS hali legacy.
+
+I5d `frontend_v1_records` default OFF: certificates-list, learner attendance,
+subscriptions, leaderboard, notifications va help. `users/frontend_v1_records.py`
+canonical queryset/contextga presentation qo‘shadi; explicit GET filter,
+stable paginated inbox, sanitized LegalPage, active_plan/receipt snapshot.
+NotificationOpenView mavjud GETiga recipient-scoped CSRF POST qo‘shilgan:
+read→same list/page/anchor PRG; V1 target-link alohida GET, read qilmaydi.
+Legacy GET safe same-site redirect bilan qoladi. Read-all current recipient
+unreadlarining barchasi, paginationdan qat’i nazar; UI scope’ni bildiradi.
+Certificate detail/appendix legacy, billing writer va XP/access qoidasi
+o‘zgarmadi. [Dalil va release chegarasi](frontend-v1/I5D-RECORDS-SUPPORT.md).
 
 I4b AI port: `frontend_v1_ai_messenger` alohida default-OFF renderer.
 `AIMessengerV1Mixin` existing AI viewga ulanadi; shared `messenger.mjs`

@@ -1,0 +1,17 @@
+{% extends "frontend_v1/records/base.html" %}
+{% block records_intro %}Qaysi kunlarda qatnashganingizni guruh va oy bo‘yicha ko‘ring.{% endblock %}
+{% block records_body %}
+{% include "frontend_v1/records/filter.html" %}
+{% if attendance_cohort %}
+<div class="f-records-layout">
+  <section class="c-card p-panel" aria-labelledby="attendance-title">
+    <div class="c-section-title"><div><p class="c-eyebrow">{{ attendance_cohort.name }}</p><h2 id="attendance-title">{{ records_month_label }} {{ selected_month.year }}</h2></div><span class="c-badge">Faqat ko‘rish</span></div>
+    <p class="c-muted">{{ attendance_cohort.course.title }}</p>
+    <nav class="c-actions" aria-label="Davomat oyi">{% if prev_month %}<a class="c-button c-button--secondary" href="?year={{ prev_month.year }}&amp;month={{ prev_month.month }}&amp;cohort={{ selected_attendance_cohort_id }}">Oldingi oy</a>{% endif %}{% if next_month %}<a class="c-button c-button--secondary" href="?year={{ next_month.year }}&amp;month={{ next_month.month }}&amp;cohort={{ selected_attendance_cohort_id }}">Keyingi oy</a>{% endif %}</nav>
+    <table class="f-attendance-calendar"><caption>Q — qatnashgan, ~ — qisman, × — qatnashmagan. Nuqta: yozuv yo‘q.</caption><thead><tr>{% for day in weekday_labels %}<th scope="col">{{ day }}</th>{% endfor %}</tr></thead><tbody>{% for week in calendar_weeks %}<tr>{% for cell in week %}<td>{% if cell.day %}<div class="f-attendance-day{% if cell.status %} f-attendance-day--{{ cell.status }}{% endif %}"><span>{{ cell.day }}</span><span class="f-attendance-mark" aria-label="{% if cell.status == 'present' %}Qatnashgan{% elif cell.status == 'partial' %}Qisman{% elif cell.status == 'absent' %}Qatnashmagan{% else %}Yozuv yo‘q{% endif %}">{% if cell.status == 'present' %}Q{% elif cell.status == 'partial' %}~{% elif cell.status == 'absent' %}×{% else %}·{% endif %}</span></div>{% endif %}</td>{% endfor %}</tr>{% endfor %}</tbody></table>
+    <p class="c-caption f-records-hint">Belgi yo‘qligi dars qoldirilganini anglatmaydi. Bu sahifa davomatni o‘zgartirmaydi.</p>
+  </section>
+  <aside class="f-records-stack" aria-label="Davomat xulosasi"><section class="c-card p-panel"><h2>Oy xulosasi</h2><dl class="f-records-facts"><div><dt>Qatnashgan</dt><dd>{{ attendance_summary.present }} kun</dd></div><div><dt>Qisman</dt><dd>{{ attendance_summary.partial }} kun</dd></div><div><dt>Qatnashmagan</dt><dd>{{ attendance_summary.absent }} kun</dd></div></dl><p class="c-caption f-records-hint">Saqlangan davomatning kunlik jamlanmasi. Bu baho yoki umumiy XP emas.</p></section><section class="c-card p-panel"><h2>Savol bormi?</h2><p class="c-muted">Qayd noto‘g‘ri ko‘rinsa, ustozingizga murojaat qiling.</p><a class="c-text-link" href="{% url 'messenger:tutor' %}">Ustoz bilan suhbat</a></section></aside>
+</div>
+{% else %}<section class="c-card c-empty"><h2>Davomat ma’lumoti yo‘q</h2><p>Faol guruhga qo‘shilganingizdan so‘ng davomat shu yerda ko‘rinadi.</p><a class="c-button c-button--secondary" href="{% url 'my_courses' %}">Kurslarim</a></section>{% endif %}
+{% endblock %}

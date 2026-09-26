@@ -99,11 +99,15 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
   - [x] ~~I5b.2 lokal — Register/reset/onboarding.~~ `ec0ff27`; 6 route +
     closed/invalid/expired/complete holatlari. [Scope/dalil](I5B2-AUTH.md).
     Focused100 OK, full2019 OK (skip45), Node79 PASS, 42 responsive check overflow0.
-  - [ ] I5b.2 required CI/review/integratsiya — final remote acceptance
-    [PR133](https://github.com/azurebek/azurelms/pull/133)da. Review fix
-    `ac2d13b`: Telegram success/draft guard; Node82 PASS.
+  - [x] ~~I5b.2 required CI/review/integratsiya.~~ PR133 MERGED `75bba33`;
+    final CI36208937362 all3PASS, SQLite2019 skip44, PostgreSQL2019 skip20,
+    Node82. Review fix `ac2d13b`, [final dalil](https://github.com/azurebek/azurelms/pull/133#issuecomment-5842048014).
+  - [x] ~~I5d lokal — sertifikatlar ro‘yxati/davomat/obunalar/reyting/bildirishnomalar/yordam.~~
+    `d3aa3dc`: full2040 OK (skip45), app508 OK (skip6), Node87 PASS;
+    48 responsive check overflow0. [Scope va dalil](I5D-RECORDS-SUPPORT.md).
+  - [ ] I5d required CI/review/main — alohida final acceptance.
   - [ ] I5b.1/I5b.2/I5c.1 AWS/SMTP release va haqiqiy qurilma qabuli — alohida.
-    Records/help/notifications hamda qolgan I5 ochiq.
+    I5d AWS va sertifikat detail/appendix legacy porti ham ochiq.
 - [ ] **I6 — Library + course/lesson editor.** Common resource/link/private
   storage parity; real forms existing fieldsni saqlaydi. Qisman field/save
   contract mos kelmasa tegishli editor legacy qoladi va qarz ochiq yoziladi.

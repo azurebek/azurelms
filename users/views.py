@@ -31,6 +31,7 @@ from .frontend_v1_account import AccountV1Mixin
 from .frontend_v1_settings import SettingsV1Mixin, SettingsWriteGuard
 from .preferences import save_ai_preference
 from .frontend_v1_auth import AuthV1Mixin
+from .frontend_v1_records import RecordsV1Mixin, notification_target, notification_return
 import uuid
 
 def home_view(request):
@@ -951,8 +952,10 @@ def get_cohort_leaderboard_context(user, cohort_id=None):
     return context
 
 
-class LeaderboardView(LoginRequiredMixin, TemplateView):
+class LeaderboardView(LoginRequiredMixin, RecordsV1Mixin, TemplateView):
     template_name = 'users/leaderboard.html'
+    frontend_v1_template = 'frontend_v1/records/leaderboard.html'
+    frontend_v1_title = 'Reyting'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -965,8 +968,10 @@ class LeaderboardView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class NotificationCenterView(LoginRequiredMixin, TemplateView):
+class NotificationCenterView(LoginRequiredMixin, RecordsV1Mixin, TemplateView):
     template_name = "users/notifications.html"
+    frontend_v1_template = 'frontend_v1/records/notifications.html'
+    frontend_v1_title = 'Bildirishnomalar'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -981,7 +986,12 @@ class NotificationOpenView(LoginRequiredMixin, View):
     def get(self, request, notification_id):
         notification = get_object_or_404(Notification, id=notification_id, recipient=request.user)
         notification.mark_read()
-        return redirect(notification.url or "notifications")
+        return redirect(notification_target(request, notification.url) or "notifications")
+
+    def post(self, request, notification_id):
+        notification = get_object_or_404(Notification, id=notification_id, recipient=request.user)
+        notification.mark_read()
+        return redirect(notification_return(request, notification.pk))
 
 
 class NotificationReadAllView(LoginRequiredMixin, View):
@@ -990,11 +1000,15 @@ class NotificationReadAllView(LoginRequiredMixin, View):
             is_read=True,
             read_at=timezone.now(),
         )
+        if request.POST.get('frontend_v1') == 'records':
+            return redirect(notification_return(request))
         return redirect("notifications")
 
 
-class HelpCenterView(LoginRequiredMixin, TemplateView):
+class HelpCenterView(LoginRequiredMixin, RecordsV1Mixin, TemplateView):
     template_name = "users/help_center.html"
+    frontend_v1_template = 'frontend_v1/records/help.html'
+    frontend_v1_title = 'Yordam markazi'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1064,8 +1078,10 @@ class UserProfileView(LoginRequiredMixin, AccountV1Mixin, UpdateView):
         return context
 
 
-class AttendanceCalendarView(LoginRequiredMixin, TemplateView):
+class AttendanceCalendarView(LoginRequiredMixin, RecordsV1Mixin, TemplateView):
     template_name = 'users/attendance_calendar.html'
+    frontend_v1_template = 'frontend_v1/records/attendance.html'
+    frontend_v1_title = 'Davomat'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1078,13 +1094,13 @@ class AttendanceCalendarView(LoginRequiredMixin, TemplateView):
             year = int(self.request.GET.get('year', today.year))
             month = int(self.request.GET.get('month', today.month))
             datetime.date(year, month, 1)
-        except (ValueError, TypeError):
+        except (ValueError, TypeError, OverflowError):
             year = today.year
             month = today.month
 
         selected_month = datetime.date(year, month, 1)
-        prev_month = (selected_month.replace(day=1) - datetime.timedelta(days=1)).replace(day=1)
-        next_month = (selected_month.replace(day=28) + datetime.timedelta(days=4)).replace(day=1)
+        prev_month = (selected_month - datetime.timedelta(days=1)).replace(day=1) if (year, month) > (1, 1) else None
+        next_month = (selected_month.replace(day=28) + datetime.timedelta(days=4)).replace(day=1) if (year, month) < (9999, 12) else None
 
         active_enrollments = list(
             user.enrollments.filter(enrollment_active_access_q())
@@ -1272,9 +1288,11 @@ class AttendanceManageView(LoginRequiredMixin, UserPassesTestMixin, TemplateView
         messages.success(request, f"Davomat saqlandi: {updated} ta o'quvchi.")
         return redirect(request.get_full_path())
 
-class SubscriptionHistoryView(LoginRequiredMixin, ListView):
+class SubscriptionHistoryView(LoginRequiredMixin, RecordsV1Mixin, ListView):
     model = Enrollment
     template_name = 'users/subscriptions.html'
+    frontend_v1_template = 'frontend_v1/records/subscriptions.html'
+    frontend_v1_title = 'Obunalar'
     context_object_name = 'enrollments'
 
     def get_queryset(self):
@@ -1309,8 +1327,10 @@ class SubscriptionHistoryView(LoginRequiredMixin, ListView):
         )
         return context
 
-class CertificateListView(LoginRequiredMixin, TemplateView):
+class CertificateListView(LoginRequiredMixin, RecordsV1Mixin, TemplateView):
     template_name = 'users/certificates.html'
+    frontend_v1_template = 'frontend_v1/records/certificates.html'
+    frontend_v1_title = 'Sertifikatlar'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1318,10 +1338,10 @@ class CertificateListView(LoginRequiredMixin, TemplateView):
         context['active_nav'] = 'certificates'
 
         # Gamification badges
-        context['earned_badges'] = EarnedBadge.objects.filter(student=user).order_by('-earned_at')
+        context['earned_badges'] = EarnedBadge.objects.filter(student=user).select_related('badge').order_by('-earned_at', '-id')
 
         # Course Completion Certificates
-        context['course_certificates'] = CourseCertificate.objects.filter(student=user).order_by('-issued_at')
+        context['course_certificates'] = CourseCertificate.objects.filter(student=user).select_related('course').order_by('-issued_at', '-id')
 
         return context
 

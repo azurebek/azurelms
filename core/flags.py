@@ -44,6 +44,14 @@ class FlagDefinition:
 
 FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
     FlagDefinition(
+        slug="frontend_v1_records",
+        label="Frontend V1 — yozuvlar va yordam",
+        description="Sertifikatlar, davomat, obunalar, reyting, bildirishnomalar va yordam rendererlariga V1.",
+        default=False,
+        category="Frontend",
+        runbook="OFF olti yuzani legacyga qaytaradi; read belgisi, to‘lov/fayl yoki access yozuvi o‘chmaydi. Native POST va eski URLlar ishlashda qoladi. Release qabuli bilan yoqing.",
+    ),
+    FlagDefinition(
         slug="frontend_v1_auth",
         label="Frontend V1 — ro‘yxatdan o‘tish va tiklash",
         description="Register/onboarding/password-reset va mavjud V1 login ko‘rinishi; canonical auth saqlanadi.",
