@@ -4,6 +4,9 @@
   const passwords = [...document.querySelectorAll('[data-auth-password]')];
   const toggles = [...document.querySelectorAll('[data-auth-toggle]')];
   let submitting = false;
+  // A completed/reconciled Telegram login leaves via canonical LoginView,
+  // not this form's submit event. Do not trap an already authenticated user.
+  window.addEventListener('frontend-v1:auth-redirect', () => { submitting = true; });
   const dirty = () => forms.some(form => form.hasAttribute('data-auth-unsaved') ||
     [...form.querySelectorAll('input:not([type="hidden"])')].some(field => field.value !== field.defaultValue));
   for (const button of toggles) {
