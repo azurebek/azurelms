@@ -49,8 +49,15 @@ Default-OFF; PR135 MERGED `12b0e3c`, final CI36214042911 all3PASS
 (SQLite2063 skip44/PostgreSQL2063 skip20/Node95).
 [I6b — kurs/dars muharrirlari](I6B-COURSE-LESSON-EDITORS.md) runtime `c72c1fd`:
 besh URL oilasi + material settings/reorder/detach; 111 focused OK,
-2089 full OK skip45 (oxirgi labels/2 testdan oldin), Node95.
-30 responsive readback overflow0; required CI/main hali alohida gate.
+final2091 full OK skip45, Node95. 30 responsive readback overflow0.
+PR136 MERGED `0278331`; final CI36215540990 all3PASS
+(SQLite2091 skip44/PostgreSQL2091 skip20). AWS alohida gate.
+[I7 — checkout va chek holati](I7-CHECKOUT.md) lokal runtime `3621e9c`:
+canonical narx/access, explicit quote va native receipt POST; 262 focused,
+2119 full OK skip45, Node95. To‘rt holat × olti width =24 overflow0.
+Required CI/main va AWS release alohida gate.
+I7 review fix `f681a5b`: owner-audited DB quote TTL, bounded core0005;
+UI/enforcement bitta qiymatdan. Final focused71 PASS, yangi CI kutiladi.
 I4b AI adapteri PR #130 bilan main’da `a25cf4b`:
 [scope, compact transcript va tekshiruv](I4B-AI-MESSENGER.md).
 1961 Python OK/61 Node PASS; final CI `36192585672` uchala PASS;

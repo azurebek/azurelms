@@ -39,7 +39,7 @@ bound invalid draft, 320–1280 overflow0 va uch required CI PASS.
 
 - [x] ~~Runtime va regressiya — `c72c1fd`.~~
 - [x] ~~Isolated browser desktop/mobile va asosiy amallar.~~
-- [ ] Required CI/review/main.
+- [x] ~~Required CI/review/main: PR136 MERGED `0278331`.~~
 - [ ] AWS/native-device release (alohida).
 
 I6a PR135 MERGED `12b0e3c`; final CI36214042911 uchala PASS:
@@ -62,13 +62,15 @@ Offline barcha buyruqlar `AZURELMS_SKIP_ENV_FILE=1 GEMINI_API_KEY= TELEGRAM_BOT_
 | Buyruq | Natija |
 |---|---|
 | `venv/Scripts/python.exe manage.py test core.test_frontend_v1_editors library core.test_backoffice_courses core.test_backoffice_lessons --noinput` | final111 OK (11.479s), 28 yangi editor test |
-| `venv/Scripts/python.exe manage.py test --noinput` | 2089 OK, skip45 (129.631s); oxirgi labels/2 qo‘shimcha testdan oldin |
+| `venv/Scripts/python.exe manage.py test --noinput` | final2091 OK, skip45 (124.588s) |
 | `node --test tests/frontend_v1/*.test.mjs` | 95 PASS; mavjud library controller qayta ishlatiladi |
 | `manage.py check --fail-level WARNING` | 0 issue |
 | `manage.py makemigrations --check --dry-run` | no changes |
 | `git diff --check` | PASS |
 
-Final2091 full run va required SQLite/PostgreSQL CI alohida tasdiqlanadi.
+Final required CI36215540990 uchala PASS: SQLite2091 skip44,
+PostgreSQL2091 skip20, Node95; security/image/dependency PASS.
+Review findings/threads0. [Final acceptance](https://github.com/azurebek/azurelms/pull/136#issuecomment-5842893063).
 Temporary SQLite/private files IAB8063: explicit course filter → course
 edit PRG → explicit lesson index → lesson save → per-link metadata →
 reorder PRG; second-tab stale409, old draft retained, Save disabled.

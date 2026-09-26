@@ -52,7 +52,7 @@ class SeededRecord(models.Model):
 
 
 class OperationalSettings(models.Model):
-    """Control Center chegaralari — owner sozlamasi (T0).
+    """Control Center chegaralari va checkout tasdiq muddati — owner sozlamasi.
 
     Owner qarori (2026-09-11): operatsion qiymat kodda qotirib qo'yilmaydi.
     Bu uchta chegara ilgari `core/control_center/snapshot.py` da Python
@@ -60,12 +60,19 @@ class OperationalSettings(models.Model):
     qancha kutganda qizil bo'ladi" degan **operatsion** qarorni o'zgartirish
     uchun deploy kerak bo'lardi.
 
-    Bu qiymatlar nosozlikni **o'lchamaydi**, faqat uni qachon ko'rsatishni
-    belgilaydi. Shu sabab ular xavfsiz sozlama: noto'g'ri qiymat chiroq rangini
-    o'zgartiradi, tizim xatti-harakatini emas.
+    Chiroq chegaralari nosozlikni o'lchamaydi, uni qachon ko'rsatishni
+    belgilaydi. Checkout muddati esa oldin ko'rsatilgan summani qancha vaqt
+    tasdiqlash mumkinligini boshqaradi; narx va access qoidalarini emas.
     """
 
     singleton = models.BooleanField(default=True, unique=True, editable=False)
+
+    checkout_quote_minutes = models.PositiveIntegerField(
+        default=30,
+        validators=[MinValueValidator(1), MaxValueValidator(1440)],
+        verbose_name="Checkout summa tasdig‘i muddati (daqiqa)",
+        help_text="1–1440 daqiqa. Keyingi so‘rovdan amal qiladi, ochiq formalar ham yangi muddat bilan tekshiriladi. Narx yuborishda baribir qayta tekshiriladi.",
+    )
 
     backup_stale_after_days = models.PositiveIntegerField(
         default=7,

@@ -9,6 +9,7 @@ sozlama o'qishdagi xato butun instance'ni trafikdan chiqarib yuborardi.
 from dataclasses import dataclass
 
 DEFAULTS = {
+    "checkout_quote_minutes": 30,
     "backup_stale_after_days": 7,
     # Zaxira saqlash muddati (PR #111 review). Ilgari bu qiymat host
     # crontab'ida qotib turardi, ya'ni siyosatni o'zgartirish uchun SSH
@@ -26,6 +27,7 @@ DEFAULTS = {
 }
 
 BOUNDS = {
+    "checkout_quote_minutes": (1, 1440),
     "backup_stale_after_days": (1, 365),
     "backup_retention_days": (1, 3650),
     "queue_age_amber_minutes": (1, 1440),
@@ -93,6 +95,7 @@ def repair_order(values, red_name, amber_name):
 
 @dataclass(frozen=True)
 class Thresholds:
+    checkout_quote_minutes: int
     backup_stale_after_days: int
     backup_retention_days: int
     queue_age_amber_minutes: int

@@ -243,6 +243,20 @@ class DispatcherThresholdsForm(_AuditedSettingsForm):
         }
 
 
+class CheckoutSettingsForm(_AuditedSettingsForm):
+    UNITS = {"checkout_quote_minutes": "daqiqa"}
+
+    class Meta:
+        model = OperationalSettings
+        fields = ("checkout_quote_minutes",)
+        labels = {"checkout_quote_minutes": "Summa tasdig‘i muddati"}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            field.widget.attrs['id'] = f'id_checkout_{name}'
+
+
 class MaterialLibrarySettingsForm(_AuditedSettingsForm):
     """Material kutubxonasining fayl hajmi chegarasi.
 
