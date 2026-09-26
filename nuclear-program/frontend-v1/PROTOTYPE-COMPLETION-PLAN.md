@@ -1,5 +1,12 @@
 # Qolgan prototiplar — aniq qamrov va tugatish rejasi
 
+**2026-09-27 ijro:** Q14ning mavjud backendga mos U01/U02 prototipi
+qurildi va lokal tekshirildi: [Paket67 dalili](Q14-EXAM-EDITOR-PROTOTYPE.md).
+Joriy son **99 URL /56 template /78 source nomi**. Endi prototipi yo‘q
+**40 UI +3 handler =43 band**, navbatdagi **10 qadam** qolgan.
+Keng Q14 savol/ko‘p-bo‘lim/nashr capabilitysi alohida ochiq; real port
+va AWS bu turn o‘zgarmadi. Quyidagi45 soni boshlang‘ich audit snapshotidir.
+
 Inventar sanasi: **2026-09-26**. Tekshirilgan source: `4d1ae70`;
 AWSdagi tayyor V1 runtime: `8bb6b95` ([R2 dalili](R2-READY-V1-AWS.md)).
 Owner topshirig‘i: yangi sahifa qurishdan **oldin** qolgan qamrovni aniqlash
@@ -45,12 +52,15 @@ Eski Q raqamlari saqlanadi; a/b bo‘linishi faqat paket chegarasidir.
 - [x] ~~0. Inventarni hozirgi kod bilan qayta solishtirish.~~
   95/54/76 qayta sanaldi, 120 UI nomi/pathi tekshirildi; 44 = 42+2 alias.
   Uch handler alohida qo‘shildi. Usul va cheklovlar 7-bo‘limda.
-- [ ] **1. Q14 — Imtihon muharriri (2 URL).** Imtihon/kurs konteksti,
+- [x] ~~1. Q14 — mavjud backendga mos imtihon muharriri (2 URL).~~ Imtihon/kurs konteksti,
   mavjud forma maydonlari, bo‘lim ma’lumoti, prerequisite, bo‘sh va xato
   holatlari. **Yakun:** aniq imtihon → tahrir → tasdiqli saqlash → o‘sha
   imtihonga qaytish; invalid/begona ID boshqa imtihonni ochmaydi.
   Savol CRUD va ko‘p bo‘limli authoring chegarasi 5-bo‘limda — jimgina
   ishlaydigan feature sifatida namoyish qilinmaydi.
+  **Dalil:** [Paket67](Q14-EXAM-EDITOR-PROTOTYPE.md), 18/18 maydon,
+  606 Django +168 JS PASS; local-only. Keng Q14 capability va owner/native
+  qabul yopilmadi; yuqoridagi chiziq faqat U01/U02 source-supported UI uchun.
 - [ ] **2. Q15a — Kundalik boshqaruv (4 URL).** Bosh panel, cheklar,
   foydalanuvchilar va chatlar ro‘yxati. **Yakun:** qidiruv/filtr/pagination
   → tafsilot yoki mavjud oqimga kirish → ayni filtrga qaytish; chek
