@@ -44,9 +44,16 @@ class FlagDefinition:
 
 FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
     FlagDefinition(
+        slug="frontend_v1_exam_attempt",
+        label="Frontend V1 — imtihon topshirish",
+        description="Explicit savol saqlash, versiya va topshirish tasdig‘i bilan exam-focus.",
+        default=False, category="Frontend",
+        runbook="OFF eski rendererga qaytaradi, V1 javob/start/submit yopiladi; state/receipt va explicit reconcile identity barrier qoladi. Additive schema saqlanadi; AWS/native audio qabuli alohida.",
+    ),
+    FlagDefinition(
         slug="frontend_v1_exams",
         label="Frontend V1 — imtihonlar markazi va natija",
-        description="Imtihonlar ro‘yxati va tasdiqlangan natijaning V1 ko‘rinishi; attempt/review hali legacy.",
+        description="Imtihonlar ro‘yxati va tasdiqlangan natija; topshirish uchun alohida exam_attempt flag, teacher review hali legacy.",
         default=False,
         category="Frontend",
         runbook="OFF markaz/natija/navni eski ko‘rinishga qaytaradi; publication privacy himoyasi qoladi. Urinish, ball va taymer o‘zgarmaydi. courses0021 migration va AWS release alohida.",

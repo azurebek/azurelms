@@ -52,6 +52,20 @@ JSON save orqali olinmaydi; existing validated private upload qoladi.
 Xavfsizlik renderer flagidan mustaqil, migration yo‘q.
 [Qamrov va concurrency chegarasi](frontend-v1/I8-API-SECURITY.md).
 
+Exam V1 recovery receipts (2026-09-26): OperationalSettings.exam_receipt_limit
+(core0006, default1000,1–10000) owner-only audited runtime panelda. Canonical
+exam_receipts.trim_receipts user lock/action transaction ichida newest capni
+saqlaydi va evictiondan oldin epochni aylantiradi. Exact old payload fail-closed;
+retained retry deduplicated, missing old-epoch receipt unconfirmed_closed.
+Draft saqlanadi; answers/grades o‘chirilmaydi. [Chegara](frontend-v1/EXAM-RECEIPT-BOUND.md).
+
+LibraryResource metadata save (2026-09-26) row lock ostida persisted
+`edit_revision`ni oshiradi; bu file `version`dan alohida (additive library0002).
+V1 HMAC shu counterga ham bog‘liq: bir timestampdagi A→B→A eski formani
+yangi deb ko‘rsatmaydi. Partial/admin/legacy model.save ham qatnashadi;
+empty update_fields no-op. Bulk/SQL yoki resource.save’siz tag-only yozuvlar
+global counter kafolatiga kirmaydi. [Qamrov](frontend-v1/LIBRARY-ABA.md).
+
 I6b `frontend_v1_editors` default OFF: existing course list/create/edit,
 explicit lesson index/edit va per-link settings/reorder/detach. Adapter
 `core/frontend_v1_editors.py`; canonical forms/teacher scope/services
@@ -159,7 +173,8 @@ tasdiq va `expected_revision` bilan boradi. Student user-lock ostida revision
 o‘zgargan bo‘lsa 409/no-write, bound izoh saqlanadi. Queue scope/pagination,
 native PRG va scoped qoralama bor; durable operation receipt emas.
 I3a PR #123 main’da (`4e48416`, final uch required CI PASS).
-Exam detail I8gacha legacy.
+Exam detail I8b default-OFF `frontend_v1_exam_attempt` bilan V1ga tanlanadi;
+ustoz exam review UI I8cgacha legacy.
 [I3a dalili](frontend-v1/I3A-TEACHER-REVIEW.md).
 I3b: teacher flag courses/cohorts/students/attendance rendererlarini ham
 tanlaydi; ro‘yxatlar real scoped queryset, SQL pagination va count bilan.
@@ -536,9 +551,32 @@ Teacher draft save bu projectionni o‘zgartirmaydi; republish yangilaydi.
 `courses.exam_publication.learner_result` V1/legacy result, markaz va public
 appendixning yagona read policy’si. Eski approved aggregate qoladi, nusxasi
 yo‘q mutable tafsilotlar yashiriladi. Default-OFF `frontend_v1_exams` faqat
-markaz/result rendereri; privacy flagdan mustaqil. Attempt/review UI legacy.
+markaz/result rendereri; privacy flagdan mustaqil. Teacher review UI legacy.
 `?retake=1` eligible failed attemptning shartlarini GET orqali yozuvsiz
 ochadi; start POST canonical entry policy/limitni qayta tekshiradi.
+
+**I8b attempt — 2026-09-26:** mustaqil default-OFF `frontend_v1_exam_attempt`,
+`courses.exam_attempt_v1` state/action adapteri `/courses/<course>/exam/<exam>/api/v1/`.
+Explicit savol Save; mavjud Question/Reading/private-audio/listen/submit writerlar.
+Additive courses0022: attempt input_revision/answer_versions + ExamActionReceipt
+identity/hash ledger. User/attempt row lock, stale409, duplicate UUID no-repeat;
+GET receipt missing hali unknown. Additive courses0023 `ExamActionGate`
+unique(student,exam) server-issued UUID epoch: flag-ON authorized GET bitta
+slot ajratadi, POST ajratmaydi. Explicit reconcile applied receiptni o‘qiydi
+yoki epochni almashtirib barcha eski-epoch kechikkan yozuvlarni to‘sadi;
+cancelled receipt INSERT yo‘q. OFFda faqat existing slot reconcile qilinadi.
+Legacy answer/flag/upload writerlari ham revisionni
+oshiradi; baholash formulasi va publication alohida. HMAC-scoped session text
+draft, credentials/file bytes yo‘q, logout cleanup; dirty/stale/unknown finishni
+bloklaydi. Server remaining snapshot, client clock submit qilmaydi.
+Flag OFF mutationlarni yopadi, receipt/state va identity reconciliation qoladi;
+schema migration OFFda ham kerak. Native mic/AWS release alohida.
+V1 listening same-origin HTTP(S), preload ready bo‘lmaguncha limit POST yo‘q;
+POST source URLni qayta solishtiradi. Tashqi originlar/proxy yo‘q. V1 attempt
+HTML `media-src 'self' blob:` (local speaking preview), global/legacy CSP self
+bo‘lib qoladi. Mini App frame override boshqa per-response direktivani saqlaydi.
+Canonical reading save configured multi-select maximumni va disabled
+review-flagni enforce qiladi; V1 ham shu task settinglarini ko‘rsatadi.
 
 ### 4.7 Messenger
 

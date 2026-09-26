@@ -148,7 +148,31 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
   - [x] ~~[I8b oldidan attempt API access/privacy lokal tuzatishi](I8-API-SECURITY.md).~~
     `40c6ba6`, 24 yangi test; courses223 OK skip1, full2183 OK skip45,
     Node95. Required CI/review/main final dalili security PRda.
-  - [ ] I8b attempt/answer/audio/timer/revision/submit UI.
+  - [x] ~~I8b attempt/answer/audio/timer/revision/submit lokal port.~~
+    `fc80c7f`, `deef10c`; full2210 OK skip49, final focused86 OK skip4,
+    Node104 PASS; 12 width readback overflow0, stale/unknown browser proof.
+    [Dalil va native release chegarasi](I8B-ATTEMPT.md). Additive courses0022.
+  - [ ] I8b required CI/review/main (5 PG race testi ham).
+    Final lock-order `948878c`, focused111 OK skip5 (9.839s), Node104.
+    Review P1/P2 lokal fix `6085156`: same-origin audio/preload, bounded epoch
+    barrier (additive courses0023). Final local2221 OK skip50 (143.232s),
+    Node107 PASS; strict-CSP audio va cancel/draft browser proof. PR140
+    required CI/review/main acceptance kutilmoqda; AWS yo‘q.
+    Second review config-parity fix `425ecc3`: courses265 OK skip6,
+    Node109 PASS; browser cap/disabled flag PASS. **Merge HELD:** final
+    full2225da unrelated existing library ABA test1 FAIL; same-timestamp
+    controlled repro tasdiqlandi, owner yo‘nalishi kutilmoqda. Old head12f9c4e
+    CI36225064864 all3PASS yangi full failure’ni yashirmaydi.
+    Owner library fixga ruxsat berdi: `453b6dd`, additive library0002.
+    [Same-clock ABA guard](LIBRARY-ABA.md), focused112 OK skip6, controlled
+    same-clock repro PASS. Final full2229 OK skip51 (145.501s), Node109 PASS.
+    Head110cfd2 CI36226414409 all3PASS (PG2229 OK skip20). New P2 applied
+    receipt growth owner-approved fix `842edb4`: [configurable bound](EXAM-RECEIPT-BOUND.md),
+    focused85 OK skip6/Node110 PASS; owner audit/two-tab uncertainty browser proof.
+    Final full2236 OK skip52 (168.837s), Node110 PASS. Fresh required
+    CI/review/main acceptance kutilmoqda.
+    Head86eaf08 CI36255695367 all3PASS; outer audio rollback review fix
+    `e39a263` focused73 OK skip7. Fresh full/CI/review/main acceptance ochiq.
   - [ ] I8c teacher review UI va stale-form confirmation.
   - [ ] I8 AWS/native-device release.
 - [ ] **I9 — Classbook.** Preparation→session→activity→result; multi-user,

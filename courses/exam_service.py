@@ -108,6 +108,9 @@ def start_exam_attempt(*, student, exam):
             )
 
     with transaction.atomic():
+        # Lock a stable row even before the learner has their first attempt.
+        from django.contrib.auth import get_user_model
+        get_user_model().objects.select_for_update().get(pk=student.pk)
         latest_attempt = (
             ExamAttempt.objects.select_for_update()
             .filter(student=student, exam=exam)
@@ -137,6 +140,8 @@ def start_exam_attempt(*, student, exam):
         else:
             next_attempt_number = 1
 
+        if next_attempt_number > exam.max_attempts:
+            raise ExamAttemptStartBlocked('Urinishlar limiti tugagan.', code='attempt_limit_reached')
         attempt = ExamAttempt.objects.create(
             student=student,
             exam=exam,

@@ -231,6 +231,7 @@ def backoffice_runtime_settings(request):
         BotDeliverySettingsForm,
         CheckoutSettingsForm,
         DispatcherThresholdsForm,
+        ExamReceiptSettingsForm,
         MaterialLibrarySettingsForm,
         OperationalThresholdsForm,
         ReminderSettingsForm,
@@ -247,6 +248,13 @@ def backoffice_runtime_settings(request):
     # ajratiladi, aks holda bir formani saqlash ikkinchisini validatsiyadan
     # o'tmagan deb ko'rsatardi.
     groups = {
+        "exam_receipts": {
+            "form_class": ExamReceiptSettingsForm,
+            "instance": thresholds,
+            "action": "settings.exam_receipts.update",
+            "label": "Imtihon texnik tasdiqlari sig‘imi",
+            "message": "Imtihon jurnali sig‘imi saqlandi.",
+        },
         "checkout": {
             "form_class": CheckoutSettingsForm,
             "instance": thresholds,
@@ -333,6 +341,7 @@ def backoffice_runtime_settings(request):
         "dispatcher_form": forms_out["dispatcher"],
         "library_form": forms_out["library"],
         "checkout_form": forms_out["checkout"],
+        "exam_receipts_form": forms_out["exam_receipts"],
         "delivery": delivery,
         "thresholds": thresholds,
         "reminders": reminders,

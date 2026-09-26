@@ -389,11 +389,42 @@ class RuntimeSettingsSurfaceTests(TestCase):
             self.assertContains(
                 response, f'name="{name}"', msg_prefix=f"{name} maydoni chizilmadi"
             )
-        # Olti forma, oltita sabab/tasdiq juftligi va olti `form_name`.
+        # Yetti forma, yettita sabab/tasdiq juftligi va yetti `form_name`.
         self.assertContains(response, 'name="checkout_quote_minutes"')
-        self.assertContains(response, 'name="form_name"', count=6)
-        self.assertContains(response, 'name="change_reason"', count=6)
-        self.assertContains(response, 'name="confirm_change"', count=6)
+        self.assertContains(response, 'name="exam_receipt_limit"')
+        self.assertContains(response, 'name="form_name"', count=7)
+        self.assertContains(response, 'name="change_reason"', count=7)
+        self.assertContains(response, 'name="confirm_change"', count=7)
+
+    def test_exam_receipt_limit_is_live_audited_and_noop_preserves_other_settings(self):
+        self.client.force_login(self.owner)
+        OperationalSettings.objects.create(checkout_quote_minutes=17)
+        payload = dict(form_name='exam_receipts', exam_receipt_limit=25, change_reason='Retention bound', confirm_change='on')
+        self.assertEqual(self.client.post(self.url, payload).status_code, 302)
+        self.assertEqual(current_thresholds().exam_receipt_limit, 25)
+        self.assertEqual(current_thresholds().checkout_quote_minutes, 17)
+        event = SystemAuditEvent.objects.get(action='settings.exam_receipts.update')
+        self.assertEqual(event.reason, 'Retention bound')
+        self.assertEqual(event.before, {'exam_receipt_limit': 1000})
+        self.assertEqual(event.after, {'exam_receipt_limit': 25})
+        self.client.post(self.url, payload)
+        self.assertEqual(SystemAuditEvent.objects.filter(action='settings.exam_receipts.update').count(), 1)
+
+    def test_exam_receipt_limit_needs_reason_confirmation_and_valid_bounds(self):
+        self.client.force_login(self.owner)
+        payload = dict(form_name='exam_receipts', exam_receipt_limit=25, change_reason='Retention bound', confirm_change='on')
+        for invalid in ({'change_reason': ''}, {'confirm_change': ''}, {'exam_receipt_limit': 0}, {'exam_receipt_limit': 10001}):
+            self.assertEqual(self.client.post(self.url, dict(payload, **invalid)).status_code, 200)
+            self.assertEqual(current_thresholds().exam_receipt_limit, 1000)
+        self.assertFalse(SystemAuditEvent.objects.filter(action='settings.exam_receipts.update').exists())
+
+    def test_non_owner_cannot_change_exam_receipt_limit(self):
+        student = User.objects.create_user(username='receipt-student', password='synthetic')
+        self.client.force_login(student)
+        self.assertEqual(self.client.post(self.url, dict(form_name='exam_receipts', exam_receipt_limit=1,
+            change_reason='Unauthorized', confirm_change='on')).status_code, 302)
+        self.assertEqual(current_thresholds().exam_receipt_limit, 1000)
+        self.assertFalse(SystemAuditEvent.objects.filter(action='settings.exam_receipts.update').exists())
 
     def test_library_upload_limit_is_saved_and_audited(self):
         """Kutubxona hajmi ham deploy'siz o'zgaradi va izsiz qolmaydi."""

@@ -1,10 +1,11 @@
 """Library port uses real writers on temporary files, never provider calls."""
 import tempfile
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.db import connection
-from django.test import Client, TestCase, override_settings
+from django.db import connection, transaction
+from django.test import Client, TestCase, TransactionTestCase, override_settings, skipUnlessDBFeature
 from django.urls import reverse
 
 from core.flags import flag_by_slug, set_flag
@@ -12,6 +13,32 @@ from courses.models import Course, Lesson, Module
 from . import frontend_v1 as v1, selectors, services
 from .models import LessonMaterial, LibraryResource
 from .test_resources import pdf_upload, PDF_BYTES
+
+
+@skipUnlessDBFeature('has_select_for_update')
+class LibraryRevisionConcurrencyTests(TransactionTestCase):
+    def test_concurrent_stale_instances_serialize_revision_updates(self):
+        from concurrent.futures import ThreadPoolExecutor
+        from threading import Barrier
+        from django.db import connections, close_old_connections
+        resource = LibraryResource.objects.create(title='Concurrency', file='library/synthetic.pdf')
+        barrier = Barrier(2)
+
+        def save_title(title):
+            close_old_connections()
+            try:
+                stale = LibraryResource.objects.get(pk=resource.pk)
+                barrier.wait(timeout=15)
+                stale.title = title
+                stale.save(update_fields=['title'])
+                return stale.edit_revision
+            finally:
+                connections.close_all()
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            self.assertEqual(sorted(pool.map(save_title, ['A', 'B'])), [1, 2])
+        resource.refresh_from_db()
+        self.assertEqual(resource.edit_revision, 2)
 
 
 class LibraryV1Tests(TestCase):
@@ -151,10 +178,11 @@ class LibraryV1Tests(TestCase):
 
     def test_snapshot_changes_on_aba_tags_and_usage(self):
         original = self.token()['library_revision']
-        self.resource.title = 'Temporary title'
-        self.resource.save()
-        self.resource.title = 'Saved title'
-        self.resource.save()
+        with patch('django.db.models.fields.timezone.now', return_value=self.resource.updated_at):
+            self.resource.title = 'Temporary title'
+            self.resource.save()
+            self.resource.title = 'Saved title'
+            self.resource.save()
         self.assertNotEqual(original, self.token()['library_revision'])
         current = self.token()['library_revision']
         services.sync_tags(self.resource, 'new-tag')
@@ -162,6 +190,52 @@ class LibraryV1Tests(TestCase):
         current = self.token()['library_revision']
         services.attach_to_lesson(self.lesson, self.resource)
         self.assertNotEqual(current, self.token()['library_revision'])
+
+    def test_same_timestamp_aba_blocks_old_form_without_losing_draft_or_file(self):
+        data = self.data()
+        original_time = self.resource.updated_at
+        original_file = self.resource.file.name
+        with patch('django.db.models.fields.timezone.now', return_value=original_time):
+            self.resource.title = 'Temporary'
+            self.resource.save()
+            self.resource.title = 'Saved title'
+            self.resource.save()
+        self.resource.refresh_from_db()
+        self.assertEqual(self.resource.updated_at, original_time)
+        self.assertEqual(self.resource.edit_revision, 2)
+        response = self.client.post(self.url('resource_edit', self.resource.pk), data)
+        self.assertContains(response, 'Edited title', status_code=409)
+        self.resource.refresh_from_db()
+        self.assertEqual((self.resource.title, self.resource.file.name, self.resource.version), ('Saved title', original_file, 1))
+        self.assertEqual(self.resource.edit_revision, 2)
+
+    def test_partial_and_stale_instance_saves_advance_persisted_counter(self):
+        first = LibraryResource.objects.get(pk=self.resource.pk)
+        second = LibraryResource.objects.get(pk=self.resource.pk)
+        first.topic = 'A'
+        first.save(update_fields=['topic'])
+        second.topic = 'B'
+        second.save(update_fields=['topic'])
+        self.resource.refresh_from_db()
+        self.assertEqual(self.resource.edit_revision, 2)
+        self.assertEqual(second.edit_revision, 2)
+        self.assertEqual(self.resource.topic, 'B')
+        self.assertEqual(self.resource.version, 1)
+        self.resource.save()  # a no-op save also invalidates an old form
+        self.assertEqual(self.resource.edit_revision, 3)
+
+    def test_empty_update_fields_and_rollback_do_not_advance_persisted_counter(self):
+        self.resource.title = 'Unsaved'
+        self.resource.save(update_fields=[])
+        self.resource.refresh_from_db()
+        self.assertEqual((self.resource.title, self.resource.edit_revision), ('Saved title', 0))
+        with self.assertRaises(RuntimeError):
+            with transaction.atomic():
+                self.resource.title = 'Rolled back'
+                self.resource.save()
+                raise RuntimeError('Rollback')
+        self.resource.refresh_from_db()
+        self.assertEqual((self.resource.title, self.resource.edit_revision), ('Saved title', 0))
 
     def test_tampered_wrong_action_or_user_token_rejected(self):
         tokens = ['forged', v1.revision(self.other, self.resource, 'save'), v1.revision(self.teacher, self.resource, 'delete')]

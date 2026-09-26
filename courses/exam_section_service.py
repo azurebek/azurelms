@@ -6,14 +6,63 @@ writing / speaking (StudentAnswer matn/audio, qo'lda) uchun beradi — saqlab-bo
 per-savol holat (question_map/counts), review-flag. `build_section_payload`
 dispatcher ikkalasini birlashtiradi.
 """
+import logging
+
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from .models import Choice, StudentAnswer
 from .reading_service import build_reading_section_payload, ensure_exam_section_state
+from .exam_revision import lock_writable_attempt, bump_answer_revision
 
 # Writing javobi uchun xavfsizlik chegarasi (text-bomb himoyasi). ~60k belgi ≈ 10k so'z.
 MAX_ANSWER_TEXT_CHARS = 60_000
+
+
+@transaction.atomic
+def save_exam_audio(*, attempt, question, upload, flagged=None, current_question_id=None, created_uploads=None):
+    """The single validated private-file writer for both exam renderers."""
+    import os
+    import uuid
+    from core.private_storage import private_media_storage
+    from core.upload_validation import validate_upload
+
+    if not question.exam_section_id or question.exam_section.exam_id != attempt.exam_id:
+        raise ValidationError('Savol ushbu imtihonga tegishli emas.')
+    attempt = lock_writable_attempt(attempt)
+    validate_upload(upload, profile='audio', field_label='Audio yozuv')
+    ext = os.path.splitext(upload.name or '')[1].lower()
+    if not ext or len(ext) > 8 or '/' in ext or '\\' in ext:
+        ext = '.webm'
+    storage = private_media_storage()
+    saved_path = storage.save(f'exam_audio/{attempt.pk}/{question.pk}_{uuid.uuid4().hex}{ext}', upload)
+    if created_uploads is not None:
+        # The caller owns the complete transaction, beyond this nested savepoint.
+        created_uploads.append((storage, saved_path))
+    payload = {'audio_key': saved_path, 'current_question_id': current_question_id}
+    if flagged is not None:
+        payload['flag_for_review'] = flagged
+    try:
+        return save_question_answer(attempt=attempt, question=question, payload=payload)
+    except Exception:
+        if created_uploads is None:
+            storage.delete(saved_path)
+        raise
+
+
+def discard_unreferenced_exam_uploads(created_uploads):
+    """Only after the enclosing action atomic block has exited.
+
+    An on_commit callback can fail *after* a successful DB commit. Verify that
+    the new file is unreferenced instead of deleting a committed recording.
+    If that check/storage is unavailable, preserving a file is safer than loss.
+    """
+    for storage, path in created_uploads:
+        try:
+            if not StudentAnswer.objects.filter(audio_key=path).exists():
+                storage.delete(path)
+        except Exception:
+            logging.getLogger(__name__).exception('Exam upload cleanup could not safely complete.')
 
 
 def _word_count(value):
@@ -138,6 +187,7 @@ def save_question_answer(*, attempt, question, payload):
     if not question.exam_section_id or question.exam_section.exam_id != attempt.exam_id:
         raise ValidationError("Savol ushbu imtihon urinishiga tegishli emas.")
 
+    attempt = lock_writable_attempt(attempt)
     answer, _ = StudentAnswer.objects.select_for_update().get_or_create(attempt=attempt, question=question)
 
     choice_id = payload.get("choice_id")
@@ -170,6 +220,7 @@ def save_question_answer(*, attempt, question, payload):
         answer.is_flagged_for_review = bool(payload.get("flag_for_review"))
 
     answer.save()
+    bump_answer_revision(attempt, f'q:{question.pk}')
 
     section = question.exam_section
     if section:
@@ -188,9 +239,11 @@ def save_question_answer(*, attempt, question, payload):
 def toggle_question_review_flag(*, attempt, question, flagged=None):
     if not question.exam_section_id or question.exam_section.exam_id != attempt.exam_id:
         raise ValidationError("Savol ushbu imtihon urinishiga tegishli emas.")
+    attempt = lock_writable_attempt(attempt)
     answer, _ = StudentAnswer.objects.select_for_update().get_or_create(attempt=attempt, question=question)
     answer.is_flagged_for_review = (not answer.is_flagged_for_review) if flagged is None else bool(flagged)
     answer.save(update_fields=["is_flagged_for_review", "updated_at"])
+    bump_answer_revision(attempt, f'q:{question.pk}')
     section = question.exam_section
     if section:
         state = ensure_exam_section_state(attempt=attempt, section=section)
@@ -223,6 +276,7 @@ def register_audio_play(*, attempt, section):
     """
     if section.exam_id != attempt.exam_id:
         raise ValidationError("Section ushbu attempt imtihoniga tegishli emas.")
+    attempt = lock_writable_attempt(attempt)
     state = ensure_exam_section_state(attempt=attempt, section=section)
     limit = section.audio_play_limit or 0
     used = int(state.state.get("plays_used", 0))

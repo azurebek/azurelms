@@ -68,7 +68,28 @@ UI oilasidan 2 renderer ulandi; attempt/audio/timer va teacher review UI
 hali legacy. PR138 MERGED `17cfc3a`; finalCI36219639823 all3PASS,
 SQLite/PostgreSQL2159, Node95; final local2159 OK skip45 (139.635s).
 I8b oldidan owner tasdiqlagan [attempt API ruxsat/privacy](I8-API-SECURITY.md)
-tuzatishi bajariladi. AWS gate alohida; yangi attempt UI hali port qilinmagan.
+PR139 MERGED `b8c1604`, CI36221144145 all3PASS (2183 Python/95 Node).
+[I8b real topshirish](I8B-ATTEMPT.md) lokal `fc80c7f`/`deef10c`:
+explicit save, per-answer revision va receipt, scoped draft, server vaqt,
+audio va submit tasdig‘i; additive courses0022, default-OFF. Full2210 OK
+skip49; final focused86 OK skip4, Node104. 12 width readback overflow0,
+two-tab stale va ikkita unknown-response recovery oqimi brauzerda o‘tdi.
+I8b required CI/review/main va native-device/AWS gate ochiq; I8c review UI qoladi.
+PR140 P1/P2 review fix `6085156`: bounded cancellation epoch (courses0023),
+same-origin audio/preflight va scoped blob CSP. Final local2221 OK skip50,
+Node107 PASS; [fresh evidence](I8B-ATTEMPT.md). AWSga chiqarilmagan.
+Second review `425ecc3` reading cap/disabled flagni ham tuzatdi: courses265
+OK/Node109. Final full2225da existing library same-timestamp ABA1 FAIL;
+merge held, ownerga alohida fix savoli berildi. I8b main’da deb qabul qilmang.
+Owner roziligidan keyin library guard `453b6dd`da tuzatildi (library0002);
+same-clock regression endi PASS. [Qamrov](LIBRARY-ABA.md). Final full2229
+OK skip51 (145.501s); fresh CI/review/main acceptance ochiq.
+Head110cfd2 CI all3PASS; keyingi review applied-receipt growthni topdi.
+Owner-approved `842edb4` [jurnal sig‘imi](EXAM-RECEIPT-BOUND.md)ni auditlangan
+sozlamaga chiqardi; final full2236 OK skip52 (168.837s), Node110 PASS.
+Fresh CI/review kutilmoqda. AWS o‘zgarmadi.
+Head86eaf08 CI all3PASS; outer audio rollback follow-up `e39a263` focused73
+OK skip7. New full/CI/review hali ochiq; bu deployment tasdig‘i emas.
 I4b AI adapteri PR #130 bilan main’da `a25cf4b`:
 [scope, compact transcript va tekshiruv](I4B-AI-MESSENGER.md).
 1961 Python OK/61 Node PASS; final CI `36192585672` uchala PASS;

@@ -16,6 +16,122 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-26 [Codex]: I8b audio — butun action rollbackdan keyingi cleanup
+
+Review4111999822 topgan nested-transaction file leak `e39a263`da yopildi.
+V1 faqat request yaratgan fayllarni kuzatadi; tashqi atomic tugagach
+unreferenced faylni tozalaydi. Old recording va commit bo‘lgan yangi
+recording saqlanadi, hatto on_commit callback xato bersa ham. DB/storage
+tekshirib bo‘lmasa xavfsiz saqlab, xatoni loglaydi; crash atomiklik da’vosi yo‘q.
+
+- Branch `codex/frontend-v1-exam-attempt`, runtime `e39a263`; no migration/UI.
+- Provider-free `manage.py test courses.test_exam_attempt_v1 courses.test_exam_api_security --noinput`:
+  **73 OK skip7 (9.180s)**. Receipt/pruning/snapshot failure va referenced
+  file cleanup regressions; real post-commit callback testi PG CI’da.
+- Head86eaf08 CI36255695367 all3PASS historical. Fresh full/CI/review/main
+  acceptance kutilmoqda. AWS/current DB o‘zgarmadi.
+
+## 2026-09-26 [Codex]: Owner-approved imtihon texnik jurnali sig‘imi
+
+PR140 yangi review4110573482 muvaffaqiyatli amallar receiptlari cheksiz
+o‘sishini topdi. Owner alohida tasdiqlagach `842edb4` audited runtime capni
+qo‘shdi (core0006). Evictiondan oldin epoch atomic aylantiriladi: exact old
+payload qayta bajarilmaydi; yo‘qolgan eski tasdiq «bajarilmadi» deb talqin
+qilinmaydi. Javoblar/baholar/fayllar saqlanadi.
+
+- Branch `codex/frontend-v1-exam-attempt`; [admission/chegara/dalil](frontend-v1/EXAM-RECEIPT-BOUND.md).
+- Provider-free `manage.py test courses.test_exam_attempt_v1 core.test_runtime_settings --noinput`:
+  85 OK skip6 (9.511s); Node110 PASS, drift0/diff PASS. Yangi PG eviction race.
+- IAB8069 tempDB: two-tab lost-ack eviction → honest uncertainty/draft retained;
+  owner cap2→3, reason/confirmation/audit accepted. Desktop1280 overflow0.
+  Hidden tab viewport320 apply bo‘lmadi; yangi panel mobile gate ochiq.
+- Old head110cfd2 CI36226414409 all3PASS (PG2229 OK skip20,154.690s).
+  Final provider-free `venv/Scripts/python.exe manage.py test --noinput`:
+  **2236 OK skip52 (168.837s)**. Fresh CI/review/main acceptance kutilmoqda.
+  AWS/current DB tegilmadi.
+- Full repeat2236 FAIL3 skip52 (11103.767s); Windows power events hostning
+  10:41Z→13:42Z uyqusini tasdiqladi. Ish davomida yana13:45Z→16:26Z uyqu
+  bo‘lgan, ammo final diagnostic2236 OK168.837s edi. Old3 failure nomlari
+  tool truncationda yo‘qoldi; har assert sababini isbotlangan deb aytmaymiz.
+  Runtime/assertion o‘zgartirmay full PASS olindi; fresh cloud CI kerak.
+
+## 2026-09-26 [Codex]: Owner-approved library same-timestamp ABA himoyasi
+
+Full suite topgan existing kutubxona xatosi owner ruxsatidan keyin alohida
+`453b6dd`da yopildi. LibraryResource.save persisted edit_revisionni lock
+ostida oshiradi; V1 form fingerprint soatga qaram emas. File version/storage
+va ma’lumotlar o‘zgartirilmadi, additive library0002.
+
+- Branch `codex/frontend-v1-exam-attempt` (PR140 release blocker follow-up).
+- Provider-free `manage.py test library courses.test_exam_attempt_v1 --noinput`:
+  112 OK skip6 (10.349s); check0/drift0. Yangi skip PG-only parallel-save
+  sinovi; qolgan5 exam PG race. Original controlled same-clock assertion
+  endi PASS (0.060s), test susaytirilmadi.
+- Final provider-free `venv/Scripts/python.exe manage.py test --noinput`:
+  **2229 OK skip51 (145.501s)**; Node109 PASS. Old full2225 failure yopildi,
+  frozen-clock regression doimiy testda. Assertion/skip bilan yashirilmadi.
+- [Admission/chegara/dalil](frontend-v1/LIBRARY-ABA.md). Fresh CI/review/main
+  acceptance kutilmoqda; AWS/current DB/prototype o‘zgarmadi.
+
+## 2026-09-26 [Codex]: I8b review — bounded cancel va strict-CSP audio
+
+Owner davom ettirishni tasdiqlagach PR140 P1/P2 lokal yopildi. Audio source
+same-origin/preload/POST-source check bilan limitdan oldin tekshiriladi;
+bekor so‘rovlar receipt qatorlarini ko‘paytirmaydi, bitta user/exam epoch
+slotini almashtiradi. Applied receipt/revision va draft himoyasi saqlandi.
+
+- Branch `codex/frontend-v1-exam-attempt`, runtime `6085156`.
+- Additive courses0023; V1-only blob preview CSP, Mini App frame override
+  bilan kompozitsiya. Global CSP/external hosts/current DB/AWS o‘zgarmadi.
+- Provider-free `venv/Scripts/python.exe manage.py test --noinput`:
+  **2221 OK skip50 (143.232s)**; `node --test tests/frontend_v1/*.test.mjs`:
+  **107 PASS**; check0/drift0/diff PASS. Dastlabki test wiring xatolari
+  tuzatildi, regression assertlari susaytirilmadi.
+- IAB8067 temp DB strict CSP: valid WAV1/count1, missing404/count0,
+  external unavailable; cancel → draft preserved → Save, 6width overflow0.
+  [Dalil va aniq chegaralar](frontend-v1/I8B-ATTEMPT.md).
+- Required CI/review/main acceptance kutilmoqda. Native mic/codec/real-device
+  va AWS alohida; keyingi UI I8c teacher review, I9 Classbook.
+- Second review `425ecc3`: reading cap va disabled review-flag V1/canonical
+  writerlarda enforce qilindi; courses265 OK skip6 (26.850s), Node109 PASS,
+  IAB8068 configured cap/uncheck/flagsiz Save PASS, mobile320 overflow0.
+- **Final full2225 FAILED1 skip50 (147.156s):** library existing timestamp
+  ABA testi line158. Yakka rerun1 PASS, bir xil timestamp bilan original
+  assertion1 FAIL; library fayllari baseline b8c1604dan o‘zgarmagan.
+  Runtime/test chetlab o‘tilmadi. Ownerga alohida fix savoli yuborildi,
+  **merge/deploy HELD**. Old12f9c4e CI36225064864 all3PASS tarixiy checkpoint.
+
+## 2026-09-26 [Codex]: I8b — real imtihon topshirish va qoralama himoyasi
+
+Frozen exam-focus real Django’ga ulandi: explicit savol Save, server revision,
+receipt/unknown reconciliation, audio va topshirish tasdig‘i. Ball/access yangi
+UI ichida hisoblanmaydi; mavjud canonical writerlar ishlaydi. Default-OFF
+frontend_v1_exam_attempt, additive courses0022; AWS/prototype o‘zgarmadi.
+
+- Branch `codex/frontend-v1-exam-attempt`; runtime `fc80c7f`, polish/test `deef10c`.
+- Provider-free courses250 OK skip5 (18.813s), full2210 OK skip49 (150.345s).
+  Keyingi ikki test bilan final focused86 OK skip4 (8.761s); Node104 PASS.
+  4 yangi skip SQLite’da row-lock yo‘qligi, PG required CI’da bajariladi.
+  Eski storage allowlist failure tor I8b istisnosi va privacy/logout testlari
+  bilan yopildi; migration drift/check/diff PASS.
+- IAB8066 synthetic temp DB: start/save/stale-rebase/confirm/pending,
+  lost acknowledgement va before-write failure recovery, reload draft,
+  silent listening limit; 12 responsive readback overflow0, dark/light,
+  Escape focus. [Qamrov va dalil](frontend-v1/I8B-ATTEMPT.md).
+- CI/review/main keyingi gate. Native microphone/device/codec va AWS hali
+  qabul qilinmagan. Keyingi UI: I8c review, I9 Classbook, certificate details.
+- PR139 reconciliation: MERGED `b8c1604`, CI36221144145 all3PASS,
+  Python2183/Node95; final dalil security hujjatiga bog‘landi.
+- Final mixed-renderer lock-order hardening `948878c`: legacy/V1 user →
+  attempt tartibi; beshinchi PG race testi. Focused111 OK skip5 (9.839s).
+  [PR140](https://github.com/azurebek/azurelms/pull/140) final CI/reviewda.
+- **REVIEW BLOCKED, merge yo‘q:** P1 strict-CSP external audio bloklanib,
+  listen count oldindan sarflanishi; P2 fresh-UUID reconcile cancelled
+  receiptlarini flag OFF/no-attemptda ham cheksiz yaratishi. Security-anomaly
+  qoidasiga ko‘ra ownerga xabar berildi, runtime fix/merge to‘xtadi. Threadlar
+  ochiq. Final local2213 OK skip50 (166.277s); a8b35b3 CI PG/security PASS,
+  SQLite o‘sha paytda pending. AWS/prototype/current DBga tegilmadi.
+
 ## 2026-09-26 [Codex]: I8 attempt API — joriy ruxsat va unpublished grade himoyasi
 
 Owner `ha` degach tasdiqlangan security blocker alohida paketda yopildi.

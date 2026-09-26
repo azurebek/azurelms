@@ -42,7 +42,7 @@
       {% else %}
         <p class="c-muted">Urinishlar limiti tugagan. Ustozingizga murojaat qiling.</p>
       {% endif %}
-      {% if not exam.latest_attempt.is_completed %}{% if exam.latest_attempt or exam.attempts_left > 0 %}<p class="c-caption" id="exam-{{ exam.id }}-handoff">Urinish sahifasi hozircha avvalgi ko‘rinishda ochiladi.</p>{% endif %}{% endif %}
+      {% if not exam.latest_attempt.is_completed %}{% if exam.latest_attempt or exam.attempts_left > 0 %}<p class="c-caption" id="exam-{{ exam.id }}-handoff">{% if frontend_v1_exam_attempt_ready %}Javoblar har savolda alohida saqlanadi.{% else %}Urinish sahifasi hozircha avvalgi ko‘rinishda ochiladi.{% endif %}</p>{% endif %}{% endif %}
     </div>
   </article>
   {% empty %}
