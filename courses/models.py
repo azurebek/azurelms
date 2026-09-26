@@ -5,6 +5,7 @@ from io import BytesIO
 from pathlib import Path
 
 from django.db import models, transaction
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -1009,6 +1010,8 @@ class ExamAttempt(models.Model):
     student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='exam_attempts', verbose_name="O'quvchi")
     exam = models.ForeignKey(Exam, on_delete=models.CASCADE, related_name='attempts', verbose_name="Imtihon")
     attempt_number = models.PositiveIntegerField(default=1, verbose_name="Urinish raqami")
+    input_revision = models.PositiveIntegerField(default=0, editable=False)
+    answer_versions = models.JSONField(default=dict, editable=False)
     
     start_time = models.DateTimeField(auto_now_add=True)
     completed_time = models.DateTimeField(null=True, blank=True)
@@ -1231,6 +1234,20 @@ class ExamSectionReview(models.Model):
 
     def __str__(self):
         return f"{self.attempt.student.username} - {self.section.title}"
+
+
+class ExamActionReceipt(models.Model):
+    """Identity-only acknowledgement; no answer text, media bytes or grades."""
+    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    exam = models.ForeignKey(Exam, on_delete=models.CASCADE)
+    attempt = models.ForeignKey(ExamAttempt, on_delete=models.CASCADE, null=True)
+    operation_id = models.UUIDField()
+    command = models.CharField(max_length=16)
+    payload_digest = models.CharField(max_length=64)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['student', 'exam', 'operation_id'], name='exam_operation_identity_uniq')]
 
 
 class StudentAnswer(models.Model):

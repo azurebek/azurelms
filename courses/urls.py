@@ -2,6 +2,7 @@ from django.urls import path
 
 from core import private_media_views
 from . import views
+from .exam_attempt_v1 import ExamAttemptV1View
 
 urlpatterns = [
     path('', views.CourseListView.as_view(), name='courses'),
@@ -23,6 +24,7 @@ urlpatterns = [
     path('<int:course_id>/exam/<int:exam_id>/result/', views.ExamResultView.as_view(), name='exam_result'),
     
     # Exam API Endpoints
+    path('<int:course_id>/exam/<int:exam_id>/api/v1/', ExamAttemptV1View.as_view(), name='api_exam_v1'),
     path('<int:course_id>/exam/<int:exam_id>/api/start/', views.StartExamView.as_view(), name='api_exam_start'),
     path(
         '<int:course_id>/exam/<int:exam_id>/api/section/<int:section_id>/state/',

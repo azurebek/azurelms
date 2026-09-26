@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from .exam_revision import lock_writable_attempt, bump_answer_revision
 
 from .models import (
     ExamSectionAttemptState,
@@ -239,6 +240,7 @@ def save_reading_response(*, attempt, item, payload):
     if item.task.section.exam_id != attempt.exam_id:
         raise ValidationError("Reading item ushbu imtihon urinishiga tegishli emas.")
 
+    attempt = lock_writable_attempt(attempt)
     response, _ = ReadingResponse.objects.select_for_update().get_or_create(
         attempt=attempt,
         item=item,
@@ -260,6 +262,7 @@ def save_reading_response(*, attempt, item, payload):
             response.is_flagged_for_review = bool(payload.get("flag_for_review", response.is_flagged_for_review))
             response.full_clean()
             response.save()
+            bump_answer_revision(attempt, f'r:{item.pk}')
             return response
         selected_option = ReadingOption.objects.filter(id=int(option_id), item=item).first()
         if not selected_option:
@@ -279,6 +282,7 @@ def save_reading_response(*, attempt, item, payload):
             response.is_flagged_for_review = bool(payload.get("flag_for_review", response.is_flagged_for_review))
             response.full_clean()
             response.save()
+            bump_answer_revision(attempt, f'r:{item.pk}')
             return response
         selected_option = ReadingOption.objects.filter(id=int(option_id), task=task).first()
         if not selected_option:
@@ -303,6 +307,7 @@ def save_reading_response(*, attempt, item, payload):
     response.is_flagged_for_review = bool(payload.get("flag_for_review", response.is_flagged_for_review))
     response.full_clean()
     response.save()
+    bump_answer_revision(attempt, f'r:{item.pk}')
 
     state = ensure_exam_section_state(attempt=attempt, section=task.section)
     current_item_id = payload.get("current_item_id")
@@ -319,6 +324,7 @@ def save_reading_response(*, attempt, item, payload):
 def toggle_reading_review_flag(*, attempt, item, flagged=None):
     if item.task.section.exam_id != attempt.exam_id:
         raise ValidationError("Reading item ushbu imtihon urinishiga tegishli emas.")
+    attempt = lock_writable_attempt(attempt)
     response, _ = ReadingResponse.objects.select_for_update().get_or_create(
         attempt=attempt,
         item=item,
@@ -326,6 +332,7 @@ def toggle_reading_review_flag(*, attempt, item, flagged=None):
     response.is_flagged_for_review = (not response.is_flagged_for_review) if flagged is None else bool(flagged)
     response.full_clean()
     response.save(update_fields=["is_flagged_for_review", "updated_at"])
+    bump_answer_revision(attempt, f'r:{item.pk}')
 
     state = ensure_exam_section_state(attempt=attempt, section=item.task.section)
     state.state["current_item_id"] = item.id

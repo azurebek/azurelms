@@ -1,6 +1,7 @@
 """HTTP adapters for the canonical attempt-access policy (all renderers)."""
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, JsonResponse
+from django.db import transaction
 from django.utils.cache import patch_cache_control
 
 from .exam_service import ExamAttemptAccessBlocked, get_accessible_exam_attempt
@@ -17,6 +18,7 @@ class ExamAPIResponseMixin:
 
 
 class ExamRuntimeAccessMixin(ExamAPIResponseMixin, LoginRequiredMixin):
+    @transaction.atomic
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated:
             try:
@@ -25,6 +27,10 @@ class ExamRuntimeAccessMixin(ExamAPIResponseMixin, LoginRequiredMixin):
                     course_id=kwargs['course_id'],
                     exam_id=kwargs['exam_id'],
                 )
+                from .models import ExamAttempt
+                self.exam_attempt = ExamAttempt.objects.select_for_update().get(pk=self.exam_attempt.pk)
+                if self.exam_attempt.is_completed:
+                    raise ExamAttemptAccessBlocked('Faol imtihon urinishi topilmadi.', code='no_attempt')
             except ExamAttemptAccessBlocked as exc:
                 response = JsonResponse(
                     {'error': str(exc), 'code': exc.code},

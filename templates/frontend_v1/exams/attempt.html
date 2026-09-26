@@ -1,0 +1,51 @@
+{% extends "frontend_v1/platform.html" %}
+{% load static bleach_tags %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'frontend_v1/css/exams.css' %}"><link rel="stylesheet" href="{% static 'frontend_v1/css/exam-attempt.css' %}">{% endblock %}
+{% block content %}
+<div class="f-exam-stack" data-exam-attempt>
+  <div class="p-page-heading"><div><p class="c-eyebrow">{{ course.title }} / IMTIHON</p><h1>{{ exam.title }}</h1><p class="c-lead">Har javob alohida saqlanadi. Sahifadan chiqish vaqtni to‘xtatmaydi.</p></div><a class="c-text-link" href="{% url 'exam_center' %}">Imtihonlar ro‘yxati</a></div>
+  <div class="c-card p-panel f-exam-summary"><strong data-clock>Server vaqti tekshirilmoqda</strong><button class="c-button c-button--secondary" type="button" data-refresh>Holatni tekshirish</button><span class="c-caption">Vaqt — oxirgi server tekshiruvidagi qoldiq. Qurilma soati bilan topshirilmaydi.</span></div>
+  <p class="p-status-region" role="status" data-global-status></p>
+  <div class="c-alert c-alert--info" data-unknown hidden><div><strong>So‘rov natijasi hozircha noma’lum</strong><p>Qayta yuborilmaydi. Tekshiruv amal bajarilganini tasdiqlaydi yoki kechikkan so‘rovni yopadi. Qoralama qoladi.</p><button class="c-button c-button--secondary" type="button" data-reconcile>Noma’lum amalni tekshirib yopish</button></div></div>
+  <div class="c-alert c-alert--info" data-closed {% if not attempt_closed %}hidden{% endif %}><div><strong>Urinish yopilgan</strong><p>Qoralamalar topshirilmagan; faqat serverda saqlangan javoblar qabul qilindi.</p><a class="c-text-link" href="{% url 'exam_result' course.id exam.id %}">Natija holatiga o‘tish</a></div></div>
+  <noscript><p class="c-alert c-alert--info">Bu imtihonni topshirish uchun JavaScript yoqilgan bo‘lishi kerak. Javoblar avtomatik yuborilmaydi.</p></noscript>
+  {% if not attempt_started and not attempt_closed %}
+  <section class="c-card p-panel f-exam-instructions"><h2>Boshlashdan oldin</h2><ul class="f-exam-rules"><li>{{ sections|length }} bo‘lim · {{ exam.max_attempts }} tagacha urinish.</li><li>{% if exam.total_time_limit_minutes %}Umumiy vaqt: {{ exam.total_time_limit_minutes }} daqiqa.{% else %}Umumiy vaqt cheklanmagan.{% endif %}</li><li>Variant tanlash javobni saqlamaydi. «Saqlash» tasdig‘ini kuting.</li><li>Vaqt tugasa, faqat saqlangan javoblar topshiriladi.</li></ul>
+  {% if can_start_exam %}<form data-start>{% csrf_token %}<label class="f-exam-check"><input type="checkbox" name="confirmed" required><span>Shartlar bilan tanishdim, boshlashga tayyorman</span></label><button type="submit" class="c-button c-button--primary" disabled>Boshlash</button></form>{% else %}<p>{{ exam_entry_policy.message|default:"Urinishlar limiti tugagan." }}</p>{% endif %}</section>
+  {% endif %}
+  {% if attempt_started %}
+  <div class="f-exam-layout"><aside class="c-card p-panel f-exam-index" aria-label="Savollar xaritasi"><h2>Savollar</h2><p class="c-caption" data-counts></p><ol>{% for section in attempt_state.sections %}{% for question in section.questions %}<li><a href="#{{ question.anchor }}"><span>{{ forloop.parentloop.counter }}.{{ forloop.counter }}</span><small data-map="{{ question.key }}">Javobsiz</small></a></li>{% endfor %}{% endfor %}</ol></aside>
+  <div class="f-exam-stack">
+    {% for section in attempt_state.sections %}
+    <section class="c-card p-panel f-exam-stack"><h2>{{ section.title }}</h2><div class="f-exam-rich">{{ section.instructions|sanitize }}</div>
+      {% for passage in section.passages %}<details><summary>{{ passage.title|default:"O‘qish matni" }}</summary><div class="f-exam-rich" lang="tr">{{ passage.body|sanitize }}</div></details>{% endfor %}
+      {% if section.legacy_reading_text %}<div class="f-exam-rich" lang="tr">{{ section.legacy_reading_text|sanitize }}</div>{% endif %}
+      {% if section.media_url %}<div class="f-exam-stack" data-listening="{{ section.id }}"><p class="c-caption" data-listen-count></p><div class="c-actions"><button type="button" class="c-button c-button--secondary" data-listen>Tinglashni boshlash</button><button type="button" class="c-button c-button--quiet" data-pause disabled>Pauza</button></div><audio preload="none" data-player></audio><p class="p-status-region" role="status" data-media-status></p></div>{% endif %}
+    </section>
+    {% for question in section.questions %}
+    <section id="{{ question.anchor }}" class="c-card p-panel f-exam-question"><p class="c-eyebrow">{{ section.title }} · {{ forloop.counter }}-savol</p>
+      {% if question.context or question.instructions %}<details><summary>Topshiriq shartlari</summary><div class="f-exam-rich" lang="tr">{{ question.instructions|sanitize }}{{ question.context|sanitize }}</div></details>{% endif %}
+      <div class="f-exam-prompt f-exam-rich" lang="tr">{{ question.prompt|sanitize }}</div>
+      <form data-answer="{{ question.key }}" data-kind="{{ question.kind }}">{% csrf_token %}
+      <fieldset class="f-exam-fields"><legend class="c-field__label">Javobingiz</legend>
+        {% if question.kind == 'choice' or question.kind == 'multi' %}
+        {% for choice in question.choices %}<label class="c-choice"><input type="{% if question.kind == 'multi' %}checkbox{% else %}radio{% endif %}" name="{% if question.kind == 'multi' %}option_ids{% else %}choice_id{% endif %}" value="{{ choice.id }}"><span lang="tr">{% if choice.label %}{{ choice.label }}. {% endif %}{{ choice.text }}</span></label>{% endfor %}
+        {% if question.kind == 'choice' %}<label class="c-choice"><input type="radio" name="choice_id" value=""><span>Javobsiz qoldirish</span></label>{% elif question.max_selections %}<p class="c-caption">Ko‘pi bilan {{ question.max_selections }} ta variant.</p>{% endif %}
+        {% elif question.kind == 'select' %}<label class="c-field__label" for="input-{{ question.anchor }}">Mos variantni tanlang</label><select id="input-{{ question.anchor }}" name="choice_id" class="c-field"><option value="">Javobsiz qoldirish</option>{% for choice in question.choices %}<option value="{{ choice.id }}">{{ choice.label }} {{ choice.text }}</option>{% endfor %}</select>
+        {% elif question.kind == 'audio' %}<label class="c-field__label" for="input-{{ question.anchor }}">Audio fayl</label><input id="input-{{ question.anchor }}" class="c-field" type="file" name="audio" accept="audio/*"><p class="c-caption">Audio faqat shu sahifa xotirasida. Saqlanmasa, qayta ochilganda yo‘qoladi.</p><div class="c-actions"><button type="button" class="c-button c-button--secondary" data-record>Ovoz yozish</button><button type="button" class="c-button c-button--secondary" data-stop hidden>Yozishni tugatish</button><button type="button" class="c-button c-button--quiet" data-discard-audio hidden>Audio qoralamasini bekor qilish</button></div><audio class="f-audio-player" controls preload="none" data-draft-audio hidden></audio><p class="p-status-region" role="status" data-audio-status></p><p class="c-caption">Serverdagi yozuv:</p><audio class="f-audio-player" controls preload="none" data-saved-audio hidden></audio>
+        {% else %}<label class="c-field__label" for="input-{{ question.anchor }}">Turkcha javobingiz</label>{% if question.kind == 'short' %}<input id="input-{{ question.anchor }}" class="c-field" name="answer_text" type="text" autocomplete="off">{% else %}<textarea id="input-{{ question.anchor }}" class="c-field" name="answer_text" rows="7" maxlength="60000"></textarea>{% endif %}<p class="c-caption">{% if question.min_words %}Kamida {{ question.min_words }} so‘z. {% endif %}{% if question.max_words %}Ko‘pi bilan {{ question.max_words }} so‘z.{% endif %}</p>{% endif %}
+        <label class="f-exam-check"><input type="checkbox" name="flagged"><span>Keyin yana tekshiraman</span></label>
+      </fieldset>
+      <div class="c-alert c-alert--info f-exam-notice" data-stale hidden><div><strong>Javob boshqa oynada o‘zgardi</strong><p>Oxirgi server javobi:</p><pre data-server-answer></pre><p>Qoralamangiz saqlandi. Ko‘rib chiqib, yangi versiyaga tayyorlang; bu hali javobni saqlamaydi.</p><button type="button" class="c-button c-button--secondary" data-rebase>Qoralamamni yangi versiyaga tayyorlash</button></div></div>
+      <p class="p-status-region" role="status" data-answer-status></p><button type="submit" class="c-button c-button--secondary" disabled>Javobni saqlash</button>
+      </form>
+    </section>
+    {% endfor %}{% endfor %}
+    <section class="c-card p-panel"><h2>Javoblaringiz tayyormi?</h2><p class="c-muted">Yakunlashdan so‘ng tahrirlab bo‘lmaydi. Avval har bir qoralamani saqlang.</p><p class="p-status-region" data-submit-hint></p><button type="button" class="c-button c-button--primary" data-prepare disabled>Yakunlashni ko‘rib chiqish</button></section>
+  </div></div>
+  <dialog class="c-dialog" id="exam-submit-dialog" aria-labelledby="exam-submit-title"><div class="c-dialog__heading"><h2 id="exam-submit-title">Imtihon topshirilsinmi?</h2><button type="button" class="c-icon-button" aria-label="Tasdiq oynasini yopish" data-dialog-close>×</button></div><p data-submit-summary></p><p class="c-muted">Faqat serverda saqlangan javoblar topshiriladi. Baho ustoz tasdiqlagach ko‘rinadi.</p><form data-submit><label class="f-exam-check"><input name="confirmed" type="checkbox" required><span>Saqlangan javoblarimni topshirishni tasdiqlayman</span></label><div class="c-actions"><button type="button" class="c-button c-button--secondary" data-dialog-close>Javoblarga qaytish</button><button class="c-button c-button--primary" type="submit">Ha, imtihonni topshirish</button></div></form></dialog>
+  {% endif %}
+</div>
+{{ attempt_config|json_script:"exam-attempt-config" }}
+<script type="module" src="{% static 'frontend_v1/js/exam-attempt.js' %}"></script>
+{% endblock %}

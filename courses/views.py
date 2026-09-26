@@ -11,7 +11,6 @@ from django.urls import reverse
 from django.http import Http404, JsonResponse
 from django.utils import timezone
 
-from core.upload_validation import validate_upload
 from core.frontend_v1 import FrontendV1Mixin
 from core.flags import flag_enabled
 from frontend.public_v1 import PublicFrontendV1Mixin
@@ -654,9 +653,12 @@ class ExamCenterView(FrontendV1Mixin, LoginRequiredMixin, ListView):
         return context
 
 
-class ExamDetailView(LoginRequiredMixin, DetailView):
+class ExamDetailView(FrontendV1Mixin, LoginRequiredMixin, DetailView):
     model = Exam
     template_name = 'courses/exam_detail.html'
+    frontend_v1_template = 'frontend_v1/exams/attempt.html'
+    frontend_v1_flag = 'frontend_v1_exam_attempt'
+    frontend_v1_title = 'Imtihon topshirish'
     context_object_name = 'exam'
     pk_url_kwarg = 'exam_id'
 
@@ -713,6 +715,27 @@ class ExamDetailView(LoginRequiredMixin, DetailView):
         entry_policy = check_exam_entry_policy(student=user, exam=self.object) if is_enrolled else None
         context['exam_entry_policy'] = entry_policy
         context['can_start_exam'] = bool(entry_policy and entry_policy.is_allowed)
+
+        if self.frontend_v1_enabled:
+            from .exam_attempt_v1 import exam_snapshot
+            from django.db import transaction
+            from django.utils.crypto import salted_hmac
+            with transaction.atomic():
+                if latest_attempt:
+                    latest_attempt = ExamAttempt.objects.select_for_update().get(pk=latest_attempt.pk)
+                    expire_attempt_if_time_limit_reached(latest_attempt)
+                state = exam_snapshot(self.object, latest_attempt)
+            context['attempt_state'] = state
+            context['can_start_exam'] = context['can_start_exam'] and context['remaining_attempts'] > 0
+            context['active_nav'] = 'exam_center'
+            context['attempt_config'] = {
+                'url': reverse('api_exam_v1', args=[course.pk, self.object.pk]),
+                'scope': salted_hmac('exam-draft', f'{user.pk}:{self.request.session.session_key}:{self.object.pk}').hexdigest(),
+                'state': state,
+            }
+            context['attempt_started'] = bool(latest_attempt and not latest_attempt.is_completed)
+            context['attempt_closed'] = bool(latest_attempt and latest_attempt.is_completed and self.request.GET.get('retake') != '1')
+            return context
 
         # exam-shell.js uchun runtime konfiguratsiya (json_script orqali xavfsiz uzatiladi)
         from django.middleware.csrf import get_token
@@ -1027,36 +1050,10 @@ class UploadExamAudioView(ExamRuntimeAccessMixin, View):
         upload = request.FILES.get('audio')
         if not upload:
             return JsonResponse({'error': "Audio fayl yuborilmadi."}, status=400)
-        # Ilgari bu yerda faqat `upload.content_type` tekshirilardi — u brauzer
-        # yuboradigan sarlavha, soxtalashtirilishi mumkin va bo'sh bo'lsa
-        # tekshiruv butunlay o'tkazib yuborilardi. Endi konteyner baytlardan
-        # aniqlanadi (A0b).
+        from .exam_section_service import save_exam_audio
         try:
-            validate_upload(upload, profile="audio", field_label="Audio yozuv")
-        except ValidationError as exc:
-            return JsonResponse({'error': exc.messages[0]}, status=400)
-
-        import os
-        import uuid
-
-        from core.private_storage import private_media_storage
-
-        ext = os.path.splitext(upload.name or '')[1].lower()
-        if not ext or len(ext) > 8 or '/' in ext or '\\' in ext:
-            ext = '.webm'
-        key = f"exam_audio/{attempt.id}/{question.id}_{uuid.uuid4().hex}{ext}"
-        # Private ildizga saqlanadi — `/media/...` orqali ochib bo'lmaydi (A0b).
-        saved_path = private_media_storage().save(key, upload)
-
-        try:
-            answer = save_question_answer(
-                attempt=attempt,
-                question=question,
-                payload={
-                    'audio_key': saved_path,
-                    'current_question_id': request.POST.get('current_question_id'),
-                },
-            )
+            answer = save_exam_audio(attempt=attempt, question=question, upload=upload,
+                                     current_question_id=request.POST.get('current_question_id'))
         except (ValidationError, ValueError) as exc:
             message = exc.messages[0] if isinstance(exc, ValidationError) and getattr(exc, 'messages', None) else str(exc)
             return JsonResponse({'error': message}, status=400)
