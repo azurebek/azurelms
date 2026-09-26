@@ -11,6 +11,12 @@ class ExamAttemptStartBlocked(Exception):
         self.code = code
 
 
+def can_retake_exam(*, attempt, exam):
+    """Presentation eligibility; start_exam_attempt still rechecks entry policy."""
+    return bool(attempt and attempt.is_completed and attempt.is_reviewed
+                and not attempt.passed and attempt.attempt_number < exam.max_attempts)
+
+
 def get_latest_exam_attempt(*, student, exam):
     return (
         ExamAttempt.objects.filter(student=student, exam=exam)

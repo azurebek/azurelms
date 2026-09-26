@@ -4,7 +4,7 @@ import uuid
 from io import BytesIO
 from pathlib import Path
 
-from django.db import models
+from django.db import models, transaction
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -1156,9 +1156,16 @@ class ExamAttempt(models.Model):
         self.ensure_section_reviews()
         self.prefill_section_scores_from_answers()
 
+    @transaction.atomic
     def finalize_review(self, reviewed_by):
+        from .exam_publication import publication_payload
+
+        # Serialize explicit publication with the teacher's draft transaction.
+        locked = type(self).objects.select_for_update().get(pk=self.pk)
+        self.review_notes = locked.review_notes
         self.ensure_section_reviews()
-        section_total = self.section_reviews.aggregate(total_score=Sum('awarded_score'))['total_score'] or 0
+        reviews = list(self.section_reviews.select_related('section').order_by('section__order', 'section_id'))
+        section_total = sum(review.awarded_score for review in reviews)
         exam_max = sum(sec.max_score for sec in self.exam.sections.all())
 
         if exam_max > 0:
@@ -1172,6 +1179,9 @@ class ExamAttempt(models.Model):
         self.reviewed_by = reviewed_by
         self.reviewed_at = timezone.now()
         self.save(update_fields=['score', 'passed', 'is_reviewed', 'reviewed_by', 'reviewed_at', 'updated_at'] if hasattr(self, 'updated_at') else ['score', 'passed', 'is_reviewed', 'reviewed_by', 'reviewed_at'])
+        ExamResultPublication.objects.update_or_create(
+            attempt=self, defaults={'payload': publication_payload(self, reviews)},
+        )
 
         certificate = None
         certificate_created = False
@@ -1187,6 +1197,13 @@ class ExamAttempt(models.Model):
             course=self.exam.course,
         )
         return certificate, created
+
+
+class ExamResultPublication(models.Model):
+    """Last explicitly approved result; draft edits cannot overwrite this row."""
+    attempt = models.OneToOneField(ExamAttempt, on_delete=models.CASCADE, related_name='result_publication')
+    payload = models.JSONField(editable=False)
+    published_at = models.DateTimeField(auto_now=True)
 
 
 class ExamSectionReview(models.Model):
