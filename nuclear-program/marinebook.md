@@ -16,6 +16,29 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-27 [Codex]: Q15b tarif/guruh/a’zolar — beshta lokal prototip
+
+D31 continuation: ignored Eleventh Trial Paket69da katalog, tarif tahriri,
+guruh new/edit/members qurildi. Source-shaped seat/tier/receipt guardlar,
+native reason/consent/result va stale/replay/unknown/reset tekshirildi.
+Runtime, DB, checkout/purchase va AWS o‘zgarmadi; farq so‘rovi metadata-only.
+
+- Branch `codex/q15b-catalog-prototype`; dalil commit **`773b5e9`**.
+  [Q15b dalili](frontend-v1/Q15B-CATALOG-PROTOTYPE.md).
+- Trial cwd `venv/Scripts/python.exe manage.py test tests --verbosity 1`:
+  **656 PASS** (283.950s), yangi26; yakuniy focused27 PASS (5.144s).
+  Provider-free check0; `node --test <expanded tests/*.test.mjs>` **174 PASS**;
+  JS syntax va `git diff --check` PASS. CSS token typo topilib tuzatildi.
+- IAB5 route ×5 width ×2 tema =50, overflow0; create/readback/draft,
+  tier consent422→transfer, amount request, unknown→result, menu/focus PASS.
+- Checkpoint `packet-69-20260927-015747.zip`,501 fayl hash-verified;
+  SHA256 `913A1C27DEEF545A3617B7C3993B68B0F8B4AE3EBA40A4F0026A6832BEFD6E17`.
+  Source/screenshots ignored lokal scope, Paket68 saqlandi.
+- Joriy108 route /63 template /87 source nomi. Q15b U07–U11 lokal yopildi;
+  **31 UI +3 handler =34 band,8 keyingi qadam**. Navbat Q16a (8 URL).
+  Real receipt/upload/notification/RBAC/audit adapteri, native/owner qabul,
+  keng Q14 capability va G2/G3 alohida ochiq.
+
 ## 2026-09-27 [Codex]: Q15a kundalik boshqaruv — to‘rtta lokal prototip
 
 D31 continuation: ignored Eleventh Trial Paket68da dashboard, cheklar,
