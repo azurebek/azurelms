@@ -1,0 +1,27 @@
+{% extends 'frontend_v1/classbook/base.html' %}
+{% block heading %}{{ lesson.title }}{% endblock %}
+{% block intro %}{{ cohort.name }} · {{ cohort.course.title }}{% endblock %}
+{% block classbook_body %}
+<p class="c-alert c-alert--info">Tayyorlovni saqlash Telegram xabarini yubormaydi. Boshlangan dars snapshoti o‘zgarmaydi. “Darsni boshlash” alohida amal.</p>
+{% if not playbook.pk %}<p class="c-caption">Playbook hali yaratilmagan. Dastlab sozlamalarni saqlang; keyin mashqlar qo‘shish ochiladi.</p>{% endif %}
+<div class="f-classbook-grid">
+<form method="post" class="c-card p-panel f-classbook-form" data-library-form{% if form.is_bound %} data-library-unsaved{% endif %}>
+{% include 'frontend_v1/classbook/guard.html' with token=revision %}<input type="hidden" name="action" value="save"><h2>Dars oqimi</h2>
+{% include 'frontend_v1/classbook/errors.html' %}
+{% for field in form %}{% include 'frontend_v1/classbook/field.html' %}{% endfor %}
+<label class="c-choice"><input type="checkbox" name="confirm_scope" value="yes" required><span>Aynan {{ cohort.name }} guruhining shu dars sozlamalarini saqlashni tasdiqlayman.</span></label>
+<button class="c-button c-button--primary" type="submit"{% if conflict %} disabled{% endif %}>Sozlamalarni saqlash</button>
+</form>
+<section class="c-card p-panel f-classbook-stack"><div class="c-section-title"><h2>Mashqlar ketma-ketligi</h2><span class="c-badge">{{ steps|length }} ta</span></div>
+<ol class="f-classbook-steps">{% for step in steps %}<li><div><strong>{{ step.order }}. {{ step.exercise.title }}</strong><p class="c-caption">{{ step.exercise.get_kind_display }} · {{ step.exercise.time_limit_seconds }} soniya</p><a class="c-text-link" href="{% url 'classbook:exercise_edit' step.exercise_id %}">Mashqni tahrirlash</a></div><div class="c-actions">
+{% if not forloop.first %}<form method="post" action="{% url 'classbook:playbook_move_exercise' step.pk 'up' %}" data-library-form>{% include 'frontend_v1/classbook/guard.html' with token=step.up_revision %}<input type="hidden" name="confirm_scope" value="yes"><button class="c-button c-button--secondary" type="submit" aria-label="{{ step.exercise.title }} — yuqoriga">Yuqoriga</button></form>{% endif %}
+{% if not forloop.last %}<form method="post" action="{% url 'classbook:playbook_move_exercise' step.pk 'down' %}" data-library-form>{% include 'frontend_v1/classbook/guard.html' with token=step.down_revision %}<input type="hidden" name="confirm_scope" value="yes"><button class="c-button c-button--secondary" type="submit" aria-label="{{ step.exercise.title }} — pastga">Pastga</button></form>{% endif %}
+<details><summary>Olib tashlash</summary><form method="post" action="{% url 'classbook:playbook_remove_exercise' step.pk %}" class="f-classbook-stack" data-library-form>{% include 'frontend_v1/classbook/guard.html' with token=step.remove_revision %}<label class="c-choice"><input type="checkbox" name="confirm_scope" value="yes" required><span>Faqat shu qadam olinishini tasdiqlayman. Mashq bankda qoladi.</span></label><button class="c-button c-button--secondary" type="submit">Qadamni olib tashlash</button></form></details>
+</div></li>{% empty %}<li>Mashq qo‘shilmagan. Davomat va material ishlashi mumkin, interaktiv bosqich yo‘q.</li>{% endfor %}</ol>
+{% if playbook.pk %}<form method="post" action="{% url 'classbook:playbook_add_exercise' playbook.pk %}" class="f-classbook-form" data-library-form>{% include 'frontend_v1/classbook/guard.html' with token=add_revision %}<input type="hidden" name="confirm_scope" value="yes"><div><label class="c-field__label" for="cb-add">Shu kursdagi mashq</label><select id="cb-add" class="c-field" name="exercise_id" required><option value="">Mashq tanlang</option>{% for item in available_exercises %}<option value="{{ item.pk }}">{{ item.title }} · {{ item.get_kind_display }}</option>{% endfor %}</select></div><button class="c-button c-button--secondary" type="submit">Mashq qo‘shish</button></form>{% endif %}
+<a class="c-text-link" href="{% url 'classbook:exercise_create' %}">Yangi mashq yaratish</a></section>
+</div>
+{% if existing_session %}<section class="c-card p-panel f-classbook-stack"><h2>Guruhda ochiq dars bor</h2><p>{{ existing_session.lesson.title }}. Jonli boshqaruv avvalgi ko‘rinishda ochiladi.</p><a class="c-button c-button--primary" href="{% url 'classbook:teacher_session' existing_session.pk %}">Ochiq darsga o‘tish</a></section>
+{% elif saved_playbook.status == 'ready' and cohort.telegram_chat_id %}<section class="c-card p-panel f-classbook-stack"><h2>Darsni boshlash</h2><p>Saqlangan {{ steps|length }} ta mashq snapshoti yaratiladi; davomat va material xabarlari Telegram navbatiga qo‘yiladi. Jonli boshqaruv avvalgi ko‘rinishda ochiladi.</p><form method="post" action="{% url 'classbook:session_start' cohort.pk lesson.pk %}" class="f-classbook-stack" data-library-form>{% include 'frontend_v1/classbook/guard.html' with token=start_revision %}<label class="c-choice"><input type="checkbox" name="confirm_scope" value="yes" required><span>{{ cohort.name }} · {{ lesson.title }} darsini hozir boshlashni tasdiqlayman.</span></label><button class="c-button c-button--primary" type="submit">Darsni boshlash</button></form></section>
+{% elif not cohort.telegram_chat_id %}<p class="c-alert c-alert--info">Telegram guruhi bog‘lanmagan: darsni boshlash yopiq.</p>{% else %}<p class="c-alert c-alert--info">Darsni boshlash uchun playbook’ni “Darsga tayyor” holatida saqlang.</p>{% endif %}
+{% endblock %}

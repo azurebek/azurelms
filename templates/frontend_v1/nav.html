@@ -3,7 +3,7 @@
   {% for item in frontend_v1_nav %}
   <a class="c-nav-item{% if active_nav == item.name %} is-active{% endif %}" href="{{ item.url }}"{% if active_nav == item.name %} aria-current="page"{% endif %}>{% include "frontend_v1/icon.html" with name=item.icon %}<span>{{ item.label }}</span></a>
   {% endfor %}
-  <p class="s-nav__label s-nav__label--second">AVVALGI KO‘RINISHDA</p>
+  {% if frontend_v1_legacy_nav %}<p class="s-nav__label s-nav__label--second">AVVALGI KO‘RINISHDA</p>{% endif %}
   {% for item in frontend_v1_legacy_nav %}
   <a class="c-nav-item" href="{{ item.url }}">{% include "frontend_v1/icon.html" with name=item.icon %}<span>{{ item.label }}</span></a>
   {% endfor %}

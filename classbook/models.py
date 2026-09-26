@@ -5,7 +5,7 @@ import html
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db import models
+from django.db import models, router, transaction
 from django.db.models import Q
 from django.utils import timezone
 
@@ -14,7 +14,30 @@ from core.private_storage import private_media_storage
 from . import grading
 
 
-class Exercise(models.Model):
+class RevisionedPreparation(models.Model):
+    """Normal model saves (including admin/legacy) invalidate loaded editors."""
+    edit_revision = models.PositiveBigIntegerField(default=0, editable=False)
+
+    class Meta:
+        abstract = True
+
+    def save(self, *args, **kwargs):
+        fields = kwargs.get('update_fields')
+        if fields is not None and not fields:
+            return super().save(*args, **kwargs)
+        using = kwargs.get('using') or router.db_for_write(type(self), instance=self)
+        kwargs['using'] = using
+        with transaction.atomic(using=using):
+            current = (type(self)._base_manager.using(using).select_for_update()
+                       .filter(pk=self.pk).values_list('edit_revision', flat=True).first()) if self.pk else None
+            self.edit_revision = current + 1 if current is not None else 0
+            if fields is not None:
+                kwargs['update_fields'] = set(fields) | {'edit_revision'}
+            return super().save(*args, **kwargs)
+
+
+class Exercise(RevisionedPreparation):
+    creation_key = models.UUIDField(null=True, blank=True, unique=True, editable=False)
     KIND_CHOICES = (
         (grading.KIND_SINGLE_CHOICE, "Bitta javobli tanlov"),
         (grading.KIND_MULTIPLE_CHOICE, "Bir nechta javobli tanlov"),
@@ -97,7 +120,7 @@ class Exercise(models.Model):
         }
 
 
-class LessonPlaybook(models.Model):
+class LessonPlaybook(RevisionedPreparation):
     STATUS_DRAFT = "draft"
     STATUS_READY = "ready"
     STATUS_CHOICES = ((STATUS_DRAFT, "Qoralama"), (STATUS_READY, "Darsga tayyor"))

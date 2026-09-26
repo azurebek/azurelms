@@ -2,8 +2,10 @@ import csv
 import datetime
 import json
 import random
+import uuid
 
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import transaction
 from django.db.models import Count, Max
@@ -21,6 +23,7 @@ from core.private_media_views import serve_private_file
 from courses.models import Lesson
 
 from .access import active_enrollment_for, can_join_session, can_manage_cohort
+from . import frontend_v1 as v1
 from .forms import ExerciseForm, HELP_BY_KIND, LessonPlaybookForm
 from .models import ActivityRun, Exercise, LessonPlaybook, PlaybookExercise, StudentResponse
 from .services import (
@@ -103,7 +106,7 @@ def teacher_home(request):
         ).select_related("cohort", "lesson"),
         "exercise_count": Exercise.objects.filter(course__in=context["teacher_courses"], is_active=True).count(),
     })
-    return render(request, "classbook/teacher_home.html", context)
+    return v1.render_page(request, "teacher_home", context)
 
 
 @login_required
@@ -115,19 +118,40 @@ def exercise_list(request):
         .select_related("course", "lesson")
         .order_by("course__title", "-updated_at")
     )
-    return render(request, "classbook/exercise_list.html", context)
+    return v1.render_page(request, "exercise_list", context)
 
 
 @login_required
 @user_passes_test(_is_teacher)
+@transaction.atomic
 def exercise_edit(request, exercise_id=None):
     courses = teacher_course_queryset(request.user)
     exercise = None
+    if request.method == "POST":
+        # A user lock also serializes repeated create submissions.
+        get_user_model().objects.select_for_update().get(pk=request.user.pk)
     if exercise_id:
-        exercise = get_object_or_404(Exercise, pk=exercise_id, course__in=courses)
+        exercise = get_object_or_404(Exercise.objects.select_for_update() if request.method == "POST" else Exercise.objects.all(), pk=exercise_id, course__in=courses)
     form = ExerciseForm(request.POST or None, request.FILES or None, instance=exercise, teacher=request.user)
-    if request.method == "POST" and form.is_valid():
+    error = None
+    key = None
+    if request.method == "POST" and v1.enabled(request):
+        raw_key = request.POST.get('creation_key', '') if not exercise else ''
+        error = v1.write_error(request, 'exercise', exercise, creation_key=raw_key)
+        if not exercise and not error:
+            try:
+                key = uuid.UUID(raw_key)
+            except (ValueError, TypeError):
+                error = ('Yaratish formasi eskirgan. Qayta oching.', 400)
+            if key and Exercise.objects.filter(creation_key=key).exists():
+                error = ('Bu forma orqali mashq allaqachon yaratilgan. Bankdagi holatni tekshiring; yangi nusxa yaratilmaydi.', 409)
+        if error:
+            form.is_valid()
+            form.add_error(None, error[0])
+    if request.method == "POST" and not error and form.is_valid():
         item = form.save(commit=False)
+        if not exercise:
+            item.creation_key = key
         if not item.created_by_id:
             item.created_by = request.user
         item.full_clean()
@@ -136,37 +160,70 @@ def exercise_edit(request, exercise_id=None):
         return redirect("classbook:exercise_list")
     context = _teacher_context(request.user)
     context.update({"form": form, "exercise": exercise, "help_by_kind": HELP_BY_KIND})
-    return render(request, "classbook/exercise_form.html", context)
+    if v1.enabled(request):
+        context.update(v1.exercise_context(request, exercise))
+        context['conflict'] = bool(error and error[1] == 409)
+    return v1.render_page(request, "exercise_form", context, status=error[1] if error else (400 if v1.enabled(request) and form.is_bound and form.errors else 200))
 
 
 @login_required
 @user_passes_test(_is_teacher)
+@transaction.atomic
 def playbook_edit(request, cohort_id, lesson_id):
-    cohort = get_object_or_404(teacher_cohort_queryset(request.user).select_related("course"), pk=cohort_id)
+    cohorts = teacher_cohort_queryset(request.user)
+    if request.method == 'POST':
+        cohorts = cohorts.select_for_update(of=('self',))
+    cohort = get_object_or_404(cohorts.select_related("course"), pk=cohort_id)
     lesson = get_object_or_404(
         Lesson.objects.select_related("module", "module__course"), pk=lesson_id, module__course=cohort.course
     )
-    playbook, _ = LessonPlaybook.objects.get_or_create(
-        cohort=cohort, lesson=lesson, defaults={"created_by": request.user}
-    )
+    if v1.enabled(request):
+        playbooks = LessonPlaybook.objects.select_for_update() if request.method == 'POST' else LessonPlaybook.objects.all()
+        playbook = playbooks.filter(cohort=cohort, lesson=lesson).first() or LessonPlaybook(cohort=cohort, lesson=lesson, created_by=request.user)
+    else:
+        playbook, _ = LessonPlaybook.objects.get_or_create(cohort=cohort, lesson=lesson, defaults={"created_by": request.user})
     form = LessonPlaybookForm(request.POST or None, instance=playbook)
-    if request.method == "POST" and request.POST.get("action") == "save" and form.is_valid():
+    error = v1.write_error(request, 'save', playbook, cohort=cohort, lesson=lesson) if request.method == 'POST' else None
+    if error:
+        form.is_valid()
+        form.add_error(None, error[0])
+    if request.method == "POST" and not error and request.POST.get("action") == "save" and form.is_valid():
         playbook = form.save(commit=False)
         playbook.full_clean()
         playbook.save()
         messages.success(request, "Dars playbook'i saqlandi.")
         return redirect("classbook:playbook_edit", cohort_id=cohort.id, lesson_id=lesson.id)
 
+    steps = list(playbook.exercise_steps.select_related("exercise").order_by("order", "id")) if playbook.pk else []
     context = _teacher_context(request.user)
     context.update({
         "cohort": cohort,
         "lesson": lesson,
         "playbook": playbook,
         "form": form,
-        "steps": playbook.exercise_steps.select_related("exercise").order_by("order", "id"),
+        "steps": steps,
         "available_exercises": Exercise.objects.filter(course=cohort.course, is_active=True).order_by("title"),
     })
-    return render(request, "classbook/playbook_form.html", context)
+    if v1.enabled(request):
+        # Bound ModelForms mutate their instance during validation. Tokens for
+        # other actions must always describe the persisted state, not this draft.
+        saved = LessonPlaybook.objects.filter(pk=playbook.pk).first() if playbook.pk else None
+        context.update(v1.playbook_context(request, saved or LessonPlaybook(cohort=cohort, lesson=lesson), cohort, lesson, steps))
+        context['conflict'] = bool(error and error[1] == 409)
+        context['saved_playbook'] = saved
+    return v1.render_page(request, "playbook_form", context, status=error[1] if error else (400 if v1.enabled(request) and form.is_bound and form.errors else 200))
+
+
+def _locked_playbook(user, playbook_id):
+    reference = get_object_or_404(LessonPlaybook, pk=playbook_id, cohort__in=teacher_cohort_queryset(user))
+    # Parent-first matches start_class_session, including empty playbook create.
+    get_object_or_404(teacher_cohort_queryset(user).select_for_update(of=('self',)), pk=reference.cohort_id)
+    return get_object_or_404(LessonPlaybook.objects.select_for_update(of=('self',)).select_related('cohort', 'lesson'), pk=playbook_id)
+
+
+def _playbook_error(request, playbook, action):
+    error = v1.write_error(request, action, playbook, cohort=playbook.cohort, lesson=playbook.lesson)
+    return v1.conflict(request, error, playbook.cohort, playbook.lesson) if error else None
 
 
 @login_required
@@ -174,14 +231,16 @@ def playbook_edit(request, cohort_id, lesson_id):
 @require_POST
 @transaction.atomic
 def playbook_add_exercise(request, playbook_id):
-    playbook = get_object_or_404(
-        LessonPlaybook.objects.select_for_update().select_related("cohort"),
-        pk=playbook_id,
-        cohort__in=teacher_cohort_queryset(request.user),
-    )
+    playbook = _locked_playbook(request.user, playbook_id)
+    error = _playbook_error(request, playbook, 'add')
+    if error is not None:
+        return error
+    exercise_id = request.POST.get('exercise_id', '')
+    if not exercise_id.isascii() or not exercise_id.isdecimal() or len(exercise_id) > 18:
+        raise Http404
     exercise = get_object_or_404(
         Exercise,
-        pk=request.POST.get("exercise_id"),
+        pk=exercise_id,
         course=playbook.cohort.course,
         is_active=True,
     )
@@ -189,6 +248,7 @@ def playbook_add_exercise(request, playbook_id):
     step = PlaybookExercise(playbook=playbook, exercise=exercise, order=next_order)
     step.full_clean()
     step.save()
+    playbook.save(update_fields=['updated_at'])
     messages.success(request, f"{exercise.title} playbook'ga qo'shildi.")
     return redirect("classbook:playbook_edit", cohort_id=playbook.cohort_id, lesson_id=playbook.lesson_id)
 
@@ -198,8 +258,13 @@ def playbook_add_exercise(request, playbook_id):
 @require_POST
 @transaction.atomic
 def playbook_remove_exercise(request, step_id):
+    reference = get_object_or_404(PlaybookExercise, pk=step_id, playbook__cohort__in=teacher_cohort_queryset(request.user))
+    playbook = _locked_playbook(request.user, reference.playbook_id)
+    error = _playbook_error(request, playbook, f'remove:{step_id}')
+    if error is not None:
+        return error
     step = get_object_or_404(
-        PlaybookExercise.objects.select_for_update().select_related("playbook__cohort"),
+        PlaybookExercise.objects.select_for_update(of=('self',)).select_related("playbook__cohort"),
         pk=step_id,
         playbook__cohort__in=teacher_cohort_queryset(request.user),
     )
@@ -215,6 +280,7 @@ def playbook_remove_exercise(request, step_id):
     for order, item in enumerate(siblings, 1):
         if item.order != order:
             PlaybookExercise.objects.filter(pk=item.pk).update(order=order)
+    playbook.save(update_fields=['updated_at'])
     messages.success(request, "Mashq playbook'dan olib tashlandi.")
     return redirect("classbook:playbook_edit", cohort_id=destination[0], lesson_id=destination[1])
 
@@ -226,8 +292,13 @@ def playbook_move_exercise(request, step_id, direction):
     if direction not in {"up", "down"}:
         raise Http404
     with transaction.atomic():
+        reference = get_object_or_404(PlaybookExercise, pk=step_id, playbook__cohort__in=teacher_cohort_queryset(request.user))
+        playbook = _locked_playbook(request.user, reference.playbook_id)
+        error = _playbook_error(request, playbook, f'{direction}:{step_id}')
+        if error is not None:
+            return error
         step = get_object_or_404(
-            PlaybookExercise.objects.select_for_update().select_related("playbook__cohort"),
+            PlaybookExercise.objects.select_for_update(of=('self',)).select_related("playbook__cohort"),
             pk=step_id,
             playbook__cohort__in=teacher_cohort_queryset(request.user),
         )
@@ -245,15 +316,27 @@ def playbook_move_exercise(request, step_id, direction):
             PlaybookExercise.objects.filter(pk=neighbor.pk).update(order=temporary_order)
             PlaybookExercise.objects.filter(pk=step.pk).update(order=neighbor_order)
             PlaybookExercise.objects.filter(pk=neighbor.pk).update(order=step_order)
+            playbook.save(update_fields=['updated_at'])
     return redirect("classbook:playbook_edit", cohort_id=step.playbook.cohort_id, lesson_id=step.playbook.lesson_id)
 
 
 @login_required
 @user_passes_test(_is_teacher)
 @require_POST
+@transaction.atomic
 def session_start(request, cohort_id, lesson_id):
-    cohort = get_object_or_404(teacher_cohort_queryset(request.user).select_related("course"), pk=cohort_id)
+    cohort = get_object_or_404(teacher_cohort_queryset(request.user).select_for_update(of=('self',)).select_related("course"), pk=cohort_id)
     lesson = get_object_or_404(Lesson.objects.select_related("module"), pk=lesson_id, module__course=cohort.course)
+    if v1.enabled(request):
+        playbook = LessonPlaybook.objects.select_for_update().filter(cohort=cohort, lesson=lesson).first() or LessonPlaybook(cohort=cohort, lesson=lesson)
+        if playbook.pk:
+            # The confirmed exercise definitions must remain the same until
+            # start_class_session freezes them into ActivityRun snapshots.
+            list(Exercise.objects.select_for_update(of=('self',))
+                 .filter(playbook_steps__playbook=playbook).order_by('pk').values_list('pk', flat=True))
+        error = v1.write_error(request, 'start', playbook, cohort=cohort, lesson=lesson)
+        if error:
+            return v1.conflict(request, error, cohort, lesson)
     result = start_class_session(actor=request.user, cohort=cohort, lesson=lesson)
     if not result.ok:
         messages.error(request, result.message)

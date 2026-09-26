@@ -78,6 +78,9 @@ class ExerciseForm(forms.ModelForm):
         if kind and definition:
             try:
                 cleaned["parsed_definition"] = parse_author_definition(kind, definition)
+                # ModelForm validates the new kind before save(). Validate it
+                # against the newly parsed definition, not the old kind's key.
+                self.instance.config, self.instance.answer_key = cleaned["parsed_definition"]
             except ValidationError as exc:
                 self.add_error("definition", exc)
         return cleaned

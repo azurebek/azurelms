@@ -1,0 +1,9 @@
+{% extends 'frontend_v1/platform.html' %}{% load static %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'frontend_v1/css/classbook.css' %}"><script defer src="{% static 'frontend_v1/js/library.js' %}"></script>{% block classbook_scripts %}{% endblock %}{% endblock %}
+{% block content %}
+<div class="p-page-heading"><div><p class="c-eyebrow">USTOZ / CLASSBOOK</p><h1>{% block heading %}Darsni tayyorlash{% endblock %}</h1><p class="c-lead">{% block intro %}Guruh va darsni tanlang. Playbook aynan shu guruh darsiga bog‘langan.{% endblock %}</p></div>{% block heading_action %}<a class="c-button c-button--secondary" href="{% url 'classbook:teacher_home' %}">Darslarga qaytish</a>{% endblock %}</div>
+<div class="f-classbook-stack">
+<p class="c-alert c-alert--info" role="alert" tabindex="-1" data-library-offline hidden>Aloqa yo‘q. Yuborilmadi; qoralama shu sahifada qoladi.</p>
+<p class="c-alert c-alert--info" role="status" data-library-pending hidden>Javob kutilmoqda. Qayta yubormang. Aloqa uzilsa, saqlangan holatni alohida oynada tekshiring.</p>
+{% block classbook_body %}{% endblock %}
+</div>{% endblock %}

@@ -1,0 +1,21 @@
+{% extends 'frontend_v1/classbook/base.html' %}{% load static %}
+{% block classbook_scripts %}<script defer src="{% static 'classbook/exercise-form.js' %}"></script>{% endblock %}
+{% block heading %}{% if exercise %}Mashqni tahrirlash{% else %}Yangi mashq{% endif %}{% endblock %}
+{% block intro %}Javob kaliti o‘quvchi ekraniga yuborilmaydi. Tahrir boshlangan jonli dars snapshotini o‘zgartirmaydi.{% endblock %}
+{% block heading_action %}<a class="c-button c-button--secondary" href="{% url 'classbook:exercise_list' %}">Bankka qaytish</a>{% endblock %}
+{% block classbook_body %}
+<form method="post" enctype="multipart/form-data" class="c-card p-panel f-classbook-form" data-library-form{% if form.is_bound %} data-library-unsaved{% endif %}>
+{% include 'frontend_v1/classbook/guard.html' with token=revision %}<input type="hidden" name="creation_key" value="{{ creation_key }}">
+{% include 'frontend_v1/classbook/errors.html' %}
+<h2>Mashq ma’lumotlari</h2>
+<div class="f-classbook-grid">{% include 'frontend_v1/classbook/field.html' with field=form.course %}{% include 'frontend_v1/classbook/field.html' with field=form.lesson %}</div>
+<div class="f-classbook-grid">{% include 'frontend_v1/classbook/field.html' with field=form.title %}{% include 'frontend_v1/classbook/field.html' with field=form.kind %}</div>
+{% include 'frontend_v1/classbook/field.html' with field=form.prompt %}{% include 'frontend_v1/classbook/field.html' with field=form.instructions %}
+<div>{% include 'frontend_v1/classbook/field.html' with field=form.definition %}<p class="c-caption" id="definitionHelp"></p></div>
+{% include 'frontend_v1/classbook/field.html' with field=form.explanation %}
+<div class="f-classbook-grid">{% include 'frontend_v1/classbook/field.html' with field=form.media %}{% include 'frontend_v1/classbook/field.html' with field=form.media_kind %}</div>
+<div class="f-classbook-numbers">{% include 'frontend_v1/classbook/field.html' with field=form.time_limit_seconds %}{% include 'frontend_v1/classbook/field.html' with field=form.max_points %}{% include 'frontend_v1/classbook/field.html' with field=form.speed_bonus_percent %}</div>
+<label class="c-choice"><input type="checkbox" name="confirm_scope" value="yes" required><span>Mashqni saqlashni tasdiqlayman. Bu amal darsni boshlamaydi va playbook’ga avtomatik qo‘shmaydi.</span></label>
+<button class="c-button c-button--primary" type="submit"{% if conflict %} disabled{% endif %}>Mashqni saqlash</button>
+<p class="c-caption">Saqlanmagan matn faqat shu ochiq sahifada. Fayl yoki javob kaliti browser xotirasiga ko‘chirilmaydi.</p>
+</form>{{ help_by_kind|json_script:'exerciseHelpMap' }}{% endblock %}

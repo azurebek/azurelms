@@ -16,6 +16,33 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-26 [Codex]: I9a start snapshot locki
+
+`ae4f02d`: V1 start tasdig'idan canonical snapshot yaratilguncha mashq
+qatorlari parent-first lock ostida. Parallel exercise tahriri tasdiqlangan
+definition o'rniga yangi definitionni jimgina snapshotga kiritmaydi.
+
+- Provider-free `manage.py test classbook.test_frontend_v1 --noinput --failfast`:
+  23 OK skip2 (3.640s); PG add-race va snapshot-lock tartibi CI’da.
+- [PR142](https://github.com/azurebek/azurelms/pull/142) final CI/review/main uchun
+  authoritative acceptance. AWS/current DB/frozen prototype tegilmadi.
+
+## 2026-09-26 [Codex]: I9a — Classbook tayyorlovi real V1ga ulandi
+
+Owner davom ettirishni so'radi. `eacce59`: teacher home, bank, 10 turdagi
+mashq formasi va playbook; GET no-write, native confirmed save, stale/replay
+himoyasi. Additive classbook0003; canonical grading/session/Telegram policy saqlandi.
+
+- Branch `codex/frontend-v1-classbook-preparation`; prototype/AWS/current DB tegilmadi.
+- `manage.py test classbook --noinput --failfast`: 64 OK skip3 (11.430s).
+  Provider-free full2286 OK skip55 (255.780s), Node111 PASS, check0/drift0.
+  Full run final labels/legacy error status follow-updan oldin; focused qayta PASS.
+- IAB8073 stale409/draft retained; fresh8074 create→playbook→attach va 30
+  responsive readback overflow0; desktop dark/mobile light. Grid stretch tuzatildi.
+  [Dalil va chegaralar](frontend-v1/I9A-PREPARATION.md). Final CI/review/main navbatda.
+- Qolgan port: I9b jonli session/learner activity/natijalar. Live hali legacy;
+  AWS va haqiqiy qurilma qabuli alohida. PR141 oldingi paket main267a174.
+
 ## 2026-09-26 [Codex]: I8c saved-only publication yakuniy guardi
 
 Review4112129460 missing section reviewni publish vaqtida nolga aylantirish
