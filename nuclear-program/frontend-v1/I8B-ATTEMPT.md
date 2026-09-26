@@ -1,5 +1,22 @@
 # I8b — real imtihon topshirish
 
+**RELEASE BLOCKED — PR140 review, 2026-09-26.** Main/AWSga qo‘shilmagan.
+Repo security-anomaly gate sabab runtime tuzatish/merge owner yo‘nalishigacha
+to‘xtadi. Quyidagi lokal PASSlar release acceptance emas.
+
+- P1: `SECURITY_STRICT` CSP `media-src 'self'`; tashqi section media URL
+  bloklanadi, lekin listen count undan oldin yoziladi. Manba mosligini
+  limit sarflashdan oldin tekshirish/first-party media yechimi kerak.
+  Speaking `blob:` preview ham shu strict-policy device gate’da tekshirilsin.
+  CSP manbalari yoki production content avtomatik kengaytirilmadi.
+- P2: fresh UUIDli reconcile nullable-attempt cancelled receipt yaratadi,
+  hatto flag OFF/no-attempt holatida. Bounded server-issued identity yoki
+  canonical throttling/retention kerak; yopilmaguncha yangi kod deploy qilinmaydi.
+- Review threadlar **ochiq**, PR merge qilinmadi. Head `a8b35b3`da CI
+  PostgreSQL va security/image PASS; SQLite kuzatuv vaqtida pending.
+  Runtime final local `manage.py test --noinput`: **2213 OK skip50,
+  166.277s**, Node104. 5 yangi SQLite skip — PG-only row-lock testlar.
+
 ## Admission — runtime tahriridan oldin
 
 **ADMIT — launch-critical.** KPI: ruxsatli learner start → savolni explicit

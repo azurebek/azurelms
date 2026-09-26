@@ -40,6 +40,12 @@ frontend_v1_exam_attempt, additive courses0022; AWS/prototype o‘zgarmadi.
 - Final mixed-renderer lock-order hardening `948878c`: legacy/V1 user →
   attempt tartibi; beshinchi PG race testi. Focused111 OK skip5 (9.839s).
   [PR140](https://github.com/azurebek/azurelms/pull/140) final CI/reviewda.
+- **REVIEW BLOCKED, merge yo‘q:** P1 strict-CSP external audio bloklanib,
+  listen count oldindan sarflanishi; P2 fresh-UUID reconcile cancelled
+  receiptlarini flag OFF/no-attemptda ham cheksiz yaratishi. Security-anomaly
+  qoidasiga ko‘ra ownerga xabar berildi, runtime fix/merge to‘xtadi. Threadlar
+  ochiq. Final local2213 OK skip50 (166.277s); a8b35b3 CI PG/security PASS,
+  SQLite o‘sha paytda pending. AWS/prototype/current DBga tegilmadi.
 
 ## 2026-09-26 [Codex]: I8 attempt API — joriy ruxsat va unpublished grade himoyasi
 
