@@ -1,9 +1,10 @@
 # Frontend V1 — tayyorlik inventari va source xaritasi
 
 **2026-09-27 delta:** [Q14 lokal muharrir](Q14-EXAM-EDITOR-PROTOTYPE.md) va
-[Q15a kundalik boshqaruv](Q15A-DAILY-BACKOFFICE-PROTOTYPE.md) bilan
-103 preview /60 template /82 source nomi. U01–U06 source-supported
-UI bor; 36 UI +3 handler hali qurilmagan. Keng Q14 capability, real port
+[Q15a kundalik boshqaruv](Q15A-DAILY-BACKOFFICE-PROTOTYPE.md) va
+[Q15b katalog](Q15B-CATALOG-PROTOTYPE.md) bilan
+108 preview /63 template /87 source nomi. U01–U11 source-supported
+UI bor; 31 UI +3 handler hali qurilmagan. Keng Q14 capability, real port
 va native qabul ochiq. Quyidagi95/54/76 — V1ning tarixiy bazasi.
 
 **2026-09-26 qayta audit:** tayyor I1–I9 kodi AWSga chiqarildi;
