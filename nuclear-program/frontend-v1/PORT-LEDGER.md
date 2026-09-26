@@ -113,7 +113,8 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
   - [x] ~~Sertifikat detail/appendix lokal V1 porti.~~ `66f671c`,
     [dalil](I5-CERTIFICATE-DOCUMENTS.md): exact-ID public policy saqlandi,
     published-only appendix, explicit print; 12 responsive readback overflow0.
-  - [ ] Sertifikat detail/appendix required CI/review/main (PR141), AWS/device.
+  - Sertifikat detail/appendix CI/review/main: [PR141 joriy holati](https://github.com/azurebek/azurelms/pull/141).
+    Local2263 OK skip54, Node111; AWS/device release hali ochiq.
 - [x] ~~I6 — Library + course/lesson editor kod integratsiyasi.~~ Common resource/link/private
   storage parity; real forms existing fieldsni saqlaydi. Qisman field/save
   contract mos kelmasa tegishli editor legacy qoladi va qarz ochiq yoziladi.
@@ -181,7 +182,8 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
   - [x] ~~I8c lokal teacher review UI va stale-form confirmation.~~
     [Qamrov va dalil](I8C-REVIEW.md): native draft/publish, additive0024,
     49 focused OK skip1, Node110; 6 responsive width overflow0.
-  - [ ] I8c required CI/review/main.
+  - I8c CI/review/main: [PR141 joriy holati](https://github.com/azurebek/azurelms/pull/141).
+    Runtime `4eb3df1`, review fixes `1ce783b`/`907425a`, latest focused59 OK skip1.
   - [ ] I8 AWS/native-device release.
 - [ ] **I9 — Classbook.** Preparation→session→activity→result; multi-user,
   late join/reconnect va 10 exercise type’ning tegishli adapterlari.

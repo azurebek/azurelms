@@ -30,3 +30,7 @@ Owner yuki oshmaydi; regression, browser va CI orqali qabul qilinadi.
   telefon NOT TESTED. Print user-click trigger Node testda tekshirildi.
 - PR141 tarkibida I8c bilan navbatdagi real-port paketi. Fresh full/CI/review
   gate ochiq; AWS/current DB o‘zgarmadi. Qolgan port yo‘nalishi I9 Classbook.
+- Combined local full2263 OK skip54 (220.319s), Node111, CI36258423702
+  all3PASS. I8c missing-section follow-up bilan focused59 OK skip1;
+  [PR141](https://github.com/azurebek/azurelms/pull/141) final headning CI/main
+  statusi uchun authoritative havola. Native printer va AWS gate alohida.

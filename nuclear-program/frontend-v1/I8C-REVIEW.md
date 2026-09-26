@@ -27,6 +27,14 @@ bilan ayni transaction ichidagi global lock/ABA kafolatini da’vo qilmaydi.
 Old headfb26c3c CI36257842408 all3PASS; sertifikat porti va bu fixdan keyin
 fresh gate kerak.
 
+PR141 review4112129460 `907425a`da yopildi: bo‘lim reviewsi yo‘q yoki imtihon
+bo‘sh bo‘lsa V1 publish400/no-write, tugma disabled. Missing bo‘lim bali
+«saqlangan0» emas, «Hali saqlanmagan». Avval explicit draft save kerak;
+keyin canonical finalize. Yangi/historical missing section va empty exam
+regressiyasi, focused59 OK skip1 (13.582s). Old head6ad7b7f full2263 OK skip54
+(220.319s), CI36258423702 all3PASS. Final head CI/main holati [PR141](https://github.com/azurebek/azurelms/pull/141)da;
+bu tarixiy checkpointlar fresh acceptance o‘rnini bosmaydi.
+
 - Provider-free `manage.py test core.test_frontend_v1_exam_review courses.test_frontend_v1_exams --noinput`:
   **49 OK skip1 (10.304s)**. Yangi16 test; skip SQLite row-lock yo‘qligi,
   PostgreSQL CI bir snapshotdan parallel POST → 302/409ni tekshiradi.

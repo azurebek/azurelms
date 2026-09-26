@@ -16,6 +16,18 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-26 [Codex]: I8c saved-only publication yakuniy guardi
+
+Review4112129460 missing section reviewni publish vaqtida nolga aylantirish
+holatini topdi. `907425a`: avval barcha bo‘limlar explicit draftda saqlanadi;
+aks holda V1 publish400/no-write, missing0 emas «Hali saqlanmagan».
+
+- Provider-free focused review/exams/certificates **59 OK skip1 (13.582s)**.
+  Old combined full2263 OK skip54 (220.319s), Node111 PASS;
+  oldCI36258423702 all3PASS. Final CI/main [PR141](https://github.com/azurebek/azurelms/pull/141)da.
+- Branch `codex/frontend-v1-exam-review`; safe commits pushed, no AWS.
+  Sertifikat ikki yuzasi ham port qilingan; qolgan kod porti I9 Classbook.
+
 ## 2026-09-26 [Codex]: Sertifikat hujjatlari va I8c metadata review
 
 Owner limit sababli portni tezlashtirishni so‘radi: yangi prototype yo‘q,
