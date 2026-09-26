@@ -30,6 +30,10 @@ nom =42 UI +2 mavjud-renderer aliasi. Uch error handler bilan45 qamrov bandi,
   54 template joyida,11 ochiq qadam. `git diff --cached --check` PASS.
 - Muhim chegara: Q14 canonical editor savol CRUD emas; eski davomat
   manzili alohida UI. Bu qarorlar yashirin feature/defer sifatida yopilmadi.
+- PR145 reviewga javob `cd5a4ce`: U17 AI sozlamalarining sabab/tasdiq/
+  audit/no-op retrofiti A2-D01 alohida admission/backend dependency sifatida
+  ajratildi; Q16a UI borligi to‘liq write-parity qabulini yopmaydi.
+  Docs-only `git diff --check` PASS; sahifa soni va navbat o‘zgarmadi.
 - Keyingi: rejani asos qilib Q14 paketini boshlash; ushbu turn faqat reja.
   Browser/full test suite qayta yugurilmadi — runtime o‘zgarishi yo‘q.
 
