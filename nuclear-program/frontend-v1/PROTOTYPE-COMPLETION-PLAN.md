@@ -63,8 +63,12 @@ Eski Q raqamlari saqlanadi; a/b bo‘linishi faqat paket chegarasidir.
 - [ ] **4. Q16a — Nazorat va AI boshqaruvi (8 URL).** Control center,
   flags, runtime settings, AI xarajat, dead-letter, AI sozlamalari,
   kill-switch, circuit reset. **Yakun:** joriy qiymat va qoralama alohida;
-  ta’sir doirasi → sabab/tasdiq → natija/audit → takroriy/no-op holati.
-  Prototip hech qanday haqiqiy limit, flag yoki tashqi xizmatni o‘zgartirmaydi.
+  source qo‘llaydigan mutationlarda ta’sir doirasi → sabab/tasdiq →
+  natija/audit → takroriy/no-op holati. **U17 istisnosi:** eski AI settings
+  write yuzalari buni to‘liq qo‘llamaydi; quyidagi A2-D01 alohida backend
+  qarzi, Q16a ichida jimgina retrofit qilinmaydi. UI qurilishi va to‘liq
+  write-parity qabuli alohida belgilanadi. Prototip hech qanday haqiqiy
+  limit, flag yoki tashqi xizmatni o‘zgartirmaydi.
 - [ ] **5. Q16b — Brend va landing boshqaruvi (2 URL).** Logo/brend
   formasi va bosh sahifa kontenti. **Yakun:** qoralama/preview → explicit
   saqlash → public namuna bilan moslik; tasdiqsiz global tema yoki brend
@@ -221,6 +225,21 @@ qo‘yadi; aniqlangan yangi backend imkoniyati 45 sahifa soniga yashirin qo‘sh
    real payment/provider/Telegram, native phone/audio, backup scheduling
    va real-content qabuli [R2](R2-READY-V1-AWS.md)da alohida ochiq.
    Rejani chizib tugatish bu xizmatlar tayyor degani emas.
+7. **A2-D01 — AI sozlamalarining audit retrofiti, alohida backend qarzi.**
+   `backoffice_ai_control`dagi `save_settings` va `save_policy` to‘g‘ridan-to‘g‘ri
+   yozadi; majburiy sabab/tasdiq va `SystemAuditEvent` shartnomasi yo‘q.
+   `apply_event`dagi reset/bonusning o‘z event yozuvi borligi qolgan
+   amallarni auditlangan qilmaydi. [Agent qoidalari §1](../rules-for-agents.md)
+   aynan shu retrofitni alohida A2 qarzi deb belgilaydi.
+   **Holat: OPEN / alohida admission talab qilinadi; ushbu reja uni
+   implementatsiya qilishga ruxsat emas.** Q16a U17 uchun hozirgi
+   canonical read/form/action chegarasini ko‘rsatadi; mavjud bo‘lmagan
+   audit/no-op kafolati yoki soxta muvaffaqiyatni mock qilmaydi.
+   Kuchaytirilgan write oqimi uchun owner admission → alohida canonical
+   service/form/test paketi → prototype contract yangilanishi kerak.
+   A2-D01 yopilmaguncha yoki owner explicit qabul chegarasini belgilamaguncha
+   Q16a/U17ning **to‘liq write-parity qabuli ochiq** qoladi; UI tayyorligi
+   bu qarzni yashirmaydi. 45 sahifa soni o‘zgarmaydi.
 
 ## 6. Har paket uchun bir xil tugatish mezoni
 
@@ -230,6 +249,8 @@ qo‘yadi; aniqlangan yangi backend imkoniyati 45 sahifa soniga yashirin qo‘sh
   relevant offline/loading/stale/unknown-result holatlari mavjud.
 - Formani tasdiqlamasdan tashqi ta’sir yo‘q; duplicate yoki natijasi
   noma’lum so‘rov avtomatik takror yuborilmaydi; qoralama yo‘qolmaydi.
+  Source bu himoyani bermasa (masalan A2-D01), bu frontendda kafolatlangandek
+  ko‘rsatilmaydi: alohida backend dependency va ochiq qabul bandi yoziladi.
 - 320/390/768/1024/1280px, light/dark, uzun matn, keyboard/focus/Escape,
   Back/refresh tekshirilgan; horizontal overflow yoki yopilgan asosiy amal yo‘q.
 - Console/network va bog‘liq oldingi oqim regressiyasi tekshirilgan;
