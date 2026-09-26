@@ -23,6 +23,9 @@ flag bilan ulandi. Canonical preference/memory writer va quota saqlandi;
 alohida explicit-save, stale form va confirmation himoyasi qo‘shildi.
 
 - Branch: `codex/frontend-v1-settings-remainder`; runtime `d3c286e`.
+- Review follow-up `725d47c`: preference ABA counter/shared writer va
+  verified-ID memory clear. Additive `users0022` migration; focused65 OK
+  (5.735s), migration drift yo‘q; full suite qayta boshlangan.
 - Offline focused settings/account/sections/flags **61 OK** (6.755s);
   rendered privacy token bilan POST follow-up: **62 OK**, 8.340s;
   full `manage.py test --noinput --verbosity 0` **exit0** (output truncation,

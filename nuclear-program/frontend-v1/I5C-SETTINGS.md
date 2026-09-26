@@ -16,8 +16,9 @@ Yangi dizayn, AI engine/provider, to‘lov yoki yangi prototip yo‘q.
 - Adapter: `frontend_v1_settings` default-OFF, real URL/CSRF/native POST→GET.
   Account flagdan mustaqil; shared tabs ikkala flag holatini ochiq bildiradi.
 - V1 write guard: user/action-bound HMAC snapshot, explicit confirmation
-  archive/reject/clear uchun; eski form no-write. Canonical writer o‘zgarmaydi.
-  Bu barcha legacy/AI writerlar uchun global revision yoki durable receipt
+  archive/reject/clear uchun; eski form no-write. Canonical preference writer
+  versiya hisoblagichini ham saqlaydi; validation/choice/quota o‘zgarmaydi.
+  Bu barcha admin/ORM/AI writerlar uchun global revision yoki durable receipt
   emas. Native form avtomatik qayta yuborilmaydi; noaniq natija GET bilan
   tekshiriladi. Persistent private draft/operation storage yo‘q.
 - Owner workload: yangi operatsion jarayon yo‘q; existing audited flag bilan
@@ -48,14 +49,14 @@ Offline env: `AZURELMS_SKIP_ENV_FILE=1`, `GEMINI_API_KEY=''`,
 
 - `venv/Scripts/python.exe manage.py test users.test_frontend_v1_settings
   users.test_frontend_v1_account users.test_settings_sections core.test_feature_flags
-  --noinput --verbosity 1`: **62 OK**, 8.340s; 22 yangi settings regressiyasi.
+  --noinput --verbosity 1`: **65 OK**, 5.735s; 25 yangi settings regressiyasi.
   Rendered privacy snapshot bilan real POST ham tekshirildi (test-only token emas).
 - `venv/Scripts/python.exe manage.py test --noinput --verbosity 0`: **PASS,
-  exit0** (yakuniy qo‘shimcha testdan oldin, runtime o‘zgarmagan).
+  exit0** (review follow-updan OLDIN; yangi full suite qayta boshlangan).
   Lokal output truncation sabab aniq count/time bu yerda da’vo qilinmaydi.
 - `node --test tests/frontend_v1/*.test.mjs`: **73 PASS**, 0 fail.
 - `manage.py check`: 0 issue; `manage.py makemigrations --check --dry-run`:
-  No changes detected; `git diff --check`: PASS. Model/migration yo‘q.
+  No changes detected; `git diff --check`: PASS. Quyidagi additive migration bor.
 
 IAB, disposable SQLite8059: real native login, preference explicit save/PRG,
 ikki tabdagi o‘zgarishdan keyin eski POST409/no-write; bound tanlov va haqiqiy
@@ -73,11 +74,27 @@ browserda privacy sozlamasi o‘zgartirilmadi. Staff shell, empty/legacy-only,
 blocked/unlimited/unavailable usage holatlari backend testida. Full native
 device, screen reader va provider/SMTP qabuli **NOT TESTED**; AWS deploy yo‘q.
 
+## Review follow-up — `725d47c`
+
+PR132 ikkita P2 topilmasi tuzatildi. A→B→A o‘zgarishi eski formani qayta
+valid qilmasligi uchun `CustomUser.ai_preferences_version` monotonic counter;
+`users/preferences.py:save_ai_preference` to‘rt mavjud endpointning V1,
+legacy va JSON chaqiruvlari uchun yagona locked writer. No-op increment0;
+har haqiqiy o‘zgarish barcha AI preference formalarni konservativ eskirtiradi.
+Direct admin/ORM yozuvlari revision-aware deb da’vo qilinmaydi.
+
+`users.0022_customuser_ai_preferences_version` additive migration: bigint0,
+editable=False; drop/rename yoki data migration yo‘q. Deploy oldidan migrate
+zarur. Renderer rollback schema/counterni o‘chirmaydi; 0022ni unapply qilish
+oddiy rollback yo‘li emas. Production bu sessiyada migrate qilinmagan.
+
 Snapshot aynan ko‘rsatilgan faktlardan olinadi; N+1 token query yo‘q.
-Guard V1 formalarni user row lock bilan ketma-ket qiladi, lekin AI/legacy
-writerlar uchun global transaction revision yoki durable operation receipt
-emas. Private draft storage va automatic resend yo‘q. Privacy GETning
-avvaldan mavjud memory maintenance/decay ta’siri saqlanadi.
+Confirmed clear `MemoryRepository.archive_all_for_user`da faqat tekshirilgan
+fact va legacy row IDlarini o‘zgartiradi. Verification→bulk write orasida
+qo‘shilgan fact/legacy saqlanadi (deterministic interleaving regression).
+Existing legacy clear-all kontrakti defaults bilan saqlangan.
+AI writerlar uchun global revision/durable receipt da’vosi yo‘q. Private
+draft storage/automatic resend yo‘q; privacy GET maintenance/decay saqlangan.
 
 Keyingi port: register/reset/onboarding; records/help/notifications.
 I6–I9 ochiq, bu paket notifications yoki checkoutni o‘z ichiga olmaydi.
