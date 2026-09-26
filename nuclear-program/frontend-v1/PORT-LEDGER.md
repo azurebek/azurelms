@@ -185,8 +185,15 @@ ko‘chirilmagan yuzalar legacy; barcha sahifa yangi degani emas.
   - I8c CI/review/main: [PR141 joriy holati](https://github.com/azurebek/azurelms/pull/141).
     Runtime `4eb3df1`, review fixes `1ce783b`/`907425a`, latest focused59 OK skip1.
   - [ ] I8 AWS/native-device release.
-- [ ] **I9 — Classbook.** Preparation→session→activity→result; multi-user,
+- [-] **I9 — Classbook.** Preparation→session→activity→result; multi-user,
   late join/reconnect va 10 exercise type’ning tegishli adapterlari.
+  - [x] ~~I9a lokal preparation porti.~~ `eacce59`: teacher home, mashq banki,
+    create/edit va playbook; native confirmed stale/replay-safe yozish.
+    [Qamrov/dalil](I9A-PREPARATION.md): classbook64 OK skip3, full2286 OK skip55,
+    Node111, 30 responsive check overflow0. Additive classbook0003.
+  - [ ] I9a required CI/review/main acceptance (joriy task PRida).
+  - [ ] I9b live teacher session, learner home/session/activity/result va teacher result.
+  - [ ] I9 AWS/native-device release.
 - [ ] **R-next — Har qo‘shimcha tayyor bo‘lakning o‘z release qabuli.** R1
   shartlari qaytariladi; oldingi ishlaydigan release keyingisini kutmaydi.
 - [ ] **P-resume — Tanlangan V1 ko‘chirish/relizidan so‘ng prototip ishiga qaytish.**

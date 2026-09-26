@@ -308,6 +308,17 @@ beat: celery -A core beat -l info
 
 ### `classbook`
 
+Frontend V1 preparation (2026-09-26): default-OFF `frontend_v1_classbook_preparation`
+teacher home, mashq banki/create/edit va playbook rendererlarini tanlaydi.
+V1 GET playbook yaratmaydi; native POST/CSRF/HMAC snapshot va explicit consent.
+Additive classbook0003: Exercise/LessonPlaybook edit_revision; Exercise nullable
+unique creation_key bitta formadan duplicate yaratishni to'sadi. Cohort→playbook
+lock tartibi session_startga mos; view step amallari parent revisionni oshiradi.
+Normal model save (admin/legacy ham) revisionni oshiradi; arbitrary bulk/direct
+child writer uchun global CAS kafolati yo'q. Canonical ExerciseForm parser va
+start_class_session qayta ishlatiladi, existing live snapshot o'zgarmaydi.
+I9b live/result rendererlar legacy. [Scope/tests](frontend-v1/I9A-PREPARATION.md).
+
 **Mas'uliyat:** jonli darsni bitta teacher control plane'dan boshqarish: playbook, Telegram davomat/material, turli mashqlar, avtomatik baholash, realtime leaderboard, yakuniy davomat/access/homework va natija eksporti.
 
 **Asosiy modellar:**
