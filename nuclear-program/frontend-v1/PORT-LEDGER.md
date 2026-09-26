@@ -16,7 +16,9 @@ bu I1–I9ni qayta ochish yoki yangi deploy topshirig‘i emas.
 
 2026-09-27 continuation: [Q14 source-supported prototip](Q14-EXAM-EDITOR-PROTOTYPE.md)
 lokal qurildi; keyin [Q15a](Q15A-DAILY-BACKOFFICE-PROTOTYPE.md) U03–U06
-qo‘shildi. Endi36 UI +3 handler; Q15adan keyin9 keyingi qadam.
+qo‘shildi. Keyin [Q15b](Q15B-CATALOG-PROTOTYPE.md) U07–U11 lokal qurildi:
+657 full +28 final focused /174 JS PASS, 50 responsive ko‘rinish. Endi31 UI +3 handler;
+Q15bdan keyin8 keyingi qadam. Difference receipt real adapteri ochiq.
 Bu **yangi real port yoki AWS relizi emas**; keng Q14 capability ochiq.
 
 ## Navbat

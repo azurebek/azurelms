@@ -1,9 +1,10 @@
 # Qolgan prototiplar — aniq qamrov va tugatish rejasi
 
-**2026-09-27 ijro:** Q14 U01/U02dan keyin Q15a U03–U06 qurildi:
-[Paket67](Q14-EXAM-EDITOR-PROTOTYPE.md), [Paket68 dalili](Q15A-DAILY-BACKOFFICE-PROTOTYPE.md).
-Joriy son **103 URL /60 template /82 source nomi**. Endi prototipi yo‘q
-**36 UI +3 handler =39 band**, navbatdagi **9 qadam** qolgan.
+**2026-09-27 ijro:** Q14 U01/U02, Q15a U03–U06, Q15b U07–U11 qurildi:
+[Paket67](Q14-EXAM-EDITOR-PROTOTYPE.md), [Paket68](Q15A-DAILY-BACKOFFICE-PROTOTYPE.md),
+[Paket69 dalili](Q15B-CATALOG-PROTOTYPE.md).
+Joriy son **108 URL /63 template /87 source nomi**. Endi prototipi yo‘q
+**31 UI +3 handler =34 band**, navbatdagi **8 qadam** qolgan.
 Keng Q14 savol/ko‘p-bo‘lim/nashr capabilitysi alohida ochiq; real port
 va AWS bu turn o‘zgarmadi. Quyidagi45 soni boshlang‘ich audit snapshotidir.
 
@@ -69,10 +70,15 @@ Eski Q raqamlari saqlanadi; a/b bo‘linishi faqat paket chegarasidir.
   **Ijro:** [Paket68](Q15A-DAILY-BACKOFFICE-PROTOTYPE.md); 4 lokal UI,
   checkout→owner qarori→learner holati, 40 responsive ko‘rinish tekshirildi.
   **630 Django +170 JS PASS**; real port va owner/native qabul ochiq.
-- [ ] **3. Q15b — Tarif va guruh boshqaruvi (5 URL).** Katalog, tarif
+- [x] ~~3. Q15b — Tarif va guruh boshqaruvi (5 URL).~~ Katalog, tarif
   formasi, guruh yaratish/tahrirlash, a’zolar. **Yakun:** tarif/guruh → a’zo
   → joyni bo‘shatish/tiklash yoki ko‘chirish/farq summasi → qayta ko‘rish;
   pul, joy va access hisoblari fixture’da canonical natija sifatida beriladi.
+  **Ijro:** [Paket69](Q15B-CATALOG-PROTOTYPE.md), 657 full +28 final focused,
+  174 JS PASS;
+  50 responsive ko‘rinish, create/readback, tier consent, unknown-result.
+  Farq so‘rovi lokal metadata; real receipt/upload/approval adapteri va
+  owner/native qabul ochiq. Production yoki yangi payment yozilmagan.
 - [ ] **4. Q16a — Nazorat va AI boshqaruvi (8 URL).** Control center,
   flags, runtime settings, AI xarajat, dead-letter, AI sozlamalari,
   kill-switch, circuit reset. **Yakun:** joriy qiymat va qoralama alohida;
@@ -123,7 +129,8 @@ alohida backlogda turadi; shu rejaning ichiga yashirincha kiritilmaydi.
 ## 3. To‘liq sahifa/manzil ro‘yxati
 
 Jadval boshlang‘ich **YO‘Q** inventaridir. **2026-09-27 delta:** U01/U02
-Paket67da, U03–U06 Paket68da lokal qurildi; qolgan36 UI +3 handler ochiq.
+Paket67da, U03–U06 Paket68da, U07–U11 Paket69da lokal qurildi;
+qolgan31 UI +3 handler ochiq.
 Jadvaldagi IDlar progress/dalilni bog‘lash uchun barqaror. `<...>` parametr,
 demo ID emas. Lokal UI borligi real port yoki G3 qabul degani emas.
 
