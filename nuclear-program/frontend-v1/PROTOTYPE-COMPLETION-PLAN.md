@@ -74,7 +74,8 @@ Eski Q raqamlari saqlanadi; a/b bo‘linishi faqat paket chegarasidir.
   formasi, guruh yaratish/tahrirlash, a’zolar. **Yakun:** tarif/guruh → a’zo
   → joyni bo‘shatish/tiklash yoki ko‘chirish/farq summasi → qayta ko‘rish;
   pul, joy va access hisoblari fixture’da canonical natija sifatida beriladi.
-  **Ijro:** [Paket69](Q15B-CATALOG-PROTOTYPE.md), 656 Django +174 JS PASS;
+  **Ijro:** [Paket69](Q15B-CATALOG-PROTOTYPE.md), 657 full +28 final focused,
+  174 JS PASS;
   50 responsive ko‘rinish, create/readback, tier consent, unknown-result.
   Farq so‘rovi lokal metadata; real receipt/upload/approval adapteri va
   owner/native qabul ochiq. Production yoki yangi payment yozilmagan.

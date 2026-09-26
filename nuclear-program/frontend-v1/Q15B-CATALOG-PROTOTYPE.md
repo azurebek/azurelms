@@ -97,8 +97,11 @@ $trialTestFiles = @(Get-ChildItem -LiteralPath tests -Filter '*.test.mjs' | ForE
 node --test @trialTestFiles
 ```
 
-- Check0; **656 Django PASS** (283.950s), yangi26 Q15b test. Yakuniy
-  result/ixcham navigation tuzatishidan keyin27 focused PASS (5.144s).
+- Check0; dastlab656 Django PASS (283.950s), qoralama-scope tuzatishidan
+  keyin **657 full PASS** (229.072s). So‘ng nullable legacy target ko‘rinishi
+  uchun bitta regression qo‘shildi: **28 Q15b focused PASS** (2.157s).
+  Joriy test inventory658; oxirgi nullable fixdan keyin full suite emas,
+  butun Q15b focused suite qayta bajarilgan — bu farq yashirilmaydi.
   **174 Node PASS**, yangi4 draft testi; ikki yangi JS syntax check PASS.
 - 5 route ×320/390/640/1024/1440px ×light/dark = **50 ko‘rinish**:
   horizontal overflow0, ko‘rinadigan link/button/field/choice height ≥44px.
@@ -107,6 +110,11 @@ node --test @trialTestFiles
   boshqa tarif consent yo‘q422→matn/fokus→consent→yangi a’zolik;
   difference request readback (to‘lov bo‘lmadi); unknown503→exact result;
   320px uzun matn, menu Escape/focus PASS. Final page JS error/warn0.
+- Yakuniy qoralama-scope tekshiruvi: eski result GET faqat aynan yuborilgan
+  run/entity/action/revision draftini tozalaydi, boshqa a’zoning yangi
+  qoralamasi qoladi. Native Back/reload bilan brauzerda tasdiqlandi.
+  Nullable legacy targetda tarif bo‘lmasligi 500 chiqarmaydi; canonical
+  `delivery_service.validate_plan_cohort` semantikasi saqlandi.
 - Dastlabgi 60-test run bitta CSS token typo sabab FAIL bo‘lgan;
   mavjud `--az-reading` tokeniga tuzatildi, keyingi to‘liq suite PASS.
   Muvaffaqiyatsiz run dalildan yashirilmadi, test susaytirilmadi.
@@ -115,10 +123,13 @@ node --test @trialTestFiles
 
 ## Checkpoint va navbat
 
-- ZIP: `playground/Eleventh Trial/checkpoints/packet-69-20260927-015747.zip`.
-- **501 fayl**, har archive entry va source SHA256 mosligi tekshirildi.
-- SHA256: `913A1C27DEEF545A3617B7C3993B68B0F8B4AE3EBA40A4F0026A6832BEFD6E17`.
-- Paket68 saqlanadi; source/screenshots ignored, remote’ga yuborilmadi.
+Yakuniy checkpoint qoralama-scope/nullable fixni ham o‘z ichiga oladi;
+`playground/Eleventh Trial/checkpoints/packet-69-20260927-020555.zip`,
+**501 fayl**, har entry hash tekshirildi;
+SHA256 **`ECC5E5B82643A0E350DDFA7C1E5C368A68EF096BE8B9A0A1E2E2A9DCD69482BF`**.
+dastlabgi `packet-69-20260927-015747.zip` (501 fayl,
+SHA256 `913A1C27DEEF545A3617B7C3993B68B0F8B4AE3EBA40A4F0026A6832BEFD6E17`)
+va Paket68 o‘chirilmaydi. Source/screenshots ignored, remote’ga yuborilmaydi.
 
 Q15b U07–U11 lokal prototipi qurildi. **31 UI +3 handler =34 band,
 8 keyingi qadam** qoldi. Keyingi: **Q16a — Nazorat va AI boshqaruvi (8 URL)**.
