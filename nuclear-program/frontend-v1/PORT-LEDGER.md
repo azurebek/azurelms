@@ -22,7 +22,12 @@ Keyin [Q16a](Q16A-CONTROL-PROTOTYPE.md) U12–U19 lokal UI: 24 flag,
 7 runtime panel,16 capability va100 responsive ko‘rinish. U17/A2-D01
 to‘liq write-parity ochiq. [Q16b](Q16B-BRAND-LANDING-PROTOTYPE.md) U20/U21
 ham lokal qurildi:710 full +52 final focused /182 JS PASS,40 responsive.
-Endi21 UI +3 handler; Q16b’dan keyin6 qadam.
+Keyin [Q17a](Q17A-BLOG-STUDIO-PROTOTYPE.md) U22–U24:13 source field,
+draft/save/publish→public single-store;735 Django/186 JS PASS,
+50 responsive +54 state case.121 route/67 template/100 source nomi.
+Endi18 UI +3 handler=21 yangi band. Blog rich-text/inline media parity
+sabab Q17a ishda qoladi: jami6 ochiq qadam (Q17a yakuni + keyingi5).
+Real RBAC/durable save/media alohida port chegarasi hamon ochiq.
 Difference receipt real adapteri ham ochiq.
 Bu **yangi real port yoki AWS relizi emas**; keng Q14 capability ochiq.
 
