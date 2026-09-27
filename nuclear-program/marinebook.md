@@ -16,6 +16,33 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-27 [Codex]: Q17a blog studiyasi — uchta lokal UI
+
+D31 continuation, Paket72: studiya list/new/edit,13 source field;
+draft preview→native save/publish→exact receipt→shu storedan public maqola.
+Muqova normalizeri va shared shell qayta ishlatildi. Production runtime,
+DB/AWS o‘zgarmadi; source va rasmlar ignored lokal scope’da qoldi.
+
+- Branch `codex/q17a-blog-prototype`; dalil commit **`66bb279`**.
+  [Q17a dalili](frontend-v1/Q17A-BLOG-STUDIO-PROTOTYPE.md).
+- Trial cwd provider-free `manage.py check`:0;
+  `manage.py test tests --verbosity 1`: **735 PASS (271.959s)**;
+  `node --test` barcha trial testlari: **186 PASS**, JS syntax PASS.
+- IAB50 responsive +54 state case: overflow0, visible controls≥44px,
+  blocked save disabled; native draft/consent422/save/publish/public,
+  actual cover chooser→blob→normalized image, unknown→exact resultGET.
+  Mobile menu Escape/focus va final console error/warn0; viewport reset.
+- First full734 teacher query regressionini topdi; allowlist tuzatildi,
+  learner rejection saqlandi, navigation invariant yumshatilmadi.
+  Final full735 yuqoridagi tuzatish va final return/order guardlardan keyin.
+- Checkpoint `packet-72-20260927-052103.zip`,542 entry hash-verified;
+  SHA256 `5EACBA7E95402213092A2AE84848FF1C05EFCDCF90F4768E8D1F532F0B583456`.
+  Old Packet71 saqlandi; force-add/push/upload yo‘q.
+- 121 route/67 template/100 source. Qoldiq **18 UI+3 handler=21 band,
+  5 qadam**; keyingiQ17b SIT10UI. Rich-text/CKEditor/inline media,
+  real RBAC/durable save/media, U17/A2-D01/kengQ14 va native/owner/G2/G3
+  ochiq. Required CI/merge alohida tekshiriladi; AWS relizi emas.
+
 ## 2026-09-27 [Codex]: Q16b brend va landing — ikki lokal muharrir
 
 D31 continuation, Paket71:7 brand field/4 raster va60 landing field/9 bo‘lim.
