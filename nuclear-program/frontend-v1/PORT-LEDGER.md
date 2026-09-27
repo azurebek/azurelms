@@ -28,7 +28,10 @@ draft/save/publish→public single-store;735 Django/186 JS PASS,
 Keyin [Paket73](Q17A-RICH-CONTENT-PARITY.md) Q17a rich-text/inline media
 lokal paritetini yakunladi:752 Django/190 JS PASS,30 responsive case;
 preview/save/public format/image/caption/table tasdiqlandi.
-Endi18 UI +3 handler=21 yangi band,5 navbatdagi qadam; keyingiQ17b SIT.
+Keyin [Paket74](Q17B-SIT-STUDIO-PROTOTYPE.md) Q17b SIT10 UI qurildi:
+43 source field,7 child formset/33 field, native preview/save/public,
+120 responsive case.131/69/110,1167 route-state,198 action.
+Endi8 UI +3 handler=11 yangi band,4 navbatdagi qadam; keyingiQ18 Mini App.
 Real RBAC/durable save/media alohida port chegarasi hamon ochiq.
 Difference receipt real adapteri ham ochiq.
 Bu **yangi real port yoki AWS relizi emas**; keng Q14 capability ochiq.

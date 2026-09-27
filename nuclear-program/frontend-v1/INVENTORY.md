@@ -5,12 +5,13 @@
 [Q15b katalog](Q15B-CATALOG-PROTOTYPE.md) va
 [Q16a nazorat/AI](Q16A-CONTROL-PROTOTYPE.md) va
 [Q16b brend/landing](Q16B-BRAND-LANDING-PROTOTYPE.md) va
-[Q17a blog studiyasi](Q17A-BLOG-STUDIO-PROTOTYPE.md) bilan
-121 preview /67 template /100 source nomi. U01–U24 source-shaped UI bor;
-U17/A2-D01 write-parity ochiq. 18 UI +3 handler hali qurilmagan. Keng Q14 capability,
+[Q17a blog studiyasi](Q17A-BLOG-STUDIO-PROTOTYPE.md) va
+[Q17b SIT studiyasi](Q17B-SIT-STUDIO-PROTOTYPE.md) bilan
+131 preview /69 template /110 source nomi. U01–U34 source-shaped UI bor;
+U17/A2-D01 write-parity ochiq. 8 UI +3 handler hali qurilmagan. Keng Q14 capability,
 real port va native qabul ochiq. [Paket73](Q17A-RICH-CONTENT-PARITY.md)
 blog rich-text/inline media lokal paritetini yopdi; Q17a implementation
-qadami yakunlandi,21 yangi band/5 navbatdagi qadam. Real blog media/RBAC/
+qadami yakunlandi; Packet74dan keyin11 yangi band/4 navbatdagi qadam. Real blog/SIT media/RBAC/
 sanitizer adapteri hali port qilinmagan. Quyidagi95/54/76 — tarixiy V1 bazasi.
 
 **2026-09-26 qayta audit:** tayyor I1–I9 kodi AWSga chiqarildi;

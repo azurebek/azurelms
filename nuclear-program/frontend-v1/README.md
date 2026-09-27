@@ -14,12 +14,14 @@ Owner keyingi qurishdan oldin qolgan prototip qamrovini aniqlashni so‘radi.
 qurildi. [Q16a nazorat/AI](Q16A-CONTROL-PROTOTYPE.md) bilan yana8 UI:
 keyin [Q16b brend/landing](Q16B-BRAND-LANDING-PROTOTYPE.md) bilan yana2 UI.
 Keyin [Q17a blog studiyasi](Q17A-BLOG-STUDIO-PROTOTYPE.md) bilan yana3 UI.
-Endi **18 UI +3 handler =21 yangi band,5 navbatdagi qadam**.
+Keyin [Q17b SIT studiyasi](Q17B-SIT-STUDIO-PROTOTYPE.md) bilan yana10 UI,
+43 source field/7 child formset va rich guide/public namuna qurildi.
+Endi **8 UI +3 handler =11 yangi band,4 navbatdagi qadam**.
 [Paket73](Q17A-RICH-CONTENT-PARITY.md) Q17a boy matn/inline media
 preview→save→public lokal paritetini yakunladi:752 Django/190 Node PASS. U17/A2-D01
 to‘liq write-parity ochiq; u sahifa hozir read-only chegarada.
 Q14 keng savol/bo‘lim capabilitysi, real blog upload/sanitizer/storage porti
-va native/owner qabul alohida ochiq. KeyingiQ17b — SIT studiyasi.
+va native/owner qabul alohida ochiq. KeyingiQ18 — Telegram Mini App.
 Quyidagi paket yozuvlari tarixiy snapshotlar.
 
 Sana: 2026-09-25. Owner qarori: Eleventh Trial birinchi versiya sifatida
