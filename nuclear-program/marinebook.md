@@ -16,6 +16,34 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-28 [Codex]: Q17b SIT studiyasi — 10 lokal UI
+
+Packet74 universitet/e’lon/qo‘llanma studiyasini43 source field va7 ichki
+formset bilan qurdi. Native preview/save/receipt, public stored-content va
+rich guide image pariteti tekshirildi; real runtime, DB va AWS o‘zgarmadi.
+Q17b lokal implementation yopildi, real port va owner/native qabul alohida.
+
+- Branch `codex/q17b-sit-studio-prototype`; evidence commit **`a5c2689`**.
+  [Dalil va chegaralar](frontend-v1/Q17B-SIT-STUDIO-PROTOTYPE.md).
+- Provider-free trial `manage.py test tests --verbosity 1`: **770 PASS**;
+  run27→28-sentyabr, logdagi71220.051s wall-clock odatiy duration emas.
+  Old full768304.331s. `node --test tests/*.test.mjs`: **191 PASS**,
+  `manage.py check`:0, `node --check prototype/static/js/sit-studio.js`:PASS.
+- IAB120 responsive case/6width/light-dark overflow0. Native university
+  child preview/save/public, guide file chooser/rich save/public, new
+  announcement draft reload/unchecked consent/save/public, filtered
+  no-op receipt/Back verified. Final console0, viewport reset.
+- Browser topgan GET child binding xatosi tuzatildi/regression qo‘shildi;
+  blank extra row, malformed return, receipt return, unknown0 ham yopildi.
+  Real owner RBAC/durable revision/media va external CTA acceptance ochiq.
+- Checkpoint `packet-74-20260928-024509.zip`:569 entry SHA256 verified;
+  ZIP `FA41C78FF7C1CD1240DA85A97212BEB497137FFF8E0BECCEF6AC1A9895ABEAF7`.
+  Packet73/old checkpoints saqlandi; ignored trial upload/force-add yo‘q.
+- Registry131/69/110,1167state,198action. Qoldiq11band/4qadam:
+  Q18 Mini5, Q19 system5, Q08legacy1, finalacceptance. KeyingiQ18.
+  U17/A2-D01, broadQ14/Q03advanced, native/owner/G2/G3 va real port OPEN.
+  AWS oxirgi verified8bb6b95/19flags; bu turn ulanilmadi/o‘zgarmadi.
+
 ## 2026-09-27 [Codex]: Q17a boy matn va inline media lokal pariteti
 
 Paket73 PR151da ochiq qolgan gapni bajardi: mavjud CKEditor toolbar,

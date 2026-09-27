@@ -1,14 +1,15 @@
 # Qolgan prototiplar — aniq qamrov va tugatish rejasi
 
-**2026-09-27 ijro:** Q14 U01/U02, Q15a U03–U06, Q15b U07–U11, Q16a U12–U19,
-Q16b U20/U21 va Q17a U22–U24 source-shaped UI qurildi:
+**2026-09-27–28 ijro:** Q14 U01/U02, Q15a U03–U06, Q15b U07–U11, Q16a U12–U19,
+Q16b U20/U21, Q17a U22–U24 va Q17b U25–U34 source-shaped UI qurildi:
 [Paket67](Q14-EXAM-EDITOR-PROTOTYPE.md), [Paket68](Q15A-DAILY-BACKOFFICE-PROTOTYPE.md),
 [Paket69 dalili](Q15B-CATALOG-PROTOTYPE.md), [Paket70 dalili](Q16A-CONTROL-PROTOTYPE.md),
 [Paket71 dalili](Q16B-BRAND-LANDING-PROTOTYPE.md), [Paket72 dalili](Q17A-BLOG-STUDIO-PROTOTYPE.md).
-Joriy son **121 URL /67 template /100 source nomi**. Endi prototipi yo‘q
-**18 UI +3 handler =21 band**. [Paket73](Q17A-RICH-CONTENT-PARITY.md)
-Q17a boy matn/inline media lokal paritetini ham yakunladi. Endi **5 ochiq
-qadam**: Q17b, Q18, Q19, Q08 legacy va final qabul. Q17a implementation
+Joriy son **131 URL /69 template /110 source nomi**. Endi prototipi yo‘q
+**8 UI +3 handler =11 band**. [Paket73](Q17A-RICH-CONTENT-PARITY.md)
+Q17a boy matn/inline media lokal paritetini yakunladi; keyin
+[Paket74](Q17B-SIT-STUDIO-PROTOTYPE.md) SIT studiyasining10 UI manzilini
+qurdi. Endi **4 ochiq qadam**: Q18, Q19, Q08 legacy va final qabul. Q17 implementation
 yakunlandi; real adapter/owner/native acceptance bilan aralashtirilmaydi.
 U17/A2-D01 to‘liq write-parity alohida OPEN; UI soni bu qarzni yopmaydi.
 Keng Q14 savol/ko‘p-bo‘lim/nashr capabilitysi alohida ochiq; real port
@@ -117,10 +118,14 @@ Eski Q raqamlari saqlanadi; a/b bo‘linishi faqat paket chegarasidir.
   30 responsive case; format, table, image/alt/caption, reload/consent,
   native save/public va unsafe HTML/media rad etilishi tekshirildi.
   Real port/RBAC/durable save va owner/native qabul ham alohida ochiq.
-- [ ] **7. Q17b — SIT studiyasi (10 URL).** Boshqaruv markazi,
+- [x] ~~**7. Q17b — SIT studiyasi (10 URL), lokal implementation.**~~ Boshqaruv markazi,
   universitetlar, e’lonlar va qo‘llanmalar list/new/edit. **Yakun:**
   universitet ichki formsetlari/kontent → qoralama preview → nashr →
   mavjud public sahifa; nashr qilinmagan yozuv oddiy tashrifchiga chiqmaydi.
+  **Ijro:** [Paket74](Q17B-SIT-STUDIO-PROTOTYPE.md),43 source field va7
+  child formset/33 field; native save/preview, filtered return, rich guide
+  va public stored-content pariteti.120 responsive case, overflow0.
+  Real RBAC/storage/port, tashqi CTA va owner/native acceptance alohida ochiq.
 - [ ] **8. Q18 — Telegram Mini App (5 URL).** Kirish, home, kurslar,
   AI va profil. **Yakun:** Telegram kirish holatlari → tegishli bo‘lim →
   mavjud web oqimi → Back; safe-area, klaviatura, tema va sessiya xatosi.
@@ -152,7 +157,8 @@ alohida backlogda turadi; shu rejaning ichiga yashirincha kiritilmaydi.
 
 Jadval boshlang‘ich **YO‘Q** inventaridir. **2026-09-27 delta:** U01/U02
 Paket67da, U03–U06 Paket68da, U07–U11 Paket69da, U12–U19 UI Paket70da
-lokal qurildi; Q16b U20/U21 va Q17a U22–U24 UI ham qurildi. Qolgan18 UI +3 handler ochiq;
+lokal qurildi; Q16b U20/U21, Q17a U22–U24 va Q17b U25–U34 UI ham qurildi.
+Qolgan8 UI +3 handler ochiq;
 Q17a rich-text/inline media lokal pariteti Paket73 bilan bajarildi;
 haqiqiy blog media/RBAC/sanitizer porti va native/owner qabul alohida.
 U17 write-parity/A2-D01 alohida ochiq.
