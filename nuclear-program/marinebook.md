@@ -41,7 +41,13 @@ Q17a implementation lokal yakunlandi; native/owner/real port alohida ochiq.
   ZIP `075F306F6C091095A9A468B9FA7E7F0D40FF13A4DF9DB437E65C16E305ABA737`.
   Vendor venv assets ZIPga kirmaydi: dependency/hash talabi dalilda.
   Packet72 saqlandi; ignored source/screenshots force-add/push qilinmadi.
--121 route/67 template/100 source/1077 state/193 action. Qoldiq21 yangi
+- PR152 review: fixture universe browserga alohida, foreign article ham
+  media ham404; shu universe signed-out public article/media ikkisi200.
+  Paired assertionlar qo‘shildi: final focused44 PASS (7.921s), runtime
+  unchanged. Final checkpoint `packet-73-20260927-061508.zip`,551 fayl,
+  SHA256 `DDD5CCAB2CAF13FDB962FD77BA518F55E70190914A981189208997BEFE892F14`.
+  Old060856 saqlanadi; cross-browser real publication portda ochiq.
+- 121 route/67 template/100 source/1077 state/193 action. Qoldiq21 yangi
   band/5 qadam, keyingiQ17b SIT10. U17/A2-D01, kengQ14, Q03 advanced,
   native/owner/G2/G3 va real blog RBAC/storage/sanitizer porti ochiq.
   Required CI/review/merge alohida tekshiriladi; AWS8bb6b95 unchanged.

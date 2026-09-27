@@ -28,7 +28,11 @@ Texnik vendor/render/upload/media endpointlari yangi canonical UI emas.
 - Alt/caption/alignment va bounded fractional width saqlanadi. Missing,
   foreign, external/data/blob inline image422; matn bound formda qoladi.
   Draft media signed-out va boshqa sessiondan yopiq; live post media
-  shu sintetik sessionning public o‘qishida ochiq. Reset URLni bekor qiladi.
+  shu sintetik sessionning signed-out public o‘qishida **maqola va rasm
+  ikkisi ham200**. Har browser alohida fixture universe: foreign browserda
+  maqola ham, rasm ham404 (body ko‘rinib, rasm sinishi emas). Bu multi-user
+  public server emas; real cross-browser publication/storage portda ochiq.
+  Reset URLni bekor qiladi.
 - Pending upload/preview/save gate; data change consentni tozalaydi.
   Stale preview qo‘llanmaydi; pagehide upload abort, avtomatik retry yo‘q.
   No-JS HTML textarea save qoladi; toolbar/upload/draft JSga bog‘liq.
@@ -66,7 +70,9 @@ Trial cwd, repo venv; `AZURELMS_SKIP_ENV_FILE=1`, bo‘sh `GEMINI_API_KEY`
 va `TELEGRAM_BOT_TOKEN`, `LOCAL_USE_REMOTE_SERVICES=0`.
 
 - `manage.py test tests --verbosity 1`: **752 PASS (272.372s)**.
-- Final focused rich/studio +CSS guards: **44 PASS (7.352s)**.
+- Final focused rich/studio +CSS guards: **44 PASS (7.921s)**, PR152dagi
+  paired signed-out/foreign article+media assertions qo‘shilgandan keyin.
+  Full752 shu qo‘shimcha assertionlardan oldin; runtime kodi o‘zgarmadi.
 - `node --test tests/*.test.mjs`: **190 PASS (578.7865ms)**.
 - `manage.py check`:0 issue; `node --check prototype/static/js/blog-studio.js`:PASS.
 - First full752 run54 vendor-asset subcase’da fail bo‘ldi: eski gate
@@ -80,10 +86,13 @@ va `TELEGRAM_BOT_TOKEN`, `LOCAL_USE_REMOTE_SERVICES=0`.
 ## Restore va ochiq chegaralar
 
 Ignored source/evidence/screenshots Gitga kiritilmaydi. Packet72 final
-checkpoint o‘zgarishsiz saqlanadi. Packet73:
-`playground/Eleventh Trial/checkpoints/packet-73-20260927-060856.zip`,
+checkpoint o‘zgarishsiz saqlanadi. Packet73 final (PR152 clarification):
+`playground/Eleventh Trial/checkpoints/packet-73-20260927-061508.zip`,
 **551 fayl**, har entry SHA256 source bilan tekshirildi; ZIP SHA256:
-`075F306F6C091095A9A468B9FA7E7F0D40FF13A4DF9DB437E65C16E305ABA737`.
+`DDD5CCAB2CAF13FDB962FD77BA518F55E70190914A981189208997BEFE892F14`.
+Oldingi060856 (551 fayl, SHA256
+`075F306F6C091095A9A468B9FA7E7F0D40FF13A4DF9DB437E65C16E305ABA737`)
+interim sifatida saqlanadi; runtime bir xil, finalda paired media assertions bor.
 Trial restore shu repo source va o‘rnatilgan dependencies bilan ishlaydi;
 venv/vendor bundle ZIP ichiga nusxalanmagan. Assetlar litsenziyasi saqlanadi;
 mavjud source kabi GPL config ishlatilgan, yangi license xulosasi emas.
