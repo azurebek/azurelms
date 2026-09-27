@@ -1,10 +1,11 @@
 # Qolgan prototiplar — aniq qamrov va tugatish rejasi
 
-**2026-09-27 ijro:** Q14 U01/U02, Q15a U03–U06, Q15b U07–U11 qurildi:
+**2026-09-27 ijro:** Q14 U01/U02, Q15a U03–U06, Q15b U07–U11 va Q16a U12–U19 UI qurildi:
 [Paket67](Q14-EXAM-EDITOR-PROTOTYPE.md), [Paket68](Q15A-DAILY-BACKOFFICE-PROTOTYPE.md),
-[Paket69 dalili](Q15B-CATALOG-PROTOTYPE.md).
-Joriy son **108 URL /63 template /87 source nomi**. Endi prototipi yo‘q
-**31 UI +3 handler =34 band**, navbatdagi **8 qadam** qolgan.
+[Paket69 dalili](Q15B-CATALOG-PROTOTYPE.md), [Paket70 dalili](Q16A-CONTROL-PROTOTYPE.md).
+Joriy son **116 URL /64 template /95 source nomi**. Endi prototipi yo‘q
+**23 UI +3 handler =26 band**, navbatdagi **7 qadam** qolgan.
+U17/A2-D01 to‘liq write-parity alohida OPEN; UI soni bu qarzni yopmaydi.
 Keng Q14 savol/ko‘p-bo‘lim/nashr capabilitysi alohida ochiq; real port
 va AWS bu turn o‘zgarmadi. Quyidagi45 soni boshlang‘ich audit snapshotidir.
 
@@ -79,7 +80,7 @@ Eski Q raqamlari saqlanadi; a/b bo‘linishi faqat paket chegarasidir.
   50 responsive ko‘rinish, create/readback, tier consent, unknown-result.
   Farq so‘rovi lokal metadata; real receipt/upload/approval adapteri va
   owner/native qabul ochiq. Production yoki yangi payment yozilmagan.
-- [ ] **4. Q16a — Nazorat va AI boshqaruvi (8 URL).** Control center,
+- [x] ~~4. Q16a — Nazorat va AI boshqaruvi UI (8 URL).~~ Control center,
   flags, runtime settings, AI xarajat, dead-letter, AI sozlamalari,
   kill-switch, circuit reset. **Yakun:** joriy qiymat va qoralama alohida;
   source qo‘llaydigan mutationlarda ta’sir doirasi → sabab/tasdiq →
@@ -88,6 +89,10 @@ Eski Q raqamlari saqlanadi; a/b bo‘linishi faqat paket chegarasidir.
   qarzi, Q16a ichida jimgina retrofit qilinmaydi. UI qurilishi va to‘liq
   write-parity qabuli alohida belgilanadi. Prototip hech qanday haqiqiy
   limit, flag yoki tashqi xizmatni o‘zgartirmaydi.
+  **Ijro:** [Paket70](Q16A-CONTROL-PROTOTYPE.md): 24 flag,7 panel,16 xizmat,
+  native sabab/tasdiq/readback va 100 responsive ko‘rinish. U17 faqat
+  read/form/action chegarasini ko‘rsatadi; uning uch write actioni yopiq.
+  **A2-D01 write-parity va real port ochiq**, ushbu chiziq faqat lokal UIga.
 - [ ] **5. Q16b — Brend va landing boshqaruvi (2 URL).** Logo/brend
   formasi va bosh sahifa kontenti. **Yakun:** qoralama/preview → explicit
   saqlash → public namuna bilan moslik; tasdiqsiz global tema yoki brend
@@ -129,8 +134,8 @@ alohida backlogda turadi; shu rejaning ichiga yashirincha kiritilmaydi.
 ## 3. To‘liq sahifa/manzil ro‘yxati
 
 Jadval boshlang‘ich **YO‘Q** inventaridir. **2026-09-27 delta:** U01/U02
-Paket67da, U03–U06 Paket68da, U07–U11 Paket69da lokal qurildi;
-qolgan31 UI +3 handler ochiq.
+Paket67da, U03–U06 Paket68da, U07–U11 Paket69da, U12–U19 UI Paket70da
+lokal qurildi; qolgan23 UI +3 handler ochiq. U17 write-parity/A2-D01 alohida ochiq.
 Jadvaldagi IDlar progress/dalilni bog‘lash uchun barqaror. `<...>` parametr,
 demo ID emas. Lokal UI borligi real port yoki G3 qabul degani emas.
 

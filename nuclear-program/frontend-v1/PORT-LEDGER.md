@@ -17,8 +17,11 @@ bu I1–I9ni qayta ochish yoki yangi deploy topshirig‘i emas.
 2026-09-27 continuation: [Q14 source-supported prototip](Q14-EXAM-EDITOR-PROTOTYPE.md)
 lokal qurildi; keyin [Q15a](Q15A-DAILY-BACKOFFICE-PROTOTYPE.md) U03–U06
 qo‘shildi. Keyin [Q15b](Q15B-CATALOG-PROTOTYPE.md) U07–U11 lokal qurildi:
-657 full +28 final focused /174 JS PASS, 50 responsive ko‘rinish. Endi31 UI +3 handler;
-Q15bdan keyin8 keyingi qadam. Difference receipt real adapteri ochiq.
+657 full +28 final focused /174 JS PASS, 50 responsive ko‘rinish.
+Keyin [Q16a](Q16A-CONTROL-PROTOTYPE.md) U12–U19 lokal UI: 24 flag,
+7 runtime panel,16 capability va100 responsive ko‘rinish. U17/A2-D01
+to‘liq write-parity ochiq. Endi23 UI +3 handler; Q16a’dan keyin7 qadam.
+Difference receipt real adapteri ham ochiq.
 Bu **yangi real port yoki AWS relizi emas**; keng Q14 capability ochiq.
 
 ## Navbat

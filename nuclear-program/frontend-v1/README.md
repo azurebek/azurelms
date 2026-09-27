@@ -11,7 +11,9 @@ Owner keyingi qurishdan oldin qolgan prototip qamrovini aniqlashni so‘radi.
 [Q14 source-supported muharrir](Q14-EXAM-EDITOR-PROTOTYPE.md) lokal qurildi:
 18 maydon, 2 source URL. Keyin [Q15a kundalik boshqaruv](Q15A-DAILY-BACKOFFICE-PROTOTYPE.md)
 4 URL, keyin [Q15b tarif/guruhlar](Q15B-CATALOG-PROTOTYPE.md) 5 URL lokal
-qurildi; endi **31 UI +3 handler, Q15bdan keyin8 qadam**.
+qurildi. [Q16a nazorat/AI](Q16A-CONTROL-PROTOTYPE.md) bilan yana8 UI:
+endi **23 UI +3 handler, Q16a’dan keyin7 qadam**. U17/A2-D01
+to‘liq write-parity ochiq; u sahifa hozir read-only chegarada.
 Q14 keng savol/bo‘lim capabilitysi, real port va native qabul alohida ochiq.
 Quyidagi paket yozuvlari tarixiy snapshotlar.
 
