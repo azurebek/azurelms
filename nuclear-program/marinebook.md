@@ -37,7 +37,7 @@ existing ops transport/shell reused. Real public `/`, DB va AWS o‘zgarmadi.
 - Checkpoint `packet-71-20260927-043621.zip`,529 entry hash-verified;
   SHA256 `1A730FEF86F7B6B455FD7152FF7B2B975AFF1BF3FA3A411D807CED80566911CD`.
   Source/rasmlar ignored; upload yo‘q, old Packet70 saqlanadi.
--118 route/65 template/97 source. Qoldiq **21 UI+3 handler=24 band,
+- 118 route/65 template/97 source. Qoldiq **21 UI+3 handler=24 band,
   6 qadam**; keyingiQ17a blog3UI. U17/A2-D01/kengQ14, real port/media/
   rich-text/public layout, native/owner/G2/G3 ochiq. Required CI/merge
   alohida tekshiriladi; prototip production relizi deb belgilanmaydi.
