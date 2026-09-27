@@ -8,7 +8,9 @@
 [Q17a blog studiyasi](Q17A-BLOG-STUDIO-PROTOTYPE.md) bilan
 121 preview /67 template /100 source nomi. U01–U24 source-shaped UI bor;
 U17/A2-D01 write-parity ochiq. 18 UI +3 handler hali qurilmagan. Keng Q14 capability,
-blog rich-text parity, real port va native qabul ochiq. Quyidagi95/54/76 — V1ning tarixiy bazasi.
+blog rich-text/inline media parity, real port va native qabul ochiq.
+Q17a shu parity uchun ishda;21 yangi banddan tashqari bu qadam ham hisobda:
+jami6 ochiq qadam (Q17a yakuni + keyingi5). Quyidagi95/54/76 — V1ning tarixiy bazasi.
 
 **2026-09-26 qayta audit:** tayyor I1–I9 kodi AWSga chiqarildi;
 [R2](R2-READY-V1-AWS.md) joriy release manbasi. Quyidagi NOT PORTED

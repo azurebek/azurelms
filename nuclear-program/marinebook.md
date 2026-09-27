@@ -35,11 +35,13 @@ DB/AWS o‘zgarmadi; source va rasmlar ignored lokal scope’da qoldi.
 - First full734 teacher query regressionini topdi; allowlist tuzatildi,
   learner rejection saqlandi, navigation invariant yumshatilmadi.
   Final full735 yuqoridagi tuzatish va final return/order guardlardan keyin.
-- Checkpoint `packet-72-20260927-052103.zip`,542 entry hash-verified;
-  SHA256 `5EACBA7E95402213092A2AE84848FF1C05EFCDCF90F4768E8D1F532F0B583456`.
-  Old Packet71 saqlandi; force-add/push/upload yo‘q.
-- 121 route/67 template/100 source. Qoldiq **18 UI+3 handler=21 band,
-  5 qadam**; keyingiQ17b SIT10UI. Rich-text/CKEditor/inline media,
+- Final checkpoint `packet-72-20260927-052810.zip`,542 entry hash-verified;
+  SHA256 `2B3FD73853D794083CDDB344E5A3742A0FDDE2A82A22CF3CC61216EB97626751`.
+  Old Packet71 va interim052103 saqlandi; force-add/push/upload yo‘q.
+- 121 route/67 template/100 source. Qoldiq **18 UI+3 handler=21 yangi band**;
+  PR151 reviewdan keyin Q17a rich-text/inline media pariteti alohida ochiq
+  qadam sifatida saqlandi: jami **6 qadam — Q17a yakuni + keyingi5**.
+  Q17a to‘liq yopilmagan; keyingi ish shu paritet. Rich-text/CKEditor/inline media,
   real RBAC/durable save/media, U17/A2-D01/kengQ14 va native/owner/G2/G3
   ochiq. Required CI/merge alohida tekshiriladi; AWS relizi emas.
 

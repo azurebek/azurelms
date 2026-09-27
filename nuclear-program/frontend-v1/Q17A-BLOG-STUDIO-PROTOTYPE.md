@@ -89,13 +89,24 @@ tekshirildi; unknown POST ko‘r-ko‘rona qayta yuborilmadi.
 
 ## Saqlash va navbat
 
-Packet72 checkpoint: `playground/Eleventh Trial/checkpoints/packet-72-20260927-052103.zip`,
+PR151 review trackerda haqiqiy bo‘shliqni topdi: UI borligi Q17a media
+pariteti tugaganini anglatmaydi. Q17a `[x]` emas, `[-]` bo‘lib qoldi;
+rich-text/inline media preview/save/public va xavfsiz rendering qabuli
+aynan shu ochiq qadamning yakun sharti. Hech qaysi talab hisobdan chiqarilmadi.
+
+Packet72 yakuniy checkpoint (tracker tuzatishidan keyin):
+`playground/Eleventh Trial/checkpoints/packet-72-20260927-052810.zip`,
 **542 fayl**, har entry SHA256 source bilan tekshirildi. ZIP SHA256:
-`5EACBA7E95402213092A2AE84848FF1C05EFCDCF90F4768E8D1F532F0B583456`.
+`2B3FD73853D794083CDDB344E5A3742A0FDDE2A82A22CF3CC61216EB97626751`.
+Oldingi `packet-72-20260927-052103.zip` (542 fayl,
+SHA256 `5EACBA7E95402213092A2AE84848FF1C05EFCDCF90F4768E8D1F532F0B583456`)
+interim dalil sifatida saqlanadi; u Q17a’ni yopilgan deb atagan eski hisobni o‘z ichiga oladi.
 Ignored source/screenshots lokal qoladi, force-add/push/upload yo‘q.
 Packet71 saqlanadi. Native/owner acceptance,
 real port, U17/A2-D01 va kengQ14 capability hamon ochiq.
 
-U22–U24 source-shaped lokal UI yopildi; qoldiq **18 UI +3 handler =21 band,5 qadam**:
-Q17b SIT10, Q18 Mini5, Q19 system5, Q08 legacy attendance1 va final qabul.
+U22–U24 source-shaped lokal UI qurildi, **Q17a to‘liq yopilmadi**.
+Prototipi hali yo‘q **18 UI +3 handler =21 band**; jami **6 ochiq qadam**:
+Q17a rich-text/inline media yakuni, Q17b SIT10, Q18 Mini5, Q19 system5,
+Q08 legacy attendance1 va final qabul. Keyingi ish Q17a pariteti.
 Real port/AWS release ushbu qoldiqdan alohida.
