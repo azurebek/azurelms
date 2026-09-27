@@ -1,5 +1,12 @@
 # Q17a — blog studiyasi lokal prototipi
 
+**Joriy holat:** [Paket73 — rich-content parity](Q17A-RICH-CONTENT-PARITY.md)
+CKEditor/inline media preview→save→public lokal yakun gate’ini bajardi.
+Q17a implementation endi tugagan;752 Django/190 Node PASS,30 responsive.
+21 yangi band/5 navbatdagi qadam. Quyidagi Paket72 yozuvi tarixiy:
+o‘sha vaqtda media parity ochiq bo‘lgan, PR151 review xulosasi saqlangan.
+Real port/native/owner qabuli alohida ochiq.
+
 2026-09-27; D31 continuation, source base `324ad57`,
 branch `codex/q17a-blog-prototype`. Real runtime/DB/AWS o‘zgarmadi.
 
