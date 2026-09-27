@@ -16,6 +16,31 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-27 [Codex]: Q16a nazorat/AI — sakkizta lokal UI
+
+D31 continuation: ignored Eleventh Trial Paket70da nazorat snapshoti,
+24 kalit,7 runtime panel, narx, dead-letter, AI boundary, kill-switch va
+circuit reset qurildi. Saqlangan qiymat/draft, native tasdiq/natija,
+stale/replay/no-op/unknown hamda desktop/mobile tekshirildi.
+Real runtime, DB, AWS, provider va flaglarga tegilmadi.
+
+- Branch `codex/q16a-control-prototype`; dalil commit **`bf07509`**.
+  [Q16a dalili](frontend-v1/Q16A-CONTROL-PROTOTYPE.md).
+- Trial cwd provider-free `venv/Scripts/python.exe manage.py check`:0;
+  `manage.py test tests --verbosity 1`: **688 PASS (245.802s)**;
+  `node --test` barcha trial testlari: **178 PASS**.100 responsive cases
+  overflow0/control≥44px; native save/draft/permanent-ack/unknown/no-op PASS.
+- Source constant extraction xatosi visual checkda topilib50MBga tuzatildi;
+  barcha7 panel default/no-op regression bilan yopildi. Gate yumshatilmadi.
+- Checkpoint `packet-70-20260927-032444.zip`,516 fayl, har entry hash mos;
+  SHA256 `C53458201C91D9CDCE9E9DD2CCC686745580B836F8F5FE17E0E20EFFBB10F338`.
+  Source/rasmlar ignored, upload yo‘q; oldingi Packet69 saqlanadi.
+-116 route/64 template/95 source nomi. Qoldiq **23 UI+3 handler=26 band,
+  7 qadam**; keyingiQ16b brend/landing. **U17/A2-D01 to‘liq write-parity
+  OPEN**: legacy save_settings/save_policy/apply_event yozish prototipda
+  berilmagan. Real port, native/owner qabuli va keng Q14 authoring ochiq.
+- PR/required CI hali alohida tekshiriladi; AWS relizi deb belgilanmaydi.
+
 ## 2026-09-27 [Codex]: Q15b tarif/guruh/a’zolar — beshta lokal prototip
 
 D31 continuation: ignored Eleventh Trial Paket69da katalog, tarif tahriri,
