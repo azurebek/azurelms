@@ -6,9 +6,10 @@ Q16b U20/U21 va Q17a U22–U24 source-shaped UI qurildi:
 [Paket69 dalili](Q15B-CATALOG-PROTOTYPE.md), [Paket70 dalili](Q16A-CONTROL-PROTOTYPE.md),
 [Paket71 dalili](Q16B-BRAND-LANDING-PROTOTYPE.md), [Paket72 dalili](Q17A-BLOG-STUDIO-PROTOTYPE.md).
 Joriy son **121 URL /67 template /100 source nomi**. Endi prototipi yo‘q
-**18 UI +3 handler =21 band**; bunga qo‘shimcha qurilgan Q17a UIlarining
-boy matn/inline media pariteti tugamagan. Jami **6 ochiq qadam**:
-Q17a paritetini yakunlash va undan keyingi5 qadam. Q17a to‘liq yopilmagan.
+**18 UI +3 handler =21 band**. [Paket73](Q17A-RICH-CONTENT-PARITY.md)
+Q17a boy matn/inline media lokal paritetini ham yakunladi. Endi **5 ochiq
+qadam**: Q17b, Q18, Q19, Q08 legacy va final qabul. Q17a implementation
+yakunlandi; real adapter/owner/native acceptance bilan aralashtirilmaydi.
 U17/A2-D01 to‘liq write-parity alohida OPEN; UI soni bu qarzni yopmaydi.
 Keng Q14 savol/ko‘p-bo‘lim/nashr capabilitysi alohida ochiq; real port
 va AWS bu turn o‘zgarmadi. Quyidagi45 soni boshlang‘ich audit snapshotidir.
@@ -105,17 +106,16 @@ Eski Q raqamlari saqlanadi; a/b bo‘linishi faqat paket chegarasidir.
   maydoni,9 bo‘lim; draft preview→native save→saved sample.710 full +52
   final focused Django /182 JS PASS,40 responsive cases. Faqat lokal
   kontent namunasi; real public layout/RBAC/media/port/native qabul ochiq.
-- [-] **6. Q17a — Blog studiyasi (3 URL), UI qurildi; media pariteti ishda.** Maqolalar ro‘yxati,
+- [x] ~~**6. Q17a — Blog studiyasi (3 URL), lokal implementation.**~~ Maqolalar ro‘yxati,
   yaratish va tahrirlash. **Yakun:** qoralama → preview → mavjud status
   bo‘yicha nashr → public maqola; uzun matn, media va validation saqlanadi.
   **Ijro:** [Paket72](Q17A-BLOG-STUDIO-PROTOTYPE.md),13 source maydon,
   draft→preview→native save/publish→shu storedan public maqola.735 Django
   /186 JS PASS,50 responsive +54 state case. Muqova normalize/clear bor;
-  **CKEditor/inline media/rich-text parity OPEN**, oddiy escaped matn xolos.
-  **Qadam yopilmadi:** keyingi ish — boy matn va maqola ichidagi rasmlarning
-  source-backed preview/save/public pariteti, uzun formatlangan matn va
-  xavfsiz rendering sinovlari. Bu3 URL qayta “prototipi yo‘q” hisobiga
-  kiritilmaydi, lekin ushbu ochiq qadamdan chiqarilmaydi.
+  keyingi [Paket73](Q17A-RICH-CONTENT-PARITY.md) source CKEditor/inline media
+  preview/save/public lokal paritetini bajardi.752 Django/190 JS PASS,
+  30 responsive case; format, table, image/alt/caption, reload/consent,
+  native save/public va unsafe HTML/media rad etilishi tekshirildi.
   Real port/RBAC/durable save va owner/native qabul ham alohida ochiq.
 - [ ] **7. Q17b — SIT studiyasi (10 URL).** Boshqaruv markazi,
   universitetlar, e’lonlar va qo‘llanmalar list/new/edit. **Yakun:**
@@ -153,7 +153,8 @@ alohida backlogda turadi; shu rejaning ichiga yashirincha kiritilmaydi.
 Jadval boshlang‘ich **YO‘Q** inventaridir. **2026-09-27 delta:** U01/U02
 Paket67da, U03–U06 Paket68da, U07–U11 Paket69da, U12–U19 UI Paket70da
 lokal qurildi; Q16b U20/U21 va Q17a U22–U24 UI ham qurildi. Qolgan18 UI +3 handler ochiq;
-Q17a rich-text/inline media pariteti yuqoridagi6-qadamda alohida ishda.
+Q17a rich-text/inline media lokal pariteti Paket73 bilan bajarildi;
+haqiqiy blog media/RBAC/sanitizer porti va native/owner qabul alohida.
 U17 write-parity/A2-D01 alohida ochiq.
 Jadvaldagi IDlar progress/dalilni bog‘lash uchun barqaror. `<...>` parametr,
 demo ID emas. Lokal UI borligi real port yoki G3 qabul degani emas.
