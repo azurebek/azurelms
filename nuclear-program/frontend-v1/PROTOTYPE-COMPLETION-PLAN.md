@@ -1,11 +1,12 @@
 # Qolgan prototiplar — aniq qamrov va tugatish rejasi
 
-**2026-09-27 ijro:** Q14 U01/U02, Q15a U03–U06, Q15b U07–U11, Q16a U12–U19 va Q16b U20/U21 UI qurildi:
+**2026-09-27 ijro:** Q14 U01/U02, Q15a U03–U06, Q15b U07–U11, Q16a U12–U19,
+Q16b U20/U21 va Q17a U22–U24 source-shaped UI qurildi:
 [Paket67](Q14-EXAM-EDITOR-PROTOTYPE.md), [Paket68](Q15A-DAILY-BACKOFFICE-PROTOTYPE.md),
 [Paket69 dalili](Q15B-CATALOG-PROTOTYPE.md), [Paket70 dalili](Q16A-CONTROL-PROTOTYPE.md),
-[Paket71 dalili](Q16B-BRAND-LANDING-PROTOTYPE.md).
-Joriy son **118 URL /65 template /97 source nomi**. Endi prototipi yo‘q
-**21 UI +3 handler =24 band**, navbatdagi **6 qadam** qolgan.
+[Paket71 dalili](Q16B-BRAND-LANDING-PROTOTYPE.md), [Paket72 dalili](Q17A-BLOG-STUDIO-PROTOTYPE.md).
+Joriy son **121 URL /67 template /100 source nomi**. Endi prototipi yo‘q
+**18 UI +3 handler =21 band**, navbatdagi **5 qadam** qolgan.
 U17/A2-D01 to‘liq write-parity alohida OPEN; UI soni bu qarzni yopmaydi.
 Keng Q14 savol/ko‘p-bo‘lim/nashr capabilitysi alohida ochiq; real port
 va AWS bu turn o‘zgarmadi. Quyidagi45 soni boshlang‘ich audit snapshotidir.
@@ -102,9 +103,14 @@ Eski Q raqamlari saqlanadi; a/b bo‘linishi faqat paket chegarasidir.
   maydoni,9 bo‘lim; draft preview→native save→saved sample.710 full +52
   final focused Django /182 JS PASS,40 responsive cases. Faqat lokal
   kontent namunasi; real public layout/RBAC/media/port/native qabul ochiq.
-- [ ] **6. Q17a — Blog studiyasi (3 URL).** Maqolalar ro‘yxati,
+- [x] ~~6. Q17a — Blog studiyasi source-shaped UI (3 URL).~~ Maqolalar ro‘yxati,
   yaratish va tahrirlash. **Yakun:** qoralama → preview → mavjud status
   bo‘yicha nashr → public maqola; uzun matn, media va validation saqlanadi.
+  **Ijro:** [Paket72](Q17A-BLOG-STUDIO-PROTOTYPE.md),13 source maydon,
+  draft→preview→native save/publish→shu storedan public maqola.735 Django
+  /186 JS PASS,50 responsive +54 state case. Muqova normalize/clear bor;
+  **CKEditor/inline media/rich-text parity OPEN**, oddiy escaped matn xolos.
+  Chiziq faqat lokal UIga: real port/RBAC/durable save va owner/native qabul ochiq.
 - [ ] **7. Q17b — SIT studiyasi (10 URL).** Boshqaruv markazi,
   universitetlar, e’lonlar va qo‘llanmalar list/new/edit. **Yakun:**
   universitet ichki formsetlari/kontent → qoralama preview → nashr →
@@ -140,7 +146,7 @@ alohida backlogda turadi; shu rejaning ichiga yashirincha kiritilmaydi.
 
 Jadval boshlang‘ich **YO‘Q** inventaridir. **2026-09-27 delta:** U01/U02
 Paket67da, U03–U06 Paket68da, U07–U11 Paket69da, U12–U19 UI Paket70da
-lokal qurildi; Q16b U20/U21 ham qurildi. Qolgan21 UI +3 handler ochiq.
+lokal qurildi; Q16b U20/U21 va Q17a U22–U24 ham qurildi. Qolgan18 UI +3 handler ochiq.
 U17 write-parity/A2-D01 alohida ochiq.
 Jadvaldagi IDlar progress/dalilni bog‘lash uchun barqaror. `<...>` parametr,
 demo ID emas. Lokal UI borligi real port yoki G3 qabul degani emas.

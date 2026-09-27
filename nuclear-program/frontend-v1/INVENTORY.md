@@ -4,10 +4,11 @@
 [Q15a kundalik boshqaruv](Q15A-DAILY-BACKOFFICE-PROTOTYPE.md) va
 [Q15b katalog](Q15B-CATALOG-PROTOTYPE.md) va
 [Q16a nazorat/AI](Q16A-CONTROL-PROTOTYPE.md) va
-[Q16b brend/landing](Q16B-BRAND-LANDING-PROTOTYPE.md) bilan
-118 preview /65 template /97 source nomi. U01–U21 UI bor;
-U17/A2-D01 write-parity ochiq. 21 UI +3 handler hali qurilmagan. Keng Q14 capability, real port
-va native qabul ochiq. Quyidagi95/54/76 — V1ning tarixiy bazasi.
+[Q16b brend/landing](Q16B-BRAND-LANDING-PROTOTYPE.md) va
+[Q17a blog studiyasi](Q17A-BLOG-STUDIO-PROTOTYPE.md) bilan
+121 preview /67 template /100 source nomi. U01–U24 source-shaped UI bor;
+U17/A2-D01 write-parity ochiq. 18 UI +3 handler hali qurilmagan. Keng Q14 capability,
+blog rich-text parity, real port va native qabul ochiq. Quyidagi95/54/76 — V1ning tarixiy bazasi.
 
 **2026-09-26 qayta audit:** tayyor I1–I9 kodi AWSga chiqarildi;
 [R2](R2-READY-V1-AWS.md) joriy release manbasi. Quyidagi NOT PORTED

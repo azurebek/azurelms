@@ -13,9 +13,10 @@ Owner keyingi qurishdan oldin qolgan prototip qamrovini aniqlashni so‘radi.
 4 URL, keyin [Q15b tarif/guruhlar](Q15B-CATALOG-PROTOTYPE.md) 5 URL lokal
 qurildi. [Q16a nazorat/AI](Q16A-CONTROL-PROTOTYPE.md) bilan yana8 UI:
 keyin [Q16b brend/landing](Q16B-BRAND-LANDING-PROTOTYPE.md) bilan yana2 UI.
-Endi **21 UI +3 handler, Q16b’dan keyin6 qadam**. U17/A2-D01
+Keyin [Q17a blog studiyasi](Q17A-BLOG-STUDIO-PROTOTYPE.md) bilan yana3 UI.
+Endi **18 UI +3 handler =21 band, Q17a’dan keyin5 qadam**. U17/A2-D01
 to‘liq write-parity ochiq; u sahifa hozir read-only chegarada.
-Q14 keng savol/bo‘lim capabilitysi, real port va native qabul alohida ochiq.
+Q14 keng savol/bo‘lim capabilitysi, blog rich-text parity, real port va native qabul alohida ochiq.
 Quyidagi paket yozuvlari tarixiy snapshotlar.
 
 Sana: 2026-09-25. Owner qarori: Eleventh Trial birinchi versiya sifatida
