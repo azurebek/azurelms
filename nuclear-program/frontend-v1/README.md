@@ -12,7 +12,8 @@ Owner keyingi qurishdan oldin qolgan prototip qamrovini aniqlashni so‘radi.
 18 maydon, 2 source URL. Keyin [Q15a kundalik boshqaruv](Q15A-DAILY-BACKOFFICE-PROTOTYPE.md)
 4 URL, keyin [Q15b tarif/guruhlar](Q15B-CATALOG-PROTOTYPE.md) 5 URL lokal
 qurildi. [Q16a nazorat/AI](Q16A-CONTROL-PROTOTYPE.md) bilan yana8 UI:
-endi **23 UI +3 handler, Q16a’dan keyin7 qadam**. U17/A2-D01
+keyin [Q16b brend/landing](Q16B-BRAND-LANDING-PROTOTYPE.md) bilan yana2 UI.
+Endi **21 UI +3 handler, Q16b’dan keyin6 qadam**. U17/A2-D01
 to‘liq write-parity ochiq; u sahifa hozir read-only chegarada.
 Q14 keng savol/bo‘lim capabilitysi, real port va native qabul alohida ochiq.
 Quyidagi paket yozuvlari tarixiy snapshotlar.

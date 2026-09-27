@@ -16,6 +16,32 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-27 [Codex]: Q16b brend va landing — ikki lokal muharrir
+
+D31 continuation, Paket71:7 brand field/4 raster va60 landing field/9 bo‘lim.
+Qoralama preview→native sabab/tasdiq/save→exact receipt→saved sample;
+existing ops transport/shell reused. Real public `/`, DB va AWS o‘zgarmadi.
+
+- Branch `codex/q16b-brand-landing-prototype`; dalil commit **`b7343a5`**.
+  [Q16b dalili](frontend-v1/Q16B-BRAND-LANDING-PROTOTYPE.md).
+- Trial cwd provider-free `manage.py check`:0;
+  `manage.py test tests --verbosity 1`: **710 PASS (267.037s)**;
+  final CSS-only highlight fixdan keyin appearance+operations **52 PASS
+  (21.967s)**. `node --test` barcha trial testlari **182 PASS**, JS syntax PASS.
+- IAB40 responsive case,320px barcha9 bo‘lim ochiq: overflow0/control≥44px.
+  Native file chooser/blob→save→sample, text/long draft, reload consent,
+  validation va full60-field save/readback sinaldi; final console error0.
+- Parser28-field limit va ignored oversize upload flag topilib, bounded
+  full-form transport/no-write regression bilan tuzatildi; native blank
+  file parts alohida hisobga olindi. Production himoyalari o‘zgarmadi.
+- Checkpoint `packet-71-20260927-043621.zip`,529 entry hash-verified;
+  SHA256 `1A730FEF86F7B6B455FD7152FF7B2B975AFF1BF3FA3A411D807CED80566911CD`.
+  Source/rasmlar ignored; upload yo‘q, old Packet70 saqlanadi.
+- 118 route/65 template/97 source. Qoldiq **21 UI+3 handler=24 band,
+  6 qadam**; keyingiQ17a blog3UI. U17/A2-D01/kengQ14, real port/media/
+  rich-text/public layout, native/owner/G2/G3 ochiq. Required CI/merge
+  alohida tekshiriladi; prototip production relizi deb belgilanmaydi.
+
 ## 2026-09-27 [Codex]: Q16a nazorat/AI — sakkizta lokal UI
 
 D31 continuation: ignored Eleventh Trial Paket70da nazorat snapshoti,

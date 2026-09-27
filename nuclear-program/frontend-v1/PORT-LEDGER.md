@@ -20,7 +20,9 @@ qo‘shildi. Keyin [Q15b](Q15B-CATALOG-PROTOTYPE.md) U07–U11 lokal qurildi:
 657 full +28 final focused /174 JS PASS, 50 responsive ko‘rinish.
 Keyin [Q16a](Q16A-CONTROL-PROTOTYPE.md) U12–U19 lokal UI: 24 flag,
 7 runtime panel,16 capability va100 responsive ko‘rinish. U17/A2-D01
-to‘liq write-parity ochiq. Endi23 UI +3 handler; Q16a’dan keyin7 qadam.
+to‘liq write-parity ochiq. [Q16b](Q16B-BRAND-LANDING-PROTOTYPE.md) U20/U21
+ham lokal qurildi:710 full +52 final focused /182 JS PASS,40 responsive.
+Endi21 UI +3 handler; Q16b’dan keyin6 qadam.
 Difference receipt real adapteri ham ochiq.
 Bu **yangi real port yoki AWS relizi emas**; keng Q14 capability ochiq.
 

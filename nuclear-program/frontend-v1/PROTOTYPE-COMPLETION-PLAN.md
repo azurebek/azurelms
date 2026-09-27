@@ -1,10 +1,11 @@
 # Qolgan prototiplar — aniq qamrov va tugatish rejasi
 
-**2026-09-27 ijro:** Q14 U01/U02, Q15a U03–U06, Q15b U07–U11 va Q16a U12–U19 UI qurildi:
+**2026-09-27 ijro:** Q14 U01/U02, Q15a U03–U06, Q15b U07–U11, Q16a U12–U19 va Q16b U20/U21 UI qurildi:
 [Paket67](Q14-EXAM-EDITOR-PROTOTYPE.md), [Paket68](Q15A-DAILY-BACKOFFICE-PROTOTYPE.md),
-[Paket69 dalili](Q15B-CATALOG-PROTOTYPE.md), [Paket70 dalili](Q16A-CONTROL-PROTOTYPE.md).
-Joriy son **116 URL /64 template /95 source nomi**. Endi prototipi yo‘q
-**23 UI +3 handler =26 band**, navbatdagi **7 qadam** qolgan.
+[Paket69 dalili](Q15B-CATALOG-PROTOTYPE.md), [Paket70 dalili](Q16A-CONTROL-PROTOTYPE.md),
+[Paket71 dalili](Q16B-BRAND-LANDING-PROTOTYPE.md).
+Joriy son **118 URL /65 template /97 source nomi**. Endi prototipi yo‘q
+**21 UI +3 handler =24 band**, navbatdagi **6 qadam** qolgan.
 U17/A2-D01 to‘liq write-parity alohida OPEN; UI soni bu qarzni yopmaydi.
 Keng Q14 savol/ko‘p-bo‘lim/nashr capabilitysi alohida ochiq; real port
 va AWS bu turn o‘zgarmadi. Quyidagi45 soni boshlang‘ich audit snapshotidir.
@@ -93,10 +94,14 @@ Eski Q raqamlari saqlanadi; a/b bo‘linishi faqat paket chegarasidir.
   native sabab/tasdiq/readback va 100 responsive ko‘rinish. U17 faqat
   read/form/action chegarasini ko‘rsatadi; uning uch write actioni yopiq.
   **A2-D01 write-parity va real port ochiq**, ushbu chiziq faqat lokal UIga.
-- [ ] **5. Q16b — Brend va landing boshqaruvi (2 URL).** Logo/brend
+- [x] ~~5. Q16b — Brend va landing boshqaruvi (2 URL).~~ Logo/brend
   formasi va bosh sahifa kontenti. **Yakun:** qoralama/preview → explicit
   saqlash → public namuna bilan moslik; tasdiqsiz global tema yoki brend
   o‘zgarishi yo‘q. Dizayn tizimini qayta yaratish bu paketga kirmaydi.
+  **Ijro:** [Paket71](Q16B-BRAND-LANDING-PROTOTYPE.md),7 brend/60 landing
+  maydoni,9 bo‘lim; draft preview→native save→saved sample.710 full +52
+  final focused Django /182 JS PASS,40 responsive cases. Faqat lokal
+  kontent namunasi; real public layout/RBAC/media/port/native qabul ochiq.
 - [ ] **6. Q17a — Blog studiyasi (3 URL).** Maqolalar ro‘yxati,
   yaratish va tahrirlash. **Yakun:** qoralama → preview → mavjud status
   bo‘yicha nashr → public maqola; uzun matn, media va validation saqlanadi.
@@ -135,7 +140,8 @@ alohida backlogda turadi; shu rejaning ichiga yashirincha kiritilmaydi.
 
 Jadval boshlang‘ich **YO‘Q** inventaridir. **2026-09-27 delta:** U01/U02
 Paket67da, U03–U06 Paket68da, U07–U11 Paket69da, U12–U19 UI Paket70da
-lokal qurildi; qolgan23 UI +3 handler ochiq. U17 write-parity/A2-D01 alohida ochiq.
+lokal qurildi; Q16b U20/U21 ham qurildi. Qolgan21 UI +3 handler ochiq.
+U17 write-parity/A2-D01 alohida ochiq.
 Jadvaldagi IDlar progress/dalilni bog‘lash uchun barqaror. `<...>` parametr,
 demo ID emas. Lokal UI borligi real port yoki G3 qabul degani emas.
 
