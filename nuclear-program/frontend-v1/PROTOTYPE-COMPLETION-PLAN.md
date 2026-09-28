@@ -1,16 +1,17 @@
 # Qolgan prototiplar — aniq qamrov va tugatish rejasi
 
 **2026-09-27–28 ijro:** Q14 U01/U02, Q15a U03–U06, Q15b U07–U11, Q16a U12–U19,
-Q16b U20/U21, Q17a U22–U24 va Q17b U25–U34 source-shaped UI qurildi:
+Q16b U20/U21, Q17a U22–U24, Q17b U25–U34 va Q18 U35–U39 UI qurildi:
 [Paket67](Q14-EXAM-EDITOR-PROTOTYPE.md), [Paket68](Q15A-DAILY-BACKOFFICE-PROTOTYPE.md),
 [Paket69 dalili](Q15B-CATALOG-PROTOTYPE.md), [Paket70 dalili](Q16A-CONTROL-PROTOTYPE.md),
 [Paket71 dalili](Q16B-BRAND-LANDING-PROTOTYPE.md), [Paket72 dalili](Q17A-BLOG-STUDIO-PROTOTYPE.md).
-Joriy son **131 URL /69 template /110 source nomi**. Endi prototipi yo‘q
-**8 UI +3 handler =11 band**. [Paket73](Q17A-RICH-CONTENT-PARITY.md)
+Joriy son **136 URL /74 template /115 source nomi**. Endi prototipi yo‘q
+**3 UI +3 handler =6 band**. [Paket73](Q17A-RICH-CONTENT-PARITY.md)
 Q17a boy matn/inline media lokal paritetini yakunladi; keyin
 [Paket74](Q17B-SIT-STUDIO-PROTOTYPE.md) SIT studiyasining10 UI manzilini
-qurdi. Endi **4 ochiq qadam**: Q18, Q19, Q08 legacy va final qabul. Q17 implementation
-yakunlandi; real adapter/owner/native acceptance bilan aralashtirilmaydi.
+qurdi. [Paket75](Q18-MINIAPP-PROTOTYPE.md) Mini App5UI va web handoffni
+qurdi. Endi **3 ochiq qadam**: Q19, Q08 legacy va final qabul. Q17/Q18 lokal
+implementation yakunlandi; real adapter/owner/native acceptance emas.
 U17/A2-D01 to‘liq write-parity alohida OPEN; UI soni bu qarzni yopmaydi.
 Keng Q14 savol/ko‘p-bo‘lim/nashr capabilitysi alohida ochiq; real port
 va AWS bu turn o‘zgarmadi. Quyidagi45 soni boshlang‘ich audit snapshotidir.
@@ -126,10 +127,14 @@ Eski Q raqamlari saqlanadi; a/b bo‘linishi faqat paket chegarasidir.
   child formset/33 field; native save/preview, filtered return, rich guide
   va public stored-content pariteti.120 responsive case, overflow0.
   Real RBAC/storage/port, tashqi CTA va owner/native acceptance alohida ochiq.
-- [ ] **8. Q18 — Telegram Mini App (5 URL).** Kirish, home, kurslar,
+- [x] ~~**8. Q18 — Telegram Mini App (5 URL), lokal implementation.**~~ Kirish, home, kurslar,
   AI va profil. **Yakun:** Telegram kirish holatlari → tegishli bo‘lim →
   mavjud web oqimi → Back; safe-area, klaviatura, tema va sessiya xatosi.
   Sintetik auth holati haqiqiy Telegram/HMAC qabuli deb belgilanmaydi.
+  **Ijro:** [Paket75](Q18-MINIAPP-PROTOTYPE.md),788 Django/195 Node PASS,
+  120 responsive check. Explicit synthetic auth/receipt, shared projections,
+  existing AI room delegate, same-tab web return va browser Back tekshirildi.
+  Haqiqiy Telegram SDK/Back/theme/safe-area/native keyboard qabuli OPEN.
 - [ ] **9. Q19 — Tizim sahifalari (5 holat).** 403,404,500,
   maintenance, offline. **Yakun:** tushunarli sabab va xavfsiz qaytish/retry;
   redirect loop yo‘q, 500 minimal kontekstda ham ishlaydi; noto‘g‘ri
@@ -201,11 +206,11 @@ demo ID emas. Lokal UI borligi real port yoki G3 qabul degani emas.
 | U32 | Q17b | `sit_backoffice:guides` | `/backoffice/sit/guides/` |
 | U33 | Q17b | `sit_backoffice:guide_create` | `/backoffice/sit/guides/new/` |
 | U34 | Q17b | `sit_backoffice:guide_edit` | `/backoffice/sit/guides/<int:guide_id>/` |
-| U35 | Q18 | `bot:miniapp_entry` | `/bot/miniapp/` |
-| U36 | Q18 | `bot:miniapp_home` | `/bot/miniapp/home/` |
-| U37 | Q18 | `bot:miniapp_courses` | `/bot/miniapp/courses/` |
-| U38 | Q18 | `bot:miniapp_ai` | `/bot/miniapp/ai/` |
-| U39 | Q18 | `bot:miniapp_profile` | `/bot/miniapp/profile/` |
+| ~~U35~~ | Q18 · Packet75 | `bot:miniapp_entry` | `/bot/miniapp/` |
+| ~~U36~~ | Q18 · Packet75 | `bot:miniapp_home` | `/bot/miniapp/home/` |
+| ~~U37~~ | Q18 · Packet75 | `bot:miniapp_courses` | `/bot/miniapp/courses/` |
+| ~~U38~~ | Q18 · Packet75 | `bot:miniapp_ai` | `/bot/miniapp/ai/` |
+| ~~U39~~ | Q18 · Packet75 | `bot:miniapp_profile` | `/bot/miniapp/profile/` |
 | U40 | Q19 | `maintenance` | `/maintenance/` |
 | U41 | Q19 | `offline` | `/offline/` |
 | U42 | Q08 | `attendance_manage` | `/users/attendance/manage/` |
