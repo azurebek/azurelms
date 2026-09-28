@@ -18,13 +18,17 @@ Keyin [Q17b SIT studiyasi](Q17B-SIT-STUDIO-PROTOTYPE.md) bilan yana10 UI,
 43 source field/7 child formset va rich guide/public namuna qurildi.
 Keyin [Q18 Mini App](Q18-MINIAPP-PROTOTYPE.md) bilan5 UI, sintetik
 kirish, shared projection, web handoff/Back qurildi:788 Django/195 Node,
-120 responsive check PASS. Endi **3 UI +3 handler =6 yangi band,3 qadam**.
+120 responsive check PASS. Keyin [Q19 tizim holatlari](Q19-SYSTEM-PROTOTYPE.md):
+maintenance/offline va403/404/500;800 Django/195 Node,60 responsive PASS.
+Joriy138 named URL/76 template/117 source +3 handler diagnostic.
+Endi **1 yangi UI (U42),2 qadam**: Q08 legacy/paritet → final qabul.
 [Paket73](Q17A-RICH-CONTENT-PARITY.md) Q17a boy matn/inline media
 preview→save→public lokal paritetini yakunladi:752 Django/190 Node PASS. U17/A2-D01
 to‘liq write-parity ochiq; u sahifa hozir read-only chegarada.
 Q14 keng savol/bo‘lim capabilitysi, real blog upload/sanitizer/storage porti
 va native/owner qabul alohida ochiq. Mini App uchun haqiqiy Telegram
-SDK/HMAC/Back/native keyboard/safe-area alohida OPEN. KeyingiQ19 — tizim holatlari.
+SDK/HMAC/Back/native keyboard/safe-area, Q19 haqiqiy offline/PWA/network outage
+qabuli alohida OPEN. Keyingi ish — Q08 legacy davomat/paritet.
 Quyidagi paket yozuvlari tarixiy snapshotlar.
 
 Sana: 2026-09-25. Owner qarori: Eleventh Trial birinchi versiya sifatida
