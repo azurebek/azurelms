@@ -16,6 +16,30 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-28 [Codex]: Q19 tizim holatlari — 5 lokal sahifa
+
+Packet76 maintenance/offline va403/404/500 holatlarini mavjud dizayn
+asosida qurdi. Safe GET recovery oldingi POSTni takrorlamaydi; minimal500
+app contextga bog‘lanmaydi. Canonical runtime, DB va AWS o‘zgarmadi;
+real offline/PWA/native/owner qabul va port alohida OPEN.
+
+- Branch `codex/q19-system-prototype`; evidence commit **`2b21f4e`**.
+  [Dalil va chegaralar](frontend-v1/Q19-SYSTEM-PROTOTYPE.md).
+- Provider-free trial `manage.py check`:0 issue;
+  `manage.py test tests --verbosity 0`:**800 PASS**,339.267s.
+  Final `manage.py test tests.test_system_pages --verbosity 0`:12 PASS;
+  `node --test tests/*.test.mjs`:**195 PASS**.
+- IAB60 responsive checks:overflow0,controls≥44px. Header/galereya touch
+  sizing fixed; offline→lesson→Back,403→login,404→catalog, keyboard skip verified.
+- Registry138 named URL/76 template/117 source,1214 state/202 action;
+  alohida3 handler diagnostic. Ignored prototype Gitga kiritilmadi.
+  Checkpoint **610 fayl**,har entry SHA256 verified:
+  `packet-76-20260928-035343.zip`,
+  SHA256 `9A6A42E7A0868301BE4B35DD38F2DFD7DDABA06D8F4C5BF39D91F62E7F5F19F9`.
+- Q19 lokal implementation bajarildi. **1 yangi UI(U42)/2 qadam**:
+  Q08 legacy/paritet→umumiy qabul. Q03 advanced/U17 A2-D01/broadQ14,
+  real Telegram/native/G2/G3 va yangi paketlarning real porti ochiq.
+
 ## 2026-09-28 [Codex]: Q18 Mini App — 5 lokal UI va web handoff
 
 Packet75 entry/home/kurslar/AI/profilni bitta Mini shell va mavjud shared
