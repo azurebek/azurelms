@@ -219,12 +219,12 @@ demo ID emas. Lokal UI borligi real port yoki G3 qabul degani emas.
 | ~~U37~~ | Q18 · Packet75 | `bot:miniapp_courses` | `/bot/miniapp/courses/` |
 | ~~U38~~ | Q18 · Packet75 | `bot:miniapp_ai` | `/bot/miniapp/ai/` |
 | ~~U39~~ | Q18 · Packet75 | `bot:miniapp_profile` | `/bot/miniapp/profile/` |
-| U40 | Q19 | `maintenance` | `/maintenance/` |
-| U41 | Q19 | `offline` | `/offline/` |
+| ~~U40~~ | Q19 · Packet76 | `maintenance` | `/maintenance/` |
+| ~~U41~~ | Q19 · Packet76 | `offline` | `/offline/` |
 | U42 | Q08 | `attendance_manage` | `/users/attendance/manage/` |
-| H01 | Q19 | `handler403` | `core.views.permission_denied` → `errors/403.html` |
-| H02 | Q19 | `handler404` | `core.views.page_not_found` → `errors/404.html` |
-| H03 | Q19 | `handler500` | `core.views.server_error` → `errors/500.html` |
+| ~~H01~~ | Q19 · Packet76 | `handler403` | `core.views.permission_denied` → `errors/403.html` |
+| ~~H02~~ | Q19 · Packet76 | `handler404` | `core.views.page_not_found` → `errors/404.html` |
+| ~~H03~~ | Q19 · Packet76 | `handler500` | `core.views.server_error` → `errors/500.html` |
 
 ### Alohida yangi dizayn kerak bo‘lmagan ikki manzil
 
