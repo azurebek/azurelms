@@ -12,7 +12,10 @@ Q17a boy matn/inline media lokal paritetini yakunladi; keyin
 [Paket74](Q17B-SIT-STUDIO-PROTOTYPE.md) SIT studiyasining10 UI manzilini
 qurdi. [Paket75](Q18-MINIAPP-PROTOTYPE.md) Mini App5UI va web handoffni
 qurdi. [Paket76](Q19-SYSTEM-PROTOTYPE.md) tizimning5 holatini qurdi.
-Endi **2 ochiq qadam**: Q08 legacy/paritet va final qabul. Q17–Q19 lokal
+Endi **3 ochiq qadam**: Q08 legacy/paritet → joriy qamrov qabuli →
+**DESIGN-01 kodsiz dizayn boshqaruvi** (owner 2026-09-28 reja oxiriga qo‘shdi).
+Boshlang‘ich inventarda hali1 UI qolgan; DESIGN-01 yangi capability bo‘lib,
+45 bandni qayta sanamaydi. Hozir DESIGN-01 qurilmaydi. Q17–Q19 lokal
 implementation yakunlandi; real adapter/owner/native acceptance emas.
 U17/A2-D01 to‘liq write-parity alohida OPEN; UI soni bu qarzni yopmaydi.
 Keng Q14 savol/ko‘p-bo‘lim/nashr capabilitysi alohida ochiq; real port
@@ -35,8 +38,10 @@ va sanasiz tugatish rejasini tuzish. Bu hujjat reja, yangi UI yoki deploy emas.
 - Demak **42 ta ilova UI manzili + 3 ta xato handler sahifasi = 45 qamrov bandi**
   uchun prototip yetishmaydi. Bu 45 xil maket degani emas: yangi/tahrirlash
   rejimlari, umumiy ro‘yxat va formalar qayta ishlatiladi.
-- Reja: **11 qadam — 10 qurish/bo‘shliqlarni yopish paketi va 1 umumiy qabul**.
-  Real kodga ko‘chirish va AWSga chiqarish bu 11 qadamdan alohida kuzatiladi.
+- Boshlang‘ich reja: **11 qadam — 10 qurish/bo‘shliqlarni yopish paketi va
+  1 umumiy qabul**. Ownerning2026-09-28 qarori bilan oxiriga12-qadam
+  DESIGN-01 qo‘shildi; dastlabki45 band inventari o‘zgarmadi.
+  Real kodga ko‘chirish va AWSga chiqarish alohida kuzatiladi.
 
 **“Prototipi yo‘q” — “loyihada umuman yo‘q” emas.** Quyidagi manzillarning
 backend/legacy sahifalari bor; ularga tasdiqlangan yangi dizayn hali qurilmagan.
@@ -157,12 +162,24 @@ Eski Q raqamlari saqlanadi; a/b bo‘linishi faqat paket chegarasidir.
   registry/action/source xaritasi, test dalili va qabul holatiga ega;
   blocker yo‘q, qolgan cheklovlar ochiq yozilgan, lokal checkpoint/zaxira bor.
   Native device/AT tekshirilmagan bo‘lsa to‘liq G3 PASS yozilmaydi.
+- [ ] **12. DESIGN-01 — Admin paneldan keng kodsiz dizayn boshqaruvi.**
+  **Owner qarori,2026-09-28:** sodda rang tanlagich bilan chala qoldirmaslik;
+  rang, button/karta shakli va shriftlarni kodga tegmasdan boshqarish imkonini
+  reja oxirida kengaytirish. Hozirgi Q08→qabul navbati o‘zgarmaydi.
+  [Qamrov va yakun mezonlari](DESIGN-CUSTOMIZATION-PLAN.md).
+  **Yakun:** token/komponent xaritasi → alohida qoralama va ko‘p sahifali preview
+  → validatsiya → tasdiqli yagona versiyani tatbiq qilish → history/rollback;
+  public/learner/teacher/owner/Mini shelllarda desktop/mobile/light/dark
+  regressiya va owner qabuli. Bir demo sahifada rang almashishi yakun emas.
+  11-qadam bazaviy checkpoint; dizayn kengayishidan keyin acceptance qaytariladi.
+  Prototip, canonical sozlama xizmati/real port va AWS relizi alohida dalillanadi.
 
 Paket — bir tugma yoki screenshot emas, yuqoridagi **yakunlangan oqim**.
 Oddiy ichki bosqichlarda ish to‘xtatib turilmaydi; faqat yangi vakolat,
 product qarori, xavfsizlik yoki tashqi blok kerak bo‘lsa ownerga chiqiladi.
 Qolgan sahifalarni doimiy kattalashtiradigan redesign va yangi featurelar
 alohida backlogda turadi; shu rejaning ichiga yashirincha kiritilmaydi.
+DESIGN-01 owner explicit qo‘shgan yagona yangi kengaytma, vaqt va’dasisiz.
 
 ## 3. To‘liq sahifa/manzil ro‘yxati
 

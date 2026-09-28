@@ -21,7 +21,11 @@ kirish, shared projection, web handoff/Back qurildi:788 Django/195 Node,
 120 responsive check PASS. Keyin [Q19 tizim holatlari](Q19-SYSTEM-PROTOTYPE.md):
 maintenance/offline va403/404/500;800 Django/195 Node,60 responsive PASS.
 Joriy138 named URL/76 template/117 source +3 handler diagnostic.
-Endi **1 yangi UI (U42),2 qadam**: Q08 legacy/paritet → final qabul.
+Boshlang‘ich inventarda **1 yangi UI (U42)**. Owner 2026-09-28
+[keng kodsiz dizayn boshqaruvini](DESIGN-CUSTOMIZATION-PLAN.md) reja oxiriga
+qo‘shdi: endi **3 qadam** — Q08 legacy/paritet → joriy qabul → DESIGN-01.
+DESIGN-01 hozir boshlanmaydi; global rang/font/shakl preview/publish/rollback
+hamda o‘z regressiya/qabulini talab qiladi, yangi capability alohida sanaladi.
 [Paket73](Q17A-RICH-CONTENT-PARITY.md) Q17a boy matn/inline media
 preview→save→public lokal paritetini yakunladi:752 Django/190 Node PASS. U17/A2-D01
 to‘liq write-parity ochiq; u sahifa hozir read-only chegarada.
