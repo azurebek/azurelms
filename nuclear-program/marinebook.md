@@ -16,6 +16,27 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-28 [Codex]: D32 — keng kodsiz dizayn boshqaruvi reja oxirida
+
+Owner rang, button/karta shakli va fontlarni admin panelda kodsiz keng
+boshqarishni reja oxiriga qo‘shishni so‘radi; hozir mavjud navbat saqlanadi.
+DESIGN-01 uchun typography/komponent rollari, preset/draft/preview,
+validation, publish/history/rollback va ko‘p surface acceptance yozildi.
+Bu rejalashtirish; yangi customization yoki production implementatsiyasi emas.
+
+- Branch `codex/q08-attendance-parity`; plan commit **`1a8962d`**.
+  [Qamrov](frontend-v1/DESIGN-CUSTOMIZATION-PLAN.md),
+  [12-qadamli tracker](frontend-v1/PROTOTYPE-COMPLETION-PLAN.md).
+- Tekshiruv: `git diff --check` PASS; docs-only, yangi runtime testi talab qilinmadi.
+- Joriy navbat: Q08 legacy/paritet→joriy qabul→DESIGN-01,3 ochiq qadam.
+  Boshlang‘ich inventarda U42(1 UI) qoladi; yangi capability45 bandga qo‘shilmadi.
+- Q08 preflight source: AttendanceManageView alohida cohort_id/lesson_id/date
+  bilan ishlaydi; mavjud teacher sahifasiga jim redirect qilinmaydi.
+  Canonical date-based upsert va teacher latest projection manbalari o‘qildi;
+  Q08 UI hali qurilmadi. Keyingi implementation shu oqimdan davom etadi.
+- Ignored DECISIONS/REMAINING-PLAN/README D32 bilan sinxronlandi.
+  Prototype UI, canonical runtime, DB, AWS, font fayllari o‘zgarmadi.
+
 ## 2026-09-28 [Codex]: Q19 tizim holatlari — 5 lokal sahifa
 
 Packet76 maintenance/offline va403/404/500 holatlarini mavjud dizayn

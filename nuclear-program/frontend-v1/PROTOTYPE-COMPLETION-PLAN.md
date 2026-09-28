@@ -38,8 +38,10 @@ va sanasiz tugatish rejasini tuzish. Bu hujjat reja, yangi UI yoki deploy emas.
 - Demak **42 ta ilova UI manzili + 3 ta xato handler sahifasi = 45 qamrov bandi**
   uchun prototip yetishmaydi. Bu 45 xil maket degani emas: yangi/tahrirlash
   rejimlari, umumiy ro‘yxat va formalar qayta ishlatiladi.
-- Reja: **11 qadam — 10 qurish/bo‘shliqlarni yopish paketi va 1 umumiy qabul**.
-  Real kodga ko‘chirish va AWSga chiqarish bu 11 qadamdan alohida kuzatiladi.
+- Boshlang‘ich reja: **11 qadam — 10 qurish/bo‘shliqlarni yopish paketi va
+  1 umumiy qabul**. Ownerning2026-09-28 qarori bilan oxiriga12-qadam
+  DESIGN-01 qo‘shildi; dastlabki45 band inventari o‘zgarmadi.
+  Real kodga ko‘chirish va AWSga chiqarish alohida kuzatiladi.
 
 **“Prototipi yo‘q” — “loyihada umuman yo‘q” emas.** Quyidagi manzillarning
 backend/legacy sahifalari bor; ularga tasdiqlangan yangi dizayn hali qurilmagan.
