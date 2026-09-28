@@ -2,19 +2,22 @@
 
 **2026-09-27–28 ijro:** Q14 U01/U02, Q15a U03–U06, Q15b U07–U11, Q16a U12–U19,
 Q16b U20/U21, Q17a U22–U24, Q17b U25–U34, Q18 U35–U39 va Q19
-U40/U41/H01–H03 lokal qurildi:
+U40/U41/H01–H03 va Q08 U42 lokal qurildi:
 [Paket67](Q14-EXAM-EDITOR-PROTOTYPE.md), [Paket68](Q15A-DAILY-BACKOFFICE-PROTOTYPE.md),
 [Paket69 dalili](Q15B-CATALOG-PROTOTYPE.md), [Paket70 dalili](Q16A-CONTROL-PROTOTYPE.md),
 [Paket71 dalili](Q16B-BRAND-LANDING-PROTOTYPE.md), [Paket72 dalili](Q17A-BLOG-STUDIO-PROTOTYPE.md).
-Joriy son **138 named URL /76 template /117 source nomi +3 handler diagnostic**.
-Endi prototipi yo‘q **1 UI manzili — U42**. [Paket73](Q17A-RICH-CONTENT-PARITY.md)
+Joriy son **139 named URL /77 template /118 source nomi +3 handler diagnostic**.
+Boshlang‘ich inventarda prototipi yo‘q **0 UI manzili**; bu to‘liq
+paritet/native qabul yoki real port tugadi degani emas. [Paket73](Q17A-RICH-CONTENT-PARITY.md)
 Q17a boy matn/inline media lokal paritetini yakunladi; keyin
 [Paket74](Q17B-SIT-STUDIO-PROTOTYPE.md) SIT studiyasining10 UI manzilini
 qurdi. [Paket75](Q18-MINIAPP-PROTOTYPE.md) Mini App5UI va web handoffni
 qurdi. [Paket76](Q19-SYSTEM-PROTOTYPE.md) tizimning5 holatini qurdi.
-Endi **3 ochiq qadam**: Q08 legacy/paritet → joriy qamrov qabuli →
+[Paket77](Q08-DATED-ATTENDANCE-PROTOTYPE.md) U42 dated-ledger prototipini
+va eski holatlarning dalil/ochiq-farq auditini bajardi.823 Django/197 Node PASS.
+Endi **2 ochiq qadam**: joriy qamrov qabuli va tuzatishlar →
 **DESIGN-01 kodsiz dizayn boshqaruvi** (owner 2026-09-28 reja oxiriga qo‘shdi).
-Boshlang‘ich inventarda hali1 UI qolgan; DESIGN-01 yangi capability bo‘lib,
+Boshlang‘ich45 bandning lokal UI qurilishi bajarildi; DESIGN-01 yangi capability bo‘lib,
 45 bandni qayta sanamaydi. Hozir DESIGN-01 qurilmaydi. Q17–Q19 lokal
 implementation yakunlandi; real adapter/owner/native acceptance emas.
 U17/A2-D01 to‘liq write-parity alohida OPEN; UI soni bu qarzni yopmaydi.
@@ -150,18 +153,25 @@ Eski Q raqamlari saqlanadi; a/b bo‘linishi faqat paket chegarasidir.
   final12 focused,60 responsive checks. Source HTTP statuslar, minimal500,
   actual DEBUG=False handler dispatch, allowlisted GET va keyboard/handoff
   verified. Real PWA/network outage/native/AT/owner qabul va port OPEN.
-- [ ] **10. Q08 bo‘shlig‘i va mavjud sahifalar pariteti (1 yangi URL).**
+- [x] ~~**10. Q08 bo‘shlig‘i va mavjud sahifalar paritet auditi (1 yangi URL).**~~
   `/users/attendance/manage/` uchun mavjud teacher-davomat patterni;
   qo‘shimcha ravishda 4-bo‘limdagi eski holat qarzlari tekshiriladi.
   **Yakun:** barcha ochiq holatlarning dalili yoki aniq ochiq qarori bor;
   boshqa URLga redirect qilish tanlansa bu owner qarori bo‘ladi, qamrov
   jimgina yo‘qolmaydi. Bu qadam tayyor 76 URLni qayta dizayn qilish emas.
+  **Dalil:** [Paket77](Q08-DATED-ATTENDANCE-PROTOTYPE.md), U42 alohida
+  exact-date forma/shared ledger;823 Django/197 Node,32 responsive check.
+  4-bo‘limning har qatori existing evidence/missing state/capability yoki
+  acceptance OPEN sifatida tasniflandi. Missing-state bandlari PAR-01–05
+  final qabulda qoladi; bu chiziq barcha paritet qarzlari yopildi degani emas.
 - [ ] **11. Q20–Q21 — Umumiy tekshiruv va qabul.** Yangi oilalardan
   mavjud learner/teacher/public oqimlariga handoff, rol chegaralari,
   desktop/mobile va owner walkthrough. **Yakun:** 45 bandning har biri
   registry/action/source xaritasi, test dalili va qabul holatiga ega;
   blocker yo‘q, qolgan cheklovlar ochiq yozilgan, lokal checkpoint/zaxira bor.
   Native device/AT tekshirilmagan bo‘lsa to‘liq G3 PASS yozilmaydi.
+  [Ochiq tuzatishlar](FINAL-ACCEPTANCE-ISSUES.md): owner iPhone Chrome
+  keyboard/chat nuqsonini shu bosqichga qoldirdi; Q08da unga tegilmadi.
 - [ ] **12. DESIGN-01 — Admin paneldan keng kodsiz dizayn boshqaruvi.**
   **Owner qarori,2026-09-28:** sodda rang tanlagich bilan chala qoldirmaslik;
   rang, button/karta shakli va shriftlarni kodga tegmasdan boshqarish imkonini
@@ -186,9 +196,11 @@ DESIGN-01 owner explicit qo‘shgan yagona yangi kengaytma, vaqt va’dasisiz.
 Jadval boshlang‘ich **YO‘Q** inventaridir. **2026-09-28 delta:** U01/U02
 Paket67da, U03–U06 Paket68da, U07–U11 Paket69da, U12–U19 UI Paket70da
 lokal qurildi; Q16b U20/U21, Q17a U22–U24 va Q17b U25–U34 UI ham qurildi.
-Q18 U35–U39 UI Paket75da, Q19 U40/U41 vaH01–H03 Paket76da lokal qurildi.
-Qolgan **1 UI — U42** ochiq; Mini App real Telegram va Q19 haqiqiy
-offline/PWA/native/owner qabuli bundan alohida.
+Q18 U35–U39 UI Paket75da, Q19 U40/U41 vaH01–H03 Paket76da, U42 Paket77da
+lokal qurildi. Boshlang‘ich barcha45 bandning renderer prototipi bor;
+qolgan state-parity/native/owner qarzlari alohida ochiq.
+Mini App real Telegram va Q19 haqiqiy offline/PWA/native/owner qabuli
+bundan alohida ochiq.
 Q17a rich-text/inline media lokal pariteti Paket73 bilan bajarildi;
 haqiqiy blog media/RBAC/sanitizer porti va native/owner qabul alohida.
 U17 write-parity/A2-D01 alohida ochiq.
@@ -277,6 +289,10 @@ Eski dalil saqlanadi; joriy port statusi [PORT-LEDGER](PORT-LEDGER.md) va
 4-bo‘limdagi state qarzlari to‘liq yopildi deb da’vo qilinmaydi. 10-qadam
 har biriga `existing evidence / missing state / capability decision` holatini
 qo‘yadi; aniqlangan yangi backend imkoniyati 45 sahifa soniga yashirin qo‘shilmaydi.
+
+**2026-09-28 ijro:** [Packet77 audit jadvali](Q08-DATED-ATTENDANCE-PROTOTYPE.md)
+har bir qatorga shu tasnifni qo‘ydi. [Final ro‘yxat](FINAL-ACCEPTANCE-ISSUES.md)
+UX-01–06/DATA-01/RULE-01 va PAR-01–05ni yo‘qotmasdan kuzatadi.
 
 ## 5. Ko‘lamni cho‘zadigan chegaralar — oldindan aniq
 

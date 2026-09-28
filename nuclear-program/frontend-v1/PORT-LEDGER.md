@@ -1,5 +1,13 @@
 # Frontend V1 — bajarish va qabul jurnali
 
+**2026-09-28 lokal prototype checkpoint:** Q18, Q19 va oxirgi U42/Q08
+ham qurildi. [Packet77](Q08-DATED-ATTENDANCE-PROTOTYPE.md):139 named URL/
+77 template/118 source nomi +3 handler;823 Django/197 Node PASS.
+Boshlang‘ich inventarda prototipi yo‘q UI0;[reja](PROTOTYPE-COMPLETION-PLAN.md)
+11-qadam qabul/tuzatish va12-qadam DESIGN-01ni ochiq saqlaydi.
+Eski state-parity/native/capability qarzlari final ro‘yxatda; bu yozuv
+Q14+ning **real porti yoki yangi AWS relizi emas**. Pastdagi sonlar sanali tarix.
+
 Qabul: `[ ]` ochiq; `[-]` ishda; `[x] ~~...~~` dalil bilan tugagan.
 “Prototype bor” real portga `[x]` qo‘yish uchun yetmaydi.
 Sana emas, tugallangan natija bilan kuzatiladi. I1/I2/I3 main’da;
