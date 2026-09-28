@@ -16,6 +16,32 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-28 [Codex]: Packet78 — imtihonni qayta tekshirish pariteti
+
+Final qabuldagi PAR-04 lokal yopildi: reviewed urinishda yangi private
+qoralama saqlanadi, learner eski approved natijani explicit republishgacha
+ko‘radi. Review/attempt revision, stale modal consent, reload/rebase va
+unknown GET reconcile tekshirildi. Real runtime/DB/AWS o‘zgarmadi.
+
+- Branch `codex/prototype-exam-review-parity`; evidence commit **`d56eeed`**.
+  [Dalil](frontend-v1/PAR04-EXAM-REREVIEW-PROTOTYPE.md),
+  [final ro‘yxat](frontend-v1/FINAL-ACCEPTANCE-ISSUES.md).
+- Trial cwd, provider-free: `../../venv/Scripts/python.exe manage.py test
+  tests --verbosity 1` **832 PASS (317.259s)**; final
+  `tests.test_exam_review tests.test_exams` **53 PASS (5.579s)**; check0.
+  `node --test` trialning barcha `.test.mjs` fayllari: **203 PASS**.
+- IAB8083:17.25→private19.50→explicit republish, ikki tab stale/reload,
+  eskirgan tasdiq, unknown save/publish;48 responsive check overflow0,
+  tekshirilgan controls≥44px. Native/AT/no-JS acceptance emas.
+- Registry139/77/118,1223states/206actions +3handler o‘zgarmadi.
+  Lokal `playground/Eleventh Trial/checkpoints/packet-78-20260928-055741.zip`,
+  **623fayl**, har-entry SHA256 verified;
+  `12FE314FAB697967466EE2618A31A7B7B9E4860EC379E815703B696AD270ACC0`.
+  Old Packet77 saqlandi; ignored trial/arxiv push qilinmadi.
+- Davomi:11-qadam final qabul/tuzatish ishda;PAR-01/02/03/05 va
+  UX/DATA/RULE/native/owner ochiq.12-DESIGN-01 navbatda. UX-01 iPhone Chrome
+  keyboard tuzatilgani da’vo qilinmaydi. PR/required CI integratsiya gate’i.
+
 ## 2026-09-28 [Codex]: Q08 U42 — sana bo‘yicha davomat va paritet auditi
 
 Packet77 alohida `/users/attendance/manage/` prototipini qurdi: guruh/dars/
