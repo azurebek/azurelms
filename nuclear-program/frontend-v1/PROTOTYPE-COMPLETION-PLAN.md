@@ -1,16 +1,18 @@
 # Qolgan prototiplar — aniq qamrov va tugatish rejasi
 
 **2026-09-27–28 ijro:** Q14 U01/U02, Q15a U03–U06, Q15b U07–U11, Q16a U12–U19,
-Q16b U20/U21, Q17a U22–U24, Q17b U25–U34 va Q18 U35–U39 UI qurildi:
+Q16b U20/U21, Q17a U22–U24, Q17b U25–U34, Q18 U35–U39 va Q19
+U40/U41/H01–H03 lokal qurildi:
 [Paket67](Q14-EXAM-EDITOR-PROTOTYPE.md), [Paket68](Q15A-DAILY-BACKOFFICE-PROTOTYPE.md),
 [Paket69 dalili](Q15B-CATALOG-PROTOTYPE.md), [Paket70 dalili](Q16A-CONTROL-PROTOTYPE.md),
 [Paket71 dalili](Q16B-BRAND-LANDING-PROTOTYPE.md), [Paket72 dalili](Q17A-BLOG-STUDIO-PROTOTYPE.md).
-Joriy son **136 URL /74 template /115 source nomi**. Endi prototipi yo‘q
-**3 UI +3 handler =6 band**. [Paket73](Q17A-RICH-CONTENT-PARITY.md)
+Joriy son **138 named URL /76 template /117 source nomi +3 handler diagnostic**.
+Endi prototipi yo‘q **1 UI manzili — U42**. [Paket73](Q17A-RICH-CONTENT-PARITY.md)
 Q17a boy matn/inline media lokal paritetini yakunladi; keyin
 [Paket74](Q17B-SIT-STUDIO-PROTOTYPE.md) SIT studiyasining10 UI manzilini
 qurdi. [Paket75](Q18-MINIAPP-PROTOTYPE.md) Mini App5UI va web handoffni
-qurdi. Endi **3 ochiq qadam**: Q19, Q08 legacy va final qabul. Q17/Q18 lokal
+qurdi. [Paket76](Q19-SYSTEM-PROTOTYPE.md) tizimning5 holatini qurdi.
+Endi **2 ochiq qadam**: Q08 legacy/paritet va final qabul. Q17–Q19 lokal
 implementation yakunlandi; real adapter/owner/native acceptance emas.
 U17/A2-D01 to‘liq write-parity alohida OPEN; UI soni bu qarzni yopmaydi.
 Keng Q14 savol/ko‘p-bo‘lim/nashr capabilitysi alohida ochiq; real port
@@ -135,10 +137,14 @@ Eski Q raqamlari saqlanadi; a/b bo‘linishi faqat paket chegarasidir.
   120 responsive check. Explicit synthetic auth/receipt, shared projections,
   existing AI room delegate, same-tab web return va browser Back tekshirildi.
   Haqiqiy Telegram SDK/Back/theme/safe-area/native keyboard qabuli OPEN.
-- [ ] **9. Q19 — Tizim sahifalari (5 holat).** 403,404,500,
+- [x] ~~**9. Q19 — Tizim sahifalari (5 holat), lokal implementation.**~~ 403,404,500,
   maintenance, offline. **Yakun:** tushunarli sabab va xavfsiz qaytish/retry;
   redirect loop yo‘q, 500 minimal kontekstda ham ishlaydi; noto‘g‘ri
   retry foydalanuvchi amalini ikki marta bajarmaydi.
+  **Dalil:** [Paket76](Q19-SYSTEM-PROTOTYPE.md),800 Django/195 Node,
+  final12 focused,60 responsive checks. Source HTTP statuslar, minimal500,
+  actual DEBUG=False handler dispatch, allowlisted GET va keyboard/handoff
+  verified. Real PWA/network outage/native/AT/owner qabul va port OPEN.
 - [ ] **10. Q08 bo‘shlig‘i va mavjud sahifalar pariteti (1 yangi URL).**
   `/users/attendance/manage/` uchun mavjud teacher-davomat patterni;
   qo‘shimcha ravishda 4-bo‘limdagi eski holat qarzlari tekshiriladi.
@@ -163,8 +169,9 @@ alohida backlogda turadi; shu rejaning ichiga yashirincha kiritilmaydi.
 Jadval boshlang‘ich **YO‘Q** inventaridir. **2026-09-28 delta:** U01/U02
 Paket67da, U03–U06 Paket68da, U07–U11 Paket69da, U12–U19 UI Paket70da
 lokal qurildi; Q16b U20/U21, Q17a U22–U24 va Q17b U25–U34 UI ham qurildi.
-Q18 U35–U39 UI Paket75da lokal qurildi. Qolgan **3 UI +3 handler =6 band**
-ochiq; Mini App real Telegram/native/owner qabuli bundan alohida.
+Q18 U35–U39 UI Paket75da, Q19 U40/U41 vaH01–H03 Paket76da lokal qurildi.
+Qolgan **1 UI — U42** ochiq; Mini App real Telegram va Q19 haqiqiy
+offline/PWA/native/owner qabuli bundan alohida.
 Q17a rich-text/inline media lokal pariteti Paket73 bilan bajarildi;
 haqiqiy blog media/RBAC/sanitizer porti va native/owner qabul alohida.
 U17 write-parity/A2-D01 alohida ochiq.
