@@ -16,12 +16,15 @@ keyin [Q16b brend/landing](Q16B-BRAND-LANDING-PROTOTYPE.md) bilan yana2 UI.
 Keyin [Q17a blog studiyasi](Q17A-BLOG-STUDIO-PROTOTYPE.md) bilan yana3 UI.
 Keyin [Q17b SIT studiyasi](Q17B-SIT-STUDIO-PROTOTYPE.md) bilan yana10 UI,
 43 source field/7 child formset va rich guide/public namuna qurildi.
-Endi **8 UI +3 handler =11 yangi band,4 navbatdagi qadam**.
+Keyin [Q18 Mini App](Q18-MINIAPP-PROTOTYPE.md) bilan5 UI, sintetik
+kirish, shared projection, web handoff/Back qurildi:788 Django/195 Node,
+120 responsive check PASS. Endi **3 UI +3 handler =6 yangi band,3 qadam**.
 [Paket73](Q17A-RICH-CONTENT-PARITY.md) Q17a boy matn/inline media
 preview→save→public lokal paritetini yakunladi:752 Django/190 Node PASS. U17/A2-D01
 to‘liq write-parity ochiq; u sahifa hozir read-only chegarada.
 Q14 keng savol/bo‘lim capabilitysi, real blog upload/sanitizer/storage porti
-va native/owner qabul alohida ochiq. KeyingiQ18 — Telegram Mini App.
+va native/owner qabul alohida ochiq. Mini App uchun haqiqiy Telegram
+SDK/HMAC/Back/native keyboard/safe-area alohida OPEN. KeyingiQ19 — tizim holatlari.
 Quyidagi paket yozuvlari tarixiy snapshotlar.
 
 Sana: 2026-09-25. Owner qarori: Eleventh Trial birinchi versiya sifatida
