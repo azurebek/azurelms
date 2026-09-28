@@ -160,10 +160,11 @@ alohida backlogda turadi; shu rejaning ichiga yashirincha kiritilmaydi.
 
 ## 3. To‘liq sahifa/manzil ro‘yxati
 
-Jadval boshlang‘ich **YO‘Q** inventaridir. **2026-09-27 delta:** U01/U02
+Jadval boshlang‘ich **YO‘Q** inventaridir. **2026-09-28 delta:** U01/U02
 Paket67da, U03–U06 Paket68da, U07–U11 Paket69da, U12–U19 UI Paket70da
 lokal qurildi; Q16b U20/U21, Q17a U22–U24 va Q17b U25–U34 UI ham qurildi.
-Qolgan8 UI +3 handler ochiq;
+Q18 U35–U39 UI Paket75da lokal qurildi. Qolgan **3 UI +3 handler =6 band**
+ochiq; Mini App real Telegram/native/owner qabuli bundan alohida.
 Q17a rich-text/inline media lokal pariteti Paket73 bilan bajarildi;
 haqiqiy blog media/RBAC/sanitizer porti va native/owner qabul alohida.
 U17 write-parity/A2-D01 alohida ochiq.
