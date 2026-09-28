@@ -16,6 +16,28 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-28 [Codex]: Q18 Mini App — 5 lokal UI va web handoff
+
+Packet75 entry/home/kurslar/AI/profilni bitta Mini shell va mavjud shared
+projectionlar bilan qurdi. Synthetic auth, aniq natija, webga o‘tib qaytish,
+mobil/desktop va xato holatlari tekshirildi. Real Telegram, DB, provider,
+runtime va AWS o‘zgarmadi; native/owner qabul hamda port alohida OPEN.
+
+- Branch `codex/q18-miniapp-prototype`; evidence commit **`b8c3264`**.
+  [Dalil va chegaralar](frontend-v1/Q18-MINIAPP-PROTOTYPE.md).
+- Provider-free trial `manage.py check`:0 issue;
+  `manage.py test tests --verbosity 0`:**788 PASS**,338.319s.
+  Final20 focused PASS; `node --test tests/*.test.mjs`:**195 PASS**.
+- IAB120 responsive checks overflow0;44px tab targets. Entry error/recovery,
+  Mini→lesson→return, AI room→Back, unknown GET reconcile, focus/short-screen.
+- Registry136 URL/74 template/115 source,1212 state/201 action. Ignored
+  prototype Gitga kiritilmadi. Lokal checkpoint **591 fayl**:
+  `packet-75-20260928-032108.zip`, har entry hash mos;
+  SHA256 `011ABDCEF0BA19C9E511C1F02F11150C963C274DB372FA4B6B778D5C4B9F615F`.
+- Q18 lokal implementation bajarildi; **6 yangi band/3 qadam**:
+  Q19 → Q08 legacy/paritet → umumiy qabul. Real Telegram SDK/HMAC/Back,
+  native keyboard/safe-area, U17/A2-D01/broadQ14/Q03advanced ochiq.
+
 ## 2026-09-28 [Codex]: Q17b SIT studiyasi — 10 lokal UI
 
 Packet74 universitet/e’lon/qo‘llanma studiyasini43 source field va7 ichki
