@@ -16,6 +16,32 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-09-28 [Codex]: Q08 U42 — sana bo‘yicha davomat va paritet auditi
+
+Packet77 alohida `/users/attendance/manage/` prototipini qurdi: guruh/dars/
+sana, native saqlash/tasdiq/natija va teacher latest/learner own history uchun
+bitta sintetik ledger. Eski trackerning har oilasi dalil/missing state/
+capability yoki acceptance OPENga ajratildi. Owner D33 bilan iPhone Chrome
+keyboard xatosi final tuzatishga qoldi; canonical runtime/DB/AWS o‘zgarmadi.
+
+- Branch `codex/q08-dated-attendance`; evidence commit **`629c672`**.
+  [Q08 dalili](frontend-v1/Q08-DATED-ATTENDANCE-PROTOTYPE.md),
+  [yakuniy nuqsonlar](frontend-v1/FINAL-ACCEPTANCE-ISSUES.md).
+- Trial cwd `playground/Eleventh Trial`, provider-free:
+  `python manage.py test tests --verbosity 1` **823 PASS**,488.684s/check0.
+  `node --test tests/*.test.mjs` **197 PASS**; dated/teacher attendance va
+  registry/nav final focused **52 PASS**,12.550s. JS syntax/diff-check PASS.
+- 32 responsive checks: normal6/long22,320–1280px,light/dark;overflow0,
+  main form controls≥44px. Keyboard save/result, draft/reload/date isolation,
+  unknown→GET verified. Native touch/AT/Chrome virtual keyboard NOT TESTED.
+-139 routes/77 templates/118 source names/1223 states/206 actions +3 handlers.
+  Initial45 inventoryda yangi UI0; **2 qadam** — final qabul/tuzatish→DESIGN-01.
+  Q20/Q21 yoki G2/G3 PASS emas; PAR-01–05 va capability qarzlari ochiq.
+- Lokal checkpoint `packet-77-20260928-051620.zip`,620 entry SHA256 verified:
+  `F6EF0CBA50CBF1BCCB142A71B6AF741186C81EEAB9E6DC2A1C46898040BA08DD`.
+  Ignored source Gitga kiritilmadi, eski nusxalar saqlandi. Tracked PR docs-only;
+  required CI/merge quyidagi workflow gate bo‘yicha alohida tekshiriladi.
+
 ## 2026-09-28 [Codex]: D32 — keng kodsiz dizayn boshqaruvi reja oxirida
 
 Owner rang, button/karta shakli va fontlarni admin panelda kodsiz keng
