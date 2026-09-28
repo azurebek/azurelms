@@ -15,6 +15,8 @@ qurdi. [Paket75](Q18-MINIAPP-PROTOTYPE.md) Mini App5UI va web handoffni
 qurdi. [Paket76](Q19-SYSTEM-PROTOTYPE.md) tizimning5 holatini qurdi.
 [Paket77](Q08-DATED-ATTENDANCE-PROTOTYPE.md) U42 dated-ledger prototipini
 va eski holatlarning dalil/ochiq-farq auditini bajardi.823 Django/197 Node PASS.
+Keyin [Packet78](PAR04-EXAM-REREVIEW-PROTOTYPE.md) PAR-04 qayta tekshiruv
+paritetini lokal yopdi:832 Django/203 Node/48 responsive. Sonlar o‘zgarmadi.
 Endi **2 ochiq qadam**: joriy qamrov qabuli va tuzatishlar →
 **DESIGN-01 kodsiz dizayn boshqaruvi** (owner 2026-09-28 reja oxiriga qo‘shdi).
 Boshlang‘ich45 bandning lokal UI qurilishi bajarildi; DESIGN-01 yangi capability bo‘lib,
@@ -164,7 +166,7 @@ Eski Q raqamlari saqlanadi; a/b bo‘linishi faqat paket chegarasidir.
   4-bo‘limning har qatori existing evidence/missing state/capability yoki
   acceptance OPEN sifatida tasniflandi. Missing-state bandlari PAR-01–05
   final qabulda qoladi; bu chiziq barcha paritet qarzlari yopildi degani emas.
-- [ ] **11. Q20–Q21 — Umumiy tekshiruv va qabul.** Yangi oilalardan
+- [-] **11. Q20–Q21 — Umumiy tekshiruv va qabul.** Yangi oilalardan
   mavjud learner/teacher/public oqimlariga handoff, rol chegaralari,
   desktop/mobile va owner walkthrough. **Yakun:** 45 bandning har biri
   registry/action/source xaritasi, test dalili va qabul holatiga ega;
@@ -172,6 +174,8 @@ Eski Q raqamlari saqlanadi; a/b bo‘linishi faqat paket chegarasidir.
   Native device/AT tekshirilmagan bo‘lsa to‘liq G3 PASS yozilmaydi.
   [Ochiq tuzatishlar](FINAL-ACCEPTANCE-ISSUES.md): owner iPhone Chrome
   keyboard/chat nuqsonini shu bosqichga qoldirdi; Q08da unga tegilmadi.
+  **Ijro:** [Packet78](PAR04-EXAM-REREVIEW-PROTOTYPE.md) PAR-04 lokal
+  re-reviewni yopdi; PAR-01/02/03/05 va UX/DATA/RULE/native bandlari ochiq.
 - [ ] **12. DESIGN-01 — Admin paneldan keng kodsiz dizayn boshqaruvi.**
   **Owner qarori,2026-09-28:** sodda rang tanlagich bilan chala qoldirmaslik;
   rang, button/karta shakli va shriftlarni kodga tegmasdan boshqarish imkonini

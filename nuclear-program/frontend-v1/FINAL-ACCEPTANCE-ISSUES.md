@@ -18,7 +18,7 @@ Yangi redesign yoki production mutation vakolati emas.
 Claude kuzatuvlari to‘liq native regression yoki server attestatsiyasi emas.
 AI javobi, imtihon, Classbook, Telegram login va real telefonning qolgan
 yo‘llari NOT TESTED; mavjud gate hujjatlari bilan birga qabulda tekshiriladi.
-Hozirgi navbat: Q08 → joriy qamrov qabul/tuzatish → DESIGN-01.
+Hozirgi navbat: joriy qamrov qabul/tuzatish (ishda) → DESIGN-01.
 
 ## Packet77 paritet auditi — finalda yo‘qolmasin
 
@@ -31,8 +31,10 @@ chegarani beradi. Quyidagilar yangi URL yoki yangi redesign emas:
   real I4b compact action menyusi bilan muvofiqlashtirish; UX-01 alohida.
 - PAR-03 OPEN: blog public comment/reaction va SIT application/advisor
   handoffni source bo‘yicha solishtirish; real content qabuli alohida.
-- PAR-04 OPEN: real imtihon re-review / preview first-review farqi;
-  oldingi published natija yangi draft sabab learnerdan yo‘qolmasin.
+- [x] ~~PAR-04 lokal re-review / first-review farqi~~:
+  [Packet78](PAR04-EXAM-REREVIEW-PROTOTYPE.md),832 Django/203 Node/48
+  responsive; yangi private draft eski published natijani almashtirmaydi,
+  explicit publish talab qilinadi. Native/real port qabuli alohida ochiq.
 - PAR-05 OPEN: real rejected chek o‘chirilishi / preview namuna holati;
   alias kirishlar, picker va yangi oilalardan existing journey handoff.
 

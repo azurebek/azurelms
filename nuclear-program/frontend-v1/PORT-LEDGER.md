@@ -1,5 +1,11 @@
 # Frontend V1 — bajarish va qabul jurnali
 
+**2026-09-28 Packet78:** [PAR-04 local re-review](PAR04-EXAM-REREVIEW-PROTOTYPE.md)
+yopildi: old approved result→private re-save→explicit republish.832 Django/
+203 Node/final53,48 responsive PASS.139/77/118 soni o‘zgarmadi.
+11-final qabul/tuzatish ishda,12-DESIGN-01 navbatda. Bu yangi real port
+yoki AWS relizi emas; PAR-01/02/03/05 va native/UX/DATA/RULE hali ochiq.
+
 **2026-09-28 lokal prototype checkpoint:** Q18, Q19 va oxirgi U42/Q08
 ham qurildi. [Packet77](Q08-DATED-ATTENDANCE-PROTOTYPE.md):139 named URL/
 77 template/118 source nomi +3 handler;823 Django/197 Node PASS.
