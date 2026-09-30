@@ -1,5 +1,11 @@
 # Frontend V1 — bajarish va qabul jurnali
 
+**2026-10-01 Packet79:** [PAR-02 AI compact amallar](PAR02-AI-COMPACT-PROTOTYPE.md)
+lokal yopildi. Ism/matn/44px menyu, exact copy, existing feedback/unknown
+reconcile;834 Django/214 Node/48 responsive PASS.139/77/118,1223states/208actions.
+Real port/AWS o‘zgarmadi. PAR-01/03/05 va UX/DATA/RULE/native ochiq;
+11-final qabul/tuzatish →12-DESIGN-01. Quyidagi yozuvlar tarixiy.
+
 **2026-09-28 Packet78:** [PAR-04 local re-review](PAR04-EXAM-REREVIEW-PROTOTYPE.md)
 yopildi: old approved result→private re-save→explicit republish.832 Django/
 203 Node/final53,48 responsive PASS.139/77/118 soni o‘zgarmadi.
