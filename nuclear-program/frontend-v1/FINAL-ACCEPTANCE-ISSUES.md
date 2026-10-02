@@ -27,8 +27,10 @@ chegarani beradi. Quyidagilar yangi URL yoki yangi redesign emas:
 
 - PAR-01 OPEN: eski course prototype4 maydon / real I6b14 maydon;
   source maydon xaritasi va preview deltasini tekshirish.
-- PAR-02 OPEN: AI previewdagi doimiy copy/feedbackni owner tasdiqlagan
-  real I4b compact action menyusi bilan muvofiqlashtirish; UX-01 alohida.
+- [x] ~~PAR-02 lokal AI compact action menyusi~~:
+  [Packet79](PAR02-AI-COMPACT-PROTOTYPE.md),2026-10-01. Ism/matn va44px
+  `⋯`; copy/feedback native dialogda, keyboard/focus/unknown/reload
+  va48 responsive check. Native long-press/AT va UX-01 alohida OPEN.
 - PAR-03 OPEN: blog public comment/reaction va SIT application/advisor
   handoffni source bo‘yicha solishtirish; real content qabuli alohida.
 - [x] ~~PAR-04 lokal re-review / first-review farqi~~:

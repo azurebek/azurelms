@@ -49,6 +49,35 @@ Oldingi full run’dagi 1 failure frozen-clock regressiya bilan qoplandi.
 - Local user DB/AWS, haqiqiy AI/Telegram va ignored prototip o‘zgarmadi.
   Keyingi gate: own PR required CI/review, so‘ng blocked docs PR159ni yangilash.
   Prototip final qabul/PAR-01/03/05 va DESIGN-01 navbati saqlanadi.
+- Integratsiya: PR160 uch required CI PASS, review thread0; merge **`6cf67f6`**.
+  PR159ni shu main bilan yangilashda faqat marinebook prepend konflikti bo‘ldi:
+  ikki Codex yozuvi to‘liq saqlanib sana tartibiga keltirildi; runtime konflikti0.
+
+## 2026-10-01 [Codex]: Packet79 — ixcham AI xabar amallari
+
+28-sentyabrda boshlangan PAR-02 lokal paketi limit uzilishidan keyin
+yakunlandi. Ism/matn/44px menyu, exact copy va mavjud feedback native
+dialogda; unknown/reload/GET reconcile va dinamik modal fokusi tekshirildi.
+Human chatlar hamda canonical runtime/DB/provider/AWS o‘zgarmadi.
+
+- Branch `codex/prototype-ai-compact-actions`; evidence commit **`3dd325b`**.
+  [Dalil](frontend-v1/PAR02-AI-COMPACT-PROTOTYPE.md),
+  [bajarilgan band](frontend-v1/FINAL-ACCEPTANCE-ISSUES.md).
+- Trial cwd, `.env`siz/provider-free: `../../venv/Scripts/python.exe
+  manage.py test tests --verbosity 1` **834 PASS**,330.981s. Interrupted
+  old run PASS emas; yangisi to‘liq yugurdi. `manage.py check`:0.
+  `node --test` trialning barcha `.test.mjs`:**214 PASS**; JS syntax PASS.
+- IAB8084: copy→paste exact text; right-click/keyboard/menu, save/reload,
+  unknown GET, Tab/Escape/focus, dynamic row/room72/draft; human modal
+  regressiyasi.48 responsive case overflow0/message controls≥44px.
+- Registry139/77/118,1223states/**208actions**,3 diagnostic handler.
+  Checkpoint `playground/Eleventh Trial/checkpoints/packet-79-20261001-022839.zip`,
+  **632 fayl**,har-entry SHA256 verified;
+  `65532DF709934886D23B863B373730D38983819CCE95ECB5451D9278AB43FB20`.
+  Old Packet78 saqlandi; ignored trial/arxiv upload qilinmadi.
+- Davomi: PAR-01/03/05, UX/DATA/RULE/native/owner qabul → DESIGN-01.
+  Native long-press/AT/iPhone Chrome keyboard UX-01 NOT TESTED/OPEN.
+  Tracked PR docs-only; required CI/manual merge alohida gate.
 
 ## 2026-09-28 [Codex]: Packet78 — imtihonni qayta tekshirish pariteti
 

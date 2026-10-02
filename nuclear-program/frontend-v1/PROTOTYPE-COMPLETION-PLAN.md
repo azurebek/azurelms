@@ -17,6 +17,8 @@ qurdi. [Paket76](Q19-SYSTEM-PROTOTYPE.md) tizimning5 holatini qurdi.
 va eski holatlarning dalil/ochiq-farq auditini bajardi.823 Django/197 Node PASS.
 Keyin [Packet78](PAR04-EXAM-REREVIEW-PROTOTYPE.md) PAR-04 qayta tekshiruv
 paritetini lokal yopdi:832 Django/203 Node/48 responsive. Sonlar o‘zgarmadi.
+2026-10-01 [Packet79](PAR02-AI-COMPACT-PROTOTYPE.md) PAR-02 ixcham AI
+amallarini yopdi: yangi URL yo‘q,208 action;834 Django/214 Node/48 responsive PASS.
 Endi **2 ochiq qadam**: joriy qamrov qabuli va tuzatishlar →
 **DESIGN-01 kodsiz dizayn boshqaruvi** (owner 2026-09-28 reja oxiriga qo‘shdi).
 Boshlang‘ich45 bandning lokal UI qurilishi bajarildi; DESIGN-01 yangi capability bo‘lib,
@@ -175,7 +177,8 @@ Eski Q raqamlari saqlanadi; a/b bo‘linishi faqat paket chegarasidir.
   [Ochiq tuzatishlar](FINAL-ACCEPTANCE-ISSUES.md): owner iPhone Chrome
   keyboard/chat nuqsonini shu bosqichga qoldirdi; Q08da unga tegilmadi.
   **Ijro:** [Packet78](PAR04-EXAM-REREVIEW-PROTOTYPE.md) PAR-04 lokal
-  re-reviewni yopdi; PAR-01/02/03/05 va UX/DATA/RULE/native bandlari ochiq.
+  re-reviewni, [Packet79](PAR02-AI-COMPACT-PROTOTYPE.md) PAR-02 AI
+  compact amallarini yopdi. PAR-01/03/05 va UX/DATA/RULE/native ochiq.
 - [ ] **12. DESIGN-01 — Admin paneldan keng kodsiz dizayn boshqaruvi.**
   **Owner qarori,2026-09-28:** sodda rang tanlagich bilan chala qoldirmaslik;
   rang, button/karta shakli va shriftlarni kodga tegmasdan boshqarish imkonini
