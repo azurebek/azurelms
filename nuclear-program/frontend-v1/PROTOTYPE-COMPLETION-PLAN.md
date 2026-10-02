@@ -171,8 +171,9 @@ Eski Q raqamlari saqlanadi; a/b bo‘linishi faqat paket chegarasidir.
   **Dalil:** [Paket77](Q08-DATED-ATTENDANCE-PROTOTYPE.md), U42 alohida
   exact-date forma/shared ledger;823 Django/197 Node,32 responsive check.
   4-bo‘limning har qatori existing evidence/missing state/capability yoki
-  acceptance OPEN sifatida tasniflandi. Missing-state bandlari PAR-01–05
-  final qabulda qoladi; bu chiziq barcha paritet qarzlari yopildi degani emas.
+  acceptance OPEN sifatida tasniflandi. O‘sha auditdagi PAR-01–05 bandlarining
+  keyingi ijrosi 11-qadamda yuritiladi; bu chiziq barcha paritet qarzlari
+  yopildi degani emas.
 - [-] **11. Q20–Q21 — Umumiy tekshiruv va qabul.** Yangi oilalardan
   mavjud learner/teacher/public oqimlariga handoff, rol chegaralari,
   desktop/mobile va owner walkthrough. **Yakun:** 45 bandning har biri
@@ -183,7 +184,9 @@ Eski Q raqamlari saqlanadi; a/b bo‘linishi faqat paket chegarasidir.
   keyboard/chat nuqsonini shu bosqichga qoldirdi; Q08da unga tegilmadi.
   **Ijro:** [Packet78](PAR04-EXAM-REREVIEW-PROTOTYPE.md) PAR-04 lokal
   re-reviewni, [Packet79](PAR02-AI-COMPACT-PROTOTYPE.md) PAR-02 AI
-  compact amallarini yopdi. PAR-01/03/05 va UX/DATA/RULE/native ochiq.
+  compact amallarini, [Packet80](PAR01-COURSE-FIELDS-PROTOTYPE.md) PAR-01
+  kurs create/edit formasidagi 14 maydon farqini lokal yopdi.
+  **Qolgan:** PAR-03/05 va UX/DATA/RULE/native/owner qabuli.
 - [ ] **12. DESIGN-01 — Admin paneldan keng kodsiz dizayn boshqaruvi.**
   **Owner qarori,2026-09-28:** sodda rang tanlagich bilan chala qoldirmaslik;
   rang, button/karta shakli va shriftlarni kodga tegmasdan boshqarish imkonini
