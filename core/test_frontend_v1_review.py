@@ -44,7 +44,7 @@ class TeacherReviewTests(TestCase):
     def payload(self, **extra):
         self.submission.refresh_from_db()
         data = dict(v1_review='1', action='approve', teacher_feedback='Yaxshi!', awarded_xp='15',
-                    revision=self.submission.updated_at.isoformat(), confirm_review='on')
+                    revision=self.submission.review_revision_token, confirm_review='on')
         data.update(extra)
         return data
 
@@ -177,7 +177,7 @@ class TeacherReviewTests(TestCase):
         self.assertContains(response, 'Old draft', status_code=409)
         self.assertEqual(response.context['review_form']['confirm_review'].value(), False)
         self.submission.refresh_from_db()
-        self.assertEqual(response.context['review_form']['revision'].value(), self.submission.updated_at.isoformat())
+        self.assertEqual(response.context['review_form']['revision'].value(), self.submission.review_revision_token)
         self.assertFalse(Notification.objects.filter(recipient=self.student).exists())
         self.assertEqual(self.submission.status, 'pending')
         response = self.client.post(self.url, self.payload(teacher_feedback='Fresh review'))
@@ -200,16 +200,83 @@ class TeacherReviewTests(TestCase):
             with self.subTest(action=action):
                 review_assignment_submission(submission=self.submission, approved=True, reviewer=self.teacher, awarded_xp=20)
                 data = self.payload()
-                with patch.object(model_admin, 'message_user'):
+                old_stamp, old_revision = self.submission.updated_at, self.submission.review_revision
+                with patch('django.utils.timezone.now', return_value=old_stamp), patch.object(model_admin, 'message_user'):
                     getattr(model_admin, action)(request, AssignmentSubmission.objects.filter(pk=self.submission.pk))
                 self.submission.refresh_from_db()
-                self.assertNotEqual(self.submission.updated_at.isoformat(), data['revision'])
+                self.assertEqual(self.submission.updated_at, old_stamp)
+                self.assertEqual(self.submission.review_revision, old_revision + 1)
+                self.assertNotEqual(self.submission.review_revision_token, data['revision'])
                 stamp, reviewer, reviewed = self.submission.updated_at, self.submission.reviewed_by_id, self.submission.reviewed_at
                 before = SystemAuditEvent.objects.filter(action='assignment.review').count()
                 self.assertEqual(self.client.post(self.url, data).status_code, 409)
                 self.submission.refresh_from_db()
                 self.assertEqual((self.submission.status, self.submission.updated_at, self.submission.reviewed_by_id, self.submission.reviewed_at), (status, stamp, reviewer, reviewed))
                 self.assertEqual(SystemAuditEvent.objects.filter(action='assignment.review').count(), before)
+
+    def test_frozen_clock_review_and_resubmission_reject_old_forms(self):
+        old_stamp = self.submission.updated_at
+        with patch('django.utils.timezone.now', return_value=old_stamp):
+            first = self.payload()
+            self.assertEqual(self.client.post(self.url, first).status_code, 302)
+            self.submission.refresh_from_db()
+            self.assertEqual(self.submission.updated_at, old_stamp)
+            self.assertEqual(self.client.post(self.url, first).status_code, 409)
+            second = self.payload()
+            result = submit_assignment(user=self.student, assignment=self.assignment,
+                                       answer_text='Updated learner answer', replace_review=True)
+            self.assertTrue(result.ok)
+            self.assertEqual(self.client.post(self.url, second).status_code, 409)
+            self.submission.refresh_from_db()
+            self.assertEqual(self.submission.updated_at, old_stamp)
+            self.assertEqual(self.submission.answer_text, 'Updated learner answer')
+            self.assertEqual(self.submission.status, 'pending')
+            self.assertEqual(self.submission.review_revision, 2)
+            self.student.refresh_from_db()
+            self.assertEqual(self.student.total_xp, 0)
+            self.assertEqual(SystemAuditEvent.objects.filter(action='assignment.review').count(), 1)
+            self.assertEqual(self.client.post(self.url, self.payload()).status_code, 302)
+
+    def test_old_timestamp_token_is_rejected_without_writes(self):
+        before = self.submission.review_revision
+        response = self.client.post(self.url, self.payload(revision=self.submission.updated_at.isoformat()))
+        self.assertEqual(response.status_code, 409)
+        self.submission.refresh_from_db()
+        self.assertEqual(self.submission.review_revision, before)
+        self.assertEqual(self.submission.status, 'pending')
+        self.assertFalse(SystemAuditEvent.objects.filter(action='assignment.review').exists())
+        self.assertEqual(response.context['review_form']['revision'].value(), self.submission.review_revision_token)
+
+    def test_partial_and_stale_model_saves_advance_database_revision(self):
+        data = self.payload()
+        stale = AssignmentSubmission.objects.get(pk=self.submission.pk)
+        with patch('django.utils.timezone.now', return_value=self.submission.updated_at):
+            self.submission.teacher_feedback = 'First'
+            self.submission.save(update_fields=['teacher_feedback'])
+            stale.answer_text = 'A new learner answer'
+            stale.save(update_fields=['answer_text'])
+        self.submission.refresh_from_db()
+        self.assertEqual(self.submission.review_revision, 2)
+        self.assertEqual(self.submission.teacher_feedback, 'First')
+        self.assertEqual(self.submission.answer_text, 'A new learner answer')
+        self.assertEqual(self.client.post(self.url, data).status_code, 409)
+        self.submission.save(update_fields=[])
+        self.submission.refresh_from_db()
+        self.assertEqual(self.submission.review_revision, 2)
+
+    def test_admin_form_save_invalidates_teacher_form_under_frozen_clock(self):
+        from courses.admin import AssignmentSubmissionAdmin
+        request = RequestFactory().post('/admin/courses/assignmentsubmission/')
+        request.user = self.teacher
+        model_admin = AssignmentSubmissionAdmin(AssignmentSubmission, admin.site)
+        data = self.payload()
+        self.submission.teacher_feedback = 'Admin edit'
+        with patch('django.utils.timezone.now', return_value=self.submission.updated_at):
+            model_admin.save_model(request, self.submission, None, True)
+        self.assertEqual(self.client.post(self.url, data).status_code, 409)
+        self.submission.refresh_from_db()
+        self.assertEqual(self.submission.teacher_feedback, 'Admin edit')
+        self.assertEqual(self.submission.review_revision, 1)
 
     def test_draft_scope_changes_on_new_login_and_no_confirmation_is_persistable(self):
         first = self.client.get(self.url)
@@ -232,7 +299,7 @@ class ReviewConcurrencyTests(TransactionTestCase):
     def test_only_one_reviewer_can_write_a_given_revision(self):
         fixtures(self)
         submission = AssignmentSubmission.objects.create(assignment=self.assignment, student=self.student, answer_text='Answer')
-        revision = submission.updated_at.isoformat()
+        revision = submission.review_revision_token
         barrier = Barrier(2)
         def review():
             try:

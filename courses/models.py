@@ -4,7 +4,7 @@ import uuid
 from io import BytesIO
 from pathlib import Path
 
-from django.db import models, transaction
+from django.db import models, router, transaction
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
@@ -330,6 +330,8 @@ class AssignmentSubmission(models.Model):
     reviewed_at = models.DateTimeField(null=True, blank=True, verbose_name="Tekshirilgan vaqt")
     submitted_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    # Review forms must detect writes even when the wall clock does not advance.
+    review_revision = models.PositiveBigIntegerField(default=0, editable=False)
 
     class Meta:
         unique_together = ("assignment", "student")
@@ -339,6 +341,25 @@ class AssignmentSubmission(models.Model):
 
     def __str__(self):
         return f"{self.student.username} -> {self.assignment.title}"
+
+    def save(self, *args, **kwargs):
+        update_fields = kwargs.get('update_fields')
+        if update_fields is not None and not update_fields:
+            return super().save(*args, **kwargs)
+        using = kwargs.get('using') or router.db_for_write(type(self), instance=self)
+        kwargs['using'] = using
+        with transaction.atomic(using=using):
+            current = (type(self)._base_manager.using(using).select_for_update()
+                       .filter(pk=self.pk).values_list('review_revision', flat=True).first()) if self.pk is not None else None
+            self.review_revision = current + 1 if current is not None else 0
+            if update_fields is not None:
+                kwargs['update_fields'] = set(update_fields) | {'review_revision'}
+            return super().save(*args, **kwargs)
+
+    @property
+    def review_revision_token(self):
+        # Versioned format also rejects old timestamp-based forms after deploy.
+        return f'submission:{self.pk}:{self.review_revision}'
 
     @property
     def is_approved(self):

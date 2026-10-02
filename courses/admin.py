@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.db.models import F
 from django.utils.html import format_html, format_html_join
 from django.urls import reverse
 import nested_admin
@@ -270,6 +271,7 @@ class AssignmentSubmissionAdmin(admin.ModelAdmin):
             reviewed_by=None,
             reviewed_at=None,
             updated_at=timezone.now(),
+            review_revision=F('review_revision') + 1,
         )
         self.message_user(request, f"{updated} ta submission pending holatga o'tkazildi.")
 
@@ -282,6 +284,7 @@ class AssignmentSubmissionAdmin(admin.ModelAdmin):
             reviewed_by=request.user,
             reviewed_at=timezone.now(),
             updated_at=timezone.now(),
+            review_revision=F('review_revision') + 1,
         )
         self.message_user(request, f"{updated} ta submission tasdiqlandi.")
 
@@ -294,6 +297,7 @@ class AssignmentSubmissionAdmin(admin.ModelAdmin):
             reviewed_by=request.user,
             reviewed_at=timezone.now(),
             updated_at=timezone.now(),
+            review_revision=F('review_revision') + 1,
         )
         self.message_user(request, f"{updated} ta submission revision holatiga o'tdi.")
 
