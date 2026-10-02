@@ -1,5 +1,10 @@
 # Qolgan prototiplar — aniq qamrov va tugatish rejasi
 
+**2026-10-03 Packet80:** [PAR-01 course field parity](PAR01-COURSE-FIELDS-PROTOTYPE.md)
+lokal yopildi:14-field create/edit,841 Django/219 Node,56 responsive+36state.
+PAR-03/05 va UX/DATA/RULE/native/owner final qabul qoladi; keyin DESIGN-01.
+Yangi UI/route yo‘q; real runtime va AWS o‘zgarmadi.
+
 **2026-09-27–28 ijro:** Q14 U01/U02, Q15a U03–U06, Q15b U07–U11, Q16a U12–U19,
 Q16b U20/U21, Q17a U22–U24, Q17b U25–U34, Q18 U35–U39 va Q19
 U40/U41/H01–H03 va Q08 U42 lokal qurildi:
@@ -166,8 +171,9 @@ Eski Q raqamlari saqlanadi; a/b bo‘linishi faqat paket chegarasidir.
   **Dalil:** [Paket77](Q08-DATED-ATTENDANCE-PROTOTYPE.md), U42 alohida
   exact-date forma/shared ledger;823 Django/197 Node,32 responsive check.
   4-bo‘limning har qatori existing evidence/missing state/capability yoki
-  acceptance OPEN sifatida tasniflandi. Missing-state bandlari PAR-01–05
-  final qabulda qoladi; bu chiziq barcha paritet qarzlari yopildi degani emas.
+  acceptance OPEN sifatida tasniflandi. O‘sha auditdagi PAR-01–05 bandlarining
+  keyingi ijrosi 11-qadamda yuritiladi; bu chiziq barcha paritet qarzlari
+  yopildi degani emas.
 - [-] **11. Q20–Q21 — Umumiy tekshiruv va qabul.** Yangi oilalardan
   mavjud learner/teacher/public oqimlariga handoff, rol chegaralari,
   desktop/mobile va owner walkthrough. **Yakun:** 45 bandning har biri
@@ -178,7 +184,9 @@ Eski Q raqamlari saqlanadi; a/b bo‘linishi faqat paket chegarasidir.
   keyboard/chat nuqsonini shu bosqichga qoldirdi; Q08da unga tegilmadi.
   **Ijro:** [Packet78](PAR04-EXAM-REREVIEW-PROTOTYPE.md) PAR-04 lokal
   re-reviewni, [Packet79](PAR02-AI-COMPACT-PROTOTYPE.md) PAR-02 AI
-  compact amallarini yopdi. PAR-01/03/05 va UX/DATA/RULE/native ochiq.
+  compact amallarini, [Packet80](PAR01-COURSE-FIELDS-PROTOTYPE.md) PAR-01
+  kurs create/edit formasidagi 14 maydon farqini lokal yopdi.
+  **Qolgan:** PAR-03/05 va UX/DATA/RULE/native/owner qabuli.
 - [ ] **12. DESIGN-01 — Admin paneldan keng kodsiz dizayn boshqaruvi.**
   **Owner qarori,2026-09-28:** sodda rang tanlagich bilan chala qoldirmaslik;
   rang, button/karta shakli va shriftlarni kodga tegmasdan boshqarish imkonini

@@ -25,8 +25,10 @@ Hozirgi navbat: joriy qamrov qabul/tuzatish (ishda) → DESIGN-01.
 [Q08 audit jadvali](Q08-DATED-ATTENDANCE-PROTOTYPE.md) to‘liq dalil va
 chegarani beradi. Quyidagilar yangi URL yoki yangi redesign emas:
 
-- PAR-01 OPEN: eski course prototype4 maydon / real I6b14 maydon;
-  source maydon xaritasi va preview deltasini tekshirish.
+- [x] ~~PAR-01 lokal kurs formasidagi4/14 maydon farqi~~:
+  [Packet80](PAR01-COURSE-FIELDS-PROTOTYPE.md),2026-10-03. Create/edit14field,
+  exact receipt, stale-reload baseline va saved active list parity tekshirildi.
+  Plain-text cap/current-teacher scope/native va real adapter chegarasi ochiq.
 - [x] ~~PAR-02 lokal AI compact action menyusi~~:
   [Packet79](PAR02-AI-COMPACT-PROTOTYPE.md),2026-10-01. Ism/matn va44px
   `⋯`; copy/feedback native dialogda, keyboard/focus/unknown/reload
