@@ -1,5 +1,10 @@
 # Qolgan prototiplar — aniq qamrov va tugatish rejasi
 
+**2026-10-03 Packet80:** [PAR-01 course field parity](PAR01-COURSE-FIELDS-PROTOTYPE.md)
+lokal yopildi:14-field create/edit,841 Django/219 Node,56 responsive+36state.
+PAR-03/05 va UX/DATA/RULE/native/owner final qabul qoladi; keyin DESIGN-01.
+Yangi UI/route yo‘q; real runtime va AWS o‘zgarmadi.
+
 **2026-09-27–28 ijro:** Q14 U01/U02, Q15a U03–U06, Q15b U07–U11, Q16a U12–U19,
 Q16b U20/U21, Q17a U22–U24, Q17b U25–U34, Q18 U35–U39 va Q19
 U40/U41/H01–H03 va Q08 U42 lokal qurildi:

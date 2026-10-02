@@ -1,5 +1,10 @@
 # Frontend V1 — bajarish va qabul jurnali
 
+**2026-10-03 Packet80:** [PAR-01 kursning14 maydoni](PAR01-COURSE-FIELDS-PROTOTYPE.md)
+lokal yopildi. Full841 Django/219 Node,56responsive+36state. Saqlash baseline
+reload’da saqlanadi; list/overview/editor active holati bitta. Real port/AWS
+o‘zgarmadi. PAR-03/05→qolgan final qabul→DESIGN-01. Quyidagi yozuvlar tarixiy.
+
 **2026-10-01 Packet79:** [PAR-02 AI compact amallar](PAR02-AI-COMPACT-PROTOTYPE.md)
 lokal yopildi. Ism/matn/44px menyu, exact copy, existing feedback/unknown
 reconcile;834 Django/214 Node/48 responsive PASS.139/77/118,1223states/208actions.
