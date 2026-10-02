@@ -87,13 +87,13 @@ def review_context(request, context, submission, form):
     receipt = request.session.get('frontend_v1_review_saved')
     if request.method == 'GET' and receipt and receipt['submission_id'] == submission.pk:
         request.session.pop('frontend_v1_review_saved')
-        if receipt['revision'] == submission.updated_at.isoformat():
+        if receipt['revision'] == submission.review_revision_token:
             for name, value in receipt['values'].items():
                 form.fields[name].widget.attrs['data-draft-saved'] = value
             context['review_ack'] = True
     context.update(
         submission=submission, review_form=form,
         practice_scope=salted_hmac('frontend-v1-practice', f'{request.user.pk}:{request.session.session_key}').hexdigest(),
-        revision=submission.updated_at.isoformat(),
+        revision=submission.review_revision_token,
         queue_url=reverse('teacher_grading') + '?' + return_query(request),
     )

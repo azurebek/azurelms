@@ -290,7 +290,7 @@ def review_assignment_submission(
     # Admin bulk updates lock the submission row, not the student. Hold both
     # while comparing/applying the review so their newer revision is observed.
     submission.refresh_from_db(from_queryset=AssignmentSubmission.objects.select_for_update())
-    if expected_revision is not None and expected_revision != submission.updated_at.isoformat():
+    if expected_revision is not None and expected_revision != submission.review_revision_token:
         raise ValidationError(
             'Ish siz ochganingizdan keyin yangilangan. Qaror saqlanmadi. Joriy javobni qayta o‘qing va tasdiqlang.',
             code='stale_review',
