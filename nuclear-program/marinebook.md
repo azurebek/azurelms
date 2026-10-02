@@ -16,6 +16,30 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-03 [Codex]: Packet80 — PAR-01 kursning 14 maydoni
+
+Eleventh Trial kurs create/edit prototipi real `CourseBackofficeForm`ning
+14 maydoniga moslandi. Narx/muqova/sertifikat/faollik sozlamalari explicit
+diff va tasdiq bilan saqlanadi; list/overview/editor faolligi bir manbadan.
+Reload’dan keyin qoralama baseline revision saqlanib, peer tahrirni jimgina
+bosib ketmaydi. Bu lokal form pariteti; haqiqiy domain/AWS yozuvi emas.
+
+- Branch: `codex/prototype-course-field-parity`; dalil/tracker commit **`2622587`**.
+  [Dalil va cheklovlar](frontend-v1/PAR01-COURSE-FIELDS-PROTOTYPE.md).
+- Test: isolated `../../venv/Scripts/python.exe manage.py test tests --verbosity 0`
+  yakuniy **841 PASS /333.051s**; focused55, barcha Node219, `manage.py check`0.
+  Eski copy assertion admissionga moslandi; scope/no-write tekshiruvlari saqlandi.
+  IAB56responsive+36state PASS; create/edit, stale-reload, unknown GET receipt,
+  844×390 dialog/keyboard/fokus. Native phone/AT/Firefox/WebKit NOT TESTED.
+- Source/assets/testlar ignored playground’da qoldi, Gitga faqat docs kiradi.
+  Verified `packet-80-20261003-012905.zip`:642 fayl, har entry SHA256 tekshirildi;
+  zip `613F8CE53E9DF7E2740E66F9240592E7D2076124726E14AFEB2F61F6CD07544F`.
+  Old Packet79 saqlandi va hash qayta tekshirildi; bu alohida offsite backup emas.
+- 139route/77page/118source/1223state/208action saqlanadi. Qolgan local parity:
+  PAR-03/05; UX/DATA/RULE/native/owner qabul → DESIGN-01. Real backend/AWS unchanged.
+
+---
+
 ## 2026-10-03 [Codex]: xavfsizlik pinlari va soatdan mustaqil vazifa versiyasi
 
 Owner tasdiqlagan ikki blocker yopildi: `urllib3` 2.8.0 va `pypdf` 6.19.0;
