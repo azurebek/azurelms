@@ -16,6 +16,40 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-03 [Codex]: xavfsizlik pinlari va soatdan mustaqil vazifa versiyasi
+
+Owner tasdiqlagan ikki blocker yopildi: `urllib3` 2.8.0 va `pypdf` 6.19.0;
+vazifa tekshiruvida timestamp o‘rniga alohida monoton `review_revision`.
+Bu mavjud stale-write kafolatining tuzatishi, yangi baholash/XP qoidasi emas.
+Oldingi full run’dagi 1 failure frozen-clock regressiya bilan qoplandi.
+
+- Branch `codex/urllib3-security-update`; pinlar **`00abec6`**, review fix
+  **`e4a819c`**. Canonical model save row lock ostida versiyani oshiradi;
+  uch admin bulk amali DB `F()+1` ishlatadi. Teacher service row lock ichida
+  tokenni tekshiradi; GET, POST/reconcile va bir martalik receipt bir tokenni
+  ishlatadi. Eski timestamp forma yozuvsiz409 oladi va qayta tasdiq talab qiladi.
+- Manbalar: [urllib3 2.8.0](https://github.com/urllib3/urllib3/releases/tag/2.8.0),
+  [pypdf 6.19.0](https://github.com/py-pdf/pypdf/releases/tag/6.19.0).
+  Audit oldin urllib3’da3, keyingi fresh audit pypdf’da8 advisory ko‘rsatdi.
+  Final `pip_audit -r requirements.txt --no-deps -f json` +
+  `manage.py audit_dependencies --report .tools/dependency-audit-20260925/report-20261003-fixed.json`:
+  **107 dependency / 0 skipped / 0 advisory**. Reyestr va CI gate o‘zgarmadi.
+- `.env` o‘qilmasdan, Gemini/Telegram kalitlari bo‘sh holda:
+  `venv/Scripts/python.exe manage.py test core.test_frontend_v1_review ai.documents.tests core.test_supply_chain_gate --noinput --verbosity 1`
+  **71 test OK (skipped=1)**; `manage.py test --noinput --verbosity 0`
+  **2307 test OK (skipped=58), 141.717s**. Frozen admin bulk/individual,
+  review/resubmit, partial/stale instance save, old token va no-op save tekshirildi.
+  `pip check`, requirements dry-run, Django check va migration drift PASS.
+- `courses.0025` faqat `PositiveBigIntegerField(default=0)` qo‘shadi;
+  javob/baho o‘chmaydi. Release’da avval migration, so‘ng barcha writerlarni
+  yangilash kerak; eski worker bilan mixed-version yozuvga kafolat yo‘q.
+  Rollback app versiyasi bilan, yangi ustunni o‘chirmasdan; xavfli eski
+  dependency pinlariga avtomatik downgrade qilinmaydi. Xom bulk yozuvlar
+  model `save()`ni chetlasa, revisionni ham oshirishi shart.
+- Local user DB/AWS, haqiqiy AI/Telegram va ignored prototip o‘zgarmadi.
+  Keyingi gate: own PR required CI/review, so‘ng blocked docs PR159ni yangilash.
+  Prototip final qabul/PAR-01/03/05 va DESIGN-01 navbati saqlanadi.
+
 ## 2026-09-28 [Codex]: Packet78 — imtihonni qayta tekshirish pariteti
 
 Final qabuldagi PAR-04 lokal yopildi: reviewed urinishda yangi private

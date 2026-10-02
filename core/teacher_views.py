@@ -427,7 +427,7 @@ def teacher_grade_assignment(request, submission_id):
         data = request.POST.copy() if request.method == 'POST' else None
         form = AssignmentReviewForm(data, submission=submission, initial={
             'teacher_feedback': submission.teacher_feedback, 'awarded_xp': submission.awarded_xp,
-            'revision': submission.updated_at.isoformat(),
+            'revision': submission.review_revision_token,
         })
         response_status = 200
         if request.method == 'POST':
@@ -444,7 +444,7 @@ def teacher_grade_assignment(request, submission_id):
                     # Show the fresh work but preserve the teacher's input. A
                     # new explicit confirmation is required before another POST.
                     submission.refresh_from_db()
-                    data['revision'] = submission.updated_at.isoformat()
+                    data['revision'] = submission.review_revision_token
                     data.pop('confirm_review', None)
                     form = AssignmentReviewForm(data, submission=submission)
                     form.is_valid()
@@ -452,7 +452,7 @@ def teacher_grade_assignment(request, submission_id):
                     response_status = 409
                 else:
                     request.session['frontend_v1_review_saved'] = {
-                        'submission_id': submission.pk, 'revision': submission.updated_at.isoformat(),
+                        'submission_id': submission.pk, 'revision': submission.review_revision_token,
                         'values': {name: request.POST.get(name, '') for name in ('action', 'teacher_feedback', 'awarded_xp')},
                     }
                     messages.success(request, 'Qaror saqlandi. O‘quvchidagi holat va XP yangilandi.')
