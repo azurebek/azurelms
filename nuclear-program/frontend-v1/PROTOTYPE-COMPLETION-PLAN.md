@@ -1,5 +1,10 @@
 # Qolgan prototiplar — aniq qamrov va tugatish rejasi
 
+**2026-10-04 Packet83:** [UX-02 o‘quvchi copy](UX02-LEARNER-COPY-PROTOTYPE.md)
+8page+2shell footerda soddalashdi;80responsive+48state browser case.
+UX-02 PARTIAL: qolgan yuzalar/dinamik copy va real runtime ochiq. Yangi
+UI/action yo‘q; final qabul→DESIGN-01 —2 katta qadam saqlanadi.
+
 **2026-10-04 Packet82:** [PAR-05 local functional parity](PAR05-JOURNEY-PARITY-PROTOTYPE.md)
 qurildi:869 Django/227 Node. Chek lifecycle/2alias/picker return/handoff.
 139named +2aliases/77page/118renderer-source +2alias-source,1223state/213action.
