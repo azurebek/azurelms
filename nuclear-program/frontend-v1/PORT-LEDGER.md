@@ -1,5 +1,11 @@
 # Frontend V1 — bajarish va qabul jurnali
 
+**2026-10-04 Packet81:** [PAR-03 public blog/SIT](PAR03-PUBLIC-INTERACTIONS-PROTOTYPE.md)
+lokal qurildi.858 Django/223 Node/final73,48 DOM responsive. Screenshot
+unavailable; pixel/native qabul NOT VERIFIED.139/77/118,1223state/213action.
+Real canonical adapter/DB/AWS unchanged; PAR-05→final qabul→DESIGN-01.
+Quyidagi yozuvlar tarixiy.
+
 **2026-10-03 Packet80:** [PAR-01 kursning14 maydoni](PAR01-COURSE-FIELDS-PROTOTYPE.md)
 lokal yopildi. Full841 Django/219 Node,56responsive+36state. Saqlash baseline
 reload’da saqlanadi; list/overview/editor active holati bitta. Real port/AWS
