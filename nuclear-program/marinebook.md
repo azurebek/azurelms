@@ -38,7 +38,7 @@ Bu admitted lokal paritet; real canonical adapter/DB/AWS o‘zgarmadi.
   `packet-81-20261004-123440.zip`:**652fayl**,har entry SHA256 verified;
   ZIP `ED4DBBAE396F0A5BF9EAD7650AE8F276719A53D0A6C858E327D880FF3A0DE954`.
   Packet80 arxiv saqlandi/hash qayta tekshirildi; offsite backup emas.
--139route/77page/118source/1223state/**213action** +3handler. Qolgan
+- 139route/77page/118source/1223state/**213action** +3handler. Qolgan
   local-parity **PAR-05** → UX/DATA/RULE/native/owner final qabul → DESIGN-01.
   Legacy real blog idempotency/revision adapteri portda alohida kerak.
 
