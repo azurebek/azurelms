@@ -16,6 +16,35 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-04 [Codex]: Packet85 — kirish formalarida aniq xato va fokus
+
+Eleventh Trial4auth formada bitta inline xato, summary soni va birinchi
+xatoga fokus. Native required/email va existing password equality birga;
+server fixture rejection ham shu slotda.44px auth links, no redesign.
+Real auth/runtime/DB/provider/AWS untouched. UX-04 PARTIAL.
+
+- Branch `codex/prototype-auth-form-clarity`; dalil commit **`d38b5af`**.
+  [Qamrov va dalil](frontend-v1/UX04-AUTH-CLARITY-PROTOTYPE.md).
+- Isolated trial, env loading off/keys empty: `../../venv/Scripts/python.exe
+  manage.py test tests --verbosity 0`: **881 PASS**,429.716s/check0/exit0.
+  Focused auth/clarity/library40PASS2.389s; password/profile11PASS0.777s.
+  All `.test.mjs` expanded into `node --test`: **246 PASS**,2395.6753ms.
+  JS syntax/Django check/diff-check PASS.
+- IAB localhost8088:56responsive+24state cases, effective width checked,
+  overflow0/duplicate IDs0/links≥44px. Blank/mismatch/email/server error,
+  correction/Enter/sample/register/reset/login, unknown reload→GET,
+  offline rejection, Back secret clearing verified; console warn/error0.
+  Mobile/desktop screenshots saved and inspected. Native/AT/owner OPEN.
+- Checkpoint `packet-85-20261004-145029.zip`: **678files**, each entry
+  SHA256 verified; ZIP **`B4FF6010F29689BB134047AFF6571CA49FF7FAE325BDBCE7AD27A4F6643EE2B0`**.
+  Packet84 retained/hash verified. Ignored source/archive not uploaded;
+  same-disk recovery is not offsite backup. Registry0.84/counts unchanged.
+- OPEN: real V1 duplicate/errorlist/strength, actual footer/legal,
+  AI onboarding availability/CTA, native keyboard. UX-01 unchanged.
+  Remaining final UX/DATA/RULE/native/owner acceptance → DESIGN-01.
+
+---
+
 ## 2026-10-04 [Codex]: Packet84 — checkout tartibi va avtomatik summa
 
 Eleventh Trial renewal checkoutda hisob-kitob fayl va yuborishdan oldinga
