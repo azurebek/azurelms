@@ -1,5 +1,10 @@
 # Qolgan prototiplar — aniq qamrov va tugatish rejasi
 
+**2026-10-04 Packet84:** [UX-03 checkout](UX03-CHECKOUT-CLARITY-PROTOTYPE.md)
+renewal layout/auto quote GET lokal tayyor.878 Django/236 Node,
+16responsive+18state browser case. Real expiry/card/native/enrollment
+ochiq: UX-03 PARTIAL. Final qabul → DESIGN-01 navbati o‘zgarmaydi.
+
 **2026-10-04 Packet83:** [UX-02 o‘quvchi copy](UX02-LEARNER-COPY-PROTOTYPE.md)
 8page+2shell footerda soddalashdi;80responsive+48state browser case.
 UX-02 PARTIAL: qolgan yuzalar/dinamik copy va real runtime ochiq. Yangi
