@@ -16,6 +16,38 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-04 [Codex]: Packet82 — PAR-05 bog‘langan o‘tishlar
+
+Eleventh Trial rad etilgan chekni faol/history yozuvdan olib tashlaydi,
+eski URL aniq Q19 404 beradi; unknown reconciliation/replay xavfsiz qoladi.
+Ikki mavjud URL aliasi va kutubxona pickeridan filtrli qaytish moslandi.
+Bu admitted lokal funksional paritet, real port yoki G3/native qabul emas.
+
+- Branch `codex/prototype-final-journey-parity`; dalil/tracker commit
+  **`29ef1f4`**. [Dalil](frontend-v1/PAR05-JOURNEY-PARITY-PROTOTYPE.md).
+- Isolated trial, env/provider-free: `../../venv/Scripts/python.exe manage.py
+  test tests --verbosity 0` **869 PASS**,432.246s/check0. Final focused
+  `tests.test_journey_parity tests.test_payments tests.test_payment_difference
+  tests.test_system_pages tests.test_library tests.test_library_resources`
+  **58 PASS**,11.279s. Barcha `.test.mjs` PowerShellda kengaytirilib
+  `node --test`: **227 PASS**; JS syntax/diff-check PASS.
+- IAB8087/localhost8088: rejected/unknown/reload/explicit reconcile/new receipt,
+  latest-success/AI alias, picker3/81 filtered return va attach→learner→detach.
+  Desktop screenshots saqlandi. Compact viewport requested/effective mismatch
+  sabab yangi responsive matrix **NOT VERIFIED**; native/AT/owner OPEN.
+  Bir hostname/turli port preview cookie to‘qnashuvi stale guard bilan rad
+  etildi; browser testi localhostga ajratilib qayta o‘tdi. Durable data emas.
+- Ignored prototype source/assets/tests Gitga kiritilmadi. Verified
+  `packet-82-20261004-133144.zip`: **659 fayl**, har entry SHA256 tekshirildi;
+  ZIP `FB8C509B89C370766865187B28BDB2C4FECE3748552905C7ED2E52242DA6D5DD`.
+  Packet81 saqlandi/hash qayta tekshirildi; bu offsite backup emas.
+- 139named UI +2alias/77page/118renderer-source +2alias-source,
+  1223state/213action +3handler. PAR-01..05 local implementation yopildi;
+  final UX/DATA/RULE/native/owner qabul → DESIGN-01 qoladi. Canonical
+  runtime/DB/AWS o‘zgarmadi, port/deploy avtomatik boshlanmaydi.
+
+---
+
 ## 2026-10-04 [Codex]: Packet81 — PAR-03 public blog va SIT yo‘llari
 
 Eleventh Trial public blogga izoh, bir darajali javob, like/clap va
