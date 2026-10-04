@@ -1,5 +1,13 @@
 # Qolgan prototiplar — aniq qamrov va tugatish rejasi
 
+**2026-10-04 Packet82:** [PAR-05 local functional parity](PAR05-JOURNEY-PARITY-PROTOTYPE.md)
+qurildi:869 Django/227 Node. Chek lifecycle/2alias/picker return/handoff.
+139named +2aliases/77page/118renderer-source +2alias-source,1223state/213action.
+PAR-01..05 implementation tugadi; **2katta qadam**: final UX/DATA/RULE/
+native/owner qabul→DESIGN-01. Desktop screenshots bor; compact viewport
+mismatch sabab responsive acceptance OPEN. Runtime/AWS unchanged.
+Quyidagi sanali xulosalar tarixiy; G3 yoki real port tugadi degani emas.
+
 **2026-10-04 Packet81:** [PAR-03 public interaction/handoff](PAR03-PUBLIC-INTERACTIONS-PROTOTYPE.md)
 lokal qurildi:858 Django/223 Node/final73,48 DOM responsive. Screenshot
 unavailable; pixel/native/owner qabul hali OPEN. Qolgan local-parity
