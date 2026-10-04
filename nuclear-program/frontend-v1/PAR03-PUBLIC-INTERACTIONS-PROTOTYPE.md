@@ -35,14 +35,16 @@ Isolated `playground/Eleventh Trial` cwd; `AZURELMS_SKIP_ENV_FILE=1`,
 
 - `../../venv/Scripts/python.exe manage.py test tests --verbosity 0`:
   **858 PASS**,767.520s, check0.
-- Oxirgi native error text-wrapdan keyin
+- Oxirgi native error/comment text-wrap template tuzatishlaridan keyin
   `../../venv/Scripts/python.exe manage.py test tests.test_blog_public tests.test_public_content tests.test_blog_studio tests.test_sit_studio --verbosity 0`:
-  **73 PASS**,32.297s; yangi17backend test shu son ichida.
+  **73 PASS**,39.760s; yangi17backend test shu son ichida.
 - PowerShellda barcha `tests/*.test.mjs` kengaytirilib `node --test`:
   **223 PASS**,final700.4257ms; yangi4state test. JS syntax va Django check PASS.
 - IAB8086: izoh/reply/like/clap; draft→reload; unknown503→reload locked→
   GET receipt→bitta yozuv; two-tab stale409→refresh→save. Guest clap va login
   next/Back; SIT→AI/tutor→Back. Tab/Enter submit→status focus/draft clear.
+ 502belgili multiline/unbroken comment reload oldi/keyin exact teng,
+ 320px overflow0; server/enhanced text bir xil `pre-wrap` ishlatadi.
 - **48 DOM responsive**:3surface×2theme×8width(320..1920),overflow0,
   yangi blog controls/SIT CTA≥44px. Blog1840belgi draft/duplicateID0.
   Warning/error log0. Normal/unknown/stale/expired/empty browserda ko‘rildi.
@@ -64,9 +66,11 @@ Human messenger reply capability bu blog reply bilan yopilmaydi.
 
 Source/assets/testlar `playground/`da ignored; force-add/upload qilinmadi.
 Gitga faqat dalil/tracker/marinebook kiritildi. Verified checkpoint:
-`playground/Eleventh Trial/checkpoints/packet-81-20261004-123440.zip`,
+`playground/Eleventh Trial/checkpoints/packet-81-20261004-123924.zip`,
 **652fayl**,har ZIP entry SHA256 asl nusxa bilan tekshirildi.
-ZIP SHA256 `ED4DBBAE396F0A5BF9EAD7650AE8F276719A53D0A6C858E327D880FF3A0DE954`.
+ZIP SHA256 `8233465C786F06E17BD691A6CA920799D69BBAECDED7448458ECA9DC5201F949`.
+Oldingi12:34 Packet81 checkpoint ham saqlandi; final matn-wrap tuzatishi
+12:39 nusxaga kirgan. Full858 testdan keyingi template delta focused73 bilan qoplandi.
 Old Packet80 saqlandi/hash qayta tekshirildi. Bu bir diskdagi lokal
 checkpoint; mustaqil disaster-recovery backup emas.
 

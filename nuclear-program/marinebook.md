@@ -26,17 +26,18 @@ Bu admitted lokal paritet; real canonical adapter/DB/AWS o‘zgarmadi.
 - Branch `codex/prototype-public-interaction-parity`; evidence/tracker
   commit **`7d17382`**. [Dalil](frontend-v1/PAR03-PUBLIC-INTERACTIONS-PROTOTYPE.md).
 - Isolated trial, env/provider-free: `../../venv/Scripts/python.exe manage.py
-  test tests --verbosity 0` **858 PASS**,767.520s/check0. Oxirgi error text-wrapdan
+  test tests --verbosity 0` **858 PASS**,767.520s/check0. Oxirgi error/comment text-wrapdan
   keyin `tests.test_blog_public tests.test_public_content tests.test_blog_studio
-  tests.test_sit_studio` **73 PASS**,32.297s. Barcha `node --test tests/*.test.mjs`
+  tests.test_sit_studio` **73 PASS**,39.760s. Barcha `node --test tests/*.test.mjs`
   PowerShellda kengaytirildi: **223 PASS**; JS syntax/diff-check PASS.
 - IAB8086 corejourney/reload/unknown/two-tab stale/guest/Back/keyboard-focus;
   **48 DOM responsive**,overflow0/newcontrols≥44px. Screenshot API unavailable,
   pixel review NOT VERIFIED; full9-state browser loop tugamadi, PASSga kirmaydi.
   Native phone/AT/Firefox/WebKit/JS-off browser va UX-01 alohida OPEN.
 - Source/assets/tests ignored playground’da. Verified
-  `packet-81-20261004-123440.zip`:**652fayl**,har entry SHA256 verified;
-  ZIP `ED4DBBAE396F0A5BF9EAD7650AE8F276719A53D0A6C858E327D880FF3A0DE954`.
+  `packet-81-20261004-123924.zip`:**652fayl**,har entry SHA256 verified;
+  ZIP `8233465C786F06E17BD691A6CA920799D69BBAECDED7448458ECA9DC5201F949`.
+  12:34 old checkpoint ham saqlandi; yakuniy text-wrap12:39 nusxada.
   Packet80 arxiv saqlandi/hash qayta tekshirildi; offsite backup emas.
 - 139route/77page/118source/1223state/**213action** +3handler. Qolgan
   local-parity **PAR-05** → UX/DATA/RULE/native/owner final qabul → DESIGN-01.
