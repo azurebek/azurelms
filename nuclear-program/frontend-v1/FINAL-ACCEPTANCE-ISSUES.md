@@ -33,8 +33,12 @@ chegarani beradi. Quyidagilar yangi URL yoki yangi redesign emas:
   [Packet79](PAR02-AI-COMPACT-PROTOTYPE.md),2026-10-01. Ism/matn va44px
   `⋯`; copy/feedback native dialogda, keyboard/focus/unknown/reload
   va48 responsive check. Native long-press/AT va UX-01 alohida OPEN.
-- PAR-03 OPEN: blog public comment/reaction va SIT application/advisor
-  handoffni source bo‘yicha solishtirish; real content qabuli alohida.
+- [x] ~~PAR-03 admitted lokal blog interaction/SIT handoff~~:
+  [Packet81](PAR03-PUBLIC-INTERACTIONS-PROTOTYPE.md),2026-10-04. Comment/
+  one-level reply/like/clap, native fallback/draft/stale/unknown receipt;
+  SIT existing AI/tutor link (ariza backend emas).858 Django/223 Node,
+  final73/48 DOM responsive. Screenshot unavailable: pixel/native/owner
+  acceptance hamda real canonical idempotency adapteri alohida OPEN.
 - [x] ~~PAR-04 lokal re-review / first-review farqi~~:
   [Packet78](PAR04-EXAM-REREVIEW-PROTOTYPE.md),832 Django/203 Node/48
   responsive; yangi private draft eski published natijani almashtirmaydi,

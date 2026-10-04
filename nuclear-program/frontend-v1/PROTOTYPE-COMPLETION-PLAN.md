@@ -1,5 +1,12 @@
 # Qolgan prototiplar — aniq qamrov va tugatish rejasi
 
+**2026-10-04 Packet81:** [PAR-03 public interaction/handoff](PAR03-PUBLIC-INTERACTIONS-PROTOTYPE.md)
+lokal qurildi:858 Django/223 Node/final73,48 DOM responsive. Screenshot
+unavailable; pixel/native/owner qabul hali OPEN. Qolgan local-parity
+**PAR-05** → UX/DATA/RULE/native/owner final qabul → DESIGN-01.
+139/77/118,1223state/213action +3handler. Runtime/AWS unchanged.
+Quyidagi sanali paket xulosalari tarixiy.
+
 **2026-10-03 Packet80:** [PAR-01 course field parity](PAR01-COURSE-FIELDS-PROTOTYPE.md)
 lokal yopildi:14-field create/edit,841 Django/219 Node,56 responsive+36state.
 PAR-03/05 va UX/DATA/RULE/native/owner final qabul qoladi; keyin DESIGN-01.
@@ -186,7 +193,9 @@ Eski Q raqamlari saqlanadi; a/b bo‘linishi faqat paket chegarasidir.
   re-reviewni, [Packet79](PAR02-AI-COMPACT-PROTOTYPE.md) PAR-02 AI
   compact amallarini, [Packet80](PAR01-COURSE-FIELDS-PROTOTYPE.md) PAR-01
   kurs create/edit formasidagi 14 maydon farqini lokal yopdi.
-  **Qolgan:** PAR-03/05 va UX/DATA/RULE/native/owner qabuli.
+  [Packet81](PAR03-PUBLIC-INTERACTIONS-PROTOTYPE.md) PAR-03 public blog
+  interaction va SIT existing-chat handoffini lokal qurdi; pixel/native
+  va real adapter qabuli ochiq. **Qolgan:** PAR-05 va UX/DATA/RULE/native/owner qabuli.
 - [ ] **12. DESIGN-01 — Admin paneldan keng kodsiz dizayn boshqaruvi.**
   **Owner qarori,2026-09-28:** sodda rang tanlagich bilan chala qoldirmaslik;
   rang, button/karta shakli va shriftlarni kodga tegmasdan boshqarish imkonini
