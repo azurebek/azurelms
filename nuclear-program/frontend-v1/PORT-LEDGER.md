@@ -1,5 +1,12 @@
 # Frontend V1 — bajarish va qabul jurnali
 
+**2026-10-04 Packet82:** [PAR-05 chek/alias/picker](PAR05-JOURNEY-PARITY-PROTOTYPE.md)
+lokal functional parity qurildi.869 Django/227 Node PASS; desktop journeys
+va screenshots bor. Compact viewport mismatch/native/owner acceptance OPEN.
+139named+2aliases/77page/118renderer-source+2alias-source,1223state/213action.
+PAR-01..05 implementation yopildi; final qabul→DESIGN-01. Real runtime/DB/
+AWS unchanged; prototip natijasi real portning tugashi deb belgilanmaydi.
+
 **2026-10-04 Packet81:** [PAR-03 public blog/SIT](PAR03-PUBLIC-INTERACTIONS-PROTOTYPE.md)
 lokal qurildi.858 Django/223 Node/final73,48 DOM responsive. Screenshot
 unavailable; pixel/native qabul NOT VERIFIED.139/77/118,1223state/213action.

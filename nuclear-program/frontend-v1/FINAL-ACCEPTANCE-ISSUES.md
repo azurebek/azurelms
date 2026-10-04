@@ -43,8 +43,12 @@ chegarani beradi. Quyidagilar yangi URL yoki yangi redesign emas:
   [Packet78](PAR04-EXAM-REREVIEW-PROTOTYPE.md),832 Django/203 Node/48
   responsive; yangi private draft eski published natijani almashtirmaydi,
   explicit publish talab qilinadi. Native/real port qabuli alohida ochiq.
-- PAR-05 OPEN: real rejected chek o‘chirilishi / preview namuna holati;
-  alias kirishlar, picker va yangi oilalardan existing journey handoff.
+- [x] ~~PAR-05 admitted lokal funksional paritet~~:
+  [Packet82](PAR05-JOURNEY-PARITY-PROTOTYPE.md),2026-10-04. Deleted receipt404/
+  history removal, unknown reconcile,2aliases va picker filtered return.
+  869 Django/227 Node, desktop browser/screenshot dalili. Compact viewport
+  vositasi effective enni o‘zgartirmadi: responsive/native/owner qabul OPEN,
+  G3 yoki real port emas. PAR-01..05 local implementation tugadi.
 
 U17/A2-D01, keng Q14 va source’da yo‘q reply/assignment/quiz authoring
 alohida capability qarorlari: bu ro‘yxat ularni implementatsiya qilish
