@@ -16,6 +16,35 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-04 [Codex]: Packet84 — checkout tartibi va avtomatik summa
+
+Eleventh Trial renewal checkoutda hisob-kitob fayl va yuborishdan oldinga
+ko‘chdi. Tarifda read-only quote avtomatik; promokod tahriri eski summani
+bekor qiladi, Enter/button qayta tekshiradi. Kechikkan javob, duplicate,
+unknown/reload/reconcile himoyasi saqlanadi. Real runtime/DB/AWS unchanged.
+
+- Branch `codex/prototype-checkout-clarity`; dalil commit **`87b0904`**.
+  [Qamrov/dalil](frontend-v1/UX03-CHECKOUT-CLARITY-PROTOTYPE.md).
+- Isolated trial, `.env` va provider keysiz: `../../venv/Scripts/python.exe
+  manage.py test tests --verbosity 0`: **878 PASS**,531.084s/check0.
+  Focused checkout/payment/difference/journey40PASS,6.640s; barcha
+  `.test.mjs` PowerShellda kengaytirilib `node --test`: **236 PASS**,
+  final980.8188ms. JS syntax/Django check/diff-check PASS.
+- IAB localhost8088:16responsive+18state case, effective width va overflow0;
+  promo Enter/focus, sample/consent saqlanishi, slow rapid changes, reload,
+  unknown→GET→pending→Back tekshirildi. Desktop/mobile screenshotlar bor.
+  Registry restartdan keyin smoke ham o‘tdi. Native/AT/owner NOT TESTED.
+- Verified local `packet-84-20261004-142331.zip`: **671 fayl**, har entry
+  SHA256 checked; ZIP `8FD178DD9CD0E302442361C48C9499618F20647EB3774D6E196D547D8DC8C89C`.
+  Packet83 saqlandi/hash mos. Ignored source/arxiv upload qilinmadi;
+  bir diskdagi checkpoint offsite backup emas.
+- UX-03 PARTIAL: real timed quote expiry/card/native bank-app return va
+  yangi enrollment checkout qabuli ochiq. Registry0.84, yangi URL/action0;
+  139named+2alias/77page/118source+2alias-source/1223state/213action+3handler.
+  Qolgan UX/DATA/RULE/native/owner qabul → DESIGN-01 navbati saqlanadi.
+
+---
+
 ## 2026-10-04 [Codex]: Packet83 — UX-02 o‘quvchi matnlari
 
 Eleventh Trialdagi8o‘quvchi page va2shell footeridagi keraksiz texnik,
