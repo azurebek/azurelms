@@ -1,5 +1,10 @@
 # Qolgan prototiplar — aniq qamrov va tugatish rejasi
 
+**2026-10-04 Packet85:** [UX-04 auth](UX04-AUTH-CLARITY-PROTOTYPE.md)
+lokal inline xato/fokus/44px linklar;881 Django/246 Node PASS,
+56responsive+24state. UX-04 PARTIAL: real strength/onboarding/native
+ochiq. Final qabul → DESIGN-01; yangi UI/route/action qo‘shilmadi.
+
 **2026-10-04 Packet84:** [UX-03 checkout](UX03-CHECKOUT-CLARITY-PROTOTYPE.md)
 renewal layout/auto quote GET lokal tayyor.878 Django/236 Node,
 16responsive+18state browser case. Real expiry/card/native/enrollment

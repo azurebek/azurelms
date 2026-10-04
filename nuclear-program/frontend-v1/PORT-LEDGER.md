@@ -1,5 +1,10 @@
 # Frontend V1 — bajarish va qabul jurnali
 
+**2026-10-04 Packet85:** [UX-04 auth clarity](UX04-AUTH-CLARITY-PROTOTYPE.md)
+4forma inline errors/first focus/44px auth links lokal tekshirildi.
+881 Django/246 Node PASS. Real auth/onboarding/native qabul alohida
+ochiq; real port yoki AWS relizi emas. Checkpoint678file verified.
+
 **2026-10-04 Packet84:** [UX-03 checkout clarity](UX03-CHECKOUT-CLARITY-PROTOTYPE.md)
 lokal renewal summary/auto quote GET,878 Django/236 Node PASS. Bu real
 port emas; expiry/card/bank-app va yangi enrollment oqimi alohida qabul
