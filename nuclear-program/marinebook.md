@@ -16,6 +16,35 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-04 [Codex]: Packet83 — UX-02 o‘quvchi matnlari
+
+Eleventh Trialdagi8o‘quvchi page va2shell footeridagi keraksiz texnik,
+takroriy va eskirgan izohlar soddalashdi. Sinov/draft/xato/ruxsat hamda
+fayl/parol ogohlantirishlari saqlandi; form/control atributlari Packet82
+bilan bir xil. Real runtime/DB/AWS, CSS/JS/fixture/domain o‘zgarmadi.
+
+- Branch `codex/prototype-learner-copy-polish`; evidence/tracker commit
+  **`78bdb07`**. [Dalil](frontend-v1/UX02-LEARNER-COPY-PROTOTYPE.md).
+- Isolated trial, env/provider-free: `../../venv/Scripts/python.exe manage.py
+  test tests --verbosity 0` **875 PASS**,519.899s/check0. Focused
+  `tests.test_learner_copy tests.test_support tests.test_profile_entry
+  tests.test_billing tests.test_lesson_journey tests.test_auth`: **74 PASS**,
+  6.129s. Barcha `.test.mjs`, `node --test`: **227 PASS**,1526.4985ms;
+  `manage.py check`0 va `git diff --check` PASS.
+- IAB localhost8088: **80responsive +48state case**, effective width
+  tekshirildi, overflow0. Profil Enter save→hisob; tone select≠save,
+  save→reload; notification read→lesson→Back. Console0, mobile/desktop
+  screenshotlar saqlandi. Native keyboard/AT/owner qabul hali OPEN.
+- Lokal ignored `packet-83-20261004-135738.zip`: **664 fayl**, har entry
+  SHA256 verified. ZIP `86609F0CAC7B535547AD176204BD5F466500942DD13BDF4E365E68C4C7FCEB86`.
+  Packet82 saqlandi/hash mos; source/arxiv upload qilinmadi. Offsite emas.
+- UX-02 PARTIAL: boshqa yuzalar/dinamik copy/til va real V1/migratsiya
+  yozuvlari ochiq. Shu oynadagi profil save ham avatar guardiga “boshqa
+  oynada” matnini chiqarishi kuzatildi; keyingi copy-controller tekshiruvi.
+  Final UX/DATA/RULE/native/owner qabul→DESIGN-01 navbati saqlanadi.
+
+---
+
 ## 2026-10-04 [Codex]: Packet82 — PAR-05 bog‘langan o‘tishlar
 
 Eleventh Trial rad etilgan chekni faol/history yozuvdan olib tashlaydi,

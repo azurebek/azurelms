@@ -1,5 +1,9 @@
 # Frontend V1 — bajarish va qabul jurnali
 
+**2026-10-04 Packet83:** [UX-02 learner copy](UX02-LEARNER-COPY-PROTOTYPE.md)
+lokal qismi soddalashdi. Bu real port emas: production shablonlaridagi
+V1/migratsiya yozuvlari hali ochiq; runtime/DB/AWS unchanged.
+
 **2026-10-04 Packet82:** [PAR-05 chek/alias/picker](PAR05-JOURNEY-PARITY-PROTOTYPE.md)
 lokal functional parity qurildi.869 Django/227 Node PASS; desktop journeys
 va screenshots bor. Compact viewport mismatch/native/owner acceptance OPEN.
