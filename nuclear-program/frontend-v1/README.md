@@ -1,5 +1,10 @@
 # Frontend V1 — prototipdan ishlaydigan platformaga
 
+**2026-10-10 DC4:** [lokal nashr, readback, tarix va rollback](DESIGN-01-DC4-RELEASE.md) tayyor.
+Sabab/tasdiq, stale/no-op/unknown himoyasi va56frame+4editor tekshirildi.
+DC4 real port, DC5–DC6 va oldingi UX/DATA/RULE/native/owner qabuli ochiq.
+Quyidagi DC3/DC2 yozuvlari tarixiy snapshot.
+
 **2026-10-10 — DESIGN-01/DC3:** [kontrast va o‘qish validatsiyasi](DESIGN-01-DC3-VALIDATION.md)
 lokal tayyor:68 qoida, unsafe-save gate,224frame+5font+4editor tekshiruvi.
 DC4–DC6, native zoom/AT/owner va oldingi qabul bandlari ochiq. Quyidagi

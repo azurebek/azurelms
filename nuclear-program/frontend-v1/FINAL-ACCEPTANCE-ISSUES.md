@@ -22,7 +22,8 @@ Hozirgi navbat: joriy qamrov qabul/tuzatish (ishda) → DESIGN-01 qurilishi.
 2026-10-10 owner topshirig‘i bilan [DC1 inventari](DESIGN-01-DC1-MAP.md)dan
 keyin [DC2 forma/qoralama/preview](DESIGN-01-DC2-PREVIEW.md) va
 [DC3 lokal kontrast/typography guard](DESIGN-01-DC3-VALIDATION.md) ham oldinga olindi.
-Bu jadvaldagi ochiq bandlar va DC4–DC6 yopilmadi; native zoom/AT hamda real port/release alohida.
+Keyin [DC4 lokal nashr/tarix/rollback](DESIGN-01-DC4-RELEASE.md) qurildi.
+Bu jadvaldagi ochiq bandlar, DC4 real port va DC5–DC6 yopilmadi; native zoom/AT hamda real release alohida.
 
 ## Packet77 paritet auditi — finalda yo‘qolmasin
 
