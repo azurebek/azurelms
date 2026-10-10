@@ -75,25 +75,41 @@ def cohort_members(request, cohort_id):
     from django.urls import reverse
     from urllib.parse import urlencode
     from core.flags import flag_enabled
+    from courses.models import Lesson
 
     selected_enrollment = None
+    selected_lesson = None
     support_return_url = ''
     redirect_url = reverse('backoffice_cohort_members', kwargs={'cohort_id': cohort_id})
+    if 'lesson' in request.GET and 'enrollment' not in request.GET:
+        raise Http404
     if 'enrollment' in request.GET:
         value = request.GET.get('enrollment', '')
         if (len(request.GET.getlist('enrollment')) != 1 or not value.isascii()
                 or not value.isdecimal() or len(value) > 18 or int(value) < 1):
             raise Http404
         selected_enrollment = get_object_or_404(cohort.members.select_related('student'), pk=int(value))
+        if 'lesson' in request.GET:
+            lesson_value = request.GET.get('lesson', '')
+            if (len(request.GET.getlist('lesson')) != 1 or not lesson_value.isascii()
+                    or not lesson_value.isdecimal() or len(lesson_value) > 18 or int(lesson_value) < 1):
+                raise Http404
+            selected_lesson = get_object_or_404(Lesson, pk=int(lesson_value), module__course_id=cohort.course_id)
         if request.method == 'POST' and (
                 len(request.POST.getlist('enrollment_id')) != 1
                 or request.POST.get('enrollment_id') != str(selected_enrollment.pk)):
             raise Http404
-        redirect_url += '?' + urlencode({'enrollment': selected_enrollment.pk})
+        redirect_params = {'enrollment': selected_enrollment.pk}
+        if selected_lesson is not None:
+            redirect_params['lesson'] = selected_lesson.pk
+        redirect_url += '?' + urlencode(redirect_params)
         if flag_enabled('backoffice_student_support'):
+            support_params = {'course': cohort.course_id}
+            if selected_lesson is not None:
+                support_params['lesson'] = selected_lesson.pk
             support_return_url = reverse('backoffice_workspace_student', kwargs={
                 'student_id': selected_enrollment.student_id,
-            }) + '?' + urlencode({'course': cohort.course_id})
+            }) + '?' + urlencode(support_params)
     targets = _transfer_targets(cohort)
     if request.method == "POST":
         if request.POST.get("action") == "difference":

@@ -670,7 +670,7 @@ def _private_support_handoff(view):
 
     @wraps(view)
     def wrapped(request, *args, **kwargs):
-        if 'enrollment' not in request.GET and 'receipt' not in request.GET:
+        if not any(key in request.GET for key in ('enrollment', 'receipt', 'lesson')):
             return view(request, *args, **kwargs)
         try:
             response = view(request, *args, **kwargs)
@@ -715,8 +715,9 @@ def backoffice_receipts(request):
 
     selected_enrollment = None
     selected_receipt = None
+    selected_lesson = None
     support_return_url = ''
-    if 'receipt' in request.GET and 'enrollment' not in request.GET:
+    if ('receipt' in request.GET or 'lesson' in request.GET) and 'enrollment' not in request.GET:
         raise Http404
     if 'enrollment' in request.GET:
         selected_enrollment = get_object_or_404(
@@ -728,6 +729,11 @@ def backoffice_receipts(request):
             selected_receipt = get_object_or_404(
                 PaymentReceipt, pk=selected_id(request.GET, 'receipt'), enrollment=selected_enrollment,
             )
+        if 'lesson' in request.GET:
+            selected_lesson = get_object_or_404(
+                Lesson, pk=selected_id(request.GET, 'lesson'),
+                module__course_id=selected_enrollment.cohort.course_id,
+            )
         if request.method == 'POST':
             posted_receipt = get_object_or_404(
                 PaymentReceipt, pk=selected_id(request.POST, 'receipt_id'), enrollment=selected_enrollment,
@@ -735,9 +741,12 @@ def backoffice_receipts(request):
             if selected_receipt is not None and selected_receipt.pk != posted_receipt.pk:
                 raise Http404
         if flag_enabled('backoffice_student_support'):
+            support_params = {'course': selected_enrollment.cohort.course_id}
+            if selected_lesson is not None:
+                support_params['lesson'] = selected_lesson.pk
             support_return_url = reverse('backoffice_workspace_student', kwargs={
                 'student_id': selected_enrollment.student_id,
-            }) + '?' + urlencode({'course': selected_enrollment.cohort.course_id})
+            }) + '?' + urlencode(support_params)
 
     if request.method == "POST":
         form = ReceiptDecisionForm(request.POST)
@@ -762,7 +771,10 @@ def backoffice_receipts(request):
             )
         if selected_enrollment is not None:
             # Rejection deletes the receipt; keep the stable membership focus.
-            return redirect(reverse('backoffice_receipts') + '?' + urlencode({'enrollment': selected_enrollment.pk}))
+            redirect_params = {'enrollment': selected_enrollment.pk}
+            if selected_lesson is not None:
+                redirect_params['lesson'] = selected_lesson.pk
+            return redirect(reverse('backoffice_receipts') + '?' + urlencode(redirect_params))
         return redirect("backoffice_receipts")
 
     receipts = PaymentReceipt.objects.all()

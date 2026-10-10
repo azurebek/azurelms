@@ -133,13 +133,16 @@ def _resolution_links(actor, context):
                           'url': reverse('teacher_grade_assignment', kwargs={'submission_id': submission.pk}),
                           'note': 'Ishni tekshirib qaror qiling. Tasdiqlash baho va rag‘batga ta’sir qilishi mumkin.'})
     elif code in {'pending', 'expired', 'frozen', 'no_enrollment'}:
-        for receipt in context['pending_receipts'][:1]:
+        receipt = context['relevant_pending_receipt']
+        if receipt is not None:
             steps.append({'label': 'To‘lov chekini tekshirish',
-                          'url': _url('backoffice_receipts', enrollment=receipt.enrollment_id, receipt=receipt.pk),
+                          'url': _url('backoffice_receipts', enrollment=receipt.enrollment_id, receipt=receipt.pk,
+                                      lesson=lesson.pk if lesson else ''),
                           'note': 'Avval chek dalilini tekshiring. Qaror tegishli a’zolikka qo‘llanadi.'})
         if actor.is_superuser and relevant:
             steps.append({'label': 'Guruh a’zoligini ko‘rish',
-                          'url': _url('backoffice_cohort_members', kwargs={'cohort_id': relevant.cohort_id}, enrollment=relevant.pk),
+                          'url': _url('backoffice_cohort_members', kwargs={'cohort_id': relevant.cohort_id}, enrollment=relevant.pk,
+                                      lesson=lesson.pk if lesson else ''),
                           'note': 'Joyni qaytarishning o‘zi to‘lov muddatini uzaytirmaydi yoki darsni ochmaydi.'})
     return steps
 
@@ -167,13 +170,15 @@ def student(request, student_id):
         enrollment_rows.append({
             'cohort_name': enrollment.cohort.name, 'status_label': enrollment.support_effective_label,
             'deadline': enrollment.next_payment_deadline, 'plan_name': plan.name if plan else 'Tarif biriktirilmagan',
-            'membership_url': _url('backoffice_cohort_members', kwargs={'cohort_id': enrollment.cohort_id}, enrollment=enrollment.pk)
+            'membership_url': _url('backoffice_cohort_members', kwargs={'cohort_id': enrollment.cohort_id}, enrollment=enrollment.pk,
+                                   lesson=lesson.pk if lesson else '')
                               if request.user.is_superuser else '',
         })
     receipt_rows = [{
         'id': receipt.pk, 'submitted_at': receipt.submitted_at, 'label': receipt.enrollment.cohort.name,
         'amount': receipt.amount,
-        'action_url': _url('backoffice_receipts', enrollment=receipt.enrollment_id, receipt=receipt.pk),
+        'action_url': _url('backoffice_receipts', enrollment=receipt.enrollment_id, receipt=receipt.pk,
+                           lesson=lesson.pk if lesson else ''),
     } for receipt in context['pending_receipts']]
     context.update(
         display_name=target.get_full_name().strip() or target.username,
@@ -192,8 +197,8 @@ def student(request, student_id):
     code = context['diagnosis']['code']
     context['support_guidance'] = guidance.get(code, '')
     if not context['next_steps']:
-        if code in {'pending', 'expired', 'frozen', 'no_active_enrollment'} and not receipt_rows:
-            context['support_guidance'] = 'Tekshirishni kutayotgan chek topilmadi. O‘quvchining to‘lov yoki a’zolik ma’lumotini administrator bilan aniqlashtiring.'
+        if code in {'pending', 'expired', 'frozen', 'no_active_enrollment'} and not context['relevant_pending_receipt']:
+            context['support_guidance'] = 'Shu a’zolik uchun tekshirishni kutayotgan chek topilmadi. O‘quvchining to‘lov yoki a’zolik ma’lumotini administrator bilan aniqlashtiring.'
         elif code == 'drip' and context['effective_enrollment'] and not context['effective_enrollment'].cohort.is_active:
             context['support_guidance'] = 'Guruh boshqaruvda nofaol. Administrator guruh sozlamalarini tekshirishi kerak.'
         elif code == 'sequence' and context['previous_assignments_missing']:

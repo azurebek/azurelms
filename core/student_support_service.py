@@ -149,17 +149,23 @@ def build_student_support(*, actor, student_id, course_id=None, lesson_id=None):
     else:
         diagnosis = _diagnosis("blocked", "sequence", "Oldingi dars vazifasi tasdiqlanmagan", state["lock_reason"])
 
-    pending_receipts = list(PaymentReceipt.objects.filter(
+    pending_query = PaymentReceipt.objects.filter(
         enrollment_id__in=[item.pk for item in enrollments], is_verified=False,
     ).select_related("enrollment", "enrollment__cohort", "plan").defer(
         "receipt_image",
-    ).order_by("-submitted_at", "-pk")[:20])
+    ).order_by("-submitted_at", "-pk")
+    pending_receipts = list(pending_query[:20])
+    # The recommendation belongs to the diagnosed membership, independently
+    # of the bounded course-wide evidence list and its receipt submission order.
+    relevant_pending_receipt = (pending_query.filter(enrollment_id=relevant_enrollment.pk).first()
+                               if relevant_enrollment is not None else None)
     return {
         "student": student, "course_options": list(course_scope.order_by("title", "pk")),
         "selected_course": selected_course, "lessons": lessons, "selected_lesson": selected_lesson,
         "enrollments": enrollments, "effective_enrollment": effective_enrollment,
         "relevant_enrollment": relevant_enrollment, "diagnosis": diagnosis, "checked_at": checked_at,
         "pending_receipts": pending_receipts, "previous_lesson": previous_lesson,
+        "relevant_pending_receipt": relevant_pending_receipt,
         "previous_submissions": previous_submissions,
         "previous_assignments_missing": previous_assignments_missing,
         "multiple_active_enrollments": len(active_ids) > 1,

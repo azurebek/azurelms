@@ -53,12 +53,25 @@ va diagnosis → existing action → recheck haqiqiy synthetic oqimi tekshirilad
 - Scoped handoff GET/POST receipt↔enrollment va enrollment↔cohort parentlarini
   tekshiradi. Chek rad etilgach deleted receipt IDga qaytilmaydi. Qarorlar
   mavjud validation, permission, audit va notification xizmatlaridan o‘tadi.
+- Tavsiya faqat tashxis qo‘yilgan a’zolikning chekiga tegishli; boshqa guruh
+  cheklari tafsilotlardagi alohida dalil. Tavsiya 20 talik dalil chegarasidan
+  mustaqil olinadi. Receipt/member handoff tanlangan darsni course parenti bilan
+  tekshiradi va POST redirect/return havolasida saqlaydi; boshqa darsga jim
+  qaytib “ochiq” degan xulosa chiqarmaydi. PR177 review’dagi ikki holat shu
+  regressiyalar bilan yopildi. Browserda member → ayni dars qaytishi ham tekshirildi.
 - GET diagnostika writer emas; cached/stale actor qayta o‘qiladi. Karta/qidiruv
   va focused handoff javoblari `private, no-store`; generic middleware CSRF403
   Django’da qolgan. Course va support flaglari mustaqil rollback qilinadi.
 
 ## Tekshiruv dalili
 
+- Review tuzatishlaridan keyin env-file OFF va kalitlar bo‘sh:
+  `venv/Scripts/python.exe manage.py test core.test_student_support_service
+  core.test_student_support_views core.test_student_support_handoffs --verbosity 1`
+  **64/64 PASS**, 5.001s, check0. Kengaytirilgan 1077 app run’da yangi receipt
+  regressionining teacher/owner subcaselari URLdagi yangi `lesson`ni kutmagani
+  sababli 2 assertion yiqildi; exact URL expectationga lesson qo‘shildi va
+  yuqoridagi yakuniy to‘liq support suite o‘tdi. Mavjud mahsulot qoidasi o‘zgarmadi.
 - Service: **25 PASS**; root HTTP/privacy/navigation: **14 PASS**; handoff+
   existing receipt/seat: **46 PASS**.
 - Env-file OFF, Gemini/Telegram bo‘sh: `venv/Scripts/python.exe manage.py test

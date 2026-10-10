@@ -1,6 +1,6 @@
 """Targeted support handoffs reuse the existing payment and membership writers."""
 
-from datetime import date
+from datetime import date, timedelta
 
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
@@ -39,15 +39,18 @@ class StudentSupportHandoffTests(TestCase):
         set_flag('backoffice_student_support', enabled=True, reason='Isolated handoff regression')
         self.client.force_login(self.owner)
 
-    def receipts_url(self, *, enrollment=None, receipt=None):
+    def receipts_url(self, *, enrollment=None, receipt=None, lesson=None):
         enrollment = enrollment or self.enrollment
         result = reverse('backoffice_receipts') + f'?enrollment={enrollment.pk}'
-        return result + f'&receipt={receipt.pk}' if receipt is not None else result
+        if receipt is not None:
+            result += f'&receipt={receipt.pk}'
+        return result + f'&lesson={lesson.pk}' if lesson is not None else result
 
-    def members_url(self, *, enrollment=None, cohort=None):
+    def members_url(self, *, enrollment=None, cohort=None, lesson=None):
         enrollment = enrollment or self.enrollment
         cohort = cohort or self.cohort
-        return reverse('backoffice_cohort_members', args=[cohort.pk]) + f'?enrollment={enrollment.pk}'
+        result = reverse('backoffice_cohort_members', args=[cohort.pk]) + f'?enrollment={enrollment.pk}'
+        return result + f'&lesson={lesson.pk}' if lesson is not None else result
 
     def support_url(self):
         return reverse('backoffice_workspace_student', kwargs={'student_id': self.student.pk}) + f'?course={self.course.pk}'
@@ -129,11 +132,12 @@ class StudentSupportHandoffTests(TestCase):
     def test_pending_diagnosis_receipt_decision_and_original_recheck_open_lesson(self):
         module = Module.objects.create(course=self.course, title='Support module')
         lesson = Lesson.objects.create(module=module, title='Support lesson')
+        Enrollment.objects.filter(pk=self.enrollment.pk).update(joined_at=self.second_enrollment.joined_at + timedelta(seconds=1))
         self.client.force_login(self.teacher)
         card = self.client.get(self.support_url() + f'&lesson={lesson.pk}&q=handoff&page=2')
         self.assertEqual(card.context['diagnosis']['code'], 'pending')
         handoff = card.context['next_steps'][0]['url']
-        self.assertEqual(handoff, self.receipts_url(receipt=self.receipt))
+        self.assertEqual(handoff, self.receipts_url(receipt=self.receipt, lesson=lesson))
         decision_page = self.client.get(handoff)
         self.assertEqual([row.pk for row in decision_page.context['pending_receipts']], [self.receipt.pk])
         response = self.client.post(handoff, self.receipt_data())
@@ -146,6 +150,98 @@ class StudentSupportHandoffTests(TestCase):
         self.assertEqual(recheck.context['list_context']['q'], 'handoff')
         self.assertEqual(recheck.context['list_context']['page'], '2')
         self.assertFalse(LessonProgress.objects.filter(enrollment__student=self.student).exists())
+
+    def test_receipt_return_keeps_second_lesson_and_does_not_report_first_lesson_open(self):
+        module = Module.objects.create(course=self.course, title='Support sequence')
+        first = Lesson.objects.create(module=module, title='Open first lesson', order=1)
+        second = Lesson.objects.create(module=module, title='Blocked second lesson', order=2)
+        Assignment.objects.create(lesson=first, title='Required first work', description='Synthetic assignment')
+        Enrollment.objects.filter(pk=self.enrollment.pk).update(joined_at=self.second_enrollment.joined_at + timedelta(seconds=1))
+        card = self.client.get(self.support_url() + f'&lesson={second.pk}')
+        self.assertEqual(card.context['diagnosis']['code'], 'pending')
+        handoff = card.context['next_steps'][0]['url']
+        self.assertEqual(handoff, self.receipts_url(receipt=self.receipt, lesson=second))
+        page = self.client.get(handoff)
+        expected_return = self.support_url() + f'&lesson={second.pk}'
+        self.assertEqual(page.context['support_return_url'], expected_return)
+        response = self.client.post(handoff, self.receipt_data())
+        self.assertRedirects(response, self.receipts_url(lesson=second))
+        after = self.client.get(response['Location'])
+        self.assertEqual(after.context['support_return_url'], expected_return)
+        recheck = self.client.get(after.context['support_return_url'])
+        self.assertEqual(recheck.context['selected_lesson'].pk, second.pk)
+        self.assertEqual(recheck.context['diagnosis']['code'], 'sequence')
+        first_result = self.client.get(self.support_url() + f'&lesson={first.pk}')
+        self.assertEqual(first_result.context['diagnosis']['code'], 'open')
+
+    def test_receipt_rejection_keeps_lesson_after_deleted_receipt_filter_is_removed(self):
+        module = Module.objects.create(course=self.course, title='Reject module')
+        lesson = Lesson.objects.create(module=module, title='Selected lesson')
+        response = self.client.post(self.receipts_url(receipt=self.receipt, lesson=lesson), self.receipt_data(action='reject'))
+        self.assertRedirects(response, self.receipts_url(lesson=lesson))
+        self.assertFalse(PaymentReceipt.objects.filter(pk=self.receipt.pk).exists())
+        page = self.client.get(response['Location'])
+        self.assertEqual(page.context['support_return_url'], self.support_url() + f'&lesson={lesson.pk}')
+
+    def test_membership_return_and_restore_redirect_keep_second_lesson(self):
+        module = Module.objects.create(course=self.course, title='Membership sequence')
+        first = Lesson.objects.create(module=module, title='First lesson', order=1)
+        second = Lesson.objects.create(module=module, title='Second lesson', order=2)
+        Assignment.objects.create(lesson=first, title='Required work', description='Synthetic assignment')
+        Enrollment.objects.filter(pk=self.enrollment.pk).update(status=Enrollment.STATUS_ACTIVE)
+        card = self.client.get(self.support_url() + f'&lesson={second.pk}')
+        self.assertEqual(card.context['diagnosis']['code'], 'sequence')
+        row = next(row for row in card.context['enrollment_rows'] if row['cohort_name'] == self.cohort.name)
+        self.assertEqual(row['membership_url'], self.members_url(lesson=second))
+        member_page = self.client.get(row['membership_url'])
+        expected_return = self.support_url() + f'&lesson={second.pk}'
+        self.assertEqual(member_page.context['support_return_url'], expected_return)
+        recheck = self.client.get(member_page.context['support_return_url'])
+        self.assertEqual(recheck.context['selected_lesson'].pk, second.pk)
+        self.assertEqual(recheck.context['diagnosis']['code'], 'sequence')
+        Enrollment.objects.filter(pk=self.enrollment.pk).update(status=Enrollment.STATUS_FROZEN)
+        response = self.client.post(row['membership_url'], self.member_data())
+        self.assertRedirects(response, self.members_url(lesson=second))
+        page = self.client.get(response['Location'])
+        self.assertEqual(page.context['support_return_url'], expected_return)
+
+    def test_membership_transfer_redirect_and_backlink_keep_selected_lesson(self):
+        module = Module.objects.create(course=self.course, title='Transfer module')
+        lesson = Lesson.objects.create(module=module, title='Selected transfer lesson')
+        target = Cohort.objects.create(course=self.course, name='Transfer target', start_date=date(2026, 10, 1))
+        self.assertEqual(self.client.post(self.receipts_url(), self.receipt_data()).status_code, 302)
+        response = self.client.post(self.members_url(lesson=lesson), self.member_data(
+            action='transfer', target_cohort=target.pk,
+        ))
+        self.assertRedirects(response, self.members_url(lesson=lesson))
+        self.enrollment.refresh_from_db()
+        self.assertEqual(self.enrollment.status, Enrollment.STATUS_FROZEN)
+        self.assertTrue(Enrollment.objects.get(student=self.student, cohort=target).has_active_access())
+        page = self.client.get(response['Location'])
+        self.assertEqual(page.context['support_return_url'], self.support_url() + f'&lesson={lesson.pk}')
+
+    def test_handoff_lesson_requires_scoped_enrollment_and_valid_single_id(self):
+        module = Module.objects.create(course=self.course, title='Target module')
+        lesson = Lesson.objects.create(module=module, title='Target lesson')
+        foreign_module = Module.objects.create(course=self.foreign_course, title='Private module')
+        foreign_lesson = Lesson.objects.create(module=foreign_module, title='Private lesson')
+        for base in (reverse('backoffice_receipts'), reverse('backoffice_cohort_members', args=[self.cohort.pk])):
+            for suffix in (f'?lesson={lesson.pk}', f'?enrollment={self.enrollment.pk}&lesson=',
+                           f'?enrollment={self.enrollment.pk}&lesson=wrong',
+                           f'?enrollment={self.enrollment.pk}&lesson=0',
+                           f'?enrollment={self.enrollment.pk}&lesson=-1',
+                           f'?enrollment={self.enrollment.pk}&lesson=１',
+                           f'?enrollment={self.enrollment.pk}&lesson=999999999',
+                           f'?enrollment={self.enrollment.pk}&lesson={foreign_lesson.pk}',
+                           f'?enrollment={self.enrollment.pk}&lesson={lesson.pk}&lesson={lesson.pk}'):
+                with self.subTest(base=base, query=suffix):
+                    response = self.client.get(base + suffix)
+                    self.assertEqual(response.status_code, 404)
+                    self.assertIn('no-store', response['Cache-Control'])
+                    data = self.receipt_data() if base == reverse('backoffice_receipts') else self.member_data()
+                    self.assertEqual(self.client.post(base + suffix, data).status_code, 404)
+        self.receipt.refresh_from_db()
+        self.assertFalse(self.receipt.is_verified)
 
     def test_sequence_diagnosis_assignment_approval_and_original_recheck_open_lesson(self):
         Enrollment.objects.filter(pk=self.enrollment.pk).update(status=Enrollment.STATUS_ACTIVE)

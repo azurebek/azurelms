@@ -239,6 +239,30 @@ class StudentSupportServiceTests(TestCase):
             self.receipt(enrollment)
         self.assertEqual(len(self.inspect()["pending_receipts"]), 20)
 
+    def test_relevant_receipt_survives_course_evidence_limit(self):
+        Enrollment.objects.filter(pk=self.enrollment.pk).update(status=Enrollment.STATUS_PENDING)
+        historical_enrollments = []
+        for index in range(21):
+            cohort = Cohort.objects.create(
+                course=self.course, name=f"Old group {index}", start_date=timezone.localdate())
+            historical_enrollments.append(Enrollment.objects.create(
+                student=self.student, cohort=cohort, status=Enrollment.STATUS_PENDING))
+        current_cohort = Cohort.objects.create(
+            course=self.course, name="Current group", start_date=timezone.localdate())
+        current = Enrollment.objects.create(
+            student=self.student, cohort=current_cohort, status=Enrollment.STATUS_PENDING)
+        current_receipt = self.receipt(current)
+        for historical in historical_enrollments:
+            self.receipt(historical)
+
+        result = self.inspect()
+        self.assertEqual(result["diagnosis"]["code"], "pending")
+        self.assertEqual(result["relevant_enrollment"].pk, current.pk)
+        self.assertEqual(len(result["pending_receipts"]), 20)
+        self.assertNotIn(current_receipt.pk, [receipt.pk for receipt in result["pending_receipts"]])
+        self.assertEqual(result["relevant_pending_receipt"].pk, current_receipt.pk)
+        self.assertEqual(result["relevant_pending_receipt"].enrollment_id, current.pk)
+
     def test_diagnosis_performs_only_reads_and_never_invokes_learner_view(self):
         with patch("courses.views.LessonDetailView.dispatch", side_effect=AssertionError("Learner view must not run")):
             with CaptureQueriesContext(connection) as captured:

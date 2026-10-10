@@ -8,7 +8,7 @@ from django.db import DatabaseError
 from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 
-from cohorts.models import Cohort, Enrollment
+from cohorts.models import Cohort, Enrollment, PaymentReceipt
 from core.flags import flag_by_slug, set_flag
 from courses.models import Course, Module, Lesson, CohortLessonRelease, LessonProgress
 
@@ -134,6 +134,64 @@ class StudentSupportViewsTests(TestCase):
         self.client.force_login(self.owner)
         page = self.client.get(self.url(), {'course': self.course.pk, 'lesson': self.lesson.pk})
         self.assertEqual(page.context['next_steps'][0]['url'], reverse('backoffice_cohort_edit', kwargs={'cohort_id': self.cohort.pk}))
+
+    def test_primary_receipt_action_matches_diagnosed_enrollment_not_newest_receipt(self):
+        Enrollment.objects.filter(pk=self.enrollment.pk).update(status=Enrollment.STATUS_PENDING)
+        current_cohort = Cohort.objects.create(
+            name='Hozirgi guruh', course=self.course, start_date=date(2026, 2, 1))
+        current = Enrollment.objects.create(
+            student=self.learner, cohort=current_cohort, status=Enrollment.STATUS_PENDING)
+        current_receipt = PaymentReceipt.objects.create(
+            enrollment=current, amount=1000, receipt_image='receipts/current-synthetic.png')
+        historical_receipt = PaymentReceipt.objects.create(
+            enrollment=self.enrollment, amount=1000, receipt_image='receipts/historical-synthetic.png')
+
+        for actor in (self.teacher, self.owner):
+            with self.subTest(actor=actor.pk):
+                self.client.force_login(actor)
+                page = self.client.get(self.url(), {'course': self.course.pk})
+                self.assertEqual(page.status_code, 200)
+                self.assertEqual(page.context['diagnosis']['code'], 'pending')
+                self.assertEqual(page.context['relevant_enrollment'].pk, current.pk)
+                self.assertEqual([receipt.pk for receipt in page.context['pending_receipts']],
+                                 [historical_receipt.pk, current_receipt.pk])
+                primary = urlsplit(page.context['next_steps'][0]['url'])
+                self.assertEqual(primary.path, reverse('backoffice_receipts'))
+                self.assertEqual(parse_qs(primary.query), {
+                    'enrollment': [str(current.pk)], 'receipt': [str(current_receipt.pk)],
+                    'lesson': [str(self.first.pk)],
+                })
+                historical_row = next(row for row in page.context['receipt_rows']
+                                      if row['id'] == historical_receipt.pk)
+                self.assertEqual(historical_row['label'], self.cohort.name)
+                self.assertEqual(parse_qs(urlsplit(historical_row['action_url']).query), {
+                    'enrollment': [str(self.enrollment.pk)], 'receipt': [str(historical_receipt.pk)],
+                    'lesson': [str(self.first.pk)],
+                })
+
+    def test_primary_action_never_substitutes_another_enrollments_pending_receipt(self):
+        Enrollment.objects.filter(pk=self.enrollment.pk).update(status=Enrollment.STATUS_PENDING)
+        current_cohort = Cohort.objects.create(
+            name='Cheksiz hozirgi guruh', course=self.course, start_date=date(2026, 2, 1))
+        current = Enrollment.objects.create(
+            student=self.learner, cohort=current_cohort, status=Enrollment.STATUS_PENDING)
+        historical_receipt = PaymentReceipt.objects.create(
+            enrollment=self.enrollment, amount=1000, receipt_image='receipts/historical-synthetic.png')
+
+        for actor in (self.teacher, self.owner):
+            with self.subTest(actor=actor.pk):
+                self.client.force_login(actor)
+                page = self.client.get(self.url(), {'course': self.course.pk})
+                self.assertEqual(page.status_code, 200)
+                self.assertEqual(page.context['diagnosis']['code'], 'pending')
+                self.assertEqual(page.context['relevant_enrollment'].pk, current.pk)
+                self.assertEqual([receipt.pk for receipt in page.context['pending_receipts']],
+                                 [historical_receipt.pk])
+                self.assertFalse(any(urlsplit(step['url']).path == reverse('backoffice_receipts')
+                                     for step in page.context['next_steps']))
+                historical_row = page.context['receipt_rows'][0]
+                self.assertEqual(historical_row['id'], historical_receipt.pk)
+                self.assertEqual(historical_row['label'], self.cohort.name)
 
     def test_flag_rollback_and_read_errors_fail_closed(self):
         self.assertFalse(flag_by_slug('backoffice_student_support').default)
