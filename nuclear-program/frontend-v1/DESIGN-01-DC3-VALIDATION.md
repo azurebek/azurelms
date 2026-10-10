@@ -1,5 +1,9 @@
 # DESIGN-01 DC3 — kontrast va o‘qish chegaralari
 
+**Tarixiy snapshot:** quyidagi12source hash Packet87ga tegishli.
+Joriy lokal source [DC4](DESIGN-01-DC4-RELEASE.md)da; umumiy validation policy
+shu bosqichda catalogga chiqarilgan. DC3 archive hashlar alohida tekshiriladi.
+
 2026-10-10. Owner uchinchi bosqichni boshlashni topshirdi.
 DC2ning lokal Eleventh Trial ustaxonasi kengaytiriladi; real service emas.
 

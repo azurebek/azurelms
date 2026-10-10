@@ -1,5 +1,10 @@
 # DESIGN-01 — kodsiz dizayn boshqaruvi, reja oxiridagi kengaytma
 
+**2026-10-10 DC4:** [lokal nashr, readback, tarix va rollback](DESIGN-01-DC4-RELEASE.md) tayyor.
+Sabab/tasdiq, stale/no-op/unknown himoyasi va56frame+4editor tekshirildi.
+DC4 real port, DC5–DC6 va oldingi UX/DATA/RULE/native/owner qabuli ochiq.
+Quyidagi DC3/DC2 yozuvlari tarixiy snapshot.
+
 **2026-10-10 owner topshirig‘i:** DC1/DC2dan keyin [DC3 validatsiya](DESIGN-01-DC3-VALIDATION.md)
 lokal Eleventh Trialda qurildi:68 qoida, xavfli kombinatsiyani saqlashdan
 himoya,200% matn/spacing/uzun matn/fallback sinovlari.224frame+5font+4editor
@@ -21,8 +26,9 @@ Mavjud `tokens.css`/componentlar poydevor; hozir faqat fixed light/dark tema
 va umumiy tokenlar bor. Q16b brend/landing formasi bu capabilityni bajarmaydi.
 
 DC1 inventari tayyor; DC2 lokal forma/schema, preview hamda real port uchun
-route/permission kontraktini beradi. DC3 lokal guard va sinov dalilini beradi; DC4da
-permission enforcement, yagona source-of-truth va rollback joriy qilinadi.
+route/permission kontraktini beradi. DC3 lokal guard va sinov dalilini beradi; DC4
+lokal release service/rollback va fixture permission testlarini beradi.
+Actual owner enforcement va doimiy yagona source-of-truth DC4 real portda ochiq.
 Canonical schema/DB, runtime va AWS alohida port/release.
 
 ## Quriladigan qamrov
@@ -74,7 +80,8 @@ almashtirish bu customizationning yashirin qismi emas.
   888 Django/261 Node, 56 frame + 4 editor viewport; lokal bosqich tayyor. Real service emas.
 - [x] DC3 — [lokal kontrast/typography gate,200% matn va xavfsiz chegaralar](DESIGN-01-DC3-VALIDATION.md).
   Native full-page zoom/AT/qurilma qabuli DC6da; butun sayt WCAG qabuli emas.
-- [ ] DC4 — publish/readback/history/rollback; stale/unknown/no-op/failure holatlari.
+- [x] DC4 lokal — [publish/readback/history/rollback](DESIGN-01-DC4-RELEASE.md); stale/unknown/no-op/failure holatlari.
+- [ ] DC4 real port — actual owner auth/ACL, DB transaction, durable audit/idempotency, cache/flag va consumer enforcement.
 - [ ] DC5 — barcha mapped shell/komponentlarda regressiya, vendor/print/fallback istisnolari.
 - [ ] DC6 — owner walkthrough va yangi checkpoint; real service/port/CI va release
   alohida kuzatiladi. Faqat lokal demo yoki token almashtirish bilan “to‘liq” yozilmaydi.

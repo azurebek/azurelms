@@ -1,5 +1,10 @@
 # Qolgan prototiplar — aniq qamrov va tugatish rejasi
 
+**2026-10-10 DC4:** [lokal nashr, readback, tarix va rollback](DESIGN-01-DC4-RELEASE.md) tayyor.
+Sabab/tasdiq, stale/no-op/unknown himoyasi va56frame+4editor tekshirildi.
+DC4 real port, DC5–DC6 va oldingi UX/DATA/RULE/native/owner qabuli ochiq.
+Quyidagi DC3/DC2 yozuvlari tarixiy snapshot.
+
 **2026-10-10 DC3:** owner topshirig‘i bilan [lokal kontrast/typography guard](DESIGN-01-DC3-VALIDATION.md)
 qurildi:68 qoida,200% matn va224frame+5font+4editor tekshiruvi.
 DC4–DC6 va oldingi yakuniy qabul ochiq; native full-page zoom hali bajarilmagan.
@@ -233,11 +238,12 @@ Eski Q raqamlari saqlanadi; a/b bo‘linishi faqat paket chegarasidir.
   **2026-10-10:** owner DC1/DC2dan keyin DC3ni ham oldinga oldi;
   [DC1 inventari](DESIGN-01-DC1-MAP.md) tayyor, [DC2 lokal forma/draft/preview](DESIGN-01-DC2-PREVIEW.md)
   lokal tayyor; [DC3 kontrast/typography](DESIGN-01-DC3-VALIDATION.md) ham lokal tayyor
-  (68qoida,224frame+5font+4editor). DC4–DC6 hamda 11-qadamdagi ochiq
+  (68qoida,224frame+5font+4editor). [DC4 lokal nashr/tarix](DESIGN-01-DC4-RELEASE.md) ham tayyor.
+  DC4 real port, DC5–DC6 hamda 11-qadamdagi ochiq
   UX/DATA/RULE/native/owner qabul qoladi. Bu real runtime/AWS o‘zgarishi emas.
   **Owner qarori,2026-09-28:** sodda rang tanlagich bilan chala qoldirmaslik;
   rang, button/karta shakli va shriftlarni kodga tegmasdan boshqarish imkonini
-  reja oxirida kengaytirish. DC1/DC2/DC3 uchun yuqoridagi owner istisnosi amal qiladi.
+  reja oxirida kengaytirish. DC1/DC2/DC3/DC4 uchun yuqoridagi owner istisnosi amal qiladi.
   [Qamrov va yakun mezonlari](DESIGN-CUSTOMIZATION-PLAN.md).
   **Yakun:** token/komponent xaritasi → alohida qoralama va ko‘p sahifali preview
   → validatsiya → tasdiqli yagona versiyani tatbiq qilish → history/rollback;
