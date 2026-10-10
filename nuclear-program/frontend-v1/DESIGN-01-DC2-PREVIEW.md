@@ -30,6 +30,50 @@ settings/env'dan mustaqil. Ishga tushirish: `playground/Eleventh Trial` ichida
 `../../venv/Scripts/python.exe manage.py runserver 127.0.0.1:8088 --noreload`.
 Ustaxona: `http://127.0.0.1:8088/_preview/design/`.
 
+## F20 route namespace va permission kontrakti
+
+Bu DC1 F20ning **DC2 design deliverable'i**: real port uchun namespace va
+access contract shu yerda belgilandi. Quyidagi URLlar rejalashtirilgan, hozir
+`core/urls.py`ga qo‘shilmagan; real enforcement, service va testlar DC4da.
+Lokal `/_preview/design/` bu ruxsatning implementatsiyasi sifatida ishlatilmaydi.
+
+Canonical permission: authenticated foydalanuvchi va mavjud
+`core.access.is_control_center_owner(user)` (`is_active and is_superuser`).
+`is_staff`ning o‘zi yetmaydi. Existing `core.views.backoffice_brand`ning
+login/owner gate'i, reason/confirmation va audit namunasi asos bo‘ladi;
+AISettings raw save yo‘li ko‘chirilmaydi. Bu yangi role yoki qo‘shimcha owner
+tayini emas, mavjud control-center authority'ni qayta ishlatish kontrakti.
+
+| Taklif qilingan manzil / URL name | Method va maqsad | Ruxsat va scope |
+|---|---|---|
+| `/backoffice/control/design/` — `backoffice_design` | GET editor va published summary | Active owner; GET row yaratmaydi yoki publish qilmaydi |
+| `/backoffice/control/design/draft/` — `backoffice_design_draft` | GET own draft; POST explicit draft save | Active owner + faqat current actor drafti; POST CSRF va draft revision bilan |
+| `/backoffice/control/design/preview/` — `backoffice_design_preview` | GET own draft preview | Active owner; actor/revision serverdan tekshiriladi, boshqa owner drafti yoki public token URL yo‘q; private/no-store |
+| `/backoffice/control/design/presets/` — `backoffice_design_presets` | GET own presets; POST save/delete | Active owner; own draft/preset scope, typed input va CSRF; built-in defaultlar o‘zgarmas |
+| `/backoffice/control/design/publish/` — `backoffice_design_publish` | POST validated draftni nashr qilish | Active owner; CSRF, reason, explicit confirmation, draft+published revision, idempotency receipt; yagona canonical service |
+| `/backoffice/control/design/history/` — `backoffice_design_history` | GET version/diff/audit/readback | Active owner; tarix private/no-store, mutation yo‘q |
+| `/backoffice/control/design/rollback/` — `backoffice_design_rollback` | POST tarixdagi valid versiyani qayta tatbiq qilish | Publish bilan bir xil owner/CSRF/reason/confirmation/revision/idempotency gate; eski tarix o‘chirilmaydi |
+
+Anonymous HTML editor GET login'ga safe-next bilan yo‘naltiriladi; JSON
+request auth bo‘lmasa401, login bo‘lgan non-owner/inactive principal403.
+Ownerga tegishli bo‘lmagan draft/preset identifieri404/no disclosure;
+bodydagi actor/workspace qiymati authorization manbasi bo‘lmaydi. Public,
+learner, teacher, bot va Mini App faqat published effective projectionni
+oladi; draft/preset/history boshqaruv endpointlariga ruxsati yo‘q.
+
+Permission har request va canonical mutation service'da tekshiriladi;
+admin, management command yoki adapter uchun parallel raw writer bo‘lmaydi.
+Flag tekshiruvi existing registry orqali; OFF paytda mutation yopiq, consumer
+statik fallbackda qoladi. GET/HEAD va oddiy preview hech qachon publish yoki
+rollback qilmaydi. Draft/presetning boshqa ownerga ulashilishi bu kontraktga
+kirmaydi; kelajakdagi product qarorisiz barcha ownerga global draft ochilmaydi.
+
+DC4 acceptance: anonymous/student/staff/inactive-superuser uchun deny/no-write;
+active owner uchun own-only read/write; cross-owner ID, missing CSRF, stale
+revision, duplicate/unknown publish, no-op va transaction failure; raw admin
+yo‘lining ham shu servicega kirishi. Permission kontrakti **DC2da belgilangan**,
+uni real endpointlarda enforce qilish va dalillash **DC4da hali ochiq**.
+
 ## Forma va qoralama kontrakti
 
 Ranglar light/dark uchun alohida. Yangi semantik yoki komponent rangi uchun
