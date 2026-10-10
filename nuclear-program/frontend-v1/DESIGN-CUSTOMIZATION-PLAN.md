@@ -1,5 +1,10 @@
 # DESIGN-01 — kodsiz dizayn boshqaruvi, reja oxiridagi kengaytma
 
+**2026-10-10 DC5:** [lokal consumer preview va regressiya](DESIGN-01-DC5-REGRESSION.md)
+qurildi:139existing route+3diagnostic snapshot,137theme consumer va5statik
+istisno. DC5 real consumer qabuli portdan keyin qaytariladi; DC6 va oldingi
+UX/DATA/RULE/native/owner bandlari ochiq. Quyidagi yozuvlar tarixiy snapshot.
+
 **2026-10-10 DC4:** [lokal nashr, readback, tarix va rollback](DESIGN-01-DC4-RELEASE.md) tayyor.
 Sabab/tasdiq, stale/no-op/unknown himoyasi va56frame+4editor tekshirildi.
 DC4 real port, DC5–DC6 va oldingi UX/DATA/RULE/native/owner qabuli ochiq.
@@ -82,7 +87,8 @@ almashtirish bu customizationning yashirin qismi emas.
   Native full-page zoom/AT/qurilma qabuli DC6da; butun sayt WCAG qabuli emas.
 - [x] DC4 lokal — [publish/readback/history/rollback](DESIGN-01-DC4-RELEASE.md); stale/unknown/no-op/failure holatlari.
 - [ ] DC4 real port — actual owner auth/ACL, DB transaction, durable audit/idempotency, cache/flag va consumer enforcement.
-- [ ] DC5 — barcha mapped shell/komponentlarda regressiya, vendor/print/fallback istisnolari.
+- [x] DC5 lokal — [mavjud render nusxalarida regressiya](DESIGN-01-DC5-REGRESSION.md), vendor/print/fallback istisnolari.
+- [ ] DC5 real — DC4 production portdan keyin barcha mapped renderer/flag OFF/dynamic consumer regressiyasini qaytarish.
 - [ ] DC6 — owner walkthrough va yangi checkpoint; real service/port/CI va release
   alohida kuzatiladi. Faqat lokal demo yoki token almashtirish bilan “to‘liq” yozilmaydi.
 

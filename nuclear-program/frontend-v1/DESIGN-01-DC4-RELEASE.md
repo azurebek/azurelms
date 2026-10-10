@@ -1,5 +1,8 @@
 # DESIGN-01 DC4 — lokal nashr, tarix va rollback
 
+**Tarixiy snapshot:** quyidagi19hash Packet88ga tegishli. Joriy lokal
+consumer preview va source hashlar [DC5](DESIGN-01-DC5-REGRESSION.md)da.
+
 2026-10-10. Owner “davom et” bilan DC4ni boshlashni topshirdi.
 Lokal publish/readback/history/rollback qurildi va sinovdan o‘tdi.
 Real owner autentifikatsiyasi, DB va barcha consumerlarga tarqatish hali ochiq.
