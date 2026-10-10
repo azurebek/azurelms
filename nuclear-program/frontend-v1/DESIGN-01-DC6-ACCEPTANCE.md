@@ -41,6 +41,9 @@ bog‘liq va doimiy server backupi emas.
 
 ## Qabul qaydi
 
+**Owner javobi, 2026-10-10:** “Hali ko‘rib chiqmadim”. Lokal dizayn va
+boshqaruv oqimi qabuli PENDING; texnik tayyorgarlik bu qarorni almashtirmaydi.
+
 | Band | Agent dalili | Owner/native holati |
 |---|---|---|
 | Yo‘riqnoma tushunarliligi, variant va vizual tanlov | 8 qadam ko‘rinadi; lokal smoke bor | PENDING — tanlangan variant va owner izohi kerak |

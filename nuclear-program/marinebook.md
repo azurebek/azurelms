@@ -51,6 +51,7 @@ sinovi va checkpoint tayyor; owner/native qabul PENDING, DESIGN-01 to‘liq yopi
   `.tools/design-dc6-recovery`ga tiklandi: **26 PASS**, 1.092s, check0.
   Arxiv repo/venv talab qiladi; standalone/offsite backup emas.
   Remote CI ignored prototype implementationni bajarmaydi.
+- Ownerning shu sessiyadagi javobi: “Hali ko‘rib chiqmadim”. Qabul PENDING.
 - Keyingi: ownerning tanlangan variant va vizual/oqim qabuli; native/AT/
   print/Telegram. DC4/DC5 real port hamda oldingi UX/DATA/RULE/release OPEN.
 
