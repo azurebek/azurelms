@@ -18,7 +18,9 @@ Yangi redesign yoki production mutation vakolati emas.
 Claude kuzatuvlari to‘liq native regression yoki server attestatsiyasi emas.
 AI javobi, imtihon, Classbook, Telegram login va real telefonning qolgan
 yo‘llari NOT TESTED; mavjud gate hujjatlari bilan birga qabulda tekshiriladi.
-Hozirgi navbat: joriy qamrov qabul/tuzatish (ishda) → DESIGN-01.
+Hozirgi navbat: joriy qamrov qabul/tuzatish (ishda) → DESIGN-01 qurilishi.
+2026-10-10 owner topshirig‘i bilan faqat [DC1 inventari](DESIGN-01-DC1-MAP.md)
+oldinga olinib bajarildi; bu jadvaldagi ochiq bandlar yopilmadi.
 
 ## Packet77 paritet auditi — finalda yo‘qolmasin
 

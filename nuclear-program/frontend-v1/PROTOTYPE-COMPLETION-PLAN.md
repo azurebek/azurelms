@@ -1,5 +1,10 @@
 # Qolgan prototiplar — aniq qamrov va tugatish rejasi
 
+**2026-10-10 DC1:** owner topshirig‘i bilan DESIGN-01ning faqat
+[sozlama/komponent/sahifa inventari](DESIGN-01-DC1-MAP.md) bajarildi.
+DC2–DC6 qurilishi boshlanmadi; oldingi yakuniy qabul bandlari ochiq.
+Quyidagi paket navbatlari o‘z sanasining tarixiy snapshotlari.
+
 **2026-10-04 Packet85:** [UX-04 auth](UX04-AUTH-CLARITY-PROTOTYPE.md)
 lokal inline xato/fokus/44px linklar;881 Django/246 Node PASS,
 56responsive+24state. UX-04 PARTIAL: real strength/onboarding/native
@@ -219,10 +224,14 @@ Eski Q raqamlari saqlanadi; a/b bo‘linishi faqat paket chegarasidir.
   [Packet81](PAR03-PUBLIC-INTERACTIONS-PROTOTYPE.md) PAR-03 public blog
   interaction va SIT existing-chat handoffini lokal qurdi; pixel/native
   va real adapter qabuli ochiq. **Qolgan:** PAR-05 va UX/DATA/RULE/native/owner qabuli.
-- [ ] **12. DESIGN-01 — Admin paneldan keng kodsiz dizayn boshqaruvi.**
+- [-] **12. DESIGN-01 — Admin paneldan keng kodsiz dizayn boshqaruvi.**
+  **2026-10-10:** owner faqat birinchi bosqichni oldinga oldi;
+  [DC1 sozlama/komponent/sahifa inventari](DESIGN-01-DC1-MAP.md) tayyor.
+  DC2–DC6 hali boshlanmadi; 11-qadamdagi ochiq UX/DATA/RULE/native/owner
+  qabul bandlari yopilmadi. Bu runtime yoki AWS o‘zgarishi emas.
   **Owner qarori,2026-09-28:** sodda rang tanlagich bilan chala qoldirmaslik;
   rang, button/karta shakli va shriftlarni kodga tegmasdan boshqarish imkonini
-  reja oxirida kengaytirish. Hozirgi Q08→qabul navbati o‘zgarmaydi.
+  reja oxirida kengaytirish. DC1 inventari uchun yuqoridagi tor istisno amal qiladi.
   [Qamrov va yakun mezonlari](DESIGN-CUSTOMIZATION-PLAN.md).
   **Yakun:** token/komponent xaritasi → alohida qoralama va ko‘p sahifali preview
   → validatsiya → tasdiqli yagona versiyani tatbiq qilish → history/rollback;

@@ -1,5 +1,11 @@
 # Frontend V1 — prototipdan ishlaydigan platformaga
 
+**2026-10-10 — DESIGN-01/DC1:** owner birinchi bosqichni hozir boshlashni
+topshirdi. [Sozlama/komponent/sahifa xaritasi](DESIGN-01-DC1-MAP.md) va
+[source inventari](DESIGN-01-DC1-SOURCE-INVENTORY.md) tayyor. Bu docs-only
+inventar; oldingi UX/DATA/RULE/native qabul ochiq, DC2–DC6 va runtime/AWS
+o‘zgarishi boshlanmadi. Quyidagi navbat/sanoq yozuvlari o‘z sanasining snapshoti.
+
 **Joriy reliz — 2026-09-26:** tayyor V1 port kodi PR143gacha main’da;
 AWS **8bb6b95**, barcha19 frontend renderer flag ON. Backup/restore,
 9 migration,327 HTTPS assertion, WSS va42 responsive readback PASS.

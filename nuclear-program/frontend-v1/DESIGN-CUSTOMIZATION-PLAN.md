@@ -1,8 +1,15 @@
 # DESIGN-01 — kodsiz dizayn boshqaruvi, reja oxiridagi kengaytma
 
+**2026-10-10 owner topshirig‘i:** birinchi bosqich — sozlama, komponent va
+sahifalar xaritasi — hozir bajarildi. [DC1 xaritasi](DESIGN-01-DC1-MAP.md)
+va [to‘liq source inventari](DESIGN-01-DC1-SOURCE-INVENTORY.md): 73 V1 token,
+20 sozlama guruhi, 22 komponent guruhi, 120 real UI/alias nomi. Bu faqat
+DC1 hujjat bosqichini oldinga olish; oldingi UX/DATA/RULE/native/owner qabul
+ochiq. DC2–DC6, runtime, DB, prototip paneli va AWSga o‘zgarish kiritilmadi.
+
 2026-09-28 **USER-DECIDED — rejalashtirish**. Owner ranglar, button/karta
 shakllari va fontlarni admin paneldan kodga tegmasdan keng boshqarishni
-so‘radi: sodda/chala yechim emas. **Hozir implementatsiya boshlanmaydi.**
+so‘radi: sodda/chala yechim emas. **Runtime implementatsiyasi boshlanmagan.**
 Navbat: Q08 legacy/paritet → joriy qamrov qabuli → DESIGN-01.
 Bu yangi capability: mavjud45 UI/handler inventariga yashirin qo‘shilmaydi.
 
@@ -14,8 +21,8 @@ qo‘lda kod tahriri0; qabul matritsasida o‘qilmas matn/layout regressiyasi0.
 Mavjud `tokens.css`/componentlar poydevor; hozir faqat fixed light/dark tema
 va umumiy tokenlar bor. Q16b brend/landing formasi bu capabilityni bajarmaydi.
 
-Hozir faqat reja tasdiqlangan. Ish boshlanganda aniq field/component inventari,
-admission, permission, source-of-truth va rollback kontrakti yoziladi;
+DC1 inventari owner topshirig‘i bilan tayyor. Keyingi qurish bosqichida aniq
+form/schema, permission, source-of-truth va rollback kontrakti yakunlanadi;
 canonical schema/DB, runtime yoki AWS bu reja bilan o‘zgarmaydi.
 
 ## Quriladigan qamrov
@@ -61,7 +68,8 @@ almashtirish bu customizationning yashirin qismi emas.
 
 ## Tugatish va qabul checklisti
 
-- [ ] DC1 — token/component/consumer inventari va mustaqil rol xaritasi.
+- [x] DC1 — token/component/consumer inventari va mustaqil rol xaritasi:
+  [2026-10-10 source dalili](DESIGN-01-DC1-MAP.md). Bu dinamik theme yoki visual PASS emas.
 - [ ] DC2 — to‘liq sozlama formasi, preset/draft, light/dark desktop/mobile preview.
 - [ ] DC3 — kontrast, font/zoom, uzun matn, responsive va xavfsiz chegaralar validatsiyasi.
 - [ ] DC4 — publish/readback/history/rollback; stale/unknown/no-op/failure holatlari.
