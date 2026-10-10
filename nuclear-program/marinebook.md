@@ -42,6 +42,12 @@ Audit baseline va required CI gate'lari o'zgartirilmadi.
   shu kundalikdagi parallel prepend conflict chiqdi; ikkala yozuv ham
   saqlanib, xavfsizlik yozuvi oldinga qo'yildi. DC1 inventar validatori
   va staged diff-check qayta o'tdi: PASS. Keyingi gate: #167 CI.
+- #167 review tuzatishi `e29e2a6`: source fingerprintlar CRLF -> LF
+  normalizatsiya bilan hisoblandi, CSS baytlari `ead7698` Git bloblariga
+  tengligi tasdiqlandi. Inventar validatori (73 token/197 URL/3 hash/112
+  link) va diff-check PASS. `3b1bab5` inventar commit'i tarixda reachable
+  ekani local Git va GitHub API bilan tekshirildi; hash haqidagi review
+  da'vosi noto'g'ri, dalil bilan javob beriladi.
 
 ---
 
