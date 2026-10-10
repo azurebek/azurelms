@@ -12,6 +12,7 @@ from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
 from django.db.models import Count, Max, OuterRef, Q, Subquery, Sum
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils.timesince import timesince
 from django.utils import timezone
 
@@ -727,6 +728,9 @@ def backoffice_receipts(request):
 @login_required
 @user_passes_test(_is_backoffice_user)
 def backoffice_dashboard(request):
+    from core.flags import flag_enabled
+    if request.method == 'GET' and flag_enabled('backoffice_course_workspace'):
+        return redirect('backoffice_workspace_home')
     today = timezone.localdate()
     week_start = today - timedelta(days=6)
     User = get_user_model()
@@ -852,6 +856,11 @@ def backoffice_chats(request):
 @login_required
 @user_passes_test(_is_backoffice_user)
 def backoffice_courses(request):
+    from core.flags import flag_enabled
+    if request.method == 'GET' and flag_enabled('backoffice_course_workspace'):
+        target = reverse('backoffice_workspace_courses')
+        query = request.GET.urlencode()
+        return redirect(target + ('?' + query if query else ''))
     query = request.GET.get("q", "").strip()
     status = request.GET.get("status", "all")
     if status not in {"all", "active", "draft"}:

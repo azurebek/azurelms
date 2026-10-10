@@ -44,6 +44,12 @@ class FlagDefinition:
 
 FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
     FlagDefinition(
+        slug="backoffice_course_workspace", label="Boshqaruv — kurs tayyorlash ustaxonasi",
+        description="Kurs ichida modul, dars, material va namuna bilan ishlash.",
+        default=False, category="Frontend",
+        runbook="OFF yangi kirish va in-flight yozishni yopadi; eski muharrir saqlangan kontentni o‘qiydi. Schema o‘zgarmaydi. Production release alohida.",
+    ),
+    FlagDefinition(
         slug="frontend_v1_classbook_live", label="Frontend V1 — Classbook jonli dars",
         description="Ustoz boshqaruvi, learner mashqlari va real natijalar; explicit amallar.",
         default=False, category="Frontend",

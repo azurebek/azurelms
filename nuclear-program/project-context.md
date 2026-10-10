@@ -698,6 +698,20 @@ AI room nomi birinchi prompt'dan avtomatik o'zgarishi mumkin (`maybe_name_ai_roo
 
 ### 4.10 Backoffice
 
+**Kurs ish maydoni (2026-10-10):** `backoffice_course_workspace` default-OFF flag
+ortida `/backoffice/workspace/`, `/courses/`, `/courses/new/`,
+`/courses/<id>/` va `/courses/<id>/settings/` (barchasi workspace prefiksida).
+`core/backoffice_workspace.py` + `workspace_forms.py` alohida Boshqaruv shellini
+beradi; `courses/authoring_service.py` kurs/modul/dars yaratish/tahrirlash,
+modul tartibi, scope, transaction, HMAC stale snapshot va auditni boshqaradi.
+Materiallar existing library services; release existing teacher confirmationga
+aniq cohort+lesson havolasi. GET dashboard/kurs ro‘yxati flag ON payti shu yerga
+yo‘naltiriladi; eski POST/deep linklar saqlangan. Lesson private draft yo‘q;
+sessionStorage matn tiklash doimiy server qoralamasi emas. Course.is_active=False
+faqat katalogda yashiradi, mavjud learner accessini bekor qilmaydi.
+Migration, yangi provider va production rollout yo‘q. Tafsilot:
+[bosqich 2](frontend-v1/BACKOFFICE-REFORM-STAGE-2.md).
+
 Custom yashirin admin URL'lari:
 
 ```

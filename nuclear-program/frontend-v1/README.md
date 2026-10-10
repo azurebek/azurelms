@@ -5,7 +5,10 @@ tayyorlandi: kurs/dars tayyorlash, o‘quvchi muammosini hal qilish va dizaynni
 texnik bilimsiz moslash. [Birinchi bosqich](BACKOFFICE-REFORM-STAGE-1.md)da ownerning
 sifat bahosi, aniq amallar/ruxsat/writer xaritasi va sakkizta vazifa tayyorlandi.
 Owner tuzilmani agent hal qilishini topshirdi; menyu nomlari aniqlashtirildi.
-Runtime implementatsiya va vaqtli usability/yangi ko‘rinish qabuli hali ochiq.
+[Ikkinchi bosqich](BACKOFFICE-REFORM-STAGE-2.md): alohida Boshqaruv va haqiqiy
+kurs → modul → dars → material → namuna → saqlash oqimi qurildi; releasega
+aniq dars/guruh bilan ulanish bor. Flag default OFF, production deploy yo‘q.
+Vaqtli usability/yangi ko‘rinish qabuli va qolgan kesimlar hali ochiq.
 DC6 owner qabuli hamon PENDING.
 
 **2026-10-10 DC6:** [yakuniy ko‘rib chiqish va tiklash paketi](DESIGN-01-DC6-ACCEPTANCE.md)

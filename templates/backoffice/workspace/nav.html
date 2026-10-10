@@ -1,0 +1,6 @@
+<nav class="ws-navigation" aria-label="Asosiy bo‘limlar">
+  <div class="ws-nav-main">
+    {% for item in workspace_nav %}{% if item.label != 'Sozlamalar' %}<a class="ws-nav-link{% if item.active %} is-active{% endif %}" href="{{ item.url }}"{% if item.active %} aria-current="page"{% endif %}><span class="ws-nav-symbol" aria-hidden="true">{% if forloop.counter == 1 %}⌂{% elif forloop.counter == 2 %}▤{% elif forloop.counter == 3 %}♧{% elif forloop.counter == 4 %}◇{% else %}▱{% endif %}</span><span>{{ item.label }}</span>{% if item.active %}<span class="ws-nav-dot" aria-hidden="true"></span>{% endif %}</a>{% endif %}{% endfor %}
+  </div>
+  {% for item in workspace_nav %}{% if item.label == 'Sozlamalar' %}<a class="ws-nav-link ws-nav-settings{% if item.active %} is-active{% endif %}" href="{{ item.url }}"{% if item.active %} aria-current="page"{% endif %}><span class="ws-nav-symbol" aria-hidden="true">⚙</span><span>{{ item.label }}</span></a>{% endif %}{% endfor %}
+</nav>

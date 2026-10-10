@@ -8,6 +8,7 @@ from frontend.views import home_view, about_view, legal_page_view
 from core import health_views
 from core import views as core_views
 from core import teacher_views
+from core import backoffice_workspace as workspace
 from subscriptions import backoffice_views as catalog_views
 
 handler404 = "core.views.page_not_found"
@@ -77,6 +78,11 @@ urlpatterns = [
     path('backoffice/catalog/cohorts/<int:cohort_id>/members/', catalog_views.cohort_members, name='backoffice_cohort_members'),
     path('backoffice/control/', core_views.backoffice_control, name='backoffice_control'),
     path('backoffice/', core_views.backoffice_dashboard, name='backoffice_dashboard'),
+    path('backoffice/workspace/', workspace.home, name='backoffice_workspace_home'),
+    path('backoffice/workspace/courses/', workspace.courses, name='backoffice_workspace_courses'),
+    path('backoffice/workspace/courses/new/', workspace.course_editor, name='backoffice_workspace_course_create'),
+    path('backoffice/workspace/courses/<int:course_id>/settings/', workspace.course_editor, name='backoffice_workspace_course_edit'),
+    path('backoffice/workspace/courses/<int:course_id>/', workspace.course, name='backoffice_workspace_course'),
     path('backoffice/users/', core_views.backoffice_users, name='backoffice_users'),
     path('backoffice/chats/', core_views.backoffice_chats, name='backoffice_chats'),
     path('backoffice/courses/', core_views.backoffice_courses, name='backoffice_courses'),

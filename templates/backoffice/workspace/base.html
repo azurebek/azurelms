@@ -1,0 +1,29 @@
+{% extends "frontend_v1/base.html" %}
+{% load static %}
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'backoffice/workspace.css' %}">
+{% block workspace_media %}{% endblock %}
+<script defer src="{% static 'backoffice/workspace.js' %}"></script>
+{% endblock %}
+{% block body_class %}workspace-body{% endblock %}
+{% block body %}
+{% if saved_scope %}<span hidden data-workspace-saved data-saved-scope="{{ saved_scope }}" data-saved-submission-id="{{ saved_submission_id }}"></span>{% endif %}
+<div class="ws-shell">
+  <aside class="ws-sidebar" aria-label="Boshqaruv menyusi">
+    <a class="ws-brand" href="{% url 'backoffice_workspace_home' %}"><span class="ws-brand-mark" aria-hidden="true">a</span><span>{{ site_settings.brand_name|default:"AzureLMS" }}<small>Boshqaruv</small></span></a>
+    {% include "backoffice/workspace/nav.html" %}
+    <div class="ws-account"><span class="ws-avatar" aria-hidden="true">{{ request.user.first_name|first|default:request.user.username|first|upper }}</span><div><strong>{{ request.user.get_full_name|default:request.user.username }}</strong><span>{% if request.user.is_superuser %}Administrator{% else %}Ustoz{% endif %}</span></div><form method="post" action="{% url 'logout' %}" data-v1-logout data-workspace-logout>{% csrf_token %}<button class="ws-icon-button" type="submit" aria-label="Hisobdan chiqish">↪</button></form></div>
+  </aside>
+  <div class="ws-main-shell">
+    <header class="ws-topbar">
+      <div class="ws-topbar-start"><button class="ws-icon-button ws-mobile-menu" type="button" data-nav-open aria-controls="nav-dialog" aria-expanded="false" aria-label="Menyuni ochish">☰</button><span>Boshqaruv <span class="ws-topbar-divider" aria-hidden="true">/</span> <strong>{% block workspace_section %}{{ frontend_v1_title }}{% endblock %}</strong></span></div>
+      <div class="ws-topbar-actions"><a class="ws-site-link" href="/" target="_blank" rel="noopener">Saytni ko‘rish <span aria-hidden="true">↗</span></a><button class="ws-icon-button" type="button" data-action="theme.toggle" aria-label="Rang mavzusini almashtirish" aria-pressed="false">◐</button></div>
+    </header>
+    <main id="main" class="ws-main {% block workspace_main_class %}{% endblock %}" tabindex="-1">
+      {% if messages %}<div class="ws-messages" aria-live="polite">{% for message in messages %}<div class="ws-notice{% if message.tags == 'error' %} ws-notice-error{% elif message.tags == 'success' %} ws-notice-success{% endif %}" role="status">{{ message }}</div>{% endfor %}</div>{% endif %}
+      {% block workspace_content %}{% endblock %}
+    </main>
+  </div>
+</div>
+<dialog id="nav-dialog" class="ws-nav-dialog" aria-label="Boshqaruv menyusi"><div class="ws-dialog-head"><strong>{{ site_settings.brand_name|default:"AzureLMS" }}</strong><button type="button" class="ws-icon-button" data-nav-close aria-label="Menyuni yopish">×</button></div>{% include "backoffice/workspace/nav.html" %}</dialog>
+{% endblock %}

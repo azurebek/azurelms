@@ -1,0 +1,7 @@
+{% if field.is_hidden %}{{ field }}{% else %}
+<div class="ws-field{% if field.errors %} has-errors{% endif %}{% if field.field.widget.input_type == 'checkbox' %} ws-field-check{% endif %}">
+  {% if field.field.widget.input_type == 'checkbox' %}<label for="{{ field.id_for_label }}">{{ field }}<span>{{ label|default:field.label }}</span></label>{% else %}<label for="{{ field.id_for_label }}">{{ label|default:field.label }}{% if field.field.required %}<span class="ws-required" aria-label="majburiy"> *</span>{% endif %}</label>{{ field }}{% endif %}
+  {% if help %}<p class="ws-help">{{ help }}</p>{% elif field.help_text %}<p class="ws-help">{{ field.help_text }}</p>{% endif %}
+  {% if field.errors %}<div class="ws-field-error">{{ field.errors }}</div>{% endif %}
+</div>
+{% endif %}
