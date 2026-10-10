@@ -16,6 +16,44 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-10 [Codex]: Backoffice ikkinchi bosqich — haqiqiy kurs/dars ustaxonasi
+
+Owner topshirig‘i bilan alohida Boshqaruv va kurs ichidagi modul/dars tayyorlash
+oqimi qurildi. Nom, boy matn, video, material, namuna va saqlash bir kontekstda;
+guruhga ochish mavjud tasdiqlash oqimiga aynan dars/guruh bilan ulanadi.
+
+- Branch: `codex/backoffice-course-workspace`; implementatsiya: `d23f1f7`.
+  [Bosqich 2 chegarasi va dalili](frontend-v1/BACKOFFICE-REFORM-STAGE-2.md).
+- `courses/authoring_service.py`: course/module/lesson scope, validation, row lock,
+  HMAC stale snapshot, no-op va atomic audit. `core/backoffice_workspace.py`
+  HTTP adapter; library upload/attach va release policy qayta yozilmadi.
+- Alohida olti bo‘limli shell, kurs qidirish/holat filtri, modul tartibi,
+  boy matn muharriri, inline material, sanitizatsiyali yozmaydigan namuna.
+  `backoffice_course_workspace` default OFF; eski GET kirish ON bo‘lganda yangi
+  yuzaga o‘tadi, eski POST/deep link saqlangan. OFF in-flight POSTni ham yopadi.
+- Brauzer matn qoralamasi session/actor/object bilan ajratilgan; tiklash explicit,
+  server save nonce va yuborilgan matn mos kelgandagina tozalanadi. Storage xatosi,
+  bound POST, yangi modulga saqlash, logout regressionlari tekshirildi.
+- Env-file OFF, Gemini/Telegram bo‘sh: `manage.py check` check0;
+  `venv/Scripts/python.exe manage.py test core.test_backoffice_workspace courses.test_authoring_service core.test_frontend_v1_editors core.test_backoffice_courses core.test_backoffice_lessons core.test_feature_flags library --verbosity 1`
+  **185 test: 183 PASS / 2 SQLite skip**, 14.450s. Ikki row-lock testi PostgreSQL
+  CI’da ishlaydi. `node --test tests/frontend_v1/backoffice-workspace.test.mjs`
+  **6 PASS**; `node --check static/backoffice/workspace.js` va staged diff PASS.
+- IAB haqiqiy Django/synthetic DB: kurs → modul → dars → preview → save → upload
+  bajarildi; ketib qaytish/tiklash/save ishladi. Guruh confirmation GET to‘g‘ri,
+  release tasdiqlanmadi. 320px uch panel overflow0; 1440/1680 desktop,
+  light/dark va Enter/Escape menyu tekshirildi. Browser topgan Cohort template
+  xatosi va keng ekranda preview CSS specificity tuzatildi.
+- Migration/provider/production deploy yo‘q; owner DB va 8088 design prototipi
+  o‘zgarmadi. Lesson private draft yo‘q; kursni katalogda yashirish mavjud learner
+  kirishini bekor qilmaydi. UI shu chegarani tushuntiradi. HMAC durable receipt
+  yoki tashqi writerning ABA o‘zgarishini qayd qiluvchi revision counter emas.
+- Required CI/push/PR tekshiruvi keyingi integration qadamida; merge faqat uch
+  required check yashil, review resolve va CLEAN bo‘lganda. Owner usability va
+  DESIGN-01 DC6 PENDING; keyingi kesim o‘quvchi muammosi, so‘ng oddiy dizayn porti.
+
+---
+
 ## 2026-10-10 [Codex]: Backoffice islohoti birinchi bosqich — vazifalar va action xaritasi
 
 Owner birinchi bosqichni boshlashni topshirdi va uch asosiy ishning hozirgi
