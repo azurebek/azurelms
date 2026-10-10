@@ -1,5 +1,10 @@
 # Frontend V1 — prototipdan ishlaydigan platformaga
 
+**2026-10-10 — DESIGN-01/DC3:** [kontrast va o‘qish validatsiyasi](DESIGN-01-DC3-VALIDATION.md)
+lokal tayyor:68 qoida, unsafe-save gate,224frame+5font+4editor tekshiruvi.
+DC4–DC6, native zoom/AT/owner va oldingi qabul bandlari ochiq. Quyidagi
+DC2 yozuvi tarixiy snapshot; yangi lokal source fingerprintlar DC3 hujjatida.
+
 **2026-10-10 — DESIGN-01/DC2:** owner ikkinchi bosqichni ham hozir boshlashni
 topshirdi. [DC1 xaritasi](DESIGN-01-DC1-MAP.md) ustiga [DC2 dizayn formasi,
 qoralama va preview](DESIGN-01-DC2-PREVIEW.md) lokal tayyor: 888 Django/261 Node,

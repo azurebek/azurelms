@@ -1,11 +1,10 @@
 # DESIGN-01 — kodsiz dizayn boshqaruvi, reja oxiridagi kengaytma
 
-**2026-10-10 owner topshirig‘i:** [DC1 xaritasi](DESIGN-01-DC1-MAP.md)dan
-keyin ikkinchi bosqich ham alohida boshlandi: [DC2 forma va preview](DESIGN-01-DC2-PREVIEW.md).
-Lokal Eleventh Trialda 20 guruh/87 maydon ta’rifi, private tab draft/preset,
-7 sintetik namuna va oldin/keyin light/dark/mobile/desktop preview qurildi.
-Oldingi UX/DATA/RULE/native/owner qabul ochiq. DC3–DC6, real canonical
-design service/DB va AWS bu topshiriqda o‘zgarmaydi.
+**2026-10-10 owner topshirig‘i:** DC1/DC2dan keyin [DC3 validatsiya](DESIGN-01-DC3-VALIDATION.md)
+lokal Eleventh Trialda qurildi:68 qoida, xavfli kombinatsiyani saqlashdan
+himoya,200% matn/spacing/uzun matn/fallback sinovlari.224frame+5font+4editor
+holatida overflow0. Oldingi UX/DATA/RULE/native/owner qabul, DC4–DC6,
+real canonical design service/DB va AWS alohida ochiq.
 
 2026-09-28 **USER-DECIDED — rejalashtirish**. Owner ranglar, button/karta
 shakllari va fontlarni admin paneldan kodga tegmasdan keng boshqarishni
@@ -22,7 +21,7 @@ Mavjud `tokens.css`/componentlar poydevor; hozir faqat fixed light/dark tema
 va umumiy tokenlar bor. Q16b brend/landing formasi bu capabilityni bajarmaydi.
 
 DC1 inventari tayyor; DC2 lokal forma/schema, preview hamda real port uchun
-route/permission kontraktini beradi. DC3da evidence-backed bounds, DC4da
+route/permission kontraktini beradi. DC3 lokal guard va sinov dalilini beradi; DC4da
 permission enforcement, yagona source-of-truth va rollback joriy qilinadi.
 Canonical schema/DB, runtime va AWS alohida port/release.
 
@@ -73,7 +72,8 @@ almashtirish bu customizationning yashirin qismi emas.
   [2026-10-10 source dalili](DESIGN-01-DC1-MAP.md). Bu dinamik theme yoki visual PASS emas.
 - [x] DC2 — [to‘liq lokal forma, preset/draft, light/dark desktop/mobile preview](DESIGN-01-DC2-PREVIEW.md):
   888 Django/261 Node, 56 frame + 4 editor viewport; lokal bosqich tayyor. Real service emas.
-- [ ] DC3 — kontrast, font/zoom, uzun matn, responsive va xavfsiz chegaralar validatsiyasi.
+- [x] DC3 — [lokal kontrast/typography gate,200% matn va xavfsiz chegaralar](DESIGN-01-DC3-VALIDATION.md).
+  Native full-page zoom/AT/qurilma qabuli DC6da; butun sayt WCAG qabuli emas.
 - [ ] DC4 — publish/readback/history/rollback; stale/unknown/no-op/failure holatlari.
 - [ ] DC5 — barcha mapped shell/komponentlarda regressiya, vendor/print/fallback istisnolari.
 - [ ] DC6 — owner walkthrough va yangi checkpoint; real service/port/CI va release

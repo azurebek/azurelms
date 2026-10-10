@@ -1,5 +1,9 @@
 # DESIGN-01 DC2 — dizayn formasi, qoralama va preview
 
+**Tarixiy DC2 snapshot:** quyidagi fingerprintlar Packet86 arxiviga tegishli.
+Keyingi [DC3 validatsiya va source dalili](DESIGN-01-DC3-VALIDATION.md) lokal
+fayllarni yangilaydi; eski fingerprintni yangi source bilan tenglashtirmang.
+
 2026-10-10. Owner shu suhbatda ikkinchi bosqichni boshlashni topshirdi.
 **Lokal Eleventh Trial implementatsiyasi; real design service yoki deploy emas.**
 DC1dagi S01–S20 uchun forma, mustaqil komponent rollari, preset/qoralama va
