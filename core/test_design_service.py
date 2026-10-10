@@ -165,6 +165,13 @@ class DesignServiceTests(TestCase):
     def audit_count(self):
         return SystemAuditEvent.objects.filter(action__startswith="design.").count()
 
+    def history(self, count=46):
+        versions = [DesignVersion.objects.create(number=number, value=self.value(8 if number % 2 else 20),
+                                                 kind="publish", reason=f"History {number}", actor=self.owner)
+                    for number in range(count)]
+        DesignState.objects.create(pk=1, current_version=versions[-1])
+        return versions
+
     def test_empty_reads_create_no_design_rows_and_are_json_serializable(self):
         with CaptureQueriesContext(connection) as queries:
             state = read_state(self.owner)
@@ -174,10 +181,81 @@ class DesignServiceTests(TestCase):
         self.assertEqual(published, {"version": 0, "value": defaults()})
         self.assertEqual(state["presets"], [])
         self.assertIsNone(state["receipt"])
+        self.assertEqual([entry["version"] for entry in state["history"]], [0])
+        self.assertIsNone(state["history_before"])
+        empty_page = read_state(self.owner, history_before=1)
+        self.assertEqual(empty_page["history"], [])
+        self.assertIsNone(empty_page["history_before"])
         json.dumps(state)
         self.assertFalse(any(query["sql"].lstrip().upper().startswith(("INSERT", "UPDATE", "DELETE")) for query in queries))
         for model in (DesignState, DesignDraft, DesignVersion, DesignOperation, DesignPreset):
             self.assertFalse(model.objects.exists())
+
+    def test_history_pages_are_bounded_complete_and_stable_when_new_version_arrives(self):
+        versions = self.history()
+        with CaptureQueriesContext(connection) as queries:
+            first = read_state(self.owner)
+        self.assertEqual([entry["version"] for entry in first["history"]], list(range(45, 25, -1)))
+        self.assertEqual(first["history_before"], 26)
+        history_queries = [query["sql"] for query in queries if 'FROM "core_designversion"' in query["sql"]]
+        self.assertEqual(len(history_queries), 1)
+        self.assertIn("LIMIT 21", history_queries[0])
+        # New publications cannot shift an already-issued keyset cursor.
+        self.draft()
+        self.publish()
+        second = read_state(self.owner, history_before=first["history_before"])
+        third = read_state(self.owner, history_before=second["history_before"])
+        self.assertEqual([entry["version"] for entry in second["history"]], list(range(25, 5, -1)))
+        self.assertEqual(second["history_before"], 6)
+        self.assertEqual([entry["version"] for entry in third["history"]], list(range(5, -1, -1)))
+        self.assertIsNone(third["history_before"])
+        entries = first["history"] + second["history"] + third["history"]
+        self.assertEqual([entry["version"] for entry in entries], list(range(45, -1, -1)))
+        for entry, version in zip(entries, reversed(versions)):
+            self.assertEqual(entry["value"], version.value)
+            self.assertEqual(entry["reason"], version.reason)
+            self.assertEqual(entry["created_at"], version.created_at.isoformat())
+        self.assertEqual(read_state(self.owner)["history"][0]["version"], 46)
+
+    def test_mutation_receipt_and_replay_responses_always_return_latest_bounded_history(self):
+        self.history(26)
+        saved = self.draft()
+        operation = saved["result"]["operation"]
+        payload = {"value": self.value(), "draft_revision": 0, "base_version": 25}
+        replay = self.call("save_draft", payload, operation=operation)
+        receipt = read_state(self.owner, operation=operation)
+        for state in (saved["state"], replay["state"], receipt):
+            self.assertEqual([entry["version"] for entry in state["history"]], list(range(25, 5, -1)))
+            self.assertEqual(state["history_before"], 6)
+            self.assertEqual(state["receipt"]["result"], saved["result"])
+        self.assertEqual(DesignOperation.objects.count(), 1)
+
+    def test_explicit_history_page_preserves_owner_privacy_and_does_not_write(self):
+        self.history(26)
+        saved = self.draft()
+        self.call("save_preset", {"name": "Private draft", "value": self.value(12)})
+        with CaptureQueriesContext(connection) as queries:
+            page = read_state(self.other, operation=saved["result"]["operation"], history_before=6)
+        self.assertEqual([entry["version"] for entry in page["history"]], list(range(5, -1, -1)))
+        self.assertEqual(page["draft"]["revision"], 0)
+        self.assertEqual(page["draft"]["value"], page["published"]["value"])
+        self.assertEqual(page["presets"], [])
+        self.assertIsNone(page["receipt"])
+        self.assertFalse(any(query["sql"].lstrip().upper().startswith(("INSERT", "UPDATE", "DELETE")) for query in queries))
+        self.assert_error("forbidden", lambda: read_state(self.staff, history_before=6))
+        get_user_model().objects.filter(pk=self.other.pk).update(is_active=False)
+        self.assert_error("forbidden", lambda: read_state(self.other, history_before=6))
+
+    def test_history_cursor_is_strict_bounded_integer_and_empty_filter_does_not_restart_history(self):
+        for cursor in (0, -1, True, False, "1", 1.0, [], {}, 9223372036854775808):
+            with self.subTest(cursor=cursor):
+                self.assert_error("invalid", lambda: read_state(self.owner, history_before=cursor))
+        self.assertFalse(DesignState.objects.exists())
+        DesignVersion.objects.create(number=7, value=defaults(), kind="publish", reason="Imported history")
+        page = read_state(self.owner, history_before=1)
+        self.assertEqual(page["history"], [])
+        self.assertIsNone(page["history_before"])
+        self.assertEqual(read_state(self.owner, history_before=9223372036854775807)["history"][0]["version"], 7)
 
     def test_owner_permission_is_fresh_for_reads_and_mutations(self):
         for actor, code in ((AnonymousUser(), "anonymous"), (self.staff, "forbidden"), (self.learner, "forbidden")):

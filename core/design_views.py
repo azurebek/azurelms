@@ -76,7 +76,7 @@ def _operation(value):
 @require_GET
 @owner_design
 def state(request):
-    if set(request.GET) - {'operation'} or any(len(v) != 1 for _, v in request.GET.lists()):
+    if set(request.GET) - {'operation', 'history_before'} or any(len(v) != 1 for _, v in request.GET.lists()):
         return _error('invalid_request', 'So‘rovni qayta oching.')
     operation = request.GET.get('operation')
     if operation is not None:
@@ -84,7 +84,13 @@ def state(request):
             operation = _operation(operation)
         except (ValueError, AttributeError):
             return _error('invalid_operation', 'Amal raqami yaroqsiz.')
-    return JsonResponse(service.read_state(request.user, operation=operation))
+    before = request.GET.get('history_before')
+    if before is not None:
+        if (not before.isascii() or not before.isdecimal() or len(before) > 19
+                or not 1 <= int(before) <= 9223372036854775807):
+            return _error('invalid_cursor', 'Tarix sahifasini qayta oching.')
+        before = int(before)
+    return JsonResponse(service.read_state(request.user, operation=operation, history_before=before))
 
 
 def _pairs(pairs):

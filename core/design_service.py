@@ -16,6 +16,7 @@ from core.flags import flag_enabled
 
 
 FLAG = "backoffice_design_workspace"
+HISTORY_PAGE_SIZE = 20
 COMMAND_FIELDS = {
     "save_draft": {"value", "draft_revision", "base_version"},
     "publish": {"draft_revision", "base_version", "reason", "confirmed"},
@@ -101,31 +102,43 @@ def _published(state):
             "created_at": version.created_at.isoformat()}
 
 
-def _state(actor, *, operation=None):
+def _state(actor, *, operation=None, history_before=None):
     state = DesignState.objects.select_related("current_version").filter(pk=1).first()
     published = _published(state)
     draft = DesignDraft.objects.filter(owner=actor).first()
     draft_data = ({"revision": draft.revision, "base_version": draft.base_version, "value": _snapshot(draft.value)}
                   if draft is not None else
                   {"revision": 0, "base_version": published["version"], "value": deepcopy(published["value"])})
+    versions = DesignVersion.objects.order_by("-number")
+    if history_before is not None:
+        versions = versions.filter(number__lt=history_before)
+    history_page = list(versions[:HISTORY_PAGE_SIZE + 1])
+    more_history = len(history_page) > HISTORY_PAGE_SIZE
+    history_page = history_page[:HISTORY_PAGE_SIZE]
     history = [{"version": item.number, "value": deepcopy(item.value), "reason": item.reason,
                 "created_at": item.created_at.isoformat()}
-               for item in DesignVersion.objects.order_by("-number")]
+               for item in history_page]
+    if not history and history_before is None:
+        history = [_factory()]
     receipt = DesignOperation.objects.filter(actor=actor, operation=operation).first() if operation else None
     return {
-        "published": published, "draft": draft_data, "history": history or [_factory()],
+        "published": published, "draft": draft_data, "history": history,
+        "history_before": history_page[-1].number if more_history else None,
         "presets": [{"id": preset.pk, "name": preset.name, "value": deepcopy(preset.value)}
                     for preset in DesignPreset.objects.filter(owner=actor, deleted_at__isnull=True)],
         "receipt": {"operation": str(receipt.operation), "result": deepcopy(receipt.result)} if receipt else None,
     }
 
 
-def read_state(actor, operation=None):
+def read_state(actor, operation=None, history_before=None):
     """Private projection. A missing draft is virtual; no GET creates rows."""
     actor = _owner(actor)
     if operation is not None:
         operation = _operation(operation)
-    return _state(actor, operation=operation)
+    if (history_before is not None
+            and (type(history_before) is not int or not 1 <= history_before <= 9223372036854775807)):
+        raise DesignError("Tarix sahifasi belgisi mos emas.")
+    return _state(actor, operation=operation, history_before=history_before)
 
 
 def read_published():

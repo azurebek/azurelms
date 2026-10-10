@@ -185,3 +185,16 @@ export function reconcileReceipt(current, base, intent, result, state) {
   outcome.base={draft_revision:state.draft.revision,base_version:state.published.version};
   return outcome;
 }
+export function appendHistoryPage(state, page, before) {
+  if (state.history_before !== before) return state;
+  if (!Number.isSafeInteger(before) || before < 0 || !Array.isArray(page.history)
+      || (page.history_before !== null && (!Number.isSafeInteger(page.history_before) || page.history_before < 0 || page.history_before >= before))) {
+    throw Error('Oldingi nashrlarni yuklab bo‘lmadi. Qayta urinib ko‘ring.');
+  }
+  const byVersion=new Map(state.history.map(entry=>[entry.version,entry]));
+  for (const entry of page.history) {
+    if (Number.isSafeInteger(entry.version) && entry.version >= 0 && entry.version < before && !byVersion.has(entry.version)) byVersion.set(entry.version,entry);
+  }
+  // Paging is read-only UI enrichment. Fresh response draft/publication/receipt must not be adopted.
+  return {...state,history:[...byVersion.values()].sort((first,second)=>second.version-first.version),history_before:page.history_before};
+}

@@ -131,8 +131,18 @@ class DesignViewsTests(TestCase):
         self.assertEqual(foreign['draft']['revision'], 0)
 
     def test_invalid_readback_query_never_returns_private_data(self):
-        for query in ('operation=bad', f'operation={uuid4()}&operation={uuid4()}', 'unexpected=1'):
+        for query in ('operation=bad', f'operation={uuid4()}&operation={uuid4()}', 'unexpected=1',
+                      'history_before=0', 'history_before=-1', 'history_before=1.5',
+                      'history_before=9223372036854775808', 'history_before=1&history_before=2'):
             self.assertEqual(self.client.get(reverse('backoffice_design_state') + '?' + query).status_code, 400)
+
+    def test_history_cursor_passes_only_valid_integer_without_seeding(self):
+        response = self.client.get(reverse('backoffice_design_state'), {'history_before': '1'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['history'], [])
+        self.assertIsNone(response.json()['history_before'])
+        self.assertIn('no-store', response['Cache-Control'])
+        self.assertEqual(self.counts(), (0, 0, 0, 0, 0))
 
     def test_successful_draft_does_not_change_public_theme_and_stale_write_keeps_it(self):
         before = self.client.get(reverse('design_theme_css')).content

@@ -25,6 +25,12 @@ ulanadi. Texnik qiymatlar kerak bo‘lganda ochiladi.
 
 - Branch: `codex/backoffice-design-workspace`; implementatsiya: `0ea26d1`.
   [Bosqich 4 chegarasi va dalili](frontend-v1/BACKOFFICE-REFORM-STAGE-4.md).
+- PR178 review: state/save/readback history eng so‘nggi20 snapshot bilan
+  chegaralandi; eski nashrlar cursor orqali olinadi. UI faqat tarixni qo‘shadi,
+  private qoralama yoki joriy nashrni almashtirmaydi. Yakuniy focused command
+  **64 test / 62 PASS / 2 SQLite skip**, 2.375s; design Node **14/14 PASS**.
+  Alohida8093 nusxada20→27 browser pagination PASS; vaqtinchalik server yopildi.
+  Birinchi CI uchalasi yashil; yangi review commit CI’i alohida tekshiriladi.
 - `core/design_service.py` yagona transactional writer; 87 typed maydon,
   active-owner refresh, CSRF, private draft/preset, immutable version va durable
   operation receipt. CAS, replay, no-op, reason/confirmation va atomic audit.

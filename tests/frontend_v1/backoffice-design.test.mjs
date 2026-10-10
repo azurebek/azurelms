@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {defaults, fields, builtin, validate, assertSafe, compileStyle, resetKeys, edit,
-  inspectDesign, parseRecovery, matchesReceipt, afterReceipt, recoveryEnvelope, reconcileReceipt, same} from '../../static/backoffice/design-model.mjs';
+  inspectDesign, parseRecovery, matchesReceipt, afterReceipt, recoveryEnvelope, reconcileReceipt, appendHistoryPage, same} from '../../static/backoffice/design-model.mjs';
 
 const catalog = JSON.parse(readFileSync(new URL('../../core/design_catalog.json', import.meta.url), 'utf8'));
 const fresh = () => defaults(catalog);
@@ -140,4 +140,25 @@ test('server JSON key order and normalized hex case cannot create false custom o
   assert.equal(same(original,reordered),true);
   reordered.values['button-radius']=17;
   assert.equal(same(original,reordered),false);
+});
+
+test('older history pages deduplicate versions without adopting fresh draft, publication or receipt', () => {
+  const original={published:{version:23,value:fresh()},draft:{revision:4,base_version:23,value:fresh()},receipt:{operation:'original'},
+    history:[{version:23,value:fresh()},{version:22,value:fresh()}],history_before:22};
+  const page={published:{version:99,value:fresh()},draft:{revision:99,base_version:99,value:fresh()},receipt:{operation:'unrelated'},
+    history:[{version:22,value:{foreign:true}},{version:21,value:fresh()},{version:21,value:{foreign:true}},{version:20,value:fresh()}],history_before:20};
+  const result=appendHistoryPage(original,page,22);
+  assert.deepEqual(result.history.map(entry=>entry.version),[23,22,21,20]);
+  assert.equal(result.history_before,20);
+  assert.equal(result.published,original.published);assert.equal(result.draft,original.draft);assert.equal(result.receipt,original.receipt);
+  assert.equal(result.history[1],original.history[1]);assert.equal(result.history[2],page.history[1]);
+  assert.deepEqual(original.history.map(entry=>entry.version),[23,22]);
+});
+
+test('history paging ignores a stale cursor and stops when no older publications remain', () => {
+  const state={history:[{version:2,value:fresh()}],history_before:2};
+  assert.equal(appendHistoryPage(state,{history:[{version:0}],history_before:null},5),state);
+  const last=appendHistoryPage(state,{history:[{version:1,value:fresh()},{version:0,value:fresh()}],history_before:null},2);
+  assert.equal(last.history_before,null);assert.deepEqual(last.history.map(entry=>entry.version),[2,1,0]);
+  assert.throws(()=>appendHistoryPage(state,{history:[],history_before:2},2));
 });

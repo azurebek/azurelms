@@ -1,5 +1,5 @@
 import {clone, fields, defaults, validate, edit, diff, builtin, inspectDesign, compileStyle, effectiveColor,
-  same, resetKeys, setValues, parseRecovery, matchesReceipt, reconcileReceipt, recoveryEnvelope, presetName} from './design-model.mjs';
+  same, resetKeys, setValues, parseRecovery, matchesReceipt, reconcileReceipt, recoveryEnvelope, appendHistoryPage, presetName} from './design-model.mjs';
 
 const app = document.querySelector('#design-workspace');
 if (app) start(app);
@@ -11,7 +11,7 @@ function start(app) {
   let server = initial, working = clone(server.draft.value), base = baseOf(server), pending = null;
   let recovery = null, busy = false, stored = false, mode = 'light', page = 'course', comparison = 'draft';
   let conflict = server.draft.revision > 0 && server.draft.base_version !== server.published.version && !same(server.draft.value,server.published.value);
-  let dialogAction = null, previewTimer = null;
+  let dialogAction = null, previewTimer = null, historyBusy = false;
   const fieldControls = new Map(), invalidInputs = new Map();
   const typeKeys = Object.keys(catalog.validation.typeDefaults);
   const largeType = Object.fromEntries(typeKeys.map(key => [key, ({'text-xs':14,'text-sm':16,'text-md':18,'text-lg':20,'text-xl':24,'text-2xl':30,'text-title':36,'text-display':44})[key]]));
@@ -111,8 +111,13 @@ function start(app) {
       const box = node('article','','dw-history-entry'); box.append(node('strong',`Nashr ${entry.version}${entry.version === server.published.version ? ' · amalda' : ''}`));
       if (entry.created_at) { const time = node('time', new Date(entry.created_at).toLocaleString('uz-UZ')); time.dateTime = entry.created_at; box.append(time); }
       box.append(node('p',entry.reason));
-      if (entry.version !== server.published.version) { const button = node('button','Shu ko‘rinishga qaytish','ws-link-button'); button.type='button'; button.disabled=Boolean(busy || pending); button.addEventListener('click', () => confirmAction({title:`Nashr ${entry.version} ga qaytish`,copy:'Oldingi ko‘rinish yangi nashr sifatida qo‘llanadi. Tarix saqlanib qoladi.',reason:true,changes:entry.value ? diff(catalog,server.published.value,entry.value) : [],run:reason => command('rollback',{target_version:entry.version,base_version:server.published.version,reason,confirmed:true})})); box.append(button); }
+      if (entry.version !== server.published.version) { const button = node('button','Shu ko‘rinishga qaytish','ws-link-button'); button.type='button'; button.disabled=Boolean(busy || pending || recovery); button.addEventListener('click', () => confirmAction({title:`Nashr ${entry.version} ga qaytish`,copy:'Oldingi ko‘rinish yangi nashr sifatida qo‘llanadi. Tarix saqlanib qoladi.',reason:true,changes:entry.value ? diff(catalog,server.published.value,entry.value) : [],run:reason => command('rollback',{target_version:entry.version,base_version:server.published.version,reason,confirmed:true})})); box.append(button); }
       host.append(box);
+    }
+    if (server.history_before != null) {
+      const more=node('button',historyBusy?'Nashrlar yuklanmoqda…':'Oldingi nashrlarni ko‘rish','ws-button');
+      more.type='button';more.dataset.historyMore='';more.disabled=Boolean(busy || historyBusy);
+      more.addEventListener('click',loadOlderHistory);host.append(more);
     }
   }
   function renderValidation() {
@@ -144,7 +149,7 @@ function start(app) {
     $('[data-preview-label]').textContent = comparison === 'published' ? 'Joriy nashr' : dirty() ? 'Saqlanmagan o‘zgarish' : 'Qoralama';
     for (const button of $$('[data-compare]')) button.setAttribute('aria-pressed',String(button.dataset.compare===comparison));
     for (const button of $$('[data-mode]')) button.setAttribute('aria-pressed',String(button.dataset.mode===mode));
-    renderHistory(); for(const button of $$('[data-history] button')) button.disabled=Boolean(busy || pending || recovery); clearTimeout(previewTimer); previewTimer=setTimeout(preview,100);
+    renderHistory(); clearTimeout(previewTimer); previewTimer=setTimeout(preview,100);
   }
   function confirmAction(action) {
     dialogAction=action; $('[data-confirm-title]').textContent=action.title; $('[data-confirm-copy]').textContent=action.copy;
@@ -159,11 +164,25 @@ function start(app) {
     if(dialogAction.reason && (reason.length<3 || !$('[data-confirm-check]').checked)) { $('[data-confirm-error]').textContent='Sababni yozing va tasdiq belgisini qo‘ying.'; return; }
     $('[data-confirm-dialog]').close(); const action=dialogAction; dialogAction=null; action.run(reason);
   });
-  async function getState(operation) {
+  async function getState(operation,historyBefore) {
     const url=new URL(app.dataset.stateUrl,location.origin); if(operation) url.searchParams.set('operation',operation);
+    if(historyBefore != null) url.searchParams.set('history_before',String(historyBefore));
     const response=await fetch(url,{credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}});
     if(!response.ok) throw Error('Server holatini tekshirib bo‘lmadi. Birozdan keyin qayta tekshiring.');
     return response.json();
+  }
+  async function loadOlderHistory() {
+    if(busy || historyBusy || server.history_before == null) return;
+    const source=server, before=server.history_before;
+    historyBusy=true;renderHistory();
+    try {
+      const page=await getState(undefined,before);
+      // A command/readback may have replaced current state while this GET was in flight.
+      if(server !== source) return;
+      server=appendHistoryPage(server,page,before);
+      feedback('Oldingi nashrlar qo‘shildi. Ochiq qoralamangiz o‘zgarmadi.');
+    } catch(error) { feedback(error.message,'error'); }
+    finally { historyBusy=false;renderHistory(); }
   }
   function accept(result, next, intent) {
     const outcome=reconcileReceipt(working,base,intent,result,next);

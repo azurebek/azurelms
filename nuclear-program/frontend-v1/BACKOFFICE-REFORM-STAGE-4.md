@@ -119,3 +119,18 @@ quvvatlangan panellar/kartalar; kichik avatar varianti va literal workspace
 letter-spacing o‘z shartnomasida. UI bu chegaralarni ko‘rsatadi. DESIGN-01 DC6
 avtomatik qabul qilinmadi. Production deploy yo‘q; keyingi kesim qolgan
 backoffice yuzalarini shu navigatsiyaga ulash.
+
+## PR178 review tuzatishi
+
+State/mutation/readback endi eng so‘nggi 20 nashrni qaytaradi; `history_before`
+cursor bilan eski immutable snapshotlar bosqichma-bosqich olinadi. Ro‘yxat
+o‘sishi oddiy save javobini cheksiz kattalashtirmaydi. UI sahifa yuklashda faqat
+tarixni kengaytiradi; boshqa oynadan kelgan draft/published/receiptni o‘zlashtirmaydi.
+Cursor parent chegarasi strict; GET private/no-store va yozishsiz qoladi.
+
+Yakuniy shu focused Python command: **64 test / 62 PASS / 2 SQLite skip**,
+2.375s, check0. Design Node **14/14 PASS**. Alohida nusxa8093’da 27 nashr:
+avval20, «Oldingi nashrlarni ko‘rish»dan so‘ng27 va Asl Azure versiyasi mavjud;
+cursor tugaydi, qoralama o‘zgarmaydi. Vaqtinchalik tab/server yopildi, asosiy
+demo8092 tarixi bu sinov bilan ko‘paytirilmadi. Birinchi PR CI uchalasi yashil;
+review tuzatishining yangi commit CI’i alohida tekshiriladi.
