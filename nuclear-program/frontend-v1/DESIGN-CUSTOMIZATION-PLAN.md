@@ -21,9 +21,10 @@ qo‘lda kod tahriri0; qabul matritsasida o‘qilmas matn/layout regressiyasi0.
 Mavjud `tokens.css`/componentlar poydevor; hozir faqat fixed light/dark tema
 va umumiy tokenlar bor. Q16b brend/landing formasi bu capabilityni bajarmaydi.
 
-DC1 inventari tayyor; DC2 lokal forma/schema va previewni beradi. DC3da
-evidence-backed bounds, DC4da real permission, source-of-truth va rollback
-kontrakti yakunlanadi. Canonical schema/DB, runtime va AWS alohida port/release.
+DC1 inventari tayyor; DC2 lokal forma/schema, preview hamda real port uchun
+route/permission kontraktini beradi. DC3da evidence-backed bounds, DC4da
+permission enforcement, yagona source-of-truth va rollback joriy qilinadi.
+Canonical schema/DB, runtime va AWS alohida port/release.
 
 ## Quriladigan qamrov
 

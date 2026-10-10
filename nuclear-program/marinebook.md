@@ -48,6 +48,12 @@ Real design service/DB/publish/AWS yo'q; DC3–DC6 va oldingi qabul ochiq.
 - Existing registry0.84/139route/77page/213action o'zgarmadi; alohida DC2
   katalogi2URL pattern/2template/11action/9state. Shared tokenlar va real runtime
   o'zgarmadi. Keyingi bosqich: DC3 contrast/font/zoom va supported bounds qabuli.
+- Review tuzatishi `886a983`: DC1 F20 talab qilgan planned namespace va
+  permission kontrakti to'ldirildi (existing active-superuser owner gate,
+  own draft/preset, read-only preview, CSRF va yagona publish writer).
+  Bu design contract DC2da; real enforcement/testlar DC4da ochiq.
+  DC1/DC2 validatorlar va diff-check qayta PASS. `6eb50dc` reachable parent
+  ekani local Git va GitHub API bilan tasdiqlandi; ancestry review da'vosi noto'g'ri.
 
 ---
 
