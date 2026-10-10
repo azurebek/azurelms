@@ -37,6 +37,40 @@ Audit baseline va required CI gate'lari o'zgartirilmadi.
   PASS; `git diff --check`: PASS. Real provider chaqirilmadi.
 - Keyingi qadam: security PR uchala CI tekshiruvidan o'tgach merge;
   keyin #167 branch'ini yangilash va uning CI tekshiruvlarini qayta o'tkazish.
+- Integratsiya: security PR #168 uchala required CI yashil holatda merge
+  qilindi (`074586c`). #167 branch main bilan yangilanayotganda faqat
+  shu kundalikdagi parallel prepend conflict chiqdi; ikkala yozuv ham
+  saqlanib, xavfsizlik yozuvi oldinga qo'yildi. DC1 inventar validatori
+  va staged diff-check qayta o'tdi: PASS. Keyingi gate: #167 CI.
+- #167 review tuzatishi `e29e2a6`: source fingerprintlar CRLF -> LF
+  normalizatsiya bilan hisoblandi, CSS baytlari `ead7698` Git bloblariga
+  tengligi tasdiqlandi. Inventar validatori (73 token/197 URL/3 hash/112
+  link) va diff-check PASS. `3b1bab5` inventar commit'i tarixda reachable
+  ekani local Git va GitHub API bilan tekshirildi; hash haqidagi review
+  da'vosi noto'g'ri, dalil bilan javob beriladi.
+
+---
+
+## 2026-10-10 [Codex]: DESIGN-01 DC1 — sozlama, komponent va sahifa xaritasi
+
+Owner DESIGN-01ning faqat birinchi bosqichini hozir boshlashni topshirdi.
+73 V1 token, 20 sozlama guruhi, 22 komponent guruhi va 21 sahifa oilasi
+xaritalandi; 120 real UI/alias va 77 yordamchi endpoint source bilan solishtirildi.
+Legacy/Mini/SIT/print/vendor istisnolari hamda mustaqil radius/font rollari yozildi.
+
+- Branch: `codex/design-settings-component-map`; inventar commit **`3b1bab5`**.
+  [DC1 xarita](frontend-v1/DESIGN-01-DC1-MAP.md),
+  [source dalili](frontend-v1/DESIGN-01-DC1-SOURCE-INVENTORY.md).
+- `venv/Scripts/python.exe .tools/design-dc1/validate_inventory.py`: PASS —
+  73 token identity/value, 120+77 URL, S20/C22/F21/X10/G6 IDlari,
+  3 SHA256 va 112 relative link. Yordamchi script ignored lokal tooling.
+  `git diff --check` va `git diff --cached --check`: PASS.
+- URL resolver env-file off/keys empty va `dummy` DB backend bilan o‘qildi;
+  request render, haqiqiy DB/provider/Telegram/AWS chaqiruvi bajarilmadi.
+  Docs-only: app test/browser/native qabul qayta yugurilmadi.
+- DC1 hujjat inventari tayyor. DC2–DC6, design runtime/schema/panel hali
+  boshlanmadi; oldingi UX/DATA/RULE/native/owner qabul bandlari ochiq.
+  Ignored prototip source/assets o‘zgarmadi yoki Gitga kiritilmadi.
 
 ---
 
