@@ -16,6 +16,46 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-10 [Codex]: DESIGN-01 DC6 — owner walkthrough va tekshirilgan tiklash
+
+Owner oltinchi bosqichni boshlashni topshirdi. Eleventh Trial ustaxonasiga
+8 qadamli yakuniy ko‘rib chiqish yo‘riqnomasi qo‘shildi. Agentning lokal
+sinovi va checkpoint tayyor; owner/native qabul PENDING, DESIGN-01 to‘liq yopilmadi.
+
+- Branch: `codex/design-owner-walkthrough`; dalil commit: `6c2e609`.
+  [DC6 qabul qaydi va 26 source hash](frontend-v1/DESIGN-01-DC6-ACCEPTANCE.md).
+  `http://127.0.0.1:8088/_preview/design/`da yo‘riqnoma owner uchun ochildi.
+- F20 native details: 8 amal/kutilgan natija; yangi writer/endpoint/model yo‘q.
+  26 design action / 22 state; 87 field / 118 value o‘zgarmadi.
+  Shared CSS va real registry saqlandi. Source/arxiv ignored, force-add yo‘q.
+- Env-file off, Gemini/Telegram keys bo‘sh; Trial ichida
+  `../../venv/Scripts/python.exe manage.py check`: 0 issue;
+  `../../venv/Scripts/python.exe manage.py test tests.test_design tests.test_design_consumers tests.test_design_release --verbosity 0`:
+  **26 PASS**, 1.041s. `tests/design*.test.mjs` PowerShell array → `node --test`:
+  **35 PASS**, 168.2463ms. DC5dagi 907/281 full suite tarixiy, qayta yugurtirilmadi.
+- Alohida localhost8089 IAB: guide Enter/Space, Tab → preset; draft24px/reload;
+  local v0 → publish v1 → rollback v2/draft retained; preset confirm;
+  contrast8error/save disabled → correction68rules PASS.
+  24 before/after pair = **48 frame**, 4 editor viewport, overflow0.
+  Desktop/mobile ko‘rildi, viewport reset, sinov serveri to‘xtatildi.
+  Userning8088 server sessiyasi va mavjud tablari saqlandi.
+- DC6 captured console error/warn0; DC5dagi32 manbasiz MutationObserver
+  xabari hal qilindi deyilmaydi. Native full-page zoom/AT/device sinovi yo‘q.
+- Validator: 142 HTML / 228 input provenance, 26 current va 26 historical
+  source hash, 132 link, 880 restored file PASS; diff-check PASS.
+- `packet-90-20261010-105837.zip` — **880 fayl**;
+  SHA256 **`BED668B61AE8FBBDC45656DA3513A4C3545098E9B318658FAB739B1FABDEDE5E`**.
+  Har ZIP entry va extracted file bayti mos. Packet89 saqlandi.
+  Dastlab chuqurroq restore papkasida repo-relative `core/settings.py`
+  topilmadi; existing source/test o‘zgartirilmasdan mos ikki darajali
+  `.tools/design-dc6-recovery`ga tiklandi: **26 PASS**, 1.092s, check0.
+  Arxiv repo/venv talab qiladi; standalone/offsite backup emas.
+  Remote CI ignored prototype implementationni bajarmaydi.
+- Keyingi: ownerning tanlangan variant va vizual/oqim qabuli; native/AT/
+  print/Telegram. DC4/DC5 real port hamda oldingi UX/DATA/RULE/release OPEN.
+
+---
+
 ## 2026-10-10 [Codex]: DESIGN-01 DC5 — mavjud sahifalarda lokal dizayn regressiyasi
 
 Owner beshinchi bosqichni boshlashni topshirdi. Eleventh Trial ustaxonasiga
