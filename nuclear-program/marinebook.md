@@ -16,6 +16,44 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-10 [Codex]: Backoffice uchinchi bosqich — o‘quvchi muammosi va qayta tekshirish
+
+Owner topshirig‘i bilan o‘quvchi qidiruvi va yordam kartasi qurildi. Kurs/dars
+tanlanganda kirishning haqiqiy sababi, vakolatli keyingi amal va ayni tanlovni
+qayta tekshirish ko‘rsatiladi; tafsilotlar kerak bo‘lganda ochiladi.
+
+- Branch: `codex/backoffice-student-support`; implementatsiya: `4d2456a`.
+  [Bosqich 3 chegarasi va dalili](frontend-v1/BACKOFFICE-REFORM-STAGE-3.md).
+- `core/student_support_service.py` canonical active Enrollment va lesson access
+  bundle’dan o‘qiydi; learner view/visit/XP writerini chaqirmaydi. Teacher scope,
+  DB’dan actor refresh, boshqa kurs nomlari/PII, parent IDs va cache tekshirildi.
+- `core/student_support_views.py`, ikkita template va alohida CSS: qidiruv,
+  kurs/dars tanlovi, account/obuna/release/assignment sababini farqlash. Aniq
+  release/receipt/review/member sahifasiga ulanish; yangi override yoki writer yo‘q.
+- Receipt `?enrollment=E&receipt=R`, member `?enrollment=E` bilan focused bo‘ladi;
+  POST boshqa obyektni qabul qilmaydi. Chek o‘chirilgach stable enrollmentga
+  qaytiladi. Restore seat EXPIRED natijasini access-open deb ko‘rsatmaydi.
+- `backoffice_student_support` default OFF; course workspace flagidan mustaqil.
+  Eski umumiy qaror yuzalari va POSTlar saqlangan; brand link rollbackda 404 emas.
+  Yangi sahifalar/focused handoff private,no-store; middleware CSRF403 mavjud.
+- Env-file OFF, Gemini/Telegram bo‘sh: `venv/Scripts/python.exe manage.py test
+  core cohorts subscriptions --verbosity 1` **1069 test / 1034 PASS / 35 skip**,
+  83.429s, check0. Qo‘shimcha kurs/review/access focused command bosqich hujjatida:
+  **196 test / 194 PASS / 2 SQLite skip**, 16.267s. Staged diff-check PASS.
+  Dastlab ikki xato test modul nomi import error berdi; tuzatilgan command yashil.
+- IAB synthetic DB: qidiruv → dars yopiq → aniq guruh/dars confirmation → real
+  release POST → original karta recheck ochiq. Testlarda receipt verify va
+  assignment approve’dan keyin ayni recheck ochiq, learner progress yozilmaydi.
+  Desktop/320px/light/dark/Enter/Escape va qidiruvga qaytish PASS; overflow0,
+  console error/warn0. Demo8092, `.tools`dagi rasm/DB commit qilinmagan.
+- Account activation writer, explicit cohort-link/device diagnostikasi, ticket
+  va impersonation yo‘q. Owner DB/8088 o‘zgarmadi; schema/provider/deploy yo‘q.
+  Owner usability va DESIGN-01 DC6 qabuli PENDING. Keyingi kesim oddiy dizayn.
+- Required CI va PR integration keyingi qadam; merge faqat uch required check
+  yashil, review resolve va main bilan CLEAN bo‘lganda.
+
+---
+
 ## 2026-10-10 [Codex]: Backoffice ikkinchi bosqich — haqiqiy kurs/dars ustaxonasi
 
 Owner topshirig‘i bilan alohida Boshqaruv va kurs ichidagi modul/dars tayyorlash
