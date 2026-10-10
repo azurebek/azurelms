@@ -16,6 +16,43 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-10 [Codex]: DESIGN-01 DC3 — lokal kontrast va typography validatsiyasi
+
+Owner uchinchi bosqichni boshlashni topshirdi. Eleventh Trial ustaxonasiga
+68qoida (ikkala palette, effective inheritance, shrift iyerarxiyasi/leading),
+unsafe draft/preset/read guard va xatoli maydonga fokus qo‘shildi.
+200% root text, uzun matn, spacing, generic fallback, reduced-motion sinovlari.
+
+- Branch: `codex/design-validation-guards`; dalil commit: `af9b1c3`.
+  [DC3 kontrakti, matritsa va12 source hash](frontend-v1/DESIGN-01-DC3-VALIDATION.md).
+  Lokal URL: `http://127.0.0.1:8088/_preview/design/`.
+- Matn override’lari rem; funksional input/secondary/choice border muted’dan;
+  dekorativ border alohida. 768px/200% sidebar/badge/popover overflow tuzatildi.
+  Shared73token/base/components/shell CSS va existing registry baytlari o‘zgarmadi.
+- Trial ichida env-file off, Gemini/Telegram keys bo‘sh:
+  `../../venv/Scripts/python.exe manage.py test --verbosity 0`: **888 PASS**,335.762s;
+  `manage.py check`:0. Focused9PASS; dastlabki CSS !important xatosi selector
+  specificity bilan tuzatilib full suite o‘tdi.
+- `tests/*.test.mjs` PowerShell array → `node --test`: **272 PASS**,963.3623ms;
+  yangi11 kontrast/save/inheritance/type/bounds testi, oldingi15 design testi PASS.
+  Ikki module `node --check` PASS.
+- IAB224frame (normal/stress/min/max ×7page×2mode×4width)+5font+4editor
+  overflow0. Stressda uzun text/control/card/badge/dialog/popover overflow0,
+  min touch44; actual spacing va keyboard focus o‘lchandi. Unsafe rang/light-dark
+  gate, error-link fokus, correction/save tekshirildi. User tabi saqlandi.
+- Browserda URL/stack’siz2 MutationObserver xabari; manba isbotlanmagan.
+  Console0/native full-page zoom/OS media/AT/real device PASS deyilmaydi.
+  DC4–DC6, oldingi UX/DATA/RULE/owner qabul, real service/port va AWS ochiq.
+- Validator:87field,17action/11state,118link,12normalized current/archive SHA256
+  va703file checkpoint PASS. DC1 inventory ham qayta PASS; diff-check PASS.
+- `packet-87-20261010-091817.zip` —703fayl, har entry tekshirildi;
+  SHA256 **`15D9D7EA66E6F75BEEACC5E930CC2B52C41FE34F7B9F7103378BEF8C40F69F1A`**.
+  Packet86 saqlandi/hash matched; DC2 tarixiy hashlar archive ichida tekshirildi.
+  Source/arxiv ignored/force-add/upload yo‘q; same-disk recovery, offsite emas.
+  Remote CI ignored DC3 source’ni ishga tushirmaydi.
+
+---
+
 ## 2026-10-10 [Codex]: DESIGN-01 DC2 — lokal forma, qoralama va preview
 
 Owner ikkinchi bosqichni boshlashni topshirdi. Eleventh Trialda 20 guruh,
