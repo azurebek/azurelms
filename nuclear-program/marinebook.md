@@ -16,6 +16,41 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-10 [Codex]: Backoffice oltinchi bosqich — yakuniy amaliy tekshiruv
+
+Owner topshirig‘i bilan T1–T8 vazifalari synthetic brauzer muhitida tekshirildi.
+To‘liq ism orqali qidirish, moduldan darsga qaytish, materialdan keyingi namuna,
+nashrdan keyingi dizaynni saqlash, tasdiq oynasini bekor qilish va POST namunadan
+Back/reload qilishdagi oltita uzilish tuzatildi.
+
+- Branch: `codex/backoffice-usability-acceptance`; implementatsiya: `627382b`.
+  [Bosqich 6 dalili](frontend-v1/BACKOFFICE-REFORM-STAGE-6.md), reja va README
+  yangilandi. Canonical writer/ruxsat/CAS hamda explicit qoralama tiklash
+  saqlangan. Yangi model, migration, provider yoki flag default o‘zgarishi yo‘q.
+- `core/test_backoffice_acceptance.py`: owner/staff uchun 16 flag kombinatsiyasi,
+  render qilingan havolalar, teacher scope/return va dars/dizayn OFF/ON pariteti.
+  Parallel mustaqil source review bloklovchi topilma bermadi.
+- Env-file OFF, Gemini/Telegram bo‘sh: `venv/Scripts/python.exe manage.py test
+  core frontend courses.test_authoring_service library cohorts subscriptions
+  --verbosity 1`: **1291 test / 1252 PASS / 39 skip**, 144.691s. Keyingi history
+  tuzatishidan so‘ng `manage.py test core.test_backoffice_workspace
+  core.test_student_support_views core.test_backoffice_acceptance --verbosity 1`:
+  **58/58 PASS**, 16.779s. `node --test tests/frontend_v1/*.test.mjs`:
+  **146/146 PASS**. check0, migration drift yo‘q, diff-check PASS.
+- IAB: synthetic modul/dars/material, to‘liq ismli o‘quvchi va access sababi,
+  pending chek/rasm/ta’sir/qaytish, design save/publish/reload/rollback/rebase.
+  8095dagi yakuniy POST preview → yangi matn → Ish stoli → Back → reload →
+  tiklash → save PASS. 320px, dark/light va Enter/Escape fokus qaytishi
+  tekshirildi; yakuniy 1280px namuna va console0 qayd etildi.
+- Test yozuvlari faqat `.tools/backoffice-stage2/demo.sqlite3`da; oldingi holat
+  `.tools/backoffice-stage6/demo-before-acceptance.sqlite3`ga nusxalangan.
+  Owner DB/production tegilmagan. Chek qarori va real pul amali bajarilmadi.
+- Insonning vaqtli/yordamsiz usabilitysi, native qurilma, production rollout
+  hamda DESIGN-01 DC6 qabuli hali ochiq. PR/required CI integratsiyasi keyingi
+  qadam; merge faqat uch check yashil, review resolve va CLEAN holatida.
+
+---
+
 ## 2026-10-10 [Codex]: Backoffice beshinchi bosqich — qolgan ishlar uchun yagona menyu
 
 Owner topshirig‘i bilan To‘lovlar, Sayt va dizayn, Sozlamalar markazlari,

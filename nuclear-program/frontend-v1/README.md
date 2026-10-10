@@ -19,7 +19,10 @@ additive schema. Owner DB va productionga qo‘llanmadi.
 yagona menyu, To‘lovlar/Sayt/Sozlamalar markazlari, alohida Guruhlar va
 Tariflar ro‘yxati, mavjud formalar uchun bir xil qobiq. Default-OFF
 renderer flagi; eski writerlar saqlangan. [Amal xaritasi](BACKOFFICE-REFORM-STAGE-5-MAP.md).
-Vaqtli usability/yangi ko‘rinish qabuli va qolgan kesimlar hali ochiq.
+[Oltinchi bosqich](BACKOFFICE-REFORM-STAGE-6.md): T1–T8 ekspert browser
+tekshiruvi, olti amaliy xato tuzatishi, barcha 16 flag kombinatsiyasi va
+saqlangan dars/dizaynni OFF/ONda qayta o‘qish tekshirildi.
+Vaqtli inson usabilitysi, native qurilma va production rollout qabuli ochiq.
 DC6 owner qabuli hamon PENDING.
 
 **2026-10-10 DC6:** [yakuniy ko‘rib chiqish va tiklash paketi](DESIGN-01-DC6-ACCEPTANCE.md)

@@ -121,6 +121,13 @@ function comparable(value) {
   return typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value) ? value.toLowerCase() : value;
 }
 export const same = (first, second) => JSON.stringify(comparable(first)) === JSON.stringify(comparable(second));
+export function draftBase(state) {
+  // Publishing leaves the private draft's original base intact. If a fresh read
+  // shows that exact design is now published, new edits can start from it.
+  // Keep the observed draft revision: a later edit in another tab must still fail CAS.
+  return {draft_revision:state.draft.revision,
+    base_version:same(state.draft.value,state.published.value) ? state.published.version : state.draft.base_version};
+}
 export function resetKeys(catalog, value, keys) {
   const next = clone(value), original = defaults(catalog);
   for (const field of fields(catalog).filter(item => keys.includes(item.key))) {

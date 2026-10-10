@@ -1,5 +1,5 @@
 import {clone, fields, defaults, validate, edit, diff, builtin, inspectDesign, compileStyle, effectiveColor,
-  same, resetKeys, setValues, parseRecovery, matchesReceipt, reconcileReceipt, recoveryEnvelope, appendHistoryPage, presetName} from './design-model.mjs';
+  same, draftBase, resetKeys, setValues, parseRecovery, matchesReceipt, reconcileReceipt, recoveryEnvelope, appendHistoryPage, presetName} from './design-model.mjs';
 
 const app = document.querySelector('#design-workspace');
 if (app) start(app);
@@ -22,7 +22,7 @@ function start(app) {
     forest:{light:['#146c4b','#10563c','#ffffff','#eaf6ef','#c2ddcf','#146c4b','#eaf6ef'],dark:['#93d7b4','#b1e5ca','#142b21','#203c32','#3d6853','#b1e5ca','#203c32']},
     plum:{light:['#7540b3','#60318f','#ffffff','#f4eefb','#ddcdef','#7540b3','#f4eefb'],dark:['#cdb2ef','#dfcaf6','#291a3c','#352443','#654b7e','#dfcaf6','#352443']},
   };
-  function baseOf(state) { return {draft_revision:state.draft.revision, base_version:state.draft.base_version}; }
+  function baseOf(state) { return draftBase(state); }
   function feedback(text, kind = '') { $('[data-feedback]').textContent = text; $('[data-feedback]').dataset.kind = kind; }
   function dirty() { return !same(working, server.draft.value); }
   function persist() {

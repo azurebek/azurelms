@@ -1,12 +1,16 @@
 # Backoffice islohoti — uch asosiy ishni osonlashtirish
 
-2026-10-10. **Birinchi bosqich xaritasi, kurs/dars ustaxonasi va o‘quvchiga yordam kesimi qurildi.**
+2026-10-10. **Birinchi bosqich xaritasi va 2–5-bosqich runtime kesimlari qurildi; 6-bosqich ekspert tekshiruvi bajarildi.**
 [Ikkinchi bosqich](BACKOFFICE-REFORM-STAGE-2.md): Boshqaruv, modul/dars yaratish,
 material, namuna va guruhga ochishga ulanish. Flag default OFF; owner usability
 va production qabuli ochiq.
 [Uchinchi bosqich](BACKOFFICE-REFORM-STAGE-3.md): o‘quvchi qidirish → kurs/dars
 bo‘yicha sabab → aniq mavjud qaror sahifasi → qayta tekshirish. Flag default OFF.
-Keyingi kesim oddiy dizayn boshqaruvi; u va qolgan ishlar hali reja.
+[To‘rtinchi bosqich](BACKOFFICE-REFORM-STAGE-4.md): kodsiz dizayn ustaxonasi;
+[beshinchi bosqich](BACKOFFICE-REFORM-STAGE-5.md): qolgan bo‘limlar yagona menyuda.
+[Oltinchi bosqich](BACKOFFICE-REFORM-STAGE-6.md): T1–T8 synthetic browser
+sinovi, olti amaliy tuzatish va flag qaytish regressiyasi. Insonning vaqtli
+qabuli, native qurilma va production rollout alohida ochiq.
 [Birinchi bosqich qaydi](BACKOFFICE-REFORM-STAGE-1.md): ownerning boshlang‘ich bahosi, aniq action/writer/scope xaritasi va sakkizta amaliy vazifa.
 Owner nomlar va tuzilmani agent hal qilishini topshirdi; yangi so‘rovnoma javobi ishni boshlash sharti emas.
 Azurbek belgilagan ustuvorlik: **kurs/dars tayyorlash → o‘quvchi muammosini hal qilish → platforma dizaynini texnik bilimsiz boshqarish**.
@@ -150,8 +154,8 @@ Har eski actionning yangi joyi, permissioni va writeri xaritada bo‘lmaguncha e
 | **Kurs bilan ishlaydigan birinchi kesim** | Boshqaruv shell, Kurslar daraxti, kerakli modul/yangi dars yaratish, mavjud muharrir va material, preview, releasega ulanish | Bitta haqiqiy ruxsatli kurs oqimi boshidan oxirigacha; matn va tanlov yo‘qolmaydi; yaratish uchun yangi backend talabi yopilgan |
 | **O‘quvchi muammosi — runtime kesimi qurildi** | Scope-aware qidiruv, o‘quvchi kartasi, canonical access sababi, aniq release/receipt/submission/member handoff va recheck | Synthetic release → recheck hamda testlarda receipt/assignment → recheck o‘tdi; privacy/GET zero-write tekshirildi. Ownerning yordamsiz bajarish qabuli hali ochiq |
 | **Oddiy dizayn boshqaruvi — runtime kesimi qurildi** | Besh oddiy guruh, to‘rt inert namuna, private qoralama/uslub, nashr tarixi va rollback; V1/workspace va legacy palitra | Synthetic save/reload/publish/rollback, custom/rebase va ikki oynali stale sinovi o‘tdi. Owner CSS/ID bilmasdan yordamsiz sozlashi haqidagi usability qabuli ochiq |
-| **Qolgan backoffice — runtime kesimi qurildi** | [Bosqich 5](BACKOFFICE-REFORM-STAGE-5.md): To‘lovlar, Blog/SIT, Guruhlar va Sozlamalar bir xil menyu; tarif/guruh alohida, texnik tafsilotlar ochiladigan bo‘limlarda | [Eski-yangi action xaritasi](BACKOFFICE-REFORM-STAGE-5-MAP.md), scoped GET markazlar, mavjud writer/ruxsat/audit pariteti. Ownerning yordamsiz topish qabuli va yakuniy port auditi hali ochiq |
-| **Qabul va bosqichli port** | Har tugagan kesim uchun real adapter, foydalanish sinovi, required CI, qaytish yo‘li; yakuniy eski-yangi paritet auditi | Owner uch asosiy ishni bajaradi; jiddiy regressiya yo‘q; real qurilma va release qabuli alohida tasdiqlanadi |
+| **Qolgan backoffice — runtime kesimi qurildi** | [Bosqich 5](BACKOFFICE-REFORM-STAGE-5.md): To‘lovlar, Blog/SIT, Guruhlar va Sozlamalar bir xil menyu; tarif/guruh alohida, texnik tafsilotlar ochiladigan bo‘limlarda | [Eski-yangi action xaritasi](BACKOFFICE-REFORM-STAGE-5-MAP.md), scoped GET markazlar, mavjud writer/ruxsat/audit pariteti. Bosqich 6da rendered kirishlar, rol/flag kombinatsiyalari va OFF/ON qaytish tekshirildi; ownerning yordamsiz topish hamda qolgan mustaqil yuzalar qabuli ochiq |
+| **Qabul va bosqichli port — ekspert tekshiruvi bajarildi** | [Bosqich 6](BACKOFFICE-REFORM-STAGE-6.md): T1–T8 synthetic browser sinovi, olti amaliy tuzatish, 16 flag kombinatsiyasi va saqlangan holatni OFF/ONda o‘qish | Agentning amaliy dalili mavjud; insonning vaqtli/yordamsiz natijasi o‘lchanmagan. Required CI/review integration gate; native qurilma, production rollout va DESIGN-01 DC6 qabuli alohida |
 
 Har kesim: agentning sodda maketi va ekspert tekshiruvi → service shartnomasi → implementatsiya → tegishli test/CI → aniq ishlaydigan vazifani ko‘rsatish → boshqariladigan port.
 Ownerning 2026-10-10 ko‘rsatmasi bo‘yicha mavhum menyu so‘rovnomasi old shart emas. Inson usability dalili va real release qabuli shu bilan yopilmaydi.

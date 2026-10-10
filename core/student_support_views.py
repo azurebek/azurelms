@@ -79,10 +79,12 @@ def students(request):
     rows = support_student_queryset(request.user)
     if selected_course:
         rows = rows.filter(enrollments__cohort__course=selected_course).distinct()
-    if query:
-        rows = rows.filter(Q(first_name__icontains=query) | Q(last_name__icontains=query)
-                           | Q(username__icontains=query) | Q(email__icontains=query)
-                           | Q(phone_number__icontains=query))
+    # A displayed full name spans two fields; require each word somewhere in
+    # the same scoped learner record, regardless of first/last name order.
+    for term in query.split():
+        rows = rows.filter(Q(first_name__icontains=term) | Q(last_name__icontains=term)
+                           | Q(username__icontains=term) | Q(email__icontains=term)
+                           | Q(phone_number__icontains=term))
     rows = rows.prefetch_related(Prefetch('enrollments', queryset=Enrollment.objects.filter(
         cohort__course__in=courses).select_related('cohort__course').order_by('-joined_at', '-pk'),
         to_attr='support_enrollments')).order_by('first_name', 'last_name', 'username', 'pk')

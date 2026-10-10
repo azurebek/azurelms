@@ -2,6 +2,7 @@
 
 import tempfile
 from datetime import date
+from html import escape
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 from unittest.mock import patch
@@ -177,6 +178,7 @@ class CourseWorkspaceTests(TestCase):
         response = self.client.post(self.url('course_edit'), data)
         self.assertEqual(response.status_code, 409)
         self.assertEqual(response.context['form']['title'].value(), 'Stale course draft')
+        self.assertContains(response, f'data-draft-get-url="{self.url("course_edit")}"', status_code=409)
         self.course.refresh_from_db()
         self.assertEqual(self.course.title, 'Changed course')
 
@@ -213,6 +215,54 @@ class CourseWorkspaceTests(TestCase):
         self.lesson.refresh_from_db()
         self.assertEqual(self.lesson.title, 'Saved lesson')
 
+    def test_outline_edits_keep_selected_lesson_or_new_lesson_draft_scope(self):
+        other_module = Module.objects.create(course=self.course, title='Next module', order=2)
+        for selection in ({'lesson': self.lesson.pk}, {'module': self.module.pk, 'new': '1'}):
+            with self.subTest(selection=selection):
+                page = self.client.get(self.url(), selection)
+                initial_scope = page.context['draft_scope']
+                selected_url = page.context['outline_action_url']
+                self.assertEqual(parse_qs(urlsplit(selected_url).query), {
+                    key: [str(value)] for key, value in selection.items()
+                })
+                self.assertContains(page, f'action="{escape(selected_url)}"')
+                for action, extra in (
+                    ('module_update', {'title': 'From existing lesson' if 'lesson' in selection else 'From new lesson'}),
+                    ('module_move', {'direction': 'up' if 'lesson' in selection else 'down'}),
+                ):
+                    data = self.outline_data(action, module_id=other_module.pk, **extra)
+                    # Return destinations are reconstructed from selected local
+                    # objects, not an arbitrary next URL supplied by a caller.
+                    response = self.client.post(selected_url + '&next=https://example.test/', data)
+                    self.assertRedirects(response, selected_url)
+                    reopened = self.client.get(response['Location'])
+                    self.assertEqual(reopened.context['draft_scope'], initial_scope)
+                    if 'lesson' in selection:
+                        self.assertEqual(reopened.context['lesson'].pk, self.lesson.pk)
+                        self.assertFalse(reopened.context['creating_lesson'])
+                    else:
+                        self.assertIsNone(reopened.context['lesson'])
+                        self.assertEqual(reopened.context['selected_module_id'], self.module.pk)
+                        self.assertTrue(reopened.context['creating_lesson'])
+                self.lesson.refresh_from_db()
+                self.assertEqual(self.lesson.title, 'Saved lesson')
+                self.assertEqual(self.lesson.content, 'Saved lesson text')
+
+    def test_invalid_outline_edit_keeps_selected_lesson_and_rejects_foreign_context(self):
+        selected_url = self.url() + f'?lesson={self.lesson.pk}'
+        data = self.outline_data('module_update', module_id=self.module.pk, title='')
+        response = self.client.post(selected_url, data)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.context['lesson'].pk, self.lesson.pk)
+        self.assertTrue(response.context['module_form'].errors)
+        self.assertEqual(response.context['outline_action_url'], selected_url)
+        data['title'] = 'Must not be saved'
+        for query in (f'lesson={self.foreign_lesson.pk}', f'module={self.foreign_module.pk}&new=1'):
+            with self.subTest(query=query):
+                self.assertEqual(self.client.post(self.url() + '?' + query, data).status_code, 404)
+        self.module.refresh_from_db()
+        self.assertEqual(self.module.title, 'Tanishuv')
+
     def test_new_lesson_changed_module_preserves_original_draft_scope_until_save(self):
         destination = Module.objects.create(course=self.course, title='Destination module', order=2)
         source_url = self.url() + f'?module={self.module.pk}&new=1'
@@ -235,6 +285,9 @@ class CourseWorkspaceTests(TestCase):
                 response = self.client.post(source_url, {**data, **changes})
                 self.assertEqual(response.status_code, expected_status)
                 self.assertEqual(response.context['draft_scope'], source_scope)
+                self.assertEqual(response.context['outline_action_url'], source_url)
+                self.assertContains(response, f'data-draft-get-url="{escape(source_url)}"',
+                                    status_code=expected_status)
                 self.assertEqual(str(response.context['lesson_form']['module'].value()), str(destination.pk))
                 self.assertEqual(response.context['saved_scope'], '')
                 self.assertFalse(Lesson.objects.filter(title=data['title']).exists())

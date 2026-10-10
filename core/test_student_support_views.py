@@ -65,6 +65,26 @@ class StudentSupportViewsTests(TestCase):
         listing = self.client.get(reverse('backoffice_workspace_students'))
         self.assertEqual(listing.context['page_obj'].paginator.count, 3)
 
+    def test_full_name_search_matches_one_scoped_learner_across_name_fields(self):
+        User = get_user_model()
+        User.objects.filter(pk__in=[self.learner.pk, self.foreign.pk]).update(
+            first_name='Madina', last_name='Karimova',
+        )
+        namesake = User.objects.create_user(
+            'another-madina', 'another-madina@example.test', first_name='Madina', last_name='Aliyeva',
+        )
+        Enrollment.objects.create(student=namesake, cohort=self.cohort, status='active')
+        url = reverse('backoffice_workspace_students')
+        for query in ('Madina Karimova', 'Karimova Madina', '  Madina   Karimova  ', 'madina karim'):
+            with self.subTest(query=query):
+                response = self.client.get(url, {'q': query, 'course': self.course.pk})
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual([row.pk for row in response.context['page_obj']], [self.learner.pk])
+                self.assertContains(response, 'Madina Karimova')
+                self.assertNotContains(response, 'secret-target@example.test')
+                self.assertNotContains(response, 'Madina Aliyeva')
+        self.assertEqual(self.client.get(url, {'q': 'Madina Missing'}).context['page_obj'].paginator.count, 0)
+
     def test_teacher_cannot_open_foreign_or_unenrolled_student(self):
         for student in (self.foreign, self.unenrolled, self.owner):
             self.assertEqual(self.client.get(self.url(student)).status_code, 404)
