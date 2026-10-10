@@ -661,6 +661,29 @@ def backoffice_landing(request):
     return render(request, "backoffice/landing_editor.html", context)
 
 
+def _private_support_handoff(view):
+    """Do not retain a focused learner's decision page or its error response."""
+    from functools import wraps
+    from django.core.exceptions import PermissionDenied
+    from django.http import Http404, HttpResponse
+    from django.utils.cache import patch_cache_control
+
+    @wraps(view)
+    def wrapped(request, *args, **kwargs):
+        if not any(key in request.GET for key in ('enrollment', 'receipt', 'lesson')):
+            return view(request, *args, **kwargs)
+        try:
+            response = view(request, *args, **kwargs)
+        except Http404:
+            response = HttpResponse('Sahifa topilmadi.', status=404)
+        except PermissionDenied:
+            response = HttpResponse('Bu amal uchun ruxsat yo‘q.', status=403)
+        patch_cache_control(response, private=True, no_store=True)
+        return response
+    return wrapped
+
+
+@_private_support_handoff
 @login_required
 @user_passes_test(_is_backoffice_user)
 def backoffice_receipts(request):
@@ -678,7 +701,52 @@ def backoffice_receipts(request):
     from aicontrol.models import SystemAuditEvent
     from cohorts.models import PaymentReceipt
     from cohorts.receipt_service import reject_receipt, verify_receipt
+    from core.flags import flag_enabled
     from core.receipt_forms import ReceiptDecisionForm
+    from django.http import Http404
+    from urllib.parse import urlencode
+
+    def selected_id(params, key):
+        value = params.get(key, '')
+        if (len(params.getlist(key)) != 1 or not value.isascii()
+                or not value.isdecimal() or len(value) > 18 or int(value) < 1):
+            raise Http404
+        return int(value)
+
+    selected_enrollment = None
+    selected_receipt = None
+    selected_lesson = None
+    support_return_url = ''
+    if ('receipt' in request.GET or 'lesson' in request.GET) and 'enrollment' not in request.GET:
+        raise Http404
+    if 'enrollment' in request.GET:
+        selected_enrollment = get_object_or_404(
+            Enrollment.objects.select_related('student', 'cohort__course'),
+            pk=selected_id(request.GET, 'enrollment'),
+            cohort__course__in=teacher_course_queryset(request.user),
+        )
+        if 'receipt' in request.GET:
+            selected_receipt = get_object_or_404(
+                PaymentReceipt, pk=selected_id(request.GET, 'receipt'), enrollment=selected_enrollment,
+            )
+        if 'lesson' in request.GET:
+            selected_lesson = get_object_or_404(
+                Lesson, pk=selected_id(request.GET, 'lesson'),
+                module__course_id=selected_enrollment.cohort.course_id,
+            )
+        if request.method == 'POST':
+            posted_receipt = get_object_or_404(
+                PaymentReceipt, pk=selected_id(request.POST, 'receipt_id'), enrollment=selected_enrollment,
+            )
+            if selected_receipt is not None and selected_receipt.pk != posted_receipt.pk:
+                raise Http404
+        if flag_enabled('backoffice_student_support'):
+            support_params = {'course': selected_enrollment.cohort.course_id}
+            if selected_lesson is not None:
+                support_params['lesson'] = selected_lesson.pk
+            support_return_url = reverse('backoffice_workspace_student', kwargs={
+                'student_id': selected_enrollment.student_id,
+            }) + '?' + urlencode(support_params)
 
     if request.method == "POST":
         form = ReceiptDecisionForm(request.POST)
@@ -701,15 +769,26 @@ def backoffice_receipts(request):
             messages.error(
                 request, "Sabab va tasdiqlash majburiy — qaror qabul qilinmadi."
             )
+        if selected_enrollment is not None:
+            # Rejection deletes the receipt; keep the stable membership focus.
+            redirect_params = {'enrollment': selected_enrollment.pk}
+            if selected_lesson is not None:
+                redirect_params['lesson'] = selected_lesson.pk
+            return redirect(reverse('backoffice_receipts') + '?' + urlencode(redirect_params))
         return redirect("backoffice_receipts")
 
+    receipts = PaymentReceipt.objects.all()
+    if selected_enrollment is not None:
+        receipts = receipts.filter(enrollment=selected_enrollment)
+    if selected_receipt is not None:
+        receipts = receipts.filter(pk=selected_receipt.pk)
     pending = (
-        PaymentReceipt.objects.filter(is_verified=False)
+        receipts.filter(is_verified=False)
         .select_related("enrollment__student", "enrollment__cohort__course", "enrollment__plan")
         .order_by("submitted_at")
     )
     recent = (
-        PaymentReceipt.objects.filter(is_verified=True)
+        receipts.filter(is_verified=True)
         .select_related("enrollment__student", "enrollment__cohort__course")
         .order_by("-submitted_at")[:10]
     )
@@ -721,6 +800,8 @@ def backoffice_receipts(request):
             "recent_receipts": recent,
             "form": ReceiptDecisionForm(),
             "active_nav": "receipts",
+            "selected_enrollment": selected_enrollment,
+            "support_return_url": support_return_url,
         },
     )
 
@@ -1135,6 +1216,12 @@ def _user_initials(user):
 @login_required
 @user_passes_test(_is_backoffice_user)
 def backoffice_users(request):
+    from core.flags import flag_enabled
+    if (request.method == 'GET' and request.GET.get('role') == 'students'
+            and request.GET.get('status', 'all') == 'all' and flag_enabled('backoffice_student_support')):
+        from urllib.parse import urlencode
+        query = urlencode({key: request.GET[key] for key in ('q', 'page') if request.GET.get(key)})
+        return redirect(reverse('backoffice_workspace_students') + ('?' + query if query else ''))
     User = get_user_model()
     role = request.GET.get("role", "all")
     status = request.GET.get("status", "all")

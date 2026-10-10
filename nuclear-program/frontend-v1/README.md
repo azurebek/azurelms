@@ -8,6 +8,9 @@ Owner tuzilmani agent hal qilishini topshirdi; menyu nomlari aniqlashtirildi.
 [Ikkinchi bosqich](BACKOFFICE-REFORM-STAGE-2.md): alohida Boshqaruv va haqiqiy
 kurs → modul → dars → material → namuna → saqlash oqimi qurildi; releasega
 aniq dars/guruh bilan ulanish bor. Flag default OFF, production deploy yo‘q.
+[Uchinchi bosqich](BACKOFFICE-REFORM-STAGE-3.md): o‘quvchi qidiruvi, kurs/dars
+kirish sababi, vakolatli aniq amal va qayta tekshirish qurildi. Alohida support
+flagi default OFF; yozish mavjud qaror xizmatlarida. Keyingi kesim oddiy dizayn.
 Vaqtli usability/yangi ko‘rinish qabuli va qolgan kesimlar hali ochiq.
 DC6 owner qabuli hamon PENDING.
 

@@ -15,6 +15,14 @@
   </div>
 </section>
 
+{% if selected_enrollment %}
+<section class="brand-card">
+  <h2>{{ selected_enrollment.student.get_full_name|default:selected_enrollment.student.username }}</h2>
+  <p>{{ selected_enrollment.cohort.course.title }} · {{ selected_enrollment.cohort.name }}. Faqat shu a’zolikka tegishli cheklar ko‘rsatilmoqda.</p>
+  {% if support_return_url %}<a class="brand-link" href="{{ support_return_url }}">O‘quvchini qayta tekshirish</a>{% endif %}
+</section>
+{% endif %}
+
 {% if pending_receipts %}
 <div class="brand-grid">
   {% for receipt in pending_receipts %}

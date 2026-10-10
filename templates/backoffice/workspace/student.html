@@ -1,0 +1,48 @@
+{% extends "backoffice/workspace/base.html" %}
+{% load static %}
+{% block workspace_media %}<link rel="stylesheet" href="{% static 'backoffice/student-support.css' %}">{% endblock %}
+{% block workspace_section %}O‘quvchilar{% endblock %}
+{% block workspace_content %}
+<div class="sp-page sp-person-page">
+  <a class="ws-back sp-back" href="{{ back_url }}">← O‘quvchilar ro‘yxatiga qaytish</a>
+  <header class="sp-person-card">
+    <div class="sp-person-identity"><span class="sp-avatar" aria-hidden="true">{{ display_name|first|upper }}</span><div><p class="ws-eyebrow">O‘QUVCHIGA YORDAM</p><h1>{{ display_name }}</h1><div class="sp-contact-line"><span>@{{ student.username }}</span>{% if student.email %}<span>{{ student.email }}</span>{% endif %}{% if contact_phone %}<span>{{ contact_phone }}</span>{% endif %}</div></div></div>
+    <div class="sp-account-status"><span>Hisobga kirish</span><strong{% if not student.is_active %} class="sp-account-disabled"{% endif %}><span class="sp-status-dot" aria-hidden="true"></span>{% if student.is_active %}Yoqilgan{% else %}O‘chirilgan{% endif %}</strong></div>
+  </header>
+
+  <section class="sp-question" aria-labelledby="support-question-title">
+    <div class="sp-question-heading"><span class="sp-question-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 4h11a2 2 0 0 1 2 2v14H7a2 2 0 0 1-2-2V4Z"></path><path d="M5 16h13M9 8h5M9 11h3"></path></svg></span><div><h2 id="support-question-title">Darsga kira olmayapti</h2><p>Qaysi kurs va darsda yordam kerak?</p></div></div>
+    <div class="sp-selection">
+      <form method="get" class="sp-selector">
+        <input type="hidden" name="q" value="{{ list_context.q }}"><input type="hidden" name="page" value="{{ list_context.page }}"><input type="hidden" name="filter_course" value="{{ list_context.filter_course }}">
+        <label for="support-course">1. Kursni tanlang</label><div class="sp-selector-controls"><select name="course" id="support-course" required><option value="">Kursni tanlang</option>{% for course in course_options %}<option value="{{ course.pk }}"{% if selected_course.pk == course.pk %} selected{% endif %}>{{ course.title }}</option>{% endfor %}</select><button type="submit" class="ws-button"{% if not course_options %} disabled{% endif %}>Tanlash</button></div>
+      </form>
+      {% if selected_course and lessons %}
+      <form method="get" class="sp-selector">
+        <input type="hidden" name="q" value="{{ list_context.q }}"><input type="hidden" name="page" value="{{ list_context.page }}"><input type="hidden" name="filter_course" value="{{ list_context.filter_course }}"><input type="hidden" name="course" value="{{ selected_course.pk }}">
+        <label for="support-lesson">2. Darsni tanlang</label><div class="sp-selector-controls"><select name="lesson" id="support-lesson" required><option value="">Darsni tanlang</option>{% regroup lessons by module as module_groups %}{% for group in module_groups %}<optgroup label="{{ group.grouper.title }}">{% for lesson in group.list %}<option value="{{ lesson.pk }}"{% if selected_lesson.pk == lesson.pk %} selected{% endif %}>{{ lesson.title }}</option>{% endfor %}</optgroup>{% endfor %}</select><button type="submit" class="ws-button ws-button-primary">Tekshirish</button></div>
+      </form>
+      {% else %}<div class="sp-selector sp-selector-awaiting"><span class="sp-selector-label">2. Darsni tanlang</span><p>{% if selected_course %}Bu kursda tekshirish uchun dars yo‘q.{% else %}Avval kursni tanlang. Uning darslari shu yerda chiqadi.{% endif %}</p></div>{% endif %}
+    </div>
+  </section>
+
+  <section class="sp-diagnosis sp-diagnosis-{{ diagnosis.state|default:'empty' }}" aria-labelledby="diagnosis-title">
+    <div class="sp-diagnosis-main">
+      <span class="sp-diagnosis-icon" aria-hidden="true">{% if diagnosis.state == 'open' %}✓{% elif diagnosis.state == 'blocked' %}!{% else %}–{% endif %}</span>
+      <div class="sp-diagnosis-content"><p class="ws-eyebrow">TEKSHIRUV NATIJASI</p><h2 id="diagnosis-title">{{ diagnosis.title|default:"Tekshirish uchun kursni tanlang" }}</h2><p class="sp-diagnosis-message">{{ diagnosis.message }}</p>
+        {% if selected_course %}<dl class="sp-context-facts"><div><dt>Kurs</dt><dd>{{ selected_course.title }}</dd></div>{% if selected_lesson %}<div><dt>Dars</dt><dd>{{ selected_lesson.title }}</dd></div>{% endif %}{% if effective_enrollment %}<div><dt>Kirish tekshirilgan guruh</dt><dd>{{ effective_enrollment.cohort.name }}</dd></div>{% elif relevant_enrollment %}<div><dt>Bog‘langan guruh</dt><dd>{{ relevant_enrollment.cohort.name }}</dd></div>{% endif %}</dl>{% endif %}
+        {% if diagnosis.code == 'sequence' and previous_assignments_missing %}<div class="sp-missing-assignments"><h3>Hali yuborilmagan topshiriqlar</h3><ul>{% for assignment in previous_assignments_missing %}<li>{{ assignment.title }}</li>{% endfor %}</ul></div>{% endif %}
+      </div>
+    </div>
+    {% if next_steps %}<div class="sp-next-steps"><h3>Keyingi qadam</h3>{% for step in next_steps %}<div class="sp-next-step"><div>{% if step.note %}<p>{{ step.note }}</p>{% endif %}</div><a class="ws-button{% if forloop.first %} ws-button-primary{% endif %}" href="{{ step.url }}" target="_blank" rel="noopener">{{ step.label }} <span aria-hidden="true">↗</span><span class="ws-sr-only"> — yangi oynada ochiladi</span></a></div>{% endfor %}</div>{% endif %}
+    {% if support_guidance %}<p class="sp-diagnosis-message sp-guidance">{{ support_guidance }}</p>{% endif %}<footer class="sp-recheck"><div>{% if checked_at %}<p>Tekshirildi: <time datetime="{{ checked_at|date:'c' }}">{{ checked_at|date:'d.m.Y · H:i' }}</time></p>{% endif %}{% if next_steps %}<span>Amalni bajargach, shu o‘quvchining holatini yana tekshiring.</span>{% endif %}</div><a class="ws-button" href="{{ recheck_url }}">Qayta tekshirish <span aria-hidden="true">↻</span></a></footer>
+  </section>
+
+  {% if enrollment_rows or receipt_rows %}
+  <section class="sp-details-section" aria-labelledby="support-details-title"><div class="sp-details-heading"><h2 id="support-details-title">Kerak bo‘lsa, tafsilotlarni oching</h2><p>Kursga a’zolik va to‘lov alohida tekshiriladi.</p></div>
+    {% if enrollment_rows %}<details class="sp-details"><summary><span class="sp-details-symbol" aria-hidden="true">▤</span><span><strong>Guruh va a’zolik</strong><small>Holat, muddat va tarif</small></span><span class="sp-details-toggle" aria-hidden="true">+</span></summary><div class="sp-details-content">{% for row in enrollment_rows %}<article class="sp-enrollment-row"><div class="sp-enrollment-heading"><h3>{{ row.cohort_name }}</h3><span class="sp-membership-status">{{ row.status_label }}</span></div><dl class="sp-enrollment-facts"><div><dt>Keyingi to‘lov sanasi</dt><dd>{% if row.deadline %}{{ row.deadline|date:'d.m.Y' }}{% else %}Ko‘rsatilmagan{% endif %}</dd></div><div><dt>Tarif</dt><dd>{{ row.plan_name|default:"Ko‘rsatilmagan" }}</dd></div></dl>{% if row.membership_url %}<a class="ws-link" href="{{ row.membership_url }}" target="_blank" rel="noopener">A’zolikni ko‘rish <span aria-hidden="true">↗</span><span class="ws-sr-only"> — yangi oynada ochiladi</span></a>{% endif %}</article>{% endfor %}</div></details>{% endif %}
+    {% if receipt_rows %}<details class="sp-details"><summary><span class="sp-details-symbol" aria-hidden="true">▱</span><span><strong>Tekshirishni kutayotgan cheklar</strong><small>Tanlangan kurs uchun yuborilgan cheklar</small></span><span class="sp-details-toggle" aria-hidden="true">+</span></summary><div class="sp-details-content">{% for row in receipt_rows %}<article class="sp-receipt-row"><div class="sp-receipt-identity"><h3>Chek #{{ row.id }}</h3><p>{{ row.submitted_at|date:'d.m.Y · H:i' }}</p><span>{{ row.label }}</span></div><strong class="sp-receipt-amount">{{ row.amount|floatformat:'-2g' }} <small>so‘m</small></strong>{% if row.action_url %}<a class="ws-button" href="{{ row.action_url }}" target="_blank" rel="noopener">Chekni tekshirish <span aria-hidden="true">↗</span><span class="ws-sr-only"> — yangi oynada ochiladi</span></a>{% endif %}</article>{% endfor %}</div></details>{% endif %}
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

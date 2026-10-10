@@ -57,9 +57,11 @@ def workspace_view(view):
 
 
 def _nav(request, active):
-    rows = [('Ish stoli', 'backoffice_workspace_home', 'home'),
-            ('Kurslar', 'backoffice_workspace_courses', 'courses'),
-            ('O‘quvchilar', 'backoffice_users', 'students')]
+    course_workspace = flag_enabled(FLAG)
+    student_support = flag_enabled('backoffice_student_support')
+    rows = [('Ish stoli', 'backoffice_workspace_home' if course_workspace else 'backoffice_dashboard', 'home'),
+            ('Kurslar', 'backoffice_workspace_courses' if course_workspace else 'backoffice_courses', 'courses'),
+            ('O‘quvchilar', 'backoffice_workspace_students' if student_support else 'backoffice_users', 'students')]
     if request.user.is_superuser:
         rows += [('Sayt va dizayn', 'backoffice_brand', 'design'),
                  ('To‘lovlar', 'backoffice_receipts', 'payments'),
@@ -70,6 +72,7 @@ def _nav(request, active):
 
 def _render(request, page, context, status=200):
     context.update(workspace_nav=_nav(request, 'home' if page == 'home' else 'courses'),
+                   workspace_support_enabled=flag_enabled('backoffice_student_support'),
                    frontend_v1_title=context.get('page_title', 'Kurs tayyorlash'))
     return render(request, f'backoffice/workspace/{page}.html', context, status=status)
 

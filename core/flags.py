@@ -44,6 +44,12 @@ class FlagDefinition:
 
 FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
     FlagDefinition(
+        slug="backoffice_student_support", label="Boshqaruv — o‘quvchiga yordam",
+        description="O‘quvchini topish, darsga kirish sababini va tegishli amalni ko‘rish.",
+        default=False, category="Frontend",
+        runbook="OFF yangi qidiruv/kartani yopadi; mavjud teacher, receipt va membership yuzalari qoladi. Diagnostika state yozmaydi. Schema o‘zgarmaydi.",
+    ),
+    FlagDefinition(
         slug="backoffice_course_workspace", label="Boshqaruv — kurs tayyorlash ustaxonasi",
         description="Kurs ichida modul, dars, material va namuna bilan ishlash.",
         default=False, category="Frontend",

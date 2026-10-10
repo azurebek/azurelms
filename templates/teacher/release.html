@@ -35,7 +35,7 @@
 
     <div style="border:1px solid var(--line);border-radius:14px;overflow:hidden;">
       {% for row in lesson_rows %}
-      <div style="display:flex;align-items:center;gap:14px;padding:13px 16px;{% if not forloop.last %}border-bottom:1px solid var(--line);{% endif %}">
+      <div id="support-lesson-{{ row.lesson.pk }}" style="display:flex;align-items:center;gap:14px;padding:13px 16px;{% if not forloop.last %}border-bottom:1px solid var(--line);{% endif %}">
         <div style="flex:1;min-width:0;">
           <div style="font-size:14px;color:var(--ink);font-weight:500;">{{ row.lesson.title }}</div>
           <div style="font-size:12px;color:var(--ink-3);margin-top:2px;">{{ row.lesson.module.title }}</div>
