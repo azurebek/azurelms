@@ -99,7 +99,10 @@ Qoralama, joriy nashr va oldingi versiya aniq farqlanadi. Saqlash muvaffaqiyati 
 Print, vendor editor, rasmlar va Telegram tashqi qobig‘i kabi cheklangan yuzalar ko‘rish paytida tushunarli belgilanadi.
 
 **Mavjud tayanch:** DESIGN-01 DC2–DC6 lokal forma, preset, validatsiya, preview va release-history tajribasi.
-**Hali kerak:** haqiqiy owner ruxsati, doimiy draft/preset/version saqlash, yagona writer, audit, cache va real sahifalarga tatbiq.
+**2026-10-10 runtime kesimi qurildi:** [bosqich 4](BACKOFFICE-REFORM-STAGE-4.md)
+haqiqiy owner ruxsati, doimiy draft/preset/version va receipt, yagona writer,
+atomic audit hamda V1/workspace va legacy umumiy palitrasiga tatbiqni beradi.
+Qolgan mustaqil yuzalar va ownerning yordamsiz foydalanish qabuli ochiq.
 Local sessionStorage qoralama yo‘qolishidan ishonchli himoya deb hisoblanmaydi. Real portda saqlanmagan matn, qayta kirish va boshqa tab bilan to‘qnashuv alohida tekshiriladi.
 Dizayn qabuli yangi backoffice maketlari uchun ham takrorlanadi; oldingi DC6 avtomatik yopilmaydi.
 
@@ -146,7 +149,7 @@ Har eski actionning yangi joyi, permissioni va writeri xaritada bo‘lmaguncha e
 | **Vazifalar va xarita — loyihalash tayyor** | Ownerning sifat bahosi qayd etildi; agent tuzilmani tanladi; eski action → yangi joy/scope/writer va mavjud/yangi imkoniyatlar xaritasi tayyor | Boshlanish, yakun, xato va writer aniq; ikkinchi bosqich topshirig‘i tayyor. Owner vaqtli sinovi/keyingi UI qabuli ochiq; so‘rovnoma davom ettirish sharti emas |
 | **Kurs bilan ishlaydigan birinchi kesim** | Boshqaruv shell, Kurslar daraxti, kerakli modul/yangi dars yaratish, mavjud muharrir va material, preview, releasega ulanish | Bitta haqiqiy ruxsatli kurs oqimi boshidan oxirigacha; matn va tanlov yo‘qolmaydi; yaratish uchun yangi backend talabi yopilgan |
 | **O‘quvchi muammosi — runtime kesimi qurildi** | Scope-aware qidiruv, o‘quvchi kartasi, canonical access sababi, aniq release/receipt/submission/member handoff va recheck | Synthetic release → recheck hamda testlarda receipt/assignment → recheck o‘tdi; privacy/GET zero-write tekshirildi. Ownerning yordamsiz bajarish qabuli hali ochiq |
-| **Oddiy dizayn boshqaruvi** | Oddiy tanlovlar, oldin/keyin namuna, custom qiymatni saqlash, real draft/publish/rollback porti | Owner CSS/ID bilmasdan sozlaydi; reload va to‘qnashuvda ish saqlanadi; tatbiq doirasi aniq |
+| **Oddiy dizayn boshqaruvi — runtime kesimi qurildi** | Besh oddiy guruh, to‘rt inert namuna, private qoralama/uslub, nashr tarixi va rollback; V1/workspace va legacy palitra | Synthetic save/reload/publish/rollback, custom/rebase va ikki oynali stale sinovi o‘tdi. Owner CSS/ID bilmasdan yordamsiz sozlashi haqidagi usability qabuli ochiq |
 | **Qolgan backoffice** | To‘lovlar, blog/SIT, guruhlar va Sozlamalar yangi navigatsiyaga ulanishi; biznesga tegishli texnik atamalar soddalashishi | Eski actionlarning xaritasi to‘liq; barcha muhim kirishlar topiladi, ruxsat/audit pariteti saqlanadi |
 | **Qabul va bosqichli port** | Har tugagan kesim uchun real adapter, foydalanish sinovi, required CI, qaytish yo‘li; yakuniy eski-yangi paritet auditi | Owner uch asosiy ishni bajaradi; jiddiy regressiya yo‘q; real qurilma va release qabuli alohida tasdiqlanadi |
 

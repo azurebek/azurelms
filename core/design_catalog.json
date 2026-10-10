@@ -1,0 +1,1499 @@
+{
+  "version": 1,
+  "groups": [
+    {
+      "id": "S01",
+      "title": "Fon va yuzalar",
+      "description": "Yorug‘ va qorong‘i ko‘rinishlar alohida saqlanadi.",
+      "fields": [
+        {
+          "key": "canvas",
+          "label": "Sahifa foni",
+          "kind": "color",
+          "mode": true,
+          "inherit": null,
+          "default": {
+            "light": "#f6f8fb",
+            "dark": "#111722"
+          },
+          "css": "--az-canvas"
+        },
+        {
+          "key": "surface",
+          "label": "Karta foni",
+          "kind": "color",
+          "mode": true,
+          "inherit": null,
+          "default": {
+            "light": "#ffffff",
+            "dark": "#192231"
+          },
+          "css": "--az-surface"
+        },
+        {
+          "key": "side",
+          "label": "Yon menyu",
+          "kind": "color",
+          "mode": true,
+          "inherit": null,
+          "default": {
+            "light": "#ffffff",
+            "dark": "#151d2a"
+          },
+          "css": "--az-side"
+        },
+        {
+          "key": "soft",
+          "label": "Ikkilamchi yuza",
+          "kind": "color",
+          "mode": true,
+          "inherit": null,
+          "default": {
+            "light": "#eef2f7",
+            "dark": "#222e40"
+          },
+          "css": "--az-soft"
+        },
+        {
+          "key": "hero",
+          "label": "Katta kirish bloki",
+          "kind": "color",
+          "mode": true,
+          "inherit": null,
+          "default": {
+            "light": "#edf3ff",
+            "dark": "#1c2b44"
+          },
+          "css": "--az-hero"
+        }
+      ]
+    },
+    {
+      "id": "S02",
+      "title": "Matn",
+      "description": "Yorug‘ va qorong‘i ko‘rinishlar alohida saqlanadi.",
+      "fields": [
+        {
+          "key": "text",
+          "label": "Asosiy matn",
+          "kind": "color",
+          "mode": true,
+          "inherit": null,
+          "default": {
+            "light": "#172235",
+            "dark": "#eef2f8"
+          },
+          "css": "--az-text"
+        },
+        {
+          "key": "muted",
+          "label": "Ikkilamchi matn",
+          "kind": "color",
+          "mode": true,
+          "inherit": null,
+          "default": {
+            "light": "#5d6a7e",
+            "dark": "#aab7ca"
+          },
+          "css": "--az-muted"
+        },
+        {
+          "key": "faint",
+          "label": "Yordamchi matn",
+          "kind": "color",
+          "mode": true,
+          "inherit": null,
+          "default": {
+            "light": "#5f6c82",
+            "dark": "#97a6bc"
+          },
+          "css": "--az-faint"
+        }
+      ]
+    },
+    {
+      "id": "S03",
+      "title": "Chegaralar",
+      "description": "Yorug‘ va qorong‘i ko‘rinishlar alohida saqlanadi.",
+      "fields": [
+        {
+          "key": "border",
+          "label": "Oddiy chegara",
+          "kind": "color",
+          "mode": true,
+          "inherit": null,
+          "default": {
+            "light": "#e3e8ef",
+            "dark": "#2c394d"
+          },
+          "css": "--az-border"
+        },
+        {
+          "key": "action-border",
+          "label": "Tanlangan chegara",
+          "kind": "color",
+          "mode": true,
+          "inherit": null,
+          "default": {
+            "light": "#cfdefc",
+            "dark": "#3b527c"
+          },
+          "css": "--az-action-border"
+        }
+      ]
+    },
+    {
+      "id": "S04",
+      "title": "Asosiy amal",
+      "description": "Yorug‘ va qorong‘i ko‘rinishlar alohida saqlanadi.",
+      "fields": [
+        {
+          "key": "action",
+          "label": "Tugma va havola",
+          "kind": "color",
+          "mode": true,
+          "inherit": null,
+          "default": {
+            "light": "#1257e6",
+            "dark": "#9bb8ff"
+          },
+          "css": "--az-action"
+        },
+        {
+          "key": "action-hover",
+          "label": "Ustiga olib borilganda",
+          "kind": "color",
+          "mode": true,
+          "inherit": null,
+          "default": {
+            "light": "#1048bf",
+            "dark": "#b2c8ff"
+          },
+          "css": "--az-action-hover"
+        },
+        {
+          "key": "action-active",
+          "label": "Bosilganda",
+          "kind": "color",
+          "mode": true,
+          "inherit": "action-hover",
+          "default": {
+            "light": null,
+            "dark": null
+          },
+          "css": "--dc-action-active"
+        },
+        {
+          "key": "on-action",
+          "label": "Tugma ustidagi matn",
+          "kind": "color",
+          "mode": true,
+          "inherit": null,
+          "default": {
+            "light": "#ffffff",
+            "dark": "#12203c"
+          },
+          "css": "--az-on-action"
+        },
+        {
+          "key": "action-soft",
+          "label": "Tanlangan yumshoq fon",
+          "kind": "color",
+          "mode": true,
+          "inherit": null,
+          "default": {
+            "light": "#edf3ff",
+            "dark": "#233552"
+          },
+          "css": "--az-action-soft"
+        }
+      ]
+    },
+    {
+      "id": "S05",
+      "title": "Semantik holatlar",
+      "description": "Yorug‘ va qorong‘i ko‘rinishlar alohida saqlanadi.",
+      "fields": [
+        {
+          "key": "success",
+          "label": "Muvaffaqiyat matni",
+          "kind": "color",
+          "mode": true,
+          "inherit": null,
+          "default": {
+            "light": "#22714f",
+            "dark": "#93d7b4"
+          },
+          "css": "--az-success"
+        },
+        {
+          "key": "success-soft",
+          "label": "Muvaffaqiyat foni",
+          "kind": "color",
+          "mode": true,
+          "inherit": null,
+          "default": {
+            "light": "#eaf6ef",
+            "dark": "#203c32"
+          },
+          "css": "--az-success-soft"
+        },
+        {
+          "key": "success-border",
+          "label": "Muvaffaqiyat chegarasi",
+          "kind": "color",
+          "mode": true,
+          "inherit": "success",
+          "default": {
+            "light": null,
+            "dark": null
+          },
+          "css": "--dc-success-border"
+        },
+        {
+          "key": "danger",
+          "label": "Xato matni",
+          "kind": "color",
+          "mode": true,
+          "inherit": null,
+          "default": {
+            "light": "#b43b44",
+            "dark": "#ffb2ba"
+          },
+          "css": "--az-danger"
+        },
+        {
+          "key": "danger-soft",
+          "label": "Xato foni",
+          "kind": "color",
+          "mode": true,
+          "inherit": null,
+          "default": {
+            "light": "#fceef0",
+            "dark": "#432b34"
+          },
+          "css": "--az-danger-soft"
+        },
+        {
+          "key": "danger-border",
+          "label": "Xato chegarasi",
+          "kind": "color",
+          "mode": true,
+          "inherit": "danger",
+          "default": {
+            "light": null,
+            "dark": null
+          },
+          "css": "--dc-danger-border"
+        },
+        {
+          "key": "warning",
+          "label": "Ogohlantirish matni",
+          "kind": "color",
+          "mode": true,
+          "inherit": null,
+          "default": {
+            "light": "#936410",
+            "dark": "#eac488"
+          },
+          "css": "--az-warning"
+        },
+        {
+          "key": "warning-soft",
+          "label": "Ogohlantirish foni",
+          "kind": "color",
+          "mode": true,
+          "inherit": "soft",
+          "default": {
+            "light": null,
+            "dark": null
+          },
+          "css": "--dc-warning-soft"
+        },
+        {
+          "key": "warning-border",
+          "label": "Ogohlantirish chegarasi",
+          "kind": "color",
+          "mode": true,
+          "inherit": "warning",
+          "default": {
+            "light": null,
+            "dark": null
+          },
+          "css": "--dc-warning-border"
+        }
+      ]
+    },
+    {
+      "id": "S06",
+      "title": "Fokus va faol bo‘lmagan holat",
+      "description": "Yorug‘ va qorong‘i ko‘rinishlar alohida saqlanadi.",
+      "fields": [
+        {
+          "key": "focus",
+          "label": "Fokus halqasi",
+          "kind": "color",
+          "mode": true,
+          "inherit": null,
+          "default": {
+            "light": "#1257e6",
+            "dark": "#b2c8ff"
+          },
+          "css": "--az-focus"
+        },
+        {
+          "key": "disabled-text",
+          "label": "Faol bo‘lmagan matn",
+          "kind": "color",
+          "mode": true,
+          "inherit": "muted",
+          "default": {
+            "light": null,
+            "dark": null
+          },
+          "css": "--dc-disabled-text"
+        },
+        {
+          "key": "disabled-bg",
+          "label": "Faol bo‘lmagan fon",
+          "kind": "color",
+          "mode": true,
+          "inherit": "soft",
+          "default": {
+            "light": null,
+            "dark": null
+          },
+          "css": "--dc-disabled-bg"
+        },
+        {
+          "key": "disabled-border",
+          "label": "Faol bo‘lmagan chegara",
+          "kind": "color",
+          "mode": true,
+          "inherit": "border",
+          "default": {
+            "light": null,
+            "dark": null
+          },
+          "css": "--dc-disabled-border"
+        }
+      ]
+    },
+    {
+      "id": "S07",
+      "title": "Qoplama va soyalar",
+      "description": "",
+      "fields": [
+        {
+          "key": "overlay",
+          "label": "Qoplama qorayishi",
+          "kind": "number",
+          "default": null,
+          "min": 0,
+          "max": 80,
+          "step": 5,
+          "unit": "%",
+          "css": "--dc-overlay"
+        },
+        {
+          "key": "card-shadow",
+          "label": "Karta soyasi",
+          "kind": "select",
+          "default": "inherit",
+          "options": [
+            {
+              "value": "inherit",
+              "label": "Asl ko‘rinish",
+              "css": ""
+            },
+            {
+              "value": "none",
+              "label": "Soyasiz",
+              "css": "none"
+            },
+            {
+              "value": "soft",
+              "label": "Yumshoq",
+              "css": "0 4px 16px rgb(0 0 0 / 12%)"
+            },
+            {
+              "value": "raised",
+              "label": "Ko‘tarilgan",
+              "css": "0 12px 36px rgb(0 0 0 / 20%)"
+            }
+          ],
+          "css": "--dc-card-shadow"
+        },
+        {
+          "key": "dialog-shadow",
+          "label": "Dialog soyasi",
+          "kind": "select",
+          "default": "inherit",
+          "options": [
+            {
+              "value": "inherit",
+              "label": "Asl ko‘rinish",
+              "css": ""
+            },
+            {
+              "value": "none",
+              "label": "Soyasiz",
+              "css": "none"
+            },
+            {
+              "value": "soft",
+              "label": "Yumshoq",
+              "css": "0 4px 16px rgb(0 0 0 / 12%)"
+            },
+            {
+              "value": "raised",
+              "label": "Ko‘tarilgan",
+              "css": "0 12px 36px rgb(0 0 0 / 20%)"
+            }
+          ],
+          "css": "--dc-dialog-shadow"
+        },
+        {
+          "key": "popover-shadow",
+          "label": "Suzuvchi panel soyasi",
+          "kind": "select",
+          "default": "inherit",
+          "options": [
+            {
+              "value": "inherit",
+              "label": "Asl ko‘rinish",
+              "css": ""
+            },
+            {
+              "value": "none",
+              "label": "Soyasiz",
+              "css": "none"
+            },
+            {
+              "value": "soft",
+              "label": "Yumshoq",
+              "css": "0 4px 16px rgb(0 0 0 / 12%)"
+            },
+            {
+              "value": "raised",
+              "label": "Ko‘tarilgan",
+              "css": "0 12px 36px rgb(0 0 0 / 20%)"
+            }
+          ],
+          "css": "--dc-popover-shadow"
+        }
+      ]
+    },
+    {
+      "id": "S08",
+      "title": "Shrift oilalari",
+      "description": "Qurilmada mavjud shriftlar. Yangi shrift yuklanmaydi; belgilar va o‘lcham tekshiruvi keyingi bosqichda.",
+      "fields": [
+        {
+          "key": "body-font",
+          "label": "Asosiy matn",
+          "kind": "select",
+          "default": "inherit",
+          "options": [
+            {
+              "value": "inherit",
+              "label": "Asl ko‘rinish",
+              "css": ""
+            },
+            {
+              "value": "system",
+              "label": "Tizim sans",
+              "css": "system-ui, sans-serif"
+            },
+            {
+              "value": "humanist",
+              "label": "Segoe UI",
+              "css": "\"Segoe UI\", system-ui, sans-serif"
+            },
+            {
+              "value": "serif",
+              "label": "Georgia",
+              "css": "Georgia, \"Times New Roman\", serif"
+            },
+            {
+              "value": "mono",
+              "label": "Consolas",
+              "css": "Consolas, \"Courier New\", monospace"
+            }
+          ],
+          "css": "--az-font"
+        },
+        {
+          "key": "heading-font",
+          "label": "Sarlavha",
+          "kind": "select",
+          "default": "inherit",
+          "options": [
+            {
+              "value": "inherit",
+              "label": "Asl ko‘rinish",
+              "css": ""
+            },
+            {
+              "value": "system",
+              "label": "Tizim sans",
+              "css": "system-ui, sans-serif"
+            },
+            {
+              "value": "humanist",
+              "label": "Segoe UI",
+              "css": "\"Segoe UI\", system-ui, sans-serif"
+            },
+            {
+              "value": "serif",
+              "label": "Georgia",
+              "css": "Georgia, \"Times New Roman\", serif"
+            },
+            {
+              "value": "mono",
+              "label": "Consolas",
+              "css": "Consolas, \"Courier New\", monospace"
+            }
+          ],
+          "css": "--dc-heading-font"
+        },
+        {
+          "key": "code-font",
+          "label": "Kod",
+          "kind": "select",
+          "default": "inherit",
+          "options": [
+            {
+              "value": "inherit",
+              "label": "Asl ko‘rinish",
+              "css": ""
+            },
+            {
+              "value": "system",
+              "label": "Tizim sans",
+              "css": "system-ui, sans-serif"
+            },
+            {
+              "value": "humanist",
+              "label": "Segoe UI",
+              "css": "\"Segoe UI\", system-ui, sans-serif"
+            },
+            {
+              "value": "serif",
+              "label": "Georgia",
+              "css": "Georgia, \"Times New Roman\", serif"
+            },
+            {
+              "value": "mono",
+              "label": "Consolas",
+              "css": "Consolas, \"Courier New\", monospace"
+            }
+          ],
+          "css": "--az-mono"
+        }
+      ]
+    },
+    {
+      "id": "S09",
+      "title": "Matn iyerarxiyasi",
+      "description": "Bo‘sh qiymat asl moslashuvchan o‘lchamni saqlaydi.",
+      "fields": [
+        {
+          "key": "text-xs",
+          "label": "Izoh",
+          "kind": "number",
+          "default": null,
+          "min": 12,
+          "max": 18,
+          "step": 1,
+          "unit": "px",
+          "css": "--az-text-xs"
+        },
+        {
+          "key": "text-sm",
+          "label": "Yorliq",
+          "kind": "number",
+          "default": null,
+          "min": 14,
+          "max": 20,
+          "step": 1,
+          "unit": "px",
+          "css": "--az-text-sm"
+        },
+        {
+          "key": "text-md",
+          "label": "Asosiy",
+          "kind": "number",
+          "default": null,
+          "min": 16,
+          "max": 22,
+          "step": 1,
+          "unit": "px",
+          "css": "--az-text-md"
+        },
+        {
+          "key": "text-lg",
+          "label": "Kichik sarlavha",
+          "kind": "number",
+          "default": null,
+          "min": 18,
+          "max": 28,
+          "step": 1,
+          "unit": "px",
+          "css": "--az-text-lg"
+        },
+        {
+          "key": "text-xl",
+          "label": "Sarlavha",
+          "kind": "number",
+          "default": null,
+          "min": 20,
+          "max": 36,
+          "step": 1,
+          "unit": "px",
+          "css": "--az-text-xl"
+        },
+        {
+          "key": "text-2xl",
+          "label": "Katta sarlavha",
+          "kind": "number",
+          "default": null,
+          "min": 24,
+          "max": 44,
+          "step": 1,
+          "unit": "px",
+          "css": "--az-text-2xl"
+        },
+        {
+          "key": "text-title",
+          "label": "Sahifa nomi",
+          "kind": "number",
+          "default": null,
+          "min": 28,
+          "max": 52,
+          "step": 1,
+          "unit": "px",
+          "css": "--az-text-title"
+        },
+        {
+          "key": "text-display",
+          "label": "Kirish sarlavhasi",
+          "kind": "number",
+          "default": null,
+          "min": 32,
+          "max": 64,
+          "step": 1,
+          "unit": "px",
+          "css": "--az-text-display"
+        }
+      ]
+    },
+    {
+      "id": "S10",
+      "title": "Qalinlik va satr oralig‘i",
+      "description": "",
+      "fields": [
+        {
+          "key": "body-weight",
+          "label": "Matn qalinligi",
+          "kind": "number",
+          "default": null,
+          "min": 400,
+          "max": 750,
+          "step": 50,
+          "unit": "",
+          "css": "--dc-body-weight"
+        },
+        {
+          "key": "body-leading",
+          "label": "Matn satr oralig‘i",
+          "kind": "number",
+          "default": null,
+          "min": 1.2,
+          "max": 2,
+          "step": 0.05,
+          "unit": "",
+          "css": "--dc-body-leading"
+        },
+        {
+          "key": "heading-weight",
+          "label": "Sarlavha qalinligi",
+          "kind": "number",
+          "default": null,
+          "min": 400,
+          "max": 750,
+          "step": 50,
+          "unit": "",
+          "css": "--dc-heading-weight"
+        },
+        {
+          "key": "heading-leading",
+          "label": "Sarlavha satr oralig‘i",
+          "kind": "number",
+          "default": null,
+          "min": 1.2,
+          "max": 2,
+          "step": 0.05,
+          "unit": "",
+          "css": "--dc-heading-leading"
+        },
+        {
+          "key": "label-weight",
+          "label": "Yorliq qalinligi",
+          "kind": "number",
+          "default": null,
+          "min": 400,
+          "max": 750,
+          "step": 50,
+          "unit": "",
+          "css": "--dc-label-weight"
+        },
+        {
+          "key": "label-leading",
+          "label": "Yorliq satr oralig‘i",
+          "kind": "number",
+          "default": null,
+          "min": 1.2,
+          "max": 2,
+          "step": 0.05,
+          "unit": "",
+          "css": "--dc-label-leading"
+        }
+      ]
+    },
+    {
+      "id": "S11",
+      "title": "Harf oralig‘i",
+      "description": "",
+      "fields": [
+        {
+          "key": "tracking",
+          "label": "Sarlavha harf oralig‘i",
+          "kind": "number",
+          "default": null,
+          "min": -0.03,
+          "max": 0.08,
+          "step": 0.005,
+          "unit": "em",
+          "css": "--az-tracking"
+        },
+        {
+          "key": "tracking-caps",
+          "label": "Kichik katta harflar",
+          "kind": "number",
+          "default": null,
+          "min": 0,
+          "max": 0.16,
+          "step": 0.01,
+          "unit": "em",
+          "css": "--az-tracking-caps"
+        }
+      ]
+    },
+    {
+      "id": "S12",
+      "title": "Tugma",
+      "description": "Input va navigatsiya shakliga ta’sir qilmaydi.",
+      "fields": [
+        {
+          "key": "button-radius",
+          "label": "Burchak",
+          "kind": "number",
+          "default": null,
+          "min": 0,
+          "max": 32,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-button-radius"
+        },
+        {
+          "key": "button-border",
+          "label": "Chegara",
+          "kind": "number",
+          "default": null,
+          "min": 1,
+          "max": 3,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-button-border"
+        },
+        {
+          "key": "button-height",
+          "label": "Minimal balandlik",
+          "kind": "number",
+          "default": null,
+          "min": 44,
+          "max": 64,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-button-height"
+        },
+        {
+          "key": "button-pad-x",
+          "label": "Yon ichki bo‘shliq",
+          "kind": "number",
+          "default": null,
+          "min": 8,
+          "max": 32,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-button-pad-x"
+        },
+        {
+          "key": "button-pad-y",
+          "label": "Vertikal ichki bo‘shliq",
+          "kind": "number",
+          "default": null,
+          "min": 8,
+          "max": 20,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-button-pad-y"
+        },
+        {
+          "key": "icon-size",
+          "label": "Icon tugma maydoni",
+          "kind": "number",
+          "default": null,
+          "min": 44,
+          "max": 64,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-icon-size"
+        }
+      ]
+    },
+    {
+      "id": "S13",
+      "title": "Input va tanlov",
+      "description": "",
+      "fields": [
+        {
+          "key": "field-radius",
+          "label": "Input burchagi",
+          "kind": "number",
+          "default": null,
+          "min": 0,
+          "max": 24,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-field-radius"
+        },
+        {
+          "key": "field-border",
+          "label": "Input chegarasi",
+          "kind": "number",
+          "default": null,
+          "min": 1,
+          "max": 3,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-field-border"
+        },
+        {
+          "key": "field-pad",
+          "label": "Input ichki bo‘shlig‘i",
+          "kind": "number",
+          "default": null,
+          "min": 8,
+          "max": 20,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-field-pad"
+        },
+        {
+          "key": "field-height",
+          "label": "Input minimal balandligi",
+          "kind": "number",
+          "default": null,
+          "min": 44,
+          "max": 64,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-field-height"
+        },
+        {
+          "key": "choice-radius",
+          "label": "Tanlov burchagi",
+          "kind": "number",
+          "default": null,
+          "min": 0,
+          "max": 24,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-choice-radius"
+        }
+      ]
+    },
+    {
+      "id": "S14",
+      "title": "Karta",
+      "description": "Chat pufagi burchagi mustaqil qoladi.",
+      "fields": [
+        {
+          "key": "card-radius",
+          "label": "Burchak",
+          "kind": "number",
+          "default": null,
+          "min": 0,
+          "max": 32,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-card-radius"
+        },
+        {
+          "key": "card-border",
+          "label": "Chegara",
+          "kind": "number",
+          "default": null,
+          "min": 1,
+          "max": 3,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-card-border"
+        },
+        {
+          "key": "card-pad",
+          "label": "Ichki bo‘shliq",
+          "kind": "number",
+          "default": null,
+          "min": 12,
+          "max": 40,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-card-pad"
+        }
+      ]
+    },
+    {
+      "id": "S15",
+      "title": "Dialog va yon panel",
+      "description": "",
+      "fields": [
+        {
+          "key": "dialog-radius",
+          "label": "Dialog burchagi",
+          "kind": "number",
+          "default": null,
+          "min": 0,
+          "max": 32,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-dialog-radius"
+        },
+        {
+          "key": "dialog-border",
+          "label": "Dialog chegarasi",
+          "kind": "number",
+          "default": null,
+          "min": 1,
+          "max": 3,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-dialog-border"
+        },
+        {
+          "key": "dialog-pad",
+          "label": "Dialog ichki bo‘shlig‘i",
+          "kind": "number",
+          "default": null,
+          "min": 16,
+          "max": 40,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-dialog-pad"
+        },
+        {
+          "key": "dialog-width",
+          "label": "Dialog eni",
+          "kind": "number",
+          "default": null,
+          "min": 280,
+          "max": 800,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-dialog-width"
+        },
+        {
+          "key": "drawer-width",
+          "label": "Yon panel eni",
+          "kind": "number",
+          "default": null,
+          "min": 240,
+          "max": 420,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-drawer-width"
+        }
+      ]
+    },
+    {
+      "id": "S16",
+      "title": "Badge, avatar va jadval",
+      "description": "",
+      "fields": [
+        {
+          "key": "badge-radius",
+          "label": "Badge burchagi",
+          "kind": "number",
+          "default": null,
+          "min": 0,
+          "max": 32,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-badge-radius"
+        },
+        {
+          "key": "avatar-size",
+          "label": "Avatar o‘lchami",
+          "kind": "number",
+          "default": null,
+          "min": 32,
+          "max": 64,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-avatar-size"
+        },
+        {
+          "key": "table-pad",
+          "label": "Jadval vertikal bo‘shlig‘i",
+          "kind": "number",
+          "default": null,
+          "min": 8,
+          "max": 24,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-table-pad"
+        }
+      ]
+    },
+    {
+      "id": "S17",
+      "title": "Navigatsiya",
+      "description": "Yorug‘ va qorong‘i ko‘rinishlar alohida saqlanadi.",
+      "fields": [
+        {
+          "key": "nav-active-bg",
+          "label": "Faol bo‘lim foni",
+          "kind": "color",
+          "mode": true,
+          "inherit": "action-soft",
+          "default": {
+            "light": null,
+            "dark": null
+          },
+          "css": "--dc-nav-active-bg"
+        },
+        {
+          "key": "nav-radius",
+          "label": "Bo‘lim burchagi",
+          "kind": "number",
+          "default": null,
+          "min": 0,
+          "max": 24,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-nav-radius"
+        },
+        {
+          "key": "nav-pad",
+          "label": "Bo‘lim ichki bo‘shlig‘i",
+          "kind": "number",
+          "default": null,
+          "min": 8,
+          "max": 20,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-nav-pad"
+        },
+        {
+          "key": "sidebar-width",
+          "label": "Yon menyu eni",
+          "kind": "number",
+          "default": null,
+          "min": 224,
+          "max": 320,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-sidebar-width"
+        },
+        {
+          "key": "header-height",
+          "label": "Sarlavha minimal balandligi",
+          "kind": "number",
+          "default": null,
+          "min": 64,
+          "max": 96,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-header-height"
+        }
+      ]
+    },
+    {
+      "id": "S18",
+      "title": "Chat",
+      "description": "Yorug‘ va qorong‘i ko‘rinishlar alohida saqlanadi.",
+      "fields": [
+        {
+          "key": "chat-own",
+          "label": "O‘z xabari",
+          "kind": "color",
+          "mode": true,
+          "inherit": "action-soft",
+          "default": {
+            "light": null,
+            "dark": null
+          },
+          "css": "--dc-chat-own"
+        },
+        {
+          "key": "chat-other",
+          "label": "Boshqa xabar",
+          "kind": "color",
+          "mode": true,
+          "inherit": "surface",
+          "default": {
+            "light": null,
+            "dark": null
+          },
+          "css": "--dc-chat-other"
+        },
+        {
+          "key": "bubble-radius",
+          "label": "Xabar burchagi",
+          "kind": "number",
+          "default": null,
+          "min": 0,
+          "max": 32,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-bubble-radius"
+        },
+        {
+          "key": "bubble-pad",
+          "label": "Xabar ichki bo‘shlig‘i",
+          "kind": "number",
+          "default": null,
+          "min": 8,
+          "max": 24,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-bubble-pad"
+        },
+        {
+          "key": "composer-radius",
+          "label": "Yozish maydoni burchagi",
+          "kind": "number",
+          "default": null,
+          "min": 0,
+          "max": 24,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-composer-radius"
+        },
+        {
+          "key": "composer-pad",
+          "label": "Yozish maydoni ichki bo‘shlig‘i",
+          "kind": "number",
+          "default": null,
+          "min": 8,
+          "max": 20,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-composer-pad"
+        }
+      ]
+    },
+    {
+      "id": "S19",
+      "title": "Zichlik va kontent eni",
+      "description": "",
+      "fields": [
+        {
+          "key": "density",
+          "label": "Zichlik",
+          "kind": "select",
+          "default": "inherit",
+          "options": [
+            {
+              "value": "inherit",
+              "label": "Asl",
+              "css": ""
+            },
+            {
+              "value": "compact",
+              "label": "Ixcham",
+              "css": "16px"
+            },
+            {
+              "value": "comfortable",
+              "label": "Odatiy",
+              "css": "24px"
+            },
+            {
+              "value": "spacious",
+              "label": "Keng",
+              "css": "32px"
+            }
+          ],
+          "css": "--dc-density"
+        },
+        {
+          "key": "content-width",
+          "label": "Kontent maksimal eni",
+          "kind": "number",
+          "default": null,
+          "min": 720,
+          "max": 1440,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-content-width"
+        },
+        {
+          "key": "reading-width",
+          "label": "O‘qish maksimal eni",
+          "kind": "number",
+          "default": null,
+          "min": 480,
+          "max": 880,
+          "step": 1,
+          "unit": "px",
+          "css": "--dc-reading-width"
+        }
+      ]
+    },
+    {
+      "id": "S20",
+      "title": "Tayyor variant va qoralama",
+      "description": "Qoralama va nomlangan variantlar shu brauzer tabida. Nashr, tarix va rollback DC4 bosqichida.",
+      "fields": []
+    }
+  ],
+  "presets": [
+    {
+      "id": "default",
+      "title": "Asl Azure",
+      "values": {}
+    },
+    {
+      "id": "soft",
+      "title": "Yumshoq shakllar",
+      "values": {
+        "button-radius": 16,
+        "field-radius": 12,
+        "card-radius": 24,
+        "dialog-radius": 24
+      }
+    },
+    {
+      "id": "compact",
+      "title": "Ixcham ish maydoni",
+      "values": {
+        "density": "compact",
+        "card-pad": 16,
+        "table-pad": 8,
+        "button-radius": 4
+      }
+    },
+    {
+      "id": "reading",
+      "title": "O‘qish uchun",
+      "values": {
+        "body-font": "serif",
+        "heading-font": "system",
+        "body-leading": 1.8,
+        "reading-width": 640
+      }
+    }
+  ],
+  "validation": {
+    "contrastPairs": [
+      [
+        "text",
+        "canvas",
+        4.5
+      ],
+      [
+        "text",
+        "surface",
+        4.5
+      ],
+      [
+        "text",
+        "side",
+        4.5
+      ],
+      [
+        "text",
+        "soft",
+        4.5
+      ],
+      [
+        "text",
+        "hero",
+        4.5
+      ],
+      [
+        "text",
+        "action-soft",
+        4.5
+      ],
+      [
+        "text",
+        "chat-own",
+        4.5
+      ],
+      [
+        "text",
+        "chat-other",
+        4.5
+      ],
+      [
+        "muted",
+        "canvas",
+        4.5
+      ],
+      [
+        "muted",
+        "surface",
+        4.5
+      ],
+      [
+        "muted",
+        "soft",
+        4.5
+      ],
+      [
+        "muted",
+        "hero",
+        4.5
+      ],
+      [
+        "faint",
+        "surface",
+        4.5
+      ],
+      [
+        "action",
+        "surface",
+        4.5
+      ],
+      [
+        "action",
+        "action-soft",
+        4.5
+      ],
+      [
+        "action",
+        "nav-active-bg",
+        4.5
+      ],
+      [
+        "on-action",
+        "action",
+        4.5
+      ],
+      [
+        "on-action",
+        "action-hover",
+        4.5
+      ],
+      [
+        "on-action",
+        "action-active",
+        4.5
+      ],
+      [
+        "success",
+        "success-soft",
+        4.5
+      ],
+      [
+        "danger",
+        "danger-soft",
+        4.5
+      ],
+      [
+        "warning",
+        "warning-soft",
+        4.5
+      ],
+      [
+        "muted",
+        "surface",
+        3
+      ],
+      [
+        "danger",
+        "surface",
+        3
+      ],
+      [
+        "action",
+        "soft",
+        3
+      ],
+      [
+        "focus",
+        "canvas",
+        3
+      ],
+      [
+        "focus",
+        "surface",
+        3
+      ],
+      [
+        "focus",
+        "hero",
+        3
+      ],
+      [
+        "focus",
+        "action-soft",
+        3
+      ],
+      [
+        "focus",
+        "nav-active-bg",
+        3
+      ]
+    ],
+    "typeDefaults": {
+      "text-xs": [
+        12,
+        12
+      ],
+      "text-sm": [
+        14,
+        14
+      ],
+      "text-md": [
+        16,
+        16
+      ],
+      "text-lg": [
+        18,
+        18
+      ],
+      "text-xl": [
+        22,
+        22
+      ],
+      "text-2xl": [
+        28,
+        28
+      ],
+      "text-title": [
+        28,
+        36
+      ],
+      "text-display": [
+        36,
+        48
+      ]
+    },
+    "bodyLeadingMin": 1.5
+  }
+}

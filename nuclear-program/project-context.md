@@ -725,6 +725,17 @@ POST parent-ID tekshiruvi va existing writer saqlangan. Qarordan keyin ayni
 kurs/dars qayta o‘qiladi. Flaglar mustaqil; eski umumiy route/POSTlar qolgan.
 Migration/provider/deploy yo‘q. [Bosqich 3](frontend-v1/BACKOFFICE-REFORM-STAGE-3.md).
 
+**Kodsiz dizayn (2026-10-10):** `backoffice_design_workspace` default-OFF
+flagi `/backoffice/control/design/` owner ustaxonasini va published CSS’ni
+boshqaradi. `core/design_service.py` yagona writer: owner-private draft/preset,
+immutable version, singleton current pointer va durable operation receipt.
+`core0007` additive schema; strict typed catalog/kontrast, CAS, reason/confirmation
+va atomic audit. `/design/theme.css` public nashrni screen-only qo‘llaydi;
+V1/workspace komponentlari va legacy umumiy palitrasi ulanadi. Print/vendor/
+mustaqil host yuzalari alohida. SiteSettings brand/logo writeri saqlangan.
+GET design state yaratmaydi; javob yo‘qolsa explicit readback, avtomatik POST
+retry yo‘q. [Bosqich 4](frontend-v1/BACKOFFICE-REFORM-STAGE-4.md).
+
 Custom yashirin admin URL'lari:
 
 ```

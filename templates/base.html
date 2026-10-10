@@ -1,4 +1,4 @@
-{% load static %}<!DOCTYPE html>
+{% load static design_theme %}<!DOCTYPE html>
 {% comment %}
   AzureLMS — Global hujjat qobig'i (barcha shell'lar uchun).
   Proto: azurelms-proto/shared/ (tokens.css + base.css + app.js).
@@ -21,6 +21,7 @@
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
   <link rel="stylesheet" href="{% static 'css/brand.css' %}">
   {% block extra_css %}{% endblock %}
+  {% published_design_css %}
 
   <script defer src="{% static 'js/app.js' %}"></script>
   {% block extra_js %}{% endblock %}

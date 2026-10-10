@@ -19,6 +19,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from core.operational_settings import ORDERED_PAIRS
+from core.design_models import DesignDraft, DesignOperation, DesignPreset, DesignState, DesignVersion  # noqa: F401
 
 
 class SeededRecord(models.Model):

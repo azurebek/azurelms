@@ -1,4 +1,4 @@
-{% load static %}
+{% load static design_theme %}
 <!doctype html>
 <html lang="uz" data-theme="light" class="{% block document_class %}{% endblock %}">
 <head>
@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="{% static 'frontend_v1/css/learning.css' %}">
   <script defer src="{% static 'frontend_v1/js/shell.js' %}"></script>
   {% block extra_head %}{% endblock %}
+  {% published_design_css %}
 </head>
 <body data-frontend="v1" data-screen="{{ request.resolver_match.url_name }}" class="{% block body_class %}{% endblock %}">
   <a class="s-skip" href="#main">Asosiy mazmunga o‘tish</a>
