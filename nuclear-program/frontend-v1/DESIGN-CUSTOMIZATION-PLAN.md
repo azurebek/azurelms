@@ -1,5 +1,10 @@
 # DESIGN-01 — kodsiz dizayn boshqaruvi, reja oxiridagi kengaytma
 
+**2026-10-10 DC6:** [yakuniy ko‘rib chiqish va tiklash paketi](DESIGN-01-DC6-ACCEPTANCE.md)
+tayyorlandi. Ustaxonada 8 qadamli yo‘riqnoma; lokal walkthrough va alohida
+papkadan tiklash sinovi o‘tdi. Owner qabuli PENDING; native/print/AT/Telegram,
+DC4/DC5 real port va oldingi qabul bandlari OPEN. Quyidagi yozuvlar tarixiy.
+
 **2026-10-10 DC5:** [lokal consumer preview va regressiya](DESIGN-01-DC5-REGRESSION.md)
 qurildi:139existing route+3diagnostic snapshot,137theme consumer va5statik
 istisno. DC5 real consumer qabuli portdan keyin qaytariladi; DC6 va oldingi
@@ -89,8 +94,9 @@ almashtirish bu customizationning yashirin qismi emas.
 - [ ] DC4 real port — actual owner auth/ACL, DB transaction, durable audit/idempotency, cache/flag va consumer enforcement.
 - [x] DC5 lokal — [mavjud render nusxalarida regressiya](DESIGN-01-DC5-REGRESSION.md), vendor/print/fallback istisnolari.
 - [ ] DC5 real — DC4 production portdan keyin barcha mapped renderer/flag OFF/dynamic consumer regressiyasini qaytarish.
-- [ ] DC6 — owner walkthrough va yangi checkpoint; real service/port/CI va release
-  alohida kuzatiladi. Faqat lokal demo yoki token almashtirish bilan “to‘liq” yozilmaydi.
+- [x] DC6 tayyorgarlik — [yo‘riqnoma, agent walkthrough va tekshirilgan yangi checkpoint](DESIGN-01-DC6-ACCEPTANCE.md).
+- [ ] DC6 qabul — owner vizual/oqim qarori va native/AT/print/Telegram sinovlari.
+  Real service/port/CI va release alohida. Lokal demo bilan “to‘liq” yozilmaydi.
 
 Bu bosqich 11-qadamdagi bazaviy qabuldan keyin dizaynni o‘zgartirgani uchun
 yakunida uning ta’sir doirasi bo‘yicha qayta qabul majburiy. Muddat qo‘yilmagan.

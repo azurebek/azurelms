@@ -1,5 +1,10 @@
 # Qolgan prototiplar — aniq qamrov va tugatish rejasi
 
+**2026-10-10 DC6:** [yakuniy ko‘rib chiqish va tiklash paketi](DESIGN-01-DC6-ACCEPTANCE.md)
+tayyorlandi. Ustaxonada 8 qadamli yo‘riqnoma; lokal walkthrough va alohida
+papkadan tiklash sinovi o‘tdi. Owner qabuli PENDING; native/print/AT/Telegram,
+DC4/DC5 real port va oldingi qabul bandlari OPEN. Quyidagi yozuvlar tarixiy.
+
 **2026-10-10 DC5:** [lokal consumer preview va regressiya](DESIGN-01-DC5-REGRESSION.md)
 qurildi:139existing route+3diagnostic snapshot,137theme consumer va5statik
 istisno. DC5 real consumer qabuli portdan keyin qaytariladi; DC6 va oldingi
