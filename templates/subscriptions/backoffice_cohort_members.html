@@ -14,6 +14,13 @@
   <a class="brand-back" href="{% url 'backoffice_catalog' %}">Katalogga qaytish</a>
 </section>
 
+{% if selected_enrollment %}
+<section class="brand-card">
+  <p>Tanlangan o‘quvchi: <strong>{{ selected_enrollment.student.get_full_name|default:selected_enrollment.student.username }}</strong>. Qaror faqat shu a’zolikka qo‘llanadi.</p>
+  {% if support_return_url %}<a class="brand-link" href="{{ support_return_url }}">O‘quvchini qayta tekshirish</a>{% endif %}
+</section>
+{% endif %}
+
 {% if members %}
 <div class="brand-grid">
   {% for member in members %}

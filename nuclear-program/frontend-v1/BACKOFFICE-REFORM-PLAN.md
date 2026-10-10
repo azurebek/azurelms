@@ -1,9 +1,12 @@
 # Backoffice islohoti — uch asosiy ishni osonlashtirish
 
-2026-10-10. **Birinchi bosqich xaritasi va ikkinchi bosqichning haqiqiy kurs/dars kesimi qurildi.**
+2026-10-10. **Birinchi bosqich xaritasi, kurs/dars ustaxonasi va o‘quvchiga yordam kesimi qurildi.**
 [Ikkinchi bosqich](BACKOFFICE-REFORM-STAGE-2.md): Boshqaruv, modul/dars yaratish,
 material, namuna va guruhga ochishga ulanish. Flag default OFF; owner usability
-va production qabuli ochiq. Quyidagi qolgan kesimlar hali reja.
+va production qabuli ochiq.
+[Uchinchi bosqich](BACKOFFICE-REFORM-STAGE-3.md): o‘quvchi qidirish → kurs/dars
+bo‘yicha sabab → aniq mavjud qaror sahifasi → qayta tekshirish. Flag default OFF.
+Keyingi kesim oddiy dizayn boshqaruvi; u va qolgan ishlar hali reja.
 [Birinchi bosqich qaydi](BACKOFFICE-REFORM-STAGE-1.md): ownerning boshlang‘ich bahosi, aniq action/writer/scope xaritasi va sakkizta amaliy vazifa.
 Owner nomlar va tuzilmani agent hal qilishini topshirdi; yangi so‘rovnoma javobi ishni boshlash sharti emas.
 Azurbek belgilagan ustuvorlik: **kurs/dars tayyorlash → o‘quvchi muammosini hal qilish → platforma dizaynini texnik bilimsiz boshqarish**.
@@ -142,7 +145,7 @@ Har eski actionning yangi joyi, permissioni va writeri xaritada bo‘lmaguncha e
 |---|---|---|
 | **Vazifalar va xarita — loyihalash tayyor** | Ownerning sifat bahosi qayd etildi; agent tuzilmani tanladi; eski action → yangi joy/scope/writer va mavjud/yangi imkoniyatlar xaritasi tayyor | Boshlanish, yakun, xato va writer aniq; ikkinchi bosqich topshirig‘i tayyor. Owner vaqtli sinovi/keyingi UI qabuli ochiq; so‘rovnoma davom ettirish sharti emas |
 | **Kurs bilan ishlaydigan birinchi kesim** | Boshqaruv shell, Kurslar daraxti, kerakli modul/yangi dars yaratish, mavjud muharrir va material, preview, releasega ulanish | Bitta haqiqiy ruxsatli kurs oqimi boshidan oxirigacha; matn va tanlov yo‘qolmaydi; yaratish uchun yangi backend talabi yopilgan |
-| **O‘quvchi muammosi** | Scope-aware qidiruv, bog‘langan o‘quvchi kartasi, policy sababi, mavjud tuzatish amallari va natija tekshiruvi | Berilgan muammo yordamsiz topiladi; boshqa odam/doira ma’lumoti ochilmaydi; access qoidasining dublikati yo‘q |
+| **O‘quvchi muammosi — runtime kesimi qurildi** | Scope-aware qidiruv, o‘quvchi kartasi, canonical access sababi, aniq release/receipt/submission/member handoff va recheck | Synthetic release → recheck hamda testlarda receipt/assignment → recheck o‘tdi; privacy/GET zero-write tekshirildi. Ownerning yordamsiz bajarish qabuli hali ochiq |
 | **Oddiy dizayn boshqaruvi** | Oddiy tanlovlar, oldin/keyin namuna, custom qiymatni saqlash, real draft/publish/rollback porti | Owner CSS/ID bilmasdan sozlaydi; reload va to‘qnashuvda ish saqlanadi; tatbiq doirasi aniq |
 | **Qolgan backoffice** | To‘lovlar, blog/SIT, guruhlar va Sozlamalar yangi navigatsiyaga ulanishi; biznesga tegishli texnik atamalar soddalashishi | Eski actionlarning xaritasi to‘liq; barcha muhim kirishlar topiladi, ruxsat/audit pariteti saqlanadi |
 | **Qabul va bosqichli port** | Har tugagan kesim uchun real adapter, foydalanish sinovi, required CI, qaytish yo‘li; yakuniy eski-yangi paritet auditi | Owner uch asosiy ishni bajaradi; jiddiy regressiya yo‘q; real qurilma va release qabuli alohida tasdiqlanadi |

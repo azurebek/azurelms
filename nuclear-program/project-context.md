@@ -712,6 +712,19 @@ faqat katalogda yashiradi, mavjud learner accessini bekor qilmaydi.
 Migration, yangi provider va production rollout yo‘q. Tafsilot:
 [bosqich 2](frontend-v1/BACKOFFICE-REFORM-STAGE-2.md).
 
+**O‘quvchiga yordam (2026-10-10):** `backoffice_student_support` default-OFF
+flagi `/backoffice/workspace/students/` va `/students/<id>/`ni boshqaradi.
+`core/student_support_service.py` actor scope, canonical Enrollment access va
+lesson bundle asosida yozmasdan sababni qaytaradi; `student_support_views.py`
+qidiruv/karta va mavjud qaror yuzalariga aniq havolalarni beradi. Staff faqat
+o‘z kursidagi learnerlarni ko‘radi; owner hali yozilmaganlarni ham topadi.
+Diagnostika default course accessdagi eng so‘nggi active guruhga tegishli;
+cohort-specific havola, impersonation va yangi access override yo‘q.
+Receipt `?enrollment=E&receipt=R`, membership `?enrollment=E` bilan doiralanadi;
+POST parent-ID tekshiruvi va existing writer saqlangan. Qarordan keyin ayni
+kurs/dars qayta o‘qiladi. Flaglar mustaqil; eski umumiy route/POSTlar qolgan.
+Migration/provider/deploy yo‘q. [Bosqich 3](frontend-v1/BACKOFFICE-REFORM-STAGE-3.md).
+
 Custom yashirin admin URL'lari:
 
 ```

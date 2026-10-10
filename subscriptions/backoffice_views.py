@@ -11,7 +11,7 @@ from cohorts.membership_service import (
     transfer_member,
 )
 from cohorts.models import Cohort, Enrollment, enrollment_active_access_q
-from core.views import _backoffice_context
+from core.views import _backoffice_context, _private_support_handoff
 from .catalog_forms import (
     CatalogPlanForm,
     DeliveryCohortForm,
@@ -58,6 +58,7 @@ def _transfer_targets(cohort):
     )
 
 
+@_private_support_handoff
 @login_required
 def cohort_members(request, cohort_id):
     """Guruh a'zolari va joy bo'yicha qaror.
@@ -70,6 +71,29 @@ def cohort_members(request, cohort_id):
     cohort = get_object_or_404(
         Cohort.objects.with_seat_metrics().select_related("course", "plan"), pk=cohort_id
     )
+    from django.http import Http404
+    from django.urls import reverse
+    from urllib.parse import urlencode
+    from core.flags import flag_enabled
+
+    selected_enrollment = None
+    support_return_url = ''
+    redirect_url = reverse('backoffice_cohort_members', kwargs={'cohort_id': cohort_id})
+    if 'enrollment' in request.GET:
+        value = request.GET.get('enrollment', '')
+        if (len(request.GET.getlist('enrollment')) != 1 or not value.isascii()
+                or not value.isdecimal() or len(value) > 18 or int(value) < 1):
+            raise Http404
+        selected_enrollment = get_object_or_404(cohort.members.select_related('student'), pk=int(value))
+        if request.method == 'POST' and (
+                len(request.POST.getlist('enrollment_id')) != 1
+                or request.POST.get('enrollment_id') != str(selected_enrollment.pk)):
+            raise Http404
+        redirect_url += '?' + urlencode({'enrollment': selected_enrollment.pk})
+        if flag_enabled('backoffice_student_support'):
+            support_return_url = reverse('backoffice_workspace_student', kwargs={
+                'student_id': selected_enrollment.student_id,
+            }) + '?' + urlencode({'course': cohort.course_id})
     targets = _transfer_targets(cohort)
     if request.method == "POST":
         if request.POST.get("action") == "difference":
@@ -83,7 +107,7 @@ def cohort_members(request, cohort_id):
                 (messages.success if decision.ok else messages.error)(request, decision.message)
             else:
                 messages.error(request, "Summa kiriting, sabab yozing va tasdiqlang.")
-            return redirect("backoffice_cohort_members", cohort_id=cohort_id)
+            return redirect(redirect_url)
 
         if request.POST.get("action") == "transfer":
             form = MemberTransferForm(request.POST, targets=targets)
@@ -96,7 +120,7 @@ def cohort_members(request, cohort_id):
                 (messages.success if decision.ok else messages.error)(request, decision.message)
             else:
                 messages.error(request, "Guruhni tanlang, sabab yozing va tasdiqlang.")
-            return redirect("backoffice_cohort_members", cohort_id=cohort_id)
+            return redirect(redirect_url)
 
         form = SeatDecisionForm(request.POST)
         if form.is_valid():
@@ -108,11 +132,13 @@ def cohort_members(request, cohort_id):
             (messages.success if decision.ok else messages.error)(request, decision.message)
         else:
             messages.error(request, "Sabab yozing va qarorni tasdiqlang.")
-        return redirect("backoffice_cohort_members", cohort_id=cohort_id)
+        return redirect(redirect_url)
 
+    member_rows = cohort.members.select_related("student", "plan")
+    if selected_enrollment is not None:
+        member_rows = member_rows.filter(pk=selected_enrollment.pk)
     members = list(
-        cohort.members.select_related("student", "plan")
-        .order_by("status", "next_payment_deadline", "pk")
+        member_rows.order_by("status", "next_payment_deadline", "pk")
     )
     live_ids = set(
         cohort.members.filter(enrollment_active_access_q()).values_list("pk", flat=True)
@@ -151,6 +177,7 @@ def cohort_members(request, cohort_id):
     return render(request, "subscriptions/backoffice_cohort_members.html", {
         **_backoffice_context("catalog"), "cohort": cohort, "members": members,
         "transfer_targets": targets,
+        "selected_enrollment": selected_enrollment, "support_return_url": support_return_url,
     })
 
 
