@@ -2,6 +2,7 @@
 {% load static %}
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'backoffice/workspace.css' %}">
+{% if backoffice_unified_enabled %}<link rel="stylesheet" href="{% static 'css/brand.css' %}"><link rel="stylesheet" href="{% static 'backoffice/sections.css' %}">{% endif %}
 {% block workspace_media %}{% endblock %}
 <script defer src="{% static 'backoffice/workspace.js' %}"></script>
 {% endblock %}
@@ -10,7 +11,7 @@
 {% if saved_scope %}<span hidden data-workspace-saved data-saved-scope="{{ saved_scope }}" data-saved-submission-id="{{ saved_submission_id }}"></span>{% endif %}
 <div class="ws-shell">
   <aside class="ws-sidebar" aria-label="Boshqaruv menyusi">
-    <a class="ws-brand" href="{{ workspace_nav.0.url }}"><span class="ws-brand-mark" aria-hidden="true">a</span><span>{{ site_settings.brand_name|default:"AzureLMS" }}<small>Boshqaruv</small></span></a>
+    <a class="ws-brand" href="{{ workspace_nav.0.url }}">{% if backoffice_unified_enabled %}{% include "components/brand_logo.html" with mark_only=True mark_class="ws-brand-mark" %}{% else %}<span class="ws-brand-mark" aria-hidden="true">a</span>{% endif %}<span>{{ site_settings.brand_name|default:"AzureLMS" }}<small>Boshqaruv</small></span></a>
     {% include "backoffice/workspace/nav.html" %}
     <div class="ws-account"><span class="ws-avatar" aria-hidden="true">{{ request.user.first_name|first|default:request.user.username|first|upper }}</span><div><strong>{{ request.user.get_full_name|default:request.user.username }}</strong><span>{% if request.user.is_superuser %}Administrator{% else %}Ustoz{% endif %}</span></div><form method="post" action="{% url 'logout' %}" data-v1-logout data-workspace-logout>{% csrf_token %}<button class="ws-icon-button" type="submit" aria-label="Hisobdan chiqish">↪</button></form></div>
   </aside>
@@ -21,6 +22,7 @@
     </header>
     <main id="main" class="ws-main {% block workspace_main_class %}{% endblock %}" tabindex="-1">
       {% if messages %}<div class="ws-messages" aria-live="polite">{% for message in messages %}<div class="ws-notice{% if message.tags == 'error' %} ws-notice-error{% elif message.tags == 'success' %} ws-notice-success{% endif %}" role="status">{{ message }}</div>{% endfor %}</div>{% endif %}
+      {% if workspace_section_links %}<nav class="ws-section-nav" aria-label="{{ workspace_section_title }} bo‘limlari"><a class="ws-section-root" href="{{ workspace_section_url }}">{{ workspace_section_title }}</a>{% for item in workspace_section_links %}<a href="{{ item.url }}"{% if item.active %} aria-current="page"{% endif %}>{{ item.label }}</a>{% endfor %}</nav>{% endif %}
       {% block workspace_content %}{% endblock %}
     </main>
   </div>

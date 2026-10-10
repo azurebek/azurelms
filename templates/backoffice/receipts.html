@@ -11,7 +11,7 @@
   <div>
     <span class="brand-kicker">TO'LOVLAR</span>
     <h1>Tasdiq kutayotgan cheklar</h1>
-    <p>Chek tasdiqlangach obuna <strong>darhol faollashadi</strong> va o'quvchiga bildirishnoma ketadi. Rad etilgan chek o'chadi, band qilingan promokod esa bo'shatiladi. Har ikkala qaror sabab bilan audit tarixiga yoziladi.</p>
+    <p>{% if backoffice_unified_enabled %}Chekni oching, o‘quvchi va summani tekshiring, keyin qaror bering. Oddiy to‘lov tasdiqlansa obuna faollashadi; tarif farqi esa muddatni uzaytirmaydi. Rad etilgan chek o‘chadi va band qilingan promokod bo‘shaydi.{% else %}Chek tasdiqlangach obuna <strong>darhol faollashadi</strong> va o'quvchiga bildirishnoma ketadi. Rad etilgan chek o'chadi, band qilingan promokod esa bo'shatiladi. Har ikkala qaror sabab bilan audit tarixiga yoziladi.{% endif %}</p>
   </div>
 </section>
 
@@ -53,6 +53,7 @@
     <a class="brand-link" href="{% url 'cohorts:receipt_file' receipt.pk %}" target="_blank" rel="noopener">Chek rasmini ochish</a>
     {% endif %}
 
+    {% if backoffice_unified_enabled %}<details class="bo-settings-detail"{% if selected_enrollment %} open{% endif %}><summary>Qaror berish <small>{{ receipt.enrollment.student.get_full_name|default:receipt.enrollment.student.username }} · {{ receipt.amount|floatformat:0 }} so‘m</small></summary>{% endif %}
     <form method="post" class="brand-form">
       {% csrf_token %}
       <input type="hidden" name="receipt_id" value="{{ receipt.id }}">
@@ -68,6 +69,7 @@
         <button class="brand-btn brand-btn-danger" type="submit" name="action" value="reject">Rad etish</button>
       </div>
     </form>
+    {% if backoffice_unified_enabled %}</details>{% endif %}
   </section>
   {% endfor %}
 </div>

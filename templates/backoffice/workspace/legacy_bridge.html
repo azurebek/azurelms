@@ -1,0 +1,19 @@
+{% extends "backoffice/workspace/base.html" %}
+{% load static %}
+
+{% block title %}{% block bo_title %}Boshqaruv{% endblock %} · {{ site_settings.brand_name|default:"AzureLMS" }}{% endblock %}
+{% block workspace_section %}<i class="bi {% block bo_icon %}bi-grid-1x2{% endblock %}" aria-hidden="true"></i> {% block bo_topbar %}{{ workspace_section_title|default:"Boshqaruv" }}{% endblock %}{% endblock %}
+{% block workspace_main_class %}ws-legacy-main{% endblock %}
+{% block workspace_media %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="{% static 'css/brand.css' %}">
+{% block page_css %}{% endblock %}
+<link rel="stylesheet" href="{% static 'backoffice/legacy-workspace.css' %}">
+<script defer src="{% static 'backoffice/legacy-workspace.js' %}"></script>
+{% block page_js %}{% endblock %}
+{% endblock %}
+{% block workspace_content %}
+<div class="ws-legacy-content" data-workspace-legacy data-legacy-page="{{ request.resolver_match.url_name }}">
+  {% block app_body %}<div class="ws-legacy-inner">{% block bo_content %}{% endblock %}</div>{% endblock %}
+</div>
+{% endblock %}

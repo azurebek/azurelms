@@ -19,6 +19,7 @@
   </header>
   {% block main %}<main id="main" class="s-main" tabindex="-1">
     {% include "frontend_v1/messages.html" %}
+    {% if backoffice_return_url %}<p><a class="c-button c-button--quiet" href="{{ backoffice_return_url }}">← Boshqaruvga qaytish</a></p>{% endif %}
     {% block content %}{% endblock %}
     <footer class="s-footer"><span>{{ site_settings.brand_name|default:"AzureLMS" }} · O‘zbekcha o‘rganing, turkcha gapiring.</span><span>V1 · Ko‘chirish bosqichma-bosqich</span></footer>
   </main>{% endblock %}

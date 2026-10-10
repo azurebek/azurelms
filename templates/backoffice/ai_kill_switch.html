@@ -1,24 +1,24 @@
 {% extends "backoffice/base.html" %}
 {% load static %}
 
-{% block bo_title %}AI kill switch{% endblock %}
+{% block bo_title %}{% if backoffice_unified_enabled %}AI xizmatini to‘xtatish{% else %}AI kill switch{% endif %}{% endblock %}
 {% block bo_icon %}bi-power{% endblock %}
-{% block bo_topbar %}AI remote chaqiruvlarini boshqarish{% endblock %}
+{% block bo_topbar %}{% if backoffice_unified_enabled %}AI xizmatini yoqish yoki to‘xtatish{% else %}AI remote chaqiruvlarini boshqarish{% endif %}{% endblock %}
 {% block page_css %}<link rel="stylesheet" href="{% static 'css/brand-control.css' %}">{% endblock %}
 
 {% block bo_content %}
 <section class="brand-hero">
   <div>
     <span class="brand-kicker">SHOSHILINCH TO'XTATISH</span>
-    <h1>AI remote chaqiruvlari</h1>
-    <p>Bu budjet sozlamasi emas. O'chirilganda hech qanday remote AI chaqirig'i ketmaydi — chat, grounding, SmartForm, Telegram demo va embedding ham. Kurs, dars, to'lov va odam bilan yozishuv oqimlari ishlashda davom etadi.</p>
+    <h1>{% if backoffice_unified_enabled %}AI xizmatini yoqish yoki to‘xtatish{% else %}AI remote chaqiruvlari{% endif %}</h1>
+    <p>{% if backoffice_unified_enabled %}To‘xtatilsa, tashqi AI xizmatiga yangi so‘rov yuborilmaydi: AI suhbat, qidiruv, shakl to‘ldirish, Telegram namunalari va materiallarni AI uchun tayyorlash ham to‘xtaydi. <strong>Kurslar, darslar, to‘lovlar va odamlar bilan yozishuv ishlashda davom etadi.</strong>{% else %}Bu budjet sozlamasi emas. O'chirilganda hech qanday remote AI chaqirig'i ketmaydi — chat, grounding, SmartForm, Telegram demo va embedding ham. Kurs, dars, to'lov va odam bilan yozishuv oqimlari ishlashda davom etadi.{% endif %}</p>
   </div>
-  <a class="brand-back" href="{% url 'backoffice_control' %}"><i class="bi bi-arrow-left"></i> Control Center</a>
+  <a class="brand-back" href="{% if backoffice_unified_enabled %}{% url 'backoffice_workspace_settings' %}{% else %}{% url 'backoffice_control' %}{% endif %}"><i class="bi bi-arrow-left"></i> {% if backoffice_unified_enabled %}Sozlamalar{% else %}Control Center{% endif %}</a>
 </section>
 
 <div class="brand-layout">
   <form class="brand-form" method="post"
-        onsubmit="return confirm('AI remote chaqiruvlari holatini o‘zgartirasizmi?');">
+        onsubmit="return confirm('{% if backoffice_unified_enabled %}AI xizmati holatini o‘zgartirasizmi?{% else %}AI remote chaqiruvlari holatini o‘zgartirasizmi?{% endif %}');">
     {% csrf_token %}
     {% if form.non_field_errors %}<div class="brand-errors">{{ form.non_field_errors }}</div>{% endif %}
 
@@ -29,16 +29,16 @@
           <h2>Joriy holat</h2>
           <p>
             {% if policy.ai_remote_calls_enabled %}
-              AI <strong>yoqilgan</strong> — chaqiruvlar budjet va cooldown qoidalariga bo'ysunadi.
+              {% if backoffice_unified_enabled %}AI <strong>yoqilgan</strong> — sarf chegaralari va xatolardan himoya qoidalari amal qiladi.{% else %}AI <strong>yoqilgan</strong> — chaqiruvlar budjet va cooldown qoidalariga bo'ysunadi.{% endif %}
             {% else %}
-              AI <strong>to'xtatilgan</strong> — yangi remote chaqiruv ketmaydi.
+              {% if backoffice_unified_enabled %}AI <strong>to‘xtatilgan</strong> — tashqi xizmatga yangi so‘rov yuborilmaydi.{% else %}AI <strong>to'xtatilgan</strong> — yangi remote chaqiruv ketmaydi.{% endif %}
             {% endif %}
           </p>
         </div>
       </div>
       <div class="brand-fields">
         <label class="brand-field">
-          <span>{{ form.ai_remote_calls_enabled.label }}</span>
+          <span>{% if backoffice_unified_enabled %}Tashqi AI xizmatidan foydalanish{% else %}{{ form.ai_remote_calls_enabled.label }}{% endif %}</span>
           {{ form.ai_remote_calls_enabled }}
           {% if form.ai_remote_calls_enabled.help_text %}<small>{{ form.ai_remote_calls_enabled.help_text }}</small>{% endif %}
           {% for error in form.ai_remote_calls_enabled.errors %}<em>{{ error }}</em>{% endfor %}

@@ -1,7 +1,7 @@
 {% extends "backoffice/base.html" %}
 {% load static %}
 
-{% block bo_title %}Dead-letter{% endblock %}
+{% block bo_title %}{% if backoffice_unified_enabled %}Yetkazilmagan xabarlar{% else %}Dead-letter{% endif %}{% endblock %}
 {% block bo_icon %}bi-arrow-counterclockwise{% endblock %}
 {% block bo_topbar %}To'xtagan xabarlarni navbatga qaytarish{% endblock %}
 {% block page_css %}<link rel="stylesheet" href="{% static 'css/brand-control.css' %}">{% endblock %}
@@ -9,12 +9,12 @@
 {% block bo_content %}
 <section class="brand-hero">
   <div>
-    <span class="brand-kicker">DEAD-LETTER</span>
-    <h1>To'xtagan xabarlar</h1>
-    <p>Urinishlari tugagan yoki tuzalmaydigan xato olgan xabar navbatda <strong>terminal</strong> bo'ladi — o'zi hech qachon qaytmaydi. Sabab bartaraf etilgach (token tuzatildi, tarmoq tiklandi, blok yechildi) uni shu yerdan qaytarasiz.</p>
-    <p>Qaytarish urinish hisoblagichini <strong>noldan</strong> boshlaydi va xabar keyingi worker siklida olinadi. Har amal sababi bilan audit tarixiga yoziladi.</p>
+    <span class="brand-kicker">{% if backoffice_unified_enabled %}XABARLAR{% else %}DEAD-LETTER{% endif %}</span>
+    <h1>{% if backoffice_unified_enabled %}Yetkazilmagan xabarlar{% else %}To'xtagan xabarlar{% endif %}</h1>
+    <p>{% if backoffice_unified_enabled %}Bu xabarlarni yuborish to‘xtagan. Avval ko‘rsatilgan muammoni hal qiling, so‘ng qayta yuboriladigan xabarlarni belgilang.{% else %}Urinishlari tugagan yoki tuzalmaydigan xato olgan xabar navbatda <strong>terminal</strong> bo'ladi — o'zi hech qachon qaytmaydi. Sabab bartaraf etilgach (token tuzatildi, tarmoq tiklandi, blok yechildi) uni shu yerdan qaytarasiz.{% endif %}</p>
+    <p>{% if backoffice_unified_enabled %}Navbatga qaytarilgach, yuborish urinishlari boshidan boshlanadi. Har amal sababi bilan tarixga yoziladi.{% else %}Qaytarish urinish hisoblagichini <strong>noldan</strong> boshlaydi va xabar keyingi worker siklida olinadi. Har amal sababi bilan audit tarixiga yoziladi.{% endif %}</p>
   </div>
-  <a class="brand-back" href="{% url 'backoffice_control' %}"><i class="bi bi-arrow-left"></i> Control Center</a>
+  <a class="brand-back" href="{% if backoffice_unified_enabled %}{% url 'backoffice_workspace_settings' %}{% else %}{% url 'backoffice_control' %}{% endif %}"><i class="bi bi-arrow-left"></i> {% if backoffice_unified_enabled %}Sozlamalar{% else %}Control Center{% endif %}</a>
 </section>
 
 <div class="brand-layout">
@@ -27,11 +27,11 @@
         <div class="brand-panel-head">
           <span>01</span>
           <div>
-            <h2>Terminal navbat</h2>
+            <h2>{% if backoffice_unified_enabled %}Qayta yuborishni kutayotganlar{% else %}Terminal navbat{% endif %}</h2>
             {% if summary.total %}
-              <p>Jami <strong>{{ summary.total }}</strong> ta: {{ summary.dm }} shaxsiy, {{ summary.group }} guruh. Shundan <strong>{{ summary.permanent }}</strong> tasi «hech qachon tuzalmaydi» turida.</p>
+              <p>Jami <strong>{{ summary.total }}</strong> ta: {{ summary.dm }} shaxsiy, {{ summary.group }} guruh. Shundan <strong>{{ summary.permanent }}</strong> tasi {% if backoffice_unified_enabled %}sababini tuzatish talab qilinadigan turda{% else %}«hech qachon tuzalmaydi» turida{% endif %}.</p>
             {% else %}
-              <p>Navbatda terminal xabar yo'q.</p>
+              <p>{% if backoffice_unified_enabled %}Yetkazilishi to‘xtagan xabar yo‘q.{% else %}Navbatda terminal xabar yo'q.{% endif %}</p>
             {% endif %}
           </div>
         </div>
@@ -61,11 +61,11 @@
                   <td>{{ row.preview|default:"—" }}<br><small>{{ row.created_at|date:"d.m.Y H:i" }}</small></td>
                   <td>
                     {% if row.is_permanent %}
-                      <span class="brand-badge brand-badge--warn">hech qachon tuzalmaydi</span>
+                      <span class="brand-badge brand-badge--warn">{% if backoffice_unified_enabled %}Avval sababini tuzating{% else %}hech qachon tuzalmaydi{% endif %}</span>
                     {% else %}
                       <span class="brand-badge">{{ row.failure_kind|default:"noma'lum" }}</span>
                     {% endif %}
-                    {% if row.last_error %}<br><small>{{ row.last_error }}</small>{% endif %}
+                    {% if row.last_error %}{% if backoffice_unified_enabled %}<details class="bo-settings-detail"><summary>Xato tafsiloti</summary><small>{{ row.last_error }}</small></details>{% else %}<br><small>{{ row.last_error }}</small>{% endif %}{% endif %}
                   </td>
                   <td>{{ row.attempts }}</td>
                 </tr>

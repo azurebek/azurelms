@@ -1,4 +1,5 @@
 from urllib.parse import quote
+from core.flags import flag_enabled
 from frontend.public_v1 import PublicFrontendV1Mixin
 
 from django.contrib import messages
@@ -223,7 +224,14 @@ class BlogStudioView(BlogStaffRequiredMixin, TemplateView):
         return context
 
 
-class BlogPostCreateView(BlogStaffRequiredMixin, CreateView):
+class BlogStudioFormCopyMixin:
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["simple_copy"] = flag_enabled("backoffice_unified_navigation")
+        return kwargs
+
+
+class BlogPostCreateView(BlogStudioFormCopyMixin, BlogStaffRequiredMixin, CreateView):
     model = BlogPost
     form_class = BlogPostForm
     template_name = "blog/studio_form.html"
@@ -239,7 +247,7 @@ class BlogPostCreateView(BlogStaffRequiredMixin, CreateView):
         return reverse("blog:studio_edit", kwargs={"slug": self.object.slug})
 
 
-class BlogPostUpdateView(BlogStaffRequiredMixin, UpdateView):
+class BlogPostUpdateView(BlogStudioFormCopyMixin, BlogStaffRequiredMixin, UpdateView):
     model = BlogPost
     form_class = BlogPostForm
     template_name = "blog/studio_form.html"

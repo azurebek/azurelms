@@ -736,6 +736,20 @@ mustaqil host yuzalari alohida. SiteSettings brand/logo writeri saqlangan.
 GET design state yaratmaydi; javob yo‘qolsa explicit readback, avtomatik POST
 retry yo‘q. [Bosqich 4](frontend-v1/BACKOFFICE-REFORM-STAGE-4.md).
 
+**Yagona backoffice navigatsiyasi (2026-10-10):**
+`backoffice_unified_navigation` default OFF. `core/backoffice_navigation.py`
+aniq route registri va request-scope flag qiymatlari orqali ruxsatga mos
+menyu/ichki kirishlarni beradi; permission authority baribir view/service.
+`core/backoffice_sections.py` faqat GET payments/site/settings/groups/plans
+markazlari; guruhlar canonical teacher scope, 12 qatorli pagination.
+Legacy base o‘z faylida saqlangan, `backoffice/base.html` flag ON’da workspace
+bridge oladi; blog own-author policy bilan shu qobiqqa ulanadi. Tarif/guruh
+saqlash mavjud catalog writeridan so‘ng tegishli yangi ro‘yxatga qaytadi.
+V1 library/editor va teacher chuqur yuzalarining o‘z qobig‘i, revision va
+confirmationlari qoladi; boshqaruvga qaytish havolasi qo‘shilgan.
+Migratsiya, yangi biznes writeri yoki production deploy yo‘q.
+[Bosqich 5](frontend-v1/BACKOFFICE-REFORM-STAGE-5.md).
+
 Custom yashirin admin URL'lari:
 
 ```

@@ -1,35 +1,35 @@
 {% extends "backoffice/base.html" %}
 {% load static %}
 
-{% block bo_title %}Control Center{% endblock %}
+{% block bo_title %}{% if backoffice_unified_enabled %}Xizmatlar holati{% else %}Control Center{% endif %}{% endblock %}
 {% block bo_icon %}bi-command{% endblock %}
-{% block bo_topbar %}Azure Control Center{% endblock %}
+{% block bo_topbar %}{% if backoffice_unified_enabled %}Xizmatlar holati{% else %}Azure Control Center{% endif %}{% endblock %}
 {% block page_css %}<link rel="stylesheet" href="{% static 'css/control-center.css' %}">{% endblock %}
 
 {% block bo_content %}
 <section class="cc-hero cc-status-{{ snapshot.overall_status }}">
   <div>
-    <div class="cc-kicker">OWNER CONTROL PLANE · READ-ONLY FOUNDATION</div>
-    <h1>Platforma holati bitta nuqtada</h1>
-    <p>Bu snapshot biznes-mantiqni ko'chirmaydi. Har modul o'z canonical state'ida qoladi, health va effective config shu yerda tutashadi.</p>
+    <div class="cc-kicker">{% if backoffice_unified_enabled %}SOZLAMALAR · XIZMATLAR HOLATI{% else %}OWNER CONTROL PLANE · READ-ONLY FOUNDATION{% endif %}</div>
+    <h1>{% if backoffice_unified_enabled %}Xizmatlar qanday ishlayapti?{% else %}Platforma holati bitta nuqtada{% endif %}</h1>
+    <p>{% if backoffice_unified_enabled %}Ogohlantirish bor xizmatni toping va uning tavsiyasini oching. Bu sahifa holatni ko‘rsatadi; hech qanday sozlamani o‘zgartirmaydi.{% else %}Bu snapshot biznes-mantiqni ko'chirmaydi. Har modul o'z canonical state'ida qoladi, health va effective config shu yerda tutashadi.{% endif %}</p>
   </div>
   <div class="cc-overall">
     <span class="cc-dot"></span>
-    <div><strong>{{ snapshot.overall_status|upper }}</strong><small>{{ snapshot.environment }} · {{ snapshot.generated_at|date:"d.m.Y H:i:s" }}</small></div>
+    <div><strong>{% if backoffice_unified_enabled %}{% if snapshot.overall_status == 'green' %}Me’yorda{% elif snapshot.overall_status == 'amber' %}E’tibor kerak{% else %}Muammo bor{% endif %}{% else %}{{ snapshot.overall_status|upper }}{% endif %}</strong><small>{{ snapshot.environment }} · {{ snapshot.generated_at|date:"d.m.Y H:i:s" }}</small></div>
   </div>
 </section>
 
 <section class="cc-summary" aria-label="Capability status xulosasi">
-  <article><span class="cc-summary-dot is-green"></span><div><strong>{{ snapshot.counts.green }}</strong><small>GREEN</small></div></article>
-  <article><span class="cc-summary-dot is-amber"></span><div><strong>{{ snapshot.counts.amber }}</strong><small>AMBER</small></div></article>
-  <article><span class="cc-summary-dot is-red"></span><div><strong>{{ snapshot.counts.red }}</strong><small>RED</small></div></article>
-  <article><i class="bi bi-boxes"></i><div><strong>{{ snapshot.counts.total }}</strong><small>CAPABILITY</small></div></article>
+  <article><span class="cc-summary-dot is-green"></span><div><strong>{{ snapshot.counts.green }}</strong><small>{% if backoffice_unified_enabled %}Me’yorda{% else %}GREEN{% endif %}</small></div></article>
+  <article><span class="cc-summary-dot is-amber"></span><div><strong>{{ snapshot.counts.amber }}</strong><small>{% if backoffice_unified_enabled %}E’tibor kerak{% else %}AMBER{% endif %}</small></div></article>
+  <article><span class="cc-summary-dot is-red"></span><div><strong>{{ snapshot.counts.red }}</strong><small>{% if backoffice_unified_enabled %}Muammo bor{% else %}RED{% endif %}</small></div></article>
+  <article><i class="bi bi-boxes"></i><div><strong>{{ snapshot.counts.total }}</strong><small>{% if backoffice_unified_enabled %}Xizmat{% else %}CAPABILITY{% endif %}</small></div></article>
 </section>
 
 <div class="cc-layout">
   <section class="cc-main">
     <div class="cc-section-head">
-      <div><span class="cc-kicker">CAPABILITY REGISTRY</span><h2>Tizim stoplight'i</h2></div>
+      <div><span class="cc-kicker">{% if backoffice_unified_enabled %}XIZMATLAR{% else %}CAPABILITY REGISTRY{% endif %}</span><h2>{% if backoffice_unified_enabled %}Har bir xizmat holati{% else %}Tizim stoplight'i{% endif %}</h2></div>
       <span class="cc-readonly"><i class="bi bi-eye"></i> Faqat kuzatuv</span>
     </div>
 
@@ -38,12 +38,14 @@
       <article class="cc-capability cc-card-{{ item.status }}" id="capability-{{ item.definition.slug }}">
         <div class="cc-card-head">
           <div>
-            <span class="cc-category">{{ item.definition.category }} · {{ item.definition.criticality }}</span>
+            {% if not backoffice_unified_enabled %}<span class="cc-category">{{ item.definition.category }} · {{ item.definition.criticality }}</span>{% endif %}
             <h3>{{ item.definition.label }}</h3>
           </div>
-          <span class="cc-badge is-{{ item.status }}"><span></span>{{ item.status|upper }}</span>
+          <span class="cc-badge is-{{ item.status }}"><span></span>{% if backoffice_unified_enabled %}{% if item.status == 'green' %}Me’yorda{% elif item.status == 'amber' %}E’tibor kerak{% else %}Muammo bor{% endif %}{% else %}{{ item.status|upper }}{% endif %}</span>
         </div>
         <p class="cc-summary-text">{{ item.summary }}</p>
+{% if backoffice_unified_enabled %}<details class="bo-settings-detail"><summary>Texnik tafsilotlar</summary>{% endif %}
+        {% if backoffice_unified_enabled %}<p class="cc-category">{{ item.definition.category }} · {{ item.definition.criticality }}</p>{% endif %}
         <p class="cc-description">{{ item.definition.description }}</p>
         {% if item.details %}
         <dl class="cc-details">
@@ -54,21 +56,25 @@
           <span><i class="bi bi-person-check"></i> {{ item.definition.owner }}</span>
           {% if item.definition.dependencies %}<span><i class="bi bi-diagram-3"></i> {{ item.definition.dependencies|join:", " }}</span>{% endif %}
         </div>
-        <details class="cc-runbook"><summary>Runbook</summary><p>{{ item.definition.runbook }}</p></details>
+{% if backoffice_unified_enabled %}</details>{% endif %}
+        <details class="cc-runbook"><summary>{% if backoffice_unified_enabled %}Nima qilish mumkin?{% else %}Runbook{% endif %}</summary><p>{{ item.definition.runbook }}</p></details>
       </article>
       {% endfor %}
     </div>
   </section>
 
   <aside class="cc-side">
+{% if backoffice_unified_enabled %}<details class="bo-settings-detail"><summary>Amaldagi texnik qiymatlar</summary>{% endif %}
     <section class="cc-panel">
       <span class="cc-kicker">EFFECTIVE CONFIG</span>
-      <h2>Joriy konfiguratsiya</h2>
+      <h2>{% if backoffice_unified_enabled %}Amaldagi texnik qiymatlar{% else %}Joriy konfiguratsiya{% endif %}</h2>
       <dl class="cc-config">
         {% for key, value in snapshot.effective_config %}<div><dt>{{ key }}</dt><dd>{{ value }}</dd></div>{% endfor %}
       </dl>
     </section>
+{% if backoffice_unified_enabled %}</details>{% endif %}
 
+{% if backoffice_unified_enabled %}<details class="bo-settings-detail"><summary>Boshqa boshqaruv sahifalari</summary>{% endif %}
     <section class="cc-panel">
       <span class="cc-kicker">CONTROL PATHS</span>
       <h2>Boshqaruv yo'llari</h2>
@@ -83,6 +89,7 @@
       <a class="cc-link" href="{% url 'backoffice_dashboard' %}"><span><i class="bi bi-graph-up"></i> Biznes dashboard</span><i class="bi bi-arrow-right"></i></a>
       <div class="cc-next"><i class="bi bi-cone-striped"></i><p><strong>Keyingi qatlam</strong>AI sifat/xarajat release gate va offsite zaxira hali shu foundation ustiga ulanadi.</p></div>
     </section>
+{% if backoffice_unified_enabled %}</details>{% endif %}
   </aside>
 </div>
 {% endblock %}

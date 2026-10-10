@@ -10,10 +10,10 @@
 <section class="brand-hero">
   <div>
     <span class="brand-kicker">XARAJAT</span>
-    <h1>AI sarfining pul ko'rinishi</h1>
-    <p>Xarajat siz kiritgan <strong>sanali narx snapshot'lari</strong> asosida hisoblanadi. Narxi kiritilmagan model uchun sarf <strong>«narxlanmagan»</strong> deb sanaladi — nol deb emas.</p>
+    <h1>{% if backoffice_unified_enabled %}AI uchun qancha sarflandi?{% else %}AI sarfining pul ko'rinishi{% endif %}</h1>
+    <p>{% if backoffice_unified_enabled %}Hisob siz kiritgan narxlar va ularning amal qilish sanasiga asoslanadi. Narxi kiritilmagan sarf jamiga kirmaydi va alohida ko‘rsatiladi.{% else %}Xarajat siz kiritgan <strong>sanali narx snapshot'lari</strong> asosida hisoblanadi. Narxi kiritilmagan model uchun sarf <strong>«narxlanmagan»</strong> deb sanaladi — nol deb emas.{% endif %}</p>
   </div>
-  <a class="brand-back" href="{% url 'backoffice_control' %}"><i class="bi bi-arrow-left"></i> Control Center</a>
+  <a class="brand-back" href="{% if backoffice_unified_enabled %}{% url 'backoffice_workspace_settings' %}{% else %}{% url 'backoffice_control' %}{% endif %}"><i class="bi bi-arrow-left"></i> {% if backoffice_unified_enabled %}Sozlamalar{% else %}Control Center{% endif %}</a>
 </section>
 
 <div class="brand-layout">
@@ -24,7 +24,7 @@
         <span>01</span>
         <div>
           <h2>Jami</h2>
-          <p>Muvaffaqiyatli chaqiruvlar bo'yicha. Yiqilgan chaqiruv uchun to'lanmaydi.</p>
+          <p>{% if backoffice_unified_enabled %}Hisobga narxi ma’lum, muvaffaqiyatli AI so‘rovlari kiritilgan.{% else %}Muvaffaqiyatli chaqiruvlar bo'yicha. Yiqilgan chaqiruv uchun to'lanmaydi.{% endif %}</p>
         </div>
       </div>
       <div class="brand-fields">
@@ -42,6 +42,7 @@
       </div>
     </section>
 
+{% if backoffice_unified_enabled %}<details class="bo-settings-detail"><summary>Modellar bo‘yicha xarajat tafsiloti</summary>{% endif %}
     <section class="brand-panel">
       <div class="brand-panel-head"><span>02</span><div><h2>Model bo'yicha</h2></div></div>
       <div class="brand-fields">
@@ -68,17 +69,20 @@
         {% endif %}
       </div>
     </section>
+{% if backoffice_unified_enabled %}</details>{% endif %}
 
+{% if backoffice_unified_enabled %}<details class="bo-settings-detail"{% if form.is_bound or form.errors %} open{% endif %}><summary>Yangi narx qo‘shish</summary>{% endif %}
     <section class="brand-panel">
       <div class="brand-panel-head">
         <span>03</span>
         <div>
-          <h2>Narx snapshot'i qo'shish</h2>
-          <p>Yozuvlar <strong>append-only</strong>: narx o'zgarsa yangi sana bilan yangi qator qo'shiladi, eskisi tahrirlanmaydi.</p>
+          <h2>{% if backoffice_unified_enabled %}Yangi narx qo‘shish{% else %}Narx snapshot'i qo'shish{% endif %}</h2>
+          <p>{% if backoffice_unified_enabled %}Narx o‘zgarganda yangi sana bilan yozuv qo‘shing. Avvalgi narx va uning tarixi saqlanadi.{% else %}Yozuvlar <strong>append-only</strong>: narx o'zgarsa yangi sana bilan yangi qator qo'shiladi, eskisi tahrirlanmaydi.{% endif %}</p>
         </div>
       </div>
-      <form method="post" class="brand-fields" onsubmit="return confirm('Narx snapshot’i yozilsinmi?');">
+      <form method="post" class="brand-fields" onsubmit="return confirm('{% if backoffice_unified_enabled %}Yangi narx saqlansinmi?{% else %}Narx snapshot’i yozilsinmi?{% endif %}');">
         {% csrf_token %}
+        {% if form.non_field_errors %}<div class="brand-errors">{{ form.non_field_errors }}</div>{% endif %}
         {% for field in form %}
         <label class="brand-field{% if field.name == 'confirm_change' %} brand-field--check{% endif %}">
           <span>{{ field.label }}</span>
@@ -87,9 +91,10 @@
           {% for error in field.errors %}<em>{{ error }}</em>{% endfor %}
         </label>
         {% endfor %}
-        <button class="brand-submit" type="submit"><i class="bi bi-plus-lg"></i> Snapshot yozish</button>
+        <button class="brand-submit" type="submit"><i class="bi bi-plus-lg"></i> {% if backoffice_unified_enabled %}Narxni saqlash{% else %}Snapshot yozish{% endif %}</button>
       </form>
     </section>
+{% if backoffice_unified_enabled %}</details>{% endif %}
   </div>
 
   <aside class="brand-side">

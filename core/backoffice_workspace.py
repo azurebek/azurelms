@@ -57,17 +57,8 @@ def workspace_view(view):
 
 
 def _nav(request, active):
-    course_workspace = flag_enabled(FLAG)
-    student_support = flag_enabled('backoffice_student_support')
-    rows = [('Ish stoli', 'backoffice_workspace_home' if course_workspace else 'backoffice_dashboard', 'home'),
-            ('Kurslar', 'backoffice_workspace_courses' if course_workspace else 'backoffice_courses', 'courses'),
-            ('O‘quvchilar', 'backoffice_workspace_students' if student_support else 'backoffice_users', 'students')]
-    if request.user.is_superuser:
-        rows += [('Sayt va dizayn', 'backoffice_design' if flag_enabled('backoffice_design_workspace') else 'backoffice_brand', 'design'),
-                 ('To‘lovlar', 'backoffice_receipts', 'payments'),
-                 ('Sozlamalar', 'backoffice_control', 'settings')]
-    return [{'label': label, 'url': reverse(name), 'active': key == active}
-            for label, name, key in rows]
+    from core.backoffice_navigation import navigation
+    return navigation(request, active)
 
 
 def _render(request, page, context, status=200):

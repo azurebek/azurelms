@@ -1,4 +1,4 @@
-{% extends "base_teacher.html" %}
+{% extends blog_workspace_base|default:"base_teacher.html" %}
 {% comment %}
   Blog maqola muharriri (BlogPostCreateView / BlogPostUpdateView).
   Proto: azurelms-proto/teacher/blog-editor.html.
@@ -43,7 +43,7 @@
 
   {% if form.non_field_errors %}<div style="background:var(--red-soft);color:var(--red);border:1px solid var(--red);border-radius:10px;padding:11px 14px;font-size:13px;margin-bottom:18px;">{{ form.non_field_errors }}</div>{% endif %}
 
-  <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:20px;align-items:start;">
+  <div class="bs-editor-layout" style="display:grid;grid-template-columns:1.6fr 1fr;gap:20px;align-items:start;">
     <!-- Chap: muharrir -->
     <div style="display:flex;flex-direction:column;gap:16px;">
       <div class="se-card">
@@ -55,8 +55,9 @@
         {{ form.body }}{% if form.body.errors %}<div class="se-err">{{ form.body.errors|striptags }}</div>{% endif %}
       </div>
       <div class="se-card">
-        <label class="se-lbl">Highlight iqtibos</label>
+        <label class="se-lbl">{% if backoffice_unified_enabled %}Ajratib ko‘rsatiladigan iqtibos{% else %}Highlight iqtibos{% endif %}</label>
         {{ form.featured_quote }}
+        {% if backoffice_unified_enabled and form.featured_quote.errors %}<div class="se-err">{{ form.featured_quote.errors|striptags }}</div>{% endif %}
       </div>
     </div>
 
@@ -65,15 +66,18 @@
       <div class="se-card">
         <label class="se-lbl">Nashr holati</label>
         {{ form.status }}
+        {% if backoffice_unified_enabled and form.status.errors %}<div class="se-err">{{ form.status.errors|striptags }}</div>{% endif %}
         <label class="se-lbl" style="margin-top:14px;">Rejalashtirilgan sana</label>
         {{ form.published_at }}
-        <div class="se-toggle" style="border-top:1px solid var(--line-2);margin-top:14px;"><div><div style="font-size:13px;font-weight:600;color:var(--ink);">Tanlangan (featured)</div><div style="font-size:11.5px;color:var(--ink-3);">Blog bosh sahifasida ajratiladi</div></div>{{ form.featured }}</div>
+        {% if backoffice_unified_enabled and form.published_at.errors %}<div class="se-err">{{ form.published_at.errors|striptags }}</div>{% endif %}
+        <div class="se-toggle" style="border-top:1px solid var(--line-2);margin-top:14px;"><div><div style="font-size:13px;font-weight:600;color:var(--ink);">{% if backoffice_unified_enabled %}Bosh sahifada ajratib ko‘rsatish{% else %}Tanlangan (featured){% endif %}</div><div style="font-size:11.5px;color:var(--ink-3);">Blog bosh sahifasida ajratiladi</div></div>{{ form.featured }}</div>
         <div class="se-toggle"><div><div style="font-size:13px;font-weight:600;color:var(--ink);">Izohlar</div><div style="font-size:11.5px;color:var(--ink-3);">O'quvchilar izoh qoldira oladi</div></div>{{ form.allow_comments }}</div>
       </div>
 
       <div class="se-card">
-        <label class="se-lbl">Teglar</label>
+        <label class="se-lbl">{% if backoffice_unified_enabled %}Mavzular{% else %}Teglar{% endif %}</label>
         {{ form.tag_names }}
+        {% if backoffice_unified_enabled and form.tag_names.errors %}<div class="se-err">{{ form.tag_names.errors|striptags }}</div>{% endif %}
         <div style="font-size:11px;color:var(--ink-4);margin-top:6px;">Vergul bilan ajrating: grammatika, maslahat</div>
       </div>
 
@@ -81,16 +85,21 @@
         <label class="se-lbl">Muqova rasmi</label>
         {% if form.instance.cover_image %}<img src="{{ form.instance.cover_image.url }}" alt="" style="width:100%;border-radius:10px;margin-bottom:10px;">{% endif %}
         <input type="file" name="{{ form.cover_image.html_name }}" accept="image/*" style="width:100%;font-size:13px;color:var(--ink-2);padding:10px;border:1px dashed var(--line);border-radius:10px;background:var(--paper-2);cursor:pointer;">
-        <label class="se-lbl" style="margin-top:14px;">Rasm tavsifi (alt)</label>
+        {% if backoffice_unified_enabled and form.cover_image.errors %}<div class="se-err">{{ form.cover_image.errors|striptags }}</div>{% endif %}
+        <label class="se-lbl" style="margin-top:14px;">{% if backoffice_unified_enabled %}Rasmning matnli tavsifi{% else %}Rasm tavsifi (alt){% endif %}</label>
         {{ form.cover_alt_text }}
+        {% if backoffice_unified_enabled and form.cover_alt_text.errors %}<div class="se-err">{{ form.cover_alt_text.errors|striptags }}</div>{% endif %}
       </div>
 
-      <div class="se-card">
-        <label class="se-lbl">SEO sarlavha</label>
+      {% if backoffice_unified_enabled %}<details class="bo-settings-detail"{% if form.is_bound or form.seo_title.errors or form.meta_description.errors %} open{% endif %}><summary><strong>Qidiruv va ulashish</strong><span>Qo‘shimcha sarlavha va qisqa tavsif.</span></summary><div>{% else %}<div class="se-card">{% endif %}
+        <label class="se-lbl">{% if backoffice_unified_enabled %}Qidiruvdagi sarlavha{% else %}SEO sarlavha{% endif %}</label>
         {{ form.seo_title }}
-        <label class="se-lbl" style="margin-top:14px;">Meta tavsif</label>
+        {% if backoffice_unified_enabled and form.seo_title.errors %}<div class="se-err">{{ form.seo_title.errors|striptags }}</div>{% endif %}
+        <label class="se-lbl" style="margin-top:14px;">{% if backoffice_unified_enabled %}Havola uchun qisqa tavsif{% else %}Meta tavsif{% endif %}</label>
         {{ form.meta_description }}
+        {% if backoffice_unified_enabled and form.meta_description.errors %}<div class="se-err">{{ form.meta_description.errors|striptags }}</div>{% endif %}
       </div>
+      {% if backoffice_unified_enabled %}</details>{% endif %}
     </div>
   </div>
 </form>

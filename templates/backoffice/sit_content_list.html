@@ -9,21 +9,21 @@
 {% block bo_content %}
 <div class="sit-bo-wrap">
   <div class="sit-bo-head">
-    <div><div class="sit-bo-kicker">{{ eyebrow }}</div><h1>{{ title }}</h1><p>{{ result_count }} ta yozuv. Draft va public holat alohida boshqariladi.</p></div>
+    <div><div class="sit-bo-kicker">{% if backoffice_unified_enabled %}Turkiyada o‘qish · Kontent{% else %}{{ eyebrow }}{% endif %}</div><h1>{{ title }}</h1><p>{{ result_count }} ta yozuv. {% if backoffice_unified_enabled %}Qoralamalar va nashr qilingan yozuvlar shu yerda boshqariladi.{% else %}Draft va public holat alohida boshqariladi.{% endif %}</p></div>
     <div class="sit-bo-actions"><a class="sit-bo-btn primary" href="{% url create_url_name %}"><i class="bi bi-plus-lg"></i> Yangi {% if content_kind == 'announcement' %}e'lon{% else %}qo'llanma{% endif %}</a></div>
   </div>
   {% if content_kind == 'announcement' %}{% include "backoffice/sit_tabs.html" with current="announcements" %}{% else %}{% include "backoffice/sit_tabs.html" with current="guides" %}{% endif %}
 
   <form class="sit-bo-filters" method="get">
     <input type="search" name="q" value="{{ filters.q }}" placeholder="Sarlavha yoki kategoriya...">
-    <select name="publication" aria-label="Nashr holati"><option value="all">Barcha nashrlar</option><option value="published"{% if filters.publication == 'published' %} selected{% endif %}>Jonli</option><option value="draft"{% if filters.publication == 'draft' %} selected{% endif %}>Draft</option></select>
+    <select name="publication" aria-label="Nashr holati"><option value="all">Barcha nashrlar</option><option value="published"{% if filters.publication == 'published' %} selected{% endif %}>{% if backoffice_unified_enabled %}Nashrdagi{% else %}Jonli{% endif %}</option><option value="draft"{% if filters.publication == 'draft' %} selected{% endif %}>{% if backoffice_unified_enabled %}Qoralama{% else %}Draft{% endif %}</option></select>
     {% if content_kind == 'announcement' %}
       <select name="category" aria-label="E'lon kategoriyasi"><option value="all">Barcha kategoriyalar</option>{% for value,label in category_choices %}<option value="{{ value }}"{% if filters.category == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
       <select name="homepage" aria-label="Bosh sahifa holati"><option value="all">Bosh sahifa: barchasi</option><option value="yes"{% if filters.homepage == 'yes' %} selected{% endif %}>Ko'rsatiladi</option><option value="no"{% if filters.homepage == 'no' %} selected{% endif %}>Ko'rsatilmaydi</option></select>
     {% else %}
       <select name="featured" aria-label="Bosh sahifa holati"><option value="all">Bosh sahifa: barchasi</option><option value="yes"{% if filters.featured == 'yes' %} selected{% endif %}>Ko'rsatiladi</option><option value="no"{% if filters.featured == 'no' %} selected{% endif %}>Ko'rsatilmaydi</option></select>
     {% endif %}
-    <button class="sit-bo-btn" type="submit"><i class="bi bi-funnel"></i> Filter</button>
+    <button class="sit-bo-btn" type="submit"><i class="bi bi-funnel"></i> {% if backoffice_unified_enabled %}Saralash{% else %}Filter{% endif %}</button>
   </form>
 
   <div class="sit-bo-table-wrap">
@@ -37,10 +37,10 @@
           {% if content_kind == 'announcement' %}<td>{{ obj.university.name|default:"—" }}</td>{% endif %}
           <td>{% if content_kind == 'announcement' %}{{ obj.published_on|date:"d.m.Y" }}{% else %}{{ obj.published_on|date:"d.m.Y"|default:"—" }}{% endif %}</td>
           <td>{% if content_kind == 'announcement' %}{% if obj.show_on_home %}<span class="sit-bo-badge live">Ha</span>{% else %}<span class="sit-bo-badge">Yo'q</span>{% endif %}{% else %}{% if obj.is_featured %}<span class="sit-bo-badge live">Ha</span>{% else %}<span class="sit-bo-badge">Yo'q</span>{% endif %}{% endif %}</td>
-          <td><span class="sit-bo-badge {% if obj.is_published %}live{% else %}draft{% endif %}">{% if obj.is_published %}Jonli{% else %}Draft{% endif %}</span></td>
+          <td><span class="sit-bo-badge {% if obj.is_published %}live{% else %}draft{% endif %}">{% if obj.is_published %}{% if backoffice_unified_enabled %}Nashrdagi{% else %}Jonli{% endif %}{% else %}{% if backoffice_unified_enabled %}Qoralama{% else %}Draft{% endif %}{% endif %}</span></td>
           <td>{% if content_kind == 'announcement' %}<a class="sit-bo-btn" href="{% url 'sit_backoffice:announcement_edit' obj.id %}"><i class="bi bi-pencil"></i> Tahrirlash</a>{% else %}<a class="sit-bo-btn" href="{% url 'sit_backoffice:guide_edit' obj.id %}"><i class="bi bi-pencil"></i> Tahrirlash</a>{% endif %}</td>
         </tr>
-      {% empty %}<tr><td colspan="7"><div class="sit-bo-empty">Filterga mos yozuv topilmadi.</div></td></tr>{% endfor %}
+      {% empty %}<tr><td colspan="7"><div class="sit-bo-empty">{% if backoffice_unified_enabled %}Tanlangan shartlarga mos yozuv topilmadi.{% else %}Filterga mos yozuv topilmadi.{% endif %}</div></td></tr>{% endfor %}
       </tbody>
     </table>
   </div>

@@ -1,16 +1,34 @@
 {% extends "backoffice/base.html" %}
 {% load static %}
 {% block bo_title %}{{ title }}{% endblock %}
-{% block bo_topbar %}Tariflar va guruhlar{% endblock %}
+{% block bo_topbar %}{% if backoffice_unified_enabled %}{% if request.resolver_match.url_name == 'backoffice_plan_edit' %}Tariflar{% else %}Guruhlar{% endif %}{% else %}Tariflar va guruhlar{% endif %}{% endblock %}
 {% block bo_icon %}bi-tags{% endblock %}
 {% block page_css %}<link rel="stylesheet" href="{% static 'css/brand-control.css' %}"><link rel="stylesheet" href="{% static 'css/catalog-control.css' %}">{% endblock %}
 {% block bo_content %}
-<section class="brand-hero"><div><span class="brand-kicker">KATALOG</span><h1>{{ title }}</h1><p>{{ note }}</p></div><a class="brand-back" href="{% url 'backoffice_catalog' %}">Katalogga qaytish</a></section>
+<section class="brand-hero">
+  <div>
+    <span class="brand-kicker">{% if backoffice_unified_enabled %}{% if request.resolver_match.url_name == 'backoffice_plan_edit' %}TO‘LOVLAR{% else %}KURSLAR{% endif %}{% else %}KATALOG{% endif %}</span>
+    <h1>{% if backoffice_unified_enabled and request.resolver_match.url_name == 'backoffice_cohort_create' %}Yangi guruh{% else %}{{ title }}{% endif %}</h1>
+    {% if backoffice_unified_enabled and request.resolver_match.url_name == 'backoffice_plan_edit' %}
+      <p>Narx va tarifda ko‘rsatiladigan imkoniyatlarni yangilang. Saqlash avvalgi to‘lov tarixi yoki sotib olingan huquqlarni o‘zgartirmaydi.</p>
+      <details><summary>Qo‘shimcha ma’lumot</summary><p>{{ note }}</p></details>
+    {% else %}<p>{{ note }}</p>{% endif %}
+  </div>
+  {% if backoffice_unified_enabled %}
+    {% if request.resolver_match.url_name == 'backoffice_plan_edit' %}
+      <a class="brand-back" href="{% url 'backoffice_workspace_plans' %}">Tariflarga qaytish</a>
+    {% else %}<a class="brand-back" href="{% url 'backoffice_workspace_groups' %}">Guruhlarga qaytish</a>{% endif %}
+  {% else %}<a class="brand-back" href="{% url 'backoffice_catalog' %}">Katalogga qaytish</a>{% endif %}
+</section>
 <form method="post" class="brand-panel catalog-form">{% csrf_token %}
   {{ form.non_field_errors }}
   {% for field in form %}<div class="brand-field">
-    {% if field.field.widget.input_type == "checkbox" %}<label class="brand-check">{{ field }} {{ field.label }}</label>{% else %}<label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% endif %}
-    {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}{{ field.errors }}
+    {% if field.field.widget.input_type == "checkbox" %}
+      <label class="brand-check">{{ field }} {% if backoffice_unified_enabled and field.name == 'is_checkout_default' %}Yangi to‘lovlarda avval tanlansin{% else %}{{ field.label }}{% endif %}</label>
+    {% else %}
+      <label for="{{ field.id_for_label }}">{% if backoffice_unified_enabled and field.name == 'course' %}Kurs{% elif backoffice_unified_enabled and field.name == 'features_text' %}Tarifda ko‘rsatiladigan imkoniyatlar{% elif backoffice_unified_enabled and field.name == 'name' and request.resolver_match.url_name == 'backoffice_plan_edit' %}Tarif nomi{% else %}{{ field.label }}{% endif %}</label>{{ field }}
+    {% endif %}
+    {% if field.help_text %}<small>{% if backoffice_unified_enabled and field.name == 'is_checkout_default' %}Yangi to‘lov sahifasida shu guruh birinchi tanlanadi.{% elif backoffice_unified_enabled and field.name == 'capacity' %}Bo‘sh qoldirilsa tarifning standart sig‘imi olinadi. Bu guruh uchun uni kamaytirish yoki oshirish mumkin. Band joylar sonidan kam bo‘la olmaydi.{% elif backoffice_unified_enabled and field.name == 'features_text' %}Har qatorda bitta imkoniyat. Tarifga kirmaydigan imkoniyat oldiga - yozing. Faqat amalda mavjud xizmatlarni kiriting.{% else %}{{ field.help_text }}{% endif %}</small>{% endif %}{{ field.errors }}
   </div>{% endfor %}
   <button class="catalog-save" type="submit">Saqlash</button>
 </form>

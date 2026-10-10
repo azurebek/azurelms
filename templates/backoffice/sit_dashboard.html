@@ -1,17 +1,17 @@
 {% extends "backoffice/base.html" %}
 {% load static %}
 
-{% block bo_title %}Study in Turkey{% endblock %}
+{% block bo_title %}{% if backoffice_unified_enabled %}Turkiyada o‘qish{% else %}Study in Turkey{% endif %}{% endblock %}
 {% block bo_icon %}bi-mortarboard{% endblock %}
-{% block bo_topbar %}Study in Turkey{% endblock %}
+{% block bo_topbar %}{% if backoffice_unified_enabled %}Turkiyada o‘qish{% else %}Study in Turkey{% endif %}{% endblock %}
 {% block page_css %}<link rel="stylesheet" href="{% static 'css/sit-backoffice.css' %}">{% endblock %}
 
 {% block bo_content %}
 <div class="sit-bo-wrap">
   <div class="sit-bo-head">
     <div>
-      <div class="sit-bo-kicker">SIT · Owner workflow</div>
-      <h1>Study in Turkey boshqaruvi</h1>
+      <div class="sit-bo-kicker">{% if backoffice_unified_enabled %}Kontent · Turkiyada o‘qish{% else %}SIT · Owner workflow{% endif %}</div>
+      <h1>{% if backoffice_unified_enabled %}Turkiyada o‘qish{% else %}Study in Turkey{% endif %} boshqaruvi</h1>
       <p>Universitet katalogi, qabul yangiliklari va qo'llanmalarni bitta nazorat nuqtasidan boshqaring.</p>
     </div>
     <div class="sit-bo-actions">
@@ -37,20 +37,20 @@
           <a class="sit-bo-row" href="{% url 'sit_backoffice:university_edit' university.id %}">
             <span class="sit-bo-row-icon"><i class="bi bi-building"></i></span>
             <span class="sit-bo-row-main"><span class="sit-bo-row-title">{{ university.name }}</span><span class="sit-bo-row-meta">{{ university.city }} · {{ university.program_count }} dastur · {{ university.updated_at|date:"d.m.Y H:i" }}</span></span>
-            <span class="sit-bo-badge {% if university.is_published %}live{% else %}draft{% endif %}">{% if university.is_published %}Jonli{% else %}Draft{% endif %}</span>
+            <span class="sit-bo-badge {% if university.is_published %}live{% else %}draft{% endif %}">{% if university.is_published %}{% if backoffice_unified_enabled %}Nashrdagi{% else %}Jonli{% endif %}{% else %}{% if backoffice_unified_enabled %}Qoralama{% else %}Draft{% endif %}{% endif %}</span>
           </a>
         {% empty %}<div class="sit-bo-empty">Universitet hali qo'shilmagan.</div>{% endfor %}
       </section>
 
       <section class="sit-bo-panel">
-        <div class="sit-bo-panel-head"><div><h2>Dolzarblik nazorati</h2><p>Published yozuvlar {{ stale_after_days }} kunda qayta tekshiriladi</p></div></div>
+        <div class="sit-bo-panel-head"><div><h2>Dolzarblik nazorati</h2><p>{% if backoffice_unified_enabled %}Nashrdagi yozuvlarni har {{ stale_after_days }} kunda qayta tekshiring{% else %}Published yozuvlar {{ stale_after_days }} kunda qayta tekshiriladi{% endif %}</p></div></div>
         {% for university in stale_universities %}
           <a class="sit-bo-row" href="{% url 'sit_backoffice:university_edit' university.id %}">
             <span class="sit-bo-row-icon"><i class="bi bi-exclamation-triangle"></i></span>
             <span class="sit-bo-row-main"><span class="sit-bo-row-title">{{ university.name }}</span><span class="sit-bo-row-meta">Oxirgi tekshiruv: {{ university.last_verified_on|date:"d.m.Y"|default:"kiritilmagan" }}</span></span>
             <span class="sit-bo-badge stale">Tekshirish kerak</span>
           </a>
-        {% empty %}<div class="sit-bo-empty"><i class="bi bi-check-circle"></i> Barcha public ma'lumot dolzarb.</div>{% endfor %}
+        {% empty %}<div class="sit-bo-empty"><i class="bi bi-check-circle"></i> {% if backoffice_unified_enabled %}Nashrdagi ma’lumotlarni qayta tekshirish muddati hali kelmagan.{% else %}Barcha public ma'lumot dolzarb.{% endif %}</div>{% endfor %}
       </section>
     </div>
 

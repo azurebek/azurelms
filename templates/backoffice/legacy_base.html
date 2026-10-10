@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load static %}
+{% comment %}
+  AdminShell — backoffice paneli (sidebar + topbar, qizil urg'u + qora logo).
+  Proto: azurelms-proto/admin/_shell + admin-shell.css.
+  Panel mexanikasi app-shell.css/js. Nav highlight request.resolver_match.url_name orqali
+  (dashboard view bo_active bermaydi). counts/_backoffice_context badge'lar uchun.
+{% endcomment %}
+
+{% block title %}{{ site_settings.brand_name|default:"AzureLMS" }} — {% block bo_title %}Boshqaruv{% endblock %}{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/app-shell.css' %}">
+  <link rel="stylesheet" href="{% static 'css/admin-shell.css' %}">
+  {% block page_css %}{% endblock %}
+{% endblock %}
+{% block extra_js %}
+  <script defer src="{% static 'js/app-shell.js' %}"></script>
+  {% block page_js %}{% endblock %}
+{% endblock %}
+
+{% block body %}
+{% with url_name=request.resolver_match.url_name url_namespace=request.resolver_match.namespace %}
+<div class="app">
+  <aside class="app-side" data-appside>
+    <div class="app-side-inner">
+      <div class="app-side-head">
+        <a class="app-logo has-role" href="{% url 'backoffice_dashboard' %}">{% include "components/brand_logo.html" with mark_class="app-logo-mark is-dark" name_class="app-logo-name" %}</a>
+        <button type="button" class="app-collapse-btn" data-app-collapse aria-label="Yon panelni yig'ish"><i class="bi bi-chevron-double-left"></i></button>
+      </div>
+      <div class="adm-role"><i class="bi bi-shield-lock-fill"></i> Admin</div>
+      <nav class="app-nav" data-appscroll>
+        <div class="app-nav-group">
+          <button type="button" class="app-nav-label" data-app-group><span>Boshqaruv</span><i class="bi bi-chevron-down"></i></button>
+          {% if request.user.is_superuser %}<a class="app-nav-item{% if url_name == 'backoffice_control' %} active{% endif %}" href="{% url 'backoffice_control' %}"><i class="bi bi-command"></i><span class="label">Control Center</span></a>
+          <a class="app-nav-item{% if url_name == 'backoffice_brand' %} active{% endif %}" href="{% url 'backoffice_brand' %}"><i class="bi bi-palette"></i><span class="label">Brend va logolar</span></a>
+          <a class="app-nav-item{% if url_name == 'backoffice_landing' %} active{% endif %}" href="{% url 'backoffice_landing' %}"><i class="bi bi-window-fullscreen"></i><span class="label">Bosh sahifa</span></a>
+          <a class="app-nav-item{% if bo_active == 'catalog' %} active{% endif %}" href="{% url 'backoffice_catalog' %}"><i class="bi bi-tags"></i><span class="label">Tariflar va guruhlar</span></a>{% endif %}
+          <a class="app-nav-item{% if url_name == 'backoffice_dashboard' %} active{% endif %}" href="{% url 'backoffice_dashboard' %}"><i class="bi bi-grid-1x2"></i><span class="label">Boshqaruv paneli</span>{% if counts.pending_receipts %}<span class="app-nav-badge is-red">{{ counts.pending_receipts }}</span>{% endif %}</a>
+          <a class="app-nav-item{% if url_name == 'backoffice_users' %} active{% endif %}" href="{% url 'backoffice_users' %}"><i class="bi bi-people"></i><span class="label">Foydalanuvchilar</span></a>
+          <a class="app-nav-item{% if url_name == 'backoffice_chats' %} active{% endif %}" href="{% url 'backoffice_chats' %}"><i class="bi bi-chat-dots"></i><span class="label">Suhbatlar</span></a>
+        </div>
+        {% if request.user.is_superuser %}<div class="app-nav-group">
+          <button type="button" class="app-nav-label" data-app-group><span>AI</span><i class="bi bi-chevron-down"></i></button>
+          <a class="app-nav-item{% if url_name == 'backoffice_ai_control' %} active{% endif %}" href="{% url 'backoffice_ai_control' %}"><i class="bi bi-cpu"></i><span class="label">AI boshqaruvi</span></a>
+        </div>{% endif %}
+        <div class="app-nav-group">
+          <button type="button" class="app-nav-label" data-app-group><span>Kontent</span><i class="bi bi-chevron-down"></i></button>
+          <a class="app-nav-item{% if url_name == 'backoffice_courses' or url_name == 'backoffice_course_create' or url_name == 'backoffice_course_edit' %} active{% endif %}" href="{% url 'backoffice_courses' %}"><i class="bi bi-journal-richtext"></i><span class="label">Kurslar</span>{% if counts.courses %}<span class="app-nav-badge">{{ counts.courses }}</span>{% endif %}</a>
+          <a class="app-nav-item{% if url_name == 'backoffice_lessons' or url_name == 'backoffice_lesson_edit' %} active{% endif %}" href="{% url 'backoffice_lessons' %}"><i class="bi bi-play-circle"></i><span class="label">Darslar</span></a>
+          <a class="app-nav-item{% if url_name == 'backoffice_exams' or url_name == 'backoffice_exam_edit' %} active{% endif %}" href="{% url 'backoffice_exams' %}"><i class="bi bi-clipboard-check"></i><span class="label">Imtihonlar</span></a>
+          <a class="app-nav-item{% if url_namespace == 'library_backoffice' %} active{% endif %}" href="{% url 'library_backoffice:resources' %}"><i class="bi bi-archive"></i><span class="label">Materiallar</span></a>
+          <a class="app-nav-item" href="{% url 'blog:studio' %}"><i class="bi bi-pencil-square"></i><span class="label">Blog studiya</span>{% if counts.pending_posts %}<span class="app-nav-badge is-amber">{{ counts.pending_posts }}</span>{% endif %}</a>
+          {% if request.user.is_superuser %}<a class="app-nav-item{% if url_namespace == 'sit_backoffice' %} active{% endif %}" href="{% url 'sit_backoffice:dashboard' %}"><i class="bi bi-mortarboard"></i><span class="label">Study in Turkey</span></a>{% endif %}
+        </div>
+      </nav>
+      {% include "components/app_user_menu.html" with shell="backoffice" %}
+    </div>
+  </aside>
+
+  <main class="app-main">
+    <header class="app-top">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button type="button" class="app-menu-btn" data-app-menu aria-label="Menyu"><i class="bi bi-list"></i></button>
+        <span class="app-top-title is-admin"><i class="bi {% block bo_icon %}bi-grid-1x2{% endblock %}"></i> <span>{% block bo_topbar %}Boshqaruv paneli{% endblock %}</span></span>
+      </div>
+      <div class="app-top-actions">
+        <a class="app-ico-btn" href="/" aria-label="Sayt" target="_blank"><i class="bi bi-box-arrow-up-right"></i></a>
+        <button type="button" class="app-ico-btn" aria-label="Mavzu"><i class="bi bi-moon"></i></button>
+        <span class="app-top-av">{{ request.user.first_name.0|default:request.user.username.0|upper }}{{ request.user.last_name.0|upper }}</span>
+      </div>
+    </header>
+
+    <div class="app-body" data-appscroll>
+      {% block app_body %}
+      <div class="app-content">
+        {% block bo_content %}{% endblock %}
+      </div>
+      {% endblock %}
+    </div>
+  </main>
+</div>
+{% endwith %}
+{% endblock %}

@@ -3,7 +3,7 @@
 
 {% block bo_title %}{% if university %}{{ university.short_name }}{% else %}Yangi universitet{% endif %}{% endblock %}
 {% block bo_icon %}bi-building-gear{% endblock %}
-{% block bo_topbar %}SIT universitet muharriri{% endblock %}
+{% block bo_topbar %}{% if backoffice_unified_enabled %}Universitet ma’lumotlari{% else %}SIT universitet muharriri{% endif %}{% endblock %}
 {% block page_css %}<link rel="stylesheet" href="{% static 'css/sit-backoffice.css' %}">{{ form.media }}{% endblock %}
 
 {% block bo_content %}
@@ -17,8 +17,8 @@
         <p>{% if university %}{{ university.city }} · {{ university.get_university_type_display }}{% else %}Avval asosiy ma'lumotni saqlang; fakultet va dasturlar keyingi ekranda ochiladi.{% endif %}</p>
       </div>
       <div class="sit-bo-actions">
-        {% if university %}<a class="sit-bo-btn" href="{{ university.get_absolute_url }}?preview=1" target="_blank"><i class="bi bi-eye"></i> Preview</a>{% endif %}
-        <button class="sit-bo-btn" type="submit" name="save_draft" value="1"><i class="bi bi-file-earmark"></i> Draft saqlash</button>
+        {% if university %}<a class="sit-bo-btn" href="{{ university.get_absolute_url }}?preview=1" target="_blank"><i class="bi bi-eye"></i> {% if backoffice_unified_enabled %}Oldindan ko‘rish{% else %}Preview{% endif %}</a>{% endif %}
+        <button class="sit-bo-btn" type="submit" name="save_draft" value="1"><i class="bi bi-file-earmark"></i> {% if backoffice_unified_enabled %}Qoralamani saqlash{% else %}Draft saqlash{% endif %}</button>
         <button class="sit-bo-btn primary" type="submit"><i class="bi bi-check2"></i> Saqlash</button>
       </div>
     </div>
@@ -77,8 +77,8 @@
       </div>
 
       <aside class="sit-bo-form-section sit-bo-audit">
-        <h2>Tasdiq va audit</h2>
-        <p>Har mutation owner, vaqt va sabab bilan audit jurnaliga yoziladi.</p>
+        <h2>{% if backoffice_unified_enabled %}Sabab va tasdiq{% else %}Tasdiq va audit{% endif %}</h2>
+        <p>{% if backoffice_unified_enabled %}Kim, qachon va nima sababdan o‘zgartirgani tarixga yoziladi.{% else %}Har mutation owner, vaqt va sabab bilan audit jurnaliga yoziladi.{% endif %}</p>
         <label class="sit-bo-field"><span class="sit-bo-label">{{ form.change_reason.label }}</span>{{ form.change_reason }}<small class="sit-bo-help">{{ form.change_reason.help_text }}</small>{% for error in form.change_reason.errors %}<em class="sit-bo-error">{{ error }}</em>{% endfor %}</label>
         <label class="sit-bo-confirm">{{ form.confirm_change }} <span>{{ form.confirm_change.label }}</span></label>
         {% for error in form.confirm_change.errors %}<em class="sit-bo-error">{{ error }}</em>{% endfor %}
