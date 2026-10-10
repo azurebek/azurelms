@@ -16,6 +16,43 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-10 [Codex]: DESIGN-01 DC4 — lokal nashr, tarix va readback
+
+Owner “davom et” topshirig‘i bilan Eleventh Trialga yagona lokal release
+service qo‘shildi. Sabab/tasdiqli publish, private prepared draft, immutable
+tarixdan rollback, revision/idempotency/epoch va reload readback qurildi.
+Real authentication/DB/flag/cache/consumer enforcement alohida ochiq.
+
+- Branch: `codex/design-publish-history`; dalil commit: `4f1110d`.
+  [DC4 kontrakti va19source hash](frontend-v1/DESIGN-01-DC4-RELEASE.md).
+  Lokal URL: `http://127.0.0.1:8088/_preview/design/`.
+- Server/client validation policy bitta catalogda. Local owner fixture
+  haqiqiy login emas; service boundary deny va HTTP CSRF testlari bor.
+  Copy-on-write, no-op, stale, capacity, editor-private receipt; unknown
+  reload oldidan persisted marker, GET-only recovery va no automatic retry.
+  Process/session reset yoki identity eviction eski amalni expire qiladi.
+- Trial ichida env-file off, Gemini/Telegram keys bo‘sh:
+  `../../venv/Scripts/python.exe manage.py test --verbosity 0`:
+  **902 PASS**,325.508s; `manage.py check`:0. Focused14PASS0.060s.
+- `tests/*.test.mjs` PowerShell array → `node --test`: **281 PASS**,
+  852.2959ms;9yangi pending/storage/readback testi. JS syntax PASS.
+- IAB publish/no-op v1, lost response/reload v2, rollback v3,
+  two-tab stale/v4/draft retained, load cancel/confirm va before-send PASS.
+  Published56frame+4editor: actual width/mode/page matched, overflow0.
+  Desktop/mobile ko‘rildi; DC4tab captured error/warn0. Native/AT emas.
+- Validator87field/24action/18state,125link,19live/archive fingerprint
+  va715file checkpoint PASS. Dastlab validator UTF-8 o‘qish tuzatildi;
+  source/test xatosi emas. Diff-check PASS. Existing registry va shared CSS unchanged.
+- `packet-88-20261010-094736.zip` —715fayl, har entry SHA256 tekshirildi;
+  ZIP **`CA47D28BA0825E7034354C876A61E1A9F975E733F7EC2131AD6F4CA75AB3B0FA`**.
+  Packet87 saqlandi/hash matched; uning12source hashi archive ichida tekshirildi.
+  Source/arxiv ignored, force-add/upload yo‘q; same-disk recovery/offsite emas.
+  Remote CI ignored prototype source’ni ishga tushirmaydi.
+- Keyingi: DC5 mapped consumer regressiyasi, DC6/native/owner walkthrough;
+  DC4 real port va oldingi UX/DATA/RULE/owner qabul, AWS ochiq.
+
+---
+
 ## 2026-10-10 [Codex]: DESIGN-01 DC3 — lokal kontrast va typography validatsiyasi
 
 Owner uchinchi bosqichni boshlashni topshirdi. Eleventh Trial ustaxonasiga
