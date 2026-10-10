@@ -16,6 +16,29 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-10 [Codex]: DESIGN-01 DC1 — sozlama, komponent va sahifa xaritasi
+
+Owner DESIGN-01ning faqat birinchi bosqichini hozir boshlashni topshirdi.
+73 V1 token, 20 sozlama guruhi, 22 komponent guruhi va 21 sahifa oilasi
+xaritalandi; 120 real UI/alias va 77 yordamchi endpoint source bilan solishtirildi.
+Legacy/Mini/SIT/print/vendor istisnolari hamda mustaqil radius/font rollari yozildi.
+
+- Branch: `codex/design-settings-component-map`; inventar commit **`3b1bab5`**.
+  [DC1 xarita](frontend-v1/DESIGN-01-DC1-MAP.md),
+  [source dalili](frontend-v1/DESIGN-01-DC1-SOURCE-INVENTORY.md).
+- `venv/Scripts/python.exe .tools/design-dc1/validate_inventory.py`: PASS —
+  73 token identity/value, 120+77 URL, S20/C22/F21/X10/G6 IDlari,
+  3 SHA256 va 112 relative link. Yordamchi script ignored lokal tooling.
+  `git diff --check` va `git diff --cached --check`: PASS.
+- URL resolver env-file off/keys empty va `dummy` DB backend bilan o‘qildi;
+  request render, haqiqiy DB/provider/Telegram/AWS chaqiruvi bajarilmadi.
+  Docs-only: app test/browser/native qabul qayta yugurilmadi.
+- DC1 hujjat inventari tayyor. DC2–DC6, design runtime/schema/panel hali
+  boshlanmadi; oldingi UX/DATA/RULE/native/owner qabul bandlari ochiq.
+  Ignored prototip source/assets o‘zgarmadi yoki Gitga kiritilmadi.
+
+---
+
 ## 2026-10-04 [Codex]: Packet85 — kirish formalarida aniq xato va fokus
 
 Eleventh Trial4auth formada bitta inline xato, summary soni va birinchi
