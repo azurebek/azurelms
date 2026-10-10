@@ -19,11 +19,17 @@ registrdan o‘qildi; uning source/asset/fixture fayllari ko‘chirilmadi.
 
 ## Source fingerprintlar
 
+SHA256 oldidan fayl baytlaridagi CRLF (`\r\n`) LF (`\n`)ga almashtiriladi;
+boshqa baytlar o'zgarmaydi. Shu sabab Windows va Linux natijasi bir xil.
+CSS qiymatlari `ead7698` Git blob baytlari bilan ham solishtirildi.
+Qayta hisoblash: `hashlib.sha256(Path(path).read_bytes().replace(b'\r\n', b'\n')).hexdigest()`.
+Ignored lokal registry uchun ham shu normalizatsiya ishlatiladi.
+
 | Source | SHA256 |
 |---|---|
 | `playground/Eleventh Trial/prototype/contracts/registry.json` | `340ea3936eb37b2fe932977585db133ba98cfde331feedef2a37733d45a21de8` |
-| `static/frontend_v1/css/tokens.css` | `78e579b356b03cffb44477868fc467b25872b2802d2d21af3670081616a05b31` |
-| `static/css/tokens.css` | `1b386ac6b1bb01f2b70f70479f6a1fdafefe3cfd34c92c54d0bc77dca6f9528a` |
+| `static/frontend_v1/css/tokens.css` | `40edf73c50278b95e7b8e0f898b305acc907fc4c384a924c37c0efaaf9aab5db` |
+| `static/css/tokens.css` | `d7450b520ae494fe7327a2d8580383c224972fed9dc3936f76aa60c2990ef699` |
 
 ## V1 tokenlarning to‘liq xaritasi
 
