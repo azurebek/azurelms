@@ -16,6 +16,36 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-10 [Codex]: Backoffice islohoti birinchi bosqich — vazifalar va action xaritasi
+
+Owner birinchi bosqichni boshlashni topshirdi va uch asosiy ishning hozirgi
+qiyinchiligini tasdiqladi. Matnli menyu sinoviga «o‘zing hal qil» deb javob berdi;
+tuzilma qarori agentga topshirildi. So‘rovnoma to‘xtatilib, aniq vazifalar asosida
+nomlar, mavjud/yangi imkoniyatlar va keyingi kurs kesimi belgilandi.
+
+- Branch: `codex/backoffice-task-navigation-map`; dalil commit: `8a4a178`.
+  [Birinchi bosqich xaritasi](frontend-v1/BACKOFFICE-REFORM-STAGE-1.md);
+  asosiy reja va README shu holatga moslandi.
+- Source tayanchi `d05813d`; named URL/method/action → yangi joy → permission →
+  haqiqiy writer/read source. Course/lesson view+form, SIT LogEntry, blog/AI
+  audit chegarasi, kill-switch AISettings writeri va lokal design session scope
+  alohida saqlandi. Chat qidiruvi xabar matniga tegishi va «so‘nggi tashrif»ning
+  yangi persistence scope bo‘lishi reviewda aniqlashtirildi.
+- Ownerning sifat bazasi qayd etildi; vaqt/klik o‘lchovi yo‘q. T1–T8 nomma-nom
+  tayyor, human usability/real UI qabuli ochiq. Menyu savollariga javob
+  navigatsiya xatosi yoki 6/6 qabul natijasi deb hisoblanmadi.
+- `venv/Scripts/python.exe .tools/backoffice-stage1/validate.py`: **51 local link,
+  60 production route nomi, 8 task PASS**. `git diff --cached --check` PASS.
+  Docs-only minimum: lokal Django/runtime suite qayta yugurtirilmadi.
+- Chatdagi namuna: `node --check .tools/backoffice-stage1/concept.js` PASS;
+  IAB desktopda uch bevosita kirish ishladi, olti bo‘lim 320px viewportda
+  overflow0. Uzun menyu nomi ikki ustun bilan tuzatilib qayta ko‘rildi;
+  captured console error/warn0. Bu runtime implementatsiya yoki owner qabuli emas.
+- Source/prototip/DB/provider/deploy o‘zgarmadi. DESIGN-01 DC6 PENDING.
+  Keyingi: alohida Boshqaruv shell va kurs → modul → dars → material oqimi.
+
+---
+
 ## 2026-10-10 [Codex]: Backoffice — uch asosiy ishga tayangan islohot rejasi
 
 Owner zich, bir xil va texnik sahifalar o‘rniga qulay boshqaruv rejasini so‘radi.

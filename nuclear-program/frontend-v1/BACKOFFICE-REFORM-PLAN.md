@@ -1,6 +1,8 @@
 # Backoffice islohoti — uch asosiy ishni osonlashtirish
 
-2026-10-10. **Owner so‘ragan reja; amalga oshirish va yangi ko‘rinish qabuli hali boshlanmagan.**
+2026-10-10. **Birinchi bosqichning tuzilma va amallar xaritasi tayyor; runtime implementatsiya va yangi ko‘rinish qabuli hali boshlanmagan.**
+[Birinchi bosqich qaydi](BACKOFFICE-REFORM-STAGE-1.md): ownerning boshlang‘ich bahosi, aniq action/writer/scope xaritasi va sakkizta amaliy vazifa.
+Owner nomlar va tuzilmani agent hal qilishini topshirdi; yangi so‘rovnoma javobi ishni boshlash sharti emas.
 Azurbek belgilagan ustuvorlik: **kurs/dars tayyorlash → o‘quvchi muammosini hal qilish → platforma dizaynini texnik bilimsiz boshqarish**.
 To‘lovlar va texnik xizmatlar saqlanadi, lekin asosiy ishlarni to‘sib turmaydi.
 
@@ -14,19 +16,19 @@ Owner maydoni o‘z navigatsiyasiga ega; ustoz menyusi ichiga joylanmaydi.
 
 | Asosiy kirish | Ichida nima bor | Qaysi savolga javob beradi |
 |---|---|---|
-| **Bugun** | So‘nggi ishlangan kurslar, kerakli ishga qaytish, tekshirishni kutayotgan mavjud yozuvlar, muhim xizmat ogohlantirishi | Nimadan boshlayman? |
-| **Ta’lim** | Kurs → modul → dars; materiallar, imtihonlar, guruhning dars jarayoni | Darsni qanday tayyorlayman va guruhga ochaman? |
-| **Odamlar** | O‘quvchilar, ustozlar, odamning kurs/a’zolik/to‘lov/ruxsat holati, mavjud suhbatlarga havola | Bu odamga nima bo‘lgan? |
+| **Ish stoli** | Uch asosiy amalga bevosita kirish, mavjud ishga qaytish, tekshirishni kutayotgan yozuvlar, muhim ogohlantirish | Nimadan boshlayman? |
+| **Kurslar** | Kurs → modul → dars; materiallar, imtihonlar, guruhning dars jarayoni | Darsni qanday tayyorlayman va guruhga ochaman? |
+| **O‘quvchilar** | O‘quvchining kurs/a’zolik/to‘lov/ruxsat holati, mavjud suhbatlarga havola | Bu o‘quvchiga nima bo‘lgan? |
 | **Sayt va dizayn** | Ko‘rinish, brend, sayt bosh sahifasi, blog va Turkiyada o‘qish kontenti | Sayt qanday ko‘rinadi va unda nima yozilgan? |
 | **To‘lovlar** | Cheklar, tariflar, to‘lov tarixi va mavjud qarorlar | Kimning to‘lovi tekshirilishi kerak? |
-| **Tizim** | Xizmatlar holati, AI sozlamalari, limitlar, funksiyalar, yetkazilmagan xabarlar, texnik tafsilotlar | Biror xizmat ishlamayaptimi? |
+| **Sozlamalar** — menyu quyi qismida | Xizmatlar, AI, muddat/limitlar, yoqish/o‘chirish, yetkazilmagan xabarlar, mavjud ustoz/admin ro‘yxati | Zarur boshqaruvni qayerdan sozlayman? |
 
-Bu olti bo‘lim boshlang‘ich taklif: owner bilan topish sinovidan o‘tadi. Ichki menyu faqat tanlangan bo‘limga tegishli bo‘ladi.
-Guruhning yagona asosiy sahifasi **Ta’lim → Guruhlar**da; odam sahifasi uning a’zoligiga havola beradi.
+Bu tuzilma ownerning «o‘zing hal qil» ko‘rsatmasi asosida agent tanlagan yechim; inson usability qabuli deb hisoblanmaydi. Ichki menyu faqat tanlangan bo‘limga tegishli bo‘ladi.
+Guruhning yagona asosiy sahifasi **Kurslar → Guruhlar**da; o‘quvchi sahifasi uning a’zoligiga havola beradi.
 Tarif **To‘lovlar**da; guruh muharriri shu tarifni tanlaydi. Bir obyekt uchun ikkita mustaqil muharrir yaratilmaydi.
 Menyu tartibi foydalanish davomida o‘z-o‘zidan almashmaydi. Bo‘lim, sarlavha va faol menyu bir-biriga mos bo‘ladi.
 
-**Bugun**ning birinchi qismi ownerning uch ishiga xizmat qiladi: dars tayyorlashni davom ettirish, o‘quvchini topish, ko‘rinishni sozlash.
+**Ish stoli**ning birinchi qismi ownerning uch ishiga xizmat qiladi: dars tayyorlash, o‘quvchiga yordam, dizaynni o‘zgartirish.
 Faoliyat sonlari va xizmat hisobotlari pastroq turadi. Xizmat jiddiy to‘xtagan bo‘lsa, uning ta’siri tepada qisqa ko‘rsatiladi.
 Ma’lumoti yo‘q ish yoki navbat uchun soxta son/holat berilmaydi; normal holat, bo‘sh holat, yuklanmagan va eskirgan ma’lumot farqlanadi.
 
@@ -102,7 +104,7 @@ Dizayn qabuli yangi backoffice maketlari uchun ham takrorlanadi; oldingi DC6 avt
 3. Birinchi ko‘rinishda zarur ma’lumot. Kam ishlatiladigan sozlama «Qo‘shimcha sozlamalar»da, o‘qiladigan yordam zarur joyning yonida.
 4. Kerakli narsani topish uchun umumiy qidiruv bosqichma-bosqich qo‘shiladi: avval kurs/dars, keyin vakolat doirasidagi odam/bo‘lim/sozlama. Qidiruv asosiy menyuning o‘rnini bosmaydi.
 5. Ro‘yxatlar qisqa mazmunli ustunlarga ega. Tanlangan yozuv uchun batafsil ko‘rinish ochiladi; ekran kengayganda ham hamma fakt doimiy ko‘rsatilmaydi.
-6. «Bosh sahifa» noaniqligi yo‘qoladi: boshqaruv kirishi «Bugun», marketing sahifasi «Sayt bosh sahifasi».
+6. «Bosh sahifa» noaniqligi yo‘qoladi: boshqaruv kirishi «Ish stoli», marketing sahifasi «Sayt bosh sahifasi».
 7. `Source action`, `revision`, `canonical state`, `no-op`, `RAG`, `dead-letter` kabi atamalar oddiy ish oqimidan texnik tafsilotga olinadi. Masalan: «O‘zgarish yo‘q», «AI foydalanadigan darslar», «Yetkazilmagan xabarlar».
 8. Xato «nima bo‘ldi / nima saqlandi / endi nima qilish kerak»ni aytadi. Amal javobi noma’lum bo‘lsa «Holatni tekshirish» beriladi; yashirin qayta yuborish yo‘q.
 9. Xavfsizlik uchun zarur sabab, aniq ta’sir va tasdiq saqlanadi. Har oddiy maydon uchun ortiqcha tasdiq so‘ralmaydi.
@@ -116,16 +118,16 @@ Mahsulotning muhim touch boshqaruvlari uchun 44px maqsad qo‘yiladi; bu WCAG AA
 
 | Bugungi yuza | Yangi joy / qaror |
 |---|---|
-| Backoffice dashboard, tarqoq count kartalari | Bugun; uch ustuvor ish, faqat kerakli signal va mavjud navbatlar |
-| Kurslar va alohida dars muharriri | Ta’lim → Kurs → Tuzilma → Dars; global dars ro‘yxati qo‘shimcha kirish |
-| Kutubxona, material biriktirish | Ta’lim → Materiallar; dars ichidan ayni kutubxonaga kirish |
-| Imtihon muharriri va teacher tekshiruv | Ta’lim → Imtihonlar; authoring va grading vazifalari ajratiladi, mavjud xizmatlar ulanishi saqlanadi |
-| Tariflar va guruhlar bir katalogda | Tariflar → To‘lovlar; guruhlar → Ta’lim; bog‘lanish saqlanadi |
-| Users va chats ro‘yxatlari | Odamlar; shaxsga oid kontekst va mavjud suhbat havolalari |
+| Backoffice dashboard, tarqoq count kartalari | Ish stoli; uch ustuvor ish, faqat kerakli signal va mavjud navbatlar |
+| Kurslar va alohida dars muharriri | Kurslar → Kurs → Tuzilma → Dars; global dars ro‘yxati qo‘shimcha kirish |
+| Kutubxona, material biriktirish | Kurslar → Materiallar; dars ichidan ayni kutubxonaga kirish |
+| Imtihon muharriri va teacher tekshiruv | Kurslar → Imtihonlar; authoring va grading vazifalari ajratiladi, mavjud xizmatlar ulanishi saqlanadi |
+| Tariflar va guruhlar bir katalogda | Tariflar → To‘lovlar; guruhlar → Kurslar; bog‘lanish saqlanadi |
+| Users va chats ro‘yxatlari | O‘quvchilar; shaxsga oid kontekst va mavjud suhbat havolalari; ustoz/admin filtri Sozlamalarda |
 | Chek tekshirish | To‘lovlar → Cheklar; odam kartasidan shu yozuvga kirish |
 | Brand, landing, blog, SIT | Sayt va dizayn ichidagi aniq guruhlar; brend/kontent uchun mavjud writerlar |
 | DESIGN-01 alohida ustaxona | Sayt va dizayn → Ko‘rinish; oddiy va kengaytirilgan boshqaruv |
-| Control Center, AI, flags, runtime, xarajat, yetkazish xatolari | Tizim; kundalik ishga ta’sir tepada, texnik tafsilot ichkarida |
+| Control Center, AI, flags, runtime, xarajat, yetkazish xatolari | Sozlamalar; kundalik ishga ta’sir tepada, texnik tafsilot ichkarida |
 | Django admin | Kundalik yo‘lning o‘rniga ishlatilmaydi; yetishmayotgan authoring vazifalari inventarda ochiq, favqulodda kirish existing policy bo‘yicha |
 
 Eski deep linklar birinchi bosqichda saqlanadi. GET yo‘llari uchun kerakli moslashtirish mumkin; POSTlar ko‘r-ko‘rona redirect qilinmaydi.
@@ -135,20 +137,21 @@ Har eski actionning yangi joyi, permissioni va writeri xaritada bo‘lmaguncha e
 
 | Bosqich | Aniq natija | O‘tish mezoni |
 |---|---|---|
-| **Vazifalar va xarita** | Ownerning uch ishini hozirgi holatda o‘lchash; 6 bo‘limni topish sinovi; eski action → yangi joy va mavjud/yangi capability ro‘yxati | Har ishning boshlanishi, yakuni, xatosi va javobgar service aniq; owner joylashuvni tushunadi |
-| **Kurs bilan ishlaydigan birinchi kesim** | Boshqaruv shell, Ta’lim kurs daraxti, kerakli modul/yangi dars yaratish, mavjud muharrir va material, preview, releasega ulanish | Bitta haqiqiy ruxsatli kurs oqimi boshidan oxirigacha; matn va tanlov yo‘qolmaydi; yaratish uchun yangi backend talabi yopilgan |
+| **Vazifalar va xarita — loyihalash tayyor** | Ownerning sifat bahosi qayd etildi; agent tuzilmani tanladi; eski action → yangi joy/scope/writer va mavjud/yangi imkoniyatlar xaritasi tayyor | Boshlanish, yakun, xato va writer aniq; ikkinchi bosqich topshirig‘i tayyor. Owner vaqtli sinovi/keyingi UI qabuli ochiq; so‘rovnoma davom ettirish sharti emas |
+| **Kurs bilan ishlaydigan birinchi kesim** | Boshqaruv shell, Kurslar daraxti, kerakli modul/yangi dars yaratish, mavjud muharrir va material, preview, releasega ulanish | Bitta haqiqiy ruxsatli kurs oqimi boshidan oxirigacha; matn va tanlov yo‘qolmaydi; yaratish uchun yangi backend talabi yopilgan |
 | **O‘quvchi muammosi** | Scope-aware qidiruv, bog‘langan o‘quvchi kartasi, policy sababi, mavjud tuzatish amallari va natija tekshiruvi | Berilgan muammo yordamsiz topiladi; boshqa odam/doira ma’lumoti ochilmaydi; access qoidasining dublikati yo‘q |
 | **Oddiy dizayn boshqaruvi** | Oddiy tanlovlar, oldin/keyin namuna, custom qiymatni saqlash, real draft/publish/rollback porti | Owner CSS/ID bilmasdan sozlaydi; reload va to‘qnashuvda ish saqlanadi; tatbiq doirasi aniq |
-| **Qolgan backoffice** | To‘lovlar, blog/SIT, guruhlar va Tizim yangi navigatsiyaga ulanishi; biznesga tegishli texnik atamalar soddalashishi | Eski actionlarning xaritasi to‘liq; barcha muhim kirishlar topiladi, ruxsat/audit pariteti saqlanadi |
+| **Qolgan backoffice** | To‘lovlar, blog/SIT, guruhlar va Sozlamalar yangi navigatsiyaga ulanishi; biznesga tegishli texnik atamalar soddalashishi | Eski actionlarning xaritasi to‘liq; barcha muhim kirishlar topiladi, ruxsat/audit pariteti saqlanadi |
 | **Qabul va bosqichli port** | Har tugagan kesim uchun real adapter, foydalanish sinovi, required CI, qaytish yo‘li; yakuniy eski-yangi paritet auditi | Owner uch asosiy ishni bajaradi; jiddiy regressiya yo‘q; real qurilma va release qabuli alohida tasdiqlanadi |
 
-Har kesim: sodda maket → ownerning vazifa sinovi → tuzatish → service shartnomasi → implementatsiya → tegishli test/CI → boshqariladigan port.
+Har kesim: agentning sodda maketi va ekspert tekshiruvi → service shartnomasi → implementatsiya → tegishli test/CI → aniq ishlaydigan vazifani ko‘rsatish → boshqariladigan port.
+Ownerning 2026-10-10 ko‘rsatmasi bo‘yicha mavhum menyu so‘rovnomasi old shart emas. Inson usability dalili va real release qabuli shu bilan yopilmaydi.
 Barcha sahifalar birdan qayta bezatilmaydi. Keyingi kesim avvalgisidagi yo‘l topish muammolari yechilmaguncha kengaytirilmaydi.
 Muddatlar ish hajmi va yangi authoring bo‘shliqlari baholangach belgilanadi; taxminiy kun soni tayyorlik dalili bo‘lmaydi.
 
 ## 8. Qulaylikni qanday qabul qilamiz
 
-Quyidagilar **taklif etilayotgan mezonlar**, hali o‘lchangan natija emas. Avval bazaviy holat qayd etiladi, so‘ng bir xil tayyor ma’lumotli vazifalar takrorlanadi.
+Quyidagilar **taklif etilayotgan mezonlar**, hali o‘lchangan natija emas. Sifat bo‘yicha owner bazasi qayd etildi; vaqtli o‘lchov yo‘q. [Sakkizta aniq vazifa](BACKOFFICE-REFORM-STAGE-1.md#sakkizta-amaliy-qabul-vazifasi) keyingi ishlaydigan versiya uchun belgilandi.
 
 | Sinov | Maqsad |
 |---|---|
@@ -172,7 +175,7 @@ Reja uchun admission: **EXPERIMENT — canonical state yozmaydi**. Natija ownern
 KPI — yordamsiz bajarish, vaqt va xato. Hozir runtime o‘zgarmaydi; yangi doimiy operatsion yuk qo‘shilmaydi.
 Implementatsiyada yangi har bir capability uchun admission, write/read scope, failure va rollback belgilanadi.
 
-- Yangi read projectionlar: birlashtirilgan o‘quvchi kartasi, doiraga mos umumiy qidiruv, Bugun xulosasi. Bular shunchaki CSS o‘zgarishi emas.
+- Yangi read projectionlar: birlashtirilgan o‘quvchi kartasi, doiraga mos umumiy qidiruv, Ish stoli xulosasi. Bular shunchaki CSS o‘zgarishi emas.
 - Yangi yozish scope: modul/yangi dars authoring bo‘shlig‘i, doimiy design draft/version/preset. Mavjud modellarga mos service va audit/validation bilan quriladi.
 - Receipt qarori `receipt_service`, guruh a’zoligi `membership_service`, dars ochilishi `release_service`, tariflar `catalog_service` orqali qoladi.
 - UI maydon almashtirgichi, yashirilgan tugma yoki qidiruv hech kimga qo‘shimcha permission bermaydi. Server ruxsat tekshiruvi majburiy.

@@ -2,8 +2,10 @@
 
 **2026-10-10 — backoffice islohoti:** [uch asosiy ishga tayangan reja](BACKOFFICE-REFORM-PLAN.md)
 tayyorlandi: kurs/dars tayyorlash, o‘quvchi muammosini hal qilish va dizaynni
-texnik bilimsiz moslash. Olti bo‘lim, eski-yangi xarita, bosqichlar va foydalanish
-mezoni taklif qilindi. Bu reja; implementatsiya va yangi ko‘rinish qabuli boshlanmagan.
+texnik bilimsiz moslash. [Birinchi bosqich](BACKOFFICE-REFORM-STAGE-1.md)da ownerning
+sifat bahosi, aniq amallar/ruxsat/writer xaritasi va sakkizta vazifa tayyorlandi.
+Owner tuzilmani agent hal qilishini topshirdi; menyu nomlari aniqlashtirildi.
+Runtime implementatsiya va vaqtli usability/yangi ko‘rinish qabuli hali ochiq.
 DC6 owner qabuli hamon PENDING.
 
 **2026-10-10 DC6:** [yakuniy ko‘rib chiqish va tiklash paketi](DESIGN-01-DC6-ACCEPTANCE.md)
