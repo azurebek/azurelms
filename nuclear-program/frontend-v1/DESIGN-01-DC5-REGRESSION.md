@@ -1,5 +1,8 @@
 # DESIGN-01 DC5 — consumer regressiyasi
 
+**Tarixiy snapshot:** quyidagi hashlar Packet89ga tegishli. Joriy source
+va qabul holati [DC6 hisobotida](DESIGN-01-DC6-ACCEPTANCE.md).
+
 2026-10-10. Owner beshinchi bosqichni boshlashni topshirdi.
 Lokal consumer preview va regressiya qurildi. Bu production renderer,
 native device yoki butun sayt WCAG qabuli emas.

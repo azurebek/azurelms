@@ -1,5 +1,10 @@
 # Yakuniy qabul — ochiq nuqsonlar
 
+**2026-10-10 DC6:** [yakuniy ko‘rib chiqish va tiklash paketi](DESIGN-01-DC6-ACCEPTANCE.md)
+tayyorlandi. Ustaxonada 8 qadamli yo‘riqnoma; lokal walkthrough va alohida
+papkadan tiklash sinovi o‘tdi. Owner qabuli PENDING; native/print/AT/Telegram,
+DC4/DC5 real port va oldingi qabul bandlari OPEN. Quyidagi yozuvlar tarixiy.
+
 2026-09-28. Owner qarori: hozir prototip navbati davom etadi, quyidagi
 nuqsonlar yakuniy tuzatishda tekshiriladi. Bu defer — FIXED/PASS emas.
 Yangi redesign yoki production mutation vakolati emas.
