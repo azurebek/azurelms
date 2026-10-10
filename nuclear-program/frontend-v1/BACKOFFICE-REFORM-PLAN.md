@@ -1,6 +1,9 @@
 # Backoffice islohoti — uch asosiy ishni osonlashtirish
 
-2026-10-10. **Birinchi bosqichning tuzilma va amallar xaritasi tayyor; runtime implementatsiya va yangi ko‘rinish qabuli hali boshlanmagan.**
+2026-10-10. **Birinchi bosqich xaritasi va ikkinchi bosqichning haqiqiy kurs/dars kesimi qurildi.**
+[Ikkinchi bosqich](BACKOFFICE-REFORM-STAGE-2.md): Boshqaruv, modul/dars yaratish,
+material, namuna va guruhga ochishga ulanish. Flag default OFF; owner usability
+va production qabuli ochiq. Quyidagi qolgan kesimlar hali reja.
 [Birinchi bosqich qaydi](BACKOFFICE-REFORM-STAGE-1.md): ownerning boshlang‘ich bahosi, aniq action/writer/scope xaritasi va sakkizta amaliy vazifa.
 Owner nomlar va tuzilmani agent hal qilishini topshirdi; yangi so‘rovnoma javobi ishni boshlash sharti emas.
 Azurbek belgilagan ustuvorlik: **kurs/dars tayyorlash → o‘quvchi muammosini hal qilish → platforma dizaynini texnik bilimsiz boshqarish**.
