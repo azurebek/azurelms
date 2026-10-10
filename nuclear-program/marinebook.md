@@ -24,6 +24,15 @@ qayta tekshirish ko‘rsatiladi; tafsilotlar kerak bo‘lganda ochiladi.
 
 - Branch: `codex/backoffice-student-support`; implementatsiya: `4d2456a`.
   [Bosqich 3 chegarasi va dalili](frontend-v1/BACKOFFICE-REFORM-STAGE-3.md).
+- PR177 review tuzatishi `314c710`: primary receipt faqat diagnosed enrollmentdan,
+  20 talik evidence limitdan mustaqil; receipt/member GET/POST/backlink selected
+  lessonni course parenti bilan tekshiradi va saqlaydi. Boshqa guruhning yangi
+  cheki yoki birinchi darsga jim qaytish yo‘q. Browser member → ayni lesson PASS.
+  Yakuniy `venv/Scripts/python.exe manage.py test core.test_student_support_service
+  core.test_student_support_views core.test_student_support_handoffs --verbosity 1`
+  **64/64 PASS**, 5.001s, check0. 1077 app run’dagi yangi testning ikki subcase
+  xatosi URL expectationda `lesson` kutilmagani edi; expectation to‘ldirilib,
+  yakuniy suite o‘tdi. Birinchi CI uchalasi yashil; tuzatishdan keyingi CI alohida.
 - `core/student_support_service.py` canonical active Enrollment va lesson access
   bundle’dan o‘qiydi; learner view/visit/XP writerini chaqirmaydi. Teacher scope,
   DB’dan actor refresh, boshqa kurs nomlari/PII, parent IDs va cache tekshirildi.
