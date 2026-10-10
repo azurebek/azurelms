@@ -16,6 +16,41 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-10 [Codex]: DESIGN-01 DC2 — lokal forma, qoralama va preview
+
+Owner ikkinchi bosqichni boshlashni topshirdi. Eleventh Trialda 20 guruh,
+87 maydon ta'rifi/118 qiymat, alohida komponent rollari va color inheritance,
+4 preset, private tab draft/named variant, oldin/keyin 7namuna qurildi.
+Real design service/DB/publish/AWS yo'q; DC3–DC6 va oldingi qabul ochiq.
+
+- Branch: `codex/design-draft-preview`; dalil commit: `6eb50dc`.
+  [DC2 kontrakti, 87maydon va dalil](frontend-v1/DESIGN-01-DC2-PREVIEW.md).
+  Lokal URL: `http://127.0.0.1:8088/_preview/design/`.
+- Trial ichida env-file off, Gemini/Telegram keys bo'sh:
+  `../../venv/Scripts/python.exe manage.py test tests --verbosity 0`:
+  **888 PASS**,347.001s. Birinchi2CSS moslik xatosi tuzatildi;
+  focused9PASS2.808s, keyin full suite qayta PASS. `manage.py check`:0.
+- Barcha `tests/*.test.mjs` PowerShellda kengaytirilib `node --test`:
+  **261 PASS**,1341.1079ms; yangi15 invariant/storage testi. Controller syntax PASS.
+- IAB56frame (7page*2mode*4width)+4editor viewport; effective width/page/mode
+  tekshirildi, root overflow0/duplicate0. Independent radius/font/mode,
+  palette inheritance, save/reload, named variant, confirmation/cancel,
+  restore/reset/delete, invalid correction/Enter va ikki-tab isolation tekshirildi.
+- Desktop/mobile screenshotlar ko'rildi. IAB console'da source URL/stack'siz
+  4MutationObserver xabari bor; kelib chiqishi aniqlanmagan, console0 deyilmaydi.
+  Native/AT/real Mini host va barcha real route consumer qabuli ochiq.
+- `.tools/design-dc2/validate.py`:87field/consumer,113link,11normalized SHA256
+  va checkpoint PASS. DC1 inventari qayta PASS; diff/staged diff-check PASS.
+- Checkpoint `packet-86-20261010-084702.zip`: **696fayl**, har entry SHA256
+  tekshirildi; ZIP **`6CDC33773378F9E8AF7F802411F63FEA276D1805FDCFBB318F863CA321245A23`**.
+  Packet85 retained/hash matched. Ignored source/arxiv force-add/upload qilinmadi;
+  bir diskdagi recovery offsite backup emas. CI faqat tracked repo'ni tekshiradi.
+- Existing registry0.84/139route/77page/213action o'zgarmadi; alohida DC2
+  katalogi2URL pattern/2template/11action/9state. Shared tokenlar va real runtime
+  o'zgarmadi. Keyingi bosqich: DC3 contrast/font/zoom va supported bounds qabuli.
+
+---
+
 ## 2026-10-10 [Codex]: multidict xavfsizlik yangilanishi — DESIGN-01 CI blokini tuzatish
 
 PR #167 supply-chain tekshiruvi `multidict==6.7.1` uchun yangi
