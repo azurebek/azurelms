@@ -16,6 +16,48 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-10 [Codex]: Backoffice to‘rtinchi bosqich — kodsiz dizayn ustaxonasi
+
+Owner topshirig‘i bilan besh oddiy sozlama, jonli inert namuna, shaxsiy uslub,
+haqiqiy qoralama, nashr tarixi va oldingi ko‘rinishga qaytish qurildi.
+Rang/matn/shakl V1 va workspace consumerlariga, umumiy palitra legacy base’ga
+ulanadi. Texnik qiymatlar kerak bo‘lganda ochiladi.
+
+- Branch: `codex/backoffice-design-workspace`; implementatsiya: `0ea26d1`.
+  [Bosqich 4 chegarasi va dalili](frontend-v1/BACKOFFICE-REFORM-STAGE-4.md).
+- `core/design_service.py` yagona transactional writer; 87 typed maydon,
+  active-owner refresh, CSRF, private draft/preset, immutable version va durable
+  operation receipt. CAS, replay, no-op, reason/confirmation va atomic audit.
+  `core0007` besh yangi jadval; brand/logo writeri o‘z joyida.
+- `backoffice_design_workspace` default OFF: ustaxona va published theme
+  projectionni o‘chiradi, tarix/qoralama o‘chmaydi. GET design row yaratmaydi,
+  public CSS private metadata bermaydi, cache no-store va screen-only.
+- Editor pending intentni POSTdan oldin saqlaydi; no-auto-retry readback.
+  Eski receipt yangi server snapshotining tasdig‘i deb olinmaydi; rollback
+  private draftni almashtirmaydi. Unresolved local recovery readbackda yo‘qolmaydi.
+- Env-file OFF, Gemini/Telegram bo‘sh: `venv/Scripts/python.exe manage.py test
+  core frontend --verbosity 1`: **912 test / 881 PASS / 31 skip**, 69.199s.
+  Yakuniy `venv/Scripts/python.exe manage.py test core.test_design_service
+  core.test_design_views core.test_design_runtime --verbosity 1`: **59 test /
+  57 PASS / 2 PostgreSQL-only skip**, 2.022s, check0. Shu ikki parallel race
+  PostgreSQL CI’da tekshiriladi. check, migration drift va staged diff PASS.
+- `node --test tests/frontend_v1/*.test.mjs`: **140/140 PASS**, shundan yangi
+  design controller/model **12/12**. Dastlab HTTP fixture unique email xatosi
+  tuzatildi. Reviewda topilgan surrogate/nested inputlar 400/no-write bilan
+  yopildi; qabul qilib bo‘lmaydigan matn CSS’ga chiqmaydi.
+- IAB synthetic DB: save/reload/publish/real workspace/rollback/rebase,
+  ikki tab stale409 va tanlov retention, shaxsiy uslub, 17px custom qiymat
+  + boshqa bo‘lim reseti PASS. Haqiqiy sahifa 36px title/18px text/17px button,
+  light/dark palitra; 1440/320px overflow0, Enter/Escape, console0.
+  Sonli maydon input hodisasi browser sinovida tuzatildi.
+- Demo8092 SQLite backupdan keyin additive migrate qilindi; owner DB/production
+  deploy/provider o‘zgarmadi. Print/vendor/Telegram/SIT mustaqil qobiq va to‘liq
+  legacy geometry pariteti yo‘q. Owner usability va DESIGN-01 DC6 PENDING.
+- Required CI, review va PR integration keyingi qadam; merge faqat uchala
+  required check yashil, review resolve va main bilan CLEAN bo‘lganda.
+
+---
+
 ## 2026-10-10 [Codex]: Backoffice uchinchi bosqich — o‘quvchi muammosi va qayta tekshirish
 
 Owner topshirig‘i bilan o‘quvchi qidiruvi va yordam kartasi qurildi. Kurs/dars
