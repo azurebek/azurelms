@@ -66,7 +66,8 @@
     document.documentElement.classList.add("ws-enhanced");
     switcher.hidden = false;
     showPane(workbench.dataset.activePane);
-    if (location.hash === "#materials") showPane("editor");
+    // Material forms retain the fragment; an explicit preview response wins.
+    if (location.hash === "#materials" && workbench.dataset.activePane !== "preview") showPane("editor");
     switcher.addEventListener("click", event => {
       const button = event.target.closest("[data-pane-target]");
       if (button) showPane(button.dataset.paneTarget, true);
@@ -97,6 +98,18 @@
     const recoveryText = form.querySelector("[data-draft-recovery-text]");
     const editors = new Map();
     const bound = form.dataset.boundForm === "true";
+    if (bound && form.dataset.draftGetUrl && window.history?.replaceState) {
+      try {
+        const getUrl = new URL(form.dataset.draftGetUrl, location.href);
+        if (getUrl.origin === location.origin && getUrl.pathname === location.pathname) {
+          getUrl.hash = location.hash;
+          // Keep the visible preview/errors, but Back/reload must fetch the
+          // selected lesson with GET rather than replay a non-cacheable POST.
+          // Draft recovery stays explicit and still uses its original scope.
+          window.history.replaceState(window.history.state, "", getUrl.href);
+        }
+      } catch { /* History restrictions must not prevent draft recovery. */ }
+    }
     let restoring = false;
     let touched = false;
     // A preview or rejected POST still contains unsaved text, even before a keystroke.

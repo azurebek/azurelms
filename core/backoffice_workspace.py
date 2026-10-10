@@ -245,6 +245,12 @@ def course(request, course_id):
     if action in {'lesson_save', 'lesson_preview'} and not lesson:
         module_id = request.POST.get('module')
     module = get_object_or_404(Module, pk=_id(module_id), course=obj) if module_id else None
+    # Outline edits return to the validated selection, so the browser draft
+    # remains attached to the lesson the author was already working on.
+    selection_module = source_module or module
+    selection = {'lesson': lesson.pk} if lesson else (
+        {'module': selection_module.pk, 'new': '1'} if selection_module else {})
+    outline_action_url = request.path + ('?' + urlencode(selection) if selection else '')
     initial = {'module': module.pk if module else None, 'order':
                (module.lessons.order_by('-order').values_list('order', flat=True).first() or 0) + 1 if module else 1}
     form = WorkspaceLessonForm(request.POST if action in {'lesson_save', 'lesson_preview'} else None,
@@ -270,13 +276,14 @@ def course(request, course_id):
                         title=module_form.cleaned_data['title'], expected_revision=outline_token,
                         module_id=_id(request.POST.get('module_id')) if action == 'module_update' else None, request=request)
                     messages.success(request, 'Modul saqlandi.')
-                    return redirect(f'{request.path}?module={changed_module.pk}&new=1')
+                    return redirect(f'{request.path}?module={changed_module.pk}&new=1'
+                                    if action == 'module_create' else outline_action_url)
             elif action == 'module_move':
                 outline_token = request.POST.get('outline_revision', '')
                 authoring.move_module(actor=request.user, course_id=obj.pk, module_id=_id(request.POST.get('module_id')),
                     direction=request.POST.get('direction'), expected_revision=outline_token, request=request)
                 messages.success(request, 'Modullar tartibi saqlandi.')
-                return redirect(request.get_full_path())
+                return redirect(outline_action_url)
             elif action in {'lesson_save', 'lesson_preview'}:
                 lesson_token = request.POST.get('lesson_revision', '')
                 if form.is_valid():
@@ -343,6 +350,7 @@ def course(request, course_id):
         'materials': materials, 'preview_materials': preview_materials,
         'resources': resources.order_by('-updated_at', '-pk')[:20], 'resource_q': resource_q,
         'cohorts': cohorts, 'outline_revision': outline_token, 'lesson_revision': lesson_token,
+        'outline_action_url': outline_action_url,
         'material_revision': material_token, 'draft_scope': scope,
         **_saved_context(request),
         'preview_title': preview['title'], 'preview_content': _preview_html(preview['content']),

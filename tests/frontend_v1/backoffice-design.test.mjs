@@ -2,11 +2,24 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {defaults, fields, builtin, validate, assertSafe, compileStyle, resetKeys, edit,
-  inspectDesign, parseRecovery, matchesReceipt, afterReceipt, recoveryEnvelope, reconcileReceipt, appendHistoryPage, same} from '../../static/backoffice/design-model.mjs';
+  inspectDesign, parseRecovery, matchesReceipt, afterReceipt, recoveryEnvelope, reconcileReceipt, appendHistoryPage, draftBase, same} from '../../static/backoffice/design-model.mjs';
 
 const catalog = JSON.parse(readFileSync(new URL('../../core/design_catalog.json', import.meta.url), 'utf8'));
 const fresh = () => defaults(catalog);
 const operation = '11111111-2222-4333-8444-555555555555';
+
+test('reopening a just-published draft starts new edits from that publication and retains the draft revision', () => {
+  const value=edit(catalog,fresh(),'button-radius','values','17');
+  const state={published:{version:5,value:structuredClone(value)},draft:{revision:7,base_version:4,value}};
+  assert.deepEqual(draftBase(state),{draft_revision:7,base_version:5});
+  assert.equal(state.draft.base_version,4);
+  // A publication of a different design still requires an explicit conflict decision.
+  state.published={version:6,value:edit(catalog,value,'card-radius','values','23')};
+  assert.deepEqual(draftBase(state),{draft_revision:7,base_version:4});
+  // A newer draft must never retain a revision from the earlier page.
+  state.draft={revision:8,base_version:6,value:state.published.value};
+  assert.deepEqual(draftBase(state),{draft_revision:8,base_version:6});
+});
 
 test('all canonical fields and built-in styles remain valid without filling inherited overrides', () => {
   assert.equal(fields(catalog).length, 87);

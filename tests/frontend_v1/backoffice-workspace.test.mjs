@@ -18,8 +18,8 @@ class Element {
   focus() { this.focused = true; }
 }
 
-function makeForm(scope, {title = 'Saved title', bound = false} = {}) {
-  const form = new Element({dataset: {draftScope: scope, boundForm: String(bound)}});
+function makeForm(scope, {title = 'Saved title', bound = false, getUrl = ''} = {}) {
+  const form = new Element({dataset: {draftScope: scope, boundForm: String(bound), draftGetUrl: getUrl}});
   form.fields = [
     new Element({name: 'title', id: 'title', type: 'text', value: title}),
     new Element({name: 'content', id: 'content', type: 'textarea', value: '<p>Saved body</p>'}),
@@ -42,10 +42,15 @@ function makeForm(scope, {title = 'Saved title', bound = false} = {}) {
   return form;
 }
 
-function harness({forms = [], receipts = [], stored = new Map(), failWrites = false} = {}) {
+function harness({forms = [], receipts = [], stored = new Map(), failWrites = false,
+  workbench = null, switcher = null, hash = '', failHistory = false} = {}) {
   const document = new Element({
     documentElement: new Element(),
-    querySelector() { return null; },
+    querySelector(selector) {
+      if (selector === '[data-workbench]') return workbench;
+      if (selector === '[data-pane-switch]') return switcher;
+      return null;
+    },
     querySelectorAll(selector) {
       if (selector === '[data-workspace-draft]') return forms;
       if (selector === '[data-workspace-saved]') return receipts.map(({scope, nonce}) => ({
@@ -56,7 +61,15 @@ function harness({forms = [], receipts = [], stored = new Map(), failWrites = fa
     createElement() { return new Element(); },
   });
   let nonceNumber = 0;
-  const window = new Element({crypto: {randomUUID: () => `submission-${++nonceNumber}`}});
+  const historyCalls = [];
+  const history = {
+    state: {existing: 'entry-state'},
+    replaceState(state, title, url) {
+      if (failHistory) throw Error('History update denied');
+      historyCalls.push({state, title, url});
+    },
+  };
+  const window = new Element({history, crypto: {randomUUID: () => `submission-${++nonceNumber}`}});
   const sessionStorage = {
     get length() { return stored.size; },
     key: index => [...stored.keys()][index],
@@ -64,9 +77,10 @@ function harness({forms = [], receipts = [], stored = new Map(), failWrites = fa
     setItem(key, value) { if (failWrites) throw Error('Storage denied'); stored.set(key, value); },
     removeItem: key => stored.delete(key),
   };
-  runInNewContext(source, {document, window, sessionStorage, location: {hash: ''}});
+  const location = new URL('http://workspace.test/backoffice/workspace/courses/3/?lesson=42' + hash);
+  runInNewContext(source, {document, window, sessionStorage, location, URL});
   return {
-    stored, document, window,
+    stored, document, window, historyCalls,
     read: scope => JSON.parse(stored.get(keyFor(scope)) ?? 'null'),
     edit(form, text) {
       const field = form.fields.find(item => item.name === 'title');
@@ -81,6 +95,69 @@ function harness({forms = [], receipts = [], stored = new Map(), failWrites = fa
     },
   };
 }
+
+test('preview after attaching material opens the preview pane instead of the retained fragment', () => {
+  for (const initialPane of ['editor', 'preview']) {
+    const workbench = new Element({dataset: {activePane: initialPane}});
+    const buttons = ['editor', 'preview'].map(name => new Element({
+      dataset: {paneTarget: name}, setAttribute(key, value) { this[key] = value; },
+    }));
+    const switcher = new Element({querySelectorAll: () => buttons});
+    harness({workbench, switcher, hash: '#materials'});
+    assert.equal(workbench.dataset.activePane, initialPane);
+    assert.equal(buttons.find(button => button.dataset.paneTarget === initialPane)['aria-pressed'], 'true');
+  }
+});
+
+test('preview history returns to a GET selection without clearing or auto-restoring its draft', () => {
+  const first = makeForm('lesson-a'), original = harness({forms: [first]});
+  original.edit(first, 'Preview only');
+  original.submit(first, 'lesson_preview');
+  const bound = makeForm('lesson-a', {title: 'Preview only', bound: true,
+    getUrl: '/backoffice/workspace/courses/3/?lesson=42'});
+  const returned = harness({forms: [bound], stored: original.stored, hash: '#materials'});
+  assert.deepEqual(returned.historyCalls, [{state: {existing: 'entry-state'}, title: '',
+    url: 'http://workspace.test/backoffice/workspace/courses/3/?lesson=42#materials'}]);
+  assert.equal(bound.fields[0].value, 'Preview only');
+  assert.equal(returned.read('lesson-a').values.title, 'Preview only');
+  assert.equal(returned.read('lesson-a').lastSubmission, null);
+
+  returned.edit(bound, 'Changed after preview');
+  returned.window.events.pagehide();
+  const freshGet = makeForm('lesson-a');
+  const back = harness({forms: [freshGet], stored: returned.stored});
+  assert.equal(freshGet.fields[0].value, 'Saved title');
+  assert.equal(freshGet.controls.recovery.hidden, false);
+  assert.equal(back.historyCalls.length, 0);
+  freshGet.controls.restore.events.click();
+  assert.equal(freshGet.fields[0].value, 'Changed after preview');
+  assert.equal(freshGet.querySelector('[name="lesson_revision"]').value, 'server-revision');
+});
+
+test('history normalization rejects unrelated URLs and cannot break invalid POST recovery', () => {
+  for (const getUrl of ['https://other.test/backoffice/workspace/courses/3/',
+    '/backoffice/workspace/courses/99/?lesson=42']) {
+    const bound = makeForm('lesson-a', {bound: true, getUrl});
+    assert.equal(harness({forms: [bound]}).historyCalls.length, 0);
+  }
+  for (const failHistory of [false, true]) {
+    const originalForm = makeForm('new-module-a'), original = harness({forms: [originalForm]});
+    original.edit(originalForm, 'Older recoverable text');
+    const bound = makeForm('new-module-a', {title: 'Rejected POST text', bound: true,
+      getUrl: '/backoffice/workspace/courses/3/?module=7&new=1'});
+    const current = harness({forms: [bound], stored: original.stored, failHistory});
+    assert.equal(bound.fields[0].value, 'Rejected POST text');
+    assert.equal(bound.controls.recovery.hidden, false);
+    current.window.events.pagehide();
+    assert.equal(current.read('new-module-a').values.title, 'Older recoverable text');
+    const departure = event();
+    current.window.events.beforeunload(departure);
+    assert.equal(departure.defaultPrevented, true);
+    bound.controls.restore.events.click();
+    assert.equal(bound.fields[0].value, 'Older recoverable text');
+    assert.equal(current.historyCalls.length, failHistory ? 0 : 1);
+  }
+});
 
 test('a confirmed save clears only its matching submitted draft', () => {
   const first = makeForm('lesson-a'), second = makeForm('lesson-b');

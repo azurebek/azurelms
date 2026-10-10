@@ -2,7 +2,7 @@
 {% block workspace_media %}{{ form.media }}{% endblock %}
 {% block workspace_content %}
 <div class="ws-page-head"><div><a class="ws-back" href="{% if course %}{% url 'backoffice_workspace_course' course_id=course.pk %}{% else %}{% url 'backoffice_workspace_courses' %}{% endif %}">← {% if course %}Kursga qaytish{% else %}Kurslar{% endif %}</a><h1>{% if course %}Kurs ma’lumotlari{% else %}Yangi kurs yarating{% endif %}</h1><p class="ws-lead">{% if course %}{{ course.title }}{% else %}Kursga nom bering. Darslarni keyingi qadamda qo‘shasiz.{% endif %}</p></div></div>
-<form method="post" enctype="multipart/form-data" class="ws-course-form" data-workspace-draft data-draft-scope="{{ draft_scope }}" data-saved-scope="{{ saved_scope }}" data-bound-form="{{ form.is_bound|yesno:'true,false' }}">
+<form method="post" enctype="multipart/form-data" class="ws-course-form" data-workspace-draft data-draft-scope="{{ draft_scope }}" data-saved-scope="{{ saved_scope }}" data-bound-form="{{ form.is_bound|yesno:'true,false' }}" data-draft-get-url="{{ request.path }}">
   {% csrf_token %}<input type="hidden" name="course_revision" value="{{ revision }}">
   {% if form.errors %}<div class="ws-notice ws-notice-error" tabindex="-1" data-form-errors role="alert"><strong>Kurs saqlanmadi.</strong><p>Belgilangan maydonlarni tekshiring.</p>{{ form.non_field_errors }}</div>{% endif %}
   {% include "backoffice/workspace/recovery.html" %}
