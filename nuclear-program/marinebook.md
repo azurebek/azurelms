@@ -16,6 +16,30 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-10 [Codex]: multidict xavfsizlik yangilanishi — DESIGN-01 CI blokini tuzatish
+
+PR #167 supply-chain tekshiruvi `multidict==6.7.1` uchun yangi
+`CVE-2026-104874` sabab to'xtagan. `requirements.txt` pin'i `6.9.1`ga
+yangilandi: upstream C extension set operatsiyalaridagi reference leak'ni
+tuzatgan ([release](https://github.com/aio-libs/multidict/releases/tag/v6.9.1)).
+Audit baseline va required CI gate'lari o'zgartirilmadi.
+
+- Branch: `codex/multidict-security-update`; dalil commit: `d9ba790`.
+- Local venv faqat shu paket bilan yangilandi; `venv/Scripts/python.exe -m pip check`: PASS.
+- `.env.local` o'chirilgan (`AZURELMS_SKIP_ENV_FILE=1`), Gemini/Telegram keys
+  bo'sh, `APP_ENV=local`, `LOCAL_USE_REMOTE_SERVICES=0` bilan:
+  `venv/Scripts/python.exe manage.py check`: 0 issue;
+  `venv/Scripts/python.exe manage.py test --noinput --verbosity 0`:
+  2307 test, 146.310s, OK (58 skipped).
+- `.tools/dependency-audit-20260925/Scripts/python.exe -m pip_audit -r requirements.txt --no-deps -f json --progress-spinner off -o .tools/design-dc1/dependency-audit-fixed.json`:
+  107 dependency, 0 skipped, 0 advisory.
+- `venv/Scripts/python.exe manage.py audit_dependencies --report .tools/design-dc1/dependency-audit-fixed.json`:
+  PASS; `git diff --check`: PASS. Real provider chaqirilmadi.
+- Keyingi qadam: security PR uchala CI tekshiruvidan o'tgach merge;
+  keyin #167 branch'ini yangilash va uning CI tekshiruvlarini qayta o'tkazish.
+
+---
+
 ## 2026-10-04 [Codex]: Packet85 — kirish formalarida aniq xato va fokus
 
 Eleventh Trial4auth formada bitta inline xato, summary soni va birinchi
