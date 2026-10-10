@@ -16,6 +16,32 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-10 [Codex]: Backoffice — uch asosiy ishga tayangan islohot rejasi
+
+Owner zich, bir xil va texnik sahifalar o‘rniga qulay boshqaruv rejasini so‘radi.
+Ustuvorlikni owner belgiladi: kurs/dars tayyorlash, o‘quvchi muammosini hal qilish,
+platforma dizaynini texnik bilimsiz moslash. Source auditi asosida olti bo‘lim,
+uch turli ish maydoni, eski-yangi xarita va bosqichli qabul mezonlari yozildi.
+
+- Branch: `codex/backoffice-usability-reform-plan`; dalil commit: `0570ae7`.
+  [Yagona reja](frontend-v1/BACKOFFICE-REFORM-PLAN.md); frontend README orqali topiladi.
+- Tracked source tayanchi `4325ca6`; Eleventh Trial lokal kuzatuvlari alohida.
+  Custom modul/yangi dars authoring bo‘shlig‘i, birlashtirilgan learner read modeli
+  va design real porti yangi ish sifatida ochiq. A2-D01 va canonical writerlar saqlangan.
+- Test: `git diff --cached --check` PASS; rejaning **20 local havolasi** mavjud.
+  Docs-only minimum bo‘yicha Django/runtime suite lokal qayta yugurtirilmadi.
+  Read-only mustaqil reviewdagi baseline aniqligi tuzatildi: 30% tezlashish faqat
+  avval ham yakunlanadigan bir xil vazifalarga; yangi authoring uchun mutlaq mezon.
+- Chatdagi alohida namuna: `node --check .tools/backoffice-reform/concept.js` PASS;
+  IAB orqali dars tanlash/preview, learner muammo tanlovi, rang/shakl/matn va
+  oldin/keyin solishtirish ishladi. 320px viewportda olti bo‘lim overflow0;
+  captured console error/warn0. Bu namuna real app yoki usability qabuli emas.
+  Namuna repo tashqarisidagi task visualizations papkasida; runtime/prototip yozilmadi.
+- Keyingi: owner bilan vazifa/topish sinovi, so‘ng kurs bilan ishlaydigan birinchi
+  kesim. Implementatsiya boshlanmagan; DC6 owner/native qabuli PENDING, AWS o‘zgarmadi.
+
+---
+
 ## 2026-10-10 [Codex]: DESIGN-01 DC6 — owner walkthrough va tekshirilgan tiklash
 
 Owner oltinchi bosqichni boshlashni topshirdi. Eleventh Trial ustaxonasiga

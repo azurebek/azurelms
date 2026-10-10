@@ -1,5 +1,11 @@
 # Frontend V1 — prototipdan ishlaydigan platformaga
 
+**2026-10-10 — backoffice islohoti:** [uch asosiy ishga tayangan reja](BACKOFFICE-REFORM-PLAN.md)
+tayyorlandi: kurs/dars tayyorlash, o‘quvchi muammosini hal qilish va dizaynni
+texnik bilimsiz moslash. Olti bo‘lim, eski-yangi xarita, bosqichlar va foydalanish
+mezoni taklif qilindi. Bu reja; implementatsiya va yangi ko‘rinish qabuli boshlanmagan.
+DC6 owner qabuli hamon PENDING.
+
 **2026-10-10 DC6:** [yakuniy ko‘rib chiqish va tiklash paketi](DESIGN-01-DC6-ACCEPTANCE.md)
 tayyorlandi. Ustaxonada 8 qadamli yo‘riqnoma; lokal walkthrough va alohida
 papkadan tiklash sinovi o‘tdi. Owner qabuli PENDING; native/print/AT/Telegram,
