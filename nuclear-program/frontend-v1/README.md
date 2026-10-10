@@ -15,6 +15,10 @@ flagi default OFF; yozish mavjud qaror xizmatlarida.
 haqiqiy private qoralama/uslub, nashrlar tarixi, tatbiq va rollback qurildi.
 V1/workspace va legacy umumiy palitrasi ulanadi; flag default OFF, core0007
 additive schema. Owner DB va productionga qo‘llanmadi.
+[Beshinchi bosqich](BACKOFFICE-REFORM-STAGE-5.md): qolgan backoffice uchun
+yagona menyu, To‘lovlar/Sayt/Sozlamalar markazlari, alohida Guruhlar va
+Tariflar ro‘yxati, mavjud formalar uchun bir xil qobiq. Default-OFF
+renderer flagi; eski writerlar saqlangan. [Amal xaritasi](BACKOFFICE-REFORM-STAGE-5-MAP.md).
 Vaqtli usability/yangi ko‘rinish qabuli va qolgan kesimlar hali ochiq.
 DC6 owner qabuli hamon PENDING.
 

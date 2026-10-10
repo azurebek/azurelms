@@ -1,25 +1,26 @@
 {% extends "backoffice/base.html" %}
 {% load static %}
 
-{% block bo_title %}Operatsion sozlamalar{% endblock %}
+{% block bo_title %}{% if backoffice_unified_enabled %}Vaqt va limitlar{% else %}Operatsion sozlamalar{% endif %}{% endblock %}
 {% block bo_icon %}bi-sliders{% endblock %}
-{% block bo_topbar %}Deploy'siz o'zgaradigan qiymatlar{% endblock %}
+{% block bo_topbar %}{% if backoffice_unified_enabled %}Vaqt va limitlar{% else %}Deploy'siz o'zgaradigan qiymatlar{% endif %}{% endblock %}
 {% block page_css %}<link rel="stylesheet" href="{% static 'css/brand-control.css' %}">{% endblock %}
 
 {% block bo_content %}
 <section class="brand-hero">
   <div>
-    <span class="brand-kicker">OPERATSION SOZLAMALAR</span>
-    <h1>Tezlik va chegaralar</h1>
-    <p>Bu qiymatlar ilgari kodda turardi va ularni o'zgartirish uchun deploy kerak bo'lardi. Endi shu yerdan o'zgaradi va keyingi worker siklida kuchga kiradi — qayta ishga tushirish shart emas.</p>
-    <p><strong>Yoqish/o'chirish bu yerda yo'q</strong> — u <a href="{% url 'backoffice_feature_flags' %}">feature flaglarda</a>. Bitta narsani ikki joydan boshqarish mumkin emas: aks holda qaysi qiymat amalda ekani noaniq bo'lib qoladi.</p>
+    <span class="brand-kicker">{% if backoffice_unified_enabled %}SOZLAMALAR{% else %}OPERATSION SOZLAMALAR{% endif %}</span>
+    <h1>{% if backoffice_unified_enabled %}Vaqt va limitlar{% else %}Tezlik va chegaralar{% endif %}</h1>
+    <p>{% if backoffice_unified_enabled %}O‘zgartirmoqchi bo‘lgan bo‘limni oching. Har bir bo‘lim alohida saqlanadi; o‘zgarish sababini yozib, tasdiqlang.{% else %}Bu qiymatlar ilgari kodda turardi va ularni o'zgartirish uchun deploy kerak bo'lardi. Endi shu yerdan o'zgaradi va keyingi worker siklida kuchga kiradi — qayta ishga tushirish shart emas.{% endif %}</p>
+    <p>{% if backoffice_unified_enabled %}Xizmatni yoqish yoki o‘chirish uchun <a href="{% url 'backoffice_feature_flags' %}">Xizmatlarni boshqarish</a> bo‘limiga o‘ting.{% else %}<strong>Yoqish/o'chirish bu yerda yo'q</strong> — u <a href="{% url 'backoffice_feature_flags' %}">feature flaglarda</a>. Bitta narsani ikki joydan boshqarish mumkin emas: aks holda qaysi qiymat amalda ekani noaniq bo'lib qoladi.{% endif %}</p>
   </div>
-  <a class="brand-back" href="{% url 'backoffice_control' %}"><i class="bi bi-arrow-left"></i> Control Center</a>
+  <a class="brand-back" href="{% if backoffice_unified_enabled %}{% url 'backoffice_workspace_settings' %}{% else %}{% url 'backoffice_control' %}{% endif %}"><i class="bi bi-arrow-left"></i> {% if backoffice_unified_enabled %}Sozlamalar{% else %}Control Center{% endif %}</a>
 </section>
 
 <div class="brand-layout">
   <div>
-    <form class="brand-form" method="post">
+    {% if backoffice_unified_enabled %}<details class="bo-settings-detail" id="settings-exam_receipts"{% if exam_receipts_form.is_bound or exam_receipts_form.errors %} open{% endif %}><summary><strong>Imtihon so‘rovlari himoyasi</strong><span>Takroriy so‘rovlardan himoya yozuvlari sig‘imi.</span></summary>{% endif %}
+<form class="brand-form" method="post">
       {% csrf_token %}<input type="hidden" name="form_name" value="exam_receipts">
       <section class="brand-panel">
         <div class="brand-panel-head"><span>IM</span><div><h2>Amallar jurnali sig‘imi</h2><p>Takroriy so‘rovdan himoya uchun saqlanadigan texnik tasdiqlar. Bu javoblar yoki baholar tarixi emas.</p></div></div>
@@ -32,10 +33,12 @@
       </div></section>
       <button class="brand-submit" type="submit">Imtihon jurnali sig‘imini saqlash</button>
     </form>
-    <form class="brand-form" method="post">
+    {% if backoffice_unified_enabled %}</details>{% endif %}
+    {% if backoffice_unified_enabled %}<details class="bo-settings-detail" id="settings-checkout"{% if checkout_form.is_bound or checkout_form.errors %} open{% endif %}><summary><strong>To‘lovni tasdiqlash muddati</strong><span>Tanlangan narx va chegirma qancha vaqt amal qiladi.</span></summary>{% endif %}
+<form class="brand-form" method="post">
       {% csrf_token %}<input type="hidden" name="form_name" value="checkout">
       <section class="brand-panel">
-        <div class="brand-panel-head"><span>To‘lov</span><div><h2>Checkout tasdiq muddati</h2><p>Saqlangach, keyingi so‘rovdan amal qiladi. Narx va chegirma yuborish vaqtida qayta tekshiriladi.</p></div></div>
+        <div class="brand-panel-head"><span>To‘lov</span><div><h2>{% if backoffice_unified_enabled %}To‘lovni tasdiqlash muddati{% else %}Checkout tasdiq muddati{% endif %}</h2><p>Saqlangach, keyingi so‘rovdan amal qiladi. Narx va chegirma yuborish vaqtida qayta tekshiriladi.</p></div></div>
         {% if checkout_form.non_field_errors %}<div class="brand-errors">{{ checkout_form.non_field_errors }}</div>{% endif %}
         <div class="brand-fields brand-fields--nums">{% for field, unit in checkout_form.numeric_fields %}<label class="brand-field"><span>{{ field.label }}</span><span class="brand-numfield">{{ field }}<span class="brand-unit">{{ unit }}</span></span><small>{{ field.help_text }}</small>{% for error in field.errors %}<em>{{ error }}</em>{% endfor %}</label>{% endfor %}</div>
       </section>
@@ -43,9 +46,11 @@
         <label class="brand-field"><span>{{ checkout_form.change_reason.label }}</span>{{ checkout_form.change_reason }}{% for error in checkout_form.change_reason.errors %}<em>{{ error }}</em>{% endfor %}</label>
         <label class="brand-field brand-field--check">{{ checkout_form.confirm_change }}<span>{{ checkout_form.confirm_change.label }}</span>{% for error in checkout_form.confirm_change.errors %}<em>{{ error }}</em>{% endfor %}</label>
       </div></section>
-      <button class="brand-submit" type="submit">Checkout muddatini saqlash</button>
+      <button class="brand-submit" type="submit">{% if backoffice_unified_enabled %}To‘lov muddatini saqlash{% else %}Checkout muddatini saqlash{% endif %}</button>
     </form>
-    <form class="brand-form" method="post">
+    {% if backoffice_unified_enabled %}</details>{% endif %}
+    {% if backoffice_unified_enabled %}<details class="bo-settings-detail" id="settings-delivery"{% if delivery_form.is_bound or delivery_form.errors %} open{% endif %}><summary><strong>Telegram xabarlarini yuborish</strong><span>Yuborish tezligi va qayta urinishlar.</span></summary>{% endif %}
+<form class="brand-form" method="post">
       {% csrf_token %}
       <input type="hidden" name="form_name" value="delivery">
       {% if delivery_form.non_field_errors %}<div class="brand-errors">{{ delivery_form.non_field_errors }}</div>{% endif %}
@@ -55,7 +60,7 @@
           <span>01</span>
           <div>
             <h2>Telegram yetkazish</h2>
-            <p>Navbat tezligi va qayta urinish siyosati. Jonli darsda <code>429 Flood control</code> ko'rinsa, birinchi o'zgartiriladigan qiymat — <strong>yuborishlar orasidagi oraliq</strong>.</p>
+            <p>{% if backoffice_unified_enabled %}Xabarlar qanchalik tez yuborilishi va yetib bormaganda necha marta qayta urinilishini belgilang. Juda tez yuborish Telegram chekloviga olib kelishi mumkin.{% else %}Navbat tezligi va qayta urinish siyosati. Jonli darsda <code>429 Flood control</code> ko'rinsa, birinchi o'zgartiriladigan qiymat — <strong>yuborishlar orasidagi oraliq</strong>.{% endif %}</p>
           </div>
         </div>
         <div class="brand-fields brand-fields--nums">
@@ -91,8 +96,10 @@
 
       <button class="brand-submit" type="submit"><i class="bi bi-send"></i> Yetkazish sozlamasini saqlash</button>
     </form>
+    {% if backoffice_unified_enabled %}</details>{% endif %}
 
-    <form class="brand-form" method="post">
+    {% if backoffice_unified_enabled %}<details class="bo-settings-detail" id="settings-thresholds"{% if thresholds_form.is_bound or thresholds_form.errors %} open{% endif %}><summary><strong>Nosozlik haqida ogohlantirish</strong><span>Navbat va zaxira holatini qachon belgilash.</span></summary>{% endif %}
+<form class="brand-form" method="post">
       {% csrf_token %}
       <input type="hidden" name="form_name" value="thresholds">
       {% if thresholds_form.non_field_errors %}<div class="brand-errors">{{ thresholds_form.non_field_errors }}</div>{% endif %}
@@ -101,7 +108,7 @@
         <div class="brand-panel-head">
           <span>03</span>
           <div>
-            <h2>Control Center chegaralari</h2>
+            <h2>{% if backoffice_unified_enabled %}Ogohlantirish chegaralari{% else %}Control Center chegaralari{% endif %}</h2>
             <p>Bu qiymatlar nosozlikni o'lchamaydi — faqat uni qachon ko'rsatishni belgilaydi.</p>
           </div>
         </div>
@@ -137,8 +144,10 @@
 
       <button class="brand-submit" type="submit"><i class="bi bi-sliders"></i> Chegaralarni saqlash</button>
     </form>
+    {% if backoffice_unified_enabled %}</details>{% endif %}
 
-    <form class="brand-form" method="post">
+    {% if backoffice_unified_enabled %}<details class="bo-settings-detail" id="settings-reminders"{% if reminders_form.is_bound or reminders_form.errors %} open{% endif %}><summary><strong>Eslatmalar vaqti</strong><span>To‘lov va tekshiruv eslatmalari qachon yuboriladi.</span></summary>{% endif %}
+<form class="brand-form" method="post">
       {% csrf_token %}
       <input type="hidden" name="form_name" value="reminders">
       {% if reminders_form.non_field_errors %}<div class="brand-errors">{{ reminders_form.non_field_errors }}</div>{% endif %}
@@ -148,7 +157,7 @@
           <span>05</span>
           <div>
             <h2>Eslatmalar</h2>
-            <p>Qaysi turdagi eslatma <strong>yoqilgani</strong> bu yerda emas — u <a href="{% url 'backoffice_feature_flags' %}">feature flaglarda</a>. Bu yerda faqat vaqt.</p>
+            <p>{% if backoffice_unified_enabled %}Eslatmalar qachon yuborilishini belgilang. Eslatma turlarini <a href="{% url 'backoffice_feature_flags' %}">Xizmatlarni boshqarish</a> bo‘limida yoqasiz.{% else %}Qaysi turdagi eslatma <strong>yoqilgani</strong> bu yerda emas — u <a href="{% url 'backoffice_feature_flags' %}">feature flaglarda</a>. Bu yerda faqat vaqt.{% endif %}</p>
           </div>
         </div>
         <div class="brand-fields brand-fields--nums">
@@ -183,8 +192,10 @@
 
       <button class="brand-submit" type="submit"><i class="bi bi-bell"></i> Eslatma sozlamasini saqlash</button>
     </form>
+    {% if backoffice_unified_enabled %}</details>{% endif %}
 
-    <form class="brand-form" method="post">
+    {% if backoffice_unified_enabled %}<details class="bo-settings-detail" id="settings-dispatcher"{% if dispatcher_form.is_bound or dispatcher_form.errors %} open{% endif %}><summary><strong>Bot ishlashini kuzatish</strong><span>Javob vaqti va xatolar bo‘yicha chegaralar.</span></summary>{% endif %}
+<form class="brand-form" method="post">
       {% csrf_token %}
       <input type="hidden" name="form_name" value="dispatcher">
       {% if dispatcher_form.non_field_errors %}<div class="brand-errors">{{ dispatcher_form.non_field_errors }}</div>{% endif %}
@@ -194,7 +205,7 @@
           <span>07</span>
           <div>
             <h2>Bot kuzatuvi</h2>
-            <p>Bu chegaralar <strong>Telegram dispatcher</strong> chirog'ini boshqaradi. Bot o'z holatini o'zi yozadi — Control Center hech qachon test xabari yubormaydi.</p>
+            <p>{% if backoffice_unified_enabled %}Bot javob bermay qolsa yoki sekinlashsa, qachon ogohlantirish ko‘rsatishni belgilang. Bu sahifa sinov xabari yubormaydi.{% else %}Bu chegaralar <strong>Telegram dispatcher</strong> chirog'ini boshqaradi. Bot o'z holatini o'zi yozadi — Control Center hech qachon test xabari yubormaydi.{% endif %}</p>
           </div>
         </div>
         <div class="brand-fields brand-fields--nums">
@@ -229,8 +240,10 @@
 
       <button class="brand-submit" type="submit"><i class="bi bi-activity"></i> Kuzatuv chegaralarini saqlash</button>
     </form>
+    {% if backoffice_unified_enabled %}</details>{% endif %}
 
-    <form class="brand-form" method="post">
+    {% if backoffice_unified_enabled %}<details class="bo-settings-detail" id="settings-library"{% if library_form.is_bound or library_form.errors %} open{% endif %}><summary><strong>Material fayllari hajmi</strong><span>Yuklanadigan faylning eng katta hajmi.</span></summary>{% endif %}
+<form class="brand-form" method="post">
       {% csrf_token %}
       <input type="hidden" name="form_name" value="library">
       {% if library_form.non_field_errors %}<div class="brand-errors">{{ library_form.non_field_errors }}</div>{% endif %}
@@ -240,7 +253,7 @@
           <span>09</span>
           <div>
             <h2>Material kutubxonasi</h2>
-            <p>Yuklanadigan material faylining hajmi. Ruxsat etilgan <strong>fayl turlari</strong> bu yerda emas — ular xavfsizlik allowlisti va kodda qoladi.</p>
+            <p>{% if backoffice_unified_enabled %}O‘quv materiallari uchun eng katta fayl hajmini belgilang. Ruxsat etilgan fayl turlari o‘zgarmaydi.{% else %}Yuklanadigan material faylining hajmi. Ruxsat etilgan <strong>fayl turlari</strong> bu yerda emas — ular xavfsizlik allowlisti va kodda qoladi.{% endif %}</p>
           </div>
         </div>
         <div class="brand-fields brand-fields--nums">
@@ -275,6 +288,7 @@
 
       <button class="brand-submit" type="submit"><i class="bi bi-archive"></i> Kutubxona sozlamasini saqlash</button>
     </form>
+    {% if backoffice_unified_enabled %}</details>{% endif %}
   </div>
 
   <aside class="brand-side">
@@ -289,11 +303,12 @@
             {% if event.reason %}<em>{{ event.reason }}</em>{% endif %}
           </li>
         {% empty %}
-          <li><span>Hali o'zgartirilmagan — hamma joyda kod defaultlari.</span></li>
+          <li><span>{% if backoffice_unified_enabled %}Hali o‘zgartirilmagan — boshlang‘ich qiymatlar ishlayapti.{% else %}Hali o'zgartirilmagan — hamma joyda kod defaultlari.{% endif %}</span></li>
         {% endfor %}
       </ul>
     </section>
 
+{% if backoffice_unified_enabled %}<details class="bo-settings-detail"><summary>Qiymatlar qanday tekshiriladi</summary>{% endif %}
     <section class="brand-panel">
       <div class="brand-panel-head"><span><i class="bi bi-shield-check"></i></span><div><h2>Xavfsizlik to'ri</h2></div></div>
       <ul class="brand-history">
@@ -302,6 +317,7 @@
         <li><span>Sozlama qatori umuman bo'lmasa kod defaultlari ishlaydi.</span></li>
       </ul>
     </section>
+{% if backoffice_unified_enabled %}</details>{% endif %}
   </aside>
 </div>
 {% endblock %}

@@ -53,8 +53,19 @@ class BlogPostForm(forms.ModelForm):
             "status": forms.Select(attrs={"class": "panel-select"}),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, simple_copy=False, **kwargs):
         super().__init__(*args, **kwargs)
+        if simple_copy:
+            placeholders = {
+                "cover_alt_text": "Rasmda nima tasvirlangan?",
+                "excerpt": "Maqola haqida qisqacha yozing...",
+                "featured_quote": "Maqoladan muhim jumla yoki iqtibos",
+                "tag_names": "grammatika, turk tili, maslahat",
+                "seo_title": "Qidiruv natijasida ko‘rinadigan sarlavha",
+                "meta_description": "Havola ulashilganda ko‘rinadigan qisqa tavsif",
+            }
+            for name, placeholder in placeholders.items():
+                self.fields[name].widget.attrs["placeholder"] = placeholder
         if self.instance.pk:
             self.fields["tag_names"].initial = ", ".join(self.instance.tags.values_list("name", flat=True))
             if self.instance.published_at:

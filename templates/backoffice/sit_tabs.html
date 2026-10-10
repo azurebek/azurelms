@@ -1,4 +1,4 @@
-<nav class="sit-bo-tabs" aria-label="SIT boshqaruv bo'limlari">
+<nav class="sit-bo-tabs" aria-label="{% if backoffice_unified_enabled %}Turkiyada o‘qish boshqaruvi{% else %}SIT boshqaruv bo'limlari{% endif %}">
   <a class="sit-bo-tab{% if current == 'dashboard' %} active{% endif %}" href="{% url 'sit_backoffice:dashboard' %}"><i class="bi bi-grid"></i> Holat</a>
   <a class="sit-bo-tab{% if current == 'universities' %} active{% endif %}" href="{% url 'sit_backoffice:universities' %}"><i class="bi bi-buildings"></i> Universitetlar</a>
   <a class="sit-bo-tab{% if current == 'announcements' %} active{% endif %}" href="{% url 'sit_backoffice:announcements' %}"><i class="bi bi-megaphone"></i> E'lonlar</a>

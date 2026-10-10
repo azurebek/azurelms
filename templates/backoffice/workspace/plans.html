@@ -1,0 +1,6 @@
+{% extends "backoffice/workspace/base.html" %}
+{% block workspace_content %}
+<div class="ws-page-head"><div><p class="ws-eyebrow">TO‘LOVLAR</p><h1>Tariflar</h1><p class="ws-lead">Tarifni tanlab, narxi, tarkibi va sotuv holatini o‘zgartiring.</p></div></div>
+<div class="ws-section-grid">{% for plan in page_obj %}<section class="ws-section-card"><div class="ws-group-heading"><h2>{{ plan.name }}</h2><span class="ws-badge{% if plan.is_available_for_purchase %} ws-badge-success{% endif %}">{% if plan.is_available_for_purchase %}Sotuv ochiq{% else %}Sotuv yopiq{% endif %}</span></div><p class="ws-plan-price">{{ plan.price|floatformat:0 }} <small>so‘m / oy</small></p><p>{% if plan.cohort_capacity_limit %}Guruhning standart sig‘imi: {{ plan.cohort_capacity_limit }} o‘quvchi.{% else %}Guruh sig‘imi bilan cheklanmagan tarif.{% endif %}</p><a class="ws-button" href="{% url 'backoffice_plan_edit' plan.pk %}">Tarifni tahrirlash</a></section>{% empty %}<div class="ws-empty"><h2>Tariflar hali yo‘q</h2><p>Tariflar tayyorlangach shu yerda ko‘rinadi.</p></div>{% endfor %}</div>
+{% include "backoffice/workspace/section_pagination.html" %}
+{% endblock %}

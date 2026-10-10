@@ -1,0 +1,117 @@
+/* Compatibility is confined to the migrated content. The workspace owns the
+   document, palette, navigation and theme; old global shell CSS is not loaded. */
+.ws-legacy-content {
+  --paper: var(--az-canvas);
+  --paper-2: var(--az-soft);
+  --panel: var(--az-surface);
+  --ink: var(--az-text);
+  --ink-2: var(--az-muted);
+  --ink-3: var(--az-muted);
+  --ink-4: var(--az-faint);
+  --line: var(--az-border);
+  --line-2: var(--az-border);
+  --azure: var(--az-action);
+  --azure-2: var(--az-action-hover);
+  --azure-soft: var(--az-action-soft);
+  --on-azure: var(--az-on-action);
+  --green: var(--az-success);
+  --green-soft: var(--az-success-soft);
+  --amber: var(--az-warning);
+  --amber-soft: color-mix(in srgb, var(--az-warning) 12%, var(--az-surface));
+  --red: var(--az-danger);
+  --red-soft: var(--az-danger-soft);
+  --violet: var(--az-action);
+  --violet-soft: var(--az-action-soft);
+  min-width: 0;
+  color: var(--az-text);
+  font-size: var(--az-text-sm);
+  line-height: 1.65;
+}
+.ws-legacy-inner { max-width: 1200px; margin-inline: auto; min-width: 0; }
+.ws-legacy-inner > * { max-width: 100%; }
+.ws-legacy-content :where(form, fieldset, article, section, .bo-card, .se-card, .bs-editor-layout > *) { min-width: 0; }
+.ws-legacy-content :where(input, select, textarea) { max-width: 100%; }
+.ws-legacy-content :where(button, input, select, textarea) { font-family: inherit; }
+.ws-legacy-content :where(button:not([class]), button[style]) { cursor: pointer; }
+.ws-legacy-content :where(pre, code) { overflow-wrap: anywhere; }
+.ws-legacy-content pre { max-width: 100%; overflow-x: auto; }
+.ws-legacy-content .errorlist { color: var(--az-danger); list-style: disc; padding-left: 1.25rem; margin: .5rem 0; }
+.ws-legacy-content :where(.bo-card, .se-card) { border: 1px solid var(--line); border-radius: var(--dc-card-radius, 14px); background: var(--panel); padding: 22px; }
+.ws-legacy-content .bo-form label.fld { display: block; margin-bottom: 18px; }
+.ws-legacy-content :where(.bo-lbl, .se-lbl) { display: block; margin-bottom: 8px; font-family: inherit; font-size: 13px; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--ink); }
+.ws-legacy-content .bo-form :where(input[type="text"], input[type="number"], input[type="url"], input[type="email"], input[type="date"], input[type="datetime-local"], input[type="file"], input:not([type]), select, textarea),
+.ws-legacy-content .field-input {
+  width: 100%; min-height: 44px; padding: 9px 13px; border-radius: var(--dc-field-radius, 10px);
+  border: 1px solid var(--line); background: var(--paper-2); color: var(--ink); font-size: 14px;
+}
+.ws-legacy-content .bo-form textarea,
+.ws-legacy-content textarea.field-input { min-height: 110px; line-height: 1.6; resize: vertical; }
+.ws-legacy-content .bo-form :where(input, select, textarea):focus,
+.ws-legacy-content .field-input:focus { border-color: var(--azure); outline: 2px solid var(--az-focus); outline-offset: 2px; }
+.ws-legacy-content .bo-check { display: flex; align-items: start; gap: 10px; margin-bottom: 15px; }
+.ws-legacy-content .bo-check input { flex: 0 0 auto; margin-top: 4px; }
+.ws-legacy-content .bo-help { display: block; font-size: 12px; color: var(--ink-3); margin-top: 6px; }
+.ws-legacy-content .bo-err { display: block; font-size: 13px; color: var(--red); margin-top: 6px; }
+.ws-legacy-content :where(.brand-card, .brand-panel):has(> table) { overflow-x: auto; }
+.ws-legacy-content .brand-table { min-width: 30rem; }
+.ws-legacy-content :where(.brand-card, .brand-panel, .bo-card, .se-card, .lib-stat, .lib-table) { box-shadow: none; }
+.ws-legacy-content :where(.brand-label, .brand-field > span, .brand-upload > strong) { font-size: 13px; }
+.ws-legacy-content :where(.brand-panel-head p, .brand-field small, .brand-upload > span, .brand-meta dt) { font-size: 12px; }
+.ws-legacy-content :where(.brand-btn, .brand-save, .brand-submit, .lib-action, .lib-primary, .lib-filter-apply) { min-height: 44px; }
+.ws-legacy-content :where(.brand-check, .brand-confirm) { font-size: 13px; line-height: 1.6; }
+.ws-legacy-content :where(.brand-check, .brand-confirm) input { flex: 0 0 auto; width: 18px; height: 18px; accent-color: var(--az-action); }
+.ws-legacy-content .bs-editor-layout { grid-template-columns: minmax(0, 1.6fr) minmax(260px, 1fr) !important; }
+.ws-legacy-content .bs-row > * { min-width: 0; }
+.ws-legacy-content .bs-row a { min-width: 40px; min-height: 40px; }
+.ws-legacy-content .ck-editor { max-width: 100%; }
+.ws-legacy-content .sit-bo-tabs { display: flex; flex-wrap: wrap; overflow: visible; }
+
+/* Native disclosures work without JavaScript. Errors reopen their containing
+   disclosure on server render and on browser constraint validation. */
+.bo-settings-detail { border: 1px solid var(--az-border); border-radius: 14px; background: var(--az-surface); margin-bottom: 16px; min-width: 0; }
+.bo-settings-detail > summary { padding: 20px 22px; cursor: pointer; color: var(--az-text); font-size: 15px; font-weight: 650; }
+.bo-settings-detail > summary::marker { color: var(--az-muted); }
+.bo-settings-detail > summary :where(span, small, p) { display: block; color: var(--az-muted); font-size: 13px; font-weight: 400; margin: 5px 0 0; }
+.bo-settings-detail[open] > summary { border-bottom: 1px solid var(--az-border); margin-bottom: 18px; }
+.bo-settings-detail > :not(summary) { margin-inline: 22px; }
+.bo-settings-detail > :last-child:not(summary) { margin-bottom: 22px; }
+.bo-settings-detail .brand-panel { border: 0; padding: 0; background: transparent; }
+.bo-settings-detail :where(input, select, textarea):focus-visible { outline: 2px solid var(--az-focus); outline-offset: 2px; }
+.ws-legacy-content .aic-policy-field { min-width: 0; }
+.ws-legacy-content .aic-policy-field > span { display: none; }
+.ws-legacy-content .aic-policy-field > input { width: 100%; min-width: 0; }
+
+@media (max-width: 1100px) {
+  .ws-legacy-content .bs-editor-layout { grid-template-columns: minmax(0, 1fr) !important; }
+  .ws-legacy-content .bo-form > [style*="grid-template-columns:1.5fr 1fr"],
+  .ws-legacy-content .bo-form > [style*="grid-template-columns:1.6fr 1fr"] { grid-template-columns: minmax(0, 1fr) !important; }
+  .ws-legacy-content .aic-policy-head { display: none !important; }
+  .ws-legacy-content .aic-policy-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; gap: 14px !important; }
+  .ws-legacy-content .aic-policy-row > span { grid-column: 1 / -1; }
+  .ws-legacy-content .aic-policy-field > span { display: block; margin-bottom: 7px; font-size: 12px; color: var(--az-muted); }
+  .ws-legacy-content .aic-policy-field > input { min-height: 44px; }
+  .ws-legacy-content .aic-policy-row > button { min-height: 44px; }
+}
+@media (max-width: 720px) {
+  .ws-legacy-content :where(.bo-card, .se-card) { padding: 18px; }
+  .ws-legacy-content .aic-policy-row { grid-template-columns: minmax(0, 1fr) !important; }
+  .ws-legacy-content :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) { font-size: 16px !important; }
+  .ws-legacy-content .bs-row { grid-template-columns: minmax(0, 1fr) auto !important; gap: 12px; }
+  .ws-legacy-content .bs-row > :first-child { grid-column: 1 / -1; }
+  .ws-legacy-content .bs-row > :last-child { grid-column: 2; grid-row: 2 / 4; }
+  .ws-legacy-content .bs-row > :nth-child(3)::before { content: "Ko‘rishlar: "; font-family: var(--az-font); }
+  .ws-legacy-content .bs-row > :nth-child(4)::before { content: "Sana: "; font-family: var(--az-font); }
+  /* Old directory grids retain every value, arranged as compact cards. */
+  .ws-legacy-content[data-legacy-page="backoffice_users"] section > [style*="display:grid"]:first-child,
+  .ws-legacy-content[data-legacy-page="backoffice_chats"] section > [style*="display:grid"]:first-child { display: none !important; }
+  .ws-legacy-content[data-legacy-page="backoffice_users"] section > [style*="display:grid"],
+  .ws-legacy-content[data-legacy-page="backoffice_chats"] section > [style*="display:grid"] { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; gap: 12px; padding: 18px !important; }
+  .ws-legacy-content[data-legacy-page="backoffice_users"] section > [style*="display:grid"] > :first-child,
+  .ws-legacy-content[data-legacy-page="backoffice_chats"] section > [style*="display:grid"] > :first-child { grid-column: 1 / -1; }
+  .ws-legacy-content[data-legacy-page="backoffice_users"] section > [style*="display:grid"] > :nth-child(4)::before { content: "Kurslar: "; }
+  .ws-legacy-content[data-legacy-page="backoffice_users"] section > [style*="display:grid"] > :nth-child(5) { text-align: left !important; }
+  .ws-legacy-content[data-legacy-page="backoffice_chats"] section > [style*="display:grid"] > :nth-child(3)::before { content: "Xabarlar: "; }
+  .ws-legacy-content[data-legacy-page="backoffice_chats"] section > [style*="display:grid"] > :last-child { grid-column: 1 / -1; }
+  .bo-settings-detail > summary { padding: 18px; }
+  .bo-settings-detail > :not(summary) { margin-inline: 18px; }
+}

@@ -10,11 +10,13 @@
 
   <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px;">
     <div>
-      <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;">Token iqtisodiyoti · boshqaruv markazi</div>
-      <h1 style="font-size:clamp(24px,2.6vw,32px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:0;">AI limitlari va nazorat</h1>
+      <div style="font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px;">{% if backoffice_unified_enabled %}SOZLAMALAR · AI YORDAMCHI{% else %}Token iqtisodiyoti · boshqaruv markazi{% endif %}</div>
+      <h1 style="font-size:clamp(24px,2.6vw,32px);font-weight:600;letter-spacing:-.03em;color:var(--ink);margin:0;">{% if backoffice_unified_enabled %}AI foydalanish chegaralari{% else %}AI limitlari va nazorat{% endif %}</h1>
     </div>
     <span style="display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;padding:8px 14px;border-radius:10px;{% if ai_settings.enforcement_enabled %}color:var(--green);background:var(--green-soft);border:1px solid var(--green);{% else %}color:var(--amber);background:var(--amber-soft);border:1px solid var(--amber);{% endif %}"><i class="bi {% if ai_settings.enforcement_enabled %}bi-shield-check{% else %}bi-shield-slash{% endif %}"></i> Limitlar {% if ai_settings.enforcement_enabled %}YOQILGAN{% else %}O'CHIRILGAN{% endif %}</span>
   </div>
+
+  {% if backoffice_unified_enabled %}<p>AI suhbat uchun sarflanadigan matn hajmi tokenlarda hisoblanadi. Quyida umumiy yoki tarif bo‘yicha chegarani tanlang.</p>{% endif %}
 
   <!-- Usage overview -->
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:22px;">
@@ -26,23 +28,26 @@
 
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;" class="aic-cols">
 
+{% if backoffice_unified_enabled %}<details class="bo-settings-detail"><summary>Umumiy limitni o‘zgartirish</summary>{% endif %}
     <!-- Global sozlamalar -->
     <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;">
-      <div style="padding:14px 18px;border-bottom:1px solid var(--line);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);">Global default limitlar</div>
+      <div style="padding:14px 18px;border-bottom:1px solid var(--line);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);">{% if backoffice_unified_enabled %}Umumiy foydalanish chegaralari{% else %}Global default limitlar{% endif %}</div>
       <form method="post" style="padding:18px;">
         {% csrf_token %}
         <input type="hidden" name="action" value="save_settings">
         <div class="bo-check" style="margin-bottom:12px;"><input type="checkbox" name="enforcement_enabled" id="ee"{% if ai_settings.enforcement_enabled %} checked{% endif %}><label for="ee" style="font-size:13.5px;color:var(--ink);">Limitlar yoqilgan (o'chirilsa hech kim bloklanmaydi)</label></div>
-        <div class="bo-check" style="margin-bottom:16px;"><input type="checkbox" name="exempt_staff" id="es"{% if ai_settings.exempt_staff %} checked{% endif %}><label for="es" style="font-size:13.5px;color:var(--ink);">Xodimlar (staff) limitdan ozod</label></div>
-        <label class="fld"><span class="bo-lbl">Default 5 soatlik token limiti</span><input type="number" name="default_5h_token_limit" value="{{ ai_settings.default_5h_token_limit }}" min="0" class="field-input"></label>
-        <label class="fld"><span class="bo-lbl">Default haftalik token limiti</span><input type="number" name="default_weekly_token_limit" value="{{ ai_settings.default_weekly_token_limit }}" min="0" class="field-input"></label>
+        <div class="bo-check" style="margin-bottom:16px;"><input type="checkbox" name="exempt_staff" id="es"{% if ai_settings.exempt_staff %} checked{% endif %}><label for="es" style="font-size:13.5px;color:var(--ink);">{% if backoffice_unified_enabled %}Xodimlarga limit qo‘llanmaydi{% else %}Xodimlar (staff) limitdan ozod{% endif %}</label></div>
+        <label class="fld"><span class="bo-lbl">{% if backoffice_unified_enabled %}5 soat uchun umumiy token chegarasi{% else %}Default 5 soatlik token limiti{% endif %}</span><input type="number" name="default_5h_token_limit" value="{{ ai_settings.default_5h_token_limit }}" min="0" class="field-input"></label>
+        <label class="fld"><span class="bo-lbl">{% if backoffice_unified_enabled %}Hafta uchun umumiy token chegarasi{% else %}Default haftalik token limiti{% endif %}</span><input type="number" name="default_weekly_token_limit" value="{{ ai_settings.default_weekly_token_limit }}" min="0" class="field-input"></label>
         <button type="submit" style="margin-top:8px;display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 18px;border-radius:9px;background:var(--azure);color:var(--on-azure);border:none;font-size:13.5px;font-weight:600;cursor:pointer;"><i class="bi bi-check2"></i> Saqlash</button>
       </form>
     </section>
+{% if backoffice_unified_enabled %}</details>{% endif %}
 
+{% if backoffice_unified_enabled %}<details class="bo-settings-detail"><summary>Hisobni yangilash yoki bonus berish</summary>{% endif %}
     <!-- Reset / bonus -->
     <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;">
-      <div style="padding:14px 18px;border-bottom:1px solid var(--line);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);">Reset / bonus (bayram · event)</div>
+      <div style="padding:14px 18px;border-bottom:1px solid var(--line);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);">{% if backoffice_unified_enabled %}Foydalanish hisobini yangilash yoki bonus berish{% else %}Reset / bonus (bayram · event){% endif %}</div>
       <form method="post" style="padding:18px;" data-aic-event onsubmit="return confirm('Amalni tanlangan foydalanuvchilarga qo‘llaysizmi?');">
         {% csrf_token %}
         <input type="hidden" name="action" value="apply_event">
@@ -61,9 +66,9 @@
         </label>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
           <label class="fld"><span class="bo-lbl">Amal</span>
-            <select name="kind" class="field-input" data-aic-kind><option value="reset">Reset (usage nolga)</option><option value="bonus">Bonus (qo'shimcha token)</option></select>
+            <select name="kind" class="field-input" data-aic-kind><option value="reset">{% if backoffice_unified_enabled %}Foydalanish hisobini nolga tushirish{% else %}Reset (usage nolga){% endif %}</option><option value="bonus">Bonus (qo'shimcha token)</option></select>
           </label>
-          <label class="fld"><span class="bo-lbl">Oyna</span>
+          <label class="fld"><span class="bo-lbl">{% if backoffice_unified_enabled %}Qaysi davr uchun{% else %}Oyna{% endif %}</span>
             <select name="window" class="field-input"><option value="both">Ikkalasi</option><option value="5h">5 soatlik</option><option value="weekly">Haftalik</option></select>
           </label>
         </div>
@@ -72,20 +77,22 @@
         <button type="submit" style="margin-top:6px;display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 18px;border-radius:9px;background:var(--green);color:#fff;border:none;font-size:13.5px;font-weight:600;cursor:pointer;"><i class="bi bi-gift"></i> Qo'llash</button>
       </form>
     </section>
+{% if backoffice_unified_enabled %}</details>{% endif %}
   </div>
 
+{% if backoffice_unified_enabled %}<details class="bo-settings-detail"><summary>Tariflar uchun alohida limitlar</summary>{% endif %}
   <!-- Tarif siyosatlari -->
   <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:24px 0 10px;">Tarif bo'yicha limitlar</div>
   <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;margin-bottom:22px;">
-    <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 90px 90px;padding:11px 18px;background:var(--paper-2);border-bottom:1px solid var(--line);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);"><span>Tarif</span><span>5 soatlik</span><span>Haftalik</span><span>Faol</span><span></span></div>
+    <div class="aic-policy-head" style="display:grid;grid-template-columns:1.4fr 1fr 1fr 90px 90px;padding:11px 18px;background:var(--paper-2);border-bottom:1px solid var(--line);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);"><span>Tarif</span><span>5 soatlik</span><span>Haftalik</span><span>Faol</span><span></span></div>
     {% for row in plan_rows %}
-    <form method="post" style="display:grid;grid-template-columns:1.4fr 1fr 1fr 90px 90px;align-items:center;gap:8px;padding:10px 18px;{% if not forloop.last %}border-bottom:1px solid var(--line-2);{% endif %}">
+    <form method="post" class="aic-policy-row" style="display:grid;grid-template-columns:1.4fr 1fr 1fr 90px 90px;align-items:center;gap:8px;padding:10px 18px;{% if not forloop.last %}border-bottom:1px solid var(--line-2);{% endif %}">
       {% csrf_token %}
       <input type="hidden" name="action" value="save_policy">
       <input type="hidden" name="plan_id" value="{{ row.plan.id }}">
       <span style="font-size:13.5px;font-weight:600;color:var(--ink);">{{ row.plan.name }}</span>
-      <input type="number" name="token_limit_5h" value="{{ row.policy.token_limit_5h|default:'' }}" placeholder="default" min="0" style="height:34px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:var(--paper-2);color:var(--ink);font-family:'Space Mono',monospace;font-size:12.5px;">
-      <input type="number" name="token_limit_weekly" value="{{ row.policy.token_limit_weekly|default:'' }}" placeholder="default" min="0" style="height:34px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:var(--paper-2);color:var(--ink);font-family:'Space Mono',monospace;font-size:12.5px;">
+      {% if backoffice_unified_enabled %}<label class="aic-policy-field"><span>5 soatlik token chegarasi</span>{% endif %}<input type="number" name="token_limit_5h" aria-label="{{ row.plan.name }}: 5 soatlik token chegarasi" value="{{ row.policy.token_limit_5h|default:'' }}" placeholder="default" min="0" style="height:34px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:var(--paper-2);color:var(--ink);font-family:'Space Mono',monospace;font-size:12.5px;">{% if backoffice_unified_enabled %}</label>{% endif %}
+      {% if backoffice_unified_enabled %}<label class="aic-policy-field"><span>Haftalik token chegarasi</span>{% endif %}<input type="number" name="token_limit_weekly" aria-label="{{ row.plan.name }}: haftalik token chegarasi" value="{{ row.policy.token_limit_weekly|default:'' }}" placeholder="default" min="0" style="height:34px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:var(--paper-2);color:var(--ink);font-family:'Space Mono',monospace;font-size:12.5px;">{% if backoffice_unified_enabled %}</label>{% endif %}
       <label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-2);"><input type="checkbox" name="is_active"{% if row.policy.is_active or not row.policy %} checked{% endif %}> faol</label>
       <button type="submit" style="height:34px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--azure);font-size:12px;font-weight:600;cursor:pointer;">Saqlash</button>
     </form>
@@ -93,8 +100,10 @@
     <div style="padding:20px;text-align:center;color:var(--ink-3);font-size:13px;">Tariflar yo'q. Avval subscriptions bo'limida tarif qo'shing.</div>
     {% endfor %}
   </section>
+{% if backoffice_unified_enabled %}</details>{% endif %}
 
   <div style="display:grid;grid-template-columns:1.3fr 0.7fr;gap:16px;align-items:start;" class="aic-cols">
+{% if backoffice_unified_enabled %}<details class="bo-settings-detail"><summary>Kim ko‘proq foydalanyapti?</summary>{% endif %}
     <!-- Top foydalanuvchilar -->
     <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;">
       <div style="padding:14px 18px;border-bottom:1px solid var(--line);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);">Eng ko'p token ishlatganlar · hafta</div>
@@ -109,10 +118,12 @@
       <div style="padding:20px;text-align:center;color:var(--ink-3);font-size:13px;">Hafta ichida AI ishlatilmagan.</div>
       {% endfor %}
     </section>
+{% if backoffice_unified_enabled %}</details>{% endif %}
 
+{% if backoffice_unified_enabled %}<details class="bo-settings-detail"><summary>So‘nggi hisob yangilash va bonuslar</summary>{% endif %}
     <!-- So'nggi amallar -->
     <section style="border:1px solid var(--line);border-radius:14px;background:var(--panel);overflow:hidden;">
-      <div style="padding:14px 18px;border-bottom:1px solid var(--line);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);">So'nggi reset/bonus</div>
+      <div style="padding:14px 18px;border-bottom:1px solid var(--line);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);">{% if backoffice_unified_enabled %}So‘nggi hisob yangilash va bonuslar{% else %}So'nggi reset/bonus{% endif %}</div>
       {% for e in recent_events %}
       <div style="padding:11px 18px;{% if not forloop.last %}border-bottom:1px solid var(--line-2);{% endif %}">
         <div style="display:flex;align-items:center;gap:8px;"><span style="font-size:12.5px;font-weight:600;color:{% if e.kind == 'reset' %}var(--azure){% else %}var(--green){% endif %};">{{ e.get_kind_display|truncatechars:12 }}</span><span style="font-family:'Space Mono',monospace;font-size:10.5px;color:var(--ink-4);">{{ e.get_scope_display }}</span><span style="margin-left:auto;font-family:'Space Mono',monospace;font-size:10.5px;color:var(--ink-3);">{{ e.affected_count }} ta</span></div>
@@ -120,9 +131,10 @@
         <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--ink-4);margin-top:2px;">{{ e.created_at|date:"d.m H:i" }}{% if e.created_by %} · {{ e.created_by.username }}{% endif %}</div>
       </div>
       {% empty %}
-      <div style="padding:20px;text-align:center;color:var(--ink-3);font-size:13px;">Hali reset/bonus berilmagan.</div>
+      <div style="padding:20px;text-align:center;color:var(--ink-3);font-size:13px;">{% if backoffice_unified_enabled %}Hali hisob yangilanmagan yoki bonus berilmagan.{% else %}Hali reset/bonus berilmagan.{% endif %}</div>
       {% endfor %}
     </section>
+{% if backoffice_unified_enabled %}</details>{% endif %}
   </div>
 </div>
 

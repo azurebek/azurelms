@@ -11,7 +11,7 @@
     <h1>{{ cohort.name }}</h1>
     <p>Band: <strong>{{ cohort.occupied_seats }} / {{ cohort.capacity|default:"chegarasiz" }}</strong>{% if cohort.stale_seats %} · {{ cohort.stale_seats }} tasi to'lamayapti{% endif %}. Joy bo'shatilganda o'quvchi guruhdan chiqmaydi — a'zolik muzlatiladi va o'rni sotuvga qaytadi. To'lovi hali amal qiladigan o'quvchining joyi bo'shatilmaydi.</p>
   </div>
-  <a class="brand-back" href="{% url 'backoffice_catalog' %}">Katalogga qaytish</a>
+  {% if backoffice_unified_enabled %}<a class="brand-back" href="{% url 'backoffice_workspace_groups' %}">Guruhlarga qaytish</a>{% else %}<a class="brand-back" href="{% url 'backoffice_catalog' %}">Katalogga qaytish</a>{% endif %}
 </section>
 
 {% if selected_enrollment %}
@@ -92,7 +92,7 @@
         <select class="brand-input" id="target-{{ member.pk }}" name="target_cohort" required>
           <option value="">Guruhni tanlang</option>
           {% for target in transfer_targets %}
-          <option value="{{ target.pk }}">{{ target.name }} — {{ target.plan.name|default:"Legacy" }}{% if target.is_full %} (to'lgan){% endif %}</option>
+          <option value="{{ target.pk }}">{{ target.name }} — {% if backoffice_unified_enabled %}{{ target.plan.name|default:"Tarif belgilanmagan" }}{% else %}{{ target.plan.name|default:"Legacy" }}{% endif %}{% if target.is_full %} (to'lgan){% endif %}</option>
           {% endfor %}
         </select>
         <label class="brand-label" for="move-reason-{{ member.pk }}">Ko'chirish sababi</label>

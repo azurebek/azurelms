@@ -1,0 +1,22 @@
+.ws-brand-mark { font-size:16px; flex-shrink:0; }
+.ws-section-nav { display:flex; align-items:center; flex-wrap:wrap; gap:4px 8px; padding:0 0 18px; margin:0 0 28px; border-bottom:1px solid var(--az-border); }
+.ws-section-nav a { padding:10px 12px; min-height:44px; display:inline-flex; align-items:center; border-radius:8px; color:var(--az-muted); font-size:13px; font-weight:550; }
+.ws-section-nav a:hover { background:var(--az-surface); color:var(--az-text); }
+.ws-section-nav a[aria-current] { color:var(--az-action); background:var(--az-action-soft); }
+.ws-section-nav .ws-section-root { padding-left:0; color:var(--az-text); font-weight:700; }
+.ws-section-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; max-width:1100px; }
+.ws-section-card { min-width:0; display:flex; flex-direction:column; gap:18px; padding:25px; background:var(--az-surface); border:1px solid var(--az-border); border-radius:var(--ws-radius); }
+a.ws-section-card:hover { border-color:var(--az-action); }
+.ws-section-card-primary { background:var(--az-hero); border-color:var(--az-action-border); }
+.ws-section-card h2,.ws-group-card h2 { margin:0 0 8px; font-size:21px; line-height:1.3; overflow-wrap:anywhere; }
+.ws-section-card p,.ws-group-card p { color:var(--az-muted); font-size:14px; line-height:1.6; margin:0; }
+.ws-section-card-action { margin-top:auto; display:flex; justify-content:space-between; gap:12px; color:var(--az-action); font-size:14px; font-weight:600; }
+.ws-group-list { display:grid; gap:14px; }
+.ws-group-card { padding:23px; border:1px solid var(--az-border); border-radius:var(--ws-radius); background:var(--az-surface); }
+.ws-group-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+.ws-group-card .ws-group-meta { margin:16px 0; }
+.ws-group-actions { display:flex; align-items:center; gap:14px 22px; flex-wrap:wrap; }
+.ws-group-actions a { min-height:44px; display:inline-flex; align-items:center; }
+.ws-section-card .ws-plan-price { color:var(--az-text); font-size:25px; font-weight:700; }
+.ws-plan-price small { color:var(--az-muted); font-size:14px; font-weight:400; }
+@media(max-width:700px) { .ws-section-grid { grid-template-columns:1fr; } .ws-section-card,.ws-group-card { padding:18px; } .ws-group-heading { flex-wrap:wrap; } .ws-section-nav { gap:2px; margin-bottom:22px; } }

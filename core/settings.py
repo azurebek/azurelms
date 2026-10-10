@@ -274,6 +274,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "users.context_processors.notification_context",
                 "frontend.context_processors.site_settings_context",
+                "core.backoffice_navigation.workspace_context",
             ],
         },
     },

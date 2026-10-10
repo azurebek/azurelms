@@ -69,6 +69,7 @@
     </header>
 
     <div class="app-body" data-appscroll>
+      {% if backoffice_return_url %}<div class="app-content" style="padding-bottom:0;"><a href="{{ backoffice_return_url }}" style="display:inline-flex;align-items:center;min-height:44px;color:var(--azure);font-size:14px;font-weight:600;">← Boshqaruvga qaytish</a></div>{% endif %}
       {% block app_body %}
       <div class="app-content">
         {% block t_content %}{% endblock %}

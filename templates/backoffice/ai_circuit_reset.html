@@ -1,24 +1,24 @@
 {% extends "backoffice/base.html" %}
 {% load static %}
 
-{% block bo_title %}AI cooldown{% endblock %}
+{% block bo_title %}{% if backoffice_unified_enabled %}AI kutish holati{% else %}AI cooldown{% endif %}{% endblock %}
 {% block bo_icon %}bi-arrow-clockwise{% endblock %}
-{% block bo_topbar %}AI circuit breaker cooldown'i{% endblock %}
+{% block bo_topbar %}{% if backoffice_unified_enabled %}Xatodan keyin AI xizmatini tiklash{% else %}AI circuit breaker cooldown'i{% endif %}{% endblock %}
 {% block page_css %}<link rel="stylesheet" href="{% static 'css/brand-control.css' %}">{% endblock %}
 
 {% block bo_content %}
 <section class="brand-hero">
   <div>
-    <span class="brand-kicker">COOLDOWN</span>
-    <h1>AI circuit breaker</h1>
-    <p>Circuit ketma-ket provider xatolaridan keyin o'zi ochiladi va yangi chaqiruvlarni to'xtatadi. Bu himoya — uni <strong>sabab bartaraf etilgandan keyin</strong> tozalang. Sababni tuzatmasdan tozalash xatoni qaytaradi va circuit yana ochiladi.</p>
+    <span class="brand-kicker">{% if backoffice_unified_enabled %}AI XIZMATI{% else %}COOLDOWN{% endif %}</span>
+    <h1>{% if backoffice_unified_enabled %}Xatodan keyingi kutishni tugatish{% else %}AI circuit breaker{% endif %}</h1>
+    <p>{% if backoffice_unified_enabled %}AI xizmatida ketma-ket xatolar bo‘lsa, tizim vaqtincha kutishga o‘tadi. Kutishni <strong>faqat xato sababi tuzatilgandan keyin</strong> tugating. Aks holda xatolar qaytib, xizmat yana kutishga o‘tadi.{% else %}Circuit ketma-ket provider xatolaridan keyin o'zi ochiladi va yangi chaqiruvlarni to'xtatadi. Bu himoya — uni <strong>sabab bartaraf etilgandan keyin</strong> tozalang. Sababni tuzatmasdan tozalash xatoni qaytaradi va circuit yana ochiladi.{% endif %}</p>
   </div>
-  <a class="brand-back" href="{% url 'backoffice_control' %}"><i class="bi bi-arrow-left"></i> Control Center</a>
+  <a class="brand-back" href="{% if backoffice_unified_enabled %}{% url 'backoffice_workspace_settings' %}{% else %}{% url 'backoffice_control' %}{% endif %}"><i class="bi bi-arrow-left"></i> {% if backoffice_unified_enabled %}Sozlamalar{% else %}Control Center{% endif %}</a>
 </section>
 
 <div class="brand-layout">
   <form class="brand-form" method="post"
-        onsubmit="return confirm('Cooldown tozalansinmi?');">
+        onsubmit="return confirm('{% if backoffice_unified_enabled %}AI xizmati kutishi tugatilsinmi?{% else %}Cooldown tozalansinmi?{% endif %}');">
     {% csrf_token %}
     {% if form.non_field_errors %}<div class="brand-errors">{{ form.non_field_errors }}</div>{% endif %}
 
@@ -29,9 +29,9 @@
           <h2>Joriy holat</h2>
           <p>
             {% if circuit_is_open %}
-              Circuit <strong>ochiq</strong> — yangi AI chaqiruvi ketmaydi. O'zi yopilishiga taxminan <strong>{{ minutes_left }}</strong> daqiqa qoldi.
+              {% if backoffice_unified_enabled %}AI <strong>kutish holatida</strong> — yangi so‘rov yuborilmaydi. Kutish avtomatik tugashiga taxminan <strong>{{ minutes_left }}</strong> daqiqa qoldi.{% else %}Circuit <strong>ochiq</strong> — yangi AI chaqiruvi ketmaydi. O'zi yopilishiga taxminan <strong>{{ minutes_left }}</strong> daqiqa qoldi.{% endif %}
             {% else %}
-              Circuit <strong>yopiq</strong> — AI chaqiruvlari odatdagidek ketadi. Tozalash uchun narsa yo'q.
+              {% if backoffice_unified_enabled %}Xatolar tufayli <strong>kutish yo‘q</strong>. Bu himoya hozir yangi so‘rovlarni to‘xtatmayapti.{% else %}Circuit <strong>yopiq</strong> — AI chaqiruvlari odatdagidek ketadi. Tozalash uchun narsa yo'q.{% endif %}
             {% endif %}
           </p>
         </div>
@@ -42,19 +42,19 @@
       <div class="brand-panel-head"><span>02</span><div><h2>Sabab va tasdiq</h2><p>Audit tarixiga yoziladi.</p></div></div>
       <div class="brand-fields">
         <label class="brand-field">
-          <span>{{ form.change_reason.label }}</span>
+          <span>{% if backoffice_unified_enabled %}Kutishni tugatish sababi{% else %}{{ form.change_reason.label }}{% endif %}</span>
           {{ form.change_reason }}
-          {% if form.change_reason.help_text %}<small>{{ form.change_reason.help_text }}</small>{% endif %}
+          {% if form.change_reason.help_text %}<small>{% if backoffice_unified_enabled %}Sabab tarixda saqlanadi. Avval xatoga olib kelgan muammoni hal qiling.{% else %}{{ form.change_reason.help_text }}{% endif %}</small>{% endif %}
           {% for error in form.change_reason.errors %}<em>{{ error }}</em>{% endfor %}
         </label>
         <label class="brand-field brand-field--check">
-          {{ form.confirm_change }} <span>{{ form.confirm_change.label }}</span>
+          {{ form.confirm_change }} <span>{% if backoffice_unified_enabled %}Kutishni tugatishni tasdiqlayman{% else %}{{ form.confirm_change.label }}{% endif %}</span>
           {% for error in form.confirm_change.errors %}<em>{{ error }}</em>{% endfor %}
         </label>
       </div>
     </section>
 
-    <button class="brand-submit" type="submit"><i class="bi bi-arrow-clockwise"></i> Cooldown'ni tozalash</button>
+    <button class="brand-submit" type="submit"><i class="bi bi-arrow-clockwise"></i> {% if backoffice_unified_enabled %}Kutishni tugatish{% else %}Cooldown'ni tozalash{% endif %}</button>
   </form>
 
   <aside class="brand-side">

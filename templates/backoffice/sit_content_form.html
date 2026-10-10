@@ -14,11 +14,11 @@
       <div>
         <div class="sit-bo-kicker"><a href="{% url list_url_name %}">{{ title }}</a> · {% if obj %}Tahrirlash{% else %}Yangi{% endif %}</div>
         <h1>{% if obj %}{{ obj.title }}{% else %}Yangi {{ title|lower }}{% endif %}</h1>
-        <p>{% if content_kind == 'announcement' %}Faqat “Bosh sahifada ko'rsatilsin” va “Nashr etilgan” birga yoqilganda e'lon SIT bosh sahifasiga chiqadi.{% else %}Public qo'llanma uchun rasmiy manba va tekshirilgan sana majburiy.{% endif %}</p>
+        <p>{% if content_kind == 'announcement' %}{% if backoffice_unified_enabled %}E’lon Turkiyada o‘qish bosh sahifasida ko‘rinishi uchun “Bosh sahifada ko‘rsatilsin” va “Nashr etilgan” belgilarini birga yoqing.{% else %}Faqat “Bosh sahifada ko'rsatilsin” va “Nashr etilgan” birga yoqilganda e'lon SIT bosh sahifasiga chiqadi.{% endif %}{% else %}{% if backoffice_unified_enabled %}Qo‘llanmani nashr qilish uchun rasmiy manba va tekshirilgan sanani kiriting.{% else %}Public qo'llanma uchun rasmiy manba va tekshirilgan sana majburiy.{% endif %}{% endif %}</p>
       </div>
       <div class="sit-bo-actions">
-        {% if obj and content_kind == 'guide' %}<a class="sit-bo-btn" href="{{ obj.get_absolute_url }}?preview=1" target="_blank"><i class="bi bi-eye"></i> Preview</a>{% endif %}
-        <button class="sit-bo-btn" type="submit" name="save_draft" value="1"><i class="bi bi-file-earmark"></i> Draft saqlash</button>
+        {% if obj and content_kind == 'guide' %}<a class="sit-bo-btn" href="{{ obj.get_absolute_url }}?preview=1" target="_blank"><i class="bi bi-eye"></i> {% if backoffice_unified_enabled %}Oldindan ko‘rish{% else %}Preview{% endif %}</a>{% endif %}
+        <button class="sit-bo-btn" type="submit" name="save_draft" value="1"><i class="bi bi-file-earmark"></i> {% if backoffice_unified_enabled %}Qoralamani saqlash{% else %}Draft saqlash{% endif %}</button>
         <button class="sit-bo-btn primary" type="submit"><i class="bi bi-check2"></i> Saqlash</button>
       </div>
     </div>
@@ -29,7 +29,7 @@
     <div class="sit-bo-form-layout">
       <section class="sit-bo-form-section">
         <h2>Kontent va nashr</h2>
-        <p>Barcha maydonlarni tekshirib, o'ng tomonda sabab va tasdiqni kiriting.</p>
+        <p>{% if backoffice_unified_enabled %}Maydonlarni tekshiring, so‘ng sababni yozib, o‘zgarishni tasdiqlang.{% else %}Barcha maydonlarni tekshirib, o'ng tomonda sabab va tasdiqni kiriting.{% endif %}</p>
         <div class="sit-bo-fields">
           {% for field in form %}
             {% if field.name != 'change_reason' and field.name != 'confirm_change' %}
@@ -44,8 +44,8 @@
       </section>
 
       <aside class="sit-bo-form-section sit-bo-audit">
-        <h2>Tasdiq va audit</h2>
-        <p>Har saqlash owner, vaqt va sabab bilan qayd etiladi.</p>
+        <h2>{% if backoffice_unified_enabled %}Sabab va tasdiq{% else %}Tasdiq va audit{% endif %}</h2>
+        <p>{% if backoffice_unified_enabled %}Kim, qachon va nima sababdan saqlagani tarixga yoziladi.{% else %}Har saqlash owner, vaqt va sabab bilan qayd etiladi.{% endif %}</p>
         <label class="sit-bo-field"><span class="sit-bo-label">{{ form.change_reason.label }}</span>{{ form.change_reason }}<small class="sit-bo-help">{{ form.change_reason.help_text }}</small>{% for error in form.change_reason.errors %}<em class="sit-bo-error">{{ error }}</em>{% endfor %}</label>
         <label class="sit-bo-confirm">{{ form.confirm_change }} <span>{{ form.confirm_change.label }}</span></label>
         {% for error in form.confirm_change.errors %}<em class="sit-bo-error">{{ error }}</em>{% endfor %}

@@ -16,6 +16,43 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-10 [Codex]: Backoffice beshinchi bosqich — qolgan ishlar uchun yagona menyu
+
+Owner topshirig‘i bilan To‘lovlar, Sayt va dizayn, Sozlamalar markazlari,
+alohida Guruhlar va Tariflar ro‘yxatlari qurildi. Legacy core/catalog/SIT/blog
+formalarining yozuvchisi saqlanib, umumiy workspace qobig‘iga ulandi.
+Texnik ma’lumotlar kerakli bo‘lim ichida, xatoli forma esa ochiq qoladi.
+
+- Branch: `codex/backoffice-unified-navigation`; implementatsiya: `3caf874`.
+  [Bosqich dalili](frontend-v1/BACKOFFICE-REFORM-STAGE-5.md),
+  [action/writer xaritasi](frontend-v1/BACKOFFICE-REFORM-STAGE-5-MAP.md).
+- `core/backoffice_navigation.py` route registry/context; besh yangi GET
+  markaz private/no-store, canonical teacher cohort scope va 12 qatorli
+  pagination. Staff receipt/own-blog imkoniyati saqlangan; owner sozlamalari
+  ochilmagan. `backoffice_unified_navigation` default OFF, migration yo‘q.
+- Eski base fallback sifatida aynan saqlangan. POST/formset/media/revision
+  contractlar o‘zgarmaydi; catalog save tegishli ro‘yxatga qaytadi. Focused
+  learner receipt/member return saqlanadi. V1 chuqur muharrirlar va teacher
+  shelllariga aniq qaytish linki bor. AI settings audit qarzi ochiq.
+- Env-file OFF, Gemini/Telegram bo‘sh: `venv/Scripts/python.exe manage.py test
+  core frontend subscriptions blog sit library cohorts --verbosity 1`:
+  **1295 test / 1257 PASS / 38 skip**, 97.859s. check0, migration drift yo‘q.
+  `node --test tests/frontend_v1/*.test.mjs`: **142/142 PASS**; JS syntax va
+  staged diff check PASS. Dastlabki 1289 run’dagi yagona failure eski logo
+  template pathiga tegishli; haqiqiy rendererlar va saqlangan logo render
+  testi bilan yangilandi, keyingi app run yashil.
+- IAB faqat synthetic DB8092: runtime value save/reopen/audit; yangi guruh
+  create/save→Guruhlar; CKEditor blog draft save→ayni matn/qoralama PASS.
+  320px/1440px, dark/light, Enter/Escape, legacy sahifalar va console0
+  tekshirildi. Yopilgan guruhdagi 404 havolalar olib tashlandi; SIT ichki
+  tablari telefonda o‘raladi. Brand mark canonical manbadan o‘qiladi.
+- Owner DB/production/provider o‘zgarmadi. Human usability, native qurilma,
+  yakuniy paritet/release va DESIGN-01 DC6 qabuli ochiq. Keyingi reja kesimi
+  qabul va bosqichli port. PR/required CI integratsiyasi keyingi qadam;
+  merge faqat uch check yashil, review resolve va CLEAN holatida.
+
+---
+
 ## 2026-10-10 [Codex]: Backoffice to‘rtinchi bosqich — kodsiz dizayn ustaxonasi
 
 Owner topshirig‘i bilan besh oddiy sozlama, jonli inert namuna, shaxsiy uslub,

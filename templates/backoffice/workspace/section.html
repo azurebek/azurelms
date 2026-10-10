@@ -1,0 +1,5 @@
+{% extends "backoffice/workspace/base.html" %}
+{% block workspace_content %}
+<div class="ws-page-head"><div><p class="ws-eyebrow">BOSHQARUV</p><h1>{{ section_title }}</h1><p class="ws-lead">{{ section_description }}</p></div></div>
+<div class="ws-section-grid">{% for card in section_cards %}<a class="ws-section-card{% if card.primary %} ws-section-card-primary{% endif %}" href="{{ card.url }}"><div><h2>{{ card.title }}</h2><p>{{ card.description }}</p></div><span class="ws-section-card-action">{{ card.action }} <span aria-hidden="true">→</span></span></a>{% endfor %}</div>
+{% endblock %}

@@ -1,22 +1,23 @@
 {% extends "backoffice/base.html" %}
 {% load static %}
 
-{% block bo_title %}Feature flaglar{% endblock %}
+{% block bo_title %}{% if backoffice_unified_enabled %}Xizmatlarni boshqarish{% else %}Feature flaglar{% endif %}{% endblock %}
 {% block bo_icon %}bi-toggles{% endblock %}
-{% block bo_topbar %}Feature flaglar{% endblock %}
+{% block bo_topbar %}{% if backoffice_unified_enabled %}Xizmatlarni boshqarish{% else %}Feature flaglar{% endif %}{% endblock %}
 {% block page_css %}<link rel="stylesheet" href="{% static 'css/brand-control.css' %}">{% endblock %}
 
 {% block bo_content %}
 <section class="brand-hero">
   <div>
-    <span class="brand-kicker">FLAGLAR</span>
-    <h1>Capability boshqaruvi</h1>
-    <p>Flaglar <strong>kodda</strong> e'lon qilinadi, bu yerda esa faqat qiymati o'zgartiriladi. Registrda yo'q flag qabul qilinmaydi. Har o'zgarish sabab bilan auditlanadi.</p>
+    <span class="brand-kicker">{% if backoffice_unified_enabled %}SOZLAMALAR{% else %}FLAGLAR{% endif %}</span>
+    <h1>{% if backoffice_unified_enabled %}Xizmatni yoqish yoki o‘chirish{% else %}Capability boshqaruvi{% endif %}</h1>
+    <p>{% if backoffice_unified_enabled %}Kerakli xizmatni oching, ta’sirini o‘qing va holatini o‘zgartiring. Har o‘zgarish sababi bilan tarixga yoziladi.{% else %}Flaglar <strong>kodda</strong> e'lon qilinadi, bu yerda esa faqat qiymati o'zgartiriladi. Registrda yo'q flag qabul qilinmaydi. Har o'zgarish sabab bilan auditlanadi.{% endif %}</p>
   </div>
-  <a class="brand-back" href="{% url 'backoffice_control' %}"><i class="bi bi-arrow-left"></i> Control Center</a>
+  <a class="brand-back" href="{% if backoffice_unified_enabled %}{% url 'backoffice_workspace_settings' %}{% else %}{% url 'backoffice_control' %}{% endif %}"><i class="bi bi-arrow-left"></i> {% if backoffice_unified_enabled %}Sozlamalar{% else %}Control Center{% endif %}</a>
 </section>
 
 {% if orphans %}
+{% if backoffice_unified_enabled %}<details class="bo-settings-detail"><summary>Ishlatilmayotgan texnik yozuvlar</summary>{% endif %}
 <section class="brand-panel">
   <div class="brand-panel-head">
     <span><i class="bi bi-exclamation-triangle"></i></span>
@@ -26,11 +27,13 @@
     </div>
   </div>
 </section>
+{% if backoffice_unified_enabled %}</details>{% endif %}
 {% endif %}
 
 <div class="brand-layout">
   <div style="display:flex;flex-direction:column;gap:14px;">
     {% for item in flags %}
+    {% if backoffice_unified_enabled %}<details class="bo-settings-detail"{% if request.POST.slug == item.definition.slug %} open{% endif %}><summary><strong>{{ item.definition.label }}</strong><span>{% if item.enabled %}Yoqilgan{% else %}O‘chirilgan{% endif %} · Ta’siri va boshqarish</span></summary>{% endif %}
     <section class="brand-panel">
       <div class="brand-panel-head">
         <span>{% if item.enabled %}<i class="bi bi-toggle-on" style="color:var(--green);"></i>{% else %}<i class="bi bi-toggle-off" style="color:var(--ink-4);"></i>{% endif %}</span>
@@ -43,7 +46,7 @@
       <div class="brand-fields">
         <p style="font-size:12.5px;line-height:1.6;color:var(--ink-3);margin:0 0 10px;">
           <strong>Holat:</strong> {% if item.enabled %}yoqilgan{% else %}o'chirilgan{% endif %} ·
-          <strong>Default:</strong> {% if item.definition.default %}yoqilgan{% else %}o'chirilgan{% endif %}
+          <strong>{% if backoffice_unified_enabled %}Boshlang‘ich holat:{% else %}Default:{% endif %}</strong> {% if item.definition.default %}yoqilgan{% else %}o'chirilgan{% endif %}
           {% if not item.overridden %} <em>(o'zgartirilmagan)</em>{% endif %}
         </p>
         {% if item.definition.runbook %}
@@ -67,6 +70,7 @@
         </form>
       </div>
     </section>
+    {% if backoffice_unified_enabled %}</details>{% endif %}
     {% endfor %}
   </div>
 </div>

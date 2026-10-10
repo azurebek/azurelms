@@ -11,6 +11,7 @@ from cohorts.membership_service import (
     transfer_member,
 )
 from cohorts.models import Cohort, Enrollment, enrollment_active_access_q
+from core.flags import flag_enabled
 from core.views import _backoffice_context, _private_support_handoff
 from .catalog_forms import (
     CatalogPlanForm,
@@ -206,7 +207,7 @@ def plan_editor(request, plan_id):
         form = update_plan(actor=request.user, plan_id=plan_id, data=request.POST, request=request)
         if form.is_valid():
             messages.success(request, "Tarif saqlandi. Eski to'lov tarixi va sotib olingan huquqlar o'zgarmadi.")
-            return redirect("backoffice_catalog")
+            return redirect("backoffice_workspace_plans" if flag_enabled("backoffice_unified_navigation") else "backoffice_catalog")
     return render(request, "subscriptions/backoffice_catalog_form.html", {
         **_backoffice_context("catalog"), "form": form, "title": f"Tarif: {plan.name}",
         "note": f"Barqaror kod: {plan.code}. Valyuta: UZS. AI limiti AI boshqaruvida tahrirlanadi.",
@@ -222,7 +223,7 @@ def cohort_editor(request, cohort_id=None):
         form = save_cohort(actor=request.user, cohort_id=cohort_id, data=request.POST, request=request)
         if form.is_valid():
             messages.success(request, "Guruh saqlandi.")
-            return redirect("backoffice_catalog")
+            return redirect("backoffice_workspace_groups" if flag_enabled("backoffice_unified_navigation") else "backoffice_catalog")
     return render(request, "subscriptions/backoffice_catalog_form.html", {
         **_backoffice_context("catalog"), "form": form,
         "title": f"Guruh: {cohort.name}" if cohort_id else "Yangi tarif guruhi",

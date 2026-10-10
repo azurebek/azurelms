@@ -44,6 +44,12 @@ class FlagDefinition:
 
 FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
     FlagDefinition(
+        slug="backoffice_unified_navigation", label="Boshqaruv — yagona menyu",
+        description="To‘lovlar, guruhlar, sayt va sozlamalarni bir xil boshqaruv menyusiga ulash.",
+        default=False, category="Frontend",
+        runbook="OFF yangi markazlarni yopadi va eski qobiqni qaytaradi. Eski URL, formalar va yozuvchilar saqlanadi; biznes qarorlari ortga qaytmaydi. Schema o‘zgarmaydi.",
+    ),
+    FlagDefinition(
         slug="backoffice_design_workspace", label="Boshqaruv — dizayn ustaxonasi",
         description="Rang, matn va shakllarni namuna, qoralama va versiyalar bilan moslash.",
         default=False, category="Frontend",
