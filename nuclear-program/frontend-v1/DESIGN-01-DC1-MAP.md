@@ -157,7 +157,7 @@ Flag OFF renderer ham keyingi regression qamroviga kiradi.
 | F17 Classbook live/results | `classbook/frontend_v1_live.py`; `classbook_live` | C01–07,C13,C16,C22 | Mapped; reveal/closed/results, audio/media X03 |
 | F18 Owner backoffice/control/catalog/exam editor/blog-SIT studio/brand/landing | `core/views.py`, `subscriptions/backoffice_views.py`, `blog/views.py`, `sit/backoffice_views.py`; legacy backoffice shell | C01–06,C10,C13,C19,C20 rollariga kelajakda moslanadi | Constrained; Trialda oila bor, real V1 port bor deb sanalmaydi |
 | F19 Mini App entry/home/courses/AI/profile | `bot/views.py`, `templates/bot/miniapp*`, `static/js/miniapp.js` | C01–06,C09,C19 rollari | Constrained; Trialdagi mini shell tokenlari real Telegram adapteri emas |
-| F20 Yangi Dizayn paneli | Hozir route/model/template yo‘q; namespace/permission DC2 kontraktida | C01–06,C08,C10,C13 | Proposed; yangi action va sahifa sonlari alohida registryga kiritiladi |
+| F20 Yangi Dizayn paneli | Real route/model yo‘q; [namespace/permission DC2da belgilangan](DESIGN-01-DC2-PREVIEW.md#f20-route-namespace-va-permission-kontrakti), real enforcement DC4da | C01–06,C08,C10,C13 | Lokal DC2 studio alohida katalogda; real port proposed, existing source URL hisobi o‘zgarmaydi |
 | F21 403/404/500/maintenance/offline | `core/views.py`, `templates/errors/_base_error.html` | C01,C02,C06,C19 | Constrained; 500 minimal static fallback, haqiqiy offline cache alohida |
 
 ## 6. Istisnolar: yashirin to‘liq-qamrov da’vosi bo‘lmasin
