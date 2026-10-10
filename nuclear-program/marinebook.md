@@ -16,6 +16,45 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-10 [Codex]: DESIGN-01 DC5 — mavjud sahifalarda lokal dizayn regressiyasi
+
+Owner beshinchi bosqichni boshlashni topshirdi. Eleventh Trial ustaxonasiga
+139 route va 3 diagnostic sahifaning inert nusxalari qo‘shildi: 137 tasi dizaynni
+oladi, 5 tizim/xato sahifasi statik qoladi. Real renderer va native qabul ochiq.
+
+- Branch: `codex/design-consumer-regression`; dalil commit: `1f54ba6`.
+  [DC5 qamrovi va 26 source hash](frontend-v1/DESIGN-01-DC5-REGRESSION.md).
+  Lokal URL: `http://127.0.0.1:8088/_preview/design/`.
+- Allowlisted snapshot GET; script/form/navigation/external assetlar o‘chirilgan.
+  142 HTML manifest va 228 renderer input provenance; alohida processda qayta
+  build. Shared token/base/components/shell CSS va existing registry unchanged.
+- Consumer adapter chat/nav/content/dialog rollarini ulaydi. Blank padding
+  va width asl geometriyani saqlaydi; chat/mobile stress overflow tuzatildi.
+  Print override screen-only CSSOM; OS print/native vendor qabuli ochiq.
+- Trial ichida env-file off, Gemini/Telegram keys bo‘sh:
+  `../../venv/Scripts/python.exe manage.py test --verbosity 0`:
+  **907 PASS**, 368.243s; `manage.py check`: 0 issue. Focused 14 PASS, 4.410s.
+  `tests/*.test.mjs` PowerShell array → `node --test`: **281 PASS**, 1156.8773ms.
+  Studio `node --check` PASS. AI/network provider chaqirilmagan.
+- IAB: 568 normal + 108 preset + 36 text/spacing stress = **712 frame**,
+  4 editor width; root overflow 0. Mode/viewport va button radius mos;
+  mustaqil card/dialog/auth field/chat bubble radiuslari tekshirildi.
+  Desktop/mobile screenshotlar ko‘rildi. Native zoom/AT emas.
+- Console: source URL/stack’siz bir xil MutationObserver xabari 32 marta.
+  Preview source’da MutationObserver yo‘q; kelib chiqishi aniqlanmagan.
+  Console xatolari nol deb hisoblanmaydi.
+- Validator: 25 action / 20 state, 127 link, 26 live/archive source hash,
+  142 snapshot va 228 input hash PASS; diff-check PASS.
+- `packet-89-20261010-103457.zip` — **872 fayl**, har entry SHA256 tekshirildi;
+  ZIP **`F4BC1258883A9577065D2FFCC7F7D2163C05C2CE51A9189827E9F23756B49939`**.
+  Packet88 va uning 19 source hashi tekshirilib saqlandi. Source/arxiv ignored;
+  force-add/upload yo‘q. Same-disk recovery, offsite emas; remote CI lokal
+  ignored implementationni ishga tushirmaydi.
+- Keyingi: DC6 owner walkthrough/native qabul; DC4/DC5 real port, oldingi
+  UX/DATA/RULE/owner qabul va AWS bandlari ochiq.
+
+---
+
 ## 2026-10-10 [Codex]: DESIGN-01 DC4 — lokal nashr, tarix va readback
 
 Owner “davom et” topshirig‘i bilan Eleventh Trialga yagona lokal release
