@@ -10,6 +10,7 @@ from core import views as core_views
 from core import teacher_views
 from core import backoffice_workspace as workspace
 from core import student_support_views as student_support
+from core import design_views
 from subscriptions import backoffice_views as catalog_views
 
 handler404 = "core.views.page_not_found"
@@ -70,6 +71,10 @@ urlpatterns = [
     path('backoffice/control/ai-cost/', core_views.backoffice_ai_cost, name='backoffice_ai_cost'),
     path('backoffice/control/dead-letter/', core_views.backoffice_dead_letter, name='backoffice_dead_letter'),
     path('backoffice/control/brand/', core_views.backoffice_brand, name='backoffice_brand'),
+    path('backoffice/control/design/', design_views.studio, name='backoffice_design'),
+    path('backoffice/control/design/state/', design_views.state, name='backoffice_design_state'),
+    path('backoffice/control/design/command/', design_views.command, name='backoffice_design_command'),
+    path('design/theme.css', design_views.theme_css, name='design_theme_css'),
     path('backoffice/landing/', core_views.backoffice_landing, name='backoffice_landing'),
     path('backoffice/receipts/', core_views.backoffice_receipts, name='backoffice_receipts'),
     path('backoffice/catalog/', catalog_views.catalog, name='backoffice_catalog'),

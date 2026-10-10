@@ -10,7 +10,11 @@ kurs → modul → dars → material → namuna → saqlash oqimi qurildi; relea
 aniq dars/guruh bilan ulanish bor. Flag default OFF, production deploy yo‘q.
 [Uchinchi bosqich](BACKOFFICE-REFORM-STAGE-3.md): o‘quvchi qidiruvi, kurs/dars
 kirish sababi, vakolatli aniq amal va qayta tekshirish qurildi. Alohida support
-flagi default OFF; yozish mavjud qaror xizmatlarida. Keyingi kesim oddiy dizayn.
+flagi default OFF; yozish mavjud qaror xizmatlarida.
+[To‘rtinchi bosqich](BACKOFFICE-REFORM-STAGE-4.md): oddiy dizayn ustaxonasi,
+haqiqiy private qoralama/uslub, nashrlar tarixi, tatbiq va rollback qurildi.
+V1/workspace va legacy umumiy palitrasi ulanadi; flag default OFF, core0007
+additive schema. Owner DB va productionga qo‘llanmadi.
 Vaqtli usability/yangi ko‘rinish qabuli va qolgan kesimlar hali ochiq.
 DC6 owner qabuli hamon PENDING.
 

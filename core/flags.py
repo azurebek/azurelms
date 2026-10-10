@@ -44,6 +44,12 @@ class FlagDefinition:
 
 FLAG_REGISTRY: tuple[FlagDefinition, ...] = (
     FlagDefinition(
+        slug="backoffice_design_workspace", label="Boshqaruv — dizayn ustaxonasi",
+        description="Rang, matn va shakllarni namuna, qoralama va versiyalar bilan moslash.",
+        default=False, category="Frontend",
+        runbook="OFF muharrir va yangi yozishlarni yopadi, dinamik mavzuni standartga qaytaradi. Qoralama, shaxsiy namunalar, versiyalar va kvitansiyalar saqlanadi. core0007 additive migration talab qiladi; production release alohida.",
+    ),
+    FlagDefinition(
         slug="backoffice_student_support", label="Boshqaruv — o‘quvchiga yordam",
         description="O‘quvchini topish, darsga kirish sababini va tegishli amalni ko‘rish.",
         default=False, category="Frontend",
