@@ -1,10 +1,11 @@
 # Frontend V1 — prototipdan ishlaydigan platformaga
 
-**2026-10-10 — DESIGN-01/DC1:** owner birinchi bosqichni hozir boshlashni
-topshirdi. [Sozlama/komponent/sahifa xaritasi](DESIGN-01-DC1-MAP.md) va
-[source inventari](DESIGN-01-DC1-SOURCE-INVENTORY.md) tayyor. Bu docs-only
-inventar; oldingi UX/DATA/RULE/native qabul ochiq, DC2–DC6 va runtime/AWS
-o‘zgarishi boshlanmadi. Quyidagi navbat/sanoq yozuvlari o‘z sanasining snapshoti.
+**2026-10-10 — DESIGN-01/DC2:** owner ikkinchi bosqichni ham hozir boshlashni
+topshirdi. [DC1 xaritasi](DESIGN-01-DC1-MAP.md) ustiga [DC2 dizayn formasi,
+qoralama va preview](DESIGN-01-DC2-PREVIEW.md) lokal tayyor: 888 Django/261 Node,
+56 frame + 4 editor viewport PASS. 20 guruh/87 maydon, preset va yetti namuna. Oldingi UX/DATA/RULE/native
+qabul, DC3–DC6 va real service/port ochiq; AWS o‘zgarmadi. Quyidagi navbat/sanoq
+yozuvlari o‘z sanasining snapshoti.
 
 **Joriy reliz — 2026-09-26:** tayyor V1 port kodi PR143gacha main’da;
 AWS **8bb6b95**, barcha19 frontend renderer flag ON. Backup/restore,

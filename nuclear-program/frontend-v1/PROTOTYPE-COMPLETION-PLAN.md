@@ -1,8 +1,9 @@
 # Qolgan prototiplar — aniq qamrov va tugatish rejasi
 
-**2026-10-10 DC1:** owner topshirig‘i bilan DESIGN-01ning faqat
-[sozlama/komponent/sahifa inventari](DESIGN-01-DC1-MAP.md) bajarildi.
-DC2–DC6 qurilishi boshlanmadi; oldingi yakuniy qabul bandlari ochiq.
+**2026-10-10 DC2:** owner ikkinchi bosqichni ham alohida boshlashni topshirdi.
+[DC1 inventari](DESIGN-01-DC1-MAP.md)dan keyin [DC2 forma/draft/preview](DESIGN-01-DC2-PREVIEW.md)
+lokal tayyor: 888 Django/261 Node, 56 frame + 4 editor viewport PASS. DC3–DC6 va oldingi yakuniy qabul
+bandlari ochiq. Real canonical design service va AWS o‘zgarmadi.
 Quyidagi paket navbatlari o‘z sanasining tarixiy snapshotlari.
 
 **2026-10-04 Packet85:** [UX-04 auth](UX04-AUTH-CLARITY-PROTOTYPE.md)
@@ -225,13 +226,13 @@ Eski Q raqamlari saqlanadi; a/b bo‘linishi faqat paket chegarasidir.
   interaction va SIT existing-chat handoffini lokal qurdi; pixel/native
   va real adapter qabuli ochiq. **Qolgan:** PAR-05 va UX/DATA/RULE/native/owner qabuli.
 - [-] **12. DESIGN-01 — Admin paneldan keng kodsiz dizayn boshqaruvi.**
-  **2026-10-10:** owner faqat birinchi bosqichni oldinga oldi;
-  [DC1 sozlama/komponent/sahifa inventari](DESIGN-01-DC1-MAP.md) tayyor.
-  DC2–DC6 hali boshlanmadi; 11-qadamdagi ochiq UX/DATA/RULE/native/owner
-  qabul bandlari yopilmadi. Bu runtime yoki AWS o‘zgarishi emas.
+  **2026-10-10:** owner DC1dan keyin DC2ni ham oldinga oldi;
+  [DC1 inventari](DESIGN-01-DC1-MAP.md) tayyor, [DC2 lokal forma/draft/preview](DESIGN-01-DC2-PREVIEW.md)
+  lokal tayyor (888 Django/261 Node, 56+4 browser case). DC3–DC6 hamda 11-qadamdagi ochiq
+  UX/DATA/RULE/native/owner qabul qoladi. Bu real runtime/AWS o‘zgarishi emas.
   **Owner qarori,2026-09-28:** sodda rang tanlagich bilan chala qoldirmaslik;
   rang, button/karta shakli va shriftlarni kodga tegmasdan boshqarish imkonini
-  reja oxirida kengaytirish. DC1 inventari uchun yuqoridagi tor istisno amal qiladi.
+  reja oxirida kengaytirish. DC1/DC2 uchun yuqoridagi owner istisnosi amal qiladi.
   [Qamrov va yakun mezonlari](DESIGN-CUSTOMIZATION-PLAN.md).
   **Yakun:** token/komponent xaritasi → alohida qoralama va ko‘p sahifali preview
   → validatsiya → tasdiqli yagona versiyani tatbiq qilish → history/rollback;

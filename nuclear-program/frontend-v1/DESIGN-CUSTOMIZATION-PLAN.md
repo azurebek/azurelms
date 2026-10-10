@@ -1,11 +1,11 @@
 # DESIGN-01 — kodsiz dizayn boshqaruvi, reja oxiridagi kengaytma
 
-**2026-10-10 owner topshirig‘i:** birinchi bosqich — sozlama, komponent va
-sahifalar xaritasi — hozir bajarildi. [DC1 xaritasi](DESIGN-01-DC1-MAP.md)
-va [to‘liq source inventari](DESIGN-01-DC1-SOURCE-INVENTORY.md): 73 V1 token,
-20 sozlama guruhi, 22 komponent guruhi, 120 real UI/alias nomi. Bu faqat
-DC1 hujjat bosqichini oldinga olish; oldingi UX/DATA/RULE/native/owner qabul
-ochiq. DC2–DC6, runtime, DB, prototip paneli va AWSga o‘zgarish kiritilmadi.
+**2026-10-10 owner topshirig‘i:** [DC1 xaritasi](DESIGN-01-DC1-MAP.md)dan
+keyin ikkinchi bosqich ham alohida boshlandi: [DC2 forma va preview](DESIGN-01-DC2-PREVIEW.md).
+Lokal Eleventh Trialda 20 guruh/87 maydon ta’rifi, private tab draft/preset,
+7 sintetik namuna va oldin/keyin light/dark/mobile/desktop preview qurildi.
+Oldingi UX/DATA/RULE/native/owner qabul ochiq. DC3–DC6, real canonical
+design service/DB va AWS bu topshiriqda o‘zgarmaydi.
 
 2026-09-28 **USER-DECIDED — rejalashtirish**. Owner ranglar, button/karta
 shakllari va fontlarni admin paneldan kodga tegmasdan keng boshqarishni
@@ -21,9 +21,9 @@ qo‘lda kod tahriri0; qabul matritsasida o‘qilmas matn/layout regressiyasi0.
 Mavjud `tokens.css`/componentlar poydevor; hozir faqat fixed light/dark tema
 va umumiy tokenlar bor. Q16b brend/landing formasi bu capabilityni bajarmaydi.
 
-DC1 inventari owner topshirig‘i bilan tayyor. Keyingi qurish bosqichida aniq
-form/schema, permission, source-of-truth va rollback kontrakti yakunlanadi;
-canonical schema/DB, runtime yoki AWS bu reja bilan o‘zgarmaydi.
+DC1 inventari tayyor; DC2 lokal forma/schema va previewni beradi. DC3da
+evidence-backed bounds, DC4da real permission, source-of-truth va rollback
+kontrakti yakunlanadi. Canonical schema/DB, runtime va AWS alohida port/release.
 
 ## Quriladigan qamrov
 
@@ -70,7 +70,8 @@ almashtirish bu customizationning yashirin qismi emas.
 
 - [x] DC1 — token/component/consumer inventari va mustaqil rol xaritasi:
   [2026-10-10 source dalili](DESIGN-01-DC1-MAP.md). Bu dinamik theme yoki visual PASS emas.
-- [ ] DC2 — to‘liq sozlama formasi, preset/draft, light/dark desktop/mobile preview.
+- [x] DC2 — [to‘liq lokal forma, preset/draft, light/dark desktop/mobile preview](DESIGN-01-DC2-PREVIEW.md):
+  888 Django/261 Node, 56 frame + 4 editor viewport; lokal bosqich tayyor. Real service emas.
 - [ ] DC3 — kontrast, font/zoom, uzun matn, responsive va xavfsiz chegaralar validatsiyasi.
 - [ ] DC4 — publish/readback/history/rollback; stale/unknown/no-op/failure holatlari.
 - [ ] DC5 — barcha mapped shell/komponentlarda regressiya, vendor/print/fallback istisnolari.
