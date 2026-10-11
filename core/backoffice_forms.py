@@ -108,6 +108,16 @@ class ExamBackofficeForm(forms.ModelForm):
 
     class Meta:
         model = Exam
+        labels = {
+            "title": "Imtihon nomi", "course": "Kurs", "exam_type": "Imtihon turi",
+            "weight_percentage": "Yakuniy bahodagi ulushi (%)",
+            "passing_score": "O‘tish uchun kerakli natija (%)",
+            "max_attempts": "Necha marta topshirish mumkin",
+            "prerequisite_exam": "Oldin topshirilishi kerak bo‘lgan imtihon",
+            "requires_all_assignments_approved": "Barcha topshiriqlar tasdiqlangan bo‘lsin",
+            "minimum_lesson_completion_percent": "Darslarning kamida necha foizi tugatilgan bo‘lsin",
+            "minimum_attendance_percent": "Eng kam davomat (%)",
+        }
         fields = [
             "title",
             "course",
@@ -155,6 +165,12 @@ class ExamBackofficeForm(forms.ModelForm):
 class ExamSectionBackofficeForm(forms.ModelForm):
     class Meta:
         model = ExamSection
+        labels = {
+            "title": "Bo‘lim nomi", "section_type": "Bo‘lim turi",
+            "instructions": "O‘quvchiga ko‘rsatma", "reading_text": "O‘qish uchun matn",
+            "media_url": "Audio yoki video havolasi", "max_score": "Eng yuqori ball",
+            "time_limit_minutes": "Ajratilgan vaqt (daqiqa)", "order": "Bo‘limning tartib raqami",
+        }
         fields = [
             "title",
             "section_type",

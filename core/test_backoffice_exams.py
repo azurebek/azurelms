@@ -193,6 +193,31 @@ class BackofficeExamEditorScopeTests(TestCase):
         self.assertEqual(self.exam.title, "A1 yakuniy (yangilangan)")
         self.assertEqual(self.exam.passing_score, 70)
 
+    def test_invalid_entry_condition_is_revealed_without_saving(self):
+        from html.parser import HTMLParser
+
+        class DisclosureParser(HTMLParser):
+            def __init__(self):
+                super().__init__()
+                self.disclosures = []
+
+            def handle_starttag(self, tag, attrs):
+                if tag == "details":
+                    self.disclosures.append(dict(attrs))
+
+        self.client.force_login(self.teacher)
+        response = self.client.post(
+            self._edit_url(self.exam),
+            self._payload(title="Saqlanmasin", minimum_attendance_percent=101),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("minimum_attendance_percent", response.context["exam_form"].errors)
+        parser = DisclosureParser()
+        parser.feed(response.content.decode())
+        self.assertIn("open", parser.disclosures[0])
+        self.exam.refresh_from_db()
+        self.assertEqual(self.exam.title, "A1 yakuniy")
+
     def test_the_index_route_opens_an_exam_from_the_teachers_own_courses(self):
         self.client.force_login(self.teacher)
         response = self.client.get(reverse("backoffice_exams"))

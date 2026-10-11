@@ -33,3 +33,19 @@
 /* Dead-letter (T6): «hech qachon tuzalmaydi» turini qolganidan ajratadi —
    owner qaysi qatorni qaytarish befoyda ekanini ro'yxatda ko'rishi kerak. */
 .brand-badge--warn{background:var(--red-soft);color:var(--red)}
+
+/* Owner editors reflow with enlarged text, including existing uploaded names. */
+.bo-editor .brand-hero h1{font-size:clamp(1.5rem,3vw,2.125rem)}
+.bo-editor .brand-hero p,.bo-editor .brand-save{font-size:1rem;line-height:1.6}
+.bo-editor .brand-kicker,.bo-editor .brand-back,.bo-editor .brand-upload,.bo-editor .brand-upload>span,.bo-editor .brand-field small,.bo-editor .brand-field em,.bo-editor .brand-upload em,.bo-editor .brand-check-error{font-size:.875rem;line-height:1.6}
+.bo-editor .brand-field small,.bo-editor .brand-upload>span{color:var(--ink-3)}
+.bo-editor .brand-panel-head h2{font-size:1.125rem;line-height:1.4}
+.bo-editor .brand-fields--three,.bo-editor .brand-upload-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,19rem),1fr));gap:1.25rem}
+.bo-editor .brand-upload label{font-size:1rem;line-height:1.5;color:var(--ink)}
+.bo-editor .brand-upload input[type=file]{font-size:1rem;max-width:100%}
+.bo-editor .brand-upload-grid+.bo-editor-details{margin-top:1.25rem;margin-bottom:0}
+.bo-editor .brand-preview-light small,.bo-editor .brand-preview-dark small,.bo-editor .brand-preview-marks small{font-family:inherit;font-size:.875rem;line-height:1.5;letter-spacing:normal;text-transform:none}
+.bo-editor .brand-preview-light .brand-logo-name{color:#172033}
+.bo-editor .brand-preview-marks{grid-template-columns:repeat(auto-fit,minmax(min(100%,8rem),1fr))}
+.bo-editor .brand-audit strong,.bo-editor .brand-audit time,.bo-editor .brand-audit p,.bo-editor .brand-empty{font-size:.875rem;line-height:1.6}
+.bo-editor .brand-audit time{float:none;display:block}

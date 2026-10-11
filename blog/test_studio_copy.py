@@ -57,9 +57,9 @@ class BlogStudioCopyTests(TestCase):
         self.assertTrue(simple.is_valid(), simple.errors)
         self.assertEqual(simple.cleaned_data, legacy.cleaned_data)
         # Constructing a simpler form must not mutate the next legacy form.
-        self.assertIn("excerpt", BlogPostForm().fields["excerpt"].widget.attrs["placeholder"])
+        self.assertEqual(BlogPostForm().fields["excerpt"].widget.attrs["placeholder"], "Maqola haqida qisqacha yozing...")
 
-    def test_create_and_edit_use_flag_scoped_copy_and_preserve_multipart_editor(self):
+    def test_create_and_edit_keep_readable_copy_and_all_fields_in_both_shells(self):
         for enabled in (False, True):
             self.set_navigation(enabled)
             for url in (reverse("blog:studio_create"), reverse("blog:studio_edit", args=[self.post.slug])):
@@ -71,23 +71,20 @@ class BlogStudioCopyTests(TestCase):
                     self.assertContains(response, 'name="csrfmiddlewaretoken"')
                     self.assertContains(response, "django_ckeditor_5")
                     form = response.context["form"]
-                    if enabled:
-                        self.assertEqual(form.fields["excerpt"].widget.attrs["placeholder"], "Maqola haqida qisqacha yozing...")
-                        self.assertContains(response, "Ajratib ko‘rsatiladigan iqtibos")
-                        self.assertContains(response, '<details class="bo-settings-detail">')
-                        self.assertNotContains(response, "Highlight iqtibos")
-                        self.assertNotContains(response, "Share preview")
-                    else:
-                        self.assertContains(response, "Highlight iqtibos")
-                        self.assertNotContains(response, '<details class="bo-settings-detail">')
-                        self.assertIn("excerpt", form.fields["excerpt"].widget.attrs["placeholder"])
+                    self.assertEqual(form.fields["excerpt"].widget.attrs["placeholder"], "Maqola haqida qisqacha yozing...")
+                    self.assertContains(response, "Ajratib ko‘rsatiladigan iqtibos")
+                    self.assertContains(response, "Qidiruv va ulashish")
+                    self.assertNotContains(response, "Highlight iqtibos")
+                    self.assertNotContains(response, "Share preview")
+                    for name in form.fields:
+                        self.assertContains(response, f'name="{name}"', count=1)
 
     def test_bound_errors_open_extra_section_and_preserve_input_without_write(self):
         self.set_navigation(True)
         before = BlogPost.objects.count()
         response = self.client.post(reverse("blog:studio_create"), self.payload(seo_title="x" * 181))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, '<details class="bo-settings-detail" open>')
+        self.assertContains(response, '<details class="bo-editor-details" open>')
         self.assertTrue(response.context["form"]["seo_title"].errors)
         self.assertEqual(response.context["form"]["title"].value(), "Talaffuz mashqi")
         self.assertEqual(BlogPost.objects.count(), before)

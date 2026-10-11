@@ -4,53 +4,53 @@
 {% block bo_title %}{{ title }}{% endblock %}
 {% block bo_icon %}{% if content_kind == 'announcement' %}bi-megaphone{% else %}bi-journal-bookmark{% endif %}{% endblock %}
 {% block bo_topbar %}{{ title }} muharriri{% endblock %}
-{% block page_css %}<link rel="stylesheet" href="{% static 'css/sit-backoffice.css' %}">{{ form.media }}{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/sit-backoffice.css' %}"><link rel="stylesheet" href="{% static 'css/content-editors.css' %}">{{ form.media }}{% endblock %}
 
 {% block bo_content %}
-<div class="sit-bo-wrap">
+<div class="sit-bo-wrap content-editor bo-editor">
   <form method="post" enctype="multipart/form-data" class="bo-form">
     {% csrf_token %}
     <div class="sit-bo-head">
       <div>
         <div class="sit-bo-kicker"><a href="{% url list_url_name %}">{{ title }}</a> · {% if obj %}Tahrirlash{% else %}Yangi{% endif %}</div>
         <h1>{% if obj %}{{ obj.title }}{% else %}Yangi {{ title|lower }}{% endif %}</h1>
-        <p>{% if content_kind == 'announcement' %}{% if backoffice_unified_enabled %}E’lon Turkiyada o‘qish bosh sahifasida ko‘rinishi uchun “Bosh sahifada ko‘rsatilsin” va “Nashr etilgan” belgilarini birga yoqing.{% else %}Faqat “Bosh sahifada ko'rsatilsin” va “Nashr etilgan” birga yoqilganda e'lon SIT bosh sahifasiga chiqadi.{% endif %}{% else %}{% if backoffice_unified_enabled %}Qo‘llanmani nashr qilish uchun rasmiy manba va tekshirilgan sanani kiriting.{% else %}Public qo'llanma uchun rasmiy manba va tekshirilgan sana majburiy.{% endif %}{% endif %}</p>
+        <p>{% if content_kind == 'announcement' %}E’lon Turkiyada o‘qish bosh sahifasida ko‘rinishi uchun “Bosh sahifada ko‘rsatilsin” va “Nashr etilgan” belgilarini birga yoqing.{% else %}Qo‘llanmani nashr qilish uchun rasmiy manba va tekshirilgan sanani kiriting.{% endif %}</p>
       </div>
       <div class="sit-bo-actions">
-        {% if obj and content_kind == 'guide' %}<a class="sit-bo-btn" href="{{ obj.get_absolute_url }}?preview=1" target="_blank"><i class="bi bi-eye"></i> {% if backoffice_unified_enabled %}Oldindan ko‘rish{% else %}Preview{% endif %}</a>{% endif %}
-        <button class="sit-bo-btn" type="submit" name="save_draft" value="1"><i class="bi bi-file-earmark"></i> {% if backoffice_unified_enabled %}Qoralamani saqlash{% else %}Draft saqlash{% endif %}</button>
+        {% if obj and content_kind == 'guide' %}<a class="sit-bo-btn" href="{{ obj.get_absolute_url }}?preview=1" target="_blank" rel="noopener"><i class="bi bi-eye"></i> Oldindan ko‘rish</a>{% endif %}
+        <button class="sit-bo-btn" type="submit" name="save_draft" value="1"><i class="bi bi-file-earmark"></i> Qoralamani saqlash</button>
         <button class="sit-bo-btn primary" type="submit"><i class="bi bi-check2"></i> Saqlash</button>
       </div>
     </div>
 
     {% if content_kind == 'announcement' %}{% include "backoffice/sit_tabs.html" with current="announcements" %}{% else %}{% include "backoffice/sit_tabs.html" with current="guides" %}{% endif %}
 
-    {% if form.non_field_errors %}<div class="sit-bo-form-section has-error">{{ form.non_field_errors }}</div>{% endif %}
+    {% if form.errors %}<div class="sit-bo-form-section has-error" role="alert"><strong>Saqlanmadi.</strong> Belgilangan maydonlarni tekshiring.{{ form.non_field_errors }}</div>{% endif %}
     <div class="sit-bo-form-layout">
-      <section class="sit-bo-form-section">
-        <h2>Kontent va nashr</h2>
-        <p>{% if backoffice_unified_enabled %}Maydonlarni tekshiring, so‘ng sababni yozib, o‘zgarishni tasdiqlang.{% else %}Barcha maydonlarni tekshirib, o'ng tomonda sabab va tasdiqni kiriting.{% endif %}</p>
+      <div class="sit-bo-form-stack"><section class="sit-bo-form-section">
+        <h2>{% if content_kind == 'announcement' %}E’lon ma’lumotlari{% else %}Qo‘llanma matni{% endif %}</h2>
+        <p>Maydonlarni tekshiring, so‘ng sababni yozib, o‘zgarishni tasdiqlang.</p>
         <div class="sit-bo-fields">
           {% for field in form %}
-            {% if field.name != 'change_reason' and field.name != 'confirm_change' %}
-              {% if field.field.widget.input_type == 'checkbox' %}
-              <label class="sit-bo-checkline">{{ field }} <span>{{ field.label }}{% if field.help_text %}<small class="sit-bo-help">{{ field.help_text|safe }}</small>{% endif %}{% for error in field.errors %}<em class="sit-bo-error">{{ error }}</em>{% endfor %}</span></label>
-              {% else %}
-              <label class="sit-bo-field{% if field.name == 'title' or field.name == 'excerpt' or field.name == 'body' or field.name == 'source_url' or field.name == 'external_url' %} full{% endif %}"><span class="sit-bo-label">{{ field.label }}</span>{{ field }}{% if field.help_text %}<small class="sit-bo-help">{{ field.help_text|safe }}</small>{% endif %}{% for error in field.errors %}<em class="sit-bo-error">{{ error }}</em>{% endfor %}</label>
-              {% endif %}
+            {% if field.name != 'change_reason' and field.name != 'confirm_change' and field.name != 'is_published' and field.name != 'cover_image' and field.name != 'is_featured' and field.name != 'order' %}
+              {% include 'backoffice/sit_form_field.html' %}
             {% endif %}
           {% endfor %}
         </div>
       </section>
+      <details class="sit-bo-form-section bo-editor-details"{% if form.cover_image.errors or form.is_featured.errors or form.order.errors %} open{% endif %}>
+        <summary>Sahifadagi ko‘rinish</summary>
+        <div class="sit-bo-fields">{% for field in form %}{% if field.name == 'cover_image' or field.name == 'is_featured' or field.name == 'order' %}{% include 'backoffice/sit_form_field.html' %}{% endif %}{% endfor %}</div>
+      </details></div>
 
       <aside class="sit-bo-form-section sit-bo-audit">
-        <h2>{% if backoffice_unified_enabled %}Sabab va tasdiq{% else %}Tasdiq va audit{% endif %}</h2>
-        <p>{% if backoffice_unified_enabled %}Kim, qachon va nima sababdan saqlagani tarixga yoziladi.{% else %}Har saqlash owner, vaqt va sabab bilan qayd etiladi.{% endif %}</p>
-        <label class="sit-bo-field"><span class="sit-bo-label">{{ form.change_reason.label }}</span>{{ form.change_reason }}<small class="sit-bo-help">{{ form.change_reason.help_text }}</small>{% for error in form.change_reason.errors %}<em class="sit-bo-error">{{ error }}</em>{% endfor %}</label>
-        <label class="sit-bo-confirm">{{ form.confirm_change }} <span>{{ form.confirm_change.label }}</span></label>
-        {% for error in form.confirm_change.errors %}<em class="sit-bo-error">{{ error }}</em>{% endfor %}
+        <h2>Nashr va saqlash</h2>
+        <p>Kim, qachon va nima sababdan saqlagani tarixda yoziladi.</p>
+        {% include 'backoffice/sit_form_field.html' with field=form.is_published %}
+        {% include 'backoffice/sit_form_field.html' with field=form.change_reason %}
+        {% include 'backoffice/sit_form_field.html' with field=form.confirm_change %}
         <button class="sit-bo-btn primary" type="submit"><i class="bi bi-check2-circle"></i> O'zgarishlarni saqlash</button>
-        {% if recent_changes %}<div class="sit-bo-audit-list"><div class="sit-bo-label">Oxirgi o'zgarishlar</div>{% for change in recent_changes %}<div class="sit-bo-audit-item"><strong>{{ change.user.get_full_name|default:change.user.username }}</strong> · {{ change.action_time|date:"d.m.Y H:i" }}<br>{{ change.change_message }}</div>{% endfor %}</div>{% endif %}
+        {% if recent_changes %}<details class="sit-bo-audit-list"><summary>O‘zgarishlar tarixi</summary>{% for change in recent_changes %}<div class="sit-bo-audit-item"><strong>{{ change.user.get_full_name|default:change.user.username }}</strong> · {{ change.action_time|date:"d.m.Y H:i" }}<br>{{ change.change_message }}</div>{% endfor %}</details>{% endif %}
       </aside>
     </div>
   </form>

@@ -9,15 +9,15 @@ LANDING_SECTIONS = [
     {
         "key": "rail",
         "number": "01",
-        "title": "Yon panel (rail)",
-        "desc": "Chap tomondagi qat'iy panel matnlari.",
+        "title": "Yon panel",
+        "desc": "Sahifaning chap tomonidagi qisqa matnlar.",
         "anchor": "top",
         "fields": ["rail_tagline", "rail_footer_line_one", "rail_footer_line_two"],
     },
     {
         "key": "hero",
         "number": "02",
-        "title": "Hero (bosh ekran)",
+        "title": "Birinchi ekran",
         "desc": "Eng yuqoridagi sarlavha, kichik matn va tugmalar.",
         "anchor": "top",
         "fields": [
@@ -29,8 +29,8 @@ LANDING_SECTIONS = [
     {
         "key": "demo",
         "number": "03",
-        "title": "Demo dashboard",
-        "desc": "Hero ostidagi ko'rgazma dashboard kartasi.",
+        "title": "O‘quvchi kabineti namunasi",
+        "desc": "Saytdagi namuna kartasi matnlari. Haqiqiy kurs yoki o‘quvchi natijalari o‘zgarmaydi.",
         "anchor": "top",
         "fields": [
             "demo_url", "demo_course_kicker", "demo_course_name", "demo_progress",
@@ -44,7 +44,7 @@ LANDING_SECTIONS = [
         "key": "how",
         "number": "04",
         "title": "Jarayon (Qanday ishlaydi?)",
-        "desc": "Bo'lim sarlavhasi. Qadamlar alohida ro'yxatda (keyingi bosqich).",
+        "desc": "Jarayonni tushuntiradigan bo‘lim sarlavhasi va tavsifi.",
         "anchor": "how",
         "fields": ["process_section_kicker", "how_it_works_title", "how_it_works_subtitle"],
     },
@@ -52,7 +52,7 @@ LANDING_SECTIONS = [
         "key": "path",
         "number": "05",
         "title": "Daraja yo'li",
-        "desc": "Bo'lim sarlavhasi. Bosqichlar alohida ro'yxatda (keyingi bosqich).",
+        "desc": "Til darajalari bo‘limining sarlavhasi va tavsifi.",
         "anchor": "path",
         "fields": ["path_kicker", "path_title", "path_subtitle"],
     },
@@ -60,7 +60,7 @@ LANDING_SECTIONS = [
         "key": "ai",
         "number": "06",
         "title": "AI repetitor",
-        "desc": "Bo'lim sarlavhasi va chat demo matni. Xususiyatlar alohida ro'yxatda (keyingi bosqich).",
+        "desc": "Bo‘lim sarlavhasi va suhbat namunasi. Bu yerda faqat saytda ko‘rinadigan matnlar o‘zgaradi.",
         "anchor": "ai",
         "fields": [
             "ai_kicker", "ai_title", "ai_subtitle",
@@ -72,7 +72,7 @@ LANDING_SECTIONS = [
         "key": "exam",
         "number": "07",
         "title": "Imtihon muhiti",
-        "desc": "Bo'lim sarlavhasi. Ko'nikma kartalari alohida ro'yxatda (keyingi bosqich).",
+        "desc": "Imtihonlar haqida bo‘lim sarlavhasi va tavsifi.",
         "anchor": "exam",
         "fields": ["exam_kicker", "exam_title", "exam_subtitle"],
     },
@@ -92,8 +92,8 @@ LANDING_SECTIONS = [
     {
         "key": "footer",
         "number": "09",
-        "title": "Pastki CTA va footer",
-        "desc": "Sahifa oxiridagi chaqiruv va footer matnlari. Footer havolalari navigatsiya menejerida (keyingi bosqich).",
+        "title": "Sahifa oxiri",
+        "desc": "Sahifa oxiridagi sarlavha, tugmalar va ma’lumotlar.",
         "anchor": "",
         "fields": [
             "final_cta_title", "cta_primary_label", "final_cta_secondary_label",
@@ -116,7 +116,7 @@ class LandingPageForm(forms.ModelForm):
     change_reason = forms.CharField(
         label="O'zgartirish sababi",
         max_length=240,
-        help_text="Audit tarixida saqlanadi. Masalan: hero sarlavhasi yangilandi.",
+        help_text="O‘zgarishlar tarixida saqlanadi. Masalan: bosh sarlavha yangilandi.",
         widget=forms.Textarea(attrs={"rows": 3, "class": "lc-input"}),
     )
     confirm_change = forms.BooleanField(
@@ -127,6 +127,47 @@ class LandingPageForm(forms.ModelForm):
     class Meta:
         model = LandingPage
         fields = _EDITABLE_FIELDS
+        labels = {
+            "rail_tagline": "Yon paneldagi tavsif",
+            "rail_footer_line_one": "Yon panel oxiridagi 1-qator",
+            "rail_footer_line_two": "Yon panel oxiridagi 2-qator",
+            "hero_kicker_left": "Sarlavha ustidagi chap yozuv",
+            "hero_kicker_right": "Sarlavha ustidagi o‘ng yozuv",
+            "hero_primary_label": "Asosiy tugma matni",
+            "hero_secondary_label": "Ikkinchi tugma matni",
+            "demo_url": "Namunada ko‘rinadigan sayt manzili",
+            "demo_course_kicker": "Kurs ustidagi yozuv",
+            "demo_course_name": "Namunadagi kurs nomi",
+            "demo_progress": "Namunadagi bajarilish foizi",
+            "demo_next_title": "Namunadagi keyingi dars nomi",
+            "demo_next_time": "Namunadagi keyingi dars vaqti",
+            "demo_next_badge": "Keyingi dars belgisi matni",
+            "demo_stat_one_value": "Birinchi ko‘rsatkich qiymati",
+            "demo_stat_one_label": "Birinchi ko‘rsatkich nomi",
+            "demo_stat_two_value": "Ikkinchi ko‘rsatkich qiymati",
+            "demo_stat_two_label": "Ikkinchi ko‘rsatkich nomi",
+            "demo_stat_three_value": "Uchinchi ko‘rsatkich qiymati",
+            "demo_stat_three_label": "Uchinchi ko‘rsatkich nomi",
+            "process_section_kicker": "Sarlavha ustidagi yozuv",
+            "path_kicker": "Sarlavha ustidagi yozuv",
+            "ai_kicker": "Sarlavha ustidagi yozuv",
+            "ai_demo_session_label": "Suhbat namunasi nomi",
+            "ai_demo_question": "Namunadagi savol",
+            "ai_demo_answer": "Namunadagi javob",
+            "ai_demo_input_placeholder": "Savol maydonidagi ko‘rsatma",
+            "exam_kicker": "Sarlavha ustidagi yozuv",
+            "cert_kicker": "Sarlavha ustidagi yozuv",
+            "cert_cta_label": "Sertifikat tugmasi matni",
+            "final_cta_title": "Sahifa oxiridagi sarlavha",
+            "cta_primary_label": "Sahifa oxiridagi asosiy tugma matni",
+            "final_cta_secondary_label": "Sahifa oxiridagi ikkinchi tugma matni",
+            "footer_tagline": "Platforma haqida qisqa matn",
+            "footer_col_platform_title": "Platforma havolalari sarlavhasi",
+            "footer_col_company_title": "Kompaniya havolalari sarlavhasi",
+            "footer_col_legal_title": "Huquqiy havolalar sarlavhasi",
+            "footer_col_contact_title": "Aloqa ma’lumotlari sarlavhasi",
+            "footer_copyright": "Mualliflik huquqi yozuvi",
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

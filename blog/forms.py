@@ -7,11 +7,11 @@ from .models import BlogComment, BlogPost, BlogTag
 class BlogPostForm(forms.ModelForm):
     tag_names = forms.CharField(
         required=False,
-        help_text="Teglarni vergul bilan ajrating. Masalan: product, mindset, notes",
+        help_text="Mavzularni vergul bilan ajrating. Masalan: grammatika, turk tili, maslahat.",
         widget=forms.TextInput(
             attrs={
                 "class": "tag-real-input",
-                "placeholder": "strategy, turk tili, founder notes",
+                "placeholder": "grammatika, turk tili, maslahat",
             }
         ),
     )
@@ -36,17 +36,17 @@ class BlogPostForm(forms.ModelForm):
         widgets = {
             "title": forms.TextInput(attrs={"class": "title-input", "placeholder": "Maqola sarlavhasi..."}),
             "cover_image": forms.ClearableFileInput(attrs={"class": "d-none", "id": "coverFile"}),
-            "cover_alt_text": forms.TextInput(attrs={"class": "seo-input", "placeholder": "Cover rasm tavsifi"}),
+            "cover_alt_text": forms.TextInput(attrs={"class": "seo-input", "placeholder": "Rasmda nima tasvirlangan?"}),
             "excerpt": forms.Textarea(
-                attrs={"class": "subtitle-input", "rows": 2, "placeholder": "Qisqacha tavsif (excerpt)..."}
+                attrs={"class": "subtitle-input", "rows": 2, "placeholder": "Maqola haqida qisqacha yozing..."}
             ),
             "featured_quote": forms.TextInput(
-                attrs={"class": "seo-input", "placeholder": "Article ichida highlight bo'ladigan iqtibos"}
+                attrs={"class": "seo-input", "placeholder": "Maqoladan muhim jumla yoki iqtibos"}
             ),
             "published_at": forms.DateTimeInput(attrs={"class": "schedule-input", "type": "datetime-local"}),
-            "seo_title": forms.TextInput(attrs={"class": "seo-input", "placeholder": "SEO sarlavha"}),
+            "seo_title": forms.TextInput(attrs={"class": "seo-input", "placeholder": "Qidiruv natijasida ko‘rinadigan sarlavha"}),
             "meta_description": forms.Textarea(
-                attrs={"class": "seo-input", "rows": 3, "placeholder": "Share preview uchun qisqa tavsif"}
+                attrs={"class": "seo-input", "rows": 3, "placeholder": "Havola ulashilganda ko‘rinadigan qisqa tavsif"}
             ),
             "featured": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "allow_comments": forms.CheckboxInput(attrs={"class": "form-check-input"}),

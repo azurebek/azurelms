@@ -12,27 +12,27 @@
 {% endblock %}
 
 {% block bo_content %}
-<form method="post" enctype="multipart/form-data" class="bo-form" style="max-width:1080px;">
+<form method="post" enctype="multipart/form-data" class="bo-form bo-editor" style="max-width:1080px;">
   {% csrf_token %}
 
   <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:22px;">
     <div style="display:flex;align-items:center;gap:12px;min-width:0;">
       <a href="{% url 'backoffice_dashboard' %}" aria-label="Orqaga" style="width:38px;height:38px;border-radius:10px;border:1px solid var(--line);color:var(--ink-2);display:grid;place-items:center;font-size:15px;flex:0 0 auto;"><i class="bi bi-arrow-left"></i></a>
-      <div style="min-width:0;"><div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);margin-bottom:2px;">{% if lesson.module %}{{ lesson.module.course.title|truncatechars:24 }} · {{ lesson.module.title|truncatechars:20 }}{% else %}Dars{% endif %}</div><h1 style="font-size:clamp(18px,2.2vw,24px);font-weight:600;letter-spacing:-.02em;color:var(--ink);margin:0;">{% if lesson %}{{ lesson.title }}{% else %}Yangi dars{% endif %}</h1></div>
+      <div style="min-width:0;"><div style="font-size:.875rem;color:var(--ink-3);margin-bottom:.5rem;">{% if lesson.module %}{{ lesson.module.course.title }} · {{ lesson.module.title }}{% else %}Dars{% endif %}</div><h1 style="font-size:clamp(18px,2.2vw,24px);font-weight:600;letter-spacing:-.02em;color:var(--ink);margin:0;">{% if lesson %}{{ lesson.title }}{% else %}Yangi dars{% endif %}</h1></div>
     </div>
     <button type="submit" style="display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 18px;border-radius:9px;background:var(--azure);color:var(--on-azure);font-size:13.5px;font-weight:600;border:none;cursor:pointer;"><i class="bi bi-check2"></i> Saqlash</button>
   </div>
 
   {% if form.non_field_errors %}<div style="background:var(--red-soft);color:var(--red);border:1px solid var(--red);border-radius:10px;padding:11px 14px;font-size:13px;margin-bottom:18px;">{{ form.non_field_errors }}</div>{% endif %}
 
-  <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:20px;align-items:start;">
+  <div class="lesson-editor-layout">
     <div class="bo-card">
       <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:16px;">Dars ma'lumotlari</div>
       {% for field in form %}
         {% if field.field.widget.input_type == 'checkbox' %}
         <div class="bo-check">{{ field }}<span style="font-size:13.5px;color:var(--ink);">{{ field.label }}</span>{% if field.errors %}<span class="bo-err">{{ field.errors|striptags }}</span>{% endif %}</div>
         {% else %}
-        <label class="fld"><span class="bo-lbl">{{ field.label }}</span>{{ field }}{% if field.help_text %}<span class="bo-help">{{ field.help_text|safe }}</span>{% endif %}{% if field.errors %}<span class="bo-err">{{ field.errors|striptags }}</span>{% endif %}</label>
+        <label class="fld"><span class="bo-lbl">{{ field.label }}</span>{{ field }}{% if field.help_text %}<span class="bo-help" id="{{ field.id_for_label }}_helptext">{{ field.help_text|safe }}</span>{% endif %}{% if field.errors %}<span class="bo-err">{{ field.errors|striptags }}</span>{% endif %}</label>
         {% endif %}
       {% endfor %}
     </div>
@@ -41,13 +41,13 @@
       <div class="bo-card" style="padding:0;overflow:hidden;">
         <div style="padding:14px 18px;border-bottom:1px solid var(--line);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);">Topshiriqlar ({{ assignments|length }})</div>
         {% for a in assignments %}
-        <div style="display:flex;align-items:center;gap:10px;padding:11px 18px;{% if not forloop.last %}border-bottom:1px solid var(--line-2);{% endif %}"><span style="width:30px;height:30px;border-radius:8px;background:var(--amber-soft);color:var(--amber);display:grid;place-items:center;font-size:13px;flex:0 0 auto;"><i class="bi bi-pencil-square"></i></span><span style="font-size:13px;color:var(--ink);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ a.title|default:a }}</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:11px 18px;{% if not forloop.last %}border-bottom:1px solid var(--line-2);{% endif %}"><span style="width:30px;height:30px;border-radius:8px;background:var(--amber-soft);color:var(--amber);display:grid;place-items:center;font-size:13px;flex:0 0 auto;"><i class="bi bi-pencil-square"></i></span><span style="font-size:13px;color:var(--ink);min-width:0;white-space:normal;overflow-wrap:anywhere;">{{ a.title|default:a }}</span></div>
         {% empty %}<div style="padding:16px 18px;font-size:13px;color:var(--ink-3);">Topshiriq yo'q.</div>{% endfor %}
       </div>
       <div class="bo-card" style="padding:0;overflow:hidden;">
         <div style="padding:14px 18px;border-bottom:1px solid var(--line);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);">Testlar ({{ quizzes|length }})</div>
         {% for q in quizzes %}
-        <div style="display:flex;align-items:center;gap:10px;padding:11px 18px;{% if not forloop.last %}border-bottom:1px solid var(--line-2);{% endif %}"><span style="width:30px;height:30px;border-radius:8px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:13px;flex:0 0 auto;"><i class="bi bi-patch-question"></i></span><span style="font-size:13px;color:var(--ink);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ q.title|default:q }}</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:11px 18px;{% if not forloop.last %}border-bottom:1px solid var(--line-2);{% endif %}"><span style="width:30px;height:30px;border-radius:8px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-size:13px;flex:0 0 auto;"><i class="bi bi-patch-question"></i></span><span style="font-size:13px;color:var(--ink);min-width:0;white-space:normal;overflow-wrap:anywhere;">{{ q.title|default:q }}</span></div>
         {% empty %}<div style="padding:16px 18px;font-size:13px;color:var(--ink-3);">Test yo'q.</div>{% endfor %}
       </div>
     </div>
@@ -60,11 +60,11 @@
   Tartib formasi alohida e'lon qilinadi va qatorlardagi inputlar unga
   `form="lm-reorder"` bilan bog'lanadi: shunda HTML ichma-ich form bo'lmaydi.
 {% endcomment %}
-<section class="lm-card" aria-label="Darsdagi materiallar">
+<section class="lm-card bo-editor" aria-label="Darsdagi materiallar">
   <div class="lm-head">
     <div>
-      <div class="lm-head-title">Materiallar ({{ materials|length }})</div>
-      <div style="font-size:12.5px;color:var(--ink-3);margin-top:4px;">Kutubxonadagi bitta material bir necha darsga biriktirilaveradi.</div>
+      <h2 class="lm-head-title">Materiallar ({{ materials|length }})</h2>
+      <p class="lm-sub">Kutubxonadagi bitta material bir necha darsga biriktirilaveradi.</p>
     </div>
     <a class="lm-btn is-primary" href="{% url 'library_backoffice:lesson_picker' lesson_id=lesson.pk %}"><i class="bi bi-plus-lg"></i> Kutubxonadan tanlash</a>
   </div>
@@ -84,26 +84,32 @@
       {% if not material.is_downloadable %}<span class="lm-flag">Faqat ko'rish</span>{% endif %}
       {% if material.is_required %}<span class="lm-flag">Majburiy</span>{% endif %}
       {% if material.available_from %}<span class="lm-flag">{{ material.available_from|date:"d.m.Y H:i" }} dan</span>{% endif %}
-      <a class="lm-btn" href="{% url 'library_backoffice:resource_edit' resource_id=material.resource_id %}"><i class="bi bi-box-arrow-up-right"></i> Manba</a>
+      <a class="lm-btn" href="{% url 'library_backoffice:resource_edit' resource_id=material.resource_id %}"><i class="bi bi-box-arrow-up-right"></i> Kutubxonada ochish</a>
       <form method="post" action="{% url 'library_backoffice:material_detach' material_id=material.pk %}" onsubmit="return confirm('Material darsdan uziladi. Kutubxonada qoladi. Davom etasizmi?');">
         {% csrf_token %}
-        <button type="submit" class="lm-btn"><i class="bi bi-x-lg"></i> Uzish</button>
+        <button type="submit" class="lm-btn"><i class="bi bi-x-lg"></i> Darsdan olib tashlash</button>
       </form>
     </div>
 
-    <details class="lm-details">
-      <summary>Darsga xos sozlama</summary>
+    <details class="lm-details"{% if mform.errors %} open{% endif %}>
+      <summary>Shu darsdagi ko‘rinishi</summary>
       <form method="post" action="{% url 'library_backoffice:material_update' material_id=material.pk %}">
         {% csrf_token %}
+        <p class="lm-sub">Faqat shu darsdagi materialga ta’sir qiladi. Kutubxonadagi fayl o‘zgarmaydi.</p>
+        {% if mform.non_field_errors %}<div class="bo-err" role="alert">{{ mform.non_field_errors }}</div>{% endif %}
         <div class="lm-settings">
           {% for field in mform %}
+          <div class="lm-setting">
             {% if field.field.widget.input_type == 'checkbox' %}
-            <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink);">{{ field }} {{ field.label }}{% if field.errors %}<span class="bo-err">{{ field.errors|striptags }}</span>{% endif %}</label>
+            <label class="lm-check">{{ field }} <span>{{ field.label }}</span></label>
             {% else %}
-            <label><span class="bo-lbl">{{ field.label }}</span>{{ field }}{% if field.errors %}<span class="bo-err">{{ field.errors|striptags }}</span>{% endif %}</label>
+            <label><span class="bo-lbl">{{ field.label }}</span>{{ field }}</label>
             {% endif %}
+            {% if field.help_text %}<p class="bo-help" id="{{ field.id_for_label }}_helptext">{{ field.help_text }}</p>{% endif %}
+            {% if field.errors %}<div class="bo-err">{{ field.errors }}</div>{% endif %}
+          </div>
           {% endfor %}
-          <button type="submit" class="lm-btn is-primary" style="justify-self:start;"><i class="bi bi-check2"></i> Saqlash</button>
+          <button type="submit" class="lm-btn is-primary" style="justify-self:start;"><i class="bi bi-check2"></i> Sozlamani saqlash</button>
         </div>
       </form>
     </details>

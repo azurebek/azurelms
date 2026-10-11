@@ -1,68 +1,70 @@
 {% extends "backoffice/base.html" %}
-{% comment %}
-  Imtihon muharriri (backoffice_exam_editor).
-  Kontekst: exam_form, section_form (prefix=section), exam, section, sections,
-  section_types, total_score, total_time, questions_count.
-{% endcomment %}
-
-{% block bo_title %}Imtihon muharriri{% endblock %}
+{% block bo_title %}Imtihonni tayyorlash{% endblock %}
 {% block bo_icon %}bi-clipboard-check{% endblock %}
-{% block bo_topbar %}Imtihon muharriri{% endblock %}
+{% block bo_topbar %}Imtihonni tayyorlash{% endblock %}
 {% block page_css %}{{ exam_form.media }}{{ section_form.media }}{% endblock %}
-
 {% block bo_content %}
-<form method="post" enctype="multipart/form-data" class="bo-form" style="max-width:1080px;">
-  {% csrf_token %}
-
-  <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:22px;">
-    <div style="display:flex;align-items:center;gap:12px;min-width:0;">
-      <a href="{% url 'backoffice_dashboard' %}" aria-label="Orqaga" style="width:38px;height:38px;border-radius:10px;border:1px solid var(--line);color:var(--ink-2);display:grid;place-items:center;font-size:15px;flex:0 0 auto;"><i class="bi bi-arrow-left"></i></a>
-      <div style="min-width:0;"><div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);margin-bottom:2px;">{% if exam.course %}{{ exam.course.title|truncatechars:28 }}{% else %}Imtihon{% endif %}</div><h1 style="font-size:clamp(18px,2.2vw,24px);font-weight:600;letter-spacing:-.02em;color:var(--ink);margin:0;">{% if exam %}{{ exam.title }}{% else %}Yangi imtihon{% endif %}</h1></div>
-    </div>
-    <button type="submit" style="display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 18px;border-radius:9px;background:var(--azure);color:var(--on-azure);font-size:13.5px;font-weight:600;border:none;cursor:pointer;"><i class="bi bi-check2"></i> Saqlash</button>
-  </div>
-
-  {% if exam_form.non_field_errors %}<div style="background:var(--red-soft);color:var(--red);border:1px solid var(--red);border-radius:10px;padding:11px 14px;font-size:13px;margin-bottom:18px;">{{ exam_form.non_field_errors }}</div>{% endif %}
-
-  <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:20px;align-items:start;">
-    <div style="display:flex;flex-direction:column;gap:16px;">
-      <div class="bo-card">
-        <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:16px;">Imtihon ma'lumotlari</div>
-        {% for field in exam_form %}
-          {% if field.field.widget.input_type == 'checkbox' %}
-          <div class="bo-check">{{ field }}<span style="font-size:13.5px;color:var(--ink);">{{ field.label }}</span></div>
-          {% else %}
-          <label class="fld"><span class="bo-lbl">{{ field.label }}</span>{{ field }}{% if field.errors %}<span class="bo-err">{{ field.errors|striptags }}</span>{% endif %}</label>
-          {% endif %}
-        {% endfor %}
+<div class="bo-editor bo-exam-editor">
+  <header class="bo-editor-heading">
+    <a href="{% url 'backoffice_dashboard' %}">Boshqaruvga qaytish</a>
+    <h1>{% if exam %}{{ exam.title }}{% else %}Yangi imtihon{% endif %}</h1>
+    <p>Avval imtihon va baholashni belgilang. Kirish shartlarini kerak bo‘lsa oching.</p>
+  </header>
+  <form method="post" enctype="multipart/form-data" class="bo-form">
+    {% csrf_token %}
+    {{ exam_form.non_field_errors }}
+    <section class="bo-editor-section">
+      <h2>Imtihon haqida</h2>
+      <div class="bo-editor-fields">
+      {% for field in exam_form %}{% if field.name == 'title' or field.name == 'course' or field.name == 'exam_type' %}
+        {% include 'backoffice/editor_field.html' %}
+      {% endif %}{% endfor %}
       </div>
-      {% if section %}
-      <div class="bo-card">
-        <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:16px;">Bo'lim ({{ questions_count }} savol)</div>
-        {% for field in section_form %}
-          {% if field.field.widget.input_type == 'checkbox' %}
-          <div class="bo-check">{{ field }}<span style="font-size:13.5px;color:var(--ink);">{{ field.label }}</span></div>
-          {% else %}
-          <label class="fld"><span class="bo-lbl">{{ field.label }}</span>{{ field }}{% if field.errors %}<span class="bo-err">{{ field.errors|striptags }}</span>{% endif %}</label>
-          {% endif %}
-        {% endfor %}
+    </section>
+    <section class="bo-editor-section">
+      <h2>Baholash va urinishlar</h2>
+      <div class="bo-editor-fields">
+      {% for field in exam_form %}{% if field.name == 'weight_percentage' or field.name == 'passing_score' or field.name == 'max_attempts' %}
+        {% include 'backoffice/editor_field.html' %}
+      {% endif %}{% endfor %}
       </div>
-      {% endif %}
-    </div>
-
-    <div style="display:flex;flex-direction:column;gap:14px;">
-      <div class="bo-card">
-        <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:14px;">Jami</div>
-        <div style="display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:10px;"><span style="color:var(--ink-3);">Maksimal ball</span><span style="font-family:'Space Mono',monospace;font-weight:700;color:var(--ink);">{{ total_score }}</span></div>
-        <div style="display:flex;justify-content:space-between;font-size:13.5px;"><span style="color:var(--ink-3);">Vaqt (daqiqa)</span><span style="font-family:'Space Mono',monospace;font-weight:700;color:var(--ink);">{{ total_time }}</span></div>
+    </section>
+    <details class="bo-editor-details"{% if exam_form.prerequisite_exam.errors or exam_form.requires_all_assignments_approved.errors or exam_form.minimum_lesson_completion_percent.errors or exam_form.minimum_attendance_percent.errors %} open{% endif %}>
+      <summary>Imtihonga kirish shartlari<span>Oldingi imtihon, topshiriqlar, darslarni tugatish va davomat.</span></summary>
+      <div class="bo-editor-fields">
+      {% for field in exam_form %}{% if field.name == 'prerequisite_exam' or field.name == 'requires_all_assignments_approved' or field.name == 'minimum_lesson_completion_percent' or field.name == 'minimum_attendance_percent' %}
+        {% include 'backoffice/editor_field.html' %}
+      {% endif %}{% endfor %}
       </div>
-      <div class="bo-card" style="padding:0;overflow:hidden;">
-        <div style="padding:14px 18px;border-bottom:1px solid var(--line);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);">Bo'limlar ({{ sections|length }})</div>
-        {% for s in sections %}
-        <div style="display:flex;align-items:center;gap:10px;padding:11px 18px;{% if not forloop.last %}border-bottom:1px solid var(--line-2);{% endif %}"><span style="width:26px;height:26px;border-radius:7px;background:var(--azure-soft);color:var(--azure);display:grid;place-items:center;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;flex:0 0 auto;">{{ forloop.counter }}</span><span style="flex:1;min-width:0;font-size:13.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ s.title|default:s.get_section_type_display|default:s }}</span><span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-4);">{{ s.max_score }}b</span></div>
-        {% empty %}<div style="padding:16px 18px;font-size:13px;color:var(--ink-3);">Bo'lim yo'q.</div>{% endfor %}
+    </details>
+    {% if section %}
+    <section class="bo-editor-section">
+      <h2>{{ section.title|default:'Imtihon bo‘limi' }}</h2>
+      <p class="bo-editor-help">Bu bo‘limda {{ questions_count }} ta savol bor.</p>
+      {{ section_form.non_field_errors }}
+      <div class="bo-editor-fields">
+      {% for field in section_form %}{% if field.name == 'title' or field.name == 'section_type' %}
+        {% include 'backoffice/editor_field.html' %}
+      {% endif %}{% endfor %}
       </div>
-    </div>
-  </div>
-</form>
+      {% include 'backoffice/editor_field.html' with field=section_form.instructions %}
+      <div class="bo-editor-fields">
+      {% for field in section_form %}{% if field.name == 'max_score' or field.name == 'time_limit_minutes' or field.name == 'order' %}
+        {% include 'backoffice/editor_field.html' %}
+      {% endif %}{% endfor %}
+      </div>
+    </section>
+    <details class="bo-editor-details"{% if section_form.reading_text.errors or section_form.media_url.errors %} open{% endif %}>
+      <summary>Bo‘lim uchun matn yoki audio/video<span>Faqat ushbu bo‘limga kerak bo‘lsa to‘ldiring.</span></summary>
+      {% include 'backoffice/editor_field.html' with field=section_form.reading_text %}
+      {% include 'backoffice/editor_field.html' with field=section_form.media_url %}
+    </details>
+    {% endif %}
+    <div class="bo-editor-actions"><button class="bo-editor-save" type="submit">Imtihonni saqlash</button></div>
+  </form>
+  <details class="bo-editor-details bo-exam-summary">
+    <summary>Imtihon tarkibi va jami ball<span>{{ sections|length }} ta bo‘lim · {{ total_score }} ball · {{ total_time }} daqiqa.</span></summary>
+    <ul>{% for s in sections %}<li>{{ s.title|default:s.get_section_type_display }} — {{ s.max_score }} ball</li>{% empty %}<li>Hali bo‘lim qo‘shilmagan.</li>{% endfor %}</ul>
+  </details>
+</div>
 {% endblock %}

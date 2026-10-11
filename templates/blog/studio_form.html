@@ -1,106 +1,65 @@
 {% extends blog_workspace_base|default:"base_teacher.html" %}
-{% comment %}
-  Blog maqola muharriri (BlogPostCreateView / BlogPostUpdateView).
-  Proto: azurelms-proto/teacher/blog-editor.html.
-  Forma: BlogPostForm (title, cover_image, cover_alt_text, excerpt, featured_quote,
-  body[CKEditor], tag_names, featured, allow_comments, status, published_at, seo_title, meta_description).
-{% endcomment %}
-
+{% load static %}
 {% block t_title %}{% if form.instance.pk %}Maqola tahriri{% else %}Yangi maqola{% endif %}{% endblock %}
 {% block t_icon %}bi-pencil-square{% endblock %}
 {% block t_topbar %}Maqola muharriri{% endblock %}
-
 {% block page_css %}
 {{ form.media }}
-<style>
-  .se-card{ border:1px solid var(--line); border-radius:14px; background:var(--panel); padding:22px; }
-  .se-lbl{ display:block; font-family:'Space Mono',monospace; font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); margin-bottom:7px; }
-  .title-input{ width:100%; border:none; outline:none; background:transparent; color:var(--ink); font-size:24px; font-weight:600; letter-spacing:-.02em; margin-bottom:10px; }
-  .subtitle-input{ width:100%; border:none; outline:none; background:transparent; color:var(--ink-3); font-size:15px; line-height:1.5; resize:vertical; font-family:inherit; }
-  .seo-input, .schedule-input, .tag-real-input, .panel-select{ width:100%; padding:0 12px; height:42px; border-radius:10px; border:1px solid var(--line); background:var(--paper-2); color:var(--ink); font-size:13.5px; outline:none; transition:border-color .2s,box-shadow .2s; font-family:inherit; }
-  textarea.seo-input{ height:auto; padding:10px 12px; line-height:1.5; resize:vertical; }
-  .seo-input:focus, .schedule-input:focus, .tag-real-input:focus, .panel-select:focus, .title-input:focus, .subtitle-input:focus{ border-color:var(--azure); box-shadow:0 0 0 3px var(--azure-soft); }
-  .se-toggle{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 0; }
-  .se-err{ font-size:12px; color:var(--red); margin-top:5px; }
-</style>
+{% if not backoffice_unified_enabled %}{% include 'backoffice/editor_assets.html' %}{% endif %}
+<link rel="stylesheet" href="{% static 'css/content-editors.css' %}">
 {% endblock %}
-
 {% block t_content %}
-<form method="post" enctype="multipart/form-data" style="max-width:1080px;">
-  {% csrf_token %}
-
-  <!-- Sarlavha qatori -->
-  <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:22px;">
-    <div style="display:flex;align-items:center;gap:12px;min-width:0;">
-      <a href="{% url 'blog:studio' %}" aria-label="Orqaga" style="width:38px;height:38px;border-radius:10px;border:1px solid var(--line);color:var(--ink-2);display:grid;place-items:center;font-size:15px;flex:0 0 auto;"><i class="bi bi-arrow-left"></i></a>
-      <div style="min-width:0;"><div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);margin-bottom:2px;">Blog studiya{% if form.instance.pk %} · {{ form.instance.get_status_display }}{% endif %}</div><h1 style="font-size:clamp(18px,2.2vw,24px);font-weight:600;letter-spacing:-.02em;color:var(--ink);margin:0;">{% if form.instance.pk %}Maqola tahriri{% else %}Yangi maqola{% endif %}</h1></div>
-    </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;">
-      {% if form.instance.pk and form.instance.is_live %}<a href="{{ form.instance.get_absolute_url }}" target="_blank" style="display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 16px;border-radius:9px;border:1px solid var(--line);color:var(--ink);font-size:13.5px;font-weight:600;"><i class="bi bi-eye"></i> Ko'rish</a>{% endif %}
-      <button type="submit" style="display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 18px;border-radius:9px;background:var(--azure);color:var(--on-azure);font-size:13.5px;font-weight:600;border:none;cursor:pointer;"><i class="bi bi-check2"></i> Saqlash</button>
-    </div>
+<form method="post" enctype="multipart/form-data" class="bo-editor content-editor blog-editor">
+  {% csrf_token %}{% for field in form.hidden_fields %}{{ field }}{% endfor %}
+  <div class="content-editor-head">
+    <div><a href="{% url 'blog:studio' %}">← Maqolalarga qaytish</a><h1>{% if form.instance.pk %}Maqola tahriri{% else %}Yangi maqola{% endif %}</h1><p>{% if form.instance.pk %}Joriy holat: {{ form.instance.get_status_display }}.{% else %}Avval sarlavha va matnni yozing. Qoralamani saqlab, keyin davom ettirishingiz mumkin.{% endif %}</p></div>
+    {% if form.instance.pk and form.instance.is_live %}<a class="content-editor-button" href="{{ form.instance.get_absolute_url }}" target="_blank" rel="noopener">Maqolani ko‘rish</a>{% endif %}
   </div>
-
-  {% if form.non_field_errors %}<div style="background:var(--red-soft);color:var(--red);border:1px solid var(--red);border-radius:10px;padding:11px 14px;font-size:13px;margin-bottom:18px;">{{ form.non_field_errors }}</div>{% endif %}
-
-  <div class="bs-editor-layout" style="display:grid;grid-template-columns:1.6fr 1fr;gap:20px;align-items:start;">
-    <!-- Chap: muharrir -->
-    <div style="display:flex;flex-direction:column;gap:16px;">
-      <div class="se-card">
-        {{ form.title }}{% if form.title.errors %}<div class="se-err">{{ form.title.errors|striptags }}</div>{% endif %}
-        {{ form.excerpt }}{% if form.excerpt.errors %}<div class="se-err">{{ form.excerpt.errors|striptags }}</div>{% endif %}
-      </div>
-      <div class="se-card">
-        <label class="se-lbl">Asosiy matn</label>
-        {{ form.body }}{% if form.body.errors %}<div class="se-err">{{ form.body.errors|striptags }}</div>{% endif %}
-      </div>
-      <div class="se-card">
-        <label class="se-lbl">{% if backoffice_unified_enabled %}Ajratib ko‘rsatiladigan iqtibos{% else %}Highlight iqtibos{% endif %}</label>
-        {{ form.featured_quote }}
-        {% if backoffice_unified_enabled and form.featured_quote.errors %}<div class="se-err">{{ form.featured_quote.errors|striptags }}</div>{% endif %}
-      </div>
+  {% if form.errors %}<div class="content-editor-errors" role="alert"><strong>Saqlanmadi.</strong> Belgilangan maydonlarni tekshiring.{{ form.non_field_errors }}</div>{% endif %}
+  <div class="content-editor-layout">
+    <div class="content-editor-stack">
+      <section class="bo-editor-section" aria-labelledby="article-content-title">
+        <h2 id="article-content-title">Maqola matni</h2>
+        <div class="content-editor-stack">
+          {% include 'blog/studio_field.html' with field=form.title label='Sarlavha' %}
+          {% include 'blog/studio_field.html' with field=form.excerpt label='Qisqa tavsif' %}
+          {% include 'blog/studio_field.html' with field=form.body label='Asosiy matn' %}
+        </div>
+      </section>
+      <details class="bo-editor-details"{% if form.cover_image.errors or form.cover_alt_text.errors or form.featured_quote.errors or form.tag_names.errors %} open{% endif %}>
+        <summary>Rasm va qo‘shimcha ma’lumotlar</summary>
+        <div class="content-editor-stack">
+          {% if form.instance.cover_image %}<img class="content-editor-cover" src="{{ form.instance.cover_image.url }}" alt="Saqlangan muqova rasmi">{% endif %}
+          {% include 'blog/studio_field.html' with field=form.cover_image label='Muqova rasmi' %}
+          {% include 'blog/studio_field.html' with field=form.cover_alt_text label='Rasmning matnli tavsifi' %}
+          {% include 'blog/studio_field.html' with field=form.featured_quote label='Ajratib ko‘rsatiladigan iqtibos' %}
+          {% include 'blog/studio_field.html' with field=form.tag_names label='Mavzular' %}
+        </div>
+      </details>
+      <details class="bo-editor-details"{% if form.seo_title.errors or form.meta_description.errors %} open{% endif %}>
+        <summary>Qidiruv va ulashish</summary>
+        <p class="bo-editor-help">Havola va qidiruv natijasida ko‘rinadigan matnlar.</p>
+        <div class="content-editor-stack">
+          {% include 'blog/studio_field.html' with field=form.seo_title label='Qidiruvdagi sarlavha' %}
+          {% include 'blog/studio_field.html' with field=form.meta_description label='Havola uchun qisqa tavsif' %}
+        </div>
+      </details>
     </div>
-
-    <!-- O'ng: panel -->
-    <div style="display:flex;flex-direction:column;gap:16px;">
-      <div class="se-card">
-        <label class="se-lbl">Nashr holati</label>
-        {{ form.status }}
-        {% if backoffice_unified_enabled and form.status.errors %}<div class="se-err">{{ form.status.errors|striptags }}</div>{% endif %}
-        <label class="se-lbl" style="margin-top:14px;">Rejalashtirilgan sana</label>
-        {{ form.published_at }}
-        {% if backoffice_unified_enabled and form.published_at.errors %}<div class="se-err">{{ form.published_at.errors|striptags }}</div>{% endif %}
-        <div class="se-toggle" style="border-top:1px solid var(--line-2);margin-top:14px;"><div><div style="font-size:13px;font-weight:600;color:var(--ink);">{% if backoffice_unified_enabled %}Bosh sahifada ajratib ko‘rsatish{% else %}Tanlangan (featured){% endif %}</div><div style="font-size:11.5px;color:var(--ink-3);">Blog bosh sahifasida ajratiladi</div></div>{{ form.featured }}</div>
-        <div class="se-toggle"><div><div style="font-size:13px;font-weight:600;color:var(--ink);">Izohlar</div><div style="font-size:11.5px;color:var(--ink-3);">O'quvchilar izoh qoldira oladi</div></div>{{ form.allow_comments }}</div>
-      </div>
-
-      <div class="se-card">
-        <label class="se-lbl">{% if backoffice_unified_enabled %}Mavzular{% else %}Teglar{% endif %}</label>
-        {{ form.tag_names }}
-        {% if backoffice_unified_enabled and form.tag_names.errors %}<div class="se-err">{{ form.tag_names.errors|striptags }}</div>{% endif %}
-        <div style="font-size:11px;color:var(--ink-4);margin-top:6px;">Vergul bilan ajrating: grammatika, maslahat</div>
-      </div>
-
-      <div class="se-card">
-        <label class="se-lbl">Muqova rasmi</label>
-        {% if form.instance.cover_image %}<img src="{{ form.instance.cover_image.url }}" alt="" style="width:100%;border-radius:10px;margin-bottom:10px;">{% endif %}
-        <input type="file" name="{{ form.cover_image.html_name }}" accept="image/*" style="width:100%;font-size:13px;color:var(--ink-2);padding:10px;border:1px dashed var(--line);border-radius:10px;background:var(--paper-2);cursor:pointer;">
-        {% if backoffice_unified_enabled and form.cover_image.errors %}<div class="se-err">{{ form.cover_image.errors|striptags }}</div>{% endif %}
-        <label class="se-lbl" style="margin-top:14px;">{% if backoffice_unified_enabled %}Rasmning matnli tavsifi{% else %}Rasm tavsifi (alt){% endif %}</label>
-        {{ form.cover_alt_text }}
-        {% if backoffice_unified_enabled and form.cover_alt_text.errors %}<div class="se-err">{{ form.cover_alt_text.errors|striptags }}</div>{% endif %}
-      </div>
-
-      {% if backoffice_unified_enabled %}<details class="bo-settings-detail"{% if form.is_bound or form.seo_title.errors or form.meta_description.errors %} open{% endif %}><summary><strong>Qidiruv va ulashish</strong><span>Qo‘shimcha sarlavha va qisqa tavsif.</span></summary><div>{% else %}<div class="se-card">{% endif %}
-        <label class="se-lbl">{% if backoffice_unified_enabled %}Qidiruvdagi sarlavha{% else %}SEO sarlavha{% endif %}</label>
-        {{ form.seo_title }}
-        {% if backoffice_unified_enabled and form.seo_title.errors %}<div class="se-err">{{ form.seo_title.errors|striptags }}</div>{% endif %}
-        <label class="se-lbl" style="margin-top:14px;">{% if backoffice_unified_enabled %}Havola uchun qisqa tavsif{% else %}Meta tavsif{% endif %}</label>
-        {{ form.meta_description }}
-        {% if backoffice_unified_enabled and form.meta_description.errors %}<div class="se-err">{{ form.meta_description.errors|striptags }}</div>{% endif %}
-      </div>
-      {% if backoffice_unified_enabled %}</details>{% endif %}
-    </div>
+    <aside class="bo-editor-section content-editor-stack" aria-labelledby="article-publish-title">
+      <h2 id="article-publish-title">Saqlash va nashr qilish</h2>
+      {% include 'blog/studio_field.html' with field=form.status label='Nashr holati' %}
+      <p class="bo-editor-help">Hali tayyor bo‘lmasa, «Qoralama»ni tanlab saqlang.</p>
+      {% include 'blog/studio_field.html' with field=form.published_at label='Nashr vaqti' %}
+      <p class="bo-editor-help">«Nashr etilgan» tanlanganda vaqt bo‘sh bo‘lsa, maqola hozir ochiladi. Keyingi vaqtni tanlasangiz, o‘sha vaqtdan ko‘rinadi.</p>
+      <details class="bo-editor-details"{% if form.featured.errors or form.allow_comments.errors %} open{% endif %}>
+        <summary>Ko‘rsatish va izohlar</summary>
+        <div class="content-editor-stack">
+          {% include 'blog/studio_field.html' with field=form.featured label='Bosh sahifada ajratib ko‘rsatish' %}
+          {% include 'blog/studio_field.html' with field=form.allow_comments label='O‘quvchilar izoh qoldira olsin' %}
+        </div>
+      </details>
+      <button type="submit" class="content-editor-button primary">Maqolani saqlash</button>
+    </aside>
   </div>
 </form>
 {% endblock %}

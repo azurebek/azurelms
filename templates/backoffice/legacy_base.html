@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="{% static 'css/app-shell.css' %}">
   <link rel="stylesheet" href="{% static 'css/admin-shell.css' %}">
   {% block page_css %}{% endblock %}
+  {% include "backoffice/editor_assets.html" %}
 {% endblock %}
 {% block extra_js %}
   <script defer src="{% static 'js/app-shell.js' %}"></script>

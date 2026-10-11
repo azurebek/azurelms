@@ -1,0 +1,11 @@
+{% if field.is_hidden %}{{ field }}{% else %}
+<div>
+  {% if field.field.widget.input_type == 'checkbox' %}
+    <label class="c-choice" for="{{ field.id_for_label }}">{{ field }}<span>{{ field.label }}</span></label>
+  {% else %}
+    <label class="c-field__label" for="{{ field.id_for_label }}">{% if field.name == 'tags_text' %}Qidirish so‘zlari{% elif field.name == 'course' %}Bog‘liq kurs{% else %}{{ field.label }}{% endif %}{% if field.field.required %} *{% endif %}</label>{{ field }}
+  {% endif %}
+  {% if field.help_text %}<p class="c-caption" id="{{ field.id_for_label }}_helptext">{% if field.name == 'is_teacher_only' %}Javoblar kaliti kabi materiallar uchun. Belgilansa, o‘quvchilarga ochib bo‘lmaydi.{% elif field.name == 'file' and resource %}Yangi fayl tanlasangiz, u barcha bog‘langan darslarda eskisini almashtiradi. Chegara: {{ max_upload_mb }} MB.{% else %}{{ field.help_text }}{% endif %}</p>{% endif %}
+  {% if field.errors %}<div class="v1-error">{{ field.errors }}</div>{% endif %}
+</div>
+{% endif %}

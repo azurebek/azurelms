@@ -87,6 +87,33 @@ class BackofficeLessonEditorScopeTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Mening darsim")
 
+    def test_material_controls_have_distinct_ids_without_changing_post_names(self):
+        from html.parser import HTMLParser
+        from library.models import LibraryResource, LessonMaterial
+
+        class Controls(HTMLParser):
+            def __init__(self):
+                super().__init__()
+                self.ids = []
+
+            def handle_starttag(self, tag, attrs):
+                values = dict(attrs)
+                if values.get('id'):
+                    self.ids.append(values['id'])
+
+        for title in ('First handout', 'Second handout'):
+            resource = LibraryResource.objects.create(title=title)
+            LessonMaterial.objects.create(lesson=self.lesson, resource=resource)
+        self.client.force_login(self.teacher)
+        response = self.client.get(self._edit_url(self.lesson))
+        self.assertEqual(response.status_code, 200)
+        parsed = Controls()
+        parsed.feed(response.content.decode())
+        self.assertEqual(len(parsed.ids), len(set(parsed.ids)))
+        for material, form in response.context['material_forms']:
+            self.assertEqual(form['is_visible'].html_name, 'is_visible')
+            self.assertContains(response, f'id="material_{material.pk}_is_visible"')
+
     def test_foreign_lesson_is_not_found_for_a_teacher(self):
         self.client.force_login(self.teacher)
         response = self.client.get(self._edit_url(self.foreign_lesson))

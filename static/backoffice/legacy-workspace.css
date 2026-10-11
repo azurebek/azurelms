@@ -81,6 +81,15 @@
 .ws-legacy-content .aic-policy-field > span { display: none; }
 .ws-legacy-content .aic-policy-field > input { width: 100%; min-width: 0; }
 
+/* Text resizing must grow a control instead of clipping its label. Numeric
+   units have their own row so they cannot cover a long value at 200% text. */
+.ws-legacy-content :where(button:not(.ck-button),.brand-back,.brand-save,.brand-submit,.brand-btn) { height:auto !important; min-height:44px; white-space:normal; overflow-wrap:anywhere; line-height:1.5; padding-block:10px; max-width:100%; }
+.ws-legacy-content :where(.brand-numfield) { display:flex; flex-direction:column; gap:.25rem; max-width:none; }
+.ws-legacy-content .brand-numfield .brand-unit { position:static; transform:none; white-space:normal; align-self:flex-end; }
+.ws-legacy-content .brand-numfield .brand-input--num { padding-right:11px; }
+.ws-legacy-content .brand-panel-head > span { flex-shrink:0; width:auto; min-width:28px; height:auto; min-height:28px; padding:4px; overflow-wrap:anywhere; }
+.ws-legacy-content :where(h1,h2,h3,label,summary,.brand-back) { overflow-wrap:anywhere; }
+
 @media (max-width: 1100px) {
   .ws-legacy-content .bs-editor-layout { grid-template-columns: minmax(0, 1fr) !important; }
   .ws-legacy-content .bo-form > [style*="grid-template-columns:1.5fr 1fr"],
@@ -95,7 +104,7 @@
 @media (max-width: 720px) {
   .ws-legacy-content :where(.bo-card, .se-card) { padding: 18px; }
   .ws-legacy-content .aic-policy-row { grid-template-columns: minmax(0, 1fr) !important; }
-  .ws-legacy-content :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) { font-size: 16px !important; }
+  .ws-legacy-content :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) { font-size: max(1rem, 16px) !important; }
   .ws-legacy-content .bs-row { grid-template-columns: minmax(0, 1fr) auto !important; gap: 12px; }
   .ws-legacy-content .bs-row > :first-child { grid-column: 1 / -1; }
   .ws-legacy-content .bs-row > :last-child { grid-column: 2; grid-row: 2 / 4; }
