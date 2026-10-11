@@ -31,7 +31,7 @@ class AuditModelForm(forms.ModelForm):
     change_reason = forms.CharField(
         label="O'zgartirish sababi",
         max_length=240,
-        help_text="Audit jurnalida saqlanadi.",
+        help_text="O‘zgarishlar tarixida saqlanadi.",
         widget=forms.Textarea(
             attrs={
                 "rows": 3,
@@ -57,7 +57,7 @@ class UniversityBackofficeForm(AuditModelForm):
     FIELD_GROUPS = (
         (
             "Asosiy ma'lumot",
-            "Universitet identifikatsiyasi va joylashuvi.",
+            "Universitet nomi, joylashuvi va u haqidagi qisqa ma’lumot.",
             (
                 "name",
                 "short_name",
@@ -71,7 +71,7 @@ class UniversityBackofficeForm(AuditModelForm):
         ),
         (
             "Qabul va kontrakt",
-            "Public katalogdagi qabul holati, muddat va boshlang'ich narx.",
+            "Saytda ko‘rsatiladigan qabul holati, muddat va boshlang‘ich narx.",
             (
                 "admission_status",
                 "admission_deadline",
@@ -82,7 +82,7 @@ class UniversityBackofficeForm(AuditModelForm):
         ),
         (
             "Ariza yordami",
-            "Universitet detail sahifasidagi yordam CTA sozlamalari.",
+            "Hujjat topshirishga yordam taklif qilish va uning narxi.",
             (
                 "application_help_enabled",
                 "application_help_fee",
@@ -98,8 +98,8 @@ class UniversityBackofficeForm(AuditModelForm):
             ),
         ),
         (
-            "Ko'rinish va nashr",
-            "Bosh sahifa, muqova va public ko'rinish nazorati.",
+            "Rasm va sahifadagi ko‘rinish",
+            "Muqova, logo va ro‘yxatdagi joylashuvi. Nashr holati saqlash bo‘limida.",
             (
                 "cover_theme",
                 "cover_image",

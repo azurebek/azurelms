@@ -1,5 +1,9 @@
 # Frontend V1 — prototipdan ishlaydigan platformaga
 
+**2026-10-11 — eski muharrirlar:** [soddalashtirish va telefon/matn tekshiruvi](BACKOFFICE-EDITOR-SIMPLIFICATION.md).
+Imtihon, blog/SIT, bosh sahifa/brend, kutubxona, tarif/guruh va dars materiallari
+qulaylashtirildi; lokal 320px/200% matn tekshiruvi o‘tdi. Native va owner qabuli ochiq.
+
 **2026-10-10 — backoffice islohoti:** [uch asosiy ishga tayangan reja](BACKOFFICE-REFORM-PLAN.md)
 tayyorlandi: kurs/dars tayyorlash, o‘quvchi muammosini hal qilish va dizaynni
 texnik bilimsiz moslash. [Birinchi bosqich](BACKOFFICE-REFORM-STAGE-1.md)da ownerning

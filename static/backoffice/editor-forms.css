@@ -1,0 +1,51 @@
+/* Shared presentation for existing editors; field names and writers stay local. */
+.bo-editor { min-width:0; max-width:100%; font-size:1rem; line-height:1.6; overflow-wrap:anywhere; }
+.bo-editor :where(form,fieldset,section,article,aside,details,div,label) { min-width:0; }
+.bo-editor-section,.bo-editor-details { margin-block:0 1.25rem; padding:1.25rem; border:1px solid var(--line); border-radius:14px; background:var(--panel); }
+.bo-editor :where(.bo-editor-section,.bo-editor-details) h2 { margin:0 0 .5rem; font-size:1.125rem; line-height:1.4; }
+.bo-editor-details > summary { cursor:pointer; min-height:2.75rem; font-weight:650; font-size:1rem; line-height:1.5; }
+.bo-editor-details[open] > summary { margin-bottom:1.25rem; }
+.bo-editor-details > summary :where(small,span) { display:block; margin-top:.3rem; color:var(--ink-3); font-size:.875rem; font-weight:400; }
+.bo-editor :is(.bo-editor-help,.bo-help,.se-help) { display:block; margin:.4rem 0 1rem; font-size:.875rem; line-height:1.6; color:var(--ink-3); }
+.bo-editor-grid,.bo-editor-fields { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,19rem),1fr)); gap:1.25rem; align-items:start; }
+.bo-editor :is(.bo-lbl,.se-lbl,.brand-label,.brand-field > label,.brand-field > span,.brand-upload > strong) { font-family:inherit; font-size:1rem; line-height:1.5; letter-spacing:normal; text-transform:none; color:var(--ink); }
+.bo-editor :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=range]),select,textarea) { min-width:0; max-width:100%; min-height:2.75rem; height:auto; font-size:1rem; line-height:1.5; }
+.bo-editor :where(input,select,textarea) { scroll-margin-block:6rem; }
+.bo-editor textarea { resize:vertical; }
+.bo-editor :is(.bo-err,.se-err,.errorlist) { font-size:.9375rem; line-height:1.5; color:var(--red); }
+.bo-editor :where(button:not(.ck-button),.brand-save,.brand-submit,.brand-back,.lib-primary,.lib-action,.bo-editor-actions a) { max-width:100%; height:auto !important; min-height:2.75rem; white-space:normal; overflow-wrap:anywhere; line-height:1.5; padding-block:.65rem; }
+.bo-editor :where(.bo-editor-actions,.brand-actions) { display:flex; flex-wrap:wrap; align-items:center; gap:.75rem; }
+.bo-editor :where(.bo-editor-actions,.brand-actions) > * { min-width:0; }
+.bo-editor :where(input[type=checkbox],input[type=radio]) { flex-shrink:0; }
+.bo-editor :where(summary,button,a,input,select,textarea):focus-visible { outline:2px solid var(--azure); outline-offset:3px; }
+.bo-editor :where(img,video,iframe,.ck-editor,.ck-editor__main,.ck-content) { max-width:100%; }
+.bo-editor .ck-content { overflow-wrap:anywhere; }
+.bo-editor .ck.ck-editor__main > .ck-editor__editable { color:var(--ink); background:var(--panel); font-size:1rem; line-height:1.7; }
+.bo-editor .ck-toolbar__items { flex-wrap:wrap !important; }
+.bo-editor .ck-toolbar__items > .ck-dropdown { max-width:100%; }
+.bo-editor :where(.brand-panel-head p,.brand-field small,.brand-upload > span,.brand-check,.brand-confirm) { font-size:.875rem; line-height:1.6; }
+.bo-editor .brand-panel-head > span { flex-shrink:0; }
+.bo-editor .brand-hero { flex-wrap:wrap; }
+.bo-editor .brand-preview { position:static; }
+.bo-editor .catalog-save { font-size:1rem; }
+.bo-editor-heading { margin-bottom:1.5rem; }
+.bo-editor-heading h1 { font-size:1.75rem; line-height:1.3; margin:.75rem 0; }
+.bo-editor-heading p { color:var(--ink-3); }
+.bo-editor-field { margin-bottom:1rem; }
+.bo-editor-field > label { display:block; margin-bottom:.5rem; }
+.bo-editor-field > .bo-editor-check { display:flex; align-items:flex-start; gap:.65rem; }
+.bo-editor-check input { margin-top:.4em; }
+.bo-editor-save { background:var(--azure); color:var(--on-azure); border:0; border-radius:10px; padding:.75rem 1.25rem; font:inherit; cursor:pointer; }
+.bo-exam-editor { max-width:68rem; }
+.bo-exam-summary { margin-top:1.5rem; }
+/* The fallback shell must not clip its actions when editor text is enlarged. */
+.app:has(.bo-editor) .app-top { height:auto; min-height:4rem; flex-wrap:wrap; gap:.75rem; padding-block:.75rem; }
+.app:has(.bo-editor) .app-top > div:first-child { min-width:0; flex:1 1 10rem; }
+.app:has(.bo-editor) .app-top-title { min-width:0; white-space:normal; overflow-wrap:anywhere; }
+.app:has(.bo-editor) .app-top-actions { flex-wrap:wrap; flex-shrink:0; }
+.app:has(.bo-editor) :is(.app-ico-btn,.app-menu-btn) { min-width:2.75rem; min-height:2.75rem; width:auto; height:auto; flex-shrink:0; padding:.3rem; }
+@media(max-width:45rem) {
+  .bo-editor-section,.bo-editor-details { padding:1rem; }
+  .bo-editor :where(.bo-editor-actions,.brand-actions) { align-items:stretch; }
+  .bo-editor :where(.bo-editor-actions,.brand-actions) > :where(button,a) { flex:1 1 12rem; justify-content:center; text-align:center; }
+}

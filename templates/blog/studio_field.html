@@ -1,0 +1,10 @@
+<div class="content-editor-field">
+  {% if field.field.widget.input_type == 'checkbox' %}
+    <label class="content-editor-check" for="{{ field.id_for_label }}">{{ field }}<span>{{ label }}</span></label>
+  {% else %}
+    <label class="se-lbl" for="{{ field.id_for_label }}">{{ label }}{% if field.field.required %} *{% endif %}</label>
+    {% if field.name == 'cover_image' %}<input type="file" id="{{ field.id_for_label }}" name="{{ field.html_name }}" accept="image/*">{% else %}{{ field }}{% endif %}
+  {% endif %}
+  {% if field.name == 'tag_names' %}<p class="bo-editor-help" id="{{ field.id_for_label }}_helptext">Vergul bilan ajrating: grammatika, turk tili, maslahat.</p>{% elif field.help_text %}<p class="bo-editor-help" id="{{ field.id_for_label }}_helptext">{{ field.help_text }}</p>{% endif %}
+  {% if field.errors %}<div class="se-err">{{ field.errors }}</div>{% endif %}
+</div>

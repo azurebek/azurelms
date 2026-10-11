@@ -10,7 +10,7 @@ class BrandSettingsForm(forms.ModelForm):
     change_reason = forms.CharField(
         label="O'zgartirish sababi",
         max_length=240,
-        help_text="Audit tarixida saqlanadi. Masalan: yangi kurs brendi tasdiqlandi.",
+        help_text="O‘zgarishlar tarixida saqlanadi. Masalan: platforma logosi yangilandi.",
         widget=forms.Textarea(attrs={"rows": 3, "class": "brand-input"}),
     )
     confirm_change = forms.BooleanField(
@@ -29,6 +29,13 @@ class BrandSettingsForm(forms.ModelForm):
             "logo_mark_image",
             "favicon_image",
         )
+        labels = {"brand_tagline": "Qisqa tavsif", "logo_mark_text": "Qisqa belgi (masalan, AL)"}
+        help_texts = {
+            "logo_image": "Saytning yorug‘ fonida ko‘rinadigan asosiy logo.",
+            "logo_dark_image": "Qorong‘i fon uchun logo. Yuklanmasa, platforma nomi ko‘rinadi.",
+            "logo_mark_image": "Yon menyu, suhbatlar va sertifikatlardagi kichik joylar uchun kvadrat logo.",
+            "favicon_image": "Brauzer varag‘idagi kichik belgi. Kvadrat 64×64 yoki 128×128 rasm tavsiya etiladi.",
+        }
         widgets = {
             "brand_name": forms.TextInput(attrs={"class": "brand-input"}),
             "brand_tagline": forms.TextInput(attrs={"class": "brand-input"}),

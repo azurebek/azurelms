@@ -55,3 +55,30 @@ textarea.lc-input{resize:vertical;min-height:64px}
 
 @media(max-width:1050px){.lc-layout{grid-template-columns:1fr}.lc-side{display:grid;grid-template-columns:1fr 1fr}.lc-nav-jump{position:static}}
 @media(max-width:680px){.lc-hero{flex-direction:column}.lc-fields,.lc-side{grid-template-columns:1fr}.lc-panel{padding:15px}.lc-panel-head{flex-wrap:wrap}}
+
+/* One readable section at a time, with the chooser before the form on phones. */
+.bo-editor .lc-layout{grid-template-columns:minmax(0,1fr) minmax(15rem,20rem);grid-template-areas:"form nav" "form history";gap:1.25rem}
+.bo-editor .lc-form{grid-area:form}
+.bo-editor .lc-nav-jump{grid-area:nav;position:static}
+.bo-editor .lc-audit{grid-area:history}
+.lc-mobile-nav{display:none}
+.bo-editor .lc-hero{flex-wrap:wrap}
+.bo-editor .lc-hero h1{font-size:clamp(1.5rem,3vw,2.125rem)}
+.bo-editor .lc-hero p,.bo-editor .lc-label,.bo-editor .lc-toc-item,.bo-editor .lc-save{font-size:1rem;line-height:1.6}
+.bo-editor .lc-kicker,.bo-editor .lc-panel-title p,.bo-editor .lc-field small,.bo-editor .lc-confirm,.bo-editor .lc-errors,.bo-editor .lc-error,.bo-editor .lc-jump,.bo-editor .lc-back{font-size:.875rem;line-height:1.6}
+.bo-editor .lc-field small{color:var(--ink-3)}
+.bo-editor .lc-panel-title h2{font-size:1.125rem;line-height:1.4}
+.bo-editor .lc-fields{grid-template-columns:repeat(auto-fit,minmax(min(100%,19rem),1fr));gap:1.25rem}
+.bo-editor .lc-toc-label{white-space:normal;overflow:visible;text-overflow:clip}
+.bo-editor .lc-toc{margin-top:0;gap:.35rem}
+.bo-editor .lc-jump,.bo-editor .lc-back{min-height:2.75rem;white-space:normal;max-width:100%;flex-wrap:wrap}
+.bo-editor .lc-panel-head{flex-wrap:wrap}
+.bo-editor .lc-panel-title{flex-basis:10rem}
+.bo-editor .lc-audit strong,.bo-editor .lc-audit time,.bo-editor .lc-audit p,.bo-editor .lc-empty{font-size:.875rem;line-height:1.6}
+.bo-editor .lc-audit time{float:none;display:block}
+@media(max-width:65.625rem){
+  .bo-editor .lc-layout{grid-template-columns:minmax(0,1fr);grid-template-areas:"nav" "form" "history"}
+  .lc-mobile-nav{display:flex;flex-direction:column;gap:.5rem;font-size:1rem}
+  .bo-editor .lc-toc{display:none}
+}
+@media(prefers-reduced-motion:reduce){.lc-tabbed .lc-section.is-active{animation:none}}

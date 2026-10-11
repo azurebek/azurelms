@@ -3,11 +3,11 @@
 
 {% block bo_title %}{% if university %}{{ university.short_name }}{% else %}Yangi universitet{% endif %}{% endblock %}
 {% block bo_icon %}bi-building-gear{% endblock %}
-{% block bo_topbar %}{% if backoffice_unified_enabled %}Universitet ma’lumotlari{% else %}SIT universitet muharriri{% endif %}{% endblock %}
-{% block page_css %}<link rel="stylesheet" href="{% static 'css/sit-backoffice.css' %}">{{ form.media }}{% endblock %}
+{% block bo_topbar %}Universitet ma’lumotlari{% endblock %}
+{% block page_css %}<link rel="stylesheet" href="{% static 'css/sit-backoffice.css' %}"><link rel="stylesheet" href="{% static 'css/content-editors.css' %}">{{ form.media }}{% endblock %}
 
 {% block bo_content %}
-<div class="sit-bo-wrap">
+<div class="sit-bo-wrap content-editor bo-editor">
   <form method="post" enctype="multipart/form-data" class="bo-form">
     {% csrf_token %}
     <div class="sit-bo-head">
@@ -17,38 +17,33 @@
         <p>{% if university %}{{ university.city }} · {{ university.get_university_type_display }}{% else %}Avval asosiy ma'lumotni saqlang; fakultet va dasturlar keyingi ekranda ochiladi.{% endif %}</p>
       </div>
       <div class="sit-bo-actions">
-        {% if university %}<a class="sit-bo-btn" href="{{ university.get_absolute_url }}?preview=1" target="_blank"><i class="bi bi-eye"></i> {% if backoffice_unified_enabled %}Oldindan ko‘rish{% else %}Preview{% endif %}</a>{% endif %}
-        <button class="sit-bo-btn" type="submit" name="save_draft" value="1"><i class="bi bi-file-earmark"></i> {% if backoffice_unified_enabled %}Qoralamani saqlash{% else %}Draft saqlash{% endif %}</button>
+        {% if university %}<a class="sit-bo-btn" href="{{ university.get_absolute_url }}?preview=1" target="_blank" rel="noopener"><i class="bi bi-eye"></i> Oldindan ko‘rish</a>{% endif %}
+        <button class="sit-bo-btn" type="submit" name="save_draft" value="1"><i class="bi bi-file-earmark"></i> Qoralamani saqlash</button>
         <button class="sit-bo-btn primary" type="submit"><i class="bi bi-check2"></i> Saqlash</button>
       </div>
     </div>
 
     {% include "backoffice/sit_tabs.html" with current="universities" %}
 
-    {% if form.non_field_errors %}<div class="sit-bo-form-section has-error">{{ form.non_field_errors }}</div>{% endif %}
+    {% if form.errors %}<div class="sit-bo-form-section has-error" role="alert"><strong>Saqlanmadi.</strong> Belgilangan maydonlarni tekshiring.{{ form.non_field_errors }}</div>{% endif %}
     {% for section in formset_sections %}{% if section.formset.non_form_errors %}<div class="sit-bo-form-section has-error">{{ section.title }}: {{ section.formset.non_form_errors }}</div>{% endif %}{% endfor %}
 
     <div class="sit-bo-form-layout">
       <div class="sit-bo-form-stack">
         {% for section in form.sections %}
-        <section class="sit-bo-form-section{% if section.has_error %} has-error{% endif %}">
-          <h2>{{ section.title }}</h2>
+        {% if forloop.counter == 3 or forloop.counter == 5 %}<details class="sit-bo-form-section bo-editor-details{% if section.has_error %} has-error{% endif %}"{% if section.has_error %} open{% endif %}><summary>{{ section.title }}</summary>{% else %}<section class="sit-bo-form-section{% if section.has_error %} has-error{% endif %}"><h2>{{ section.title }}</h2>{% endif %}
           <p>{{ section.description }}</p>
           <div class="sit-bo-fields">
             {% for field in section.fields %}
-              {% if field.field.widget.input_type == 'checkbox' %}
-              <label class="sit-bo-checkline">{{ field }} <span>{{ field.label }}{% if field.help_text %}<small class="sit-bo-help">{{ field.help_text|safe }}</small>{% endif %}{% for error in field.errors %}<em class="sit-bo-error">{{ error }}</em>{% endfor %}</span></label>
-              {% else %}
-              <label class="sit-bo-field{% if field.name == 'description' or field.name == 'official_website' or field.name == 'source_url' %} full{% endif %}"><span class="sit-bo-label">{{ field.label }}</span>{{ field }}{% if field.help_text %}<small class="sit-bo-help">{{ field.help_text|safe }}</small>{% endif %}{% for error in field.errors %}<em class="sit-bo-error">{{ error }}</em>{% endfor %}</label>
-              {% endif %}
+              {% if field.name != 'is_published' %}{% include 'backoffice/sit_form_field.html' %}{% endif %}
             {% endfor %}
           </div>
-        </section>
+        {% if forloop.counter == 3 or forloop.counter == 5 %}</details>{% else %}</section>{% endif %}
         {% endfor %}
 
         {% if university %}
           {% for section in formset_sections %}
-          <details class="sit-bo-related"{% if section.formset.errors %} open{% endif %}>
+          <details class="sit-bo-related"{% if section.formset.total_error_count %} open{% endif %}>
             <summary><div><h3>{{ section.title }}</h3><p>{{ section.description }}</p></div><i class="bi bi-chevron-down"></i></summary>
             <div class="sit-bo-related-body">
               {{ section.formset.management_form }}
@@ -56,11 +51,7 @@
                 {% for hidden in subform.hidden_fields %}{{ hidden }}{% endfor %}
                 <div class="sit-bo-formset-row">
                   {% for field in subform.visible_fields %}
-                    {% if field.field.widget.input_type == 'checkbox' %}
-                    <label class="sit-bo-checkline">{{ field }} <span>{{ field.label }}{% for error in field.errors %}<em class="sit-bo-error">{{ error }}</em>{% endfor %}</span></label>
-                    {% else %}
-                    <label class="sit-bo-field"><span class="sit-bo-label">{{ field.label }}</span>{{ field }}{% if field.help_text %}<small class="sit-bo-help">{{ field.help_text|safe }}</small>{% endif %}{% for error in field.errors %}<em class="sit-bo-error">{{ error }}</em>{% endfor %}</label>
-                    {% endif %}
+                    {% include 'backoffice/sit_form_field.html' %}
                   {% endfor %}
                   {% for error in subform.non_field_errors %}<em class="sit-bo-error">{{ error }}</em>{% endfor %}
                 </div>
@@ -77,18 +68,17 @@
       </div>
 
       <aside class="sit-bo-form-section sit-bo-audit">
-        <h2>{% if backoffice_unified_enabled %}Sabab va tasdiq{% else %}Tasdiq va audit{% endif %}</h2>
-        <p>{% if backoffice_unified_enabled %}Kim, qachon va nima sababdan o‘zgartirgani tarixga yoziladi.{% else %}Har mutation owner, vaqt va sabab bilan audit jurnaliga yoziladi.{% endif %}</p>
-        <label class="sit-bo-field"><span class="sit-bo-label">{{ form.change_reason.label }}</span>{{ form.change_reason }}<small class="sit-bo-help">{{ form.change_reason.help_text }}</small>{% for error in form.change_reason.errors %}<em class="sit-bo-error">{{ error }}</em>{% endfor %}</label>
-        <label class="sit-bo-confirm">{{ form.confirm_change }} <span>{{ form.confirm_change.label }}</span></label>
-        {% for error in form.confirm_change.errors %}<em class="sit-bo-error">{{ error }}</em>{% endfor %}
+        <h2>Nashr va saqlash</h2>
+        <p>«Nashr etilgan» belgisi sahifani o‘quvchilarga ochadi. Kim, qachon va nima sababdan o‘zgartirgani tarixda saqlanadi.</p>
+        {% include 'backoffice/sit_form_field.html' with field=form.is_published %}
+        {% include 'backoffice/sit_form_field.html' with field=form.change_reason %}
+        {% include 'backoffice/sit_form_field.html' with field=form.confirm_change %}
         <button class="sit-bo-btn primary" type="submit"><i class="bi bi-check2-circle"></i> O'zgarishlarni saqlash</button>
 
         {% if recent_changes %}
-        <div class="sit-bo-audit-list">
-          <div class="sit-bo-label">Oxirgi o'zgarishlar</div>
+        <details class="sit-bo-audit-list"><summary>O‘zgarishlar tarixi</summary>
           {% for change in recent_changes %}<div class="sit-bo-audit-item"><strong>{{ change.user.get_full_name|default:change.user.username }}</strong> · {{ change.action_time|date:"d.m.Y H:i" }}<br>{{ change.change_message }}</div>{% endfor %}
-        </div>
+        </details>
         {% endif %}
       </aside>
     </div>

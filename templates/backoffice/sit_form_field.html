@@ -1,0 +1,9 @@
+{% if field.is_hidden %}{{ field }}{% elif field.field.widget.input_type == 'checkbox' %}
+<div><label class="sit-bo-checkline" for="{{ field.id_for_label }}">{{ field }}<span>{% if field.name == 'DELETE' %}Bu qator o‘chirilsin{% else %}{{ field.label }}{% endif %}</span></label>
+{% if field.help_text %}<small class="sit-bo-help" id="{{ field.id_for_label }}_helptext">{{ field.help_text|safe }}</small>{% endif %}{% if field.errors %}<div class="sit-bo-error">{{ field.errors }}</div>{% endif %}</div>
+{% else %}
+<div class="sit-bo-field{% if field.name == 'title' or field.name == 'description' or field.name == 'excerpt' or field.name == 'body' or field.name == 'official_website' or field.name == 'source_url' or field.name == 'external_url' %} full{% endif %}">
+<label class="sit-bo-label" for="{{ field.id_for_label }}">{% if field.name == 'order' %}Ro‘yxatdagi o‘rni{% else %}{{ field.label }}{% endif %}{% if field.field.required %} *{% endif %}</label>{{ field }}
+{% if field.help_text %}<small class="sit-bo-help" id="{{ field.id_for_label }}_helptext">{{ field.help_text|safe }}</small>{% endif %}{% if field.errors %}<div class="sit-bo-error">{{ field.errors }}</div>{% endif %}
+</div>
+{% endif %}

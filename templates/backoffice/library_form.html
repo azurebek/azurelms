@@ -11,96 +11,101 @@
 {% block page_css %}{% include "backoffice/library_styles.html" %}{% endblock %}
 
 {% block bo_content %}
-<div class="lib-wrap" style="max-width:1080px;">
+<div class="lib-wrap lib-editor bo-editor" style="max-width:1080px;">
   <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:22px;">
     <div style="display:flex;align-items:center;gap:12px;min-width:0;">
-      <a href="{% url 'library_backoffice:resources' %}" aria-label="Orqaga" style="width:38px;height:38px;border-radius:10px;border:1px solid var(--line);color:var(--ink-2);display:grid;place-items:center;font-size:15px;flex:0 0 auto;"><i class="bi bi-arrow-left"></i></a>
+      <a href="{% url 'library_backoffice:resources' %}" aria-label="Kutubxonaga qaytish" class="lib-editor-back"><i class="bi bi-arrow-left"></i></a>
       <div style="min-width:0;">
-        <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-3);margin-bottom:2px;">{% if resource %}{{ resource.get_resource_type_display }} · v{{ resource.version }}{% else %}Yangi material{% endif %}</div>
-        <h1 style="font-size:clamp(18px,2.2vw,24px);font-weight:600;letter-spacing:-.02em;color:var(--ink);margin:0;">{% if resource %}{{ resource.title }}{% else %}Material yuklash{% endif %}</h1>
+        <p class="lib-editor-intro">{% if resource %}{{ resource.get_resource_type_display }}{% else %}Yangi material{% endif %}</p>
+        <h1 class="lib-editor-title">{% if resource %}{{ resource.title }}{% else %}Material yuklash{% endif %}</h1>
       </div>
     </div>
   </div>
+  <p class="lib-editor-intro">{% if resource %}Bu materialdagi o‘zgarishlar undan foydalanuvchi barcha darslarda ko‘rinadi.{% else %}Faylni yuklang va nom bering. Saqlagach, uni darsga biriktirish mumkin.{% endif %}</p>
 
   {% if resource and resource.is_archived %}
-  <div style="background:var(--amber-soft);color:var(--amber);border:1px solid var(--amber);border-radius:10px;padding:11px 14px;font-size:13px;margin-bottom:18px;">
+  <div class="lib-editor-notice" style="background:var(--amber-soft);color:var(--amber);border-color:var(--amber);">
     Bu material arxivda. Mavjud biriktirmalar ishlayveradi, lekin yangi darsga tanlash uchun taklif qilinmaydi.
   </div>
   {% endif %}
 
   {% if duplicates %}
-  <div style="background:var(--paper-2);border:1px solid var(--line);border-radius:10px;padding:11px 14px;font-size:13px;color:var(--ink-2);margin-bottom:18px;">
+  <div class="lib-editor-notice">
     Xuddi shu faylga ega boshqa material bor:
     {% for dup in duplicates %}<a href="{% url 'library_backoffice:resource_edit' resource_id=dup.pk %}" style="color:var(--azure);">{{ dup.title }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}.
   </div>
   {% endif %}
 
-  <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:20px;align-items:start;">
+  <div class="lib-editor-layout">
     <form method="post" enctype="multipart/form-data" class="bo-form bo-card">
       {% csrf_token %}
-      <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:16px;">Material ma'lumotlari</div>
-      {% if form.non_field_errors %}<div style="background:var(--red-soft);color:var(--red);border:1px solid var(--red);border-radius:10px;padding:11px 14px;font-size:13px;margin-bottom:18px;">{{ form.non_field_errors }}</div>{% endif %}
+      <h2 class="lib-editor-heading">Material ma’lumotlari</h2>
+      <p class="bo-help">* belgisi qo‘yilgan maydonlar kerak.</p>
+      {% if form.errors %}<div class="lib-editor-error" role="alert"><strong>Saqlanmadi.</strong> Maydonlarni tekshiring. Yangi fayl tanlagan bo‘lsangiz, uni qayta tanlang.{{ form.non_field_errors }}</div>{% endif %}
+      {% include 'backoffice/library_field.html' with field=form.title %}
+      {% include 'backoffice/library_field.html' with field=form.file %}
       {% for field in form %}
-        {% if field.field.widget.input_type == 'checkbox' %}
-        <div class="bo-check">{{ field }}<span style="font-size:13.5px;color:var(--ink);">{{ field.label }}</span>{% if field.help_text %}<span class="bo-help">{{ field.help_text|safe }}</span>{% endif %}{% if field.errors %}<span class="bo-err">{{ field.errors|striptags }}</span>{% endif %}</div>
-        {% else %}
-        <label class="fld"><span class="bo-lbl">{{ field.label }}</span>{{ field }}{% if field.help_text %}<span class="bo-help">{{ field.help_text|safe }}</span>{% endif %}{% if field.errors %}<span class="bo-err">{{ field.errors|striptags }}</span>{% endif %}</label>
-        {% endif %}
+        {% if field.name != 'title' and field.name != 'file' and field.name != 'topic' and field.name != 'course' and field.name != 'tags_text' %}{% include 'backoffice/library_field.html' %}{% endif %}
       {% endfor %}
-      <button type="submit" class="lib-primary" style="margin-top:6px;"><i class="bi bi-check2"></i> Saqlash</button>
+      <details class="lib-editor-details"{% if form.topic.errors or form.course.errors or form.tags_text.errors %} open{% endif %}>
+        <summary>Kutubxonada topishni osonlashtirish</summary>
+        <p class="bo-help">Ixtiyoriy. Mavzu, kurs yoki qidirish so‘zlari orqali keyin tezroq topasiz.</p>
+        {% for field in form %}{% if field.name == 'topic' or field.name == 'course' or field.name == 'tags_text' %}{% include 'backoffice/library_field.html' %}{% endif %}{% endfor %}
+      </details>
+      <button type="submit" class="lib-primary"><i class="bi bi-check2"></i> Materialni saqlash</button>
     </form>
 
     <div style="display:flex;flex-direction:column;gap:14px;">
       {% if resource %}
       <div class="bo-card">
-        <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px;">Fayl</div>
-        <div style="font-size:13.5px;color:var(--ink);word-break:break-all;">{{ resource.original_filename|default:"—" }}</div>
+        <h2 class="lib-editor-heading">Saqlangan fayl</h2>
+        <p class="lib-editor-intro">{{ resource.original_filename|default:"—" }}</p>
         <div class="lib-sub" style="margin-top:6px;">{{ resource.file_kind_label }} · {{ resource.size_display }} · versiya {{ resource.version }}</div>
         <a class="lib-action" style="margin-top:12px;" href="{% url 'library_backoffice:resource_file' resource_id=resource.pk %}"><i class="bi bi-box-arrow-up-right"></i><span>Faylni ochish</span></a>
       </div>
 
       <div class="bo-card" style="padding:0;overflow:hidden;">
-        <div style="padding:14px 18px;border-bottom:1px solid var(--line);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);">Qayerda ishlatilgan ({{ usage|length }})</div>
+        <h2 class="lib-editor-heading" style="padding:1rem;border-bottom:1px solid var(--line);">Qayerda ishlatilgan ({{ usage|length }})</h2>
         {% for link in usage %}
         <div style="padding:11px 18px;{% if not forloop.last %}border-bottom:1px solid var(--line-2);{% endif %}">
-          <a href="{% url 'backoffice_lesson_edit' lesson_id=link.lesson_id %}" style="font-size:13px;color:var(--ink);">{{ link.lesson.title }}</a>
+          <a href="{% url 'backoffice_lesson_edit' lesson_id=link.lesson_id %}" class="lib-editor-intro">{{ link.lesson.title }}</a>
           <div class="lib-sub">{{ link.lesson.module.course.title }} · {{ link.get_audience_display }}{% if not link.is_visible %} · yopiq{% endif %}</div>
         </div>
-        {% empty %}<div style="padding:16px 18px;font-size:13px;color:var(--ink-3);">Hali hech qaysi darsga biriktirilmagan.</div>{% endfor %}
+        {% empty %}<p class="lib-editor-intro" style="padding:1rem;">Hali hech qaysi darsga biriktirilmagan.</p>{% endfor %}
       </div>
 
-      <div class="bo-card">
-        <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px;">Hayotiy sikl</div>
+      <details class="bo-card lib-editor-details">
+        <summary>Arxivlash yoki o‘chirish</summary>
         <form method="post" action="{% url 'library_backoffice:resource_archive' resource_id=resource.pk %}" style="margin-bottom:10px;">
           {% csrf_token %}
           <button type="submit" class="lib-action" style="width:100%;">{% if resource.is_archived %}<i class="bi bi-arrow-counterclockwise"></i><span>Arxivdan qaytarish</span>{% else %}<i class="bi bi-archive"></i><span>Arxivlash</span>{% endif %}</button>
         </form>
         {% if resource.is_in_use %}
-        <p style="font-size:12.5px;color:var(--ink-3);margin:0;">Material {{ resource.usage_total }} ta darsga biriktirilgan, shuning uchun uni o'chirib bo'lmaydi — arxivlash mavjud darslarni buzmaydi.</p>
+        <p class="lib-editor-intro">Material {{ resource.usage_total }} ta darsga biriktirilgan, shuning uchun uni o'chirib bo'lmaydi — arxivlash mavjud darslarni buzmaydi.</p>
         {% else %}
         <form method="post" action="{% url 'library_backoffice:resource_delete' resource_id=resource.pk %}" onsubmit="return confirm('Material va uning fayli butunlay o\'chiriladi. Davom etasizmi?');">
           {% csrf_token %}
           <button type="submit" class="lib-action" style="width:100%;color:var(--red);border-color:var(--line);"><i class="bi bi-trash"></i><span>Butunlay o'chirish</span></button>
         </form>
         {% endif %}
-      </div>
+      </details>
 
       {% if audit_events %}
-      <div class="bo-card" style="padding:0;overflow:hidden;">
-        <div style="padding:14px 18px;border-bottom:1px solid var(--line);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);">So'nggi amallar</div>
+      <details class="bo-card lib-editor-details">
+        <summary>O‘zgarishlar tarixi</summary>
         {% for event in audit_events %}
-        <div style="padding:11px 18px;{% if not forloop.last %}border-bottom:1px solid var(--line-2);{% endif %}font-size:12.5px;color:var(--ink-2);">
+        <div class="lib-editor-intro" style="padding:.75rem 0;{% if not forloop.last %}border-bottom:1px solid var(--line-2);{% endif %}">
           {{ event.action }}
           <div class="lib-sub">{{ event.created_at|date:"d.m.Y H:i" }} · {{ event.actor_label|default:"—" }}</div>
         </div>
         {% endfor %}
-      </div>
+      </details>
       {% endif %}
       {% else %}
       <div class="bo-card">
-        <div style="font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px;">Eslatma</div>
-        <p style="font-size:13px;color:var(--ink-2);margin:0 0 8px;">Fayl bir marta yuklanadi va keyin istalgan darsga biriktiriladi — har dars uchun qayta yuklash shart emas.</p>
-        <p style="font-size:13px;color:var(--ink-3);margin:0;">Hajm chegarasi: {{ max_upload_mb }} MB. Ruxsat etilgan turlar: PDF, Office/ZIP, matn, rasm, audio va video.</p>
+        <h2 class="lib-editor-heading">Fayl haqida</h2>
+        <p class="lib-editor-intro">Fayl bir marta yuklanadi va keyin istalgan darsga biriktiriladi — har dars uchun qayta yuklash shart emas.</p>
+        <p class="lib-editor-intro">Hajm chegarasi: {{ max_upload_mb }} MB. Ruxsat etilgan turlar: PDF, Office/ZIP, matn, rasm, audio va video.</p>
       </div>
       {% endif %}
     </div>

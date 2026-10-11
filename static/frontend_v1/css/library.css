@@ -10,4 +10,9 @@
 [data-library-root] .errorlist { padding-left: var(--az-space-5); }
 [data-library-root] .c-alert { display: block; }
 [data-library-root] .c-alert .c-text-link { display: inline; }
+[data-library-root] .f-library-details { border: 1px solid var(--az-border); border-radius: var(--az-radius-sm); padding: var(--az-space-4); }
+[data-library-root] .f-library-details > summary { display: list-item; font-weight: var(--az-weight-medium); padding-block: var(--az-space-3); line-height: 1.5; }
+[data-library-root] .f-library-details[open] > summary { margin-bottom: var(--az-space-4); }
+[data-library-root] .f-library-details > summary:focus-visible { outline: 2px solid var(--az-action); outline-offset: 4px; }
+[data-library-root] .c-button { height: auto; white-space: normal; text-align: center; }
 @media (width < 640px) { .f-library-grid { grid-template-columns: minmax(0, 1fr); } }

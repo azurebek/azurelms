@@ -1,0 +1,12 @@
+{% if field.is_hidden %}{{ field }}{% else %}
+<div class="brand-field">
+  {% if field.field.widget.input_type == 'checkbox' %}
+    <label class="brand-check" for="{{ field.id_for_label }}">{{ field }} <span>{% if field.name == 'is_checkout_default' %}Yangi to‘lovlarda avval tanlansin{% elif field.name == 'is_popular' %}«Ommabop» belgisi ko‘rsatilsin{% elif field.name == 'is_active' %}Guruh faol{% else %}{{ field.label }}{% endif %}</span></label>
+  {% else %}
+    <label for="{{ field.id_for_label }}">{% if field.name == 'course' %}Kurs{% elif field.name == 'features_text' %}Tarifga kiradigan imkoniyatlar{% elif field.name == 'name' and request.resolver_match.url_name == 'backoffice_plan_edit' %}Tarif nomi{% elif field.name == 'order' %}Ro‘yxatdagi o‘rni{% else %}{{ field.label }}{% endif %}{% if field.field.required %} *{% endif %}</label>{{ field }}
+  {% endif %}
+  {% if field.help_text %}<small id="{{ field.id_for_label }}_helptext">{% if field.name == 'is_checkout_default' %}Yangi to‘lov sahifasida shu guruh birinchi tanlanadi.{% elif field.name == 'capacity' %}Bo‘sh qoldirilsa tarifdagi joylar soni olinadi. Bu guruh uchun sonni alohida o‘zgartirishingiz mumkin. Band joylar sonidan kam bo‘la olmaydi.{% elif field.name == 'features_text' %}Har qatorda bitta imkoniyat. Tarifga kirmaydigan imkoniyat oldiga - yozing. Faqat amalda mavjud xizmatlarni kiriting.{% else %}{{ field.help_text }}{% endif %}</small>{% endif %}
+  {% if field.name == 'order' %}<small>Kichik raqamli tarif ro‘yxatda oldin ko‘rinadi.</small>{% endif %}
+  {{ field.errors }}
+</div>
+{% endif %}

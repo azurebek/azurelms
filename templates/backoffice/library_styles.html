@@ -39,6 +39,29 @@
   .lib-pager{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:24px}
   .lib-pager a{height:38px;display:inline-flex;align-items:center;gap:6px;padding:0 14px;border-radius:9px;border:1px solid var(--line);color:var(--ink-2);font-size:13px;font-weight:600}
   .lib-pager span{font-family:'Space Mono',monospace;font-size:12.5px;color:var(--ink-3)}
+  .lib-editor{overflow-wrap:anywhere}
+  .lib-editor-layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:1.5rem;align-items:start}
+  .lib-editor-layout>*{min-width:0}
+  .lib-editor-intro{font-size:1rem;color:var(--ink-2);margin:0 0 1rem;line-height:1.6}
+  .lib-editor-title{font-size:1.5rem;font-weight:600;letter-spacing:-.02em;color:var(--ink);margin:0}
+  .lib-editor-back{width:2.75rem;height:2.75rem;border-radius:.625rem;border:1px solid var(--line);color:var(--ink-2);display:grid;place-items:center;font-size:1rem;flex:none}
+  .lib-editor-notice{background:var(--paper-2);border:1px solid var(--line);border-radius:.625rem;padding:.75rem 1rem;font-size:1rem;color:var(--ink-2);line-height:1.6;margin-bottom:1rem}
+  .lib-editor-heading{font-size:1.25rem;font-weight:600;margin:0 0 .75rem;color:var(--ink)}
+  .lib-editor-field{display:grid;gap:.5rem;min-width:0;margin-block:1rem}
+  .lib-editor-field .bo-lbl,.lib-editor-field .bo-check{font-size:1rem;line-height:1.5;margin:0}
+  .lib-editor-field .bo-help,.lib-editor .bo-help{font-size:.9375rem;line-height:1.6;margin:0;color:var(--ink-2)}
+  .lib-editor-field .field-input,.lib-editor-field .field-textarea{box-sizing:border-box;width:100%;min-width:0;max-width:100%;font-size:1rem}
+  .lib-editor-field .bo-check{display:flex;align-items:flex-start;gap:.625rem}
+  .lib-editor-field .bo-check input{flex:none;margin-top:.3em}
+  .lib-editor .lib-sub{white-space:normal;font-family:inherit;font-size:.9375rem;line-height:1.5;overflow:visible}
+  .lib-editor .lib-primary,.lib-editor .lib-action{height:auto;min-height:2.75rem;max-width:100%;padding:.65rem 1rem;font-size:1rem;line-height:1.5;white-space:normal;text-align:center}
+  .lib-editor .lib-primary{margin-top:1rem}
+  .lib-editor-details{border:1px solid var(--line);border-radius:.75rem;padding:1rem;margin-block:1rem}
+  .lib-editor-details summary{min-height:2.75rem;cursor:pointer;font-size:1rem;font-weight:600;line-height:1.5;color:var(--ink);padding-block:.5rem}
+  .lib-editor-details[open] summary{margin-bottom:1rem}
+  .lib-editor-details summary:focus-visible{outline:2px solid var(--azure);outline-offset:4px}
+  .lib-editor-error{background:var(--red-soft);color:var(--red);border:1px solid var(--red);border-radius:.625rem;padding:.75rem 1rem;font-size:1rem;line-height:1.5;margin-bottom:1rem}
+  @media(max-width:60rem){.lib-editor-layout{grid-template-columns:minmax(0,1fr)}}
   @media(max-width:960px){
     .lib-table-head{display:none}
     .lib-grid{grid-template-columns:minmax(0,1fr) auto}

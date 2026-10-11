@@ -1123,7 +1123,8 @@ def backoffice_lesson_editor(request, lesson_id=None):
 
         materials = list(teacher_materials(lesson))
         material_forms = [
-            (material, LessonMaterialForm(instance=material)) for material in materials
+            (material, LessonMaterialForm(instance=material, auto_id=f'material_{material.pk}_%s'))
+            for material in materials
         ]
     context = {
         **_backoffice_context("lessons", request.user),
