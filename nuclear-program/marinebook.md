@@ -16,6 +16,34 @@ Qisqa izoh (2-4 jumla) — nima qilindi va nima uchun muhim.
 
 ---
 
+## 2026-10-11 [Codex]: Eski muharrirlarni soddalashtirish va matn reflow’i
+
+Owner topshirig‘i bilan imtihon, blog/SIT, bosh sahifa/brend, kutubxona,
+tarif/guruh va dars materiallari muharrirlari qulaylashtirildi. Asosiy maydonlar
+oldinga, qo‘shimcha ma’lumotlar ochiladigan bo‘limlarga chiqarildi; xatoli
+maydon yashirin qolmaydi. Texnik atamalar va mayda matn kamaytirildi.
+
+- Branch: `codex/backoffice-editor-simplification`; implementatsiya `a8521cc`.
+  [Dalil va chegaralar](frontend-v1/BACKOFFICE-EDITOR-SIMPLIFICATION.md).
+- Landing mobil tanlagichi va hidden native invalid fokus, material unique ID,
+  CKEditor dark matn kontrasti, 200% matnda topbar/control wrap tuzatildi.
+  Writer, ruxsat, sabab/tasdiq, revision va SIT formset maydonlari saqlangan.
+- Env-file OFF, Gemini/Telegram bo‘sh: `venv/Scripts/python.exe manage.py test
+  core library subscriptions blog sit --verbosity 1`: **1065 test / 1033 PASS /
+  32 skip**, 138.167s. Dastlabki bitta eski title assertioni ataylab yangi nomga
+  yangilanib, ayni to‘liq buyruq qayta o‘tdi. Check0, migration drift yo‘q.
+- `node --test tests/frontend_v1/landing-editor.test.mjs
+  tests/frontend_v1/backoffice-workspace.test.mjs tests/frontend_v1/library.test.mjs`:
+  **20/20 PASS**. `git diff --check`: PASS. Mustaqil review topgan shrift
+  ustuvorligi tuzatilib, computed input font 32px bilan tasdiqlandi.
+- IAB synthetic: 320/1280px, 200% rendered text, root 32px, ochiq qo‘shimcha
+  maydonlar, universitetning 7 formseti; exam/blog saqlash va readback PASS.
+  Landing/catalog invalid focus PASS. Unified OFF va library V1 fallback ko‘rildi.
+- `.tools/backoffice-editors/` — lokal rasmlar/log/QA fixture/oldingi DB nusxasi;
+  Gitga kirmaydi. Owner DB/productionga tegilmagan; yangi model/migration/flag
+  default/provider yo‘q. Native telefon/zoom, screen reader va ownerning
+  yordamsiz usability qabuli hamda production rollout alohida qoladi.
+
 ## 2026-10-10 [Codex]: Backoffice oltinchi bosqich — yakuniy amaliy tekshiruv
 
 Owner topshirig‘i bilan T1–T8 vazifalari synthetic brauzer muhitida tekshirildi.
